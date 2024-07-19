@@ -3,6 +3,7 @@
 // author: Daniel Hug, 2024
 
 #include <concepts> // std::floating_point
+#include <iostream>
 
 #include "fmt/format.h"
 #include "fmt/ranges.h" // support printing of (nested) containers & tuples
