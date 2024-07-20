@@ -658,3 +658,10 @@ print("0.5*(I_2d*v-v*I_2d)=", 0.5 * (I_2d * v - v * I_2d))
 print("0.5*(v*I_2d+I_2d*v)=", 0.5 * (v * I_2d + I_2d * v))
 print("0.5*(I_2d*v+v*I_2d)=", 0.5 * (I_2d * v + v * I_2d))
 print("project_onto(v,I_2d)=", project_onto(v, I_2d))
+
+-- inverses
+v = vec2d.new(1, 1)
+print("v=", v, "inv(v)=", inv(v), "v*inv(v)=", v * inv(v))
+
+c = mvec2d_e.new(1, 1)
+print("c=", c, "inv(c)=", inv(c), "c*inv(c)=", c * inv(c))
