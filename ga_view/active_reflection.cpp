@@ -2,15 +2,15 @@
 // author: Daniel Hug, 2024
 //
 
-#include "active_plane.hpp"
+#include "active_reflection.hpp"
 #include "active_common.hpp"
 
 #include "ga/ga.hpp"
 
 #include <algorithm> // std::max
 
-active_plane::active_plane(Coordsys* cs, w_Coordsys* wcs, active_pt* n1end,
-                           active_pt* n2end, QGraphicsItem* parent) :
+active_reflection::active_reflection(Coordsys* cs, w_Coordsys* wcs, active_pt* n1end,
+                                     active_pt* n2end, QGraphicsItem* parent) :
     QGraphicsItem(parent), cs{cs}, wcs{wcs}, m_n1end{n1end}, m_n2end{n2end}
 {
     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
@@ -23,12 +23,12 @@ active_plane::active_plane(Coordsys* cs, w_Coordsys* wcs, active_pt* n1end,
     connect(wcs, &w_Coordsys::viewResized, m_n1end, &active_pt::viewChanged);
     connect(wcs, &w_Coordsys::viewResized, m_n2end, &active_pt::viewChanged);
 
-    connect(this, &active_plane::viewMoved, m_n1end, &active_pt::posChanged);
-    connect(this, &active_plane::viewMoved, m_n2end, &active_pt::posChanged);
+    connect(this, &active_reflection::viewMoved, m_n1end, &active_pt::posChanged);
+    connect(this, &active_reflection::viewMoved, m_n2end, &active_pt::posChanged);
 }
 
-void active_plane::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
-                         QWidget* widget)
+void active_reflection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+                              QWidget* widget)
 {
 
     // clipping area is active area of coordsys
@@ -38,17 +38,7 @@ void active_plane::paint(QPainter* painter, const QStyleOptionGraphicsItem* opti
     // draw in item coordinate system
     painter->save();
 
-    painter->setPen(QPen(QBrush(col_lgreen), 2, Qt::SolidLine));
-    painter->setBrush(col_lgreen);
-
-    if (m_mouse_hover && !m_mouse_l_pressed) {
-        painter->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
-        painter->setBrush(col_green);
-    }
-    if (m_mouse_hover && m_mouse_l_pressed) {
-        painter->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // pressed: red
-        painter->setBrush(col_red);
-    }
+    // draw first normal vector and corresponding hyperplane
 
     QPointF beg_pos = QPointF(cs->x.a_to_w(0.0), cs->y.a_to_w(0.0));
 
@@ -58,19 +48,22 @@ void active_plane::paint(QPainter* painter, const QStyleOptionGraphicsItem* opti
     QPointF end_n1pos_nrm = QPointF(cs->x.a_to_w(end_n1pos_nrm_scene.x()),
                                     cs->y.a_to_w(end_n1pos_nrm_scene.y()));
 
-    QPen pen = painter->pen();
-    pen.setWidth(2);
+    painter->setPen(QPen(QBrush(col_lgreen), 2, Qt::SolidLine));
+    painter->setBrush(col_lgreen);
     painter->drawPath(arrowLine(beg_pos, end_n1pos_nrm));
     painter->setPen(Qt::gray);
     painter->drawPath(arrowLine(end_n1pos_nrm, end_n1pos));
     painter->setPen(QPen(QBrush(col_lgreen), 2, Qt::SolidLine));
     // from here on we want to draw with a small pen to get a pointy vector head
+    QPen pen = painter->pen();
     pen.setWidth(1);
     painter->drawPath(arrowHead(beg_pos, end_n1pos_nrm));
     pen.setWidth(2);
     painter->drawPath(planeLine(beg_pos, end_n1pos,
                                 std::max(cs->x.widget_size(), cs->y.widget_size())));
 
+
+    // draw second normal vector and corresponding hyperplane
 
     QPointF end_n2pos_nrm_scene = scenePos_n2end() / nrm(scenePos_n2end());
     QPointF end_n2pos =
@@ -145,24 +138,31 @@ void active_plane::paint(QPainter* painter, const QStyleOptionGraphicsItem* opti
     painter->restore();
 }
 
-QRectF active_plane::boundingRect() const
+QRectF active_reflection::boundingRect() const
 {
     // give bounding box in item coordinate system
-    QPointF beg_pos = QPointF(cs->x.a_to_w(0.0), cs->y.a_to_w(0.0));
-    QPointF end_n1pos =
-        QPointF(cs->x.a_to_w(scenePos_n1end().x()), cs->y.a_to_w(scenePos_n1end().y()));
-    return QRectF(beg_pos, end_n1pos);
+
+    // choose full drawing/clipping area here, because of complex alignment of reflected
+    // shapes
+    return QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
+                 cs->y.nmin() - cs->y.nmax());
 }
 
-QPainterPath active_plane::shape() const
+QPainterPath active_reflection::shape() const
 {
     QPointF beg_pos = QPointF(cs->x.a_to_w(0.0), cs->y.a_to_w(0.0));
     QPointF end_n1pos =
         QPointF(cs->x.a_to_w(scenePos_n1end().x()), cs->y.a_to_w(scenePos_n1end().y()));
-    return vectorShape(beg_pos, end_n1pos);
+    QPointF end_n2pos =
+        QPointF(cs->x.a_to_w(scenePos_n2end().x()), cs->y.a_to_w(scenePos_n2end().y()));
+
+    QPainterPath path = vectorShape(beg_pos, end_n1pos);
+    path += vectorShape(beg_pos, end_n2pos);
+
+    return path;
 }
 
-void active_plane::setScenePos_n1end(QPointF const& pos)
+void active_reflection::setScenePos_n1end(QPointF const& pos)
 {
     if (pos != m_n1end->scenePos()) {
         prepareGeometryChange();
@@ -170,7 +170,7 @@ void active_plane::setScenePos_n1end(QPointF const& pos)
     }
 }
 
-void active_plane::setScenePos_n2end(QPointF const& pos)
+void active_reflection::setScenePos_n2end(QPointF const& pos)
 {
     if (pos != m_n2end->scenePos()) {
         prepareGeometryChange();
@@ -178,39 +178,39 @@ void active_plane::setScenePos_n2end(QPointF const& pos)
     }
 }
 
-QPointF active_plane::scenePos_n1end() const { return m_n1end->scenePos(); }
+QPointF active_reflection::scenePos_n1end() const { return m_n1end->scenePos(); }
 
-QPointF active_plane::scenePos_n2end() const { return m_n2end->scenePos(); }
+QPointF active_reflection::scenePos_n2end() const { return m_n2end->scenePos(); }
 
 
-void active_plane::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+void active_reflection::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
     Q_UNUSED(event)
 
-    // qDebug() << "active_plane::hoverEnterEvent.";
+    // qDebug() << "active_reflection::hoverEnterEvent.";
     m_mouse_hover = true;
     update();
 }
 
-void active_plane::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+void active_reflection::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
     Q_UNUSED(event)
 
-    // qDebug() << "active_plane::hoverLeaveEvent.";
+    // qDebug() << "active_reflection::hoverLeaveEvent.";
     m_mouse_hover = false;
     update();
 }
 
-void active_plane::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void active_reflection::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    // qDebug() << "active_plane::mousePressEvent.";
+    // qDebug() << "active_reflection::mousePressEvent.";
 
     if (event->button() == Qt::LeftButton) {
-        // qDebug() << "active_plane: Qt::LeftButton.";
+        // qDebug() << "active_reflection: Qt::LeftButton.";
         m_mouse_l_pressed = true;
     }
     if (event->button() == Qt::RightButton) {
-        // qDebug() << "active_plane: Qt::RightButton.";
+        // qDebug() << "active_reflection: Qt::RightButton.";
         m_mouse_r_pressed = true;
     }
 
@@ -218,12 +218,12 @@ void active_plane::mousePressEvent(QGraphicsSceneMouseEvent* event)
     QGraphicsItem::mousePressEvent(event); // call default implementation
 }
 
-void active_plane::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void active_reflection::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    // qDebug() << "active_plane::mouseReleaseEvent.";
+    // qDebug() << "active_reflection::mouseReleaseEvent.";
 
-    // qDebug() << "active_plane::scenePos_beg():" << scenePos_beg();
-    // qDebug() << "active_plane::scenePos_n1end():" << scenePos_n1end();
+    // qDebug() << "active_reflection::scenePos_beg():" << scenePos_beg();
+    // qDebug() << "active_reflection::scenePos_n1end():" << scenePos_n1end();
 
     if (event->button() == Qt::LeftButton) {
         // qDebug() << "active_pt: Qt::LeftButton.";
@@ -238,9 +238,9 @@ void active_plane::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     QGraphicsItem::mouseReleaseEvent(event); // call default implementation
 }
 
-void active_plane::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void active_reflection::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    // qDebug() << "active_plane::mouseMoveEvent.";
+    // qDebug() << "active_reflection::mouseMoveEvent.";
 
     // if (m_mouse_l_pressed) {
 

@@ -1,9 +1,9 @@
 #include "w_common.hpp"
 
 #include "active_bivec.hpp"
-#include "active_plane.hpp"
 #include "active_projection.hpp"
 #include "active_pt.hpp"
+#include "active_reflection.hpp"
 #include "active_vec.hpp"
 
 bool anyHovered(QList<QGraphicsItem*> const& items)
@@ -21,8 +21,9 @@ bool anyHovered(QList<QGraphicsItem*> const& items)
         if (item->type() == active_projection::Type)
             anyHover =
                 anyHover || qgraphicsitem_cast<active_projection*>(item)->isHovered();
-        if (item->type() == active_plane::Type)
-            anyHover = anyHover || qgraphicsitem_cast<active_plane*>(item)->isHovered();
+        if (item->type() == active_reflection::Type)
+            anyHover =
+                anyHover || qgraphicsitem_cast<active_reflection*>(item)->isHovered();
     }
     return anyHover;
 }

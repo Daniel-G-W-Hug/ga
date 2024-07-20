@@ -41,7 +41,7 @@ set(SOURCES main.cpp
             active_vec.cpp
             active_bivec.cpp
             active_projection.cpp
-            active_plane.cpp)
+            active_reflection.cpp)
 
 add_executable(${EXEC_NAME} ${SOURCES} )
 

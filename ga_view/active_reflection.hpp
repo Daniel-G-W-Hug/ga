@@ -15,9 +15,9 @@
 #include <QRectF>
 #include <QWidget>
 
-// active_plane has two active points. Can be manipulated and moved by mouse.
+// active_reflection has two active points. Can be manipulated and moved by mouse.
 
-class active_plane : public QObject, public QGraphicsItem {
+class active_reflection : public QObject, public QGraphicsItem {
 
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
@@ -27,8 +27,8 @@ class active_plane : public QObject, public QGraphicsItem {
     enum { Type = UserType + 5 };
     int type() const override { return Type; }
 
-    active_plane(Coordsys* cs, w_Coordsys* wcs, active_pt* n1end, active_pt* n2end,
-                 QGraphicsItem* parent = nullptr);
+    active_reflection(Coordsys* cs, w_Coordsys* wcs, active_pt* n1end, active_pt* n2end,
+                      QGraphicsItem* parent = nullptr);
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
     QRectF boundingRect() const override;

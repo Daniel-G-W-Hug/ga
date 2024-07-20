@@ -4,9 +4,9 @@
 
 #include "w_mainwindow.hpp"
 #include "active_bivec.hpp"
-#include "active_plane.hpp"
 #include "active_projection.hpp"
 #include "active_pt.hpp"
+#include "active_reflection.hpp"
 #include "active_vec.hpp"
 #include "w_coordsys.hpp"
 #include "w_statusbar.hpp"
@@ -90,7 +90,7 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, QGraphicsScene* scene)
     scene->addItem(pt1);
     active_pt* pt2 = new active_pt(cs, wcs, QPointF(1, 0));
     scene->addItem(pt2);
-    active_plane* pl = new active_plane(cs, wcs, pt1, pt2);
+    active_reflection* pl = new active_reflection(cs, wcs, pt1, pt2);
     scene->addItem(pl);
 }
 
