@@ -49,16 +49,14 @@ void active_reflection::paint(QPainter* painter, const QStyleOptionGraphicsItem*
                                     cs->y.a_to_w(end_n1pos_nrm_scene.y()));
 
     painter->setPen(QPen(QBrush(col_lgreen), 2, Qt::SolidLine));
-    painter->setBrush(col_lgreen);
     painter->drawPath(arrowLine(beg_pos, end_n1pos_nrm));
     painter->setPen(Qt::gray);
     painter->drawPath(arrowLine(end_n1pos_nrm, end_n1pos));
-    painter->setPen(QPen(QBrush(col_lgreen), 2, Qt::SolidLine));
+    painter->setPen(QPen(QBrush(col_lgreen), 1, Qt::SolidLine));
+    painter->setBrush(col_lgreen);
     // from here on we want to draw with a small pen to get a pointy vector head
-    QPen pen = painter->pen();
-    pen.setWidth(1);
     painter->drawPath(arrowHead(beg_pos, end_n1pos_nrm));
-    pen.setWidth(2);
+    painter->setPen(QPen(QBrush(col_lgreen), 2, Qt::SolidLine));
     painter->drawPath(planeLine(beg_pos, end_n1pos,
                                 std::max(cs->x.widget_size(), cs->y.widget_size())));
 
@@ -72,16 +70,15 @@ void active_reflection::paint(QPainter* painter, const QStyleOptionGraphicsItem*
                                     cs->y.a_to_w(end_n2pos_nrm_scene.y()));
 
     painter->setPen(QPen(QBrush(col_lred), 2, Qt::SolidLine));
-    painter->setBrush(col_lred);
     painter->drawPath(arrowLine(beg_pos, end_n2pos_nrm));
     painter->setPen(Qt::gray);
     painter->drawPath(arrowLine(end_n2pos_nrm, end_n2pos));
     painter->setPen(QPen(QBrush(col_lred), 2, Qt::SolidLine));
-    painter->setBrush(col_lred);
     // from here on we want to draw with a small pen to get a pointy vector head
-    pen.setWidth(1);
+    painter->setPen(QPen(QBrush(col_lred), 1, Qt::SolidLine));
+    painter->setBrush(col_lred);
     painter->drawPath(arrowHead(beg_pos, end_n2pos_nrm));
-    pen.setWidth(2);
+    painter->setPen(QPen(QBrush(col_lred), 2, Qt::SolidLine));
     painter->drawPath(planeLine(beg_pos, end_n2pos,
                                 std::max(cs->x.widget_size(), cs->y.widget_size())));
 

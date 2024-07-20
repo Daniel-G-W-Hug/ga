@@ -72,8 +72,8 @@ QPainterPath arrowLine(QPointF const& beg_pos, QPointF const& end_pos)
 
     QPainterPath path;
     path.moveTo(beg_pos);
-    path.lineTo(end_pos - QPointF(sin(angle + pi / 2) * 0.6 * ARROWSIZE,
-                                  cos(angle + pi / 2) * 0.6 * ARROWSIZE));
+    path.lineTo(end_pos - QPointF(sin(angle + pi / 2) * 0.7 * ARROWSIZE,
+                                  cos(angle + pi / 2) * 0.7 * ARROWSIZE));
     return path;
 }
 

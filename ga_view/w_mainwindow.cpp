@@ -25,8 +25,8 @@ Coordsys* get_initial_cs()
     axis_data ay(axis_rng(-2.5, 2.5), axis_dir::y, axis_scal::linear, "y label",
                  axis_ticks(0.0, 0.5, 5));
 
-    widget_axis_data wx(600, 65, 520);
-    widget_axis_data wy(500, 50, 420);
+    widget_axis_data wx(900, 65, 820);
+    widget_axis_data wy(700, 50, 620);
 
     Axis x(wx, ax);
     Axis y(wy, ay, x.px_density_rng()); // enable aspect_ratio = 1.0

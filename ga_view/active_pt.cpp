@@ -2,8 +2,8 @@
 // author: Daniel Hug, 2024
 //
 
-#include "active_common.hpp"
 #include "active_pt.hpp"
+#include "active_common.hpp"
 
 active_pt::active_pt(Coordsys* cs, w_Coordsys* wcs, QPointF const& pos,
                      QGraphicsItem* parent) : QGraphicsItem(parent), cs{cs}, m_pos{pos}
@@ -18,7 +18,7 @@ active_pt::active_pt(Coordsys* cs, w_Coordsys* wcs, QPointF const& pos,
     setPos(cs->x.a_to_w(m_pos.x()),
            cs->y.a_to_w(m_pos.y())); // set item to scene coordinates
 
-    // setZValue(10);
+    setZValue(100); // active points should always be on top
 }
 
 void active_pt::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
