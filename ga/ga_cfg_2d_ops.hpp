@@ -422,10 +422,12 @@ inline constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
 //
 // dual by left multiplication with Im_2d
 // as defined in Doran/Lasenby "GA for physicists"
+//
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar<T> dual2d(PScalar2d<T> ps)
 {
+    // e12 * ps * e12 = -ps
     return Scalar<T>(-T(ps));
 }
 
@@ -436,6 +438,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar2d<T> dual2d(Scalar<T> s)
 {
+    // e12 * s = s * e12
     return PScalar2d<T>(T(s));
 }
 
@@ -443,6 +446,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Vec2d<T> dual2d(Vec2d<T> const& v)
 {
+    // e12 * (v.x * e1 + v.y * e2)
+    //     =  v.y * e1 - v.x * e2
     return Vec2d<T>(v.y, -v.x);
 }
 
@@ -450,6 +455,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr MVec2d_E<T> dual2d(MVec2d_E<T> const& M)
 {
+    // e12 * (  s + ps * e12)
+    //     =  -ps +  s * e12
     return MVec2d_E<T>(-M.c1, M.c0);
 }
 
@@ -457,6 +464,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr MVec2d<T> dual2d(MVec2d<T> const& M)
 {
+    // e12 * (  s + v.x * e1 + v.y * e2 + ps * e12)
+    //     =  -ps + v.y * e1 - v.x * e2 + s * e12
     return MVec2d<T>(-M.c3, M.c2, -M.c1, M.c0);
 }
 

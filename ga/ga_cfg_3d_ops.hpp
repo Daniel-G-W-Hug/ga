@@ -845,10 +845,12 @@ inline constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& v,
 //
 // dual by left multiplication with Im_3d
 // as defined in Doran/Lasenby "GA for physicists"
+//
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar<T> dual3d(PScalar3d<T> ps)
 {
+    // e123 * ps * e123 = -ps
     return Scalar<T>(-T(ps));
 }
 
@@ -859,6 +861,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar3d<T> dual3d(Scalar<T> s)
 {
+    // e123 * s = s * e123
     return PScalar3d<T>(T(s));
 }
 
@@ -866,6 +869,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr BiVec3d<T> dual3d(Vec3d<T> const& v)
 {
+    // e123 * (v.x * e1  + v.y * e2  + v.z * e3)
+    //      = (v.x * e23 + v.y * e31 + v.z * e12)
     return BiVec3d<T>(v.x, v.y, v.z);
 }
 
@@ -873,6 +878,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Vec3d<T> dual3d(BiVec3d<T> const& B)
 {
+    // e123 * (  b.x * e23 + b.y * e31 + b.z * e12)
+    //      = (- b.x * e1  - b.y * e2  - b.z * e3)
     return Vec3d<T>(-B.x, -B.y, -B.z);
 }
 
@@ -880,6 +887,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr MVec3d_U<T> dual3d(MVec3d_E<T> const& M)
 {
+    // e123 * (s + b.x * e23 + b.y * e31 + b.z * e12)
+    //      = (  - b.x * e1  - b.y * e2  - b.z * e3 + s * e123)
     return MVec3d_U<T>(-M.c1, -M.c2, -M.c3, M.c0);
 }
 
@@ -887,6 +896,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr MVec3d_E<T> dual3d(MVec3d_U<T> const& M)
 {
+    // e123 * (      v.x * e1  + v.y * e2  + v.z * e3 + ps * e123)
+    //      = (-ps + v.x * e23 + v.y * e31 + v.z * e12)
     return MVec3d_E<T>(-M.c3, M.c0, M.c1, M.c2);
 }
 
@@ -894,6 +905,10 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr MVec3d<T> dual3d(MVec3d<T> const& M)
 {
+    // e123 * (  s + v.x * e1  + v.y * e2  + v.z * e3
+    //             + b.x * e23 + b.y * e31 + b.z * e12 + ps * e123)
+    //      = (-ps - b.x * e1  - b.y * e2  - b.z * e3
+    //             + v.x * e23 + v.y * e31 + v.z * e12 +  s * e123)
     return MVec3d<T>(-M.c7, -M.c4, -M.c5, -M.c6, M.c1, M.c2, M.c3, M.c0);
 }
 

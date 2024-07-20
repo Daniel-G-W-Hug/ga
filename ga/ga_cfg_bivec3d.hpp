@@ -46,10 +46,18 @@ struct BiVec3d {
     // T.y <=> bivector zx <=> Vec3d<T>::y; // maps to basis bivector e3^e1
     // T.z <=> bivector xy <=> Vec3d<T>::z; // maps to basis bivector e1^e2
 
-    // duality operations:
-    // e2^e3 rev(I_3d) = e2^e3 e3^e2^e1 = e_23321 = e_1           = e1
-    // e3^e1 rev(I_3d) = e3^e1 e3^e2^e1 = e_31321 = e_33112 = e_2 = e2
-    // e1^e2 rev(I_3d) = e1^e2 e3^e2^e1 = e_12321 = e_11223 = e_3 = e3
+    // duality operations (as defined in Macdonald, "Linear and geometric algebra"):
+    //
+    // e2^e3 * rev(I_3d) = e2^e3 * e3^e2^e1 = e_23321 = e_1           = e1
+    // e3^e1 * rev(I_3d) = e3^e1 * e3^e2^e1 = e_31321 = e_33112 = e_2 = e2
+    // e1^e2 * rev(I_3d) = e1^e2 * e3^e2^e1 = e_12321 = e_11223 = e_3 = e3
+
+    // duality operations (as defined in Doran, Lasenby, "GA for physicists"):
+    // (same subspace as above, but other sign)
+    //
+    // I_3d * e2^e3 = e1^e2^e3 * e2^e3 = e_12323 = -e_1            = -e1
+    // I_3d * e3^e1 = e1^e2^e3 * e3^e1 = e_12331 = -e_11233 = -e_2 = -e2
+    // I_3d * e1^e2 = e1^e2^e3 * e1^e2 = e_12312 = -e_11223 = -e_3 = -e3
 
     // => everything otherwise is identical to Vec3d<T> w/o modification.
 
