@@ -2,7 +2,7 @@
 
 set(LIB_NAME ga)
 
-set(HEADERS ga.hp
+set(HEADERS ga.hpp
     ga_cfg_algebra.hpp
     ga_cfg_value_t.hpp ga_cfg_strong_t.hpp
     ga_cfg_scalar.hpp
