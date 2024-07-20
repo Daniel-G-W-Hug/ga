@@ -9,7 +9,7 @@
 #]]
 #[[ hint: backet comment will not be formated by cmake-format]]
 
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.28)
 
 #
 # for trial of new features, libs or system values"
@@ -35,7 +35,7 @@ endif()
 if(CMAKE_BUILD_TYPE EQUAL "Debug")
   if(MSVC)
     # warning level 4 and all warnings as errors
-    add_compile_options(/W4 /WX)
+    add_compile_options(/Gy /W4 /WX /bigobj)
   else()
     # lots of warnings and all warnings as errors
     add_compile_options(-Wall -Wextra -pedantic -Werror)
