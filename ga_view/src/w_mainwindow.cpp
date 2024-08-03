@@ -196,6 +196,10 @@ std::vector<Coordsys_model> get_moving_line()
         if (t == tmin) {
             cm.add_apt(pt2d{1, 1});
         }
+        // add an active point
+        if (t == tmin + dt) {
+            cm.add_apt(pt2d{1, 2});
+        }
 
         // define a poly line and a model
         ln2d l;
@@ -293,9 +297,9 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     }
 
     // register all active points with scene
-    // for (int idx = 0; idx < cm->apt.size(); ++idx) {
-    //     scene->addItem(new active_pt(cs, wcs, cm->apt[idx]));
-    // }
+    for (int idx = 0; idx < cm->apt.size(); ++idx) {
+        scene->addItem(new active_pt(cs, wcs, cm->apt[idx]));
+    }
 }
 
 Coordsys* get_initial_cs()

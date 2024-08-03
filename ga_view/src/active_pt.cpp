@@ -5,8 +5,8 @@
 #include "active_pt.hpp"
 #include "active_common.hpp"
 
-active_pt::active_pt(Coordsys* cs, w_Coordsys* wcs, QPointF const& pos,
-                     QGraphicsItem* parent) : QGraphicsItem(parent), cs{cs}, m_pos{pos}
+active_pt::active_pt(Coordsys* cs, w_Coordsys* wcs, pt2d& pos, QGraphicsItem* parent) :
+    QGraphicsItem(parent), cs{cs}, m_pos{pos}
 {
     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
              QGraphicsItem::ItemSendsGeometryChanges |
@@ -15,8 +15,8 @@ active_pt::active_pt(Coordsys* cs, w_Coordsys* wcs, QPointF const& pos,
 
     connect(wcs, &w_Coordsys::viewResized, this, &active_pt::viewChanged);
 
-    setPos(cs->x.a_to_w(m_pos.x()),
-           cs->y.a_to_w(m_pos.y())); // set item to scene coordinates
+    setPos(cs->x.a_to_w(m_pos.x),
+           cs->y.a_to_w(m_pos.y)); // set item to scene coordinates
 
     setZValue(100); // active points should always be on top
 }
@@ -62,7 +62,7 @@ QPainterPath active_pt::shape() const
     return path;
 }
 
-void active_pt::setScenePos(QPointF const& pos)
+void active_pt::setScenePos(pt2d const& pos)
 {
     // qDebug() << "active_pt::setScenePos called.";
 
@@ -75,7 +75,7 @@ void active_pt::setScenePos(QPointF const& pos)
     }
 }
 
-QPointF active_pt::scenePos() { return m_pos; }
+pt2d active_pt::scenePos() { return m_pos; }
 
 
 void active_pt::viewChanged()
@@ -83,7 +83,7 @@ void active_pt::viewChanged()
     // qDebug() << "active_pt: viewChanged() received.";
 
     // view changed by external influence, set to m_pos
-    setPos(cs->x.a_to_w(m_pos.x()), cs->y.a_to_w(m_pos.y()));
+    setPos(cs->x.a_to_w(m_pos.x), cs->y.a_to_w(m_pos.y));
 }
 
 void active_pt::posChanged()
@@ -92,7 +92,7 @@ void active_pt::posChanged()
 
     // position changed by external influence, update m_pos
     QPointF npos = pos();
-    m_pos = QPointF(cs->x.w_to_a(npos.x()), cs->y.w_to_a(npos.y()));
+    m_pos = pt2d(cs->x.w_to_a(npos.x()), cs->y.w_to_a(npos.y()));
 }
 
 void active_pt::hoverEnterEvent(QGraphicsSceneHoverEvent* event)

@@ -22,6 +22,14 @@ struct pt2d { // coordinates of point on x and y axis
     pt2d& operator=(pt2d&&) = default;
     pt2d() = default;
     ~pt2d() noexcept = default;
+
+    bool operator==(pt2d const& rhs) const
+    {
+        auto abs_delta_x = std::abs(rhs.x - x);
+        auto abs_delta_y = std::abs(rhs.y - y);
+        if (abs_delta_x == 0.0 && abs_delta_y == 0.0) return true;
+        return false;
+    }
 };
 
 // this struct should be used by the user to mark points

@@ -4,6 +4,7 @@
 //
 
 #include "coordsys.hpp"
+#include "coordsys_model.hpp"
 #include "w_coordsys.hpp"
 
 #include <QGraphicsItem>
@@ -24,16 +25,16 @@ class active_pt : public QObject, public QGraphicsItem {
     enum { Type = UserType + 1 };
     int type() const override { return Type; }
 
-    active_pt(Coordsys* cs, w_Coordsys* wcs, QPointF const& pos,
-              QGraphicsItem* parent = nullptr);
+    // interactive changes of pos will be reflected in the model
+    active_pt(Coordsys* cs, w_Coordsys* wcs, pt2d& pos, QGraphicsItem* parent = nullptr);
 
     void paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
 
-    void setScenePos(QPointF const& pos);
-    QPointF scenePos();
+    void setScenePos(pt2d const& pos);
+    pt2d scenePos();
 
     bool isHovered() { return m_mouse_hover; }
 
@@ -53,8 +54,8 @@ class active_pt : public QObject, public QGraphicsItem {
 
   private:
 
-    Coordsys* cs;  // coordsys for drawing
-    QPointF m_pos; // position of the center point of the item (as scene position)
+    Coordsys* cs; // coordsys for drawing
+    pt2d& m_pos;  // position of the center point of the item (as scene position)
 
     bool m_mouse_hover{false};     // mouse is hovering over the item
     bool m_mouse_l_pressed{false}; // left button mouse is pressed
