@@ -29,23 +29,26 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# However, the file(GLOB...) allows for wildcard additions:
-set(SOURCES main.cpp
-            w_mainwindow.cpp
-            coordsys.cpp
-            w_common.cpp
-            w_coordsys.cpp
-            w_statusbar.cpp
-            active_common.cpp
-            active_pt.cpp
-            active_vec.cpp
-            active_bivec.cpp
-            active_projection.cpp
-            active_reflection.cpp)
+set(SOURCES src/main.cpp
+            src/w_mainwindow.cpp
+            src/coordsys.cpp
+            src/coordsys_model.cpp
+            src/w_common.cpp
+            src/w_coordsys.cpp
+            src/w_statusbar.cpp
+            src/active_common.cpp
+            src/active_pt.cpp
+            src/active_vec.cpp
+            src/active_bivec.cpp
+            src/active_projection.cpp
+            src/active_reflection.cpp
+            src/item_pt2d.cpp
+            src/item_ln2d.cpp
+            src/item_vt2d.cpp)
 
 add_executable(${EXEC_NAME} ${SOURCES} )
 
-# target link libraries have to be added AFTER add_executable or add_library!
+# target link libraries have to be added AFTER add_executable or add_lnibrary!
 target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME}
                            PRIVATE ${CMAKE_SOURCE_DIR}/../../include)

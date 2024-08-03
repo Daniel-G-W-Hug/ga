@@ -3,43 +3,46 @@
 // author: Daniel Hug, 2024
 //
 
+#include "active_pt.hpp"
 #include "coordsys.hpp"
 #include "w_coordsys.hpp"
 
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsView>
+#include <QMarginsF>
 #include <QPainter>
+#include <QPointF>
+#include <QRectF>
 #include <QWidget>
 
-// active_pt can be moved by mouse
+// active_vec has two active points. Can be manipulated and moved by mouse.
 
-class active_pt : public QObject, public QGraphicsItem {
+class active_vec : public QObject, public QGraphicsItem {
 
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
 
   public:
 
-    enum { Type = UserType + 1 };
+    enum { Type = UserType + 2 };
     int type() const override { return Type; }
 
-    active_pt(Coordsys* cs, w_Coordsys* wcs, QPointF const& pos,
-              QGraphicsItem* parent = nullptr);
-
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+    active_vec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* end,
+               QGraphicsItem* parent = nullptr);
+    void paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
 
-    void setScenePos(QPointF const& pos);
-    QPointF scenePos();
+    void setScenePos_beg(QPointF const& pos);
+    void setScenePos_end(QPointF const& pos);
+    QPointF scenePos_beg() const;
+    QPointF scenePos_end() const;
 
     bool isHovered() { return m_mouse_hover; }
 
-  public slots:
-    void viewChanged(); // the view changed, e.g. resize
-    void posChanged();  // the position was changed, e.g. shifted in viewport
+  signals:
+    void viewMoved();
 
   protected:
 
@@ -53,8 +56,11 @@ class active_pt : public QObject, public QGraphicsItem {
 
   private:
 
-    Coordsys* cs;  // coordsys for drawing
-    QPointF m_pos; // position of the center point of the item (as scene position)
+    Coordsys* cs;
+    w_Coordsys* wcs;
+
+    active_pt* m_beg; // active_pt at beginning position
+    active_pt* m_end; // active_pt at end position
 
     bool m_mouse_hover{false};     // mouse is hovering over the item
     bool m_mouse_l_pressed{false}; // left button mouse is pressed

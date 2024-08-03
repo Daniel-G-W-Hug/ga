@@ -3,46 +3,43 @@
 // author: Daniel Hug, 2024
 //
 
-#include "active_pt.hpp"
 #include "coordsys.hpp"
 #include "w_coordsys.hpp"
 
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsView>
 #include <QPainter>
-#include <QPointF>
-#include <QPolygonF>
-#include <QRectF>
 #include <QWidget>
 
-// active_bivec has three active points. Can be manipulated and moved by mouse.
-// shows wedge product of two vector u and v: u^v
+// active_pt can be moved by mouse
 
-class active_bivec : public QObject, public QGraphicsItem {
+class active_pt : public QObject, public QGraphicsItem {
 
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
 
   public:
 
-    enum { Type = UserType + 3 };
+    enum { Type = UserType + 1 };
     int type() const override { return Type; }
 
-    active_bivec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* uend,
-                 active_pt* vend, QGraphicsItem* parent = nullptr);
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+    active_pt(Coordsys* cs, w_Coordsys* wcs, QPointF const& pos,
+              QGraphicsItem* parent = nullptr);
+
+    void paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
 
-    void setScenePos_beg(QPointF const& pos);
-    void setScenePos_uend(QPointF const& pos);
-    void setScenePos_vend(QPointF const& pos);
-    QPointF scenePos_beg();
-    QPointF scenePos_uend();
-    QPointF scenePos_vend();
+    void setScenePos(QPointF const& pos);
+    QPointF scenePos();
 
     bool isHovered() { return m_mouse_hover; }
+
+  public slots:
+    void viewChanged(); // the view changed, e.g. resize
+    void posChanged();  // the position was changed, e.g. shifted in viewport
 
   protected:
 
@@ -56,12 +53,8 @@ class active_bivec : public QObject, public QGraphicsItem {
 
   private:
 
-    Coordsys* cs;
-    w_Coordsys* wcs;
-
-    active_pt* m_beg;  // active_pt at beginning position (common starting point)
-    active_pt* m_uend; // active_pt at end position of u vector
-    active_pt* m_vend; // active_pt at end position of v vector
+    Coordsys* cs;  // coordsys for drawing
+    QPointF m_pos; // position of the center point of the item (as scene position)
 
     bool m_mouse_hover{false};     // mouse is hovering over the item
     bool m_mouse_l_pressed{false}; // left button mouse is pressed

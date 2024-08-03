@@ -807,6 +807,10 @@ inline constexpr Vec3d<std::common_type_t<T, U>> rotate(Vec3d<T> const& v,
     // MVec3d_U<ctype> res = tmp * reverse rotor;
 
     // trivector part of res is 0 due to symmetric product  rotor * v * rev(rotor)
+    //
+    // optimization potential for sandwich product by replacing the second product
+    // with a specific operation that skips the calculation of the pseudoscalar part
+    // which will be zero anyway
     return Vec3d<ctype>(gr1<ctype>(rotor * v * rev(rotor)));
 }
 
@@ -822,6 +826,10 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> rotate(BiVec3d<T> const& v,
     // MVec3d_E<ctype> res = tmp * reverse rotor;
 
     // scalar part of res is 0 due to symmetric product  rotor * v * rev(rotor)
+    //
+    // optimization potential for sandwich product by replacing the second product
+    // with a specific operation that skips the calculation of the scalar part
+    // which will be zero anyway
     return BiVec3d<ctype>(gr2<ctype>(rotor * v * rev(rotor)));
 }
 

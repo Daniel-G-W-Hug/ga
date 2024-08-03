@@ -22,16 +22,16 @@ active_bivec::active_bivec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active
     connect(wcs, &w_Coordsys::viewResized, m_vend, &active_pt::viewChanged);
 }
 
-void active_bivec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+void active_bivec::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                          QWidget* widget)
 {
 
     // clipping area is active area of coordsys
-    painter->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
-                               cs->y.nmin() - cs->y.nmax()));
+    qp->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
+                          cs->y.nmin() - cs->y.nmax()));
 
     // draw in item coordinate system
-    painter->save();
+    qp->save();
 
     QPointF beg_pos =
         QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
@@ -60,66 +60,66 @@ void active_bivec::paint(QPainter* painter, const QStyleOptionGraphicsItem* opti
     // qDebug() << "active_bivec::paint: angle_rel = " << angle_rel;
 
     if (angle_rel >= 0.0) {
-        painter->setPen(QPen(QBrush(col_lgreen), 1, Qt::SolidLine));
-        painter->setBrush(col_lgreen);
+        qp->setPen(QPen(QBrush(col_lgreen), 1, Qt::SolidLine));
+        qp->setBrush(col_lgreen);
     }
     else {
-        painter->setPen(QPen(QBrush(col_lblue), 1, Qt::SolidLine));
-        painter->setBrush(col_lblue);
+        qp->setPen(QPen(QBrush(col_lblue), 1, Qt::SolidLine));
+        qp->setBrush(col_lblue);
     }
-    painter->drawPolygon(polygon);
+    qp->drawPolygon(polygon);
 
     if (angle_rel >= 0.0) {
-        painter->setPen(QPen(QBrush(Qt::darkGreen), 4, Qt::SolidLine));
+        qp->setPen(QPen(QBrush(Qt::darkGreen), 4, Qt::SolidLine));
     }
     else {
-        painter->setPen(QPen(QBrush(Qt::darkBlue), 4, Qt::SolidLine));
+        qp->setPen(QPen(QBrush(Qt::darkBlue), 4, Qt::SolidLine));
     }
-    painter->setBrush(Qt::NoBrush);
-    painter->drawPath(anglePath(beg_pos, end_upos, end_vpos));
+    qp->setBrush(Qt::NoBrush);
+    qp->drawPath(anglePath(beg_pos, end_upos, end_vpos));
 
-    painter->setPen(QPen(QBrush(Qt::black), 2, Qt::SolidLine));
-    painter->setBrush(Qt::black);
+    qp->setPen(QPen(QBrush(Qt::black), 2, Qt::SolidLine));
+    qp->setBrush(Qt::black);
 
     if (m_mouse_hover && !m_mouse_l_pressed) {
-        painter->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
-        painter->setBrush(col_green);
+        qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
+        qp->setBrush(col_green);
     }
     if (m_mouse_hover && m_mouse_l_pressed) {
-        painter->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // pressed: red
-        painter->setBrush(col_red);
+        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // pressed: red
+        qp->setBrush(col_red);
     }
 
     // draw vectors u and v
-    painter->drawPath(arrowLine(beg_pos, end_upos));
+    qp->drawPath(arrowLine(beg_pos, end_upos));
 
     // from here on we want to draw with a small pen to get a pointy vector head
-    QPen pen = painter->pen();
+    QPen pen = qp->pen();
     pen.setWidth(1);
-    painter->setPen(pen);
-    painter->drawPath(arrowHead(beg_pos, end_upos));
+    qp->setPen(pen);
+    qp->drawPath(arrowHead(beg_pos, end_upos));
 
     pen.setWidth(2);
-    painter->setPen(pen);
-    painter->drawPath(arrowLine(beg_pos, end_vpos));
+    qp->setPen(pen);
+    qp->drawPath(arrowLine(beg_pos, end_vpos));
 
     // from here on we want to draw with a small pen to get a pointy vector head
     pen.setWidth(1);
-    painter->setPen(pen);
-    painter->drawPath(arrowHead(beg_pos, end_vpos));
+    qp->setPen(pen);
+    qp->drawPath(arrowHead(beg_pos, end_vpos));
 
 
     // draw bounding box (optional for testing)
-    // painter->setPen(col_yel);
-    // painter->setBrush(col_yel);
-    // painter->drawRect(boundingRect());
+    // qp->setPen(col_yel);
+    // qp->setBrush(col_yel);
+    // qp->drawRect(boundingRect());
 
     // draw shape (optional for testing)
-    // painter->setPen(col_yel);
-    // painter->setBrush(col_yel);
-    // painter->drawPath(shape());
+    // qp->setPen(col_yel);
+    // qp->setBrush(col_yel);
+    // qp->drawPath(shape());
 
-    painter->restore();
+    qp->restore();
 }
 
 QRectF active_bivec::boundingRect() const

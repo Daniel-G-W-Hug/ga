@@ -9,40 +9,40 @@
 
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
-#include <QMarginsF>
 #include <QPainter>
 #include <QPointF>
+#include <QPolygonF>
 #include <QRectF>
 #include <QWidget>
 
-// active_vec has two active points. Can be manipulated and moved by mouse.
+// active_bivec has three active points. Can be manipulated and moved by mouse.
+// shows wedge product of two vector u and v: u^v
 
-class active_vec : public QObject, public QGraphicsItem {
+class active_bivec : public QObject, public QGraphicsItem {
 
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
 
   public:
 
-    enum { Type = UserType + 2 };
+    enum { Type = UserType + 3 };
     int type() const override { return Type; }
 
-    active_vec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* end,
-               QGraphicsItem* parent = nullptr);
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+    active_bivec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* uend,
+                 active_pt* vend, QGraphicsItem* parent = nullptr);
+    void paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
 
     void setScenePos_beg(QPointF const& pos);
-    void setScenePos_end(QPointF const& pos);
-    QPointF scenePos_beg() const;
-    QPointF scenePos_end() const;
+    void setScenePos_uend(QPointF const& pos);
+    void setScenePos_vend(QPointF const& pos);
+    QPointF scenePos_beg();
+    QPointF scenePos_uend();
+    QPointF scenePos_vend();
 
     bool isHovered() { return m_mouse_hover; }
-
-  signals:
-    void viewMoved();
 
   protected:
 
@@ -59,8 +59,9 @@ class active_vec : public QObject, public QGraphicsItem {
     Coordsys* cs;
     w_Coordsys* wcs;
 
-    active_pt* m_beg; // active_pt at beginning position
-    active_pt* m_end; // active_pt at end position
+    active_pt* m_beg;  // active_pt at beginning position (common starting point)
+    active_pt* m_uend; // active_pt at end position of u vector
+    active_pt* m_vend; // active_pt at end position of v vector
 
     bool m_mouse_hover{false};     // mouse is hovering over the item
     bool m_mouse_l_pressed{false}; // left button mouse is pressed

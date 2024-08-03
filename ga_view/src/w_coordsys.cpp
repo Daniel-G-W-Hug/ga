@@ -3,7 +3,7 @@
 //
 
 #include "w_coordsys.hpp"
-
+#include "coordsys_model.hpp"
 
 #include <QCursor>
 #include <QPainter>
@@ -15,8 +15,10 @@
 #include <algorithm> // for std::min and std::max
 #include <cmath>     // for axis scaling (and mathematical functions)
 
-w_Coordsys::w_Coordsys(Coordsys* cs, QGraphicsScene* scene, QWidget* parent) :
-    QGraphicsView(parent), cs(cs), scene(scene)
+
+w_Coordsys::w_Coordsys(Coordsys* cs, std::vector<Coordsys_model*> vm,
+                       QGraphicsScene* scene, QWidget* parent) :
+    QGraphicsView(parent), cs(cs), vm(std::move(vm)), scene(scene)
 {
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     scene->setSceneRect(0, 0, cs->x.widget_size(), cs->y.widget_size());
@@ -73,10 +75,10 @@ void w_Coordsys::paintEvent(QPaintEvent* event)
 
 void w_Coordsys::drawBackground(QPainter* qp, const QRectF& rect)
 {
-
     Q_UNUSED(rect);
 
     cs->draw(qp);
+    // cm->draw(qp, cs);
 
     // fmt::print("w_Coorsys::drawBackground (0,0,{},{})\n", cs->x.widget_size(),
     //            cs->y.widget_size());
@@ -85,7 +87,6 @@ void w_Coordsys::drawBackground(QPainter* qp, const QRectF& rect)
 
 void w_Coordsys::drawForeground(QPainter* qp, const QRectF& rect)
 {
-
     Q_UNUSED(rect);
 
     // fmt::print("w_Coorsys::drawForeground\n");
@@ -121,7 +122,6 @@ void w_Coordsys::drawForeground(QPainter* qp, const QRectF& rect)
 
 void w_Coordsys::keyPressEvent(QKeyEvent* event)
 {
-
     // ignore key repetition, just change the mode if required
     if (event->key() == Qt::Key_X && m_mode != pz_mode::x_only) {
         m_mode = pz_mode::x_only;
@@ -141,7 +141,6 @@ void w_Coordsys::keyPressEvent(QKeyEvent* event)
 
 void w_Coordsys::keyReleaseEvent(QKeyEvent* event)
 {
-
     if (event->key() == Qt::Key_X) {
         m_mode = pz_mode::x_and_y;
         // fmt::print("X released\n");
@@ -492,14 +491,12 @@ void w_Coordsys::wheelEvent(QWheelEvent* event)
 
 void w_Coordsys::push_to_history()
 {
-
     // push a copy of the current cs into cs_history
     cs_history.emplace_back(Coordsys(cs->x, cs->y, cs->get_coordsys_data()));
 }
 
 void w_Coordsys::pop_from_history()
 {
-
     // undo function to restore older version of cs
     if (cs_history.size() > 0) {
         // fmt::print("got undo signal: cs_history.size()={}\n",
@@ -511,6 +508,16 @@ void w_Coordsys::pop_from_history()
         emit undoChanged(cs_history.size()); // update undo info in status bar
         invalidateScene();
         emit viewResized(); // to update items
+        updateSceneRect(scene->sceneRect());
+    }
+}
+
+void w_Coordsys::switch_to_model(int idx)
+{
+    if (idx >= 0 && idx < vm.size()) {
+        // fmt::println("w_Coordsys got signal switch_to_model with value {}", idx);
+        cm = vm[idx];
+        invalidateScene();
         updateSceneRect(scene->sceneRect());
     }
 }

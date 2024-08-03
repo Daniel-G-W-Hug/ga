@@ -21,33 +21,33 @@ active_pt::active_pt(Coordsys* cs, w_Coordsys* wcs, QPointF const& pos,
     setZValue(100); // active points should always be on top
 }
 
-void active_pt::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+void active_pt::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                       QWidget* widget)
 {
 
     // clipping area is active area of coordsys
-    painter->setClipRect(
+    qp->setClipRect(
         mapRectFromScene(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
                                cs->y.nmin() - cs->y.nmax())));
 
     // draw in item coordinate system
-    painter->save();
+    qp->save();
 
-    painter->setPen(col_blue);
-    painter->setBrush(col_blue); // selectable: blue (default)
+    qp->setPen(col_blue);
+    qp->setBrush(col_blue); // selectable: blue (default)
 
     if (m_mouse_hover && !m_mouse_l_pressed) {
-        painter->setPen(col_green);
-        painter->setBrush(col_green); // hover: green
+        qp->setPen(col_green);
+        qp->setBrush(col_green); // hover: green
     }
     if (m_mouse_hover && m_mouse_l_pressed) {
-        painter->setPen(col_red);
-        painter->setBrush(col_red); // selected: red
+        qp->setPen(col_red);
+        qp->setBrush(col_red); // selected: red
     }
 
-    painter->drawEllipse(QRectF(QPointF(-RADIUS, -RADIUS), QPointF(RADIUS, RADIUS)));
+    qp->drawEllipse(QRectF(QPointF(-RADIUS, -RADIUS), QPointF(RADIUS, RADIUS)));
 
-    painter->restore();
+    qp->restore();
 }
 
 QRectF active_pt::boundingRect() const

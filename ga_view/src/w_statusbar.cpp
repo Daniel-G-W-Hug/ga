@@ -215,7 +215,7 @@ void w_Statusbar::on_labelChanged(std::string label)
 
     if (m_label != label) {
         // update only if any value has changed
-        // fmt::print("received labelChanged event: {}\n", label);
+        // fmt::print("Received labelChanged event. Label: {}\n", label);
         m_label = label;
         update();
     }

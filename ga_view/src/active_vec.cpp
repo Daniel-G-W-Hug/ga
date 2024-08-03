@@ -23,28 +23,28 @@ active_vec::active_vec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt*
     connect(this, &active_vec::viewMoved, m_end, &active_pt::posChanged);
 }
 
-void active_vec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+void active_vec::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                        QWidget* widget)
 {
 
     // clipping area is active area of coordsys
-    painter->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
-                               cs->y.nmin() - cs->y.nmax()));
+    qp->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
+                          cs->y.nmin() - cs->y.nmax()));
 
 
     // draw in item coordinate system
-    painter->save();
+    qp->save();
 
-    painter->setPen(QPen(QBrush(Qt::black), 2, Qt::SolidLine));
-    painter->setBrush(Qt::black);
+    qp->setPen(QPen(QBrush(Qt::black), 2, Qt::SolidLine));
+    qp->setBrush(Qt::black);
 
     if (m_mouse_hover && !m_mouse_l_pressed) {
-        painter->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
-        painter->setBrush(col_green);
+        qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
+        qp->setBrush(col_green);
     }
     if (m_mouse_hover && m_mouse_l_pressed) {
-        painter->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // pressed: red
-        painter->setBrush(col_red);
+        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // pressed: red
+        qp->setBrush(col_red);
     }
 
     QPointF beg_pos =
@@ -52,25 +52,25 @@ void active_vec::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
     QPointF end_pos =
         QPointF(cs->x.a_to_w(scenePos_end().x()), cs->y.a_to_w(scenePos_end().y()));
 
-    QPen pen = painter->pen();
+    QPen pen = qp->pen();
     pen.setWidth(2);
-    painter->drawPath(arrowLine(beg_pos, end_pos));
+    qp->drawPath(arrowLine(beg_pos, end_pos));
 
     // from here on we want to draw with a small pen to get a pointy vector head
     pen.setWidth(1);
-    painter->drawPath(arrowHead(beg_pos, end_pos));
+    qp->drawPath(arrowHead(beg_pos, end_pos));
 
     // draw bounding box (optional for testing)
-    // painter->setPen(col_yel);
-    // painter->setBrush(col_yel);
-    // painter->drawRect(boundingRect());
+    // qp->setPen(col_yel);
+    // qp->setBrush(col_yel);
+    // qp->drawRect(boundingRect());
 
     // draw shape (optional for testing)
-    // painter->setPen(col_yel);
-    // painter->setBrush(col_yel);
-    // painter->drawPath(shape());
+    // qp->setPen(col_yel);
+    // qp->setBrush(col_yel);
+    // qp->drawPath(shape());
 
-    painter->restore();
+    qp->restore();
 }
 
 QRectF active_vec::boundingRect() const

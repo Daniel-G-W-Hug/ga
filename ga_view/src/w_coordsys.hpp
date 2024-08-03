@@ -4,6 +4,7 @@
 //
 
 #include "coordsys.hpp"
+#include "coordsys_model.hpp"
 #include "w_common.hpp"
 
 #include <QGraphicsScene>
@@ -16,7 +17,8 @@ class w_Coordsys : public QGraphicsView {
 
   public:
 
-    w_Coordsys(Coordsys* cs, QGraphicsScene* scene, QWidget* parent = nullptr);
+    w_Coordsys(Coordsys* cs, std::vector<Coordsys_model*> vm, QGraphicsScene* scene,
+               QWidget* parent = nullptr);
 
   protected:
 
@@ -36,21 +38,25 @@ class w_Coordsys : public QGraphicsView {
     void push_to_history();  // for undo
     void pop_from_history(); // undo
 
-    //   private slots:
-    //     void switch_to_model(int);
+  public slots:
+    void switch_to_model(int);
 
   signals:
     void viewResized();
     void mouseMoved(bool hot, mouse_pos_t mouse_pos);
     void modeChanged(pz_action action, pz_mode mode);
     void undoChanged(int undo_steps);
-    void labelChanged(std::string new_label);
     void scalingChanged(axis_scal xscal, axis_scal yscal);
 
   private:
 
     Coordsys* cs;          // coordinate system
     QGraphicsScene* scene; // graphics scene
+
+    Coordsys_model* cm;              // current modell
+    std::vector<Coordsys_model*> vm; // vector of models
+                                     // that might be switched between
+                                     // in case of several models
 
     std::vector<Coordsys> cs_history; // history of coordinate-systems (for undo)
 
