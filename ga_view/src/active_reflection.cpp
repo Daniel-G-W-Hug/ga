@@ -9,8 +9,8 @@
 
 #include <algorithm> // std::max
 
-active_reflection::active_reflection(Coordsys* cs, w_Coordsys* wcs, active_pt* n1end,
-                                     active_pt* n2end, QGraphicsItem* parent) :
+active_reflection::active_reflection(Coordsys* cs, w_Coordsys* wcs, active_pt2d* n1end,
+                                     active_pt2d* n2end, QGraphicsItem* parent) :
     QGraphicsItem(parent), cs{cs}, wcs{wcs}, m_n1end{n1end}, m_n2end{n2end}
 {
     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
@@ -20,11 +20,11 @@ active_reflection::active_reflection(Coordsys* cs, w_Coordsys* wcs, active_pt* n
 
     // setZValue(18);
 
-    connect(wcs, &w_Coordsys::viewResized, m_n1end, &active_pt::viewChanged);
-    connect(wcs, &w_Coordsys::viewResized, m_n2end, &active_pt::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_n1end, &active_pt2d::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_n2end, &active_pt2d::viewChanged);
 
-    connect(this, &active_reflection::viewMoved, m_n1end, &active_pt::posChanged);
-    connect(this, &active_reflection::viewMoved, m_n2end, &active_pt::posChanged);
+    connect(this, &active_reflection::viewMoved, m_n1end, &active_pt2d::posChanged);
+    connect(this, &active_reflection::viewMoved, m_n2end, &active_pt2d::posChanged);
 }
 
 void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
@@ -42,9 +42,10 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
 
     QPointF beg_pos = QPointF(cs->x.a_to_w(0.0), cs->y.a_to_w(0.0));
 
-    QPointF end_n1pos_nrm_scene = scenePos_n1end() / nrm(scenePos_n1end());
+    QPointF end_n1pos_nrm_scene = QPointF(scenePos_n1end().x, scenePos_n1end().y) /
+                                  nrm(QPointF(scenePos_n1end().x, scenePos_n1end().y));
     QPointF end_n1pos =
-        QPointF(cs->x.a_to_w(scenePos_n1end().x()), cs->y.a_to_w(scenePos_n1end().y()));
+        QPointF(cs->x.a_to_w(scenePos_n1end().x), cs->y.a_to_w(scenePos_n1end().y));
     QPointF end_n1pos_nrm = QPointF(cs->x.a_to_w(end_n1pos_nrm_scene.x()),
                                     cs->y.a_to_w(end_n1pos_nrm_scene.y()));
 
@@ -63,9 +64,10 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
 
     // draw second normal vector and corresponding hyperplane
 
-    QPointF end_n2pos_nrm_scene = scenePos_n2end() / nrm(scenePos_n2end());
+    QPointF end_n2pos_nrm_scene = QPointF(scenePos_n2end().x, scenePos_n2end().y) /
+                                  nrm(QPointF(scenePos_n2end().x, scenePos_n2end().y));
     QPointF end_n2pos =
-        QPointF(cs->x.a_to_w(scenePos_n2end().x()), cs->y.a_to_w(scenePos_n2end().y()));
+        QPointF(cs->x.a_to_w(scenePos_n2end().x), cs->y.a_to_w(scenePos_n2end().y));
     QPointF end_n2pos_nrm = QPointF(cs->x.a_to_w(end_n2pos_nrm_scene.x()),
                                     cs->y.a_to_w(end_n2pos_nrm_scene.y()));
 
@@ -149,9 +151,9 @@ QPainterPath active_reflection::shape() const
 {
     QPointF beg_pos = QPointF(cs->x.a_to_w(0.0), cs->y.a_to_w(0.0));
     QPointF end_n1pos =
-        QPointF(cs->x.a_to_w(scenePos_n1end().x()), cs->y.a_to_w(scenePos_n1end().y()));
+        QPointF(cs->x.a_to_w(scenePos_n1end().x), cs->y.a_to_w(scenePos_n1end().y));
     QPointF end_n2pos =
-        QPointF(cs->x.a_to_w(scenePos_n2end().x()), cs->y.a_to_w(scenePos_n2end().y()));
+        QPointF(cs->x.a_to_w(scenePos_n2end().x), cs->y.a_to_w(scenePos_n2end().y));
 
     QPainterPath path = vectorShape(beg_pos, end_n1pos);
     path += vectorShape(beg_pos, end_n2pos);
@@ -159,7 +161,7 @@ QPainterPath active_reflection::shape() const
     return path;
 }
 
-void active_reflection::setScenePos_n1end(QPointF const& pos)
+void active_reflection::setScenePos_n1end(pt2d const& pos)
 {
     if (pos != m_n1end->scenePos()) {
         prepareGeometryChange();
@@ -167,7 +169,7 @@ void active_reflection::setScenePos_n1end(QPointF const& pos)
     }
 }
 
-void active_reflection::setScenePos_n2end(QPointF const& pos)
+void active_reflection::setScenePos_n2end(pt2d const& pos)
 {
     if (pos != m_n2end->scenePos()) {
         prepareGeometryChange();
@@ -175,9 +177,9 @@ void active_reflection::setScenePos_n2end(QPointF const& pos)
     }
 }
 
-QPointF active_reflection::scenePos_n1end() const { return m_n1end->scenePos(); }
+pt2d active_reflection::scenePos_n1end() const { return m_n1end->scenePos(); }
 
-QPointF active_reflection::scenePos_n2end() const { return m_n2end->scenePos(); }
+pt2d active_reflection::scenePos_n2end() const { return m_n2end->scenePos(); }
 
 
 void active_reflection::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
@@ -223,11 +225,11 @@ void active_reflection::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     // qDebug() << "active_reflection::scenePos_n1end():" << scenePos_n1end();
 
     if (event->button() == Qt::LeftButton) {
-        // qDebug() << "active_pt: Qt::LeftButton.";
+        // qDebug() << "active_pt2d: Qt::LeftButton.";
         m_mouse_l_pressed = false;
     }
     if (event->button() == Qt::RightButton) {
-        // qDebug() << "active_pt: Qt::RightButton.";
+        // qDebug() << "active_pt2d: Qt::RightButton.";
         m_mouse_r_pressed = false;
     }
 

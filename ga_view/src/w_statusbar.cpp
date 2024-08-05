@@ -151,10 +151,12 @@ void w_Statusbar::draw(QPainter* qp)
     qp->drawText(w_width / 2 - fm.horizontalAdvance(s) / 2, nypos, s);
 
     // print index and (if present) label of currently displayed model
-    QString step = QString("Model: ") + QString::number(m_step);
+    QString step;
     if (m_label != "") {
-        step += QString("  Label: ") + m_label.c_str();
+        step += QString("   Label: ") + m_label.c_str() + QString("     ");
     }
+    step += QString("M-Index: ") + QString::number(m_currentModel) + QString("/") +
+            QString::number(m_maximumModel) + QString(" ");
     qp->drawText(w_width - fm.horizontalAdvance(step) - border_dist, nypos, step);
 
     qp->restore();
@@ -176,13 +178,24 @@ void w_Statusbar::on_mouseMoved(bool hot, mouse_pos_t mouse_pos)
     }
 }
 
-void w_Statusbar::on_modelChanged(int step)
+void w_Statusbar::on_currentModelChanged(int currentModelIndex)
 {
 
-    if (m_step != step) {
+    if (m_currentModel != currentModelIndex) {
         // update only if any value has changed
-        // fmt::print("received modelChanged event: {}\n", step);
-        m_step = step;
+        // fmt::print("received modelChanged event: {}\n", currentModelIndex);
+        m_currentModel = currentModelIndex;
+        update();
+    }
+}
+
+void w_Statusbar::on_maximumModelChanged(int maximumModelIndex)
+{
+
+    if (m_maximumModel != maximumModelIndex) {
+        // update only if any value has changed
+        // fmt::print("received modelChanged event: {}\n", currentModelIndex);
+        m_maximumModel = maximumModelIndex;
         update();
     }
 }

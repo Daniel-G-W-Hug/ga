@@ -2,7 +2,7 @@
 
 set(EXEC_NAME ga_test)
 
-add_executable(${EXEC_NAME} ga_test.cpp)  #dep: doctest, fmt
+add_executable(${EXEC_NAME} src/ga_test.cpp)  #dep: doctest, fmt
 
 target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 

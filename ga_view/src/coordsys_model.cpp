@@ -1,9 +1,9 @@
 #include "coordsys_model.hpp"
 
-[[maybe_unused]] int Coordsys_model::add_pt(const pt2d& p_in, const pt2d_mark m)
+[[maybe_unused]] int Coordsys_model::add_pt(pt2d const& pt_in, pt2d_mark const m)
 {
 
-    pt.push_back(p_in);
+    pt.push_back(pt_in);
     pt_mark.push_back(m);
 
     mark_id new_id;
@@ -16,7 +16,7 @@
 //
 // hint: using ln2d = std::vector<pt2d>;
 //
-[[maybe_unused]] int Coordsys_model::add_ln(const ln2d& vp_in, const ln2d_mark m)
+[[maybe_unused]] int Coordsys_model::add_ln(ln2d const& vp_in, ln2d_mark const m)
 {
 
     // the separate copy should not be needed, since it is done in push_back
@@ -49,10 +49,10 @@
     return new_id.id;
 }
 
-[[maybe_unused]] int Coordsys_model::add_vt(const vt2d& v_in, const vt2d_mark m)
+[[maybe_unused]] int Coordsys_model::add_vt(vt2d const& vt_in, vt2d_mark const m)
 {
 
-    vt.push_back(v_in);
+    vt.push_back(vt_in);
     vt_mark.push_back(m);
 
     mark_id new_id;
@@ -62,16 +62,64 @@
     return new_id.id;
 }
 
-[[maybe_unused]] int Coordsys_model::add_apt(const pt2d& p_in)
+[[maybe_unused]] int Coordsys_model::add_apt(pt2d const& pt_in)
 {
 
-    apt.push_back(p_in);
+    apt.push_back(pt_in);
 
     mark_id new_id;
     new_id.id = unique_id++;
     apt_id.push_back(new_id);
 
-    return new_id.id;
+    return apt.size() - 1;
+}
+
+[[maybe_unused]] int Coordsys_model::add_avt(avt2d const& avt_in)
+{
+
+    avt.push_back(avt_in);
+
+    mark_id new_id;
+    new_id.id = unique_id++;
+    avt_id.push_back(new_id);
+
+    return avt.size() - 1;
+}
+
+[[maybe_unused]] int Coordsys_model::add_abivt(abivt2d const& abivt_in)
+{
+
+    abivt.push_back(abivt_in);
+
+    mark_id new_id;
+    new_id.id = unique_id++;
+    avt_id.push_back(new_id);
+
+    return abivt.size() - 1;
+}
+
+[[maybe_unused]] int Coordsys_model::add_aproj(aproj2d const& aproj_in)
+{
+
+    aproj.push_back(aproj_in);
+
+    mark_id new_id;
+    new_id.id = unique_id++;
+    avt_id.push_back(new_id);
+
+    return abivt.size() - 1;
+}
+
+[[maybe_unused]] int Coordsys_model::add_arefl(arefl2d const& arefl_in)
+{
+
+    arefl.push_back(arefl_in);
+
+    mark_id new_id;
+    new_id.id = unique_id++;
+    avt_id.push_back(new_id);
+
+    return abivt.size() - 1;
 }
 
 void Coordsys_model::clear()

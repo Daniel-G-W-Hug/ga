@@ -13,9 +13,9 @@
 #include <QPainter>
 #include <QWidget>
 
-// active_pt can be moved by mouse
+// active_pt2d can be moved by mouse
 
-class active_pt : public QObject, public QGraphicsItem {
+class active_pt2d : public QObject, public QGraphicsItem {
 
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
@@ -26,7 +26,8 @@ class active_pt : public QObject, public QGraphicsItem {
     int type() const override { return Type; }
 
     // interactive changes of pos will be reflected in the model
-    active_pt(Coordsys* cs, w_Coordsys* wcs, pt2d& pos, QGraphicsItem* parent = nullptr);
+    active_pt2d(Coordsys* cs, w_Coordsys* wcs, pt2d& pos,
+                QGraphicsItem* parent = nullptr);
 
     void paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
@@ -34,7 +35,7 @@ class active_pt : public QObject, public QGraphicsItem {
     QPainterPath shape() const override;
 
     void setScenePos(pt2d const& pos);
-    pt2d scenePos();
+    pt2d scenePos() const;
 
     bool isHovered() { return m_mouse_hover; }
 

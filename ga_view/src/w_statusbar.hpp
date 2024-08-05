@@ -28,7 +28,8 @@ class w_Statusbar : public QWidget {
     // mouse within (min...max) (true) or not (false) cs area, current position is
     // x, y
     void on_mouseMoved(bool hot, mouse_pos_t mouse_pos);
-    void on_modelChanged(int step);
+    void on_currentModelChanged(int currentModelIndex);
+    void on_maximumModelChanged(int maximumModelIndex);
     void on_modeChanged(pz_action action, pz_mode mode);
     void on_undoChanged(int undo_steps);
     void on_labelChanged(std::string label);
@@ -46,8 +47,9 @@ class w_Statusbar : public QWidget {
     int m_nx, m_ny;  // mouse position in device coordinates
     double m_x, m_y; // mouse position in cs
 
-    // model step (default: show first step)
-    int m_step{0};
+
+    int m_currentModel{0}; // model index (default: show first step)
+    int m_maximumModel{0}; // maximum index of models
 
     // model label
     std::string m_label{};

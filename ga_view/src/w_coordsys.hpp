@@ -17,7 +17,7 @@ class w_Coordsys : public QGraphicsView {
 
   public:
 
-    w_Coordsys(Coordsys* cs, std::vector<Coordsys_model*> vm, QGraphicsScene* scene,
+    w_Coordsys(Coordsys* cs, std::vector<Coordsys_model*>& vm, QGraphicsScene* scene,
                QWidget* parent = nullptr);
 
   protected:

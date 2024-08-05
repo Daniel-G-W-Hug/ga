@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
         register_constants(lua);
 
         // run the lua script
-        lua.safe_script_file("../../ga_lua/ga_lua.lua");
+        lua.safe_script_file("../../ga_lua/input/ga_lua.lua");
     }
     catch (sol::error const& e) {
 

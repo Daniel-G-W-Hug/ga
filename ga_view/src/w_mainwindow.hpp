@@ -10,7 +10,11 @@
 #include "w_statusbar.hpp"
 
 #include <QGraphicsScene>
+#include <QGroupBox>
+#include <QHBoxLayout>
 #include <QMainWindow>
+#include <QSlider>
+#include <QSpinBox>
 #include <QWidget>
 
 class w_MainWindow : public QMainWindow {
@@ -25,7 +29,8 @@ class w_MainWindow : public QMainWindow {
     void changeModel(int);
 
   signals:
-    void updateModel(int);
+    void updateCurrentModel(int);
+    void updateMaximumModel(int);
     void labelChanged(std::string new_label);
 
   private:
@@ -34,6 +39,8 @@ class w_MainWindow : public QMainWindow {
 
     w_Coordsys* wcs;
     QSlider* slider;
+    QSpinBox* spinbox;
+    QGroupBox* sliderSpinGroup;
     w_Statusbar* wsb;
 
     QGraphicsScene* scene;

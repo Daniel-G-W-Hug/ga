@@ -6,8 +6,8 @@
 #include "active_common.hpp"
 
 
-active_projection::active_projection(Coordsys* cs, w_Coordsys* wcs, active_pt* beg,
-                                     active_pt* uend, active_pt* vend,
+active_projection::active_projection(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg,
+                                     active_pt2d* uend, active_pt2d* vend,
                                      QGraphicsItem* parent) :
     QGraphicsItem(parent), cs{cs}, wcs{wcs}, m_beg{beg}, m_uend{uend}, m_vend{vend}
 {
@@ -18,13 +18,13 @@ active_projection::active_projection(Coordsys* cs, w_Coordsys* wcs, active_pt* b
 
     // setZValue(18);
 
-    connect(wcs, &w_Coordsys::viewResized, m_beg, &active_pt::viewChanged);
-    connect(wcs, &w_Coordsys::viewResized, m_uend, &active_pt::viewChanged);
-    connect(wcs, &w_Coordsys::viewResized, m_vend, &active_pt::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_beg, &active_pt2d::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_uend, &active_pt2d::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_vend, &active_pt2d::viewChanged);
 
-    connect(this, &active_projection::viewMoved, m_beg, &active_pt::posChanged);
-    connect(this, &active_projection::viewMoved, m_uend, &active_pt::posChanged);
-    connect(this, &active_projection::viewMoved, m_vend, &active_pt::posChanged);
+    connect(this, &active_projection::viewMoved, m_beg, &active_pt2d::posChanged);
+    connect(this, &active_projection::viewMoved, m_uend, &active_pt2d::posChanged);
+    connect(this, &active_projection::viewMoved, m_vend, &active_pt2d::posChanged);
 }
 
 void active_projection::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
@@ -39,14 +39,16 @@ void active_projection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     qp->save();
 
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(scenePos_beg().x()), cs->y.a_to_w(scenePos_beg().y()));
+        QPointF(cs->x.a_to_w(scenePos_beg().x), cs->y.a_to_w(scenePos_beg().y));
     QPointF end_upos =
-        QPointF(cs->x.a_to_w(scenePos_uend().x()), cs->y.a_to_w(scenePos_uend().y()));
+        QPointF(cs->x.a_to_w(scenePos_uend().x), cs->y.a_to_w(scenePos_uend().y));
     QPointF end_vpos =
-        QPointF(cs->x.a_to_w(scenePos_vend().x()), cs->y.a_to_w(scenePos_vend().y()));
+        QPointF(cs->x.a_to_w(scenePos_vend().x), cs->y.a_to_w(scenePos_vend().y));
 
-    QPointF u = scenePos_uend() - scenePos_beg();
-    QPointF v = scenePos_vend() - scenePos_beg();
+    QPointF u = QPointF(scenePos_uend().x, scenePos_uend().y) -
+                QPointF(scenePos_beg().x, scenePos_beg().y);
+    QPointF v = QPointF(scenePos_vend().x, scenePos_vend().y) -
+                QPointF(scenePos_beg().x, scenePos_beg().y);
 
     QPointF u_inv = u / (u.x() * u.x() + u.y() * u.y());
 
@@ -56,7 +58,7 @@ void active_projection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     qreal dot = u.x() * v.x() + u.y() * v.y();    // dot(v,u)
     qreal wdg = -(u.x() * v.y() - u.y() * v.x()); // wdg(v,u)
 
-    QPointF vpar = scenePos_beg() + dot * u_inv;
+    QPointF vpar = QPointF(scenePos_beg().x, scenePos_beg().y) + dot * u_inv;
     QPointF vperp = QPointF(wdg * u_inv.y(), -wdg * u_inv.x()); // wdg calc. manually
 
     // qDebug() << "vpar:  " << vpar;
@@ -153,11 +155,11 @@ QRectF active_projection::boundingRect() const
 
     // give bounding box in item coordinate system
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(scenePos_beg().x()), cs->y.a_to_w(scenePos_beg().y()));
+        QPointF(cs->x.a_to_w(scenePos_beg().x), cs->y.a_to_w(scenePos_beg().y));
     QPointF end_upos =
-        QPointF(cs->x.a_to_w(scenePos_uend().x()), cs->y.a_to_w(scenePos_uend().y()));
+        QPointF(cs->x.a_to_w(scenePos_uend().x), cs->y.a_to_w(scenePos_uend().y));
     QPointF end_vpos =
-        QPointF(cs->x.a_to_w(scenePos_vend().x()), cs->y.a_to_w(scenePos_vend().y()));
+        QPointF(cs->x.a_to_w(scenePos_vend().x), cs->y.a_to_w(scenePos_vend().y));
 
     QPointF tip_pos = end_upos + end_vpos - beg_pos;
 
@@ -173,11 +175,11 @@ QPainterPath active_projection::shape() const
 {
 
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(scenePos_beg().x()), cs->y.a_to_w(scenePos_beg().y()));
+        QPointF(cs->x.a_to_w(scenePos_beg().x), cs->y.a_to_w(scenePos_beg().y));
     QPointF end_upos =
-        QPointF(cs->x.a_to_w(scenePos_uend().x()), cs->y.a_to_w(scenePos_uend().y()));
+        QPointF(cs->x.a_to_w(scenePos_uend().x), cs->y.a_to_w(scenePos_uend().y));
     QPointF end_vpos =
-        QPointF(cs->x.a_to_w(scenePos_vend().x()), cs->y.a_to_w(scenePos_vend().y()));
+        QPointF(cs->x.a_to_w(scenePos_vend().x), cs->y.a_to_w(scenePos_vend().y));
 
     QPainterPath path = vectorShape(beg_pos, end_upos);
     path += vectorShape(beg_pos, end_vpos);
@@ -185,7 +187,7 @@ QPainterPath active_projection::shape() const
     return path;
 }
 
-void active_projection::setScenePos_beg(QPointF const& pos)
+void active_projection::setScenePos_beg(pt2d const& pos)
 {
     if (pos != m_beg->scenePos()) {
         prepareGeometryChange();
@@ -193,7 +195,7 @@ void active_projection::setScenePos_beg(QPointF const& pos)
     }
 }
 
-void active_projection::setScenePos_uend(QPointF const& pos)
+void active_projection::setScenePos_uend(pt2d const& pos)
 {
     if (pos != m_uend->scenePos()) {
         prepareGeometryChange();
@@ -201,7 +203,7 @@ void active_projection::setScenePos_uend(QPointF const& pos)
     }
 }
 
-void active_projection::setScenePos_vend(QPointF const& pos)
+void active_projection::setScenePos_vend(pt2d const& pos)
 {
     if (pos != m_vend->scenePos()) {
         prepareGeometryChange();
@@ -209,9 +211,9 @@ void active_projection::setScenePos_vend(QPointF const& pos)
     }
 }
 
-QPointF active_projection::scenePos_beg() const { return m_beg->scenePos(); }
-QPointF active_projection::scenePos_uend() const { return m_uend->scenePos(); }
-QPointF active_projection::scenePos_vend() const { return m_vend->scenePos(); }
+pt2d active_projection::scenePos_beg() const { return m_beg->scenePos(); }
+pt2d active_projection::scenePos_uend() const { return m_uend->scenePos(); }
+pt2d active_projection::scenePos_vend() const { return m_vend->scenePos(); }
 
 
 void active_projection::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
@@ -257,11 +259,11 @@ void active_projection::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     // qDebug() << "active_projection::scenePos_end():" << scenePos_end();
 
     if (event->button() == Qt::LeftButton) {
-        // qDebug() << "active_pt: Qt::LeftButton.";
+        // qDebug() << "active_pt2d: Qt::LeftButton.";
         m_mouse_l_pressed = false;
     }
     if (event->button() == Qt::RightButton) {
-        // qDebug() << "active_pt: Qt::RightButton.";
+        // qDebug() << "active_pt2d: Qt::RightButton.";
         m_mouse_r_pressed = false;
     }
 

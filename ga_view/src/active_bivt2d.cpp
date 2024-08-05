@@ -2,12 +2,13 @@
 // author: Daniel Hug, 2024
 //
 
-#include "active_bivec.hpp"
+#include "active_bivt2d.hpp"
 #include "active_common.hpp"
 
 
-active_bivec::active_bivec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* uend,
-                           active_pt* vend, QGraphicsItem* parent) :
+active_bivt2d::active_bivt2d(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg,
+                             active_pt2d* uend, active_pt2d* vend,
+                             QGraphicsItem* parent) :
     QGraphicsItem(parent), cs{cs}, wcs{wcs}, m_beg{beg}, m_uend{uend}, m_vend{vend}
 {
     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
@@ -17,13 +18,13 @@ active_bivec::active_bivec(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active
 
     // setZValue(18);
 
-    connect(wcs, &w_Coordsys::viewResized, m_beg, &active_pt::viewChanged);
-    connect(wcs, &w_Coordsys::viewResized, m_uend, &active_pt::viewChanged);
-    connect(wcs, &w_Coordsys::viewResized, m_vend, &active_pt::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_beg, &active_pt2d::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_uend, &active_pt2d::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_vend, &active_pt2d::viewChanged);
 }
 
-void active_bivec::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
-                         QWidget* widget)
+void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
+                          QWidget* widget)
 {
 
     // clipping area is active area of coordsys
@@ -34,11 +35,11 @@ void active_bivec::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     qp->save();
 
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
-    QPointF end_upos = QPointF(cs->x.a_to_w(m_uend->scenePos().x()),
-                               cs->y.a_to_w(m_uend->scenePos().y()));
-    QPointF end_vpos = QPointF(cs->x.a_to_w(m_vend->scenePos().x()),
-                               cs->y.a_to_w(m_vend->scenePos().y()));
+        QPointF(cs->x.a_to_w(m_beg->scenePos().x), cs->y.a_to_w(m_beg->scenePos().y));
+    QPointF end_upos =
+        QPointF(cs->x.a_to_w(m_uend->scenePos().x), cs->y.a_to_w(m_uend->scenePos().y));
+    QPointF end_vpos =
+        QPointF(cs->x.a_to_w(m_vend->scenePos().x), cs->y.a_to_w(m_vend->scenePos().y));
 
     QPointF tip_pos = end_upos + end_vpos - beg_pos;
 
@@ -57,7 +58,7 @@ void active_bivec::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     // Actual angle calculations for mathematical/physical purposes must use logical
     // coordinates as input for the calculation exclusively!
     qreal angle_rel = -angle_between_lines(beg_pos, end_upos, end_vpos);
-    // qDebug() << "active_bivec::paint: angle_rel = " << angle_rel;
+    // qDebug() << "active_bivt2d::paint: angle_rel = " << angle_rel;
 
     if (angle_rel >= 0.0) {
         qp->setPen(QPen(QBrush(col_lgreen), 1, Qt::SolidLine));
@@ -122,15 +123,15 @@ void active_bivec::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     qp->restore();
 }
 
-QRectF active_bivec::boundingRect() const
+QRectF active_bivt2d::boundingRect() const
 {
     // give bounding box in item coordinate system
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
-    QPointF end_upos = QPointF(cs->x.a_to_w(m_uend->scenePos().x()),
-                               cs->y.a_to_w(m_uend->scenePos().y()));
-    QPointF end_vpos = QPointF(cs->x.a_to_w(m_vend->scenePos().x()),
-                               cs->y.a_to_w(m_vend->scenePos().y()));
+        QPointF(cs->x.a_to_w(m_beg->scenePos().x), cs->y.a_to_w(m_beg->scenePos().y));
+    QPointF end_upos =
+        QPointF(cs->x.a_to_w(m_uend->scenePos().x), cs->y.a_to_w(m_uend->scenePos().y));
+    QPointF end_vpos =
+        QPointF(cs->x.a_to_w(m_vend->scenePos().x), cs->y.a_to_w(m_vend->scenePos().y));
 
     QPointF tip_pos = end_upos + end_vpos - beg_pos;
 
@@ -142,15 +143,15 @@ QRectF active_bivec::boundingRect() const
     return polygon.boundingRect();
 }
 
-QPainterPath active_bivec::shape() const
+QPainterPath active_bivt2d::shape() const
 {
 
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(m_beg->scenePos().x()), cs->y.a_to_w(m_beg->scenePos().y()));
-    QPointF end_upos = QPointF(cs->x.a_to_w(m_uend->scenePos().x()),
-                               cs->y.a_to_w(m_uend->scenePos().y()));
-    QPointF end_vpos = QPointF(cs->x.a_to_w(m_vend->scenePos().x()),
-                               cs->y.a_to_w(m_vend->scenePos().y()));
+        QPointF(cs->x.a_to_w(m_beg->scenePos().x), cs->y.a_to_w(m_beg->scenePos().y));
+    QPointF end_upos =
+        QPointF(cs->x.a_to_w(m_uend->scenePos().x), cs->y.a_to_w(m_uend->scenePos().y));
+    QPointF end_vpos =
+        QPointF(cs->x.a_to_w(m_vend->scenePos().x), cs->y.a_to_w(m_vend->scenePos().y));
 
     QPainterPath path = vectorShape(beg_pos, end_upos);
     path += vectorShape(beg_pos, end_vpos);
@@ -158,7 +159,7 @@ QPainterPath active_bivec::shape() const
     return path;
 }
 
-void active_bivec::setScenePos_beg(QPointF const& pos)
+void active_bivt2d::setScenePos_beg(pt2d const& pos)
 {
     if (pos != m_beg->scenePos()) {
         prepareGeometryChange();
@@ -166,7 +167,7 @@ void active_bivec::setScenePos_beg(QPointF const& pos)
     }
 }
 
-void active_bivec::setScenePos_uend(QPointF const& pos)
+void active_bivt2d::setScenePos_uend(pt2d const& pos)
 {
     if (pos != m_uend->scenePos()) {
         prepareGeometryChange();
@@ -174,7 +175,7 @@ void active_bivec::setScenePos_uend(QPointF const& pos)
     }
 }
 
-void active_bivec::setScenePos_vend(QPointF const& pos)
+void active_bivt2d::setScenePos_vend(pt2d const& pos)
 {
     if (pos != m_vend->scenePos()) {
         prepareGeometryChange();
@@ -182,39 +183,39 @@ void active_bivec::setScenePos_vend(QPointF const& pos)
     }
 }
 
-QPointF active_bivec::scenePos_beg() { return m_beg->scenePos(); }
-QPointF active_bivec::scenePos_uend() { return m_uend->scenePos(); }
-QPointF active_bivec::scenePos_vend() { return m_vend->scenePos(); }
+pt2d active_bivt2d::scenePos_beg() const { return m_beg->scenePos(); }
+pt2d active_bivt2d::scenePos_uend() const { return m_uend->scenePos(); }
+pt2d active_bivt2d::scenePos_vend() const { return m_vend->scenePos(); }
 
 
-void active_bivec::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+void active_bivt2d::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
     Q_UNUSED(event)
 
-    // qDebug() << "active_bivec::hoverEnterEvent.";
+    // qDebug() << "active_bivt2d::hoverEnterEvent.";
     m_mouse_hover = true;
     update();
 }
 
-void active_bivec::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+void active_bivt2d::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
     Q_UNUSED(event)
 
-    // qDebug() << "active_bivec::hoverLeaveEvent.";
+    // qDebug() << "active_bivt2d::hoverLeaveEvent.";
     m_mouse_hover = false;
     update();
 }
 
-void active_bivec::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void active_bivt2d::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    // qDebug() << "active_bivec::mousePressEvent.";
+    // qDebug() << "active_bivt2d::mousePressEvent.";
 
     if (event->button() == Qt::LeftButton) {
-        // qDebug() << "active_bivec: Qt::LeftButton.";
+        // qDebug() << "active_bivt2d: Qt::LeftButton.";
         m_mouse_l_pressed = true;
     }
     if (event->button() == Qt::RightButton) {
-        // qDebug() << "active_bivec: Qt::RightButton.";
+        // qDebug() << "active_bivt2d: Qt::RightButton.";
         m_mouse_r_pressed = true;
     }
 
@@ -222,19 +223,19 @@ void active_bivec::mousePressEvent(QGraphicsSceneMouseEvent* event)
     QGraphicsItem::mousePressEvent(event); // call default implementation
 }
 
-void active_bivec::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void active_bivt2d::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    // qDebug() << "active_bivec::mouseReleaseEvent.";
+    // qDebug() << "active_bivt2d::mouseReleaseEvent.";
 
-    // qDebug() << "active_bivec::scenePos_beg():" << scenePos_beg();
-    // qDebug() << "active_bivec::scenePos_end():" << scenePos_end();
+    // qDebug() << "active_bivt2d::scenePos_beg():" << scenePos_beg();
+    // qDebug() << "active_bivt2d::scenePos_end():" << scenePos_end();
 
     if (event->button() == Qt::LeftButton) {
-        // qDebug() << "active_pt: Qt::LeftButton.";
+        // qDebug() << "active_pt2d: Qt::LeftButton.";
         m_mouse_l_pressed = false;
     }
     if (event->button() == Qt::RightButton) {
-        // qDebug() << "active_pt: Qt::RightButton.";
+        // qDebug() << "active_pt2d: Qt::RightButton.";
         m_mouse_r_pressed = false;
     }
 
@@ -242,9 +243,9 @@ void active_bivec::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     QGraphicsItem::mouseReleaseEvent(event); // call default implementation
 }
 
-void active_bivec::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void active_bivt2d::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    // qDebug() << "active_bivec::mouseMoveEvent.";
+    // qDebug() << "active_bivt2d::mouseMoveEvent.";
 
     if (m_mouse_l_pressed) {
 

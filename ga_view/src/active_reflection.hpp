@@ -3,7 +3,7 @@
 // author: Daniel Hug, 2024
 //
 
-#include "active_pt.hpp"
+#include "active_pt2d.hpp"
 #include "coordsys.hpp"
 #include "w_coordsys.hpp"
 
@@ -27,17 +27,19 @@ class active_reflection : public QObject, public QGraphicsItem {
     enum { Type = UserType + 5 };
     int type() const override { return Type; }
 
-    active_reflection(Coordsys* cs, w_Coordsys* wcs, active_pt* n1end, active_pt* n2end,
-                      QGraphicsItem* parent = nullptr);
+    // active points are used here as endpoints of normal vectors from (0,0) to endpoint
+    // describing a normal to a plane used for reflection
+    active_reflection(Coordsys* cs, w_Coordsys* wcs, active_pt2d* n1end,
+                      active_pt2d* n2end, QGraphicsItem* parent = nullptr);
     void paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
 
-    void setScenePos_n1end(QPointF const& pos);
-    void setScenePos_n2end(QPointF const& pos);
-    QPointF scenePos_n1end() const;
-    QPointF scenePos_n2end() const;
+    void setScenePos_n1end(pt2d const& pos);
+    void setScenePos_n2end(pt2d const& pos);
+    pt2d scenePos_n1end() const;
+    pt2d scenePos_n2end() const;
 
     bool isHovered() { return m_mouse_hover; }
 
@@ -59,8 +61,8 @@ class active_reflection : public QObject, public QGraphicsItem {
     Coordsys* cs;
     w_Coordsys* wcs;
 
-    active_pt* m_n1end; // active_pt at end position n1 (implicit m_beg at (0,0))
-    active_pt* m_n2end; // active_pt at end position n2 (implicit m_beg at (0,0))
+    active_pt2d* m_n1end; // active_pt2d at end position n1 (implicit m_beg at (0,0))
+    active_pt2d* m_n2end; // active_pt2d at end position n2 (implicit m_beg at (0,0))
 
     bool m_mouse_hover{false};     // mouse is hovering over the item
     bool m_mouse_l_pressed{false}; // left button mouse is pressed

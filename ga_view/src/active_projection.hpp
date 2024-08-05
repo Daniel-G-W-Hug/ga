@@ -3,7 +3,7 @@
 // author: Daniel Hug, 2024
 //
 
-#include "active_pt.hpp"
+#include "active_pt2d.hpp"
 #include "coordsys.hpp"
 #include "w_coordsys.hpp"
 
@@ -28,19 +28,19 @@ class active_projection : public QObject, public QGraphicsItem {
     enum { Type = UserType + 4 };
     int type() const override { return Type; }
 
-    active_projection(Coordsys* cs, w_Coordsys* wcs, active_pt* beg, active_pt* uend,
-                      active_pt* vend, QGraphicsItem* parent = nullptr);
+    active_projection(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg, active_pt2d* uend,
+                      active_pt2d* vend, QGraphicsItem* parent = nullptr);
     void paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
 
-    void setScenePos_beg(QPointF const& pos);
-    void setScenePos_uend(QPointF const& pos);
-    void setScenePos_vend(QPointF const& pos);
-    QPointF scenePos_beg() const;
-    QPointF scenePos_uend() const;
-    QPointF scenePos_vend() const;
+    void setScenePos_beg(pt2d const& pos);
+    void setScenePos_uend(pt2d const& pos);
+    void setScenePos_vend(pt2d const& pos);
+    pt2d scenePos_beg() const;
+    pt2d scenePos_uend() const;
+    pt2d scenePos_vend() const;
 
     bool isHovered() { return m_mouse_hover; }
 
@@ -62,9 +62,9 @@ class active_projection : public QObject, public QGraphicsItem {
     Coordsys* cs;
     w_Coordsys* wcs;
 
-    active_pt* m_beg;  // active_pt at beginning position (common starting point)
-    active_pt* m_uend; // active_pt at end position of u vector
-    active_pt* m_vend; // active_pt at end position of v vector
+    active_pt2d* m_beg;  // active_pt2d at beginning position (common starting point)
+    active_pt2d* m_uend; // active_pt2d at end position of u vector
+    active_pt2d* m_vend; // active_pt2d at end position of v vector
 
     bool m_mouse_hover{false};     // mouse is hovering over the item
     bool m_mouse_l_pressed{false}; // left button mouse is pressed

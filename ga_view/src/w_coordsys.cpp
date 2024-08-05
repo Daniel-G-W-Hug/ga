@@ -16,9 +16,9 @@
 #include <cmath>     // for axis scaling (and mathematical functions)
 
 
-w_Coordsys::w_Coordsys(Coordsys* cs, std::vector<Coordsys_model*> vm,
+w_Coordsys::w_Coordsys(Coordsys* cs, std::vector<Coordsys_model*>& vm,
                        QGraphicsScene* scene, QWidget* parent) :
-    QGraphicsView(parent), cs(cs), vm(std::move(vm)), scene(scene)
+    QGraphicsView(parent), cs(cs), vm(vm), scene(scene)
 {
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     scene->setSceneRect(0, 0, cs->x.widget_size(), cs->y.widget_size());

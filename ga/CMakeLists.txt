@@ -14,4 +14,4 @@ set(HEADERS ga.hpp
     ga_usr_consts.hpp ga_usr_types.hpp ga_usr_utilities.hpp
     )
 
-add_lnibrary(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user)
+add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user)

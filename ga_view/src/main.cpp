@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
         QApplication a(argc, argv);
 
         w_MainWindow w;
+        w.move(400, 100);
         w.show();
         return a.exec();
     }

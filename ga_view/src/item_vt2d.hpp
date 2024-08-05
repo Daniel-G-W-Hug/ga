@@ -13,7 +13,7 @@
 #include <QPointF>
 #include <QWidget>
 
-// active_pt can be moved by mouse
+// active_pt2d can be moved by mouse
 
 class item_vt2d : public QObject, public QGraphicsItem {
 

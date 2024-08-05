@@ -37,11 +37,11 @@ set(SOURCES src/main.cpp
             src/w_coordsys.cpp
             src/w_statusbar.cpp
             src/active_common.cpp
-            src/active_pt.cpp
-            #src/active_vec.cpp
-            #src/active_bivec.cpp
-            #src/active_projection.cpp
-            #src/active_reflection.cpp
+            src/active_pt2d.cpp
+            src/active_vt2d.cpp
+            src/active_bivt2d.cpp
+            src/active_projection.cpp
+            src/active_reflection.cpp
             src/item_pt2d.cpp
             src/item_ln2d.cpp
             src/item_vt2d.cpp)
