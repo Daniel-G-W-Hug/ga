@@ -1,3 +1,7 @@
+//
+// author: Daniel Hug, 2024
+//
+
 #include "w_common.hpp"
 
 #include "active_bivt2d.hpp"

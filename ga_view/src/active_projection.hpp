@@ -16,7 +16,7 @@
 #include <QWidget>
 
 // active_projection has three active points. Can be manipulated and moved by mouse.
-// shows wedge product of two vector u and v: u^v
+// shows projection of vector v on vector u
 
 class active_projection : public QObject, public QGraphicsItem {
 

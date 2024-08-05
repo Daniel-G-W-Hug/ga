@@ -5,7 +5,6 @@
 #include "active_bivt2d.hpp"
 #include "active_common.hpp"
 
-
 active_bivt2d::active_bivt2d(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg,
                              active_pt2d* uend, active_pt2d* vend,
                              QGraphicsItem* parent) :

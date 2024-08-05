@@ -38,39 +38,35 @@ void item_pt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     // draw in item coordinate system
     qp->save();
 
-    if (cm->pt_id[idx].active) { // only draw active pts into cs
+    qp->setPen(cm->pt_mark[idx].pen);
 
-        qp->setPen(cm->pt_mark[idx].pen);
-
-        switch (cm->pt_mark[idx].symbol) {
-            case Symbol::plus: {
-                qp->drawLine(-cm->pt_mark[idx].nsize, 0, +cm->pt_mark[idx].nsize, 0);
-                qp->drawLine(0, -cm->pt_mark[idx].nsize, 0, cm->pt_mark[idx].nsize);
-                break;
-            }
-            case Symbol::cross: {
-                qp->drawLine(-cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize,
-                             cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize);
-                qp->drawLine(-cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize,
-                             cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize);
-                break;
-            }
-            case Symbol::circle: {
-                qp->drawEllipse(QPoint(0, 0), cm->pt_mark[idx].nsize,
-                                cm->pt_mark[idx].nsize);
-                break;
-            }
-            case Symbol::square: {
-                qp->drawLine(-cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize,
-                             cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize);
-                qp->drawLine(cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize,
-                             cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize);
-                qp->drawLine(cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize,
-                             -cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize);
-                qp->drawLine(-cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize,
-                             -cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize);
-                break;
-            }
+    switch (cm->pt_mark[idx].symbol) {
+        case Symbol::plus: {
+            qp->drawLine(-cm->pt_mark[idx].nsize, 0, +cm->pt_mark[idx].nsize, 0);
+            qp->drawLine(0, -cm->pt_mark[idx].nsize, 0, cm->pt_mark[idx].nsize);
+            break;
+        }
+        case Symbol::cross: {
+            qp->drawLine(-cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize,
+                         cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize);
+            qp->drawLine(-cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize,
+                         cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize);
+            break;
+        }
+        case Symbol::circle: {
+            qp->drawEllipse(QPoint(0, 0), cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize);
+            break;
+        }
+        case Symbol::square: {
+            qp->drawLine(-cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize,
+                         cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize);
+            qp->drawLine(cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize,
+                         cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize);
+            qp->drawLine(cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize,
+                         -cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize);
+            qp->drawLine(-cm->pt_mark[idx].nsize, cm->pt_mark[idx].nsize,
+                         -cm->pt_mark[idx].nsize, -cm->pt_mark[idx].nsize);
+            break;
         }
     }
 

@@ -1,4 +1,7 @@
 #pragma once
+//
+// author: Daniel Hug, 2024
+//
 
 #include <QColor>
 #include <QPen>
@@ -78,9 +81,6 @@ struct vt2d {
 struct vt2d_mark {
 
     QPen pen{QPen(Qt::black, 2, Qt::SolidLine)};
-
-    int grp{0}; // user provided group the
-                // item shall belong to (for selection)
 };
 
 const vt2d_mark vt2d_mark_default; // for default arguments;
@@ -126,22 +126,6 @@ struct arefl2d {
 };
 
 // ----------------------------------------------------------------------------
-// this is used internally, not by the user directly
-// ----------------------------------------------------------------------------
-
-struct mark_id {
-
-    int id{-1};           // unique id
-    int grp{0};           // user provided group (for selection)
-    int linked_to_id{-1}; // associated with other id (e.g. pt_marks with line)
-    bool active{true};    // active elements are diplayed (on by default)
-};
-
-// ----------------------------------------------------------------------------
-// this is used internally up to here, not by the user directly
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
 // convenience alias to make pt2d and ln2d look similar
 // ----------------------------------------------------------------------------
 using ln2d = std::vector<pt2d>;
@@ -184,49 +168,32 @@ class Coordsys_model {
     // data for points (same index is for same point)
     std::vector<pt2d> pt;
     std::vector<pt2d_mark> pt_mark;
-    std::vector<mark_id> pt_id;
 
     // data for lines consisting of points (same index is for same line)
     std::vector<ln2d> ln;
     std::vector<ln2d_mark> ln_mark;
-    std::vector<mark_id> ln_id;
 
     // data for vectors (same index is for same vector)
     std::vector<vt2d> vt;
     std::vector<vt2d_mark> vt_mark;
-    std::vector<mark_id> vt_id;
 
     // data for active points (same index is for same point)
     std::vector<pt2d> apt;
-    std::vector<mark_id> apt_id;
 
     // data for active vectors using active points (same index is for same point)
     std::vector<avt2d> avt;
-    std::vector<mark_id> avt_id;
 
     // data for active vectors using active points (same index is for same point)
     std::vector<abivt2d> abivt;
-    std::vector<mark_id> abivt_id;
 
     // data for active reflections using active points (same index is for same point)
     std::vector<aproj2d> aproj;
-    std::vector<mark_id> aproj_id;
 
     // data for active reflections using active points (same index is for same point)
     std::vector<arefl2d> arefl;
-    std::vector<mark_id> arefl_id;
 
     // model label, e.g. time stamp description of current Coordsys_model
     std::string m_label{};
-
-    int id() { return ++unique_id; }
-
-  private:
-
-    int unique_id{-1}; // id = unique id with rng: [0..) to identify each item in model.
-                       // Assigned when entity is added to Coordsys_model
-                       // used to create relations between different types
-                       // (e.g. active vectors and active points)
 };
 
 // ----------------------------------------------------------------------------

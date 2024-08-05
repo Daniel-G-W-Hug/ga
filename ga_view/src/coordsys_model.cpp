@@ -1,3 +1,7 @@
+//
+// author: Daniel Hug, 2024
+//
+
 #include "coordsys_model.hpp"
 
 [[maybe_unused]] int Coordsys_model::add_pt(pt2d const& pt_in, pt2d_mark const m)
@@ -6,11 +10,7 @@
     pt.push_back(pt_in);
     pt_mark.push_back(m);
 
-    mark_id new_id;
-    new_id.id = unique_id++;
-    pt_id.push_back(new_id);
-
-    return new_id.id;
+    return pt.size() - 1;
 }
 
 //
@@ -28,25 +28,16 @@
     ln.push_back(vp_in);
     ln_mark.push_back(m);
 
-    mark_id new_id;
-    new_id.id = unique_id++;
-    ln_id.push_back(new_id);
-
     if (m.mark_pts == true) { // add points of line to pts marked in model
 
         for (int i = 0; i < vp_in.size(); i += m.delta) {
 
             pt.push_back(vp_in[i]);
             pt_mark.push_back(m.pm);
-
-            mark_id new_pt_id;
-            new_pt_id.id = unique_id++;
-            new_pt_id.linked_to_id = new_id.id;
-            pt_id.push_back(new_pt_id);
         }
     }
 
-    return new_id.id;
+    return ln.size() - 1;
 }
 
 [[maybe_unused]] int Coordsys_model::add_vt(vt2d const& vt_in, vt2d_mark const m)
@@ -55,21 +46,13 @@
     vt.push_back(vt_in);
     vt_mark.push_back(m);
 
-    mark_id new_id;
-    new_id.id = unique_id++;
-    vt_id.push_back(new_id);
-
-    return new_id.id;
+    return vt.size() - 1;
 }
 
 [[maybe_unused]] int Coordsys_model::add_apt(pt2d const& pt_in)
 {
 
     apt.push_back(pt_in);
-
-    mark_id new_id;
-    new_id.id = unique_id++;
-    apt_id.push_back(new_id);
 
     return apt.size() - 1;
 }
@@ -79,10 +62,6 @@
 
     avt.push_back(avt_in);
 
-    mark_id new_id;
-    new_id.id = unique_id++;
-    avt_id.push_back(new_id);
-
     return avt.size() - 1;
 }
 
@@ -90,10 +69,6 @@
 {
 
     abivt.push_back(abivt_in);
-
-    mark_id new_id;
-    new_id.id = unique_id++;
-    avt_id.push_back(new_id);
 
     return abivt.size() - 1;
 }
@@ -103,11 +78,7 @@
 
     aproj.push_back(aproj_in);
 
-    mark_id new_id;
-    new_id.id = unique_id++;
-    avt_id.push_back(new_id);
-
-    return abivt.size() - 1;
+    return aproj.size() - 1;
 }
 
 [[maybe_unused]] int Coordsys_model::add_arefl(arefl2d const& arefl_in)
@@ -115,24 +86,25 @@
 
     arefl.push_back(arefl_in);
 
-    mark_id new_id;
-    new_id.id = unique_id++;
-    avt_id.push_back(new_id);
-
-    return abivt.size() - 1;
+    return arefl.size() - 1;
 }
 
 void Coordsys_model::clear()
 {
-    unique_id = 0;
-
     pt.clear();
     pt_mark.clear();
-    pt_id.clear();
 
     ln.clear();
     ln_mark.clear();
-    ln_id.clear();
+
+    vt.clear();
+    vt_mark.clear();
+
+    apt.clear();
+    avt.clear();
+    abivt.clear();
+    aproj.clear();
+    arefl.clear();
 
     m_label.clear();
 }

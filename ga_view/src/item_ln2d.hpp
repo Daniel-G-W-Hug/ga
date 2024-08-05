@@ -12,7 +12,7 @@
 #include <QPainter>
 #include <QWidget>
 
-// active_pt2d can be moved by mouse
+// passive line consisting of passive points
 
 class item_ln2d : public QObject, public QGraphicsItem {
 

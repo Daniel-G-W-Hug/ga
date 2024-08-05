@@ -59,41 +59,35 @@ void item_ln2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     // draw in item coordinate system
     qp->save();
 
+    qp->setPen(cm->ln_mark[idx].pen);
 
-    if (cm->ln_id[idx].active) { // only draw active lines into cs
+    // connect all points on each line
+    for (int j = 0; j < cm->ln[idx].size() - 1; ++j) {
+        int nx1 = cs->x.au_to_w(cm->ln[idx][j].x);
+        int ny1 = cs->y.au_to_w(cm->ln[idx][j].y);
+        int nx2 = cs->x.au_to_w(cm->ln[idx][j + 1].x);
+        int ny2 = cs->y.au_to_w(cm->ln[idx][j + 1].y);
+        qp->drawLine(mapFromScene(QPointF(nx1, ny1)), mapFromScene(QPointF(nx2, ny2)));
+    }
 
+    if (cm->ln_mark[idx].mark_area) {
         qp->setPen(cm->ln_mark[idx].pen);
+        qp->setBrush(cm->ln_mark[idx].area_col);
+
+        QPainterPath polyPath;
+        polyPath.moveTo(
+            mapFromScene(QPointF(cs->x.au_to_w(cm->ln[idx][0].x), cs->y.au_to_w(0.0))));
 
         // connect all points on each line
-        for (int j = 0; j < cm->ln[idx].size() - 1; ++j) {
-            int nx1 = cs->x.au_to_w(cm->ln[idx][j].x);
-            int ny1 = cs->y.au_to_w(cm->ln[idx][j].y);
-            int nx2 = cs->x.au_to_w(cm->ln[idx][j + 1].x);
-            int ny2 = cs->y.au_to_w(cm->ln[idx][j + 1].y);
-            qp->drawLine(mapFromScene(QPointF(nx1, ny1)),
-                         mapFromScene(QPointF(nx2, ny2)));
+        for (int j = 0; j < cm->ln[idx].size(); ++j) {
+            polyPath.lineTo(mapFromScene(QPointF(cs->x.au_to_w(cm->ln[idx][j].x),
+                                                 cs->y.au_to_w(cm->ln[idx][j].y))));
         }
 
-        if (cm->ln_mark[idx].mark_area) {
-            qp->setPen(cm->ln_mark[idx].pen);
-            qp->setBrush(cm->ln_mark[idx].area_col);
-
-            QPainterPath polyPath;
-            polyPath.moveTo(mapFromScene(
-                QPointF(cs->x.au_to_w(cm->ln[idx][0].x), cs->y.au_to_w(0.0))));
-
-            // connect all points on each line
-            for (int j = 0; j < cm->ln[idx].size(); ++j) {
-                polyPath.lineTo(mapFromScene(QPointF(cs->x.au_to_w(cm->ln[idx][j].x),
-                                                     cs->y.au_to_w(cm->ln[idx][j].y))));
-            }
-
-            polyPath.lineTo(
-                mapFromScene(QPointF(cs->x.au_to_w(cm->ln[idx][cm->ln[idx].size() - 1].x),
-                                     cs->y.au_to_w(0.0))));
-            polyPath.closeSubpath();
-            qp->drawPath(polyPath);
-        }
+        polyPath.lineTo(mapFromScene(QPointF(
+            cs->x.au_to_w(cm->ln[idx][cm->ln[idx].size() - 1].x), cs->y.au_to_w(0.0))));
+        polyPath.closeSubpath();
+        qp->drawPath(polyPath);
     }
 
     // draw bounding box (optional for testing)

@@ -43,18 +43,15 @@ void item_vt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     // draw in item coordinate system
     qp->save();
 
-    if (cm->vt_id[idx].active) { // only draw active vectors into cs
+    // draw vector from beg to end
+    qp->setPen(cm->vt_mark[idx].pen);
+    qp->drawPath(arrowLine(beg_pos, end_pos));
 
-        // draw vector from beg to end
-        qp->setPen(cm->vt_mark[idx].pen);
-        qp->drawPath(arrowLine(beg_pos, end_pos));
-
-        // from here on we want to draw with a small pen to get a pointy vector head
-        QPen pen = qp->pen();
-        pen.setWidth(1);
-        qp->setBrush(pen.color());
-        qp->drawPath(arrowHead(beg_pos, end_pos));
-    }
+    // from here on we want to draw with a small pen to get a pointy vector head
+    QPen pen = qp->pen();
+    pen.setWidth(1);
+    qp->setBrush(pen.color());
+    qp->drawPath(arrowHead(beg_pos, end_pos));
 
     // draw bounding box (optional for testing)
     // qp->setPen(col_yel);
