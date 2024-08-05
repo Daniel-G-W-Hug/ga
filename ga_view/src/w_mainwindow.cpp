@@ -185,8 +185,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         Coordsys_model cm;
 
         int p0_id = cm.add_apt(pt2d{0, 1});
-        int p1a_id = cm.add_apt(pt2d{3, 1});
-        int p1b_id = cm.add_apt(pt2d{3, 1});
+        int p1a_id = cm.add_apt(pt2d{-1.5, 1});
+        int p1b_id = cm.add_apt(pt2d{-1.5, 1});
         int p2_id = cm.add_apt(pt2d{0, 2});
 
         cm.add_avt(avt2d{p0_id, p1a_id});
@@ -243,12 +243,12 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        int p0_id = cm.add_apt(pt2d{1, 0});
-        int p1_id = cm.add_apt(pt2d{0, 1});
+        int p0_id = cm.add_apt(pt2d{0, 1});
+        int p1_id = cm.add_apt(pt2d{1, 0});
 
         cm.add_arefl(arefl2d{p0_id, p1_id});
 
-        cm.set_label("active reflection");
+        cm.set_label("active reflection (2x)");
 
         vm.push_back(cm);
     }
