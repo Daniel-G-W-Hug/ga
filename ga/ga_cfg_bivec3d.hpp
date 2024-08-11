@@ -34,9 +34,9 @@ struct BiVec3d {
     // and for each bivector bv:
     // bv = yz * e2^e3 + zx * e3^e1 + xy * e1^e2
     //    =  x * e2^e3 +  y * e3^e1 +  z * e1^e2
-    // (same names (x, y, z), but same semantic as one live above (yz, zx, xy)
+    // (same names like in vector (x, y, z), but semantic as one live above (yz, zx, xy)
 
-    // this is a mapping of the components as aliases
+    // this is a mapping of the components
     // such that vector components x, y and z correspond to the
     // normals of the corresponding plane elements represented by
     // bivector components yz, zx and xy
@@ -45,19 +45,6 @@ struct BiVec3d {
     // T.x <=> bivector yz <=> Vec3d<T>::x; // maps to basis bivector e2^e3
     // T.y <=> bivector zx <=> Vec3d<T>::y; // maps to basis bivector e3^e1
     // T.z <=> bivector xy <=> Vec3d<T>::z; // maps to basis bivector e1^e2
-
-    // duality operations (as defined in Macdonald, "Linear and geometric algebra"):
-    //
-    // e2^e3 * rev(I_3d) = e2^e3 * e3^e2^e1 = e_23321 = e_1           = e1
-    // e3^e1 * rev(I_3d) = e3^e1 * e3^e2^e1 = e_31321 = e_33112 = e_2 = e2
-    // e1^e2 * rev(I_3d) = e1^e2 * e3^e2^e1 = e_12321 = e_11223 = e_3 = e3
-
-    // duality operations (as defined in Doran, Lasenby, "GA for physicists"):
-    // (same subspace as above, but other sign)
-    //
-    // I_3d * e2^e3 = e1^e2^e3 * e2^e3 = e_12323 = -e_1            = -e1
-    // I_3d * e3^e1 = e1^e2^e3 * e3^e1 = e_12331 = -e_11233 = -e_2 = -e2
-    // I_3d * e1^e2 = e1^e2^e3 * e1^e2 = e_12312 = -e_11223 = -e_3 = -e3
 
     // => everything otherwise is identical to Vec3d<T> w/o modification.
 

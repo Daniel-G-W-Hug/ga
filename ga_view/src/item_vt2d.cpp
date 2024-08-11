@@ -34,6 +34,8 @@ item_vt2d::item_vt2d(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm, size_t i
 void item_vt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                       QWidget* widget)
 {
+    Q_UNUSED(option)
+    Q_UNUSED(widget)
 
     // clipping area is active area of coordsys
     qp->setClipRect(

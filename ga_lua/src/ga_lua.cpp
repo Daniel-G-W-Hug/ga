@@ -2,9 +2,11 @@
 
 #include "ga_lua.hpp"
 
-#include <iostream> // cout, cerr
+#include <exception> // std::exception
+#include <iostream>  // std::cerr
 
-int main(int argc, char* argv[])
+// int main(int argc, char* argv[])
+int main()
 {
 
     try {

@@ -332,17 +332,17 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     // register everything from current model with scene
 
     // register all vectors
-    for (int idx = 0; idx < cm->vt.size(); ++idx) {
+    for (size_t idx = 0; idx < cm->vt.size(); ++idx) {
         scene->addItem(new item_vt2d(cs, wcs, cm, idx));
     }
 
     // register all lines
-    for (int idx = 0; idx < cm->ln.size(); ++idx) {
+    for (size_t idx = 0; idx < cm->ln.size(); ++idx) {
         scene->addItem(new item_ln2d(cs, wcs, cm, idx));
     }
 
     // register all passive points
-    for (int idx = 0; idx < cm->pt.size(); ++idx) {
+    for (size_t idx = 0; idx < cm->pt.size(); ++idx) {
         scene->addItem(new item_pt2d(cs, wcs, cm, idx));
     }
 
@@ -351,10 +351,10 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     ///////////////////////////////////////////////////////////////////////////
 
     // for mapping of idx of active points to users of active points
-    std::map<int, active_pt2d*> apt2d_map;
+    std::map<size_t, active_pt2d*> apt2d_map;
 
     // register all active points
-    for (int idx = 0; idx < cm->apt.size(); ++idx) {
+    for (size_t idx = 0; idx < cm->apt.size(); ++idx) {
         // register singular active pts to scene
         active_pt2d* apt = new active_pt2d(cs, wcs, cm->apt[idx]);
         apt2d_map[idx] = apt;
@@ -364,7 +364,7 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     ///////////////////////////////////////////////////////////////////////////
     // active vectors
     ///////////////////////////////////////////////////////////////////////////
-    for (int idx = 0; idx < cm->avt.size(); ++idx) {
+    for (size_t idx = 0; idx < cm->avt.size(); ++idx) {
         scene->addItem(new active_vt2d(cs, wcs, apt2d_map[cm->avt[idx].beg_idx],
                                        apt2d_map[cm->avt[idx].end_idx]));
     }
@@ -372,7 +372,7 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     ///////////////////////////////////////////////////////////////////////////
     // active bivectors
     ///////////////////////////////////////////////////////////////////////////
-    for (int idx = 0; idx < cm->abivt.size(); ++idx) {
+    for (size_t idx = 0; idx < cm->abivt.size(); ++idx) {
         scene->addItem(new active_bivt2d(cs, wcs, apt2d_map[cm->abivt[idx].beg_idx],
                                          apt2d_map[cm->abivt[idx].uend_idx],
                                          apt2d_map[cm->abivt[idx].vend_idx]));
@@ -381,7 +381,7 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     ///////////////////////////////////////////////////////////////////////////
     // active projections
     ///////////////////////////////////////////////////////////////////////////
-    for (int idx = 0; idx < cm->aproj.size(); ++idx) {
+    for (size_t idx = 0; idx < cm->aproj.size(); ++idx) {
         scene->addItem(new active_projection(cs, wcs, apt2d_map[cm->aproj[idx].beg_idx],
                                              apt2d_map[cm->aproj[idx].uend_idx],
                                              apt2d_map[cm->aproj[idx].vend_idx]));
@@ -390,7 +390,7 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     ///////////////////////////////////////////////////////////////////////////
     // active reflections
     ///////////////////////////////////////////////////////////////////////////
-    for (int idx = 0; idx < cm->arefl.size(); ++idx) {
+    for (size_t idx = 0; idx < cm->arefl.size(); ++idx) {
         scene->addItem(new active_reflection(cs, wcs, apt2d_map[cm->arefl[idx].n1end_idx],
                                              apt2d_map[cm->arefl[idx].n2end_idx]));
     }
@@ -423,7 +423,7 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
 {
     models = get_model_with_lots_of_stuff();
     // models = get_moving_line();
-    for (int i = 0; i < models.size(); ++i) {
+    for (size_t i = 0; i < models.size(); ++i) {
         vm.push_back(&models[i]);
         // fmt::println("Model: {}, Label: {}", i, vm[i]->label());
     }
@@ -499,12 +499,12 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
     emit updateMaximumModel(int(vm.size() - 1));
 
     // start with the first model
-    changeModel(0);
+    changeModel(size_t(0));
 }
 
-void w_MainWindow::changeModel(int idx)
+void w_MainWindow::changeModel(size_t idx)
 {
-    if (idx >= 0 && idx < vm.size()) {
+    if (idx < vm.size()) {
         // fmt::println("w_MainWindow got signal model_changed with value {}", idx);
         populate_scene(cs, wcs, vm[idx], scene); // set new scene with model content
         emit labelChanged(vm[idx]->label());     // inform status bar

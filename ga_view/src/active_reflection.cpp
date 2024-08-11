@@ -30,6 +30,8 @@ active_reflection::active_reflection(Coordsys* cs, w_Coordsys* wcs, active_pt2d*
 void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                               QWidget* widget)
 {
+    Q_UNUSED(option)
+    Q_UNUSED(widget)
 
     // clipping area is active area of coordsys
     qp->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
@@ -239,6 +241,8 @@ void active_reflection::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void active_reflection::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
+    Q_UNUSED(event)
+
     // qDebug() << "active_reflection::mouseMoveEvent.";
 
     // if (m_mouse_l_pressed) {

@@ -26,7 +26,7 @@ class w_MainWindow : public QMainWindow {
     explicit w_MainWindow(QWidget* parent = nullptr);
 
   public slots:
-    void changeModel(int);
+    void changeModel(size_t);
 
   signals:
     void updateCurrentModel(int);

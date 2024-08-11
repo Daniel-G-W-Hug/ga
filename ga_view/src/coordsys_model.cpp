@@ -30,7 +30,7 @@
 
     if (m.mark_pts == true) { // add points of line to pts marked in model
 
-        for (int i = 0; i < vp_in.size(); i += m.delta) {
+        for (size_t i = 0; i < vp_in.size(); i += m.delta) {
 
             pt.push_back(vp_in[i]);
             pt_mark.push_back(m.pm);

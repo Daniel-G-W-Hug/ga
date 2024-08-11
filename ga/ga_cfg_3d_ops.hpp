@@ -846,19 +846,45 @@ inline constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& v,
 // 3d duality operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// return the dual(M) of the multivector M
-// if M represents the subspace B as subspace of R^2 then
-// dual(M) represents the orthogonal subspace B^perp (perpendicular to B)
-// => returns the orthogonal complement
+// if M represents the subspace B as subspace of R^3 then
+// dual(M) represents the subspace orthorgonal to B
+// => return the dual(M) of the multivector M
+
+#if defined(_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
+////////////////////////////////////////////////////////////////////////////////
+// duality (as defined by Hestenes or by Doran, Lasenby in "GA for physicists"):
+// (same subspace as for Macdonld's definition, but other sign)
+// (will have influence on all formulae concerning duality)
+////////////////////////////////////////////////////////////////////////////////
 //
-// dual by left multiplication with Im_3d
-// as defined in Doran/Lasenby "GA for physicists"
+// dual(A) = I*A
 //
+// I_3d * 1 = e1^e2^e3 * 1 = e1^e2^e3
+//
+// I_3d * e1 = e1^e2^e3 * e1 = e_1231 =  e_1123 = e_23         = e_2^e_3
+// I_3d * e2 = e1^e2^e3 * e2 = e_1232 = -e_1223 = -e_13 = e_31 = e_3^e_1
+// I_3d * e3 = e1^e2^e3 * e3 = e_1233 =  e_12                  = e_1^e_2
+//
+// I_3d * e2^e3 = e1^e2^e3 * e2^e3 = e_12323 = -e_1            = -e1
+// I_3d * e3^e1 = e1^e2^e3 * e3^e1 = e_12331 = -e_11233 = -e_2 = -e2
+// I_3d * e1^e2 = e1^e2^e3 * e1^e2 = e_12312 = -e_11223 = -e_3 = -e3
+//
+// I_3d * e1^e2^e3 = e1^e2^e3 * e1^e2^e3 = e_123123 = -1
+
+// using this duality definition, following identities hold for the cross-product:
+//
+//    a x b  = -dual(a ^ b) = -I_3d*(a ^ b) = -(a ^ b)*I_3d =  (a ^ b)*rev(I_3d)
+//    a ^ b  =  dual(a x b) =  I_3d*(a x b) =  (a x b)*I_3d = -(a x b)*rev(I_3d)
+//
+//    the last 3 columns in both lines are valid independent of the duality definition!
+//    the sign issue only occurs due to the duality definition itself
+
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar<T> dual3d(PScalar3d<T> ps)
 {
-    // e123 * ps * e123 = -ps
+    // dual(A) = I*A
+    // e123 * (ps * e123) = -ps
     return Scalar<T>(-T(ps));
 }
 
@@ -869,16 +895,29 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar3d<T> dual3d(Scalar<T> s)
 {
-    // e123 * s = s * e123
+    // dual(A) = I*A
+    // e123 * (s) = s * e123
     return PScalar3d<T>(T(s));
+}
+
+// this overload is provided to accept T directly as an alternative to Scalar<T>
+// e.g. with T as a result of a dot product between two vectors
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3d<T> dual3d(T s)
+{
+    // dual(A) = I*A
+    // e123 * (s) = s * e123
+    return PScalar3d<T>(s);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr BiVec3d<T> dual3d(Vec3d<T> const& v)
 {
+    // dual(A) = I*A
     // e123 * (v.x * e1  + v.y * e2  + v.z * e3)
-    //      = (v.x * e23 + v.y * e31 + v.z * e12)
+    //      =  v.x * e23 + v.y * e31 + v.z * e12
     return BiVec3d<T>(v.x, v.y, v.z);
 }
 
@@ -886,8 +925,9 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Vec3d<T> dual3d(BiVec3d<T> const& B)
 {
+    // dual(A) = I*A
     // e123 * (  b.x * e23 + b.y * e31 + b.z * e12)
-    //      = (- b.x * e1  - b.y * e2  - b.z * e3)
+    //      =  - b.x * e1  - b.y * e2  - b.z * e3
     return Vec3d<T>(-B.x, -B.y, -B.z);
 }
 
@@ -895,8 +935,9 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr MVec3d_U<T> dual3d(MVec3d_E<T> const& M)
 {
+    // dual(A) = I*A
     // e123 * (s + b.x * e23 + b.y * e31 + b.z * e12)
-    //      = (  - b.x * e1  - b.y * e2  - b.z * e3 + s * e123)
+    //      =    - b.x * e1  - b.y * e2  - b.z * e3 + s * e123
     return MVec3d_U<T>(-M.c1, -M.c2, -M.c3, M.c0);
 }
 
@@ -904,8 +945,9 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr MVec3d_E<T> dual3d(MVec3d_U<T> const& M)
 {
+    // dual(A) = I*A
     // e123 * (      v.x * e1  + v.y * e2  + v.z * e3 + ps * e123)
-    //      = (-ps + v.x * e23 + v.y * e31 + v.z * e12)
+    //      =  -ps + v.x * e23 + v.y * e31 + v.z * e12
     return MVec3d_E<T>(-M.c3, M.c0, M.c1, M.c2);
 }
 
@@ -913,11 +955,135 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr MVec3d<T> dual3d(MVec3d<T> const& M)
 {
+    // dual(A) = I*A
     // e123 * (  s + v.x * e1  + v.y * e2  + v.z * e3
     //             + b.x * e23 + b.y * e31 + b.z * e12 + ps * e123)
-    //      = (-ps - b.x * e1  - b.y * e2  - b.z * e3
-    //             + v.x * e23 + v.y * e31 + v.z * e12 +  s * e123)
+    //      =  -ps - b.x * e1  - b.y * e2  - b.z * e3
+    //             + v.x * e23 + v.y * e31 + v.z * e12 +  s * e123
     return MVec3d<T>(-M.c7, -M.c4, -M.c5, -M.c6, M.c1, M.c2, M.c3, M.c0);
 }
+
+#else
+////////////////////////////////////////////////////////////////////////////////
+// duality (as defined in Macdonald, "Linear and geometric algebra"):
+////////////////////////////////////////////////////////////////////////////////
+//
+// dual(A) = A/I = A*I^(-1) = A*rev(I)
+//
+// 1 * rev(I_3d) = 1 * e3^e2^e1 = e3^e2^e1 = e_321 = -e_123 = -e1^e2^e3
+//
+// e1 * rev(I_3d) = e1 * e3^e2^e1 = e_1321 =  e_1132 = -e_23 = -e2^e3
+// e2 * rev(I_3d) = e2 * e3^e2^e1 = e_2321 = -e_2231 = -e_31 = -e3^e1
+// e3 * rev(I_3d) = e3 * e3^e2^e1 = e_3321 = -e_3312 = -e_12 = -e1^e2
+//
+// e2^e3 * rev(I_3d) = e2^e3 * e3^e2^e1 = e_23321 = e_1           = e1
+// e3^e1 * rev(I_3d) = e3^e1 * e3^e2^e1 = e_31321 = e_33112 = e_2 = e2
+// e1^e2 * rev(I_3d) = e1^e2 * e3^e2^e1 = e_12321 = e_11223 = e_3 = e3
+//
+// e1^e2^e3 * rev(I_3d) = e1^e2^e3 * e3^e2^e1 = e_123321= 1
+
+// using this duality definition, following duality properties hold
+// (A. Macdonald, p. 110):
+//
+// a) dual(aA) = a dual(A)
+// b) dual(A + B) = dual(A) + dual(B)
+// c) dual(dual(A)) = (-1)^(n*(n-1)/2) A   (with n as dimension of the (sub)space)
+// d) |dual(B)| = |B|
+// e) if B is a j-blade then dual(B) is an (n-j)-blade
+// f) if A is a j-vector then dual(A) is an (n-j)-vector
+//    (remember: a j-vector is a sum of j-blades, which are outer products)
+
+// using this duality definition, following identities hold for the cross-product:
+//
+//    a x b  =  dual(a ^ b) =  (a ^ b)*rev(I_3d) = -I_3d*(a ^ b) = -(a ^ b)*I_3d
+//    a ^ b  = -dual(a x b) = -(a x b)*rev(I_3d) =  I_3d*(a x b) =  (a x b)*I_3d
+//
+//    the last 3 columns in both lines are valid independent of the duality definition!
+//    the sign issue only occurs due to the duality definition itself
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar<T> dual3d(PScalar3d<T> ps)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    // (ps * e123) * e321 = ps
+    return Scalar<T>(T(ps));
+}
+
+// this one is problematic for overloading, because 2d and 3d case
+// transform to different pseudoscalars
+// the 2d and 3d adders in the function name are required for disambiguation
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3d<T> dual3d(Scalar<T> s)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    // (s) * e321 = -s * e123
+    return PScalar3d<T>(-T(s));
+}
+
+// this overload is provided to accept T directly as an alternative to Scalar<T>
+// e.g. with T as a result of a dot product between two vectors
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3d<T> dual3d(T s)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    // (s) * e321 = -s * e123
+    return PScalar3d<T>(-s);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec3d<T> dual3d(Vec3d<T> const& v)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //   ( v.x * e1  + v.y * e2  + v.z * e3) * e321
+    // =  -v.x * e23 - v.y * e31 - v.z * e12
+    return BiVec3d<T>(-v.x, -v.y, -v.z);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec3d<T> dual3d(BiVec3d<T> const& B)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //   (b.x * e23 + b.y * e31 + b.z * e12) * e321
+    // =  b.x * e1  + b.y * e2  + b.z * e3
+    return Vec3d<T>(B.x, B.y, B.z);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3d_U<T> dual3d(MVec3d_E<T> const& M)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //   (s + b.x * e23 + b.y * e31 + b.z * e12 ) * e321
+    // =      b.x * e1  + b.y * e2  + b.z * e3 - s * e123
+    return MVec3d_U<T>(M.c1, M.c2, M.c3, -M.c0);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3d_E<T> dual3d(MVec3d_U<T> const& M)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //   (     v.x * e1  + v.y * e2  + v.z * e3 + ps * e123) * e321
+    // =  ps - v.x * e23 - v.y * e31 - v.z * e12
+    return MVec3d_E<T>(M.c3, -M.c0, -M.c1, -M.c2);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3d<T> dual3d(MVec3d<T> const& M)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //  (  s + v.x * e1  + v.y * e2  + v.z * e3
+    //       + b.x * e23 + b.y * e31 + b.z * e12 + ps * e123) * e321
+    // =  ps + b.x * e1  + b.y * e2  + b.z * e3
+    //       - v.x * e23 - v.y * e31 - v.z * e12 -  s * e123
+    return MVec3d<T>(M.c7, M.c4, M.c5, M.c6, -M.c1, -M.c2, -M.c3, -M.c0);
+}
+#endif
 
 } // namespace hd::ga

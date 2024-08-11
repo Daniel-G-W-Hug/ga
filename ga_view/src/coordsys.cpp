@@ -153,7 +153,7 @@ void Axis::draw(QPainter* qp, int offset)
 
             // major notches
             std::vector<double> major_val = get_major_pos();
-            for (int i = 0; i < major_val.size(); ++i) {
+            for (size_t i = 0; i < major_val.size(); ++i) {
                 int npos = a_to_w(major_val[i]);
                 if (npos >= nmin() && npos <= nmax()) { // just draw within cs area
                     qp->drawLine(npos, offset, npos, offset + 8);
@@ -165,7 +165,7 @@ void Axis::draw(QPainter* qp, int offset)
             }
             // minor notches (w/o notch labels)
             std::vector<double> minor_val = get_minor_pos(major_val);
-            for (int i = 0; i < minor_val.size(); ++i) {
+            for (size_t i = 0; i < minor_val.size(); ++i) {
                 int npos = a_to_w(minor_val[i]);
                 if (npos >= nmin() && npos <= nmax()) { // just draw within cs area
                     qp->drawLine(npos, offset, npos, offset + 5);
@@ -201,7 +201,7 @@ void Axis::draw(QPainter* qp, int offset)
 
             // major notches
             std::vector<double> major_val = get_major_pos();
-            for (int i = 0; i < major_val.size(); ++i) {
+            for (size_t i = 0; i < major_val.size(); ++i) {
                 int npos = a_to_w(major_val[i]);
                 if (npos <= nmin() && npos >= nmax()) { // just draw within cs area (y!)
                     qp->drawLine(offset - 8, npos, offset, npos);
@@ -213,7 +213,7 @@ void Axis::draw(QPainter* qp, int offset)
             }
             // minor notches (w/o notch labels)
             std::vector<double> minor_val = get_minor_pos(major_val);
-            for (int i = 0; i < minor_val.size(); ++i) {
+            for (size_t i = 0; i < minor_val.size(); ++i) {
                 int npos = a_to_w(minor_val[i]);
                 if (npos <= nmin() && npos >= nmax()) { // just draw within cs area (y!)
                     qp->drawLine(offset - 5, npos, offset, npos);
@@ -375,7 +375,7 @@ std::vector<double> Axis::get_minor_pos(const std::vector<double>& major_pos) co
 
 Coordsys::Coordsys(Axis x_in, Axis y_in, coordsys_data cd_in,
                    keep_aspect_ratio ar_const_in) :
-    x{x_in}, y{y_in}, cd{cd_in}, title{cd.title.c_str()}, ar_const{ar_const_in}
+    x{x_in}, y{y_in}, cd{cd_in}, ar_const{ar_const_in}, title{cd.title.c_str()}
 {
     // store target ratios once per Coordsys in order to allow for
     // scrollwheel scaling based on inital ratios set by user as target values
@@ -399,7 +399,7 @@ void Coordsys::draw(QPainter* qp)
 
     { // draw helper lines through major notches
         std::vector<double> major_val = x.get_major_pos();
-        for (int i = 0; i < major_val.size(); ++i) {
+        for (size_t i = 0; i < major_val.size(); ++i) {
             int npos = x.a_to_w(major_val[i]);
             if (npos >= x.nmin() && npos <= x.nmax()) { // just draw within cs area
                 qp->drawLine(npos, y.nmin(), npos, y.nmax());
@@ -409,7 +409,7 @@ void Coordsys::draw(QPainter* qp)
 
     { // draw helper lines through major notches
         std::vector<double> major_val = y.get_major_pos();
-        for (int i = 0; i < major_val.size(); ++i) {
+        for (size_t i = 0; i < major_val.size(); ++i) {
             int npos = y.a_to_w(major_val[i]);
             if (npos <= y.nmin() && npos >= y.nmax()) { // just draw within cs area (y!)
                 qp->drawLine(x.nmin(), npos, x.nmax(), npos);

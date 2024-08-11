@@ -109,6 +109,7 @@ TEST_SUITE("Geometric Algebra")
         CHECK(v2.y == 2.0);
         CHECK(v3.x == 1.0);
         CHECK(v3.y == 2.0);
+        CHECK(v4 == -v2);
     }
 
 
@@ -215,6 +216,7 @@ TEST_SUITE("Geometric Algebra")
         CHECK(p1 + (-p1) == p0); // there is an inverse element with respect to addition
         CHECK(p1 + p2 == p3);    // component wise addition
         CHECK(p1 * 2.0 == p2);   // component wise multiplication
+        CHECK(p4 == -p1);
     }
 
     TEST_CASE("Vec2d: inner product properties")
@@ -465,6 +467,7 @@ TEST_SUITE("Geometric Algebra")
         CHECK(v3.c1 == 1.0);
         CHECK(v3.c2 == 2.0);
         CHECK(v3.c3 == 3.0);
+        CHECK(v4 == -v3);
     }
 
     TEST_CASE("MVec2d: fmt & cout printing")
@@ -525,6 +528,7 @@ TEST_SUITE("Geometric Algebra")
         CHECK(p1 + (-p1) == p0); // there is an inverse element with respect to addition
         CHECK(p1 + p2 == p3);    // component wise addition
         CHECK(p1 * 2.0 == p2);   // component wise multiplication
+        CHECK(p4 == -p1);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -540,7 +544,6 @@ TEST_SUITE("Geometric Algebra")
         auto d12 = dot(v1, v2);
         auto w12 = wdg(v1, v2);
 
-        MVec2d<double> mv0;
         MVec2d mv1{0.0, 1.0, 2.0, 0.0};
         MVec2d mv2{0.0, 0.5, 3.0, 0.0};
         auto wdp_mv12 = 0.5 * (mv1 * mv2 + mv2 * mv1);
@@ -564,6 +567,9 @@ TEST_SUITE("Geometric Algebra")
         // fmt::println("   gr1(wdm_mv12) = {}", gr1(wdm_mv12));
         // fmt::println("   gr2(wdm_mv12) = {}", gr2(wdm_mv12));
 
+        CHECK(d12 == gr0(0.5 * (mv1 * mv2 + mv2 * mv1)));
+        CHECK(w12 == gr2(0.5 * (mv1 * mv2 - mv2 * mv1)));
+        // redundant checks (just do avoid unused variable warnings)
         CHECK(d12 == gr0(wdp_mv12));
         CHECK(w12 == gr2(wdm_mv12));
     }
@@ -593,43 +599,6 @@ TEST_SUITE("Geometric Algebra")
         // multiply C from the right with inv(v2) recovers v1
         // multiply C from the left the the inv(v1) recovers v2
 
-        Vec2d v1{1.0, 2.0};
-        Vec2d v2{0.5, 3.0};
-        MVec2d mv1{v1};
-        MVec2d mv2{v2};
-
-        auto d12 = dot(v1, v2);
-        auto w12 = wdg(v1, v2);
-        auto mv12 = mv1 * mv2;
-        MVec2d mv12a{Scalar<double>(d12), PScalar2d<double>(w12)};
-
-        auto v2i = inv(v2);
-        auto nv2 = nrm(v2);
-        auto nv2i = nrm(v2i);
-        auto mv2i{MVec2d(v2i)};
-        auto mv1i{MVec2d(inv(v1))};
-
-        // fmt::println("   v1  = {}", v1);
-        // fmt::println("   v2  = {}", v2);
-        // fmt::println("");
-        // fmt::println("   mv1 = {}", mv1);
-        // fmt::println("   mv2 = {}", mv2);
-        // fmt::println("");
-        // fmt::println("   dot(v1,v2)   = {}", d12);
-        // fmt::println("   wdg(v1,v2)   = {}", w12);
-        // fmt::println("   mv1 * mv2    = {}", mv12);
-        // fmt::println("   mv12a        = {}", mv12a);
-        // fmt::println("");
-        // fmt::println("   nv2  = {}", nv2);
-        // fmt::println("   v2i  = {}", v2i);
-        // fmt::println("   nv2i = {}", nv2i);
-        // fmt::println("   mv2i = {}", mv2i);
-        // fmt::println("");
-        // fmt::println("   mv12 * mv2i = {}", mv12 * mv2i);
-        // fmt::println("   mv1i * mv12 = {}", mv1i * mv12);
-        // fmt::println("");
-
-        // shorter version w/o intermediate results
         Vec2d a{1.0, 2.0};
         Vec2d b{0.5, 3.0};
         MVec2d C{Scalar<double>(dot(a, b)), PScalar2d<double>(wdg(a, b))};
@@ -683,10 +652,7 @@ TEST_SUITE("Geometric Algebra")
 
         Vec2d v1{1.0, 2.0};
         Vec2d v2{0.5, 3.0};
-        auto d12 = dot(v1, v2);
-        auto w12 = wdg(v1, v2);
 
-        MVec2d<double> mv0;
         MVec2d mv1{0.0, 1.0, 2.0, 0.0};
         MVec2d mv2{0.0, 0.5, 3.0, 0.0};
         MVec2d mv3{v1};
@@ -721,7 +687,6 @@ TEST_SUITE("Geometric Algebra")
     TEST_CASE("MVec2d: modelling complex numbers")
     {
         fmt::println("MVec2d: modelling complex numbers");
-
 
         Vec2d v1{1.0, -1.0};
         MVec2d v1m{v1}; // full 2d multivector
@@ -785,6 +750,8 @@ TEST_SUITE("Geometric Algebra")
         // if you don't declare it as such, the normal exponential function
         //            will be called, resulting in a scalar result!
 
+        CHECK(angle_uv == pi / 6.0);
+        CHECK(r == 0.5 * std::sqrt(2.0));
         CHECK(gr0(vc) == gr0(vcm));
         CHECK(gr2(vc) == gr2(vcm));
         CHECK(gr0(vr) == gr0(vrm));
@@ -872,6 +839,7 @@ TEST_SUITE("Geometric Algebra")
         // fmt::println("   m = Im_2d_E                      = {}", m);
         // fmt::println("   n = Im_2d                        = {}", n);
 
+        CHECK(r == 0.5 * std::sqrt(2.0));
         CHECK(c == a + b);
         CHECK(d == a - b);
         CHECK(e == 2.0 * b);
@@ -879,11 +847,14 @@ TEST_SUITE("Geometric Algebra")
         CHECK(g == -e);
         CHECK(as == a);
         CHECK(hs == MVec2d_E(-1.0, 0.0));
+        CHECK(j == b * c);
+        CHECK(k == I_2d);
         CHECK(v.x == v2.c0);
         CHECK(v.y == v2.c1);
         CHECK(b * h ==
               h * b); // the 2d pseudoscalar commutes commutes with complex numbers
         CHECK(l == m);
+        CHECK(n == Im_2d);
         CHECK(rev(b + c) == rev(b) + rev(c));
         CHECK(rev(b * c) == rev(b) * rev(c));
         CHECK(nrm(b * c) == nrm(b) * nrm(c));
@@ -1013,11 +984,19 @@ TEST_SUITE("Geometric Algebra")
 
         Vec2d v{1.0, 2.0};                    // 2d vector
         MVec2d vm{10.0, 1.0, 2.0, 30.0};      // full 2d multivector
+        MVec2d vm2{-7.0, 3.0, -42.0, 5.0};    // full 2d multivector
         MVec2d vm_even{10.0, 0.0, 0.0, 30.0}; // full 2d multivector - even content
         MVec2d_E vm_E{10.0, 30.0};            // even grade 2d multivector
 
-        // dual by left multiplication with Im_2d
-        // as defined in Doran/Lasenby "GA for physicists"
+#if defined(_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
+        ////////////////////////////////////////////////////////////////////////////////
+        // duality as defined by Hestenes or by Doran, Lasenby in "GA for physicists":
+        // (same subspace as for Macdonld's definition below, but other resulting signs)
+        // (=> will have influence on all formulae concerning duality)
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // dual(A) = I*A
+        //
 
         auto vm_dual_manual = Im_2d * vm;
         auto vm_dual = dual2d(vm);
@@ -1057,6 +1036,128 @@ TEST_SUITE("Geometric Algebra")
         CHECK(v_dual == v_dual_manual);
         CHECK(dual2d(Scalar<double>(5)) == PScalar2d<double>(5));
         CHECK(dual2d(PScalar2d<double>(5)) == Scalar<double>(-5));
+        CHECK(dual2d(I_2d) == -1);
+
+        // dual properties (A. Macdonald, p. 110):
+        //
+        // a) dual(aA) = a dual(A)
+        // b) dual(A + B) = dual(A) + dual(B)
+        // c) dual(dual(A)) = (-1)^(n*(n-1)/2) A   (with n as dimension of the (sub)space)
+        // d) |dual(B)| = |B|
+        // e) if B is a j-blade then dual(B) is an (n-j)-blade
+        // f) if A is a j-vector then dual(A) is an (n-j)-vector
+        //    (remember: a j-vector is a sum of j-blades, which are outer products)
+
+        CHECK(dual2d(3.0 * vm) == 3.0 * dual2d(vm));
+        CHECK(dual2d(vm + vm2) == dual2d(vm) + dual2d(vm2));
+        CHECK(dual2d(dual2d(vm)) == -vm);
+
+        CHECK(dual2d(I_2d) == -1);
+        CHECK(dual2d(v) == (vec2d(v.y, -v.x)));
+
+        // inner and outer products are in G^n are dual (Doran, Lasenby, p. 96):
+        //
+        // dot(A,B*I)) = wdg(A,B)*I
+
+        auto a = vec2d{5.0, 1.0};
+        auto b = vec2d{3.0, 3.0};
+
+        // fmt::println("   a                 = {}", a);
+        // fmt::println("   b                 = {}", b);
+        // fmt::println("   b*I_2d            = {}", b * I_2d);
+        // fmt::println("   dot(a, b*I_2d)    = {}", dot(a, b * I_2d));
+        // fmt::println("   wdg(a, b)         = {}", wdg(a, b));
+        // fmt::println("   wdg(a, b)*I_2d    = {}", wdg(a, b) * I_2d);
+        // fmt::println("");
+
+        CHECK(dual2d(dot(a, b * I_2d)) == wdg(a, b) * I_2d);
+        CHECK(dual2d(wdg(a, b * I_2d)) == -dot(a, b) * I_2d);
+#else
+        ////////////////////////////////////////////////////////////////////////////////
+        // duality (as defined in Macdonald, "Linear and geometric algebra"):
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // dual(A) = A/I = A*I^(-1) = A*rev(I)
+        //
+
+        auto vm_dual_manual = vm * rev(Im_2d);
+        auto vm_dual = dual2d(vm);
+
+        auto vm_dual_even_manual = vm_even * rev(Im_2d);
+        auto vm_dual_even = dual2d(vm_even);
+
+        auto vm_dual_manual_E = vm_E * rev(Im_2d_E);
+        auto vm_dual_E = dual2d(vm_E);
+
+        auto v_dual_manual = v * rev(I_2d);
+        auto v_dual = dual2d(v);
+
+        // fmt::println("   I_2d               = {}", I_2d);
+        // fmt::println("   Im_2d              = {}", Im_2d);
+        // fmt::println("   Im_2d_E            = {}", Im_2d_E);
+        // fmt::println("");
+        // fmt::println("   vm                 = {}", vm);
+        // fmt::println("   vm*rev(Im_2d)      = {}", vm_dual_manual);
+        // fmt::println("   dual2d(vm)         = {}", vm_dual);
+        // fmt::println("");
+        // fmt::println("   vm_even            = {}", vm_even);
+        // fmt::println("   vm_even*rev(Im_2d) = {}", vm_dual_even_manual);
+        // fmt::println("   dual2d(vm_even)    = {}", vm_dual_even);
+        // fmt::println("");
+        // fmt::println("   vm_E               = {}", vm_E);
+        // fmt::println("   vm_E*rev(Im_2d_E)  = {}", vm_dual_manual_E);
+        // fmt::println("   dual2d(vm_E)       = {}", vm_dual_E);
+        // fmt::println("");
+        // fmt::println("   v                  = {}", v);
+        // fmt::println("   v*rev(I_2d)        = {}", v_dual_manual);
+        // fmt::println("   dual2d(v)          = {}", v_dual);
+
+        CHECK(vm_dual == vm_dual_manual);
+        CHECK(vm_dual_even == vm_dual_even_manual);
+        CHECK(vm_dual_E == vm_dual_manual_E);
+        CHECK(v_dual == v_dual_manual);
+        CHECK(dual2d(Scalar<double>(5)) == PScalar2d<double>(-5));
+        CHECK(dual2d(PScalar2d<double>(5)) == Scalar<double>(5));
+        CHECK(dual2d(I_2d) == 1);
+
+        // dual properties (A. Macdonald, p. 110):
+        //
+        // a) dual(aA) = a dual(A)
+        // b) dual(A + B) = dual(A) + dual(B)
+        // c) dual(dual(A)) = (-1)^(n*(n-1)/2) A   (with n as dimension of the (sub)space)
+        // d) |dual(B)| = |B|
+        // e) if B is a j-blade then dual(B) is an (n-j)-blade
+        // f) if A is a j-vector then dual(A) is an (n-j)-vector
+        //    (remember: a j-vector is a sum of j-blades, which are outer products)
+
+        CHECK(dual2d(3.0 * vm) == 3.0 * dual2d(vm));
+        CHECK(dual2d(vm + vm2) == dual2d(vm) + dual2d(vm2));
+        CHECK(dual2d(dual2d(vm)) == -vm);
+        CHECK(dual2d(I_2d) == 1);
+        CHECK(dual2d(v) == (vec2d(v.y, -v.x)));
+
+        // inner and outer products are in G^n are dual (A. Macdonald, p. 111):
+        //
+        // dual(dot(A,B)) = wdg(A,dual(B)), dual(wdg(A,B)) = dot(A,dual(B))
+
+        auto a = vec2d{5.0, 1.0};
+        auto b = vec2d{3.0, 3.0};
+
+        // fmt::println("   a                 = {}", a);
+        // fmt::println("   b                 = {}", b);
+        // fmt::println("   dual(b)           = {}", dual2d(b));
+        // fmt::println("   dot(a, b)         = {}", dot(a, b));
+        // fmt::println("   wdg(a, b)         = {}", wdg(a, b));
+        // fmt::println("");
+        // fmt::println("   dual2d(dot(a, b)) = {}", dual2d(dot(a, b)));
+        // fmt::println("   wdg(a, dual2d(b)) = {}", wdg(a, dual2d(b)));
+        // fmt::println("");
+        // fmt::println("   dual2d(wdg(a, b)) = {}", dual2d(wdg(a, b)));
+        // fmt::println("   dot(a, dual2d(b)) = {}", dot(a, dual2d(b)));
+
+        CHECK(dual2d(dot(a, b)) == wdg(a, dual2d(b)));
+        CHECK(dual2d(wdg(a, b)) == dot(a, dual2d(b)));
+#endif
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1103,6 +1204,7 @@ TEST_SUITE("Geometric Algebra")
         CHECK(v3.x == 1.0);
         CHECK(v3.y == 2.0);
         CHECK(v3.z == 3.0);
+        CHECK(v4 == -v2);
     }
 
 
@@ -1209,6 +1311,7 @@ TEST_SUITE("Geometric Algebra")
         CHECK(p1 + (-p1) == p0); // there is an inverse element with respect to addition
         CHECK(p1 + p2 == p3);    // component wise addition
         CHECK(p1 * 2.0 == p2);   // component wise multiplication
+        CHECK(p4 == -p1);
     }
 
     TEST_CASE("Vec3d: inner product properties")
@@ -1294,6 +1397,10 @@ TEST_SUITE("Geometric Algebra")
         CHECK(std::abs(angle(v1, v3) - pi * 0.5) < eps);
         CHECK(std::abs(angle(v1, v4) - pi * 0.75) < eps);
         CHECK(std::abs(angle(v1, v5) - pi) < eps);
+
+        // just to suppress unused variable warnings
+        CHECK(v6 == unitized(Vec3d(-1.0, -1.0, 0.0)));
+        CHECK(v8 == unitized(Vec3d(1.0, -1.0, 0.0)));
     }
 
     TEST_CASE("Vec3d: operations - angle II")
@@ -1461,6 +1568,9 @@ TEST_SUITE("Geometric Algebra")
         CHECK(v6 + v7 == v8);
         CHECK(v8 == v1);
 
+        // just to suppress unused variable warnings
+        CHECK(b == e2_3d);
+
         CHECK(reflect_on_hyp(v, e3_3d) == reflect_on(v, B));
 
         // checking time required
@@ -1515,42 +1625,29 @@ TEST_SUITE("Geometric Algebra")
 
         Vec3d u_cross_v = cross(u, v);
         BiVec3d u_wdg_v = wdg(u, v);
-        auto minus_dual_u_wdg_v = -dual3d(wdg(u, v));
 
-        // fmt::println("   u          = {: } - vec,   nrm(u)"
-        //              "          = {: .4}",
-        //              u, nrm(u));
-        // fmt::println("   v          = {: } - vec,   nrm(v)"
-        //              "          = {: .4}",
-        //              v, nrm(v));
-        // fmt::println("   uxv        = {: } - vec,   nrm(uxv)"
-        //              "        = {: .4}",
-        //              u_cross_v, nrm(u_cross_v));
-        // fmt::println("   u^v        = {: } - bivec, nrm(u^v)"
-        //              "        = {: .4}",
-        //              u_wdg_v, nrm(u_wdg_v));
-        // fmt::println("   -dual3d(u^v) = {: } - vec  , nrm(-dual3d(u^v))"
-        //              " = {: .4}",
-        //              minus_dual_u_wdg_v, nrm(minus_dual_u_wdg_v));
-        // fmt::println("");
-        // fmt::println("   u                = {: } - vec, nrm(u)"
-        //              "                = {: .4}",
-        //              u, nrm(u));
-        // fmt::println("   v                = {: } - vec, nrm(v)"
-        //              "                = {: .4}",
-        //              v, nrm(v));
-        // fmt::println("   w                = {: } - vec, nrm(w)"
-        //              "                = {: .4}",
-        //              w, nrm(w));
-        // fmt::println("   u x (v x w)      = {: } - vec, nrm(u x v x w)"
-        //              "        = {: .4}",
-        //              cross(u, cross(v, w)), nrm(cross(u, cross(v, w))));
-        // fmt::println("   -dot(u, wdg(v,w) = {: } - vec, nrm(-dot(u, wdg(v,w))"
-        //              " = {: .4}",
-        //              -dot(u, wdg(v, w)), nrm(-dot(u, wdg(v, w))));
-        // fmt::println("");
+#if defined(_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
+        // dual(A) = I*A
+        CHECK(u_cross_v == -dual3d(u_wdg_v));
+        CHECK(u_wdg_v == dual3d(u_cross_v));
+#else
+        // dual(A) = A/I = A*I^(-1) = A*rev(I)
+        CHECK(u_cross_v == dual3d(u_wdg_v));
+        CHECK(u_wdg_v == -dual3d(u_cross_v));
+#endif
 
-        CHECK(u_cross_v == minus_dual_u_wdg_v);
+        // definitions using the pseudoscalars directly are valid independent of the
+        // duality definitions
+
+        CHECK(u_cross_v == u_wdg_v * rev(I_3d));
+        CHECK(u_cross_v == -I_3d * u_wdg_v);
+        CHECK(u_cross_v == -u_wdg_v * I_3d);
+
+        CHECK(wdg(u, v) == u_cross_v * I_3d);
+        CHECK(wdg(u, v) == I_3d * u_cross_v);
+        CHECK(wdg(u, v) == -u_cross_v * rev(I_3d));
+
+        // double cross product identity
         CHECK(cross(u, cross(v, w)) == -dot(u, wdg(v, w)));
     }
 
@@ -1621,6 +1718,8 @@ TEST_SUITE("Geometric Algebra")
         CHECK(v3.c5 == 31.0);
         CHECK(v3.c6 == 12.0);
         CHECK(v3.c7 == 123.0);
+
+        CHECK(v4 == -v3);
     }
 
     TEST_CASE("MVec3d: fmt & cout printing")
@@ -1682,6 +1781,7 @@ TEST_SUITE("Geometric Algebra")
         CHECK(p1 + (-p1) == p0); // there is an inverse element with respect to addition
         CHECK(p1 + p2 == p3);    // component wise addition
         CHECK(p1 * 2.0 == p2);   // component wise multiplication
+        CHECK(p4 == -p1);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1976,7 +2076,6 @@ TEST_SUITE("Geometric Algebra")
         Vec3d v3{0.5, 1.0, -4.5};
         BiVec3d b1{1.0, 2.0, 3.0};
 
-        MVec3d<double> mv0;
         MVec3d mv1{0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0};
         MVec3d mv2{0.0, 0.5, 1.0, 1.5, 11.5, 15.5, 6.0, 61.5};
         MVec3d mv3{mv1};
@@ -2044,11 +2143,6 @@ TEST_SUITE("Geometric Algebra")
         BiVec3d b2{-3.0, 1.0, 2.0};
         MVec3d mb2{b2};
 
-        auto b12_dot = dot(b1, b2);
-        auto b12_cmt = cmt(b1, b2);
-        auto b21_dot = dot(b2, b1);
-        auto b21_cmt = cmt(b2, b1);
-
         auto gpr12_m = mb1 * mb2;
         auto gpr21_m = mb2 * mb1;
         auto gpr12_m_sym = 0.5 * (gpr12_m + gpr21_m);
@@ -2064,10 +2158,10 @@ TEST_SUITE("Geometric Algebra")
         // fmt::println("   b2  = {}", b2);
         // fmt::println("   mb2 = {}", mb2);
         // fmt::println("");
-        // fmt::println("   b12_dot = {}", b12_dot);
-        // fmt::println("   b12_cmt = {}", b12_cmt);
-        // fmt::println("   b21_dot = {}", b21_dot);
-        // fmt::println("   b21_cmt = {}", b21_cmt);
+        // fmt::println("   dot(b1, b2) = {}", dot(b1, b2));
+        // fmt::println("   cmt(b1, b2) = {}", cmt(b1, b2));
+        // fmt::println("   dot(b2, b1) = {}", dot(b2, b1));
+        // fmt::println("   cmt(b2, b1) = {}", cmt(b2, b1));
         // fmt::println("");
         // fmt::println("   gpr12_m = mb1 * mb2 = {}", gpr12_m);
         // fmt::println("   gpr21_m = mb2 * mb1 = {}", gpr21_m);
@@ -2081,6 +2175,12 @@ TEST_SUITE("Geometric Algebra")
         // fmt::println("");
 
         CHECK(gr2(mb1) == b1);
+
+        // just to silence unused variable warnings
+        CHECK(gpr12_m_sym == 0.5 * (gpr12_m + gpr21_m));
+        CHECK(gpr12_m_asym == 0.5 * (gpr12_m - gpr21_m));
+        CHECK(gpr12_d_sym == 0.5 * (gpr12_d + gpr21_d));
+        CHECK(gpr12_d_asym == 0.5 * (gpr12_d - gpr21_d));
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -2196,16 +2296,24 @@ TEST_SUITE("Geometric Algebra")
             wdg(e2_3d, e1_3d + std::sqrt(3.0) * e3_3d); // bivector describing the plane
         CHECK(std::abs(nrm(Bv) - 2.0) < eps);
         CHECK(rotate(Bv, rotor(e31_3d, pi / 3)) == -2.0 * e12_3d);
+
+        // just to silence unused variable warnings
+        CHECK(my_exp == exp(-B, angle_uv));
+        CHECK(my_rot == rotor(B, 2.0 * angle_uv));
+        CHECK(c_rot_r == gr1(c_rot_u_r));
+        CHECK(angle_c_c_rot == angle(c, c_rot_l));
+        CHECK(angle_proj == angle(c_proj, c_rot_proj));
     }
 
     TEST_CASE("MVec3d: dualization")
     {
         fmt::println("MVec3d: dualization");
 
-
         Vec3d v{1.0, 2.0, 3.0};                                   // 3d vector
         BiVec3d B{10.0, 20.0, 30.0};                              // 3d bivector
         MVec3d vm{100.0, 1.0, 2.0, 3.0, 10.0, 20.0, 30.0, 300.0}; // full 3d multivector
+        MVec3d vm2{-20.0, 3.0,  7.0,    -4.0,
+                   -1.0,  40.0, -330.0, -70.0}; // full 3d multivector
 
         // full 3d multivector - even content
         MVec3d vm_even{100.0, 0.0, 0.0, 0.0, 10.0, 20.0, 30.0, 0.0};
@@ -2217,8 +2325,15 @@ TEST_SUITE("Geometric Algebra")
         // uneven grade 3d multivector
         MVec3d_U vm_U{1.0, 2.0, 3.0, 300.0};
 
-        // dual by left multiplication with Im_3d
-        // as defined in Doran/Lasenby "GA for physicists"
+#if defined(_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
+        ////////////////////////////////////////////////////////////////////////////////
+        // duality as defined by Hestenes or by Doran, Lasenby in "GA for physicists":
+        // (same subspace as for Macdonld's definition below, but other resulting signs)
+        // (=> will have influence on all formulae concerning duality)
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // dual(A) = I*A
+        //
 
         auto vm_dual_manual = Im_3d * vm;
         auto vm_dual = dual3d(vm);
@@ -2287,6 +2402,167 @@ TEST_SUITE("Geometric Algebra")
         CHECK(dual3d(B) == -Vec3d{10.0, 20.0, 30.0});
         CHECK(dual3d(Scalar<double>(5)) == PScalar3d<double>(5));
         CHECK(dual3d(PScalar3d<double>(5)) == Scalar<double>(-5));
+
+        // dual properties
+        CHECK(dual3d(3.0 * vm) == 3.0 * dual3d(vm));
+        CHECK(dual3d(vm + vm2) == dual3d(vm) + dual3d(vm2));
+        CHECK(dual3d(dual3d(vm)) == -vm);
+        CHECK(dual3d(I_3d) == -1.0);
+
+        // inner and outer products are in G^n are dual (A. Macdonald, p. 111):
+        //
+        // dual(dot(A,B)) = wdg(A,dual(B)), dual(wdg(A,B)) = dot(A,dual(B))
+        //
+        // or alternatively:
+        //
+        // (a.b)^* = a^(b^*), (a^b)^* = a.(b^*)
+
+        auto a = vec3d{2.0, -3.0, 2.0};
+        auto b = vec3d{-5.0, 1.0, -7.0};
+
+        // fmt::println("   a                 = {}", a);
+        // fmt::println("   b                 = {}", b);
+        // fmt::println("   dual3d(b)         = {}", dual3d(b));
+        // fmt::println("   dot(a, b)         = {}", dot(a, b));
+        // fmt::println("   wdg(a, b)         = {}", wdg(a, b));
+        // fmt::println("");
+        // fmt::println("   dual3d(dot(a, b)) = {}", dual3d(dot(a, b)));
+        // fmt::println("   wdg(a, dual3d(b)) = {}", wdg(a, dual3d(b)));
+        // fmt::println("");
+        // fmt::println("   dual3d(wdg(a, b)) = {}", dual3d(wdg(a, b)));
+        // fmt::println("   dot(a, dual3d(b)) = {}", dot(a, dual3d(b)));
+
+        CHECK(dot(a, b * I_3d) == wdg(a, b) * I_3d);
+
+        // just to silence unused variable warning
+        CHECK(v_dual_manual == I_3d * v);
+        CHECK(v_dual == dual3d(v));
+        CHECK(B_dual_manual == I_3d * B);
+        CHECK(B_dual == dual3d(B));
+
+#else
+        ////////////////////////////////////////////////////////////////////////////////
+        // duality (as defined in Macdonald, "Linear and geometric algebra"):
+        ////////////////////////////////////////////////////////////////////////////////
+        //
+        // dual(A) = A/I = A*I^(-1) = A*rev(I)
+        //
+
+        auto vm_dual_manual = vm * rev(Im_3d);
+        auto vm_dual = dual3d(vm);
+
+        auto vm_dual_even_manual = vm_even * rev(Im_3d);
+        auto vm_dual_even = dual3d(vm_even);
+
+        auto vm_dual_uneven_manual = vm_uneven * rev(Im_3d);
+        auto vm_dual_uneven = dual3d(vm_uneven);
+
+        // result is uneven, naming chosen for consistency
+        auto vm_dual_manual_E = vm_E * rev(I_3d);
+        auto vm_dual_E = dual3d(vm_E);
+
+        // result is even, naming chosen for consistency
+        auto vm_dual_manual_U = vm_U * rev(Im_3d_U);
+        auto vm_dual_U = dual3d(vm_U);
+
+        auto v_dual_manual = v * rev(I_3d);
+        auto v_dual = dual3d(v);
+
+        auto B_dual_manual = B * rev(I_3d);
+        auto B_dual = dual3d(B);
+
+        // fmt::println("   I_3d                 = {}", I_3d);
+        // fmt::println("   Im_3d                = {}", Im_3d);
+        // fmt::println("   Im_3d_U              = {}", Im_3d_U);
+        // fmt::println("");
+        // fmt::println("   v                    = {}", v);
+        // fmt::println("   B                    = {}", B);
+        // fmt::println("");
+        // fmt::println("   vm                   = {}", vm);
+        // fmt::println("   vm*rev(Im_3d)        = {}", vm_dual_manual);
+        // fmt::println("   dual3d(vm)           = {}", vm_dual);
+        // fmt::println("");
+        // fmt::println("   vm_even              = {}", vm_even);
+        // fmt::println("   vm_even*rev(Im_3d)   = {}", vm_dual_even_manual);
+        // fmt::println("   dual3d(vm_even)      = {}", vm_dual_even);
+        // fmt::println("");
+        // fmt::println("   vm_E                 = {}", vm_E);
+        // fmt::println("   vm_E * rev(I_3d)     = {}", vm_dual_manual_E);
+        // fmt::println("   dual3d(vm_E)         = {}", vm_dual_E);
+        // fmt::println("");
+        // fmt::println("   vm_uneven            = {}", vm_uneven);
+        // fmt::println("   vm_uneven*rev(Im_3d) = {}", vm_dual_uneven_manual);
+        // fmt::println("   dual3d(vm_uneven)    = {}", vm_dual_uneven);
+        // fmt::println("");
+        // fmt::println("   vm_U                 = {}", vm_U);
+        // fmt::println("   vm_U*rev(Im_3d_U)    = {}", vm_dual_manual_U);
+        // fmt::println("   dual3d(vm_U)         = {}", vm_dual_U);
+        // fmt::println("");
+        // fmt::println("   v                    = {}", v);
+        // fmt::println("   v*rev(I_3d)          = {} - bivec ", v_dual_manual);
+        // fmt::println("   dual3d(v)            = {} - bivec ", v_dual);
+        // fmt::println("");
+        // fmt::println("   B                    = {}", B);
+        // fmt::println("   B*rev(I_3d)          = {} - vec", B_dual_manual);
+        // fmt::println("   dual3d(B)            = {} - vec", B_dual);
+
+        CHECK(vm_dual == vm_dual_manual);
+        CHECK(vm_dual_even == vm_dual_even_manual);
+        CHECK(vm_dual_uneven == vm_dual_uneven_manual);
+        CHECK(vm_dual_E == vm_dual_manual_E);
+        CHECK(vm_dual_U == vm_dual_manual_U);
+        CHECK(dual3d(v) == -BiVec3d{1.0, 2.0, 3.0});
+        CHECK(dual3d(B) == Vec3d{10.0, 20.0, 30.0});
+        CHECK(dual3d(Scalar<double>(5)) == PScalar3d<double>(-5));
+        CHECK(dual3d(PScalar3d<double>(5)) == Scalar<double>(5));
+
+        // dual properties (A. Macdonald, p. 110):
+        //
+        // a) dual(aA) = a dual(A)
+        // b) dual(A + B) = dual(A) + dual(B)
+        // c) dual(dual(A)) = (-1)^(n*(n-1)/2) A   (with n as dimension of the (sub)space)
+        // d) |dual(B)| = |B|
+        // e) if B is a j-blade then dual(B) is an (n-j)-blade
+        // f) if A is a j-vector then dual(A) is an (n-j)-vector
+        //    (remember: a j-vector is a sum of j-blades, which are outer products)
+
+        CHECK(dual3d(3.0 * vm) == 3.0 * dual3d(vm));
+        CHECK(dual3d(vm + vm2) == dual3d(vm) + dual3d(vm2));
+        CHECK(dual3d(dual3d(vm)) == -vm);
+        CHECK(dual3d(I_3d) == 1);
+        CHECK(dual3d(v) == -bivec3d(1.0, 2.0, 3.0));
+
+        // inner and outer products are in G^n are dual (A. Macdonald, p. 111):
+        //
+        // dual(dot(A,B)) = wdg(A,dual(B)), dual(wdg(A,B)) = dot(A,dual(B))
+
+        auto a = vec3d{2.0, -3.0, 2.0};
+        auto b = vec3d{-5.0, 1.0, -7.0};
+
+        // fmt::println("   a                 = {}", a);
+        // fmt::println("   b                 = {}", b);
+        // fmt::println("   dual3d(b)         = {}", dual3d(b));
+        // fmt::println("   dot(a, b)         = {}", dot(a, b));
+        // fmt::println("   wdg(a, b)         = {}", wdg(a, b));
+        // fmt::println("");
+        // fmt::println("   dual3d(dot(a, b)) = {}", dual3d(dot(a, b)));
+        // fmt::println("   wdg(a, dual3d(b)) = {}", wdg(a, dual3d(b)));
+        // fmt::println("");
+        // fmt::println("   dual3d(wdg(a, b)) = {}", dual3d(wdg(a, b)));
+        // fmt::println("   dot(a, dual3d(b)) = {}", dot(a, dual3d(b)));
+
+        CHECK(dual3d(Scalar<double>{dot(a, b)}) == wdg(a, dual3d(b)));
+        CHECK(dual3d(dot(a, b)) == wdg(a, dual3d(b)));
+        CHECK(dual3d(wdg(a, b)) == dot(a, dual3d(b)));
+
+        // just to silence unused variable warning
+        // CHECK(v_dual_manual == I_3d * v);
+        CHECK(v_dual_manual == v * rev(I_3d));
+        CHECK(v_dual == dual3d(v));
+        // CHECK(B_dual_manual = I_3d * B);
+        CHECK(B_dual_manual == B * rev(I_3d));
+        CHECK(B_dual == dual3d(B));
+#endif
     }
 
 } // TEST_SUITE("Geometric Algebra")

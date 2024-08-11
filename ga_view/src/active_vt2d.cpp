@@ -26,6 +26,8 @@ active_vt2d::active_vt2d(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg,
 void active_vt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                         QWidget* widget)
 {
+    Q_UNUSED(option)
+    Q_UNUSED(widget)
 
     // clipping area is active area of coordsys
     qp->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),

@@ -39,7 +39,7 @@ class w_Coordsys : public QGraphicsView {
     void pop_from_history(); // undo
 
   public slots:
-    void switch_to_model(int);
+    void switch_to_model(size_t);
 
   signals:
     void viewResized();

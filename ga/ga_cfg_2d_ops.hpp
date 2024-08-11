@@ -415,37 +415,63 @@ inline constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
 // 2d duality operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// return the dual(M) of the multivector M
 // if M represents the subspace B as subspace of R^2 then
-// dual(M) represents the orthogonal subspace B^perp (perpendicular to B)
-// => returns the orthogonal complement
+// dual(M) represents the subspace orthorgonal to B
+// => return the dual(M) of the multivector M
+
+#if defined(_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
+////////////////////////////////////////////////////////////////////////////////
+// duality as defined by Hestenes or by Doran, Lasenby in "GA for physicists":
+// (same subspace as for Macdonld's definition below, but other resulting signs)
+// (=> will have influence on formulae concerning duality directly)
+////////////////////////////////////////////////////////////////////////////////
 //
-// dual by left multiplication with Im_2d
-// as defined in Doran/Lasenby "GA for physicists"
+// dual(A) = I*A
 //
+// I_2d * 1 = e1^e2 * 1 = e1^e2
+//
+// I_2d * e1 = e1^e2 * e1 = e_121 = -e_112 = -e_2 = -e2
+// I_2d * e2 = e1^e2 * e2 = e_122 =  e_122 =  e_1 =  e1
+//
+// I_2d * e1^e2 = e1^e2 * e1^e2 = e_1212 = -e_1122 = -1
+
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar<T> dual2d(PScalar2d<T> ps)
 {
-    // e12 * ps * e12 = -ps
+    // dual(A) = I*A
+    // e12 * (ps * e12) = -ps
     return Scalar<T>(-T(ps));
 }
 
 // this one is problematic for overloading, because 2d and 3d case
-// transform to different pseudoscalars
+// transform scalars to different pseudoscalars
 // the 2d and 3d adders in the function name are required for disambiguation
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar2d<T> dual2d(Scalar<T> s)
 {
-    // e12 * s = s * e12
+    // dual(A) = I*A
+    // e12 * (s) = s * e12
     return PScalar2d<T>(T(s));
+}
+
+// this overload is provided to accept T directly as an alternative to Scalar<T>
+// e.g. with T as a result of a dot product between two vectors
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> dual2d(T s)
+{
+    // dual(A) = I*A
+    // e12 * (s) = s * e12
+    return PScalar2d<T>(s);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Vec2d<T> dual2d(Vec2d<T> const& v)
 {
+    // dual(A) = I*A
     // e12 * (v.x * e1 + v.y * e2)
     //     =  v.y * e1 - v.x * e2
     return Vec2d<T>(v.y, -v.x);
@@ -455,6 +481,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr MVec2d_E<T> dual2d(MVec2d_E<T> const& M)
 {
+    // dual(A) = I*A
     // e12 * (  s + ps * e12)
     //     =  -ps +  s * e12
     return MVec2d_E<T>(-M.c1, M.c0);
@@ -464,9 +491,102 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr MVec2d<T> dual2d(MVec2d<T> const& M)
 {
+    // dual(A) = I*A
     // e12 * (  s + v.x * e1 + v.y * e2 + ps * e12)
     //     =  -ps + v.y * e1 - v.x * e2 + s * e12
     return MVec2d<T>(-M.c3, M.c2, -M.c1, M.c0);
 }
+
+#else
+////////////////////////////////////////////////////////////////////////////////
+// duality as defined in Macdonald, "Linear and geometric algebra", p. 109:
+////////////////////////////////////////////////////////////////////////////////
+//
+// dual(A) = A/I = A*I^(-1) = A*rev(I)
+//
+// 1 * rev(I_2d) = 1 * e2^e1 = e2^e1 = e_21 = -e_12 = -e1^e2
+//
+// e1 * rev(I_2d) = e1 * e2^e1 = e_121 = -e_112 = -e_2 = -e2
+// e2 * rev(I_2d) = e2 * e2^e1 = e_221 =  e_221 =  e_1 =  e1
+//
+// e1^e2 * rev(I_2d) = e1^e2 * e2^e1 = e_1221 = 1
+
+// using this duality definition, following duality properties hold
+// (A. Macdonald, "Linear and geometric algebra", p. 110):
+//
+// a) dual(aA) = a dual(A)
+// b) dual(A + B) = dual(A) + dual(B)
+// c) dual(dual(A)) = (-1)^(n*(n-1)/2) A   (with n as dimension of the (sub)space)
+// d) |dual(B)| = |B|
+// e) if B is a j-blade then dual(B) is an (n-j)-blade
+// f) if A is a j-vector then dual(A) is an (n-j)-vector
+//    (remember: a j-vector is a sum of j-blades, which are outer products)
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar<T> dual2d(PScalar2d<T> ps)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //   (ps * e12) * e21
+    // =  ps
+    return Scalar<T>(T(ps));
+}
+
+// this one is problematic for overloading, because 2d and 3d case
+// transform scalars to different pseudoscalars
+// the 2d and 3d adders in the function name are required for disambiguation
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> dual2d(Scalar<T> s)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //   (s) * e21
+    // =  -s * e12
+    return PScalar2d<T>(-T(s));
+}
+
+// this overload is provided to accept T directly as an alternative to Scalar<T>
+// e.g. with T as a result of a dot product between two vectors
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> dual2d(T s)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //   (s) * e21
+    // =  -s * e12
+    return PScalar2d<T>(-s);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> dual2d(Vec2d<T> const& v)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //   (v.x * e1 + v.y * e2) * e21
+    // =  v.y * e1 - v.x * e2
+    return Vec2d<T>(v.y, -v.x);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d_E<T> dual2d(MVec2d_E<T> const& M)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //   (  s + ps * e12) * e21
+    //   = ps -  s * e12
+    return MVec2d_E<T>(M.c1, -M.c0);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d<T> dual2d(MVec2d<T> const& M)
+{
+    // dual(A) = A/I = A*I^(-1) = A*rev(I)
+    //   (  s + v.x * e1 + v.y * e2 + ps * e12) * e21
+    //   = ps + v.y * e1 - v.x * e2 -  s * e12
+    return MVec2d<T>(M.c3, M.c2, -M.c1, -M.c0);
+}
+
+#endif
 
 } // namespace hd::ga

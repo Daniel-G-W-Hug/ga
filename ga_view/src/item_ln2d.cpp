@@ -16,6 +16,8 @@ item_ln2d::item_ln2d(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm, size_t i
                      QGraphicsItem* parent) :
     QGraphicsItem(parent), cs{cs}, cm{cm}, idx{idx}
 {
+    Q_UNUSED(wcs)
+
     // setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
     //          QGraphicsItem::ItemSendsGeometryChanges |
     //          QGraphicsItem::ItemSendsScenePositionChanges);
@@ -28,7 +30,7 @@ item_ln2d::item_ln2d(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm, size_t i
     // find min and max values for bounding rectangle:
     // QRectF(mapFromScene(QPointF(cs->x.au_to_w(min_x),cs->y.au_to_w(max_y))),
     //        mapFromScene(QPointF(cs->x.au_to_w(max_x),cs->y.au_to_w(min_y))))
-    for (int j = 0; j < cm->ln[idx].size(); ++j) {
+    for (size_t j = 0; j < cm->ln[idx].size(); ++j) {
         min_x = std::min(min_x, cm->ln[idx][j].x);
         max_x = std::max(max_x, cm->ln[idx][j].x);
         min_y = std::min(min_y, cm->ln[idx][j].y);
@@ -50,6 +52,8 @@ item_ln2d::item_ln2d(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm, size_t i
 void item_ln2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                       QWidget* widget)
 {
+    Q_UNUSED(option)
+    Q_UNUSED(widget)
 
     // clipping area is active area of coordsys
     qp->setClipRect(
@@ -62,7 +66,7 @@ void item_ln2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     qp->setPen(cm->ln_mark[idx].pen);
 
     // connect all points on each line
-    for (int j = 0; j < cm->ln[idx].size() - 1; ++j) {
+    for (size_t j = 0; j < cm->ln[idx].size() - 1; ++j) {
         int nx1 = cs->x.au_to_w(cm->ln[idx][j].x);
         int ny1 = cs->y.au_to_w(cm->ln[idx][j].y);
         int nx2 = cs->x.au_to_w(cm->ln[idx][j + 1].x);
@@ -79,7 +83,7 @@ void item_ln2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
             mapFromScene(QPointF(cs->x.au_to_w(cm->ln[idx][0].x), cs->y.au_to_w(0.0))));
 
         // connect all points on each line
-        for (int j = 0; j < cm->ln[idx].size(); ++j) {
+        for (size_t j = 0; j < cm->ln[idx].size(); ++j) {
             polyPath.lineTo(mapFromScene(QPointF(cs->x.au_to_w(cm->ln[idx][j].x),
                                                  cs->y.au_to_w(cm->ln[idx][j].y))));
         }

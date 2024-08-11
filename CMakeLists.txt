@@ -32,15 +32,19 @@ if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "Build type not specified: use Debug mode by default.")
 endif()
 
-if(CMAKE_BUILD_TYPE EQUAL "Debug")
-  if(MSVC)
-    # warning level 4 and all warnings as errors
-    add_compile_options(/Gy /W4 /WX /bigobj)
-  else()
-    # lots of warnings and all warnings as errors
-    add_compile_options(-Wall -Wextra -pedantic -Werror)
-  endif()
+if(MSVC)
+  # warning level 4 and all warnings as errors
+  add_compile_options(/bigobj /Wall /W4 /WX /EHs)
+else()
+  # lots of warnings and all warnings as errors
+  #add_compile_options(-Wall -Wextra -pedantic -Werror)
+  add_compile_options(-Wall -Wextra -pedantic)
 endif()
+
+### Default is using duality as defined by Macdonald: dual(A)=A*rev(I)
+### in order to use duality as defined by Hestenes, Doran and Lasenby: dual(A)=I*A
+### uncomment this definition or set it externally
+add_definitions(-D_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
 
 add_subdirectory(ga_test) # tests for header only library
 add_subdirectory(ga_lua)  # lua scripting for ga

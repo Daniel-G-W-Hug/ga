@@ -30,6 +30,8 @@ active_projection::active_projection(Coordsys* cs, w_Coordsys* wcs, active_pt2d*
 void active_projection::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                               QWidget* widget)
 {
+    Q_UNUSED(option)
+    Q_UNUSED(widget)
 
     // clipping area is active area of coordsys
     qp->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
@@ -51,9 +53,6 @@ void active_projection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
                 QPointF(scenePos_beg().x, scenePos_beg().y);
 
     QPointF u_inv = u / (u.x() * u.x() + u.y() * u.y());
-
-    qreal nrm_prod =
-        sqrt(u.x() * u.x() + u.y() * u.y()) * sqrt(v.x() * v.x() + v.y() * v.y());
 
     qreal dot = u.x() * v.x() + u.y() * v.y();    // dot(v,u)
     qreal wdg = -(u.x() * v.y() - u.y() * v.x()); // wdg(v,u)

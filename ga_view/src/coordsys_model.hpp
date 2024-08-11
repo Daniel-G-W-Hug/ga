@@ -49,7 +49,7 @@ struct ln2d_mark {
     QPen pen{QPen(Qt::black, 2, Qt::SolidLine)};
 
     bool mark_pts{false};
-    int delta{1}; // 1 shows every point, 2 every second, ...
+    size_t delta{1}; // 1 shows every point, 2 every second, ...
     pt2d_mark pm{};
 
     bool mark_area{false};

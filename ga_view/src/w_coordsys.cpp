@@ -18,7 +18,7 @@
 
 w_Coordsys::w_Coordsys(Coordsys* cs, std::vector<Coordsys_model*>& vm,
                        QGraphicsScene* scene, QWidget* parent) :
-    QGraphicsView(parent), cs(cs), vm(vm), scene(scene)
+    QGraphicsView(parent), cs(cs), scene(scene), vm(vm)
 {
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     scene->setSceneRect(0, 0, cs->x.widget_size(), cs->y.widget_size());
@@ -512,9 +512,9 @@ void w_Coordsys::pop_from_history()
     }
 }
 
-void w_Coordsys::switch_to_model(int idx)
+void w_Coordsys::switch_to_model(size_t idx)
 {
-    if (idx >= 0 && idx < vm.size()) {
+    if (idx < vm.size()) {
         // fmt::println("w_Coordsys got signal switch_to_model with value {}", idx);
         cm = vm[idx];
         invalidateScene();

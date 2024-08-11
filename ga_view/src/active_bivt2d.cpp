@@ -25,6 +25,8 @@ active_bivt2d::active_bivt2d(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg,
 void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                           QWidget* widget)
 {
+    Q_UNUSED(option)
+    Q_UNUSED(widget)
 
     // clipping area is active area of coordsys
     qp->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
