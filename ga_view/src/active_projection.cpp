@@ -54,18 +54,15 @@ void active_projection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
 
     QPointF u_inv = u / (u.x() * u.x() + u.y() * u.y());
 
-    qreal dot = u.x() * v.x() + u.y() * v.y();    // dot(v,u)
-    qreal wdg = -(u.x() * v.y() - u.y() * v.x()); // wdg(v,u)
+    qreal dot = u.x() * v.x() + u.y() * v.y(); // dot(v,u)
 
     QPointF vpar = QPointF(scenePos_beg().x, scenePos_beg().y) + dot * u_inv;
-    QPointF vperp = QPointF(wdg * u_inv.y(), -wdg * u_inv.x()); // wdg calc. manually
 
     // qDebug() << "vpar:  " << vpar;
     // qDebug() << "vperp: " << vperp;
     // qDebug() << "scenePos_beg(): " << scenePos_beg();
 
     QPointF end_vpar_pos = QPointF(cs->x.a_to_w(vpar.x()), cs->y.a_to_w(vpar.y()));
-    QPointF end_vperp_pos = QPointF(cs->x.a_to_w(vperp.x()), cs->y.a_to_w(vperp.y()));
 
     // The sign has to be reversed here, since device coordinates are in a left-handed
     // system. The angle calculation itself is done in a classical right-handed system.

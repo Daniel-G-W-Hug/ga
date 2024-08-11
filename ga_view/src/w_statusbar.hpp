@@ -32,7 +32,7 @@ class w_Statusbar : public QWidget {
     void on_maximumModelChanged(size_t maximumModelIndex);
     void on_modeChanged(pz_action action, pz_mode mode);
     void on_undoChanged(size_t undo_steps);
-    void on_labelChanged(std::string label);
+    void on_labelChanged(std::string const& label);
     void on_scalingChanged(axis_scal xscal, axis_scal yscal);
 
   private:

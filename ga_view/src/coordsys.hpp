@@ -47,7 +47,7 @@ struct axis_ticks // tickmarks of axis
 {
 
     axis_ticks() = default;
-    axis_ticks(double mj_anchor, double mj_delta, int mn_intv) :
+    axis_ticks(double mj_anchor, double mj_delta, size_t mn_intv) :
         major_anchor{mj_anchor}, major_delta{mj_delta}, minor_intervals{mn_intv}
     {
     }
@@ -68,10 +68,10 @@ struct axis_ticks // tickmarks of axis
                              //
                              // INFO: ignored for log scaled axis
 
-    int minor_intervals{4}; // number of intervals within each major interval
-                            // minor notches will not be numbered (0: none)
-                            //
-                            // INFO: ignored for log scaled axis
+    size_t minor_intervals{4}; // number of intervals within each major interval
+                               // minor notches will not be numbered (0: none)
+                               //
+                               // INFO: ignored for log scaled axis
 };
 
 struct widget_axis_data {

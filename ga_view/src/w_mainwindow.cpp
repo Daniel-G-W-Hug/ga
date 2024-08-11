@@ -2,8 +2,8 @@
 // author: Daniel Hug, 2024
 //
 
-#include "w_coordsys.hpp"
 #include "w_mainwindow.hpp"
+#include "w_coordsys.hpp"
 #include "w_statusbar.hpp"
 
 
@@ -20,6 +20,7 @@
 #include "coordsys_model.hpp"
 #include "hd/hd_functions.hpp"
 
+#include <QColor>
 #include <QPainter>
 #include <QPointF>
 #include <QVBoxLayout>
@@ -68,7 +69,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
             double x_eps = 0.1 * dx;
 
             while (x <= 1.5 + x_eps) {
-                l2.push_back(pt2d(x, hd::linear_step(0.0, 1.0, x)));
+                l2.emplace_back(pt2d(x, hd::linear_step(0.0, 1.0, x)));
                 x += dx;
             }
             ln2d_mark l2m;
@@ -88,7 +89,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
             double x_eps = 0.1 * dx;
 
             while (x <= 1.5 + x_eps) {
-                l2.push_back(pt2d(x, hd::smooth_step(0.0, 1.0, x)));
+                l2.emplace_back(pt2d(x, hd::smooth_step(0.0, 1.0, x)));
                 x += dx;
             }
             ln2d_mark l2m;
@@ -108,7 +109,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
             double x_eps = 0.1 * dx;
 
             while (x <= 1.5 + x_eps) {
-                l2.push_back(pt2d(x, hd::smoother_step(0.0, 1.0, x)));
+                l2.emplace_back(pt2d(x, hd::smoother_step(0.0, 1.0, x)));
                 x += dx;
             }
             ln2d_mark l2m;
@@ -128,7 +129,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
             double x_eps = 0.1 * dx;
 
             while (x <= .75 + x_eps) {
-                l2.push_back(pt2d(x, hd::smoother_step(0.0, 1.0, x)));
+                l2.emplace_back(pt2d(x, hd::smoother_step(0.0, 1.0, x)));
                 x += dx;
             }
             ln2d_mark l2m;
@@ -308,7 +309,7 @@ std::vector<Coordsys_model> get_moving_line()
         // define a poly line and a model
         ln2d l;
         for (double x = xmin; x <= xmax + x_eps; x += dx) {
-            l.push_back(pt2d(x, std::sin(omega * t - k * x)));
+            l.emplace_back(pt2d(x, std::sin(omega * t - k * x)));
         }
 
         // add the poly line to the model
@@ -430,8 +431,7 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
     }
     // fmt::println("vm.size() = {}", vm.size());
 
-    if (vm.size() < 1)
-        throw std::runtime_error("w_MainWindow requires model size >= 1.");
+    if (vm.size() < 1) throw std::runtime_error("w_MainWindow requires model size >= 1.");
 
     cs = get_initial_cs();
 

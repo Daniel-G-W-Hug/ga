@@ -223,7 +223,7 @@ void w_Statusbar::on_undoChanged(size_t undo_steps)
     }
 }
 
-void w_Statusbar::on_labelChanged(std::string label)
+void w_Statusbar::on_labelChanged(std::string const& label)
 {
 
     if (m_label != label) {
