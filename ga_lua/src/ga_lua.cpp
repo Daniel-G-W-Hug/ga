@@ -20,7 +20,13 @@ int main()
         register_constants(lua);
 
         // run the lua script
+#if _MSC_VER >= 1900
+        // on the msvc compiler there will be debug and release subfolders
+        // (thus we need one level more to get back)
+        lua.safe_script_file("../../../ga_lua/input/ga_lua.lua");
+#else
         lua.safe_script_file("../../ga_lua/input/ga_lua.lua");
+#endif
     }
     catch (sol::error const& e) {
 

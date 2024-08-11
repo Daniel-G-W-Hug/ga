@@ -24,6 +24,6 @@
 
     - fmt to be installed from: https://github.com/fmtlib/fmt
     - doctest to be installed from: https://github.com/doctest/doctest
-    - winget install "Lua for Windows"
+    - winget install lua (you need a x64 binary otherwise linking will not work)
     - qt6 to be installed from official installer
     - sol2 to be installed from: <https://github.com/ThePhD/sol2>
