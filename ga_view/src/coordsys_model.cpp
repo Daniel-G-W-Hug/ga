@@ -4,7 +4,7 @@
 
 #include "coordsys_model.hpp"
 
-[[maybe_unused]] int Coordsys_model::add_pt(pt2d const& pt_in, pt2d_mark const m)
+[[maybe_unused]] size_t Coordsys_model::add_pt(pt2d const& pt_in, pt2d_mark const m)
 {
 
     pt.push_back(pt_in);
@@ -16,7 +16,7 @@
 //
 // hint: using ln2d = std::vector<pt2d>;
 //
-[[maybe_unused]] int Coordsys_model::add_ln(ln2d const& vp_in, ln2d_mark const m)
+[[maybe_unused]] size_t Coordsys_model::add_ln(ln2d const& vp_in, ln2d_mark const m)
 {
 
     // the separate copy should not be needed, since it is done in push_back
@@ -40,7 +40,7 @@
     return ln.size() - 1;
 }
 
-[[maybe_unused]] int Coordsys_model::add_vt(vt2d const& vt_in, vt2d_mark const m)
+[[maybe_unused]] size_t Coordsys_model::add_vt(vt2d const& vt_in, vt2d_mark const m)
 {
 
     vt.push_back(vt_in);
@@ -49,7 +49,7 @@
     return vt.size() - 1;
 }
 
-[[maybe_unused]] int Coordsys_model::add_apt(pt2d const& pt_in)
+[[maybe_unused]] size_t Coordsys_model::add_apt(pt2d const& pt_in)
 {
 
     apt.push_back(pt_in);
@@ -57,7 +57,7 @@
     return apt.size() - 1;
 }
 
-[[maybe_unused]] int Coordsys_model::add_avt(avt2d const& avt_in)
+[[maybe_unused]] size_t Coordsys_model::add_avt(avt2d const& avt_in)
 {
 
     avt.push_back(avt_in);
@@ -65,7 +65,7 @@
     return avt.size() - 1;
 }
 
-[[maybe_unused]] int Coordsys_model::add_abivt(abivt2d const& abivt_in)
+[[maybe_unused]] size_t Coordsys_model::add_abivt(abivt2d const& abivt_in)
 {
 
     abivt.push_back(abivt_in);
@@ -73,7 +73,7 @@
     return abivt.size() - 1;
 }
 
-[[maybe_unused]] int Coordsys_model::add_aproj(aproj2d const& aproj_in)
+[[maybe_unused]] size_t Coordsys_model::add_aproj(aproj2d const& aproj_in)
 {
 
     aproj.push_back(aproj_in);
@@ -81,7 +81,7 @@
     return aproj.size() - 1;
 }
 
-[[maybe_unused]] int Coordsys_model::add_arefl(arefl2d const& arefl_in)
+[[maybe_unused]] size_t Coordsys_model::add_arefl(arefl2d const& arefl_in)
 {
 
     arefl.push_back(arefl_in);

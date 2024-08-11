@@ -156,7 +156,7 @@ template <typename T> inline Vec3d<T> unitized(Vec3d<T> const& v)
         throw std::runtime_error("vector norm too small for normalization" +
                                  std::to_string(n) + "\n");
     }
-    T inv = 1.0 / n; // for multiplication with inverse of norm
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
     return Vec3d<T>(v.x * inv, v.y * inv, v.z * inv);
 }
 

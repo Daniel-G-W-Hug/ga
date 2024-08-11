@@ -91,8 +91,8 @@ struct avt2d {
 
     // reference to point used here, because this enables
     // use of unique address of pt2d for mapping to users of active points in scene
-    int beg_idx; // beg = (0,0) => position vector, otherwise => free vector
-    int end_idx;
+    size_t beg_idx; // beg = (0,0) => position vector, otherwise => free vector
+    size_t end_idx;
 };
 
 
@@ -101,9 +101,9 @@ struct abivt2d {
 
     // reference to point used here, because this enables
     // use of unique address of pt2d for mapping to users of active points in scene
-    int beg_idx;
-    int uend_idx;
-    int vend_idx;
+    size_t beg_idx;
+    size_t uend_idx;
+    size_t vend_idx;
 };
 
 // active reflection using three active points (one common to both vectors)
@@ -111,9 +111,9 @@ struct aproj2d {
 
     // reference to point used here, because this enables
     // use of unique address of pt2d for mapping to users of active points in scene
-    int beg_idx;
-    int uend_idx;
-    int vend_idx;
+    size_t beg_idx;
+    size_t uend_idx;
+    size_t vend_idx;
 };
 
 // active reflection using three active points (one common to both vectors)
@@ -121,8 +121,8 @@ struct arefl2d {
 
     // reference to point used here, because this enables
     // use of unique address of pt2d for mapping to users of active points in scene
-    int n1end_idx;
-    int n2end_idx;
+    size_t n1end_idx;
+    size_t n2end_idx;
 };
 
 // ----------------------------------------------------------------------------
@@ -136,28 +136,30 @@ class Coordsys_model {
   public:
 
     // add passive point
-    [[maybe_unused]] int add_pt(pt2d const& p_in, pt2d_mark const m = pt2d_mark_default);
+    [[maybe_unused]] size_t add_pt(pt2d const& p_in,
+                                   pt2d_mark const m = pt2d_mark_default);
 
     // add passive line
-    [[maybe_unused]] int add_ln(std::vector<pt2d> const& vp_in,
-                                ln2d_mark const m = ln2d_mark_default);
+    [[maybe_unused]] size_t add_ln(std::vector<pt2d> const& vp_in,
+                                   ln2d_mark const m = ln2d_mark_default);
     // add passive vector
-    [[maybe_unused]] int add_vt(vt2d const& vt_in, vt2d_mark const m = vt2d_mark_default);
+    [[maybe_unused]] size_t add_vt(vt2d const& vt_in,
+                                   vt2d_mark const m = vt2d_mark_default);
 
     // add active point
-    [[maybe_unused]] int add_apt(pt2d const& pt_in);
+    [[maybe_unused]] size_t add_apt(pt2d const& pt_in);
 
     // add active vector
-    [[maybe_unused]] int add_avt(avt2d const& vt_in);
+    [[maybe_unused]] size_t add_avt(avt2d const& vt_in);
 
     // add active bivector
-    [[maybe_unused]] int add_abivt(abivt2d const& bivt_in);
+    [[maybe_unused]] size_t add_abivt(abivt2d const& bivt_in);
 
     // add active projection
-    [[maybe_unused]] int add_aproj(aproj2d const& proj_in);
+    [[maybe_unused]] size_t add_aproj(aproj2d const& proj_in);
 
     // add active reflection
-    [[maybe_unused]] int add_arefl(arefl2d const& refl_in);
+    [[maybe_unused]] size_t add_arefl(arefl2d const& refl_in);
 
     void set_label(std::string new_label) { m_label = new_label; };
     std::string label() { return m_label; }

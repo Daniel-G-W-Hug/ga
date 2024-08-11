@@ -30,7 +30,8 @@ Axis::Axis(widget_axis_data wd_in, axis_data ad_in, std::optional<double> px_den
         throw std::runtime_error("Requires axis_max > axis_min length).");
     if (wd.w_size < wd.a_offset + wd.a_length)
         throw std::runtime_error("Wiget size to small for axis and border.");
-    if (wd.w_size <= 0) throw std::runtime_error("Widget size must be a positive value.");
+    if (wd.w_size <= 0)
+        throw std::runtime_error("Widget size must be a positive value.");
     if (wd.a_offset <= 0)
         throw std::runtime_error("Border size must be a positive value.");
     if (wd.a_length <= 0)
@@ -185,7 +186,7 @@ void Axis::draw(QPainter* qp, int offset)
             if (ad.scal == axis_scal::logarithmic) {
                 qp->save();
                 qp->setFont(QFont("Helvetica", 14, QFont::Normal));
-                QFontMetrics fmbx = qp->fontMetrics();
+                fmbx = qp->fontMetrics();
                 qp->drawText((ad.rng.max - ad.rng.min) * sf + mo -
                                  fmbx.horizontalAdvance(QString("log10(x)")),
                              offset + fmbx.height() + 25, QString("log10(x)"));
@@ -235,7 +236,7 @@ void Axis::draw(QPainter* qp, int offset)
             if (ad.scal == axis_scal::logarithmic) {
                 qp->save();
                 qp->setFont(QFont("Helvetica", 14, QFont::Normal));
-                QFontMetrics fmby = qp->fontMetrics();
+                fmby = qp->fontMetrics();
                 qp->translate(offset - fmby.height() - 30,
                               (ad.rng.max - ad.rng.min) * sf + mo);
                 qp->rotate(90);
@@ -335,11 +336,11 @@ std::vector<double> Axis::get_minor_pos(const std::vector<double>& major_pos) co
 
             case axis_scal::linear: {
                 // go through all major notches (there are at least two)
-                int last = major_pos.size() - 1;
-                for (int i = 0; i < last; ++i) {
+                size_t last = major_pos.size() - 1;
+                for (size_t i = 0; i < last; ++i) {
                     double delta =
                         (major_pos[i + 1] - major_pos[i]) / ad.ticks.minor_intervals;
-                    for (int j = 1; j < ad.ticks.minor_intervals;
+                    for (size_t j = 1; j < ad.ticks.minor_intervals;
                          ++j) { // skip the major notches
                         notches.push_back(j * delta + major_pos[i]);
                     }
@@ -348,11 +349,11 @@ std::vector<double> Axis::get_minor_pos(const std::vector<double>& major_pos) co
             }
             case axis_scal::logarithmic: {
                 // go through all major notches (there are at least two)
-                int last = major_pos.size() - 1;
-                for (int i = 0; i < last; ++i) {
+                size_t last = major_pos.size() - 1;
+                for (size_t i = 0; i < last; ++i) {
                     double value = major_pos[i];
                     double delta = std::pow(10, std::floor(value));
-                    for (int j = 0; j < 8; ++j) {
+                    for (size_t j = 0; j < 8; ++j) {
                         value = std::log10(std::pow(10, value) + delta);
                         notches.push_back(value);
                     }
@@ -375,7 +376,8 @@ std::vector<double> Axis::get_minor_pos(const std::vector<double>& major_pos) co
 
 Coordsys::Coordsys(Axis x_in, Axis y_in, coordsys_data cd_in,
                    keep_aspect_ratio ar_const_in) :
-    x{x_in}, y{y_in}, cd{cd_in}, ar_const{ar_const_in}, title{cd.title.c_str()}
+    x{x_in},
+    y{y_in}, cd{cd_in}, ar_const{ar_const_in}, title{cd.title.c_str()}
 {
     // store target ratios once per Coordsys in order to allow for
     // scrollwheel scaling based on inital ratios set by user as target values
@@ -649,9 +651,11 @@ double Coordsys::get_new_delta_wheel_zoom(double new_min, double new_max, double
 
     double new_delta{delta};
 
-    if (new_ratio >= 2. * target_ratio) new_delta *= 2.0;
+    if (new_ratio >= 2. * target_ratio)
+        new_delta *= 2.0;
 
-    if (new_ratio <= 0.5 * target_ratio) new_delta *= 0.5;
+    if (new_ratio <= 0.5 * target_ratio)
+        new_delta *= 0.5;
 
     // fmt::print(
     //     "new_ratio = {:.3}, delta = {:.3}, target_ratio = {:.3}, new_delta =

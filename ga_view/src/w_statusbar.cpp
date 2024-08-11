@@ -178,7 +178,7 @@ void w_Statusbar::on_mouseMoved(bool hot, mouse_pos_t mouse_pos)
     }
 }
 
-void w_Statusbar::on_currentModelChanged(int currentModelIndex)
+void w_Statusbar::on_currentModelChanged(size_t currentModelIndex)
 {
 
     if (m_currentModel != currentModelIndex) {
@@ -189,7 +189,7 @@ void w_Statusbar::on_currentModelChanged(int currentModelIndex)
     }
 }
 
-void w_Statusbar::on_maximumModelChanged(int maximumModelIndex)
+void w_Statusbar::on_maximumModelChanged(size_t maximumModelIndex)
 {
 
     if (m_maximumModel != maximumModelIndex) {
@@ -212,7 +212,7 @@ void w_Statusbar::on_modeChanged(pz_action action, pz_mode mode)
     }
 }
 
-void w_Statusbar::on_undoChanged(int undo_steps)
+void w_Statusbar::on_undoChanged(size_t undo_steps)
 {
 
     if (m_undo_steps != undo_steps) {

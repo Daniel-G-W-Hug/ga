@@ -22,19 +22,17 @@ class w_MainWindow : public QMainWindow {
     Q_OBJECT
 
   public:
-
     explicit w_MainWindow(QWidget* parent = nullptr);
 
   public slots:
     void changeModel(size_t);
 
   signals:
-    void updateCurrentModel(int);
-    void updateMaximumModel(int);
+    void updateCurrentModel(size_t);
+    void updateMaximumModel(size_t);
     void labelChanged(std::string new_label);
 
   private:
-
     Coordsys* cs;
 
     w_Coordsys* wcs;

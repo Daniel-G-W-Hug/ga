@@ -751,7 +751,7 @@ TEST_SUITE("Geometric Algebra")
         //            will be called, resulting in a scalar result!
 
         CHECK(angle_uv == pi / 6.0);
-        CHECK(r == 0.5 * std::sqrt(2.0));
+        CHECK(std::abs(r - 0.5 * std::sqrt(2.0)) < eps);
         CHECK(gr0(vc) == gr0(vcm));
         CHECK(gr2(vc) == gr2(vcm));
         CHECK(gr0(vr) == gr0(vrm));
@@ -839,7 +839,7 @@ TEST_SUITE("Geometric Algebra")
         // fmt::println("   m = Im_2d_E                      = {}", m);
         // fmt::println("   n = Im_2d                        = {}", n);
 
-        CHECK(r == 0.5 * std::sqrt(2.0));
+        CHECK(std::abs(r - 0.5 * std::sqrt(2.0)) < eps);
         CHECK(c == a + b);
         CHECK(d == a - b);
         CHECK(e == 2.0 * b);

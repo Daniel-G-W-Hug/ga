@@ -2,9 +2,10 @@
 // author: Daniel Hug, 2024
 //
 
-#include "w_mainwindow.hpp"
 #include "w_coordsys.hpp"
+#include "w_mainwindow.hpp"
 #include "w_statusbar.hpp"
+
 
 #include "active_bivt2d.hpp"
 #include "active_projection.hpp"
@@ -184,10 +185,10 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        int p0_id = cm.add_apt(pt2d{0, 1});
-        int p1a_id = cm.add_apt(pt2d{-1.5, 1});
-        int p1b_id = cm.add_apt(pt2d{-1.5, 1});
-        int p2_id = cm.add_apt(pt2d{0, 2});
+        size_t p0_id = cm.add_apt(pt2d{0, 1});
+        size_t p1a_id = cm.add_apt(pt2d{-1.5, 1});
+        size_t p1b_id = cm.add_apt(pt2d{-1.5, 1});
+        size_t p2_id = cm.add_apt(pt2d{0, 2});
 
         cm.add_avt(avt2d{p0_id, p1a_id});
         cm.add_avt(avt2d{p1b_id, p2_id});
@@ -200,9 +201,9 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        int p0_id = cm.add_apt(pt2d{0, 1});
-        int p1_id = cm.add_apt(pt2d{3, 1});
-        int p2_id = cm.add_apt(pt2d{0, 2});
+        size_t p0_id = cm.add_apt(pt2d{0, 1});
+        size_t p1_id = cm.add_apt(pt2d{3, 1});
+        size_t p2_id = cm.add_apt(pt2d{0, 2});
 
         cm.add_avt(avt2d{p0_id, p1_id});
         cm.add_avt(avt2d{p1_id, p2_id});
@@ -215,9 +216,9 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        int p0_id = cm.add_apt(pt2d{0, 0});
-        int p1_id = cm.add_apt(pt2d{3, 0});
-        int p2_id = cm.add_apt(pt2d{0, 2});
+        size_t p0_id = cm.add_apt(pt2d{0, 0});
+        size_t p1_id = cm.add_apt(pt2d{3, 0});
+        size_t p2_id = cm.add_apt(pt2d{0, 2});
 
         cm.add_abivt(abivt2d{p0_id, p1_id, p2_id});
 
@@ -229,9 +230,9 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        int p0_id = cm.add_apt(pt2d{0, 0});
-        int p1_id = cm.add_apt(pt2d{3, 0});
-        int p2_id = cm.add_apt(pt2d{2, 2});
+        size_t p0_id = cm.add_apt(pt2d{0, 0});
+        size_t p1_id = cm.add_apt(pt2d{3, 0});
+        size_t p2_id = cm.add_apt(pt2d{2, 2});
 
         cm.add_aproj(aproj2d{p0_id, p1_id, p2_id});
 
@@ -243,8 +244,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        int p0_id = cm.add_apt(pt2d{0, 1});
-        int p1_id = cm.add_apt(pt2d{1, 0});
+        size_t p0_id = cm.add_apt(pt2d{0, 1});
+        size_t p1_id = cm.add_apt(pt2d{1, 0});
 
         cm.add_arefl(arefl2d{p0_id, p1_id});
 
@@ -429,7 +430,8 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
     }
     // fmt::println("vm.size() = {}", vm.size());
 
-    if (vm.size() < 1) throw std::runtime_error("w_MainWindow requires model size >= 1.");
+    if (vm.size() < 1)
+        throw std::runtime_error("w_MainWindow requires model size >= 1.");
 
     cs = get_initial_cs();
 
