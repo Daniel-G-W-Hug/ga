@@ -14,6 +14,9 @@ namespace hd::ga {
 // using value_t = float;
 using value_t = double;
 
+// eps is used internally for equality testing
+auto const eps{5.0 * std::numeric_limits<value_t>::epsilon()};
+
 // definition of scalar and pscalar located here, because other
 // modules like vec2d, vec3d, 2d_ops, 3d_ops etc. just need the type defintion,
 // but not the functionality itself (reduce dependencies between files)

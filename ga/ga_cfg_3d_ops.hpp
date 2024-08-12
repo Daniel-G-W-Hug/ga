@@ -1086,4 +1086,79 @@ inline constexpr MVec3d<T> dual3d(MVec3d<T> const& M)
 }
 #endif
 
+////////////////////////////////////////////////////////////////////////////////
+// Gram-Schmidt-Orthogonalization part 1: 2d plane embedded in 3d space
+////////////////////////////////////////////////////////////////////////////////
+//
+// input:  two linear independent vectors u and v in 3d defining a plane
+// output: two orthogonal vectors with the first one being u and the second one a vector
+// perpendicular to u in the orientation of v, both forming an orthogonal system
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+std::vector<Vec3d<std::common_type_t<T, U>>> gs_orthogonal(Vec3d<T> const& u,
+                                                           Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    std::vector<Vec3d<ctype>> basis;
+    basis.push_back(u);
+    basis.emplace_back(reject_from(v, u));
+    return basis;
+}
+
+// input:  two linear independent vectors u and v in 3d defining a plane
+// output: two orthonormal vectors with the first one being normalized(u) and
+// the second one a normalized vector perpendicular to u in the orientation of v,
+// both forming an orthogonal system
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+std::vector<Vec3d<std::common_type_t<T, U>>> gs_orthonormal(Vec3d<T> const& u,
+                                                            Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    std::vector<Vec3d<ctype>> basis;
+    Vec3d<ctype> u_unitized{unitized(u)};
+    basis.push_back(u_unitized);
+    basis.emplace_back(unitized(reject_from_unitized(v, u_unitized)));
+    return basis;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Gram-Schmidt-Orthogonalization part 2: 3d space
+////////////////////////////////////////////////////////////////////////////////
+//
+// input:  three linear independent vectors u, v and w in 3d
+// output: three orthogonal vectors with the first one being u and the second and third
+// being  perpendicular to u and the plane spanned by u and v respectively.
+// All three from an orthogonal system
+template <typename U, typename V, typename W>
+    requires(std::floating_point<U> && std::floating_point<V> && std::floating_point<W>)
+std::vector<Vec3d<std::common_type_t<U, V, W>>>
+gs_orthogonal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
+{
+    using ctype = std::common_type_t<U, V, W>;
+    std::vector<Vec3d<ctype>> basis;
+    basis.push_back(u);
+    basis.emplace_back(reject_from(v, u));
+    basis.emplace_back(reject_from(w, wdg(u, v)));
+    return basis;
+}
+
+// input:  three linear independent vectors u, v and w in 3d
+// output: three orthonormal vectors with the first one being unitized u and the second
+// and third being unitized and perpendicular to u and the plane spanned by u and v
+// respectively. All three from an orthogonal system
+template <typename U, typename V, typename W>
+    requires(std::floating_point<U> && std::floating_point<V> && std::floating_point<W>)
+std::vector<Vec3d<std::common_type_t<U, V, W>>>
+gs_orthonormal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
+{
+    using ctype = std::common_type_t<U, V, W>;
+    std::vector<Vec3d<ctype>> basis;
+    Vec3d<ctype> u_unitized{unitized(u)};
+    basis.push_back(u_unitized);
+    basis.emplace_back(unitized(reject_from_unitized(v, u_unitized)));
+    basis.emplace_back(unitized(reject_from(w, wdg(u, v))));
+    return basis;
+}
+
 } // namespace hd::ga

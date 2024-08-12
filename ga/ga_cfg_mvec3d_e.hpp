@@ -148,18 +148,18 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(T s, MVec3d_E<U> c
     return MVec3d_E<std::common_type_t<T, U>>(v.c0 * s, v.c1 * s, v.c2 * s, v.c3 * s);
 }
 
-// devide a multivector by a scalar
+// devide an even multivector by a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_E<std::common_type_t<T, U>> operator/(MVec3d_E<T> const& v, U s)
 {
-    if (s == 0.0) {
+    using ctype = std::common_type_t<T, U>;
+    if (std::abs(s) < eps) {
         throw std::runtime_error("scalar too small, division by zero" +
                                  std::to_string(s) + "\n");
     }
-    U inv = 1.0 / s; // for multiplicaton with inverse value
-    return MVec3d_E<std::common_type_t<T, U>>(v.c0 * inv, v.c1 * inv, v.c2 * inv,
-                                              v.c3 * inv);
+    ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
+    return MVec3d_E<ctype>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
 }
 
 // returning various grades of the even multivector
@@ -207,7 +207,7 @@ template <typename T> inline MVec3d_E<T> unitized(MVec3d_E<T> const& v)
         throw std::runtime_error("complex norm too small for normalization" +
                                  std::to_string(n) + "\n");
     }
-    T inv = 1.0 / n; // for multiplication with inverse of norm
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
     return MVec3d_E<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
 }
 

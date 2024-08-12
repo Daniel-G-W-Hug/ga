@@ -174,14 +174,14 @@ template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d<std::common_type_t<T, U>> operator/(MVec3d<T> const& v, U s)
 {
-    if (s == 0.0) {
+    using ctype = std::common_type_t<T, U>;
+    if (std::abs(s) < eps) {
         throw std::runtime_error("scalar too small, division by zero" +
                                  std::to_string(s) + "\n");
     }
-    U inv = 1.0 / s; // for multiplicaton with inverse value
-    return MVec3d<std::common_type_t<T, U>>(v.c0 * inv, v.c1 * inv, v.c2 * inv,
-                                            v.c3 * inv, v.c4 * inv, v.c5 * inv,
-                                            v.c6 * inv, v.c7 * inv);
+    ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
+    return MVec3d<ctype>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv, v.c4 * inv,
+                         v.c5 * inv, v.c6 * inv, v.c7 * inv);
 }
 
 // returning various grades of a multivector
@@ -250,7 +250,7 @@ template <typename T> inline MVec3d<T> unitized(MVec3d<T> const& v)
         throw std::runtime_error("complex norm too small for normalization" +
                                  std::to_string(n) + "\n");
     }
-    T inv = 1.0 / n; // for multiplication with inverse of norm
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
     return MVec3d<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv, v.c4 * inv,
                      v.c5 * inv, v.c6 * inv, v.c7 * inv);
 }
@@ -265,7 +265,7 @@ template <typename T> inline MVec3d<T> inv(MVec3d<T> const& v)
         throw std::runtime_error("multivector norm too small for inversion " +
                                  std::to_string(m_conjm) + "\n");
     }
-    T inv = 1.0 / m_conjm; // inverse of squared norm for a vector
+    T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
     return inv * conj(v);
 }
 

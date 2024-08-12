@@ -146,16 +146,17 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(T s, MVec3d_U<U> c
     return MVec3d_U<std::common_type_t<T, U>>(v.c0 * s, v.c1 * s, v.c2 * s, v.c3 * s);
 }
 
-// devide a multivector by a scalar
+// devide a an uneven multivector by a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator/(MVec3d_U<T> const& v, U s)
 {
-    if (s == 0.0) {
+    using ctype = std::common_type_t<T, U>;
+    if (std::abs(s) < eps) {
         throw std::runtime_error("scalar too small, division by zero" +
                                  std::to_string(s) + "\n");
     }
-    U inv = 1.0 / s; // for multiplicaton with inverse value
+    ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return MVec3d_U<std::common_type_t<T, U>>(v.c0 * inv, v.c1 * inv, v.c2 * inv,
                                               v.c3 * inv);
 }

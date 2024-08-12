@@ -589,4 +589,38 @@ inline constexpr MVec2d<T> dual2d(MVec2d<T> const& M)
 
 #endif
 
+// Gram-Schmidt-Orthogonalization:
+//
+// input:  two linear independent vectors u and v in 2d
+// output: two orthogonal vectors with the first one being u and the second one a vector
+// perpendicular to u in the orientation of v, both forming an orthogonal system
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+std::vector<Vec2d<std::common_type_t<T, U>>> gs_orthogonal(Vec2d<T> const& u,
+                                                           Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    std::vector<Vec2d<ctype>> basis;
+    basis.push_back(u);
+    basis.emplace_back(reject_from(v, u));
+    return basis;
+}
+
+// input:  two linear independent vectors u and v in 2d
+// output: two orthonormal vectors with the first one being normalized(u) and
+// the second one a normalized vector perpendicular to u in the orientation of v,
+// both forming an orthogonal system
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+std::vector<Vec2d<std::common_type_t<T, U>>> gs_orthonormal(Vec2d<T> const& u,
+                                                            Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    std::vector<Vec2d<ctype>> basis;
+    Vec2d<ctype> u_unitized{unitized(u)};
+    basis.push_back(u_unitized);
+    basis.emplace_back(unitized(reject_from_unitized(v, u_unitized)));
+    return basis;
+}
+
 } // namespace hd::ga

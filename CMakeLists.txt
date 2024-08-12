@@ -44,7 +44,7 @@ endif()
 ### Default is using duality as defined by Macdonald: dual(A)=A*rev(I)
 ### in order to use duality as defined by Hestenes, Doran and Lasenby: dual(A)=I*A
 ### uncomment this definition or set it externally
-add_definitions(-D_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
+#add_definitions(-D_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
 
 add_subdirectory(ga_test) # tests for header only library
 add_subdirectory(ga_lua)  # lua scripting for ga

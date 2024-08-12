@@ -157,13 +157,13 @@ template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d<std::common_type_t<T, U>> operator/(MVec2d<T> const& v, U s)
 {
-    if (s == 0.0) {
+    using ctype = std::common_type_t<T, U>;
+    if (std::abs(s) < eps) {
         throw std::runtime_error("scalar too small, division by zero" +
                                  std::to_string(s) + "\n");
     }
-    U inv = 1.0 / s; // for multiplicaton with inverse value
-    return MVec2d<std::common_type_t<T, U>>(v.c0 * inv, v.c1 * inv, v.c2 * inv,
-                                            v.c3 * inv);
+    ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
+    return MVec2d<ctype>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
 }
 
 // returning various grades of a multivector
@@ -221,7 +221,7 @@ template <typename T> inline MVec2d<T> unitized(MVec2d<T> const& v)
         throw std::runtime_error("complex norm too small for normalization" +
                                  std::to_string(n) + "\n");
     }
-    T inv = 1.0 / n; // for multiplication with inverse of norm
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
     return MVec2d<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
 }
 
@@ -240,7 +240,7 @@ template <typename T> inline MVec2d<T> inv(MVec2d<T> const& v)
                                  std::to_string(m_conjm) + "\n");
         // example: MVec2D(1,1,1,1) is not invertible
     }
-    T inv = 1.0 / m_conjm; // inverse of squared norm for a vector
+    T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
     return inv * conj(v);
 }
 

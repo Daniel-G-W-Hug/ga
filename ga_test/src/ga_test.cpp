@@ -419,6 +419,67 @@ TEST_SUITE("Geometric Algebra")
     }
 
     ////////////////////////////////////////////////////////////////////////////////
+    // Vec2d<T> Gram-Schmidt-Orthogonalization
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("Vec2d: Gram-Schmidt-Orthogonalization")
+    {
+        fmt::println("Vec2d: Gram-Schmidt-Orthogonalization");
+
+        vec2d v1{2.0, 2.0};
+        vec2d v2{-1.5, 2.5};
+        vec2d v3{1.5, -2.5};
+
+        std::vector<vec2d> og12 = gs_orthogonal(v1, v2);
+        std::vector<vec2d> og13 = gs_orthogonal(v1, v3);
+
+        std::vector<vec2d> on12 = gs_orthonormal(v1, v2);
+        std::vector<vec2d> on13 = gs_orthonormal(v1, v3);
+
+        // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}, angle = {: .2f}°", v1, nrm(v1),
+        //              rad_to_deg(angle(e1_2d, v1)));
+        // fmt::println("v2  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v2, nrm(v2),
+        //              rad_to_deg(angle(e1_2d, v2)));
+        // fmt::println("v3  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v3, nrm(v3),
+        //              rad_to_deg(angle(e1_2d, v3)));
+        // fmt::println("");
+        // fmt::println("og12[0]  = {: .4f}, nrm(og12[0]) = {: .4f}, angle = {: .2f}°",
+        //              og12[0], nrm(og12[0]), rad_to_deg(angle(e1_2d, og12[0])));
+        // fmt::println("og12[1]  = {: .4f}, nrm(og12[1]) = {: .4f}, angle = {: .2f}°",
+        //              og12[1], nrm(og12[1]), rad_to_deg(angle(e1_2d, og12[1])));
+        // fmt::println("on12[0]  = {: .4f}, nrm(on12[0]) = {: .4f}, angle = {: .2f}°",
+        //              on12[0], nrm(on12[0]), rad_to_deg(angle(e1_2d, on12[0])));
+        // fmt::println("on12[1]  = {: .4f}, nrm(on12[1]) = {: .4f}, angle = {: .2f}°",
+        //              on12[1], nrm(on12[1]), rad_to_deg(angle(e1_2d, on12[1])));
+        // fmt::println("");
+        // fmt::println("og13[0]  = {: .4f}, nrm(og13[0]) = {: .4f}, angle = {: .2f}°",
+        //              og13[0], nrm(og13[0]), rad_to_deg(angle(e1_2d, og13[0])));
+        // fmt::println("og13[1]  = {: .4f}, nrm(og13[1]) = {: .4f}, angle = {: .2f}°",
+        //              og13[1], nrm(og13[1]), rad_to_deg(angle(e1_2d, og13[1])));
+        // fmt::println("on13[0]  = {: .4f}, nrm(on13[0]) = {: .4f}, angle = {: .2f}°",
+        //              on13[0], nrm(on13[0]), rad_to_deg(angle(e1_2d, on13[0])));
+        // fmt::println("on13[1]  = {: .4f}, nrm(on13[1]) = {: .4f}, angle = {: .2f}°",
+        //              on13[1], nrm(on13[1]), rad_to_deg(angle(e1_2d, on13[1])));
+        // fmt::println("");
+        // fmt::println(
+        //     "sign(wdg(on12[0],on12[1])/I_2d) = {} (+1: right-handed, -1: left-handed)",
+        //     sign(wdg(on12[0], on12[1]) / I_2d));
+        // fmt::println(
+        //     "sign(wdg(on13[0],on13[1])/I_2d) = {} (+1: right-handed, -1: left-handed)",
+        //     sign(wdg(on13[0], on13[1]) / I_2d));
+        // fmt::println("");
+
+        CHECK(std::abs(dot(og12[0], og12[1])) < eps);
+        CHECK(std::abs(dot(on12[0], on12[1])) < eps);
+        CHECK(std::abs(nrm(on12[0]) - 1.0) < eps);
+        CHECK(std::abs(nrm(on12[1]) - 1.0) < eps);
+        CHECK(std::abs(dot(og13[0], og13[1])) < eps);
+        CHECK(std::abs(dot(on13[0], on13[1])) < eps);
+        CHECK(std::abs(nrm(on13[0]) - 1.0) < eps);
+        CHECK(std::abs(nrm(on13[1]) - 1.0) < eps);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
     // MVec2d<T> basic test cases
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -1613,6 +1674,109 @@ TEST_SUITE("Geometric Algebra")
 
         // from Macdonald, "Linear and Geometric Algebra", Exercise 7.14, p. 129
         CHECK(reflect_on(wdg(e1_3d + e3_3d, e2_3d), e12_3d) == wdg(e1_3d - e3_3d, e2_3d));
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Vec3d<T> Gram-Schmidt-Orthogonalization
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("Vec3d: Gram-Schmidt-Orthogonalization")
+    {
+        fmt::println("Vec3d: Gram-Schmidt-Orthogonalization - part 1 (plane)");
+
+        vec3d v1{2.0, 2.0, 0.0};
+        vec3d v2{-1.5, 2.5, 1.0};
+        vec3d v3{1.5, -2.5, -1.0};
+
+        std::vector<vec3d> og12 = gs_orthogonal(v1, v2);
+        std::vector<vec3d> og13 = gs_orthogonal(v1, v3);
+
+        std::vector<vec3d> on12 = gs_orthonormal(v1, v2);
+        std::vector<vec3d> on13 = gs_orthonormal(v1, v3);
+
+        // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}, angle = {: .2f}°", v1, nrm(v1),
+        //              rad_to_deg(angle(e1_3d, v1)));
+        // fmt::println("v2  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v2, nrm(v2),
+        //              rad_to_deg(angle(e1_3d, v2)));
+        // fmt::println("v3  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v3, nrm(v3),
+        //              rad_to_deg(angle(e1_3d, v3)));
+        // fmt::println("");
+        // fmt::println("og12[0]  = {: .4f}, nrm(og12[0]) = {: .4f}, angle = {: .2f}°",
+        //              og12[0], nrm(og12[0]), rad_to_deg(angle(e1_3d, og12[0])));
+        // fmt::println("og12[1]  = {: .4f}, nrm(og12[1]) = {: .4f}, angle = {: .2f}°",
+        //              og12[1], nrm(og12[1]), rad_to_deg(angle(e1_3d, og12[1])));
+        // fmt::println("on12[0]  = {: .4f}, nrm(on12[0]) = {: .4f}, angle = {: .2f}°",
+        //              on12[0], nrm(on12[0]), rad_to_deg(angle(e1_3d, on12[0])));
+        // fmt::println("on12[1]  = {: .4f}, nrm(on12[1]) = {: .4f}, angle = {: .2f}°",
+        //              on12[1], nrm(on12[1]), rad_to_deg(angle(e1_3d, on12[1])));
+        // fmt::println("");
+        // fmt::println("og13[0]  = {: .4f}, nrm(og13[0]) = {: .4f}, angle = {: .2f}°",
+        //              og13[0], nrm(og13[0]), rad_to_deg(angle(e1_3d, og13[0])));
+        // fmt::println("og13[1]  = {: .4f}, nrm(og13[1]) = {: .4f}, angle = {: .2f}°",
+        //              og13[1], nrm(og13[1]), rad_to_deg(angle(e1_3d, og13[1])));
+        // fmt::println("on13[0]  = {: .4f}, nrm(on13[0]) = {: .4f}, angle = {: .2f}°",
+        //              on13[0], nrm(on13[0]), rad_to_deg(angle(e1_3d, on13[0])));
+        // fmt::println("on13[1]  = {: .4f}, nrm(on13[1]) = {: .4f}, angle = {: .2f}°",
+        //              on13[1], nrm(on13[1]), rad_to_deg(angle(e1_3d, on13[1])));
+        // fmt::println("");
+
+        CHECK(std::abs(dot(og12[0], og12[1])) < eps);
+        CHECK(std::abs(dot(og13[0], og13[1])) < eps);
+
+        CHECK(std::abs(dot(on12[0], on12[1])) < eps);
+        CHECK(std::abs(nrm(on12[0]) - 1.0) < eps);
+        CHECK(std::abs(nrm(on12[1]) - 1.0) < eps);
+
+        CHECK(std::abs(dot(on13[0], on13[1])) < eps);
+        CHECK(std::abs(nrm(on13[0]) - 1.0) < eps);
+        CHECK(std::abs(nrm(on13[1]) - 1.0) < eps);
+
+        fmt::println("Vec3d: Gram-Schmidt-Orthogonalization - part 2 (space)");
+
+        v1 = vec3d{2.0, 2.0, 0.0};
+        v2 = vec3d{-1.5, 2.5, 1.0};
+        v3 = vec3d{1.5, -2.5, -6.0}; // all three vectors must be linear independent
+
+        std::vector<vec3d> og123 = gs_orthogonal(v1, v2, v3);
+        std::vector<vec3d> on123 = gs_orthonormal(v1, v2, v3);
+
+        // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}, angle = {: .2f}°", v1, nrm(v1),
+        //              rad_to_deg(angle(e1_3d, v1)));
+        // fmt::println("v2  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v2, nrm(v2),
+        //              rad_to_deg(angle(e1_3d, v2)));
+        // fmt::println("v3  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v3, nrm(v3),
+        //              rad_to_deg(angle(e1_3d, v3)));
+        // fmt::println("");
+        // fmt::println("og123[0]  = {: .4f}, nrm(og123[0]) = {: .4f}, angle = {: .2f}°",
+        //              og123[0], nrm(og123[0]), rad_to_deg(angle(e1_3d, og123[0])));
+        // fmt::println("og123[1]  = {: .4f}, nrm(og123[1]) = {: .4f}, angle = {: .2f}°",
+        //              og123[1], nrm(og123[1]), rad_to_deg(angle(e1_3d, og123[1])));
+        // fmt::println("og123[2]  = {: .4f}, nrm(og123[2]) = {: .4f}, angle = {: .2f}°",
+        //              og123[2], nrm(og123[2]), rad_to_deg(angle(e1_3d, og123[2])));
+        // fmt::println("");
+        // fmt::println("on123[0]  = {: .4f}, nrm(on123[0]) = {: .4f}, angle = {: .2f}°",
+        //              on123[0], nrm(on123[0]), rad_to_deg(angle(e1_3d, on123[0])));
+        // fmt::println("on123[1]  = {: .4f}, nrm(on123[1]) = {: .4f}, angle = {: .2f}°",
+        //              on123[1], nrm(on123[1]), rad_to_deg(angle(e1_3d, on123[1])));
+        // fmt::println("on123[2]  = {: .4f}, nrm(on123[2]) = {: .4f}, angle = {: .2f}°",
+        //              on123[2], nrm(on123[2]), rad_to_deg(angle(e1_3d, on123[2])));
+        // fmt::println("");
+        // fmt::println("sign(wdg(on123[0], wdg(on123[1], on123[2]))/I_3d) = {} "
+        //              "(+1: right-handed, -1: left-handed)",
+        //              sign(wdg(on123[0], wdg(on123[1], on123[2])) / I_3d));
+        // fmt::println("");
+
+        CHECK(std::abs(dot(og123[0], og123[1])) < eps);
+        CHECK(std::abs(dot(og123[1], og123[2])) < eps);
+        CHECK(std::abs(dot(og123[0], og123[2])) < eps);
+
+        CHECK(std::abs(dot(on123[0], on123[1])) < eps);
+        CHECK(std::abs(dot(on123[1], on123[2])) < eps);
+        CHECK(std::abs(dot(on123[0], on123[2])) < eps);
+
+        CHECK(std::abs(nrm(on123[0]) - 1.0) < eps);
+        CHECK(std::abs(nrm(on123[1]) - 1.0) < eps);
+        CHECK(std::abs(nrm(on123[2]) - 1.0) < eps);
     }
 
     TEST_CASE("Vec3d: cross-product")

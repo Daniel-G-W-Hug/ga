@@ -137,12 +137,13 @@ template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr BiVec3d<std::common_type_t<T, U>> operator/(BiVec3d<T> const& v, U s)
 {
-    if (s == 0.0) {
+    using ctype = std::common_type_t<T, U>;
+    if (std::abs(s) < eps) {
         throw std::runtime_error("scalar too small, division by zero" +
                                  std::to_string(s) + "\n");
     }
-    U inv = 1.0 / s; // for multiplicaton with inverse value
-    return BiVec3d<std::common_type_t<T, U>>(v.x * inv, v.y * inv, v.z * inv);
+    ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
+    return BiVec3d<ctype>(v.x * inv, v.y * inv, v.z * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -179,7 +180,7 @@ template <typename T> inline constexpr BiVec3d<T> unitized(BiVec3d<T> const& v)
         throw std::runtime_error("bivector norm too small for normalization" +
                                  std::to_string(n) + "\n");
     }
-    T inv = 1.0 / n; // for multiplication with inverse of norm
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
     return BiVec3d<T>(v.x * inv, v.y * inv, v.z * inv);
 }
 
@@ -191,7 +192,7 @@ template <typename T> inline constexpr BiVec3d<T> inv(BiVec3d<T> const& v)
         throw std::runtime_error("bivector norm too small for inversion" +
                                  std::to_string(sq_n) + "\n");
     }
-    T inv = -1.0 / sq_n; // negative inverse of squared norm for a bivector
+    T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
     return BiVec3d<T>(v.x * inv, v.y * inv, v.z * inv);
 }
 

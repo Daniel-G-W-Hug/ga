@@ -146,17 +146,18 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator*(T s, MVec2d_E<U> c
     return MVec2d_E<std::common_type_t<T, U>>(v.c0 * s, v.c1 * s);
 }
 
-// devide a multivector multivectors from the even subalgebra by a scalar
+// devide an even multivector by a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d_E<std::common_type_t<T, U>> operator/(MVec2d_E<T> const& v, U s)
 {
-    if (s == 0.0) {
+    using ctype = std::common_type_t<T, U>;
+    if (std::abs(s) < eps) {
         throw std::runtime_error("scalar too small, division by zero" +
                                  std::to_string(s) + "\n");
     }
-    U inv = 1.0 / s; // for multiplicaton with inverse value
-    return MVec2d_E<std::common_type_t<T, U>>(v.c0 * inv, v.c1 * inv);
+    ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
+    return MVec2d_E<ctype>(v.c0 * inv, v.c1 * inv);
 }
 
 // returning various grades of a multivector from the even subalgebra
@@ -204,7 +205,7 @@ template <typename T> inline MVec2d_E<T> unitized(MVec2d_E<T> const& v)
         throw std::runtime_error("complex norm too small for normalization" +
                                  std::to_string(n) + "\n");
     }
-    T inv = 1.0 / n; // for multiplication with inverse of norm
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
     return MVec2d_E<T>(v.c0 * inv, v.c1 * inv);
 }
 
@@ -217,7 +218,7 @@ template <typename T> inline MVec2d_E<T> inv(MVec2d_E<T> const& v)
         throw std::runtime_error("complex norm too small for inversion" +
                                  std::to_string(sq_n) + "\n");
     }
-    T inv = 1.0 / sq_n; // inverse of squared norm for a vector
+    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return inv * rev(v);
 }
 
