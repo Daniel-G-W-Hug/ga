@@ -802,16 +802,25 @@ inline constexpr Vec3d<std::common_type_t<T, U>> rotate(Vec3d<T> const& v,
 {
     using ctype = std::common_type_t<T, U>;
 
-    // MVec3d_E<ctype> reverse_rotor = rev(rotor);
+    // MVec3d_E<ctype> rr = rev(rotor);
     // MVec3d_U<ctype> tmp = rotor * v;
-    // MVec3d_U<ctype> res = tmp * reverse rotor;
+    // MVec3d_U<ctype> res = tmp * rr;
 
     // trivector part of res is 0 due to symmetric product  rotor * v * rev(rotor)
     //
     // optimization potential for sandwich product by replacing the second product
     // with a specific operation that skips the calculation of the pseudoscalar part
     // which will be zero anyway
-    return Vec3d<ctype>(gr1<ctype>(rotor * v * rev(rotor)));
+    // return Vec3d<ctype>(gr1<ctype>(rotor * v * rev(rotor)));
+
+    // optimized version:
+    MVec3d_E<ctype> rr = rev(rotor);
+    MVec3d_U<ctype> tmp = rotor * v;
+    // formular from operator*(MVec3d_U<T>, MVec3d_E<U>) - only vector part
+    return Vec3d<ctype>(tmp.c0 * rr.c0 - tmp.c1 * rr.c3 + tmp.c2 * rr.c2 - tmp.c3 * rr.c1,
+                        tmp.c0 * rr.c3 + tmp.c1 * rr.c0 - tmp.c2 * rr.c1 - tmp.c3 * rr.c2,
+                        -tmp.c0 * rr.c2 + tmp.c1 * rr.c1 + tmp.c2 * rr.c0 -
+                            tmp.c3 * rr.c3);
 }
 
 template <typename T, typename U>
@@ -821,16 +830,25 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> rotate(BiVec3d<T> const& v,
 {
     using ctype = std::common_type_t<T, U>;
 
-    // MVec3d_E<ctype> reverse_rotor = rev(rotor);
+    // MVec3d_E<ctype> rr = rev(rotor);
     // MVec3d_E<ctype> tmp = rotor * v;
-    // MVec3d_E<ctype> res = tmp * reverse rotor;
+    // MVec3d_E<ctype> res = tmp * rr;
 
     // scalar part of res is 0 due to symmetric product  rotor * v * rev(rotor)
     //
     // optimization potential for sandwich product by replacing the second product
     // with a specific operation that skips the calculation of the scalar part
     // which will be zero anyway
-    return BiVec3d<ctype>(gr2<ctype>(rotor * v * rev(rotor)));
+    // return BiVec3d<ctype>(gr2<ctype>(rotor * v * rev(rotor)));
+
+    // optimized version:
+    MVec3d_E<ctype> rr = rev(rotor);
+    MVec3d_E<ctype> tmp = rotor * v;
+    // formular from operator*(MVec3d_E<T>, MVec3d_E<U>) - only bivector part
+    return BiVec3d<ctype>(
+        tmp.c0 * rr.c1 + tmp.c1 * rr.c0 - tmp.c2 * rr.c3 + tmp.c3 * rr.c2,
+        tmp.c0 * rr.c2 + tmp.c1 * rr.c3 + tmp.c2 * rr.c0 - tmp.c3 * rr.c1,
+        tmp.c0 * rr.c3 - tmp.c1 * rr.c2 + tmp.c2 * rr.c1 + tmp.c3 * rr.c0);
 }
 
 template <typename T, typename U>
