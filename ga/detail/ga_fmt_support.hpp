@@ -16,9 +16,6 @@
 #include "fmt/format.h"
 #include "fmt/ranges.h" // support printing of (nested) containers & tuples
 
-#include "ga_pscalar2d.hpp"
-#include "ga_pscalar3d.hpp"
-#include "ga_scalar.hpp"
 #include "ga_strong_t.hpp"
 
 #include "ga_mvec2d.hpp"
@@ -32,7 +29,7 @@
 #include "ga_vec3d.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
-// Strong_t<T, Tag>
+// Strong_t<T, Tag> includes Scalar<T>, PScalar2d<T>, PScalar3d<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
 struct fmt::formatter<hd::ga::Strong_t<T, Tag>> : formatter<double> {
@@ -44,18 +41,6 @@ struct fmt::formatter<hd::ga::Strong_t<T, Tag>> : formatter<double> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// Scalar<T>
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::Scalar<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::Scalar<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({})", nested(double(v)));
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////
 // Vec2d<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T> struct fmt::formatter<hd::ga::Vec2d<T>> : nested_formatter<double> {
@@ -63,18 +48,6 @@ template <typename T> struct fmt::formatter<hd::ga::Vec2d<T>> : nested_formatter
     auto format(const hd::ga::Vec2d<T>& v, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "({},{})", nested(v.x), nested(v.y));
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-// PScalar2d<T>
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::PScalar2d<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::PScalar2d<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({})", nested(double(v)));
     }
 };
 
@@ -125,18 +98,6 @@ struct fmt::formatter<hd::ga::BiVec3d<T>> : nested_formatter<double> {
     {
         return fmt::format_to(ctx.out(), "({},{},{})", nested(v.x), nested(v.y),
                               nested(v.z));
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-// PScalar3d<T>
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::PScalar3d<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::PScalar3d<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({})", nested(double(v)));
     }
 };
 

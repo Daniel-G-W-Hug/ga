@@ -252,26 +252,10 @@ inline T angle_to_re(MVec2d_E<T> const& v)
 // PScalar2d<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// return squared magnitude of the pseudoscalar
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr T sq_nrm(PScalar2d<T> ps)
-{
-    return T(ps) * T(ps);
-}
-
-// return magnitude of the pseudoscalar
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr T nrm(PScalar2d<T> ps)
-{
-    return std::abs(T(ps));
-}
-
-// return reverse of a bivector
+// return reverse of a 2d bivector
 template <typename T> inline PScalar2d<T> rev(PScalar2d<T> A)
 {
-    // the 3d trivector switches sign on reversion
+    // the 2d bivector switches sign on reversion
     return PScalar2d<T>(-T(A));
 }
 
@@ -282,14 +266,6 @@ template <typename T>
 inline constexpr PScalar2d<T> inv(PScalar2d<T> ps)
 {
     return -PScalar2d<T>(ps) / sq_nrm(ps);
-}
-
-// return the value of the pseudoscalar as value_t (for use in scripting)
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr value_t to_val(PScalar2d<T> ps)
-{
-    return value_t(ps);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

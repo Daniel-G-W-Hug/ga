@@ -18,7 +18,7 @@
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
 
-TEST_SUITE("Geometric Algebra")
+TEST_SUITE("Geometric Algebra EGA")
 {
 
     TEST_CASE("algebra<2> - ega_2d")

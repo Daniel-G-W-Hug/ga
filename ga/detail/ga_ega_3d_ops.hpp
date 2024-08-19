@@ -339,23 +339,7 @@ inline PScalar3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& A, Vec3d<U> con
 // PScalar3d<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// return squared magnitude of the pseudoscalar
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr T sq_nrm(PScalar3d<T> ps)
-{
-    return T(ps) * T(ps);
-}
-
-// return magnitude of the pseudoscalar
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr T nrm(PScalar3d<T> ps)
-{
-    return std::abs(T(ps));
-}
-
-// return the reverse of a trivector
+// return the reverse of a 3d trivector
 template <typename T> inline PScalar3d<T> rev(PScalar3d<T> A)
 {
     // the 3d trivector switches sign on reversion
@@ -369,14 +353,6 @@ template <typename T>
 inline constexpr PScalar3d<T> inv(PScalar3d<T> ps)
 {
     return -PScalar3d<T>(ps) / sq_nrm(ps);
-}
-
-// return the value of the pseudoscalar as value_t (for use in scripting)
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr value_t to_val(PScalar3d<T> ps)
-{
-    return value_t(ps);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

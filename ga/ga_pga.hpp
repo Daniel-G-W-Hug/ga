@@ -5,7 +5,7 @@
 // this is a convenience header to include all required headers consistently
 
 ////////////////////////////////////////////////////////////////////////////////
-// provide data types for representing EGA in 2D and 3D
+// provide data types for representing PGA in 2D and 3D
 // e.g. scalar, vector, bivector, etc.
 // and corresponding operations
 ////////////////////////////////////////////////////////////////////////////////
@@ -23,19 +23,19 @@
 #include "detail/ga_strong_t.hpp" // common type for scalars & pseudoscalars
                                   // Scalar<T>, PScalar2d<T>, PScalar3d<T>
 
-#include "detail/ga_vec2d.hpp" // Vec2d<T>
-#include "detail/ga_vec3d.hpp" // Vec3d<T>
+// #include "detail/ga_vec2d.hpp" // Vec2d<T>
+// #include "detail/ga_vec3d.hpp" // Vec3d<T>
 
-#include "detail/ga_bivec3d.hpp"  // BiVec3d<T>
-#include "detail/ga_mvec2d.hpp"   // MVec2d<T>
-#include "detail/ga_mvec2d_e.hpp" // MVec2d_E<T>
-#include "detail/ga_mvec3d.hpp"   // MVec3d<T>
-#include "detail/ga_mvec3d_e.hpp" // MVec3d_E<T>
-#include "detail/ga_mvec3d_u.hpp" // MVec3d_U<T>
+// #include "detail/ga_bivec3d.hpp"  // BiVec3d<T>
+// #include "detail/ga_mvec2d.hpp"   // MVec2d<T>
+// #include "detail/ga_mvec2d_e.hpp" // MVec2d_E<T>
+// #include "detail/ga_mvec3d.hpp"   // MVec3d<T>
+// #include "detail/ga_mvec3d_e.hpp" // MVec3d_E<T>
+// #include "detail/ga_mvec3d_u.hpp" // MVec3d_U<T>
 
-// EGA-specific operations are in namespace hd::ga::ega
-#include "detail/ga_ega_2d_ops.hpp" // ega 2d operations
-#include "detail/ga_ega_3d_ops.hpp" // ega 3d operations
+// // PGA-specific operations are in namespace hd::ga::ega
+// #include "detail/ga_pga_2d_ops.hpp" // ega 2d operations
+// #include "detail/ga_pga_3d_ops.hpp" // ega 3d operations
 
-// fmt-support is defined outside of other namespaces
-#include "detail/ga_fmt_support.hpp" // printing support (fmt library)
+// // fmt-support is defined outside of other namespaces
+// #include "detail/ga_fmt_support.hpp" // printing support (fmt library)
