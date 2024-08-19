@@ -4,7 +4,7 @@
 
 #include <limits> // std::numeric_limits
 
-#include "ga_strong_t.hpp"
+#include "ga_scalar_t.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 // consistent type definitions for easy use
@@ -28,8 +28,8 @@ struct scalar_tag {};
 struct pscalar2d_tag {};
 struct pscalar3d_tag {};
 
-template <typename T> using Scalar = Strong_t<T, scalar_tag>;
-template <typename T> using PScalar2d = Strong_t<T, pscalar2d_tag>;
-template <typename T> using PScalar3d = Strong_t<T, pscalar3d_tag>;
+template <typename T> using Scalar = Scalar_t<T, scalar_tag>;
+template <typename T> using PScalar2d = Scalar_t<T, pscalar2d_tag>;
+template <typename T> using PScalar3d = Scalar_t<T, pscalar3d_tag>;
 
 } // namespace hd::ga

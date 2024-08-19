@@ -4,7 +4,7 @@ set(LIB_NAME ga)
 
 set(HEADERS ga_ega.hpp
     detail/ga_algebra.hpp
-    detail/ga_value_t.hpp detail/ga_strong_t.hpp
+    detail/ga_value_t.hpp detail/ga_Scalar_t.hpp
     detail/a_scalar.hpp
     detail/ga_pscalar2d.hpp detail/ga_vec2d.hpp detail/ga_mvec2d.hpp
     detail/ga_mvec2d_e.hpp detail/ga_ega_2d_ops.hpp

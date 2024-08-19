@@ -20,7 +20,7 @@
 #include "ga_usr_types.hpp"     // consistent user types (for user convenience)
 #include "ga_usr_utilities.hpp" // chelper functions (for user convenience)
 
-#include "detail/ga_strong_t.hpp" // common type for scalars & pseudoscalars
+#include "detail/ga_scalar_t.hpp" // common type for scalars & pseudoscalars
                                   // Scalar<T>, PScalar2d<T>, PScalar3d<T>
 
 // #include "detail/ga_vec2d.hpp" // Vec2d<T>

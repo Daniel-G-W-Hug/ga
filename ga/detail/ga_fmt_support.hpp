@@ -16,7 +16,7 @@
 #include "fmt/format.h"
 #include "fmt/ranges.h" // support printing of (nested) containers & tuples
 
-#include "ga_strong_t.hpp"
+#include "ga_scalar_t.hpp"
 
 #include "ga_mvec2d.hpp"
 #include "ga_mvec2d_e.hpp"
@@ -29,12 +29,12 @@
 #include "ga_vec3d.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
-// Strong_t<T, Tag> includes Scalar<T>, PScalar2d<T>, PScalar3d<T>
+// Scalar_t<T, Tag> includes Scalar<T>, PScalar2d<T>, PScalar3d<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-struct fmt::formatter<hd::ga::Strong_t<T, Tag>> : formatter<double> {
+struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : formatter<double> {
     template <typename FormatContext>
-    auto format(const hd::ga::Strong_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(const hd::ga::Scalar_t<T, Tag>& v, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "{}", double(v));
     }
