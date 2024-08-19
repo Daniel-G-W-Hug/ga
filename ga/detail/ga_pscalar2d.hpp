@@ -5,10 +5,7 @@
 #include <concepts> // std::floating_point
 #include <iostream>
 
-#include "fmt/format.h"
-#include "fmt/ranges.h" // support printing of (nested) containers & tuples
-
-#include "ga_cfg_value_t.hpp"
+#include "ga_value_t.hpp"
 
 
 namespace hd::ga {
@@ -74,50 +71,6 @@ inline constexpr PScalar2d<std::common_type_t<T, U>> operator/(PScalar2d<T> v, U
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// PScalar2d<T> basic operations
-////////////////////////////////////////////////////////////////////////////////
-
-// return squared magnitude of the pseudoscalar
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr T sq_nrm(PScalar2d<T> ps)
-{
-    return T(ps) * T(ps);
-}
-
-// return magnitude of the pseudoscalar
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr T nrm(PScalar2d<T> ps)
-{
-    return std::abs(T(ps));
-}
-
-// return reverse of a bivector
-template <typename T> inline PScalar2d<T> rev(PScalar2d<T> A)
-{
-    // the 3d trivector switches sign on reversion
-    return PScalar2d<T>(-T(A));
-}
-
-// return inverse of the pseudoscalar (A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
-// k is the dimension of the space of the pseudoscalar formed by k orthogonal vectors
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> inv(PScalar2d<T> ps)
-{
-    return -PScalar2d<T>(ps) / sq_nrm(ps);
-}
-
-// return the value of the pseudoscalar as value_t (for use in scripting)
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr value_t to_val(PScalar2d<T> ps)
-{
-    return value_t(ps);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // PScalar2d<T> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
@@ -129,15 +82,3 @@ std::ostream& operator<<(std::ostream& os, PScalar2d<T> v)
 }
 
 } // namespace hd::ga
-
-////////////////////////////////////////////////////////////////////////////////
-// printing support via fmt library
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::PScalar2d<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::PScalar2d<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({})", nested(double(v)));
-    }
-};

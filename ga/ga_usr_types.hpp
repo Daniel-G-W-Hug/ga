@@ -2,13 +2,13 @@
 
 // author: Daniel Hug, 2024
 
-#include "ga_cfg_bivec3d.hpp" // BiVec3d<T>
-#include "ga_cfg_mvec2d.hpp"  // Vec2d<T>
-#include "ga_cfg_mvec3d.hpp"  // Vec3d<T>
-#include "ga_cfg_strong_t.hpp"
-#include "ga_cfg_value_t.hpp" // defines value_t either as float oder double
-#include "ga_cfg_vec2d.hpp"   // Vec2d<T>
-#include "ga_cfg_vec3d.hpp"   // Vec3d<T>
+#include "detail/ga_bivec3d.hpp" // BiVec3d<T>
+#include "detail/ga_mvec2d.hpp"  // Vec2d<T>
+#include "detail/ga_mvec3d.hpp"  // Vec3d<T>
+#include "detail/ga_strong_t.hpp"
+#include "detail/ga_value_t.hpp" // defines value_t either as float oder double
+#include "detail/ga_vec2d.hpp"   // Vec2d<T>
+#include "detail/ga_vec3d.hpp"   // Vec3d<T>
 
 ////////////////////////////////////////////////////////////////////////////////
 // consistent type definitions for easy use

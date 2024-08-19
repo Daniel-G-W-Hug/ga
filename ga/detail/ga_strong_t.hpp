@@ -11,9 +11,6 @@
 
 #include <concepts> // std::floating_point
 
-#include "fmt/format.h"
-#include "fmt/ranges.h" // support printing of (nested) containers & tuples
-
 namespace hd::ga {
 
 template <typename T, typename Tag>
@@ -46,15 +43,3 @@ class Strong_t {
 };
 
 } // namespace hd::ga
-
-// ////////////////////////////////////////////////////////////////////////////////
-// // printing support via fmt library
-// ////////////////////////////////////////////////////////////////////////////////
-template <typename T, typename Tag>
-struct fmt::formatter<hd::ga::Strong_t<T, Tag>> : formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::Strong_t<T, Tag>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "{}", double(v));
-    }
-};

@@ -10,13 +10,10 @@
 #include <stdexcept>
 #include <string>
 
-#include "fmt/format.h"
-#include "fmt/ranges.h" // support printing of (nested) containers & tuples
+#include "ga_value_t.hpp"
 
-#include "ga_cfg_value_t.hpp"
-
-#include "ga_cfg_bivec3d.hpp"
-#include "ga_cfg_vec3d.hpp"
+#include "ga_bivec3d.hpp"
+#include "ga_vec3d.hpp"
 
 
 namespace hd::ga {
@@ -178,40 +175,8 @@ template <typename T> inline constexpr BiVec3d<T> gr2(MVec3d_E<T> const& v)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec3d_E<T> basic operations
+// MVec3d_E<T> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
-
-// return squared magnitude of quaternion
-// |Z|^2 = Z rev(Z) = c0^2 + c1^2 + c2^2 + c3^2
-template <typename T> inline T sq_nrm(MVec3d_E<T> const& v)
-{
-    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
-}
-
-// return magnitude of quaternion
-template <typename T> inline T nrm(MVec3d_E<T> const& v) { return std::sqrt(sq_nrm(v)); }
-
-// return conjugate complex of quaternion (MVec3d_E<T>),
-// i.e. the reverse in nomenclature of multivectors
-template <typename T> inline constexpr MVec3d_E<T> rev(MVec3d_E<T> const& v)
-{
-    // only the bivector part switches sign
-    return MVec3d_E<T>(v.c0, -v.c1, -v.c2, -v.c3);
-}
-
-// return a complex unitized to nrm(v) == 1.0
-template <typename T> inline MVec3d_E<T> unitized(MVec3d_E<T> const& v)
-{
-    T n = nrm(v);
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("complex norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return MVec3d_E<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
-}
-
-// for printing via iostream
 template <typename T>
     requires(std::floating_point<T>)
 std::ostream& operator<<(std::ostream& os, MVec3d_E<T> const& v)
@@ -221,16 +186,3 @@ std::ostream& operator<<(std::ostream& os, MVec3d_E<T> const& v)
 }
 
 } // namespace hd::ga
-
-////////////////////////////////////////////////////////////////////////////////
-// printing support via fmt library
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::MVec3d_E<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec3d_E<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.c0), nested(v.c1),
-                              nested(v.c2), nested(v.c3));
-    }
-};

@@ -5,10 +5,7 @@
 #include <concepts> // std::floating_point
 #include <iostream>
 
-#include "fmt/format.h"
-#include "fmt/ranges.h" // support printing of (nested) containers & tuples
-
-#include "ga_cfg_value_t.hpp"
+#include "ga_value_t.hpp"
 
 
 namespace hd::ga {
@@ -36,15 +33,3 @@ std::ostream& operator<<(std::ostream& os, Scalar<T> v)
     return os;
 }
 } // namespace hd::ga
-
-////////////////////////////////////////////////////////////////////////////////
-// printing support via fmt library
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::Scalar<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::Scalar<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({})", nested(double(v)));
-    }
-};

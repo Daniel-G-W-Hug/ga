@@ -5,7 +5,7 @@
 #define SOL_ALL_SAFETIES_ON 1
 #include "sol/sol.hpp"
 
-#include "ga/ga.hpp"
+#include "ga/ga_ega.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 // register basic types, geometric operations and constants
@@ -23,6 +23,7 @@ void register_constants(sol::state& lua);
 void register_2d_types(sol::state& lua)
 {
     using namespace hd::ga;
+    using namespace hd::ga::ega;
 
     lua.new_usertype<scalar>(
         "scalar",
@@ -123,6 +124,7 @@ void register_2d_types(sol::state& lua)
 void register_3d_types(sol::state& lua)
 {
     using namespace hd::ga;
+    using namespace hd::ga::ega;
 
     lua.new_usertype<pscalar3d>(
         "pscalar3d",
@@ -271,6 +273,7 @@ void register_3d_types(sol::state& lua)
 void register_functions(sol::state& lua)
 {
     using namespace hd::ga;
+    using namespace hd::ga::ega;
 
     lua.set_function(
         "dot", sol::overload(sol::resolve<value_t(vec2d const&, vec2d const&)>(dot),

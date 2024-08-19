@@ -7,128 +7,289 @@
 #include <concepts>  // std::floating_point<T>
 #include <iostream>
 #include <limits>
+#include <numbers> // math constants like pi
 #include <stdexcept>
 #include <string>
 
-#include "ga_cfg_value_t.hpp"
+#include "ga_value_t.hpp"
 
-#include "ga_cfg_vec2d.hpp"
+#include "ga_vec2d.hpp"
 
-#include "ga_cfg_mvec2d.hpp"
-#include "ga_cfg_mvec2d_e.hpp"
+#include "ga_mvec2d.hpp"
+#include "ga_mvec2d_e.hpp"
 
 
-namespace hd::ga {
-
-////////////////////////////////////////////////////////////////////////////////
-// Vec2d<T> & PScalar2d<T> mixed geometric operations
-////////////////////////////////////////////////////////////////////////////////
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> dot(PScalar2d<T> A, Vec2d<U> const& b)
-{
-    // the dot product is identical with the geometric product in this case (A^b = 0)
-    // ATTENTION: the dot-product in NOT symmetric in G^n as it is in R^n
-    return A * b;
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> dot(Vec2d<T> const& a, PScalar2d<U> B)
-{
-    // the dot product is identical with the geometric product in this case (a^B = 0)
-    // ATTENTION: the dot-product in NOT symmetric in G^n as it is in R^n
-    return a * B;
-}
+namespace hd::ga::ega {
 
 ////////////////////////////////////////////////////////////////////////////////
-// Vec2d<T> projections, rejections and reflections
+// Vec2d<T> geometric operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// projection of v1 onto v2
+// return dot-product of two vectors
+// dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v1,
-                                                              Vec2d<U> const& v2)
+inline std::common_type_t<T, U> dot(Vec2d<T> const& v1, Vec2d<U> const& v2)
 {
-    return dot(v1, v2) * inv(v2);
+    // this implementation is only valid in an orthonormal basis
+    return v1.x * v2.x + v1.y * v2.y;
 }
 
-// projection of v1 onto v2 (v2 must already be unitized to nrm(v2) == 1)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> project_onto_unitized(Vec2d<T> const& v1,
-                                                                       Vec2d<U> const& v2)
+// return squared magnitude of vector
+template <typename T> inline T sq_nrm(Vec2d<T> const& v) { return dot(v, v); }
+
+// return magnitude of vector
+template <typename T> inline T nrm(Vec2d<T> const& v) { return std::sqrt(dot(v, v)); }
+
+// return a vector unitized to nrm(v) == 1.0
+template <typename T> inline Vec2d<T> unitized(Vec2d<T> const& v)
 {
-    // requires v2 to be unitized
-    return dot(v1, v2) * v2;
+    T n = nrm(v);
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("vector norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return Vec2d<T>(v.x * inv, v.y * inv);
 }
 
-// projection of v onto ps (returns the vector directly)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v,
-                                                              PScalar2d<U> ps)
+// return the multiplicative inverse of the vector
+template <typename T> inline Vec2d<T> inv(Vec2d<T> const& v)
 {
-    return dot(v, ps) * inv(ps);
-}
-
-// rejection of v1 from v2
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
-                                                             Vec2d<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    // version using geometric algebra wedge product manually computed
-    // from "wdg(v1,v2)*inv(v2)"
-    PScalar2d<ctype> w = wdg(v1, v2); // bivector with component e12
-    ctype sq_n = sq_nrm(v2);          //
-    if (sq_n < std::numeric_limits<ctype>::epsilon()) {
+    T sq_n = sq_nrm(v);
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("vector norm too small for inversion" +
                                  std::to_string(sq_n) + "\n");
     }
-    ctype w_sq_n_inv = w / sq_n;
-    return Vec2d<ctype>(v2.y * w_sq_n_inv, -v2.x * w_sq_n_inv);
+    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
+    return Vec2d<T>(v.x * inv, v.y * inv);
 }
 
-// rejection of v1 from v2 (v2 must already be unitized to nrm(v2) == 1)
+// wedge product (returns a bivector, which is the pseudoscalar in 2d)
+// wdg(v1,v2) = |v1| |v2| sin(theta)
+// where theta: -pi <= theta <= pi (different to definition of angle for dot product!)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> reject_from_unitized(Vec2d<T> const& v1,
-                                                                      Vec2d<U> const& v2)
+inline PScalar2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v1, Vec2d<U> const& v2)
 {
-    // requires v2 to be unitized
-
-    using ctype = std::common_type_t<T, U>;
-    // version using geometric algebra wedge product manually computed
-    // from "wdg(v1,v2)*inv(v2)" + v2 being already it's own inverse
-    PScalar2d<ctype> w = wdg(v1, v2); // bivector with component e12
-    return Vec2d<ctype>(v2.y * w, -v2.x * w);
+    return PScalar2d<std::common_type_t<T, U>>(v1.x * v2.y - v1.y * v2.x);
 }
 
-// reflect a vector u on a hyperplane B orthogonal to vector b
-//
-// hyperplane: a n-1 dimensional subspace in a space of dimension n
-// (e.g. a line through the origin in 2d space)
-// orthogonal to vector b: the hyperplane is dual to b
+// return the angle between of two vectors
+// range of angle: -pi <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> reflect_on_hyp(Vec2d<T> const& u,
-                                                                Vec2d<U> const& b)
+inline std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-b * u * inv(b));
+    using std::numbers::pi;
+
+    ctype nrm_prod = nrm(v1) * nrm(v2);
+    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
+        throw std::runtime_error(
+            "vector norm product too small for calculation of angle" +
+            std::to_string(nrm_prod) + "\n");
+    }
+
+    // std::clamp must be used to take care of numerical inaccuracies
+    auto cos_angle = std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
+    auto sin_angle = std::clamp(ctype(wdg(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
+    // wdg() in 2d contains magnitude and orientation, but works this easy only in 2d,
+    // because it is already a scalar value
+    // (for 3d to be as effective, the 3d vectors would need to be transformed
+    //  to a plane, the angle measured w.r.t. to the pseudoscalar of the plane)
+
+    // fmt::println("   c = {: .4f}, s = {: .4f}, wdg = {: .4f}, nrm_wdg = {: .4f}",
+    //              cos_angle, sin_angle, wdg(v1, v2), nrm(wdg(v1, v2)));
+
+    if (cos_angle >= 0.0) {
+        // quadrant I or IV
+        return std::asin(sin_angle);
+    }
+    else if (cos_angle < 0.0 && sin_angle >= 0.0) {
+        // quadrant II
+        return pi - std::asin(sin_angle);
+    }
+    else {
+        // cos_angle < 0.0 && sin_angle < 0.0)
+        // quadrant III
+        return -pi - std::asin(sin_angle);
+    }
 }
 
-// reflect a vector u another vector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> reflect_on_vec(Vec2d<T> const& u,
-                                                                Vec2d<U> const& b)
+////////////////////////////////////////////////////////////////////////////////
+// MVec2d<T> geometric operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return squared magnitude
+// |M|^2 = M rev(M) = (M.c0)^2 + (M.c1)^2 + (M.c2)^2 + (M.c3)^3
+template <typename T> inline T sq_nrm(MVec2d<T> const& v)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(b * u * inv(b));
+    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
+}
+
+// return magnitude
+template <typename T> inline T nrm(MVec2d<T> const& v) { return std::sqrt(sq_nrm(v)); }
+
+// return the reverse
+template <typename T> inline MVec2d<T> rev(MVec2d<T> const& v)
+{
+    return MVec2d<T>(v.c0, v.c1, v.c2, -v.c3);
+}
+
+// return the Clifford conjugate
+template <typename T> inline MVec2d<T> conj(MVec2d<T> const& v)
+{
+    return MVec2d<T>(v.c0, -v.c1, -v.c2, -v.c3);
+}
+
+// return a multivector unitized to nrm(v) == 1.0
+template <typename T> inline MVec2d<T> unitized(MVec2d<T> const& v)
+{
+    T n = nrm(v);
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("complex norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return MVec2d<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
+}
+
+// return the multiplicative inverse of the multivector
+// inv(M) = 1/( M*conj(M) ) * conj(M)  with M*conj(M) being a scalar value
+template <typename T> inline MVec2d<T> inv(MVec2d<T> const& v)
+{
+    // from manual calculation of M*conj(M) in 2d:
+    T m_conjm = v.c0 * v.c0 + v.c3 * v.c3 - sq_nrm(Vec2d<T>(v.c1, v.c2));
+    //
+    // alternative, but with slightly more computational effort:
+    // T m_conjm = gr0(v * conj(v));
+    //
+    if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("multivector norm too small for inversion " +
+                                 std::to_string(m_conjm) + "\n");
+        // example: MVec2D(1,1,1,1) is not invertible
+    }
+    T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
+    return inv * conj(v);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec2d_E<T> geometric operations for complex numbers
+//             (= multivectors from the even subalgebra)
+////////////////////////////////////////////////////////////////////////////////
+
+// return squared magnitude of complex number
+// |Z|^2 = Z rev(Z) = c0^2 + c1^2
+template <typename T> inline T sq_nrm(MVec2d_E<T> const& v)
+{
+    return v.c0 * v.c0 + v.c1 * v.c1;
+}
+
+// return magnitude of complex number
+template <typename T> inline T nrm(MVec2d_E<T> const& v) { return std::sqrt(sq_nrm(v)); }
+
+// return conjugate complex of a complex number,
+// i.e. the reverse in nomenclature of multivectors
+template <typename T> inline MVec2d_E<T> rev(MVec2d_E<T> const& v)
+{
+    return MVec2d_E<T>(v.c0, -v.c1);
+}
+
+// return a complex number unitized to nrm(v) == 1.0
+template <typename T> inline MVec2d_E<T> unitized(MVec2d_E<T> const& v)
+{
+    T n = nrm(v);
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("complex norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return MVec2d_E<T>(v.c0 * inv, v.c1 * inv);
+}
+
+// return the multiplicative inverse of the complex number (inv(z) = 1/sq_nrm(z)*rev(z))
+// with rev(z) being the complex conjugate
+template <typename T> inline MVec2d_E<T> inv(MVec2d_E<T> const& v)
+{
+    T sq_n = sq_nrm(v);
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("complex norm too small for inversion" +
+                                 std::to_string(sq_n) + "\n");
+    }
+    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
+    return inv * rev(v);
+}
+
+// return the angle of the complex number w.r.t. the real axis
+// range of angle: -pi <= angle <= pi
+template <typename T>
+    requires(std::floating_point<T>)
+inline T angle_to_re(MVec2d_E<T> const& v)
+{
+    using std::numbers::pi;
+    if (v.c0 > 0.0) {
+        // quadrant I & IV
+        return std::atan(v.c1 / v.c0);
+    }
+    if (v.c0 < 0.0 && v.c1 >= 0.0) {
+        // quadrant II
+        return std::atan(v.c1 / v.c0) + pi;
+    }
+    if (v.c0 < 0.0 && v.c1 < 0.0) {
+        // quadrant III
+        return std::atan(v.c1 / v.c0) - pi;
+    }
+    if (v.c0 == 0.0) {
+        // on y-axis
+        if (v.c1 > 0.0) return pi / 2.0;
+        if (v.c1 < 0.0) return -pi / 2.0;
+    }
+    return 0.0; // zero as input => define 0 as corresponding angle
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// PScalar2d<T> basic operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return squared magnitude of the pseudoscalar
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T sq_nrm(PScalar2d<T> ps)
+{
+    return T(ps) * T(ps);
+}
+
+// return magnitude of the pseudoscalar
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T nrm(PScalar2d<T> ps)
+{
+    return std::abs(T(ps));
+}
+
+// return reverse of a bivector
+template <typename T> inline PScalar2d<T> rev(PScalar2d<T> A)
+{
+    // the 3d trivector switches sign on reversion
+    return PScalar2d<T>(-T(A));
+}
+
+// return inverse of the pseudoscalar (A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
+// k is the dimension of the space of the pseudoscalar formed by k orthogonal vectors
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> inv(PScalar2d<T> ps)
+{
+    return -PScalar2d<T>(ps) / sq_nrm(ps);
+}
+
+// return the value of the pseudoscalar as value_t (for use in scripting)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr value_t to_val(PScalar2d<T> ps)
+{
+    return value_t(ps);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -589,8 +750,121 @@ inline constexpr MVec2d<T> dual2d(MVec2d<T> const& M)
 
 #endif
 
-// Gram-Schmidt-Orthogonalization:
+
+////////////////////////////////////////////////////////////////////////////////
+// Vec2d<T> & PScalar2d<T> mixed operations using the geometric product
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> dot(PScalar2d<T> A, Vec2d<U> const& b)
+{
+    // the dot product is identical with the geometric product in this case (A^b = 0)
+    // ATTENTION: the dot-product in NOT symmetric in G^n as it is in R^n
+    return A * b;
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> dot(Vec2d<T> const& a, PScalar2d<U> B)
+{
+    // the dot product is identical with the geometric product in this case (a^B = 0)
+    // ATTENTION: the dot-product in NOT symmetric in G^n as it is in R^n
+    return a * B;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Vec2d<T> projections, rejections and reflections
+////////////////////////////////////////////////////////////////////////////////
+
+// projection of v1 onto v2
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v1,
+                                                              Vec2d<U> const& v2)
+{
+    return dot(v1, v2) * inv(v2);
+}
+
+// projection of v1 onto v2 (v2 must already be unitized to nrm(v2) == 1)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> project_onto_unitized(Vec2d<T> const& v1,
+                                                                       Vec2d<U> const& v2)
+{
+    // requires v2 to be unitized
+    return dot(v1, v2) * v2;
+}
+
+// projection of v onto ps (returns the vector directly)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v,
+                                                              PScalar2d<U> ps)
+{
+    return dot(v, ps) * inv(ps);
+}
+
+// rejection of v1 from v2
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
+                                                             Vec2d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    // version using geometric algebra wedge product manually computed
+    // from "wdg(v1,v2)*inv(v2)"
+    PScalar2d<ctype> w = wdg(v1, v2); // bivector with component e12
+    ctype sq_n = sq_nrm(v2);          //
+    if (sq_n < std::numeric_limits<ctype>::epsilon()) {
+        throw std::runtime_error("vector norm too small for inversion" +
+                                 std::to_string(sq_n) + "\n");
+    }
+    ctype w_sq_n_inv = w / sq_n;
+    return Vec2d<ctype>(v2.y * w_sq_n_inv, -v2.x * w_sq_n_inv);
+}
+
+// rejection of v1 from v2 (v2 must already be unitized to nrm(v2) == 1)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> reject_from_unitized(Vec2d<T> const& v1,
+                                                                      Vec2d<U> const& v2)
+{
+    // requires v2 to be unitized
+
+    using ctype = std::common_type_t<T, U>;
+    // version using geometric algebra wedge product manually computed
+    // from "wdg(v1,v2)*inv(v2)" + v2 being already it's own inverse
+    PScalar2d<ctype> w = wdg(v1, v2); // bivector with component e12
+    return Vec2d<ctype>(v2.y * w, -v2.x * w);
+}
+
+// reflect a vector u on a hyperplane B orthogonal to vector b
 //
+// hyperplane: a n-1 dimensional subspace in a space of dimension n
+// (e.g. a line through the origin in 2d space)
+// orthogonal to vector b: the hyperplane is dual to b
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> reflect_on_hyp(Vec2d<T> const& u,
+                                                                Vec2d<U> const& b)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(-b * u * inv(b));
+}
+
+// reflect a vector u another vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> reflect_on_vec(Vec2d<T> const& u,
+                                                                Vec2d<U> const& b)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(b * u * inv(b));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Gram-Schmidt-Orthogonalization:
+////////////////////////////////////////////////////////////////////////////////
 // input:  two linear independent vectors u and v in 2d
 // output: two orthogonal vectors with the first one being u and the second one a vector
 // perpendicular to u in the orientation of v, both forming an orthogonal system
@@ -623,4 +897,4 @@ std::vector<Vec2d<std::common_type_t<T, U>>> gs_orthonormal(Vec2d<T> const& u,
     return basis;
 }
 
-} // namespace hd::ga
+} // namespace hd::ga::ega

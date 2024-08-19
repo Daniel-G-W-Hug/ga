@@ -11,18 +11,214 @@
 #include <stdexcept>
 #include <string>
 
-#include "ga_cfg_value_t.hpp"
+#include "ga_value_t.hpp"
 
-#include "ga_cfg_vec3d.hpp"
+#include "ga_vec3d.hpp"
 
-#include "ga_cfg_bivec3d.hpp"
+#include "ga_bivec3d.hpp"
 
-#include "ga_cfg_mvec3d.hpp"
-#include "ga_cfg_mvec3d_e.hpp"
-#include "ga_cfg_mvec3d_u.hpp"
+#include "ga_mvec3d.hpp"
+#include "ga_mvec3d_e.hpp"
+#include "ga_mvec3d_u.hpp"
 
 
-namespace hd::ga {
+namespace hd::ga::ega {
+
+////////////////////////////////////////////////////////////////////////////////
+// Vec3d<T> geometric operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return the dot product of two vectors (= a scalar)
+// coordinate free definition: dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline std::common_type_t<T, U> dot(Vec3d<T> const& v1, Vec3d<U> const& v2)
+{
+    // this implementation is only valid in an orthonormal basis
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+// return squared magnitude of vector
+template <typename T> inline T sq_nrm(Vec3d<T> const& v) { return dot(v, v); }
+
+// return magnitude of vector
+template <typename T> inline T nrm(Vec3d<T> const& v) { return std::sqrt(dot(v, v)); }
+
+// return a vector unitized to nrm(v) == 1.0
+template <typename T> inline Vec3d<T> unitized(Vec3d<T> const& v)
+{
+    T n = nrm(v);
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("vector norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return Vec3d<T>(v.x * inv, v.y * inv, v.z * inv);
+}
+
+// return the multiplicative inverse of the vector
+template <typename T> inline Vec3d<T> inv(Vec3d<T> const& v)
+{
+    T sq_n = sq_nrm(v);
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("vector norm too small for inversion" +
+                                 std::to_string(sq_n) + "\n");
+    }
+    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
+    return Vec3d<T>(v.x * inv, v.y * inv, v.z * inv);
+}
+
+// return the angle between of two vectors
+// range of angle: 0 <= angle <= pi
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+
+    ctype nrm_prod = nrm(v1) * nrm(v2);
+    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
+        throw std::runtime_error(
+            "vector norm product too small for calculation of angle" +
+            std::to_string(nrm_prod) + "\n");
+    }
+    // std::clamp must be used to take care of numerical inaccuracies
+    return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
+}
+
+
+// unsuccessful try to extend angle range to -pi ... pi,
+// because orientation is not defined uniquely:
+//
+// // return the angle between of two vectors
+// // range of angle: -pi <= angle <= pi
+// template <typename T, typename U>
+//     requires(std::floating_point<T> && std::floating_point<U>)
+// inline std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> const& v2)
+// {
+//     using ctype = std::common_type_t<T, U>;
+//     using std::numbers::pi;
+
+//     ctype nrm_prod = nrm(v1) * nrm(v2);
+//     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
+//         throw std::runtime_error(
+//             "vector norm product too small for calculation of angle" +
+//             std::to_string(nrm_prod) + "\n");
+//     }
+
+// auto cos_angle = std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
+// auto sin_angle = std::clamp(ctype(nrm(wdg(v1, v2))) / nrm_prod, ctype(-1.0),
+// ctype(1.0));
+//     // wdg() does contain magnitude, but no unique value of orientation
+//     // so we chose one arbitrarily => but would deliver only pos. angles!
+
+//     fmt::println("   c = {: .4f}, s = {: .4f}, wdg = {: .4f}, nrm_wdg = {: .4f}",
+//                  cos_angle, sin_angle, wdg(v1, v2), nrm(wdg(v1, v2)));
+
+//     if (cos_angle >= 0.0) {
+//         // quadrant I or IV
+//         return std::asin(sin_angle);
+//     }
+//     else if (cos_angle < 0.0 && sin_angle >= 0.0) {
+//         // quadrant II
+//         return pi - std::asin(sin_angle);
+//     }
+//     else {
+//         // cos_angle < 0.0 && sin_angle < 0.0)
+//         // quadrant III
+//         return -pi - std::asin(sin_angle);
+//     }
+// }
+
+// cross-product between two vectors (only defined in 3d)
+//  => returns a 3d vector
+//
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline Vec3d<std::common_type_t<T, U>> cross(Vec3d<T> const& v1, Vec3d<U> const& v2)
+{
+    return Vec3d<std::common_type_t<T, U>>(
+        v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
+}
+//     double cross product identity:
+//     a x (b x c) = -dot(a, wdg(b,c)) = -a.(b^c)
+
+
+////////////////////////////////////////////////////////////////////////////////
+// BiVec3d<T> geometric operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return dot product of two bivectors A and B (= a scalar)
+// dot(A,B) = gr0(A * B)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> dot(BiVec3d<T> const& A, BiVec3d<U> const& B)
+{
+    // this implementation is only valid in an orthonormal basis
+    return -A.x * B.x - A.y * B.y - A.z * B.z;
+}
+
+// return squared magnitude of bivector
+template <typename T> inline constexpr T sq_nrm(BiVec3d<T> const& v)
+{
+    return v.x * v.x + v.y * v.y + v.z * v.z;
+}
+
+// return magnitude of bivector
+template <typename T> inline constexpr T nrm(BiVec3d<T> const& v)
+{
+    return std::sqrt(sq_nrm(v));
+}
+
+// return a bivector unitized to nrm(v) == 1.0
+template <typename T> inline constexpr BiVec3d<T> unitized(BiVec3d<T> const& v)
+{
+    T n = nrm(v);
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("bivector norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return BiVec3d<T>(v.x * inv, v.y * inv, v.z * inv);
+}
+
+// return the multiplicative inverse of the bivector
+template <typename T> inline constexpr BiVec3d<T> inv(BiVec3d<T> const& v)
+{
+    T sq_n = sq_nrm(v);
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("bivector norm too small for inversion" +
+                                 std::to_string(sq_n) + "\n");
+    }
+    T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
+    return BiVec3d<T>(v.x * inv, v.y * inv, v.z * inv);
+}
+
+// return conjugate complex of a bivector
+// i.e. the reverse in nomenclature of multivectors
+template <typename T> inline constexpr BiVec3d<T> rev(BiVec3d<T> const& v)
+{
+    // all bivector parts switch sign
+    return BiVec3d<T>(-v.x, -v.y, -v.z);
+}
+
+// return the angle between two bivectors
+// range of angle: 0 <= angle <= pi
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline std::common_type_t<T, U> angle(BiVec3d<T> const& v1, BiVec3d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype nrm_prod = nrm(v1) * nrm(v2);
+    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
+        throw std::runtime_error(
+            "vector norm product too small for calculation of angle" +
+            std::to_string(nrm_prod) + "\n");
+    }
+    // std::clamp must be used to take care of numerical inaccuracies
+    return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vec3d<T> & BiVec3d<T> mixed geometric operations
@@ -140,176 +336,141 @@ inline PScalar3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& A, Vec3d<U> con
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Vec3d<T> and BiVec3d<T> projections, rejections and reflections
+// PScalar3d<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// projection of a vector v1 onto vector v2
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1,
-                                                              Vec3d<U> const& v2)
+// return squared magnitude of the pseudoscalar
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T sq_nrm(PScalar3d<T> ps)
 {
-    using ctype = std::common_type_t<T, U>;
-    return dot(v1, v2) * Vec3d<ctype>(inv(v2));
+    return T(ps) * T(ps);
 }
 
-// projection of v1 onto v2 (v2 must already be unitized to nrm(v2) == 1)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> project_onto_unitized(Vec3d<T> const& v1,
-                                                                       Vec3d<U> const& v2)
+// return magnitude of the pseudoscalar
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T nrm(PScalar3d<T> ps)
 {
-    return dot(v1, v2) * v2; // v2 is already its own reverse
+    return std::abs(T(ps));
 }
 
-// projection of a vector v1 onto a bivector v2
-// v_parallel = dot(v1,v2) * inv(v2)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1,
-                                                              BiVec3d<U> const& v2)
+// return the reverse of a trivector
+template <typename T> inline PScalar3d<T> rev(PScalar3d<T> A)
 {
-    using ctype = std::common_type_t<T, U>;
-    Vec3d<ctype> a = dot(v1, v2);
-    BiVec3d<ctype> Bi = inv(v2);
-    // use the formular equivalent to the geometric product to save computational cost
-    // a * Bi = dot(a,Bi) + wdg(a,Bi)
-    // v_parallel = gr1(a * Bi) = dot(a,Bi)
-    return Vec3d<ctype>(dot(a, Bi));
+    // the 3d trivector switches sign on reversion
+    return PScalar3d<T>(-T(A));
 }
 
-// projection of a vector v1 onto a unitized bivector v2
-// u_parallel = gr1(dot(v1,v2) * inv(v2))
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>>
-project_onto_unitized(Vec3d<T> const& v1, BiVec3d<U> const& v2)
+// return inverse of the pseudoscalar (A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
+// k is the dimension of the space of the pseudoscalar formed by k orthogonal vectors
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3d<T> inv(PScalar3d<T> ps)
 {
-    // requires v2 to be unitized
-
-    using ctype = std::common_type_t<T, U>;
-    Vec3d<ctype> a = dot(v1, v2);
-    // up to the sign v2 already is it's own inverse
-    BiVec3d<ctype> Bi = -v2;
-    // use the formular equivalent to the geometric product to save computational cost
-    // a * Bi = dot(a,Bi) + wdg(a,Bi)
-    // v_parallel = gr1(a * Bi) = dot(a,Bi)
-    return Vec3d<ctype>(dot(a, Bi));
+    return -PScalar3d<T>(ps) / sq_nrm(ps);
 }
 
-// rejection of vector v1 from a vector v2
-// v_perp = gr1(wdg(v1,v2) * inv(v2))
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
-                                                             Vec3d<U> const& v2)
+// return the value of the pseudoscalar as value_t (for use in scripting)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr value_t to_val(PScalar3d<T> ps)
 {
-    using ctype = std::common_type_t<T, U>;
-    BiVec3d<ctype> B = wdg(v1, v2);
-    Vec3d<ctype> v2_inv = inv(v2);
-    // use the formular equivalent to the geometric product to save computational cost
-    // B * b_inv = dot(B,b_inv) + wdg(A,bi)
-    // v_perp = gr1(B * b_inv) = dot(B,b_inv)
-    // (the trivector part is zero, because v2 is part of the bivector in the product)
-    return Vec3d<ctype>(dot(B, v2_inv));
-}
-
-// rejection of vector v1 from a unitized vector v2
-// v_perp = gr1(wdg(v1,v2) * inv(v2))
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reject_from_unitized(Vec3d<T> const& v1,
-                                                                      Vec3d<U> const& v2)
-{
-    // requires v2 to be unitized
-    using ctype = std::common_type_t<T, U>;
-    BiVec3d<ctype> B = wdg(v1, v2);
-    Vec3d<ctype> v2_inv = v2; // v2 is its own inverse, if unitized
-    // use the formular equivalent to the geometric product to save computational cost
-    // B * b_inv = dot(B,b_inv) + wdg(A,bi)
-    // v_perp = gr1(B * b_inv) = dot(B,b_inv)
-    // (the trivector part is zero, because v2 is part of the bivector in the product)
-    return Vec3d<ctype>(dot(B, v2_inv));
-}
-
-// rejection of vector v1 from a bivector v2
-// u_perp = gr1(wdg(v1,v2) * inv(v2))
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
-                                                             BiVec3d<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    PScalar3d<ctype> A = wdg(v1, v2);
-    BiVec3d<ctype> B = inv(v2);
-    // trivector * bivector = vector
-    return A * B;
-}
-
-// rejection of vector v1 from a unitized bivector v2
-// u_perp = wdg(v1,v2) * inv(v2)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>>
-reject_from_unitized(Vec3d<T> const& v1, BiVec3d<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    PScalar3d<ctype> a = wdg(v1, v2);
-    // up to the sign v2 already is it's own inverse
-    BiVec3d<ctype> B = -v2;
-    // trivector * bivector = vector (derived from full geometric product to save
-    // costs)
-    return Vec3d<ctype>(-a * B.x, -a * B.y, -a * B.z);
-}
-
-// reflect a vector u on a hyperplane B orthogonal to vector b
-//
-// hyperplane: a n-1 dimensional subspace in a space of dimension n (a line in 2d space)
-// orthogonal to vector b: the hyperplane is dual to b (i.e. a one dimensional subspace)
-//
-// HINT: choose b * B = I_3d  =>  B = b * I_3d  (for normalized b)
-//
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on_hyp(Vec3d<T> const& u,
-                                                                Vec3d<U> const& b)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(gr1(-b * u * inv(b)));
-}
-
-// reflect a vector u in an arbitrary bivector, i.e. a plane
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on(Vec3d<T> const& u,
-                                                            BiVec3d<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(gr1(-B * u * inv(B)));
-}
-
-// reflect a bivector UB in an arbitrary bivector B (both modelling planes)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> reflect_on(BiVec3d<T> const& UB,
-                                                              BiVec3d<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return BiVec3d<ctype>(gr2(B * UB * inv(B)));
-}
-
-// reflect a vector u another vector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on_vec(Vec3d<T> const& u,
-                                                                Vec3d<U> const& b)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(gr1(b * u * inv(b)));
+    return value_t(ps);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec3d<T> geometric operations
+// MVec3d<T> basic operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return squared magnitude
+// |M|^2 = M rev(M) = (M.c0)^2 + (M.c1)^2 + (M.c2)^2 + (M.c3)^3
+//                  + (M.c4)^2 + (M.c5)^2 + (M.c6)^2 + (M.c7)^3
+template <typename T> inline T sq_nrm(MVec3d<T> const& v)
+{
+    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3 + v.c4 * v.c4 +
+           v.c5 * v.c5 + v.c6 * v.c6 + v.c7 * v.c7;
+}
+
+// return magnitude of complex number
+template <typename T> inline T nrm(MVec3d<T> const& v) { return std::sqrt(sq_nrm(v)); }
+
+
+// return the reverse
+template <typename T> inline constexpr MVec3d<T> rev(MVec3d<T> const& v)
+{
+    // only bivector and trivector parts switch signs
+    return MVec3d<T>(v.c0, v.c1, v.c2, v.c3, -v.c4, -v.c5, -v.c6, -v.c7);
+}
+
+// return the Clifford conjugate
+template <typename T> inline constexpr MVec3d<T> conj(MVec3d<T> const& v)
+{
+    // only vector and bivector parts switch signs
+    return MVec3d<T>(v.c0, -v.c1, -v.c2, -v.c3, -v.c4, -v.c5, -v.c6, v.c7);
+}
+
+
+// return a multivector unitized to nrm(v) == 1.0
+template <typename T> inline MVec3d<T> unitized(MVec3d<T> const& v)
+{
+    T n = nrm(v);
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("complex norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return MVec3d<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv, v.c4 * inv,
+                     v.c5 * inv, v.c6 * inv, v.c7 * inv);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec3d_E<T> basic operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return squared magnitude of quaternion
+// |Z|^2 = Z rev(Z) = c0^2 + c1^2 + c2^2 + c3^2
+template <typename T> inline T sq_nrm(MVec3d_E<T> const& v)
+{
+    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
+}
+
+// return magnitude of quaternion
+template <typename T> inline T nrm(MVec3d_E<T> const& v) { return std::sqrt(sq_nrm(v)); }
+
+// return conjugate complex of quaternion (MVec3d_E<T>),
+// i.e. the reverse in nomenclature of multivectors
+template <typename T> inline constexpr MVec3d_E<T> rev(MVec3d_E<T> const& v)
+{
+    // only the bivector part switches sign
+    return MVec3d_E<T>(v.c0, -v.c1, -v.c2, -v.c3);
+}
+
+// return a complex unitized to nrm(v) == 1.0
+template <typename T> inline MVec3d_E<T> unitized(MVec3d_E<T> const& v)
+{
+    T n = nrm(v);
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("complex norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return MVec3d_E<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec3d_U<T> basic operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return the reverse
+template <typename T> inline constexpr MVec3d_U<T> rev(MVec3d_U<T> const& v)
+{
+    // only the trivector part switches signs
+    return MVec3d_U<T>(v.c0, v.c1, v.c2, -v.c3);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec3d<T> geometric products
 ////////////////////////////////////////////////////////////////////////////////
 
 // geometric product A*B for fully populated 3d multivector
@@ -734,6 +895,21 @@ inline constexpr std::common_type_t<T, U> operator*(PScalar3d<T> A, PScalar3d<U>
     return -ctype(A) * ctype(B); // trivectors square to -1
 }
 
+// return the multiplicative inverse of the multivector
+// inv(M) = 1/( M*conj(M) ) * conj(M)  with M*conj(M) being a scalar value
+template <typename T> inline MVec3d<T> inv(MVec3d<T> const& v)
+{
+    // alternative, but with slightly more computational effort:
+    T m_conjm = gr0(v * conj(v));
+    if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("multivector norm too small for inversion " +
+                                 std::to_string(m_conjm) + "\n");
+    }
+    T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
+    return inv * conj(v);
+}
+// ATTENTION: there is a left and a right inverse (see paper of Hitzer, Sangwine)
+
 ////////////////////////////////////////////////////////////////////////////////
 // 3d rotation operations
 ////////////////////////////////////////////////////////////////////////////////
@@ -1104,6 +1280,176 @@ inline constexpr MVec3d<T> dual3d(MVec3d<T> const& M)
 }
 #endif
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Vec3d<T> and BiVec3d<T> projections, rejections and reflections
+////////////////////////////////////////////////////////////////////////////////
+
+// projection of a vector v1 onto vector v2
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1,
+                                                              Vec3d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return dot(v1, v2) * Vec3d<ctype>(inv(v2));
+}
+
+// projection of v1 onto v2 (v2 must already be unitized to nrm(v2) == 1)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> project_onto_unitized(Vec3d<T> const& v1,
+                                                                       Vec3d<U> const& v2)
+{
+    return dot(v1, v2) * v2; // v2 is already its own reverse
+}
+
+// projection of a vector v1 onto a bivector v2
+// v_parallel = dot(v1,v2) * inv(v2)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1,
+                                                              BiVec3d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    Vec3d<ctype> a = dot(v1, v2);
+    BiVec3d<ctype> Bi = inv(v2);
+    // use the formular equivalent to the geometric product to save computational cost
+    // a * Bi = dot(a,Bi) + wdg(a,Bi)
+    // v_parallel = gr1(a * Bi) = dot(a,Bi)
+    return Vec3d<ctype>(dot(a, Bi));
+}
+
+// projection of a vector v1 onto a unitized bivector v2
+// u_parallel = gr1(dot(v1,v2) * inv(v2))
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>>
+project_onto_unitized(Vec3d<T> const& v1, BiVec3d<U> const& v2)
+{
+    // requires v2 to be unitized
+
+    using ctype = std::common_type_t<T, U>;
+    Vec3d<ctype> a = dot(v1, v2);
+    // up to the sign v2 already is it's own inverse
+    BiVec3d<ctype> Bi = -v2;
+    // use the formular equivalent to the geometric product to save computational cost
+    // a * Bi = dot(a,Bi) + wdg(a,Bi)
+    // v_parallel = gr1(a * Bi) = dot(a,Bi)
+    return Vec3d<ctype>(dot(a, Bi));
+}
+
+// rejection of vector v1 from a vector v2
+// v_perp = gr1(wdg(v1,v2) * inv(v2))
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
+                                                             Vec3d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    BiVec3d<ctype> B = wdg(v1, v2);
+    Vec3d<ctype> v2_inv = inv(v2);
+    // use the formular equivalent to the geometric product to save computational cost
+    // B * b_inv = dot(B,b_inv) + wdg(A,bi)
+    // v_perp = gr1(B * b_inv) = dot(B,b_inv)
+    // (the trivector part is zero, because v2 is part of the bivector in the product)
+    return Vec3d<ctype>(dot(B, v2_inv));
+}
+
+// rejection of vector v1 from a unitized vector v2
+// v_perp = gr1(wdg(v1,v2) * inv(v2))
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> reject_from_unitized(Vec3d<T> const& v1,
+                                                                      Vec3d<U> const& v2)
+{
+    // requires v2 to be unitized
+    using ctype = std::common_type_t<T, U>;
+    BiVec3d<ctype> B = wdg(v1, v2);
+    Vec3d<ctype> v2_inv = v2; // v2 is its own inverse, if unitized
+    // use the formular equivalent to the geometric product to save computational cost
+    // B * b_inv = dot(B,b_inv) + wdg(A,bi)
+    // v_perp = gr1(B * b_inv) = dot(B,b_inv)
+    // (the trivector part is zero, because v2 is part of the bivector in the product)
+    return Vec3d<ctype>(dot(B, v2_inv));
+}
+
+// rejection of vector v1 from a bivector v2
+// u_perp = gr1(wdg(v1,v2) * inv(v2))
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
+                                                             BiVec3d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    PScalar3d<ctype> A = wdg(v1, v2);
+    BiVec3d<ctype> B = inv(v2);
+    // trivector * bivector = vector
+    return A * B;
+}
+
+// rejection of vector v1 from a unitized bivector v2
+// u_perp = wdg(v1,v2) * inv(v2)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>>
+reject_from_unitized(Vec3d<T> const& v1, BiVec3d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    PScalar3d<ctype> a = wdg(v1, v2);
+    // up to the sign v2 already is it's own inverse
+    BiVec3d<ctype> B = -v2;
+    // trivector * bivector = vector (derived from full geometric product to save
+    // costs)
+    return Vec3d<ctype>(-a * B.x, -a * B.y, -a * B.z);
+}
+
+// reflect a vector u on a hyperplane B orthogonal to vector b
+//
+// hyperplane: a n-1 dimensional subspace in a space of dimension n (a line in 2d space)
+// orthogonal to vector b: the hyperplane is dual to b (i.e. a one dimensional subspace)
+//
+// HINT: choose b * B = I_3d  =>  B = b * I_3d  (for normalized b)
+//
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on_hyp(Vec3d<T> const& u,
+                                                                Vec3d<U> const& b)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(gr1(-b * u * inv(b)));
+}
+
+// reflect a vector u in an arbitrary bivector, i.e. a plane
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on(Vec3d<T> const& u,
+                                                            BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(gr1(-B * u * inv(B)));
+}
+
+// reflect a bivector UB in an arbitrary bivector B (both modelling planes)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec3d<std::common_type_t<T, U>> reflect_on(BiVec3d<T> const& UB,
+                                                              BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3d<ctype>(gr2(B * UB * inv(B)));
+}
+
+// reflect a vector u another vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on_vec(Vec3d<T> const& u,
+                                                                Vec3d<U> const& b)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(gr1(b * u * inv(b)));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Gram-Schmidt-Orthogonalization part 1: 2d plane embedded in 3d space
 ////////////////////////////////////////////////////////////////////////////////
@@ -1179,4 +1525,4 @@ gs_orthonormal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
     return basis;
 }
 
-} // namespace hd::ga
+} // namespace hd::ga::ega

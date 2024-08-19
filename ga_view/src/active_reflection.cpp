@@ -5,7 +5,7 @@
 #include "active_reflection.hpp"
 #include "active_common.hpp"
 
-#include "ga/ga.hpp"
+#include "ga/ga_ega.hpp"
 
 #include <algorithm> // std::max
 
@@ -94,7 +94,7 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     vec2d n2{end_n2pos_nrm_scene.x(), end_n2pos_nrm_scene.y()};
     std::vector<vec2d> vr, vrr;
 
-    using hd::ga::reflect_on_hyp;
+    using hd::ga::ega::reflect_on_hyp;
     for (auto const& e : v) {
         vec2d v_tmp = reflect_on_hyp(e, n1);
         vr.push_back(v_tmp);

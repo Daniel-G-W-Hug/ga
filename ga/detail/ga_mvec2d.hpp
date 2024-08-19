@@ -10,15 +10,11 @@
 #include <stdexcept>
 #include <string>
 
+#include "ga_value_t.hpp"
 
-#include "fmt/format.h"
-#include "fmt/ranges.h" // support printing of (nested) containers & tuples
+#include "ga_vec2d.hpp"
 
-#include "ga_cfg_value_t.hpp"
-
-#include "ga_cfg_vec2d.hpp"
-
-#include "ga_cfg_mvec2d_e.hpp"
+#include "ga_mvec2d_e.hpp"
 
 
 namespace hd::ga {
@@ -94,15 +90,6 @@ struct MVec2d {
     template <typename U>
     friend std::ostream& operator<<(std::ostream& os, MVec2d<U> const& v);
 };
-
-// for printing via iostream
-template <typename T>
-    requires(std::floating_point<T>)
-std::ostream& operator<<(std::ostream& os, MVec2d<T> const& v)
-{
-    os << "(" << v.c0 << "," << v.c1 << "," << v.c2 << "," << v.c3 << ")";
-    return os;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // MVec2d<T> core operations
@@ -188,74 +175,14 @@ template <typename T> inline constexpr PScalar2d<T> gr2(MVec2d<T> const& v)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2d<T> basic operations
+// MVec2d<T> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
-
-// return squared magnitude
-// |M|^2 = M rev(M) = (M.c0)^2 + (M.c1)^2 + (M.c2)^2 + (M.c3)^3
-template <typename T> inline T sq_nrm(MVec2d<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+std::ostream& operator<<(std::ostream& os, MVec2d<T> const& v)
 {
-    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
-}
-
-// return magnitude
-template <typename T> inline T nrm(MVec2d<T> const& v) { return std::sqrt(sq_nrm(v)); }
-
-// return the reverse
-template <typename T> inline MVec2d<T> rev(MVec2d<T> const& v)
-{
-    return MVec2d<T>(v.c0, v.c1, v.c2, -v.c3);
-}
-
-// return the Clifford conjugate
-template <typename T> inline MVec2d<T> conj(MVec2d<T> const& v)
-{
-    return MVec2d<T>(v.c0, -v.c1, -v.c2, -v.c3);
-}
-
-// return a multivector unitized to nrm(v) == 1.0
-template <typename T> inline MVec2d<T> unitized(MVec2d<T> const& v)
-{
-    T n = nrm(v);
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("complex norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return MVec2d<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
-}
-
-// return the multiplicative inverse of the multivector
-// inv(M) = 1/( M*conj(M) ) * conj(M)  with M*conj(M) being a scalar value
-template <typename T> inline MVec2d<T> inv(MVec2d<T> const& v)
-{
-    // from manual calculation of M*conj(M) in 2d:
-    T m_conjm = v.c0 * v.c0 + v.c3 * v.c3 - sq_nrm(Vec2d<T>(v.c1, v.c2));
-    //
-    // alternative, but with slightly more computational effort:
-    // T m_conjm = gr0(v * conj(v));
-    //
-    if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("multivector norm too small for inversion " +
-                                 std::to_string(m_conjm) + "\n");
-        // example: MVec2D(1,1,1,1) is not invertible
-    }
-    T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
-    return inv * conj(v);
+    os << "(" << v.c0 << "," << v.c1 << "," << v.c2 << "," << v.c3 << ")";
+    return os;
 }
 
 } // namespace hd::ga
-
-
-// ////////////////////////////////////////////////////////////////////////////////
-// // printing support via fmt library
-// ////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::MVec2d<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec2d<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.c0), nested(v.c1),
-                              nested(v.c2), nested(v.c3));
-    }
-};

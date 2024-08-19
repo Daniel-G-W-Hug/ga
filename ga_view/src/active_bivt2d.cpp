@@ -2,6 +2,10 @@
 // author: Daniel Hug, 2024
 //
 
+
+// TODO: active bivector in EGA should be at origin exclusively
+//       move away from origion should only be possible in PGA
+
 #include "active_bivt2d.hpp"
 #include "active_common.hpp"
 

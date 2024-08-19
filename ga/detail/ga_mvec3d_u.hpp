@@ -10,13 +10,10 @@
 #include <stdexcept>
 #include <string>
 
-#include "fmt/format.h"
-#include "fmt/ranges.h" // support printing of (nested) containers & tuples
+#include "ga_value_t.hpp"
 
-#include "ga_cfg_value_t.hpp"
-
-#include "ga_cfg_bivec3d.hpp"
-#include "ga_cfg_vec3d.hpp"
+#include "ga_bivec3d.hpp"
+#include "ga_vec3d.hpp"
 
 
 namespace hd::ga {
@@ -177,17 +174,8 @@ template <typename T> inline constexpr PScalar3d<T> gr3(MVec3d_U<T> const& v)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec3d_U<T> basic operations
+// MVec3d_U<T> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
-
-// return the reverse
-template <typename T> inline constexpr MVec3d_U<T> rev(MVec3d_U<T> const& v)
-{
-    // only the trivector part switches signs
-    return MVec3d_U<T>(v.c0, v.c1, v.c2, -v.c3);
-}
-
-// for printing via iostream
 template <typename T>
     requires(std::floating_point<T>)
 std::ostream& operator<<(std::ostream& os, MVec3d_U<T> const& v)
@@ -197,17 +185,3 @@ std::ostream& operator<<(std::ostream& os, MVec3d_U<T> const& v)
 }
 
 } // namespace hd::ga
-
-
-// ////////////////////////////////////////////////////////////////////////////////
-// // printing support via fmt library
-// ////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::MVec3d_U<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec3d_U<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.c0), nested(v.c1),
-                              nested(v.c2), nested(v.c3));
-    }
-};

@@ -7,22 +7,24 @@
 #include <tuple>
 #include <vector>
 
-// include functions to be tested
-#include "ga/ga.hpp"
+#include "fmt/chrono.h"  // chrono support
+#include "fmt/format.h"  // formatting
+#include "fmt/ostream.h" // ostream support
+#include "fmt/ranges.h"  // support printing of (nested) containers & tuples
 
-#include "fmt/chrono.h" // chrono support
-#include "fmt/format.h"
-#include "fmt/ostream.h"
-#include "fmt/ranges.h" // support printing of (nested) containers & tuples
+// include functions to be tested
+#include "ga/ga_ega.hpp"
+
+using namespace hd::ga;      // use ga types, constants, etc.
+using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
 
 TEST_SUITE("Geometric Algebra")
 {
-    using namespace hd::ga;
 
-    TEST_CASE("algebra<2> - 2d_ega")
+    TEST_CASE("algebra<2> - ega_2d")
     {
         fmt::println("");
-        fmt::println("algebra<2> - 2d_ega:");
+        fmt::println("algebra<2> - ega_2d:");
         // 2d euklidean geometric algebra
         const algebra<2> alg;
         CHECK(alg.p() == 2);
@@ -31,15 +33,15 @@ TEST_SUITE("Geometric Algebra")
         CHECK(alg.dim_space() == 2);                 // dim_space == p+n+z
         CHECK(alg.num_components() == 4);            // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 3); // == dim_space + 1
-        fmt::println("   2d_ega: dim_grade = {}",
+        fmt::println("   ega_2d: dim_grade = {}",
                      fmt::join(alg.num_components_grade, ", "));
-        fmt::println("   2d_ega: basis_name = {}", fmt::join(alg.basis_name, ", "));
+        fmt::println("   ega_2d: basis_name = {}", fmt::join(alg.basis_name, ", "));
     }
 
-    TEST_CASE("algebra<3> - 3d_ega")
+    TEST_CASE("algebra<3> - ega_3d")
     {
         fmt::println("");
-        fmt::println("algebra<3> - 3d_ega:");
+        fmt::println("algebra<3> - ega_3d:");
         // 3d euklidean geometric algebra
         const algebra<3> alg;
         CHECK(alg.p() == 3);
@@ -48,15 +50,15 @@ TEST_SUITE("Geometric Algebra")
         CHECK(alg.dim_space() == 3);                 // dim_space == p+n+z
         CHECK(alg.num_components() == 8);            // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 4); // == dim_space + 1
-        fmt::println("   3d_ega: dim_grade = {}",
+        fmt::println("   ega_3d: dim_grade = {}",
                      fmt::join(alg.num_components_grade, ", "));
-        fmt::println("   3d_ega: basis_name = {}", fmt::join(alg.basis_name, ", "));
+        fmt::println("   ega_3d: basis_name = {}", fmt::join(alg.basis_name, ", "));
     }
 
-    TEST_CASE("algebra<4> 4d_ega")
+    TEST_CASE("algebra<4> ega_4d")
     {
         fmt::println("");
-        fmt::println("algebra<4> - 4d_ega:");
+        fmt::println("algebra<4> - ega_4d:");
         // 4d euklidean geometric algebra
         const algebra<4> alg;
         CHECK(alg.p() == 4);
@@ -65,9 +67,9 @@ TEST_SUITE("Geometric Algebra")
         CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
         CHECK(alg.num_components() == 16);           // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
-        fmt::println("   4d_ega: dim_grade = {}",
+        fmt::println("   ega_4d: dim_grade = {}",
                      fmt::join(alg.num_components_grade, ", "));
-        fmt::println("   4d_ega: basis_name = {}", fmt::join(alg.basis_name, ", "));
+        fmt::println("   ega_4d: basis_name = {}", fmt::join(alg.basis_name, ", "));
     }
 
     ////////////////////////////////////////////////////////////////////////////////

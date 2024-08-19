@@ -2,7 +2,7 @@
 
 // author: Daniel Hug, 2024
 
-#include "ga_cfg_strong_t.hpp"
+#include "ga_strong_t.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 // consistent type definitions for easy use
@@ -10,7 +10,8 @@
 
 namespace hd::ga {
 
-// select the floating point type used for scalars, vector and bivector components
+// select the floating point type used for scalars, vector and bivector components, etc.
+// here, i.e. choose one of the two following definitions:
 // using value_t = float;
 using value_t = double;
 

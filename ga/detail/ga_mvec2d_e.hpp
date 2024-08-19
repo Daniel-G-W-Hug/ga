@@ -11,11 +11,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "fmt/format.h"
-#include "fmt/ranges.h" // support printing of (nested) containers & tuples
-
-#include "ga_cfg_value_t.hpp"
-#include "ga_cfg_vec2d.hpp"
+#include "ga_value_t.hpp"
+#include "ga_vec2d.hpp"
 
 
 namespace hd::ga {
@@ -90,15 +87,6 @@ struct MVec2d_E {
     template <typename U>
     friend std::ostream& operator<<(std::ostream& os, MVec2d_E<U> const& v);
 };
-
-// for printing via iostream
-template <typename T>
-    requires(std::floating_point<T>)
-std::ostream& operator<<(std::ostream& os, MVec2d_E<T> const& v)
-{
-    os << "(" << v.c0 << "," << v.c1 << ")";
-    return os;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // MVec2d_E<T> core operations
@@ -176,89 +164,14 @@ template <typename T> inline constexpr PScalar2d<T> gr2(MVec2d_E<T> const& v)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2d_E<T> basic operations for complex numbers
-//                                  (= multivectors from the even subalgebra)
+// MVec2d_E<T> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
-
-// return squared magnitude of complex number
-// |Z|^2 = Z rev(Z) = c0^2 + c1^2
-template <typename T> inline T sq_nrm(MVec2d_E<T> const& v)
-{
-    return v.c0 * v.c0 + v.c1 * v.c1;
-}
-
-// return magnitude of complex number
-template <typename T> inline T nrm(MVec2d_E<T> const& v) { return std::sqrt(sq_nrm(v)); }
-
-// return conjugate complex of a complex number,
-// i.e. the reverse in nomenclature of multivectors
-template <typename T> inline MVec2d_E<T> rev(MVec2d_E<T> const& v)
-{
-    return MVec2d_E<T>(v.c0, -v.c1);
-}
-
-// return a complex number unitized to nrm(v) == 1.0
-template <typename T> inline MVec2d_E<T> unitized(MVec2d_E<T> const& v)
-{
-    T n = nrm(v);
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("complex norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return MVec2d_E<T>(v.c0 * inv, v.c1 * inv);
-}
-
-// return the multiplicative inverse of the complex number (inv(z) = 1/sq_nrm(z)*rev(z))
-// with rev(z) being the complex conjugate
-template <typename T> inline MVec2d_E<T> inv(MVec2d_E<T> const& v)
-{
-    T sq_n = sq_nrm(v);
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("complex norm too small for inversion" +
-                                 std::to_string(sq_n) + "\n");
-    }
-    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
-    return inv * rev(v);
-}
-
-// return the angle of the complex number w.r.t. the real axis
-// range of angle: -pi <= angle <= pi
 template <typename T>
     requires(std::floating_point<T>)
-inline T angle_to_re(MVec2d_E<T> const& v)
+std::ostream& operator<<(std::ostream& os, MVec2d_E<T> const& v)
 {
-    using std::numbers::pi;
-    if (v.c0 > 0.0) {
-        // quadrant I & IV
-        return std::atan(v.c1 / v.c0);
-    }
-    if (v.c0 < 0.0 && v.c1 >= 0.0) {
-        // quadrant II
-        return std::atan(v.c1 / v.c0) + pi;
-    }
-    if (v.c0 < 0.0 && v.c1 < 0.0) {
-        // quadrant III
-        return std::atan(v.c1 / v.c0) - pi;
-    }
-    if (v.c0 == 0.0) {
-        // on y-axis
-        if (v.c1 > 0.0) return pi / 2.0;
-        if (v.c1 < 0.0) return -pi / 2.0;
-    }
-    return 0.0; // zero as input => define 0 as corresponding angle
+    os << "(" << v.c0 << "," << v.c1 << ")";
+    return os;
 }
 
 } // namespace hd::ga
-
-////////////////////////////////////////////////////////////////////////////////
-// printing support via fmt library
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::MVec2d_E<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec2d_E<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({},{})", nested(v.c0), nested(v.c1));
-    }
-};
