@@ -57,9 +57,6 @@ struct Vec2d {
         if (abs_delta_x < delta_eps && abs_delta_y < delta_eps) return true;
         return false;
     }
-
-    template <typename U>
-    friend std::ostream& operator<<(std::ostream& os, Vec2d<U> const& v);
 };
 
 ////////////////////////////////////////////////////////////////////////////////

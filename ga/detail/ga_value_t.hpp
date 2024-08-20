@@ -5,6 +5,7 @@
 #include <limits> // std::numeric_limits
 
 #include "ga_scalar_t.hpp"
+#include "ga_vec_xyz_t.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 // consistent type definitions for easy use
@@ -21,15 +22,22 @@ using value_t = double;
 auto const eps{5.0 * std::numeric_limits<value_t>::epsilon()};
 
 // definition of scalar and pscalar located here, because other
-// modules like vec2d, vec3d, 2d_ops, 3d_ops etc. just need the type defintion,
-// but not the functionality itself (reduce dependencies between files)
+// modules just need the type defintion, but not the functionality itself
+// (reduce dependencies between files)
 
 struct scalar_tag {};
 struct pscalar2d_tag {};
 struct pscalar3d_tag {};
 
+struct vec3d_tag {};
+struct bivec3d_tag {};
+
 template <typename T> using Scalar = Scalar_t<T, scalar_tag>;
 template <typename T> using PScalar2d = Scalar_t<T, pscalar2d_tag>;
 template <typename T> using PScalar3d = Scalar_t<T, pscalar3d_tag>;
+
+template <typename T> using Vec3d = Vec_xyz_t<T, vec3d_tag>;
+template <typename T> using BiVec3d = Vec_xyz_t<T, bivec3d_tag>;
+
 
 } // namespace hd::ga

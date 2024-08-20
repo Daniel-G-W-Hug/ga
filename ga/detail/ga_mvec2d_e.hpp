@@ -71,21 +71,18 @@ struct MVec2d_E {
         requires(std::floating_point<U>)
     bool operator==(MVec2d_E<U> const& rhs) const
     {
+        using ctype = std::common_type_t<T, U>;
         // componentwise comparison
         // equality implies same magnitude and direction
         // comparison is not exact, but accepts epsilon deviations
         auto abs_delta_c0 = std::abs(rhs.c0 - c0);
         auto abs_delta_c1 = std::abs(rhs.c1 - c1);
         auto constexpr delta_eps =
-            std::common_type_t<T, U>(5.0) *
-            std::max<std::common_type_t<T, U>>(std::numeric_limits<T>::epsilon(),
-                                               std::numeric_limits<U>::epsilon());
+            ctype(5.0) * std::max<ctype>(std::numeric_limits<T>::epsilon(),
+                                         std::numeric_limits<U>::epsilon());
         if (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps) return true;
         return false;
     }
-
-    template <typename U>
-    friend std::ostream& operator<<(std::ostream& os, MVec2d_E<U> const& v);
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -46,6 +46,7 @@ endif()
 ### uncomment this definition or set it externally
 #add_definitions(-D_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
 
+add_subdirectory(ga)      # ga library (header only)
 add_subdirectory(ga_test) # tests for header only library
 add_subdirectory(ga_lua)  # lua scripting for ga
 add_subdirectory(ga_view) # qt-based viewer

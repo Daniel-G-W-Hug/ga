@@ -13,10 +13,6 @@
 
 #include "ga_value_t.hpp"
 
-#include "ga_vec3d.hpp"
-
-#include "ga_bivec3d.hpp"
-
 #include "ga_mvec3d.hpp"
 #include "ga_mvec3d_e.hpp"
 #include "ga_mvec3d_u.hpp"

@@ -11,4 +11,4 @@ find_package(Lua 5.1 REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 
 target_include_directories(${EXEC_NAME} PRIVATE ${LUA_INCLUDE_DIR})
-target_link_libraries(${EXEC_NAME} PRIVATE ${LUA_LIBRARIES} fmt::fmt-header-only)
+target_link_libraries(${EXEC_NAME} PRIVATE ${LUA_LIBRARIES} fmt::fmt-header-only ga)

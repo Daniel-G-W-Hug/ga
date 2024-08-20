@@ -13,6 +13,10 @@
 // commonly used GA stuff is in namespace hd::ga
 #include "detail/ga_value_t.hpp" // default type for scalar, vector & bivector components
                                  // switch value_t between float/double here, if needed!
+                                 // common type for scalars & pseudoscalars:
+                                 // Scalar<T>, PScalar2d<T>, PScalar3d<T>
+                                 // common type for vectors and bivectors in 3d:
+                                 // Vec3d<T>, BiVec3d<T>
 
 #include "detail/ga_algebra.hpp" // algebra (define basis components)
 
@@ -20,13 +24,8 @@
 #include "ga_usr_types.hpp"     // consistent user types (for user convenience)
 #include "ga_usr_utilities.hpp" // chelper functions (for user convenience)
 
-#include "detail/ga_scalar_t.hpp" // common type for scalars & pseudoscalars
-                                  // Scalar<T>, PScalar2d<T>, PScalar3d<T>
-
 // #include "detail/ga_vec2d.hpp" // Vec2d<T>
-// #include "detail/ga_vec3d.hpp" // Vec3d<T>
 
-// #include "detail/ga_bivec3d.hpp"  // BiVec3d<T>
 // #include "detail/ga_mvec2d.hpp"   // MVec2d<T>
 // #include "detail/ga_mvec2d_e.hpp" // MVec2d_E<T>
 // #include "detail/ga_mvec3d.hpp"   // MVec3d<T>

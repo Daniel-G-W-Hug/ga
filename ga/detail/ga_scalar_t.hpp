@@ -14,6 +14,7 @@
 #include <iostream>  // std::ostream
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error
+#include <string>    // std::string, std::to_string
 
 // provide common type for Scalar<T>, PScalar2d<T>, PScalar3d<T>
 

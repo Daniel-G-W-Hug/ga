@@ -2,26 +2,23 @@
 
 // author: Daniel Hug, 2024
 
-#include <algorithm> // std::clamp
-#include <cmath>     // std::abs, std::sin, std::cos
+#include <cmath>     // std::abs
 #include <concepts>  // std::floating_point<T>
-#include <iostream>
-#include <limits>
-#include <stdexcept>
-#include <string>
-
-#include "ga_value_t.hpp"
+#include <iostream>  // std::cout
+#include <limits>    // std::numeric_limits
+#include <stdexcept> // std::runtime_error
+#include <string>    // std::string, std::to_string
 
 
 namespace hd::ga {
 
 ////////////////////////////////////////////////////////////////////////////////
-// BiVec3d<T> definition (used for implementation of algebra<3,0,0>)
+// Vec_xyz_t<T, Tag> definition (used for implementation of algebra<3,0,0>)
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T = value_t>
+template <typename T, typename Tag>
     requires(std::floating_point<T>)
-struct BiVec3d {
+struct Vec_xyz_t {
 
     // assumes a right-handed orthonormal vector basis {e1, e2, e3}
     // using components {x, y, z}, such that for each vector v:
@@ -38,19 +35,18 @@ struct BiVec3d {
     // bivector components yz, zx and xy
     // i.e. they can by converted to each other by a duality transformation
     //
-    // T.x <=> bivector yz <=> Vec3d<T>::x; // maps to basis bivector e2^e3
-    // T.y <=> bivector zx <=> Vec3d<T>::y; // maps to basis bivector e3^e1
-    // T.z <=> bivector xy <=> Vec3d<T>::z; // maps to basis bivector e1^e2
+    // T.x <=> bivector yz <=> Vec_xyz_t<T>::x; // maps to basis bivector e2^e3
+    // T.y <=> bivector zx <=> Vec_xyz_t<T>::y; // maps to basis bivector e3^e1
+    // T.z <=> bivector xy <=> Vec_xyz_t<T>::z; // maps to basis bivector e1^e2
 
-    // => everything otherwise is identical to Vec3d<T> w/o modification.
+    // ctors
+    Vec_xyz_t() = default;
 
-    BiVec3d() = default;
-
-    BiVec3d(T x_in, T y_in, T z_in) : x(x_in), y(y_in), z(z_in) {}
+    Vec_xyz_t(T x_in, T y_in, T z_in) : x(x_in), y(y_in), z(z_in) {}
 
     template <typename U>
         requires(std::floating_point<U>)
-    BiVec3d(BiVec3d<U> const& v) : x(v.x), y(v.y), z(v.z)
+    Vec_xyz_t(Vec_xyz_t<U, Tag> const& v) : x(v.x), y(v.y), z(v.z)
     {
     }
 
@@ -61,7 +57,7 @@ struct BiVec3d {
     // equality
     template <typename U>
         requires(std::floating_point<U>)
-    bool operator==(BiVec3d<U> const& rhs) const
+    bool operator==(Vec_xyz_t<U, Tag> const& rhs) const
     {
         using ctype = std::common_type_t<T, U>;
         // componentwise comparison
@@ -77,77 +73,80 @@ struct BiVec3d {
             return true;
         return false;
     }
-
-    template <typename U>
-    friend std::ostream& operator<<(std::ostream& os, BiVec3d<U> const& v);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// BiVec3d<T> core operations
+// Vec_xyz_t<T> core operations
 ////////////////////////////////////////////////////////////////////////////////
 
 // unary minus
-template <typename T>
+template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr BiVec3d<T> operator-(BiVec3d<T> const& v)
+inline constexpr Vec_xyz_t<T, Tag> operator-(Vec_xyz_t<T, Tag> const& v)
 {
-    return BiVec3d<T>(-v.x, -v.y, -v.z);
+    return Vec_xyz_t<T, Tag>(-v.x, -v.y, -v.z);
 }
 
-// adding bivectors
-template <typename T, typename U>
+// adding vectors
+template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator+(BiVec3d<T> const& v1,
-                                                             BiVec3d<U> const& v2)
+inline constexpr Vec_xyz_t<std::common_type_t<T, U>, Tag>
+operator+(Vec_xyz_t<T, Tag> const& v1, Vec_xyz_t<U, Tag> const& v2)
 {
-    return BiVec3d<std::common_type_t<T, U>>(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+    return Vec_xyz_t<std::common_type_t<T, U>, Tag>(v1.x + v2.x, v1.y + v2.y,
+                                                    v1.z + v2.z);
 }
 
-// substracting bivectors
-template <typename T, typename U>
+// substracting vectors
+template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator-(BiVec3d<T> const& v1,
-                                                             BiVec3d<U> const& v2)
+inline constexpr Vec_xyz_t<std::common_type_t<T, U>, Tag>
+operator-(Vec_xyz_t<T, Tag> const& v1, Vec_xyz_t<U, Tag> const& v2)
 {
-    return BiVec3d<std::common_type_t<T, U>>(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+    return Vec_xyz_t<std::common_type_t<T, U>, Tag>(v1.x - v2.x, v1.y - v2.y,
+                                                    v1.z - v2.z);
 }
 
 
-// multiply a bivector with a scalar (in both constellations)
-template <typename T, typename U>
+// multiply a vector with a scalar (in both constellations)
+template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator*(BiVec3d<T> const& v, U s)
+inline constexpr Vec_xyz_t<std::common_type_t<T, U>, Tag>
+operator*(Vec_xyz_t<T, Tag> const& v, U s)
 {
-    return BiVec3d<std::common_type_t<T, U>>(v.x * s, v.y * s, v.z * s);
+    return Vec_xyz_t<std::common_type_t<T, U>, Tag>(v.x * s, v.y * s, v.z * s);
 }
 
-template <typename T, typename U>
+template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator*(T s, BiVec3d<U> const& v)
+inline constexpr Vec_xyz_t<std::common_type_t<T, U>, Tag>
+operator*(T s, Vec_xyz_t<U, Tag> const& v)
 {
-    return BiVec3d<std::common_type_t<T, U>>(v.x * s, v.y * s, v.z * s);
+    return Vec_xyz_t<std::common_type_t<T, U>, Tag>(v.x * s, v.y * s, v.z * s);
 }
 
-// devide a bivector by a scalar
-template <typename T, typename U>
+// devide a vector by a scalar
+template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator/(BiVec3d<T> const& v, U s)
+inline constexpr Vec_xyz_t<std::common_type_t<T, U>, Tag>
+operator/(Vec_xyz_t<T, Tag> const& v, U s)
 {
     using ctype = std::common_type_t<T, U>;
-    if (std::abs(s) < eps) {
+    if (std::abs(s) < ctype(5.0) * std::max<ctype>(std::numeric_limits<T>::epsilon(),
+                                                   std::numeric_limits<U>::epsilon())) {
         throw std::runtime_error("scalar too small, division by zero" +
                                  std::to_string(s) + "\n");
     }
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
-    return BiVec3d<ctype>(v.x * inv, v.y * inv, v.z * inv);
+    return Vec_xyz_t<ctype, Tag>(v.x * inv, v.y * inv, v.z * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// BiVec3d<T> printing support via iostream
+// Vec_xyz_t<T> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
-template <typename T>
+template <typename T, typename Tag>
     requires(std::floating_point<T>)
-std::ostream& operator<<(std::ostream& os, BiVec3d<T> const& v)
+std::ostream& operator<<(std::ostream& os, Vec_xyz_t<T, Tag> const& v)
 {
     os << "(" << v.x << "," << v.y << "," << v.z << ")";
     return os;

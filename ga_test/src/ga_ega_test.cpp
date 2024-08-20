@@ -4,6 +4,7 @@
 #include "doctest/doctest.h"
 
 #include <chrono>
+#include <iostream>
 #include <tuple>
 #include <vector>
 
@@ -79,7 +80,7 @@ TEST_SUITE("Geometric Algebra EGA")
     TEST_CASE("Vec2d: default init")
     {
         fmt::println("Vec2d: default init");
-        Vec2d v;
+        vec2d v;
         // fmt::println("   v = {}", v);
         CHECK(v.x == 0.0);
         CHECK(v.y == 0.0);
@@ -87,7 +88,7 @@ TEST_SUITE("Geometric Algebra EGA")
     TEST_CASE("Vec2d: with curly braced intializer")
     {
         fmt::println("Vec2d: with curly braced intializer");
-        Vec2d v{0.0, 0.0};
+        vec2d v{0.0, 0.0};
         // fmt::println("   v = {}", v);
         CHECK(v.x == 0.0);
         CHECK(v.y == 0.0);
@@ -95,10 +96,10 @@ TEST_SUITE("Geometric Algebra EGA")
     TEST_CASE("Vec2d: cp ctor & cp assign incl. type deduction")
     {
         fmt::println("Vec2d: cp ctor & cp assign incl. type deduction");
-        Vec2d v1{1.0, 2.0}; // init with double (type deduction)
-        Vec2d v2{v1};       // cp ctor
-        Vec2d v3 = v2;      // cp assign
-        Vec2d v4 = -v2;     // cp assign with unary minus
+        vec2d v1{1.0, 2.0}; // init with double (type deduction)
+        vec2d v2{v1};       // cp ctor
+        vec2d v3 = v2;      // cp assign
+        vec2d v4 = -v2;     // cp assign with unary minus
 
         // fmt::println("   v1 = {}", v1);
         // fmt::println("   v2 = {}", v2);
@@ -119,8 +120,8 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("Vec2d: fmt & cout printing");
 
-        Vec2d pf{1.0f, 2.0001f};
-        Vec2d pd{1.0, 2.0001};
+        vec2d pf{1.0f, 2.00001f};
+        vec2d pd{1.0, 2.00001};
 
         std::cout << "       cout: pf = " << pf << std::endl;
         fmt::println("       fmt:  pf = {}", pf);
@@ -133,11 +134,13 @@ TEST_SUITE("Geometric Algebra EGA")
         std::vector<Vec2d<double>> vp1{{1.0, 1.0}, {1.5, 2.0}};
         fmt::println("       fmt: vp1 = {}", fmt::join(vp1, ", "));
         fmt::println("       fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        fmt::println("");
+
+        CHECK(sq_nrm(pf - pd) < eps);
     }
 
     TEST_CASE("Vec2d: comparison float")
     {
-        fmt::println("");
         fmt::println("Vec2d: comparison float");
 
         Vec2d<float> v1f{1.0f, 2.0f};
@@ -191,11 +194,11 @@ TEST_SUITE("Geometric Algebra EGA")
         //
         // a (linear) vector space fulfills operations tested against below:
 
-        Vec2d p0;
-        Vec2d p1{1.0, 2.0};
-        Vec2d p2{2.0, 4.0};
-        Vec2d p3{3.0, 6.0};
-        Vec2d p4 = -p1; // assignment using unary minus
+        vec2d p0;
+        vec2d p1{1.0, 2.0};
+        vec2d p2{2.0, 4.0};
+        vec2d p3{3.0, 6.0};
+        vec2d p4 = -p1; // assignment using unary minus
         double s = 2.35;
         double t = -1.3;
 
@@ -226,9 +229,9 @@ TEST_SUITE("Geometric Algebra EGA")
         fmt::println("Vec2d: inner product properties");
 
         double a = 2.35;
-        Vec2d u{1.0, 2.0};
-        Vec2d v{-0.5, 3.0};
-        Vec2d w{3.0, 6.0};
+        vec2d u{1.0, 2.0};
+        vec2d v{-0.5, 3.0};
+        vec2d w{3.0, 6.0};
 
         CHECK(dot(a * u, v) == a * dot(u, v));
         CHECK(dot(u + v, w) == dot(u, w) + dot(v, w));
@@ -243,8 +246,8 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("Vec2d: operations - norm, inverse, dot");
 
-        Vec2d v1{2.0, 1.0};
-        Vec2d v2{unitized(v1)};
+        vec2d v1{2.0, 1.0};
+        vec2d v2{unitized(v1)};
 
         vec2d v3{2.0, 6.0};
         vec2d v4{inv(v3)};
@@ -256,7 +259,7 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(std::abs(sq_nrm(v2) - 1.0) < eps);
         CHECK(std::abs(dot(v4, v3) - 1.0) < eps);
 
-        auto m = Vec2d{13.0, 5.0};
+        auto m = vec2d{13.0, 5.0};
         auto prd = m * inv(m);
         CHECK(std::abs(gr0(prd) - 1.0) < eps);
         CHECK(std::abs(gr2(prd) - 0.0) < eps);
@@ -489,7 +492,7 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec2d: default init");
         // default initialization
-        MVec2d v;
+        mvec2d v;
         // fmt::println("   v = {}", v);
         CHECK(v.c0 == 0.0);
         CHECK(v.c1 == 0.0);
@@ -500,7 +503,7 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec2d: with curly braced intializer");
         // default initialization
-        MVec2d v{0.0, 1.0, 2.0, 3.0};
+        mvec2d v{0.0, 1.0, 2.0, 3.0};
         // fmt::println("   v = {}", v);
         CHECK(v.c0 == 0.0);
         CHECK(v.c1 == 1.0);
@@ -512,10 +515,10 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec2d: cp ctor & cp assign incl. type deduction");
         // default initialization
-        MVec2d v1{0.0, 1.0, 2.0, 3.0}; // init with double (type deduction)
-        MVec2d v2{v1};                 // cp ctor
-        MVec2d v3 = v2;                // cp assign
-        MVec2d v4 = -v3;               // cp assign with unary minus
+        mvec2d v1{0.0, 1.0, 2.0, 3.0}; // init with double (type deduction)
+        mvec2d v2{v1};                 // cp ctor
+        mvec2d v3 = v2;                // cp assign
+        mvec2d v4 = -v3;               // cp assign with unary minus
 
         // fmt::println("   v1 = {}", v1);
         // fmt::println("   v2 = {}", v2);
@@ -537,22 +540,23 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec2d: fmt & cout printing");
 
-        MVec2d pf{1.0f, 2.0001f, 0.0f, 3.0f};
-        MVec2d pd{1.0, 2.0001, 0.0, 3.0};
+        mvec2d pf{1.0f, 2.00001f, 0.0f, 3.0f};
+        mvec2d pd{1.0, 2.00001, 0.0, 3.0};
 
-        // std::cout << "   cout: pf = " << pf << std::endl;
-        // fmt::println("    fmt: pf = {}", pf);
-        // fmt::println("    fmt: pf = {:.8f}", pf);
+        std::cout << "   cout: pf = " << pf << std::endl;
+        fmt::println("    fmt: pf = {}", pf);
+        fmt::println("    fmt: pf = {:.8f}", pf);
 
-        // std::cout << "   cout: pd = " << pd << std::endl;
-        // fmt::println("    fmt: pd = {}", pd);
-        // fmt::println("    fmt: pd = {:.8f}", pd);
+        std::cout << "   cout: pd = " << pd << std::endl;
+        fmt::println("    fmt: pd = {}", pd);
+        fmt::println("    fmt: pd = {:.8f}", pd);
 
-        // std::vector<MVec2d<double>> vp1{{1.0, 1.0, 1.0, 2.0},
-        // {0.5, 1.5, 2.0, 2.5}}; fmt::println("    fmt: vp1 = {}", fmt::join(vp1, ",
-        // ")); fmt::println("    fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        std::vector<MVec2d<double>> vp1{{1.0, 1.0, 1.0, 2.0}, {0.5, 1.5, 2.0, 2.5}};
+        fmt::println("    fmt: vp1 = {}", fmt::join(vp1, ", "));
+        fmt::println("    fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        fmt::println("");
 
-        CHECK(pf == pd);
+        CHECK(sq_nrm(pf - pd) < eps);
     }
 
     TEST_CASE("MVec2d: vector space and linearity tests")
@@ -564,11 +568,11 @@ TEST_SUITE("Geometric Algebra EGA")
         //
         // a (linear) vector space fulfills operations tested against below:
 
-        MVec2d p0;
-        MVec2d p1{0.0, 1.0, 2.0, 3.0};
-        MVec2d p2{0.0, 2.0, 4.0, 6.0};
-        MVec2d p3{0.0, 3.0, 6.0, 9.0};
-        MVec2d p4 = -p1; // assignment using unary minus
+        mvec2d p0;
+        mvec2d p1{0.0, 1.0, 2.0, 3.0};
+        mvec2d p2{0.0, 2.0, 4.0, 6.0};
+        mvec2d p3{0.0, 3.0, 6.0, 9.0};
+        mvec2d p4 = -p1; // assignment using unary minus
         double s = 2.35;
         double t = -1.3;
 
@@ -602,13 +606,13 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec2d: geometric product tests");
 
-        Vec2d v1{1.0, 2.0};
-        Vec2d v2{0.5, 3.0};
+        vec2d v1{1.0, 2.0};
+        vec2d v2{0.5, 3.0};
         auto d12 = dot(v1, v2);
         auto w12 = wdg(v1, v2);
 
-        MVec2d mv1{0.0, 1.0, 2.0, 0.0};
-        MVec2d mv2{0.0, 0.5, 3.0, 0.0};
+        mvec2d mv1{0.0, 1.0, 2.0, 0.0};
+        mvec2d mv2{0.0, 0.5, 3.0, 0.0};
         auto wdp_mv12 = 0.5 * (mv1 * mv2 + mv2 * mv1);
         auto wdm_mv12 = 0.5 * (mv1 * mv2 - mv2 * mv1);
 
@@ -662,11 +666,11 @@ TEST_SUITE("Geometric Algebra EGA")
         // multiply C from the right with inv(v2) recovers v1
         // multiply C from the left the the inv(v1) recovers v2
 
-        Vec2d a{1.0, 2.0};
-        Vec2d b{0.5, 3.0};
-        MVec2d C{Scalar<double>(dot(a, b)), PScalar2d<double>(wdg(a, b))};
-        MVec2d gpr_right = C * MVec2d{inv(b)};
-        MVec2d gpr_left = MVec2d{inv(a)} * C;
+        vec2d a{1.0, 2.0};
+        vec2d b{0.5, 3.0};
+        mvec2d C{scalar(dot(a, b)), pscalar2d(wdg(a, b))};
+        mvec2d gpr_right = C * mvec2d{inv(b)};
+        mvec2d gpr_left = mvec2d{inv(a)} * C;
 
         // fmt::println("   a  = {}", a);
         // fmt::println("   b  = {}", b);
@@ -685,17 +689,17 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec2d: geometric product tests - equivalence tests");
 
-        Vec2d a{1.0, 2.0};
-        Vec2d b{0.5, 3.0};
-        MVec2d mva{a};
-        MVec2d mvb{b};
+        vec2d a{1.0, 2.0};
+        vec2d b{0.5, 3.0};
+        mvec2d mva{a};
+        mvec2d mvb{b};
 
         auto dot_ab = dot(a, b);
         auto wdg_ab = wdg(a, b);
 
-        MVec2d ab = a * b;
-        MVec2d abm = mva * mvb;
-        MVec2d abd{Scalar<double>(dot_ab), wdg_ab};
+        mvec2d ab = a * b;
+        mvec2d abm = mva * mvb;
+        mvec2d abd{scalar(dot_ab), wdg_ab};
 
         // fmt::println("   a                                = {}", a);
         // fmt::println("   mva                              = {}", mva);
@@ -713,16 +717,16 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec2d: assignment tests");
 
-        Vec2d v1{1.0, 2.0};
-        Vec2d v2{0.5, 3.0};
+        vec2d v1{1.0, 2.0};
+        vec2d v2{0.5, 3.0};
 
-        MVec2d mv1{0.0, 1.0, 2.0, 0.0};
-        MVec2d mv2{0.0, 0.5, 3.0, 0.0};
-        MVec2d mv3{v1};
-        MVec2d mv4 = v2;
+        mvec2d mv1{0.0, 1.0, 2.0, 0.0};
+        mvec2d mv2{0.0, 0.5, 3.0, 0.0};
+        mvec2d mv3{v1};
+        mvec2d mv4 = v2;
 
-        MVec2d mv5(Scalar<double>(5.0));
-        MVec2d mv6(PScalar2d<double>(6.0));
+        mvec2d mv5(scalar(5.0));
+        mvec2d mv6(pscalar2d(6.0));
 
         // fmt::println("   v1 = {}", v1);
         // fmt::println("   v2 = {}", v2);
@@ -751,8 +755,8 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec2d: modelling complex numbers");
 
-        Vec2d v1{1.0, -1.0};
-        MVec2d v1m{v1}; // full 2d multivector
+        vec2d v1{1.0, -1.0};
+        mvec2d v1m{v1}; // full 2d multivector
 
         // multiplying with e1 from the left should make it a complex number
         // i.e. a multivector with a scalar (=Re) and a bivector part (=Im)
@@ -808,7 +812,7 @@ TEST_SUITE("Geometric Algebra EGA")
         // fmt::println("   b = gr2(uv)         = {}", b);
         // fmt::println("   r = sqrt(a^2 + b^2) = {}", r);
         // fmt::println("   r exp(angle_uv) = {}", r *
-        // exp(PScalar2d<double>(angle_uv))); HINT:declaring angle_uv a PScalar2d
+        // exp(pscalar2d(angle_uv))); HINT:declaring angle_uv a PScalar2d
         // makes it a bivector angle, i.e. a multiple of the bivector I_2d ATTENTION:
         // if you don't declare it as such, the normal exponential function
         //            will be called, resulting in a scalar result!
@@ -847,22 +851,22 @@ TEST_SUITE("Geometric Algebra EGA")
         auto im = gr2(uv);
         auto r = sqrt(re * re + im * im);
 
-        MVec2d_E a{1.0, 0.0};
-        MVec2d_E b{1.0, 1.0};
-        MVec2d_E c{a + b};
-        MVec2d_E d{a - b};
-        MVec2d_E e{2.0 * b};
-        MVec2d_E f{b * 2.0};
-        MVec2d_E g{-e};
-        MVec2d_E h{0.0, 1.0};
-        MVec2d_E as = a * a;
-        MVec2d_E hs = h * h;
+        mvec2d_e a{1.0, 0.0};
+        mvec2d_e b{1.0, 1.0};
+        mvec2d_e c{a + b};
+        mvec2d_e d{a - b};
+        mvec2d_e e{2.0 * b};
+        mvec2d_e f{b * 2.0};
+        mvec2d_e g{-e};
+        mvec2d_e h{0.0, 1.0};
+        mvec2d_e as = a * a;
+        mvec2d_e hs = h * h;
 
-        MVec2d_E j = b * c;
+        mvec2d_e j = b * c;
         auto k = I_2d;
-        MVec2d_E l = exp(I_2d, pi / 2);
-        MVec2d_E m = Im_2d_E;
-        MVec2d n = Im_2d;
+        mvec2d_e l = exp(I_2d, pi / 2);
+        mvec2d_e m = Im_2d_E;
+        mvec2d n = Im_2d;
         // fmt::println("   Multivector form of complex numbers:");
         // fmt::println("   u                     = {}", u);
         // fmt::println("   v                     = {}", v);
@@ -898,7 +902,7 @@ TEST_SUITE("Geometric Algebra EGA")
         // fmt::println("   j = b * c     = {}", j);
         // fmt::println("");
         // fmt::println("   k = I_2d                         = {}", k);
-        // fmt::println("   l = exp(PScalar2d<double>(pi/2)) = {:.3f}", l);
+        // fmt::println("   l = exp(pscalar2d(pi/2)) = {:.3f}", l);
         // fmt::println("   m = Im_2d_E                      = {}", m);
         // fmt::println("   n = Im_2d                        = {}", n);
 
@@ -909,7 +913,7 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(f == b * 2.0);
         CHECK(g == -e);
         CHECK(as == a);
-        CHECK(hs == MVec2d_E(-1.0, 0.0));
+        CHECK(hs == mvec2d_e(-1.0, 0.0));
         CHECK(j == b * c);
         CHECK(k == I_2d);
         CHECK(v.x == v2.c0);
@@ -923,24 +927,24 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(nrm(b * c) == nrm(b) * nrm(c));
         CHECK(b * c == c * b);
 
-        CHECK(sq_nrm(MVec2d_E{1.0, 1.0}) == 2.0);
-        CHECK(nrm(MVec2d_E{1.0, 1.0}) == std::sqrt(2.0));
-        CHECK(rev(MVec2d_E{1.0, 1.0}) == MVec2d_E{1.0, -1.0});
-        CHECK(std::abs(nrm(unitized(MVec2d_E{1.0, 1.0})) - 1.0) < eps);
+        CHECK(std::abs(sq_nrm(mvec2d_e{1.0, 1.0}) - 2.0) < eps);
+        CHECK(std::abs(nrm(mvec2d_e{1.0, 1.0}) - std::sqrt(2.0)) < eps);
+        CHECK(rev(mvec2d_e{1.0, 1.0}) == mvec2d_e{1.0, -1.0});
+        CHECK(std::abs(nrm(unitized(mvec2d_e{1.0, 1.0})) - 1.0) < eps);
 
-        CHECK(MVec2d_E{-1.0, 1.0} * inv(MVec2d_E{-1.0, 1.0}) == MVec2d_E{1.0, 0.0});
-        CHECK(gr0(MVec2d_E{-1.0, 1.0} * rev(MVec2d_E{-1.0, 1.0})) ==
-              sq_nrm(MVec2d_E{-1.0, 1.0}));
-        CHECK(std::abs(gr2(MVec2d_E{-1.0, 1.0} * rev(MVec2d_E{-1.0, 1.0}))) < eps);
+        CHECK(mvec2d_e{-1.0, 1.0} * inv(mvec2d_e{-1.0, 1.0}) == mvec2d_e{1.0, 0.0});
+        CHECK(std::abs(gr0(mvec2d_e{-1.0, 1.0} * rev(mvec2d_e{-1.0, 1.0})) -
+                       sq_nrm(mvec2d_e{-1.0, 1.0})) < eps);
+        CHECK(std::abs(gr2(mvec2d_e{-1.0, 1.0} * rev(mvec2d_e{-1.0, 1.0}))) < eps);
 
-        CHECK(angle_to_re(MVec2d_E{1.0, 0.0}) == 0);
-        CHECK(angle_to_re(MVec2d_E{1.0, 1.0}) == pi / 4.0);
-        CHECK(angle_to_re(MVec2d_E{0.0, 1.0}) == pi / 2.0);
-        CHECK(angle_to_re(MVec2d_E{-1.0, 1.0}) == pi * 3.0 / 4.0);
-        CHECK(angle_to_re(MVec2d_E{-1.0, 0.0}) == pi);
-        CHECK(angle_to_re(MVec2d_E{1.0, -1.0}) == -pi / 4.0);
-        CHECK(angle_to_re(MVec2d_E{0.0, -1.0}) == -pi / 2.0);
-        CHECK(angle_to_re(MVec2d_E{-1.0, -1.0}) == -pi * 3.0 / 4.0);
+        CHECK(std::abs(angle_to_re(mvec2d_e{1.0, 0.0}) - 0.0) < eps);
+        CHECK(std::abs(angle_to_re(mvec2d_e{1.0, 1.0}) - pi / 4.0) < eps);
+        CHECK(std::abs(angle_to_re(mvec2d_e{0.0, 1.0}) - pi / 2.0) < eps);
+        CHECK(std::abs(angle_to_re(mvec2d_e{-1.0, 1.0}) - pi * 3.0 / 4.0) < eps);
+        CHECK(std::abs(angle_to_re(mvec2d_e{-1.0, 0.0}) - pi) < eps);
+        CHECK(std::abs(angle_to_re(mvec2d_e{1.0, -1.0}) - (-pi / 4.0)) < eps);
+        CHECK(std::abs(angle_to_re(mvec2d_e{0.0, -1.0}) - (-pi / 2.0)) < eps);
+        CHECK(std::abs(angle_to_re(mvec2d_e{-1.0, -1.0}) - (-pi * 3.0 / 4.0)) < eps);
 
         CHECK(Vec2d{1.0, 0.0} * Vec2d{1.1, 1.1} ==
               rev(Vec2d{1.1, 1.1} * Vec2d{1.0, 0.0}));
@@ -961,7 +965,7 @@ TEST_SUITE("Geometric Algebra EGA")
         // std::vector<std::tuple<double, MVec2d_E<double>>> c_v;
         // for (int i = -12; i <= 12; ++i) {
         //     double phi = i * pi / 12;
-        //     MVec2d_E c = exp(PScalar2d<double>(phi));
+        //     mvec2d_e c = exp(pscalar2d(phi));
         //     c_v.push_back(std::make_tuple(phi, c));
         //     fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
         //                  " angle={: .4f}",
@@ -981,59 +985,59 @@ TEST_SUITE("Geometric Algebra EGA")
         // fmt::println("");
 
 
-        CHECK(MVec2d_E{2.0, 3.0} * MVec2d{-1.0, 1.5, -2.0, -3.0} ==
-              MVec2d{2.0, 0.0, 0.0, 3.0} * MVec2d{-1.0, 1.5, -2.0, -3.0});
-        CHECK(MVec2d_E{2.0, 3.0} * Vec2d{1.5, -2.0} ==
-              gr1(MVec2d{2.0, 0.0, 0.0, 3.0} * MVec2d{0.0, 1.5, -2.0, 0.0}));
+        CHECK(mvec2d_e{2.0, 3.0} * mvec2d{-1.0, 1.5, -2.0, -3.0} ==
+              mvec2d{2.0, 0.0, 0.0, 3.0} * mvec2d{-1.0, 1.5, -2.0, -3.0});
+        CHECK(mvec2d_e{2.0, 3.0} * Vec2d{1.5, -2.0} ==
+              gr1(mvec2d{2.0, 0.0, 0.0, 3.0} * mvec2d{0.0, 1.5, -2.0, 0.0}));
 
         CHECK(gr0(Vec2d{1.5, -2.0} * Vec2d{2.0, 3.0}) ==
-              gr0(MVec2d{0.0, 1.5, -2.0, 0.0} * MVec2d{0.0, 2.0, 3.0, 0.0}));
+              gr0(mvec2d{0.0, 1.5, -2.0, 0.0} * mvec2d{0.0, 2.0, 3.0, 0.0}));
         CHECK(gr2(Vec2d{1.5, -2.0} * Vec2d{2.0, 3.0}) ==
-              gr2(MVec2d{0.0, 1.5, -2.0, 0.0} * MVec2d{0.0, 2.0, 3.0, 0.0}));
+              gr2(mvec2d{0.0, 1.5, -2.0, 0.0} * mvec2d{0.0, 2.0, 3.0, 0.0}));
 
         // multiply from left
-        CHECK(PScalar2d<double>(1.5) * MVec2d{-1.0, 1.5, -2.0, -3.0} ==
-              MVec2d{0.0, 0.0, 0.0, 1.5} * MVec2d{-1.0, 1.5, -2.0, -3.0});
+        CHECK(pscalar2d(1.5) * mvec2d{-1.0, 1.5, -2.0, -3.0} ==
+              mvec2d{0.0, 0.0, 0.0, 1.5} * mvec2d{-1.0, 1.5, -2.0, -3.0});
 
-        CHECK(MVec2d(PScalar2d<double>(1.5) * MVec2d_E{-1.0, -3.0}) ==
-              MVec2d{0.0, 0.0, 0.0, 1.5} * MVec2d{-1.0, 0.0, 0.0, -3.0});
+        CHECK(mvec2d(pscalar2d(1.5) * mvec2d_e{-1.0, -3.0}) ==
+              mvec2d{0.0, 0.0, 0.0, 1.5} * mvec2d{-1.0, 0.0, 0.0, -3.0});
 
-        CHECK(MVec2d(PScalar2d<double>(1.5) * Vec2d{-1.0, -3.0}) ==
-              MVec2d{0.0, 0.0, 0.0, 1.5} * MVec2d{0.0, -1.0, -3.0, 0.0});
+        CHECK(mvec2d(pscalar2d(1.5) * Vec2d{-1.0, -3.0}) ==
+              mvec2d{0.0, 0.0, 0.0, 1.5} * mvec2d{0.0, -1.0, -3.0, 0.0});
 
         // multiply from right
-        CHECK(MVec2d{-1.0, 1.5, -2.0, -3.0} * PScalar2d<double>(1.5) ==
-              MVec2d{-1.0, 1.5, -2.0, -3.0} * MVec2d{0.0, 0.0, 0.0, 1.5});
+        CHECK(mvec2d{-1.0, 1.5, -2.0, -3.0} * pscalar2d(1.5) ==
+              mvec2d{-1.0, 1.5, -2.0, -3.0} * mvec2d{0.0, 0.0, 0.0, 1.5});
 
-        CHECK(MVec2d_E{-1.0, -3.0} * MVec2d(PScalar2d<double>(1.5)) ==
-              MVec2d{-1.0, 0.0, 0.0, -3.0} * MVec2d{0.0, 0.0, 0.0, 1.5});
+        CHECK(mvec2d_e{-1.0, -3.0} * mvec2d(pscalar2d(1.5)) ==
+              mvec2d{-1.0, 0.0, 0.0, -3.0} * mvec2d{0.0, 0.0, 0.0, 1.5});
 
-        CHECK(MVec2d(Vec2d{-1.0, -3.0} * PScalar2d<double>(1.5)) ==
-              MVec2d{0.0, -1.0, -3.0, 0.0} * MVec2d{0.0, 0.0, 0.0, 1.5});
+        CHECK(mvec2d(Vec2d{-1.0, -3.0} * pscalar2d(1.5)) ==
+              mvec2d{0.0, -1.0, -3.0, 0.0} * mvec2d{0.0, 0.0, 0.0, 1.5});
 
         // two bivectors
-        CHECK(MVec2d(Scalar<double>(PScalar2d<double>(1.5) * PScalar2d<double>(3.0))) ==
-              MVec2d{0.0, 0.0, 0.0, 1.5} * MVec2d{0.0, 0.0, 0.0, 3.0});
+        CHECK(mvec2d(scalar(pscalar2d(1.5) * pscalar2d(3.0))) ==
+              mvec2d{0.0, 0.0, 0.0, 1.5} * mvec2d{0.0, 0.0, 0.0, 3.0});
 
-        // MVec2d_E tests multiply from left
-        CHECK(MVec2d_E{-1.0, -3.0} * MVec2d(-1.0, 1.5, -2.0, -3.0) ==
-              MVec2d{-1.0, 0.0, 0.0, -3.0} * MVec2d{-1.0, 1.5, -2.0, -3.0});
+        // mvec2d_e tests multiply from left
+        CHECK(mvec2d_e{-1.0, -3.0} * mvec2d(-1.0, 1.5, -2.0, -3.0) ==
+              mvec2d{-1.0, 0.0, 0.0, -3.0} * mvec2d{-1.0, 1.5, -2.0, -3.0});
 
-        CHECK(MVec2d(MVec2d_E{-1.0, -3.0} * Vec2d(1.5, -2.0)) ==
-              MVec2d{-1.0, 0.0, 0.0, -3.0} * MVec2d{0.0, 1.5, -2.0, 0.0});
+        CHECK(mvec2d(mvec2d_e{-1.0, -3.0} * vec2d(1.5, -2.0)) ==
+              mvec2d{-1.0, 0.0, 0.0, -3.0} * mvec2d{0.0, 1.5, -2.0, 0.0});
 
-        // MVec2d_E tests multiply from right
-        CHECK(MVec2d(-1.0, 1.5, -2.0, -3.0) * MVec2d_E{-1.0, -3.0} ==
-              MVec2d{-1.0, 1.5, -2.0, -3.0} * MVec2d{-1.0, 0.0, 0.0, -3.0});
+        // mvec2d_e tests multiply from right
+        CHECK(mvec2d(-1.0, 1.5, -2.0, -3.0) * mvec2d_e{-1.0, -3.0} ==
+              mvec2d{-1.0, 1.5, -2.0, -3.0} * mvec2d{-1.0, 0.0, 0.0, -3.0});
 
-        CHECK(MVec2d(Vec2d(1.5, -2.0) * MVec2d_E{-1.0, -3.0}) ==
-              MVec2d{0.0, 1.5, -2.0, 0.0} * MVec2d{-1.0, 0.0, 0.0, -3.0});
+        CHECK(mvec2d(vec2d(1.5, -2.0) * mvec2d_e{-1.0, -3.0}) ==
+              mvec2d{0.0, 1.5, -2.0, 0.0} * mvec2d{-1.0, 0.0, 0.0, -3.0});
 
-        // multiply two MVec2d_E
-        CHECK(MVec2d(MVec2d_E(-3.0, 2.0) * MVec2d_E{-1.0, -3.0}) ==
-              MVec2d{-3.0, 0.0, 0.0, 2.0} * MVec2d{-1.0, 0.0, 0.0, -3.0});
+        // multiply two mvec2d_e
+        CHECK(mvec2d(mvec2d_e(-3.0, 2.0) * mvec2d_e{-1.0, -3.0}) ==
+              mvec2d{-3.0, 0.0, 0.0, 2.0} * mvec2d{-1.0, 0.0, 0.0, -3.0});
 
-        auto m = MVec2d_E{13.0, 5.0};
+        auto m = mvec2d_e{13.0, 5.0};
         auto prd = m * inv(m);
         CHECK(std::abs(gr0(prd) - 1.0) < eps);
         CHECK(std::abs(gr2(prd) - 0.0) < eps);
@@ -1045,11 +1049,11 @@ TEST_SUITE("Geometric Algebra EGA")
         fmt::println("MVec2d: dualization");
 
 
-        Vec2d v{1.0, 2.0};                    // 2d vector
-        MVec2d vm{10.0, 1.0, 2.0, 30.0};      // full 2d multivector
-        MVec2d vm2{-7.0, 3.0, -42.0, 5.0};    // full 2d multivector
-        MVec2d vm_even{10.0, 0.0, 0.0, 30.0}; // full 2d multivector - even content
-        MVec2d_E vm_E{10.0, 30.0};            // even grade 2d multivector
+        vec2d v{1.0, 2.0};                    // 2d vector
+        mvec2d vm{10.0, 1.0, 2.0, 30.0};      // full 2d multivector
+        mvec2d vm2{-7.0, 3.0, -42.0, 5.0};    // full 2d multivector
+        mvec2d vm_even{10.0, 0.0, 0.0, 30.0}; // full 2d multivector - even content
+        mvec2d_e vm_E{10.0, 30.0};            // even grade 2d multivector
 
 #if defined(_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
         ////////////////////////////////////////////////////////////////////////////////
@@ -1097,8 +1101,8 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(vm_dual_even == vm_dual_even_manual);
         CHECK(vm_dual_E == vm_dual_manual_E);
         CHECK(v_dual == v_dual_manual);
-        CHECK(dual2d(Scalar<double>(5)) == PScalar2d<double>(5));
-        CHECK(dual2d(PScalar2d<double>(5)) == Scalar<double>(-5));
+        CHECK(dual2d(scalar(5)) == pscalar2d(5));
+        CHECK(dual2d(pscalar2d(5)) == scalar(-5));
         CHECK(dual2d(I_2d) == -1);
 
         // dual properties (A. Macdonald, p. 110):
@@ -1179,8 +1183,8 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(vm_dual_even == vm_dual_even_manual);
         CHECK(vm_dual_E == vm_dual_manual_E);
         CHECK(v_dual == v_dual_manual);
-        CHECK(dual2d(Scalar<double>(5)) == PScalar2d<double>(-5));
-        CHECK(dual2d(PScalar2d<double>(5)) == Scalar<double>(5));
+        CHECK(dual2d(scalar(5)) == pscalar2d(-5));
+        CHECK(dual2d(pscalar2d(5)) == scalar(5));
         CHECK(dual2d(I_2d) == 1);
 
         // dual properties (A. Macdonald, p. 110):
@@ -1230,7 +1234,7 @@ TEST_SUITE("Geometric Algebra EGA")
     TEST_CASE("Vec3d: default init")
     {
         fmt::println("Vec3d: default init");
-        Vec3d v;
+        vec3d v;
         // fmt::println("   v = {}", v);
         CHECK(v.x == 0.0);
         CHECK(v.y == 0.0);
@@ -1239,7 +1243,7 @@ TEST_SUITE("Geometric Algebra EGA")
     TEST_CASE("Vec3d: with curly braced intializer")
     {
         fmt::println("Vec3d: with curly braced intializer");
-        Vec3d v{0.0, 0.0, 0.0};
+        vec3d v{0.0, 0.0, 0.0};
         // fmt::println("   v = {}", v);
         CHECK(v.x == 0.0);
         CHECK(v.y == 0.0);
@@ -1248,10 +1252,10 @@ TEST_SUITE("Geometric Algebra EGA")
     TEST_CASE("Vec3d: cp ctor & cp assign incl. type deduction")
     {
         fmt::println("Vec3d: cp ctor & cp assign incl. type deduction");
-        Vec3d v1{1.0, 2.0, 3.0}; // init with double (type deduction)
-        Vec3d v2{v1};            // cp ctor
-        Vec3d v3 = v2;           // cp assign
-        Vec3d v4 = -v2;          // cp assign with unary minus
+        vec3d v1{1.0, 2.0, 3.0}; // init with double (type deduction)
+        vec3d v2{v1};            // cp ctor
+        vec3d v3 = v2;           // cp assign
+        vec3d v4 = -v2;          // cp assign with unary minus
 
         // fmt::println("   v1 = {}", v1);
         // fmt::println("   v2 = {}", v2);
@@ -1275,25 +1279,27 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("Vec3d: fmt & cout printing");
 
-        Vec3d pf{1.0f, 2.0001f, 3.0f};
-        Vec3d pd{1.0, 2.0001, 3.0};
+        vec3d pf{1.0f, 2.00001f, 3.0f};
+        vec3d pd{1.0, 2.00001, 3.0};
 
-        std::cout << "       cout: pf = " << pf << std::endl;
+        // std::cout << "       cout: pf = " << pf << std::endl;
         fmt::println("       fmt:  pf = {}", pf);
         fmt::println("       fmt:  pf = {:.8f}", pf);
 
-        std::cout << "       cout: pd = " << pd << std::endl;
+        // std::cout << "       cout: pd = " << pd << std::endl;
         fmt::println("       fmt:  pd = {}", pd);
         fmt::println("       fmt:  pd = {:.8f}", pd);
 
         std::vector<Vec3d<double>> vp1{{1.0, 1.0, 1.0}, {1.5, 2.0, 3.0}};
         fmt::println("       fmt: vp1 = {}", fmt::join(vp1, ", "));
         fmt::println("       fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        fmt::println("");
+
+        CHECK(sq_nrm(pf - pd) < eps);
     }
 
     TEST_CASE("Vec3d: comparison float")
     {
-        fmt::println("");
         fmt::println("Vec3d: comparison float");
 
         Vec3d<float> v1f{1.0f, 2.0f, 3.0f};
@@ -1347,11 +1353,11 @@ TEST_SUITE("Geometric Algebra EGA")
         //
         // a (linear) vector space fulfills operations tested against below:
 
-        Vec3d p0;
-        Vec3d p1{1.0, 2.0, 3.0};
-        Vec3d p2{2.0, 4.0, 6.0};
-        Vec3d p3{3.0, 6.0, 9.0};
-        Vec3d p4 = -p1; // assignment using unary minus
+        vec3d p0;
+        vec3d p1{1.0, 2.0, 3.0};
+        vec3d p2{2.0, 4.0, 6.0};
+        vec3d p3{3.0, 6.0, 9.0};
+        vec3d p4 = -p1; // assignment using unary minus
         double s = 2.35;
         double t = -1.3;
 
@@ -1382,9 +1388,9 @@ TEST_SUITE("Geometric Algebra EGA")
         fmt::println("Vec3d: inner product properties");
 
         double a = 2.35;
-        Vec3d u{1.0, 2.0, 1.0};
-        Vec3d v{-0.5, 3.0, 0.5};
-        Vec3d w{3.0, 6.0, -3.0};
+        vec3d u{1.0, 2.0, 1.0};
+        vec3d v{-0.5, 3.0, 0.5};
+        vec3d w{3.0, 6.0, -3.0};
 
         CHECK(dot(a * u, v) == a * dot(u, v));
         CHECK(dot(u + v, w) == dot(u, w) + dot(v, w));
@@ -1399,11 +1405,11 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("Vec3d: operations - norm, inverse, dot");
 
-        Vec3d<float> v1{2.0, 1.0, 2.0};
-        Vec3d v2{unitized(v1)};
+        vec3d v1{2.0, 1.0, 2.0};
+        vec3d v2{unitized(v1)};
 
-        Vec3d v3{2.0, 6.0, -4.0};
-        Vec3d v4{inv(v3)};
+        vec3d v3{2.0, 6.0, -4.0};
+        vec3d v4{inv(v3)};
 
         // fmt::println("v1 = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
         // fmt::println("v2 = unitized(v1) = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
@@ -1421,14 +1427,14 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("Vec3d: operations - angle");
 
-        Vec3d v1{1.0, 0.0, 0.0};
-        Vec3d v2{unitized(Vec3d(1.0, 1.0, 0.0))};
-        Vec3d v3{0.0, 1.0, 0.0};
-        Vec3d v4{unitized(Vec3d(-1.0, 1.0, 0.0))};
-        Vec3d v5{-1.0, 0.0, 0.0};
-        Vec3d v6{unitized(Vec3d(-1.0, -1.0, 0.0))};
-        Vec3d v7{0.0, -1.0, 0.0};
-        Vec3d v8{unitized(Vec3d(1.0, -1.0, 0.0))};
+        vec3d v1{1.0, 0.0, 0.0};
+        vec3d v2{unitized(vec3d(1.0, 1.0, 0.0))};
+        vec3d v3{0.0, 1.0, 0.0};
+        vec3d v4{unitized(vec3d(-1.0, 1.0, 0.0))};
+        vec3d v5{-1.0, 0.0, 0.0};
+        vec3d v6{unitized(vec3d(-1.0, -1.0, 0.0))};
+        vec3d v7{0.0, -1.0, 0.0};
+        vec3d v8{unitized(vec3d(1.0, -1.0, 0.0))};
 
         // fmt::println("v1 = {: .4f}, nrm(v1) = {:.8f}, "
         //              "angle(v1,v1) = {:.8f}, {:.8f}",
@@ -1462,8 +1468,8 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(std::abs(angle(v1, v5) - pi) < eps);
 
         // just to suppress unused variable warnings
-        CHECK(v6 == unitized(Vec3d(-1.0, -1.0, 0.0)));
-        CHECK(v8 == unitized(Vec3d(1.0, -1.0, 0.0)));
+        CHECK(v6 == unitized(vec3d(-1.0, -1.0, 0.0)));
+        CHECK(v8 == unitized(vec3d(1.0, -1.0, 0.0)));
     }
 
     TEST_CASE("Vec3d: operations - angle II")
@@ -1522,14 +1528,14 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("Vec3d: operations - wedge");
 
-        Vec3d v1{1.0, 0.0, 0.0};
-        Vec3d v2{unitized(Vec3d(1.0, 1.0, 0.0))};
-        Vec3d v3{0.0, 1.0, 0.0};
-        Vec3d v4{unitized(Vec3d(-1.0, 1.0, 0.0))};
-        Vec3d v5{-1.0, 0.0, 0.0};
-        Vec3d v6{unitized(Vec3d(-1.0, -1.0, 0.0))};
-        Vec3d v7{0.0, -1.0, 0.0};
-        Vec3d v8{unitized(Vec3d(1.0, -1.0, 0.0))};
+        vec3d v1{1.0, 0.0, 0.0};
+        vec3d v2{unitized(vec3d(1.0, 1.0, 0.0))};
+        vec3d v3{0.0, 1.0, 0.0};
+        vec3d v4{unitized(vec3d(-1.0, 1.0, 0.0))};
+        vec3d v5{-1.0, 0.0, 0.0};
+        vec3d v6{unitized(vec3d(-1.0, -1.0, 0.0))};
+        vec3d v7{0.0, -1.0, 0.0};
+        vec3d v8{unitized(vec3d(1.0, -1.0, 0.0))};
 
         // fmt::println("v1 = {: .4f}, wdg(v1,v1) = {: .4f}, "
         //              "angle = {: .4f}",
@@ -1570,18 +1576,18 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("Vec3d: operations - project / reject / reflect (vector - vector)");
 
-        Vec3d v1{5.0, 1.0, 1.0};
-        Vec3d v2{2.0, 2.0, 1.0};
+        vec3d v1{5.0, 1.0, 1.0};
+        vec3d v2{2.0, 2.0, 1.0};
 
-        Vec3d v2u = unitized(v2);
+        vec3d v2u = unitized(v2);
 
-        Vec3d v3{project_onto(v1, v2)};
-        Vec3d v4{reject_from(v1, v2)};
-        Vec3d v5{v3 + v4};
+        vec3d v3{project_onto(v1, v2)};
+        vec3d v4{reject_from(v1, v2)};
+        vec3d v5{v3 + v4};
 
-        Vec3d v6{project_onto_unitized(v1, v2u)};
-        Vec3d v7{reject_from_unitized(v1, v2u)};
-        Vec3d v8{v6 + v7};
+        vec3d v6{project_onto_unitized(v1, v2u)};
+        vec3d v7{reject_from_unitized(v1, v2u)};
+        vec3d v8{v6 + v7};
 
         // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
         // fmt::println("v2  = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
@@ -1613,9 +1619,9 @@ TEST_SUITE("Geometric Algebra EGA")
 
         vec3d v{4.0, 1.0, 1.0};
         vec3d b{e2_3d};
-        auto B = BiVec3d{e12_3d};
+        auto B = bivec3d{e12_3d};
 
-        // auto UB = BiVec3d{e23_3d + e12_3d};
+        // auto UB = bivec3d{e23_3d + e12_3d};
         // fmt::println("v   = {}", v);
         // fmt::println("b   = {}", b);
         // fmt::println("B   = {}", B);
@@ -1640,7 +1646,7 @@ TEST_SUITE("Geometric Algebra EGA")
         //
         // auto start = std::chrono::system_clock::now();
         // for (size_t i = 0; i < 10000000; ++i) {
-        //     Vec3d v = reject_from(v1, v2);
+        //     vec3d v = reject_from(v1, v2);
         // }
         // auto end = std::chrono::system_clock::now();
         // auto elapsed =
@@ -1654,12 +1660,12 @@ TEST_SUITE("Geometric Algebra EGA")
         fmt::println(
             "Vec3d: operations - project / reject / reflect (vector - bivector)");
 
-        Vec3d v1{5.0, 3.0, 1.0};
-        BiVec3d v2 = wdg(Vec3d{0.0, 0.0, 2.0}, Vec3d{2.0, 0.0, 0.0});
+        vec3d v1{5.0, 3.0, 1.0};
+        bivec3d v2 = wdg(vec3d{0.0, 0.0, 2.0}, vec3d{2.0, 0.0, 0.0});
 
-        Vec3d v3{project_onto(v1, v2)};
-        Vec3d v4{reject_from(v1, v2)};
-        Vec3d v5{v3 + v4};
+        vec3d v3{project_onto(v1, v2)};
+        vec3d v4{reject_from(v1, v2)};
+        vec3d v5{v3 + v4};
 
         // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
         // fmt::println("v2  = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
@@ -1785,12 +1791,12 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("Vec3d: cross-product");
 
-        Vec3d u{1.0, 1.0, 0.0};
-        Vec3d v{0.0, 1.0, 1.0};
-        Vec3d w{1.0, 1.0, 1.0};
+        vec3d u{1.0, 1.0, 0.0};
+        vec3d v{0.0, 1.0, 1.0};
+        vec3d w{1.0, 1.0, 1.0};
 
-        Vec3d u_cross_v = cross(u, v);
-        BiVec3d u_wdg_v = wdg(u, v);
+        vec3d u_cross_v = cross(u, v);
+        bivec3d u_wdg_v = wdg(u, v);
 
 #if defined(_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
         // dual(A) = I*A
@@ -1825,7 +1831,7 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec3d: default init");
         // default initialization
-        MVec3d v;
+        mvec3d v;
         // fmt::println("   v = {}", v);
         CHECK(v.c0 == 0.0);
         CHECK(v.c1 == 0.0);
@@ -1840,7 +1846,7 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec3d: with curly braced intializer");
         // default initialization
-        MVec3d v{0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0};
+        mvec3d v{0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0};
         // fmt::println("   v = {}", v);
         CHECK(v.c0 == 0.0);
         CHECK(v.c1 == 1.0);
@@ -1856,11 +1862,11 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec3d: cp ctor & cp assign incl. type deduction");
         // default initialization
-        MVec3d v1{0.0,  1.0,  2.0,  3.0,
+        mvec3d v1{0.0,  1.0,  2.0,  3.0,
                   23.0, 31.0, 12.0, 123.0}; // init with double (type deduction)
-        MVec3d v2{v1};                      // cp ctor
-        MVec3d v3 = v2;                     // cp assign
-        MVec3d v4 = -v3;                    // cp assign with unary minus
+        mvec3d v2{v1};                      // cp ctor
+        mvec3d v3 = v2;                     // cp assign
+        mvec3d v4 = -v3;                    // cp assign with unary minus
 
         // fmt::println("   v1 = {}", v1);
         // fmt::println("   v2 = {}", v2);
@@ -1892,23 +1898,24 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec3d: fmt & cout printing");
 
-        MVec3d pf{1.0f, 2.0001f, 0.0f, 3.0f, 1.0f, 2.0001f, 0.0f, 3.0f};
-        MVec3d pd{1.0, 2.0001, 0.0, 3.0, 1.0, 2.0001, 0.0, 3.0};
+        mvec3d pf{1.0f, 2.00001f, 0.0f, 3.0f, 1.0f, 2.00001f, 0.0f, 3.0f};
+        mvec3d pd{1.0, 2.00001, 0.0, 3.0, 1.0, 2.00001, 0.0, 3.0};
 
-        // std::cout << "    cout: pf = " << pf << std::endl;
-        // fmt::println("    fmt:  pf = {}", pf);
-        // fmt::println("    fmt:  pf = {:.8f}", pf);
+        std::cout << "    cout: pf = " << pf << std::endl;
+        fmt::println("    fmt:  pf = {}", pf);
+        fmt::println("    fmt:  pf = {:.8f}", pf);
 
-        // std::cout << "    cout: pd = " << pd << std::endl;
-        // fmt::println("    fmt:  pd = {}", pd);
-        // fmt::println("    fmt:  pd = {:.8f}", pd);
+        std::cout << "    cout: pd = " << pd << std::endl;
+        fmt::println("    fmt:  pd = {}", pd);
+        fmt::println("    fmt:  pd = {:.8f}", pd);
 
-        // std::vector<MVec3d<double>> vp1{{1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 2.0},
-        //                                 {0.5, 1.5, 2.0, 2.5, 1.0, 1.0, 1.0, 2.0}};
-        // fmt::println("    fmt: vp1 = {}", fmt::join(vp1, ", "));
-        // fmt::println("    fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        std::vector<MVec3d<double>> vp1{{1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 2.0},
+                                        {0.5, 1.5, 2.0, 2.5, 1.0, 1.0, 1.0, 2.0}};
+        fmt::println("    fmt: vp1 = {}", fmt::join(vp1, ", "));
+        fmt::println("    fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        fmt::println("");
 
-        CHECK(pf == pd);
+        CHECK(sq_nrm(pf - pd) < eps);
     }
 
     TEST_CASE("MVec3d: vector space and linearity tests")
@@ -1920,11 +1927,11 @@ TEST_SUITE("Geometric Algebra EGA")
         //
         // a (linear) vector space fulfills operations tested against below:
 
-        MVec3d p0;
-        MVec3d p1{0.0, 1.0, 2.0, 3.0, 0.0, 1.0, 2.0, 3.0};
-        MVec3d p2{0.0, 2.0, 4.0, 6.0, 0.0, 2.0, 4.0, 6.0};
-        MVec3d p3{0.0, 3.0, 6.0, 9.0, 0.0, 3.0, 6.0, 9.0};
-        MVec3d p4 = -p1; // assignment using unary minus
+        mvec3d p0;
+        mvec3d p1{0.0, 1.0, 2.0, 3.0, 0.0, 1.0, 2.0, 3.0};
+        mvec3d p2{0.0, 2.0, 4.0, 6.0, 0.0, 2.0, 4.0, 6.0};
+        mvec3d p3{0.0, 3.0, 6.0, 9.0, 0.0, 3.0, 6.0, 9.0};
+        mvec3d p4 = -p1; // assignment using unary minus
         double s = 2.35;
         double t = -1.3;
 
@@ -1963,13 +1970,13 @@ TEST_SUITE("Geometric Algebra EGA")
         // dot(a,b) = 0.5*(ab + ba)   (symmetric part)
         // wdg(a,b) = 0.5*(ab - ba)   (antisymmetric part)
 
-        Vec3d a{1.0, 2.0, 3.0};
-        Vec3d b{0.5, 3.0, -2.0};
+        vec3d a{1.0, 2.0, 3.0};
+        vec3d b{0.5, 3.0, -2.0};
         auto dot_ab = dot(a, b);
         auto wdg_ab = wdg(a, b);
 
-        MVec3d mva{a};
-        MVec3d mvb{b};
+        mvec3d mva{a};
+        mvec3d mvb{b};
         auto mvab = mva * mvb;
         auto mvab_sym = 0.5 * (mva * mvb + mvb * mva);
         auto mvab_asym = 0.5 * (mva * mvb - mvb * mva);
@@ -2005,13 +2012,13 @@ TEST_SUITE("Geometric Algebra EGA")
         // dot(A,b) = 0.5*(Ab - Aa)   (antisymmetric part)
         // wdg(A,b) = 0.5*(Ab + Aa)   (symmetric part)
 
-        BiVec3d a{1.0, 2.0, 3.0};
-        Vec3d b{0.5, 3.0, -2.0};
+        bivec3d a{1.0, 2.0, 3.0};
+        vec3d b{0.5, 3.0, -2.0};
         auto dot_ab = dot(a, b);
         auto wdg_ab = wdg(a, b);
 
-        MVec3d mva{a};
-        MVec3d mvb{b};
+        mvec3d mva{a};
+        mvec3d mvb{b};
         auto mvab = mva * mvb;
         auto mvab_sym = 0.5 * (mva * mvb + mvb * mva);
         auto mvab_asym = 0.5 * (mva * mvb - mvb * mva);
@@ -2047,13 +2054,13 @@ TEST_SUITE("Geometric Algebra EGA")
         // dot(a,B) = 0.5*(aB - Ba)   (antisymmetric part)
         // wdg(a,B) = 0.5*(aB + Ba)   (symmetric part)
 
-        Vec3d a{1.0, 2.0, 3.0};
-        BiVec3d b{0.5, 3.0, -2.0};
+        vec3d a{1.0, 2.0, 3.0};
+        bivec3d b{0.5, 3.0, -2.0};
         auto dot_ab = dot(a, b);
         auto wdg_ab = wdg(a, b);
 
-        MVec3d mva{a};
-        MVec3d mvb{b};
+        mvec3d mva{a};
+        mvec3d mvb{b};
         auto mvab = mva * mvb;
         auto mvab_sym = 0.5 * (mva * mvb + mvb * mva);
         auto mvab_asym = 0.5 * (mva * mvb - mvb * mva);
@@ -2080,7 +2087,7 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(wdg_ab == gr3(mvab_sym));
     }
 
-    TEST_CASE("MVec3d geometric product tests - recovering vectors from the"
+    TEST_CASE("mvec3d geometric product tests - recovering vectors from the"
               "geometric product")
     {
         fmt::println("MVec3d: geometric product tests - recovering vectors from the "
@@ -2105,19 +2112,19 @@ TEST_SUITE("Geometric Algebra EGA")
         // multiply C from the right with inv(v2) recovers v1
         // multiply C from the left the the inv(v1) recovers v2
 
-        Vec3d a{1.0, 2.0, 3.0};
-        Vec3d b{0.5, 3.0, -4.0};
-        MVec3d mva{a};
-        MVec3d mvb{b};
+        vec3d a{1.0, 2.0, 3.0};
+        vec3d b{0.5, 3.0, -4.0};
+        mvec3d mva{a};
+        mvec3d mvb{b};
 
         auto dot_ab = dot(a, b);
         auto wdg_ab = wdg(a, b);
-        MVec3d C = a * b;
-        MVec3d Cm = mva * mvb;
-        MVec3d Cd{Scalar<double>(dot_ab), wdg_ab};
+        mvec3d C = a * b;
+        mvec3d Cm = mva * mvb;
+        mvec3d Cd{scalar(dot_ab), wdg_ab};
 
-        MVec3d gpr_right = C * MVec3d{inv(b)};
-        MVec3d gpr_left = MVec3d{inv(a)} * C;
+        mvec3d gpr_right = C * mvec3d{inv(b)};
+        mvec3d gpr_left = mvec3d{inv(a)} * C;
 
         // fmt::println("   a                           = {}", a);
         // fmt::println("   b                           = {}", b);
@@ -2135,7 +2142,7 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(a == gr1(gpr_right));
         CHECK(b == gr1(gpr_left));
 
-        auto m = MVec2d{13.0, -27.0, 3.0, 5.0};
+        auto m = mvec2d{13.0, -27.0, 3.0, 5.0};
         auto prd = m * inv(m);
         CHECK(std::abs(gr0(prd) - 1.0) < eps);
         CHECK(nrm(gr1(prd)) < eps);
@@ -2146,15 +2153,15 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec3d: geometric product tests - equivalence tests");
 
-        Vec3d a{1.0, 2.0, 3.0};
-        Vec3d b{0.5, 3.0, -4.0};
-        MVec3d mva{a};
-        MVec3d mvb{b};
+        vec3d a{1.0, 2.0, 3.0};
+        vec3d b{0.5, 3.0, -4.0};
+        mvec3d mva{a};
+        mvec3d mvb{b};
 
-        BiVec3d A{1.0, 2.0, 3.0};
-        BiVec3d B{0.5, 3.0, -4.0};
-        MVec3d mvA{A};
-        MVec3d mvB{B};
+        bivec3d A{1.0, 2.0, 3.0};
+        bivec3d B{0.5, 3.0, -4.0};
+        mvec3d mvA{A};
+        mvec3d mvB{B};
 
         auto dot_ab = dot(a, b);
         auto wdg_ab = wdg(a, b);
@@ -2165,71 +2172,71 @@ TEST_SUITE("Geometric Algebra EGA")
         auto dot_aB = dot(a, B);
         auto wdg_aB = wdg(a, B);
 
-        MVec3d_E ab = a * b;
-        MVec3d abm = mva * mvb;
-        MVec3d abd{Scalar<double>(dot_ab), wdg_ab};
+        mvec3d_e ab = a * b;
+        mvec3d abm = mva * mvb;
+        mvec3d abd{scalar{dot_ab}, wdg_ab};
 
-        MVec3d_U Ab = A * b;
-        MVec3d Abm = mvA * mvb;
-        MVec3d Abd{dot_Ab, wdg_Ab};
+        mvec3d_u Ab = A * b;
+        mvec3d Abm = mvA * mvb;
+        mvec3d Abd{dot_Ab, wdg_Ab};
 
-        MVec3d_U aB = a * B;
-        MVec3d aBm = mva * mvB;
-        MVec3d aBd{dot_aB, wdg_aB};
+        mvec3d_u aB = a * B;
+        mvec3d aBm = mva * mvB;
+        mvec3d aBd{dot_aB, wdg_aB};
 
         // fmt::println("   a                                = {}", a);
         // fmt::println("   mva                              = {}", mva);
         // fmt::println("   b                                = {}", b);
         // fmt::println("   mvb                              = {}", mvb);
-        // fmt::println("   ab  = MVec3d_E(a * b)            = {}", ab);
+        // fmt::println("   ab  = mvec3d_e(a * b)            = {}", ab);
         // fmt::println("   abm = mva * mvb                  = {}", abm);
-        // fmt::println("   abd = MVec3d(dot(a,b), wdg(a,b)) = {}", abd);
+        // fmt::println("   abd = mvec3d(dot(a,b), wdg(a,b)) = {}", abd);
         // fmt::println("");
         // fmt::println("   A                                = {}", A);
         // fmt::println("   mvA                              = {}", mvA);
         // fmt::println("   b                                = {}", b);
         // fmt::println("   mvb                              = {}", mvb);
-        // fmt::println("   Ab  = MVec3d_U(A * b)            = {}", Ab);
+        // fmt::println("   Ab  = mvec3d_u(A * b)            = {}", Ab);
         // fmt::println("   Abm = mvA * mvb                  = {}", Abm);
-        // fmt::println("   Abd = MVec3d(dot(A,b), wdg(A,b)) = {}", Abd);
+        // fmt::println("   Abd = mvec3d(dot(A,b), wdg(A,b)) = {}", Abd);
         // fmt::println("");
         // fmt::println("   a                                = {}", a);
         // fmt::println("   mva                              = {}", mva);
         // fmt::println("   B                                = {}", B);
         // fmt::println("   mvB                              = {}", mvB);
-        // fmt::println("   aB  = MVec3d_U(a * B)            = {}", aB);
+        // fmt::println("   aB  = mvec3d_u(a * B)            = {}", aB);
         // fmt::println("   aBm = mva * mvB                  = {}", aBm);
-        // fmt::println("   aBd = MVec3d(dot(a,B), wdg(a,B)) = {}", aBd);
+        // fmt::println("   aBd = mvec3d(dot(a,B), wdg(a,B)) = {}", aBd);
         // fmt::println("");
 
         CHECK(gr0(ab) == gr0(abm));
-        CHECK(gr1(abm) == Vec3d{});
+        CHECK(gr1(abm) == vec3d{});
         CHECK(gr2(ab) == gr2(abm));
-        CHECK(gr3(abm) == PScalar3d<double>{0.0});
+        CHECK(gr3(abm) == pscalar3d{0.0});
 
         CHECK(gr0(ab) == gr0(abd));
-        CHECK(gr1(abd) == Vec3d{});
+        CHECK(gr1(abd) == vec3d{});
         CHECK(gr2(ab) == gr2(abd));
-        CHECK(gr3(abd) == PScalar3d<double>{0.0});
+        CHECK(gr3(abd) == pscalar3d{0.0});
 
         CHECK(gr0(Abm) == 0);
         CHECK(gr1(Ab) == gr1(Abm));
-        CHECK(gr2(Abm) == BiVec3d{});
+        CHECK(gr2(Abm) == bivec3d{});
         CHECK(gr3(Ab) == gr3(Abm));
 
         CHECK(gr0(Abd) == 0);
         CHECK(gr1(Ab) == gr1(Abd));
-        CHECK(gr2(Abd) == BiVec3d{});
+        CHECK(gr2(Abd) == bivec3d{});
         CHECK(gr3(Ab) == gr3(Abd));
 
         CHECK(gr0(aBm) == 0);
         CHECK(gr1(aB) == gr1(aBm));
-        CHECK(gr2(aBm) == BiVec3d{});
+        CHECK(gr2(aBm) == bivec3d{});
         CHECK(gr3(aB) == gr3(aBm));
 
         CHECK(gr0(aBd) == 0);
         CHECK(gr1(aB) == gr1(aBd));
-        CHECK(gr2(aBd) == BiVec3d{});
+        CHECK(gr2(aBd) == bivec3d{});
         CHECK(gr3(aB) == gr3(aBd));
     }
 
@@ -2237,29 +2244,29 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec3d: assignment tests");
 
-        Vec3d v1{1.0, 2.0, 3.0};
-        Vec3d v2{0.5, 1.0, 1.5};
-        Vec3d v3{0.5, 1.0, -4.5};
-        BiVec3d b1{1.0, 2.0, 3.0};
+        vec3d v1{1.0, 2.0, 3.0};
+        vec3d v2{0.5, 1.0, 1.5};
+        vec3d v3{0.5, 1.0, -4.5};
+        bivec3d b1{1.0, 2.0, 3.0};
 
-        MVec3d mv1{0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0};
-        MVec3d mv2{0.0, 0.5, 1.0, 1.5, 11.5, 15.5, 6.0, 61.5};
-        MVec3d mv3{mv1};
-        MVec3d mv4 = mv2;
+        mvec3d mv1{0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0};
+        mvec3d mv2{0.0, 0.5, 1.0, 1.5, 11.5, 15.5, 6.0, 61.5};
+        mvec3d mv3{mv1};
+        mvec3d mv4 = mv2;
 
-        MVec3d mv5(Scalar<double>(5.0));
-        MVec3d mv6(PScalar3d<double>(6.0));
-        MVec3d mv7{v1};
-        MVec3d mv8{b1};
-        MVec3d mv9{Scalar<double>(dot(v1, v3)), wdg(v1, v3)};
+        mvec3d mv5(scalar(5.0));
+        mvec3d mv6(pscalar3d(6.0));
+        mvec3d mv7{v1};
+        mvec3d mv8{b1};
+        mvec3d mv9{scalar{dot(v1, v3)}, wdg(v1, v3)};
 
-        MVec3d mv10{v1, PScalar3d<double>(10.0)};
-        // This must not compile! Implict conversion to Vec3d possible
+        mvec3d mv10{v1, pscalar3d(10.0)};
+        // This must not compile! Implict conversion to vec3d possible
         // possible solution: explicitly deleted constructor for MVec3d
-        // MVec3d mv11{b1, pscalar3d_t(10.0)};
+        // mvec3d mv11{b1, pscalar3d_t(10.0)};
 
         // this does not compile (which is fine, a base cannot convert to derived)
-        // MVec3d mv12{Scalar<double>(10.0), v1};
+        // mvec3d mv12{scalar(10.0), v1};
 
         // fmt::println("   v1 = {}", v1);
         // fmt::println("   v2 = {}", v2);
@@ -2304,10 +2311,10 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec3d: bivector product properties");
 
-        BiVec3d b1{1.0, 2.0, 3.0};
-        MVec3d mb1{b1};
-        BiVec3d b2{-3.0, 1.0, 2.0};
-        MVec3d mb2{b2};
+        bivec3d b1{1.0, 2.0, 3.0};
+        mvec3d mb1{b1};
+        bivec3d b2{-3.0, 1.0, 2.0};
+        mvec3d mb2{b2};
 
         auto gpr12_m = mb1 * mb2;
         auto gpr21_m = mb2 * mb1;
@@ -2359,9 +2366,9 @@ TEST_SUITE("Geometric Algebra EGA")
             "MVec3d_E/_U: modelling even and uneven parts of 3d algebra - basics");
 
         // defining a complex number in all three forms as multivector
-        auto u = unitized(Vec3d{1.0, 0.0, 0.0});
+        auto u = unitized(vec3d{1.0, 0.0, 0.0});
         auto v =
-            unitized(Vec3d{std::cos(pi / 12), std::sin(pi / 12), 0.0}); // unit vec +15%
+            unitized(vec3d(std::cos(pi / 12), std::sin(pi / 12), 0.0)); // unit vec +15%
         auto angle_uv = angle(u, v);
         auto B = wdg(u, v); // unitized bivector describing the plane spanned by u and v
 
@@ -2372,11 +2379,11 @@ TEST_SUITE("Geometric Algebra EGA")
         // => B determines the meaning of the positive sign of the rotation
         //
         auto R_m =
-            MVec3d(exp(-B, angle_uv)); // Rotor formed by u and v (unitized bivector)
-        auto Rr_m = MVec3d(rev(R_m));  // and its reverse
+            mvec3d(exp(-B, angle_uv)); // Rotor formed by u and v (unitized bivector)
+        auto Rr_m = mvec3d(rev(R_m));  // and its reverse
 
-        auto c = Vec3d{1.0, 1.0, 1.0};
-        auto c_m = MVec3d{c};
+        auto c = vec3d{1.0, 1.0, 1.0};
+        auto c_m = mvec3d{c};
 
         auto c_tmp_m = R_m * c_m;
         auto c_rot_m = c_tmp_m * Rr_m;
@@ -2415,7 +2422,7 @@ TEST_SUITE("Geometric Algebra EGA")
         // fmt::println("   c                     = {: .3}", c);
         // fmt::println("");
         // fmt::println("Implemented as full multivector operation:");
-        // fmt::println("   R_m  = MVec3d(exp(-B,angle_uv))  = {: .3}", R_m);
+        // fmt::println("   R_m  = mvec3d(exp(-B,angle_uv))  = {: .3}", R_m);
         // fmt::println("   Rr_m = rev(R_m)                  = {: .3}", Rr_m);
         // fmt::println("   Rr_m*R_m                         = {: .3}", Rr_m * R_m);
         // fmt::println("   c_m                              = {: .3}", c_m);
@@ -2448,14 +2455,14 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(nrm(rotate(c, R)) == nrm(c));
         CHECK(gr1(c_rot_m) == rotate(c, R));
         // n I_3d approach:
-        CHECK(rotate(Vec3d{1.0, 0.0, 0.0}, rotor(e3_3d * I_3d, pi / 4)) ==
-              unitized(Vec3d{1.0, 1.0, 0.0}));
+        CHECK(rotate(vec3d{1.0, 0.0, 0.0}, rotor(e3_3d * I_3d, pi / 4)) ==
+              unitized(vec3d{1.0, 1.0, 0.0}));
         // using a bivector directly:
-        CHECK(rotate(Vec3d{1.0, 0.0, 0.0}, rotor(e12_3d, pi / 4)) ==
-              unitized(Vec3d{1.0, 1.0, 0.0}));
+        CHECK(rotate(vec3d{1.0, 0.0, 0.0}, rotor(e12_3d, pi / 4)) ==
+              unitized(vec3d{1.0, 1.0, 0.0}));
 
         // direct rotation of a bivector
-        CHECK(rotate(BiVec3d{0.0, 0.0, 1.0}, rotor(e23_3d, pi / 2)) == -e31_3d);
+        CHECK(rotate(bivec3d{0.0, 0.0, 1.0}, rotor(e23_3d, pi / 2)) == -e31_3d);
 
         // example see Macdonald "Linear and Geometric Algebra", Exercise 7.12, p. 127
         auto Bv =
@@ -2475,21 +2482,21 @@ TEST_SUITE("Geometric Algebra EGA")
     {
         fmt::println("MVec3d: dualization");
 
-        Vec3d v{1.0, 2.0, 3.0};                                   // 3d vector
-        BiVec3d B{10.0, 20.0, 30.0};                              // 3d bivector
-        MVec3d vm{100.0, 1.0, 2.0, 3.0, 10.0, 20.0, 30.0, 300.0}; // full 3d multivector
-        MVec3d vm2{-20.0, 3.0,  7.0,    -4.0,
+        vec3d v{1.0, 2.0, 3.0};                                   // 3d vector
+        bivec3d B{10.0, 20.0, 30.0};                              // 3d bivector
+        mvec3d vm{100.0, 1.0, 2.0, 3.0, 10.0, 20.0, 30.0, 300.0}; // full 3d multivector
+        mvec3d vm2{-20.0, 3.0,  7.0,    -4.0,
                    -1.0,  40.0, -330.0, -70.0}; // full 3d multivector
 
         // full 3d multivector - even content
-        MVec3d vm_even{100.0, 0.0, 0.0, 0.0, 10.0, 20.0, 30.0, 0.0};
+        mvec3d vm_even{100.0, 0.0, 0.0, 0.0, 10.0, 20.0, 30.0, 0.0};
         // even grade 3d multivector
-        MVec3d_E vm_E{100.0, 10.0, 20.0, 30.0};
+        mvec3d_e vm_E{100.0, 10.0, 20.0, 30.0};
 
         // full 3d multivector - uneven content
-        MVec3d vm_uneven{0.0, 1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 300.0};
+        mvec3d vm_uneven{0.0, 1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 300.0};
         // uneven grade 3d multivector
-        MVec3d_U vm_U{1.0, 2.0, 3.0, 300.0};
+        mvec3d_u vm_U{1.0, 2.0, 3.0, 300.0};
 
 #if defined(_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
         ////////////////////////////////////////////////////////////////////////////////
@@ -2564,10 +2571,10 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(vm_dual_uneven == vm_dual_uneven_manual);
         CHECK(vm_dual_E == vm_dual_manual_E);
         CHECK(vm_dual_U == vm_dual_manual_U);
-        CHECK(dual3d(v) == BiVec3d{1.0, 2.0, 3.0});
-        CHECK(dual3d(B) == -Vec3d{10.0, 20.0, 30.0});
-        CHECK(dual3d(Scalar<double>(5)) == PScalar3d<double>(5));
-        CHECK(dual3d(PScalar3d<double>(5)) == Scalar<double>(-5));
+        CHECK(dual3d(v) == bivec3d{1.0, 2.0, 3.0});
+        CHECK(dual3d(B) == -vec3d{10.0, 20.0, 30.0});
+        CHECK(dual3d(scalar(5)) == pscalar3d(5));
+        CHECK(dual3d(pscalar3d(5)) == scalar(-5));
 
         // dual properties
         CHECK(dual3d(3.0 * vm) == 3.0 * dual3d(vm));
@@ -2677,10 +2684,10 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(vm_dual_uneven == vm_dual_uneven_manual);
         CHECK(vm_dual_E == vm_dual_manual_E);
         CHECK(vm_dual_U == vm_dual_manual_U);
-        CHECK(dual3d(v) == -BiVec3d{1.0, 2.0, 3.0});
-        CHECK(dual3d(B) == Vec3d{10.0, 20.0, 30.0});
-        CHECK(dual3d(Scalar<double>(5)) == PScalar3d<double>(-5));
-        CHECK(dual3d(PScalar3d<double>(5)) == Scalar<double>(5));
+        CHECK(dual3d(v) == -bivec3d{1.0, 2.0, 3.0});
+        CHECK(dual3d(B) == vec3d{10.0, 20.0, 30.0});
+        CHECK(dual3d(scalar(5)) == pscalar3d(-5));
+        CHECK(dual3d(pscalar3d(6)) == scalar(6));
 
         // dual properties (A. Macdonald, p. 110):
         //
@@ -2717,7 +2724,7 @@ TEST_SUITE("Geometric Algebra EGA")
         // fmt::println("   dual3d(wdg(a, b)) = {}", dual3d(wdg(a, b)));
         // fmt::println("   dot(a, dual3d(b)) = {}", dot(a, dual3d(b)));
 
-        CHECK(dual3d(Scalar<double>{dot(a, b)}) == wdg(a, dual3d(b)));
+        CHECK(dual3d(scalar{dot(a, b)}) == wdg(a, dual3d(b)));
         CHECK(dual3d(dot(a, b)) == wdg(a, dual3d(b)));
         CHECK(dual3d(wdg(a, b)) == dot(a, dual3d(b)));
 

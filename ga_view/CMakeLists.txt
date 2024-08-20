@@ -68,4 +68,5 @@ find_package(fmt CONFIG REQUIRED)
 target_link_libraries(${EXEC_NAME} PRIVATE Qt6::Core
                                            Qt6::Gui
                                            Qt6::Widgets
-                                           fmt::fmt-header-only)
+                                           fmt::fmt-header-only
+                                           ga)

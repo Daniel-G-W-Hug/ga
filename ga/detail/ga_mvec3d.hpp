@@ -12,10 +12,6 @@
 
 #include "ga_value_t.hpp"
 
-#include "ga_vec3d.hpp"
-
-#include "ga_bivec3d.hpp"
-
 #include "ga_mvec3d_e.hpp"
 #include "ga_mvec3d_u.hpp"
 
@@ -110,9 +106,6 @@ struct MVec3d {
             return true;
         return false;
     }
-
-    template <typename U>
-    friend std::ostream& operator<<(std::ostream& os, MVec3d<U> const& v);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
