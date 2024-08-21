@@ -73,6 +73,46 @@ struct Vec_xyz_t {
             return true;
         return false;
     }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Vec_xyz_t& operator+=(Vec_xyz_t<U, Tag> const& v)
+    {
+        x += v.x;
+        y += v.y;
+        z += v.z;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Vec_xyz_t& operator-=(Vec_xyz_t<U, Tag> const& v)
+    {
+        x -= v.x;
+        y -= v.y;
+        z -= v.z;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Vec_xyz_t& operator*=(U s)
+    {
+        x *= s;
+        y *= s;
+        z *= s;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Vec_xyz_t& operator/=(U s)
+    {
+        x /= s;
+        y /= s;
+        z /= s;
+        return (*this);
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -113,6 +113,12 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(v3.x == 1.0);
         CHECK(v3.y == 2.0);
         CHECK(v4 == -v2);
+
+        // check direct assignment operators (sequence of tests decisive!)
+        CHECK((v3 += v2) == 2.0 * v1);
+        CHECK((v3 -= v1) == v1);
+        CHECK((v3 *= 2.0f) == 2.0f * v1);
+        CHECK((v3 /= 2.0) == v1);
     }
 
 
@@ -774,7 +780,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         // defining a complex number in all three forms
         auto u = vec2d{1.0, 0.0};
-        auto v = vec2d{std::cos(pi / 6.0), std::sin(pi / 6.0)}; // unit vec +30%
+        auto v = vec2d(std::cos(pi / 6.0), std::sin(pi / 6.0)); // unit vec +30%
         auto angle_uv = angle(u, v);
 
         auto uv = u * v; // complex number with real part and bivector part
@@ -817,7 +823,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // if you don't declare it as such, the normal exponential function
         //            will be called, resulting in a scalar result!
 
-        CHECK(angle_uv == pi / 6.0);
+        CHECK(std::abs(angle_uv - pi / 6.0) < eps);
         CHECK(std::abs(r - 0.5 * std::sqrt(2.0)) < eps);
         CHECK(gr0(vc) == gr0(vcm));
         CHECK(gr2(vc) == gr2(vcm));
@@ -841,7 +847,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         // defining a complex number in all three forms as multivector
         auto u = vec2d{1.0, 0.0};
-        auto v = vec2d{std::cos(pi / 6.0), std::sin(pi / 6.0)}; // unit vec +30°
+        auto v = vec2d(std::cos(pi / 6.0), std::sin(pi / 6.0)); // unit vec +30°
 
         auto angle_uv = angle(u, v);
 
@@ -1272,6 +1278,12 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(v3.y == 2.0);
         CHECK(v3.z == 3.0);
         CHECK(v4 == -v2);
+
+        // check direct assignment operators (sequence of tests decisive!)
+        CHECK((v3 += v2) == 2.0 * v1);
+        CHECK((v3 -= v1) == v1);
+        CHECK((v3 *= 2.0f) == 2.0f * v1);
+        CHECK((v3 /= 2.0) == v1);
     }
 
 

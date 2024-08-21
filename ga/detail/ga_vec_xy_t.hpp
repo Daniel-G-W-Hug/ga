@@ -57,6 +57,42 @@ struct Vec_xy_t {
         if (abs_delta_x < delta_eps && abs_delta_y < delta_eps) return true;
         return false;
     }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Vec_xy_t& operator+=(Vec_xy_t<U, Tag> const& v)
+    {
+        x += v.x;
+        y += v.y;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Vec_xy_t& operator-=(Vec_xy_t<U, Tag> const& v)
+    {
+        x -= v.x;
+        y -= v.y;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Vec_xy_t& operator*=(U s)
+    {
+        x *= s;
+        y *= s;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Vec_xy_t& operator/=(U s)
+    {
+        x /= s;
+        y /= s;
+        return (*this);
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////

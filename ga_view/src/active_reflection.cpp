@@ -90,8 +90,8 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     // let's do a little ga
     using hd::ga::vec2d;
     std::vector<vec2d> v = {{0.5, 0.5}, {2.0, 0.5}, {2.5, 1.0}};
-    vec2d n1{end_n1pos_nrm_scene.x(), end_n1pos_nrm_scene.y()};
-    vec2d n2{end_n2pos_nrm_scene.x(), end_n2pos_nrm_scene.y()};
+    vec2d n1(end_n1pos_nrm_scene.x(), end_n1pos_nrm_scene.y());
+    vec2d n2(end_n2pos_nrm_scene.x(), end_n2pos_nrm_scene.y());
     std::vector<vec2d> vr, vrr;
 
     using hd::ga::ega::reflect_on_hyp;
