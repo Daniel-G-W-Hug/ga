@@ -10,9 +10,9 @@ set(HEADERS
     ga_usr_utilities.hpp
     detail/ga_algebra.hpp
     detail/ga_scalar_t.hpp
+    detail/ga_vec_xy_t.hpp
     detail/ga_vec_xyz_t.hpp
     detail/ga_value_t.hpp 
-    detail/ga_vec2d.hpp
     detail/ga_mvec2d.hpp
     detail/ga_mvec2d_e.hpp
     detail/ga_ega_2d_ops.hpp

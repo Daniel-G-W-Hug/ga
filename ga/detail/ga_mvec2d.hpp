@@ -12,8 +12,6 @@
 
 #include "ga_value_t.hpp"
 
-#include "ga_vec2d.hpp"
-
 #include "ga_mvec2d_e.hpp"
 
 

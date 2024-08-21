@@ -19,7 +19,7 @@
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
 
-TEST_SUITE("Geometric Algebra EGA")
+TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 {
 
     TEST_CASE("algebra<2> - ega_2d")
@@ -773,8 +773,8 @@ TEST_SUITE("Geometric Algebra EGA")
         auto vlm = Im_2d * vcm; // full gpr
 
         // defining a complex number in all three forms
-        auto u = Vec2d{1.0, 0.0};
-        auto v = Vec2d{std::cos(pi / 6.0), std::sin(pi / 6.0)}; // unit vec +30%
+        auto u = vec2d{1.0, 0.0};
+        auto v = vec2d{std::cos(pi / 6.0), std::sin(pi / 6.0)}; // unit vec +30%
         auto angle_uv = angle(u, v);
 
         auto uv = u * v; // complex number with real part and bivector part
@@ -840,8 +840,8 @@ TEST_SUITE("Geometric Algebra EGA")
         fmt::println("MVec2d_E: modelling complex numbers - basics");
 
         // defining a complex number in all three forms as multivector
-        auto u = Vec2d{1.0, 0.0};
-        auto v = Vec2d{std::cos(pi / 6.0), std::sin(pi / 6.0)}; // unit vec +30°
+        auto u = vec2d{1.0, 0.0};
+        auto v = vec2d{std::cos(pi / 6.0), std::sin(pi / 6.0)}; // unit vec +30°
 
         auto angle_uv = angle(u, v);
 
@@ -946,8 +946,8 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(std::abs(angle_to_re(mvec2d_e{0.0, -1.0}) - (-pi / 2.0)) < eps);
         CHECK(std::abs(angle_to_re(mvec2d_e{-1.0, -1.0}) - (-pi * 3.0 / 4.0)) < eps);
 
-        CHECK(Vec2d{1.0, 0.0} * Vec2d{1.1, 1.1} ==
-              rev(Vec2d{1.1, 1.1} * Vec2d{1.0, 0.0}));
+        CHECK(vec2d{1.0, 0.0} * vec2d{1.1, 1.1} ==
+              rev(vec2d{1.1, 1.1} * vec2d{1.0, 0.0}));
         CHECK(exp(I_2d, pi / 4) == rev(exp(I_2d, -pi / 4)));
         CHECK(exp(I_2d, -angle_uv) * u == u * exp(I_2d, angle_uv)); // 2d rotation direct
         CHECK(exp(I_2d, -angle_uv) * u == v);
@@ -987,12 +987,12 @@ TEST_SUITE("Geometric Algebra EGA")
 
         CHECK(mvec2d_e{2.0, 3.0} * mvec2d{-1.0, 1.5, -2.0, -3.0} ==
               mvec2d{2.0, 0.0, 0.0, 3.0} * mvec2d{-1.0, 1.5, -2.0, -3.0});
-        CHECK(mvec2d_e{2.0, 3.0} * Vec2d{1.5, -2.0} ==
+        CHECK(mvec2d_e{2.0, 3.0} * vec2d{1.5, -2.0} ==
               gr1(mvec2d{2.0, 0.0, 0.0, 3.0} * mvec2d{0.0, 1.5, -2.0, 0.0}));
 
-        CHECK(gr0(Vec2d{1.5, -2.0} * Vec2d{2.0, 3.0}) ==
+        CHECK(gr0(vec2d{1.5, -2.0} * vec2d{2.0, 3.0}) ==
               gr0(mvec2d{0.0, 1.5, -2.0, 0.0} * mvec2d{0.0, 2.0, 3.0, 0.0}));
-        CHECK(gr2(Vec2d{1.5, -2.0} * Vec2d{2.0, 3.0}) ==
+        CHECK(gr2(vec2d{1.5, -2.0} * vec2d{2.0, 3.0}) ==
               gr2(mvec2d{0.0, 1.5, -2.0, 0.0} * mvec2d{0.0, 2.0, 3.0, 0.0}));
 
         // multiply from left
@@ -1002,7 +1002,7 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(mvec2d(pscalar2d(1.5) * mvec2d_e{-1.0, -3.0}) ==
               mvec2d{0.0, 0.0, 0.0, 1.5} * mvec2d{-1.0, 0.0, 0.0, -3.0});
 
-        CHECK(mvec2d(pscalar2d(1.5) * Vec2d{-1.0, -3.0}) ==
+        CHECK(mvec2d(pscalar2d(1.5) * vec2d{-1.0, -3.0}) ==
               mvec2d{0.0, 0.0, 0.0, 1.5} * mvec2d{0.0, -1.0, -3.0, 0.0});
 
         // multiply from right
@@ -1012,7 +1012,7 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(mvec2d_e{-1.0, -3.0} * mvec2d(pscalar2d(1.5)) ==
               mvec2d{-1.0, 0.0, 0.0, -3.0} * mvec2d{0.0, 0.0, 0.0, 1.5});
 
-        CHECK(mvec2d(Vec2d{-1.0, -3.0} * pscalar2d(1.5)) ==
+        CHECK(mvec2d(vec2d{-1.0, -3.0} * pscalar2d(1.5)) ==
               mvec2d{0.0, -1.0, -3.0, 0.0} * mvec2d{0.0, 0.0, 0.0, 1.5});
 
         // two bivectors
@@ -2729,13 +2729,11 @@ TEST_SUITE("Geometric Algebra EGA")
         CHECK(dual3d(wdg(a, b)) == dot(a, dual3d(b)));
 
         // just to silence unused variable warning
-        // CHECK(v_dual_manual == I_3d * v);
         CHECK(v_dual_manual == v * rev(I_3d));
         CHECK(v_dual == dual3d(v));
-        // CHECK(B_dual_manual = I_3d * B);
         CHECK(B_dual_manual == B * rev(I_3d));
         CHECK(B_dual == dual3d(B));
 #endif
     }
 
-} // TEST_SUITE("Geometric Algebra")
+} // TEST_SUITE("Euclidean Geometric Algebra (EGA)")

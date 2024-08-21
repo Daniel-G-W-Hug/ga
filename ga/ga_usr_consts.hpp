@@ -2,11 +2,11 @@
 
 #include "detail/ga_value_t.hpp" // defines value_t either as float oder double
                                  // defines Scalar<T>, PScalar2d<T>, PScalar3d<T>
-                                 // and Vec3d<T>, BiVec3d<T>
+                                 // Vec2d<T>, Vec3d<T>, BiVec3d<T>
 
 #include "detail/ga_mvec2d.hpp" // MVec2d<T>
 #include "detail/ga_mvec3d.hpp" // MVec3d<T>
-#include "detail/ga_vec2d.hpp"  // Vec2d<T>
+
 
 namespace hd::ga {
 

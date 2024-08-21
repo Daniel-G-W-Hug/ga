@@ -5,6 +5,7 @@
 #include <limits> // std::numeric_limits
 
 #include "ga_scalar_t.hpp"
+#include "ga_vec_xy_t.hpp"
 #include "ga_vec_xyz_t.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -26,18 +27,22 @@ auto const eps{5.0 * std::numeric_limits<value_t>::epsilon()};
 // (reduce dependencies between files)
 
 struct scalar_tag {};
+
+struct vec2d_tag {};
 struct pscalar2d_tag {};
-struct pscalar3d_tag {};
 
 struct vec3d_tag {};
 struct bivec3d_tag {};
+struct pscalar3d_tag {};
 
 template <typename T> using Scalar = Scalar_t<T, scalar_tag>;
+
+template <typename T> using Vec2d = Vec_xy_t<T, vec2d_tag>;
 template <typename T> using PScalar2d = Scalar_t<T, pscalar2d_tag>;
-template <typename T> using PScalar3d = Scalar_t<T, pscalar3d_tag>;
 
 template <typename T> using Vec3d = Vec_xyz_t<T, vec3d_tag>;
 template <typename T> using BiVec3d = Vec_xyz_t<T, bivec3d_tag>;
+template <typename T> using PScalar3d = Scalar_t<T, pscalar3d_tag>;
 
 
 } // namespace hd::ga

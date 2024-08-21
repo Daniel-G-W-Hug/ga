@@ -17,11 +17,11 @@
 #include "fmt/ranges.h" // support printing of (nested) containers & tuples
 
 #include "ga_scalar_t.hpp"
+#include "ga_vec_xy_t.hpp"
 #include "ga_vec_xyz_t.hpp"
 
 #include "ga_mvec2d.hpp"
 #include "ga_mvec2d_e.hpp"
-#include "ga_vec2d.hpp"
 
 #include "ga_mvec3d.hpp"
 #include "ga_mvec3d_e.hpp"
@@ -40,11 +40,12 @@ struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : formatter<double> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// Vec2d<T>
+// Vec_xy_t<T, Tag> includes Vec2d<T>
 ////////////////////////////////////////////////////////////////////////////////
-template <typename T> struct fmt::formatter<hd::ga::Vec2d<T>> : nested_formatter<double> {
+template <typename T, typename Tag>
+struct fmt::formatter<hd::ga::Vec_xy_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
-    auto format(const hd::ga::Vec2d<T>& v, FormatContext& ctx) const
+    auto format(const hd::ga::Vec_xy_t<T, Tag>& v, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "({},{})", nested(v.x), nested(v.y));
     }

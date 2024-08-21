@@ -15,6 +15,7 @@
                                  // switch value_t between float/double here, if needed!
                                  // common type for scalars & pseudoscalars:
                                  // Scalar<T>, PScalar2d<T>, PScalar3d<T>
+                                 // type for 2d vector Vec2d<T>
                                  // common type for vectors and bivectors in 3d:
                                  // Vec3d<T>, BiVec3d<T>
 
@@ -23,8 +24,6 @@
 #include "ga_usr_consts.hpp"    // user constants (for user convenience)
 #include "ga_usr_types.hpp"     // consistent user types (for user convenience)
 #include "ga_usr_utilities.hpp" // chelper functions (for user convenience)
-
-#include "detail/ga_vec2d.hpp" // Vec2d<T>
 
 #include "detail/ga_mvec2d.hpp"   // MVec2d<T>
 #include "detail/ga_mvec2d_e.hpp" // MVec2d_E<T>

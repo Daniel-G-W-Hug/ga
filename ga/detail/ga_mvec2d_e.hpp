@@ -12,7 +12,6 @@
 #include <string>
 
 #include "ga_value_t.hpp"
-#include "ga_vec2d.hpp"
 
 
 namespace hd::ga {
