@@ -82,6 +82,42 @@ struct MVec2d_E {
         if (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps) return true;
         return false;
     }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec2d_E& operator+=(MVec2d_E<U> const& v)
+    {
+        c0 += v.c0;
+        c1 += v.c1;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec2d_E& operator-=(MVec2d_E<U> const& v)
+    {
+        c0 -= v.c0;
+        c1 -= v.c1;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec2d_E& operator*=(U s)
+    {
+        c0 *= s;
+        c1 *= s;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec2d_E& operator/=(U s)
+    {
+        c0 /= s;
+        c1 /= s;
+        return (*this);
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////

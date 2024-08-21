@@ -117,7 +117,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // check direct assignment operators (sequence of tests decisive!)
         CHECK((v3 += v2) == 2.0 * v1);
         CHECK((v3 -= v1) == v1);
-        CHECK((v3 *= 2.0f) == 2.0f * v1);
+        CHECK((v3 *= 2.0) == 2.0 * v1);
         CHECK((v3 /= 2.0) == v1);
     }
 
@@ -540,6 +540,12 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(v3.c2 == 2.0);
         CHECK(v3.c3 == 3.0);
         CHECK(v4 == -v3);
+
+        // check direct assignment operators (sequence of tests decisive!)
+        CHECK((v3 += v2) == 2.0 * v1);
+        CHECK((v3 -= v1) == v1);
+        CHECK((v3 *= 2.0) == 2.0 * v1);
+        CHECK((v3 /= 2.0) == v1);
     }
 
     TEST_CASE("MVec2d: fmt & cout printing")
@@ -1282,7 +1288,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // check direct assignment operators (sequence of tests decisive!)
         CHECK((v3 += v2) == 2.0 * v1);
         CHECK((v3 -= v1) == v1);
-        CHECK((v3 *= 2.0f) == 2.0f * v1);
+        CHECK((v3 *= 2.0) == 2.0 * v1);
         CHECK((v3 /= 2.0) == v1);
     }
 
@@ -1904,6 +1910,12 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(v3.c7 == 123.0);
 
         CHECK(v4 == -v3);
+
+        // check direct assignment operators (sequence of tests decisive!)
+        CHECK((v3 += v2) == 2.0 * v1);
+        CHECK((v3 -= v1) == v1);
+        CHECK((v3 *= 2.0) == 2.0 * v1);
+        CHECK((v3 /= 2.0) == v1);
     }
 
     TEST_CASE("MVec3d: fmt & cout printing")

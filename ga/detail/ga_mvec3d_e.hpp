@@ -87,6 +87,50 @@ struct MVec3d_E {
             return true;
         return false;
     }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec3d_E& operator+=(MVec3d_E<U> const& v)
+    {
+        c0 += v.c0;
+        c1 += v.c1;
+        c2 += v.c2;
+        c3 += v.c3;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec3d_E& operator-=(MVec3d_E<U> const& v)
+    {
+        c0 -= v.c0;
+        c1 -= v.c1;
+        c2 -= v.c2;
+        c3 -= v.c3;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec3d_E& operator*=(U s)
+    {
+        c0 *= s;
+        c1 *= s;
+        c2 *= s;
+        c3 *= s;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec3d_E& operator/=(U s)
+    {
+        c0 /= s;
+        c1 /= s;
+        c2 /= s;
+        c3 /= s;
+        return (*this);
+    }
 };
 
 
