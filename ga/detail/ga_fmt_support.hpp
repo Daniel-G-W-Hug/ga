@@ -27,6 +27,7 @@
 #include "ga_mvec3d_e.hpp"
 #include "ga_mvec3d_u.hpp"
 
+#include "ga_mvec16_t.hpp"
 #include "ga_mvec6_t.hpp"
 #include "ga_mvec8_t.hpp"
 
@@ -156,5 +157,21 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : nested_formatter<double> {
         return fmt::format_to(ctx.out(), "({},{},{},{},{},{},{},{})", nested(v.c0),
                               nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
                               nested(v.c5), nested(v.c6), nested(v.c7));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec16_t<T, Tag> includes MVec3d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::MVec16_t<T, Tag>& v, FormatContext& ctx) const
+    {
+        return fmt::format_to(
+            ctx.out(), "({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{})", nested(v.c0),
+            nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4), nested(v.c5),
+            nested(v.c6), nested(v.c7), nested(v.c8), nested(v.c9), nested(v.c10),
+            nested(v.c11), nested(v.c12), nested(v.c13), nested(v.c14), nested(v.c15));
     }
 };

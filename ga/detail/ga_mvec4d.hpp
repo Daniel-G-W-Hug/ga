@@ -1,0 +1,17 @@
+#pragma once
+
+// author: Daniel Hug, 2024
+
+#include "ga_mvec16_t.hpp"
+
+////////////////////////////////////////////////////////////////////////////////
+// consistent type definitions for easy use
+////////////////////////////////////////////////////////////////////////////////
+
+namespace hd::ga {
+
+struct mvec4d_tag {};
+
+template <typename T> using MVec4d = MVec16_t<T, mvec4d_tag>;
+
+} // namespace hd::ga

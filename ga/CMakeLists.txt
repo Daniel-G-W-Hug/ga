@@ -14,6 +14,7 @@ set(HEADERS
     detail/ga_vec4_t.hpp
     detail/ga_mvec6_t.hpp
     detail/ga_mvec8_t.hpp
+    detail/ga_mvec16_t.hpp
     detail/ga_value_t.hpp 
     detail/ga_type_0d.hpp
     detail/ga_type_2d.hpp
@@ -27,6 +28,7 @@ set(HEADERS
     detail/ga_mvec3d_e.hpp
     detail/ga_mvec3d_u.hpp
     detail/ga_mvec3d.hpp
+    detail/ga_mvec4d.hpp
     detail/ga_ega_3d_ops.hpp
     detail/ga_fmt_support.hpp
     )
