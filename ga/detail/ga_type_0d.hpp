@@ -2,7 +2,7 @@
 
 // author: Daniel Hug, 2024
 
-#include "ga_mvec8_t.hpp"
+#include "ga_scalar_t.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 // consistent type definitions for easy use
@@ -10,8 +10,8 @@
 
 namespace hd::ga {
 
-struct mvec3d_tag {};
+struct scalar_tag {};
 
-template <typename T> using MVec3d = MVec8_t<T, mvec3d_tag>;
+template <typename T> using Scalar = Scalar_t<T, scalar_tag>;
 
 } // namespace hd::ga

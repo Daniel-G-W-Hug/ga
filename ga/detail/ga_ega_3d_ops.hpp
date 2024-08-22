@@ -13,6 +13,9 @@
 
 #include "ga_value_t.hpp"
 
+#include "ga_type_0d.hpp"
+#include "ga_type_3d.hpp"
+
 #include "ga_mvec3d.hpp"
 #include "ga_mvec3d_e.hpp"
 #include "ga_mvec3d_u.hpp"

@@ -13,6 +13,9 @@
 
 #include "ga_value_t.hpp"
 
+#include "ga_type_0d.hpp"
+#include "ga_type_2d.hpp"
+
 
 namespace hd::ga {
 
@@ -42,6 +45,8 @@ struct MVec2d_E {
 
     // assign all components
     MVec2d_E(T s, T ps) : c0(s), c1(ps) {}
+    // TODO: might be problematic together with MVec2d_E(Scalar<T> s, PScalar2d<T> ps)
+    //       CHECK in Tests!
 
     // assign a scalar part exclusively (other grades = 0)
     MVec2d_E(Scalar<T> s) : c0(s) {}

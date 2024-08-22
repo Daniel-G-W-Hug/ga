@@ -17,6 +17,40 @@ using namespace hd::ga; // use ga types, constants, etc.
 TEST_SUITE("Projective Geometric Algebra (PGA)")
 {
 
+    TEST_CASE("algebra<2,0,1> - pga_2d")
+    {
+        fmt::println("");
+        fmt::println("algebra<2, 0, 1> - pga_2d:");
+        // 2d projective geometric algebra (modelled in a 3d algebra)
+        const algebra<2, 0, 1> alg;
+        CHECK(alg.p() == 2);
+        CHECK(alg.n() == 0);
+        CHECK(alg.z() == 1);
+        CHECK(alg.dim_space() == 3);                 // dim_space == p+n+z
+        CHECK(alg.num_components() == 8);            // num_components == 2^dim
+        CHECK(alg.num_components_grade.size() == 4); // == dim_space + 1
+        fmt::println("   pga_2d: dim_grade = {}",
+                     fmt::join(alg.num_components_grade, ", "));
+        fmt::println("   pga_2d: basis_name = {}", fmt::join(alg.basis_name, ", "));
+    }
+
+    TEST_CASE("algebra<3, 0, 1> pga_3d")
+    {
+        fmt::println("");
+        fmt::println("algebra<3, 0, 1> - pga_3d:");
+        // 3d projective geometric algebra (modelled in a 4d algebra)
+        const algebra<3, 0, 1> alg;
+        CHECK(alg.p() == 3);
+        CHECK(alg.n() == 0);
+        CHECK(alg.z() == 1);
+        CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
+        CHECK(alg.num_components() == 16);           // num_components == 2^dim
+        CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
+        fmt::println("   pga_3d: dim_grade = {}",
+                     fmt::join(alg.num_components_grade, ", "));
+        fmt::println("   pga_3d: basis_name = {}", fmt::join(alg.basis_name, ", "));
+    }
+
     TEST_CASE("pga_2d")
     {
         fmt::println("");

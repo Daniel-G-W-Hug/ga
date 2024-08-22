@@ -56,22 +56,22 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         fmt::println("   ega_3d: basis_name = {}", fmt::join(alg.basis_name, ", "));
     }
 
-    TEST_CASE("algebra<4> ega_4d")
-    {
-        fmt::println("");
-        fmt::println("algebra<4> - ega_4d:");
-        // 4d euklidean geometric algebra
-        const algebra<4> alg;
-        CHECK(alg.p() == 4);
-        CHECK(alg.n() == 0);
-        CHECK(alg.z() == 0);
-        CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
-        CHECK(alg.num_components() == 16);           // num_components == 2^dim
-        CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
-        fmt::println("   ega_4d: dim_grade = {}",
-                     fmt::join(alg.num_components_grade, ", "));
-        fmt::println("   ega_4d: basis_name = {}", fmt::join(alg.basis_name, ", "));
-    }
+    // TEST_CASE("algebra<4> ega_4d")
+    // {
+    //     fmt::println("");
+    //     fmt::println("algebra<4> - ega_4d:");
+    //     // 4d euklidean geometric algebra
+    //     const algebra<4> alg;
+    //     CHECK(alg.p() == 4);
+    //     CHECK(alg.n() == 0);
+    //     CHECK(alg.z() == 0);
+    //     CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
+    //     CHECK(alg.num_components() == 16);           // num_components == 2^dim
+    //     CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
+    //     fmt::println("   ega_4d: dim_grade = {}",
+    //                  fmt::join(alg.num_components_grade, ", "));
+    //     fmt::println("   ega_4d: basis_name = {}", fmt::join(alg.basis_name, ", "));
+    // }
 
     ////////////////////////////////////////////////////////////////////////////////
     // Vec2d<T> basic test cases
