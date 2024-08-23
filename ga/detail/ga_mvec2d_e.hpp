@@ -2,14 +2,13 @@
 
 // author: Daniel Hug, 2024
 
-#include <algorithm>
-#include <cmath>    // abs, sqrt, acos
-#include <concepts> // std::floating_point<T>
-#include <iostream>
-#include <limits>
-#include <numbers> // math constants like pi
-#include <stdexcept>
-#include <string>
+#include <algorithm> // std::max
+#include <cmath>     // std::abs
+#include <concepts>  // std::floating_point<T>
+#include <iostream>  // std::cout
+#include <limits>    // std::numeric_limits
+#include <stdexcept> // std::runtime_error
+#include <string>    // std::string, std::to_string
 
 #include "ga_value_t.hpp"
 
@@ -48,6 +47,13 @@ struct MVec2d_E {
     // TODO: might be problematic together with MVec2d_E(Scalar<T> s, PScalar2d<T> ps)
     //       CHECK in Tests!
 
+    // floating point type conversion
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec2d_E(MVec2d_E<U> const& v) : c0(v.c0), c1(v.c1)
+    {
+    }
+
     // assign a scalar part exclusively (other grades = 0)
     MVec2d_E(Scalar<T> s) : c0(s) {}
 
@@ -59,13 +65,9 @@ struct MVec2d_E {
     // (less expensive compared to full geometric product)
     MVec2d_E(Scalar<T> s, PScalar2d<T> ps) : c0(s), c1(ps) {}
 
-    // floating point type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec2d_E(MVec2d_E<U> const& v) : c0(v.c0), c1(v.c1)
-    {
-    }
-
+    ////////////////////////////////////////////////////////////////////////////
+    // component definition
+    ////////////////////////////////////////////////////////////////////////////
 
     T c0{}; // scalar component
     T c1{}; // bivector component (2d pseudoscalar)

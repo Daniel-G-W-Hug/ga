@@ -2,18 +2,19 @@
 
 // author: Daniel Hug, 2024
 
-#include <algorithm>
-#include <cmath>    // abs, sqrt, acos
-#include <concepts> // std::floating_point<T>
-#include <iostream>
-#include <limits>
-#include <stdexcept>
-#include <string>
+#include <algorithm> // std::max
+#include <cmath>     // std::abs
+#include <concepts>  // std::floating_point<T>
+#include <iostream>  // std::cout
+#include <limits>    // std::numeric_limits
+#include <stdexcept> // std::runtime_error
+#include <string>    // std::string, std::to_string
 
 #include "ga_value_t.hpp"
 
 #include "ga_type_0d.hpp"
 #include "ga_type_3d.hpp"
+
 
 namespace hd::ga {
 
@@ -47,6 +48,13 @@ struct MVec3d_E {
     // assign all components
     MVec3d_E(T s, T yz, T zx, T xy) : c0(s), c1(yz), c2(zx), c3(xy) {}
 
+    // floating point type conversion
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec3d_E(MVec3d_E<U> const& v) : c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3)
+    {
+    }
+
     // assign a scalar part exclusively (other grades = 0)
     MVec3d_E(Scalar<T> s) : c0(s) {}
 
@@ -56,13 +64,9 @@ struct MVec3d_E {
     // assign scalar and bivector parts
     MVec3d_E(Scalar<T> s, BiVec3d<T> b) : c0(s), c1(b.x), c2(b.y), c3(b.z) {}
 
-    // floating point type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec3d_E(MVec3d_E<U> const& v) : c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3)
-    {
-    }
-
+    ////////////////////////////////////////////////////////////////////////////
+    // component definition
+    ////////////////////////////////////////////////////////////////////////////
 
     T c0{}; // scalar component
     T c1{}; // bivector x component (maps to e2^e3 = yz)

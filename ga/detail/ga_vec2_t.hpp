@@ -2,6 +2,7 @@
 
 // author: Daniel Hug, 2024
 
+#include <algorithm> // std::max
 #include <cmath>     // std::abs
 #include <concepts>  // std::floating_point<T>
 #include <iostream>  // std::cout
@@ -9,7 +10,6 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
-#include "ga_value_t.hpp"
 
 namespace hd::ga {
 

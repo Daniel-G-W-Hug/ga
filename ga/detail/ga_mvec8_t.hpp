@@ -2,6 +2,7 @@
 
 // author: Daniel Hug, 2024
 
+#include <algorithm> // std::max
 #include <cmath>     // std::abs
 #include <concepts>  // std::floating_point<T>
 #include <iostream>  // std::cout

@@ -8,7 +8,7 @@
 
 namespace hd::ga {
 
-struct scalar_tag {};
+struct scalar_tag {}; // used for each algebra regardless of dimension
 
 struct vec2d_tag {};
 struct pscalar2d_tag {};

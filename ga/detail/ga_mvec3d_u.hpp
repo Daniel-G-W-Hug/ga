@@ -2,13 +2,13 @@
 
 // author: Daniel Hug, 2024
 
-#include <algorithm>
-#include <cmath>    // abs, sqrt, acos
-#include <concepts> // std::floating_point<T>
-#include <iostream>
-#include <limits>
-#include <stdexcept>
-#include <string>
+#include <algorithm> // std::max
+#include <cmath>     // std::abs
+#include <concepts>  // std::floating_point<T>
+#include <iostream>  // std::cout
+#include <limits>    // std::numeric_limits
+#include <stdexcept> // std::runtime_error
+#include <string>    // std::string, std::to_string
 
 #include "ga_value_t.hpp"
 
@@ -47,6 +47,13 @@ struct MVec3d_U {
     // assign all components
     MVec3d_U(T x, T y, T z, T ps) : c0(x), c1(y), c2(z), c3(ps) {}
 
+    // floating point type conversion
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec3d_U(MVec3d_U<U> const& v) : c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3)
+    {
+    }
+
     // assign a vector part exclusively (other grades = 0)
     MVec3d_U(Vec3d<T> v) : c0(v.x), c1(v.y), c2(v.z) {}
 
@@ -56,13 +63,9 @@ struct MVec3d_U {
     // assign vector and pseudoscalar parts
     MVec3d_U(Vec3d<T> v, PScalar3d<T> ps) : c0(v.x), c1(v.y), c2(v.z), c3(ps) {}
 
-    // floating point type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec3d_U(MVec3d_U<U> const& v) : c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3)
-    {
-    }
-
+    ////////////////////////////////////////////////////////////////////////////
+    // component definition
+    ////////////////////////////////////////////////////////////////////////////
 
     T c0{}; // vector x component (maps to e1)
     T c1{}; // vector y component (maps to e2)
