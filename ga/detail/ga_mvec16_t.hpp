@@ -35,6 +35,20 @@ struct MVec16_t {
     {
     }
 
+    // floating point type conversion
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec16_t(MVec16_t<U, Tag> const& v) :
+        c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3), c4(v.c4), c5(v.c5), c6(v.c6), c7(v.c7),
+        c8(v.c8), c9(v.c9), c10(v.c10), c11(v.c11), c12(v.c12), c13(v.c13), c14(v.c14),
+        c15(v.c15)
+    {
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // ctors for MVec4d<T>
+    ////////////////////////////////////////////////////////////////////////////
+
     // assign a scalar part exclusively (other grades = 0)
     MVec16_t(Scalar<T> s) : c0(s) {}
 
@@ -65,15 +79,9 @@ struct MVec16_t {
     {
     }
 
-    // floating point type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec16_t(MVec16_t<U, Tag> const& v) :
-        c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3), c4(v.c4), c5(v.c5), c6(v.c6), c7(v.c7),
-        c8(v.c8), c9(v.c9), c10(v.c10), c11(v.c11), c12(v.c12), c13(v.c13), c14(v.c14),
-        c15(v.c15)
-    {
-    }
+    ////////////////////////////////////////////////////////////////////////////
+    // component definition
+    ////////////////////////////////////////////////////////////////////////////
 
     T c0{};  //     scalar
              //

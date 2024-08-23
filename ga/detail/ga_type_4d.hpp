@@ -2,6 +2,8 @@
 
 // author: Daniel Hug, 2024
 
+#include "ga_type_tags.hpp"
+
 #include "ga_bvec6_t.hpp"
 #include "ga_scalar_t.hpp"
 #include "ga_vec4_t.hpp"
@@ -11,11 +13,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga {
-
-struct vec4d_tag {};
-struct bivec4d_tag {};
-struct trivec4d_tag {};
-struct pscalar4d_tag {};
 
 template <typename T> using Vec4d = Vec4_t<T, vec4d_tag>;
 template <typename T> using BiVec4d = BVec6_t<T, bivec4d_tag>;

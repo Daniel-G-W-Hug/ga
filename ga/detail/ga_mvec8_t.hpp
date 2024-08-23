@@ -36,6 +36,18 @@ struct MVec8_t {
     {
     }
 
+    // floating point type conversion
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec8_t(MVec8_t<U, Tag> const& v) :
+        c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3), c4(v.c4), c5(v.c5), c6(v.c6), c7(v.c7)
+    {
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // ctors for MVec3d<T>
+    ////////////////////////////////////////////////////////////////////////////
+
     // assign a scalar part exclusively (other grades = 0)
     MVec8_t(Scalar<T> s) : c0(s) {}
 
@@ -62,13 +74,9 @@ struct MVec8_t {
     // assign from the uneven subalgebra
     MVec8_t(MVec3d_U<T> const& v) : c1(v.c0), c2(v.c1), c3(v.c2), c7(v.c3) {}
 
-    // floating point type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec8_t(MVec8_t<U, Tag> const& v) :
-        c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3), c4(v.c4), c5(v.c5), c6(v.c6), c7(v.c7)
-    {
-    }
+    ////////////////////////////////////////////////////////////////////////////
+    // component definition
+    ////////////////////////////////////////////////////////////////////////////
 
     T c0{}; // scalar
     T c1{}; // vector 3d, 1st component   (x)  - maps to basis vector    e1

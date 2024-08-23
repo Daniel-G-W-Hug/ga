@@ -2,6 +2,8 @@
 
 // author: Daniel Hug, 2024
 
+#include "ga_type_tags.hpp"
+
 #include "ga_mvec16_t.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -9,8 +11,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga {
-
-struct mvec4d_tag {};
 
 template <typename T> using MVec4d = MVec16_t<T, mvec4d_tag>;
 

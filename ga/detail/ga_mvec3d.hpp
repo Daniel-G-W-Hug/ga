@@ -2,15 +2,15 @@
 
 // author: Daniel Hug, 2024
 
+#include "ga_type_tags.hpp"
+
 #include "ga_mvec8_t.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
-// consistent type definitions for easy use
+// consistent type definitions
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga {
-
-struct mvec3d_tag {};
 
 template <typename T> using MVec3d = MVec8_t<T, mvec3d_tag>;
 
