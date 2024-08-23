@@ -11,6 +11,7 @@ set(HEADERS
     detail/ga_fmt_support.hpp
     detail/ga_ega_2d_ops.hpp
     detail/ga_ega_3d_ops.hpp
+    detail/ga_pga_2dp_ops.hpp
     detail/ga_scalar_t.hpp
     detail/ga_vec2_t.hpp
     detail/ga_vec3_t.hpp

@@ -5,11 +5,12 @@
 #include <algorithm> // std::max
 #include <cmath>     // std::abs
 #include <concepts>  // std::floating_point<T>
-#include <iostream>  // std::cout
+#include <iostream>  // std::cout, std::ostream
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
+#include "ga_type_tags.hpp"
 
 namespace hd::ga {
 
@@ -17,7 +18,7 @@ namespace hd::ga {
 // Vec2_t<T, Tag> definition
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename Tag>
+template <typename T, typename Tag = default_tag>
     requires(std::floating_point<T>)
 struct Vec2_t {
 

@@ -14,16 +14,16 @@
 #include "ga_value_t.hpp"
 
 #include "ga_type_0d.hpp"
-#include "ga_type_2d.hpp"
+#include "ga_type_2dp.hpp"
 
 #include "ga_mvec2d.hpp"
 #include "ga_mvec2d_e.hpp"
 
 
-namespace hd::ga::ega {
+namespace hd::ga::pga {
 
 ////////////////////////////////////////////////////////////////////////////////
-// Vec2d<T> basic operations
+// Vec2dp<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
 
 // return dot-product of two vectors
@@ -119,7 +119,7 @@ inline std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> const& v2)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2d<T> basic operations
+// MVec2dp<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
 
 // return squared magnitude
@@ -874,4 +874,4 @@ std::vector<Vec2d<std::common_type_t<T, U>>> gs_orthonormal(Vec2d<T> const& u,
     return basis;
 }
 
-} // namespace hd::ga::ega
+} // namespace hd::ga::pga

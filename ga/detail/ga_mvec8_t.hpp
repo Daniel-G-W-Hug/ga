@@ -5,16 +5,12 @@
 #include <algorithm> // std::max
 #include <cmath>     // std::abs
 #include <concepts>  // std::floating_point<T>
-#include <iostream>  // std::cout
+#include <iostream>  // std::cout, std::ostream
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
-#include "ga_type_0d.hpp"
-#include "ga_type_3d.hpp"
-
-#include "ga_mvec3d_e.hpp"
-#include "ga_mvec3d_u.hpp"
+#include "ga_type_tags.hpp"
 
 namespace hd::ga {
 
@@ -22,7 +18,7 @@ namespace hd::ga {
 // MVec8_t<T, Tag> definition of a multivector with 8 components c0, ..., c7
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename Tag>
+template <typename T, typename Tag = default_tag>
     requires(std::floating_point<T>)
 struct MVec8_t {
 
@@ -36,44 +32,6 @@ struct MVec8_t {
         c0(s), c1(x), c2(y), c3(z), c4(yz), c5(zx), c6(xy), c7(ps)
     {
     }
-
-    // floating point type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec8_t(MVec8_t<U, Tag> const& v) :
-        c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3), c4(v.c4), c5(v.c5), c6(v.c6), c7(v.c7)
-    {
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // ctors for MVec3d<T>
-    ////////////////////////////////////////////////////////////////////////////
-
-    // assign a scalar part exclusively (other grades = 0)
-    MVec8_t(Scalar<T> s) : c0(s) {}
-
-    // assign a vector part exclusively (other grades = 0)
-    MVec8_t(Vec3d<T> const& v) : c1(v.x), c2(v.y), c3(v.z) {}
-
-    // assign a bivector part exclusively (other grades = 0)
-    MVec8_t(BiVec3d<T> const& v) : c4(v.x), c5(v.y), c6(v.z) {}
-
-    // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec8_t(PScalar3d<T> ps) : c7(ps) {}
-
-    // assign a geometric product resulting from a product of two vectors
-    // via dot(v1,v2) and wdg(v1,v2) or via dot(v1,v2) and cmt(v1,v2) directly
-    // (other grades = 0)
-    MVec8_t(Scalar<T> s, BiVec3d<T> const& v) : c0(s), c4(v.x), c5(v.y), c6(v.z) {}
-
-    // assign from a quaternion, i.e. from the even subalgebra
-    MVec8_t(MVec3d_E<T> const& v) : c0(v.c0), c4(v.c1), c5(v.c2), c6(v.c3) {}
-
-    // assign a geometric product resulting from a product of a vector and a bivector
-    MVec8_t(Vec3d<T> const& v, PScalar3d<T> ps) : c1(v.x), c2(v.y), c3(v.z), c7(ps) {}
-
-    // assign from the uneven subalgebra
-    MVec8_t(MVec3d_U<T> const& v) : c1(v.c0), c2(v.c1), c3(v.c2), c7(v.c3) {}
 
     ////////////////////////////////////////////////////////////////////////////
     // component definition
@@ -245,36 +203,6 @@ operator/(MVec8_t<T, Tag> const& v, U s)
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return MVec8_t<ctype, Tag>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv, v.c4 * inv,
                                v.c5 * inv, v.c6 * inv, v.c7 * inv);
-}
-
-// returning various grades of a multivector
-//
-// grade 0: gr0() - scalar
-// grade 1: gr1() - vector
-// grade 2: gr2() - bivector
-// grade 3: gr3() - trivector (= pseudoscalar in 3d)
-
-template <typename T, typename Tag>
-inline constexpr Scalar<T> gr0(MVec8_t<T, Tag> const& v)
-{
-    return Scalar<T>(v.c0);
-}
-
-template <typename T, typename Tag>
-inline constexpr Vec3d<T> gr1(MVec8_t<T, Tag> const& v)
-{
-    return Vec3d<T>(v.c1, v.c2, v.c3);
-}
-template <typename T, typename Tag>
-inline constexpr BiVec3d<T> gr2(MVec8_t<T, Tag> const& v)
-{
-    return BiVec3d<T>(v.c4, v.c5, v.c6);
-}
-
-template <typename T, typename Tag>
-inline constexpr PScalar3d<T> gr3(MVec8_t<T, Tag> const& v)
-{
-    return PScalar3d<T>(v.c7);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -41,7 +41,7 @@ struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::Scalar_t<T, Tag>& v, FormatContext& ctx) const
     {
-        return fmt::format_to(ctx.out(), "{}", double(v));
+        return fmt::format_to(ctx.out(), "({})", double(v));
     }
 };
 

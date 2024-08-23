@@ -5,7 +5,7 @@
 #include <algorithm> // std::clamp
 #include <cmath>     // std::abs, std::sin, std::cos
 #include <concepts>  // std::floating_point<T>
-#include <iostream>
+#include <iostream>  // std::cout, std::ostream
 #include <limits>
 #include <numbers> // math constants like pi
 #include <stdexcept>

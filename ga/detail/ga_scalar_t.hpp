@@ -16,11 +16,13 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
-// provide common type for Scalar<T>, PScalar2d<T>, PScalar3d<T>
+// provide common type for Scalar<T>, PScalar2d<T>, PScalar3d<T>, ...
+
+#include "ga_type_tags.hpp"
 
 namespace hd::ga {
 
-template <typename T, typename Tag>
+template <typename T, typename Tag = default_tag>
     requires(std::floating_point<T>)
 class Scalar_t {
 

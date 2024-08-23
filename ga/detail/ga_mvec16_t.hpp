@@ -5,7 +5,7 @@
 #include <algorithm> // std::max
 #include <cmath>     // std::abs
 #include <concepts>  // std::floating_point<T>
-#include <iostream>  // std::cout
+#include <iostream>  // std::cout, std::ostream
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
@@ -19,7 +19,7 @@ namespace hd::ga {
 // MVec16_t<T, Tag> definition of a multivector with 16 components c0, ..., c15
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename Tag>
+template <typename T, typename Tag = default_tag>
     requires(std::floating_point<T>)
 struct MVec16_t {
 
@@ -33,50 +33,6 @@ struct MVec16_t {
              T tz, T tw, T ps) :
         c0(s), c1(vx), c2(vy), c3(vz), c4(vw), c5(bu), c6(bv), c7(bw), c8(bx), c9(by),
         c10(bz), c11(tx), c12(ty), c13(tz), c14(tw), c15(ps)
-    {
-    }
-
-    // floating point type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec16_t(MVec16_t<U, Tag> const& v) :
-        c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3), c4(v.c4), c5(v.c5), c6(v.c6), c7(v.c7),
-        c8(v.c8), c9(v.c9), c10(v.c10), c11(v.c11), c12(v.c12), c13(v.c13), c14(v.c14),
-        c15(v.c15)
-    {
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // ctors for MVec4d<T>
-    ////////////////////////////////////////////////////////////////////////////
-
-    // assign a scalar part exclusively (other grades = 0)
-    MVec16_t(Scalar<T> s) : c0(s) {}
-
-    // assign a vector part exclusively (other grades = 0)
-    MVec16_t(Vec4d<T> const& v) : c1(v.x), c2(v.y), c3(v.z), c4(v.w) {}
-
-    // assign a bivector part exclusively (other grades = 0)
-    MVec16_t(BiVec4d<T> const& v) :
-        c5(v.c0), c6(v.c1), c7(v.c2), c8(v.c3), c9(v.c4), c10(v.c5)
-    {
-    }
-
-    // assign a trivector part exclusively (other grades = 0)
-    MVec16_t(TriVec4d<T> const& t) : c11(t.x), c12(t.y), c13(t.z), c14(t.w) {}
-
-    // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec16_t(PScalar4d<T> ps) : c15(ps) {}
-
-    // assign components of an even grade subvector
-    MVec16_t(Scalar<T> s, BiVec4d<T> const& v, PScalar4d<T> ps) :
-        c0(s), c5(v.c0), c6(v.c1), c7(v.c2), c8(v.c3), c9(v.c4), c10(v.c5), c15(ps)
-    {
-    }
-
-    // assign components of an uneven grade subvector
-    MVec16_t(Vec4d<T> const& v, TriVec4d<T> const& t) :
-        c1(v.x), c2(v.y), c3(v.z), c4(v.w), c11(t.x), c12(t.y), c13(t.z), c14(t.x)
     {
     }
 
@@ -317,44 +273,6 @@ operator/(MVec16_t<T, Tag> const& v, U s)
                                 v.c4 * inv, v.c5 * inv, v.c6 * inv, v.c7 * inv,
                                 v.c8 * inv, v.c9 * inv, v.c10 * inv, v.c11 * inv,
                                 v.c12 * inv, v.c13 * inv, v.c14 * inv, v.c15 * inv);
-}
-
-// returning various grades of a multivector
-//
-// grade 0: gr0() - scalar
-// grade 1: gr1() - vector
-// grade 2: gr2() - bivector
-// grade 3: gr3() - trivector
-// grade 4: gr4() - quadvector (= pseudoscalar in 4d)
-
-template <typename T, typename Tag>
-inline constexpr Scalar<T> gr0(MVec16_t<T, Tag> const& v)
-{
-    return Scalar<T>(v.c0);
-}
-
-template <typename T, typename Tag>
-inline constexpr Vec4d<T> gr1(MVec16_t<T, Tag> const& v)
-{
-    return Vec4d<T>(v.c1, v.c2, v.c3, v.c4);
-}
-
-template <typename T, typename Tag>
-inline constexpr BiVec3d<T> gr2(MVec16_t<T, Tag> const& v)
-{
-    return BiVec4d<T>(v.c5, v.c6, v.c7, v.c8, v.c9, v.c10);
-}
-
-template <typename T, typename Tag>
-inline constexpr TriVec4d<T> gr3(MVec16_t<T, Tag> const& v)
-{
-    return TriVec4d<T>(v.c11, v.c12, v.c13, v.c14);
-}
-
-template <typename T, typename Tag>
-inline constexpr PScalar4d<T> gr4(MVec16_t<T, Tag> const& v)
-{
-    return PScalar4d<T>(v.c15);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

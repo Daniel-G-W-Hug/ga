@@ -51,10 +51,33 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         fmt::println("   pga_3d: basis_name = {}", fmt::join(alg.basis_name, ", "));
     }
 
-    TEST_CASE("pga_2d")
+    TEST_CASE("pga_2d<2,0,1> - defining basic types")
     {
         fmt::println("");
-        fmt::println("pga_2d:");
-        CHECK(true);
+
+        fmt::println("pga_2d: Scalar<T>");
+
+        auto s = Scalar<value_t>{-3.0};
+        fmt::println("        s = {}", s);
+
+        fmt::println("pga_2d: Vec2dp<T>");
+
+        auto v = Vec2dp<value_t>{-3.0, 1.2, 1.0};
+        fmt::println("        v = {}", v);
+
+        fmt::println("pga_2d: BiVec2dp<T>");
+
+        auto b = BiVec2dp<value_t>{3.0, -1.2, 1.0};
+        fmt::println("        b = {}", b);
+
+        fmt::println("pga_2d: PScalar2dp<T>");
+
+        auto ps = PScalar2dp<value_t>{3.0};
+        fmt::println("        ps = {}", ps);
+
+        fmt::println("pga_2d: MVec2dp<T>");
+
+        auto mv4d = MVec4d<value_t>{Scalar<value_t>(5)};
+        fmt::println("pga_2d: MVec4d<T> = {}", mv4d);
     }
 } // TEST_SUITE("Projective Geometric Algebra (PGA)")

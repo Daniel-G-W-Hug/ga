@@ -2,15 +2,7 @@
 
 // author: Daniel Hug, 2024
 
-#include <algorithm> // std::max
-#include <cmath>     // std::abs
-#include <concepts>  // std::floating_point<T>
-#include <iostream>  // std::cout
-#include <limits>    // std::numeric_limits
-#include <stdexcept> // std::runtime_error
-#include <string>    // std::string, std::to_string
-
-#include "ga_value_t.hpp"
+#include "ga_mvec4_t.hpp"
 
 #include "ga_type_0d.hpp"
 #include "ga_type_2d.hpp"
@@ -20,183 +12,46 @@
 
 namespace hd::ga {
 
+template <typename T> using MVec2d = MVec4_t<T, mvec2d_tag>;
+
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2d<T> definition of a multivector
+// use MVec4_t including its ctors and add specific ctors for MVec4_t<T, Tag>
+// by using partial template specialization for the Tag=mvec2d_tag
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T = value_t>
-    requires(std::floating_point<T>)
-struct MVec2d {
+template <typename T> struct MVec4_t<T, mvec2d_tag> : public MVec4_t<T, default_tag> {
 
-    // ctors
+    using MVec4_t<T, default_tag>::MVec4_t; // inherit base class ctors
 
-    // (all grades = 0)
-    MVec2d() = default;
-
-    // assign all components
-    MVec2d(T s, T x, T y, T ps) : c0(s), c1(x), c2(y), c3(ps) {}
 
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
-    MVec2d(MVec2d<U> const& v) : c0(v.c0), c1(v.c1), c2(v.c2), c3(v.c3)
+    MVec4_t(MVec4_t<U> const& v) : MVec4_t(v.c0, v.c1, v.c2, v.c3)
     {
     }
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec2d(Scalar<T> s) : c0(s) {}
+    MVec4_t(Scalar<T> s) : MVec4_t(s, 0.0, 0.0, 0.0) {}
 
     // assign a vector part exclusively (other grades = 0)
-    MVec2d(Vec2d<T> const& v) : c1(v.x), c2(v.y) {}
+    MVec4_t(Vec2d<T> const& v) : MVec4_t(0.0, v.x, v.y, 0.0) {}
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec2d(PScalar2d<T> ps) : c3(ps) {}
+    MVec4_t(PScalar2d<T> ps) : MVec4_t(0.0, 0.0, 0.0, ps) {}
 
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) directly (other grades = 0)
     // (less expensive compared to full geometric product)
-    MVec2d(Scalar<T> s, PScalar2d<T> ps) : c0(s), c3(ps) {}
+    MVec4_t(Scalar<T> s, PScalar2d<T> ps) : MVec4_t(s, 0.0, 0.0, ps) {}
 
     // assign from a complex number, i.e. from the even subalgebra
-    MVec2d(MVec2d_E<T> v) : c0(v.c0), c3(v.c1) {}
-
-    ////////////////////////////////////////////////////////////////////////////
-    // component definition
-    ////////////////////////////////////////////////////////////////////////////
-
-    T c0{}; // scalar
-    T c1{}; // vector 2d, 1st component
-    T c2{}; // vector 2d, 2nd component
-    T c3{}; // 2d pseudoscalar
-
-    // equality
-    template <typename U>
-        requires(std::floating_point<U>)
-    bool operator==(MVec2d<U> const& rhs) const
-    {
-        using ctype = std::common_type_t<T, U>;
-        // componentwise comparison
-        // equality implies same magnitude and direction
-        // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_c0 = std::abs(rhs.c0 - c0);
-        auto abs_delta_c1 = std::abs(rhs.c1 - c1);
-        auto abs_delta_c2 = std::abs(rhs.c2 - c2);
-        auto abs_delta_c3 = std::abs(rhs.c3 - c3);
-        auto constexpr delta_eps =
-            ctype(5.0) * std::max<ctype>(std::numeric_limits<T>::epsilon(),
-                                         std::numeric_limits<U>::epsilon());
-        if (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
-            abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps)
-            return true;
-        return false;
-    }
-
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec2d& operator+=(MVec2d<U> const& v)
-    {
-        c0 += v.c0;
-        c1 += v.c1;
-        c2 += v.c2;
-        c3 += v.c3;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec2d& operator-=(MVec2d<U> const& v)
-    {
-        c0 -= v.c0;
-        c1 -= v.c1;
-        c2 -= v.c2;
-        c3 -= v.c3;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec2d& operator*=(U s)
-    {
-        c0 *= s;
-        c1 *= s;
-        c2 *= s;
-        c3 *= s;
-        return (*this);
-    }
-
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec2d& operator/=(U s)
-    {
-        c0 /= s;
-        c1 /= s;
-        c2 /= s;
-        c3 /= s;
-        return (*this);
-    }
+    MVec4_t(MVec2d_E<T> v) : MVec4_t(v.c0, 0.0, 0.0, v.c1) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2d<T> core operations
+// define grade operations for partial specialization MVec4_t<T, mvec2d_tag>
 ////////////////////////////////////////////////////////////////////////////////
-
-// unary minus
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr MVec2d<T> operator-(MVec2d<T> const& v)
-{
-    return MVec2d<T>(-v.c0, -v.c1, -v.c2, -v.c3);
-}
-
-// add multivectors
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& v1,
-                                                            MVec2d<U> const& v2)
-{
-    return MVec2d<std::common_type_t<T, U>>(v1.c0 + v2.c0, v1.c1 + v2.c1, v1.c2 + v2.c2,
-                                            v1.c3 + v2.c3);
-}
-
-// substract multivectors
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& v1,
-                                                            MVec2d<U> const& v2)
-{
-    return MVec2d<std::common_type_t<T, U>>(v1.c0 - v2.c0, v1.c1 - v2.c1, v1.c2 - v2.c2,
-                                            v1.c3 - v2.c3);
-}
-
-
-// multiply a multivector with a scalar
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator*(MVec2d<T> const& v, U s)
-{
-    return MVec2d<std::common_type_t<T, U>>(v.c0 * s, v.c1 * s, v.c2 * s, v.c3 * s);
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator*(T s, MVec2d<U> const& v)
-{
-    return MVec2d<std::common_type_t<T, U>>(v.c0 * s, v.c1 * s, v.c2 * s, v.c3 * s);
-}
-
-// devide a multivector by a scalar
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator/(MVec2d<T> const& v, U s)
-{
-    using ctype = std::common_type_t<T, U>;
-    if (std::abs(s) < eps) {
-        throw std::runtime_error("scalar too small, division by zero" +
-                                 std::to_string(s) + "\n");
-    }
-    ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
-    return MVec2d<ctype>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
-}
 
 // returning various grades of a multivector
 //
@@ -217,17 +72,6 @@ template <typename T> inline constexpr Vec2d<T> gr1(MVec2d<T> const& v)
 template <typename T> inline constexpr PScalar2d<T> gr2(MVec2d<T> const& v)
 {
     return PScalar2d<T>(v.c3);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// MVec2d<T> printing support via iostream
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-    requires(std::floating_point<T>)
-std::ostream& operator<<(std::ostream& os, MVec2d<T> const& v)
-{
-    os << "(" << v.c0 << "," << v.c1 << "," << v.c2 << "," << v.c3 << ")";
-    return os;
 }
 
 } // namespace hd::ga

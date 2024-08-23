@@ -5,7 +5,7 @@
 #include <algorithm> // std::max
 #include <cmath>     // std::abs
 #include <concepts>  // std::floating_point<T>
-#include <iostream>  // std::cout
+#include <iostream>  // std::cout, std::ostream
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string

@@ -24,17 +24,17 @@
 #include "ga_usr_types.hpp"     // consistent user types (for user convenience)
 #include "ga_usr_utilities.hpp" // chelper functions (for user convenience)
 
-// #include "detail/ga_vec2d.hpp" // Vec2d<T>
-
 // #include "detail/ga_mvec2d.hpp"   // MVec2d<T>
 // #include "detail/ga_mvec2d_e.hpp" // MVec2d_E<T>
 // #include "detail/ga_mvec3d.hpp"   // MVec3d<T>
 // #include "detail/ga_mvec3d_e.hpp" // MVec3d_E<T>
 // #include "detail/ga_mvec3d_u.hpp" // MVec3d_U<T>
 
-// // PGA-specific operations are in namespace hd::ga::ega
-// #include "detail/ga_pga_2d_ops.hpp" // ega 2d operations
-// #include "detail/ga_pga_3d_ops.hpp" // ega 3d operations
+#include "detail/ga_mvec4d.hpp" // MVec4d<T>
 
-// // fmt-support is defined outside of other namespaces
-// #include "detail/ga_fmt_support.hpp" // printing support (fmt library)
+// // PGA-specific operations are in namespace hd::ga::ega
+#include "detail/ga_pga_2dp_ops.hpp" // pga 2d operations
+// #include "detail/ga_pga_3d_ops.hpp" // pga 3d operations
+
+// fmt-support is defined outside of other namespaces
+#include "detail/ga_fmt_support.hpp" // printing support (fmt library)
