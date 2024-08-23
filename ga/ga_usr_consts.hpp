@@ -8,7 +8,7 @@
 #include "detail/ga_mvec3d.hpp" // MVec3d<T>
 
 
-namespace hd::ga {
+namespace hd::ga::ega {
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2D constants
@@ -48,4 +48,4 @@ auto const I_3d = PScalar3d<value_t>(1.0);
 auto const Im_3d = MVec3d<value_t>{I_3d};     // I_3d as multivector
 auto const Im_3d_U = MVec3d_U<value_t>{I_3d}; // I_3d as uneven grade multivector
 
-} // namespace hd::ga
+} // namespace hd::ga::ega

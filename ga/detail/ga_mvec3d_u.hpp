@@ -47,11 +47,11 @@ struct MVec3d_U {
     // assign all components
     MVec3d_U(T x, T y, T z, T ps) : c0(x), c1(y), c2(z), c3(ps) {}
 
-    // assign a scalar part exclusively (other grades = 0)
-    MVec3d_U(PScalar3d<T> ps) : c3(ps) {}
-
     // assign a vector part exclusively (other grades = 0)
     MVec3d_U(Vec3d<T> v) : c0(v.x), c1(v.y), c2(v.z) {}
+
+    // assign a scalar part exclusively (other grades = 0)
+    MVec3d_U(PScalar3d<T> ps) : c3(ps) {}
 
     // assign vector and pseudoscalar parts
     MVec3d_U(Vec3d<T> v, PScalar3d<T> ps) : c0(v.x), c1(v.y), c2(v.z), c3(ps) {}

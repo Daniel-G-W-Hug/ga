@@ -484,6 +484,7 @@ void register_constants(sol::state& lua)
     //       (currently these values can be changed)
 
     using namespace hd::ga;
+    using namespace hd::ga::ega;
 
     // general constants
     lua["eps"] = eps;

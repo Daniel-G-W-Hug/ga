@@ -45,6 +45,9 @@ struct MVec8_t {
     // assign a bivector part exclusively (other grades = 0)
     MVec8_t(BiVec3d<T> const& v) : c4(v.x), c5(v.y), c6(v.z) {}
 
+    // assign a pseudoscalar part exclusively (other grades = 0)
+    MVec8_t(PScalar3d<T> ps) : c7(ps) {}
+
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) or via dot(v1,v2) and cmt(v1,v2) directly
     // (other grades = 0)
@@ -53,14 +56,11 @@ struct MVec8_t {
     // assign from a quaternion, i.e. from the even subalgebra
     MVec8_t(MVec3d_E<T> const& v) : c0(v.c0), c4(v.c1), c5(v.c2), c6(v.c3) {}
 
-    // assign from the uneven subalgebra
-    MVec8_t(MVec3d_U<T> const& v) : c1(v.c0), c2(v.c1), c3(v.c2), c7(v.c3) {}
-
     // assign a geometric product resulting from a product of a vector and a bivector
     MVec8_t(Vec3d<T> const& v, PScalar3d<T> ps) : c1(v.x), c2(v.y), c3(v.z), c7(ps) {}
 
-    // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec8_t(PScalar3d<T> ps) : c7(ps) {}
+    // assign from the uneven subalgebra
+    MVec8_t(MVec3d_U<T> const& v) : c1(v.c0), c2(v.c1), c3(v.c2), c7(v.c3) {}
 
     // floating point type conversion
     template <typename U>

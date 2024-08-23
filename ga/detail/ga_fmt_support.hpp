@@ -21,6 +21,8 @@
 #include "ga_vec3_t.hpp"
 #include "ga_vec4_t.hpp"
 
+#include "ga_bvec6_t.hpp"
+
 #include "ga_mvec2d.hpp"
 #include "ga_mvec2d_e.hpp"
 
@@ -28,7 +30,6 @@
 #include "ga_mvec3d_u.hpp"
 
 #include "ga_mvec16_t.hpp"
-#include "ga_mvec6_t.hpp"
 #include "ga_mvec8_t.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -133,16 +134,16 @@ struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : nested_formatter<double> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec6_t<T, Tag> - includes BiVec4d<T>, BiVec3dp<T>, Line3dp<T>
+// BVec6_t<T, Tag> - includes BiVec4d<T>, BiVec3dp<T>, Line3dp<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-struct fmt::formatter<hd::ga::MVec6_t<T, Tag>> : nested_formatter<double> {
+struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
-    auto format(const hd::ga::MVec6_t<T, Tag>& v, FormatContext& ctx) const
+    auto format(const hd::ga::BVec6_t<T, Tag>& v, FormatContext& ctx) const
     {
-        return fmt::format_to(ctx.out(), "({},{},{},{},{},{})", nested(v.c0),
-                              nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
-                              nested(v.c5));
+        return fmt::format_to(ctx.out(), "({},{},{},{},{},{})", nested(v.vx),
+                              nested(v.vy), nested(v.vz), nested(v.mx), nested(v.my),
+                              nested(v.mz));
     }
 };
 
