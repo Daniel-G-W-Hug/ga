@@ -50,6 +50,9 @@ struct MVec16_t {
     // assign a trivector part exclusively (other grades = 0)
     MVec16_t(TriVec4d<T> const& t) : c11(t.x), c12(t.y), c13(t.z), c14(t.w) {}
 
+    // assign a pseudoscalar part exclusively (other grades = 0)
+    MVec16_t(PScalar4d<T> ps) : c15(ps) {}
+
     // assign components of an even grade subvector
     MVec16_t(Scalar<T> s, BiVec4d<T> const& v, PScalar4d<T> ps) :
         c0(s), c5(v.c0), c6(v.c1), c7(v.c2), c8(v.c3), c9(v.c4), c10(v.c5), c15(ps)
@@ -61,9 +64,6 @@ struct MVec16_t {
         c1(v.x), c2(v.y), c3(v.z), c4(v.w), c11(t.x), c12(t.y), c13(t.z), c14(t.x)
     {
     }
-
-    // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec16_t(PScalar4d<T> ps) : c15(ps) {}
 
     // floating point type conversion
     template <typename U>
