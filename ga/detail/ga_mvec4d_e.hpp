@@ -1,0 +1,76 @@
+#pragma once
+
+// author: Daniel Hug, 2024
+
+#include "type_t/ga_mvec8_t.hpp"
+
+#include "type_t/ga_type_0d.hpp"
+#include "type_t/ga_type_4d.hpp"
+
+
+namespace hd::ga {
+
+template <typename T> using MVec4d_E = MVec8_t<T, mvec4d_e_tag>;
+
+////////////////////////////////////////////////////////////////////////////////
+// use MVec8_t including its ctors and add specific ctors for MVec8_t<T, Tag>
+// by using partial template specialization for the Tag=mvec3d_tag
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T> struct MVec8_t<T, mvec4d_e_tag> : public MVec8_t<T, default_tag> {
+
+    using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
+
+    // type adjustment
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec8_t(MVec8_t<U, mvec4d_e_tag> const& v) :
+        MVec8_t(v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7)
+    {
+    }
+
+    // assign a scalar part exclusively (other grades = 0)
+    MVec8_t(Scalar<T> s) : MVec8_t(T(s), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0) {}
+
+    // assign a bivector part exclusively (other grades = 0)
+    MVec8_t(BiVec4d<T> const& v) : MVec8_t(0.0, v.vx, v.vy, v.vz, v.mx, v.my, v.mz, 0.0)
+    {
+    }
+
+    // assign a pseudoscalar part exclusively (other grades = 0)
+    MVec8_t(PScalar4d<T> ps) : MVec8_t(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, T(ps)) {}
+
+    // assign a geometric product resulting from a product of two vectors
+    // via dot(v1,v2), cmt(v1,v2) and wdg(v1,v2)
+    MVec8_t(Scalar<T> s, BiVec4d<T> const& v, PScalar4d<T> ps) :
+        MVec8_t(T(s), v.vx, v.vy, v.vz, v.mx, v.my, v.mz, T(ps))
+    {
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// define grade operations for partial specialization MVec8_t<T, mvec4d_e_tag>
+////////////////////////////////////////////////////////////////////////////////
+
+// returning various grades of an even 4d multivector
+//
+// grade 0: gr0() - scalar
+// grade 2: gr2() - bivector
+// grade 3: gr4() - quadvector (= pseudoscalar in 4d)
+
+template <typename T> inline constexpr Scalar<T> gr0(MVec4d_E<T> const& v)
+{
+    return Scalar<T>(v.c0);
+}
+
+template <typename T> inline constexpr BiVec4d<T> gr2(MVec4d_E<T> const& v)
+{
+    return BiVec4d<T>(v.c1, v.c2, v.c3, v.c4, v.c5, v.c6);
+}
+
+template <typename T> inline constexpr PScalar4d<T> gr3(MVec4d_E<T> const& v)
+{
+    return PScalar4d<T>(v.c7);
+}
+
+} // namespace hd::ga

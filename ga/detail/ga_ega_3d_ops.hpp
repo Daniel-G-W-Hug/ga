@@ -2,24 +2,16 @@
 
 // author: Daniel Hug, 2024
 
-#include <algorithm> // std::clamp
-#include <cmath>     // std::abs, std::sin, std::cos
+#include <algorithm> // std::max, std::clamp
+#include <cmath>     // std::abs
 #include <concepts>  // std::floating_point<T>
 #include <iostream>  // std::cout, std::ostream
-#include <limits>
-#include <numbers> // math constants like pi
-#include <stdexcept>
-#include <string>
+#include <limits>    // std::numeric_limits
+#include <numbers>   // math constants like pi
+#include <stdexcept> // std::runtime_error
+#include <string>    // std::string, std::to_string
 
-#include "ga_value_t.hpp"
-
-#include "ga_type_0d.hpp"
-#include "ga_type_3d.hpp"
-
-#include "ga_mvec3d.hpp"
-#include "ga_mvec3d_e.hpp"
-#include "ga_mvec3d_u.hpp"
-
+#include "ga_mvec3d.hpp" // inclusion of multivector imports all component types
 
 namespace hd::ga::ega {
 
@@ -867,7 +859,7 @@ template <typename T, typename U>
 inline constexpr std::common_type_t<T, U> operator*(PScalar3d<T> A, PScalar3d<U> B)
 {
     using ctype = std::common_type_t<T, U>;
-    return -ctype(A) * ctype(B); // trivectors square to -1
+    return -ctype(A) * ctype(B); // trivectors in 3d square to -1
 }
 
 // return the multiplicative inverse of the multivector

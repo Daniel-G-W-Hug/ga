@@ -13,11 +13,7 @@
 
 #include "ga_value_t.hpp"
 
-#include "ga_type_0d.hpp"
-#include "ga_type_2dp.hpp"
-
-#include "ga_mvec2d.hpp"
-#include "ga_mvec2d_e.hpp"
+#include "ga_mvec2dp.hpp" // inclusion of multivector imports all component types
 
 
 namespace hd::ga::pga {

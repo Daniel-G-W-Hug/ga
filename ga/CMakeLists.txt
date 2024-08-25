@@ -8,29 +8,33 @@ set(HEADERS
     ga_usr_consts.hpp
     ga_usr_utilities.hpp
     detail/ga_algebra.hpp
+    detail/ga_value_t.hpp 
     detail/ga_fmt_support.hpp
     detail/ga_ega_2d_ops.hpp
     detail/ga_ega_3d_ops.hpp
     detail/ga_pga_2dp_ops.hpp
-    detail/ga_scalar_t.hpp
-    detail/ga_vec2_t.hpp
-    detail/ga_vec3_t.hpp
-    detail/ga_vec4_t.hpp
-    detail/ga_bvec6_t.hpp
-    detail/ga_mvec8_t.hpp
-    detail/ga_mvec16_t.hpp
-    detail/ga_value_t.hpp 
-    detail/ga_type_0d.hpp
-    detail/ga_type_2d.hpp
-    detail/ga_type_2dp.hpp
-    detail/ga_type_3d.hpp
-    detail/ga_type_3dp.hpp
-    detail/ga_type_4d.hpp
+    detail/type_t/ga_scalar_t.hpp
+    detail/type_t/ga_vec2_t.hpp
+    detail/type_t/ga_vec3_t.hpp
+    detail/type_t/ga_vec4_t.hpp
+    detail/type_t/ga_bvec6_t.hpp
+    detail/type_t/ga_mvec2_t.hpp
+    detail/type_t/ga_mvec4_t.hpp
+    detail/type_t/ga_mvec8_t.hpp
+    detail/type_t/ga_mvec16_t.hpp
+    detail/type_t/ga_type_0d.hpp
+    detail/type_t/ga_type_2d.hpp
+    detail/type_t/ga_type_2dp.hpp
+    detail/type_t/ga_type_3d.hpp
+    detail/type_t/ga_type_3dp.hpp
+    detail/type_t/ga_type_4d.hpp
     detail/ga_mvec2d.hpp
     detail/ga_mvec2d_e.hpp
     detail/ga_mvec3d_e.hpp
     detail/ga_mvec3d_u.hpp
     detail/ga_mvec3d.hpp
+    detail/ga_mvec4d_e.hpp
+    detail/ga_mvec4d_u.hpp
     detail/ga_mvec4d.hpp
     )
 

@@ -5,20 +5,21 @@
 #include "type_t/ga_mvec4_t.hpp"
 
 #include "type_t/ga_type_0d.hpp"
-#include "type_t/ga_type_3d.hpp"
+#include "type_t/ga_type_2dp.hpp"
 
 
 namespace hd::ga {
 
-template <typename T> using MVec3d_E = MVec4_t<T, mvec3d_e_tag>;
+template <typename T> using MVec2dp_E = MVec4_t<T, mvec2dp_e_tag>;
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec3d_E<T> M = c0 + (c1 e2^e3 + c2 e3^e1 + c3 e1^e2)
+// MVec2dp_E<T> M = c0 + (c1 * e2^e3 + c2 * e3^e1 + c3 * e1^e2)
 //
-// with the term in brackets being the bivector c1 e2^e3 + c2 e3^e1 + c3 e1^e2
-// that models a plane in 3D defined by the bivector coordinates (c1, c2, c3)
+// with the term in brackets being the bivector
+// c1 * e2^e3 + c2 * e3^e1 + c3 * e1^e2 that models a plane in 3D defined by
+// the bivector coordinates (c1, c2, c3)
 //
-// This is the definition of a multivector in the even subalgebra of G<3,0,0>,
+// This is the definition of a multivector in the even subalgebra of G<2,0,1>,
 // i.e. it models only multivectors with even grades 0 and 2
 // which are quaternions.
 // This subalgebra is closed under addition and multiplication.
@@ -29,14 +30,14 @@ template <typename T> using MVec3d_E = MVec4_t<T, mvec3d_e_tag>;
 // At the same time this enables easy integration with fully populated
 // multivectors, if required by the application.
 
-template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, default_tag> {
+template <typename T> struct MVec4_t<T, mvec2dp_e_tag> : public MVec4_t<T, default_tag> {
 
     using MVec4_t<T, default_tag>::MVec4_t; // inherit base class ctors
 
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
-    MVec4_t(MVec4_t<U, mvec3d_e_tag> const& v) : MVec4_t(v.c0, v.c1, v.c2, v.c3)
+    MVec4_t(MVec4_t<U, mvec2dp_e_tag> const& v) : MVec4_t(v.c0, v.c1, v.c2, v.c3)
     {
     }
 
@@ -44,14 +45,14 @@ template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, defaul
     MVec4_t(Scalar<T> s) : MVec4_t(T(s), 0.0, 0.0, 0.0) {}
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec4_t(BiVec3d<T> b) : MVec4_t(0.0, b.x, b.y, b.z) {}
+    MVec4_t(BiVec2dp<T> b) : MVec4_t(0.0, b.x, b.y, b.z) {}
 
     // assign scalar and bivector parts
-    MVec4_t(Scalar<T> s, BiVec3d<T> b) : MVec4_t(T(s), b.x, b.y, b.z) {}
+    MVec4_t(Scalar<T> s, BiVec2dp<T> b) : MVec4_t(T(s), b.x, b.y, b.z) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// define grade operations for partial specialization MVec4_t<T, mvec3d_e_tag>
+// define grade operations for partial specialization MVec4_t<T, mvec2dp_e_tag>
 ////////////////////////////////////////////////////////////////////////////////
 
 // returning various grades of the even multivector
@@ -59,14 +60,14 @@ template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, defaul
 // grade 0: gr0() - scalar
 // grade 2: gr2() - bivector
 
-template <typename T> inline constexpr Scalar<T> gr0(MVec3d_E<T> const& v)
+template <typename T> inline constexpr Scalar<T> gr0(MVec2dp_E<T> const& v)
 {
     return Scalar<T>(v.c0);
 }
 
-template <typename T> inline constexpr BiVec3d<T> gr2(MVec3d_E<T> const& v)
+template <typename T> inline constexpr BiVec2dp<T> gr2(MVec2dp_E<T> const& v)
 {
-    return BiVec3d<T>(v.c1, v.c2, v.c3);
+    return BiVec2dp<T>(v.c1, v.c2, v.c3);
 }
 
 } // namespace hd::ga

@@ -2,20 +2,18 @@
 
 // author: Daniel Hug, 2024
 
-#include <array>
+#include <array>   // std::array
 #include <cstdint> // uint8_t
-#include <string>
 
 namespace hd::ga {
 
-// create an algebra G(P,N,Z) with:
+// create an algebra agebra<P,N,Z> = G(P,N,Z) with:
+//      P generators for numbers that square to +1
+//      N generators for numbers that square to -1
+//      Z generators for numbers that square to  0
 //
-// P generators for numbers that square to +1
-// N generators for numbers that square to -1
-// Z generators for numbers that square to  0
-//
-// used to provide frequently used values of the algebra
-// should be assigned to a const variable
+// provides infomation on the dimension and basis vectors of the used algebra
+
 template <uint8_t P, uint8_t N = 0, uint8_t Z = 0>
     requires(P + N + Z >= 2 && P + N + Z <= 4 && P >= 2 && P <= 4 && N == 0 &&
              Z <= 1) // no implementation for other algebras yet

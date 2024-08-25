@@ -46,6 +46,39 @@ class Scalar_t {
         swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
     }
 
+    template <typename U>
+        requires(std::floating_point<U>)
+    Scalar_t& operator+=(Scalar_t<U, Tag> s)
+    {
+        value += s.value;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Scalar_t& operator-=(Scalar_t<U, Tag> s)
+    {
+        value -= s.value;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Scalar_t& operator*=(U s)
+    {
+        value *= s;
+        return (*this);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    Scalar_t& operator/=(U s)
+    {
+        if (s == U(0.0)) throw std::runtime_error("Scalar_t division by zero.\n");
+        value /= s;
+        return (*this);
+    }
+
   private:
 
     T value{};
@@ -117,6 +150,21 @@ inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, T
     return Scalar_t<ctype, Tag>(ctype(v) * inv);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Scalar_t<T, Tag> printing support via iostream
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+std::ostream& operator<<(std::ostream& os, Scalar_t<T, Tag> v)
+{
+    os << "(" << T(v) << ")";
+    return os;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Scalar types - basic operations (identical for all algebras)
+////////////////////////////////////////////////////////////////////////////////
+
 // return squared magnitude
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
@@ -139,17 +187,6 @@ template <typename T, typename Tag>
 inline constexpr T to_val(Scalar_t<T, Tag> s)
 {
     return T(s);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Scalar_t<T, Tag> printing support via iostream
-////////////////////////////////////////////////////////////////////////////////
-template <typename T, typename Tag>
-    requires(std::floating_point<T>)
-std::ostream& operator<<(std::ostream& os, Scalar_t<T, Tag> v)
-{
-    os << "(" << T(v) << ")";
-    return os;
 }
 
 } // namespace hd::ga

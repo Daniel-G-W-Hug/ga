@@ -2,10 +2,10 @@
 
 // author: Daniel Hug, 2024
 
-#include "ga_mvec4_t.hpp"
+#include "type_t/ga_mvec4_t.hpp"
 
-#include "ga_type_0d.hpp"
-#include "ga_type_2d.hpp"
+#include "type_t/ga_type_0d.hpp"
+#include "type_t/ga_type_2d.hpp"
 
 #include "ga_mvec2d_e.hpp"
 
@@ -27,23 +27,23 @@ template <typename T> struct MVec4_t<T, mvec2d_tag> : public MVec4_t<T, default_
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
-    MVec4_t(MVec4_t<U> const& v) : MVec4_t(v.c0, v.c1, v.c2, v.c3)
+    MVec4_t(MVec4_t<U, mvec2d_tag> const& v) : MVec4_t(v.c0, v.c1, v.c2, v.c3)
     {
     }
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec4_t(Scalar<T> s) : MVec4_t(s, 0.0, 0.0, 0.0) {}
+    MVec4_t(Scalar<T> s) : MVec4_t(T(s), 0.0, 0.0, 0.0) {}
 
     // assign a vector part exclusively (other grades = 0)
     MVec4_t(Vec2d<T> const& v) : MVec4_t(0.0, v.x, v.y, 0.0) {}
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec4_t(PScalar2d<T> ps) : MVec4_t(0.0, 0.0, 0.0, ps) {}
+    MVec4_t(PScalar2d<T> ps) : MVec4_t(0.0, 0.0, 0.0, T(ps)) {}
 
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) directly (other grades = 0)
     // (less expensive compared to full geometric product)
-    MVec4_t(Scalar<T> s, PScalar2d<T> ps) : MVec4_t(s, 0.0, 0.0, ps) {}
+    MVec4_t(Scalar<T> s, PScalar2d<T> ps) : MVec4_t(T(s), 0.0, 0.0, T(ps)) {}
 
     // assign from a complex number, i.e. from the even subalgebra
     MVec4_t(MVec2d_E<T> v) : MVec4_t(v.c0, 0.0, 0.0, v.c1) {}

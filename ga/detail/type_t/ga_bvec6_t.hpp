@@ -10,7 +10,7 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
-#include "ga_type_3d.hpp"
+#include "ga_type_tags.hpp"
 
 namespace hd::ga {
 
@@ -18,7 +18,7 @@ namespace hd::ga {
 // BVec6_t<T, Tag> definition of a bivector with 6 components vx, vy, vz, lx, ly, lz
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename Tag>
+template <typename T, typename Tag = default_tag>
     requires(std::floating_point<T>)
 struct BVec6_t {
 

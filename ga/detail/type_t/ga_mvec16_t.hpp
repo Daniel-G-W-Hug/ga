@@ -10,8 +10,7 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
-#include "ga_type_0d.hpp"
-#include "ga_type_4d.hpp"
+#include "ga_type_tags.hpp"
 
 namespace hd::ga {
 

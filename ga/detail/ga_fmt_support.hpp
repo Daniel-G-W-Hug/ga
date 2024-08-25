@@ -2,36 +2,30 @@
 
 // author: Daniel Hug, 2024
 
+#include "fmt/format.h"
+#include "fmt/ranges.h" // support printing of (nested) containers & tuples
+
+#include "type_t/ga_scalar_t.hpp"
+#include "type_t/ga_vec2_t.hpp"
+#include "type_t/ga_vec3_t.hpp"
+#include "type_t/ga_vec4_t.hpp"
+
+#include "type_t/ga_bvec6_t.hpp"
+
+#include "type_t/ga_mvec16_t.hpp"
+#include "type_t/ga_mvec2_t.hpp"
+#include "type_t/ga_mvec4_t.hpp"
+#include "type_t/ga_mvec8_t.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 // printing support via fmt library for all types defined in ga library
 ////////////////////////////////////////////////////////////////////////////////
-
 // Usage example:
 //
 // std::vector<BiVec3d<double>> vp1{{1.0, 1.0, 1.0}, {1.5, 2.0, 3.0}};
 // BiVec3d p{1.0, 2.0, 3.0};
 // fmt::print(" p = {}\n", p);
 // fmt::print(" vp1 = {}\n", fmt::join(vp1, ", "));
-
-#include "fmt/format.h"
-#include "fmt/ranges.h" // support printing of (nested) containers & tuples
-
-#include "ga_scalar_t.hpp"
-#include "ga_vec2_t.hpp"
-#include "ga_vec3_t.hpp"
-#include "ga_vec4_t.hpp"
-
-#include "ga_bvec6_t.hpp"
-
-#include "ga_mvec2d.hpp"
-#include "ga_mvec2d_e.hpp"
-
-#include "ga_mvec3d_e.hpp"
-#include "ga_mvec3d_u.hpp"
-
-#include "ga_mvec16_t.hpp"
-#include "ga_mvec8_t.hpp"
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Scalar_t<T, Tag> includes Scalar<T>, PScalar2d<T>, PScalar3d<T>, PScalar4d<T>
@@ -58,31 +52,6 @@ struct fmt::formatter<hd::ga::Vec2_t<T, Tag>> : nested_formatter<double> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2d<T>
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::MVec2d<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec2d<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.c0), nested(v.c1),
-                              nested(v.c2), nested(v.c3));
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-// MVec2d_E<T>
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::MVec2d_E<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec2d_E<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({},{})", nested(v.c0), nested(v.c1));
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////
 // Vec3_t<T, Tag> includes Vec3d<T> and BiVec3d<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
@@ -92,32 +61,6 @@ struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : nested_formatter<double> {
     {
         return fmt::format_to(ctx.out(), "({},{},{})", nested(v.x), nested(v.y),
                               nested(v.z));
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-// MVec3d_E<T>
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::MVec3d_E<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec3d_E<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.c0), nested(v.c1),
-                              nested(v.c2), nested(v.c3));
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-// MVec3d_U<T>
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct fmt::formatter<hd::ga::MVec3d_U<T>> : nested_formatter<double> {
-    template <typename FormatContext>
-    auto format(const hd::ga::MVec3d_U<T>& v, FormatContext& ctx) const
-    {
-        return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.c0), nested(v.c1),
-                              nested(v.c2), nested(v.c3));
     }
 };
 
@@ -149,7 +92,32 @@ struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : nested_formatter<double> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec8_t<T, Tag> includes MVec3d<T>
+// MVec2_t<T, Tag> includes MVec2d_E<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::MVec2_t<T, Tag>& v, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "({},{})", nested(v.c0), nested(v.c1));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec4_t<T, Tag> includes MVec2d<T>, MVec3d_E<T> and MVec3d_U<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::MVec4_t<T, Tag>& v, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.c0), nested(v.c1),
+                              nested(v.c2), nested(v.c3));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec8_t<T, Tag> includes MVec3d<T>, MVec4d_E<T> and MVec4d_U<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
 struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : nested_formatter<double> {

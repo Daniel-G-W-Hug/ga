@@ -53,31 +53,35 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
     TEST_CASE("pga_2d<2,0,1> - defining basic types")
     {
-        fmt::println("");
+        fmt::println("pga_2d<2,0,1>: defining basic types");
 
-        fmt::println("pga_2d: Scalar<T>");
-
-        auto s = Scalar<value_t>{-3.0};
-        fmt::println("        s = {}", s);
-
-        fmt::println("pga_2d: Vec2dp<T>");
-
-        auto v = Vec2dp<value_t>{-3.0, 1.2, 1.0};
-        fmt::println("        v = {}", v);
-
-        fmt::println("pga_2d: BiVec2dp<T>");
-
-        auto b = BiVec2dp<value_t>{3.0, -1.2, 1.0};
-        fmt::println("        b = {}", b);
-
-        fmt::println("pga_2d: PScalar2dp<T>");
-
-        auto ps = PScalar2dp<value_t>{3.0};
-        fmt::println("        ps = {}", ps);
-
-        fmt::println("pga_2d: MVec2dp<T>");
-
-        auto mv4d = MVec4d<value_t>{Scalar<value_t>(5)};
-        fmt::println("pga_2d: MVec4d<T> = {}", mv4d);
+        auto mv1 = mvec2dp{scalar(5.0)};
+        auto mv2 = mvec2dp{vec2dp{1.0, 2.0, 1.0}};
+        auto mv3 = mvec2dp{bivec2dp{-1.0, 2.0, 1.0}};
+        auto mv4 = mvec2dp{pscalar2dp(-5.0)};
+        auto mv5a = mvec2dp_e{scalar(5.0), bivec2dp{-1.0, 2.0, 1.0}};
+        auto mv5 = mvec2dp{mv5a};
+        auto mv6a = mvec2dp_u{vec2dp{1.0, 2.0, 1.0}, pscalar2dp{-5.0}};
+        auto mv6 = mvec2dp{mv6a};
+        fmt::println("   mv1  = {}", mv1);
+        fmt::println("   mv2  = {}", mv2);
+        fmt::println("   mv3  = {}", mv3);
+        fmt::println("   mv4  = {}", mv4);
+        fmt::println("   mv5a = {}", mv5a);
+        fmt::println("   mv5  = {}", mv5);
+        fmt::println("   mv6a = {}", mv6a);
+        fmt::println("   mv6  = {}", mv6);
+        CHECK(gr0(mv1) == 5.0);
+        CHECK(gr1(mv2) == vec2dp{1.0, 2.0, 1.0});
+        CHECK(gr2(mv3) == bivec2dp{-1.0, 2.0, 1.0});
+        CHECK(gr3(mv4) == -5.0);
+        CHECK(gr0(mv5a) == 5.0);
+        CHECK(gr2(mv5a) == bivec2dp{-1.0, 2.0, 1.0});
+        CHECK(gr0(mv5) == 5.0);
+        CHECK(gr2(mv5) == bivec2dp{-1.0, 2.0, 1.0});
+        CHECK(gr1(mv6a) == vec2dp{1.0, 2.0, 1.0});
+        CHECK(gr3(mv6a) == pscalar2dp(-5.0));
+        CHECK(gr1(mv6) == vec2dp{1.0, 2.0, 1.0});
+        CHECK(gr3(mv6) == pscalar2dp(-5.0));
     }
 } // TEST_SUITE("Projective Geometric Algebra (PGA)")

@@ -2,13 +2,14 @@
 
 // author: Daniel Hug, 2024
 
-#include "ga_type_tags.hpp"
+#include "type_t/ga_mvec16_t.hpp"
 
-#include "ga_mvec16_t.hpp"
+#include "type_t/ga_type_0d.hpp"
+#include "type_t/ga_type_4d.hpp"
 
-////////////////////////////////////////////////////////////////////////////////
-// consistent type definitions
-////////////////////////////////////////////////////////////////////////////////
+#include "ga_mvec4d_e.hpp"
+#include "ga_mvec4d_u.hpp"
+
 
 namespace hd::ga {
 
@@ -38,8 +39,8 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
 
     // assign a scalar part exclusively (other grades = 0)
     MVec16_t(Scalar<T> s) :
-        MVec16_t(s, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 0.0)
+        MVec16_t(T(s), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                 0.0, 0.0)
     {
     }
 
@@ -67,14 +68,21 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     // assign a pseudoscalar part exclusively (other grades = 0)
     MVec16_t(PScalar4d<T> ps) :
         MVec16_t(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 0.0, ps)
+                 0.0, T(ps))
     {
     }
 
     // assign components of an even grade subvector
     MVec16_t(Scalar<T> s, BiVec4d<T> const& v, PScalar4d<T> ps) :
-        MVec16_t(s, 0.0, 0.0, 0.0, 0.0, v.vx, v.vy, v.vz, v.mx, v.my, v.mz, 0.0, 0.0, 0.0,
-                 0.0, ps)
+        MVec16_t(T(s), 0.0, 0.0, 0.0, 0.0, v.vx, v.vy, v.vz, v.mx, v.my, v.mz, 0.0, 0.0,
+                 0.0, 0.0, T(ps))
+    {
+    }
+
+    // assign components of an even grade subvector
+    MVec16_t(MVec4d_E<T> v) :
+        MVec16_t(v.c0, 0.0, 0.0, 0.0, 0.0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, 0.0, 0.0,
+                 0.0, 0.0, v.c7)
     {
     }
 
@@ -82,6 +90,13 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     MVec16_t(Vec4d<T> const& v, TriVec4d<T> const& t) :
         MVec16_t(0.0, v.x, v.y, v.z, v.w, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, t.x, t.y, t.z,
                  t.w, 0.0)
+    {
+    }
+
+    // assign components of an uneven grade subvector
+    MVec16_t(MVec4d_U<T> v) :
+        MVec16_t(0.0, v.c0, v.c1, v.c2, v.c3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.c4, v.c5,
+                 v.c6, v.c7, 0.0)
     {
     }
 };
@@ -108,7 +123,7 @@ template <typename T> inline constexpr Vec4d<T> gr1(MVec4d<T> const& v)
     return Vec4d<T>(v.c1, v.c2, v.c3, v.c4);
 }
 
-template <typename T> inline constexpr BiVec3d<T> gr2(MVec4d<T> const& v)
+template <typename T> inline constexpr BiVec4d<T> gr2(MVec4d<T> const& v)
 {
     return BiVec4d<T>(v.c5, v.c6, v.c7, v.c8, v.c9, v.c10);
 }
@@ -122,6 +137,5 @@ template <typename T> inline constexpr PScalar4d<T> gr4(MVec4d<T> const& v)
 {
     return PScalar4d<T>(v.c15);
 }
-
 
 } // namespace hd::ga
