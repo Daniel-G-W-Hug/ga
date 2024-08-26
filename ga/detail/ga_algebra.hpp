@@ -41,17 +41,27 @@ struct algebra {
         //
         // this defines the basis components of the multivectors:
         //
-        // ega:
+        // ega: algebra<2,0,0>
         if constexpr (dim_space() == 2 && (p() == 2 && n() == 0 && z() == 0))
             return {"    1", "   e1", "   e2", "  e12"};
+        //
+        // ega: algebra<3,0,0>
         if constexpr (dim_space() == 3 && (p() == 3 && n() == 0 && z() == 0))
             return {"    1", "   e1", "   e2", "   e3",
                     "  e23", "  e31", "  e12", " e123"};
         //
-        // pga:
+        // ega: algebra<4,0,0>
+        if constexpr (dim_space() == 4 && (p() == 4 && n() == 0 && z() == 0))
+            return {"    1", "   e1", "   e2", "   e3", "   e4", "  e41",
+                    "  e42", "  e43", "  e23", "  e31", "  e12", " e423",
+                    " e431", " e412", " e321", "e1234"};
+        //
+        // pga:  algebra<2,0,1>
         if constexpr (dim_space() == 3 && (p() == 2 && n() == 0 && z() == 1))
             return {"    1", "   e1", "   e2", "   e3",
                     "  e23", "  e31", "  e12", " e321"};
+        //
+        // pga:  algebra<3,0,1>
         if constexpr (dim_space() == 4 && (p() == 3 && n() == 0 && z() == 1))
             return {"    1", "   e1", "   e2", "   e3", "   e4", "  e41",
                     "  e42", "  e43", "  e23", "  e31", "  e12", " e423",
