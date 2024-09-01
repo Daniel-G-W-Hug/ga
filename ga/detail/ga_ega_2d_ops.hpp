@@ -35,8 +35,8 @@ template <typename T> inline T sq_nrm(Vec2d<T> const& v) { return dot(v, v); }
 // return magnitude of vector
 template <typename T> inline T nrm(Vec2d<T> const& v) { return std::sqrt(dot(v, v)); }
 
-// return a vector unitized to nrm(v) == 1.0
-template <typename T> inline Vec2d<T> unitized(Vec2d<T> const& v)
+// return a vector normalized to nrm(v) == 1.0
+template <typename T> inline Vec2d<T> normalize(Vec2d<T> const& v)
 {
     T n = nrm(v);
     if (n < std::numeric_limits<T>::epsilon()) {
@@ -137,8 +137,8 @@ template <typename T> inline MVec2d<T> conj(MVec2d<T> const& v)
     return MVec2d<T>(v.c0, -v.c1, -v.c2, -v.c3);
 }
 
-// return a multivector unitized to nrm(v) == 1.0
-template <typename T> inline MVec2d<T> unitized(MVec2d<T> const& v)
+// return a multivector normalized to nrm(v) == 1.0
+template <typename T> inline MVec2d<T> normalize(MVec2d<T> const& v)
 {
     T n = nrm(v);
     if (n < std::numeric_limits<T>::epsilon()) {
@@ -190,8 +190,8 @@ template <typename T> inline MVec2d_E<T> rev(MVec2d_E<T> const& v)
     return MVec2d_E<T>(v.c0, -v.c1);
 }
 
-// return a complex number unitized to nrm(v) == 1.0
-template <typename T> inline MVec2d_E<T> unitized(MVec2d_E<T> const& v)
+// return a complex number normalized to nrm(v) == 1.0
+template <typename T> inline MVec2d_E<T> normalize(MVec2d_E<T> const& v)
 {
     T n = nrm(v);
     if (n < std::numeric_limits<T>::epsilon()) {
@@ -755,13 +755,13 @@ inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v1
     return dot(v1, v2) * inv(v2);
 }
 
-// projection of v1 onto v2 (v2 must already be unitized to nrm(v2) == 1)
+// projection of v1 onto v2 (v2 must already be normalized to nrm(v2) == 1)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2d<std::common_type_t<T, U>> project_onto_unitized(Vec2d<T> const& v1,
                                                                        Vec2d<U> const& v2)
 {
-    // requires v2 to be unitized
+    // requires v2 to be normalized
     return dot(v1, v2) * v2;
 }
 
@@ -793,13 +793,13 @@ inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
     return Vec2d<ctype>(v2.y * w_sq_n_inv, -v2.x * w_sq_n_inv);
 }
 
-// rejection of v1 from v2 (v2 must already be unitized to nrm(v2) == 1)
+// rejection of v1 from v2 (v2 must already be normalized to nrm(v2) == 1)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2d<std::common_type_t<T, U>> reject_from_unitized(Vec2d<T> const& v1,
                                                                       Vec2d<U> const& v2)
 {
-    // requires v2 to be unitized
+    // requires v2 to be normalized
 
     using ctype = std::common_type_t<T, U>;
     // version using geometric algebra wedge product manually computed
@@ -851,7 +851,7 @@ std::vector<Vec2d<std::common_type_t<T, U>>> gs_orthogonal(Vec2d<T> const& u,
 }
 
 // input:  two linear independent vectors u and v in 2d
-// output: two orthonormal vectors with the first one being normalized(u) and
+// output: two orthonormal vectors with the first one being normalize(u) and
 // the second one a normalized vector perpendicular to u in the orientation of v,
 // both forming an orthogonal system
 template <typename T, typename U>
@@ -861,9 +861,9 @@ std::vector<Vec2d<std::common_type_t<T, U>>> gs_orthonormal(Vec2d<T> const& u,
 {
     using ctype = std::common_type_t<T, U>;
     std::vector<Vec2d<ctype>> basis;
-    Vec2d<ctype> u_unitized{unitized(u)};
+    Vec2d<ctype> u_unitized{normalize(u)};
     basis.push_back(u_unitized);
-    basis.emplace_back(unitized(reject_from_unitized(v, u_unitized)));
+    basis.emplace_back(normalize(reject_from_unitized(v, u_unitized)));
     return basis;
 }
 

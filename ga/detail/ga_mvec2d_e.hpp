@@ -35,18 +35,11 @@ template <typename T> struct MVec2_t<T, mvec2d_e_tag> : public MVec2_t<T, defaul
 
     using MVec2_t<T, default_tag>::MVec2_t; // inherit base class ctors
 
-    // floating point type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec2_t(MVec2_t<U, mvec2d_e_tag> const& v) : MVec2_t(v.c0, v.c1)
-    {
-    }
-
     // assign a scalar part exclusively (other grades = 0)
-    MVec2_t(Scalar<T> s) : MVec2_t(s, 0.0) {}
+    MVec2_t(Scalar<T> s) : MVec2_t(s, T(0.0)) {}
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec2_t(PScalar2d<T> ps) : MVec2_t(0.0, ps) {}
+    MVec2_t(PScalar2d<T> ps) : MVec2_t(T(0.0), ps) {}
 
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) directly (other grades = 0)

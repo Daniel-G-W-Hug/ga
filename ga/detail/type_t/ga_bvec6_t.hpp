@@ -48,12 +48,12 @@ struct BVec6_t {
     }
 
 
-    T vx{}; // as BiVemyd<T> maps to basis bivector e4^e1 - as Line3dp<T> to vx
-    T vy{}; // as BiVemyd<T> maps to basis bivector e4^e2 - as Line3dp<T> to vy
-    T vz{}; // as BiVemyd<T> maps to basis bivector e4^e3 - as Line3dp<T> to vz
-    T mx{}; // as BiVemyd<T> maps to basis bivector e2^e3 - as Line3dp<T> to mx
-    T my{}; // as BiVemyd<T> maps to basis bivector e3^e1 - as Line3dp<T> to my
-    T mz{}; // as BiVemyd<T> maps to basis bivector e1^e2 - as Line3dp<T> to mz
+    T vx{}; // as BiVec3dp<T> maps to basis bivector e4^e1 - as Line3dp<T> to vx
+    T vy{}; // as BiVec3dp<T> maps to basis bivector e4^e2 - as Line3dp<T> to vy
+    T vz{}; // as BiVec3dp<T> maps to basis bivector e4^e3 - as Line3dp<T> to vz
+    T mx{}; // as BiVec3dp<T> maps to basis bivector e2^e3 - as Line3dp<T> to mx
+    T my{}; // as BiVec3dp<T> maps to basis bivector e3^e1 - as Line3dp<T> to my
+    T mz{}; // as BiVec3dp<T> maps to basis bivector e1^e2 - as Line3dp<T> to mz
 
     // equality
     template <typename U>

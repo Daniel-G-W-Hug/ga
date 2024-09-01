@@ -37,18 +37,11 @@ template <typename T> struct MVec4_t<T, mvec3d_u_tag> : public MVec4_t<T, defaul
 
     using MVec4_t<T, default_tag>::MVec4_t; // inherit base class ctors
 
-    // floating point type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec4_t(MVec4_t<U, mvec3d_u_tag> const& v) : MVec4_t(v.c0, v.c1, v.c2, v.c3)
-    {
-    }
-
     // assign a vector part exclusively (other grades = 0)
-    MVec4_t(Vec3d<T> v) : MVec4_t(v.x, v.y, v.z, 0.0) {}
+    MVec4_t(Vec3d<T> v) : MVec4_t(v.x, v.y, v.z, T(0.0)) {}
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec4_t(PScalar3d<T> ps) : MVec4_t(0.0, 0.0, 0.0, T(ps)) {}
+    MVec4_t(PScalar3d<T> ps) : MVec4_t(T(0.0), T(0.0), T(0.0), T(ps)) {}
 
     // assign vector and pseudoscalar parts
     MVec4_t(Vec3d<T> v, PScalar3d<T> ps) : MVec4_t(v.x, v.y, v.z, T(ps)) {}

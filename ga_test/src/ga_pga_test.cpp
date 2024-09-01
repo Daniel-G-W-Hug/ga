@@ -51,9 +51,9 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         fmt::println("   pga_3d: basis_name = {}", fmt::join(alg.basis_name, ", "));
     }
 
-    TEST_CASE("pga_2d<2,0,1> - defining basic types")
+    TEST_CASE("pga_2d<2,0,1> - defining basic types and ctor checks")
     {
-        fmt::println("pga_2d<2,0,1>: defining basic types");
+        fmt::println("pga_2d<2,0,1>: defining basic types and ctor checks");
 
         auto mv1 = mvec2dp{scalar(5.0)};
         auto mv2 = mvec2dp{vec2dp{1.0, 2.0, 1.0}};
@@ -71,13 +71,13 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         fmt::println("   mv5  = {}", mv5);
         fmt::println("   mv6a = {}", mv6a);
         fmt::println("   mv6  = {}", mv6);
-        CHECK(gr0(mv1) == 5.0);
+        CHECK(gr0(mv1) == scalar(5.0));
         CHECK(gr1(mv2) == vec2dp{1.0, 2.0, 1.0});
         CHECK(gr2(mv3) == bivec2dp{-1.0, 2.0, 1.0});
-        CHECK(gr3(mv4) == -5.0);
-        CHECK(gr0(mv5a) == 5.0);
+        CHECK(gr3(mv4) == pscalar2dp{-5.0});
+        CHECK(gr0(mv5a) == scalar(5.0));
         CHECK(gr2(mv5a) == bivec2dp{-1.0, 2.0, 1.0});
-        CHECK(gr0(mv5) == 5.0);
+        CHECK(gr0(mv5) == scalar(5.0));
         CHECK(gr2(mv5) == bivec2dp{-1.0, 2.0, 1.0});
         CHECK(gr1(mv6a) == vec2dp{1.0, 2.0, 1.0});
         CHECK(gr3(mv6a) == pscalar2dp(-5.0));

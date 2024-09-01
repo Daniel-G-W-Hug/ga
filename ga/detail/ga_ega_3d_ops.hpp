@@ -30,13 +30,19 @@ inline std::common_type_t<T, U> dot(Vec3d<T> const& v1, Vec3d<U> const& v2)
 }
 
 // return squared magnitude of vector
-template <typename T> inline T sq_nrm(Vec3d<T> const& v) { return dot(v, v); }
+template <typename T> inline T sq_nrm(Vec3d<T> const& v)
+{
+    return v.x * v.x + v.y * v.y + v.z * v.z;
+}
 
 // return magnitude of vector
-template <typename T> inline T nrm(Vec3d<T> const& v) { return std::sqrt(dot(v, v)); }
+template <typename T> inline T nrm(Vec3d<T> const& v)
+{
+    return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
 
-// return a vector unitized to nrm(v) == 1.0
-template <typename T> inline Vec3d<T> unitized(Vec3d<T> const& v)
+// return a vector normalized to nrm(v) == 1.0
+template <typename T> inline Vec3d<T> normalize(Vec3d<T> const& v)
 {
     T n = nrm(v);
     if (n < std::numeric_limits<T>::epsilon()) {
@@ -161,8 +167,8 @@ template <typename T> inline constexpr T nrm(BiVec3d<T> const& v)
     return std::sqrt(sq_nrm(v));
 }
 
-// return a bivector unitized to nrm(v) == 1.0
-template <typename T> inline constexpr BiVec3d<T> unitized(BiVec3d<T> const& v)
+// return a bivector normalized to nrm(v) == 1.0
+template <typename T> inline constexpr BiVec3d<T> normalize(BiVec3d<T> const& v)
 {
     T n = nrm(v);
     if (n < std::numeric_limits<T>::epsilon()) {
@@ -378,8 +384,8 @@ template <typename T> inline constexpr MVec3d<T> conj(MVec3d<T> const& v)
 }
 
 
-// return a multivector unitized to nrm(v) == 1.0
-template <typename T> inline MVec3d<T> unitized(MVec3d<T> const& v)
+// return a multivector normalized to nrm(v) == 1.0
+template <typename T> inline MVec3d<T> normalize(MVec3d<T> const& v)
 {
     T n = nrm(v);
     if (n < std::numeric_limits<T>::epsilon()) {
@@ -413,8 +419,8 @@ template <typename T> inline constexpr MVec3d_E<T> rev(MVec3d_E<T> const& v)
     return MVec3d_E<T>(v.c0, -v.c1, -v.c2, -v.c3);
 }
 
-// return a complex unitized to nrm(v) == 1.0
-template <typename T> inline MVec3d_E<T> unitized(MVec3d_E<T> const& v)
+// return a complex normalized to nrm(v) == 1.0
+template <typename T> inline MVec3d_E<T> normalize(MVec3d_E<T> const& v)
 {
     T n = nrm(v);
     if (n < std::numeric_limits<T>::epsilon()) {
@@ -444,9 +450,9 @@ template <typename T> inline constexpr MVec3d_U<T> rev(MVec3d_U<T> const& v)
 // Expensive! - Don't use if you don't have to! (64x mul_add)
 //
 // Use equivalent formulae instead for not fully populated multivectors:
-// a * b = dot(a,b) + wdg(a,b) = gr0(ab) + gr2(ab)  (vector vector = scalar + bivector)
-// A * b = dot(A,b) + wdg(A,b) = gr1(Ab) + gr3(Ab)  (bivector vector = vector + trivector)
-// a * B = dot(a,B) + wdg(a,B) = gr1(aB) + gr3(aB)  (vector bivector = vector + trivector)
+// a * b = dot(a,b) + wdg(a,b) = gr0(ab) + gr2(ab)  (vector*vector = scalar + bivector)
+// A * b = dot(A,b) + wdg(A,b) = gr1(Ab) + gr3(Ab)  (bivector*vector = vector + trivector)
+// a * B = dot(a,B) + wdg(a,B) = gr1(aB) + gr3(aB)  (vector*bivector = vector + trivector)
 //
 // multivector * multivector => multivector
 template <typename T, typename U>
@@ -895,12 +901,12 @@ template <typename T> inline MVec3d<T> inv(MVec3d<T> const& v)
 //
 // Inputs:
 //         - an arbitray bivector representing the oriented plane of rotation
-//           (does not need to be unitized)
+//           (does not need to be normalized)
 //         - a rotation angle
 // Output:
 //         - a rotor representing the rotation
 //
-// HINT:     For a rotation around an axis n (n = unitized(Vec3d<T>))
+// HINT:     For a rotation around an axis n (n = normalize(Vec3d<T>))
 //           use the bivector B = n*I_3d  => B = Vec3d<T> * PScalar3d<T>
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
@@ -908,13 +914,14 @@ template <typename T, typename U>
 inline constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& I, U theta)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d_E<ctype>(Scalar<ctype>(std::cos(theta)), unitized(I) * std::sin(theta));
+    return MVec3d_E<ctype>(Scalar<ctype>(std::cos(theta)),
+                           normalize(I) * std::sin(theta));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Inputs:
 //       1.) an arbitray bivector representing the oriented plane of rotation
-//           (does not need to be unitized, defines what is a posive rotation angle)
+//           (does not need to be normalized, defines what is a posive rotation angle)
 //       2.) a rotation angle in that plane
 // Output:
 //           a rotor representing the requested rotation,
@@ -922,7 +929,7 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& I, U t
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 //
-// for a rotation about an axis n (n = unitized vector) choose the ansatz n*B = I_3d
+// for a rotation about an axis n (n = normalized vector) choose the ansatz n*B = I_3d
 // and multiply both sides with n from the left (remember n*n = |n|^2 = 1)
 //
 // => choose: B = n*I_3d
@@ -935,7 +942,7 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> rotor(BiVec3d<T> const& I, U
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = -0.5 * theta;
     return MVec3d_E<ctype>(Scalar<ctype>(std::cos(half_angle)),
-                           unitized(I) * std::sin(half_angle));
+                           normalize(I) * std::sin(half_angle));
 }
 
 template <typename T, typename U>
@@ -1262,7 +1269,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1
     return dot(v1, v2) * Vec3d<ctype>(inv(v2));
 }
 
-// projection of v1 onto v2 (v2 must already be unitized to nrm(v2) == 1)
+// projection of v1 onto v2 (v2 must already be normalized to nrm(v2) == 1)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3d<std::common_type_t<T, U>> project_onto_unitized(Vec3d<T> const& v1,
@@ -1287,14 +1294,14 @@ inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1
     return Vec3d<ctype>(dot(a, Bi));
 }
 
-// projection of a vector v1 onto a unitized bivector v2
+// projection of a vector v1 onto a normalized bivector v2
 // u_parallel = gr1(dot(v1,v2) * inv(v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3d<std::common_type_t<T, U>>
 project_onto_unitized(Vec3d<T> const& v1, BiVec3d<U> const& v2)
 {
-    // requires v2 to be unitized
+    // requires v2 to be normalized
 
     using ctype = std::common_type_t<T, U>;
     Vec3d<ctype> a = dot(v1, v2);
@@ -1323,17 +1330,17 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
     return Vec3d<ctype>(dot(B, v2_inv));
 }
 
-// rejection of vector v1 from a unitized vector v2
+// rejection of vector v1 from a normalized vector v2
 // v_perp = gr1(wdg(v1,v2) * inv(v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3d<std::common_type_t<T, U>> reject_from_unitized(Vec3d<T> const& v1,
                                                                       Vec3d<U> const& v2)
 {
-    // requires v2 to be unitized
+    // requires v2 to be normalized
     using ctype = std::common_type_t<T, U>;
     BiVec3d<ctype> B = wdg(v1, v2);
-    Vec3d<ctype> v2_inv = v2; // v2 is its own inverse, if unitized
+    Vec3d<ctype> v2_inv = v2; // v2 is its own inverse, if normalized
     // use the formular equivalent to the geometric product to save computational cost
     // B * b_inv = dot(B,b_inv) + wdg(A,bi)
     // v_perp = gr1(B * b_inv) = dot(B,b_inv)
@@ -1355,7 +1362,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
     return A * B;
 }
 
-// rejection of vector v1 from a unitized bivector v2
+// rejection of vector v1 from a normalized bivector v2
 // u_perp = wdg(v1,v2) * inv(v2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -1437,7 +1444,7 @@ std::vector<Vec3d<std::common_type_t<T, U>>> gs_orthogonal(Vec3d<T> const& u,
 }
 
 // input:  two linear independent vectors u and v in 3d defining a plane
-// output: two orthonormal vectors with the first one being normalized(u) and
+// output: two orthonormal vectors with the first one being normalize(u) and
 // the second one a normalized vector perpendicular to u in the orientation of v,
 // both forming an orthogonal system
 template <typename T, typename U>
@@ -1447,9 +1454,9 @@ std::vector<Vec3d<std::common_type_t<T, U>>> gs_orthonormal(Vec3d<T> const& u,
 {
     using ctype = std::common_type_t<T, U>;
     std::vector<Vec3d<ctype>> basis;
-    Vec3d<ctype> u_unitized{unitized(u)};
+    Vec3d<ctype> u_unitized{normalize(u)};
     basis.push_back(u_unitized);
-    basis.emplace_back(unitized(reject_from_unitized(v, u_unitized)));
+    basis.emplace_back(normalize(reject_from_unitized(v, u_unitized)));
     return basis;
 }
 
@@ -1475,8 +1482,8 @@ gs_orthogonal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
 }
 
 // input:  three linear independent vectors u, v and w in 3d
-// output: three orthonormal vectors with the first one being unitized u and the second
-// and third being unitized and perpendicular to u and the plane spanned by u and v
+// output: three orthonormal vectors with the first one being normalized u and the second
+// and third being normalized and perpendicular to u and the plane spanned by u and v
 // respectively. All three from an orthogonal system
 template <typename U, typename V, typename W>
     requires(std::floating_point<U> && std::floating_point<V> && std::floating_point<W>)
@@ -1485,10 +1492,10 @@ gs_orthonormal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
 {
     using ctype = std::common_type_t<U, V, W>;
     std::vector<Vec3d<ctype>> basis;
-    Vec3d<ctype> u_unitized{unitized(u)};
+    Vec3d<ctype> u_unitized{normalize(u)};
     basis.push_back(u_unitized);
-    basis.emplace_back(unitized(reject_from_unitized(v, u_unitized)));
-    basis.emplace_back(unitized(reject_from(w, wdg(u, v))));
+    basis.emplace_back(normalize(reject_from_unitized(v, u_unitized)));
+    basis.emplace_back(normalize(reject_from(w, wdg(u, v))));
     return basis;
 }
 

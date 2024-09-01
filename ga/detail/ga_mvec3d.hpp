@@ -24,45 +24,55 @@ template <typename T> struct MVec8_t<T, mvec3d_tag> : public MVec8_t<T, default_
 
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
-    // type adjustment
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec8_t(MVec8_t<U, mvec3d_tag> const& v) :
-        MVec8_t(v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7)
+    // assign a scalar part exclusively (other grades = 0)
+    MVec8_t(Scalar<T> s) :
+        MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
-    // assign a scalar part exclusively (other grades = 0)
-    MVec8_t(Scalar<T> s) : MVec8_t(T(s), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0) {}
-
     // assign a vector part exclusively (other grades = 0)
-    MVec8_t(Vec3d<T> const& v) : MVec8_t(0.0, v.x, v.y, v.z, 0.0, 0.0, 0.0, 0.0) {}
+    MVec8_t(Vec3d<T> const& v) :
+        MVec8_t(T(0.0), v.x, v.y, v.z, T(0.0), T(0.0), T(0.0), T(0.0))
+    {
+    }
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec8_t(BiVec3d<T> const& v) : MVec8_t(0.0, 0.0, 0.0, 0.0, v.x, v.y, v.z, 0.0) {}
+    MVec8_t(BiVec3d<T> const& v) :
+        MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), v.x, v.y, v.z, T(0.0))
+    {
+    }
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec8_t(PScalar3d<T> ps) : MVec8_t(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, T(ps)) {}
+    MVec8_t(PScalar3d<T> ps) :
+        MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
+    {
+    }
 
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) or via dot(v1,v2) and cmt(v1,v2) directly
     // (other grades = 0)
     MVec8_t(Scalar<T> s, BiVec3d<T> const& v) :
-        MVec8_t(T(s), 0.0, 0.0, 0.0, v.x, v.y, v.z, 0.0)
+        MVec8_t(T(s), T(0.0), T(0.0), T(0.0), v.x, v.y, v.z, T(0.0))
     {
     }
 
     // assign from a quaternion, i.e. from the even subalgebra
-    MVec8_t(MVec3d_E<T> const& v) : MVec8_t(v.c0, 0.0, 0.0, 0.0, v.c1, v.c2, v.c3, 0.0) {}
+    MVec8_t(MVec3d_E<T> const& v) :
+        MVec8_t(v.c0, T(0.0), T(0.0), T(0.0), v.c1, v.c2, v.c3, T(0.0))
+    {
+    }
 
     // assign a geometric product resulting from a product of a vector and a bivector
     MVec8_t(Vec3d<T> const& v, PScalar3d<T> ps) :
-        MVec8_t(0.0, v.x, v.y, v.z, 0.0, 0.0, 0.0, T(ps))
+        MVec8_t(T(0.0), v.x, v.y, v.z, T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign from the uneven subalgebra
-    MVec8_t(MVec3d_U<T> const& v) : MVec8_t(0.0, v.c0, v.c1, v.c2, 0.0, 0.0, 0.0, v.c3) {}
+    MVec8_t(MVec3d_U<T> const& v) :
+        MVec8_t(T(0.0), v.c0, v.c1, v.c2, T(0.0), T(0.0), T(0.0), v.c3)
+    {
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////

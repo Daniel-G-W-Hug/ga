@@ -307,14 +307,14 @@ void register_functions(sol::state& lua)
                                           sol::resolve<value_t(mvec3d const&)>(nrm),
                                           sol::resolve<value_t(pscalar3d)>(nrm)));
 
-    lua.set_function("unitized",
-                     sol::overload(sol::resolve<vec2d(vec2d const&)>(unitized),
-                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(unitized),
-                                   sol::resolve<mvec2d(mvec2d const&)>(unitized),
-                                   sol::resolve<vec3d(vec3d const&)>(unitized),
-                                   sol::resolve<bivec3d(bivec3d const&)>(unitized),
-                                   sol::resolve<mvec3d_e(mvec3d_e const&)>(unitized),
-                                   sol::resolve<mvec3d(mvec3d const&)>(unitized)));
+    lua.set_function("normalize",
+                     sol::overload(sol::resolve<vec2d(vec2d const&)>(normalize),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(normalize),
+                                   sol::resolve<mvec2d(mvec2d const&)>(normalize),
+                                   sol::resolve<vec3d(vec3d const&)>(normalize),
+                                   sol::resolve<bivec3d(bivec3d const&)>(normalize),
+                                   sol::resolve<mvec3d_e(mvec3d_e const&)>(normalize),
+                                   sol::resolve<mvec3d(mvec3d const&)>(normalize)));
 
     lua.set_function("inv", sol::overload(sol::resolve<vec2d(vec2d const&)>(inv),
                                           sol::resolve<mvec2d_e(mvec2d_e const&)>(inv),

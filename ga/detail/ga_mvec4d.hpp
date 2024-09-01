@@ -24,79 +24,70 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
 
     using MVec16_t<T, default_tag>::MVec16_t; // inherit base class ctors
 
-    // floating point type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec16_t(MVec16_t<U, mvec4d_tag> const& v) :
-        MVec16_t(v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7, v.c8, v.c9, v.c10, v.c11,
-                 v.c12, v.c13, v.c14, v.c15)
-    {
-    }
-
     ////////////////////////////////////////////////////////////////////////////
     // ctors for MVec4d<T>
     ////////////////////////////////////////////////////////////////////////////
 
     // assign a scalar part exclusively (other grades = 0)
     MVec16_t(Scalar<T> s) :
-        MVec16_t(T(s), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 0.0, 0.0)
+        MVec16_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
+                 T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign a vector part exclusively (other grades = 0)
     MVec16_t(Vec4d<T> const& v) :
-        MVec16_t(0.0, v.x, v.y, v.z, v.w, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 0.0, 0.0)
+        MVec16_t(T(0.0), v.x, v.y, v.z, v.w, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
+                 T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign a bivector part exclusively (other grades = 0)
     MVec16_t(BiVec4d<T> const& v) :
-        MVec16_t(0.0, 0.0, 0.0, 0.0, 0.0, v.vx, v.vy, v.vz, v.mx, v.my, v.mz, 0.0, 0.0,
-                 0.0, 0.0, 0.0)
+        MVec16_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), v.vx, v.vy, v.vz, v.mx, v.my,
+                 v.mz, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign a trivector part exclusively (other grades = 0)
     MVec16_t(TriVec4d<T> const& t) :
-        MVec16_t(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, t.x, t.y, t.z,
-                 t.w, 0.0)
+        MVec16_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
+                 T(0.0), T(0.0), t.x, t.y, t.z, t.w, T(0.0))
     {
     }
 
     // assign a pseudoscalar part exclusively (other grades = 0)
     MVec16_t(PScalar4d<T> ps) :
-        MVec16_t(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 0.0, T(ps))
+        MVec16_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
+                 T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign components of an even grade subvector
     MVec16_t(Scalar<T> s, BiVec4d<T> const& v, PScalar4d<T> ps) :
-        MVec16_t(T(s), 0.0, 0.0, 0.0, 0.0, v.vx, v.vy, v.vz, v.mx, v.my, v.mz, 0.0, 0.0,
-                 0.0, 0.0, T(ps))
+        MVec16_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), v.vx, v.vy, v.vz, v.mx, v.my, v.mz,
+                 T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign components of an even grade subvector
     MVec16_t(MVec4d_E<T> v) :
-        MVec16_t(v.c0, 0.0, 0.0, 0.0, 0.0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, 0.0, 0.0,
-                 0.0, 0.0, v.c7)
+        MVec16_t(v.c0, T(0.0), T(0.0), T(0.0), T(0.0), v.c1, v.c2, v.c3, v.c4, v.c5, v.c6,
+                 T(0.0), T(0.0), T(0.0), T(0.0), v.c7)
     {
     }
 
     // assign components of an uneven grade subvector
     MVec16_t(Vec4d<T> const& v, TriVec4d<T> const& t) :
-        MVec16_t(0.0, v.x, v.y, v.z, v.w, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, t.x, t.y, t.z,
-                 t.w, 0.0)
+        MVec16_t(T(0.0), v.x, v.y, v.z, v.w, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
+                 T(0.0), t.x, t.y, t.z, t.w, T(0.0))
     {
     }
 
     // assign components of an uneven grade subvector
     MVec16_t(MVec4d_U<T> v) :
-        MVec16_t(0.0, v.c0, v.c1, v.c2, v.c3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.c4, v.c5,
-                 v.c6, v.c7, 0.0)
+        MVec16_t(T(0.0), v.c0, v.c1, v.c2, v.c3, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
+                 T(0.0), v.c4, v.c5, v.c6, v.c7, T(0.0))
     {
     }
 };

@@ -14,26 +14,21 @@ template <typename T> using MVec4d_U = MVec8_t<T, mvec4d_u_tag>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // use MVec8_t including its ctors and add specific ctors for MVec8_t<T, Tag>
-// by using partial template specialization for the Tag=mvec3d_tag
+// by using partial template specialization for the Tag=mvec4d_u_tag
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, default_tag> {
 
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
-    // type conversion
-    template <typename U>
-        requires(std::floating_point<U>)
-    MVec8_t(MVec8_t<U, mvec4d_u_tag> const& v) :
-        MVec8_t(v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7)
-    {
-    }
-
     // assign the vector part exclusively (other grades = 0)
-    MVec8_t(Vec4d<T> v) : MVec8_t(v.x, v.y, v.z, v.w, 0.0, 0.0, 0.0, 0.0) {}
+    MVec8_t(Vec4d<T> v) : MVec8_t(v.x, v.y, v.z, v.w, T(0.0), T(0.0), T(0.0), T(0.0)) {}
 
     // assign the trivector part exclusively (other grades = 0)
-    MVec8_t(TriVec4d<T> const& t) : MVec8_t(0.0, 0.0, 0.0, 0.0, t.x, t.y, t.z, t.w) {}
+    MVec8_t(TriVec4d<T> const& t) :
+        MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), t.x, t.y, t.z, t.w)
+    {
+    }
 
     // assign from a vector and a trivector directly
     MVec8_t(Vec4d<T> const& v, TriVec4d<T> const& t) :

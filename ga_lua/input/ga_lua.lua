@@ -34,9 +34,9 @@ print("nrm(v1): ", nrm(v1), "norm")
 assert(math.abs(sq_nrm(v1) - 2) < eps)
 assert(math.abs(nrm(v1) - math.sqrt(2)) < eps)
 
-print("unitized(v1): ", unitized(v1), "unitized")
-print("math.abs( nrm(unitized(v1))-1.0 ):", math.abs(nrm(unitized(v1)) - 1.0))
-assert(math.abs(nrm(unitized(v1)) - 1.0) < eps)
+print("normalize(v1): ", normalize(v1), "normalized")
+print("math.abs( nrm(normalize(v1))-1.0 ):", math.abs(nrm(normalize(v1)) - 1.0))
+assert(math.abs(nrm(normalize(v1)) - 1.0) < eps)
 
 print("inv(v1):", inv(v1), "inverse")
 print("math.abs(nrm(v1)*nrm(inv(v1))-1):", math.abs(nrm(v1) * nrm(inv(v1)) - 1))
@@ -171,7 +171,7 @@ assert(gr1(mv2) == vec2d.new(-2, 1))
 assert(gr2(mv2) == pscalar2d.new(2))
 
 print("sq_nrm(mv1), nrm(mv1)", sq_nrm(mv1), nrm(mv1))
-print("rev(mv1), conj(mv1), unitized(mv1)", rev(mv1), conj(mv1), unitized(mv1))
+print("rev(mv1), conj(mv1), normalize(mv1)", rev(mv1), conj(mv1), normalize(mv1))
 
 print("inv(mv2), mv2*inv(mv2)", inv(mv2), mv2 * inv(mv2))
 
@@ -297,9 +297,9 @@ print("nrm(v1): ", nrm(v1), "norm")
 assert(math.abs(sq_nrm(v1) - 3) < eps)
 assert(math.abs(nrm(v1) - math.sqrt(3)) < eps)
 
-print("unitized(v1): ", unitized(v1), "unitized")
-print("math.abs( nrm(unitized(v1))-1.0 ):", math.abs(nrm(unitized(v1)) - 1.0))
-assert(math.abs(nrm(unitized(v1)) - 1.0) < eps)
+print("normalize(v1): ", normalize(v1), "normalized")
+print("math.abs( nrm(normalize(v1))-1.0 ):", math.abs(nrm(normalize(v1)) - 1.0))
+assert(math.abs(nrm(normalize(v1)) - 1.0) < eps)
 
 print("inv(v1):", inv(v1), "inverse")
 print("math.abs(nrm(v1)*nrm(inv(v1))-1):", math.abs(nrm(v1) * nrm(inv(v1)) - 1))
@@ -441,7 +441,7 @@ assert(gr3(mv2) == pscalar3d.new(0))
 print()
 
 print("sq_nrm(mv1), nrm(mv1)", sq_nrm(mv1), nrm(mv1))
-print("rev(mv1), conj(mv1), unitized(mv1)", rev(mv1), conj(mv1), unitized(mv1))
+print("rev(mv1), conj(mv1), normalize(mv1)", rev(mv1), conj(mv1), normalize(mv1))
 print()
 print("inv(mv2), mv2*inv(mv2)", inv(mv2), mv2 * inv(mv2))
 print()
@@ -666,3 +666,22 @@ print("v=", v, "inv(v)=", inv(v), "v*inv(v)=", v * inv(v))
 
 local c = mvec2d_e.new(1, 1)
 print("c=", c, "inv(c)=", inv(c), "c*inv(c)=", c * inv(c))
+
+-- tests for join and meet:
+
+local p = vec3d.new(1, 0, 1)
+local q = vec3d.new(1, 2, 1)
+local l = p ^ q
+print("p^q = ", l)
+
+local A = bivec3d.new(1, 0, 0)
+local B = bivec3d.new(1, 2, 1)
+local AB = A * B
+print("AB = ", AB)
+
+print("dot(e23_3d,e23_3d)=", dot(e23_3d, e23_3d))
+print("dot(e31_3d,e31_3d)=", dot(e31_3d, e31_3d))
+print("dot(e12_3d,e12_3d)=", dot(e12_3d, e12_3d))
+print("dot(e23_3d,e12_3d)=", dot(e23_3d, e12_3d))
+print("dot(e31_3d,e12_3d)=", dot(e31_3d, e12_3d))
+print("dot(e12_3d,e23_3d)=", dot(e12_3d, e23_3d))

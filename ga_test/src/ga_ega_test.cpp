@@ -253,13 +253,13 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         fmt::println("Vec2d: operations - norm, inverse, dot");
 
         vec2d v1{2.0, 1.0};
-        vec2d v2{unitized(v1)};
+        vec2d v2{normalize(v1)};
 
         vec2d v3{2.0, 6.0};
         vec2d v4{inv(v3)};
 
         // fmt::println("v1 = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
-        // fmt::println("v2 = unitized(v1) = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
+        // fmt::println("v2 = normalize(v1) = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
 
         CHECK(std::abs(sq_nrm(v1) - 5.0) < eps);
         CHECK(std::abs(sq_nrm(v2) - 1.0) < eps);
@@ -315,7 +315,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         for (auto const& [phi, c] : v2) {
             CHECK(std::abs(phi - angle(e2_2d, c)) < eps);
         }
-        auto ref_vec = unitized(e1_2d + e2_2d);
+        auto ref_vec = normalize(e1_2d + e2_2d);
         for (auto const& [phi, c] : v3) {
             CHECK(std::abs(phi - angle(ref_vec, c)) < eps);
         }
@@ -359,7 +359,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         vec2d v1{1.5, 4.0};
         vec2d v2{3.0, 1.5};
-        vec2d v2u = unitized(v2);
+        vec2d v2u = normalize(v2);
 
         vec2d v3{project_onto(v1, v2)};
         vec2d v4{reject_from(v1, v2)};
@@ -942,7 +942,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(std::abs(sq_nrm(mvec2d_e{1.0, 1.0}) - 2.0) < eps);
         CHECK(std::abs(nrm(mvec2d_e{1.0, 1.0}) - std::sqrt(2.0)) < eps);
         CHECK(rev(mvec2d_e{1.0, 1.0}) == mvec2d_e{1.0, -1.0});
-        CHECK(std::abs(nrm(unitized(mvec2d_e{1.0, 1.0})) - 1.0) < eps);
+        CHECK(std::abs(nrm(normalize(mvec2d_e{1.0, 1.0})) - 1.0) < eps);
 
         CHECK(mvec2d_e{-1.0, 1.0} * inv(mvec2d_e{-1.0, 1.0}) == mvec2d_e{1.0, 0.0});
         CHECK(std::abs(gr0(mvec2d_e{-1.0, 1.0} * rev(mvec2d_e{-1.0, 1.0})) -
@@ -1424,13 +1424,13 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         fmt::println("Vec3d: operations - norm, inverse, dot");
 
         vec3d v1{2.0, 1.0, 2.0};
-        vec3d v2{unitized(v1)};
+        vec3d v2{normalize(v1)};
 
         vec3d v3{2.0, 6.0, -4.0};
         vec3d v4{inv(v3)};
 
         // fmt::println("v1 = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
-        // fmt::println("v2 = unitized(v1) = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
+        // fmt::println("v2 = normalize(v1) = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
         // fmt::println("v3 = {: .4f}, nrm(v1) = {: .4f}", v3, nrm(v3));
         // fmt::println(
         //     "v4 = inv(v3) = {: .4f}, nrm(v3) = {: .4f}, nrm(v3)*nrm(v4) = {: .4f}", v4,
@@ -1446,13 +1446,13 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         fmt::println("Vec3d: operations - angle");
 
         vec3d v1{1.0, 0.0, 0.0};
-        vec3d v2{unitized(vec3d(1.0, 1.0, 0.0))};
+        vec3d v2{normalize(vec3d(1.0, 1.0, 0.0))};
         vec3d v3{0.0, 1.0, 0.0};
-        vec3d v4{unitized(vec3d(-1.0, 1.0, 0.0))};
+        vec3d v4{normalize(vec3d(-1.0, 1.0, 0.0))};
         vec3d v5{-1.0, 0.0, 0.0};
-        vec3d v6{unitized(vec3d(-1.0, -1.0, 0.0))};
+        vec3d v6{normalize(vec3d(-1.0, -1.0, 0.0))};
         vec3d v7{0.0, -1.0, 0.0};
-        vec3d v8{unitized(vec3d(1.0, -1.0, 0.0))};
+        vec3d v8{normalize(vec3d(1.0, -1.0, 0.0))};
 
         // fmt::println("v1 = {: .4f}, nrm(v1) = {:.8f}, "
         //              "angle(v1,v1) = {:.8f}, {:.8f}",
@@ -1486,8 +1486,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(std::abs(angle(v1, v5) - pi) < eps);
 
         // just to suppress unused variable warnings
-        CHECK(v6 == unitized(vec3d(-1.0, -1.0, 0.0)));
-        CHECK(v8 == unitized(vec3d(1.0, -1.0, 0.0)));
+        CHECK(v6 == normalize(vec3d(-1.0, -1.0, 0.0)));
+        CHECK(v8 == normalize(vec3d(1.0, -1.0, 0.0)));
     }
 
     TEST_CASE("Vec3d: operations - angle II")
@@ -1536,7 +1536,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         for (auto const& [phi, c] : v2) {
             CHECK(std::abs(phi - angle(e2_3d, c)) < eps);
         }
-        auto ref_vec = unitized(e1_3d + e2_3d);
+        auto ref_vec = normalize(e1_3d + e2_3d);
         for (auto const& [phi, c] : v3) {
             CHECK(std::abs(phi - angle(ref_vec, c)) < eps);
         }
@@ -1547,13 +1547,13 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         fmt::println("Vec3d: operations - wedge");
 
         vec3d v1{1.0, 0.0, 0.0};
-        vec3d v2{unitized(vec3d(1.0, 1.0, 0.0))};
+        vec3d v2{normalize(vec3d(1.0, 1.0, 0.0))};
         vec3d v3{0.0, 1.0, 0.0};
-        vec3d v4{unitized(vec3d(-1.0, 1.0, 0.0))};
+        vec3d v4{normalize(vec3d(-1.0, 1.0, 0.0))};
         vec3d v5{-1.0, 0.0, 0.0};
-        vec3d v6{unitized(vec3d(-1.0, -1.0, 0.0))};
+        vec3d v6{normalize(vec3d(-1.0, -1.0, 0.0))};
         vec3d v7{0.0, -1.0, 0.0};
-        vec3d v8{unitized(vec3d(1.0, -1.0, 0.0))};
+        vec3d v8{normalize(vec3d(1.0, -1.0, 0.0))};
 
         // fmt::println("v1 = {: .4f}, wdg(v1,v1) = {: .4f}, "
         //              "angle = {: .4f}",
@@ -1597,7 +1597,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         vec3d v1{5.0, 1.0, 1.0};
         vec3d v2{2.0, 2.0, 1.0};
 
-        vec3d v2u = unitized(v2);
+        vec3d v2u = normalize(v2);
 
         vec3d v3{project_onto(v1, v2)};
         vec3d v4{reject_from(v1, v2)};
@@ -2390,11 +2390,11 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
             "MVec3d_E/_U: modelling even and uneven parts of 3d algebra - basics");
 
         // defining a complex number in all three forms as multivector
-        auto u = unitized(vec3d{1.0, 0.0, 0.0});
+        auto u = normalize(vec3d{1.0, 0.0, 0.0});
         auto v =
-            unitized(vec3d(std::cos(pi / 12), std::sin(pi / 12), 0.0)); // unit vec +15%
+            normalize(vec3d(std::cos(pi / 12), std::sin(pi / 12), 0.0)); // unit vec +15%
         auto angle_uv = angle(u, v);
-        auto B = wdg(u, v); // unitized bivector describing the plane spanned by u and v
+        auto B = wdg(u, v); // normalized bivector describing the plane spanned by u and v
 
         auto my_exp = exp(-B, angle_uv);
         auto my_rot = rotor(B, 2.0 * angle_uv);
@@ -2403,7 +2403,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // => B determines the meaning of the positive sign of the rotation
         //
         auto R_m =
-            mvec3d(exp(-B, angle_uv)); // Rotor formed by u and v (unitized bivector)
+            mvec3d(exp(-B, angle_uv)); // Rotor formed by u and v (normalized bivector)
         auto Rr_m = mvec3d(rev(R_m));  // and its reverse
 
         auto c = vec3d{1.0, 1.0, 1.0};
@@ -2412,7 +2412,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         auto c_tmp_m = R_m * c_m;
         auto c_rot_m = c_tmp_m * Rr_m;
 
-        auto R = exp(-B, angle_uv); // Rotor formed by u and v (unitized bivector)
+        auto R = exp(-B, angle_uv); // Rotor formed by u and v (normalized bivector)
         auto Rr = rev(R);           // and its reverse
 
         auto c_tmp_l = R * c;
@@ -2480,10 +2480,10 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(gr1(c_rot_m) == rotate(c, R));
         // n I_3d approach:
         CHECK(rotate(vec3d{1.0, 0.0, 0.0}, rotor(e3_3d * I_3d, pi / 4)) ==
-              unitized(vec3d{1.0, 1.0, 0.0}));
+              normalize(vec3d{1.0, 1.0, 0.0}));
         // using a bivector directly:
         CHECK(rotate(vec3d{1.0, 0.0, 0.0}, rotor(e12_3d, pi / 4)) ==
-              unitized(vec3d{1.0, 1.0, 0.0}));
+              normalize(vec3d{1.0, 1.0, 0.0}));
 
         // direct rotation of a bivector
         CHECK(rotate(bivec3d{0.0, 0.0, 1.0}, rotor(e23_3d, pi / 2)) == -e31_3d);

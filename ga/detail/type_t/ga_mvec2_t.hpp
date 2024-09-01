@@ -26,6 +26,13 @@ struct MVec2_t {
     // assign all components
     MVec2_t(T s, T ps) : c0(s), c1(ps) {}
 
+    // floating point type conversion
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec2_t(MVec2_t<U, Tag> const& v) : MVec2_t(v.c0, v.c1)
+    {
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     // component definition
     ////////////////////////////////////////////////////////////////////////////

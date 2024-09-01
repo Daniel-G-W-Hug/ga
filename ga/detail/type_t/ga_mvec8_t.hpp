@@ -33,6 +33,14 @@ struct MVec8_t {
     {
     }
 
+    // type adjustment
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec8_t(MVec8_t<U, Tag> const& v) :
+        MVec8_t(v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7)
+    {
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     // component definition
     ////////////////////////////////////////////////////////////////////////////
