@@ -19,42 +19,34 @@ namespace hd::ga::ega {
 // Vec2d<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// return dot-product of two vectors
+// return dot-product of two vectors in G<2,0,0>
 // dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline std::common_type_t<T, U> dot(Vec2d<T> const& v1, Vec2d<U> const& v2)
 {
-    // this implementation is only valid in an orthonormal basis
+    // definition: dot(v1, v2) = (v1)^T g_12 v2 with the metric g_12
+    // this assumes an orthonormal basis with e1^2 = +1, e2^2 = +1
+    // as diagonal elements of g_12
     return v1.x * v2.x + v1.y * v2.y;
 }
 
 // return squared magnitude of vector
-template <typename T> inline T sq_nrm(Vec2d<T> const& v) { return dot(v, v); }
+template <typename T> inline T nrm_sq(Vec2d<T> const& v) { return dot(v, v); }
 
 // return magnitude of vector
 template <typename T> inline T nrm(Vec2d<T> const& v) { return std::sqrt(dot(v, v)); }
 
-// return a vector normalized to nrm(v) == 1.0
-template <typename T> inline Vec2d<T> normalize(Vec2d<T> const& v)
-{
-    T n = nrm(v);
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return Vec2d<T>(v.x * inv, v.y * inv);
-}
-
 // return the multiplicative inverse of the vector
 template <typename T> inline Vec2d<T> inv(Vec2d<T> const& v)
 {
-    T sq_n = sq_nrm(v);
+    T sq_n = nrm_sq(v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("vector norm too small for inversion" +
                                  std::to_string(sq_n) + "\n");
     }
+#endif
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return Vec2d<T>(v.x * inv, v.y * inv);
 }
@@ -79,11 +71,13 @@ inline std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> const& v2)
     using std::numbers::pi;
 
     ctype nrm_prod = nrm(v1) * nrm(v2);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
             "vector norm product too small for calculation of angle" +
             std::to_string(nrm_prod) + "\n");
     }
+#endif
 
     // std::clamp must be used to take care of numerical inaccuracies
     auto cos_angle = std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
@@ -117,13 +111,13 @@ inline std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> const& v2)
 
 // return squared magnitude
 // |M|^2 = M rev(M) = (M.c0)^2 + (M.c1)^2 + (M.c2)^2 + (M.c3)^3
-template <typename T> inline T sq_nrm(MVec2d<T> const& v)
+template <typename T> inline T nrm_sq(MVec2d<T> const& v)
 {
     return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
 }
 
 // return magnitude
-template <typename T> inline T nrm(MVec2d<T> const& v) { return std::sqrt(sq_nrm(v)); }
+template <typename T> inline T nrm(MVec2d<T> const& v) { return std::sqrt(nrm_sq(v)); }
 
 // return the reverse
 template <typename T> inline MVec2d<T> rev(MVec2d<T> const& v)
@@ -137,33 +131,24 @@ template <typename T> inline MVec2d<T> conj(MVec2d<T> const& v)
     return MVec2d<T>(v.c0, -v.c1, -v.c2, -v.c3);
 }
 
-// return a multivector normalized to nrm(v) == 1.0
-template <typename T> inline MVec2d<T> normalize(MVec2d<T> const& v)
-{
-    T n = nrm(v);
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("complex norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return MVec2d<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
-}
-
 // return the multiplicative inverse of the multivector
 // inv(M) = 1/( M*conj(M) ) * conj(M)  with M*conj(M) being a scalar value
 template <typename T> inline MVec2d<T> inv(MVec2d<T> const& v)
 {
     // from manual calculation of M*conj(M) in 2d:
-    T m_conjm = v.c0 * v.c0 + v.c3 * v.c3 - sq_nrm(Vec2d<T>(v.c1, v.c2));
+    T m_conjm = v.c0 * v.c0 + v.c3 * v.c3 - nrm_sq(Vec2d<T>(v.c1, v.c2));
     //
     // alternative, but with slightly more computational effort:
     // T m_conjm = gr0(v * conj(v));
     //
+
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("multivector norm too small for inversion " +
                                  std::to_string(m_conjm) + "\n");
         // example: MVec2D(1,1,1,1) is not invertible
     }
+#endif
     T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
     return inv * conj(v);
 }
@@ -175,13 +160,13 @@ template <typename T> inline MVec2d<T> inv(MVec2d<T> const& v)
 
 // return squared magnitude of complex number
 // |Z|^2 = Z rev(Z) = c0^2 + c1^2
-template <typename T> inline T sq_nrm(MVec2d_E<T> const& v)
+template <typename T> inline T nrm_sq(MVec2d_E<T> const& v)
 {
     return v.c0 * v.c0 + v.c1 * v.c1;
 }
 
 // return magnitude of complex number
-template <typename T> inline T nrm(MVec2d_E<T> const& v) { return std::sqrt(sq_nrm(v)); }
+template <typename T> inline T nrm(MVec2d_E<T> const& v) { return std::sqrt(nrm_sq(v)); }
 
 // return conjugate complex of a complex number,
 // i.e. the reverse in nomenclature of multivectors
@@ -190,27 +175,17 @@ template <typename T> inline MVec2d_E<T> rev(MVec2d_E<T> const& v)
     return MVec2d_E<T>(v.c0, -v.c1);
 }
 
-// return a complex number normalized to nrm(v) == 1.0
-template <typename T> inline MVec2d_E<T> normalize(MVec2d_E<T> const& v)
-{
-    T n = nrm(v);
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("complex norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return MVec2d_E<T>(v.c0 * inv, v.c1 * inv);
-}
-
-// return the multiplicative inverse of the complex number (inv(z) = 1/sq_nrm(z)*rev(z))
+// return the multiplicative inverse of the complex number (inv(z) = 1/nrm_sq(z)*rev(z))
 // with rev(z) being the complex conjugate
 template <typename T> inline MVec2d_E<T> inv(MVec2d_E<T> const& v)
 {
-    T sq_n = sq_nrm(v);
+    T sq_n = nrm_sq(v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("complex norm too small for inversion" +
                                  std::to_string(sq_n) + "\n");
     }
+#endif
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return inv * rev(v);
 }
@@ -259,7 +234,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar2d<T> inv(PScalar2d<T> ps)
 {
-    return -PScalar2d<T>(ps) / sq_nrm(ps);
+    return -PScalar2d<T>(ps) / nrm_sq(ps);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -784,11 +759,13 @@ inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
     // version using geometric algebra wedge product manually computed
     // from "wdg(v1,v2)*inv(v2)"
     PScalar2d<ctype> w = wdg(v1, v2); // bivector with component e12
-    ctype sq_n = sq_nrm(v2);          //
+    ctype sq_n = nrm_sq(v2);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error("vector norm too small for inversion" +
                                  std::to_string(sq_n) + "\n");
     }
+#endif
     ctype w_sq_n_inv = w / sq_n;
     return Vec2d<ctype>(v2.y * w_sq_n_inv, -v2.x * w_sq_n_inv);
 }

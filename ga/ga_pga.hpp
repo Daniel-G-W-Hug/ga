@@ -21,8 +21,8 @@
 // types used for PGA (provided as user types based on value_t for convenience):
 //
 // scalar
-// vec2dp, pscalar2dp, mvec2dp_e, mvec2dp_u, mvec2dp
-// vec3dp, bivec3dp, pscalar3dp, mvec3dp_e, mvec3dp_u, mvec3dp
+// vec2dp, bivec2dp, pscalar2dp, mvec2dp_e, mvec2dp_u, mvec2dp
+// vec3dp, bivec3dp, trivec3dp, pscalar3dp, mvec3dp_e, mvec3dp_u, mvec3dp
 
 // commonly used GA stuff is in namespace hd::ga
 #include "detail/ga_value_t.hpp" // default type for scalar, vector & bivector components

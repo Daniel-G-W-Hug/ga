@@ -3,7 +3,7 @@
 // author: Daniel Hug, 2024
 
 #include <algorithm> // std::max
-#include <cmath>     // std::abs
+#include <cmath>     // std::abs, std::sqrt
 #include <concepts>  // std::floating_point<T>
 #include <iostream>  // std::cout, std::ostream
 #include <limits>    // std::numeric_limits
@@ -106,6 +106,12 @@ struct MVec4_t {
         requires(std::floating_point<U>)
     MVec4_t& operator/=(U s)
     {
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+        if (s < std::numeric_limits<U>::epsilon()) {
+            throw std::runtime_error("scalar too small for divison" + std::to_string(s) +
+                                     "\n");
+        }
+#endif
         c0 /= s;
         c1 /= s;
         c2 /= s;
@@ -170,13 +176,31 @@ inline constexpr MVec4_t<std::common_type_t<T, U>, Tag>
 operator/(MVec4_t<T, Tag> const& v, U s)
 {
     using ctype = std::common_type_t<T, U>;
-    if (std::abs(s) < ctype(5.0) * std::max<ctype>(std::numeric_limits<T>::epsilon(),
-                                                   std::numeric_limits<U>::epsilon())) {
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(s) < std::max<ctype>(std::numeric_limits<T>::epsilon(),
+                                      std::numeric_limits<U>::epsilon())) {
         throw std::runtime_error("scalar too small, division by zero" +
                                  std::to_string(s) + "\n");
     }
+#endif
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return MVec4_t<ctype, Tag>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
+}
+
+// magnitude of the sum of n k-vectors (in representational space)
+//
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline constexpr T magn_sq(MVec4_t<T, Tag> const& v)
+{
+    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
+}
+
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline constexpr T magn(MVec4_t<T, Tag> const& v)
+{
+    return std::sqrt(magn_sq(v));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

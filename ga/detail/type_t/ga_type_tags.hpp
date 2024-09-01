@@ -35,6 +35,9 @@ struct vec3dp_tag {};
 struct bivec3dp_tag {};
 struct trivec3dp_tag {};
 struct pscalar3dp_tag {};
+struct mvec3dp_e_tag {};
+struct mvec3dp_u_tag {};
+struct mvec3dp_tag {};
 
 struct vec4d_tag {};
 struct bivec4d_tag {};

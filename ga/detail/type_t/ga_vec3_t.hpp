@@ -3,7 +3,7 @@
 // author: Daniel Hug, 2024
 
 #include <algorithm> // std::max
-#include <cmath>     // std::abs
+#include <cmath>     // std::abs, std::sqrt
 #include <concepts>  // std::floating_point<T>
 #include <iostream>  // std::cout, std::ostream
 #include <limits>    // std::numeric_limits
@@ -110,6 +110,12 @@ struct Vec3_t {
         requires(std::floating_point<U>)
     Vec3_t& operator/=(U s)
     {
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+        if (s < std::numeric_limits<T>::epsilon()) {
+            throw std::runtime_error("vector norm too small for normalization" +
+                                     std::to_string(s) + "\n");
+        }
+#endif
         x /= s;
         y /= s;
         z /= s;
@@ -172,13 +178,67 @@ inline constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator/(Vec3_t<T, Tag> 
                                                                  U s)
 {
     using ctype = std::common_type_t<T, U>;
-    if (std::abs(s) < ctype(5.0) * std::max<ctype>(std::numeric_limits<T>::epsilon(),
-                                                   std::numeric_limits<U>::epsilon())) {
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(s) < std::max<ctype>(std::numeric_limits<T>::epsilon(),
+                                      std::numeric_limits<U>::epsilon())) {
         throw std::runtime_error("scalar too small, division by zero" +
                                  std::to_string(s) + "\n");
     }
+#endif
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return Vec3_t<ctype, Tag>(v.x * inv, v.y * inv, v.z * inv);
+}
+
+// magnitude of the k-vector (in representational space)
+//
+// magnitude is always defined in the representational space, i.e. without
+// covering the target metric of the representation
+//
+// -> in ega magnitude (magn) and norm (nrm) are identical
+//
+// -> in pga magnitude is defined as norm for the representational space
+//    assuming the corresponding identiy matrix as metric for that space:
+//
+//    G<3,0,0> as representational space for modelling 2d Euclidean space using G<2,0,1>
+//             representational space:        e1^2=+1, e2^2=+1, e3^2=+1
+//             modelled 2d Euclidean space:   e1^2=+1, e2^2=+1, e3^2= 0
+//
+//    G<4,0,0> as representational space for modelling 3d Euclidean space using G<3,0,1>
+//             representational space:        e1^2=+1, e2^2=+1, e3^2=+1, e4^2=+1
+//             modelled 3d Euclidean space:   e1^2=+1, e2^2=+1, e3^2=+1, e4^2= 0
+//
+//    norm is always defined for the modelled space incl. the target metric,
+//    by using the exomorphisim matrix G as defined by Lengyel in the book
+//    "Projective geometric algebra illuminated"
+//
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline constexpr T magn_sq(Vec3_t<T, Tag> const& v)
+{
+    return v.x * v.x + v.y * v.y + v.z * v.z;
+}
+
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline constexpr T magn(Vec3_t<T, Tag> const& v)
+{
+    return std::sqrt(magn_sq(v));
+}
+
+// return a vector v normalized to magn(v) == 1.0
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline constexpr Vec3_t<T, Tag> normalize(Vec3_t<T, Tag> const& v)
+{
+    T m = magn(v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (m < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("vector norm too small for normalization" +
+                                 std::to_string(m) + "\n");
+    }
+#endif
+    T inv = T(1.0) / m; // for multiplication with inverse of norm
+    return Vec3_t<T, Tag>(v.x * inv, v.y * inv, v.z * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

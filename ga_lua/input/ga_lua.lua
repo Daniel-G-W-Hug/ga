@@ -29,9 +29,9 @@ print("v5 / 3:", v5 / 3, "scalar division")
 
 print("dot(v1, v2):", dot(v1, v2), "dot product")
 
-print("sq_nrm(v1): ", sq_nrm(v1), "squared norm")
+print("nrm_sq(v1): ", nrm_sq(v1), "squared norm")
 print("nrm(v1): ", nrm(v1), "norm")
-assert(math.abs(sq_nrm(v1) - 2) < eps)
+assert(math.abs(nrm_sq(v1) - 2) < eps)
 assert(math.abs(nrm(v1) - math.sqrt(2)) < eps)
 
 print("normalize(v1): ", normalize(v1), "normalized")
@@ -170,13 +170,13 @@ assert(gr0(mv2) == scalar.new(1.5))
 assert(gr1(mv2) == vec2d.new(-2, 1))
 assert(gr2(mv2) == pscalar2d.new(2))
 
-print("sq_nrm(mv1), nrm(mv1)", sq_nrm(mv1), nrm(mv1))
-print("rev(mv1), conj(mv1), normalize(mv1)", rev(mv1), conj(mv1), normalize(mv1))
+print("nrm_sq(mv1), nrm(mv1)", nrm_sq(mv1), nrm(mv1))
+print("rev(mv1), conj(mv1)", rev(mv1), conj(mv1))
 
 print("inv(mv2), mv2*inv(mv2)", inv(mv2), mv2 * inv(mv2))
 
 -- handling of pscalar2d
-print("I_2d*I_2d:", I_2d * I_2d, "sq_nrm(I_2d):", sq_nrm(I_2d), "nrm(I_2d):", nrm(I_2d))
+print("I_2d*I_2d:", I_2d * I_2d, "nrm_sq(I_2d):", nrm_sq(I_2d), "nrm(I_2d):", nrm(I_2d))
 local I = pscalar2d.new(3)
 print("I:", I, "I*inv(I):", I * inv(I))
 assert(I * inv(I) == 1)
@@ -292,9 +292,9 @@ print("v5 / 3:", v5 / 3, "scalar division")
 
 print("dot(v1, v2):", dot(v1, v2), "dot product")
 
-print("sq_nrm(v1): ", sq_nrm(v1), "squared norm")
+print("nrm_sq(v1): ", nrm_sq(v1), "squared norm")
 print("nrm(v1): ", nrm(v1), "norm")
-assert(math.abs(sq_nrm(v1) - 3) < eps)
+assert(math.abs(nrm_sq(v1) - 3) < eps)
 assert(math.abs(nrm(v1) - math.sqrt(3)) < eps)
 
 print("normalize(v1): ", normalize(v1), "normalized")
@@ -440,14 +440,14 @@ assert(gr2(mv2) == bivec3d.new(0, 0, 0))
 assert(gr3(mv2) == pscalar3d.new(0))
 print()
 
-print("sq_nrm(mv1), nrm(mv1)", sq_nrm(mv1), nrm(mv1))
-print("rev(mv1), conj(mv1), normalize(mv1)", rev(mv1), conj(mv1), normalize(mv1))
+print("nrm_sq(mv1), nrm(mv1)", nrm_sq(mv1), nrm(mv1))
+print("rev(mv1), conj(mv1)", rev(mv1), conj(mv1))
 print()
 print("inv(mv2), mv2*inv(mv2)", inv(mv2), mv2 * inv(mv2))
 print()
 
 -- handling of pscalar3d
-print("I_3d*I_3d:", I_3d * I_3d, "sq_nrm(I_3d):", sq_nrm(I_3d), "nrm(I_3d):", nrm(I_3d))
+print("I_3d*I_3d:", I_3d * I_3d, "nrm_sq(I_3d):", nrm_sq(I_3d), "nrm(I_3d):", nrm(I_3d))
 local I = pscalar3d.new(3)
 print("I:", I, "I*inv(I):", I * inv(I))
 assert(I * inv(I) == 1)

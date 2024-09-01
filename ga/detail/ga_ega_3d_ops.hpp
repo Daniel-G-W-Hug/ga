@@ -19,49 +19,37 @@ namespace hd::ga::ega {
 // Vec3d<T> geometric operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// return the dot product of two vectors (= a scalar)
+// return the dot product of two vectors in G<3,0,0>
 // coordinate free definition: dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline std::common_type_t<T, U> dot(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
-    // this implementation is only valid in an orthonormal basis
+    // definition: dot(v1, v2) = (v1)^T g_12 v2 using the metric g_12
+    // definition: dot(A, B) = gr0(A*B) using the geometric product
+    // this assumes an orthonormal basis with e1^2 = +1, e2^2 = +1, e3^2 = +1
+    // as diagonal elements of g_12
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
 // return squared magnitude of vector
-template <typename T> inline T sq_nrm(Vec3d<T> const& v)
-{
-    return v.x * v.x + v.y * v.y + v.z * v.z;
-}
+template <typename T> inline T nrm_sq(Vec3d<T> const& v) { return magn_sq(v); }
 
 // return magnitude of vector
-template <typename T> inline T nrm(Vec3d<T> const& v)
-{
-    return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-}
-
-// return a vector normalized to nrm(v) == 1.0
-template <typename T> inline Vec3d<T> normalize(Vec3d<T> const& v)
-{
-    T n = nrm(v);
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return Vec3d<T>(v.x * inv, v.y * inv, v.z * inv);
-}
+template <typename T> inline T nrm(Vec3d<T> const& v) { return magn(v); }
 
 // return the multiplicative inverse of the vector
 template <typename T> inline Vec3d<T> inv(Vec3d<T> const& v)
 {
-    T sq_n = sq_nrm(v);
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for inversion" +
-                                 std::to_string(sq_n) + "\n");
+    // v^(-1) = v/dot(v,v)
+    T sq_v = dot(v, v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_v < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("vector dot produc too small for inversion" +
+                                 std::to_string(sq_v) + "\n");
     }
-    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
+#endif
+    T inv = T(1.0) / sq_v; // inverse of squared norm for a vector
     return Vec3d<T>(v.x * inv, v.y * inv, v.z * inv);
 }
 
@@ -74,11 +62,13 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> const& v2)
     using ctype = std::common_type_t<T, U>;
 
     ctype nrm_prod = nrm(v1) * nrm(v2);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
             "vector norm product too small for calculation of angle" +
             std::to_string(nrm_prod) + "\n");
     }
+#endif
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
@@ -91,17 +81,20 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> const& v2)
 // // range of angle: -pi <= angle <= pi
 // template <typename T, typename U>
 //     requires(std::floating_point<T> && std::floating_point<U>)
-// inline std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> const& v2)
+// inline std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U>
+// const& v2)
 // {
 //     using ctype = std::common_type_t<T, U>;
 //     using std::numbers::pi;
 
-//     ctype nrm_prod = nrm(v1) * nrm(v2);
-//     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-//         throw std::runtime_error(
-//             "vector norm product too small for calculation of angle" +
-//             std::to_string(nrm_prod) + "\n");
-//     }
+// ctype nrm_prod = nrm(v1) * nrm(v2);
+// #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+// if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
+//     throw std::runtime_error("vector norm product too small for calculation "
+//                              "of angle" +
+//                              std::to_string(nrm_prod) + "\n");
+// }
+// #endif
 
 // auto cos_angle = std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
 // auto sin_angle = std::clamp(ctype(nrm(wdg(v1, v2))) / nrm_prod, ctype(-1.0),
@@ -151,52 +144,48 @@ template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr std::common_type_t<T, U> dot(BiVec3d<T> const& A, BiVec3d<U> const& B)
 {
-    // this implementation is only valid in an orthonormal basis
+    // definition: dot(A, B) = gr0(A*B)
+    // -> only the symmetric (i.e. scalar) part remains
+    // this assumes an orthonormal basis with e1^2 = +1, e2^2 = +1, e3^2 = +1
+    // and dot(e23, e23) = -1, dot(e31,e31) = -1, dot(e12,e12) = -1
+    // and all other dot(exy,ezw)=0
     return -A.x * B.x - A.y * B.y - A.z * B.z;
 }
 
 // return squared magnitude of bivector
-template <typename T> inline constexpr T sq_nrm(BiVec3d<T> const& v)
+template <typename T> inline constexpr T nrm_sq(BiVec3d<T> const& v)
 {
+    // |v|^2 = gr0(rev(v)*v)
     return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
 // return magnitude of bivector
 template <typename T> inline constexpr T nrm(BiVec3d<T> const& v)
 {
-    return std::sqrt(sq_nrm(v));
-}
-
-// return a bivector normalized to nrm(v) == 1.0
-template <typename T> inline constexpr BiVec3d<T> normalize(BiVec3d<T> const& v)
-{
-    T n = nrm(v);
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return BiVec3d<T>(v.x * inv, v.y * inv, v.z * inv);
-}
-
-// return the multiplicative inverse of the bivector
-template <typename T> inline constexpr BiVec3d<T> inv(BiVec3d<T> const& v)
-{
-    T sq_n = sq_nrm(v);
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion" +
-                                 std::to_string(sq_n) + "\n");
-    }
-    T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
-    return BiVec3d<T>(v.x * inv, v.y * inv, v.z * inv);
+    return std::sqrt(nrm_sq(v));
 }
 
 // return conjugate complex of a bivector
 // i.e. the reverse in nomenclature of multivectors
 template <typename T> inline constexpr BiVec3d<T> rev(BiVec3d<T> const& v)
 {
+    // definition: rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
     // all bivector parts switch sign
     return BiVec3d<T>(-v.x, -v.y, -v.z);
+}
+
+// return the multiplicative inverse of the bivector
+template <typename T> inline constexpr BiVec3d<T> inv(BiVec3d<T> const& v)
+{
+    T sq_n = nrm_sq(v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("bivector norm too small for inversion" +
+                                 std::to_string(sq_n) + "\n");
+    }
+#endif
+    T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
+    return BiVec3d<T>(v.x * inv, v.y * inv, v.z * inv);
 }
 
 // return the angle between two bivectors
@@ -207,11 +196,13 @@ inline std::common_type_t<T, U> angle(BiVec3d<T> const& v1, BiVec3d<U> const& v2
 {
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(v1) * nrm(v2);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
             "vector norm product too small for calculation of angle" +
             std::to_string(nrm_prod) + "\n");
     }
+#endif
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
@@ -270,11 +261,13 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v1, BiVec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(v1) * nrm(v2);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
             "vector norm product too small for calculation of angle" +
             std::to_string(nrm_prod) + "\n");
     }
+#endif
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(
         std::clamp(ctype(nrm(dot(v1, v2))) / nrm_prod, ctype(-1.0), ctype(1.0)));
@@ -288,11 +281,13 @@ inline std::common_type_t<T, U> angle(BiVec3d<T> const& v1, Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(v1) * nrm(v2);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
             "vector norm product too small for calculation of angle" +
             std::to_string(nrm_prod) + "\n");
     }
+#endif
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(
         std::clamp(ctype(nrm(dot(v1, v2))) / nrm_prod, ctype(-1.0), ctype(1.0)));
@@ -349,7 +344,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar3d<T> inv(PScalar3d<T> ps)
 {
-    return -PScalar3d<T>(ps) / sq_nrm(ps);
+    return -PScalar3d<T>(ps) / nrm_sq(ps);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -359,14 +354,14 @@ inline constexpr PScalar3d<T> inv(PScalar3d<T> ps)
 // return squared magnitude
 // |M|^2 = M rev(M) = (M.c0)^2 + (M.c1)^2 + (M.c2)^2 + (M.c3)^3
 //                  + (M.c4)^2 + (M.c5)^2 + (M.c6)^2 + (M.c7)^3
-template <typename T> inline T sq_nrm(MVec3d<T> const& v)
+template <typename T> inline T nrm_sq(MVec3d<T> const& v)
 {
     return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3 + v.c4 * v.c4 +
            v.c5 * v.c5 + v.c6 * v.c6 + v.c7 * v.c7;
 }
 
 // return magnitude of complex number
-template <typename T> inline T nrm(MVec3d<T> const& v) { return std::sqrt(sq_nrm(v)); }
+template <typename T> inline T nrm(MVec3d<T> const& v) { return std::sqrt(nrm_sq(v)); }
 
 
 // return the reverse
@@ -383,33 +378,19 @@ template <typename T> inline constexpr MVec3d<T> conj(MVec3d<T> const& v)
     return MVec3d<T>(v.c0, -v.c1, -v.c2, -v.c3, -v.c4, -v.c5, -v.c6, v.c7);
 }
 
-
-// return a multivector normalized to nrm(v) == 1.0
-template <typename T> inline MVec3d<T> normalize(MVec3d<T> const& v)
-{
-    T n = nrm(v);
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("complex norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return MVec3d<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv, v.c4 * inv,
-                     v.c5 * inv, v.c6 * inv, v.c7 * inv);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // MVec3d_E<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
 
 // return squared magnitude of quaternion
 // |Z|^2 = Z rev(Z) = c0^2 + c1^2 + c2^2 + c3^2
-template <typename T> inline T sq_nrm(MVec3d_E<T> const& v)
+template <typename T> inline T nrm_sq(MVec3d_E<T> const& v)
 {
     return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
 }
 
 // return magnitude of quaternion
-template <typename T> inline T nrm(MVec3d_E<T> const& v) { return std::sqrt(sq_nrm(v)); }
+template <typename T> inline T nrm(MVec3d_E<T> const& v) { return std::sqrt(nrm_sq(v)); }
 
 // return conjugate complex of quaternion (MVec3d_E<T>),
 // i.e. the reverse in nomenclature of multivectors
@@ -417,18 +398,6 @@ template <typename T> inline constexpr MVec3d_E<T> rev(MVec3d_E<T> const& v)
 {
     // only the bivector part switches sign
     return MVec3d_E<T>(v.c0, -v.c1, -v.c2, -v.c3);
-}
-
-// return a complex normalized to nrm(v) == 1.0
-template <typename T> inline MVec3d_E<T> normalize(MVec3d_E<T> const& v)
-{
-    T n = nrm(v);
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("complex norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return MVec3d_E<T>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -874,10 +843,12 @@ template <typename T> inline MVec3d<T> inv(MVec3d<T> const& v)
 {
     // alternative, but with slightly more computational effort:
     T m_conjm = gr0(v * conj(v));
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("multivector norm too small for inversion " +
                                  std::to_string(m_conjm) + "\n");
     }
+#endif
     T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
     return inv * conj(v);
 }

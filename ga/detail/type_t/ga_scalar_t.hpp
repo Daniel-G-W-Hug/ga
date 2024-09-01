@@ -9,7 +9,7 @@
 // https://www.foonathan.net/2016/10/strong-typedefs/
 
 
-#include <cmath>     // std::abs
+#include <cmath>     // std::abs, std::sqrt
 #include <concepts>  // std::floating_point
 #include <iostream>  // std::ostream
 #include <limits>    // std::numeric_limits
@@ -74,7 +74,12 @@ class Scalar_t {
         requires(std::floating_point<U>)
     Scalar_t& operator/=(U s)
     {
-        if (s == U(0.0)) throw std::runtime_error("Scalar_t division by zero.\n");
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+        if (s < std::numeric_limits<U>::epsilon()) {
+            throw std::runtime_error("scalar too small for divison" + std::to_string(s) +
+                                     "\n");
+        }
+#endif
         value /= s;
         return (*this);
     }
@@ -142,10 +147,13 @@ inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, T
                                                                    U s)
 {
     using ctype = std::common_type_t<T, U>;
-    if (std::abs(s) < 5.0 * std::numeric_limits<T>::epsilon()) {
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(s) < std::max<ctype>(std::numeric_limits<T>::epsilon(),
+                                      std::numeric_limits<U>::epsilon())) {
         throw std::runtime_error("scalar too small, division by zero" +
                                  std::to_string(s) + "\n");
     }
+#endif
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return Scalar_t<ctype, Tag>(ctype(v) * inv);
 }
@@ -168,7 +176,7 @@ std::ostream& operator<<(std::ostream& os, Scalar_t<T, Tag> v)
 // return squared magnitude
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T sq_nrm(Scalar_t<T, Tag> s)
+inline constexpr T nrm_sq(Scalar_t<T, Tag> s)
 {
     return T(s) * T(s);
 }
