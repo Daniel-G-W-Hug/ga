@@ -790,7 +790,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> A,
                                                            BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return -ctype(A) * Vec3d<ctype>(B.x, B.y, B.z);
+    return ctype(A) * Vec3d<ctype>(-B.x, -B.y, -B.z);
 }
 
 // geometric product A * B of bivector A multiplied by a trivector B from the right
@@ -801,7 +801,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator*(BiVec3d<T> const& A,
                                                            PScalar3d<U> B)
 {
     using ctype = std::common_type_t<T, U>;
-    return -Vec3d<ctype>(A.x, A.y, A.z) * ctype(B);
+    return Vec3d<ctype>(-A.x, -A.y, -A.z) * ctype(B);
 }
 
 // geometric product A * b of a trivector A (=3d pseudoscalar) multiplied from the left

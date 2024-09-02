@@ -1179,7 +1179,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(nrm(rotate(c, R)) == nrm(c));
         CHECK(gr1(c_rot_m) == rotate(c, R));
         // n I_2dp approach:
-        CHECK(rotate(vec2dp{1.0, 0.0, 0.0}, rotor(e3_2dp * I_2dp, pi / 4)) ==
+        CHECK(rotate(vec2dp{1.0, 0.0, 0.0}, rotor(e3_2dp * I_2dp, -pi / 4)) ==
               normalize(vec2dp{1.0, 1.0, 0.0}));
         // using a bivector directly:
         CHECK(rotate(vec2dp{1.0, 0.0, 0.0}, rotor(e12_2dp, pi / 4)) ==
@@ -1191,7 +1191,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // example see Macdonald "Linear and Geometric Algebra", Exercise 7.12, p. 127
         auto Bv = wdg(e2_2dp,
                       e1_2dp + std::sqrt(3.0) * e3_2dp); // bivector describing the plane
-        CHECK(std::abs(nrm(Bv) - 2.0) < eps);
+        CHECK(std::abs(magn(Bv) - 2.0) < eps);
         CHECK(rotate(Bv, rotor(e31_2dp, pi / 3)) == -2.0 * e12_2dp);
 
         // just to silence unused variable warnings
