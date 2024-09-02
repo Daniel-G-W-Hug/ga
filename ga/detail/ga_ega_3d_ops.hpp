@@ -634,7 +634,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
     return MVec3d_U<ctype>(Vec3d<ctype>(-A.x * B.c3 - A.y * B.c2 + A.z * B.c1,
                                         +A.x * B.c2 - A.y * B.c3 - A.z * B.c0,
                                         -A.x * B.c1 + A.y * B.c0 - A.z * B.c3),
-                           PScalar3d<ctype>(+A.x * B.c0 + A.y * B.c1 + A.z * B.c2));
+                           PScalar3d<ctype>(A.x * B.c0 + A.y * B.c1 + A.z * B.c2));
 }
 
 // geometric product A * B between two bivectors

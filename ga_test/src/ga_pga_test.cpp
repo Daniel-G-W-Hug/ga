@@ -294,8 +294,10 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         fmt::println("0.5*(v3m*v4m + v4m*v3m) = {}", 0.5 * (v3m * v4m + v4m * v3m));
         fmt::println("0.5*(v3m*v4m - v4m*v3m) = {}", 0.5 * (v3m * v4m - v4m * v3m));
 
-        CHECK(std::abs(nrm_sq(v1) - 9.0) < eps);
-        CHECK(std::abs(nrm_sq(v2) - 1.0) < eps);
+        CHECK(std::abs(magn_sq(v1) - 9.0) < eps);
+        CHECK(std::abs(nrm_sq(v1) - 5.0) < eps);
+        CHECK(std::abs(magn_sq(v2) - 1.0) < eps);
+        CHECK(std::abs(nrm_sq(v3) - 40.0) < eps);
         CHECK(std::abs(dot(v4, v3) - 1.0) < eps);
     }
 
@@ -1169,6 +1171,10 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("");
         // fmt::println("direct calclulation:");
         // fmt::println("   c_rot = rotate(c,R)          = {: .3}", rotate(c, R));
+
+        // auto normalized_vec = normalize(vec2dp{1.0, 1.0, 0.0});
+        // fmt::println("   normalized_vec = {}", normalized_vec);
+        fmt::println("   normalized_vec = {}", normalize(vec2dp{1.0, 1.0, 0.0}));
 
         CHECK(nrm(rotate(c, R)) == nrm(c));
         CHECK(gr1(c_rot_m) == rotate(c, R));
