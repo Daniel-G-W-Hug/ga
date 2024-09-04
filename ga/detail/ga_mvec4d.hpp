@@ -3,8 +3,6 @@
 // author: Daniel Hug, 2024
 
 #include "type_t/ga_mvec16_t.hpp"
-
-#include "type_t/ga_type_0d.hpp"
 #include "type_t/ga_type_4d.hpp"
 
 #include "ga_mvec4d_e.hpp"
@@ -29,7 +27,7 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     ////////////////////////////////////////////////////////////////////////////
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec16_t(Scalar<T> s) :
+    MVec16_t(Scalar4d<T> s) :
         MVec16_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
                  T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
@@ -43,9 +41,9 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     }
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec16_t(BiVec4d<T> const& v) :
-        MVec16_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), v.vx, v.vy, v.vz, v.mx, v.my,
-                 v.mz, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
+    MVec16_t(BiVec4d<T> const& b) :
+        MVec16_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), b.vx, b.vy, b.vz, b.mx, b.my,
+                 b.mz, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
@@ -64,8 +62,8 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     }
 
     // assign components of an even grade subvector
-    MVec16_t(Scalar<T> s, BiVec4d<T> const& v, PScalar4d<T> ps) :
-        MVec16_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), v.vx, v.vy, v.vz, v.mx, v.my, v.mz,
+    MVec16_t(Scalar4d<T> s, BiVec4d<T> const& b, PScalar4d<T> ps) :
+        MVec16_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), b.vx, b.vy, b.vz, b.mx, b.my, b.mz,
                  T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
@@ -90,6 +88,15 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
                  T(0.0), v.c4, v.c5, v.c6, v.c7, T(0.0))
     {
     }
+
+    // assign a full multivector
+    // assign components of an even grade subvector
+    MVec16_t(Scalar4d<T> s, Vec4d<T> const& v, BiVec4d<T> const& b, TriVec4d<T> const& t,
+             PScalar4d<T> ps) :
+        MVec16_t(T(s), v.x, v.y, v.z, v.w, b.vx, b.vy, b.vz, b.mx, b.my, b.mz, t.x, t.y,
+                 t.z, t.w, T(ps))
+    {
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -104,9 +111,9 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
 // grade 3: gr3() - trivector
 // grade 4: gr4() - quadvector (= pseudoscalar in 4d)
 
-template <typename T> inline constexpr Scalar<T> gr0(MVec4d<T> const& v)
+template <typename T> inline constexpr Scalar4d<T> gr0(MVec4d<T> const& v)
 {
-    return Scalar<T>(v.c0);
+    return Scalar4d<T>(v.c0);
 }
 
 template <typename T> inline constexpr Vec4d<T> gr1(MVec4d<T> const& v)

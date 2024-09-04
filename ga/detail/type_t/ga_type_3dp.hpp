@@ -14,6 +14,7 @@
 
 namespace hd::ga {
 
+template <typename T> using Scalar3dp = Scalar_t<T, scalar3dp_tag>;
 template <typename T> using Vec3dp = Vec4_t<T, vec3dp_tag>;
 template <typename T> using BiVec3dp = BVec6_t<T, bivec3dp_tag>;
 template <typename T> using TriVec3dp = Vec4_t<T, trivec3dp_tag>;

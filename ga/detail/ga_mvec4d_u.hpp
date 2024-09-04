@@ -3,8 +3,6 @@
 // author: Daniel Hug, 2024
 
 #include "type_t/ga_mvec8_t.hpp"
-
-#include "type_t/ga_type_0d.hpp"
 #include "type_t/ga_type_4d.hpp"
 
 

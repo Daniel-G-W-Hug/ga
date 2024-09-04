@@ -13,6 +13,7 @@
 
 namespace hd::ga {
 
+template <typename T> using Scalar3d = Scalar_t<T, scalar3d_tag>;
 template <typename T> using Vec3d = Vec3_t<T, vec3d_tag>;
 template <typename T> using BiVec3d = Vec3_t<T, bivec3d_tag>;
 template <typename T> using PScalar3d = Scalar_t<T, pscalar3d_tag>;

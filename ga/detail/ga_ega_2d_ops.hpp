@@ -273,7 +273,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator*(Vec2d<T> const& a,
                                                               Vec2d<U> const& b)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(Scalar<ctype>(dot(a, b)), wdg(a, b));
+    return MVec2d_E<ctype>(Scalar2d<ctype>(dot(a, b)), wdg(a, b));
 }
 
 // geometric product A*B of a 2d pseudoscalar (=bivector) A multiplied from the left
@@ -350,16 +350,6 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator*(Vec2d<T> const& a,
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(-a.y, a.x) * ctype(B);
-}
-
-// geometric product A*B of two 2d pseudoscalars (=bivectors)
-// bivector * bivector => scalar
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> operator*(PScalar2d<T> A, PScalar2d<U> B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return -ctype(A) * ctype(B); // bivectors in 2d square to -1
 }
 
 // geometric product a*B for a a vector a with a full 2d multivector B
@@ -445,6 +435,28 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator*(MVec2d_E<T> const&
     return MVec2d_E<ctype>(A.c0 * B.c0 - A.c1 * B.c1, A.c0 * B.c1 + A.c1 * B.c0);
 }
 
+// geometric product A * B of two trivectors
+// trivector * trivector => scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator*(PScalar2d<T> A,
+                                                              PScalar2d<U> B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(-ctype(A) * ctype(B)); // bivectors in 2d square to -1
+}
+
+// geometric product A * B of two scalars
+// scalar * scalar => scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator*(Scalar2d<T> A,
+                                                              Scalar2d<U> B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(ctype(A) * ctype(B));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // 2d rotation operations
 ////////////////////////////////////////////////////////////////////////////////
@@ -464,7 +476,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> exp([[maybe_unused]] PScalar
     // PScalar2d<T> is just used here for a unique overload of exp()
     // and to make the function signature similar to the 3D case
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(Scalar<ctype>(std::cos(theta)),
+    return MVec2d_E<ctype>(Scalar2d<ctype>(std::cos(theta)),
                            PScalar2d<ctype>(std::sin(theta)));
 }
 
@@ -495,7 +507,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> rotor([[maybe_unused]] PScal
     // and to make the function similar to the 3D case
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = -0.5 * theta;
-    return MVec2d_E<ctype>(Scalar<ctype>(std::cos(half_angle)),
+    return MVec2d_E<ctype>(Scalar2d<ctype>(std::cos(half_angle)),
                            PScalar2d<ctype>(std::sin(half_angle)));
 }
 
@@ -543,11 +555,11 @@ inline constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar<T> dual2d(PScalar2d<T> ps)
+inline constexpr Scalar2d<T> dual2d(PScalar2d<T> ps)
 {
     // dual(A) = I*A
     // e12 * (ps * e12) = -ps
-    return Scalar<T>(-T(ps));
+    return Scalar2d<T>(-T(ps));
 }
 
 // this one is problematic for overloading, because 2d and 3d case
@@ -555,14 +567,14 @@ inline constexpr Scalar<T> dual2d(PScalar2d<T> ps)
 // the 2d and 3d adders in the function name are required for disambiguation
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> dual2d(Scalar<T> s)
+inline constexpr PScalar2d<T> dual2d(Scalar2d<T> s)
 {
     // dual(A) = I*A
     // e12 * (s) = s * e12
     return PScalar2d<T>(T(s));
 }
 
-// this overload is provided to accept T directly as an alternative to Scalar<T>
+// this overload is provided to accept T directly as an alternative to Scalar2d<T>
 // e.g. with T as a result of a dot product between two vectors
 template <typename T>
     requires(std::floating_point<T>)
@@ -630,12 +642,12 @@ inline constexpr MVec2d<T> dual2d(MVec2d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar<T> dual2d(PScalar2d<T> ps)
+inline constexpr Scalar2d<T> dual2d(PScalar2d<T> ps)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   (ps * e12) * e21
     // =  ps
-    return Scalar<T>(T(ps));
+    return Scalar2d<T>(T(ps));
 }
 
 // this one is problematic for overloading, because 2d and 3d case
@@ -643,7 +655,7 @@ inline constexpr Scalar<T> dual2d(PScalar2d<T> ps)
 // the 2d and 3d adders in the function name are required for disambiguation
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> dual2d(Scalar<T> s)
+inline constexpr PScalar2d<T> dual2d(Scalar2d<T> s)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   (s) * e21
@@ -651,7 +663,7 @@ inline constexpr PScalar2d<T> dual2d(Scalar<T> s)
     return PScalar2d<T>(-T(s));
 }
 
-// this overload is provided to accept T directly as an alternative to Scalar<T>
+// this overload is provided to accept T directly as an alternative to Scalar2d<T>
 // e.g. with T as a result of a dot product between two vectors
 template <typename T>
     requires(std::floating_point<T>)

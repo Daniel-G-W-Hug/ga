@@ -16,7 +16,7 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
-// provide common type for Scalar<T>, PScalar2d<T>, PScalar3d<T>, ...
+// provide common type for Scalar2d<T>, Scalar3d<T>, ..., PScalar2d<T>, PScalar3d<T>, ...
 
 #include "ga_type_tags.hpp"
 

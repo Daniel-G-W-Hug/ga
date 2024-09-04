@@ -3,8 +3,6 @@
 // author: Daniel Hug, 2024
 
 #include "type_t/ga_mvec2_t.hpp"
-
-#include "type_t/ga_type_0d.hpp"
 #include "type_t/ga_type_2d.hpp"
 
 
@@ -36,7 +34,7 @@ template <typename T> struct MVec2_t<T, mvec2d_e_tag> : public MVec2_t<T, defaul
     using MVec2_t<T, default_tag>::MVec2_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec2_t(Scalar<T> s) : MVec2_t(s, T(0.0)) {}
+    MVec2_t(Scalar2d<T> s) : MVec2_t(s, T(0.0)) {}
 
     // assign a pseudoscalar part exclusively (other grades = 0)
     MVec2_t(PScalar2d<T> ps) : MVec2_t(T(0.0), ps) {}
@@ -44,7 +42,7 @@ template <typename T> struct MVec2_t<T, mvec2d_e_tag> : public MVec2_t<T, defaul
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) directly (other grades = 0)
     // (less expensive compared to full geometric product)
-    MVec2_t(Scalar<T> s, PScalar2d<T> ps) : MVec2_t(T(s), T(ps)) {}
+    MVec2_t(Scalar2d<T> s, PScalar2d<T> ps) : MVec2_t(T(s), T(ps)) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,9 +54,9 @@ template <typename T> struct MVec2_t<T, mvec2d_e_tag> : public MVec2_t<T, defaul
 // grade 0: gr0() - scalar
 // grade 2: gr2() - bivector (= pseudoscalar in 2d)
 
-template <typename T> inline constexpr Scalar<T> gr0(MVec2d_E<T> const& v)
+template <typename T> inline constexpr Scalar2d<T> gr0(MVec2d_E<T> const& v)
 {
-    return Scalar<T>(v.c0);
+    return Scalar2d<T>(v.c0);
 }
 
 template <typename T> inline constexpr PScalar2d<T> gr2(MVec2d_E<T> const& v)

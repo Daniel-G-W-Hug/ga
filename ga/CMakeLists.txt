@@ -22,7 +22,6 @@ set(HEADERS
     detail/type_t/ga_mvec4_t.hpp
     detail/type_t/ga_mvec8_t.hpp
     detail/type_t/ga_mvec16_t.hpp
-    detail/type_t/ga_type_0d.hpp
     detail/type_t/ga_type_2d.hpp
     detail/type_t/ga_type_2dp.hpp
     detail/type_t/ga_type_3d.hpp

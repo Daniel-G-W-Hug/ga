@@ -3,8 +3,6 @@
 // author: Daniel Hug, 2024
 
 #include "type_t/ga_mvec4_t.hpp"
-
-#include "type_t/ga_type_0d.hpp"
 #include "type_t/ga_type_2dp.hpp"
 
 
@@ -35,13 +33,13 @@ template <typename T> struct MVec4_t<T, mvec2dp_e_tag> : public MVec4_t<T, defau
     using MVec4_t<T, default_tag>::MVec4_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec4_t(Scalar<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
+    MVec4_t(Scalar2dp<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
 
     // assign a bivector part exclusively (other grades = 0)
     MVec4_t(BiVec2dp<T> b) : MVec4_t(T(0.0), b.x, b.y, b.z) {}
 
     // assign scalar and bivector parts
-    MVec4_t(Scalar<T> s, BiVec2dp<T> b) : MVec4_t(T(s), b.x, b.y, b.z) {}
+    MVec4_t(Scalar2dp<T> s, BiVec2dp<T> b) : MVec4_t(T(s), b.x, b.y, b.z) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -53,9 +51,9 @@ template <typename T> struct MVec4_t<T, mvec2dp_e_tag> : public MVec4_t<T, defau
 // grade 0: gr0() - scalar
 // grade 2: gr2() - bivector
 
-template <typename T> inline constexpr Scalar<T> gr0(MVec2dp_E<T> const& v)
+template <typename T> inline constexpr Scalar2dp<T> gr0(MVec2dp_E<T> const& v)
 {
-    return Scalar<T>(v.c0);
+    return Scalar2dp<T>(v.c0);
 }
 
 template <typename T> inline constexpr BiVec2dp<T> gr2(MVec2dp_E<T> const& v)

@@ -3,8 +3,6 @@
 // author: Daniel Hug, 2024
 
 #include "type_t/ga_mvec4_t.hpp"
-
-#include "type_t/ga_type_0d.hpp"
 #include "type_t/ga_type_3d.hpp"
 
 
@@ -34,13 +32,13 @@ template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, defaul
     using MVec4_t<T, default_tag>::MVec4_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec4_t(Scalar<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
+    MVec4_t(Scalar3d<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
 
     // assign a bivector part exclusively (other grades = 0)
     MVec4_t(BiVec3d<T> b) : MVec4_t(T(0.0), b.x, b.y, b.z) {}
 
     // assign scalar and bivector parts
-    MVec4_t(Scalar<T> s, BiVec3d<T> b) : MVec4_t(T(s), b.x, b.y, b.z) {}
+    MVec4_t(Scalar3d<T> s, BiVec3d<T> b) : MVec4_t(T(s), b.x, b.y, b.z) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,9 +50,9 @@ template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, defaul
 // grade 0: gr0() - scalar
 // grade 2: gr2() - bivector
 
-template <typename T> inline constexpr Scalar<T> gr0(MVec3d_E<T> const& v)
+template <typename T> inline constexpr Scalar3d<T> gr0(MVec3d_E<T> const& v)
 {
-    return Scalar<T>(v.c0);
+    return Scalar3d<T>(v.c0);
 }
 
 template <typename T> inline constexpr BiVec3d<T> gr2(MVec3d_E<T> const& v)

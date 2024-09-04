@@ -28,7 +28,7 @@
 // fmt::print(" vp1 = {}\n", fmt::join(vp1, ", "));
 
 ////////////////////////////////////////////////////////////////////////////////
-// Scalar_t<T, Tag> includes Scalar<T>, PScalar2d<T>, PScalar3d<T>, PScalar4d<T>
+// Scalar_t<T, Tag>: Scalar2d<T>, PScalar2d<T>, PScalar3d<T>, PScalar4d<T>, etc.
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
 struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : formatter<double> {

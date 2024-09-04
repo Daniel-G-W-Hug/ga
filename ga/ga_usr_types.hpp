@@ -23,15 +23,21 @@ namespace hd::ga {
 // Thus the pseudoscalar needs a unique type for each space in order to not mix up
 // pseudoscalars from different algebras in the type system.
 //
-using scalar = Scalar<value_t>; // used for all agebras
+
+// There is actually only one scalar type!
+// But due to the statically typed language, overload resolution and unique scalar types
+// for 2d, 3d, 2dp, etc. work better when avoiding ambiguous function signatures.
 
 // vector and multivector types EGA 2d
+
+using scalar2d = Scalar2d<value_t>;
 using vec2d = Vec2d<value_t>;
 using pscalar2d = PScalar2d<value_t>;
 using mvec2d_e = MVec2d_E<value_t>; // multivector 2d of even subalgebra
 using mvec2d = MVec2d<value_t>;     // fully populated 2d multivector
 
 // vector and multivector types EGA 3d
+using scalar3d = Scalar3d<value_t>;
 using vec3d = Vec3d<value_t>;
 using bivec3d = BiVec3d<value_t>;
 using pscalar3d = PScalar3d<value_t>;
@@ -40,6 +46,7 @@ using mvec3d_u = MVec3d_U<value_t>; // multivector 3d of uneven subalgebra
 using mvec3d = MVec3d<value_t>;     // fully populated 3d multivector
 
 // vector and multivector types EGA 4d
+using scalar4d = Scalar4d<value_t>;
 using vec4d = Vec4d<value_t>;
 using bivec4d = BiVec4d<value_t>;
 using trivec4d = TriVec4d<value_t>;
@@ -49,6 +56,7 @@ using mvec4d_u = MVec4d_U<value_t>; // multivector 4d of uneven subalgebra
 using mvec4d = MVec4d<value_t>;     // fully populated 4d multivector
 
 // vector and multivector types PGA 2dp
+using scalar2dp = Scalar2dp<value_t>;
 using vec2dp = Vec2dp<value_t>;
 using bivec2dp = BiVec2dp<value_t>;
 using pscalar2dp = PScalar2dp<value_t>;

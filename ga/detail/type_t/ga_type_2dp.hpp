@@ -13,6 +13,7 @@
 
 namespace hd::ga {
 
+template <typename T> using Scalar2dp = Scalar_t<T, scalar2dp_tag>;
 template <typename T> using Vec2dp = Vec3_t<T, vec2dp_tag>;
 template <typename T> using BiVec2dp = Vec3_t<T, bivec2dp_tag>;
 template <typename T> using PScalar2dp = Scalar_t<T, pscalar2dp_tag>;

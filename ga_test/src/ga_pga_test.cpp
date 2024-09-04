@@ -57,11 +57,11 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     {
         fmt::println("pga_2d<2,0,1>: defining basic types and ctor checks");
 
-        auto mv1 = mvec2dp{scalar(5.0)};
+        auto mv1 = mvec2dp{scalar2dp(5.0)};
         auto mv2 = mvec2dp{vec2dp{1.0, 2.0, 1.0}};
         auto mv3 = mvec2dp{bivec2dp{-1.0, 2.0, 1.0}};
         auto mv4 = mvec2dp{pscalar2dp(-5.0)};
-        auto mv5a = mvec2dp_e{scalar(5.0), bivec2dp{-1.0, 2.0, 1.0}};
+        auto mv5a = mvec2dp_e{scalar2dp(5.0), bivec2dp{-1.0, 2.0, 1.0}};
         auto mv5 = mvec2dp{mv5a};
         auto mv6a = mvec2dp_u{vec2dp{1.0, 2.0, 1.0}, pscalar2dp{-5.0}};
         auto mv6 = mvec2dp{mv6a};
@@ -75,13 +75,13 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("   mv6a = {}", mv6a);
         // fmt::println("   mv6  = {}", mv6);
 
-        CHECK(gr0(mv1) == scalar(5.0));
+        CHECK(gr0(mv1) == scalar2dp(5.0));
         CHECK(gr1(mv2) == vec2dp{1.0, 2.0, 1.0});
         CHECK(gr2(mv3) == bivec2dp{-1.0, 2.0, 1.0});
         CHECK(gr3(mv4) == pscalar2dp{-5.0});
-        CHECK(gr0(mv5a) == scalar(5.0));
+        CHECK(gr0(mv5a) == scalar2dp(5.0));
         CHECK(gr2(mv5a) == bivec2dp{-1.0, 2.0, 1.0});
-        CHECK(gr0(mv5) == scalar(5.0));
+        CHECK(gr0(mv5) == scalar2dp(5.0));
         CHECK(gr2(mv5) == bivec2dp{-1.0, 2.0, 1.0});
         CHECK(gr1(mv6a) == vec2dp{1.0, 2.0, 1.0});
         CHECK(gr3(mv6a) == pscalar2dp(-5.0));
@@ -644,11 +644,11 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     {
         fmt::println("MVec2dp: defining basic types and ctor checks");
 
-        auto mv1 = mvec2dp{scalar(5.0)};
+        auto mv1 = mvec2dp{scalar2dp(5.0)};
         auto mv2 = mvec2dp{vec2dp{1.0, 2.0, 1.0}};
         auto mv3 = mvec2dp{bivec2dp{-1.0, 2.0, 1.0}};
         auto mv4 = mvec2dp{pscalar2dp(-5.0)};
-        auto mv5a = mvec2dp_e{scalar(5.0), bivec2dp{-1.0, 2.0, 1.0}};
+        auto mv5a = mvec2dp_e{scalar2dp(5.0), bivec2dp{-1.0, 2.0, 1.0}};
         auto mv5 = mvec2dp{mv5a};
         auto mv6a = mvec2dp_u{vec2dp{1.0, 2.0, 1.0}, pscalar2dp{-5.0}};
         auto mv6 = mvec2dp{mv6a};
@@ -662,13 +662,13 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("   mv6a = {}", mv6a);
         // fmt::println("   mv6  = {}", mv6);
 
-        CHECK(gr0(mv1) == scalar(5.0));
+        CHECK(gr0(mv1) == scalar2dp(5.0));
         CHECK(gr1(mv2) == vec2dp{1.0, 2.0, 1.0});
         CHECK(gr2(mv3) == bivec2dp{-1.0, 2.0, 1.0});
         CHECK(gr3(mv4) == pscalar2dp{-5.0});
-        CHECK(gr0(mv5a) == scalar(5.0));
+        CHECK(gr0(mv5a) == scalar2dp(5.0));
         CHECK(gr2(mv5a) == bivec2dp{-1.0, 2.0, 1.0});
-        CHECK(gr0(mv5) == scalar(5.0));
+        CHECK(gr0(mv5) == scalar2dp(5.0));
         CHECK(gr2(mv5) == bivec2dp{-1.0, 2.0, 1.0});
         CHECK(gr1(mv6a) == vec2dp{1.0, 2.0, 1.0});
         CHECK(gr3(mv6a) == pscalar2dp(-5.0));
@@ -742,6 +742,122 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     ////////////////////////////////////////////////////////////////////////////////
     // MVec2dp<T> operations test cases
     ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("MVec2dp: geometric product - combinatorial tests")
+    {
+        fmt::println("MVec2dp: geometric product - combinatorial tests");
+
+        scalar2dp s1{3.0};
+        scalar2dp s2{-1.5};
+        vec2dp v1{1.0, 2.0, 3.0};
+        vec2dp v2{0.5, 3.0, -2.0};
+        bivec2dp b1{-1.0, -3.0, -5.0};
+        bivec2dp b2{2.0, 0.5, -4.0};
+        pscalar2dp ps1{-5.0};
+        pscalar2dp ps2{2.0};
+
+        // checks all ctor combinations and equivalence of simplified products with
+        // geometric product of a fully populated multivector
+        //
+        // assumption: the geometric product of a fully populated multivector serves as
+        //             reference and is correctly implemented
+        //             results are relative to full geometric product
+
+        // MVec2dp_E * MVec2dp
+        CHECK(mvec2dp{s1, b1} * mvec2dp{s1, v1, b1, ps1} ==
+              mvec2dp{mvec2dp_e{s1, b1} * mvec2dp{s1, v1, b1, ps1}});
+
+        // MVec2dp * MVec2dp_E
+        CHECK(mvec2dp{s1, v1, b1, ps1} * mvec2dp{s1, b1} ==
+              mvec2dp{mvec2dp{s1, v1, b1, ps1} * mvec2dp_e{s1, b1}});
+
+        // MVec2dp_E * MVec2dp_E
+        CHECK(mvec2dp{s1, b1} * mvec2dp{s2, b2} ==
+              mvec2dp{mvec2dp_e{s1, b1} * mvec2dp_e{s2, b2}});
+
+        // MVec2dp_U * MVec2dp_U
+        CHECK(mvec2dp{v1, ps1} * mvec2dp{v2, ps2} ==
+              mvec2dp{mvec2dp_u{v1, ps1} * mvec2dp_u{v2, ps2}});
+
+        // MVec2dp_E * MVec2dp_U
+        CHECK(mvec2dp{s1, b1} * mvec2dp{v2, ps2} ==
+              mvec2dp{mvec2dp_e{s1, b1} * mvec2dp_u{v2, ps2}});
+
+        // MVec2dp_U * MVec2dp_E
+        CHECK(mvec2dp{v1, ps1} * mvec2dp{s2, b2} ==
+              mvec2dp{mvec2dp_u{v1, ps1} * mvec2dp_e{s2, b2}});
+
+        // MVec2dp_E * BiVec2dp
+        CHECK(mvec2dp{s1, b1} * mvec2dp{b2} == mvec2dp{mvec2dp_e{s1, b1} * mvec2dp{b2}});
+
+        // BiVec2dp * MVec2dp_E
+        CHECK(mvec2dp{b1} * mvec2dp{s2, b2} == mvec2dp{mvec2dp{b1} * mvec2dp_e{s2, b2}});
+
+        // MVec2dp_E * Vec2dp
+        CHECK(mvec2dp{s1, b1} * mvec2dp{v2} == mvec2dp{mvec2dp_e{s1, b1} * mvec2dp{v2}});
+
+        // Vec2dp * MVec2dp_E
+        CHECK(mvec2dp{v1} * mvec2dp{s2, b2} == mvec2dp{mvec2dp{v1} * mvec2dp_e{s2, b2}});
+
+        // MVec2dp_U * BiVec2dp
+        CHECK(mvec2dp{v1, ps1} * mvec2dp{b2} ==
+              mvec2dp{mvec2dp_u{v1, ps1} * mvec2dp{b2}});
+
+        // BiVec2dp * MVec2dp_U
+        CHECK(mvec2dp{b1} * mvec2dp{v2, ps2} ==
+              mvec2dp{mvec2dp{b1} * mvec2dp_u{v2, ps2}});
+
+        // BiVec2dp * BiVec2dp
+        CHECK(mvec2dp{b1} * mvec2dp{b2} == mvec2dp{b1 * b2});
+
+        // BiVec2dp * Vec2dp
+        CHECK(mvec2dp{b1} * mvec2dp{v1} == mvec2dp{b1 * v1});
+
+        // Vec2dp * BiVec2dp
+        CHECK(mvec2dp{v1} * mvec2dp{b1} == mvec2dp{v1 * b1});
+
+        // Vec2dp * Vec2dp
+        CHECK(mvec2dp{v1} * mvec2dp{v2} == mvec2dp{v1 * v2});
+
+
+        // PScalar2dp * MVec2dp
+        CHECK(mvec2dp{ps1} * mvec2dp{s2, v2, b2, ps2} ==
+              mvec2dp{ps1 * mvec2dp{s2, v2, b2, ps2}});
+
+        // MVec2dp * Pscalar2dp
+        CHECK(mvec2dp{s1, v1, b1, ps1} * mvec2dp{ps2} ==
+              mvec2dp{mvec2dp{s1, v1, b1, ps1} * ps2});
+
+        // PScalar2dp * MVec2dp_E
+        CHECK(mvec2dp{ps1} * mvec2dp{s2, b2} == mvec2dp{ps1 * mvec2dp_e{s2, b2}});
+
+        // MVec2dp_E * Pscalar2dp
+        CHECK(mvec2dp{s1, b1} * mvec2dp{ps2} == mvec2dp{mvec2dp_e{s1, b1} * ps2});
+
+        // PScalar2dp * MVec2dp_U
+        CHECK(mvec2dp{ps1} * mvec2dp{v2, ps2} == mvec2dp{ps1 * mvec2dp_u{v2, ps2}});
+
+        // MVec2dp_U * Pscalar2dp
+        CHECK(mvec2dp{v1, ps1} * mvec2dp{ps2} == mvec2dp{mvec2dp_u{v1, ps1} * ps2});
+
+        // PScalar2dp * BiVec2dp
+        CHECK(mvec2dp{ps1} * mvec2dp{b2} == mvec2dp{ps1 * b2});
+
+        // BiVec2dp * Pscalar2dp
+        CHECK(mvec2dp{b1} * mvec2dp{ps2} == mvec2dp{b1 * ps2});
+
+        // PScalar2dp * Vec2dp
+        CHECK(mvec2dp{ps1} * mvec2dp{v2} == mvec2dp{ps1 * v2});
+
+        // Vec2dp * Pscalar2dp
+        CHECK(mvec2dp{v1} * mvec2dp{ps2} == mvec2dp{v1 * ps2});
+
+        // Pscalar2dp * Pscalar2dp
+        CHECK(mvec2dp{ps1} * mvec2dp{ps2} == mvec2dp{ps1 * ps2});
+
+        // Scalar * Scalar
+        CHECK(mvec2dp{s1} * mvec2dp{s2} == mvec2dp{s1 * s2});
+    }
 
     TEST_CASE("MVec2dp: geometric product tests - vec * vec")
     {
@@ -894,7 +1010,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         mvec2dp_e ab = a * b;
         mvec2dp abm = mva * mvb;
-        mvec2dp abd{scalar{dot_ab}, wdg_ab};
+        mvec2dp abd{scalar2dp{dot_ab}, wdg_ab};
 
         mvec2dp_u Ab = A * b;
         mvec2dp Abm = mvA * mvb;
@@ -974,11 +1090,11 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         mvec2dp mv3{mv1};
         mvec2dp mv4 = mv2;
 
-        mvec2dp mv5(scalar(5.0));
+        mvec2dp mv5(scalar2dp(5.0));
         mvec2dp mv6(pscalar2dp(6.0));
         mvec2dp mv7{v1};
         mvec2dp mv8{b1};
-        mvec2dp mv9{scalar{dot(v1, v3)}, wdg(v1, v3)};
+        mvec2dp mv9{scalar2dp{dot(v1, v3)}, wdg(v1, v3)};
 
         mvec2dp mv10{v1, pscalar2dp(10.0)};
         // This must not compile! Implict conversion to vec2dp possible
@@ -986,7 +1102,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // mvec2dp mv11{b1, pscalar2dp_t(10.0)};
 
         // this does not compile (which is fine, a base cannot convert to derived)
-        // mvec2dp mv12{scalar(10.0), v1};
+        // mvec2dp mv12{scalar2dp(10.0), v1};
 
         // fmt::println("   v1 = {}", v1);
         // fmt::println("   v2 = {}", v2);
@@ -1299,8 +1415,8 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     //         CHECK(vm_dual_U == vm_dual_manual_U);
     //         CHECK(dual3d(v) == bivec2dp{1.0, 2.0, 3.0});
     //         CHECK(dual3d(B) == -vec2dp{10.0, 20.0, 30.0});
-    //         CHECK(dual3d(scalar(5)) == pscalar2dp(5));
-    //         CHECK(dual3d(pscalar2dp(5)) == scalar(-5));
+    //         CHECK(dual3d(scalar2dp(5)) == pscalar2dp(5));
+    //         CHECK(dual3d(pscalar2dp(5)) == scalar2dp(-5));
 
     //         // dual properties
     //         CHECK(dual3d(3.0 * vm) == 3.0 * dual3d(vm));
@@ -1412,8 +1528,8 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     //         CHECK(vm_dual_U == vm_dual_manual_U);
     //         CHECK(dual3d(v) == -bivec2dp{1.0, 2.0, 3.0});
     //         CHECK(dual3d(B) == vec2dp{10.0, 20.0, 30.0});
-    //         CHECK(dual3d(scalar(5)) == pscalar2dp(-5));
-    //         CHECK(dual3d(pscalar2dp(6)) == scalar(6));
+    //         CHECK(dual3d(scalar2dp(5)) == pscalar2dp(-5));
+    //         CHECK(dual3d(pscalar2dp(6)) == scalar2dp(6));
 
     //         // dual properties (A. Macdonald, p. 110):
     //         //
@@ -1451,7 +1567,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     //         // fmt::println("   dual3d(wdg(a, b)) = {}", dual3d(wdg(a, b)));
     //         // fmt::println("   dot(a, dual3d(b)) = {}", dot(a, dual3d(b)));
 
-    //         CHECK(dual3d(scalar{dot(a, b)}) == wdg(a, dual3d(b)));
+    //         CHECK(dual3d(scalar2dp{dot(a, b)}) == wdg(a, dual3d(b)));
     //         CHECK(dual3d(dot(a, b)) == wdg(a, dual3d(b)));
     //         CHECK(dual3d(wdg(a, b)) == dot(a, dual3d(b)));
 

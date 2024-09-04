@@ -3,8 +3,6 @@
 // author: Daniel Hug, 2024
 
 #include "type_t/ga_mvec8_t.hpp"
-
-#include "type_t/ga_type_0d.hpp"
 #include "type_t/ga_type_3d.hpp"
 
 #include "ga_mvec3d_e.hpp"
@@ -25,7 +23,7 @@ template <typename T> struct MVec8_t<T, mvec3d_tag> : public MVec8_t<T, default_
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec8_t(Scalar<T> s) :
+    MVec8_t(Scalar3d<T> s) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
@@ -37,8 +35,8 @@ template <typename T> struct MVec8_t<T, mvec3d_tag> : public MVec8_t<T, default_
     }
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec8_t(BiVec3d<T> const& v) :
-        MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), v.x, v.y, v.z, T(0.0))
+    MVec8_t(BiVec3d<T> const& b) :
+        MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), b.x, b.y, b.z, T(0.0))
     {
     }
 
@@ -51,8 +49,8 @@ template <typename T> struct MVec8_t<T, mvec3d_tag> : public MVec8_t<T, default_
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) or via dot(v1,v2) and cmt(v1,v2) directly
     // (other grades = 0)
-    MVec8_t(Scalar<T> s, BiVec3d<T> const& v) :
-        MVec8_t(T(s), T(0.0), T(0.0), T(0.0), v.x, v.y, v.z, T(0.0))
+    MVec8_t(Scalar3d<T> s, BiVec3d<T> const& b) :
+        MVec8_t(T(s), T(0.0), T(0.0), T(0.0), b.x, b.y, b.z, T(0.0))
     {
     }
 
@@ -73,6 +71,12 @@ template <typename T> struct MVec8_t<T, mvec3d_tag> : public MVec8_t<T, default_
         MVec8_t(T(0.0), v.c0, v.c1, v.c2, T(0.0), T(0.0), T(0.0), v.c3)
     {
     }
+
+    // assign a full multivector
+    MVec8_t(Scalar3d<T> s, Vec3d<T> const& v, BiVec3d<T> const& b, PScalar3d<T> ps) :
+        MVec8_t(T(s), v.x, v.y, v.z, b.x, b.y, b.z, T(ps))
+    {
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -86,9 +90,9 @@ template <typename T> struct MVec8_t<T, mvec3d_tag> : public MVec8_t<T, default_
 // grade 2: gr2() - bivector
 // grade 3: gr3() - trivector (= pseudoscalar in 3d)
 
-template <typename T> inline constexpr Scalar<T> gr0(MVec3d<T> const& v)
+template <typename T> inline constexpr Scalar3d<T> gr0(MVec3d<T> const& v)
 {
-    return Scalar<T>(v.c0);
+    return Scalar3d<T>(v.c0);
 }
 
 template <typename T> inline constexpr Vec3d<T> gr1(MVec3d<T> const& v)
