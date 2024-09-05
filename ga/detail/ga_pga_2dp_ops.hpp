@@ -52,14 +52,14 @@ inline constexpr std::common_type_t<T, U> dot(BiVec2dp<T> const& A, BiVec2dp<U> 
 // Vec2dp<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// return squared magnitude of vector
+// return squared norm of vector
 template <typename T> inline T nrm_sq(Vec2dp<T> const& v)
 {
     // |v|^2 = gr0(rev(v)*v)
     return dot(v, v);
 }
 
-// return magnitude of vector
+// return norm of vector
 template <typename T> inline T nrm(Vec2dp<T> const& v) { return std::sqrt(nrm_sq(v)); }
 
 // return the multiplicative inverse of the vector
@@ -72,7 +72,7 @@ template <typename T> inline Vec2dp<T> inv(Vec2dp<T> const& v)
     T sq_v = dot(v, v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_v < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector dot produc too small for inversion" +
+        throw std::runtime_error("vector dot product too small for inversion" +
                                  std::to_string(sq_v) + "\n");
     }
 #endif
@@ -1118,7 +1118,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2dp<std::common_type_t<T, U>>
-project_onto_unitized(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
+project_onto_normalized(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
     return dot(v1, v2) * v2; // v2 is already its own reverse
 }
@@ -1144,7 +1144,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2dp<std::common_type_t<T, U>>
-project_onto_unitized(Vec2dp<T> const& v1, BiVec2dp<U> const& v2)
+project_onto_normalized(Vec2dp<T> const& v1, BiVec2dp<U> const& v2)
 {
     // requires v2 to be normalized
 
@@ -1180,7 +1180,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2dp<std::common_type_t<T, U>>
-reject_from_unitized(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
+reject_from_normalized(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
     // requires v2 to be normalized
     using ctype = std::common_type_t<T, U>;
@@ -1212,7 +1212,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2dp<std::common_type_t<T, U>>
-reject_from_unitized(Vec2dp<T> const& v1, BiVec2dp<U> const& v2)
+reject_from_normalized(Vec2dp<T> const& v1, BiVec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     PScalar2dp<ctype> a = wdg(v1, v2);

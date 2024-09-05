@@ -377,11 +377,11 @@ void register_functions(sol::state& lua)
                       sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto)));
 
     lua.set_function(
-        "project_onto_unitized",
+        "project_onto_normalized",
         sol::overload(
-            sol::resolve<vec2d(vec2d const&, vec2d const&)>(project_onto_unitized),
-            sol::resolve<vec3d(vec3d const&, vec3d const&)>(project_onto_unitized),
-            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto_unitized)));
+            sol::resolve<vec2d(vec2d const&, vec2d const&)>(project_onto_normalized),
+            sol::resolve<vec3d(vec3d const&, vec3d const&)>(project_onto_normalized),
+            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto_normalized)));
 
     lua.set_function(
         "reject_from",
@@ -390,11 +390,11 @@ void register_functions(sol::state& lua)
                       sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from)));
 
     lua.set_function(
-        "reject_from_unitized",
+        "reject_from_normalized",
         sol::overload(
-            sol::resolve<vec2d(vec2d const&, vec2d const&)>(reject_from_unitized),
-            sol::resolve<vec3d(vec3d const&, vec3d const&)>(reject_from_unitized),
-            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from_unitized)));
+            sol::resolve<vec2d(vec2d const&, vec2d const&)>(reject_from_normalized),
+            sol::resolve<vec3d(vec3d const&, vec3d const&)>(reject_from_normalized),
+            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from_normalized)));
 
     lua.set_function(
         "reflect_on_hyp",

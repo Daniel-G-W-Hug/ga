@@ -1293,8 +1293,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1
 // projection of v1 onto v2 (v2 must already be normalized to nrm(v2) == 1)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> project_onto_unitized(Vec3d<T> const& v1,
-                                                                       Vec3d<U> const& v2)
+inline constexpr Vec3d<std::common_type_t<T, U>>
+project_onto_normalized(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
     return dot(v1, v2) * v2; // v2 is already its own reverse
 }
@@ -1320,7 +1320,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3d<std::common_type_t<T, U>>
-project_onto_unitized(Vec3d<T> const& v1, BiVec3d<U> const& v2)
+project_onto_normalized(Vec3d<T> const& v1, BiVec3d<U> const& v2)
 {
     // requires v2 to be normalized
 
@@ -1355,8 +1355,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
 // v_perp = gr1(wdg(v1,v2) * inv(v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reject_from_unitized(Vec3d<T> const& v1,
-                                                                      Vec3d<U> const& v2)
+inline constexpr Vec3d<std::common_type_t<T, U>>
+reject_from_normalized(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
     // requires v2 to be normalized
     using ctype = std::common_type_t<T, U>;
@@ -1388,7 +1388,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3d<std::common_type_t<T, U>>
-reject_from_unitized(Vec3d<T> const& v1, BiVec3d<U> const& v2)
+reject_from_normalized(Vec3d<T> const& v1, BiVec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     PScalar3d<ctype> a = wdg(v1, v2);
@@ -1477,7 +1477,7 @@ std::vector<Vec3d<std::common_type_t<T, U>>> gs_orthonormal(Vec3d<T> const& u,
     std::vector<Vec3d<ctype>> basis;
     Vec3d<ctype> u_unitized{normalize(u)};
     basis.push_back(u_unitized);
-    basis.emplace_back(normalize(reject_from_unitized(v, u_unitized)));
+    basis.emplace_back(normalize(reject_from_normalized(v, u_unitized)));
     return basis;
 }
 
@@ -1515,7 +1515,7 @@ gs_orthonormal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
     std::vector<Vec3d<ctype>> basis;
     Vec3d<ctype> u_unitized{normalize(u)};
     basis.push_back(u_unitized);
-    basis.emplace_back(normalize(reject_from_unitized(v, u_unitized)));
+    basis.emplace_back(normalize(reject_from_normalized(v, u_unitized)));
     basis.emplace_back(normalize(reject_from(w, wdg(u, v))));
     return basis;
 }

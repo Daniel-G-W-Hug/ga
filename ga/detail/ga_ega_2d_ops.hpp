@@ -745,8 +745,8 @@ inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v1
 // projection of v1 onto v2 (v2 must already be normalized to nrm(v2) == 1)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> project_onto_unitized(Vec2d<T> const& v1,
-                                                                       Vec2d<U> const& v2)
+inline constexpr Vec2d<std::common_type_t<T, U>>
+project_onto_normalized(Vec2d<T> const& v1, Vec2d<U> const& v2)
 {
     // requires v2 to be normalized
     return dot(v1, v2) * v2;
@@ -785,8 +785,8 @@ inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
 // rejection of v1 from v2 (v2 must already be normalized to nrm(v2) == 1)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> reject_from_unitized(Vec2d<T> const& v1,
-                                                                      Vec2d<U> const& v2)
+inline constexpr Vec2d<std::common_type_t<T, U>>
+reject_from_normalized(Vec2d<T> const& v1, Vec2d<U> const& v2)
 {
     // requires v2 to be normalized
 
@@ -852,7 +852,7 @@ std::vector<Vec2d<std::common_type_t<T, U>>> gs_orthonormal(Vec2d<T> const& u,
     std::vector<Vec2d<ctype>> basis;
     Vec2d<ctype> u_unitized{normalize(u)};
     basis.push_back(u_unitized);
-    basis.emplace_back(normalize(reject_from_unitized(v, u_unitized)));
+    basis.emplace_back(normalize(reject_from_normalized(v, u_unitized)));
     return basis;
 }
 

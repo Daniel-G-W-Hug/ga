@@ -365,8 +365,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         vec2d v4{reject_from(v1, v2)};
         vec2d v5{v3 + v4};
 
-        vec2d v6{project_onto_unitized(v1, v2u)};
-        vec2d v7{reject_from_unitized(v1, v2u)};
+        vec2d v6{project_onto_normalized(v1, v2u)};
+        vec2d v7{reject_from_normalized(v1, v2u)};
         vec2d v8{v6 + v7};
 
         // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
@@ -383,10 +383,10 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         //              " nrm(v5) = {: .4f}",
         //              v5, nrm(v5));
         // fmt::println("");
-        // fmt::println("v6 = project_onto_unitized(v1, v2u) ="
+        // fmt::println("v6 = project_onto_normalized(v1, v2u) ="
         //              " {: .4f}, nrm(v6) = {: .4f}",
         //              v6, nrm(v6));
-        // fmt::println("v7 = reject_from_unitized(v1, v2u)  ="
+        // fmt::println("v7 = reject_from_normalized(v1, v2u)  ="
         //              " {: .4f}, nrm(v7) = {: .4f}",
         //              v7, nrm(v7));
         // fmt::println("v8 = v6 + v7                        ="
@@ -1668,8 +1668,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         vec3d v4{reject_from(v1, v2)};
         vec3d v5{v3 + v4};
 
-        vec3d v6{project_onto_unitized(v1, v2u)};
-        vec3d v7{reject_from_unitized(v1, v2u)};
+        vec3d v6{project_onto_normalized(v1, v2u)};
+        vec3d v7{reject_from_normalized(v1, v2u)};
         vec3d v8{v6 + v7};
 
         // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
@@ -1683,10 +1683,10 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("v5 = v3 + v4              = {: .4f}, nrm(v5) = {: .4f}", v5,
         //              nrm(v5));
         // fmt::println("");
-        // fmt::println("v6 = project_onto_unitized(v1, v2u) = {: .4f},"
+        // fmt::println("v6 = project_onto_normalized(v1, v2u) = {: .4f},"
         //              " nrm(v6) = {: .4f}",
         //              v6, nrm(v6));
-        // fmt::println("v7 = reject_from_unitized(v1, v2u)  = {: .4f},"
+        // fmt::println("v7 = reject_from_normalized(v1, v2u)  = {: .4f},"
         //              " nrm(v7) = {: .4f}",
         //              v7, nrm(v7));
         // fmt::println("v8 = v6 + v7                        = {: .4f},"

@@ -457,43 +457,53 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         vec2dp v1{5.0, 1.0, 1.0};
         vec2dp v2{2.0, 2.0, 1.0};
 
-        vec2dp v2u = normalize(v2);
+        vec2dp v2n = normalize(v2);
 
         vec2dp v3{project_onto(v1, v2)};
         vec2dp v4{reject_from(v1, v2)};
         vec2dp v5{v3 + v4};
 
-        vec2dp v6{project_onto_unitized(v1, v2u)};
-        vec2dp v7{reject_from_unitized(v1, v2u)};
+        vec2dp v6{project_onto_normalized(v1, v2n)};
+        vec2dp v7{reject_from_normalized(v1, v2n)};
         vec2dp v8{v6 + v7};
 
-        // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
-        // fmt::println("v2  = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
-        // fmt::println("v2u = {: .4f}, nrm(v2) = {: .4f}", v2u, nrm(v2u));
-        // fmt::println("");
-        // fmt::println("v3 = project_onto(v1, v2) = {: .4f}, nrm(v3) = {: .4f}", v3,
-        //              nrm(v3));
-        // fmt::println("v4 = reject_from(v1, v2)  = {: .4f}, nrm(v4) = {: .4f}", v4,
-        //              nrm(v4));
-        // fmt::println("v5 = v3 + v4              = {: .4f}, nrm(v5) = {: .4f}", v5,
-        //              nrm(v5));
-        // fmt::println("");
-        // fmt::println("v6 = project_onto_unitized(v1, v2u) = {: .4f},"
-        //              " nrm(v6) = {: .4f}",
-        //              v6, nrm(v6));
-        // fmt::println("v7 = reject_from_unitized(v1, v2u)  = {: .4f},"
-        //              " nrm(v7) = {: .4f}",
-        //              v7, nrm(v7));
-        // fmt::println("v8 = v6 + v7                        = {: .4f},"
-        //              " nrm(v8) = {: .4f}",
-        //              v8, nrm(v8));
-        // // this helps to understand, why the dot-product is sufficient
-        // auto w = wdg(v1, v2);
-        // auto i = inv(v2);
-        // fmt::println("wdg(v1,v2)         = {: .4f}", w);
-        // fmt::println("inv(v2)            = {: .4f}", i);
-        // fmt::println("wdg(v1,v2)*inv(v2) = {: .4f}", w * i);
-        // fmt::println("");
+        fmt::println("sqrt(26)={}", std::sqrt(26.0));
+        fmt::println("v1  = {: .4f}, nrm(v1)  = {: .4f}, "
+                     "magn(v1) = {: .4f}",
+                     v1, nrm(v1), magn(v1));
+        fmt::println("v2  = {: .4f}, nrm(v2)  = {: .4f}, "
+                     "magn(v2) = {: .4f}",
+                     v2, nrm(v2), magn(v2));
+        fmt::println("v2n = {: .4f}, nrm(v2n) = {: .4f}, "
+                     "magn(v2n) = {: .4f}",
+                     v2n, nrm(v2n), magn(v2n));
+        fmt::println("");
+        fmt::println("v3 = project_onto(v1, v2) = {: .4f}, nrm(v3) = {: .4f}, "
+                     "magn(v3) = {: .4f}",
+                     v3, nrm(v3), magn(v3));
+        fmt::println("v4 = reject_from(v1, v2)  = {: .4f}, nrm(v4) = {: .4f}, "
+                     "magn(v4) = {: .4f}",
+                     v4, nrm(v4), magn(v4));
+        fmt::println("v5 = v3 + v4              = {: .4f}, nrm(v5) = {: .4f}, "
+                     "magn(v5) = {: .4f}",
+                     v5, nrm(v5), magn(v5));
+        fmt::println("");
+        fmt::println("v6 = project_onto_normalized(v1, v2n) = {: .4f}, "
+                     "magn(v4) = {: .4f}",
+                     v6, nrm(v6), magn(v6));
+        fmt::println("v7 = reject_from_normalized(v1, v2n)  = {: .4f}, "
+                     "magn(v7) = {: .4f}",
+                     v7, nrm(v7), magn(v7));
+        fmt::println("v8 = v6 + v7                          = {: .4f}, "
+                     "magn(v4) = {: .4f}",
+                     v8, nrm(v8), magn(v8));
+        // this helps to understand, why the dot-product is sufficient
+        auto w = wdg(v1, v2);
+        auto i = inv(v2);
+        fmt::println("wdg(v1,v2)         = {: .4f}", w);
+        fmt::println("inv(v2)            = {: .4f}", i);
+        fmt::println("wdg(v1,v2)*inv(v2) = {: .4f}", w * i);
+        fmt::println("");
 
         vec2dp v{4.0, 1.0, 1.0};
         vec2dp b{e2_2dp};
