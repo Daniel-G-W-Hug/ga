@@ -1143,16 +1143,16 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         //
 
         auto vm_dual_manual = Im_2d * vm;
-        auto vm_dual = dual2d(vm);
+        auto vm_dual = dual(vm);
 
         auto vm_dual_even_manual = Im_2d * vm_even;
-        auto vm_dual_even = dual2d(vm_even);
+        auto vm_dual_even = dual(vm_even);
 
         auto vm_dual_manual_E = Im_2d_E * vm_E;
-        auto vm_dual_E = dual2d(vm_E);
+        auto vm_dual_E = dual(vm_E);
 
         auto v_dual_manual = I_2d * v;
-        auto v_dual = dual2d(v);
+        auto v_dual = dual(v);
 
         // fmt::println("   I_2d    = {}", I_2d);
         // fmt::println("   Im_2d   = {}", Im_2d);
@@ -1160,27 +1160,27 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("");
         // fmt::println("   vm              = {}", vm);
         // fmt::println("   Im_2d*vm        = {}", vm_dual_manual);
-        // fmt::println("   dual2d(vm)      = {}", vm_dual);
+        // fmt::println("   dual(vm)        = {}", vm_dual);
         // fmt::println("");
         // fmt::println("   vm_even         = {}", vm_even);
         // fmt::println("   Im_2d*vm_even   = {}", vm_dual_even_manual);
-        // fmt::println("   dual2d(vm_even) = {}", vm_dual_even);
+        // fmt::println("   dual(vm_even)   = {}", vm_dual_even);
         // fmt::println("");
         // fmt::println("   vm_E          = {}", vm_E);
         // fmt::println("   Im_2d_E*vm_E  = {}", vm_dual_manual_E);
-        // fmt::println("   dual2d(vm_E)  = {}", vm_dual_E);
+        // fmt::println("   dual(vm_E)    = {}", vm_dual_E);
         // fmt::println("");
         // fmt::println("   v             = {}", v);
         // fmt::println("   I_2d * v      = {}", v_dual_manual);
-        // fmt::println("   dual2d(v)     = {}", v_dual);
+        // fmt::println("   dual(v)       = {}", v_dual);
 
         CHECK(vm_dual == vm_dual_manual);
         CHECK(vm_dual_even == vm_dual_even_manual);
         CHECK(vm_dual_E == vm_dual_manual_E);
         CHECK(v_dual == v_dual_manual);
-        CHECK(dual2d(scalar2d(5)) == pscalar2d(5));
-        CHECK(dual2d(pscalar2d(5)) == scalar2d(-5));
-        CHECK(dual2d(I_2d) == -1);
+        CHECK(dual(scalar2d(5)) == pscalar2d(5));
+        CHECK(dual(pscalar2d(5)) == scalar2d(-5));
+        CHECK(dual(I_2d) == -1);
 
         // dual properties (A. Macdonald, p. 110):
         //
@@ -1192,12 +1192,12 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // f) if A is a j-vector then dual(A) is an (n-j)-vector
         //    (remember: a j-vector is a sum of j-blades, which are outer products)
 
-        CHECK(dual2d(3.0 * vm) == 3.0 * dual2d(vm));
-        CHECK(dual2d(vm + vm2) == dual2d(vm) + dual2d(vm2));
-        CHECK(dual2d(dual2d(vm)) == -vm);
+        CHECK(dual(3.0 * vm) == 3.0 * dual(vm));
+        CHECK(dual(vm + vm2) == dual(vm) + dual(vm2));
+        CHECK(dual(dual(vm)) == -vm);
 
-        CHECK(dual2d(I_2d) == -1);
-        CHECK(dual2d(v) == (vec2d(v.y, -v.x)));
+        CHECK(dual(I_2d) == -1);
+        CHECK(dual(v) == (vec2d(v.y, -v.x)));
 
         // inner and outer products are in G^n are dual (Doran, Lasenby, p. 96):
         //
@@ -1214,8 +1214,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   wdg(a, b)*I_2d    = {}", wdg(a, b) * I_2d);
         // fmt::println("");
 
-        CHECK(dual2d(dot(a, b * I_2d)) == wdg(a, b) * I_2d);
-        CHECK(dual2d(wdg(a, b * I_2d)) == -dot(a, b) * I_2d);
+        CHECK(dual(dot(a, b * I_2d)) == wdg(a, b) * I_2d);
+        CHECK(dual(wdg(a, b * I_2d)) == -dot(a, b) * I_2d);
 #else
         ////////////////////////////////////////////////////////////////////////////////
         // duality (as defined in Macdonald, "Linear and geometric algebra"):
@@ -1225,16 +1225,16 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         //
 
         auto vm_dual_manual = vm * rev(Im_2d);
-        auto vm_dual = dual2d(vm);
+        auto vm_dual = dual(vm);
 
         auto vm_dual_even_manual = vm_even * rev(Im_2d);
-        auto vm_dual_even = dual2d(vm_even);
+        auto vm_dual_even = dual(vm_even);
 
         auto vm_dual_manual_E = vm_E * rev(Im_2d_E);
-        auto vm_dual_E = dual2d(vm_E);
+        auto vm_dual_E = dual(vm_E);
 
         auto v_dual_manual = v * rev(I_2d);
-        auto v_dual = dual2d(v);
+        auto v_dual = dual(v);
 
         // fmt::println("   I_2d               = {}", I_2d);
         // fmt::println("   Im_2d              = {}", Im_2d);
@@ -1242,27 +1242,27 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("");
         // fmt::println("   vm                 = {}", vm);
         // fmt::println("   vm*rev(Im_2d)      = {}", vm_dual_manual);
-        // fmt::println("   dual2d(vm)         = {}", vm_dual);
+        // fmt::println("   dual(vm)           = {}", vm_dual);
         // fmt::println("");
         // fmt::println("   vm_even            = {}", vm_even);
         // fmt::println("   vm_even*rev(Im_2d) = {}", vm_dual_even_manual);
-        // fmt::println("   dual2d(vm_even)    = {}", vm_dual_even);
+        // fmt::println("   dual(vm_even)      = {}", vm_dual_even);
         // fmt::println("");
         // fmt::println("   vm_E               = {}", vm_E);
         // fmt::println("   vm_E*rev(Im_2d_E)  = {}", vm_dual_manual_E);
-        // fmt::println("   dual2d(vm_E)       = {}", vm_dual_E);
+        // fmt::println("   dual(vm_E)         = {}", vm_dual_E);
         // fmt::println("");
         // fmt::println("   v                  = {}", v);
         // fmt::println("   v*rev(I_2d)        = {}", v_dual_manual);
-        // fmt::println("   dual2d(v)          = {}", v_dual);
+        // fmt::println("   dual(v)            = {}", v_dual);
 
         CHECK(vm_dual == vm_dual_manual);
         CHECK(vm_dual_even == vm_dual_even_manual);
         CHECK(vm_dual_E == vm_dual_manual_E);
         CHECK(v_dual == v_dual_manual);
-        CHECK(dual2d(scalar2d(5)) == pscalar2d(-5));
-        CHECK(dual2d(pscalar2d(5)) == scalar2d(5));
-        CHECK(dual2d(I_2d) == 1);
+        CHECK(dual(scalar2d(5)) == pscalar2d(-5));
+        CHECK(dual(pscalar2d(5)) == scalar2d(5));
+        CHECK(dual(I_2d) == 1);
 
         // dual properties (A. Macdonald, p. 110):
         //
@@ -1274,11 +1274,11 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // f) if A is a j-vector then dual(A) is an (n-j)-vector
         //    (remember: a j-vector is a sum of j-blades, which are outer products)
 
-        CHECK(dual2d(3.0 * vm) == 3.0 * dual2d(vm));
-        CHECK(dual2d(vm + vm2) == dual2d(vm) + dual2d(vm2));
-        CHECK(dual2d(dual2d(vm)) == -vm);
-        CHECK(dual2d(I_2d) == 1);
-        CHECK(dual2d(v) == (vec2d(v.y, -v.x)));
+        CHECK(dual(3.0 * vm) == 3.0 * dual(vm));
+        CHECK(dual(vm + vm2) == dual(vm) + dual(vm2));
+        CHECK(dual(dual(vm)) == -vm);
+        CHECK(dual(I_2d) == 1);
+        CHECK(dual(v) == (vec2d(v.y, -v.x)));
 
         // inner and outer products are in G^n are dual (A. Macdonald, p. 111):
         //
@@ -1289,18 +1289,18 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         // fmt::println("   a                 = {}", a);
         // fmt::println("   b                 = {}", b);
-        // fmt::println("   dual(b)           = {}", dual2d(b));
+        // fmt::println("   dual(b)           = {}", dual(b));
         // fmt::println("   dot(a, b)         = {}", dot(a, b));
         // fmt::println("   wdg(a, b)         = {}", wdg(a, b));
         // fmt::println("");
-        // fmt::println("   dual2d(dot(a, b)) = {}", dual2d(dot(a, b)));
-        // fmt::println("   wdg(a, dual2d(b)) = {}", wdg(a, dual2d(b)));
+        // fmt::println("   dual(dot(a, b))   = {}", dual(dot(a, b)));
+        // fmt::println("   wdg(a, dual(b))   = {}", wdg(a, dual(b)));
         // fmt::println("");
-        // fmt::println("   dual2d(wdg(a, b)) = {}", dual2d(wdg(a, b)));
-        // fmt::println("   dot(a, dual2d(b)) = {}", dot(a, dual2d(b)));
+        // fmt::println("   dual(wdg(a, b))   = {}", dual(wdg(a, b)));
+        // fmt::println("   dot(a, dual(b))   = {}", dot(a, dual(b)));
 
-        CHECK(dual2d(dot(a, b)) == wdg(a, dual2d(b)));
-        CHECK(dual2d(wdg(a, b)) == dot(a, dual2d(b)));
+        CHECK(dual(scalar2d(dot(a, b))) == wdg(a, dual(b)));
+        CHECK(dual(wdg(a, b)) == dot(a, dual(b)));
 #endif
     }
 
@@ -1883,12 +1883,12 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
 #if defined(_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
         // dual(A) = I*A
-        CHECK(u_cross_v == -dual3d(u_wdg_v));
-        CHECK(u_wdg_v == dual3d(u_cross_v));
+        CHECK(u_cross_v == -dual(u_wdg_v));
+        CHECK(u_wdg_v == dual(u_cross_v));
 #else
         // dual(A) = A/I = A*I^(-1) = A*rev(I)
-        CHECK(u_cross_v == dual3d(u_wdg_v));
-        CHECK(u_wdg_v == -dual3d(u_cross_v));
+        CHECK(u_cross_v == dual(u_wdg_v));
+        CHECK(u_wdg_v == -dual(u_cross_v));
 #endif
 
         // definitions using the pseudoscalars directly are valid independent of the
@@ -2747,78 +2747,78 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         //
 
         auto vm_dual_manual = Im_3d * vm;
-        auto vm_dual = dual3d(vm);
+        auto vm_dual = dual(vm);
 
         auto vm_dual_even_manual = Im_3d * vm_even;
-        auto vm_dual_even = dual3d(vm_even);
+        auto vm_dual_even = dual(vm_even);
 
         auto vm_dual_uneven_manual = Im_3d * vm_uneven;
-        auto vm_dual_uneven = dual3d(vm_uneven);
+        auto vm_dual_uneven = dual(vm_uneven);
 
         // result is uneven, naming chosen for consistency
         auto vm_dual_manual_E = I_3d * vm_E;
-        auto vm_dual_E = dual3d(vm_E);
+        auto vm_dual_E = dual(vm_E);
 
         // result is even, naming chosen for consistency
         auto vm_dual_manual_U = Im_3d_U * vm_U;
-        auto vm_dual_U = dual3d(vm_U);
+        auto vm_dual_U = dual(vm_U);
 
         auto v_dual_manual = I_3d * v;
-        auto v_dual = dual3d(v);
+        auto v_dual = dual(v);
 
         auto B_dual_manual = I_3d * B;
-        auto B_dual = dual3d(B);
+        auto B_dual = dual(B);
 
-        // fmt::println("   I_3d    = {}", I_3d);
-        // fmt::println("   Im_3d   = {}", Im_3d);
-        // fmt::println("   Im_3d_U = {}", Im_3d_U);
+        // fmt::println("   I_3d            = {}", I_3d);
+        // fmt::println("   Im_3d           = {}", Im_3d);
+        // fmt::println("   Im_3d_U         = {}", Im_3d_U);
         // fmt::println("");
-        // fmt::println("   v             = {}", v);
-        // fmt::println("   B             = {}", B);
+        // fmt::println("   v               = {}", v);
+        // fmt::println("   B               = {}", B);
         // fmt::println("");
-        // fmt::println("   vm            = {}", vm);
-        // fmt::println("   Im_3d*vm      = {}", vm_dual_manual);
-        // fmt::println("   dual3d(vm)      = {}", vm_dual);
+        // fmt::println("   vm              = {}", vm);
+        // fmt::println("   Im_3d*vm        = {}", vm_dual_manual);
+        // fmt::println("   dual(vm)        = {}", vm_dual);
         // fmt::println("");
-        // fmt::println("   vm_even       = {}", vm_even);
-        // fmt::println("   Im_3d*vm_even = {}", vm_dual_even_manual);
-        // fmt::println("   dual3d(vm_even) = {}", vm_dual_even);
+        // fmt::println("   vm_even         = {}", vm_even);
+        // fmt::println("   Im_3d*vm_even   = {}", vm_dual_even_manual);
+        // fmt::println("   dual(vm_even)   = {}", vm_dual_even);
         // fmt::println("");
-        // fmt::println("   vm_E          = {}", vm_E);
-        // fmt::println("   Im_3d_E*vm_E  = {}", vm_dual_manual_E);
-        // fmt::println("   dual3d(vm_E)    = {}", vm_dual_E);
+        // fmt::println("   vm_E            = {}", vm_E);
+        // fmt::println("   Im_3d_E*vm_E    = {}", vm_dual_manual_E);
+        // fmt::println("   dual(vm_E)      = {}", vm_dual_E);
         // fmt::println("");
         // fmt::println("   vm_uneven       = {}", vm_uneven);
         // fmt::println("   Im_3d*vm_uneven = {}", vm_dual_uneven_manual);
-        // fmt::println("   dual3d(vm_uneven) = {}", vm_dual_uneven);
+        // fmt::println("   dual(vm_uneven) = {}", vm_dual_uneven);
         // fmt::println("");
-        // fmt::println("   vm_U          = {}", vm_U);
-        // fmt::println("   Im_3d_U*vm_U  = {}", vm_dual_manual_U);
-        // fmt::println("   dual3d(vm_U)    = {}", vm_dual_U);
+        // fmt::println("   vm_U            = {}", vm_U);
+        // fmt::println("   Im_3d_U*vm_U    = {}", vm_dual_manual_U);
+        // fmt::println("   dual(vm_U)      = {}", vm_dual_U);
         // fmt::println("");
         // fmt::println("   v               = {}", v);
         // fmt::println("   I_3d * v        = {} - bivec ", v_dual_manual);
-        // fmt::println("   dual3d(v)         = {} - bivec ", v_dual);
+        // fmt::println("   dual(v)         = {} - bivec ", v_dual);
         // fmt::println("");
         // fmt::println("   B               = {}", B);
         // fmt::println("   I_3d * B        = {} - vec", B_dual_manual);
-        // fmt::println("   dual3d(B)         = {} - vec", B_dual);
+        // fmt::println("   dual(B)         = {} - vec", B_dual);
 
         CHECK(vm_dual == vm_dual_manual);
         CHECK(vm_dual_even == vm_dual_even_manual);
         CHECK(vm_dual_uneven == vm_dual_uneven_manual);
         CHECK(vm_dual_E == vm_dual_manual_E);
         CHECK(vm_dual_U == vm_dual_manual_U);
-        CHECK(dual3d(v) == bivec3d{1.0, 2.0, 3.0});
-        CHECK(dual3d(B) == -vec3d{10.0, 20.0, 30.0});
-        CHECK(dual3d(scalar3d(5)) == pscalar3d(5));
-        CHECK(dual3d(pscalar3d(5)) == scalar3d(-5));
+        CHECK(dual(v) == bivec3d{1.0, 2.0, 3.0});
+        CHECK(dual(B) == -vec3d{10.0, 20.0, 30.0});
+        CHECK(dual(scalar3d(5)) == pscalar3d(5));
+        CHECK(dual(pscalar3d(5)) == scalar3d(-5));
 
         // dual properties
-        CHECK(dual3d(3.0 * vm) == 3.0 * dual3d(vm));
-        CHECK(dual3d(vm + vm2) == dual3d(vm) + dual3d(vm2));
-        CHECK(dual3d(dual3d(vm)) == -vm);
-        CHECK(dual3d(I_3d) == -1.0);
+        CHECK(dual(3.0 * vm) == 3.0 * dual(vm));
+        CHECK(dual(vm + vm2) == dual(vm) + dual(vm2));
+        CHECK(dual(dual(vm)) == -vm);
+        CHECK(dual(I_3d) == -1.0);
 
         // inner and outer products are in G^n are dual (A. Macdonald, p. 111):
         //
@@ -2833,23 +2833,23 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         // fmt::println("   a                 = {}", a);
         // fmt::println("   b                 = {}", b);
-        // fmt::println("   dual3d(b)         = {}", dual3d(b));
+        // fmt::println("   dual(b)           = {}", dual(b));
         // fmt::println("   dot(a, b)         = {}", dot(a, b));
         // fmt::println("   wdg(a, b)         = {}", wdg(a, b));
         // fmt::println("");
-        // fmt::println("   dual3d(dot(a, b)) = {}", dual3d(dot(a, b)));
-        // fmt::println("   wdg(a, dual3d(b)) = {}", wdg(a, dual3d(b)));
+        // fmt::println("   dual(dot(a, b))   = {}", dual(dot(a, b)));
+        // fmt::println("   wdg(a, dual(b))   = {}", wdg(a, dual(b)));
         // fmt::println("");
-        // fmt::println("   dual3d(wdg(a, b)) = {}", dual3d(wdg(a, b)));
-        // fmt::println("   dot(a, dual3d(b)) = {}", dot(a, dual3d(b)));
+        // fmt::println("   dual(wdg(a, b))   = {}", dual(wdg(a, b)));
+        // fmt::println("   dot(a, dual(b))   = {}", dot(a, dual(b)));
 
         CHECK(dot(a, b * I_3d) == wdg(a, b) * I_3d);
 
         // just to silence unused variable warning
         CHECK(v_dual_manual == I_3d * v);
-        CHECK(v_dual == dual3d(v));
+        CHECK(v_dual == dual(v));
         CHECK(B_dual_manual == I_3d * B);
-        CHECK(B_dual == dual3d(B));
+        CHECK(B_dual == dual(B));
 
 #else
         ////////////////////////////////////////////////////////////////////////////////
@@ -2860,27 +2860,27 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         //
 
         auto vm_dual_manual = vm * rev(Im_3d);
-        auto vm_dual = dual3d(vm);
+        auto vm_dual = dual(vm);
 
         auto vm_dual_even_manual = vm_even * rev(Im_3d);
-        auto vm_dual_even = dual3d(vm_even);
+        auto vm_dual_even = dual(vm_even);
 
         auto vm_dual_uneven_manual = vm_uneven * rev(Im_3d);
-        auto vm_dual_uneven = dual3d(vm_uneven);
+        auto vm_dual_uneven = dual(vm_uneven);
 
         // result is uneven, naming chosen for consistency
         auto vm_dual_manual_E = vm_E * rev(I_3d);
-        auto vm_dual_E = dual3d(vm_E);
+        auto vm_dual_E = dual(vm_E);
 
         // result is even, naming chosen for consistency
         auto vm_dual_manual_U = vm_U * rev(Im_3d_U);
-        auto vm_dual_U = dual3d(vm_U);
+        auto vm_dual_U = dual(vm_U);
 
         auto v_dual_manual = v * rev(I_3d);
-        auto v_dual = dual3d(v);
+        auto v_dual = dual(v);
 
         auto B_dual_manual = B * rev(I_3d);
-        auto B_dual = dual3d(B);
+        auto B_dual = dual(B);
 
         // fmt::println("   I_3d                 = {}", I_3d);
         // fmt::println("   Im_3d                = {}", Im_3d);
@@ -2891,41 +2891,41 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("");
         // fmt::println("   vm                   = {}", vm);
         // fmt::println("   vm*rev(Im_3d)        = {}", vm_dual_manual);
-        // fmt::println("   dual3d(vm)           = {}", vm_dual);
+        // fmt::println("   dual(vm)             = {}", vm_dual);
         // fmt::println("");
         // fmt::println("   vm_even              = {}", vm_even);
         // fmt::println("   vm_even*rev(Im_3d)   = {}", vm_dual_even_manual);
-        // fmt::println("   dual3d(vm_even)      = {}", vm_dual_even);
+        // fmt::println("   dual(vm_even)        = {}", vm_dual_even);
         // fmt::println("");
         // fmt::println("   vm_E                 = {}", vm_E);
         // fmt::println("   vm_E * rev(I_3d)     = {}", vm_dual_manual_E);
-        // fmt::println("   dual3d(vm_E)         = {}", vm_dual_E);
+        // fmt::println("   dual(vm_E)           = {}", vm_dual_E);
         // fmt::println("");
         // fmt::println("   vm_uneven            = {}", vm_uneven);
         // fmt::println("   vm_uneven*rev(Im_3d) = {}", vm_dual_uneven_manual);
-        // fmt::println("   dual3d(vm_uneven)    = {}", vm_dual_uneven);
+        // fmt::println("   dual(vm_uneven)      = {}", vm_dual_uneven);
         // fmt::println("");
         // fmt::println("   vm_U                 = {}", vm_U);
         // fmt::println("   vm_U*rev(Im_3d_U)    = {}", vm_dual_manual_U);
-        // fmt::println("   dual3d(vm_U)         = {}", vm_dual_U);
+        // fmt::println("   dual(vm_U)           = {}", vm_dual_U);
         // fmt::println("");
         // fmt::println("   v                    = {}", v);
         // fmt::println("   v*rev(I_3d)          = {} - bivec ", v_dual_manual);
-        // fmt::println("   dual3d(v)            = {} - bivec ", v_dual);
+        // fmt::println("   dual(v)              = {} - bivec ", v_dual);
         // fmt::println("");
         // fmt::println("   B                    = {}", B);
         // fmt::println("   B*rev(I_3d)          = {} - vec", B_dual_manual);
-        // fmt::println("   dual3d(B)            = {} - vec", B_dual);
+        // fmt::println("   dual(B)              = {} - vec", B_dual);
 
         CHECK(vm_dual == vm_dual_manual);
         CHECK(vm_dual_even == vm_dual_even_manual);
         CHECK(vm_dual_uneven == vm_dual_uneven_manual);
         CHECK(vm_dual_E == vm_dual_manual_E);
         CHECK(vm_dual_U == vm_dual_manual_U);
-        CHECK(dual3d(v) == -bivec3d{1.0, 2.0, 3.0});
-        CHECK(dual3d(B) == vec3d{10.0, 20.0, 30.0});
-        CHECK(dual3d(scalar3d(5)) == pscalar3d(-5));
-        CHECK(dual3d(pscalar3d(6)) == scalar3d(6));
+        CHECK(dual(v) == -bivec3d{1.0, 2.0, 3.0});
+        CHECK(dual(B) == vec3d{10.0, 20.0, 30.0});
+        CHECK(dual(scalar3d(5)) == pscalar3d(-5));
+        CHECK(dual(pscalar3d(6)) == scalar3d(6));
 
         // dual properties (A. Macdonald, p. 110):
         //
@@ -2937,11 +2937,11 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // f) if A is a j-vector then dual(A) is an (n-j)-vector
         //    (remember: a j-vector is a sum of j-blades, which are outer products)
 
-        CHECK(dual3d(3.0 * vm) == 3.0 * dual3d(vm));
-        CHECK(dual3d(vm + vm2) == dual3d(vm) + dual3d(vm2));
-        CHECK(dual3d(dual3d(vm)) == -vm);
-        CHECK(dual3d(I_3d) == 1);
-        CHECK(dual3d(v) == -bivec3d(1.0, 2.0, 3.0));
+        CHECK(dual(3.0 * vm) == 3.0 * dual(vm));
+        CHECK(dual(vm + vm2) == dual(vm) + dual(vm2));
+        CHECK(dual(dual(vm)) == -vm);
+        CHECK(dual(I_3d) == 1);
+        CHECK(dual(v) == -bivec3d(1.0, 2.0, 3.0));
 
         // inner and outer products are in G^n are dual (A. Macdonald, p. 111):
         //
@@ -2952,25 +2952,25 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         // fmt::println("   a                 = {}", a);
         // fmt::println("   b                 = {}", b);
-        // fmt::println("   dual3d(b)         = {}", dual3d(b));
+        // fmt::println("   dual(b)           = {}", dual(b));
         // fmt::println("   dot(a, b)         = {}", dot(a, b));
         // fmt::println("   wdg(a, b)         = {}", wdg(a, b));
         // fmt::println("");
-        // fmt::println("   dual3d(dot(a, b)) = {}", dual3d(dot(a, b)));
-        // fmt::println("   wdg(a, dual3d(b)) = {}", wdg(a, dual3d(b)));
+        // fmt::println("   dual(dot(a, b))   = {}", dual(dot(a, b)));
+        // fmt::println("   wdg(a, dual(b))   = {}", wdg(a, dual(b)));
         // fmt::println("");
-        // fmt::println("   dual3d(wdg(a, b)) = {}", dual3d(wdg(a, b)));
-        // fmt::println("   dot(a, dual3d(b)) = {}", dot(a, dual3d(b)));
+        // fmt::println("   dual(wdg(a, b))   = {}", dual(wdg(a, b)));
+        // fmt::println("   dot(a, dual(b))   = {}", dot(a, dual(b)));
 
-        CHECK(dual3d(scalar3d{dot(a, b)}) == wdg(a, dual3d(b)));
-        CHECK(dual3d(dot(a, b)) == wdg(a, dual3d(b)));
-        CHECK(dual3d(wdg(a, b)) == dot(a, dual3d(b)));
+        CHECK(dual(scalar3d{dot(a, b)}) == wdg(a, dual(b)));
+        CHECK(dual(scalar3d(dot(a, b))) == wdg(a, dual(b)));
+        CHECK(dual(wdg(a, b)) == dot(a, dual(b)));
 
         // just to silence unused variable warning
         CHECK(v_dual_manual == v * rev(I_3d));
-        CHECK(v_dual == dual3d(v));
+        CHECK(v_dual == dual(v));
         CHECK(B_dual_manual == B * rev(I_3d));
-        CHECK(B_dual == dual3d(B));
+        CHECK(B_dual == dual(B));
 #endif
     }
 

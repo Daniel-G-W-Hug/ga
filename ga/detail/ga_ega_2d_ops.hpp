@@ -531,6 +531,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2d duality operations
+// (the concept of dual is defined w.r.t. the geometric product)
 ////////////////////////////////////////////////////////////////////////////////
 
 // if M represents the subspace B as subspace of R^2 then
@@ -555,7 +556,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> dual2d(PScalar2d<T> ps)
+inline constexpr Scalar2d<T> dual(PScalar2d<T> ps)
 {
     // dual(A) = I*A
     // e12 * (ps * e12) = -ps
@@ -563,31 +564,20 @@ inline constexpr Scalar2d<T> dual2d(PScalar2d<T> ps)
 }
 
 // this one is problematic for overloading, because 2d and 3d case
-// transform scalars to different pseudoscalars
-// the 2d and 3d adders in the function name are required for disambiguation
+// transform scalars to different pseudoscalars, this can only be avoided, when the scalar
+// type is uniquely defined for the corresponding algebra
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> dual2d(Scalar2d<T> s)
+inline constexpr PScalar2d<T> dual(Scalar2d<T> s)
 {
     // dual(A) = I*A
     // e12 * (s) = s * e12
     return PScalar2d<T>(T(s));
 }
 
-// this overload is provided to accept T directly as an alternative to Scalar2d<T>
-// e.g. with T as a result of a dot product between two vectors
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> dual2d(T s)
-{
-    // dual(A) = I*A
-    // e12 * (s) = s * e12
-    return PScalar2d<T>(s);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Vec2d<T> dual2d(Vec2d<T> const& v)
+inline constexpr Vec2d<T> dual(Vec2d<T> const& v)
 {
     // dual(A) = I*A
     // e12 * (v.x * e1 + v.y * e2)
@@ -597,7 +587,7 @@ inline constexpr Vec2d<T> dual2d(Vec2d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> dual2d(MVec2d_E<T> const& M)
+inline constexpr MVec2d_E<T> dual(MVec2d_E<T> const& M)
 {
     // dual(A) = I*A
     // e12 * (  s + ps * e12)
@@ -607,7 +597,7 @@ inline constexpr MVec2d_E<T> dual2d(MVec2d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> dual2d(MVec2d<T> const& M)
+inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
 {
     // dual(A) = I*A
     // e12 * (  s + v.x * e1 + v.y * e2 + ps * e12)
@@ -642,7 +632,7 @@ inline constexpr MVec2d<T> dual2d(MVec2d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> dual2d(PScalar2d<T> ps)
+inline constexpr Scalar2d<T> dual(PScalar2d<T> ps)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   (ps * e12) * e21
@@ -651,11 +641,11 @@ inline constexpr Scalar2d<T> dual2d(PScalar2d<T> ps)
 }
 
 // this one is problematic for overloading, because 2d and 3d case
-// transform scalars to different pseudoscalars
-// the 2d and 3d adders in the function name are required for disambiguation
+// transform scalars to different pseudoscalars, this can only be avoided, when the scalar
+// type is uniquely defined for the corresponding algebra
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> dual2d(Scalar2d<T> s)
+inline constexpr PScalar2d<T> dual(Scalar2d<T> s)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   (s) * e21
@@ -663,21 +653,9 @@ inline constexpr PScalar2d<T> dual2d(Scalar2d<T> s)
     return PScalar2d<T>(-T(s));
 }
 
-// this overload is provided to accept T directly as an alternative to Scalar2d<T>
-// e.g. with T as a result of a dot product between two vectors
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> dual2d(T s)
-{
-    // dual(A) = A/I = A*I^(-1) = A*rev(I)
-    //   (s) * e21
-    // =  -s * e12
-    return PScalar2d<T>(-s);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Vec2d<T> dual2d(Vec2d<T> const& v)
+inline constexpr Vec2d<T> dual(Vec2d<T> const& v)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   (v.x * e1 + v.y * e2) * e21
@@ -687,7 +665,7 @@ inline constexpr Vec2d<T> dual2d(Vec2d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> dual2d(MVec2d_E<T> const& M)
+inline constexpr MVec2d_E<T> dual(MVec2d_E<T> const& M)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   (  s + ps * e12) * e21
@@ -697,7 +675,7 @@ inline constexpr MVec2d_E<T> dual2d(MVec2d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> dual2d(MVec2d<T> const& M)
+inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   (  s + v.x * e1 + v.y * e2 + ps * e12) * e21

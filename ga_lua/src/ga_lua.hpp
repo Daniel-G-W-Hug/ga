@@ -445,21 +445,18 @@ void register_functions(sol::state& lua)
     // dualization operations
     ////////////////////////////////////////////////////////////////////////////////
 
-    lua.set_function("dual2d",
-                     sol::overload(sol::resolve<scalar2d(pscalar2d)>(dual2d),
-                                   sol::resolve<pscalar2d(scalar2d)>(dual2d),
-                                   sol::resolve<vec2d(vec2d const&)>(dual2d),
-                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(dual2d),
-                                   sol::resolve<mvec2d(mvec2d const&)>(dual2d)));
-
-    lua.set_function("dual3d",
-                     sol::overload(sol::resolve<scalar3d(pscalar3d)>(dual3d),
-                                   sol::resolve<pscalar3d(scalar3d)>(dual3d),
-                                   sol::resolve<bivec3d(vec3d const&)>(dual3d),
-                                   sol::resolve<vec3d(bivec3d const&)>(dual3d),
-                                   sol::resolve<mvec3d_u(mvec3d_e const&)>(dual3d),
-                                   sol::resolve<mvec3d_e(mvec3d_u const&)>(dual3d),
-                                   sol::resolve<mvec3d(mvec3d const&)>(dual3d)));
+    lua.set_function("dual", sol::overload(sol::resolve<scalar2d(pscalar2d)>(dual),
+                                           sol::resolve<pscalar2d(scalar2d)>(dual),
+                                           sol::resolve<vec2d(vec2d const&)>(dual),
+                                           sol::resolve<mvec2d_e(mvec2d_e const&)>(dual),
+                                           sol::resolve<mvec2d(mvec2d const&)>(dual),
+                                           sol::resolve<scalar3d(pscalar3d)>(dual),
+                                           sol::resolve<pscalar3d(scalar3d)>(dual),
+                                           sol::resolve<bivec3d(vec3d const&)>(dual),
+                                           sol::resolve<vec3d(bivec3d const&)>(dual),
+                                           sol::resolve<mvec3d_u(mvec3d_e const&)>(dual),
+                                           sol::resolve<mvec3d_e(mvec3d_u const&)>(dual),
+                                           sol::resolve<mvec3d(mvec3d const&)>(dual)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // grade operations on multivectors

@@ -1033,6 +1033,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& v,
 
 ////////////////////////////////////////////////////////////////////////////////
 // 3d duality operations
+// (the concept of dual is defined w.r.t. the geometric product)
 ////////////////////////////////////////////////////////////////////////////////
 
 // if M represents the subspace B as subspace of R^3 then
@@ -1070,7 +1071,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& v,
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3d<T> dual3d(PScalar3d<T> ps)
+inline constexpr Scalar3d<T> dual(PScalar3d<T> ps)
 {
     // dual(A) = I*A
     // e123 * (ps * e123) = -ps
@@ -1078,31 +1079,20 @@ inline constexpr Scalar3d<T> dual3d(PScalar3d<T> ps)
 }
 
 // this one is problematic for overloading, because 2d and 3d case
-// transform to different pseudoscalars
-// the 2d and 3d adders in the function name are required for disambiguation
+// transform scalars to different pseudoscalars, this can only be avoided, when the scalar
+// type is uniquely defined for the corresponding algebra
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3d<T> dual3d(Scalar3d<T> s)
+inline constexpr PScalar3d<T> dual(Scalar3d<T> s)
 {
     // dual(A) = I*A
     // e123 * (s) = s * e123
     return PScalar3d<T>(T(s));
 }
 
-// this overload is provided to accept T directly as an alternative to Scalar3d<T>
-// e.g. with T as a result of a dot product between two vectors
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3d<T> dual3d(T s)
-{
-    // dual(A) = I*A
-    // e123 * (s) = s * e123
-    return PScalar3d<T>(s);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr BiVec3d<T> dual3d(Vec3d<T> const& v)
+inline constexpr BiVec3d<T> dual(Vec3d<T> const& v)
 {
     // dual(A) = I*A
     // e123 * (v.x * e1  + v.y * e2  + v.z * e3)
@@ -1112,7 +1102,7 @@ inline constexpr BiVec3d<T> dual3d(Vec3d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3d<T> dual3d(BiVec3d<T> const& B)
+inline constexpr Vec3d<T> dual(BiVec3d<T> const& B)
 {
     // dual(A) = I*A
     // e123 * (  b.x * e23 + b.y * e31 + b.z * e12)
@@ -1122,7 +1112,7 @@ inline constexpr Vec3d<T> dual3d(BiVec3d<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_U<T> dual3d(MVec3d_E<T> const& M)
+inline constexpr MVec3d_U<T> dual(MVec3d_E<T> const& M)
 {
     // dual(A) = I*A
     // e123 * (s + b.x * e23 + b.y * e31 + b.z * e12)
@@ -1132,7 +1122,7 @@ inline constexpr MVec3d_U<T> dual3d(MVec3d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_E<T> dual3d(MVec3d_U<T> const& M)
+inline constexpr MVec3d_E<T> dual(MVec3d_U<T> const& M)
 {
     // dual(A) = I*A
     // e123 * (      v.x * e1  + v.y * e2  + v.z * e3 + ps * e123)
@@ -1142,7 +1132,7 @@ inline constexpr MVec3d_E<T> dual3d(MVec3d_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d<T> dual3d(MVec3d<T> const& M)
+inline constexpr MVec3d<T> dual(MVec3d<T> const& M)
 {
     // dual(A) = I*A
     // e123 * (  s + v.x * e1  + v.y * e2  + v.z * e3
@@ -1192,7 +1182,7 @@ inline constexpr MVec3d<T> dual3d(MVec3d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3d<T> dual3d(PScalar3d<T> ps)
+inline constexpr Scalar3d<T> dual(PScalar3d<T> ps)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     // (ps * e123) * e321 = ps
@@ -1200,31 +1190,20 @@ inline constexpr Scalar3d<T> dual3d(PScalar3d<T> ps)
 }
 
 // this one is problematic for overloading, because 2d and 3d case
-// transform to different pseudoscalars
-// the 2d and 3d adders in the function name are required for disambiguation
+// transform scalars to different pseudoscalars, this can only be avoided, when the scalar
+// type is uniquely defined for the corresponding algebra
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3d<T> dual3d(Scalar3d<T> s)
+inline constexpr PScalar3d<T> dual(Scalar3d<T> s)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     // (s) * e321 = -s * e123
     return PScalar3d<T>(-T(s));
 }
 
-// this overload is provided to accept T directly as an alternative to Scalar3d<T>
-// e.g. with T as a result of a dot product between two vectors
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3d<T> dual3d(T s)
-{
-    // dual(A) = A/I = A*I^(-1) = A*rev(I)
-    // (s) * e321 = -s * e123
-    return PScalar3d<T>(-s);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr BiVec3d<T> dual3d(Vec3d<T> const& v)
+inline constexpr BiVec3d<T> dual(Vec3d<T> const& v)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   ( v.x * e1  + v.y * e2  + v.z * e3) * e321
@@ -1234,7 +1213,7 @@ inline constexpr BiVec3d<T> dual3d(Vec3d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3d<T> dual3d(BiVec3d<T> const& B)
+inline constexpr Vec3d<T> dual(BiVec3d<T> const& B)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   (b.x * e23 + b.y * e31 + b.z * e12) * e321
@@ -1244,7 +1223,7 @@ inline constexpr Vec3d<T> dual3d(BiVec3d<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_U<T> dual3d(MVec3d_E<T> const& M)
+inline constexpr MVec3d_U<T> dual(MVec3d_E<T> const& M)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   (s + b.x * e23 + b.y * e31 + b.z * e12 ) * e321
@@ -1254,7 +1233,7 @@ inline constexpr MVec3d_U<T> dual3d(MVec3d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_E<T> dual3d(MVec3d_U<T> const& M)
+inline constexpr MVec3d_E<T> dual(MVec3d_U<T> const& M)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //   (     v.x * e1  + v.y * e2  + v.z * e3 + ps * e123) * e321
@@ -1264,7 +1243,7 @@ inline constexpr MVec3d_E<T> dual3d(MVec3d_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d<T> dual3d(MVec3d<T> const& M)
+inline constexpr MVec3d<T> dual(MVec3d<T> const& M)
 {
     // dual(A) = A/I = A*I^(-1) = A*rev(I)
     //  (  s + v.x * e1  + v.y * e2  + v.z * e3
