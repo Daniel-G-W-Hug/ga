@@ -23,6 +23,7 @@ struct pscalar2dp_tag {};
 struct mvec2dp_e_tag {};
 struct mvec2dp_u_tag {};
 struct mvec2dp_tag {};
+struct point2dp_tag {};
 
 struct scalar3d_tag {};
 struct vec3d_tag {};

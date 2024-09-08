@@ -197,7 +197,7 @@ inline constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator/(Vec3_t<T, Tag> 
 // -> in ega magnitude (magn) and norm (nrm) are identical
 //
 // -> in pga magnitude is defined as norm for the representational space
-//    assuming the corresponding identiy matrix as metric for that space:
+//    assuming the corresponding identity matrix as metric for that space:
 //
 //    G<3,0,0> as representational space for modelling 2d Euclidean space using G<2,0,1>
 //             representational space:        e1^2=+1, e2^2=+1, e3^2=+1

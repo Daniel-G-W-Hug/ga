@@ -11,7 +11,8 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
-#include "ga_mvec2dp.hpp" // inclusion of multivector imports all component types
+#include "ga_mvec2dp.hpp"         // inclusion of multivector imports all component types
+#include "ga_pga_2dp_objects.hpp" // point2dp, vector2d, point2d
 
 
 namespace hd::ga::pga {
@@ -262,67 +263,6 @@ inline std::common_type_t<T, U> angle(BiVec2dp<T> const& v1, Vec2dp<U> const& v2
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// complement operations
-////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-    requires(std::floating_point<T>)
-inline PScalar2dp<T> complement(Scalar2dp<T> s)
-{
-    return PScalar2dp<T>(T(s));
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline BiVec2dp<T> complement(Vec2dp<T> const& v)
-{
-    return BiVec2dp<T>(-v.x, -v.y, -v.z);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline Vec2dp<T> complement(BiVec2dp<T> const& b)
-{
-    return Vec2dp<T>(-b.x, -b.y, -b.z);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline Scalar2dp<T> complement(PScalar2dp<T> ps)
-{
-    return Scalar2dp<T>(T(ps));
-}
-
-// operators for terse calls
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline PScalar2dp<T> operator!(Scalar2dp<T> s)
-{
-    return complement(s);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline BiVec2dp<T> operator!(Vec2dp<T> const& v)
-{
-    return complement(v);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline Vec2dp<T> operator!(BiVec2dp<T> const& b)
-{
-    return complement(b);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline Scalar2dp<T> operator!(PScalar2dp<T> ps)
-{
-    return complement(ps);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // wedge products and join operations
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -358,6 +298,28 @@ inline PScalar2dp<std::common_type_t<T, U>> wdg(BiVec2dp<T> const& A, Vec2dp<U> 
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar2dp<ctype>(-A.x * b.x - A.y * b.y - A.z * b.z);
+}
+
+// wedge product between a trivector ps and a scalar s
+// wdg(ps,s) = s*ps*e321
+// => returns a trivector (scalar s multiple of the trivector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline PScalar2dp<std::common_type_t<T, U>> wdg(PScalar2dp<T> ps, Scalar2dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2dp<ctype>(ctype(s) * ctype(ps));
+}
+
+// wedge product between a scalar s and a trivector ps
+// wdg(s,ps) = s*ps*e321
+// => returns a trivector (scalar s multiple of the trivector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline PScalar2dp<std::common_type_t<T, U>> wdg(Scalar2dp<T> s, PScalar2dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2dp<ctype>(ctype(s) * ctype(ps));
 }
 
 template <typename T, typename U>
@@ -989,6 +951,72 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> A,
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar2dp<ctype>(ctype(A) * ctype(B));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 2dp complement operations
+// (the concept of complement is defined w.r.t. the outer product)
+////////////////////////////////////////////////////////////////////////////////
+
+// if M represents the subspace B of the blade u as subspace of R^2 then
+// compl(M) represents the subspace orthorgonal to B
+// the complement exchanges basis vectors which are in the k-blade u with
+// the basis vectors which are NOT contained in the k-blade u
+// and are needed to fill the space completely to the corresponding pseudoscalar
+//
+// left complement:  l_complement(u) ^ u  = I_2dp = e3^e2^e1
+// right complement: u ^ r_complement(u)  = I_2dp = e3^e2^e1
+//
+// in spaces of odd dimension right and left complements are identical and thus there
+// is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
+//
+// in spaces of even dimension and when the grade of the k-vector is odd left and right
+// comploments have different signs
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> complement(Scalar2dp<T> s)
+{
+    // u ^ complement(u) = e3^e2^e1
+    // u = 1:
+    //     1 ^ complement(u) = e3^e2^e1 => complement(u) = e3^e2^e1
+    return PScalar2dp<T>(T(s));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline BiVec2dp<T> complement(Vec2dp<T> const& v)
+{
+    // u ^ compl(u) = e3^e2^e1
+    // u = v.x e1 + v.y e2 + v.z e3:
+    //     u ^ complement(u) = e3^e2^e1
+    //     u = e1 => complement(u) = -e23
+    //     u = e2 => complement(u) = -e31
+    //     u = e3 => complement(u) = -e12
+    return BiVec2dp<T>(-v.x, -v.y, -v.z);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline Vec2dp<T> complement(BiVec2dp<T> const& b)
+{
+    // u ^ compl(u) = e3^e2^e1
+    // u = b.x e23 + b.y e31 + b.z e12:
+    //     u ^ complement(u) = e3^e2^e1
+    //     u = e23 => complement(u) = -e1
+    //     u = e31 => complement(u) = -e2
+    //     u = e12 => complement(u) = -e3
+    return Vec2dp<T>(-b.x, -b.y, -b.z);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> complement(PScalar2dp<T> ps)
+{
+    // u ^ compl(u) = e3^e2^e1
+    // u = e3^e2^e1:
+    //     e3^e2^e1 ^ complement(u) = e3^e2^e1 => complement(u) = 1
+    return Scalar2dp<T>(T(ps));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -65,6 +65,19 @@ struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : nested_formatter<double> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// Point2dp<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::Point2dp<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::Point2dp<T>& v, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "({},{},{})", nested(v.x), nested(v.y),
+                              nested(v.z));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // Vec4_t<T, Tag> includes Vec4d<T> and TriVec4d<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>

@@ -158,6 +158,38 @@ inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, T
     return Scalar_t<ctype, Tag>(ctype(v) * inv);
 }
 
+// magnitude squared
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline constexpr T magn_sq(Scalar_t<T, Tag> s)
+{
+    return T(s) * T(s);
+}
+
+// magnitude
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline constexpr T magn(Scalar_t<T, Tag> s)
+{
+    return std::sqrt(magn_sq(s));
+}
+
+// return a scalar normalized to magn(s) == 1.0
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline constexpr Scalar_t<T, Tag> normalize(Scalar_t<T, Tag> s)
+{
+    T m = magn(s);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (m < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("magnitude too small for normalization" +
+                                 std::to_string(m) + "\n");
+    }
+#endif
+    T inv = T(1.0) / m; // for multiplication with inverse of norm
+    return Scalar_t<T, Tag>(T(s) * inv);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Scalar_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
