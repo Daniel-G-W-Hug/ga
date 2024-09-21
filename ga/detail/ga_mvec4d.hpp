@@ -2,7 +2,6 @@
 
 // author: Daniel Hug, 2024
 
-#include "type_t/ga_mvec16_t.hpp"
 #include "type_t/ga_type_4d.hpp"
 
 #include "ga_mvec4d_e.hpp"
@@ -10,8 +9,6 @@
 
 
 namespace hd::ga {
-
-template <typename T> using MVec4d = MVec16_t<T, mvec4d_tag>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // use MVec16_t including its ctors and add specific ctors for MVec16_t<T, Tag>

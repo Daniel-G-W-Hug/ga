@@ -2,7 +2,6 @@
 
 // author: Daniel Hug, 2024
 
-#include "type_t/ga_mvec8_t.hpp"
 #include "type_t/ga_type_3d.hpp"
 
 #include "ga_mvec3d_e.hpp"
@@ -10,8 +9,6 @@
 
 
 namespace hd::ga {
-
-template <typename T> using MVec3d = MVec8_t<T, mvec3d_tag>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // use MVec8_t including its ctors and add specific ctors for MVec8_t<T, Tag>

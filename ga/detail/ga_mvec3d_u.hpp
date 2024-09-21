@@ -2,13 +2,10 @@
 
 // author: Daniel Hug, 2024
 
-#include "type_t/ga_mvec4_t.hpp"
 #include "type_t/ga_type_3d.hpp"
 
 
 namespace hd::ga {
-
-template <typename T> using MVec3d_U = MVec4_t<T, mvec3d_u_tag>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // MVec3d_U<T> M = (c0 * e1 + c1 * e2 + c2 * e3) + c4 e1^e2^e3
@@ -36,13 +33,13 @@ template <typename T> struct MVec4_t<T, mvec3d_u_tag> : public MVec4_t<T, defaul
     using MVec4_t<T, default_tag>::MVec4_t; // inherit base class ctors
 
     // assign a vector part exclusively (other grades = 0)
-    MVec4_t(Vec3d<T> v) : MVec4_t(v.x, v.y, v.z, T(0.0)) {}
+    MVec4_t(Vec3d<T> const& v) : MVec4_t(v.x, v.y, v.z, T(0.0)) {}
 
     // assign a scalar part exclusively (other grades = 0)
     MVec4_t(PScalar3d<T> ps) : MVec4_t(T(0.0), T(0.0), T(0.0), T(ps)) {}
 
     // assign vector and pseudoscalar parts
-    MVec4_t(Vec3d<T> v, PScalar3d<T> ps) : MVec4_t(v.x, v.y, v.z, T(ps)) {}
+    MVec4_t(Vec3d<T> const& v, PScalar3d<T> ps) : MVec4_t(v.x, v.y, v.z, T(ps)) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -2,13 +2,10 @@
 
 // author: Daniel Hug, 2024
 
-#include "type_t/ga_mvec4_t.hpp"
 #include "type_t/ga_type_2dp.hpp"
 
 
 namespace hd::ga {
-
-template <typename T> using MVec2dp_E = MVec4_t<T, mvec2dp_e_tag>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // MVec2dp_E<T> M = c0 + (c1 * e2^e3 + c2 * e3^e1 + c3 * e1^e2)

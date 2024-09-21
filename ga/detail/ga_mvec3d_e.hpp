@@ -2,13 +2,10 @@
 
 // author: Daniel Hug, 2024
 
-#include "type_t/ga_mvec4_t.hpp"
 #include "type_t/ga_type_3d.hpp"
 
 
 namespace hd::ga {
-
-template <typename T> using MVec3d_E = MVec4_t<T, mvec3d_e_tag>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // MVec3d_E<T> M = c0 + (c1 e2^e3 + c2 e3^e1 + c3 e1^e2)
@@ -35,10 +32,10 @@ template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, defaul
     MVec4_t(Scalar3d<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec4_t(BiVec3d<T> b) : MVec4_t(T(0.0), b.x, b.y, b.z) {}
+    MVec4_t(BiVec3d<T> const& b) : MVec4_t(T(0.0), b.x, b.y, b.z) {}
 
     // assign scalar and bivector parts
-    MVec4_t(Scalar3d<T> s, BiVec3d<T> b) : MVec4_t(T(s), b.x, b.y, b.z) {}
+    MVec4_t(Scalar3d<T> s, BiVec3d<T> const& b) : MVec4_t(T(s), b.x, b.y, b.z) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////

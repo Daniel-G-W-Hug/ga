@@ -12,7 +12,7 @@
 #include <string>    // std::string, std::to_string
 
 #include "ga_mvec2dp.hpp"         // inclusion of multivector imports all component types
-#include "ga_pga_2dp_objects.hpp" // point2dp, vector2d, point2d
+#include "ga_pga_2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Bi
 
 
 namespace hd::ga::pga {
@@ -24,6 +24,9 @@ namespace hd::ga::pga {
 // return dot-product of two vectors in the modelled space G<2,0,1>
 // dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
 // dot(v,v) = |v|^2 = gr0(rev(v)*v)
+//
+// arguments: Vec2dp<T> or Point2dp<T> : public Vec2dp<T>
+//
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline std::common_type_t<T, U> dot(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
@@ -36,6 +39,9 @@ inline std::common_type_t<T, U> dot(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 
 // return dot product of two bivectors A and B (= a scalar)
 // dot(A,B) = gr0(A * B)
+//
+// arguments: BiVec2dp<T> or Line2dp<T> : public BiVec2dp<T>
+//
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr std::common_type_t<T, U> dot(BiVec2dp<T> const& A, BiVec2dp<U> const& B)
@@ -45,7 +51,7 @@ inline constexpr std::common_type_t<T, U> dot(BiVec2dp<T> const& A, BiVec2dp<U> 
     // this assumes an orthonormal basis with e1^2 = +1, e2^2 = +1, e3^2 = 0
     // and dot(e23, e23) = 0, dot(e31,e31) = 0, dot(e12,e12) = -1
     // and all other dot(exy,ezw)=0
-    // (every index combination containing index 3 twice becomes zero)
+    // (every index combination containing an index twice becomes zero)
     return -A.z * B.z;
 }
 
@@ -54,14 +60,17 @@ inline constexpr std::common_type_t<T, U> dot(BiVec2dp<T> const& A, BiVec2dp<U> 
 ////////////////////////////////////////////////////////////////////////////////
 
 // return squared norm of vector
-template <typename T> inline T nrm_sq(Vec2dp<T> const& v)
+template <typename T> inline T bulk_nrm_sq(Vec2dp<T> const& v)
 {
     // |v|^2 = gr0(rev(v)*v)
     return dot(v, v);
 }
 
 // return norm of vector
-template <typename T> inline T nrm(Vec2dp<T> const& v) { return std::sqrt(nrm_sq(v)); }
+template <typename T> inline T bulk_nrm(Vec2dp<T> const& v)
+{
+    return std::sqrt(bulk_nrm_sq(v));
+}
 
 // return the multiplicative inverse of the vector
 template <typename T> inline Vec2dp<T> inv(Vec2dp<T> const& v)
@@ -89,7 +98,7 @@ inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
 
-    ctype nrm_prod = nrm(v1) * nrm(v2);
+    ctype nrm_prod = bulk_nrm(v1) * bulk_nrm(v2);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
@@ -120,7 +129,7 @@ template <typename T> inline Vec2dp<T> unitize(Vec2dp<T> const& v)
 ////////////////////////////////////////////////////////////////////////////////
 
 // return squared magnitude of bivector
-template <typename T> inline constexpr T nrm_sq(BiVec2dp<T> const& v)
+template <typename T> inline constexpr T bulk_nrm_sq(BiVec2dp<T> const& v)
 {
     // |v|^2 = gr0(rev(v)*v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 2-blade => rev(v) = -v
@@ -129,9 +138,9 @@ template <typename T> inline constexpr T nrm_sq(BiVec2dp<T> const& v)
 }
 
 // return magnitude of bivector
-template <typename T> inline constexpr T nrm(BiVec2dp<T> const& v)
+template <typename T> inline constexpr T bulk_nrm(BiVec2dp<T> const& v)
 {
-    return std::sqrt(nrm_sq(v));
+    return std::sqrt(bulk_nrm_sq(v));
 }
 
 // return conjugate complex of a bivector
@@ -278,6 +287,15 @@ inline BiVec2dp<std::common_type_t<T, U>> wdg(Vec2dp<T> const& v1, Vec2dp<U> con
         v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
 }
 
+// wedge product between two points (aka vectors with implicit v.z=1)
+// => returns a line (aka a bivector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline Line2dp<std::common_type_t<T, U>> wdg(Point2d<T> const& p, Point2d<U> const& q)
+{
+    return Line2dp<std::common_type_t<T, U>>(p.y - q.y, q.x - p.x, p.x * q.y - p.y * q.x);
+}
+
 // wedge product between a vector a and a bivector B
 // => returns a trivector (i.e. the pseudoscalar for 2dp)
 //
@@ -327,6 +345,13 @@ template <typename T, typename U>
 inline BiVec2dp<std::common_type_t<T, U>> join(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
     return wdg(v1, v2);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline Line2dp<std::common_type_t<T, U>> join(Point2d<T> const& p, Point2d<U> const& q)
+{
+    return wdg(p, q);
 }
 
 template <typename T, typename U>

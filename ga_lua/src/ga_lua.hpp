@@ -60,7 +60,8 @@ void register_2d_types(sol::state& lua)
 
 
     lua.new_usertype<vec2d>(
-        "vec2d", sol::constructors<vec2d(), vec2d(value_t, value_t), vec2d(vec2d)>(), "x",
+        "vec2d",
+        sol::constructors<vec2d(), vec2d(value_t, value_t), vec2d(vec2d const&)>(), "x",
         &vec2d::x, "y", &vec2d::y, sol::meta_function::unary_minus,
         sol::resolve<vec2d(vec2d const&)>(operator-), sol::meta_function::addition,
         sol::resolve<vec2d(vec2d const&, vec2d const&)>(operator+),
@@ -82,9 +83,9 @@ void register_2d_types(sol::state& lua)
 
     lua.new_usertype<mvec2d_e>(
         "mvec2d_e",
-        sol::constructors<mvec2d_e(), mvec2d_e(value_t, value_t), mvec2d_e(scalar2d),
-                          mvec2d_e(pscalar2d), mvec2d_e(scalar2d, pscalar2d),
-                          mvec2d_e(mvec2d_e)>(),
+        sol::constructors<mvec2d_e(), mvec2d_e(value_t, value_t),
+                          mvec2d_e(mvec2d_e const&), mvec2d_e(scalar2d),
+                          mvec2d_e(pscalar2d), mvec2d_e(scalar2d, pscalar2d)>(),
         "c0", &mvec2d_e::c0, "c1", &mvec2d_e::c1, sol::meta_function::unary_minus,
         sol::resolve<mvec2d_e(mvec2d_e const&)>(operator-), sol::meta_function::addition,
         sol::resolve<mvec2d_e(mvec2d_e const&, mvec2d_e const&)>(operator+),
@@ -106,9 +107,10 @@ void register_2d_types(sol::state& lua)
     lua.new_usertype<mvec2d>(
         "mvec2d",
         sol::constructors<mvec2d(), mvec2d(value_t, value_t, value_t, value_t),
-                          mvec2d(scalar2d), mvec2d(vec2d), mvec2d(pscalar2d),
-                          mvec2d(scalar2d, pscalar2d), mvec2d(mvec2d_e), mvec2d(mvec2d),
-                          mvec2d(scalar2d, vec2d, pscalar2d)>(),
+                          mvec2d(mvec2d const&), mvec2d(scalar2d), mvec2d(vec2d const&),
+                          mvec2d(pscalar2d), mvec2d(scalar2d, pscalar2d),
+                          mvec2d(mvec2d_e const&),
+                          mvec2d(scalar2d, vec2d const&, pscalar2d)>(),
         "c0", &mvec2d::c0, "c1", &mvec2d::c1, "c2", &mvec2d::c2, "c3", &mvec2d::c3,
         sol::meta_function::unary_minus, sol::resolve<mvec2d(mvec2d const&)>(operator-),
         sol::meta_function::addition,
@@ -173,8 +175,9 @@ void register_3d_types(sol::state& lua)
 
     lua.new_usertype<vec3d>(
         "vec3d",
-        sol::constructors<vec3d(), vec3d(value_t, value_t, value_t), vec3d(vec3d)>(), "x",
-        &vec3d::x, "y", &vec3d::x, "z", &vec3d::y, sol::meta_function::unary_minus,
+        sol::constructors<vec3d(), vec3d(value_t, value_t, value_t),
+                          vec3d(vec3d const&)>(),
+        "x", &vec3d::x, "y", &vec3d::x, "z", &vec3d::y, sol::meta_function::unary_minus,
         sol::resolve<vec3d(vec3d const&)>(operator-), sol::meta_function::addition,
         sol::resolve<vec3d(vec3d const&, vec3d const&)>(operator+),
         sol::meta_function::subtraction,
@@ -196,7 +199,7 @@ void register_3d_types(sol::state& lua)
     lua.new_usertype<bivec3d>(
         "bivec3d",
         sol::constructors<bivec3d(), bivec3d(value_t, value_t, value_t),
-                          bivec3d(bivec3d)>(),
+                          bivec3d(bivec3d const&)>(),
         "x", &bivec3d::x, "y", &bivec3d::x, "z", &bivec3d::y,
         sol::meta_function::unary_minus, sol::resolve<bivec3d(bivec3d const&)>(operator-),
         sol::meta_function::addition,
@@ -220,8 +223,8 @@ void register_3d_types(sol::state& lua)
     lua.new_usertype<mvec3d_e>(
         "mvec3d_e",
         sol::constructors<mvec3d_e(), mvec3d_e(value_t, value_t, value_t, value_t),
-                          mvec3d_e(scalar3d), mvec3d_e(bivec3d),
-                          mvec3d_e(scalar3d, bivec3d), mvec3d_e(mvec3d_e)>(),
+                          mvec3d_e(mvec3d_e const&), mvec3d_e(scalar3d),
+                          mvec3d_e(bivec3d const&), mvec3d_e(scalar3d, bivec3d const&)>(),
         "c0", &mvec3d_e::c0, "c1", &mvec3d_e::c1, "c2", &mvec3d_e::c2, "c3",
         &mvec3d_e::c3, sol::meta_function::unary_minus,
         sol::resolve<mvec3d_e(mvec3d_e const&)>(operator-), sol::meta_function::addition,
@@ -245,8 +248,8 @@ void register_3d_types(sol::state& lua)
     lua.new_usertype<mvec3d_u>(
         "mvec3d_u",
         sol::constructors<mvec3d_u(), mvec3d_u(value_t, value_t, value_t, value_t),
-                          mvec3d_u(pscalar3d), mvec3d_u(vec3d),
-                          mvec3d_u(vec3d, pscalar3d), mvec3d_u(mvec3d_u)>(),
+                          mvec3d_u(mvec3d_u const&), mvec3d_u(vec3d const&),
+                          mvec3d_u(pscalar3d), mvec3d_u(vec3d const&, pscalar3d)>(),
         "c0", &mvec3d_u::c0, "c1", &mvec3d_u::c1, "c2", &mvec3d_u::c2, "c3",
         &mvec3d_u::c3, sol::meta_function::unary_minus,
         sol::resolve<mvec3d_u(mvec3d_u const&)>(operator-), sol::meta_function::addition,
@@ -269,10 +272,11 @@ void register_3d_types(sol::state& lua)
         sol::constructors<mvec3d(),
                           mvec3d(value_t, value_t, value_t, value_t, value_t, value_t,
                                  value_t, value_t),
-                          mvec3d(scalar3d), mvec3d(vec3d), mvec3d(bivec3d),
-                          mvec3d(scalar3d, bivec3d), mvec3d(mvec3d_e), mvec3d(mvec3d_u),
-                          mvec3d(vec3d, pscalar3d), mvec3d(pscalar3d), mvec3d(mvec3d),
-                          mvec3d(scalar3d, vec3d, bivec3d, pscalar3d)>(),
+                          mvec3d(mvec3d const&), mvec3d(scalar3d), mvec3d(vec3d const&),
+                          mvec3d(bivec3d const&), mvec3d(pscalar3d),
+                          mvec3d(scalar3d, bivec3d const&), mvec3d(mvec3d_e const&),
+                          mvec3d(vec3d const&, pscalar3d), mvec3d(mvec3d_u const&),
+                          mvec3d(scalar3d, vec3d const&, bivec3d const&, pscalar3d)>(),
         "c0", &mvec3d::c0, "c1", &mvec3d::c1, "c2", &mvec3d::c2, "c3", &mvec3d::c3, "c4",
         &mvec3d::c4, "c5", &mvec3d::c5, "c6", &mvec3d::c6, "c7", &mvec3d::c7,
         sol::meta_function::unary_minus, sol::resolve<mvec3d(mvec3d const&)>(operator-),
@@ -285,6 +289,7 @@ void register_3d_types(sol::state& lua)
                       sol::resolve<mvec3d(value_t, mvec3d const&)>(operator*),
                       sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(operator*),
                       sol::resolve<mvec3d(mvec3d const&, mvec3d_e const&)>(operator*),
+                      sol::resolve<mvec3d(mvec3d const&, mvec3d_u const&)>(operator*),
                       sol::resolve<mvec3d(mvec3d const&, pscalar3d)>(operator*)),
         sol::meta_function::division,
         sol::resolve<mvec3d(mvec3d const&, value_t)>(operator/));

@@ -7,6 +7,9 @@
 #include "ga_scalar_t.hpp"
 #include "ga_vec3_t.hpp"
 
+#include "ga_mvec4_t.hpp"
+#include "ga_mvec8_t.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 // consistent type definitions for easy use
 ////////////////////////////////////////////////////////////////////////////////
@@ -17,6 +20,9 @@ template <typename T> using Scalar2dp = Scalar_t<T, scalar2dp_tag>;
 template <typename T> using Vec2dp = Vec3_t<T, vec2dp_tag>;
 template <typename T> using BiVec2dp = Vec3_t<T, bivec2dp_tag>;
 template <typename T> using PScalar2dp = Scalar_t<T, pscalar2dp_tag>;
+template <typename T> using MVec2dp_E = MVec4_t<T, mvec2dp_e_tag>;
+template <typename T> using MVec2dp_U = MVec4_t<T, mvec2dp_u_tag>;
+template <typename T> using MVec2dp = MVec8_t<T, mvec2dp_tag>;
 
 // no support for specific interpretations or optimization yet
 //

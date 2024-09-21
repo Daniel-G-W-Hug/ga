@@ -2,15 +2,12 @@
 
 // author: Daniel Hug, 2024
 
-#include "type_t/ga_mvec4_t.hpp"
 #include "type_t/ga_type_2d.hpp"
 
 #include "ga_mvec2d_e.hpp"
 
 
 namespace hd::ga {
-
-template <typename T> using MVec2d = MVec4_t<T, mvec2d_tag>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // use MVec4_t including its ctors and add specific ctors for MVec4_t<T, Tag>
@@ -36,7 +33,7 @@ template <typename T> struct MVec4_t<T, mvec2d_tag> : public MVec4_t<T, default_
     MVec4_t(Scalar2d<T> s, PScalar2d<T> ps) : MVec4_t(T(s), T(0.0), T(0.0), T(ps)) {}
 
     // assign from a complex number, i.e. from the even subalgebra
-    MVec4_t(MVec2d_E<T> v) : MVec4_t(v.c0, T(0.0), T(0.0), v.c1) {}
+    MVec4_t(MVec2d_E<T> const& v) : MVec4_t(v.c0, T(0.0), T(0.0), v.c1) {}
 
     // assign a full multivector
     MVec4_t(Scalar2d<T> s, Vec2d<T> const& v, PScalar2d<T> ps) :

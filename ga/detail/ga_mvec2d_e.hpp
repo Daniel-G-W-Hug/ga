@@ -2,13 +2,10 @@
 
 // author: Daniel Hug, 2024
 
-#include "type_t/ga_mvec2_t.hpp"
 #include "type_t/ga_type_2d.hpp"
 
 
 namespace hd::ga {
-
-template <typename T> using MVec2d_E = MVec2_t<T, mvec2d_e_tag>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // MVec2d_E<T> M = c0 + c1 I (with I being the bivector of the plane e1^e2)

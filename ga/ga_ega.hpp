@@ -12,17 +12,17 @@
 
 // types used for EGA (provided as templated types):
 //
-// Scalar<T>
-// Vec2d<T>, PScalar2d<T>, MVec2d_E<T>, MVec2d_U<T>, MVec2d<T>
-// Vec3d<T>, BiVec3d<T>, PScalar3d<T>, MVec3d_E<T>, MVec3d_U<T>, MVec3d<T>
-// Vec4d<T>, BiVec4d<T>, TriVec4d<T>, PScalar4d<T>, MVec4d_E<T>, MVec4d_U<T>, MVec4d<T>
+// Scalar2d<T>, Vec2dp<T>, PScalar2dp<T>, MVec2d_E<T>, MVec2dp<T>
+// Scalar3d<T>, Vec3dp<T>, BiVec3dp<T>, PScalar3dp<T>, MVec3d_E<T>, MVec3d_U<T>,
+// MVec3dp<T>
+// Scalar4d<T>, Vec4dp<T>, BiVec4dp<T>, TriVec4dp<T>, PScalar4dp<T>, MVec4d_E<T>,
+// MVec4d_U<T>, MVec4dp<T>
 
 // types used for EGA (provided as user types based on value_t for convenience):
 //
-// scalar
-// vec2d, pscalar2d, mvec2d_e, mvec2d_u, mvec2d
-// vec3d, bivec3d, pscalar3d, mvec3d_e, mvec3d_u, mvec3d
-// vec4d, bivec4d, trivec4d, pscalar4d, mvec4d_e, mvec4d_u, mvec4d
+// scalar2d, vec2d, pscalar2d, mvec2d_e, mvec2d
+// scalar3d, vec3d, bivec3d, pscalar3d, mvec3d_e, mvec3d_u, mvec3d
+// scalar4d, vec4d, bivec4d, trivec4d, pscalar4d, mvec4d_e, mvec4d_u, mvec4d
 
 // commonly used GA stuff is in namespace hd::ga
 #include "detail/ga_value_t.hpp" // default type for scalar, vector & bivector components
@@ -33,9 +33,6 @@
 #include "ga_usr_consts.hpp"    // user constants (for user convenience)
 #include "ga_usr_types.hpp"     // consistent user types (for user convenience)
 #include "ga_usr_utilities.hpp" // chelper functions (for user convenience)
-
-#include "detail/ga_mvec2d.hpp" // inclusion of multivector imports all component types
-#include "detail/ga_mvec3d.hpp" // inclusion of multivector imports all component types
 
 // EGA-specific operations are in namespace hd::ga::ega
 #include "detail/ga_ega_2d_ops.hpp" // ega 2d operations
