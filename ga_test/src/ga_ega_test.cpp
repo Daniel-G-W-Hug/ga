@@ -73,6 +73,52 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     //     fmt::println("   ega_4d: basis_name = {}", fmt::join(alg.basis_name, ", "));
     // }
 
+
+    TEST_CASE("ega_2d<2,0,0> - defining basic types and ctor checks")
+    {
+        fmt::println("ega_2d<2,0,0>: defining basic types and ctor checks");
+
+        auto mv1 = mvec2d{scalar2d(5.0)};
+        auto mv2 = mvec2d{vec2d{1.0, 2.0}};
+        auto mv3 = mvec2d{pscalar2d(-5.0)};
+        auto mv4 = mvec2d{scalar2d(5.0), pscalar2d(-5.0)};
+        auto mv5 = mvec2d_e{scalar2d(5.0)};
+        auto mv6 = mvec2d_e{pscalar2d(-5.0)};
+        auto mv7 = mvec2d_e{scalar2d(5.0), pscalar2d(-5.0)};
+        auto mv8 = mvec2d{mv7};
+        auto mv9 = mvec2d{scalar2d(5.0), vec2d{1.0, 2.0}, pscalar2d(-5.0)};
+
+        // fmt::println("   mv1 = {}", mv1);
+        // fmt::println("   mv2 = {}", mv2);
+        // fmt::println("   mv3 = {}", mv3);
+        // fmt::println("   mv4 = {}", mv4);
+        // fmt::println("   mv5 = {}", mv5);
+        // fmt::println("   mv6 = {}", mv6);
+        // fmt::println("   mv7 = {}", mv7);
+        // fmt::println("   mv8 = {}", mv8);
+        // fmt::println("   mv9 = {}", mv9);
+
+        CHECK(gr0(mv1) == scalar2d(5.0));
+        CHECK(gr1(mv2) == vec2d{1.0, 2.0});
+        CHECK(gr2(mv3) == pscalar2d(-5.0));
+
+        CHECK(gr0(mv4) == scalar2d{5.0});
+        CHECK(gr2(mv4) == pscalar2d{-5.0});
+
+        CHECK(gr0(mv5) == scalar2d(5.0));
+        CHECK(gr2(mv6) == pscalar2d{-5.0});
+
+        CHECK(gr0(mv7) == scalar2d(5.0));
+        CHECK(gr2(mv7) == pscalar2d{-5.0});
+
+        CHECK(gr0(mv8) == scalar2d(5.0));
+        CHECK(gr2(mv8) == pscalar2d{-5.0});
+
+        CHECK(gr0(mv9) == scalar2d(5.0));
+        CHECK(gr1(mv9) == vec2d{1.0, 2.0});
+        CHECK(gr2(mv9) == pscalar2d(-5.0));
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Vec2d<T> basic test cases
     ////////////////////////////////////////////////////////////////////////////////
@@ -1302,6 +1348,95 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(dual(scalar2d(dot(a, b))) == wdg(a, dual(b)));
         CHECK(dual(wdg(a, b)) == dot(a, dual(b)));
 #endif
+    }
+
+    TEST_CASE("ega_3d<3,0,0> - defining basic types and ctor checks")
+    {
+        fmt::println("ega_3d<3,0,0>: defining basic types and ctor checks");
+
+        auto mv1 = mvec3d{scalar3d(5.0)};
+        auto mv2 = mvec3d{vec3d{1.0, 2.0, 1.0}};
+        auto mv3 = mvec3d{bivec3d{-1.0, 2.0, 1.0}};
+        auto mv4 = mvec3d{pscalar3d(-5.0)};
+
+        auto mv5a = mvec3d{scalar3d(5.0), bivec3d{-1.0, 2.0, 1.0}};
+        auto mv5b = mvec3d_e{scalar3d(5.0)};
+        auto mv5c = mvec3d_e{bivec3d{-1.0, 2.0, 1.0}};
+        auto mv5d = mvec3d_e{scalar3d(5.0), bivec3d{-1.0, 2.0, 1.0}};
+        auto mv5e = mvec3d{mv5d};
+
+        auto mv6a = mvec3d{vec3d{1.0, 2.0, 1.0}, pscalar3d{-5.0}};
+        auto mv6b = mvec3d_u{vec3d{1.0, 2.0, 1.0}};
+        auto mv6c = mvec3d_u{pscalar3d{-5.0}};
+        auto mv6d = mvec3d_u{vec3d{1.0, 2.0, 1.0}, pscalar3d{-5.0}};
+        auto mv6e = mvec3d{mv6d};
+
+        auto mv7 = mvec3d{scalar3d(5.0), vec3d{1.0, 2.0, 1.0}, bivec3d{-1.0, 2.0, 1.0},
+                          pscalar3d{-5.0}};
+
+        // fmt::println("   mv1  = {}", mv1);
+        // fmt::println("   mv2  = {}", mv2);
+        // fmt::println("   mv3  = {}", mv3);
+        // fmt::println("   mv4  = {}", mv4);
+        // fmt::println("   mv5a = {}", mv5a);
+        // fmt::println("   mv5b = {}", mv5b);
+        // fmt::println("   mv5c = {}", mv5c);
+        // fmt::println("   mv5d = {}", mv5d);
+        // fmt::println("   mv5e = {}", mv5e);
+        // fmt::println("   mv6a = {}", mv6a);
+        // fmt::println("   mv6b = {}", mv6b);
+        // fmt::println("   mv6c = {}", mv6c);
+        // fmt::println("   mv6d = {}", mv6d);
+        // fmt::println("   mv6e = {}", mv6e);
+        // fmt::println("   mv7  = {}", mv7);
+
+        CHECK(gr0(mv1) == scalar3d{5.0});
+        CHECK(gr1(mv2) == vec3d{1.0, 2.0, 1.0});
+        CHECK(gr2(mv3) == bivec3d{-1.0, 2.0, 1.0});
+        CHECK(gr3(mv4) == pscalar3d{-5.0});
+
+        CHECK(gr0(mv5a) == scalar3d{5.0});
+        CHECK(gr1(mv5a) == vec3d{});
+        CHECK(gr2(mv5a) == bivec3d{-1.0, 2.0, 1.0});
+        CHECK(gr3(mv5a) == pscalar3d{});
+
+        CHECK(gr0(mv5b) == scalar3d{5.0});
+        CHECK(gr2(mv5b) == bivec3d{});
+
+        CHECK(gr0(mv5c) == scalar3d{});
+        CHECK(gr2(mv5c) == bivec3d{-1.0, 2.0, 1.0});
+
+        CHECK(gr0(mv5d) == scalar3d{5.0});
+        CHECK(gr2(mv5d) == bivec3d{-1.0, 2.0, 1.0});
+
+        CHECK(gr0(mv5e) == scalar3d{5.0});
+        CHECK(gr1(mv5e) == vec3d{});
+        CHECK(gr2(mv5e) == bivec3d{-1.0, 2.0, 1.0});
+        CHECK(gr3(mv5e) == pscalar3d{});
+
+        CHECK(gr0(mv6a) == scalar3d{});
+        CHECK(gr1(mv6a) == vec3d{1.0, 2.0, 1.0});
+        CHECK(gr2(mv6a) == bivec3d{});
+        CHECK(gr3(mv6a) == pscalar3d{-5.0});
+
+        CHECK(gr1(mv6b) == vec3d{1.0, 2.0, 1.0});
+        CHECK(gr3(mv6b) == pscalar3d{});
+
+        CHECK(gr1(mv6c) == vec3d{});
+        CHECK(gr3(mv6c) == pscalar3d{-5.0});
+
+        CHECK(gr1(mv6d) == vec3d{1.0, 2.0, 1.0});
+        CHECK(gr3(mv6d) == pscalar3d{-5.0});
+
+        CHECK(gr0(mv6e) == scalar3d{});
+        CHECK(gr1(mv6e) == vec3d{1.0, 2.0, 1.0});
+        CHECK(gr2(mv6e) == bivec3d{});
+        CHECK(gr3(mv6e) == pscalar3d{-5.0});
+
+        CHECK(gr0(mv7) == scalar3d{5.0});
+        CHECK(gr1(mv7) == vec3d{1.0, 2.0, 1.0});
+        CHECK(gr2(mv7) == bivec3d{-1.0, 2.0, 1.0});
+        CHECK(gr3(mv7) == pscalar3d{-5.0});
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -2974,38 +3109,113 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 #endif
     }
 
-    TEST_CASE("MVec4d - defining basic types and ctor checks")
+    TEST_CASE("ega_4d<4,0,0> - defining basic types and ctor checks")
     {
-        fmt::println("MVec4d: defining basic types and ctor checks");
-        auto mv1 = mvec4d{scalar4d(5.0)};
+        fmt::println("ega_4d<4,0,0>: defining basic types and ctor checks");
+
+        auto mv1 = mvec4d{scalar4d{5.0}};
         auto mv2 = mvec4d{vec4d{1.0, 2.0, 3.0, 4.0}};
         auto mv3 = mvec4d{bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0}};
         auto mv4 = mvec4d{trivec4d{-1.0, -2.0, -3.0, -4.0}};
-        auto mv5 = mvec4d{pscalar4d(-5.0)};
-        auto mv6a = mvec4d_e{scalar4d(5.0), bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0},
-                             pscalar4d(-5.0)};
-        auto mv6 = mvec4d{mv6a};
-        auto mv7a = mvec4d_u{vec4d{1.0, 2.0, 3.0, 4.0}, trivec4d{-1.0, -2.0, -3.0, -4.0}};
-        auto mv7 = mvec4d{mv7a};
+        auto mv5 = mvec4d{pscalar4d{-5.0}};
+
+        auto mv6a = mvec4d{scalar4d{5.0}, bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0},
+                           pscalar4d{-5.0}};
+        auto mv6b = mvec4d_e{scalar4d{5.0}};
+        auto mv6c = mvec4d_e{bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0}};
+        auto mv6d = mvec4d_e{pscalar4d{-5.0}};
+        auto mv6e = mvec4d_e{scalar4d{5.0}, bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0},
+                             pscalar4d{-5.0}};
+        auto mv6f = mvec4d{mv6e};
+
+        auto mv7a = mvec4d{vec4d{1.0, 2.0, 3.0, 4.0}, trivec4d{-1.0, -2.0, -3.0, -4.0}};
+        auto mv7b = mvec4d_u{vec4d{1.0, 2.0, 3.0, 4.0}};
+        auto mv7c = mvec4d_u{trivec4d{-1.0, -2.0, -3.0, -4.0}};
+        auto mv7d = mvec4d_u{vec4d{1.0, 2.0, 3.0, 4.0}, trivec4d{-1.0, -2.0, -3.0, -4.0}};
+        auto mv7e = mvec4d{mv7d};
+
+        auto mv8 = mvec4d{scalar4d{5.0}, vec4d{1.0, 2.0, 3.0, 4.0},
+                          bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0},
+                          trivec4d{-1.0, -2.0, -3.0, -4.0}, pscalar4d{-5.0}};
+
         // fmt::println("   mv1  = {}", mv1);
+        // fmt::println("   mv2  = {}", mv2);
+        // fmt::println("   mv3  = {}", mv3);
+        // fmt::println("   mv4  = {}", mv4);
+        // fmt::println("   mv5  = {}", mv5);
         // fmt::println("   mv6a = {}", mv6a);
-        // fmt::println("   mv6  = {}", mv6);
+        // fmt::println("   mv6b = {}", mv6b);
+        // fmt::println("   mv6c = {}", mv6c);
+        // fmt::println("   mv6d = {}", mv6d);
+        // fmt::println("   mv6e = {}", mv6e);
+        // fmt::println("   mv6f = {}", mv6f);
         // fmt::println("   mv7a = {}", mv7a);
-        // fmt::println("   mv7  = {}", mv7);
-        CHECK(gr0(mv1) == scalar4d(5.0));
+        // fmt::println("   mv7b = {}", mv7b);
+        // fmt::println("   mv7c = {}", mv7c);
+        // fmt::println("   mv7d = {}", mv7d);
+        // fmt::println("   mv7e = {}", mv7e);
+        // fmt::println("   mv8  = {}", mv8);
+
+        CHECK(gr0(mv1) == scalar4d{5.0});
         CHECK(gr1(mv2) == vec4d{1.0, 2.0, 3.0, 4.0});
         CHECK(gr2(mv3) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
         CHECK(gr3(mv4) == trivec4d{-1.0, -2.0, -3.0, -4.0});
-        CHECK(gr4(mv5) == pscalar4d(-5.0));
-        CHECK(gr0(mv6) == scalar4d(5.0));
+        CHECK(gr4(mv5) == pscalar4d{-5.0});
+
+        CHECK(gr0(mv6a) == scalar4d{5.0});
+        CHECK(gr1(mv6a) == vec4d{});
         CHECK(gr2(mv6a) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
-        CHECK(gr4(mv6) == pscalar4d(-5.0));
-        CHECK(gr2(mv6a) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
-        CHECK(gr4(mv6) == pscalar4d(-5.0));
+        CHECK(gr3(mv6a) == trivec4d{});
+        CHECK(gr4(mv6a) == pscalar4d{-5.0});
+
+        CHECK(gr0(mv6b) == scalar4d{5.0});
+        CHECK(gr2(mv6b) == bivec4d{});
+        CHECK(gr4(mv6b) == pscalar4d{});
+
+        CHECK(gr0(mv6c) == scalar4d{});
+        CHECK(gr2(mv6c) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
+        CHECK(gr4(mv6c) == pscalar4d{});
+
+        CHECK(gr0(mv6d) == scalar4d{});
+        CHECK(gr2(mv6d) == bivec4d{});
+        CHECK(gr4(mv6d) == pscalar4d{-5.0});
+
+        CHECK(gr0(mv6e) == scalar4d{5.0});
+        CHECK(gr2(mv6e) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
+        CHECK(gr4(mv6e) == pscalar4d{-5.0});
+
+        CHECK(gr0(mv6f) == scalar4d{5.0});
+        CHECK(gr1(mv6f) == vec4d{});
+        CHECK(gr2(mv6f) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
+        CHECK(gr3(mv6f) == trivec4d{});
+        CHECK(gr4(mv6f) == pscalar4d{-5.0});
+
+        CHECK(gr0(mv7a) == scalar4d{});
         CHECK(gr1(mv7a) == vec4d{1.0, 2.0, 3.0, 4.0});
+        CHECK(gr2(mv7a) == bivec4d{});
         CHECK(gr3(mv7a) == trivec4d{-1.0, -2.0, -3.0, -4.0});
-        CHECK(gr1(mv7) == vec4d{1.0, 2.0, 3.0, 4.0});
-        CHECK(gr3(mv7) == trivec4d{-1.0, -2.0, -3.0, -4.0});
+        CHECK(gr4(mv7a) == pscalar4d{});
+
+        CHECK(gr1(mv7b) == vec4d{1.0, 2.0, 3.0, 4.0});
+        CHECK(gr3(mv7b) == trivec4d{});
+
+        CHECK(gr1(mv7c) == vec4d{});
+        CHECK(gr3(mv7c) == trivec4d{-1.0, -2.0, -3.0, -4.0});
+
+        CHECK(gr1(mv7d) == vec4d{1.0, 2.0, 3.0, 4.0});
+        CHECK(gr3(mv7d) == trivec4d{-1.0, -2.0, -3.0, -4.0});
+
+        CHECK(gr0(mv7e) == scalar4d{});
+        CHECK(gr1(mv7e) == vec4d{1.0, 2.0, 3.0, 4.0});
+        CHECK(gr2(mv7e) == bivec4d{});
+        CHECK(gr3(mv7e) == trivec4d{-1.0, -2.0, -3.0, -4.0});
+        CHECK(gr4(mv7e) == pscalar4d{});
+
+        CHECK(gr0(mv8) == scalar4d{5.0});
+        CHECK(gr1(mv8) == vec4d{1.0, 2.0, 3.0, 4.0});
+        CHECK(gr2(mv8) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
+        CHECK(gr3(mv8) == trivec4d{-1.0, -2.0, -3.0, -4.0});
+        CHECK(gr4(mv8) == pscalar4d{-5.0});
     }
 
 } // TEST_SUITE("Euclidean Geometric Algebra (EGA)")

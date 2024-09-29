@@ -66,7 +66,7 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     }
 
     // assign components of an even grade subvector
-    MVec16_t(MVec4d_E<T> v) :
+    MVec16_t(MVec4d_E<T> const& v) :
         MVec16_t(v.c0, T(0.0), T(0.0), T(0.0), T(0.0), v.c1, v.c2, v.c3, v.c4, v.c5, v.c6,
                  T(0.0), T(0.0), T(0.0), T(0.0), v.c7)
     {
@@ -80,7 +80,7 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     }
 
     // assign components of an uneven grade subvector
-    MVec16_t(MVec4d_U<T> v) :
+    MVec16_t(MVec4d_U<T> const& v) :
         MVec16_t(T(0.0), v.c0, v.c1, v.c2, v.c3, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
                  T(0.0), v.c4, v.c5, v.c6, v.c7, T(0.0))
     {

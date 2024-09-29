@@ -33,13 +33,13 @@ template <typename T> struct MVec4_t<T, mvec2dp_u_tag> : public MVec4_t<T, defau
     using MVec4_t<T, default_tag>::MVec4_t; // inherit base class ctors
 
     // assign a vector part exclusively (other grades = 0)
-    MVec4_t(Vec2dp<T> v) : MVec4_t(v.x, v.y, v.z, T(0.0)) {}
+    MVec4_t(Vec2dp<T> const& v) : MVec4_t(v.x, v.y, v.z, T(0.0)) {}
 
     // assign a scalar part exclusively (other grades = 0)
     MVec4_t(PScalar2dp<T> ps) : MVec4_t(T(0.0), T(0.0), T(0.0), T(ps)) {}
 
     // assign vector and pseudoscalar parts
-    MVec4_t(Vec2dp<T> v, PScalar2dp<T> ps) : MVec4_t(v.x, v.y, v.z, T(ps)) {}
+    MVec4_t(Vec2dp<T> const& v, PScalar2dp<T> ps) : MVec4_t(v.x, v.y, v.z, T(ps)) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////

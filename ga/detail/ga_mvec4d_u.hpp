@@ -17,7 +17,10 @@ template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, defaul
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
     // assign the vector part exclusively (other grades = 0)
-    MVec8_t(Vec4d<T> v) : MVec8_t(v.x, v.y, v.z, v.w, T(0.0), T(0.0), T(0.0), T(0.0)) {}
+    MVec8_t(Vec4d<T> const& v) :
+        MVec8_t(v.x, v.y, v.z, v.w, T(0.0), T(0.0), T(0.0), T(0.0))
+    {
+    }
 
     // assign the trivector part exclusively (other grades = 0)
     MVec8_t(TriVec4d<T> const& t) :

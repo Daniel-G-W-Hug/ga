@@ -62,7 +62,7 @@ template <typename T> inline constexpr BiVec4d<T> gr2(MVec4d_E<T> const& v)
     return BiVec4d<T>(v.c1, v.c2, v.c3, v.c4, v.c5, v.c6);
 }
 
-template <typename T> inline constexpr PScalar4d<T> gr3(MVec4d_E<T> const& v)
+template <typename T> inline constexpr PScalar4d<T> gr4(MVec4d_E<T> const& v)
 {
     return PScalar4d<T>(v.c7);
 }

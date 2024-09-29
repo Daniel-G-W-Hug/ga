@@ -33,10 +33,10 @@ template <typename T> struct MVec4_t<T, mvec2dp_e_tag> : public MVec4_t<T, defau
     MVec4_t(Scalar2dp<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec4_t(BiVec2dp<T> b) : MVec4_t(T(0.0), b.x, b.y, b.z) {}
+    MVec4_t(BiVec2dp<T> const& b) : MVec4_t(T(0.0), b.x, b.y, b.z) {}
 
     // assign scalar and bivector parts
-    MVec4_t(Scalar2dp<T> s, BiVec2dp<T> b) : MVec4_t(T(s), b.x, b.y, b.z) {}
+    MVec4_t(Scalar2dp<T> s, BiVec2dp<T> const& b) : MVec4_t(T(s), b.x, b.y, b.z) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
