@@ -47,13 +47,13 @@ static pt2d_mark const pt2d_mark_default; // for default arguments
 struct ln2d_mark {
 
     QPen pen{QPen(Qt::black, 2, Qt::SolidLine)};
+    QColor area_col{QColor(0, 128, 0, 128)};
+
+    pt2d_mark pm{};
+    size_t delta{1}; // 1 shows every point, 2 every second, ...
 
     bool mark_pts{false};
-    size_t delta{1}; // 1 shows every point, 2 every second, ...
-    pt2d_mark pm{};
-
     bool mark_area{false};
-    QColor area_col{QColor(0, 128, 0, 128)};
 };
 
 static ln2d_mark const ln2d_mark_default; // for default arguments;
@@ -137,14 +137,14 @@ class Coordsys_model {
 
     // add passive point
     [[maybe_unused]] size_t add_pt(pt2d const& p_in,
-                                   pt2d_mark const m = pt2d_mark_default);
+                                   pt2d_mark const& m = pt2d_mark_default);
 
     // add passive line
     [[maybe_unused]] size_t add_ln(std::vector<pt2d> const& vp_in,
-                                   ln2d_mark const m = ln2d_mark_default);
+                                   ln2d_mark const& m = ln2d_mark_default);
     // add passive vector
     [[maybe_unused]] size_t add_vt(vt2d const& vt_in,
-                                   vt2d_mark const m = vt2d_mark_default);
+                                   vt2d_mark const& m = vt2d_mark_default);
 
     // add active point
     [[maybe_unused]] size_t add_apt(pt2d const& pt_in);
@@ -161,7 +161,7 @@ class Coordsys_model {
     // add active reflection
     [[maybe_unused]] size_t add_arefl(arefl2d const& refl_in);
 
-    void set_label(std::string new_label) { m_label = new_label; };
+    void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() { return m_label; }
 
     // reset model to empty state, e.g. for reuse in new model

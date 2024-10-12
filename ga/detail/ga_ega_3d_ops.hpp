@@ -1475,6 +1475,7 @@ gs_orthogonal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
 {
     using ctype = std::common_type_t<U, V, W>;
     std::vector<Vec3d<ctype>> basis;
+    basis.reserve(3);
     basis.push_back(u);
     basis.emplace_back(reject_from(v, u));
     basis.emplace_back(reject_from(w, wdg(u, v)));
@@ -1492,6 +1493,7 @@ gs_orthonormal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
 {
     using ctype = std::common_type_t<U, V, W>;
     std::vector<Vec3d<ctype>> basis;
+    basis.reserve(3);
     Vec3d<ctype> u_unitized{normalize(u)};
     basis.push_back(u_unitized);
     basis.emplace_back(normalize(reject_from_normalized(v, u_unitized)));

@@ -128,16 +128,16 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         fmt::println("Vec2d: default init");
         vec2d v;
         // fmt::println("   v = {}", v);
-        CHECK(v.x == 0.0);
-        CHECK(v.y == 0.0);
+        CHECK(std::abs(v.x) < eps);
+        CHECK(std::abs(v.y) < eps);
     }
     TEST_CASE("Vec2d: with curly braced intializer")
     {
         fmt::println("Vec2d: with curly braced intializer");
         vec2d v{0.0, 0.0};
         // fmt::println("   v = {}", v);
-        CHECK(v.x == 0.0);
-        CHECK(v.y == 0.0);
+        CHECK(std::abs(v.x) < eps);
+        CHECK(std::abs(v.y) < eps);
     }
     TEST_CASE("Vec2d: cp ctor & cp assign incl. type deduction")
     {
@@ -152,12 +152,12 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(v1.x == 1.0);
-        CHECK(v1.y == 2.0);
-        CHECK(v2.x == 1.0);
-        CHECK(v2.y == 2.0);
-        CHECK(v3.x == 1.0);
-        CHECK(v3.y == 2.0);
+        CHECK(std::abs(v1.x - 1.0) < eps);
+        CHECK(std::abs(v1.y - 2.0) < eps);
+        CHECK(std::abs(v2.x - 1.0) < eps);
+        CHECK(std::abs(v2.y - 2.0) < eps);
+        CHECK(std::abs(v3.x - 1.0) < eps);
+        CHECK(std::abs(v3.y - 2.0) < eps);
         CHECK(v4 == -v2);
 
         // check direct assignment operators (sequence of tests decisive!)
@@ -328,7 +328,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         for (int i = -12; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = Vec2d<double>(std::cos(phi), std::sin(phi));
-            v1.push_back(std::make_tuple(phi, c));
+            v1.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad_to_deg(phi), c, angle(e1_2d, c));
@@ -338,7 +338,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         for (int i = -12; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = Vec2d<double>(std::cos(phi + pi / 2), std::sin(phi + pi / 2));
-            v2.push_back(std::make_tuple(phi, c));
+            v2.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad_to_deg(phi), c, angle(e2_2d, c));
@@ -348,7 +348,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         for (int i = -12; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = Vec2d<double>(std::cos(phi + pi / 4), std::sin(phi + pi / 4));
-            v3.push_back(std::make_tuple(phi, c));
+            v3.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad_to_deg(phi), c, angle(e1_2d + e2_2d, c));
@@ -387,7 +387,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         for (int i = -12; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = Vec2d<double>(std::cos(phi), std::sin(phi));
-            v.push_back(std::make_tuple(phi, c));
+            v.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad_to_deg(phi), c, angle(e1_2d, c));
@@ -546,10 +546,10 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // default initialization
         mvec2d v;
         // fmt::println("   v = {}", v);
-        CHECK(v.c0 == 0.0);
-        CHECK(v.c1 == 0.0);
-        CHECK(v.c2 == 0.0);
-        CHECK(v.c3 == 0.0);
+        CHECK(std::abs(v.c0) < eps);
+        CHECK(std::abs(v.c1) < eps);
+        CHECK(std::abs(v.c2) < eps);
+        CHECK(std::abs(v.c3) < eps);
     }
     TEST_CASE("MVec2d: with curly braced intializer")
     {
@@ -557,10 +557,10 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // default initialization
         mvec2d v{0.0, 1.0, 2.0, 3.0};
         // fmt::println("   v = {}", v);
-        CHECK(v.c0 == 0.0);
-        CHECK(v.c1 == 1.0);
-        CHECK(v.c2 == 2.0);
-        CHECK(v.c3 == 3.0);
+        CHECK(std::abs(v.c0 - 0.0) < eps);
+        CHECK(std::abs(v.c1 - 1.0) < eps);
+        CHECK(std::abs(v.c2 - 2.0) < eps);
+        CHECK(std::abs(v.c3 - 3.0) < eps);
     }
 
     TEST_CASE("MVec2d: cp ctor & cp assign incl. type deduction")
@@ -577,14 +577,14 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(v2.c0 == 0.0);
-        CHECK(v2.c1 == 1.0);
-        CHECK(v2.c2 == 2.0);
-        CHECK(v2.c3 == 3.0);
-        CHECK(v3.c0 == 0.0);
-        CHECK(v3.c1 == 1.0);
-        CHECK(v3.c2 == 2.0);
-        CHECK(v3.c3 == 3.0);
+        CHECK(std::abs(v2.c0 - 0.0) < eps);
+        CHECK(std::abs(v2.c1 - 1.0) < eps);
+        CHECK(std::abs(v2.c2 - 2.0) < eps);
+        CHECK(std::abs(v2.c3 - 3.0) < eps);
+        CHECK(std::abs(v3.c0 - 0.0) < eps);
+        CHECK(std::abs(v3.c1 - 1.0) < eps);
+        CHECK(std::abs(v3.c2 - 2.0) < eps);
+        CHECK(std::abs(v3.c3 - 3.0) < eps);
         CHECK(v4 == -v3);
 
         // check direct assignment operators (sequence of tests decisive!)
@@ -1448,18 +1448,18 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         fmt::println("Vec3d: default init");
         vec3d v;
         // fmt::println("   v = {}", v);
-        CHECK(v.x == 0.0);
-        CHECK(v.y == 0.0);
-        CHECK(v.z == 0.0);
+        CHECK(std::abs(v.x) < eps);
+        CHECK(std::abs(v.y) < eps);
+        CHECK(std::abs(v.z) < eps);
     }
     TEST_CASE("Vec3d: with curly braced intializer")
     {
         fmt::println("Vec3d: with curly braced intializer");
         vec3d v{0.0, 0.0, 0.0};
         // fmt::println("   v = {}", v);
-        CHECK(v.x == 0.0);
-        CHECK(v.y == 0.0);
-        CHECK(v.z == 0.0);
+        CHECK(std::abs(v.x) < eps);
+        CHECK(std::abs(v.y) < eps);
+        CHECK(std::abs(v.z) < eps);
     }
     TEST_CASE("Vec3d: cp ctor & cp assign incl. type deduction")
     {
@@ -1474,15 +1474,15 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(v1.x == 1.0);
-        CHECK(v1.y == 2.0);
-        CHECK(v1.z == 3.0);
-        CHECK(v2.x == 1.0);
-        CHECK(v2.y == 2.0);
-        CHECK(v2.z == 3.0);
-        CHECK(v3.x == 1.0);
-        CHECK(v3.y == 2.0);
-        CHECK(v3.z == 3.0);
+        CHECK(std::abs(v1.x - 1.0) < eps);
+        CHECK(std::abs(v1.y - 2.0) < eps);
+        CHECK(std::abs(v1.z - 3.0) < eps);
+        CHECK(std::abs(v2.x - 1.0) < eps);
+        CHECK(std::abs(v2.y - 2.0) < eps);
+        CHECK(std::abs(v2.z - 3.0) < eps);
+        CHECK(std::abs(v3.x - 1.0) < eps);
+        CHECK(std::abs(v3.y - 2.0) < eps);
+        CHECK(std::abs(v3.z - 3.0) < eps);
         CHECK(v4 == -v2);
 
         // check direct assignment operators (sequence of tests decisive!)
@@ -1703,7 +1703,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         for (int i = 0; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = Vec3d<double>(std::cos(phi), std::sin(phi), 0.0);
-            v1.push_back(std::make_tuple(phi, c));
+            v1.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad_to_deg(phi), c, angle(e1_3d, c));
@@ -1713,7 +1713,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         for (int i = 0; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = Vec3d<double>(std::cos(phi + pi / 2), std::sin(phi + pi / 2), 0.0);
-            v2.push_back(std::make_tuple(phi, c));
+            v2.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad_to_deg(phi), c, angle(e2_3d, c));
@@ -1723,7 +1723,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         for (int i = 0; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = Vec3d<double>(std::cos(phi + pi / 4), std::sin(phi + pi / 4), 0.0);
-            v3.push_back(std::make_tuple(phi, c));
+            v3.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad_to_deg(phi), c, angle(e1_3d + e2_3d, c));
@@ -2051,14 +2051,14 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // default initialization
         mvec3d v;
         // fmt::println("   v = {}", v);
-        CHECK(v.c0 == 0.0);
-        CHECK(v.c1 == 0.0);
-        CHECK(v.c2 == 0.0);
-        CHECK(v.c3 == 0.0);
-        CHECK(v.c4 == 0.0);
-        CHECK(v.c5 == 0.0);
-        CHECK(v.c6 == 0.0);
-        CHECK(v.c7 == 0.0);
+        CHECK(std::abs(v.c0) < eps);
+        CHECK(std::abs(v.c1) < eps);
+        CHECK(std::abs(v.c2) < eps);
+        CHECK(std::abs(v.c3) < eps);
+        CHECK(std::abs(v.c4) < eps);
+        CHECK(std::abs(v.c5) < eps);
+        CHECK(std::abs(v.c6) < eps);
+        CHECK(std::abs(v.c7) < eps);
     }
     TEST_CASE("MVec3d: with curly braced intializer")
     {
@@ -2066,14 +2066,14 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // default initialization
         mvec3d v{0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0};
         // fmt::println("   v = {}", v);
-        CHECK(v.c0 == 0.0);
-        CHECK(v.c1 == 1.0);
-        CHECK(v.c2 == 2.0);
-        CHECK(v.c3 == 3.0);
-        CHECK(v.c4 == 23.0);
-        CHECK(v.c5 == 31.0);
-        CHECK(v.c6 == 12.0);
-        CHECK(v.c7 == 123.0);
+        CHECK(std::abs(v.c0 - 0.0) < eps);
+        CHECK(std::abs(v.c1 - 1.0) < eps);
+        CHECK(std::abs(v.c2 - 2.0) < eps);
+        CHECK(std::abs(v.c3 - 3.0) < eps);
+        CHECK(std::abs(v.c4 - 23.0) < eps);
+        CHECK(std::abs(v.c5 - 31.0) < eps);
+        CHECK(std::abs(v.c6 - 12.0) < eps);
+        CHECK(std::abs(v.c7 - 123.0) < eps);
     }
 
     TEST_CASE("MVec3d: cp ctor & cp assign incl. type deduction")
@@ -2091,23 +2091,23 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(v2.c0 == 0.0);
-        CHECK(v2.c1 == 1.0);
-        CHECK(v2.c2 == 2.0);
-        CHECK(v2.c3 == 3.0);
-        CHECK(v2.c4 == 23.0);
-        CHECK(v2.c5 == 31.0);
-        CHECK(v2.c6 == 12.0);
-        CHECK(v2.c7 == 123.0);
+        CHECK(std::abs(v2.c0 - 0.0) < eps);
+        CHECK(std::abs(v2.c1 - 1.0) < eps);
+        CHECK(std::abs(v2.c2 - 2.0) < eps);
+        CHECK(std::abs(v2.c3 - 3.0) < eps);
+        CHECK(std::abs(v2.c4 - 23.0) < eps);
+        CHECK(std::abs(v2.c5 - 31.0) < eps);
+        CHECK(std::abs(v2.c6 - 12.0) < eps);
+        CHECK(std::abs(v2.c7 - 123.0) < eps);
 
-        CHECK(v3.c0 == 0.0);
-        CHECK(v3.c1 == 1.0);
-        CHECK(v3.c2 == 2.0);
-        CHECK(v3.c3 == 3.0);
-        CHECK(v3.c4 == 23.0);
-        CHECK(v3.c5 == 31.0);
-        CHECK(v3.c6 == 12.0);
-        CHECK(v3.c7 == 123.0);
+        CHECK(std::abs(v3.c0 - 0.0) < eps);
+        CHECK(std::abs(v3.c1 - 1.0) < eps);
+        CHECK(std::abs(v3.c2 - 2.0) < eps);
+        CHECK(std::abs(v3.c3 - 3.0) < eps);
+        CHECK(std::abs(v3.c4 - 23.0) < eps);
+        CHECK(std::abs(v3.c5 - 31.0) < eps);
+        CHECK(std::abs(v3.c6 - 12.0) < eps);
+        CHECK(std::abs(v3.c7 - 123.0) < eps);
 
         CHECK(v4 == -v3);
 

@@ -4,7 +4,7 @@
 
 #include "coordsys_model.hpp"
 
-[[maybe_unused]] size_t Coordsys_model::add_pt(pt2d const& pt_in, pt2d_mark const m)
+[[maybe_unused]] size_t Coordsys_model::add_pt(pt2d const& pt_in, pt2d_mark const& m)
 {
 
     pt.push_back(pt_in);
@@ -16,7 +16,7 @@
 //
 // hint: using ln2d = std::vector<pt2d>;
 //
-[[maybe_unused]] size_t Coordsys_model::add_ln(ln2d const& vp_in, ln2d_mark const m)
+[[maybe_unused]] size_t Coordsys_model::add_ln(ln2d const& vp_in, ln2d_mark const& m)
 {
 
     // the separate copy should not be needed, since it is done in push_back
@@ -40,7 +40,7 @@
     return ln.size() - 1;
 }
 
-[[maybe_unused]] size_t Coordsys_model::add_vt(vt2d const& vt_in, vt2d_mark const m)
+[[maybe_unused]] size_t Coordsys_model::add_vt(vt2d const& vt_in, vt2d_mark const& m)
 {
 
     vt.push_back(vt_in);

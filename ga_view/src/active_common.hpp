@@ -18,13 +18,15 @@ static constexpr float ARCRADIUS = 45.0; // radius of arc to show direction of b
 static constexpr float ARCMARK = 3.0;    // radius of arc mark to show turning direction
 static constexpr float ARCDELTA = 22.0;  // max. delta angle of arc mark (begin & end)
 
-QColor const col_blue = QColor(0, 0, 255, 127);
-QColor const col_lblue = QColor(0, 0, 127, 50);
-QColor const col_green = QColor(0, 255, 0, 255);
-QColor const col_lgreen = QColor(0, 127, 0, 50);
-QColor const col_red = QColor(255, 0, 0, 255);
-QColor const col_lred = QColor(127, 0, 0, 50);
-QColor const col_yel = QColor(255, 255, 0, 127);
+// the inline keyword makes sure that the consts are created only once and not in every
+// translation unit
+inline QColor const col_blue = QColor(0, 0, 255, 127);
+inline QColor const col_lblue = QColor(0, 0, 127, 50);
+inline QColor const col_green = QColor(0, 255, 0, 255);
+inline QColor const col_lgreen = QColor(0, 127, 0, 50);
+inline QColor const col_red = QColor(255, 0, 0, 255);
+inline QColor const col_lred = QColor(127, 0, 0, 50);
+inline QColor const col_yel = QColor(255, 255, 0, 127);
 
 qreal nrm(QPointF const& u);
 qreal dot(QPointF const& u, QPointF const& v);

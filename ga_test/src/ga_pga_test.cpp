@@ -19,7 +19,6 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
     TEST_CASE("algebra<2,0,1> - pga_2d")
     {
-        fmt::println("");
         fmt::println("algebra<2, 0, 1> - pga_2d:");
         // 2d projective geometric algebra (models 2d Euclidean algebra)
         // embedded in 3d representational space
@@ -37,7 +36,6 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
     TEST_CASE("algebra<3, 0, 1> pga_3d")
     {
-        fmt::println("");
         fmt::println("algebra<3, 0, 1> - pga_3d:");
         // 3d projective geometric algebra  (models 3d Euclidean algebra)
         // embedded in 4d representational space
@@ -61,32 +59,85 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         auto mv2 = mvec2dp{vec2dp{1.0, 2.0, 1.0}};
         auto mv3 = mvec2dp{bivec2dp{-1.0, 2.0, 1.0}};
         auto mv4 = mvec2dp{pscalar2dp(-5.0)};
-        auto mv5a = mvec2dp_e{scalar2dp(5.0), bivec2dp{-1.0, 2.0, 1.0}};
-        auto mv5 = mvec2dp{mv5a};
-        auto mv6a = mvec2dp_u{vec2dp{1.0, 2.0, 1.0}, pscalar2dp{-5.0}};
-        auto mv6 = mvec2dp{mv6a};
+
+        auto mv5a = mvec2dp{scalar2dp(5.0), bivec2dp{-1.0, 2.0, 1.0}};
+        auto mv5b = mvec2dp_e{scalar2dp(5.0)};
+        auto mv5c = mvec2dp_e{bivec2dp{-1.0, 2.0, 1.0}};
+        auto mv5d = mvec2dp_e{scalar2dp(5.0), bivec2dp{-1.0, 2.0, 1.0}};
+        auto mv5e = mvec2dp{mv5d};
+
+        auto mv6a = mvec2dp{vec2dp{1.0, 2.0, 1.0}, pscalar2dp{-5.0}};
+        auto mv6b = mvec2dp_u{vec2dp{1.0, 2.0, 1.0}};
+        auto mv6c = mvec2dp_u{pscalar2dp{-5.0}};
+        auto mv6d = mvec2dp_u{vec2dp{1.0, 2.0, 1.0}, pscalar2dp{-5.0}};
+        auto mv6e = mvec2dp{mv6d};
+
+        auto mv7 = mvec2dp{scalar2dp(5.0), vec2dp{1.0, 2.0, 1.0},
+                           bivec2dp{-1.0, 2.0, 1.0}, pscalar2dp{-5.0}};
 
         // fmt::println("   mv1  = {}", mv1);
         // fmt::println("   mv2  = {}", mv2);
         // fmt::println("   mv3  = {}", mv3);
         // fmt::println("   mv4  = {}", mv4);
         // fmt::println("   mv5a = {}", mv5a);
-        // fmt::println("   mv5  = {}", mv5);
+        // fmt::println("   mv5b = {}", mv5b);
+        // fmt::println("   mv5c = {}", mv5c);
+        // fmt::println("   mv5d = {}", mv5d);
+        // fmt::println("   mv5e = {}", mv5e);
         // fmt::println("   mv6a = {}", mv6a);
-        // fmt::println("   mv6  = {}", mv6);
+        // fmt::println("   mv6b = {}", mv6b);
+        // fmt::println("   mv6c = {}", mv6c);
+        // fmt::println("   mv6d = {}", mv6d);
+        // fmt::println("   mv6e = {}", mv6e);
+        // fmt::println("   mv7  = {}", mv7);
 
-        CHECK(gr0(mv1) == scalar2dp(5.0));
+        CHECK(gr0(mv1) == scalar2dp{5.0});
         CHECK(gr1(mv2) == vec2dp{1.0, 2.0, 1.0});
         CHECK(gr2(mv3) == bivec2dp{-1.0, 2.0, 1.0});
         CHECK(gr3(mv4) == pscalar2dp{-5.0});
-        CHECK(gr0(mv5a) == scalar2dp(5.0));
+
+        CHECK(gr0(mv5a) == scalar2dp{5.0});
+        CHECK(gr1(mv5a) == vec2dp{});
         CHECK(gr2(mv5a) == bivec2dp{-1.0, 2.0, 1.0});
-        CHECK(gr0(mv5) == scalar2dp(5.0));
-        CHECK(gr2(mv5) == bivec2dp{-1.0, 2.0, 1.0});
+        CHECK(gr3(mv5a) == pscalar2dp{});
+
+        CHECK(gr0(mv5b) == scalar2dp{5.0});
+        CHECK(gr2(mv5b) == bivec2dp{});
+
+        CHECK(gr0(mv5c) == scalar2dp{});
+        CHECK(gr2(mv5c) == bivec2dp{-1.0, 2.0, 1.0});
+
+        CHECK(gr0(mv5d) == scalar2dp{5.0});
+        CHECK(gr2(mv5d) == bivec2dp{-1.0, 2.0, 1.0});
+
+        CHECK(gr0(mv5e) == scalar2dp{5.0});
+        CHECK(gr1(mv5e) == vec2dp{});
+        CHECK(gr2(mv5e) == bivec2dp{-1.0, 2.0, 1.0});
+        CHECK(gr3(mv5e) == pscalar2dp{});
+
+        CHECK(gr0(mv6a) == scalar2dp{});
         CHECK(gr1(mv6a) == vec2dp{1.0, 2.0, 1.0});
-        CHECK(gr3(mv6a) == pscalar2dp(-5.0));
-        CHECK(gr1(mv6) == vec2dp{1.0, 2.0, 1.0});
-        CHECK(gr3(mv6) == pscalar2dp(-5.0));
+        CHECK(gr2(mv6a) == bivec2dp{});
+        CHECK(gr3(mv6a) == pscalar2dp{-5.0});
+
+        CHECK(gr1(mv6b) == vec2dp{1.0, 2.0, 1.0});
+        CHECK(gr3(mv6b) == pscalar2dp{});
+
+        CHECK(gr1(mv6c) == vec2dp{});
+        CHECK(gr3(mv6c) == pscalar2dp{-5.0});
+
+        CHECK(gr1(mv6d) == vec2dp{1.0, 2.0, 1.0});
+        CHECK(gr3(mv6d) == pscalar2dp{-5.0});
+
+        CHECK(gr0(mv6e) == scalar2dp{});
+        CHECK(gr1(mv6e) == vec2dp{1.0, 2.0, 1.0});
+        CHECK(gr2(mv6e) == bivec2dp{});
+        CHECK(gr3(mv6e) == pscalar2dp{-5.0});
+
+        CHECK(gr0(mv7) == scalar2dp{5.0});
+        CHECK(gr1(mv7) == vec2dp{1.0, 2.0, 1.0});
+        CHECK(gr2(mv7) == bivec2dp{-1.0, 2.0, 1.0});
+        CHECK(gr3(mv7) == pscalar2dp{-5.0});
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -98,18 +149,18 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         fmt::println("Vec2dp: default init");
         vec2dp v;
         // fmt::println("   v = {}", v);
-        CHECK(v.x == 0.0);
-        CHECK(v.y == 0.0);
-        CHECK(v.z == 0.0);
+        CHECK(std::abs(v.x) < eps);
+        CHECK(std::abs(v.y) < eps);
+        CHECK(std::abs(v.z) < eps);
     }
     TEST_CASE("Vec2dp: with curly braced intializer")
     {
         fmt::println("Vec2dp: with curly braced intializer");
         vec2dp v{0.0, 0.0, 0.0};
         // fmt::println("   v = {}", v);
-        CHECK(v.x == 0.0);
-        CHECK(v.y == 0.0);
-        CHECK(v.z == 0.0);
+        CHECK(std::abs(v.x) < eps);
+        CHECK(std::abs(v.y) < eps);
+        CHECK(std::abs(v.z) < eps);
     }
     TEST_CASE("Vec2dp: cp ctor & cp assign incl. type deduction")
     {
@@ -124,15 +175,15 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(v1.x == 1.0);
-        CHECK(v1.y == 2.0);
-        CHECK(v1.z == 3.0);
-        CHECK(v2.x == 1.0);
-        CHECK(v2.y == 2.0);
-        CHECK(v2.z == 3.0);
-        CHECK(v3.x == 1.0);
-        CHECK(v3.y == 2.0);
-        CHECK(v3.z == 3.0);
+        CHECK(std::abs(v1.x - 1.0) < eps);
+        CHECK(std::abs(v1.y - 2.0) < eps);
+        CHECK(std::abs(v1.z - 3.0) < eps);
+        CHECK(std::abs(v2.x - 1.0) < eps);
+        CHECK(std::abs(v2.y - 2.0) < eps);
+        CHECK(std::abs(v2.z - 3.0) < eps);
+        CHECK(std::abs(v3.x - 1.0) < eps);
+        CHECK(std::abs(v3.y - 2.0) < eps);
+        CHECK(std::abs(v3.z - 3.0) < eps);
         CHECK(v4 == -v2);
 
         // check direct assignment operators (sequence of tests decisive!)
@@ -363,7 +414,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         for (int i = 0; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = Vec2dp<double>(std::cos(phi), std::sin(phi), 0.0);
-            v1.push_back(std::make_tuple(phi, c));
+            v1.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad_to_deg(phi), c, angle(e1_2dp, c));
@@ -373,7 +424,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         for (int i = 0; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = Vec2dp<double>(std::cos(phi + pi / 2), std::sin(phi + pi / 2), 0.0);
-            v2.push_back(std::make_tuple(phi, c));
+            v2.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad_to_deg(phi), c, angle(e2_2dp, c));
@@ -383,7 +434,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         for (int i = 0; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = Vec2dp<double>(std::cos(phi + pi / 4), std::sin(phi + pi / 4), 0.0);
-            v3.push_back(std::make_tuple(phi, c));
+            v3.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad_to_deg(phi), c, angle(e1_2dp + e2_2dp, c));
@@ -583,14 +634,14 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // default initialization
         mvec2dp v;
         // fmt::println("   v = {}", v);
-        CHECK(v.c0 == 0.0);
-        CHECK(v.c1 == 0.0);
-        CHECK(v.c2 == 0.0);
-        CHECK(v.c3 == 0.0);
-        CHECK(v.c4 == 0.0);
-        CHECK(v.c5 == 0.0);
-        CHECK(v.c6 == 0.0);
-        CHECK(v.c7 == 0.0);
+        CHECK(std::abs(v.c0) < eps);
+        CHECK(std::abs(v.c1) < eps);
+        CHECK(std::abs(v.c2) < eps);
+        CHECK(std::abs(v.c3) < eps);
+        CHECK(std::abs(v.c4) < eps);
+        CHECK(std::abs(v.c5) < eps);
+        CHECK(std::abs(v.c6) < eps);
+        CHECK(std::abs(v.c7) < eps);
     }
     TEST_CASE("MVec2dp: with curly braced intializer")
     {
@@ -598,14 +649,14 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // default initialization
         mvec2dp v{0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0};
         // fmt::println("   v = {}", v);
-        CHECK(v.c0 == 0.0);
-        CHECK(v.c1 == 1.0);
-        CHECK(v.c2 == 2.0);
-        CHECK(v.c3 == 3.0);
-        CHECK(v.c4 == 23.0);
-        CHECK(v.c5 == 31.0);
-        CHECK(v.c6 == 12.0);
-        CHECK(v.c7 == 123.0);
+        CHECK(std::abs(v.c0 - 0.0) < eps);
+        CHECK(std::abs(v.c1 - 1.0) < eps);
+        CHECK(std::abs(v.c2 - 2.0) < eps);
+        CHECK(std::abs(v.c3 - 3.0) < eps);
+        CHECK(std::abs(v.c4 - 23.0) < eps);
+        CHECK(std::abs(v.c5 - 31.0) < eps);
+        CHECK(std::abs(v.c6 - 12.0) < eps);
+        CHECK(std::abs(v.c7 - 123.0) < eps);
     }
 
     TEST_CASE("MVec2dp: cp ctor & cp assign incl. type deduction")
@@ -623,23 +674,23 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(v2.c0 == 0.0);
-        CHECK(v2.c1 == 1.0);
-        CHECK(v2.c2 == 2.0);
-        CHECK(v2.c3 == 3.0);
-        CHECK(v2.c4 == 23.0);
-        CHECK(v2.c5 == 31.0);
-        CHECK(v2.c6 == 12.0);
-        CHECK(v2.c7 == 123.0);
+        CHECK(std::abs(v2.c0 - 0.0) < eps);
+        CHECK(std::abs(v2.c1 - 1.0) < eps);
+        CHECK(std::abs(v2.c2 - 2.0) < eps);
+        CHECK(std::abs(v2.c3 - 3.0) < eps);
+        CHECK(std::abs(v2.c4 - 23.0) < eps);
+        CHECK(std::abs(v2.c5 - 31.0) < eps);
+        CHECK(std::abs(v2.c6 - 12.0) < eps);
+        CHECK(std::abs(v2.c7 - 123.0) < eps);
 
-        CHECK(v3.c0 == 0.0);
-        CHECK(v3.c1 == 1.0);
-        CHECK(v3.c2 == 2.0);
-        CHECK(v3.c3 == 3.0);
-        CHECK(v3.c4 == 23.0);
-        CHECK(v3.c5 == 31.0);
-        CHECK(v3.c6 == 12.0);
-        CHECK(v3.c7 == 123.0);
+        CHECK(std::abs(v3.c0 - 0.0) < eps);
+        CHECK(std::abs(v3.c1 - 1.0) < eps);
+        CHECK(std::abs(v3.c2 - 2.0) < eps);
+        CHECK(std::abs(v3.c3 - 3.0) < eps);
+        CHECK(std::abs(v3.c4 - 23.0) < eps);
+        CHECK(std::abs(v3.c5 - 31.0) < eps);
+        CHECK(std::abs(v3.c6 - 12.0) < eps);
+        CHECK(std::abs(v3.c7 - 123.0) < eps);
 
         CHECK(v4 == -v3);
 

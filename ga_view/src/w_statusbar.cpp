@@ -152,7 +152,7 @@ void w_Statusbar::draw(QPainter* qp)
 
     // print index and (if present) label of currently displayed model
     QString step;
-    if (m_label != "") {
+    if (!m_label.empty()) {
         step += QString("   Label: ") + m_label.c_str() + QString("     ");
     }
     step += QString("M-Index: ") + QString::number(m_currentModel) + QString("/") +

@@ -8,6 +8,7 @@
 #include "ga/ga_ega.hpp"
 
 #include <algorithm> // std::max
+#include <array>
 
 active_reflection::active_reflection(Coordsys* cs, w_Coordsys* wcs, active_pt2d* n1end,
                                      active_pt2d* n2end, QGraphicsItem* parent) :
@@ -89,7 +90,7 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
 
     // let's do a little ga
     using hd::ga::vec2d;
-    std::vector<vec2d> v = {{0.5, 0.5}, {2.0, 0.5}, {2.5, 1.0}};
+    std::array<vec2d, 3> const v = {vec2d{0.5, 0.5}, vec2d{2.0, 0.5}, vec2d{2.5, 1.0}};
     vec2d n1(end_n1pos_nrm_scene.x(), end_n1pos_nrm_scene.y());
     vec2d n2(end_n2pos_nrm_scene.x(), end_n2pos_nrm_scene.y());
     std::vector<vec2d> vr, vrr;
