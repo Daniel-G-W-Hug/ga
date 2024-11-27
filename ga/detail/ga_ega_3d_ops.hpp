@@ -33,10 +33,10 @@ inline std::common_type_t<T, U> dot(Vec3d<T> const& v1, Vec3d<U> const& v2)
 }
 
 // return squared magnitude of vector
-template <typename T> inline T nrm_sq(Vec3d<T> const& v) { return magn_sq(v); }
+template <typename T> inline T nrm_sq(Vec3d<T> const& v) { return dot(v, v); }
 
 // return magnitude of vector
-template <typename T> inline T nrm(Vec3d<T> const& v) { return magn(v); }
+template <typename T> inline T nrm(Vec3d<T> const& v) { return std::sqrt(dot(v, v)); }
 
 // return the multiplicative inverse of the vector
 template <typename T> inline Vec3d<T> inv(Vec3d<T> const& v)
@@ -152,19 +152,6 @@ inline constexpr std::common_type_t<T, U> dot(BiVec3d<T> const& A, BiVec3d<U> co
     return -A.x * B.x - A.y * B.y - A.z * B.z;
 }
 
-// return squared magnitude of bivector
-template <typename T> inline constexpr T nrm_sq(BiVec3d<T> const& v)
-{
-    // |v|^2 = gr0(rev(v)*v)
-    return v.x * v.x + v.y * v.y + v.z * v.z;
-}
-
-// return magnitude of bivector
-template <typename T> inline constexpr T nrm(BiVec3d<T> const& v)
-{
-    return std::sqrt(nrm_sq(v));
-}
-
 // return conjugate complex of a bivector
 // i.e. the reverse in nomenclature of multivectors
 template <typename T> inline constexpr BiVec3d<T> rev(BiVec3d<T> const& v)
@@ -173,6 +160,20 @@ template <typename T> inline constexpr BiVec3d<T> rev(BiVec3d<T> const& v)
     // all bivector parts switch sign
     return BiVec3d<T>(-v.x, -v.y, -v.z);
 }
+
+// return squared magnitude of bivector
+template <typename T> inline constexpr T nrm_sq(BiVec3d<T> const& B)
+{
+    // |v|^2 = dot(rev(B)*B)
+    return dot(rev(B), B);
+}
+
+// return magnitude of bivector
+template <typename T> inline constexpr T nrm(BiVec3d<T> const& v)
+{
+    return std::sqrt(nrm_sq(v));
+}
+
 
 // return the multiplicative inverse of the bivector
 template <typename T> inline constexpr BiVec3d<T> inv(BiVec3d<T> const& v)
@@ -679,7 +680,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
 // A * B = gr0(A * B) + gr2(A * B)
 //
 // the full geometric bivector product only exists in >= 4d spaces:
-// A * B = A * B + cmt(A,B) + wdg(A,B) = gr0(A * B) + gr2(A * B) + gr4(A * B)
+// A * B = dot(A,B) + cmt(A,B) + wdg(A,B) = gr0(A * B) + gr2(A * B) + gr4(A * B)
 // In 3D we don't have gr4(A * B) and thus only the terms up to grade 3 remain.
 // The bivector product AxB = cmt(A,B) = 0.5*(ab-ba)is called the commutator product.
 //

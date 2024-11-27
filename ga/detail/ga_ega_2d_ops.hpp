@@ -21,6 +21,7 @@ namespace hd::ga::ega {
 
 // return dot-product of two vectors in G<2,0,0>
 // dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
+//            = gr0(v1*v1)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline std::common_type_t<T, U> dot(Vec2d<T> const& v1, Vec2d<U> const& v2)
@@ -32,7 +33,11 @@ inline std::common_type_t<T, U> dot(Vec2d<T> const& v1, Vec2d<U> const& v2)
 }
 
 // return squared magnitude of vector
-template <typename T> inline T nrm_sq(Vec2d<T> const& v) { return dot(v, v); }
+template <typename T> inline T nrm_sq(Vec2d<T> const& v)
+{
+    // nrm_sq = dot(rev(v),v) = dot(v,v)
+    return dot(v, v);
+}
 
 // return magnitude of vector
 template <typename T> inline T nrm(Vec2d<T> const& v) { return std::sqrt(dot(v, v)); }
