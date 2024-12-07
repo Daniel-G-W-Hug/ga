@@ -251,7 +251,7 @@ operator/(BVec6_t<T, Tag> const& v, U s)
 //
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T magn_sq(BVec6_t<T, Tag> const& b)
+inline constexpr T nrm_sq(BVec6_t<T, Tag> const& b)
 {
     return b.vx * b.vx + b.vy * b.vy + b.vz * b.vz + b.mx * b.mx + b.my * b.my +
            b.mz * b.mz;
@@ -259,17 +259,17 @@ inline constexpr T magn_sq(BVec6_t<T, Tag> const& b)
 
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T magn(BVec6_t<T, Tag> const& v)
+inline constexpr T nrm(BVec6_t<T, Tag> const& v)
 {
-    return std::sqrt(magn_sq(v));
+    return std::sqrt(nrm_sq(v));
 }
 
-// return a vector v normalized to magn(v) == 1.0
+// return a vector v normalized to nrm(v) == 1.0
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
 inline constexpr BVec6_t<T, Tag> normalize(BVec6_t<T, Tag> const& v)
 {
-    T m = magn(v);
+    T m = nrm(v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (m < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("bivector norm too small for normalization" +

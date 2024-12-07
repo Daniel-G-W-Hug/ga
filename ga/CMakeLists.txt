@@ -3,13 +3,6 @@
 set(LIB_NAME ga)
 
 set(HEADERS
-    ga_ega.hpp
-    ga_pga.hpp
-    #
-    ga_usr_consts.hpp
-    ga_usr_utilities.hpp
-    ga_algebra.hpp
-    ga_value_t.hpp
     #
     detail/ga_fmt_support.hpp
     #
@@ -46,11 +39,22 @@ set(HEADERS
     detail/ga_mvec2dp_u.hpp
     detail/ga_mvec2dp.hpp
     #
+    # user facing includes
+    #
+    ga_ega.hpp
+    ga_pga.hpp
+    #
+    ga_usr_consts.hpp
+    ga_usr_utilities.hpp
+    ga_algebra.hpp
+    ga_value_t.hpp
+    #
     ga_ega_3d_ops.hpp
     ga_ega_2d_ops.hpp
     #
     detail/ga_pga_2dp_objects.hpp
     ga_pga_2dp_ops.hpp
+
     )
 
 add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user!)

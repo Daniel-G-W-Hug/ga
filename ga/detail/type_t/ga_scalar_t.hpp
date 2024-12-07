@@ -161,7 +161,7 @@ inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, T
 // magnitude squared
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T magn_sq(Scalar_t<T, Tag> s)
+inline constexpr T nrm_sq(Scalar_t<T, Tag> s)
 {
     return T(s) * T(s);
 }
@@ -169,17 +169,17 @@ inline constexpr T magn_sq(Scalar_t<T, Tag> s)
 // magnitude
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T magn(Scalar_t<T, Tag> s)
+inline constexpr T nrm(Scalar_t<T, Tag> s)
 {
-    return std::sqrt(magn_sq(s));
+    return std::sqrt(nrm_sq(s));
 }
 
-// return a scalar normalized to magn(s) == 1.0
+// return a scalar normalized to nrm(s) == 1.0
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
 inline constexpr Scalar_t<T, Tag> normalize(Scalar_t<T, Tag> s)
 {
-    T m = magn(s);
+    T m = nrm(s);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (m < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("magnitude too small for normalization" +
@@ -199,26 +199,6 @@ std::ostream& operator<<(std::ostream& os, Scalar_t<T, Tag> v)
 {
     os << "(" << T(v) << ")";
     return os;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Scalar types - basic operations (identical for all algebras)
-////////////////////////////////////////////////////////////////////////////////
-
-// return squared magnitude
-template <typename T, typename Tag>
-    requires(std::floating_point<T>)
-inline constexpr T nrm_sq(Scalar_t<T, Tag> s)
-{
-    return T(s) * T(s);
-}
-
-// return absolute magnitude
-template <typename T, typename Tag>
-    requires(std::floating_point<T>)
-inline constexpr T nrm(Scalar_t<T, Tag> s)
-{
-    return std::abs(T(s));
 }
 
 // return the scalar value as value_t (for use in scripting)

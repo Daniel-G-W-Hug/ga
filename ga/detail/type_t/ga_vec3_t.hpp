@@ -231,24 +231,24 @@ inline constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator/(Vec3_t<T, Tag> 
 //
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T magn_sq(Vec3_t<T, Tag> const& v)
+inline constexpr T nrm_sq(Vec3_t<T, Tag> const& v)
 {
     return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T magn(Vec3_t<T, Tag> const& v)
+inline constexpr T nrm(Vec3_t<T, Tag> const& v)
 {
-    return std::sqrt(magn_sq(v));
+    return std::sqrt(nrm_sq(v));
 }
 
-// return a vector v normalized to magn(v) == 1.0
+// return a vector v normalized to nrm(v) == 1.0
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
 inline constexpr Vec3_t<T, Tag> normalize(Vec3_t<T, Tag> const& v)
 {
-    T m = magn(v);
+    T m = nrm(v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (m < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("vector norm too small for normalization" +

@@ -32,12 +32,6 @@ inline std::common_type_t<T, U> dot(Vec3d<T> const& v1, Vec3d<U> const& v2)
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-// return squared magnitude of vector
-template <typename T> inline T nrm_sq(Vec3d<T> const& v) { return dot(v, v); }
-
-// return magnitude of vector
-template <typename T> inline T nrm(Vec3d<T> const& v) { return std::sqrt(dot(v, v)); }
-
 // return the multiplicative inverse of the vector
 template <typename T> inline Vec3d<T> inv(Vec3d<T> const& v)
 {

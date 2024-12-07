@@ -214,7 +214,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         fmt::println("       fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
         fmt::println("");
 
-        CHECK(magn_sq(pf - pd) < eps);
+        CHECK(nrm_sq(pf - pd) < eps);
     }
 
     TEST_CASE("Vec2dp: comparison float")
@@ -233,11 +233,11 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // fmt::println("    fmt: eps = {}", std::numeric_limits<float>::epsilon());
 
-        CHECK(v1f == v4f);             // comparison (equality)
-        CHECK(v1f != v2f);             // comparison (inequality)
-        CHECK(magn(v1f) < magn(v2f));  // comparison (less than)
-        CHECK(magn(v2f) >= magn(v1f)); // comparison (greater than or equal)
-        CHECK(v3f == v1f);             // comparison (eqality)
+        CHECK(v1f == v4f);           // comparison (equality)
+        CHECK(v1f != v2f);           // comparison (inequality)
+        CHECK(nrm(v1f) < nrm(v2f));  // comparison (less than)
+        CHECK(nrm(v2f) >= nrm(v1f)); // comparison (greater than or equal)
+        CHECK(v3f == v1f);           // comparison (eqality)
     }
 
     TEST_CASE("Vec2dp: comparison double")
@@ -256,11 +256,11 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // fmt::println("    fmt: eps = {}", std::numeric_limits<double>::epsilon());
 
-        CHECK(v1d == v4d);             // comparison (equality)
-        CHECK(v1d != v2d);             // comparison (inequality)
-        CHECK(magn(v1d) < magn(v2d));  // comparison norm
-        CHECK(magn(v2d) >= magn(v1d)); // comparison norm
-        CHECK(v3d == v1d);             // comparison (eqality)
+        CHECK(v1d == v4d);           // comparison (equality)
+        CHECK(v1d != v2d);           // comparison (inequality)
+        CHECK(nrm(v1d) < nrm(v2d));  // comparison norm
+        CHECK(nrm(v2d) >= nrm(v1d)); // comparison norm
+        CHECK(v3d == v1d);           // comparison (eqality)
     }
 
     TEST_CASE("Vec2dp: vector space and linearity tests")
@@ -333,21 +333,21 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         auto v3m = mvec2dp{v3};
         auto v4m = mvec2dp{v4};
 
-        // fmt::println("v1 = {: .4f}, magn(v1) = {: .4f}", v1, magn(v1));
-        // fmt::println("v2 = normalize(v1) = {: .4f}, magn(v2) = {: .4f}", v2, magn(v2));
-        // fmt::println("v3 = {: .4f}, magn(v1) = {: .4f}", v3, magn(v3));
+        // fmt::println("v1 = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
+        // fmt::println("v2 = normalize(v1) = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
+        // fmt::println("v3 = {: .4f}, nrm(v1) = {: .4f}", v3, nrm(v3));
         // fmt::println(
-        //     "v4 = inv(v3) = {: .4f}, magn(v3) = {: .4f}, magn(v3)*magn(v4) = {: .4f}",
-        //     v4, magn(v4), magn(v3) * magn(v4));
+        //     "v4 = inv(v3) = {: .4f}, nrm(v3) = {: .4f}, nrm(v3)*nrm(v4) = {: .4f}",
+        //     v4, nrm(v4), nrm(v3) * nrm(v4));
         // fmt::println("");
-        // fmt::println("v3m = {}, magn(v3m) = {}", v3m, magn(v3m));
-        // fmt::println("v4m = {}, magn(v4m) = {}", v4m, magn(v4m));
+        // fmt::println("v3m = {}, nrm(v3m) = {}", v3m, nrm(v3m));
+        // fmt::println("v4m = {}, nrm(v4m) = {}", v4m, nrm(v4m));
         // fmt::println("0.5*(v3m*v4m + v4m*v3m) = {}", 0.5 * (v3m * v4m + v4m * v3m));
         // fmt::println("0.5*(v3m*v4m - v4m*v3m) = {}", 0.5 * (v3m * v4m - v4m * v3m));
 
-        CHECK(std::abs(magn_sq(v1) - 9.0) < eps);
+        CHECK(std::abs(nrm_sq(v1) - 9.0) < eps);
         CHECK(std::abs(bulk_nrm_sq(v1) - 5.0) < eps);
-        CHECK(std::abs(magn_sq(v2) - 1.0) < eps);
+        CHECK(std::abs(nrm_sq(v2) - 1.0) < eps);
         CHECK(std::abs(bulk_nrm_sq(v3) - 40.0) < eps);
         CHECK(std::abs(dot(v4, v3) - 1.0) < eps);
     }
@@ -365,30 +365,30 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         vec2dp v7{0.0, -1.0, 0.0};
         vec2dp v8{normalize(vec2dp(1.0, -1.0, 0.0))};
 
-        // fmt::println("v1 = {: .4f}, magn(v1) = {:.8f}, "
+        // fmt::println("v1 = {: .4f}, nrm(v1) = {:.8f}, "
         //              "angle(v1,v1) = {:.8f}, {:.8f}",
-        //              v1, magn(v1), angle(v1, v1), angle(v1, v1) / pi);
-        // fmt::println("v2 = {: .4f}, magn(v2) = {:.8f}, "
+        //              v1, nrm(v1), angle(v1, v1), angle(v1, v1) / pi);
+        // fmt::println("v2 = {: .4f}, nrm(v2) = {:.8f}, "
         //              "angle(v1,v2) = {:.8f}, {:.8f}",
-        //              v2, magn(v2), angle(v1, v2), angle(v1, v2) / pi);
-        // fmt::println("v3 = {: .4f}, magn(v3) = {:.8f}, "
+        //              v2, nrm(v2), angle(v1, v2), angle(v1, v2) / pi);
+        // fmt::println("v3 = {: .4f}, nrm(v3) = {:.8f}, "
         //              "angle(v1,v3) = {:.8f}, {:.8f} ",
-        //              v3, magn(v3), angle(v1, v3), angle(v1, v3) / pi);
-        // fmt::println("v4 = {: .4f}, magn(v4) = {:.8f}, "
+        //              v3, nrm(v3), angle(v1, v3), angle(v1, v3) / pi);
+        // fmt::println("v4 = {: .4f}, nrm(v4) = {:.8f}, "
         //              "angle(v1,v4) = {:.8f}, {:.8f} ",
-        //              v4, magn(v4), angle(v1, v4), angle(v1, v4) / pi);
-        // fmt::println("v5 = {: .4f}, magn(v5) = {:.8f}, "
+        //              v4, nrm(v4), angle(v1, v4), angle(v1, v4) / pi);
+        // fmt::println("v5 = {: .4f}, nrm(v5) = {:.8f}, "
         //              "angle(v1,v5) = {:.8f}, {:.8f} ",
-        //              v5, magn(v5), angle(v1, v5), angle(v1, v5) / pi);
-        // fmt::println("v6 = {: .4f}, magn(v6) = {:.8f}, "
+        //              v5, nrm(v5), angle(v1, v5), angle(v1, v5) / pi);
+        // fmt::println("v6 = {: .4f}, nrm(v6) = {:.8f}, "
         //              "angle(v1,v6) = {:.8f}, {:.8f} ",
-        //              v6, magn(v6), angle(v1, v6), angle(v1, v6) / pi);
-        // fmt::println("v7 = {: .4f}, magn(v7) = {:.8f}, "
+        //              v6, nrm(v6), angle(v1, v6), angle(v1, v6) / pi);
+        // fmt::println("v7 = {: .4f}, nrm(v7) = {:.8f}, "
         //              "angle(v1,v7) = {:.8f}, {:.8f} ",
-        //              v7, magn(v7), angle(v1, v7), angle(v1, v7) / pi);
-        // fmt::println("v8 = {: .4f}, magn(v8) = {:.8f}, "
+        //              v7, nrm(v7), angle(v1, v7), angle(v1, v7) / pi);
+        // fmt::println("v8 = {: .4f}, nrm(v8) = {:.8f}, "
         //              "angle(v1,v8) = {:.8f}, {:.8f} ",
-        //              v8, magn(v8), angle(v1, v8), angle(v1, v8) / pi);
+        //              v8, nrm(v8), angle(v1, v8), angle(v1, v8) / pi);
 
         CHECK(std::abs(angle(v1, v1) - 0.0) < eps);
         CHECK(std::abs(angle(v1, v2) - pi * 0.25) < eps);
@@ -520,34 +520,34 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // fmt::println("sqrt(26)={}", std::sqrt(26.0));
         // fmt::println("v1  = {: .4f}, bulk_nrm(v1)  = {: .4f}, "
-        //              "magn(v1) = {: .4f}",
-        //              v1, bulk_nrm(v1), magn(v1));
+        //              "nrm(v1) = {: .4f}",
+        //              v1, bulk_nrm(v1), nrm(v1));
         // fmt::println("v2  = {: .4f}, bulk_nrm(v2)  = {: .4f}, "
-        //              "magn(v2) = {: .4f}",
-        //              v2, bulk_nrm(v2), magn(v2));
+        //              "nrm(v2) = {: .4f}",
+        //              v2, bulk_nrm(v2), nrm(v2));
         // fmt::println("v2n = {: .4f}, bulk_nrm(v2n) = {: .4f}, "
-        //              "magn(v2n) = {: .4f}",
-        //              v2n, bulk_nrm(v2n), magn(v2n));
+        //              "nrm(v2n) = {: .4f}",
+        //              v2n, bulk_nrm(v2n), nrm(v2n));
         // fmt::println("");
         // fmt::println("v3 = project_onto(v1, v2) = {: .4f}, bulk_nrm(v3) = {: .4f}, "
-        //              "magn(v3) = {: .4f}",
-        //              v3, bulk_nrm(v3), magn(v3));
+        //              "nrm(v3) = {: .4f}",
+        //              v3, bulk_nrm(v3), nrm(v3));
         // fmt::println("v4 = reject_from(v1, v2)  = {: .4f}, bulk_nrm(v4) = {: .4f}, "
-        //              "magn(v4) = {: .4f}",
-        //              v4, bulk_nrm(v4), magn(v4));
+        //              "nrm(v4) = {: .4f}",
+        //              v4, bulk_nrm(v4), nrm(v4));
         // fmt::println("v5 = v3 + v4              = {: .4f}, bulk_nrm(v5) = {: .4f}, "
-        //              "magn(v5) = {: .4f}",
-        //              v5, bulk_nrm(v5), magn(v5));
+        //              "nrm(v5) = {: .4f}",
+        //              v5, bulk_nrm(v5), nrm(v5));
         // fmt::println("");
         // fmt::println("v6 = project_onto_normalized(v1, v2n) = {: .4f}, "
-        //              "magn(v4) = {: .4f}",
-        //              v6, bulk_nrm(v6), magn(v6));
+        //              "nrm(v4) = {: .4f}",
+        //              v6, bulk_nrm(v6), nrm(v6));
         // fmt::println("v7 = reject_from_normalized(v1, v2n)  = {: .4f}, "
-        //              "magn(v7) = {: .4f}",
-        //              v7, bulk_nrm(v7), magn(v7));
+        //              "nrm(v7) = {: .4f}",
+        //              v7, bulk_nrm(v7), nrm(v7));
         // fmt::println("v8 = v6 + v7                          = {: .4f}, "
-        //              "magn(v4) = {: .4f}",
-        //              v8, bulk_nrm(v8), magn(v8));
+        //              "nrm(v4) = {: .4f}",
+        //              v8, bulk_nrm(v8), nrm(v8));
         // // this helps to understand, why the dot-product is sufficient
         // auto w = wdg(v1, v2);
         // auto i = inv(v2);
@@ -1366,7 +1366,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // auto Bv = wdg(e2_2dp,
         //               e1_2dp + std::sqrt(3.0) * e3_2dp); // bivector describing the
         //               plane
-        // CHECK(std::abs(magn(Bv) - 2.0) < eps);
+        // CHECK(std::abs(nrm(Bv) - 2.0) < eps);
         // CHECK(rotate(Bv, rotor(e31_2dp, pi / 3)) == -2.0 * e12_2dp);
 
         // just to silence unused variable warnings
@@ -1396,10 +1396,10 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // mvec2dp_u mu{1.0, 2.0, 3.0, 300.0};
         // mvec2dp m{100.0, 1.0, 2.0, 3.0, 10.0, 20.0, 30.0, 300.0};
 
-        CHECK(wdg(s, complement(s)) == magn_sq(s) * I_2dp);
-        CHECK(wdg(v, complement(v)) == magn_sq(v) * I_2dp);
-        CHECK(wdg(b, complement(b)) == magn_sq(b) * I_2dp);
-        CHECK(wdg(ps, complement(ps)) == magn_sq(ps) * I_2dp);
+        CHECK(wdg(s, complement(s)) == nrm_sq(s) * I_2dp);
+        CHECK(wdg(v, complement(v)) == nrm_sq(v) * I_2dp);
+        CHECK(wdg(b, complement(b)) == nrm_sq(b) * I_2dp);
+        CHECK(wdg(ps, complement(ps)) == nrm_sq(ps) * I_2dp);
 
         // complement properties
         CHECK(complement(complement(s)) == s);
@@ -1454,7 +1454,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // fmt::println("vector = {}", vector);
 
-        CHECK(magn_sq(vector) == 5.0);
+        CHECK(nrm_sq(vector) == 5.0);
 
         //
         // fmt::println("p1 = {}", p1);

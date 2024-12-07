@@ -238,11 +238,10 @@ operator/(MVec8_t<T, Tag> const& v, U s)
                                v.c5 * inv, v.c6 * inv, v.c7 * inv);
 }
 
-// magnitude of the sum of n k-vectors (in representational space)
-//
+// magnitude of the sum of a k-vector (in representational space)
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T magn_sq(MVec8_t<T, Tag> const& v)
+inline constexpr T nrm_sq(MVec8_t<T, Tag> const& v)
 {
     return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3 + v.c4 * v.c4 +
            v.c5 * v.c5 + v.c6 * v.c6 + v.c7 * v.c7;
@@ -250,9 +249,9 @@ inline constexpr T magn_sq(MVec8_t<T, Tag> const& v)
 
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T magn(MVec8_t<T, Tag> const& v)
+inline constexpr T nrm(MVec8_t<T, Tag> const& v)
 {
-    return std::sqrt(magn_sq(v));
+    return std::sqrt(nrm_sq(v));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
