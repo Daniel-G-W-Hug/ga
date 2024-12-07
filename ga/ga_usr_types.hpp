@@ -1,7 +1,7 @@
 #pragma once
 
 // author: Daniel Hug, 2024
-#include "detail/ga_value_t.hpp" // defines value_t either as float oder double
+#include "ga_value_t.hpp" // defines value_t either as float oder double
 
 #include "detail/ga_mvec2d.hpp" // 2d types for EGA
 #include "detail/ga_mvec3d.hpp" // 3d types for EGA

@@ -4,7 +4,7 @@
 
 #include <numbers> // math constants like pi
 
-#include "detail/ga_value_t.hpp"
+#include "ga_value_t.hpp"
 
 namespace hd::ga {
 

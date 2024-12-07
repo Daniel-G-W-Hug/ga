@@ -11,7 +11,7 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
-#include "ga_mvec3d.hpp" // inclusion of multivector imports all component types
+#include "detail/ga_mvec3d.hpp" // inclusion of multivector imports all component types
 
 namespace hd::ga::ega {
 

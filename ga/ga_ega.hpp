@@ -25,18 +25,18 @@
 // scalar4d, vec4d, bivec4d, trivec4d, pscalar4d, mvec4d_e, mvec4d_u, mvec4d
 
 // commonly used GA stuff is in namespace hd::ga
-#include "detail/ga_value_t.hpp" // default type for scalar, vector & bivector components
-                                 // switch value_t between float/double here, if needed!
+#include "ga_value_t.hpp" // default type for scalar, vector & bivector components
+                          // switch value_t between float/double here, if needed!
 
-#include "detail/ga_algebra.hpp" // algebra (define basis components)
+#include "ga_algebra.hpp" // algebra (define basis components)
 
 #include "ga_usr_consts.hpp"    // user constants (for user convenience)
 #include "ga_usr_types.hpp"     // consistent user types (for user convenience)
 #include "ga_usr_utilities.hpp" // chelper functions (for user convenience)
 
 // EGA-specific operations are in namespace hd::ga::ega
-#include "detail/ga_ega_2d_ops.hpp" // ega 2d operations
-#include "detail/ga_ega_3d_ops.hpp" // ega 3d operations
+#include "ga_ega_2d_ops.hpp" // ega 2d operations
+#include "ga_ega_3d_ops.hpp" // ega 3d operations
 // TODO: implement operations for ega_4d
 
 // fmt-support is defined outside of other namespaces

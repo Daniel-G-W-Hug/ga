@@ -11,8 +11,8 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
-#include "ga_mvec2dp.hpp"         // inclusion of multivector imports all component types
-#include "ga_pga_2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Bi
+#include "detail/ga_mvec2dp.hpp" // inclusion of multivector imports all component types
+#include "detail/ga_pga_2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Line2dp
 
 
 namespace hd::ga::pga {

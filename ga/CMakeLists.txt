@@ -8,8 +8,9 @@ set(HEADERS
     #
     ga_usr_consts.hpp
     ga_usr_utilities.hpp
-    detail/ga_algebra.hpp
-    detail/ga_value_t.hpp 
+    ga_algebra.hpp
+    ga_value_t.hpp
+    #
     detail/ga_fmt_support.hpp
     #
     detail/type_t/ga_scalar_t.hpp
@@ -30,14 +31,12 @@ set(HEADERS
     detail/ga_mvec2d.hpp
     detail/ga_mvec2d_e.hpp
     detail/ga_mvec3d_e.hpp
-    detail/ga_ega_2d_ops.hpp
     #
     detail/ga_mvec3d_u.hpp
     detail/ga_mvec3d.hpp
     detail/ga_mvec3d_e.hpp
     detail/ga_mvec3d_u.hpp
     detail/ga_mvec3d.hpp
-    detail/ga_ega_3d_ops.hpp
     #
     detail/ga_mvec4d_e.hpp
     detail/ga_mvec4d_u.hpp
@@ -46,8 +45,12 @@ set(HEADERS
     detail/ga_mvec2dp_e.hpp
     detail/ga_mvec2dp_u.hpp
     detail/ga_mvec2dp.hpp
+    #
+    ga_ega_3d_ops.hpp
+    ga_ega_2d_ops.hpp
+    #
     detail/ga_pga_2dp_objects.hpp
-    detail/ga_pga_2dp_ops.hpp
+    ga_pga_2dp_ops.hpp
     )
 
 add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user!)
