@@ -31,10 +31,28 @@ struct Vec2_t {
 
     Vec2_t(T x_in, T y_in) : x(x_in), y(y_in) {}
 
+    // cp & mv ctor
+    Vec2_t(Vec2_t const&) = default;
+    Vec2_t(Vec2_t&&) noexcept = default;
+
+    // cp & mv assignment
+    Vec2_t& operator=(Vec2_t const&) = default;
+    Vec2_t& operator=(Vec2_t&&) noexcept = default;
+
+    // dtor
+    ~Vec2_t() = default;
+
+    // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
     Vec2_t(Vec2_t<U, Tag> const& v) : x(v.x), y(v.y)
     {
+    }
+
+    friend void swap(Vec2_t& lhs, Vec2_t& rhs) noexcept
+    {
+        using std::swap;
+        swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
     }
 
     T x{};

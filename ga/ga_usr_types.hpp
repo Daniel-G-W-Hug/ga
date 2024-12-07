@@ -26,7 +26,7 @@ namespace hd::ga {
 
 // There is actually only one scalar type!
 // But due to the statically typed language, overload resolution and unique scalar types
-// for 2d, 3d, 2dp, etc. work better when avoiding ambiguous function signatures.
+// for 2d, 3d, 2dp, etc. work better for avoiding ambiguous function signatures.
 
 // vector and multivector types EGA 2d
 

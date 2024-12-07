@@ -33,12 +33,29 @@ struct MVec8_t {
     {
     }
 
-    // type adjustment
+    // cp & mv ctor
+    MVec8_t(MVec8_t const&) = default;
+    MVec8_t(MVec8_t&&) noexcept = default;
+
+    // cp & mv assignment
+    MVec8_t& operator=(MVec8_t const&) = default;
+    MVec8_t& operator=(MVec8_t&&) noexcept = default;
+
+    // dtor
+    ~MVec8_t() = default;
+
+    // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
     MVec8_t(MVec8_t<U, Tag> const& v) :
         MVec8_t(v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7)
     {
+    }
+
+    friend void swap(MVec8_t& lhs, MVec8_t& rhs) noexcept
+    {
+        using std::swap;
+        swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
     }
 
     ////////////////////////////////////////////////////////////////////////////

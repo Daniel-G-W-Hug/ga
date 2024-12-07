@@ -39,6 +39,17 @@ struct BVec6_t {
     {
     }
 
+    // cp & mv ctor
+    BVec6_t(BVec6_t const&) = default;
+    BVec6_t(BVec6_t&&) noexcept = default;
+
+    // cp & mv assignment
+    BVec6_t& operator=(BVec6_t const&) = default;
+    BVec6_t& operator=(BVec6_t&&) noexcept = default;
+
+    // dtor
+    ~BVec6_t() = default;
+
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
@@ -47,6 +58,11 @@ struct BVec6_t {
     {
     }
 
+    friend void swap(BVec6_t& lhs, BVec6_t& rhs) noexcept
+    {
+        using std::swap;
+        swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
+    }
 
     T vx{}; // as BiVec3dp<T> maps to basis bivector e4^e1 - as Line3dp<T> to vx
     T vy{}; // as BiVec3dp<T> maps to basis bivector e4^e2 - as Line3dp<T> to vy

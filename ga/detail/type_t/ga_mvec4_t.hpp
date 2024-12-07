@@ -30,11 +30,28 @@ struct MVec4_t {
     // assign all components
     MVec4_t(T s, T x, T y, T ps) : c0(s), c1(x), c2(y), c3(ps) {}
 
+    // cp & mv ctor
+    MVec4_t(MVec4_t const&) = default;
+    MVec4_t(MVec4_t&&) noexcept = default;
+
+    // cp & mv assignment
+    MVec4_t& operator=(MVec4_t const&) = default;
+    MVec4_t& operator=(MVec4_t&&) noexcept = default;
+
+    // dtor
+    ~MVec4_t() = default;
+
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
     MVec4_t(MVec4_t<U, Tag> const& v) : MVec4_t(v.c0, v.c1, v.c2, v.c3)
     {
+    }
+
+    friend void swap(MVec4_t& lhs, MVec4_t& rhs) noexcept
+    {
+        using std::swap;
+        swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
     }
 
     ////////////////////////////////////////////////////////////////////////////

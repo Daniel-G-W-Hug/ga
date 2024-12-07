@@ -47,10 +47,28 @@ struct Vec4_t {
 
     Vec4_t(T x_in, T y_in, T z_in, T w_in) : x(x_in), y(y_in), z(z_in), w(w_in) {}
 
+    // cp & mv ctor
+    Vec4_t(Vec4_t const&) = default;
+    Vec4_t(Vec4_t&&) noexcept = default;
+
+    // cp & mv assignment
+    Vec4_t& operator=(Vec4_t const&) = default;
+    Vec4_t& operator=(Vec4_t&&) noexcept = default;
+
+    // dtor
+    ~Vec4_t() = default;
+
+    // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
     Vec4_t(Vec4_t<U, Tag> const& v) : x(v.x), y(v.y), z(v.z), w(v.w)
     {
+    }
+
+    friend void swap(Vec4_t& lhs, Vec4_t& rhs) noexcept
+    {
+        using std::swap;
+        swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
     }
 
     T x{};

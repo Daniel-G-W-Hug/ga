@@ -35,6 +35,17 @@ struct MVec16_t {
     {
     }
 
+    // cp & mv ctor
+    MVec16_t(MVec16_t const&) = default;
+    MVec16_t(MVec16_t&&) noexcept = default;
+
+    // cp & mv assignment
+    MVec16_t& operator=(MVec16_t const&) = default;
+    MVec16_t& operator=(MVec16_t&&) noexcept = default;
+
+    // dtor
+    ~MVec16_t() = default;
+
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
@@ -42,6 +53,12 @@ struct MVec16_t {
         MVec16_t(v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7, v.c8, v.c9, v.c10, v.c11,
                  v.c12, v.c13, v.c14, v.c15)
     {
+    }
+
+    friend void swap(MVec16_t& lhs, MVec16_t& rhs) noexcept
+    {
+        using std::swap;
+        swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
     }
 
     ////////////////////////////////////////////////////////////////////////////
