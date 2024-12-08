@@ -162,13 +162,6 @@ template <typename T> inline constexpr T nrm_sq(BiVec3d<T> const& B)
     return dot(rev(B), B);
 }
 
-// return magnitude of bivector
-template <typename T> inline constexpr T nrm(BiVec3d<T> const& v)
-{
-    return std::sqrt(nrm_sq(v));
-}
-
-
 // return the multiplicative inverse of the bivector
 template <typename T> inline constexpr BiVec3d<T> inv(BiVec3d<T> const& v)
 {
@@ -346,19 +339,6 @@ inline constexpr PScalar3d<T> inv(PScalar3d<T> ps)
 // MVec3d<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// return squared magnitude
-// |M|^2 = M rev(M) = (M.c0)^2 + (M.c1)^2 + (M.c2)^2 + (M.c3)^3
-//                  + (M.c4)^2 + (M.c5)^2 + (M.c6)^2 + (M.c7)^3
-template <typename T> inline T nrm_sq(MVec3d<T> const& v)
-{
-    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3 + v.c4 * v.c4 +
-           v.c5 * v.c5 + v.c6 * v.c6 + v.c7 * v.c7;
-}
-
-// return magnitude of complex number
-template <typename T> inline T nrm(MVec3d<T> const& v) { return std::sqrt(nrm_sq(v)); }
-
-
 // return the reverse
 template <typename T> inline constexpr MVec3d<T> rev(MVec3d<T> const& v)
 {
@@ -376,16 +356,6 @@ template <typename T> inline constexpr MVec3d<T> conj(MVec3d<T> const& v)
 ////////////////////////////////////////////////////////////////////////////////
 // MVec3d_E<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
-
-// return squared magnitude of quaternion
-// |Z|^2 = Z rev(Z) = c0^2 + c1^2 + c2^2 + c3^2
-template <typename T> inline T nrm_sq(MVec3d_E<T> const& v)
-{
-    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
-}
-
-// return magnitude of quaternion
-template <typename T> inline T nrm(MVec3d_E<T> const& v) { return std::sqrt(nrm_sq(v)); }
 
 // return conjugate complex of quaternion (MVec3d_E<T>),
 // i.e. the reverse in nomenclature of multivectors

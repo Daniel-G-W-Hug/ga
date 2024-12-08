@@ -433,19 +433,6 @@ inline Scalar2dp<std::common_type_t<T, U>> meet(BiVec2dp<T> const& A, Vec2dp<U> 
 // MVec2dp<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// return squared magnitude
-// |M|^2 = M rev(M) = (M.c0)^2 + (M.c1)^2 + (M.c2)^2 + (M.c3)^3
-//                  + (M.c4)^2 + (M.c5)^2 + (M.c6)^2 + (M.c7)^3
-template <typename T> inline T nrm_sq(MVec2dp<T> const& v)
-{
-    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3 + v.c4 * v.c4 +
-           v.c5 * v.c5 + v.c6 * v.c6 + v.c7 * v.c7;
-}
-
-// return magnitude of complex number
-template <typename T> inline T nrm(MVec2dp<T> const& v) { return std::sqrt(nrm_sq(v)); }
-
-
 // return the reverse
 template <typename T> inline constexpr MVec2dp<T> rev(MVec2dp<T> const& v)
 {
@@ -463,16 +450,6 @@ template <typename T> inline constexpr MVec2dp<T> conj(MVec2dp<T> const& v)
 ////////////////////////////////////////////////////////////////////////////////
 // MVec2dp_E<T> basic operations
 ////////////////////////////////////////////////////////////////////////////////
-
-// return squared magnitude of quaternion
-// |Z|^2 = Z rev(Z) = c0^2 + c1^2 + c2^2 + c3^2
-template <typename T> inline T nrm_sq(MVec2dp_E<T> const& v)
-{
-    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
-}
-
-// return magnitude of quaternion
-template <typename T> inline T nrm(MVec2dp_E<T> const& v) { return std::sqrt(nrm_sq(v)); }
 
 // return conjugate complex of quaternion (MVec2dp_E<T>),
 // i.e. the reverse in nomenclature of multivectors

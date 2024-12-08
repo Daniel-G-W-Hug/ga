@@ -710,6 +710,13 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         pscalar2d ps1{-5.0};
         pscalar2d ps2{2.0};
 
+        // fmt::println("s1  = {}", s1);
+        // fmt::println("s2  = {}", s2);
+        // fmt::println("v1  = {}", v1);
+        // fmt::println("v2  = {}", v2);
+        // fmt::println("ps1 = {}", ps1);
+        // fmt::println("ps2 = {}", ps2);
+
         // checks all ctor combinations and equivalence of simplified products with
         // geometric product of a fully populated multivector
         //
@@ -873,9 +880,9 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(mv4 == mv2);
     }
 
-    TEST_CASE("MVec2d: modelling complex numbers")
+    TEST_CASE("MVec2d: modeling complex numbers")
     {
-        fmt::println("MVec2d: modelling complex numbers");
+        fmt::println("MVec2d: modeling complex numbers");
 
         vec2d v1{1.0, -1.0};
         mvec2d v1m{v1}; // full 2d multivector
@@ -951,6 +958,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(v1.y == -(v1 * I_2d).x);
         CHECK(v1.x == -(I_2d * v1).y); // rotation -90°
         CHECK(v1.y == (I_2d * v1).x);
+        CHECK(std::abs(nrm(vc) - std::sqrt(2.0)) < eps);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

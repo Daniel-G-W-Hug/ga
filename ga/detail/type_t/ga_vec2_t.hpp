@@ -211,6 +211,8 @@ template <typename T, typename Tag>
     requires(std::floating_point<T>)
 inline constexpr T nrm_sq(Vec2_t<T, Tag> const& v)
 {
+    // implements the scalar product as defined by the geometric product *
+    // |v|^2 = gr0( v*rev(v)) = gr0( v*v ) = gr0( dot(v,v) + wdg(v,v) ) = dot(v,v)
     return v.x * v.x + v.y * v.y;
 }
 

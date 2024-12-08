@@ -238,7 +238,9 @@ operator/(MVec8_t<T, Tag> const& v, U s)
                                v.c5 * inv, v.c6 * inv, v.c7 * inv);
 }
 
-// magnitude of the sum of a k-vector (in representational space)
+// magnitude of a k-vector (in representational space)
+// |M|^2 = M rev(M) = (M.c0)^2 + (M.c1)^2 + (M.c2)^2 + (M.c3)^3
+//                  + (M.c4)^2 + (M.c5)^2 + (M.c6)^2 + (M.c7)^3
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
 inline constexpr T nrm_sq(MVec8_t<T, Tag> const& v)

@@ -675,7 +675,7 @@ local l = p ^ q
 print("p^q = ", l)
 
 local A = bivec3d.new(1, 0, 0)
-local B = bivec3d.new(1, 2, 1)
+local B = bivec3d.new(0, 1, 0)
 local AB = A * B
 print("AB = ", AB)
 
@@ -692,3 +692,6 @@ print("")
 -- print("wdg(e23_3d,e12_3d)=", wdg(e23_3d, e12_3d))
 -- print("wdg(e31_3d,e12_3d)=", wdg(e31_3d, e12_3d))
 -- print("wdg(e12_3d,e23_3d)=", wdg(e12_3d, e23_3d))
+
+local s = scalar2d.new(-6)
+print("s = ", s)

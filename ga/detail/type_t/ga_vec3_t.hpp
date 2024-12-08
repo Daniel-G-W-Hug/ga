@@ -233,6 +233,18 @@ template <typename T, typename Tag>
     requires(std::floating_point<T>)
 inline constexpr T nrm_sq(Vec3_t<T, Tag> const& v)
 {
+    // implements the scalar product as defined by the geometric product *
+    //
+    // vector case:
+    // |v|^2 = gr0( v*rev(v)) =  gr0( v*v ) = gr0( dot(v,v) + wdg(v,v) ) = dot(v,v)
+    //       = v.x^2 dot(e1,e1) + v.y^2 dot(e2,e2) + v.z^2 dot(e2,e2)
+    //       = v.x^2 + v.y^2 + v.z^2
+    //
+    // bivector case (Vec3_t is used for bivector components in 3D):
+    // |B|^2 = gr0( B*rev(B)) = -gr0( B*B ) = -dot(B,B)
+    //       = -(v.x^2 dot(e23,e23) + v.y^2 dot(e31,e31) + v.z^2 dot(e12,e12))
+    //       = v.x^2 + v.y^2 + v.z^2
+    //
     return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 

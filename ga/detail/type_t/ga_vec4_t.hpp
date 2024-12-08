@@ -243,6 +243,9 @@ template <typename T, typename Tag>
     requires(std::floating_point<T>)
 inline constexpr T nrm_sq(Vec4_t<T, Tag> const& v)
 {
+    // implements the scalar product as defined by the geometric product *
+    // for the vector and trivector case in 4d and for the modeling space in 3dp:
+    // |v|^2 = gr0( v*rev(v))
     return v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w;
 }
 
