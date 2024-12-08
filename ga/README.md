@@ -5,7 +5,7 @@
   - ga/ga_pga.hpp
 
 - In case the library should be **switched between float and double as value type**, this
-  can be adjusted in ga/detail/ga_value_t.hpp as a central location
+  can be adjusted in ga/ga_value_t.hpp as a central location
 
 - Just for easy user reference following includes are provided at the top level:
   - ga/ga_usr_consts.hpp
