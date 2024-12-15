@@ -289,6 +289,18 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator*(PScalar2d<T> A,
     return ctype(A) * Vec2d<ctype>(b.y, -b.x);
 }
 
+// geometric product a*v of a scalar a multiplied from the left
+// to the vector v
+// scalar * vector => vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> operator*(Scalar2d<T> a,
+                                                           Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(a) * Vec2d<ctype>(v.x, v.y);
+}
+
 // geometric product A*B of a multivector A multiplied from the right by
 // the pseudoscalar (=bivector) B
 // multivector * bivector => multivector
@@ -325,6 +337,17 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator*(Vec2d<T> const& a,
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(-a.y, a.x) * ctype(B);
+}
+
+// geometric product of a vector v multiplied by a scalar from the right
+// vector * scalar => vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> operator*(Vec2d<U> const& v,
+                                                           Scalar2d<T> a)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(v.x, v.y) * ctype(a);
 }
 
 // geometric product a*B for a a vector a with a full 2d multivector B
@@ -410,8 +433,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator*(MVec2d_E<T> const&
     return MVec2d_E<ctype>(A.c0 * B.c0 - A.c1 * B.c1, A.c0 * B.c1 + A.c1 * B.c0);
 }
 
-// geometric product A * B of two trivectors
-// trivector * trivector => scalar
+// geometric product A * B of two bivectors
+// bivector * bivector => scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Scalar2d<std::common_type_t<T, U>> operator*(PScalar2d<T> A,
@@ -419,6 +442,28 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> operator*(PScalar2d<T> A,
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar2d<ctype>(-ctype(A) * ctype(B)); // bivectors in 2d square to -1
+}
+
+// geometric product A * B of a scalar A and a bivectorB
+// scalar * bivector => bivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2d<std::common_type_t<T, U>> operator*(Scalar2d<T> A,
+                                                               PScalar2d<U> B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(ctype(A) * ctype(B)); // scalar multiplication with a bivector
+}
+
+// geometric product A * B of a bivector A and a scalar B
+// bivector * scalar => bivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2d<std::common_type_t<T, U>> operator*(PScalar2d<T> A,
+                                                               Scalar2d<U> B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(ctype(A) * ctype(B)); // scalar multiplication with a bivector
 }
 
 // geometric product A * B of two scalars

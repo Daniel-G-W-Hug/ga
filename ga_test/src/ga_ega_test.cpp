@@ -3226,4 +3226,58 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(gr4(mv8) == pscalar4d{-5.0});
     }
 
+    TEST_CASE("ega_2d<2,0,0> - product tests")
+    {
+        fmt::println("ega_2d<2,0,0> - product tests");
+
+        auto s1 = scalar2d{2.0};
+        auto v1 = vec2d{1.0, -3.0};
+        auto ps1 = pscalar2d{-2.0};
+        auto mv1 = mvec2d{s1, v1, ps1};
+
+        auto s2 = scalar2d{-1.0};
+        auto v2 = vec2d{2.0, 1.5};
+        auto ps2 = pscalar2d{3.0};
+        auto mv2 = mvec2d{s2, v2, ps2};
+
+        // fmt::println("   mv1      = {}, nrm_sq = {}, nrm = {}", mv1, nrm_sq(mv1),
+        //              nrm(mv1));
+        // fmt::println("   gr0(mv1) = {}, nrm_sq = {}, nrm = {}", gr0(mv1), nrm_sq(s1),
+        //              nrm(s1));
+        // fmt::println("   gr1(mv1) = {}, nrm_sq = {}, nrm = {}", gr1(mv1), nrm_sq(v1),
+        //              nrm(v1));
+        // fmt::println("   gr2(mv1) = {}, nrm_sq = {}, nrm = {}", gr2(mv1), nrm_sq(ps1),
+        //              nrm(ps1));
+        // fmt::println("");
+        // fmt::println("   mv2      = {}, nrm_sq = {}, nrm = {}", mv2, nrm_sq(mv2),
+        //              nrm(mv2));
+        // fmt::println("   gr0(mv2) = {}, nrm_sq = {}, nrm = {}", gr0(mv2), nrm_sq(s2),
+        //              nrm(s2));
+        // fmt::println("   gr1(mv2) = {}, nrm_sq = {}, nrm = {}", gr1(mv2), nrm_sq(v2),
+        //              nrm(v2));
+        // fmt::println("   gr2(mv2) = {}, nrm_sq = {}, nrm = {}", gr2(mv2), nrm_sq(ps2),
+        //              nrm(ps2));
+        // fmt::println("");
+        // fmt::println("   gr0(gr0(mv1)*gr0(mv2))={}, gr0(gr0(mv1)*gr1(mv2))={}, "
+        //              "gr0(gr0(mv1)*gr2(mv2))={}",
+        //              gr0(mvec2d{gr0(mv1) * gr0(mv2)}), gr0(mvec2d{gr0(mv1) *
+        //              gr1(mv2)}), gr0(mvec2d{gr0(mv1) * gr2(mv2)}));
+        // fmt::println("   gr0(gr1(mv1)*gr0(mv2))={}, gr0(gr1(mv1)*gr1(mv2))={}, "
+        //              "gr0(gr1(mv1)*gr2(mv2))={}",
+        //              gr0(mvec2d{gr1(mv1) * gr0(mv2)}), gr0(mvec2d{gr1(mv1) *
+        //              gr1(mv2)}), gr0(mvec2d{gr1(mv1) * gr2(mv2)}));
+        // fmt::println("   gr0(gr2(mv1)*gr0(mv2))={}, gr0(gr2(mv1)*gr1(mv2))={}, "
+        //              "gr0(gr2(mv1)*gr2(mv2))={}",
+        //              gr0(mvec2d{gr2(mv1) * gr0(mv2)}), gr0(mvec2d{gr2(mv1) *
+        //              gr1(mv2)}), gr0(mvec2d{gr2(mv1) * gr2(mv2)}));
+
+        // scalar product: scalar_prod(a,b) = sum_(k,m=0)^(2)[ gr(0, gr(k,a)*gr(m,b) ) ]
+
+        CHECK(nrm_sq(mv1) == nrm_sq(s1) + nrm_sq(v1) + nrm_sq(ps1));
+        CHECK(nrm_sq(mv2) == nrm_sq(s2) + nrm_sq(v2) + nrm_sq(ps2));
+        CHECK(gr0(mvec2d{gr0(mv1) * gr0(mv2)}) + gr0(mvec2d{gr1(mv1) * gr1(mv2)}) +
+                  gr0(mvec2d{gr2(mv1) * gr2(mv2)}) ==
+              s1 * s2 + dot(v1, v2) + ps1 * ps2);
+    }
+
 } // TEST_SUITE("Euclidean Geometric Algebra (EGA)")
