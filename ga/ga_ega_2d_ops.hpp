@@ -16,24 +16,175 @@
 namespace hd::ga::ega {
 
 ////////////////////////////////////////////////////////////////////////////////
-// Vec2d<T> basic operations
+// grade inversion operation: reverse the sign of odd blades
+// gr_inv(A_r) = (-1)^r A_r
+// pattern for k = 0, 1, 2, 3, ...: + - + - + - ...
 ////////////////////////////////////////////////////////////////////////////////
 
-// return dot-product of two vectors in G<2,0,0>
-// dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
-//            = gr0(v1*v1)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline std::common_type_t<T, U> dot(Vec2d<T> const& v1, Vec2d<U> const& v2)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> gr_inv(Scalar2d<T> s)
 {
-    // definition: dot(v1, v2) = (v1)^T g_12 v2 with the metric g_12
-    // this assumes an orthonormal basis with e1^2 = +1, e2^2 = +1
-    // as diagonal elements of g_12
-    return v1.x * v2.x + v1.y * v2.y;
+    // grade 0: no sign change
+    return s;
 }
 
-// return the multiplicative inverse of the vector
-template <typename T> inline Vec2d<T> inv(Vec2d<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> gr_inv(Vec2d<T> const& v)
+{
+    // grade 1: sign reversal
+    return -Vec2d<T>(v);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> gr_inv(PScalar2d<T> ps)
+{
+    // grade 2: no sign change
+    return ps;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d_E<T> gr_inv(MVec2d_E<T> const& v)
+{
+    // grade 0 and 2: no sign change
+    return MVec2d_E<T>(v);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d<T> gr_inv(MVec2d<T> const& v)
+{
+    // grade 0 and 2: no sign change
+    // grade 1: sign reversal
+    return MVec2d<T>(v.c0, -v.c1, -v.c2, v.c3);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// reversion operation: reverses the factors in a blade
+// rev(A_r) = (-1)^(r*(r-1)/2) A_r
+// pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> rev(Scalar2d<T> s)
+{
+    // grade 0: no sign change
+    return s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> rev(Vec2d<T> const& v)
+{
+    // grade 1: no sign change
+    return Vec2d<T>(v);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> rev(PScalar2d<T> ps)
+{
+    // grade 2: sign change
+    return PScalar2d<T>(-T(ps));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d_E<T> rev(MVec2d_E<T> const& v)
+{
+    // grade 0: no sign change
+    // grade 2: sign change
+    return MVec2d_E<T>(v.c0, -v.c1);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d<T> rev(MVec2d<T> const& v)
+{
+    // grade 0: no sign change
+    // grade 1: no sign change
+    // grade 2: sign change
+    return MVec2d<T>(v.c0, v.c1, v.c2, -v.c3);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Clifford conjugation:
+// conj(A_r) = (-1)^(r*(r+1)/2) A_r
+// pattern for k = 0, 1, 2, 3, ...: + - - + + - - + + ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> conj(Scalar2d<T> s)
+{
+    // grade 0: no sign change
+    return s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> conj(Vec2d<T> const& v)
+{
+    // grade 1: sign change
+    return -Vec2d<T>(v);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> conj(PScalar2d<T> ps)
+{
+    // grade 2: sign change
+    return PScalar2d<T>(-T(ps));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d_E<T> conj(MVec2d_E<T> const& v)
+{
+    // grade 0: no sign change
+    // grade 2: sign change
+    return MVec2d_E<T>(v.c0, -v.c1);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d<T> conj(MVec2d<T> const& v)
+{
+    // grade 0: no sign change
+    // grade 1: sign change
+    // grade 2: sign change
+    return MVec2d<T>(v.c0, -v.c1, -v.c2, -v.c3);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// multiplicative inverses of scalars, blades and multivectors
+// w.r.t. the geometric product:
+// for k-blades: A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> inv(Scalar2d<T> s)
+{
+    T sq_n = nrm_sq(s);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("scalar norm too small for inversion" +
+                                 std::to_string(sq_n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / sq_n;
+
+    return Scalar2d<T>(rev(s) * inv);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> inv(Vec2d<T> const& v)
 {
     T sq_n = nrm_sq(v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
@@ -42,90 +193,50 @@ template <typename T> inline Vec2d<T> inv(Vec2d<T> const& v)
                                  std::to_string(sq_n) + "\n");
     }
 #endif
-    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
-    return Vec2d<T>(v.x * inv, v.y * inv);
+    T inv = T(1.0) / sq_n;
+    return Vec2d<T>(rev(v) * inv);
 }
 
-// wedge product (returns a bivector, which is the pseudoscalar in 2d)
-// wdg(v1,v2) = |v1| |v2| sin(theta)
-// where theta: -pi <= theta <= pi (different to definition of angle for dot product!)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v1, Vec2d<U> const& v2)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> inv(PScalar2d<T> ps)
 {
-    return PScalar2d<std::common_type_t<T, U>>(v1.x * v2.y - v1.y * v2.x);
-}
-
-// return the angle between of two vectors
-// range of angle: -pi <= angle <= pi
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    using std::numbers::pi;
-
-    ctype nrm_prod = nrm(v1) * nrm(v2);
+    T sq_n = nrm_sq(ps);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle" +
-            std::to_string(nrm_prod) + "\n");
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("bivector norm too small for inversion" +
+                                 std::to_string(sq_n) + "\n");
     }
 #endif
+    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
 
-    // std::clamp must be used to take care of numerical inaccuracies
-    auto cos_angle = std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
-    auto sin_angle = std::clamp(ctype(wdg(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
-    // wdg() in 2d contains magnitude and orientation, but works this easy only in 2d,
-    // because it is already a scalar value
-    // (for 3d to be as effective, the 3d vectors would need to be transformed
-    //  to a plane, the angle measured w.r.t. to the pseudoscalar of the plane)
-
-    // fmt::println("   c = {: .4f}, s = {: .4f}, wdg = {: .4f}, nrm_wdg = {: .4f}",
-    //              cos_angle, sin_angle, wdg(v1, v2), nrm(wdg(v1, v2)));
-
-    if (cos_angle >= 0.0) {
-        // quadrant I or IV
-        return std::asin(sin_angle);
-    }
-    else if (cos_angle < 0.0 && sin_angle >= 0.0) {
-        // quadrant II
-        return pi - std::asin(sin_angle);
-    }
-    else {
-        // cos_angle < 0.0 && sin_angle < 0.0)
-        // quadrant III
-        return -pi - std::asin(sin_angle);
-    }
+    return PScalar2d<T>(rev(ps) * inv);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// MVec2d<T> basic operations
-////////////////////////////////////////////////////////////////////////////////
-
-// return the reverse
-template <typename T> inline MVec2d<T> rev(MVec2d<T> const& v)
+// return the multiplicative inverse of the complex number (inv(z) = 1/nrm_sq(z)*rev(z))
+// with rev(z) being the complex conjugate
+template <typename T> inline constexpr MVec2d_E<T> inv(MVec2d_E<T> const& v)
 {
-    return MVec2d<T>(v.c0, v.c1, v.c2, -v.c3);
+    T sq_n = nrm_sq(v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error(
+            "complex norm of even grade multivector too small for inversion" +
+            std::to_string(sq_n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
+    return MVec2d_E<T>(rev(v) * inv);
 }
 
-// return the Clifford conjugate
-template <typename T> inline MVec2d<T> conj(MVec2d<T> const& v)
+template <typename T> inline constexpr MVec2d<T> inv(MVec2d<T> const& v)
 {
-    return MVec2d<T>(v.c0, -v.c1, -v.c2, -v.c3);
-}
-
-// return the multiplicative inverse of the multivector
-// inv(M) = 1/( M*conj(M) ) * conj(M)  with M*conj(M) being a scalar value
-template <typename T> inline MVec2d<T> inv(MVec2d<T> const& v)
-{
+    // inv(M) = 1/( M*conj(M) ) * conj(M)  with M*conj(M) being a scalar value
     // from manual calculation of M*conj(M) in 2d:
     T m_conjm = v.c0 * v.c0 + v.c3 * v.c3 - nrm_sq(Vec2d<T>(v.c1, v.c2));
     //
     // alternative, but with slightly more computational effort:
     // T m_conjm = gr0(v * conj(v));
-    //
 
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
@@ -135,85 +246,226 @@ template <typename T> inline MVec2d<T> inv(MVec2d<T> const& v)
     }
 #endif
     T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
-    return inv * conj(v);
+    return MVec2d<T>(conj(v) * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2d_E<T> geometric operations for complex numbers
-//             (= multivectors from the even subalgebra)
+// scalar product (= dot product defined for equal grades exclusively)
 ////////////////////////////////////////////////////////////////////////////////
 
-// return conjugate complex of a complex number,
-// i.e. the reverse in nomenclature of multivectors
-template <typename T> inline MVec2d_E<T> rev(MVec2d_E<T> const& v)
+// return dot-product of two vectors in G<2,0,0>
+// dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
+//            = gr0(v1*v1)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> dot(Vec2d<T> const& v1, Vec2d<U> const& v2)
 {
-    return MVec2d_E<T>(v.c0, -v.c1);
+    // definition: dot(v1, v2) = (v1)^T g_12 v2 with the metric g_12
+    // this assumes an orthonormal basis with e1^2 = +1, e2^2 = +1
+    // as diagonal elements of g_12
+    return v1.x * v2.x + v1.y * v2.y;
 }
 
-// return the multiplicative inverse of the complex number (inv(z) = 1/nrm_sq(z)*rev(z))
-// with rev(z) being the complex conjugate
-template <typename T> inline MVec2d_E<T> inv(MVec2d_E<T> const& v)
+// scalar product dot(a,b) (nrm(a,b) = dot(a, rev(b)))
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> dot(MVec2d<T> const& a, MVec2d<U> const& b)
 {
-    T sq_n = nrm_sq(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("complex norm too small for inversion" +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
-    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
-    return inv * rev(v);
-}
-
-// return the angle of the complex number w.r.t. the real axis
-// range of angle: -pi <= angle <= pi
-template <typename T>
-    requires(std::floating_point<T>)
-inline T angle_to_re(MVec2d_E<T> const& v)
-{
-    using std::numbers::pi;
-    if (v.c0 > 0.0) {
-        // quadrant I & IV
-        return std::atan(v.c1 / v.c0);
-    }
-    if (v.c0 < 0.0 && v.c1 >= 0.0) {
-        // quadrant II
-        return std::atan(v.c1 / v.c0) + pi;
-    }
-    if (v.c0 < 0.0 && v.c1 < 0.0) {
-        // quadrant III
-        return std::atan(v.c1 / v.c0) - pi;
-    }
-    if (v.c0 == 0.0) {
-        // on y-axis
-        if (v.c1 > 0.0) return pi / 2.0;
-        if (v.c1 < 0.0) return -pi / 2.0;
-    }
-    return 0.0; // zero as input => define 0 as corresponding angle
+    return a.c0 * b.c0 + a.c1 * b.c1 + a.c2 * b.c2 - a.c3 * b.c3;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// PScalar2d<T> basic operations
+// wedge product (= outer product)
 ////////////////////////////////////////////////////////////////////////////////
 
-// return reverse of a 2d bivector
-template <typename T> inline PScalar2d<T> rev(PScalar2d<T> A)
+// wedge product with one scalar (returns a scaled vector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> wdg(T alpha, Vec2d<U> const& v)
 {
-    // the 2d bivector switches sign on reversion
-    return PScalar2d<T>(-T(A));
+    using ctype = std::common_type_t<T, U>;
+    return alpha * Vec2d<ctype>(v.x, v.y);
 }
 
-// return inverse of the pseudoscalar (A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
-// k is the dimension of the space of the pseudoscalar formed by k orthogonal vectors
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> inv(PScalar2d<T> ps)
+// wedge product with one scalar (returns a scaled vector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v, U alpha)
 {
-    return -PScalar2d<T>(ps) / nrm_sq(ps);
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(v.x, v.y) * alpha;
+}
+
+// wedge product (returns a bivector)
+// wdg(v1,v2) = |v1| |v2| sin(theta)
+// where theta: -pi <= theta <= pi (different to definition of angle for dot product!)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v1,
+                                                         Vec2d<U> const& v2)
+{
+    return PScalar2d<std::common_type_t<T, U>>(v1.x * v2.y - v1.y * v2.x);
+}
+
+// wedge product extended to a full multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& a,
+                                                      MVec2d<U> const& b)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(a.c0 * b.c0, a.c1 * b.c0 + a.c0 * b.c1,
+                         a.c2 * b.c0 + a.c0 * b.c2,
+                         a.c3 * b.c0 + a.c0 * b.c3 + a.c1 * b.c2 - a.c2 * b.c1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2d<T> geometric products
+// left contractions
+////////////////////////////////////////////////////////////////////////////////
+
+// left contraction (a << b) - "a contracted onto b" == "a removed from b"
+//                             "a taken out of b"
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& a,
+                                                             MVec2d<U> const& b)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(a.c0 * b.c0 + a.c1 * b.c1 + a.c2 * b.c2 - a.c3 * b.c3,
+                         a.c0 * b.c1 - a.c2 * b.c3, a.c0 * b.c2 + a.c1 * b.c3,
+                         a.c0 * b.c3);
+}
+
+// left contraction (a << b) - vector taken out of a vector
+// (=identical to scalar product of two vectors)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> operator<<(Vec2d<T> const& a, Vec2d<U> const& b)
+{
+    return a.x * b.x + a.y * b.y;
+}
+
+// left contraction (v << B) - vector v taken out of bivector B
+// (identical with the geometric product for this case)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
+                                                            PScalar2d<U> B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(-v.y, v.x) * ctype(B);
+}
+
+// left contraction (B << v) - bivector B  taken out of a vector v
+// returns 0, since gr(B) > gr(v)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> operator<<([[maybe_unused]] PScalar2d<U> B,
+                                                     [[maybe_unused]] Vec2d<T> const& v)
+{
+    return 0;
+}
+
+// left contraction (v << alpha) - vector v taken out of a scalar alpha
+// returns 0, since gr(v) > gr(alpha)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> operator<<([[maybe_unused]] Vec2d<T> const& v,
+                                                     [[maybe_unused]] Scalar2d<U> alpha)
+{
+    return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// right contractions
+////////////////////////////////////////////////////////////////////////////////
+
+// right contraction (a >> b)  - "a contracted by b" == "b removed from a"
+//                               "b taken out of a"
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<T> operator>>(MVec2d<T> const& a, MVec2d<U> const& b)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(a.c0 * b.c0 + a.c1 * b.c1 + a.c2 * b.c2 - a.c3 * b.c3,
+                         a.c1 * b.c0 + a.c3 * b.c2, a.c2 * b.c0 - a.c3 * b.c1,
+                         a.c3 * b.c0);
+}
+
+// right contraction (a >> b) - vector taken out of a vector
+// (=identical to scalar product of two vectors)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> operator>>(Vec2d<T> const& a, Vec2d<U> const& b)
+{
+    return a.x * b.x + a.y * b.y;
+}
+
+// right contraction (B >> v) - bivector B contracted by vector v
+// (identical with the geometric product for this case)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> B,
+                                                            Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(B) * Vec2d<ctype>(v.y, -v.x);
+}
+
+// right contraction (v >> B) - vector v contracted by a bivector B
+// returns 0, since gr(B) > gr(v)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> operator>>([[maybe_unused]] Vec2d<T> const& v,
+                                                     [[maybe_unused]] PScalar2d<U> B)
+{
+    return 0;
+}
+
+// right contraction (alpha >> v) - scalar alpha contracted by a vector v
+// returns 0, since gr(v) > gr(alpha)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> operator>>([[maybe_unused]] Scalar2d<U> alpha,
+                                                     [[maybe_unused]] Vec2d<T> const& v)
+{
+    return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// alternative multivector products (in use instead of contractions)
+////////////////////////////////////////////////////////////////////////////////
+
+// inner product (as defined by Hestens; like fat_dot below, but without scalar parts)
+//
+// inner(A,B) := sum_(r!=0,s!=0)^n gr( gr(A)_r * gr(B)_s )_|s-r|
+//
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<T> inner(MVec2d<T> const& a, MVec2d<U> const& b)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(a.c1 * b.c1 + a.c2 * b.c2 - a.c3 * b.c3,
+                         b.c2 * a.c3 - a.c2 * b.c3, -b.c1 * a.c3 + a.c1 * b.c3, 0);
+}
+
+// fat_dot product (including the scalar parts)
+//
+// inner(A,B) := sum_(r=0,s=0)^n gr( gr(A)_r * gr(B)_s )_|s-r|
+//
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<T> fat_dot(MVec2d<T> const& a, MVec2d<U> const& b)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(a.c0 * b.c0 + a.c1 * b.c1 + a.c2 * b.c2 - a.c3 * b.c3,
+                         a.c0 * b.c1 + b.c0 * a.c1 + b.c2 * a.c3 - a.c2 * b.c3,
+                         a.c0 * b.c2 + b.c0 * a.c2 - b.c1 * a.c3 + a.c1 * b.c3,
+                         a.c0 * b.c3 + b.c0 * a.c3);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// geometric products
 ////////////////////////////////////////////////////////////////////////////////
 
 // geometric product ab for fully populated 2d multivector
@@ -478,6 +730,83 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> operator*(Scalar2d<T> A,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// angle operations for vectors and multivectors of the even subalgebra
+////////////////////////////////////////////////////////////////////////////////
+
+// return the angle between two vectors
+// range of angle: -pi <= angle <= pi
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    using std::numbers::pi;
+
+    ctype nrm_prod = nrm(v1) * nrm(v2);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
+        throw std::runtime_error(
+            "vector norm product too small for calculation of angle" +
+            std::to_string(nrm_prod) + "\n");
+    }
+#endif
+
+    // std::clamp must be used to take care of numerical inaccuracies
+    auto cos_angle = std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
+    auto sin_angle = std::clamp(ctype(wdg(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
+    // wdg() in 2d contains magnitude and orientation, but works this easy only in 2d,
+    // because it is already a scalar value
+    // (for 3d to be as effective, the 3d vectors would need to be transformed
+    //  to a plane, the angle measured w.r.t. to the pseudoscalar of the plane)
+
+    // fmt::println("   c = {: .4f}, s = {: .4f}, wdg = {: .4f}, nrm_wdg = {: .4f}",
+    //              cos_angle, sin_angle, wdg(v1, v2), nrm(wdg(v1, v2)));
+
+    if (cos_angle >= 0.0) {
+        // quadrant I or IV
+        return std::asin(sin_angle);
+    }
+    else if (cos_angle < 0.0 && sin_angle >= 0.0) {
+        // quadrant II
+        return pi - std::asin(sin_angle);
+    }
+    else {
+        // cos_angle < 0.0 && sin_angle < 0.0)
+        // quadrant III
+        return -pi - std::asin(sin_angle);
+    }
+}
+
+// MVec2d_E<T> is used to model complex numbers using multivectors from the
+//             even subalgebra
+// returns the angle of the complex number w.r.t. the real axis
+// range of angle: -pi <= angle <= pi
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T angle_to_re(MVec2d_E<T> const& v)
+{
+    using std::numbers::pi;
+    if (v.c0 > 0.0) {
+        // quadrant I & IV
+        return std::atan(v.c1 / v.c0);
+    }
+    if (v.c0 < 0.0 && v.c1 >= 0.0) {
+        // quadrant II
+        return std::atan(v.c1 / v.c0) + pi;
+    }
+    if (v.c0 < 0.0 && v.c1 < 0.0) {
+        // quadrant III
+        return std::atan(v.c1 / v.c0) - pi;
+    }
+    if (v.c0 == 0.0) {
+        // on y-axis
+        if (v.c1 > 0.0) return pi / 2.0;
+        if (v.c1 < 0.0) return -pi / 2.0;
+    }
+    return 0.0; // zero as input => define 0 as corresponding angle
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // 2d rotation operations
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -708,24 +1037,30 @@ inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vec2d<T> & PScalar2d<T> mixed operations using the geometric product
+//
+// this implements the left contraction, not the scalar product, which is zero for
+// arguments of different grades
+//
+// the left contraction is identical with the geometric product for
+// these type of arguments
 ////////////////////////////////////////////////////////////////////////////////
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> dot(PScalar2d<T> A, Vec2d<U> const& b)
-{
-    // the dot product is identical with the geometric product in this case (A^b = 0)
-    // ATTENTION: the dot-product in NOT symmetric in G^n as it is in R^n
-    return A * b;
-}
+// template <typename T, typename U>
+//     requires(std::floating_point<T> && std::floating_point<U>)
+// inline constexpr Vec2d<std::common_type_t<T, U>> dot(PScalar2d<T> A, Vec2d<U> const& b)
+// {
+//     // the dot product is identical with the geometric product in this case (A^b = 0)
+//     // ATTENTION: the dot-product in NOT symmetric in G^n as it is in R^n
+//     return A * b;
+// }
 
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> dot(Vec2d<T> const& a, PScalar2d<U> B)
-{
-    // the dot product is identical with the geometric product in this case (a^B = 0)
-    // ATTENTION: the dot-product in NOT symmetric in G^n as it is in R^n
-    return a * B;
-}
+// template <typename T, typename U>
+//     requires(std::floating_point<T> && std::floating_point<U>)
+// inline constexpr Vec2d<std::common_type_t<T, U>> dot(Vec2d<T> const& a, PScalar2d<U> B)
+// {
+//     // the dot product is identical with the geometric product in this case (a^B = 0)
+//     // ATTENTION: the dot-product in NOT symmetric in G^n as it is in R^n
+//     return a * B;
+// }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vec2d<T> projections, rejections and reflections
@@ -756,7 +1091,11 @@ template <typename T, typename U>
 inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v,
                                                               PScalar2d<U> ps)
 {
-    return dot(v, ps) * inv(ps);
+    // intial formula given i LAGA, Macdonald
+    // return dot(v, ps) * inv(ps);
+
+    // use formula given by Dorst based on the left contraction
+    return ((v << inv(ps)) << ps);
 }
 
 // rejection of v1 from v2

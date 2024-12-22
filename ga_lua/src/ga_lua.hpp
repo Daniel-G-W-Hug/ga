@@ -36,7 +36,9 @@ void register_2d_types(sol::state& lua)
         sol::meta_function::multiplication,
         sol::resolve<scalar2d(scalar2d, scalar2d)>(operator*),
         sol::meta_function::division,
-        sol::resolve<scalar2d(scalar2d, value_t)>(operator/));
+        sol::resolve<scalar2d(scalar2d, value_t)>(operator/),
+        sol::meta_function::bitwise_right_shift,
+        sol::resolve<value_t(scalar2d, vec2d const&)>(operator>>));
 
 
     lua.new_usertype<pscalar2d>(
@@ -56,7 +58,11 @@ void register_2d_types(sol::state& lua)
                       sol::resolve<vec2d(pscalar2d, vec2d const&)>(operator*),
                       sol::resolve<scalar2d(pscalar2d, pscalar2d)>(operator*)),
         sol::meta_function::division,
-        sol::resolve<pscalar2d(pscalar2d, value_t)>(operator/));
+        sol::resolve<pscalar2d(pscalar2d, value_t)>(operator/),
+        sol::meta_function::bitwise_left_shift,
+        sol::resolve<value_t(pscalar2d, vec2d const&)>(operator<<),
+        sol::meta_function::bitwise_right_shift,
+        sol::resolve<vec2d(pscalar2d, vec2d const&)>(operator>>));
 
 
     lua.new_usertype<vec2d>(
@@ -79,7 +85,14 @@ void register_2d_types(sol::state& lua)
                       sol::resolve<mvec2d_e(vec2d const&, vec2d const&)>(operator*),
                       sol::resolve<vec2d(vec2d const&, pscalar2d)>(operator*)),
         sol::meta_function::division,
-        sol::resolve<vec2d(vec2d const&, value_t)>(operator/));
+        sol::resolve<vec2d(vec2d const&, value_t)>(operator/),
+        sol::meta_function::bitwise_left_shift,
+        sol::overload(sol::resolve<value_t(vec2d const&, vec2d const&)>(operator<<),
+                      sol::resolve<vec2d(vec2d const&, pscalar2d)>(operator<<),
+                      sol::resolve<value_t(vec2d const&, scalar2d)>(operator<<)),
+        sol::meta_function::bitwise_right_shift,
+        sol::overload(sol::resolve<value_t(vec2d const&, vec2d const&)>(operator>>),
+                      sol::resolve<value_t(vec2d const&, pscalar2d)>(operator>>)));
 
 
     lua.new_usertype<mvec2d_e>(
@@ -128,7 +141,11 @@ void register_2d_types(sol::state& lua)
                       sol::resolve<mvec2d(mvec2d const&, pscalar2d)>(operator*),
                       sol::resolve<mvec2d(mvec2d const&, mvec2d_e const&)>(operator*)),
         sol::meta_function::division,
-        sol::resolve<mvec2d(mvec2d const&, value_t)>(operator/));
+        sol::resolve<mvec2d(mvec2d const&, value_t)>(operator/),
+        sol::meta_function::bitwise_left_shift,
+        sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(operator<<),
+        sol::meta_function::bitwise_right_shift,
+        sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(operator>>));
 }
 
 
@@ -308,51 +325,126 @@ void register_functions(sol::state& lua)
     using namespace hd::ga;
     using namespace hd::ga::ega;
 
+    lua.set_function("nrm_sq",
+                     sol::overload(sol::resolve<value_t(scalar2d)>(nrm_sq),
+                                   sol::resolve<value_t(vec2d const&)>(nrm_sq),
+                                   sol::resolve<value_t(pscalar2d)>(nrm_sq),
+                                   sol::resolve<value_t(mvec2d_e const&)>(nrm_sq),
+                                   sol::resolve<value_t(mvec2d const&)>(nrm_sq),
+                                   sol::resolve<value_t(scalar3d)>(nrm_sq),
+                                   sol::resolve<value_t(vec3d const&)>(nrm_sq),
+                                   sol::resolve<value_t(bivec3d const&)>(nrm_sq),
+                                   sol::resolve<value_t(pscalar3d)>(nrm_sq),
+                                   sol::resolve<value_t(mvec3d_e const&)>(nrm_sq),
+                                   sol::resolve<value_t(mvec3d_u const&)>(nrm_sq),
+                                   sol::resolve<value_t(mvec3d const&)>(nrm_sq)));
+
+    lua.set_function("nrm", sol::overload(sol::resolve<value_t(scalar2d)>(nrm),
+                                          sol::resolve<value_t(vec2d const&)>(nrm),
+                                          sol::resolve<value_t(pscalar2d)>(nrm),
+                                          sol::resolve<value_t(mvec2d_e const&)>(nrm),
+                                          sol::resolve<value_t(mvec2d const&)>(nrm),
+                                          sol::resolve<value_t(scalar3d)>(nrm),
+                                          sol::resolve<value_t(vec3d const&)>(nrm),
+                                          sol::resolve<value_t(bivec3d const&)>(nrm),
+                                          sol::resolve<value_t(pscalar3d)>(nrm),
+                                          sol::resolve<value_t(mvec3d_e const&)>(nrm),
+                                          sol::resolve<value_t(mvec3d_u const&)>(nrm),
+                                          sol::resolve<value_t(mvec3d const&)>(nrm)));
+
+    lua.set_function("normalize",
+                     sol::overload(sol::resolve<scalar2d(scalar2d)>(normalize),
+                                   sol::resolve<vec2d(vec2d const&)>(normalize),
+                                   sol::resolve<pscalar2d(pscalar2d)>(normalize),
+                                   sol::resolve<scalar3d(scalar3d)>(normalize),
+                                   sol::resolve<vec3d(vec3d const&)>(normalize),
+                                   sol::resolve<bivec3d(bivec3d const&)>(normalize),
+                                   sol::resolve<pscalar3d(pscalar3d)>(normalize)));
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // grade operations on multivectors
+    ////////////////////////////////////////////////////////////////////////////////
+    lua.set_function("gr0", sol::overload(sol::resolve<scalar2d(mvec2d_e const&)>(gr0),
+                                          sol::resolve<scalar2d(mvec2d const&)>(gr0),
+                                          sol::resolve<scalar3d(mvec3d const&)>(gr0),
+                                          sol::resolve<scalar3d(mvec3d_e const&)>(gr0)));
+
+    lua.set_function("gr1", sol::overload(sol::resolve<vec2d(mvec2d const&)>(gr1),
+                                          sol::resolve<vec3d(mvec3d const&)>(gr1),
+                                          sol::resolve<vec3d(mvec3d_u const&)>(gr1)));
+
+    lua.set_function("gr2", sol::overload(sol::resolve<pscalar2d(mvec2d_e const&)>(gr2),
+                                          sol::resolve<pscalar2d(mvec2d const&)>(gr2),
+                                          sol::resolve<bivec3d(mvec3d const&)>(gr2),
+                                          sol::resolve<bivec3d(mvec3d_e const&)>(gr2)));
+
+    lua.set_function("gr3", sol::overload(sol::resolve<pscalar3d(mvec3d const&)>(gr3),
+                                          sol::resolve<pscalar3d(mvec3d_u const&)>(gr3)));
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // grade operations on multivectors (gr_inv, rev, inv)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    lua.set_function("gr_inv",
+                     sol::overload(sol::resolve<scalar2d(scalar2d)>(gr_inv),
+                                   sol::resolve<vec2d(vec2d const&)>(gr_inv),
+                                   sol::resolve<pscalar2d(pscalar2d)>(gr_inv),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(gr_inv),
+                                   sol::resolve<mvec2d(mvec2d const&)>(gr_inv)
+                                   //  , sol::resolve<vec3d(vec3d const&)>(gr_inv),
+                                   //  sol::resolve<bivec3d(bivec3d const&)>(gr_inv),
+                                   //  sol::resolve<mvec3d(mvec3d const&)>(gr_inv),
+                                   //  sol::resolve<pscalar3d(pscalar3d)>(gr_inv)
+                                   ));
+
+    lua.set_function("rev", sol::overload(sol::resolve<scalar2d(scalar2d)>(rev),
+                                          sol::resolve<vec2d(vec2d const&)>(rev),
+                                          sol::resolve<pscalar2d(pscalar2d)>(rev),
+                                          sol::resolve<mvec2d_e(mvec2d_e const&)>(rev),
+                                          sol::resolve<mvec2d(mvec2d const&)>(rev),
+                                          sol::resolve<bivec3d(bivec3d const&)>(rev),
+                                          sol::resolve<pscalar3d(pscalar3d)>(rev),
+                                          sol::resolve<mvec3d_e(mvec3d_e const&)>(rev),
+                                          sol::resolve<mvec3d_u(mvec3d_u const&)>(rev),
+                                          sol::resolve<mvec3d(mvec3d const&)>(rev)));
+
+    lua.set_function("conj", sol::overload(sol::resolve<scalar2d(scalar2d)>(conj),
+                                           sol::resolve<vec2d(vec2d const&)>(conj),
+                                           sol::resolve<pscalar2d(pscalar2d)>(conj),
+                                           sol::resolve<mvec2d_e(mvec2d_e const&)>(conj),
+                                           sol::resolve<mvec2d(mvec2d const&)>(conj),
+                                           sol::resolve<mvec3d(mvec3d const&)>(conj)));
+
+    lua.set_function("inv", sol::overload(sol::resolve<scalar2d(scalar2d)>(inv),
+                                          sol::resolve<vec2d(vec2d const&)>(inv),
+                                          sol::resolve<pscalar2d(pscalar2d)>(inv),
+                                          sol::resolve<mvec2d_e(mvec2d_e const&)>(inv),
+                                          sol::resolve<mvec2d(mvec2d const&)>(inv),
+                                          sol::resolve<vec3d(vec3d const&)>(inv),
+                                          sol::resolve<bivec3d(bivec3d const&)>(inv),
+                                          sol::resolve<pscalar3d(pscalar3d)>(inv),
+                                          sol::resolve<mvec3d(mvec3d const&)>(inv)));
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // scalar product (dot)
+    ////////////////////////////////////////////////////////////////////////////////
+
     lua.set_function(
         "dot", sol::overload(sol::resolve<value_t(vec2d const&, vec2d const&)>(dot),
-                             sol::resolve<vec2d(pscalar2d, vec2d const&)>(dot),
-                             sol::resolve<vec2d(vec2d const&, pscalar2d)>(dot),
+                             //  sol::resolve<vec2d(pscalar2d, vec2d const&)>(dot),
+                             //  sol::resolve<vec2d(vec2d const&, pscalar2d)>(dot),
                              sol::resolve<value_t(vec3d const&, vec3d const&)>(dot),
                              sol::resolve<value_t(bivec3d const&, bivec3d const&)>(dot),
                              sol::resolve<vec3d(bivec3d const&, vec3d const&)>(dot),
                              sol::resolve<vec3d(vec3d const&, bivec3d const&)>(dot)));
 
-    lua.set_function("cmt", sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(cmt));
 
-    lua.set_function("nrm_sq",
-                     sol::overload(sol::resolve<value_t(vec2d const&)>(nrm_sq),
-                                   sol::resolve<value_t(mvec2d_e const&)>(nrm_sq),
-                                   sol::resolve<value_t(mvec2d const&)>(nrm_sq),
-                                   sol::resolve<value_t(pscalar2d)>(nrm_sq),
-                                   sol::resolve<value_t(vec3d const&)>(nrm_sq),
-                                   sol::resolve<value_t(bivec3d const&)>(nrm_sq),
-                                   sol::resolve<value_t(mvec3d_e const&)>(nrm_sq),
-                                   sol::resolve<value_t(mvec3d const&)>(nrm_sq),
-                                   sol::resolve<value_t(pscalar3d)>(nrm_sq)));
-
-    lua.set_function("nrm", sol::overload(sol::resolve<value_t(vec2d const&)>(nrm),
-                                          sol::resolve<value_t(mvec2d_e const&)>(nrm),
-                                          sol::resolve<value_t(mvec2d const&)>(nrm),
-                                          sol::resolve<value_t(pscalar2d)>(nrm),
-                                          sol::resolve<value_t(vec3d const&)>(nrm),
-                                          sol::resolve<value_t(bivec3d const&)>(nrm),
-                                          sol::resolve<value_t(mvec3d_e const&)>(nrm),
-                                          sol::resolve<value_t(mvec3d const&)>(nrm),
-                                          sol::resolve<value_t(pscalar3d)>(nrm)));
-
-    lua.set_function("normalize",
-                     sol::overload(sol::resolve<vec2d(vec2d const&)>(normalize),
-                                   sol::resolve<vec3d(vec3d const&)>(normalize),
-                                   sol::resolve<bivec3d(bivec3d const&)>(normalize)));
-
-    lua.set_function("inv", sol::overload(sol::resolve<vec2d(vec2d const&)>(inv),
-                                          sol::resolve<mvec2d_e(mvec2d_e const&)>(inv),
-                                          sol::resolve<mvec2d(mvec2d const&)>(inv),
-                                          sol::resolve<pscalar2d(pscalar2d)>(inv),
-                                          sol::resolve<vec3d(vec3d const&)>(inv),
-                                          sol::resolve<bivec3d(bivec3d const&)>(inv),
-                                          sol::resolve<mvec3d(mvec3d const&)>(inv),
-                                          sol::resolve<pscalar3d(pscalar3d)>(inv)));
+    ////////////////////////////////////////////////////////////////////////////////
+    // wedge product (= outer product) (wdg)
+    ////////////////////////////////////////////////////////////////////////////////
 
     lua.set_function(
         "wdg", sol::overload(sol::resolve<pscalar2d(vec2d const&, vec2d const&)>(wdg),
@@ -360,65 +452,20 @@ void register_functions(sol::state& lua)
                              sol::resolve<pscalar3d(vec3d const&, bivec3d const&)>(wdg),
                              sol::resolve<pscalar3d(bivec3d const&, vec3d const&)>(wdg)));
 
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // other products (inner, fat_dot, cmt, cross)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    lua.set_function("inner", sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(inner));
+
+    lua.set_function("fat_dot",
+                     sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(fat_dot));
+
+    lua.set_function("cmt", sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(cmt));
+
     lua.set_function("cross", sol::resolve<vec3d(vec3d const&, vec3d const&)>(cross));
 
-    lua.set_function("rev", sol::overload(sol::resolve<mvec2d_e(mvec2d_e const&)>(rev),
-                                          sol::resolve<mvec2d(mvec2d const&)>(rev),
-                                          sol::resolve<pscalar2d(pscalar2d)>(rev),
-                                          sol::resolve<bivec3d(bivec3d const&)>(rev),
-                                          sol::resolve<mvec3d(mvec3d const&)>(rev),
-                                          sol::resolve<mvec3d_e(mvec3d_e const&)>(rev),
-                                          sol::resolve<mvec3d_u(mvec3d_u const&)>(rev),
-                                          sol::resolve<pscalar3d(pscalar3d)>(rev)));
-
-    lua.set_function("conj", sol::overload(sol::resolve<mvec2d(mvec2d const&)>(conj),
-                                           sol::resolve<mvec3d(mvec3d const&)>(conj)));
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // projections, rejections and reflections
-    ////////////////////////////////////////////////////////////////////////////////
-
-    lua.set_function(
-        "project_onto",
-        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(project_onto),
-                      sol::resolve<vec2d(vec2d const&, pscalar2d)>(project_onto),
-                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(project_onto),
-                      sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto)));
-
-    lua.set_function(
-        "project_onto_normalized",
-        sol::overload(
-            sol::resolve<vec2d(vec2d const&, vec2d const&)>(project_onto_normalized),
-            sol::resolve<vec3d(vec3d const&, vec3d const&)>(project_onto_normalized),
-            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto_normalized)));
-
-    lua.set_function(
-        "reject_from",
-        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reject_from),
-                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(reject_from),
-                      sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from)));
-
-    lua.set_function(
-        "reject_from_normalized",
-        sol::overload(
-            sol::resolve<vec2d(vec2d const&, vec2d const&)>(reject_from_normalized),
-            sol::resolve<vec3d(vec3d const&, vec3d const&)>(reject_from_normalized),
-            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from_normalized)));
-
-    lua.set_function(
-        "reflect_on_hyp",
-        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on_hyp),
-                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on_hyp)));
-
-    lua.set_function(
-        "reflect_on_vec",
-        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on_vec),
-                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on_vec)));
-
-    lua.set_function(
-        "reflect_on",
-        sol::overload(sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reflect_on),
-                      sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(reflect_on)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // angles and rotations
@@ -468,24 +515,50 @@ void register_functions(sol::state& lua)
                                            sol::resolve<mvec3d(mvec3d const&)>(dual)));
 
     ////////////////////////////////////////////////////////////////////////////////
-    // grade operations on multivectors
+    // projections, rejections and reflections
     ////////////////////////////////////////////////////////////////////////////////
-    lua.set_function("gr0", sol::overload(sol::resolve<scalar2d(mvec2d_e const&)>(gr0),
-                                          sol::resolve<scalar2d(mvec2d const&)>(gr0),
-                                          sol::resolve<scalar3d(mvec3d const&)>(gr0),
-                                          sol::resolve<scalar3d(mvec3d_e const&)>(gr0)));
 
-    lua.set_function("gr1", sol::overload(sol::resolve<vec2d(mvec2d const&)>(gr1),
-                                          sol::resolve<vec3d(mvec3d const&)>(gr1),
-                                          sol::resolve<vec3d(mvec3d_u const&)>(gr1)));
+    lua.set_function(
+        "project_onto",
+        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(project_onto),
+                      sol::resolve<vec2d(vec2d const&, pscalar2d)>(project_onto),
+                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(project_onto),
+                      sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto)));
 
-    lua.set_function("gr2", sol::overload(sol::resolve<pscalar2d(mvec2d_e const&)>(gr2),
-                                          sol::resolve<pscalar2d(mvec2d const&)>(gr2),
-                                          sol::resolve<bivec3d(mvec3d const&)>(gr2),
-                                          sol::resolve<bivec3d(mvec3d_e const&)>(gr2)));
+    lua.set_function(
+        "project_onto_normalized",
+        sol::overload(
+            sol::resolve<vec2d(vec2d const&, vec2d const&)>(project_onto_normalized),
+            sol::resolve<vec3d(vec3d const&, vec3d const&)>(project_onto_normalized),
+            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto_normalized)));
 
-    lua.set_function("gr3", sol::overload(sol::resolve<pscalar3d(mvec3d const&)>(gr3),
-                                          sol::resolve<pscalar3d(mvec3d_u const&)>(gr3)));
+    lua.set_function(
+        "reject_from",
+        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reject_from),
+                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(reject_from),
+                      sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from)));
+
+    lua.set_function(
+        "reject_from_normalized",
+        sol::overload(
+            sol::resolve<vec2d(vec2d const&, vec2d const&)>(reject_from_normalized),
+            sol::resolve<vec3d(vec3d const&, vec3d const&)>(reject_from_normalized),
+            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from_normalized)));
+
+    lua.set_function(
+        "reflect_on_hyp",
+        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on_hyp),
+                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on_hyp)));
+
+    lua.set_function(
+        "reflect_on_vec",
+        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on_vec),
+                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on_vec)));
+
+    lua.set_function(
+        "reflect_on",
+        sol::overload(sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reflect_on),
+                      sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(reflect_on)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // common helper functions for scripting in lua
