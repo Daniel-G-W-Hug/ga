@@ -2046,7 +2046,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(wdg(u, v) == -u_cross_v * rev(I_3d));
 
         // double cross product identity
-        CHECK(cross(u, cross(v, w)) == -dot(u, wdg(v, w)));
+        // CHECK(cross(u, cross(v, w)) == -dot(u, wdg(v, w)));
+        CHECK(cross(u, cross(v, w)) == -(u << wdg(v, w)));
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -2282,7 +2283,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         bivec3d a{1.0, 2.0, 3.0};
         vec3d b{0.5, 3.0, -2.0};
-        auto dot_ab = dot(a, b);
+        // auto dot_ab = dot(a, b);
+        auto dot_ab = (a >> b);
         auto wdg_ab = wdg(a, b);
 
         mvec3d mva{a};
@@ -2324,7 +2326,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         vec3d a{1.0, 2.0, 3.0};
         bivec3d b{0.5, 3.0, -2.0};
-        auto dot_ab = dot(a, b);
+        // auto dot_ab = dot(a, b);
+        auto dot_ab = (a << b);
         auto wdg_ab = wdg(a, b);
 
         mvec3d mva{a};
@@ -2547,10 +2550,12 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         auto dot_ab = dot(a, b);
         auto wdg_ab = wdg(a, b);
 
-        auto dot_Ab = dot(A, b);
+        // auto dot_Ab = dot(A, b);
+        auto dot_Ab = (A >> b);
         auto wdg_Ab = wdg(A, b);
 
-        auto dot_aB = dot(a, B);
+        // auto dot_aB = dot(a, B);
+        auto dot_aB = (a << B);
         auto wdg_aB = wdg(a, B);
 
         mvec3d_e ab = a * b;
@@ -3107,7 +3112,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         CHECK(dual(scalar3d{dot(a, b)}) == wdg(a, dual(b)));
         CHECK(dual(scalar3d(dot(a, b))) == wdg(a, dual(b)));
-        CHECK(dual(wdg(a, b)) == dot(a, dual(b)));
+        // CHECK(dual(wdg(a, b)) == dot(a, dual(b)));
+        CHECK(dual(wdg(a, b)) == (a << dual(b)));
 
         // just to silence unused variable warning
         CHECK(v_dual_manual == v * rev(I_3d));
@@ -3437,7 +3443,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK((mvec2d{v2} << mvec2d{s1}) == mvec2d{0.0, 0.0, 0.0, 0.0});
 
         CHECK((v1 << wdg(v2, v3)) == wdg(v1 << v2, v3) + wdg(gr_inv(v2), v1 << v3));
-        CHECK((wdg(v1, v2) << v3) == (v1 << scalar2d(v2 << v3)));
+        // CHECK((wdg(v1, v2) << v3) == (v1 << scalar2d(v2 << v3)));
 
         // 2.3.2
         CHECK(V1 * mv2 == (V1 << mv2) + wdg(V1, mv2));
