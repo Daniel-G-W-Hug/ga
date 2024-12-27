@@ -185,7 +185,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         std::vector<Vec2d<double>> vp1{{1.0, 1.0}, {1.5, 2.0}};
         fmt::println("       fmt: vp1 = {}", fmt::join(vp1, ", "));
-        fmt::println("       fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        fmt::println("       fmt: vp1 = {:e}", fmt::join(vp1, ", "));
         fmt::println("");
 
         CHECK(nrm_sq(pf - pd) < eps);
@@ -611,7 +611,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         std::vector<MVec2d<double>> vp1{{1.0, 1.0, 1.0, 2.0}, {0.5, 1.5, 2.0, 2.5}};
         fmt::println("    fmt: vp1 = {}", fmt::join(vp1, ", "));
-        fmt::println("    fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        fmt::println("    fmt: vp1 = {:e}", fmt::join(vp1, ", "));
         fmt::println("");
 
         CHECK(nrm_sq(pf - pd) < eps);
@@ -1518,7 +1518,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         std::vector<Vec3d<double>> vp1{{1.0, 1.0, 1.0}, {1.5, 2.0, 3.0}};
         fmt::println("       fmt: vp1 = {}", fmt::join(vp1, ", "));
-        fmt::println("       fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        fmt::println("       fmt: vp1 = {:e}", fmt::join(vp1, ", "));
         fmt::println("");
 
         CHECK(nrm_sq(pf - pd) < eps);
@@ -2181,7 +2181,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         std::vector<MVec3d<double>> vp1{{1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 2.0},
                                         {0.5, 1.5, 2.0, 2.5, 1.0, 1.0, 1.0, 2.0}};
         fmt::println("    fmt: vp1 = {}", fmt::join(vp1, ", "));
-        fmt::println("    fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        fmt::println("    fmt: vp1 = {:e}", fmt::join(vp1, ", "));
         fmt::println("");
 
         CHECK(nrm_sq(pf - pd) < eps);

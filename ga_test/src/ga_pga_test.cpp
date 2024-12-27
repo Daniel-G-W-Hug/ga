@@ -211,7 +211,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         std::vector<Vec2dp<double>> vp1{{1.0, 1.0, 1.0}, {1.5, 2.0, 3.0}};
         fmt::println("       fmt: vp1 = {}", fmt::join(vp1, ", "));
-        fmt::println("       fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        fmt::println("       fmt: vp1 = {:e}", fmt::join(vp1, ", "));
         fmt::println("");
 
         CHECK(nrm_sq(pf - pd) < eps);
@@ -755,7 +755,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         std::vector<MVec2dp<double>> vp1{{1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 2.0},
                                          {0.5, 1.5, 2.0, 2.5, 1.0, 1.0, 1.0, 2.0}};
         fmt::println("    fmt: vp1 = {}", fmt::join(vp1, ", "));
-        fmt::println("    fmt: vp1 = {:.e}", fmt::join(vp1, ", "));
+        fmt::println("    fmt: vp1 = {:e}", fmt::join(vp1, ", "));
         fmt::println("");
 
         CHECK(nrm_sq(pf - pd) < eps);
