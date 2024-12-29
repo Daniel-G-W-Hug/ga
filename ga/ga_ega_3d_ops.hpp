@@ -371,6 +371,148 @@ inline constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& A,
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// regressive wedge product (= outer product for complements)
+// as defined by E. Lengyel in "Projective geometric algebra illuminated"
+// independent of the geometric product, just depending on the outer product (wdg)
+// as well as the complement and thus the pseudoscalar of the space
+// (in this definition is does NOT connect directly to the geometric product,
+// but to the outer product exclusively)
+//
+//        rwdg(ul, ur) = cmpl(wdg(cmpl(ul),cmpl(ur))) = cmpl(cmpl(ul) ^ cmpl(ur))
+//
+////////////////////////////////////////////////////////////////////////////////
+
+// regressive wedge product between a vector v and a bivector B
+// => returns a scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v,
+                                                         BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(v.x * B.x + v.y * B.y + v.z * B.z);
+}
+
+// regressive wedge product between a bivector B and a vector v
+// => returns a scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B,
+                                                         Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(B.x * v.x + B.y * v.y + B.z * v.z);
+}
+
+// regressive wedge product between a bivector B1 and a bivector B2
+// => returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B1,
+                                                      BiVec3d<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(B1.y * B2.z - B1.z * B2.y, B1.z * B2.x - B1.x * B2.z,
+                        B1.x * B2.y - B1.y * B2.x);
+}
+
+// regressive wedge product between a pseudoscalar ps (=trivector) and a vector v
+// => returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * Vec3d<ctype>(v.x, v.y, v.z);
+}
+
+// regressive wedge product between a vector v and a pseudoscalar ps (=trivector)
+// => returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v, PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(v.x, v.y, v.z) * ctype(ps);
+}
+
+// regressive wedge product between a pseudoscalar ps (=trivector) and a bivector B
+// => returns a bivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps,
+                                                        BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * BiVec3d<ctype>(B.x, B.y, B.z);
+}
+
+// regressive wedge product between a bivector B and a pseudoscalar ps (=trivector)
+// => returns a bivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B,
+                                                        PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3d<ctype>(B.x, B.y, B.z) * ctype(ps);
+}
+
+// regressive wedge product between a scalar s and a pseudoscalar ps (=trivector)
+// => returns a scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Scalar3d<T> s, PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(ctype(s) * ctype(ps));
+}
+
+// regressive wedge product between a pseudoscalar ps (=trivector) and a scalar s
+// => returns a scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Scalar3d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(ctype(ps) * ctype(s));
+}
+
+// regressive wedge product between to pseudoscalars
+// => returns a scaled pseudoscalar (=trivector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps1,
+                                                          PScalar3d<U> ps2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar3d<ctype>(ctype(ps1) * ctype(ps2));
+}
+
+// regressive wedge product extended to a fully populated multivectors
+// => returns a multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3d<std::common_type_t<T, U>> rwdg(MVec3d<T> const& A,
+                                                       MVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+
+    ctype c0 = A.c0 * B.c7 + A.c7 * B.c0 + A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 +
+               A.c4 * B.c1 + A.c5 * B.c2 + A.c6 * B.c3;
+    ctype c1 = A.c1 * B.c7 + A.c7 * B.c1 - A.c6 * B.c5 + A.c5 * B.c6;
+    ctype c2 = A.c2 * B.c7 + A.c7 * B.c2 - A.c4 * B.c6 + A.c6 * B.c4;
+    ctype c3 = A.c3 * B.c7 + A.c7 * B.c3 - A.c5 * B.c4 + A.c4 * B.c5;
+    ctype c4 = A.c4 * B.c7 + A.c7 * B.c4;
+    ctype c5 = A.c5 * B.c7 + A.c7 * B.c5;
+    ctype c6 = A.c6 * B.c7 + A.c7 * B.c6;
+    ctype c7 = A.c7 * B.c7;
+    return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // left contractions
 ////////////////////////////////////////////////////////////////////////////////
@@ -1316,7 +1458,7 @@ inline constexpr MVec3d_E<T> inv(MVec3d_E<T> const& E)
             std::to_string(sq_n) + "\n");
     }
 #endif
-    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
+    T inv = T(1.0) / sq_n;
     return MVec3d_E<T>(rev(E) * inv);
 }
 
@@ -1333,7 +1475,7 @@ inline constexpr MVec3d<T> inv(MVec3d<T> const& v)
         // example: MVec2D(1,1,1,1) is not invertible
     }
 #endif
-    T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
+    T inv = T(1.0) / m_conjm;
     return MVec3d<T>(conj(v) * inv);
     // ATTENTION: there is a left and a right inverse (see paper of Hitzer, Sangwine)
 }
@@ -1834,9 +1976,9 @@ inline constexpr MVec3d<T> dual(MVec3d<T> const& M)
 
 // if M represents the subspace B of the blade u as subspace of R^3 then
 // compl(M) represents the subspace orthorgonal to B
-// the complement exchanges basis vectors which are in the k-blade u with
-// the basis vectors which are NOT contained in the k-blade u
-// and are needed to fill the space completely to the corresponding pseudoscalar
+// the complement exchanges basis vectors (exclusively, no impact on magnitude),
+// which are in the k-blade u with the basis vectors which are NOT contained in the
+// k-blade u and are needed to fill the space completely to the corresponding pseudoscalar
 //
 // left complement:  l_cmpl(u) ^ u  = I_3d = e1^e2^e3
 // right complement: u ^ r_cmpl(u)  = I_3d = e1^e2^e3
@@ -1845,7 +1987,7 @@ inline constexpr MVec3d<T> dual(MVec3d<T> const& M)
 // is only one complement operation defined l_cmpl(u), r_cmpl(u) => cmpl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
-// comploments have different signs
+// complements have different signs
 
 template <typename T>
     requires(std::floating_point<T>)
@@ -1853,15 +1995,8 @@ inline constexpr PScalar3d<T> cmpl(Scalar3d<T> s)
 {
     // u ^ cmpl(u) = e1^e2^e3
     // u = s 1:
-    //     s ^ cmpl(u) = e1^e2^e3 => cmpl(u) = s/nrm_sq(s) e1^e2^e3
-    T n = nrm_sq(s);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("scalar norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-#endif
-    return PScalar3d<T>(T(s)) / n;
+    //     s ^ cmpl(u) = e1^e2^e3 => cmpl(u) = s e1^e2^e3
+    return PScalar3d<T>(T(s));
 }
 
 template <typename T>
@@ -1871,17 +2006,10 @@ inline constexpr BiVec3d<T> cmpl(Vec3d<T> const& v)
     // u ^ compl(u) = e1^e2^e3
     // u = v.x e1 + v.y e2 + v.z e3:
     //     u ^ cmpl(u) = e1^e2^e3
-    //     e1 => cmpl(u) = v.x/nrm_sq(v) e23
-    //     e2 => cmpl(u) = v.y/nrm_sq(v) e31
-    //     e3 => cmpl(u) = v.z/nrm_sq(v) e12
-    T n = nrm_sq(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-#endif
-    return BiVec3d<T>(v.x, v.y, v.z) / n;
+    //     e1 => cmpl(u) = v.x e23
+    //     e2 => cmpl(u) = v.y e31
+    //     e3 => cmpl(u) = v.z e12
+    return BiVec3d<T>(v.x, v.y, v.z);
 }
 
 template <typename T>
@@ -1891,17 +2019,10 @@ inline constexpr Vec3d<T> cmpl(BiVec3d<T> const& B)
     // u ^ compl(u) = e1^e2^e3
     // u = B.x e23 + B.y e31 + B.z e12:
     //     u ^ cmpl(u) = e1^e2^e3
-    //     e23 => cmpl(u) = B.x/nrm_sq(B) e1
-    //     e31 => cmpl(u) = B.y/nrm_sq(B) e2
-    //     e12 => cmpl(u) = B.z/nrm_sq(B) e3
-    T n = nrm_sq(B);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-#endif
-    return Vec3d<T>(B.x, B.y, B.z) / n;
+    //     e23 => cmpl(u) = B.x e1
+    //     e31 => cmpl(u) = B.y e2
+    //     e12 => cmpl(u) = B.z e3
+    return Vec3d<T>(B.x, B.y, B.z);
 }
 
 template <typename T>
@@ -1910,15 +2031,8 @@ inline constexpr Scalar3d<T> cmpl(PScalar3d<T> ps)
 {
     // u ^ compl(u) = e1^e2^e3
     // u = ps e1^e2^e3:
-    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = ps/nrm_sq(s) 1
-    T n = nrm_sq(ps);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("pscalar norm too small for normalization" +
-                                 std::to_string(n) + "\n");
-    }
-#endif
-    return Scalar3d<T>(T(ps)) / n;
+    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = ps 1
+    return Scalar3d<T>(T(ps));
 }
 
 
