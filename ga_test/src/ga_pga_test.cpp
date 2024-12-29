@@ -1396,37 +1396,37 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // mvec2dp_u mu{1.0, 2.0, 3.0, 300.0};
         // mvec2dp m{100.0, 1.0, 2.0, 3.0, 10.0, 20.0, 30.0, 300.0};
 
-        CHECK(wdg(s, complement(s)) == nrm_sq(s) * I_2dp);
-        CHECK(wdg(v, complement(v)) == nrm_sq(v) * I_2dp);
-        CHECK(wdg(b, complement(b)) == nrm_sq(b) * I_2dp);
-        CHECK(wdg(ps, complement(ps)) == nrm_sq(ps) * I_2dp);
+        CHECK(wdg(s, cmpl(s)) == nrm_sq(s) * I_2dp);
+        CHECK(wdg(v, cmpl(v)) == nrm_sq(v) * I_2dp);
+        CHECK(wdg(b, cmpl(b)) == nrm_sq(b) * I_2dp);
+        CHECK(wdg(ps, cmpl(ps)) == nrm_sq(ps) * I_2dp);
 
         // complement properties
-        CHECK(complement(complement(s)) == s);
-        CHECK(complement(complement(v)) == v);
-        CHECK(complement(complement(b)) == b);
-        CHECK(complement(complement(ps)) == ps);
+        CHECK(cmpl(cmpl(s)) == s);
+        CHECK(cmpl(cmpl(v)) == v);
+        CHECK(cmpl(cmpl(b)) == b);
+        CHECK(cmpl(cmpl(ps)) == ps);
 
         // linearity of the complement operation
         double a = 2.0;
-        CHECK(complement(a * s) == a * complement(s));
-        CHECK(complement(a * v) == a * complement(v));
-        CHECK(complement(a * b) == a * complement(b));
-        CHECK(complement(a * ps) == a * complement(ps));
+        CHECK(cmpl(a * s) == a * cmpl(s));
+        CHECK(cmpl(a * v) == a * cmpl(v));
+        CHECK(cmpl(a * b) == a * cmpl(b));
+        CHECK(cmpl(a * ps) == a * cmpl(ps));
 
-        CHECK(complement(s + s2) == complement(s) + complement(s2));
-        CHECK(complement(v + v2) == complement(v) + complement(v2));
-        CHECK(complement(b + b2) == complement(b) + complement(b2));
-        CHECK(complement(ps + ps2) == complement(ps) + complement(ps2));
+        CHECK(cmpl(s + s2) == cmpl(s) + cmpl(s2));
+        CHECK(cmpl(v + v2) == cmpl(v) + cmpl(v2));
+        CHECK(cmpl(b + b2) == cmpl(b) + cmpl(b2));
+        CHECK(cmpl(ps + ps2) == cmpl(ps) + cmpl(ps2));
 
         // check regressive wedge product expressed in terms of
         // wegde product and complement operation
-        CHECK(rwdg(b, b2) == complement(wdg(complement(b), complement(b2))));
-        CHECK(rwdg(b, v) == complement(wdg(complement(b), complement(v))));
-        CHECK(rwdg(v, b) == complement(wdg(complement(v), complement(b))));
+        CHECK(rwdg(b, b2) == cmpl(wdg(cmpl(b), cmpl(b2))));
+        CHECK(rwdg(b, v) == cmpl(wdg(cmpl(b), cmpl(v))));
+        CHECK(rwdg(v, b) == cmpl(wdg(cmpl(v), cmpl(b))));
 
-        CHECK(complement(rwdg(b, b2)) == wdg(complement(b), complement(b2)));
-        CHECK(complement(wdg(v, v2)) == rwdg(complement(v), complement(v2)));
+        CHECK(cmpl(rwdg(b, b2)) == wdg(cmpl(b), cmpl(b2)));
+        CHECK(cmpl(wdg(v, v2)) == rwdg(cmpl(v), cmpl(v2)));
     }
 
     TEST_CASE("2dp: objects")

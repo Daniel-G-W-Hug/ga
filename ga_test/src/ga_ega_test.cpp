@@ -3297,7 +3297,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(nrm_sq(mv2) == nrm_sq(s2) + nrm_sq(v2) + nrm_sq(ps2));
         CHECK(gr0(mvec2d{gr0(mv1) * gr0(mv2)}) + gr0(mvec2d{gr1(mv1) * gr1(mv2)}) +
                   gr0(mvec2d{gr2(mv1) * gr2(mv2)}) ==
-              s1 * s2 + dot(v1, v2) + ps1 * ps2);
+              dot(s1, s2) + dot(v1, v2) + dot(ps1, ps2));
         CHECK(dot(mv1, rev(mv1)) == nrm_sq(mv1));
         CHECK(dot(mv2, rev(mv2)) == nrm_sq(mv2));
 
@@ -3455,6 +3455,345 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK((V1 << mv2) == 0.5 * (V1 * mv2 - gr_inv(mv2) * V1));
         CHECK(wdg(V1, mv2) == 0.5 * (V1 * mv2 + gr_inv(mv2) * V1));
         CHECK(wdg(mv2, V1) == 0.5 * (mv2 * V1 + V1 * gr_inv(mv2)));
+    }
+
+    TEST_CASE("ega_2d<2,0,0> - simple applications & complements")
+    {
+        fmt::println("ega_2d<2,0,0> - simple applications & complements");
+
+        // simple projections
+        auto v = vec2d{4.0, 3.5};
+        auto u = vec2d{-1.0, 2.3};
+
+        auto v_in_u = project_onto(v, u);
+        auto v_perp_u = reject_from(v, u);
+
+        // fmt::println("   v         = {:.3f}", v);
+        // fmt::println("   u         = {:.3f}", u);
+        // fmt::println("");
+        // fmt::println("   v_in_u    = {:.3f}", v_in_u);
+        // fmt::println("   v_perp_u  = {:.3f}", v_perp_u);
+        // fmt::println("");
+
+        // x^B = 0 for every point x in B
+        CHECK(nrm_sq(wdg(v_in_u, u)) < eps);
+
+        // v_perp_u should be proportional to the normal vector n of u
+        // n = dual(u) or n = cmpl(u)
+        // thus, wdg(v_perp_B, n) == 0 is required
+        CHECK(nrm_sq(wdg(v_perp_u, dual(u))) < eps);
+        CHECK(nrm_sq(wdg(v_perp_u, r_cmpl(u))) < eps);
+        CHECK(nrm_sq(wdg(l_cmpl(u), v_perp_u)) < eps);
+
+        // v_in_B and v_perp_B should be perpendicular to each other
+        CHECK(nrm_sq(dot(v_in_u, v_perp_u)) < eps);
+
+        // v should be the sum of v_in_B and v_perp_B
+        CHECK(v == v_in_u + v_perp_u);
+
+        // check complements
+        CHECK(r_cmpl(scalar2d(1.0)) == I_2d);
+        CHECK(l_cmpl(scalar2d(1.0)) == I_2d);
+        CHECK(r_cmpl(e1_2d) == e2_2d);
+        CHECK(l_cmpl(e1_2d) == -e2_2d);
+        CHECK(r_cmpl(e2_2d) == -e1_2d);
+        CHECK(l_cmpl(e2_2d) == e1_2d);
+        CHECK(r_cmpl(I_2d) == scalar2d(1.0));
+        CHECK(l_cmpl(I_2d) == scalar2d(1.0));
+        //
+        CHECK(wdg(scalar2d(5), r_cmpl(scalar2d(5))) == I_2d);
+        CHECK(wdg(l_cmpl(scalar2d(5)), scalar2d(5)) == I_2d);
+        CHECK(wdg(v, r_cmpl(v)) == I_2d);
+        CHECK(wdg(l_cmpl(v), v) == I_2d);
+        CHECK(wdg(pscalar2d(3), r_cmpl(pscalar2d(3))) == I_2d);
+        CHECK(wdg(l_cmpl(pscalar2d(3)), pscalar2d(3)) == I_2d);
+    }
+
+    TEST_CASE("ega_3d<3,0,0> - product tests")
+    {
+        fmt::println("ega_3d<3,0,0> - product tests");
+        // tests based on "The inner products of geometric algebra", Leo Dorst
+
+        auto s1 = scalar3d{2.0};
+        auto v1 = vec3d{1.0, -3.0, 2.0};
+        auto B1 = bivec3d{2.0, -4.0, 1.0};
+        // auto v1 = vec3d{1.0, 0.0, 0.0};
+        auto ps1 = pscalar3d{-2.0};
+        auto mv1 = mvec3d{s1, v1, B1, ps1};
+
+        auto s2 = scalar3d{-1.0};
+        auto v2 = vec3d{2.0, 1.5, -1.0};
+        // auto v2 = vec3d{0.0, 1.0, 0.0};
+        auto B2 = bivec3d{-2.0, 10.5, 3.0};
+        auto ps2 = pscalar3d{3.0};
+        auto mv2 = mvec3d{s2, v2, B2, ps2};
+
+        auto s3 = scalar3d{-10.0};
+        auto v3 = vec3d{-2.0, 4.0, -10.0};
+        auto B3 = bivec3d{1.0, -2.0, 3.0};
+        auto ps3 = pscalar3d{-12.0};
+        auto mv3 = mvec3d{s3, v3, B3, ps3};
+
+        auto V1 = mvec3d{v1};
+        auto V2 = mvec3d{v2};
+        auto V3 = mvec3d{v3};
+        auto B = mvec3d{wdg(v1, v2)};
+
+        // show values
+        // fmt::println("\n   mv1      = {}, nrm_sq = {}, nrm = {}", mv1, nrm_sq(mv1),
+        //              nrm(mv1));
+        // fmt::println("   gr0(mv1) = {}, nrm_sq = {}, nrm = {}", gr0(mv1), nrm_sq(s1),
+        //              nrm(s1));
+        // fmt::println("   gr1(mv1) = {}, nrm_sq = {}, nrm = {}", gr1(mv1), nrm_sq(v1),
+        //              nrm(v1));
+        // fmt::println("   gr2(mv1) = {}, nrm_sq = {}, nrm = {}", gr2(mv1), nrm_sq(ps1),
+        //              nrm(ps1));
+        // fmt::println("");
+        // fmt::println("   mv2      = {}, nrm_sq = {}, nrm = {}", mv2, nrm_sq(mv2),
+        //              nrm(mv2));
+        // fmt::println("   gr0(mv2) = {}, nrm_sq = {}, nrm = {}", gr0(mv2), nrm_sq(s2),
+        //              nrm(s2));
+        // fmt::println("   gr1(mv2) = {}, nrm_sq = {}, nrm = {}", gr1(mv2), nrm_sq(v2),
+        //              nrm(v2));
+        // fmt::println("   gr2(mv2) = {}, nrm_sq = {}, nrm = {}", gr2(mv2), nrm_sq(ps2),
+        //              nrm(ps2));
+        // fmt::println("");
+
+        // scalar product
+        // fmt::println("   gr0(gr0(mv1)*gr0(mv2))={}, gr0(gr0(mv1)*gr1(mv2))={}, "
+        //              "gr0(gr0(mv1)*gr2(mv2))={}",
+        //              gr0(mvec3d{gr0(mv1) * gr0(mv2)}), gr0(mvec3d{gr0(mv1) *
+        //              gr1(mv2)}), gr0(mvec3d{gr0(mv1) * gr2(mv2)}));
+        // fmt::println("   gr0(gr1(mv1)*gr0(mv2))={}, gr0(gr1(mv1)*gr1(mv2))={}, "
+        //              "gr0(gr1(mv1)*gr2(mv2))={}",
+        //              gr0(mvec3d{gr1(mv1) * gr0(mv2)}), gr0(mvec3d{gr1(mv1) *
+        //              gr1(mv2)}), gr0(mvec3d{gr1(mv1) * gr2(mv2)}));
+        // fmt::println("   gr0(gr2(mv1)*gr0(mv2))={}, gr0(gr2(mv1)*gr1(mv2))={}, "
+        //              "gr0(gr2(mv1)*gr2(mv2))={}",
+        //              gr0(mvec3d{gr2(mv1) * gr0(mv2)}), gr0(mvec3d{gr2(mv1) *
+        //              gr1(mv2)}), gr0(mvec3d{gr2(mv1) * gr2(mv2)}));
+        // fmt::println("");
+        CHECK(nrm_sq(mv1) == nrm_sq(s1) + nrm_sq(v1) + nrm_sq(B1) + nrm_sq(ps1));
+        CHECK(nrm_sq(mv2) == nrm_sq(s2) + nrm_sq(v2) + nrm_sq(B2) + nrm_sq(ps2));
+        CHECK(gr0(mvec3d{gr0(mv1) * gr0(mv2)}) + gr0(mvec3d{gr1(mv1) * gr1(mv2)}) +
+                  gr0(mvec3d{gr2(mv1) * gr2(mv2)}) + gr0(mvec3d{gr3(mv1) * gr3(mv2)}) ==
+              dot(s1, s2) + dot(v1, v2) + dot(B1, B2) + dot(ps1, ps2));
+        CHECK(dot(mv1, rev(mv1)) == nrm_sq(mv1));
+        CHECK(dot(mv2, rev(mv2)) == nrm_sq(mv2));
+
+        // wedge product
+        // fmt::println("   mv1                         = {}", mv1);
+        // fmt::println("   mv2                         = {}", mv2);
+        // fmt::println("   wdg(v1,v2)                  = {}", wdg(v1, v2));
+        // fmt::println("   wdg(mvec3d(v1), mvec3d(v2)) = {}", wdg(mvec3d(v1),
+        // mvec3d(v2))); fmt::println("   mvec3d(wdg(v1,v2))          = {}",
+        // mvec3d(wdg(v1, v2))); fmt::println("   wdg(mv1,mv2)                = {}",
+        // wdg(mv1, mv2)); fmt::println(""); fmt::println("   mv1 = {}", mv1);
+        // fmt::println("   mvec3d(v1)        = {}", mvec3d(v1));
+        // fmt::println("   mvec3d(v1) << mv1 = {}", mvec3d(v1) << mv1);
+        // fmt::println("");
+        CHECK(wdg(v1, v2) == gr2(wdg(mvec3d(v1), mvec3d(v2))));
+
+        // contractions and comparison with other products
+        // fmt::println("   V1      = {}", V1);
+        // fmt::println("   V2      = {}", V2);
+        // fmt::println("   B       = {}", B);
+        // fmt::println("");
+        // fmt::println("   V1 << B = {}", V1 << B);
+        // fmt::println("   V2 << B = {}", V2 << B);
+        // fmt::println("   B << V1 = {}", B << V1);
+        // fmt::println("   B << V2 = {}", B << V2);
+        // fmt::println("");
+        // fmt::println("   B >> V1 = {}", B >> V1);
+        // fmt::println("   B >> V2 = {}", B >> V2);
+        // fmt::println("   V1 >> B = {}", V1 >> B);
+        // fmt::println("   V2 >> B = {}", V2 >> B);
+        // fmt::println("");
+        // fmt::println("   V1 << V1      = {}", V1 << V1);
+        // fmt::println("   V1 >> V1      = {}", V1 >> V1);
+        // fmt::println("   V1 >> rev(V1) = {}", V1 >> rev(V1));
+        // fmt::println("");
+        // fmt::println("   B << B        = {}", B << B);
+        // fmt::println("   B >> B        = {}", B >> B);
+        // fmt::println("   B >> rev(B)   = {}", B >> rev(B));
+        // fmt::println("");
+        // fmt::println("   dot(V1,V2)    = {}", dot(V1, V2));
+        // fmt::println("   dot(V2,V1)    = {}", dot(V2, V1));
+        // fmt::println("   V1 << V2      = {}", V1 << V2);
+        // fmt::println("   V2 << V1      = {}", V2 << V1);
+        // fmt::println("   V1 >> V2      = {}", V1 >> V2);
+        // fmt::println("   V2 >> V2      = {}", V2 >> V1);
+        // fmt::println("");
+        // fmt::println("   V1 << Im_3d   = {}", V1 << Im_3d);
+        // fmt::println("   Im_3d >> V1   = {}", Im_3d >> V2);
+        // fmt::println("   B << Im3d     = {}", B << Im_3d);
+        // fmt::println("   Im3d >> B     = {}", Im_3d >> B);
+        // fmt::println("");
+        // fmt::println("   dot(V1,V1)     = {}", dot(V1, V1));
+        // fmt::println("   fat_dot(V1,V1) = {}", fat_dot(V1, V1));
+        // fmt::println("   inner(V1,V1)   = {}", inner(V1, V1));
+        // fmt::println("   wdg(V1,V1)     = {}", wdg(V1, V1));
+        // fmt::println("");
+        // fmt::println("   dot(V1,V2)     = {}", dot(V1, V2));
+        // fmt::println("   fat_dot(V1,V2) = {}", fat_dot(V1, V2));
+        // fmt::println("   inner(V1,V2)   = {}", inner(V1, V2));
+        // fmt::println("   wdg(V1,V2)     = {}", wdg(V1, V2));
+        // fmt::println("");
+        // fmt::println("   dot(V1,B)     = {}", dot(V1, B));
+        // fmt::println("   fat_dot(V1,B) = {}", fat_dot(V1, B));
+        // fmt::println("   inner(V1,B)   = {}", inner(V1, B));
+        // fmt::println("   wdg(V1,B)     = {}", wdg(V1, B));
+        // fmt::println("");
+        // fmt::println("   dot(B,V1)     = {}", dot(B, V1));
+        // fmt::println("   fat_dot(B,V1) = {}", fat_dot(B, V1));
+        // fmt::println("   inner(B,V1)   = {}", inner(B, V1));
+        // fmt::println("   wdg(B,V1)     = {}", wdg(B, V1));
+        // fmt::println("");
+        // fmt::println("   dot(mv1,mv1)     = {}", dot(mv1, mv1));
+        // fmt::println("   fat_dot(mv1,mv1) = {}", fat_dot(mv1, mv1));
+        // fmt::println("   inner(mv1,mv1)   = {}", inner(mv1, mv1));
+        // fmt::println("   wdg(mv1,mv1)     = {}", wdg(mv1, mv1));
+        // fmt::println("");
+        // fmt::println("   dot(mv1,mv2)     = {}", dot(mv1, mv2));
+        // fmt::println("   fat_dot(mv1,mv2) = {}", fat_dot(mv1, mv2));
+        // fmt::println("   inner(mv1,mv2)   = {}", inner(mv1, mv2));
+        // fmt::println("   wdg(mv1,mv2)     = {}", wdg(mv2, mv2));
+        // fmt::println("");
+
+        // connection between products (2.2.5)
+        CHECK(dot(wdg(mv1, mv2), mv3) == dot(mv1, mv2 << mv3));
+        CHECK(dot(mv3, wdg(mv2, mv1)) == dot(mv3 >> mv2, mv1));
+        CHECK(rev(mv1 >> mv2) == rev(mv2) << rev(mv1));
+
+        CHECK((mv1 << mv2) + (mv1 >> mv2) ==
+              mvec3d(scalar3d(dot(mv1, mv2))) + fat_dot(mv1, mv2));
+
+        // gr(lhs) < gr(rhs)
+        // fmt::println("   gr(lhs) < gr(rhs:");
+        // fmt::println("   V1 << B       = {}", V1 << B);
+        // fmt::println("   fat_dot(V1,B) = {}", fat_dot(V1, B));
+        // fmt::println("   V1 >> B       = {}", V1 >> B);
+        // fmt::println("   dot(V1,B)     = {}", dot(V1, B));
+        // fmt::println("");
+        CHECK((V1 << B) == fat_dot(V1, B));
+        CHECK((V1 >> B) == mvec3d{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+        CHECK(dot(V1, B) == 0);
+
+        // gr(lhs) == gr(rhs)
+        // fmt::println("   gr(lhs) == gr(rhs):");
+        // fmt::println("   V1 << V2           = {}", V1 << V2);
+        // fmt::println("   V1 >> V2           = {}", V1 >> V2);
+        // fmt::println("   fat_dot(V1,V2)     = {}", fat_dot(V1, V2));
+        // fmt::println("   mvec3d(dot(V1,V2)) = {}", mvec3d{scalar3d{dot(V1, V2)}});
+        // fmt::println("");
+        CHECK((V1 << V2) == (V1 >> V2));
+        CHECK((V1 << V2) == fat_dot(V1, V2));
+        CHECK((V1 << V2) == mvec3d{scalar3d{dot(V1, V2)}});
+
+        // gr(lhs) > gr(rhs)
+        // fmt::println("   gr(lhs) > gr(rhs):");
+        // fmt::println("   B >> V1           = {}", B >> V1);
+        // fmt::println("   fat_dot(B,V1)     = {}", fat_dot(B, V1));
+        // fmt::println("   B << V1           = {}", B << V1);
+        // fmt::println("   mvec3d(dot(B,V1)) = {}", mvec3d{scalar3d{dot(B, V1)}});
+        // fmt::println("");
+        CHECK((B >> V1) == fat_dot(B, V1));
+        CHECK((B << V1) == mvec3d{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+        CHECK(dot(B, V1) == 0);
+
+        // understanding the contraction (2.3.1)
+        // fmt::println("   s1                = {}", s1);
+        // fmt::println("   mv2               = {}", mv2);
+        // fmt::println("   mvec3d(s1) << mv2 = {}", mvec3d{s1} << mv2);
+        // fmt::println("   value_t(s1) * mv2 = {}", value_t(s1) * mv2);
+        // fmt::println("");
+        CHECK((mvec3d{s1} << mv2) == value_t(s1) * mv2);
+
+        // fmt::println("   mvec3d(s2, v2, pscalar3d(0.0)) = {}",
+        //              mvec3d{s2, v2, pscalar3d{0.0}});
+        // // the contraction can be != 0 if there is a scalar part in the other operand
+        // fmt::println("   mvec3d(s2, v2, pscalar3d(0.0)) << mvec3d(s1) = {}",
+        //              mvec3d{s2, v2, pscalar3d{0.0}} << mvec3d{s1});
+        // // the inner product is zero by definition for any scalar arguments
+        // fmt::println("   inner(mvec3d(s2, v2, pscalar3d(0.0)), mvec3d(s1)) = {}",
+        //              inner(mvec3d{s2, v2, pscalar3d{0.0}}, mvec3d{s1}));
+        CHECK((mvec3d{s2, v2, B2, pscalar3d{0.0}} << mvec3d{s1}) ==
+              mvec3d{s1 * s2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+
+
+        CHECK(inner(mvec3d{s2, v2, B2, pscalar3d{0.0}}, mvec3d{s1}) ==
+              mvec3d{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+        CHECK((mvec3d{v2} << mvec3d{s1}) ==
+              mvec3d{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+
+        CHECK((v1 << wdg(v2, v3)) == wdg(v1 << v2, v3) + wdg(gr_inv(v2), v1 << v3));
+        // CHECK((wdg(v1, v2) << v3) == (v1 << scalar3d(v2 << v3)));
+
+        // 2.3.2
+        CHECK(V1 * mv2 == (V1 << mv2) + wdg(V1, mv2));
+        CHECK(mv2 * V1 == (mv2 >> V1) + wdg(mv2, V1));
+        CHECK((mv2 >> V1) == -(V1 << gr_inv(mv2))); // replacing the right contraction
+        CHECK(mv2 * V1 == -(V1 << gr_inv(mv2)) + wdg(mv2, V1)); // yep, replacing works
+
+        // express contraction and wedge product through the geometric product
+        CHECK((V1 << mv2) == 0.5 * (V1 * mv2 - gr_inv(mv2) * V1));
+        CHECK(wdg(V1, mv2) == 0.5 * (V1 * mv2 + gr_inv(mv2) * V1));
+        CHECK(wdg(mv2, V1) == 0.5 * (mv2 * V1 + V1 * gr_inv(mv2)));
+    }
+
+    TEST_CASE("ega_3d<3,0,0> - simple applications & complements")
+    {
+        fmt::println("ega_3d<3,0,0> - simple applications & complements");
+
+        // simple projections
+        auto v = vec3d{4.0, 3.5, 5.0};
+        auto B = e31_3d;
+        // auto B = e31_3d + 0.01 * e12_3d + 0.1 * e23_3d;
+
+
+        auto v_in_B = project_onto(v, B);
+        auto v_perp_B = reject_from(v, B);
+
+        // fmt::println("   v         = {:.3f}", v);
+        // fmt::println("   B         = {:.3f}", B);
+        // fmt::println("");
+        // fmt::println("   v_in_B    = {:.3f}", v_in_B);
+        // fmt::println("   v_perp_B  = {:.3f}", v_perp_B);
+        // fmt::println("");
+
+        // x^B = 0 for every point x in B
+        CHECK(nrm_sq(wdg(v_in_B, B)) < eps);
+
+        // v_perp_B should be proportional to the normal vector n of B
+        // n = dual(B) or n = cmpl(B)
+        // thus, wdg(v_perp_B, n) == 0 is required
+        CHECK(nrm_sq(wdg(v_perp_B, dual(B))) < eps);
+        CHECK(nrm_sq(wdg(v_perp_B, cmpl(B))) < eps);
+
+        // v_in_B and v_perp_B should be perpendicular to each other
+        CHECK(nrm_sq(dot(v_in_B, v_perp_B)) < eps);
+
+        // v should be the sum of v_in_B and v_perp_B
+        CHECK(v == v_in_B + v_perp_B);
+
+        // check complements
+        CHECK(cmpl(scalar3d(1.0)) == I_3d);
+        CHECK(cmpl(e1_3d) == e23_3d);
+        CHECK(cmpl(e2_3d) == e31_3d);
+        CHECK(cmpl(e3_3d) == e12_3d);
+        CHECK(cmpl(e23_3d) == e1_3d);
+        CHECK(cmpl(e31_3d) == e2_3d);
+        CHECK(cmpl(e12_3d) == e3_3d);
+        CHECK(cmpl(I_3d) == scalar2d(1.0));
+        //
+        CHECK(wdg(scalar3d(5), cmpl(scalar3d(5))) == I_3d);
+        CHECK(wdg(cmpl(scalar3d(5)), scalar3d(5)) == I_3d);
+        CHECK(wdg(v, cmpl(v)) == I_3d);
+        CHECK(wdg(cmpl(v), v) == I_3d);
+        CHECK(wdg(B, cmpl(B)) == I_3d);
+        CHECK(wdg(cmpl(B), B) == I_3d);
+        CHECK(wdg(pscalar3d(3), cmpl(pscalar3d(3))) == I_3d);
+        CHECK(wdg(cmpl(pscalar3d(3)), pscalar3d(3)) == I_3d);
     }
 
 } // TEST_SUITE("Euclidean Geometric Algebra (EGA)")

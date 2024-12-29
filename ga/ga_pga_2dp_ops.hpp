@@ -966,8 +966,8 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> A,
 // the basis vectors which are NOT contained in the k-blade u
 // and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  l_complement(u) ^ u  = I_2dp = e3^e2^e1
-// right complement: u ^ r_complement(u)  = I_2dp = e3^e2^e1
+// left complement:  l_cmpl(u) ^ u  = I_2dp = e3^e2^e1
+// right complement: u ^ r_cmpl(u)  = I_2dp = e3^e2^e1
 //
 // in spaces of odd dimension right and left complements are identical and thus there
 // is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
@@ -977,47 +977,47 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> A,
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> complement(Scalar2dp<T> s)
+inline constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
 {
-    // u ^ complement(u) = e3^e2^e1
+    // u ^ cmpl(u) = e3^e2^e1
     // u = 1:
-    //     1 ^ complement(u) = e3^e2^e1 => complement(u) = e3^e2^e1
+    //     1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = e3^e2^e1
     return PScalar2dp<T>(T(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline BiVec2dp<T> complement(Vec2dp<T> const& v)
+inline BiVec2dp<T> cmpl(Vec2dp<T> const& v)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = v.x e1 + v.y e2 + v.z e3:
-    //     u ^ complement(u) = e3^e2^e1
-    //     u = e1 => complement(u) = -e23
-    //     u = e2 => complement(u) = -e31
-    //     u = e3 => complement(u) = -e12
+    //     u ^ cmpl(u) = e3^e2^e1
+    //     u = e1 => cmpl(u) = -e23
+    //     u = e2 => cmpl(u) = -e31
+    //     u = e3 => cmpl(u) = -e12
     return BiVec2dp<T>(-v.x, -v.y, -v.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline Vec2dp<T> complement(BiVec2dp<T> const& b)
+inline Vec2dp<T> cmpl(BiVec2dp<T> const& b)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = b.x e23 + b.y e31 + b.z e12:
-    //     u ^ complement(u) = e3^e2^e1
-    //     u = e23 => complement(u) = -e1
-    //     u = e31 => complement(u) = -e2
-    //     u = e12 => complement(u) = -e3
+    //     u ^ cmpl(u) = e3^e2^e1
+    //     u = e23 => cmpl(u) = -e1
+    //     u = e31 => cmpl(u) = -e2
+    //     u = e12 => cmpl(u) = -e3
     return Vec2dp<T>(-b.x, -b.y, -b.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> complement(PScalar2dp<T> ps)
+inline constexpr Scalar2dp<T> cmpl(PScalar2dp<T> ps)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = e3^e2^e1:
-    //     e3^e2^e1 ^ complement(u) = e3^e2^e1 => complement(u) = 1
+    //     e3^e2^e1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = 1
     return Scalar2dp<T>(T(ps));
 }
 

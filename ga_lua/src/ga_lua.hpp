@@ -34,7 +34,9 @@ void register_2d_types(sol::state& lua)
         sol::meta_function::subtraction,
         sol::resolve<scalar2d(scalar2d, scalar2d)>(operator-),
         sol::meta_function::multiplication,
-        sol::resolve<scalar2d(scalar2d, scalar2d)>(operator*),
+        sol::overload(sol::resolve<scalar2d(scalar2d, scalar2d)>(operator*),
+                      sol::resolve<vec2d(scalar2d, vec2d const&)>(operator*),
+                      sol::resolve<pscalar2d(scalar2d, pscalar2d)>(operator*)),
         sol::meta_function::division,
         sol::resolve<scalar2d(scalar2d, value_t)>(operator/),
         sol::meta_function::bitwise_left_shift,
@@ -57,6 +59,7 @@ void register_2d_types(sol::state& lua)
                       sol::resolve<mvec2d(pscalar2d, mvec2d const&)>(operator*),
                       sol::resolve<mvec2d_e(pscalar2d, mvec2d_e const&)>(operator*),
                       sol::resolve<vec2d(pscalar2d, vec2d const&)>(operator*),
+                      sol::resolve<pscalar2d(pscalar2d, scalar2d)>(operator*),
                       sol::resolve<scalar2d(pscalar2d, pscalar2d)>(operator*)),
         sol::meta_function::division,
         sol::resolve<pscalar2d(pscalar2d, value_t)>(operator/),
@@ -87,11 +90,11 @@ void register_2d_types(sol::state& lua)
         sol::meta_function::division,
         sol::resolve<vec2d(vec2d const&, value_t)>(operator/),
         sol::meta_function::bitwise_left_shift,
-        sol::overload(sol::resolve<value_t(vec2d const&, vec2d const&)>(operator<<),
+        sol::overload(sol::resolve<scalar2d(vec2d const&, vec2d const&)>(operator<<),
                       sol::resolve<vec2d(vec2d const&, pscalar2d)>(operator<<)),
         sol::meta_function::bitwise_right_shift,
         sol::overload(sol::resolve<vec2d(vec2d const&, scalar2d)>(operator>>),
-                      sol::resolve<value_t(vec2d const&, vec2d const&)>(operator>>)));
+                      sol::resolve<scalar2d(vec2d const&, vec2d const&)>(operator>>)));
 
 
     lua.new_usertype<mvec2d_e>(
@@ -165,7 +168,10 @@ void register_3d_types(sol::state& lua)
         sol::meta_function::subtraction,
         sol::resolve<scalar3d(scalar3d, scalar3d)>(operator-),
         sol::meta_function::multiplication,
-        sol::resolve<scalar3d(scalar3d, scalar3d)>(operator*),
+        sol::overload(sol::resolve<scalar3d(scalar3d, scalar3d)>(operator*),
+                      sol::resolve<vec3d(scalar3d, vec3d const&)>(operator*),
+                      sol::resolve<bivec3d(scalar3d, bivec3d const&)>(operator*),
+                      sol::resolve<pscalar3d(scalar3d, pscalar3d)>(operator*)),
         sol::meta_function::division,
         sol::resolve<scalar3d(scalar3d, value_t)>(operator/),
         sol::meta_function::bitwise_left_shift,
@@ -190,7 +196,8 @@ void register_3d_types(sol::state& lua)
                       sol::resolve<mvec3d_e(pscalar3d, mvec3d_u const&)>(operator*),
                       sol::resolve<mvec3d_u(pscalar3d, mvec3d_e const&)>(operator*),
                       sol::resolve<mvec3d(pscalar3d, mvec3d const&)>(operator*),
-                      sol::resolve<scalar3d(pscalar3d, pscalar3d)>(operator*)),
+                      sol::resolve<scalar3d(pscalar3d, pscalar3d)>(operator*),
+                      sol::resolve<pscalar3d(pscalar3d, scalar3d)>(operator*)),
         sol::meta_function::division,
         sol::resolve<pscalar3d(pscalar3d, value_t)>(operator/),
         sol::meta_function::bitwise_right_shift,
@@ -221,12 +228,12 @@ void register_3d_types(sol::state& lua)
         sol::meta_function::division,
         sol::resolve<vec3d(vec3d const&, value_t)>(operator/),
         sol::meta_function::bitwise_left_shift,
-        sol::overload(sol::resolve<value_t(vec3d const&, vec3d const&)>(operator<<),
+        sol::overload(sol::resolve<scalar3d(vec3d const&, vec3d const&)>(operator<<),
                       sol::resolve<vec3d(vec3d const&, bivec3d const&)>(operator<<),
                       sol::resolve<bivec3d(vec3d const&, pscalar3d)>(operator<<)),
         sol::meta_function::bitwise_right_shift,
         sol::overload(sol::resolve<vec3d(vec3d const&, scalar3d)>(operator>>),
-                      sol::resolve<value_t(vec3d const&, vec3d const&)>(operator>>)));
+                      sol::resolve<scalar3d(vec3d const&, vec3d const&)>(operator>>)));
 
 
     lua.new_usertype<bivec3d>(
@@ -252,11 +259,11 @@ void register_3d_types(sol::state& lua)
         sol::meta_function::division,
         sol::resolve<bivec3d(bivec3d const&, value_t)>(operator/),
         sol::meta_function::bitwise_left_shift,
-        sol::overload(sol::resolve<value_t(bivec3d const&, bivec3d const&)>(operator<<),
+        sol::overload(sol::resolve<scalar3d(bivec3d const&, bivec3d const&)>(operator<<),
                       sol::resolve<vec3d(bivec3d const&, pscalar3d)>(operator<<)),
         sol::meta_function::bitwise_right_shift,
         sol::overload(sol::resolve<bivec3d(bivec3d const&, scalar3d)>(operator>>),
-                      sol::resolve<value_t(bivec3d const&, bivec3d const&)>(operator>>),
+                      sol::resolve<scalar3d(bivec3d const&, bivec3d const&)>(operator>>),
                       sol::resolve<vec3d(bivec3d const&, vec3d const&)>(operator>>)));
 
 
@@ -469,16 +476,18 @@ void register_functions(sol::state& lua)
     ////////////////////////////////////////////////////////////////////////////////
 
     lua.set_function(
-        "dot", sol::overload(sol::resolve<value_t(vec2d const&, vec2d const&)>(dot),
-                             sol::resolve<value_t(pscalar2d, pscalar2d)>(dot),
-                             sol::resolve<value_t(mvec2d const&, mvec2d const&)>(dot),
+        "dot", sol::overload(sol::resolve<scalar2d(scalar2d, scalar2d)>(dot),
+                             sol::resolve<scalar2d(vec2d const&, vec2d const&)>(dot),
+                             sol::resolve<scalar2d(pscalar2d, pscalar2d)>(dot),
+                             sol::resolve<scalar2d(mvec2d const&, mvec2d const&)>(dot),
                              // now left and right contraction in 2d:
                              //  sol::resolve<vec2d(vec2d const&, pscalar2d)>(dot),
                              //  sol::resolve<vec2d(pscalar2d, vec2d const&)>(dot),
-                             sol::resolve<value_t(vec3d const&, vec3d const&)>(dot),
-                             sol::resolve<value_t(bivec3d const&, bivec3d const&)>(dot),
-                             sol::resolve<value_t(pscalar3d, pscalar3d)>(dot),
-                             sol::resolve<value_t(mvec3d const&, mvec3d const&)>(dot)
+                             sol::resolve<scalar3d(scalar3d, scalar3d)>(dot),
+                             sol::resolve<scalar3d(vec3d const&, vec3d const&)>(dot),
+                             sol::resolve<scalar3d(bivec3d const&, bivec3d const&)>(dot),
+                             sol::resolve<scalar3d(pscalar3d, pscalar3d)>(dot),
+                             sol::resolve<scalar3d(mvec3d const&, mvec3d const&)>(dot)
                              // now left and right contraction in 3d:
                              // , sol::resolve<vec3d(vec3d const&, bivec3d const&)>(dot),
                              // sol::resolve<vec3d(bivec3d const&, vec3d const&)>(dot)
@@ -490,12 +499,12 @@ void register_functions(sol::state& lua)
     ////////////////////////////////////////////////////////////////////////////////
 
     lua.set_function(
-        "wdg", sol::overload(sol::resolve<vec2d(value_t, vec2d const&)>(wdg),
-                             sol::resolve<vec2d(vec2d const&, value_t)>(wdg),
+        "wdg", sol::overload(sol::resolve<vec2d(scalar2d, vec2d const&)>(wdg),
+                             sol::resolve<vec2d(vec2d const&, scalar2d)>(wdg),
                              sol::resolve<pscalar2d(vec2d const&, vec2d const&)>(wdg),
                              sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(wdg),
-                             sol::resolve<vec3d(value_t, vec3d const&)>(wdg),
-                             sol::resolve<vec3d(vec3d const&, value_t)>(wdg),
+                             sol::resolve<vec3d(scalar3d, vec3d const&)>(wdg),
+                             sol::resolve<vec3d(vec3d const&, scalar3d)>(wdg),
                              sol::resolve<bivec3d(vec3d const&, vec3d const&)>(wdg),
                              sol::resolve<pscalar3d(vec3d const&, bivec3d const&)>(wdg),
                              sol::resolve<pscalar3d(bivec3d const&, vec3d const&)>(wdg),
@@ -506,10 +515,15 @@ void register_functions(sol::state& lua)
     // other products (inner, fat_dot, cmt, cross)
     ////////////////////////////////////////////////////////////////////////////////
 
-    lua.set_function("inner", sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(inner));
+    lua.set_function(
+        "inner",
+        sol::overload(sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(inner),
+                      sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(inner)));
 
-    lua.set_function("fat_dot",
-                     sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(fat_dot));
+    lua.set_function(
+        "fat_dot",
+        sol::overload(sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(fat_dot),
+                      sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(fat_dot)));
 
     lua.set_function("cmt", sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(cmt));
 

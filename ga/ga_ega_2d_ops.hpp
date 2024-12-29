@@ -165,33 +165,46 @@ inline constexpr MVec2d<T> conj(MVec2d<T> const& M)
 // scalar product (= dot product defined for equal grades exclusively)
 ////////////////////////////////////////////////////////////////////////////////
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> dot(Scalar2d<T> s1, Scalar2d<U> s2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(ctype(s1) * ctype(s2));
+}
+
 // return dot-product of two vectors in G<2,0,0>
 // dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
 //            = gr0(v1*v1)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> dot(Vec2d<T> const& v1, Vec2d<U> const& v2)
+inline constexpr Scalar2d<std::common_type_t<T, U>> dot(Vec2d<T> const& v1,
+                                                        Vec2d<U> const& v2)
 {
     // definition: dot(v1, v2) = (v1)^T g_12 v2 with the metric g_12
     // this assumes an orthonormal basis with e1^2 = +1, e2^2 = +1
     // as diagonal elements of g_12
-    return v1.x * v2.x + v1.y * v2.y;
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(v1.x * v2.x + v1.y * v2.y);
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> dot(PScalar2d<T> ps1, PScalar2d<U> ps2)
+inline constexpr Scalar2d<std::common_type_t<T, U>> dot(PScalar2d<T> ps1,
+                                                        PScalar2d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return -ctype(ps1) * ctype(ps2);
+    return Scalar2d<ctype>(-ctype(ps1) * ctype(ps2));
 }
 
 // scalar product dot(a,b) (nrm_sq(a,b) = dot(a, rev(b)))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> dot(MVec2d<T> const& A, MVec2d<U> const& B)
+inline constexpr Scalar2d<std::common_type_t<T, U>> dot(MVec2d<T> const& A,
+                                                        MVec2d<U> const& B)
 {
-    return A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3;
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3);
 }
 
 
@@ -202,19 +215,37 @@ inline constexpr std::common_type_t<T, U> dot(MVec2d<T> const& A, MVec2d<U> cons
 // wedge product with one scalar (returns a scaled vector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> wdg(T alpha, Vec2d<U> const& v)
+inline constexpr Vec2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(alpha) * Vec2d<ctype>(v.x, v.y);
+    return ctype(s) * Vec2d<ctype>(v.x, v.y);
 }
 
 // wedge product with one scalar (returns a scaled vector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v, U alpha)
+inline constexpr Vec2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x, v.y) * ctype(alpha);
+    return Vec2d<ctype>(v.x, v.y) * ctype(s);
+}
+
+// wedge product with a pscalar (returns a scaled pscalar)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s, PScalar2d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(ctype(s) * ctype(ps));
+}
+
+// wedge product with one scalar (returns a scaled vector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2d<std::common_type_t<T, U>> wdg(PScalar2d<T> ps, Scalar2d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(ctype(ps) * ctype(s));
 }
 
 // wedge product (returns a bivector)
@@ -276,10 +307,11 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
 // (=identical to scalar product dot(v1,v2) of two vectors; identical to (v1 >> v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> operator<<(Vec2d<T> const& v1,
-                                                     Vec2d<U> const& v2)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v1,
+                                                               Vec2d<U> const& v2)
 {
-    return v1.x * v2.x + v1.y * v2.y;
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(v1.x * v2.x + v1.y * v2.y);
 }
 
 // left contraction (v << B) - vector v contracted onto pseudoscalar ps (=bivector)
@@ -338,10 +370,11 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(Vec2d<U> const& v,
 // (=identical to scalar product dot(v1,v2) of two vectors; identical with (v1 << v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> operator>>(Vec2d<T> const& v1,
-                                                     Vec2d<U> const& v2)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v1,
+                                                               Vec2d<U> const& v2)
 {
-    return v1.x * v2.x + v1.y * v2.y;
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(v1.x * v2.x + v1.y * v2.y);
 }
 
 // right contraction (ps >> v) - pseudoscalar ps (=bivector) contracted by vector v
@@ -1063,6 +1096,135 @@ inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
 }
 
 #endif
+
+
+////////////////////////////////////////////////////////////////////////////////
+// 2d complement operations
+// (the concept of complement is defined w.r.t. the outer product)
+// it depends on the pseudoscalar of the space
+// here implemented for I_2d = e1^e2 = e12
+////////////////////////////////////////////////////////////////////////////////
+
+// if M represents the subspace B of the blade u as subspace of R^2 then
+// compl(M) represents the subspace orthorgonal to B
+// the complement exchanges basis vectors which are in the k-blade u with
+// the basis vectors which are NOT contained in the k-blade u
+// and are needed to fill the space completely to the corresponding pseudoscalar
+//
+// left complement:  l_cmpl(u) ^ u  = I_2d = e1^e2
+// right complement: u ^ r_cmpl(u)  = I_2d = e1^e2
+//
+// in spaces of odd dimension right and left complements are identical and thus there
+// is only one complement operation defined l_cmpl(u), r_cmpl(u) => cmpl(u)
+//
+// in spaces of even dimension and when the grade of the k-vector is odd left and right
+// comploments have different signs
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> r_cmpl(Scalar2d<T> s)
+{
+    // u ^ r_cmpl(u) = e1^e2
+    // u = s 1:
+    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = s/nrm_sq(s) e1^e2
+    T n = nrm_sq(s);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("scalar norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    return PScalar2d<T>(T(s)) / n;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> l_cmpl(Scalar2d<T> s)
+{
+    // l_cmpl(u) ^ u = e1^e2
+    // u = s 1:
+    //     l_cmpl(u) ^ u = e1^e2 => l_cmpl(u) = s/nrm_sq(s) e1^e2
+    T n = nrm_sq(s);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("scalar norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    return PScalar2d<T>(T(s)) / n;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> r_cmpl(Vec2d<T> const& v)
+{
+    // u ^ r_cmpl(u) = e1^e2
+    // u = v.x e1 + v.y e2:
+    //     u ^ r_cmpl(u) = e1^e2
+    //     e1 => r_cmpl(u).x =  v.x/nrm_sq(v) e2
+    //     e2 => r_cmpl(u).y = -v.y/nrm_sq(v) e1
+    T n = nrm_sq(v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("vector norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    return Vec2d<T>(-v.y, v.x) / n;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> l_cmpl(Vec2d<T> const& v)
+{
+    // l_cmpl(u) ^ u = e1^e2
+    // u = v.x e1 + v.y e2:
+    //     l_cmpl(u) ^ u = e1^e2
+    //     e1 => l_cmpl(u).x = -v.x/nrm_sq(v) e2
+    //     e2 => l_cmpl(u).y =  v.y/nrm_sq(v) e1
+    T n = nrm_sq(v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("vector norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    return Vec2d<T>(v.y, -v.x) / n;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> r_cmpl(PScalar2d<T> ps)
+{
+    // u ^ r_cmpl(u) = e1^e2
+    // u = ps e1^e2:
+    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = ps/nrm_sq(ps) 1
+    T n = nrm_sq(ps);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("pscalar norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    return Scalar2d<T>(T(ps)) / n;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> l_cmpl(PScalar2d<T> ps)
+{
+    // l_cmpl(u) ^ u = e1^e2
+    // u = ps e1^e2:
+    //     l_cmpl(u) ^ u = e1^e2 => l_cmpl(u) = ps/nrm_sq(ps) 1
+    T n = nrm_sq(ps);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("pscalar norm too small for normalization" +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    return Scalar2d<T>(T(ps)) / n; // need to compensate minus sign from inversion
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
