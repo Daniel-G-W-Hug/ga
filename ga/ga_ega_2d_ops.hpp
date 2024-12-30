@@ -1276,6 +1276,38 @@ inline constexpr Scalar2d<T> l_cmpl(PScalar2d<T> ps)
     return Scalar2d<T>(T(ps));
 }
 
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d_E<T> r_cmpl(MVec2d_E<T> const& M)
+{
+    // use the component complements directly
+    return MVec2d_E<T>(r_cmpl(gr2(M)), r_cmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d_E<T> l_cmpl(MVec2d_E<T> const& M)
+{
+    // use the component complements directly
+    return MVec2d_E<T>(l_cmpl(gr2(M)), l_cmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d<T> r_cmpl(MVec2d<T> const& M)
+{
+    // use the component complements directly
+    return MVec2d<T>(r_cmpl(gr2(M)), r_cmpl(gr1(M)), r_cmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d<T> l_cmpl(MVec2d<T> const& M)
+{
+    // use the component complements directly
+    return MVec2d<T>(l_cmpl(gr2(M)), l_cmpl(gr1(M)), l_cmpl(gr0(M)));
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vec2d<T> & PScalar2d<T> mixed operations using the geometric product

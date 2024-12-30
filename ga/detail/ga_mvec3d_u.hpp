@@ -51,14 +51,18 @@ template <typename T> struct MVec4_t<T, mvec3d_u_tag> : public MVec4_t<T, defaul
 // grade 1: gr1() - vector
 // grade 2: gr3() - pseudoscalar
 
-template <typename T> inline constexpr Vec3d<T> gr1(MVec3d_U<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec3d<T> gr1(MVec3d_U<T> const& M)
 {
-    return Vec3d<T>(v.c0, v.c1, v.c2);
+    return Vec3d<T>(M.c0, M.c1, M.c2);
 }
 
-template <typename T> inline constexpr PScalar3d<T> gr3(MVec3d_U<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3d<T> gr3(MVec3d_U<T> const& M)
 {
-    return PScalar3d<T>(v.c3);
+    return PScalar3d<T>(M.c3);
 }
 
 } // namespace hd::ga

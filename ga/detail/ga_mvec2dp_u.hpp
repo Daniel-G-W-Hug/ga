@@ -51,14 +51,18 @@ template <typename T> struct MVec4_t<T, mvec2dp_u_tag> : public MVec4_t<T, defau
 // grade 1: gr1() - vector
 // grade 2: gr3() - pseudoscalar
 
-template <typename T> inline constexpr Vec2dp<T> gr1(MVec2dp_U<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> gr1(MVec2dp_U<T> const& M)
 {
-    return Vec2dp<T>(v.c0, v.c1, v.c2);
+    return Vec2dp<T>(M.c0, M.c1, M.c2);
 }
 
-template <typename T> inline constexpr PScalar2dp<T> gr3(MVec2dp_U<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> gr3(MVec2dp_U<T> const& M)
 {
-    return PScalar2dp<T>(v.c3);
+    return PScalar2dp<T>(M.c3);
 }
 
 } // namespace hd::ga

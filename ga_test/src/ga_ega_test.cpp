@@ -3462,15 +3462,25 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(dual((mv1 << mv2)) == wdg(mv1, dual(mv2)));
         CHECK(dual(wdg(mv1, mv2)) == (mv1 << dual(mv2)));
         // now using the complements
-        // CHECK(r_cmpl((v1 << v2)) == wdg(v1, r_cmpl(v2)));
-        // CHECK(r_cmpl(wdg(v1, v2)) == (v1 << r_cmpl(v2)));
+        // TODO: why do we have the sign change for the second line?
+        CHECK(r_cmpl((v1 << v2)) == wdg(v1, r_cmpl(v2)));
+        CHECK(r_cmpl(wdg(v1, v2)) == -(v1 << r_cmpl(v2)));
+        // TODO:check why this does not work?
         // CHECK(r_cmpl((mv1 << mv2)) == wdg(mv1, r_cmpl(mv2)));
-        // CHECK(r_cmpl(wdg(mv1, mv2)) == (mv1 << r_cmpl(mv2)));
+        // CHECK(r_cmpl(wdg(mv1, mv2)) == (r_cmpl(mv1) << mv2));
+
+        // cross-check direct implementation of rwdg by comparing with wdg
+        CHECK(rwdg(mv1, mv2) == l_cmpl(wdg(r_cmpl(mv1), r_cmpl(mv2))));
     }
 
     TEST_CASE("ega_2d<2,0,0> - simple applications & complements")
     {
         fmt::println("ega_2d<2,0,0> - simple applications & complements");
+
+        auto s1 = scalar2d{2.0};
+        auto v1 = vec2d{1.0, -3.0};
+        auto ps1 = pscalar2d{-2.0};
+        auto mv1 = mvec2d{s1, v1, ps1};
 
         // simple projections
         auto v = vec2d{4.0, 3.5};
@@ -3511,6 +3521,9 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(l_cmpl(e2_2d) == e1_2d);
         CHECK(r_cmpl(I_2d) == scalar2d(1.0));
         CHECK(l_cmpl(I_2d) == scalar2d(1.0));
+        //
+        CHECK(l_cmpl(r_cmpl(mv1)) == mv1);
+        CHECK(l_cmpl(r_cmpl(mvec2d_e(s1, ps1))) == mvec2d_e(s1, ps1));
         //
         CHECK(wdg(scalar2d(5), r_cmpl(scalar2d(5))) / nrm_sq(scalar2d(5)) == I_2d);
         CHECK(wdg(l_cmpl(scalar2d(5)), scalar2d(5)) / nrm_sq(scalar2d(5)) == I_2d);
@@ -3769,16 +3782,28 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(dual((mv1 << mv2)) == wdg(mv1, dual(mv2)));
         CHECK(dual(wdg(mv1, mv2)) == (mv1 << dual(mv2)));
         // now using the complements
-        // CHECK(cmpl((v1 << v2)) == wdg(v1, cmpl(v2)));
-        // CHECK(cmpl(wdg(v1, v2)) == (v1 << cmpl(v2)));
+        // TODO: why do we have the sign change for the second line?
+        CHECK(cmpl((v1 << v2)) == wdg(v1, cmpl(v2)));
+        CHECK(cmpl(wdg(v1, v2)) == -(v1 << cmpl(v2)));
+        // TODO:check why this does not work?
         // CHECK(cmpl((mv1 << mv2)) == wdg(mv1, cmpl(mv2)));
         // CHECK(cmpl(wdg(mv1, mv2)) == (mv1 << cmpl(mv2)));
+
+        // cross-check direct implementation of rwdg by comparing with wdg
+        CHECK(rwdg(mv1, mv2) == cmpl(wdg(cmpl(mv1), cmpl(mv2))));
     }
 
     TEST_CASE("ega_3d<3,0,0> - simple applications, complements, contraction, expansions")
     {
         fmt::println(
             "ega_3d<3,0,0> - simple applications, complements, contraction, expansions");
+
+        auto s1 = scalar3d{2.0};
+        auto v1 = vec3d{1.0, -3.0, 2.0};
+        auto B1 = bivec3d{2.0, -4.0, 1.0};
+        auto ps1 = pscalar3d{-2.0};
+        auto mv1 = mvec3d{s1, v1, B1, ps1};
+
 
         // simple projections
         auto v = vec3d{4.0, 3.5, 5.0};
@@ -3823,6 +3848,10 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(cmpl(e31_3d) == e2_3d);
         CHECK(cmpl(e12_3d) == e3_3d);
         CHECK(cmpl(I_3d) == scalar2d(1.0));
+        //
+        CHECK(cmpl(cmpl(mv1)) == mv1);
+        CHECK(cmpl(cmpl(mvec3d_e(s1, B1))) == mvec3d_e(s1, B1));
+        CHECK(cmpl(cmpl(mvec3d_u(v1, ps1))) == mvec3d_u(v1, ps1));
         //
         CHECK(wdg(scalar3d(5), cmpl(scalar3d(5))) / nrm_sq(scalar3d(5)) == I_3d);
         CHECK(wdg(cmpl(scalar3d(5)), scalar3d(5)) / nrm_sq(scalar3d(5)) == I_3d);

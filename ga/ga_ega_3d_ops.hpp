@@ -2035,6 +2035,30 @@ inline constexpr Scalar3d<T> cmpl(PScalar3d<T> ps)
     return Scalar3d<T>(T(ps));
 }
 
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3d_U<T> cmpl(MVec3d_E<T> const& M)
+{
+    // use the component complements directly
+    return MVec3d_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3d_E<T> cmpl(MVec3d_U<T> const& M)
+{
+    // use the component complements directly
+    return MVec3d_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3d<T> cmpl(MVec3d<T> const& M)
+{
+    // use the component complements directly
+    return MVec3d<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vec3d<T> and BiVec3d<T> projections, rejections and reflections

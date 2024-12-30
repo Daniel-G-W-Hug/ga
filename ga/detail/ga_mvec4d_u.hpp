@@ -35,8 +35,8 @@ template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, defaul
     }
 
     // assign from the uneven subalgebra directly
-    MVec8_t(MVec4d_U<T> const& v) :
-        MVec8_t(v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7)
+    MVec8_t(MVec4d_U<T> const& M) :
+        MVec8_t(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7)
     {
     }
 };
@@ -50,14 +50,18 @@ template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, defaul
 // grade 1: gr1() - vector
 // grade 3: gr3() - trivector
 
-template <typename T> inline constexpr Vec4d<T> gr1(MVec4d_U<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec4d<T> gr1(MVec4d_U<T> const& M)
 {
-    return Vec4d<T>(v.c0, v.c1, v.c2, v.c3);
+    return Vec4d<T>(M.c0, M.c1, M.c2, M.c3);
 }
 
-template <typename T> inline constexpr TriVec4d<T> gr3(MVec4d_U<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr TriVec4d<T> gr3(MVec4d_U<T> const& M)
 {
-    return TriVec4d<T>(v.c4, v.c5, v.c6, v.c7);
+    return TriVec4d<T>(M.c4, M.c5, M.c6, M.c7);
 }
 
 } // namespace hd::ga

@@ -51,14 +51,18 @@ template <typename T> struct MVec2_t<T, mvec2d_e_tag> : public MVec2_t<T, defaul
 // grade 0: gr0() - scalar
 // grade 2: gr2() - bivector (= pseudoscalar in 2d)
 
-template <typename T> inline constexpr Scalar2d<T> gr0(MVec2d_E<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> gr0(MVec2d_E<T> const& M)
 {
-    return Scalar2d<T>(v.c0);
+    return Scalar2d<T>(M.c0);
 }
 
-template <typename T> inline constexpr PScalar2d<T> gr2(MVec2d_E<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> gr2(MVec2d_E<T> const& M)
 {
-    return PScalar2d<T>(v.c1);
+    return PScalar2d<T>(M.c1);
 }
 
 } // namespace hd::ga

@@ -512,6 +512,30 @@ void register_functions(sol::state& lua)
 
 
     ////////////////////////////////////////////////////////////////////////////////
+    // regressive wedge product (= outer product for complements) (rwdg)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    lua.set_function(
+        "rwdg", sol::overload(sol::resolve<scalar2d(vec2d const&, vec2d const&)>(rwdg),
+                              sol::resolve<vec2d(pscalar2d, vec2d const&)>(rwdg),
+                              sol::resolve<vec2d(vec2d const&, pscalar2d)>(rwdg),
+                              sol::resolve<scalar2d(scalar2d, pscalar2d)>(rwdg),
+                              sol::resolve<scalar2d(pscalar2d, scalar2d)>(rwdg),
+                              sol::resolve<pscalar2d(pscalar2d, pscalar2d)>(rwdg),
+                              sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(rwdg),
+                              sol::resolve<scalar3d(vec3d const&, bivec3d const&)>(rwdg),
+                              sol::resolve<scalar3d(bivec3d const&, vec3d const&)>(rwdg),
+                              sol::resolve<vec3d(bivec3d const&, bivec3d const&)>(rwdg),
+                              sol::resolve<vec3d(pscalar3d, vec3d const&)>(rwdg),
+                              sol::resolve<vec3d(vec3d const&, pscalar3d)>(rwdg),
+                              sol::resolve<bivec3d(pscalar3d, bivec3d const&)>(rwdg),
+                              sol::resolve<bivec3d(bivec3d const&, pscalar3d)>(rwdg),
+                              sol::resolve<scalar3d(scalar3d, pscalar3d)>(rwdg),
+                              sol::resolve<scalar3d(pscalar3d, scalar3d)>(rwdg),
+                              sol::resolve<pscalar3d(pscalar3d, pscalar3d)>(rwdg),
+                              sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(rwdg)));
+
+    ////////////////////////////////////////////////////////////////////////////////
     // other products (inner, fat_dot, cmt, cross)
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -576,6 +600,32 @@ void register_functions(sol::state& lua)
                                            sol::resolve<mvec3d_u(mvec3d_e const&)>(dual),
                                            sol::resolve<mvec3d_e(mvec3d_u const&)>(dual),
                                            sol::resolve<mvec3d(mvec3d const&)>(dual)));
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // complement operations
+    ////////////////////////////////////////////////////////////////////////////////
+
+    lua.set_function("r_cmpl",
+                     sol::overload(sol::resolve<pscalar2d(scalar2d)>(r_cmpl),
+                                   sol::resolve<vec2d(vec2d const&)>(r_cmpl),
+                                   sol::resolve<scalar2d(pscalar2d)>(r_cmpl),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(r_cmpl),
+                                   sol::resolve<mvec2d(mvec2d const&)>(r_cmpl)));
+
+    lua.set_function("l_cmpl",
+                     sol::overload(sol::resolve<pscalar2d(scalar2d)>(l_cmpl),
+                                   sol::resolve<vec2d(vec2d const&)>(l_cmpl),
+                                   sol::resolve<scalar2d(pscalar2d)>(l_cmpl),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(l_cmpl),
+                                   sol::resolve<mvec2d(mvec2d const&)>(l_cmpl)));
+
+    lua.set_function("cmpl", sol::overload(sol::resolve<pscalar3d(scalar3d)>(cmpl),
+                                           sol::resolve<bivec3d(vec3d const&)>(cmpl),
+                                           sol::resolve<vec3d(bivec3d const&)>(cmpl),
+                                           sol::resolve<scalar3d(pscalar3d)>(cmpl),
+                                           sol::resolve<mvec3d_u(mvec3d_e const&)>(cmpl),
+                                           sol::resolve<mvec3d_e(mvec3d_u const&)>(cmpl),
+                                           sol::resolve<mvec3d(mvec3d const&)>(cmpl)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // projections, rejections and reflections

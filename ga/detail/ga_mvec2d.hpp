@@ -33,7 +33,7 @@ template <typename T> struct MVec4_t<T, mvec2d_tag> : public MVec4_t<T, default_
     MVec4_t(Scalar2d<T> s, PScalar2d<T> ps) : MVec4_t(T(s), T(0.0), T(0.0), T(ps)) {}
 
     // assign from a complex number, i.e. from the even subalgebra
-    MVec4_t(MVec2d_E<T> const& v) : MVec4_t(v.c0, T(0.0), T(0.0), v.c1) {}
+    MVec4_t(MVec2d_E<T> const& M) : MVec4_t(M.c0, T(0.0), T(0.0), M.c1) {}
 
     // assign a full multivector
     MVec4_t(Scalar2d<T> s, Vec2d<T> const& v, PScalar2d<T> ps) :
@@ -52,19 +52,25 @@ template <typename T> struct MVec4_t<T, mvec2d_tag> : public MVec4_t<T, default_
 // grade 1: gr1() - vector
 // grade 2: gr2() - bivector (= pseudoscalar in 2d)
 
-template <typename T> inline constexpr Scalar2d<T> gr0(MVec2d<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> gr0(MVec2d<T> const& M)
 {
-    return Scalar2d<T>(v.c0);
+    return Scalar2d<T>(M.c0);
 }
 
-template <typename T> inline constexpr Vec2d<T> gr1(MVec2d<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> gr1(MVec2d<T> const& M)
 {
-    return Vec2d<T>(v.c1, v.c2);
+    return Vec2d<T>(M.c1, M.c2);
 }
 
-template <typename T> inline constexpr PScalar2d<T> gr2(MVec2d<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> gr2(MVec2d<T> const& M)
 {
-    return PScalar2d<T>(v.c3);
+    return PScalar2d<T>(M.c3);
 }
 
 } // namespace hd::ga

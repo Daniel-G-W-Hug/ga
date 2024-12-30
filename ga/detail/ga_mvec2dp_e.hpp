@@ -33,10 +33,10 @@ template <typename T> struct MVec4_t<T, mvec2dp_e_tag> : public MVec4_t<T, defau
     MVec4_t(Scalar2dp<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec4_t(BiVec2dp<T> const& b) : MVec4_t(T(0.0), b.x, b.y, b.z) {}
+    MVec4_t(BiVec2dp<T> const& B) : MVec4_t(T(0.0), B.x, B.y, B.z) {}
 
     // assign scalar and bivector parts
-    MVec4_t(Scalar2dp<T> s, BiVec2dp<T> const& b) : MVec4_t(T(s), b.x, b.y, b.z) {}
+    MVec4_t(Scalar2dp<T> s, BiVec2dp<T> const& B) : MVec4_t(T(s), B.x, B.y, B.z) {}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,14 +48,18 @@ template <typename T> struct MVec4_t<T, mvec2dp_e_tag> : public MVec4_t<T, defau
 // grade 0: gr0() - scalar
 // grade 2: gr2() - bivector
 
-template <typename T> inline constexpr Scalar2dp<T> gr0(MVec2dp_E<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> gr0(MVec2dp_E<T> const& M)
 {
-    return Scalar2dp<T>(v.c0);
+    return Scalar2dp<T>(M.c0);
 }
 
-template <typename T> inline constexpr BiVec2dp<T> gr2(MVec2dp_E<T> const& v)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> gr2(MVec2dp_E<T> const& M)
 {
-    return BiVec2dp<T>(v.c1, v.c2, v.c3);
+    return BiVec2dp<T>(M.c1, M.c2, M.c3);
 }
 
 } // namespace hd::ga
