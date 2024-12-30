@@ -806,7 +806,7 @@ inline constexpr Scalar2d<T> inv(Scalar2d<T> s)
     T sq_n = nrm_sq(s);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("scalar norm too small for inversion" +
+        throw std::runtime_error("scalar norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
@@ -822,7 +822,7 @@ inline constexpr Vec2d<T> inv(Vec2d<T> const& v)
     T sq_n = nrm_sq(v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for inversion" +
+        throw std::runtime_error("vector norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
@@ -837,7 +837,7 @@ inline constexpr PScalar2d<T> inv(PScalar2d<T> ps)
     T sq_n = nrm_sq(ps);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion" +
+        throw std::runtime_error("bivector norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
@@ -854,7 +854,7 @@ template <typename T> inline constexpr MVec2d_E<T> inv(MVec2d_E<T> const& E)
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error(
-            "complex norm of even grade multivector too small for inversion" +
+            "complex norm of even grade multivector too small for inversion " +
             std::to_string(sq_n) + "\n");
     }
 #endif
@@ -900,7 +900,7 @@ inline constexpr std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> con
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
-            "vector norm product too small for calculation of angle" +
+            "vector norm product too small for calculation of angle " +
             std::to_string(nrm_prod) + "\n");
     }
 #endif
@@ -1385,7 +1385,7 @@ inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
     ctype sq_n = nrm_sq(v2);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error("vector norm too small for inversion" +
+        throw std::runtime_error("vector norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif

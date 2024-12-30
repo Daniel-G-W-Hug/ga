@@ -76,8 +76,8 @@ class Scalar_t {
     {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
         if (s < std::numeric_limits<U>::epsilon()) {
-            throw std::runtime_error("scalar too small for divison" + std::to_string(s) +
-                                     "\n");
+            throw std::runtime_error("scalar too small for division " +
+                                     std::to_string(s) + "\n");
         }
 #endif
         value /= s;

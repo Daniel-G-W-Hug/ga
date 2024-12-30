@@ -139,12 +139,20 @@ void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
                        scenePos_vend().y - scenePos_beg().y};
         auto uv = wdg(u, v);
 
+        // orientation relative to I_2d (= right-handed system of e1 and e2)
         auto orientation = sign(uv / I_2d);
         // qDebug() << "orientation " << orientation;
 
-        // for shift of text to the right or to the left of the vector by contraction
-        auto dur = normalize(uv >> u);
-        auto dvl = normalize(v << uv);
+        // for shift of text to the right or to the left of the vector by using
+        // contraction
+        //
+        // original version: not well-behaved if u, v or uv become too small)
+        // auto dur = normalize(uv >> u);
+        // auto dvl = normalize(v << uv);
+        //
+        // improved version: not well-behaved, only if either u or v become too small)
+        auto dur = normalize(orientation * I_2d >> u);
+        auto dvl = normalize(v << orientation * I_2d);
 
         QString u_nrm = QString::number(nrm(u), 'g', 2);
         QString v_nrm = QString::number(nrm(v), 'g', 2);

@@ -82,7 +82,7 @@ template <typename T> inline Vec2dp<T> inv(Vec2dp<T> const& v)
     T sq_v = dot(v, v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_v < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector dot product too small for inversion" +
+        throw std::runtime_error("vector dot product too small for inversion " +
                                  std::to_string(sq_v) + "\n");
     }
 #endif
@@ -102,7 +102,7 @@ inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
-            "vector norm product too small for calculation of angle" +
+            "vector norm product too small for calculation of angle " +
             std::to_string(nrm_prod) + "\n");
     }
 #endif
@@ -116,7 +116,7 @@ template <typename T> inline Vec2dp<T> unitize(Vec2dp<T> const& v)
     T n = v.z;
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for unitization" +
+        throw std::runtime_error("vector norm too small for unitization " +
                                  std::to_string(n) + "\n");
     }
 #endif
@@ -162,7 +162,7 @@ template <typename T> inline constexpr BiVec2dp<T> inv(BiVec2dp<T> const& v)
     T sq_n = -dot(v, v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion" +
+        throw std::runtime_error("bivector norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
@@ -181,7 +181,7 @@ inline std::common_type_t<T, U> angle(BiVec2dp<T> const& v1, BiVec2dp<U> const& 
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
-            "vector norm product too small for calculation of angle" +
+            "vector norm product too small for calculation of angle " +
             std::to_string(nrm_prod) + "\n");
     }
 #endif
@@ -242,7 +242,7 @@ inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, BiVec2dp<U> const& v2
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
-            "vector norm product too small for calculation of angle" +
+            "vector norm product too small for calculation of angle " +
             std::to_string(nrm_prod) + "\n");
     }
 #endif
@@ -262,7 +262,7 @@ inline std::common_type_t<T, U> angle(BiVec2dp<T> const& v1, Vec2dp<U> const& v2
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
-            "vector norm product too small for calculation of angle" +
+            "vector norm product too small for calculation of angle " +
             std::to_string(nrm_prod) + "\n");
     }
 #endif

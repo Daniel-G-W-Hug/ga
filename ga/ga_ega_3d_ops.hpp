@@ -1389,7 +1389,7 @@ inline constexpr Scalar3d<T> inv(Scalar3d<T> s)
     T sq_n = nrm_sq(s);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("scalar norm too small for inversion" +
+        throw std::runtime_error("scalar norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
@@ -1405,7 +1405,7 @@ inline constexpr Vec3d<T> inv(Vec3d<T> const& v)
     T sq_n = nrm_sq(v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for inversion" +
+        throw std::runtime_error("vector norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
@@ -1421,7 +1421,7 @@ inline constexpr BiVec3d<T> inv(BiVec3d<T> const& B)
     T sq_n = nrm_sq(B);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion" +
+        throw std::runtime_error("bivector norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
@@ -1436,7 +1436,7 @@ inline constexpr PScalar3d<T> inv(PScalar3d<T> ps)
     T sq_n = nrm_sq(ps);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion" +
+        throw std::runtime_error("bivector norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
@@ -1454,7 +1454,7 @@ inline constexpr MVec3d_E<T> inv(MVec3d_E<T> const& E)
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error(
-            "norm of even grade multivector too small for inversion" +
+            "norm of even grade multivector too small for inversion " +
             std::to_string(sq_n) + "\n");
     }
 #endif
@@ -1497,7 +1497,7 @@ inline constexpr std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> con
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
-            "vector norm product too small for calculation of angle" +
+            "vector norm product too small for calculation of angle " +
             std::to_string(nrm_prod) + "\n");
     }
 #endif
@@ -1523,7 +1523,7 @@ inline constexpr std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> con
 // #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
 // if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
 //     throw std::runtime_error("vector norm product too small for calculation "
-//                              "of angle" +
+//                              "of angle " +
 //                              std::to_string(nrm_prod) + "\n");
 // }
 // #endif
@@ -1564,7 +1564,7 @@ inline constexpr std::common_type_t<T, U> angle(BiVec3d<T> const& v1,
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
         throw std::runtime_error(
-            "vector norm product too small for calculation of angle" +
+            "vector norm product too small for calculation of angle " +
             std::to_string(nrm_prod) + "\n");
     }
 #endif
@@ -1583,7 +1583,7 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v, BiVec3d<U> const& B)
     ctype nrm_prod = nrm(v) * nrm(B);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error("norm product too small for calculation of angle" +
+        throw std::runtime_error("norm product too small for calculation of angle " +
                                  std::to_string(nrm_prod) + "\n");
     }
 #endif
@@ -1604,7 +1604,7 @@ inline constexpr std::common_type_t<T, U> angle(BiVec3d<T> const& B, Vec3d<U> co
     ctype nrm_prod = nrm(B) * nrm(v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error("norm product too small for calculation of angle" +
+        throw std::runtime_error("norm product too small for calculation of angle " +
                                  std::to_string(nrm_prod) + "\n");
     }
 #endif

@@ -61,7 +61,7 @@ template <typename T> struct Point2dp : public Vec2dp<T> {
     {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
         if (std::abs(z) < std::numeric_limits<T>::epsilon()) {
-            throw std::runtime_error("z-component too small for unitization" +
+            throw std::runtime_error("z-component too small for unitization " +
                                      std::to_string(z) + "\n");
         }
 #endif
@@ -78,7 +78,7 @@ Point2dp<T> unitize(Point2dp<T> const& p)
 {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(p.z) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("z-component too small for unitization" +
+        throw std::runtime_error("z-component too small for unitization " +
                                  std::to_string(p.z) + "\n");
     }
 #endif
@@ -118,7 +118,7 @@ template <typename T> struct Line2dp : public BiVec2dp<T> {
         T wn = std::sqrt(x * x + y * y);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
         if (wn < std::numeric_limits<T>::epsilon()) {
-            throw std::runtime_error("bivector weight norm too small for unitization" +
+            throw std::runtime_error("bivector weight norm too small for unitization " +
                                      std::to_string(wn) + "\n");
         }
 #endif
@@ -138,7 +138,7 @@ Line2dp<T> unitize(Line2dp<T> const& l)
     T wn = std::sqrt(l.x * l.x + l.y * l.y);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (wn < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector weight norm too small for unitization" +
+        throw std::runtime_error("bivector weight norm too small for unitization " +
                                  std::to_string(wn) + "\n");
     }
 #endif
