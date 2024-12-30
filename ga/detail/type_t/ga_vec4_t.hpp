@@ -137,7 +137,7 @@ struct Vec4_t {
     {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
         if (s < std::numeric_limits<T>::epsilon()) {
-            throw std::runtime_error("vector norm too small for normalization" +
+            throw std::runtime_error("vector norm too small for normalization " +
                                      std::to_string(s) + "\n");
         }
 #endif
@@ -209,7 +209,7 @@ inline constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator/(Vec4_t<T, Tag> 
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(s) < std::max<ctype>(std::numeric_limits<T>::epsilon(),
                                       std::numeric_limits<U>::epsilon())) {
-        throw std::runtime_error("scalar too small, division by zero" +
+        throw std::runtime_error("scalar too small, division by zero " +
                                  std::to_string(s) + "\n");
     }
 #endif
@@ -264,7 +264,7 @@ inline constexpr Vec4_t<T, Tag> normalize(Vec4_t<T, Tag> const& v)
     T m = nrm(v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (m < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for normalization" +
+        throw std::runtime_error("vector norm too small for normalization " +
                                  std::to_string(m) + "\n");
     }
 #endif

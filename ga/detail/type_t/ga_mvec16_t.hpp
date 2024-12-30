@@ -297,7 +297,7 @@ operator/(MVec16_t<T, Tag> const& v, U s)
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(s) < std::max<ctype>(std::numeric_limits<T>::epsilon(),
                                       std::numeric_limits<U>::epsilon())) {
-        throw std::runtime_error("scalar too small, division by zero" +
+        throw std::runtime_error("scalar too small, division by zero " +
                                  std::to_string(s) + "\n");
     }
 #endif

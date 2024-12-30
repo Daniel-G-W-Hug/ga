@@ -697,3 +697,12 @@ print("")
 
 local s = scalar2d.new(-6)
 print("s = ", s)
+
+local u = vec2d.new(3, 3)
+local v = vec2d.new(-0.2, 2)
+local uv = u ^ v
+print("nrm(uv)", nrm(uv))
+print("u << uv", normalize(u << uv))
+print("uv >> u", normalize(uv >> u))
+print("v << uv", normalize(v << uv))
+print("uv >> v", normalize(uv >> v))

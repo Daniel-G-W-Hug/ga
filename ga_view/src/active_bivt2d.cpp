@@ -9,6 +9,8 @@
 #include "active_bivt2d.hpp"
 #include "active_common.hpp"
 
+#include "ga/ga_ega.hpp"
+
 active_bivt2d::active_bivt2d(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg,
                              active_pt2d* uend, active_pt2d* vend,
                              QGraphicsItem* parent) :
@@ -114,6 +116,60 @@ void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     qp->setPen(pen);
     qp->drawPath(arrowHead(beg_pos, end_vpos));
 
+    // draw name, length, optionally unit of vectors and bivector
+
+    qp->setFont(QFont("Helvetica", 14, QFont::Normal));
+    QFontMetrics fm = qp->fontMetrics();
+    // qp->setPen(Qt::white);  // set font color
+
+    QPointF u_name_pos = beg_pos + 0.5 * (end_upos - beg_pos);
+    QPointF v_name_pos = beg_pos + 0.5 * (end_vpos - beg_pos);
+    QPointF uv_name_pos = u_name_pos + 0.5 * (end_vpos - beg_pos);
+
+
+    try {
+
+        // make all available that is needed for GA
+        using namespace hd::ga;
+        using namespace hd::ga::ega;
+
+        auto u = vec2d{scenePos_uend().x - scenePos_beg().x,
+                       scenePos_uend().y - scenePos_beg().y};
+        auto v = vec2d{scenePos_vend().x - scenePos_beg().x,
+                       scenePos_vend().y - scenePos_beg().y};
+        auto uv = wdg(u, v);
+
+        auto orientation = sign(uv / I_2d);
+        // qDebug() << "orientation " << orientation;
+
+        // for shift of text to the right or to the left of the vector by contraction
+        auto dur = normalize(uv >> u);
+        auto dvl = normalize(v << uv);
+
+        QString u_nrm = QString::number(nrm(u), 'g', 2);
+        QString v_nrm = QString::number(nrm(v), 'g', 2);
+        QString uv_nrm = QString::number(nrm(uv), 'g', 2);
+
+        QString su = QString("u = ") + u_nrm;
+        QString sv = QString("v = ") + v_nrm;
+
+        QString suv = QString("u ^ v = ");
+        if (orientation < 0) {
+            suv += QString("(-)");
+        }
+        suv += uv_nrm;
+
+        const int offset = 20;
+        qp->drawText(u_name_pos.x() - fm.horizontalAdvance(su) / 2 + int(offset * dur.x),
+                     u_name_pos.y() + fm.height() / 2 - int(offset * dur.y), su);
+        qp->drawText(v_name_pos.x() - fm.horizontalAdvance(sv) / 2 + int(offset * dvl.x),
+                     v_name_pos.y() + fm.height() / 2 - int(offset * dvl.y), sv);
+        qp->drawText(uv_name_pos.x() - fm.horizontalAdvance(suv) / 2,
+                     uv_name_pos.y() + fm.height() / 2, suv);
+    }
+    catch (const std::exception& e) {
+        qDebug() << e.what();
+    }
 
     // draw bounding box (optional for testing)
     // qp->setPen(col_yel);

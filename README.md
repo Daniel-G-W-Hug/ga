@@ -14,10 +14,10 @@
 
 ## Installing dependencies on MacOS
 
-    - brew install fmt
-    - brew istalll doctest
-    - brew install lua
-    - brew install qt6
+    - brew install fmt         // always required
+    - brew istalll doctest     // only required for ga_test
+    - brew install qt6         // only required for ga_view
+    - brew install lua         // lua and sol2 only required for ga_lua
     - sol2 to be installed from: <https://github.com/ThePhD/sol2>
 
 ## Installing dependencies on Windows
@@ -27,3 +27,31 @@
     - winget install lua (you need a x64 binary otherwise linking will not work)
     - qt6 to be installed from official installer
     - sol2 to be installed from: <https://github.com/ThePhD/sol2>
+
+## Usage of ga library
+
+1) Make all available that is needed for GA, e.g. by
+
+    ```
+    using namespace hd::ga;
+    using namespace hd::ga::ega;
+    ```
+
+2) Create a try catch block to catch any exceptions thrown by GA code
+
+    ```
+    try {
+
+        // call GA stuff here
+
+    } catch (const std::exception &e) {
+
+        // whichever alternative suits your needs
+        qDebug() << "Something went wrong: " << e.what();
+        std::cout << "Something went wrong: " << e.what();
+        fmt::print("Something went wrong: {}", e.what());
+
+        // ... or similar
+
+    }
+    ```

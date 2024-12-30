@@ -150,7 +150,7 @@ inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, T
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(s) < std::max<ctype>(std::numeric_limits<T>::epsilon(),
                                       std::numeric_limits<U>::epsilon())) {
-        throw std::runtime_error("scalar too small, division by zero" +
+        throw std::runtime_error("scalar too small, division by zero " +
                                  std::to_string(s) + "\n");
     }
 #endif
@@ -182,7 +182,7 @@ inline constexpr Scalar_t<T, Tag> normalize(Scalar_t<T, Tag> s)
     T m = nrm(s);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (m < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("magnitude too small for normalization" +
+        throw std::runtime_error("magnitude too small for normalization " +
                                  std::to_string(m) + "\n");
     }
 #endif

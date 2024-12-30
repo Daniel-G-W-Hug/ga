@@ -54,7 +54,6 @@ set(HEADERS
     #
     detail/ga_pga_2dp_objects.hpp
     ga_pga_2dp_ops.hpp
-
     )
 
 add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user!)
