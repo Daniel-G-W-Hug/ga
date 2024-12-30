@@ -5,3 +5,9 @@
 - 2024/05: add ga_lua for scripting capabilities
 - 2024/07: add ga_view as qt-based viewer for 2d applications
 - 2024/08: moved EGA (Euclidean GA) in own namespace and created PGA (Projective GA)
+- 2024/12: reworked structure of EGA 2D and 3D:
+                - common base types established
+                - missing products added: dot, wdg, rwdg, inner, fat_dot,
+                  left- and right complements
+                - duality and complements added
+                - unified nrm functions for all types
