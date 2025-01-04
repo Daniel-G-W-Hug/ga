@@ -3513,14 +3513,50 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(v == v_in_u + v_perp_u);
 
         // check complements
+        // fmt::println("");
+        // auto s = scalar2d(1);
+        // auto e1 = e1_2d;
+        // auto e2 = e2_2d;
+        // auto ps = I_2d;
+        // fmt::println("   u:  s, e1, e2, ps \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              s, e1, e2, ps);
+        // fmt::println("");
+        // fmt::println("   r_cmpl(u):  r_cmpl(s), r_cmpl(e1), r_cmpl(e2), r_cmpl(ps) \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              r_cmpl(s), r_cmpl(e1), r_cmpl(e2), r_cmpl(ps));
+        // fmt::println("");
+        // fmt::println(
+        //     "   rev(u)*I_2d:  rev(s)*I_2d, rev(e1)*I_2d, rev(e2)*I_2d, rev(ps)*I_2d \n"
+        //     "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //     rev(s) * I_2d, rev(e1) * I_2d, rev(e2) * I_2d, rev(ps) * I_2d);
+        // fmt::println("");
+        // fmt::println("   l_cmpl(u):  l_cmpl(s), l_cmpl(e1), l_cmpl(e2), l_cmpl(ps) \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              l_cmpl(s), l_cmpl(e1), l_cmpl(e2), l_cmpl(ps));
+        // fmt::println("");
+        // fmt::println(
+        //     "   I_2d*rev(u):  I_2d*rev(s), I_2d*rev(e1), I_2d*rev(e2), I_2d*rev(ps) \n"
+        //     "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //     I_2d * rev(s), I_2d * rev(e1), I_2d * rev(e2), I_2d * rev(ps));
+        // fmt::println("");
+
         CHECK(r_cmpl(scalar2d(1.0)) == I_2d);
+        CHECK(r_cmpl(scalar2d(1.0)) == rev(scalar2d(1.0)) * I_2d);
         CHECK(l_cmpl(scalar2d(1.0)) == I_2d);
+        CHECK(l_cmpl(scalar2d(1.0)) == I_2d * rev(scalar2d(1.0)));
         CHECK(r_cmpl(e1_2d) == e2_2d);
+        CHECK(r_cmpl(e1_2d) == rev(e1_2d) * I_2d);
         CHECK(l_cmpl(e1_2d) == -e2_2d);
+        CHECK(l_cmpl(e1_2d) == I_2d * rev(e1_2d));
         CHECK(r_cmpl(e2_2d) == -e1_2d);
+        CHECK(r_cmpl(e2_2d) == rev(e2_2d) * I_2d);
         CHECK(l_cmpl(e2_2d) == e1_2d);
+        CHECK(l_cmpl(e2_2d) == I_2d * rev(e2_2d));
         CHECK(r_cmpl(I_2d) == scalar2d(1.0));
+        CHECK(r_cmpl(I_2d) == rev(I_2d) * I_2d);
         CHECK(l_cmpl(I_2d) == scalar2d(1.0));
+        CHECK(l_cmpl(I_2d) == I_2d * rev(I_2d));
         //
         CHECK(l_cmpl(r_cmpl(mv1)) == mv1);
         CHECK(l_cmpl(r_cmpl(mvec2d_e(s1, ps1))) == mvec2d_e(s1, ps1));
@@ -3840,14 +3876,49 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(v == v_in_B + v_perp_B);
 
         // check complements
+        // fmt::println("");
+        // auto s = scalar3d(1);
+        // auto e1 = e1_3d;
+        // auto e2 = e2_3d;
+        // auto e3 = e3_3d;
+        // auto ps = I_3d;
+        // fmt::println("   u:  s, e1, e2, e3, ps \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+        //              s, e1, e2, e3, ps);
+        // fmt::println("");
+        // fmt::println("   cmpl(u):  cmpl(s), cmpl(e1), cmpl(e2), cmpl(e3), cmpl(ps) \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+        //              cmpl(s), cmpl(e1), cmpl(e2), cmpl(e3), cmpl(ps));
+        // fmt::println("");
+        // fmt::println("   rev(u)*I_3d:  rev(s)*I_3d, rev(e1)*I_3d, rev(e2)*I_3d, "
+        //              "rev(e3)*I_3d, rev(ps)*I_3d \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+        //              rev(s) * I_3d, rev(e1) * I_3d, rev(e2) * I_3d, rev(e3) * I_3d,
+        //              rev(ps) * I_3d);
+        // fmt::println("");
+        // fmt::println("   I_3d*rev(u):  I_3d*rev(s), I_3d*rev(e1), I_3d*rev(e2), "
+        //              "I_3d*rev(e3), I_3d*rev(ps) \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
+        //              I_3d * rev(s), I_3d * rev(e1), I_3d * rev(e2), I_3d * rev(e3),
+        //              I_3d * rev(ps));
+        // fmt::println("");
+
         CHECK(cmpl(scalar3d(1.0)) == I_3d);
+        CHECK(cmpl(scalar3d(1.0)) == rev(scalar3d(1.0)) * I_3d);
         CHECK(cmpl(e1_3d) == e23_3d);
+        CHECK(cmpl(e1_3d) == rev(e1_3d) * I_3d);
         CHECK(cmpl(e2_3d) == e31_3d);
+        CHECK(cmpl(e2_3d) == rev(e2_3d) * I_3d);
         CHECK(cmpl(e3_3d) == e12_3d);
+        CHECK(cmpl(e3_3d) == rev(e3_3d) * I_3d);
         CHECK(cmpl(e23_3d) == e1_3d);
+        CHECK(cmpl(e23_3d) == rev(e23_3d) * I_3d);
         CHECK(cmpl(e31_3d) == e2_3d);
+        CHECK(cmpl(e31_3d) == rev(e31_3d) * I_3d);
         CHECK(cmpl(e12_3d) == e3_3d);
+        CHECK(cmpl(e12_3d) == rev(e12_3d) * I_3d);
         CHECK(cmpl(I_3d) == scalar2d(1.0));
+        CHECK(cmpl(I_3d) == rev(I_3d) * I_3d);
         //
         CHECK(cmpl(cmpl(mv1)) == mv1);
         CHECK(cmpl(cmpl(mvec3d_e(s1, B1))) == mvec3d_e(s1, B1));

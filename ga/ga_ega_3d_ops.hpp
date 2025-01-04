@@ -281,6 +281,15 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> dot(MVec3d<T> const& A,
 // wedge product (= outer product)
 ////////////////////////////////////////////////////////////////////////////////
 
+// wedge product between two scalars (returns a scalar)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s1, Scalar3d<U> s2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(ctype(s1) * ctype(s2));
+}
+
 // wedge product with one scalar (returns a scaled vector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -297,6 +306,24 @@ inline constexpr Vec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v, Scalar3d
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(v.x, v.y, v.z) * ctype(s);
+}
+
+// wedge product with one scalar (returns a scaled bivector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, BiVec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * BiVec3d<ctype>(v.x, v.y, v.z);
+}
+
+// wedge product with one scalar (returns a scaled bivector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& v, Scalar3d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3d<ctype>(v.x, v.y, v.z) * ctype(s);
 }
 
 // wedge product with a pscalar (returns a scaled pscalar)
@@ -1980,11 +2007,11 @@ inline constexpr MVec3d<T> dual(MVec3d<T> const& M)
 // which are in the k-blade u with the basis vectors which are NOT contained in the
 // k-blade u and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  l_cmpl(u) ^ u  = I_3d = e1^e2^e3
-// right complement: u ^ r_cmpl(u)  = I_3d = e1^e2^e3
+// left complement:  l_cmpl(u) ^ u  = I_3d = e1^e2^e3  =>  l_cmpl(u) = I_3d * rev(u)
+// right complement: u ^ r_cmpl(u)  = I_3d = e1^e2^e3  =>  r_cmpl(u) = rev(v) * I_3d
 //
 // in spaces of odd dimension right and left complements are identical and thus there
-// is only one complement operation defined l_cmpl(u), r_cmpl(u) => cmpl(u)
+// is only one complement operation defined l_cmpl(u) == r_cmpl(u) == cmpl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // complements have different signs
@@ -1995,7 +2022,7 @@ inline constexpr PScalar3d<T> cmpl(Scalar3d<T> s)
 {
     // u ^ cmpl(u) = e1^e2^e3
     // u = s 1:
-    //     s ^ cmpl(u) = e1^e2^e3 => cmpl(u) = s e1^e2^e3
+    //     s ^ cmpl(u) = e1^e2^e3 => cmpl(u) = rev(s) * I_3d = s e1^e2^e3
     return PScalar3d<T>(T(s));
 }
 
@@ -2005,7 +2032,7 @@ inline constexpr BiVec3d<T> cmpl(Vec3d<T> const& v)
 {
     // u ^ compl(u) = e1^e2^e3
     // u = v.x e1 + v.y e2 + v.z e3:
-    //     u ^ cmpl(u) = e1^e2^e3
+    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = rev(v) * I_3d
     //     e1 => cmpl(u) = v.x e23
     //     e2 => cmpl(u) = v.y e31
     //     e3 => cmpl(u) = v.z e12
@@ -2018,7 +2045,7 @@ inline constexpr Vec3d<T> cmpl(BiVec3d<T> const& B)
 {
     // u ^ compl(u) = e1^e2^e3
     // u = B.x e23 + B.y e31 + B.z e12:
-    //     u ^ cmpl(u) = e1^e2^e3
+    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = rev(B) * I_3d
     //     e23 => cmpl(u) = B.x e1
     //     e31 => cmpl(u) = B.y e2
     //     e12 => cmpl(u) = B.z e3
@@ -2031,7 +2058,7 @@ inline constexpr Scalar3d<T> cmpl(PScalar3d<T> ps)
 {
     // u ^ compl(u) = e1^e2^e3
     // u = ps e1^e2^e3:
-    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = ps 1
+    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = rev(ps) * I_3d = ps 1
     return Scalar3d<T>(T(ps));
 }
 

@@ -212,6 +212,15 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> dot(MVec2d<T> const& A,
 // wedge product (= outer product)
 ////////////////////////////////////////////////////////////////////////////////
 
+// wedge product between two scalars (returns a scalar)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s1, Scalar2d<U> s2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(ctype(s1) * ctype(s2));
+}
+
 // wedge product with one scalar (returns a scaled vector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -1202,8 +1211,8 @@ inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
 // which are in the k-blade u with the basis vectors which are NOT contained in the
 // k-blade u and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  l_cmpl(u) ^ u  = I_2d = e1^e2
-// right complement: u ^ r_cmpl(u)  = I_2d = e1^e2
+// left complement:  l_cmpl(u) ^ u  = I_2d = e1^e2  =>  l_cmpl(u) = I_3d * rev(u)
+// right complement: u ^ r_cmpl(u)  = I_2d = e1^e2  =>  r_cmpl(u) = rev(v) * I_3d
 //
 // in spaces of odd dimension right and left complements are identical and thus there
 // is only one complement operation defined l_cmpl(u), r_cmpl(u) => cmpl(u)
@@ -1217,7 +1226,7 @@ inline constexpr PScalar2d<T> r_cmpl(Scalar2d<T> s)
 {
     // u ^ r_cmpl(u) = e1^e2
     // u = s 1:
-    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = s e1^e2
+    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = rev(s) * I_2d = s e1^e2
     return PScalar2d<T>(T(s));
 }
 
@@ -1227,7 +1236,7 @@ inline constexpr PScalar2d<T> l_cmpl(Scalar2d<T> s)
 {
     // l_cmpl(u) ^ u = e1^e2
     // u = s 1:
-    //     l_cmpl(u) ^ u = e1^e2 => l_cmpl(u) = s e1^e2
+    //     l_cmpl(u) ^ u = e1^e2 => l_cmpl(u) = I_2d * rev(s) = s e1^e2
     return PScalar2d<T>(T(s));
 }
 
@@ -1237,7 +1246,7 @@ inline constexpr Vec2d<T> r_cmpl(Vec2d<T> const& v)
 {
     // u ^ r_cmpl(u) = e1^e2
     // u = v.x e1 + v.y e2:
-    //     u ^ r_cmpl(u) = e1^e2
+    //     u ^ r_cmpl(u) = e1^e2 => cmpl(u) = rev(v) * I_2d
     //     e1 => r_cmpl(u).x =  v.x e2
     //     e2 => r_cmpl(u).y = -v.y e1
 
@@ -1250,7 +1259,7 @@ inline constexpr Vec2d<T> l_cmpl(Vec2d<T> const& v)
 {
     // l_cmpl(u) ^ u = e1^e2
     // u = v.x e1 + v.y e2:
-    //     l_cmpl(u) ^ u = e1^e2
+    //     l_cmpl(u) ^ u = e1^e2 => cmpl(u) = I_2d * rev(v)
     //     e1 => l_cmpl(u).x = -v.x e2
     //     e2 => l_cmpl(u).y =  v.y e1
     return Vec2d<T>(v.y, -v.x);
@@ -1262,7 +1271,7 @@ inline constexpr Scalar2d<T> r_cmpl(PScalar2d<T> ps)
 {
     // u ^ r_cmpl(u) = e1^e2
     // u = ps e1^e2:
-    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = ps 1
+    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = rev(ps) * I_2d = ps 1
     return Scalar2d<T>(T(ps));
 }
 
@@ -1272,7 +1281,7 @@ inline constexpr Scalar2d<T> l_cmpl(PScalar2d<T> ps)
 {
     // l_cmpl(u) ^ u = e1^e2
     // u = ps e1^e2:
-    //     l_cmpl(u) ^ u = e1^e2 => l_cmpl(u) = ps 1
+    //     l_cmpl(u) ^ u = e1^e2 => l_cmpl(u) = I_2d * rev(ps) = ps 1
     return Scalar2d<T>(T(ps));
 }
 
