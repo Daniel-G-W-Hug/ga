@@ -65,4 +65,28 @@ inline constexpr PScalar2dp<T> gr3(MVec2dp_U<T> const& M)
     return PScalar2dp<T>(M.c3);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// addition operations to combine vectors and trivectors to uneven grade multivectors
+////////////////////////////////////////////////////////////////////////////////
+
+// vector + pseudoscalar => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(Vec2dp<T> const& v,
+                                                               PScalar2dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_U<ctype>(v, ps);
+}
+
+// pseudoscalar + vector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps,
+                                                               Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_U<ctype>(v, ps);
+}
+
 } // namespace hd::ga

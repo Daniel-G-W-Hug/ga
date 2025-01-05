@@ -64,4 +64,28 @@ inline constexpr TriVec4d<T> gr3(MVec4d_U<T> const& M)
     return TriVec4d<T>(M.c4, M.c5, M.c6, M.c7);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// addition operations to combine vectors and trivectors to uneven grade multivectors
+////////////////////////////////////////////////////////////////////////////////
+
+// vector + trivector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec4d_U<std::common_type_t<T, U>> operator+(Vec4d<T> const& v,
+                                                              TriVec4d<T> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4d_U<ctype>(v, t);
+}
+
+// trivector + vector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec4d_U<std::common_type_t<T, U>> operator+(TriVec4d<T> const& t,
+                                                              Vec4d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4d_U<ctype>(v, t);
+}
+
 } // namespace hd::ga

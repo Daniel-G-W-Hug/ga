@@ -65,4 +65,68 @@ inline constexpr PScalar2d<T> gr2(MVec2d_E<T> const& M)
     return PScalar2d<T>(M.c1);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// addition operations to combine scalars and bivectors to even grade multivectors
+////////////////////////////////////////////////////////////////////////////////
+
+// scalar + bivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
+                                                              PScalar2d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d_E<ctype>(s, ps);
+}
+
+// bivector + scalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
+                                                              Scalar2d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d_E<ctype>(s, ps);
+}
+
+// scalar + even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
+                                                              MVec2d_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d_E<ctype>(s + M.c0, M.c1);
+}
+
+// even grade multivector + scalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
+                                                              Scalar2d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d_E<ctype>(s + M.c0, M.c1);
+}
+
+// pseudosscalar + even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
+                                                              MVec2d_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d_E<ctype>(M.c0, ps + M.c1);
+}
+
+// even grade multivector + pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
+                                                              PScalar2d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d_E<ctype>(M.c0, ps + M.c1);
+}
+
 } // namespace hd::ga

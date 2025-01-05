@@ -62,4 +62,28 @@ inline constexpr BiVec2dp<T> gr2(MVec2dp_E<T> const& M)
     return BiVec2dp<T>(M.c1, M.c2, M.c3);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// addition operations to combine scalars and bivectors to even grade multivectors
+////////////////////////////////////////////////////////////////////////////////
+
+// scalar + bivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator+(Scalar2dp<T> s,
+                                                               BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_E<ctype>(s, B);
+}
+
+// bivector + scalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator+(BiVec2dp<T> const& B,
+                                                               Scalar2dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_E<ctype>(s, B);
+}
+
 } // namespace hd::ga

@@ -28,7 +28,9 @@
     - qt6 to be installed from official installer
     - sol2 to be installed from: <https://github.com/ThePhD/sol2>
 
-## Usage of ga library
+## Usage of the ga library
+
+0) Enclose the headers "#include ga/ega.hpp" or "#include ga/pga.hpp" as needed.
 
 1) Make all available that is needed for GA, e.g. by
 
@@ -55,3 +57,6 @@
 
     }
     ```
+
+3) Due to low operator priority it is important to always enclose the left and right
+   contraction performed by operator<<() and operator>>() in braces!
