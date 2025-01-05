@@ -170,22 +170,24 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
     TEST_CASE("Vec2d: fmt & cout printing")
     {
-        fmt::println("Vec2d: fmt & cout printing");
+        fmt::println("Vec2d: fmt & cout printing:\n");
 
         vec2d pf{1.0f, 2.00001f};
         vec2d pd{1.0, 2.00001};
 
         std::cout << "       cout: pf = " << pf << std::endl;
         fmt::println("       fmt:  pf = {}", pf);
-        fmt::println("       fmt:  pf = {:.8f}", pf);
+        fmt::println("       fmt:  pf = {:.4f}", pf);
+        fmt::println("");
 
         std::cout << "       cout: pd = " << pd << std::endl;
         fmt::println("       fmt:  pd = {}", pd);
-        fmt::println("       fmt:  pd = {:.8f}", pd);
+        fmt::println("       fmt:  pd = {:.4f}", pd);
+        fmt::println("");
 
         std::vector<Vec2d<double>> vp1{{1.0, 1.0}, {1.5, 2.0}};
         fmt::println("       fmt: vp1 = {}", fmt::join(vp1, ", "));
-        fmt::println("       fmt: vp1 = {:e}", fmt::join(vp1, ", "));
+        fmt::println("       fmt: vp1 = {:g}", fmt::join(vp1, ", "));
         fmt::println("");
 
         CHECK(nrm_sq(pf - pd) < eps);
@@ -596,22 +598,24 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
     TEST_CASE("MVec2d: fmt & cout printing")
     {
-        fmt::println("MVec2d: fmt & cout printing");
+        fmt::println("MVec2d: fmt & cout printing:\n");
 
         mvec2d pf{1.0f, 2.00001f, 0.0f, 3.0f};
         mvec2d pd{1.0, 2.00001, 0.0, 3.0};
 
         std::cout << "   cout: pf = " << pf << std::endl;
         fmt::println("    fmt: pf = {}", pf);
-        fmt::println("    fmt: pf = {:.8f}", pf);
+        fmt::println("    fmt: pf = {:.4f}", pf);
+        fmt::println("");
 
         std::cout << "   cout: pd = " << pd << std::endl;
         fmt::println("    fmt: pd = {}", pd);
-        fmt::println("    fmt: pd = {:.8f}", pd);
+        fmt::println("    fmt: pd = {:.4f}", pd);
+        fmt::println("");
 
         std::vector<MVec2d<double>> vp1{{1.0, 1.0, 1.0, 2.0}, {0.5, 1.5, 2.0, 2.5}};
         fmt::println("    fmt: vp1 = {}", fmt::join(vp1, ", "));
-        fmt::println("    fmt: vp1 = {:e}", fmt::join(vp1, ", "));
+        fmt::println("    fmt: vp1 = {:g}", fmt::join(vp1, ", "));
         fmt::println("");
 
         CHECK(nrm_sq(pf - pd) < eps);
@@ -1503,22 +1507,24 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
     TEST_CASE("Vec3d: fmt & cout printing")
     {
-        fmt::println("Vec3d: fmt & cout printing");
+        fmt::println("Vec3d: fmt & cout printing:\n");
 
         vec3d pf{1.0f, 2.00001f, 3.0f};
         vec3d pd{1.0, 2.00001, 3.0};
 
         // std::cout << "       cout: pf = " << pf << std::endl;
         fmt::println("       fmt:  pf = {}", pf);
-        fmt::println("       fmt:  pf = {:.8f}", pf);
+        fmt::println("       fmt:  pf = {:.4f}", pf);
+        fmt::println("");
 
         // std::cout << "       cout: pd = " << pd << std::endl;
         fmt::println("       fmt:  pd = {}", pd);
-        fmt::println("       fmt:  pd = {:.8f}", pd);
+        fmt::println("       fmt:  pd = {:.4f}", pd);
+        fmt::println("");
 
         std::vector<Vec3d<double>> vp1{{1.0, 1.0, 1.0}, {1.5, 2.0, 3.0}};
         fmt::println("       fmt: vp1 = {}", fmt::join(vp1, ", "));
-        fmt::println("       fmt: vp1 = {:e}", fmt::join(vp1, ", "));
+        fmt::println("       fmt: vp1 = {:g}", fmt::join(vp1, ", "));
         fmt::println("");
 
         CHECK(nrm_sq(pf - pd) < eps);
@@ -2165,23 +2171,25 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
     TEST_CASE("MVec3d: fmt & cout printing")
     {
-        fmt::println("MVec3d: fmt & cout printing");
+        fmt::println("MVec3d: fmt & cout printing:\n");
 
         mvec3d pf{1.0f, 2.00001f, 0.0f, 3.0f, 1.0f, 2.00001f, 0.0f, 3.0f};
         mvec3d pd{1.0, 2.00001, 0.0, 3.0, 1.0, 2.00001, 0.0, 3.0};
 
         std::cout << "    cout: pf = " << pf << std::endl;
         fmt::println("    fmt:  pf = {}", pf);
-        fmt::println("    fmt:  pf = {:.8f}", pf);
+        fmt::println("    fmt:  pf = {:.4f}", pf);
+        fmt::println("");
 
         std::cout << "    cout: pd = " << pd << std::endl;
         fmt::println("    fmt:  pd = {}", pd);
-        fmt::println("    fmt:  pd = {:.8f}", pd);
+        fmt::println("    fmt:  pd = {:.4f}", pd);
+        fmt::println("");
 
         std::vector<MVec3d<double>> vp1{{1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 2.0},
                                         {0.5, 1.5, 2.0, 2.5, 1.0, 1.0, 1.0, 2.0}};
         fmt::println("    fmt: vp1 = {}", fmt::join(vp1, ", "));
-        fmt::println("    fmt: vp1 = {:e}", fmt::join(vp1, ", "));
+        fmt::println("    fmt: vp1 = {:g}", fmt::join(vp1, ", "));
         fmt::println("");
 
         CHECK(nrm_sq(pf - pd) < eps);
@@ -3881,26 +3889,44 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // auto e1 = e1_3d;
         // auto e2 = e2_3d;
         // auto e3 = e3_3d;
+        // auto e23 = e23_3d;
+        // auto e31 = e31_3d;
+        // auto e12 = e12_3d;
         // auto ps = I_3d;
-        // fmt::println("   u:  s, e1, e2, e3, ps \n"
-        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
-        //              s, e1, e2, e3, ps);
+        // fmt::println("   u:  s, e1, e2, e3, e23, e31, e12, ps \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}, \n"
+        //              "{:.3f}, {:.3f}, {:.3f}, {:.3f}",
+        //              s, e1, e2, e3, e23, e31, e12, ps);
         // fmt::println("");
-        // fmt::println("   cmpl(u):  cmpl(s), cmpl(e1), cmpl(e2), cmpl(e3), cmpl(ps) \n"
-        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
-        //              cmpl(s), cmpl(e1), cmpl(e2), cmpl(e3), cmpl(ps));
+        // fmt::println("   cmpl(u):  cmpl(s), cmpl(e1), cmpl(e2), cmpl(e3) \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              cmpl(s), cmpl(e1), cmpl(e2), cmpl(e3));
+        // fmt::println("");
+        // fmt::println("   cmpl(u):  cmpl(e23), cmpl(e31), cmpl(e12), cmpl(ps) \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              cmpl(e23), cmpl(e31), cmpl(e12), cmpl(ps));
         // fmt::println("");
         // fmt::println("   rev(u)*I_3d:  rev(s)*I_3d, rev(e1)*I_3d, rev(e2)*I_3d, "
-        //              "rev(e3)*I_3d, rev(ps)*I_3d \n"
-        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
-        //              rev(s) * I_3d, rev(e1) * I_3d, rev(e2) * I_3d, rev(e3) * I_3d,
-        //              rev(ps) * I_3d);
+        //              "rev(e3)*I_3d \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              rev(s) * I_3d, rev(e1) * I_3d, rev(e2) * I_3d, rev(e3) * I_3d);
+        // fmt::println("");
+        // fmt::println("   rev(u)*I_3d:  rev(e23)*I_3d, rev(e31)*I_3d, "
+        //              "rev(e12)*I_3d, rev(ps)*I_3d \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              rev(e23) * I_3d, rev(e31) * I_3d, rev(e12) * I_3d, rev(ps) *
+        //              I_3d);
         // fmt::println("");
         // fmt::println("   I_3d*rev(u):  I_3d*rev(s), I_3d*rev(e1), I_3d*rev(e2), "
-        //              "I_3d*rev(e3), I_3d*rev(ps) \n"
-        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}, {:.3f}",
-        //              I_3d * rev(s), I_3d * rev(e1), I_3d * rev(e2), I_3d * rev(e3),
-        //              I_3d * rev(ps));
+        //              "I_3d*rev(e3) \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              I_3d * rev(s), I_3d * rev(e1), I_3d * rev(e2), I_3d * rev(e3));
+        // fmt::println("");
+        // fmt::println("   I_3d*rev(u):  I_3d*rev(e23), I_3d*rev(e31), "
+        //              "I_3d*rev(e13), I_3d*rev(ps) \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              I_3d * rev(e23), I_3d * rev(e31), I_3d * rev(e12), I_3d *
+        //              rev(ps));
         // fmt::println("");
 
         CHECK(cmpl(scalar3d(1.0)) == I_3d);

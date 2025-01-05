@@ -18,6 +18,204 @@
 namespace hd::ga::pga {
 
 ////////////////////////////////////////////////////////////////////////////////
+// grade inversion operation: reverse the sign of odd blades
+// gr_inv(A_r) = (-1)^r A_r
+// pattern for k = 0, 1, 2, 3, ...: + - + - + - ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> gr_inv(Scalar2dp<T> s)
+{
+    // grade 0: no sign change
+    return s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> gr_inv(Vec2dp<T> const& v)
+{
+    // grade 1: sign reversal
+    return -v;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> gr_inv(BiVec2dp<T> const& B)
+{
+    // grade 2: no sign change
+    return B;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> gr_inv(PScalar2dp<T> ps)
+{
+    // grade 3: sign reversal
+    return -ps;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> gr_inv(MVec2dp_E<T> const& E)
+{
+    // grade 0 and 2: no sign change
+    return E;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> gr_inv(MVec2dp_U<T> const& U)
+{
+    // grade 1 and 3: sign reversal
+    return -U;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> gr_inv(MVec2dp<T> const& M)
+{
+    // grade 0 and 2: no sign change
+    // grade 1 and 3: sign reversal
+    return MVec2dp<T>(M.c0, -M.c1, -M.c2, -M.c3, M.c4, M.c5, M.c6, -M.c7);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// reversion operation: reverses the factors in a blade
+// rev(A_r) = (-1)^(r*(r-1)/2) A_r
+// pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> rev(Scalar2dp<T> s)
+{
+    // grade 0: no sign change
+    return s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> rev(Vec2dp<T> const& v)
+{
+    // grade 1: no sign change
+    return v;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> rev(BiVec2dp<T> const& B)
+{
+    // grade 2: sign reversal
+    return -B;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> rev(PScalar2dp<T> ps)
+{
+    // grade 3: sign reversal
+    return -ps;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> rev(MVec2dp_E<T> const& E)
+{
+    // grade 0: no sign change
+    // grade 2: sign change
+    return MVec2dp_E<T>(E.c0, -E.c1, -E.c2, -E.c3);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> rev(MVec2dp_U<T> const& U)
+{
+    // grade 1: no sign change
+    // grade 3: sign change
+    return MVec2dp_U<T>(U.c0, U.c1, U.c2, -U.c3);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> rev(MVec2dp<T> const& M)
+{
+    // grade 0: no sign change
+    // grade 1: no sign change
+    // grade 2: sign change
+    // grade 3: sign change
+    return MVec2dp<T>(M.c0, M.c1, M.c2, M.c3, -M.c4, -M.c5, -M.c6, -M.c7);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Clifford conjugation:
+// conj(A_r) = (-1)^(r*(r+1)/2) A_r
+// pattern for k = 0, 1, 2, 3, ...: + - - + + - - + + ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> conj(Scalar2dp<T> s)
+{
+    // grade 0: no sign change
+    return s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> conj(Vec2dp<T> const& v)
+{
+    // grade 1: sign reversal
+    return -v;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> conj(BiVec2dp<T> const& B)
+{
+    // grade 2: sign reversal
+    return -B;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> conj(PScalar2dp<T> ps)
+{
+    // grade 3: no sign change
+    return ps;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> conj(MVec2dp_E<T> const& E)
+{
+    // grade 0: no sign change
+    // grade 2: sign change
+    return MVec2dp_E<T>(E.c0, -E.c1, -E.c2, -E.c3);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> conj(MVec2dp_U<T> const& U)
+{
+    // grade 1: sign reversal
+    // grade 3: no sign change
+    return MVec2dp_U<T>(-U.c0, -U.c1, -U.c2, U.c3);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
+{
+    // grade 0: no sign change
+    // grade 1: sign reversal
+    // grade 2: sign reversal
+    // grade 3: no sign change
+    return MVec2dp<T>(M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, M.c7);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // dot products for 2dp
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -981,7 +1179,7 @@ inline constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
 {
     // u ^ cmpl(u) = e3^e2^e1
     // u = 1:
-    //     1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = e3^e2^e1
+    //     1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = s e3^e2^e1
     return PScalar2dp<T>(T(s));
 }
 
@@ -991,7 +1189,7 @@ inline BiVec2dp<T> cmpl(Vec2dp<T> const& v)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = v.x e1 + v.y e2 + v.z e3:
-    //     u ^ cmpl(u) = e3^e2^e1
+    //     u ^ cmpl(u) = e3^e2^e1 =>
     //     u = e1 => cmpl(u) = -e23
     //     u = e2 => cmpl(u) = -e31
     //     u = e3 => cmpl(u) = -e12
@@ -1004,7 +1202,7 @@ inline Vec2dp<T> cmpl(BiVec2dp<T> const& b)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = b.x e23 + b.y e31 + b.z e12:
-    //     u ^ cmpl(u) = e3^e2^e1
+    //     u ^ cmpl(u) = e3^e2^e1 =>
     //     u = e23 => cmpl(u) = -e1
     //     u = e31 => cmpl(u) = -e2
     //     u = e12 => cmpl(u) = -e3
@@ -1017,8 +1215,32 @@ inline constexpr Scalar2dp<T> cmpl(PScalar2dp<T> ps)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = e3^e2^e1:
-    //     e3^e2^e1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = 1
+    //     e3^e2^e1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = ps 1
     return Scalar2dp<T>(T(ps));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> cmpl(MVec2dp_E<T> const& M)
+{
+    // use the component complements directly
+    return MVec2dp_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> cmpl(MVec2dp_U<T> const& M)
+{
+    // use the component complements directly
+    return MVec2dp_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> cmpl(MVec2dp<T> const& M)
+{
+    // use the component complements directly
+    return MVec2dp<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

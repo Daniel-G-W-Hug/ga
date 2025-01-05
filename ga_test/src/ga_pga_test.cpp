@@ -1385,6 +1385,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         vec2dp v{1.0, 2.0, 3.0};
         bivec2dp b{10.0, 20.0, 30.0};
         pscalar2dp ps{-3.0};
+        auto mv = mvec2dp{s, v, b, ps};
 
         scalar2dp s2{2.5};
         vec2dp v2{0.5, 1.0, 1.5};
@@ -1406,6 +1407,53 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(cmpl(cmpl(v)) == v);
         CHECK(cmpl(cmpl(b)) == b);
         CHECK(cmpl(cmpl(ps)) == ps);
+
+        // check complements
+        // fmt::println("");
+        // s = scalar2dp(1);
+        // auto e1 = e1_2dp;
+        // auto e2 = e2_2dp;
+        // auto e3 = e3_2dp;
+        // auto e23 = e23_2dp;
+        // auto e31 = e31_2dp;
+        // auto e12 = e12_2dp;
+        // ps = I_2dp;
+        // fmt::println("   u:  s, e1, e2, e3, e23, e31, e12, ps \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}, \n"
+        //              "{:.3f}, {:.3f}, {:.3f}, {:.3f}",
+        //              s, e1, e2, e3, e23, e31, e12, ps);
+        // fmt::println("");
+        // fmt::println("   cmpl(u):  cmpl(s), cmpl(e1), cmpl(e2), cmpl(e3) \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              cmpl(s), cmpl(e1), cmpl(e2), cmpl(e3));
+        // fmt::println("");
+        // fmt::println("   cmpl(u):  cmpl(e23), cmpl(e31), cmpl(e12), cmpl(ps) \n"
+        //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
+        //              cmpl(e23), cmpl(e31), cmpl(e12), cmpl(ps));
+        // fmt::println("");
+
+        CHECK(cmpl(scalar2dp(1.0)) == I_2dp);
+        CHECK(cmpl(scalar2dp(1.0)) == rev(scalar2dp(1.0)) * I_2dp);
+        CHECK(cmpl(e1_2dp) == -e23_2dp);
+        CHECK(cmpl(e2_2dp) == -e31_2dp);
+        CHECK(cmpl(e3_2dp) == -e12_2dp);
+        CHECK(cmpl(e23_2dp) == -e1_2dp);
+        CHECK(cmpl(e31_2dp) == -e2_2dp);
+        CHECK(cmpl(e12_2dp) == -e3_2dp);
+        CHECK(cmpl(I_2dp) == scalar2d(1.0));
+        //
+        CHECK(cmpl(cmpl(mv)) == mv);
+        CHECK(cmpl(cmpl(mvec2dp_e(s, b))) == mvec2dp_e(s, b));
+        CHECK(cmpl(cmpl(mvec2dp_u(v, ps))) == mvec2dp_u(v, ps));
+        //
+        CHECK(wdg(scalar2dp(5), cmpl(scalar2dp(5))) / nrm_sq(scalar2dp(5)) == I_2dp);
+        CHECK(wdg(cmpl(scalar2dp(5)), scalar2dp(5)) / nrm_sq(scalar2dp(5)) == I_2dp);
+        CHECK(wdg(v, cmpl(v)) / nrm_sq(v) == I_2dp);
+        CHECK(wdg(cmpl(v), v) / nrm_sq(v) == I_2dp);
+        CHECK(wdg(b, cmpl(b)) / nrm_sq(b) == I_2dp);
+        CHECK(wdg(cmpl(b), b) / nrm_sq(b) == I_2dp);
+        CHECK(wdg(pscalar2dp(3), cmpl(pscalar2dp(3))) / nrm_sq(pscalar2dp(3)) == I_2dp);
+        CHECK(wdg(cmpl(pscalar2dp(3)), pscalar2dp(3)) / nrm_sq(pscalar2dp(3)) == I_2dp);
 
         // linearity of the complement operation
         double a = 2.0;
