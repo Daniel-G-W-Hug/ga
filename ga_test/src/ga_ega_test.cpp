@@ -3820,6 +3820,11 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(wdg(V1, M2) == 0.5 * (V1 * M2 + gr_inv(M2) * V1));
         CHECK(wdg(M2, V1) == 0.5 * (M2 * V1 + V1 * gr_inv(M2)));
 
+        // 2.7
+        // for a bivector B and a multivector M: B * M = (B << M) + cmt(B,M) + wdg(B,M)
+        // the middle part of the rhs is cmt(B,A) = -cmt(A,B) with cmt(A,B)=0.5*(A*B-B*A)
+        CHECK((b1 * M1) == (b1 << M1) - 0.5 * (M1 * b1 - b1 * M1) + wdg(b1, M1));
+
         // product dualities
         CHECK(dual((v1 << v2)) == wdg(v1, dual(v2)));
         CHECK(dual(wdg(v1, v2)) == (v1 << dual(v2)));

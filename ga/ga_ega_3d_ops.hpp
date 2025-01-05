@@ -1469,7 +1469,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
 //                            cmt(B,A) = -cmt(A,B)
 //
 // A * B = dot(A,B) + cmt(A,B) + wdg(A,B)  (in 4d and higher dimensional spaces)
-// A * B = dot(A,B) + cmt(A,B)             (in 3d)
+// A * B = dot(A,B) + cmt(A,B)             (in 3d for the case with two bivectors)
 //
 // => bivector * bivector = scalar + bivector = even grade multivector (in 3d)
 template <typename T, typename U>
