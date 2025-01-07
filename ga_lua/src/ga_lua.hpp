@@ -34,11 +34,14 @@ void register_2d_types(sol::state& lua)
                       sol::resolve<mvec2d_e(scalar2d, pscalar2d)>(operator+),
                       sol::resolve<mvec2d_e(scalar2d, mvec2d_e const&)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<scalar2d(scalar2d, scalar2d)>(operator-),
+        sol::overload(sol::resolve<scalar2d(scalar2d, scalar2d)>(operator-),
+                      sol::resolve<mvec2d_e(scalar2d, pscalar2d)>(operator-),
+                      sol::resolve<mvec2d_e(scalar2d, mvec2d_e const&)>(operator-)),
         sol::meta_function::power_of,
         sol::overload(sol::resolve<scalar2d(scalar2d, scalar2d)>(wdg),
                       sol::resolve<vec2d(scalar2d, vec2d const&)>(wdg),
-                      sol::resolve<pscalar2d(scalar2d, pscalar2d)>(wdg)),
+                      sol::resolve<pscalar2d(scalar2d, pscalar2d)>(wdg),
+                      sol::resolve<mvec2d(scalar2d, mvec2d const&)>(wdg)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<scalar2d(scalar2d, scalar2d)>(operator*),
                       sol::resolve<vec2d(scalar2d, vec2d const&)>(operator*),
@@ -47,7 +50,12 @@ void register_2d_types(sol::state& lua)
         sol::resolve<scalar2d(scalar2d, value_t)>(operator/),
         sol::meta_function::bitwise_left_shift,
         sol::overload(sol::resolve<vec2d(scalar2d, vec2d const&)>(operator<<),
-                      sol::resolve<pscalar2d(scalar2d, pscalar2d)>(operator<<)));
+                      sol::resolve<pscalar2d(scalar2d, pscalar2d)>(operator<<),
+                      sol::resolve<mvec2d_e(scalar2d, mvec2d_e const&)>(operator<<),
+                      sol::resolve<mvec2d(scalar2d, mvec2d const&)>(operator<<)),
+        sol::meta_function::bitwise_right_shift,
+        sol::overload(sol::resolve<scalar2d(scalar2d, pscalar2d)>(operator>>),
+                      sol::resolve<scalar2d(scalar2d, vec2d const&)>(operator>>)));
 
 
     lua.new_usertype<pscalar2d>(
@@ -59,8 +67,13 @@ void register_2d_types(sol::state& lua)
                       sol::resolve<mvec2d_e(pscalar2d, scalar2d)>(operator+),
                       sol::resolve<mvec2d_e(pscalar2d, mvec2d_e const&)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<pscalar2d(pscalar2d, pscalar2d)>(operator-),
-        sol::meta_function::power_of, sol::resolve<pscalar2d(pscalar2d, scalar2d)>(wdg),
+        sol::overload(sol::resolve<pscalar2d(pscalar2d, pscalar2d)>(operator-),
+                      sol::resolve<mvec2d_e(pscalar2d, scalar2d)>(operator-),
+                      sol::resolve<mvec2d_e(pscalar2d, mvec2d_e const&)>(operator-)),
+        sol::meta_function::power_of,
+        sol::overload(sol::resolve<pscalar2d(pscalar2d, scalar2d)>(wdg),
+                      sol::resolve<scalar2d(pscalar2d, vec2d const&)>(wdg),
+                      sol::resolve<scalar2d(pscalar2d, pscalar2d)>(wdg)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<pscalar2d(pscalar2d, value_t)>(operator*),
                       sol::resolve<pscalar2d(value_t, pscalar2d)>(operator*),
@@ -72,6 +85,9 @@ void register_2d_types(sol::state& lua)
                       sol::resolve<scalar2d(pscalar2d, pscalar2d)>(operator*)),
         sol::meta_function::division,
         sol::resolve<pscalar2d(pscalar2d, value_t)>(operator/),
+        sol::meta_function::bitwise_left_shift,
+        sol::overload(sol::resolve<scalar2d(pscalar2d, scalar2d)>(operator<<),
+                      sol::resolve<scalar2d(pscalar2d, vec2d const&)>(operator<<)),
         sol::meta_function::bitwise_right_shift,
         sol::overload(sol::resolve<vec2d(pscalar2d, vec2d const&)>(operator>>),
                       sol::resolve<pscalar2d(pscalar2d, scalar2d)>(operator>>)));
@@ -88,7 +104,8 @@ void register_2d_types(sol::state& lua)
         sol::resolve<vec2d(vec2d const&, vec2d const&)>(operator-),
         sol::meta_function::power_of,
         sol::overload(sol::resolve<vec2d(vec2d const&, scalar2d)>(wdg),
-                      sol::resolve<pscalar2d(vec2d const&, vec2d const&)>(wdg)),
+                      sol::resolve<pscalar2d(vec2d const&, vec2d const&)>(wdg),
+                      sol::resolve<mvec2d(vec2d const&, mvec2d const&)>(wdg)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<vec2d(vec2d const&, value_t)>(operator*),
                       sol::resolve<vec2d(value_t, vec2d const&)>(operator*),
@@ -101,10 +118,13 @@ void register_2d_types(sol::state& lua)
         sol::resolve<vec2d(vec2d const&, value_t)>(operator/),
         sol::meta_function::bitwise_left_shift,
         sol::overload(sol::resolve<scalar2d(vec2d const&, vec2d const&)>(operator<<),
-                      sol::resolve<vec2d(vec2d const&, pscalar2d)>(operator<<)),
+                      sol::resolve<vec2d(vec2d const&, pscalar2d)>(operator<<),
+                      sol::resolve<scalar2d(vec2d const&, scalar2d)>(operator<<),
+                      sol::resolve<mvec2d(vec2d const&, mvec2d const&)>(operator<<)),
         sol::meta_function::bitwise_right_shift,
         sol::overload(sol::resolve<vec2d(vec2d const&, scalar2d)>(operator>>),
-                      sol::resolve<scalar2d(vec2d const&, vec2d const&)>(operator>>)));
+                      sol::resolve<scalar2d(vec2d const&, vec2d const&)>(operator>>),
+                      sol::resolve<scalar2d(vec2d const&, pscalar2d)>(operator>>)));
 
 
     lua.new_usertype<mvec2d_e>(
@@ -119,7 +139,9 @@ void register_2d_types(sol::state& lua)
                       sol::resolve<mvec2d_e(mvec2d_e const&, scalar2d)>(operator+),
                       sol::resolve<mvec2d_e(mvec2d_e const&, pscalar2d)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<mvec2d_e(mvec2d_e const&, mvec2d_e const&)>(operator-),
+        sol::overload(sol::resolve<mvec2d_e(mvec2d_e const&, mvec2d_e const&)>(operator-),
+                      sol::resolve<mvec2d_e(mvec2d_e const&, scalar2d)>(operator-),
+                      sol::resolve<mvec2d_e(mvec2d_e const&, pscalar2d)>(operator-)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<mvec2d_e(mvec2d_e const&, value_t)>(operator*),
                       sol::resolve<mvec2d_e(value_t, mvec2d_e const&)>(operator*),
@@ -130,7 +152,9 @@ void register_2d_types(sol::state& lua)
                       sol::resolve<mvec2d(mvec2d_e const&, mvec2d const&)>(operator*),
                       sol::resolve<vec2d(mvec2d_e const&, vec2d const&)>(operator*)),
         sol::meta_function::division,
-        sol::resolve<mvec2d_e(mvec2d_e const&, value_t)>(operator/));
+        sol::resolve<mvec2d_e(mvec2d_e const&, value_t)>(operator/),
+        sol::meta_function::bitwise_right_shift,
+        sol::resolve<mvec2d_e(mvec2d_e const&, scalar2d)>(operator>>));
 
 
     lua.new_usertype<mvec2d>(
@@ -147,7 +171,8 @@ void register_2d_types(sol::state& lua)
         sol::meta_function::subtraction,
         sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(operator-),
         sol::meta_function::power_of,
-        sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(wdg),
+        sol::overload(sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(wdg),
+                      sol::resolve<mvec2d(mvec2d const&, vec2d const&)>(wdg)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<mvec2d(mvec2d const&, value_t)>(operator*),
                       sol::resolve<mvec2d(value_t, mvec2d const&)>(operator*),
@@ -161,7 +186,9 @@ void register_2d_types(sol::state& lua)
         sol::meta_function::bitwise_left_shift,
         sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(operator<<),
         sol::meta_function::bitwise_right_shift,
-        sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(operator>>));
+        sol::overload(sol::resolve<mvec2d(mvec2d const&, scalar2d)>(operator>>),
+                      sol::resolve<mvec2d(mvec2d const&, vec2d const&)>(operator>>),
+                      sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(operator>>)));
 }
 
 
@@ -182,12 +209,15 @@ void register_3d_types(sol::state& lua)
                       sol::resolve<mvec3d_e(scalar3d, bivec3d const&)>(operator+),
                       sol::resolve<mvec3d_e(scalar3d, mvec3d_e const&)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<scalar3d(scalar3d, scalar3d)>(operator-),
+        sol::overload(sol::resolve<scalar3d(scalar3d, scalar3d)>(operator-),
+                      sol::resolve<mvec3d_e(scalar3d, bivec3d const&)>(operator-),
+                      sol::resolve<mvec3d_e(scalar3d, mvec3d_e const&)>(operator-)),
         sol::meta_function::power_of,
         sol::overload(sol::resolve<scalar3d(scalar3d, scalar3d)>(wdg),
                       sol::resolve<vec3d(scalar3d, vec3d const&)>(wdg),
                       sol::resolve<bivec3d(scalar3d, bivec3d const&)>(wdg),
-                      sol::resolve<pscalar3d(scalar3d, pscalar3d)>(wdg)),
+                      sol::resolve<pscalar3d(scalar3d, pscalar3d)>(wdg),
+                      sol::resolve<mvec3d(scalar3d, mvec3d const&)>(wdg)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<scalar3d(scalar3d, scalar3d)>(operator*),
                       sol::resolve<vec3d(scalar3d, vec3d const&)>(operator*),
@@ -202,7 +232,12 @@ void register_3d_types(sol::state& lua)
                       sol::resolve<pscalar3d(scalar3d, pscalar3d)>(operator<<),
                       sol::resolve<mvec3d_e(scalar3d, mvec3d_e const&)>(operator<<),
                       sol::resolve<mvec3d_u(scalar3d, mvec3d_u const&)>(operator<<),
-                      sol::resolve<mvec3d(scalar3d, mvec3d const&)>(operator<<)));
+                      sol::resolve<mvec3d(scalar3d, mvec3d const&)>(operator<<)),
+        sol::meta_function::bitwise_right_shift,
+        sol::overload(sol::resolve<scalar3d(scalar3d, pscalar3d)>(operator>>),
+                      sol::resolve<scalar3d(scalar3d, bivec3d const&)>(operator>>),
+                      sol::resolve<scalar3d(scalar3d, vec3d const&)>(operator>>)));
+
 
     lua.new_usertype<pscalar3d>(
         "pscalar3d",
@@ -213,8 +248,14 @@ void register_3d_types(sol::state& lua)
                       sol::resolve<mvec3d_u(pscalar3d, vec3d const&)>(operator+),
                       sol::resolve<mvec3d_u(pscalar3d, mvec3d_u const&)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<pscalar3d(pscalar3d, pscalar3d)>(operator-),
-        sol::meta_function::power_of, sol::resolve<pscalar3d(pscalar3d, scalar3d)>(wdg),
+        sol::overload(sol::resolve<pscalar3d(pscalar3d, pscalar3d)>(operator-),
+                      sol::resolve<mvec3d_u(pscalar3d, vec3d const&)>(operator-),
+                      sol::resolve<mvec3d_u(pscalar3d, mvec3d_u const&)>(operator-)),
+        sol::meta_function::power_of,
+        sol::overload(sol::resolve<pscalar3d(pscalar3d, scalar3d)>(wdg),
+                      sol::resolve<scalar3d(pscalar3d, vec3d const&)>(wdg),
+                      sol::resolve<scalar3d(pscalar3d, bivec3d const&)>(wdg),
+                      sol::resolve<scalar3d(pscalar3d, pscalar3d)>(wdg)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<pscalar3d(pscalar3d, value_t)>(operator*),
                       sol::resolve<pscalar3d(value_t, pscalar3d)>(operator*),
@@ -228,6 +269,10 @@ void register_3d_types(sol::state& lua)
                       sol::resolve<pscalar3d(pscalar3d, scalar3d)>(operator*)),
         sol::meta_function::division,
         sol::resolve<pscalar3d(pscalar3d, value_t)>(operator/),
+        sol::meta_function::bitwise_left_shift,
+        sol::overload(sol::resolve<scalar3d(pscalar3d, scalar3d)>(operator<<),
+                      sol::resolve<scalar3d(pscalar3d, vec3d const&)>(operator<<),
+                      sol::resolve<scalar3d(pscalar3d, bivec3d const&)>(operator<<)),
         sol::meta_function::bitwise_right_shift,
         sol::overload(sol::resolve<pscalar3d(pscalar3d, scalar3d)>(operator>>),
                       sol::resolve<bivec3d(pscalar3d, vec3d const&)>(operator>>),
@@ -244,11 +289,14 @@ void register_3d_types(sol::state& lua)
                       sol::resolve<mvec3d_u(vec3d const&, pscalar3d)>(operator+),
                       sol::resolve<mvec3d_u(vec3d const&, mvec3d_u const&)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<vec3d(vec3d const&, vec3d const&)>(operator-),
+        sol::overload(sol::resolve<vec3d(vec3d const&, vec3d const&)>(operator-),
+                      sol::resolve<mvec3d_u(vec3d const&, pscalar3d)>(operator-),
+                      sol::resolve<mvec3d_u(vec3d const&, mvec3d_u const&)>(operator-)),
         sol::meta_function::power_of,
         sol::overload(sol::resolve<vec3d(vec3d const&, scalar3d)>(wdg),
                       sol::resolve<bivec3d(vec3d const&, vec3d const&)>(wdg),
                       sol::resolve<pscalar3d(vec3d const&, bivec3d const&)>(wdg),
+                      sol::resolve<scalar3d(vec3d const&, pscalar3d)>(wdg),
                       sol::resolve<mvec3d(vec3d const&, mvec3d const&)>(wdg)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<vec3d(vec3d const&, value_t)>(operator*),
@@ -264,10 +312,13 @@ void register_3d_types(sol::state& lua)
         sol::overload(sol::resolve<scalar3d(vec3d const&, vec3d const&)>(operator<<),
                       sol::resolve<vec3d(vec3d const&, bivec3d const&)>(operator<<),
                       sol::resolve<bivec3d(vec3d const&, pscalar3d)>(operator<<),
+                      sol::resolve<scalar3d(vec3d const&, scalar3d)>(operator<<),
                       sol::resolve<mvec3d(vec3d const&, mvec3d const&)>(operator<<)),
         sol::meta_function::bitwise_right_shift,
         sol::overload(sol::resolve<vec3d(vec3d const&, scalar3d)>(operator>>),
-                      sol::resolve<scalar3d(vec3d const&, vec3d const&)>(operator>>)));
+                      sol::resolve<scalar3d(vec3d const&, vec3d const&)>(operator>>),
+                      sol::resolve<scalar3d(vec3d const&, pscalar3d)>(operator>>),
+                      sol::resolve<scalar3d(vec3d const&, bivec3d const&)>(operator>>)));
 
 
     lua.new_usertype<bivec3d>(
@@ -281,10 +332,13 @@ void register_3d_types(sol::state& lua)
                       sol::resolve<mvec3d_e(bivec3d const&, scalar3d)>(operator+),
                       sol::resolve<mvec3d_e(bivec3d const&, mvec3d_e const&)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(operator-),
+        sol::overload(sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(operator-),
+                      sol::resolve<mvec3d_e(bivec3d const&, scalar3d)>(operator-),
+                      sol::resolve<mvec3d_e(bivec3d const&, mvec3d_e const&)>(operator-)),
         sol::meta_function::power_of,
         sol::overload(sol::resolve<bivec3d(bivec3d const&, scalar3d)>(wdg),
                       sol::resolve<pscalar3d(bivec3d const&, vec3d const&)>(wdg),
+                      sol::resolve<scalar3d(bivec3d const&, bivec3d const&)>(wdg),
                       sol::resolve<mvec3d(bivec3d const&, mvec3d const&)>(wdg)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<bivec3d(bivec3d const&, value_t)>(operator*),
@@ -300,11 +354,14 @@ void register_3d_types(sol::state& lua)
         sol::meta_function::bitwise_left_shift,
         sol::overload(sol::resolve<scalar3d(bivec3d const&, bivec3d const&)>(operator<<),
                       sol::resolve<vec3d(bivec3d const&, pscalar3d)>(operator<<),
+                      sol::resolve<scalar3d(bivec3d const&, scalar3d)>(operator<<),
+                      sol::resolve<scalar3d(bivec3d const&, vec3d const&)>(operator<<),
                       sol::resolve<mvec3d(bivec3d const&, mvec3d const&)>(operator<<)),
         sol::meta_function::bitwise_right_shift,
         sol::overload(sol::resolve<bivec3d(bivec3d const&, scalar3d)>(operator>>),
                       sol::resolve<scalar3d(bivec3d const&, bivec3d const&)>(operator>>),
-                      sol::resolve<vec3d(bivec3d const&, vec3d const&)>(operator>>)));
+                      sol::resolve<vec3d(bivec3d const&, vec3d const&)>(operator>>),
+                      sol::resolve<scalar3d(bivec3d const&, pscalar3d)>(operator>>)));
 
 
     lua.new_usertype<mvec3d_e>(
@@ -320,7 +377,9 @@ void register_3d_types(sol::state& lua)
                       sol::resolve<mvec3d_e(mvec3d_e const&, scalar3d)>(operator+),
                       sol::resolve<mvec3d_e(mvec3d_e const&, bivec3d const&)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<mvec3d_e(mvec3d_e const&, mvec3d_e const&)>(operator-),
+        sol::overload(sol::resolve<mvec3d_e(mvec3d_e const&, mvec3d_e const&)>(operator-),
+                      sol::resolve<mvec3d_e(mvec3d_e const&, scalar3d)>(operator-),
+                      sol::resolve<mvec3d_e(mvec3d_e const&, bivec3d const&)>(operator-)),
         sol::meta_function::multiplication,
         sol::overload(
             sol::resolve<mvec3d_e(mvec3d_e const&, value_t)>(operator*),
@@ -350,7 +409,9 @@ void register_3d_types(sol::state& lua)
                       sol::resolve<mvec3d_u(mvec3d_u const&, pscalar3d)>(operator+),
                       sol::resolve<mvec3d_u(mvec3d_u const&, vec3d const&)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<mvec3d_u(mvec3d_u const&, mvec3d_u const&)>(operator-),
+        sol::overload(sol::resolve<mvec3d_u(mvec3d_u const&, mvec3d_u const&)>(operator-),
+                      sol::resolve<mvec3d_u(mvec3d_u const&, pscalar3d)>(operator-),
+                      sol::resolve<mvec3d_u(mvec3d_u const&, vec3d const&)>(operator-)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<mvec3d_u(mvec3d_u const&, value_t)>(operator*),
                       sol::resolve<mvec3d_u(value_t, mvec3d_u const&)>(operator*),
@@ -562,6 +623,12 @@ void register_functions(sol::state& lua)
                              sol::resolve<pscalar2d(scalar2d, pscalar2d)>(wdg),
                              sol::resolve<pscalar2d(pscalar2d, scalar2d)>(wdg),
                              sol::resolve<pscalar2d(vec2d const&, vec2d const&)>(wdg),
+                             sol::resolve<scalar2d(vec2d const&, pscalar2d)>(wdg),
+                             sol::resolve<scalar2d(pscalar2d, vec2d const&)>(wdg),
+                             sol::resolve<scalar2d(pscalar2d, vec2d const&)>(wdg),
+                             sol::resolve<mvec2d(scalar2d, mvec2d const&)>(wdg),
+                             sol::resolve<mvec2d(vec2d const&, mvec2d const&)>(wdg),
+                             sol::resolve<mvec2d(mvec2d const&, vec2d const&)>(wdg),
                              sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(wdg),
                              sol::resolve<scalar3d(scalar3d, scalar3d)>(wdg),
                              sol::resolve<vec3d(scalar3d, vec3d const&)>(wdg),
@@ -573,6 +640,13 @@ void register_functions(sol::state& lua)
                              sol::resolve<bivec3d(vec3d const&, vec3d const&)>(wdg),
                              sol::resolve<pscalar3d(vec3d const&, bivec3d const&)>(wdg),
                              sol::resolve<pscalar3d(bivec3d const&, vec3d const&)>(wdg),
+                             sol::resolve<scalar3d(bivec3d const&, bivec3d const&)>(wdg),
+                             sol::resolve<scalar3d(vec3d const&, pscalar3d)>(wdg),
+                             sol::resolve<scalar3d(pscalar3d, vec3d const&)>(wdg),
+                             sol::resolve<scalar3d(bivec3d const&, pscalar3d)>(wdg),
+                             sol::resolve<scalar3d(pscalar3d, bivec3d const&)>(wdg),
+                             sol::resolve<scalar3d(pscalar3d, pscalar3d)>(wdg),
+                             sol::resolve<mvec3d(scalar3d, mvec3d const&)>(wdg),
                              sol::resolve<mvec3d(vec3d const&, mvec3d const&)>(wdg),
                              sol::resolve<mvec3d(bivec3d const&, mvec3d const&)>(wdg),
                              sol::resolve<mvec3d(mvec3d const&, vec3d const&)>(wdg),

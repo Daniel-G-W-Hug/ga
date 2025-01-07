@@ -3310,17 +3310,11 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(dot(mv2, rev(mv2)) == nrm_sq(mv2));
 
         // wedge product
-        // fmt::println("   mv1                         = {}", mv1);
-        // fmt::println("   mv2                         = {}", mv2);
-        // fmt::println("   wdg(v1,v2)                  = {}", wdg(v1, v2));
-        // fmt::println("   wdg(mvec2d(v1), mvec2d(v2)) = {}", wdg(mvec2d(v1),
-        // mvec2d(v2))); fmt::println("   mvec2d(wdg(v1,v2))          = {}",
-        // mvec2d(wdg(v1, v2))); fmt::println("   wdg(mv1,mv2)                = {}",
-        // wdg(mv1, mv2)); fmt::println(""); fmt::println("   mv1 = {}", mv1);
-        // fmt::println("   mvec2d(v1)        = {}", mvec2d(v1));
-        // fmt::println("   mvec2d(v1) << mv1 = {}", mvec2d(v1) << mv1);
-        // fmt::println("");
         CHECK(wdg(v1, v2) == gr2(wdg(mvec2d(v1), mvec2d(v2))));
+        // check full permissible range of arguments, even the ones delivering 0)
+        CHECK(wdg(v1, ps1) == scalar2d(0.0));
+        CHECK(wdg(ps1, v1) == scalar2d(0.0));
+        CHECK(wdg(ps1, ps1) == scalar2d(0.0));
 
         // contractions and comparison with other products
         // fmt::println("   V1      = {}", V1);
@@ -3452,6 +3446,16 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         CHECK((v1 << wdg(v2, v3)) == wdg(v1 << v2, v3) + wdg(gr_inv(v2), v1 << v3));
         // CHECK((wdg(v1, v2) << v3) == (v1 << scalar2d(v2 << v3)));
+
+        // contractions - check full permissible range of arguments, even the ones
+        // delivering 0 as a result
+        CHECK((ps1 << s1) == 0.0);
+        CHECK((ps1 << v1) == 0.0);
+        CHECK((v1 << s1) == 0.0);
+        //
+        CHECK((s1 >> ps1) == 0.0);
+        CHECK((v1 >> ps1) == 0.0);
+        CHECK((s1 >> v1) == 0.0);
 
         // 2.3.2
         CHECK(V1 * mv2 == (V1 << mv2) + wdg(V1, mv2));
@@ -3620,40 +3624,6 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         auto V3 = mvec3d{v3};
         auto B12 = mvec3d{wdg(v1, v2)};
 
-        // show values
-        // fmt::println("\n   M1      = {}, nrm_sq = {}, nrm = {}", M1, nrm_sq(M1),
-        //              nrm(M1));
-        // fmt::println("   gr0(M1) = {}, nrm_sq = {}, nrm = {}", gr0(M1), nrm_sq(s1),
-        //              nrm(s1));
-        // fmt::println("   gr1(M1) = {}, nrm_sq = {}, nrm = {}", gr1(M1), nrm_sq(v1),
-        //              nrm(v1));
-        // fmt::println("   gr2(M1) = {}, nrm_sq = {}, nrm = {}", gr2(M1), nrm_sq(ps1),
-        //              nrm(ps1));
-        // fmt::println("");
-        // fmt::println("   M2      = {}, nrm_sq = {}, nrm = {}", M2, nrm_sq(M2),
-        //              nrm(M2));
-        // fmt::println("   gr0(M2) = {}, nrm_sq = {}, nrm = {}", gr0(M2), nrm_sq(s2),
-        //              nrm(s2));
-        // fmt::println("   gr1(M2) = {}, nrm_sq = {}, nrm = {}", gr1(M2), nrm_sq(v2),
-        //              nrm(v2));
-        // fmt::println("   gr2(M2) = {}, nrm_sq = {}, nrm = {}", gr2(M2), nrm_sq(ps2),
-        //              nrm(ps2));
-        // fmt::println("");
-
-        // scalar product
-        // fmt::println("   gr0(gr0(M1)*gr0(M2))={}, gr0(gr0(M1)*gr1(M2))={}, "
-        //              "gr0(gr0(M1)*gr2(M2))={}",
-        //              gr0(mvec3d{gr0(M1) * gr0(M2)}), gr0(mvec3d{gr0(M1) *
-        //              gr1(M2)}), gr0(mvec3d{gr0(M1) * gr2(M2)}));
-        // fmt::println("   gr0(gr1(M1)*gr0(M2))={}, gr0(gr1(M1)*gr1(M2))={}, "
-        //              "gr0(gr1(M1)*gr2(M2))={}",
-        //              gr0(mvec3d{gr1(M1) * gr0(M2)}), gr0(mvec3d{gr1(M1) *
-        //              gr1(M2)}), gr0(mvec3d{gr1(M1) * gr2(M2)}));
-        // fmt::println("   gr0(gr2(M1)*gr0(M2))={}, gr0(gr2(M1)*gr1(M2))={}, "
-        //              "gr0(gr2(M1)*gr2(M2))={}",
-        //              gr0(mvec3d{gr2(M1) * gr0(M2)}), gr0(mvec3d{gr2(M1) *
-        //              gr1(M2)}), gr0(mvec3d{gr2(M1) * gr2(M2)}));
-        // fmt::println("");
         CHECK(nrm_sq(M1) == nrm_sq(s1) + nrm_sq(v1) + nrm_sq(b1) + nrm_sq(ps1));
         CHECK(nrm_sq(M2) == nrm_sq(s2) + nrm_sq(v2) + nrm_sq(b2) + nrm_sq(ps2));
         CHECK(gr0(mvec3d{gr0(M1) * gr0(M2)}) + gr0(mvec3d{gr1(M1) * gr1(M2)}) +
@@ -3663,17 +3633,17 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(dot(M2, rev(M2)) == nrm_sq(M2));
 
         // wedge product
-        // fmt::println("   M1                         = {}", M1);
-        // fmt::println("   M2                         = {}", M2);
-        // fmt::println("   wdg(v1,v2)                  = {}", wdg(v1, v2));
-        // fmt::println("   wdg(mvec3d(v1), mvec3d(v2)) = {}", wdg(mvec3d(v1),
-        // mvec3d(v2))); fmt::println("   mvec3d(wdg(v1,v2))          = {}",
-        // mvec3d(wdg(v1, v2))); fmt::println("   wdg(M1,M2)                = {}",
-        // wdg(M1, M2)); fmt::println(""); fmt::println("   M1 = {}", M1);
-        // fmt::println("   mvec3d(v1)        = {}", mvec3d(v1));
-        // fmt::println("   mvec3d(v1) << M1 = {}", mvec3d(v1) << M1);
-        // fmt::println("");
         CHECK(wdg(v1, v2) == gr2(wdg(mvec3d(v1), mvec3d(v2))));
+        // check full permissible range of arguments, even the ones delivering 0)
+        CHECK(wdg(b1, b2) == scalar3d(0.0));
+        CHECK(wdg(v1, ps1) == scalar3d(0.0));
+        CHECK(wdg(ps1, v1) == scalar3d(0.0));
+        CHECK(wdg(b1, ps1) == scalar3d(0.0));
+        CHECK(wdg(ps1, b1) == scalar3d(0.0));
+        CHECK(wdg(ps1, ps1) == scalar3d(0.0));
+        CHECK(wdg(b1, b2) == nrm_sq(b1 * b2 - cmt(b1, b2) - (b1 << b2)));
+        CHECK(wdg(v1, ps1) == nrm_sq(0.5 * (v1 * ps1 + rev(ps1) * v1)));
+        CHECK(wdg(ps1, v1) == nrm_sq(0.5 * (ps1 * v1 + v1 * rev(ps1))));
 
         // contractions and comparison with other products
         // fmt::println("   V1 << Im_3d   = {}", V1 << Im_3d);
@@ -3779,6 +3749,22 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         CHECK((v1 << wdg(v2, v3)) == wdg(v1 << v2, v3) + wdg(gr_inv(v2), v1 << v3));
         CHECK((wdg(v1, v2) << b1) == (v1 << (v2 << b1)));
+
+        // contractions - check full permissible range of arguments, even the ones
+        // delivering 0 as a result
+        CHECK((ps1 << s1) == 0.0);
+        CHECK((ps1 << v1) == 0.0);
+        CHECK((ps1 << b1) == 0.0);
+        CHECK((b1 << s1) == 0.0);
+        CHECK((b1 << v1) == 0.0);
+        CHECK((v1 << s1) == 0.0);
+        //
+        CHECK((s1 >> ps1) == 0.0);
+        CHECK((v1 >> ps1) == 0.0);
+        CHECK((b1 >> ps1) == 0.0);
+        CHECK((s1 >> b1) == 0.0);
+        CHECK((v1 >> b1) == 0.0);
+        CHECK((s1 >> v1) == 0.0);
 
         // 2.3.2
         // 1st with vectors lifted to full multivectors
