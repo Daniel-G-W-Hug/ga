@@ -69,7 +69,7 @@ inline constexpr PScalar2d<T> gr2(MVec2d_E<T> const& M)
 // addition operations to combine scalars and bivectors to even grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// scalar + bivector => even grade multivector
+// scalar + pseudoscalar (=bivector) => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
@@ -79,7 +79,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
     return MVec2d_E<ctype>(s, ps);
 }
 
-// bivector + scalar => even grade multivector
+// pseudoscalar (=bivector) + scalar => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
