@@ -5,6 +5,7 @@
 #include "active_projection.hpp"
 #include "active_common.hpp"
 
+#include "ga/ga_ega.hpp"
 
 active_projection::active_projection(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg,
                                      active_pt2d* uend, active_pt2d* vend,
@@ -47,90 +48,94 @@ void active_projection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     QPointF end_vpos =
         QPointF(cs->x.a_to_w(scenePos_vend().x), cs->y.a_to_w(scenePos_vend().y));
 
-    QPointF u = QPointF(scenePos_uend().x, scenePos_uend().y) -
-                QPointF(scenePos_beg().x, scenePos_beg().y);
-    QPointF v = QPointF(scenePos_vend().x, scenePos_vend().y) -
-                QPointF(scenePos_beg().x, scenePos_beg().y);
+    try {
 
-    QPointF u_inv = u / (u.x() * u.x() + u.y() * u.y());
+        // make all available that is needed for GA
+        using namespace hd::ga;
+        using namespace hd::ga::ega;
 
-    qreal dot = u.x() * v.x() + u.y() * v.y(); // dot(v,u)
+        auto u = vec2d{scenePos_uend().x - scenePos_beg().x,
+                       scenePos_uend().y - scenePos_beg().y};
+        auto v = vec2d{scenePos_vend().x - scenePos_beg().x,
+                       scenePos_vend().y - scenePos_beg().y};
 
-    QPointF vpar = QPointF(scenePos_beg().x, scenePos_beg().y) + dot * u_inv;
+        auto u_inv = vec2d{};
+        if (nrm_sq(u) != 0.0) {
+            u_inv = inv(u); // this could throw if nrm_sq(u) == 0.0
+        }
+        auto v_par = dot(u, v) * u_inv;
 
-    // qDebug() << "vpar:  " << vpar;
-    // qDebug() << "vperp: " << vperp;
-    // qDebug() << "scenePos_beg(): " << scenePos_beg();
+        QPointF vpar = QPointF(scenePos_beg().x + v_par.x, scenePos_beg().y + v_par.y);
 
-    QPointF end_vpar_pos = QPointF(cs->x.a_to_w(vpar.x()), cs->y.a_to_w(vpar.y()));
+        // qDebug() << "vpar:  " << vpar;
+        // qDebug() << "scenePos_beg(): " << scenePos_beg();
 
-    // The sign has to be reversed here, since device coordinates are in a left-handed
-    // system. The angle calculation itself is done in a classical right-handed system.
-    //
-    // Be aware: Depending on aspect ratio of x- vs. y-axis calculated angles will change,
-    // if calculated from device coordinate input. However, they are visually consistent.
-    //
-    // Actual angle calculations for mathematical/physical purposes must use logical
-    // coordinates as input for the calculation exclusively!
-    qreal angle_rel = -angle_between_lines(beg_pos, end_upos, end_vpos);
-    // qDebug() << "active_projection::paint: angle_rel = " << angle_rel;
+        QPointF end_vpar_pos = QPointF(cs->x.a_to_w(vpar.x()), cs->y.a_to_w(vpar.y()));
 
-    if (angle_rel >= 0.0) {
-        qp->setPen(QPen(QBrush(Qt::darkGreen), 4, Qt::SolidLine));
+        qreal angle_rel = angle(u, v);
+        // qDebug() << "active_projection::paint: angle_rel = " << angle_rel;
+
+        if (angle_rel >= 0.0) {
+            qp->setPen(QPen(QBrush(Qt::darkGreen), 4, Qt::SolidLine));
+        }
+        else {
+            qp->setPen(QPen(QBrush(Qt::darkBlue), 4, Qt::SolidLine));
+        }
+        qp->setBrush(Qt::NoBrush);
+        qp->drawPath(anglePath(beg_pos, end_upos, end_vpos));
+
+
+        qp->setPen(QPen(QBrush(Qt::black), 2, Qt::SolidLine));
+        qp->setBrush(Qt::black);
+
+        if (m_mouse_hover && !m_mouse_l_pressed) {
+            qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
+            qp->setBrush(col_green);
+        }
+        if (m_mouse_hover && m_mouse_l_pressed) {
+            qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // pressed: red
+            qp->setBrush(col_red);
+        }
+
+        // draw vectors u and v
+        qp->drawPath(arrowLine(beg_pos, end_upos));
+
+        // from here on we want to draw with a small pen to get a pointy vector head
+        QPen pen = qp->pen();
+        pen.setWidth(1);
+        qp->setPen(pen);
+        qp->drawPath(arrowHead(beg_pos, end_upos));
+
+        pen.setWidth(2);
+        qp->setPen(pen);
+        qp->drawPath(arrowLine(beg_pos, end_vpos));
+
+        // from here on we want to draw with a small pen to get a pointy vector head
+        pen.setWidth(1);
+        qp->setPen(pen);
+        qp->drawPath(arrowHead(beg_pos, end_vpos));
+
+
+        // draw vectors v_par and v_perp
+        qp->setPen(QPen(QBrush(col_blue), 3, Qt::SolidLine));
+        qp->drawPath(arrowLine(beg_pos, end_vpar_pos));
+        pen = qp->pen();
+        pen.setWidth(1);
+        qp->setPen(pen);
+        qp->setBrush(col_blue);
+        qp->drawPath(arrowHead(beg_pos, end_vpar_pos));
+
+        qp->setPen(QPen(QBrush(col_blue), 3, Qt::SolidLine));
+        qp->drawPath(arrowLine(end_vpar_pos, end_vpos));
+        pen = qp->pen();
+        pen.setWidth(1);
+        qp->setPen(pen);
+        qp->setBrush(col_blue);
+        qp->drawPath(arrowHead(end_vpar_pos, end_vpos));
     }
-    else {
-        qp->setPen(QPen(QBrush(Qt::darkBlue), 4, Qt::SolidLine));
+    catch (const std::exception& e) {
+        qDebug() << e.what();
     }
-    qp->setBrush(Qt::NoBrush);
-    qp->drawPath(anglePath(beg_pos, end_upos, end_vpos));
-
-    qp->setPen(QPen(QBrush(Qt::black), 2, Qt::SolidLine));
-    qp->setBrush(Qt::black);
-
-    if (m_mouse_hover && !m_mouse_l_pressed) {
-        qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
-        qp->setBrush(col_green);
-    }
-    if (m_mouse_hover && m_mouse_l_pressed) {
-        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // pressed: red
-        qp->setBrush(col_red);
-    }
-
-    // draw vectors u and v
-    qp->drawPath(arrowLine(beg_pos, end_upos));
-
-    // from here on we want to draw with a small pen to get a pointy vector head
-    QPen pen = qp->pen();
-    pen.setWidth(1);
-    qp->setPen(pen);
-    qp->drawPath(arrowHead(beg_pos, end_upos));
-
-    pen.setWidth(2);
-    qp->setPen(pen);
-    qp->drawPath(arrowLine(beg_pos, end_vpos));
-
-    // from here on we want to draw with a small pen to get a pointy vector head
-    pen.setWidth(1);
-    qp->setPen(pen);
-    qp->drawPath(arrowHead(beg_pos, end_vpos));
-
-
-    // draw vectors v_par and v_perp
-    qp->setPen(QPen(QBrush(col_blue), 3, Qt::SolidLine));
-    qp->drawPath(arrowLine(beg_pos, end_vpar_pos));
-    pen = qp->pen();
-    pen.setWidth(1);
-    qp->setPen(pen);
-    qp->setBrush(col_blue);
-    qp->drawPath(arrowHead(beg_pos, end_vpar_pos));
-
-    qp->setPen(QPen(QBrush(col_blue), 3, Qt::SolidLine));
-    qp->drawPath(arrowLine(end_vpar_pos, end_vpos));
-    pen = qp->pen();
-    pen.setWidth(1);
-    qp->setPen(pen);
-    qp->setBrush(col_blue);
-    qp->drawPath(arrowHead(end_vpar_pos, end_vpos));
 
     // draw bounding box (optional for testing)
     // qp->setPen(col_yel);
