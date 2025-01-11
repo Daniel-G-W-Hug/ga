@@ -33,6 +33,24 @@ struct pt2d { // coordinates of point on x and y axis
     }
 };
 
+struct pt2de { // coordinates of point on x and y axis, z=1.0
+    double x{0.0}, y{0.0}, z{1.0};
+    pt2de(double x_in, double y_in, double z_in) : x(x_in), y(y_in), z(z_in) {}
+    pt2de(pt2d const& p_in) : x(p_in.x), y(p_in.y), z(1.0) {}
+    // pt2d(pt2d const&) = default;
+    // pt2d& operator=(pt2d const&) = default;
+    // pt2d(pt2d&&) = default;
+    // pt2d& operator=(pt2d&&) = default;
+    pt2de() = default;
+    // ~pt2d() noexcept = default;
+
+    bool operator==(pt2de const& rhs) const
+    {
+        if (x == rhs.x && y == rhs.y && z == rhs.z) return true;
+        return false;
+    }
+};
+
 // this struct should be used by the user to mark points
 struct pt2d_mark {
 
@@ -138,6 +156,8 @@ class Coordsys_model {
     // add passive point
     [[maybe_unused]] size_t add_pt(pt2d const& p_in,
                                    pt2d_mark const& m = pt2d_mark_default);
+    [[maybe_unused]] size_t add_pt(pt2de const& p_in,
+                                   pt2d_mark const& m = pt2d_mark_default);
 
     // add passive line
     [[maybe_unused]] size_t add_ln(std::vector<pt2d> const& vp_in,
@@ -170,6 +190,9 @@ class Coordsys_model {
     // data for points (same index is for same point)
     std::vector<pt2d> pt;
     std::vector<pt2d_mark> pt_mark;
+
+    std::vector<pt2de> pte;
+    std::vector<pt2d_mark> pte_mark;
 
     // data for lines consisting of points (same index is for same line)
     std::vector<ln2d> ln;
@@ -217,7 +240,25 @@ constexpr auto fmt::formatter<pt2d>::parse(ParseContext& ctx)
 template <typename FormatContext>
 auto fmt::formatter<pt2d>::format(const pt2d& pt, FormatContext& ctx)
 {
-    return fmt::format_to(ctx.out(), "({}, {})", pt.x, pt.y);
+    return fmt::format_to(ctx.out(), "pt2d({}, {})", pt.x, pt.y);
+}
+
+// formating for user defined types (pt2de)
+template <> struct fmt::formatter<pt2de> {
+    template <typename ParseContext> constexpr auto parse(ParseContext& ctx);
+    template <typename FormatContext> auto format(const pt2de& pt, FormatContext& ctx);
+};
+
+template <typename ParseContext>
+constexpr auto fmt::formatter<pt2de>::parse(ParseContext& ctx)
+{
+    return ctx.begin();
+}
+
+template <typename FormatContext>
+auto fmt::formatter<pt2de>::format(const pt2de& pt, FormatContext& ctx)
+{
+    return fmt::format_to(ctx.out(), "pt2de({}, {}, {})", pt.x, pt.y, pt.z);
 }
 
 
@@ -236,8 +277,8 @@ constexpr auto fmt::formatter<vt2d>::parse(ParseContext& ctx)
 template <typename FormatContext>
 auto fmt::formatter<vt2d>::format(const vt2d& vt, FormatContext& ctx)
 {
-    return fmt::format_to(ctx.out(), "(({}, {}),({}, {}))", vt.beg.x, vt.beg.y, vt.end.x,
-                          vt.end.y);
+    return fmt::format_to(ctx.out(), "vt2d(pt2d({}, {}), pt2d({}, {}))", vt.beg.x,
+                          vt.beg.y, vt.end.x, vt.end.y);
 }
 
 // Bsp. für Anwendung

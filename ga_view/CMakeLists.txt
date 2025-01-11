@@ -43,6 +43,7 @@ set(SOURCES src/main.cpp
             src/active_projection.cpp
             src/active_reflection.cpp
             src/item_pt2d.cpp
+            src/item_pt2de.cpp
             src/item_ln2d.cpp
             src/item_vt2d.cpp)
 

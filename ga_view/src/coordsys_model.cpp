@@ -13,6 +13,15 @@
     return pt.size() - 1;
 }
 
+[[maybe_unused]] size_t Coordsys_model::add_pt(pt2de const& pte_in, pt2d_mark const& m)
+{
+
+    pte.push_back(pte_in);
+    pte_mark.push_back(m);
+
+    return pt.size() - 1;
+}
+
 //
 // hint: using ln2d = std::vector<pt2d>;
 //

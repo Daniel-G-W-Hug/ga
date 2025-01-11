@@ -15,6 +15,7 @@
 
 #include "item_ln2d.hpp"
 #include "item_pt2d.hpp"
+#include "item_pt2de.hpp"
 #include "item_vt2d.hpp"
 
 #include "coordsys_model.hpp"
@@ -163,6 +164,28 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_vt(v3);
 
         cm.set_label("vector model 1");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        pt2de p0(0, 0, 1);
+        pt2de p1(1, 1, 1);
+        pt2de p2(2, 1, 1);
+        pt2de p3(2, 1, 2);
+
+        pt2d_mark p3m;
+        p3m.symbol = Symbol::square;
+        p3m.pen = QPen(Qt::red, 2, Qt::SolidLine);
+
+        cm.add_pt(p0);
+        cm.add_pt(p1);
+        cm.add_pt(p2);
+        cm.add_pt(p3, p3m);
+
+        cm.set_label("projective model 1");
 
         vm.push_back(cm);
     }
@@ -346,6 +369,11 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     // register all passive points
     for (size_t idx = 0; idx < cm->pt.size(); ++idx) {
         scene->addItem(new item_pt2d(cs, wcs, cm, idx));
+    }
+
+    // register all passive points
+    for (size_t idx = 0; idx < cm->pte.size(); ++idx) {
+        scene->addItem(new item_pt2de(cs, wcs, cm, idx));
     }
 
     ///////////////////////////////////////////////////////////////////////////
