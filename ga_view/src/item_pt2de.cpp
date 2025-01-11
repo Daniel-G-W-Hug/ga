@@ -24,12 +24,13 @@ item_pt2de::item_pt2de(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm, size_t
 
 
     if (cm->pte[idx].z == 0.0) {
-        throw std::runtime_error("pt2d2 requires z-component z == 1.0");
+        throw std::runtime_error("pt2de requires z-component z == 1.0");
     };
     if (cm->pte[idx].z != 1.0) {
         // if required, unitze the point as first step
         cm->pte[idx].x /= cm->pte[idx].z;
         cm->pte[idx].y /= cm->pte[idx].z;
+        cm->pte[idx].z = 1.0;
     };
     setPos(cs->x.au_to_w(cm->pte[idx].x),
            cs->y.au_to_w(cm->pte[idx].y)); // set item to scene coordinates
