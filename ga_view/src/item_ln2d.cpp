@@ -25,8 +25,6 @@ item_ln2d::item_ln2d(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm, size_t i
 
     // connect(wcs, &w_Coordsys::viewResized, this, &item_ln2d::viewChanged);
 
-    // setZValue(0); // passive lines should be far down in the stack
-
     // find min and max values for bounding rectangle:
     // QRectF(mapFromScene(QPointF(cs->x.au_to_w(min_x),cs->y.au_to_w(max_y))),
     //        mapFromScene(QPointF(cs->x.au_to_w(max_x),cs->y.au_to_w(min_y))))
@@ -42,11 +40,12 @@ item_ln2d::item_ln2d(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm, size_t i
         min_y = std::min(min_y, 0.0);
         max_y = std::max(max_y, 0.0);
     }
-
     // qDebug() << "min_x: " << min_x;
     // qDebug() << "max_x: " << max_x;
     // qDebug() << "min_y: " << min_y;
     // qDebug() << "max_y: " << max_y;
+
+    setZValue(0); // passive lines should be far down in the stack
 }
 
 void item_ln2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,

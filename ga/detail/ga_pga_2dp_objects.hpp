@@ -8,7 +8,164 @@
 #include "type_t/ga_vec3_t.hpp"
 
 
-namespace hd::ga {
+namespace hd::ga::pga {
+
+////////////////////////////////////////////////////////////////////////////////
+// bulk operations
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T bulk(Vec2dp<T> const& v)
+{
+    return Vec2dp<T>(v.x, v.y, T(0.0));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T bulk(BiVec2dp<T> const& B)
+{
+    return BiVec2dp<T>(T(0.0), T(0.0), B.z);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// weight operations
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T weight(Vec2dp<T> const& v)
+{
+    return Vec2dp<T>(T(0.0), T(0.0), v.z);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T weight(BiVec2dp<T> const& B)
+{
+    return BiVec2dp<T>(B.x, B.y, T(0.0));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// bulk norm operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return squared bulk norm of vector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T bulk_nrm_sq(Vec2dp<T> const& v)
+{
+    // |v|^2 = gr0(v*rev(v)) = gr0(v*v)
+    return v.x * v.x + v.y * v.y;
+}
+
+// return bulk norm of vector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T bulk_nrm(Vec2dp<T> const& v)
+{
+    return std::sqrt(bulk_nrm_sq(v));
+}
+
+// return squared bulk magnitude of bivector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T bulk_nrm_sq(BiVec2dp<T> const& B)
+{
+    // |B|^2 = gr0(B*rev(B))
+    // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
+    // using |B|^2 = gr0(rev(B)*B) = gr0(-B*B) = -gr0(B*B) = -dot(B,B)
+    return B.z * B.z;
+}
+
+// return magnitude of bivector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T bulk_nrm(BiVec2dp<T> const& B)
+{
+    return std::sqrt(bulk_nrm_sq(B));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// weight norm operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return squared weight norm of vector
+// |v|^2 = cmpl( gr0(cmpl(v)*cmpl(v))) ) = rdot(v,rrev(v))
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T weight_nrm_sq(Vec2dp<T> const& v)
+{
+    return v.z * v.z;
+}
+
+// return weigth norm of vector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T weight_nrm(Vec2dp<T> const& v)
+{
+    return std::sqrt(weight_nrm_sq(v));
+}
+
+// return squared weight norm of bivector
+// |B|^2 = cmpl( gr0(cmpl(B)*cmpl(B))) ) = rdot(B, rrev(B)) = rdot(B,B)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T weight_nrm_sq(BiVec2dp<T> const& B)
+{
+    return B.x * B.x + B.y * B.y;
+}
+
+// return weight norm of bivector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T weight_nrm(BiVec2dp<T> const& B)
+{
+    return std::sqrt(weight_nrm_sq(B));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// unitization operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return a vector unitized to v.z == 1.0  (implies weight_nrm(v) = 1.0)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> unitize(Vec2dp<T> const& v)
+{
+    T n = v.z;
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("vector weight_nrm too small for unitization " +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return Vec2dp<T>(v.x * inv, v.y * inv, T(1.0));
+}
+
+// return a bivector unitized to weight_nrm == 1.0
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> unitize(BiVec2dp<T> const& B)
+{
+    T n = weight_nrm(B);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("bivector weight_norm too small for unitization " +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * B;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// convenient type aliases
+////////////////////////////////////////////////////////////////////////////////
 
 // Vector2d: 2d vector of projective algebra storing only components x, y explicitly.
 // The z component is assumed to be z = 0
@@ -146,4 +303,4 @@ Line2dp<T> unitize(Line2dp<T> const& l)
     return Line2dp<T>(l.x * inv, l.y * inv, l.z * inv);
 }
 
-} // namespace hd::ga
+} // namespace hd::ga::pga

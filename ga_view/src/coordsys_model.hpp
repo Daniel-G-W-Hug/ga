@@ -12,43 +12,30 @@
 #include "fmt/format.h"
 #include "fmt/ranges.h" // support printing of (nested) containers & tuples
 
+// use the ga framework
+#include "ga/ga_ega.hpp"
+#include "ga/ga_pga.hpp"
+using namespace hd::ga;      // use ga types, constants, etc.
+using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
+using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
+
 using namespace fmt::literals; // just to make the format literals visible
 
 enum Symbol { plus, cross, circle, square };
 
-struct pt2d { // coordinates of point on x and y axis
-    double x{0.0}, y{0.0};
-    pt2d(double x_in, double y_in) : x(x_in), y(y_in) {}
-    // pt2d(pt2d const&) = default;
-    // pt2d& operator=(pt2d const&) = default;
-    // pt2d(pt2d&&) = default;
-    // pt2d& operator=(pt2d&&) = default;
-    pt2d() = default;
-    // ~pt2d() noexcept = default;
+struct pt2d : public vec2d { // coordinates of point on x and y axis
 
-    bool operator==(pt2d const& rhs) const
-    {
-        if (x == rhs.x && y == rhs.y) return true;
-        return false;
-    }
+    using vec2d::vec2d; // inherit base class ctors
+    using vec2d::x;
+    using vec2d::y;
 };
 
-struct pt2de { // coordinates of point on x and y axis, z=1.0
-    double x{0.0}, y{0.0}, z{1.0};
-    pt2de(double x_in, double y_in, double z_in) : x(x_in), y(y_in), z(z_in) {}
-    pt2de(pt2d const& p_in) : x(p_in.x), y(p_in.y), z(1.0) {}
-    // pt2d(pt2d const&) = default;
-    // pt2d& operator=(pt2d const&) = default;
-    // pt2d(pt2d&&) = default;
-    // pt2d& operator=(pt2d&&) = default;
-    pt2de() = default;
-    // ~pt2d() noexcept = default;
+struct pt2dp : public vec2dp { // coordinates of point on x and y axis, z=1.0
 
-    bool operator==(pt2de const& rhs) const
-    {
-        if (x == rhs.x && y == rhs.y && z == rhs.z) return true;
-        return false;
-    }
+    using vec2dp::vec2dp; // inherit base class ctors
+    using vec2dp::x;
+    using vec2dp::y;
+    using vec2dp::z;
 };
 
 // this struct should be used by the user to mark points
@@ -145,8 +132,10 @@ struct arefl2d {
 
 // ----------------------------------------------------------------------------
 // convenience alias to make pt2d and ln2d look similar
+// convenience alias to make pt2dp and ln2de look similar
 // ----------------------------------------------------------------------------
 using ln2d = std::vector<pt2d>;
+using ln2de = std::vector<pt2dp>;
 // ----------------------------------------------------------------------------
 
 
@@ -156,12 +145,15 @@ class Coordsys_model {
     // add passive point
     [[maybe_unused]] size_t add_pt(pt2d const& p_in,
                                    pt2d_mark const& m = pt2d_mark_default);
-    [[maybe_unused]] size_t add_pt(pt2de const& p_in,
+    [[maybe_unused]] size_t add_pt(pt2dp const& p_in,
                                    pt2d_mark const& m = pt2d_mark_default);
 
     // add passive line
     [[maybe_unused]] size_t add_ln(std::vector<pt2d> const& vp_in,
                                    ln2d_mark const& m = ln2d_mark_default);
+    [[maybe_unused]] size_t add_ln(std::vector<pt2dp> const& vp_in,
+                                   ln2d_mark const& m = ln2d_mark_default);
+
     // add passive vector
     [[maybe_unused]] size_t add_vt(vt2d const& vt_in,
                                    vt2d_mark const& m = vt2d_mark_default);
@@ -191,12 +183,15 @@ class Coordsys_model {
     std::vector<pt2d> pt;
     std::vector<pt2d_mark> pt_mark;
 
-    std::vector<pt2de> pte;
+    std::vector<pt2dp> pte;
     std::vector<pt2d_mark> pte_mark;
 
     // data for lines consisting of points (same index is for same line)
     std::vector<ln2d> ln;
     std::vector<ln2d_mark> ln_mark;
+
+    std::vector<ln2de> lne;
+    std::vector<ln2d_mark> lne_mark;
 
     // data for vectors (same index is for same vector)
     std::vector<vt2d> vt;
@@ -243,22 +238,22 @@ auto fmt::formatter<pt2d>::format(const pt2d& pt, FormatContext& ctx)
     return fmt::format_to(ctx.out(), "pt2d({}, {})", pt.x, pt.y);
 }
 
-// formating for user defined types (pt2de)
-template <> struct fmt::formatter<pt2de> {
+// formating for user defined types (pt2dp)
+template <> struct fmt::formatter<pt2dp> {
     template <typename ParseContext> constexpr auto parse(ParseContext& ctx);
-    template <typename FormatContext> auto format(const pt2de& pt, FormatContext& ctx);
+    template <typename FormatContext> auto format(const pt2dp& pt, FormatContext& ctx);
 };
 
 template <typename ParseContext>
-constexpr auto fmt::formatter<pt2de>::parse(ParseContext& ctx)
+constexpr auto fmt::formatter<pt2dp>::parse(ParseContext& ctx)
 {
     return ctx.begin();
 }
 
 template <typename FormatContext>
-auto fmt::formatter<pt2de>::format(const pt2de& pt, FormatContext& ctx)
+auto fmt::formatter<pt2dp>::format(const pt2dp& pt, FormatContext& ctx)
 {
-    return fmt::format_to(ctx.out(), "pt2de({}, {}, {})", pt.x, pt.y, pt.z);
+    return fmt::format_to(ctx.out(), "pt2dp({}, {}, {})", pt.x, pt.y, pt.z);
 }
 
 

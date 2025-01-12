@@ -397,9 +397,9 @@ struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : nested_formatter<double> {
 // Vector2d<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct fmt::formatter<hd::ga::Vector2d<T>> : nested_formatter<double> {
+struct fmt::formatter<hd::ga::pga::Vector2d<T>> : nested_formatter<double> {
     template <typename FormatContext>
-    auto format(const hd::ga::Vector2d<T>& v, FormatContext& ctx) const
+    auto format(const hd::ga::pga::Vector2d<T>& v, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "Vector2d({},{})", nested(v.x), nested(v.y));
     }
@@ -409,9 +409,9 @@ struct fmt::formatter<hd::ga::Vector2d<T>> : nested_formatter<double> {
 // Point2d<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct fmt::formatter<hd::ga::Point2d<T>> : nested_formatter<double> {
+struct fmt::formatter<hd::ga::pga::Point2d<T>> : nested_formatter<double> {
     template <typename FormatContext>
-    auto format(const hd::ga::Point2d<T>& v, FormatContext& ctx) const
+    auto format(const hd::ga::pga::Point2d<T>& v, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "Point2d({},{})", nested(v.x), nested(v.y));
     }
@@ -421,9 +421,9 @@ struct fmt::formatter<hd::ga::Point2d<T>> : nested_formatter<double> {
 // Point2dp<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct fmt::formatter<hd::ga::Point2dp<T>> : nested_formatter<double> {
+struct fmt::formatter<hd::ga::pga::Point2dp<T>> : nested_formatter<double> {
     template <typename FormatContext>
-    auto format(const hd::ga::Point2dp<T>& v, FormatContext& ctx) const
+    auto format(const hd::ga::pga::Point2dp<T>& v, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "Point2dp({},{},{})", nested(v.x), nested(v.y),
                               nested(v.z));
@@ -434,9 +434,9 @@ struct fmt::formatter<hd::ga::Point2dp<T>> : nested_formatter<double> {
 // Line2dp<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct fmt::formatter<hd::ga::Line2dp<T>> : nested_formatter<double> {
+struct fmt::formatter<hd::ga::pga::Line2dp<T>> : nested_formatter<double> {
     template <typename FormatContext>
-    auto format(const hd::ga::Line2dp<T>& v, FormatContext& ctx) const
+    auto format(const hd::ga::pga::Line2dp<T>& v, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "Line2dp({},{},{})", nested(v.x), nested(v.y),
                               nested(v.z));

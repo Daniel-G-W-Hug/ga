@@ -45,6 +45,7 @@ set(SOURCES src/main.cpp
             src/item_pt2d.cpp
             src/item_pt2de.cpp
             src/item_ln2d.cpp
+            src/item_ln2de.cpp
             src/item_vt2d.cpp)
 
 add_executable(${EXEC_NAME} ${SOURCES} )

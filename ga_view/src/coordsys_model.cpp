@@ -13,7 +13,7 @@
     return pt.size() - 1;
 }
 
-[[maybe_unused]] size_t Coordsys_model::add_pt(pt2de const& pte_in, pt2d_mark const& m)
+[[maybe_unused]] size_t Coordsys_model::add_pt(pt2dp const& pte_in, pt2d_mark const& m)
 {
 
     pte.push_back(pte_in);
@@ -27,13 +27,6 @@
 //
 [[maybe_unused]] size_t Coordsys_model::add_ln(ln2d const& vp_in, ln2d_mark const& m)
 {
-
-    // the separate copy should not be needed, since it is done in push_back
-    // anyway
-    //
-    // std::vector<pt2d> v;
-    // std::copy(vp_in.begin(), vp_in.end(), std::back_inserter(v));
-    //
     ln.push_back(vp_in);
     ln_mark.push_back(m);
 
@@ -47,6 +40,26 @@
     }
 
     return ln.size() - 1;
+}
+
+//
+// hint: using ln2de = std::vector<pt2dp>;
+//
+[[maybe_unused]] size_t Coordsys_model::add_ln(ln2de const& vpe_in, ln2d_mark const& m)
+{
+    lne.push_back(vpe_in);
+    lne_mark.push_back(m);
+
+    if (m.mark_pts == true) { // add points of line to pts marked in model
+
+        for (size_t i = 0; i < vpe_in.size(); i += m.delta) {
+
+            pte.push_back(vpe_in[i]);
+            pte_mark.push_back(m.pm);
+        }
+    }
+
+    return lne.size() - 1;
 }
 
 [[maybe_unused]] size_t Coordsys_model::add_vt(vt2d const& vt_in, vt2d_mark const& m)
@@ -103,8 +116,14 @@ void Coordsys_model::clear()
     pt.clear();
     pt_mark.clear();
 
+    pte.clear();
+    pte_mark.clear();
+
     ln.clear();
     ln_mark.clear();
+
+    lne.clear();
+    lne_mark.clear();
 
     vt.clear();
     vt_mark.clear();

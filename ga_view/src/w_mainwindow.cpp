@@ -14,6 +14,7 @@
 #include "active_vt2d.hpp"
 
 #include "item_ln2d.hpp"
+#include "item_ln2de.hpp"
 #include "item_pt2d.hpp"
 #include "item_pt2de.hpp"
 #include "item_vt2d.hpp"
@@ -171,10 +172,10 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        pt2de p0(0, 0, 1);
-        pt2de p1(1, 1, 1);
-        pt2de p2(2, 1, 1);
-        pt2de p3(2, 1, 2);
+        pt2dp p0(0, 0, 1);
+        pt2dp p1(1, 1.5, 1);
+        pt2dp p2(2, 1, 1);
+        pt2dp p3(2, 1, 2);
 
         pt2d_mark p3m;
         p3m.symbol = Symbol::square;
@@ -184,6 +185,19 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_pt(p1);
         cm.add_pt(p2);
         cm.add_pt(p3, p3m);
+
+        ln2de l1;
+        l1.push_back(p0);
+        l1.push_back(p2);
+        l1.push_back(p1);
+
+        ln2d_mark lm;
+        lm.mark_pts = true;
+        lm.pen = QPen(Qt::green, 1, Qt::SolidLine);
+        lm.pm.symbol = circle;
+        lm.pm.pen = QPen(Qt::green, 2, Qt::SolidLine);
+
+        cm.add_ln(l1, lm);
 
         cm.set_label("projective model 1");
 
@@ -366,12 +380,17 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(new item_ln2d(cs, wcs, cm, idx));
     }
 
+    // register all projective lines
+    for (size_t idx = 0; idx < cm->lne.size(); ++idx) {
+        scene->addItem(new item_ln2de(cs, wcs, cm, idx));
+    }
+
     // register all passive points
     for (size_t idx = 0; idx < cm->pt.size(); ++idx) {
         scene->addItem(new item_pt2d(cs, wcs, cm, idx));
     }
 
-    // register all passive points
+    // register all projective passive points
     for (size_t idx = 0; idx < cm->pte.size(); ++idx) {
         scene->addItem(new item_pt2de(cs, wcs, cm, idx));
     }

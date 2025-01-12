@@ -216,23 +216,30 @@ inline constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// dot products for 2dp
+// dot products for 2dp (= defined for equal grades exclusively)
+//
+// dot(v1,v2) = v1^T * g_{ij} * v2 is the scalar product with g_{ij} as the metric
+//
+// here we assume e1^2 = +1, e2^2 = +1, e3^2 = 0
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 // return dot-product of two vectors in the modelled space G<2,0,1>
 // dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
-// dot(v,v) = |v|^2 = gr0(rev(v)*v)
+// dot(v,v) = |v|^2 = gr0(v*rev(v))
 //
 // arguments: Vec2dp<T> or Point2dp<T> : public Vec2dp<T>
 //
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline std::common_type_t<T, U> dot(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> dot(Vec2dp<T> const& v1,
+                                                         Vec2dp<U> const& v2)
 {
     // definition: dot(v1, v2) = (v1)^T g_12 v2 with the metric g_12
     // this assumes an orthonormal basis with e1^2 = +1, e2^2 = +1, e3^2 = 0
     // as diagonal elements of g_12, thus the z-component does not matter
-    return v1.x * v2.x + v1.y * v2.y;
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(v1.x * v2.x + v1.y * v2.y);
 }
 
 // return dot product of two bivectors A and B (= a scalar)
@@ -242,7 +249,8 @@ inline std::common_type_t<T, U> dot(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 //
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> dot(BiVec2dp<T> const& A, BiVec2dp<U> const& B)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> dot(BiVec2dp<T> const& B1,
+                                                         BiVec2dp<U> const& B2)
 {
     // definition: dot(A, B) = gr0(A*B)
     // -> only the symmetric (i.e. scalar) part remains
@@ -250,227 +258,39 @@ inline constexpr std::common_type_t<T, U> dot(BiVec2dp<T> const& A, BiVec2dp<U> 
     // and dot(e23, e23) = 0, dot(e31,e31) = 0, dot(e12,e12) = -1
     // and all other dot(exy,ezw)=0
     // (every index combination containing an index twice becomes zero)
-    return -A.z * B.z;
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(-B1.z * B2.z);
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
-// Vec2dp<T> basic operations
+// regressive dot products for 2dp (= defined for equal grades exclusively)
+//
+// rdot(v1,v2) = cmpl( dot(cmpl(v1),cmpl(v2)) )
+//
 ////////////////////////////////////////////////////////////////////////////////
 
-// return squared norm of vector
-template <typename T> inline T bulk_nrm_sq(Vec2dp<T> const& v)
-{
-    // |v|^2 = gr0(rev(v)*v)
-    return dot(v, v);
-}
-
-// return norm of vector
-template <typename T> inline T bulk_nrm(Vec2dp<T> const& v)
-{
-    return std::sqrt(bulk_nrm_sq(v));
-}
-
-// return the multiplicative inverse of the vector
-template <typename T> inline Vec2dp<T> inv(Vec2dp<T> const& v)
-{
-    // v^(-1) = rev(v)/|v|^2 = v/dot(v,v)
-    // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    // using |v|^2 = gr0(rev(v)*v) = dot(v,v)
-    //
-    T sq_v = dot(v, v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_v < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector dot product too small for inversion " +
-                                 std::to_string(sq_v) + "\n");
-    }
-#endif
-    T inv = T(1.0) / sq_v; // inverse of squared norm for a vector
-    return Vec2dp<T>(v.x * inv, v.y * inv, v.z * inv);
-}
-
-// return the angle between of two vectors
-// range of angle: -pi <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> rdot(Vec2dp<T> const& v1,
+                                                           Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-
-    ctype nrm_prod = bulk_nrm(v1) * bulk_nrm(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
-    // std::clamp must be used to take care of numerical inaccuracies
-    return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
+    return PScalar2dp<ctype>(-v1.z * v2.z);
 }
 
-// return a vector unitized to v.z == 1.0
-template <typename T> inline Vec2dp<T> unitize(Vec2dp<T> const& v)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> rdot(BiVec2dp<T> const& B1,
+                                                           BiVec2dp<U> const& B2)
 {
-    T n = v.z;
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return Vec2dp<T>(v.x * inv, v.y * inv, T(1.0));
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2dp<ctype>(B1.x * B2.x + B1.y * B2.y);
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
-// BiVec2dp<T> geometric operations
-////////////////////////////////////////////////////////////////////////////////
-
-// return squared magnitude of bivector
-template <typename T> inline constexpr T bulk_nrm_sq(BiVec2dp<T> const& v)
-{
-    // |v|^2 = gr0(rev(v)*v)
-    // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 2-blade => rev(v) = -v
-    // using |v|^2 = gr0(rev(v)*v) = gr0(-v*v) = -gr0(v*v) = -dot(v,v)
-    return -dot(v, v);
-}
-
-// return magnitude of bivector
-template <typename T> inline constexpr T bulk_nrm(BiVec2dp<T> const& v)
-{
-    return std::sqrt(bulk_nrm_sq(v));
-}
-
-// return conjugate complex of a bivector
-// i.e. the reverse in nomenclature of multivectors
-template <typename T> inline constexpr BiVec2dp<T> rev(BiVec2dp<T> const& v)
-{
-    // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 2-blade => rev(v) = -v
-    // all bivector parts switch sign
-    return BiVec2dp<T>(-v.x, -v.y, -v.z);
-}
-
-// return the multiplicative inverse of the bivector
-template <typename T> inline constexpr BiVec2dp<T> inv(BiVec2dp<T> const& v)
-{
-    // v^(-1) = rev(v)/|v|^2
-    // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 2-blade => rev(v) = -v
-    // using |v|^2 = gr0(rev(v)*v) = gr0(-v*v) = -gr0(v*v) = -dot(v,v)
-    // => v^(-1) = (-v)/(-dot(v,v)) = v/dot(v,v)
-    T sq_n = -dot(v, v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
-    T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
-    return BiVec2dp<T>(v.x * inv, v.y * inv, v.z * inv);
-}
-
-// return the angle between two bivectors
-// range of angle: 0 <= angle <= pi
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline std::common_type_t<T, U> angle(BiVec2dp<T> const& v1, BiVec2dp<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype nrm_prod = nrm(v1) * nrm(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
-    // std::clamp must be used to take care of numerical inaccuracies
-    return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Vec2dp<T> & BiVec2dp<T> mixed geometric operations
-////////////////////////////////////////////////////////////////////////////////
-
-// return the dot product of a bivector A and a vector b
-// dot(A,b) = gr1(A * b)
-// => returns a vector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline Vec2dp<std::common_type_t<T, U>> dot(BiVec2dp<T> const& A, Vec2dp<U> const& b)
-{
-    // this implementation is only valid in an orthonormal basis
-    using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(A.z * b.y, -A.z * b.x, A.y * b.x - A.x * b.y);
-}
-
-// return the dot product of a vector a and a bivector B
-// dot(a,B) = gr1(a * B)
-// => returns a vector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline Vec2dp<std::common_type_t<T, U>> dot(Vec2dp<T> const& a, BiVec2dp<U> const& B)
-{
-    // this implementation is only valid in an orthonormal basis
-    using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(-a.y * B.z, a.x * B.z, a.y * B.x - a.x * B.y);
-}
-
-// return commutator product cmt(A,B) of two bivectors A and B (= a bivector)
-// cmt(A,B) = 0.5*(AB-BA) = gr2(A * B)
-// the commutator product is antisymmetric, i.e. it is zero when a bivector is
-// multiplied by itself, i.e. in that case only the dot product remains
-// as the symmetric part
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline BiVec2dp<std::common_type_t<T, U>> cmt(BiVec2dp<T> const& A, BiVec2dp<U> const& B)
-{
-    // this implementation is only valid in an orthonormal basis
-    using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(A.z * B.y - A.y * B.z, A.x * B.z - A.z * B.x, ctype(0.0));
-}
-
-// return the angle between of a vector and a bivector
-// range of angle: 0 <= angle <= pi
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, BiVec2dp<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype nrm_prod = nrm(v1) * nrm(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
-    // std::clamp must be used to take care of numerical inaccuracies
-    return std::acos(
-        std::clamp(ctype(nrm(dot(v1, v2))) / nrm_prod, ctype(-1.0), ctype(1.0)));
-}
-
-// return the angle between of a bivector and a vector
-// range of angle: 0 <= angle <= pi
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline std::common_type_t<T, U> angle(BiVec2dp<T> const& v1, Vec2dp<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype nrm_prod = nrm(v1) * nrm(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
-    // std::clamp must be used to take care of numerical inaccuracies
-    return std::acos(
-        std::clamp(ctype(nrm(dot(v1, v2))) / nrm_prod, ctype(-1.0), ctype(1.0)));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// wedge products and join operations
+// wedge products (= outer product) and join operations
 ////////////////////////////////////////////////////////////////////////////////
 
 // wedge product between two vectors
@@ -567,7 +387,15 @@ inline PScalar2dp<std::common_type_t<T, U>> join(BiVec2dp<T> const& A, Vec2dp<U>
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// regressive wedge products and meet operations
+// regressive wedge product (= outer product for complements) and meet operations
+// as defined by E. Lengyel in "Projective geometric algebra illuminated"
+// independent of the geometric product, just depending on the outer product (wdg)
+// as well as the complement and thus the pseudoscalar of the space
+// (in this definition is does NOT connect directly to the geometric product,
+// but to the outer product exclusively)
+//
+//        rwdg(ul, ur) = cmpl(wdg(cmpl(ul),cmpl(ur))) = cmpl(cmpl(ul) ^ cmpl(ur))
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 // regressive wedge product of two bivectors
@@ -628,59 +456,65 @@ inline Scalar2dp<std::common_type_t<T, U>> meet(BiVec2dp<T> const& A, Vec2dp<U> 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2dp<T> basic operations
+// left contractions A << B: "A contracted onto B"
+//
+// The resulting object is a lies in B and is perpendicular to A
+//
+// L. Dorst: The contraction A << B of an a-blade A onto a b-blade B is a sub-blade
+// of B of grade b-a which is perpendicular to A, and linear in both arguments
 ////////////////////////////////////////////////////////////////////////////////
 
-// return the reverse
-template <typename T> inline constexpr MVec2dp<T> rev(MVec2dp<T> const& v)
+// return the dot product of a vector a and a bivector B
+// dot(a,B) = gr1(a * B)
+// => returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline Vec2dp<std::common_type_t<T, U>> dot(Vec2dp<T> const& a, BiVec2dp<U> const& B)
 {
-    // only bivector and trivector parts switch signs
-    return MVec2dp<T>(v.c0, v.c1, v.c2, v.c3, -v.c4, -v.c5, -v.c6, -v.c7);
-}
-
-// return the Clifford conjugate
-template <typename T> inline constexpr MVec2dp<T> conj(MVec2dp<T> const& v)
-{
-    // only vector and bivector parts switch signs
-    return MVec2dp<T>(v.c0, -v.c1, -v.c2, -v.c3, -v.c4, -v.c5, -v.c6, v.c7);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// MVec2dp_E<T> basic operations
-////////////////////////////////////////////////////////////////////////////////
-
-// return conjugate complex of quaternion (MVec2dp_E<T>),
-// i.e. the reverse in nomenclature of multivectors
-template <typename T> inline constexpr MVec2dp_E<T> rev(MVec2dp_E<T> const& v)
-{
-    // only the bivector part switches sign
-    return MVec2dp_E<T>(v.c0, -v.c1, -v.c2, -v.c3);
+    // this implementation is only valid in an orthonormal basis
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(-a.y * B.z, a.x * B.z, a.y * B.x - a.x * B.y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2dp_U<T> basic operations
+// right contractions A >> B: "A contracted by B"
+//
+// The resulting object lies in A and is perpendicular to B
 ////////////////////////////////////////////////////////////////////////////////
 
-// return the reverse
-template <typename T> inline constexpr MVec2dp_U<T> rev(MVec2dp_U<T> const& v)
+// return the dot product of a bivector A and a vector b
+// dot(A,b) = gr1(A * b)
+// => returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline Vec2dp<std::common_type_t<T, U>> dot(BiVec2dp<T> const& A, Vec2dp<U> const& b)
 {
-    // only the trivector part switches signs
-    return MVec2dp_U<T>(v.c0, v.c1, v.c2, -v.c3);
+    // this implementation is only valid in an orthonormal basis
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(A.z * b.y, -A.z * b.x, A.y * b.x - A.x * b.y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// PScalar2dp<T> basic operations
+// alternative multivector products (in use instead of contractions)
 ////////////////////////////////////////////////////////////////////////////////
 
-// return reverse of a 2d bivector
-template <typename T> inline PScalar2dp<T> rev(PScalar2dp<T> A)
+// return commutator product cmt(A,B) of two bivectors A and B (= a bivector)
+// cmt(A,B) = 0.5*(AB-BA) = gr2(A * B)
+// the commutator product is antisymmetric, i.e. it is zero when a bivector is
+// multiplied by itself, i.e. in that case only the dot product remains
+// as the symmetric part
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline BiVec2dp<std::common_type_t<T, U>> cmt(BiVec2dp<T> const& A, BiVec2dp<U> const& B)
 {
-    // the 2dp bivector switches sign on reversion
-    return PScalar2dp<T>(-T(A));
+    // this implementation is only valid in an orthonormal basis
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(A.z * B.y - A.y * B.z, A.x * B.z - A.z * B.x, ctype(0.0));
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
-// MVec2dp<T> geometric products
+// geometric products
 ////////////////////////////////////////////////////////////////////////////////
 
 // geometric product A*B for fully populated 2dp multivector
@@ -1154,94 +988,137 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> A,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 2dp complement operations
-// (the concept of complement is defined w.r.t. the outer product)
+// multiplicative inverses of scalars, blades and multivectors
+// w.r.t. the geometric product:
+// for k-blades: A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
+// pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ... (from reversion)
 ////////////////////////////////////////////////////////////////////////////////
 
-// if M represents the subspace B of the blade u as subspace of R^2 then
-// compl(M) represents the subspace orthorgonal to B
-// the complement exchanges basis vectors which are in the k-blade u with
-// the basis vectors which are NOT contained in the k-blade u
-// and are needed to fill the space completely to the corresponding pseudoscalar
-//
-// left complement:  l_cmpl(u) ^ u  = I_2dp = e3^e2^e1
-// right complement: u ^ r_cmpl(u)  = I_2dp = e3^e2^e1
-//
-// in spaces of odd dimension right and left complements are identical and thus there
-// is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
-//
-// in spaces of even dimension and when the grade of the k-vector is odd left and right
-// comploments have different signs
-
+// return the multiplicative inverse of the vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
+inline constexpr Vec2dp<T> inv(Vec2dp<T> const& v)
 {
-    // u ^ cmpl(u) = e3^e2^e1
-    // u = 1:
-    //     1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = s e3^e2^e1
-    return PScalar2dp<T>(T(s));
+    // v^(-1) = rev(v)/|v|^2 = v/dot(v,v)
+    // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
+    // using |v|^2 = gr0(rev(v)*v) = dot(v,v)
+    //
+    T sq_v = dot(v, v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_v < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("vector dot product too small for inversion " +
+                                 std::to_string(sq_v) + "\n");
+    }
+#endif
+    T inv = T(1.0) / sq_v; // inverse of squared norm for a vector
+    return Vec2dp<T>(v.x * inv, v.y * inv, v.z * inv);
 }
 
+// return the multiplicative inverse of the bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline BiVec2dp<T> cmpl(Vec2dp<T> const& v)
+inline constexpr BiVec2dp<T> inv(BiVec2dp<T> const& B)
 {
-    // u ^ compl(u) = e3^e2^e1
-    // u = v.x e1 + v.y e2 + v.z e3:
-    //     u ^ cmpl(u) = e3^e2^e1 =>
-    //     u = e1 => cmpl(u) = -e23
-    //     u = e2 => cmpl(u) = -e31
-    //     u = e3 => cmpl(u) = -e12
-    return BiVec2dp<T>(-v.x, -v.y, -v.z);
+    // B^(-1) = rev(B)/|B|^2
+    // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
+    // using |B|^2 = gr0(rev(B)*B) = gr0(-B*B) = -gr0(B*B) = -dot(B,B)
+    // => B^(-1) = (-B)/(-dot(B,B)) = B/dot(B,B)
+    T sq_n = -dot(B, B);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("bivector norm too small for inversion " +
+                                 std::to_string(sq_n) + "\n");
+    }
+#endif
+    T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
+    return BiVec2dp<T>(B.x * inv, B.y * inv, B.z * inv);
 }
 
-template <typename T>
-    requires(std::floating_point<T>)
-inline Vec2dp<T> cmpl(BiVec2dp<T> const& b)
+
+////////////////////////////////////////////////////////////////////////////////
+// angle operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return the angle between of two vectors
+// range of angle: -pi <= angle <= pi
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
-    // u ^ compl(u) = e3^e2^e1
-    // u = b.x e23 + b.y e31 + b.z e12:
-    //     u ^ cmpl(u) = e3^e2^e1 =>
-    //     u = e23 => cmpl(u) = -e1
-    //     u = e31 => cmpl(u) = -e2
-    //     u = e12 => cmpl(u) = -e3
-    return Vec2dp<T>(-b.x, -b.y, -b.z);
+    using ctype = std::common_type_t<T, U>;
+
+    ctype nrm_prod = bulk_nrm(v1) * bulk_nrm(v2);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
+        throw std::runtime_error(
+            "vector norm product too small for calculation of angle " +
+            std::to_string(nrm_prod) + "\n");
+    }
+#endif
+    // std::clamp must be used to take care of numerical inaccuracies
+    return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
 
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> cmpl(PScalar2dp<T> ps)
+// return the angle between of a vector and a bivector
+// range of angle: 0 <= angle <= pi
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline std::common_type_t<T, U> angle(Vec2dp<T> const& v, BiVec2dp<U> const& B)
 {
-    // u ^ compl(u) = e3^e2^e1
-    // u = e3^e2^e1:
-    //     e3^e2^e1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = ps 1
-    return Scalar2dp<T>(T(ps));
+    using ctype = std::common_type_t<T, U>;
+    ctype nrm_prod = nrm(v) * nrm(B);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
+        throw std::runtime_error(
+            "vector norm product too small for calculation of angle " +
+            std::to_string(nrm_prod) + "\n");
+    }
+#endif
+    // std::clamp must be used to take care of numerical inaccuracies
+    return std::acos(
+        std::clamp(ctype(nrm(dot(v, B))) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
 
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> cmpl(MVec2dp_E<T> const& M)
+// return the angle between of a bivector and a vector
+// range of angle: 0 <= angle <= pi
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline std::common_type_t<T, U> angle(BiVec2dp<T> const& B, Vec2dp<U> const& v)
 {
-    // use the component complements directly
-    return MVec2dp_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
+    using ctype = std::common_type_t<T, U>;
+    ctype nrm_prod = nrm(B) * nrm(v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
+        throw std::runtime_error(
+            "vector norm product too small for calculation of angle " +
+            std::to_string(nrm_prod) + "\n");
+    }
+#endif
+    // std::clamp must be used to take care of numerical inaccuracies
+    return std::acos(
+        std::clamp(ctype(nrm(dot(B, v))) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
 
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> cmpl(MVec2dp_U<T> const& M)
+// return the angle between two bivectors
+// range of angle: 0 <= angle <= pi
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
+                                                BiVec2dp<U> const& B2)
 {
-    // use the component complements directly
-    return MVec2dp_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
+    using ctype = std::common_type_t<T, U>;
+    ctype nrm_prod = nrm(B1) * nrm(B2);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
+        throw std::runtime_error(
+            "bivector norm product too small for calculation of angle " +
+            std::to_string(nrm_prod) + "\n");
+    }
+#endif
+    // std::clamp must be used to take care of numerical inaccuracies
+    return std::acos(std::clamp(ctype(dot(B1, B2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
 
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> cmpl(MVec2dp<T> const& M)
-{
-    // use the component complements directly
-    return MVec2dp<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2dp rotation operations
@@ -1353,7 +1230,98 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> rotate(MVec2dp<T> const& v,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Vec2dp<T> and BiVec2dp<T> projections, rejections and reflections
+// 2dp complement operations
+// (the concept of complement is defined w.r.t. the outer product)
+////////////////////////////////////////////////////////////////////////////////
+
+// if M represents the subspace B of the blade u as subspace of R^2 then
+// compl(M) represents the subspace orthorgonal to B
+// the complement exchanges basis vectors which are in the k-blade u with
+// the basis vectors which are NOT contained in the k-blade u
+// and are needed to fill the space completely to the corresponding pseudoscalar
+//
+// left complement:  l_cmpl(u) ^ u  = I_2dp = e3^e2^e1
+// right complement: u ^ r_cmpl(u)  = I_2dp = e3^e2^e1
+//
+// in spaces of odd dimension right and left complements are identical and thus there
+// is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
+//
+// in spaces of even dimension and when the grade of the k-vector is odd left and right
+// comploments have different signs
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
+{
+    // u ^ cmpl(u) = e3^e2^e1
+    // u = 1:
+    //     1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = s e3^e2^e1
+    return PScalar2dp<T>(T(s));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline BiVec2dp<T> cmpl(Vec2dp<T> const& v)
+{
+    // u ^ compl(u) = e3^e2^e1
+    // u = v.x e1 + v.y e2 + v.z e3:
+    //     u ^ cmpl(u) = e3^e2^e1 =>
+    //     u = e1 => cmpl(u) = -e23
+    //     u = e2 => cmpl(u) = -e31
+    //     u = e3 => cmpl(u) = -e12
+    return BiVec2dp<T>(-v.x, -v.y, -v.z);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline Vec2dp<T> cmpl(BiVec2dp<T> const& b)
+{
+    // u ^ compl(u) = e3^e2^e1
+    // u = b.x e23 + b.y e31 + b.z e12:
+    //     u ^ cmpl(u) = e3^e2^e1 =>
+    //     u = e23 => cmpl(u) = -e1
+    //     u = e31 => cmpl(u) = -e2
+    //     u = e12 => cmpl(u) = -e3
+    return Vec2dp<T>(-b.x, -b.y, -b.z);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> cmpl(PScalar2dp<T> ps)
+{
+    // u ^ compl(u) = e3^e2^e1
+    // u = e3^e2^e1:
+    //     e3^e2^e1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = ps 1
+    return Scalar2dp<T>(T(ps));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> cmpl(MVec2dp_E<T> const& M)
+{
+    // use the component complements directly
+    return MVec2dp_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> cmpl(MVec2dp_U<T> const& M)
+{
+    // use the component complements directly
+    return MVec2dp_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> cmpl(MVec2dp<T> const& M)
+{
+    // use the component complements directly
+    return MVec2dp<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// projections, rejections and reflections
 ////////////////////////////////////////////////////////////////////////////////
 
 // projection of a vector v1 onto vector v2
@@ -1363,7 +1331,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& 
                                                                Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return dot(v1, v2) * Vec2dp<ctype>(inv(v2));
+    return ctype(dot(v1, v2)) * Vec2dp<ctype>(inv(v2));
 }
 
 // projection of v1 onto v2 (v2 must already be normalized to nrm(v2) == 1)
@@ -1372,7 +1340,8 @@ template <typename T, typename U>
 inline constexpr Vec2dp<std::common_type_t<T, U>>
 project_onto_normalized(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
-    return dot(v1, v2) * v2; // v2 is already its own reverse
+    using ctype = std::common_type_t<T, U>;
+    return ctype(dot(v1, v2)) * v2; // v2 is already its own reverse
 }
 
 // projection of a vector v1 onto a bivector v2
