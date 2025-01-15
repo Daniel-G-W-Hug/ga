@@ -78,7 +78,7 @@ auto const e23me_2dp = MVec2dp_E<value_t>{e23_2dp}; // e23_2dp as even grade mul
 auto const e31me_2dp = MVec2dp_E<value_t>{e31_2dp}; // e31_2dp as even grade multivector
 auto const e12me_2dp = MVec2dp_E<value_t>{e12_2dp}; // e12_2dp as even grade multivector
 
-auto const I_2dp = PScalar2dp<value_t>(1.0);
+auto const I_2dp = PScalar2dp<value_t>(1.0);     // I_2dp = e3^e2^e1 (in current impl.)
 auto const Im_2dp = MVec2dp<value_t>{I_2dp};     // I_2dp as multivector
 auto const Im_2dp_U = MVec2dp_U<value_t>{I_2dp}; // I_2dp as uneven grade multivector
 

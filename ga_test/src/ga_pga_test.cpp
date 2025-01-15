@@ -973,7 +973,8 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         bivec2dp a{1.0, 2.0, 3.0};
         vec2dp b{0.5, 3.0, -2.0};
-        auto dot_ab = dot(a, b);
+        // auto dot_ab = dot(a, b);
+        auto dot_ab = (a >> b);
         auto wdg_ab = wdg(a, b);
 
         mvec2dp mva{a};
@@ -1015,7 +1016,8 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         vec2dp a{1.0, 2.0, 3.0};
         bivec2dp b{0.5, 3.0, -2.0};
-        auto dot_ab = dot(a, b);
+        // auto dot_ab = dot(a, b);
+        auto dot_ab = (a << b);
         auto wdg_ab = wdg(a, b);
 
         mvec2dp mva{a};
@@ -1063,10 +1065,12 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         auto dot_ab = dot(a, b);
         auto wdg_ab = wdg(a, b);
 
-        auto dot_Ab = dot(A, b);
+        // auto dot_Ab = dot(A, b);
+        auto dot_Ab = (A >> b);
         auto wdg_Ab = wdg(A, b);
 
-        auto dot_aB = dot(a, B);
+        // auto dot_aB = dot(a, B);
+        auto dot_aB = (a << B);
         auto wdg_aB = wdg(a, B);
 
         mvec2dp_e ab = a * b;

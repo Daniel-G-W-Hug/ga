@@ -305,7 +305,7 @@ inline BiVec2dp<std::common_type_t<T, U>> wdg(Vec2dp<T> const& v1, Vec2dp<U> con
         v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
 }
 
-// wedge product between two points (aka vectors with implicit v.z=1)
+// wedge product between two points (aka vectors with implicit v.z == 1)
 // => returns a line (aka a bivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -464,17 +464,182 @@ inline Scalar2dp<std::common_type_t<T, U>> meet(BiVec2dp<T> const& A, Vec2dp<U> 
 // of B of grade b-a which is perpendicular to A, and linear in both arguments
 ////////////////////////////////////////////////////////////////////////////////
 
-// return the dot product of a vector a and a bivector B
-// dot(a,B) = gr1(a * B)
+// left contraction (s1 << s2) - scalar s1 contracted onto scalar s2
+// returns a scalar (the product of the scalars)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> operator<<(Scalar2dp<T> s1,
+                                                                Scalar2dp<U> s2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(ctype(s1) * ctype(s2));
+}
+
+// left contraction (s << v) - scalar s contracted onto vector v
+// identical with scalar multiplication of the vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2dp<std::common_type_t<T, U>> operator<<(Scalar2dp<T> s,
+                                                             Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * Vec2dp<ctype>(v.x, v.y, v.z);
+}
+
+// left contraction (s << B) - scalar s contracted onto bivector B
+// identical with scalar multiplication of the bivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> operator<<(Scalar2dp<T> s,
+                                                               BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * BiVec2dp<ctype>(B.x, B.y, B.z);
+}
+
+// left contraction (s << ps) - scalar s contracted onto pseudoscalar ps
+// identical with scalar multiplication of the pseudoscalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> operator<<(Scalar2dp<T> s,
+                                                                 PScalar2dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2dp<ctype>(ctype(s) * ctype(ps));
+}
+
+// left contraction (v1 << v2) - vector v1 contracted onto v2
+// (=identical to scalar product dot(v1,v2) of two vectors; identical to (v1 >> v2))
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> operator<<(Vec2dp<T> const& v1,
+                                                                Vec2dp<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(v1.x * v2.x + v1.y * v2.y);
+}
+
+// return the left contraction of a vector v onto a bivector B
 // => returns a vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Vec2dp<std::common_type_t<T, U>> dot(Vec2dp<T> const& a, BiVec2dp<U> const& B)
+inline constexpr Vec2dp<std::common_type_t<T, U>> operator<<(Vec2dp<T> const& v,
+                                                             BiVec2dp<U> const& B)
 {
-    // this implementation is only valid in an orthonormal basis
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(-a.y * B.z, a.x * B.z, a.y * B.x - a.x * B.y);
+    return Vec2dp<ctype>(-v.y * B.z, v.x * B.z, v.y * B.x - v.x * B.y);
 }
+
+// left contraction of a vector v onto a pseudoscalar ps (=trivector)
+// => returns a bivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> operator<<(Vec2dp<T> const& v,
+                                                               PScalar2dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(-v.x, -v.y, ctype(0.0)) * ctype(ps);
+}
+
+// left contraction (B1 << B2) - bivector B1 contracted onto B2
+// (=identical to scalar product dot(B1,B2) of two bivectors; identical to (B1 >> B2))
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> operator<<(BiVec2dp<T> const& B1,
+                                                                BiVec2dp<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(-B1.z * B2.z);
+}
+
+// left contraction of a bivector B onto a pseudoscalar ps (=trivector)
+// => returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2dp<std::common_type_t<T, U>> operator<<(BiVec2dp<T> const& B,
+                                                             PScalar2dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(ctype(0.0), ctype(0.0), B.z) * ctype(ps);
+}
+
+// left contraction - vector contracted onto scalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] Vec2dp<T> const&, [[maybe_unused]] Scalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// left contraction - bivector contracted onto scalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] BiVec2dp<T> const&, [[maybe_unused]] Scalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// left contraction - pseudoscalar contracted onto scalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] PScalar2dp<T>, [[maybe_unused]] Scalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// left contraction - bivector contracted onto vector
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] BiVec2dp<T> const&, [[maybe_unused]] Vec2dp<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// left contraction -  pseudoscalar contracted onto vector
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] PScalar2dp<T>, [[maybe_unused]] Vec2dp<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// left contraction - pseudoscalar contracted onto bivector
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] PScalar2dp<T>, [[maybe_unused]] BiVec2dp<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// left contraction (ps1 << ps2) - pseudoscalar ps1 contracted onto pseudoscalar ps2
+// returns a scalar (the product of the pseudoscalars)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] PScalar2dp<T>, [[maybe_unused]] PScalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // right contractions A >> B: "A contracted by B"
@@ -482,17 +647,184 @@ inline Vec2dp<std::common_type_t<T, U>> dot(Vec2dp<T> const& a, BiVec2dp<U> cons
 // The resulting object lies in A and is perpendicular to B
 ////////////////////////////////////////////////////////////////////////////////
 
-// return the dot product of a bivector A and a vector b
-// dot(A,b) = gr1(A * b)
-// => returns a vector
+// right contraction (s1 >> s2) - scalar s1 contracted by scalar s2
+// returns a scalar (the product of the scalars)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Vec2dp<std::common_type_t<T, U>> dot(BiVec2dp<T> const& A, Vec2dp<U> const& b)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> operator>>(Scalar2dp<T> s1,
+                                                                Scalar2dp<U> s2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(ctype(s1) * ctype(s2));
+}
+
+// right contraction (v >> s) - vector v contracted by scalar s
+// identical with scalar multiplication of the vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2dp<std::common_type_t<T, U>> operator>>(Vec2dp<U> const& v,
+                                                             Scalar2dp<T> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(v.x, v.y, v.z) * ctype(s);
+}
+
+// right contraction (B >> s) - bivector B contracted by scalar s
+// identical with scalar multiplication of the bivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<U> const& B,
+                                                               Scalar2dp<T> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(B.x, B.y, B.z) * ctype(s);
+}
+
+// right contraction (ps >> s) - pseudoscalar ps contracted by scalar s
+// identical with scalar multiplication of the pseudoscalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> operator>>(PScalar2dp<U> ps,
+                                                                 Scalar2dp<T> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2dp<ctype>(ctype(ps) * ctype(s));
+}
+
+// right contraction (v1 >> v2) - vector v1 contracted by vector v2
+// (=identical to scalar product dot(v1,v2) of two vectors; identical to (v1 << v2))
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> operator>>(Vec2dp<T> const& v1,
+                                                                Vec2dp<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(v1.x * v2.x + v1.y * v2.y);
+}
+
+// right contraction of bivector B by vector v ("B contracted by v")
+// => returns a vector
+// (originally implemented as dot-product)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline Vec2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<T> const& B,
+                                                   Vec2dp<U> const& v)
 {
     // this implementation is only valid in an orthonormal basis
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(A.z * b.y, -A.z * b.x, A.y * b.x - A.x * b.y);
+    return Vec2dp<ctype>(B.z * v.y, -B.z * v.x, -B.x * v.y + B.y * v.x);
 }
+
+// right contraction of pseudoscalar ps (=trivector) by vector v (" ps contracted by v")
+// => returns a bivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> operator>>(PScalar2dp<U> ps,
+                                                               Vec2dp<T> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(-ps) * BiVec2dp<ctype>(v.x, v.y, ctype(0.0));
+}
+
+// right contraction (B1 >> B2) - bivector B1 contracted by bivector B2
+// (=identical to scalar product dot(B1,B2) of two bivectors; identical to (B1 >> B2))
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<T> const& B1,
+                                                                BiVec2dp<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(-B1.z * B2.z);
+}
+
+// right contraction of pseudoscalar ps (=trivector) by bivector B "ps contracted by B"
+// => returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2dp<std::common_type_t<T, U>> operator>>(PScalar2dp<U> ps,
+                                                             BiVec2dp<T> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * Vec2dp<ctype>(ctype(0.0), ctype(0.0), B.z);
+}
+
+// right contraction - scalar contracted by a vector
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Scalar2dp<T>, [[maybe_unused]] Vec2dp<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// right contraction - scalar contracted by a bivector
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Scalar2dp<T>, [[maybe_unused]] BiVec2dp<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// right contraction - scalar contracted by a pseudoscalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Scalar2dp<T>, [[maybe_unused]] PScalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// right contraction - vector contracted by a bivector
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Vec2dp<T> const&, [[maybe_unused]] BiVec2dp<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// right contraction -  vector contracted by a pseudoscalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Vec2dp<T> const&, [[maybe_unused]] PScalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// right contraction - bivector contracted by a pseudoscalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] BiVec2dp<T> const&, [[maybe_unused]] PScalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
+// right contraction - pseudoscalar contracted by a pseudoscalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] PScalar2dp<T>, [[maybe_unused]] PScalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // alternative multivector products (in use instead of contractions)
@@ -791,8 +1123,9 @@ inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(BiVec2dp<T> const
     return MVec2dp_E<ctype>(Scalar2dp<ctype>(dot(a, b)), cmt(a, b));
 }
 
-// geometric product A*b for a bivector and a vector
-// A * b = dot(A,b) + wdg(A,b) = gr1(A * b) + gr3(A * b)
+// geometric product B * v for a bivector B and a vector v
+// old: B * v = dot(B,v) + wdg(B,v) = gr1(B * v) + gr3(B * v)
+// new: B * v = (B >> v) + wdg(B,v) = gr1(B * v) + gr3(B * v)
 //
 // HINT: if a full 3d multivector is required as result it must be converted explicitly,
 //       since C++ does not allow overloading on different return types
@@ -800,15 +1133,17 @@ inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(BiVec2dp<T> const
 // => bivector * vector = vector + trivector (= uneven multivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& A,
-                                                               Vec2dp<U> const& b)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B,
+                                                               Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_U<ctype>(dot(A, b), wdg(A, b));
+    // return MVec2dp_U<ctype>(dot(B, v), wdg(B, v));
+    return MVec2dp_U<ctype>((B >> v), wdg(B, v));
 }
 
-// geometric product a * B for a vector a and a bivector B
-// a * B = dot(a,B) + wdg(a,B) = gr1(a * B) + gr3(a * B)
+// geometric product v * B for a vector v and a bivector B
+// old: v * B = dot(v,B) + wdg(v,B) = gr1(v * B) + gr3(v * B)
+// new: v * B = (v << B) + wdg(v,B) = gr1(v * B) + gr3(v * B)
 //
 // HINT: if a full 3d multivector is required as result it must be converted explicitly,
 //       since C++ does not allow overloading on different return types
@@ -816,11 +1151,12 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(BiVec2dp<T> const
 // => vector * bivector = vector + trivector (= uneven multivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(Vec2dp<T> const& a,
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(Vec2dp<T> const& v,
                                                                BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_U<ctype>(dot(a, B), wdg(a, B));
+    // return MVec2dp_U<ctype>(dot(v, B), wdg(v, B));
+    return MVec2dp_U<ctype>((v << B), wdg(v, B));
 }
 
 // geometric product a * b of two vectors
@@ -1143,8 +1479,8 @@ inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
 // Output:
 //         - a rotor representing the rotation
 //
-// HINT:     For a rotation around an axis n (n = normalize(Vec3d<T>))
-//           use the bivector B = n*I_3d  => B = Vec3d<T> * PScalar3d<T>
+// HINT:     For a rotation around an axis n (n = normalize(Vec2dp<T>))
+//           use the bivector B = n*I_3d  => B = Vec2dp<T> * PScalar2dp<T>
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -1249,6 +1585,8 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> rotate(MVec2dp<T> const& v,
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // comploments have different signs
 
+// complement operation with e3^e2^e1 as the pseudoscalar
+
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
@@ -1274,7 +1612,7 @@ inline BiVec2dp<T> cmpl(Vec2dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline Vec2dp<T> cmpl(BiVec2dp<T> const& b)
+inline Vec2dp<T> cmpl(BiVec2dp<T> const& B)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = b.x e23 + b.y e31 + b.z e12:
@@ -1282,7 +1620,7 @@ inline Vec2dp<T> cmpl(BiVec2dp<T> const& b)
     //     u = e23 => cmpl(u) = -e1
     //     u = e31 => cmpl(u) = -e2
     //     u = e12 => cmpl(u) = -e3
-    return Vec2dp<T>(-b.x, -b.y, -b.z);
+    return Vec2dp<T>(-B.x, -B.y, -B.z);
 }
 
 template <typename T>
@@ -1348,16 +1686,21 @@ project_onto_normalized(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 // v_parallel = dot(v1,v2) * inv(v2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v1,
-                                                               BiVec2dp<U> const& v2)
+inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v,
+                                                               BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    Vec2dp<ctype> a = dot(v1, v2);
-    BiVec2dp<ctype> Bi = inv(v2);
-    // use the formular equivalent to the geometric product to save computational cost
-    // a * Bi = dot(a,Bi) + wdg(a,Bi)
-    // v_parallel = gr1(a * Bi) = dot(a,Bi)
-    return Vec2dp<ctype>(dot(a, Bi));
+    // // Vec2dp<ctype> a = dot(v, B);
+    // Vec2dp<ctype> a = (v << B);
+    // BiVec2dp<ctype> Bi = inv(B);
+    // // use the formular equivalent to the geometric product to save computational cost
+    // // a * Bi = dot(a,Bi) + wdg(a,Bi)
+    // // v_parallel = gr1(a * Bi) = dot(a,Bi)
+    // // return Vec2dp<ctype>(dot(a, Bi));
+    // return Vec2dp<ctype>((a << Bi));
+
+    return Vec2dp<ctype>((v << inv(B)) << B);
+    // return Vec2dp<ctype>(gr1((v << inv(B)) * B));
 }
 
 // projection of a vector v1 onto a normalized bivector v2
@@ -1393,7 +1736,8 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v
     // B * b_inv = dot(B,b_inv) + wdg(A,bi)
     // v_perp = gr1(B * b_inv) = dot(B,b_inv)
     // (the trivector part is zero, because v2 is part of the bivector in the product)
-    return Vec2dp<ctype>(dot(B, v2_inv));
+    // return Vec2dp<ctype>(dot(B, v2_inv));
+    return Vec2dp<ctype>(B >> v2_inv);
 }
 
 // rejection of vector v1 from a normalized vector v2
@@ -1411,7 +1755,8 @@ reject_from_normalized(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
     // B * b_inv = dot(B,b_inv) + wdg(A,bi)
     // v_perp = gr1(B * b_inv) = dot(B,b_inv)
     // (the trivector part is zero, because v2 is part of the bivector in the product)
-    return Vec2dp<ctype>(dot(B, v2_inv));
+    // return Vec2dp<ctype>(dot(B, v2_inv));
+    return Vec2dp<ctype>(B >> v2_inv);
 }
 
 // rejection of vector v1 from a bivector v2
