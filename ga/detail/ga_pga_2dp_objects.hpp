@@ -11,45 +11,45 @@
 namespace hd::ga::pga {
 
 ////////////////////////////////////////////////////////////////////////////////
-// bulk operations
+// bulk
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk(Vec2dp<T> const& v)
+inline constexpr Vec2dp<T> bulk(Vec2dp<T> const& v)
 {
     return Vec2dp<T>(v.x, v.y, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk(BiVec2dp<T> const& B)
+inline constexpr BiVec2dp<T> bulk(BiVec2dp<T> const& B)
 {
     return BiVec2dp<T>(T(0.0), T(0.0), B.z);
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight operations
+// weight
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight(Vec2dp<T> const& v)
+inline constexpr Vec2dp<T> weight(Vec2dp<T> const& v)
 {
     return Vec2dp<T>(T(0.0), T(0.0), v.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight(BiVec2dp<T> const& B)
+inline constexpr BiVec2dp<T> weight(BiVec2dp<T> const& B)
 {
     return BiVec2dp<T>(B.x, B.y, T(0.0));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// bulk norm operations
+// bulk norm
 ////////////////////////////////////////////////////////////////////////////////
 
 // return squared bulk norm of vector
@@ -89,7 +89,7 @@ inline constexpr T bulk_nrm(BiVec2dp<T> const& B)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight norm operations
+// weight norm
 ////////////////////////////////////////////////////////////////////////////////
 
 // return squared weight norm of vector
@@ -128,6 +128,57 @@ inline constexpr T weight_nrm(BiVec2dp<T> const& B)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// geometric norm
+////////////////////////////////////////////////////////////////////////////////
+
+// provide the distance of the point from the origin
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T geom_nrm_sq(Vec2dp<T> const& v)
+{
+    T n = weight_nrm_sq(v);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error(
+            "Point at or near infinity. Vector weight_nrm too small for unitization " +
+            std::to_string(n) + "\n");
+    }
+#endif
+    return bulk_nrm_sq(v) / n;
+}
+
+// return geometric norm of vector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T geom_nrm(Vec2dp<T> const& v)
+{
+    return std::sqrt(geom_nrm_sq(v));
+}
+
+// provide the perpendicular distance of the line to the origin
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T geom_nrm_sq(BiVec2dp<T> const& B)
+{
+    T n = weight_nrm_sq(B);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("bivector weight_nrm too small for unitization " +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    return bulk_nrm_sq(B) / n;
+}
+
+// return geometric norm of bivector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T geom_nrm(BiVec2dp<T> const& B)
+{
+    return std::sqrt(geom_nrm_sq(B));
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // unitization operations
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -163,13 +214,53 @@ inline constexpr BiVec2dp<T> unitize(BiVec2dp<T> const& B)
     return inv * B;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// bulk_dual (=complement operation applied to the bulk)
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> bulk_dual(Vec2dp<T> const& v)
+{
+    return BiVec2dp<T>(-v.x, -v.y, T(0.0));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> bulk_dual(BiVec2dp<T> const& B)
+{
+    return Vec2dp<T>(T(0.0), T(0.0), -B.z);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// weight_dual (=complement operation applied to the weight)
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> weight_dual(Vec2dp<T> const& v)
+{
+    return BiVec2dp<T>(T(0.0), T(0.0), -v.z);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> weight_dual(BiVec2dp<T> const& B)
+{
+    return Vec2dp<T>(-B.x, -B.y, T(0.0));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // convenient type aliases
 ////////////////////////////////////////////////////////////////////////////////
 
 // Vector2d: 2d vector of projective algebra storing only components x, y explicitly.
 // The z component is assumed to be z = 0
-template <typename T> struct Vector2d : public Vec2d<T> {
+template <typename T>
+    requires(std::floating_point<T>)
+struct Vector2d : public Vec2d<T> {
 
     using Vec2d<T>::Vec2d; // inherit base class ctors
 
@@ -183,7 +274,9 @@ template <typename T> struct Vector2d : public Vec2d<T> {
 
 // Point2d: 2d point of projective algebra storing only components x, y explicitly.
 // The z component is assumed to by z=1
-template <typename T> struct Point2d : public Vec2d<T> {
+template <typename T>
+    requires(std::floating_point<T>)
+struct Point2d : public Vec2d<T> {
 
     using Vec2d<T>::Vec2d; // inherit base class ctors
 
@@ -200,7 +293,9 @@ template <typename T> struct Point2d : public Vec2d<T> {
 //
 // a Point2dp is a Vec2dp, thus all operations defined for Vec2dp
 // work directly for Point2dp - only deviations will be specified
-template <typename T> struct Point2dp : public Vec2dp<T> {
+template <typename T>
+    requires(std::floating_point<T>)
+struct Point2dp : public Vec2dp<T> {
 
     using Vec2dp<T>::Vec2dp; // inherit base class ctors
 
@@ -231,7 +326,7 @@ template <typename T> struct Point2dp : public Vec2dp<T> {
 
 template <typename T>
     requires std::floating_point<T>
-Point2dp<T> unitize(Point2dp<T> const& p)
+inline constexpr Point2dp<T> unitize(Point2dp<T> const& p)
 {
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(p.z) < std::numeric_limits<T>::epsilon()) {
@@ -249,7 +344,9 @@ Point2dp<T> unitize(Point2dp<T> const& p)
 //
 // a Line2dp is a BiVec2dp, thus all operations defined for BiVec2dp
 // work directly for Line2dp - only deviations will be specified
-template <typename T> struct Line2dp : public BiVec2dp<T> {
+template <typename T>
+    requires(std::floating_point<T>)
+struct Line2dp : public BiVec2dp<T> {
 
     using BiVec2dp<T>::BiVec2dp; // inherit base class ctors
 
@@ -288,10 +385,11 @@ template <typename T> struct Line2dp : public BiVec2dp<T> {
 };
 
 template <typename T>
-    requires std::floating_point<T>
-Line2dp<T> unitize(Line2dp<T> const& l)
+    requires(std::floating_point<T>)
+inline constexpr Line2dp<T> unitize(Line2dp<T> const& l)
 {
     // unitization for a 2d bivector means std::sqrt(x^2 + y^2) = 1
+    // i.e. unitization of the direction vector of the line
     T wn = std::sqrt(l.x * l.x + l.y * l.y);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (wn < std::numeric_limits<T>::epsilon()) {
@@ -301,6 +399,45 @@ Line2dp<T> unitize(Line2dp<T> const& l)
 #endif
     T inv = T(1.0) / wn;
     return Line2dp<T>(l.x * inv, l.y * inv, l.z * inv);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// attitude operations: att = rwdg( u, cmpl(e3_2dp) )
+//
+// (the attitude is the intersection of the object with the complement of the origin)
+////////////////////////////////////////////////////////////////////////////////
+
+// return the attitude (i.e. the value required for unitization) of the point
+//
+// if att(point) = 0.0 the point is located at infinity in the direction of its bulk
+//
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T att(Vec2dp<T> const& v)
+{
+    return v.z;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr T att(Point2dp<T> const& p)
+{
+    return p.z;
+}
+
+// return the attitude (i.e. the direction vector) of the line
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> att(BiVec2dp<T> const& B)
+{
+    return Vec2dp<T>(B.y, -B.x, T(0.0));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> att(Line2dp<T> const& l)
+{
+    return Vec2dp<T>(l.y, -l.x, T(0.0));
 }
 
 } // namespace hd::ga::pga

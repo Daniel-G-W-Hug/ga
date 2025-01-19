@@ -3835,31 +3835,31 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         // simple projections
         auto v = vec3d{4.0, 3.5, 5.0};
-        // auto b = e31_3d;
-        auto b = e31_3d + 0.1 * e12_3d;
-        // auto b = e31_3d + 0.01 * e12_3d + 0.1 * e23_3d;
+        // auto B = e31_3d;
+        auto B = e31_3d + 0.1 * e12_3d;
+        // auto B = e31_3d + 0.01 * e12_3d + 0.1 * e23_3d;
 
 
-        auto v_in_B = project_onto(v, b);
-        auto v_perp_B = reject_from(v, b);
+        auto v_in_B = project_onto(v, B);
+        auto v_perp_B = reject_from(v, B);
 
         // fmt::println("   v         = {:.3f}", v);
-        // fmt::println("   b         = {:.3f}", b);
+        // fmt::println("   B         = {:.3f}", B);
         // fmt::println("");
         // fmt::println("   v_in_B    = {:.3f}", v_in_B);
         // fmt::println("   v_perp_B  = {:.3f}", v_perp_B);
-        // fmt::println("   v << b    = {:.3f}", v << b);
-        // fmt::println("   b >> v    = {:.3f}", b >> v);
+        // fmt::println("   v << B    = {:.3f}", v << B);
+        // fmt::println("   B >> v    = {:.3f}", B >> v);
         // fmt::println("");
 
-        // x^b = 0 for every point x in b
-        CHECK(nrm_sq(wdg(v_in_B, b)) < eps);
+        // x^b = 0 for every point x in B
+        CHECK(nrm_sq(wdg(v_in_B, B)) < eps);
 
-        // v_perp_B should be proportional to the normal vector n of b
-        // n = dual(b) or n = cmpl(b)
+        // v_perp_B should be proportional to the normal vector n of B
+        // n = dual(B) or n = cmpl(B)
         // thus, wdg(v_perp_B, n) == 0 is required
-        CHECK(nrm_sq(wdg(v_perp_B, dual(b))) < eps);
-        CHECK(nrm_sq(wdg(v_perp_B, cmpl(b))) < eps);
+        CHECK(nrm_sq(wdg(v_perp_B, dual(B))) < eps);
+        CHECK(nrm_sq(wdg(v_perp_B, cmpl(B))) < eps);
 
         // v_in_B and v_perp_B should be perpendicular to each other
         CHECK(nrm_sq(dot(v_in_B, v_perp_B)) < eps);
@@ -3938,8 +3938,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(wdg(cmpl(scalar3d(5)), scalar3d(5)) / nrm_sq(scalar3d(5)) == I_3d);
         CHECK(wdg(v, cmpl(v)) / nrm_sq(v) == I_3d);
         CHECK(wdg(cmpl(v), v) / nrm_sq(v) == I_3d);
-        CHECK(wdg(b, cmpl(b)) / nrm_sq(b) == I_3d);
-        CHECK(wdg(cmpl(b), b) / nrm_sq(b) == I_3d);
+        CHECK(wdg(B, cmpl(B)) / nrm_sq(B) == I_3d);
+        CHECK(wdg(cmpl(B), B) / nrm_sq(B) == I_3d);
         CHECK(wdg(pscalar3d(3), cmpl(pscalar3d(3))) / nrm_sq(pscalar3d(3)) == I_3d);
         CHECK(wdg(cmpl(pscalar3d(3)), pscalar3d(3)) / nrm_sq(pscalar3d(3)) == I_3d);
 
@@ -3947,14 +3947,14 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   v         = {:.3f}", v);
         // fmt::println("   cmpl(v)   = {:.3f}", cmpl(v));
         // fmt::println("");
-        // fmt::println("   v << b = {:.3f}", v << b);
-        // fmt::println("   b >> v = {:.3f}", b >> v);
+        // fmt::println("   v << B = {:.3f}", v << b);
+        // fmt::println("   B >> v = {:.3f}", b >> v);
         // fmt::println("");
         // fmt::println("   rwdg(b, cmpl(v))  = {:.3f}", rwdg(b, cmpl(v)));
         // fmt::println("   rwdg(cmpl(v), b)  = {:.3f}", rwdg(cmpl(v), b));
         // fmt::println("");
-        CHECK((v << b) == rwdg(b, cmpl(v)));
-        CHECK((b >> v) == rwdg(cmpl(v), b));
+        CHECK((v << B) == rwdg(B, cmpl(v)));
+        CHECK((B >> v) == rwdg(cmpl(v), B));
 
         // check expansions: v ^ cmpl(b)  and  cmpl(b) ^ v
         // (create new bivector that contains v and is perpendicular to b)
@@ -3973,14 +3973,14 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   wdg(v, cmpl(b))         = {:.3f}", wdg(v, cmpl(b)));
         // fmt::println("   n=cmpl(wdg(v, cmpl(b))) = {:.3f}", cmpl(wdg(v, cmpl(b))));
         // vector is in plane defined by the expansion
-        CHECK(wdg(v, wdg(v, cmpl(b))) == 0.0);
-        CHECK(wdg(v, wdg(cmpl(b), v)) == 0.0);
+        CHECK(wdg(v, wdg(v, cmpl(B))) == 0.0);
+        CHECK(wdg(v, wdg(cmpl(B), v)) == 0.0);
         // duality of the contraction and the wedge product (based on dual)
-        CHECK(dual(v << b) == wdg(v, dual(b)));
-        CHECK(dual(b >> v) == wdg(dual(b), v));
+        CHECK(dual(v << B) == wdg(v, dual(B)));
+        CHECK(dual(B >> v) == wdg(dual(B), v));
         // duality of the contraction and the wedge product (based on complement)
-        CHECK(cmpl(b >> v) == wdg(v, cmpl(b)));
-        CHECK(cmpl(v << b) == wdg(cmpl(b), v));
+        CHECK(cmpl(B >> v) == wdg(v, cmpl(B)));
+        CHECK(cmpl(v << B) == wdg(cmpl(B), v));
     }
 
 } // TEST_SUITE("Euclidean Geometric Algebra (EGA)")

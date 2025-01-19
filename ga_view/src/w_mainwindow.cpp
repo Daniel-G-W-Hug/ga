@@ -175,16 +175,16 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         pt2dp p0(0, 0, 1);
         pt2dp p1(1, 1.5, 1);
         pt2dp p2(2, 1, 1);
-        pt2dp p3(2, 1, 2);
 
-        pt2d_mark p3m;
-        p3m.symbol = Symbol::square;
-        p3m.pen = QPen(Qt::red, 2, Qt::SolidLine);
+        // pt2dp p3(2, 1, 2);
+        // pt2d_mark p3m;
+        // p3m.symbol = Symbol::square;
+        // p3m.pen = QPen(Qt::red, 2, Qt::SolidLine);
 
         cm.add_pt(p0);
         cm.add_pt(p1);
         cm.add_pt(p2);
-        cm.add_pt(p3, p3m);
+        // cm.add_pt(p3, p3m);
 
         ln2de l1;
         l1.push_back(p0);
