@@ -43,9 +43,9 @@
 }
 
 //
-// hint: using ln2de = std::vector<pt2dp>;
+// hint: using ln2dp = std::vector<pt2dp>;
 //
-[[maybe_unused]] size_t Coordsys_model::add_ln(ln2de const& vpe_in, ln2d_mark const& m)
+[[maybe_unused]] size_t Coordsys_model::add_ln(ln2dp const& vpe_in, ln2d_mark const& m)
 {
     lne.push_back(vpe_in);
     lne_mark.push_back(m);
@@ -69,6 +69,14 @@
     vt_mark.push_back(m);
 
     return vt.size() - 1;
+}
+
+[[maybe_unused]] size_t Coordsys_model::add_bivt(bivt2dp const& bivt_in)
+{
+
+    bivte.push_back(bivt_in);
+
+    return bivte.size() - 1;
 }
 
 [[maybe_unused]] size_t Coordsys_model::add_apt(pt2d const& pt_in)

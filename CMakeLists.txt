@@ -51,8 +51,9 @@ add_definitions(-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
 
 ### Print with type info for scalars, vectors, bivectors, etc.
 add_definitions(-D_HD_GA_PRINT_WITH_TYPE_INFO)
-
-add_subdirectory(ga)      # ga library (header only)
-add_subdirectory(ga_test) # tests for header only library
-add_subdirectory(ga_lua)  # lua scripting for ga
-add_subdirectory(ga_view) # qt-based viewer
+ 
+add_subdirectory(ga)        # ga library (header only)
+add_subdirectory(ga_test)   # tests for header only library
+add_subdirectory(ga_lua)    # lua scripting for ga
+add_subdirectory(ga_view)   # qt-based viewer
+add_subdirectory(ga_prdxpr) # generate product expressions

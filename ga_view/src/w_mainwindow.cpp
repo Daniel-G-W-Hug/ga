@@ -13,6 +13,7 @@
 #include "active_reflection.hpp"
 #include "active_vt2d.hpp"
 
+#include "item_bivt2de.hpp"
 #include "item_ln2d.hpp"
 #include "item_ln2de.hpp"
 #include "item_pt2d.hpp"
@@ -186,7 +187,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_pt(p2);
         // cm.add_pt(p3, p3m);
 
-        ln2de l1;
+        ln2dp l1;
         l1.push_back(p0);
         l1.push_back(p2);
         l1.push_back(p1);
@@ -200,6 +201,28 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_ln(l1, lm);
 
         cm.set_label("projective model 1");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        bivt2dp b0(0, 1, 0);
+        bivt2dp b1(1, 0, 0);
+        bivt2dp b2(1, 1, 0);
+        bivt2dp b3(0, 1, 1);
+        bivt2dp b4(1, 0, 1);
+        bivt2dp b5(1, 1, 1);
+
+        cm.add_bivt(b0);
+        cm.add_bivt(b1);
+        cm.add_bivt(b2);
+        cm.add_bivt(b3);
+        cm.add_bivt(b4);
+        cm.add_bivt(b5);
+
+        cm.set_label("projective model 2");
 
         vm.push_back(cm);
     }
@@ -373,6 +396,11 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     // register all vectors
     for (size_t idx = 0; idx < cm->vt.size(); ++idx) {
         scene->addItem(new item_vt2d(cs, wcs, cm, idx));
+    }
+
+    // register all projective bivectors
+    for (size_t idx = 0; idx < cm->bivte.size(); ++idx) {
+        scene->addItem(new item_bivt2de(cs, wcs, cm, idx));
     }
 
     // register all lines
