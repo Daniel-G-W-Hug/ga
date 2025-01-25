@@ -4,17 +4,14 @@
 
 #include "ga_prdxpr_common.hpp"
 
+// multivector basis components
 const mvec_coeff mv_ega2d_basis = {"1", "e1", "e2", "e12"};
+
+// multivector basis products
 const prd_table gpr_ega2d_basis_tab = {{"1", "e1", "e2", "e12"},
                                        {"e1", "1", "e12", "e2"},
                                        {"e2", "-e12", "1", "-e1"},
                                        {"e12", "-e2", "e1", "-1"}};
-
-// const mvec_coeff mv_ega2d_basis = {"1", "e_1", "e_2", "e_{12}"};
-// const prd_table gpr_ega2d_basis_tab = {{"1", "e_1", "e_2", "e_{12}"},
-//                                        {"e_1", "1", "e_{12}", "e_2"},
-//                                        {"e_2", "-e_{12}", "1", "-e_1"},
-//                                        {"e_{12}", "-e_2", "e_1", "-1"}};
 
 const prd_table wdg_ega2d_basis_tab = {{"1", "e1", "e2", "e12"},
                                        {"e1", "0", "e12", "0"},
