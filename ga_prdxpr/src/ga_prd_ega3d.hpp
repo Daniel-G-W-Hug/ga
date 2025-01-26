@@ -28,12 +28,6 @@ const prd_table wdg_ega3d_basis_tab = {
     {"e12", "0", "0", "e123", "0", "0", "0", "0"},
     {"e123", "0", "0", "0", "0", "0", "0", "0"}};
 
-const prd_table dot_ega3d_basis_tab = {
-    {"1", "0", "0", "0", "0", "0", "0", "0"},  {"0", "1", "0", "0", "0", "0", "0", "0"},
-    {"0", "0", "1", "0", "0", "0", "0", "0"},  {"0", "0", "0", "1", "0", "0", "0", "0"},
-    {"0", "0", "0", "0", "-1", "0", "0", "0"}, {"0", "0", "0", "0", "0", "-1", "0", "0"},
-    {"0", "0", "0", "0", "0", "0", "-1", "0"}, {"0", "0", "0", "0", "0", "0", "0", "-1"}};
-
 const prd_table lcontr_ega3d_basis_tab = {
     {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e123"},
     {"0", "1", "0", "0", "0", "-e3", "e2", "e23"},
@@ -54,6 +48,12 @@ const prd_table rcontr_ega3d_basis_tab = {
     {"e12", "-e2", "e1", "0", "0", "0", "-1", "0"},
     {"e123", "e23", "e31", "e12", "-e1", "-e2", "-e3", "-1"}};
 
+const prd_table dot_ega3d_basis_tab = {
+    {"1", "0", "0", "0", "0", "0", "0", "0"},  {"0", "1", "0", "0", "0", "0", "0", "0"},
+    {"0", "0", "1", "0", "0", "0", "0", "0"},  {"0", "0", "0", "1", "0", "0", "0", "0"},
+    {"0", "0", "0", "0", "-1", "0", "0", "0"}, {"0", "0", "0", "0", "0", "-1", "0", "0"},
+    {"0", "0", "0", "0", "0", "0", "-1", "0"}, {"0", "0", "0", "0", "0", "0", "0", "-1"}};
+
 // coefficients need to create a multivector = [coeff]^T [basis]
 
 // const mvec_coeff mv_ega3d_lcoeff = {"sl",  "vxl", "vyl", "vzl",
@@ -61,7 +61,11 @@ const prd_table rcontr_ega3d_basis_tab = {
 // const mvec_coeff mv_ega3d_rcoeff = {"sr",  "vxr", "vyr", "vzr",
 //                                     "Bxr", "Byr", "Bzr", "psr"};
 
-const mvec_coeff mv_ega3d_lcoeff = {"A.c0", "A.c1", "A.c2", "A.c3",
-                                    "A.c4", "A.c5", "A.c6", "A.c7"};
-const mvec_coeff mv_ega3d_rcoeff = {"B.c0", "B.c1", "B.c2", "B.c3",
-                                    "B.c4", "B.c5", "B.c6", "B.c7"};
+// const mvec_coeff mv_ega3d_lcoeff = {"A.c0", "A.c1", "A.c2", "A.c3",
+//                                     "A.c4", "A.c5", "A.c6", "A.c7"};
+// const mvec_coeff mv_ega3d_rcoeff = {"B.c0", "B.c1", "B.c2", "B.c3",
+//                                     "B.c4", "B.c5", "B.c6", "B.c7"};
+
+const mvec_coeff mv_ega3d_lcoeff = {"M.c0", "M.c1", "M.c2", "M.c3",
+                                    "M.c4", "M.c5", "M.c6", "M.c7"};
+const mvec_coeff mv_ega3d_rcoeff = {"s", "v.x", "v.y", "v.z", "B.x", "B.y", "B.z", "ps"};

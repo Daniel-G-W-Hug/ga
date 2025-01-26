@@ -2,12 +2,11 @@
 
 #include "ga_prdxpr_common.hpp"
 
-#include "fmt/chrono.h"  // chrono support
-#include "fmt/format.h"  // formatting
-#include "fmt/ostream.h" // ostream support
-#include "fmt/ranges.h"  // support printing of (nested) containers & tuples
-
 #include <exception>
+
+////////////////////////////////////////////////////////////////////////////////
+// user related functions
+////////////////////////////////////////////////////////////////////////////////
 
 prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& rcoeff)
 {
@@ -67,14 +66,70 @@ prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
     return prd_tab;
 }
 
-mvec_coeff extract_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis)
+
+prd_table get_prd_tab(prd_table const& basis_tab, mvec_coeff const& mv_basis,
+                      mvec_coeff const& mv_lcoeff, mvec_coeff const& mv_rcoeff)
+{
+    auto mv_coeff_tab = mv_coeff_to_coeff_prd_tab(mv_lcoeff, mv_rcoeff);
+    // fmt::println("{} - coeff product table:", prd_name);
+    // print_prd_tab(mv_coeff_tab);
+    // fmt::println("");
+
+    auto prd_tab = combine_coeff_and_basis_prd_tabs(mv_coeff_tab, basis_tab);
+    // fmt::println("{}: product table:", prd_name);
+    // print_prd_tab(prd_tab);
+    // fmt::println("");
+
+    return prd_tab;
+}
+
+
+mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
+                               filter_2d lfilter, filter_2d rfilter)
 {
 
     // make sure sizes match as required
     if (prd_tab.size() != mv_basis.size()) {
         throw std::runtime_error(
-            "Multivector of product table and multivector basis must match.");
+            "Multivector size of product table and multivector basis size must match.");
     }
+
+    return extractor(prd_tab, mv_basis, get_coeff_filter(lfilter),
+                     get_coeff_filter(rfilter));
+}
+
+mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
+                               filter_3d lfilter, filter_3d rfilter)
+{
+
+    // make sure sizes match as required
+    if (prd_tab.size() != mv_basis.size()) {
+        throw std::runtime_error(
+            "Multivector size of product table and multivector basis size must match.");
+    }
+
+    return extractor(prd_tab, mv_basis, get_coeff_filter(lfilter),
+                     get_coeff_filter(rfilter));
+}
+
+
+mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
+                     mvec_coeff_filter const& lcoeff_filter,
+                     mvec_coeff_filter const& rcoeff_filter)
+{
+
+    // make sure sizes match as required
+    if ((prd_tab.size() != mv_basis.size()) ||
+        (mv_basis.size() != lcoeff_filter.size()) ||
+        (mv_basis.size() != rcoeff_filter.size())) {
+        throw std::runtime_error(
+            "Multivector size of product table and multivector basis size must match.");
+    }
+
+    // fmt::println("");
+    // fmt::println("lcoeff_filter: {}", fmt::join(lcoeff_filter, ", "));
+    // fmt::println("rcoeff_filter: {}", fmt::join(rcoeff_filter, ", "));
+    // fmt::println("");
 
     // reserve a full multivector for output
     mvec_coeff mv_prd(mv_basis.size());
@@ -85,7 +140,10 @@ mvec_coeff extract_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& m
         auto basis_element = mv_basis[b];
 
         for (size_t i = 0; i < prd_tab.size(); ++i) {
+            if (lcoeff_filter[i] == 0) continue; // skip filtered elements on lhs
+
             for (size_t j = 0; j < prd_tab.size(); ++j) {
+                if (rcoeff_filter[j] == 0) continue; // skip filtered elements on rhs
 
                 if (prd_tab[i][j].ends_with(space_str + basis_element)) {
                     // found a contribution
@@ -111,35 +169,13 @@ mvec_coeff extract_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& m
             }
         }
     }
-
-
     return mv_prd;
 }
 
-void generate_and_print_product(std::string const& prd_name, prd_table const& basis_tab,
-                                mvec_coeff const& mv_basis, mvec_coeff const& mv_lcoeff,
-                                mvec_coeff const& mv_rcoeff)
-{
 
-    fmt::println("{} - basis product table:", prd_name);
-    print_prd_tab(basis_tab);
-    fmt::println("");
-
-    auto mv_coeff_tab = mv_coeff_to_coeff_prd_tab(mv_lcoeff, mv_rcoeff);
-    // fmt::println("{} - coeff product table:", prd_name);
-    // print_prd_tab(mv_coeff_tab);
-    // fmt::println("");
-
-    auto prd_tab = combine_coeff_and_basis_prd_tabs(mv_coeff_tab, basis_tab);
-    // fmt::println("{}: product table:", prd_name);
-    // print_prd_tab(prd_tab);
-    // fmt::println("");
-
-    auto prd_mv = extract_mv_from_prd_tab(prd_tab, mv_basis);
-    fmt::println("{} - multivector:", prd_name);
-    print_mvec(prd_mv, mv_basis);
-    fmt::println("");
-}
+////////////////////////////////////////////////////////////////////////////////
+// printing
+////////////////////////////////////////////////////////////////////////////////
 
 void print_mvec(mvec_coeff const& mv, mvec_coeff const& mv_basis)
 {
@@ -190,4 +226,68 @@ void print_prd_tab(prd_table const& tab)
             fmt::println("] ");
         }
     }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// helper functions (not directly intended for user)
+////////////////////////////////////////////////////////////////////////////////
+mvec_coeff_filter get_coeff_filter(filter_2d filter)
+{
+
+    mvec_coeff_filter filter_vec(4); // 2d multivector has 4 basis elements
+
+    switch (filter) {
+        case filter_2d::mv:
+            filter_vec = {1, 1, 1, 1}; // all elements
+            break;
+        case filter_2d::mv_e:
+            filter_vec = {1, 0, 0, 1}; // even grade elements
+            break;
+        case filter_2d::s:
+            filter_vec = {1, 0, 0, 0}; // scalar element
+            break;
+        case filter_2d::vec:
+            filter_vec = {0, 1, 1, 0}; // vector elements
+            break;
+        case filter_2d::ps:
+            filter_vec = {0, 0, 0, 1}; // pseudoscalar element
+            break;
+        default:
+            std::unreachable();
+    }
+    return filter_vec;
+}
+
+mvec_coeff_filter get_coeff_filter(filter_3d filter)
+{
+
+    mvec_coeff_filter filter_vec(8); // 3d multivector has 8 basis elements
+
+    switch (filter) {
+        case filter_3d::mv:
+            filter_vec = {1, 1, 1, 1, 1, 1, 1, 1}; // all elements
+            break;
+        case filter_3d::mv_e:
+            filter_vec = {1, 0, 0, 0, 1, 1, 1, 0}; // even grade elements
+            break;
+        case filter_3d::mv_u:
+            filter_vec = {0, 1, 1, 1, 0, 0, 0, 1}; // uneven grade elements
+            break;
+        case filter_3d::s:
+            filter_vec = {1, 0, 0, 0, 0, 0, 0, 0}; // scalar element
+            break;
+        case filter_3d::vec:
+            filter_vec = {0, 1, 1, 1, 0, 0, 0, 0}; // vector elements
+            break;
+        case filter_3d::bivec:
+            filter_vec = {0, 0, 0, 0, 1, 1, 1, 0}; // bivector elements
+            break;
+        case filter_3d::ps:
+            filter_vec = {0, 0, 0, 0, 0, 0, 0, 1}; // pseudoscalar element
+            break;
+        default:
+            std::unreachable();
+    }
+    return filter_vec;
 }
