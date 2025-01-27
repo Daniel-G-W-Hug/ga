@@ -574,130 +574,13 @@ inline constexpr MVec2d<std::common_type_t<T, U>> rwdg(MVec2d<T> const& A,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// left contractions
+// left contractions A << B
 //
-// The resulting object is a lies in B and is perpendicular to A
+// The resulting object is A lies in B and is perpendicular to A
 //
 // L. Dorst: The contraction A << B of an a-blade A onto a b-blade B is a sub-blade
 // of B of grade b-a which is perpendicular to A, and linear in both arguments
 ////////////////////////////////////////////////////////////////////////////////
-
-// left contraction (s << v) - scalar s contracted onto vector v
-// identical with scalar multiplication of the vector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
-                                                            Vec2d<U> const& v)
-{
-    using ctype = std::common_type_t<T, U>;
-    return ctype(s) * Vec2d<ctype>(v.x, v.y);
-}
-
-// left contraction (v1 << v2) - vector v1 contracted onto vector v2
-// (=identical to scalar product dot(v1,v2) of two vectors; identical to (v1 >> v2))
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v1,
-                                                               Vec2d<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(v1.x * v2.x + v1.y * v2.y);
-}
-
-// left contraction (v << B) - vector v contracted onto pseudoscalar ps (=bivector)
-// (identical with the geometric product v * B for this case)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
-                                                            PScalar2d<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-v.y, v.x) * ctype(ps);
-}
-
-// left contraction (s << ps) - scalar s contracted onto pseudoscalar ps
-// identical with scalar multiplication of the pseudoscalar
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
-                                                                PScalar2d<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return PScalar2d<ctype>(ctype(s) * ctype(ps));
-}
-
-// left contraction - pseudoscalar contracted onto scalar
-// returns 0
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>>
-operator<<([[maybe_unused]] PScalar2d<T>, [[maybe_unused]] Scalar2d<U>)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(0.0);
-}
-
-// left contraction -  pseudoscalar contracted onto vector
-// returns 0
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>>
-operator<<([[maybe_unused]] PScalar2d<T>, [[maybe_unused]] Vec2d<U> const&)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(0.0);
-}
-
-// left contraction - vector contracted onto scalar
-// returns 0
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>>
-operator<<([[maybe_unused]] Vec2d<T> const&, [[maybe_unused]] Scalar2d<U>)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(0.0);
-}
-
-// left contraction (s << M) of a scalar s with an even grade mulivector M
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
-                                                               MVec2d_E<U> const& M)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = s * M.c0;
-    ctype c1 = s * M.c1;
-    return MVec2d_E<ctype>(c0, c1);
-}
-
-// left contraction (s << M) of a scalar s with a mulivector M
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
-                                                             MVec2d<U> const& M)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = s * M.c0;
-    ctype c1 = s * M.c1;
-    ctype c2 = s * M.c2;
-    ctype c3 = s * M.c3;
-    return MVec2d<ctype>(c0, c1, c2, c3);
-}
-
-// left contraction (v << M) of a vector v onto a multivector M
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
-                                                             MVec2d<U> const& M)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = v.x * M.c1 + v.y * M.c2;
-    ctype c1 = -v.y * M.c3;
-    ctype c2 = v.x * M.c3;
-    ctype c3 = 0.0;
-    return MVec2d<ctype>(c0, c1, c2, c3);
-}
 
 // left contraction (A << B) - "A contracted onto B"
 template <typename T, typename U>
@@ -713,36 +596,491 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& A,
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// right contractions
-//
-// The resulting object lies in A and is perpendicular to B
-////////////////////////////////////////////////////////////////////////////////
-
-// right contraction (v >> s) - vector v contracted by scalar s
-// identical with scalar multiplication of the vector
+// left contraction (A << B) - "A contracted onto B"
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(Vec2d<U> const& v,
-                                                            Scalar2d<T> s)
+inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& A,
+                                                             MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x, v.y) * ctype(s);
+    ctype c0 = A.c0 * B.c0 - A.c3 * B.c1;
+    ctype c1 = -A.c2 * B.c1;
+    ctype c2 = A.c1 * B.c1;
+    ctype c3 = A.c0 * B.c1;
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// right contraction (v1 >> v2) - vector v2 taken out of a vector v1
-// (=identical to scalar product dot(v1,v2) of two vectors; identical with (v1 << v2))
+// left contraction (A << B) - "A contracted onto B"
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v1,
+inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
+                                                             MVec2d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c0 - A.c1 * B.c3;
+    ctype c1 = A.c0 * B.c1;
+    ctype c2 = A.c0 * B.c2;
+    ctype c3 = A.c0 * B.c3;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// left contraction (A << ps) of mulivector A onto pseudoscalar ps
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<U> const& A,
+                                                             PScalar2d<T> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = -A.c3 * ps;
+    ctype c1 = -A.c2 * ps;
+    ctype c2 = A.c1 * ps;
+    ctype c3 = A.c0 * ps;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// left contraction (ps << B) of a pseudoscalar ps onto mulivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(PScalar2d<T> ps,
+                                                               MVec2d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(-ps * B.c3);
+}
+
+// left contraction (A << v) of multivector A onto vector v
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& A,
+                                                             Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c1 * v.x + A.c2 * v.y;
+    ctype c1 = A.c0 * v.x;
+    ctype c2 = A.c0 * v.y;
+    ctype c3 = 0.0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// left contraction (v << B) of vector v onto multivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
+                                                             MVec2d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = v.x * B.c1 + v.y * B.c2;
+    ctype c1 = -v.y * B.c3;
+    ctype c2 = v.x * B.c3;
+    ctype c3 = 0.0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// left contraction (A << s) of mulivector A onto scalar s
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& A,
+                                                               Scalar2d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(A.c0 * s);
+}
+
+// left contraction (s << B) of scalar s onto mulivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
+                                                             MVec2d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = s * B.c0;
+    ctype c1 = s * B.c1;
+    ctype c2 = s * B.c2;
+    ctype c3 = s * B.c3;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// left contraction (A << B) - "A contracted onto B"
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
+                                                               MVec2d_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c0 - A.c1 * B.c1;
+    ctype c1 = A.c0 * B.c1;
+    return MVec2d_E<ctype>(c0, c1);
+}
+
+// left contraction (A << ps) of even grade mulivector A with pseudoscalar ps
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
+                                                               PScalar2d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = -A.c1 * ps;
+    ctype c1 = A.c0 * ps;
+    return MVec2d_E<ctype>(c0, c1);
+}
+
+// left contraction (ps << B) of pseudoscalar ps with an even grade mulivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(PScalar2d<T> ps,
+                                                               MVec2d_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(-ps * B.c1);
+}
+
+// left contraction (A << v) - "A contracted onto v"
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
+                                                            Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(A.c0 * v.x, A.c0 * v.y);
+}
+
+// left contraction (v << B) - "v contracted onto B"
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
+                                                               MVec2d_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(-v.y * B.c1, v.x * B.c1);
+}
+
+// left contraction (A << s) of even grade mulivector A with scalar s
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
+                                                               Scalar2d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(A.c0 * s);
+}
+
+// left contraction (s << B) of a scalar s with an even grade mulivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
+                                                               MVec2d_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = s * B.c0;
+    ctype c1 = s * B.c1;
+    return MVec2d_E<ctype>(c0, c1);
+}
+
+// left contraction - pseudoscalar ps1 contracted onto pseudoscalar ps2
+// returns scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(PScalar2d<T> ps1,
+                                                               PScalar2d<U> ps2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(-ps1 * ps2);
+}
+
+// left contraction -  pseudoscalar contracted onto vector
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] PScalar2d<T>, [[maybe_unused]] Vec2d<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(0.0);
+}
+
+// left contraction (v << ps) - vector v contracted onto pseudoscalar ps
+// (identical with the geometric product v * B for this case)
+// returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
+                                                            PScalar2d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(-v.y, v.x) * ctype(ps);
+}
+
+// left contraction - pseudoscalar contracted onto scalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] PScalar2d<T>, [[maybe_unused]] Scalar2d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(0.0);
+}
+
+// left contraction (s << ps) - scalar s contracted onto pseudoscalar ps
+// identical with scalar multiplication of the pseudoscalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
+                                                                PScalar2d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(ctype(s) * ctype(ps));
+}
+
+// left contraction (v1 << v2) - vector v1 contracted onto vector v2
+// (=identical to scalar product dot(v1,v2) of two vectors and identical to (v1 >> v2))
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v1,
                                                                Vec2d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar2d<ctype>(v1.x * v2.x + v1.y * v2.y);
 }
 
-// right contraction (ps >> v) - pseudoscalar ps (=bivector) contracted by vector v
+// left contraction - vector contracted onto scalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] Vec2d<T> const&, [[maybe_unused]] Scalar2d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(0.0);
+}
+
+// left contraction (s << v) - scalar s contracted onto vector v
+// identical with scalar multiplication of the vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
+                                                            Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * Vec2d<ctype>(v.x, v.y);
+}
+
+// left contraction (s1 << s2) - scalar s1 contracted onto scalar s2
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s1,
+                                                               Scalar2d<U> s2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(ctype(s1) * ctype(s2));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// right contractions A >> B
+//
+// The resulting object lies in A and is perpendicular to B
+////////////////////////////////////////////////////////////////////////////////
+
+// right contraction (A >> B)  - "A contracted by B"
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3;
+    ctype c1 = A.c1 * B.c0 + A.c3 * B.c2;
+    ctype c2 = A.c2 * B.c0 - A.c3 * B.c1;
+    ctype c3 = A.c3 * B.c0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// right contraction (A >> B)  - "A contracted by B"
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c0 - A.c3 * B.c1;
+    ctype c1 = A.c1 * B.c0;
+    ctype c2 = A.c2 * B.c0;
+    ctype c3 = A.c3 * B.c0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// right contraction (A >> B)  - "A contracted by B"
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<T> operator>>(MVec2d_E<T> const& A, MVec2d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c0 - A.c1 * B.c3;
+    ctype c1 = A.c1 * B.c2;
+    ctype c2 = -A.c1 * B.c1;
+    ctype c3 = A.c1 * B.c0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+// right contraction (A >> ps) of a multivector A by a pseudoscalar ps
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& A,
+                                                               PScalar2d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(-A.c3 * ps);
+}
+
+// right contraction (ps >> B) of a pseudoscalar ps by a multivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps,
+                                                             MVec2d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = -ps * B.c3;
+    ctype c1 = ps * B.c2;
+    ctype c2 = -ps * B.c1;
+    ctype c3 = ps * B.c0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// right contraction (A >> v) of multivector A contracted by vector v
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<T> operator>>(MVec2d<T> const& A, Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c1 * v.x + A.c2 * v.y;
+    ctype c1 = A.c3 * v.y;
+    ctype c2 = -A.c3 * v.x;
+    ctype c3 = 0.0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// right contraction (v >> B) of vector v contracted by multivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<T> operator>>(Vec2d<T> const& v, MVec2d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = v.x * B.c1 + v.y * B.c2;
+    ctype c1 = v.x * B.c0;
+    ctype c2 = v.y * B.c0;
+    ctype c3 = 0.0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// right contraction (A >> s) of multivector A by scalar s
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& A,
+                                                             Scalar2d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * s;
+    ctype c1 = A.c1 * s;
+    ctype c2 = A.c2 * s;
+    ctype c3 = A.c3 * s;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// right contraction (s >> B) of scalar s by multivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Scalar2d<T> s,
+                                                               MVec2d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(s * B.c0);
+}
+
+// right contraction (A >> B) of an even grade multivector A by even grade multivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& A,
+                                                               MVec2d_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c0 - A.c1 * B.c1;
+    ctype c1 = A.c1 * B.c0;
+    return MVec2d_E<ctype>(c0, c1);
+}
+
+// right contraction (A >> ps) of an even grade multivector A by a pseudoscalar ps
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& A,
+                                                               PScalar2d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(-A.c1 * ps);
+}
+
+// right contraction (ps >> B) of pseudoscalar ps by even grade multivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps,
+                                                               MVec2d_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = -ps * B.c1;
+    ctype c1 = ps * B.c0;
+    return MVec2d_E<ctype>(c0, c1);
+}
+
+// left contraction (A >> v) - "A contracted by v"
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& A,
+                                                            Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(A.c1 * v.y, -A.c1 * v.x);
+}
+
+// left contraction (v >> B) - "v contracted by B"
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v,
+                                                               MVec2d_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(v.x * B.c0, v.y * B.c0);
+}
+
+// right contraction (A >> s) of even grade multivector A by scalar s
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& A,
+                                                               Scalar2d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * s;
+    ctype c1 = A.c1 * s;
+    return MVec2d_E<ctype>(c0, c1);
+}
+
+// right contraction (s >> B) of scalar s by even grade multivector B
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Scalar2d<T> s,
+                                                               MVec2d_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(s * B.c0);
+}
+
+// right contraction - pseudoscalar s1 contracted by pseudoscalar s2
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps1,
+                                                               PScalar2d<U> ps2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(-ctype(ps1) * ctype(ps2));
+}
+
+// right contraction (ps >> v) - pseudoscalar ps contracted by vector v
 // (identical with the geometric product ps * v for this case)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -753,12 +1091,23 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps,
     return ctype(ps) * Vec2d<ctype>(v.y, -v.x);
 }
 
+// right contraction -  vector contracted by a pseudoscalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Vec2d<T> const&, [[maybe_unused]] PScalar2d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(0.0);
+}
+
 // right contraction (ps >> s) - pseudoscalar ps contracted by scalar s
 // identical with scalar multiplication of the pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar2d<std::common_type_t<T, U>> operator>>(PScalar2d<U> ps,
-                                                                Scalar2d<T> s)
+inline constexpr PScalar2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps,
+                                                                Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar2d<ctype>(ctype(ps) * ctype(s));
@@ -775,15 +1124,26 @@ operator>>([[maybe_unused]] Scalar2d<T>, [[maybe_unused]] PScalar2d<U>)
     return Scalar2d<ctype>(0.0);
 }
 
-// right contraction -  vector contracted by a pseudoscalar
-// returns 0
+// right contraction (v1 >> v2) - vector v2 taken out of a vector v1
+// (=identical to scalar product dot(v1,v2) of two vectors and identical to (v1 << v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>>
-operator>>([[maybe_unused]] Vec2d<T> const&, [[maybe_unused]] PScalar2d<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v1,
+                                                               Vec2d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(0.0);
+    return Scalar2d<ctype>(v1.x * v2.x + v1.y * v2.y);
+}
+
+// right contraction (v >> s) - vector v contracted by scalar s
+// identical with scalar multiplication of the vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(Vec2d<U> const& v,
+                                                            Scalar2d<T> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(v.x, v.y) * ctype(s);
 }
 
 // right contraction - scalar contracted by a vector
@@ -797,56 +1157,14 @@ operator>>([[maybe_unused]] Scalar2d<T>, [[maybe_unused]] Vec2d<U> const&)
     return Scalar2d<ctype>(0.0);
 }
 
-// right contraction (M >> s) of an even grade multivector by a scalar s
+// left contraction (s1 >> s2) - scalar s1 contracted by scalar s2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& M,
-                                                               Scalar2d<U> s)
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Scalar2d<T> s1,
+                                                               Scalar2d<U> s2)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = M.c0 * s;
-    ctype c1 = M.c1 * s;
-    return MVec2d_E<ctype>(c0, c1);
-}
-
-// right contraction (M >> s) of a multivector by a scalar s
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& M,
-                                                             Scalar2d<U> s)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = M.c0 * s;
-    ctype c1 = M.c1 * s;
-    ctype c2 = M.c2 * s;
-    ctype c3 = M.c3 * s;
-    return MVec2d<ctype>(c0, c1, c2, c3);
-}
-
-// right contraction (M >> v) of a multivector M contracted by a vector v
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<T> operator>>(MVec2d<T> const& M, Vec2d<U> const& v)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = M.c1 * v.x + M.c2 * v.y;
-    ctype c1 = M.c3 * v.y;
-    ctype c2 = -M.c3 * v.x;
-    ctype c3 = 0.0;
-    return MVec2d<ctype>(c0, c1, c2, c3);
-}
-
-// right contraction (A >> B)  - "A contracted by B"
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3;
-    ctype c1 = A.c1 * B.c0 + A.c3 * B.c2;
-    ctype c2 = A.c2 * B.c0 - A.c3 * B.c1;
-    ctype c3 = A.c3 * B.c0;
-    return MVec2d<ctype>(c0, c1, c2, c3);
+    return Scalar2d<ctype>(ctype(s1) * ctype(s2));
 }
 
 
