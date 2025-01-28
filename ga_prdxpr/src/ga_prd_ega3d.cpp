@@ -1560,7 +1560,7 @@ void generate_and_print_ega3d_dot()
     fmt::println("");
 
 
-    fmt::println("{}:", prd_name + space_str + "dot(mv_u,s) -> s");
+    fmt::println("{}:", prd_name + space_str + "dot(mv_u,s) -> 0");
     prd_tab = get_prd_tab(basis_tab, basis, mv3d_coeff_A_uneven, mv3d_coeff_svBps);
     prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3d::mv_u, filter_3d::s);
     print_mvec(prd_mv, basis);
@@ -1573,7 +1573,7 @@ void generate_and_print_ega3d_dot()
     fmt::println("");
 
 
-    fmt::println("{}:", prd_name + space_str + "dot(ps,ps) -> 0");
+    fmt::println("{}:", prd_name + space_str + "dot(ps,ps) -> s");
     prd_tab = get_prd_tab(basis_tab, basis, mv3d_coeff_svBps1, mv3d_coeff_svBps2);
     prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3d::ps, filter_3d::ps);
     print_mvec(prd_mv, basis);
