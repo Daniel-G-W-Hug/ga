@@ -5,7 +5,7 @@
 #include "ga_prdxpr_common.hpp"
 
 // multivector basis components
-const mvec_coeff mv_ega3d_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e123"};
+const mvec_coeff mv3d_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e123"};
 
 // multivector basis products
 const prd_table gpr_ega3d_basis_tab = {
@@ -61,11 +61,29 @@ const prd_table dot_ega3d_basis_tab = {
 // const mvec_coeff mv_ega3d_rcoeff = {"sr",  "vxr", "vyr", "vzr",
 //                                     "Bxr", "Byr", "Bzr", "psr"};
 
-// const mvec_coeff mv_ega3d_lcoeff = {"A.c0", "A.c1", "A.c2", "A.c3",
-//                                     "A.c4", "A.c5", "A.c6", "A.c7"};
-// const mvec_coeff mv_ega3d_rcoeff = {"B.c0", "B.c1", "B.c2", "B.c3",
-//                                     "B.c4", "B.c5", "B.c6", "B.c7"};
+const mvec_coeff mv3d_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3",
+                                 "A.c4", "A.c5", "A.c6", "A.c7"};
+const mvec_coeff mv3d_coeff_B = {"B.c0", "B.c1", "B.c2", "B.c3",
+                                 "B.c4", "B.c5", "B.c6", "B.c7"};
+const mvec_coeff mv3d_coeff_M1 = {"M1.c0", "M1.c1", "M1.c2", "M1.c3",
+                                  "M1.c4", "M1.c5", "M1.c6", "M1.c7"};
+const mvec_coeff mv3d_coeff_M2 = {"M2.c0", "M2.c1", "M2.c2", "M2.c3",
+                                  "M2.c4", "M2.c5", "M2.c6", "M2.c7"};
+const mvec_coeff mv3d_coeff_A_even = {"A.c0", "0", "0", "0", "A.c1", "A.c2", "A.c3", "0"};
+const mvec_coeff mv3d_coeff_B_even = {"B.c0", "0", "0", "0", "B.c1", "B.c2", "B.c3", "0"};
+const mvec_coeff mv3d_coeff_A_uneven = {"0", "A.c0", "A.c1", "A.c2",
+                                        "0", "0",    "0",    "A.c3"};
+const mvec_coeff mv3d_coeff_B_uneven = {"0", "B.c0", "B.c1", "B.c2",
+                                        "0", "0",    "0",    "B.c3"};
+const mvec_coeff mv3d_coeff_svBps = {"s", "v.x", "v.y", "v.z", "B.x", "B.y", "B.z", "ps"};
+const mvec_coeff mv3d_coeff_svBps1 = {"s1",   "v1.x", "v1.y", "v1.z",
+                                      "B1.x", "B1.y", "B1.z", "ps1"};
+const mvec_coeff mv3d_coeff_svBps2 = {"s2",   "v2.x", "v2.y", "v2.z",
+                                      "B2.x", "B2.y", "B2.z", "ps2"};
 
-const mvec_coeff mv_ega3d_lcoeff = {"M.c0", "M.c1", "M.c2", "M.c3",
-                                    "M.c4", "M.c5", "M.c6", "M.c7"};
-const mvec_coeff mv_ega3d_rcoeff = {"s", "v.x", "v.y", "v.z", "B.x", "B.y", "B.z", "ps"};
+
+void generate_and_print_ega3d_gpr();    // geometric product
+void generate_and_print_ega3d_wdg();    // wedge product
+void generate_and_print_ega3d_lcontr(); // left contraction
+void generate_and_print_ega3d_rcontr(); // right contraction
+void generate_and_print_ega3d_dot();    // scalar product

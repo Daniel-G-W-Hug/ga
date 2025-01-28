@@ -13,11 +13,11 @@ int main()
     generate_and_print_ega2d_dot();    // scalar product
 
     // ega3d
-    // generate_and_print_ega3d_gpr();    // geometric product
-    // generate_and_print_ega3d_wdg();    // wegde product
-    // generate_and_print_ega3d_lcontr(); // left contraction
-    // generate_and_print_ega3d_rcontr(); // right contraction
-    // generate_and_print_ega3d_dot();    // scalar product
+    generate_and_print_ega3d_gpr();    // geometric product
+    generate_and_print_ega3d_wdg();    // wegde product
+    generate_and_print_ega3d_lcontr(); // left contraction
+    generate_and_print_ega3d_rcontr(); // right contraction
+    generate_and_print_ega3d_dot();    // scalar product
 
     return 0;
 }
