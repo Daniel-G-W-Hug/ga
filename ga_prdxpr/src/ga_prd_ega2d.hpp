@@ -7,37 +7,38 @@
 // multivector basis components
 const mvec_coeff mv2d_basis = {"1", "e1", "e2", "e12"};
 
-// multivector basis products
-const prd_table gpr_ega2d_basis_tab = {{"1", "e1", "e2", "e12"},
-                                       {"e1", "1", "e12", "e2"},
-                                       {"e2", "-e12", "1", "-e1"},
-                                       {"e12", "-e2", "e1", "-1"}};
+// rules to create produc tables (must contain space_str around operator_str on each side)
+const prd_rules gpr_ega2d_rules = {
+    {"1 * 1", "1"},     {"1 * e1", "e1"},    {"1 * e2", "e2"},   {"1 * e12", "e12"},
+    {"e1 * 1", "e1"},   {"e1 * e1", "1"},    {"e1 * e2", "e12"}, {"e1 * e12", "e2"},
+    {"e2 * 1", "e2"},   {"e2 * e1", "-e12"}, {"e2 * e2", "1"},   {"e2 * e12", "-e1"},
+    {"e12 * 1", "e12"}, {"e12 * e1", "-e2"}, {"e12 * e2", "e1"}, {"e12 * e12", "-1"}};
 
-const prd_table wdg_ega2d_basis_tab = {{"1", "e1", "e2", "e12"},
-                                       {"e1", "0", "e12", "0"},
-                                       {"e2", "-e12", "0", "0"},
-                                       {"e12", "0", "0", "0"}};
+const prd_rules wdg_ega2d_rules = {
+    {"1 ^ 1", "1"},     {"1 ^ e1", "e1"},    {"1 ^ e2", "e2"},   {"1 ^ e12", "e12"},
+    {"e1 ^ 1", "e1"},   {"e1 ^ e1", "0"},    {"e1 ^ e2", "e12"}, {"e1 ^ e12", "0"},
+    {"e2 ^ 1", "e2"},   {"e2 ^ e1", "-e12"}, {"e2 ^ e2", "0"},   {"e2 ^ e12", "0"},
+    {"e12 ^ 1", "e12"}, {"e12 ^ e1", "0"},   {"e12 ^ e2", "0"},  {"e12 ^ e12", "0"}};
 
-const prd_table lcontr_ega2d_basis_tab = {{"1", "e1", "e2", "e12"},
-                                          {"0", "1", "0", "e2"},
-                                          {"0", "0", "1", "-e1"},
-                                          {"0", "0", "0", "-1"}};
+const prd_rules lcontr_ega2d_rules = {
+    {"1 << 1", "1"},   {"1 << e1", "e1"},  {"1 << e2", "e2"},  {"1 << e12", "e12"},
+    {"e1 << 1", "0"},  {"e1 << e1", "1"},  {"e1 << e2", "0"},  {"e1 << e12", "e2"},
+    {"e2 << 1", "0"},  {"e2 << e1", "0"},  {"e2 << e2", "1"},  {"e2 << e12", "-e1"},
+    {"e12 << 1", "0"}, {"e12 << e1", "0"}, {"e12 << e2", "0"}, {"e12 << e12", "-1"}};
 
-const prd_table rcontr_ega2d_basis_tab = {{"1", "0", "0", "0"},
-                                          {"e1", "1", "0", "0"},
-                                          {"e2", "0", "1", "0"},
-                                          {"e12", "-e2", "e1", "-1"}};
+const prd_rules rcontr_ega2d_rules = {
+    {"1 >> 1", "1"},     {"1 >> e1", "0"},     {"1 >> e2", "0"},    {"1 >> e12", "0"},
+    {"e1 >> 1", "e1"},   {"e1 >> e1", "1"},    {"e1 >> e2", "0"},   {"e1 >> e12", "0"},
+    {"e2 >> 1", "e2"},   {"e2 >> e1", "0"},    {"e2 >> e2", "1"},   {"e2 >> e12", "0"},
+    {"e12 >> 1", "e12"}, {"e12 >> e1", "-e2"}, {"e12 >> e2", "e1"}, {"e12 >> e12", "-1"}};
 
-const prd_table dot_ega2d_basis_tab = {{"1", "0", "0", "0"},
-                                       {"0", "1", "0", "0"},
-                                       {"0", "0", "1", "0"},
-                                       {"0", "0", "0", "-1"}};
+const prd_rules dot_ega2d_rules = {
+    {"1 * 1", "1"},   {"1 * e1", "0"},   {"1 * e2", "0"},   {"1 * e12", "0"},
+    {"e1 * 1", "0"},  {"e1 * e1", "1"},  {"e1 * e2", "0"},  {"e1 * e12", "0"},
+    {"e2 * 1", "0"},  {"e2 * e1", "0"},  {"e2 * e2", "1"},  {"e2 * e12", "0"},
+    {"e12 * 1", "0"}, {"e12 * e1", "0"}, {"e12 * e2", "0"}, {"e12 * e12", "-1"}};
 
 // coefficients need to create a multivector = [coeff]^T [basis]
-
-// const mvec_coeff mv2d_lcoeff = {"sl", "vxl", "vyl", "psl"};
-// const mvec_coeff mv2d_rcoeff = {"sr", "vxr", "vyr", "psr"};
-
 const mvec_coeff mv2d_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3"};
 const mvec_coeff mv2d_coeff_B = {"B.c0", "B.c1", "B.c2", "B.c3"};
 const mvec_coeff mv2d_coeff_M1 = {"M1.c0", "M1.c1", "M1.c2", "M1.c3"};

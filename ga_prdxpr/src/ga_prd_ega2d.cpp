@@ -10,7 +10,8 @@ void generate_and_print_ega2d_gpr()
     // ega2d geometric product
     std::string prd_name = "ega2d geometric product";
 
-    auto basis_tab = gpr_ega2d_basis_tab;
+    auto basis_tab = apply_rules_to_tab(
+        mv_coeff_to_coeff_prd_tab(mv2d_basis, mv2d_basis, mul_str), gpr_ega2d_rules);
     auto basis = mv2d_basis;
 
     fmt::println("{} - basis product table:", prd_name);
@@ -192,7 +193,8 @@ void generate_and_print_ega2d_wdg()
     // ega2d wedge product
     std::string prd_name = "ega2d wedge product";
 
-    auto basis_tab = wdg_ega2d_basis_tab;
+    auto basis_tab = apply_rules_to_tab(
+        mv_coeff_to_coeff_prd_tab(mv2d_basis, mv2d_basis, wdg_str), wdg_ega2d_rules);
     auto basis = mv2d_basis;
 
     fmt::println("{} - basis product table:", prd_name);
@@ -374,7 +376,9 @@ void generate_and_print_ega2d_lcontr()
     // ega2d left contraction
     std::string prd_name = "ega2d left contraction";
 
-    auto basis_tab = lcontr_ega2d_basis_tab;
+    auto basis_tab =
+        apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(mv2d_basis, mv2d_basis, lcontr_str),
+                           lcontr_ega2d_rules);
     auto basis = mv2d_basis;
 
     fmt::println("{} - basis product table:", prd_name);
@@ -556,7 +560,9 @@ void generate_and_print_ega2d_rcontr()
     // ega2d right contraction
     std::string prd_name = "ega2d right contraction";
 
-    auto basis_tab = rcontr_ega2d_basis_tab;
+    auto basis_tab =
+        apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(mv2d_basis, mv2d_basis, rcontr_str),
+                           rcontr_ega2d_rules);
     auto basis = mv2d_basis;
 
     fmt::println("{} - basis product table:", prd_name);
@@ -738,8 +744,11 @@ void generate_and_print_ega2d_dot()
     // ega2d scalar product
     std::string prd_name = "ega2d scalar product";
 
-    auto basis_tab = dot_ega2d_basis_tab;
+    auto basis_tab = apply_rules_to_tab(
+        mv_coeff_to_coeff_prd_tab(mv2d_basis, mv2d_basis, mul_str), dot_ega2d_rules);
     auto basis = mv2d_basis;
+
+    // fmt::println("equal = {}", basis_tab == dot_ega2d_basis_tab);
 
     fmt::println("{} - basis product table:", prd_name);
     print_prd_tab(basis_tab);

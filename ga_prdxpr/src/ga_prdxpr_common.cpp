@@ -8,7 +8,8 @@
 // user related functions
 ////////////////////////////////////////////////////////////////////////////////
 
-prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& rcoeff)
+prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& rcoeff,
+                                    std::string const& operator_str)
 {
     if (lcoeff.size() != rcoeff.size()) {
         throw std::runtime_error("Multivector sizes must match.");
@@ -20,7 +21,8 @@ prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& 
     // fill-in all products
     for (size_t i = 0; i < lcoeff.size(); ++i) {
         for (size_t j = 0; j < rcoeff.size(); ++j) {
-            prd_coeff_tab[i][j] = lcoeff[i] + space_str + mul_str + space_str + rcoeff[j];
+            prd_coeff_tab[i][j] =
+                lcoeff[i] + space_str + operator_str + space_str + rcoeff[j];
         }
     }
 
@@ -60,6 +62,28 @@ prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
             else {
                 prd_tab[i][j] = coeff_tab[i][j] + space_str + basis_tab[i][j];
             }
+        }
+    }
+
+    return prd_tab;
+}
+
+prd_table apply_rules_to_tab(prd_table const& tab, prd_rules const& rules)
+{
+
+    for (size_t i = 0; i < tab.size(); ++i) {
+        if (tab[i].size() != tab.size()) {
+            throw std::runtime_error("Product tables must be square matrices. Sizes of "
+                                     "rows and columns must match.");
+        }
+    }
+
+    // reserve a full table of the required size
+    prd_table prd_tab(tab.size(), mvec_coeff(tab.size()));
+
+    for (size_t i = 0; i < tab.size(); ++i) {
+        for (size_t j = 0; j < tab.size(); ++j) {
+            prd_tab[i][j] = rules.at(tab[i][j]);
         }
     }
 
