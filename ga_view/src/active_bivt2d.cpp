@@ -175,7 +175,7 @@ void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
         qp->drawText(uv_name_pos.x() - fm.horizontalAdvance(suv) / 2,
                      uv_name_pos.y() + fm.height() / 2, suv);
     }
-    catch (const std::exception& e) {
+    catch (std::exception const& e) {
         qDebug() << e.what();
     }
 

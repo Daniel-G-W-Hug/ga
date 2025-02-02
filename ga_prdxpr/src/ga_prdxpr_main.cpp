@@ -3,6 +3,9 @@
 #include "ga_prd_ega2d.hpp"
 #include "ga_prd_ega3d.hpp"
 
+// multivector basis, product rules, simplification rules and coefficients need to be
+// provided in header files included above by the user
+
 int main()
 {
 
@@ -24,7 +27,7 @@ int main()
         generate_and_print_ega3d_rwdg();   // regressive wedge product
     }
 
-    catch (const std::exception& e) {
+    catch (std::exception const& e) {
         fmt::println("Exception: {}", e.what());
     }
 

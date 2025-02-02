@@ -2,6 +2,7 @@
 
 // author: Daniel Hug, 2025
 
+#include <exception>
 #include <map>
 #include <string>
 #include <vector>

@@ -133,7 +133,7 @@ void active_projection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
         qp->setBrush(col_blue);
         qp->drawPath(arrowHead(end_vpar_pos, end_vpos));
     }
-    catch (const std::exception& e) {
+    catch (std::exception const& e) {
         qDebug() << e.what();
     }
 

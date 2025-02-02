@@ -41,7 +41,7 @@ void item_bivt2de::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
         using namespace hd::ga;
         using namespace hd::ga::ega;
     }
-    catch (const std::exception& e) {
+    catch (std::exception const& e) {
         qDebug() << e.what();
     }
 

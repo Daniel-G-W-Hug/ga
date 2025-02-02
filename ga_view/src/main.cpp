@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
         w.show();
         return a.exec();
     }
-    catch (const std::exception& e) {
+    catch (std::exception const& e) {
         std::cout << e.what();
     }
 }
