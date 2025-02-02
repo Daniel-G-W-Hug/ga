@@ -38,6 +38,24 @@ const prd_rules dot_ega2d_rules = {
     {"e2 * 1", "0"},  {"e2 * e1", "0"},  {"e2 * e2", "1"},  {"e2 * e12", "0"},
     {"e12 * 1", "0"}, {"e12 * e1", "0"}, {"e12 * e2", "0"}, {"e12 * e12", "-1"}};
 
+
+// complement in 2d: lcmpl(rcmpl(u)) = u
+// lcmpl = cmpl(u) ^ u = e12
+const prd_rules lcmpl_ega2d_rules = {
+    {"1", "e12"}, {"e1", "e2"}, {"e2", "-e1"}, {"e12", "1"}};
+
+// rcmpl = u ^ cmpl(u) = e12
+const prd_rules rcmpl_ega2d_rules = {
+    {"1", "e12"}, {"e1", "-e2"}, {"e2", "e1"}, {"e12", "1"}};
+
+// dual(u) = u / I_2d
+const prd_rules dual_ega2d_rules = {
+    {"1", "-e12"}, {"e1", "-e2"}, {"e2", "e1"}, {"e12", "1"}};
+
+// undual(u) = u * I_2d
+const prd_rules undual_ega2d_rules = {
+    {"1", "e12"}, {"e1", "e2"}, {"e2", "-e1"}, {"e12", "-1"}};
+
 // coefficients need to create a multivector = [coeff]^T [basis]
 const mvec_coeff mv2d_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3"};
 const mvec_coeff mv2d_coeff_B = {"B.c0", "B.c1", "B.c2", "B.c3"};
@@ -54,4 +72,5 @@ void generate_and_print_ega2d_gpr();    // geometric product
 void generate_and_print_ega2d_wdg();    // wedge product
 void generate_and_print_ega2d_lcontr(); // left contraction
 void generate_and_print_ega2d_rcontr(); // right contraction
-void generate_and_print_ega2d_dot();    // scalar product
+void generate_and_print_ega2d_dot();    // scalar produc
+void generate_and_print_ega2d_rwdg();   // regressive wedge product

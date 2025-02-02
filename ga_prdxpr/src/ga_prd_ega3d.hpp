@@ -166,6 +166,12 @@ const prd_rules dot_ega3d_rules = {
     {"e123 * e23", "0"}, {"e123 * e31", "0"}, {"e123 * e12", "0"}, {"e123 * e123", "-1"}};
 
 
+// complement in 3d: cmpl(cmpl(u)) = u
+// lcmpl(u) ^ u = u ^ rcmpl(u) = cmpl(u) ^ u = u ^ cmpl(u) = e123
+const prd_rules cmpl_ega3d_rules = {{"1", "e123"}, {"e1", "e23"}, {"e2", "e31"},
+                                    {"e3", "e12"}, {"e23", "e1"}, {"e31", "e2"},
+                                    {"e12", "e3"}, {"e123", "1"}};
+
 // coefficients need to create a multivector = [coeff]^T [basis]
 const mvec_coeff mv3d_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3",
                                  "A.c4", "A.c5", "A.c6", "A.c7"};
@@ -195,3 +201,4 @@ void generate_and_print_ega3d_wdg();    // wedge product
 void generate_and_print_ega3d_lcontr(); // left contraction
 void generate_and_print_ega3d_rcontr(); // right contraction
 void generate_and_print_ega3d_dot();    // scalar product
+void generate_and_print_ega3d_rwdg();   // regressive wedge product

@@ -17,8 +17,11 @@ using mvec_coeff = std::vector<std::string>;
 // multivector coefficient filter (1: coeff is used, 0: coeff is not used)
 using mvec_coeff_filter = std::vector<int>;
 
-// rules to simplify product mappings
-using prd_rules = std::map<const std::string, const std::string>;
+// rules to allow for multivector function maps
+using mvec_rules = std::map<std::string, std::string>;
+
+// rules to simplify product mappings in tables
+using prd_rules = std::map<std::string, std::string>;
 
 // multivector: mv, even grade multivector: mv_e, scalar: s, vector: vec, pseudoscalar: ps
 enum class filter_2d { mv, mv_e, s, vec, ps };
@@ -56,10 +59,11 @@ prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& 
 prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
                                            prd_table const& basis_tab);
 
+mvec_coeff apply_rules_to_mv(mvec_coeff const& coeff, mvec_rules const& rules);
 prd_table apply_rules_to_tab(prd_table const& tab, prd_rules const& rules);
 
-prd_table get_prd_tab(prd_table const& basis_tab, mvec_coeff const& mv_basis,
-                      mvec_coeff const& mv_lcoeff, mvec_coeff const& mv_rcoeff);
+prd_table get_prd_tab(prd_table const& basis_tab, mvec_coeff const& mv_lcoeff,
+                      mvec_coeff const& mv_rcoeff);
 
 mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                                filter_2d lfilter, filter_2d rfilter);
@@ -83,3 +87,5 @@ void print_prd_tab(prd_table const& tab);
 ////////////////////////////////////////////////////////////////////////////////
 mvec_coeff_filter get_coeff_filter(filter_2d filter = filter_2d::mv);
 mvec_coeff_filter get_coeff_filter(filter_3d filter = filter_3d::mv);
+
+void toggle_bool(bool& value);

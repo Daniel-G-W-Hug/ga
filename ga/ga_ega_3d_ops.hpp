@@ -567,58 +567,36 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s1, Scalar3d
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-// regressive wedge product between a vector v and a bivector B
-// => returns a scalar
+// regressive wedge product extended to a fully populated multivectors
+// => returns a multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v,
-                                                         BiVec3d<U> const& B)
+inline constexpr MVec3d<std::common_type_t<T, U>> rwdg(MVec3d<T> const& A,
+                                                       MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(v.x * B.x + v.y * B.y + v.z * B.z);
+
+    ctype c0 = A.c0 * B.c7 + A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 + A.c4 * B.c1 +
+               A.c5 * B.c2 + A.c6 * B.c3 + A.c7 * B.c0;
+    ctype c1 = A.c1 * B.c7 + A.c5 * B.c6 - A.c6 * B.c5 + A.c7 * B.c1;
+    ctype c2 = A.c2 * B.c7 - A.c4 * B.c6 + A.c6 * B.c4 + A.c7 * B.c2;
+    ctype c3 = A.c3 * B.c7 + A.c4 * B.c5 - A.c5 * B.c4 + A.c7 * B.c3;
+    ctype c4 = A.c4 * B.c7 + A.c7 * B.c4;
+    ctype c5 = A.c5 * B.c7 + A.c7 * B.c5;
+    ctype c6 = A.c6 * B.c7 + A.c7 * B.c6;
+    ctype c7 = A.c7 * B.c7;
+    return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
-// regressive wedge product between a bivector B and a vector v
-// => returns a scalar
+// regressive wedge product between to pseudoscalars
+// => returns a scaled pseudoscalar (=trivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B,
-                                                         Vec3d<U> const& v)
+inline constexpr PScalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps1,
+                                                          PScalar3d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(B.x * v.x + B.y * v.y + B.z * v.z);
-}
-
-// regressive wedge product between a bivector B1 and a bivector B2
-// => returns a vector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B1,
-                                                      BiVec3d<U> const& B2)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(B1.y * B2.z - B1.z * B2.y, B1.z * B2.x - B1.x * B2.z,
-                        B1.x * B2.y - B1.y * B2.x);
-}
-
-// regressive wedge product between a pseudoscalar ps (=trivector) and a vector v
-// => returns a vector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Vec3d<U> const& v)
-{
-    using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * Vec3d<ctype>(v.x, v.y, v.z);
-}
-
-// regressive wedge product between a vector v and a pseudoscalar ps (=trivector)
-// => returns a vector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v, PScalar3d<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(v.x, v.y, v.z) * ctype(ps);
+    return PScalar3d<ctype>(ctype(ps1) * ctype(ps2));
 }
 
 // regressive wedge product between a pseudoscalar ps (=trivector) and a bivector B
@@ -643,15 +621,26 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B,
     return BiVec3d<ctype>(B.x, B.y, B.z) * ctype(ps);
 }
 
-// regressive wedge product between a scalar s and a pseudoscalar ps (=trivector)
-// => returns a scalar
+// regressive wedge product between a pseudoscalar ps (=trivector) and a vector v
+// => returns a vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Scalar3d<T> s, PScalar3d<U> ps)
+inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(ctype(s) * ctype(ps));
+    return ctype(ps) * Vec3d<ctype>(v.x, v.y, v.z);
 }
+
+// regressive wedge product between a vector v and a pseudoscalar ps (=trivector)
+// => returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v, PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(v.x, v.y, v.z) * ctype(ps);
+}
+
 
 // regressive wedge product between a pseudoscalar ps (=trivector) and a scalar s
 // => returns a scalar
@@ -663,36 +652,48 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Scalar
     return Scalar3d<ctype>(ctype(ps) * ctype(s));
 }
 
-// regressive wedge product between to pseudoscalars
-// => returns a scaled pseudoscalar (=trivector)
+// regressive wedge product between a scalar s and a pseudoscalar ps (=trivector)
+// => returns a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps1,
-                                                          PScalar3d<U> ps2)
+inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Scalar3d<T> s, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar3d<ctype>(ctype(ps1) * ctype(ps2));
+    return Scalar3d<ctype>(ctype(s) * ctype(ps));
 }
 
-// regressive wedge product extended to a fully populated multivectors
-// => returns a multivector
+// regressive wedge product between a bivector B1 and a bivector B2
+// => returns a vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> rwdg(MVec3d<T> const& A,
-                                                       MVec3d<U> const& B)
+inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B1,
+                                                      BiVec3d<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(B1.y * B2.z - B1.z * B2.y, B1.z * B2.x - B1.x * B2.z,
+                        B1.x * B2.y - B1.y * B2.x);
+}
 
-    ctype c0 = A.c0 * B.c7 + A.c7 * B.c0 + A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 +
-               A.c4 * B.c1 + A.c5 * B.c2 + A.c6 * B.c3;
-    ctype c1 = A.c1 * B.c7 + A.c7 * B.c1 - A.c6 * B.c5 + A.c5 * B.c6;
-    ctype c2 = A.c2 * B.c7 + A.c7 * B.c2 - A.c4 * B.c6 + A.c6 * B.c4;
-    ctype c3 = A.c3 * B.c7 + A.c7 * B.c3 - A.c5 * B.c4 + A.c4 * B.c5;
-    ctype c4 = A.c4 * B.c7 + A.c7 * B.c4;
-    ctype c5 = A.c5 * B.c7 + A.c7 * B.c5;
-    ctype c6 = A.c6 * B.c7 + A.c7 * B.c6;
-    ctype c7 = A.c7 * B.c7;
-    return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
+// regressive wedge product between a bivector B and a vector v
+// => returns a scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B,
+                                                         Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(B.x * v.x + B.y * v.y + B.z * v.z);
+}
+
+// regressive wedge product between a vector v and a bivector B
+// => returns a scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v,
+                                                         BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(v.x * B.x + v.y * B.y + v.z * B.z);
 }
 
 

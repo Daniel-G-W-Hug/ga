@@ -483,27 +483,42 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s1, Scalar2d
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// regressive wedge product (= outer product for complements)
+// regressive wedge product (= outer product between complements)
 // as defined by E. Lengyel in "Projective geometric algebra illuminated"
-// independent of the geometric product, just depending on the outer product (wdg)
-// as well as the complement and thus the pseudoscalar of the space
-// (in this definition is does NOT connect directly to the geometric product,
-// but to the outer product exclusively)
+// independent of the geometric product (as is the case for the dual), but just depending
+// on the outer product (wdg) as well as the complement of the multivector
+// (i.e. this definition is does NOT connect directly to the geometric product, but to the
+// outer product, exclusively)
 //
 // rwdg(ul, ur) = l_cmpl(wdg(r_cmpl(ul),r_cmpl(ur))) = l_cmpl(r_cmpl(ul)^r_cmpl(ur))
 //              = r_cmpl(wdg(l_cmpl(ul),l_cmpl(ur))) = r_cmpl(l_cmpl(ul)^l_cmpl(ur))
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-// regressive wedge product between a vector v1 and a vector v2
-// => returns a scalar
+// regressive wedge product extended to a fully populated multivectors
+// => returns a multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> rwdg(Vec2d<T> const& v1,
-                                                         Vec2d<U> const& v2)
+inline constexpr MVec2d<std::common_type_t<T, U>> rwdg(MVec2d<T> const& A,
+                                                       MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(v1.x * v2.y - v1.y * v2.x);
+    ctype c0 = A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c0;
+    ctype c1 = A.c1 * B.c3 + A.c3 * B.c1;
+    ctype c2 = A.c2 * B.c3 + A.c3 * B.c2;
+    ctype c3 = A.c3 * B.c3;
+    return MVec2d<ctype>(c0, c1, c2, c3);
+}
+
+// regressive wedge product between to pseudoscalars
+// => returns a scaled pseudoscalar (=bivector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2d<std::common_type_t<T, U>> rwdg(PScalar2d<T> ps1,
+                                                          PScalar2d<U> ps2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(ctype(ps1) * ctype(ps2));
 }
 
 // regressive wedge product between a pseudoscalar ps (=bivector) and a vector v
@@ -526,16 +541,6 @@ inline constexpr Vec2d<std::common_type_t<T, U>> rwdg(Vec2d<T> const& v, PScalar
     return Vec2d<ctype>(v.x, v.y) * ctype(ps);
 }
 
-// regressive wedge product between a scalar s and a pseudoscalar ps (=bivector)
-// => returns a scalar
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> rwdg(Scalar2d<T> s, PScalar2d<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(ctype(s) * ctype(ps));
-}
-
 // regressive wedge product between a pseudoscalar ps (=bivector) and a scalar s
 // => returns a scalar
 template <typename T, typename U>
@@ -546,30 +551,25 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> rwdg(PScalar2d<T> ps, Scalar
     return Scalar2d<ctype>(ctype(ps) * ctype(s));
 }
 
-// regressive wedge product between to pseudoscalars
-// => returns a scaled pseudoscalar (=bivector)
+// regressive wedge product between a scalar s and a pseudoscalar ps (=bivector)
+// => returns a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar2d<std::common_type_t<T, U>> rwdg(PScalar2d<T> ps1,
-                                                          PScalar2d<U> ps2)
+inline constexpr Scalar2d<std::common_type_t<T, U>> rwdg(Scalar2d<T> s, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar2d<ctype>(ctype(ps1) * ctype(ps2));
+    return Scalar2d<ctype>(ctype(s) * ctype(ps));
 }
 
-// regressive wedge product extended to a fully populated multivectors
-// => returns a multivector
+// regressive wedge product between a vector v1 and a vector v2
+// => returns a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> rwdg(MVec2d<T> const& A,
-                                                       MVec2d<U> const& B)
+inline constexpr Scalar2d<std::common_type_t<T, U>> rwdg(Vec2d<T> const& v1,
+                                                         Vec2d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c3 + A.c3 * B.c0 + A.c1 * B.c2 - A.c2 * B.c1;
-    ctype c1 = A.c1 * B.c3 + A.c3 * B.c1;
-    ctype c2 = A.c2 * B.c3 + A.c3 * B.c2;
-    ctype c3 = A.c3 * B.c3;
-    return MVec2d<ctype>(c0, c1, c2, c3);
+    return Scalar2d<ctype>(v1.x * v2.y - v1.y * v2.x);
 }
 
 
