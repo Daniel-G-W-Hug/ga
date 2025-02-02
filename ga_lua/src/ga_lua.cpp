@@ -1,4 +1,4 @@
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2024 & 2025
 
 #include "ga_lua.hpp"
 

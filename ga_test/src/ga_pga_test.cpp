@@ -1,4 +1,4 @@
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2024 & 2025
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"

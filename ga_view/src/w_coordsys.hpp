@@ -1,6 +1,6 @@
 #pragma once
 //
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2024 & 2025
 //
 
 #include "coordsys.hpp"
@@ -16,10 +16,12 @@ class w_Coordsys : public QGraphicsView {
     Q_OBJECT
 
   public:
+
     w_Coordsys(Coordsys* cs, std::vector<Coordsys_model*>& vm, QGraphicsScene* scene,
                QWidget* parent = nullptr);
 
   protected:
+
     void resizeEvent(QResizeEvent* event);
     void paintEvent(QPaintEvent* event);
     void drawBackground(QPainter* qp, const QRectF& rect);
@@ -47,6 +49,7 @@ class w_Coordsys : public QGraphicsView {
     void scalingChanged(axis_scal xscal, axis_scal yscal);
 
   private:
+
     Coordsys* cs;          // coordinate system
     QGraphicsScene* scene; // graphics scene
 

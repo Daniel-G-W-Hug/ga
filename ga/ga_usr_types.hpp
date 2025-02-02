@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2024 & 2025
 #include "ga_value_t.hpp" // defines value_t either as float oder double
 
 #include "detail/ga_mvec2d.hpp" // 2d types for EGA

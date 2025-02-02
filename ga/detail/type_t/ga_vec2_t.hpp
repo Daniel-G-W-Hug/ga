@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2024 & 2025
 
 #include <algorithm> // std::max
 #include <cmath>     // std::abs, std::sqrt

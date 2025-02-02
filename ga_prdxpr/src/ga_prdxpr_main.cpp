@@ -1,4 +1,4 @@
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2025
 
 #include "ga_prd_ega2d.hpp"
 #include "ga_prd_ega3d.hpp"

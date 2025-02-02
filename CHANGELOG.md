@@ -11,3 +11,4 @@
                   left- and right complements
                 - duality and complements added
                 - unified nrm functions for all types
+- 2025/01: added ga_prdxpr to automatically generate product expressions for all products

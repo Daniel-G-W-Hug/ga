@@ -1,5 +1,5 @@
 //
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2024 & 2025
 //
 
 #include "active_common.hpp"

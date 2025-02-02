@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2024 & 2025
 
 #include <numbers> // math constants like pi
 

@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2024 & 2025
 
 #define SOL_ALL_SAFETIES_ON 1
 #include "sol/sol.hpp"

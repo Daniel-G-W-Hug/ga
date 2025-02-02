@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2024 & 2025
 
 #include "fmt/format.h"
 #include "fmt/ranges.h" // support printing of (nested) containers & tuples

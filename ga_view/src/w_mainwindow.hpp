@@ -1,6 +1,6 @@
 #pragma once
 //
-// author: Daniel Hug, 2024
+// author: Daniel Hug, 2024 & 2025
 //
 
 #include "coordsys.hpp"
@@ -22,6 +22,7 @@ class w_MainWindow : public QMainWindow {
     Q_OBJECT
 
   public:
+
     explicit w_MainWindow(QWidget* parent = nullptr);
 
   public slots:
@@ -33,6 +34,7 @@ class w_MainWindow : public QMainWindow {
     void labelChanged(std::string new_label);
 
   private:
+
     Coordsys* cs;
 
     w_Coordsys* wcs;
