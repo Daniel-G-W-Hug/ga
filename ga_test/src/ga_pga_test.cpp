@@ -1438,12 +1438,12 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         CHECK(cmpl(scalar2dp(1.0)) == I_2dp);
         CHECK(cmpl(scalar2dp(1.0)) == rev(scalar2dp(1.0)) * I_2dp);
-        CHECK(cmpl(e1_2dp) == -e23_2dp);
-        CHECK(cmpl(e2_2dp) == -e31_2dp);
-        CHECK(cmpl(e3_2dp) == -e12_2dp);
-        CHECK(cmpl(e23_2dp) == -e1_2dp);
-        CHECK(cmpl(e31_2dp) == -e2_2dp);
-        CHECK(cmpl(e12_2dp) == -e3_2dp);
+        CHECK(cmpl(e1_2dp) == e23_2dp);
+        CHECK(cmpl(e2_2dp) == e31_2dp);
+        CHECK(cmpl(e3_2dp) == e12_2dp);
+        CHECK(cmpl(e23_2dp) == e1_2dp);
+        CHECK(cmpl(e31_2dp) == e2_2dp);
+        CHECK(cmpl(e12_2dp) == e3_2dp);
         CHECK(cmpl(I_2dp) == scalar2d(1.0));
         //
         CHECK(cmpl(cmpl(mv)) == mv);
@@ -1756,12 +1756,12 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // check complements
         CHECK(cmpl(scalar2dp(1.0)) == I_2dp);
-        CHECK(cmpl(e1_2dp) == -e23_2dp);
-        CHECK(cmpl(e2_2dp) == -e31_2dp);
-        CHECK(cmpl(e3_2dp) == -e12_2dp);
-        CHECK(cmpl(e23_2dp) == -e1_2dp);
-        CHECK(cmpl(e31_2dp) == -e2_2dp);
-        CHECK(cmpl(e12_2dp) == -e3_2dp);
+        CHECK(cmpl(e1_2dp) == e23_2dp);
+        CHECK(cmpl(e2_2dp) == e31_2dp);
+        CHECK(cmpl(e3_2dp) == e12_2dp);
+        CHECK(cmpl(e23_2dp) == e1_2dp);
+        CHECK(cmpl(e31_2dp) == e2_2dp);
+        CHECK(cmpl(e12_2dp) == e3_2dp);
         CHECK(cmpl(I_2dp) == scalar2d(1.0));
         //
         CHECK(cmpl(cmpl(M1)) == M1);

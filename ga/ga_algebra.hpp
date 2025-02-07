@@ -59,7 +59,7 @@ struct algebra {
         // pga:  algebra<2,0,1>
         if constexpr (dim_space() == 3 && (p() == 2 && n() == 0 && z() == 1))
             return {"    1", "   e1", "   e2", "   e3",
-                    "  e23", "  e31", "  e12", " e321"};
+                    "  e23", "  e31", "  e12", " e123"};
         //
         // pga:  algebra<3,0,1>
         if constexpr (dim_space() == 4 && (p() == 3 && n() == 0 && z() == 1))

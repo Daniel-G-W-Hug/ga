@@ -761,102 +761,11 @@ void generate_and_print_ega2d_dot()
     fmt::println("");
 
 
-    fmt::println("{}:", prd_name + space_str + "dot(mv,mv_e) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_A, mv2d_coeff_B_even);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv, filter_2d::mv_e);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-    fmt::println("{}:", prd_name + space_str + "dot(mv_e,mv) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_A_even, mv2d_coeff_B);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv_e, filter_2d::mv);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "dot(mv,ps) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_A, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv, filter_2d::ps);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-    fmt::println("{}:", prd_name + space_str + "dot(ps,mv) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_B);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::ps, filter_2d::mv);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "dot(mv,vec) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_A, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv, filter_2d::vec);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-    fmt::println("{}:", prd_name + space_str + "dot(vec,mv) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_B);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::vec, filter_2d::mv);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "dot(mv,s) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_A, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv, filter_2d::s);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-    fmt::println("{}:", prd_name + space_str + "dot(s,mv) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_B);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::s, filter_2d::mv);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "dot(mv_e,mv_e) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_A_even, mv2d_coeff_B_even);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv_e, filter_2d::mv_e);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "dot(mv_e,ps) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_A_even, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv_e, filter_2d::ps);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-    fmt::println("{}:", prd_name + space_str + "dot(ps,mv_e) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_B_even);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::ps, filter_2d::mv_e);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "dot(mv_e,vec) -> 0");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_A_even, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv_e, filter_2d::vec);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-    fmt::println("{}:", prd_name + space_str + "dot(vec,mv_e) -> 0");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_B_even);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::vec, filter_2d::mv_e);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "dot(mv_e,s) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_A_even, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv_e, filter_2d::s);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-    fmt::println("{}:", prd_name + space_str + "dot(s,mv_e) -> s");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_B_even);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::s, filter_2d::mv_e);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
+    // fmt::println("{}:", prd_name + space_str + "dot(mv_e,mv_e) -> s");
+    // prd_tab = get_prd_tab(basis_tab, mv2d_coeff_A_even, mv2d_coeff_B_even);
+    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv_e, filter_2d::mv_e);
+    // print_mvec(prd_mv, basis);
+    // fmt::println("");
 
 
     fmt::println("{}:", prd_name + space_str + "dot(ps,ps) -> s");
@@ -866,48 +775,9 @@ void generate_and_print_ega2d_dot()
     fmt::println("");
 
 
-    fmt::println("{}:", prd_name + space_str + "dot(ps,vec) -> 0");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::ps, filter_2d::vec);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-    fmt::println("{}:", prd_name + space_str + "dot(vec,ps) -> 0");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::vec, filter_2d::ps);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "dot(ps,s) -> 0");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::ps, filter_2d::s);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-    fmt::println("{}:", prd_name + space_str + "dot(s,ps) -> 0");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::s, filter_2d::ps);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
     fmt::println("{}:", prd_name + space_str + "dot(vec,vec) -> s");
     prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps1, mv2d_coeff_svps2);
     prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::vec, filter_2d::vec);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "dot(vec,s) -> 0");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::vec, filter_2d::s);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-    fmt::println("{}:", prd_name + space_str + "dot(s,vec) -> 0");
-    prd_tab = get_prd_tab(basis_tab, mv2d_coeff_svps, mv2d_coeff_svps);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2d::s, filter_2d::vec);
     print_mvec(prd_mv, basis);
     fmt::println("");
 

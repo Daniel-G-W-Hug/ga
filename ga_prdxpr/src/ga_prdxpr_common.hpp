@@ -30,6 +30,7 @@ enum class filter_2d { mv, mv_e, s, vec, ps };
 // multivector: mv, even grade multivector: mv_e, uneven grade multivector: mv_u,
 // scalar: s, vector: vec, bivector: bivec, pseudoscalar: ps
 enum class filter_3d { mv, mv_e, mv_u, s, vec, bivec, ps };
+using filter_2dp = filter_3d;
 
 // multivector product table - contains products of scalars and basis elements
 using prd_table = std::vector<mvec_coeff>;

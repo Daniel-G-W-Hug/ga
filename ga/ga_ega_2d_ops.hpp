@@ -165,12 +165,23 @@ inline constexpr MVec2d<T> conj(MVec2d<T> const& M)
 // scalar product (= dot product defined for equal grades exclusively)
 ////////////////////////////////////////////////////////////////////////////////
 
+// scalar product dot(a,b) (nrm_sq(a,b) = dot(a, rev(b)))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> dot(Scalar2d<T> s1, Scalar2d<U> s2)
+inline constexpr Scalar2d<std::common_type_t<T, U>> dot(MVec2d<T> const& A,
+                                                        MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(ctype(s1) * ctype(s2));
+    return Scalar2d<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2d<std::common_type_t<T, U>> dot(PScalar2d<T> ps1,
+                                                        PScalar2d<U> ps2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(-ctype(ps1) * ctype(ps2));
 }
 
 // return dot-product of two vectors in G<2,0,0>
@@ -190,21 +201,10 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> dot(Vec2d<T> const& v1,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> dot(PScalar2d<T> ps1,
-                                                        PScalar2d<U> ps2)
+inline constexpr Scalar2d<std::common_type_t<T, U>> dot(Scalar2d<T> s1, Scalar2d<U> s2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(-ctype(ps1) * ctype(ps2));
-}
-
-// scalar product dot(a,b) (nrm_sq(a,b) = dot(a, rev(b)))
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> dot(MVec2d<T> const& A,
-                                                        MVec2d<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3);
+    return Scalar2d<ctype>(ctype(s1) * ctype(s2));
 }
 
 

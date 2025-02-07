@@ -3,6 +3,9 @@
 #include "ga_prd_ega2d.hpp"
 #include "ga_prd_ega3d.hpp"
 
+#include "ga_prd_ega2dp.hpp"
+
+
 // multivector basis, product rules, simplification rules and coefficients need to be
 // provided in header files included above by the user
 
@@ -16,7 +19,9 @@ int main()
         generate_and_print_ega2d_lcontr(); // left contraction
         generate_and_print_ega2d_rcontr(); // right contraction
         generate_and_print_ega2d_dot();    // scalar product
-        generate_and_print_ega2d_rwdg();   // regressive wedge product
+
+        generate_and_print_ega2d_rwdg(); // regressive wedge product
+
 
         // ega3d
         generate_and_print_ega3d_gpr();    // geometric product
@@ -24,7 +29,19 @@ int main()
         generate_and_print_ega3d_lcontr(); // left contraction
         generate_and_print_ega3d_rcontr(); // right contraction
         generate_and_print_ega3d_dot();    // scalar product
-        generate_and_print_ega3d_rwdg();   // regressive wedge product
+
+        generate_and_print_ega3d_rwdg(); // regressive wedge product
+
+
+        // ega2dp
+        generate_and_print_ega2dp_gpr();    // geometric product
+        generate_and_print_ega2dp_wdg();    // wegde product
+        generate_and_print_ega2dp_lcontr(); // left contraction
+        generate_and_print_ega2dp_rcontr(); // right contraction
+        generate_and_print_ega2dp_dot();    // scalar product
+
+        generate_and_print_ega2dp_rdot(); // regressive scalar product
+        generate_and_print_ega2dp_rwdg(); // regressive wedge product
     }
 
     catch (std::exception const& e) {

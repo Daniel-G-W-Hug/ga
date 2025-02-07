@@ -38,12 +38,12 @@ template <typename T> using MVec2dp = MVec8_t<T, mvec2dp_tag>;
 //         2d plane. The weight is z*e3.
 //
 // join(p,q) = wdg(p,q)
-// meet(p,q) = !wdg(!a,!b) with !a as the complement of a, where a^!a = e321 = I_2dp
+// meet(p,q) = !wdg(!a,!b) with !a as the complement of a, where a^!a = I_2dp
 //
-//  u:     1 |   e1 |   e2 |   e3 |  e23 |  e31 |  e12 | e123
-// !u:  e123 | -e23 | -e31 | -e12 |  -e1 |  -e2 |  -e3 |    1
+//  u:     1 |  e1 |  e2 |  e3 | e23 | e31 | e12 | e123
+// !u:  e123 | e23 | e31 | e12 |  e1 |  e2 |  e3 |    1
 //
-//  right complement (a^(!a)=e321) and left complement ((!a)^a=e321) are identical in 2dp
+//  right complement (a^(!a)=e123) and left complement ((!a)^a=e123) are identical in 2dp
 //
 // BiVec2dp: represents a line in 2d when created as join from two points p and q as
 //           wdg(p, q) = p^q

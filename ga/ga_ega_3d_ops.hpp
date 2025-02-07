@@ -217,27 +217,24 @@ inline constexpr MVec3d<T> conj(MVec3d<T> const& M)
 // scalar product (= dot product defined for equal grades exclusively)
 ////////////////////////////////////////////////////////////////////////////////
 
+// scalar product dot(a,b) (nrm_sq(a,b) = dot(a, rev(b)))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> dot(Scalar3d<T> s1, Scalar3d<U> s2)
+inline constexpr Scalar3d<std::common_type_t<T, U>> dot(MVec3d<T> const& A,
+                                                        MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(ctype(s1) * ctype(s2));
+    return Scalar3d<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 -
+                           A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7);
 }
 
-// return the dot product of two vectors in G<3,0,0>
-// coordinate free definition: dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> dot(Vec3d<T> const& v1,
-                                                        Vec3d<U> const& v2)
+inline constexpr Scalar3d<std::common_type_t<T, U>> dot(PScalar3d<T> ps1,
+                                                        PScalar3d<U> ps2)
 {
-    // definition: dot(v1, v2) = (v1)^T g_12 v2 using the metric g_12
-    // definition: dot(A, B) = gr0(A*B) using the geometric product
-    // this assumes an orthonormal basis with e1^2 = +1, e2^2 = +1, e3^2 = +1
-    // as diagonal elements of g_12
     using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
+    return Scalar3d<ctype>(-ctype(ps1) * ctype(ps2));
 }
 
 // return dot product of two bivectors A and B (= a scalar)
@@ -256,24 +253,27 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> dot(BiVec3d<T> const& B1,
     return Scalar3d<ctype>(-B1.x * B2.x - B1.y * B2.y - B1.z * B2.z);
 }
 
+// return the dot product of two vectors in G<3,0,0>
+// coordinate free definition: dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> dot(PScalar3d<T> ps1,
-                                                        PScalar3d<U> ps2)
+inline constexpr Scalar3d<std::common_type_t<T, U>> dot(Vec3d<T> const& v1,
+                                                        Vec3d<U> const& v2)
 {
+    // definition: dot(v1, v2) = (v1)^T g_12 v2 using the metric g_12
+    // definition: dot(A, B) = gr0(A*B) using the geometric product
+    // this assumes an orthonormal basis with e1^2 = +1, e2^2 = +1, e3^2 = +1
+    // as diagonal elements of g_12
     using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(-ctype(ps1) * ctype(ps2));
+    return Scalar3d<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
 }
 
-// scalar product dot(a,b) (nrm_sq(a,b) = dot(a, rev(b)))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> dot(MVec3d<T> const& A,
-                                                        MVec3d<U> const& B)
+inline constexpr Scalar3d<std::common_type_t<T, U>> dot(Scalar3d<T> s1, Scalar3d<U> s2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 -
-                           A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7);
+    return Scalar3d<ctype>(ctype(s1) * ctype(s2));
 }
 
 
