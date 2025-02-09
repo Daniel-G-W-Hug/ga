@@ -1,20 +1,20 @@
 // author: Daniel Hug, 2025
 
-#include "ga_prd_ega2dp.hpp"
+#include "ga_prd_pga2dp.hpp"
 #include "ga_prdxpr_common.hpp"
 
 
-void generate_and_print_ega2dp_gpr()
+void generate_and_print_pga2dp_gpr()
 {
 
-    // ega2dp geometric product
-    std::string prd_name = "ega2dp geometric product";
+    // pga2dp geometric product
+    std::string prd_name = "pga2dp geometric product";
 
     auto basis_tab = apply_rules_to_tab(
-        mv_coeff_to_coeff_prd_tab(mv2dp_basis, mv2dp_basis, mul_str), gpr_ega2dp_rules);
+        mv_coeff_to_coeff_prd_tab(mv2dp_basis, mv2dp_basis, mul_str), gpr_pga2dp_rules);
     auto basis = mv2dp_basis;
 
-    // fmt::println("equal = {}", basis_tab == gpr_ega2dp_basis_tab);
+    // fmt::println("equal = {}", basis_tab == gpr_pga2dp_basis_tab);
 
     fmt::println("{} - basis product table:", prd_name);
     print_prd_tab(basis_tab);
@@ -345,14 +345,14 @@ void generate_and_print_ega2dp_gpr()
     return;
 }
 
-void generate_and_print_ega2dp_wdg()
+void generate_and_print_pga2dp_wdg()
 {
 
-    // ega2dp wedge product
-    std::string prd_name = "ega2dp wedge product";
+    // pga2dp wedge product
+    std::string prd_name = "pga2dp wedge product";
 
     auto basis_tab = apply_rules_to_tab(
-        mv_coeff_to_coeff_prd_tab(mv2dp_basis, mv2dp_basis, wdg_str), wdg_ega2dp_rules);
+        mv_coeff_to_coeff_prd_tab(mv2dp_basis, mv2dp_basis, wdg_str), wdg_pga2dp_rules);
     auto basis = mv2dp_basis;
 
     fmt::println("{} - basis product table:", prd_name);
@@ -685,15 +685,15 @@ void generate_and_print_ega2dp_wdg()
     return;
 }
 
-void generate_and_print_ega2dp_lcontr()
+void generate_and_print_pga2dp_lcontr()
 {
 
-    // ega2dp left contraction
-    std::string prd_name = "ega2dp left contraction";
+    // pga2dp left contraction
+    std::string prd_name = "pga2dp left contraction";
 
     auto basis_tab = apply_rules_to_tab(
         mv_coeff_to_coeff_prd_tab(mv2dp_basis, mv2dp_basis, lcontr_str),
-        lcontr_ega2dp_rules);
+        lcontr_pga2dp_rules);
     auto basis = mv2dp_basis;
 
     fmt::println("{} - basis product table:", prd_name);
@@ -1025,15 +1025,15 @@ void generate_and_print_ega2dp_lcontr()
     return;
 }
 
-void generate_and_print_ega2dp_rcontr()
+void generate_and_print_pga2dp_rcontr()
 {
 
-    // ega2dp right contraction
-    std::string prd_name = "ega2dp right contraction";
+    // pga2dp right contraction
+    std::string prd_name = "pga2dp right contraction";
 
     auto basis_tab = apply_rules_to_tab(
         mv_coeff_to_coeff_prd_tab(mv2dp_basis, mv2dp_basis, rcontr_str),
-        rcontr_ega2dp_rules);
+        rcontr_pga2dp_rules);
     auto basis = mv2dp_basis;
 
     fmt::println("{} - basis product table:", prd_name);
@@ -1366,14 +1366,14 @@ void generate_and_print_ega2dp_rcontr()
     return;
 }
 
-void generate_and_print_ega2dp_dot()
+void generate_and_print_pga2dp_dot()
 {
 
-    // ega2dp scalar product
-    std::string prd_name = "ega2dp scalar product";
+    // pga2dp scalar product
+    std::string prd_name = "pga2dp scalar product";
 
     auto basis_tab = apply_rules_to_tab(
-        mv_coeff_to_coeff_prd_tab(mv2dp_basis, mv2dp_basis, mul_str), dot_ega2dp_rules);
+        mv_coeff_to_coeff_prd_tab(mv2dp_basis, mv2dp_basis, mul_str), dot_pga2dp_rules);
     auto basis = mv2dp_basis;
 
     fmt::println("{} - basis product table:", prd_name);
@@ -1433,10 +1433,10 @@ void generate_and_print_ega2dp_dot()
     return;
 }
 
-void generate_and_print_ega2dp_rdot()
+void generate_and_print_pga2dp_rdot()
 {
 
-    std::string prd_name = "ega2dp regressive dot product (rdot)";
+    std::string prd_name = "pga2dp regressive dot product (rdot)";
     auto basis = mv2dp_basis;
 
     // fmt::println("mv_basis for rwdg:");
@@ -1445,7 +1445,7 @@ void generate_and_print_ega2dp_rdot()
 
     // create the complement from the input multivector
     // (=forward transformation of arguments)
-    auto basis_cmpl_func = apply_rules_to_mv(basis, cmpl_ega2dp_rules);
+    auto basis_cmpl_func = apply_rules_to_mv(basis, cmpl_pga2dp_rules);
     // fmt::println("cmpl:");
     // print_mvec(mv2dp_coeff_svBps, basis_cmpl_func);
     // fmt::println("");
@@ -1453,14 +1453,14 @@ void generate_and_print_ega2dp_rdot()
     // product between complements
     auto basis_tab_with_rules = apply_rules_to_tab(
         mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str),
-        dot_ega2dp_rules);
+        dot_pga2dp_rules);
     // fmt::println("basis_tab_with_rules:");
     // print_prd_tab(basis_tab_with_rules);
     // fmt::println("");
 
     // create complements of the table entries (=backward transformation)
     // (returns the product table in terms of the unmodified input multivectors)
-    auto basis_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_ega2dp_rules);
+    auto basis_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
     fmt::println("{} - basis product table:", prd_name);
     print_prd_tab(basis_tab);
     fmt::println("");
@@ -1500,7 +1500,7 @@ void generate_and_print_ega2dp_rdot()
 }
 
 
-void generate_and_print_ega2dp_rwdg()
+void generate_and_print_pga2dp_rwdg()
 {
 
     // Checking the roundtrip cmpl(cmpl(mvec)) == mvec
@@ -1508,16 +1508,16 @@ void generate_and_print_ega2dp_rwdg()
     // fmt::println("mv_basis:");
     // print_mvec(mv2dp_coeff_svBps, mv2dp_basis);
     // fmt::println("");
-    // auto double_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_ega2dp_rules);
+    // auto double_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
     // fmt::println("double_cmpl 1st:");
     // print_mvec(mv2dp_coeff_svBps, double_cmpl_func);
     // fmt::println("");
-    // double_cmpl_func = apply_rules_to_mv(double_cmpl_func, cmpl_ega2dp_rules);
+    // double_cmpl_func = apply_rules_to_mv(double_cmpl_func, cmpl_pga2dp_rules);
     // fmt::println("double_cmpl 2nd:");
     // print_mvec(mv2dp_coeff_svBps, double_cmpl_func);
     // fmt::println("");
 
-    std::string prd_name = "ega2dp regressive wedge product";
+    std::string prd_name = "pga2dp regressive wedge product";
     auto basis = mv2dp_basis;
 
     // fmt::println("mv_basis for rwdg:");
@@ -1526,7 +1526,7 @@ void generate_and_print_ega2dp_rwdg()
 
     // create the complement from the input multivector
     // (=forward transformation of arguments)
-    auto basis_cmpl_func = apply_rules_to_mv(basis, cmpl_ega2dp_rules);
+    auto basis_cmpl_func = apply_rules_to_mv(basis, cmpl_pga2dp_rules);
     // fmt::println("cmpl:");
     // print_mvec(mv2dp_coeff_svBps, basis_cmpl_func);
     // fmt::println("");
@@ -1534,14 +1534,14 @@ void generate_and_print_ega2dp_rwdg()
     // product between complements
     auto basis_tab_with_rules = apply_rules_to_tab(
         mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str),
-        wdg_ega2dp_rules);
+        wdg_pga2dp_rules);
     // fmt::println("basis_tab_with_rules:");
     // print_prd_tab(basis_tab_with_rules);
     // fmt::println("");
 
     // create complements of the table entries (=backward transformation)
     // (returns the product table in terms of the unmodified input multivectors)
-    auto basis_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_ega2dp_rules);
+    auto basis_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
     fmt::println("{} - basis product table:", prd_name);
     print_prd_tab(basis_tab);
     fmt::println("");

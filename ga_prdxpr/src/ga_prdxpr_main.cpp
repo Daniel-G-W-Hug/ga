@@ -3,7 +3,8 @@
 #include "ga_prd_ega2d.hpp"
 #include "ga_prd_ega3d.hpp"
 
-#include "ga_prd_ega2dp.hpp"
+#include "ga_prd_pga2dp.hpp"
+#include "ga_prd_pga3dp.hpp"
 
 #include "ga_prdxpr_transformer.hpp" // just for ParseError
 
@@ -38,15 +39,25 @@ int main()
         generate_and_print_ega3d_rwdg(); // regressive wedge product
 
 
-        // ega2dp
-        generate_and_print_ega2dp_gpr();    // geometric product
-        generate_and_print_ega2dp_wdg();    // wegde product
-        generate_and_print_ega2dp_lcontr(); // left contraction
-        generate_and_print_ega2dp_rcontr(); // right contraction
-        generate_and_print_ega2dp_dot();    // scalar product
+        // pga2dp
+        generate_and_print_pga2dp_gpr();    // geometric product
+        generate_and_print_pga2dp_wdg();    // wegde product
+        generate_and_print_pga2dp_lcontr(); // left contraction
+        generate_and_print_pga2dp_rcontr(); // right contraction
+        generate_and_print_pga2dp_dot();    // scalar product
 
-        generate_and_print_ega2dp_rdot(); // regressive scalar product
-        generate_and_print_ega2dp_rwdg(); // regressive wedge product
+        generate_and_print_pga2dp_rdot(); // regressive scalar product
+        generate_and_print_pga2dp_rwdg(); // regressive wedge product
+
+        // pga3dp
+        generate_and_print_pga3dp_gpr();    // geometric product
+        generate_and_print_pga3dp_wdg();    // wegde product
+        generate_and_print_pga3dp_lcontr(); // left contraction
+        generate_and_print_pga3dp_rcontr(); // right contraction
+        generate_and_print_pga3dp_dot();    // scalar product
+
+        generate_and_print_pga3dp_rdot(); // regressive scalar product
+        generate_and_print_pga3dp_rwdg(); // regressive wedge product
 
         // sandwich products of type rotor * object * rev(rotor)
         generate_and_print_ega2d_rotor();

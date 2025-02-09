@@ -24,17 +24,22 @@ using mvec_rules = std::map<std::string, std::string>;
 // rules to simplify product mappings in tables
 using prd_rules = std::map<std::string, std::string>;
 
-// use braces when creating product (needws for sandwich products with composite basis
-// coeffs)
+// use braces when creating product (needed for generating sandwich products with
+// composite basis coeffs)
 enum class brace_switch { no_braces, use_braces };
 
-// multivector: mv, even grade multivector: mv_e, scalar: s, vector: vec, pseudoscalar: ps
-enum class filter_2d { mv, mv_e, s, vec, ps };
+// scalar: s, vector: vec, pseudoscalar: ps, even grade multivector: mv_e, multivector: mv
+enum class filter_2d { s, vec, ps, mv_e, mv };
 
-// multivector: mv, even grade multivector: mv_e, uneven grade multivector: mv_u,
-// scalar: s, vector: vec, bivector: bivec, pseudoscalar: ps
-enum class filter_3d { mv, mv_e, mv_u, s, vec, bivec, ps };
+// scalar: s, vector: vec, bivector: bivec, pseudoscalar: ps,
+// even grade multivector: mv_e, uneven grade multivector: mv_u, multivector: mv
+enum class filter_3d { s, vec, bivec, ps, mv_e, mv_u, mv };
 using filter_2dp = filter_3d;
+
+// scalar: s, vector: vec, bivector: bivec, trivector: trivec, pseudoscalar: ps,
+// even grade multivector: mv_e, uneven grade multivector: mv_u, multivector: mv
+enum class filter_4d { s, vec, bivec, trivec, ps, mv_e, mv_u, mv };
+using filter_3dp = filter_4d;
 
 // multivector product table - contains products of scalars and basis elements
 using prd_table = std::vector<mvec_coeff>;
@@ -61,8 +66,9 @@ constexpr inline std::string brace_close_str{")"s};
 // user related functions
 ////////////////////////////////////////////////////////////////////////////////
 
-mvec_coeff get_filtered_mv(mvec_coeff const& mv, filter_2d filter = filter_2d::mv);
-mvec_coeff get_filtered_mv(mvec_coeff const& mv, filter_3d filter = filter_3d::mv);
+// mvec_coeff get_filtered_mv(mvec_coeff const& mv, filter_2d filter = filter_2d::mv);
+// mvec_coeff get_filtered_mv(mvec_coeff const& mv, filter_3d filter = filter_3d::mv);
+// mvec_coeff get_filtered_mv(mvec_coeff const& mv, filter_4d filter = filter_4d::mv);
 
 prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& rcoeff,
                                     std::string const& operator_str = mul_str);
@@ -88,6 +94,10 @@ mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_ba
                                filter_3d lfilter, filter_3d rfilter,
                                brace_switch brsw = brace_switch::no_braces);
 
+mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
+                               filter_4d lfilter, filter_4d rfilter,
+                               brace_switch brsw = brace_switch::no_braces);
+
 mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                      mvec_coeff_filter const& lcoeff_filter,
                      mvec_coeff_filter const& rcoeff_filter,
@@ -106,5 +116,6 @@ void print_prd_tab(prd_table const& tab);
 ////////////////////////////////////////////////////////////////////////////////
 mvec_coeff_filter get_coeff_filter(filter_2d filter = filter_2d::mv);
 mvec_coeff_filter get_coeff_filter(filter_3d filter = filter_3d::mv);
+mvec_coeff_filter get_coeff_filter(filter_4d filter = filter_4d::mv);
 
 void toggle_bool(bool& value);

@@ -373,6 +373,20 @@ mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_ba
                      get_coeff_filter(rfilter), brsw);
 }
 
+mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
+                               filter_4d lfilter, filter_4d rfilter, brace_switch brsw)
+{
+
+    // make sure sizes match as required
+    if (prd_tab.size() != mv_basis.size()) {
+        throw std::runtime_error("Multivector size of product table and multivector "
+                                 "basis size must match.");
+    }
+
+    return extractor(prd_tab, mv_basis, get_coeff_filter(lfilter),
+                     get_coeff_filter(rfilter), brsw);
+}
+
 
 mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                      mvec_coeff_filter const& lcoeff_filter,
@@ -510,23 +524,23 @@ void print_prd_tab(prd_table const& tab)
 mvec_coeff_filter get_coeff_filter(filter_2d filter)
 {
 
-    mvec_coeff_filter filter_vec(4); // 2d multivector has 4 basis elements
-
+    mvec_coeff_filter filter_vec(4); // 2d multivector has 4 basis components
+                                     // 1 scalar, 2 vector, and 1 pseudoscalar components
     switch (filter) {
         case filter_2d::mv:
-            filter_vec = {1, 1, 1, 1}; // all elements
+            filter_vec = {1, 1, 1, 1}; // all components
             break;
         case filter_2d::mv_e:
-            filter_vec = {1, 0, 0, 1}; // even grade elements
+            filter_vec = {1, 0, 0, 1}; // even grade components
             break;
         case filter_2d::s:
             filter_vec = {1, 0, 0, 0}; // scalar element
             break;
         case filter_2d::vec:
-            filter_vec = {0, 1, 1, 0}; // vector elements
+            filter_vec = {0, 1, 1, 0}; // vector components
             break;
         case filter_2d::ps:
-            filter_vec = {0, 0, 0, 1}; // pseudoscalar element
+            filter_vec = {0, 0, 0, 1}; // pseudoscalar element (=bivector in 2d)
             break;
         default:
             std::unreachable();
@@ -537,29 +551,79 @@ mvec_coeff_filter get_coeff_filter(filter_2d filter)
 mvec_coeff_filter get_coeff_filter(filter_3d filter)
 {
 
-    mvec_coeff_filter filter_vec(8); // 3d multivector has 8 basis elements
+    mvec_coeff_filter filter_vec(8); // 3d multivector has 8 basis components:
+                                     // 1 scalar, 3 vector, 3 bivector,
+                                     // and 1 pseudoscalar components
 
     switch (filter) {
         case filter_3d::mv:
-            filter_vec = {1, 1, 1, 1, 1, 1, 1, 1}; // all elements
+            filter_vec = {1, 1, 1, 1, 1, 1, 1, 1}; // all components
             break;
         case filter_3d::mv_e:
-            filter_vec = {1, 0, 0, 0, 1, 1, 1, 0}; // even grade elements
+            filter_vec = {1, 0, 0, 0, 1, 1, 1, 0}; // even grade components
             break;
         case filter_3d::mv_u:
-            filter_vec = {0, 1, 1, 1, 0, 0, 0, 1}; // uneven grade elements
+            filter_vec = {0, 1, 1, 1, 0, 0, 0, 1}; // uneven grade components
             break;
         case filter_3d::s:
             filter_vec = {1, 0, 0, 0, 0, 0, 0, 0}; // scalar element
             break;
         case filter_3d::vec:
-            filter_vec = {0, 1, 1, 1, 0, 0, 0, 0}; // vector elements
+            filter_vec = {0, 1, 1, 1, 0, 0, 0, 0}; // vector components
             break;
         case filter_3d::bivec:
-            filter_vec = {0, 0, 0, 0, 1, 1, 1, 0}; // bivector elements
+            filter_vec = {0, 0, 0, 0, 1, 1, 1, 0}; // bivector components
             break;
         case filter_3d::ps:
             filter_vec = {0, 0, 0, 0, 0, 0, 0, 1}; // pseudoscalar element
+                                                   // (=trivector in 3d)
+            break;
+        default:
+            std::unreachable();
+    }
+    return filter_vec;
+}
+
+mvec_coeff_filter get_coeff_filter(filter_4d filter)
+{
+
+    mvec_coeff_filter filter_vec(16); // 4d multivector has 16 basis components:
+                                      // 1 scalar, 4 vector, 6 bivector, 4 trivector,
+                                      // and 1 pseudoscalar components
+
+    switch (filter) {
+        case filter_4d::mv:
+            filter_vec = {1, 1, 1, 1, 1, 1, 1, 1,
+                          1, 1, 1, 1, 1, 1, 1, 1}; // all components
+            break;
+        case filter_4d::mv_e:
+            filter_vec = {1, 0, 0, 0, 0, 1, 1, 1,
+                          1, 1, 1, 0, 0, 0, 0, 1}; // even grade components
+            break;
+        case filter_4d::mv_u:
+            filter_vec = {0, 1, 1, 1, 1, 0, 0, 0,
+                          0, 0, 0, 1, 1, 1, 1, 0}; // uneven grade components
+            break;
+        case filter_4d::s:
+            filter_vec = {1, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0}; // scalar element
+            break;
+        case filter_4d::vec:
+            filter_vec = {0, 1, 1, 1, 1, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 0}; // vector components
+            break;
+        case filter_4d::bivec:
+            filter_vec = {0, 0, 0, 0, 0, 1, 1, 1,
+                          1, 1, 1, 0, 0, 0, 0, 0}; // bivector components
+            break;
+        case filter_4d::trivec:
+            filter_vec = {0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 1, 1, 1, 1, 0}; // trivector components
+            break;
+        case filter_4d::ps:
+            filter_vec = {0, 0, 0, 0, 0, 0, 0, 0,
+                          0, 0, 0, 0, 0, 0, 0, 1}; // pseudoscalar element
+                                                   // (=quadvector in 4d)
             break;
         default:
             std::unreachable();

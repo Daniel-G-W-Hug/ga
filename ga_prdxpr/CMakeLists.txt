@@ -6,7 +6,8 @@ set(SOURCES src/ga_prdxpr_main.cpp
             src/ga_prdxpr_transformer.cpp
             src/ga_prd_ega2d.cpp
             src/ga_prd_ega3d.cpp
-            src/ga_prd_ega2dp.cpp
+            src/ga_prd_pga2dp.cpp
+            src/ga_prd_pga3dp.cpp
             )
 
 add_executable(${EXEC_NAME} ${SOURCES})  #dep: fmt

@@ -8,7 +8,7 @@
 const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e123"};
 
 // rules to create produc tables (must contain space_str around operator_str on each side)
-const prd_rules gpr_ega2dp_rules = {
+const prd_rules gpr_pga2dp_rules = {
     {"1 * 1", "1"},        {"1 * e1", "e1"},      {"1 * e2", "e2"},
     {"1 * e3", "e3"},      {"1 * e23", "e23"},    {"1 * e31", "e31"},
     {"1 * e12", "e12"},    {"1 * e123", "e123"},
@@ -41,7 +41,7 @@ const prd_rules gpr_ega2dp_rules = {
     {"e123 * e3", "0"},    {"e123 * e23", "0"},   {"e123 * e31", "0"},
     {"e123 * e12", "-e3"}, {"e123 * e123", "0"}};
 
-const prd_rules wdg_ega2dp_rules = {
+const prd_rules wdg_pga2dp_rules = {
     {"1 ^ 1", "1"},       {"1 ^ e1", "e1"},     {"1 ^ e2", "e2"},
     {"1 ^ e3", "e3"},     {"1 ^ e23", "e23"},   {"1 ^ e31", "e31"},
     {"1 ^ e12", "e12"},   {"1 ^ e123", "e123"},
@@ -74,7 +74,7 @@ const prd_rules wdg_ega2dp_rules = {
     {"e123 ^ e3", "0"},   {"e123 ^ e23", "0"},  {"e123 ^ e31", "0"},
     {"e123 ^ e12", "0"},  {"e123 ^ e123", "0"}};
 
-const prd_rules lcontr_ega2dp_rules = {
+const prd_rules lcontr_pga2dp_rules = {
     {"1 << 1", "1"},      {"1 << e1", "e1"},      {"1 << e2", "e2"},
     {"1 << e3", "e3"},    {"1 << e23", "e23"},    {"1 << e31", "e31"},
     {"1 << e12", "e12"},  {"1 << e123", "e123"},
@@ -107,7 +107,7 @@ const prd_rules lcontr_ega2dp_rules = {
     {"e123 << e3", "0"},  {"e123 << e23", "0"},   {"e123 << e31", "0"},
     {"e123 << e12", "0"}, {"e123 << e123", "0"}};
 
-const prd_rules rcontr_ega2dp_rules = {
+const prd_rules rcontr_pga2dp_rules = {
     {"1 >> 1", "1"},        {"1 >> e1", "0"},      {"1 >> e2", "0"},
     {"1 >> e3", "0"},       {"1 >> e23", "0"},     {"1 >> e31", "0"},
     {"1 >> e12", "0"},      {"1 >> e123", "0"},
@@ -140,7 +140,7 @@ const prd_rules rcontr_ega2dp_rules = {
     {"e123 >> e3", "0"},    {"e123 >> e23", "0"},  {"e123 >> e31", "0"},
     {"e123 >> e12", "-e3"}, {"e123 >> e123", "0"}};
 
-const prd_rules dot_ega2dp_rules = {
+const prd_rules dot_pga2dp_rules = {
     {"1 * 1", "1"},      {"1 * e1", "0"},     {"1 * e2", "0"},     {"1 * e3", "0"},
     {"1 * e23", "0"},    {"1 * e31", "0"},    {"1 * e12", "0"},    {"1 * e123", "0"},
 
@@ -168,7 +168,7 @@ const prd_rules dot_ega2dp_rules = {
 
 // complement in 2dp: cmpl(cmpl(u)) = u
 // lcmpl(u) ^ u = u ^ rcmpl(u) = cmpl(u) ^ u = u ^ cmpl(u) = e123
-const prd_rules cmpl_ega2dp_rules = {{"1", "e123"}, {"e1", "e23"}, {"e2", "e31"},
+const prd_rules cmpl_pga2dp_rules = {{"1", "e123"}, {"e1", "e23"}, {"e2", "e31"},
                                      {"e3", "e12"}, {"e23", "e1"}, {"e31", "e2"},
                                      {"e12", "e3"}, {"e123", "1"}};
 
@@ -203,11 +203,11 @@ const mvec_coeff mv2dp_coeff_svBps2 = {"s2",   "v2.x", "v2.y", "v2.z",
                                        "B2.x", "B2.y", "B2.z", "ps2"};
 
 
-void generate_and_print_ega2dp_gpr();    // geometric product
-void generate_and_print_ega2dp_wdg();    // wedge product
-void generate_and_print_ega2dp_lcontr(); // left contraction
-void generate_and_print_ega2dp_rcontr(); // right contraction
-void generate_and_print_ega2dp_dot();    // scalar product
+void generate_and_print_pga2dp_gpr();    // geometric product
+void generate_and_print_pga2dp_wdg();    // wedge product
+void generate_and_print_pga2dp_lcontr(); // left contraction
+void generate_and_print_pga2dp_rcontr(); // right contraction
+void generate_and_print_pga2dp_dot();    // scalar product
 
-void generate_and_print_ega2dp_rdot(); // regressive scalar product
-void generate_and_print_ega2dp_rwdg(); // regressive wedge product
+void generate_and_print_pga2dp_rdot(); // regressive scalar product
+void generate_and_print_pga2dp_rwdg(); // regressive wedge product
