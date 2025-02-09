@@ -2,6 +2,7 @@
 
 #include "ga_prd_ega3d.hpp"
 #include "ga_prdxpr_common.hpp"
+#include "ga_prdxpr_transformer.hpp"
 
 
 void generate_and_print_ega3d_gpr()
@@ -1803,4 +1804,71 @@ void generate_and_print_ega3d_rwdg()
     fmt::println("-------------------------------------------------------------------\n");
 
     return;
+}
+
+void generate_and_print_ega3d_rotor()
+{
+
+    std::string prd_name = "ega3d sandwich product:";
+    fmt::println("ega3d sandwich product: rotor * object * rev(rotor):");
+    fmt::println("");
+
+    auto basis = mv3d_basis;
+    // fmt::println("mv_basis for sandwich product:");
+    // print_mvec(mv3d_coeff_svps, basis);
+    // fmt::println("");
+
+    auto basis_tab = apply_rules_to_tab(
+        mv_coeff_to_coeff_prd_tab(mv3d_basis, mv3d_basis, mul_str), gpr_ega3d_rules);
+
+    fmt::println("{} - basis product table:", prd_name);
+    print_prd_tab(basis_tab);
+    fmt::println("");
+
+    // first product between multivectors in basis_tab (R * v)
+    fmt::println("{}:", prd_name + space_str + "mv_e * vec -> mv_u_tmp");
+    auto prd_tab = get_prd_tab(basis_tab, mv3d_coeff_R_even, mv3d_coeff_svBps);
+    // fmt::println("{} - product table with coeffs:", prd_name);
+    // print_prd_tab(prd_tab);
+    // fmt::println("");
+
+    auto mv_u_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_3d::mv_e, filter_3d::vec,
+                                        brace_switch::use_braces);
+    fmt::println("vec_tmp:");
+    print_mvec(mv_u_tmp, basis);
+    fmt::println("");
+
+    // second product between multivectors for the product v * rev(R)
+    fmt::println("{}:", prd_name + space_str + "mv_u_tmp * rev(mv_e) -> mv_e_res");
+    prd_tab = get_prd_tab(basis_tab, mv_u_tmp, mv3d_coeff_R_rev_even);
+    // fmt::println("prd_tab:");
+    // print_prd_tab(prd_tab);
+    // fmt::println("");
+
+    auto mv_e_res = get_mv_from_prd_tab(prd_tab, basis, filter_3d::mv_u, filter_3d::mv_e);
+    print_mvec(mv_e_res, basis);
+    fmt::println("");
+
+    // TODO: (requires string parsing and string manipulation for calculation product
+    // expressions by expanding brackets, simplifying and regrouping expressions)
+    //
+    // manipulate the expression automatically in order to regroup the terms
+    // and show by regrouping that
+    //   - the pseudoscalar part vanishes (and doesn't need to be calculated)
+    //   - that the terms can be rearranged automatically such that a matrix
+    //     transformation transformed_vector = matrix * vector can be derived from the
+    //     rotor. This is useful when the same transformation should be done for many
+    //     objects. This will allow for the transformation to be computed with the minimum
+    //     number of required operations (in contrast to somewhat more effort when doing
+    //     this with the orgininal rotor expression directly).
+    //     Despite this need for optimization to get minimum computational effort, the
+    //     rotor formulation is still very meaningful, because of ease of derivation, ease
+    //     of rotation interpolation and helpful geometric interpretation when compared to
+    //     mere matrix based modeling.
+    //
+    // fmt::println("expr: '{}'", mv_e_res[1]);
+
+    // Expression expression;
+    // expression.parse(mv_e_res[1]);
+    // expression.groupByVariable("v.");
 }

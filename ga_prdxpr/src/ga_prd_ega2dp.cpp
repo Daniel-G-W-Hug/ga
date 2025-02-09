@@ -1401,7 +1401,7 @@ void generate_and_print_ega2dp_dot()
     // fmt::println("");
 
 
-    fmt::println("{}:", prd_name + space_str + "dot(ps,ps) -> s");
+    fmt::println("{}:", prd_name + space_str + "dot(ps,ps) -> 0");
     prd_tab = get_prd_tab(basis_tab, mv2dp_coeff_svBps1, mv2dp_coeff_svBps2);
     prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2dp::ps, filter_2dp::ps);
     print_mvec(prd_mv, basis);

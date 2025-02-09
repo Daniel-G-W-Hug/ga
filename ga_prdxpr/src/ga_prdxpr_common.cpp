@@ -55,7 +55,11 @@ prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& 
                 rhs = rcoeff[j].substr(1, rcoeff[j].size() - 1);
             }
 
-            if (is_negative) {
+            if (lhs == zero_str || rhs == zero_str) {
+                // product result is zero, thus coefficient becomes zero
+                prd_coeff_tab[i][j] = zero_str;
+            }
+            else if (is_negative) {
                 prd_coeff_tab[i][j] =
                     minus_str + lhs + space_str + operator_str + space_str + rhs;
             }
@@ -91,21 +95,113 @@ prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
     for (size_t i = 0; i < coeff_tab.size(); ++i) {
         for (size_t j = 0; j < coeff_tab.size(); ++j) {
 
-            if (basis_tab[i][j] == zero_str) {
+            bool is_negative{false}; // must be "false" for toggle logic below to work
+            std::string lhs{coeff_tab[i][j]};
+            std::string rhs{basis_tab[i][j]};
+
+            if (coeff_tab[i][j].starts_with(minus_str)) {
+                toggle_bool(is_negative);
+                lhs = coeff_tab[i][j].substr(1, coeff_tab[i][j].size() - 1);
+            }
+
+            if (basis_tab[i][j].starts_with(minus_str)) {
+                toggle_bool(is_negative);
+                rhs = basis_tab[i][j].substr(1, basis_tab[i][j].size() - 1);
+            }
+
+            if (basis_tab[i][j] == zero_str || coeff_tab[i][j] == zero_str) {
+                // if either coefficient or basis entry is zero the product must be zero
                 prd_tab[i][j] = zero_str;
             }
-            else if (basis_tab[i][j].starts_with(minus_str)) {
-                prd_tab[i][j] = minus_str + coeff_tab[i][j] + space_str +
-                                basis_tab[i][j].substr(1, basis_tab[i][j].size());
+            else if (is_negative) {
+                prd_tab[i][j] = minus_str + lhs + space_str + rhs;
             }
             else {
-                prd_tab[i][j] = coeff_tab[i][j] + space_str + basis_tab[i][j];
+                prd_tab[i][j] = lhs + space_str + rhs;
             }
         }
     }
 
     return prd_tab;
 }
+
+////// experimental change for alternative way towards sandwich products
+//
+// sandwich_prd_table basis_prd_tab_times_basis_elements(prd_table const& basis_tab,
+//                                                       mvec_coeff const& basis_elements,
+//                                                       prd_rules const& rules,
+//                                                       std::string const& operator_str)
+// {
+
+//     // make sure sizes match as required
+//     if (basis_tab.size() != basis_elements.size()) {
+//         throw std::runtime_error("Multivector sizes must match.");
+//     }
+
+//     sandwich_prd_table prd_tab3d;
+
+//     for (size_t k = 0; k < basis_elements.size(); ++k) {
+
+//         auto tmp_tab = basis_tab;
+
+//         for (size_t i = 0; i < basis_tab.size(); ++i) {
+//             for (size_t j = 0; j < basis_tab.size(); ++j) {
+
+//                 bool is_negative{false}; // must be "false" for toggle logic below to
+//                 work std::string value{tmp_tab[i][j]}; std::string
+//                 value_new{basis_elements[k]};
+
+//                 // remove the minus-sign, if it is present in the input
+//                 if (tmp_tab[i][j].starts_with(minus_str)) {
+//                     toggle_bool(is_negative);
+//                     value = tmp_tab[i][j].substr(1, tmp_tab[i][j].size() - 1);
+//                 }
+
+//                 // fmt::println("i: {}, j: {}, value: '{}', is_negative: {}", i, j,
+//                 value,
+//                 //              is_negative);
+
+//                 // in case the added value does have a minus sign on its own
+//                 if (basis_elements[k].starts_with(minus_str)) {
+//                     toggle_bool(is_negative);
+//                     value_new = basis_elements[k].substr(1, basis_elements[k].size() -
+//                     1);
+//                 }
+
+//                 if (is_negative &&
+//                     (value != zero_str)) { // zero doesn't need a minus sign
+//                     tmp_tab[i][j] = minus_str + value + space_str + operator_str +
+//                                     space_str + value_new;
+//                 }
+//                 else {
+
+//                     if (value == zero_str || value_new == zero_str) {
+//                         tmp_tab[i][j] = zero_str;
+//                     }
+//                     else {
+
+//                         tmp_tab[i][j] =
+//                             value + space_str + operator_str + space_str + value_new;
+//                     }
+//                 }
+//             }
+//         }
+
+//         // fmt::println("k: {}", k);
+//         // print_prd_tab(tmp_tab);
+//         // fmt::println("");
+
+//         tmp_tab = apply_rules_to_tab(tmp_tab, rules);
+
+//         // fmt::println("k: {}", k);
+//         // print_prd_tab(tmp_tab);
+//         // fmt::println("");
+
+//         prd_tab3d.push_back(tmp_tab);
+//     }
+
+//     return prd_tab3d;
+// }
 
 mvec_coeff apply_rules_to_mv(mvec_coeff const& coeff, mvec_rules const& rules)
 {
@@ -197,8 +293,12 @@ prd_table apply_rules_to_tab(prd_table const& tab, prd_rules const& rules)
                 value = tab[i][j].substr(1, tab[i][j].size() - 1);
             }
 
-            // apply the rule to the input, after the input is without intial minus_str
-            // zero_str value will be left unchanged, i.e. implicit rule "0" -> "0"
+            // fmt::println("i: {}, j: {}, value: '{}', is_negative: {}", i, j, value,
+            //              is_negative);
+
+            // apply the rule to the input, after the input is without intial
+            // minus_str zero_str value will be left unchanged, i.e. implicit rule "0"
+            // -> "0"
             if (value != zero_str) {
                 value = rules.at(value);
             }
@@ -232,7 +332,7 @@ prd_table get_prd_tab(prd_table const& basis_tab, mvec_coeff const& mv_lcoeff,
                       mvec_coeff const& mv_rcoeff)
 {
     auto mv_coeff_tab = mv_coeff_to_coeff_prd_tab(mv_lcoeff, mv_rcoeff);
-    // fmt::println("{} - coeff product table:", prd_name);
+    // fmt::println("get_prd_tab - coeff product table:");
     // print_prd_tab(mv_coeff_tab);
     // fmt::println("");
 
@@ -246,7 +346,7 @@ prd_table get_prd_tab(prd_table const& basis_tab, mvec_coeff const& mv_lcoeff,
 
 
 mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
-                               filter_2d lfilter, filter_2d rfilter)
+                               filter_2d lfilter, filter_2d rfilter, brace_switch brsw)
 {
 
     // make sure sizes match as required
@@ -256,11 +356,11 @@ mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_ba
     }
 
     return extractor(prd_tab, mv_basis, get_coeff_filter(lfilter),
-                     get_coeff_filter(rfilter));
+                     get_coeff_filter(rfilter), brsw);
 }
 
 mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
-                               filter_3d lfilter, filter_3d rfilter)
+                               filter_3d lfilter, filter_3d rfilter, brace_switch brsw)
 {
 
     // make sure sizes match as required
@@ -270,13 +370,13 @@ mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_ba
     }
 
     return extractor(prd_tab, mv_basis, get_coeff_filter(lfilter),
-                     get_coeff_filter(rfilter));
+                     get_coeff_filter(rfilter), brsw);
 }
 
 
 mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                      mvec_coeff_filter const& lcoeff_filter,
-                     mvec_coeff_filter const& rcoeff_filter)
+                     mvec_coeff_filter const& rcoeff_filter, brace_switch brsw)
 {
 
     // make sure sizes match as required
@@ -311,8 +411,8 @@ mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                     if (mv_prd[b] == empty_str) {
                         // add the first entry (including a minus-sign, if present)
                         // remove empty_str and basis element from prd_tab entry
-                        mv_prd[b] = prd_tab[i][j].substr(0, prd_tab[i][j].size() -
-                                                                mv_basis[b].size() - 1);
+                        mv_prd[b] += prd_tab[i][j].substr(0, prd_tab[i][j].size() -
+                                                                 mv_basis[b].size() - 1);
                     }
                     else {
                         // add the 2nd and following entries
@@ -330,11 +430,18 @@ mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                                 space_str + plus_str + space_str +
                                 prd_tab[i][j].substr(0, prd_tab[i][j].size() -
                                                             mv_basis[b].size() - 1);
-                            ;
                         }
                     }
                 }
             }
+        }
+        // replace remaining empty elements by zero_str
+        if (mv_prd[b] == empty_str) {
+            mv_prd[b] = zero_str;
+        }
+        // add braces for non-empty elements, if requested
+        if (brsw == brace_switch::use_braces && mv_prd[b] != zero_str) {
+            mv_prd[b] = brace_open_str + mv_prd[b] + brace_close_str;
         }
     }
     return mv_prd;

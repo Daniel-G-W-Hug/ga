@@ -63,6 +63,8 @@ const mvec_coeff mv2d_coeff_M1 = {"M1.c0", "M1.c1", "M1.c2", "M1.c3"};
 const mvec_coeff mv2d_coeff_M2 = {"M2.c0", "M2.c1", "M2.c2", "M2.c3"};
 const mvec_coeff mv2d_coeff_A_even = {"A.c0", "0", "0", "A.c1"};
 const mvec_coeff mv2d_coeff_B_even = {"B.c0", "0", "0", "B.c1"};
+const mvec_coeff mv2d_coeff_R_even = {"R.c0", "0", "0", "R.c1"};
+const mvec_coeff mv2d_coeff_R_rev_even = {"R.c0", "0", "0", "-R.c1"};
 const mvec_coeff mv2d_coeff_svps = {"s", "v.x", "v.y", "ps"};
 const mvec_coeff mv2d_coeff_svps1 = {"s1", "v1.x", "v1.y", "ps1"};
 const mvec_coeff mv2d_coeff_svps2 = {"s2", "v2.x", "v2.y", "ps2"};
@@ -74,3 +76,4 @@ void generate_and_print_ega2d_lcontr(); // left contraction
 void generate_and_print_ega2d_rcontr(); // right contraction
 void generate_and_print_ega2d_dot();    // scalar produc
 void generate_and_print_ega2d_rwdg();   // regressive wedge product
+void generate_and_print_ega2d_rotor();  // sandwich product rotor * object * rev(rotor)

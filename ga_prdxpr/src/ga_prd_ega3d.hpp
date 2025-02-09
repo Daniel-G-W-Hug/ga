@@ -189,6 +189,9 @@ const mvec_coeff mv3d_coeff_A_uneven = {"0", "A.c0", "A.c1", "A.c2",
                                         "0", "0",    "0",    "A.c3"};
 const mvec_coeff mv3d_coeff_B_uneven = {"0", "B.c0", "B.c1", "B.c2",
                                         "0", "0",    "0",    "B.c3"};
+const mvec_coeff mv3d_coeff_R_even = {"R.c0", "0", "0", "0", "R.c1", "R.c2", "R.c3", "0"};
+const mvec_coeff mv3d_coeff_R_rev_even = {"R.c0",  "0",     "0",     "0",
+                                          "-R.c1", "-R.c2", "-R.c3", "0"};
 const mvec_coeff mv3d_coeff_svBps = {"s", "v.x", "v.y", "v.z", "B.x", "B.y", "B.z", "ps"};
 const mvec_coeff mv3d_coeff_svBps1 = {"s1",   "v1.x", "v1.y", "v1.z",
                                       "B1.x", "B1.y", "B1.z", "ps1"};
@@ -202,3 +205,4 @@ void generate_and_print_ega3d_lcontr(); // left contraction
 void generate_and_print_ega3d_rcontr(); // right contraction
 void generate_and_print_ega3d_dot();    // scalar product
 void generate_and_print_ega3d_rwdg();   // regressive wedge product
+void generate_and_print_ega3d_rotor();  // sandwich product rotor * object * rev(rotor)

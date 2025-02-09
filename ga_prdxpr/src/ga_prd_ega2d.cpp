@@ -1008,3 +1008,47 @@ void generate_and_print_ega2d_rwdg()
 
     return;
 }
+
+void generate_and_print_ega2d_rotor()
+{
+
+    std::string prd_name = "ega2d sandwich product:";
+    fmt::println("ega2d sandwich product: rotor * object * rev(rotor):");
+    fmt::println("");
+
+    auto basis = mv2d_basis;
+    // fmt::println("mv_basis for sandwich product:");
+    // print_mvec(mv2d_coeff_svps, basis);
+    // fmt::println("");
+
+    auto basis_tab = apply_rules_to_tab(
+        mv_coeff_to_coeff_prd_tab(mv2d_basis, mv2d_basis, mul_str), gpr_ega2d_rules);
+
+    fmt::println("{} - basis product table:", prd_name);
+    print_prd_tab(basis_tab);
+    fmt::println("");
+
+    // first product between multivectors in basis_tab (R * v)
+    fmt::println("{}:", prd_name + space_str + "mv_e * vec -> vec_tmp");
+    auto prd_tab = get_prd_tab(basis_tab, mv2d_coeff_R_even, mv2d_coeff_svps);
+    // fmt::println("{} - product table with coeffs:", prd_name);
+    // print_prd_tab(prd_tab);
+    // fmt::println("");
+
+    auto vec_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_2d::mv_e, filter_2d::vec,
+                                       brace_switch::use_braces);
+    fmt::println("vec_tmp:");
+    print_mvec(vec_tmp, basis);
+    fmt::println("");
+
+    // second product between multivectors for the product v * rev(R)
+    fmt::println("{}:", prd_name + space_str + "vec_tmp * rev(mv_e) -> vec_res");
+    prd_tab = get_prd_tab(basis_tab, vec_tmp, mv2d_coeff_R_rev_even);
+    // fmt::println("prd_tab:");
+    // print_prd_tab(prd_tab);
+    // fmt::println("");
+
+    auto vec_res = get_mv_from_prd_tab(prd_tab, basis, filter_2d::vec, filter_2d::mv_e);
+    print_mvec(vec_res, basis);
+    fmt::println("");
+}

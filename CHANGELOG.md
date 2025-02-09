@@ -12,3 +12,7 @@
                 - duality and complements added
                 - unified nrm functions for all types
 - 2025/01: added ga_prdxpr to automatically generate product expressions for all products
+- 2025/02: started to implement parser for string manipulation with ga_prdxpr to
+           manipulate and simplify expressions resulting from sandwich products in order
+           to optimize performance
+           Reworked PGA 2DP and implemented PGA 3DP based on expression generation using ga_prdxpr
