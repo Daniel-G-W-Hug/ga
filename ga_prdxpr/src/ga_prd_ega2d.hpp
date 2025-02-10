@@ -4,6 +4,10 @@
 
 #include "ga_prdxpr_common.hpp"
 
+// ega2d: euclidean geometric algebra with
+//        e1*e1 = +1, e2*e2 = +1
+// G(2,0,0)
+
 // multivector basis components
 const mvec_coeff mv2d_basis = {"1", "e1", "e2", "e12"};
 

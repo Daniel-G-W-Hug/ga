@@ -4,6 +4,10 @@
 
 #include "ga_prdxpr_common.hpp"
 
+// pga2dp: projective geometric algebra with
+//         e1*e1 = +1, e2*e2 = +1, e3*e3 = 0
+// G(2,0,1)
+
 // multivector basis components
 const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e123"};
 
