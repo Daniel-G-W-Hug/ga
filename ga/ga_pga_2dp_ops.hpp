@@ -296,15 +296,17 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> dot(Scalar2dp<T> s1, Scalar
 //
 // rdot(v1,v2) = cmpl( dot(cmpl(v1),cmpl(v2)) )
 //
+// returns a pseudoscalar
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2dp<std::common_type_t<T, U>> rdot(PScalar2dp<T> ps1,
-                                                          PScalar2dp<U> ps2)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> rdot(PScalar2dp<T> ps1,
+                                                           PScalar2dp<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2dp<ctype>(ctype(ps1) * ctype(ps2));
+    return PScalar2dp<ctype>(ctype(ps1) * ctype(ps2));
 }
 
 template <typename T, typename U>
@@ -561,7 +563,7 @@ inline Line2dp<std::common_type_t<T, U>> join(Point2d<T> const& p, Point2d<U> co
 // as defined by E. Lengyel in "Projective geometric algebra illuminated"
 // independent of the geometric product, just depending on the outer product (wdg)
 // as well as the complement and thus the pseudoscalar of the space
-// (in this definition is does NOT connect directly to the geometric product,
+// (this definition does NOT connect directly to the geometric product,
 // but to the outer product exclusively)
 //
 //        rwdg(ul, ur) = cmpl(wdg(cmpl(ul),cmpl(ur))) = cmpl(cmpl(ul) ^ cmpl(ur))

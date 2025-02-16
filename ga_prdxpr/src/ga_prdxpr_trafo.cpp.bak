@@ -1,9 +1,7 @@
 // author: Daniel Hug, 2025
 //
-// code initially generated with Claude 3.5 Sonnet on 08.02.2025
-// and developed further from that basis
 
-#include "ga_prdxpr_transformer.hpp"
+#include "ga_prdxpr_trafo.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -11,6 +9,11 @@
 #include <regex>
 #include <sstream>
 #include <stack>
+
+#include "fmt/chrono.h"  // chrono support
+#include "fmt/format.h"  // formatting
+#include "fmt/ostream.h" // ostream support
+#include "fmt/ranges.h"  // support printing of (nested) containers & tuples
 
 Term::Term() : coefficient(1.0) {}
 
@@ -199,9 +202,18 @@ Expression Expression::parseSubExpression(const std::vector<std::string>& tokens
     while (pos < tokens.size()) {
         const std::string& token = tokens[pos];
 
+        // added for printing
+        fmt::println("currentToken: '{}'\n", token);
+
         if (token == "(") {
             pos++;
             Expression subExpr = parseSubExpression(tokens, pos);
+
+            // added for printing
+            std::vector<Term> subTerms = subExpr.getTerms();
+            for (auto const& st : subTerms) {
+                fmt::println("subTerms: '{}'", st.toString());
+            }
 
             size_t nextPos = pos + 1;
             while (nextPos < tokens.size() && tokens[nextPos] == "*") {
@@ -215,6 +227,10 @@ Expression Expression::parseSubExpression(const std::vector<std::string>& tokens
                         Term resultTerm;
                         multiplyTerms(resultTerm, term, coefTerm);
                         multipliedTerms.push_back(resultTerm);
+                    }
+                    // added for printing
+                    for (auto const& mt : multipliedTerms) {
+                        fmt::println("        multipliedTerms: '{}'", mt.toString());
                     }
                     subExpr.terms = multipliedTerms;
                     pos = nextPos;
@@ -232,6 +248,11 @@ Expression Expression::parseSubExpression(const std::vector<std::string>& tokens
             currentTerms.insert(currentTerms.end(), subExpr.terms.begin(),
                                 subExpr.terms.end());
             expectOperator = true;
+
+            // added for printing
+            for (auto const& ct : currentTerms) {
+                fmt::println("        currentTerms: '{}'", ct.toString());
+            }
         }
         else if (token == ")") {
             if (!currentTerm.variables.empty() || currentTerm.coefficient != 1.0) {
@@ -277,12 +298,24 @@ Expression Expression::parseSubExpression(const std::vector<std::string>& tokens
             expectOperator = true;
         }
         pos++;
+
+        // added for printing
+        fmt::println("        currentTerm: '{}'", currentTerm.toString());
     }
+
+    // added for printing
+    fmt::println("    currentTerm: '{}'", currentTerm.toString());
 
     if (!currentTerm.variables.empty() || currentTerm.coefficient != 1.0) {
         currentTerms.push_back(currentTerm);
     }
     terms = currentTerms;
+
+    // added for printing
+    for (auto const& ct : currentTerms) {
+        fmt::println("    currentTerms: '{}'", ct.toString());
+    }
+
     return *this;
 }
 
@@ -294,6 +327,11 @@ void Expression::parse(const std::string& expr)
         validateVariables(expr);
 
         std::vector<std::string> tokens = tokenize(expr);
+
+        fmt::println("");
+        fmt::println("tokens: '{}'", fmt::join(tokens, "' '"));
+        fmt::println("");
+
         size_t pos = 0;
         *this = parseSubExpression(tokens, pos);
 

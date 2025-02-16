@@ -6,9 +6,6 @@
 #include "ga_prd_pga2dp.hpp"
 #include "ga_prd_pga3dp.hpp"
 
-#include "ga_prdxpr_transformer.hpp" // just for ParseError
-
-
 // multivector basis, product rules, simplification rules and coefficients need to be
 // provided in header files included above by the user
 
@@ -64,9 +61,6 @@ int main()
         generate_and_print_ega3d_rotor();
     }
 
-    catch (ParseError const& e) {
-        fmt::println("Parse error: {}", e.what());
-    }
     catch (std::exception const& e) {
         fmt::println("Exception: {}", e.what());
     }

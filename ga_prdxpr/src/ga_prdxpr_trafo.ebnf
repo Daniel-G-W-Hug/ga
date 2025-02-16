@@ -1,0 +1,44 @@
+# EBNF notation for grammar supported for product expressions (prdxpr)
+
+digit_excl_zero = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+digit = '0' | digit_excl_zero;
+
+positive_int = digit_excl_zero, {digit};
+int = '0' | ['-' | '+'], positive_int;
+
+double = '0', '.' |  ['-' | '+'], ['0'], '.', digit, {digit}, ['d' | 'D'];
+
+number = int | double;
+
+uppercase-char = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
+               | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N'
+               | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U'
+               | 'V' | 'W' | 'X' | 'Y' | 'Z';
+
+lowercase-char = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g'
+               | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n'
+               | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u'
+               | 'v' | 'w'| 'x' | 'y' | 'z' ;
+
+letter = uppercase_char | lowercase_char;
+
+character = letter | digit | '_';
+
+# identifiers begin with a letter or underscore
+identifier = letter | '_', {character};
+component = identifier;
+
+# variables can optionally have components, e.g. "v.x"
+variable = identifier, ['.', component];
+
+# support addition and subtraction
+expression = term | expression + term | expression - term;
+
+# support multiplication
+term = primary | term * primary;
+
+# support primaries as variables and numbers
+# as well as grouping with brackets and unary signs for variables
+# (primary numbers with negative signs are regarded as numbers directly,
+# whereas "-variable" is regarded as term "-1*variable")
+primary = number | variable | '(', expression, ')' | '-', variable | '+', variable;

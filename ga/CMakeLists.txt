@@ -39,6 +39,10 @@ set(HEADERS
     detail/ga_mvec2dp_u.hpp
     detail/ga_mvec2dp.hpp
     #
+    detail/ga_mvec3dp_e.hpp
+    detail/ga_mvec3dp_u.hpp
+    detail/ga_mvec3dp.hpp
+    #
     # user facing includes
     #
     ga_ega.hpp
@@ -54,6 +58,9 @@ set(HEADERS
     #
     detail/ga_pga_2dp_objects.hpp
     ga_pga_2dp_ops.hpp
+    #
+    detail/ga_pga_3dp_objects.hpp
+    ga_pga_3dp_ops.hpp
     )
 
 add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user!)

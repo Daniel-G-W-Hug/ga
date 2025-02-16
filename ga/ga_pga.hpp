@@ -35,7 +35,7 @@
 
 // PGA-specific operations are in namespace hd::ga::ega
 #include "ga_pga_2dp_ops.hpp" // pga 2d operations
-// #include "detail/ga_pga_3d_ops.hpp" // pga 3d operations
+#include "ga_pga_3dp_ops.hpp" // pga 3d operations
 
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

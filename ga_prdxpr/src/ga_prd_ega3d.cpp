@@ -2,7 +2,7 @@
 
 #include "ga_prd_ega3d.hpp"
 #include "ga_prdxpr_common.hpp"
-#include "ga_prdxpr_transformer.hpp"
+#include "ga_prdxpr_trafo.hpp"
 
 
 void generate_and_print_ega3d_gpr()
@@ -1866,7 +1866,9 @@ void generate_and_print_ega3d_rotor()
     //     of rotation interpolation and helpful geometric interpretation when compared to
     //     mere matrix based modeling.
     //
+    // fmt::println("");
     // fmt::println("expr: '{}'", mv_e_res[1]);
+    // fmt::println("");
 
     // Expression expression;
     // expression.parse(mv_e_res[1]);
