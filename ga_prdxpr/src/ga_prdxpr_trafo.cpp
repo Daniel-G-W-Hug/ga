@@ -8,9 +8,17 @@
 #include "fmt/ostream.h" // ostream support
 #include "fmt/ranges.h"  // support printing of (nested) containers & tuples
 
+#include <algorithm>
 #include <cctype>
+#include <iterator>
 #include <sstream>
+#include <stack>
 #include <stdexcept>
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Validation classes
+///////////////////////////////////////////////////////////////////////////////
 
 // ExpressionValidator implementation
 bool ExpressionValidator::validateParentheses(std::string const& expr)
@@ -114,17 +122,20 @@ bool ExpressionValidator::validateIdentifier(std::string const& name)
     return true;
 }
 
-// Token implementation
-Token::Token(Token_t t, std::string const& str_val, size_t pos) :
-    type(t), str_value(str_val), position(pos)
-{
-}
-
+///////////////////////////////////////////////////////////////////////////////
 // Lexer implementation
+///////////////////////////////////////////////////////////////////////////////
+
 Lexer::Lexer(std::string const& input) : input(input), position(0)
 {
     ExpressionValidator::validateParentheses(input);
     ExpressionValidator::validateOperatorSequence(input);
+    advance(); // make currentToken available
+
+    auto token = getCurrentToken();
+    // fmt::println("Lexer::Lexer()  : token.str_value = {}", token.str_value);
+    // fmt::println("Lexer::Lexer()  : token.type = {}", Token_t_toString(token.type));
+    // fmt::println("");
 }
 
 char Lexer::peek() const
@@ -133,7 +144,7 @@ char Lexer::peek() const
     return input[position];
 }
 
-char Lexer::advance()
+char Lexer::advance_char()
 {
     if (position >= input.length()) return '\0';
     return input[position++];
@@ -141,300 +152,135 @@ char Lexer::advance()
 
 void Lexer::skipWhitespace()
 {
-    while (isspace(peek()))
-        advance();
+    while (position < input.length() && std::isspace(input[position])) {
+        position++;
+    }
 }
 
-Token Lexer::readNumber()
-{
-    size_t startPos = position;
-    std::string num;
-    bool hasDecimal = false;
+bool Lexer::isDigit(char c) const { return std::isdigit(c) != 0; }
 
-    if (peek() == '-' || peek() == '+') {
-        num += advance();
+bool Lexer::isLetter(char c) const { return std::isalpha(c) != 0 || c == '_'; }
+
+Token Lexer::parseNumber()
+{
+    std::string number;
+    size_t start_pos = position;
+
+    // Handle sign
+    if (peek() == '+' || peek() == '-') {
+        number += advance_char();
     }
 
-    while (isdigit(peek()) || peek() == '.' || peek() == 'd' || peek() == 'D') {
-        char c = advance();
-        if (c == '.') {
-            if (hasDecimal) {
-                throw std::runtime_error(
-                    "Invalid number format: multiple decimal points at position " +
-                    std::to_string(position));
-            }
-            hasDecimal = true;
+    // Parse integer part
+    while (isDigit(peek())) {
+        number += advance_char();
+    }
+
+    // Parse decimal part (beginning with '.')
+    if (peek() == '.') {
+        number += advance_char();
+        while (isDigit(peek())) {
+            number += advance_char();
         }
-        num += c;
     }
 
-    if (num == "." || num == "-." || num == "+.") {
-        throw std::runtime_error("Invalid number format at position " +
-                                 std::to_string(startPos));
+    // Handle scientific notation
+    if (peek() == 'd' || peek() == 'D') {
+        number += advance_char();
     }
 
-    return Token(Token_t::NUMBER, num, startPos);
+    if (number.empty() ||
+        (number.length() == 1 && (number[0] == '+' || number[0] == '-'))) {
+        throw std::runtime_error("Invalid number at position " +
+                                 std::to_string(start_pos));
+    }
+
+    return Token(Token_t::NUMBER, number, start_pos);
 }
 
-Token Lexer::readIdentifier()
+Token Lexer::parseIdentifier()
 {
-    size_t startPos = position;
-    std::string id;
-    while (isalnum(peek()) || peek() == '_' || peek() == '.') {
-        id += advance();
+    std::string identifier;
+    size_t start_pos = position;
+
+    // First character must be a letter or underscore
+    if (!isLetter(peek())) {
+        throw std::runtime_error("Invalid identifier at position " +
+                                 std::to_string(position));
     }
 
-    try {
-        ExpressionValidator::validateVariableName(id);
-    }
-    catch (const std::runtime_error& e) {
-        throw std::runtime_error(std::string(e.what()) + " at position " +
-                                 std::to_string(startPos));
+    while (isLetter(peek()) || isDigit(peek())) {
+        identifier += advance_char();
     }
 
-    return Token(Token_t::IDENTIFIER, id, startPos);
+    return Token(Token_t::IDENTIFIER, identifier, start_pos);
 }
 
-Token Lexer::nextToken()
+Token Lexer::getNextToken()
 {
     skipWhitespace();
 
-    char c = peek();
-    if (c == '\0') return Token(Token_t::END, "", position);
-
-    if (isdigit(c)) {
-        return readNumber();
+    if (position >= input.length()) {
+        return Token(Token_t::END, "", position);
     }
 
-    if (isalpha(c) || c == '_') {
-        return readIdentifier();
+    char current = peek();
+
+    if (isDigit(current)) {
+        return parseNumber();
+    }
+
+    if (isLetter(current)) {
+        return parseIdentifier();
     }
 
     size_t currentPos = position;
-    advance(); // consume the character
-    switch (c) {
+    advance_char(); // consume character
+    switch (current) {
+        case '.':
+            return Token(Token_t::DOT, ".", currentPos);
         case '+':
             return Token(Token_t::PLUS, "+", currentPos);
         case '-':
             return Token(Token_t::MINUS, "-", currentPos);
         case '*':
             return Token(Token_t::MULTIPLY, "*", currentPos);
+        case '/':
+            return Token(Token_t::DEVIDE, "/", currentPos);
         case '(':
             return Token(Token_t::LPAREN, "(", currentPos);
         case ')':
             return Token(Token_t::RPAREN, ")", currentPos);
-        case '.':
-            return Token(Token_t::DOT, ".", currentPos);
         default:
-            throw std::runtime_error("Invalid character '" + std::string(1, c) +
-                                     "' at position " + std::to_string(currentPos));
+            throw std::runtime_error("Invalid character at position " +
+                                     std::to_string(currentPos));
     }
 }
 
-// // debug version of Lexer::nextToken()
-// Token Lexer::nextToken()
-// {
-//     skipWhitespace();
 
-//     char c = peek();
-//     if (c == '\0') {
-//         std::println("DEBUG: Lexer returning END token at position {}", position);
-//         return Token(Token_t::END, "", position);
-//     }
-
-//     std::println("DEBUG: Lexer c = {}", c);
-
-//     Token token(Token_t::END);
-
-//     if (isdigit(c)) {
-//         token = readNumber();
-//     }
-//     else if (isalpha(c) || c == '_') {
-//         token = readIdentifier();
-//     }
-//     else {
-//         size_t currentPos = position;
-//         advance(); // consume the character
-//         switch (c) {
-//             case '+':
-//                 token = Token(Token_t::PLUS, "+", currentPos);
-//                 break;
-//             case '-':
-//                 token = Token(Token_t::MINUS, "-", currentPos);
-//                 break;
-//             case '*':
-//                 token = Token(Token_t::MULTIPLY, "*", currentPos);
-//                 break;
-//             case '(':
-//                 token = Token(Token_t::LPAREN, "(", currentPos);
-//                 break;
-//             case ')':
-//                 token = Token(Token_t::RPAREN, ")", currentPos);
-//                 break;
-//             case '.':
-//                 token = Token(Token_t::DOT, ".", currentPos);
-//                 break;
-//             default:
-//                 throw std::runtime_error("Invalid character '" + std::string(1, c) +
-//                                          "' at position " +
-//                                          std::to_string(currentPos));
-//         }
-//     }
-//     // Debug output for each token
-//     fmt::println("DEBUG: Token_t = {}, Value = '{}', Position = {}",
-//     Token_t_toString(token.type), token.str_value, token.position);
-//
-//     return token;
-// }
-
-
-// Expression implementation
-Expression::Expression(std::shared_ptr<ExprNode> l, char o, std::shared_ptr<ExprNode> r) :
-    left(l), op(o), right(r)
-{
-}
-
-std::string Expression::toString(bt_t bt) const
-{
-    if (str_value_starts_with_minus) {
-        return "-(" + left->toString(bt_t::no_braces) + " " + op + " " +
-               right->toString(bt_t::no_braces) + ")";
-    }
-
-    switch (bt) {
-        case bt_t::use_braces:
-            return "(" + left->toString(bt_t::no_braces) + " " + op + " " +
-                   right->toString(bt_t::no_braces) + ")";
-            break;
-        case bt_t::no_braces:
-            return left->toString(bt_t::no_braces) + " " + op + " " +
-                   right->toString(bt_t::no_braces);
-            break;
-        default:
-            return "UNKNOWN";
-    }
-}
-
-ExprNode_t Expression::nodeType() const { return ExprNode_t::EXPRESSION; }
-
-std::shared_ptr<ExprNode> Expression::simplify()
-{
-    auto simplifiedLeft = left->simplify();
-    auto simplifiedRight = right->simplify();
-    return std::make_shared<Expression>(simplifiedLeft, op, simplifiedRight);
-}
-
-// Term implementation
-Term::Term(std::shared_ptr<ExprNode> l, std::shared_ptr<ExprNode> r) : left(l), right(r)
-{
-}
-
-std::string Term::toString(bt_t bt) const
-{
-    switch (bt) {
-        case bt_t::use_braces:
-            return "(" + left->toString(bt_t::no_braces) + ") * (" +
-                   right->toString(bt_t::no_braces) + ")";
-            break;
-        case bt_t::no_braces:
-            return left->toString(bt_t::no_braces) + " * " +
-                   right->toString(bt_t::no_braces);
-            break;
-        default:
-            return "UNKNOWN";
-    }
-}
-
-ExprNode_t Term::nodeType() const { return ExprNode_t::TERM; }
-
-std::shared_ptr<ExprNode> Term::simplify()
-{
-    auto simplifiedLeft = left->simplify();
-    auto simplifiedRight = right->simplify();
-    return std::make_shared<Term>(simplifiedLeft, simplifiedRight);
-}
-
-// Primary implementation
-Primary::Primary(std::string const& str_val, Primary_t t) :
-    type(t), str_value(str_val), str_value_starts_with_minus(str_val[0] == '-')
-{
-    if (t == Primary_t::NUMBER) {
-        num_value = std::stod(str_value);
-    }
-}
-
-// Primary::Primary(std::shared_ptr<ExprNode> e, bool neg) :
-//     type(Primary_t::EXPRESSION), expr(e), str_value_starts_with_minus(neg)
-// {
-// }
-
-std::string Primary::toString(bt_t bt) const
-{
-    std::string unary_minus = str_value_starts_with_minus ? "-" : "";
-    switch (type) {
-
-        case Primary_t::NUMBER:
-        case Primary_t::VARIABLE:
-
-            switch (bt) {
-
-                case bt_t::use_braces:
-                    // return "(" + unary_minus + str_value + ")";
-                    return "(" + str_value + ")";
-                    break;
-                case bt_t::no_braces:
-                    // return unary_minus + str_value;
-                    return str_value;
-                    break;
-                default:
-                    return "UNKNOWN";
-            }
-        case Primary_t::EXPRESSION:
-
-            switch (bt) {
-                case bt_t::use_braces:
-                    return unary_minus + "(" + toString(bt_t::use_braces) + ")";
-                    break;
-                case bt_t::no_braces:
-                    return unary_minus + toString(bt_t::no_braces);
-                    break;
-                default:
-                    return "UNKNOWN";
-            }
-
-        default:
-            return "ERROR";
-    }
-}
-
-ExprNode_t Primary::nodeType() const { return ExprNode_t::PRIMARY; }
-
-std::shared_ptr<ExprNode> Primary::simplify()
-{
-    // if (type == Primary_t::EXPRESSION) {
-    //     auto simplifiedExpr = expr->simplify();
-    //     return std::make_shared<Primary>(simplifiedExpr, str_value_starts_with_minus);
-    // }
-    return std::make_shared<Primary>(*this);
-}
-
+///////////////////////////////////////////////////////////////////////////////
 // Parser implementation
-Parser::Parser(std::string const& input) : lexer(input), currentToken() { advance(); }
+///////////////////////////////////////////////////////////////////////////////
 
-void Parser::advance() { currentToken = lexer.nextToken(); }
+Parser::Parser(const std::string& input) : lexer(input) {}
 
-// // debug version of Parser::advance()
-// void Parser::advance()
-// {
-//     currentToken = lexer.nextToken();
-//     fmt::println(
-//         "DEBUG: Parser advanced to token: {} at position {}",
-//         Token_t_toString(currentToken.type), currentToken.position);
-// }
+std::shared_ptr<ast_node> Parser::parse()
+{
+
+    auto result = Expression::parse(lexer);
+
+    auto currentToken = lexer.getCurrentToken();
+    if (currentToken.type != Token_t::END) {
+        throw std::runtime_error("Unexpected tokens after expression at position " +
+                                 std::to_string(currentToken.position));
+    }
+
+    return result;
+}
 
 void Parser::validateBinaryOperation(Token const& op,
-                                     std::shared_ptr<ExprNode> const& left,
-                                     std::shared_ptr<ExprNode> const& right)
+                                     std::shared_ptr<ast_node> const& left,
+                                     std::shared_ptr<ast_node> const& right)
 {
     if (!left || !right) {
         throw std::runtime_error("Missing operand for operator '" + op.str_value +
@@ -442,218 +288,196 @@ void Parser::validateBinaryOperation(Token const& op,
     }
 }
 
-std::shared_ptr<ExprNode> Parser::parsePrimary()
+// Expression ctor
+Expression::Expression(std::shared_ptr<ast_node> l, char o, std::shared_ptr<ast_node> r) :
+    left(l), op(o), right(r)
 {
-
-    bool is_negative = false;
-
-    // fmt::println(
-    //     "Parser::parsePrimary():    currentToken.str_value = '{}', currentToken type "
-    //     "= {}",
-    //     currentToken.str_value, Token_t_toString(currentToken.type));
-
-    if (currentToken.type == Token_t::MINUS) {
-        is_negative = true; // now we know that we have a minus sign in front
-        advance();          // consume '-'
-    }
-
-    if (currentToken.type == Token_t::NUMBER) {
-        std::string str_value = currentToken.str_value;
-        if (is_negative) {
-            str_value = '-' + currentToken.str_value;
-        }
-        advance(); // consume the parsed number
-
-        auto ptr = std::make_shared<Primary>(str_value, Primary_t::NUMBER);
-        return std::dynamic_pointer_cast<ExprNode>(ptr);
-    }
-
-    if (currentToken.type == Token_t::IDENTIFIER) {
-        std::string str_value = currentToken.str_value;
-        if (is_negative) {
-            str_value = '-' + currentToken.str_value;
-        }
-        advance(); // consume the parsed variable
-
-        auto ptr = std::make_shared<Primary>(str_value, Primary_t::VARIABLE);
-        return std::dynamic_pointer_cast<ExprNode>(ptr);
-    }
-
-    if (currentToken.type == Token_t::LPAREN) {
-        size_t openParenPos = currentToken.position;
-        advance(); // consume '('
-
-        auto expr = parseExpression();
-
-        // fmt::println("currentToken.type = {}", currentToken.value);
-        if (currentToken.type != Token_t::RPAREN) {
-            throw std::runtime_error(
-                "Expected ')' after expression starting at position " +
-                std::to_string(openParenPos));
-        }
-
-        advance(); // consume ')'
-
-
-        if (is_negative) {
-
-            auto expr_ptr = std::dynamic_pointer_cast<Expression>(expr);
-
-            // push unary minus to the operands for primaries
-
-            // lhs change via pushing the sign into the primary
-            if (expr_ptr->left->nodeType() == ExprNode_t::PRIMARY) {
-
-                // work directly on the primary on the left
-                auto ptr = std::dynamic_pointer_cast<Primary>(expr_ptr->left);
-
-                // unary minus has to change sign
-                if ((ptr->type == Primary_t::VARIABLE ||
-                     ptr->type == Primary_t::NUMBER) &&
-                    !ptr->str_value_starts_with_minus) {
-
-                    // add minus sign
-                    ptr->str_value = '-' + ptr->str_value;
-                    if (ptr->type == Primary_t::NUMBER) ptr->num_value *= -1.0;
-                    ptr->str_value_starts_with_minus = true;
-                }
-                else if ((ptr->type == Primary_t::VARIABLE ||
-                          ptr->type == Primary_t::NUMBER) &&
-                         ptr->str_value_starts_with_minus) {
-
-                    // remove minus sign
-                    ptr->str_value = ptr->str_value.substr(1, ptr->str_value.size());
-                    if (ptr->type == Primary_t::NUMBER) ptr->num_value *= -1.0;
-                    ptr->str_value_starts_with_minus = false;
-                }
-            }
-
-            // lhs change via pushing the sign into the expression
-            if (expr_ptr->left->nodeType() == ExprNode_t::EXPRESSION) {
-
-                auto ptr = std::dynamic_pointer_cast<Expression>(expr_ptr->left);
-
-                // push unary minus to the operands for primaries
-
-                // lhs change via pushing the sign into the primary
-                if (ptr->left->nodeType() == ExprNode_t::PRIMARY) {
-
-                    // work directly on the primary on the left
-                    auto e_ptr = std::dynamic_pointer_cast<Primary>(ptr->left);
-
-                    // unary minus has to change sign
-                    if ((e_ptr->type == Primary_t::VARIABLE ||
-                         e_ptr->type == Primary_t::NUMBER) &&
-                        !e_ptr->str_value_starts_with_minus) {
-
-                        // add minus sign
-                        e_ptr->str_value = '-' + e_ptr->str_value;
-                        if (e_ptr->type == Primary_t::NUMBER) e_ptr->num_value *= -1.0;
-                        e_ptr->str_value_starts_with_minus = true;
-                    }
-                    else if ((e_ptr->type == Primary_t::VARIABLE ||
-                              e_ptr->type == Primary_t::NUMBER) &&
-                             e_ptr->str_value_starts_with_minus) {
-
-                        // remove minus sign
-                        e_ptr->str_value =
-                            e_ptr->str_value.substr(1, e_ptr->str_value.size());
-                        if (e_ptr->type == Primary_t::NUMBER) e_ptr->num_value *= -1.0;
-                        e_ptr->str_value_starts_with_minus = false;
-                    }
-                }
-
-                // rhs change via operator '+' or '-' (there is no unary minus on the rhs)
-                if (ptr->right->nodeType() == ExprNode_t::PRIMARY && ptr->op == '+') {
-                    ptr->op = '-';
-                }
-                else if (ptr->right->nodeType() == ExprNode_t::PRIMARY &&
-                         ptr->op == '-') {
-                    ptr->op = '+';
-                }
-            }
-
-            // rhs change via operator '+' or '-' (there is no unary minus on the rhs)
-            if (expr_ptr->right->nodeType() == ExprNode_t::PRIMARY &&
-                expr_ptr->op == '+') {
-                expr_ptr->op = '-';
-            }
-            else if (expr_ptr->right->nodeType() == ExprNode_t::PRIMARY &&
-                     expr_ptr->op == '-') {
-                expr_ptr->op = '+';
-            }
-        }
-
-        return std::dynamic_pointer_cast<ExprNode>(expr);
-    }
-
-
-    // if (currentToken.type == Token_t::MINUS) {
-    //     last_call_was_minus = true; // mark that to assign the right sign to
-    //     numbers Token minus = currentToken; advance(); auto primary =
-    //     parsePrimary(); if (!primary) {
-    //         throw std::runtime_error("Missing operand after unary '-' at position "
-    //         +
-    //                                  std::to_string(minus.position));
-    //     }
-    //     return std::make_shared<Primary>(primary);
-    // }
-
-    throw std::runtime_error("Unexpected token '" + currentToken.str_value +
-                             "' at position " + std::to_string(currentToken.position));
 }
 
-std::shared_ptr<ExprNode> Parser::parseTerm()
+// Expression parsing
+std::shared_ptr<ast_node> Expression::parse(Lexer& lexer)
 {
-    auto left = parsePrimary();
+    auto left = Term::parse(lexer);
 
-    // fmt::println("Parser::parseTerm():       currentToken.str_value = '{}', "
-    //              "currentToken.type = {}",
-    //              currentToken.str_value, Token_t_toString(currentToken.type));
+    while (true) {
+        auto token = lexer.getCurrentToken();
 
-    while (currentToken.type == Token_t::MULTIPLY) {
-        Token op = currentToken;
-        advance(); // consume '*'
-        auto right = parsePrimary();
-        validateBinaryOperation(op, left, right);
-        left = std::make_shared<Term>(left, right);
+        // fmt::println("Expression::parse() 2nd: token.str_value = {}", token.str_value);
+        // fmt::println("Expression::parse() 2nd: token.type = {}",
+        //              Token_t_toString(token.type));
+        // fmt::println("");
+
+        if (token.type != Token_t::PLUS && token.type != Token_t::MINUS) {
+            break;
+        }
+
+        char op = token.str_value[0];
+        lexer.advance(); // consume '+' or '-'
+
+        auto right = Term::parse(lexer);
+        Parser::validateBinaryOperation(token, left, right);
+
+        left = std::make_shared<Expression>(left, op, right);
     }
 
     return left;
 }
 
-std::shared_ptr<ExprNode> Parser::parseExpression()
+// Term ctor
+Term::Term(std::shared_ptr<ast_node> l, char o, std::shared_ptr<ast_node> r) :
+    left(l), op(o), right(r)
 {
-    auto left = parseTerm();
+}
 
-    // fmt::println("Parser::parseExpression(): currentToken.str_value = '{}', "
-    //              "currentToken.type = {}",
-    //              currentToken.str_value, Token_t_toString(currentToken.type));
+// Term parsing
+std::shared_ptr<ast_node> Term::parse(Lexer& lexer)
+{
+    auto left = Factor::parse(lexer);
 
-    while (currentToken.type == Token_t::PLUS || currentToken.type == Token_t::MINUS) {
-        Token op = currentToken;
-        advance(); // consume '+' or '-'
-        auto right = parseTerm();
-        validateBinaryOperation(op, left, right);
-        left = std::make_shared<Expression>(left, op.type == Token_t::PLUS ? '+' : '-',
-                                            right);
+    while (true) {
+        auto token = lexer.getCurrentToken();
+
+        // fmt::println("Term::parse() 2nd: token.str_value = {}", token.str_value);
+        // fmt::println("Term::parse() 2nd: token.type = {}",
+        // Token_t_toString(token.type)); fmt::println("");
+
+        if (token.type != Token_t::MULTIPLY && token.type != Token_t::DEVIDE) {
+            break;
+        }
+
+        auto op = token.str_value[0];
+        lexer.advance(); // consume '*' or '/'
+
+        auto right = Factor::parse(lexer);
+        Parser::validateBinaryOperation(token, left, right);
+        left = std::make_shared<Term>(left, op, right);
     }
 
     return left;
 }
 
-std::shared_ptr<ExprNode> Parser::parse()
+// Factor ctor
+Factor::Factor(char s, std::shared_ptr<ast_node> v) : sign(s), prim_val(v) {}
+
+
+// Factor parsing
+std::shared_ptr<ast_node> Factor::parse(Lexer& lexer)
 {
-    auto result = parseExpression();
-    if (currentToken.type != Token_t::END) {
-        throw std::runtime_error("Unexpected tokens after expression at position " +
-                                 std::to_string(currentToken.position));
+
+    auto token = lexer.getCurrentToken();
+    // fmt::println("Factor::parse() : token.str_value = {}", token.str_value);
+    // fmt::println("Factor::parse() : token.type = {}", Token_t_toString(token.type));
+    // fmt::println("");
+
+    // work on the sign, if present
+    char sign = '\0'; // '\0' indicates no sign
+    if (token.type == Token_t::PLUS || token.type == Token_t::MINUS) {
+        sign = token.str_value[0];
+        lexer.advance(); // consume sign
     }
-    return result;
+
+    // read the value
+    auto primary = Primary::parse(lexer);
+
+    return make_shared<Factor>(sign, primary);
 }
+
+
+// Primary parsing
+std::shared_ptr<ast_node> Primary::parse(Lexer& lexer)
+{
+    auto primary = std::make_shared<Primary>();
+
+    auto token = lexer.getCurrentToken();
+    // fmt::println("Primary::parse(): token.str_value = {}", token.str_value);
+    // fmt::println("Primary::parse(): token.type = {}", Token_t_toString(token.type));
+    // fmt::println("");
+
+    switch (token.type) {
+
+        case Token_t::NUMBER:
+            primary->type = Primary_t::NUMBER;
+            primary->str_value = token.str_value;
+            primary->num_value = std::stod(token.str_value);
+            lexer.advance(); // consume the number
+            break;
+
+        case Token_t::IDENTIFIER: {
+            primary->type = Primary_t::VARIABLE;
+            primary->str_value = token.str_value;
+            lexer.advance(); // consume the variable
+
+            // Check for component access (e.g., "v.x")
+            if (lexer.getCurrentToken().type == Token_t::DOT) {
+                lexer.advance();
+                if (lexer.getCurrentToken().type != Token_t::IDENTIFIER) {
+                    throw std::runtime_error(
+                        "Expected identifier after dot at position " +
+                        std::to_string(lexer.getCurrentToken().position));
+                }
+                primary->str_value += "." + lexer.getCurrentToken().str_value;
+                lexer.advance(); // consume the component
+            }
+            break;
+        }
+
+        case Token_t::LPAREN:
+
+            primary->type = Primary_t::EXPRESSION;
+            lexer.advance(); // consume the opening parenthesis
+
+            primary->expr = Expression::parse(lexer);
+
+            // check for closing parenthesis
+            if (lexer.getCurrentToken().type != Token_t::RPAREN) {
+                throw std::runtime_error(
+                    "Expected closing parenthesis at position " +
+                    std::to_string(lexer.getCurrentToken().position));
+            }
+            lexer.advance(); // consume the closing parenthesis
+            break;
+
+        default:
+            throw std::runtime_error("Unexpected token at position " +
+                                     std::to_string(token.position));
+    }
+
+    return primary;
+}
+
+ast_node::ast_node_t Expression::nodeType() const
+{
+    return ast_node::ast_node_t::EXPRESSION;
+}
+ast_node::ast_node_t Term::nodeType() const { return ast_node::ast_node_t::TERM; }
+ast_node::ast_node_t Factor::nodeType() const { return ast_node::ast_node_t::FACTOR; }
+ast_node::ast_node_t Primary::nodeType() const { return ast_node::ast_node_t::PRIMARY; }
+
+std::string Expression::nodeType_to_string() const { return "EXPRESSION"s; }
+std::string Term::nodeType_to_string() const { return "TERM"s; }
+std::string Factor::nodeType_to_string() const { return "FACTOR"s; }
+std::string Primary::nodeType_to_string() const { return "PRIMARY"s; }
+
+
+std::string Primary::primaryType_to_string() const
+{
+    switch (type) {
+        case Primary_t::NUMBER:
+            return "NUMBER";
+            break;
+        case Primary_t::VARIABLE:
+            return "VARIABLE";
+            break;
+        case Primary_t::EXPRESSION:
+            return "EXPRESSION";
+            break;
+        default:
+            return "UNKNOWN";
+    }
+};
 
 // Helper function implementation
-std::string parseAndSimplify(std::string const& input)
+std::string parse_and_print_ast(std::string const& input)
 {
     try {
         Parser parser(input);
@@ -668,24 +492,37 @@ std::string parseAndSimplify(std::string const& input)
         print_parse_tree(ast);
         fmt::println("");
 
-        auto simplified = ast->simplify();
-        return simplified->toString();
+        return ast->toString();
     }
     catch (std::exception const& e) {
         return std::string("Error: ") + e.what();
     }
 }
 
-void print_parse_tree(std::shared_ptr<ExprNode> const& ast)
+// Helper function implementation
+std::string parse_only(std::string const& input)
+{
+    try {
+        Parser parser(input);
+        auto ast = parser.parse();
+
+        return ast->toString();
+    }
+    catch (std::exception const& e) {
+        return std::string("Error: ") + e.what();
+    }
+}
+
+void print_parse_tree(std::shared_ptr<ast_node> const& ast)
 {
 
-    if (ast.get() == nullptr) return;
+    if (!ast) return;
 
-    ExprNode_t type = ast->nodeType();
+    // fmt::println("print_parse_tree(): ast node type: {}", ast->nodeType_to_string());
 
-    switch (type) {
+    switch (ast->nodeType()) {
 
-        case ExprNode_t::EXPRESSION:
+        case ast_node::ast_node_t::EXPRESSION:
 
         {
             // downcast to derived
@@ -693,13 +530,16 @@ void print_parse_tree(std::shared_ptr<ExprNode> const& ast)
             print_expression_node(ptr);
 
             // upcast back to base after getting the left and right sides
-            print_parse_tree(std::dynamic_pointer_cast<ExprNode>(ptr->left));
-            print_parse_tree(std::dynamic_pointer_cast<ExprNode>(ptr->right));
-        }
+            if (ptr->left) {
+                print_parse_tree(std::dynamic_pointer_cast<ast_node>(ptr->left));
+            }
+            if (ptr->right) {
+                print_parse_tree(std::dynamic_pointer_cast<ast_node>(ptr->right));
+            }
 
-        break;
+        } break;
 
-        case ExprNode_t::TERM:
+        case ast_node::ast_node_t::TERM:
 
         {
             // downcast to derived
@@ -707,58 +547,96 @@ void print_parse_tree(std::shared_ptr<ExprNode> const& ast)
             print_term_node(ptr);
 
             // upcast back to base after getting the left and right sides
-            print_parse_tree(std::dynamic_pointer_cast<ExprNode>(ptr->left));
-            print_parse_tree(std::dynamic_pointer_cast<ExprNode>(ptr->right));
-        }
+            if (ptr->left) {
+                print_parse_tree(std::dynamic_pointer_cast<ast_node>(ptr->left));
+            }
+            if (ptr->right) {
+                print_parse_tree(std::dynamic_pointer_cast<ast_node>(ptr->right));
+            }
 
-        break;
+        } break;
 
-        case ExprNode_t::PRIMARY:
+        case ast_node::ast_node_t::FACTOR:
 
-            print_primary_node(std::dynamic_pointer_cast<Primary>(ast));
-            break;
+        {
+            auto ptr = std::dynamic_pointer_cast<Factor>(ast);
+            if (ptr) {
+                print_factor_node(ptr);
+            }
+        } break;
+
+
+        case ast_node::ast_node_t::PRIMARY:
+
+        {
+            auto ptr = std::dynamic_pointer_cast<Primary>(ast);
+            if (ptr) {
+                print_primary_node(ptr);
+            }
+        } break;
 
         default:
             fmt::println("printParseTree: Unknown type.");
     }
+
+    // fmt::println("print_parse_tree(): printing finished.");
 }
 
 void print_expression_node(std::shared_ptr<Expression> const& ptr)
 {
 
-    if (ptr.get() == nullptr) return;
+    if (!ptr) return;
 
-    fmt::println("node type                     : {}",
-                 ExprNode_t_toString(ptr->nodeType()));
-    fmt::println("    operation symbol          : {}", ptr->op);
-    // fmt::println("    expression to_String()    : {}",
-    // ptr->toString(bt_t::no_braces));
-    fmt::println("    expression to_String()    : {}", ptr->toString());
-    fmt::println("    left  node type -> value  : {} -> {}",
-                 ExprNode_t_toString(ptr->left->nodeType()),
-                 ptr->left->toString(bt_t::no_braces));
-    fmt::println("    right node type -> value  : {} -> {}",
-                 ExprNode_t_toString(ptr->right->nodeType()),
-                 ptr->right->toString(bt_t::no_braces));
-    fmt::println("    expression starts with '-': {}", ptr->str_value_starts_with_minus);
+    fmt::println("node type                                : {}",
+                 ptr->nodeType_to_string());
+    fmt::println("    expression operation symbol          : '{}'", ptr->op);
+    fmt::println("    expression to_String()               : {}", ptr->toString());
+    if (ptr->left) {
+        fmt::println("    left  node type -> value             : {} -> {}",
+                     ptr->left->nodeType_to_string(), ptr->left->toString());
+    }
+    if (ptr->right) {
+        fmt::println("    right node type -> value             : {} -> {}",
+                     ptr->right->nodeType_to_string(), ptr->right->toString());
+    }
     fmt::println("");
 }
 
 void print_term_node(std::shared_ptr<Term> const& ptr)
 {
 
-    if (ptr.get() == nullptr) return;
+    if (!ptr) return;
 
-    fmt::println("node type                     : {}",
-                 ExprNode_t_toString(ptr->nodeType()));
-    fmt::println("    term to_String()          : {}", ptr->toString());
-    fmt::println("    left  node type -> value  : {} -> {}",
-                 ExprNode_t_toString(ptr->left->nodeType()),
-                 ptr->left->toString(bt_t::no_braces));
-    fmt::println("    right node type -> value  : {} -> {}",
-                 ExprNode_t_toString(ptr->right->nodeType()),
-                 ptr->right->toString(bt_t::no_braces));
-    fmt::println("    term starts with '-'      : {}", ptr->str_value_starts_with_minus);
+    fmt::println("node type                                : {}",
+                 ptr->nodeType_to_string());
+    fmt::println("    term operation symbol                : '{}'", ptr->op);
+    fmt::println("    term to_String()                     : {}", ptr->toString());
+    if (ptr->left) {
+        fmt::println("    left  node type -> value             : {} -> {}",
+                     ptr->left->nodeType_to_string(), ptr->left->toString());
+    }
+    if (ptr->right) {
+        fmt::println("    right node type -> value             : {} -> {}",
+                     ptr->right->nodeType_to_string(), ptr->right->toString());
+    }
+    fmt::println("");
+
+    return;
+}
+
+void print_factor_node(std::shared_ptr<Factor> const& ptr)
+{
+
+    if (!ptr) return;
+
+    fmt::println("node type                                : {}",
+                 ptr->nodeType_to_string());
+    fmt::println("    factor->sign                         :'{}'", ptr->sign);
+    fmt::println("    factor->to_String()                  : {}", ptr->toString());
+    if (ptr->prim_val) {
+        auto primary_ptr = std::dynamic_pointer_cast<Primary>(ptr->prim_val);
+        print_primary_node(primary_ptr);
+    }
     fmt::println("");
 
     return;
@@ -767,16 +645,157 @@ void print_term_node(std::shared_ptr<Term> const& ptr)
 void print_primary_node(std::shared_ptr<Primary> const& ptr)
 {
 
-    if (ptr.get() == nullptr) return;
+    if (!ptr) return;
 
-    fmt::println("node type                     : {}",
-                 ExprNode_t_toString(ptr->nodeType()));
-    fmt::println("    primary to_String()       : {}", ptr->toString());
-    fmt::println("    primary type              : {}", Primary_t_toString(ptr->type));
-    fmt::println("    primary str_value         : {}", ptr->str_value);
-    fmt::println("    primary num_value         : {}", ptr->num_value);
-    fmt::println("    primary starts with '-'   : {}", ptr->str_value_starts_with_minus);
+    fmt::println("node type                                : {}",
+                 ptr->nodeType_to_string());
+    fmt::println("    primary to_String()                  : {}", ptr->toString());
+    fmt::println("    primary type                         : {}",
+                 ptr->primaryType_to_string());
+    fmt::println("    primary str_value                    : {}", ptr->str_value);
+    fmt::println("    primary num_value                    : {}", ptr->num_value);
+    if (ptr->expr) {
+        auto expr_ptr = std::dynamic_pointer_cast<Expression>(ptr->expr);
+        print_expression_node(expr_ptr);
+    }
     fmt::println("");
 
     return;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// xxx::toString() implementations
+///////////////////////////////////////////////////////////////////////////////
+
+
+// ToString implementations for AST nodes
+std::string Expression::toString() const
+{
+    std::stringstream ss;
+    if (left) {
+        ss << left->toString();
+    }
+    if (right) {
+        ss << " " << op << " " << right->toString();
+    }
+    return ss.str();
+}
+
+std::string Term::toString() const
+{
+    std::stringstream ss;
+    if (left) {
+        ss << left->toString();
+    }
+    if (right) {
+        ss << " " << op << " " << right->toString();
+    }
+    return ss.str();
+}
+
+std::string Factor::toString() const
+{
+    std::stringstream ss;
+    if (sign != '\0') {
+        ss << sign;
+    }
+    if (prim_val) {
+        ss << prim_val->toString();
+    }
+    return ss.str();
+}
+
+std::string Primary::toString() const
+{
+    switch (type) {
+        case Primary_t::NUMBER:
+        case Primary_t::VARIABLE:
+            return str_value;
+        case Primary_t::EXPRESSION:
+            if (expr) {
+                return "(" + expr->toString() + ")";
+            }
+        default:
+            // return "";
+            return "EXPRESSION EMPTY";
+    }
+}
+
+
+// std::string Expression::toString() const
+// {
+
+//     std::string prefix{};
+//     std::string postfix{};
+//     std::string r_prefix{};
+//     std::string r_postfix{};
+
+//     if (str_value_starts_with_minus) {
+//         prefix = "-("s;
+//         postfix = ")"s;
+//     }
+//     else if (use_braces) {
+//         prefix = "("s;
+//         postfix = ")"s;
+//     }
+
+//     if (op == '-' && right->nodeType() == ast_node_t::EXPRESSION) {
+//         r_prefix = "("s;
+//         r_postfix = ")"s;
+//     }
+
+//     return prefix + left->toString() + " " + op + " " + r_prefix + right->toString() +
+//            r_postfix + postfix;
+// }
+
+// std::string Term::toString() const
+// {
+
+//     std::string prefix{};
+//     std::string postfix{};
+//     std::string l_prefix{};
+//     std::string l_postfix{};
+//     std::string r_prefix{};
+//     std::string r_postfix{};
+
+//     if (str_value_starts_with_minus) {
+//         prefix = "-"s;
+//         postfix = ""s;
+//     }
+//     else if (use_braces) {
+//         prefix = "("s;
+//         postfix = ")"s;
+//     }
+
+//     if (left->nodeType() == ast_node_t::EXPRESSION) {
+//         l_prefix = "("s;
+//         l_postfix = ")"s;
+//     }
+//     if (right->nodeType() == ast_node_t::EXPRESSION) {
+//         r_prefix = "("s;
+//         r_postfix = ")"s;
+//     }
+
+//     return prefix + l_prefix + left->toString() + l_postfix + " * " + r_prefix +
+//            right->toString() + r_postfix + postfix;
+// }
+
+// std::string Primary::toString() const
+// {
+//     switch (type) {
+
+//         case Primary_t::NUMBER:
+//         case Primary_t::VARIABLE:
+
+//             return str_value;
+//             break;
+
+//         case Primary_t::EXPRESSION:
+
+//             return "("s + str_value + ")"s;
+//             break;
+
+//         default:
+//             return "ERROR"s;
+//     }
+// }

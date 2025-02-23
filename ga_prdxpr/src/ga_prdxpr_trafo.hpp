@@ -15,9 +15,10 @@
 using namespace std::literals::string_literals;
 
 // Forward declarations
-class ExprNode;
+class ast_node;
 class Expression;
 class Term;
+class Factor;
 class Primary;
 
 // Expression Validator class declaration
@@ -37,12 +38,13 @@ class ExpressionValidator {
 enum class Token_t {
     NUMBER,
     IDENTIFIER,
+    DOT,
     PLUS,
     MINUS,
     MULTIPLY,
+    DEVIDE,
     LPAREN,
     RPAREN,
-    DOT,
     END
 };
 
@@ -55,6 +57,9 @@ inline constexpr std::string Token_t_toString(Token_t t)
         case Token_t::IDENTIFIER:
             return "IDENTIFIER";
             break;
+        case Token_t::DOT:
+            return "DOT";
+            break;
         case Token_t::PLUS:
             return "PLUS";
             break;
@@ -64,14 +69,14 @@ inline constexpr std::string Token_t_toString(Token_t t)
         case Token_t::MULTIPLY:
             return "MULTIPLY";
             break;
+        case Token_t::DEVIDE:
+            return "DEVIDE";
+            break;
         case Token_t::LPAREN:
             return "LPAREN";
             break;
         case Token_t::RPAREN:
             return "RPAREN";
-            break;
-        case Token_t::DOT:
-            return "DOT";
             break;
         case Token_t::END:
             return "END";
@@ -87,147 +92,160 @@ struct Token {
     std::string str_value{""s};
     size_t position{0};
     Token() = default;
-    Token(Token_t t, std::string const& v = "", size_t pos = 0);
+    Token(Token_t t, std::string const& str_val = "", size_t pos = 0) :
+        type(t), str_value(str_val), position(pos)
+    {
+    }
 };
 
 // Lexer class
 class Lexer {
+  public:
+
+    explicit Lexer(const std::string& input);
+    Token getNextToken();
+    const Token& getCurrentToken() const { return currentToken; }
+    void advance() { currentToken = getNextToken(); }
+
   private:
 
     std::string input;
     size_t position;
+    Token currentToken;
 
     char peek() const;
-    char advance();
+    char advance_char();
     void skipWhitespace();
-    Token readNumber();
-    Token readIdentifier();
-
-  public:
-
-    explicit Lexer(std::string const& input);
-    Token nextToken();
+    Token parseNumber();
+    Token parseIdentifier();
+    bool isDigit(char c) const;
+    bool isLetter(char c) const;
 };
 
-enum class ExprNode_t { EXPRESSION, TERM, PRIMARY };
-
-inline constexpr std::string ExprNode_t_toString(ExprNode_t t)
-{
-    switch (t) {
-        case ExprNode_t::EXPRESSION:
-            return "EXPRESSION";
-            break;
-        case ExprNode_t::TERM:
-            return "TERM";
-            break;
-        case ExprNode_t::PRIMARY:
-            return "PRIMARY";
-            break;
-        default:
-            return "UNKNOWN";
-    }
-};
-
-enum class bt_t { no_braces, use_braces }; // brace toggle type
 
 // Abstract base class for expression nodes
-class ExprNode {
+class ast_node {
   public:
 
-    virtual ~ExprNode() = default;
-    virtual std::string toString(bt_t bt = bt_t::use_braces) const = 0;
-    virtual ExprNode_t nodeType() const = 0;
-    virtual std::shared_ptr<ExprNode> simplify() = 0;
+    enum class ast_node_t { EXPRESSION, TERM, FACTOR, PRIMARY };
+
+    virtual ~ast_node() = default;
+    virtual std::string toString() const = 0;
+    virtual ast_node_t nodeType() const = 0;
+    virtual std::string nodeType_to_string() const = 0;
+
+
+    //   private:
 };
+
 
 // Expression class for addition and subtraction
-class Expression : public ExprNode {
+class Expression : public ast_node {
   public:
 
-    std::shared_ptr<ExprNode> left;
-    char op;
-    std::shared_ptr<ExprNode> right;
-    bool str_value_starts_with_minus{false}; // for starting with unary minus
+    Expression(std::shared_ptr<ast_node> l, char o, std::shared_ptr<ast_node> r);
 
-    Expression(std::shared_ptr<ExprNode> l, char o, std::shared_ptr<ExprNode> r);
-    std::string toString(bt_t bt = bt_t::use_braces) const override;
-    ExprNode_t nodeType() const override;
-    std::shared_ptr<ExprNode> simplify() override;
+    static std::shared_ptr<ast_node> parse(Lexer& lexer);
+
+    std::string toString() const override;
+    ast_node_t nodeType() const override;
+    std::string nodeType_to_string() const override;
+
+    //   private:
+
+    std::shared_ptr<ast_node> left;
+    char op; // '+' or '-'
+    std::shared_ptr<ast_node> right;
 };
+
 
 // Term class for multiplication
-class Term : public ExprNode {
+class Term : public ast_node {
   public:
 
-    std::shared_ptr<ExprNode> left;
-    std::shared_ptr<ExprNode> right;
-    bool str_value_starts_with_minus{false}; // for starting with unary minus
+    Term(std::shared_ptr<ast_node> l, char o, std::shared_ptr<ast_node> r);
 
-    Term(std::shared_ptr<ExprNode> l, std::shared_ptr<ExprNode> r);
-    std::string toString(bt_t bt = bt_t::use_braces) const override;
-    ExprNode_t nodeType() const override;
-    std::shared_ptr<ExprNode> simplify() override;
+    static std::shared_ptr<ast_node> parse(Lexer& lexer);
+
+    std::string toString() const override;
+    ast_node_t nodeType() const override;
+    std::string nodeType_to_string() const override;
+
+    //   private:
+
+    std::shared_ptr<ast_node> left;
+    char op; // '*' or '/'
+    std::shared_ptr<ast_node> right;
 };
 
-enum class Primary_t { NUMBER, VARIABLE, EXPRESSION };
-
-inline constexpr std::string Primary_t_toString(Primary_t t)
-{
-    switch (t) {
-        case Primary_t::NUMBER:
-            return "NUMBER";
-            break;
-        case Primary_t::VARIABLE:
-            return "VARIABLE";
-            break;
-        case Primary_t::EXPRESSION:
-            return "EXPRESSION";
-            break;
-        default:
-            return "UNKNOWN";
-    }
-};
-
-// Primary class for numbers, variables, and parenthesized expressions
-class Primary : public ExprNode {
+// Factor class for tight coupling of unary signs
+class Factor : public ast_node {
   public:
+
+    Factor(char sign, std::shared_ptr<ast_node> v);
+
+    static std::shared_ptr<ast_node> parse(Lexer& lexer);
+
+    std::string toString() const override;
+    ast_node_t nodeType() const override;
+    std::string nodeType_to_string() const override;
+
+    //   private:
+
+    char sign;                          // '+' or '-' or '\0'
+    std::shared_ptr<ast_node> prim_val; // ptr to primary that holds the value
+};
+
+
+// Primary class for numbers, variables, and expressions in parenthesis
+class Primary : public ast_node {
+  public:
+
+    Primary() = default;
+
+    static std::shared_ptr<ast_node> parse(Lexer& lexer);
+
+    std::string toString() const override;
+    ast_node_t nodeType() const override;
+    std::string nodeType_to_string() const override;
+    std::string primaryType_to_string() const;
+
+    //   private:
+
+    enum class Primary_t { NUMBER, VARIABLE, EXPRESSION };
 
     Primary_t type;
-    std::string str_value;
-    double num_value{std::numeric_limits<double>::min()}; // indicates not assigned to
-    bool str_value_starts_with_minus{false};
+    std::string str_value; // for NUMBER and VARIABLE as string
 
-    Primary(std::string const& str_val, Primary_t t);
-    std::string toString(bt_t bt = bt_t::no_braces) const override;
-    ExprNode_t nodeType() const override;
-    std::shared_ptr<ExprNode> simplify() override;
+    // inital value indicates not assigned to
+    double num_value{std::numeric_limits<double>::min()}; // for NUMBER as value
+
+    std::shared_ptr<ast_node> expr; // for EXPRESSION
 };
+
 
 // Parser class
 class Parser {
-  private:
-
-    Lexer lexer;
-    Token currentToken;
-    std::stack<Token> operatorStack;
-
-    void advance();
-    void validateBinaryOperation(Token const& op, std::shared_ptr<ExprNode> const& left,
-                                 std::shared_ptr<ExprNode> const& right);
-    std::shared_ptr<ExprNode> parsePrimary();
-    std::shared_ptr<ExprNode> parseTerm();
-    std::shared_ptr<ExprNode> parseExpression();
-
   public:
 
     explicit Parser(std::string const& input);
-    std::shared_ptr<ExprNode> parse();
+    std::shared_ptr<ast_node> parse();
+
+    static void validateBinaryOperation(Token const& op,
+                                        std::shared_ptr<ast_node> const& left,
+                                        std::shared_ptr<ast_node> const& right);
+
+    //   private:
+
+    Lexer lexer;
 };
 
 // Helper function
-std::string parseAndSimplify(std::string const& input);
+std::string parse_and_print_ast(std::string const& input);
+std::string parse_only(std::string const& input);
 
-void print_parse_tree(std::shared_ptr<ExprNode> const& ast);
+void print_parse_tree(std::shared_ptr<ast_node> const& ast);
 void print_expression_node(std::shared_ptr<Expression> const& ptr);
 void print_term_node(std::shared_ptr<Term> const& ptr);
+void print_factor_node(std::shared_ptr<Factor> const& ptr);
 void print_primary_node(std::shared_ptr<Primary> const& ptr);

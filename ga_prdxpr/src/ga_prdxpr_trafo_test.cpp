@@ -17,7 +17,7 @@
 TEST_SUITE("expression transformation")
 {
 
-    // Expressions to test
+    // Expressions to test (partly for case with simplification)
     // 1.0 -> 1.0
     // a -> a
     // a*a*a + 1 -> a*a*a + 1
@@ -36,97 +36,181 @@ TEST_SUITE("expression transformation")
     // 4*a + (2*a + b)  -> 6*a + b
     // 4*a - (2*a + b)  -> 2*a - b
     // +4*a - (2*a + b)  -> 2*a - b
+    // -4*a - (2*a + b)  -> -6*a - b
     // (a + b)*(a - b) -> a*a - b*b
     // (a + b)*(a + b) -> a*a + a*b + b*a + b*b -> (for scalar a & b) -> a*a + 2*a*b + b*b
 
-    TEST_CASE("basic expressions")
+    // multi-line strings must be R"( .... )";
+
+    TEST_CASE("basic expressions - parse only, no simplifications")
     {
 
-        // multi-line strings must be R"( .... )";
+        CHECK(parse_only(R"(2.0)") == "2.0"s);
+        CHECK(parse_only(R"(-2.0)") == "-2.0"s);
+        CHECK(parse_only(R"(-(2.0))") == "-(2.0)"s);
+        CHECK(parse_only(R"(-(-2.0))") == "-(-2.0)"s);
 
-        // tested from here
-        // std::string s = R"(2.0)";
-        // std::string s = R"(-2.0)";
-        // std::string s = R"(a)";
-        // std::string s = R"(-a)";
-        // std::string s = R"(R.c2)";
-        // std::string s = R"(-R.c2)";
-        // std::string s = R"(-R.c2 + R.c3)";
-        // std::string s = R"(-R.c2 - R.c3)";
-        // std::string s = R"(-(R.c2 + R.c3))";
-        // std::string s = R"(-(-R.c2 + R.c3))";
-        // std::string s = R"(-(-R.c2 - R.c3))";
+        CHECK(parse_only(R"(a)") == "a"s);
+        CHECK(parse_only(R"((a))") == "(a)"s);
+        CHECK(parse_only(R"(-a)") == "-a"s);
+        CHECK(parse_only(R"(-(a))") == "-(a)"s);
+        CHECK(parse_only(R"(-(-a))") == "-(-a)"s);
 
-        // std::string s = R"(2.0 + 3.0)";
-        // std::string s = R"(-2.0 + 3.0)";
-        // std::string s = R"(-(-2.0 - 3.0))";
-        // std::string s = R"(-(2.0 + 3.0))";
-        // std::string s = R"(-(-2.0 + 3.0))";
-        // std::string s = R"(-(-2.0 - 3.0))";
+        CHECK(parse_only(R"(2 + 1)") == "2 + 1"s);
+        CHECK(parse_only(R"(-(2 + 1))") == "-(2 + 1)"s);
+        CHECK(parse_only(R"(-(2 - 1))") == "-(2 - 1)"s);
+        CHECK(parse_only(R"(-(-2 + 1))") == "-(-2 + 1)"s);
+        CHECK(parse_only(R"(-(-2 - 1))") == "-(-2 - 1)"s);
+        CHECK(parse_only(R"(-2 - 1 + 3)") == "-2 - 1 + 3"s);
+        CHECK(parse_only(R"(-(-2 - 1 + 3))") == "-(-2 - 1 + 3)"s);
 
-        // std::string s = R"(R.c2 + R.c3 + R.c0)";
-        // std::string s = R"(-(R.c2 + R.c3 + R.c0))";
-        // std::string s = R"(-(R.c2 - R.c3 + R.c0))";
-        // std::string s = R"(-(R.c2 + R.c3 - R.c0))";
+        CHECK(parse_only(R"(a + 1)") == "a + 1"s);
+        CHECK(parse_only(R"((a + 1))") == "(a + 1)"s);
+        CHECK(parse_only(R"(((a + 1)))") == "((a + 1))"s);
+        CHECK(parse_only(R"(-(a + 1))") == "-(a + 1)"s);
+        CHECK(parse_only(R"(-(a - 1))") == "-(a - 1)"s);
+        CHECK(parse_only(R"(-(-a - 1))") == "-(-a - 1)"s);
 
-        // std::string s = R"(2.0 + 3.0 + 1.0)";
-        // std::string s = R"(-2.0 + 3.0 + 1.0)";
-        // std::string s = R"(-(-2.0 - 3.0 + 1.0))";
-        // std::string s = R"(-(2.0 + 3.0) + 1.0)";
-        // std::string s = R"(-(2.0 + 3.0) - 1.0)";
-        // std::string s = R"(-(-2.0 + 3.0) + 1.0)";
-        // std::string s = R"(-(-2.0 - 3.0) + 1.0)";
+        CHECK(parse_only(R"(1 - a + 1)") == "1 - a + 1"s);
+        CHECK(parse_only(R"((1 - a + 1))") == "(1 - a + 1)"s);
+        CHECK(parse_only(R"((1 - (a) + 1))") == "(1 - (a) + 1)"s);
+        CHECK(parse_only(R"(-(1 - a + 1))") == "-(1 - a + 1)"s);
+        CHECK(parse_only(R"(-(-1 - a + 1))") == "-(-1 - a + 1)"s);
+        CHECK(parse_only(R"(-(1 - a + 1 - 1))") == "-(1 - a + 1 - 1)"s);
+
+        CHECK(parse_only(R"(R.c2)") == "R.c2"s);
+        CHECK(parse_only(R"(-R.c2 + R.c3)") == "-R.c2 + R.c3"s);
+        CHECK(parse_only(R"(-R.c2 - R.c3)") == "-R.c2 - R.c3"s);
+        CHECK(parse_only(R"(-(R.c2 + R.c3))") == "-(R.c2 + R.c3)"s);
+        CHECK(parse_only(R"(-(-R.c2 + R.c3))") == "-(-R.c2 + R.c3)"s);
+        CHECK(parse_only(R"(-(-R.c2 - R.c3))") == "-(-R.c2 - R.c3)"s);
+
+        CHECK(parse_only(R"(-(a*a - 1 + 1))") == "-(a * a - 1 + 1)"s);
+        CHECK(parse_only(R"(-(-a*a + 1))") == "-(-a * a + 1)"s);
+        CHECK(parse_only(R"(-(1 - a*a))") == "-(1 - a * a)"s);
+        CHECK(parse_only(R"(-(1 + a*a))") == "-(1 + a * a)"s);
+        CHECK(parse_only(R"(-(1 - a*a + 1))") == "-(1 - a * a + 1)"s);
+        CHECK(parse_only(R"(-(1 - (a*a) + 1))") == "-(1 - (a * a) + 1)"s);
+        CHECK(parse_only(R"(-(1 - a*a + 1 + a*a + 1))") ==
+              "-(1 - a * a + 1 + a * a + 1)"s);
+        CHECK(parse_only(R"(-(1 - a*a*a + 1 - a*a + 1))") ==
+              "-(1 - a * a * a + 1 - a * a + 1)"s);
+
+        CHECK(parse_only(R"(-(-(a) + 1))") == "-(-(a) + 1)"s);
+        CHECK(parse_only(R"(-((-a) + 1))") == "-((-a) + 1)"s);
+        CHECK(parse_only(R"(-((-a + 1) + 1))") == "-((-a + 1) + 1)"s);
+        CHECK(parse_only(R"(-(-(a) + 1))") == "-(-(a) + 1)"s);
+        CHECK(parse_only(R"(-(1 + (-a + 1)))") == "-(1 + (-a + 1))"s);
+
+        CHECK(parse_only(R"(((a)))") == "((a))"s);
+        CHECK(parse_only(R"((((a))))") == "(((a)))"s);
+        CHECK(parse_only(R"(((((a)))))") == "((((a))))"s);
+        CHECK(parse_only(R"(-((-((a)))))") == "-((-((a))))"s);
+        CHECK(parse_only(R"(-(-(-((a)))))") == "-(-(-((a))))"s);
+        CHECK(parse_only(R"(-(-(-(1+a))))") == "-(-(-(1 + a)))"s);
+        CHECK(parse_only(R"(-(-(-(1+(a)))))") == "-(-(-(1 + (a))))"s);
+        CHECK(parse_only(R"(-(((a))))") == "-(((a)))"s);
+        CHECK(parse_only(R"(-((-(a))))") == "-((-(a)))"s);
+        CHECK(parse_only(R"(-((-(-a))))") == "-((-(-a)))"s);
+
+        CHECK(parse_only(R"(-((-2 - 1) + 3 - 1))") == "-((-2 - 1) + 3 - 1)"s);
+        CHECK(parse_only(R"(-(-2 - 1 + (3 - 1)))") == "-(-2 - 1 + (3 - 1))"s);
+
+        CHECK(parse_only(R"(-(-2 - 1 + (3 - 1)))") == "-(-2 - 1 + (3 - 1))"s);
+        CHECK(parse_only(R"(-(a*a*a - 1))") == "-(a * a * a - 1)"s);
+        CHECK(parse_only(R"(-(-1 + a*a*a - 1))") == "-(-1 + a * a * a - 1)"s);
+
+        CHECK(parse_only(R"((a + b)*(a + b))") == "(a + b) * (a + b)"s);
+        CHECK(parse_only(R"((a + b)*(a - b))") == "(a + b) * (a - b)"s);
+        CHECK(parse_only(R"(-(a + b)*(a + b))") == "-(a + b) * (a + b)"s);
+        CHECK(parse_only(R"(-(a + b)*a)") == "-(a + b) * a"s);
+        CHECK(parse_only(R"((a + (-1 - 1 + 3)))") == "(a + (-1 - 1 + 3))"s);
+
+        /// NOT validated down from here
 
 
-        // std::string s = R"(2.0 - 1.0)";
-        // std::string s = R"(-2.0 + 1.0)";
-        // std::string s = R"(a*a*a + 1)";
-        std::string s = R"(a*b)";
-        // std::string s = R"(-(a*b))";
-        // std::string s = R"(-(a*a*a - 1))";
-        // std::string s = R"(-(-1 + a*a*a - 1))";
-        // std::string s = R"((a + b)*(a + b))";
-        // std::string s = R"(-(a + b)*(a + b))";
-        // std::string s = R"((a + b)*(a - b))";
-
-        // still needs correct handling of unary minus (expression and term)
-        // std::string s = R"(-(2.0 + 1.0))";
-        // std::string s = R"(-(R.c2 + R.c3 + R.c0))";
-        // std::string s = R"((a + b)*(a - b))";
-        // std::string s = R"(-(a + b)*(a - b))";
-
-        // std::string s = R"(-2.0 + 1.0)";
-        // std::string s = R"(2.0 * 1.0)";
-        // std::string s = R"(-2.0 * 1.0)";
-        // std::string s = R"(2.0 * -1.0)";
-        // std::string s = R"(-2.0 * -1.0)";
-        // std::string s = R"(a + a)";
-        // std::string s = R"(-a + a)";
-        // std::string s = R"(a + 1)";
-        // std::string s = R"(-a + 1)";
-        // std::string s = R"(2.0*a + 1)";
-        // std::string s = R"(-2.0*a + 1)";
-        // std::string s = R"(R.c2 + R.c3 + R.c0)";
-        // std::string s = R"(_a + b)";
-
-        // std::string s = R"(( - R.c2 * v.z ) * R.c0)";
-        // std::string s = R"(( - R.c2 * v.z ) * R.c0)";
-        // std::string s = R"(( - R.c2 * v.z ) * R.c0)";
-
-        // std::string s = R"((R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c0 +
-        //                    (R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c3 -
-        //                    (R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c2 +
-        //                    (R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c1)";
-        // std::string s = R"(( - R.c2 * v.z + R.c3 * v.y) * R.c0)";
-        // std::string s = R"(( R.c2 * v.z + R.c3 * v.y) * R.c0)";
+        CHECK(parse_only(R"(2.0 - 1.0)") == "2.0 - 1.0"s);
+        CHECK(parse_only(R"(-2.0 + 1.0)") == "-2.0 + 1.0"s);
+        CHECK(parse_only(R"(a*a*a + 1)") == "a * a * a + 1"s);
+        CHECK(parse_only(R"(2.0 + 3.0 + 1.0)") == "2.0 + 3.0 + 1.0"s);
+        CHECK(parse_only(R"(-2.0 + 3.0 + 1.0)") == "-2.0 + 3.0 + 1.0"s);
+        CHECK(parse_only(R"(-(-2.0 - 3.0) + 1.0)") == "-(-2.0 - 3.0) + 1.0"s);
+        CHECK(parse_only(R"(-(-2.0 - 3.0 + 1.0 + 2.0))") == "-(-2.0 - 3.0 + 1.0 + 2.0)"s);
+        CHECK(parse_only(R"(-(-2.0 - 3.0 + 1.0 + a*b))") ==
+              "-(-2.0 - 3.0 + 1.0 + a * b)"s);
+        CHECK(parse_only(R"(-(-2.0 - 3.0) + 1.0 + 2*(a*b))") ==
+              "-(-2.0 - 3.0) + 1.0 + 2 * (a * b)"s);
 
 
-        std::string r = parseAndSimplify(s);
+        CHECK(parse_only(R"(a*b)") == "a * b"s);
+        CHECK(parse_only(R"((a*b))") == "(a * b)"s);
+        CHECK(parse_only(R"(-(a*b))") == "-(a * b)"s);
+        CHECK(parse_only(R"((-a*b))") == "(-a * b)"s);
+        CHECK(parse_only(R"(-a*(-b))") == "-a * (-b)"s);
+        CHECK(parse_only(R"(-(-a*(-b)))") == "-(-a * (-b))"s);
 
-        fmt::println("");
-        fmt::println("s: '{}'", s);
-        fmt::println("");
-        fmt::println("r: '{}'", r);
+        CHECK(parse_only(R"(-(2.0 + 1.0))") == "-(2.0 + 1.0)"s);
+        CHECK(parse_only(R"(-(R.c2 + R.c3 + R.c0))") == "-(R.c2 + R.c3 + R.c0)"s);
+        CHECK(parse_only(R"((a + b)*(a - b))") == "(a + b) * (a - b)"s);
+        CHECK(parse_only(R"(-(a + b)*(a - b))") == "-(a + b) * (a - b)"s);
+
+        CHECK(parse_only(R"(2.0 * 2.0)") == "2.0 * 2.0"s);
+        CHECK(parse_only(R"(-2.0 * 2.0)") == "-2.0 * 2.0"s);
+        CHECK(parse_only(R"(2.0 * (-3.0))") == "2.0 * (-3.0)"s);
+        CHECK(parse_only(R"(-2.0 * (-6.0))") == "-2.0 * (-6.0)"s);
+        CHECK(parse_only(R"(a + a)") == "a + a"s);
+        CHECK(parse_only(R"(-a + a)") == "-a + a"s);
+        CHECK(parse_only(R"(a + 1)") == "a + 1"s);
+        CHECK(parse_only(R"(-a + 1)") == "-a + 1"s);
+        CHECK(parse_only(R"(2.0*a + 1)") == "2.0 * a + 1"s);
+        CHECK(parse_only(R"(-2.0*a + 1)") == "-2.0 * a + 1"s);
+        CHECK(parse_only(R"(_a + b)") == "_a + b"s);
+
+        CHECK(parse_only(R"(( - R.c2 * v.z ) * R.c0)") == "(-R.c2 * v.z) * R.c0"s);
+
+        CHECK(parse_only("(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c0 + "
+                         "(R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c3 - "
+                         "(R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c2 + "
+                         "(R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c1"s) ==
+              "(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c0 + "
+              "(R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c3 - "
+              "(R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c2 + "
+              "(R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c1"s);
+
+        CHECK(parse_only("-(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c3 + "
+                         "(R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c0 + "
+                         "(R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c1 + "
+                         "(R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c2"s) ==
+              "-(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c3 + "
+              "(R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c0 + "
+              "(R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c1 + "
+              "(R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c2"s);
+
+        CHECK(parse_only("-(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c1 - "
+                         "(R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c2 - "
+                         "(R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c3 + "
+                         "(R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c0"s) ==
+              "-(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c1 - "
+              "(R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c2 - "
+              "(R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c3 + "
+              "(R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c0"s);
+
+
+        CHECK(parse_only(R"(( - R.c2 * v.z + R.c3 * v.y) * R.c0)") ==
+              "(-R.c2 * v.z + R.c3 * v.y) * R.c0"s);
+        CHECK(parse_only(R"(( R.c2 * v.z + R.c3 * v.y) * R.c0)") ==
+              "(R.c2 * v.z + R.c3 * v.y) * R.c0"s);
+
+        std::string s = R"((-R.c2 * v.z + R.c3 * v.y) * R.c0)";
+
+
+        fmt::println("Initial string to parse: s: '{}'\n", s);
+
+        std::string r1 = parse_and_print_ast(s);
+        fmt::println("s: '{}'\n", s);
+        fmt::println("r: '{}'", r1);
+        // std::string r2 = parse_and_print_ast(r1);
+        // fmt::println("r: '{}'", r2);
         fmt::println("");
 
         // std::vector<Term> terms = expression.getTerms();

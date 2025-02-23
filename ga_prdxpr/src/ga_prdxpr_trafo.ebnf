@@ -32,13 +32,14 @@ component = identifier;
 variable = identifier, ['.', component];
 
 # support addition and subtraction
-expression = term | expression + term | expression - term;
+expression = term | expression, '+', term | expression, '-', term;
 
-# support multiplication
-term = primary | term * primary;
+# support multiplication (term = multiplicative expression)
+term = factor | term, '*', factor | term, '/', factor;
+
+#unary signs are tightly bound in factors
+factor = primary | '-', factor | '+', factor;
 
 # support primaries as variables and numbers
-# as well as grouping with brackets and unary signs for variables
-# (primary numbers with negative signs are regarded as numbers directly,
-# whereas "-variable" is regarded as term "-1*variable")
-primary = number | variable | '(', expression, ')' | '-', variable | '+', variable;
+# as well as grouping with parenthesis
+primary = number | variable | '(', expression, ')'
