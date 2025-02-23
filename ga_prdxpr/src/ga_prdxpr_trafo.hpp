@@ -8,6 +8,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <set>
 #include <stack>
 #include <string>
 #include <vector>
@@ -21,7 +22,9 @@ class Term;
 class Factor;
 class Primary;
 
+///////////////////////////////////////////////////////////////////////////////
 // Expression Validator class declaration
+///////////////////////////////////////////////////////////////////////////////
 class ExpressionValidator {
   public:
 
@@ -34,7 +37,11 @@ class ExpressionValidator {
     static bool validateIdentifier(std::string const& name);
 };
 
+
+///////////////////////////////////////////////////////////////////////////////
 // Token types
+///////////////////////////////////////////////////////////////////////////////
+
 enum class Token_t {
     NUMBER,
     IDENTIFIER,
@@ -86,7 +93,10 @@ inline constexpr std::string Token_t_toString(Token_t t)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
 // Token structure
+///////////////////////////////////////////////////////////////////////////////
+
 struct Token {
     Token_t type{Token_t::END};
     std::string str_value{""s};
@@ -98,7 +108,10 @@ struct Token {
     }
 };
 
+
+///////////////////////////////////////////////////////////////////////////////
 // Lexer class
+///////////////////////////////////////////////////////////////////////////////
 class Lexer {
   public:
 
@@ -123,14 +136,17 @@ class Lexer {
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
 // Abstract base class for expression nodes
+///////////////////////////////////////////////////////////////////////////////
+
 class ast_node {
   public:
 
     enum class ast_node_t { EXPRESSION, TERM, FACTOR, PRIMARY };
 
     virtual ~ast_node() = default;
-    virtual std::string toString() const = 0;
+    virtual std::string to_string() const = 0;
     virtual ast_node_t nodeType() const = 0;
     virtual std::string nodeType_to_string() const = 0;
 
@@ -139,7 +155,10 @@ class ast_node {
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
 // Expression class for addition and subtraction
+///////////////////////////////////////////////////////////////////////////////
+
 class Expression : public ast_node {
   public:
 
@@ -147,7 +166,7 @@ class Expression : public ast_node {
 
     static std::shared_ptr<ast_node> parse(Lexer& lexer);
 
-    std::string toString() const override;
+    std::string to_string() const override;
     ast_node_t nodeType() const override;
     std::string nodeType_to_string() const override;
 
@@ -159,7 +178,10 @@ class Expression : public ast_node {
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
 // Term class for multiplication
+///////////////////////////////////////////////////////////////////////////////
+
 class Term : public ast_node {
   public:
 
@@ -167,7 +189,7 @@ class Term : public ast_node {
 
     static std::shared_ptr<ast_node> parse(Lexer& lexer);
 
-    std::string toString() const override;
+    std::string to_string() const override;
     ast_node_t nodeType() const override;
     std::string nodeType_to_string() const override;
 
@@ -178,7 +200,11 @@ class Term : public ast_node {
     std::shared_ptr<ast_node> right;
 };
 
+
+///////////////////////////////////////////////////////////////////////////////
 // Factor class for tight coupling of unary signs
+///////////////////////////////////////////////////////////////////////////////
+
 class Factor : public ast_node {
   public:
 
@@ -186,7 +212,7 @@ class Factor : public ast_node {
 
     static std::shared_ptr<ast_node> parse(Lexer& lexer);
 
-    std::string toString() const override;
+    std::string to_string() const override;
     ast_node_t nodeType() const override;
     std::string nodeType_to_string() const override;
 
@@ -197,7 +223,10 @@ class Factor : public ast_node {
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
 // Primary class for numbers, variables, and expressions in parenthesis
+///////////////////////////////////////////////////////////////////////////////
+
 class Primary : public ast_node {
   public:
 
@@ -205,7 +234,7 @@ class Primary : public ast_node {
 
     static std::shared_ptr<ast_node> parse(Lexer& lexer);
 
-    std::string toString() const override;
+    std::string to_string() const override;
     ast_node_t nodeType() const override;
     std::string nodeType_to_string() const override;
     std::string primaryType_to_string() const;
@@ -224,7 +253,9 @@ class Primary : public ast_node {
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
 // Parser class
+///////////////////////////////////////////////////////////////////////////////
 class Parser {
   public:
 
@@ -240,12 +271,69 @@ class Parser {
     Lexer lexer;
 };
 
-// Helper function
+
+///////////////////////////////////////////////////////////////////////////////
+// Helper functions
+///////////////////////////////////////////////////////////////////////////////
+
 std::string parse_and_print_ast(std::string const& input);
 std::string parse_only(std::string const& input);
+std::string parse_and_analyse(std::string const& input);
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Printing functions
+///////////////////////////////////////////////////////////////////////////////
 
 void print_parse_tree(std::shared_ptr<ast_node> const& ast);
 void print_expression_node(std::shared_ptr<Expression> const& ptr);
 void print_term_node(std::shared_ptr<Term> const& ptr);
 void print_factor_node(std::shared_ptr<Factor> const& ptr);
 void print_primary_node(std::shared_ptr<Primary> const& ptr);
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Expression analyzer class
+///////////////////////////////////////////////////////////////////////////////
+
+struct ExpressionAnalyzerTerm {
+    std::string coefficient;              // The non-variable part
+    std::map<std::string, int> variables; // Variables and their powers
+
+    bool operator<(const ExpressionAnalyzerTerm& other) const
+    {
+        return variables < other.variables;
+    }
+};
+
+class ExpressionAnalyzer {
+  public:
+
+    explicit ExpressionAnalyzer(std::shared_ptr<ast_node> const& ast);
+
+    // Get terms grouped by variable combinations
+    std::map<std::set<std::string>, std::vector<ExpressionAnalyzerTerm>>
+    getGroupedTerms() const;
+
+    // Get coefficients for specific variables
+    std::map<std::string, double> getCoefficients(const std::string& varName) const;
+
+    // Convert back to string with terms grouped by variables
+    std::string toGroupedString() const;
+
+  private:
+
+    std::vector<ExpressionAnalyzerTerm> terms;
+
+    void analyzeExpression(std::shared_ptr<Expression> const& expr, int sign = 1);
+    void analyzeTerm(std::shared_ptr<Term> const& term, const std::string& coefficient,
+                     int sign);
+    void analyzeFactor(std::shared_ptr<Factor> const& factor, std::string& coefficient,
+                       std::map<std::string, int>& variables, int sign);
+    void analyzePrimary(std::shared_ptr<Primary> const& primary, std::string& coefficient,
+                        std::map<std::string, int>& variables);
+
+    static bool isVariable(const std::string& str, const std::string& varPrefix);
+    static std::string combineCoefficients(const std::string& a, const std::string& b,
+                                           char op);
+};

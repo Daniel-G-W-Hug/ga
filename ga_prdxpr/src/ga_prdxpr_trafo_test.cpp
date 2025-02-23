@@ -201,8 +201,27 @@ TEST_SUITE("expression transformation")
         CHECK(parse_only(R"(( R.c2 * v.z + R.c3 * v.y) * R.c0)") ==
               "(R.c2 * v.z + R.c3 * v.y) * R.c0"s);
 
-        std::string s = R"((-R.c2 * v.z + R.c3 * v.y) * R.c0)";
+        // std::string s = "-(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c1 - "
+        //                 "(R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c2 - "
+        //                 "(R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c3 + "
+        //                 "(R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c0"s;
+        // std::string s = R"((-R.c2 * v.z + R.c3 * v.y) * R.c0)";
 
+        // std::string s = R"(1.0)";
+        // std::string s = R"(1.0 * 2.0)";
+        // std::string s = R"(1.0 + 2.0)";
+        // std::string s = R"(-1.0)";
+        // std::string s = R"(-(1.0 + 2))";
+        // std::string s = R"(a)";
+        // std::string s = R"(a * b)";
+        // std::string s = R"(a + b)";
+        // std::string s = R"(a*(a + b))";
+        // std::string s = R"(-a*(a + b))";
+        // std::string s = R"(-(a*(a + b)))";
+        // std::string s = R"(-(a*(a + b)) + 3*(a+b))";
+        // std::string s = R"((a + b)*a)";
+        // std::string s = R"((a + b)*(a + b))";
+        std::string s = "R.c0 * v.x - R.c2 * v.z + R.c3 * v.y + R.c1 * v.x"s;
 
         fmt::println("Initial string to parse: s: '{}'\n", s);
 
@@ -213,11 +232,10 @@ TEST_SUITE("expression transformation")
         // fmt::println("r: '{}'", r2);
         fmt::println("");
 
-        // std::vector<Term> terms = expression.getTerms();
-        // for (auto const& t : terms) {
-        //     fmt::println("term: '{}'", t.toString());
-        // }
-        // expression.groupByVariable("v.");
+        std::string r = parse_and_analyse(s);
+        fmt::println("s: '{}'\n", s);
+        fmt::println("r: '{}'", r);
+        fmt::println("");
     }
 
 } // TEST_SUITE("expression transformation")

@@ -427,6 +427,7 @@ std::shared_ptr<ast_node> Primary::parse(Lexer& lexer)
             lexer.advance(); // consume the opening parenthesis
 
             primary->expr = Expression::parse(lexer);
+            primary->str_value = primary->expr->to_string();
 
             // check for closing parenthesis
             if (lexer.getCurrentToken().type != Token_t::RPAREN) {
@@ -476,7 +477,10 @@ std::string Primary::primaryType_to_string() const
     }
 };
 
+///////////////////////////////////////////////////////////////////////////////
 // Helper function implementation
+///////////////////////////////////////////////////////////////////////////////
+
 std::string parse_and_print_ast(std::string const& input)
 {
     try {
@@ -484,7 +488,7 @@ std::string parse_and_print_ast(std::string const& input)
         auto ast = parser.parse();
 
         // fmt::println("");
-        // fmt::println("ast: {}", ast->toString());
+        // fmt::println("ast: {}", ast->to_string());
         // fmt::println("");
 
         fmt::println("");
@@ -492,26 +496,52 @@ std::string parse_and_print_ast(std::string const& input)
         print_parse_tree(ast);
         fmt::println("");
 
-        return ast->toString();
+        return ast->to_string();
     }
     catch (std::exception const& e) {
         return std::string("Error: ") + e.what();
     }
 }
 
-// Helper function implementation
 std::string parse_only(std::string const& input)
 {
     try {
         Parser parser(input);
         auto ast = parser.parse();
 
-        return ast->toString();
+        return ast->to_string();
     }
     catch (std::exception const& e) {
         return std::string("Error: ") + e.what();
     }
 }
+
+std::string parse_and_analyse(std::string const& input)
+{
+    try {
+        Parser parser(input);
+        auto ast = parser.parse();
+
+        ExpressionAnalyzer analyzer(ast);
+        fmt::println("Grouped terms:\n {}", analyzer.toGroupedString());
+
+        fmt::println("Example for coefficients 'v.x':\n");
+        auto vxCoeffs = analyzer.getCoefficients("v.x");
+        for (auto const& [coef, value] : vxCoeffs) {
+            fmt::println("coef: {}", coef);
+        }
+        fmt::println("");
+
+        return ast->to_string();
+    }
+    catch (std::exception const& e) {
+        return std::string("Error: ") + e.what();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Printing functions
+///////////////////////////////////////////////////////////////////////////////
 
 void print_parse_tree(std::shared_ptr<ast_node> const& ast)
 {
@@ -590,14 +620,14 @@ void print_expression_node(std::shared_ptr<Expression> const& ptr)
     fmt::println("node type                                : {}",
                  ptr->nodeType_to_string());
     fmt::println("    expression operation symbol          : '{}'", ptr->op);
-    fmt::println("    expression to_String()               : {}", ptr->toString());
+    fmt::println("    expression to_String()               : {}", ptr->to_string());
     if (ptr->left) {
         fmt::println("    left  node type -> value             : {} -> {}",
-                     ptr->left->nodeType_to_string(), ptr->left->toString());
+                     ptr->left->nodeType_to_string(), ptr->left->to_string());
     }
     if (ptr->right) {
         fmt::println("    right node type -> value             : {} -> {}",
-                     ptr->right->nodeType_to_string(), ptr->right->toString());
+                     ptr->right->nodeType_to_string(), ptr->right->to_string());
     }
     fmt::println("");
 }
@@ -610,14 +640,14 @@ void print_term_node(std::shared_ptr<Term> const& ptr)
     fmt::println("node type                                : {}",
                  ptr->nodeType_to_string());
     fmt::println("    term operation symbol                : '{}'", ptr->op);
-    fmt::println("    term to_String()                     : {}", ptr->toString());
+    fmt::println("    term to_String()                     : {}", ptr->to_string());
     if (ptr->left) {
         fmt::println("    left  node type -> value             : {} -> {}",
-                     ptr->left->nodeType_to_string(), ptr->left->toString());
+                     ptr->left->nodeType_to_string(), ptr->left->to_string());
     }
     if (ptr->right) {
         fmt::println("    right node type -> value             : {} -> {}",
-                     ptr->right->nodeType_to_string(), ptr->right->toString());
+                     ptr->right->nodeType_to_string(), ptr->right->to_string());
     }
     fmt::println("");
 
@@ -632,7 +662,7 @@ void print_factor_node(std::shared_ptr<Factor> const& ptr)
     fmt::println("node type                                : {}",
                  ptr->nodeType_to_string());
     fmt::println("    factor->sign                         :'{}'", ptr->sign);
-    fmt::println("    factor->to_String()                  : {}", ptr->toString());
+    fmt::println("    factor->to_String()                  : {}", ptr->to_string());
     if (ptr->prim_val) {
         auto primary_ptr = std::dynamic_pointer_cast<Primary>(ptr->prim_val);
         print_primary_node(primary_ptr);
@@ -649,7 +679,7 @@ void print_primary_node(std::shared_ptr<Primary> const& ptr)
 
     fmt::println("node type                                : {}",
                  ptr->nodeType_to_string());
-    fmt::println("    primary to_String()                  : {}", ptr->toString());
+    fmt::println("    primary to_String()                  : {}", ptr->to_string());
     fmt::println("    primary type                         : {}",
                  ptr->primaryType_to_string());
     fmt::println("    primary str_value                    : {}", ptr->str_value);
@@ -664,48 +694,48 @@ void print_primary_node(std::shared_ptr<Primary> const& ptr)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// xxx::toString() implementations
+// xxx::to_string() implementations
 ///////////////////////////////////////////////////////////////////////////////
 
 
 // ToString implementations for AST nodes
-std::string Expression::toString() const
+std::string Expression::to_string() const
 {
     std::stringstream ss;
     if (left) {
-        ss << left->toString();
+        ss << left->to_string();
     }
     if (right) {
-        ss << " " << op << " " << right->toString();
+        ss << " " << op << " " << right->to_string();
     }
     return ss.str();
 }
 
-std::string Term::toString() const
+std::string Term::to_string() const
 {
     std::stringstream ss;
     if (left) {
-        ss << left->toString();
+        ss << left->to_string();
     }
     if (right) {
-        ss << " " << op << " " << right->toString();
+        ss << " " << op << " " << right->to_string();
     }
     return ss.str();
 }
 
-std::string Factor::toString() const
+std::string Factor::to_string() const
 {
     std::stringstream ss;
     if (sign != '\0') {
         ss << sign;
     }
     if (prim_val) {
-        ss << prim_val->toString();
+        ss << prim_val->to_string();
     }
     return ss.str();
 }
 
-std::string Primary::toString() const
+std::string Primary::to_string() const
 {
     switch (type) {
         case Primary_t::NUMBER:
@@ -713,7 +743,7 @@ std::string Primary::toString() const
             return str_value;
         case Primary_t::EXPRESSION:
             if (expr) {
-                return "(" + expr->toString() + ")";
+                return "(" + expr->to_string() + ")";
             }
         default:
             // return "";
@@ -721,81 +751,269 @@ std::string Primary::toString() const
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// ExpressionAnalyzer implementation
+///////////////////////////////////////////////////////////////////////////////
 
-// std::string Expression::toString() const
-// {
+ExpressionAnalyzer::ExpressionAnalyzer(std::shared_ptr<ast_node> const& ast)
+{
+    if (ast) {
+        auto expr = std::dynamic_pointer_cast<Expression>(ast);
+        analyzeExpression(expr);
+    }
+}
 
-//     std::string prefix{};
-//     std::string postfix{};
-//     std::string r_prefix{};
-//     std::string r_postfix{};
+void ExpressionAnalyzer::analyzeExpression(std::shared_ptr<Expression> const& expr,
+                                           int sign)
+{
+    if (!expr) return;
 
-//     if (str_value_starts_with_minus) {
-//         prefix = "-("s;
-//         postfix = ")"s;
-//     }
-//     else if (use_braces) {
-//         prefix = "("s;
-//         postfix = ")"s;
-//     }
+    // Start with the leftmost term
+    std::string coefficient = "1";
+    std::map<std::string, int> variables;
 
-//     if (op == '-' && right->nodeType() == ast_node_t::EXPRESSION) {
-//         r_prefix = "("s;
-//         r_postfix = ")"s;
-//     }
+    if (expr->left) {
 
-//     return prefix + left->toString() + " " + op + " " + r_prefix + right->toString() +
-//            r_postfix + postfix;
-// }
+        if (expr->left->nodeType() == ast_node::ast_node_t::EXPRESSION) {
+            auto expr_l = std::dynamic_pointer_cast<Expression>(expr->left);
+            analyzeExpression(expr_l, sign);
+        }
+        else if (expr->left->nodeType() == ast_node::ast_node_t::TERM) {
+            auto term = std::dynamic_pointer_cast<Term>(expr->left);
+            analyzeTerm(term, coefficient, sign);
+        }
+        else if (expr->left->nodeType() == ast_node::ast_node_t::FACTOR) {
+            auto factor = std::dynamic_pointer_cast<Factor>(expr->left);
+            analyzeFactor(factor, coefficient, variables, sign);
+        }
+        else {
+            throw std::runtime_error("ExpressionAnalyzer::analyzeExpression: "
+                                     "unexpected nodeType on left side.");
+        }
+    }
 
-// std::string Term::toString() const
-// {
+    if (expr->right) {
 
-//     std::string prefix{};
-//     std::string postfix{};
-//     std::string l_prefix{};
-//     std::string l_postfix{};
-//     std::string r_prefix{};
-//     std::string r_postfix{};
+        // For the right side, use the operator's sign
+        int right_sign = sign * (expr->op == '+' ? 1 : -1);
 
-//     if (str_value_starts_with_minus) {
-//         prefix = "-"s;
-//         postfix = ""s;
-//     }
-//     else if (use_braces) {
-//         prefix = "("s;
-//         postfix = ")"s;
-//     }
+        if (expr->right->nodeType() == ast_node::ast_node_t::EXPRESSION) {
+            auto expr_r = std::dynamic_pointer_cast<Expression>(expr->right);
+            analyzeExpression(expr_r, right_sign);
+        }
+        else if (expr->right->nodeType() == ast_node::ast_node_t::TERM) {
+            auto term = std::dynamic_pointer_cast<Term>(expr->right);
+            analyzeTerm(term, coefficient, right_sign);
+        }
+        else if (expr->right->nodeType() == ast_node::ast_node_t::FACTOR) {
+            auto factor = std::dynamic_pointer_cast<Factor>(expr->right);
+            analyzeFactor(factor, coefficient, variables, right_sign);
+        }
+        else {
+            throw std::runtime_error("ExpressionAnalyzer::analyzeExpression: "
+                                     "unexpected nodeType on right side.");
+        }
+    }
+}
 
-//     if (left->nodeType() == ast_node_t::EXPRESSION) {
-//         l_prefix = "("s;
-//         l_postfix = ")"s;
-//     }
-//     if (right->nodeType() == ast_node_t::EXPRESSION) {
-//         r_prefix = "("s;
-//         r_postfix = ")"s;
-//     }
+void ExpressionAnalyzer::analyzeTerm(std::shared_ptr<Term> const& term,
+                                     const std::string& coef, int sign)
+{
+    if (!term) return;
 
-//     return prefix + l_prefix + left->toString() + l_postfix + " * " + r_prefix +
-//            right->toString() + r_postfix + postfix;
-// }
+    std::string coefficient = coef;
+    std::map<std::string, int> variables;
 
-// std::string Primary::toString() const
-// {
-//     switch (type) {
+    if (term->left) {
 
-//         case Primary_t::NUMBER:
-//         case Primary_t::VARIABLE:
+        if (term->left->nodeType() == ast_node::ast_node_t::TERM) {
+            auto term_l = std::dynamic_pointer_cast<Term>(term->left);
+            analyzeTerm(term_l, coefficient, sign);
+        }
+        else if (term->left->nodeType() == ast_node::ast_node_t::FACTOR) {
+            auto factor = std::dynamic_pointer_cast<Factor>(term->left);
+            analyzeFactor(factor, coefficient, variables, sign);
+        }
+        else {
+            throw std::runtime_error("ExpressionAnalyzer::analyzeTerm: "
+                                     "unexpected nodeType on left side.");
+        }
+    }
 
-//             return str_value;
-//             break;
+    if (term->right) {
+        if (term->op == '*') {
 
-//         case Primary_t::EXPRESSION:
+            if (term->right->nodeType() == ast_node::ast_node_t::TERM) {
+                auto term_r = std::dynamic_pointer_cast<Term>(term->right);
+                analyzeTerm(term_r, coefficient, sign);
+            }
+            else if (term->right->nodeType() == ast_node::ast_node_t::FACTOR) {
+                auto factor = std::dynamic_pointer_cast<Factor>(term->right);
+                analyzeFactor(factor, coefficient, variables, sign);
+            }
+            else {
+                throw std::runtime_error("ExpressionAnalyzer::analyzeTerm: "
+                                         "unexpected nodeType on right side.");
+            }
+        }
+        else { // division
+            // Handle division (not implemented in this basic version)
+            throw std::runtime_error("Division not supported in term analysis");
+        }
+    }
+    else {
 
-//             return "("s + str_value + ")"s;
-//             break;
+        // Add the term to our collection (stored in expressionAnalyzer)
+        terms.push_back({coefficient, variables});
+    }
+}
 
-//         default:
-//             return "ERROR"s;
-//     }
-// }
+void ExpressionAnalyzer::analyzeFactor(std::shared_ptr<Factor> const& factor,
+                                       std::string& coefficient,
+                                       std::map<std::string, int>& variables, int sign)
+{
+    if (!factor) return;
+
+    int factorSign = (factor->sign == '-' ? -1 : 1) * sign;
+
+    if (factorSign == -1) {
+        coefficient = "-" + coefficient;
+    }
+
+    if (factor->prim_val) {
+        auto primary = std::dynamic_pointer_cast<Primary>(factor);
+        analyzePrimary(primary, coefficient, variables);
+    }
+    else {
+        throw std::runtime_error("No primary found.");
+    }
+}
+
+void ExpressionAnalyzer::analyzePrimary(std::shared_ptr<Primary> const& primary,
+                                        std::string& coefficient,
+                                        std::map<std::string, int>& variables)
+{
+    if (!primary) return;
+
+    switch (primary->type) {
+        case Primary::Primary_t::NUMBER:
+            coefficient = combineCoefficients(coefficient, primary->str_value, '*');
+            break;
+
+        case Primary::Primary_t::VARIABLE:
+            if (isVariable(primary->str_value, "v.x")) {
+                variables[primary->str_value]++;
+            }
+            else {
+                coefficient = combineCoefficients(coefficient, primary->str_value, '*');
+            }
+            break;
+
+        case Primary::Primary_t::EXPRESSION:
+            // Recursively analyze subexpressions
+            {
+                if (primary->expr) {
+                    ExpressionAnalyzer subAnalyzer(primary->expr);
+                    // Combine results (not implemented in this basic version)
+                    fmt::println("combining results not yet implemented.");
+                }
+            }
+            break;
+    }
+}
+
+std::map<std::set<std::string>, std::vector<ExpressionAnalyzerTerm>>
+ExpressionAnalyzer::getGroupedTerms() const
+{
+    std::map<std::set<std::string>, std::vector<ExpressionAnalyzerTerm>> grouped;
+
+    for (const auto& term : terms) {
+        std::set<std::string> vars;
+        for (const auto& [var, power] : term.variables) {
+            vars.insert(var);
+        }
+        grouped[vars].push_back(term);
+    }
+
+    return grouped;
+}
+
+std::map<std::string, double>
+ExpressionAnalyzer::getCoefficients(const std::string& varName) const
+{
+    std::map<std::string, double> coefficients;
+
+    for (const auto& term : terms) {
+        auto it = term.variables.find(varName);
+        if (it != term.variables.end()) {
+            // Parse and add coefficient
+            try {
+                coefficients[term.coefficient] += std::stod(term.coefficient);
+            }
+            catch (...) {
+                // Handle symbolic coefficients
+                coefficients[term.coefficient] = 1.0;
+            }
+        }
+    }
+
+    return coefficients;
+}
+
+std::string ExpressionAnalyzer::toGroupedString() const
+{
+    auto grouped = getGroupedTerms();
+    std::stringstream ss;
+
+    for (const auto& [vars, terms] : grouped) {
+        ss << "Terms with variables: ";
+        for (const auto& var : vars) {
+            ss << var << " ";
+        }
+        ss << "\n";
+
+        for (const auto& term : terms) {
+            ss << "  " << term.coefficient;
+            for (const auto& [var, power] : term.variables) {
+                ss << "*" << var;
+                if (power > 1) {
+                    ss << "^" << power;
+                }
+            }
+            ss << "\n";
+        }
+        ss << "\n";
+    }
+
+    return ss.str();
+}
+
+bool ExpressionAnalyzer::isVariable(const std::string& str, const std::string& varPrefix)
+{
+    return str.substr(0, varPrefix.length()) == varPrefix;
+}
+
+std::string ExpressionAnalyzer::combineCoefficients(const std::string& a,
+                                                    const std::string& b, char op)
+{
+    // Try to combine numerical coefficients
+    try {
+        double numA = std::stod(a);
+        double numB = std::stod(b);
+
+        switch (op) {
+            case '*':
+                return std::to_string(numA * numB);
+            case '+':
+                return std::to_string(numA + numB);
+            case '-':
+                return std::to_string(numA - numB);
+            default:
+                return a + op + b;
+        }
+    }
+    catch (...) {
+        // If not numerical, keep as symbolic expression
+        return a + op + b;
+    }
+}
