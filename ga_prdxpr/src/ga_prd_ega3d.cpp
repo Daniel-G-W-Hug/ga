@@ -1834,42 +1834,42 @@ void generate_and_print_ega3d_rotor()
 
     auto mv_u_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_3d::mv_e, filter_3d::vec,
                                         brace_switch::use_braces);
-    fmt::println("vec_tmp:");
+    fmt::println("mv_u_tmp:");
     print_mvec(mv_u_tmp, basis);
     fmt::println("");
 
     // second product between multivectors for the product v * rev(R)
-    fmt::println("{}:", prd_name + space_str + "mv_u_tmp * rev(mv_e) -> mv_e_res");
-    prd_tab = get_prd_tab(basis_tab, mv_u_tmp, mv3d_coeff_R_rev_even);
-    // fmt::println("prd_tab:");
-    // print_prd_tab(prd_tab);
+    fmt::println("{}:", prd_name + space_str + "mv_u_tmp * rev(mv_e) -> mv_u_res");
+    auto prd_tab_v = get_prd_tab(basis_tab, mv_u_tmp, mv3d_coeff_R_rev_even);
+    // fmt::println("prd_tab_v:");
+    // print_prd_tab(prd_tab_v);
     // fmt::println("");
 
-    auto mv_e_res = get_mv_from_prd_tab(prd_tab, basis, filter_3d::mv_u, filter_3d::mv_e);
-    print_mvec(mv_e_res, basis);
+    auto mv_u_res_v =
+        get_mv_from_prd_tab(prd_tab_v, basis, filter_3d::mv_u, filter_3d::mv_e);
+    print_mvec(mv_u_res_v, basis);
     fmt::println("");
 
     ////
 
     // first product between multivectors in basis_tab (R * B)
     fmt::println("{}:", prd_name + space_str + "mv_e * bivec -> mv_e_tmp");
-    prd_tab = get_prd_tab(basis_tab, mv3d_coeff_R_even, mv3d_coeff_svBps);
-    auto mv_e_tmp_bi = get_mv_from_prd_tab(prd_tab, basis, filter_3d::mv_e,
-                                           filter_3d::bivec, brace_switch::use_braces);
-    fmt::println("biv_tmp_bi:");
-    print_mvec(mv_e_tmp_bi, basis);
+    auto mv_e_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_3d::mv_e, filter_3d::bivec,
+                                        brace_switch::use_braces);
+    fmt::println("mv_e_tmp:");
+    print_mvec(mv_e_tmp, basis);
     fmt::println("");
 
     // second product between multivectors for the product B * rev(R)
     fmt::println("{}:", prd_name + space_str + "mv_e_tmp * rev(mv_e) -> mv_e_res");
-    prd_tab = get_prd_tab(basis_tab, mv_e_tmp_bi, mv3d_coeff_R_rev_even);
-    // fmt::println("prd_tab:");
-    // print_prd_tab(prd_tab);
+    auto prd_tab_B = get_prd_tab(basis_tab, mv_e_tmp, mv3d_coeff_R_rev_even);
+    // fmt::println("prd_tab_B:");
+    // print_prd_tab(prd_tab_B);
     // fmt::println("");
 
-    auto mv_e_res_bi =
-        get_mv_from_prd_tab(prd_tab, basis, filter_3d::mv_e, filter_3d::mv_e);
-    print_mvec(mv_e_res_bi, basis);
+    auto mv_e_res_B =
+        get_mv_from_prd_tab(prd_tab_B, basis, filter_3d::mv_e, filter_3d::mv_e);
+    print_mvec(mv_e_res_B, basis);
     fmt::println("");
 
     // TODO: (requires string parsing and string manipulation for calculation product

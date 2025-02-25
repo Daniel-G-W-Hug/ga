@@ -628,33 +628,38 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> operator>>(BiVec3dp<T> const& 
 // // alternative multivector products (in use instead of contractions)
 // ////////////////////////////////////////////////////////////////////////////////
 
-// // return commutator product cmt(A,B) of two bivectors A and B (= a bivector)
-// // cmt(A,B) = 0.5*(AB-BA) = gr2(A * B)
-// // the commutator product is antisymmetric, i.e. it is zero when a bivector is
-// // multiplied by itself, i.e. in that case only the dot product remains
-// // as the symmetric part
-// template <typename T, typename U>
-//     requires(std::floating_point<T> && std::floating_point<U>)
-// inline BiVec3dp<std::common_type_t<T, U>> cmt(BiVec3dp<T> const& A, BiVec3dp<U> const&
-// B)
-// {
-//     // this implementation is only valid in an orthonormal basis
-//     using ctype = std::common_type_t<T, U>;
-//     return BiVec3dp<ctype>(A.z * B.y - A.y * B.z, A.x * B.z - A.z * B.x, ctype(0.0));
-// }
+// return commutator product cmt(A,B) of two bivectors A and B (= a bivector)
+// cmt(A,B) = 0.5*(AB-BA) = gr2(A * B)
+// the commutator product is antisymmetric, i.e. it is zero when a bivector is
+// multiplied by itself, i.e. in that case only the dot product remains
+// as the symmetric part
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline BiVec3dp<std::common_type_t<T, U>> cmt(BiVec3dp<T> const& B1,
+                                              BiVec3dp<U> const& B2)
+{
+    // this implementation is only valid in an orthonormal basis
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(-B1.vy * B2.mz + B1.vz * B2.my - B1.my * B2.vz + B1.mz * B2.vy,
+                           B1.vx * B2.mz - B1.vz * B2.mx + B1.mx * B2.vz - B1.mz * B2.vx,
+                           -B1.vx * B2.my + B1.vy * B2.mx - B1.mx * B2.vy + B1.my * B2.vx,
+                           -B1.my * B2.mz + B1.mz * B2.my, B1.mx * B2.mz - B1.mz * B2.mx,
+                           -B1.mx * B2.my + B1.my * B2.mx);
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // geometric products
 ////////////////////////////////////////////////////////////////////////////////
 
+
 // geometric product A*B for fully populated 3dp multivector
-// Expensive! - Don't use if you don't have to! (48x mul_add)
+// REALLY VERY Expensive! - Don't use if you don't have to!
 //
 // Use equivalent formulae instead for not fully populated multivectors:
 // a * b = dot(a,b) + wdg(a,b) = gr0(ab) + gr2(ab)  (vector*vector = scalar + bivector)
-// A * b = dot(A,b) + wdg(A,b) = gr1(Ab) + gr3(Ab)  (bivector*vector = vector + trivector)
-// a * B = dot(a,B) + wdg(a,B) = gr1(aB) + gr3(aB)  (vector*bivector = vector + trivector)
+// A * b = (A>>b) + wdg(A,b) = gr1(Ab) + gr3(Ab)  (bivector*vector = vector + trivector)
+// a * B = (a<<B) + wdg(a,B) = gr1(aB) + gr3(aB)  (vector*bivector = vector + trivector)
 //
 // multivector * multivector => multivector
 template <typename T, typename U>
@@ -663,124 +668,59 @@ inline constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& A
                                                              MVec3dp<U> const& B)
 {
     // geometric product of two fully populated 3dp multivectors
-    // => due to the degenerate algebra 16 terms are not present in G<2,0,1> compared to
-    // G<3,0,0>
+    // => due to the degenerate algebra some terms are not present in G<3,0,1> compared to
+    // G<4,0,0>
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c6 * B.c6;
-    ctype c1 = A.c0 * B.c1 + A.c1 * B.c0 - A.c2 * B.c6 + A.c6 * B.c2;
-    ctype c2 = A.c0 * B.c2 + A.c1 * B.c6 + A.c2 * B.c0 - A.c6 * B.c1;
-    ctype c3 = A.c0 * B.c3 - A.c1 * B.c5 + A.c2 * B.c4 + A.c3 * B.c0 - A.c4 * B.c2 +
-               A.c5 * B.c1 - A.c6 * B.c7 - A.c7 * B.c6;
-    ctype c4 = A.c0 * B.c4 + A.c1 * B.c7 + A.c2 * B.c3 - A.c3 * B.c2 + A.c4 * B.c0 -
-               A.c5 * B.c6 + A.c6 * B.c5 + A.c7 * B.c1;
-    ctype c5 = A.c0 * B.c5 - A.c1 * B.c3 + A.c2 * B.c7 + A.c3 * B.c1 + A.c4 * B.c6 +
-               A.c5 * B.c0 - A.c6 * B.c4 + A.c7 * B.c2;
-    ctype c6 = A.c0 * B.c6 + A.c1 * B.c2 - A.c2 * B.c1 + A.c6 * B.c0;
-    ctype c7 = A.c0 * B.c7 + A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 + A.c4 * B.c1 +
-               A.c5 * B.c2 + A.c6 * B.c3 + A.c7 * B.c0;
-    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
-}
-
-// geometric product of a multivector with an even grade multivector
-// multivector * even grade multivector => multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& A,
-                                                             MVec3dp_E<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 - A.c6 * B.c3;
-    ctype c1 = A.c1 * B.c0 - A.c2 * B.c3;
-    ctype c2 = A.c1 * B.c3 + A.c2 * B.c0;
-    ctype c3 = -A.c1 * B.c2 + A.c2 * B.c1 + A.c3 * B.c0 - A.c7 * B.c3;
-    ctype c4 = A.c0 * B.c1 + A.c4 * B.c0 - A.c5 * B.c3 + A.c6 * B.c2;
-    ctype c5 = A.c0 * B.c2 + A.c4 * B.c3 + A.c5 * B.c0 - A.c6 * B.c1;
-    ctype c6 = A.c0 * B.c3 + A.c6 * B.c0;
-    ctype c7 = A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c7 * B.c0;
-    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
-}
-
-// geometric product of an even grade multivector with a multivector
-// even grade multivector * multivector => multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& A,
-                                                             MVec3dp<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 - A.c3 * B.c6;
-    ctype c1 = A.c0 * B.c1 + A.c3 * B.c2;
-    ctype c2 = A.c0 * B.c2 - A.c3 * B.c1;
-    ctype c3 = A.c0 * B.c3 - A.c1 * B.c2 + A.c2 * B.c1 - A.c3 * B.c7;
-    ctype c4 = A.c0 * B.c4 + A.c1 * B.c0 - A.c2 * B.c6 + A.c3 * B.c5;
-    ctype c5 = A.c0 * B.c5 + A.c1 * B.c6 + A.c2 * B.c0 - A.c3 * B.c4;
-    ctype c6 = A.c0 * B.c6 + A.c3 * B.c0;
-    ctype c7 = A.c0 * B.c7 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3;
-    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
-}
-
-// multivector * uneven multivector => multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& A,
-                                                             MVec3dp_U<U> const& B)
-{
-    // geometric product of two fully populated 3dp multivectors
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c1 * B.c0 + A.c2 * B.c1;
-    ctype c1 = A.c0 * B.c0 + A.c6 * B.c1;
-    ctype c2 = A.c0 * B.c1 - A.c6 * B.c0;
-    ctype c3 = A.c0 * B.c2 - A.c4 * B.c1 + A.c5 * B.c0 - A.c6 * B.c3;
-    ctype c4 = A.c1 * B.c3 + A.c2 * B.c2 - A.c3 * B.c1 + A.c7 * B.c0;
-    ctype c5 = -A.c1 * B.c2 + A.c2 * B.c3 + A.c3 * B.c0 + A.c7 * B.c1;
-    ctype c6 = A.c1 * B.c1 - A.c2 * B.c0;
-    ctype c7 = A.c0 * B.c3 + A.c4 * B.c0 + A.c5 * B.c1 + A.c6 * B.c2;
-    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
-}
-
-// uneven multivector * multivector => multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& A,
-                                                             MVec3dp<U> const& B)
-{
-    // geometric product of two fully populated 3dp multivectors
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c1 + A.c1 * B.c2;
-    ctype c1 = A.c0 * B.c0 - A.c1 * B.c6;
-    ctype c2 = A.c0 * B.c6 + A.c1 * B.c0;
-    ctype c3 = -A.c0 * B.c5 + A.c1 * B.c4 + A.c2 * B.c0 - A.c3 * B.c6;
-    ctype c4 = A.c0 * B.c7 + A.c1 * B.c3 - A.c2 * B.c2 + A.c3 * B.c1;
-    ctype c5 = -A.c0 * B.c3 + A.c1 * B.c7 + A.c2 * B.c1 + A.c3 * B.c2;
-    ctype c6 = A.c0 * B.c2 - A.c1 * B.c1;
-    ctype c7 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c0;
-    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
-}
-
-// geometric product A * ps of a multivector A with the trivector ps from the right
-// multivector * trivector => multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& A,
-                                                             PScalar3dp<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), -A.c6, A.c1, A.c2,
-                          ctype(0.0), A.c0) *
-           ctype(ps);
-}
-
-// geometric product ps * B of a trivector A (=3dp pseudoscalar) multiplied from the left
-// to the multivector B
-// trivector * multivector => multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
-                                                             MVec3dp<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * MVec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), -B.c6, B.c1,
-                                      B.c2, ctype(0.0), B.c0);
+    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c8 * B.c8 -
+               A.c9 * B.c9 - A.c10 * B.c10 - A.c14 * B.c14;
+    ctype c1 = A.c0 * B.c1 + A.c1 * B.c0 - A.c2 * B.c10 + A.c3 * B.c9 + A.c8 * B.c14 -
+               A.c9 * B.c3 + A.c10 * B.c2 + A.c14 * B.c8;
+    ctype c2 = A.c0 * B.c2 + A.c1 * B.c10 + A.c2 * B.c0 - A.c3 * B.c8 + A.c8 * B.c3 +
+               A.c9 * B.c14 - A.c10 * B.c1 + A.c14 * B.c9;
+    ctype c3 = A.c0 * B.c3 - A.c1 * B.c9 + A.c2 * B.c8 + A.c3 * B.c0 - A.c8 * B.c2 +
+               A.c9 * B.c1 + A.c10 * B.c14 + A.c14 * B.c10;
+    ctype c4 = A.c0 * B.c4 - A.c1 * B.c5 - A.c2 * B.c6 - A.c3 * B.c7 + A.c4 * B.c0 +
+               A.c5 * B.c1 + A.c6 * B.c2 + A.c7 * B.c3 - A.c8 * B.c11 - A.c9 * B.c12 -
+               A.c10 * B.c13 - A.c11 * B.c8 - A.c12 * B.c9 - A.c13 * B.c10 +
+               A.c14 * B.c15 - A.c15 * B.c14;
+    ctype c5 = A.c0 * B.c5 - A.c1 * B.c4 + A.c2 * B.c13 - A.c3 * B.c12 + A.c4 * B.c1 +
+               A.c5 * B.c0 - A.c6 * B.c10 + A.c7 * B.c9 + A.c8 * B.c15 - A.c9 * B.c7 +
+               A.c10 * B.c6 + A.c11 * B.c14 - A.c12 * B.c3 + A.c13 * B.c2 -
+               A.c14 * B.c11 + A.c15 * B.c8;
+    ctype c6 = A.c0 * B.c6 - A.c1 * B.c13 - A.c2 * B.c4 + A.c3 * B.c11 + A.c4 * B.c2 +
+               A.c5 * B.c10 + A.c6 * B.c0 - A.c7 * B.c8 + A.c8 * B.c7 + A.c9 * B.c15 -
+               A.c10 * B.c5 + A.c11 * B.c3 + A.c12 * B.c14 - A.c13 * B.c1 -
+               A.c14 * B.c12 + A.c15 * B.c9;
+    ctype c7 = A.c0 * B.c7 + A.c1 * B.c12 - A.c2 * B.c11 - A.c3 * B.c4 + A.c4 * B.c3 -
+               A.c5 * B.c9 + A.c6 * B.c8 + A.c7 * B.c0 - A.c8 * B.c6 + A.c9 * B.c5 +
+               A.c10 * B.c15 - A.c11 * B.c2 + A.c12 * B.c1 + A.c13 * B.c14 -
+               A.c14 * B.c13 + A.c15 * B.c10;
+    ctype c8 = A.c0 * B.c8 - A.c1 * B.c14 + A.c2 * B.c3 - A.c3 * B.c2 + A.c8 * B.c0 -
+               A.c9 * B.c10 + A.c10 * B.c9 - A.c14 * B.c1;
+    ctype c9 = A.c0 * B.c9 - A.c1 * B.c3 - A.c2 * B.c14 + A.c3 * B.c1 + A.c8 * B.c10 +
+               A.c9 * B.c0 - A.c10 * B.c8 - A.c14 * B.c2;
+    ctype c10 = A.c0 * B.c10 + A.c1 * B.c2 - A.c2 * B.c1 - A.c3 * B.c14 - A.c8 * B.c9 +
+                A.c9 * B.c8 + A.c10 * B.c0 - A.c14 * B.c3;
+    ctype c11 = A.c0 * B.c11 + A.c1 * B.c15 - A.c2 * B.c7 + A.c3 * B.c6 + A.c4 * B.c8 -
+                A.c5 * B.c14 + A.c6 * B.c3 - A.c7 * B.c2 + A.c8 * B.c4 - A.c9 * B.c13 +
+                A.c10 * B.c12 + A.c11 * B.c0 - A.c12 * B.c10 + A.c13 * B.c9 +
+                A.c14 * B.c5 - A.c15 * B.c1;
+    ctype c12 = A.c0 * B.c12 + A.c1 * B.c7 + A.c2 * B.c15 - A.c3 * B.c5 + A.c4 * B.c9 -
+                A.c5 * B.c3 - A.c6 * B.c14 + A.c7 * B.c1 + A.c8 * B.c13 + A.c9 * B.c4 -
+                A.c10 * B.c11 + A.c11 * B.c10 + A.c12 * B.c0 - A.c13 * B.c8 +
+                A.c14 * B.c6 - A.c15 * B.c2;
+    ctype c13 = A.c0 * B.c13 - A.c1 * B.c6 + A.c2 * B.c5 + A.c3 * B.c15 + A.c4 * B.c10 +
+                A.c5 * B.c2 - A.c6 * B.c1 - A.c7 * B.c14 - A.c8 * B.c12 + A.c9 * B.c11 +
+                A.c10 * B.c4 - A.c11 * B.c9 + A.c12 * B.c8 + A.c13 * B.c0 + A.c14 * B.c7 -
+                A.c15 * B.c3;
+    ctype c14 = A.c0 * B.c14 - A.c1 * B.c8 - A.c2 * B.c9 - A.c3 * B.c10 - A.c8 * B.c1 -
+                A.c9 * B.c2 - A.c10 * B.c3 + A.c14 * B.c0;
+    ctype c15 = A.c0 * B.c15 + A.c1 * B.c11 + A.c2 * B.c12 + A.c3 * B.c13 + A.c4 * B.c14 -
+                A.c5 * B.c8 - A.c6 * B.c9 - A.c7 * B.c10 - A.c8 * B.c5 - A.c9 * B.c6 -
+                A.c10 * B.c7 - A.c11 * B.c1 - A.c12 * B.c2 - A.c13 * B.c3 - A.c14 * B.c4 +
+                A.c15 * B.c0;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
 }
 
 // geometric product A * B for two multivectors from the even subalgebra (3d case)
@@ -792,10 +732,18 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(A.c0 * B.c0 - A.c3 * B.c3),
-        BiVec3dp<ctype>(A.c0 * B.c1 + A.c1 * B.c0 - A.c2 * B.c3 + A.c3 * B.c2,
-                        A.c0 * B.c2 + A.c1 * B.c3 + A.c2 * B.c0 - A.c3 * B.c1,
-                        A.c0 * B.c3 + A.c3 * B.c0));
+        Scalar3dp<ctype>(A.c0 * B.c0 - A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6),
+        BiVec3dp<ctype>(A.c0 * B.c1 + A.c1 * B.c0 - A.c2 * B.c6 + A.c3 * B.c5 +
+                            A.c4 * B.c7 - A.c5 * B.c3 + A.c6 * B.c2 + A.c7 * B.c4,
+                        A.c0 * B.c2 + A.c1 * B.c6 + A.c2 * B.c0 - A.c3 * B.c4 +
+                            A.c4 * B.c3 + A.c5 * B.c7 - A.c6 * B.c1 + A.c7 * B.c5,
+                        A.c0 * B.c3 - A.c1 * B.c5 + A.c2 * B.c4 + A.c3 * B.c0 -
+                            A.c4 * B.c2 + A.c5 * B.c1 + A.c6 * B.c7 + A.c7 * B.c6,
+                        A.c0 * B.c4 + A.c4 * B.c0 - A.c5 * B.c6 + A.c6 * B.c5,
+                        A.c0 * B.c5 + A.c4 * B.c6 + A.c5 * B.c0 - A.c6 * B.c4,
+                        A.c0 * B.c6 - A.c4 * B.c5 + A.c5 * B.c4 + A.c6 * B.c0),
+        PScalar3dp<ctype>(A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 -
+                          A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0));
 }
 
 // geometric product A * B for two multivectors from the uneven subalgebra (3d case)
@@ -807,10 +755,18 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_U<T> cons
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(A.c0 * B.c0 + A.c1 * B.c1),
-        BiVec3dp<ctype>(A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c0,
-                        -A.c0 * B.c2 + A.c1 * B.c3 + A.c2 * B.c0 + A.c3 * B.c1,
-                        A.c0 * B.c1 - A.c1 * B.c0));
+        Scalar3dp<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c7 * B.c7),
+        BiVec3dp<ctype>(-A.c0 * B.c3 + A.c1 * B.c6 - A.c2 * B.c5 + A.c3 * B.c0 +
+                            A.c4 * B.c7 - A.c5 * B.c2 + A.c6 * B.c1 - A.c7 * B.c4,
+                        -A.c0 * B.c6 - A.c1 * B.c3 + A.c2 * B.c4 + A.c3 * B.c1 +
+                            A.c4 * B.c2 + A.c5 * B.c7 - A.c6 * B.c0 - A.c7 * B.c5,
+                        A.c0 * B.c5 - A.c1 * B.c4 - A.c2 * B.c3 + A.c3 * B.c2 -
+                            A.c4 * B.c1 + A.c5 * B.c0 + A.c6 * B.c7 - A.c7 * B.c6,
+                        -A.c0 * B.c7 + A.c1 * B.c2 - A.c2 * B.c1 - A.c7 * B.c0,
+                        -A.c0 * B.c2 - A.c1 * B.c7 + A.c2 * B.c0 - A.c7 * B.c1,
+                        A.c0 * B.c1 - A.c1 * B.c0 - A.c2 * B.c7 - A.c7 * B.c2),
+        PScalar3dp<ctype>(A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 -
+                          A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3));
 }
 
 // geometric product A * B of a multivector A from the even subalgebra (3d case)
@@ -823,9 +779,18 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(A.c0 * B.c0 + A.c3 * B.c1, A.c0 * B.c1 - A.c3 * B.c0,
-                      A.c0 * B.c2 - A.c1 * B.c1 + A.c2 * B.c0 - A.c3 * B.c3),
-        PScalar3dp<ctype>(A.c0 * B.c3 + A.c1 * B.c0 + A.c2 * B.c1 + A.c3 * B.c2));
+        Vec3dp<ctype>(A.c0 * B.c0 + A.c4 * B.c7 - A.c5 * B.c2 + A.c6 * B.c1,
+                      A.c0 * B.c1 + A.c4 * B.c2 + A.c5 * B.c7 - A.c6 * B.c0,
+                      A.c0 * B.c2 - A.c4 * B.c1 + A.c5 * B.c0 + A.c6 * B.c7,
+                      A.c0 * B.c3 + A.c1 * B.c0 + A.c2 * B.c1 + A.c3 * B.c2 -
+                          A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7),
+        TriVec3dp<ctype>(A.c0 * B.c4 - A.c1 * B.c7 + A.c2 * B.c2 - A.c3 * B.c1 +
+                             A.c4 * B.c3 - A.c5 * B.c6 + A.c6 * B.c5 - A.c7 * B.c0,
+                         A.c0 * B.c5 - A.c1 * B.c2 - A.c2 * B.c7 + A.c3 * B.c0 +
+                             A.c4 * B.c6 + A.c5 * B.c3 - A.c6 * B.c4 - A.c7 * B.c1,
+                         A.c0 * B.c6 + A.c1 * B.c1 - A.c2 * B.c0 - A.c3 * B.c7 -
+                             A.c4 * B.c5 + A.c5 * B.c4 + A.c6 * B.c3 - A.c7 * B.c2,
+                         A.c0 * B.c7 - A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2));
 }
 
 // geometric product A * B of a multivector A from the uneven subalgebra (3d case)
@@ -838,63 +803,35 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_U<T> cons
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(A.c0 * B.c0 - A.c1 * B.c3, A.c0 * B.c3 + A.c1 * B.c0,
-                      -A.c0 * B.c2 + A.c1 * B.c1 + A.c2 * B.c0 - A.c3 * B.c3),
-        PScalar3dp<ctype>(A.c0 * B.c1 + A.c1 * B.c2 + A.c2 * B.c3 + A.c3 * B.c0));
+        Vec3dp<ctype>(A.c0 * B.c0 - A.c1 * B.c6 + A.c2 * B.c5 + A.c7 * B.c4,
+                      A.c0 * B.c6 + A.c1 * B.c0 - A.c2 * B.c4 + A.c7 * B.c5,
+                      -A.c0 * B.c5 + A.c1 * B.c4 + A.c2 * B.c0 + A.c7 * B.c6,
+                      -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c0 -
+                          A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 + A.c7 * B.c7),
+        TriVec3dp<ctype>(A.c0 * B.c7 - A.c1 * B.c3 + A.c2 * B.c2 + A.c3 * B.c4 +
+                             A.c4 * B.c0 - A.c5 * B.c6 + A.c6 * B.c5 + A.c7 * B.c1,
+                         A.c0 * B.c3 + A.c1 * B.c7 - A.c2 * B.c1 + A.c3 * B.c5 +
+                             A.c4 * B.c6 + A.c5 * B.c0 - A.c6 * B.c4 + A.c7 * B.c2,
+                         -A.c0 * B.c2 + A.c1 * B.c1 + A.c2 * B.c7 + A.c3 * B.c6 -
+                             A.c4 * B.c5 + A.c5 * B.c4 + A.c6 * B.c0 + A.c7 * B.c3,
+                         -A.c0 * B.c4 - A.c1 * B.c5 - A.c2 * B.c6 + A.c7 * B.c0));
 }
 
-// geometric product A * ps of an even multivector A multiplied from the right
-// by the trivector ps (=3dp pseudoscalar)
-// even grade multivector * trivector => uneven multivector
+// geometric product M * B of a multivector M from the even subalgebra (3d case)
+// with a bivector B from the right
+// even grade multivector * bivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<U> const& A,
-                                                               PScalar3dp<T> ps)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& M,
+                                                               TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(Vec3dp<ctype>(ctype(0.0), ctype(0.0), -A.c3),
-                            PScalar3dp<ctype>(A.c0)) *
-           ctype(ps);
-}
-
-// geometric product ps * B of a trivector A (=3dp pseudoscalar) multiplied from the left
-// to the even grade multivector B
-// trivector * even grade multivector => uneven grade multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
-                                                               MVec3dp_E<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * MVec3dp_U<ctype>(Vec3dp<ctype>(ctype(0.0), ctype(0.0), -B.c3),
-                                        PScalar3dp<ctype>(B.c0));
-}
-
-// geometric product A * B of an uneven grade multivector A multiplied from the right
-// by the trivector B (=3dp pseudoscalar)
-// uneven grade multivector * trivector => even grade multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_U<U> const& A,
-                                                               PScalar3dp<T> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(Scalar3dp<ctype>(ctype(0.0)),
-                            BiVec3dp<ctype>(A.c0, A.c1, ctype(0.0))) *
-           ctype(ps);
-}
-
-// geometric product A * B of a trivector A (=3dp pseudoscalar) multiplied from the left
-// to the uneven grade multivector B
-// trivector * uneven grade multivector => even grade multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
-                                                               MVec3dp_U<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * MVec3dp_E<ctype>(Scalar3dp<ctype>(ctype(0.0)),
-                                        BiVec3dp<ctype>(B.c0, B.c1, ctype(0.0)));
+    return MVec3dp_U<ctype>(
+        Vec3dp<ctype>(M.c4 * t.w, M.c5 * t.w, M.c6 * t.w,
+                      -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z - M.c7 * t.w),
+        TriVec3dp<ctype>(M.c0 * t.x - M.c1 * t.w - M.c5 * t.z + M.c6 * t.y,
+                         M.c0 * t.y - M.c2 * t.w + M.c4 * t.z - M.c6 * t.x,
+                         M.c0 * t.z - M.c3 * t.w - M.c4 * t.y + M.c5 * t.x, M.c0 * t.w));
 }
 
 // geometric product M * B of a multivector M from the even subalgebra (3d case)
@@ -906,51 +843,18 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
                                                                BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(Scalar3dp<ctype>(-M.c3 * B.z),
-                            BiVec3dp<ctype>(M.c0 * B.x - M.c2 * B.z + M.c3 * B.y,
-                                            M.c0 * B.y + M.c1 * B.z - M.c3 * B.x,
-                                            M.c0 * B.z));
-}
-
-// geometric product A * M of a bivector A with an even grade multivector M
-// from the right
-// bivector * even grade multivector => returns an even grade multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
-                                                               MVec3dp_E<U> const& M)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(Scalar3dp<ctype>(-B.z * M.c3),
-                            BiVec3dp<ctype>(B.x * M.c0 - B.y * M.c3 + B.z * M.c2,
-                                            B.x * M.c3 + B.y * M.c0 - B.z * M.c1,
-                                            B.z * M.c0));
-}
-
-// geometric product M * B of an uneven grade multivector M with a bivector B
-// uneven grade multivector * bivector => uneven grade multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& M,
-                                                               BiVec3dp<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(-M.c1 * B.z, M.c0 * B.z, -M.c0 * B.y + M.c1 * B.x - M.c3 * B.z),
-        PScalar3dp<ctype>(M.c0 * B.x + M.c1 * B.y + M.c2 * B.z));
-}
-
-// geometric product B * M of a bivector A with an uneven grade multivector B
-// bivector * uneven grade multivector => uneven grade multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
-                                                               MVec3dp_U<U> const& M)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(B.z * M.c1, -B.z * M.c0, -B.x * M.c1 + B.y * M.c0 - B.z * M.c3),
-        PScalar3dp<ctype>(B.x * M.c0 + B.y * M.c1 + B.z * M.c2));
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(-M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz),
+                            BiVec3dp<ctype>(M.c0 * B.vx - M.c2 * B.mz + M.c3 * B.my -
+                                                M.c5 * B.vz + M.c6 * B.vy + M.c7 * B.mx,
+                                            M.c0 * B.vy + M.c1 * B.mz - M.c3 * B.mx +
+                                                M.c4 * B.vz - M.c6 * B.vx + M.c7 * B.my,
+                                            M.c0 * B.vz - M.c1 * B.my + M.c2 * B.mx -
+                                                M.c4 * B.vy + M.c5 * B.vx + M.c7 * B.mz,
+                                            M.c0 * B.mx - M.c5 * B.mz + M.c6 * B.my,
+                                            M.c0 * B.my + M.c4 * B.mz - M.c6 * B.mx,
+                                            M.c0 * B.mz - M.c4 * B.my + M.c5 * B.mx),
+                            PScalar3dp<ctype>(-M.c1 * B.mx - M.c2 * B.my - M.c3 * B.mz -
+                                              M.c4 * B.vx - M.c5 * B.vy - M.c6 * B.vz));
 }
 
 // geometric product A * v of an even grade multivector A with a vector v
@@ -962,35 +866,31 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
                                                                Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(Vec3dp<ctype>(A.c0 * v.x + A.c3 * v.y,
-                                          A.c0 * v.y - A.c3 * v.x,
-                                          A.c0 * v.z - A.c1 * v.y + A.c2 * v.x),
-                            PScalar3dp<ctype>(A.c1 * v.x + A.c2 * v.y + A.c3 * v.z));
+    return MVec3dp_U<ctype>(
+        Vec3dp<ctype>(A.c0 * v.x - A.c5 * v.z + A.c6 * v.y,
+                      A.c0 * v.y + A.c4 * v.z - A.c6 * v.x,
+                      A.c0 * v.z - A.c4 * v.y + A.c5 * v.x,
+                      A.c0 * v.w + A.c1 * v.x + A.c2 * v.y + A.c3 * v.z),
+        TriVec3dp<ctype>(A.c2 * v.z - A.c3 * v.y + A.c4 * v.w - A.c7 * v.x,
+                         -A.c1 * v.z + A.c3 * v.x + A.c5 * v.w - A.c7 * v.y,
+                         A.c1 * v.y - A.c2 * v.x + A.c6 * v.w - A.c7 * v.z,
+                         -A.c4 * v.x - A.c5 * v.y - A.c6 * v.z));
 }
 
-// geometric product v * B of a vector v and an even grade multivector B from the left
-// vector * even grade multivector => uneven grade multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(Vec3dp<T> const& v,
-                                                               MVec3dp_E<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(Vec3dp<ctype>(v.x * B.c0 - v.y * B.c3,
-                                          v.x * B.c3 + v.y * B.c0,
-                                          -v.x * B.c2 + v.y * B.c1 + v.z * B.c0),
-                            PScalar3dp<ctype>(v.x * B.c1 + v.y * B.c2 + v.z * B.c3));
-}
 
 // geometric product of two trivectors
 // trivector * trivector => scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3dp<std::common_type_t<T, U>>
-operator*([[maybe_unused]] PScalar3dp<T>, [[maybe_unused]] PScalar3dp<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(TriVec3dp<T> const& t1,
+                                                               TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar3dp<ctype>(0.0); // trivectors in pga3dp contain e3^2 = 0
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(-t1.w * t2.w),
+                            BiVec3dp<ctype>(t1.x * t2.w - t1.w * t2.x,
+                                            t1.y * t2.w - t1.w * t2.y,
+                                            t1.z * t2.w - t1.w * t2.z, 0.0, 0.0, 0.0),
+                            PScalar3dp<ctype>(0.0));
 }
 
 // geometric product ps * B of a trivector ps (=3dp pseudoscalar) multiplied from the left
@@ -998,45 +898,59 @@ operator*([[maybe_unused]] PScalar3dp<T>, [[maybe_unused]] PScalar3dp<U>)
 // trivector * bivector => vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
-                                                            BiVec3dp<U> const& B)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(TriVec3dp<T> const& t,
+                                                               BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return -ctype(ps) * Vec3dp<ctype>(ctype(0.0), ctype(0.0), B.z);
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(t.w * B.mx, t.w * B.my, t.w * B.mz,
+                                          -t.x * B.mx - t.y * B.my - t.z * B.mz),
+                            TriVec3dp<ctype>(-t.y * B.mz + t.z * B.my + t.w * B.vx,
+                                             t.x * B.mz - t.z * B.mx + t.w * B.vy,
+                                             -t.x * B.my + t.y * B.mx + t.w * B.vz, 0.0));
 }
 
 // geometric product B * ps of bivector A multiplied by a trivector ps from the right
 // bivector * trivector => vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
-                                                            PScalar3dp<U> ps)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
+                                                               TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(ctype(0.0), ctype(0.0), -B.z) * ctype(ps);
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(B.mx * t.w, B.my * t.w, B.mz * t.w,
+                                          -B.mx * t.x - B.my * t.y - B.mz * t.z),
+                            TriVec3dp<ctype>(-B.vx * t.w - B.my * t.z + B.mz * t.y,
+                                             -B.vy * t.w + B.mx * t.z - B.mz * t.x,
+                                             -B.vz * t.w - B.mx * t.y + B.my * t.x, 0.0));
 }
 
-// geometric product ps * v of a trivector ps (=3dp pseudoscalar) multiplied from the
-// left to the vector v trivector * vector => bivector
+
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
-                                                              Vec3dp<U> const& v)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(TriVec3dp<T> const& t,
+                                                               Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * BiVec3dp<ctype>(v.x, v.y, ctype(0.0));
+    return MVec3dp_E<ctype>(
+        Scalar3dp<ctype>(0.0),
+        BiVec3dp<ctype>(-t.y * v.z + t.z * v.y, t.x * v.z - t.z * v.x,
+                        -t.x * v.y + t.y * v.x, -t.w * v.x, -t.w * v.y, -t.w * v.z),
+        PScalar3dp<ctype>(-t.x * v.x - t.y * v.y - t.z * v.z - t.w * v.w));
 }
 
-// geometric product v * ps of a vector a multiplied with a trivector ps from the right
-// vector * trivector => bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3dp<std::common_type_t<T, U>> operator*(Vec3dp<T> const& v,
-                                                              PScalar3dp<U> ps)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(Vec3dp<T> const& v,
+                                                               TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(v.x, v.y, ctype(0.0)) * ctype(ps);
+    return MVec3dp_E<ctype>(
+        Scalar3dp<ctype>(0.0),
+        BiVec3dp<ctype>(v.y * t.z - v.z * t.y, -v.x * t.z + v.z * t.x,
+                        v.x * t.y - v.y * t.x, -v.x * t.w, -v.y * t.w, -v.z * t.w),
+        PScalar3dp<ctype>(v.x * t.x + v.y * t.y + v.z * t.z + v.w * t.w));
 }
+
 
 // geometric product A * B between two bivectors
 // A * B = gr0(A * B) + gr2(A * B)
@@ -1056,43 +970,41 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(BiVec3dp<T> const
                                                                BiVec3dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(Scalar3dp<ctype>(dot(B1, B2)), cmt(B1, B2));
+    return MVec3dp_E<ctype>(dot(B1, B2), cmt(B1, B2), wdg(B1, B2));
 }
 
-// geometric product B * v for a bivector B and a vector v
-// old: B * v = dot(B,v) + wdg(B,v) = gr1(B * v) + gr3(B * v)
-// new: B * v = (B >> v) + wdg(B,v) = gr1(B * v) + gr3(B * v)
-//
-// HINT: if a full 3d multivector is required as result it must be converted explicitly,
-//       since C++ does not allow overloading on different return types
-//
-// => bivector * vector = vector + trivector (= uneven multivector)
+
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
                                                                Vec3dp<U> const& v)
 {
+    // ATTENTION:
+    // formula B*v = (B>>v) + wdg(B,v) does NOT hold for a degenerate metric!
     using ctype = std::common_type_t<T, U>;
-    // return MVec3dp_U<ctype>(dot(B, v), wdg(B, v));
-    return MVec3dp_U<ctype>((B >> v), wdg(B, v));
+    return MVec3dp_U<ctype>(
+        Vec3dp<ctype>(-B.my * v.z + B.mz * v.y, B.mx * v.z - B.mz * v.x,
+                      -B.mx * v.y + B.my * v.x, B.vx * v.x + B.vy * v.y + B.vz * v.z),
+        TriVec3dp<ctype>(
+            B.vy * v.z - B.vz * v.y + B.mx * v.w, -B.vx * v.z + B.vz * v.x + B.my * v.w,
+            B.vx * v.y - B.vy * v.x + B.mz * v.w, -B.mx * v.x - B.my * v.y - B.mz * v.z));
 }
 
-// geometric product v * B for a vector v and a bivector B
-// old: v * B = dot(v,B) + wdg(v,B) = gr1(v * B) + gr3(v * B)
-// new: v * B = (v << B) + wdg(v,B) = gr1(v * B) + gr3(v * B)
-//
-// HINT: if a full 3d multivector is required as result it must be converted explicitly,
-//       since C++ does not allow overloading on different return types
-//
-// => vector * bivector = vector + trivector (= uneven multivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(Vec3dp<T> const& v,
                                                                BiVec3dp<U> const& B)
 {
+    // ATTENTION:
+    // formula B*v = (v<<B) + wdg(v,B) does NOT hold for a degenerate metric!
     using ctype = std::common_type_t<T, U>;
-    // return MVec3dp_U<ctype>(dot(v, B), wdg(v, B));
-    return MVec3dp_U<ctype>((v << B), wdg(v, B));
+    return MVec3dp_U<ctype>(
+        Vec3dp<ctype>(-v.y * B.mz + v.z * B.my, v.x * B.mz - v.z * B.mx,
+                      -v.x * B.my + v.y * B.mx, -v.x * B.vx - v.y * B.vy - v.z * B.vz),
+        TriVec3dp<ctype>(-v.y * B.vz + v.z * B.vy + v.w * B.mx,
+                         v.x * B.vz - v.z * B.vx + v.w * B.my,
+                         -v.x * B.vy + v.y * B.vx + v.w * B.mz,
+                         -v.x * B.mx - v.y * B.my - v.z * B.mz));
 }
 
 // geometric product a * b of two vectors
@@ -1111,16 +1023,6 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(Vec3dp<T> const& 
     return MVec3dp_E<ctype>(dot(a, b), wdg(a, b));
 }
 
-// geometric product s1 * s2 of two scalars
-// scalar * scalar => scalar
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3dp<std::common_type_t<T, U>> operator*(Scalar3dp<T> s1,
-                                                               Scalar3dp<U> s2)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3dp<ctype>(ctype(s1) * ctype(s2));
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // multiplicative inverses of scalars, blades and multivectors
@@ -1128,6 +1030,13 @@ inline constexpr Scalar3dp<std::common_type_t<T, U>> operator*(Scalar3dp<T> s1,
 // for k-blades: A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
 // pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ... (from reversion)
 ////////////////////////////////////////////////////////////////////////////////
+
+// TODO: for degenerate metric: check whether this "partial inverse" is a
+//       meaningful concept at all.
+//       (A*A^(-1) = 1) is a requirement, which is only met if the e4 components
+//       are not present
+//       => only some objects have inverses?
+
 
 // return the multiplicative inverse of the vector
 template <typename T>
@@ -1166,7 +1075,27 @@ inline constexpr BiVec3dp<T> inv(BiVec3dp<T> const& B)
     }
 #endif
     T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
-    return BiVec3dp<T>(B.x * inv, B.y * inv, B.z * inv);
+    return BiVec3dp<T>(0.0, 0.0, 0.0, B.mx * inv, B.my * inv, B.mz * inv);
+}
+
+// return the multiplicative inverse of the bivector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr TriVec3dp<T> inv(TriVec3dp<T> const& t)
+{
+    // t^(-1) = rev(t)/|t|^2
+    // using rev(t) = (-1)^[k(k-1)/2] B for a k-blade: 3-blade => rev(t) = -t
+    // using |t|^2 = gr0(rev(t)*t) = gr0(-t*t) = -gr0(t*t) = -dot(t,t)
+    // => B^(-1) = (-t)/(-dot(t,t)) = t/dot(t,t)
+    T sq_n = -dot(t, t);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("trivector norm too small for inversion " +
+                                 std::to_string(sq_n) + "\n");
+    }
+#endif
+    T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
+    return TriVec3dp<T>(0.0, 0.0, 0.0, t.w * inv);
 }
 
 
@@ -1307,6 +1236,12 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> exp(BiVec3dp<T> const& I, U
 // => choose: B = n*I_3d
 //
 //////////////////////////////////////////////////////////////////////////////////////////
+
+// TODO: add equivalent formulas from symbolic manipulations to replace the sandwich
+// product by a matrix * vector solution with minimal computational effort
+//
+// see ga_prdxpr
+
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_E<std::common_type_t<T, U>> rotor(BiVec3dp<T> const& I, U theta)
@@ -1375,85 +1310,198 @@ inline constexpr MVec3dp<std::common_type_t<T, U>> rotate(MVec3dp<T> const& v,
 // the basis vectors which are NOT contained in the k-blade u
 // and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  l_cmpl(u) ^ u  = I_3dp = e1^e2^e3
-// right complement: u ^ r_cmpl(u)  = I_3dp = e1^e2^e3
+// left complement:  l_cmpl(u) ^ u  = I_3dp = e1^e2^e3^e4
+// right complement: u ^ r_cmpl(u)  = I_3dp = e1^e2^e3^e4
 //
 // in spaces of odd dimension right and left complements are identical and thus there
 // is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // comploments have different signs
+//
+// complement operation with e1^e2^e3^e4 as the pseudoscalar
 
-// complement operation with e1^e2^e3 as the pseudoscalar
+// right complements
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> cmpl(Scalar3dp<T> s)
+inline constexpr PScalar3dp<T> r_cmpl(Scalar3dp<T> s)
 {
-    // u ^ cmpl(u) = e1^e2^e3
+    // u ^ r_cmpl(u) = e1^e2^e3^e4
     // u = 1:
-    //     1 ^ cmpl(u) = e1^e2^e3 => cmpl(u) = s e1^e2^e3
+    //     1 ^ r_cmpl(u) = e1^e2^e3^e4 => r_cmpl(u) = s e1^e2^e3^e4
     return PScalar3dp<T>(T(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline BiVec3dp<T> cmpl(Vec3dp<T> const& v)
+inline TriVec3dp<T> r_cmpl(Vec3dp<T> const& v)
 {
-    // u ^ compl(u) = e1^e2^e3
-    // u = v.x e1 + v.y e2 + v.z e3:
-    //     u ^ cmpl(u) = e1^e2^e3 =>
-    //     u = e1 => cmpl(u) = e23
-    //     u = e2 => cmpl(u) = e31
-    //     u = e3 => cmpl(u) = e12
-    return BiVec3dp<T>(v.x, v.y, v.z);
+    // u ^ r_compl(u) = e1^e2^e3^e4
+    // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
+    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
+    //     u = e1 => r_cmpl(u) = e423
+    //     u = e2 => r_cmpl(u) = e431
+    //     u = e3 => r_cmpl(u) = e412
+    //     u = e4 => r_cmpl(u) = e321
+    return TriVec3dp<T>(v.x, v.y, v.z, v.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline Vec3dp<T> cmpl(BiVec3dp<T> const& B)
+inline BiVec3dp<T> r_cmpl(BiVec3dp<T> const& B)
 {
-    // u ^ compl(u) = e1^e2^e3
-    // u = b.x e23 + b.y e31 + b.z e12:
-    //     u ^ cmpl(u) = e1^e2^e3 =>
-    //     u = e23 => cmpl(u) = e1
-    //     u = e31 => cmpl(u) = e2
-    //     u = e12 => cmpl(u) = e3
-    return Vec3dp<T>(B.x, B.y, B.z);
+    // u ^ r_compl(u) = e1^e2^e3^e4
+    // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
+    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
+    //     u = e41 => r_cmpl(u) = -e23
+    //     u = e42 => r_cmpl(u) = -e31
+    //     u = e43 => r_cmpl(u) = -e12
+    //     u = e23 => r_cmpl(u) = -e41
+    //     u = e31 => r_cmpl(u) = -e42
+    //     u = e12 => r_cmpl(u) = -e43
+    return BiVec3dp<T>(-B.mx, -B.my, -B.mz, -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> cmpl(PScalar3dp<T> ps)
+inline Vec3dp<T> r_cmpl(TriVec3dp<T> const& t)
 {
-    // u ^ compl(u) = e1^e2^e3
-    // u = e1^e2^e3:
-    //     e1^e2^e3 ^ cmpl(u) = e1^e2^e3 => cmpl(u) = ps 1
+    // u ^ r_compl(u) = e1^e2^e3^e4
+    // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
+    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
+    //     u = e423 => r_cmpl(u) = -e1
+    //     u = e431 => r_cmpl(u) = -e2
+    //     u = e412 => r_cmpl(u) = -e3
+    //     u = e321 => r_cmpl(u) = -e4
+    return Vec3dp<T>(-t.x, -t.y, -t.z, -t.w);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar3dp<T> r_cmpl(PScalar3dp<T> ps)
+{
+    // u ^ r_compl(u) = e1^e2^e3^e4
+    // u = e1^e2^e3^e4:
+    //     e1^e2^e3^e4 ^ r_cmpl(u) = e1^e2^e3^e4 => r_cmpl(u) = ps 1
     return Scalar3dp<T>(T(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> cmpl(MVec3dp_E<T> const& M)
+inline constexpr MVec3dp_U<T> r_cmpl(MVec3dp_U<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
+    return MVec3dp_U<T>(r_cmpl(gr3(M)), r_cmpl(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> cmpl(MVec3dp_U<T> const& M)
+inline constexpr MVec3dp_E<T> r_cmpl(MVec3dp_E<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
+    return MVec3dp_E<T>(r_cmpl(gr4(M)), r_cmpl(gr2(M)), r_cmpl(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> cmpl(MVec3dp<T> const& M)
+inline constexpr MVec3dp<T> r_cmpl(MVec3dp<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
+    return MVec3dp<T>(r_cmpl(gr4(M)), r_cmpl(gr3(M)), r_cmpl(gr2(M)), r_cmpl(gr1(M)),
+                      r_cmpl(gr0(M)));
+}
+
+
+// left complements
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3dp<T> l_cmpl(Scalar3dp<T> s)
+{
+    // l_cmpl(u) ^ u = e1^e2^e3^e4
+    // u = 1:
+    //     l_cmpl(u) ^ 1 = e1^e2^e3^e4 => l_cmpl(u) = s e1^e2^e3^e4
+    return PScalar3dp<T>(T(s));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline TriVec3dp<T> l_cmpl(Vec3dp<T> const& v)
+{
+    // l_cmpl(u) ^ u = e1^e2^e3^e4
+    // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
+    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
+    //     u = e1 => l_cmpl(u) = -e423
+    //     u = e2 => l_cmpl(u) = -e431
+    //     u = e3 => l_cmpl(u) = -e412
+    //     u = e4 => l_cmpl(u) = -e321
+    return TriVec3dp<T>(-v.x, -v.y, -v.z, -v.w);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline BiVec3dp<T> l_cmpl(BiVec3dp<T> const& B)
+{
+    // l_cmpl(u) ^ u = e1^e2^e3^e4
+    // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
+    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
+    //     u = e41 => l_cmpl(u) = -e23
+    //     u = e42 => l_cmpl(u) = -e31
+    //     u = e43 => l_cmpl(u) = -e12
+    //     u = e23 => l_cmpl(u) = -e41
+    //     u = e31 => l_cmpl(u) = -e42
+    //     u = e12 => l_cmpl(u) = -e43
+    return BiVec3dp<T>(-B.mx, -B.my, -B.mz, -B.vx, -B.vy, -B.vz);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline Vec3dp<T> l_cmpl(TriVec3dp<T> const& t)
+{
+    // l_cmpl(u) ^ u = e1^e2^e3^e4
+    // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
+    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
+    //     u = e423 => l_cmpl(u) = e1
+    //     u = e431 => l_cmpl(u) = e2
+    //     u = e412 => l_cmpl(u) = e3
+    //     u = e321 => l_cmpl(u) = e4
+    return Vec3dp<T>(t.x, t.y, t.z, t.w);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar3dp<T> l_cmpl(PScalar3dp<T> ps)
+{
+    // l_cmpl(u) ^ u = e1^e2^e3^e4
+    // u = e1^e2^e3^e4:
+    //     l_cmpl(u) ^ e1^e2^e3^e4 = e1^e2^e3^e4 => l_cmpl(u) = ps 1
+    return Scalar3dp<T>(T(ps));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_U<T> l_cmpl(MVec3dp_U<T> const& M)
+{
+    // use the component complements directly
+    return MVec3dp_U<T>(l_cmpl(gr3(M)), l_cmpl(gr1(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_E<T> l_cmpl(MVec3dp_E<T> const& M)
+{
+    // use the component complements directly
+    return MVec3dp_E<T>(l_cmpl(gr4(M)), l_cmpl(gr2(M)), l_cmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp<T> l_cmpl(MVec3dp<T> const& M)
+{
+    // use the component complements directly
+    return MVec3dp<T>(l_cmpl(gr4(M)), l_cmpl(gr3(M)), l_cmpl(gr2(M)), l_cmpl(gr1(M)),
+                      l_cmpl(gr0(M)));
 }
 
 
