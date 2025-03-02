@@ -101,13 +101,13 @@ struct fmt::formatter<hd::ga::Vec2_t<T, Tag>> : nested_formatter<double> {
 #if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::Vec2_t<T, Tag>,
                                      hd::ga::Vec2_t<T, hd::ga::vec2d_tag>>) {
-            return fmt::format_to(ctx.out(), "Vec2d({},{})", nested(v.x), nested(v.y));
+            return fmt::format_to(ctx.out(), "Vec2d({}, {})", nested(v.x), nested(v.y));
         }
         else {
-            return fmt::format_to(ctx.out(), "({},{})", nested(v.x), nested(v.y));
+            return fmt::format_to(ctx.out(), "({}, {})", nested(v.x), nested(v.y));
         }
 #else
-        return fmt::format_to(ctx.out(), "({},{})", nested(v.x), nested(v.y));
+        return fmt::format_to(ctx.out(), "({}, {})", nested(v.x), nested(v.y));
 #endif
     }
 };
@@ -123,30 +123,30 @@ struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : nested_formatter<double> {
 #if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
                                      hd::ga::Vec3_t<T, hd::ga::vec3d_tag>>) {
-            return fmt::format_to(ctx.out(), "Vec3d({},{},{})", nested(v.x), nested(v.y),
-                                  nested(v.z));
+            return fmt::format_to(ctx.out(), "Vec3d({}, {}, {})", nested(v.x),
+                                  nested(v.y), nested(v.z));
         }
         else if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
                                           hd::ga::Vec3_t<T, hd::ga::bivec3d_tag>>) {
-            return fmt::format_to(ctx.out(), "BiVec3d({},{},{})", nested(v.x),
+            return fmt::format_to(ctx.out(), "BiVec3d({}, {}, {})", nested(v.x),
                                   nested(v.y), nested(v.z));
         }
         else if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
                                           hd::ga::Vec3_t<T, hd::ga::vec2dp_tag>>) {
-            return fmt::format_to(ctx.out(), "Vec2dp({},{},{})", nested(v.x), nested(v.y),
-                                  nested(v.z));
+            return fmt::format_to(ctx.out(), "Vec2dp({}, {}, {})", nested(v.x),
+                                  nested(v.y), nested(v.z));
         }
         else if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
                                           hd::ga::Vec3_t<T, hd::ga::bivec2dp_tag>>) {
-            return fmt::format_to(ctx.out(), "BiVec2dp({},{},{})", nested(v.x),
+            return fmt::format_to(ctx.out(), "BiVec2dp({}, {}, {})", nested(v.x),
                                   nested(v.y), nested(v.z));
         }
         else {
-            return fmt::format_to(ctx.out(), "({},{},{})", nested(v.x), nested(v.y),
+            return fmt::format_to(ctx.out(), "({}, {}, {})", nested(v.x), nested(v.y),
                                   nested(v.z));
         }
 #else
-        return fmt::format_to(ctx.out(), "({},{},{})", nested(v.x), nested(v.y),
+        return fmt::format_to(ctx.out(), "({}, {}, {})", nested(v.x), nested(v.y),
                               nested(v.z));
 #endif
     }
@@ -163,30 +163,30 @@ struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : nested_formatter<double> {
 #if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::Vec4_t<T, Tag>,
                                      hd::ga::Vec4_t<T, hd::ga::vec3dp_tag>>) {
-            return fmt::format_to(ctx.out(), "Vec3dp({},{},{},{})", nested(v.x),
+            return fmt::format_to(ctx.out(), "Vec3dp({}, {}, {}, {})", nested(v.x),
                                   nested(v.y), nested(v.z), nested(v.w));
         }
         else if constexpr (std::is_same_v<hd::ga::Vec4_t<T, Tag>,
                                           hd::ga::Vec4_t<T, hd::ga::trivec3dp_tag>>) {
-            return fmt::format_to(ctx.out(), "TriVec3dp({},{},{},{})", nested(v.x),
+            return fmt::format_to(ctx.out(), "TriVec3dp({}, {}, {}, {})", nested(v.x),
                                   nested(v.y), nested(v.z), nested(v.w));
         }
         else if constexpr (std::is_same_v<hd::ga::Vec4_t<T, Tag>,
                                           hd::ga::Vec4_t<T, hd::ga::vec4d_tag>>) {
-            return fmt::format_to(ctx.out(), "Vec4d({},{},{},{})", nested(v.x),
+            return fmt::format_to(ctx.out(), "Vec4d({}, {}, {}, {})", nested(v.x),
                                   nested(v.y), nested(v.z), nested(v.w));
         }
         else if constexpr (std::is_same_v<hd::ga::Vec4_t<T, Tag>,
                                           hd::ga::Vec4_t<T, hd::ga::trivec4d_tag>>) {
-            return fmt::format_to(ctx.out(), "TriVec4d({},{},{},{})", nested(v.x),
+            return fmt::format_to(ctx.out(), "TriVec4d({}, {}, {}, {})", nested(v.x),
                                   nested(v.y), nested(v.z), nested(v.w));
         }
         else {
-            return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.x), nested(v.y),
+            return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.x), nested(v.y),
                                   nested(v.z), nested(v.w));
         }
 #else
-        return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.x), nested(v.y),
+        return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.x), nested(v.y),
                               nested(v.z), nested(v.w));
 #endif
     }
@@ -203,23 +203,23 @@ struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : nested_formatter<double> {
 #if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::BVec6_t<T, Tag>,
                                      hd::ga::BVec6_t<T, hd::ga::bivec3dp_tag>>) {
-            return fmt::format_to(ctx.out(), "BiVec3dp({},{},{},{},{},{})", nested(v.vx),
-                                  nested(v.vy), nested(v.vz), nested(v.mx), nested(v.my),
-                                  nested(v.mz));
+            return fmt::format_to(ctx.out(), "BiVec3dp({}, {}, {}, {}, {}, {})",
+                                  nested(v.vx), nested(v.vy), nested(v.vz), nested(v.mx),
+                                  nested(v.my), nested(v.mz));
         }
         else if constexpr (std::is_same_v<hd::ga::BVec6_t<T, Tag>,
                                           hd::ga::BVec6_t<T, hd::ga::bivec4d_tag>>) {
-            return fmt::format_to(ctx.out(), "BiVec4d({},{},{},{},{},{})", nested(v.vx),
-                                  nested(v.vy), nested(v.vz), nested(v.mx), nested(v.my),
-                                  nested(v.mz));
+            return fmt::format_to(ctx.out(), "BiVec4d({}, {}, {}, {}, {}, {})",
+                                  nested(v.vx), nested(v.vy), nested(v.vz), nested(v.mx),
+                                  nested(v.my), nested(v.mz));
         }
         else {
-            return fmt::format_to(ctx.out(), "({},{},{},{},{},{})", nested(v.vx),
+            return fmt::format_to(ctx.out(), "({}, {}, {}, {}, {}, {})", nested(v.vx),
                                   nested(v.vy), nested(v.vz), nested(v.mx), nested(v.my),
                                   nested(v.mz));
         }
 #else
-        return fmt::format_to(ctx.out(), "({},{},{},{},{},{})", nested(v.vx),
+        return fmt::format_to(ctx.out(), "({}, {}, {}, {}, {}, {})", nested(v.vx),
                               nested(v.vy), nested(v.vz), nested(v.mx), nested(v.my),
                               nested(v.mz));
 #endif
@@ -237,14 +237,14 @@ struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : nested_formatter<double> {
 #if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::MVec2_t<T, Tag>,
                                      hd::ga::MVec2_t<T, hd::ga::mvec2d_e_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec2d_E({},{})", nested(v.c0),
+            return fmt::format_to(ctx.out(), "MVec2d_E({}, {})", nested(v.c0),
                                   nested(v.c1));
         }
         else {
-            return fmt::format_to(ctx.out(), "({},{})", nested(v.c0), nested(v.c1));
+            return fmt::format_to(ctx.out(), "({}, {})", nested(v.c0), nested(v.c1));
         }
 #else
-        return fmt::format_to(ctx.out(), "({},{})", nested(v.c0), nested(v.c1));
+        return fmt::format_to(ctx.out(), "({}, {})", nested(v.c0), nested(v.c1));
 #endif
     }
 };
@@ -261,35 +261,35 @@ struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : nested_formatter<double> {
 #if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::MVec4_t<T, Tag>,
                                      hd::ga::MVec4_t<T, hd::ga::mvec2d_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec2d({},{},{},{})", nested(v.c0),
+            return fmt::format_to(ctx.out(), "MVec2d({}, {}, {}, {})", nested(v.c0),
                                   nested(v.c1), nested(v.c2), nested(v.c3));
         }
         else if constexpr (std::is_same_v<hd::ga::MVec4_t<T, Tag>,
                                           hd::ga::MVec4_t<T, hd::ga::mvec2dp_e_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec2dp_E({},{},{},{})", nested(v.c0),
+            return fmt::format_to(ctx.out(), "MVec2dp_E({}, {}, {}, {})", nested(v.c0),
                                   nested(v.c1), nested(v.c2), nested(v.c3));
         }
         else if constexpr (std::is_same_v<hd::ga::MVec4_t<T, Tag>,
                                           hd::ga::MVec4_t<T, hd::ga::mvec2dp_u_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec2dp_U({},{},{},{})", nested(v.c0),
+            return fmt::format_to(ctx.out(), "MVec2dp_U({}, {}, {}, {})", nested(v.c0),
                                   nested(v.c1), nested(v.c2), nested(v.c3));
         }
         else if constexpr (std::is_same_v<hd::ga::MVec4_t<T, Tag>,
                                           hd::ga::MVec4_t<T, hd::ga::mvec3d_e_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec3d_E({},{},{},{})", nested(v.c0),
+            return fmt::format_to(ctx.out(), "MVec3d_E({}, {}, {}, {})", nested(v.c0),
                                   nested(v.c1), nested(v.c2), nested(v.c3));
         }
         else if constexpr (std::is_same_v<hd::ga::MVec4_t<T, Tag>,
                                           hd::ga::MVec4_t<T, hd::ga::mvec3d_u_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec3d_U({},{},{},{})", nested(v.c0),
+            return fmt::format_to(ctx.out(), "MVec3d_U({}, {}, {}, {})", nested(v.c0),
                                   nested(v.c1), nested(v.c2), nested(v.c3));
         }
         else {
-            return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.c0), nested(v.c1),
-                                  nested(v.c2), nested(v.c3));
+            return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.c0),
+                                  nested(v.c1), nested(v.c2), nested(v.c3));
         }
 #else
-        return fmt::format_to(ctx.out(), "({},{},{},{})", nested(v.c0), nested(v.c1),
+        return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.c0), nested(v.c1),
                               nested(v.c2), nested(v.c3));
 #endif
     }
@@ -307,41 +307,41 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : nested_formatter<double> {
 #if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
                                      hd::ga::MVec8_t<T, hd::ga::mvec3d_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec3d({},{},{},{},{},{},{},{})",
+            return fmt::format_to(ctx.out(), "MVec3d({}, {}, {}, {}, {}, {}, {}, {})",
                                   nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
                                   nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
         }
         else if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
                                           hd::ga::MVec8_t<T, hd::ga::mvec3dp_e_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec3dp_E({},{},{},{},{},{},{},{})",
+            return fmt::format_to(ctx.out(), "MVec3dp_E({}, {}, {}, {}, {}, {}, {}, {})",
                                   nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
                                   nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
         }
         else if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
                                           hd::ga::MVec8_t<T, hd::ga::mvec3dp_u_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec3dp_U({},{},{},{},{},{},{},{})",
+            return fmt::format_to(ctx.out(), "MVec3dp_U({}, {}, {}, {}, {}, {}, {}, {})",
                                   nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
                                   nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
         }
         else if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
                                           hd::ga::MVec8_t<T, hd::ga::mvec4d_e_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec4d_E({},{},{},{},{},{},{},{})",
+            return fmt::format_to(ctx.out(), "MVec4d_E({}, {}, {}, {}, {}, {}, {}, {})",
                                   nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
                                   nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
         }
         else if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
                                           hd::ga::MVec8_t<T, hd::ga::mvec4d_u_tag>>) {
-            return fmt::format_to(ctx.out(), "MVec4d_U({},{},{},{},{},{},{},{})",
+            return fmt::format_to(ctx.out(), "MVec4d_U({}, {}, {}, {}, {}, {}, {}, {})",
                                   nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
                                   nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
         }
         else {
-            return fmt::format_to(ctx.out(), "({},{},{},{},{},{},{},{})", nested(v.c0),
-                                  nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
-                                  nested(v.c5), nested(v.c6), nested(v.c7));
+            return fmt::format_to(ctx.out(), "({}, {}, {}, {}, {}, {}, {}, {})",
+                                  nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
+                                  nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
         }
 #else
-        return fmt::format_to(ctx.out(), "({},{},{},{},{},{},{},{})", nested(v.c0),
+        return fmt::format_to(ctx.out(), "({}, {}, {}, {}, {}, {}, {}, {})", nested(v.c0),
                               nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
                               nested(v.c5), nested(v.c6), nested(v.c7));
 #endif
@@ -360,7 +360,8 @@ struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : nested_formatter<double> {
         if constexpr (std::is_same_v<hd::ga::MVec16_t<T, Tag>,
                                      hd::ga::MVec16_t<T, hd::ga::mvec3dp_tag>>) {
             return fmt::format_to(
-                ctx.out(), "MVec3dp({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{})",
+                ctx.out(),
+                "MVec3dp({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
                 nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
                 nested(v.c5), nested(v.c6), nested(v.c7), nested(v.c8), nested(v.c9),
                 nested(v.c10), nested(v.c11), nested(v.c12), nested(v.c13), nested(v.c14),
@@ -369,7 +370,8 @@ struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : nested_formatter<double> {
         else if constexpr (std::is_same_v<hd::ga::MVec16_t<T, Tag>,
                                           hd::ga::MVec16_t<T, hd::ga::mvec4d_tag>>) {
             return fmt::format_to(
-                ctx.out(), "MVec4d({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{})",
+                ctx.out(),
+                "MVec4d({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
                 nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
                 nested(v.c5), nested(v.c6), nested(v.c7), nested(v.c8), nested(v.c9),
                 nested(v.c10), nested(v.c11), nested(v.c12), nested(v.c13), nested(v.c14),
@@ -377,7 +379,8 @@ struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : nested_formatter<double> {
         }
         else {
             return fmt::format_to(
-                ctx.out(), "({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{})",
+                ctx.out(),
+                "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
                 nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
                 nested(v.c5), nested(v.c6), nested(v.c7), nested(v.c8), nested(v.c9),
                 nested(v.c10), nested(v.c11), nested(v.c12), nested(v.c13), nested(v.c14),
@@ -385,10 +388,11 @@ struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : nested_formatter<double> {
         }
 #else
         return fmt::format_to(
-            ctx.out(), "({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{})", nested(v.c0),
-            nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4), nested(v.c5),
-            nested(v.c6), nested(v.c7), nested(v.c8), nested(v.c9), nested(v.c10),
-            nested(v.c11), nested(v.c12), nested(v.c13), nested(v.c14), nested(v.c15));
+            ctx.out(), "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
+            nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
+            nested(v.c5), nested(v.c6), nested(v.c7), nested(v.c8), nested(v.c9),
+            nested(v.c10), nested(v.c11), nested(v.c12), nested(v.c13), nested(v.c14),
+            nested(v.c15));
 #endif
     }
 };
@@ -401,7 +405,7 @@ struct fmt::formatter<hd::ga::pga::Vector2d<T>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::pga::Vector2d<T>& v, FormatContext& ctx) const
     {
-        return fmt::format_to(ctx.out(), "Vector2d({},{})", nested(v.x), nested(v.y));
+        return fmt::format_to(ctx.out(), "Vector2d({}, {})", nested(v.x), nested(v.y));
     }
 };
 
@@ -413,7 +417,7 @@ struct fmt::formatter<hd::ga::pga::Point2d<T>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::pga::Point2d<T>& v, FormatContext& ctx) const
     {
-        return fmt::format_to(ctx.out(), "Point2d({},{})", nested(v.x), nested(v.y));
+        return fmt::format_to(ctx.out(), "Point2d({}, {})", nested(v.x), nested(v.y));
     }
 };
 
@@ -425,7 +429,7 @@ struct fmt::formatter<hd::ga::pga::Point2dp<T>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::pga::Point2dp<T>& v, FormatContext& ctx) const
     {
-        return fmt::format_to(ctx.out(), "Point2dp({},{},{})", nested(v.x), nested(v.y),
+        return fmt::format_to(ctx.out(), "Point2dp({}, {}, {})", nested(v.x), nested(v.y),
                               nested(v.z));
     }
 };
@@ -438,7 +442,7 @@ struct fmt::formatter<hd::ga::pga::Line2dp<T>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::pga::Line2dp<T>& v, FormatContext& ctx) const
     {
-        return fmt::format_to(ctx.out(), "Line2dp({},{},{})", nested(v.x), nested(v.y),
+        return fmt::format_to(ctx.out(), "Line2dp({}, {}, {})", nested(v.x), nested(v.y),
                               nested(v.z));
     }
 };

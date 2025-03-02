@@ -59,6 +59,9 @@ int main()
         // sandwich products of type rotor * object * rev(rotor)
         generate_and_print_ega2d_rotor();
         generate_and_print_ega3d_rotor();
+
+        generate_and_print_pga2dp_rotor();
+        generate_and_print_pga3dp_rotor();
     }
 
     catch (std::exception const& e) {

@@ -8,7 +8,7 @@
 #include "detail/ga_mvec3d.hpp" // MVec3d<T> and subtypes
 
 #include "detail/ga_mvec2dp.hpp" // MVec2dp<T> and subtypes
-// #include "detail/ga_mvec3dp.hpp" // MVec3dp<T> and subtypes
+#include "detail/ga_mvec3dp.hpp" // MVec3dp<T> and subtypes
 
 // provide constants for ega and pga in their respective namespaces
 
@@ -64,6 +64,7 @@ namespace hd::ga::pga {
 auto const e1_2dp = Vec2dp<value_t>{1.0, 0.0, 0.0};
 auto const e2_2dp = Vec2dp<value_t>{0.0, 1.0, 0.0};
 auto const e3_2dp = Vec2dp<value_t>{0.0, 0.0, 1.0};
+
 auto const e1m_2dp = MVec2dp<value_t>{e1_2dp}; // e1_2dp as multivector
 auto const e2m_2dp = MVec2dp<value_t>{e2_2dp}; // e2_2dp as multivector
 auto const e3m_2dp = MVec2dp<value_t>{e3_2dp}; // e3_2dp as multivector
@@ -71,9 +72,11 @@ auto const e3m_2dp = MVec2dp<value_t>{e3_2dp}; // e3_2dp as multivector
 auto const e23_2dp = BiVec2dp<value_t>{1.0, 0.0, 0.0};
 auto const e31_2dp = BiVec2dp<value_t>{0.0, 1.0, 0.0};
 auto const e12_2dp = BiVec2dp<value_t>{0.0, 0.0, 1.0};
-auto const e23m_2dp = MVec2dp<value_t>{e23_2dp};    // e23_2dp as multivector
-auto const e31m_2dp = MVec2dp<value_t>{e31_2dp};    // e31_2dp as multivector
-auto const e12m_2dp = MVec2dp<value_t>{e12_2dp};    // e12_2dp as multivector
+
+auto const e23m_2dp = MVec2dp<value_t>{e23_2dp}; // e23_2dp as multivector
+auto const e31m_2dp = MVec2dp<value_t>{e31_2dp}; // e31_2dp as multivector
+auto const e12m_2dp = MVec2dp<value_t>{e12_2dp}; // e12_2dp as multivector
+
 auto const e23me_2dp = MVec2dp_E<value_t>{e23_2dp}; // e23_2dp as even grade multivector
 auto const e31me_2dp = MVec2dp_E<value_t>{e31_2dp}; // e31_2dp as even grade multivector
 auto const e12me_2dp = MVec2dp_E<value_t>{e12_2dp}; // e12_2dp as even grade multivector
@@ -81,5 +84,51 @@ auto const e12me_2dp = MVec2dp_E<value_t>{e12_2dp}; // e12_2dp as even grade mul
 auto const I_2dp = PScalar2dp<value_t>(1.0);     // I_2dp = e1^e2^e3 = e123
 auto const Im_2dp = MVec2dp<value_t>{I_2dp};     // I_2dp as multivector
 auto const Im_2dp_U = MVec2dp_U<value_t>{I_2dp}; // I_2dp as uneven grade multivector
+
+////////////////////////////////////////////////////////////////////////////////
+// 3dp constants
+////////////////////////////////////////////////////////////////////////////////
+
+auto const e1_3dp = Vec3dp<value_t>{1.0, 0.0, 0.0, 0.0};
+auto const e2_3dp = Vec3dp<value_t>{0.0, 1.0, 0.0, 0.0};
+auto const e3_3dp = Vec3dp<value_t>{0.0, 0.0, 1.0, 0.0};
+auto const e4_3dp = Vec3dp<value_t>{0.0, 0.0, 0.0, 1.0};
+
+auto const e1m_3dp = MVec3dp<value_t>{e1_3dp}; // e1_3dp as multivector
+auto const e2m_3dp = MVec3dp<value_t>{e2_3dp}; // e2_3dp as multivector
+auto const e3m_3dp = MVec3dp<value_t>{e3_3dp}; // e3_3dp as multivector
+auto const e4m_3dp = MVec3dp<value_t>{e4_3dp}; // e4_3dp as multivector
+
+auto const e41_3dp = BiVec3dp<value_t>{1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+auto const e42_3dp = BiVec3dp<value_t>{0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+auto const e43_3dp = BiVec3dp<value_t>{0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
+auto const e23_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0};
+auto const e31_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 0.0, 1.0, 0.0};
+auto const e12_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+
+auto const e41m_3dp = MVec3dp<value_t>{e41_3dp}; // e41_3dp as multivector
+auto const e42m_3dp = MVec3dp<value_t>{e42_3dp}; // e42_3dp as multivector
+auto const e43m_3dp = MVec3dp<value_t>{e43_3dp}; // e43_3dp as multivector
+auto const e23m_3dp = MVec3dp<value_t>{e23_3dp}; // e23_3dp as multivector
+auto const e31m_3dp = MVec3dp<value_t>{e31_3dp}; // e31_3dp as multivector
+auto const e12m_3dp = MVec3dp<value_t>{e12_3dp}; // e12_3dp as multivector
+
+auto const e23me_3dp = MVec3dp_E<value_t>{e23_3dp}; // e23_3dp as even grade multivector
+auto const e31me_3dp = MVec3dp_E<value_t>{e31_3dp}; // e31_3dp as even grade multivector
+auto const e12me_3dp = MVec3dp_E<value_t>{e12_3dp}; // e12_3dp as even grade multivector
+
+auto const e423_3dp = TriVec3dp<value_t>{1.0, 0.0, 0.0, 0.0};
+auto const e431_3dp = TriVec3dp<value_t>{0.0, 1.0, 0.0, 0.0};
+auto const e412_3dp = TriVec3dp<value_t>{0.0, 0.0, 1.0, 0.0};
+auto const e321_3dp = TriVec3dp<value_t>{0.0, 0.0, 0.0, 1.0};
+
+auto const e423m_3dp = MVec3dp<value_t>{e423_3dp}; // e423_3dp as multivector
+auto const e431m_3dp = MVec3dp<value_t>{e431_3dp}; // e431_3dp as multivector
+auto const e412m_3dp = MVec3dp<value_t>{e412_3dp}; // e412_3dp as multivector
+auto const e321m_3dp = MVec3dp<value_t>{e321_3dp}; // e321_3dp as multivector
+
+auto const I_3dp = PScalar3dp<value_t>(1.0);     // I_3dp = e1^e2^e3^e4 = e1234
+auto const Im_3dp = MVec3dp<value_t>{I_3dp};     // I_3dp as multivector
+auto const Im_3dp_E = MVec3dp_E<value_t>{I_3dp}; // I_3dp as even grade multivector
 
 } // namespace hd::ga::pga

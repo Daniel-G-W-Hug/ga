@@ -34,8 +34,25 @@ template <typename T> struct MVec8_t<T, mvec3dp_e_tag> : public MVec8_t<T, defau
     {
     }
 
-    // assign a geometric product resulting from a product of two vectors
-    // via dot(v1,v2), cmt(v1,v2) and wdg(v1,v2)
+    // assign the scalar and the bivector part only, assuming the pseudoscalar part as 0.0
+    MVec8_t(Scalar3dp<T> s, BiVec3dp<T> const& B) :
+        MVec8_t(T(s), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(0.0))
+    {
+    }
+
+    // assign the bivector and the pseudoscalar part only, assuming the scalar part as 0.0
+    MVec8_t(BiVec3dp<T> const& B, PScalar3dp<T> ps) :
+        MVec8_t(T(0.0), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(ps))
+    {
+    }
+
+    // assign the scalar and the pseudoscalar part only, assuming the bivector part as 0.0
+    MVec8_t(Scalar3dp<T> s, PScalar3dp<T> ps) :
+        MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
+    {
+    }
+
+    // assign all three parts, the scalar, the bivector and the pseudoscalar explicitly
     MVec8_t(Scalar3dp<T> s, BiVec3dp<T> const& B, PScalar3dp<T> ps) :
         MVec8_t(T(s), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(ps))
     {
@@ -84,7 +101,7 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(Scalar3dp<T> s,
                                                                BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(s, B, Pscalar3dp<ctype>(0.0));
+    return MVec3dp_E<ctype>(s, B);
 }
 
 // bivector + scalar => even grade multivector
@@ -94,7 +111,7 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const
                                                                Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(s, B, Pscalar3dp<ctype>(0.0));
+    return MVec3dp_E<ctype>(s, B);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +125,7 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
                                                                BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(s, -B, Pscalar3dp<ctype>(0.0));
+    return MVec3dp_E<ctype>(s, -B);
 }
 
 // bivector + scalar => even grade multivector
@@ -118,7 +135,7 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const
                                                                Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(-s, B, Pscalar3dp<ctype>(0.0));
+    return MVec3dp_E<ctype>(-s, B);
 }
 
 } // namespace hd::ga

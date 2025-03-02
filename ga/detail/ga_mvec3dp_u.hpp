@@ -33,12 +33,6 @@ template <typename T> struct MVec8_t<T, mvec3dp_u_tag> : public MVec8_t<T, defau
         MVec8_t(v.x, v.y, v.z, v.w, t.x, t.y, t.z, t.w)
     {
     }
-
-    // assign from the uneven subalgebra directly
-    MVec8_t(MVec3dp_U<T> const& M) :
-        MVec8_t(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7)
-    {
-    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////

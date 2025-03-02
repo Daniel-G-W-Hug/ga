@@ -622,6 +622,12 @@ const mvec_coeff mv3dp_coeff_A_even = {"A.c0", "0",    "0",    "0",    "0",    "
 const mvec_coeff mv3dp_coeff_B_even = {"B.c0", "0",    "0",    "0",    "0",    "B.c1",
                                        "B.c2", "B.c3", "B.c4", "B.c5", "B.c6", "0",
                                        "0",    "0",    "0",    "B.c7"};
+const mvec_coeff mv3dp_coeff_R_even = {"R.c0", "0",    "0",    "0",    "0",    "R.c1",
+                                       "R.c2", "R.c3", "R.c4", "R.c5", "R.c6", "0",
+                                       "0",    "0",    "0",    "R.c7"};
+const mvec_coeff mv3dp_coeff_R_rev_even = {
+    "R.c0",  "0",     "0",     "0", "0", "-R.c1", "-R.c2", "-R.c3",
+    "-R.c4", "-R.c5", "-R.c6", "0", "0", "0",     "0",     "R.c7"};
 const mvec_coeff mv3dp_coeff_A_uneven = {"0",    "A.c0", "A.c1", "A.c2", "A.c3", "0",
                                          "0",    "0",    "0",    "0",    "0",    "A.c4",
                                          "A.c5", "A.c6", "A.c7", "0"};
@@ -645,5 +651,6 @@ void generate_and_print_pga3dp_lcontr(); // left contraction
 void generate_and_print_pga3dp_rcontr(); // right contraction
 void generate_and_print_pga3dp_dot();    // scalar product
 
-void generate_and_print_pga3dp_rdot(); // regressive scalar product
-void generate_and_print_pga3dp_rwdg(); // regressive wedge product
+void generate_and_print_pga3dp_rdot();  // regressive scalar product
+void generate_and_print_pga3dp_rwdg();  // regressive wedge product
+void generate_and_print_pga3dp_rotor(); // sandwich product rotor * object * rev(rotor)

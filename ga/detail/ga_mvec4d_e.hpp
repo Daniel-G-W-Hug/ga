@@ -34,8 +34,25 @@ template <typename T> struct MVec8_t<T, mvec4d_e_tag> : public MVec8_t<T, defaul
     {
     }
 
-    // assign a geometric product resulting from a product of two vectors
-    // via dot(v1,v2), cmt(v1,v2) and wdg(v1,v2)
+    // assign the scalar and the bivector part only, assuming the pseudoscalar part as 0.0
+    MVec8_t(Scalar4d<T> s, BiVec4d<T> const& B) :
+        MVec8_t(T(s), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(0.0))
+    {
+    }
+
+    // assign the bivector and the pseudoscalar part only, assuming the scalar part as 0.0
+    MVec8_t(BiVec4d<T> const& B, PScalar4d<T> ps) :
+        MVec8_t(T(0.0), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(ps))
+    {
+    }
+
+    // assign the scalar and the pseudoscalar part only, assuming the bivector part as 0.0
+    MVec8_t(Scalar4d<T> s, PScalar4d<T> ps) :
+        MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
+    {
+    }
+
+    // assign all three parts, the scalar, the bivector and the pseudoscalar explicitly
     MVec8_t(Scalar4d<T> s, BiVec4d<T> const& B, PScalar4d<T> ps) :
         MVec8_t(T(s), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(ps))
     {

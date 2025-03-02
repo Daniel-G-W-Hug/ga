@@ -5,7 +5,7 @@
 - 2024/05: add ga_lua for scripting capabilities
 - 2024/07: add ga_view as qt-based viewer for 2d applications
 - 2024/08: moved EGA (Euclidean GA) in own namespace and created PGA (Projective GA)
-- 2024/12: reworked structure of EGA 2D and 3D:
+- 2024/12: reworked structure of ega2d and ega3d:
                 - common base types established
                 - missing products added: dot, wdg, rwdg, inner, fat_dot,
                   left- and right complements
@@ -14,5 +14,7 @@
 - 2025/01: added ga_prdxpr to automatically generate product expressions for all products
 - 2025/02: started to implement parser for string manipulation with ga_prdxpr to
            manipulate and simplify expressions resulting from sandwich products in order
-           to optimize performance
-           Reworked PGA 2DP and implemented PGA 3DP based on expression generation using ga_prdxpr
+           to optimize performance (still needs completion for automatic simplification)
+           Reworked pga2dp and implemented pga3dp based on expressions generated using
+           ga_prdxpr
+- 2025/03: implemented tests for pga3d

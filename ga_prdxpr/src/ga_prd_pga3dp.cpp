@@ -318,17 +318,17 @@ void generate_and_print_pga3dp_gpr()
     // fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "ps * s -> ps");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::ps, filter_3dp::s);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "ps * s -> ps");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::ps, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
-    // fmt::println("{}:", prd_name + space_str + "s * ps -> ps");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::ps);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "s * ps -> ps");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::ps);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
     fmt::println("{}:", prd_name + space_str + "trivec * trivec -> mv_e");
@@ -364,17 +364,17 @@ void generate_and_print_pga3dp_gpr()
     fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "trivec * s -> trivec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::trivec, filter_3dp::s);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "trivec * s -> trivec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::trivec, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
-    // fmt::println("{}:", prd_name + space_str + "s * trivec -> trivec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::trivec);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "s * trivec -> trivec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::trivec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
     fmt::println("{}:", prd_name + space_str + "bivec * bivec -> mv_e");
@@ -397,17 +397,17 @@ void generate_and_print_pga3dp_gpr()
     fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "bivec * s -> bivec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::bivec, filter_3dp::s);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "bivec * s -> bivec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::bivec, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
-    // fmt::println("{}:", prd_name + space_str + "s * bivec -> bivec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::bivec);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "s * bivec -> bivec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::bivec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
     fmt::println("{}:", prd_name + space_str + "vec * vec -> mv_e");
@@ -417,24 +417,24 @@ void generate_and_print_pga3dp_gpr()
     fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "vec * s -> vec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::vec, filter_3dp::s);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "vec * s -> vec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::vec, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
-    // fmt::println("{}:", prd_name + space_str + "s * vec -> vec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::vec);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "s * vec -> vec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::vec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "s * s -> s");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::s);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "s * s -> s");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
     fmt::println("-------------------------------------------------------------------\n");
 
@@ -756,17 +756,17 @@ void generate_and_print_pga3dp_wdg()
     // fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "ps ^ s -> ps");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::ps, filter_3dp::s);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "ps ^ s -> ps");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::ps, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
-    // fmt::println("{}:", prd_name + space_str + "s ^ ps -> ps");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::ps);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "s ^ ps -> ps");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::ps);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
     // fmt::println("{}:", prd_name + space_str + "trivec ^ trivec -> 0");
@@ -799,17 +799,17 @@ void generate_and_print_pga3dp_wdg()
     fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "trivec ^ s -> trivec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::trivec, filter_3dp::s);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "trivec ^ s -> trivec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::trivec, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
-    // fmt::println("{}:", prd_name + space_str + "s ^ trivec -> trivec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::trivec);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "s ^ trivec -> trivec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::trivec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
     fmt::println("{}:", prd_name + space_str + "bivec ^ bivec -> ps");
@@ -832,17 +832,17 @@ void generate_and_print_pga3dp_wdg()
     fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "bivec ^ s -> bivec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::bivec, filter_3dp::s);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "bivec ^ s -> bivec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::bivec, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
-    // fmt::println("{}:", prd_name + space_str + "s ^ bivec -> bivec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::bivec);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "s ^ bivec -> bivec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::bivec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
     fmt::println("{}:", prd_name + space_str + "vec ^ vec -> bivec");
@@ -852,24 +852,24 @@ void generate_and_print_pga3dp_wdg()
     fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "vec ^ s -> vec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::vec, filter_3dp::s);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "vec ^ s -> vec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::vec, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
-    // fmt::println("{}:", prd_name + space_str + "s ^ vec -> vec");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::vec);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "s ^ vec -> vec");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::vec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "s ^ s -> s");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::s);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "s ^ s -> s");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
     fmt::println("-------------------------------------------------------------------\n");
 
@@ -2277,17 +2277,17 @@ void generate_and_print_pga3dp_rwdg()
     fmt::println("");
 
 
-    // fmt::println("{}:", prd_name + space_str + "rwdg(trivec,vec) -> s");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::trivec, filter_3dp::vec);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "rwdg(trivec,vec) -> s");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::trivec, filter_3dp::vec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
-    // fmt::println("{}:", prd_name + space_str + "rwdg(vec,trivec) -> s");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::vec, filter_3dp::trivec);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "rwdg(vec,trivec) -> s");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::vec, filter_3dp::trivec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
     // fmt::println("{}:", prd_name + space_str + "rwdg(trivec,s) -> 0");
@@ -2362,6 +2362,116 @@ void generate_and_print_pga3dp_rwdg()
     // print_mvec(prd_mv, basis);
     // fmt::println("");
 
+    fmt::println("-------------------------------------------------------------------\n");
+
+    return;
+}
+
+void generate_and_print_pga3dp_rotor()
+{
+
+    std::string prd_name = "pga3dp sandwich product:";
+    fmt::println("pga3dp sandwich product: rotor * object * rev(rotor):");
+    fmt::println("");
+
+    auto basis = mv3dp_basis;
+    // fmt::println("mv_basis for sandwich product:");
+    // print_mvec(mv3dp_coeff_svps, basis);
+    // fmt::println("");
+
+    auto basis_tab = apply_rules_to_tab(
+        mv_coeff_to_coeff_prd_tab(mv3dp_basis, mv3dp_basis, mul_str), gpr_pga3dp_rules);
+
+    fmt::println("{} - basis product table:", prd_name);
+    print_prd_tab(basis_tab);
+    fmt::println("");
+
+    // first product between multivectors in basis_tab (R * v)
+    fmt::println("{}:", prd_name + space_str + "mv_e * vec -> mv_u_tmp");
+    auto prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_R_even, mv3dp_coeff_svBtps);
+    // fmt::println("{} - product table with coeffs:", prd_name);
+    // print_prd_tab(prd_tab);
+    // fmt::println("");
+
+    auto mv_u_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv_e, filter_3dp::vec,
+                                        brace_switch::use_braces);
+    fmt::println("mv_u_tmp:");
+    print_mvec(mv_u_tmp, basis);
+    fmt::println("");
+
+    // second product between multivectors for the product v * rev(R)
+    fmt::println("{}:", prd_name + space_str + "mv_u_tmp * rev(mv_e) -> mv_u_res");
+    auto prd_tab_v = get_prd_tab(basis_tab, mv_u_tmp, mv3dp_coeff_R_rev_even);
+    // fmt::println("prd_tab_v:");
+    // print_prd_tab(prd_tab_v);
+    // fmt::println("");
+
+    auto mv_u_res_v =
+        get_mv_from_prd_tab(prd_tab_v, basis, filter_3dp::mv_u, filter_3dp::mv_e);
+    print_mvec(mv_u_res_v, basis);
+    fmt::println("");
+
+    //// bivector
+
+    // first product between multivectors in basis_tab (R * B)
+    fmt::println("{}:", prd_name + space_str + "mv_e * bivec -> mv_e_tmp");
+    auto mv_e_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv_e,
+                                        filter_3dp::bivec, brace_switch::use_braces);
+    fmt::println("mv_e_tmp:");
+    print_mvec(mv_e_tmp, basis);
+    fmt::println("");
+
+    // second product between multivectors for the product B * rev(R)
+    fmt::println("{}:", prd_name + space_str + "mv_e_tmp * rev(mv_e) -> mv_e_res");
+    auto prd_tab_B = get_prd_tab(basis_tab, mv_e_tmp, mv3dp_coeff_R_rev_even);
+    // fmt::println("prd_tab_B:");
+    // print_prd_tab(prd_tab_B);
+    // fmt::println("");
+
+    auto mv_e_res_B =
+        get_mv_from_prd_tab(prd_tab_B, basis, filter_3dp::mv_e, filter_3dp::mv_e);
+    print_mvec(mv_e_res_B, basis);
+    fmt::println("");
+
+    //// trivector
+
+    // first product between multivectors in basis_tab (R * B)
+    fmt::println("{}:", prd_name + space_str + "mv_e * trivec -> mv_u_tmp_t");
+    auto mv_u_tmp_t = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv_e,
+                                          filter_3dp::trivec, brace_switch::use_braces);
+    fmt::println("mv_u_tmp_t:");
+    print_mvec(mv_u_tmp_t, basis);
+    fmt::println("");
+
+    // second product between multivectors for the product B * rev(R)
+    fmt::println("{}:", prd_name + space_str + "mv_u_tmp_t * rev(mv_e) -> mv_u_res_t");
+    auto prd_tab_t = get_prd_tab(basis_tab, mv_u_tmp_t, mv3dp_coeff_R_rev_even);
+    // fmt::println("prd_tab_B:");
+    // print_prd_tab(prd_tab_B);
+    // fmt::println("");
+
+    auto mv_u_res_t =
+        get_mv_from_prd_tab(prd_tab_t, basis, filter_3dp::mv_u, filter_3dp::mv_e);
+    print_mvec(mv_u_res_t, basis);
+    fmt::println("");
+
+    // TODO: (requires string parsing and string manipulation for calculation product
+    // expressions by expanding brackets, simplifying and regrouping expressions)
+    //
+    // manipulate the expression automatically in order to regroup the terms
+    // and show by regrouping that
+    //   - the pseudoscalar part vanishes (and doesn't need to be calculated)
+    //   - that the terms can be rearranged automatically such that a matrix
+    //     transformation transformed_vector = matrix * vector can be derived from the
+    //     rotor. This is useful when the same transformation should be done for many
+    //     objects. This will allow for the transformation to be computed with the minimum
+    //     number of required operations (in contrast to somewhat more effort when doing
+    //     this with the orgininal rotor expression directly).
+    //     Despite this need for optimization to get minimum computational effort, the
+    //     rotor formulation is still very meaningful, because of ease of derivation, ease
+    //     of rotation interpolation and helpful geometric interpretation when compared to
+    //     mere matrix based modeling.
+    //
     fmt::println("-------------------------------------------------------------------\n");
 
     return;

@@ -143,4 +143,41 @@ inline constexpr PScalar4d<T> gr4(MVec4d<T> const& M)
     return PScalar4d<T>(M.c15);
 }
 
+// return the grades of the basic types
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr size_t gr([[maybe_unused]] Scalar4d<T>)
+{
+    return 0;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr size_t gr([[maybe_unused]] Vec4d<T> const&)
+{
+    return 1;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr size_t gr([[maybe_unused]] BiVec4d<T> const&)
+{
+    return 2;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr size_t gr([[maybe_unused]] TriVec4d<T> const&)
+{
+    return 3;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr size_t gr([[maybe_unused]] PScalar4d<T>)
+{
+    return 4;
+}
+
 } // namespace hd::ga

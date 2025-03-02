@@ -281,7 +281,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> dot(Scalar3d<T> s1, Scalar3d
 // wedge product (= outer product)
 ////////////////////////////////////////////////////////////////////////////////
 
-// wedge product extended to a fully populated multivectors
+// wedge product extended to fully populated multivectors
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& A,
@@ -2403,6 +2403,15 @@ inline constexpr Vec3d<std::common_type_t<T, U>> rotate(Vec3d<T> const& v,
     // which will be zero anyway
     // return Vec3d<ctype>(gr1<ctype>(rotor * v * rev(rotor)));
 
+    return Vec3d<ctype>(gr1(rotor * v * rev(rotor)));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> rotate_opt1(Vec3d<T> const& v,
+                                                             MVec3d_E<U> const& rotor)
+{
+    using ctype = std::common_type_t<T, U>;
     // optimized version:
     MVec3d_E<ctype> rr = rev(rotor);
     MVec3d_U<ctype> tmp = rotor * v;
@@ -2415,25 +2424,45 @@ inline constexpr Vec3d<std::common_type_t<T, U>> rotate(Vec3d<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> rotate(BiVec3d<T> const& v,
+inline constexpr Vec3d<std::common_type_t<T, U>> rotate_opt2(Vec3d<T> const& v,
+                                                             MVec3d_E<U> const& R)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype k1 = R.c0 * v.x - R.c2 * v.z + R.c3 * v.y;
+    ctype k2 = R.c0 * v.y + R.c1 * v.z - R.c3 * v.x;
+    ctype k3 = R.c0 * v.z - R.c1 * v.y + R.c2 * v.x;
+    ctype k4 = R.c1 * v.x + R.c2 * v.y + R.c3 * v.z;
+    return Vec3d<ctype>(k1 * R.c0 + k2 * R.c3 - k3 * R.c2 + k4 * R.c1,
+                        -k1 * R.c3 + k2 * R.c0 + k3 * R.c1 + k4 * R.c2,
+                        k1 * R.c2 - k2 * R.c1 + k3 * R.c0 + k4 * R.c3);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec3d<std::common_type_t<T, U>> rotate(BiVec3d<T> const& B,
                                                           MVec3d_E<U> const& rotor)
 {
     using ctype = std::common_type_t<T, U>;
-
-    // MVec3d_E<ctype> rr = rev(rotor);
-    // MVec3d_E<ctype> tmp = rotor * v;
-    // MVec3d_E<ctype> res = tmp * rr;
 
     // scalar part of res is 0 due to symmetric product  rotor * v * rev(rotor)
     //
     // optimization potential for sandwich product by replacing the second product
     // with a specific operation that skips the calculation of the scalar part
     // which will be zero anyway
-    // return BiVec3d<ctype>(gr2<ctype>(rotor * v * rev(rotor)));
+
+    return BiVec3d<ctype>(gr2(rotor * B * rev(rotor)));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt1(BiVec3d<T> const& B,
+                                                               MVec3d_E<U> const& rotor)
+{
+    using ctype = std::common_type_t<T, U>;
 
     // optimized version:
     MVec3d_E<ctype> rr = rev(rotor);
-    MVec3d_E<ctype> tmp = rotor * v;
+    MVec3d_E<ctype> tmp = rotor * B;
     // formular from operator*(MVec3d_E<T>, MVec3d_E<U>) - only bivector part
     return BiVec3d<ctype>(
         tmp.c0 * rr.c1 + tmp.c1 * rr.c0 - tmp.c2 * rr.c3 + tmp.c3 * rr.c2,
@@ -2443,11 +2472,27 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> rotate(BiVec3d<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& v,
+inline constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt2(BiVec3d<T> const& B,
+                                                               MVec3d_E<U> const& R)
+{
+    using ctype = std::common_type_t<T, U>;
+
+    ctype k1 = R.c1 * B.x + R.c2 * B.y + R.c3 * B.z;
+    ctype k2 = R.c0 * B.x - R.c2 * B.z + R.c3 * B.y;
+    ctype k3 = R.c0 * B.y + R.c1 * B.z - R.c3 * B.x;
+    ctype k4 = R.c0 * B.z - R.c1 * B.y + R.c2 * B.x;
+    return BiVec3d<ctype>(k1 * R.c1 + k2 * R.c0 + k3 * R.c3 - k4 * R.c2,
+                          k1 * R.c2 - k2 * R.c3 + k3 * R.c0 + k4 * R.c1,
+                          k1 * R.c3 + k2 * R.c2 - k3 * R.c1 + k4 * R.c0);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& M,
                                                          MVec3d_E<U> const& rotor)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d<ctype>(rotor * v * rev(rotor));
+    return MVec3d<ctype>(rotor * M * rev(rotor));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

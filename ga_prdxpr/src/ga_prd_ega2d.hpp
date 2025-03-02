@@ -79,5 +79,7 @@ void generate_and_print_ega2d_wdg();    // wedge product
 void generate_and_print_ega2d_lcontr(); // left contraction
 void generate_and_print_ega2d_rcontr(); // right contraction
 void generate_and_print_ega2d_dot();    // scalar produc
-void generate_and_print_ega2d_rwdg();   // regressive wedge product
-void generate_and_print_ega2d_rotor();  // sandwich product rotor * object * rev(rotor)
+
+void generate_and_print_ega2d_rwdg(); // regressive wedge product
+
+void generate_and_print_ega2d_rotor(); // sandwich product rotor * object * rev(rotor)

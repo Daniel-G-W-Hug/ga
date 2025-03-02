@@ -22,10 +22,10 @@ using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
 TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 {
 
-    TEST_CASE("algebra<2> - ega_2d")
+    TEST_CASE("algebra<2> - ega2d")
     {
         fmt::println("");
-        fmt::println("algebra<2> - ega_2d:");
+        fmt::println("algebra<2> - ega2d:");
         // 2d euklidean geometric algebra
         const algebra<2> alg;
         CHECK(alg.p() == 2);
@@ -34,15 +34,15 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(alg.dim_space() == 2);                 // dim_space == p+n+z
         CHECK(alg.num_components() == 4);            // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 3); // == dim_space + 1
-        fmt::println("   ega_2d: dim_grade = {}",
+        fmt::println("   ega2d: dim_grade = {}",
                      fmt::join(alg.num_components_grade, ", "));
-        fmt::println("   ega_2d: basis_name = {}", fmt::join(alg.basis_name, ", "));
+        fmt::println("   ega2d: basis_name = {}", fmt::join(alg.basis_name, ", "));
     }
 
-    TEST_CASE("algebra<3> - ega_3d")
+    TEST_CASE("algebra<3> - ega3d")
     {
         fmt::println("");
-        fmt::println("algebra<3> - ega_3d:");
+        fmt::println("algebra<3> - ega3d:");
         // 3d euklidean geometric algebra
         const algebra<3> alg;
         CHECK(alg.p() == 3);
@@ -51,9 +51,9 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(alg.dim_space() == 3);                 // dim_space == p+n+z
         CHECK(alg.num_components() == 8);            // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 4); // == dim_space + 1
-        fmt::println("   ega_3d: dim_grade = {}",
+        fmt::println("   ega3d: dim_grade = {}",
                      fmt::join(alg.num_components_grade, ", "));
-        fmt::println("   ega_3d: basis_name = {}", fmt::join(alg.basis_name, ", "));
+        fmt::println("   ega3d: basis_name = {}", fmt::join(alg.basis_name, ", "));
     }
 
     // TEST_CASE("algebra<4> ega_4d")
@@ -74,19 +74,23 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     // }
 
 
-    TEST_CASE("ega_2d<2,0,0> - defining basic types and ctor checks")
+    TEST_CASE("G<2,0,0> - ega2d defining basic types and ctor checks")
     {
-        fmt::println("ega_2d<2,0,0>: defining basic types and ctor checks");
+        fmt::println("G<2,0,0>: ega2d defining basic types and ctor checks");
 
-        auto mv1 = mvec2d{scalar2d(5.0)};
-        auto mv2 = mvec2d{vec2d{1.0, 2.0}};
-        auto mv3 = mvec2d{pscalar2d(-5.0)};
-        auto mv4 = mvec2d{scalar2d(5.0), pscalar2d(-5.0)};
-        auto mv5 = mvec2d_e{scalar2d(5.0)};
-        auto mv6 = mvec2d_e{pscalar2d(-5.0)};
-        auto mv7 = mvec2d_e{scalar2d(5.0), pscalar2d(-5.0)};
+        auto s = scalar2d(5.0);
+        auto v = vec2d{1.0, 2.0};
+        auto ps = pscalar2d(-5.0);
+
+        auto mv1 = mvec2d{s};
+        auto mv2 = mvec2d{v};
+        auto mv3 = mvec2d{ps};
+        auto mv4 = mvec2d{s, ps};
+        auto mv5 = mvec2d_e{s};
+        auto mv6 = mvec2d_e{ps};
+        auto mv7 = mvec2d_e{s, ps};
         auto mv8 = mvec2d{mv7};
-        auto mv9 = mvec2d{scalar2d(5.0), vec2d{1.0, 2.0}, pscalar2d(-5.0)};
+        auto mv9 = mvec2d{s, v, ps};
 
         // fmt::println("   mv1 = {}", mv1);
         // fmt::println("   mv2 = {}", mv2);
@@ -98,25 +102,29 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   mv8 = {}", mv8);
         // fmt::println("   mv9 = {}", mv9);
 
-        CHECK(gr0(mv1) == scalar2d(5.0));
-        CHECK(gr1(mv2) == vec2d{1.0, 2.0});
-        CHECK(gr2(mv3) == pscalar2d(-5.0));
+        CHECK(gr0(mv1) == s);
+        CHECK(gr1(mv2) == v);
+        CHECK(gr2(mv3) == ps);
 
-        CHECK(gr0(mv4) == scalar2d{5.0});
-        CHECK(gr2(mv4) == pscalar2d{-5.0});
+        CHECK(gr0(mv4) == s);
+        CHECK(gr2(mv4) == ps);
 
-        CHECK(gr0(mv5) == scalar2d(5.0));
-        CHECK(gr2(mv6) == pscalar2d{-5.0});
+        CHECK(gr0(mv5) == s);
+        CHECK(gr2(mv6) == ps);
 
-        CHECK(gr0(mv7) == scalar2d(5.0));
-        CHECK(gr2(mv7) == pscalar2d{-5.0});
+        CHECK(gr0(mv7) == s);
+        CHECK(gr2(mv7) == ps);
 
-        CHECK(gr0(mv8) == scalar2d(5.0));
-        CHECK(gr2(mv8) == pscalar2d{-5.0});
+        CHECK(gr0(mv8) == s);
+        CHECK(gr2(mv8) == ps);
 
-        CHECK(gr0(mv9) == scalar2d(5.0));
-        CHECK(gr1(mv9) == vec2d{1.0, 2.0});
-        CHECK(gr2(mv9) == pscalar2d(-5.0));
+        CHECK(gr0(mv9) == s);
+        CHECK(gr1(mv9) == v);
+        CHECK(gr2(mv9) == ps);
+
+        CHECK(gr(s) == 0);
+        CHECK(gr(v) == 1);
+        CHECK(gr(ps) == 2);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -383,6 +391,28 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     TEST_CASE("Vec2d: operations - wedge")
     {
         fmt::println("Vec2d: operations - wedge");
+
+
+        vec2d v1{1.0, 0.0};
+        vec2d v2{normalize(vec2d(1.0, 1.0))};
+        vec2d v3{0.0, 1.0};
+
+        double sd = 2.3;
+        double st = -5.1;
+        auto s = scalar2d{sd};
+        auto t = scalar2d{st};
+
+        CHECK(wdg(v1, v1) == pscalar2d{});                    // wdg=0 for collin. vectors
+        CHECK(wdg(v1, v2) == -wdg(v2, v1));                   // anticommutative for vect.
+        CHECK(wdg(wdg(v1, v2), v3) == wdg(v1, wdg(v2, v3)));  // wdg is associative
+        CHECK(wdg(v1, v2 + v3) == wdg(v1, v2) + wdg(v1, v3)); // wdg distributes over add.
+        CHECK(wdg(v1 + v2, v3) == wdg(v1, v3) + wdg(v2, v3)); // wdg distributes over add.
+        CHECK(wdg(sd * v1, v2) == wdg(v1, sd * v2)); // scalars can be factored out of wdg
+        CHECK(wdg(sd * v1, v2) == sd * wdg(v1, v2)); // scalars can be factored out of wdg
+        CHECK(wdg(s, t) == wdg(t, s));   // wdg between scalars equivalent to scalar mult.
+        CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
+        CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
+
 
         std::vector<std::tuple<double, Vec2d<double>>> v;
 
@@ -1362,34 +1392,38 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 #endif
     }
 
-    TEST_CASE("ega_3d<3,0,0> - defining basic types and ctor checks")
+    TEST_CASE("G<3,0,0> - ega3d defining basic types and ctor checks")
     {
-        fmt::println("ega_3d<3,0,0>: defining basic types and ctor checks");
+        fmt::println("G<3,0,0>: ega3d defining basic types and ctor checks");
 
-        auto mv1 = mvec3d{scalar3d(5.0)};
-        auto mv2 = mvec3d{vec3d{1.0, 2.0, 1.0}};
-        auto mv3 = mvec3d{bivec3d{-1.0, 2.0, 1.0}};
-        auto mv4 = mvec3d{pscalar3d(-5.0)};
+        auto s = scalar3d(5.0);
+        auto v = vec3d{1.0, 2.0, 1.0};
+        auto B = bivec3d{-1.0, 2.0, 1.0};
+        auto ps = pscalar3d(-5.0);
 
-        auto mv5a = mvec3d{scalar3d(5.0), bivec3d{-1.0, 2.0, 1.0}};
-        auto mv5b = mvec3d_e{scalar3d(5.0)};
-        auto mv5c = mvec3d_e{bivec3d{-1.0, 2.0, 1.0}};
-        auto mv5d = mvec3d_e{scalar3d(5.0), bivec3d{-1.0, 2.0, 1.0}};
+        auto mv0 = mvec3d{s};
+        auto mv1 = mvec3d{v};
+        auto mv2 = mvec3d{B};
+        auto mv3 = mvec3d{ps};
+
+        auto mv5a = mvec3d{s, B};
+        auto mv5b = mvec3d_e{s};
+        auto mv5c = mvec3d_e{B};
+        auto mv5d = mvec3d_e{s, B};
         auto mv5e = mvec3d{mv5d};
 
-        auto mv6a = mvec3d{vec3d{1.0, 2.0, 1.0}, pscalar3d{-5.0}};
-        auto mv6b = mvec3d_u{vec3d{1.0, 2.0, 1.0}};
-        auto mv6c = mvec3d_u{pscalar3d{-5.0}};
-        auto mv6d = mvec3d_u{vec3d{1.0, 2.0, 1.0}, pscalar3d{-5.0}};
+        auto mv6a = mvec3d{v, ps};
+        auto mv6b = mvec3d_u{v};
+        auto mv6c = mvec3d_u{ps};
+        auto mv6d = mvec3d_u{v, ps};
         auto mv6e = mvec3d{mv6d};
 
-        auto mv7 = mvec3d{scalar3d(5.0), vec3d{1.0, 2.0, 1.0}, bivec3d{-1.0, 2.0, 1.0},
-                          pscalar3d{-5.0}};
+        auto mv7 = mvec3d{s, v, B, ps};
 
+        // fmt::println("   mv0  = {}", mv0);
         // fmt::println("   mv1  = {}", mv1);
         // fmt::println("   mv2  = {}", mv2);
         // fmt::println("   mv3  = {}", mv3);
-        // fmt::println("   mv4  = {}", mv4);
         // fmt::println("   mv5a = {}", mv5a);
         // fmt::println("   mv5b = {}", mv5b);
         // fmt::println("   mv5c = {}", mv5c);
@@ -1402,53 +1436,58 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   mv6e = {}", mv6e);
         // fmt::println("   mv7  = {}", mv7);
 
-        CHECK(gr0(mv1) == scalar3d{5.0});
-        CHECK(gr1(mv2) == vec3d{1.0, 2.0, 1.0});
-        CHECK(gr2(mv3) == bivec3d{-1.0, 2.0, 1.0});
-        CHECK(gr3(mv4) == pscalar3d{-5.0});
+        CHECK(gr0(mv0) == s);
+        CHECK(gr1(mv1) == v);
+        CHECK(gr2(mv2) == B);
+        CHECK(gr3(mv3) == ps);
 
-        CHECK(gr0(mv5a) == scalar3d{5.0});
+        CHECK(gr0(mv5a) == s);
         CHECK(gr1(mv5a) == vec3d{});
-        CHECK(gr2(mv5a) == bivec3d{-1.0, 2.0, 1.0});
+        CHECK(gr2(mv5a) == B);
         CHECK(gr3(mv5a) == pscalar3d{});
 
-        CHECK(gr0(mv5b) == scalar3d{5.0});
+        CHECK(gr0(mv5b) == s);
         CHECK(gr2(mv5b) == bivec3d{});
 
         CHECK(gr0(mv5c) == scalar3d{});
-        CHECK(gr2(mv5c) == bivec3d{-1.0, 2.0, 1.0});
+        CHECK(gr2(mv5c) == B);
 
-        CHECK(gr0(mv5d) == scalar3d{5.0});
-        CHECK(gr2(mv5d) == bivec3d{-1.0, 2.0, 1.0});
+        CHECK(gr0(mv5d) == s);
+        CHECK(gr2(mv5d) == B);
 
-        CHECK(gr0(mv5e) == scalar3d{5.0});
+        CHECK(gr0(mv5e) == s);
         CHECK(gr1(mv5e) == vec3d{});
-        CHECK(gr2(mv5e) == bivec3d{-1.0, 2.0, 1.0});
+        CHECK(gr2(mv5e) == B);
         CHECK(gr3(mv5e) == pscalar3d{});
 
         CHECK(gr0(mv6a) == scalar3d{});
-        CHECK(gr1(mv6a) == vec3d{1.0, 2.0, 1.0});
+        CHECK(gr1(mv6a) == v);
         CHECK(gr2(mv6a) == bivec3d{});
-        CHECK(gr3(mv6a) == pscalar3d{-5.0});
+        CHECK(gr3(mv6a) == ps);
 
-        CHECK(gr1(mv6b) == vec3d{1.0, 2.0, 1.0});
+        CHECK(gr1(mv6b) == v);
         CHECK(gr3(mv6b) == pscalar3d{});
 
         CHECK(gr1(mv6c) == vec3d{});
-        CHECK(gr3(mv6c) == pscalar3d{-5.0});
+        CHECK(gr3(mv6c) == ps);
 
-        CHECK(gr1(mv6d) == vec3d{1.0, 2.0, 1.0});
-        CHECK(gr3(mv6d) == pscalar3d{-5.0});
+        CHECK(gr1(mv6d) == v);
+        CHECK(gr3(mv6d) == ps);
 
         CHECK(gr0(mv6e) == scalar3d{});
-        CHECK(gr1(mv6e) == vec3d{1.0, 2.0, 1.0});
+        CHECK(gr1(mv6e) == v);
         CHECK(gr2(mv6e) == bivec3d{});
-        CHECK(gr3(mv6e) == pscalar3d{-5.0});
+        CHECK(gr3(mv6e) == ps);
 
-        CHECK(gr0(mv7) == scalar3d{5.0});
-        CHECK(gr1(mv7) == vec3d{1.0, 2.0, 1.0});
-        CHECK(gr2(mv7) == bivec3d{-1.0, 2.0, 1.0});
-        CHECK(gr3(mv7) == pscalar3d{-5.0});
+        CHECK(gr0(mv7) == s);
+        CHECK(gr1(mv7) == v);
+        CHECK(gr2(mv7) == B);
+        CHECK(gr3(mv7) == ps);
+
+        CHECK(gr(s) == 0);
+        CHECK(gr(v) == 1);
+        CHECK(gr(B) == 2);
+        CHECK(gr(ps) == 3);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1769,6 +1808,11 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         vec3d v7{0.0, -1.0, 0.0};
         vec3d v8{normalize(vec3d(1.0, -1.0, 0.0))};
 
+        double sd = 2.3;
+        double st = -5.1;
+        auto s = scalar3d{sd};
+        auto t = scalar3d{st};
+
         // fmt::println("v1 = {: .4f}, wdg(v1,v1) = {: .4f}, "
         //              "angle = {: .4f}",
         //              v1, wdg(v1, v1), angle(v1, v1));
@@ -1793,6 +1837,17 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("v8 = {: .4f}, wdg(v1,v8) = {: .4f}, "
         //              "angle = {: .4f}",
         //              v8, wdg(v1, v8), angle(v1, v8));
+
+        CHECK(wdg(v1, v1) == bivec3d{});                      // wdg=0 for collin. vectors
+        CHECK(wdg(v1, v2) == -wdg(v2, v1));                   // anticommutative for vect.
+        CHECK(wdg(wdg(v1, v2), v3) == wdg(v1, wdg(v2, v3)));  // wdg is associative
+        CHECK(wdg(v1, v2 + v3) == wdg(v1, v2) + wdg(v1, v3)); // wdg distributes over add.
+        CHECK(wdg(v1 + v2, v3) == wdg(v1, v3) + wdg(v2, v3)); // wdg distributes over add.
+        CHECK(wdg(sd * v1, v2) == wdg(v1, sd * v2)); // scalars can be factored out of wdg
+        CHECK(wdg(sd * v1, v2) == sd * wdg(v1, v2)); // scalars can be factored out of wdg
+        CHECK(wdg(s, t) == wdg(t, s));   // wdg between scalars equivalent to scalar mult.
+        CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
+        CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
 
         CHECK(std::abs(nrm(wdg(v1, v1)) - sin(angle(v1, v1))) < eps);
         CHECK(std::abs(nrm(wdg(v1, v2)) - sin(angle(v1, v2))) < eps);
@@ -2848,6 +2903,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         CHECK(nrm(rotate(c, R)) == nrm(c));
         CHECK(gr1(c_rot_m) == rotate(c, R));
+        CHECK(rotate(c, R) == rotate_opt1(c, R));
+        CHECK(rotate(c, R) == rotate_opt2(c, R));
         // n I_3d approach:
         CHECK(rotate(vec3d{1.0, 0.0, 0.0}, rotor(e3_3d * I_3d, pi / 4)) ==
               normalize(vec3d{1.0, 1.0, 0.0}));
@@ -2863,6 +2920,10 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
             wdg(e2_3d, e1_3d + std::sqrt(3.0) * e3_3d); // bivector describing the plane
         CHECK(std::abs(nrm(Bv) - 2.0) < eps);
         CHECK(rotate(Bv, rotor(e31_3d, pi / 3)) == -2.0 * e12_3d);
+        CHECK(rotate(Bv, rotor(e31_3d, pi / 3)) ==
+              rotate_opt1(Bv, rotor(e31_3d, pi / 3)));
+        CHECK(rotate(Bv, rotor(e31_3d, pi / 3)) ==
+              rotate_opt2(Bv, rotor(e31_3d, pi / 3)));
 
         // just to silence unused variable warnings
         CHECK(my_exp == exp(-B, angle_uv));

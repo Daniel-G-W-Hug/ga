@@ -17,9 +17,13 @@ using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 TEST_SUITE("Projective Geometric Algebra (PGA)")
 {
 
-    TEST_CASE("algebra<2,0,1> - pga_2d")
+    //////////////////////////////////////////////////////////////////////////////////////
+    // projective geometric algebra 2d: pga2dp (embedded in a 3d representational space)
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("algebra<2,0,1> - pga2dp")
     {
-        fmt::println("algebra<2, 0, 1> - pga_2d:");
+        fmt::println("algebra<2, 0, 1> - pga2dp:");
         // 2d projective geometric algebra (2dp) models two-dimensional Euclidean algebra
         // embedding it in a three-dimensional representational space
         const algebra<2, 0, 1> alg;
@@ -29,56 +33,43 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(alg.dim_space() == 3);                 // dim_space == p+n+z
         CHECK(alg.num_components() == 8);            // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 4); // == dim_space + 1
-        fmt::println("   pga_2d: dim_grade = {}",
+        fmt::println("   pga2dp: dim_grade = {}",
                      fmt::join(alg.num_components_grade, ", "));
-        fmt::println("   pga_2d: basis_name = {}", fmt::join(alg.basis_name, ", "));
+        fmt::println("   pga2dp: basis_name = {}", fmt::join(alg.basis_name, ", "));
     }
 
-    TEST_CASE("algebra<3, 0, 1> pga_3d")
+    TEST_CASE("G<2,0,1> - pga2dp defining basic types and ctor checks")
     {
-        fmt::println("algebra<3, 0, 1> - pga_3d:");
-        // 3d projective geometric algebra (3dp) models three-dimensional Euclidean
-        // algebra embedding it in a four-dimensional representational space
-        const algebra<3, 0, 1> alg;
-        CHECK(alg.p() == 3);
-        CHECK(alg.n() == 0);
-        CHECK(alg.z() == 1);
-        CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
-        CHECK(alg.num_components() == 16);           // num_components == 2^dim
-        CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
-        fmt::println("   pga_3d: dim_grade = {}",
-                     fmt::join(alg.num_components_grade, ", "));
-        fmt::println("   pga_3d: basis_name = {}", fmt::join(alg.basis_name, ", "));
-    }
+        fmt::println("G<2,0,1>: pga2dp defining basic types and ctor checks");
 
-    TEST_CASE("pga_2d<2,0,1> - defining basic types and ctor checks")
-    {
-        fmt::println("pga_2d<2,0,1>: defining basic types and ctor checks");
+        auto s = scalar2dp{5.0};
+        auto v = vec2dp{1.0, 2.0, 1.0};
+        auto B = bivec2dp{-1.0, 2.0, 1.0};
+        auto ps = pscalar2dp{-5.0};
 
-        auto mv1 = mvec2dp{scalar2dp(5.0)};
-        auto mv2 = mvec2dp{vec2dp{1.0, 2.0, 1.0}};
-        auto mv3 = mvec2dp{bivec2dp{-1.0, 2.0, 1.0}};
-        auto mv4 = mvec2dp{pscalar2dp(-5.0)};
+        auto mv0 = mvec2dp{s};
+        auto mv1 = mvec2dp{v};
+        auto mv2 = mvec2dp{B};
+        auto mv3 = mvec2dp{ps};
 
-        auto mv5a = mvec2dp{scalar2dp(5.0), bivec2dp{-1.0, 2.0, 1.0}};
-        auto mv5b = mvec2dp_e{scalar2dp(5.0)};
-        auto mv5c = mvec2dp_e{bivec2dp{-1.0, 2.0, 1.0}};
-        auto mv5d = mvec2dp_e{scalar2dp(5.0), bivec2dp{-1.0, 2.0, 1.0}};
+        auto mv5a = mvec2dp{s, B};
+        auto mv5b = mvec2dp_e{s};
+        auto mv5c = mvec2dp_e{B};
+        auto mv5d = mvec2dp_e{s, B};
         auto mv5e = mvec2dp{mv5d};
 
-        auto mv6a = mvec2dp{vec2dp{1.0, 2.0, 1.0}, pscalar2dp{-5.0}};
-        auto mv6b = mvec2dp_u{vec2dp{1.0, 2.0, 1.0}};
-        auto mv6c = mvec2dp_u{pscalar2dp{-5.0}};
-        auto mv6d = mvec2dp_u{vec2dp{1.0, 2.0, 1.0}, pscalar2dp{-5.0}};
+        auto mv6a = mvec2dp{v, ps};
+        auto mv6b = mvec2dp_u{v};
+        auto mv6c = mvec2dp_u{ps};
+        auto mv6d = mvec2dp_u{v, ps};
         auto mv6e = mvec2dp{mv6d};
 
-        auto mv7 = mvec2dp{scalar2dp(5.0), vec2dp{1.0, 2.0, 1.0},
-                           bivec2dp{-1.0, 2.0, 1.0}, pscalar2dp{-5.0}};
+        auto mv7 = mvec2dp{s, v, B, ps};
 
+        // fmt::println("   mv0  = {}", mv0);
         // fmt::println("   mv1  = {}", mv1);
         // fmt::println("   mv2  = {}", mv2);
         // fmt::println("   mv3  = {}", mv3);
-        // fmt::println("   mv4  = {}", mv4);
         // fmt::println("   mv5a = {}", mv5a);
         // fmt::println("   mv5b = {}", mv5b);
         // fmt::println("   mv5c = {}", mv5c);
@@ -91,53 +82,58 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("   mv6e = {}", mv6e);
         // fmt::println("   mv7  = {}", mv7);
 
-        CHECK(gr0(mv1) == scalar2dp{5.0});
-        CHECK(gr1(mv2) == vec2dp{1.0, 2.0, 1.0});
-        CHECK(gr2(mv3) == bivec2dp{-1.0, 2.0, 1.0});
-        CHECK(gr3(mv4) == pscalar2dp{-5.0});
+        CHECK(gr0(mv0) == s);
+        CHECK(gr1(mv1) == v);
+        CHECK(gr2(mv2) == B);
+        CHECK(gr3(mv3) == ps);
 
-        CHECK(gr0(mv5a) == scalar2dp{5.0});
+        CHECK(gr0(mv5a) == s);
         CHECK(gr1(mv5a) == vec2dp{});
-        CHECK(gr2(mv5a) == bivec2dp{-1.0, 2.0, 1.0});
+        CHECK(gr2(mv5a) == B);
         CHECK(gr3(mv5a) == pscalar2dp{});
 
-        CHECK(gr0(mv5b) == scalar2dp{5.0});
+        CHECK(gr0(mv5b) == s);
         CHECK(gr2(mv5b) == bivec2dp{});
 
         CHECK(gr0(mv5c) == scalar2dp{});
-        CHECK(gr2(mv5c) == bivec2dp{-1.0, 2.0, 1.0});
+        CHECK(gr2(mv5c) == B);
 
-        CHECK(gr0(mv5d) == scalar2dp{5.0});
-        CHECK(gr2(mv5d) == bivec2dp{-1.0, 2.0, 1.0});
+        CHECK(gr0(mv5d) == s);
+        CHECK(gr2(mv5d) == B);
 
-        CHECK(gr0(mv5e) == scalar2dp{5.0});
+        CHECK(gr0(mv5e) == s);
         CHECK(gr1(mv5e) == vec2dp{});
-        CHECK(gr2(mv5e) == bivec2dp{-1.0, 2.0, 1.0});
+        CHECK(gr2(mv5e) == B);
         CHECK(gr3(mv5e) == pscalar2dp{});
 
         CHECK(gr0(mv6a) == scalar2dp{});
-        CHECK(gr1(mv6a) == vec2dp{1.0, 2.0, 1.0});
+        CHECK(gr1(mv6a) == v);
         CHECK(gr2(mv6a) == bivec2dp{});
-        CHECK(gr3(mv6a) == pscalar2dp{-5.0});
+        CHECK(gr3(mv6a) == ps);
 
-        CHECK(gr1(mv6b) == vec2dp{1.0, 2.0, 1.0});
+        CHECK(gr1(mv6b) == v);
         CHECK(gr3(mv6b) == pscalar2dp{});
 
         CHECK(gr1(mv6c) == vec2dp{});
-        CHECK(gr3(mv6c) == pscalar2dp{-5.0});
+        CHECK(gr3(mv6c) == ps);
 
-        CHECK(gr1(mv6d) == vec2dp{1.0, 2.0, 1.0});
-        CHECK(gr3(mv6d) == pscalar2dp{-5.0});
+        CHECK(gr1(mv6d) == v);
+        CHECK(gr3(mv6d) == ps);
 
         CHECK(gr0(mv6e) == scalar2dp{});
-        CHECK(gr1(mv6e) == vec2dp{1.0, 2.0, 1.0});
+        CHECK(gr1(mv6e) == v);
         CHECK(gr2(mv6e) == bivec2dp{});
-        CHECK(gr3(mv6e) == pscalar2dp{-5.0});
+        CHECK(gr3(mv6e) == ps);
 
-        CHECK(gr0(mv7) == scalar2dp{5.0});
-        CHECK(gr1(mv7) == vec2dp{1.0, 2.0, 1.0});
-        CHECK(gr2(mv7) == bivec2dp{-1.0, 2.0, 1.0});
-        CHECK(gr3(mv7) == pscalar2dp{-5.0});
+        CHECK(gr0(mv7) == s);
+        CHECK(gr1(mv7) == v);
+        CHECK(gr2(mv7) == B);
+        CHECK(gr3(mv7) == ps);
+
+        CHECK(gr(s) == 0);
+        CHECK(gr(v) == 1);
+        CHECK(gr(B) == 2);
+        CHECK(gr(ps) == 3);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -153,6 +149,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(std::abs(v.y) < eps);
         CHECK(std::abs(v.z) < eps);
     }
+
     TEST_CASE("Vec2dp: with curly braced intializer")
     {
         fmt::println("Vec2dp: with curly braced intializer");
@@ -162,6 +159,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(std::abs(v.y) < eps);
         CHECK(std::abs(v.z) < eps);
     }
+
     TEST_CASE("Vec2dp: cp ctor & cp assign incl. type deduction")
     {
         fmt::println("Vec2dp: cp ctor & cp assign incl. type deduction");
@@ -466,6 +464,11 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         vec2dp v7{0.0, -1.0, 0.0};
         vec2dp v8{normalize(vec2dp(1.0, -1.0, 0.0))};
 
+        double sd = 2.3;
+        double st = -5.1;
+        auto s = scalar2dp{sd};
+        auto t = scalar2dp{st};
+
         // fmt::println("v1 = {: .4f}, wdg(v1,v1) = {: .4f}, "
         //              "angle = {: .4f}",
         //              v1, wdg(v1, v1), angle(v1, v1));
@@ -490,6 +493,17 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("v8 = {: .4f}, wdg(v1,v8) = {: .4f}, "
         //              "angle = {: .4f}",
         //              v8, wdg(v1, v8), angle(v1, v8));
+
+        CHECK(wdg(v1, v1) == bivec2dp{});                     // wdg=0 for collin. vectors
+        CHECK(wdg(v1, v2) == -wdg(v2, v1));                   // anticommutative for vect.
+        CHECK(wdg(wdg(v1, v2), v3) == wdg(v1, wdg(v2, v3)));  // wdg is associative
+        CHECK(wdg(v1, v2 + v3) == wdg(v1, v2) + wdg(v1, v3)); // wdg distributes over add.
+        CHECK(wdg(v1 + v2, v3) == wdg(v1, v3) + wdg(v2, v3)); // wdg distributes over add.
+        CHECK(wdg(sd * v1, v2) == wdg(v1, sd * v2)); // scalars can be factored out of wdg
+        CHECK(wdg(sd * v1, v2) == sd * wdg(v1, v2)); // scalars can be factored out of wdg
+        CHECK(wdg(s, t) == wdg(t, s));   // wdg between scalars equivalent to scalar mult.
+        CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
+        CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
 
         CHECK(std::abs(bulk_nrm(wdg(v1, v1)) - sin(angle(v1, v1))) < eps);
         CHECK(std::abs(bulk_nrm(wdg(v1, v2)) - sin(angle(v1, v2))) < eps);
@@ -1359,6 +1373,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         CHECK(std::abs(bulk_nrm(rotate(c, R)) - bulk_nrm(c)) < eps);
         CHECK(gr1(c_rot_m) == rotate(c, R));
+        CHECK(rotate(c, R) == rotate_opt(c, R));
         // using a bivector directly:
         CHECK(rotate(vec2dp{1.0, 0.0, 0.0}, rotor(e12_2dp, pi / 4)) ==
               normalize(vec2dp{1.0, 1.0, 0.0}));
@@ -1376,30 +1391,29 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // just to silence unused variable warnings
         CHECK(my_exp == exp(-B, angle_uv));
         CHECK(my_rot == rotor(B, 2.0 * angle_uv));
+        CHECK(rotate(B, my_rot) == rotate_opt(B, my_rot));
         CHECK(c_rot_r == gr1(c_rot_u_r));
         CHECK(angle_c_c_rot == angle(c, c_rot_l));
         CHECK(angle_proj == angle(c_proj, c_rot_proj));
     }
 
-    TEST_CASE("2dp: complement operation")
+    TEST_CASE("MVec2dp: complement operation")
     {
-        fmt::println("2dp: complement operation");
+        fmt::println("MVec2dp: complement operation");
 
-        scalar2dp s{5.0};
-        vec2dp v{1.0, 2.0, 3.0};
-        bivec2dp B{10.0, 20.0, 30.0};
-        pscalar2dp ps{-3.0};
+        auto s = scalar2dp{5.0};
+        auto v = vec2dp{1.0, 2.0, 3.0};
+        auto B = bivec2dp{10.0, 20.0, 30.0};
+        auto ps = pscalar2dp{-3.0};
+
         auto mv = mvec2dp{s, v, B, ps};
+        auto mv_e = mvec2dp{s, B};
+        auto mv_u = mvec2dp{v, ps};
 
-        scalar2dp s2{2.5};
-        vec2dp v2{0.5, 1.0, 1.5};
-        bivec2dp b2{5.0, 10.0, 15.0};
-        pscalar2dp ps2{-1.5};
-
-        // complement could be easily added to mulivectors by componentwise application
-        // mvec2dp_e me{100.0, 10.0, 20.0, 30.0};
-        // mvec2dp_u mu{1.0, 2.0, 3.0, 300.0};
-        // mvec2dp m{100.0, 1.0, 2.0, 3.0, 10.0, 20.0, 30.0, 300.0};
+        auto s2 = scalar2dp{2.5};
+        auto v2 = vec2dp{0.5, 1.0, 1.5};
+        auto B2 = bivec2dp{5.0, 10.0, 15.0};
+        auto ps2 = pscalar2dp{-1.5};
 
         CHECK(wdg(s, cmpl(s)) == nrm_sq(s) * I_2dp);
         CHECK(wdg(v, cmpl(v)) == nrm_sq(v) * I_2dp);
@@ -1412,30 +1426,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(cmpl(cmpl(B)) == B);
         CHECK(cmpl(cmpl(ps)) == ps);
 
-        // check complements
-        // fmt::println("");
-        // s = scalar2dp(1);
-        // auto e1 = e1_2dp;
-        // auto e2 = e2_2dp;
-        // auto e3 = e3_2dp;
-        // auto e23 = e23_2dp;
-        // auto e31 = e31_2dp;
-        // auto e12 = e12_2dp;
-        // ps = I_2dp;
-        // fmt::println("   u:  s, e1, e2, e3, e23, e31, e12, ps \n"
-        //              "   = {:g}: {:g}, {:g}, {:g}, \n"
-        //              "{:g}, {:g}, {:g}, {:g}",
-        //              s, e1, e2, e3, e23, e31, e12, ps);
-        // fmt::println("");
-        // fmt::println("   cmpl(u):  cmpl(s), cmpl(e1), cmpl(e2), cmpl(e3) \n"
-        //              "   = {:g}: {:g}, {:g}, {:g}",
-        //              cmpl(s), cmpl(e1), cmpl(e2), cmpl(e3));
-        // fmt::println("");
-        // fmt::println("   cmpl(u):  cmpl(e23), cmpl(e31), cmpl(e12), cmpl(ps) \n"
-        //              "   = {:g}: {:g}, {:g}, {:g}",
-        //              cmpl(e23), cmpl(e31), cmpl(e12), cmpl(ps));
-        // fmt::println("");
-
+        // complement values
         CHECK(cmpl(scalar2dp(1.0)) == I_2dp);
         CHECK(cmpl(scalar2dp(1.0)) == rev(scalar2dp(1.0)) * I_2dp);
         CHECK(cmpl(e1_2dp) == e23_2dp);
@@ -1447,17 +1438,17 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(cmpl(I_2dp) == scalar2d(1.0));
         //
         CHECK(cmpl(cmpl(mv)) == mv);
-        CHECK(cmpl(cmpl(mvec2dp_e(s, B))) == mvec2dp_e(s, B));
-        CHECK(cmpl(cmpl(mvec2dp_u(v, ps))) == mvec2dp_u(v, ps));
+        CHECK(cmpl(cmpl(mv_e)) == mv_e);
+        CHECK(cmpl(cmpl(mv_u)) == mv_u);
         //
-        CHECK(wdg(scalar2dp(5), cmpl(scalar2dp(5))) / nrm_sq(scalar2dp(5)) == I_2dp);
-        CHECK(wdg(cmpl(scalar2dp(5)), scalar2dp(5)) / nrm_sq(scalar2dp(5)) == I_2dp);
+        CHECK(wdg(s, cmpl(s)) / nrm_sq(s) == I_2dp);
+        CHECK(wdg(cmpl(s), s) / nrm_sq(s) == I_2dp);
         CHECK(wdg(v, cmpl(v)) / nrm_sq(v) == I_2dp);
         CHECK(wdg(cmpl(v), v) / nrm_sq(v) == I_2dp);
         CHECK(wdg(B, cmpl(B)) / nrm_sq(B) == I_2dp);
         CHECK(wdg(cmpl(B), B) / nrm_sq(B) == I_2dp);
-        CHECK(wdg(pscalar2dp(3), cmpl(pscalar2dp(3))) / nrm_sq(pscalar2dp(3)) == I_2dp);
-        CHECK(wdg(cmpl(pscalar2dp(3)), pscalar2dp(3)) / nrm_sq(pscalar2dp(3)) == I_2dp);
+        CHECK(wdg(ps, cmpl(ps)) / nrm_sq(ps) == I_2dp);
+        CHECK(wdg(cmpl(ps), ps) / nrm_sq(ps) == I_2dp);
 
         // linearity of the complement operation
         double a = 2.0;
@@ -1468,16 +1459,16 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         CHECK(cmpl(s + s2) == cmpl(s) + cmpl(s2));
         CHECK(cmpl(v + v2) == cmpl(v) + cmpl(v2));
-        CHECK(cmpl(B + b2) == cmpl(B) + cmpl(b2));
+        CHECK(cmpl(B + B2) == cmpl(B) + cmpl(B2));
         CHECK(cmpl(ps + ps2) == cmpl(ps) + cmpl(ps2));
 
         // check regressive wedge product expressed in terms of
         // wegde product and complement operation
-        CHECK(rwdg(B, b2) == cmpl(wdg(cmpl(B), cmpl(b2))));
+        CHECK(rwdg(B, B2) == cmpl(wdg(cmpl(B), cmpl(B2))));
         CHECK(rwdg(B, v) == cmpl(wdg(cmpl(B), cmpl(v))));
         CHECK(rwdg(v, B) == cmpl(wdg(cmpl(v), cmpl(B))));
 
-        CHECK(cmpl(rwdg(B, b2)) == wdg(cmpl(B), cmpl(b2)));
+        CHECK(cmpl(rwdg(B, B2)) == wdg(cmpl(B), cmpl(B2)));
         CHECK(cmpl(wdg(v, v2)) == rwdg(cmpl(v), cmpl(v2)));
     }
 
@@ -1695,10 +1686,10 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     }
 
     TEST_CASE(
-        "pga_2dp<2,0,1> - simple applications, complements, contraction, expansions")
+        "G<2,0,1> - pga2dp simple applications, complements, contraction, expansions")
     {
-        fmt::println(
-            "pga_2dp<2,0,1> - simple applications, complements, contraction, expansions");
+        fmt::println("G<2,0,1> - pga2dp simple applications, complements, contraction, "
+                     "expansions");
 
         auto s1 = scalar2dp{2.0};
         auto v1 = vec2dp{1.0, -3.0, 0.0};
@@ -1813,5 +1804,618 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(cmpl(B >> v) == wdg(v, cmpl(B)));
         CHECK(cmpl(v << B) == wdg(cmpl(B), v));
     }
+
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    // projective geometric algebra 3d: pga3dp (embedded in a 4d representational space)
+    //////////////////////////////////////////////////////////////////////////////////////
+
+
+    TEST_CASE("algebra<3, 0, 1> pga3dp")
+    {
+        fmt::println("algebra<3, 0, 1> - pga3dp:");
+        // 3d projective geometric algebra (3dp) models three-dimensional Euclidean
+        // algebra embedding it in a four-dimensional representational space
+        const algebra<3, 0, 1> alg;
+        CHECK(alg.p() == 3);
+        CHECK(alg.n() == 0);
+        CHECK(alg.z() == 1);
+        CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
+        CHECK(alg.num_components() == 16);           // num_components == 2^dim
+        CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
+        fmt::println("   pga3dp: dim_grade = {}",
+                     fmt::join(alg.num_components_grade, ", "));
+        fmt::println("   pga3dp: basis_name = {}", fmt::join(alg.basis_name, ", "));
+    }
+
+    TEST_CASE("G<3,0,1> - pga3dp defining basic types and ctor checks")
+    {
+        fmt::println("G<3,0,1>: defining basic types and ctor checks");
+
+        auto s = scalar3dp{5.0};
+        auto v = vec3dp{1.0, 2.0, 3.0, 1.0};
+        auto B = bivec3dp{-1.0, 2.0, 1.0, -10.0, 20.0, 10.0};
+        auto t = trivec3dp{3.0, 6.0, 9.0, 3.0};
+        auto ps = pscalar3dp{-5.0};
+
+        auto mv0 = mvec3dp{s};
+        auto mv1 = mvec3dp{v};
+        auto mv2 = mvec3dp{B};
+        auto mv3 = mvec3dp{t};
+        auto mv4 = mvec3dp{ps};
+
+        auto mv5a = mvec3dp{s, B, ps};
+        auto mv5b = mvec3dp_e{s};
+        auto mv5c = mvec3dp_e{B};
+        auto mv5d = mvec3dp_e{ps};
+        auto mv5e = mvec3dp_e{s, B, ps};
+        auto mv5f{mv5e};           // cp assign to even grade
+        auto mv5g = mvec3dp{mv5e}; // assign to mv
+
+        auto mv5h = mvec3dp_e{s, B};
+        auto mv5i = mvec3dp_e{B, ps};
+        auto mv5j = mvec3dp_e{s, ps};
+
+        auto mv6a = mvec3dp{v, t};
+        auto mv6b = mvec3dp_u{v};
+        auto mv6c = mvec3dp_u{t};
+        auto mv6d = mvec3dp_u{v, t};
+        auto mv6e{mv6d};           // cp assign to uneven grade
+        auto mv6f = mvec3dp{mv6d}; // assign to mv
+
+        auto mv7 = mvec3dp{s, v, B, t, ps};
+
+        // fmt::println("   mv1  = {}", mv1);
+        // fmt::println("   mv2  = {}", mv2);
+        // fmt::println("   mv3  = {}", mv3);
+        // fmt::println("   mv4  = {}", mv4);
+        // fmt::println("   mv5a = {}", mv5a);
+        // fmt::println("   mv5b = {}", mv5b);
+        // fmt::println("   mv5c = {}", mv5c);
+        // fmt::println("   mv5d = {}", mv5d);
+        // fmt::println("   mv5e = {}", mv5e);
+        // fmt::println("   mv5f = {}", mv5f);
+        // fmt::println("   mv5g = {}", mv5g);
+        // fmt::println("   mv6a = {}", mv6a);
+        // fmt::println("   mv6b = {}", mv6b);
+        // fmt::println("   mv6c = {}", mv6c);
+        // fmt::println("   mv6d = {}", mv6d);
+        // fmt::println("   mv6e = {}", mv6e);
+        // fmt::println("   mv6f = {}", mv6f);
+        // fmt::println("   mv7  = {}", mv7);
+
+        CHECK(gr0(mv0) == s);
+        CHECK(gr1(mv1) == v);
+        CHECK(gr2(mv2) == B);
+        CHECK(gr3(mv3) == t);
+        CHECK(gr4(mv4) == ps);
+
+        CHECK(gr0(mv5a) == s);
+        CHECK(gr1(mv5a) == vec3dp{});
+        CHECK(gr2(mv5a) == B);
+        CHECK(gr3(mv5a) == trivec3dp{});
+        CHECK(gr4(mv5a) == ps);
+
+        CHECK(gr0(mv5b) == s);
+        CHECK(gr2(mv5b) == bivec3dp{});
+        CHECK(gr4(mv5b) == pscalar3dp{});
+
+        CHECK(gr0(mv5c) == scalar3dp{});
+        CHECK(gr2(mv5c) == B);
+        CHECK(gr4(mv5c) == pscalar3dp{});
+
+        CHECK(gr0(mv5d) == scalar3dp{});
+        CHECK(gr2(mv5d) == bivec3dp{});
+        CHECK(gr4(mv5d) == ps);
+
+        CHECK(gr0(mv5e) == s);
+        CHECK(gr2(mv5e) == B);
+        CHECK(gr4(mv5e) == ps);
+
+        CHECK(mv5f == mv5e);
+
+        CHECK(gr0(mv5h) == s);
+        CHECK(gr2(mv5h) == B);
+        CHECK(gr4(mv5h) == pscalar3dp{});
+
+        CHECK(gr0(mv5i) == scalar3dp{});
+        CHECK(gr2(mv5i) == B);
+        CHECK(gr4(mv5i) == ps);
+
+        CHECK(gr0(mv5j) == s);
+        CHECK(gr2(mv5j) == bivec3dp{});
+        CHECK(gr4(mv5j) == ps);
+
+        CHECK(gr0(mv6a) == scalar3dp{});
+        CHECK(gr1(mv6a) == v);
+        CHECK(gr2(mv6a) == bivec3dp{});
+        CHECK(gr3(mv6a) == t);
+        CHECK(gr4(mv6a) == pscalar3dp{});
+
+        CHECK(gr1(mv6b) == v);
+        CHECK(gr3(mv6b) == trivec3dp{});
+
+        CHECK(gr1(mv6c) == vec3dp{});
+        CHECK(gr3(mv6c) == t);
+
+        CHECK(gr1(mv6d) == v);
+        CHECK(gr3(mv6d) == t);
+
+        CHECK(mv6e == mv6d);
+
+        CHECK(gr0(mv6f) == scalar3dp{});
+        CHECK(gr1(mv6f) == v);
+        CHECK(gr2(mv6f) == bivec3dp{});
+        CHECK(gr3(mv6f) == t);
+        CHECK(gr4(mv6f) == pscalar3dp{});
+
+        CHECK(gr0(mv7) == s);
+        CHECK(gr1(mv7) == v);
+        CHECK(gr2(mv7) == B);
+        CHECK(gr3(mv7) == t);
+        CHECK(gr4(mv7) == ps);
+
+        CHECK(gr(s) == 0);
+        CHECK(gr(v) == 1);
+        CHECK(gr(B) == 2);
+        CHECK(gr(t) == 3);
+        CHECK(gr(ps) == 4);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Vec3dp<T> basic test cases
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("Vec3dp: default init")
+    {
+        fmt::println("Vec3dp: default init");
+        vec3dp v;
+        // fmt::println("   v = {}", v);
+        CHECK(std::abs(v.x) < eps);
+        CHECK(std::abs(v.y) < eps);
+        CHECK(std::abs(v.z) < eps);
+        CHECK(std::abs(v.w) < eps);
+    }
+
+    TEST_CASE("Vec3dp: with curly braced intializer")
+    {
+        fmt::println("Vec3dp: with curly braced intializer");
+        vec3dp v{0.0, 0.0, 0.0, 0.0};
+        // fmt::println("   v = {}", v);
+        CHECK(std::abs(v.x) < eps);
+        CHECK(std::abs(v.y) < eps);
+        CHECK(std::abs(v.z) < eps);
+        CHECK(std::abs(v.w) < eps);
+    }
+
+    TEST_CASE("Vec3dp: cp ctor & cp assign incl. type deduction")
+    {
+        fmt::println("Vec3dp: cp ctor & cp assign incl. type deduction");
+        vec3dp v1{1.0, 2.0, 3.0, 1.0}; // init with double (type deduction)
+        vec3dp v2{v1};                 // cp ctor
+        vec3dp v3 = v2;                // cp assign
+        vec3dp v4 = -v2;               // cp assign with unary minus
+
+        // fmt::println("   v1 = {}", v1);
+        // fmt::println("   v2 = {}", v2);
+        // fmt::println("   v3 = {}", v3);
+        // fmt::println("   v4 = {}", v4);
+
+        CHECK(std::abs(v1.x - 1.0) < eps);
+        CHECK(std::abs(v1.y - 2.0) < eps);
+        CHECK(std::abs(v1.z - 3.0) < eps);
+        CHECK(std::abs(v1.w - 1.0) < eps);
+        CHECK(std::abs(v2.x - 1.0) < eps);
+        CHECK(std::abs(v2.y - 2.0) < eps);
+        CHECK(std::abs(v2.z - 3.0) < eps);
+        CHECK(std::abs(v2.w - 1.0) < eps);
+        CHECK(std::abs(v3.x - 1.0) < eps);
+        CHECK(std::abs(v3.y - 2.0) < eps);
+        CHECK(std::abs(v3.z - 3.0) < eps);
+        CHECK(std::abs(v3.w - 1.0) < eps);
+        CHECK(v4 == -v2);
+
+        // check direct assignment operators (sequence of tests decisive!)
+        CHECK((v3 += v2) == 2.0 * v1);
+        CHECK((v3 -= v1) == v1);
+        CHECK((v3 *= 2.0) == 2.0 * v1);
+        CHECK((v3 /= 2.0) == v1);
+    }
+
+    TEST_CASE("Vec3dp: fmt & cout printing")
+    {
+        fmt::println("Vec3dp: fmt & cout printing");
+
+        vec3dp pf{1.0f, 2.00001f, 3.0f, 1.0f};
+        vec3dp pd{1.0, 2.00001, 3.0, 1.0};
+
+        // std::cout << "       cout: pf = " << pf << std::endl;
+        fmt::println("       fmt:  pf = {}", pf);
+        fmt::println("       fmt:  pf = {:.8f}", pf);
+
+        // std::cout << "       cout: pd = " << pd << std::endl;
+        fmt::println("       fmt:  pd = {}", pd);
+        fmt::println("       fmt:  pd = {:.8f}", pd);
+
+        std::vector<Vec3dp<double>> vp1{{1.0, 1.0, 1.0, 1.0}, {1.5, 2.0, 3.0, 1.0}};
+        fmt::println("       fmt: vp1 = {}", fmt::join(vp1, ", "));
+        fmt::println("       fmt: vp1 = {:e}", fmt::join(vp1, ", "));
+        fmt::println("");
+
+        CHECK(nrm_sq(pf - pd) < eps);
+    }
+
+    TEST_CASE("Vec3dp: comparison float")
+    {
+        fmt::println("Vec3dp: comparison float");
+
+        Vec3dp<float> v1f{1.0f, 2.0f, 3.0f, 1.0f};
+        Vec3dp<float> v2f{2.0f, 4.0f, 3.0f, 1.0f};
+        Vec3dp<float> v3f{1.0f, 2.0000001f, 3.0f, 1.0f};
+        Vec3dp<float> v4f{v1f};
+
+        // fmt::println("   v1f = {}", v1f);
+        // fmt::println("   v2f = {}", v2f);
+        // fmt::println("   v3f = {}", v3f);
+        // fmt::println("   v4f = {}", v4f);
+
+        // fmt::println("    fmt: eps = {}", std::numeric_limits<float>::epsilon());
+
+        CHECK(v1f == v4f);           // comparison (equality)
+        CHECK(v1f != v2f);           // comparison (inequality)
+        CHECK(nrm(v1f) < nrm(v2f));  // comparison (less than)
+        CHECK(nrm(v2f) >= nrm(v1f)); // comparison (greater than or equal)
+        CHECK(v3f == v1f);           // comparison (eqality)
+    }
+
+    TEST_CASE("Vec3dp: comparison double")
+    {
+        fmt::println("Vec3dp: comparison double");
+
+        Vec3dp<double> v1d{1.0, 2.0, 3.0, 1.0};
+        Vec3dp<double> v2d{2.0, 4.0, 3.0, 1.0};
+        Vec3dp<double> v3d{1.0, 2.0000000000000001, 3.0, 1.0};
+        Vec3dp<double> v4d{v1d};
+
+        // fmt::println("   v1d = {}", v1d);
+        // fmt::println("   v2d = {}", v2d);
+        // fmt::println("   v3d = {}", v3d);
+        // fmt::println("   v4d = {}", v4d);
+
+        // fmt::println("    fmt: eps = {}", std::numeric_limits<double>::epsilon());
+
+        CHECK(v1d == v4d);           // comparison (equality)
+        CHECK(v1d != v2d);           // comparison (inequality)
+        CHECK(nrm(v1d) < nrm(v2d));  // comparison norm
+        CHECK(nrm(v2d) >= nrm(v1d)); // comparison norm
+        CHECK(v3d == v1d);           // comparison (eqality)
+    }
+
+    TEST_CASE("Vec3dp: vector space and linearity tests")
+    {
+        fmt::println("Vec3dp: vector space and linearity tests");
+
+        // a vector space has scalar multiplication and vector addition defined
+        // and is closed under these operations
+        //
+        // a (linear) vector space fulfills operations tested against below:
+
+        vec3dp p0;
+        vec3dp p1{1.0, 2.0, 3.0, 1.0};
+        vec3dp p2{2.0, 4.0, 6.0, 2.0};
+        vec3dp p3{3.0, 6.0, 9.0, 3.0};
+        vec3dp p4 = -p1; // assignment using unary minus
+        double s = 2.35;
+        double t = -1.3;
+
+        CHECK(p1 + p1 == p2); // addition is defined
+
+        // vector addition
+        CHECK(p2 + p1 == p1 + p2);               // addition is commutative
+        CHECK((p1 + p2) + p3 == p1 + (p2 + p3)); // addition is associative
+        CHECK(p1 + p0 == p1);                    // zero is the additive identity
+        CHECK(p1 * 0.0 == p0); // scalar multplication with null creates the null vector
+
+        // scalar multiplication
+        CHECK(p1 * 1.0 == p1);                   // 1.0 is the multiplicative identity
+        CHECK((s * t) * p1 == s * (t * p1));     // is associative w.r.t. multiplication
+        CHECK(s * (p1 + p2) == s * p1 + s * p2); // scalar multiplication distributes
+        CHECK((p1 + p2) * s == p1 * s + p2 * s); // over vector addition
+        CHECK((s + t) * p1 == s * p1 + t * p1);  // and is associative w.r.t.addition
+
+        // additional tests
+        CHECK(p1 + (-p1) == p0); // there is an inverse element with respect to addition
+        CHECK(p1 + p2 == p3);    // component wise addition
+        CHECK(p1 * 2.0 == p2);   // component wise multiplication
+        CHECK(p4 == -p1);
+    }
+
+    TEST_CASE("Vec3dp: inner product properties")
+    {
+        fmt::println("Vec3dp: inner product properties");
+
+        double a = 2.35;
+        vec3dp u{1.0, 2.0, 1.0, 1.0};
+        vec3dp v{-0.5, 3.0, 0.5, 1.0};
+        vec3dp w{3.0, 6.0, -3.0, 1.0};
+
+        CHECK(dot(a * u, v) == a * dot(u, v));
+        CHECK(dot(u + v, w) == dot(u, w) + dot(v, w));
+        CHECK(dot(u, v) == dot(v, u));
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Vec3dp<T> operations test cases
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("Vec3dp: operations - norm, inverse, dot")
+    {
+        fmt::println("Vec3dp: operations - norm, inverse, dot");
+
+        vec3dp v1{2.0, 1.0, 2.0, -2.0};
+        vec3dp v1n{normalize(v1)};
+        vec3dp v1u{unitize(v1)};
+
+        vec3dp v3{2.0, 6.0, -4.0, 2.0};
+        vec3dp v4{inv(v3)};
+
+        auto v3m = mvec3dp{v3};
+        auto v4m = mvec3dp{v4};
+
+        // fmt::println("v1                  = {: .4f}, nrm(v1)         = {: .4f}", v1,
+        //              nrm(v1));
+        // fmt::println("v1                  = {: .4f}, bulk_nrm(v1)    = {: .4f}", v1,
+        //              bulk_nrm(v1));
+        // fmt::println("v1                  = {: .4f}, weight_nrm(v1)  = {: .4f}", v1,
+        //              weight_nrm(v1));
+        // fmt::println("v1n = normalize(v1) = {: .4f}, nrm(v1n)        = {: .4f}", v1n,
+        //              nrm(v1n));
+        // fmt::println("v1n                 = {: .4f}, bulk_nrm(v1n)   = {: .4f}", v1n,
+        //              bulk_nrm(v1n));
+        // fmt::println("v1n                 = {: .4f}, weight_nrm(v1n) = {: .4f}", v1n,
+        //              weight_nrm(v1n));
+        // fmt::println("v1u = unitize(v1)   = {: .4f}, nrm(v1u)        = {: .4f}", v1u,
+        //              nrm(v1u));
+        // fmt::println("v1u                 = {: .4f}, bulk_nrm(v1u)   = {: .4f}", v1u,
+        //              bulk_nrm(v1u));
+        // fmt::println("v1u                 = {: .4f}, weight_nrm(v1u) = {: .4f}", v1u,
+        //              weight_nrm(v1u));
+        // fmt::println("");
+        // fmt::println("v3                  = {: .4f}, nrm(v1) = {: .4f}", v3, nrm(v3));
+        // fmt::println("v4 = inv(v3)        = {: .4f}, "
+        //              "nrm(v3) = {: .4f}, nrm(v3)*nrm(v4) = {: .4f}",
+        //              v4, nrm(v4), nrm(v3) * nrm(v4));
+        // fmt::println("");
+        // fmt::println("v3m = {}, nrm(v3m) = {}", v3m, nrm(v3m));
+        // fmt::println("v4m = {}, nrm(v4m) = {}", v4m, nrm(v4m));
+        // fmt::println("0.5*(v3m*v4m + v4m*v3m) = {}", 0.5 * (v3m * v4m + v4m * v3m));
+        // fmt::println("0.5*(v3m*v4m - v4m*v3m) = {}", 0.5 * (v3m * v4m - v4m * v3m));
+
+        CHECK(std::abs(nrm_sq(v1) - 13) < eps);
+        CHECK(std::abs(bulk_nrm_sq(v1) - 9) < eps);
+        CHECK(std::abs(weight_nrm_sq(v1) - 4) < eps);
+
+        CHECK(std::abs(nrm_sq(v1n) - 1) < eps);
+        CHECK(std::abs(weight_nrm_sq(v1u) - 1) < eps);
+
+        CHECK(std::abs(bulk_nrm_sq(v3) - 56) < eps);
+        CHECK(std::abs(nrm(v4 * v3) - 1.0) < eps);
+        CHECK(std::abs(dot(v4, v3) - 1.0) < eps);
+        CHECK(std::abs(nrm(wdg(v4, v3))) < eps);
+    }
+
+    ////
+
+    TEST_CASE("Vec3dp: operations - wedge")
+    {
+        fmt::println("Vec3dp: operations - wedge");
+
+        vec3dp v1{1.0, 0.0, 0.0, 0.0};
+        vec3dp v2{normalize(vec3dp(1.0, 1.0, 0.0, 0.0))};
+        vec3dp v3{0.0, 1.0, 0.0, 0.0};
+        vec3dp v4{normalize(vec3dp(-1.0, 1.0, 0.0, 0.0))};
+        vec3dp v5{-1.0, 0.0, 0.0, 0.0};
+        vec3dp v6{normalize(vec3dp(-1.0, -1.0, 0.0, 0.0))};
+        vec3dp v7{0.0, -1.0, 0.0, 0.0};
+        vec3dp v8{normalize(vec3dp(1.0, -1.0, 0.0, 0.0))};
+
+        double sd = 2.3;
+        double st = -5.1;
+        auto s = scalar3dp{sd};
+        auto t = scalar3dp{st};
+
+        // fmt::println("v1 = {: .4f}, wdg(v1,v1) = {: .4f}, "
+        //              "angle = {: .4f}",
+        //              v1, wdg(v1, v1), angle(v1, v1));
+        // fmt::println("v2 = {: .4f}, wdg(v1,v2) = {: .4f}, "
+        //              "angle = {: .4f}",
+        //              v2, wdg(v1, v2), angle(v1, v2));
+        // fmt::println("v3 = {: .4f}, wdg(v1,v3) = {: .4f}, "
+        //              "angle = {: .4f}",
+        //              v3, wdg(v1, v3), angle(v1, v3));
+        // fmt::println("v4 = {: .4f}, wdg(v1,v4) = {: .4f}, "
+        //              "angle = {: .4f}",
+        //              v4, wdg(v1, v4), angle(v1, v4));
+        // fmt::println("v5 = {: .4f}, wdg(v1,v5) = {: .4f}, "
+        //              "angle = {: .4f}",
+        //              v5, wdg(v1, v5), angle(v1, v5));
+        // fmt::println("v6 = {: .4f}, wdg(v1,v6) = {: .4f}, "
+        //              "angle = {: .4f}",
+        //              v6, wdg(v1, v6), angle(v1, v6));
+        // fmt::println("v7 = {: .4f}, wdg(v1,v7) = {: .4f}, "
+        //              "angle = {: .4f}",
+        //              v7, wdg(v1, v7), angle(v1, v7));
+        // fmt::println("v8 = {: .4f}, wdg(v1,v8) = {: .4f}, "
+        //              "angle = {: .4f}",
+        //              v8, wdg(v1, v8), angle(v1, v8));
+
+        CHECK(wdg(v1, v1) == bivec3dp{});                     // wdg=0 for collin. vectors
+        CHECK(wdg(v1, v2) == -wdg(v2, v1));                   // anticommutative for vect.
+        CHECK(wdg(wdg(v1, v2), v3) == wdg(v1, wdg(v2, v3)));  // wdg is associative
+        CHECK(wdg(v1, v2 + v3) == wdg(v1, v2) + wdg(v1, v3)); // wdg distributes over add.
+        CHECK(wdg(v1 + v2, v3) == wdg(v1, v3) + wdg(v2, v3)); // wdg distributes over add.
+        CHECK(wdg(sd * v1, v2) == wdg(v1, sd * v2)); // scalars can be factored out of wdg
+        CHECK(wdg(sd * v1, v2) == sd * wdg(v1, v2)); // scalars can be factored out of wdg
+        CHECK(wdg(s, t) == wdg(t, s));   // wdg between scalars equivalent to scalar mult.
+        CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
+        CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
+
+        CHECK(std::abs(bulk_nrm(wdg(v1, v1)) - sin(angle(v1, v1))) < eps);
+        CHECK(std::abs(bulk_nrm(wdg(v1, v2)) - sin(angle(v1, v2))) < eps);
+        CHECK(std::abs(bulk_nrm(wdg(v1, v3)) - sin(angle(v1, v3))) < eps);
+        CHECK(std::abs(bulk_nrm(wdg(v1, v4)) - sin(angle(v1, v4))) < eps);
+        CHECK(std::abs(bulk_nrm(wdg(v1, v5)) - sin(angle(v1, v5))) < eps);
+        CHECK(std::abs(bulk_nrm(wdg(v1, v6)) - sin(angle(v1, v6))) < eps);
+        CHECK(std::abs(bulk_nrm(wdg(v1, v7)) - sin(angle(v1, v7))) < eps);
+        CHECK(std::abs(bulk_nrm(wdg(v1, v8)) - sin(angle(v1, v8))) < eps);
+    }
+
+    ////
+
+    TEST_CASE("MVec3dp: complement operation")
+    {
+        fmt::println("MVec3dp: complement operation");
+
+        auto s = scalar3dp{5.0};
+        auto v = vec3dp{1.0, 2.0, 3.0, 1.0};
+        auto B = bivec3dp{-1.0, 2.0, 1.0, -10.0, 20.0, 10.0};
+        auto t = trivec3dp{3.0, 6.0, 9.0, 3.0};
+        auto ps = pscalar3dp{-5.0};
+
+        auto mv = mvec3dp{s, v, B, t, ps};
+        auto mv_e = mvec3dp_e{s, B, ps};
+        auto mv_u = mvec3dp{v, t};
+
+        auto s2 = scalar3dp{2.5};
+        auto v2 = vec3dp{0.5, 1.0, 1.5, 2.0};
+        auto B2 = bivec3dp{5.0, 10.0, 15.0, 50.0, 100.0, 150.0};
+        auto t2 = trivec3dp{1.5, 3.0, 4.5, 6.0};
+        auto ps2 = pscalar3dp{-1.5};
+
+        CHECK(wdg(s, r_cmpl(s)) == nrm_sq(s) * I_3dp);
+        CHECK(wdg(v, r_cmpl(v)) == nrm_sq(v) * I_3dp);
+        CHECK(wdg(B, r_cmpl(B)) == nrm_sq(B) * I_3dp);
+        CHECK(wdg(t, r_cmpl(t)) == nrm_sq(t) * I_3dp);
+        CHECK(wdg(ps, r_cmpl(ps)) == nrm_sq(ps) * I_3dp);
+
+        CHECK(wdg(l_cmpl(s), s) == nrm_sq(s) * I_3dp);
+        CHECK(wdg(l_cmpl(v), v) == nrm_sq(v) * I_3dp);
+        CHECK(wdg(l_cmpl(B), B) == nrm_sq(B) * I_3dp);
+        CHECK(wdg(l_cmpl(t), t) == nrm_sq(t) * I_3dp);
+        CHECK(wdg(l_cmpl(ps), ps) == nrm_sq(ps) * I_3dp);
+
+        // complement properties (right and left complements are inverse to each other)
+        CHECK(l_cmpl(r_cmpl(s)) == s);
+        CHECK(l_cmpl(r_cmpl(v)) == v);
+        CHECK(l_cmpl(r_cmpl(B)) == B);
+        CHECK(l_cmpl(r_cmpl(t)) == t);
+        CHECK(l_cmpl(r_cmpl(ps)) == ps);
+        CHECK(l_cmpl(r_cmpl(mv)) == mv);
+        CHECK(l_cmpl(r_cmpl(mv_e)) == mv_e);
+        CHECK(l_cmpl(r_cmpl(mv_u)) == mv_u);
+
+        CHECK(r_cmpl(l_cmpl(s)) == s);
+        CHECK(r_cmpl(l_cmpl(v)) == v);
+        CHECK(r_cmpl(l_cmpl(B)) == B);
+        CHECK(r_cmpl(l_cmpl(t)) == t);
+        CHECK(r_cmpl(l_cmpl(ps)) == ps);
+        CHECK(r_cmpl(l_cmpl(mv)) == mv);
+        CHECK(r_cmpl(l_cmpl(mv_e)) == mv_e);
+        CHECK(r_cmpl(l_cmpl(mv_u)) == mv_u);
+
+        // complement values
+        CHECK(r_cmpl(scalar3dp(1.0)) == I_3dp);
+        CHECK(r_cmpl(e1_3dp) == e423_3dp);
+        CHECK(r_cmpl(e2_3dp) == e431_3dp);
+        CHECK(r_cmpl(e3_3dp) == e412_3dp);
+        CHECK(r_cmpl(e4_3dp) == e321_3dp);
+        CHECK(r_cmpl(e41_3dp) == -e23_3dp);
+        CHECK(r_cmpl(e42_3dp) == -e31_3dp);
+        CHECK(r_cmpl(e43_3dp) == -e12_3dp);
+        CHECK(r_cmpl(e23_3dp) == -e41_3dp);
+        CHECK(r_cmpl(e31_3dp) == -e42_3dp);
+        CHECK(r_cmpl(e12_3dp) == -e43_3dp);
+        CHECK(r_cmpl(e423_3dp) == -e1_3dp);
+        CHECK(r_cmpl(e431_3dp) == -e2_3dp);
+        CHECK(r_cmpl(e412_3dp) == -e3_3dp);
+        CHECK(r_cmpl(e321_3dp) == -e4_3dp);
+        CHECK(r_cmpl(I_3dp) == scalar2d(1.0));
+
+        CHECK(l_cmpl(scalar3dp(1.0)) == I_3dp);
+        CHECK(l_cmpl(e1_3dp) == -e423_3dp);
+        CHECK(l_cmpl(e2_3dp) == -e431_3dp);
+        CHECK(l_cmpl(e3_3dp) == -e412_3dp);
+        CHECK(l_cmpl(e4_3dp) == -e321_3dp);
+        CHECK(l_cmpl(e41_3dp) == -e23_3dp);
+        CHECK(l_cmpl(e42_3dp) == -e31_3dp);
+        CHECK(l_cmpl(e43_3dp) == -e12_3dp);
+        CHECK(l_cmpl(e23_3dp) == -e41_3dp);
+        CHECK(l_cmpl(e31_3dp) == -e42_3dp);
+        CHECK(l_cmpl(e12_3dp) == -e43_3dp);
+        CHECK(l_cmpl(e423_3dp) == e1_3dp);
+        CHECK(l_cmpl(e431_3dp) == e2_3dp);
+        CHECK(l_cmpl(e412_3dp) == e3_3dp);
+        CHECK(l_cmpl(e321_3dp) == e4_3dp);
+        CHECK(l_cmpl(I_3dp) == scalar2d(1.0));
+
+        // linearity of the right and left complement operation
+        double a = 2.0;
+        CHECK(r_cmpl(a * s) == a * r_cmpl(s));
+        CHECK(r_cmpl(a * v) == a * r_cmpl(v));
+        CHECK(r_cmpl(a * B) == a * r_cmpl(B));
+        CHECK(r_cmpl(a * t) == a * r_cmpl(t));
+        CHECK(r_cmpl(a * ps) == a * r_cmpl(ps));
+
+        CHECK(r_cmpl(s + s2) == r_cmpl(s) + r_cmpl(s2));
+        CHECK(r_cmpl(v + v2) == r_cmpl(v) + r_cmpl(v2));
+        CHECK(r_cmpl(B + B2) == r_cmpl(B) + r_cmpl(B2));
+        CHECK(r_cmpl(t + t2) == r_cmpl(t) + r_cmpl(t2));
+        CHECK(r_cmpl(ps + ps2) == r_cmpl(ps) + r_cmpl(ps2));
+
+        CHECK(l_cmpl(a * s) == a * l_cmpl(s));
+        CHECK(l_cmpl(a * v) == a * l_cmpl(v));
+        CHECK(l_cmpl(a * B) == a * l_cmpl(B));
+        CHECK(l_cmpl(a * t) == a * l_cmpl(t));
+        CHECK(l_cmpl(a * ps) == a * l_cmpl(ps));
+
+        CHECK(l_cmpl(s + s2) == l_cmpl(s) + l_cmpl(s2));
+        CHECK(l_cmpl(v + v2) == l_cmpl(v) + l_cmpl(v2));
+        CHECK(l_cmpl(B + B2) == l_cmpl(B) + l_cmpl(B2));
+        CHECK(l_cmpl(t + t2) == l_cmpl(t) + l_cmpl(t2));
+        CHECK(l_cmpl(ps + ps2) == l_cmpl(ps) + l_cmpl(ps2));
+
+        // check regressive wedge product expressed in terms of
+        // wegde product and complement operation
+        CHECK(rwdg(t, t2) == l_cmpl(wdg(r_cmpl(t), r_cmpl(t2))));
+        CHECK(rwdg(t, B) == l_cmpl(wdg(r_cmpl(t), r_cmpl(B))));
+        CHECK(rwdg(B, t) == l_cmpl(wdg(r_cmpl(B), r_cmpl(t))));
+        CHECK(rwdg(t, v) == l_cmpl(wdg(r_cmpl(t), r_cmpl(v))));
+        CHECK(rwdg(v, t) == l_cmpl(wdg(r_cmpl(v), r_cmpl(t))));
+        CHECK(rwdg(B, B2) == l_cmpl(wdg(r_cmpl(B), r_cmpl(B2))));
+
+        CHECK(l_cmpl(rwdg(B, B2)) == wdg(r_cmpl(B), r_cmpl(B2)));
+        CHECK(l_cmpl(wdg(v, v2)) == rwdg(r_cmpl(v), r_cmpl(v2)));
+    }
+
+    ////
+
+    // TEST_CASE(
+    //     "G<3,0,1> - pga3dp simple applications, complements, contraction, expansions")
+    // {
+    //     fmt::println(
+    //         "G<3,0,1> - pga3dp simple applications, complements, contraction,
+    //         expansions");
+
+    //     auto s1 = scalar3dp{2.0};
+    //     auto v1 = vec3dp{1.0, -3.0, 0.0, 1.0};
+    //     auto v2 = vec3dp{-1.0, 3.0, 2.0, 1.0};
+    //     auto b1 = bivec3dp{2.0, -4.0, 1.0, -4.0, 8.0, -2.0};
+    //     auto t1 = trivec3dp{1.0, -5.0, 6.0, 7.0};
+    //     auto ps1 = pscalar3dp{-2.0};
+    //     auto M1 = mvec3dp{s1, v1, b1, t1, ps1};
+
+    //     auto R = rotor(wdg(v1, e1_3dp), deg_to_rad(15));
+    //     CHECK(rotate(v2, R) == rotate_opt(v2, R));
+    // }
 
 } // TEST_SUITE("Projective Geometric Algebra (PGA)")

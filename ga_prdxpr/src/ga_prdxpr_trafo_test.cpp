@@ -221,7 +221,12 @@ TEST_SUITE("expression transformation")
         // std::string s = R"(-(a*(a + b)) + 3*(a+b))";
         // std::string s = R"((a + b)*a)";
         // std::string s = R"((a + b)*(a + b))";
-        std::string s = "R.c0 * v.x - R.c2 * v.z + R.c3 * v.y + R.c1 * v.x"s;
+        //   std::string s = "R.c0 * v.x - R.c2 * v.z + R.c3 * v.y + R.c1 * v.x"s;
+
+        //   std::string s =
+        //       "(R.c0 * v.x + R.c1 * v.y) * R.c0 + (R.c0 * v.y - R.c1 * v.x) * R.c1"s;
+        std::string s =
+            "-(R.c0 * v.x + R.c1 * v.y) * R.c1 + (R.c0 * v.y - R.c1 * v.x) * R.c0"s;
 
         fmt::println("Initial string to parse: s: '{}'\n", s);
 

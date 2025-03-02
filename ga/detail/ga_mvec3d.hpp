@@ -121,6 +121,36 @@ inline constexpr PScalar3d<T> gr3(MVec3d<T> const& M)
     return PScalar3d<T>(M.c7);
 }
 
+// return the grades of the basic types
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr size_t gr([[maybe_unused]] Scalar3d<T>)
+{
+    return 0;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr size_t gr([[maybe_unused]] Vec3d<T> const&)
+{
+    return 1;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr size_t gr([[maybe_unused]] BiVec3d<T> const&)
+{
+    return 2;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr size_t gr([[maybe_unused]] PScalar3d<T>)
+{
+    return 3;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // addition operations to combine scalars, pseudoscalar and vectors to multivectors
 // (only remaining combinations not covered in mvec3d_e.hpp and mvec3d_u.hpp)
