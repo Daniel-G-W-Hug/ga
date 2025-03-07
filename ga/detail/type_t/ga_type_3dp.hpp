@@ -26,4 +26,9 @@ template <typename T> using MVec3dp_E = MVec8_t<T, mvec3dp_e_tag>;
 template <typename T> using MVec3dp_U = MVec8_t<T, mvec3dp_u_tag>;
 template <typename T> using MVec3dp = MVec16_t<T, mvec3dp_tag>;
 
+// for the geometric norm as homogeneous quantity,
+// which has a scalar part (c0 component) and a pseudoscalar part (c1 component)
+template <typename T> using DualNum3dp = MVec2_t<T, dual_number3dp_tag>;
+
+
 } // namespace hd::ga

@@ -64,6 +64,7 @@ namespace hd::ga::pga {
 auto const e1_2dp = Vec2dp<value_t>{1.0, 0.0, 0.0};
 auto const e2_2dp = Vec2dp<value_t>{0.0, 1.0, 0.0};
 auto const e3_2dp = Vec2dp<value_t>{0.0, 0.0, 1.0};
+auto const origin_2dp = e3_2dp;
 
 auto const e1m_2dp = MVec2dp<value_t>{e1_2dp}; // e1_2dp as multivector
 auto const e2m_2dp = MVec2dp<value_t>{e2_2dp}; // e2_2dp as multivector
@@ -72,6 +73,7 @@ auto const e3m_2dp = MVec2dp<value_t>{e3_2dp}; // e3_2dp as multivector
 auto const e23_2dp = BiVec2dp<value_t>{1.0, 0.0, 0.0};
 auto const e31_2dp = BiVec2dp<value_t>{0.0, 1.0, 0.0};
 auto const e12_2dp = BiVec2dp<value_t>{0.0, 0.0, 1.0};
+auto const horizon_2dp = e12_2dp; // horizon == line at infinity == cmpl(origin)
 
 auto const e23m_2dp = MVec2dp<value_t>{e23_2dp}; // e23_2dp as multivector
 auto const e31m_2dp = MVec2dp<value_t>{e31_2dp}; // e31_2dp as multivector
@@ -93,6 +95,7 @@ auto const e1_3dp = Vec3dp<value_t>{1.0, 0.0, 0.0, 0.0};
 auto const e2_3dp = Vec3dp<value_t>{0.0, 1.0, 0.0, 0.0};
 auto const e3_3dp = Vec3dp<value_t>{0.0, 0.0, 1.0, 0.0};
 auto const e4_3dp = Vec3dp<value_t>{0.0, 0.0, 0.0, 1.0};
+auto const origin_3dp = e4_3dp;
 
 auto const e1m_3dp = MVec3dp<value_t>{e1_3dp}; // e1_3dp as multivector
 auto const e2m_3dp = MVec3dp<value_t>{e2_3dp}; // e2_3dp as multivector
@@ -121,6 +124,7 @@ auto const e423_3dp = TriVec3dp<value_t>{1.0, 0.0, 0.0, 0.0};
 auto const e431_3dp = TriVec3dp<value_t>{0.0, 1.0, 0.0, 0.0};
 auto const e412_3dp = TriVec3dp<value_t>{0.0, 0.0, 1.0, 0.0};
 auto const e321_3dp = TriVec3dp<value_t>{0.0, 0.0, 0.0, 1.0};
+auto const horizon_3dp = e321_3dp; // horizon == plane at infinity == r_cmpl(origin)
 
 auto const e423m_3dp = MVec3dp<value_t>{e423_3dp}; // e423_3dp as multivector
 auto const e431m_3dp = MVec3dp<value_t>{e431_3dp}; // e431_3dp as multivector

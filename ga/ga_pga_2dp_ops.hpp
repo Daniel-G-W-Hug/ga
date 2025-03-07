@@ -12,7 +12,7 @@
 #include <string>    // std::string, std::to_string
 
 #include "detail/ga_mvec2dp.hpp" // inclusion of multivector imports all component types
-#include "detail/ga_pga_2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Line2dp
+#include "detail/ga_pga_2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Line2d
 
 
 namespace hd::ga::pga {
@@ -241,13 +241,13 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> dot([[maybe_unused]] PScala
                                                          [[maybe_unused]] PScalar2dp<U>)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2dp<ctype>(ctype(0.0));
+    return Scalar2dp<ctype>(0.0);
 }
 
 // return dot product of two bivectors A and B (= a scalar)
 // dot(A,B) = gr0(A * B)
 //
-// arguments: BiVec2dp<T> or Line2dp<T> : public BiVec2dp<T>
+// arguments: BiVec2dp<T> or Line2d<T> : public BiVec2dp<T>
 //
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -334,7 +334,7 @@ inline constexpr PScalar2dp<std::common_type_t<T, U>> rdot([[maybe_unused]] Scal
                                                            [[maybe_unused]] Scalar2dp<U>)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar2dp<ctype>(ctype(0.0));
+    return PScalar2dp<ctype>(0.0);
 }
 
 
@@ -539,9 +539,20 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> wdg(Scalar2dp<T> s1, Scalar
 // => returns a line (aka a bivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Line2dp<std::common_type_t<T, U>> wdg(Point2d<T> const& p, Point2d<U> const& q)
+inline constexpr Line2d<std::common_type_t<T, U>> wdg(Point2d<T> const& p,
+                                                      Point2d<U> const& q)
 {
-    return Line2dp<std::common_type_t<T, U>>(p.y - q.y, q.x - p.x, p.x * q.y - p.y * q.x);
+    return Line2d<std::common_type_t<T, U>>(p.y - q.y, q.x - p.x, p.x * q.y - p.y * q.x);
+}
+
+// expand to a new line with goes through point p and is perpendicular to line l
+// => returns a line (aka a bivector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Line2d<std::common_type_t<T, U>> expand(Point2d<T> const& p,
+                                                         Line2d<U> const& l)
+{
+    return weight_expansion(point2dp{p}, l);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -550,28 +561,32 @@ inline Line2dp<std::common_type_t<T, U>> wdg(Point2d<T> const& p, Point2d<U> con
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar2dp<std::common_type_t<T, U>> join(BiVec2dp<T> const& A, Vec2dp<U> const& b)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> join(BiVec2dp<T> const& B,
+                                                           Vec2dp<U> const& v)
 {
-    return wdg(A, b);
+    return wdg(B, v);
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar2dp<std::common_type_t<T, U>> join(Vec2dp<T> const& a, BiVec2dp<U> const& B)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> join(Vec2dp<T> const& v,
+                                                           BiVec2dp<U> const& B)
 {
-    return wdg(a, B);
+    return wdg(v, B);
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline BiVec2dp<std::common_type_t<T, U>> join(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> join(Vec2dp<T> const& v1,
+                                                         Vec2dp<U> const& v2)
 {
     return wdg(v1, v2);
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Line2dp<std::common_type_t<T, U>> join(Point2d<T> const& p, Point2d<U> const& q)
+inline constexpr Line2d<std::common_type_t<T, U>> join(Point2d<T> const& p,
+                                                       Point2d<U> const& q)
 {
     return wdg(p, q);
 }
@@ -589,13 +604,32 @@ inline Line2dp<std::common_type_t<T, U>> join(Point2d<T> const& p, Point2d<U> co
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> rwdg(PScalar2dp<T> ps,
+                                                         BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(ps * B.x, ps * B.y, ps * B.z);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B,
+                                                         PScalar2dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(B.x * ps, B.y * ps, B.z * ps);
+}
+
 // regressive wedge product of two bivectors
 // rwdg(a,b) = !wgd(!a,!b) with ! as the complement operation
 // => returns a vector
 //
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Vec2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
+inline constexpr Vec2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B1,
+                                                       BiVec2dp<U> const& B2)
 {
     return Vec2dp<std::common_type_t<T, U>>(-B1.z * B2.y + B1.y * B2.z,
                                             -B1.x * B2.z + B1.z * B2.x,
@@ -608,7 +642,8 @@ inline Vec2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B1, BiVec2dp<U> 
 //
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Scalar2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B, Vec2dp<U> const& v)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B,
+                                                          Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar2dp<ctype>(B.x * v.x + B.y * v.y + B.z * v.z);
@@ -620,36 +655,44 @@ inline Scalar2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B, Vec2dp<U> 
 //
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Scalar2dp<std::common_type_t<T, U>> rwdg(Vec2dp<T> const& v, BiVec2dp<U> const& B)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> rwdg(Vec2dp<T> const& v,
+                                                          BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar2dp<ctype>(v.x * B.x + v.y * B.y + v.z * B.z);
+}
+
+// required to be present for euclidean_distance2dp (to complile, even if not used)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>>
+rwdg([[maybe_unused]] Vec2dp<T> const&, [[maybe_unused]] Vec2dp<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(0.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // convenience functions rwdg -> meet
 ////////////////////////////////////////////////////////////////////////////////
 
+// intersection of two lines -> return a point
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Vec2dp<std::common_type_t<T, U>> meet(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
+inline constexpr Vec2dp<std::common_type_t<T, U>> meet(BiVec2dp<T> const& B1,
+                                                       BiVec2dp<U> const& B2)
 {
     return rwdg(B1, B2);
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Scalar2dp<std::common_type_t<T, U>> meet(Vec2dp<T> const& v, BiVec2dp<U> const& B)
+inline constexpr Vec2dp<std::common_type_t<T, U>> meet(Line2d<T> const& l1,
+                                                       Line2d<U> const& l2)
 {
-    return rwdg(v, B);
+    return rwdg(static_cast<BiVec2dp<T> const&>(l1), static_cast<BiVec2dp<T> const&>(l2));
 }
 
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline Scalar2dp<std::common_type_t<T, U>> meet(BiVec2dp<T> const& B, Vec2dp<U> const& v)
-{
-    return rwdg(B, v);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // left contractions A << B: "A contracted onto B"
@@ -1719,6 +1762,21 @@ inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
     return std::acos(std::clamp(ctype(dot(B1, B2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// 2dp euclidean distance
+////////////////////////////////////////////////////////////////////////////////
+
+// returns the euclidean distance between objects as homogeneous magnitude
+template <typename arg1, typename arg2>
+DualNum2dp<value_t> euclidean_distance2dp(arg1&& a, arg2&& b)
+{
+    if (gr(a) + gr(b) == 3) {
+        return DualNum2dp<value_t>(rwdg(a, b), weight_nrm(wdg(a, att(b))));
+    }
+    else {
+        return DualNum2dp<value_t>(bulk_nrm(att(wdg(a, b))), weight_nrm(wdg(a, att(b))));
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2dp rotation operations
@@ -1958,6 +2016,7 @@ inline constexpr MVec2dp<T> cmpl(MVec2dp<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 
 // projection of a vector v1 onto vector v2
+// returns component of v1 parallel to v2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v1,
@@ -1967,15 +2026,22 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& 
     return ctype(dot(v1, v2)) * Vec2dp<ctype>(inv(v2));
 }
 
-// projection of v1 onto v2 (v2 must already be normalized to nrm(v2) == 1)
+// rejection of vector v1 from a vector v2
+// v_perp = gr1(wdg(v1,v2) * inv(v2)) = v1 - project_onto(v1, v2)
+// returns component of v1 perpendicular to v2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>>
-project_onto_normalized(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
+inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v1,
+                                                              Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(dot(v1, v2)) * v2; // v2 is already its own reverse
+
+    // works, but is more effort compared to solution via projection and vector difference
+    // return Vec2dp<ctype>(gr1(wdg(v1, v2) * inv(v2)));
+
+    return Vec2dp<ctype>(v1 - project_onto(v1, v2));
 }
+
 
 // projection of a vector v1 onto a bivector v2
 // v_parallel = dot(v1,v2) * inv(v2)
@@ -1998,61 +2064,6 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& 
     // return Vec2dp<ctype>(gr1((v << inv(B)) * B));
 }
 
-// projection of a vector v1 onto a normalized bivector v2
-// u_parallel = gr1(dot(v1,v2) * inv(v2))
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>>
-project_onto_normalized(Vec2dp<T> const& v1, BiVec2dp<U> const& v2)
-{
-    // requires v2 to be normalized
-
-    using ctype = std::common_type_t<T, U>;
-    Vec2dp<ctype> a = dot(v1, v2);
-    // up to the sign v2 already is it's own inverse
-    BiVec2dp<ctype> Bi = -v2;
-    // use the formular equivalent to the geometric product to save computational cost
-    // a * Bi = dot(a,Bi) + wdg(a,Bi)
-    // v_parallel = gr1(a * Bi) = dot(a,Bi)
-    return Vec2dp<ctype>(dot(a, Bi));
-}
-
-// rejection of vector v1 from a vector v2
-// v_perp = gr1(wdg(v1,v2) * inv(v2))
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v1,
-                                                              Vec2dp<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    BiVec2dp<ctype> B = wdg(v1, v2);
-    Vec2dp<ctype> v2_inv = inv(v2);
-    // use the formular equivalent to the geometric product to save computational cost
-    // B * b_inv = dot(B,b_inv) + wdg(A,bi)
-    // v_perp = gr1(B * b_inv) = dot(B,b_inv)
-    // (the trivector part is zero, because v2 is part of the bivector in the product)
-    // return Vec2dp<ctype>(dot(B, v2_inv));
-    return Vec2dp<ctype>(B >> v2_inv);
-}
-
-// rejection of vector v1 from a normalized vector v2
-// v_perp = gr1(wdg(v1,v2) * inv(v2))
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>>
-reject_from_normalized(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
-{
-    // requires v2 to be normalized
-    using ctype = std::common_type_t<T, U>;
-    BiVec2dp<ctype> B = wdg(v1, v2);
-    Vec2dp<ctype> v2_inv = v2; // v2 is its own inverse, if normalized
-    // use the formular equivalent to the geometric product to save computational cost
-    // B * b_inv = dot(B,b_inv) + wdg(A,bi)
-    // v_perp = gr1(B * b_inv) = dot(B,b_inv)
-    // (the trivector part is zero, because v2 is part of the bivector in the product)
-    // return Vec2dp<ctype>(dot(B, v2_inv));
-    return Vec2dp<ctype>(B >> v2_inv);
-}
 
 // rejection of vector v1 from a bivector v2
 // u_perp = gr1(wdg(v1,v2) * inv(v2))
@@ -2066,22 +2077,6 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v
     BiVec2dp<ctype> B = inv(v2);
     // trivector * bivector = vector
     return A * B;
-}
-
-// rejection of vector v1 from a normalized bivector v2
-// u_perp = wdg(v1,v2) * inv(v2)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>>
-reject_from_normalized(Vec2dp<T> const& v1, BiVec2dp<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-    PScalar2dp<ctype> a = wdg(v1, v2);
-    // up to the sign v2 already is it's own inverse
-    BiVec2dp<ctype> B = -v2;
-    // trivector * bivector = vector (derived from full geometric product to save
-    // costs)
-    return Vec2dp<ctype>(-a * B.x, -a * B.y, -a * B.z);
 }
 
 // reflect a vector u on a hyperplane B orthogonal to vector b

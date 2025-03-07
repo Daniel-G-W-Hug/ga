@@ -44,7 +44,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Vec3dp<T> weight(Vec3dp<T> const& v)
 {
-    return Vec3dp<T>(T(0.0), T(0.0), T(0.0), v.z);
+    return Vec3dp<T>(T(0.0), T(0.0), T(0.0), v.w);
 }
 
 template <typename T>
@@ -69,54 +69,54 @@ inline constexpr TriVec3dp<T> weight(TriVec3dp<T> const& t)
 // return squared bulk norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk_nrm_sq(Vec3dp<T> const& v)
+inline constexpr Scalar2dp<T> bulk_nrm_sq(Vec3dp<T> const& v)
 {
     // |v|^2 = gr0(v*rev(v)) = gr0(v*v)
-    return v.x * v.x + v.y * v.y + v.z * v.z;
+    return Scalar2dp<T>(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 // return bulk norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk_nrm(Vec3dp<T> const& v)
+inline constexpr Scalar2dp<T> bulk_nrm(Vec3dp<T> const& v)
 {
-    return std::sqrt(bulk_nrm_sq(v));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(v)));
 }
 
 // return squared bulk magnitude of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk_nrm_sq(BiVec3dp<T> const& B)
+inline constexpr Scalar2dp<T> bulk_nrm_sq(BiVec3dp<T> const& B)
 {
     // |B|^2 = gr0(B*rev(B))
     // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
     // using |B|^2 = gr0(rev(B)*B) = gr0(-B*B) = -gr0(B*B) = -dot(B,B)
-    return B.mx * B.mx + B.my * B.my + B.mz * B.mz;
+    return Scalar2dp<T>(B.mx * B.mx + B.my * B.my + B.mz * B.mz);
 }
 
 // return magnitude of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk_nrm(BiVec3dp<T> const& B)
+inline constexpr Scalar2dp<T> bulk_nrm(BiVec3dp<T> const& B)
 {
-    return std::sqrt(bulk_nrm_sq(B));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(B)));
 }
 
 // return squared bulk norm of trivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk_nrm_sq(TriVec3dp<T> const& t)
+inline constexpr Scalar2dp<T> bulk_nrm_sq(TriVec3dp<T> const& t)
 {
     // |t|^2 = gr0(t*rev(t)) = gr0(-t*t)
-    return t.w * t.w;
+    return Scalar2dp<T>(t.w * t.w);
 }
 
 // return bulk norm of trivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk_nrm(TriVec3dp<T> const& t)
+inline constexpr Scalar2dp<T> bulk_nrm(TriVec3dp<T> const& t)
 {
-    return std::sqrt(bulk_nrm_sq(t));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(t)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -127,127 +127,106 @@ inline constexpr T bulk_nrm(TriVec3dp<T> const& t)
 // |v|^2 = cmpl( gr0(cmpl(v)*cmpl(v))) ) = rdot(v,rrev(v))
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight_nrm_sq(Vec3dp<T> const& v)
+inline constexpr PScalar2dp<T> weight_nrm_sq(Vec3dp<T> const& v)
 {
-    return v.w * v.w;
+    return PScalar2dp<T>(v.w * v.w);
 }
 
 // return weigth norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight_nrm(Vec3dp<T> const& v)
+inline constexpr PScalar2dp<T> weight_nrm(Vec3dp<T> const& v)
 {
-    return std::sqrt(weight_nrm_sq(v));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(v)));
 }
 
 // return squared weight norm of bivector
 // |B|^2 = cmpl( gr0(cmpl(B)*cmpl(B))) ) = rdot(B, rrev(B)) = rdot(B,B)
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight_nrm_sq(BiVec3dp<T> const& B)
+inline constexpr PScalar2dp<T> weight_nrm_sq(BiVec3dp<T> const& B)
 {
-    return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz;
+    return PScalar2dp<T>(B.vx * B.vx + B.vy * B.vy + B.vz * B.vz);
 }
 
 // return weight norm of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight_nrm(BiVec3dp<T> const& B)
+inline constexpr PScalar2dp<T> weight_nrm(BiVec3dp<T> const& B)
 {
-    return std::sqrt(weight_nrm_sq(B));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(B)));
 }
 
 // return squared weight norm of tiivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight_nrm_sq(TriVec3dp<T> const& t)
+inline constexpr PScalar2dp<T> weight_nrm_sq(TriVec3dp<T> const& t)
 {
-    return t.x * t.x + t.y * t.y + t.z * t.z;
+    return PScalar2dp<T>(t.x * t.x + t.y * t.y + t.z * t.z);
 }
 
 // return weight norm of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight_nrm(TriVec3dp<T> const& t)
+inline constexpr PScalar2dp<T> weight_nrm(TriVec3dp<T> const& t)
 {
-    return std::sqrt(weight_nrm_sq(t));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(t)));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// geometric norm
+// geometric norm: (perpendicular) distance to the origin (distance = c0/c1)
+//
+// returns a dual number, for correct handling of objects at infinity (c1 == 0)
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 // provide the distance of the point from the origin
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T geom_nrm_sq(Vec3dp<T> const& v)
+inline constexpr DualNum3dp<T> geom_nrm_sq(Vec3dp<T> const& v)
 {
-    T n = weight_nrm_sq(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "Point at or near infinity. Vector weight_nrm too small for unitization " +
-            std::to_string(n) + "\n");
-    }
-#endif
-    return bulk_nrm_sq(v) / n;
+    return DualNum3dp<T>(bulk_nrm_sq(v), weight_nrm_sq(v));
 }
 
 // return geometric norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T geom_nrm(Vec3dp<T> const& v)
+inline constexpr DualNum3dp<T> geom_nrm(Vec3dp<T> const& v)
 {
-    return std::sqrt(geom_nrm_sq(v));
+    return DualNum3dp<T>(bulk_nrm(v), weight_nrm(v));
 }
 
 // provide the perpendicular distance of the line to the origin
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T geom_nrm_sq(BiVec3dp<T> const& B)
+inline constexpr DualNum3dp<T> geom_nrm_sq(BiVec3dp<T> const& B)
 {
-    T n = weight_nrm_sq(B);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "Line at or near infinity. Bivector weight_nrm too small for unitization " +
-            std::to_string(n) + "\n");
-    }
-#endif
-    return bulk_nrm_sq(B) / n;
+    return DualNum3dp<T>(bulk_nrm_sq(B), weight_nrm_sq(B));
 }
 
 // return geometric norm of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T geom_nrm(BiVec3dp<T> const& B)
+inline constexpr DualNum3dp<T> geom_nrm(BiVec3dp<T> const& B)
 {
-    return std::sqrt(geom_nrm_sq(B));
+    return DualNum3dp<T>(bulk_nrm(B), weight_nrm(B));
 }
 
 // provide the perpendicular distance of the plane to the origin
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T geom_nrm_sq(TriVec3dp<T> const& t)
+inline constexpr DualNum3dp<T> geom_nrm_sq(TriVec3dp<T> const& t)
 {
-    T n = weight_nrm_sq(t);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "Plane at or near infinity. Trivector weight_nrm too small for unitization " +
-            std::to_string(n) + "\n");
-    }
-#endif
-    return bulk_nrm_sq(t) / n;
+    return DualNum3dp<T>(bulk_nrm_sq(t), weight_nrm_sq(t));
 }
 
 // return geometric norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T geom_nrm(TriVec3dp<T> const& t)
+inline constexpr DualNum3dp<T> geom_nrm(TriVec3dp<T> const& t)
 {
-    return std::sqrt(geom_nrm_sq(t));
+    return DualNum3dp<T>(bulk_nrm(t), weight_nrm(t));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -304,8 +283,15 @@ inline constexpr TriVec3dp<T> unitize(TriVec3dp<T> const& t)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// bulk_dual (=complement operation applied to the bulk)
+// (right) bulk_dual (=complement operation applied to the bulk)
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3dp<T> bulk_dual(Scalar3dp<T> s)
+{
+    return PScalar3dp<T>(T(s));
+}
 
 template <typename T>
     requires(std::floating_point<T>)
@@ -328,10 +314,24 @@ inline constexpr Vec3dp<T> bulk_dual(TriVec3dp<T> const& t)
     return Vec3dp<T>(T(0.0), T(0.0), T(0.0), -t.w);
 }
 
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar3dp<T> bulk_dual([[maybe_unused]] PScalar3dp<T>)
+{
+    return Scalar3dp<T>(0.0);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight_dual (=complement operation applied to the weight)
+// (right) weight_dual (=complement operation applied to the weight)
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3dp<T> weight_dual([[maybe_unused]] Scalar3dp<T>)
+{
+    return PScalar3dp<T>(0.0);
+}
 
 template <typename T>
     requires(std::floating_point<T>)
@@ -354,6 +354,12 @@ inline constexpr Vec3dp<T> weight_dual(TriVec3dp<T> const& t)
     return Vec3dp<T>(-t.x, -t.y, -t.z, T(0.0));
 }
 
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar3dp<T> weight_dual(PScalar3dp<T> ps)
+{
+    return Scalar3dp<T>(T(ps));
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // convenient type aliases
@@ -391,6 +397,7 @@ struct Point3d : public Vec3d<T> {
     using Vec3d<T>::z;
 
     Point3d(Vec3d<T> const& v) : Vec3d<T>(v) {};
+    Point3d(T x, T y, T z) : Vec3d<T>(x, y, z) {};
 };
 
 // Point3dp: 3d point of projective algebra storing all four components x, y, z, w
@@ -446,14 +453,14 @@ inline constexpr Point3dp<T> unitize(Point3dp<T> const& p)
 }
 
 
-// Line3dp: 3d line of projective algebra storing all six components
+// Line3d: 3d line of projective algebra storing all six components
 //          explicitly as components vx, vy, vz, mx, my, mz of a BiVec3dp
 //
-// a Line3dp is a BiVec3dp, thus all operations defined for BiVec3dp
-// work directly for Line3dp - only deviations will be specified
+// a Line3d is a BiVec3dp, thus all operations defined for BiVec3dp
+// work directly for Line3d - only deviations will be specified
 template <typename T>
     requires(std::floating_point<T>)
-struct Line3dp : public BiVec3dp<T> {
+struct Line3d : public BiVec3dp<T> {
 
     using BiVec3dp<T>::BiVec3dp; // inherit base class ctors
 
@@ -466,16 +473,15 @@ struct Line3dp : public BiVec3dp<T> {
     using BiVec3dp<T>::my;
     using BiVec3dp<T>::mz;
 
-    Line3dp() = default;
-    Line3dp(T vx, T vy, T vz, T mx, T my, T mz) : BiVec3dp<T>(vx, vy, vz, mx, my, mz) {};
-    Line3dp(BiVec3dp<T> const& b) : BiVec3dp<T>(b) {};
-    Line3dp(Vec3d<T> const& direction, BiVec3d<T> const& moment) :
-        // direction vector and moment bivector must match i.e. be perpendicular to each
-        // other (direction << moment) == 0
-        BiVec3dp<T>(direction.x, direction.y, direction.z, moment.x, moment.y, moment.z) {
-        };
+    Line3d() = default;
+    Line3d(T vx, T vy, T vz, T mx, T my, T mz) : BiVec3dp<T>(vx, vy, vz, mx, my, mz) {};
+    Line3d(BiVec3dp<T> const& b) : BiVec3dp<T>(b) {};
+    Line3d(Vec3d<T> const& dir, BiVec3d<T> const& mom) :
+        // direction vector dir and moment bivector mom must match, i.e. be perpendicular
+        // to each other (direction << moment) == 0
+        BiVec3dp<T>(dir.x, dir.y, dir.z, mom.x, mom.y, mom.z) {};
 
-    Line3dp& unitize()
+    Line3d& unitize()
     {
         // unitization for a 3d bivector means std::sqrt(x^2 + y^2) = 1
         T wn = weight_nrm(*this);
@@ -498,9 +504,9 @@ struct Line3dp : public BiVec3dp<T> {
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Line3dp<T> unitize(Line3dp<T> const& l)
+inline constexpr Line3d<T> unitize(Line3d<T> const& l)
 {
-    // unitization for a 3d bivector means std::sqrt(x^2 + y^2) = 1
+    // unitization for a 3d bivector means std::sqrt(x^2 + y^2 + z^2) = 1
     // i.e. unitization of the direction vector of the line
     T wn = weight_nrm(l);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
@@ -510,8 +516,8 @@ inline constexpr Line3dp<T> unitize(Line3dp<T> const& l)
     }
 #endif
     T inv = T(1.0) / wn;
-    return Line3dp<T>(l.vx * inv, l.vy * inv, l.vz * inv, l.mx * inv, l.my * inv,
-                      l.mz * inv);
+    return Line3d<T>(l.vx * inv, l.vy * inv, l.vz * inv, l.mx * inv, l.my * inv,
+                     l.mz * inv);
 }
 
 // Plane3d: 3d plane of projective algebra (a trivector in the modeling 4d space)
@@ -529,13 +535,15 @@ struct Plane3d : public TriVec3dp<T> {
     using TriVec3dp<T>::w;
 
     Plane3d(TriVec3dp<T> const& t) : TriVec3dp<T>(t) {};
-    // TODO: implement further ctors using 3d bivectors and 3d points
+    Plane3d(Line3d<T> const& l, Point3d<T> const& p) : TriVec3dp<T>(join(l, p)) {};
+    Plane3d(Point3d<T> const& p1, Point3d<T> const& p2, Point3d<T> const& p3) :
+        TriVec3dp<T>(join(join(p1, p2), p3)) {};
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// attitude operations: att = rwdg( u, cmpl(e3_3dp) )
+// attitude operations: att = rwdg( u, r_cmpl(e4_3dp) ) = rwdg(u, horizon_3dp)
 //
-// (the attitude is the intersection of the object with the complement of the origin)
+// (the attitude is the intersection of the object with the horizon)
 ////////////////////////////////////////////////////////////////////////////////
 
 // return the attitude (i.e. the value required for unitization) of the point
@@ -544,16 +552,16 @@ struct Plane3d : public TriVec3dp<T> {
 //
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T att(Vec3dp<T> const& v)
+inline constexpr Scalar3dp<T> att(Vec3dp<T> const& v)
 {
-    return v.w;
+    return Scalar3dp<T>(v.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T att(Point3dp<T> const& p)
+inline constexpr Scalar3dp<T> att(Point3dp<T> const& p)
 {
-    return p.w;
+    return Scalar3dp<T>(p.w);
 }
 
 // return the attitude (i.e. the direction vector) of the line
@@ -566,7 +574,7 @@ inline constexpr Vec3dp<T> att(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> att(Line3dp<T> const& l)
+inline constexpr Vec3dp<T> att(Line3d<T> const& l)
 {
     return Vec3dp<T>(l.vx, l.vy, l.vz, T(0.0));
 }
@@ -584,6 +592,14 @@ template <typename T>
 inline constexpr BiVec3dp<T> att(Plane3d<T> const& l)
 {
     return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), l.x, l.y, l.z);
+}
+
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr TriVec3dp<T> att(PScalar3dp<T> ps)
+{
+    return TriVec3dp<T>(T(0.0), T(0.0), T(0.0), ps);
 }
 
 } // namespace hd::ga::pga

@@ -55,37 +55,37 @@ inline constexpr BiVec2dp<T> weight(BiVec2dp<T> const& B)
 // return squared bulk norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk_nrm_sq(Vec2dp<T> const& v)
+inline constexpr Scalar2dp<T> bulk_nrm_sq(Vec2dp<T> const& v)
 {
     // |v|^2 = gr0(v*rev(v)) = gr0(v*v)
-    return v.x * v.x + v.y * v.y;
+    return Scalar2dp<T>(v.x * v.x + v.y * v.y);
 }
 
 // return bulk norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk_nrm(Vec2dp<T> const& v)
+inline constexpr Scalar2dp<T> bulk_nrm(Vec2dp<T> const& v)
 {
-    return std::sqrt(bulk_nrm_sq(v));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(v)));
 }
 
 // return squared bulk magnitude of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk_nrm_sq(BiVec2dp<T> const& B)
+inline constexpr Scalar2dp<T> bulk_nrm_sq(BiVec2dp<T> const& B)
 {
     // |B|^2 = gr0(B*rev(B))
     // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
     // using |B|^2 = gr0(rev(B)*B) = gr0(-B*B) = -gr0(B*B) = -dot(B,B)
-    return B.z * B.z;
+    return Scalar2dp<T>(B.z * B.z);
 }
 
 // return magnitude of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T bulk_nrm(BiVec2dp<T> const& B)
+inline constexpr Scalar2dp<T> bulk_nrm(BiVec2dp<T> const& B)
 {
-    return std::sqrt(bulk_nrm_sq(B));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(B)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,86 +96,74 @@ inline constexpr T bulk_nrm(BiVec2dp<T> const& B)
 // |v|^2 = cmpl( gr0(cmpl(v)*cmpl(v))) ) = rdot(v,rrev(v))
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight_nrm_sq(Vec2dp<T> const& v)
+inline constexpr PScalar2dp<T> weight_nrm_sq(Vec2dp<T> const& v)
 {
-    return v.z * v.z;
+    return PScalar2dp<T>(v.z * v.z);
 }
 
 // return weigth norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight_nrm(Vec2dp<T> const& v)
+inline constexpr PScalar2dp<T> weight_nrm(Vec2dp<T> const& v)
 {
-    return std::sqrt(weight_nrm_sq(v));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(v)));
 }
 
 // return squared weight norm of bivector
 // |B|^2 = cmpl( gr0(cmpl(B)*cmpl(B))) ) = rdot(B, rrev(B)) = rdot(B,B)
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight_nrm_sq(BiVec2dp<T> const& B)
+inline constexpr PScalar2dp<T> weight_nrm_sq(BiVec2dp<T> const& B)
 {
-    return B.x * B.x + B.y * B.y;
+    return PScalar2dp<T>(B.x * B.x + B.y * B.y);
 }
 
 // return weight norm of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T weight_nrm(BiVec2dp<T> const& B)
+inline constexpr PScalar2dp<T> weight_nrm(BiVec2dp<T> const& B)
 {
-    return std::sqrt(weight_nrm_sq(B));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(B)));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// geometric norm
+// geometric norm: (perpendicular) distance to the origin (distance = c0/c1)
+//
+// returns a dual number, for correct handling of objects at infinity (c1 == 0)
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 // provide the distance of the point from the origin
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T geom_nrm_sq(Vec2dp<T> const& v)
+inline constexpr DualNum2dp<T> geom_nrm_sq(Vec2dp<T> const& v)
 {
-    T n = weight_nrm_sq(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "Point at or near infinity. Vector weight_nrm too small for unitization " +
-            std::to_string(n) + "\n");
-    }
-#endif
-    return bulk_nrm_sq(v) / n;
+    return DualNum2dp<T>(bulk_nrm_sq(v), weight_nrm_sq(v));
 }
 
 // return geometric norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T geom_nrm(Vec2dp<T> const& v)
+inline constexpr DualNum2dp<T> geom_nrm(Vec2dp<T> const& v)
 {
-    return std::sqrt(geom_nrm_sq(v));
+    return DualNum2dp<T>(bulk_nrm(v), weight_nrm(v));
 }
 
 // provide the perpendicular distance of the line to the origin
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T geom_nrm_sq(BiVec2dp<T> const& B)
+inline constexpr DualNum2dp<T> geom_nrm_sq(BiVec2dp<T> const& B)
 {
-    T n = weight_nrm_sq(B);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector weight_nrm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
-    return bulk_nrm_sq(B) / n;
+    return DualNum2dp<T>(bulk_nrm_sq(B), weight_nrm_sq(B));
 }
 
 // return geometric norm of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T geom_nrm(BiVec2dp<T> const& B)
+inline constexpr DualNum2dp<T> geom_nrm(BiVec2dp<T> const& B)
 {
-    return std::sqrt(geom_nrm_sq(B));
+    return DualNum2dp<T>(bulk_nrm(B), weight_nrm(B));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -216,8 +204,15 @@ inline constexpr BiVec2dp<T> unitize(BiVec2dp<T> const& B)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// bulk_dual (=complement operation applied to the bulk)
+// (right) bulk_dual (=complement operation applied to the bulk)
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> bulk_dual(Scalar2dp<T> s)
+{
+    return PScalar2dp<T>(T(s));
+}
 
 template <typename T>
     requires(std::floating_point<T>)
@@ -233,10 +228,24 @@ inline constexpr Vec2dp<T> bulk_dual(BiVec2dp<T> const& B)
     return Vec2dp<T>(T(0.0), T(0.0), B.z);
 }
 
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_dual([[maybe_unused]] PScalar2dp<T>)
+{
+    return Scalar2dp<T>(0.0);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight_dual (=complement operation applied to the weight)
+// (right) weight_dual (=complement operation applied to the weight)
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> weight_dual([[maybe_unused]] Scalar2dp<T>)
+{
+    return PScalar2dp<T>(0.0);
+}
 
 template <typename T>
     requires(std::floating_point<T>)
@@ -250,6 +259,13 @@ template <typename T>
 inline constexpr Vec2dp<T> weight_dual(BiVec2dp<T> const& B)
 {
     return Vec2dp<T>(B.x, B.y, T(0.0));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> weight_dual(PScalar2dp<T> ps)
+{
+    return Scalar2dp<T>(T(ps));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -286,6 +302,7 @@ struct Point2d : public Vec2d<T> {
     using Vec2d<T>::y;
 
     Point2d(Vec2d<T> const& v) : Vec2d<T>(v) {};
+    Point2d(T x, T y) : Vec2d<T>(x, y) {};
 };
 
 // Point2dp: 2d point of projective algebra storing all three components x, y, z
@@ -339,14 +356,14 @@ inline constexpr Point2dp<T> unitize(Point2dp<T> const& p)
 }
 
 
-// Line2dp: 2d line of projective algebra storing all three components
+// Line2d: 2d line of projective algebra storing all three components
 //          explicitly as components x, y, z of a BiVec2dp
 //
-// a Line2dp is a BiVec2dp, thus all operations defined for BiVec2dp
-// work directly for Line2dp - only deviations will be specified
+// a Line2d is a BiVec2dp, thus all operations defined for BiVec2dp
+// work directly for Line2d - only deviations will be specified
 template <typename T>
     requires(std::floating_point<T>)
-struct Line2dp : public BiVec2dp<T> {
+struct Line2d : public BiVec2dp<T> {
 
     using BiVec2dp<T>::BiVec2dp; // inherit base class ctors
 
@@ -356,20 +373,21 @@ struct Line2dp : public BiVec2dp<T> {
     using BiVec2dp<T>::y;
     using BiVec2dp<T>::z;
 
-    Line2dp() = default;
-    Line2dp(T x, T y, T z) : BiVec2dp<T>(x, y, z) {};
-    Line2dp(BiVec2dp<T> const& b) : BiVec2dp<T>(b) {};
-    Line2dp(Point2d<T> const& p, Point2d<T> const& q) :
-        // Line2dp = wdg(p,q), but wdg() cannot be used here to avoid circular dependency
+    Line2d() = default;
+    Line2d(T x, T y, T z) : BiVec2dp<T>(x, y, z) {};
+    Line2d(BiVec2dp<T> const& b) : BiVec2dp<T>(b) {};
+    Line2d(Point2d<T> const& p, Point2d<T> const& q) :
+        // Line2d = wdg(p,q), but wdg() cannot be used here to avoid circular dependency
         BiVec2dp<T>(p.y - q.y, q.x - p.x, p.x * q.y - p.y * q.x) {};
-    Line2dp(Point2d<T> const& p, Vec2d<T> const& v) :
-        // Line2dp constructed from a point and a direction vector
+    Line2d(Point2d<T> const& p, Vec2d<T> const& v) :
+        // Line2d constructed from a point and a direction vector
         BiVec2dp<T>(-v.y, v.x, p.x * v.y - p.y * v.x) {};
 
-    Line2dp& unitize()
+    Line2d& unitize()
     {
         // unitization for a 2d bivector means std::sqrt(x^2 + y^2) = 1
-        T wn = std::sqrt(x * x + y * y);
+        // = weight_nrm of bivector
+        T wn = weight_nrm(*this);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
         if (wn < std::numeric_limits<T>::epsilon()) {
             throw std::runtime_error("bivector weight norm too small for unitization " +
@@ -386,11 +404,11 @@ struct Line2dp : public BiVec2dp<T> {
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Line2dp<T> unitize(Line2dp<T> const& l)
+inline constexpr Line2d<T> unitize(Line2d<T> const& l)
 {
     // unitization for a 2d bivector means std::sqrt(x^2 + y^2) = 1
     // i.e. unitization of the direction vector of the line
-    T wn = std::sqrt(l.x * l.x + l.y * l.y);
+    T wn = weight_nrm(l);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (wn < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("bivector weight norm too small for unitization " +
@@ -398,13 +416,13 @@ inline constexpr Line2dp<T> unitize(Line2dp<T> const& l)
     }
 #endif
     T inv = T(1.0) / wn;
-    return Line2dp<T>(l.x * inv, l.y * inv, l.z * inv);
+    return Line2d<T>(l.x * inv, l.y * inv, l.z * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// attitude operations: att = rwdg( u, cmpl(e3_2dp) )
+// attitude operations: att = rwdg( u, cmpl(e3_2dp) ) = wdg(u, horizon_2dp)
 //
-// (the attitude is the intersection of the object with the complement of the origin)
+// (the attitude is the intersection of the object with the horizon)
 ////////////////////////////////////////////////////////////////////////////////
 
 // return the attitude (i.e. the value required for unitization) of the point
@@ -413,16 +431,16 @@ inline constexpr Line2dp<T> unitize(Line2dp<T> const& l)
 //
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T att(Vec2dp<T> const& v)
+inline constexpr Scalar2dp<T> att(Vec2dp<T> const& v)
 {
-    return v.z;
+    return Scalar2dp<T>(v.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T att(Point2dp<T> const& p)
+inline constexpr Scalar2dp<T> att(Point2dp<T> const& p)
 {
-    return p.z;
+    return Scalar2dp<T>(p.z);
 }
 
 // return the attitude (i.e. the direction vector) of the line
@@ -435,9 +453,16 @@ inline constexpr Vec2dp<T> att(BiVec2dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> att(Line2dp<T> const& l)
+inline constexpr Vec2dp<T> att(Line2d<T> const& l)
 {
     return Vec2dp<T>(l.y, -l.x, T(0.0));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> att(PScalar2dp<T> ps)
+{
+    return BiVec2dp<T>(T(0.0), T(0.0), ps);
 }
 
 } // namespace hd::ga::pga

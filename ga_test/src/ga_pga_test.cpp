@@ -350,9 +350,57 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(std::abs(dot(v4, v3) - 1.0) < eps);
     }
 
+    TEST_CASE("Vec2dp: operations - bulk_dual, weight_dual")
+    {
+        fmt::println("Vec2dp: operations - bulk_dual, weight_dual");
+
+        auto s = scalar2dp{5.0};
+        auto v = vec2dp{1.0, 2.0, 1.0};
+        auto B = bivec2dp{-1.0, 2.0, 1.0};
+        auto ps = pscalar2dp{-5.0};
+
+        auto v2 = vec2dp{3.0, -2.0, 1.0};
+        auto B2 = bivec2dp{-3.0, 2.0, 5.0};
+
+        CHECK(bulk_dual(s) == pscalar2dp{s});
+        CHECK(weight_dual(s) == pscalar2dp{0.0});
+
+        CHECK(bulk_dual(v) == bivec2dp{1.0, 2.0, 0.0});
+        CHECK(weight_dual(v) == bivec2dp{0.0, 0.0, 1.0});
+
+        CHECK(bulk_dual(B) == vec2dp{0.0, 0.0, 1.0});
+        CHECK(weight_dual(B) == vec2dp{-1.0, 2.0, 0.0});
+
+        CHECK(bulk_dual(ps) == scalar2dp{0.0});
+        CHECK(weight_dual(ps) == scalar2dp{ps});
+
+        // duality of wdg and rwdg based on complements
+        CHECK(bulk_dual(wdg(v, v2)) == rwdg(bulk_dual(v), bulk_dual(v2)));
+        CHECK(bulk_dual(wdg(v, B)) == rwdg(bulk_dual(v), bulk_dual(B)));
+        CHECK(bulk_dual(wdg(B, v)) == rwdg(bulk_dual(B), bulk_dual(v)));
+
+        // contractions
+        CHECK(bulk_contraction(v, v2) == rwdg(v, bulk_dual(v2)));
+        CHECK(bulk_contraction(B, B2) == rwdg(B, bulk_dual(B2)));
+        CHECK(bulk_contraction(B, v) == rwdg(B, bulk_dual(v))); // contracts v onto B
+
+        CHECK(weight_contraction(v, v2) == rwdg(v, weight_dual(v2)));
+        CHECK(weight_contraction(B, B2) == rwdg(B, weight_dual(B2)));
+        CHECK(weight_contraction(B, v) == rwdg(B, weight_dual(v)));
+
+        // expansions
+        CHECK(weight_expansion(v, v2) == wdg(v, weight_dual(v2)));
+        CHECK(weight_expansion(B, B2) == wdg(B, weight_dual(B2)));
+        CHECK(weight_expansion(v, B) == wdg(v, weight_dual(B)));
+
+        CHECK(bulk_expansion(v, v2) == wdg(v, bulk_dual(v2)));
+        CHECK(bulk_expansion(B, B2) == wdg(B, bulk_dual(B2)));
+        CHECK(bulk_expansion(v, B) == wdg(v, bulk_dual(B)));
+    }
+
     TEST_CASE("Vec2dp: operations - angle I")
     {
-        fmt::println("Vec2dp: operations - angle");
+        fmt::println("Vec2dp: operations - angle I");
 
         vec2dp v1{1.0, 0.0, 0.0};
         vec2dp v2{normalize(vec2dp(1.0, 1.0, 0.0))};
@@ -522,15 +570,9 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         vec2dp v1{5.0, 1.0, 1.0};
         vec2dp v2{2.0, 2.0, 1.0};
 
-        vec2dp v2n = normalize(v2);
-
         vec2dp v3{project_onto(v1, v2)};
         vec2dp v4{reject_from(v1, v2)};
         vec2dp v5{v3 + v4};
-
-        vec2dp v6{project_onto_normalized(v1, v2n)};
-        vec2dp v7{reject_from_normalized(v1, v2n)};
-        vec2dp v8{v6 + v7};
 
         // fmt::println("sqrt(26)={}", std::sqrt(26.0));
         // fmt::println("v1  = {: .4f}, bulk_nrm(v1)  = {: .4f}, "
@@ -553,15 +595,6 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         //              "nrm(v5) = {: .4f}",
         //              v5, bulk_nrm(v5), nrm(v5));
         // fmt::println("");
-        // fmt::println("v6 = project_onto_normalized(v1, v2n) = {: .4f}, "
-        //              "nrm(v4) = {: .4f}",
-        //              v6, bulk_nrm(v6), nrm(v6));
-        // fmt::println("v7 = reject_from_normalized(v1, v2n)  = {: .4f}, "
-        //              "nrm(v7) = {: .4f}",
-        //              v7, bulk_nrm(v7), nrm(v7));
-        // fmt::println("v8 = v6 + v7                          = {: .4f}, "
-        //              "nrm(v4) = {: .4f}",
-        //              v8, bulk_nrm(v8), nrm(v8));
         // // this helps to understand, why the dot-product is sufficient
         // auto w = wdg(v1, v2);
         // auto i = inv(v2);
@@ -587,8 +620,6 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         CHECK(v3 + v4 == v5);
         CHECK(v5 == v1);
-        CHECK(v6 + v7 == v8);
-        CHECK(normalize(v8) == normalize(v1));
 
         // // just to suppress unused variable warnings
         // CHECK(b == e1_2dp);
@@ -637,6 +668,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // CHECK(reflect_on(wdg(e1_2dp + e3_2dp, e2_2dp), e12_2dp) ==
         //       wdg(e1_2dp - e3_2dp, e2_2dp));
     }
+
 
     ////////////////////////////////////////////////////////////////////////////////
     // MVec2dp<T> basic test cases
@@ -1504,12 +1536,12 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("p2 = {}", p2);
         // fmt::println("l1 = {}", l1);
         //
-        // Line2dp ctors
-        auto l2 = Line2dp(p1, p2);
-        auto l3 = Line2dp(BiVec2dp<double>{-1, 1, -1});
-        auto l4 = Line2dp(p1, Vec2d<double>{1, 1});
-        auto l5 = Line2dp<double>(-1, 1, -1);
-        auto l6 = Line2dp<double>();
+        // Line2d ctors
+        auto l2 = Line2d(p1, p2);
+        auto l3 = Line2d(BiVec2dp<double>{-1, 1, -1});
+        auto l4 = Line2d(p1, Vec2d<double>{1, 1});
+        auto l5 = Line2d<double>(-1, 1, -1);
+        auto l6 = Line2d<double>();
         CHECK(l1 == l2);
         CHECK(l1 == l3);
         CHECK(l1 == l4);
@@ -1517,9 +1549,9 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(l6 == BiVec2dp<double>(0, 0, 0));
     }
 
-    TEST_CASE("2dp: objects - bulk an weight")
+    TEST_CASE("2dp: objects - bulk and weight")
     {
-        fmt::println("2dp: objects - bulk an weight");
+        fmt::println("2dp: objects - bulk and weight");
 
         auto p1 = vec2dp{-2.0, 1.0, 1.0};
         auto p2 = vec2dp{2.0, 1.0, 2.0};
@@ -1548,9 +1580,10 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(weight_nrm(l1) == std::sqrt(l1.x * l1.x + l1.y * l1.y));
 
         // geom_nrm
-        CHECK(geom_nrm(p1) == bulk_nrm(p1) / weight_nrm(p1));
-        CHECK(geom_nrm(l1) == bulk_nrm(l1) / weight_nrm(l1));
-        CHECK(3.0 * geom_nrm(l1) == geom_nrm(l2));
+        CHECK(geom_nrm(p1).c0 / geom_nrm(p1).c1 == bulk_nrm(p1) / weight_nrm(p1));
+        CHECK(geom_nrm(l1).c0 / geom_nrm(l1).c1 == bulk_nrm(l1) / weight_nrm(l1));
+        CHECK(3.0 * geom_nrm(l1).c0 == geom_nrm(l2).c0);
+        CHECK(geom_nrm(l1).c1 == geom_nrm(l2).c1);
 
         // attitude
         CHECK(att(p1) == p1.z);
@@ -1576,6 +1609,46 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("   att(l2) = {}", att(l2));
         // fmt::println("   unitize(rwdg(l1, l2)) = {}", unitize(rwdg(l1, l2)));
         CHECK(unitize(rwdg(l1, l2)) == Vec2dp{0.5, -2.0, 1.0});
+    }
+
+    TEST_CASE("2dp: objects - euclidean distance")
+    {
+        fmt::println("2dp: objects - euclidean distance");
+
+        auto p1 = vec2dp{-1.0, -1.0, 1.0};
+        auto p2 = vec2dp{1.0, -1.0, 1.0};
+        auto p3 = vec2dp{1.0, 1.0, 1.0};
+
+        auto l1 = wdg(p1, p2);
+        auto l2 = wdg(p2, p3);
+        auto l3 = wdg(p1, p3);
+
+
+        auto dp1p2 = euclidean_distance2dp(p1, p2);
+        auto dp2p3 = euclidean_distance2dp(p2, p3);
+        auto dp1p3 = euclidean_distance2dp(p1, p3);
+
+        auto dp3l1 = euclidean_distance2dp(p3, l1);
+        auto dp1l2 = euclidean_distance2dp(p1, l2);
+        auto dp2l3 = euclidean_distance2dp(p2, l3);
+
+        // fmt::println("");
+        // fmt::println("dp1p2 = {}, dist = {}", dp1p2, dp1p2.c0 / dp1p2.c1);
+        // fmt::println("dp2p3 = {}, dist = {}", dp2p3, dp2p3.c0 / dp2p3.c1);
+        // fmt::println("dp1p3 = {}, dist = {}", dp1p3, dp1p3.c0 / dp1p3.c1);
+        // fmt::println("");
+        // fmt::println("dp3l1 = {}, dist = {}", dp3l1, dp3l1.c0 / dp3l1.c1);
+        // fmt::println("dp1l2 = {}, dist = {}", dp1l2, dp1l2.c0 / dp1l2.c1);
+        // fmt::println("dp2l3 = {}, dist = {}", dp2l3, dp2l3.c0 / dp2l3.c1);
+        // fmt::println("");
+
+        CHECK(dp1p2 == dp2p3);
+        CHECK(dp3l1 == dp1l2);
+        CHECK(dp1p3.c0 / dp1p3.c1 - 2.0 * std::sqrt(2.0) < eps);
+        CHECK(dp2l3.c0 / dp2l3.c1 + std::sqrt(2.0) < eps);
+
+        // auto res = rwdg(pscalar2dp(2.5), horizon_2dp);
+        // fmt::println("res = {}", res);
     }
 
     TEST_CASE("pga_2dp<2,0,1> - product tests")
@@ -1803,6 +1876,73 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // duality of the contraction and the wedge product (based on complement)
         CHECK(cmpl(B >> v) == wdg(v, cmpl(B)));
         CHECK(cmpl(v << B) == wdg(cmpl(B), v));
+    }
+
+    TEST_CASE("G<2,0,1> - pga2dp join and meet (wdg, rwdg)")
+    {
+        fmt::println("G<2,0,1> - pga2dp join and meet (wdg, rwdg)");
+
+        auto p1 = point2d{2, 0};
+        auto p2 = point2d{4, 3};
+        auto l12 = join(p1, p2); // = wdg(p1, p2)
+
+        auto p3 = point2d{0, 6};
+        auto p4 = point2d{2, 6};
+        auto l34 = join(p3, p4); // = wdg(p3, p4)
+
+        auto p1p = point2dp{p1}; // all works with projective points as well
+        auto p2p = point2dp{p2};
+        auto l12p = join(p1p, p2p);
+        auto p3p = point2dp{p3};
+        auto p4p = point2dp{p4};
+        auto l34p = join(p3p, p4p);
+
+        auto p5 = meet(l12, l34);
+        auto p5p = meet(l12p, l34p);
+
+        auto p6 = point2d{0, 3}; // the expansion: line perpendicular to l12 through p6
+        auto lp6 = expand(p6, l12);
+
+        // fmt::println("");
+        // fmt::println("p1 = {}, p2 = {}", p1, p2);
+        // fmt::println("l12  = join(p1, p2)   = wdg(p1, p2) = {}", l12);
+        // fmt::println("att(l12) = {}", att(l12));
+        // fmt::println("");
+        // fmt::println("l12p = join(p1p, p2p) = wdg(p1p, p2p) = {}", l12p);
+        // fmt::println("att(l12p) = {}", att(l12p));
+        // fmt::println("");
+        // fmt::println("p5 = meet(l12, l34) = {}", p5);
+        // fmt::println("p5p = meet(l12p, l34p) = {}", p5p);
+        // fmt::println("");
+        // fmt::println("lp6  = {}", lp6);
+        // fmt::println("att(lp6) = {}", att(lp6));
+        // fmt::println("");
+
+        auto ln1 = join(point2d{0, 3}, point2d{3, 3}).unitize();
+        auto ln2 = join(point2d{0, 6}, point2d{3, 6}).unitize();
+        auto pt12 = meet(ln1, ln2); // gives direction to intersection at infinity
+                                    // weighted by the distance of the lines
+
+        auto ln1p = unitize(join(point2dp{0, 3, 1}, point2dp{3, 3, 1}));
+        auto ln2p = unitize(join(point2dp{0, 6, 1}, point2dp{3, 6, 1}));
+        auto pt12p = meet(ln1p, ln2p);
+
+        // fmt::println("");
+        // fmt::println("ln1      = {}, ln2      = {}", ln1, ln2);
+        // fmt::println("att(ln1) = {}, att(ln2) = {}", att(ln1), att(ln2));
+        // fmt::println("pt12  = meet(ln1, ln2) = {}, att(pt12) = {}", pt12, att(pt12));
+        // fmt::println("");
+        // fmt::println("ln1p      = {}, ln2p      = {}", ln1p, ln2p);
+        // fmt::println("att(ln1p) = {}, att(ln2p) = {}", att(ln1p), att(ln2p));
+        // fmt::println("pt12p  = meet(ln1p, ln2p) = {}", pt12p);
+        // fmt::println("");
+
+        CHECK(join(p1, p2) == wdg(p1, p2));
+        CHECK(point2dp(p5) == point2dp(p5p));
+        CHECK(point2dp(unitize(meet(l12, l34))) == point2dp(unitize(rwdg(l12, l34))));
+        CHECK(dot(att(l12), att(lp6)) == 0);
+
+        CHECK(pt12 == pt12p);
     }
 
 
@@ -2204,6 +2344,64 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(std::abs(nrm(wdg(v4, v3))) < eps);
     }
 
+    TEST_CASE("Vec3dp: operations - bulk_dual, weight_dual")
+    {
+        fmt::println("Vec3dp: operations - bulk_dual, weight_dual");
+
+        auto s = scalar3dp{5.0};
+        auto v = vec3dp{1.0, 2.0, 1.0, 1.0};
+        auto B = bivec3dp{-1.0, 2.0, 1.0, -10.0, 20.0, 10.0};
+        auto t = trivec3dp{3.0, 6.0, 3.0, 3.0};
+        auto ps = pscalar3dp{-5.0};
+
+        auto v2 = vec3dp{3.0, -2.0, 2.0, 5.0};
+        auto B2 = bivec3dp{1.0, -2.0, 3.0, -10.0, -20.0, 30.0};
+
+        CHECK(bulk_dual(s) == pscalar3dp{s});
+        CHECK(weight_dual(s) == pscalar3dp{0.0});
+
+        CHECK(bulk_dual(v) == trivec3dp{1.0, 2.0, 1.0, 0.0});
+        CHECK(weight_dual(v) == trivec3dp{0.0, 0.0, 0.0, 1.0});
+
+        CHECK(bulk_dual(B) == bivec3dp{10.0, -20.0, -10.0, 0.0, 0.0, 0.0});
+        CHECK(weight_dual(B) == bivec3dp{0.0, 0.0, 0.0, 1.0, -2.0, -1.0});
+
+        CHECK(bulk_dual(t) == vec3dp{0.0, 0.0, 0.0, -3.0});
+        CHECK(weight_dual(t) == vec3dp{-3.0, -6.0, -3.0, 0.0});
+
+        CHECK(bulk_dual(ps) == scalar3dp{0.0});
+        CHECK(weight_dual(ps) == scalar3dp{ps});
+
+        // duality of wdg and rwdg based on complements
+        CHECK(bulk_dual(wdg(v, v2)) == rwdg(bulk_dual(v), bulk_dual(v2)));
+        CHECK(bulk_dual(wdg(v, B)) == rwdg(bulk_dual(v), bulk_dual(B)));
+        CHECK(bulk_dual(wdg(v, t)) == rwdg(bulk_dual(v), bulk_dual(t)));
+        CHECK(bulk_dual(wdg(t, v)) == rwdg(bulk_dual(t), bulk_dual(v)));
+        CHECK(bulk_dual(wdg(B, v)) == rwdg(bulk_dual(B), bulk_dual(v)));
+        CHECK(bulk_dual(wdg(v, B)) == rwdg(bulk_dual(v), bulk_dual(B)));
+        CHECK(bulk_dual(wdg(B, B2)) == rwdg(bulk_dual(B), bulk_dual(B2)));
+
+        // contractions
+        CHECK(bulk_contraction(v, v2) == rwdg(v, bulk_dual(v2)));
+        CHECK(bulk_contraction(B, B2) == rwdg(B, bulk_dual(B2)));
+        CHECK(bulk_contraction(B, v) == rwdg(B, bulk_dual(v))); // contracts v onto B
+
+        CHECK(weight_contraction(v, v2) == rwdg(v, weight_dual(v2)));
+        CHECK(weight_contraction(B, B2) == rwdg(B, weight_dual(B2)));
+        CHECK(weight_contraction(B, v) == rwdg(B, weight_dual(v)));
+
+        // expansions
+        CHECK(weight_expansion(v, v2) == wdg(v, weight_dual(v2)));
+        CHECK(weight_expansion(B, B2) == wdg(B, weight_dual(B2)));
+        CHECK(weight_expansion(v, B) == wdg(v, weight_dual(B)));
+
+        CHECK(bulk_expansion(v, v2) == wdg(v, bulk_dual(v2)));
+        CHECK(bulk_expansion(B, B2) == wdg(B, bulk_dual(B2)));
+        CHECK(bulk_expansion(v, B) == wdg(v, bulk_dual(B)));
+    }
+
+    ////
+    // angle I + II
     ////
 
     TEST_CASE("Vec3dp: operations - wedge")
@@ -2270,6 +2468,83 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(std::abs(bulk_nrm(wdg(v1, v8)) - sin(angle(v1, v8))) < eps);
     }
 
+    TEST_CASE("Vec3dp: operations - project / reject / reflect (vector - vector)")
+    {
+        fmt::println("Vec3dp: operations - project / reject / reflect (vector - vector)");
+
+        vec3dp v1{5.0, 1.0, 0.0, 1.0};
+        vec3dp v2{2.0, 2.0, 0.0, 1.0};
+
+        vec3dp v3{project_onto(v1, v2)};
+        vec3dp v4{reject_from(v1, v2)};
+        vec3dp v5{v3 + v4};
+
+        // fmt::println("sqrt(26)={}", std::sqrt(26.0));
+        // fmt::println("v1  = {: .4f}, bulk_nrm(v1)  = {: .4f}, "
+        //              "nrm(v1) = {: .4f}",
+        //              v1, bulk_nrm(v1), nrm(v1));
+        // fmt::println("v2  = {: .4f}, bulk_nrm(v2)  = {: .4f}, "
+        //              "nrm(v2) = {: .4f}",
+        //              v2, bulk_nrm(v2), nrm(v2));
+        // fmt::println("");
+        // fmt::println("v3 = project_onto(v1, v2) = {: .4f}, bulk_nrm(v3) = {: .4f}, "
+        //              "nrm(v3) = {: .4f}",
+        //              v3, bulk_nrm(v3), nrm(v3));
+        // fmt::println("v4 = reject_from(v1, v2)  = {: .4f}, bulk_nrm(v4) = {: .4f}, "
+        //              "nrm(v4) = {: .4f}",
+        //              v4, bulk_nrm(v4), nrm(v4));
+        // fmt::println("v5 = v3 + v4              = {: .4f}, bulk_nrm(v5) = {: .4f}, "
+        //              "nrm(v5) = {: .4f}",
+        //              v5, bulk_nrm(v5), nrm(v5));
+        // fmt::println("");
+
+        // // this helps to understand, why the dot-product is sufficient
+        // auto w = wdg(v1, v2);
+        // auto i = inv(v2);
+        // fmt::println("wdg(v1,v2)         = {: .4f}", w);
+        // fmt::println("inv(v2)            = {: .4f}", i);
+        // fmt::println("wdg(v1,v2)*inv(v2) = {: .4f}", w * i);
+        // fmt::println("");
+
+        // vec3dp v{4.0, 1.0, 0.0, 0.0};
+        // vec3dp b{e1_3dp};
+        // auto B = bivec3dp{e23_3dp};
+
+        // auto UB = bivec3dp{e23_3dp + e12_3dp};
+        // fmt::println("v   = {}", v);
+        // fmt::println("b   = {}", b);
+        // fmt::println("B   = {}", B);
+        // fmt::println("UB  = {}", UB);
+        // fmt::println("reflect_on_vec(v,b)  = {}", reflect_on_vec(v, b));
+        // fmt::println("reflect_on_hyp(v,e3_3dp)  = {}", reflect_on_hyp(v, e3_3dp));
+        // fmt::println("reflect_on(v,B)  = {}", reflect_on(v, B));
+        // fmt::println("reflect_on(UB,B) = {}", reflect_on(UB, B));
+        // fmt::println("");
+
+        CHECK(v3 + v4 == v5);
+        CHECK(v5 == v1);
+
+        // // just to suppress unused variable warnings
+        // CHECK(b == e1_3dp);
+
+        // CHECK(reflect_on_hyp(v, e2_3dp) == reflect_on(v, B));
+
+        // checking time required
+        //
+        // auto start = std::chrono::system_clock::now();
+        // for (size_t i = 0; i < 10000000; ++i) {
+        //     vec3dp v = reject_from(v1, v2);
+        // }
+        // auto end = std::chrono::system_clock::now();
+        // auto elapsed =
+        // std::chrono::duration_cast<std::chrono::milliseconds>(end
+        // -
+        // start); fmt::println("The measurement took {}", elapsed);
+    }
+
+    ////
+    // Vec3dp: project / reject / reflect etc.
+    // MVec3dp: ...
     ////
 
     TEST_CASE("MVec3dp: complement operation")
@@ -2397,25 +2672,305 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(l_cmpl(wdg(v, v2)) == rwdg(r_cmpl(v), r_cmpl(v2)));
     }
 
+    TEST_CASE("3dp: objects - bulk and weight")
+    {
+        fmt::println("3dp: objects - bulk and weight");
+
+        auto p1 = vec3dp{-2.0, 1.0, 1.0, 1.0};
+        auto p2 = vec3dp{2.0, 1.0, 2.0, 2.0};
+        auto p3 = vec3dp{2.0, 1.0, 1.0, 3.0};
+
+        auto l1 = bivec3dp{2.0, 1.0, -1.0, 20.0, 10.0, -10.0};
+        auto l2 = bivec3dp{-2.0, -1.0, 3.0, -20.0, -10.0, 30.0};
+        auto l3 = wdg(p1, p3);
+
+        auto t1 = trivec3dp{-6.0, 3.0, 3.0, 3.0};
+        auto t2 = trivec3dp{6.0, 3.0, 6.0, 6.0};
+        auto t3 = trivec3dp{6.0, 3.0, 3.0, 9.0};
+
+        // bulk and weight
+        CHECK(bulk(p1) == vec3dp{p1.x, p1.y, p1.z, 0.0});
+        CHECK(weight(p1) == vec3dp{0.0, 0.0, 0.0, p1.w});
+        CHECK(bulk(l1) == bivec3dp{0.0, 0.0, 0.0, l1.mx, l1.my, l1.mz});
+        CHECK(weight(l1) == bivec3dp{l1.vx, l1.vy, l1.vz, 0.0, 0.0, 0.0});
+        CHECK(bulk(t1) == trivec3dp{0.0, 0.0, 0.0, t1.w});
+        CHECK(weight(t1) == trivec3dp{t1.x, t1.y, t1.z, 0.0});
+
+        // bulk_nrm_sq and weight_nrm_sq
+        CHECK(bulk_nrm_sq(p1) == p1.x * p1.x + p1.y * p1.y + p1.z * p1.z);
+        CHECK(weight_nrm_sq(p1) == p1.w * p1.w);
+        CHECK(bulk_nrm_sq(l1) == l1.mx * l1.mx + l1.my * l1.my + l1.mz * l1.mz);
+        CHECK(weight_nrm_sq(l1) == l1.vx * l1.vx + l1.vy * l1.vy + l1.vz * l1.vz);
+        CHECK(bulk_nrm_sq(t1) == t1.w * t1.w);
+        CHECK(weight_nrm_sq(t1) == t1.x * t1.x + t1.y * t1.y + t1.z * t1.z);
+
+        // bulk_nrm and weight_nrm
+        CHECK(bulk_nrm(p1) == std::sqrt(p1.x * p1.x + p1.y * p1.y + p1.z * p1.z));
+        CHECK(weight_nrm(p1) == std::sqrt(p1.w * p1.w));
+        CHECK(bulk_nrm(l1) == std::sqrt(l1.mx * l1.mx + l1.my * l1.my + l1.mz * l1.mz));
+        CHECK(weight_nrm(l1) == std::sqrt(l1.vx * l1.vx + l1.vy * l1.vy + l1.vz * l1.vz));
+        CHECK(bulk_nrm(t1) == std::sqrt(t1.w * t1.w));
+        CHECK(weight_nrm(t1) == std::sqrt(t1.x * t1.x + t1.y * t1.y + t1.z * t1.z));
+
+
+        // geom_nrm
+        CHECK(geom_nrm(p1).c0 == bulk_nrm(p1));
+        CHECK(geom_nrm(p1).c1 == weight_nrm(p1));
+        CHECK(geom_nrm(l1).c0 == bulk_nrm(l1));
+        CHECK(geom_nrm(l1).c1 == weight_nrm(l1));
+        CHECK(geom_nrm(t1).c0 == bulk_nrm(t1));
+        CHECK(geom_nrm(t1).c1 == weight_nrm(t1));
+        CHECK(geom_nrm(l1).c0 / geom_nrm(l1).c1 == geom_nrm(l2).c0 / geom_nrm(l2).c1);
+
+        // attitude
+        CHECK(att(p1) == p1.w);
+        CHECK(att(p1) == rwdg(p1, r_cmpl(e4_3dp)));
+        CHECK(att(p2) == p2.w);
+        CHECK(att(p2) == rwdg(p2, r_cmpl(e4_3dp)));
+        CHECK(att(l1) == vec3dp{l1.vx, l1.vy, l1.vz, 0.0});
+        CHECK(att(l1) == rwdg(l1, r_cmpl(e4_3dp)));
+        CHECK(att(l2) == rwdg(l2, r_cmpl(e4_3dp)));
+        CHECK(att(l3) == rwdg(l3, r_cmpl(e4_3dp)));
+        CHECK(att(t1) == bivec3dp{0.0, 0.0, 0.0, t1.x, t1.y, t1.z});
+        CHECK(att(t1) == rwdg(t1, r_cmpl(e4_3dp)));
+        CHECK(att(t2) == bivec3dp{0.0, 0.0, 0.0, t2.x, t2.y, t2.z});
+        CHECK(att(t2) == rwdg(t2, r_cmpl(e4_3dp)));
+    }
+
+    TEST_CASE("3dp: objects - euclidean distance")
+    {
+        fmt::println("3dp: objects - euclidean distance");
+
+        auto p1 = vec3dp{0.0, 1.0, 0.0, 1.0};
+        auto p2 = vec3dp{0.0, 3.0, 0.0, -2.0};
+
+        auto p1u = unitize(p1);
+        auto p2u = unitize(p2);
+        auto delta = p2u - p1u;
+
+        // fmt::println("");
+        // fmt::println("p1  = {}, p2  = {}", p1, p2);
+        // fmt::println("p1u = {}, p2u = {}", p1u, p2u);
+        // fmt::println("delta = {}, nrm(delta) = {}", delta, nrm(delta));
+        // fmt::println("");
+
+        auto l1 = bivec3dp{2.0, 1.0, -1.0, 20.0, 10.0, -10.0};
+        auto l2 = bivec3dp{-2.0, -1.0, 3.0, -20.0, -10.0, 30.0};
+
+        auto t1 = trivec3dp{-6.0, 3.0, 3.0, 3.0};
+        auto t2 = trivec3dp{6.0, 3.0, 6.0, 6.0};
+        auto t3 = trivec3dp{6.0, 3.0, 3.0, 9.0};
+
+
+        auto dist_p1_p2 = euclidean_distance3dp(p1, p2);
+        auto dist_p1_l1 = euclidean_distance3dp(p1, l1);
+        auto dist_l1_p1 = euclidean_distance3dp(l1, p1);
+        auto dist_p1_t1 = euclidean_distance3dp(p1, t1);
+        auto dist_l1_l2 = euclidean_distance3dp(l1, l2);
+        fmt::println("");
+        fmt::println("dist_p1_p2 = {}, dist = {}", dist_p1_p2,
+                     dist_p1_p2.c0 / dist_p1_p2.c1);
+        fmt::println("dist_p1_l1 = {}, dist = {}", dist_p1_l1,
+                     dist_p1_l1.c0 / dist_p1_l1.c1);
+        fmt::println("dist_l1_p1 = {}, dist = {}", dist_l1_p1,
+                     dist_l1_p1.c0 / dist_l1_p1.c1);
+        fmt::println("");
+        fmt::println("dist_p1_t1 = {}, dist = {}", dist_p1_t1,
+                     dist_p1_t1.c0 / dist_p1_t1.c1);
+        fmt::println("");
+        fmt::println("dist_l1_l2 = {}, dist = {}", dist_l1_l2,
+                     dist_l1_l2.c0 / dist_l1_l2.c1);
+        fmt::println("");
+
+        CHECK(nrm(delta) == dist_p1_p2.c0 / dist_p1_p2.c1);
+        CHECK(dist_p1_l1 == dist_l1_p1);
+
+        // auto res = rwdg(pscalar3dp(2.5), horizon_3dp);
+        // fmt::println("res = {}", res);
+    }
+
+    TEST_CASE("pga_3dp<3,0,1> - product tests")
+    {
+        fmt::println("pga_3dp<3,0,1> - product tests");
+        // tests based on "The inner products of geometric algebra", Leo Dorst
+
+
+        // auto s1 = scalar2dp{2.0};
+        // auto v1 = vec2dp{1.0, -3.0, 0.0};
+        // // auto v1 = vec2dp{1.0, 0.0, 0.0};
+        // auto b1 = bivec2dp{2.0, -4.0, 1.0};
+        // auto ps1 = pscalar2dp{-2.0};
+
+        // auto s2 = scalar2dp{-1.0};
+        // auto v2 = vec2dp{2.0, 1.5, 0.0};
+        // // auto v2 = vec2dp{0.0, 1.0, 0.0};
+        // auto b2 = bivec2dp{-2.0, 10.5, 3.0};
+        // auto ps2 = pscalar2dp{3.0};
+
+        // auto s3 = scalar2dp{-10.0};
+        // auto v3 = vec2dp{-2.0, 4.0, -10.0};
+        // auto b3 = bivec2dp{1.0, -2.0, 3.0};
+        // auto ps3 = pscalar2dp{-12.0};
+
+        // dot product (difference due to different definition of scalar product)
+        CHECK(dot(scalar2dp(1.0), scalar2dp(1.0)) == scalar2dp(1.0));
+        CHECK(dot(e1_3dp, e1_3dp) == scalar3dp(1.0));
+        CHECK(dot(e2_3dp, e2_3dp) == scalar3dp(1.0));
+        CHECK(dot(e3_3dp, e3_3dp) == scalar3dp(1.0));
+        CHECK(dot(e4_3dp, e4_3dp) == scalar3dp(0.0));
+
+        CHECK(dot(e41_3dp, e41_3dp) == scalar3dp(0.0));
+        CHECK(dot(e42_3dp, e42_3dp) == scalar3dp(0.0));
+        CHECK(dot(e43_3dp, e43_3dp) == scalar3dp(0.0));
+        CHECK(dot(e23_3dp, e23_3dp) == scalar3dp(-1.0)); // differs from Lengyel!
+        CHECK(dot(e31_3dp, e31_3dp) == scalar3dp(-1.0)); // differs from Lengyel!
+        CHECK(dot(e12_3dp, e12_3dp) == scalar3dp(-1.0)); // differs from Lengyel!
+
+        CHECK(dot(e423_3dp, e423_3dp) == scalar3dp(0.0));
+        CHECK(dot(e431_3dp, e431_3dp) == scalar3dp(0.0));
+        CHECK(dot(e412_3dp, e412_3dp) == scalar3dp(0.0));
+        CHECK(dot(e321_3dp, e321_3dp) == scalar3dp(-1.0)); // differs from Lengyel!
+        CHECK(dot(pscalar3dp(1.0), pscalar3dp(1.0)) == scalar3dp(0.0));
+
+        // regressive dot product
+        CHECK(rdot(scalar2dp(1.0), scalar2dp(1.0)) == pscalar2dp(0.0));
+        CHECK(rdot(e1_3dp, e1_3dp) == pscalar3dp(0.0));
+        CHECK(rdot(e2_3dp, e2_3dp) == pscalar3dp(0.0));
+        CHECK(rdot(e3_3dp, e3_3dp) == pscalar3dp(0.0));
+        CHECK(rdot(e4_3dp, e4_3dp) == pscalar3dp(-1.0));   // differs from Lengyel!
+        CHECK(rdot(e41_3dp, e41_3dp) == pscalar3dp(-1.0)); // differs from Lengyel!
+        CHECK(rdot(e42_3dp, e42_3dp) == pscalar3dp(-1.0)); // differs from Lengyel!
+        CHECK(rdot(e43_3dp, e43_3dp) == pscalar3dp(-1.0)); // differs from Lengyel!
+        CHECK(rdot(e23_3dp, e23_3dp) == pscalar3dp(0.0));
+        CHECK(rdot(e31_3dp, e31_3dp) == pscalar3dp(0.0));
+        CHECK(rdot(e12_3dp, e12_3dp) == pscalar3dp(0.0));
+        CHECK(rdot(e423_3dp, e423_3dp) == pscalar3dp(1.0));
+        CHECK(rdot(e431_3dp, e431_3dp) == pscalar3dp(1.0));
+        CHECK(rdot(e412_3dp, e412_3dp) == pscalar3dp(1.0));
+        CHECK(rdot(e321_3dp, e321_3dp) == pscalar3dp(0.0));
+        CHECK(rdot(pscalar3dp(1.0), pscalar3dp(1.0)) == pscalar3dp(1.0));
+
+
+        // // wedge product
+        // // check full permissible range of arguments, even the ones delivering 0)
+        // CHECK(wdg(b1, b2) == scalar2dp(0.0));
+        // CHECK(wdg(v1, ps1) == scalar2dp(0.0));
+        // CHECK(wdg(ps1, v1) == scalar2dp(0.0));
+        // CHECK(wdg(b1, ps1) == scalar2dp(0.0));
+        // CHECK(wdg(ps1, b1) == scalar2dp(0.0));
+        // CHECK(wdg(ps1, ps1) == scalar2dp(0.0));
+
+        // // fmt::println("   b1           = {}", b1);
+        // // fmt::println("   b2           = {}", b2);
+        // // fmt::println("   b1*b2        = {}", b1 * b2);
+        // // fmt::println("   cmt(b1, b2)  = {}", cmt(b1, b2));
+        // // fmt::println("   b1<<b2       = {}", b1 << b2);
+        // CHECK(wdg(b1, b2) == nrm_sq(b1 * b2 - cmt(b1, b2) - (b1 << b2)));
+        // CHECK(wdg(v1, ps1) == nrm_sq(0.5 * (v1 * ps1 + rev(ps1) * v1)));
+        // CHECK(wdg(ps1, v1) == nrm_sq(0.5 * (ps1 * v1 + v1 * rev(ps1))));
+
+
+        // CHECK((v1 << wdg(v2, v3)) == wdg(v1 << v2, v3) + wdg(gr_inv(v2), v1 <<
+        // v3)); CHECK((wdg(v1, v2) << b1) == (v1 << (v2 << b1)));
+
+        // // contractions - check full permissible range of arguments, even the ones
+        // // delivering 0 as a result
+        // CHECK((ps1 << s1) == 0.0);
+        // CHECK((ps1 << v1) == 0.0);
+        // CHECK((ps1 << b1) == 0.0);
+        // CHECK((b1 << s1) == 0.0);
+        // CHECK((b1 << v1) == 0.0);
+        // CHECK((v1 << s1) == 0.0);
+        // //
+        // CHECK((s1 >> ps1) == 0.0);
+        // CHECK((v1 >> ps1) == 0.0);
+        // CHECK((b1 >> ps1) == 0.0);
+        // CHECK((s1 >> b1) == 0.0);
+        // CHECK((v1 >> b1) == 0.0);
+        // CHECK((s1 >> v1) == 0.0);
+
+        // // 2.3.2
+
+        // // 3rd with vectors and bivectors directly
+        // CHECK(v1 * b1 == (v1 << b1) + wdg(v1, b1));
+        // CHECK(b1 * v1 == (b1 >> v1) + wdg(b1, v1));
+        // CHECK((b1 >> v1) == -(v1 << gr_inv(b1)));
+
+        // // fmt::println("   v1 << b1        = {}", v1 << b1);
+        // // fmt::println("   v1 * b1         = {}", v1 * b1);
+        // // fmt::println("   gr_inv(b1) * v1 = {}", gr_inv(b1) * v1);
+        // CHECK((v1 << b1) == gr1(0.5 * (v1 * b1 - gr_inv(b1) * v1)));
+        // CHECK((b1 >> v1) == gr1(0.5 * (b1 * v1 - v1 * gr_inv(b1))));
+
+        // // fmt::println("   wdg(v1, b1)     = {}", wdg(v1, b1));
+        // // fmt::println("   v1 * b1         = {}", v1 * b1);
+        // // fmt::println("   gr_inv(b1) * v1 = {}", gr_inv(b1) * v1);
+        // CHECK(wdg(v1, b1) == gr3(0.5 * (v1 * b1 + gr_inv(b1) * v1)));
+        // CHECK(wdg(b1, v1) == gr3(0.5 * (b1 * v1 + v1 * gr_inv(b1))));
+
+        // CHECK(wdg(v1, (b1 << b2)) == ((v1 << b1) << b2) + (gr_inv(b1) << wdg(v1,
+        // b2)));
+
+        // // cross-check direct implementation of rwdg by comparing with wdg
+        // CHECK(rwdg(b1, b2) == cmpl(wdg(cmpl(b1), cmpl(b2))));
+    }
+
     ////
 
-    // TEST_CASE(
-    //     "G<3,0,1> - pga3dp simple applications, complements, contraction, expansions")
-    // {
-    //     fmt::println(
-    //         "G<3,0,1> - pga3dp simple applications, complements, contraction,
-    //         expansions");
+    TEST_CASE(
+        "G<3,0,1> - pga3dp simple applications, complements, contraction, expansions")
+    {
+        fmt::println("G<3,0,1> - pga3dp simple applications, complements, contraction,"
+                     "expansions");
 
-    //     auto s1 = scalar3dp{2.0};
-    //     auto v1 = vec3dp{1.0, -3.0, 0.0, 1.0};
-    //     auto v2 = vec3dp{-1.0, 3.0, 2.0, 1.0};
-    //     auto b1 = bivec3dp{2.0, -4.0, 1.0, -4.0, 8.0, -2.0};
-    //     auto t1 = trivec3dp{1.0, -5.0, 6.0, 7.0};
-    //     auto ps1 = pscalar3dp{-2.0};
-    //     auto M1 = mvec3dp{s1, v1, b1, t1, ps1};
+        auto s1 = scalar3dp{2.0};
+        auto v1 = vec3dp{1.0, -3.0, 0.0, 1.0};
+        auto v2 = vec3dp{-1.0, 3.0, 2.0, 1.0};
+        auto b1 = bivec3dp{2.0, -4.0, 1.0, -4.0, 8.0, -2.0};
+        auto t1 = trivec3dp{1.0, -5.0, 6.0, 7.0};
+        auto ps1 = pscalar3dp{-2.0};
+        auto M1 = mvec3dp{s1, v1, b1, t1, ps1};
 
-    //     auto R = rotor(wdg(v1, e1_3dp), deg_to_rad(15));
-    //     CHECK(rotate(v2, R) == rotate_opt(v2, R));
-    // }
+        auto R = rotor(wdg(v1, e1_3dp), deg_to_rad(15));
+        CHECK(rotate(v2, R) == rotate_opt(v2, R));
+    }
+
+    TEST_CASE("G<3,0,1> - pga3dp join and meet (wdg, rwdg)")
+    {
+        fmt::println("G<3,0,1> - pga3dp join and meet (wdg, rwdg)");
+
+        auto p1 = point3d{2, 0, 1};
+        auto p2 = point3d{4, 3, 1};
+        auto l12 = join(p1, p2); // = wdg(p1, p2)
+
+        auto p3 = point3d{0, 6, 1};
+        auto pl123 = unitize(join(l12, p3)); // plane parallel to e12
+
+        auto ln1 = join(point3d{0, 3, 0}, point3d{0, 3, 3}).unitize();
+        auto pt12 = unitize(meet(ln1, pl123)); // should provide pt(0,3,1)
+
+        auto pl123_2 = unitize(Plane3d(p1, p2, p3)); // check the ctor
+
+        auto pl456 =
+            unitize(Plane3d(point3d{2, 0, 3}, point3d{4, 3, 3}, point3d{0, 6, 3}));
+
+        auto l_inf = meet(pl123, pl456); // gives a line at infinity
+                                         // weighted by the distance of the planes
+
+        // fmt::println("");
+        // fmt::println("p1 = {}, p2 = {}, p3 = {}", p1, p2, p3);
+        // fmt::println("l12      = {}, pl123      = {}", l12, pl123);
+        // fmt::println("att(l12) = {}, att(pl123) = {}", att(l12), att(pl123));
+        // fmt::println("pt12  = meet(l1, pl123)   = {}", pt12);
+        // fmt::println("");
+        // fmt::println("pl456 = {}", pl456);
+        // fmt::println("l_inf = meet(pl123, pl456) = {}", l_inf);
+        // fmt::println("att(l_inf)) = {}", att(l_inf));
+
+        CHECK(join(p1, p2) == wdg(p1, p2));
+        CHECK(pt12 == vec3dp{0, 3, 1, 1});
+        CHECK(pl123 == pl123_2);
+        CHECK(att(l_inf) == vec3dp{}); // line is at infinity
+    }
 
 } // TEST_SUITE("Projective Geometric Algebra (PGA)")

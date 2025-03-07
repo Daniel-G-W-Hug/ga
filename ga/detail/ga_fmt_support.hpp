@@ -21,6 +21,7 @@
 #include "type_t/ga_mvec8_t.hpp"
 
 #include "ga_pga_2dp_objects.hpp"
+#include "ga_pga_3dp_objects.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 // printing support via fmt library for all types defined in ga library
@@ -240,6 +241,18 @@ struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : nested_formatter<double> {
             return fmt::format_to(ctx.out(), "MVec2d_E({}, {})", nested(v.c0),
                                   nested(v.c1));
         }
+        else if constexpr (std::is_same_v<
+                               hd::ga::MVec2_t<T, Tag>,
+                               hd::ga::MVec2_t<T, hd::ga::dual_number2dp_tag>>) {
+            return fmt::format_to(ctx.out(), "DualNumber2dp({}, {})", nested(v.c0),
+                                  nested(v.c1));
+        }
+        else if constexpr (std::is_same_v<
+                               hd::ga::MVec2_t<T, Tag>,
+                               hd::ga::MVec2_t<T, hd::ga::dual_number3dp_tag>>) {
+            return fmt::format_to(ctx.out(), "DualNumber3dp({}, {})", nested(v.c0),
+                                  nested(v.c1));
+        }
         else {
             return fmt::format_to(ctx.out(), "({}, {})", nested(v.c0), nested(v.c1));
         }
@@ -435,14 +448,81 @@ struct fmt::formatter<hd::ga::pga::Point2dp<T>> : nested_formatter<double> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// Line2dp<T>
+// Line2d<T>
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
-struct fmt::formatter<hd::ga::pga::Line2dp<T>> : nested_formatter<double> {
+struct fmt::formatter<hd::ga::pga::Line2d<T>> : nested_formatter<double> {
     template <typename FormatContext>
-    auto format(const hd::ga::pga::Line2dp<T>& v, FormatContext& ctx) const
+    auto format(const hd::ga::pga::Line2d<T>& v, FormatContext& ctx) const
     {
-        return fmt::format_to(ctx.out(), "Line2dp({}, {}, {})", nested(v.x), nested(v.y),
+        return fmt::format_to(ctx.out(), "Line2d({}, {}, {})", nested(v.x), nested(v.y),
                               nested(v.z));
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vector3d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Vector3d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Vector3d<T>& v, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Vector3d({}, {}, {})", nested(v.x), nested(v.y),
+                              nested(v.z));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Point3d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Point3d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Point3d<T>& p, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Point3d({}, {}, {})", nested(p.x), nested(p.y),
+                              nested(p.z));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Point3dp<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Point3dp<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Point3dp<T>& p, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Point3dp({}, {}, {}, {})", nested(p.x),
+                              nested(p.y), nested(p.z), nested(p.w));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Line3d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Line3d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Line3d<T>& l, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Line3d({}, {}, {}, {}, {}, {})", nested(l.vx),
+                              nested(l.vy), nested(l.vz), nested(l.mx), nested(l.my),
+                              nested(l.mz));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Plane3d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Plane3d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Plane3d<T>& p, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Plane3d({}, {}, {}, {})", nested(p.x),
+                              nested(p.y), nested(p.z), nested(p.w));
     }
 };

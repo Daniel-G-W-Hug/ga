@@ -44,7 +44,7 @@ struct pscalar2dp_tag : public pga2dp_tag {};
 struct mvec2dp_e_tag : public pga2dp_tag {};
 struct mvec2dp_u_tag : public pga2dp_tag {};
 struct mvec2dp_tag : public pga2dp_tag {};
-struct point2dp_tag : public pga2dp_tag {};
+struct dual_number2dp_tag : public pga2dp_tag {};
 
 struct pga3dp_tag {};
 struct scalar3dp_tag : public pga3dp_tag {};
@@ -55,5 +55,6 @@ struct pscalar3dp_tag : public pga3dp_tag {};
 struct mvec3dp_e_tag : public pga3dp_tag {};
 struct mvec3dp_u_tag : public pga3dp_tag {};
 struct mvec3dp_tag : public pga3dp_tag {};
+struct dual_number3dp_tag : public pga3dp_tag {};
 
 } // namespace hd::ga
