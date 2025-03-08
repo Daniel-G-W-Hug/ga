@@ -2567,109 +2567,109 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         auto t2 = trivec3dp{1.5, 3.0, 4.5, 6.0};
         auto ps2 = pscalar3dp{-1.5};
 
-        CHECK(wdg(s, r_cmpl(s)) == nrm_sq(s) * I_3dp);
-        CHECK(wdg(v, r_cmpl(v)) == nrm_sq(v) * I_3dp);
-        CHECK(wdg(B, r_cmpl(B)) == nrm_sq(B) * I_3dp);
-        CHECK(wdg(t, r_cmpl(t)) == nrm_sq(t) * I_3dp);
-        CHECK(wdg(ps, r_cmpl(ps)) == nrm_sq(ps) * I_3dp);
+        CHECK(wdg(s, rcmpl(s)) == nrm_sq(s) * I_3dp);
+        CHECK(wdg(v, rcmpl(v)) == nrm_sq(v) * I_3dp);
+        CHECK(wdg(B, rcmpl(B)) == nrm_sq(B) * I_3dp);
+        CHECK(wdg(t, rcmpl(t)) == nrm_sq(t) * I_3dp);
+        CHECK(wdg(ps, rcmpl(ps)) == nrm_sq(ps) * I_3dp);
 
-        CHECK(wdg(l_cmpl(s), s) == nrm_sq(s) * I_3dp);
-        CHECK(wdg(l_cmpl(v), v) == nrm_sq(v) * I_3dp);
-        CHECK(wdg(l_cmpl(B), B) == nrm_sq(B) * I_3dp);
-        CHECK(wdg(l_cmpl(t), t) == nrm_sq(t) * I_3dp);
-        CHECK(wdg(l_cmpl(ps), ps) == nrm_sq(ps) * I_3dp);
+        CHECK(wdg(lcmpl(s), s) == nrm_sq(s) * I_3dp);
+        CHECK(wdg(lcmpl(v), v) == nrm_sq(v) * I_3dp);
+        CHECK(wdg(lcmpl(B), B) == nrm_sq(B) * I_3dp);
+        CHECK(wdg(lcmpl(t), t) == nrm_sq(t) * I_3dp);
+        CHECK(wdg(lcmpl(ps), ps) == nrm_sq(ps) * I_3dp);
 
         // complement properties (right and left complements are inverse to each other)
-        CHECK(l_cmpl(r_cmpl(s)) == s);
-        CHECK(l_cmpl(r_cmpl(v)) == v);
-        CHECK(l_cmpl(r_cmpl(B)) == B);
-        CHECK(l_cmpl(r_cmpl(t)) == t);
-        CHECK(l_cmpl(r_cmpl(ps)) == ps);
-        CHECK(l_cmpl(r_cmpl(mv)) == mv);
-        CHECK(l_cmpl(r_cmpl(mv_e)) == mv_e);
-        CHECK(l_cmpl(r_cmpl(mv_u)) == mv_u);
+        CHECK(lcmpl(rcmpl(s)) == s);
+        CHECK(lcmpl(rcmpl(v)) == v);
+        CHECK(lcmpl(rcmpl(B)) == B);
+        CHECK(lcmpl(rcmpl(t)) == t);
+        CHECK(lcmpl(rcmpl(ps)) == ps);
+        CHECK(lcmpl(rcmpl(mv)) == mv);
+        CHECK(lcmpl(rcmpl(mv_e)) == mv_e);
+        CHECK(lcmpl(rcmpl(mv_u)) == mv_u);
 
-        CHECK(r_cmpl(l_cmpl(s)) == s);
-        CHECK(r_cmpl(l_cmpl(v)) == v);
-        CHECK(r_cmpl(l_cmpl(B)) == B);
-        CHECK(r_cmpl(l_cmpl(t)) == t);
-        CHECK(r_cmpl(l_cmpl(ps)) == ps);
-        CHECK(r_cmpl(l_cmpl(mv)) == mv);
-        CHECK(r_cmpl(l_cmpl(mv_e)) == mv_e);
-        CHECK(r_cmpl(l_cmpl(mv_u)) == mv_u);
+        CHECK(rcmpl(lcmpl(s)) == s);
+        CHECK(rcmpl(lcmpl(v)) == v);
+        CHECK(rcmpl(lcmpl(B)) == B);
+        CHECK(rcmpl(lcmpl(t)) == t);
+        CHECK(rcmpl(lcmpl(ps)) == ps);
+        CHECK(rcmpl(lcmpl(mv)) == mv);
+        CHECK(rcmpl(lcmpl(mv_e)) == mv_e);
+        CHECK(rcmpl(lcmpl(mv_u)) == mv_u);
 
         // complement values
-        CHECK(r_cmpl(scalar3dp(1.0)) == I_3dp);
-        CHECK(r_cmpl(e1_3dp) == e423_3dp);
-        CHECK(r_cmpl(e2_3dp) == e431_3dp);
-        CHECK(r_cmpl(e3_3dp) == e412_3dp);
-        CHECK(r_cmpl(e4_3dp) == e321_3dp);
-        CHECK(r_cmpl(e41_3dp) == -e23_3dp);
-        CHECK(r_cmpl(e42_3dp) == -e31_3dp);
-        CHECK(r_cmpl(e43_3dp) == -e12_3dp);
-        CHECK(r_cmpl(e23_3dp) == -e41_3dp);
-        CHECK(r_cmpl(e31_3dp) == -e42_3dp);
-        CHECK(r_cmpl(e12_3dp) == -e43_3dp);
-        CHECK(r_cmpl(e423_3dp) == -e1_3dp);
-        CHECK(r_cmpl(e431_3dp) == -e2_3dp);
-        CHECK(r_cmpl(e412_3dp) == -e3_3dp);
-        CHECK(r_cmpl(e321_3dp) == -e4_3dp);
-        CHECK(r_cmpl(I_3dp) == scalar2d(1.0));
+        CHECK(rcmpl(scalar3dp(1.0)) == I_3dp);
+        CHECK(rcmpl(e1_3dp) == e423_3dp);
+        CHECK(rcmpl(e2_3dp) == e431_3dp);
+        CHECK(rcmpl(e3_3dp) == e412_3dp);
+        CHECK(rcmpl(e4_3dp) == e321_3dp);
+        CHECK(rcmpl(e41_3dp) == -e23_3dp);
+        CHECK(rcmpl(e42_3dp) == -e31_3dp);
+        CHECK(rcmpl(e43_3dp) == -e12_3dp);
+        CHECK(rcmpl(e23_3dp) == -e41_3dp);
+        CHECK(rcmpl(e31_3dp) == -e42_3dp);
+        CHECK(rcmpl(e12_3dp) == -e43_3dp);
+        CHECK(rcmpl(e423_3dp) == -e1_3dp);
+        CHECK(rcmpl(e431_3dp) == -e2_3dp);
+        CHECK(rcmpl(e412_3dp) == -e3_3dp);
+        CHECK(rcmpl(e321_3dp) == -e4_3dp);
+        CHECK(rcmpl(I_3dp) == scalar2d(1.0));
 
-        CHECK(l_cmpl(scalar3dp(1.0)) == I_3dp);
-        CHECK(l_cmpl(e1_3dp) == -e423_3dp);
-        CHECK(l_cmpl(e2_3dp) == -e431_3dp);
-        CHECK(l_cmpl(e3_3dp) == -e412_3dp);
-        CHECK(l_cmpl(e4_3dp) == -e321_3dp);
-        CHECK(l_cmpl(e41_3dp) == -e23_3dp);
-        CHECK(l_cmpl(e42_3dp) == -e31_3dp);
-        CHECK(l_cmpl(e43_3dp) == -e12_3dp);
-        CHECK(l_cmpl(e23_3dp) == -e41_3dp);
-        CHECK(l_cmpl(e31_3dp) == -e42_3dp);
-        CHECK(l_cmpl(e12_3dp) == -e43_3dp);
-        CHECK(l_cmpl(e423_3dp) == e1_3dp);
-        CHECK(l_cmpl(e431_3dp) == e2_3dp);
-        CHECK(l_cmpl(e412_3dp) == e3_3dp);
-        CHECK(l_cmpl(e321_3dp) == e4_3dp);
-        CHECK(l_cmpl(I_3dp) == scalar2d(1.0));
+        CHECK(lcmpl(scalar3dp(1.0)) == I_3dp);
+        CHECK(lcmpl(e1_3dp) == -e423_3dp);
+        CHECK(lcmpl(e2_3dp) == -e431_3dp);
+        CHECK(lcmpl(e3_3dp) == -e412_3dp);
+        CHECK(lcmpl(e4_3dp) == -e321_3dp);
+        CHECK(lcmpl(e41_3dp) == -e23_3dp);
+        CHECK(lcmpl(e42_3dp) == -e31_3dp);
+        CHECK(lcmpl(e43_3dp) == -e12_3dp);
+        CHECK(lcmpl(e23_3dp) == -e41_3dp);
+        CHECK(lcmpl(e31_3dp) == -e42_3dp);
+        CHECK(lcmpl(e12_3dp) == -e43_3dp);
+        CHECK(lcmpl(e423_3dp) == e1_3dp);
+        CHECK(lcmpl(e431_3dp) == e2_3dp);
+        CHECK(lcmpl(e412_3dp) == e3_3dp);
+        CHECK(lcmpl(e321_3dp) == e4_3dp);
+        CHECK(lcmpl(I_3dp) == scalar2d(1.0));
 
         // linearity of the right and left complement operation
         double a = 2.0;
-        CHECK(r_cmpl(a * s) == a * r_cmpl(s));
-        CHECK(r_cmpl(a * v) == a * r_cmpl(v));
-        CHECK(r_cmpl(a * B) == a * r_cmpl(B));
-        CHECK(r_cmpl(a * t) == a * r_cmpl(t));
-        CHECK(r_cmpl(a * ps) == a * r_cmpl(ps));
+        CHECK(rcmpl(a * s) == a * rcmpl(s));
+        CHECK(rcmpl(a * v) == a * rcmpl(v));
+        CHECK(rcmpl(a * B) == a * rcmpl(B));
+        CHECK(rcmpl(a * t) == a * rcmpl(t));
+        CHECK(rcmpl(a * ps) == a * rcmpl(ps));
 
-        CHECK(r_cmpl(s + s2) == r_cmpl(s) + r_cmpl(s2));
-        CHECK(r_cmpl(v + v2) == r_cmpl(v) + r_cmpl(v2));
-        CHECK(r_cmpl(B + B2) == r_cmpl(B) + r_cmpl(B2));
-        CHECK(r_cmpl(t + t2) == r_cmpl(t) + r_cmpl(t2));
-        CHECK(r_cmpl(ps + ps2) == r_cmpl(ps) + r_cmpl(ps2));
+        CHECK(rcmpl(s + s2) == rcmpl(s) + rcmpl(s2));
+        CHECK(rcmpl(v + v2) == rcmpl(v) + rcmpl(v2));
+        CHECK(rcmpl(B + B2) == rcmpl(B) + rcmpl(B2));
+        CHECK(rcmpl(t + t2) == rcmpl(t) + rcmpl(t2));
+        CHECK(rcmpl(ps + ps2) == rcmpl(ps) + rcmpl(ps2));
 
-        CHECK(l_cmpl(a * s) == a * l_cmpl(s));
-        CHECK(l_cmpl(a * v) == a * l_cmpl(v));
-        CHECK(l_cmpl(a * B) == a * l_cmpl(B));
-        CHECK(l_cmpl(a * t) == a * l_cmpl(t));
-        CHECK(l_cmpl(a * ps) == a * l_cmpl(ps));
+        CHECK(lcmpl(a * s) == a * lcmpl(s));
+        CHECK(lcmpl(a * v) == a * lcmpl(v));
+        CHECK(lcmpl(a * B) == a * lcmpl(B));
+        CHECK(lcmpl(a * t) == a * lcmpl(t));
+        CHECK(lcmpl(a * ps) == a * lcmpl(ps));
 
-        CHECK(l_cmpl(s + s2) == l_cmpl(s) + l_cmpl(s2));
-        CHECK(l_cmpl(v + v2) == l_cmpl(v) + l_cmpl(v2));
-        CHECK(l_cmpl(B + B2) == l_cmpl(B) + l_cmpl(B2));
-        CHECK(l_cmpl(t + t2) == l_cmpl(t) + l_cmpl(t2));
-        CHECK(l_cmpl(ps + ps2) == l_cmpl(ps) + l_cmpl(ps2));
+        CHECK(lcmpl(s + s2) == lcmpl(s) + lcmpl(s2));
+        CHECK(lcmpl(v + v2) == lcmpl(v) + lcmpl(v2));
+        CHECK(lcmpl(B + B2) == lcmpl(B) + lcmpl(B2));
+        CHECK(lcmpl(t + t2) == lcmpl(t) + lcmpl(t2));
+        CHECK(lcmpl(ps + ps2) == lcmpl(ps) + lcmpl(ps2));
 
         // check regressive wedge product expressed in terms of
         // wegde product and complement operation
-        CHECK(rwdg(t, t2) == l_cmpl(wdg(r_cmpl(t), r_cmpl(t2))));
-        CHECK(rwdg(t, B) == l_cmpl(wdg(r_cmpl(t), r_cmpl(B))));
-        CHECK(rwdg(B, t) == l_cmpl(wdg(r_cmpl(B), r_cmpl(t))));
-        CHECK(rwdg(t, v) == l_cmpl(wdg(r_cmpl(t), r_cmpl(v))));
-        CHECK(rwdg(v, t) == l_cmpl(wdg(r_cmpl(v), r_cmpl(t))));
-        CHECK(rwdg(B, B2) == l_cmpl(wdg(r_cmpl(B), r_cmpl(B2))));
+        CHECK(rwdg(t, t2) == lcmpl(wdg(rcmpl(t), rcmpl(t2))));
+        CHECK(rwdg(t, B) == lcmpl(wdg(rcmpl(t), rcmpl(B))));
+        CHECK(rwdg(B, t) == lcmpl(wdg(rcmpl(B), rcmpl(t))));
+        CHECK(rwdg(t, v) == lcmpl(wdg(rcmpl(t), rcmpl(v))));
+        CHECK(rwdg(v, t) == lcmpl(wdg(rcmpl(v), rcmpl(t))));
+        CHECK(rwdg(B, B2) == lcmpl(wdg(rcmpl(B), rcmpl(B2))));
 
-        CHECK(l_cmpl(rwdg(B, B2)) == wdg(r_cmpl(B), r_cmpl(B2)));
-        CHECK(l_cmpl(wdg(v, v2)) == rwdg(r_cmpl(v), r_cmpl(v2)));
+        CHECK(lcmpl(rwdg(B, B2)) == wdg(rcmpl(B), rcmpl(B2)));
+        CHECK(lcmpl(wdg(v, v2)) == rwdg(rcmpl(v), rcmpl(v2)));
     }
 
     TEST_CASE("3dp: objects - bulk and weight")
@@ -2724,17 +2724,17 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // attitude
         CHECK(att(p1) == p1.w);
-        CHECK(att(p1) == rwdg(p1, r_cmpl(e4_3dp)));
+        CHECK(att(p1) == rwdg(p1, rcmpl(e4_3dp)));
         CHECK(att(p2) == p2.w);
-        CHECK(att(p2) == rwdg(p2, r_cmpl(e4_3dp)));
+        CHECK(att(p2) == rwdg(p2, rcmpl(e4_3dp)));
         CHECK(att(l1) == vec3dp{l1.vx, l1.vy, l1.vz, 0.0});
-        CHECK(att(l1) == rwdg(l1, r_cmpl(e4_3dp)));
-        CHECK(att(l2) == rwdg(l2, r_cmpl(e4_3dp)));
-        CHECK(att(l3) == rwdg(l3, r_cmpl(e4_3dp)));
+        CHECK(att(l1) == rwdg(l1, rcmpl(e4_3dp)));
+        CHECK(att(l2) == rwdg(l2, rcmpl(e4_3dp)));
+        CHECK(att(l3) == rwdg(l3, rcmpl(e4_3dp)));
         CHECK(att(t1) == bivec3dp{0.0, 0.0, 0.0, t1.x, t1.y, t1.z});
-        CHECK(att(t1) == rwdg(t1, r_cmpl(e4_3dp)));
+        CHECK(att(t1) == rwdg(t1, rcmpl(e4_3dp)));
         CHECK(att(t2) == bivec3dp{0.0, 0.0, 0.0, t2.x, t2.y, t2.z});
-        CHECK(att(t2) == rwdg(t2, r_cmpl(e4_3dp)));
+        CHECK(att(t2) == rwdg(t2, rcmpl(e4_3dp)));
     }
 
     TEST_CASE("3dp: objects - euclidean distance")

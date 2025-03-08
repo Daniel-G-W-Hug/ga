@@ -1873,8 +1873,8 @@ inline constexpr TriVec3dp<std::common_type_t<T, U>> rotate_opt(TriVec3dp<T> con
 // the basis vectors which are NOT contained in the k-blade u
 // and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  l_cmpl(u) ^ u  = I_3dp = e1^e2^e3^e4
-// right complement: u ^ r_cmpl(u)  = I_3dp = e1^e2^e3^e4
+// left complement:  lcmpl(u) ^ u  = I_3dp = e1^e2^e3^e4
+// right complement: u ^ rcmpl(u)  = I_3dp = e1^e2^e3^e4
 //
 // in spaces of odd dimension right and left complements are identical and thus there
 // is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
@@ -1888,91 +1888,91 @@ inline constexpr TriVec3dp<std::common_type_t<T, U>> rotate_opt(TriVec3dp<T> con
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> r_cmpl(Scalar3dp<T> s)
+inline constexpr PScalar3dp<T> rcmpl(Scalar3dp<T> s)
 {
-    // u ^ r_cmpl(u) = e1^e2^e3^e4
+    // u ^ rcmpl(u) = e1^e2^e3^e4
     // u = 1:
-    //     1 ^ r_cmpl(u) = e1^e2^e3^e4 => r_cmpl(u) = s e1^e2^e3^e4
+    //     1 ^ rcmpl(u) = e1^e2^e3^e4 => rcmpl(u) = s e1^e2^e3^e4
     return PScalar3dp<T>(T(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline TriVec3dp<T> r_cmpl(Vec3dp<T> const& v)
+inline TriVec3dp<T> rcmpl(Vec3dp<T> const& v)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
-    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
-    //     u = e1 => r_cmpl(u) = e423
-    //     u = e2 => r_cmpl(u) = e431
-    //     u = e3 => r_cmpl(u) = e412
-    //     u = e4 => r_cmpl(u) = e321
+    //     u ^ rcmpl(u) = e1^e2^e3^e4 =>
+    //     u = e1 => rcmpl(u) = e423
+    //     u = e2 => rcmpl(u) = e431
+    //     u = e3 => rcmpl(u) = e412
+    //     u = e4 => rcmpl(u) = e321
     return TriVec3dp<T>(v.x, v.y, v.z, v.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline BiVec3dp<T> r_cmpl(BiVec3dp<T> const& B)
+inline BiVec3dp<T> rcmpl(BiVec3dp<T> const& B)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
-    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
-    //     u = e41 => r_cmpl(u) = -e23
-    //     u = e42 => r_cmpl(u) = -e31
-    //     u = e43 => r_cmpl(u) = -e12
-    //     u = e23 => r_cmpl(u) = -e41
-    //     u = e31 => r_cmpl(u) = -e42
-    //     u = e12 => r_cmpl(u) = -e43
+    //     u ^ rcmpl(u) = e1^e2^e3^e4 =>
+    //     u = e41 => rcmpl(u) = -e23
+    //     u = e42 => rcmpl(u) = -e31
+    //     u = e43 => rcmpl(u) = -e12
+    //     u = e23 => rcmpl(u) = -e41
+    //     u = e31 => rcmpl(u) = -e42
+    //     u = e12 => rcmpl(u) = -e43
     return BiVec3dp<T>(-B.mx, -B.my, -B.mz, -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline Vec3dp<T> r_cmpl(TriVec3dp<T> const& t)
+inline Vec3dp<T> rcmpl(TriVec3dp<T> const& t)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
-    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
-    //     u = e423 => r_cmpl(u) = -e1
-    //     u = e431 => r_cmpl(u) = -e2
-    //     u = e412 => r_cmpl(u) = -e3
-    //     u = e321 => r_cmpl(u) = -e4
+    //     u ^ rcmpl(u) = e1^e2^e3^e4 =>
+    //     u = e423 => rcmpl(u) = -e1
+    //     u = e431 => rcmpl(u) = -e2
+    //     u = e412 => rcmpl(u) = -e3
+    //     u = e321 => rcmpl(u) = -e4
     return Vec3dp<T>(-t.x, -t.y, -t.z, -t.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> r_cmpl(PScalar3dp<T> ps)
+inline constexpr Scalar3dp<T> rcmpl(PScalar3dp<T> ps)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = e1^e2^e3^e4:
-    //     e1^e2^e3^e4 ^ r_cmpl(u) = e1^e2^e3^e4 => r_cmpl(u) = ps 1
+    //     e1^e2^e3^e4 ^ rcmpl(u) = e1^e2^e3^e4 => rcmpl(u) = ps 1
     return Scalar3dp<T>(T(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> r_cmpl(MVec3dp_U<T> const& M)
+inline constexpr MVec3dp_U<T> rcmpl(MVec3dp_U<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp_U<T>(r_cmpl(gr3(M)), r_cmpl(gr1(M)));
+    return MVec3dp_U<T>(rcmpl(gr3(M)), rcmpl(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> r_cmpl(MVec3dp_E<T> const& M)
+inline constexpr MVec3dp_E<T> rcmpl(MVec3dp_E<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp_E<T>(r_cmpl(gr4(M)), r_cmpl(gr2(M)), r_cmpl(gr0(M)));
+    return MVec3dp_E<T>(rcmpl(gr4(M)), rcmpl(gr2(M)), rcmpl(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> r_cmpl(MVec3dp<T> const& M)
+inline constexpr MVec3dp<T> rcmpl(MVec3dp<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp<T>(r_cmpl(gr4(M)), r_cmpl(gr3(M)), r_cmpl(gr2(M)), r_cmpl(gr1(M)),
-                      r_cmpl(gr0(M)));
+    return MVec3dp<T>(rcmpl(gr4(M)), rcmpl(gr3(M)), rcmpl(gr2(M)), rcmpl(gr1(M)),
+                      rcmpl(gr0(M)));
 }
 
 
@@ -1980,91 +1980,91 @@ inline constexpr MVec3dp<T> r_cmpl(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> l_cmpl(Scalar3dp<T> s)
+inline constexpr PScalar3dp<T> lcmpl(Scalar3dp<T> s)
 {
-    // l_cmpl(u) ^ u = e1^e2^e3^e4
+    // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = 1:
-    //     l_cmpl(u) ^ 1 = e1^e2^e3^e4 => l_cmpl(u) = s e1^e2^e3^e4
+    //     lcmpl(u) ^ 1 = e1^e2^e3^e4 => lcmpl(u) = s e1^e2^e3^e4
     return PScalar3dp<T>(T(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline TriVec3dp<T> l_cmpl(Vec3dp<T> const& v)
+inline TriVec3dp<T> lcmpl(Vec3dp<T> const& v)
 {
-    // l_cmpl(u) ^ u = e1^e2^e3^e4
+    // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
-    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
-    //     u = e1 => l_cmpl(u) = -e423
-    //     u = e2 => l_cmpl(u) = -e431
-    //     u = e3 => l_cmpl(u) = -e412
-    //     u = e4 => l_cmpl(u) = -e321
+    //     lcmpl(u) ^ u = e1^e2^e3^e4 =>
+    //     u = e1 => lcmpl(u) = -e423
+    //     u = e2 => lcmpl(u) = -e431
+    //     u = e3 => lcmpl(u) = -e412
+    //     u = e4 => lcmpl(u) = -e321
     return TriVec3dp<T>(-v.x, -v.y, -v.z, -v.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline BiVec3dp<T> l_cmpl(BiVec3dp<T> const& B)
+inline BiVec3dp<T> lcmpl(BiVec3dp<T> const& B)
 {
-    // l_cmpl(u) ^ u = e1^e2^e3^e4
+    // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
-    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
-    //     u = e41 => l_cmpl(u) = -e23
-    //     u = e42 => l_cmpl(u) = -e31
-    //     u = e43 => l_cmpl(u) = -e12
-    //     u = e23 => l_cmpl(u) = -e41
-    //     u = e31 => l_cmpl(u) = -e42
-    //     u = e12 => l_cmpl(u) = -e43
+    //     lcmpl(u) ^ u = e1^e2^e3^e4 =>
+    //     u = e41 => lcmpl(u) = -e23
+    //     u = e42 => lcmpl(u) = -e31
+    //     u = e43 => lcmpl(u) = -e12
+    //     u = e23 => lcmpl(u) = -e41
+    //     u = e31 => lcmpl(u) = -e42
+    //     u = e12 => lcmpl(u) = -e43
     return BiVec3dp<T>(-B.mx, -B.my, -B.mz, -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline Vec3dp<T> l_cmpl(TriVec3dp<T> const& t)
+inline Vec3dp<T> lcmpl(TriVec3dp<T> const& t)
 {
-    // l_cmpl(u) ^ u = e1^e2^e3^e4
+    // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
-    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
-    //     u = e423 => l_cmpl(u) = e1
-    //     u = e431 => l_cmpl(u) = e2
-    //     u = e412 => l_cmpl(u) = e3
-    //     u = e321 => l_cmpl(u) = e4
+    //     lcmpl(u) ^ u = e1^e2^e3^e4 =>
+    //     u = e423 => lcmpl(u) = e1
+    //     u = e431 => lcmpl(u) = e2
+    //     u = e412 => lcmpl(u) = e3
+    //     u = e321 => lcmpl(u) = e4
     return Vec3dp<T>(t.x, t.y, t.z, t.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> l_cmpl(PScalar3dp<T> ps)
+inline constexpr Scalar3dp<T> lcmpl(PScalar3dp<T> ps)
 {
-    // l_cmpl(u) ^ u = e1^e2^e3^e4
+    // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = e1^e2^e3^e4:
-    //     l_cmpl(u) ^ e1^e2^e3^e4 = e1^e2^e3^e4 => l_cmpl(u) = ps 1
+    //     lcmpl(u) ^ e1^e2^e3^e4 = e1^e2^e3^e4 => lcmpl(u) = ps 1
     return Scalar3dp<T>(T(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> l_cmpl(MVec3dp_U<T> const& M)
+inline constexpr MVec3dp_U<T> lcmpl(MVec3dp_U<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp_U<T>(l_cmpl(gr3(M)), l_cmpl(gr1(M)));
+    return MVec3dp_U<T>(lcmpl(gr3(M)), lcmpl(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> l_cmpl(MVec3dp_E<T> const& M)
+inline constexpr MVec3dp_E<T> lcmpl(MVec3dp_E<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp_E<T>(l_cmpl(gr4(M)), l_cmpl(gr2(M)), l_cmpl(gr0(M)));
+    return MVec3dp_E<T>(lcmpl(gr4(M)), lcmpl(gr2(M)), lcmpl(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> l_cmpl(MVec3dp<T> const& M)
+inline constexpr MVec3dp<T> lcmpl(MVec3dp<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp<T>(l_cmpl(gr4(M)), l_cmpl(gr3(M)), l_cmpl(gr2(M)), l_cmpl(gr1(M)),
-                      l_cmpl(gr0(M)));
+    return MVec3dp<T>(lcmpl(gr4(M)), lcmpl(gr3(M)), lcmpl(gr2(M)), lcmpl(gr1(M)),
+                      lcmpl(gr0(M)));
 }
 
 

@@ -541,15 +541,12 @@ struct Plane3d : public TriVec3dp<T> {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// attitude operations: att = rwdg( u, r_cmpl(e4_3dp) ) = rwdg(u, horizon_3dp)
+// attitude operations: att = rwdg( u, rcmpl(e4_3dp) ) = rwdg(u, horizon_3dp)
 //
 // (the attitude is the intersection of the object with the horizon)
+// the result of att(object_with_grade_k) is an object with grade k-1
 ////////////////////////////////////////////////////////////////////////////////
 
-// return the attitude (i.e. the value required for unitization) of the point
-//
-// if att(point) = 0.0 the point is located at infinity in the direction of its bulk
-//
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar3dp<T> att(Vec3dp<T> const& v)

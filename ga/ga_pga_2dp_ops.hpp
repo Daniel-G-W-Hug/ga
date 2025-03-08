@@ -1929,8 +1929,8 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> rotate(MVec2dp<T> const& v,
 // the basis vectors which are NOT contained in the k-blade u
 // and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  l_cmpl(u) ^ u  = I_2dp = e1^e2^e3
-// right complement: u ^ r_cmpl(u)  = I_2dp = e1^e2^e3
+// left complement:  lcmpl(u) ^ u  = I_2dp = e1^e2^e3
+// right complement: u ^ rcmpl(u)  = I_2dp = e1^e2^e3
 //
 // in spaces of odd dimension right and left complements are identical and thus there
 // is only one complement operation defined l_compl(u), r_compl(u) => compl(u)

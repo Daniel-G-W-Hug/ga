@@ -774,19 +774,19 @@ void register_functions(sol::state& lua)
     // complement operations
     ////////////////////////////////////////////////////////////////////////////////
 
-    lua.set_function("r_cmpl",
-                     sol::overload(sol::resolve<pscalar2d(scalar2d)>(r_cmpl),
-                                   sol::resolve<vec2d(vec2d const&)>(r_cmpl),
-                                   sol::resolve<scalar2d(pscalar2d)>(r_cmpl),
-                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(r_cmpl),
-                                   sol::resolve<mvec2d(mvec2d const&)>(r_cmpl)));
+    lua.set_function("rcmpl",
+                     sol::overload(sol::resolve<pscalar2d(scalar2d)>(rcmpl),
+                                   sol::resolve<vec2d(vec2d const&)>(rcmpl),
+                                   sol::resolve<scalar2d(pscalar2d)>(rcmpl),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(rcmpl),
+                                   sol::resolve<mvec2d(mvec2d const&)>(rcmpl)));
 
-    lua.set_function("l_cmpl",
-                     sol::overload(sol::resolve<pscalar2d(scalar2d)>(l_cmpl),
-                                   sol::resolve<vec2d(vec2d const&)>(l_cmpl),
-                                   sol::resolve<scalar2d(pscalar2d)>(l_cmpl),
-                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(l_cmpl),
-                                   sol::resolve<mvec2d(mvec2d const&)>(l_cmpl)));
+    lua.set_function("lcmpl",
+                     sol::overload(sol::resolve<pscalar2d(scalar2d)>(lcmpl),
+                                   sol::resolve<vec2d(vec2d const&)>(lcmpl),
+                                   sol::resolve<scalar2d(pscalar2d)>(lcmpl),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(lcmpl),
+                                   sol::resolve<mvec2d(mvec2d const&)>(lcmpl)));
 
     lua.set_function("cmpl", sol::overload(sol::resolve<pscalar3d(scalar3d)>(cmpl),
                                            sol::resolve<bivec3d(vec3d const&)>(cmpl),

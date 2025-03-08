@@ -124,7 +124,7 @@ auto const e423_3dp = TriVec3dp<value_t>{1.0, 0.0, 0.0, 0.0};
 auto const e431_3dp = TriVec3dp<value_t>{0.0, 1.0, 0.0, 0.0};
 auto const e412_3dp = TriVec3dp<value_t>{0.0, 0.0, 1.0, 0.0};
 auto const e321_3dp = TriVec3dp<value_t>{0.0, 0.0, 0.0, 1.0};
-auto const horizon_3dp = e321_3dp; // horizon == plane at infinity == r_cmpl(origin)
+auto const horizon_3dp = e321_3dp; // horizon == plane at infinity == rcmpl(origin)
 
 auto const e423m_3dp = MVec3dp<value_t>{e423_3dp}; // e423_3dp as multivector
 auto const e431m_3dp = MVec3dp<value_t>{e431_3dp}; // e431_3dp as multivector

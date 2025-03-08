@@ -2732,11 +2732,11 @@ inline constexpr MVec3d<T> dual(MVec3d<T> const& M)
 // which are in the k-blade u with the basis vectors which are NOT contained in the
 // k-blade u and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  l_cmpl(u) ^ u  = I_3d = e1^e2^e3  =>  l_cmpl(u) = I_3d * rev(u)
-// right complement: u ^ r_cmpl(u)  = I_3d = e1^e2^e3  =>  r_cmpl(u) = rev(v) * I_3d
+// left complement:  lcmpl(u) ^ u  = I_3d = e1^e2^e3  =>  lcmpl(u) = I_3d * rev(u)
+// right complement: u ^ rcmpl(u)  = I_3d = e1^e2^e3  =>  rcmpl(u) = rev(v) * I_3d
 //
 // in spaces of odd dimension right and left complements are identical and thus there
-// is only one complement operation defined l_cmpl(u) == r_cmpl(u) == cmpl(u)
+// is only one complement operation defined lcmpl(u) == rcmpl(u) == cmpl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // complements have different signs

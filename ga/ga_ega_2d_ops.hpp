@@ -490,8 +490,8 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s1, Scalar2d
 // (i.e. this definition is does NOT connect directly to the geometric product, but to the
 // outer product, exclusively)
 //
-// rwdg(ul, ur) = l_cmpl(wdg(r_cmpl(ul),r_cmpl(ur))) = l_cmpl(r_cmpl(ul)^r_cmpl(ur))
-//              = r_cmpl(wdg(l_cmpl(ul),l_cmpl(ur))) = r_cmpl(l_cmpl(ul)^l_cmpl(ur))
+// rwdg(ul, ur) = lcmpl(wdg(rcmpl(ul),rcmpl(ur))) = lcmpl(rcmpl(ul)^rcmpl(ur))
+//              = rcmpl(wdg(lcmpl(ul),lcmpl(ur))) = rcmpl(lcmpl(ul)^lcmpl(ur))
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1917,110 +1917,110 @@ inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
 // which are in the k-blade u with the basis vectors which are NOT contained in the
 // k-blade u and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  l_cmpl(u) ^ u  = I_2d = e1^e2  =>  l_cmpl(u) = I_3d * rev(u)
-// right complement: u ^ r_cmpl(u)  = I_2d = e1^e2  =>  r_cmpl(u) = rev(v) * I_3d
+// left complement:  lcmpl(u) ^ u  = I_2d = e1^e2  =>  lcmpl(u) = I_3d * rev(u)
+// right complement: u ^ rcmpl(u)  = I_2d = e1^e2  =>  rcmpl(u) = rev(v) * I_3d
 //
 // in spaces of odd dimension right and left complements are identical and thus there
-// is only one complement operation defined l_cmpl(u), r_cmpl(u) => cmpl(u)
+// is only one complement operation defined lcmpl(u), rcmpl(u) => cmpl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // complements have different signs
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> r_cmpl(Scalar2d<T> s)
+inline constexpr PScalar2d<T> rcmpl(Scalar2d<T> s)
 {
-    // u ^ r_cmpl(u) = e1^e2
+    // u ^ rcmpl(u) = e1^e2
     // u = s 1:
-    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = rev(s) * I_2d = s e1^e2
+    //     u ^ rcmpl(u) = e1^e2 => rcmpl(u) = rev(s) * I_2d = s e1^e2
     return PScalar2d<T>(T(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> l_cmpl(Scalar2d<T> s)
+inline constexpr PScalar2d<T> lcmpl(Scalar2d<T> s)
 {
-    // l_cmpl(u) ^ u = e1^e2
+    // lcmpl(u) ^ u = e1^e2
     // u = s 1:
-    //     l_cmpl(u) ^ u = e1^e2 => l_cmpl(u) = I_2d * rev(s) = s e1^e2
+    //     lcmpl(u) ^ u = e1^e2 => lcmpl(u) = I_2d * rev(s) = s e1^e2
     return PScalar2d<T>(T(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> r_cmpl(Vec2d<T> const& v)
+inline constexpr Vec2d<T> rcmpl(Vec2d<T> const& v)
 {
-    // u ^ r_cmpl(u) = e1^e2
+    // u ^ rcmpl(u) = e1^e2
     // u = v.x e1 + v.y e2:
-    //     u ^ r_cmpl(u) = e1^e2 => cmpl(u) = rev(v) * I_2d
-    //     e1 => r_cmpl(u).x =  v.x e2
-    //     e2 => r_cmpl(u).y = -v.y e1
+    //     u ^ rcmpl(u) = e1^e2 => cmpl(u) = rev(v) * I_2d
+    //     e1 => rcmpl(u).x =  v.x e2
+    //     e2 => rcmpl(u).y = -v.y e1
 
     return Vec2d<T>(-v.y, v.x);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> l_cmpl(Vec2d<T> const& v)
+inline constexpr Vec2d<T> lcmpl(Vec2d<T> const& v)
 {
-    // l_cmpl(u) ^ u = e1^e2
+    // lcmpl(u) ^ u = e1^e2
     // u = v.x e1 + v.y e2:
-    //     l_cmpl(u) ^ u = e1^e2 => cmpl(u) = I_2d * rev(v)
-    //     e1 => l_cmpl(u).x = -v.x e2
-    //     e2 => l_cmpl(u).y =  v.y e1
+    //     lcmpl(u) ^ u = e1^e2 => cmpl(u) = I_2d * rev(v)
+    //     e1 => lcmpl(u).x = -v.x e2
+    //     e2 => lcmpl(u).y =  v.y e1
     return Vec2d<T>(v.y, -v.x);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> r_cmpl(PScalar2d<T> ps)
+inline constexpr Scalar2d<T> rcmpl(PScalar2d<T> ps)
 {
-    // u ^ r_cmpl(u) = e1^e2
+    // u ^ rcmpl(u) = e1^e2
     // u = ps e1^e2:
-    //     u ^ r_cmpl(u) = e1^e2 => r_cmpl(u) = rev(ps) * I_2d = ps 1
+    //     u ^ rcmpl(u) = e1^e2 => rcmpl(u) = rev(ps) * I_2d = ps 1
     return Scalar2d<T>(T(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> l_cmpl(PScalar2d<T> ps)
+inline constexpr Scalar2d<T> lcmpl(PScalar2d<T> ps)
 {
-    // l_cmpl(u) ^ u = e1^e2
+    // lcmpl(u) ^ u = e1^e2
     // u = ps e1^e2:
-    //     l_cmpl(u) ^ u = e1^e2 => l_cmpl(u) = I_2d * rev(ps) = ps 1
+    //     lcmpl(u) ^ u = e1^e2 => lcmpl(u) = I_2d * rev(ps) = ps 1
     return Scalar2d<T>(T(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> r_cmpl(MVec2d_E<T> const& M)
+inline constexpr MVec2d_E<T> rcmpl(MVec2d_E<T> const& M)
 {
     // use the component complements directly
-    return MVec2d_E<T>(r_cmpl(gr2(M)), r_cmpl(gr0(M)));
+    return MVec2d_E<T>(rcmpl(gr2(M)), rcmpl(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> l_cmpl(MVec2d_E<T> const& M)
+inline constexpr MVec2d_E<T> lcmpl(MVec2d_E<T> const& M)
 {
     // use the component complements directly
-    return MVec2d_E<T>(l_cmpl(gr2(M)), l_cmpl(gr0(M)));
+    return MVec2d_E<T>(lcmpl(gr2(M)), lcmpl(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> r_cmpl(MVec2d<T> const& M)
+inline constexpr MVec2d<T> rcmpl(MVec2d<T> const& M)
 {
     // use the component complements directly
-    return MVec2d<T>(r_cmpl(gr2(M)), r_cmpl(gr1(M)), r_cmpl(gr0(M)));
+    return MVec2d<T>(rcmpl(gr2(M)), rcmpl(gr1(M)), rcmpl(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> l_cmpl(MVec2d<T> const& M)
+inline constexpr MVec2d<T> lcmpl(MVec2d<T> const& M)
 {
     // use the component complements directly
-    return MVec2d<T>(l_cmpl(gr2(M)), l_cmpl(gr1(M)), l_cmpl(gr0(M)));
+    return MVec2d<T>(lcmpl(gr2(M)), lcmpl(gr1(M)), lcmpl(gr0(M)));
 }
 
 

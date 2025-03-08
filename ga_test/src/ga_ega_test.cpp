@@ -3536,14 +3536,14 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(dual(wdg(mv1, mv2)) == (mv1 << dual(mv2)));
         // now using the complements
         // TODO: why do we have the sign change for the second line?
-        CHECK(r_cmpl((v1 << v2)) == wdg(v1, r_cmpl(v2)));
-        CHECK(r_cmpl(wdg(v1, v2)) == -(v1 << r_cmpl(v2)));
+        CHECK(rcmpl((v1 << v2)) == wdg(v1, rcmpl(v2)));
+        CHECK(rcmpl(wdg(v1, v2)) == -(v1 << rcmpl(v2)));
         // TODO:check why this does not work?
-        // CHECK(r_cmpl((mv1 << mv2)) == wdg(mv1, r_cmpl(mv2)));
-        // CHECK(r_cmpl(wdg(mv1, mv2)) == (r_cmpl(mv1) << mv2));
+        // CHECK(rcmpl((mv1 << mv2)) == wdg(mv1, rcmpl(mv2)));
+        // CHECK(rcmpl(wdg(mv1, mv2)) == (rcmpl(mv1) << mv2));
 
         // cross-check direct implementation of rwdg by comparing with wdg
-        CHECK(rwdg(mv1, mv2) == l_cmpl(wdg(r_cmpl(mv1), r_cmpl(mv2))));
+        CHECK(rwdg(mv1, mv2) == lcmpl(wdg(rcmpl(mv1), rcmpl(mv2))));
     }
 
     TEST_CASE("ega_2d<2,0,0> - simple applications & complements")
@@ -3576,8 +3576,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // n = dual(u) or n = cmpl(u)
         // thus, wdg(v_perp_B, n) == 0 is required
         CHECK(nrm_sq(wdg(v_perp_u, dual(u))) < eps);
-        CHECK(nrm_sq(wdg(v_perp_u, r_cmpl(u))) < eps);
-        CHECK(nrm_sq(wdg(l_cmpl(u), v_perp_u)) < eps);
+        CHECK(nrm_sq(wdg(v_perp_u, rcmpl(u))) < eps);
+        CHECK(nrm_sq(wdg(lcmpl(u), v_perp_u)) < eps);
 
         // v_in_B and v_perp_B should be perpendicular to each other
         CHECK(nrm_sq(dot(v_in_u, v_perp_u)) < eps);
@@ -3595,18 +3595,18 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
         //              s, e1, e2, ps);
         // fmt::println("");
-        // fmt::println("   r_cmpl(u):  r_cmpl(s), r_cmpl(e1), r_cmpl(e2), r_cmpl(ps) \n"
+        // fmt::println("   rcmpl(u):  rcmpl(s), rcmpl(e1), rcmpl(e2), rcmpl(ps) \n"
         //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
-        //              r_cmpl(s), r_cmpl(e1), r_cmpl(e2), r_cmpl(ps));
+        //              rcmpl(s), rcmpl(e1), rcmpl(e2), rcmpl(ps));
         // fmt::println("");
         // fmt::println(
         //     "   rev(u)*I_2d:  rev(s)*I_2d, rev(e1)*I_2d, rev(e2)*I_2d, rev(ps)*I_2d \n"
         //     "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
         //     rev(s) * I_2d, rev(e1) * I_2d, rev(e2) * I_2d, rev(ps) * I_2d);
         // fmt::println("");
-        // fmt::println("   l_cmpl(u):  l_cmpl(s), l_cmpl(e1), l_cmpl(e2), l_cmpl(ps) \n"
+        // fmt::println("   lcmpl(u):  lcmpl(s), lcmpl(e1), lcmpl(e2), lcmpl(ps) \n"
         //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
-        //              l_cmpl(s), l_cmpl(e1), l_cmpl(e2), l_cmpl(ps));
+        //              lcmpl(s), lcmpl(e1), lcmpl(e2), lcmpl(ps));
         // fmt::println("");
         // fmt::println(
         //     "   I_2d*rev(u):  I_2d*rev(s), I_2d*rev(e1), I_2d*rev(e2), I_2d*rev(ps) \n"
@@ -3614,32 +3614,32 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         //     I_2d * rev(s), I_2d * rev(e1), I_2d * rev(e2), I_2d * rev(ps));
         // fmt::println("");
 
-        CHECK(r_cmpl(scalar2d(1.0)) == I_2d);
-        CHECK(r_cmpl(scalar2d(1.0)) == rev(scalar2d(1.0)) * I_2d);
-        CHECK(l_cmpl(scalar2d(1.0)) == I_2d);
-        CHECK(l_cmpl(scalar2d(1.0)) == I_2d * rev(scalar2d(1.0)));
-        CHECK(r_cmpl(e1_2d) == e2_2d);
-        CHECK(r_cmpl(e1_2d) == rev(e1_2d) * I_2d);
-        CHECK(l_cmpl(e1_2d) == -e2_2d);
-        CHECK(l_cmpl(e1_2d) == I_2d * rev(e1_2d));
-        CHECK(r_cmpl(e2_2d) == -e1_2d);
-        CHECK(r_cmpl(e2_2d) == rev(e2_2d) * I_2d);
-        CHECK(l_cmpl(e2_2d) == e1_2d);
-        CHECK(l_cmpl(e2_2d) == I_2d * rev(e2_2d));
-        CHECK(r_cmpl(I_2d) == scalar2d(1.0));
-        CHECK(r_cmpl(I_2d) == rev(I_2d) * I_2d);
-        CHECK(l_cmpl(I_2d) == scalar2d(1.0));
-        CHECK(l_cmpl(I_2d) == I_2d * rev(I_2d));
+        CHECK(rcmpl(scalar2d(1.0)) == I_2d);
+        CHECK(rcmpl(scalar2d(1.0)) == rev(scalar2d(1.0)) * I_2d);
+        CHECK(lcmpl(scalar2d(1.0)) == I_2d);
+        CHECK(lcmpl(scalar2d(1.0)) == I_2d * rev(scalar2d(1.0)));
+        CHECK(rcmpl(e1_2d) == e2_2d);
+        CHECK(rcmpl(e1_2d) == rev(e1_2d) * I_2d);
+        CHECK(lcmpl(e1_2d) == -e2_2d);
+        CHECK(lcmpl(e1_2d) == I_2d * rev(e1_2d));
+        CHECK(rcmpl(e2_2d) == -e1_2d);
+        CHECK(rcmpl(e2_2d) == rev(e2_2d) * I_2d);
+        CHECK(lcmpl(e2_2d) == e1_2d);
+        CHECK(lcmpl(e2_2d) == I_2d * rev(e2_2d));
+        CHECK(rcmpl(I_2d) == scalar2d(1.0));
+        CHECK(rcmpl(I_2d) == rev(I_2d) * I_2d);
+        CHECK(lcmpl(I_2d) == scalar2d(1.0));
+        CHECK(lcmpl(I_2d) == I_2d * rev(I_2d));
         //
-        CHECK(l_cmpl(r_cmpl(mv1)) == mv1);
-        CHECK(l_cmpl(r_cmpl(mvec2d_e(s1, ps1))) == mvec2d_e(s1, ps1));
+        CHECK(lcmpl(rcmpl(mv1)) == mv1);
+        CHECK(lcmpl(rcmpl(mvec2d_e(s1, ps1))) == mvec2d_e(s1, ps1));
         //
-        CHECK(wdg(scalar2d(5), r_cmpl(scalar2d(5))) / nrm_sq(scalar2d(5)) == I_2d);
-        CHECK(wdg(l_cmpl(scalar2d(5)), scalar2d(5)) / nrm_sq(scalar2d(5)) == I_2d);
-        CHECK(wdg(v, r_cmpl(v)) / nrm_sq(v) == I_2d);
-        CHECK(wdg(l_cmpl(v), v) / nrm_sq(v) == I_2d);
-        CHECK(wdg(pscalar2d(3), r_cmpl(pscalar2d(3))) / nrm_sq(pscalar2d(3)) == I_2d);
-        CHECK(wdg(l_cmpl(pscalar2d(3)), pscalar2d(3)) / nrm_sq(pscalar2d(3)) == I_2d);
+        CHECK(wdg(scalar2d(5), rcmpl(scalar2d(5))) / nrm_sq(scalar2d(5)) == I_2d);
+        CHECK(wdg(lcmpl(scalar2d(5)), scalar2d(5)) / nrm_sq(scalar2d(5)) == I_2d);
+        CHECK(wdg(v, rcmpl(v)) / nrm_sq(v) == I_2d);
+        CHECK(wdg(lcmpl(v), v) / nrm_sq(v) == I_2d);
+        CHECK(wdg(pscalar2d(3), rcmpl(pscalar2d(3))) / nrm_sq(pscalar2d(3)) == I_2d);
+        CHECK(wdg(lcmpl(pscalar2d(3)), pscalar2d(3)) / nrm_sq(pscalar2d(3)) == I_2d);
 
         // check contractions: <<, >> and rwdg( u, r_compl(v) )
         // fmt::println("   v         = {:.3f}", v);
@@ -3647,11 +3647,11 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   v << I_2d = {:.3f}", v << I_2d);
         // fmt::println("   I_2d >> v = {:.3f}", I_2d >> v);
         // fmt::println("");
-        // fmt::println("   r_cmpl(v)    = {:.3f}", r_cmpl(v));
-        // fmt::println("   l_cmpl(v)    = {:.3f}", l_cmpl(v));
+        // fmt::println("   rcmpl(v)    = {:.3f}", rcmpl(v));
+        // fmt::println("   lcmpl(v)    = {:.3f}", lcmpl(v));
         // fmt::println("");
-        CHECK((v << I_2d) == r_cmpl(v));
-        CHECK((I_2d >> v) == l_cmpl(v));
+        CHECK((v << I_2d) == rcmpl(v));
+        CHECK((I_2d >> v) == lcmpl(v));
     }
 
     TEST_CASE("ega_3d<3,0,0> - product tests")
