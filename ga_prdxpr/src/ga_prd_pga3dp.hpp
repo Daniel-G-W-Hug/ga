@@ -594,6 +594,19 @@ const prd_rules lcmpl_pga3dp_rules = {
     {"e23", "-e41"}, {"e31", "-e42"}, {"e12", "-e43"}, {"e423", "e1"},
     {"e431", "e2"},  {"e412", "e3"},  {"e321", "e4"},  {"e1234", "1"}};
 
+// rules needed to derive contractions and expansions using bulk_dual and weight_dual
+// (derived from the right complement)
+const prd_rules bulk_dual_pga3dp_rules = {
+    {"1", "e1234"},  {"e1", "e423"},  {"e2", "e431"},  {"e3", "e412"},
+    {"e4", "0"},     {"e41", "0"},    {"e42", "0"},    {"e43", "0"},
+    {"e23", "-e41"}, {"e31", "-e42"}, {"e12", "-e43"}, {"e423", "0"},
+    {"e431", "0"},   {"e412", "0"},   {"e321", "-e4"}, {"e1234", "0"}};
+const prd_rules weight_dual_pga3dp_rules = {
+    {"1", "0"},      {"e1", "0"},     {"e2", "0"},     {"e3", "0"},
+    {"e4", "e321"},  {"e41", "-e23"}, {"e42", "-e31"}, {"e43", "-e12"},
+    {"e23", "0"},    {"e31", "0"},    {"e12", "0"},    {"e423", "-e1"},
+    {"e431", "-e2"}, {"e412", "-e3"}, {"e321", "0"},   {"e1234", "1"}};
+
 // coefficients need to create a multivector = [coeff]^T [basis]
 const mvec_coeff mv3dp_coeff_A = {"A.c0",  "A.c1",  "A.c2",  "A.c3", "A.c4",  "A.c5",
                                   "A.c6",  "A.c7",  "A.c8",  "A.c9", "A.c10", "A.c11",
@@ -651,6 +664,12 @@ void generate_and_print_pga3dp_lcontr(); // left contraction
 void generate_and_print_pga3dp_rcontr(); // right contraction
 void generate_and_print_pga3dp_dot();    // scalar product
 
-void generate_and_print_pga3dp_rdot();  // regressive scalar product
-void generate_and_print_pga3dp_rwdg();  // regressive wedge product
+void generate_and_print_pga3dp_rdot(); // regressive scalar product
+void generate_and_print_pga3dp_rwdg(); // regressive wedge product
+
+void generate_and_print_pga3dp_bulk_contraction();   // bulk contraction
+void generate_and_print_pga3dp_weight_contraction(); // weight contraction
+void generate_and_print_pga3dp_bulk_expansion();     // bulk expansion
+void generate_and_print_pga3dp_weight_expansion();   // weight expansion
+
 void generate_and_print_pga3dp_rotor(); // sandwich product rotor * object * rev(rotor)

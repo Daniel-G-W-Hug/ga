@@ -176,6 +176,14 @@ const prd_rules cmpl_pga2dp_rules = {{"1", "e123"}, {"e1", "e23"}, {"e2", "e31"}
                                      {"e3", "e12"}, {"e23", "e1"}, {"e31", "e2"},
                                      {"e12", "e3"}, {"e123", "1"}};
 
+// rules needed to derive contractions and expansions using bulk_dual and weight_dual
+const prd_rules bulk_dual_pga2dp_rules = {{"1", "e123"}, {"e1", "e23"}, {"e2", "e31"},
+                                          {"e3", "0"},   {"e23", "0"},  {"e31", "0"},
+                                          {"e12", "e3"}, {"e123", "0"}};
+const prd_rules weight_dual_pga2dp_rules = {{"1", "0"},    {"e1", "0"},   {"e2", "0"},
+                                            {"e3", "e12"}, {"e23", "e1"}, {"e31", "e2"},
+                                            {"e12", "0"},  {"e123", "1"}};
+
 // coefficients need to create a multivector = [coeff]^T [basis]
 const mvec_coeff mv2dp_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3",
                                   "A.c4", "A.c5", "A.c6", "A.c7"};
@@ -219,5 +227,10 @@ void generate_and_print_pga2dp_dot();    // scalar product
 
 void generate_and_print_pga2dp_rdot(); // regressive scalar product
 void generate_and_print_pga2dp_rwdg(); // regressive wedge product
+
+void generate_and_print_pga2dp_bulk_contraction();   // bulk contraction
+void generate_and_print_pga2dp_weight_contraction(); // weight contraction
+void generate_and_print_pga2dp_bulk_expansion();     // bulk expansion
+void generate_and_print_pga2dp_weight_expansion();   // weight expansion
 
 void generate_and_print_pga2dp_rotor(); // sandwich product rotor * object * rev(rotor)
