@@ -666,10 +666,12 @@ void generate_and_print_pga3dp_dot();    // scalar product
 
 void generate_and_print_pga3dp_rdot(); // regressive scalar product
 void generate_and_print_pga3dp_rwdg(); // regressive wedge product
+void generate_and_print_pga3dp_rgpr(); // regressive geometric product
 
 void generate_and_print_pga3dp_bulk_contraction();   // bulk contraction
 void generate_and_print_pga3dp_weight_contraction(); // weight contraction
 void generate_and_print_pga3dp_bulk_expansion();     // bulk expansion
 void generate_and_print_pga3dp_weight_expansion();   // weight expansion
 
-void generate_and_print_pga3dp_rotor(); // sandwich product rotor * object * rev(rotor)
+void generate_and_print_pga3dp_rotor_gpr(); // sandwich product rotor * object *
+                                            // rev(rotor)

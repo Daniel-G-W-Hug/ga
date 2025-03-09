@@ -82,4 +82,4 @@ void generate_and_print_ega2d_dot();    // scalar produc
 
 void generate_and_print_ega2d_rwdg(); // regressive wedge product
 
-void generate_and_print_ega2d_rotor(); // sandwich product rotor * object * rev(rotor)
+void generate_and_print_ega2d_rotor_gpr(); // sandwich product rotor * object * rev(rotor)

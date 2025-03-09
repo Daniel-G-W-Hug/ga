@@ -45,6 +45,7 @@ int main()
 
         generate_and_print_pga2dp_rdot(); // regressive scalar product
         generate_and_print_pga2dp_rwdg(); // regressive wedge product
+        generate_and_print_pga2dp_rgpr(); // regressive geometric product
 
         generate_and_print_pga2dp_bulk_contraction();   // bulk contraction
         generate_and_print_pga2dp_weight_contraction(); // weight contraction
@@ -60,6 +61,7 @@ int main()
 
         generate_and_print_pga3dp_rdot(); // regressive scalar product
         generate_and_print_pga3dp_rwdg(); // regressive wedge product
+        generate_and_print_pga3dp_rgpr(); // regressive geometric product
 
         generate_and_print_pga3dp_bulk_contraction();   // bulk contraction
         generate_and_print_pga3dp_weight_contraction(); // weight contraction
@@ -67,11 +69,11 @@ int main()
         generate_and_print_pga3dp_weight_expansion();   // weight expansion
 
         // sandwich products of type rotor * object * rev(rotor)
-        generate_and_print_ega2d_rotor();
-        generate_and_print_ega3d_rotor();
+        generate_and_print_ega2d_rotor_gpr();
+        generate_and_print_ega3d_rotor_gpr();
 
-        generate_and_print_pga2dp_rotor();
-        generate_and_print_pga3dp_rotor();
+        generate_and_print_pga2dp_rotor_gpr();
+        generate_and_print_pga3dp_rotor_gpr();
     }
 
     catch (std::exception const& e) {

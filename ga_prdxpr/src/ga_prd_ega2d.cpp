@@ -1009,7 +1009,7 @@ void generate_and_print_ega2d_rwdg()
     return;
 }
 
-void generate_and_print_ega2d_rotor()
+void generate_and_print_ega2d_rotor_gpr()
 {
 
     std::string prd_name = "ega2d sandwich product:";
