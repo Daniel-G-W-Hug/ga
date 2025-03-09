@@ -52,6 +52,23 @@ inline constexpr BiVec2dp<T> weight(BiVec2dp<T> const& B)
 // bulk norm
 ////////////////////////////////////////////////////////////////////////////////
 
+// return squared bulk norm of scalar
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_nrm_sq(Scalar2dp<T> s)
+{
+    // |s|^2 = gr0(s*rev(s)) = gr0(s*s)
+    return Scalar2dp<T>(T(s) * T(s));
+}
+
+// return bulk norm of scalar
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_nrm(Scalar2dp<T> s)
+{
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(s)));
+}
+
 // return squared bulk norm of vector
 template <typename T>
     requires(std::floating_point<T>)
@@ -420,7 +437,7 @@ inline constexpr Line2d<T> unitize(Line2d<T> const& l)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// attitude operations: att = rwdg( u, cmpl(e3_2dp) ) = wdg(u, horizon_2dp)
+// attitude operations: att = rwdg( u, cmpl(e3_2dp) ) = rwdg(u, horizon_2dp)
 //
 // (the attitude is the intersection of the object with the horizon)
 // the result of att(object_with_grade_k) is an object with grade k-1

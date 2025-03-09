@@ -341,7 +341,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
             v1.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
-            //              i, phi, rad_to_deg(phi), c, angle(e1_2d, c));
+            //              i, phi, rad2deg(phi), c, angle(e1_2d, c));
         }
         // fmt::println("");
 
@@ -351,7 +351,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
             v2.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
-            //              i, phi, rad_to_deg(phi), c, angle(e2_2d, c));
+            //              i, phi, rad2deg(phi), c, angle(e2_2d, c));
         }
         // fmt::println("");
 
@@ -361,7 +361,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
             v3.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
-            //              i, phi, rad_to_deg(phi), c, angle(e1_2d + e2_2d, c));
+            //              i, phi, rad2deg(phi), c, angle(e1_2d + e2_2d, c));
         }
         // fmt::println("");
 
@@ -422,7 +422,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
             v.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
-            //              i, phi, rad_to_deg(phi), c, angle(e1_2d, c));
+            //              i, phi, rad2deg(phi), c, angle(e1_2d, c));
         }
         // fmt::println("");
 
@@ -526,29 +526,29 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         std::vector<vec2d> on13 = gs_orthonormal(v1, v3);
 
         // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}, angle = {: .2f}°", v1, nrm(v1),
-        //              rad_to_deg(angle(e1_2d, v1)));
+        //              rad2deg(angle(e1_2d, v1)));
         // fmt::println("v2  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v2, nrm(v2),
-        //              rad_to_deg(angle(e1_2d, v2)));
+        //              rad2deg(angle(e1_2d, v2)));
         // fmt::println("v3  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v3, nrm(v3),
-        //              rad_to_deg(angle(e1_2d, v3)));
+        //              rad2deg(angle(e1_2d, v3)));
         // fmt::println("");
         // fmt::println("og12[0]  = {: .4f}, nrm(og12[0]) = {: .4f}, angle = {: .2f}°",
-        //              og12[0], nrm(og12[0]), rad_to_deg(angle(e1_2d, og12[0])));
+        //              og12[0], nrm(og12[0]), rad2deg(angle(e1_2d, og12[0])));
         // fmt::println("og12[1]  = {: .4f}, nrm(og12[1]) = {: .4f}, angle = {: .2f}°",
-        //              og12[1], nrm(og12[1]), rad_to_deg(angle(e1_2d, og12[1])));
+        //              og12[1], nrm(og12[1]), rad2deg(angle(e1_2d, og12[1])));
         // fmt::println("on12[0]  = {: .4f}, nrm(on12[0]) = {: .4f}, angle = {: .2f}°",
-        //              on12[0], nrm(on12[0]), rad_to_deg(angle(e1_2d, on12[0])));
+        //              on12[0], nrm(on12[0]), rad2deg(angle(e1_2d, on12[0])));
         // fmt::println("on12[1]  = {: .4f}, nrm(on12[1]) = {: .4f}, angle = {: .2f}°",
-        //              on12[1], nrm(on12[1]), rad_to_deg(angle(e1_2d, on12[1])));
+        //              on12[1], nrm(on12[1]), rad2deg(angle(e1_2d, on12[1])));
         // fmt::println("");
         // fmt::println("og13[0]  = {: .4f}, nrm(og13[0]) = {: .4f}, angle = {: .2f}°",
-        //              og13[0], nrm(og13[0]), rad_to_deg(angle(e1_2d, og13[0])));
+        //              og13[0], nrm(og13[0]), rad2deg(angle(e1_2d, og13[0])));
         // fmt::println("og13[1]  = {: .4f}, nrm(og13[1]) = {: .4f}, angle = {: .2f}°",
-        //              og13[1], nrm(og13[1]), rad_to_deg(angle(e1_2d, og13[1])));
+        //              og13[1], nrm(og13[1]), rad2deg(angle(e1_2d, og13[1])));
         // fmt::println("on13[0]  = {: .4f}, nrm(on13[0]) = {: .4f}, angle = {: .2f}°",
-        //              on13[0], nrm(on13[0]), rad_to_deg(angle(e1_2d, on13[0])));
+        //              on13[0], nrm(on13[0]), rad2deg(angle(e1_2d, on13[0])));
         // fmt::println("on13[1]  = {: .4f}, nrm(on13[1]) = {: .4f}, angle = {: .2f}°",
-        //              on13[1], nrm(on13[1]), rad_to_deg(angle(e1_2d, on13[1])));
+        //              on13[1], nrm(on13[1]), rad2deg(angle(e1_2d, on13[1])));
         // fmt::println("");
         // fmt::println(
         //     "sign(wdg(on12[0],on12[1])/I_2d) = {} (+1: right-handed, -1: left-handed)",
@@ -1759,7 +1759,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
             v1.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
-            //              i, phi, rad_to_deg(phi), c, angle(e1_3d, c));
+            //              i, phi, rad2deg(phi), c, angle(e1_3d, c));
         }
         // fmt::println("");
 
@@ -1769,7 +1769,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
             v2.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
-            //              i, phi, rad_to_deg(phi), c, angle(e2_3d, c));
+            //              i, phi, rad2deg(phi), c, angle(e2_3d, c));
         }
         // fmt::println("");
 
@@ -1779,7 +1779,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
             v3.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
-            //              i, phi, rad_to_deg(phi), c, angle(e1_3d + e2_3d, c));
+            //              i, phi, rad2deg(phi), c, angle(e1_3d + e2_3d, c));
         }
         // fmt::println("");
 
@@ -1990,29 +1990,29 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         std::vector<vec3d> on13 = gs_orthonormal(v1, v3);
 
         // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}, angle = {: .2f}°", v1, nrm(v1),
-        //              rad_to_deg(angle(e1_3d, v1)));
+        //              rad2deg(angle(e1_3d, v1)));
         // fmt::println("v2  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v2, nrm(v2),
-        //              rad_to_deg(angle(e1_3d, v2)));
+        //              rad2deg(angle(e1_3d, v2)));
         // fmt::println("v3  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v3, nrm(v3),
-        //              rad_to_deg(angle(e1_3d, v3)));
+        //              rad2deg(angle(e1_3d, v3)));
         // fmt::println("");
         // fmt::println("og12[0]  = {: .4f}, nrm(og12[0]) = {: .4f}, angle = {: .2f}°",
-        //              og12[0], nrm(og12[0]), rad_to_deg(angle(e1_3d, og12[0])));
+        //              og12[0], nrm(og12[0]), rad2deg(angle(e1_3d, og12[0])));
         // fmt::println("og12[1]  = {: .4f}, nrm(og12[1]) = {: .4f}, angle = {: .2f}°",
-        //              og12[1], nrm(og12[1]), rad_to_deg(angle(e1_3d, og12[1])));
+        //              og12[1], nrm(og12[1]), rad2deg(angle(e1_3d, og12[1])));
         // fmt::println("on12[0]  = {: .4f}, nrm(on12[0]) = {: .4f}, angle = {: .2f}°",
-        //              on12[0], nrm(on12[0]), rad_to_deg(angle(e1_3d, on12[0])));
+        //              on12[0], nrm(on12[0]), rad2deg(angle(e1_3d, on12[0])));
         // fmt::println("on12[1]  = {: .4f}, nrm(on12[1]) = {: .4f}, angle = {: .2f}°",
-        //              on12[1], nrm(on12[1]), rad_to_deg(angle(e1_3d, on12[1])));
+        //              on12[1], nrm(on12[1]), rad2deg(angle(e1_3d, on12[1])));
         // fmt::println("");
         // fmt::println("og13[0]  = {: .4f}, nrm(og13[0]) = {: .4f}, angle = {: .2f}°",
-        //              og13[0], nrm(og13[0]), rad_to_deg(angle(e1_3d, og13[0])));
+        //              og13[0], nrm(og13[0]), rad2deg(angle(e1_3d, og13[0])));
         // fmt::println("og13[1]  = {: .4f}, nrm(og13[1]) = {: .4f}, angle = {: .2f}°",
-        //              og13[1], nrm(og13[1]), rad_to_deg(angle(e1_3d, og13[1])));
+        //              og13[1], nrm(og13[1]), rad2deg(angle(e1_3d, og13[1])));
         // fmt::println("on13[0]  = {: .4f}, nrm(on13[0]) = {: .4f}, angle = {: .2f}°",
-        //              on13[0], nrm(on13[0]), rad_to_deg(angle(e1_3d, on13[0])));
+        //              on13[0], nrm(on13[0]), rad2deg(angle(e1_3d, on13[0])));
         // fmt::println("on13[1]  = {: .4f}, nrm(on13[1]) = {: .4f}, angle = {: .2f}°",
-        //              on13[1], nrm(on13[1]), rad_to_deg(angle(e1_3d, on13[1])));
+        //              on13[1], nrm(on13[1]), rad2deg(angle(e1_3d, on13[1])));
         // fmt::println("");
 
         CHECK(std::abs(dot(og12[0], og12[1])) < eps);
@@ -2036,25 +2036,25 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         std::vector<vec3d> on123 = gs_orthonormal(v1, v2, v3);
 
         // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}, angle = {: .2f}°", v1, nrm(v1),
-        //              rad_to_deg(angle(e1_3d, v1)));
+        //              rad2deg(angle(e1_3d, v1)));
         // fmt::println("v2  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v2, nrm(v2),
-        //              rad_to_deg(angle(e1_3d, v2)));
+        //              rad2deg(angle(e1_3d, v2)));
         // fmt::println("v3  = {: .4f}, nrm(v2) = {: .4f}, angle = {: .2f}°", v3, nrm(v3),
-        //              rad_to_deg(angle(e1_3d, v3)));
+        //              rad2deg(angle(e1_3d, v3)));
         // fmt::println("");
         // fmt::println("og123[0]  = {: .4f}, nrm(og123[0]) = {: .4f}, angle = {: .2f}°",
-        //              og123[0], nrm(og123[0]), rad_to_deg(angle(e1_3d, og123[0])));
+        //              og123[0], nrm(og123[0]), rad2deg(angle(e1_3d, og123[0])));
         // fmt::println("og123[1]  = {: .4f}, nrm(og123[1]) = {: .4f}, angle = {: .2f}°",
-        //              og123[1], nrm(og123[1]), rad_to_deg(angle(e1_3d, og123[1])));
+        //              og123[1], nrm(og123[1]), rad2deg(angle(e1_3d, og123[1])));
         // fmt::println("og123[2]  = {: .4f}, nrm(og123[2]) = {: .4f}, angle = {: .2f}°",
-        //              og123[2], nrm(og123[2]), rad_to_deg(angle(e1_3d, og123[2])));
+        //              og123[2], nrm(og123[2]), rad2deg(angle(e1_3d, og123[2])));
         // fmt::println("");
         // fmt::println("on123[0]  = {: .4f}, nrm(on123[0]) = {: .4f}, angle = {: .2f}°",
-        //              on123[0], nrm(on123[0]), rad_to_deg(angle(e1_3d, on123[0])));
+        //              on123[0], nrm(on123[0]), rad2deg(angle(e1_3d, on123[0])));
         // fmt::println("on123[1]  = {: .4f}, nrm(on123[1]) = {: .4f}, angle = {: .2f}°",
-        //              on123[1], nrm(on123[1]), rad_to_deg(angle(e1_3d, on123[1])));
+        //              on123[1], nrm(on123[1]), rad2deg(angle(e1_3d, on123[1])));
         // fmt::println("on123[2]  = {: .4f}, nrm(on123[2]) = {: .4f}, angle = {: .2f}°",
-        //              on123[2], nrm(on123[2]), rad_to_deg(angle(e1_3d, on123[2])));
+        //              on123[2], nrm(on123[2]), rad2deg(angle(e1_3d, on123[2])));
         // fmt::println("");
         // fmt::println("sign(wdg(on123[0], wdg(on123[1], on123[2]))/I_3d) = {} "
         //              "(+1: right-handed, -1: left-handed)",
@@ -2865,7 +2865,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   u                     = {: .3}", u);
         // fmt::println("   v                     = {: .3}", v);
         // fmt::println("   B = u^v = wdg(u,v)    = {: .3}", B);
-        // fmt::println("   angle(u,v)            = {: .3}°", rad_to_deg(angle_uv));
+        // fmt::println("   angle(u,v)            = {: .3}°", rad2deg(angle_uv));
         // fmt::println("   sin(angle(u,v))       = {: .3}", std::sin(angle_uv));
         // fmt::println("");
         // fmt::println("   c                     = {: .3}", c);
@@ -2895,8 +2895,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   c_rot_u_r = R*c_tmp_r    = {: .3}", c_rot_u_r);
         // fmt::println("   c_rot_r = gr1(c_rot_u_r) = {: .3}", c_rot_r);
         // fmt::println("");
-        // fmt::println("   angle(c, c_rot_l) = {: .3}°", rad_to_deg(angle_c_c_rot));
-        // fmt::println("   angle(projected)  = {: .3}°", rad_to_deg(angle_proj));
+        // fmt::println("   angle(c, c_rot_l) = {: .3}°", rad2deg(angle_c_c_rot));
+        // fmt::println("   angle(projected)  = {: .3}°", rad2deg(angle_proj));
         // fmt::println("");
         // fmt::println("direct calclulation:");
         // fmt::println("   c_rot = rotate(c,R)          = {: .3}", rotate(c, R));

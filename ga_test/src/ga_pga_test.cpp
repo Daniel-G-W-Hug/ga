@@ -463,7 +463,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             v1.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .g},"
             //              " angle={: .4f}",
-            //              i, phi, rad_to_deg(phi), c, angle(e1_2dp, c));
+            //              i, phi, rad2deg(phi), c, angle(e1_2dp, c));
         }
         // fmt::println("");
 
@@ -473,7 +473,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             v2.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .g},"
             //              " angle={: .4f}",
-            //              i, phi, rad_to_deg(phi), c, angle(e2_2dp, c));
+            //              i, phi, rad2deg(phi), c, angle(e2_2dp, c));
         }
         // fmt::println("");
 
@@ -483,7 +483,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             v3.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .g},"
             //              " angle={: .4f}",
-            //              i, phi, rad_to_deg(phi), c, angle(e1_2dp + e2_2dp, c));
+            //              i, phi, rad2deg(phi), c, angle(e1_2dp + e2_2dp, c));
         }
         // fmt::println("");
 
@@ -1363,7 +1363,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("   u                     = {: .3}", u);
         // fmt::println("   v                     = {: .3}", v);
         // fmt::println("   B = u^v = wdg(u,v)    = {: .3}", B);
-        // fmt::println("   angle(u,v)            = {: .3}°", rad_to_deg(angle_uv));
+        // fmt::println("   angle(u,v)            = {: .3}°", rad2deg(angle_uv));
         // fmt::println("   sin(angle(u,v))       = {: .3}", std::sin(angle_uv));
         // fmt::println("");
         // fmt::println("   c                     = {: .3}", c);
@@ -1393,8 +1393,8 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("   c_rot_u_r = R*c_tmp_r    = {: .3}", c_rot_u_r);
         // fmt::println("   c_rot_r = gr1(c_rot_u_r) = {: .3}", c_rot_r);
         // fmt::println("");
-        // fmt::println("   angle(c, c_rot_l) = {: .3}°", rad_to_deg(angle_c_c_rot));
-        // fmt::println("   angle(projected)  = {: .3}°", rad_to_deg(angle_proj));
+        // fmt::println("   angle(c, c_rot_l) = {: .3}°", rad2deg(angle_c_c_rot));
+        // fmt::println("   angle(projected)  = {: .3}°", rad2deg(angle_proj));
         // fmt::println("");
         // fmt::println("direct calclulation:");
         // fmt::println("   c_rot = rotate(c,R)          = {: .3}", rotate(c, R));
@@ -1624,13 +1624,13 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         auto l3 = wdg(p1, p3);
 
 
-        auto dp1p2 = euclidean_distance2dp(p1, p2);
-        auto dp2p3 = euclidean_distance2dp(p2, p3);
-        auto dp1p3 = euclidean_distance2dp(p1, p3);
+        auto dp1p2 = dist2dp(p1, p2);
+        auto dp2p3 = dist2dp(p2, p3);
+        auto dp1p3 = dist2dp(p1, p3);
 
-        auto dp3l1 = euclidean_distance2dp(p3, l1);
-        auto dp1l2 = euclidean_distance2dp(p1, l2);
-        auto dp2l3 = euclidean_distance2dp(p2, l3);
+        auto dp3l1 = dist2dp(p3, l1);
+        auto dp1l2 = dist2dp(p1, l2);
+        auto dp2l3 = dist2dp(p2, l3);
 
         // fmt::println("");
         // fmt::println("dp1p2 = {}, dist = {}", dp1p2, dp1p2.c0 / dp1p2.c1);
@@ -2741,8 +2741,10 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     {
         fmt::println("3dp: objects - euclidean distance");
 
-        auto p1 = vec3dp{0.0, 1.0, 0.0, 1.0};
-        auto p2 = vec3dp{0.0, 3.0, 0.0, -2.0};
+        auto p0 = origin_3dp;
+        auto p1 = vec3dp{0.0, 3.0, 0.0, 1.0};
+        auto p2 = vec3dp{1.0, 3.0, 0.0, 1.0};
+        auto p3 = vec3dp{0.0, 0.0, 1.0, 1.0};
 
         auto p1u = unitize(p1);
         auto p2u = unitize(p2);
@@ -2754,44 +2756,47 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("delta = {}, nrm(delta) = {}", delta, nrm(delta));
         // fmt::println("");
 
-        auto l1 = bivec3dp{2.0, 1.0, -1.0, 20.0, 10.0, -10.0};
-        auto l2 = bivec3dp{-2.0, -1.0, 3.0, -20.0, -10.0, 30.0};
+        auto l1 = join(p1, p2);
+        auto l2 = join(p0, p3);
 
-        auto t1 = trivec3dp{-6.0, 3.0, 3.0, 3.0};
-        auto t2 = trivec3dp{6.0, 3.0, 6.0, 6.0};
-        auto t3 = trivec3dp{6.0, 3.0, 3.0, 9.0};
+        auto t1 = e431_3dp;
 
 
-        auto dist_p1_p2 = euclidean_distance3dp(p1, p2);
-        auto dist_p1_l1 = euclidean_distance3dp(p1, l1);
-        auto dist_l1_p1 = euclidean_distance3dp(l1, p1);
-        auto dist_p1_t1 = euclidean_distance3dp(p1, t1);
-        auto dist_l1_l2 = euclidean_distance3dp(l1, l2);
-        fmt::println("");
-        fmt::println("dist_p1_p2 = {}, dist = {}", dist_p1_p2,
-                     dist_p1_p2.c0 / dist_p1_p2.c1);
-        fmt::println("dist_p1_l1 = {}, dist = {}", dist_p1_l1,
-                     dist_p1_l1.c0 / dist_p1_l1.c1);
-        fmt::println("dist_l1_p1 = {}, dist = {}", dist_l1_p1,
-                     dist_l1_p1.c0 / dist_l1_p1.c1);
-        fmt::println("");
-        fmt::println("dist_p1_t1 = {}, dist = {}", dist_p1_t1,
-                     dist_p1_t1.c0 / dist_p1_t1.c1);
-        fmt::println("");
-        fmt::println("dist_l1_l2 = {}, dist = {}", dist_l1_l2,
-                     dist_l1_l2.c0 / dist_l1_l2.c1);
-        fmt::println("");
+        auto dist_p0_p1 = dist3dp(p0, p1);
+        auto dist_p1_p2 = dist3dp(p1, p2);
+        auto dist_p1_l1 = dist3dp(p1, l1);
+        auto dist_l1_p1 = dist3dp(l1, p1);
+        auto dist_p2_t1 = dist3dp(p2, t1);
+        auto dist_l1_l2 = dist3dp(l1, l2);
+
+        // fmt::println("");
+        // fmt::println("dist_p1_p2 = {}, dist = {}", dist_p1_p2,
+        //              dist_p1_p2.c0 / dist_p1_p2.c1);
+        // fmt::println("dist_p1_l1 = {}, dist = {}", dist_p1_l1,
+        //              dist_p1_l1.c0 / dist_p1_l1.c1);
+        // fmt::println("dist_l1_p1 = {}, dist = {}", dist_l1_p1,
+        //              dist_l1_p1.c0 / dist_l1_p1.c1);
+        // fmt::println("");
+        // fmt::println("dist_p1_t1 = {}, dist = {}", dist_p1_t1,
+        //              dist_p1_t1.c0 / dist_p1_t1.c1);
+        // fmt::println("");
+        // fmt::println("dist_l1_l2 = {}, dist = {}", dist_l1_l2,
+        //              dist_l1_l2.c0 / dist_l1_l2.c1);
+        // fmt::println("");
 
         CHECK(nrm(delta) == dist_p1_p2.c0 / dist_p1_p2.c1);
+        CHECK(dist_p1_p2.c0 / dist_p1_p2.c1 == 1);
         CHECK(dist_p1_l1 == dist_l1_p1);
+        CHECK(dist_p2_t1.c0 / dist_p2_t1.c1 == 3);
+        CHECK(dist_l1_l2 == dist_p0_p1);
 
         // auto res = rwdg(pscalar3dp(2.5), horizon_3dp);
         // fmt::println("res = {}", res);
     }
 
-    TEST_CASE("pga_3dp<3,0,1> - product tests")
+    TEST_CASE("pga_3dp<3,0,1> - product tests (dot, rdot)")
     {
-        fmt::println("pga_3dp<3,0,1> - product tests");
+        fmt::println("pga_3dp<3,0,1> - product tests (dot, rdot)");
         // tests based on "The inner products of geometric algebra", Leo Dorst
 
 
@@ -2849,70 +2854,6 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(rdot(e412_3dp, e412_3dp) == pscalar3dp(1.0));
         CHECK(rdot(e321_3dp, e321_3dp) == pscalar3dp(0.0));
         CHECK(rdot(pscalar3dp(1.0), pscalar3dp(1.0)) == pscalar3dp(1.0));
-
-
-        // // wedge product
-        // // check full permissible range of arguments, even the ones delivering 0)
-        // CHECK(wdg(b1, b2) == scalar2dp(0.0));
-        // CHECK(wdg(v1, ps1) == scalar2dp(0.0));
-        // CHECK(wdg(ps1, v1) == scalar2dp(0.0));
-        // CHECK(wdg(b1, ps1) == scalar2dp(0.0));
-        // CHECK(wdg(ps1, b1) == scalar2dp(0.0));
-        // CHECK(wdg(ps1, ps1) == scalar2dp(0.0));
-
-        // // fmt::println("   b1           = {}", b1);
-        // // fmt::println("   b2           = {}", b2);
-        // // fmt::println("   b1*b2        = {}", b1 * b2);
-        // // fmt::println("   cmt(b1, b2)  = {}", cmt(b1, b2));
-        // // fmt::println("   b1<<b2       = {}", b1 << b2);
-        // CHECK(wdg(b1, b2) == nrm_sq(b1 * b2 - cmt(b1, b2) - (b1 << b2)));
-        // CHECK(wdg(v1, ps1) == nrm_sq(0.5 * (v1 * ps1 + rev(ps1) * v1)));
-        // CHECK(wdg(ps1, v1) == nrm_sq(0.5 * (ps1 * v1 + v1 * rev(ps1))));
-
-
-        // CHECK((v1 << wdg(v2, v3)) == wdg(v1 << v2, v3) + wdg(gr_inv(v2), v1 <<
-        // v3)); CHECK((wdg(v1, v2) << b1) == (v1 << (v2 << b1)));
-
-        // // contractions - check full permissible range of arguments, even the ones
-        // // delivering 0 as a result
-        // CHECK((ps1 << s1) == 0.0);
-        // CHECK((ps1 << v1) == 0.0);
-        // CHECK((ps1 << b1) == 0.0);
-        // CHECK((b1 << s1) == 0.0);
-        // CHECK((b1 << v1) == 0.0);
-        // CHECK((v1 << s1) == 0.0);
-        // //
-        // CHECK((s1 >> ps1) == 0.0);
-        // CHECK((v1 >> ps1) == 0.0);
-        // CHECK((b1 >> ps1) == 0.0);
-        // CHECK((s1 >> b1) == 0.0);
-        // CHECK((v1 >> b1) == 0.0);
-        // CHECK((s1 >> v1) == 0.0);
-
-        // // 2.3.2
-
-        // // 3rd with vectors and bivectors directly
-        // CHECK(v1 * b1 == (v1 << b1) + wdg(v1, b1));
-        // CHECK(b1 * v1 == (b1 >> v1) + wdg(b1, v1));
-        // CHECK((b1 >> v1) == -(v1 << gr_inv(b1)));
-
-        // // fmt::println("   v1 << b1        = {}", v1 << b1);
-        // // fmt::println("   v1 * b1         = {}", v1 * b1);
-        // // fmt::println("   gr_inv(b1) * v1 = {}", gr_inv(b1) * v1);
-        // CHECK((v1 << b1) == gr1(0.5 * (v1 * b1 - gr_inv(b1) * v1)));
-        // CHECK((b1 >> v1) == gr1(0.5 * (b1 * v1 - v1 * gr_inv(b1))));
-
-        // // fmt::println("   wdg(v1, b1)     = {}", wdg(v1, b1));
-        // // fmt::println("   v1 * b1         = {}", v1 * b1);
-        // // fmt::println("   gr_inv(b1) * v1 = {}", gr_inv(b1) * v1);
-        // CHECK(wdg(v1, b1) == gr3(0.5 * (v1 * b1 + gr_inv(b1) * v1)));
-        // CHECK(wdg(b1, v1) == gr3(0.5 * (b1 * v1 + v1 * gr_inv(b1))));
-
-        // CHECK(wdg(v1, (b1 << b2)) == ((v1 << b1) << b2) + (gr_inv(b1) << wdg(v1,
-        // b2)));
-
-        // // cross-check direct implementation of rwdg by comparing with wdg
-        // CHECK(rwdg(b1, b2) == cmpl(wdg(cmpl(b1), cmpl(b2))));
     }
 
     ////
@@ -2931,7 +2872,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         auto ps1 = pscalar3dp{-2.0};
         auto M1 = mvec3dp{s1, v1, b1, t1, ps1};
 
-        auto R = rotor(wdg(v1, e1_3dp), deg_to_rad(15));
+        auto R = rotor(wdg(v1, e1_3dp), deg2rad(15));
         CHECK(rotate(v2, R) == rotate_opt(v2, R));
     }
 
@@ -2971,6 +2912,192 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(pt12 == vec3dp{0, 3, 1, 1});
         CHECK(pl123 == pl123_2);
         CHECK(att(l_inf) == vec3dp{}); // line is at infinity
+    }
+
+    TEST_CASE("G<3,0,1> - pga3dp orthogonal projections")
+    {
+        fmt::println("G<3,0,1> - pga3dp orthogonal projections");
+
+        auto pt0 = origin_3dp;
+        auto pt1 = vec3dp{1, 0, 0, 1};
+        auto pt2 = vec3dp{1, 1, 0, 1};
+        auto pt3 = vec3dp{0, 1, 0, 1};
+        auto pt4 = vec3dp{0, 1, 1, 1};
+        auto pt5 = vec3dp{0, 0, 1, 1};
+        auto pt6 = vec3dp{1, 0, 1, 1};
+        auto pt7 = vec3dp{1, 1, 1, 1};
+        auto pt8 = vec3dp{1, -1, 0, 1};
+        auto pt9 = vec3dp{0, -1, 0, 1};
+
+        auto ln01 = join(pt0, pt1); // line containing both points
+        auto ln02 = join(pt0, pt2);
+        auto ln06 = join(pt0, pt6);
+        auto ln07 = join(pt0, pt7);
+        auto ln09 = join(pt0, pt9);
+        auto ln56 = join(pt5, pt6);
+
+        auto a12 = angle(ln01, ln02);
+        auto a21 = angle(ln02, ln01);
+        auto a29 = angle(ln02, ln09);
+        auto a92 = angle(ln09, ln02);
+        auto a67 = angle(ln06, ln07);
+        auto a256 = angle(ln02, ln56);
+
+        auto pl = e431_3dp; // plane 31 "at the bottom" of the coordinate system
+        auto pl2 = join(join(pt0, pt7), pt5);
+
+        auto apl07 = angle(pl, ln07);
+        auto apl70 = angle(ln07, pl);
+
+        auto apl02 = angle(pl, pl2);
+
+        // fmt::println("");
+        // fmt::println("pt0  = {}, pt1  = {}, pt2  = {}, pt3  = {}", pt0, pt1, pt2, pt3);
+        // fmt::println("pt4  = {}, pt5  = {}, pt6  = {}, pt7  = {}", pt4, pt5, pt6, pt7);
+        // fmt::println("ln02 = {}", ln01);
+        // fmt::println("ln02 = {}", ln02);
+        // fmt::println("ln07 = {}", ln07);
+        // fmt::println("ln09 = {}", ln09);
+        // fmt::println("ln56 = {}", ln56);
+        // fmt::println("pl = {}", pl);
+        // fmt::println("pl2 = {}", pl2);
+        // fmt::println("");
+        // fmt::println("a12 = {}", rad2deg(a12));
+        // fmt::println("a21 = {}", rad2deg(a21));
+        // fmt::println("a29 = {}", rad2deg(a29));
+        // fmt::println("a92 = {}", rad2deg(a92));
+        // fmt::println("a67 = {}", rad2deg(a67));
+        // fmt::println("a256 = {}", rad2deg(a256));
+        // fmt::println("");
+        // fmt::println("apl07 = {}", rad2deg(apl07));
+        // fmt::println("apl70 = {}", rad2deg(apl70));
+        // fmt::println("");
+        // fmt::println("apl02 = {}", rad2deg(apl02));
+
+        auto pt1p = ortho_proj(pt7, pl);
+        CHECK(pt1p == vec3dp{1, 0, 1, 1});
+
+        auto pt4p = unitize(ortho_proj(pt1, ln02));
+        auto pt7p = unitize(ortho_proj(vec3dp{1, 0, 1, 1}, ln07));
+        auto s = 0.5;
+        auto l = 2. / 3.;
+
+        // fmt::println("pt4p  = {}", pt4p);
+        // fmt::println("pt7p  = {}, dist07 = {}", pt7p, dist3dp(pt0, pt7));
+        // fmt::println("dist07p = {}", dist3dp(pt0, pt7p));
+
+        CHECK(pt4p == vec3dp{s, s, 0, 1});
+        CHECK(pt7p == vec3dp{l, l, l, 1});
+
+        auto ln67p = join(pt6, pt7p);
+        auto phi = angle(ln67p, ln07);
+        auto phi0607 = angle(ln06, ln07);
+
+        // fmt::println("phi = {}", rad2deg(phi));
+        // fmt::println("phi0607 = {}", rad2deg(phi0607));
+
+        CHECK(phi0607 - std::atan(1. / std::sqrt(2.0)) < eps);
+
+        auto ln7p = unitize(ortho_proj(ln07, pl));
+        CHECK(ln7p == unitize(ln06));
+        CHECK(phi == pi / 2);
+        CHECK(apl07 == apl70);
+        CHECK(a21 == a12);
+        CHECK(a29 == a92);
+        CHECK(a67 - apl07 < eps);
+        CHECK(rad2deg(apl02) == 135);
+        CHECK(a256 == a12);
+    }
+
+    TEST_CASE("G<3,0,1> - pga3dp central projections")
+    {
+        fmt::println("G<3,0,1> - pga3dp central projections");
+
+        // central projection onto plane towards origin
+        auto p1 = vec3dp{1, 0, 1, 1};
+        auto p2 = vec3dp{1, 0, 0, 1};
+        auto p3 = vec3dp{0, 1, 0, 1};
+        auto p = vec3dp{10, 10, 0, 1};
+
+        auto pl = join(join(p1, p2), p3);
+        auto pp = unitize(central_proj(p, pl));
+
+        // fmt::println("");
+        // fmt::println("pl = {}", pl);
+        // fmt::println("p  = {}, pp  = {}", p, pp);
+        CHECK(pp == vec3dp(0.5, 0.5, 0, 1));
+
+        // central projection onto line towards origin
+        auto ln = join(p2, p3);
+        auto lpt = unitize(central_proj(p, ln));
+
+        // fmt::println("");
+        // fmt::println("ln = {}", ln);
+        // fmt::println("p  = {}, lpt  = {}", p, lpt);
+        CHECK(lpt == vec3dp(0.5, 0.5, 0, 1));
+
+        // central projection of line onto plane towards origin
+        auto p4 = vec3dp{2, 0, 2, 1};
+        auto p5 = vec3dp{0, 2, 0, 1};
+        auto ln13 = unitize(join(p1, p3));
+        auto ln2 = unitize(join(p4, p5));
+        auto ln2p = unitize(central_proj(ln2, pl));
+
+        // fmt::println("");
+        // fmt::println("pl = {}", pl);
+        // fmt::println("ln2 = {}", ln2);
+        // fmt::println("ln13  = {}", ln13);
+        // fmt::println("ln2p  = {}", ln2p);
+        CHECK(ln2p == ln13);
+    }
+
+    TEST_CASE("G<3,0,1> - pga3dp orthogonal antiprojections")
+    {
+        fmt::println("G<3,0,1> - pga3dp orthogonal antiprojections");
+
+        // orthogonal anitprojection of a plane to a point,
+        // i.e. create a new plane with the same orientation of the normal that
+        // contains the point
+        auto pl = e431_3dp + e423_3dp;
+        auto p1 = vec3dp{7, 3, -2, 1};
+        auto dist_p1_pl = dist3dp(p1, pl).c0 / dist3dp(p1, pl).c1;
+
+        auto plp = ortho_antiproj(pl, p1);
+        auto dist_p1_plp = dist3dp(p1, plp).c0 / dist3dp(p1, plp).c1;
+
+        // fmt::println("");
+        // fmt::println("p1  = {}", p1);
+        // fmt::println("pl  = {}, dist_p1_pl  = {}", pl, dist_p1_pl);
+        // fmt::println("plp = {}, dist_p1_plp = {}", plp, dist_p1_plp);
+        CHECK(weight_nrm(pl) == weight_nrm(plp)); // planes have same orientation
+        CHECK(dist_p1_pl != 0.0);                 // point is not in original plane
+        CHECK(dist_p1_plp == 0.0);                // point is in antiprojected plane
+
+        // orthogonal anitprojection of a line onto a point,
+        // i.e. create a new line with the same orientation that contains the point
+        auto p2 = vec3dp{-9, 1, -3, 1};
+        auto p3 = vec3dp{1, 2, -3, 1};
+        auto ln = join(p1, p2);
+        auto dist_p3_ln = dist3dp(p3, ln).c0 / dist3dp(p3, ln).c1;
+
+        auto lnp = ortho_antiproj(ln, p3);
+        auto dist_p3_lnp = dist3dp(p3, lnp).c0 / dist3dp(p3, lnp).c1;
+
+        // fmt::println("");
+        // fmt::println("p1  = {}", p1);
+        // fmt::println("ln  = {}, dist_p1_ln  = {}", ln, dist_p1_ln);
+        // fmt::println("lnp = {}, dist_p1_lnp = {}", lnp, dist_p1_lnp);
+        CHECK(weight_nrm(pl) == weight_nrm(plp)); // lines have same orientation
+        CHECK(dist_p3_ln != 0.0);
+        CHECK(dist_p3_lnp == 0.0); // point is in antiprojected line
+
+        auto plp2 = ortho_antiproj(pl, ln);
+        auto dist_p1_plp2 = dist3dp(p1, plp2).c0 / dist3dp(p1, plp2).c1;
+        // fmt::println("");
+        // fmt::println("pl  = {}", pl);
+        // fmt::println("ln  = {}", ln);
+        // fmt::println("plp2 = {}", plp2);
+        CHECK(dist_p1_plp2 == 0);
     }
 
 } // TEST_SUITE("Projective Geometric Algebra (PGA)")

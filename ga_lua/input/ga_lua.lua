@@ -52,7 +52,7 @@ print("ps2:", ps2)
 
 local phi = angle(v1, v2)
 print("phi (rad): ", phi)
-print("phi (deg): ", rad_to_deg(phi))
+print("phi (deg): ", rad2deg(phi))
 assert(math.abs(angle(vec2d.new(1, 0), vec2d.new(1, 1)) - math.pi / 4) < eps)
 
 -- mvec2d_e
@@ -93,8 +93,8 @@ print("gr2(mve2)", gr2(mve2))
 assert(gr0(mve2) == scalar2d.new(1.5))
 assert(gr2(mve2) == pscalar2d.new(-2))
 
-print("angle_to_re(mve1) - (rad, deg):", angle_to_re(mve1), rad_to_deg(angle_to_re(mve1)))
-print("angle_to_re(mve2) - (rad, deg):", angle_to_re(mve2), rad_to_deg(angle_to_re(mve2)))
+print("angle_to_re(mve1) - (rad, deg):", angle_to_re(mve1), rad2deg(angle_to_re(mve1)))
+print("angle_to_re(mve2) - (rad, deg):", angle_to_re(mve2), rad2deg(angle_to_re(mve2)))
 
 -- inverses
 print("\ninverses:\n")
@@ -197,7 +197,7 @@ print("mvec2d.new(2,-3,5,7)*mvec2d.new(1,2,-5,12):", mvec2d.new(2, -3, 5, 7) * m
 print()
 print("dot(vec2d.new(2,-3),vec2d.new(1,2)):", dot(vec2d.new(2, -3), vec2d.new(1, 2)))
 print("wdg(vec2d.new(2,-3),vec2d.new(1,2)):", to_val(wdg(vec2d.new(2, -3), vec2d.new(1, 2))))
-print("angle(vec2d.new(2,-3),vec2d.new(1,2)) [deg]:", rad_to_deg(angle(vec2d.new(2, -3), vec2d.new(1, 2))))
+print("angle(vec2d.new(2,-3),vec2d.new(1,2)) [deg]:", rad2deg(angle(vec2d.new(2, -3), vec2d.new(1, 2))))
 print("nrm(vec2d.new(2,-3)):", nrm(vec2d.new(2, -3)))
 print("nrm(vec2d.new(1,2)):", nrm(vec2d.new(1, 2)))
 print("nrm(vec2d.new(2,-3))*nrm(vec2d.new(1,2))", nrm(vec2d.new(2, -3)) * nrm(vec2d.new(1, 2)))
@@ -332,7 +332,7 @@ print("ps2:", ps2)
 
 local phi = angle(v1, v2)
 print("phi (rad): ", phi)
-print("phi (deg): ", rad_to_deg(phi))
+print("phi (deg): ", rad2deg(phi))
 assert(math.abs(angle(vec3d.new(1, 0, 0), vec3d.new(1, 1, 0)) - math.pi / 4) < eps)
 
 -- mvec3d_e
@@ -374,8 +374,8 @@ print("gr2(mve2)", gr2(mve2))
 assert(gr0(mve2) == scalar3d.new(1.5))
 assert(gr2(mve2) == bivec3d.new(-2, -2, -1))
 
-print("angle(bv1, v1) - (rad, deg):", angle(bv1, v1), rad_to_deg(angle(bv1, v1)))
-print("angle(v1, bv1) - (rad, deg):", angle(v1, bv1), rad_to_deg(angle(v1, bv1)))
+print("angle(bv1, v1) - (rad, deg):", angle(bv1, v1), rad2deg(angle(bv1, v1)))
+print("angle(v1, bv1) - (rad, deg):", angle(v1, bv1), rad2deg(angle(v1, bv1)))
 
 -- inverses
 print("\ninverses:\n")
@@ -464,8 +464,8 @@ print()
 print("dot(bivec3d.new(1,1,1),bivec3d.new(0,0,1))", dot(bivec3d.new(1, 1, 1), bivec3d.new(0, 0, 1)))
 print("cmt(bivec3d.new(1,1,1),bivec3d.new(0,0,1))", cmt(bivec3d.new(1, 1, 1), bivec3d.new(0, 0, 1)))
 print()
-print("angle(vec3d.new(1,0,1),bivec3d.new(0,0,1))", rad_to_deg(angle(vec3d.new(1, 0, 1), bivec3d.new(0, 0, 1))))
-print("bivec3d.new(0,0,1),angle(vec3d.new(1,0,1))", rad_to_deg(angle(bivec3d.new(0, 0, 1), vec3d.new(1, 0, 1))))
+print("angle(vec3d.new(1,0,1),bivec3d.new(0,0,1))", rad2deg(angle(vec3d.new(1, 0, 1), bivec3d.new(0, 0, 1))))
+print("bivec3d.new(0,0,1),angle(vec3d.new(1,0,1))", rad2deg(angle(bivec3d.new(0, 0, 1), vec3d.new(1, 0, 1))))
 print()
 
 -- projections, rejections and reflections

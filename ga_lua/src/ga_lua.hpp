@@ -852,8 +852,8 @@ void register_functions(sol::state& lua)
                                              sol::resolve<value_t(pscalar2d)>(to_val),
                                              sol::resolve<value_t(pscalar3d)>(to_val)));
 
-    lua.set_function("rad_to_deg", &rad_to_deg);
-    lua.set_function("deg_to_rad", &deg_to_rad);
+    lua.set_function("rad2deg", &rad2deg);
+    lua.set_function("deg2rad", &deg2rad);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

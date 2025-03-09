@@ -2,7 +2,7 @@
 
 // author: Daniel Hug, 2024 & 2025
 
-#include <algorithm> // std::max
+#include <algorithm> // std::max, std::clamp
 #include <cmath>     // std::abs
 #include <concepts>  // std::floating_point<T>
 #include <iostream>  // std::cout, std::ostream
@@ -662,7 +662,7 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> rwdg(Vec2dp<T> const& v,
     return Scalar2dp<ctype>(v.x * B.x + v.y * B.y + v.z * B.z);
 }
 
-// required to be present for euclidean_distance2dp (to complile, even if not used)
+// required to be present for dist2dp (to complile, even if not used)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Scalar2dp<std::common_type_t<T, U>>
@@ -1679,96 +1679,11 @@ inline constexpr BiVec2dp<T> inv(BiVec2dp<T> const& B)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// angle operations
-////////////////////////////////////////////////////////////////////////////////
-
-// return the angle between of two vectors
-// range of angle: -pi <= angle <= pi
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
-{
-    using ctype = std::common_type_t<T, U>;
-
-    ctype nrm_prod = bulk_nrm(v1) * bulk_nrm(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
-    // std::clamp must be used to take care of numerical inaccuracies
-    return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
-}
-
-// return the angle between of a vector and a bivector
-// range of angle: 0 <= angle <= pi
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline std::common_type_t<T, U> angle(Vec2dp<T> const& v, BiVec2dp<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype nrm_prod = nrm(v) * nrm(B);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
-    // std::clamp must be used to take care of numerical inaccuracies
-    return std::acos(
-        std::clamp(ctype(nrm(dot(v, B))) / nrm_prod, ctype(-1.0), ctype(1.0)));
-}
-
-// return the angle between of a bivector and a vector
-// range of angle: 0 <= angle <= pi
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline std::common_type_t<T, U> angle(BiVec2dp<T> const& B, Vec2dp<U> const& v)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype nrm_prod = nrm(B) * nrm(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
-    // std::clamp must be used to take care of numerical inaccuracies
-    return std::acos(
-        std::clamp(ctype(nrm(dot(B, v))) / nrm_prod, ctype(-1.0), ctype(1.0)));
-}
-
-// return the angle between two bivectors
-// range of angle: 0 <= angle <= pi
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
-                                                BiVec2dp<U> const& B2)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype nrm_prod = nrm(B1) * nrm(B2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "bivector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
-    // std::clamp must be used to take care of numerical inaccuracies
-    return std::acos(std::clamp(ctype(dot(B1, B2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // 2dp euclidean distance
 ////////////////////////////////////////////////////////////////////////////////
 
 // returns the euclidean distance between objects as homogeneous magnitude
-template <typename arg1, typename arg2>
-DualNum2dp<value_t> euclidean_distance2dp(arg1&& a, arg2&& b)
+template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, arg2&& b)
 {
     if (gr(a) + gr(b) == 3) {
         return DualNum2dp<value_t>(rwdg(a, b), weight_nrm(wdg(a, att(b))));
