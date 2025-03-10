@@ -203,11 +203,16 @@ const mvec_coeff mv3d_coeff_svBps2 = {"s2",   "v2.x", "v2.y", "v2.z",
                                       "B2.x", "B2.y", "B2.z", "ps2"};
 
 
-void generate_and_print_ega3d_gpr();    // geometric product
-void generate_and_print_ega3d_wdg();    // wedge product
+void generate_and_print_ega3d_gpr(); // geometric product
+void generate_and_print_ega3d_wdg(); // wedge product
+
 void generate_and_print_ega3d_lcontr(); // left contraction
 void generate_and_print_ega3d_rcontr(); // right contraction
-void generate_and_print_ega3d_dot();    // scalar product
+
+void generate_and_print_ega3d_lexpand(); // left expansion
+void generate_and_print_ega3d_rexpand(); // right expansion
+
+void generate_and_print_ega3d_dot(); // scalar product
 
 void generate_and_print_ega3d_rwdg(); // regressive wedge product
 

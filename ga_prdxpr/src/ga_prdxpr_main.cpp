@@ -27,11 +27,13 @@ int main()
 
 
         // ega3d
-        generate_and_print_ega3d_gpr();    // geometric product
-        generate_and_print_ega3d_wdg();    // wegde product
-        generate_and_print_ega3d_lcontr(); // left contraction
-        generate_and_print_ega3d_rcontr(); // right contraction
-        generate_and_print_ega3d_dot();    // scalar product
+        generate_and_print_ega3d_gpr();     // geometric product
+        generate_and_print_ega3d_wdg();     // wegde product
+        generate_and_print_ega3d_lcontr();  // left contraction
+        generate_and_print_ega3d_rcontr();  // right contraction
+        generate_and_print_ega3d_lexpand(); // left expansion
+        generate_and_print_ega3d_rexpand(); // right expansion
+        generate_and_print_ega3d_dot();     // scalar product
 
         generate_and_print_ega3d_rwdg(); // regressive wedge product
 
@@ -72,8 +74,12 @@ int main()
         generate_and_print_ega2d_rotor_gpr();
         generate_and_print_ega3d_rotor_gpr();
 
-        generate_and_print_pga2dp_rotor_gpr();
-        generate_and_print_pga3dp_rotor_gpr();
+        // sandwich products of type motor * object * rev(motor)
+        generate_and_print_pga2dp_motor_gpr();
+        generate_and_print_pga2dp_motor_rgpr();
+
+        generate_and_print_pga3dp_motor_gpr();
+        generate_and_print_pga3dp_motor_rgpr();
     }
 
     catch (std::exception const& e) {

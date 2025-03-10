@@ -234,5 +234,7 @@ void generate_and_print_pga2dp_weight_contraction(); // weight contraction
 void generate_and_print_pga2dp_bulk_expansion();     // bulk expansion
 void generate_and_print_pga2dp_weight_expansion();   // weight expansion
 
-void generate_and_print_pga2dp_rotor_gpr(); // sandwich product rotor * object *
-                                            // rev(rotor)
+void generate_and_print_pga2dp_motor_gpr();  // sandwich product motor * object *
+                                             // rev(motor)
+void generate_and_print_pga2dp_motor_rgpr(); // sandwich product motor * object *
+                                             // rev(motor)

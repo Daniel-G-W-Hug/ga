@@ -3079,11 +3079,11 @@ void generate_and_print_pga2dp_weight_expansion()
     return;
 }
 
-void generate_and_print_pga2dp_rotor_gpr()
+void generate_and_print_pga2dp_motor_gpr()
 {
 
     std::string prd_name = "pga2dp sandwich product:";
-    println("pga2dp sandwich product: rotor * object * rev(rotor):");
+    println("pga2dp sandwich product - motor * object * rev(motor):");
     println("");
 
     auto basis = mv2dp_basis;
@@ -3162,6 +3162,94 @@ void generate_and_print_pga2dp_rotor_gpr()
     //     of rotation interpolation and helpful geometric interpretation when compared to
     //     mere matrix based modeling.
     //
+    println("-------------------------------------------------------------------\n");
+
+    return;
+}
+
+void generate_and_print_pga2dp_motor_rgpr()
+{
+
+    std::string prd_name = "pga2dp regressive sandwich product:";
+    println("pga2dp regressive sandwich product - motor * object * rev(motor):");
+    println("");
+
+    auto basis = mv2dp_basis;
+
+    // println("mv_basis for rwdg:");
+    // print_mvec(mv2dp_coeff_svBps, basis);
+    // println("");
+
+    // create the complement from the input multivector
+    // (=forward transformation of arguments)
+    auto basis_cmpl_func = apply_rules_to_mv(basis, cmpl_pga2dp_rules);
+    // println("cmpl:");
+    // print_mvec(mv2dp_coeff_svBps, basis_cmpl_func);
+    // println("");
+
+    // product between complements
+    auto basis_tab_with_rules = apply_rules_to_tab(
+        mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str),
+        gpr_pga2dp_rules);
+    // println("basis_tab_with_rules:");
+    // print_prd_tab(basis_tab_with_rules);
+    // println("");
+
+    // create complements of the table entries (=backward transformation)
+    // (returns the product table in terms of the unmodified input multivectors)
+    auto basis_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
+    println("{} - basis product table:", prd_name);
+    print_prd_tab(basis_tab);
+    println("");
+
+
+    // first product between multivectors in basis_tab (R * v)
+    println("{}:", prd_name + space_str + "mv_e * vec -> mv_e_tmp");
+    auto prd_tab = get_prd_tab(basis_tab, mv2dp_coeff_R_even, mv2dp_coeff_svBps);
+    // println("{} - product table with coeffs:", prd_name);
+    // print_prd_tab(prd_tab);
+    // println("");
+
+    auto mv_e_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_2dp::mv_e, filter_2dp::vec,
+                                        brace_switch::use_braces);
+    println("mv_e_tmp:");
+    print_mvec(mv_e_tmp, basis);
+    println("");
+
+    // second product between multivectors for the product v * rev(R)
+    println("{}:", prd_name + space_str + "mv_e_tmp * rev(mv_e) -> mv_u_res");
+    auto prd_tab_v = get_prd_tab(basis_tab, mv_e_tmp, mv2dp_coeff_R_rev_even);
+    // println("prd_tab_v:");
+    // print_prd_tab(prd_tab_v);
+    // println("");
+
+    auto mv_u_res_v =
+        get_mv_from_prd_tab(prd_tab_v, basis, filter_2dp::mv_e, filter_2dp::mv_e);
+    print_mvec(mv_u_res_v, basis);
+    println("");
+
+    ////
+
+    // first product between multivectors in basis_tab (R * B)
+    println("{}:", prd_name + space_str + "mv_e * bivec -> mv_u_tmp");
+    auto mv_u_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_2dp::mv_e,
+                                        filter_2dp::bivec, brace_switch::use_braces);
+    println("mv_u_tmp:");
+    print_mvec(mv_u_tmp, basis);
+    println("");
+
+    // second product between multivectors for the product B * rev(R)
+    println("{}:", prd_name + space_str + "mv_u_tmp * rev(mv_e) -> mv_e_res");
+    auto prd_tab_B = get_prd_tab(basis_tab, mv_u_tmp, mv2dp_coeff_R_rev_even);
+    // println("prd_tab_B:");
+    // print_prd_tab(prd_tab_B);
+    // println("");
+
+    auto mv_e_res_B =
+        get_mv_from_prd_tab(prd_tab_B, basis, filter_2dp::mv_u, filter_2dp::mv_e);
+    print_mvec(mv_e_res_B, basis);
+    println("");
+
     println("-------------------------------------------------------------------\n");
 
     return;
