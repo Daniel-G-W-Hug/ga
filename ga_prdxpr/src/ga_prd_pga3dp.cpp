@@ -3871,7 +3871,7 @@ void generate_and_print_pga3dp_weight_expansion()
 void generate_and_print_pga3dp_motor_gpr()
 {
 
-    std::string prd_name = "pga3dp sandwich product:";
+    std::string prd_name = "pga3dp sandwich product";
     println("pga3dp sandwich product - motor * object * rev(motor):");
     println("");
 
@@ -3981,7 +3981,7 @@ void generate_and_print_pga3dp_motor_gpr()
 void generate_and_print_pga3dp_motor_rgpr()
 {
 
-    std::string prd_name = "pga3dp regressive sandwich product:";
+    std::string prd_name = "pga3dp regressive sandwich product";
     println("pga3dp regressive sandwich product - motor * object * rev(motor):");
     println("");
 

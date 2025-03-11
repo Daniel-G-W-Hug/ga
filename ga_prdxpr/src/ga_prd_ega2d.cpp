@@ -1012,7 +1012,7 @@ void generate_and_print_ega2d_rwdg()
 void generate_and_print_ega2d_rotor_gpr()
 {
 
-    std::string prd_name = "ega2d sandwich product:";
+    std::string prd_name = "ega2d sandwich product";
     fmt::println("ega2d sandwich product: rotor * object * rev(rotor):");
     fmt::println("");
 

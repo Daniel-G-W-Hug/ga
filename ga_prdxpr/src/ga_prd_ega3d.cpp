@@ -2504,7 +2504,7 @@ void generate_and_print_ega3d_rwdg()
 void generate_and_print_ega3d_rotor_gpr()
 {
 
-    std::string prd_name = "ega3d sandwich product:";
+    std::string prd_name = "ega3d sandwich product";
     fmt::println("ega3d sandwich product: rotor * object * rev(rotor):");
     fmt::println("");
 
