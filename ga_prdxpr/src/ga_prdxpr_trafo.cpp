@@ -395,12 +395,13 @@ std::shared_ptr<ast_node> Primary::parse(Lexer& lexer)
 
     switch (token.type) {
 
-        case Token_t::NUMBER:
+        case Token_t::NUMBER: {
             primary->type = Primary_t::NUMBER;
             primary->str_value = token.str_value;
             primary->num_value = std::stod(token.str_value);
             lexer.advance(); // consume the number
             break;
+        }
 
         case Token_t::IDENTIFIER: {
             primary->type = Primary_t::VARIABLE;
@@ -421,7 +422,7 @@ std::shared_ptr<ast_node> Primary::parse(Lexer& lexer)
             break;
         }
 
-        case Token_t::LPAREN:
+        case Token_t::LPAREN: {
 
             primary->type = Primary_t::EXPRESSION;
             lexer.advance(); // consume the opening parenthesis
@@ -437,6 +438,7 @@ std::shared_ptr<ast_node> Primary::parse(Lexer& lexer)
             }
             lexer.advance(); // consume the closing parenthesis
             break;
+        }
 
         default:
             throw std::runtime_error("Unexpected token at position " +
@@ -548,7 +550,8 @@ void print_parse_tree(std::shared_ptr<ast_node> const& ast)
 
     if (!ast) return;
 
-    // fmt::println("print_parse_tree(): ast node type: {}", ast->nodeType_to_string());
+    // fmt::println("print_parse_tree(): ast node type: {}",
+    // ast->nodeType_to_string());
 
     switch (ast->nodeType()) {
 
@@ -617,16 +620,15 @@ void print_expression_node(std::shared_ptr<Expression> const& ptr)
 
     if (!ptr) return;
 
-    fmt::println("node type                                : {}",
-                 ptr->nodeType_to_string());
-    fmt::println("    expression operation symbol          : '{}'", ptr->op);
+    fmt::println("node type, op symbol                     : {}, op: '{}'",
+                 ptr->nodeType_to_string(), ptr->op);
     fmt::println("    expression to_String()               : {}", ptr->to_string());
     if (ptr->left) {
-        fmt::println("    left  node type -> value             : {} -> {}",
+        fmt::println("    left  node type -> value             : left  {} -> {}",
                      ptr->left->nodeType_to_string(), ptr->left->to_string());
     }
     if (ptr->right) {
-        fmt::println("    right node type -> value             : {} -> {}",
+        fmt::println("    right node type -> value             : right {} -> {}",
                      ptr->right->nodeType_to_string(), ptr->right->to_string());
     }
     fmt::println("");
@@ -637,16 +639,15 @@ void print_term_node(std::shared_ptr<Term> const& ptr)
 
     if (!ptr) return;
 
-    fmt::println("node type                                : {}",
-                 ptr->nodeType_to_string());
-    fmt::println("    term operation symbol                : '{}'", ptr->op);
+    fmt::println("node type, op symbol                     : {}, op: '{}'",
+                 ptr->nodeType_to_string(), ptr->op);
     fmt::println("    term to_String()                     : {}", ptr->to_string());
     if (ptr->left) {
-        fmt::println("    left  node type -> value             : {} -> {}",
+        fmt::println("    left  node type -> value             : left  {} -> {}",
                      ptr->left->nodeType_to_string(), ptr->left->to_string());
     }
     if (ptr->right) {
-        fmt::println("    right node type -> value             : {} -> {}",
+        fmt::println("    right node type -> value             : right {} -> {}",
                      ptr->right->nodeType_to_string(), ptr->right->to_string());
     }
     fmt::println("");
@@ -659,15 +660,15 @@ void print_factor_node(std::shared_ptr<Factor> const& ptr)
 
     if (!ptr) return;
 
-    fmt::println("node type                                : {}",
-                 ptr->nodeType_to_string());
-    fmt::println("    factor->sign                         :'{}'", ptr->sign);
-    fmt::println("    factor->to_String()                  : {}", ptr->to_string());
+    fmt::println("node type, sign                          : {}, sign: '{}'",
+                 ptr->nodeType_to_string(), ptr->sign);
+    // fmt::println("    factor->sign                         : '{}'", ptr->sign);
+    // fmt::println("    factor->to_String()                  : {}", ptr->to_string());
+
     if (ptr->prim_val) {
         auto primary_ptr = std::dynamic_pointer_cast<Primary>(ptr->prim_val);
         print_primary_node(primary_ptr);
     }
-    fmt::println("");
 
     return;
 }
@@ -677,18 +678,18 @@ void print_primary_node(std::shared_ptr<Primary> const& ptr)
 
     if (!ptr) return;
 
-    fmt::println("node type                                : {}",
-                 ptr->nodeType_to_string());
-    fmt::println("    primary to_String()                  : {}", ptr->to_string());
-    fmt::println("    primary type                         : {}",
-                 ptr->primaryType_to_string());
+    fmt::println("node type_subtype                        : {}_{}",
+                 ptr->nodeType_to_string(), ptr->primaryType_to_string());
     fmt::println("    primary str_value                    : {}", ptr->str_value);
-    fmt::println("    primary num_value                    : {}", ptr->num_value);
-    if (ptr->expr) {
-        auto expr_ptr = std::dynamic_pointer_cast<Expression>(ptr->expr);
-        print_expression_node(expr_ptr);
+    if (ptr->primaryType_to_string() == "NUMBER") {
+        fmt::println("    primary num_value                    : {}", ptr->num_value);
     }
     fmt::println("");
+
+    if (ptr->expr) {
+        auto expr_ptr = std::dynamic_pointer_cast<Expression>(ptr->expr);
+        print_parse_tree(std::dynamic_pointer_cast<ast_node>(expr_ptr));
+    }
 
     return;
 }
