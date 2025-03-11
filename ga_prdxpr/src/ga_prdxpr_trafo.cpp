@@ -620,9 +620,8 @@ void print_expression_node(std::shared_ptr<Expression> const& ptr)
 
     if (!ptr) return;
 
-    fmt::println("node type, op symbol                     : {}, op: '{}'",
-                 ptr->nodeType_to_string(), ptr->op);
-    fmt::println("    expression to_String()               : {}", ptr->to_string());
+    fmt::println("node type, op symbol, string             : {}, op: '{}', string: {}",
+                 ptr->nodeType_to_string(), ptr->op, ptr->to_string());
     if (ptr->left) {
         fmt::println("    left  node type -> value             : left  {} -> {}",
                      ptr->left->nodeType_to_string(), ptr->left->to_string());
@@ -639,9 +638,8 @@ void print_term_node(std::shared_ptr<Term> const& ptr)
 
     if (!ptr) return;
 
-    fmt::println("node type, op symbol                     : {}, op: '{}'",
-                 ptr->nodeType_to_string(), ptr->op);
-    fmt::println("    term to_String()                     : {}", ptr->to_string());
+    fmt::println("node type, op symbol, string             : {}, op: '{}', string: {}",
+                 ptr->nodeType_to_string(), ptr->op, ptr->to_string());
     if (ptr->left) {
         fmt::println("    left  node type -> value             : left  {} -> {}",
                      ptr->left->nodeType_to_string(), ptr->left->to_string());
