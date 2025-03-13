@@ -493,10 +493,25 @@ std::string parse_and_print_ast(std::string const& input)
         // fmt::println("ast: {}", ast->to_string());
         // fmt::println("");
 
-        fmt::println("");
-        fmt::println("ast:");
-        print_parse_tree(ast);
-        fmt::println("");
+        {
+            fmt::println("");
+            fmt::println("ast (pre_order traversal):\n");
+            int node_cnt = -1; // start with a non-existing node number -1
+            print_parse_tree_pre_order(ast, 0, node_cnt); // start at lvl 0
+            fmt::println("");
+        }
+
+        {
+            fmt::println("");
+            fmt::println("ast (level_order traversal):\n");
+            std::queue<lvl_node> node_queue;
+            lvl_node root{0, ast};
+            node_queue.push(root); // push root node into queue
+            int node_cnt = -1;     // start with a non-existing node number -1
+            print_parse_tree_level_order(node_queue, node_cnt);
+            fmt::println("");
+        }
+
 
         return ast->to_string();
     }
@@ -545,10 +560,13 @@ std::string parse_and_analyse(std::string const& input)
 // Printing functions
 ///////////////////////////////////////////////////////////////////////////////
 
-void print_parse_tree(std::shared_ptr<ast_node> const& ast)
+void print_parse_tree_pre_order(std::shared_ptr<ast_node> const& ast, size_t lvl,
+                                int& node_cnt)
 {
 
     if (!ast) return;
+
+    ++node_cnt;
 
     // fmt::println("print_parse_tree(): ast node type: {}",
     // ast->nodeType_to_string());
@@ -560,14 +578,16 @@ void print_parse_tree(std::shared_ptr<ast_node> const& ast)
         {
             // downcast to derived
             auto ptr = std::dynamic_pointer_cast<Expression>(ast);
-            print_expression_node(ptr);
+            print_expression_node(ptr, lvl, node_cnt);
 
             // upcast back to base after getting the left and right sides
             if (ptr->left) {
-                print_parse_tree(std::dynamic_pointer_cast<ast_node>(ptr->left));
+                print_parse_tree_pre_order(std::dynamic_pointer_cast<ast_node>(ptr->left),
+                                           lvl + 1, node_cnt);
             }
             if (ptr->right) {
-                print_parse_tree(std::dynamic_pointer_cast<ast_node>(ptr->right));
+                print_parse_tree_pre_order(
+                    std::dynamic_pointer_cast<ast_node>(ptr->right), lvl + 1, node_cnt);
             }
 
         } break;
@@ -577,14 +597,16 @@ void print_parse_tree(std::shared_ptr<ast_node> const& ast)
         {
             // downcast to derived
             auto ptr = std::dynamic_pointer_cast<Term>(ast);
-            print_term_node(ptr);
+            print_term_node(ptr, lvl, node_cnt);
 
             // upcast back to base after getting the left and right sides
             if (ptr->left) {
-                print_parse_tree(std::dynamic_pointer_cast<ast_node>(ptr->left));
+                print_parse_tree_pre_order(std::dynamic_pointer_cast<ast_node>(ptr->left),
+                                           lvl + 1, node_cnt);
             }
             if (ptr->right) {
-                print_parse_tree(std::dynamic_pointer_cast<ast_node>(ptr->right));
+                print_parse_tree_pre_order(
+                    std::dynamic_pointer_cast<ast_node>(ptr->right), lvl + 1, node_cnt);
             }
 
         } break;
@@ -594,7 +616,7 @@ void print_parse_tree(std::shared_ptr<ast_node> const& ast)
         {
             auto ptr = std::dynamic_pointer_cast<Factor>(ast);
             if (ptr) {
-                print_factor_node(ptr);
+                print_factor_node(ptr, lvl, node_cnt);
             }
         } break;
 
@@ -604,7 +626,7 @@ void print_parse_tree(std::shared_ptr<ast_node> const& ast)
         {
             auto ptr = std::dynamic_pointer_cast<Primary>(ast);
             if (ptr) {
-                print_primary_node(ptr);
+                print_primary_node(ptr, lvl, node_cnt);
             }
         } break;
 
@@ -612,85 +634,215 @@ void print_parse_tree(std::shared_ptr<ast_node> const& ast)
             fmt::println("printParseTree: Unknown type.");
     }
 
-    // fmt::println("print_parse_tree(): printing finished.");
+    // fmt::println("print_parse_tree_pre_order(): printing finished.");
 }
 
-void print_expression_node(std::shared_ptr<Expression> const& ptr)
+void print_parse_tree_level_order(std::queue<lvl_node>& node_queue, int& node_cnt)
+{
+
+    while (!node_queue.empty()) {
+
+        auto node = node_queue.front(); // get the next node in the queue
+        node_queue.pop();               // and remove the node from the queue
+
+        if (!node.ptr) break;
+
+        auto lvl = node.lvl;
+        auto ast = node.ptr;
+
+        ++node_cnt;
+
+        switch (ast->nodeType()) {
+
+            case ast_node::ast_node_t::EXPRESSION:
+
+            {
+                // downcast to derived
+                auto ptr = std::dynamic_pointer_cast<Expression>(ast);
+                print_expression_node(ptr, lvl, node_cnt);
+
+                if (ptr->left) {
+
+                    lvl_node left{node.lvl + 1, ptr->left};
+                    node_queue.push(left);
+                }
+                if (ptr->right) {
+
+                    lvl_node right{node.lvl + 1, ptr->right};
+                    node_queue.push(right);
+                }
+
+            } break;
+
+            case ast_node::ast_node_t::TERM:
+
+            {
+                // downcast to derived
+                auto ptr = std::dynamic_pointer_cast<Term>(ast);
+                print_term_node(ptr, lvl, node_cnt);
+
+                if (ptr->left) {
+
+                    lvl_node left{node.lvl + 1, ptr->left};
+                    node_queue.push(left);
+                }
+                if (ptr->right) {
+
+                    lvl_node right{node.lvl + 1, ptr->right};
+                    node_queue.push(right);
+                }
+
+            } break;
+
+            case ast_node::ast_node_t::FACTOR:
+
+            {
+                auto ptr = std::dynamic_pointer_cast<Factor>(ast);
+                if (ptr) {
+                    print_factor_node_level_order(node_queue, ptr, lvl, node_cnt);
+                }
+            } break;
+
+
+            case ast_node::ast_node_t::PRIMARY:
+
+            {
+                auto ptr = std::dynamic_pointer_cast<Primary>(ast);
+                if (ptr) {
+                    print_primary_node_level_order(node_queue, ptr, lvl, node_cnt);
+                }
+            } break;
+
+            default:
+                fmt::println("printParseTree: Unknown type.");
+        }
+    }
+
+    // fmt::println("print_parse_tree_level_order(): printing finished.");
+
+    return;
+}
+
+void print_expression_node(std::shared_ptr<Expression> const& ptr, size_t lvl,
+                           int& node_cnt)
 {
 
     if (!ptr) return;
 
-    fmt::println("node type, op symbol, string             : {}, op: '{}', string: {}",
+    fmt::println("lvl {:3}, node# {:3}, {}, op: '{}', string: {}", lvl, node_cnt,
                  ptr->nodeType_to_string(), ptr->op, ptr->to_string());
     if (ptr->left) {
-        fmt::println("    left  node type -> value             : left  {} -> {}",
-                     ptr->left->nodeType_to_string(), ptr->left->to_string());
+        fmt::println("         left  {} -> {}", ptr->left->nodeType_to_string(),
+                     ptr->left->to_string());
     }
     if (ptr->right) {
-        fmt::println("    right node type -> value             : right {} -> {}",
-                     ptr->right->nodeType_to_string(), ptr->right->to_string());
+        fmt::println("         right {} -> {}", ptr->right->nodeType_to_string(),
+                     ptr->right->to_string());
     }
     fmt::println("");
 }
 
-void print_term_node(std::shared_ptr<Term> const& ptr)
+void print_term_node(std::shared_ptr<Term> const& ptr, size_t lvl, int& node_cnt)
 {
 
     if (!ptr) return;
 
-    fmt::println("node type, op symbol, string             : {}, op: '{}', string: {}",
+    fmt::println("lvl {:3}, node# {:3}, {}, op: '{}', string: {}", lvl, node_cnt,
                  ptr->nodeType_to_string(), ptr->op, ptr->to_string());
     if (ptr->left) {
-        fmt::println("    left  node type -> value             : left  {} -> {}",
-                     ptr->left->nodeType_to_string(), ptr->left->to_string());
+        fmt::println("         left  {} -> {}", ptr->left->nodeType_to_string(),
+                     ptr->left->to_string());
     }
     if (ptr->right) {
-        fmt::println("    right node type -> value             : right {} -> {}",
-                     ptr->right->nodeType_to_string(), ptr->right->to_string());
+        fmt::println("         right {} -> {}", ptr->right->nodeType_to_string(),
+                     ptr->right->to_string());
     }
     fmt::println("");
 
     return;
 }
 
-void print_factor_node(std::shared_ptr<Factor> const& ptr)
+void print_factor_node(std::shared_ptr<Factor> const& ptr, size_t lvl, int& node_cnt)
 {
 
     if (!ptr) return;
 
-    fmt::println("node type, sign                          : {}, sign: '{}'",
+    fmt::println("lvl {:3}, node# {:3}, {}, sign: '{}'", lvl, node_cnt,
                  ptr->nodeType_to_string(), ptr->sign);
-    // fmt::println("    factor->sign                         : '{}'", ptr->sign);
-    // fmt::println("    factor->to_String()                  : {}", ptr->to_string());
 
     if (ptr->prim_val) {
         auto primary_ptr = std::dynamic_pointer_cast<Primary>(ptr->prim_val);
-        print_primary_node(primary_ptr);
+        print_primary_node(primary_ptr, lvl, node_cnt);
     }
 
     return;
 }
 
-void print_primary_node(std::shared_ptr<Primary> const& ptr)
+void print_primary_node(std::shared_ptr<Primary> const& ptr, size_t lvl, int& node_cnt)
 {
 
     if (!ptr) return;
 
-    fmt::println("node type_subtype                        : {}_{}",
-                 ptr->nodeType_to_string(), ptr->primaryType_to_string());
-    fmt::println("    primary str_value                    : {}", ptr->str_value);
+    ++node_cnt;
+
+    fmt::println("         node# {:3}, {}_{} -> {}", node_cnt, ptr->nodeType_to_string(),
+                 ptr->primaryType_to_string(), ptr->str_value);
     if (ptr->primaryType_to_string() == "NUMBER") {
-        fmt::println("    primary num_value                    : {}", ptr->num_value);
+        fmt::println("         num_val -> {}", ptr->num_value);
     }
     fmt::println("");
 
     if (ptr->expr) {
         auto expr_ptr = std::dynamic_pointer_cast<Expression>(ptr->expr);
-        print_parse_tree(std::dynamic_pointer_cast<ast_node>(expr_ptr));
+        print_parse_tree_pre_order(std::dynamic_pointer_cast<ast_node>(expr_ptr), lvl + 1,
+                                   node_cnt);
     }
 
     return;
 }
+
+void print_factor_node_level_order(std::queue<lvl_node>& node_queue,
+                                   std::shared_ptr<Factor> const& ptr, size_t lvl,
+                                   int& node_cnt)
+{
+
+    if (!ptr) return;
+
+    fmt::println("lvl {:3}, node# {:3}, {}, sign: '{}'", lvl, node_cnt,
+                 ptr->nodeType_to_string(), ptr->sign);
+
+    if (ptr->prim_val) {
+        auto primary_ptr = std::dynamic_pointer_cast<Primary>(ptr->prim_val);
+        print_primary_node_level_order(node_queue, primary_ptr, lvl, node_cnt);
+    }
+
+    return;
+}
+
+void print_primary_node_level_order(std::queue<lvl_node>& node_queue,
+                                    std::shared_ptr<Primary> const& ptr, size_t lvl,
+                                    int& node_cnt)
+{
+
+    if (!ptr) return;
+
+    ++node_cnt;
+
+    fmt::println("         node# {:3}, {}_{} -> {}", node_cnt, ptr->nodeType_to_string(),
+                 ptr->primaryType_to_string(), ptr->str_value);
+    if (ptr->primaryType_to_string() == "NUMBER") {
+        fmt::println("         num_val -> {}", ptr->num_value);
+    }
+    fmt::println("");
+
+    if (ptr->expr) {
+        lvl_node expr_node{lvl + 1, ptr->expr};
+        node_queue.push(expr_node);
+    }
+
+    return;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // xxx::to_string() implementations

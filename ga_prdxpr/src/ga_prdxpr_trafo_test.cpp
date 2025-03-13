@@ -223,13 +223,44 @@ TEST_SUITE("expression transformation")
         // std::string s = R"((a + b)*(a + b))";
         // std::string s = "R.c0 * v.x - R.c2 * v.z + R.c3 * v.y + R.c1 * v.x"s;
 
-        std::string s = "(R.c0 * v.x + R.c1 * v.y) * R.c0";
+        //   std::string s = "(R.c0 * v.x + R.c1 * v.y) * R.c0";
         // std::string s = "-(R.c0 * v.x + R.c1 * v.y) * R.c0";
         // std::string s = "(R.c0 * v.x + R.c1 * v.y + R.c2 * v.z) * R.c0";
-        //   std::string s = "(R.c0 * v.x + R.c1 * v.y) * R.c0 + "
-        //                   "(R.c0 * v.y - R.c1 * v.x) * R.c1"s;
+
+        // ega2d:
+        std::string s = "(R.c0 * v.x + R.c1 * v.y) * R.c0 + "
+                        "(R.c0 * v.y - R.c1 * v.x) * R.c1"s;
         //   std::string s = "-(R.c0 * v.x + R.c1 * v.y) * R.c1 + "
         //                   "(R.c0 * v.y - R.c1 * v.x) * R.c0 "s;
+
+        // ega3d:
+        //   std::string s = "(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c0"
+        //                   " + (R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c3"
+        //                   " - (R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c2"
+        //                   " + (R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c1"s;
+        //   std::string s = "-(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c3"
+        //                   " + (R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c0"
+        //                   " + (R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c1"
+        //                   " + (R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c2"s;
+        //   std::string s = "(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c2"
+        //                   " - (R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c1"
+        //                   " + (R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c0"
+        //                   " + (R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c3"s;
+        //   std::string s = "-(R.c0 * v.x - R.c2 * v.z + R.c3 * v.y) * R.c1"
+        //                   " -(R.c0 * v.y + R.c1 * v.z - R.c3 * v.x) * R.c2"
+        //                   " -(R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c3"
+        //                   " +(R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c0"s;
+
+        // pga2dp regressive:
+        //   std::string s = "-(R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c1"
+        //                   " + (-R.c2 * v.z) * R.c0 - (R.c1 * v.z) * R.c3"
+        //                   " + (-R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c2"s;
+        //   std::string s = "-(R.c1 * v.x + R.c2 * v.y + R.c3 * v.z) * R.c2"
+        //                   " + (-R.c2 * v.z) * R.c3 + (R.c1 * v.z) * R.c0"
+        //                   " - (-R.c0 * v.z - R.c1 * v.y + R.c2 * v.x) * R.c1"s;
+        //     std::string s = "-(-R.c2 * v.z) * R.c2 + (R.c1 * v.z) * R.c1"s;
+        //   std::string s = "-(-R.c2 * v.z) * R.c1 - (R.c1 * v.z) * R.c2"s;
+
 
         fmt::println("Initial string to parse: s: '{}'\n", s);
 

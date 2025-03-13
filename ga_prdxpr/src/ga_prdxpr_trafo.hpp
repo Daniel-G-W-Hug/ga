@@ -8,6 +8,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <queue>
 #include <set>
 #include <stack>
 #include <string>
@@ -285,11 +286,27 @@ std::string parse_and_analyse(std::string const& input);
 // Printing functions
 ///////////////////////////////////////////////////////////////////////////////
 
-void print_parse_tree(std::shared_ptr<ast_node> const& ast);
-void print_expression_node(std::shared_ptr<Expression> const& ptr);
-void print_term_node(std::shared_ptr<Term> const& ptr);
-void print_factor_node(std::shared_ptr<Factor> const& ptr);
-void print_primary_node(std::shared_ptr<Primary> const& ptr);
+struct lvl_node {
+    size_t lvl;
+    std::shared_ptr<ast_node> ptr;
+};
+
+void print_parse_tree_pre_order(std::shared_ptr<ast_node> const& ast, size_t lvl,
+                                int& node_cnt);
+void print_parse_tree_level_order(std::queue<lvl_node>& node_queue, int& node_cnt);
+
+void print_expression_node(std::shared_ptr<Expression> const& ptr, size_t lvl,
+                           int& node_cnt);
+void print_term_node(std::shared_ptr<Term> const& ptr, size_t lvl, int& node_cnt);
+void print_factor_node(std::shared_ptr<Factor> const& ptr, size_t lvl, int& node_cnt);
+void print_primary_node(std::shared_ptr<Primary> const& ptr, size_t lvl, int& node_cnt);
+
+void print_factor_node_level_order(std::queue<lvl_node>& node_queue,
+                                   std::shared_ptr<Factor> const& ptr, size_t lvl,
+                                   int& node_cnt);
+void print_primary_node_level_order(std::queue<lvl_node>& node_queue,
+                                    std::shared_ptr<Primary> const& ptr, size_t lvl,
+                                    int& node_cnt);
 
 
 ///////////////////////////////////////////////////////////////////////////////
