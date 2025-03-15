@@ -1502,6 +1502,12 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         CHECK(cmpl(rwdg(B, B2)) == wdg(cmpl(B), cmpl(B2)));
         CHECK(cmpl(wdg(v, v2)) == rwdg(cmpl(v), cmpl(v2)));
+
+        // regressive reverse operation
+        CHECK(rrev(s) == cmpl(rev(cmpl(s))));
+        CHECK(rrev(v) == cmpl(rev(cmpl(v))));
+        CHECK(rrev(B) == cmpl(rev(cmpl(B))));
+        CHECK(rrev(ps) == cmpl(rev(cmpl(ps))));
     }
 
     TEST_CASE("2dp: objects - convenience types")

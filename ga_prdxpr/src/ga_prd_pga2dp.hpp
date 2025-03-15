@@ -211,6 +211,8 @@ const mvec_coeff mv2dp_coeff_R_even = {"R.c0", "0",    "0",    "0",
                                        "R.c1", "R.c2", "R.c3", "0"};
 const mvec_coeff mv2dp_coeff_R_rev_even = {"R.c0",  "0",     "0",     "0",
                                            "-R.c1", "-R.c2", "-R.c3", "0"};
+const mvec_coeff mv2dp_coeff_R_rrev_even = {"-R.c0", "0",    "0",    "0",
+                                            "R.c1",  "R.c2", "R.c3", "0"};
 const mvec_coeff mv2dp_coeff_svBps = {"s",   "v.x", "v.y", "v.z",
                                       "B.x", "B.y", "B.z", "ps"};
 const mvec_coeff mv2dp_coeff_svBps1 = {"s1",   "v1.x", "v1.y", "v1.z",
@@ -234,7 +236,7 @@ void generate_and_print_pga2dp_weight_contraction(); // weight contraction
 void generate_and_print_pga2dp_bulk_expansion();     // bulk expansion
 void generate_and_print_pga2dp_weight_expansion();   // weight expansion
 
-void generate_and_print_pga2dp_motor_gpr();  // sandwich product motor * object *
-                                             // rev(motor)
+// void generate_and_print_pga2dp_motor_gpr();  // sandwich product motor * object *
+//                                              // rev(motor)
 void generate_and_print_pga2dp_motor_rgpr(); // sandwich product motor * object *
                                              // rev(motor)

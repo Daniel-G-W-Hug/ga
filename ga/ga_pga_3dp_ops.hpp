@@ -167,6 +167,84 @@ inline constexpr MVec3dp<T> rev(MVec3dp<T> const& M)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// regressive reversion operation: reverse of complement + backtrafo
+// rrev(A_r) = lcmpl((-1)^(r*(r-1)/2) rcmpl(A_r)) = (-1)^((n-r)*((n-r)-1)/2) A_r
+// pattern for n=4, r = 0, 1, 2, 3, ...: + - - + + - - ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar3dp<T> rrev(Scalar3dp<T> s)
+{
+    // grade 0: no sign change
+    return s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec3dp<T> rrev(Vec3dp<T> const& v)
+{
+    // grade 1: sign reversal
+    return -v;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec3dp<T> rrev(BiVec3dp<T> const& B)
+{
+    // grade 2: sign reversal
+    return -B;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr TriVec3dp<T> rrev(TriVec3dp<T> const& t)
+{
+    // grade 3: no sign change
+    return t;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3dp<T> rrev(PScalar3dp<T> ps)
+{
+    // grade 4: no sign change
+    return ps;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_E<T> rrev(MVec3dp_E<T> const& E)
+{
+    // grade 0, 4: no sign change
+    // grade 2: sign reversal
+    return MVec3dp_E<T>(E.c0, -E.c1, -E.c2, -E.c3, -E.c4, -E.c5, -E.c6, E.c7);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_U<T> rrev(MVec3dp_U<T> const& U)
+{
+    // grade 1: sign reversal
+    // grade 3: no sign change
+    return MVec3dp_U<T>(-U.c0, -U.c1, -U.c2, -U.c3, U.c4, U.c5, U.c6, U.c7);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp<T> rrev(MVec3dp<T> const& M)
+{
+    // grade 0: no sign change
+    // grade 1: sign reversal
+    // grade 2: sign reversal
+    // grade 3: no sign change
+    // grade 4: no sign change
+    return MVec3dp<T>(M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, -M.c7, -M.c8, -M.c9,
+                      -M.c10, M.c11, M.c12, M.c13, M.c14, M.c15);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Clifford conjugation:
 // conj(A_r) = (-1)^(r*(r+1)/2) A_r
 // pattern for k = 0, 1, 2, 3, ...: + - - + + - - + + ...

@@ -75,10 +75,7 @@ int main()
         generate_and_print_ega3d_rotor_gpr();
 
         // sandwich products of type motor * object * rev(motor)
-        generate_and_print_pga2dp_motor_gpr();
         generate_and_print_pga2dp_motor_rgpr();
-
-        generate_and_print_pga3dp_motor_gpr();
         generate_and_print_pga3dp_motor_rgpr();
     }
 

@@ -641,6 +641,9 @@ const mvec_coeff mv3dp_coeff_R_even = {"R.c0", "0",    "0",    "0",    "0",    "
 const mvec_coeff mv3dp_coeff_R_rev_even = {
     "R.c0",  "0",     "0",     "0", "0", "-R.c1", "-R.c2", "-R.c3",
     "-R.c4", "-R.c5", "-R.c6", "0", "0", "0",     "0",     "R.c7"};
+const mvec_coeff mv3dp_coeff_R_rrev_even = {
+    "R.c0",  "0",     "0",     "0", "0", "-R.c1", "-R.c2", "-R.c3",
+    "-R.c4", "-R.c5", "-R.c6", "0", "0", "0",     "0",     "R.c7"};
 const mvec_coeff mv3dp_coeff_A_uneven = {"0",    "A.c0", "A.c1", "A.c2", "A.c3", "0",
                                          "0",    "0",    "0",    "0",    "0",    "A.c4",
                                          "A.c5", "A.c6", "A.c7", "0"};
@@ -673,7 +676,7 @@ void generate_and_print_pga3dp_weight_contraction(); // weight contraction
 void generate_and_print_pga3dp_bulk_expansion();     // bulk expansion
 void generate_and_print_pga3dp_weight_expansion();   // weight expansion
 
-void generate_and_print_pga3dp_motor_gpr();  // sandwich product motor * object *
-                                             // rev(motor)
+// void generate_and_print_pga3dp_motor_gpr();  // sandwich product motor * object *
+//                                              // rev(motor)
 void generate_and_print_pga3dp_motor_rgpr(); // sandwich product motor * object *
                                              // rev(motor)

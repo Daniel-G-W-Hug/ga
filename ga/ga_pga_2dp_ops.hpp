@@ -148,6 +148,73 @@ inline constexpr MVec2dp<T> rev(MVec2dp<T> const& M)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// regressive reversion operation: reverse applied to the complement + backtrafo
+// rrev(A_r) = cmpl((-1)^(r*(r-1)/2) cmpl(A_r)) = (-1)^((n-r)*((n-r)-1)/2) A_r
+// pattern for n=3, r = 0, 1, 2, 3, ...: - - + + - - ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> rrev(Scalar2dp<T> s)
+{
+    // grade 0: sign reversal
+    return -s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> rrev(Vec2dp<T> const& v)
+{
+    // grade 1: sign reversal
+    return -v;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> rrev(BiVec2dp<T> const& B)
+{
+    // grade 2: no sign change
+    return B;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> rrev(PScalar2dp<T> ps)
+{
+    // grade 3: no sign change
+    return ps;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> rrev(MVec2dp_E<T> const& E)
+{
+    // grade 0: sign reversal
+    // grade 2: no sign change
+    return MVec2dp_E<T>(-E.c0, E.c1, E.c2, E.c3);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> rrev(MVec2dp_U<T> const& U)
+{
+    // grade 1: sign reversal
+    // grade 3: no sign change
+    return MVec2dp_U<T>(-U.c0, -U.c1, -U.c2, U.c3);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> rrev(MVec2dp<T> const& M)
+{
+    // grade 0: sign reversal
+    // grade 1: sign reversal
+    // grade 2: no sign change
+    // grade 3: no sign change
+    return MVec2dp<T>(-M.c0, -M.c1, -M.c2, -M.c3, M.c4, M.c5, M.c6, M.c7);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Clifford conjugation:
 // conj(A_r) = (-1)^(r*(r+1)/2) A_r
 // pattern for k = 0, 1, 2, 3, ...: + - - + + - - + + ...

@@ -3868,121 +3868,128 @@ void generate_and_print_pga3dp_weight_expansion()
 }
 
 
-void generate_and_print_pga3dp_motor_gpr()
-{
+// void generate_and_print_pga3dp_motor_gpr()
+// {
 
-    std::string prd_name = "pga3dp sandwich product";
-    println("pga3dp sandwich product - motor * object * rev(motor):");
-    println("");
+//     std::string prd_name = "pga3dp sandwich product";
+//     println("pga3dp sandwich product - motor * object * rev(motor):");
+//     println("");
 
-    auto basis = mv3dp_basis;
-    // println("mv_basis for sandwich product:");
-    // print_mvec(mv3dp_coeff_svps, basis);
-    // println("");
+//     auto basis = mv3dp_basis;
+//     // println("mv_basis for sandwich product:");
+//     // print_mvec(mv3dp_coeff_svps, basis);
+//     // println("");
 
-    auto basis_tab = apply_rules_to_tab(
-        mv_coeff_to_coeff_prd_tab(mv3dp_basis, mv3dp_basis, mul_str), gpr_pga3dp_rules);
+//     auto basis_tab = apply_rules_to_tab(
+//         mv_coeff_to_coeff_prd_tab(mv3dp_basis, mv3dp_basis, mul_str),
+//         gpr_pga3dp_rules);
 
-    println("{} - basis product table:", prd_name);
-    print_prd_tab(basis_tab);
-    println("");
+//     println("{} - basis product table:", prd_name);
+//     print_prd_tab(basis_tab);
+//     println("");
 
-    // first product between multivectors in basis_tab (R * v)
-    println("{}:", prd_name + space_str + "mv_e * vec -> mv_u_tmp");
-    auto prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_R_even, mv3dp_coeff_svBtps);
-    // println("{} - product table with coeffs:", prd_name);
-    // print_prd_tab(prd_tab);
-    // println("");
+//     // first product between multivectors in basis_tab (R * v)
+//     println("{}:", prd_name + space_str + "mv_e * vec -> mv_u_tmp");
+//     auto prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_R_even, mv3dp_coeff_svBtps);
+//     // println("{} - product table with coeffs:", prd_name);
+//     // print_prd_tab(prd_tab);
+//     // println("");
 
-    auto mv_u_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv_e, filter_3dp::vec,
-                                        brace_switch::use_braces);
-    println("mv_u_tmp:");
-    print_mvec(mv_u_tmp, basis);
-    println("");
+//     auto mv_u_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv_e,
+//     filter_3dp::vec,
+//                                         brace_switch::use_braces);
+//     println("mv_u_tmp:");
+//     print_mvec(mv_u_tmp, basis);
+//     println("");
 
-    // second product between multivectors for the product v * rev(R)
-    println("{}:", prd_name + space_str + "mv_u_tmp * rev(mv_e) -> mv_u_res");
-    auto prd_tab_v = get_prd_tab(basis_tab, mv_u_tmp, mv3dp_coeff_R_rev_even);
-    // println("prd_tab_v:");
-    // print_prd_tab(prd_tab_v);
-    // println("");
+//     // second product between multivectors for the product v * rev(R)
+//     println("{}:", prd_name + space_str + "mv_u_tmp * rev(mv_e) -> mv_u_res");
+//     auto prd_tab_v = get_prd_tab(basis_tab, mv_u_tmp, mv3dp_coeff_R_rev_even);
+//     // println("prd_tab_v:");
+//     // print_prd_tab(prd_tab_v);
+//     // println("");
 
-    auto mv_u_res_v =
-        get_mv_from_prd_tab(prd_tab_v, basis, filter_3dp::mv_u, filter_3dp::mv_e);
-    print_mvec(mv_u_res_v, basis);
-    println("");
+//     auto mv_u_res_v =
+//         get_mv_from_prd_tab(prd_tab_v, basis, filter_3dp::mv_u, filter_3dp::mv_e);
+//     print_mvec(mv_u_res_v, basis);
+//     println("");
 
-    //// bivector
+//     //// bivector
 
-    // first product between multivectors in basis_tab (R * B)
-    println("{}:", prd_name + space_str + "mv_e * bivec -> mv_e_tmp");
-    auto mv_e_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv_e,
-                                        filter_3dp::bivec, brace_switch::use_braces);
-    println("mv_e_tmp:");
-    print_mvec(mv_e_tmp, basis);
-    println("");
+//     // first product between multivectors in basis_tab (R * B)
+//     println("{}:", prd_name + space_str + "mv_e * bivec -> mv_e_tmp");
+//     auto mv_e_tmp = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv_e,
+//                                         filter_3dp::bivec, brace_switch::use_braces);
+//     println("mv_e_tmp:");
+//     print_mvec(mv_e_tmp, basis);
+//     println("");
 
-    // second product between multivectors for the product B * rev(R)
-    println("{}:", prd_name + space_str + "mv_e_tmp * rev(mv_e) -> mv_e_res");
-    auto prd_tab_B = get_prd_tab(basis_tab, mv_e_tmp, mv3dp_coeff_R_rev_even);
-    // println("prd_tab_B:");
-    // print_prd_tab(prd_tab_B);
-    // println("");
+//     // second product between multivectors for the product B * rev(R)
+//     println("{}:", prd_name + space_str + "mv_e_tmp * rev(mv_e) -> mv_e_res");
+//     auto prd_tab_B = get_prd_tab(basis_tab, mv_e_tmp, mv3dp_coeff_R_rev_even);
+//     // println("prd_tab_B:");
+//     // print_prd_tab(prd_tab_B);
+//     // println("");
 
-    auto mv_e_res_B =
-        get_mv_from_prd_tab(prd_tab_B, basis, filter_3dp::mv_e, filter_3dp::mv_e);
-    print_mvec(mv_e_res_B, basis);
-    println("");
+//     auto mv_e_res_B =
+//         get_mv_from_prd_tab(prd_tab_B, basis, filter_3dp::mv_e, filter_3dp::mv_e);
+//     print_mvec(mv_e_res_B, basis);
+//     println("");
 
-    //// trivector
+//     //// trivector
 
-    // first product between multivectors in basis_tab (R * B)
-    println("{}:", prd_name + space_str + "mv_e * trivec -> mv_u_tmp_t");
-    auto mv_u_tmp_t = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv_e,
-                                          filter_3dp::trivec, brace_switch::use_braces);
-    println("mv_u_tmp_t:");
-    print_mvec(mv_u_tmp_t, basis);
-    println("");
+//     // first product between multivectors in basis_tab (R * B)
+//     println("{}:", prd_name + space_str + "mv_e * trivec -> mv_u_tmp_t");
+//     auto mv_u_tmp_t = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv_e,
+//                                           filter_3dp::trivec,
+//                                           brace_switch::use_braces);
+//     println("mv_u_tmp_t:");
+//     print_mvec(mv_u_tmp_t, basis);
+//     println("");
 
-    // second product between multivectors for the product B * rev(R)
-    println("{}:", prd_name + space_str + "mv_u_tmp_t * rev(mv_e) -> mv_u_res_t");
-    auto prd_tab_t = get_prd_tab(basis_tab, mv_u_tmp_t, mv3dp_coeff_R_rev_even);
-    // println("prd_tab_B:");
-    // print_prd_tab(prd_tab_B);
-    // println("");
+//     // second product between multivectors for the product B * rev(R)
+//     println("{}:", prd_name + space_str + "mv_u_tmp_t * rev(mv_e) -> mv_u_res_t");
+//     auto prd_tab_t = get_prd_tab(basis_tab, mv_u_tmp_t, mv3dp_coeff_R_rev_even);
+//     // println("prd_tab_B:");
+//     // print_prd_tab(prd_tab_B);
+//     // println("");
 
-    auto mv_u_res_t =
-        get_mv_from_prd_tab(prd_tab_t, basis, filter_3dp::mv_u, filter_3dp::mv_e);
-    print_mvec(mv_u_res_t, basis);
-    println("");
+//     auto mv_u_res_t =
+//         get_mv_from_prd_tab(prd_tab_t, basis, filter_3dp::mv_u, filter_3dp::mv_e);
+//     print_mvec(mv_u_res_t, basis);
+//     println("");
 
-    // TODO: (requires string parsing and string manipulation for calculation product
-    // expressions by expanding brackets, simplifying and regrouping expressions)
-    //
-    // manipulate the expression automatically in order to regroup the terms
-    // and show by regrouping that
-    //   - the pseudoscalar part vanishes (and doesn't need to be calculated)
-    //   - that the terms can be rearranged automatically such that a matrix
-    //     transformation transformed_vector = matrix * vector can be derived from the
-    //     rotor. This is useful when the same transformation should be done for many
-    //     objects. This will allow for the transformation to be computed with the minimum
-    //     number of required operations (in contrast to somewhat more effort when doing
-    //     this with the orgininal rotor expression directly).
-    //     Despite this need for optimization to get minimum computational effort, the
-    //     rotor formulation is still very meaningful, because of ease of derivation, ease
-    //     of rotation interpolation and helpful geometric interpretation when compared to
-    //     mere matrix based modeling.
-    //
-    println("-------------------------------------------------------------------\n");
+//     // TODO: (requires string parsing and string manipulation for calculation product
+//     // expressions by expanding brackets, simplifying and regrouping expressions)
+//     //
+//     // manipulate the expression automatically in order to regroup the terms
+//     // and show by regrouping that
+//     //   - the pseudoscalar part vanishes (and doesn't need to be calculated)
+//     //   - that the terms can be rearranged automatically such that a matrix
+//     //     transformation transformed_vector = matrix * vector can be derived from the
+//     //     rotor. This is useful when the same transformation should be done for many
+//     //     objects. This will allow for the transformation to be computed with the
+//     minimum
+//     //     number of required operations (in contrast to somewhat more effort when
+//     doing
+//     //     this with the orgininal rotor expression directly).
+//     //     Despite this need for optimization to get minimum computational effort, the
+//     //     rotor formulation is still very meaningful, because of ease of derivation,
+//     ease
+//     //     of rotation interpolation and helpful geometric interpretation when compared
+//     to
+//     //     mere matrix based modeling.
+//     //
+//     println("-------------------------------------------------------------------\n");
 
-    return;
-}
+//     return;
+// }
 
 void generate_and_print_pga3dp_motor_rgpr()
 {
 
     std::string prd_name = "pga3dp regressive sandwich product";
-    println("pga3dp regressive sandwich product - motor * object * rev(motor):");
+    println("pga3dp regressive sandwich product - motor * object * rrev(motor):");
     println("");
 
     auto basis = mv3dp_basis;
@@ -4027,9 +4034,9 @@ void generate_and_print_pga3dp_motor_rgpr()
     print_mvec(mv_u_tmp, basis);
     println("");
 
-    // second product between multivectors for the product v * rev(R)
-    println("{}:", prd_name + space_str + "mv_u_tmp * rev(mv_e) -> mv_u_res");
-    auto prd_tab_v = get_prd_tab(basis_tab, mv_u_tmp, mv3dp_coeff_R_rev_even);
+    // second product between multivectors for the product v * rrev(R)
+    println("{}:", prd_name + space_str + "mv_u_tmp * rrev(mv_e) -> mv_u_res");
+    auto prd_tab_v = get_prd_tab(basis_tab, mv_u_tmp, mv3dp_coeff_R_rrev_even);
     // println("prd_tab_v:");
     // print_prd_tab(prd_tab_v);
     // println("");
@@ -4049,9 +4056,9 @@ void generate_and_print_pga3dp_motor_rgpr()
     print_mvec(mv_e_tmp, basis);
     println("");
 
-    // second product between multivectors for the product B * rev(R)
-    println("{}:", prd_name + space_str + "mv_e_tmp * rev(mv_e) -> mv_e_res");
-    auto prd_tab_B = get_prd_tab(basis_tab, mv_e_tmp, mv3dp_coeff_R_rev_even);
+    // second product between multivectors for the product B * rrev(R)
+    println("{}:", prd_name + space_str + "mv_e_tmp * rrev(mv_e) -> mv_e_res");
+    auto prd_tab_B = get_prd_tab(basis_tab, mv_e_tmp, mv3dp_coeff_R_rrev_even);
     // println("prd_tab_B:");
     // print_prd_tab(prd_tab_B);
     // println("");
@@ -4071,9 +4078,9 @@ void generate_and_print_pga3dp_motor_rgpr()
     print_mvec(mv_u_tmp_t, basis);
     println("");
 
-    // second product between multivectors for the product B * rev(R)
-    println("{}:", prd_name + space_str + "mv_u_tmp_t * rev(mv_e) -> mv_u_res_t");
-    auto prd_tab_t = get_prd_tab(basis_tab, mv_u_tmp_t, mv3dp_coeff_R_rev_even);
+    // second product between multivectors for the product B * rrev(R)
+    println("{}:", prd_name + space_str + "mv_u_tmp_t * rrev(mv_e) -> mv_u_res_t");
+    auto prd_tab_t = get_prd_tab(basis_tab, mv_u_tmp_t, mv3dp_coeff_R_rrev_even);
     // println("prd_tab_B:");
     // print_prd_tab(prd_tab_B);
     // println("");
