@@ -1437,7 +1437,7 @@ void generate_and_print_pga2dp_dot()
 void generate_and_print_pga2dp_rdot()
 {
 
-    std::string prd_name = "pga2dp regressive dot product (rdot)";
+    std::string prd_name = "pga2dp regressive dot product";
     auto basis = mv2dp_basis;
 
     // println("mv_basis for rwdg:");

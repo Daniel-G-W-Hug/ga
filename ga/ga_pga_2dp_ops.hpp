@@ -423,8 +423,8 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> wdg(MVec2dp<T> const& A,
     ctype c4 = A.c0 * B.c4 + A.c2 * B.c3 - A.c3 * B.c2 + A.c4 * B.c0;
     ctype c5 = A.c0 * B.c5 - A.c1 * B.c3 + A.c3 * B.c1 + A.c5 * B.c0;
     ctype c6 = A.c0 * B.c6 + A.c1 * B.c2 - A.c2 * B.c1 + A.c6 * B.c0;
-    ctype c7 = A.c0 * B.c7 + A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 + A.c4 * B.c1 +
-               A.c5 * B.c2 + A.c6 * B.c3 + A.c7 * B.c0;
+    ctype c7 = A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 - A.c4 * B.c1 -
+               A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0;
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -524,7 +524,7 @@ template <typename T, typename U>
 inline PScalar2dp<std::common_type_t<T, U>> wdg(BiVec2dp<T> const& B, Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar2dp<ctype>(B.x * v.x + B.y * v.y + B.z * v.z);
+    return PScalar2dp<ctype>(-B.x * v.x - B.y * v.y - B.z * v.z);
 }
 
 // wedge product between a vector a and a bivector B
@@ -535,7 +535,7 @@ template <typename T, typename U>
 inline PScalar2dp<std::common_type_t<T, U>> wdg(Vec2dp<T> const& v, BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar2dp<ctype>(v.x * B.x + v.y * B.y + v.z * B.z);
+    return PScalar2dp<ctype>(-v.x * B.x - v.y * B.y - v.z * B.z);
 }
 
 // wedge product with one scalar (returns a scaled bivector)
@@ -677,7 +677,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> rwdg(PScalar2dp<T> ps,
                                                          BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(ps * B.x, ps * B.y, ps * B.z);
+    return ctype(ps) * B;
 }
 
 template <typename T, typename U>
@@ -686,7 +686,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B,
                                                          PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(B.x * ps, B.y * ps, B.z * ps);
+    return B * ctype(ps);
 }
 
 // regressive wedge product of two bivectors
@@ -698,9 +698,9 @@ template <typename T, typename U>
 inline constexpr Vec2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B1,
                                                        BiVec2dp<U> const& B2)
 {
-    return Vec2dp<std::common_type_t<T, U>>(-B1.z * B2.y + B1.y * B2.z,
-                                            -B1.x * B2.z + B1.z * B2.x,
-                                            -B1.y * B2.x + B1.x * B2.y);
+    return Vec2dp<std::common_type_t<T, U>>(-B1.y * B2.z + B1.z * B2.y,
+                                            B1.x * B2.z - B1.z * B2.x,
+                                            -B1.x * B2.y + B1.y * B2.x);
 }
 
 // regressive wedge product between a vector and a bivector
@@ -713,7 +713,7 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B,
                                                           Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2dp<ctype>(B.x * v.x + B.y * v.y + B.z * v.z);
+    return Scalar2dp<ctype>(-B.x * v.x - B.y * v.y - B.z * v.z);
 }
 
 // regressive wedge product between a vector and a bivector
@@ -726,7 +726,7 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> rwdg(Vec2dp<T> const& v,
                                                           BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2dp<ctype>(v.x * B.x + v.y * B.y + v.z * B.z);
+    return Scalar2dp<ctype>(-v.x * B.x - v.y * B.y - v.z * B.z);
 }
 
 // required to be present for dist2dp (to complile, even if not used)
@@ -800,7 +800,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> operator<<(BiVec2dp<T> const& 
                                                              PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(ctype(0.0), ctype(0.0), -B.z) * ctype(ps);
+    return Vec2dp<ctype>(ctype(0.0), ctype(0.0), B.z) * ctype(ps);
 }
 
 // left contraction -  pseudoscalar contracted onto vector
@@ -822,7 +822,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> operator<<(Vec2dp<T> const& 
                                                                PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(v.x, v.y, ctype(0.0)) * ctype(ps);
+    return BiVec2dp<ctype>(-v.x, -v.y, ctype(0.0)) * ctype(ps);
 }
 
 // left contraction - pseudoscalar contracted onto scalar
@@ -899,7 +899,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> operator<<(Scalar2dp<T> s,
                                                                BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * BiVec2dp<ctype>(B.x, B.y, B.z);
+    return ctype(s) * B;
 }
 
 // left contraction (v1 << v2) - vector v1 contracted onto v2
@@ -932,7 +932,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> operator<<(Scalar2dp<T> s,
                                                              Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * Vec2dp<ctype>(v.x, v.y, v.z);
+    return ctype(s) * v;
 }
 
 // left contraction (s1 << s2) - scalar s1 contracted onto scalar s2
@@ -972,7 +972,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> operator>>(PScalar2dp<U> ps,
                                                              BiVec2dp<T> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return -ctype(ps) * Vec2dp<ctype>(ctype(0.0), ctype(0.0), B.z);
+    return ctype(ps) * Vec2dp<ctype>(ctype(0.0), ctype(0.0), B.z);
 }
 
 // right contraction - bivector contracted by a pseudoscalar
@@ -994,7 +994,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> operator>>(PScalar2dp<U> ps,
                                                                Vec2dp<T> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * BiVec2dp<ctype>(v.x, v.y, ctype(0.0));
+    return -ctype(ps) * BiVec2dp<ctype>(v.x, v.y, ctype(0.0));
 }
 
 // right contraction -  vector contracted by a pseudoscalar
@@ -1073,7 +1073,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<U> const
                                                                Scalar2dp<T> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(B.x, B.y, B.z) * ctype(s);
+    return B * ctype(s);
 }
 
 // right contraction - scalar contracted by a bivector
@@ -1106,7 +1106,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> operator>>(Vec2dp<U> const& v,
                                                              Scalar2dp<T> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(v.x, v.y, v.z) * ctype(s);
+    return v * ctype(s);
 }
 
 // right contraction - scalar contracted by a vector
@@ -1177,14 +1177,14 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp<T> const& A
     ctype c1 = A.c0 * B.c1 + A.c1 * B.c0 - A.c2 * B.c6 + A.c6 * B.c2;
     ctype c2 = A.c0 * B.c2 + A.c1 * B.c6 + A.c2 * B.c0 - A.c6 * B.c1;
     ctype c3 = A.c0 * B.c3 - A.c1 * B.c5 + A.c2 * B.c4 + A.c3 * B.c0 - A.c4 * B.c2 +
-               A.c5 * B.c1 - A.c6 * B.c7 - A.c7 * B.c6;
-    ctype c4 = A.c0 * B.c4 + A.c1 * B.c7 + A.c2 * B.c3 - A.c3 * B.c2 + A.c4 * B.c0 -
-               A.c5 * B.c6 + A.c6 * B.c5 + A.c7 * B.c1;
-    ctype c5 = A.c0 * B.c5 - A.c1 * B.c3 + A.c2 * B.c7 + A.c3 * B.c1 + A.c4 * B.c6 +
-               A.c5 * B.c0 - A.c6 * B.c4 + A.c7 * B.c2;
+               A.c5 * B.c1 + A.c6 * B.c7 + A.c7 * B.c6;
+    ctype c4 = A.c0 * B.c4 - A.c1 * B.c7 + A.c2 * B.c3 - A.c3 * B.c2 + A.c4 * B.c0 -
+               A.c5 * B.c6 + A.c6 * B.c5 - A.c7 * B.c1;
+    ctype c5 = A.c0 * B.c5 - A.c1 * B.c3 - A.c2 * B.c7 + A.c3 * B.c1 + A.c4 * B.c6 +
+               A.c5 * B.c0 - A.c6 * B.c4 - A.c7 * B.c2;
     ctype c6 = A.c0 * B.c6 + A.c1 * B.c2 - A.c2 * B.c1 + A.c6 * B.c0;
-    ctype c7 = A.c0 * B.c7 + A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 + A.c4 * B.c1 +
-               A.c5 * B.c2 + A.c6 * B.c3 + A.c7 * B.c0;
+    ctype c7 = A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 - A.c4 * B.c1 -
+               A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0;
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -1199,11 +1199,11 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp<T> const& A
     ctype c0 = A.c0 * B.c0 - A.c6 * B.c3;
     ctype c1 = A.c1 * B.c0 - A.c2 * B.c3;
     ctype c2 = A.c1 * B.c3 + A.c2 * B.c0;
-    ctype c3 = -A.c1 * B.c2 + A.c2 * B.c1 + A.c3 * B.c0 - A.c7 * B.c3;
+    ctype c3 = -A.c1 * B.c2 + A.c2 * B.c1 + A.c3 * B.c0 + A.c7 * B.c3;
     ctype c4 = A.c0 * B.c1 + A.c4 * B.c0 - A.c5 * B.c3 + A.c6 * B.c2;
     ctype c5 = A.c0 * B.c2 + A.c4 * B.c3 + A.c5 * B.c0 - A.c6 * B.c1;
     ctype c6 = A.c0 * B.c3 + A.c6 * B.c0;
-    ctype c7 = A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c7 * B.c0;
+    ctype c7 = -A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c7 * B.c0;
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -1218,11 +1218,11 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const&
     ctype c0 = A.c0 * B.c0 - A.c3 * B.c6;
     ctype c1 = A.c0 * B.c1 + A.c3 * B.c2;
     ctype c2 = A.c0 * B.c2 - A.c3 * B.c1;
-    ctype c3 = A.c0 * B.c3 - A.c1 * B.c2 + A.c2 * B.c1 - A.c3 * B.c7;
+    ctype c3 = A.c0 * B.c3 - A.c1 * B.c2 + A.c2 * B.c1 + A.c3 * B.c7;
     ctype c4 = A.c0 * B.c4 + A.c1 * B.c0 - A.c2 * B.c6 + A.c3 * B.c5;
     ctype c5 = A.c0 * B.c5 + A.c1 * B.c6 + A.c2 * B.c0 - A.c3 * B.c4;
     ctype c6 = A.c0 * B.c6 + A.c3 * B.c0;
-    ctype c7 = A.c0 * B.c7 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3;
+    ctype c7 = A.c0 * B.c7 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3;
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -1237,11 +1237,11 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp<T> const& A
     ctype c0 = A.c1 * B.c0 + A.c2 * B.c1;
     ctype c1 = A.c0 * B.c0 + A.c6 * B.c1;
     ctype c2 = A.c0 * B.c1 - A.c6 * B.c0;
-    ctype c3 = A.c0 * B.c2 - A.c4 * B.c1 + A.c5 * B.c0 - A.c6 * B.c3;
-    ctype c4 = A.c1 * B.c3 + A.c2 * B.c2 - A.c3 * B.c1 + A.c7 * B.c0;
-    ctype c5 = -A.c1 * B.c2 + A.c2 * B.c3 + A.c3 * B.c0 + A.c7 * B.c1;
+    ctype c3 = A.c0 * B.c2 - A.c4 * B.c1 + A.c5 * B.c0 + A.c6 * B.c3;
+    ctype c4 = -A.c1 * B.c3 + A.c2 * B.c2 - A.c3 * B.c1 - A.c7 * B.c0;
+    ctype c5 = -A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c0 - A.c7 * B.c1;
     ctype c6 = A.c1 * B.c1 - A.c2 * B.c0;
-    ctype c7 = A.c0 * B.c3 + A.c4 * B.c0 + A.c5 * B.c1 + A.c6 * B.c2;
+    ctype c7 = A.c0 * B.c3 - A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2;
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -1256,11 +1256,11 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const&
     ctype c0 = A.c0 * B.c1 + A.c1 * B.c2;
     ctype c1 = A.c0 * B.c0 - A.c1 * B.c6;
     ctype c2 = A.c0 * B.c6 + A.c1 * B.c0;
-    ctype c3 = -A.c0 * B.c5 + A.c1 * B.c4 + A.c2 * B.c0 - A.c3 * B.c6;
-    ctype c4 = A.c0 * B.c7 + A.c1 * B.c3 - A.c2 * B.c2 + A.c3 * B.c1;
-    ctype c5 = -A.c0 * B.c3 + A.c1 * B.c7 + A.c2 * B.c1 + A.c3 * B.c2;
+    ctype c3 = -A.c0 * B.c5 + A.c1 * B.c4 + A.c2 * B.c0 + A.c3 * B.c6;
+    ctype c4 = -A.c0 * B.c7 + A.c1 * B.c3 - A.c2 * B.c2 - A.c3 * B.c1;
+    ctype c5 = -A.c0 * B.c3 - A.c1 * B.c7 + A.c2 * B.c1 - A.c3 * B.c2;
     ctype c6 = A.c0 * B.c2 - A.c1 * B.c1;
-    ctype c7 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c0;
+    ctype c7 = -A.c0 * B.c4 - A.c1 * B.c5 - A.c2 * B.c6 + A.c3 * B.c0;
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -1272,7 +1272,7 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp<T> const& A
                                                              PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), -A.c6, A.c1, A.c2,
+    return MVec2dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), A.c6, -A.c1, -A.c2,
                           ctype(0.0), A.c0) *
            ctype(ps);
 }
@@ -1286,8 +1286,8 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
                                                              MVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * MVec2dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), -B.c6, B.c1,
-                                      B.c2, ctype(0.0), B.c0);
+    return ctype(ps) * MVec2dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), B.c6, -B.c1,
+                                      -B.c2, ctype(0.0), B.c0);
 }
 
 // geometric product A * B for two multivectors from the even subalgebra (3d case)
@@ -1315,8 +1315,8 @@ inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<T> cons
     using ctype = std::common_type_t<T, U>;
     return MVec2dp_E<ctype>(
         Scalar2dp<ctype>(A.c0 * B.c0 + A.c1 * B.c1),
-        BiVec2dp<ctype>(A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c0,
-                        -A.c0 * B.c2 + A.c1 * B.c3 + A.c2 * B.c0 + A.c3 * B.c1,
+        BiVec2dp<ctype>(-A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 - A.c3 * B.c0,
+                        -A.c0 * B.c2 - A.c1 * B.c3 + A.c2 * B.c0 - A.c3 * B.c1,
                         A.c0 * B.c1 - A.c1 * B.c0));
 }
 
@@ -1331,8 +1331,8 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> cons
     using ctype = std::common_type_t<T, U>;
     return MVec2dp_U<ctype>(
         Vec2dp<ctype>(A.c0 * B.c0 + A.c3 * B.c1, A.c0 * B.c1 - A.c3 * B.c0,
-                      A.c0 * B.c2 - A.c1 * B.c1 + A.c2 * B.c0 - A.c3 * B.c3),
-        PScalar2dp<ctype>(A.c0 * B.c3 + A.c1 * B.c0 + A.c2 * B.c1 + A.c3 * B.c2));
+                      A.c0 * B.c2 - A.c1 * B.c1 + A.c2 * B.c0 + A.c3 * B.c3),
+        PScalar2dp<ctype>(A.c0 * B.c3 - A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2));
 }
 
 // geometric product A * B of a multivector A from the uneven subalgebra (3d case)
@@ -1346,8 +1346,8 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> cons
     using ctype = std::common_type_t<T, U>;
     return MVec2dp_U<ctype>(
         Vec2dp<ctype>(A.c0 * B.c0 - A.c1 * B.c3, A.c0 * B.c3 + A.c1 * B.c0,
-                      -A.c0 * B.c2 + A.c1 * B.c1 + A.c2 * B.c0 - A.c3 * B.c3),
-        PScalar2dp<ctype>(A.c0 * B.c1 + A.c1 * B.c2 + A.c2 * B.c3 + A.c3 * B.c0));
+                      -A.c0 * B.c2 + A.c1 * B.c1 + A.c2 * B.c0 + A.c3 * B.c3),
+        PScalar2dp<ctype>(-A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c0));
 }
 
 // geometric product A * ps of an even multivector A multiplied from the right
@@ -1359,7 +1359,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<U> cons
                                                                PScalar2dp<T> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_U<ctype>(Vec2dp<ctype>(ctype(0.0), ctype(0.0), -A.c3),
+    return MVec2dp_U<ctype>(Vec2dp<ctype>(ctype(0.0), ctype(0.0), A.c3),
                             PScalar2dp<ctype>(A.c0)) *
            ctype(ps);
 }
@@ -1373,7 +1373,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
                                                                MVec2dp_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * MVec2dp_U<ctype>(Vec2dp<ctype>(ctype(0.0), ctype(0.0), -B.c3),
+    return ctype(ps) * MVec2dp_U<ctype>(Vec2dp<ctype>(ctype(0.0), ctype(0.0), B.c3),
                                         PScalar2dp<ctype>(B.c0));
 }
 
@@ -1387,7 +1387,7 @@ inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<U> cons
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2dp_E<ctype>(Scalar2dp<ctype>(ctype(0.0)),
-                            BiVec2dp<ctype>(A.c0, A.c1, ctype(0.0))) *
+                            BiVec2dp<ctype>(-A.c0, -A.c1, ctype(0.0))) *
            ctype(ps);
 }
 
@@ -1400,8 +1400,8 @@ inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
                                                                MVec2dp_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * MVec2dp_E<ctype>(Scalar2dp<ctype>(ctype(0.0)),
-                                        BiVec2dp<ctype>(B.c0, B.c1, ctype(0.0)));
+    return -ctype(ps) * MVec2dp_E<ctype>(Scalar2dp<ctype>(ctype(0.0)),
+                                         BiVec2dp<ctype>(B.c0, B.c1, ctype(0.0)));
 }
 
 // geometric product M * B of a multivector M from the even subalgebra (3d case)
@@ -1443,8 +1443,8 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> cons
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2dp_U<ctype>(
-        Vec2dp<ctype>(-M.c1 * B.z, M.c0 * B.z, -M.c0 * B.y + M.c1 * B.x - M.c3 * B.z),
-        PScalar2dp<ctype>(M.c0 * B.x + M.c1 * B.y + M.c2 * B.z));
+        Vec2dp<ctype>(-M.c1 * B.z, M.c0 * B.z, -M.c0 * B.y + M.c1 * B.x + M.c3 * B.z),
+        PScalar2dp<ctype>(-M.c0 * B.x - M.c1 * B.y - M.c2 * B.z));
 }
 
 // geometric product B * M of a bivector A with an uneven grade multivector B
@@ -1456,8 +1456,8 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(BiVec2dp<T> const
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2dp_U<ctype>(
-        Vec2dp<ctype>(B.z * M.c1, -B.z * M.c0, -B.x * M.c1 + B.y * M.c0 - B.z * M.c3),
-        PScalar2dp<ctype>(B.x * M.c0 + B.y * M.c1 + B.z * M.c2));
+        Vec2dp<ctype>(B.z * M.c1, -B.z * M.c0, -B.x * M.c1 + B.y * M.c0 + B.z * M.c3),
+        PScalar2dp<ctype>(-B.x * M.c0 - B.y * M.c1 - B.z * M.c2));
 }
 
 // geometric product A * v of an even grade multivector A with a vector v
@@ -1472,7 +1472,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> cons
     return MVec2dp_U<ctype>(Vec2dp<ctype>(A.c0 * v.x + A.c3 * v.y,
                                           A.c0 * v.y - A.c3 * v.x,
                                           A.c0 * v.z - A.c1 * v.y + A.c2 * v.x),
-                            PScalar2dp<ctype>(A.c1 * v.x + A.c2 * v.y + A.c3 * v.z));
+                            PScalar2dp<ctype>(-A.c1 * v.x - A.c2 * v.y - A.c3 * v.z));
 }
 
 // geometric product v * B of a vector v and an even grade multivector B from the left
@@ -1486,7 +1486,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(Vec2dp<T> const& 
     return MVec2dp_U<ctype>(Vec2dp<ctype>(v.x * B.c0 - v.y * B.c3,
                                           v.x * B.c3 + v.y * B.c0,
                                           -v.x * B.c2 + v.y * B.c1 + v.z * B.c0),
-                            PScalar2dp<ctype>(v.x * B.c1 + v.y * B.c2 + v.z * B.c3));
+                            PScalar2dp<ctype>(-v.x * B.c1 - v.y * B.c2 - v.z * B.c3));
 }
 
 // geometric product of two trivectors
@@ -1509,7 +1509,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
                                                             BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return -ctype(ps) * Vec2dp<ctype>(ctype(0.0), ctype(0.0), B.z);
+    return ctype(ps) * Vec2dp<ctype>(ctype(0.0), ctype(0.0), B.z);
 }
 
 // geometric product B * ps of bivector A multiplied by a trivector ps from the right
@@ -1520,7 +1520,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B
                                                             PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(ctype(0.0), ctype(0.0), -B.z) * ctype(ps);
+    return Vec2dp<ctype>(ctype(0.0), ctype(0.0), B.z) * ctype(ps);
 }
 
 // geometric product ps * v of a trivector ps (=2dp pseudoscalar) multiplied from the
@@ -1531,7 +1531,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
                                                               Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * BiVec2dp<ctype>(v.x, v.y, ctype(0.0));
+    return -ctype(ps) * BiVec2dp<ctype>(v.x, v.y, ctype(0.0));
 }
 
 // geometric product v * ps of a vector a multiplied with a trivector ps from the right
@@ -1542,7 +1542,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> operator*(Vec2dp<T> const& v
                                                               PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(v.x, v.y, ctype(0.0)) * ctype(ps);
+    return BiVec2dp<ctype>(-v.x, -v.y, ctype(0.0)) * ctype(ps);
 }
 
 // geometric product ps * s of a trivector ps and a scalar s
@@ -1926,9 +1926,9 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
 {
-    // u ^ cmpl(u) = e1^e2^e3
+    // u ^ cmpl(u) = e3^e2^e1
     // u = 1:
-    //     1 ^ cmpl(u) = e1^e2^e3 => cmpl(u) = s e1^e2^e3
+    //     1 ^ cmpl(u) = e2^e2^e1 => cmpl(u) = s e3^e2^e1
     return PScalar2dp<T>(T(s));
 }
 
@@ -1936,35 +1936,35 @@ template <typename T>
     requires(std::floating_point<T>)
 inline BiVec2dp<T> cmpl(Vec2dp<T> const& v)
 {
-    // u ^ compl(u) = e1^e2^e3
+    // u ^ compl(u) = e3^e2^e1
     // u = v.x e1 + v.y e2 + v.z e3:
-    //     u ^ cmpl(u) = e1^e2^e3 =>
-    //     u = e1 => cmpl(u) = e23
-    //     u = e2 => cmpl(u) = e31
-    //     u = e3 => cmpl(u) = e12
-    return BiVec2dp<T>(v.x, v.y, v.z);
+    //     u ^ cmpl(u) = e3^e2^e1 =>
+    //     u = e1 => cmpl(u) = -e23
+    //     u = e2 => cmpl(u) = -e31
+    //     u = e3 => cmpl(u) = -e12
+    return BiVec2dp<T>(-v.x, -v.y, -v.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
 inline Vec2dp<T> cmpl(BiVec2dp<T> const& B)
 {
-    // u ^ compl(u) = e1^e2^e3
+    // u ^ compl(u) = e3^e2^e1
     // u = b.x e23 + b.y e31 + b.z e12:
-    //     u ^ cmpl(u) = e1^e2^e3 =>
-    //     u = e23 => cmpl(u) = e1
-    //     u = e31 => cmpl(u) = e2
-    //     u = e12 => cmpl(u) = e3
-    return Vec2dp<T>(B.x, B.y, B.z);
+    //     u ^ cmpl(u) = e3^e2^e1 =>
+    //     u = e23 => cmpl(u) = -e1
+    //     u = e31 => cmpl(u) = -e2
+    //     u = e12 => cmpl(u) = -e3
+    return Vec2dp<T>(-B.x, -B.y, -B.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar2dp<T> cmpl(PScalar2dp<T> ps)
 {
-    // u ^ compl(u) = e1^e2^e3
-    // u = e1^e2^e3:
-    //     e1^e2^e3 ^ cmpl(u) = e1^e2^e3 => cmpl(u) = ps 1
+    // u ^ compl(u) = e3^e2^e1
+    // u = e3^e2^e1:
+    //     e3^e2^e1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = ps 1
     return Scalar2dp<T>(T(ps));
 }
 

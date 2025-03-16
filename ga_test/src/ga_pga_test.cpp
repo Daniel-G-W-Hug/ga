@@ -365,11 +365,11 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(bulk_dual(s) == pscalar2dp{s});
         CHECK(weight_dual(s) == pscalar2dp{0.0});
 
-        CHECK(bulk_dual(v) == bivec2dp{1.0, 2.0, 0.0});
-        CHECK(weight_dual(v) == bivec2dp{0.0, 0.0, 1.0});
+        CHECK(bulk_dual(v) == -bivec2dp{1.0, 2.0, 0.0});
+        CHECK(weight_dual(v) == -bivec2dp{0.0, 0.0, 1.0});
 
-        CHECK(bulk_dual(B) == vec2dp{0.0, 0.0, 1.0});
-        CHECK(weight_dual(B) == vec2dp{-1.0, 2.0, 0.0});
+        CHECK(bulk_dual(B) == -vec2dp{0.0, 0.0, 1.0});
+        CHECK(weight_dual(B) == -vec2dp{-1.0, 2.0, 0.0});
 
         CHECK(bulk_dual(ps) == scalar2dp{0.0});
         CHECK(weight_dual(ps) == scalar2dp{ps});
@@ -1461,12 +1461,12 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // complement values
         CHECK(cmpl(scalar2dp(1.0)) == I_2dp);
         CHECK(cmpl(scalar2dp(1.0)) == rev(scalar2dp(1.0)) * I_2dp);
-        CHECK(cmpl(e1_2dp) == e23_2dp);
-        CHECK(cmpl(e2_2dp) == e31_2dp);
-        CHECK(cmpl(e3_2dp) == e12_2dp);
-        CHECK(cmpl(e23_2dp) == e1_2dp);
-        CHECK(cmpl(e31_2dp) == e2_2dp);
-        CHECK(cmpl(e12_2dp) == e3_2dp);
+        CHECK(cmpl(e1_2dp) == -e23_2dp);
+        CHECK(cmpl(e2_2dp) == -e31_2dp);
+        CHECK(cmpl(e3_2dp) == -e12_2dp);
+        CHECK(cmpl(e23_2dp) == -e1_2dp);
+        CHECK(cmpl(e31_2dp) == -e2_2dp);
+        CHECK(cmpl(e12_2dp) == -e3_2dp);
         CHECK(cmpl(I_2dp) == scalar2d(1.0));
         //
         CHECK(cmpl(cmpl(mv)) == mv);
@@ -1651,7 +1651,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(dp1p2 == dp2p3);
         CHECK(dp3l1 == dp1l2);
         CHECK(dp1p3.c0 / dp1p3.c1 - 2.0 * std::sqrt(2.0) < eps);
-        CHECK(dp2l3.c0 / dp2l3.c1 + std::sqrt(2.0) < eps);
+        CHECK(dp2l3.c0 / dp2l3.c1 - std::sqrt(2.0) < eps);
 
         // auto res = rwdg(pscalar2dp(2.5), horizon_2dp);
         // fmt::println("res = {}", res);
@@ -1826,12 +1826,12 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // check complements
         CHECK(cmpl(scalar2dp(1.0)) == I_2dp);
-        CHECK(cmpl(e1_2dp) == e23_2dp);
-        CHECK(cmpl(e2_2dp) == e31_2dp);
-        CHECK(cmpl(e3_2dp) == e12_2dp);
-        CHECK(cmpl(e23_2dp) == e1_2dp);
-        CHECK(cmpl(e31_2dp) == e2_2dp);
-        CHECK(cmpl(e12_2dp) == e3_2dp);
+        CHECK(cmpl(e1_2dp) == -e23_2dp);
+        CHECK(cmpl(e2_2dp) == -e31_2dp);
+        CHECK(cmpl(e3_2dp) == -e12_2dp);
+        CHECK(cmpl(e23_2dp) == -e1_2dp);
+        CHECK(cmpl(e31_2dp) == -e2_2dp);
+        CHECK(cmpl(e12_2dp) == -e3_2dp);
         CHECK(cmpl(I_2dp) == scalar2d(1.0));
         //
         CHECK(cmpl(cmpl(M1)) == M1);

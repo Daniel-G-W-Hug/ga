@@ -235,14 +235,14 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr BiVec2dp<T> bulk_dual(Vec2dp<T> const& v)
 {
-    return BiVec2dp<T>(v.x, v.y, T(0.0));
+    return BiVec2dp<T>(-v.x, -v.y, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Vec2dp<T> bulk_dual(BiVec2dp<T> const& B)
 {
-    return Vec2dp<T>(T(0.0), T(0.0), B.z);
+    return Vec2dp<T>(T(0.0), T(0.0), -B.z);
 }
 
 template <typename T>
@@ -268,14 +268,14 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr BiVec2dp<T> weight_dual(Vec2dp<T> const& v)
 {
-    return BiVec2dp<T>(T(0.0), T(0.0), v.z);
+    return BiVec2dp<T>(T(0.0), T(0.0), -v.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Vec2dp<T> weight_dual(BiVec2dp<T> const& B)
 {
-    return Vec2dp<T>(B.x, B.y, T(0.0));
+    return Vec2dp<T>(-B.x, -B.y, T(0.0));
 }
 
 template <typename T>
