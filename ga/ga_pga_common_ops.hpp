@@ -173,14 +173,21 @@ template <typename T, typename U>
 inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
                                                 BiVec2dp<U> const& B2)
 {
+    //// TODO: angle not consistently working in all cases yet -> define tests
+
     using ctype = std::common_type_t<T, U>;
     ctype contr = ctype(weight_contraction(B1, B2));
     ctype nrm_prod = ctype(weight_nrm(B1) * weight_nrm(B2));
     // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
     if (nrm_prod != 0.0) {
+        // fmt::println("angle - using nrm_prod");
         return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
     }
     else {
+        // fmt::println("angle - not using nrm_prod");
+        // fmt::println("after clamp: {}", std::clamp(contr, ctype(-1.0), ctype(1.0)));
+        // fmt::println("acos: {}", std::acos(std::clamp(contr, ctype(-1.0),
+        // ctype(1.0))));
         return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
     }
 }

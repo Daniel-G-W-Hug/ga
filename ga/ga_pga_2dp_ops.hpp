@@ -1698,6 +1698,162 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> s1,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// regressive geometric products
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp<std::common_type_t<T, U>> rgpr(MVec2dp<T> const& A,
+                                                        MVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 - A.c4 * B.c1 -
+               A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0;
+    ctype c1 = -A.c0 * B.c4 + A.c1 * B.c7 + A.c2 * B.c3 - A.c3 * B.c2 - A.c4 * B.c0 -
+               A.c5 * B.c6 + A.c6 * B.c5 + A.c7 * B.c1;
+    ctype c2 = -A.c0 * B.c5 - A.c1 * B.c3 + A.c2 * B.c7 + A.c3 * B.c1 + A.c4 * B.c6 -
+               A.c5 * B.c0 - A.c6 * B.c4 + A.c7 * B.c2;
+    ctype c3 = A.c3 * B.c7 - A.c4 * B.c5 + A.c5 * B.c4 + A.c7 * B.c3;
+    ctype c4 = -A.c3 * B.c5 + A.c4 * B.c7 + A.c5 * B.c3 + A.c7 * B.c4;
+    ctype c5 = A.c3 * B.c4 - A.c4 * B.c3 + A.c5 * B.c7 + A.c7 * B.c5;
+    ctype c6 = A.c0 * B.c3 + A.c1 * B.c5 - A.c2 * B.c4 + A.c3 * B.c0 + A.c4 * B.c2 -
+               A.c5 * B.c1 + A.c6 * B.c7 + A.c7 * B.c6;
+    ctype c7 = -A.c3 * B.c3 + A.c4 * B.c4 + A.c5 * B.c5 + A.c7 * B.c7;
+    return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(MVec2dp_E<T> const& A,
+                                                          MVec2dp_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_U<ctype>(
+        Vec2dp<ctype>(-A.c0 * B.c1 - A.c1 * B.c0 - A.c2 * B.c3 + A.c3 * B.c2,
+                      -A.c0 * B.c2 + A.c1 * B.c3 - A.c2 * B.c0 - A.c3 * B.c1,
+                      -A.c1 * B.c2 + A.c2 * B.c1),
+        PScalar2dp<ctype>(A.c1 * B.c1 + A.c2 * B.c2));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(MVec2dp_U<T> const& A,
+                                                          MVec2dp_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_U<ctype>(
+        Vec2dp<ctype>(A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c0,
+                      -A.c0 * B.c2 + A.c1 * B.c3 + A.c2 * B.c0 + A.c3 * B.c1,
+                      A.c2 * B.c3 + A.c3 * B.c2),
+        PScalar2dp<ctype>(-A.c2 * B.c2 + A.c3 * B.c3));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_E<std::common_type_t<T, U>> rgpr(MVec2dp_E<T> const& A,
+                                                          MVec2dp_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_E<ctype>(
+        Scalar2dp<ctype>(A.c0 * B.c3 - A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2),
+        BiVec2dp<ctype>(A.c1 * B.c3 + A.c2 * B.c2, -A.c1 * B.c2 + A.c2 * B.c3,
+                        A.c0 * B.c2 + A.c1 * B.c1 - A.c2 * B.c0 + A.c3 * B.c3));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_E<std::common_type_t<T, U>> rgpr(MVec2dp_U<T> const& A,
+                                                          MVec2dp_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_E<ctype>(
+        Scalar2dp<ctype>(-A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c0),
+        BiVec2dp<ctype>(-A.c2 * B.c2 + A.c3 * B.c1, A.c2 * B.c1 + A.c3 * B.c2,
+                        A.c0 * B.c2 - A.c1 * B.c1 + A.c2 * B.c0 + A.c3 * B.c3));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(MVec2dp_E<T> const& M,
+                                                          BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_U<ctype>(Vec2dp<ctype>(-M.c0 * B.x - M.c2 * B.z + M.c3 * B.y,
+                                          -M.c0 * B.y + M.c1 * B.z - M.c3 * B.x,
+                                          -M.c1 * B.y + M.c2 * B.x),
+                            PScalar2dp<ctype>(M.c1 * B.x + M.c2 * B.y));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_E<std::common_type_t<T, U>> rgpr(MVec2dp_U<T> const& M,
+                                                          BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_E<ctype>(Scalar2dp<ctype>(-M.c0 * B.x - M.c1 * B.y - M.c2 * B.z),
+                            BiVec2dp<ctype>(-M.c2 * B.y + M.c3 * B.x,
+                                            M.c2 * B.x + M.c3 * B.y,
+                                            M.c0 * B.y - M.c1 * B.x + M.c3 * B.z));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_E<std::common_type_t<T, U>> rgpr(MVec2dp_E<T> const& M,
+                                                          Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_E<ctype>(
+        Scalar2dp<ctype>(-M.c1 * v.x - M.c2 * v.y - M.c3 * v.z),
+        BiVec2dp<ctype>(M.c2 * v.z, -M.c1 * v.z, M.c0 * v.z + M.c1 * v.y - M.c2 * v.x));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(MVec2dp_U<T> const& M,
+                                                          Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_U<ctype>(Vec2dp<ctype>(M.c1 * v.z - M.c2 * v.y + M.c3 * v.x,
+                                          -M.c0 * v.z + M.c2 * v.x + M.c3 * v.y,
+                                          M.c3 * v.z),
+                            PScalar2dp<ctype>(-M.c2 * v.z));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(BiVec2dp<T> const& B1,
+                                                          BiVec2dp<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_U<ctype>(Vec2dp<ctype>(-B1.y * B2.z + B1.z * B2.y,
+                                          B1.x * B2.z - B1.z * B2.x,
+                                          -B1.x * B2.y + B1.y * B2.x),
+                            PScalar2dp<ctype>(B1.x * B2.x + B1.y * B2.y));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_E<std::common_type_t<T, U>> rgpr(BiVec2dp<T> const& B,
+                                                          Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_E<ctype>(
+        Scalar2dp<ctype>(-B.x * v.x - B.y * v.y - B.z * v.z),
+        BiVec2dp<ctype>(B.y * v.z, -B.x * v.z, B.x * v.y - B.y * v.x));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(Vec2dp<T> const& v1,
+                                                          Vec2dp<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_U<ctype>(
+        Vec2dp<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x, ctype(0.0)),
+        PScalar2dp<ctype>(-v1.z * v2.z));
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // multiplicative inverses of scalars, blades and multivectors
 // w.r.t. the geometric product:
 // for k-blades: A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
@@ -1761,31 +1917,98 @@ template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, ar
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// 2dp motor operations (translation and rotation)
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>>
+motor2dp_from_ln(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
+{
+    // take lines as input an return a motor
+    // 1st apply reflection across line B1, then across B2 to get a motor that rotates
+    // (or translates) around the intersection point of lines B1 and B2
+    //
+    // for use of motor m either directly on object u (inefficient):
+    //     auto v_moved = gr1(rgpr(rgpr(R, v), rrev(R))));
+    // or
+    //     auto B_moved = gr2(rgpr(rgpr(R, B), rrev(R))));
+    // or
+    //                                   // optimized for reduced effort
+    //     auto v_moved = move2dp(v,R);  // moves v according to the motor R
+    //     auto B_moved = move2dp(B,R);  // moves B according to the motor R
+    //
+    return rgpr(B2, B1); // based on the regressive geometric product
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp_orig(Vec2dp<T> const& v,
+                                                               MVec2dp_U<U> const& R)
+{
+    // moves v (a vector representing a projective point) according to the motor R
+    return gr1(rgpr(rgpr(R, v), rrev(R))); // the inefficient original
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_orig(BiVec2dp<T> const& B,
+                                                                 MVec2dp_U<U> const& R)
+{
+    // moves B (a bivector representing a line) according to the motor R
+    return gr2(rgpr(rgpr(R, B), rrev(R))); // the inefficient original
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
+                                                          MVec2dp_U<U> const& R)
+{
+    // moves v (a vector representing a projective point) according to the motor R
+    // optimized by avoiding non-required calculations vs. original version
+    //
+    // (could potentially be further optimized by exporting the matrix-representation if
+    // many transformations should be calculated using the same rotor as v' = matrix * v)
+    using ctype = std::common_type_t<T, U>;
+    auto k02 = R.c0 * R.c2;
+    auto k03 = R.c0 * R.c3;
+    auto k12 = R.c1 * R.c2;
+    auto k13 = R.c1 * R.c3;
+    auto k22 = R.c2 * R.c2;
+    auto k23 = R.c2 * R.c3;
+    auto k33 = R.c3 * R.c3;
+    return Vec2dp<ctype>((k22 - k33) * v.x + (2.0 * k23) * v.y + 2.0 * (-k02 - k13) * v.z,
+                         -2.0 * k23 * v.x + (k22 - k33) * v.y + 2.0 * (k03 - k12) * v.z,
+                         (-k22 - k33) * v.z);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
+                                                            MVec2dp_U<U> const& R)
+{
+    // moves B (a bivector representing a line) according to the motor R
+    // optimized by avoiding non-required calculations vs. original version
+    //
+    // (could potentially be further optimized by exporting the matrix-representation if
+    // many transformations should be calculated using the same rotor as B' = matrix * B)
+    using ctype = std::common_type_t<T, U>;
+    auto k02 = R.c0 * R.c2;
+    auto k03 = R.c0 * R.c3;
+    auto k12 = R.c1 * R.c2;
+    auto k13 = R.c1 * R.c3;
+    auto k22 = R.c2 * R.c2;
+    auto k23 = R.c2 * R.c3;
+    auto k33 = R.c3 * R.c3;
+    return BiVec2dp<ctype>(
+        (-k22 + k33) * B.x + 2.0 * (-k23) * B.y, 2.0 * k23 * B.x + (-k22 + k33) * B.y,
+        2.0 * (k02 - k13) * B.x + 2.0 * (k12 + k03) * B.y + (k22 + k33) * B.z);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // 2dp rotation operations
 ////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// exponential function with bivector as argument for setup of quaternions
-// as geometric multivector with a scalar and a bivector part
-// MVec2dp_E<T> M = c0 + (c1 e2^e3 + c2 e3^e1 + c3 e1^e2)
-//
-// quaternion: q = a + b I with I being the bivector in brackets above
-//             representing a plane in the algebra G^3
-//
-//             a rotation in 3D is represented by the plane and the
-//             size of the rotation, the later is given by the angle
-//             theta, which is the magnitude of the bivector
-//
-// Inputs:
-//         - an arbitray bivector representing the oriented plane of rotation
-//           (does not need to be normalized)
-//         - a rotation angle
-// Output:
-//         - a rotor representing the rotation
-//
-// HINT:     For a rotation around an axis n (n = normalize(Vec2dp<T>))
-//           use the bivector B = n*I_3d  => B = Vec2dp<T> * PScalar2dp<T>
-//////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_E<std::common_type_t<T, U>> exp(BiVec2dp<T> const& I, U theta)

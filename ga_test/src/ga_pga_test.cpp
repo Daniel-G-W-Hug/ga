@@ -14,6 +14,7 @@
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 
+
 TEST_SUITE("Projective Geometric Algebra (PGA)")
 {
 
@@ -1307,126 +1308,236 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     // MVec2dp_E<T> and MVec2dp_U<T> operations test cases
     ////////////////////////////////////////////////////////////////////////////////
 
-    TEST_CASE("MVec2dp_E/_U: modelling even and uneven parts of 3d algebra - basics")
+    TEST_CASE("MVec2dp_E/_U: reflections and motors (rotations, translations)")
     {
-        fmt::println(
-            "MVec2dp_E/_U: modelling even and uneven parts of 3d algebra - basics");
+        fmt::println("MVec2dp_E/_U: reflections and motors (rotations, translations)");
 
-        // defining a complex number in all three forms as multivector
-        auto u = normalize(vec2dp{1.0, 0.0, 0.0});
-        auto v =
-            normalize(vec2dp(std::cos(pi / 12), std::sin(pi / 12), 0.0)); // unit vec +15%
-        auto angle_uv = angle(u, v);
-        auto B = wdg(u, v); // normalized bivector describing the plane spanned by u and v
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 1st: start with points use lines through the origin and reflect points
+            /////////////////////////////////////////////////////////////////////////////
 
-        auto my_exp = exp(-B, angle_uv);
-        auto my_rot = rotor(B, 2.0 * angle_uv);
+            // define points and lines
+            auto p0 = origin_2dp;
+            auto p1 = vec2dp{1, 0, 1};
+            auto p2 = vec2dp{1, 1, 1};
+            auto p = vec2dp{1, -0.5, 1};
+            // auto p = vec2dp{2, -1, 2};
 
-        // definition of rotor used here: B = u^v
-        // => B determines the meaning of the positive sign of the rotation
-        //
-        auto R_m =
-            mvec2dp(exp(-B, angle_uv)); // Rotor formed by u and v (normalized bivector)
-        auto Rr_m = mvec2dp(rev(R_m));  // and its reverse
+            auto l1 = wdg(p0, p1);
+            auto l2 = wdg(p0, p2);
 
-        auto c = vec2dp{1.0, 1.0, 1.0};
-        auto c_m = mvec2dp{c};
+            // reflect p on l1 -> pr and reflect pr on l2 -> prr
+            auto pr = -gr1(rgpr(rgpr(l1, p), l1));
 
-        auto c_tmp_m = R_m * c_m;
-        auto c_rot_m = c_tmp_m * Rr_m;
+            auto prr = -gr1(rgpr(rgpr(l2, pr), l2));
 
-        auto R = exp(-B, angle_uv); // Rotor formed by u and v (normalized bivector)
-        auto Rr = rev(R);           // and its reverse
+            // fmt::println("");
+            // fmt::println("l1: {}, l1u: {}, l2: {}, l2u: {}", l1, unitize(l1), l2,
+            //              unitize(l2));
+            // fmt::println("pr: {}, pru: {}", pr, unitize(pr));
+            // fmt::println("prr: {}, prru: {}", prr, unitize(prr));
+            // fmt::println("");
 
-        auto c_tmp_l = R * c;
-        auto c_rot_u_l = c_tmp_l * Rr;
-        auto c_rot_l = gr1(c_rot_u_l);
-        // due to symmetry of R and Rr the gr3(c_rot) part will be zero
-        // and thus can be assumed to be zero for further computations
+            CHECK(unitize(pr) == vec2dp{1, 0.5, 1});
+            CHECK(unitize(prr) == vec2dp{0.5, 1, 1});
 
-        auto c_tmp_r = c * Rr;
-        auto c_rot_u_r = R * c_tmp_r;
-        auto c_rot_r = gr1(c_rot_u_r);
-        // due to symmetry of R and Rr the gr3(c_rot) part will be zero
-        // and thus can be assumed to be zero for further computations
+            // show that prr can be obtained directly from a rotation via a motor as pm
+            auto motor = rgpr(l2, l1);
+            auto rmotor = rrev(motor);
 
-        auto angle_c_c_rot = angle(c, c_rot_l); // not that easy in 3D!
-        // (angle in plane of both vectors is not the angle in the plane
-        // represented by the bivector!)
-        // => requires projection of vectors onto plane and then taking
-        // the angle between the projected vectors to be correct (bivector angle!)
+            auto pm = gr1(rgpr(rgpr(motor, p), rmotor));
 
-        auto c_proj = project_onto(c, B);
-        auto c_rot_proj = project_onto(c_rot_l, B);
-        auto angle_proj = angle(c_proj, c_rot_proj);
+            // fmt::println("");
+            // fmt::println("pm: {}, pmu: {}", pm, unitize(pm));
+            // fmt::println("");
 
-        // fmt::println("   u                     = {: .3}", u);
-        // fmt::println("   v                     = {: .3}", v);
-        // fmt::println("   B = u^v = wdg(u,v)    = {: .3}", B);
-        // fmt::println("   angle(u,v)            = {: .3}°", rad2deg(angle_uv));
-        // fmt::println("   sin(angle(u,v))       = {: .3}", std::sin(angle_uv));
-        // fmt::println("");
-        // fmt::println("   c                     = {: .3}", c);
-        // fmt::println("");
-        // fmt::println("Implemented as full multivector operation:");
-        // fmt::println("   R_m  = mvec2dp(exp(-B,angle_uv))  = {: .3}", R_m);
-        // fmt::println("   Rr_m = rev(R_m)                  = {: .3}", Rr_m);
-        // fmt::println("   Rr_m*R_m                         = {: .3}", Rr_m * R_m);
-        // fmt::println("   c_m                              = {: .3}", c_m);
-        // fmt::println("   c_tmp_m = R_m*c_m                = {: .3}", c_tmp_m);
-        // fmt::println("   c_rot_m = c_tmp_m*Rr_m           = {: .3}", c_rot_m);
-        // fmt::println("   gr1(c_rot_m)                     = {: .3}", gr1(c_rot_m));
-        // fmt::println("");
-        // fmt::println("Implemented as reduced grade multivector operation:");
-        // fmt::println("   R  = exp(-B,angle_uv)            = {: .3}", R);
-        // fmt::println("   Rr = rev(R)                      = {: .3}", Rr);
-        // fmt::println("   my_exp = exp(-B, angle_uv)       = {: .3}", my_exp);
-        // fmt::println("   my_rot = rotor(B, 2*angle_uv)    = {: .3}", my_rot);
-        // fmt::println("");
-        // fmt::println("Left multiplication of rotor first:");
-        // fmt::println("   c_tmp_l = R*c            = {: .3}", c_tmp_l);
-        // fmt::println("   c_rot_u_l = c_tmp_l*Rr   = {: .3}", c_rot_u_l);
-        // fmt::println("   c_rot_l = gr1(c_rot_u_l) = {: .3}", c_rot_l);
-        // fmt::println("");
-        // fmt::println("Right multiplication of rotor first:");
-        // fmt::println("   c_tmp_r = c*Rr           = {: .3}", c_tmp_r);
-        // fmt::println("   c_rot_u_r = R*c_tmp_r    = {: .3}", c_rot_u_r);
-        // fmt::println("   c_rot_r = gr1(c_rot_u_r) = {: .3}", c_rot_r);
-        // fmt::println("");
-        // fmt::println("   angle(c, c_rot_l) = {: .3}°", rad2deg(angle_c_c_rot));
-        // fmt::println("   angle(projected)  = {: .3}°", rad2deg(angle_proj));
-        // fmt::println("");
-        // fmt::println("direct calclulation:");
-        // fmt::println("   c_rot = rotate(c,R)          = {: .3}", rotate(c, R));
+            CHECK(unitize(prr) == unitize(pm));
+        }
 
-        // auto normalized_vec = normalize(vec2dp{1.0, 1.0, 0.0});
-        // fmt::println("   normalized_vec = {}", normalized_vec);
-        // fmt::println("   normalized_vec = {}", normalize(vec2dp{1.0, 1.0, 0.0}));
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 2nd: start with line through the origin and reflect lines through the
+            //      origin with them
+            /////////////////////////////////////////////////////////////////////////////
 
-        CHECK(std::abs(bulk_nrm(rotate(c, R)) - bulk_nrm(c)) < eps);
-        CHECK(gr1(c_rot_m) == rotate(c, R));
-        CHECK(rotate(c, R) == rotate_opt(c, R));
-        // using a bivector directly:
-        CHECK(rotate(vec2dp{1.0, 0.0, 0.0}, rotor(e12_2dp, pi / 4)) ==
-              normalize(vec2dp{1.0, 1.0, 0.0}));
+            // define points and lines
+            auto p0 = origin_2dp;
+            auto p1 = vec2dp{1, 0, 1};
+            auto p2 = vec2dp{1, 1, 1};
+            auto p = vec2dp{1, -0.5, 1};
 
-        // direct rotation of a bivector
-        // CHECK(rotate(bivec2dp{1.0, 0.0, 0.0}, rotor(e31_2dp, pi / 2)) == -e12_2dp);
+            auto l = wdg(p0, p);
+            auto l1 = unitize(wdg(p0, p1));
+            auto l2 = unitize(wdg(p0, p2));
 
-        // example see Macdonald "Linear and Geometric Algebra", Exercise 7.12, p. 127
-        // auto Bv = wdg(e2_2dp,
-        //               e1_2dp + std::sqrt(3.0) * e3_2dp); // bivector describing the
-        //               plane
-        // CHECK(std::abs(nrm(Bv) - 2.0) < eps);
-        // CHECK(rotate(Bv, rotor(e31_2dp, pi / 3)) == -2.0 * e12_2dp);
+            // reflect l on l1 -> lr and reflect lr on l2 -> lrr
+            auto lr = -gr2(rgpr(rgpr(l1, l), l1));
 
-        // just to silence unused variable warnings
-        CHECK(my_exp == exp(-B, angle_uv));
-        CHECK(my_rot == rotor(B, 2.0 * angle_uv));
-        CHECK(rotate(B, my_rot) == rotate_opt(B, my_rot));
-        CHECK(c_rot_r == gr1(c_rot_u_r));
-        CHECK(angle_c_c_rot == angle(c, c_rot_l));
-        CHECK(angle_proj == angle(c_proj, c_rot_proj));
+            auto lrr = -gr2(rgpr(rgpr(l2, lr), l2));
+
+            // fmt::println("");
+            // fmt::println("l: {}, lu: {}, att(l): {}", l, unitize(l), att(l));
+            // fmt::println("");
+            // fmt::println("l1: {}, l1u: {}, att(l1): {}", l1, unitize(l1), att(l1));
+            // fmt::println("l2: {}, l2u: {}, att(l2): {}", l2, unitize(l2), att(l2));
+            // fmt::println("");
+            // fmt::println("lr: {}, lru: {}, att(l2): {}", lr, unitize(lr), att(lr));
+            // fmt::println("lrr: {}, lrru: {}, att(lrr): {}", lrr, unitize(lrr),
+            // att(lrr)); fmt::println("");
+
+            CHECK(lr == -join(p0, vec2dp{1, 0.5, 1})); // reflection turns the direction
+            CHECK(lrr == join(p0, vec2dp{0.5, 1, 1}));
+
+            // show that prr can be obtained directly from a rotation via a motor as pm
+            auto motor = rgpr(l2, l1);
+            auto rmotor = rrev(motor);
+
+            auto lm = gr2(rgpr(rgpr(motor, l), rmotor));
+
+            // fmt::println("");
+            // fmt::println("lm: {}, lmu: {}, att(lm): {}", lm, unitize(lm), att(lm));
+            // fmt::println("");
+
+            CHECK(lrr == lm);
+            CHECK(unitize(lrr) == unitize(lm));
+        }
+
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 3rd: as 1st step (reflection with points), but with the lines for
+            // reflection and the center of rotation not in the origin
+            /////////////////////////////////////////////////////////////////////////////
+
+            // define points and lines
+            auto p0 = vec2dp{1, 0.5, 1}; // was origin_2dp, now shifted to that new point
+            auto delta = p0 - origin_2dp;
+            auto p1 = vec2dp{1, 0, 1} + delta;
+            auto p2 = vec2dp{1, 1, 1} + delta;
+            auto p = vec2dp{1, -0.5, 1} + delta;
+
+            auto l1 = wdg(p0, p1);
+            auto l2 = wdg(p0, p2);
+
+            // reflect p on l1 -> pr and reflect pr on l2 -> prr
+            auto pr = -gr1(rgpr(rgpr(l1, p), l1));
+
+            auto prr = -gr1(rgpr(rgpr(l2, pr), l2));
+
+            // fmt::println("");
+            // fmt::println("l1: {}, l1u: {}, l2: {}, l2u: {}", l1, unitize(l1), l2,
+            //              unitize(l2));
+            // fmt::println("pr: {}, pru: {}", pr, unitize(pr));
+            // fmt::println("prr: {}, prru: {}", prr, unitize(prr));
+            // fmt::println("");
+
+            CHECK(unitize(pr) == vec2dp{1, 0.5, 1} + delta);
+            CHECK(unitize(prr) == vec2dp{0.5, 1, 1} + delta);
+
+            // show that prr can be obtained directly from a movement via a motor as pm
+            auto motor = rgpr(l2, l1);
+            auto rmotor = rrev(motor);
+
+            auto pm = gr1(rgpr(rgpr(motor, p), rmotor));
+
+            // fmt::println("");
+            // fmt::println("pm: {}, pmu: {}", pm, unitize(pm));
+            // fmt::println("");
+
+            CHECK(unitize(prr) == unitize(pm));
+        }
+
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 4th: same at the 2nd step (reflecion of lines on lines), but with
+            // lines for reflection and the center of rotation not in the origin
+            /////////////////////////////////////////////////////////////////////////////
+
+            // define points and lines
+            auto p0 = vec2dp{1, 0.5, 1}; // was origin_2dp, now shifted to that new point
+            auto delta = p0 - origin_2dp;
+            auto p1 = vec2dp{1, 0, 1} + delta;
+            auto p2 = vec2dp{1, 1, 1} + delta;
+            auto p = vec2dp{1, -0.5, 1} + delta;
+
+            auto l = wdg(p0, p);
+            auto l1 = unitize(wdg(p0, p1));
+            auto l2 = unitize(wdg(p0, p2));
+
+            // reflect l on l1 -> lr and reflect lr on l2 -> lrr
+            auto lr = -gr2(rgpr(rgpr(l1, l), l1));
+
+            auto lrr = -gr2(rgpr(rgpr(l2, lr), l2));
+
+            // fmt::println("");
+            // fmt::println("l: {}, lu: {}, att(l): {}", l, unitize(l), att(l));
+            // fmt::println("");
+            // fmt::println("l1: {}, l1u: {}, att(l1): {}", l1, unitize(l1), att(l1));
+            // fmt::println("l2: {}, l2u: {}, att(l2): {}", l2, unitize(l2), att(l2));
+            // fmt::println("");
+            // fmt::println("lr: {}, lru: {}, att(l2): {}", lr, unitize(lr), att(lr));
+            // fmt::println("lrr: {}, lrru: {}, att(lrr): {}", lrr, unitize(lrr),
+            // att(lrr)); fmt::println("");
+
+            CHECK(lr ==
+                  -join(p0, vec2dp{1, 0.5, 1} + delta)); // reflection turns the direction
+            CHECK(lrr == join(p0, vec2dp{0.5, 1, 1} + delta));
+
+            // show that prr can be obtained directly from a rotation via a motor as pm
+            auto motor = rgpr(l2, l1);
+            auto rmotor = rrev(motor);
+
+            auto lm = gr2(rgpr(rgpr(motor, l), rmotor));
+
+            fmt::println("");
+            fmt::println("lm: {}, lmu: {}, att(lm): {}", lm, unitize(lm), att(lm));
+            fmt::println("");
+
+            CHECK(lrr == lm);
+            CHECK(unitize(lrr) == unitize(lm));
+        }
+
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 5th step: do the same as above, but use the optimized motor formulas
+            /////////////////////////////////////////////////////////////////////////////
+
+            // define points and lines
+            auto p0 = vec2dp{1, 0.5, 1}; // was origin_2dp, now shifted to that new point
+            auto delta = p0 - origin_2dp;
+            auto p1 = vec2dp{1, 0, 1} + delta;
+            auto p2 = vec2dp{1, 1, 1} + delta;
+            auto p = vec2dp{1, -0.5, 1} + delta;
+
+            auto l = wdg(p0, p);
+            auto l1 = unitize(wdg(p0, p1));
+            auto l2 = unitize(wdg(p0, p2));
+
+            auto R = motor2dp_from_ln(l1, l2);
+            CHECK(R == rgpr(l2, l1));
+
+            auto pm_manual = gr1(rgpr(rgpr(R, p), rrev(R)));
+            auto pm_orig = move2dp_orig(p, R);
+            auto pm = move2dp(p, R);
+
+            CHECK(pm_manual == pm_orig);
+            CHECK(pm_manual == unitize(pm));
+
+            auto lm_manual = gr2(rgpr(rgpr(R, l), rrev(R)));
+            auto lm_orig = move2dp_orig(l, R);
+            auto lm = move2dp(l, R);
+
+            // fmt::println("");
+            // fmt::println("lm_orig: {}, lmu_orig: {}, att(lm_orig): {}", lm_orig,
+            //              unitize(lm_orig), att(lm_orig));
+            // fmt::println("");
+            // fmt::println("");
+            // fmt::println("lm: {}, lmu: {}, att(lm): {}", lm, unitize(lm), att(lm));
+            // fmt::println("");
+
+            CHECK(lm_manual == lm_orig);
+            CHECK(lm_manual == lm);
+        }
     }
 
     TEST_CASE("MVec2dp: complement operation")

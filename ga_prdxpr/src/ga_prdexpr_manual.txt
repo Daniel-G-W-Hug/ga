@@ -232,34 +232,34 @@ pga2dp regressive sandwich product - basis product table:
 [     0,     0,     0,    -1,   -e2,    e1,     0,   e12 ], 
 [     1,    e1,    e2,    e3,   e23,   e31,   e12,  e321 ] 
 
-pga2dp regressive sandwich product mv_e * vec -> mv_e_tmp:
-mv_e_tmp:
-[ (-R.c1 * v.x - R.c2 * v.y - R.c3 * v.z) ] 1,
-[                                       0 ] e1,
-[                                       0 ] e2,
-[                                       0 ] e3,
-[                            (R.c2 * v.z) ] e23,
-[                           (-R.c1 * v.z) ] e31,
-[  (R.c0 * v.z + R.c1 * v.y - R.c2 * v.x) ] e12,
-[                                       0 ] e321
+pga2dp regressive sandwich product rgpr(mv_u, vec) -> mv_u_tmp:
+mv_u_tmp:
+[                                       0 ] 1,
+[  (R.c1 * v.z - R.c2 * v.y + R.c3 * v.x) ] e1,
+[ (-R.c0 * v.z + R.c2 * v.x + R.c3 * v.y) ] e2,
+[                            (R.c3 * v.z) ] e3,
+[                                       0 ] e23,
+[                                       0 ] e31,
+[                                       0 ] e12,
+[                           (-R.c2 * v.z) ] e321
 
-pga2dp regressive sandwich product mv_e_tmp * rrev(mv_e) -> mv_u_res:
+pga2dp regressive sandwich product mv_u_tmp * rrev(mv_u) -> mv_u_res:
 [                                                                                                                                            0 ] 1,
-[ -(-R.c1 * v.x - R.c2 * v.y - R.c3 * v.z) * R.c1 + (R.c2 * v.z) * R.c0 - (-R.c1 * v.z) * R.c3 + (R.c0 * v.z + R.c1 * v.y - R.c2 * v.x) * R.c2 ] e1,
-[ -(-R.c1 * v.x - R.c2 * v.y - R.c3 * v.z) * R.c2 + (R.c2 * v.z) * R.c3 + (-R.c1 * v.z) * R.c0 - (R.c0 * v.z + R.c1 * v.y - R.c2 * v.x) * R.c1 ] e2,
-[                                                                                                  -(R.c2 * v.z) * R.c2 + (-R.c1 * v.z) * R.c1 ] e3,
+[ -(R.c1 * v.z - R.c2 * v.y + R.c3 * v.x) * R.c3 + (-R.c0 * v.z + R.c2 * v.x + R.c3 * v.y) * R.c2 - (R.c3 * v.z) * R.c1 + (-R.c2 * v.z) * R.c0 ] e1,
+[ -(R.c1 * v.z - R.c2 * v.y + R.c3 * v.x) * R.c2 - (-R.c0 * v.z + R.c2 * v.x + R.c3 * v.y) * R.c3 + (R.c3 * v.z) * R.c0 + (-R.c2 * v.z) * R.c1 ] e2,
+[                                                                                                  -(R.c3 * v.z) * R.c3 + (-R.c2 * v.z) * R.c2 ] e3,
 [                                                                                                                                            0 ] e23,
 [                                                                                                                                            0 ] e31,
 [                                                                                                                                            0 ] e12,
-[                                                                                                   (R.c2 * v.z) * R.c1 + (-R.c1 * v.z) * R.c2 ] e321
+[                                                                                                  -(R.c3 * v.z) * R.c2 - (-R.c2 * v.z) * R.c3 ] e321
 
 pga2dp MANUAL EXTENSION mv_e * vec * rrev(mv_e):
 
 // multiply:
 [                                                                                                                                            0 ] 1,
-[ -(-R.c1 * R.c1 * v.x - R.c1 + R.c2 * v.y - R.c1 * R.c3 * v.z) + (R.c0 * R.c2 * v.z) - (-R.c1 * R.c3 * v.z) + (R.c0 * R.c2 * v.z + R.c1 * R.c2 * v.y - R.c2 * R.c2 * v.x) ] e1,
-[ -(-R.c1 * R.c2 * v.x - R.c2 * R.c2 * v.y - R.c2 * R.c3 * v.z) + (R.c2 * R.c3 * v.z) + (-R.c1 * R.c0 * v.z) - (R.c0 * R.c1 * v.z + R.c1 * R.c1 * v.y - R.c1 * R.c2 * v.x) ] e2,
-[                                                                                                  -(R.c2 * R.c2 * v.z) + (-R.c1 * R.c1 * v.z) ] e3,
+[ -(R.c1 * R.c3 * v.z - R.c2 * R.c3 * v.y + R.c3 * R.c3 * v.x) + (-R.c0 * R.c2 * v.z + R.c2 * R.c2 * v.x + R.c2 * R.c3 * v.y) - (R.c1 * R.c3 * v.z) + (-R.c0 * R.c2 * v.z) ] e1,
+[ -(R.c1 * R.c2 * v.z - R.c2 * R.c2 * v.y + R.c2 * R.c3 * v.x) - (-R.c0 * R.c3 * v.z + R.c2 * R.c3 * v.x + R.c3 * R.c3 * v.y) + (R.c0 * R.c3 * v.z) + (-R.c1 * R.c2 * v.z) ] e2,
+[                                                                                                  -(R.c3 * R.c3 * v.z) + (-R.c2 * R.c2 * v.z) ] e3,
 [                                                                                                                                            0 ] e23,
 [                                                                                                                                            0 ] e31,
 [                                                                                                                                            0 ] e12,
@@ -267,140 +267,137 @@ pga2dp MANUAL EXTENSION mv_e * vec * rrev(mv_e):
 
 // normalize signs:
 [                                                                                                                                            0 ] 1,
-[ ( R.c1 * R.c1 * v.x + R.c1 + R.c2 * v.y + R.c1 * R.c3 * v.z) + (R.c0 * R.c2 * v.z + R.c1 * R.c3 * v.z) + (R.c0 * R.c2 * v.z + R.c1 * R.c2 * v.y - R.c2 * R.c2 * v.x) ] e1,
-[ ( R.c1 * R.c2 * v.x + R.c2 * R.c2 * v.y + R.c2 * R.c3 * v.z) + (R.c2 * R.c3 * v.z - R.c1 * R.c0 * v.z) + (-R.c0 * R.c1 * v.z - R.c1 * R.c1 * v.y + R.c1 * R.c2 * v.x) ] e2,
-[                                                                                                  (-R.c2 * R.c2 * v.z) + (-R.c1 * R.c1 * v.z) ] e3,
+[ (-R.c1 * R.c3 * v.z + R.c2 * R.c3 * v.y - R.c3 * R.c3 * v.x) + (-R.c0 * R.c2 * v.z + R.c2 * R.c2 * v.x + R.c2 * R.c3 * v.y) + (-R.c1 * R.c3 * v.z) + (-R.c0 * R.c2 * v.z) ] e1,
+[ (-R.c1 * R.c2 * v.z + R.c2 * R.c2 * v.y - R.c2 * R.c3 * v.x) + ( R.c0 * R.c3 * v.z - R.c2 * R.c3 * v.x - R.c3 * R.c3 * v.y) + ( R.c0 * R.c3 * v.z) + (-R.c1 * R.c2 * v.z) ] e2,
+[                                                                                                  (-R.c3 * R.c3 * v.z) + (-R.c2 * R.c2 * v.z) ] e3,
 [                                                                                                                                            0 ] e23,
 [                                                                                                                                            0 ] e31,
 [                                                                                                                                            0 ] e12,
 [                                                                                                                                            0 ] e321
 
 // reorder and introduce braces again:
-[                                                                                                                           0 ] 1,
-[ (    R.c1 * R.c1 - R.c2 * R.c2) * v.x + (2 * R.c1 * R.c2)                * v.y + ( 2 * R.c0 * R.c2 + 2 * R.c1 * R.c3) * v.z ] e1,
-[ (2 * R.c1 * R.c2)               * v.x + (   -R.c1 * R.c1 + R.c2 * R.c2 ) * v.y + (-2 * R.c0 * R.c1 + 2 * R.c2 * R.c3) * v.z ] e2,
-[                                                                                          (-R.c1 * R.c1 - R.c2 * R.c2) * v.z ] e3,
-[                                                                                                                           0 ] e23,
-[                                                                                                                           0 ] e31,
-[                                                                                                                           0 ] e12,
-[                                                                                                                           0 ] e321
+[                                                                                                                             0 ] 1,
+[       ( R.c2 * R.c2 - R.c3 * R.c3) * v.x + 2.0 * (R.c2 * R.c3)               * v.y + 2.0 * (-R.c0 * R.c2 - R.c1 * R.c3) * v.z ] e1,
+[ 2.0 * (-R.c2 * R.c3)               * v.x +       (R.c2 * R.c2 - R.c3 * R.c3) * v.y + 2.0 * ( R.c0 * R.c3 - R.c1 * R.c2) * v.z ] e2,
+[                                                                                            (-R.c2 * R.c2 - R.c3 * R.c3) * v.z ] e3,
+[                                                                                                                             0 ] e23,
+[                                                                                                                             0 ] e31,
+[                                                                                                                             0 ] e12,
+[                                                                                                                             0 ] e321
 
-//k00 = R.c0 * R.c0;
-k01 = R.c0 * R.c1;+
-k02 = R.c0 * R.c2;+
-//k03 = R.c0 * R.c3;
-k11 = R.c1 * R.c1;+
-k12 = R.c1 * R.c2;+
-k13 = R.c1 * R.c3;+
-k22 = R.c2 * R.c2;+
-k23 = R.c2 * R.c3;+
-//k33 = R.c3 * R.c3;
+k02 = R.c0 * R.c2;
+k03 = R.c0 * R.c3;
+k12 = R.c1 * R.c2;
+k13 = R.c1 * R.c3;
+k22 = R.c2 * R.c2;
+k23 = R.c2 * R.c3;
+k33 = R.c3 * R.c3;
 
-[                                                                           0 ] 1,
-[ (    k11 - k22) * v.x + (2 * k12)        * v.y + ( 2 * k02 + 2 * k13) * v.z ] e1,
-[ (2 * k12)       * v.x + (   -k11 + k22 ) * v.y + (-2 * k01 + 2 * k23) * v.z ] e2,
-[                                                          (-k11 - k22) * v.z ] e3,
-[                                                                           0 ] e23,
-[                                                                           0 ] e31,
-[                                                                           0 ] e12,
-[                                                                           0 ] e321
+[                                                                0 ] 1,
+[ (k22 - k33) * v.x + (2.0 * k23) * v.y + 2.0 * (-k02 - k13) * v.z ] e1,
+[ -2.0 * k23  * v.x + (k22 - k33) * v.y + 2.0 * ( k03 - k12) * v.z ] e2,
+[                                               (-k22 - k33) * v.z ] e3,
+[                                                                0 ] e23,
+[                                                                0 ] e31,
+[                                                                0 ] e12,
+[                                                                0 ] e321
 
-m11 = k11 - k22;
-m12 = 2 * k12;
-m13 = 2 * (k02 + k13);
-m21 = 2 * k12;
-m22 = -k11 + k22;
-m23 = 2 * (-k01 + k23);
+m11 = k22 - k33;
+m12 = 2.0 * k23;
+m13 = 2.0 * (-k02 - k13);
+m21 = 2.0 * (-k23);
+m22 = k22 - k33;
+m23 = 2.0 * ( k03 - k12);
 m31 = 0;
 m32 = 0;
-m33 = -k11 - k22;
+m33 = -k22 - k33;
 
-=> v' = m * v; // Matrix * Vector  => minimize effort for repeated application
+=> v' = m * v; // Matrix * Vector
+=> can be used to minimize effort for repeated application of same motor
 
 -------------------------------------------------------------------
 
-pga2dp regressive sandwich product mv_e * bivec -> mv_u_tmp:
-mv_u_tmp:
-[                                       0 ] 1,
-[ (-R.c0 * B.x - R.c2 * B.z + R.c3 * B.y) ] e1,
-[ (-R.c0 * B.y + R.c1 * B.z - R.c3 * B.x) ] e2,
-[              (-R.c1 * B.y + R.c2 * B.x) ] e3,
-[                                       0 ] e23,
-[                                       0 ] e31,
-[                                       0 ] e12,
-[               (R.c1 * B.x + R.c2 * B.y) ] e321
+pga2dp regressive sandwich product mv_u * bivec -> mv_e_tmp:
+mv_e_tmp:
+[ (-R.c0 * B.x - R.c1 * B.y - R.c2 * B.z) ] 1,
+[                                       0 ] e1,
+[                                       0 ] e2,
+[                                       0 ] e3,
+[              (-R.c2 * B.y + R.c3 * B.x) ] e23,
+[               (R.c2 * B.x + R.c3 * B.y) ] e31,
+[  (R.c0 * B.y - R.c1 * B.x + R.c3 * B.z) ] e12,
+[                                       0 ] e321
 
-pga2dp regressive sandwich product mv_u_tmp * rrev(mv_e) -> mv_e_res:
-[ -(-R.c0 * B.x - R.c2 * B.z + R.c3 * B.y) * R.c1 - (-R.c0 * B.y + R.c1 * B.z - R.c3 * B.x) * R.c2 - (-R.c1 * B.y + R.c2 * B.x) * R.c3 - (R.c1 * B.x + R.c2 * B.y) * R.c0 ] 1,
-[                                                                                                                                                                       0 ] e1,
-[                                                                                                                                                                       0 ] e2,
-[                                                                                                                                                                       0 ] e3,
-[                                                                                                   -(-R.c1 * B.y + R.c2 * B.x) * R.c2 + (R.c1 * B.x + R.c2 * B.y) * R.c1 ] e23,
-[                                                                                                    (-R.c1 * B.y + R.c2 * B.x) * R.c1 + (R.c1 * B.x + R.c2 * B.y) * R.c2 ] e31,
-[  (-R.c0 * B.x - R.c2 * B.z + R.c3 * B.y) * R.c2 - (-R.c0 * B.y + R.c1 * B.z - R.c3 * B.x) * R.c1 - (-R.c1 * B.y + R.c2 * B.x) * R.c0 + (R.c1 * B.x + R.c2 * B.y) * R.c3 ] e12,
-[                                                                                                                                                                       0 ] e321
+pga2dp regressive sandwich product mv_e_tmp * rrev(mv_u) -> mv_e_res:
+[  (-R.c0 * B.x - R.c1 * B.y - R.c2 * B.z) * R.c3 + (-R.c2 * B.y + R.c3 * B.x) * R.c0 + (R.c2 * B.x + R.c3 * B.y) * R.c1 + (R.c0 * B.y - R.c1 * B.x + R.c3 * B.z) * R.c2 ] 1,
+[                                                                                                                                                                      0 ] e1,
+[                                                                                                                                                                      0 ] e2,
+[                                                                                                                                                                      0 ] e3,
+[                                                                                                   (-R.c2 * B.y + R.c3 * B.x) * R.c3 - (R.c2 * B.x + R.c3 * B.y) * R.c2 ] e23,
+[                                                                                                   (-R.c2 * B.y + R.c3 * B.x) * R.c2 + (R.c2 * B.x + R.c3 * B.y) * R.c3 ] e31,
+[ -(-R.c0 * B.x - R.c1 * B.y - R.c2 * B.z) * R.c2 - (-R.c2 * B.y + R.c3 * B.x) * R.c1 + (R.c2 * B.x + R.c3 * B.y) * R.c0 + (R.c0 * B.y - R.c1 * B.x + R.c3 * B.z) * R.c3 ] e12,
+[                                                                                                                                                                      0 ] e321
 
 pga2dp MANUAL EXTENSION mv_e * bivec * rrev(mv_e):
 
 // multiply:
-[ 0 ] 1,
-[                                                                                                                                                                       0 ] e1,
-[                                                                                                                                                                       0 ] e2,
-[                                                                                                                                                                       0 ] e3,
-[                                                                                                   -(-R.c1 * R.c2 * B.y + R.c2 * R.c2 * B.x) + (R.c1 * R.c1 * B.x + R.c1 * R.c2 * B.y) ] e23,
-[                                                                                                    (-R.c1 * R.c1 * B.y + R.c1 * R.c2 * B.x) + (R.c1 * R.c2 * B.x + R.c2 * R.c2 * B.y) ] e31,
-[  (-R.c0 * R.c2 * B.x - R.c2 * R.c2 * B.z + R.c2 * R.c3 * B.y) - (-R.c0 * R.c1 * B.y + R.c1 * R.c1 * B.z - R.c1 * R.c3 * B.x) - (- R.c0 * R.c1 * B.y +  R.c0 * R.c2 * B.x) + (R.c1 * R.c3 * B.x + R.c2 * R.c3 * B.y) ] e12,
-[                                                                                                                                                                       0 ] e321
+[  0 ] 1,
+[                                                                                                                                                                      0 ] e1,
+[                                                                                                                                                                      0 ] e2,
+[                                                                                                                                                                      0 ] e3,
+[                                                                                                   (-R.c2 * R.c3 * B.y + R.c3 * R.c3 * B.x) - (R.c2 * R.c2 * B.x + R.c2 * R.c3 * B.y) ] e23,
+[                                                                                                   (-R.c2 * R.c2 * B.y + R.c2 * R.c3 * B.x) + (R.c2 * R.c3 * B.x + R.c3 * R.c3 * B.y) ] e31,
+[ -(-R.c0 * R.c2 * B.x - R.c1 * R.c2 * B.y - R.c2 * R.c2 * B.z) - (- R.c1 * R.c2 * B.y + R.c1 * R.c3 * B.x) + (R.c0 * R.c2 * B.x + R.c0 * R.c3 * B.y) + (R.c0 * R.c3 * B.y - R.c1 * R.c3 * B.x + R.c3 * R.c3 * B.z) ] e12,
+[                                                                                                                                                                      0 ] e321
 
 // normalize signs:
-[                                                                                                                                                                       0 ] e1,
-[                                                                                                                                                                       0 ] e2,
-[                                                                                                                                                                       0 ] e3,
-[                                                                                                    ( R.c1 * R.c2 * B.y - R.c2 * R.c2 * B.x) + (R.c1 * R.c1 * B.x + R.c1 * R.c2 * B.y) ] e23,
-[                                                                                                    (-R.c1 * R.c1 * B.y + R.c1 * R.c2 * B.x) + (R.c1 * R.c2 * B.x + R.c2 * R.c2 * B.y) ] e31,
-[  (-R.c0 * R.c2 * B.x - R.c2 * R.c2 * B.z + R.c2 * R.c3 * B.y) + ( R.c0 * R.c1 * B.y - R.c1 * R.c1 * B.z + R.c1 * R.c3 * B.x) + (R.c0 * R.c1 * B.y - R.c0 * R.c2 * B.x) + (R.c1 * R.c3 * B.x + R.c2 * R.c3 * B.y) ] e12,
-[                                                                                                                                                                       0 ] e321
+[                                                                                                                                                0 ] 1,
+[                                                                                                                                                0 ] e1,
+[                                                                                                                                                0 ] e2,
+[                                                                                                                                                0 ] e3,
+[                                                              (-R.c2 * R.c3 * B.y + R.c3 * R.c3 * B.x) + (-R.c2 * R.c2 * B.x - R.c2 * R.c3 * B.y) ] e23,
+[                                                              (-R.c2 * R.c2 * B.y + R.c2 * R.c3 * B.x) + ( R.c2 * R.c3 * B.x + R.c3 * R.c3 * B.y) ] e31,
+[  ( R.c0 * R.c2 * B.x + R.c1 * R.c2 * B.y + R.c2 * R.c2 * B.z) + ( R.c1 * R.c2 * B.y - R.c1 * R.c3 * B.x) + (R.c0 * R.c2 * B.x + R.c0 * R.c3 * B.y) + (R.c0 * R.c3 * B.y - R.c1 * R.c3 * B.x + R.c3 * R.c3 * B.z) ] e12,
+[                                                                                                                                                0 ] e321
 
 // reorder and introduce braces again:
-[                                                                                                                               0 ] e1,
-[                                                                                                                               0 ] e2,
-[                                                                                                                               0 ] e3,
-[                                                      (    R.c1 * R.c1 - R.c2 * R.c2) * B.x + ( R.c1 * R.c2 + R.c1 * R.c2) * B.y ] e23,
-[                                                      (2 * R.c1 * R.c2)               * B.x + (-R.c1 * R.c1 + R.c2 * R.c2) * B.y ] e31,
-[  (-2 * R.c0 * R.c2 + 2 * R.c1 * R.c3 ) * B.x + (2 * R.c0 * R.c1  + 2 * R.c2 * R.c3 ) * B.y + (-R.c1 * R.c1 - R.c2 * R.c2) * B.z ] e12,
-[                                                                                                                               0 ] e321
+[                                                                                                                      0 ] 1,
+[                                                                                                                      0 ] e1,
+[                                                                                                                      0 ] e2,
+[                                                                                                                      0 ] e3,
+[       (-R.c2 * R.c2 + R.c3 * R.c3) * B.x + 2.0 * (-R.c2 * R.c3)              * B.y                                     ] e23,
+[        2.0 * (R.c2 * R.c3)         * B.x +     (-R.c2 * R.c2  + R.c3 * R.c3) * B.y                                     ] e31,
+[  2.0 * (R.c0 * R.c2 - R.c1 * R.c3) * B.x + 2.0 * (R.c1 * R.c2 + R.c0 * R.c3) * B.y + (R.c2 * R.c2 + R.c3 * R.c3) * B.z ] e12,
+[                                                                                                                      0 ] e321
 
-//k00 = R.c0 * R.c0;
-k01 = R.c0 * R.c1;+
-k02 = R.c0 * R.c2;+
-//k03 = R.c0 * R.c3;
-k11 = R.c1 * R.c1;+
-k12 = R.c1 * R.c2;+
-k13 = R.c1 * R.c3;+
-k22 = R.c2 * R.c2;+
-k23 = R.c2 * R.c3;+
-//k33 = R.c3 * R.c3;
+k02 = R.c0 * R.c2;
+k03 = R.c0 * R.c3;
+k12 = R.c1 * R.c2;
+k13 = R.c1 * R.c3;
+k22 = R.c2 * R.c2;
+k23 = R.c2 * R.c3;
+k33 = R.c3 * R.c3;
 
-[                                                                               0 ] e1,
-[                                                                               0 ] e2,
-[                                                                               0 ] e3,
-[   (k11 - k22)         * B.x + ( 2 * k12)             * B.y                      ] e23,
-[   (2 * k12)           * B.x + (-k11 + k22)           * B.y                      ] e31,
-[  (-2 * k02 + 2 * k13) * B.x + ( 2 * k01  + 2 * k23 ) * B.y + (-k11 - k22) * B.z ] e12,
-[                                                                               0 ] e321
+[                                                                      0 ] e1,
+[                                                                      0 ] e2,
+[                                                                      0 ] e3,
+[ (-k22 + k33)      * B.x + 2.0 * (-k23)       * B.y                     ] e23,
+[ 2.0 * k23         * B.x + (-k22 + k33)       * B.y                     ] e31,
+[ 2.0 * (k02 - k13) * B.x + 2.0 * (k12 + k03 ) * B.y + (k22 + k33) * B.z ] e12,
+[                                                                      0 ] e321
 
-m11 = k11 - k22;
-m12 = 2 * k12;
+m11 = -k22 + k33;
+m12 = -2.0 * k23;
 m13 = 0;
-m21 = 2 * k12;
-m22 = -k11 + k22;
+m21 = 2.0 * k23;
+m22 = -k22 + k33;
 m23 = 0;
-m31 = 2 * (-k02 + k13);
-m32 = 2 * (k01 + k23);
-m33 = -k11 - k22;
+m31 = 2.0 * (k02 - k13);
+m32 = 2.0 * (k12 + k03);
+m33 = k22 + k33;
 
-=> B' = m * B; // Matrix * Vector  => minimize effort for repeated application
-
+=> B' = m * B; // Matrix * Vector
+=> can be used to minimize effort for repeated application of same motor
 
 -------------------------------------------------------------------
 
