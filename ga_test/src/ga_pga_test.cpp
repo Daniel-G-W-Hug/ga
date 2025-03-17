@@ -1382,7 +1382,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             // fmt::println("l1: {}, l1u: {}, att(l1): {}", l1, unitize(l1), att(l1));
             // fmt::println("l2: {}, l2u: {}, att(l2): {}", l2, unitize(l2), att(l2));
             // fmt::println("");
-            // fmt::println("lr: {}, lru: {}, att(l2): {}", lr, unitize(lr), att(lr));
+            // fmt::println("lr: {}, lru: {}, att(lr): {}", lr, unitize(lr), att(lr));
             // fmt::println("lrr: {}, lrru: {}, att(lrr): {}", lrr, unitize(lrr),
             // att(lrr)); fmt::println("");
 
@@ -1489,9 +1489,9 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
             auto lm = gr2(rgpr(rgpr(motor, l), rmotor));
 
-            fmt::println("");
-            fmt::println("lm: {}, lmu: {}, att(lm): {}", lm, unitize(lm), att(lm));
-            fmt::println("");
+            // fmt::println("");
+            // fmt::println("lm: {}, lmu: {}, att(lm): {}", lm, unitize(lm), att(lm));
+            // fmt::println("");
 
             CHECK(lrr == lm);
             CHECK(unitize(lrr) == unitize(lm));
@@ -1538,6 +1538,79 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             CHECK(lm_manual == lm_orig);
             CHECK(lm_manual == lm);
         }
+
+        // {
+        //     /////////////////////////////////////////////////////////////////////////////
+        //     // 6th step: optional speed testing for the optimized motor formulas
+        //     // -> advantage for debug mode, but not when enabling optimization
+        //     /////////////////////////////////////////////////////////////////////////////
+
+        //     // define points and lines
+        //     auto p0 = vec2dp{1, 0.5, 1}; // was origin_2dp,
+        //     // now shifted to that new point
+
+        //     auto delta = p0 - origin_2dp;
+        //     auto p1 = vec2dp{1, 0, 1} + delta;
+        //     auto p2 = vec2dp{1, 1, 1} + delta;
+        //     auto p = vec2dp{1, -0.5, 1} + delta;
+
+        //     auto l = wdg(p0, p);
+        //     auto l1 = unitize(wdg(p0, p1));
+        //     auto l2 = unitize(wdg(p0, p2));
+
+        //     auto R = motor2dp_from_ln(l1, l2);
+        //     CHECK(R == rgpr(l2, l1));
+
+        //     // checking time required
+        //     constexpr size_t steps = 10'000'000;
+        //     vec2dp p_sum_orig{};
+        //     auto start = std::chrono::system_clock::now();
+        //     for (size_t i = 0; i < steps; ++i) {
+        //         auto pm_orig = move2dp_orig(p, R);
+        //         p_sum_orig += pm_orig; // just to avoid full replacement with opt
+        //     }
+        //     auto end = std::chrono::system_clock::now();
+        //     auto elapsed =
+        //         std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        //     fmt::println("");
+        //     fmt::println("The measurement orig for point took {}", elapsed);
+        //     fmt::println("p_sum_orig = {}", unitize(p_sum_orig * (1.0 / steps)));
+
+        //     vec2dp pm_sum{};
+        //     start = std::chrono::system_clock::now();
+        //     for (size_t i = 0; i < steps; ++i) {
+        //         auto pm = move2dp(p, R);
+        //         pm_sum += pm; // just to avoid full replacement with opt
+        //     }
+        //     end = std::chrono::system_clock::now();
+        //     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end -
+        //     start); fmt::println("The measurement opt for point took {}", elapsed);
+        //     fmt::println("pm_sum = {}", unitize(pm_sum * (1.0 / steps)));
+        //     fmt::println("");
+
+        //     bivec2dp lm_sum_orig{};
+        //     start = std::chrono::system_clock::now();
+        //     for (size_t i = 0; i < steps; ++i) {
+        //         auto lm_orig = move2dp_orig(l, R);
+        //         lm_sum_orig += lm_orig; // just to avoid full replacement with opt
+        //     }
+        //     end = std::chrono::system_clock::now();
+        //     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end -
+        //     start); fmt::println("The measurement orig for line took {}", elapsed);
+        //     fmt::println("lm_sum_orig = {}", lm_sum_orig * (1.0 / steps));
+
+        //     bivec2dp lm_sum{};
+        //     start = std::chrono::system_clock::now();
+        //     for (size_t i = 0; i < steps; ++i) {
+        //         auto lm = move2dp(l, R);
+        //         lm_sum += lm; // just to avoid full replacement with opt
+        //     }
+        //     end = std::chrono::system_clock::now();
+        //     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end -
+        //     start); fmt::println("The measurement opt for line took {}", elapsed);
+        //     fmt::println("lm_sum = {}", lm_sum * (1.0 / steps));
+        //     fmt::println("");
+        // }
     }
 
     TEST_CASE("MVec2dp: complement operation")
@@ -2047,11 +2120,10 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("");
         // fmt::println("ln1      = {}, ln2      = {}", ln1, ln2);
         // fmt::println("att(ln1) = {}, att(ln2) = {}", att(ln1), att(ln2));
-        // fmt::println("pt12  = meet(ln1, ln2) = {}, att(pt12) = {}", pt12, att(pt12));
-        // fmt::println("");
-        // fmt::println("ln1p      = {}, ln2p      = {}", ln1p, ln2p);
-        // fmt::println("att(ln1p) = {}, att(ln2p) = {}", att(ln1p), att(ln2p));
-        // fmt::println("pt12p  = meet(ln1p, ln2p) = {}", pt12p);
+        // fmt::println("pt12  = meet(ln1, ln2) = {}, att(pt12) = {}", pt12,
+        // att(pt12)); fmt::println(""); fmt::println("ln1p      = {}, ln2p      =
+        // {}", ln1p, ln2p); fmt::println("att(ln1p) = {}, att(ln2p) = {}", att(ln1p),
+        // att(ln2p)); fmt::println("pt12p  = meet(ln1p, ln2p) = {}", pt12p);
         // fmt::println("");
 
         CHECK(join(p1, p2) == wdg(p1, p2));
@@ -2064,7 +2136,8 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
 
     //////////////////////////////////////////////////////////////////////////////////////
-    // projective geometric algebra 3d: pga3dp (embedded in a 4d representational space)
+    // projective geometric algebra 3d: pga3dp (embedded in a 4d representational
+    // space)
     //////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -2419,34 +2492,44 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         auto v3m = mvec3dp{v3};
         auto v4m = mvec3dp{v4};
 
-        // fmt::println("v1                  = {: .4f}, nrm(v1)         = {: .4f}", v1,
+        // fmt::println("v1                  = {: .4f}, nrm(v1)         = {: .4f}",
+        // v1,
         //              nrm(v1));
-        // fmt::println("v1                  = {: .4f}, bulk_nrm(v1)    = {: .4f}", v1,
+        // fmt::println("v1                  = {: .4f}, bulk_nrm(v1)    = {: .4f}",
+        // v1,
         //              bulk_nrm(v1));
-        // fmt::println("v1                  = {: .4f}, weight_nrm(v1)  = {: .4f}", v1,
+        // fmt::println("v1                  = {: .4f}, weight_nrm(v1)  = {: .4f}",
+        // v1,
         //              weight_nrm(v1));
-        // fmt::println("v1n = normalize(v1) = {: .4f}, nrm(v1n)        = {: .4f}", v1n,
+        // fmt::println("v1n = normalize(v1) = {: .4f}, nrm(v1n)        = {: .4f}",
+        // v1n,
         //              nrm(v1n));
-        // fmt::println("v1n                 = {: .4f}, bulk_nrm(v1n)   = {: .4f}", v1n,
+        // fmt::println("v1n                 = {: .4f}, bulk_nrm(v1n)   = {: .4f}",
+        // v1n,
         //              bulk_nrm(v1n));
-        // fmt::println("v1n                 = {: .4f}, weight_nrm(v1n) = {: .4f}", v1n,
+        // fmt::println("v1n                 = {: .4f}, weight_nrm(v1n) = {: .4f}",
+        // v1n,
         //              weight_nrm(v1n));
-        // fmt::println("v1u = unitize(v1)   = {: .4f}, nrm(v1u)        = {: .4f}", v1u,
+        // fmt::println("v1u = unitize(v1)   = {: .4f}, nrm(v1u)        = {: .4f}",
+        // v1u,
         //              nrm(v1u));
-        // fmt::println("v1u                 = {: .4f}, bulk_nrm(v1u)   = {: .4f}", v1u,
+        // fmt::println("v1u                 = {: .4f}, bulk_nrm(v1u)   = {: .4f}",
+        // v1u,
         //              bulk_nrm(v1u));
-        // fmt::println("v1u                 = {: .4f}, weight_nrm(v1u) = {: .4f}", v1u,
+        // fmt::println("v1u                 = {: .4f}, weight_nrm(v1u) = {: .4f}",
+        // v1u,
         //              weight_nrm(v1u));
         // fmt::println("");
-        // fmt::println("v3                  = {: .4f}, nrm(v1) = {: .4f}", v3, nrm(v3));
-        // fmt::println("v4 = inv(v3)        = {: .4f}, "
+        // fmt::println("v3                  = {: .4f}, nrm(v1) = {: .4f}", v3,
+        // nrm(v3)); fmt::println("v4 = inv(v3)        = {: .4f}, "
         //              "nrm(v3) = {: .4f}, nrm(v3)*nrm(v4) = {: .4f}",
         //              v4, nrm(v4), nrm(v3) * nrm(v4));
         // fmt::println("");
         // fmt::println("v3m = {}, nrm(v3m) = {}", v3m, nrm(v3m));
         // fmt::println("v4m = {}, nrm(v4m) = {}", v4m, nrm(v4m));
-        // fmt::println("0.5*(v3m*v4m + v4m*v3m) = {}", 0.5 * (v3m * v4m + v4m * v3m));
-        // fmt::println("0.5*(v3m*v4m - v4m*v3m) = {}", 0.5 * (v3m * v4m - v4m * v3m));
+        // fmt::println("0.5*(v3m*v4m + v4m*v3m) = {}", 0.5 * (v3m * v4m + v4m *
+        // v3m)); fmt::println("0.5*(v3m*v4m - v4m*v3m) = {}", 0.5 * (v3m * v4m - v4m
+        // * v3m));
 
         CHECK(std::abs(nrm_sq(v1) - 13) < eps);
         CHECK(std::abs(bulk_nrm_sq(v1) - 9) < eps);
@@ -2604,13 +2687,16 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         //              "nrm(v2) = {: .4f}",
         //              v2, bulk_nrm(v2), nrm(v2));
         // fmt::println("");
-        // fmt::println("v3 = project_onto(v1, v2) = {: .4f}, bulk_nrm(v3) = {: .4f}, "
+        // fmt::println("v3 = project_onto(v1, v2) = {: .4f}, bulk_nrm(v3) = {: .4f},
+        // "
         //              "nrm(v3) = {: .4f}",
         //              v3, bulk_nrm(v3), nrm(v3));
-        // fmt::println("v4 = reject_from(v1, v2)  = {: .4f}, bulk_nrm(v4) = {: .4f}, "
+        // fmt::println("v4 = reject_from(v1, v2)  = {: .4f}, bulk_nrm(v4) = {: .4f},
+        // "
         //              "nrm(v4) = {: .4f}",
         //              v4, bulk_nrm(v4), nrm(v4));
-        // fmt::println("v5 = v3 + v4              = {: .4f}, bulk_nrm(v5) = {: .4f}, "
+        // fmt::println("v5 = v3 + v4              = {: .4f}, bulk_nrm(v5) = {: .4f},
+        // "
         //              "nrm(v5) = {: .4f}",
         //              v5, bulk_nrm(v5), nrm(v5));
         // fmt::println("");
@@ -2664,6 +2750,322 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     // MVec3dp: ...
     ////
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // MVec3dp_E<T> and MVec3dp_U<T> operations test cases
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("MVec3dp_E/_U: reflections and motors (rotations, translations)")
+    {
+        fmt::println("MVec3dp_E/_U: reflections and motors (rotations, translations)");
+
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 1st: start with points use planes through the origin and reflect points
+            /////////////////////////////////////////////////////////////////////////////
+
+            // define points and planes
+            auto p0 = origin_3dp;
+            auto p1 = vec3dp{1, 0, 0, 1};
+            auto p2 = vec3dp{1, 1, 0, 1};
+            auto p3 = vec3dp{0, 0, 1, 1};
+            auto p = vec3dp{1, -0.5, 0, 1};
+
+            auto pl1 = wdg(wdg(p0, p3), p1);
+            auto pl2 = wdg(wdg(p0, p3), p2);
+
+            // reflect p on pl1 -> pr and reflect pr on pl2 -> prr
+            auto pr = -gr1(rgpr(rgpr(pl1, p), pl1));
+
+            auto prr = -gr1(rgpr(rgpr(pl2, pr), pl2));
+
+            // fmt::println("");
+            // fmt::println("pl1: {}, pl1u: {}, pl2: {}, pl2u: {}", pl1, unitize(pl1),
+            // pl2,
+            //              unitize(pl2));
+            // fmt::println("pr: {}, pru: {}", pr, unitize(pr));
+            // fmt::println("prr: {}, prru: {}", prr, unitize(prr));
+            // fmt::println("");
+
+            CHECK(unitize(pr) == vec3dp{1, 0.5, 0, 1});
+            CHECK(unitize(prr) == vec3dp{0.5, 1, 0, 1});
+
+            // show that prr can be obtained directly from a motor as pm
+            auto motor = rgpr(pl2, pl1);
+
+            auto pm = gr1(rgpr(rgpr(motor, p), rrev(motor)));
+
+            // fmt::println("");
+            // fmt::println("pm: {}, pmu: {}", pm, unitize(pm));
+            // fmt::println("");
+
+            CHECK(unitize(prr) == unitize(pm));
+        }
+
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 2nd: start with lines through the origin and reflect them in planes through
+            //      the origin
+            /////////////////////////////////////////////////////////////////////////////
+
+            // define points and lines
+            auto p0 = origin_3dp;
+            auto p1 = vec3dp{1, 0, 0, 1};
+            auto p2 = vec3dp{1, 1, 0, 1};
+            auto p3 = vec3dp{0, 0, 1, 1};
+            auto p = vec3dp{1, -0.5, 0, 1};
+
+            auto pl1 = wdg(wdg(p0, p3), p1);
+            auto pl2 = wdg(wdg(p0, p3), p2);
+
+            auto l = wdg(p0, p);
+
+            // reflect l on pl1 -> lr and reflect lr on pl2 -> lrr
+            auto lr = -gr2(rgpr(rgpr(pl1, l), pl1));
+            auto lrr = -gr2(rgpr(rgpr(pl2, lr), pl2));
+
+            // fmt::println("");
+            // fmt::println("l: {}, lu: {}, att(l): {}", l, unitize(l), att(l));
+            // fmt::println("");
+            // fmt::println("pl1: {}, pl1u: {}, att(pl1): {}", pl1, unitize(pl1),
+            // att(pl1)); fmt::println("pl2: {}, pl2u: {}, att(pl2): {}", pl2,
+            // unitize(pl2), att(pl2)); fmt::println(""); fmt::println("lr: {}, lru: {},
+            // att(lr): {}", lr, unitize(lr), att(lr)); fmt::println("lrr: {}, lrru: {},
+            // att(lrr): {}", lrr, unitize(lrr), att(lrr)); fmt::println("");
+
+            CHECK(unitize(lr) == unitize(join(p0, vec3dp{1, 0.5, 0, 1})));
+            CHECK(unitize(lrr) == unitize(join(p0, vec3dp{0.5, 1, 0, 1})));
+
+            // show that prr can be obtained directly from a rotation via a motor as pm
+            auto motor = rgpr(pl2, pl1);
+
+            auto lm = gr2(rgpr(rgpr(motor, l), rrev(motor)));
+
+            // fmt::println("");
+            // fmt::println("lm: {}, lmu: {}, att(lm): {}", lm, unitize(lm), att(lm));
+            // fmt::println("");
+
+            CHECK(lrr == lm);
+            CHECK(unitize(lrr) == unitize(lm));
+        }
+
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 3rd: as 1st step (reflection with points), but with the lines for
+            // reflection and the center of rotation not in the origin
+            /////////////////////////////////////////////////////////////////////////////
+
+            // define points and lines
+            // p0 was origin_3dp, now shifted to new point
+            auto p0 = vec3dp{1, 0.5, 0, 1};
+            auto delta = p0 - origin_3dp;
+            auto p1 = vec3dp{1, 0, 0, 1} + delta;
+            auto p2 = vec3dp{1, 1, 0, 1} + delta;
+            auto p3 = vec3dp{0, 0, 1, 1} + delta;
+            auto p = vec3dp{1, -0.5, 0, 1} + delta;
+
+            auto pl1 = wdg(wdg(p0, p3), p1);
+            auto pl2 = wdg(wdg(p0, p3), p2);
+
+            // reflect p on pl1 -> pr and reflect pr on pl2 -> prr
+            auto pr = -gr1(rgpr(rgpr(pl1, p), pl1));
+            auto prr = -gr1(rgpr(rgpr(pl2, pr), pl2));
+
+            // fmt::println("");
+            // fmt::println("pl1: {}, pl1u: {}, pl2: {}, pl2u: {}", pl1, unitize(pl1),
+            // pl2,
+            //              unitize(pl2));
+            // fmt::println("pr: {}, pru: {}", pr, unitize(pr));
+            // fmt::println("prr: {}, prru: {}", prr, unitize(prr));
+            // fmt::println("");
+
+            CHECK(unitize(pr) == vec3dp{1, 0.5, 0, 1} + delta);
+            CHECK(unitize(prr) == vec3dp{0.5, 1, 0, 1} + delta);
+
+            // show that prr can be obtained directly from a movement via a motor as pm
+            auto motor = rgpr(pl2, pl1);
+            auto pm = gr1(rgpr(rgpr(motor, p), rrev(motor)));
+
+            // fmt::println("");
+            // fmt::println("pm: {}, pmu: {}", pm, unitize(pm));
+            // fmt::println("");
+
+            CHECK(unitize(prr) == unitize(pm));
+        }
+
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 4th: same at the 2nd step (reflecion of lines on lines), but with
+            // lines for reflection and the center of rotation not in the origin
+            /////////////////////////////////////////////////////////////////////////////
+
+            // define points and lines
+            // p0 was origin_3dp, now shifted to new point
+            auto p0 = vec3dp{1, 0.5, 0, 1};
+            auto delta = p0 - origin_3dp;
+            auto p1 = vec3dp{1, 0, 0, 1} + delta;
+            auto p2 = vec3dp{1, 1, 0, 1} + delta;
+            auto p3 = vec3dp{0, 0, 1, 1} + delta;
+            auto p = vec3dp{1, -0.5, 0, 1} + delta;
+
+            auto pl1 = wdg(wdg(p0, p3), p1);
+            auto pl2 = wdg(wdg(p0, p3), p2);
+
+            auto l = wdg(p0, p);
+
+            // reflect l on pl1 -> lr and reflect lr on pl2 -> lrr
+            auto lr = -gr2(rgpr(rgpr(pl1, l), pl1));
+            auto lrr = -gr2(rgpr(rgpr(pl2, lr), pl2));
+
+            // fmt::println("");
+            // fmt::println("l: {}, lu: {}, att(l): {}", l, unitize(l), att(l));
+            // fmt::println("");
+            // fmt::println("pl1: {}, pl1u: {}, att(pl1): {}", pl1, unitize(pl1),
+            // att(pl1)); fmt::println("pl2: {}, pl2u: {}, att(pl2): {}", pl2,
+            // unitize(pl2), att(pl2)); fmt::println(""); fmt::println("lr: {}, lru: {},"
+            //              "att(lr): {}",
+            //              lr, unitize(lr), att(lr));
+            // fmt::println("lrr: {}, lrru: {}, "
+            //              "att(lrr): {}",
+            //              lrr, unitize(lrr), att(lrr));
+            // fmt::println("");
+
+            CHECK(unitize(lr) == unitize(join(p0, vec3dp{1, 0.5, 0, 1} + delta)));
+            CHECK(unitize(lrr) == unitize(join(p0, vec3dp{0.5, 1, 0, 1} + delta)));
+
+            // show that prr can be obtained directly from a rotation via a motor as pm
+            auto motor = rgpr(pl2, pl1);
+
+            auto lm = gr2(rgpr(rgpr(motor, l), rrev(motor)));
+
+            // fmt::println("");
+            // fmt::println("lm: {}, lmu: {}, att(lm): {}", lm, unitize(lm), att(lm));
+            // fmt::println("");
+
+            CHECK(lrr == lm);
+            CHECK(unitize(lrr) == unitize(lm));
+        }
+
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 5th step: do the same as above, but use the optimized motor formulas
+            /////////////////////////////////////////////////////////////////////////////
+
+            // define points and lines
+            // p0 was origin_3dp, now shifted to that new
+            auto p0 = vec3dp{1, 0.5, 0, 1};
+            auto delta = p0 - origin_3dp;
+            auto p1 = vec3dp{1, 0, 0, 1} + delta;
+            auto p2 = vec3dp{1, 1, 0, 1} + delta;
+            auto p3 = vec3dp{0, 0, 1, 1} + delta;
+            auto p = vec3dp{1, -0.5, 0, 1} + delta;
+
+            auto pl1 = wdg(wdg(p0, p3), p1);
+            auto pl2 = wdg(wdg(p0, p3), p2);
+
+            auto l = wdg(p0, p);
+
+            auto R = motor3dp_from_pln(pl1, pl2);
+            CHECK(R == rgpr(pl2, pl1));
+
+            auto pm_manual = gr1(rgpr(rgpr(R, p), rrev(R)));
+            auto pm_orig = move3dp_orig(p, R);
+            auto pm = move3dp(p, R);
+
+            CHECK(pm_manual == pm_orig);
+            CHECK(pm_manual == pm);
+
+            auto lm_manual = gr2(rgpr(rgpr(R, l), rrev(R)));
+            auto lm_orig = move3dp_orig(l, R);
+            auto lm = move3dp(l, R);
+
+            // fmt::println("");
+            // fmt::println("lm_orig: {}, lmu_orig: {}, att(lm_orig): {}", lm_orig,
+            //              unitize(lm_orig), att(lm_orig));
+            // fmt::println("");
+            // fmt::println("");
+            // fmt::println("lm: {}, lmu: {}, att(lm): {}", lm, unitize(lm), att(lm));
+            // fmt::println("");
+
+            CHECK(lm_manual == lm_orig);
+            CHECK(lm_manual == lm);
+        }
+
+        // {
+        //     /////////////////////////////////////////////////////////////////////////////
+        //     // 6th step: optional speed testing for the optimized motor formulas
+        //     // -> advantage for debug mode, but not when enabling optimization
+        //     /////////////////////////////////////////////////////////////////////////////
+
+        //     // define points and lines
+        //     // p0 was origin_3dp, now shifted to that new
+        //     auto p0 = vec3dp{1, 0.5, 0, 1};
+        //     auto delta = p0 - origin_3dp;
+        //     auto p1 = vec3dp{1, 0, 0, 1} + delta;
+        //     auto p2 = vec3dp{1, 1, 0, 1} + delta;
+        //     auto p3 = vec3dp{0, 0, 1, 1} + delta;
+        //     auto p = vec3dp{1, -0.5, 0, 1} + delta;
+
+        //     auto pl1 = wdg(wdg(p0, p3), p1);
+        //     auto pl2 = wdg(wdg(p0, p3), p2);
+
+        //     auto l = wdg(p0, p);
+
+        //     auto R = motor3dp_from_pln(pl1, pl2);
+        //     CHECK(R == rgpr(pl2, pl1));
+
+        //     // checking time required
+        //     constexpr size_t steps = 10'000'000;
+        //     vec3dp p_sum_orig{};
+        //     auto start = std::chrono::system_clock::now();
+        //     for (size_t i = 0; i < steps; ++i) {
+        //         auto pm_orig = move3dp_orig(p, R);
+        //         p_sum_orig += pm_orig; // just to avoid full replacement with opt
+        //     }
+        //     auto end = std::chrono::system_clock::now();
+        //     auto elapsed =
+        //         std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        //     fmt::println("");
+        //     fmt::println("The measurement orig for point took {}", elapsed);
+        //     fmt::println("p_sum_orig = {}", unitize(p_sum_orig * (1.0 / steps)));
+
+        //     vec3dp pm_sum{};
+        //     start = std::chrono::system_clock::now();
+        //     for (size_t i = 0; i < steps; ++i) {
+        //         auto pm = move3dp(p, R);
+        //         pm_sum += pm; // just to avoid full replacement with opt
+        //     }
+        //     end = std::chrono::system_clock::now();
+        //     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end -
+        //     start); fmt::println("The measurement opt for point took {}", elapsed);
+        //     fmt::println("pm_sum = {}", unitize(pm_sum * (1.0 / steps)));
+        //     fmt::println("");
+
+        //     bivec3dp lm_sum_orig{};
+        //     start = std::chrono::system_clock::now();
+        //     for (size_t i = 0; i < steps; ++i) {
+        //         auto lm_orig = move3dp_orig(l, R);
+        //         lm_sum_orig += lm_orig; // just to avoid full replacement with opt
+        //     }
+        //     end = std::chrono::system_clock::now();
+        //     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end -
+        //     start); fmt::println("The measurement orig for line took {}", elapsed);
+        //     fmt::println("lm_sum_orig = {}", lm_sum_orig * (1.0 / steps));
+
+        //     bivec3dp lm_sum{};
+        //     start = std::chrono::system_clock::now();
+        //     for (size_t i = 0; i < steps; ++i) {
+        //         auto lm = move3dp(l, R);
+        //         lm_sum += lm; // just to avoid full replacement with opt
+        //     }
+        //     end = std::chrono::system_clock::now();
+        //     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end -
+        //     start); fmt::println("The measurement opt for line took {}", elapsed);
+        //     fmt::println("lm_sum = {}", lm_sum * (1.0 / steps));
+        //     fmt::println("");
+        // }
+    }
+
+
     TEST_CASE("MVec3dp: complement operation")
     {
         fmt::println("MVec3dp: complement operation");
@@ -2696,7 +3098,8 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(wdg(lcmpl(t), t) == nrm_sq(t) * I_3dp);
         CHECK(wdg(lcmpl(ps), ps) == nrm_sq(ps) * I_3dp);
 
-        // complement properties (right and left complements are inverse to each other)
+        // complement properties (right and left complements are inverse to each
+        // other)
         CHECK(lcmpl(rcmpl(s)) == s);
         CHECK(lcmpl(rcmpl(v)) == v);
         CHECK(lcmpl(rcmpl(B)) == B);
@@ -3069,12 +3472,10 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         auto apl02 = angle(pl, pl2);
 
         // fmt::println("");
-        // fmt::println("pt0  = {}, pt1  = {}, pt2  = {}, pt3  = {}", pt0, pt1, pt2, pt3);
-        // fmt::println("pt4  = {}, pt5  = {}, pt6  = {}, pt7  = {}", pt4, pt5, pt6, pt7);
-        // fmt::println("ln02 = {}", ln01);
-        // fmt::println("ln02 = {}", ln02);
-        // fmt::println("ln07 = {}", ln07);
-        // fmt::println("ln09 = {}", ln09);
+        // fmt::println("pt0  = {}, pt1  = {}, pt2  = {}, pt3  = {}", pt0, pt1, pt2,
+        // pt3); fmt::println("pt4  = {}, pt5  = {}, pt6  = {}, pt7  = {}", pt4, pt5,
+        // pt6, pt7); fmt::println("ln02 = {}", ln01); fmt::println("ln02 = {}",
+        // ln02); fmt::println("ln07 = {}", ln07); fmt::println("ln09 = {}", ln09);
         // fmt::println("ln56 = {}", ln56);
         // fmt::println("pl = {}", pl);
         // fmt::println("pl2 = {}", pl2);

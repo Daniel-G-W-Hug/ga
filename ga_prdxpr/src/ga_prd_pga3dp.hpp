@@ -650,6 +650,15 @@ const mvec_coeff mv3dp_coeff_A_uneven = {"0",    "A.c0", "A.c1", "A.c2", "A.c3",
 const mvec_coeff mv3dp_coeff_B_uneven = {"0",    "B.c0", "B.c1", "B.c2", "B.c3", "0",
                                          "0",    "0",    "0",    "0",    "0",    "B.c4",
                                          "B.c5", "B.c6", "B.c7", "0"};
+const mvec_coeff mv3dp_coeff_R_uneven = {"0",    "R.c0", "R.c1", "R.c2", "R.c3", "0",
+                                         "0",    "0",    "0",    "0",    "0",    "R.c4",
+                                         "R.c5", "R.c6", "R.c7", "0"};
+const mvec_coeff mv3dp_coeff_R_rev_uneven = {
+    "0", "R.c0", "R.c1", "R.c2",  "R.c3",  "0",     "0",     "0",
+    "0", "0",    "0",    "-R.c4", "-R.c5", "-R.c6", "-R.c7", "0"};
+const mvec_coeff mv3dp_coeff_R_rrev_uneven = {
+    "0", "-R.c0", "-R.c1", "-R.c2", "-R.c3", "0",    "0",    "0",
+    "0", "0",     "0",     "R.c4",  "R.c5",  "R.c6", "R.c7", "0"};
 const mvec_coeff mv3dp_coeff_svBtps = {"s",    "v.x",  "v.y",  "v.z",  "v.w",  "B.vx",
                                        "B.vy", "B.vz", "B.mx", "B.my", "B.mz", "t.x",
                                        "t.y",  "t.z",  "t.w",  "ps"};

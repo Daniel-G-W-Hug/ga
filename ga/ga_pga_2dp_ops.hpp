@@ -1925,11 +1925,11 @@ template <typename T, typename U>
 inline constexpr MVec2dp_U<std::common_type_t<T, U>>
 motor2dp_from_ln(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
 {
-    // take lines as input an return a motor
+    // take lines as input and return a motor R
     // 1st apply reflection across line B1, then across B2 to get a motor that rotates
     // (or translates) around the intersection point of lines B1 and B2
     //
-    // for use of motor m either directly on object u (inefficient):
+    // for use of motor R either directly on object u (inefficient):
     //     auto v_moved = gr1(rgpr(rgpr(R, v), rrev(R))));
     // or
     //     auto B_moved = gr2(rgpr(rgpr(R, B), rrev(R))));
@@ -1947,7 +1947,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp_orig(Vec2dp<T> const& 
                                                                MVec2dp_U<U> const& R)
 {
     // moves v (a vector representing a projective point) according to the motor R
-    return gr1(rgpr(rgpr(R, v), rrev(R))); // the inefficient original
+    return gr1(rgpr(rgpr(R, v), rrev(R)));
 }
 
 template <typename T, typename U>
@@ -1956,7 +1956,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_orig(BiVec2dp<T> con
                                                                  MVec2dp_U<U> const& R)
 {
     // moves B (a bivector representing a line) according to the motor R
-    return gr2(rgpr(rgpr(R, B), rrev(R))); // the inefficient original
+    return gr2(rgpr(rgpr(R, B), rrev(R)));
 }
 
 template <typename T, typename U>
@@ -2004,6 +2004,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B
         (-k22 + k33) * B.x + 2.0 * (-k23) * B.y, 2.0 * k23 * B.x + (-k22 + k33) * B.y,
         2.0 * (k02 - k13) * B.x + 2.0 * (k12 + k03) * B.y + (k22 + k33) * B.z);
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2dp rotation operations
