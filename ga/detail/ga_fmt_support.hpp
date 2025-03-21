@@ -325,6 +325,12 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : nested_formatter<double> {
                                   nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
         }
         else if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
+                                          hd::ga::MVec8_t<T, hd::ga::mvec2dp_tag>>) {
+            return fmt::format_to(ctx.out(), "MVec2dp({}, {}, {}, {}, {}, {}, {}, {})",
+                                  nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
+                                  nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
+        }
+        else if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
                                           hd::ga::MVec8_t<T, hd::ga::mvec3dp_e_tag>>) {
             return fmt::format_to(ctx.out(), "MVec3dp_E({}, {}, {}, {}, {}, {}, {}, {})",
                                   nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),

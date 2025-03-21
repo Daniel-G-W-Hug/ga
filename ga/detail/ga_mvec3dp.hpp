@@ -58,28 +58,28 @@ template <typename T> struct MVec16_t<T, mvec3dp_tag> : public MVec16_t<T, defau
     {
     }
 
-    // assign components of an even grade subvector
+    // assign components of an even grade multivector
     MVec16_t(Scalar3dp<T> s, BiVec3dp<T> const& B, PScalar3dp<T> ps) :
         MVec16_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), B.vx, B.vy, B.vz, B.mx, B.my, B.mz,
                  T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
-    // assign components of an even grade subvector
+    // assign components of an even grade multivector
     MVec16_t(MVec3dp_E<T> const& M) :
         MVec16_t(M.c0, T(0.0), T(0.0), T(0.0), T(0.0), M.c1, M.c2, M.c3, M.c4, M.c5, M.c6,
                  T(0.0), T(0.0), T(0.0), T(0.0), M.c7)
     {
     }
 
-    // assign components of an uneven grade subvector
+    // assign components of an uneven grade multivector
     MVec16_t(Vec3dp<T> const& v, TriVec3dp<T> const& t) :
         MVec16_t(T(0.0), v.x, v.y, v.z, v.w, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
                  T(0.0), t.x, t.y, t.z, t.w, T(0.0))
     {
     }
 
-    // assign components of an uneven grade subvector
+    // assign components of an uneven grade multivector
     MVec16_t(MVec3dp_U<T> const& M) :
         MVec16_t(T(0.0), M.c0, M.c1, M.c2, M.c3, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
                  T(0.0), M.c4, M.c5, M.c6, M.c7, T(0.0))
@@ -87,7 +87,7 @@ template <typename T> struct MVec16_t<T, mvec3dp_tag> : public MVec16_t<T, defau
     }
 
     // assign a full multivector
-    // assign components of an even grade subvector
+    // assign components of an even grade multivector
     MVec16_t(Scalar3dp<T> s, Vec3dp<T> const& v, BiVec3dp<T> const& B,
              TriVec3dp<T> const& t, PScalar3dp<T> ps) :
         MVec16_t(T(s), v.x, v.y, v.z, v.w, B.vx, B.vy, B.vz, B.mx, B.my, B.mz, t.x, t.y,

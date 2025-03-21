@@ -43,21 +43,20 @@ template <typename T> struct MVec8_t<T, mvec2dp_tag> : public MVec8_t<T, default
     {
     }
 
-    // assign a geometric product resulting from a product of two vectors
-    // via dot(v1,v2) and wdg(v1,v2) or via dot(v1,v2) and cmt(v1,v2) directly
+    // assign from a scalar and a bivector
     // (other grades = 0)
     MVec8_t(Scalar2dp<T> s, BiVec2dp<T> const& B) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), B.x, B.y, B.z, T(0.0))
     {
     }
 
-    // assign from a quaternion, i.e. from the even subalgebra
+    // assign from the even subalgebra
     MVec8_t(MVec2dp_E<T> const& M) :
         MVec8_t(M.c0, T(0.0), T(0.0), T(0.0), M.c1, M.c2, M.c3, T(0.0))
     {
     }
 
-    // assign a geometric product resulting from a product of a vector and a bivector
+    // assign a vector and a pseudoscalar
     MVec8_t(Vec2dp<T> const& v, PScalar2dp<T> ps) :
         MVec8_t(T(0.0), v.x, v.y, v.z, T(0.0), T(0.0), T(0.0), T(ps))
     {

@@ -57,18 +57,18 @@ inline constexpr PScalar2dp<T> gr_inv(PScalar2dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> gr_inv(MVec2dp_E<T> const& E)
+inline constexpr MVec2dp_E<T> gr_inv(MVec2dp_E<T> const& M)
 {
     // grade 0 and 2: no sign change
-    return E;
+    return M;
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> gr_inv(MVec2dp_U<T> const& U)
+inline constexpr MVec2dp_U<T> gr_inv(MVec2dp_U<T> const& M)
 {
     // grade 1 and 3: sign reversal
-    return -U;
+    return -M;
 }
 
 template <typename T>
@@ -77,7 +77,7 @@ inline constexpr MVec2dp<T> gr_inv(MVec2dp<T> const& M)
 {
     // grade 0 and 2: no sign change
     // grade 1 and 3: sign reversal
-    return MVec2dp<T>(M.c0, -M.c1, -M.c2, -M.c3, M.c4, M.c5, M.c6, -M.c7);
+    return MVec2dp<T>(gr_inv(gr0(M)), gr_inv(gr1(M)), gr_inv(gr2(M)), gr_inv(gr3(M)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -120,20 +120,20 @@ inline constexpr PScalar2dp<T> rev(PScalar2dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> rev(MVec2dp_E<T> const& E)
+inline constexpr MVec2dp_E<T> rev(MVec2dp_E<T> const& M)
 {
     // grade 0: no sign change
     // grade 2: sign change
-    return MVec2dp_E<T>(E.c0, -E.c1, -E.c2, -E.c3);
+    return MVec2dp_E<T>(rev(gr0(M)), rev(gr2(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> rev(MVec2dp_U<T> const& U)
+inline constexpr MVec2dp_U<T> rev(MVec2dp_U<T> const& M)
 {
     // grade 1: no sign change
     // grade 3: sign change
-    return MVec2dp_U<T>(U.c0, U.c1, U.c2, -U.c3);
+    return MVec2dp_U<T>(rev(gr1(M)), rev(gr3(M)));
 }
 
 template <typename T>
@@ -144,7 +144,7 @@ inline constexpr MVec2dp<T> rev(MVec2dp<T> const& M)
     // grade 1: no sign change
     // grade 2: sign change
     // grade 3: sign change
-    return MVec2dp<T>(M.c0, M.c1, M.c2, M.c3, -M.c4, -M.c5, -M.c6, -M.c7);
+    return MVec2dp<T>(rev(gr0(M)), rev(gr1(M)), rev(gr2(M)), rev(gr3(M)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -187,20 +187,20 @@ inline constexpr PScalar2dp<T> rrev(PScalar2dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> rrev(MVec2dp_E<T> const& E)
+inline constexpr MVec2dp_E<T> rrev(MVec2dp_E<T> const& M)
 {
     // grade 0: sign reversal
     // grade 2: no sign change
-    return MVec2dp_E<T>(-E.c0, E.c1, E.c2, E.c3);
+    return MVec2dp_E<T>(rrev(gr0(M)), rrev(gr2(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> rrev(MVec2dp_U<T> const& U)
+inline constexpr MVec2dp_U<T> rrev(MVec2dp_U<T> const& M)
 {
     // grade 1: sign reversal
     // grade 3: no sign change
-    return MVec2dp_U<T>(-U.c0, -U.c1, -U.c2, U.c3);
+    return MVec2dp_U<T>(rrev(gr1(M)), rrev(gr3(M)));
 }
 
 template <typename T>
@@ -211,7 +211,7 @@ inline constexpr MVec2dp<T> rrev(MVec2dp<T> const& M)
     // grade 1: sign reversal
     // grade 2: no sign change
     // grade 3: no sign change
-    return MVec2dp<T>(-M.c0, -M.c1, -M.c2, -M.c3, M.c4, M.c5, M.c6, M.c7);
+    return MVec2dp<T>(rrev(gr0(M)), rrev(gr1(M)), rrev(gr2(M)), rrev(gr3(M)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -254,20 +254,20 @@ inline constexpr PScalar2dp<T> conj(PScalar2dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> conj(MVec2dp_E<T> const& E)
+inline constexpr MVec2dp_E<T> conj(MVec2dp_E<T> const& M)
 {
     // grade 0: no sign change
     // grade 2: sign change
-    return MVec2dp_E<T>(E.c0, -E.c1, -E.c2, -E.c3);
+    return MVec2dp_E<T>(conj(gr0(M)), conj(gr2(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> conj(MVec2dp_U<T> const& U)
+inline constexpr MVec2dp_U<T> conj(MVec2dp_U<T> const& M)
 {
     // grade 1: sign reversal
     // grade 3: no sign change
-    return MVec2dp_U<T>(-U.c0, -U.c1, -U.c2, U.c3);
+    return MVec2dp_U<T>(conj(gr1(M)), conj(gr3(M)));
 }
 
 template <typename T>
@@ -278,7 +278,7 @@ inline constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
     // grade 1: sign reversal
     // grade 2: sign reversal
     // grade 3: no sign change
-    return MVec2dp<T>(M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, M.c7);
+    return MVec2dp<T>(conj(gr0(M)), conj(gr1(M)), conj(gr2(M)), conj(gr3(M)));
 }
 
 
@@ -2218,8 +2218,12 @@ inline constexpr MVec2dp<T> cmpl(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// projections, rejections and reflections
+// projections, rejections
 ////////////////////////////////////////////////////////////////////////////////
+
+// TODO: check whether the vector-vector formulas make sense at all, since they model
+//       the representational space an not the modelled subspace
+//       => potentially only meaningful, when implemented based on type vector2dp
 
 // projection of a vector v1 onto vector v2
 // returns component of v1 parallel to v2
@@ -2229,11 +2233,10 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& 
                                                                Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(dot(v1, v2)) * Vec2dp<ctype>(inv(v2));
+    return ctype(dot(v1, v2)) * inv(v2);
 }
 
 // rejection of vector v1 from a vector v2
-// v_perp = gr1(wdg(v1,v2) * inv(v2)) = v1 - project_onto(v1, v2)
 // returns component of v1 perpendicular to v2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -2241,94 +2244,58 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v
                                                               Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(v1 - project_onto(v1, v2));
 
     // works, but is more effort compared to solution via projection and vector difference
     // return Vec2dp<ctype>(gr1(wdg(v1, v2) * inv(v2)));
-
-    return Vec2dp<ctype>(v1 - project_onto(v1, v2));
 }
 
 
-// projection of a vector v1 onto a bivector v2
-// v_parallel = dot(v1,v2) * inv(v2)
+// projection of a vector v onto a bivector B (a line)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v,
                                                                BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    // // Vec2dp<ctype> a = dot(v, B);
-    // Vec2dp<ctype> a = (v << B);
-    // BiVec2dp<ctype> Bi = inv(B);
-    // // use the formular equivalent to the geometric product to save computational cost
-    // // a * Bi = dot(a,Bi) + wdg(a,Bi)
-    // // v_parallel = gr1(a * Bi) = dot(a,Bi)
-    // // return Vec2dp<ctype>(dot(a, Bi));
-    // return Vec2dp<ctype>((a << Bi));
-
-    return Vec2dp<ctype>((v << inv(B)) << B);
-    // return Vec2dp<ctype>(gr1((v << inv(B)) * B));
+    return Vec2dp<ctype>(rwdg(B, wdg(v, weight_dual(B)))); // ortho_proj
 }
 
-
-// rejection of vector v1 from a bivector v2
-// u_perp = gr1(wdg(v1,v2) * inv(v2))
+// rejection of vector v from a bivector B (a line)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v1,
-                                                              BiVec2dp<U> const& v2)
+inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v,
+                                                              BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    PScalar2dp<ctype> A = wdg(v1, v2);
-    BiVec2dp<ctype> B = inv(v2);
-    // trivector * bivector = vector
-    return A * B;
+    return Vec2dp<ctype>(v - project_onto(v, B));
 }
 
-// reflect a vector u on a hyperplane B orthogonal to vector b
-//
-// hyperplane: a n-1 dimensional subspace in a space of dimension n (a line in 2d space)
-// orthogonal to vector b: the hyperplane is dual to b (i.e. a one dimensional subspace)
-//
-// HINT: choose b * B = I_2dp  =>  B = b * I_2dp  (for normalized b)
-//
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> reflect_on_hyp(Vec2dp<T> const& u,
-                                                                 Vec2dp<U> const& b)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(gr1(-b * u * inv(b)));
-}
 
-// reflect a vector u in an arbitrary bivector, i.e. a plane
+////////////////////////////////////////////////////////////////////////////////
+// reflections
+////////////////////////////////////////////////////////////////////////////////
+
+// reflect a vector u in an arbitrary bivector, i.e. a line
+// B must be unitized
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& u,
+inline constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& v,
                                                              BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(gr1(-B * u * inv(B)));
+    return Vec2dp<ctype>(-gr1(rgpr(rgpr(B, v), B)));
 }
 
-// reflect a bivector UB in an arbitrary bivector B (both modelling planes)
+// reflect a bivector UB in an arbitrary bivector B (both modelling lines)
+// B must be unitized
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
                                                                BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(gr2(B * UB * inv(B)));
-}
-
-// reflect a vector u another vector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> reflect_on_vec(Vec2dp<T> const& u,
-                                                                 Vec2dp<U> const& b)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(gr1(b * u * inv(b)));
+    return BiVec2dp<ctype>(-gr2(rgpr(rgpr(B, UB), B)));
 }
 
 } // namespace hd::ga::pga

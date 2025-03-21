@@ -65,18 +65,18 @@ inline constexpr PScalar3dp<T> gr_inv(PScalar3dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> gr_inv(MVec3dp_E<T> const& E)
+inline constexpr MVec3dp_E<T> gr_inv(MVec3dp_E<T> const& M)
 {
     // grade 0, 2, and 4: no sign change
-    return E;
+    return M;
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> gr_inv(MVec3dp_U<T> const& U)
+inline constexpr MVec3dp_U<T> gr_inv(MVec3dp_U<T> const& M)
 {
     // grade 1 and 3: sign reversal
-    return -U;
+    return -M;
 }
 
 template <typename T>
@@ -85,8 +85,8 @@ inline constexpr MVec3dp<T> gr_inv(MVec3dp<T> const& M)
 {
     // grade 0, 2, and 4: no sign change
     // grade 1 and 3: sign reversal
-    return MVec3dp<T>(M.c0, -M.c1, -M.c2, -M.c3, -M.c4, M.c5, M.c6, M.c7, M.c8, M.c9,
-                      M.c10, -M.c11, -M.c12, -M.c13, -M.c14, M.c15);
+    return MVec3dp<T>(gr_inv(gr0(M)), gr_inv(gr1(M)), gr_inv(gr2(M)), gr_inv(gr3(M)),
+                      gr_inv(gr4(M)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -137,20 +137,20 @@ inline constexpr PScalar3dp<T> rev(PScalar3dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> rev(MVec3dp_E<T> const& E)
+inline constexpr MVec3dp_E<T> rev(MVec3dp_E<T> const& M)
 {
     // grade 0, 4: no sign change
     // grade 2: sign change
-    return MVec3dp_E<T>(E.c0, -E.c1, -E.c2, -E.c3, -E.c4, -E.c5, -E.c6, E.c7);
+    return MVec3dp_E<T>(rev(gr0(M)), rev(gr2(M)), rev(gr4(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> rev(MVec3dp_U<T> const& U)
+inline constexpr MVec3dp_U<T> rev(MVec3dp_U<T> const& M)
 {
     // grade 1: no sign change
     // grade 3: sign change
-    return MVec3dp_U<T>(U.c0, U.c1, U.c2, U.c3, -U.c4, -U.c5, -U.c6, -U.c7);
+    return MVec3dp_U<T>(rev(gr1(M)), rev(gr3(M)));
 }
 
 template <typename T>
@@ -162,8 +162,7 @@ inline constexpr MVec3dp<T> rev(MVec3dp<T> const& M)
     // grade 2: sign change
     // grade 3: sign change
     // grade 4: no sign change
-    return MVec3dp<T>(M.c0, M.c1, M.c2, M.c3, M.c4, -M.c5, -M.c6, -M.c7, -M.c8, -M.c9,
-                      -M.c10, -M.c11, -M.c12, -M.c13, -M.c14, M.c15);
+    return MVec3dp<T>(rev(gr0(M)), rev(gr1(M)), rev(gr2(M)), rev(gr3(M)), rev(gr4(M)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -214,20 +213,20 @@ inline constexpr PScalar3dp<T> rrev(PScalar3dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> rrev(MVec3dp_E<T> const& E)
+inline constexpr MVec3dp_E<T> rrev(MVec3dp_E<T> const& M)
 {
     // grade 0, 4: no sign change
     // grade 2: sign reversal
-    return MVec3dp_E<T>(E.c0, -E.c1, -E.c2, -E.c3, -E.c4, -E.c5, -E.c6, E.c7);
+    return MVec3dp_E<T>(rrev(gr0(M)), rrev(gr2(M)), rrev(gr4(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> rrev(MVec3dp_U<T> const& U)
+inline constexpr MVec3dp_U<T> rrev(MVec3dp_U<T> const& M)
 {
     // grade 1: sign reversal
     // grade 3: no sign change
-    return MVec3dp_U<T>(-U.c0, -U.c1, -U.c2, -U.c3, U.c4, U.c5, U.c6, U.c7);
+    return MVec3dp_U<T>(rrev(gr1(M)), rrev(gr3(M)));
 }
 
 template <typename T>
@@ -239,8 +238,8 @@ inline constexpr MVec3dp<T> rrev(MVec3dp<T> const& M)
     // grade 2: sign reversal
     // grade 3: no sign change
     // grade 4: no sign change
-    return MVec3dp<T>(M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, -M.c7, -M.c8, -M.c9,
-                      -M.c10, M.c11, M.c12, M.c13, M.c14, M.c15);
+    return MVec3dp<T>(rrev(gr0(M)), rrev(gr1(M)), rrev(gr2(M)), rrev(gr3(M)),
+                      rrev(gr4(M)));
 }
 
 
@@ -292,20 +291,20 @@ inline constexpr PScalar3dp<T> conj(PScalar3dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> conj(MVec3dp_E<T> const& E)
+inline constexpr MVec3dp_E<T> conj(MVec3dp_E<T> const& M)
 {
     // grade 0, 4: no sign change
     // grade 2: sign change
-    return MVec3dp_E<T>(E.c0, -E.c1, -E.c2, -E.c3, -E.c4, -E.c5, -E.c6, E.c7);
+    return MVec3dp_E<T>(conj(gr0(M)), conj(gr2(M)), conj(gr4(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> conj(MVec3dp_U<T> const& U)
+inline constexpr MVec3dp_U<T> conj(MVec3dp_U<T> const& M)
 {
     // grade 1: sign reversal
     // grade 3: no sign change
-    return MVec3dp_U<T>(-U.c0, -U.c1, -U.c2, -U.c3, U.c4, U.c5, U.c6, U.c7);
+    return MVec3dp_U<T>(conj(gr1(M)), conj(gr3(M)));
 }
 
 template <typename T>
@@ -317,8 +316,8 @@ inline constexpr MVec3dp<T> conj(MVec3dp<T> const& M)
     // grade 2: sign reversal
     // grade 3: no sign change
     // grade 4: no sign change
-    return MVec3dp<T>(M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, -M.c7, -M.c8, -M.c9,
-                      -M.c10, M.c11, M.c12, M.c13, M.c14, M.c15);
+    return MVec3dp<T>(conj(gr0(M)), conj(gr1(M)), conj(gr2(M)), conj(gr3(M)),
+                      conj(gr4(M)));
 }
 
 
@@ -897,7 +896,7 @@ inline constexpr Line3d<std::common_type_t<T, U>> meet(Plane3d<T> const& p1,
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3dp<std::common_type_t<T, U>> meet(TriVec3dp<T> const& t,
-                                                       BiVec2dp<U> const& B)
+                                                       BiVec3dp<U> const& B)
 {
     return rwdg(t, B);
 }
@@ -938,11 +937,39 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> meet(Line3d<T> const& l,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp<std::common_type_t<T, U>> operator<<(MVec3dp<T> const& A,
+                                                              MVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c8 * B.c8 -
+               A.c9 * B.c9 - A.c10 * B.c10 - A.c14 * B.c14;
+    ctype c1 = A.c0 * B.c1 - A.c2 * B.c10 + A.c3 * B.c9 + A.c8 * B.c14;
+    ctype c2 = A.c0 * B.c2 + A.c1 * B.c10 - A.c3 * B.c8 + A.c9 * B.c14;
+    ctype c3 = A.c0 * B.c3 - A.c1 * B.c9 + A.c2 * B.c8 + A.c10 * B.c14;
+    ctype c4 = A.c0 * B.c4 - A.c1 * B.c5 - A.c2 * B.c6 - A.c3 * B.c7 - A.c8 * B.c11 -
+               A.c9 * B.c12 - A.c10 * B.c13 + A.c14 * B.c15;
+    ctype c5 = A.c0 * B.c5 + A.c2 * B.c13 - A.c3 * B.c12 + A.c8 * B.c15;
+    ctype c6 = A.c0 * B.c6 - A.c1 * B.c13 + A.c3 * B.c11 + A.c9 * B.c15;
+    ctype c7 = A.c0 * B.c7 + A.c1 * B.c12 - A.c2 * B.c11 + A.c10 * B.c15;
+    ctype c8 = A.c0 * B.c8 - A.c1 * B.c14;
+    ctype c9 = A.c0 * B.c9 - A.c2 * B.c14;
+    ctype c10 = A.c0 * B.c10 - A.c3 * B.c14;
+    ctype c11 = A.c0 * B.c11 + A.c1 * B.c15;
+    ctype c12 = A.c0 * B.c12 + A.c2 * B.c15;
+    ctype c13 = A.c0 * B.c13 + A.c3 * B.c15;
+    ctype c14 = A.c0 * B.c14;
+    ctype c15 = A.c0 * B.c15;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3dp<std::common_type_t<T, U>> operator<<(TriVec3dp<T> const& t,
                                                              PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(t.x, t.y, t.z, t.w) * ctype(ps);
+    return Vec3dp<ctype>(0.0, 0.0, 0.0, t.w) * ctype(ps);
 }
 
 template <typename T, typename U>
@@ -951,7 +978,7 @@ inline constexpr BiVec3dp<std::common_type_t<T, U>> operator<<(BiVec3dp<T> const
                                                                PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(B.mx, B.my, B.mz, B.vx, B.vy, B.vz) * ctype(ps);
+    return BiVec3dp<ctype>(B.mx, B.my, B.mz, 0.0, 0.0, 0.0) * ctype(ps);
 }
 
 template <typename T, typename U>
@@ -960,7 +987,7 @@ inline constexpr TriVec3dp<std::common_type_t<T, U>> operator<<(Vec3dp<T> const&
                                                                 PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(v.x, v.y, v.z, v.w) * ctype(ps);
+    return TriVec3dp<ctype>(v.x, v.y, v.z, 0.0) * ctype(ps);
 }
 
 template <typename T, typename U>
@@ -969,9 +996,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> operator<<(BiVec3dp<T> const& 
                                                              TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(
-        B.vy * t.z - B.vz * t.y + B.mx * t.w, -B.vx * t.z + B.vz * t.x + B.my * t.w,
-        B.vx * t.y - B.vy * t.x + B.mz * t.w, -B.mx * t.x - B.my * t.y - B.mz * t.z);
+    return Vec3dp<ctype>(B.mx * t.w, B.my * t.w, B.mz * t.w,
+                         -B.mx * t.x - B.my * t.y - B.mz * t.z);
 }
 
 template <typename T, typename U>
@@ -981,8 +1007,7 @@ inline constexpr BiVec3dp<std::common_type_t<T, U>> operator<<(Vec3dp<T> const& 
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3dp<ctype>(v.y * t.z - v.z * t.y, -v.x * t.z + v.z * t.x,
-                           v.x * t.y - v.y * t.x, -v.x * t.w + v.w * t.x,
-                           -v.y * t.w + v.w * t.y, -v.z * t.w + v.w * t.z);
+                           v.x * t.y - v.y * t.x, -v.x * t.w, -v.y * t.w, -v.z * t.w);
 }
 
 template <typename T, typename U>
@@ -991,9 +1016,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> operator<<(Vec3dp<T> const& v,
                                                              BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(
-        -v.y * B.mz + v.z * B.my + v.w * B.vx, v.x * B.mz - v.z * B.mx + v.w * B.vy,
-        -v.x * B.my + v.y * B.mx + v.w * B.vz, -v.x * B.vx - v.y * B.vy - v.z * B.vz);
+    return Vec3dp<ctype>(-v.y * B.mz + v.z * B.my, v.x * B.mz - v.z * B.mx,
+                         -v.x * B.my + v.y * B.mx, -v.x * B.vx - v.y * B.vy - v.z * B.vz);
 }
 
 
@@ -1006,11 +1030,39 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> operator<<(Vec3dp<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp<std::common_type_t<T, U>> operator>>(MVec3dp<T> const& A,
+                                                              MVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c8 * B.c8 -
+               A.c9 * B.c9 - A.c10 * B.c10 - A.c14 * B.c14;
+    ctype c1 = A.c1 * B.c0 - A.c9 * B.c3 + A.c10 * B.c2 + A.c14 * B.c8;
+    ctype c2 = A.c2 * B.c0 + A.c8 * B.c3 - A.c10 * B.c1 + A.c14 * B.c9;
+    ctype c3 = A.c3 * B.c0 - A.c8 * B.c2 + A.c9 * B.c1 + A.c14 * B.c10;
+    ctype c4 = A.c4 * B.c0 + A.c5 * B.c1 + A.c6 * B.c2 + A.c7 * B.c3 - A.c11 * B.c8 -
+               A.c12 * B.c9 - A.c13 * B.c10 - A.c15 * B.c14;
+    ctype c5 = A.c5 * B.c0 - A.c12 * B.c3 + A.c13 * B.c2 + A.c15 * B.c8;
+    ctype c6 = A.c6 * B.c0 + A.c11 * B.c3 - A.c13 * B.c1 + A.c15 * B.c9;
+    ctype c7 = A.c7 * B.c0 - A.c11 * B.c2 + A.c12 * B.c1 + A.c15 * B.c10;
+    ctype c8 = A.c8 * B.c0 - A.c14 * B.c1;
+    ctype c9 = A.c9 * B.c0 - A.c14 * B.c2;
+    ctype c10 = A.c10 * B.c0 - A.c14 * B.c3;
+    ctype c11 = A.c11 * B.c0 - A.c15 * B.c1;
+    ctype c12 = A.c12 * B.c0 - A.c15 * B.c2;
+    ctype c13 = A.c13 * B.c0 - A.c15 * B.c3;
+    ctype c14 = A.c14 * B.c0;
+    ctype c15 = A.c15 * B.c0;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3dp<std::common_type_t<T, U>> operator>>(PScalar3dp<T> ps,
                                                              TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return -ctype(ps) * Vec3dp<ctype>(t.x, t.y, t.z, t.w);
+    return -ctype(ps) * Vec3dp<ctype>(0.0, 0.0, 0.0, t.w);
 }
 
 template <typename T, typename U>
@@ -1019,7 +1071,7 @@ inline constexpr BiVec3dp<std::common_type_t<T, U>> operator>>(PScalar3dp<T> ps,
                                                                BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * BiVec3dp<ctype>(B.mx, B.my, B.mz, B.vx, B.vy, B.vz);
+    return ctype(ps) * BiVec3dp<ctype>(B.mx, B.my, B.mz, 0.0, 0.0, 0.0);
 }
 
 template <typename T, typename U>
@@ -1028,7 +1080,7 @@ inline constexpr TriVec3dp<std::common_type_t<T, U>> operator>>(PScalar3dp<T> ps
                                                                 Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return -ctype(ps) * TriVec3dp<ctype>(v.x, v.y, v.z, v.w);
+    return -ctype(ps) * TriVec3dp<ctype>(v.x, v.y, v.z, 0.0);
 }
 
 template <typename T, typename U>
@@ -1037,9 +1089,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> operator>>(TriVec3dp<T> const&
                                                              BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(
-        -t.y * B.vz + t.z * B.vy + t.w * B.mx, t.x * B.vz - t.z * B.vx + t.w * B.my,
-        -t.x * B.vy + t.y * B.vx + t.w * B.mz, -t.x * B.mx - t.y * B.my - t.z * B.mz);
+    return Vec3dp<ctype>(t.w * B.mx, t.w * B.my, t.w * B.mz,
+                         -t.x * B.mx - t.y * B.my - t.z * B.mz);
 }
 
 template <typename T, typename U>
@@ -1049,8 +1100,7 @@ inline constexpr BiVec3dp<std::common_type_t<T, U>> operator>>(TriVec3dp<T> cons
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3dp<ctype>(-t.y * v.z + t.z * v.y, t.x * v.z - t.z * v.x,
-                           -t.x * v.y + t.y * v.x, t.x * v.w - t.w * v.x,
-                           t.y * v.w - t.w * v.y, t.z * v.w - t.w * v.z);
+                           -t.x * v.y + t.y * v.x, -t.w * v.x, -t.w * v.y, -t.w * v.z);
 }
 
 template <typename T, typename U>
@@ -1059,14 +1109,13 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> operator>>(BiVec3dp<T> const& 
                                                              Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(
-        -B.vx * v.w - B.my * v.z + B.mz * v.y, -B.vy * v.w + B.mx * v.z - B.mz * v.x,
-        -B.vz * v.w - B.mx * v.y + B.my * v.x, B.vx * v.x + B.vy * v.y + B.vz * v.z);
+    return Vec3dp<ctype>(-B.my * v.z + B.mz * v.y, B.mx * v.z - B.mz * v.x,
+                         -B.mx * v.y + B.my * v.x, B.vx * v.x + B.vy * v.y + B.vz * v.z);
 }
 
-// ////////////////////////////////////////////////////////////////////////////////
-// // alternative multivector products (in use instead of contractions)
-// ////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// alternative multivector products (in use instead of contractions)
+////////////////////////////////////////////////////////////////////////////////
 
 // return commutator product cmt(A,B) of two bivectors A and B (= a bivector)
 // cmt(A,B) = 0.5*(AB-BA) = gr2(A * B)
@@ -1460,15 +1509,8 @@ template <typename T, typename U>
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
                                                                Vec3dp<U> const& v)
 {
-    // ATTENTION:
-    // formula B*v = (B>>v) + wdg(B,v) does NOT hold for a degenerate metric!
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(-B.my * v.z + B.mz * v.y, B.mx * v.z - B.mz * v.x,
-                      -B.mx * v.y + B.my * v.x, B.vx * v.x + B.vy * v.y + B.vz * v.z),
-        TriVec3dp<ctype>(
-            B.vy * v.z - B.vz * v.y + B.mx * v.w, -B.vx * v.z + B.vz * v.x + B.my * v.w,
-            B.vx * v.y - B.vy * v.x + B.mz * v.w, -B.mx * v.x - B.my * v.y - B.mz * v.z));
+    return MVec3dp_U<ctype>((B >> v), wdg(B, v));
 }
 
 template <typename T, typename U>
@@ -1476,16 +1518,8 @@ template <typename T, typename U>
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(Vec3dp<T> const& v,
                                                                BiVec3dp<U> const& B)
 {
-    // ATTENTION:
-    // formula B*v = (v<<B) + wdg(v,B) does NOT hold for a degenerate metric!
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(-v.y * B.mz + v.z * B.my, v.x * B.mz - v.z * B.mx,
-                      -v.x * B.my + v.y * B.mx, -v.x * B.vx - v.y * B.vy - v.z * B.vz),
-        TriVec3dp<ctype>(-v.y * B.vz + v.z * B.vy + v.w * B.mx,
-                         v.x * B.vz - v.z * B.vx + v.w * B.my,
-                         -v.x * B.vy + v.y * B.vx + v.w * B.mz,
-                         -v.x * B.mx - v.y * B.my - v.z * B.mz));
+    return MVec3dp_U<ctype>((v << B), wdg(v, B));
 }
 
 // (geometric) product B * s of bivector B multiplied by a scalar s from the right
@@ -2446,8 +2480,11 @@ inline constexpr MVec3dp<T> lcmpl(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// projections, rejections and reflections
+// projections, rejections
 ////////////////////////////////////////////////////////////////////////////////
+
+// TODO: check whether the vector-vector formulas make sense at all, since they model
+//       the representational space an not the modelled subspace
 
 // projection of a vector v1 onto vector v2
 // returns component of v1 parallel to v2
@@ -2457,11 +2494,10 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& 
                                                                Vec3dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(dot(v1, v2)) * Vec3dp<ctype>(inv(v2));
+    return ctype(dot(v1, v2)) * inv(v2);
 }
 
 // rejection of vector v1 from a vector v2
-// v_perp = gr1(wdg(v1,v2) * inv(v2)) = v1 - project_onto(v1, v2)
 // returns component of v1 perpendicular to v2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -2469,95 +2505,92 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v
                                                               Vec3dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(v1 - project_onto(v1, v2));
 
     // works, but is more effort compared to solution via projection and vector difference
     // return Vec3dp<ctype>(gr1(wdg(v1, v2) * inv(v2)));
-
-    return Vec3dp<ctype>(v1 - project_onto(v1, v2));
 }
 
 
-// projection of a vector v1 onto a bivector v2
-// v_parallel = dot(v1,v2) * inv(v2)
+// projection of a vector v onto a bivector B (a line)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
                                                                BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    // // Vec3dp<ctype> a = dot(v, B);
-    // Vec3dp<ctype> a = (v << B);
-    // BiVec3dp<ctype> Bi = inv(B);
-    // // use the formular equivalent to the geometric product to save computational cost
-    // // a * Bi = dot(a,Bi) + wdg(a,Bi)
-    // // v_parallel = gr1(a * Bi) = dot(a,Bi)
-    // // return Vec3dp<ctype>(dot(a, Bi));
-    // return Vec3dp<ctype>((a << Bi));
+    return Vec3dp<ctype>(rwdg(B, wdg(v, weight_dual(B)))); // ortho_proj
+}
 
-    return Vec3dp<ctype>((v << inv(B)) << B);
-    // return Vec3dp<ctype>(gr1((v << inv(B)) * B));
+// rejection of vector v from a bivector B (a line)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
+                                                              BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(v - project_onto(v, B));
 }
 
 
-// rejection of vector v1 from a bivector v2
+// projection of a vector v onto a trivector t (a plane)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
+                                                               TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(rwdg(t, wdg(v, weight_dual(t)))); // ortho_proj
+}
+
+// rejection of vector v from a bivector B (a line)
 // u_perp = gr1(wdg(v1,v2) * inv(v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v1,
-                                                              BiVec3dp<U> const& v2)
+inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
+                                                              TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    PScalar3dp<ctype> A = wdg(v1, v2);
-    BiVec3dp<ctype> B = inv(v2);
-    // trivector * bivector = vector
-    return A * B;
+    return Vec3dp<ctype>(v - project_onto(v, t));
 }
 
 
-// reflect a vector u on a hyperplane B orthogonal to vector b
-//
-// hyperplane: a n-1 dimensional subspace in a space of dimension n (a line in 2d space)
-// orthogonal to vector b: the hyperplane is dual to b (i.e. a one dimensional subspace)
-//
-// HINT: choose b * B = I_3dp  =>  B = b * I_3dp  (for normalized b)
-//
+////////////////////////////////////////////////////////////////////////////////
+// reflections
+////////////////////////////////////////////////////////////////////////////////
+
+// reflect a vector u in an arbitrary trivector, i.e. a plane t
+// t must be unitized
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> reflect_on_hyp(Vec3dp<T> const& u,
-                                                                 Vec3dp<U> const& b)
+inline constexpr Vec3dp<std::common_type_t<T, U>> reflect_on(Vec3dp<T> const& v,
+                                                             TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(gr1(-b * u * inv(b)));
+    return Vec3dp<ctype>(-gr1(rgpr(rgpr(t, v), t)));
 }
 
-// reflect a vector u in an arbitrary bivector, i.e. a plane
+// reflect a bivector B (a line) in an arbitrary trivector t
+// t must be unitized
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> reflect_on(Vec3dp<T> const& u,
-                                                             BiVec3dp<U> const& B)
+inline constexpr BiVec3dp<std::common_type_t<T, U>> reflect_on(BiVec3dp<T> const& B,
+                                                               TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(gr1(-B * u * inv(B)));
+    return BiVec3dp<ctype>(-gr2(rgpr(rgpr(t, B), t)));
 }
 
-// reflect a bivector UB in an arbitrary bivector B (both modelling planes)
+// reflect a trivector t1 (a plane) in an arbitrary trivector t2 (a unitized plane)
+// t2 must be unitized
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3dp<std::common_type_t<T, U>> reflect_on(BiVec3dp<T> const& UB,
-                                                               BiVec3dp<U> const& B)
+inline constexpr TriVec3dp<std::common_type_t<T, U>> reflect_on(TriVec3dp<T> const& t1,
+                                                                TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(gr2(B * UB * inv(B)));
+    return TriVec3dp<ctype>(-gr3(rgpr(rgpr(t2, t1), t2)));
 }
 
-// reflect a vector u another vector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> reflect_on_vec(Vec3dp<T> const& u,
-                                                                 Vec3dp<U> const& b)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(gr1(b * u * inv(b)));
-}
 
 } // namespace hd::ga::pga
