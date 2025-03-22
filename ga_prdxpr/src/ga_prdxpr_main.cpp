@@ -27,54 +27,64 @@ int main()
 
 
         // ega3d
-        generate_and_print_ega3d_gpr();     // geometric product
-        generate_and_print_ega3d_wdg();     // wegde product
-        generate_and_print_ega3d_lcontr();  // left contraction
-        generate_and_print_ega3d_rcontr();  // right contraction
-        generate_and_print_ega3d_lexpand(); // left expansion
-        generate_and_print_ega3d_rexpand(); // right expansion
-        generate_and_print_ega3d_dot();     // scalar product
+        generate_and_print_ega3d_gpr();    // geometric product
+        generate_and_print_ega3d_wdg();    // wegde product
+        generate_and_print_ega3d_lcontr(); // left contraction
+        generate_and_print_ega3d_rcontr(); // right contraction
+        generate_and_print_ega3d_dot();    // scalar product
 
         generate_and_print_ega3d_rwdg(); // regressive wedge product
 
+        generate_and_print_ega3d_lexpand(); // left expansion
+        generate_and_print_ega3d_rexpand(); // right expansion
 
         // pga2dp
-        generate_and_print_pga2dp_gpr();    // geometric product
-        generate_and_print_pga2dp_wdg();    // wegde product
-        generate_and_print_pga2dp_lcontr(); // left contraction
-        generate_and_print_pga2dp_rcontr(); // right contraction
-        generate_and_print_pga2dp_dot();    // scalar product
+        generate_and_print_pga2dp_dot(); // dot product (=inner product)
+        generate_and_print_pga2dp_wdg(); // wegde product (=outer product)
+        generate_and_print_pga2dp_gpr(); // geometric product
 
-        generate_and_print_pga2dp_rdot(); // regressive scalar product
+
+        // pga2dp - regressive products
+        generate_and_print_pga2dp_rdot(); // regressive dot product
         generate_and_print_pga2dp_rwdg(); // regressive wedge product
         generate_and_print_pga2dp_rgpr(); // regressive geometric product
 
-        generate_and_print_pga2dp_bulk_contraction();   // bulk contraction
-        generate_and_print_pga2dp_weight_contraction(); // weight contraction
-        generate_and_print_pga2dp_bulk_expansion();     // bulk expansion
-        generate_and_print_pga2dp_weight_expansion();   // weight expansion
+        // pga2dp - interior products (contractions, expansions)
+        generate_and_print_pga2dp_rbulk_contract();   // right bulk contraction
+        generate_and_print_pga2dp_rweight_contract(); // right weight contraction
+        generate_and_print_pga2dp_lbulk_contract();   // left bulk contraction
+        generate_and_print_pga2dp_lweight_contract(); // left weight contraction
+
+        generate_and_print_pga2dp_rbulk_expand();   // right bulk expansion
+        generate_and_print_pga2dp_rweight_expand(); // right weight expansion
+        generate_and_print_pga2dp_lbulk_expand();   // left bulk expansion
+        generate_and_print_pga2dp_lweight_expand(); // left weight expansion
 
         // pga3dp
-        generate_and_print_pga3dp_gpr();    // geometric product
-        generate_and_print_pga3dp_wdg();    // wegde product
-        generate_and_print_pga3dp_lcontr(); // left contraction
-        generate_and_print_pga3dp_rcontr(); // right contraction
-        generate_and_print_pga3dp_dot();    // scalar product
+        generate_and_print_pga3dp_gpr(); // geometric product
+        generate_and_print_pga3dp_wdg(); // wegde product (=outer product)
+        generate_and_print_pga3dp_dot(); // dot product (=inner product)
 
-        generate_and_print_pga3dp_rdot(); // regressive scalar product
+        generate_and_print_pga3dp_rdot(); // regressive dot product
         generate_and_print_pga3dp_rwdg(); // regressive wedge product
         generate_and_print_pga3dp_rgpr(); // regressive geometric product
 
-        generate_and_print_pga3dp_bulk_contraction();   // bulk contraction
-        generate_and_print_pga3dp_weight_contraction(); // weight contraction
-        generate_and_print_pga3dp_bulk_expansion();     // bulk expansion
-        generate_and_print_pga3dp_weight_expansion();   // weight expansion
+        // pga3dp - interior products (contractions, expansions)
+        generate_and_print_pga3dp_rbulk_contract();   // right bulk contraction
+        generate_and_print_pga3dp_rweight_contract(); // right weight contraction
+        generate_and_print_pga3dp_lbulk_contract();   // left bulk contraction
+        generate_and_print_pga3dp_lweight_contract(); // left weight contraction
 
-        // sandwich products of type rotor * object * rev(rotor)
+        generate_and_print_pga3dp_rbulk_expand();   // right bulk expansion
+        generate_and_print_pga3dp_rweight_expand(); // right weight expansion
+        generate_and_print_pga3dp_lbulk_expand();   // left bulk expansion
+        generate_and_print_pga3dp_lweight_expand(); // left weight expansion
+
+        // ega - sandwich products of type rotor * object * rev(rotor)
         generate_and_print_ega2d_rotor_gpr();
         generate_and_print_ega3d_rotor_gpr();
 
-        // sandwich products of type motor * object * rev(motor)
+        // pga - sandwich products of type motor * object * rev(motor)
         generate_and_print_pga2dp_motor_rgpr();
         generate_and_print_pga3dp_motor_rgpr();
     }

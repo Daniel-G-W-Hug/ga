@@ -57,7 +57,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar2dp<T> bulk_nrm_sq(Scalar2dp<T> s)
 {
-    // |s|^2 = gr0(s*rev(s)) = gr0(s*s)
+    // ||bulk(s)||^2 = dot(s,s) = s^(T) G s = gr0(s*rev(s)) = s*s
+    // using rev(s) = (-1)^[k(k-1)/2] s for a k-blade: 0-blade => rev(s) = s
     return Scalar2dp<T>(T(s) * T(s));
 }
 
@@ -74,7 +75,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar2dp<T> bulk_nrm_sq(Vec2dp<T> const& v)
 {
-    // |v|^2 = gr0(v*rev(v)) = gr0(v*v)
+    // ||bulk(v)||^2 = dot(v,v) = v^(T) G v = gr0(v*rev(v)) = v.x * v.x + v.y * v.y
+    // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
     return Scalar2dp<T>(v.x * v.x + v.y * v.y);
 }
 
@@ -91,9 +93,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar2dp<T> bulk_nrm_sq(BiVec2dp<T> const& B)
 {
-    // |B|^2 = gr0(B*rev(B))
+    // ||bulk(B)||^2 = dot(B,B) = B^(T) G B = gr0(B*rev(B)) = B.z * B.z
     // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
-    // using |B|^2 = gr0(rev(B)*B) = gr0(-B*B) = -gr0(B*B) = -dot(B,B)
     return Scalar2dp<T>(B.z * B.z);
 }
 
@@ -110,7 +111,7 @@ inline constexpr Scalar2dp<T> bulk_nrm(BiVec2dp<T> const& B)
 ////////////////////////////////////////////////////////////////////////////////
 
 // return squared weight norm of vector
-// |v|^2 = cmpl( gr0(cmpl(v)*cmpl(v))) ) = rdot(v,rrev(v))
+// ||weight(v)||^2 = cmpl( dot(cmpl(v), cmpl(v))) ) = rdot(v,v) = v.z * v.z
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar2dp<T> weight_nrm_sq(Vec2dp<T> const& v)
@@ -127,7 +128,7 @@ inline constexpr PScalar2dp<T> weight_nrm(Vec2dp<T> const& v)
 }
 
 // return squared weight norm of bivector
-// |B|^2 = cmpl( gr0(cmpl(B)*cmpl(B))) ) = rdot(B, rrev(B)) = rdot(B,B)
+// ||weight(B)||^2 = cmpl( dot(cmpl(B),cmpl(B))) ) = rdot(B, B)) = B.x * B.x + B.y * B.y
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar2dp<T> weight_nrm_sq(BiVec2dp<T> const& B)
@@ -141,6 +142,23 @@ template <typename T>
 inline constexpr PScalar2dp<T> weight_nrm(BiVec2dp<T> const& B)
 {
     return PScalar2dp<T>(std::sqrt(weight_nrm_sq(B)));
+}
+
+// return squared weight norm of pseudoscalar
+// ||weight(ps)||^2 = cmpl( dot(cmpl(ps),cmpl(ps))) ) = rdot(ps, ps)) = ps * ps
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> weight_nrm_sq(PScalar2dp<T> ps)
+{
+    return PScalar2dp<T>(ctype(ps) * ctype(ps));
+}
+
+// return weight norm of pseudoscalar
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> weight_nrm(PScalar2dp<T> ps)
+{
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(ps)));
 }
 
 

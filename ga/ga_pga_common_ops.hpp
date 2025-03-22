@@ -17,9 +17,11 @@ namespace hd::ga::pga {
 ////////////////////////////////////////////////////////////////////////////////
 // Projective contractions (same for 2dp and 3dp):
 //
-// bulk_contraction(a,b) = rwdg(a, bulk_dual(b))
+// lbulk_contract(a,b) = rwdg(bulk_dual(a), b)
+// lweight_contract(a,b) = rwdg(weight_dual(a), b)
 //
-// weight_contraction(a,b) = rwdg(a, weight_dual(b))
+// rbulk_contract(a,b) = rwdg(a, bulk_dual(b))
+// rweight_contract(a,b) = rwdg(a, weight_dual(b))
 //
 // The contraction subracts the grades of the operands.
 //
@@ -28,18 +30,30 @@ namespace hd::ga::pga {
 // When the metric is degenerate they produce different results.
 //
 // In general a contraciton throws away parts that are perpendicular to each other.
-// The result of bulk_contraction(B,v) lies in B and is perpendicular to v.
+// The result of rbulk_contract(B,v) lies in B and is perpendicular to v.
 ////////////////////////////////////////////////////////////////////////////////
 
+template <typename arg1, typename arg2> decltype(auto) lbulk_contract(arg1&& a, arg2&& b)
+{
+    // return rwdg(bulk_dual(a), b);
+    return rwdg(bulk_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
+}
+
 template <typename arg1, typename arg2>
-decltype(auto) bulk_contraction(arg1&& a, arg2&& b)
+decltype(auto) lweight_contract(arg1&& a, arg2&& b)
+{
+    // return rwdg(weight_dual(a), b);
+    return rwdg(weight_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
+}
+
+template <typename arg1, typename arg2> decltype(auto) rbulk_contract(arg1&& a, arg2&& b)
 {
     // return rwdg(a, bulk_dual(b));
     return rwdg(std::forward<arg1>(a), bulk_dual(std::forward<arg2>(b)));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) weight_contraction(arg1&& a, arg2&& b)
+decltype(auto) rweight_contract(arg1&& a, arg2&& b)
 {
     // return rwdg(a, weight_dual(b));
     return rwdg(std::forward<arg1>(a), weight_dual(std::forward<arg2>(b)));
@@ -49,9 +63,11 @@ decltype(auto) weight_contraction(arg1&& a, arg2&& b)
 ////////////////////////////////////////////////////////////////////////////////
 // Projective expansions (same for 2dp and 3dp):
 //
-// bulk_expansion(a,b) = wdg(a, bulk_dual(b))       (dual to weight_contraction)
+// lbulk_expansion(a,b) = wdg(bulk_dual(a), b)       (dual to lweight_contract)
+// lweight_expansion(a,b) = wdg(weight_dual(a), b)   (dual to lbulk_contract)
 //
-// weight_expansion(a,b) = wdg(a, weight_dual(b))   (dual to bulk_contraction)
+// rbulk_expansion(a,b) = wdg(a, bulk_dual(b))       (dual to rweight_contract)
+// rweight_expansion(a,b) = wdg(a, weight_dual(b))   (dual to rbulk_contract)
 //
 // The expansion subtracts the antigrades of the objects.
 //
@@ -64,14 +80,27 @@ decltype(auto) weight_contraction(arg1&& a, arg2&& b)
 // dualized object.
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename arg1, typename arg2> decltype(auto) bulk_expansion(arg1&& a, arg2&& b)
+template <typename arg1, typename arg2> decltype(auto) lbulk_expansion(arg1&& a, arg2&& b)
+{
+    // return wdg(bulk_dual(a), b);
+    return wdg(bulk_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
+}
+
+template <typename arg1, typename arg2>
+decltype(auto) lweight_expansion(arg1&& a, arg2&& b)
+{
+    // return wdg(weight_dual(a), b);
+    return wdg(weight_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
+}
+
+template <typename arg1, typename arg2> decltype(auto) rbulk_expansion(arg1&& a, arg2&& b)
 {
     // return wdg(a, bulk_dual(b));
     return wdg(std::forward<arg1>(a), bulk_dual(std::forward<arg2>(b)));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) weight_expansion(arg1&& a, arg2&& b)
+decltype(auto) rweight_expansion(arg1&& a, arg2&& b)
 {
     // return wdg(a, weight_dual(b));
     return wdg(std::forward<arg1>(a), weight_dual(std::forward<arg2>(b)));
@@ -80,17 +109,17 @@ decltype(auto) weight_expansion(arg1&& a, arg2&& b)
 ////////////////////////////////////////////////////////////////////////////////
 // Projections (same for 2dp and 3dp):
 //
-// ortho_proj(a, b)     = rwdg(b, weight_expansion(a, b) )
+// ortho_proj(a, b)     = rwdg(b, rweight_expansion(a, b) )
 // (a projected orthogonally onto b, effectively creating a new a' contained in b)
 // REQUIRES: gr(a) < gr(b)
 //
 //
-// central_proj(a, b)        = rwdg(b, bulk_expansion(a, b) )
+// central_proj(a, b)        = rwdg(b, rbulk_expansion(a, b) )
 // (a projected centrally towards origin onto b, effectively creating a new a'
 // contained in b)
 // REQUIRES: gr(a) < gr(b)
 //
-// ortho_antiproj(a, b) = wdg(b, weight_contraction(a, b) )
+// ortho_antiproj(a, b) = wdg(b, rweight_contract(a, b) )
 // (a projected orthogonally onto b, effectively creating a new a' containing b)
 // REQUIRES: gr(a) > gr(b)
 //
@@ -102,7 +131,7 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj(arg1&& a, arg2
     // REQUIRES: gr(a) < gr(b), or does not compile!
     // project the smaller grade object onto to larger grade object
     return rwdg(std::forward<arg2>(b),
-                weight_expansion(std::forward<arg1>(a), std::forward<arg2>(b)));
+                rweight_expansion(std::forward<arg1>(a), std::forward<arg2>(b)));
 }
 
 template <typename arg1, typename arg2> decltype(auto) central_proj(arg1&& a, arg2&& b)
@@ -110,13 +139,13 @@ template <typename arg1, typename arg2> decltype(auto) central_proj(arg1&& a, ar
     // REQUIRES: gr(a) < gr(b), or does not compile!
     // project the smaller grade object onto to larger grade object
     return rwdg(std::forward<arg2>(b),
-                bulk_expansion(std::forward<arg1>(a), std::forward<arg2>(b)));
+                rbulk_expansion(std::forward<arg1>(a), std::forward<arg2>(b)));
 }
 
 template <typename arg1, typename arg2> decltype(auto) ortho_antiproj(arg1&& a, arg2&& b)
 {
     return wdg(std::forward<arg2>(b),
-               weight_contraction(std::forward<arg1>(a), std::forward<arg2>(b)));
+               rweight_contract(std::forward<arg1>(a), std::forward<arg2>(b)));
 }
 
 
@@ -176,7 +205,7 @@ inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
     //// TODO: angle not consistently working in all cases yet -> define tests
 
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(weight_contraction(B1, B2));
+    ctype contr = ctype(rweight_contract(B1, B2));
     ctype nrm_prod = ctype(weight_nrm(B1) * weight_nrm(B2));
     // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
     if (nrm_prod != 0.0) {
@@ -232,7 +261,7 @@ inline constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B1,
                                                 BiVec3dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(weight_contraction(B1, B2));
+    ctype contr = ctype(rweight_contract(B1, B2));
     ctype nrm_prod = ctype(weight_nrm(B1) * weight_nrm(B2));
     // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
     if (nrm_prod != 0.0) {
@@ -251,7 +280,7 @@ inline constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t,
                                                 BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(bulk_nrm(weight_contraction(t, B)));
+    ctype contr = ctype(bulk_nrm(rweight_contract(t, B)));
     ctype nrm_prod = ctype(weight_nrm(t) * weight_nrm(B));
     // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
     if (nrm_prod != 0.0) {
@@ -270,7 +299,7 @@ inline constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B,
                                                 TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(bulk_nrm(weight_contraction(t, B)));
+    ctype contr = ctype(bulk_nrm(rweight_contract(t, B)));
     ctype nrm_prod = ctype(weight_nrm(t) * weight_nrm(B));
     // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
     if (nrm_prod != 0.0) {
@@ -289,7 +318,7 @@ inline constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1,
                                                 TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(weight_contraction(t1, t2));
+    ctype contr = ctype(rweight_contract(t1, t2));
     ctype nrm_prod = ctype(weight_nrm(t1) * weight_nrm(t2));
     // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
     if (nrm_prod != 0.0) {

@@ -78,72 +78,6 @@ const prd_rules wdg_pga2dp_rules = {
     {"e321 ^ e3", "0"},    {"e321 ^ e23", "0"},   {"e321 ^ e31", "0"},
     {"e321 ^ e12", "0"},   {"e321 ^ e321", "0"}};
 
-const prd_rules lcontr_pga2dp_rules = {
-    {"1 << 1", "1"},      {"1 << e1", "e1"},      {"1 << e2", "e2"},
-    {"1 << e3", "e3"},    {"1 << e23", "e23"},    {"1 << e31", "e31"},
-    {"1 << e12", "e12"},  {"1 << e321", "e321"},
-
-    {"e1 << 1", "0"},     {"e1 << e1", "1"},      {"e1 << e2", "0"},
-    {"e1 << e3", "0"},    {"e1 << e23", "0"},     {"e1 << e31", "-e3"},
-    {"e1 << e12", "e2"},  {"e1 << e321", "-e23"},
-
-    {"e2 << 1", "0"},     {"e2 << e1", "0"},      {"e2 << e2", "1"},
-    {"e2 << e3", "0"},    {"e2 << e23", "e3"},    {"e2 << e31", "0"},
-    {"e2 << e12", "-e1"}, {"e2 << e321", "-e31"},
-
-    {"e3 << 1", "0"},     {"e3 << e1", "0"},      {"e3 << e2", "0"},
-    {"e3 << e3", "0"},    {"e3 << e23", "0"},     {"e3 << e31", "0"},
-    {"e3 << e12", "0"},   {"e3 << e321", "0"},
-
-    {"e23 << 1", "0"},    {"e23 << e1", "0"},     {"e23 << e2", "0"},
-    {"e23 << e3", "0"},   {"e23 << e23", "0"},    {"e23 << e31", "0"},
-    {"e23 << e12", "0"},  {"e23 << e321", "0"},
-
-    {"e31 << 1", "0"},    {"e31 << e1", "0"},     {"e31 << e2", "0"},
-    {"e31 << e3", "0"},   {"e31 << e23", "0"},    {"e31 << e31", "0"},
-    {"e31 << e12", "0"},  {"e31 << e321", "0"},
-
-    {"e12 << 1", "0"},    {"e12 << e1", "0"},     {"e12 << e2", "0"},
-    {"e12 << e3", "0"},   {"e12 << e23", "0"},    {"e12 << e31", "0"},
-    {"e12 << e12", "-1"}, {"e12 << e321", "e3"},
-
-    {"e321 << 1", "0"},   {"e321 << e1", "0"},    {"e321 << e2", "0"},
-    {"e321 << e3", "0"},  {"e321 << e23", "0"},   {"e321 << e31", "0"},
-    {"e321 << e12", "0"}, {"e321 << e321", "0"}};
-
-const prd_rules rcontr_pga2dp_rules = {
-    {"1 >> 1", "1"},       {"1 >> e1", "0"},       {"1 >> e2", "0"},
-    {"1 >> e3", "0"},      {"1 >> e23", "0"},      {"1 >> e31", "0"},
-    {"1 >> e12", "0"},     {"1 >> e321", "0"},
-
-    {"e1 >> 1", "e1"},     {"e1 >> e1", "1"},      {"e1 >> e2", "0"},
-    {"e1 >> e3", "0"},     {"e1 >> e23", "0"},     {"e1 >> e31", "0"},
-    {"e1 >> e12", "0"},    {"e1 >> e321", "0"},
-
-    {"e2 >> 1", "e2"},     {"e2 >> e1", "0"},      {"e2 >> e2", "1"},
-    {"e2 >> e3", "0"},     {"e2 >> e23", "0"},     {"e2 >> e31", "0"},
-    {"e2 >> e12", "0"},    {"e2 >> e321", "0"},
-
-    {"e3 >> 1", "e3"},     {"e3 >> e1", "0"},      {"e3 >> e2", "0"},
-    {"e3 >> e3", "0"},     {"e3 >> e23", "0"},     {"e3 >> e31", "0"},
-    {"e3 >> e12", "0"},    {"e3 >> e321", "0"},
-
-    {"e23 >> 1", "e23"},   {"e23 >> e1", "0"},     {"e23 >> e2", "-e3"},
-    {"e23 >> e3", "0"},    {"e23 >> e23", "0"},    {"e23 >> e31", "0"},
-    {"e23 >> e12", "0"},   {"e23 >> e321", "0"},
-
-    {"e31 >> 1", "e31"},   {"e31 >> e1", "e3"},    {"e31 >> e2", "0"},
-    {"e31 >> e3", "0"},    {"e31 >> e23", "0"},    {"e31 >> e31", "0"},
-    {"e31 >> e12", "0"},   {"e31 >> e321", "0"},
-
-    {"e12 >> 1", "e12"},   {"e12 >> e1", "-e2"},   {"e12 >> e2", "e1"},
-    {"e12 >> e3", "0"},    {"e12 >> e23", "0"},    {"e12 >> e31", "0"},
-    {"e12 >> e12", "-1"},  {"e12 >> e321", "0"},
-
-    {"e321 >> 1", "e321"}, {"e321 >> e1", "-e23"}, {"e321 >> e2", "-e31"},
-    {"e321 >> e3", "0"},   {"e321 >> e23", "0"},   {"e321 >> e31", "0"},
-    {"e321 >> e12", "e3"}, {"e321 >> e321", "0"}};
-
 const prd_rules dot_pga2dp_rules = {
     {"1 * 1", "1"},      {"1 * e1", "0"},     {"1 * e2", "0"},     {"1 * e3", "0"},
     {"1 * e23", "0"},    {"1 * e31", "0"},    {"1 * e12", "0"},    {"1 * e321", "0"},
@@ -164,7 +98,7 @@ const prd_rules dot_pga2dp_rules = {
     {"e31 * e23", "0"},  {"e31 * e31", "0"},  {"e31 * e12", "0"},  {"e31 * e321", "0"},
 
     {"e12 * 1", "0"},    {"e12 * e1", "0"},   {"e12 * e2", "0"},   {"e12 * e3", "0"},
-    {"e12 * e23", "0"},  {"e12 * e31", "0"},  {"e12 * e12", "-1"}, {"e12 * e321", "0"},
+    {"e12 * e23", "0"},  {"e12 * e31", "0"},  {"e12 * e12", "1"},  {"e12 * e321", "0"},
 
     {"e321 * 1", "0"},   {"e321 * e1", "0"},  {"e321 * e2", "0"},  {"e321 * e3", "0"},
     {"e321 * e23", "0"}, {"e321 * e31", "0"}, {"e321 * e12", "0"}, {"e321 * e321", "0"}};
@@ -177,6 +111,8 @@ const prd_rules cmpl_pga2dp_rules = {{"1", "e321"},  {"e1", "-e23"}, {"e2", "-e3
                                      {"e12", "-e3"}, {"e321", "1"}};
 
 // rules needed to derive contractions and expansions using bulk_dual and weight_dual
+// same for left hand and right hand side
+// (derived from the complement -> bulk dual is equivalent to the Hodge dual)
 const prd_rules bulk_dual_pga2dp_rules = {{"1", "e321"},  {"e1", "-e23"}, {"e2", "-e31"},
                                           {"e3", "0"},    {"e23", "0"},   {"e31", "0"},
                                           {"e12", "-e3"}, {"e321", "0"}};
@@ -227,22 +163,24 @@ const mvec_coeff mv2dp_coeff_svBps2 = {"s2",   "v2.x", "v2.y", "v2.z",
                                        "B2.x", "B2.y", "B2.z", "ps2"};
 
 
-void generate_and_print_pga2dp_gpr();    // geometric product
-void generate_and_print_pga2dp_wdg();    // wedge product
-void generate_and_print_pga2dp_lcontr(); // left contraction
-void generate_and_print_pga2dp_rcontr(); // right contraction
-void generate_and_print_pga2dp_dot();    // scalar product
+void generate_and_print_pga2dp_gpr(); // geometric product
+void generate_and_print_pga2dp_wdg(); // wegde product (=outer product)
+void generate_and_print_pga2dp_dot(); // dot product (=inner product)
 
-void generate_and_print_pga2dp_rdot(); // regressive scalar product
+void generate_and_print_pga2dp_rdot(); // regressive dot product
 void generate_and_print_pga2dp_rwdg(); // regressive wedge product
 void generate_and_print_pga2dp_rgpr(); // regressive geometric product
 
-void generate_and_print_pga2dp_bulk_contraction();   // bulk contraction
-void generate_and_print_pga2dp_weight_contraction(); // weight contraction
-void generate_and_print_pga2dp_bulk_expansion();     // bulk expansion
-void generate_and_print_pga2dp_weight_expansion();   // weight expansion
+// pga2dp - interior products (contractions, expansions)
+void generate_and_print_pga2dp_rbulk_contract();   // right bulk contraction
+void generate_and_print_pga2dp_rweight_contract(); // right weight contraction
+void generate_and_print_pga2dp_lbulk_contract();   // left bulk contraction
+void generate_and_print_pga2dp_lweight_contract(); // left weight contraction
 
-// void generate_and_print_pga2dp_motor_gpr();  // sandwich product motor * object *
-//                                              // rev(motor)
+void generate_and_print_pga2dp_rbulk_expand();   // right bulk expansion
+void generate_and_print_pga2dp_rweight_expand(); // right weight expansion
+void generate_and_print_pga2dp_lbulk_expand();   // left bulk expansion
+void generate_and_print_pga2dp_lweight_expand(); // left weight expansion
+
 void generate_and_print_pga2dp_motor_rgpr(); // sandwich product motor * object *
                                              // rev(motor)

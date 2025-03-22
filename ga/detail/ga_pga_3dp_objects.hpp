@@ -71,7 +71,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar3dp<T> bulk_nrm_sq(Scalar3dp<T> s)
 {
-    // |s|^2 = gr0(s*rev(s)) = gr0(s*s)
+    // ||bulk(s)||^2 = dot(s,s) = s^(T) G s = gr0(s*rev(s)) = s*s
+    // using rev(s) = (-1)^[k(k-1)/2] s for a k-blade: 0-blade => rev(s) = s
     return Scalar3dp<T>(T(s) * T(s));
 }
 
@@ -88,7 +89,9 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar3dp<T> bulk_nrm_sq(Vec3dp<T> const& v)
 {
-    // |v|^2 = gr0(v*rev(v)) = gr0(v*v)
+    // ||bulk(v)||^2 = dot(v,v) = v^(T) G v = gr0(v*rev(v))
+    //               = v.x * v.x + v.y * v.y + v.z * v.z
+    // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
     return Scalar3dp<T>(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
@@ -105,9 +108,9 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar3dp<T> bulk_nrm_sq(BiVec3dp<T> const& B)
 {
-    // |B|^2 = gr0(B*rev(B))
+    // ||bulk(B)||^2 = dot(B,B) = B^(T) G B = gr0(B*rev(B))
+    //               = B.mx * B.mx + B.my * B.my + B.mz * B.mz
     // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
-    // using |B|^2 = gr0(rev(B)*B) = gr0(-B*B) = -gr0(B*B) = -dot(B,B)
     return Scalar3dp<T>(B.mx * B.mx + B.my * B.my + B.mz * B.mz);
 }
 
@@ -124,7 +127,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar3dp<T> bulk_nrm_sq(TriVec3dp<T> const& t)
 {
-    // |t|^2 = gr0(t*rev(t)) = gr0(-t*t)
+    // ||bulk(t)||^2 = dot(t,t) = t^(T) G t = gr0(t*rev(t)) = t.w * t.w
+    // using rev(t) = (-1)^[k(k-1)/2] t for a k-blade: 3-blade => rev(t) = -t
     return Scalar3dp<T>(t.w * t.w);
 }
 
@@ -141,7 +145,7 @@ inline constexpr Scalar3dp<T> bulk_nrm(TriVec3dp<T> const& t)
 ////////////////////////////////////////////////////////////////////////////////
 
 // return squared weight norm of vector
-// |v|^2 = cmpl( gr0(cmpl(v)*cmpl(v))) ) = rdot(v,rrev(v))
+// ||weight(v)||^2 = lcmpl( dot(rcmpl(v), rcmpl(v))) ) = rdot(v,v) = v.w * v.w
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar3dp<T> weight_nrm_sq(Vec3dp<T> const& v)
@@ -158,7 +162,8 @@ inline constexpr PScalar3dp<T> weight_nrm(Vec3dp<T> const& v)
 }
 
 // return squared weight norm of bivector
-// |B|^2 = cmpl( gr0(cmpl(B)*cmpl(B))) ) = rdot(B, rrev(B)) = rdot(B,B)
+// ||weight(B)||^2 = lcmpl( dot(rcmpl(B),cmpl(B))) ) = rdot(B, B)
+//                 = B.vx * B.vx + B.vy * B.vy + B.vz * B.vz
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar3dp<T> weight_nrm_sq(BiVec3dp<T> const& B)
@@ -174,7 +179,9 @@ inline constexpr PScalar3dp<T> weight_nrm(BiVec3dp<T> const& B)
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(B)));
 }
 
-// return squared weight norm of tiivector
+// return squared weight norm of trivector
+// ||weight(t)||^2 = lcmpl( dot(rcmpl(t),cmpl(t))) ) = rdot(t, t)
+//                 = t.x * t.x + t.y * t.y + t.z * t.z
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar3dp<T> weight_nrm_sq(TriVec3dp<T> const& t)

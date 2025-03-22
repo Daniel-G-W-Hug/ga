@@ -209,6 +209,9 @@ void generate_and_print_ega3d_wdg(); // wedge product
 void generate_and_print_ega3d_lcontr(); // left contraction
 void generate_and_print_ega3d_rcontr(); // right contraction
 
+// void generate_and_print_ega3d_rcontract(); // right contraction
+// void generate_and_print_ega3d_lcontract(); // left contraction
+
 void generate_and_print_ega3d_lexpand(); // left expansion
 void generate_and_print_ega3d_rexpand(); // right expansion
 
