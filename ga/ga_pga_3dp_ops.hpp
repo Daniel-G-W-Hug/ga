@@ -322,7 +322,7 @@ inline constexpr MVec3dp<T> conj(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// dot products for 3dp (= defined for equal grades exclusively)
+// dot products for 3dp (=inner product defined for equal grades exclusively)
 //
 // dot(v1,v2) = v1^T * g_{ij} * v2 is the scalar product with g_{ij} as the metric
 //
@@ -1571,6 +1571,74 @@ inline constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& A
                           c15);
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& A,
+                                                             MVec3dp_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c0 - A.c8 * B.c4 - A.c9 * B.c5 - A.c10 * B.c6;
+    ctype c1 = A.c1 * B.c0 - A.c2 * B.c6 + A.c3 * B.c5 + A.c14 * B.c4;
+    ctype c2 = A.c1 * B.c6 + A.c2 * B.c0 - A.c3 * B.c4 + A.c14 * B.c5;
+    ctype c3 = -A.c1 * B.c5 + A.c2 * B.c4 + A.c3 * B.c0 + A.c14 * B.c6;
+    ctype c4 = -A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c4 * B.c0 - A.c11 * B.c4 -
+               A.c12 * B.c5 - A.c13 * B.c6 + A.c14 * B.c7;
+    ctype c5 = A.c0 * B.c1 + A.c5 * B.c0 - A.c6 * B.c6 + A.c7 * B.c5 + A.c8 * B.c7 -
+               A.c9 * B.c3 + A.c10 * B.c2 + A.c15 * B.c4;
+    ctype c6 = A.c0 * B.c2 + A.c5 * B.c6 + A.c6 * B.c0 - A.c7 * B.c4 + A.c8 * B.c3 +
+               A.c9 * B.c7 - A.c10 * B.c1 + A.c15 * B.c5;
+    ctype c7 = A.c0 * B.c3 - A.c5 * B.c5 + A.c6 * B.c4 + A.c7 * B.c0 - A.c8 * B.c2 +
+               A.c9 * B.c1 + A.c10 * B.c7 + A.c15 * B.c6;
+    ctype c8 = A.c0 * B.c4 + A.c8 * B.c0 - A.c9 * B.c6 + A.c10 * B.c5;
+    ctype c9 = A.c0 * B.c5 + A.c8 * B.c6 + A.c9 * B.c0 - A.c10 * B.c4;
+    ctype c10 = A.c0 * B.c6 - A.c8 * B.c5 + A.c9 * B.c4 + A.c10 * B.c0;
+    ctype c11 = A.c1 * B.c7 - A.c2 * B.c3 + A.c3 * B.c2 + A.c4 * B.c4 + A.c11 * B.c0 -
+                A.c12 * B.c6 + A.c13 * B.c5 + A.c14 * B.c1;
+    ctype c12 = A.c1 * B.c3 + A.c2 * B.c7 - A.c3 * B.c1 + A.c4 * B.c5 + A.c11 * B.c6 +
+                A.c12 * B.c0 - A.c13 * B.c4 + A.c14 * B.c2;
+    ctype c13 = -A.c1 * B.c2 + A.c2 * B.c1 + A.c3 * B.c7 + A.c4 * B.c6 - A.c11 * B.c5 +
+                A.c12 * B.c4 + A.c13 * B.c0 + A.c14 * B.c3;
+    ctype c14 = -A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 + A.c14 * B.c0;
+    ctype c15 = A.c0 * B.c7 - A.c5 * B.c4 - A.c6 * B.c5 - A.c7 * B.c6 - A.c8 * B.c1 -
+                A.c9 * B.c2 - A.c10 * B.c3 + A.c15 * B.c0;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& A,
+                                                             MVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c0 - A.c4 * B.c8 - A.c5 * B.c9 - A.c6 * B.c10;
+    ctype c1 = A.c0 * B.c1 + A.c4 * B.c14 - A.c5 * B.c3 + A.c6 * B.c2;
+    ctype c2 = A.c0 * B.c2 + A.c4 * B.c3 + A.c5 * B.c14 - A.c6 * B.c1;
+    ctype c3 = A.c0 * B.c3 - A.c4 * B.c2 + A.c5 * B.c1 + A.c6 * B.c14;
+    ctype c4 = A.c0 * B.c4 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c4 * B.c11 -
+               A.c5 * B.c12 - A.c6 * B.c13 - A.c7 * B.c14;
+    ctype c5 = A.c0 * B.c5 + A.c1 * B.c0 - A.c2 * B.c10 + A.c3 * B.c9 + A.c4 * B.c15 -
+               A.c5 * B.c7 + A.c6 * B.c6 + A.c7 * B.c8;
+    ctype c6 = A.c0 * B.c6 + A.c1 * B.c10 + A.c2 * B.c0 - A.c3 * B.c8 + A.c4 * B.c7 +
+               A.c5 * B.c15 - A.c6 * B.c5 + A.c7 * B.c9;
+    ctype c7 = A.c0 * B.c7 - A.c1 * B.c9 + A.c2 * B.c8 + A.c3 * B.c0 - A.c4 * B.c6 +
+               A.c5 * B.c5 + A.c6 * B.c15 + A.c7 * B.c10;
+    ctype c8 = A.c0 * B.c8 + A.c4 * B.c0 - A.c5 * B.c10 + A.c6 * B.c9;
+    ctype c9 = A.c0 * B.c9 + A.c4 * B.c10 + A.c5 * B.c0 - A.c6 * B.c8;
+    ctype c10 = A.c0 * B.c10 - A.c4 * B.c9 + A.c5 * B.c8 + A.c6 * B.c0;
+    ctype c11 = A.c0 * B.c11 - A.c1 * B.c14 + A.c2 * B.c3 - A.c3 * B.c2 + A.c4 * B.c4 -
+                A.c5 * B.c13 + A.c6 * B.c12 - A.c7 * B.c1;
+    ctype c12 = A.c0 * B.c12 - A.c1 * B.c3 - A.c2 * B.c14 + A.c3 * B.c1 + A.c4 * B.c13 +
+                A.c5 * B.c4 - A.c6 * B.c11 - A.c7 * B.c2;
+    ctype c13 = A.c0 * B.c13 + A.c1 * B.c2 - A.c2 * B.c1 - A.c3 * B.c14 - A.c4 * B.c12 +
+                A.c5 * B.c11 + A.c6 * B.c4 - A.c7 * B.c3;
+    ctype c14 = A.c0 * B.c14 - A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3;
+    ctype c15 = A.c0 * B.c15 - A.c1 * B.c8 - A.c2 * B.c9 - A.c3 * B.c10 - A.c4 * B.c5 -
+                A.c5 * B.c6 - A.c6 * B.c7 + A.c7 * B.c0;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
 // geometric product A * B for two multivectors from the even subalgebra (3d case)
 // even grade multivector * even grade multivector = even grade multivector
 template <typename T, typename U>
@@ -1703,6 +1771,46 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
                                             M.c0 * B.mz - M.c4 * B.my + M.c5 * B.mx),
                             PScalar3dp<ctype>(-M.c1 * B.mx - M.c2 * B.my - M.c3 * B.mz -
                                               M.c4 * B.vx - M.c5 * B.vy - M.c6 * B.vz));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& M,
+                                                               BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(-M.c1 * B.mz + M.c2 * B.my + M.c7 * B.mx,
+                                          M.c0 * B.mz - M.c2 * B.mx + M.c7 * B.my,
+                                          -M.c0 * B.my + M.c1 * B.mx + M.c7 * B.mz,
+                                          -M.c0 * B.vx - M.c1 * B.vy - M.c2 * B.vz -
+                                              M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz),
+                            TriVec3dp<ctype>(-M.c1 * B.vz + M.c2 * B.vy + M.c3 * B.mx -
+                                                 M.c5 * B.mz + M.c6 * B.my + M.c7 * B.vx,
+                                             M.c0 * B.vz - M.c2 * B.vx + M.c3 * B.my +
+                                                 M.c4 * B.mz - M.c6 * B.mx + M.c7 * B.vy,
+                                             -M.c0 * B.vy + M.c1 * B.vx + M.c3 * B.mz -
+                                                 M.c4 * B.my + M.c5 * B.mx + M.c7 * B.vz,
+                                             -M.c0 * B.mx - M.c1 * B.my - M.c2 * B.mz));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
+                                                               MVec3dp_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(B.mx * M.c7 - B.my * M.c2 + B.mz * M.c1,
+                                          B.mx * M.c2 + B.my * M.c7 - B.mz * M.c0,
+                                          -B.mx * M.c1 + B.my * M.c0 + B.mz * M.c7,
+                                          B.vx * M.c0 + B.vy * M.c1 + B.vz * M.c2 -
+                                              B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6),
+                            TriVec3dp<ctype>(-B.vx * M.c7 + B.vy * M.c2 - B.vz * M.c1 +
+                                                 B.mx * M.c3 - B.my * M.c6 + B.mz * M.c5,
+                                             -B.vx * M.c2 - B.vy * M.c7 + B.vz * M.c0 +
+                                                 B.mx * M.c6 + B.my * M.c3 - B.mz * M.c4,
+                                             B.vx * M.c1 - B.vy * M.c0 - B.vz * M.c7 -
+                                                 B.mx * M.c5 + B.my * M.c4 + B.mz * M.c3,
+                                             -B.mx * M.c0 - B.my * M.c1 - B.mz * M.c2));
 }
 
 // geometric product A * v of an even grade multivector A with a vector v
@@ -1869,7 +1977,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(BiVec3dp<T> const
                                                                Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>((B >> v), wdg(B, v));
+    return MVec3dp_U<ctype>((v << B), wdg(B, v));
 }
 
 template <typename T, typename U>
@@ -1878,7 +1986,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(Vec3dp<T> const& 
                                                                BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>((v << B), wdg(v, B));
+    return MVec3dp_U<ctype>((B >> v), wdg(v, B));
 }
 
 // (geometric) product B * s of bivector B multiplied by a scalar s from the right

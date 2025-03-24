@@ -1554,6 +1554,11 @@ void generate_and_print_pga2dp_rbulk_contract()
 {
 
     std::string prd_name = "pga2dp right bulk contraction";
+
+    // (A >> B) = rwdg(A, rdual(B)) -> in pga2dp = rwdg(A, bulk_dual(B))
+    //
+    // with rwdg(A,B) = cmpl( wdg(cmpl(A),cmpl(B)) ) in pga2dp
+
     auto basis = mv2dp_basis;
     // fmt::println("mv_basis for rwdg:");
     // print_mvec(mv2dp_coeff_svBps, basis);
@@ -2242,6 +2247,11 @@ void generate_and_print_pga2dp_lbulk_contract()
 {
 
     std::string prd_name = "pga2dp left bulk contraction";
+
+    // (A << B) = rwdg( ldual(A),B ) -> in pga2dp = rwdg(bulk_dual(A),B)
+    //
+    // with rwdg(A,B) = cmpl( wdg( cmpl(A),cmpl(B) ) ) in pga2dp
+
     auto basis = mv2dp_basis;
     // fmt::println("mv_basis for rwdg:");
     // print_mvec(mv2dp_coeff_svBps, basis);

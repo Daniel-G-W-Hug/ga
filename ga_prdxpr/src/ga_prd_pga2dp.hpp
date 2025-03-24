@@ -167,11 +167,10 @@ void generate_and_print_pga2dp_gpr(); // geometric product
 void generate_and_print_pga2dp_wdg(); // wegde product (=outer product)
 void generate_and_print_pga2dp_dot(); // dot product (=inner product)
 
-void generate_and_print_pga2dp_rdot(); // regressive dot product
 void generate_and_print_pga2dp_rwdg(); // regressive wedge product
+void generate_and_print_pga2dp_rdot(); // regressive dot product
 void generate_and_print_pga2dp_rgpr(); // regressive geometric product
 
-// pga2dp - interior products (contractions, expansions)
 void generate_and_print_pga2dp_rbulk_contract();   // right bulk contraction
 void generate_and_print_pga2dp_rweight_contract(); // right weight contraction
 void generate_and_print_pga2dp_lbulk_contract();   // left bulk contraction

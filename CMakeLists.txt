@@ -41,11 +41,6 @@ else()
   add_compile_options(-Wall -Wextra -pedantic)
 endif()
 
-### Default is using duality as defined by Macdonald: dual(A)=A*rev(I)
-### in order to use duality as defined by Hestenes, Doran and Lasenby: dual(A)=I*A
-### uncomment this definition or set it externally
-#add_definitions(-D_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
-
 ### Extended testing for division by zero (optional, may cost speed)
 add_definitions(-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
 

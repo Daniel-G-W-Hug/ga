@@ -47,10 +47,10 @@ inline constexpr PScalar2d<T> gr_inv(PScalar2d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> gr_inv(MVec2d_E<T> const& E)
+inline constexpr MVec2d_E<T> gr_inv(MVec2d_E<T> const& M)
 {
     // grade 0 and 2: no sign change
-    return E;
+    return M;
 }
 
 template <typename T>
@@ -59,7 +59,7 @@ inline constexpr MVec2d<T> gr_inv(MVec2d<T> const& M)
 {
     // grade 0 and 2: no sign change
     // grade 1: sign reversal
-    return MVec2d<T>(M.c0, -M.c1, -M.c2, M.c3);
+    return MVec2d<T>(gr_inv(gr0(M)), gr_inv(gr1(M)), gr_inv(gr2(M)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -94,11 +94,11 @@ inline constexpr PScalar2d<T> rev(PScalar2d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> rev(MVec2d_E<T> const& E)
+inline constexpr MVec2d_E<T> rev(MVec2d_E<T> const& M)
 {
     // grade 0: no sign change
     // grade 2: sign reversal
-    return MVec2d_E<T>(E.c0, -E.c1);
+    return MVec2d_E<T>(rev(gr0(M)), rev(gr2(M)));
 }
 
 template <typename T>
@@ -108,7 +108,7 @@ inline constexpr MVec2d<T> rev(MVec2d<T> const& M)
     // grade 0: no sign change
     // grade 1: no sign change
     // grade 2: sign reversal
-    return MVec2d<T>(M.c0, M.c1, M.c2, -M.c3);
+    return MVec2d<T>(rev(gr0(M)), rev(gr1(M)), rev(gr2(M)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -143,11 +143,11 @@ inline constexpr PScalar2d<T> conj(PScalar2d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> conj(MVec2d_E<T> const& E)
+inline constexpr MVec2d_E<T> conj(MVec2d_E<T> const& M)
 {
     // grade 0: no sign change
     // grade 2: sign reversal
-    return MVec2d_E<T>(E.c0, -E.c1);
+    return MVec2d_E<T>(conj(gr0(M)), conj(gr2(M)));
 }
 
 template <typename T>
@@ -157,22 +157,26 @@ inline constexpr MVec2d<T> conj(MVec2d<T> const& M)
     // grade 0: no sign change
     // grade 1: sign reversal
     // grade 2: sign reversal
-    return MVec2d<T>(M.c0, -M.c1, -M.c2, -M.c3);
+    return MVec2d<T>(conj(gr0(M)), conj(gr1(M)), conj(gr2(M)));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// scalar product (= dot product defined for equal grades exclusively)
+// dot product (=inner product defined for equal grades exclusively)
+//
+// dot(v1,v2) = v1^T * g_{ij} * v2 is the scalar product with g_{ij} as the metric
+//
+// here we assume e1^2 = +1, e2^2 = +1
+//
 ////////////////////////////////////////////////////////////////////////////////
 
-// scalar product dot(a,b) (nrm_sq(a,b) = dot(a, rev(b)))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Scalar2d<std::common_type_t<T, U>> dot(MVec2d<T> const& A,
                                                         MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3);
+    return Scalar2d<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3);
 }
 
 template <typename T, typename U>
@@ -181,12 +185,11 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> dot(PScalar2d<T> ps1,
                                                         PScalar2d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(-ctype(ps1) * ctype(ps2));
+    return Scalar2d<ctype>(ctype(ps1) * ctype(ps2));
 }
 
 // return dot-product of two vectors in G<2,0,0>
 // dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
-//            = gr0(v1*v1)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Scalar2d<std::common_type_t<T, U>> dot(Vec2d<T> const& v1,
@@ -254,70 +257,70 @@ inline constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& A,
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// wedge product between multivector A and pseudoscalar ps
+// wedge product between multivector M and pseudoscalar ps
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& A,
+inline constexpr PScalar2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& M,
                                                          PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar2d<ctype>(A.c0 * ctype(ps));
+    return PScalar2d<ctype>(M.c0 * ctype(ps));
 }
 
-// wedge product between pseudoscalar ps and multivector B
+// wedge product between pseudoscalar ps and multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr PScalar2d<std::common_type_t<T, U>> wdg(PScalar2d<T> ps,
-                                                         MVec2d<U> const& B)
+                                                         MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar2d<ctype>(ctype(ps) * B.c0);
+    return PScalar2d<ctype>(ctype(ps) * M.c0);
 }
 
-// wedge product A ^ v between multivector A and vector v
+// wedge product M ^ v between multivector M and vector v
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& A,
+inline constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& M,
                                                       Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = 0.0;
-    ctype c1 = A.c0 * v.x;
-    ctype c2 = A.c0 * v.y;
-    ctype c3 = A.c1 * v.y - A.c2 * v.x;
+    ctype c1 = M.c0 * v.x;
+    ctype c2 = M.c0 * v.y;
+    ctype c3 = M.c1 * v.y - M.c2 * v.x;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// wedge product v ^ B between vector v and multivector B
+// wedge product v ^ M between vector v and multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v,
-                                                      MVec2d<U> const& B)
+                                                      MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = 0.0;
-    ctype c1 = v.x * B.c0;
-    ctype c2 = v.y * B.c0;
-    ctype c3 = v.x * B.c2 - v.y * B.c1;
+    ctype c1 = v.x * M.c0;
+    ctype c2 = v.y * M.c0;
+    ctype c3 = v.x * M.c2 - v.y * M.c1;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// wedge product between multivector A and scalar s
+// wedge product between multivector M and scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& A, Scalar2d<U> s)
+inline constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& M, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d<ctype>(A * ctype(s));
+    return M * ctype(s);
 }
 
 // wedge product between scalar s and multivector B
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s, MVec2d<U> const& B)
+inline constexpr MVec2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s, MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d<ctype>(ctype(s) * B);
+    return ctype(s) * M;
 }
 
 // wedge product between two even grade multivectors A and B
@@ -332,64 +335,64 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& A,
     return MVec2d_E<ctype>(c0, c1);
 }
 
-// wedge product between even grade multivector A and pseudoscalar ps
+// wedge product between even grade multivector M and pseudoscalar ps
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar2d<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& A,
+inline constexpr PScalar2d<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& M,
                                                          PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar2d<ctype>(A.c0 * ctype(ps));
+    return PScalar2d<ctype>(M.c0 * ctype(ps));
 }
 
-// wedge product between pseudoscalar ps and even grade multivector B
+// wedge product between pseudoscalar ps and even grade multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr PScalar2d<std::common_type_t<T, U>> wdg(PScalar2d<T> ps,
-                                                         MVec2d_E<U> const& B)
+                                                         MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar2d<ctype>(ctype(ps) * B.c0);
+    return PScalar2d<ctype>(ctype(ps) * M.c0);
 }
 
-// wedge product between even grade multivector A and vector v
+// wedge product between even grade multivector M and vector v
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& A,
+inline constexpr MVec2d_E<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& M,
                                                         Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(A.c0 * v.x, A.c0 * v.y);
+    return Vec2d<ctype>(M.c0 * v.x, M.c0 * v.y);
 }
 
-// wedge product between vector v and even grade multivector B
+// wedge product between vector v and even grade multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d_E<std::common_type_t<T, U>> wdg(Vec2d<T> const& v,
-                                                        MVec2d_E<U> const& B)
+                                                        MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x * B.c0, v.y * B.c0);
+    return Vec2d<ctype>(v.x * M.c0, v.y * M.c0);
 }
 
-// wedge product between even grade multivector A and scalar s
+// wedge product between even grade multivector M and scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& A,
+inline constexpr MVec2d_E<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& M,
                                                         Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(A * ctype(s));
+    return M * ctype(s);
 }
 
-// wedge product between scalar s and even grade multivector B
+// wedge product between scalar s and even grade multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d_E<std::common_type_t<T, U>> wdg(Scalar2d<T> s,
-                                                        MVec2d_E<U> const& B)
+                                                        MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(ctype(s) * B);
+    return ctype(s) * M;
 }
 
 // wedge product of two pseudoscalars
@@ -460,7 +463,7 @@ template <typename T, typename U>
 inline constexpr Vec2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x, v.y) * ctype(s);
+    return v * ctype(s);
 }
 
 // wedge product with one scalar (returns a scaled vector)
@@ -469,7 +472,7 @@ template <typename T, typename U>
 inline constexpr Vec2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * Vec2d<ctype>(v.x, v.y);
+    return ctype(s) * v;
 }
 
 // wedge product between two scalars (returns a scalar)
@@ -589,9 +592,9 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& A,
                                                              MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3;
-    ctype c1 = A.c0 * B.c1 - A.c2 * B.c3;
-    ctype c2 = A.c0 * B.c2 + A.c1 * B.c3;
+    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3;
+    ctype c1 = A.c0 * B.c1 + A.c2 * B.c3;
+    ctype c2 = A.c0 * B.c2 - A.c1 * B.c3;
     ctype c3 = A.c0 * B.c3;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
@@ -603,9 +606,9 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& A,
                                                              MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 - A.c3 * B.c1;
-    ctype c1 = -A.c2 * B.c1;
-    ctype c2 = A.c1 * B.c1;
+    ctype c0 = A.c0 * B.c0 + A.c3 * B.c1;
+    ctype c1 = A.c2 * B.c1;
+    ctype c2 = -A.c1 * B.c1;
     ctype c3 = A.c0 * B.c1;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
@@ -617,87 +620,84 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& 
                                                              MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 - A.c1 * B.c3;
+    ctype c0 = A.c0 * B.c0 + A.c1 * B.c3;
     ctype c1 = A.c0 * B.c1;
     ctype c2 = A.c0 * B.c2;
     ctype c3 = A.c0 * B.c3;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// left contraction (A << ps) of mulivector A onto pseudoscalar ps
+// left contraction (M << ps) of mulivector A onto pseudoscalar ps
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<U> const& A,
+inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<U> const& M,
                                                              PScalar2d<T> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = -A.c3 * ps;
-    ctype c1 = -A.c2 * ps;
-    ctype c2 = A.c1 * ps;
-    ctype c3 = A.c0 * ps;
+    ctype c0 = M.c3 * ps;
+    ctype c1 = M.c2 * ps;
+    ctype c2 = -M.c1 * ps;
+    ctype c3 = M.c0 * ps;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// left contraction (ps << B) of a pseudoscalar ps onto mulivector B
+// left contraction (ps << M) of a pseudoscalar ps onto mulivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(PScalar2d<T> ps,
-                                                               MVec2d<U> const& B)
+                                                               MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(-ps * B.c3);
+    return Scalar2d<ctype>(ps * M.c3);
 }
 
-// left contraction (A << v) of multivector A onto vector v
+// left contraction (M << v) of multivector M onto vector v
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& A,
+inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& M,
                                                              Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c1 * v.x + A.c2 * v.y;
-    ctype c1 = A.c0 * v.x;
-    ctype c2 = A.c0 * v.y;
+    ctype c0 = M.c1 * v.x + M.c2 * v.y;
+    ctype c1 = M.c0 * v.x;
+    ctype c2 = M.c0 * v.y;
     ctype c3 = 0.0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// left contraction (v << B) of vector v onto multivector B
+// left contraction (v << M) of vector v onto multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
-                                                             MVec2d<U> const& B)
+                                                             MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = v.x * B.c1 + v.y * B.c2;
-    ctype c1 = -v.y * B.c3;
-    ctype c2 = v.x * B.c3;
+    ctype c0 = v.x * M.c1 + v.y * M.c2;
+    ctype c1 = v.y * M.c3;
+    ctype c2 = -v.x * M.c3;
     ctype c3 = 0.0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// left contraction (A << s) of mulivector A onto scalar s
+// left contraction (M << s) of multivector M onto scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& A,
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& M,
                                                                Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(A.c0 * s);
+    return Scalar2d<ctype>(M.c0 * s);
 }
 
-// left contraction (s << B) of scalar s onto mulivector B
+// left contraction (s << M) of scalar s onto multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
-                                                             MVec2d<U> const& B)
+                                                             MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = s * B.c0;
-    ctype c1 = s * B.c1;
-    ctype c2 = s * B.c2;
-    ctype c3 = s * B.c3;
-    return MVec2d<ctype>(c0, c1, c2, c3);
+
+    return ctype(s) * M;
 }
 
 // left contraction (A << B) - "A contracted onto B"
@@ -707,84 +707,82 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const
                                                                MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 - A.c1 * B.c1;
+    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1;
     ctype c1 = A.c0 * B.c1;
     return MVec2d_E<ctype>(c0, c1);
 }
 
-// left contraction (A << ps) of even grade mulivector A with pseudoscalar ps
+// left contraction (M << ps) of even grade mulivector M with pseudoscalar ps
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& M,
                                                                PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = -A.c1 * ps;
-    ctype c1 = A.c0 * ps;
+    ctype c0 = M.c1 * ps;
+    ctype c1 = M.c0 * ps;
     return MVec2d_E<ctype>(c0, c1);
 }
 
-// left contraction (ps << B) of pseudoscalar ps with an even grade mulivector B
+// left contraction (ps << M) of pseudoscalar ps with an even grade mulivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(PScalar2d<T> ps,
-                                                               MVec2d_E<U> const& B)
+                                                               MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(-ps * B.c1);
+    return Scalar2d<ctype>(ps * M.c1);
 }
 
-// left contraction (A << v) - "A contracted onto v"
+// left contraction (M << v) - "M contracted onto v"
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
+inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& M,
                                                             Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(A.c0 * v.x, A.c0 * v.y);
+    return Vec2d<ctype>(M.c0 * v.x, M.c0 * v.y);
 }
 
-// left contraction (v << B) - "v contracted onto B"
+// left contraction (v << M) - "v contracted onto M"
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
-                                                               MVec2d_E<U> const& B)
+                                                               MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-v.y * B.c1, v.x * B.c1);
+    return Vec2d<ctype>(v.y * M.c1, -v.x * M.c1);
 }
 
-// left contraction (A << s) of even grade mulivector A with scalar s
+// left contraction (M << s) of even grade mulivector M with scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& M,
                                                                Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(A.c0 * s);
+    return Scalar2d<ctype>(M.c0 * s);
 }
 
-// left contraction (s << B) of a scalar s with an even grade mulivector B
+// left contraction (s << M) of a scalar s with an even grade mulivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
-                                                               MVec2d_E<U> const& B)
+                                                               MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = s * B.c0;
-    ctype c1 = s * B.c1;
-    return MVec2d_E<ctype>(c0, c1);
+    return ctype(s) * M;
 }
 
 // left contraction - pseudoscalar ps1 contracted onto pseudoscalar ps2
-// returns scalar
+// returns a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Scalar2d<std::common_type_t<T, U>> operator<<(PScalar2d<T> ps1,
                                                                PScalar2d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(-ps1 * ps2);
+    return Scalar2d<ctype>(ps1 * ps2);
 }
 
 // left contraction -  pseudoscalar contracted onto vector
@@ -807,7 +805,7 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
                                                             PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-v.y, v.x) * ctype(ps);
+    return Vec2d<ctype>(v.y, -v.x) * ctype(ps);
 }
 
 // left contraction - pseudoscalar contracted onto scalar
@@ -862,7 +860,7 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
                                                             Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * Vec2d<ctype>(v.x, v.y);
+    return ctype(s) * v;
 }
 
 // left contraction (s1 << s2) - scalar s1 contracted onto scalar s2
@@ -888,9 +886,9 @@ template <typename T, typename U>
 inline constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3;
-    ctype c1 = A.c1 * B.c0 + A.c3 * B.c2;
-    ctype c2 = A.c2 * B.c0 - A.c3 * B.c1;
+    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3;
+    ctype c1 = A.c1 * B.c0 - A.c3 * B.c2;
+    ctype c2 = A.c2 * B.c0 + A.c3 * B.c1;
     ctype c3 = A.c3 * B.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
@@ -901,7 +899,7 @@ template <typename T, typename U>
 inline constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 - A.c3 * B.c1;
+    ctype c0 = A.c0 * B.c0 + A.c3 * B.c1;
     ctype c1 = A.c1 * B.c0;
     ctype c2 = A.c2 * B.c0;
     ctype c3 = A.c3 * B.c0;
@@ -914,84 +912,80 @@ template <typename T, typename U>
 inline constexpr MVec2d<T> operator>>(MVec2d_E<T> const& A, MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 - A.c1 * B.c3;
-    ctype c1 = A.c1 * B.c2;
-    ctype c2 = -A.c1 * B.c1;
+    ctype c0 = A.c0 * B.c0 + A.c1 * B.c3;
+    ctype c1 = -A.c1 * B.c2;
+    ctype c2 = A.c1 * B.c1;
     ctype c3 = A.c1 * B.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
-// right contraction (A >> ps) of a multivector A by a pseudoscalar ps
+// right contraction (M >> ps) of a multivector M by a pseudoscalar ps
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& A,
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& M,
                                                                PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(-A.c3 * ps);
+    return Scalar2d<ctype>(M.c3 * ps);
 }
 
-// right contraction (ps >> B) of a pseudoscalar ps by a multivector B
+// right contraction (ps >> M) of a pseudoscalar ps by a multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps,
-                                                             MVec2d<U> const& B)
+                                                             MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = -ps * B.c3;
-    ctype c1 = ps * B.c2;
-    ctype c2 = -ps * B.c1;
-    ctype c3 = ps * B.c0;
+    ctype c0 = ps * M.c3;
+    ctype c1 = -ps * M.c2;
+    ctype c2 = ps * M.c1;
+    ctype c3 = ps * M.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// right contraction (A >> v) of multivector A contracted by vector v
+// right contraction (M >> v) of multivector A contracted by vector v
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<T> operator>>(MVec2d<T> const& A, Vec2d<U> const& v)
+inline constexpr MVec2d<T> operator>>(MVec2d<T> const& M, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c1 * v.x + A.c2 * v.y;
-    ctype c1 = A.c3 * v.y;
-    ctype c2 = -A.c3 * v.x;
+    ctype c0 = M.c1 * v.x + M.c2 * v.y;
+    ctype c1 = -M.c3 * v.y;
+    ctype c2 = M.c3 * v.x;
     ctype c3 = 0.0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// right contraction (v >> B) of vector v contracted by multivector B
+// right contraction (v >> M) of vector v contracted by multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<T> operator>>(Vec2d<T> const& v, MVec2d<U> const& B)
+inline constexpr MVec2d<T> operator>>(Vec2d<T> const& v, MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = v.x * B.c1 + v.y * B.c2;
-    ctype c1 = v.x * B.c0;
-    ctype c2 = v.y * B.c0;
+    ctype c0 = v.x * M.c1 + v.y * M.c2;
+    ctype c1 = v.x * M.c0;
+    ctype c2 = v.y * M.c0;
     ctype c3 = 0.0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// right contraction (A >> s) of multivector A by scalar s
+// right contraction (M >> s) of multivector M by scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& A,
+inline constexpr MVec2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& M,
                                                              Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * s;
-    ctype c1 = A.c1 * s;
-    ctype c2 = A.c2 * s;
-    ctype c3 = A.c3 * s;
-    return MVec2d<ctype>(c0, c1, c2, c3);
+    return M * ctype(s);
 }
 
-// right contraction (s >> B) of scalar s by multivector B
+// right contraction (s >> M) of scalar s by multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Scalar2d<T> s,
-                                                               MVec2d<U> const& B)
+                                                               MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(s * B.c0);
+    return Scalar2d<ctype>(s * M.c0);
 }
 
 // right contraction (A >> B) of an even grade multivector A by even grade multivector B
@@ -1001,73 +995,71 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const
                                                                MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 - A.c1 * B.c1;
+    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1;
     ctype c1 = A.c1 * B.c0;
     return MVec2d_E<ctype>(c0, c1);
 }
 
-// right contraction (A >> ps) of an even grade multivector A by a pseudoscalar ps
+// right contraction (M >> ps) of an even grade multivector M by a pseudoscalar ps
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& A,
+inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& M,
                                                                PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(-A.c1 * ps);
+    return Scalar2d<ctype>(M.c1 * ps);
 }
 
-// right contraction (ps >> B) of pseudoscalar ps by even grade multivector B
+// right contraction (ps >> M) of pseudoscalar ps by even grade multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps,
-                                                               MVec2d_E<U> const& B)
+                                                               MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = -ps * B.c1;
-    ctype c1 = ps * B.c0;
+    ctype c0 = ps * M.c1;
+    ctype c1 = ps * M.c0;
     return MVec2d_E<ctype>(c0, c1);
 }
 
-// left contraction (A >> v) - "A contracted by v"
+// left contraction (M >> v) - "M contracted by v"
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& A,
+inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& M,
                                                             Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(A.c1 * v.y, -A.c1 * v.x);
+    return Vec2d<ctype>(-M.c1 * v.y, M.c1 * v.x);
 }
 
-// left contraction (v >> B) - "v contracted by B"
+// left contraction (v >> M) - "v contracted by M"
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v,
-                                                               MVec2d_E<U> const& B)
+                                                               MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x * B.c0, v.y * B.c0);
+    return Vec2d<ctype>(v.x * M.c0, v.y * M.c0);
 }
 
-// right contraction (A >> s) of even grade multivector A by scalar s
+// right contraction (M >> s) of even grade multivector M by scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& A,
+inline constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& M,
                                                                Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * s;
-    ctype c1 = A.c1 * s;
-    return MVec2d_E<ctype>(c0, c1);
+    return M * ctype(s);
 }
 
-// right contraction (s >> B) of scalar s by even grade multivector B
+// right contraction (s >> M) of scalar s by even grade multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Scalar2d<T> s,
-                                                               MVec2d_E<U> const& B)
+                                                               MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(s * B.c0);
+    return Scalar2d<ctype>(s * M.c0);
 }
 
 // right contraction - pseudoscalar s1 contracted by pseudoscalar s2
@@ -1077,7 +1069,7 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps1,
                                                                PScalar2d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(-ctype(ps1) * ctype(ps2));
+    return Scalar2d<ctype>(ctype(ps1) * ctype(ps2));
 }
 
 // right contraction (ps >> v) - pseudoscalar ps contracted by vector v
@@ -1088,7 +1080,7 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps,
                                                             Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * Vec2d<ctype>(v.y, -v.x);
+    return ctype(ps) * Vec2d<ctype>(-v.y, v.x);
 }
 
 // right contraction -  vector contracted by a pseudoscalar
@@ -1143,7 +1135,7 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(Vec2d<U> const& v,
                                                             Scalar2d<T> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x, v.y) * ctype(s);
+    return v * ctype(s);
 }
 
 // right contraction - scalar contracted by a vector
@@ -1167,42 +1159,6 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Scalar2d<T> s1,
     return Scalar2d<ctype>(ctype(s1) * ctype(s2));
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// alternative multivector products (in use instead of contractions)
-////////////////////////////////////////////////////////////////////////////////
-
-// inner product (as defined by Hestens; like fat_dot below, but without scalar parts)
-//
-// inner(A,B) := sum_(r!=0,s!=0)^n gr( gr(A)_r * gr(B)_s )_|s-r|
-//
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<T> inner(MVec2d<T> const& A, MVec2d<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3;
-    ctype c1 = A.c3 * B.c2 - A.c2 * B.c3;
-    ctype c2 = -A.c3 * B.c1 + A.c1 * B.c3;
-    ctype c3 = 0;
-    return MVec2d<ctype>(c0, c1, c2, c3);
-}
-
-// fat_dot product (including the scalar parts)
-//
-// inner(A,B) := sum_(r=0,s=0)^n gr( gr(A)_r * gr(B)_s )_|s-r|
-//
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<T> fat_dot(MVec2d<T> const& A, MVec2d<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3;
-    ctype c1 = A.c0 * B.c1 + A.c1 * B.c0 + A.c3 * B.c2 - A.c2 * B.c3;
-    ctype c2 = A.c0 * B.c2 + A.c2 * B.c0 - A.c3 * B.c1 + A.c1 * B.c3;
-    ctype c3 = A.c0 * B.c3 + A.c3 * B.c0;
-    return MVec2d<ctype>(c0, c1, c2, c3);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // geometric products
@@ -1307,7 +1263,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator*(MVec2d<T> const& A,
                                                             Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d<ctype>(A.c0, A.c1, A.c2, A.c3) * ctype(s);
+    return A * ctype(s);
 }
 
 // geometric product s * B of a scalar s multiplied to the multivector B from left
@@ -1318,7 +1274,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator*(Scalar2d<T> s,
                                                             MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * MVec2d<ctype>(B.c0, B.c1, B.c2, B.c3);
+    return ctype(s) * B;
 }
 
 // geometric product A * B for two multivectors from the even subalgebra (2d case)
@@ -1386,7 +1342,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator*(MVec2d_E<T> const&
                                                               Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(A.c0, A.c1) * ctype(s);
+    return A * ctype(s);
 }
 
 // geometric product s * B of a scalar with an even grade multivector B
@@ -1397,7 +1353,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator*(Scalar2d<T> s,
                                                               MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * MVec2d_E<ctype>(B.c0, B.c1);
+    return ctype(s) * B;
 }
 
 // geometric product ps * ps of two pseudoscalars
@@ -1482,7 +1438,7 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator*(Vec2d<U> const& v,
                                                            Scalar2d<T> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x, v.y) * ctype(s);
+    return v * ctype(s);
 }
 
 // geometric product s * v of scalar s and vector v
@@ -1493,7 +1449,7 @@ inline constexpr Vec2d<std::common_type_t<T, U>> operator*(Scalar2d<T> s,
                                                            Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * Vec2d<ctype>(v.x, v.y);
+    return ctype(s) * v;
 }
 
 // geometric product s1 * s2 of two scalars
@@ -1747,162 +1703,6 @@ inline constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
     return MVec2d<ctype>(rotor * M * rev(rotor));
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// 2d duality operations
-// (the concept of dual is defined w.r.t. the geometric product)
-////////////////////////////////////////////////////////////////////////////////
-
-// if M represents the subspace B as subspace of R^2 then
-// dual(M) represents the subspace orthorgonal to B
-// => return the dual(M) of the multivector M
-
-#if defined(_HD_GA_HESTENES_DORAN_LASENBY_DUALITY)
-////////////////////////////////////////////////////////////////////////////////
-// duality as defined by Hestenes or by Doran, Lasenby in "GA for physicists":
-// (same subspace as for Macdonld's definition below, but other resulting signs)
-// (=> will have influence on formulae concerning duality directly)
-////////////////////////////////////////////////////////////////////////////////
-//
-// dual(A) = I*A
-//
-// I_2d * 1 = e1^e2 * 1 = e1^e2
-//
-// I_2d * e1 = e1^e2 * e1 = e_121 = -e_112 = -e_2 = -e2
-// I_2d * e2 = e1^e2 * e2 = e_122 =  e_122 =  e_1 =  e1
-//
-// I_2d * e1^e2 = e1^e2 * e1^e2 = e_1212 = -e_1122 = -1
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> dual(PScalar2d<T> ps)
-{
-    // dual(A) = I*A
-    // e12 * (ps * e12) = -ps
-    return Scalar2d<T>(-T(ps));
-}
-
-// this one is problematic for overloading, because 2d and 3d case
-// transform scalars to different pseudoscalars, this can only be avoided, when the scalar
-// type is uniquely defined for the corresponding algebra
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> dual(Scalar2d<T> s)
-{
-    // dual(A) = I*A
-    // e12 * (s) = s * e12
-    return PScalar2d<T>(T(s));
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Vec2d<T> dual(Vec2d<T> const& v)
-{
-    // dual(A) = I*A
-    // e12 * (v.x * e1 + v.y * e2)
-    //     =  v.y * e1 - v.x * e2
-    return Vec2d<T>(v.y, -v.x);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> dual(MVec2d_E<T> const& M)
-{
-    // dual(A) = I*A
-    // e12 * (  s + ps * e12)
-    //     =  -ps +  s * e12
-    return MVec2d_E<T>(-M.c1, M.c0);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
-{
-    // dual(A) = I*A
-    // e12 * (  s + v.x * e1 + v.y * e2 + ps * e12)
-    //     =  -ps + v.y * e1 - v.x * e2 + s * e12
-    return MVec2d<T>(-M.c3, M.c2, -M.c1, M.c0);
-}
-
-#else
-////////////////////////////////////////////////////////////////////////////////
-// duality as defined in Macdonald, "Linear and geometric algebra", p. 109:
-////////////////////////////////////////////////////////////////////////////////
-//
-// dual(A) = A/I = A*I^(-1) = A*rev(I)
-//
-// 1 * rev(I_2d) = 1 * e2^e1 = e2^e1 = e_21 = -e_12 = -e1^e2
-//
-// e1 * rev(I_2d) = e1 * e2^e1 = e_121 = -e_112 = -e_2 = -e2
-// e2 * rev(I_2d) = e2 * e2^e1 = e_221 =  e_221 =  e_1 =  e1
-//
-// e1^e2 * rev(I_2d) = e1^e2 * e2^e1 = e_1221 = 1
-
-// using this duality definition, following duality properties hold
-// (A. Macdonald, "Linear and geometric algebra", p. 110):
-//
-// a) dual(aA) = a dual(A)
-// b) dual(A + B) = dual(A) + dual(B)
-// c) dual(dual(A)) = (-1)^(n*(n-1)/2) A   (with n as dimension of the (sub)space)
-// d) |dual(B)| = |B|
-// e) if B is a j-blade then dual(B) is an (n-j)-blade
-// f) if A is a j-vector then dual(A) is an (n-j)-vector
-//    (remember: a j-vector is a sum of j-blades, which are outer products)
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> dual(PScalar2d<T> ps)
-{
-    // dual(A) = A/I = A*I^(-1) = A*rev(I)
-    //   (ps * e12) * e21
-    // =  ps
-    return Scalar2d<T>(T(ps));
-}
-
-// this one is problematic for overloading, because 2d and 3d case
-// transform scalars to different pseudoscalars, this can only be avoided, when the scalar
-// type is uniquely defined for the corresponding algebra
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> dual(Scalar2d<T> s)
-{
-    // dual(A) = A/I = A*I^(-1) = A*rev(I)
-    //   (s) * e21
-    // =  -s * e12
-    return PScalar2d<T>(-T(s));
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Vec2d<T> dual(Vec2d<T> const& v)
-{
-    // dual(A) = A/I = A*I^(-1) = A*rev(I)
-    //   (v.x * e1 + v.y * e2) * e21
-    // =  v.y * e1 - v.x * e2
-    return Vec2d<T>(v.y, -v.x);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> dual(MVec2d_E<T> const& M)
-{
-    // dual(A) = A/I = A*I^(-1) = A*rev(I)
-    //   (  s + ps * e12) * e21
-    //   = ps -  s * e12
-    return MVec2d_E<T>(M.c1, -M.c0);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
-{
-    // dual(A) = A/I = A*I^(-1) = A*rev(I)
-    //   (  s + v.x * e1 + v.y * e2 + ps * e12) * e21
-    //   = ps + v.y * e1 - v.x * e2 -  s * e12
-    return MVec2d<T>(M.c3, M.c2, -M.c1, -M.c0);
-}
-
-#endif
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2d complement operations (impact on basis vector exclusively!)
@@ -1917,24 +1717,16 @@ inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
 // which are in the k-blade u with the basis vectors which are NOT contained in the
 // k-blade u and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  lcmpl(u) ^ u  = I_2d = e1^e2  =>  lcmpl(u) = I_3d * rev(u)
-// right complement: u ^ rcmpl(u)  = I_2d = e1^e2  =>  rcmpl(u) = rev(v) * I_3d
+// left complement:  lcmpl(u) ^ u  = I_2d = e1^e2  =>  lcmpl(u) = I_2d * rev(u)
+// right complement: u ^ rcmpl(u)  = I_2d = e1^e2  =>  rcmpl(u) = rev(u) * I_2d
+//
+// (get formula on the rhs by multiplying with inv(u) from the right or left respectively)
 //
 // in spaces of odd dimension right and left complements are identical and thus there
-// is only one complement operation defined lcmpl(u), rcmpl(u) => cmpl(u)
+// is only one complement operation defined lcmpl(u) = rcmpl(u) = cmpl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // complements have different signs
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> rcmpl(Scalar2d<T> s)
-{
-    // u ^ rcmpl(u) = e1^e2
-    // u = s 1:
-    //     u ^ rcmpl(u) = e1^e2 => rcmpl(u) = rev(s) * I_2d = s e1^e2
-    return PScalar2d<T>(T(s));
-}
 
 template <typename T>
     requires(std::floating_point<T>)
@@ -1948,37 +1740,16 @@ inline constexpr PScalar2d<T> lcmpl(Scalar2d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> rcmpl(Vec2d<T> const& v)
-{
-    // u ^ rcmpl(u) = e1^e2
-    // u = v.x e1 + v.y e2:
-    //     u ^ rcmpl(u) = e1^e2 => cmpl(u) = rev(v) * I_2d
-    //     e1 => rcmpl(u).x =  v.x e2
-    //     e2 => rcmpl(u).y = -v.y e1
-
-    return Vec2d<T>(-v.y, v.x);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
 inline constexpr Vec2d<T> lcmpl(Vec2d<T> const& v)
 {
     // lcmpl(u) ^ u = e1^e2
     // u = v.x e1 + v.y e2:
     //     lcmpl(u) ^ u = e1^e2 => cmpl(u) = I_2d * rev(v)
-    //     e1 => lcmpl(u).x = -v.x e2
-    //     e2 => lcmpl(u).y =  v.y e1
+    //     lcmpl(u) = e12 * (v.x * e1 + v.y * e2) = -v.x * e2 + v.y * e1
+    //                                            =  v.y * e1 - v.x * e2
+    //     => lcmpl(u).x =  v.y e1
+    //     => lcmpl(u).y = -v.x e2
     return Vec2d<T>(v.y, -v.x);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> rcmpl(PScalar2d<T> ps)
-{
-    // u ^ rcmpl(u) = e1^e2
-    // u = ps e1^e2:
-    //     u ^ rcmpl(u) = e1^e2 => rcmpl(u) = rev(ps) * I_2d = ps 1
-    return Scalar2d<T>(T(ps));
 }
 
 template <typename T>
@@ -1993,26 +1764,10 @@ inline constexpr Scalar2d<T> lcmpl(PScalar2d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> rcmpl(MVec2d_E<T> const& M)
-{
-    // use the component complements directly
-    return MVec2d_E<T>(rcmpl(gr2(M)), rcmpl(gr0(M)));
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
 inline constexpr MVec2d_E<T> lcmpl(MVec2d_E<T> const& M)
 {
     // use the component complements directly
     return MVec2d_E<T>(lcmpl(gr2(M)), lcmpl(gr0(M)));
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr MVec2d<T> rcmpl(MVec2d<T> const& M)
-{
-    // use the component complements directly
-    return MVec2d<T>(rcmpl(gr2(M)), rcmpl(gr1(M)), rcmpl(gr0(M)));
 }
 
 template <typename T>
@@ -2024,32 +1779,114 @@ inline constexpr MVec2d<T> lcmpl(MVec2d<T> const& M)
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Vec2d<T> & PScalar2d<T> mixed operations using the geometric product
-//
-// this implements the left contraction, not the scalar product, which is zero for
-// arguments of different grades
-//
-// the left contraction is identical with the geometric product for
-// these type of arguments
-////////////////////////////////////////////////////////////////////////////////
-// template <typename T, typename U>
-//     requires(std::floating_point<T> && std::floating_point<U>)
-// inline constexpr Vec2d<std::common_type_t<T, U>> dot(PScalar2d<T> A, Vec2d<U> const& b)
-// {
-//     // the dot product is identical with the geometric product in this case (A^b = 0)
-//     // ATTENTION: the dot-product in NOT symmetric in G^n as it is in R^n
-//     return A * b;
-// }
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> rcmpl(Scalar2d<T> s)
+{
+    // u ^ rcmpl(u) = e1^e2
+    // u = s 1:
+    //     u ^ rcmpl(u) = e1^e2 => rcmpl(u) = rev(s) * I_2d = s e1^e2
+    return PScalar2d<T>(T(s));
+}
 
-// template <typename T, typename U>
-//     requires(std::floating_point<T> && std::floating_point<U>)
-// inline constexpr Vec2d<std::common_type_t<T, U>> dot(Vec2d<T> const& a, PScalar2d<U> B)
-// {
-//     // the dot product is identical with the geometric product in this case (a^B = 0)
-//     // ATTENTION: the dot-product in NOT symmetric in G^n as it is in R^n
-//     return a * B;
-// }
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> rcmpl(Vec2d<T> const& v)
+{
+    // u ^ rcmpl(u) = e1^e2
+    // u = v.x e1 + v.y e2:
+    //     u ^ rcmpl(u) = e1^e2 => rcmpl(u) = rev(v) * I_2d
+    //     rcmpl(u) = (v.x * e1 + v.y * e2) * e12 =   v.x * e2 - v.y * e1
+    //                                            = - v.y * e1 + v.x * e2
+    //     => rcmpl(u).x = -v.y e1
+    //     => rcmpl(u).y =  v.x e2
+
+    return Vec2d<T>(-v.y, v.x);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> rcmpl(PScalar2d<T> ps)
+{
+    // u ^ rcmpl(u) = e1^e2
+    // u = ps e1^e2:
+    //     u ^ rcmpl(u) = e1^e2 => rcmpl(u) = rev(ps) * I_2d = ps 1
+    return Scalar2d<T>(T(ps));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d_E<T> rcmpl(MVec2d_E<T> const& M)
+{
+    // use the component complements directly
+    return MVec2d_E<T>(rcmpl(gr2(M)), rcmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d<T> rcmpl(MVec2d<T> const& M)
+{
+    // use the component complements directly
+    return MVec2d<T>(rcmpl(gr2(M)), rcmpl(gr1(M)), rcmpl(gr0(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// duality (as defined in Lengyel, "PGA illuminated")
+// is defined w.r.t. the outer product
+////////////////////////////////////////////////////////////////////////////////
+//
+// if M represents the subspace B as subspace of R^2 then
+// dual(M) represents the subspace orthorgonal to B
+//
+// dual(A) = cmpl(A) in spaces of uneven dimension
+//         = rcmpl(A) in spaces of even dimension (right dual)
+//
+// this dual satisfies (right) dual(A) = rev(A) * I_n
+//
+// analogy: for the left cmpl/dual the (left) dual satisfies ldual(L) = I_n * rev(L)
+//
+// -> derived from the defining equation of the left and right complements
+
+
+// this one is problematic for overloading, because 2d and 3d case
+// transform scalars to different pseudoscalars, this can only be avoided, when the scalar
+// type is uniquely defined for the corresponding algebra
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> dual(Scalar2d<T> s)
+{
+    return rcmpl(s);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> dual(Vec2d<T> const& v)
+{
+    return rcmpl(v);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> dual(PScalar2d<T> ps)
+{
+    return rcmpl(ps);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d_E<T> dual(MVec2d_E<T> const& M)
+{
+    return MVec2d_E<T>(rcmpl(gr2(M)), rcmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
+{
+    return MVec2d<T>(rcmpl(gr2(M)), rcmpl(gr1(M)), rcmpl(gr0(M)));
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vec2d<T> projections, rejections and reflections
@@ -2061,66 +1898,22 @@ template <typename T, typename U>
 inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v1,
                                                               Vec2d<U> const& v2)
 {
-    return dot(v1, v2) * inv(v2);
-}
-
-// projection of v1 onto v2 (v2 must already be normalized to nrm(v2) == 1)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>>
-project_onto_normalized(Vec2d<T> const& v1, Vec2d<U> const& v2)
-{
-    // requires v2 to be normalized
-    return dot(v1, v2) * v2;
-}
-
-// projection of v onto ps (returns the vector directly)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v,
-                                                              PScalar2d<U> ps)
-{
-    // intial formula given i LAGA, Macdonald
-    // return dot(v, ps) * inv(ps);
-
-    // use formula given by Dorst based on the left contraction
-    return ((v << inv(ps)) << ps);
+    using ctype = std::common_type_t<T, U>;
+    return ctype(dot(v1, v2)) * inv(v2);
 }
 
 // rejection of v1 from v2
+// v_perp = gr1(wdg(v1,v2) * inv(v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
                                                              Vec2d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    // version using geometric algebra wedge product manually computed
-    // from "wdg(v1,v2)*inv(v2)"
-    PScalar2d<ctype> w = wdg(v1, v2); // bivector with component e12
-    ctype sq_n = nrm_sq(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error("vector norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
-    ctype w_sq_n_inv = w / sq_n;
-    return Vec2d<ctype>(v2.y * w_sq_n_inv, -v2.x * w_sq_n_inv);
-}
+    return Vec2d<ctype>(v1 - project_onto(v1, v2));
 
-// rejection of v1 from v2 (v2 must already be normalized to nrm(v2) == 1)
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>>
-reject_from_normalized(Vec2d<T> const& v1, Vec2d<U> const& v2)
-{
-    // requires v2 to be normalized
-
-    using ctype = std::common_type_t<T, U>;
-    // version using geometric algebra wedge product manually computed
-    // from "wdg(v1,v2)*inv(v2)" + v2 being already it's own inverse
-    PScalar2d<ctype> w = wdg(v1, v2); // bivector with component e12
-    return Vec2d<ctype>(v2.y * w, -v2.x * w);
+    // works, but is more effort compared to solution via projection and vector difference
+    // return Vec3d<ctype>(gr1(wdg(v1, v2) * inv(v2)));
 }
 
 // reflect a vector u on a hyperplane B orthogonal to vector b
@@ -2178,7 +1971,7 @@ gs_orthonormal(Vec2d<T> const& u, Vec2d<U> const& v)
     std::vector<Vec2d<ctype>> basis;
     Vec2d<ctype> u_unitized{normalize(u)};
     basis.push_back(u_unitized);
-    basis.emplace_back(normalize(reject_from_normalized(v, u_unitized)));
+    basis.emplace_back(normalize(reject_from(v, u_unitized)));
     return basis;
 }
 

@@ -708,16 +708,6 @@ void register_functions(sol::state& lua)
     // other products (inner, fat_dot, cmt, cross)
     ////////////////////////////////////////////////////////////////////////////////
 
-    lua.set_function(
-        "inner",
-        sol::overload(sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(inner),
-                      sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(inner)));
-
-    lua.set_function(
-        "fat_dot",
-        sol::overload(sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(fat_dot),
-                      sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(fat_dot)));
-
     lua.set_function("cmt", sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(cmt));
 
     lua.set_function("cross", sol::resolve<vec3d(vec3d const&, vec3d const&)>(cross));
@@ -803,29 +793,14 @@ void register_functions(sol::state& lua)
     lua.set_function(
         "project_onto",
         sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(project_onto),
-                      sol::resolve<vec2d(vec2d const&, pscalar2d)>(project_onto),
                       sol::resolve<vec3d(vec3d const&, vec3d const&)>(project_onto),
                       sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto)));
-
-    lua.set_function(
-        "project_onto_normalized",
-        sol::overload(
-            sol::resolve<vec2d(vec2d const&, vec2d const&)>(project_onto_normalized),
-            sol::resolve<vec3d(vec3d const&, vec3d const&)>(project_onto_normalized),
-            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(project_onto_normalized)));
 
     lua.set_function(
         "reject_from",
         sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reject_from),
                       sol::resolve<vec3d(vec3d const&, vec3d const&)>(reject_from),
                       sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from)));
-
-    lua.set_function(
-        "reject_from_normalized",
-        sol::overload(
-            sol::resolve<vec2d(vec2d const&, vec2d const&)>(reject_from_normalized),
-            sol::resolve<vec3d(vec3d const&, vec3d const&)>(reject_from_normalized),
-            sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from_normalized)));
 
     lua.set_function(
         "reflect_on_hyp",

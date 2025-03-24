@@ -78,72 +78,6 @@ const prd_rules wdg_ega3d_rules = {
     {"e123 ^ e3", "0"},   {"e123 ^ e23", "0"},  {"e123 ^ e31", "0"},
     {"e123 ^ e12", "0"},  {"e123 ^ e123", "0"}};
 
-const prd_rules lcontr_ega3d_rules = {
-    {"1 << 1", "1"},      {"1 << e1", "e1"},      {"1 << e2", "e2"},
-    {"1 << e3", "e3"},    {"1 << e23", "e23"},    {"1 << e31", "e31"},
-    {"1 << e12", "e12"},  {"1 << e123", "e123"},
-
-    {"e1 << 1", "0"},     {"e1 << e1", "1"},      {"e1 << e2", "0"},
-    {"e1 << e3", "0"},    {"e1 << e23", "0"},     {"e1 << e31", "-e3"},
-    {"e1 << e12", "e2"},  {"e1 << e123", "e23"},
-
-    {"e2 << 1", "0"},     {"e2 << e1", "0"},      {"e2 << e2", "1"},
-    {"e2 << e3", "0"},    {"e2 << e23", "e3"},    {"e2 << e31", "0"},
-    {"e2 << e12", "-e1"}, {"e2 << e123", "e31"},
-
-    {"e3 << 1", "0"},     {"e3 << e1", "0"},      {"e3 << e2", "0"},
-    {"e3 << e3", "1"},    {"e3 << e23", "-e2"},   {"e3 << e31", "e1"},
-    {"e3 << e12", "0"},   {"e3 << e123", "e12"},
-
-    {"e23 << 1", "0"},    {"e23 << e1", "0"},     {"e23 << e2", "0"},
-    {"e23 << e3", "0"},   {"e23 << e23", "-1"},   {"e23 << e31", "0"},
-    {"e23 << e12", "0"},  {"e23 << e123", "-e1"},
-
-    {"e31 << 1", "0"},    {"e31 << e1", "0"},     {"e31 << e2", "0"},
-    {"e31 << e3", "0"},   {"e31 << e23", "0"},    {"e31 << e31", "-1"},
-    {"e31 << e12", "0"},  {"e31 << e123", "-e2"},
-
-    {"e12 << 1", "0"},    {"e12 << e1", "0"},     {"e12 << e2", "0"},
-    {"e12 << e3", "0"},   {"e12 << e23", "0"},    {"e12 << e31", "0"},
-    {"e12 << e12", "-1"}, {"e12 << e123", "-e3"},
-
-    {"e123 << 1", "0"},   {"e123 << e1", "0"},    {"e123 << e2", "0"},
-    {"e123 << e3", "0"},  {"e123 << e23", "0"},   {"e123 << e31", "0"},
-    {"e123 << e12", "0"}, {"e123 << e123", "-1"}};
-
-const prd_rules rcontr_ega3d_rules = {
-    {"1 >> 1", "1"},        {"1 >> e1", "0"},       {"1 >> e2", "0"},
-    {"1 >> e3", "0"},       {"1 >> e23", "0"},      {"1 >> e31", "0"},
-    {"1 >> e12", "0"},      {"1 >> e123", "0"},
-
-    {"e1 >> 1", "e1"},      {"e1 >> e1", "1"},      {"e1 >> e2", "0"},
-    {"e1 >> e3", "0"},      {"e1 >> e23", "0"},     {"e1 >> e31", "0"},
-    {"e1 >> e12", "0"},     {"e1 >> e123", "0"},
-
-    {"e2 >> 1", "e2"},      {"e2 >> e1", "0"},      {"e2 >> e2", "1"},
-    {"e2 >> e3", "0"},      {"e2 >> e23", "0"},     {"e2 >> e31", "0"},
-    {"e2 >> e12", "0"},     {"e2 >> e123", "0"},
-
-    {"e3 >> 1", "e3"},      {"e3 >> e1", "0"},      {"e3 >> e2", "0"},
-    {"e3 >> e3", "1"},      {"e3 >> e23", "0"},     {"e3 >> e31", "0"},
-    {"e3 >> e12", "0"},     {"e3 >> e123", "0"},
-
-    {"e23 >> 1", "e23"},    {"e23 >> e1", "0"},     {"e23 >> e2", "-e3"},
-    {"e23 >> e3", "e2"},    {"e23 >> e23", "-1"},   {"e23 >> e31", "0"},
-    {"e23 >> e12", "0"},    {"e23 >> e123", "0"},
-
-    {"e31 >> 1", "e31"},    {"e31 >> e1", "e3"},    {"e31 >> e2", "0"},
-    {"e31 >> e3", "-e1"},   {"e31 >> e23", "0"},    {"e31 >> e31", "-1"},
-    {"e31 >> e12", "0"},    {"e31 >> e123", "0"},
-
-    {"e12 >> 1", "e12"},    {"e12 >> e1", "-e2"},   {"e12 >> e2", "e1"},
-    {"e12 >> e3", "0"},     {"e12 >> e23", "0"},    {"e12 >> e31", "0"},
-    {"e12 >> e12", "-1"},   {"e12 >> e123", "0"},
-
-    {"e123 >> 1", "e123"},  {"e123 >> e1", "e23"},  {"e123 >> e2", "e31"},
-    {"e123 >> e3", "e12"},  {"e123 >> e23", "-e1"}, {"e123 >> e31", "-e2"},
-    {"e123 >> e12", "-e3"}, {"e123 >> e123", "-1"}};
-
 const prd_rules dot_ega3d_rules = {
     {"1 * 1", "1"},      {"1 * e1", "0"},     {"1 * e2", "0"},     {"1 * e3", "0"},
     {"1 * e23", "0"},    {"1 * e31", "0"},    {"1 * e12", "0"},    {"1 * e123", "0"},
@@ -158,16 +92,16 @@ const prd_rules dot_ega3d_rules = {
     {"e3 * e23", "0"},   {"e3 * e31", "0"},   {"e3 * e12", "0"},   {"e3 * e123", "0"},
 
     {"e23 * 1", "0"},    {"e23 * e1", "0"},   {"e23 * e2", "0"},   {"e23 * e3", "0"},
-    {"e23 * e23", "-1"}, {"e23 * e31", "0"},  {"e23 * e12", "0"},  {"e23 * e123", "0"},
+    {"e23 * e23", "1"},  {"e23 * e31", "0"},  {"e23 * e12", "0"},  {"e23 * e123", "0"},
 
     {"e31 * 1", "0"},    {"e31 * e1", "0"},   {"e31 * e2", "0"},   {"e31 * e3", "0"},
-    {"e31 * e23", "0"},  {"e31 * e31", "-1"}, {"e31 * e12", "0"},  {"e31 * e123", "0"},
+    {"e31 * e23", "0"},  {"e31 * e31", "1"},  {"e31 * e12", "0"},  {"e31 * e123", "0"},
 
     {"e12 * 1", "0"},    {"e12 * e1", "0"},   {"e12 * e2", "0"},   {"e12 * e3", "0"},
-    {"e12 * e23", "0"},  {"e12 * e31", "0"},  {"e12 * e12", "-1"}, {"e12 * e123", "0"},
+    {"e12 * e23", "0"},  {"e12 * e31", "0"},  {"e12 * e12", "1"},  {"e12 * e123", "0"},
 
     {"e123 * 1", "0"},   {"e123 * e1", "0"},  {"e123 * e2", "0"},  {"e123 * e3", "0"},
-    {"e123 * e23", "0"}, {"e123 * e31", "0"}, {"e123 * e12", "0"}, {"e123 * e123", "-1"}};
+    {"e123 * e23", "0"}, {"e123 * e31", "0"}, {"e123 * e12", "0"}, {"e123 * e123", "1"}};
 
 
 // complement in 3d: cmpl(cmpl(u)) = u
@@ -193,6 +127,9 @@ const mvec_coeff mv3d_coeff_A_uneven = {"0", "A.c0", "A.c1", "A.c2",
                                         "0", "0",    "0",    "A.c3"};
 const mvec_coeff mv3d_coeff_B_uneven = {"0", "B.c0", "B.c1", "B.c2",
                                         "0", "0",    "0",    "B.c3"};
+const mvec_coeff mv3d_coeff_M_even = {"M.c0", "0", "0", "0", "M.c1", "M.c2", "M.c3", "0"};
+const mvec_coeff mv3d_coeff_M_uneven = {"0", "M.c0", "M.c1", "M.c2",
+                                        "0", "0",    "0",    "M.c3"};
 const mvec_coeff mv3d_coeff_R_even = {"R.c0", "0", "0", "0", "R.c1", "R.c2", "R.c3", "0"};
 const mvec_coeff mv3d_coeff_R_rev_even = {"R.c0",  "0",     "0",     "0",
                                           "-R.c1", "-R.c2", "-R.c3", "0"};
@@ -204,19 +141,15 @@ const mvec_coeff mv3d_coeff_svBps2 = {"s2",   "v2.x", "v2.y", "v2.z",
 
 
 void generate_and_print_ega3d_gpr(); // geometric product
-void generate_and_print_ega3d_wdg(); // wedge product
+void generate_and_print_ega3d_wdg(); // wegde product (=outer product)
+void generate_and_print_ega3d_dot(); // dot product (=inner product)
 
-void generate_and_print_ega3d_lcontr(); // left contraction
-void generate_and_print_ega3d_rcontr(); // right contraction
+void generate_and_print_ega3d_rwdg(); // regressive wedge product
 
-// void generate_and_print_ega3d_rcontract(); // right contraction
-// void generate_and_print_ega3d_lcontract(); // left contraction
+void generate_and_print_ega3d_lcontract(); // left contraction
+void generate_and_print_ega3d_rcontract(); // right contraction
 
 void generate_and_print_ega3d_lexpand(); // left expansion
 void generate_and_print_ega3d_rexpand(); // right expansion
-
-void generate_and_print_ega3d_dot(); // scalar product
-
-void generate_and_print_ega3d_rwdg(); // regressive wedge product
 
 void generate_and_print_ega3d_rotor_gpr(); // sandwich product rotor * object * rev(rotor)

@@ -283,7 +283,7 @@ inline constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// dot products for 2dp (= defined for equal grades exclusively)
+// dot products for 2dp (=inner product defined for equal grades exclusively)
 //
 // dot(v1,v2) = v1^T * g_{ij} * v2 is the scalar product with g_{ij} as the metric
 //
