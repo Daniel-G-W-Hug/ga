@@ -89,7 +89,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps,
     return MVec2dp_U<ctype>(v, ps);
 }
 
-// uneven grade mulivector + pseudoscalar => uneven grade multivector
+// uneven grade multivector + pseudoscalar => uneven grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(MVec2dp_U<T> const& M,
@@ -99,7 +99,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(MVec2dp_U<T> cons
     return MVec2dp_U<ctype>(M.c0, M.c1, M.c2, M.c3 + ps);
 }
 
-// pseudoscalar + uneven grade vector => uneven grade multivector
+// pseudoscalar + uneven grade multivector => uneven grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps,
@@ -119,7 +119,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(MVec2dp_U<T> cons
     return MVec2dp_U<ctype>(M.c0 + v.x, M.c1 + v.y, M.c2 + v.z, M.c3);
 }
 
-// vector + uneven grade vector => uneven grade multivector
+// vector + uneven grade multivector => uneven grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(Vec2dp<T> const& v,

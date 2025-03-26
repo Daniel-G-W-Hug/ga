@@ -1966,7 +1966,7 @@ template <typename T, typename U>
 inline constexpr MVec2dp_U<std::common_type_t<T, U>>
 motor2dp_from_ln(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
 {
-    // take lines as input and return a motor R
+    // take lines (=bivectors) as input and return a motor R
     // 1st apply reflection across line B1, then across B2 to get a motor that rotates
     // (or translates) around the intersection point of lines B1 and B2
     //

@@ -66,7 +66,7 @@ inline constexpr TriVec3dp<T> gr3(MVec3dp_U<T> const& M)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(Vec3dp<T> const& v,
-                                                               TriVec3dp<T> const& t)
+                                                               TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3dp_U<ctype>(v, t);
@@ -82,21 +82,66 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(TriVec3dp<T> cons
     return MVec3dp_U<ctype>(v, t);
 }
 
+
+// uneven grade multivector + trivector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(MVec3dp_U<T> const& M,
+                                                               TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4 + t.c0, M.c5 + t.c1, M.c6 + t.c2,
+                            M.c7 + t.c3);
+}
+
+// trivector + uneven grade multivector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(TriVec3dp<T> const& t,
+                                                               MVec3dp_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4 + t.c0, M.c5 + t.c1, M.c6 + t.c2,
+                            M.c7 + t.c3);
+}
+
+// uneven grade multivector + vector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(MVec3dp_U<T> const& M,
+                                                               Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(M.c0 + v.x, M.c1 + v.y, M.c2 + v.z, M.c3 + v.w, M.c4, M.c5,
+                            M.c6, M.c7);
+}
+
+// vector + uneven grade multivector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(Vec3dp<T> const& v,
+                                                               MVec3dp_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(M.c0 + v.x, M.c1 + v.y, M.c2 + v.z, M.c3 + v.w, M.c4, M.c5,
+                            M.c6, M.c7);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // subtraction operations to combine vectors and trivectors to uneven grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// vector + trivector => uneven grade multivector
+// vector - trivector => uneven grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(Vec3dp<T> const& v,
-                                                               TriVec3dp<T> const& t)
+                                                               TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3dp_U<ctype>(v, -t);
 }
 
-// trivector + vector => uneven grade multivector
+// trivector - vector => uneven grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(TriVec3dp<T> const& t,
@@ -104,6 +149,50 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(TriVec3dp<T> cons
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3dp_U<ctype>(-v, t);
+}
+
+// uneven grade multivector - trivector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(MVec3dp_U<T> const& M,
+                                                               TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4 - t.c0, M.c5 - t.c1, M.c6 - t.c2,
+                            M.c7 - t.c3);
+}
+
+// trivector - uneven grade multivector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(TriVec3dp<T> const& t,
+                                                               MVec3dp_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(-M.c0, -M.c1, -M.c2, -M.c3, -M.c4 + t.c0, -M.c5 + t.c1,
+                            -M.c6 + t.c2, -M.c7 + t.c3);
+}
+
+// uneven grade multivector - vector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(MVec3dp_U<T> const& M,
+                                                               Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(M.c0 - v.x, M.c1 - v.y, M.c2 - v.z, M.c3 - v.w, M.c4, M.c5,
+                            M.c6, M.c7);
+}
+
+// vector - uneven grade multivector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(Vec3dp<T> const& v,
+                                                               MVec3dp_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(-M.c0 + v.x, -M.c1 + v.y, -M.c2 + v.z, -M.c3 + v.w, -M.c4,
+                            -M.c5, -M.c6, -M.c7);
 }
 
 } // namespace hd::ga

@@ -392,28 +392,6 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     {
         fmt::println("Vec2d: operations - wedge");
 
-
-        vec2d v1{1.0, 0.0};
-        vec2d v2{normalize(vec2d(1.0, 1.0))};
-        vec2d v3{0.0, 1.0};
-
-        double sd = 2.3;
-        double st = -5.1;
-        auto s = scalar2d{sd};
-        auto t = scalar2d{st};
-
-        CHECK(wdg(v1, v1) == pscalar2d{});                    // wdg=0 for collin. vectors
-        CHECK(wdg(v1, v2) == -wdg(v2, v1));                   // anticommutative for vect.
-        CHECK(wdg(wdg(v1, v2), v3) == wdg(v1, wdg(v2, v3)));  // wdg is associative
-        CHECK(wdg(v1, v2 + v3) == wdg(v1, v2) + wdg(v1, v3)); // wdg distributes over add.
-        CHECK(wdg(v1 + v2, v3) == wdg(v1, v3) + wdg(v2, v3)); // wdg distributes over add.
-        CHECK(wdg(sd * v1, v2) == wdg(v1, sd * v2)); // scalars can be factored out of wdg
-        CHECK(wdg(sd * v1, v2) == sd * wdg(v1, v2)); // scalars can be factored out of wdg
-        CHECK(wdg(s, t) == wdg(t, s));   // wdg between scalars equivalent to scalar mult.
-        CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
-        CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
-
-
         std::vector<std::tuple<double, Vec2d<double>>> v;
 
         for (int i = -12; i <= 12; ++i) {
@@ -675,6 +653,72 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     ////////////////////////////////////////////////////////////////////////////////
     // MVec2d<T> operations test cases
     ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("MVec2d: wedge product - basic properties")
+    {
+        fmt::println("MVec2d: wedge product - basic properties");
+
+        vec2d v1{1.0, 2.0};
+        vec2d v2{0.5, 3.0};
+        vec2d v3{-2.0, 6.0};
+
+        double sd = 2.3;
+        double st = -5.1;
+        auto s = scalar2d{sd};
+        auto t = scalar2d{st};
+
+        CHECK(wdg(v1, v1) == pscalar2d{});                    // wdg=0 for collin. vectors
+        CHECK(wdg(v1, v2) == -wdg(v2, v1));                   // anticommutative for vect.
+        CHECK(wdg(wdg(v1, v2), v3) == wdg(v1, wdg(v2, v3)));  // wdg is associative
+        CHECK(wdg(v1, v2 + v3) == wdg(v1, v2) + wdg(v1, v3)); // wdg distributes over add.
+        CHECK(wdg(v1 + v2, v3) == wdg(v1, v3) + wdg(v2, v3)); // wdg distributes over add.
+        CHECK(wdg(sd * v1, v2) == wdg(v1, sd * v2)); // scalars can be factored out of wdg
+        CHECK(wdg(sd * v1, v2) == sd * wdg(v1, v2)); // scalars can be factored out of wdg
+        CHECK(wdg(s, t) == wdg(t, s));   // wdg between scalars equivalent to scalar mult.
+        CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
+        CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
+    }
+
+    TEST_CASE("MVec2d: geometric product - basic properties")
+    {
+        fmt::println("MVec2d: geometric product - basic properties");
+
+        vec2d v1{1.0, 2.0};
+        vec2d v2{0.5, 3.0};
+        vec2d v3{-2.0, 6.0};
+        pscalar2d B1{-4};
+
+        double sd = 2.3;
+        double st = -5.1;
+        auto s = scalar2d{sd};
+        auto t = scalar2d{st};
+
+        // nrm_sq(v1) = dot(v1,v1)  for every vector
+        CHECK(nrm_sq(v1) == dot(v1, v1));
+
+        CHECK(v1 * v2 == dot(v1, v2) + wdg(v1, v2)); // valid for vectors only
+        CHECK(v1 * v2 == (v2 >> v1) + wdg(v1, v2));  // contraction = dot for same grades
+
+        // valid also for gr(B1) != gr(v1)
+        CHECK(v1 * B1 == gr1((B1 >> v1) + wdg(v1, B1)));
+        CHECK(B1 * v1 == gr1((v1 << B1) + wdg(B1, v1)));
+
+        // only valid for vectors (!):
+        // dot = gpr symmetric part
+        CHECK(dot(v1, v2) == gr0(0.5 * (v1 * v2 + v2 * v1)));
+        // wdg = gpr anti-symmetric part
+        CHECK(wdg(v1, v2) == gr2(0.5 * (v1 * v2 - v2 * v1)));
+
+        // mathematical characteristics
+        CHECK((v1 * v2) * v3 == v1 * (v2 * v3));    // gpr is associative
+        CHECK(v1 * (v2 + v3) == v1 * v2 + v1 * v3); // gpr distributes over addition
+        CHECK((v1 + v2) * v3 == v1 * v3 + v2 * v3); // wdg distributes over addition
+        CHECK((sd * v1) * v2 == v1 * (sd * v2));    // scalars can be factored out of gpr
+        CHECK((sd * v1) * v2 == sd * (v1 * v2));    // scalars can be factored out of gpr
+        CHECK(s * t == t * s);    // gpr between scalars equivalent to scalar mult.
+        CHECK(s * v1 == v1 * s);  // gpr between scalar and vector
+        CHECK(s * v1 == sd * v1); // gpr between scalar and vector
+    }
 
     TEST_CASE("MVec2d: geometric product tests")
     {
@@ -1733,17 +1777,6 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         //              "angle = {: .4f}",
         //              v8, wdg(v1, v8), angle(v1, v8));
 
-        CHECK(wdg(v1, v1) == bivec3d{});                      // wdg=0 for collin. vectors
-        CHECK(wdg(v1, v2) == -wdg(v2, v1));                   // anticommutative for vect.
-        CHECK(wdg(wdg(v1, v2), v3) == wdg(v1, wdg(v2, v3)));  // wdg is associative
-        CHECK(wdg(v1, v2 + v3) == wdg(v1, v2) + wdg(v1, v3)); // wdg distributes over add.
-        CHECK(wdg(v1 + v2, v3) == wdg(v1, v3) + wdg(v2, v3)); // wdg distributes over add.
-        CHECK(wdg(sd * v1, v2) == wdg(v1, sd * v2)); // scalars can be factored out of wdg
-        CHECK(wdg(sd * v1, v2) == sd * wdg(v1, v2)); // scalars can be factored out of wdg
-        CHECK(wdg(s, t) == wdg(t, s));   // wdg between scalars equivalent to scalar mult.
-        CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
-        CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
-
         CHECK(std::abs(nrm(wdg(v1, v1)) - sin(angle(v1, v1))) < eps);
         CHECK(std::abs(nrm(wdg(v1, v2)) - sin(angle(v1, v2))) < eps);
         CHECK(std::abs(nrm(wdg(v1, v3)) - sin(angle(v1, v3))) < eps);
@@ -2168,6 +2201,72 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     ////////////////////////////////////////////////////////////////////////////////
     // MVec3d<T> operations test cases
     ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("MVec3d: wedge product - basic properties")
+    {
+        fmt::println("MVec3d: wedge product - basic properties");
+
+        vec3d v1{1.0, 2.0, 1.0};
+        vec3d v2{0.5, 3.0, 2.0};
+        vec3d v3{-2.0, 6.0, 3.0};
+
+        double sd = 2.3;
+        double st = -5.1;
+        auto s = scalar3d{sd};
+        auto t = scalar3d{st};
+
+        CHECK(wdg(v1, v1) == bivec3d{});                      // wdg=0 for collin. vectors
+        CHECK(wdg(v1, v2) == -wdg(v2, v1));                   // anticommutative for vect.
+        CHECK(wdg(wdg(v1, v2), v3) == wdg(v1, wdg(v2, v3)));  // wdg is associative
+        CHECK(wdg(v1, v2 + v3) == wdg(v1, v2) + wdg(v1, v3)); // wdg distributes over add.
+        CHECK(wdg(v1 + v2, v3) == wdg(v1, v3) + wdg(v2, v3)); // wdg distributes over add.
+        CHECK(wdg(sd * v1, v2) == wdg(v1, sd * v2)); // scalars can be factored out of wdg
+        CHECK(wdg(sd * v1, v2) == sd * wdg(v1, v2)); // scalars can be factored out of wdg
+        CHECK(wdg(s, t) == wdg(t, s));   // wdg between scalars equivalent to scalar mult.
+        CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
+        CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
+    }
+
+    TEST_CASE("MVec3d: geometric product - basic properties")
+    {
+        fmt::println("MVec3d: geometric product - basic properties");
+
+        vec3d v1{1.0, 2.0, 1.0};
+        vec3d v2{0.5, 3.0, 2.0};
+        vec3d v3{-2.0, 6.0, 3.0};
+        bivec3d B1{-4, 2, 1};
+
+        double sd = 2.3;
+        double st = -5.1;
+        auto s = scalar3d{sd};
+        auto t = scalar3d{st};
+
+        // nrm_sq(v1) = dot(v1,v1)  for every vector
+        CHECK(nrm_sq(v1) == dot(v1, v1));
+
+        CHECK(v1 * v2 == dot(v1, v2) + wdg(v1, v2)); // valid for vectors only
+        CHECK(v1 * v2 == (v2 >> v1) + wdg(v1, v2));  // contraction = dot for same grades
+
+        // valid also for gr(B1) != gr(v1)
+        CHECK(v1 * B1 == (B1 >> v1) + wdg(v1, B1));
+        CHECK(B1 * v1 == (v1 << B1) + wdg(B1, v1));
+
+        // only valid for vectors (!):
+        // dot = gpr symmetric part
+        CHECK(dot(v1, v2) == gr0(0.5 * (v1 * v2 + v2 * v1)));
+        // wdg = gpr anti-symmetric part
+        CHECK(wdg(v1, v2) == gr2(0.5 * (v1 * v2 - v2 * v1)));
+
+        // mathematical characteristics
+        CHECK((v1 * v2) * v3 == v1 * (v2 * v3));    // gpr is associative
+        CHECK(v1 * (v2 + v3) == v1 * v2 + v1 * v3); // gpr distributes over addition
+        CHECK((v1 + v2) * v3 == v1 * v3 + v2 * v3); // wdg distributes over addition
+        CHECK((sd * v1) * v2 == v1 * (sd * v2));    // scalars can be factored out of gpr
+        CHECK((sd * v1) * v2 == sd * (v1 * v2));    // scalars can be factored out of gpr
+        CHECK(s * t == t * s);    // gpr between scalars equivalent to scalar mult.
+        CHECK(s * v1 == v1 * s);  // gpr between scalar and vector
+        CHECK(s * v1 == sd * v1); // gpr between scalar and vector
+    }
 
     TEST_CASE("MVec3d: geometric product tests - vec * vec")
     {

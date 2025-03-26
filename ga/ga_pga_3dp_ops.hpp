@@ -1833,6 +1833,26 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
                          -A.c4 * v.x - A.c5 * v.y - A.c6 * v.z));
 }
 
+// geometric product v * B of an even grade multivector B with a vector v
+// from the left
+// vector * even grade multivector => uneven grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(Vec3dp<U> const& v,
+                                                               MVec3dp_E<T> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(
+        Vec3dp<ctype>(v.x * B.c0 - v.y * B.c6 + v.z * B.c5,
+                      v.x * B.c6 + v.y * B.c0 - v.z * B.c4,
+                      -v.x * B.c5 + v.y * B.c4 + v.z * B.c0,
+                      -v.x * B.c1 - v.y * B.c2 - v.z * B.c3 + v.w * B.c0),
+        TriVec3dp<ctype>(v.x * B.c7 - v.y * B.c3 + v.z * B.c2 + v.w * B.c4,
+                         v.x * B.c3 + v.y * B.c7 - v.z * B.c1 + v.w * B.c5,
+                         -v.x * B.c2 + v.y * B.c1 + v.z * B.c7 + v.w * B.c6,
+                         -v.x * B.c4 - v.y * B.c5 - v.z * B.c6));
+}
+
 // geometric product ps * s of a trivector ps and a scalar s
 // bivector * scalar => bivector
 template <typename T, typename U>

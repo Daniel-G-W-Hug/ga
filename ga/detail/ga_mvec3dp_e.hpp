@@ -114,11 +114,114 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const
     return MVec3dp_E<ctype>(s, B);
 }
 
+// pseudoscalar + bivector => even grade multivector (in 3dp imply a zero scalar)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps,
+                                                               BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(B, ps);
+}
+
+// bivector + pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
+                                                               PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(B, ps);
+}
+
+// pseudoscalar + scalar => even grade multivector (in 3dp imply a zero bivector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps,
+                                                               Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(s, ps);
+}
+
+// scalar + pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(Scalar3dp<T> s,
+                                                               PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(s, ps);
+}
+
+// scalar + even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(Scalar3dp<T> s,
+                                                               MVec3dp_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(s + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
+}
+
+// even grade multivector + scalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
+                                                               Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(s + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
+}
+
+// bivector + even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
+                                                               MVec3dp_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(M.c0, B.vx + M.c1, B.vy + M.c2, B.vz + M.c3, B.mx + M.c4,
+                            B.my + M.c5, B.mz + M.c6, M.c7);
+}
+
+// even grade multivector + bivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
+                                                               BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(M.c0, B.vx + M.c1, B.vy + M.c2, B.vz + M.c3, B.mx + M.c4,
+                            B.my + M.c5, B.mz + M.c6, M.c7);
+}
+
+// pseudoscalar + even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps,
+                                                               MVec3dp_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, ps + M.c7);
+}
+
+// even grade multivector + pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
+                                                               PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, ps + M.c7);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // subtraction operations to combine scalars and bivectors to even grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// scalar + bivector => even grade multivector (in 3dp imply a zero pseudoscalar)
+// scalar - bivector => even grade multivector (in 3dp imply a zero pseudoscalar)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
@@ -128,7 +231,7 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
     return MVec3dp_E<ctype>(s, -B);
 }
 
-// bivector + scalar => even grade multivector
+// bivector - scalar => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
@@ -136,6 +239,108 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3dp_E<ctype>(-s, B);
+}
+
+// pseudoscalar - bivector => even grade multivector (in 3dp imply a zero scalar)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps,
+                                                               BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(-B, ps);
+}
+
+// bivector - pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
+                                                               PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(B, -ps);
+}
+
+// pseudoscalar - scalar => even grade multivector (in 3dp imply a zero bivector)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps,
+                                                               Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(-s, ps);
+}
+
+// scalar - pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
+                                                               PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(s, -ps);
+}
+
+// scalar - even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
+                                                               MVec3dp_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(s - M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, -M.c7);
+}
+
+// even grade multivector - scalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& M,
+                                                               Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(-s + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
+}
+
+// bivector - even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
+                                                               MVec3dp_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(-M.c0, B.vx - M.c1, B.vy - M.c2, B.vz - M.c3, B.mx - M.c4,
+                            B.my - M.c5, B.mz - M.c6, -M.c7);
+}
+
+// even grade multivector - bivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& M,
+                                                               BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(M.c0, -B.vx + M.c1, -B.vy + M.c2, -B.vz + M.c3, -B.mx + M.c4,
+                            -B.my + M.c5, -B.mz + M.c6, M.c7);
+}
+
+// pseudoscalar - even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps,
+                                                               MVec3dp_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(-M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, ps - M.c7);
+}
+
+// even grade multivector - pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& M,
+                                                               PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, -ps + M.c7);
 }
 
 } // namespace hd::ga

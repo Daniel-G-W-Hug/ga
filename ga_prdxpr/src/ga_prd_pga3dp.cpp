@@ -225,11 +225,11 @@ void generate_and_print_pga3dp_gpr()
     print_mvec(prd_mv, basis);
     fmt::println("");
 
-    // fmt::println("{}:", prd_name + space_str + "vec * mv_e -> mv_u");
-    // prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_B_even);
-    // prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::vec, filter_3dp::mv_e);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "vec * mv_e -> mv_u");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_B_even);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::vec, filter_3dp::mv_e);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
     // fmt::println("{}:", prd_name + space_str + "mv_u * vec -> mv_e");

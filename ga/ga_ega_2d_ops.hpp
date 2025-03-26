@@ -1434,8 +1434,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator*(Vec2d<T> const& v1
 // vector * scalar => vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> operator*(Vec2d<U> const& v,
-                                                           Scalar2d<T> s)
+inline constexpr Vec2d<std::common_type_t<T, U>> operator*(Vec2d<T> const& v,
+                                                           Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return v * ctype(s);

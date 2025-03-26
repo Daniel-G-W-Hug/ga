@@ -133,7 +133,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator+(Vec3d<T> const& v,
 // subraction operations to combine vectors and trivectors to uneven grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// vector + pseudoscalar (=trivector) => uneven grade multivector
+// vector - pseudoscalar (=trivector) => uneven grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator-(Vec3d<T> const& v,
@@ -143,7 +143,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator-(Vec3d<T> const& v,
     return MVec3d_U<ctype>(v, -ps);
 }
 
-// pseudoscalar (=trivector) + vector => uneven grade multivector
+// pseudoscalar (=trivector) - vector => uneven grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator-(PScalar3d<T> ps,
