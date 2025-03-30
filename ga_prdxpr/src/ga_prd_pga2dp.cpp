@@ -865,11 +865,11 @@ void generate_and_print_pga2dp_rwdg()
     fmt::println("");
 
     // create specific products
-    // fmt::println("{}:", prd_name + space_str + "rwdg(mv,mv) -> mv");
-    // auto prd_tab = get_prd_tab(basis_tab, mv2dp_coeff_A, mv2dp_coeff_B);
-    // auto prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2dp::mv, filter_2dp::mv);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
+    fmt::println("{}:", prd_name + space_str + "rwdg(mv,mv) -> mv");
+    auto prd_tab = get_prd_tab(basis_tab, mv2dp_coeff_A, mv2dp_coeff_B);
+    auto prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2dp::mv, filter_2dp::mv);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
 
 
     // fmt::println("{}:", prd_name + space_str + "rwdg(mv, mv_e) -> mv");
@@ -1088,8 +1088,8 @@ void generate_and_print_pga2dp_rwdg()
 
 
     fmt::println("{}:", prd_name + space_str + "rwdg(ps,bivec) -> bivec");
-    auto prd_tab = get_prd_tab(basis_tab, mv2dp_coeff_svBps, mv2dp_coeff_svBps);
-    auto prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2dp::ps, filter_2dp::bivec);
+    prd_tab = get_prd_tab(basis_tab, mv2dp_coeff_svBps, mv2dp_coeff_svBps);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2dp::ps, filter_2dp::bivec);
     print_mvec(prd_mv, basis);
     fmt::println("");
 

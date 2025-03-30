@@ -11,8 +11,15 @@
 namespace hd::ga::pga {
 
 ////////////////////////////////////////////////////////////////////////////////
-// bulk
+// bulk: u_bulk = G u (with G as the metric)
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk(Scalar2dp<T> s)
+{
+    return s;
+}
 
 template <typename T>
     requires(std::floating_point<T>)
@@ -28,10 +35,45 @@ inline constexpr BiVec2dp<T> bulk(BiVec2dp<T> const& B)
     return BiVec2dp<T>(T(0.0), T(0.0), B.z);
 }
 
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> bulk([[maybe_unused]] PScalar2dp<T>)
+{
+    return PScalar2dp<T>(0.0);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> bulk(MVec2dp_E<T> const& M)
+{
+    return MVec2dp_E<T>(bulk(gr0(M)), bulk(gr2(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> bulk(MVec2dp_U<T> const& M)
+{
+    return MVec2dp_U<T>(bulk(gr1(M)), bulk(gr3(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> bulk(MVec2dp<T> const& M)
+{
+    return MVec2dp<T>(bulk(gr0(M)), bulk(gr1(M)), bulk(gr2(M)), bulk(gr3(M)));
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight
+// weight: u_weight = lcmpl( G rcmpl(u) ) = rG u  (with G as the metric)
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> weight([[maybe_unused]] Scalar2dp<T>)
+{
+    return Scalar2dp<T>(0.0);
+}
 
 template <typename T>
     requires(std::floating_point<T>)
@@ -45,6 +87,34 @@ template <typename T>
 inline constexpr BiVec2dp<T> weight(BiVec2dp<T> const& B)
 {
     return BiVec2dp<T>(B.x, B.y, T(0.0));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> weight(PScalar2dp<T> ps)
+{
+    return PScalar2dp<T>(ps);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> weight(MVec2dp_E<T> const& M)
+{
+    return MVec2dp_E<T>(weight(gr0(M)), weight(gr2(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> weight(MVec2dp_U<T> const& M)
+{
+    return MVec2dp_U<T>(weight(gr1(M)), weight(gr3(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> weight(MVec2dp<T> const& M)
+{
+    return MVec2dp<T>(weight(gr0(M)), weight(gr1(M)), weight(gr2(M)), weight(gr3(M)));
 }
 
 
@@ -106,12 +176,83 @@ inline constexpr Scalar2dp<T> bulk_nrm(BiVec2dp<T> const& B)
     return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(B)));
 }
 
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_nrm_sq([[maybe_unused]] PScalar2dp<T>)
+{
+    return Scalar2dp<T>(0.0);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_nrm([[maybe_unused]] PScalar2dp<T>)
+{
+    return Scalar2dp<T>(0.0);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp_E<T> const& M)
+{
+    return Scalar2dp<T>(bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr2(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_nrm(MVec2dp_E<T> const& M)
+{
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp_U<T> const& M)
+{
+    return Scalar2dp<T>(bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr3(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_nrm(MVec2dp_U<T> const& M)
+{
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp<T> const& M)
+{
+    return Scalar2dp<T>(bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr2(M)) +
+                        bulk_nrm_sq(gr3(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> bulk_nrm(MVec2dp<T> const& M)
+{
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // weight norm
 ////////////////////////////////////////////////////////////////////////////////
 
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> weight_nrm_sq([[maybe_unused]] Scalar2dp<T>)
+{
+    return Scalar2dp<T>(0.0);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> weight_nrm([[maybe_unused]] Scalar2dp<T>)
+{
+    return Scalar2dp<T>(0.0);
+}
+
 // return squared weight norm of vector
-// ||weight(v)||^2 = cmpl( dot(cmpl(v), cmpl(v))) ) = rdot(v,v) = v.z * v.z
+// ||weight(v)||^2 = cmpl( dot(cmpl(v), cmpl(v)) ) = rdot(v,v) = v.z * v.z
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar2dp<T> weight_nrm_sq(Vec2dp<T> const& v)
@@ -128,7 +269,7 @@ inline constexpr PScalar2dp<T> weight_nrm(Vec2dp<T> const& v)
 }
 
 // return squared weight norm of bivector
-// ||weight(B)||^2 = cmpl( dot(cmpl(B),cmpl(B))) ) = rdot(B, B)) = B.x * B.x + B.y * B.y
+// ||weight(B)||^2 = cmpl( dot(cmpl(B),cmpl(B)) ) = rdot(B, B) = B.x * B.x + B.y * B.y
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar2dp<T> weight_nrm_sq(BiVec2dp<T> const& B)
@@ -145,12 +286,12 @@ inline constexpr PScalar2dp<T> weight_nrm(BiVec2dp<T> const& B)
 }
 
 // return squared weight norm of pseudoscalar
-// ||weight(ps)||^2 = cmpl( dot(cmpl(ps),cmpl(ps))) ) = rdot(ps, ps)) = ps * ps
+// ||weight(ps)||^2 = cmpl( dot(cmpl(ps),cmpl(ps)) ) = rdot(ps, ps) = ps * ps
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr PScalar2dp<T> weight_nrm_sq(PScalar2dp<T> ps)
 {
-    return PScalar2dp<T>(ctype(ps) * ctype(ps));
+    return PScalar2dp<T>(T(ps) * T(ps));
 }
 
 // return weight norm of pseudoscalar
@@ -161,6 +302,49 @@ inline constexpr PScalar2dp<T> weight_nrm(PScalar2dp<T> ps)
     return PScalar2dp<T>(std::sqrt(weight_nrm_sq(ps)));
 }
 
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp_E<T> const& M)
+{
+    return PScalar2dp<T>(weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr2(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> weight_nrm(MVec2dp_E<T> const& M)
+{
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp_U<T> const& M)
+{
+    return PScalar2dp<T>(weight_nrm_sq(gr1(M)) + weight_nrm_sq(gr3(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> weight_nrm(MVec2dp_U<T> const& M)
+{
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp<T> const& M)
+{
+    return PScalar2dp<T>(weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr1(M)) +
+                         weight_nrm_sq(gr2(M)) + weight_nrm_sq(gr3(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> weight_nrm(MVec2dp<T> const& M)
+{
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // geometric norm: (perpendicular) distance to the origin (distance = c0/c1)
@@ -168,6 +352,20 @@ inline constexpr PScalar2dp<T> weight_nrm(PScalar2dp<T> ps)
 // returns a dual number, for correct handling of objects at infinity (c1 == 0)
 //
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> geom_nrm_sq(Scalar2dp<T> s)
+{
+    return DualNum2dp<T>(bulk_nrm_sq(s), weight_nrm_sq(s));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> geom_nrm(Scalar2dp<T> s)
+{
+    return DualNum2dp<T>(bulk_nrm(s), weight_nrm(s));
+}
 
 // provide the distance of the point from the origin
 template <typename T>
@@ -200,6 +398,66 @@ inline constexpr DualNum2dp<T> geom_nrm(BiVec2dp<T> const& B)
 {
     return DualNum2dp<T>(bulk_nrm(B), weight_nrm(B));
 }
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> geom_nrm_sq(PScalar2dp<T> ps)
+{
+    return DualNum2dp<T>(bulk_nrm_sq(ps), weight_nrm_sq(ps));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> geom_nrm(PScalar2dp<T> ps)
+{
+    return DualNum2dp<T>(bulk_nrm(ps), weight_nrm(ps));
+}
+
+// even grade multivector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_E<T> const& M)
+{
+    return DualNum2dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> geom_nrm(MVec2dp_E<T> const& M)
+{
+    return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
+}
+
+// uneven grade multivector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_U<T> const& M)
+{
+    return DualNum2dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> geom_nrm(MVec2dp_U<T> const& M)
+{
+    return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
+}
+
+// multivector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp<T> const& M)
+{
+    return DualNum2dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> geom_nrm(MVec2dp<T> const& M)
+{
+    return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // unitization operations
@@ -237,6 +495,56 @@ inline constexpr BiVec2dp<T> unitize(BiVec2dp<T> const& B)
     return inv * B;
 }
 
+// return an even grade multivector unitized to weight_nrm == 1.0
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> unitize(MVec2dp_E<T> const& M)
+{
+    T n = weight_nrm(M);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error(
+            "Even grade mulitivector weight_norm too small for unitization " +
+            std::to_string(n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * M;
+}
+
+// return an uneven grade multivector unitized to weight_nrm == 1.0
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> unitize(MVec2dp_U<T> const& M)
+{
+    T n = weight_nrm(M);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error(
+            "Uneven grade mulitivector weight_norm too small for unitization " +
+            std::to_string(n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * M;
+}
+
+// return a multivector unitized to weight_nrm == 1.0
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> unitize(MVec2dp<T> const& M)
+{
+    T n = weight_nrm(M);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("Mulitivector weight_norm too small for unitization " +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * M;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // (right) bulk_dual (=complement operation applied to the bulk)
@@ -270,6 +578,28 @@ inline constexpr Scalar2dp<T> bulk_dual([[maybe_unused]] PScalar2dp<T>)
     return Scalar2dp<T>(0.0);
 }
 
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> bulk_dual(MVec2dp_E<T> const& M)
+{
+    return MVec2dp_U<T>(bulk_dual(gr2(M)), bulk_dual(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> bulk_dual(MVec2dp_U<T> const& M)
+{
+    return MVec2dp_E<T>(bulk_dual(gr3(M)), bulk_dual(gr1(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> bulk_dual(MVec2dp<T> const& M)
+{
+    return MVec2dp<T>(bulk_dual(gr3(M)), bulk_dual(gr2(M)), bulk_dual(gr1(M)),
+                      bulk_dual(gr0(M)));
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // (right) weight_dual (=complement operation applied to the weight)
@@ -301,6 +631,28 @@ template <typename T>
 inline constexpr Scalar2dp<T> weight_dual(PScalar2dp<T> ps)
 {
     return Scalar2dp<T>(T(ps));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> weight_dual(MVec2dp_E<T> const& M)
+{
+    return MVec2dp_U<T>(weight_dual(gr2(M)), weight_dual(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> weight_dual(MVec2dp_U<T> const& M)
+{
+    return MVec2dp_E<T>(weight_dual(gr3(M)), weight_dual(gr1(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> weight_dual(MVec2dp<T> const& M)
+{
+    return MVec2dp<T>(weight_dual(gr3(M)), weight_dual(gr2(M)), weight_dual(gr1(M)),
+                      weight_dual(gr0(M)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

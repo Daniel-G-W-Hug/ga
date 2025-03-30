@@ -1,0 +1,117 @@
+\documentclass[12pt,oneside,a4paper]{article}
+% Umlaute direkt nutzen (Text muss direkt in utf8 vorliegen => Default bei sublime): statt
+% \"A, \"O, \"U, \"a, \"o, \"u und \ss{} direkt Ä, Ö, Ü, ä, ö, ü und ß im Text engeben
+\usepackage[utf8]{inputenc}  % Umlaute direkt eingeben (ggf. latin1 statt utf8)
+\usepackage[T1]{fontenc}     % Ausgabe der Umlaute
+\usepackage{lmodern}
+
+\usepackage[dvips]{graphicx}       % alles zum Grafiken einbinden
+\graphicspath{ {./images/} }       % pointer to subdir for all images
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{eurosym}               % Eurosymbol
+
+\usepackage[centertags]{amsmath}   % Mathekram: amstex
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{cases}
+\usepackage{latexsym}              % math symbols
+\usepackage{exscale}               % Summen-/Integralzeichen in richtiger Groesse
+\usepackage{MnSymbol}              % MnSymbols, e.g. \wedgedot, \veedot
+
+\usepackage[dvipsnames]{xcolor}    % Textcolor for dvips w/ standard color names
+\usepackage{fancyhdr}              % to change header and footers
+
+% Deutsch als Hauptsprache im Dokument (Layout von Datum, Trennungsregeln etc.)
+% Umschaltbar mit \selectlanguage{}
+\usepackage[main=english,ngerman]{babel}  % support "Neue Rechtschreibung"
+
+\usepackage[version=4]{mhchem}     % Chemische Formeln (muss nach amsmath kommen!)
+
+\usepackage{bookmark}
+\usepackage{hyperref}  % must be imported as last package!
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
+\usepackage{scalerel}
+
+%\DeclareMathSizes{11}{19}{13}{9}
+%\DeclareMathSizes{12}{20}{14}{10}  % Larger formulas vs. text
+
+\title{Geometric Algebra (GA)}
+\author{Daniel Hug}
+\date{April 2025}
+
+
+\pagestyle{fancy}       % Turn on the style
+\fancyfoot{}            % Clear the footer
+\fancyfoot[R]{\thepage} % Set the right side of the footer to be the page numberå
+
+% new commands for partial derivatives
+\newcommand{\pd}[2]{\ensuremath{\frac{\partial {#1}}{\partial {#2}}}}
+
+% left and right contraction
+\newcommand*{\lcontr}{\ensuremath{\rfloor}}
+\newcommand*{\rcontr}{\ensuremath{\lfloor}}
+
+% grade projection operator
+\newcommand{\grprj}[2]{\ensuremath{\langle {#1} \rangle_{#2}}}
+
+% norms
+\newcommand{\nrm}[1]{\left \lVert {#1} \right \rVert}
+
+% bulk and weight (by adding a filled or empty circle as right downstairs index)
+\newcommand{\bulk}[1]{\ensuremath{{#1}_\bullet}}
+\newcommand{\weight}[1]{\ensuremath{{#1}_\circ}}
+
+% parallel sign scaled to the hight of the perpendicular sign (package scalerel)
+\newcommand*{\parall}{\stretchrel*{\parallel}{\perp}}
+
+
+\begin{document}
+
+\maketitle
+
+% no paragraph indentation on first line
+\setlength{\parindent}{0pt}
+
+\section{Documentation}
+
+Overview (high-level initial intros on youtube):
+\scriptsize
+\begin{itemize}
+    \item \href{https://www.youtube.com/watch?v=1cRFfYQYGxE&list=PLcGKfGEEONaBNsY_bOj8IhbCPvj6OAdWo&index=33}{\textit{https://www.thestrangeloop.com}}
+    \item \href{https://www.youtube.com/watch?v=60z_hpEAtD8&t=17s}{\textit{https://www.youtube.com/@sudgylacmoe}}
+    \item \href{https://www.youtube.com/watch?v=zgi-13F2Kec&list=PLsSPBzvBkYjxV8QMlOTYgrqa-nmlt_L7A&index=11}{\textit{https://www.youtube.com/@bivector}}
+\end{itemize}
+
+\normalsize
+
+Sources:
+\scriptsize
+\begin{itemize}
+    \item \url{https://projectivegeometricalgebra.org}
+    \item \url{https://terathon.com/blog/poor-foundations-ga.html}
+    \item \url{https://bivector.net}
+    \item \url{https://www.youtube.com/@bivector}
+    \item \url{https://www.youtube.com/@sudgylacmoe}
+    \item \url{https://www.youtube.com/watch?v=ItGlUbFBFfc}
+    \item \url{https://www.youtube.com/watch?v=v-WG02ILMXA&t=1476s}
+\end{itemize}
+\normalsize
+
+
+\newpage
+
+\input{1_ga_intro.tex}
+\input{2_ga_basic_formulas.tex}
+
+\end{document}

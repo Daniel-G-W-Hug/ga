@@ -37,56 +37,56 @@
 // Scalar_t<T, Tag>: Scalar2d<T>, PScalar2d<T>, Scalar3d<T>, PScalar3d<T>, etc.
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : formatter<double> {
+struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::Scalar_t<T, Tag>& v, FormatContext& ctx) const
     {
 #if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                      hd::ga::Scalar_t<T, hd::ga::scalar2d_tag>>) {
-            return fmt::format_to(ctx.out(), "Scalar2d({})", double(v));
+            return fmt::format_to(ctx.out(), "Scalar2d({})", nested(double(v)));
         }
         else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                           hd::ga::Scalar_t<T, hd::ga::pscalar2d_tag>>) {
-            return fmt::format_to(ctx.out(), "PScalar2d({})", double(v));
+            return fmt::format_to(ctx.out(), "PScalar2d({})", nested(double(v)));
         }
         else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                           hd::ga::Scalar_t<T, hd::ga::scalar2dp_tag>>) {
-            return fmt::format_to(ctx.out(), "Scalar2dp({})", double(v));
+            return fmt::format_to(ctx.out(), "Scalar2dp({})", nested(double(v)));
         }
         else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                           hd::ga::Scalar_t<T, hd::ga::pscalar2dp_tag>>) {
-            return fmt::format_to(ctx.out(), "PScalar2d({})", double(v));
+            return fmt::format_to(ctx.out(), "PScalar2dp({})", nested(double(v)));
         }
         else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                           hd::ga::Scalar_t<T, hd::ga::scalar3d_tag>>) {
-            return fmt::format_to(ctx.out(), "Scalar3d({})", double(v));
+            return fmt::format_to(ctx.out(), "Scalar3d({})", nested(double(v)));
         }
         else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                           hd::ga::Scalar_t<T, hd::ga::pscalar3d_tag>>) {
-            return fmt::format_to(ctx.out(), "PScalar3d({})", double(v));
+            return fmt::format_to(ctx.out(), "PScalar3d({})", nested(double(v)));
         }
         else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                           hd::ga::Scalar_t<T, hd::ga::scalar3dp_tag>>) {
-            return fmt::format_to(ctx.out(), "Scalar3dp({})", double(v));
+            return fmt::format_to(ctx.out(), "Scalar3dp({})", nested(double(v)));
         }
         else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                           hd::ga::Scalar_t<T, hd::ga::pscalar3dp_tag>>) {
-            return fmt::format_to(ctx.out(), "PScalar3dp({})", double(v));
+            return fmt::format_to(ctx.out(), "PScalar3dp({})", nested(double(v)));
         }
         else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                           hd::ga::Scalar_t<T, hd::ga::scalar4d_tag>>) {
-            return fmt::format_to(ctx.out(), "Scalar4d({})", double(v));
+            return fmt::format_to(ctx.out(), "Scalar4d({})", nested(double(v)));
         }
         else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                           hd::ga::Scalar_t<T, hd::ga::pscalar4d_tag>>) {
-            return fmt::format_to(ctx.out(), "PScalar4d({})", double(v));
+            return fmt::format_to(ctx.out(), "PScalar4d({})", nested(double(v)));
         }
         else {
-            return fmt::format_to(ctx.out(), "({})", double(v));
+            return fmt::format_to(ctx.out(), "({})", nested(double(v)));
         }
 #else
-        return fmt::format_to(ctx.out(), "({})", double(v));
+        return fmt::format_to(ctx.out(), "({})", nested(double(v)));
 #endif
     }
 };
