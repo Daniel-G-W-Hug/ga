@@ -1658,6 +1658,72 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         //     fmt::println("lm_sum = {}", lm_sum * (1.0 / steps));
         //     fmt::println("");
         // }
+
+        {
+            /////////////////////////////////////////////////////////////////////////////
+            // 7th: create the motors directly
+            /////////////////////////////////////////////////////////////////////////////
+
+            // define points and lines
+            auto p0 = vec2dp{1, 0.5, 1}; // was origin initally
+
+            auto delta = p0 - origin_2dp;
+            auto p1 = vec2dp{1, 0, 1} + delta;
+            auto p2 = vec2dp{1, 1, 1} + delta;
+            auto p = vec2dp{1, -0.5, 1} + delta;
+
+            auto l = wdg(p0, p);
+            // auto l1 = unitize(wdg(p0, p1)); // horizontal line
+            // auto l2 = unitize(wdg(p0, p2)); // line with 45° elevation
+            auto l1 = wdg(p0, p1); // horizontal line
+            auto l2 = wdg(p0, p2); // line with 45° elevation
+
+            auto pi = unitize(rwdg(l1, l2)); // intersection point of lines
+
+            auto R = motor2dp_from_ln(l1, l2);
+            CHECK(R == rgpr(l2, l1));
+
+            // reflect p on l1 -> pr and reflect pr on l2 -> prr
+            auto pr = -gr1(rgpr(rgpr(l1, p), l1));
+
+            auto prr = -gr1(rgpr(rgpr(l2, pr), l2));
+
+            fmt::println("");
+            fmt::println("l1: {:.4g}, l2: {:.4g}", l1, l2);
+            fmt::println("pi: {:.4g}", pi);
+            fmt::println("pr: {:.4g}, pru: {:.4g}", pr, unitize(pr));
+            fmt::println("prr: {:.4g}, prru: {:.4g}", prr, unitize(prr));
+            fmt::println("");
+
+            CHECK(unitize(pr) == vec2dp{1, 0.5, 1} + delta);
+            CHECK(unitize(prr) == vec2dp{0.5, 1, 1} + delta);
+
+            // show that prr can be obtained directly from a rotation via a motor as pm
+            auto motor = rgpr(l2, l1);
+            auto motoru = unitize(motor);
+            auto rmotor = rrev(motor);
+
+            fmt::println("");
+            fmt::println("motor: {:.4g}, w_nrm(motor): {:.4g}, motoru: {:.4g}, "
+                         "w_nrm(motoru): {:.4g}",
+                         motor, weight_nrm(motor), motoru, weight_nrm(motoru));
+            auto pfix = unitize(vec2dp{motor.c0, motor.c1, motor.c3});
+            fmt::println("pfix: {:.4g}", pfix);
+            // fmt::println("angle: {:.4g}", std::atan());
+            fmt::println("");
+
+            auto pm = gr1(rgpr(rgpr(motor, p), rmotor));  // transformation
+            auto pb = gr1(rgpr(rgpr(rmotor, pm), motor)); // reverse transformation
+
+            // fmt::println("");
+            // fmt::println("pm: {}, pmu: {}", pm, unitize(pm));
+            // fmt::println("");
+
+            CHECK(unitize(prr) == unitize(pm));
+            CHECK(unitize(pb) == unitize(p));
+
+            CHECK(pi == vec2dp{1, 0.5, 1}); // intersection point
+        }
     }
 
     TEST_CASE("MVec2dp: complement operation")
@@ -2006,6 +2072,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         auto u = vec2dp{1.0, 2.0, 0.0};
         auto B = e12_2dp;
 
+        auto M2 = mvec2dp{scalar2dp{1.0}, v, B, pscalar2dp{1.0}};
 
         auto v_in_u = project_onto(v, u);
         auto v_perp_u = reject_from(v, u);
@@ -2111,6 +2178,22 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // check identity with the dot product for same grade vectors
         CHECK((v1 << v) == dot(v1, v));
         CHECK((b1 << B) == dot(b1, B));
+
+        // connection between inner product and geometric product
+        CHECK(dot(M1, M2) == gr0(M1 * rev(M2)));
+        CHECK(dot(M1, M2) == gr0(M2 * rev(M1)));
+
+        // fmt::println("");
+        // fmt::println("   M1         = {:g}", M1);
+        // fmt::println("   M2         = {:g}", M2);
+        // fmt::println("   dot(M1,M2) = {:g}", dot(M1, M2));
+        // fmt::println("   M1*rev(M2) = {:g}", M1 * rev(M2));
+        // fmt::println("   M2*rev(M1) = {:g}", M2 * rev(M1));
+        // fmt::println("");
+
+        // connection between contraction and regressive wedge with dualized args
+        lbulk_contract(M1, M2) = rwdg(cmpl(M1), M2);
+        rbulk_contract(M1, M2) = rwdg(M1, cmpl(M2));
     }
 
     TEST_CASE("G<2,0,1> - pga2dp join and meet (wdg, rwdg)")
@@ -2184,7 +2267,6 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     // projective geometric algebra 3d: pga3dp (embedded in a 4d representational
     // space)
     //////////////////////////////////////////////////////////////////////////////////////
-
 
     TEST_CASE("algebra<3, 0, 1> pga3dp")
     {
@@ -4353,14 +4435,36 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         auto s1 = scalar3dp{2.0};
         auto v1 = vec3dp{1.0, -3.0, 0.0, 1.0};
-        auto v2 = vec3dp{-1.0, 3.0, 2.0, 1.0};
         auto b1 = bivec3dp{2.0, -4.0, 1.0, -4.0, 8.0, -2.0};
         auto t1 = trivec3dp{1.0, -5.0, 6.0, 7.0};
         auto ps1 = pscalar3dp{-2.0};
         auto M1 = mvec3dp{s1, v1, b1, t1, ps1};
 
+        auto s2 = scalar3dp{1.0};
+        auto v2 = vec3dp{-1.0, 3.0, 2.0, 1.0};
+        auto b2 = bivec3dp{-2.0, 6.0, -1.0, 12.0, 6.0, -3.0};
+        auto t2 = trivec3dp{-1.0, -3.0, -1.5, 2.0};
+        auto ps2 = pscalar3dp{1.0};
+        auto M2 = mvec3dp{s2, v2, b2, t2, ps2};
+
         auto R = rotor(wdg(v1, e1_3dp), deg2rad(15));
         CHECK(rotate(v2, R) == rotate_opt(v2, R));
+
+        // connection between inner product and geometric product
+        CHECK(dot(M1, M2) == gr0(M1 * rev(M2)));
+        CHECK(dot(M1, M2) == gr0(M2 * rev(M1)));
+
+        // fmt::println("");
+        // fmt::println("   M1         = {:g}", M1);
+        // fmt::println("   M2         = {:g}", M2);
+        // fmt::println("   dot(M1,M2) = {:g}", dot(M1, M2));
+        // fmt::println("   M1*rev(M2) = {:g}", M1 * rev(M2));
+        // fmt::println("   M2*rev(M1) = {:g}", M2 * rev(M1));
+        // fmt::println("");
+
+        // connection between contraction and regressive wedge with dualized args
+        lbulk_contract(M1, M2) = rwdg(lcmpl(M1), M2);
+        rbulk_contract(M1, M2) = rwdg(M1, rcmpl(M2));
     }
 
     TEST_CASE("G<3,0,1> - pga3dp join and meet (wdg, rwdg)")

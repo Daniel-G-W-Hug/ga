@@ -291,16 +291,6 @@ inline constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-// scalar product dot(a,b) (nrm_sq(a,b) = dot(a, rev(b)))
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar2dp<std::common_type_t<T, U>> dot(MVec2dp<T> const& A,
-                                                         MVec2dp<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2dp<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c6 * B.c6);
-}
-
 // returns 0.0 due to degenerate metric with e3^2 = 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -355,6 +345,35 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> dot(Scalar2dp<T> s1, Scalar
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar2dp<ctype>(ctype(s1) * ctype(s2));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> dot(MVec2dp<T> const& A,
+                                                         MVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    // return Scalar2dp<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c6 * B.c6);
+    return Scalar2dp<ctype>(dot(gr0(A), gr0(B)) + dot(gr1(A), gr1(B)) +
+                            dot(gr2(A), gr2(B)) + dot(gr3(A), gr3(B)));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> dot(MVec2dp_E<T> const& A,
+                                                         MVec2dp_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(dot(gr0(A), gr0(B)) + dot(gr2(A), gr2(B)));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Scalar2dp<std::common_type_t<T, U>> dot(MVec2dp_U<T> const& A,
+                                                         MVec2dp_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(dot(gr1(A), gr1(B)) + dot(gr3(A), gr3(B)));
 }
 
 
@@ -670,6 +689,24 @@ inline constexpr Line2d<std::common_type_t<T, U>> join(Point2d<T> const& p,
 //        rwdg(ul, ur) = cmpl(wdg(cmpl(ul),cmpl(ur))) = cmpl(cmpl(ul) ^ cmpl(ur))
 //
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp<std::common_type_t<T, U>> rwdg(MVec2dp<T> const& A,
+                                                        MVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 - A.c4 * B.c1 -
+               A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0;
+    ctype c1 = A.c1 * B.c7 - A.c5 * B.c6 + A.c6 * B.c5 + A.c7 * B.c1;
+    ctype c2 = A.c2 * B.c7 + A.c4 * B.c6 - A.c6 * B.c4 + A.c7 * B.c2;
+    ctype c3 = A.c3 * B.c7 - A.c4 * B.c5 + A.c5 * B.c4 + A.c7 * B.c3;
+    ctype c4 = A.c4 * B.c7 + A.c7 * B.c4;
+    ctype c5 = A.c5 * B.c7 + A.c7 * B.c5;
+    ctype c6 = A.c6 * B.c7 + A.c7 * B.c6;
+    ctype c7 = A.c7 * B.c7;
+    return MVec2dp<std::common_type_t<T, U>>(c0, c1, c2, c3, c4, c5, c6, c7);
+}
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -1971,9 +2008,9 @@ motor2dp_from_ln(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
     // (or translates) around the intersection point of lines B1 and B2
     //
     // for use of motor R either directly on object u (inefficient):
-    //     auto v_moved = gr1(rgpr(rgpr(R, v), rrev(R))));
+    //     auto v_moved = gr1( rgpr(rgpr(R, v), rrev(R)) );
     // or
-    //     auto B_moved = gr2(rgpr(rgpr(R, B), rrev(R))));
+    //     auto B_moved = gr2( rgpr(rgpr(R, B), rrev(R)) );
     // or
     //                                   // optimized for reduced effort
     //     auto v_moved = move2dp(v,R);  // moves v according to the motor R
