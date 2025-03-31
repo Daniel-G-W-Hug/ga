@@ -393,7 +393,7 @@ const prd_rules left_weight_dual_pga3dp_rules = {
     {"e23", "0"},    {"e31", "0"},    {"e12", "0"},    {"e423", "e1"},
     {"e431", "e2"},  {"e412", "e3"},  {"e321", "0"},   {"e1234", "1"}};
 
-// coefficients need to create a multivector = [coeff]^T [basis]
+// coefficients needed to create a multivector = [coeff]^T [mv3dp_basis]
 const mvec_coeff mv3dp_coeff_A = {"A.c0",  "A.c1",  "A.c2",  "A.c3", "A.c4",  "A.c5",
                                   "A.c6",  "A.c7",  "A.c8",  "A.c9", "A.c10", "A.c11",
                                   "A.c12", "A.c13", "A.c14", "A.c15"};

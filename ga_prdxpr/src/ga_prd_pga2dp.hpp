@@ -120,7 +120,7 @@ const prd_rules weight_dual_pga2dp_rules = {
     {"1", "0"},     {"e1", "0"},    {"e2", "0"},  {"e3", "-e12"},
     {"e23", "-e1"}, {"e31", "-e2"}, {"e12", "0"}, {"e321", "1"}};
 
-// coefficients need to create a multivector = [coeff]^T [basis]
+// coefficients needed to create a multivector = [coeff]^T [mv2dp_basis]
 const mvec_coeff mv2dp_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3",
                                   "A.c4", "A.c5", "A.c6", "A.c7"};
 const mvec_coeff mv2dp_coeff_B = {"B.c0", "B.c1", "B.c2", "B.c3",
