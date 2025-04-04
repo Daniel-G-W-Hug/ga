@@ -23,25 +23,22 @@ set(HEADERS
     #
     detail/ga_mvec2d.hpp
     detail/ga_mvec2d_e.hpp
-    detail/ga_mvec3d_e.hpp
     #
-    detail/ga_mvec3d_u.hpp
     detail/ga_mvec3d.hpp
     detail/ga_mvec3d_e.hpp
     detail/ga_mvec3d_u.hpp
-    detail/ga_mvec3d.hpp
     #
+    detail/ga_mvec4d.hpp
     detail/ga_mvec4d_e.hpp
     detail/ga_mvec4d_u.hpp
-    detail/ga_mvec4d.hpp
     #
+    detail/ga_mvec2dp.hpp
     detail/ga_mvec2dp_e.hpp
     detail/ga_mvec2dp_u.hpp
-    detail/ga_mvec2dp.hpp
     #
+    detail/ga_mvec3dp.hpp
     detail/ga_mvec3dp_e.hpp
     detail/ga_mvec3dp_u.hpp
-    detail/ga_mvec3dp.hpp
     #
     # user facing includes
     #
@@ -53,8 +50,8 @@ set(HEADERS
     ga_algebra.hpp
     ga_value_t.hpp
     #
-    ga_ega_3d_ops.hpp
     ga_ega_2d_ops.hpp
+    ga_ega_3d_ops.hpp
     #
     detail/ga_pga_2dp_objects.hpp
     ga_pga_2dp_ops.hpp

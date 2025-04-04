@@ -17,4 +17,5 @@
            to optimize performance (still needs completion for automatic simplification)
            Reworked pga2dp and implemented pga3dp based on expressions generated using ga_prdxpr
 - 2025/03: implemented pga2dp and pga3dp including tests; reworked everything into  
-           definitions as proposed by Lengyel consistently for ega2d, ega3d, pga2dp, pga3dp; startet to implement latex documentation
+           definitions as proposed by Lengyel consistently for ega2d, ega3d, pga2dp,
+           pga3dp; startet to implement latex documentation

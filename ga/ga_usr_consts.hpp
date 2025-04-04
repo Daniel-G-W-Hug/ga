@@ -1,5 +1,7 @@
 #pragma once
 
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
+
 #include "ga_value_t.hpp" // defines value_t either as float oder double
                           // defines Scalar<T>, PScalar2d<T>, PScalar3d<T>
                           // Vec2d<T>, Vec3d<T>, BiVec3d<T>

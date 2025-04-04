@@ -1,4 +1,4 @@
-// author: Daniel Hug, 2024 & 2025
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "ga_lua.hpp"
 

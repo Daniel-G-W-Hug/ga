@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024 & 2025
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include <algorithm> // std::max
 #include <cmath>     // std::abs, std::sqrt
@@ -29,7 +29,7 @@ struct Vec3_t {
     // and for each bivector bv:
     // bv = yz * e2^e3 + zx * e3^e1 + xy * e1^e2
     //    =  x * e2^e3 +  y * e3^e1 +  z * e1^e2
-    // (same names like in vector (x, y, z), but semantic as one live above (yz, zx, xy)
+    // (same names like in vector (x, y, z), but semantic as one line above (yz, zx, xy)
 
     // this is a mapping of the components
     // such that vector components x, y and z correspond to the
