@@ -1,4 +1,4 @@
-// author: Daniel Hug, 2024 & 2025
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
@@ -1665,64 +1665,71 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and lines
+            // auto p0 = origin_2dp;
             auto p0 = vec2dp{1, 0.5, 1}; // was origin initally
 
             auto delta = p0 - origin_2dp;
             auto p1 = vec2dp{1, 0, 1} + delta;
             auto p2 = vec2dp{1, 1, 1} + delta;
-            auto p = vec2dp{1, -0.5, 1} + delta;
+            // auto p2 = vec2dp{1, 0.5, 1} + delta;
+            auto p = vec2dp{1, -0.5, 1} + delta; // initial point
+            auto pt = vec2dp{0.5, 1, 1} + delta; // target point after applying motor
 
-            auto l = wdg(p0, p);
-            // auto l1 = unitize(wdg(p0, p1)); // horizontal line
-            // auto l2 = unitize(wdg(p0, p2)); // line with 45° elevation
-            auto l1 = wdg(p0, p1); // horizontal line
-            auto l2 = wdg(p0, p2); // line with 45° elevation
+            auto l1 = unitize(wdg(p0, p1)); // horizontal line
+            auto l2 = unitize(wdg(p0, p2)); // line with 45° elevation
+            // auto l1 = wdg(p0, p1); // horizontal line
+            // auto l2 = wdg(p0, p2); // line with 45° elevation
 
             auto pi = unitize(rwdg(l1, l2)); // intersection point of lines
 
             auto R = motor2dp_from_ln(l1, l2);
             CHECK(R == rgpr(l2, l1));
 
-            // reflect p on l1 -> pr and reflect pr on l2 -> prr
-            auto pr = -gr1(rgpr(rgpr(l1, p), l1));
-
-            auto prr = -gr1(rgpr(rgpr(l2, pr), l2));
 
             fmt::println("");
-            fmt::println("l1: {:.4g}, l2: {:.4g}", l1, l2);
-            fmt::println("pi: {:.4g}", pi);
-            fmt::println("pr: {:.4g}, pru: {:.4g}", pr, unitize(pr));
-            fmt::println("prr: {:.4g}, prru: {:.4g}", prr, unitize(prr));
+            fmt::println("l1:         {:.4g}", l1);
+            fmt::println("bulk:       {:.4g}", bulk(l1));
+            fmt::println("weight:     {:.4g}", weight(l1));
+            fmt::println("bulk_nrm:   {:.4g}", bulk_nrm(l1));
+            fmt::println("weight_nrm: {:.4g}", weight_nrm(l1));
+            fmt::println("");
+            fmt::println("l2:         {:.4g}", l2);
+            fmt::println("bulk:       {:.4g}", bulk(l2));
+            fmt::println("weight:     {:.4g}", weight(l2));
+            fmt::println("bulk_nrm:   {:.4g}", bulk_nrm(l2));
+            fmt::println("weight_nrm: {:.4g}", weight_nrm(l2));
+            fmt::println("");
+            fmt::println("R:          {:.4g}", R);
+            fmt::println("bulk:       {:.4g}", bulk(R));
+            fmt::println("weight:     {:.4g}", weight(R));
+            fmt::println("bulk_nrm:   {:.4g}", bulk_nrm(R));
+            fmt::println("weight_nrm: {:.4g}", weight_nrm(R));
             fmt::println("");
 
-            CHECK(unitize(pr) == vec2dp{1, 0.5, 1} + delta);
-            CHECK(unitize(prr) == vec2dp{0.5, 1, 1} + delta);
-
-            // show that prr can be obtained directly from a rotation via a motor as pm
-            auto motor = rgpr(l2, l1);
-            auto motoru = unitize(motor);
-            auto rmotor = rrev(motor);
-
-            fmt::println("");
-            fmt::println("motor: {:.4g}, w_nrm(motor): {:.4g}, motoru: {:.4g}, "
-                         "w_nrm(motoru): {:.4g}",
-                         motor, weight_nrm(motor), motoru, weight_nrm(motoru));
-            auto pfix = unitize(vec2dp{motor.c0, motor.c1, motor.c3});
-            fmt::println("pfix: {:.4g}", pfix);
-            // fmt::println("angle: {:.4g}", std::atan());
+            fmt::println("pi:    {:.4g}", pi);
+            auto pfix = unitize(vec2dp{R.c0, R.c1, R.c2});
+            fmt::println("pfix:  {:.4g}", pfix);
+            fmt::println("R.c0:  {:.4g}", R.c3);
+            if (R.c3 != 0.0) {
+                fmt::println("angle: {:.4g}°", rad2deg(std::atan(R.c2 / R.c3)));
+            }
+            else {
+            }
             fmt::println("");
 
-            auto pm = gr1(rgpr(rgpr(motor, p), rmotor));  // transformation
-            auto pb = gr1(rgpr(rgpr(rmotor, pm), motor)); // reverse transformation
+            auto pm = gr1(rgpr(rgpr(R, p), rrev(R)));  // transformation
+            auto pb = gr1(rgpr(rgpr(rrev(R), pm), R)); // reverse transformation
 
-            // fmt::println("");
-            // fmt::println("pm: {}, pmu: {}", pm, unitize(pm));
-            // fmt::println("");
+            fmt::println("");
+            fmt::println("pt: {:.4g}, ptu: {:.4g} (traget value)", pt, unitize(pt));
+            fmt::println("pm: {:.4g}, pmu: {:.4g} (after trafo)", pm, unitize(pm));
+            fmt::println("pb: {:.4g}, pbu: {:.4g} (after backtrafo)", pb, unitize(pb));
+            fmt::println("");
 
-            CHECK(unitize(prr) == unitize(pm));
+            CHECK(unitize(pm) == unitize(pt));
             CHECK(unitize(pb) == unitize(p));
 
-            CHECK(pi == vec2dp{1, 0.5, 1}); // intersection point
+            CHECK(pi == p0); // intersection point is the fix point of the transformation
         }
     }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024 & 2025
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "ga_type_tags.hpp"
 
@@ -11,7 +11,7 @@
 #include "ga_mvec8_t.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
-// consistent type definitions for easy use
+// consistent type definitions
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga {

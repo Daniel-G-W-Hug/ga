@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024 & 2025
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include <algorithm> // std::max
 #include <cmath>     // std::abs, std::sqrt
@@ -15,7 +15,7 @@
 namespace hd::ga {
 
 ////////////////////////////////////////////////////////////////////////////////
-// MVec4<T, Tag> definition of a multivector with 4 components c0, ..., c3
+// MVec4_t<T, Tag> definition of a multivector with 4 components c0, ..., c3
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T = value_t, typename Tag = default_tag>

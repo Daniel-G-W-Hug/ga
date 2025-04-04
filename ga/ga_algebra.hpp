@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024 & 2025
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include <array>   // std::array
 #include <cstdint> // uint8_t
@@ -56,12 +56,12 @@ struct algebra {
                     "  e42", "  e43", "  e23", "  e31", "  e12", " e423",
                     " e431", " e412", " e321", "e1234"};
         //
-        // pga:  algebra<2,0,1>
+        // pga2dp:  algebra<2,0,1>
         if constexpr (dim_space() == 3 && (p() == 2 && n() == 0 && z() == 1))
             return {"    1", "   e1", "   e2", "   e3",
-                    "  e23", "  e31", "  e12", " e123"};
+                    "  e23", "  e31", "  e12", " e321"};
         //
-        // pga:  algebra<3,0,1>
+        // pga3dp:  algebra<3,0,1>
         if constexpr (dim_space() == 4 && (p() == 3 && n() == 0 && z() == 1))
             return {"    1", "   e1", "   e2", "   e3", "   e4", "  e41",
                     "  e42", "  e43", "  e23", "  e31", "  e12", " e423",

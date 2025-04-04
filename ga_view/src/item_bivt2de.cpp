@@ -1,6 +1,4 @@
-//
-// author: Daniel Hug, 2024 & 2025
-//
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 
 // TODO: active bivector in EGA should be at origin exclusively

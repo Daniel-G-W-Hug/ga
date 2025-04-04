@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024 & 2025
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include <algorithm> // std::max
 #include <cmath>     // std::abs, std::sqrt
@@ -15,7 +15,8 @@
 namespace hd::ga {
 
 ////////////////////////////////////////////////////////////////////////////////
-// BVec6_t<T, Tag> definition of a bivector with 6 components vx, vy, vz, lx, ly, lz
+// BVec6_t<T, Tag> definition of a bivector with 6 components
+// vx, vy, vz, mx, my, mz
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename Tag = default_tag>

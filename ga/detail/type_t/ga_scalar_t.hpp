@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024 & 2025
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 // strong type inspired by Jonathan Boccara's blog:
 // https://www.fluentcpp.com/2016/12/08/strong-types-for-strong-interfaces/

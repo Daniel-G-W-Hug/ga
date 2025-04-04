@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024 & 2025
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include <algorithm> // std::max
 #include <cmath>     // std::abs, std::sqrt
@@ -13,6 +13,10 @@
 #include "ga_type_tags.hpp"
 
 namespace hd::ga {
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec2_t<T, Tag> definition of a multivector with 2 components c0, c1
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename Tag = default_tag>
     requires(std::floating_point<T>)

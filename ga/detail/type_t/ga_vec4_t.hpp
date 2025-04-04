@@ -1,6 +1,6 @@
 #pragma once
 
-// author: Daniel Hug, 2024 & 2025
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include <algorithm> // std::max
 #include <cmath>     // std::abs, std::sqrt
@@ -30,7 +30,7 @@ struct Vec4_t {
     // tv = wyz * e4^e2^e3 + wzx * e4^e3^e1 + wxy * e4^e1^e2 + zyx * e3^e2^e1
     //    =  x  * e4^e2^e3 +  y  * e4^e3^e1 +  z  * e4^e1^e2 +  w  * e^4
     // (same names like in vector (x, y, z, w),
-    //  but semantic as one live above (wyz, wzx, wxy, zyx)
+    //  but semantic as one line above (wyz, wzx, wxy, zyx)
 
     // this is a mapping of the components
     // such that vector components x, y, z and w correspond to the
