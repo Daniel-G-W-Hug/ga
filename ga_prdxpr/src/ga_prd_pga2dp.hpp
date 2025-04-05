@@ -145,14 +145,14 @@ const mvec_coeff mv2dp_coeff_B_uneven = {"0", "B.c0", "B.c1", "B.c2",
                                          "0", "0",    "0",    "B.c3"};
 const mvec_coeff mv2dp_coeff_R_even = {"R.c0", "0",    "0",    "0",
                                        "R.c1", "R.c2", "R.c3", "0"};
-const mvec_coeff mv2dp_coeff_R_rev_even = {"R.c0",  "0",     "0",     "0",
-                                           "-R.c1", "-R.c2", "-R.c3", "0"};
-const mvec_coeff mv2dp_coeff_R_rrev_even = {"-R.c0", "0",    "0",    "0",
-                                            "R.c1",  "R.c2", "R.c3", "0"};
 const mvec_coeff mv2dp_coeff_R_uneven = {"0", "R.c0", "R.c1", "R.c2",
                                          "0", "0",    "0",    "R.c3"};
+const mvec_coeff mv2dp_coeff_R_rev_even = {"R.c0",  "0",     "0",     "0",
+                                           "-R.c1", "-R.c2", "-R.c3", "0"};
 const mvec_coeff mv2dp_coeff_R_rev_uneven = {"0", "R.c0", "R.c1", "R.c2",
                                              "0", "0",    "0",    "-R.c3"};
+const mvec_coeff mv2dp_coeff_R_rrev_even = {"-R.c0", "0",    "0",    "0",
+                                            "R.c1",  "R.c2", "R.c3", "0"};
 const mvec_coeff mv2dp_coeff_R_rrev_uneven = {"0", "-R.c0", "-R.c1", "-R.c2",
                                               "0", "0",     "0",     "R.c3"};
 const mvec_coeff mv2dp_coeff_svBps = {"s",   "v.x", "v.y", "v.z",

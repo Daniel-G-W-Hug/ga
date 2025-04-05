@@ -657,7 +657,10 @@ inline constexpr MVec3dp<T> unitize(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// (right) bulk_dual (=complement operation applied to the bulk)
+// (right) bulk_dual (= right complement operation applied to the bulk)
+//
+// the duals are defined uniquely w.r.t. the outer product
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -719,7 +722,10 @@ inline constexpr MVec3dp<T> bulk_dual(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// (right) weight_dual (=complement operation applied to the weight)
+// (right) weight_dual (=right complement operation applied to the weight)
+//
+// the duals are defined uniquely w.r.t. the outer product
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -901,7 +907,8 @@ struct Line3d : public BiVec3dp<T> {
 
     Line3d& unitize()
     {
-        // unitization for a 3d bivector means std::sqrt(x^2 + y^2) = 1
+        // unitization for a 3d bivector means a normalized direction vector
+        // std::sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
         T wn = weight_nrm(*this);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
         if (wn < std::numeric_limits<T>::epsilon()) {
@@ -924,8 +931,8 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Line3d<T> unitize(Line3d<T> const& l)
 {
-    // unitization for a 3d bivector means std::sqrt(x^2 + y^2 + z^2) = 1
-    // i.e. unitization of the direction vector of the line
+    // unitization for a 3d bivector means a normalized direction vector
+    // std::sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
     T wn = weight_nrm(l);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (wn < std::numeric_limits<T>::epsilon()) {

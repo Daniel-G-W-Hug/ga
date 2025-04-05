@@ -1996,12 +1996,33 @@ template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, ar
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2dp motor operations (translation and rotation)
+//
+// Every motor in pga2dp is an uneven grade multivector MVec2dp_U
+//
+// A proper isometry in 2dp has a fixed point p = p.x e1 + p.y e2 + p.z e3
+// around which a rotation occurs with an angle phi
+//
+// Every motor has the form: M = p sin(phi) + cos(phi) e321
+//
+// (derived from the exponential function with respect to the regressive
+// geometric product)
 ////////////////////////////////////////////////////////////////////////////////
 
+// create a (unitized) motor from a fixed point and a turning angle
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> motor(Vec2dp<T> const& p, U phi)
+{
+    using ctype = std::common_type_t<T, U>;
+    return unitize(MVec2dp_U<ctype>(Vec2dp<ctype>(p * std::sin(phi)),
+                                    PScalar2dp<ctype>(std::cos(phi))));
+}
+
+// create a (unitized) motor directly from two (potentially intersecting) lines
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>>
-motor2dp_from_ln(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
+motor_from_lines(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
 {
     // take lines (=bivectors) as input and return a motor R
     // 1st apply reflection across line B1, then across B2 to get a motor that rotates
@@ -2016,25 +2037,7 @@ motor2dp_from_ln(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
     //     auto v_moved = move2dp(v,R);  // moves v according to the motor R
     //     auto B_moved = move2dp(B,R);  // moves B according to the motor R
     //
-    return rgpr(B2, B1); // based on the regressive geometric product
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp_orig(Vec2dp<T> const& v,
-                                                               MVec2dp_U<U> const& R)
-{
-    // moves v (a vector representing a projective point) according to the motor R
-    return gr1(rgpr(rgpr(R, v), rrev(R)));
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_orig(BiVec2dp<T> const& B,
-                                                                 MVec2dp_U<U> const& R)
-{
-    // moves B (a bivector representing a line) according to the motor R
-    return gr2(rgpr(rgpr(R, B), rrev(R)));
+    return unitize(rgpr(B2, B1)); // based on the regressive geometric product
 }
 
 template <typename T, typename U>
@@ -2042,11 +2045,37 @@ template <typename T, typename U>
 inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
                                                           MVec2dp_U<U> const& R)
 {
+    // assumes: motor R is unitized
+
+    // moves v (a vector representing a projective point) according to the motor R
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(gr1(rgpr(rgpr(R, v), rrev(R))));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
+                                                            MVec2dp_U<U> const& R)
+{
+    // assumes: motor R is unitized
+
+    // moves B (a bivector representing a line) according to the motor R
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(gr2(rgpr(rgpr(R, B), rrev(R))));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
+                                                              MVec2dp_U<U> const& R)
+{
     // moves v (a vector representing a projective point) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     //
-    // (could potentially be further optimized by exporting the matrix-representation if
-    // many transformations should be calculated using the same rotor as v' = matrix * v)
+    // (could potentially be further optimized by exporting the matrix-representation
+    // if many transformations should be calculated using the same rotor as
+    // v' = matrix * v)
+
     using ctype = std::common_type_t<T, U>;
     auto k02 = R.c0 * R.c2;
     auto k03 = R.c0 * R.c3;
@@ -2055,21 +2084,23 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
     auto k22 = R.c2 * R.c2;
     auto k23 = R.c2 * R.c3;
     auto k33 = R.c3 * R.c3;
-    return Vec2dp<ctype>((k22 - k33) * v.x + (2.0 * k23) * v.y + 2.0 * (-k02 - k13) * v.z,
-                         -2.0 * k23 * v.x + (k22 - k33) * v.y + 2.0 * (k03 - k12) * v.z,
-                         (-k22 - k33) * v.z);
+    return Vec2dp<ctype>((-k22 + k33) * v.x - 2.0 * k23 * v.y + 2.0 * (k02 + k13) * v.z,
+                         2.0 * k23 * v.x + (-k22 + k33) * v.y + 2.0 * (-k03 + k12) * v.z,
+                         (k22 + k33) * v.z);
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
-                                                            MVec2dp_U<U> const& R)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> const& B,
+                                                                MVec2dp_U<U> const& R)
 {
     // moves B (a bivector representing a line) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     //
-    // (could potentially be further optimized by exporting the matrix-representation if
-    // many transformations should be calculated using the same rotor as B' = matrix * B)
+    // (could potentially be further optimized by exporting the matrix-representation
+    // if many transformations should be calculated using the same rotor as
+    // B' = matrix * B)
+
     using ctype = std::common_type_t<T, U>;
     auto k02 = R.c0 * R.c2;
     auto k03 = R.c0 * R.c3;
@@ -2083,123 +2114,35 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B
         2.0 * (k02 - k13) * B.x + 2.0 * (k12 + k03) * B.y + (k22 + k33) * B.z);
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// 2dp rotation operations
-////////////////////////////////////////////////////////////////////////////////
-
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2dp_E<std::common_type_t<T, U>> exp(BiVec2dp<T> const& I, U theta)
+inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt2(Vec2dp<T> const& v,
+                                                               MVec2dp_U<U> const& R)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_E<ctype>(Scalar2dp<ctype>(std::cos(theta)),
-                            normalize(I) * std::sin(theta));
-}
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Inputs:
-//       1.) an arbitray bivector representing the oriented plane of rotation
-//           (does not need to be normalized, defines what is a posive rotation angle)
-//       2.) a rotation angle in that plane
-// Output:
-//           a rotor representing the requested rotation,
-//           for applying the sandwich product as in rotate(v,rotor)
-//
-//////////////////////////////////////////////////////////////////////////////////////////
-//
-// for a rotation about an axis n (n = normalized vector) choose the ansatz n*B = I_3d
-// and multiply both sides with n from the left (remember n*n = |n|^2 = 1)
-//
-// => choose: B = n*I_3d
-//
-//////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2dp_E<std::common_type_t<T, U>> rotor(BiVec2dp<T> const& I, U theta)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype half_angle = -0.5 * theta;
-    return MVec2dp_E<ctype>(Scalar2dp<ctype>(std::cos(half_angle)),
-                            normalize(I) * std::sin(half_angle));
+    ctype k1 = R.c1 * v.z - R.c2 * v.y + R.c3 * v.x;
+    ctype k2 = -R.c0 * v.z + R.c2 * v.x + R.c3 * v.y;
+    ctype k3 = R.c3 * v.z;
+    ctype k4 = -R.c2 * v.z;
+    return Vec2dp<ctype>(k1 * R.c3 - k2 * R.c2 + k3 * R.c1 - k4 * R.c0,
+                         k1 * R.c2 + k2 * R.c3 - k3 * R.c0 - k4 * R.c1,
+                         k3 * R.c3 - k4 * R.c2);
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> rotate(Vec2dp<T> const& v,
-                                                         MVec2dp_E<U> const& rotor)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt2(BiVec2dp<T> const& B,
+                                                                 MVec2dp_U<U> const& R)
 {
     using ctype = std::common_type_t<T, U>;
 
-    // MVec2dp_E<ctype> rr = rev(rotor);
-    // MVec2dp_U<ctype> tmp = rotor * v;
-    // MVec2dp_U<ctype> res = tmp * rr;
-
-    // trivector part of res is 0 due to symmetric product  rotor * v * rev(rotor)
-    //
-    // optimization potential for sandwich product by replacing the second product
-    // with a specific operation that skips the calculation of the pseudoscalar part
-    // which will be zero anyway
-    return Vec2dp<ctype>(gr1<ctype>(rotor * v * rev(rotor)));
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> rotate_opt(Vec2dp<T> const& v,
-                                                             MVec2dp_E<U> const& R)
-{
-    using ctype = std::common_type_t<T, U>;
-
-    ctype k1 = R.c0 * v.x + R.c3 * v.y;
-    ctype k2 = R.c0 * v.y - R.c3 * v.x;
-    ctype k3 = R.c0 * v.z - R.c1 * v.y + R.c2 * v.x;
-    ctype k4 = R.c1 * v.x + R.c2 * v.y + R.c3 * v.z;
-    return Vec2dp<ctype>(k1 * R.c0 + k2 * R.c3, -k1 * R.c3 + k2 * R.c0,
-                         k1 * R.c2 - k2 * R.c1 + k3 * R.c0 + k4 * R.c3);
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec2dp<std::common_type_t<T, U>> rotate(BiVec2dp<T> const& v,
-                                                           MVec2dp_E<U> const& rotor)
-{
-    using ctype = std::common_type_t<T, U>;
-
-    // MVec2dp_E<ctype> rr = rev(rotor);
-    // MVec2dp_E<ctype> tmp = rotor * v;
-    // MVec2dp_E<ctype> res = tmp * rr;
-
-    // scalar part of res is 0 due to symmetric product  rotor * v * rev(rotor)
-    //
-    // optimization potential for sandwich product by replacing the second product
-    // with a specific operation that skips the calculation of the scalar part
-    // which will be zero anyway
-    return BiVec2dp<ctype>(gr2<ctype>(rotor * v * rev(rotor)));
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec2dp<std::common_type_t<T, U>> rotate_opt(BiVec2dp<T> const& B,
-                                                               MVec2dp_E<U> const& R)
-{
-    using ctype = std::common_type_t<T, U>;
-
-    ctype k1 = -R.c3 * B.z;
-    ctype k2 = R.c0 * B.x - R.c2 * B.z + R.c3 * B.y;
-    ctype k3 = R.c0 * B.y + R.c1 * B.z - R.c3 * B.x;
-    ctype k4 = R.c0 * B.z;
-    return BiVec2dp<ctype>(-k1 * R.c1 + k2 * R.c0 + k3 * R.c3 - k4 * R.c2,
-                           -k1 * R.c2 - k2 * R.c3 + k3 * R.c0 + k4 * R.c1,
-                           -k1 * R.c3 + k4 * R.c0);
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2dp<std::common_type_t<T, U>> rotate(MVec2dp<T> const& v,
-                                                          MVec2dp_E<U> const& rotor)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(rotor * v * rev(rotor));
+    ctype k1 = -R.c0 * B.x - R.c1 * B.y - R.c2 * B.z;
+    ctype k2 = -R.c2 * B.y + R.c3 * B.x;
+    ctype k3 = R.c2 * B.x + R.c3 * B.y;
+    ctype k4 = R.c0 * B.y - R.c1 * B.x + R.c3 * B.z;
+    return BiVec2dp<ctype>(k2 * R.c3 - k3 * R.c2, k2 * R.c2 + k3 * R.c3,
+                           -k1 * R.c2 - k2 * R.c1 + k3 * R.c0 + k4 * R.c3);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

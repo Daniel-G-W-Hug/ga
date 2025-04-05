@@ -1560,18 +1560,18 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             auto l1 = unitize(wdg(p0, p1));
             auto l2 = unitize(wdg(p0, p2));
 
-            auto R = motor2dp_from_ln(l1, l2);
+            auto R = motor_from_lines(l1, l2);
             CHECK(R == rgpr(l2, l1));
 
             auto pm_manual = gr1(rgpr(rgpr(R, p), rrev(R)));
-            auto pm_orig = move2dp_orig(p, R);
+            auto pm_orig = move2dp(p, R);
             auto pm = move2dp(p, R);
 
             CHECK(pm_manual == pm_orig);
             CHECK(pm_manual == unitize(pm));
 
             auto lm_manual = gr2(rgpr(rgpr(R, l), rrev(R)));
-            auto lm_orig = move2dp_orig(l, R);
+            auto lm_orig = move2dp(l, R);
             auto lm = move2dp(l, R);
 
             // fmt::println("");
@@ -1605,28 +1605,29 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         //     auto l1 = unitize(wdg(p0, p1));
         //     auto l2 = unitize(wdg(p0, p2));
 
-        //     auto R = motor2dp_from_ln(l1, l2);
+        //     auto R = motor_from_lines(l1, l2);
         //     CHECK(R == rgpr(l2, l1));
 
         //     // checking time required
         //     constexpr size_t steps = 10'000'000;
-        //     vec2dp p_sum_orig{};
+        //     vec2dp pm_sum_orig{};
         //     auto start = std::chrono::system_clock::now();
         //     for (size_t i = 0; i < steps; ++i) {
-        //         auto pm_orig = move2dp_orig(p, R);
-        //         p_sum_orig += pm_orig; // just to avoid full replacement with opt
+        //         auto pm_orig = move2dp(p, R);
+        //         pm_sum_orig += pm_orig; // just to avoid full replacement with opt
         //     }
         //     auto end = std::chrono::system_clock::now();
         //     auto elapsed =
         //         std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         //     fmt::println("");
         //     fmt::println("The measurement orig for point took {}", elapsed);
-        //     fmt::println("p_sum_orig = {}", unitize(p_sum_orig * (1.0 / steps)));
+        //     fmt::println("pm_sum_orig = {}", unitize(pm_sum_orig * (1.0 / steps)));
 
         //     vec2dp pm_sum{};
         //     start = std::chrono::system_clock::now();
         //     for (size_t i = 0; i < steps; ++i) {
-        //         auto pm = move2dp(p, R);
+        //         auto pm = move2dp_opt(p, R);
+        //         // auto pm = move2dp_opt2(p, R);
         //         pm_sum += pm; // just to avoid full replacement with opt
         //     }
         //     end = std::chrono::system_clock::now();
@@ -1638,7 +1639,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         //     bivec2dp lm_sum_orig{};
         //     start = std::chrono::system_clock::now();
         //     for (size_t i = 0; i < steps; ++i) {
-        //         auto lm_orig = move2dp_orig(l, R);
+        //         auto lm_orig = move2dp(l, R);
         //         lm_sum_orig += lm_orig; // just to avoid full replacement with opt
         //     }
         //     end = std::chrono::system_clock::now();
@@ -1649,7 +1650,8 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         //     bivec2dp lm_sum{};
         //     start = std::chrono::system_clock::now();
         //     for (size_t i = 0; i < steps; ++i) {
-        //         auto lm = move2dp(l, R);
+        //         auto lm = move2dp_opt(l, R);
+        //         // auto lm = move2dp_opt2(l, R);
         //         lm_sum += lm; // just to avoid full replacement with opt
         //     }
         //     end = std::chrono::system_clock::now();
@@ -1657,6 +1659,13 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         //     start); fmt::println("The measurement opt for line took {}", elapsed);
         //     fmt::println("lm_sum = {}", lm_sum * (1.0 / steps));
         //     fmt::println("");
+
+        //     CHECK(pm_sum_orig * (1.0 / steps) == pm_sum * (1.0 / steps));
+        //     CHECK(lm_sum_orig * (1.0 / steps) == lm_sum * (1.0 / steps));
+
+        //     // summary: manual optimization brings benefit in debug-mode.
+        //     //          In release-mode with -O3 optimization there is no speed delta
+        //     //          => manual optimization does NOT bring benefit
         // }
 
         {
@@ -1680,56 +1689,65 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             // auto l1 = wdg(p0, p1); // horizontal line
             // auto l2 = wdg(p0, p2); // line with 45° elevation
 
-            auto pi = unitize(rwdg(l1, l2)); // intersection point of lines
+            auto pis = unitize(rwdg(l1, l2)); // intersection point of lines
 
-            auto R = motor2dp_from_ln(l1, l2);
-            CHECK(R == rgpr(l2, l1));
-
-
-            fmt::println("");
-            fmt::println("l1:         {:.4g}", l1);
-            fmt::println("bulk:       {:.4g}", bulk(l1));
-            fmt::println("weight:     {:.4g}", weight(l1));
-            fmt::println("bulk_nrm:   {:.4g}", bulk_nrm(l1));
-            fmt::println("weight_nrm: {:.4g}", weight_nrm(l1));
-            fmt::println("");
-            fmt::println("l2:         {:.4g}", l2);
-            fmt::println("bulk:       {:.4g}", bulk(l2));
-            fmt::println("weight:     {:.4g}", weight(l2));
-            fmt::println("bulk_nrm:   {:.4g}", bulk_nrm(l2));
-            fmt::println("weight_nrm: {:.4g}", weight_nrm(l2));
-            fmt::println("");
-            fmt::println("R:          {:.4g}", R);
-            fmt::println("bulk:       {:.4g}", bulk(R));
-            fmt::println("weight:     {:.4g}", weight(R));
-            fmt::println("bulk_nrm:   {:.4g}", bulk_nrm(R));
-            fmt::println("weight_nrm: {:.4g}", weight_nrm(R));
-            fmt::println("");
-
-            fmt::println("pi:    {:.4g}", pi);
+            auto R = motor_from_lines(l1, l2);
+            CHECK(R == unitize(rgpr(l2, l1)));
             auto pfix = unitize(vec2dp{R.c0, R.c1, R.c2});
-            fmt::println("pfix:  {:.4g}", pfix);
-            fmt::println("R.c0:  {:.4g}", R.c3);
-            if (R.c3 != 0.0) {
-                fmt::println("angle: {:.4g}°", rad2deg(std::atan(R.c2 / R.c3)));
-            }
-            else {
-            }
-            fmt::println("");
 
             auto pm = gr1(rgpr(rgpr(R, p), rrev(R)));  // transformation
             auto pb = gr1(rgpr(rgpr(rrev(R), pm), R)); // reverse transformation
 
-            fmt::println("");
-            fmt::println("pt: {:.4g}, ptu: {:.4g} (traget value)", pt, unitize(pt));
-            fmt::println("pm: {:.4g}, pmu: {:.4g} (after trafo)", pm, unitize(pm));
-            fmt::println("pb: {:.4g}, pbu: {:.4g} (after backtrafo)", pb, unitize(pb));
-            fmt::println("");
+            // fmt::println("");
+            // fmt::println("l1:         {:.4g}", l1);
+            // fmt::println("bulk:       {:.4g}", bulk(l1));
+            // fmt::println("weight:     {:.4g}", weight(l1));
+            // fmt::println("bulk_nrm:   {:.4g}", bulk_nrm(l1));
+            // fmt::println("weight_nrm: {:.4g}", weight_nrm(l1));
+            // fmt::println("");
+            // fmt::println("l2:         {:.4g}", l2);
+            // fmt::println("bulk:       {:.4g}", bulk(l2));
+            // fmt::println("weight:     {:.4g}", weight(l2));
+            // fmt::println("bulk_nrm:   {:.4g}", bulk_nrm(l2));
+            // fmt::println("weight_nrm: {:.4g}", weight_nrm(l2));
+            // fmt::println("");
+            // fmt::println("R:          {:.4g}", R);
+            // fmt::println("bulk:       {:.4g}", bulk(R));
+            // fmt::println("weight:     {:.4g}", weight(R));
+            // fmt::println("bulk_nrm:   {:.4g}", bulk_nrm(R));
+            // fmt::println("weight_nrm: {:.4g}", weight_nrm(R));
+            // fmt::println("");
+            // fmt::println("pis:   {:.4g}", pis);
+            // fmt::println("pfix:  {:.4g}", pfix);
+            // fmt::println("R.c0:  {:.4g}", R.c3);
+            // if (R.c3 != 0.0) {
+            //     fmt::println("angle: {:.4g}°", rad2deg(std::atan(R.c2 / R.c3)));
+            // }
+            // else {
+            // }
+            // fmt::println("");
+            // fmt::println("pt: {:.4g}, ptu: {:.4g} (target value)", pt, unitize(pt));
+            // fmt::println("pm: {:.4g}, pmu: {:.4g} (after trafo)", pm, unitize(pm));
+            // fmt::println("pb: {:.4g}, pbu: {:.4g} (after backtrafo)", pb, unitize(pb));
+            // fmt::println("");
 
             CHECK(unitize(pm) == unitize(pt));
             CHECK(unitize(pb) == unitize(p));
+            CHECK(pis == p0); // intersection point is the fix point of the transformation
+            CHECK(pfix == p0);
 
-            CHECK(pi == p0); // intersection point is the fix point of the transformation
+            // now build the motor by hand
+            auto S = motor(pis, pi / 4.);
+
+            // fmt::println("");
+            // fmt::println("S:          {:.4g}", S);
+            // fmt::println("bulk:       {:.4g}", bulk(S));
+            // fmt::println("weight:     {:.4g}", weight(S));
+            // fmt::println("bulk_nrm:   {:.4g}", bulk_nrm(S));
+            // fmt::println("weight_nrm: {:.4g}", weight_nrm(S));
+            // fmt::println("");
+
+            CHECK(R == S);
         }
     }
 
