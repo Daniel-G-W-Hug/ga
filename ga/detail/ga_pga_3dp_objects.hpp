@@ -276,16 +276,16 @@ inline constexpr Scalar3dp<T> bulk_nrm(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> weight_nrm_sq([[maybe_unused]] Scalar3dp<T>)
+inline constexpr PScalar3dp<T> weight_nrm_sq([[maybe_unused]] Scalar3dp<T>)
 {
-    return Scalar3dp<T>(0.0);
+    return PScalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> weight_nrm([[maybe_unused]] Scalar3dp<T>)
+inline constexpr PScalar3dp<T> weight_nrm([[maybe_unused]] Scalar3dp<T>)
 {
-    return Scalar3dp<T>(0.0);
+    return PScalar3dp<T>(0.0);
 }
 
 // return squared weight norm of vector
