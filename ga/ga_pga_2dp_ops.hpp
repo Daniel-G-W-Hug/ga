@@ -2018,6 +2018,28 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> motor(Vec2dp<T> const& p, U
                                     PScalar2dp<ctype>(std::cos(phi))));
 }
 
+// create a translation motor from a direction vector (given as a Vec2dp)
+// move in direction and by length of direction vector
+// ATTENTION: the direction is assumed to be a direction vector, i.e. with z == 0
+//            the z-component is ignored and only the x- and y-components are used
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> motor(Vec2dp<T> const& direction)
+{
+    return MVec2dp_U<T>(0.5 * Vec2dp<T>(-direction.y, direction.x, T(0.0)),
+                        PScalar2dp<T>(1.0));
+}
+
+// create a translation motor from a direction vector (given as a Vector2d)
+// move in direction and by length of direction vector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> motor(Vector2d<T> const& direction)
+{
+    return MVec2dp_U<T>(0.5 * Vec2dp<T>(-direction.y, direction.x, T(0.0)),
+                        PScalar2dp<T>(1.0));
+}
+
 // create a (unitized) motor directly from two (potentially intersecting) lines
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
