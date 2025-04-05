@@ -65,7 +65,8 @@ inline constexpr MVec2dp<T> bulk(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight: u_weight = lcmpl( G rcmpl(u) ) = rG u  (with G as the metric)
+// weight: u_weight = lcmpl( G rcmpl(u) ) = rG u
+//         (with G as the metric and rG as the anti-metric as given by Lengyel)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -347,7 +348,8 @@ inline constexpr PScalar2dp<T> weight_nrm(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// geometric norm: (perpendicular) distance to the origin (distance = c0/c1)
+// geometric norm: (perpendicular) distance to the origin (distance = c0/c1),
+//                 i.e. the value c0 after unitization
 //
 // returns a dual number, for correct handling of objects at infinity (c1 == 0)
 //
@@ -462,6 +464,24 @@ inline constexpr DualNum2dp<T> geom_nrm(MVec2dp<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // unitization operations
 ////////////////////////////////////////////////////////////////////////////////
+
+// return a DualNum2dp unitized to weight_nrm == 1.0
+// => if the dual number represents a homogeneous norm,
+//    the scalar part represents the geometric norm the after unitization
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr DualNum2dp<T> unitize(DualNum2dp<T> const& D)
+{
+    T n = D.c1; // the pseudoscalar part is the weight_nrm part
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("DualNum2dp weight_norm too small for unitization " +
+                                 std::to_string(n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * D;
+}
 
 // return a vector unitized to v.z == 1.0  (implies weight_nrm(v) = 1.0)
 template <typename T>
