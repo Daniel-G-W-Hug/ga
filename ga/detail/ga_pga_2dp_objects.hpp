@@ -241,14 +241,14 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar2dp<T> weight_nrm_sq([[maybe_unused]] Scalar2dp<T>)
 {
-    return Scalar2dp<T>(0.0);
+    return PScalar2dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Scalar2dp<T> weight_nrm([[maybe_unused]] Scalar2dp<T>)
 {
-    return Scalar2dp<T>(0.0);
+    return PScalar2dp<T>(0.0);
 }
 
 // return squared weight norm of vector
