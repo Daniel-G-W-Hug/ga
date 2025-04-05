@@ -567,7 +567,10 @@ inline constexpr MVec2dp<T> unitize(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// (right) bulk_dual (=complement operation applied to the bulk)
+// bulk_dual (=complement operation applied to the bulk)
+//
+// the duals are defined uniquely w.r.t. the outer product
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -622,7 +625,10 @@ inline constexpr MVec2dp<T> bulk_dual(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// (right) weight_dual (=complement operation applied to the weight)
+// weight_dual (=complement operation applied to the weight)
+//
+// the duals are defined uniquely w.r.t. the outer product
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>

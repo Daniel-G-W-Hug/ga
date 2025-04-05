@@ -42,6 +42,7 @@
     }
 
 \usepackage{scalerel}
+\usepackage{accents}
 
 %\DeclareMathSizes{11}{19}{13}{9}
 %\DeclareMathSizes{12}{20}{14}{10}  % Larger formulas vs. text
@@ -74,6 +75,9 @@
 
 % parallel sign scaled to the hight of the perpendicular sign (package scalerel)
 \newcommand*{\parall}{\stretchrel*{\parallel}{\perp}}
+
+% underbar by using \bar with the accents package
+\newcommand{\ubar}[1]{\underaccent{\bar}{#1}}
 
 
 \begin{document}
@@ -113,5 +117,6 @@ Sources:
 
 \input{1_ga_intro.tex}
 \input{2_ga_basic_formulas.tex}
+\input{9_ga_literature.tex}
 
 \end{document}

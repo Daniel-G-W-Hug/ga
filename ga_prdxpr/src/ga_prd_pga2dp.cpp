@@ -4141,8 +4141,7 @@ void generate_and_print_pga2dp_motor_rgpr()
     fmt::println("");
 
     auto basis = mv2dp_basis;
-
-    // fmt::println("mv_basis for rwdg:");
+    // fmt::println("mv_basis for regressive sandwich product:");
     // print_mvec(mv2dp_coeff_svBps, basis);
     // fmt::println("");
 
