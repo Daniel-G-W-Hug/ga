@@ -1738,6 +1738,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
             // now build the motor by hand
             auto S = motor(pis, pi / 4.);
+            auto ps = move2dp(p, S);
 
             // fmt::println("");
             // fmt::println("S:          {:.4g}", S);
@@ -1748,6 +1749,18 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             // fmt::println("");
 
             CHECK(R == S);
+            CHECK(ps == pt);
+
+            auto T = motor(delta);
+            auto pst = move2dp(p, T);
+            // fmt::println("");
+            // fmt::println("p: {:.4g}, pu: {:.4g}", p, unitize(p));
+            // fmt::println("delta: {:.4g}", delta);
+            // fmt::println("T: {:.4g}, Tu: {:.4g}", T, unitize(T));
+            // fmt::println("pst: {:.4g}, pstu: {:.4g} (after trafo)", pst, unitize(pst));
+            // fmt::println("");
+
+            CHECK(pst == p + delta);
         }
     }
 
