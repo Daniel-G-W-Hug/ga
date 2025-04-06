@@ -113,7 +113,6 @@ struct abivt2d {
 
     // reference to point used here, because this enables
     // use of unique address of pt2d for mapping to users of active points in scene
-    size_t beg_idx;
     size_t uend_idx;
     size_t vend_idx;
 };
