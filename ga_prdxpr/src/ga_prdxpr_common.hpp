@@ -49,18 +49,18 @@ using prd_table = std::vector<mvec_coeff>;
 
 // required literals for string handling
 using namespace std::literals::string_literals;
-constexpr inline std::string empty_str{""s};
-constexpr inline std::string zero_str{"0"s};
-constexpr inline std::string one_str{"1"s};
-constexpr inline std::string plus_str{"+"s};
-constexpr inline std::string minus_str{"-"s};
-constexpr inline std::string mul_str{"*"s};
-constexpr inline std::string wdg_str{"^"s};
-constexpr inline std::string lcontr_str{"<<"s};
-constexpr inline std::string rcontr_str{">>"s};
-constexpr inline std::string space_str{" "s};
-constexpr inline std::string brace_open_str{"("s};
-constexpr inline std::string brace_close_str{")"s};
+static const std::string empty_str{""s};
+static const std::string zero_str{"0"s};
+static const std::string one_str{"1"s};
+static const std::string plus_str{"+"s};
+static const std::string minus_str{"-"s};
+static const std::string mul_str{"*"s};
+static const std::string wdg_str{"^"s};
+static const std::string lcontr_str{"<<"s};
+static const std::string rcontr_str{">>"s};
+static const std::string space_str{" "s};
+static const std::string brace_open_str{"("s};
+static const std::string brace_close_str{")"s};
 
 ////////////////////////////////////////////////////////////////////////////////
 // user related functions

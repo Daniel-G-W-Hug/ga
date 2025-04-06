@@ -4745,7 +4745,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         auto ln7p = unitize(ortho_proj(ln07, pl));
         CHECK(ln7p == unitize(ln06));
-        CHECK(phi == pi / 2);
+        CHECK(std::abs(phi - pi / 2) < eps);
         CHECK(apl07 == apl70);
         CHECK(a21 == a12);
         CHECK(a29 == a92);
