@@ -2495,12 +2495,48 @@ inline constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
 
 ////////////////////////////////////////////////////////////////////////////////
 // 3dp motor operations (translation and rotation)
+//
+// Every motor in pga3dp is an even grade multivector MVec2dp_E (w/o scalar part).
+//
+// A proper isometry in 3dp has a fixed line l around which a rotation occurs
+// with an angle phi.
+//
+// The rotation so modeled by two consecutive reflections across two planes which
+// intersect in the line l around which the rotation occurs.
+//
+// In this case the motor has the form: M = l sin(phi) + e1234 cos(phi).
+//
+// (derived from the exponential function with respect to the regressive
+// geometric product)
 ////////////////////////////////////////////////////////////////////////////////
+
+// create a (unitized) motor from a fixed line of rotation and a turning angle
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> motor(BiVec3dp<T> const& l, U phi)
+{
+    using ctype = std::common_type_t<T, U>;
+    return unitize(MVec3dp_E<ctype>(BiVec3dp<ctype>(l * std::sin(phi)),
+                                    PScalar3dp<ctype>(std::cos(phi))));
+}
+
+// create a translation motor from a direction vector (given as a Vec3dp)
+// move in direction and by length of direction vector (length = its bulk_nrm)
+// ATTENTION: the direction is assumed to be a direction vector, i.e. with w == 0
+//            the w-component is ignored and only the x-, y- and z-components are used
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_E<T> motor(Vec3dp<T> const& direction)
+{
+    return MVec3dp_E<T>(
+        0.5 * BiVec3dp<T>(T(0.0), T(0.0), T(0.0), direction.x, direction.y, direction.z),
+        PScalar3dp<T>(1.0));
+}
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_E<std::common_type_t<T, U>>
-motor3dp_from_pln(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
+motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
 {
     // take planes as input and return a motor R
     // 1st apply reflection across plane t1, then across t2 to get a motor that rotates
@@ -2518,40 +2554,49 @@ motor3dp_from_pln(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
     //     auto B_moved = move3dp(B,R);  // moves B according to the motor R
     //     auto t_moved = move3dp(t,R);  // moves t according to the motor R
     //
-    return rgpr(t2, t1); // based on the regressive geometric product
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> move3dp_orig(Vec3dp<T> const& v,
-                                                               MVec3dp_E<U> const& R)
-{
-    // moves v (a vector representing a projective point) according to the motor R
-    return gr1(rgpr(rgpr(R, v), rrev(R)));
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3dp<std::common_type_t<T, U>> move3dp_orig(BiVec3dp<T> const& B,
-                                                                 MVec3dp_E<U> const& R)
-{
-    // moves B (a bivector representing a line) according to the motor R
-    return gr2(rgpr(rgpr(R, B), rrev(R)));
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr TriVec3dp<std::common_type_t<T, U>> move3dp_orig(TriVec3dp<T> const& t,
-                                                                  MVec3dp_E<U> const& R)
-{
-    // moves t (a trivector representing a plane) according to the motor R
-    return gr3(rgpr(rgpr(R, t), rrev(R)));
+    return unitize(rgpr(t2, t1)); // based on the regressive geometric product
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3dp<std::common_type_t<T, U>> move3dp(Vec3dp<T> const& v,
                                                           MVec3dp_E<U> const& R)
+{
+    // assumes: motor R is unitized
+
+    // moves v (a vector representing a projective point) according to the motor R
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(gr1(rgpr(rgpr(R, v), rrev(R))));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec3dp<std::common_type_t<T, U>> move3dp(BiVec3dp<T> const& B,
+                                                            MVec3dp_E<U> const& R)
+{
+    // assumes: motor R is unitized
+
+    // moves B (a bivector representing a line) according to the motor R
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(gr2(rgpr(rgpr(R, B), rrev(R))));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr TriVec3dp<std::common_type_t<T, U>> move3dp(TriVec3dp<T> const& t,
+                                                             MVec3dp_E<U> const& R)
+{
+    // assumes: motor R is unitized
+
+    // moves t (a trivector representing a plane) according to the motor R
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(gr3(rgpr(rgpr(R, t), rrev(R))));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3dp<std::common_type_t<T, U>> move3dp_opt(Vec3dp<T> const& v,
+                                                              MVec3dp_E<U> const& R)
 {
     // moves v (a vector representing a projective point) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
@@ -2591,22 +2636,23 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> move3dp(Vec3dp<T> const& v,
         (k11 + k22 + k33 + k77) * v.w);
 }
 
+// TODO: implement the optimized versions (optional, since -O3 already has same effect)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3dp<std::common_type_t<T, U>> move3dp(BiVec3dp<T> const& B,
-                                                            MVec3dp_E<U> const& R)
+inline constexpr BiVec3dp<std::common_type_t<T, U>> move3dp_opt(BiVec3dp<T> const& B,
+                                                                MVec3dp_E<U> const& R)
 {
-    // moves B (a bivector representing a line) according to the motor R
-    return gr2(rgpr(rgpr(R, B), rrev(R)));
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(gr2(rgpr(rgpr(R, B), rrev(R))));
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr TriVec3dp<std::common_type_t<T, U>> move3dp(TriVec3dp<T> const& t,
-                                                             MVec3dp_E<U> const& R)
+inline constexpr TriVec3dp<std::common_type_t<T, U>> move3dp_opt(TriVec3dp<T> const& t,
+                                                                 MVec3dp_E<U> const& R)
 {
-    // moves t (a trivector representing a plane) according to the motor R
-    return gr3(rgpr(rgpr(R, t), rrev(R)));
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(gr3(rgpr(rgpr(R, t), rrev(R))));
 }
 
 
