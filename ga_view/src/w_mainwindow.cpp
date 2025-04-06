@@ -275,11 +275,10 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        size_t p0_id = cm.add_apt(pt2d{0, 0});
         size_t p1_id = cm.add_apt(pt2d{3, 0});
         size_t p2_id = cm.add_apt(pt2d{0, 2});
 
-        cm.add_abivt(abivt2d{p0_id, p1_id, p2_id});
+        cm.add_abivt(abivt2d{p1_id, p2_id});
 
         cm.set_label("active bivector");
 
@@ -448,8 +447,7 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     // active bivectors
     ///////////////////////////////////////////////////////////////////////////
     for (size_t idx = 0; idx < cm->abivt.size(); ++idx) {
-        scene->addItem(new active_bivt2d(cs, wcs, apt2d_map[cm->abivt[idx].beg_idx],
-                                         apt2d_map[cm->abivt[idx].uend_idx],
+        scene->addItem(new active_bivt2d(cs, wcs, apt2d_map[cm->abivt[idx].uend_idx],
                                          apt2d_map[cm->abivt[idx].vend_idx]));
     }
 

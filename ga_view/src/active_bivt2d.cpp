@@ -1,18 +1,13 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-
-// TODO: active bivector in EGA should be at origin exclusively
-//       move away from origion should only be possible in PGA
-
 #include "active_bivt2d.hpp"
 #include "active_common.hpp"
 
 #include "ga/ga_ega.hpp"
 
-active_bivt2d::active_bivt2d(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg,
-                             active_pt2d* uend, active_pt2d* vend,
-                             QGraphicsItem* parent) :
-    QGraphicsItem(parent), cs{cs}, wcs{wcs}, m_beg{beg}, m_uend{uend}, m_vend{vend}
+active_bivt2d::active_bivt2d(Coordsys* cs, w_Coordsys* wcs, active_pt2d* uend,
+                             active_pt2d* vend, QGraphicsItem* parent) :
+    QGraphicsItem(parent), cs{cs}, wcs{wcs}, m_uend{uend}, m_vend{vend}
 {
     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
              QGraphicsItem::ItemSendsGeometryChanges |
@@ -21,7 +16,6 @@ active_bivt2d::active_bivt2d(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg,
 
     // setZValue(18);
 
-    connect(wcs, &w_Coordsys::viewResized, m_beg, &active_pt2d::viewChanged);
     connect(wcs, &w_Coordsys::viewResized, m_uend, &active_pt2d::viewChanged);
     connect(wcs, &w_Coordsys::viewResized, m_vend, &active_pt2d::viewChanged);
 }
@@ -39,8 +33,8 @@ void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     // draw in item coordinate system
     qp->save();
 
-    QPointF beg_pos =
-        QPointF(cs->x.a_to_w(m_beg->scenePos().x), cs->y.a_to_w(m_beg->scenePos().y));
+    // beg_pos is always at origin
+    QPointF beg_pos = QPointF(cs->x.a_to_w(0.0), cs->y.a_to_w(0.0));
     QPointF end_upos =
         QPointF(cs->x.a_to_w(m_uend->scenePos().x), cs->y.a_to_w(m_uend->scenePos().y));
     QPointF end_vpos =
@@ -126,15 +120,12 @@ void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
 
 
     try {
-
         // make all available that is needed for GA
         using namespace hd::ga;
         using namespace hd::ga::ega;
 
-        auto u = vec2d{scenePos_uend().x - scenePos_beg().x,
-                       scenePos_uend().y - scenePos_beg().y};
-        auto v = vec2d{scenePos_vend().x - scenePos_beg().x,
-                       scenePos_vend().y - scenePos_beg().y};
+        auto u = vec2d{scenePos_uend().x, scenePos_uend().y};
+        auto v = vec2d{scenePos_vend().x, scenePos_vend().y};
         auto uv = wdg(u, v);
 
         // orientation relative to I_2d (= right-handed system of e1 and e2)
@@ -149,8 +140,8 @@ void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
         // auto dvl = normalize(v << uv);
         //
         // improved version: not well-behaved, only if either u or v become too small)
-        auto dur = normalize(orientation * I_2d >> u);
-        auto dvl = normalize(v << orientation * I_2d);
+        auto dur = normalize(u << orientation * I_2d);
+        auto dvl = normalize(orientation * I_2d >> v);
 
         QString u_nrm = QString::number(nrm(u), 'g', 2);
         QString v_nrm = QString::number(nrm(v), 'g', 2);
@@ -193,8 +184,7 @@ void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
 QRectF active_bivt2d::boundingRect() const
 {
     // give bounding box in item coordinate system
-    QPointF beg_pos =
-        QPointF(cs->x.a_to_w(m_beg->scenePos().x), cs->y.a_to_w(m_beg->scenePos().y));
+    QPointF beg_pos = QPointF(cs->x.a_to_w(0.0), cs->y.a_to_w(0.0));
     QPointF end_upos =
         QPointF(cs->x.a_to_w(m_uend->scenePos().x), cs->y.a_to_w(m_uend->scenePos().y));
     QPointF end_vpos =
@@ -213,8 +203,7 @@ QRectF active_bivt2d::boundingRect() const
 QPainterPath active_bivt2d::shape() const
 {
 
-    QPointF beg_pos =
-        QPointF(cs->x.a_to_w(m_beg->scenePos().x), cs->y.a_to_w(m_beg->scenePos().y));
+    QPointF beg_pos = QPointF(cs->x.a_to_w(0.0), cs->y.a_to_w(0.0));
     QPointF end_upos =
         QPointF(cs->x.a_to_w(m_uend->scenePos().x), cs->y.a_to_w(m_uend->scenePos().y));
     QPointF end_vpos =
@@ -224,14 +213,6 @@ QPainterPath active_bivt2d::shape() const
     path += vectorShape(beg_pos, end_vpos);
 
     return path;
-}
-
-void active_bivt2d::setScenePos_beg(pt2d const& pos)
-{
-    if (pos != m_beg->scenePos()) {
-        prepareGeometryChange();
-        m_beg->setScenePos(pos);
-    }
 }
 
 void active_bivt2d::setScenePos_uend(pt2d const& pos)
@@ -250,7 +231,6 @@ void active_bivt2d::setScenePos_vend(pt2d const& pos)
     }
 }
 
-pt2d active_bivt2d::scenePos_beg() const { return m_beg->scenePos(); }
 pt2d active_bivt2d::scenePos_uend() const { return m_uend->scenePos(); }
 pt2d active_bivt2d::scenePos_vend() const { return m_vend->scenePos(); }
 
@@ -324,11 +304,9 @@ void active_bivt2d::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
             // qDebug() << "lastScenePos():" << event->lastScenePos();
             // qDebug() << "delta:" << delta;
 
-            m_beg->moveBy(delta.x(), delta.y());
             m_uend->moveBy(delta.x(), delta.y());
             m_vend->moveBy(delta.x(), delta.y());
 
-            m_beg->posChanged();
             m_uend->posChanged();
             m_vend->posChanged();
         }
