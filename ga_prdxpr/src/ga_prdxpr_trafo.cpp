@@ -1115,14 +1115,14 @@ std::string ExpressionAnalyzer::toGroupedString() const
     auto grouped = getGroupedTerms();
     std::stringstream ss;
 
-    for (const auto& [vars, terms] : grouped) {
+    for (const auto& [vars, sterms] : grouped) {
         ss << "Terms with variables: ";
         for (const auto& var : vars) {
             ss << var << " ";
         }
         ss << "\n";
 
-        for (const auto& term : terms) {
+        for (const auto& term : sterms) {
             ss << "  " << term.coefficient;
             for (const auto& [var, power] : term.variables) {
                 ss << "*" << var;
