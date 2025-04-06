@@ -1997,12 +1997,12 @@ template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, ar
 ////////////////////////////////////////////////////////////////////////////////
 // 2dp motor operations (translation and rotation)
 //
-// Every motor in pga2dp is an uneven grade multivector MVec2dp_U
+// Every motor in pga2dp is an uneven grade multivector MVec2dp_U.
 //
 // A proper isometry in 2dp has a fixed point p = p.x e1 + p.y e2 + p.z e3
-// around which a rotation occurs with an angle phi
+// around which a rotation occurs with an angle phi.
 //
-// Every motor has the form: M = p sin(phi) + cos(phi) e321
+// Every motor has the form: M = p sin(phi) + e321 cos(phi).
 //
 // (derived from the exponential function with respect to the regressive
 // geometric product)
@@ -2019,7 +2019,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> motor(Vec2dp<T> const& p, U
 }
 
 // create a translation motor from a direction vector (given as a Vec2dp)
-// move in direction and by length of direction vector
+// move in direction and by length of direction vector (lenght = its bulk_nrm)
 // ATTENTION: the direction is assumed to be a direction vector, i.e. with z == 0
 //            the z-component is ignored and only the x- and y-components are used
 template <typename T>
