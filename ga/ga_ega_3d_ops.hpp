@@ -2568,13 +2568,6 @@ inline constexpr MVec3d<T> dual(MVec3d<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // Vec3d<T> and BiVec3d<T> projections, rejections and reflections
 ////////////////////////////////////////////////////////////////////////////////
-// Macdonal p. 129:
-//
-// Reflect a j-blade u in the k-dimensional subspace B is the blade
-//
-//   u_reflected = (-1)^[j*(k+1)]*B*u*inv(B)
-//
-////////////////////////////////////////////////////////////////////////////////
 
 // projection of a vector v1 onto vector v2
 // v_parallel = dot(v1, v2)) * inv(v2)
@@ -2625,6 +2618,17 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v,
     // return gr1(wdg(v, B) * inv(B));
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// reflections
+////////////////////////////////////////////////////////////////////////////////
+// Macdonald p. 129:
+//
+// Reflect a j-blade u in the k-dimensional subspace B is the blade
+//
+//   u_reflected = (-1)^[j*(k+1)]*B*u*inv(B)
+//
+////////////////////////////////////////////////////////////////////////////////
+
 // reflect a vector v on a hyperplane B orthogonal to vector nB
 //
 // hyperplane: a n-1 dimensional subspace in a space of dimension n (a line in 2d space)
@@ -2652,7 +2656,6 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on(Vec3d<T> const& v,
 }
 
 // reflect a bivector UB in an arbitrary bivector B (both modelling planes)
-// TODO: add formula from Macdonal p. 129 (due to dependence of sign on grades)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr BiVec3d<std::common_type_t<T, U>> reflect_on(BiVec3d<T> const& UB,

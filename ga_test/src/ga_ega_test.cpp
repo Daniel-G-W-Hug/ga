@@ -528,6 +528,36 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(std::abs(nrm(on13[1]) - 1.0) < eps);
     }
 
+    TEST_CASE("Vec2d: vector ratio")
+    {
+        fmt::println("Vec2d: vector ratio");
+
+        auto v1 = vec2d{1, 0};
+        auto v2 = vec2d{2, 2};
+        auto v3 = vec2d{0, 2};
+
+        // x : v3 = v2 : v1 => x * inv(v3) = v2 * inv(v1)
+        //                  => x = v2 * inv(v1) * v3
+        //
+        // should be same angle between v3 and x as between v1 and v2
+        // should be same factor of norms between x and v3 as between v2 and v1
+
+        auto Rs = v2 * inv(v1);
+        auto x = Rs * v3;
+
+        // fmt::println("");
+        // fmt::println("v1 = {}", v1);
+        // fmt::println("v2 = {}", v2);
+        // fmt::println("v3 = {}", v3);
+        // fmt::println("x  = {}", x);
+        // fmt::println("");
+        // fmt::println("Rs = {}", Rs);
+        // fmt::println("");
+
+        CHECK(std::abs(angle(v1, v2) - angle(v3, x)) < eps);
+        CHECK(std::abs(nrm(v2) / nrm(v1) - nrm(x) / nrm(v3)) < eps);
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // MVec2d<T> basic test cases
     ////////////////////////////////////////////////////////////////////////////////
@@ -724,35 +754,45 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     {
         fmt::println("MVec2d: geometric product tests");
 
-        vec2d v1{1.0, 2.0};
-        vec2d v2{0.5, 3.0};
+        auto v1 = vec2d{1.0, 2.0};
+        auto v2 = vec2d{0.5, 3.0};
         auto d12 = dot(v1, v2);
         auto w12 = wdg(v1, v2);
 
-        mvec2d mv1{0.0, 1.0, 2.0, 0.0};
-        mvec2d mv2{0.0, 0.5, 3.0, 0.0};
+        mvec2d mv1{v1};
+        mvec2d mv2{v2};
+        auto wdp = 0.5 * (v1 * v2 + v2 * v1);
         auto wdp_mv12 = 0.5 * (mv1 * mv2 + mv2 * mv1);
+        auto wdm = 0.5 * (v1 * v2 - v2 * v1);
         auto wdm_mv12 = 0.5 * (mv1 * mv2 - mv2 * mv1);
 
-        // fmt::println("   v1 = {}", v1);
-        // fmt::println("   v2 = {}", v2);
-        // fmt::println("   dot(v1,v2) = {}", d12);
-        // fmt::println("   wdg(v1,v2) = {}", w12);
-        // fmt::println("");
-        // fmt::println("   mv1 = {}", mv1);
-        // fmt::println("   mv2 = {}", mv2);
-        // fmt::println("   wdp_mv12 = 0.5*(mv1 * mv2 + mv2 * mv1) = {}", wdp_mv12);
-        // fmt::println("   wdm_mv12 = 0.5*(mv1 * mv2 - mv2 * mv1) = {}", wdm_mv12);
-        // fmt::println("");
-        // fmt::println("   gr0(wdp_mv12) = {}", gr0(wdp_mv12));
-        // fmt::println("   gr1(wdp_mv12) = {}", gr1(wdp_mv12));
-        // fmt::println("   gr2(wdp_mv12) = {}", gr2(wdp_mv12));
-        // fmt::println("");
-        // fmt::println("   gr0(wdm_mv12) = {}", gr0(wdm_mv12));
-        // fmt::println("   gr1(wdm_mv12) = {}", gr1(wdm_mv12));
-        // fmt::println("   gr2(wdm_mv12) = {}", gr2(wdm_mv12));
+        fmt::println("");
+        fmt::println("   v1 = {}", v1);
+        fmt::println("   v2 = {}", v2);
+        fmt::println("   dot(v1,v2) = {}", d12);
+        fmt::println("   wdg(v1,v2) = {}", w12);
+        fmt::println("");
+        fmt::println("   mv1 = {}", mv1);
+        fmt::println("   mv2 = {}", mv2);
+        fmt::println("   wdp      = 0.5*(v1 * v2 + v2 * v1)     = {}", wdp);
+        fmt::println("   gr0(wdp)                               = {}", gr0(wdp));
+        fmt::println("   wdp_mv12 = 0.5*(mv1 * mv2 + mv2 * mv1) = {}", wdp_mv12);
+        fmt::println("   wdm      = 0.5*(v1 * v2 - v2 * v1)     = {}", wdm);
+        fmt::println("   gr2(wdm)                               = {}", gr2(wdm));
+        fmt::println("   wdm_mv12 = 0.5*(mv1 * mv2 - mv2 * mv1) = {}", wdm_mv12);
+        fmt::println("");
+        fmt::println("   gr0(wdp_mv12) = {}", gr0(wdp_mv12));
+        fmt::println("   gr1(wdp_mv12) = {}", gr1(wdp_mv12));
+        fmt::println("   gr2(wdp_mv12) = {}", gr2(wdp_mv12));
+        fmt::println("");
+        fmt::println("   gr0(wdm_mv12) = {}", gr0(wdm_mv12));
+        fmt::println("   gr1(wdm_mv12) = {}", gr1(wdm_mv12));
+        fmt::println("   gr2(wdm_mv12) = {}", gr2(wdm_mv12));
+        fmt::println("");
 
+        CHECK(d12 == gr0(0.5 * (v1 * v2 + v2 * v1)));
         CHECK(d12 == gr0(0.5 * (mv1 * mv2 + mv2 * mv1)));
+        CHECK(w12 == gr2(0.5 * (v1 * v2 - v2 * v1)));
         CHECK(w12 == gr2(0.5 * (mv1 * mv2 - mv2 * mv1)));
         // redundant checks (just do avoid unused variable warnings)
         CHECK(d12 == gr0(wdp_mv12));
@@ -3051,30 +3091,32 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     {
         fmt::println("ega_4d<4,0,0>: defining basic types and ctor checks");
 
-        auto mv1 = mvec4d{scalar4d{5.0}};
-        auto mv2 = mvec4d{vec4d{1.0, 2.0, 3.0, 4.0}};
-        auto mv3 = mvec4d{bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0}};
-        auto mv4 = mvec4d{trivec4d{-1.0, -2.0, -3.0, -4.0}};
-        auto mv5 = mvec4d{pscalar4d{-5.0}};
+        auto s1 = scalar4d{5.0};
+        auto v1 = vec4d{1.0, 2.0, 3.0, 4.0};
+        auto b1 = bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0};
+        auto t1 = trivec4d{-1.0, -2.0, -3.0, -4.0};
+        auto ps1 = pscalar4d{-5.0};
 
-        auto mv6a = mvec4d{scalar4d{5.0}, bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0},
-                           pscalar4d{-5.0}};
-        auto mv6b = mvec4d_e{scalar4d{5.0}};
-        auto mv6c = mvec4d_e{bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0}};
-        auto mv6d = mvec4d_e{pscalar4d{-5.0}};
-        auto mv6e = mvec4d_e{scalar4d{5.0}, bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0},
-                             pscalar4d{-5.0}};
+        auto mv1 = mvec4d{s1};
+        auto mv2 = mvec4d{v1};
+        auto mv3 = mvec4d{b1};
+        auto mv4 = mvec4d{t1};
+        auto mv5 = mvec4d{ps1};
+
+        auto mv6a = mvec4d{s1, b1, ps1};
+        auto mv6b = mvec4d_e{s1};
+        auto mv6c = mvec4d_e{b1};
+        auto mv6d = mvec4d_e{ps1};
+        auto mv6e = mvec4d_e{s1, b1, ps1};
         auto mv6f = mvec4d{mv6e};
 
-        auto mv7a = mvec4d{vec4d{1.0, 2.0, 3.0, 4.0}, trivec4d{-1.0, -2.0, -3.0, -4.0}};
-        auto mv7b = mvec4d_u{vec4d{1.0, 2.0, 3.0, 4.0}};
-        auto mv7c = mvec4d_u{trivec4d{-1.0, -2.0, -3.0, -4.0}};
-        auto mv7d = mvec4d_u{vec4d{1.0, 2.0, 3.0, 4.0}, trivec4d{-1.0, -2.0, -3.0, -4.0}};
+        auto mv7a = mvec4d{v1, t1};
+        auto mv7b = mvec4d_u{v1};
+        auto mv7c = mvec4d_u{t1};
+        auto mv7d = mvec4d_u{v1, t1};
         auto mv7e = mvec4d{mv7d};
 
-        auto mv8 = mvec4d{scalar4d{5.0}, vec4d{1.0, 2.0, 3.0, 4.0},
-                          bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0},
-                          trivec4d{-1.0, -2.0, -3.0, -4.0}, pscalar4d{-5.0}};
+        auto mv8 = mvec4d{s1, v1, b1, t1, ps1};
 
         // fmt::println("   mv1  = {}", mv1);
         // fmt::println("   mv2  = {}", mv2);
@@ -3094,66 +3136,66 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("   mv7e = {}", mv7e);
         // fmt::println("   mv8  = {}", mv8);
 
-        CHECK(gr0(mv1) == scalar4d{5.0});
-        CHECK(gr1(mv2) == vec4d{1.0, 2.0, 3.0, 4.0});
-        CHECK(gr2(mv3) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
-        CHECK(gr3(mv4) == trivec4d{-1.0, -2.0, -3.0, -4.0});
-        CHECK(gr4(mv5) == pscalar4d{-5.0});
+        CHECK(gr0(mv1) == s1);
+        CHECK(gr1(mv2) == v1);
+        CHECK(gr2(mv3) == b1);
+        CHECK(gr3(mv4) == t1);
+        CHECK(gr4(mv5) == ps1);
 
-        CHECK(gr0(mv6a) == scalar4d{5.0});
+        CHECK(gr0(mv6a) == s1);
         CHECK(gr1(mv6a) == vec4d{});
-        CHECK(gr2(mv6a) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
+        CHECK(gr2(mv6a) == b1);
         CHECK(gr3(mv6a) == trivec4d{});
-        CHECK(gr4(mv6a) == pscalar4d{-5.0});
+        CHECK(gr4(mv6a) == ps1);
 
-        CHECK(gr0(mv6b) == scalar4d{5.0});
+        CHECK(gr0(mv6b) == s1);
         CHECK(gr2(mv6b) == bivec4d{});
         CHECK(gr4(mv6b) == pscalar4d{});
 
         CHECK(gr0(mv6c) == scalar4d{});
-        CHECK(gr2(mv6c) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
+        CHECK(gr2(mv6c) == b1);
         CHECK(gr4(mv6c) == pscalar4d{});
 
         CHECK(gr0(mv6d) == scalar4d{});
         CHECK(gr2(mv6d) == bivec4d{});
-        CHECK(gr4(mv6d) == pscalar4d{-5.0});
+        CHECK(gr4(mv6d) == ps1);
 
-        CHECK(gr0(mv6e) == scalar4d{5.0});
-        CHECK(gr2(mv6e) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
-        CHECK(gr4(mv6e) == pscalar4d{-5.0});
+        CHECK(gr0(mv6e) == s1);
+        CHECK(gr2(mv6e) == b1);
+        CHECK(gr4(mv6e) == ps1);
 
-        CHECK(gr0(mv6f) == scalar4d{5.0});
+        CHECK(gr0(mv6f) == s1);
         CHECK(gr1(mv6f) == vec4d{});
-        CHECK(gr2(mv6f) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
+        CHECK(gr2(mv6f) == b1);
         CHECK(gr3(mv6f) == trivec4d{});
-        CHECK(gr4(mv6f) == pscalar4d{-5.0});
+        CHECK(gr4(mv6f) == ps1);
 
         CHECK(gr0(mv7a) == scalar4d{});
-        CHECK(gr1(mv7a) == vec4d{1.0, 2.0, 3.0, 4.0});
+        CHECK(gr1(mv7a) == v1);
         CHECK(gr2(mv7a) == bivec4d{});
-        CHECK(gr3(mv7a) == trivec4d{-1.0, -2.0, -3.0, -4.0});
+        CHECK(gr3(mv7a) == t1);
         CHECK(gr4(mv7a) == pscalar4d{});
 
-        CHECK(gr1(mv7b) == vec4d{1.0, 2.0, 3.0, 4.0});
+        CHECK(gr1(mv7b) == v1);
         CHECK(gr3(mv7b) == trivec4d{});
 
         CHECK(gr1(mv7c) == vec4d{});
-        CHECK(gr3(mv7c) == trivec4d{-1.0, -2.0, -3.0, -4.0});
+        CHECK(gr3(mv7c) == t1);
 
-        CHECK(gr1(mv7d) == vec4d{1.0, 2.0, 3.0, 4.0});
-        CHECK(gr3(mv7d) == trivec4d{-1.0, -2.0, -3.0, -4.0});
+        CHECK(gr1(mv7d) == v1);
+        CHECK(gr3(mv7d) == t1);
 
         CHECK(gr0(mv7e) == scalar4d{});
-        CHECK(gr1(mv7e) == vec4d{1.0, 2.0, 3.0, 4.0});
+        CHECK(gr1(mv7e) == v1);
         CHECK(gr2(mv7e) == bivec4d{});
-        CHECK(gr3(mv7e) == trivec4d{-1.0, -2.0, -3.0, -4.0});
+        CHECK(gr3(mv7e) == t1);
         CHECK(gr4(mv7e) == pscalar4d{});
 
-        CHECK(gr0(mv8) == scalar4d{5.0});
-        CHECK(gr1(mv8) == vec4d{1.0, 2.0, 3.0, 4.0});
-        CHECK(gr2(mv8) == bivec4d{-1.0, 2.0, -3.0, 4.0, 5.0, -6.0});
-        CHECK(gr3(mv8) == trivec4d{-1.0, -2.0, -3.0, -4.0});
-        CHECK(gr4(mv8) == pscalar4d{-5.0});
+        CHECK(gr0(mv8) == s1);
+        CHECK(gr1(mv8) == v1);
+        CHECK(gr2(mv8) == b1);
+        CHECK(gr3(mv8) == t1);
+        CHECK(gr4(mv8) == ps1);
     }
 
     TEST_CASE("ega_2d<2,0,0> - product tests")

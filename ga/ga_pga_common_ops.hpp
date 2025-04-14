@@ -202,21 +202,16 @@ template <typename T, typename U>
 inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
                                                 BiVec2dp<U> const& B2)
 {
-    //// TODO: angle not consistently working in all cases yet -> define tests
 
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(rweight_contract(B1, B2));
-    ctype nrm_prod = ctype(weight_nrm(B1) * weight_nrm(B2));
-    // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
+    ctype contr = rweight_contract(B1, B2);
+    // hint: weight_nrm returns pscalar! ctype() required around each single result,
+    // otherwise geometric product which evaluates to zero
+    ctype nrm_prod = ctype(weight_nrm(B1)) * ctype(weight_nrm(B2));
     if (nrm_prod != 0.0) {
-        // fmt::println("angle - using nrm_prod");
         return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
     }
     else {
-        // fmt::println("angle - not using nrm_prod");
-        // fmt::println("after clamp: {}", std::clamp(contr, ctype(-1.0), ctype(1.0)));
-        // fmt::println("acos: {}", std::acos(std::clamp(contr, ctype(-1.0),
-        // ctype(1.0))));
         return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
     }
 }
@@ -261,8 +256,10 @@ inline constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B1,
                                                 BiVec3dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(rweight_contract(B1, B2));
-    ctype nrm_prod = ctype(weight_nrm(B1) * weight_nrm(B2));
+    ctype contr = rweight_contract(B1, B2);
+    // hint: weight_nrm returns pscalar! ctype() required around each single result,
+    // otherwise geometric product which evaluates to zero
+    ctype nrm_prod = ctype(weight_nrm(B1) * ctype(weight_nrm(B2)));
     // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
     if (nrm_prod != 0.0) {
         return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
@@ -281,7 +278,9 @@ inline constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t,
 {
     using ctype = std::common_type_t<T, U>;
     ctype contr = ctype(bulk_nrm(rweight_contract(t, B)));
-    ctype nrm_prod = ctype(weight_nrm(t) * weight_nrm(B));
+    // hint: weight_nrm returns pscalar! ctype() required around each single result,
+    // otherwise geometric product which evaluates to zero
+    ctype nrm_prod = ctype(weight_nrm(t)) * ctype(weight_nrm(B));
     // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
     if (nrm_prod != 0.0) {
         return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
@@ -300,7 +299,9 @@ inline constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B,
 {
     using ctype = std::common_type_t<T, U>;
     ctype contr = ctype(bulk_nrm(rweight_contract(t, B)));
-    ctype nrm_prod = ctype(weight_nrm(t) * weight_nrm(B));
+    // hint: weight_nrm returns pscalar! ctype() required around each single result,
+    // otherwise geometric product which evaluates to zero
+    ctype nrm_prod = ctype(weight_nrm(t)) * ctype(weight_nrm(B));
     // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
     if (nrm_prod != 0.0) {
         return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
@@ -319,7 +320,9 @@ inline constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1,
 {
     using ctype = std::common_type_t<T, U>;
     ctype contr = ctype(rweight_contract(t1, t2));
-    ctype nrm_prod = ctype(weight_nrm(t1) * weight_nrm(t2));
+    // hint: weight_nrm returns pscalar! ctype() required around each single result,
+    // otherwise geometric product which evaluates to zero
+    ctype nrm_prod = ctype(weight_nrm(t1)) * ctype(weight_nrm(t2));
     // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
     if (nrm_prod != 0.0) {
         return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));

@@ -3337,7 +3337,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         pscalar3dp ps1{-5.0};
         pscalar3dp ps2{2.0};
 
-        // checks all ctor combinations and equivalence of simplified products with
+        // checks ctor combinations and equivalence of simplified products with
         // geometric product of a fully populated multivector
         //
         // assumption: the geometric product of a fully populated multivector serves as
@@ -3368,27 +3368,42 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(mvec3dp{v1, t1} * mvec3dp{s2, b2, ps2} ==
               mvec3dp{mvec3dp_u{v1, t1} * mvec3dp_e{s2, b2, ps2}});
 
+        // MVec3dp_E * TriVec3dp
+        CHECK(mvec3dp{s1, b1, ps1} * mvec3dp{t2} == mvec3dp{mvec3dp_e{s1, b1, ps1} * t2});
+
         // MVec3dp_E * BiVec3dp
-        CHECK(mvec3dp{s1, b1, ps1} * mvec3dp{b2} ==
-              mvec3dp{mvec3dp_e{s1, b1, ps1} * mvec3dp{b2}});
+        CHECK(mvec3dp{s1, b1, ps1} * mvec3dp{b2} == mvec3dp{mvec3dp_e{s1, b1, ps1} * b2});
 
         // BiVec3dp * MVec3dp_E
         CHECK(mvec3dp{b1} * mvec3dp{s2, b2, ps2} ==
               mvec3dp{mvec3dp{b1} * mvec3dp_e{s2, b2, ps2}});
 
         // MVec3dp_E * Vec3dp
-        CHECK(mvec3dp{s1, b1, ps1} * mvec3dp{v2} ==
-              mvec3dp{mvec3dp_e{s1, b1, ps1} * mvec3dp{v2}});
+        CHECK(mvec3dp{s1, b1, ps1} * mvec3dp{v2} == mvec3dp{mvec3dp_e{s1, b1, ps1} * v2});
 
         // Vec3dp * MVec3dp_E
-        CHECK(mvec3dp{v1} * mvec3dp{s2, b2, ps2} ==
-              mvec3dp{mvec3dp{v1} * mvec3dp_e{s2, b2, ps2}});
+        CHECK(mvec3dp{v1} * mvec3dp{s2, b2, ps2} == mvec3dp{v1 * mvec3dp_e{s2, b2, ps2}});
 
-        // MVec3dp_U * BiVec3dp (TODO: add uneven grade multivector * multivector)
+        // MVec3dp_U * BiVec3dp
         CHECK(mvec3dp{v1, t1} * mvec3dp{b2} == mvec3dp{mvec3dp_u{v1, t1} * b2});
 
-        // BiVec3dp * MVec3dp_U (TODO: add multivector * uneven grade multivector )
+        // BiVec3dp * MVec3dp_U
         CHECK(mvec3dp{b1} * mvec3dp{v2, t2} == mvec3dp{b1 * mvec3dp_u{v2, t2}});
+
+        // TriVec3dp * TriVec3dp
+        CHECK(mvec3dp{t1} * mvec3dp{t2} == mvec3dp{t1 * t2});
+
+        // TriVec3dp * BiVec3dp
+        CHECK(mvec3dp{t1} * mvec3dp{b1} == mvec3dp{t1 * b1});
+
+        // BiVec3dp * TriVec3dp
+        CHECK(mvec3dp{b1} * mvec3dp{t1} == mvec3dp{b1 * t1});
+
+        // TriVec3dp * Vec3dp
+        CHECK(mvec3dp{t1} * mvec3dp{v1} == mvec3dp{t1 * v1});
+
+        // Vec3dp * TriVec3dp
+        CHECK(mvec3dp{v1} * mvec3dp{t1} == mvec3dp{v1 * t1});
 
         // BiVec3dp * BiVec3dp
         CHECK(mvec3dp{b1} * mvec3dp{b2} == mvec3dp{b1 * b2});
@@ -3402,29 +3417,35 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // Vec3dp * Vec3dp
         CHECK(mvec3dp{v1} * mvec3dp{v2} == mvec3dp{v1 * v2});
 
-
         // PScalar3dp * MVec3dp
         CHECK(mvec3dp{ps1} * mvec3dp{s2, v2, b2, t2, ps2} ==
-              mvec3dp{ps1} * mvec3dp{s2, v2, b2, t2, ps2});
+              ps1 * mvec3dp{s2, v2, b2, t2, ps2});
 
         // MVec3dp * Pscalar3dp
         CHECK(mvec3dp{s1, v1, b1, t1, ps1} * mvec3dp{ps2} ==
-              mvec3dp{mvec3dp{s1, v1, b1, t1, ps1} * mvec3dp{ps2}});
+              mvec3dp{mvec3dp{s1, v1, b1, t1, ps1} * ps2});
+
+        // PScalar3dp * MVec3dp_E
+        CHECK(mvec3dp{ps1} * mvec3dp{s2, b2, ps2} ==
+              mvec3dp{ps1 * mvec3dp_e{s2, b2, ps2}});
+
+        // MVec3dp_E * Pscalar3dp
+        CHECK(mvec3dp{s1, b1, ps1} * mvec3dp{ps2} ==
+              mvec3dp{mvec3dp_e{s1, b1, ps1} * ps2});
+
+        // PScalar3dp * MVec3dp_U
+        CHECK(mvec3dp{ps1} * mvec3dp{v2, t2} == mvec3dp{ps1 * mvec3dp_u{v2, t2}});
+
+        // MVec3dp_U * Pscalar3dp
+        CHECK(mvec3dp{v1, t1} * mvec3dp{ps2} == mvec3dp{mvec3dp_u{v1, t1} * ps2});
 
         // TODO: add geometric products including pseudoscalars
 
-        // // PScalar3dp * MVec3dp_E
-        // CHECK(mvec3dp{ps1} * mvec3dp{s2, b2, ps2} ==
-        //       mvec3dp{ps1 * mvec3dp_e{s2, b2, ps2}});
+        // // PScalar3dp * TriVec3dp
+        // CHECK(mvec3dp{ps1} * mvec3dp{t2} == mvec3dp{ps1 * t2});
 
-        // // MVec3dp_E * Pscalar3dp
-        // CHECK(mvec3dp{s1, b1} * mvec3dp{ps2} == mvec3dp{mvec3dp_e{s1, b1} * ps2});
-
-        // // PScalar3dp * MVec3dp_U
-        // CHECK(mvec3dp{ps1} * mvec3dp{v2, ps2} == mvec3dp{ps1 * mvec3dp_u{v2, ps2}});
-
-        // // MVec3dp_U * Pscalar3dp
-        // CHECK(mvec3dp{v1, ps1} * mvec3dp{ps2} == mvec3dp{mvec3dp_u{v1, ps1} * ps2});
+        // // TriVec3dp * Pscalar3dp
+        // CHECK(mvec3dp{t1} * mvec3dp{ps2} == mvec3dp{t1 * ps2});
 
         // // PScalar3dp * BiVec3dp
         // CHECK(mvec3dp{ps1} * mvec3dp{b2} == mvec3dp{ps1 * b2});

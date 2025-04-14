@@ -108,10 +108,12 @@ int main()
         ///////////////////////////////////////////////////////////////////////
 
         // ega - sandwich products of type rotor * object * rev(rotor)
+        //       based on the geometric product (keeps the origin stable)
         generate_and_print_ega2d_rotor_gpr();
         generate_and_print_ega3d_rotor_gpr();
 
         // pga - sandwich products of type motor * object * rev(motor)
+        //       based on the regressive geometric product (keeps the horizon stable)
         generate_and_print_pga2dp_motor_rgpr();
         generate_and_print_pga3dp_motor_rgpr();
     }

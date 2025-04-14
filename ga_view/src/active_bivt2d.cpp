@@ -152,7 +152,7 @@ void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
 
         QString suv = QString("u ^ v = ");
         if (orientation < 0) {
-            suv += QString("(-)");
+            suv += QString("-");
         }
         suv += uv_nrm;
 

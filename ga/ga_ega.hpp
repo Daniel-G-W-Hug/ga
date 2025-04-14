@@ -37,7 +37,7 @@
 // EGA-specific operations are in namespace hd::ga::ega
 #include "ga_ega_2d_ops.hpp" // ega 2d operations
 #include "ga_ega_3d_ops.hpp" // ega 3d operations
-// TODO: implement operations for ega_4d
+// TODO: implement operations for ega_4d (better do sta_4d)
 
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)
