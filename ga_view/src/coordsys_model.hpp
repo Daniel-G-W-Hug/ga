@@ -43,6 +43,9 @@ struct bivt2dp : public bivec2dp {
     using bivec2dp::x;
     using bivec2dp::y;
     using bivec2dp::z;
+
+    bivt2dp() = default;
+    bivt2dp(bivec2dp const& b_in) : bivec2dp(b_in) {}
 };
 
 // this struct should be used by the user to mark points
@@ -97,6 +100,14 @@ struct vt2d_mark {
 
 const vt2d_mark vt2d_mark_default; // for default arguments;
 
+// this struct should be used by the user to mark projective lines (=bivectors)
+struct bivt2dp_mark {
+
+    QPen pen{QPen(Qt::gray, 1, Qt::SolidLine)};
+};
+
+const bivt2dp_mark bivt2dp_mark_default; // for default arguments;
+
 
 // active vector as directed line between two active points
 struct avt2d {
@@ -141,7 +152,7 @@ struct arefl2d {
 // convenience alias to make pt2dp and ln2dp look similar
 // ----------------------------------------------------------------------------
 using ln2d = std::vector<pt2d>;
-using ln2dp = std::vector<pt2dp>;
+using cln2dp = std::vector<pt2dp>;
 // ----------------------------------------------------------------------------
 
 
@@ -165,7 +176,8 @@ class Coordsys_model {
                                    vt2d_mark const& m = vt2d_mark_default);
 
     // add passive bivector, i.e. a projective line
-    [[maybe_unused]] size_t add_bivt(bivt2dp const& bivte_in);
+    [[maybe_unused]] size_t add_bivtp(bivt2dp const& bivtp_in,
+                                      bivt2dp_mark const& m = bivt2dp_mark_default);
 
     // add active point
     [[maybe_unused]] size_t add_apt(pt2d const& pt_in);
@@ -192,22 +204,23 @@ class Coordsys_model {
     std::vector<pt2d> pt;
     std::vector<pt2d_mark> pt_mark;
 
-    std::vector<pt2dp> pte;
-    std::vector<pt2d_mark> pte_mark;
+    std::vector<pt2dp> ptp;
+    std::vector<pt2d_mark> ptp_mark;
 
     // data for lines consisting of points (same index is for same line)
     std::vector<ln2d> ln;
     std::vector<ln2d_mark> ln_mark;
 
-    std::vector<ln2dp> lne;
-    std::vector<ln2d_mark> lne_mark;
+    std::vector<cln2dp> clnp;
+    std::vector<ln2d_mark> clnp_mark;
 
     // data for vectors (same index is for same vector)
     std::vector<vt2d> vt;
     std::vector<vt2d_mark> vt_mark;
 
-    // data for bivectors
-    std::vector<bivt2dp> bivte;
+    // data for projective lines (=bivectors)
+    std::vector<bivt2dp> bivtp;
+    std::vector<bivt2dp_mark> bivtp_mark;
 
     // data for active points (same index is for same point)
     std::vector<pt2d> apt;
@@ -233,9 +246,10 @@ class Coordsys_model {
 // ----------------------------------------------------------------------------
 
 // formating for user defined types (pt2d)
-template <> struct fmt::formatter<pt2d> {
+template <> struct fmt::formatter<pt2d> : nested_formatter<double> {
     template <typename ParseContext> constexpr auto parse(ParseContext& ctx);
-    template <typename FormatContext> auto format(const pt2d& pt, FormatContext& ctx);
+    template <typename FormatContext>
+    auto format(pt2d const& pt, FormatContext& ctx) const;
 };
 
 template <typename ParseContext>
@@ -245,15 +259,16 @@ constexpr auto fmt::formatter<pt2d>::parse(ParseContext& ctx)
 }
 
 template <typename FormatContext>
-auto fmt::formatter<pt2d>::format(const pt2d& pt, FormatContext& ctx)
+auto fmt::formatter<pt2d>::format(pt2d const& pt, FormatContext& ctx) const
 {
     return fmt::format_to(ctx.out(), "pt2d({}, {})", pt.x, pt.y);
 }
 
 // formating for user defined types (pt2dp)
-template <> struct fmt::formatter<pt2dp> {
+template <> struct fmt::formatter<pt2dp> : nested_formatter<double> {
     template <typename ParseContext> constexpr auto parse(ParseContext& ctx);
-    template <typename FormatContext> auto format(const pt2dp& pt, FormatContext& ctx);
+    template <typename FormatContext>
+    auto format(const pt2dp& pt, FormatContext& ctx) const;
 };
 
 template <typename ParseContext>
@@ -263,16 +278,17 @@ constexpr auto fmt::formatter<pt2dp>::parse(ParseContext& ctx)
 }
 
 template <typename FormatContext>
-auto fmt::formatter<pt2dp>::format(const pt2dp& pt, FormatContext& ctx)
+auto fmt::formatter<pt2dp>::format(pt2dp const& pt, FormatContext& ctx) const
 {
     return fmt::format_to(ctx.out(), "pt2dp({}, {}, {})", pt.x, pt.y, pt.z);
 }
 
 
 // formating for user defined types (vt2d)
-template <> struct fmt::formatter<vt2d> {
+template <> struct fmt::formatter<vt2d> : nested_formatter<double> {
     template <typename ParseContext> constexpr auto parse(ParseContext& ctx);
-    template <typename FormatContext> auto format(const vt2d& vt, FormatContext& ctx);
+    template <typename FormatContext>
+    auto format(vt2d const& vt, FormatContext& ctx) const;
 };
 
 template <typename ParseContext>
@@ -282,17 +298,17 @@ constexpr auto fmt::formatter<vt2d>::parse(ParseContext& ctx)
 }
 
 template <typename FormatContext>
-auto fmt::formatter<vt2d>::format(const vt2d& vt, FormatContext& ctx)
+auto fmt::formatter<vt2d>::format(vt2d const& vt, FormatContext& ctx) const
 {
     return fmt::format_to(ctx.out(), "vt2d(pt2d({}, {}), pt2d({}, {}))", vt.beg.x,
                           vt.beg.y, vt.end.x, vt.end.y);
 }
 
 // formating for user defined types (bivt2dp)
-template <> struct fmt::formatter<bivt2dp> {
+template <> struct fmt::formatter<bivt2dp> : nested_formatter<double> {
     template <typename ParseContext> constexpr auto parse(ParseContext& ctx);
     template <typename FormatContext>
-    auto format(const bivt2dp& bivt, FormatContext& ctx);
+    auto format(bivt2dp const& bivt, FormatContext& ctx) const;
 };
 
 template <typename ParseContext>
@@ -302,9 +318,9 @@ constexpr auto fmt::formatter<bivt2dp>::parse(ParseContext& ctx)
 }
 
 template <typename FormatContext>
-auto fmt::formatter<bivt2dp>::format(const bivt2dp& bivt, FormatContext& ctx)
+auto fmt::formatter<bivt2dp>::format(bivt2dp const& bivt, FormatContext& ctx) const
 {
-    return fmt::format_to(ctx.out(), "bivt2dp({}, {}, {}))", bivt.x, bivt.y, bivt.z);
+    return fmt::format_to(ctx.out(), "bivt2dp({}, {}, {})", bivt.x, bivt.y, bivt.z);
 }
 
 // Bsp. für Anwendung

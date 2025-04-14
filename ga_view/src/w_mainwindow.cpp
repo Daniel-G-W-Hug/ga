@@ -11,11 +11,11 @@
 #include "active_reflection.hpp"
 #include "active_vt2d.hpp"
 
-#include "item_bivt2de.hpp"
+#include "item_bivt2dp.hpp"
+#include "item_cln2dp.hpp"
 #include "item_ln2d.hpp"
-#include "item_ln2de.hpp"
 #include "item_pt2d.hpp"
-#include "item_pt2de.hpp"
+#include "item_pt2dp.hpp"
 #include "item_vt2d.hpp"
 
 #include "coordsys_model.hpp"
@@ -175,17 +175,17 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         pt2dp p1(1, 1.5, 1);
         pt2dp p2(2, 1, 1);
 
-        // pt2dp p3(2, 1, 2);
-        // pt2d_mark p3m;
-        // p3m.symbol = Symbol::square;
-        // p3m.pen = QPen(Qt::red, 2, Qt::SolidLine);
+        pt2dp p3(2, 1, 2); // projective point with z != 1
+        pt2d_mark p3m;
+        p3m.symbol = Symbol::square;
+        p3m.pen = QPen(Qt::red, 2, Qt::SolidLine);
 
         cm.add_pt(p0);
         cm.add_pt(p1);
         cm.add_pt(p2);
-        // cm.add_pt(p3, p3m);
+        cm.add_pt(p3, p3m);
 
-        ln2dp l1;
+        cln2dp l1; // connecting line between projective points
         l1.push_back(p0);
         l1.push_back(p2);
         l1.push_back(p1);
@@ -206,21 +206,52 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        bivt2dp b0(0, 1, 0);
-        bivt2dp b1(1, 0, 0);
-        bivt2dp b2(1, 1, 0);
-        bivt2dp b3(0, 1, 1);
-        bivt2dp b4(1, 0, 1);
-        bivt2dp b5(1, 1, 1);
+        for (int i = 0; i <= 23; ++i) {
+            double phi = i * pi / 12 + pi / 2.;
+            bivt2dp b(cos(phi), sin(phi), 0); // lines through origin
+            cm.add_bivtp(b);
+        }
 
-        cm.add_bivt(b0);
-        cm.add_bivt(b1);
-        cm.add_bivt(b2);
-        cm.add_bivt(b3);
-        cm.add_bivt(b4);
-        cm.add_bivt(b5);
+        cm.set_label("proj. model 2 - lines through orgin");
 
-        cm.set_label("projective model 2");
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        for (int i = 0; i <= 23; ++i) {
+            double phi = i * pi / 12 + pi / 2.;
+            bivt2dp b(cos(phi), sin(phi), 1.5); // tangent lines to circle with r = 1.5
+            cm.add_bivtp(b);
+        }
+
+        cm.set_label("proj. model 3 - lines tangent to circle r = 1.5");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        auto p = pt2dp{-1.5, -1, 1};
+        auto q = pt2dp{0.5, 1, 1};
+
+        auto b = wdg(p, q);
+        // auto B = bivt2dp(b);
+
+        cm.add_pt(p);
+        cm.add_pt(q);
+
+        cm.add_bivtp(b);
+        // cm.add_bivtp(B);
+
+        // fmt::println("p = {}", p);
+        // fmt::println("q = {}", q);
+        // fmt::println("b = {}", b);
+        // fmt::println("B = {}", B);
+
+        cm.set_label("proj. model 4 - line through p, q");
 
         vm.push_back(cm);
     }
@@ -395,9 +426,9 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(new item_vt2d(cs, wcs, cm, idx));
     }
 
-    // register all projective bivectors
-    for (size_t idx = 0; idx < cm->bivte.size(); ++idx) {
-        scene->addItem(new item_bivt2de(cs, wcs, cm, idx));
+    // register all projective bivectors (=lines)
+    for (size_t idx = 0; idx < cm->bivtp.size(); ++idx) {
+        scene->addItem(new item_bivt2dp(cs, wcs, cm, idx));
     }
 
     // register all lines
@@ -405,9 +436,9 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(new item_ln2d(cs, wcs, cm, idx));
     }
 
-    // register all projective lines
-    for (size_t idx = 0; idx < cm->lne.size(); ++idx) {
-        scene->addItem(new item_ln2de(cs, wcs, cm, idx));
+    // register all projective passive lines
+    for (size_t idx = 0; idx < cm->clnp.size(); ++idx) {
+        scene->addItem(new item_cln2dp(cs, wcs, cm, idx));
     }
 
     // register all passive points
@@ -416,8 +447,8 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     }
 
     // register all projective passive points
-    for (size_t idx = 0; idx < cm->pte.size(); ++idx) {
-        scene->addItem(new item_pt2de(cs, wcs, cm, idx));
+    for (size_t idx = 0; idx < cm->ptp.size(); ++idx) {
+        scene->addItem(new item_pt2dp(cs, wcs, cm, idx));
     }
 
     ///////////////////////////////////////////////////////////////////////////

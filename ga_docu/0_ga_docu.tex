@@ -16,6 +16,7 @@
 \usepackage[centertags]{amsmath}   % Mathekram: amstex
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{dsfont}
 \usepackage{cases}
 \usepackage{latexsym}              % math symbols
 \usepackage{exscale}               % Summen-/Integralzeichen in richtiger Groesse
@@ -43,6 +44,10 @@
 
 \usepackage{scalerel}
 \usepackage{accents}
+\usepackage{bm}   % bold math symbols
+
+\usepackage{relsize} % for typesetting C++
+\usepackage{xspace}  % for typesetting C++
 
 %\DeclareMathSizes{11}{19}{13}{9}
 %\DeclareMathSizes{12}{20}{14}{10}  % Larger formulas vs. text
@@ -78,6 +83,13 @@
 
 % underbar by using \bar with the accents package
 \newcommand{\ubar}[1]{\underaccent{\bar}{#1}}
+
+% printing the basis vectors (bv) in bold (uses package bm for \bm)
+\newcommand{\bv}[1]{\ensuremath{\bm{e}_{#1}}}
+
+% for typesetting C++ (uses packages relsize and xspace)
+\newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
+\newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
 
 
 \begin{document}

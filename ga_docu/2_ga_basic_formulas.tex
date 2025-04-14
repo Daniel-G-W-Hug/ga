@@ -1,6 +1,78 @@
 \subsection{Basic formulas}
 \label{basic_formulas}
 
+The following is provided for Euclidean algebra of two-dimensional space (\emph{ega2d})
+using an orthormal basis \bv{1}, \bv{2}:
+\begin{subequations}
+    \begin{align}
+        (\bv{1})^2 & = \bv{1}^2 = +1, \;\text{and}\; (\bv{2})^2 = \bv{2}^2 = +1
+        \label{eq:ega2d_base_vec} \\
+        s_{2d} & = s\bm{1}
+        \label{eq:scalar2d} \\
+        v_{2d} & = v_1\bv{1} + v_2\bv{2} 
+        \label{eq:vec2d} \\
+        ps_{2d} & = ps \bv{12}  = ps\mathds{1}
+        \label{eq:pscalar2d}
+    \end{align}
+\end{subequations}
+equation (\ref{eq:scalar2d}) is the scalar part $s_{2d}$, equation (\ref{eq:vec2d})
+contains the vector part $v_{2d}$, and equation (\ref{eq:pscalar2d}) contains the
+pseudoscalar part $ps_{2d}$. The index $2d$ is typically omitted when clear from context.
+Using these components the multivector of two-dimensional space $M$ is defined as
+\begin{equation}
+     M = s \bm{1} + v_1\bv{1} + v_2\bv{2} + ps\bv{12}
+    \label{eq:mvec2d}   
+\end{equation}
+where equation (\ref{eq:mvec2d}) contains three parts: the scalar $s\bm{1}$ (basis element
+is the scalar \textbf{1}; if \textbf{1} is not shown, it is implicitly assumed for scalar
+values), the vector $v$ (basis elements \bv{1} and \bv{2}) and the pseudoscalar part $ps
+\bv{12} = ps \mathds{1}$ (basis element is \bv{12}, which is sometimes written as
+$\mathds{1}$ to show its character as pseudoscalar of this space. It is a bivector in
+$2d$-Euclidean space). \\
+
+For Euclidean algebra of three-dimensional space (\emph{ega3d}) using an orthonormal basis
+\bv{1}, \bv{2}, \bv{3} there are:
+\begin{subequations}
+    \begin{align}
+        (\bv{1})^2 = \bv{1}^2 & = +1, (\bv{2})^2 = \bv{2}^2 = +1,
+        \;\text{and}\; (\bv{3})^2 = \bv{3}^2 = +1
+        \label{eq:ega3d_base_vec} \\ 
+        s_{3d} & = s\bm{1}
+        \label{eq:scalar3d} \\
+        v_{3d} & = v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
+        \label{eq:vec3d} \\ 
+        b_{3d} & = b_1\bv{23} + b_2\bv{31} + b_3\bv{12} 
+        \label{eq:bivec3d} \\ 
+        ps_{3d} & = ps \bv{123}  = ps\mathds{1}
+        \label{eq:pscalar3d}
+    \end{align}
+\end{subequations}
+equation (\ref{eq:scalar3d}) is the scalar part $s_{3d}$, equation (\ref{eq:vec3d}) is the
+vector part $v_{3d}$, equation (\ref{eq:bivec3d}) is the bivector part $b_{3d}$, and
+equation (\ref{eq:pscalar3d}) is the pseudoscalar part $ps_{3d}$. The index $3d$ is
+typically omitted when clear from context. Comparing to the $2d$-case it becomes obvious,
+that all parts depend on context, specifically on the dimensionality of the modeled space,
+and thus need to be defined and treated accordingly (\emph{hint}: since \Cpp is a
+statically typed language those types need to be well-defined and distinguishable from
+each other). Using these components the multivector of three-dimensional space $M$ is
+defined as
+\begin{equation}
+    M = s \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
+    + b_1\bv{23} + b_2\bv{31} + b_3\bv{12} + ps\bv{123}
+    \label{eq:mvec3d}  
+\end{equation}
+where equation (\ref{eq:mvec3d}) contains four parts: the scalar part $s\bm{1}$ (basis
+element is the scalar \textbf{1}, the vector $v$ (basis elements \bv{1}, \bv{2} and
+\bv{3}), the bivector $b$ (basis elements \bv{23}, \bv{31} and \bv{12}) and the
+pseudoscalar part $ps \bv{123} = ps \mathds{1}$ (basis element is \bv{123}, which is
+sometimes written as $\mathds{1}$ to show its character as pseudoscalar of this space. It
+is a trivector in $3d$-Euclidean space). \\
+
+TODO: \emph{fill in basic product definitions of ega2d and ega3d here} \\
+
+TODO: \emph{fill in pga2d and pga3d definitions here} \\
+
+
 The inner product between multivectors $A$ and $B$ is defined as
 \begin{equation}
     A \bullet B = A^{T} G B
@@ -9,11 +81,11 @@ The inner product between multivectors $A$ and $B$ is defined as
 with $G$ as the extended metric and matrix multiplication on the right hand side. It
 satisfies the identity
 \begin{equation}
-    A \bullet B  = \grprj{A \tilde{B}}{0} = \grprj{ B \tilde{A} }{0}
+    A \bullet B  = \grprj{A \wedgedot \tilde{B}}{0} = \grprj{ B \wedgedot \tilde{A} }{0}
     \label{eq:inner_product_link_to_gpr}
 \end{equation}
-where juxtaposition within the grade projection operator stands for the geometric product.
-The norm of a multivector $A$ is defined as
+where $\wedgedot$ within the grade projection operator \grprj{}{k} for grade $k$ stands
+for the geometric product. The norm of a multivector $A$ is defined as
 \begin{equation}
     \nrm{A} = \sqrt{A \bullet A}
     \label{eq:norm_mv}
@@ -46,8 +118,8 @@ and fulfill the requirement that $A \lcontr B = A \rcontr B = A \bullet B$ whene
 and $B$ have the same grade. In this case the contractions reduce to the inner product. \\
 
 
-The geometric product between and vector $v$ and a blade $B$ is defined in terms of
-the inner and outer products, i.e. the right contraction $\rcontr$, the left contraction
+The geometric product between and vector $v$ and a blade $B$ is defined in terms of the
+interior and exterior products, i.e. the right contraction $\rcontr$, the left contraction
 $\lcontr$ and wedge product $\wedge$ as follows:
 \begin{subequations}
     \begin{align}
@@ -72,7 +144,10 @@ product $\cdot$, so that one can write specifically for two vectors $a$ and $b$:
 Text with a norm $\nrm{x}$ and an indexed norm as $\bulk{\nrm{u}}$ and
 $\weight{\nrm{u}}$.\\
 
+$\bm{e}_1$, \bv{1}, $\bv{123}$
+\\
 
-TODO: \emph{fill in basic formulas here}
+
+TODO: \emph{fill in further basic formulas here}
 
 \newpage

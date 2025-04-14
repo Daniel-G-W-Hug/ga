@@ -11,11 +11,11 @@
     return pt.size() - 1;
 }
 
-[[maybe_unused]] size_t Coordsys_model::add_pt(pt2dp const& pte_in, pt2d_mark const& m)
+[[maybe_unused]] size_t Coordsys_model::add_pt(pt2dp const& ptp_in, pt2d_mark const& m)
 {
 
-    pte.push_back(pte_in);
-    pte_mark.push_back(m);
+    ptp.push_back(ptp_in);
+    ptp_mark.push_back(m);
 
     return pt.size() - 1;
 }
@@ -41,23 +41,23 @@
 }
 
 //
-// hint: using ln2dp = std::vector<pt2dp>;
+// hint: using cln2dp = std::vector<pt2dp>;
 //
-[[maybe_unused]] size_t Coordsys_model::add_ln(ln2dp const& vpe_in, ln2d_mark const& m)
+[[maybe_unused]] size_t Coordsys_model::add_ln(cln2dp const& vp_in, ln2d_mark const& m)
 {
-    lne.push_back(vpe_in);
-    lne_mark.push_back(m);
+    clnp.push_back(vp_in);
+    clnp_mark.push_back(m);
 
     if (m.mark_pts == true) { // add points of line to pts marked in model
 
-        for (size_t i = 0; i < vpe_in.size(); i += m.delta) {
+        for (size_t i = 0; i < vp_in.size(); i += m.delta) {
 
-            pte.push_back(vpe_in[i]);
-            pte_mark.push_back(m.pm);
+            ptp.push_back(vp_in[i]);
+            ptp_mark.push_back(m.pm);
         }
     }
 
-    return lne.size() - 1;
+    return clnp.size() - 1;
 }
 
 [[maybe_unused]] size_t Coordsys_model::add_vt(vt2d const& vt_in, vt2d_mark const& m)
@@ -69,12 +69,14 @@
     return vt.size() - 1;
 }
 
-[[maybe_unused]] size_t Coordsys_model::add_bivt(bivt2dp const& bivt_in)
+[[maybe_unused]] size_t Coordsys_model::add_bivtp(bivt2dp const& bivtp_in,
+                                                  bivt2dp_mark const& m)
 {
 
-    bivte.push_back(bivt_in);
+    bivtp.push_back(bivtp_in);
+    bivtp_mark.push_back(m);
 
-    return bivte.size() - 1;
+    return bivtp.size() - 1;
 }
 
 [[maybe_unused]] size_t Coordsys_model::add_apt(pt2d const& pt_in)
@@ -122,17 +124,20 @@ void Coordsys_model::clear()
     pt.clear();
     pt_mark.clear();
 
-    pte.clear();
-    pte_mark.clear();
+    ptp.clear();
+    ptp_mark.clear();
 
     ln.clear();
     ln_mark.clear();
 
-    lne.clear();
-    lne_mark.clear();
+    clnp.clear();
+    clnp_mark.clear();
 
     vt.clear();
     vt_mark.clear();
+
+    bivtp.clear();
+    bivtp_mark.clear();
 
     apt.clear();
     avt.clear();
