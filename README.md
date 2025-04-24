@@ -18,7 +18,7 @@
 
 ```bash
     brew install fmt         // always required
-    brew istalll doctest     // only required for ga_test
+    brew istall doctest      // only required for ga_test
     brew install qt6         // only required for ga_view
     brew install lua         // lua and sol2 only required for ga_lua
     sol2 to be installed from: <https://github.com/ThePhD/sol2>
@@ -29,7 +29,8 @@
 ```bash
     fmt to be installed from: https://github.com/fmtlib/fmt
     doctest to be installed from: https://github.com/doctest/doctest
-    winget install lua (you need a x64 binary otherwise linking will not work)
+    winget install --id DEVCOM.Lua
+    (you will need a x64 lua binary or linking will not work)
     qt6 to be installed from official installer
     sol2 to be installed from: <https://github.com/ThePhD/sol2>
 ```

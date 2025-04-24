@@ -516,6 +516,29 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         }
     }
 
+    // TEST_CASE("Vec2dp: operations - angle III (angle between lines)")
+    // {
+    //     fmt::println("Vec2dp: operations - angle III (angle between lines)");
+
+    //     auto x_axis = bivec2dp(0, 1, 0);
+    //     auto y_axis = bivec2dp(1, 0, 0);
+
+    //     fmt::println("");
+
+    //     for (int i = 0; i <= 23; ++i) {
+    //         double phi_y = i * pi / 12;
+    //         double phi_x = phi_y + pi / 2.;
+    //         bivec2dp b(cos(phi_x), sin(phi_x),
+    //                    1.5); // tangent lines to circle with r = 1.5
+
+    //         auto phi_xc = angle(x_axis, b);
+    //         fmt::println("i={:3}, phi_x={: 8.3f}, phi_y={: 8.3f}, phi_xc={: 8.3f}", i,
+    //                      rad2deg(phi_x), rad2deg(phi_y), rad2deg(phi_xc));
+    //     }
+
+    //     fmt::println("");
+    // }
+
     TEST_CASE("Vec2dp: operations - wedge")
     {
         fmt::println("Vec2dp: operations - wedge");

@@ -205,8 +205,9 @@ inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
 
     using ctype = std::common_type_t<T, U>;
     ctype contr = rweight_contract(B1, B2);
-    // hint: weight_nrm returns pscalar! ctype() required around each single result,
-    // otherwise geometric product which evaluates to zero
+    // hint: weight_nrm returns a pscalar2dp! ctype() required around each single result,
+    // otherwise geometric product between pseudoscalars evaluated, which evaluates to
+    // zero
     ctype nrm_prod = ctype(weight_nrm(B1)) * ctype(weight_nrm(B2));
     if (nrm_prod != 0.0) {
         return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
