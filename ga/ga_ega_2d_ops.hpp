@@ -1533,20 +1533,18 @@ template <typename T> inline constexpr MVec2d_E<T> inv(MVec2d_E<T> const& E)
     return MVec2d_E<T>(rev(E) * inv);
 }
 
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
+// Hitzer, Sangwine, 2016
+// left and a right inverse are the same (see paper of Hitzer, Sangwine)
 template <typename T> inline constexpr MVec2d<T> inv(MVec2d<T> const& M)
 {
-    // inv(M) = 1/( M*conj(M) ) * conj(M)  with M*conj(M) being a scalar value
-    // from manual calculation of M*conj(M) in 2d:
-    T m_conjm = M.c0 * M.c0 + M.c3 * M.c3 - nrm_sq(Vec2d<T>(M.c1, M.c2));
-    //
-    // alternative, but with slightly more computational effort:
-    // T m_conjm = gr0(v * conj(v));
+    T m_conjm = gr0(M * conj(M));
 
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("multivector norm too small for inversion " +
                                  std::to_string(m_conjm) + "\n");
-        // example: MVec2D(1,1,1,1) is not invertible
+        // example: MVec2d(1,1,1,1) is not invertible
     }
 #endif
     T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector

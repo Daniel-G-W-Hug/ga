@@ -725,3 +725,18 @@ print("s   ", s)
 print("ps  ", ps)
 print("s+ps", s + ps)
 print("s-ps", s - ps)
+print()
+
+local mvs1 = mvec2d.new(2, 0, 0, 0)
+local mvs2 = mvec2d.new(5, 0, 0, 0)
+
+local s1 = scalar2d.new(2)
+local s2 = scalar2d.new(5)
+
+print("s1 =", s1)
+print("s2 =", s2)
+print("mvs1 =", mvs1)
+print("mvs2 =", mvs2)
+print("dot(s1,s2)=", dot(s1, s2))
+print("wdg(s1,s2)=", wdg(s1, s2))
+print("mvs1 * mvs2 =", mvs1 * mvs2)
