@@ -2077,11 +2077,31 @@ inline constexpr MVec3d_E<T> inv(MVec3d_E<T> const& E)
     return MVec3d_E<T>(rev(E) * inv);
 }
 
+// return the multiplicative inverse of the uneven grade multivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d<T> inv(MVec3d<T> const& v)
+inline constexpr MVec3d_U<T> inv(MVec3d_U<T> const& U)
 {
-    T m_conjm = gr0(v * conj(v));
+    T sq_n = nrm_sq(U);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error(
+            "norm of even grade multivector too small for inversion " +
+            std::to_string(sq_n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / sq_n;
+    return MVec3d_U<T>(rev(U) * inv);
+}
+
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
+// Hitzer, Sangwine, 2016
+// left and a right inverse are the same (see paper of Hitzer, Sangwine)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3d<T> inv(MVec3d<T> const& M)
+{
+    T m_conjm = gr0(M * conj(M) * gr_inv(M) * rev(M));
 
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
@@ -2091,8 +2111,7 @@ inline constexpr MVec3d<T> inv(MVec3d<T> const& v)
     }
 #endif
     T inv = T(1.0) / m_conjm;
-    return MVec3d<T>(conj(v) * inv);
-    // ATTENTION: there is a left and a right inverse (see paper of Hitzer, Sangwine)
+    return MVec3d<T>(conj(M) * gr_inv(M) * rev(M) * inv);
 }
 
 

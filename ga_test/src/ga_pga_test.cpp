@@ -3918,6 +3918,22 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             // fmt::println("");
 
             CHECK(unitize(prr) == unitize(pm));
+
+            // TODO: add inverse inv() for an even grade multivector
+            //       see paper Hitzer et.al.
+
+            // fmt::println("");
+            // fmt::println("motor: {}", motor);
+            // fmt::println("rrev(motor): {}", rrev(motor));
+            // // fmt::println("inv(motor): {}", inv(motor));
+            // fmt::println("rrev(motor): {}", rrev(motor));
+            // fmt::println("rgpr(motor, rrev(motor)): {}", rgpr(motor, rrev(motor)));
+            // fmt::println("gr4(rgpr(motor, rrev(motor))): {}",
+            //              gr4(rgpr(motor, rrev(motor))));
+            // fmt::println("");
+
+            // CHECK(std::abs(double(gr4(rgpr(motor, rrev(motor))) - I_3dp)) < eps);
+            // CHECK(rrev(motor) == inv(motor));
         }
 
         {

@@ -54,6 +54,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         fmt::println("   ega3d: dim_grade = {}",
                      fmt::join(alg.num_components_grade, ", "));
         fmt::println("   ega3d: basis_name = {}", fmt::join(alg.basis_name, ", "));
+        fmt::println("");
     }
 
     // TEST_CASE("algebra<4> ega_4d")
@@ -308,11 +309,17 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     {
         fmt::println("Vec2d: operations - norm, inverse, dot");
 
+        scalar2d s1{3.2};
+
         vec2d v1{2.0, 1.0};
         vec2d v2{normalize(v1)};
 
         vec2d v3{2.0, 6.0};
         vec2d v4{inv(v3)};
+
+        pscalar2d ps1{-4.7};
+        mvec2d_e mve1{s1, ps1};
+        mvec2d mv1{s1, v1, ps1};
 
         // fmt::println("v1 = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
         // fmt::println("v2 = normalize(v1) = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
@@ -325,6 +332,38 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         auto prd = m * inv(m);
         CHECK(std::abs(gr0(prd) - 1.0) < eps);
         CHECK(std::abs(gr2(prd) - 0.0) < eps);
+
+        // check inverses - scalar
+        // fmt::println("");
+        // fmt::println("s1 * inv(s1) = {}", s1 * inv(s1)); // s
+        CHECK(std::abs(nrm(s1 * inv(s1)) - 1) < eps);
+        CHECK(std::abs(inv(s1) - rev(s1) / nrm_sq(s1)) < eps);
+
+        // check inverses - vector
+        // fmt::println("v1 * inv(v1) = {}", v1 * inv(v1)); // mv_e
+        CHECK(std::abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
+        CHECK(std::abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
+        CHECK(std::abs(nrm(inv(v1) - rev(v1) / nrm_sq(v1))) < eps);
+
+        // check inverses - pseudoscalar
+        // fmt::println("ps1 * inv(ps1) = {}", ps1 * inv(ps1)); // s
+        CHECK(std::abs(nrm(ps1 * inv(ps1)) - 1) < eps);
+        CHECK(std::abs(nrm(inv(ps1) - rev(ps1) / nrm_sq(ps1))) < eps);
+
+        // check inverses - even grade multivector
+        // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
+        CHECK(std::abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
+        CHECK(std::abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
+        CHECK(std::abs(nrm(inv(mve1) - rev(mve1) / nrm_sq(mve1))) < eps);
+
+        // check inverses - multivector
+        // fmt::println("mv1 * inv(mv1) = {}", mv1 * inv(mv1)); // mv
+        CHECK(std::abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
+        CHECK(std::abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(std::abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(std::abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
+                                                             // are equal
+        // fmt::println("");
     }
 
     TEST_CASE("Vec2d: operations - angle")
@@ -766,29 +805,29 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         auto wdm = 0.5 * (v1 * v2 - v2 * v1);
         auto wdm_mv12 = 0.5 * (mv1 * mv2 - mv2 * mv1);
 
-        fmt::println("");
-        fmt::println("   v1 = {}", v1);
-        fmt::println("   v2 = {}", v2);
-        fmt::println("   dot(v1,v2) = {}", d12);
-        fmt::println("   wdg(v1,v2) = {}", w12);
-        fmt::println("");
-        fmt::println("   mv1 = {}", mv1);
-        fmt::println("   mv2 = {}", mv2);
-        fmt::println("   wdp      = 0.5*(v1 * v2 + v2 * v1)     = {}", wdp);
-        fmt::println("   gr0(wdp)                               = {}", gr0(wdp));
-        fmt::println("   wdp_mv12 = 0.5*(mv1 * mv2 + mv2 * mv1) = {}", wdp_mv12);
-        fmt::println("   wdm      = 0.5*(v1 * v2 - v2 * v1)     = {}", wdm);
-        fmt::println("   gr2(wdm)                               = {}", gr2(wdm));
-        fmt::println("   wdm_mv12 = 0.5*(mv1 * mv2 - mv2 * mv1) = {}", wdm_mv12);
-        fmt::println("");
-        fmt::println("   gr0(wdp_mv12) = {}", gr0(wdp_mv12));
-        fmt::println("   gr1(wdp_mv12) = {}", gr1(wdp_mv12));
-        fmt::println("   gr2(wdp_mv12) = {}", gr2(wdp_mv12));
-        fmt::println("");
-        fmt::println("   gr0(wdm_mv12) = {}", gr0(wdm_mv12));
-        fmt::println("   gr1(wdm_mv12) = {}", gr1(wdm_mv12));
-        fmt::println("   gr2(wdm_mv12) = {}", gr2(wdm_mv12));
-        fmt::println("");
+        // fmt::println("");
+        // fmt::println("   v1 = {}", v1);
+        // fmt::println("   v2 = {}", v2);
+        // fmt::println("   dot(v1,v2) = {}", d12);
+        // fmt::println("   wdg(v1,v2) = {}", w12);
+        // fmt::println("");
+        // fmt::println("   mv1 = {}", mv1);
+        // fmt::println("   mv2 = {}", mv2);
+        // fmt::println("   wdp      = 0.5*(v1 * v2 + v2 * v1)     = {}", wdp);
+        // fmt::println("   gr0(wdp)                               = {}", gr0(wdp));
+        // fmt::println("   wdp_mv12 = 0.5*(mv1 * mv2 + mv2 * mv1) = {}", wdp_mv12);
+        // fmt::println("   wdm      = 0.5*(v1 * v2 - v2 * v1)     = {}", wdm);
+        // fmt::println("   gr2(wdm)                               = {}", gr2(wdm));
+        // fmt::println("   wdm_mv12 = 0.5*(mv1 * mv2 - mv2 * mv1) = {}", wdm_mv12);
+        // fmt::println("");
+        // fmt::println("   gr0(wdp_mv12) = {}", gr0(wdp_mv12));
+        // fmt::println("   gr1(wdp_mv12) = {}", gr1(wdp_mv12));
+        // fmt::println("   gr2(wdp_mv12) = {}", gr2(wdp_mv12));
+        // fmt::println("");
+        // fmt::println("   gr0(wdm_mv12) = {}", gr0(wdm_mv12));
+        // fmt::println("   gr1(wdm_mv12) = {}", gr1(wdm_mv12));
+        // fmt::println("   gr2(wdm_mv12) = {}", gr2(wdm_mv12));
+        // fmt::println("");
 
         CHECK(d12 == gr0(0.5 * (v1 * v2 + v2 * v1)));
         CHECK(d12 == gr0(0.5 * (mv1 * mv2 + mv2 * mv1)));
@@ -1655,11 +1694,19 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     {
         fmt::println("Vec3d: operations - norm, inverse, dot");
 
+        scalar3d s1{3.2};
+
         vec3d v1{2.0, 1.0, 2.0};
         vec3d v2{normalize(v1)};
 
         vec3d v3{2.0, 6.0, -4.0};
         vec3d v4{inv(v3)};
+
+        bivec3d b1{-2.3, 1.2, 4.5};
+        pscalar3d ps1{-4.7};
+        mvec3d_e mve1{s1, b1};
+        mvec3d_u mvu1{v1, ps1};
+        mvec3d mv1{s1, v1, b1, ps1};
 
         // fmt::println("v1 = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
         // fmt::println("v2 = normalize(v1) = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
@@ -1671,6 +1718,51 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         CHECK(std::abs(nrm_sq(v1) - 9.0) < eps);
         CHECK(std::abs(nrm_sq(v2) - 1.0) < eps);
         CHECK(std::abs(dot(v4, v3) - 1.0) < eps);
+
+        // check inverses - scalar
+        // fmt::println("");
+        // fmt::println("s1 * inv(s1) = {}", s1 * inv(s1)); // s
+        CHECK(std::abs(nrm(s1 * inv(s1)) - 1) < eps);
+        CHECK(std::abs(inv(s1) - rev(s1) / nrm_sq(s1)) < eps);
+
+        // check inverses - vector
+        // fmt::println("v1 * inv(v1) = {}", v1 * inv(v1)); // mv_e
+        CHECK(std::abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
+        CHECK(std::abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
+        CHECK(std::abs(nrm(inv(v1) - rev(v1) / nrm_sq(v1))) < eps);
+
+        // check inverses - bivector
+        // fmt::println("b1 * inv(b1) = {}", b1 * inv(b1)); // mv_e
+        CHECK(std::abs(nrm(gr0(b1 * inv(b1))) - 1) < eps);
+        CHECK(std::abs(nrm(gr2(b1 * inv(b1))) - 0) < eps);
+        CHECK(std::abs(nrm(inv(b1) - rev(b1) / nrm_sq(b1))) < eps);
+
+        // check inverses - pseudoscalar
+        // fmt::println("ps1 * inv(ps1) = {}", ps1 * inv(ps1)); // s
+        CHECK(std::abs(nrm(ps1 * inv(ps1)) - 1) < eps);
+        CHECK(std::abs(nrm(inv(ps1) - rev(ps1) / nrm_sq(ps1))) < eps);
+
+        // check inverses - even grade multivector
+        // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
+        CHECK(std::abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
+        CHECK(std::abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
+        CHECK(std::abs(nrm(inv(mve1) - rev(mve1) / nrm_sq(mve1))) < eps);
+
+        // check inverses - uneven grade multivector
+        // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
+        CHECK(std::abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
+        CHECK(std::abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
+        CHECK(std::abs(nrm(inv(mvu1) - rev(mvu1) / nrm_sq(mvu1))) < eps);
+
+        // check inverses - multivector
+        // fmt::println("mv1 * inv(mv1) = {}", mv1 * inv(mv1)); // mv
+        CHECK(std::abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
+        CHECK(std::abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(std::abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(std::abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
+                                                             // are equal
+
+        // fmt::println("");
     }
 
     TEST_CASE("Vec3d: operations - angle I")
