@@ -21,11 +21,11 @@ item_pt2dp::item_pt2dp(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm, size_t
     connect(wcs, &w_Coordsys::viewResized, this, &item_pt2dp::viewChanged);
 
 
-    if (cm->ptp[idx].z == 0.0) {
-        throw std::runtime_error(
-            "Point at infinity. pt2dp requires z-component z == 1.0");
-    };
-    if (cm->ptp[idx].z != 1.0) {
+    // if (cm->ptp[idx].z == 0.0) {
+    //     throw std::runtime_error(
+    //         "Point at infinity. pt2dp requires z-component z == 1.0");
+    // };
+    if (cm->ptp[idx].z != 1.0 || cm->ptp[idx].z != 0.0) {
         // if required, unitze the point as first step
         cm->ptp[idx].x /= cm->ptp[idx].z;
         cm->ptp[idx].y /= cm->ptp[idx].z;
