@@ -1938,19 +1938,32 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(Vec2dp<T> const& v1,
 // pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ... (from reversion)
 ////////////////////////////////////////////////////////////////////////////////
 
-// return the multiplicative inverse of the vector
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> inv(Scalar2dp<T> s)
+{
+    T sq_n = bulk_nrm_sq(s);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("scalar norm too small for inversion " +
+                                 std::to_string(sq_n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / sq_n;
+
+    return Scalar2dp<T>(rev(s) * inv);
+}
+
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Vec2dp<T> inv(Vec2dp<T> const& v)
 {
-    // v^(-1) = rev(v)/|v|^2 = v/dot(v,v)
+    // v^(-1) = rev(v)/|v|^2 = v/dot(v,v) = v/bulk_sq_nrm(v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    // using |v|^2 = gr0(rev(v)*v) = dot(v,v)
-    //
-    T sq_v = dot(v, v);
+    T sq_v = bulk_nrm_sq(v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_v < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector dot product too small for inversion " +
+        throw std::runtime_error("vector bulk_nrm_sq too small for inversion " +
                                  std::to_string(sq_v) + "\n");
     }
 #endif
@@ -1958,19 +1971,16 @@ inline constexpr Vec2dp<T> inv(Vec2dp<T> const& v)
     return Vec2dp<T>(v.x * inv, v.y * inv, v.z * inv);
 }
 
-// return the multiplicative inverse of the bivector
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr BiVec2dp<T> inv(BiVec2dp<T> const& B)
 {
     // B^(-1) = rev(B)/|B|^2
     // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
-    // using |B|^2 = gr0(rev(B)*B) = gr0(-B*B) = -gr0(B*B) = -dot(B,B)
-    // => B^(-1) = (-B)/(-dot(B,B)) = B/dot(B,B)
-    T sq_n = -dot(B, B);
+    T sq_n = bulk_nrm_sq(B);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion " +
+        throw std::runtime_error("bivector bulk_nrm_sq too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
@@ -1978,6 +1988,63 @@ inline constexpr BiVec2dp<T> inv(BiVec2dp<T> const& B)
     return BiVec2dp<T>(B.x * inv, B.y * inv, B.z * inv);
 }
 
+// due to the degenerate metric the pseudoscalar does not have an inverse
+// template <typename T>
+//     requires(std::floating_point<T>)
+// inline constexpr PScalar2dp<T> inv(PScalar2dp<T> ps)
+// {
+// }
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> inv(MVec2dp_E<T> const& E)
+{
+    T sq_n = bulk_nrm_sq(E);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error(
+            "norm of even grade multivector too small for inversion " +
+            std::to_string(sq_n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / sq_n;
+    return MVec2dp_E<T>(rev(E) * inv);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> inv(MVec2dp_U<T> const& U)
+{
+    T sq_n = bulk_nrm_sq(U);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error(
+            "norm of uneven grade multivector too small for inversion " +
+            std::to_string(sq_n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / sq_n;
+    return MVec2dp_U<T>(rev(U) * inv);
+}
+
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
+// Hitzer, Sangwine, 2016
+// left and a right inverse are the same (see paper of Hitzer, Sangwine)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> inv(MVec2dp<T> const& M)
+{
+    T m_conjm = gr0(M * conj(M) * gr_inv(M) * rev(M));
+
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("multivector norm too small for inversion " +
+                                 std::to_string(m_conjm) + "\n");
+    }
+#endif
+    T inv = T(1.0) / m_conjm;
+    return MVec2dp<T>(conj(M) * gr_inv(M) * rev(M) * inv);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // 2dp euclidean distance

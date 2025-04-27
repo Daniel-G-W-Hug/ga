@@ -1947,6 +1947,20 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
                          M.c0 * t.z - M.c3 * t.w - M.c4 * t.y + M.c5 * t.x, M.c0 * t.w));
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(TriVec3dp<T> const& t,
+                                                               MVec3dp_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(
+        Vec3dp<ctype>(t.w * M.c4, t.w * M.c5, t.w * M.c6,
+                      -t.x * M.c4 - t.y * M.c5 - t.z * M.c6 + t.w * M.c7),
+        TriVec3dp<ctype>(t.x * M.c0 - t.y * M.c6 + t.z * M.c5 + t.w * M.c1,
+                         t.x * M.c6 + t.y * M.c0 - t.z * M.c4 + t.w * M.c2,
+                         -t.x * M.c5 + t.y * M.c4 + t.z * M.c0 + t.w * M.c3, t.w * M.c0));
+}
+
 // geometric product M * B of a multivector M from the even subalgebra (3d case)
 // with a bivector B from the right
 // even grade multivector * bivector => even grade multivector
@@ -1968,6 +1982,26 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
                                             M.c0 * B.mz - M.c4 * B.my + M.c5 * B.mx),
                             PScalar3dp<ctype>(-M.c1 * B.mx - M.c2 * B.my - M.c3 * B.mz -
                                               M.c4 * B.vx - M.c5 * B.vy - M.c6 * B.vz));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
+                                                               MVec3dp_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(-B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6),
+                            BiVec3dp<ctype>(B.vx * M.c0 - B.vy * M.c6 + B.vz * M.c5 +
+                                                B.mx * M.c7 - B.my * M.c3 + B.mz * M.c2,
+                                            B.vx * M.c6 + B.vy * M.c0 - B.vz * M.c4 +
+                                                B.mx * M.c3 + B.my * M.c7 - B.mz * M.c1,
+                                            -B.vx * M.c5 + B.vy * M.c4 + B.vz * M.c0 -
+                                                B.mx * M.c2 + B.my * M.c1 + B.mz * M.c7,
+                                            B.mx * M.c0 - B.my * M.c6 + B.mz * M.c5,
+                                            B.mx * M.c6 + B.my * M.c0 - B.mz * M.c4,
+                                            -B.mx * M.c5 + B.my * M.c4 + B.mz * M.c0),
+                            PScalar3dp<ctype>(-B.vx * M.c4 - B.vy * M.c5 - B.vz * M.c6 -
+                                              B.mx * M.c1 - B.my * M.c2 - B.mz * M.c3));
 }
 
 template <typename T, typename U>
@@ -2549,26 +2583,32 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v1,
 // pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ... (from reversion)
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO: for degenerate metric: check whether this "partial inverse" is a
-//       meaningful concept at all.
-//       (A*A^(-1) = 1) is a requirement, which is only met if the e4 components
-//       are not present
-//       => only some objects have inverses?
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar3dp<T> inv(Scalar3dp<T> s)
+{
+    T sq_n = bulk_nrm_sq(s);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("scalar norm too small for inversion " +
+                                 std::to_string(sq_n) + "\n");
+    }
+#endif
+    T inv = T(1.0) / sq_n;
 
+    return Scalar3dp<T>(rev(s) * inv);
+}
 
-// return the multiplicative inverse of the vector
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr Vec3dp<T> inv(Vec3dp<T> const& v)
 {
-    // v^(-1) = rev(v)/|v|^2 = v/dot(v,v)
+    // v^(-1) = rev(v)/|v|^2 = v/dot(v,v) = v/bulk_sq_nrm(v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    // using |v|^2 = gr0(rev(v)*v) = dot(v,v)
-    //
-    T sq_v = dot(v, v);
+    T sq_v = bulk_nrm_sq(v);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_v < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector dot product too small for inversion " +
+        throw std::runtime_error("vector bulk_nrm_sq too small for inversion " +
                                  std::to_string(sq_v) + "\n");
     }
 #endif
@@ -2576,44 +2616,124 @@ inline constexpr Vec3dp<T> inv(Vec3dp<T> const& v)
     return Vec3dp<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
 }
 
-// return the multiplicative inverse of the bivector
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
+// Hitzer, Sangwine, 2016
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr BiVec3dp<T> inv(BiVec3dp<T> const& B)
 {
-    // B^(-1) = rev(B)/|B|^2
-    // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
-    // using |B|^2 = gr0(rev(B)*B) = gr0(-B*B) = -gr0(B*B) = -dot(B,B)
-    // => B^(-1) = (-B)/(-dot(B,B)) = B/dot(B,B)
-    T sq_n = -dot(B, B);
+    auto bc = B * conj(B);
+    auto bcmap = gr0(bc) + gr2(bc) - gr4(bc);
+    // fmt::println("B={}", B);
+    // fmt::println("bc={}", bc);
+    // fmt::println("bcmap={}", bcmap);
+    // fmt::println("bc*bcmap={}", bc * bcmap);
+    T sq_n = gr0(bc * bcmap);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion " +
+        throw std::runtime_error("bivector bulk_nrm_sq too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
-    T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
-    return BiVec3dp<T>(0.0, 0.0, 0.0, B.mx * inv, B.my * inv, B.mz * inv);
+    return gr2(conj(B) * bcmap) / sq_n;
 }
 
-// return the multiplicative inverse of the bivector
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
+// Hitzer, Sangwine, 2016
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr TriVec3dp<T> inv(TriVec3dp<T> const& t)
 {
-    // t^(-1) = rev(t)/|t|^2
-    // using rev(t) = (-1)^[k(k-1)/2] B for a k-blade: 3-blade => rev(t) = -t
-    // using |t|^2 = gr0(rev(t)*t) = gr0(-t*t) = -gr0(t*t) = -dot(t,t)
-    // => B^(-1) = (-t)/(-dot(t,t)) = t/dot(t,t)
-    T sq_n = -dot(t, t);
+    auto tc = t * conj(t);
+    auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
+    // fmt::println("t={}", t);
+    // fmt::println("tc={}", tc);
+    // fmt::println("tcmap={}", tcmap);
+    // fmt::println("tc*tcmap={}", tc * tcmap);
+    T sq_n = gr0(tc * tcmap);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("trivector norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
-    T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
-    return TriVec3dp<T>(0.0, 0.0, 0.0, t.w * inv);
+    return gr3(conj(t) * tcmap) / sq_n;
+}
+
+// due to the degenerate metric the pseudoscalar does not have an inverse
+// template <typename T>
+//     requires(std::floating_point<T>)
+// inline constexpr PScalar3dp<T> inv(PScalar3dp<T> ps)
+// {
+// }
+
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
+// Hitzer, Sangwine, 2016
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_E<T> inv(MVec3dp_E<T> const& E)
+{
+    auto tc = E * conj(E);
+    auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
+    // fmt::println("E={}", E);
+    // fmt::println("tc={}", tc);
+    // fmt::println("tcmap={}", tcmap);
+    // fmt::println("tc*tcmap={}", tc * tcmap);
+    T sq_n = gr0(tc * tcmap);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error(
+            "norm of even grade multivector too small for inversion " +
+            std::to_string(sq_n) + "\n");
+    }
+#endif
+    return conj(E) * tcmap / sq_n;
+}
+
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
+// Hitzer, Sangwine, 2016
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
+{
+    auto tc = U * conj(U);
+    auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
+    // fmt::println("E={}", E);
+    // fmt::println("tc={}", tc);
+    // fmt::println("tcmap={}", tcmap);
+    // fmt::println("tc*tcmap={}", tc * tcmap);
+    T sq_n = gr0(tc * tcmap);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (sq_n < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error(
+            "norm of uneven grade multivector too small for inversion " +
+            std::to_string(sq_n) + "\n");
+    }
+#endif
+    return conj(U) * tcmap / sq_n;
+}
+
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
+// Hitzer, Sangwine, 2016
+// left and a right inverse are the same (see paper of Hitzer, Sangwine)
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp<T> inv(MVec3dp<T> const& M)
+{
+    auto tc = M * conj(M);
+    auto tcmap = gr0(tc) + gr1(tc) + gr2(tc) - gr3(tc) - gr4(tc);
+    // fmt::println("M={}", M);
+    // fmt::println("tc={}", tc);
+    // fmt::println("tcmap={}", tcmap);
+    // fmt::println("tc*tcmap={}", tc * tcmap);
+    T sq_n = gr0(tc * tcmap);
+#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+    if (std::abs(sq_n) < std::numeric_limits<T>::epsilon()) {
+        throw std::runtime_error("multivector norm too small for inversion " +
+                                 std::to_string(sq_n) + "\n");
+    }
+#endif
+    return conj(M) * tcmap / sq_n;
 }
 
 

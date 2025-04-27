@@ -2051,7 +2051,7 @@ inline constexpr PScalar3d<T> inv(PScalar3d<T> ps)
     T sq_n = nrm_sq(ps);
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion " +
+        throw std::runtime_error("trivector norm too small for inversion " +
                                  std::to_string(sq_n) + "\n");
     }
 #endif
@@ -2086,7 +2086,7 @@ inline constexpr MVec3d_U<T> inv(MVec3d_U<T> const& U)
 #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
     if (sq_n < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error(
-            "norm of even grade multivector too small for inversion " +
+            "norm of uneven grade multivector too small for inversion " +
             std::to_string(sq_n) + "\n");
     }
 #endif
@@ -2107,7 +2107,6 @@ inline constexpr MVec3d<T> inv(MVec3d<T> const& M)
     if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
         throw std::runtime_error("multivector norm too small for inversion " +
                                  std::to_string(m_conjm) + "\n");
-        // example: MVec2D(1,1,1,1) is not invertible
     }
 #endif
     T inv = T(1.0) / m_conjm;
