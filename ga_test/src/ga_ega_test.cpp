@@ -392,7 +392,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("v  = {}", v);
         // fmt::println("b  = {}", b);
         // fmt::println("reflect_on_vec(v,b)  = {}", reflect_on_vec(v, b));
-        // fmt::println("reflect_on(v,b)  = {}", reflect_on_hyp(v, b));
+        // fmt::println("reflect_on(v,b)  = {}", reflect_on(v, b));
         // fmt::println("");
 
 
@@ -404,8 +404,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         CHECK(reflect_on_vec(v, b).x == 3);
         CHECK(reflect_on_vec(v, b).y == 1);
-        CHECK(reflect_on_hyp(v, b).x == -3);
-        CHECK(reflect_on_hyp(v, b).y == -1);
+        CHECK(reflect_on(v, b).x == -3);
+        CHECK(reflect_on(v, b).y == -1);
 
         // checking time required
         //
@@ -416,6 +416,30 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // auto end = std::chrono::system_clock::now();
         // auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end -
         // start); fmt::println("The measurement took {}", elapsed);
+
+        // point reflected on a vector
+        vec2d p{4, 1};
+        CHECK(reflect_on_vec(p, x_axis_2d) == vec2d{4, -1});
+
+        // coordinate axis reflected on perpendicular axis yield their negatives
+        CHECK(reflect_on_vec(y_axis_2d, x_axis_2d) == -y_axis_2d);
+        CHECK(reflect_on_vec(x_axis_2d, y_axis_2d) == -x_axis_2d);
+
+        // coordinate axis reflected on itself remains itself (identity)
+        CHECK(reflect_on_vec(x_axis_2d, x_axis_2d) == x_axis_2d);
+        CHECK(reflect_on_vec(y_axis_2d, y_axis_2d) == y_axis_2d);
+
+        // point reflected on a hyperplane that the vector is a normal to
+        // the hyperplane can be created by taking the dual (or the rcmpl) of the normal
+        CHECK(reflect_on(p, dual(x_axis_2d)) == vec2d{4, -1});
+
+        // coordinate axis reflected on perpendicular axis yield their negatives
+        CHECK(reflect_on(y_axis_2d, dual(x_axis_2d)) == -y_axis_2d);
+        CHECK(reflect_on(x_axis_2d, dual(y_axis_2d)) == -x_axis_2d);
+
+        // coordinate axis reflected on itself remains itself (identity)
+        CHECK(reflect_on(x_axis_2d, dual(x_axis_2d)) == x_axis_2d);
+        CHECK(reflect_on(y_axis_2d, dual(y_axis_2d)) == y_axis_2d);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -801,6 +825,8 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // redundant checks (just do avoid unused variable warnings)
         CHECK(d12 == gr0(wdp_mv12));
         CHECK(w12 == gr2(wdm_mv12));
+        CHECK(d12 == gr0(wdp));
+        CHECK(w12 == gr2(wdm));
     }
 
     TEST_CASE("MVec2d: geometric product - combinatorial tests")
@@ -2101,7 +2127,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // fmt::println("B   = {}", B);
         // fmt::println("UB  = {}", UB);
         // fmt::println("reflect_on_vec(v,b)  = {}", reflect_on_vec(v, b));
-        // fmt::println("reflect_on_hyp(v,e3_3d)  = {}", reflect_on_hyp(v, e3_3d));
+        // fmt::println("reflect_on(v,e3_3d)  = {}", reflect_on(v, e3_3d));
         // fmt::println("reflect_on(v,B)  = {}", reflect_on(v, B));
         // fmt::println("reflect_on(UB,B) = {}", reflect_on(UB, B));
         // fmt::println("");
@@ -2112,7 +2138,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // just to suppress unused variable warnings
         CHECK(b == e2_3d);
 
-        CHECK(reflect_on_hyp(v, e3_3d) == reflect_on(v, B));
+        CHECK(reflect_on(v, e3_3d) == reflect_on(v, B));
 
         // checking time required
         //
@@ -2125,6 +2151,45 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         // std::chrono::duration_cast<std::chrono::milliseconds>(end
         // -
         // start); fmt::println("The measurement took {}", elapsed);
+
+        // point reflected on a vector
+        vec3d p{4, 1, 0};
+        CHECK(reflect_on_vec(p, x_axis_3d) == vec3d{4, -1, 0});
+
+        // coordinate axis reflected on perpendicular axis yield their negatives
+        CHECK(reflect_on_vec(y_axis_3d, x_axis_3d) == -y_axis_3d);
+        CHECK(reflect_on_vec(z_axis_3d, x_axis_3d) == -z_axis_3d);
+        CHECK(reflect_on_vec(x_axis_3d, y_axis_3d) == -x_axis_3d);
+        CHECK(reflect_on_vec(z_axis_3d, y_axis_3d) == -z_axis_3d);
+        CHECK(reflect_on_vec(x_axis_3d, z_axis_3d) == -x_axis_3d);
+        CHECK(reflect_on_vec(y_axis_3d, z_axis_3d) == -y_axis_3d);
+
+        // coordinate axis reflected on itself remains itself (identity)
+        CHECK(reflect_on_vec(x_axis_3d, x_axis_3d) == x_axis_3d);
+        CHECK(reflect_on_vec(y_axis_3d, y_axis_3d) == y_axis_3d);
+        CHECK(reflect_on_vec(z_axis_3d, z_axis_3d) == z_axis_3d);
+
+        // point reflected on a hyperplane that the vector is a normal to
+        // the hyperplane can be created by taking the dual (or the rcmpl) of the normal
+        CHECK(reflect_on(p, dual(y_axis_3d)) == vec3d{4, -1, 0});
+        // alternatively the plane can be used directly (represented by a bivector)
+        CHECK(reflect_on(p, zx_plane_3d) == vec3d{4, -1, 0});
+
+        // coordinate axis reflected on perpendicular base planes yield their negatives
+        CHECK(reflect_on(x_axis_3d, yz_plane_3d) == -x_axis_3d);
+        CHECK(reflect_on(x_axis_3d, dual(x_axis_3d)) == -x_axis_3d);
+        CHECK(reflect_on(y_axis_3d, zx_plane_3d) == -y_axis_3d);
+        CHECK(reflect_on(y_axis_3d, dual(y_axis_3d)) == -y_axis_3d);
+        CHECK(reflect_on(z_axis_3d, xy_plane_3d) == -z_axis_3d);
+        CHECK(reflect_on(z_axis_3d, dual(z_axis_3d)) == -z_axis_3d);
+
+        // a coordinate plane reflected on itself remains itself (identity)
+        CHECK(reflect_on(yz_plane_3d, yz_plane_3d) == yz_plane_3d);
+        CHECK(reflect_on(zx_plane_3d, zx_plane_3d) == zx_plane_3d);
+        CHECK(reflect_on(xy_plane_3d, xy_plane_3d) == xy_plane_3d);
+
+        // reflect planes on planes directly
+        CHECK(reflect_on(e23_3d + e12_3d, e12_3d) == -e23_3d + e12_3d);
     }
 
     TEST_CASE("Vec3d: operations - project / reject / reflect (vector - bivector)")

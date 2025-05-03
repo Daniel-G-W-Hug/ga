@@ -2649,15 +2649,16 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v,
 
 // reflect a vector v on a hyperplane B orthogonal to vector nB
 //
-// hyperplane: a n-1 dimensional subspace in a space of dimension n (a line in 2d space)
-// orthogonal to vector b: the hyperplane is dual to b (i.e. a one dimensional subspace)
+// hyperplane: a n-1 dimensional subspace in a space of dimension n (a plane in 3d space)
+// orthogonal to vector nB: the hyperplane B is dual to nB (i.e. a two dimensional
+// subspace)
 //
-// HINT: choose b * B = I_3d  =>  B = b * I_3d  (for normalized b)
+// HINT: choose nB = dual(B) (for normalized nB)
 //
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on_hyp(Vec3d<T> const& v,
-                                                                Vec3d<U> const& nB)
+inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on(Vec3d<T> const& v,
+                                                            Vec3d<U> const& nB)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(gr1(-nB * v * inv(nB)));

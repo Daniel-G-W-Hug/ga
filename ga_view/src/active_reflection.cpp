@@ -41,14 +41,14 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
 
     // draw first normal vector and corresponding hyperplane
 
-    QPointF beg_pos = QPointF(cs->x.a_to_w(0.0), cs->y.a_to_w(0.0));
+    QPointF beg_pos = QPointF(cs->x.au_to_w(0.0), cs->y.au_to_w(0.0));
 
     QPointF end_n1pos_nrm_scene = QPointF(scenePos_n1end().x, scenePos_n1end().y) /
                                   nrm(QPointF(scenePos_n1end().x, scenePos_n1end().y));
     QPointF end_n1pos =
-        QPointF(cs->x.a_to_w(scenePos_n1end().x), cs->y.a_to_w(scenePos_n1end().y));
-    QPointF end_n1pos_nrm = QPointF(cs->x.a_to_w(end_n1pos_nrm_scene.x()),
-                                    cs->y.a_to_w(end_n1pos_nrm_scene.y()));
+        QPointF(cs->x.au_to_w(scenePos_n1end().x), cs->y.au_to_w(scenePos_n1end().y));
+    QPointF end_n1pos_nrm = QPointF(cs->x.au_to_w(end_n1pos_nrm_scene.x()),
+                                    cs->y.au_to_w(end_n1pos_nrm_scene.y()));
 
     qp->setPen(QPen(QBrush(col_lgreen), 2, Qt::SolidLine));
     qp->drawPath(arrowLine(beg_pos, end_n1pos_nrm));
@@ -68,9 +68,9 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     QPointF end_n2pos_nrm_scene = QPointF(scenePos_n2end().x, scenePos_n2end().y) /
                                   nrm(QPointF(scenePos_n2end().x, scenePos_n2end().y));
     QPointF end_n2pos =
-        QPointF(cs->x.a_to_w(scenePos_n2end().x), cs->y.a_to_w(scenePos_n2end().y));
-    QPointF end_n2pos_nrm = QPointF(cs->x.a_to_w(end_n2pos_nrm_scene.x()),
-                                    cs->y.a_to_w(end_n2pos_nrm_scene.y()));
+        QPointF(cs->x.au_to_w(scenePos_n2end().x), cs->y.au_to_w(scenePos_n2end().y));
+    QPointF end_n2pos_nrm = QPointF(cs->x.au_to_w(end_n2pos_nrm_scene.x()),
+                                    cs->y.au_to_w(end_n2pos_nrm_scene.y()));
 
     qp->setPen(QPen(QBrush(col_lred), 2, Qt::SolidLine));
     qp->drawPath(arrowLine(beg_pos, end_n2pos_nrm));
@@ -93,21 +93,21 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     vec2d n2(end_n2pos_nrm_scene.x(), end_n2pos_nrm_scene.y());
     std::vector<vec2d> vr, vrr;
 
-    using hd::ga::ega::reflect_on_hyp;
+    using hd::ga::ega::reflect_on;
     for (auto const& e : v) {
-        vec2d v_tmp = reflect_on_hyp(e, n1);
+        vec2d v_tmp = reflect_on(e, n1);
         vr.push_back(v_tmp);
-        vrr.push_back(reflect_on_hyp(v_tmp, n2));
+        vrr.push_back(reflect_on(v_tmp, n2));
     }
 
     QPainterPath org, refl1, refl2;
-    org.moveTo(QPointF(cs->x.a_to_w(v[0].x), cs->y.a_to_w(v[0].y)));
-    refl1.moveTo(QPointF(cs->x.a_to_w(vr[0].x), cs->y.a_to_w(vr[0].y)));
-    refl2.moveTo(QPointF(cs->x.a_to_w(vrr[0].x), cs->y.a_to_w(vrr[0].y)));
+    org.moveTo(QPointF(cs->x.au_to_w(v[0].x), cs->y.au_to_w(v[0].y)));
+    refl1.moveTo(QPointF(cs->x.au_to_w(vr[0].x), cs->y.au_to_w(vr[0].y)));
+    refl2.moveTo(QPointF(cs->x.au_to_w(vrr[0].x), cs->y.au_to_w(vrr[0].y)));
     for (size_t i = 1; i < v.size(); ++i) {
-        org.lineTo(QPointF(cs->x.a_to_w(v[i].x), cs->y.a_to_w(v[i].y)));
-        refl1.lineTo(QPointF(cs->x.a_to_w(vr[i].x), cs->y.a_to_w(vr[i].y)));
-        refl2.lineTo(QPointF(cs->x.a_to_w(vrr[i].x), cs->y.a_to_w(vrr[i].y)));
+        org.lineTo(QPointF(cs->x.au_to_w(v[i].x), cs->y.au_to_w(v[i].y)));
+        refl1.lineTo(QPointF(cs->x.au_to_w(vr[i].x), cs->y.au_to_w(vr[i].y)));
+        refl2.lineTo(QPointF(cs->x.au_to_w(vrr[i].x), cs->y.au_to_w(vrr[i].y)));
     }
     org.closeSubpath();
     refl1.closeSubpath();
@@ -150,11 +150,11 @@ QRectF active_reflection::boundingRect() const
 
 QPainterPath active_reflection::shape() const
 {
-    QPointF beg_pos = QPointF(cs->x.a_to_w(0.0), cs->y.a_to_w(0.0));
+    QPointF beg_pos = QPointF(cs->x.au_to_w(0.0), cs->y.au_to_w(0.0));
     QPointF end_n1pos =
-        QPointF(cs->x.a_to_w(scenePos_n1end().x), cs->y.a_to_w(scenePos_n1end().y));
+        QPointF(cs->x.au_to_w(scenePos_n1end().x), cs->y.au_to_w(scenePos_n1end().y));
     QPointF end_n2pos =
-        QPointF(cs->x.a_to_w(scenePos_n2end().x), cs->y.a_to_w(scenePos_n2end().y));
+        QPointF(cs->x.au_to_w(scenePos_n2end().x), cs->y.au_to_w(scenePos_n2end().y));
 
     QPainterPath path = vectorShape(beg_pos, end_n1pos);
     path += vectorShape(beg_pos, end_n2pos);

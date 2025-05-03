@@ -24,7 +24,7 @@ class active_projection : public QObject, public QGraphicsItem {
 
   public:
 
-    enum { Type = UserType + 4 };
+    enum { Type = UserType + 4 }; // for use in w_common.cpp
     int type() const override { return Type; }
 
     active_projection(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg, active_pt2d* uend,

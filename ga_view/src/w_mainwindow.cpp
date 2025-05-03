@@ -6,9 +6,11 @@
 
 
 #include "active_bivt2d.hpp"
+#include "active_bivt2dp.hpp"
 #include "active_projection.hpp"
 #include "active_pt2d.hpp"
 #include "active_reflection.hpp"
+#include "active_reflectionp.hpp"
 #include "active_vt2d.hpp"
 
 #include "item_bivt2dp.hpp"
@@ -234,24 +236,98 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        auto p = pt2dp{-1.5, -1, 1};
-        auto q = pt2dp{0.5, 1, 1};
+        // lines and reflected lines parallel to x-axis
+        auto p1x = pt2dp{-2, 0.5, 1};
+        auto p2x = pt2dp{2, 0.5, 1};
+        auto p1xr = reflect_on(p1x, x_axis_2dp);
+        auto p2xr = reflect_on(p2x, x_axis_2dp);
+        pt2d_mark pxm;
+        pxm.symbol = Symbol::circle;
+        pxm.pen = QPen(Qt::green, 2, Qt::SolidLine);
+        cm.add_pt(p1x, pxm);
+        cm.add_pt(p2x, pxm);
+        pxm.pen = QPen(Qt::cyan, 2, Qt::SolidLine);
+        cm.add_pt(p1xr, pxm);
+        cm.add_pt(p2xr, pxm);
 
+        auto b12x = wdg(p1x, p2x);
+        auto b12xr = reflect_on(b12x, x_axis_2dp);
+        cm.add_bivtp(b12x);
+        cm.add_bivtp(b12xr);
+
+        // lines and reflected lines
+        auto p = pt2dp{-1.5, -1.5, 1};
+        auto q = pt2dp{0.5, 1, 1};
         auto b = wdg(p, q);
-        // auto B = bivt2dp(b);
+        auto brx = reflect_on(b, x_axis_2dp); // reflect on x-axis
+        auto prx = reflect_on(p, x_axis_2dp); // reflect on x-axis
+        auto qrx = reflect_on(q, x_axis_2dp); // reflect on x-axis
+
+        auto bry = reflect_on(b, y_axis_2dp); // reflect on y-axis
+        auto pry = reflect_on(p, y_axis_2dp); // reflect on y-axis
+        auto qry = reflect_on(q, y_axis_2dp); // reflect on y-axis
+
 
         cm.add_pt(p);
         cm.add_pt(q);
 
+        pt2d_mark qrm;
+        qrm.pen = QPen(Qt::darkBlue, 2, Qt::SolidLine);
+        cm.add_pt(prx, qrm);
+        cm.add_pt(qrx, qrm);
+
+        qrm.symbol = Symbol::square;
+        qrm.pen = QPen(Qt::darkBlue, 2, Qt::SolidLine);
+        cm.add_pt(pry, qrm);
+        cm.add_pt(qry, qrm);
+
         cm.add_bivtp(b);
-        // cm.add_bivtp(B);
+        cm.add_bivtp(brx);
+        cm.add_bivtp(bry);
+        cm.add_bivtp(x_axis_2dp);
+        cm.add_bivtp(y_axis_2dp);
 
         // fmt::println("p = {}", p);
         // fmt::println("q = {}", q);
-        // fmt::println("b = {}", b);
-        // fmt::println("B = {}", B);
+        // fmt::println("qrx = {}", qrx);
+        // fmt::println("b = {}, att(b) = {}", b, att(b));
+        // fmt::println("brx = {}, att(brx) = {}", brx, att(brx));
+        // fmt::println("bry = {}, att(bry) = {}", bry, att(bry));
 
-        cm.set_label("proj. model 4 - line through p, q");
+        // fmt::println("wdg(vec2dp{{0, 0, 1}}, vec2dp{{1, 0, 1}}) = {}, att = {}",
+        //              wdg(vec2dp{0, 0, 1}, vec2dp{1, 0, 1}),
+        //              att(wdg(vec2dp{0, 0, 1}, vec2dp{1, 0, 1})));
+        // fmt::println("wdg(vec2dp{{0, 0, 1}}, vec2dp{{0, 1, 1}}) = {}, att = {}",
+        //              wdg(vec2dp{0, 0, 1}, vec2dp{0, 1, 1}),
+        //              att(wdg(vec2dp{0, 0, 1}, vec2dp{0, 1, 1})));
+
+        // fmt::println("wdg(vec3dp{{0, 0, 0, 1}}, vec3dp{{1, 0, 0, 1}}) = {}, att = {}",
+        //              wdg(vec3dp{0, 0, 0, 1}, vec3dp{1, 0, 0, 1}),
+        //              att(wdg(vec3dp{0, 0, 0, 1}, vec3dp{1, 0, 0, 1})));
+        // fmt::println("wdg(vec3dp{{0, 0, 0, 1}}, vec3dp{{0, 1, 0, 1}}) = {}, att = {}",
+        //              wdg(vec3dp{0, 0, 0, 1}, vec3dp{0, 1, 0, 1}),
+        //              att(wdg(vec3dp{0, 0, 0, 1}, vec3dp{0, 1, 0, 1})));
+        // fmt::println("wdg(vec3dp{{0, 0, 0, 1}}, vec3dp{{0, 0, 1, 1}}) = {}, att = {}",
+        //              wdg(vec3dp{0, 0, 0, 1}, vec3dp{0, 0, 1, 1}),
+        //              att(wdg(vec3dp{0, 0, 0, 1}, vec3dp{0, 0, 1, 1})));
+
+        cm.set_label("proj. model 4 - line through p, q & reflected");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        size_t p_id = cm.add_apt(pt2d{-1.5, -1});
+        size_t q_id = cm.add_apt(pt2d{0.5, 1});
+
+        cm.add_abivtp(abivt2dp(p_id, q_id));
+
+        // fmt::println("p = {}", p);
+        // fmt::println("q = {}", q);
+
+        cm.set_label("proj. model 5 - line through active p, q");
 
         vm.push_back(cm);
     }
@@ -339,6 +415,35 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_arefl(arefl2d{p0_id, p1_id});
 
         cm.set_label("active reflection (2x)");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        size_t p0_id = cm.add_apt(pt2d{0, 0});
+        size_t p1_id = cm.add_apt(pt2d{1, 0});
+        size_t p2_id = cm.add_apt(pt2d{0, 1});
+
+        cm.add_areflp(arefl2dp{p0_id, p1_id, p0_id, p2_id});
+
+        cm.set_label("active reflection projective, common pt (2x)");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        size_t p0_id = cm.add_apt(pt2d{0, 0});
+        size_t p1_id = cm.add_apt(pt2d{1, 0});
+        size_t p2_id = cm.add_apt(pt2d{0, 0});
+        size_t p3_id = cm.add_apt(pt2d{0, 1});
+
+        cm.add_areflp(arefl2dp{p0_id, p1_id, p2_id, p3_id});
+
+        cm.set_label("active reflection projective (2x)");
 
         vm.push_back(cm);
     }
@@ -497,6 +602,23 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     for (size_t idx = 0; idx < cm->arefl.size(); ++idx) {
         scene->addItem(new active_reflection(cs, wcs, apt2d_map[cm->arefl[idx].n1end_idx],
                                              apt2d_map[cm->arefl[idx].n2end_idx]));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // active projective bivectors
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->abivtp.size(); ++idx) {
+        scene->addItem(new active_bivt2dp(cs, wcs, apt2d_map[cm->abivtp[idx].beg_idx],
+                                          apt2d_map[cm->abivtp[idx].end_idx]));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // active projective reflections
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->areflp.size(); ++idx) {
+        scene->addItem(new active_reflectionp(
+            cs, wcs, apt2d_map[cm->areflp[idx].p1_idx], apt2d_map[cm->areflp[idx].p2_idx],
+            apt2d_map[cm->areflp[idx].p3_idx], apt2d_map[cm->areflp[idx].p4_idx]));
     }
 }
 

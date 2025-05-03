@@ -1,27 +1,34 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "item_bivt2dp.hpp"
+#include "active_bivt2dp.hpp"
 #include "active_common.hpp"
 
-#include "ga/ga_pga.hpp"
-using namespace hd::ga;      // use ga types, constants, etc.
-using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
-
-item_bivt2dp::item_bivt2dp(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm, size_t idx,
-                           QGraphicsItem* parent) :
-    QGraphicsItem(parent), cs{cs}, cm{cm}, idx{idx}
-
+active_bivt2dp::active_bivt2dp(Coordsys* cs, w_Coordsys* wcs, active_pt2d* beg,
+                               active_pt2d* end, QGraphicsItem* parent) :
+    QGraphicsItem(parent), cs{cs}, wcs{wcs}, m_beg{beg}, m_end{end}
 {
-    Q_UNUSED(wcs)
+    setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
+             QGraphicsItem::ItemSendsGeometryChanges |
+             QGraphicsItem::ItemSendsScenePositionChanges);
+    setAcceptHoverEvents(true);
 
-    connect(wcs, &w_Coordsys::viewResized, this, &item_bivt2dp::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_beg, &active_pt2d::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, m_end, &active_pt2d::viewChanged);
+    connect(wcs, &w_Coordsys::viewResized, this, &active_bivt2dp::viewChanged);
+
+    connect(this, &active_bivt2dp::viewMoved, m_beg, &active_pt2d::posChanged);
+    connect(this, &active_bivt2dp::viewMoved, m_end, &active_pt2d::posChanged);
+
+    connect(m_beg, &active_pt2d::pointMoved, this, &active_bivt2dp::viewChanged);
+    connect(m_end, &active_pt2d::pointMoved, this, &active_bivt2dp::viewChanged);
+
 
     reset_item_data(); // update geometry (beg_pos, end_pos, and min- & max-values)
     setZValue(0);
 }
 
-void item_bivt2dp::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
-                         QWidget* widget)
+void active_bivt2dp::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
+                           QWidget* widget)
 {
     Q_UNUSED(option)
     Q_UNUSED(widget)
@@ -30,10 +37,22 @@ void item_bivt2dp::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     qp->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
                           cs->y.nmin() - cs->y.nmax()));
 
+
     // draw in item coordinate system
     qp->save();
 
-    qp->setPen(cm->bivtp_mark[idx].pen);
+    qp->setPen(QPen(QBrush(Qt::black), 2, Qt::SolidLine));
+    qp->setBrush(Qt::black);
+
+    if (m_mouse_hover && !m_mouse_l_pressed) {
+        qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
+        qp->setBrush(col_green);
+    }
+    if (m_mouse_hover && m_mouse_l_pressed) {
+        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // pressed: red
+        qp->setBrush(col_red);
+    }
+
     qp->drawPath(arrowLine(beg_pos, end_pos));
 
     // from here on we want to draw with a small pen to get a pointy vector head
@@ -55,39 +74,137 @@ void item_bivt2dp::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     qp->restore();
 }
 
-QRectF item_bivt2dp::boundingRect() const
+QRectF active_bivt2dp::boundingRect() const
 {
     return QRectF(mapFromScene(QPointF(cs->x.au_to_w(min_x), cs->y.au_to_w(max_y))),
                   mapFromScene(QPointF(cs->x.au_to_w(max_x), cs->y.au_to_w(min_y))));
 }
 
-QPainterPath item_bivt2dp::shape() const
+QPainterPath active_bivt2dp::shape() const { return vectorShape(beg_pos, end_pos); }
+
+void active_bivt2dp::setScenePos_beg(pt2d const& pos)
 {
-    QPainterPath path;
-    path.addRect(boundingRect());
-    return path;
+    if (pos != m_beg->scenePos()) {
+        prepareGeometryChange();
+        m_beg->setScenePos(pos);
+    }
 }
 
-void item_bivt2dp::viewChanged()
+void active_bivt2dp::setScenePos_end(pt2d const& pos)
 {
-    // qDebug() << "item_bivt2dp: viewChanged() received.";
+    if (pos != m_end->scenePos()) {
+        prepareGeometryChange();
+        m_end->setScenePos(pos);
+    }
+}
+
+pt2d active_bivt2dp::scenePos_beg() const { return m_beg->scenePos(); }
+pt2d active_bivt2dp::scenePos_end() const { return m_end->scenePos(); }
+
+
+void active_bivt2dp::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+    Q_UNUSED(event)
+
+    // qDebug() << "active_bivt2dp::hoverEnterEvent.";
+    m_mouse_hover = true;
+    update();
+}
+
+void active_bivt2dp::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+    Q_UNUSED(event)
+
+    // qDebug() << "active_bivt2dp::hoverLeaveEvent.";
+    m_mouse_hover = false;
+    update();
+}
+
+void active_bivt2dp::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    // qDebug() << "active_bivt2dp::mousePressEvent.";
+
+    if (event->button() == Qt::LeftButton) {
+        // qDebug() << "active_bivt2dp: Qt::LeftButton.";
+        m_mouse_l_pressed = true;
+    }
+    if (event->button() == Qt::RightButton) {
+        // qDebug() << "active_bivt2dp: Qt::RightButton.";
+        m_mouse_r_pressed = true;
+    }
+
+    update();
+    QGraphicsItem::mousePressEvent(event); // call default implementation
+}
+
+void active_bivt2dp::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    // qDebug() << "active_bivt2dp::mouseReleaseEvent.";
+
+    // qDebug() << "active_bivt2dp::scenePos_beg():" << scenePos_beg();
+    // qDebug() << "active_bivt2dp::scenePos_end():" << scenePos_end();
+
+    if (event->button() == Qt::LeftButton) {
+        // qDebug() << "active_pt2d: Qt::LeftButton.";
+        m_mouse_l_pressed = false;
+    }
+    if (event->button() == Qt::RightButton) {
+        // qDebug() << "active_pt2d: Qt::RightButton.";
+        m_mouse_r_pressed = false;
+    }
+
+    update();
+    QGraphicsItem::mouseReleaseEvent(event); // call default implementation
+}
+
+void active_bivt2dp::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    // qDebug() << "active_bivt2dp::mouseMoveEvent.";
+
+    if (m_mouse_l_pressed) {
+
+        QPointF delta = event->scenePos() - event->lastScenePos();
+
+        if (delta != QPointF(0, 0)) {
+
+            // qDebug() << "scenePos():" << event->scenePos();
+            // qDebug() << "lastScenePos():" << event->lastScenePos();
+            // qDebug() << "delta:" << delta;
+
+            m_beg->moveBy(delta.x(), delta.y());
+            m_end->moveBy(delta.x(), delta.y());
+
+            emit viewMoved();
+        }
+    }
+}
+
+void active_bivt2dp::viewChanged()
+{
+    // qDebug() << "active_bivt2dp: viewChanged() received.";
 
     // view changed by external influence, set to position in model
     reset_item_data(); // update geometry (beg_pos, end_pos, and min- & max-values)
+    update();
 }
 
-void item_bivt2dp::reset_item_data()
+void active_bivt2dp::reset_item_data()
 {
 
     // update geometry, for initialization of if view changed
 
     try {
+
+        // create the projective bivector using positions of both active points
+        auto p = pt2dp(m_beg->scenePos().x, m_beg->scenePos().y, 1.0);
+        auto q = pt2dp(m_end->scenePos().x, m_end->scenePos().y, 1.0);
+        auto bvt = wdg(p, q);
+
         // determine the angle of the projective line
         auto const x_axis = bivec2dp{0, 1, 0};
         auto const y_axis = bivec2dp{1, 0, 0};
-
-        auto phi_x = angle(x_axis, cm->bivtp[idx]);
-        auto phi_y = angle(y_axis, cm->bivtp[idx]);
+        auto const phi_x = angle(x_axis, bvt);
+        auto const phi_y = angle(y_axis, bvt);
 
         // qDebug() << "phi_x = " << rad2deg(phi_x);
         // qDebug() << "phi_y = " << rad2deg(phi_y);
@@ -109,18 +226,16 @@ void item_bivt2dp::reset_item_data()
         vec2dp p_from_13;
         vec2dp p_to_13;
 
-        // constexpr double eps = 1.e-6;  // not needed here, would shadow the global eps
-
         if (std::abs(phi_x - pi / 2.0) > eps) {
             // if not on pos. or neg. y-axis
-            p_from_24 = unitize(rwdg(l2, cm->bivtp[idx])); // from lower x values
-            p_to_24 = unitize(rwdg(l4, cm->bivtp[idx]));   // to higher x values
+            p_from_24 = unitize(rwdg(l2, bvt)); // from lower x values
+            p_to_24 = unitize(rwdg(l4, bvt));   // to higher x values
         }
 
         if (std::abs(phi_y - pi / 2.0) > eps) {
             // if not on pos.or neg.x - axis
-            p_from_13 = unitize(rwdg(l3, cm->bivtp[idx])); // from lower y values
-            p_to_13 = unitize(rwdg(l1, cm->bivtp[idx]));   // to higher y values
+            p_from_13 = unitize(rwdg(l3, bvt)); // from lower y values
+            p_to_13 = unitize(rwdg(l1, bvt));   // to higher y values
         }
 
         // pos. x-axis
@@ -244,9 +359,9 @@ void item_bivt2dp::reset_item_data()
         }
 
         // fmt::println("idx={},       B.x={:.4g}, B.y={:.4g}, B.z={:.4g}", idx,
-        //              cm->bivtp[idx].x, cm->bivtp[idx].y, cm->bivtp[idx].z);
+        //              bvt.x, bvt.y, bvt.z);
         // fmt::println("phi_x={:.3g}, phi_y={:.3g}, att={:.4g}", rad2deg(phi_x),
-        //              rad2deg(phi_y), att(cm->bivtp[idx]));
+        //              rad2deg(phi_y), att(bvt));
         // fmt::println("p_from_24 = {:.2g}, p_to_24 = {:.2g}", p_from_24, p_to_24);
         // fmt::println("p_from_13 = {:.2g}, p_to_13 = {:.2g}", p_from_13, p_to_13);
         // fmt::println("p_from    = {:.2g}, p_to    = {:.2g}", p_from, p_to);

@@ -1914,18 +1914,23 @@ inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
     // return Vec3d<ctype>(gr1(wdg(v1, v2) * inv(v2)));
 }
 
-// reflect a vector u on a hyperplane B orthogonal to vector b
+////////////////////////////////////////////////////////////////////////////////
+// reflections
+////////////////////////////////////////////////////////////////////////////////
+// reflect a vector u on a hyperplane B which is orthogonal (or dual) to vector nB
+// choose: B = dual(nB) with nB as a normal to hyperplane B
 //
-// hyperplane: a n-1 dimensional subspace in a space of dimension n
-// (e.g. a line through the origin in 2d space)
-// orthogonal to vector b: the hyperplane is dual to b
+// hyperplane: a n-1 dimensional subspace in a space of dimension n (e.g. a line through
+// the origin in 2d space)
+// orthogonal to vector b means the hyperplane is dual to b
+// (call dual(nb) to create b from the normal vector nb)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> reflect_on_hyp(Vec2d<T> const& u,
-                                                                Vec2d<U> const& b)
+inline constexpr Vec2d<std::common_type_t<T, U>> reflect_on(Vec2d<T> const& u,
+                                                            Vec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-b * u * inv(b));
+    return Vec2d<ctype>(-B * u * inv(B));
 }
 
 // reflect a vector u another vector

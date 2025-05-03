@@ -23,7 +23,7 @@ class active_reflection : public QObject, public QGraphicsItem {
 
   public:
 
-    enum { Type = UserType + 5 };
+    enum { Type = UserType + 5 }; // for use in w_common.cpp
     int type() const override { return Type; }
 
     // active points are used here as endpoints of normal vectors from (0,0) to endpoint

@@ -3403,14 +3403,7 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// reflections
-////////////////////////////////////////////////////////////////////////////////
-// Macdonald p. 129:
-//
-// Reflect a j-blade u in the k-dimensional subspace B is the blade
-//
-//   u_reflected = (-1)^[j*(k+1)]*B*u*inv(B)
-//
+// reflections of points, lines, and planes on planes
 ////////////////////////////////////////////////////////////////////////////////
 
 // reflect a vector u in an arbitrary trivector, i.e. a plane t
@@ -3445,6 +3438,5 @@ inline constexpr TriVec3dp<std::common_type_t<T, U>> reflect_on(TriVec3dp<T> con
     using ctype = std::common_type_t<T, U>;
     return TriVec3dp<ctype>(-gr3(rgpr(rgpr(t2, t1), t2)));
 }
-
 
 } // namespace hd::ga::pga

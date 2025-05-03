@@ -21,7 +21,7 @@ class active_pt2d : public QObject, public QGraphicsItem {
 
   public:
 
-    enum { Type = UserType + 1 };
+    enum { Type = UserType + 1 }; // for use in w_common.cpp
     int type() const override { return Type; }
 
     // interactive changes of pos will be reflected in the model
@@ -41,6 +41,9 @@ class active_pt2d : public QObject, public QGraphicsItem {
   public slots:
     void viewChanged(); // the view changed, e.g. resize
     void posChanged();  // the position was changed, e.g. shifted in viewport
+
+  signals:
+    void pointMoved();
 
   protected:
 

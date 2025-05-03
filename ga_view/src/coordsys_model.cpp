@@ -119,6 +119,22 @@
     return arefl.size() - 1;
 }
 
+[[maybe_unused]] size_t Coordsys_model::add_abivtp(abivt2dp const& abivtp_in)
+{
+
+    abivtp.push_back(abivtp_in);
+
+    return abivtp.size() - 1;
+}
+
+[[maybe_unused]] size_t Coordsys_model::add_areflp(arefl2dp const& areflp_in)
+{
+
+    areflp.push_back(areflp_in);
+
+    return areflp.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -144,6 +160,8 @@ void Coordsys_model::clear()
     abivt.clear();
     aproj.clear();
     arefl.clear();
+    abivtp.clear();
+    areflp.clear();
 
     m_label.clear();
 }
