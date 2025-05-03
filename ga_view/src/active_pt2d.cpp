@@ -73,6 +73,7 @@ void active_pt2d::setScenePos(pt2d const& pos)
 
         prepareGeometryChange();
         m_pos = pos;
+        emit pointMoved();
     }
 }
 
@@ -94,6 +95,7 @@ void active_pt2d::posChanged()
     // position changed by external influence, update m_pos
     QPointF npos = pos();
     m_pos = pt2d(cs->x.w_to_a(npos.x()), cs->y.w_to_a(npos.y()));
+    emit pointMoved();
 }
 
 void active_pt2d::hoverEnterEvent(QGraphicsSceneHoverEvent* event)

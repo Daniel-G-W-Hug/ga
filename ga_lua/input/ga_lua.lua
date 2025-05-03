@@ -190,7 +190,7 @@ print("project_onto(vec2d.new(3,7),vec2d.new(1,1))", project_onto(vec2d.new(3, 7
 print("reject_from(vec2d.new(3,7),vec2d.new(1,1))", reject_from(vec2d.new(3, 7), vec2d.new(1, 1)))
 
 print("reflect_on_vec(vec2d.new(-2,2),vec2d.new(0,1))", reflect_on_vec(vec2d.new(-2, 2), vec2d.new(0, 1)))
-print("reflect_on_hyp(vec2d.new(-2,2),vec2d.new(0,1))", reflect_on_hyp(vec2d.new(-2, 2), vec2d.new(0, 1)))
+print("reflect_on(vec2d.new(-2,2),vec2d.new(0,1))", reflect_on(vec2d.new(-2, 2), vec2d.new(0, 1)))
 
 -- geometric products
 print("mvec2d.new(2,-3,5,7)*mvec2d.new(1,2,-5,12):", mvec2d.new(2, -3, 5, 7) * mvec2d.new(1, 2, -5, 12))
@@ -473,7 +473,7 @@ print("project_onto(vec3d.new(3,7,5),vec3d.new(1,1,1))", project_onto(vec3d.new(
 print("reject_from(vec3d.new(3,7,5),vec3d.new(1,1,1))", reject_from(vec3d.new(3, 7, 5), vec3d.new(1, 1, 1)))
 print()
 print("reflect_on_vec(vec3d.new(-2,2,0),vec3d.new(0,0,1))", reflect_on_vec(vec3d.new(-2, 2, 0), vec3d.new(0, 0, 1)))
-print("reflect_on_hyp(vec3d.new(-2,2,0),vec3d.new(0,0,1))", reflect_on_hyp(vec3d.new(-2, 2, 0), vec3d.new(0, 0, 1)))
+print("reflect_on(vec3d.new(-2,2,0),vec3d.new(0,0,1))", reflect_on(vec3d.new(-2, 2, 0), vec3d.new(0, 0, 1)))
 print()
 
 print("project_onto(vec3d.new(3,7,5),bivec3d.new(1,0,0)))", project_onto(vec3d.new(3, 7, 5), bivec3d.new(1, 0, 0)))

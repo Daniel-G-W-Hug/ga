@@ -803,19 +803,16 @@ void register_functions(sol::state& lua)
                       sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reject_from)));
 
     lua.set_function(
-        "reflect_on_hyp",
-        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on_hyp),
-                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on_hyp)));
+        "reflect_on",
+        sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on),
+                      sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on),
+                      sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reflect_on),
+                      sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(reflect_on)));
 
     lua.set_function(
         "reflect_on_vec",
         sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on_vec),
                       sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on_vec)));
-
-    lua.set_function(
-        "reflect_on",
-        sol::overload(sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reflect_on),
-                      sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(reflect_on)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // common helper functions for scripting in lua
@@ -838,21 +835,26 @@ void register_constants(sol::state& lua)
 {
     // TODO: manipulate global lua metatable such that these entries
     //       cannot be modified by the user
-    //       (currently these values can be changed)
 
     using namespace hd::ga;
     using namespace hd::ga::ega;
 
     // general constants
-    lua["eps"] = eps;
+    lua["eps"] = eps; // this is from ga_value_t.hpp,
+                      // while all else is from ga_usr_consts.hpp
 
     // 2d constants
     lua["e1_2d"] = e1_2d; // as 2d vector
     lua["e2_2d"] = e2_2d;
+    lua["x_axis_2d"] = x_axis_2d;
+    lua["y_axis_2d"] = y_axis_2d;
+    lua["origin_2d"] = origin_2d;
+
     lua["e1m_2d"] = e1m_2d; // as 2d multivector
     lua["e2m_2d"] = e2m_2d;
 
-    lua["I_2d"] = I_2d;       // as pscalar2d
+    lua["I_2d"] = I_2d; // as pscalar2d
+    lua["e12_2d"] = I_2d;
     lua["Im_2d"] = Im_2d;     // as 2d multivector
     lua["Im_2d_E"] = Im_2d_E; // as even grade 2d multivector
 
@@ -860,6 +862,11 @@ void register_constants(sol::state& lua)
     lua["e1_3d"] = e1_3d; // as 3d vector
     lua["e2_3d"] = e2_3d;
     lua["e3_3d"] = e3_3d;
+    lua["x_axis_3d"] = x_axis_3d;
+    lua["y_axis_3d"] = y_axis_3d;
+    lua["z_axis_3d"] = z_axis_3d;
+    lua["origin_3d"] = origin_3d;
+
     lua["e1m_3d"] = e1m_3d; // as 3d multivector
     lua["e2m_3d"] = e2m_3d;
     lua["e3m_3d"] = e3m_3d;
@@ -867,6 +874,11 @@ void register_constants(sol::state& lua)
     lua["e23_3d"] = e23_3d; // as 3d bivector
     lua["e31_3d"] = e31_3d;
     lua["e12_3d"] = e12_3d;
+    lua["yz_plane_3d"] = yz_plane_3d;
+    lua["zx_plane_3d"] = zx_plane_3d;
+    lua["xy_plane_3d"] = xy_plane_3d;
+
+
     lua["e23m_3d"] = e23m_3d; // as 3d multivector
     lua["e31m_3d"] = e31m_3d;
     lua["e12m_3d"] = e12m_3d;
@@ -874,7 +886,8 @@ void register_constants(sol::state& lua)
     lua["e31me_3d"] = e31me_3d;
     lua["e12me_3d"] = e12me_3d;
 
-    lua["I_3d"] = I_3d;       // as pscalar3d
+    lua["I_3d"] = I_3d; // as pscalar3d
+    lua["e123_3d"] = e123_3d;
     lua["Im_3d"] = Im_3d;     // as 3d multivector
     lua["Im_3d_U"] = Im_3d_U; // as uneven grade 3d multivector
 }

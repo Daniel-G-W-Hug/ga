@@ -48,9 +48,9 @@ void active_vt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     }
 
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(scenePos_beg().x), cs->y.a_to_w(scenePos_beg().y));
+        QPointF(cs->x.au_to_w(scenePos_beg().x), cs->y.au_to_w(scenePos_beg().y));
     QPointF end_pos =
-        QPointF(cs->x.a_to_w(scenePos_end().x), cs->y.a_to_w(scenePos_end().y));
+        QPointF(cs->x.au_to_w(scenePos_end().x), cs->y.au_to_w(scenePos_end().y));
 
     QPen pen = qp->pen();
     pen.setWidth(2);
@@ -77,18 +77,18 @@ QRectF active_vt2d::boundingRect() const
 {
     // give bounding box in item coordinate system
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(scenePos_beg().x), cs->y.a_to_w(scenePos_beg().y));
+        QPointF(cs->x.au_to_w(scenePos_beg().x), cs->y.au_to_w(scenePos_beg().y));
     QPointF end_pos =
-        QPointF(cs->x.a_to_w(scenePos_end().x), cs->y.a_to_w(scenePos_end().y));
+        QPointF(cs->x.au_to_w(scenePos_end().x), cs->y.au_to_w(scenePos_end().y));
     return QRectF(beg_pos, end_pos).normalized();
 }
 
 QPainterPath active_vt2d::shape() const
 {
     QPointF beg_pos =
-        QPointF(cs->x.a_to_w(scenePos_beg().x), cs->y.a_to_w(scenePos_beg().y));
+        QPointF(cs->x.au_to_w(scenePos_beg().x), cs->y.au_to_w(scenePos_beg().y));
     QPointF end_pos =
-        QPointF(cs->x.a_to_w(scenePos_end().x), cs->y.a_to_w(scenePos_end().y));
+        QPointF(cs->x.au_to_w(scenePos_end().x), cs->y.au_to_w(scenePos_end().y));
     return vectorShape(beg_pos, end_pos);
 }
 

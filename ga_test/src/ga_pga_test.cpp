@@ -590,8 +590,21 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // point reflected on a line
         vec2dp p{4, 1, 1};
-        auto B2 = e31_2dp;
+        auto B2 = e31_2dp; // B2 = x_axis_2dp, just modifyies y-coordinate
         CHECK(unitize(reflect_on(p, B2)) == vec2dp{4, -1, 1});
+
+        // coordinate axis reflected on perpendicular axis yield their negatives
+        CHECK(reflect_on(y_axis_2dp, x_axis_2dp) == -y_axis_2dp);
+        CHECK(reflect_on(x_axis_2dp, y_axis_2dp) == -x_axis_2dp);
+
+        // coordinate axis reflected on itself remains itself (identity)
+        CHECK(reflect_on(x_axis_2dp, x_axis_2dp) == x_axis_2dp);
+        CHECK(reflect_on(y_axis_2dp, y_axis_2dp) == y_axis_2dp);
+
+        // lines parallel to coordinate axis after reflexion:
+        // remain parallel, have same orientation, but are on other side of axis
+        CHECK(reflect_on(bivec2dp{0, 1, 1}, x_axis_2dp) == bivec2dp{0, 1, -1});
+        CHECK(reflect_on(bivec2dp{-1, 0, 1}, y_axis_2dp) == bivec2dp{-1, 0, -1});
     }
 
 
@@ -2916,10 +2929,121 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // plane
         trivec3dp t{e431_3dp};
 
-        vec3dp v{4, 1, 0, 1};
-        CHECK(unitize(reflect_on(v, t)) == vec3dp{4, -1, 0, 1});
-    }
+        // point to reflect
+        auto v = vec3dp{1, 3, 1, 1};
+        auto vr = vec3dp{1, -3, 1, 1};
 
+        // fmt::println("");
+        // fmt::println("v = {}", v);
+        // fmt::println("reflect_on(v, t) = {}", reflect_on(v, t));
+        // fmt::println("unitize(reflect_on(v, t)) = {}", unitize(reflect_on(v, t)));
+        // fmt::println("vr = {}", vr);
+        // fmt::println("");
+
+        CHECK(unitize(reflect_on(v, t)) == vr);
+
+        // line to reflect
+        p1 = vec3dp{1, 1, 0, 1};
+        p2 = vec3dp{3, 2, 0, 1};
+        auto p1r = vec3dp{1, -1, 0, 1};
+        auto p2r = vec3dp{3, -2, 0, 1};
+        auto l12 = unitize(wdg(p1, p2));
+        auto l12r = unitize(wdg(p1r, p2r));
+
+        // fmt::println("");
+        // fmt::println("l12 = {}, att(l12) = {}", l12, att(l12));
+        // fmt::println("l12r = {}, att(l12r) = {}", l12r, att(l12r));
+        // fmt::println("");
+
+        CHECK(reflect_on(l12, t) == l12r);
+
+        // plane to reflect
+        p3 = vec3dp{1, 1, 1, 1};
+        auto p3r = vec3dp{1, -1, 1, 1};
+        auto p123 = unitize(wdg(-l12, p3));
+        auto p123r = unitize(wdg(l12r, p3r));
+
+        // fmt::println("");
+        // fmt::println("p123 = {}, att(p123) = {}", p123, att(p123));
+        // fmt::println("p123r = {}, att(p123r) = {}", p123r, att(p123r));
+        // fmt::println("");
+
+        CHECK(reflect_on(p123, t) == p123r);
+
+
+        // point reflected on a plane
+        vec3dp p{4, 1, 1, 1};
+        CHECK(unitize(reflect_on(p, zx_plane_3dp)) == vec3dp{4, -1, 1, 1});
+
+        // coordinate axis reflected on perpendicular base planes yield their negatives
+        CHECK(reflect_on(x_axis_3dp, yz_plane_3dp) == -x_axis_3dp);
+        CHECK(reflect_on(y_axis_3dp, zx_plane_3dp) == -y_axis_3dp);
+        CHECK(reflect_on(z_axis_3dp, xy_plane_3dp) == -z_axis_3dp);
+
+        // lines parallel to coordinate axis after reflexion:
+        // remain parallel, have same orientation, but are on other side of axis
+        p1 = vec3dp{0, 1, 1, 1};
+        p2 = vec3dp{1, 1, 1, 1};
+        l12 = unitize(wdg(p1, p2)); // l12 = BiVec3dp(1, 0, 0, 0, 1, -1)
+        p1r = unitize(reflect_on(p1, zx_plane_3dp));
+        p2r = unitize(reflect_on(p2, zx_plane_3dp));
+        l12r = unitize(wdg(p1r, p2r)); // l12r = BiVec3dp(1, 0, 0, 0, 1, 1)
+        auto basept = unitize(rwdg(l12, yz_plane_3dp));
+        auto baseptr = unitize(rwdg(l12r, yz_plane_3dp));
+
+        // fmt::println("");
+        // fmt::println("p1  = {},  p2 = {}", p1, p2);
+        // fmt::println("p1r = {}, p2r = {}", p1r, p2r);
+        // fmt::println("");
+        // fmt::println("l12 = {}, att(l12) = {}", l12, att(l12));
+        // fmt::println("l12r = {}, att(l12r) = {}", l12r, att(l12r));
+        // fmt::println("");
+        // fmt::println("basept  = {}", basept);
+        // fmt::println("baseptr = {}", baseptr);
+        // fmt::println("");
+
+        CHECK(p1r == vec3dp{0, -1, 1, 1});
+        CHECK(p2r == vec3dp{1, -1, 1, 1});
+        CHECK(reflect_on(l12, zx_plane_3dp) == bivec3dp{1, 0, 0, 0, 1, 1});
+        CHECK(reflect_on(l12, xy_plane_3dp) == bivec3dp{1, 0, 0, 0, -1, -1});
+        CHECK(basept == vec3dp{0, 1, 1, 1});
+        CHECK(baseptr == vec3dp{0, -1, 1, 1});
+
+        // a coordinate plane reflected on itself changes orientation, i.e. direction of
+        // its normal vector!
+        CHECK(reflect_on(yz_plane_3dp, yz_plane_3dp) == -yz_plane_3dp);
+        CHECK(reflect_on(zx_plane_3dp, zx_plane_3dp) == -zx_plane_3dp);
+        CHECK(reflect_on(xy_plane_3dp, xy_plane_3dp) == -xy_plane_3dp);
+
+        // a plane with a given distance to the origin, reflected on a plane parallel to
+        // itself containing the origin, changes orientation and has the same distance to
+        // the origin after the reflection
+        p3 = {1, 1, 0, 1};
+        p123 = unitize(wdg(wdg(p1, p2), p3));   // TriVec3dp(0, 1, 0, -1)
+        p123r = reflect_on(p123, zx_plane_3dp); // TriVec3dp(-0, -1, -0, -1)
+
+        auto s123 = support3dp(p123);   // point in p123 that is closest to the origin
+        auto s123r = support3dp(p123r); // point in p123r that is closest to the origin
+
+        // fmt::println("");
+        // fmt::println("p123  = {}", p123);
+        // fmt::println("p123r = {}", p123r);
+        // fmt::println("att(p123)  = {}", att(p123));
+        // fmt::println("att(p123r) = {}", att(p123r));
+        // fmt::println("support3dp(p123)  = {}", s123);
+        // fmt::println("support3dp(p123r) = {}", s123r);
+        // fmt::println("");
+
+        CHECK(p123.x == -p123r.x); // minus sign is the mirrored normal
+        CHECK(p123.y == -p123r.y);
+        CHECK(p123.z == -p123r.z);
+        CHECK(p123.w == p123r.w);  // distance to origin is unchanged
+        CHECK(s123.y == -s123r.y); // just the sign has changed
+        CHECK(att(p123) == -att(p123r));
+
+        // reflect planes on planes directly
+        CHECK(reflect_on(e423_3dp + e412_3dp, e412_3dp) == e423_3dp - e412_3dp);
+    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // MVec3dp<T> basic test cases
@@ -4605,7 +4729,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     TEST_CASE("MVec3dp: simple applications, complements, contraction, "
               "expansions")
     {
-        fmt::println("MVec3dp: simple applications, complements, contraction,"
+        fmt::println("MVec3dp: simple applications, complements, contraction, "
                      "expansions");
 
         auto s1 = scalar3dp{2.0};

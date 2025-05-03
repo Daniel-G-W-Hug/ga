@@ -25,7 +25,7 @@ class active_bivt2d : public QObject, public QGraphicsItem {
 
   public:
 
-    enum { Type = UserType + 3 };
+    enum { Type = UserType + 3 }; // for use in w_common.cpp
     int type() const override { return Type; }
 
     active_bivt2d(Coordsys* cs, w_Coordsys* wcs, active_pt2d* uend, active_pt2d* vend,

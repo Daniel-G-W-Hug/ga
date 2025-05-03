@@ -22,31 +22,9 @@ using namespace fmt::literals; // just to make the format literals visible
 
 enum Symbol { plus, cross, circle, square };
 
-struct pt2d : public vec2d { // coordinates of point on x and y axis
-
-    using vec2d::vec2d; // inherit base class ctors
-    using vec2d::x;
-    using vec2d::y;
-};
-
-struct pt2dp : public vec2dp { // coordinates of point on x and y axis, z=1.0
-
-    using vec2dp::vec2dp; // inherit base class ctors
-    using vec2dp::x;
-    using vec2dp::y;
-    using vec2dp::z;
-};
-
-struct bivt2dp : public bivec2dp {
-
-    using bivec2dp::bivec2dp; // inherit base class ctors
-    using bivec2dp::x;
-    using bivec2dp::y;
-    using bivec2dp::z;
-
-    bivt2dp() = default;
-    bivt2dp(bivec2dp const& b_in) : bivec2dp(b_in) {}
-};
+using pt2d = hd::ga::Vec2d<value_t>;
+using pt2dp = hd::ga::Vec2dp<value_t>;
+using bivt2dp = hd::ga::BiVec2dp<value_t>;
 
 // this struct should be used by the user to mark points
 struct pt2d_mark {
@@ -147,6 +125,24 @@ struct arefl2d {
     size_t n2end_idx;
 };
 
+// active projective vector as directed line between two active points
+struct abivt2dp {
+
+    // reference to points used here, because this enables
+    // use of unique address of pt2d for mapping to users of active points in scene
+    size_t beg_idx;
+    size_t end_idx;
+};
+
+// active projective reflection using four active points
+struct arefl2dp {
+
+    size_t p1_idx; // bvt1 = wdg(p1,p2)
+    size_t p2_idx;
+    size_t p3_idx; // bvt2 = wdg(p2,p3)
+    size_t p4_idx;
+};
+
 // ----------------------------------------------------------------------------
 // convenience alias to make pt2d and ln2d look similar
 // convenience alias to make pt2dp and ln2dp look similar
@@ -194,6 +190,12 @@ class Coordsys_model {
     // add active reflection
     [[maybe_unused]] size_t add_arefl(arefl2d const& refl_in);
 
+    // add active projective bivector (= a projective line)
+    [[maybe_unused]] size_t add_abivtp(abivt2dp const& abivtp_in);
+
+    // add active projective reflection
+    [[maybe_unused]] size_t add_areflp(arefl2dp const& reflp_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() { return m_label; }
 
@@ -228,7 +230,7 @@ class Coordsys_model {
     // data for active vectors using active points (same index is for same point)
     std::vector<avt2d> avt;
 
-    // data for active vectors using active points (same index is for same point)
+    // data for active bivectors using active points (same index is for same point)
     std::vector<abivt2d> abivt;
 
     // data for active reflections using active points (same index is for same point)
@@ -236,6 +238,12 @@ class Coordsys_model {
 
     // data for active reflections using active points (same index is for same point)
     std::vector<arefl2d> arefl;
+
+    // data for active projective bivectors using active points
+    std::vector<abivt2dp> abivtp;
+
+    // data for active projective reflections using active points
+    std::vector<arefl2dp> areflp;
 
     // model label, e.g. time stamp description of current Coordsys_model
     std::string m_label{};

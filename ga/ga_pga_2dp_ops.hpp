@@ -2385,13 +2385,6 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v
 ////////////////////////////////////////////////////////////////////////////////
 // reflections
 ////////////////////////////////////////////////////////////////////////////////
-// Macdonald p. 129:
-//
-// Reflect a j-blade u in the k-dimensional subspace B is the blade
-//
-//   u_reflected = (-1)^[j*(k+1)]*B*u*inv(B)
-//
-////////////////////////////////////////////////////////////////////////////////
 
 // reflect a vector u in an arbitrary bivector, i.e. a line
 // B must be unitized
@@ -2412,7 +2405,7 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const
                                                                BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(-gr2(rgpr(rgpr(B, UB), B)));
+    return BiVec2dp<ctype>(gr2(rgpr(rgpr(B, UB), B)));
 }
 
 } // namespace hd::ga::pga

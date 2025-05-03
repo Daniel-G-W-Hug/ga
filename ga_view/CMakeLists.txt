@@ -42,12 +42,14 @@ set(SOURCES src/main.cpp
             src/active_bivt2d.cpp
             src/active_projection.cpp
             src/active_reflection.cpp
+            src/active_bivt2dp.cpp
             src/item_pt2d.cpp
             src/item_pt2dp.cpp
             src/item_ln2d.cpp
             src/item_cln2dp.cpp
             src/item_vt2d.cpp
-            src/item_bivt2dp.cpp)
+            src/item_bivt2dp.cpp
+            src/active_reflectionp.cpp)
 
 add_executable(${EXEC_NAME} ${SOURCES} )
 
