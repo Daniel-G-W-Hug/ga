@@ -202,7 +202,7 @@ void active_bivt2dp::reset_item_data()
 
         // determine the angle of the projective line
         auto const x_axis = bivec2dp{0, 1, 0};
-        auto const y_axis = bivec2dp{1, 0, 0};
+        auto const y_axis = bivec2dp{1, 0, 0}; // really this is -y_axis_2dp
         auto const phi_x = angle(x_axis, bvt);
         auto const phi_y = angle(y_axis, bvt);
 

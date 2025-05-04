@@ -301,7 +301,7 @@ void active_reflectionp::reset_item_data()
     auto reset_bivecp = [this](pt2dp p, pt2dp q) -> res_vec2dp {
         // determine the angle of the projective line
         auto const x_axis = bivec2dp{0, 1, 0};
-        auto const y_axis = bivec2dp{1, 0, 0};
+        auto const y_axis = bivec2dp{1, 0, 0}; // really this is -y_axis_2dp
 
         auto bvt = wdg(p, q);
         auto const phi_x = angle(x_axis, bvt);

@@ -477,7 +477,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
     //     fmt::println("Vec2dp: operations - angle III (angle between lines)");
 
     //     auto x_axis = bivec2dp(0, 1, 0);
-    //     auto y_axis = bivec2dp(1, 0, 0);
+    //     auto y_axis = bivec2dp(1, 0, 0); // really this is -y_axis_2dp
 
     //     fmt::println("");
 
