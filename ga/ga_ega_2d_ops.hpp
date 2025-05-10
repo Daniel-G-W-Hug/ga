@@ -1161,6 +1161,46 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Scalar2d<T> s1,
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// commutator product (the asymmetric part of the geometric product)
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr MVec2d<std::common_type_t<T, U>> cmt(MVec2d<T> const& A,
+                                                      MVec2d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2d<ctype>(0.0, -A.c2 * B.c3 + A.c3 * B.c2, A.c1 * B.c3 - A.c3 * B.c1,
+                         A.c1 * B.c2 - A.c2 * B.c1);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> cmt(PScalar2d<T> ps, Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(0.0, ps * v.y, -ps * v.x, 0.0);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2d<std::common_type_t<T, U>> cmt(Vec2d<T> const& v, PScalar2d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(0.0, -v.y * ps, v.x * ps, 0.0);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr PScalar2d<std::common_type_t<T, U>> cmt(Vec2d<T> const& v1,
+                                                         Vec2d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(v1.x * v2.y - v1.y * v2.x);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // geometric products
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1646,7 +1686,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> exp([[maybe_unused]] PScalar
                                                         U theta)
 {
     // PScalar2d<T> is just used here for a unique overload of exp()
-    // and to make the function signature similar to the 3D case
+    // and to make the function signature similar to the 3d case
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(Scalar2d<ctype>(std::cos(theta)),
                            PScalar2d<ctype>(std::sin(theta)));
@@ -1676,7 +1716,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> rotor([[maybe_unused]] PScal
                                                           U theta)
 {
     // PScalar2d<T> is just used here to be able to overload exp
-    // and to make the function similar to the 3D case
+    // and to make the function similar to the 3d case
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = -0.5 * theta;
     return MVec2d_E<ctype>(Scalar2d<ctype>(std::cos(half_angle)),
@@ -1911,7 +1951,7 @@ inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
     return Vec2d<ctype>(v1 - project_onto(v1, v2));
 
     // works, but is more effort compared to solution via projection and vector difference
-    // return Vec3d<ctype>(gr1(wdg(v1, v2) * inv(v2)));
+    // return Vec2d<ctype>(gr1(wdg(v1, v2) * inv(v2)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

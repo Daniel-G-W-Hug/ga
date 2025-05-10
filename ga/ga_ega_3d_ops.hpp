@@ -1234,7 +1234,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator>>(Scalar3d<T> s1,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// alternative multivector products (in use instead of contractions)
+// classical cross product
 ////////////////////////////////////////////////////////////////////////////////
 
 // cross-product between two vectors (only defined in 3d)
@@ -1251,20 +1251,63 @@ inline constexpr Vec3d<std::common_type_t<T, U>> cross(Vec3d<T> const& v1,
 //     double cross product identity:
 //     a x (b x c) = -dot(a, wdg(b,c)) = -a.(b^c)
 
-// return commutator product cmt(A,B) of two bivectors A and B (= a bivector)
-// cmt(A,B) = 0.5*(AB-BA) = gr2(A * B)
-// the commutator product is antisymmetric, i.e. it is zero when a bivector is
-// multiplied by itself, i.e. in that case only the dot product remains
-// as the symmetric part
+
+////////////////////////////////////////////////////////////////////////////////
+// commutator product (the asymmetric part of the geometric product)
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& A,
-                                                       BiVec3d<U> const& B)
+inline constexpr MVec3d<std::common_type_t<T, U>> cmt(MVec3d<T> const& A,
+                                                      MVec3d<U> const& B)
 {
-    // this implementation is only valid in an orthonormal basis
     using ctype = std::common_type_t<T, U>;
-    return BiVec3d<ctype>(-A.y * B.z + A.z * B.y, -A.z * B.x + A.x * B.z,
-                          -A.x * B.y + A.y * B.x);
+    return MVec3d<ctype>(0.0, -A.c2 * B.c6 + A.c3 * B.c5 - A.c5 * B.c3 + A.c6 * B.c2,
+                         A.c1 * B.c6 - A.c3 * B.c4 + A.c4 * B.c3 - A.c6 * B.c1,
+                         -A.c1 * B.c5 + A.c2 * B.c4 - A.c4 * B.c2 + A.c5 * B.c1,
+                         A.c2 * B.c3 - A.c3 * B.c2 - A.c5 * B.c6 + A.c6 * B.c5,
+                         -A.c1 * B.c3 + A.c3 * B.c1 + A.c4 * B.c6 - A.c6 * B.c4,
+                         A.c1 * B.c2 - A.c2 * B.c1 - A.c4 * B.c5 + A.c5 * B.c4, 0.0);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B1,
+                                                       BiVec3d<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3d<ctype>(-B1.y * B2.z + B1.z * B2.y, B1.x * B2.z - B1.z * B2.x,
+                          -B1.x * B2.y + B1.y * B2.x);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B,
+                                                     Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(-B.y * v.z + B.z * v.y, B.x * v.z - B.z * v.x,
+                        -B.x * v.y + B.y * v.x);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v,
+                                                     BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(-v.y * B.z + v.z * B.y, v.x * B.z - v.z * B.x,
+                        -v.x * B.y + v.y * B.x);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v1,
+                                                       Vec3d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
+                        v1.x * v2.y - v1.y * v2.x);
 }
 
 

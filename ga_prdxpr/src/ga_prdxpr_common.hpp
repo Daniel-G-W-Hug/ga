@@ -86,6 +86,9 @@ prd_table apply_rules_to_tab(prd_table const& tab, prd_rules const& rules);
 prd_table get_prd_tab(prd_table const& basis_tab, mvec_coeff const& mv_lcoeff,
                       mvec_coeff const& mv_rcoeff);
 
+prd_table get_prd_tab_sym(prd_table const& tab);  // get the symmetric part
+prd_table get_prd_tab_asym(prd_table const& tab); // get the asymmetric part
+
 mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                                filter_2d lfilter, filter_2d rfilter,
                                brace_switch brsw = brace_switch::no_braces);

@@ -1215,21 +1215,57 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> operator>>(Scalar2dp<T> s1,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// alternative multivector products (in use instead of contractions)
+// commutator product (the asymmetric part of the geometric product)
 ////////////////////////////////////////////////////////////////////////////////
 
-// return commutator product cmt(A,B) of two bivectors A and B (= a bivector)
-// cmt(A,B) = 0.5*(AB-BA) = gr2(A * B)
-// the commutator product is antisymmetric, i.e. it is zero when a bivector is
-// multiplied by itself, i.e. in that case only the dot product remains
-// as the symmetric part
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline BiVec2dp<std::common_type_t<T, U>> cmt(BiVec2dp<T> const& A, BiVec2dp<U> const& B)
+inline constexpr MVec2dp<std::common_type_t<T, U>> cmt(MVec2dp<T> const& A,
+                                                       MVec2dp<U> const& B)
 {
-    // this implementation is only valid in an orthonormal basis
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(A.z * B.y - A.y * B.z, A.x * B.z - A.z * B.x, ctype(0.0));
+    return MVec2dp<ctype>(0.0, -A.c2 * B.c6 + A.c6 * B.c2, A.c1 * B.c6 - A.c6 * B.c1,
+                          -A.c1 * B.c5 + A.c2 * B.c4 - A.c4 * B.c2 + A.c5 * B.c1,
+                          A.c2 * B.c3 - A.c3 * B.c2 - A.c5 * B.c6 + A.c6 * B.c5,
+                          -A.c1 * B.c3 + A.c3 * B.c1 + A.c4 * B.c6 - A.c6 * B.c4,
+                          A.c1 * B.c2 - A.c2 * B.c1, 0.0);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> cmt(BiVec2dp<T> const& B1,
+                                                        BiVec2dp<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(-B1.y * B2.z + B1.z * B2.y, B1.x * B2.z - B1.z * B2.x, 0.0);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2dp<std::common_type_t<T, U>> cmt(BiVec2dp<T> const& B,
+                                                      Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(B.z * v.y, -B.z * v.x, -B.x * v.y + B.y * v.x);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr Vec2dp<std::common_type_t<T, U>> cmt(Vec2dp<T> const& v,
+                                                      BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(-v.y * B.z, v.x * B.z, -v.x * B.y + v.y * B.x);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> cmt(Vec2dp<T> const& v1,
+                                                        Vec2dp<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
+                         v1.x * v2.y - v1.y * v2.x);
 }
 
 
