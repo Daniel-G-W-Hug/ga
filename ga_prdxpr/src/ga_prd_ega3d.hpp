@@ -141,6 +141,7 @@ const mvec_coeff mv3d_coeff_svBps2 = {"s2",   "v2.x", "v2.y", "v2.z",
 
 
 void generate_and_print_ega3d_gpr(); // geometric product
+void generate_and_print_ega3d_cmt(); // commutator product (asymmetric part of gpr)
 void generate_and_print_ega3d_wdg(); // wegde product (=outer product)
 void generate_and_print_ega3d_dot(); // dot product (=inner product)
 

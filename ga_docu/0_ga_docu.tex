@@ -77,6 +77,8 @@
 % bulk and weight (by adding a filled or empty circle as right downstairs index)
 \newcommand{\bulk}[1]{\ensuremath{{#1}_\bullet}}
 \newcommand{\weight}[1]{\ensuremath{{#1}_\circ}}
+\newcommand{\bulkdual}[1]{\ensuremath{{#1}_\star}}
+\newcommand{\weightdual}[1]{\ensuremath{{#1}_\circ}}
 
 % parallel sign scaled to the hight of the perpendicular sign (package scalerel)
 \newcommand*{\parall}{\stretchrel*{\parallel}{\perp}}
@@ -90,6 +92,11 @@
 % for typesetting C++ (uses packages relsize and xspace)
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
 \newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
+
+% in addition to \nrm{} we need \bulknrm and \weightnrm{}
+\newcommand{\bulknrm}[1]{\ensuremath{\bulk{\nrm{#1}}}}
+\newcommand{\weightnrm}[1]{\ensuremath{\weight{\nrm{#1}}}}
+
 
 
 \begin{document}

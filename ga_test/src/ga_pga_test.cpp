@@ -2316,6 +2316,16 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(dot(att(l12), att(lp6)) == 0);
 
         CHECK(pt12 == pt12p);
+
+        // constructing lines from points and from points and directions
+        auto lp = wdg(vec2dp{2, 2, 1}, vec2dp{3, 2, 1}); // line from two points
+        auto ld = wdg(vec2dp{2, 2, 1}, vec2dp{1, 0, 0}); // line from a point and a
+
+        // fmt::println("");
+        // fmt::println("lp      = {}, ld      = {}", lp, ld);
+        // fmt::println("");
+
+        CHECK(lp == ld); // both lines are equivalent
     }
 
 

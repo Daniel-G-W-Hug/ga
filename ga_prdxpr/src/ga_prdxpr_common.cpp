@@ -344,6 +344,122 @@ prd_table get_prd_tab(prd_table const& basis_tab, mvec_coeff const& mv_lcoeff,
     return prd_tab;
 }
 
+prd_table get_prd_tab_sym(prd_table const& tab)
+{
+    //
+    // a*b = 0.5*(a*b + b*a) + 0.5*(a*b - b*a) = (a*b)_sym + (a*b)_asym
+    //
+    // provide the symmetric part of the product table (a*b)_sym = 0.5*(a*b + b*a)
+    //
+
+    // make sure the table has quadradic shape
+    for (size_t i = 0; i < tab.size(); ++i) {
+        if (tab[i].size() != tab.size()) {
+            throw std::runtime_error("Product tables must be square matrices. Sizes of "
+                                     "rows and columns must match.");
+        }
+    }
+
+    prd_table sym{tab}; // create a table of the right size by copying
+
+    for (size_t i = 0; i < tab.size(); ++i) {
+        for (size_t j = 0; j < tab[i].size(); ++j) {
+
+            // sym[i][j] = tab[i][j] is already contained from initialization
+            if (sym[i][j] == tab[j][i]) continue; // symmetric part already contained
+
+            if ((sym[i][j].starts_with(minus_str) &&
+                 sym[i][j].substr(1, sym[i][j].size()) == tab[j][i]) ||
+                (tab[j][i].starts_with(minus_str) &&
+                 tab[j][i].substr(1, tab[j][i].size()) == sym[i][j])) {
+                sym[i][j] = zero_str; // asymmetric part, so set element to zero_str
+            }
+            else if (sym[i][j].starts_with(minus_str) && tab[j][i] == zero_str) {
+                sym[i][j] = "-0.5 * " + sym[i][j].substr(1, sym[i][j].size());
+            }
+            else if (sym[i][j] == zero_str && tab[j][i].starts_with(minus_str)) {
+                sym[i][j] = "-0.5 * " + tab[j][i].substr(1, tab[j][i].size());
+            }
+            else if (!sym[i][j].starts_with(minus_str) && tab[j][i] == zero_str) {
+                sym[i][j] = "0.5 * " + sym[i][j];
+            }
+            else if (sym[i][j] == zero_str && !tab[j][i].starts_with(minus_str)) {
+                sym[i][j] = "0.5 * " + tab[j][i];
+            }
+            else {
+                // this occurs only when tab does not contain expected base
+                // vector products
+                sym[i][j] = "0.5 * (" + tab[i][j] + space_str + plus_str + space_str +
+                            tab[j][i] + ")";
+            }
+        }
+    }
+
+    // fmt::println("");
+    // print_prd_tab(sym);
+    // fmt::println("");
+
+    return sym;
+}
+prd_table get_prd_tab_asym(prd_table const& tab)
+{
+    //
+    // a*b = 0.5*(a*b + b*a) + 0.5*(a*b - b*a) = (a*b)_sym + (a*b)_asym
+    //
+    // provide the asymmetric part of the product table (a*b)_asym = 0.5*(a*b - b*a)
+    //
+
+    // make sure the table has quadradic shape
+    for (size_t i = 0; i < tab.size(); ++i) {
+        if (tab[i].size() != tab.size()) {
+            throw std::runtime_error("Product tables must be square matrices. Sizes of "
+                                     "rows and columns must match.");
+        }
+    }
+
+    prd_table asym{tab}; // create a table of the right size by copying
+
+    for (size_t i = 0; i < tab.size(); ++i) {
+        for (size_t j = 0; j < tab[i].size(); ++j) {
+
+            // asym[i][j] = tab[i][j] is already contained from initialization
+            if ((asym[i][j].starts_with(minus_str) &&
+                 asym[i][j].substr(1, asym[i][j].size()) == tab[j][i]) ||
+                (tab[j][i].starts_with(minus_str) &&
+                 tab[j][i].substr(1, tab[j][i].size()) == asym[i][j])) {
+                continue; // asymmetric part already contained
+            }
+
+            if (asym[i][j] == tab[j][i]) {
+                asym[i][j] = zero_str; // symmetric part, so set element to zero_str
+            }
+            else if (asym[i][j].starts_with(minus_str) && tab[j][i] == zero_str) {
+                asym[i][j] = "-0.5 * " + asym[i][j].substr(1, asym[i][j].size());
+            }
+            else if (asym[i][j] == zero_str && tab[j][i].starts_with(minus_str)) {
+                asym[i][j] = "0.5 * " + tab[j][i].substr(1, tab[j][i].size());
+            }
+            else if (!asym[i][j].starts_with(minus_str) && tab[j][i] == zero_str) {
+                asym[i][j] = "0.5 * " + asym[i][j];
+            }
+            else if (asym[i][j] == zero_str && !tab[j][i].starts_with(minus_str)) {
+                asym[i][j] = "-0.5 * " + tab[j][i];
+            }
+            else {
+                // this occurs only when tab does not contain expected base
+                // vector products
+                asym[i][j] = "0.5 * (" + tab[i][j] + space_str + minus_str + space_str +
+                             tab[j][i] + ")";
+            }
+        }
+    }
+
+    // fmt::println("");
+    // print_prd_tab(asym);
+    // fmt::println("");
+
+    return asym;
+}
 
 mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                                filter_2d lfilter, filter_2d rfilter, brace_switch brsw)

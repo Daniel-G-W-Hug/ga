@@ -96,9 +96,9 @@ with a positive argument under the square root due to the definition of the inne
 The contraction is explicitly defined as
 \begin{subequations}
     \begin{align}
-    A \lcontr B & = A_{\star} \vee B
+    A \lcontr B & = A \ll B = A_{\star} \vee B
     \label{eq:lcontr} \\
-    A \rcontr B & = A \vee B^{\star}
+    A \rcontr B & = A \gg B = A \vee B^{\star}
     \label{eq:rcontr}
     \end{align}
 \end{subequations}
@@ -108,9 +108,9 @@ uneven dimension the complement function regardless of the side of the operand).
 blades A and B, they satisfy
 \begin{subequations}
     \begin{align}
-    A \lcontr B & = \grprj{B \tilde{A}}{gr(B)-gr(A)}
+    A \lcontr B &  = A \ll B = \grprj{B \wedgedot \tilde{A}}{gr(B)-gr(A)}
     \label{eq:lcontr_gpr} \\
-    A \rcontr B & = \grprj{\tilde{B} A}{gr(A)-gr(B)}
+    A \rcontr B & = A \gg B = \grprj{\tilde{B} \wedgedot A}{gr(A)-gr(B)}
     \label{eq:rcontr_gpr}
     \end{align}
 \end{subequations}
@@ -118,36 +118,51 @@ and fulfill the requirement that $A \lcontr B = A \rcontr B = A \bullet B$ whene
 and $B$ have the same grade. In this case the contractions reduce to the inner product. \\
 
 
-The geometric product between and vector $v$ and a blade $B$ is defined in terms of the
+The geometric product between and vector $v$ and a blade $B$ is defined in terms of
 interior and exterior products, i.e. the right contraction $\rcontr$, the left contraction
 $\lcontr$ and wedge product $\wedge$ as follows:
 \begin{subequations}
     \begin{align}
     a \wedgedot B & =  B \rcontr a + a \wedge B
-    \label{eq:gpr_Br} \\
-    B \wedgedot a & =  a \lcontr B + B \wedge a 
-    \label{eq:gpr_Bl}
+    \label{eq:gpr_Brc} \\
+    B \wedgedot a & =  a \lcontr B + B \wedge a
+    \label{eq:gpr_Blc}
     \end{align}
 \end{subequations}
-$a = a_{\parall} + a_{\perp}$ can be decomposed into parts $a_{\parall}$ parallel to the
-$k$-blade $B$ and $a_{\perp}$ perpendicular to $B$. For equation {(\ref{eq:gpr_Br})}: $B
-\rcontr a$ is a $(k-1)$-blade. If $a_{\parall} \neq 0$ then $B \rcontr a$ represents a
-subspace of $B$. $a \wedge B$ is a $(k+1)$-blade. If $a_{\perp} \neq 0$ then $a \wedge B$
-represents span$(a,B)$.
+or sometimes using the right shift ($\gg$) or left shift ($\ll$) operators directly
+\begin{subequations}
+    \begin{align}
+    a \wedgedot B & = B \gg a + a \wedge B
+    \label{eq:gpr_Bshrc} \\
+    B \wedgedot a & =  a \ll B + B \wedge a
+    \label{eq:gpr_Bshlc}
+    \end{align}
+\end{subequations}
+as an alternative. \\
+
+Every vector $a = a_{\parall} + a_{\perp}$ can be decomposed into parts
+$a_{\parall}$ parallel to the $k$-blade $B$ and $a_{\perp}$ perpendicular to $B$. For
+equation {(\ref{eq:gpr_Bshrc})}: $B \gg a$ is a $(k-1)$-blade. If $a_{\parall} \neq 0$
+then $B \gg a$ represents a subspace of $B$. $a \wedge B$ is a $(k+1)$-blade. If
+$a_{\perp} \neq 0$ then $a \wedge B$ represents $span(a,B)$.
 
 For arguments of equal grade the contractions reduce to the dot
-product $\cdot$, so that one can write specifically for two vectors $a$ and $b$:
+product $\bullet$, so that one can write specifically for two vectors $a$ and $b$:
 \begin{equation}
-    a \wedgedot b =  a \cdot b + a \wedge b
+    a \wedgedot b =  a \bullet b + a \wedge b
 \end{equation}
 
-Text with a norm $\nrm{x}$ and an indexed norm as $\bulk{\nrm{u}}$ and
-$\weight{\nrm{u}}$.\\
+TODO: \emph{fill in further basic formulas here} \\
 
-$\bm{e}_1$, \bv{1}, $\bv{123}$
+% Text with a norm $\nrm{x}$ and an indexed norm as $\bulk{\nrm{u}}$ and
+% $\weight{\nrm{u}}$.\\
+Text with a norm $\nrm{x}$ and an indexed norm as $\bulknrm{u}$ and
+$\weightnrm{u}$.\\
+
+$\bm{e}_1$, \bv{1}, $\bv{123}$, $\filledstar$, $\star$, $\smallstar$
 \\
 
 
-TODO: \emph{fill in further basic formulas here}
+
 
 \newpage

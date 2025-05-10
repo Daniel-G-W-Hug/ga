@@ -57,6 +57,7 @@ const mvec_coeff mv2d_coeff_svps2 = {"s2", "v2.x", "v2.y", "ps2"};
 
 
 void generate_and_print_ega2d_gpr(); // geometric product
+void generate_and_print_ega2d_cmt(); // commutator product (asymmetric part of gpr)
 void generate_and_print_ega2d_wdg(); // wedge product (=outer product)
 void generate_and_print_ega2d_dot(); // dot produc (=inner product)
 

@@ -457,6 +457,7 @@ const mvec_coeff mv3dp_coeff_svBtps2 = {
 
 
 void generate_and_print_pga3dp_gpr(); // geometric product
+void generate_and_print_pga3dp_cmt(); // commutator product (asymmetric part of gpr)
 void generate_and_print_pga3dp_wdg(); // wedge product (=outer product)
 void generate_and_print_pga3dp_dot(); // scalar product (=inner product)
 
