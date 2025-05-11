@@ -1968,7 +1968,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         // fmt::println("   att(l1) = {}", att(l1));
         // fmt::println("   att(l2) = {}", att(l2));
         // fmt::println("   unitize(rwdg(l1, l2)) = {}", unitize(rwdg(l1, l2)));
-        CHECK(unitize(rwdg(l1, l2)) == Vec2dp{0.5, -2.0, 1.0});
+        CHECK(unitize(rwdg(l1, l2)) == vec2dp{0.5, -2.0, 1.0});
     }
 
     TEST_CASE("MVec2dp: euclidean distance")

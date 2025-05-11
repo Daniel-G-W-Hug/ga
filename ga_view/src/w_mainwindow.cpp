@@ -1,7 +1,7 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "w_mainwindow.hpp"
 #include "w_coordsys.hpp"
+#include "w_mainwindow.hpp"
 #include "w_statusbar.hpp"
 
 
@@ -322,7 +322,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         size_t p_id = cm.add_apt(pt2d{-1.5, -1});
         size_t q_id = cm.add_apt(pt2d{0.5, 1});
 
-        cm.add_abivtp(abivt2dp(p_id, q_id));
+        cm.add_abivtp(abivt2dp{p_id, q_id});
 
         // fmt::println("p = {}", p);
         // fmt::println("q = {}", q);
