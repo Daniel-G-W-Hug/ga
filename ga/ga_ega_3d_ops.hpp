@@ -884,7 +884,7 @@ operator<<([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] Vec3d<U> const&)
 
 // left contraction of a vector v onto a bivector B ("v contracted onto B")
 // => returns a vector
-// (originally implemented as dot-product)
+// (identical to cmt(B,v))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
@@ -1144,7 +1144,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const&
 
 // right contraction of bivector B by vector v ("B contracted by v")
 // => returns a vector
-// (originally implemented as dot-product)
+// (identical to cmt(v, B))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& B,
@@ -1280,6 +1280,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B1,
                           -B1.x * B2.y + B1.y * B2.x);
 }
 
+// cmt(B,v) = -cmt(v,B)
+// identical to (v << B)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B,
@@ -1290,6 +1292,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B,
                         -B.x * v.y + B.y * v.x);
 }
 
+// cmt(v,B) = -cmt(B,v)
+// identical to (B >> v)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v,

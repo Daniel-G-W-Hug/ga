@@ -797,8 +797,8 @@ operator<<([[maybe_unused]] PScalar2d<T>, [[maybe_unused]] Vec2d<U> const&)
 }
 
 // left contraction (v << ps) - vector v contracted onto pseudoscalar ps
-// (identical with the geometric product v * B for this case)
-// returns a vector
+// (identical with the geometric product v * ps for this case)
+// (identical with cmt(ps, v))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
@@ -1074,6 +1074,7 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps1,
 
 // right contraction (ps >> v) - pseudoscalar ps contracted by vector v
 // (identical with the geometric product ps * v for this case)
+// (identical to cmt(v,ps))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps,
@@ -1174,20 +1175,24 @@ inline constexpr MVec2d<std::common_type_t<T, U>> cmt(MVec2d<T> const& A,
                          A.c1 * B.c2 - A.c2 * B.c1);
 }
 
+// cmt(B,v) = -cmt(v,B)
+// identical to (v << ps)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2d<std::common_type_t<T, U>> cmt(PScalar2d<T> ps, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(0.0, ps * v.y, -ps * v.x, 0.0);
+    return Vec2d<ctype>(ps * v.y, -ps * v.x);
 }
 
+// cmt(v,B) = -cmt(B,v)
+// identical to (ps >> v)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2d<std::common_type_t<T, U>> cmt(Vec2d<T> const& v, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(0.0, -v.y * ps, v.x * ps, 0.0);
+    return Vec2d<ctype>(-v.y * ps, v.x * ps);
 }
 
 template <typename T, typename U>

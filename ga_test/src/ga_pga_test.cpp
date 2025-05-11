@@ -2109,6 +2109,11 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // cross-check direct implementation of rwdg by comparing with wdg
         CHECK(rwdg(b1, b2) == cmpl(wdg(cmpl(b1), cmpl(b2))));
+
+        // commutator and contraction are equal for a specific case with bivectors
+        CHECK(cmt(v1, b1) == (b1 >> v1));
+        CHECK(cmt(b1, v1) == (v1 << b1));
+        CHECK(cmt(v1, b1) == -cmt(b1, v1));
     }
 
     TEST_CASE("MVec2dp: simple applications, complements, contraction, expansions")
@@ -4681,9 +4686,9 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
 
         // auto s1 = scalar3dp{2.0};
-        // auto v1 = vec3dp{1.0, -3.0, 0.0};
-        // // auto v1 = vec3dp{1.0, 0.0, 0.0};
-        // auto b1 = bivec3dp{2.0, -4.0, 1.0};
+        auto v1 = vec3dp{1.0, -3.0, 0.0, 1.0};
+        auto b1 = bivec3dp{2.0, -4.0, 1.0, -4.0, 8.0, -2.0};
+        // auto t1 = trivec3dp{1.0, -5.0, 6.0, 7.0};
         // auto ps1 = pscalar3dp{-2.0};
 
         // auto s2 = scalar3dp{-1.0};
@@ -4734,6 +4739,11 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(rdot(e412_3dp, e412_3dp) == pscalar3dp(1.0));
         CHECK(rdot(e321_3dp, e321_3dp) == pscalar3dp(0.0));
         CHECK(rdot(pscalar3dp(1.0), pscalar3dp(1.0)) == pscalar3dp(1.0));
+
+        // commutator and contraction are equal for a specific case with bivectors
+        CHECK(cmt(v1, b1) == (b1 >> v1));
+        CHECK(cmt(b1, v1) == (v1 << b1));
+        CHECK(cmt(v1, b1) == -cmt(b1, v1));
     }
 
     TEST_CASE("MVec3dp: simple applications, complements, contraction, "
