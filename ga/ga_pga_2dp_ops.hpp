@@ -1692,25 +1692,23 @@ inline constexpr PScalar2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> s,
                              ctype(ps)); // scalar multiplication with a trivector
 }
 
-// geometric product A * B between two bivectors
-// A * B = gr0(A * B) + gr2(A * B)
+// geometric product A * B between two bivectors:
 //
 // the full geometric bivector product only exists in >= 4d spaces:
-// A * B = A * B + cmt(A,B) + wdg(A,B) = gr0(A * B) + gr2(A * B) + gr4(A * B)
+// A * B = gr0(A * B) + gr2(A * B) + gr4(A * B) = -dot(A,B) + cmt(A,B) + wdg(A,B)
 // In 3D we don't have gr4(A * B) and thus only the terms up to grade 3 remain.
-// The bivector product AxB = cmt(A,B) = 0.5*(ab-ba)is called the commutator product.
+// The bivector product AxB = cmt(A,B) = 0.5*(A*B-B*A) is called the commutator product.
 //
-// A * B = -dot(A,B) + cmt(A,B) + wdg(A,B)  (in 4d and higher dimensional spaces)
 // A * B = -dot(A,B) + cmt(A,B)             (in 3d)
 //
-// => bivector * bivector = scalar + bivector = even grade multivector (in 3d)
+// => bivector*bivector = scalar + bivector = even grade multivector (in 3d)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B1,
                                                                BiVec2dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_E<ctype>(Scalar2dp<ctype>(-dot(B1, B2)), cmt(B1, B2));
+    return MVec2dp_E<ctype>(-dot(B1, B2), cmt(B1, B2));
 }
 
 // geometric product B * v for a bivector B and a vector v

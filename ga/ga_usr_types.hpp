@@ -68,7 +68,7 @@ using mvec2dp_e = MVec2dp_E<value_t>; // multivector 2dp of even subalgebra
 using mvec2dp_u = MVec2dp_U<value_t>; // multivector 2dp of uneven subalgebra
 using mvec2dp = MVec2dp<value_t>;     // fully populated 2dp multivector
 
-using dualnum2dp = DualNum2dp<value_t>;
+using dualnum2dp = DualNum2dp<value_t>; // dual number with s 1 + ps e3 (2dp, e3^2 = 0)
 
 using point2dp = pga::Point2dp<value_t>; // explicitly w/ z  (alias for Vec2dp<T>)
 using point2d = pga::Point2d<value_t>;   // implicit z = 1.0 (alias for Vec2d<T>)
@@ -86,7 +86,7 @@ using mvec3dp_e = MVec3dp_E<value_t>; // multivector 3dp of even subalgebra
 using mvec3dp_u = MVec3dp_U<value_t>; // multivector 3dp of uneven subalgebra
 using mvec3dp = MVec3dp<value_t>;     // fully populated 3dp multivector
 
-using dualnum3dp = DualNum3dp<value_t>;
+using dualnum3dp = DualNum3dp<value_t>; // dual number with s 1 + ps e4 (3dp, e4^2 = 0)
 
 using point3dp = pga::Point3dp<value_t>; // explicitly w/ w  (alias for Vec3dp<T>)
 using point3d = pga::Point3d<value_t>;   // implicit w = 1.0 (alias for Vec3d<T>)
