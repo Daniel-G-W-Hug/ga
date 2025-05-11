@@ -348,7 +348,7 @@ void generate_and_print_ega2dp_cmt()
 {
 
     // the commutator product is the asymmetric part of the geometric product
-    std::string prd_name = "ega2dp commutator product";
+    std::string prd_name = "pga2dp commutator product";
 
     auto basis_tab = apply_rules_to_tab(
         mv_coeff_to_coeff_prd_tab(mv2dp_basis, mv2dp_basis, mul_str), gpr_pga2dp_rules);
