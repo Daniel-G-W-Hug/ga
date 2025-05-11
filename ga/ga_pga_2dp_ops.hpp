@@ -929,6 +929,7 @@ operator<<([[maybe_unused]] BiVec2dp<T> const&, [[maybe_unused]] Vec2dp<U> const
 
 // return the left contraction of a vector v onto a bivector B
 // => returns a vector
+// identical to cmt(B,v)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2dp<std::common_type_t<T, U>> operator<<(Vec2dp<T> const& v,
@@ -1125,7 +1126,7 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<T> cons
 
 // right contraction of bivector B by vector v ("B contracted by v")
 // => returns a vector
-// (originally implemented as dot-product)
+// (identically to cmt(v,B))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline Vec2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<T> const& B,
@@ -1240,6 +1241,8 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> cmt(BiVec2dp<T> const& B1,
     return BiVec2dp<ctype>(-B1.y * B2.z + B1.z * B2.y, B1.x * B2.z - B1.z * B2.x, 0.0);
 }
 
+// cmt(B,v) = -cmt(v,B)
+// identical to (v << B)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2dp<std::common_type_t<T, U>> cmt(BiVec2dp<T> const& B,
@@ -1249,6 +1252,8 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> cmt(BiVec2dp<T> const& B,
     return Vec2dp<ctype>(B.z * v.y, -B.z * v.x, -B.x * v.y + B.y * v.x);
 }
 
+// cmt(v,B) = -cmt(B,v)
+// identcial to (B >> v)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr Vec2dp<std::common_type_t<T, U>> cmt(Vec2dp<T> const& v,

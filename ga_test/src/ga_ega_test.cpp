@@ -1555,6 +1555,11 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         // cross-check direct implementation of rwdg by comparing with wdg
         CHECK(rwdg(mv1, mv2) == lcmpl(wdg(rcmpl(mv1), rcmpl(mv2))));
+
+        // commutator and contraction are equal for a specific case with bivectors
+        CHECK(cmt(v1, ps1) == (ps1 >> v1));
+        CHECK(cmt(ps1, v1) == (v1 << ps1));
+        CHECK(cmt(v1, ps1) == -cmt(ps1, v1));
     }
 
     TEST_CASE("MVec2d: simple applications & complements")
@@ -3553,6 +3558,11 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         // cross-check direct implementation of rwdg by comparing with wdg
         CHECK(rwdg(M1, M2) == cmpl(wdg(cmpl(M1), cmpl(M2))));
+
+        // commutator and contraction are equal for a specific case with bivectors
+        CHECK(cmt(v1, b1) == (b1 >> v1));
+        CHECK(cmt(b1, v1) == (v1 << b1));
+        CHECK(cmt(v1, b1) == -cmt(b1, v1));
     }
 
     TEST_CASE("MVec3d: simple applications, complements, contraction, expansions")
