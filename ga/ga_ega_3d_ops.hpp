@@ -1262,12 +1262,15 @@ inline constexpr MVec3d<std::common_type_t<T, U>> cmt(MVec3d<T> const& A,
                                                       MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d<ctype>(0.0, -A.c2 * B.c6 + A.c3 * B.c5 - A.c5 * B.c3 + A.c6 * B.c2,
-                         A.c1 * B.c6 - A.c3 * B.c4 + A.c4 * B.c3 - A.c6 * B.c1,
-                         -A.c1 * B.c5 + A.c2 * B.c4 - A.c4 * B.c2 + A.c5 * B.c1,
-                         A.c2 * B.c3 - A.c3 * B.c2 - A.c5 * B.c6 + A.c6 * B.c5,
-                         -A.c1 * B.c3 + A.c3 * B.c1 + A.c4 * B.c6 - A.c6 * B.c4,
-                         A.c1 * B.c2 - A.c2 * B.c1 - A.c4 * B.c5 + A.c5 * B.c4, 0.0);
+    return MVec3d<ctype>(
+        Scalar3d<ctype>(0.0),
+        Vec3d<ctype>(-A.c2 * B.c6 + A.c3 * B.c5 - A.c5 * B.c3 + A.c6 * B.c2,
+                     A.c1 * B.c6 - A.c3 * B.c4 + A.c4 * B.c3 - A.c6 * B.c1,
+                     -A.c1 * B.c5 + A.c2 * B.c4 - A.c4 * B.c2 + A.c5 * B.c1),
+        BiVec3d<ctype>(A.c2 * B.c3 - A.c3 * B.c2 - A.c5 * B.c6 + A.c6 * B.c5,
+                       -A.c1 * B.c3 + A.c3 * B.c1 + A.c4 * B.c6 - A.c6 * B.c4,
+                       A.c1 * B.c2 - A.c2 * B.c1 - A.c4 * B.c5 + A.c5 * B.c4),
+        PScalar3d<ctype>(0.0));
 }
 
 template <typename T, typename U>
@@ -1910,19 +1913,16 @@ inline constexpr PScalar3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
                             ctype(ps)); // scalar multiplication with a trivector
 }
 
-// geometric product A * B between two bivectors
-// A * B = gr0(A * B) + gr2(A * B)
+// geometric product A * B between two bivectors:
 //
 // the full geometric bivector product only exists in >= 4d spaces:
-// A * B = dot(A,B) + cmt(A,B) + wdg(A,B) = gr0(A * B) + gr2(A * B) + gr4(A * B)
+// A * B = gr0(A * B) + gr2(A * B) + gr4(A * B) = -dot(A,B) + cmt(A,B) + wdg(A,B)
 // In 3D we don't have gr4(A * B) and thus only the terms up to grade 3 remain.
-// The bivector product AxB = cmt(A,B) = 0.5*(A*B-B*A)is called the commutator product.
-//                            cmt(B,A) = -cmt(A,B)
+// The bivector product AxB = cmt(A,B) = 0.5*(A*B-B*A) is called the commutator product.
 //
-// A * B = -dot(A,B) + cmt(A,B) + wdg(A,B)  (in 4d and higher dimensional spaces)
-// A * B = -dot(A,B) + cmt(A,B)             (in 3d for the case with two bivectors)
+// A * B = -dot(A,B) + cmt(A,B)             (in 3d)
 //
-// => bivector * bivector = scalar + bivector = even grade multivector (in 3d)
+// => bivector*bivector = scalar + bivector = even grade multivector (in 3d)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B1,
