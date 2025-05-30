@@ -2867,11 +2867,12 @@ inline constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
 // create a (unitized) motor from a fixed line of rotation and a turning angle
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_E<std::common_type_t<T, U>> motor(BiVec3dp<T> const& l, U phi)
+inline constexpr MVec3dp_E<std::common_type_t<T, U>> motor(BiVec3dp<T> const& l, U theta)
 {
     using ctype = std::common_type_t<T, U>;
-    return unitize(MVec3dp_E<ctype>(BiVec3dp<ctype>(l * std::sin(phi)),
-                                    PScalar3dp<ctype>(std::cos(phi))));
+    ctype half_angle = 0.5 * theta;
+    return unitize(MVec3dp_E<ctype>(BiVec3dp<ctype>(l * std::sin(half_angle)),
+                                    PScalar3dp<ctype>(std::cos(half_angle))));
 }
 
 // create a translation motor from a direction vector (given as a Vec3dp)

@@ -83,6 +83,9 @@ auto const e2_2dp = Vec2dp<value_t>{0.0, 1.0, 0.0};
 auto const e3_2dp = Vec2dp<value_t>{0.0, 0.0, 1.0};
 auto const origin_2dp = e3_2dp;
 
+auto const x_axis_direction_2dp = e1_2dp; // direction of x-axis towards infinity
+auto const y_axis_direction_2dp = e2_2dp; // direction of y-axis towards infinity
+
 auto const e1m_2dp = MVec2dp<value_t>{e1_2dp}; // e1_2dp as multivector
 auto const e2m_2dp = MVec2dp<value_t>{e2_2dp}; // e2_2dp as multivector
 auto const e3m_2dp = MVec2dp<value_t>{e3_2dp}; // e3_2dp as multivector
@@ -91,11 +94,14 @@ auto const e23_2dp = BiVec2dp<value_t>{1.0, 0.0, 0.0};
 auto const e31_2dp = BiVec2dp<value_t>{0.0, 1.0, 0.0};
 auto const e12_2dp = BiVec2dp<value_t>{0.0, 0.0, 1.0};
 
-// x axis = wdg(vec2dp{0, 0, 1}, vec2dp{1, 0, 1}) = bivt2dp(0, 1, 0)
-//    att = vec2dp(1, 0, 0)
+// x-axis as bivector
+//      x-axis = wdg(vec2dp{0, 0, 1}, vec2dp{1, 0, 1}) = bivt2dp(0, 1, 0)
+// att(x-axis) = vec2dp(1, 0, 0) = x_axis_direction_2dp = e1_2dp
 auto const x_axis_2dp = BiVec2dp<value_t>{0.0, 1.0, 0.0};
-// y axis = wdg(vec2dp{0, 0, 1}, vec2dp{0, 1, 1})
-//    att = vec2dp(0, 1, 0)
+
+// y-axis as bivector
+//      y-axis = wdg(vec2dp{0, 0, 1}, vec2dp{0, 1, 1})
+// att(y-axis) = vec2dp(0, 1, 0) = y_axis_direction_2dp = e2_2dp
 auto const y_axis_2dp = BiVec2dp<value_t>{-1.0, 0.0, 0.0};
 
 auto const horizon_2dp = e12_2dp; // horizon == line at infinity == cmpl(origin)
@@ -123,6 +129,10 @@ auto const e3_3dp = Vec3dp<value_t>{0.0, 0.0, 1.0, 0.0};
 auto const e4_3dp = Vec3dp<value_t>{0.0, 0.0, 0.0, 1.0};
 auto const origin_3dp = e4_3dp;
 
+auto const x_axis_direction_3dp = e1_3dp; // direction of x-axis towards infinity
+auto const y_axis_direction_3dp = e2_3dp; // direction of y-axis towards infinity
+auto const z_axis_direction_3dp = e3_3dp; // direction of z-axis towards infinity
+
 auto const e1m_3dp = MVec3dp<value_t>{e1_3dp}; // e1_3dp as multivector
 auto const e2m_3dp = MVec3dp<value_t>{e2_3dp}; // e2_3dp as multivector
 auto const e3m_3dp = MVec3dp<value_t>{e3_3dp}; // e3_3dp as multivector
@@ -135,14 +145,19 @@ auto const e23_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0};
 auto const e31_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 0.0, 1.0, 0.0};
 auto const e12_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
 
-// x axis = wdg(vec3dp{0, 0, 0, 1}, vec3dp{1, 0, 0, 1}) = bivec3dp(1, 0, 0, 0, 0, 0)
-//    att = Vec3dp(1, 0, 0, 0)
+// x-axis as bivector
+//      x-axis = wdg(vec3dp{0, 0, 0, 1}, vec3dp{1, 0, 0, 1}) = bivec3dp(1, 0, 0, 0, 0, 0)
+// att(x-axis) = Vec3dp(1, 0, 0, 0) = x_axis_direction_3dp = e1_3dp
 auto const x_axis_3dp = e41_3dp;
-// y axis = wdg(vec3dp{0, 0, 0, 1}, vec3dp{0, 1, 0, 1}) = bivec3dp(0, 1, 0, 0, 0, 0)
-//    att = Vec3dp(0, 1, 0, 0)
+
+// y-axis as bivector
+//      y-axis = wdg(vec3dp{0, 0, 0, 1}, vec3dp{0, 1, 0, 1}) = bivec3dp(0, 1, 0, 0, 0, 0)
+// att(y-axis) = Vec3dp(0, 1, 0, 0) = y_axis_direction_3dp = e2_3dp
 auto const y_axis_3dp = e42_3dp;
-// z axis = wdg(vec3dp{0, 0, 0, 1}, vec3dp{0, 0, 1, 1}) = bivec3dp(0, 0, 1, 0, 0, 0)
-//    att = Vec3dp(0, 0, 1, 0)
+
+// z-axis as bivector
+//      z-axis = wdg(vec3dp{0, 0, 0, 1}, vec3dp{0, 0, 1, 1}) = bivec3dp(0, 0, 1, 0, 0, 0)
+// att(z-axis) = Vec3dp(0, 0, 1, 0) = z_axis_direction_3dp = e3_3dp
 auto const z_axis_3dp = e43_3dp;
 
 auto const e41m_3dp = MVec3dp<value_t>{e41_3dp}; // e41_3dp as multivector

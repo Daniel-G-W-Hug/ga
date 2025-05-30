@@ -2507,7 +2507,7 @@ inline constexpr BiVec3d<T> cmpl(Vec3d<T> const& v)
 {
     // u ^ compl(u) = e1^e2^e3
     // u = v.x e1 + v.y e2 + v.z e3:
-    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = rev(v) * I_3d
+    //     u ^ cmpl(u) = e1^e2^e3 => cmpl(u) = rev(u) * I_3d
     //     e1 => cmpl(u) = v.x e23
     //     e2 => cmpl(u) = v.y e31
     //     e3 => cmpl(u) = v.z e12
