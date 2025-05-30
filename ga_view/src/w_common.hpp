@@ -19,4 +19,9 @@ enum class pz_action { none, pan, zoom, wheel_zoom };
 // y_only:  restrict pan/zoom to y axis
 enum class pz_mode { x_and_y, x_only, y_only };
 
+// mouse move mode for active_reflectionp
+// shifts relative to mouse move
+// rotation around intersection point of lines
+enum class move_mode { shift_both_lines, shift_line12, shift_line34, rotate_both_lines };
+
 bool anyHovered(QList<QGraphicsItem*> const& items);

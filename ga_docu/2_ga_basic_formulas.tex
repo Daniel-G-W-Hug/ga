@@ -18,17 +18,18 @@ using an orthormal basis \bv{1}, \bv{2}:
 equation (\ref{eq:scalar2d}) is the scalar part $s_{2d}$, equation (\ref{eq:vec2d})
 contains the vector part $v_{2d}$, and equation (\ref{eq:pscalar2d}) contains the
 pseudoscalar part $ps_{2d}$. The index $2d$ is typically omitted when clear from context.
-Using these components the multivector of two-dimensional space $M$ is defined as
+The basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{12}\}$. Using these components a
+multivector $M$ of $2d$ space is defined as
 \begin{equation}
      M = s \bm{1} + v_1\bv{1} + v_2\bv{2} + ps\bv{12}
     \label{eq:mvec2d}   
 \end{equation}
-where equation (\ref{eq:mvec2d}) contains three parts: the scalar $s\bm{1}$ (basis element
-is the scalar \textbf{1}; if \textbf{1} is not shown, it is implicitly assumed for scalar
-values), the vector $v$ (basis elements \bv{1} and \bv{2}) and the pseudoscalar part $ps
-\bv{12} = ps \mathds{1}$ (basis element is \bv{12}, which is sometimes written as
-$\mathds{1}$ to show its character as pseudoscalar of this space. It is a bivector in
-$2d$-Euclidean space). \\
+where equation (\ref{eq:mvec2d}) contains three parts: the scalar part $s\bm{1}$ (basis
+element is the scalar \textbf{1}; if \textbf{1} is not shown, it is implicitly assumed for
+scalar values), the vector part $v$ (basis elements \bv{1} and \bv{2}) and the
+pseudoscalar part $ps \bv{12} = ps \mathds{1}$ (basis element is \bv{12}, which is
+sometimes written as $\mathds{1}$ to show its character as pseudoscalar of this space. It
+is a bivector in $2d$-Euclidean space). \\
 
 For Euclidean algebra of three-dimensional space (\emph{ega3d}) using an orthonormal basis
 \bv{1}, \bv{2}, \bv{3} there are:
@@ -54,19 +55,19 @@ typically omitted when clear from context. Comparing to the $2d$-case it becomes
 that all parts depend on context, specifically on the dimensionality of the modeled space,
 and thus need to be defined and treated accordingly (\emph{hint}: since \Cpp is a
 statically typed language those types need to be well-defined and distinguishable from
-each other). Using these components the multivector of three-dimensional space $M$ is
-defined as
+each other). The basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31},
+\bv{12}, \bv{123}\}$. Using these components a multivector $M$ of $3d$ space is defined as
 \begin{equation}
     M = s \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
     + b_1\bv{23} + b_2\bv{31} + b_3\bv{12} + ps\bv{123}
     \label{eq:mvec3d}  
 \end{equation}
-where equation (\ref{eq:mvec3d}) contains four parts: the scalar part $s\bm{1}$ (basis
-element is the scalar \textbf{1}, the vector $v$ (basis elements \bv{1}, \bv{2} and
-\bv{3}), the bivector $b$ (basis elements \bv{23}, \bv{31} and \bv{12}) and the
-pseudoscalar part $ps \bv{123} = ps \mathds{1}$ (basis element is \bv{123}, which is
-sometimes written as $\mathds{1}$ to show its character as pseudoscalar of this space. It
-is a trivector in $3d$-Euclidean space). \\
+where equation (\ref{eq:mvec3d}) contains four parts: the scalar component $s\bm{1}$
+(basis element is the scalar \textbf{1}, the vector part $v$ (basis elements \bv{1},
+\bv{2} and \bv{3}), the bivector part $b$ (basis elements \bv{23}, \bv{31} and \bv{12})
+and the pseudoscalar part $ps \bv{123} = ps \mathds{1}$ (basis element is \bv{123}, which
+is sometimes written as $\mathds{1}$ to show its character as pseudoscalar of this space.
+It is a trivector in $3d$-Euclidean space). \\
 
 TODO: \emph{fill in basic product definitions of ega2d and ega3d here} \\
 
@@ -84,8 +85,8 @@ satisfies the identity
     A \bullet B  = \grprj{A \wedgedot \tilde{B}}{0} = \grprj{ B \wedgedot \tilde{A} }{0}
     \label{eq:inner_product_link_to_gpr}
 \end{equation}
-where $\wedgedot$ within the grade projection operator \grprj{}{k} for grade $k$ stands
-for the geometric product. The norm of a multivector $A$ is defined as
+where $\wedgedot$ stands for the geometric product within the grade projection operator
+\grprj{}{k} for grade $k$. The norm of a multivector $A$ is defined as
 \begin{equation}
     \nrm{A} = \sqrt{A \bullet A}
     \label{eq:norm_mv}
@@ -102,10 +103,10 @@ The contraction is explicitly defined as
     \label{eq:rcontr}
     \end{align}
 \end{subequations}
-with $\star$ denoting the Hodge dual with is formed by the respective complement operation
-(in spaces of even dimension the left or right complement respectively, and in spaces of
-uneven dimension the complement function regardless of the side of the operand). For
-blades A and B, they satisfy
+with $\star$ denoting the Hodge dual which is formed by the respective complement
+operation (in spaces of even dimension the left or right complement respectively, and in
+spaces of uneven dimension the complement function regardless of the side of the operand).
+For blades A and B, they satisfy
 \begin{subequations}
     \begin{align}
     A \lcontr B &  = A \ll B = \grprj{B \wedgedot \tilde{A}}{gr(B)-gr(A)}
@@ -140,8 +141,8 @@ or sometimes using the right shift ($\gg$) or left shift ($\ll$) operators direc
 \end{subequations}
 as an alternative. \\
 
-Every vector $a = a_{\parall} + a_{\perp}$ can be decomposed into parts
-$a_{\parall}$ parallel to the $k$-blade $B$ and $a_{\perp}$ perpendicular to $B$. For
+Every vector $a$ can be decomposed into parts $a_{\parall}$ parallel to the $k$-blade $B$
+and $a_{\perp}$ perpendicular to $B$, such that $a = a_{\parall} + a_{\perp}$. For
 equation {(\ref{eq:gpr_Bshrc})}: $B \gg a$ is a $(k-1)$-blade. If $a_{\parall} \neq 0$
 then $B \gg a$ represents a subspace of $B$. $a \wedge B$ is a $(k+1)$-blade. If
 $a_{\perp} \neq 0$ then $a \wedge B$ represents $span(a,B)$.

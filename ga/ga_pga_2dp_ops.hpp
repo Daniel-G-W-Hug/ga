@@ -507,7 +507,8 @@ wdg([[maybe_unused]] Vec2dp<T> const&, [[maybe_unused]] PScalar2dp<U>)
 // => returns a trivector (scalar s multiple of the trivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar2dp<std::common_type_t<T, U>> wdg(PScalar2dp<T> ps, Scalar2dp<U> s)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> wdg(PScalar2dp<T> ps,
+                                                          Scalar2dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar2dp<ctype>(ctype(ps) * ctype(s));
@@ -518,7 +519,8 @@ inline PScalar2dp<std::common_type_t<T, U>> wdg(PScalar2dp<T> ps, Scalar2dp<U> s
 // => returns a trivector (scalar s multiple of the trivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar2dp<std::common_type_t<T, U>> wdg(Scalar2dp<T> s, PScalar2dp<U> ps)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> wdg(Scalar2dp<T> s,
+                                                          PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar2dp<ctype>(ctype(s) * ctype(ps));
@@ -540,7 +542,8 @@ wdg([[maybe_unused]] BiVec2dp<T> const&, [[maybe_unused]] BiVec2dp<U> const&)
 // => returns a trivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar2dp<std::common_type_t<T, U>> wdg(BiVec2dp<T> const& B, Vec2dp<U> const& v)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> wdg(BiVec2dp<T> const& B,
+                                                          Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar2dp<ctype>(-B.x * v.x - B.y * v.y - B.z * v.z);
@@ -551,7 +554,8 @@ inline PScalar2dp<std::common_type_t<T, U>> wdg(BiVec2dp<T> const& B, Vec2dp<U> 
 //
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar2dp<std::common_type_t<T, U>> wdg(Vec2dp<T> const& v, BiVec2dp<U> const& B)
+inline constexpr PScalar2dp<std::common_type_t<T, U>> wdg(Vec2dp<T> const& v,
+                                                          BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar2dp<ctype>(-v.x * B.x - v.y * B.y - v.z * B.z);
@@ -583,7 +587,8 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> wdg(Scalar2dp<T> s,
 // where theta: -pi <= theta <= pi (different to definition of angle for dot product!)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline BiVec2dp<std::common_type_t<T, U>> wdg(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
+inline constexpr BiVec2dp<std::common_type_t<T, U>> wdg(Vec2dp<T> const& v1,
+                                                        Vec2dp<U> const& v2)
 {
     return BiVec2dp<std::common_type_t<T, U>>(
         v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);

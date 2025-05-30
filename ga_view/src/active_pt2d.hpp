@@ -34,6 +34,8 @@ class active_pt2d : public QObject, public QGraphicsItem {
     QPainterPath shape() const override;
 
     void setScenePos(pt2d const& pos);
+    void setScenePos_wo_update(pt2d const& pos);
+
     pt2d scenePos() const;
 
     bool isHovered() { return m_mouse_hover; }

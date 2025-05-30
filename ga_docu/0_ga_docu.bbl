@@ -1,8 +1,28 @@
 \begin{thebibliography}{}
 
-\bibitem[Lengyel, 2024]{Lengyel_pga-illuminated:2024}
-Lengyel, E. (2024).
+\bibitem[Dorst and {De Keninck}, 2023]{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023}
+Dorst, L. and {De Keninck}, S. (August 15, 2023).
+\newblock May the forque be with you - dynamics in pga.
+\newblock {\em University of Amsterdam, The Netherlands}, V2.6.
+
+\bibitem[Dorst and {De Keninck}, 2022]{Plane-based_PGA_Dorst-DeKennik:2022}
+Dorst, L. and {De Keninck}, S. (March 14, 2022).
+\newblock A guided tour to the plane-based geometric algebra pga.
+\newblock {\em University of Amsterdam, The Netherlands}, V2.0.
+
+\bibitem[Kritchevsky, 2024]{Kritchevsky_case_against_GA:2024}
+Kritchevsky, A. (February 28, 2024).
+\newblock \href{https://alexkritchevsky.com/2024/02/28/geometric-algebra.html}{The case against geometric algebra}.
+\newblock {\em Alex Kritchevsky's blog}.
+
+\bibitem[Lengyel, 2024b]{Lengyel_pga-illuminated:2024}
+Lengyel, E. (2024b).
 \newblock {\em Projective Geometric Algebra Illuminated}.
 \newblock Terathon Software LLC.
+
+\bibitem[Lengyel, 2024a]{Lengyel_poor-foundations_GA:2024}
+Lengyel, E. (August 23, 2024a).
+\newblock \href{https://terathon.com/blog/poor-foundations-ga.html}{Poor Foundations in Geometric Algebra}.
+\newblock {\em Eric Lengyel's blog}.
 
 \end{thebibliography}

@@ -5009,4 +5009,88 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(dist_p1_plp2 == 0);
     }
 
+    TEST_CASE("Vec2dp: modeling force & torque = forque")
+    {
+
+        fmt::println("Vec2dp: modeling force & torque = forque");
+
+        // points and directions are distinguished (different from ega)
+        auto O = origin_2dp;       // O is the origin (= an arbitrary reference point)
+        auto R = vec2dp{1, 3, 1};  // R is the point of action of force f
+        auto r = R - O;            // r is the direction from origin towards R
+        auto C = vec2dp{1, 1, 1};  // C in an arbitrary point (e.g. of a rigid body B)
+        auto c = C - O;            // c is the direction from origin towards C
+        auto f = vec2dp{4, -1, 0}; // force f acting on B at point R
+
+        auto lo = wdg(O, f) + wdg(r, f);     // line of action of f w.r.t. origin O
+        auto lc = wdg(C, f) + wdg(r - c, f); // line of action of f w.r.t. C
+
+        // fmt::println("");
+        // fmt::println("R  = {}", R);
+        // fmt::println("r  = {}", r);
+        // fmt::println("C  = {}", C);
+        // fmt::println("c  = {}", c);
+        // fmt::println("f  = {}", f);
+        // fmt::println("");
+        // fmt::println("wdg(O,f)                       "
+        //              "- effect of f on O = {}",
+        //              wdg(O, f));
+        // fmt::println("wdg(r,f)        "
+        //              "- effect of f on lever r w.r.t. O = {}",
+        //              wdg(r, f));
+        // fmt::println("lo = wdg(O+r,f) = wdg(R,f)      "
+        //              "- combined effect = {}",
+        //              wdg(R, f));
+        // fmt::println("");
+        // fmt::println("wdg(C,f) = wdg(O+c,f)          "
+        //              "- effect of f on C = {}",
+        //              wdg(C, f));
+        // fmt::println(" wdg(O,f)                      "
+        //              "- effect of f on O = {}",
+        //              wdg(O, f));
+        // fmt::println(" wdg(c,f)       "
+        //              "- effect of f on lever c w.r.t. O = {}",
+        //              wdg(c, f));
+        // fmt::println("wdg(r-c,f)  "
+        //              "- effect of f on lever (r-c) w.r.t. C = {}",
+        //              wdg(r - c, f));
+        // fmt::println("lc = wdg(C,f) + wdg(r-c,f) = wdg(r,f) "
+        //              "- combined effect = {}",
+        //              wdg(O + c + r - c, f));
+        // fmt::println("");
+        // fmt::println("bulk(lo)                 "
+        //              "- models torque w.r.t. O = {}",
+        //              bulk(lo));
+        // fmt::println("att(lo)         "
+        //              "- models force felt a every point = {}",
+        //              att(lo));
+        // fmt::println("");
+        // fmt::println("bulk(lc)=                "
+        //              "- models torque w.r.t. O = {}",
+        //              bulk(lc));
+        // fmt::println("lc - wdg(C,f)            "
+        //              "- models torque w.r.t. C = {}",
+        //              lc - wdg(C, f));
+        // fmt::println("wdg(R-C,f)               "
+        //              "- models torque w.r.t. C = {}",
+        //              wdg(R - C, f));
+        // fmt::println("wdg(r-c,f)               "
+        //              "- models torque w.r.t. C = {}",
+        //              wdg(r - c, f));
+        // fmt::println("att(lc)         "
+        //              "- models force felt a every point = {}",
+        //              att(lc));
+        // fmt::println("");
+
+        CHECK(wdg(O, f) + wdg(r, f) == lo);
+        CHECK(wdg(C, f) + wdg(r - c, f) == lc);
+        CHECK(wdg(R, f) == wdg(O, f) + wdg(r, f));
+        CHECK(wdg(C, f) == wdg(O, f) + wdg(c, f));
+        CHECK(lo == lc);
+        CHECK(bulk(lo) == bulk(lc));
+        CHECK(att(lo) == f);
+        CHECK(lc - wdg(C, f) == wdg(R - C, f));
+        CHECK(wdg(R - C, f) == wdg(r - c, f));
+    }
+
 } // TEST_SUITE("Projective Geometric Algebra (PGA)")

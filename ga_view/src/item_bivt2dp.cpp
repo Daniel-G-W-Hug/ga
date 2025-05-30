@@ -27,8 +27,9 @@ void item_bivt2dp::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     Q_UNUSED(widget)
 
     // clipping area is active area of coordsys
-    qp->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
-                          cs->y.nmin() - cs->y.nmax()));
+    qp->setClipRect(
+        mapRectFromScene(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
+                               cs->y.nmin() - cs->y.nmax())));
 
     // draw in item coordinate system
     qp->save();

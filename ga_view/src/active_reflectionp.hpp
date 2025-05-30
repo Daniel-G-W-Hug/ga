@@ -41,6 +41,11 @@ class active_reflectionp : public QObject, public QGraphicsItem {
     void setScenePos_p3(pt2d const& pos);
     void setScenePos_p4(pt2d const& pos);
 
+    void setScenePos_p1_wo_update(pt2d const& pos);
+    void setScenePos_p2_wo_update(pt2d const& pos);
+    void setScenePos_p3_wo_update(pt2d const& pos);
+    void setScenePos_p4_wo_update(pt2d const& pos);
+
     pt2d scenePos_p1() const;
     pt2d scenePos_p2() const;
     pt2d scenePos_p3() const;
@@ -50,9 +55,11 @@ class active_reflectionp : public QObject, public QGraphicsItem {
 
   public slots:
     void viewChanged(); // the view changed, e.g. resize
+    void moveModeChanged(move_mode mode);
 
   signals:
     void viewMoved();
+    void pointsMoved();
 
   protected:
 
@@ -76,14 +83,17 @@ class active_reflectionp : public QObject, public QGraphicsItem {
     active_pt2d* m_p3; // active_pt2d at position p3
     active_pt2d* m_p4; // active_pt2d at position p4
 
-    bool m_mouse_hover{false};     // mouse is hovering over the item
-    bool m_mouse_l_pressed{false}; // left button mouse is pressed
-    bool m_mouse_r_pressed{false}; // right button mouse is pressed
+    bool m_mouse_hover{false};                          // mouse is hovering over the item
+    bool m_mouse_l_pressed{false};                      // left button mouse is pressed
+    bool m_mouse_r_pressed{false};                      // right button mouse is pressed
+    move_mode m_move_mode{move_mode::shift_both_lines}; // how to move lines
 
     QPointF bvt1_beg_pos; // beg_pos of bvt1 line to be drawn (already mapped to cs)
     QPointF bvt1_end_pos; // end_pos of bvt1 line to be drawn (already mapped to cs)
     QPointF bvt2_beg_pos; // beg_pos of bvt2 line to be drawn (already mapped to cs)
     QPointF bvt2_end_pos; // end_pos of bvt2 line to be drawn (already mapped to cs)
+
+    vec2dp tp; // current intersection point (for rotational case w/ mouseMoveEvent)
 
     // for bounding box of line
     double min_x;
