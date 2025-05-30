@@ -607,6 +607,28 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(reflect_on(bivec2dp{-1, 0, 1}, y_axis_2dp) == bivec2dp{-1, 0, -1});
     }
 
+    TEST_CASE("Vec2dp: operations - rotations")
+    {
+        fmt::println("Vec2dp: operations - rotations");
+
+        std::vector<std::tuple<double, Vec2dp<double>>> v;
+
+        // fmt::println("");
+        for (int i = -12; i <= 12; ++i) {
+            double phi = i * pi / 12;
+            auto c = vec2dp(std::cos(phi), std::sin(phi), 0.0);
+            auto d = move2dp(x_axis_direction_2dp, motor(origin_2dp, phi));
+            v.emplace_back(std::make_tuple(phi, c));
+            // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
+            //              " angle={: .4f}",
+            //              i, phi, rad2deg(phi), c,
+            //              rad2deg(angle(x_axis_direction_2dp, c)));
+            // fmt::println("                                  d={: .3f}", d);
+            CHECK(c == d);
+        }
+        // fmt::println("");
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////
     // MVec2dp<T> basic test cases
@@ -1756,7 +1778,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             CHECK(pfix == p0);
 
             // now build the motor by hand
-            auto S = motor(pis, pi / 4.);
+            auto S = motor(pis, pi / 2.);
             auto ps = move2dp(p, S);
 
             // fmt::println("");
@@ -3058,6 +3080,27 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // reflect planes on planes directly
         CHECK(reflect_on(e423_3dp + e412_3dp, e412_3dp) == e423_3dp - e412_3dp);
+    }
+
+    TEST_CASE("Vec3dp: operations - rotations")
+    {
+        fmt::println("Vec3dp: operations - rotations");
+
+        std::vector<std::tuple<double, Vec3dp<double>>> v;
+
+        // fmt::println("");
+        for (int i = -12; i <= 12; ++i) {
+            double phi = i * pi / 12;
+            auto c = vec3dp(std::cos(phi), std::sin(phi), 0.0, 0.0);
+            auto d = move3dp(x_axis_direction_3dp, motor(z_axis_3dp, phi));
+            v.emplace_back(std::make_tuple(phi, c));
+            // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
+            //              " angle={: .4f}",
+            //              i, phi, rad2deg(phi), c, rad2deg(angle(e1_3dp, c)));
+            // fmt::println("                                  d={: .3f}", d);
+            CHECK(c == d);
+        }
+        // fmt::println("");
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -4401,7 +4444,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
             CHECK(unitize(pb) == unitize(p));
 
             // now build the motor by hand
-            auto S = motor(lis, pi / 4.); // ATTENTION: sign of turning angle depends
+            auto S = motor(lis, pi / 2.); // ATTENTION: sign of turning angle depends
                                           //            on attitude of line!
             auto ps = move3dp(p, S);
 

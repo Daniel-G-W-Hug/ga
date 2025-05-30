@@ -2122,11 +2122,12 @@ template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, ar
 // create a (unitized) motor from a fixed point and a turning angle
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2dp_U<std::common_type_t<T, U>> motor(Vec2dp<T> const& p, U phi)
+inline constexpr MVec2dp_U<std::common_type_t<T, U>> motor(Vec2dp<T> const& p, U theta)
 {
     using ctype = std::common_type_t<T, U>;
-    return unitize(MVec2dp_U<ctype>(Vec2dp<ctype>(p * std::sin(phi)),
-                                    PScalar2dp<ctype>(std::cos(phi))));
+    ctype half_angle = 0.5 * theta;
+    return unitize(MVec2dp_U<ctype>(Vec2dp<ctype>(p * std::sin(half_angle)),
+                                    PScalar2dp<ctype>(std::cos(half_angle))));
 }
 
 // create a translation motor from a direction vector (given as a Vec2dp)
