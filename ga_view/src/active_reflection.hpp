@@ -37,6 +37,9 @@ class active_reflection : public QObject, public QGraphicsItem {
 
     void setScenePos_n1end(pt2d const& pos);
     void setScenePos_n2end(pt2d const& pos);
+    void setScenePos_n1end_wo_update(pt2d const& pos);
+    void setScenePos_n2end_wo_update(pt2d const& pos);
+
     pt2d scenePos_n1end() const;
     pt2d scenePos_n2end() const;
 
@@ -44,6 +47,7 @@ class active_reflection : public QObject, public QGraphicsItem {
 
   signals:
     void viewMoved();
+    void pointsMoved();
 
   protected:
 

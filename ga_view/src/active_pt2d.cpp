@@ -73,7 +73,20 @@ void active_pt2d::setScenePos(pt2d const& pos)
 
         prepareGeometryChange();
         m_pos = pos;
+        setPos(cs->x.au_to_w(m_pos.x), cs->y.au_to_w(m_pos.y));
         emit pointMoved();
+    }
+}
+
+void active_pt2d::setScenePos_wo_update(pt2d const& pos)
+{
+
+    // just store, no update (for use when several points need to be updated)
+
+    // qDebug() << "active_pt2d::setScenePos called.";
+    if (m_pos != pos) {
+        // qDebug() << "active_pt2d::setScenePos changed.";
+        m_pos = pos;
     }
 }
 
@@ -85,7 +98,7 @@ void active_pt2d::viewChanged()
     // qDebug() << "active_pt2d: viewChanged() received.";
 
     // view changed by external influence, set to m_pos
-    setPos(cs->x.a_to_w(m_pos.x), cs->y.a_to_w(m_pos.y));
+    setPos(cs->x.au_to_w(m_pos.x), cs->y.au_to_w(m_pos.y));
 }
 
 void active_pt2d::posChanged()
@@ -94,7 +107,7 @@ void active_pt2d::posChanged()
 
     // position changed by external influence, update m_pos
     QPointF npos = pos();
-    m_pos = pt2d(cs->x.w_to_a(npos.x()), cs->y.w_to_a(npos.y()));
+    m_pos = pt2d(cs->x.w_to_au(npos.x()), cs->y.w_to_au(npos.y()));
     emit pointMoved();
 }
 
@@ -102,18 +115,14 @@ void active_pt2d::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
     // qDebug() << "active_pt2d::hoverEnterEvent.";
     m_mouse_hover = true;
-
     update();
-    QGraphicsItem::hoverEnterEvent(event);
 }
 
 void active_pt2d::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
     // qDebug() << "active_pt2d::hoverLeaveEvent.";
     m_mouse_hover = false;
-
     update();
-    QGraphicsItem::hoverLeaveEvent(event);
 }
 
 void active_pt2d::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -123,14 +132,13 @@ void active_pt2d::mousePressEvent(QGraphicsSceneMouseEvent* event)
     if (event->button() == Qt::LeftButton) {
         // qDebug() << "active_pt2d: Qt::LeftButton.";
         m_mouse_l_pressed = true;
+        update();
     }
     if (event->button() == Qt::RightButton) {
         // qDebug() << "active_pt2d: Qt::RightButton.";
         m_mouse_r_pressed = true;
+        update();
     }
-
-    update();
-    QGraphicsItem::mousePressEvent(event);
 }
 
 void active_pt2d::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
@@ -141,14 +149,13 @@ void active_pt2d::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if (event->button() == Qt::LeftButton) {
         // qDebug() << "active_pt2d: Qt::LeftButton.";
         m_mouse_l_pressed = false;
+        update();
     }
     if (event->button() == Qt::RightButton) {
         // qDebug() << "active_pt2d: Qt::RightButton.";
         m_mouse_r_pressed = false;
+        update();
     }
-
-    update();
-    QGraphicsItem::mouseReleaseEvent(event);
 }
 
 void active_pt2d::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
@@ -167,9 +174,7 @@ void active_pt2d::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
         if (delta != QPointF(0, 0)) {
             moveBy(delta.x(), delta.y());
             posChanged();
+            update();
         }
     }
-
-    update();
-    QGraphicsItem::mouseMoveEvent(event); // move the item normally
 }

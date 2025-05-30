@@ -14,9 +14,10 @@ active_reflectionp::active_reflectionp(Coordsys* cs, w_Coordsys* wcs, active_pt2
     QGraphicsItem(parent), cs{cs}, wcs{wcs}, m_p1{p1}, m_p2{p2}, m_p3{p3}, m_p4{p4}
 {
     setFlags(QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsSelectable |
-             QGraphicsItem::ItemSendsGeometryChanges |
+             QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemSendsGeometryChanges |
              QGraphicsItem::ItemSendsScenePositionChanges);
     setAcceptHoverEvents(true);
+
 
     connect(wcs, &w_Coordsys::viewResized, m_p1, &active_pt2d::viewChanged);
     connect(wcs, &w_Coordsys::viewResized, m_p2, &active_pt2d::viewChanged);
@@ -24,10 +25,18 @@ active_reflectionp::active_reflectionp(Coordsys* cs, w_Coordsys* wcs, active_pt2
     connect(wcs, &w_Coordsys::viewResized, m_p4, &active_pt2d::viewChanged);
     connect(wcs, &w_Coordsys::viewResized, this, &active_reflectionp::viewChanged);
 
+    connect(wcs, &w_Coordsys::moveModeChanged, this,
+            &active_reflectionp::moveModeChanged);
+
     connect(this, &active_reflectionp::viewMoved, m_p1, &active_pt2d::posChanged);
     connect(this, &active_reflectionp::viewMoved, m_p2, &active_pt2d::posChanged);
     connect(this, &active_reflectionp::viewMoved, m_p3, &active_pt2d::posChanged);
     connect(this, &active_reflectionp::viewMoved, m_p4, &active_pt2d::posChanged);
+
+    connect(this, &active_reflectionp::pointsMoved, m_p1, &active_pt2d::viewChanged);
+    connect(this, &active_reflectionp::pointsMoved, m_p2, &active_pt2d::viewChanged);
+    connect(this, &active_reflectionp::pointsMoved, m_p3, &active_pt2d::viewChanged);
+    connect(this, &active_reflectionp::pointsMoved, m_p4, &active_pt2d::viewChanged);
 
     connect(m_p1, &active_pt2d::pointMoved, this, &active_reflectionp::viewChanged);
     connect(m_p2, &active_pt2d::pointMoved, this, &active_reflectionp::viewChanged);
@@ -45,8 +54,9 @@ void active_reflectionp::paint(QPainter* qp, const QStyleOptionGraphicsItem* opt
     Q_UNUSED(widget)
 
     // clipping area is active area of coordsys
-    qp->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
-                          cs->y.nmin() - cs->y.nmax()));
+    qp->setClipRect(
+        mapRectFromScene(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
+                               cs->y.nmin() - cs->y.nmax())));
 
     // draw in item coordinate system
     qp->save();
@@ -97,11 +107,13 @@ void active_reflectionp::paint(QPainter* qp, const QStyleOptionGraphicsItem* opt
     auto bvt2 = unitize(wdg(p2, q2));
 
     std::vector<vec2dp> vr, vrr;
+    vr.reserve(v.size());
+    vrr.reserve(v.size());
 
     for (auto const& e : v) {
         vec2dp v_tmp = reflect_on(e, bvt1);
         vr.push_back(v_tmp);
-        vrr.push_back(reflect_on(v_tmp, bvt2));
+        vrr.emplace_back(reflect_on(v_tmp, bvt2));
     }
 
     QPainterPath org, refl1, refl2;
@@ -135,9 +147,9 @@ void active_reflectionp::paint(QPainter* qp, const QStyleOptionGraphicsItem* opt
     // qp->drawRect(boundingRect());
 
     // draw shape (optional for testing)
-    // qp->setPen(col_yel);
-    // qp->setBrush(col_yel);
-    // qp->drawPath(shape());
+    qp->setPen(col_yel);
+    qp->setBrush(col_yel);
+    qp->drawPath(shape());
 
     qp->restore();
 }
@@ -162,6 +174,7 @@ void active_reflectionp::setScenePos_p1(pt2d const& pos)
     if (pos != m_p1->scenePos()) {
         prepareGeometryChange();
         m_p1->setScenePos(pos);
+        reset_item_data();
     }
 }
 
@@ -170,6 +183,7 @@ void active_reflectionp::setScenePos_p2(pt2d const& pos)
     if (pos != m_p2->scenePos()) {
         prepareGeometryChange();
         m_p2->setScenePos(pos);
+        reset_item_data();
     }
 }
 
@@ -178,6 +192,7 @@ void active_reflectionp::setScenePos_p3(pt2d const& pos)
     if (pos != m_p3->scenePos()) {
         prepareGeometryChange();
         m_p3->setScenePos(pos);
+        reset_item_data();
     }
 }
 
@@ -186,6 +201,35 @@ void active_reflectionp::setScenePos_p4(pt2d const& pos)
     if (pos != m_p4->scenePos()) {
         prepareGeometryChange();
         m_p4->setScenePos(pos);
+        reset_item_data();
+    }
+}
+
+void active_reflectionp::setScenePos_p1_wo_update(pt2d const& pos)
+{
+    if (pos != m_p1->scenePos()) {
+        m_p1->setScenePos_wo_update(pos);
+    }
+}
+
+void active_reflectionp::setScenePos_p2_wo_update(pt2d const& pos)
+{
+    if (pos != m_p2->scenePos()) {
+        m_p2->setScenePos_wo_update(pos);
+    }
+}
+
+void active_reflectionp::setScenePos_p3_wo_update(pt2d const& pos)
+{
+    if (pos != m_p3->scenePos()) {
+        m_p3->setScenePos_wo_update(pos);
+    }
+}
+
+void active_reflectionp::setScenePos_p4_wo_update(pt2d const& pos)
+{
+    if (pos != m_p4->scenePos()) {
+        m_p4->setScenePos_wo_update(pos);
     }
 }
 
@@ -223,20 +267,32 @@ void active_reflectionp::mousePressEvent(QGraphicsSceneMouseEvent* event)
     if (event->button() == Qt::LeftButton) {
         // qDebug() << "active_reflectionp: Qt::LeftButton.";
         m_mouse_l_pressed = true;
+
+        if (m_move_mode == move_mode::rotate_both_lines) {
+            // calculate and store the current intersection point
+            auto p1 = vec2dp(m_p1->scenePos().x, m_p1->scenePos().y, 1.0);
+            auto q1 = vec2dp(m_p2->scenePos().x, m_p2->scenePos().y, 1.0);
+            auto bvt1 = unitize(wdg(p1, q1));
+
+            auto p2 = vec2dp(m_p3->scenePos().x, m_p3->scenePos().y, 1.0);
+            auto q2 = vec2dp(m_p4->scenePos().x, m_p4->scenePos().y, 1.0);
+            auto bvt2 = unitize(wdg(p2, q2));
+
+            // set private variable tp to current intersection point
+            // "turning point" tp is used in mouseMoveEvent
+            tp = rwdg(bvt1, bvt2); // must not be unitized, can be at infinity
+        }
     }
     if (event->button() == Qt::RightButton) {
         // qDebug() << "active_reflectionp: Qt::RightButton.";
         m_mouse_r_pressed = true;
     }
-
     update();
-    QGraphicsItem::mousePressEvent(event); // call default implementation
 }
 
 void active_reflectionp::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     // qDebug() << "active_reflectionp::mouseReleaseEvent.";
-
     // qDebug() << "active_reflectionp::scenePos_beg():" << scenePos_beg();
     // qDebug() << "active_reflectionp::scenePos_p1():" << scenePos_p1();
 
@@ -248,14 +304,12 @@ void active_reflectionp::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         // qDebug() << "active_pt2d: Qt::RightButton.";
         m_mouse_r_pressed = false;
     }
-
     update();
-    QGraphicsItem::mouseReleaseEvent(event); // call default implementation
 }
 
 void active_reflectionp::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    Q_UNUSED(event)
+    // Q_UNUSED(event)
 
     // qDebug() << "active_reflectionp::mouseMoveEvent.";
 
@@ -267,15 +321,67 @@ void active_reflectionp::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
             // qDebug() << "scenePos():" << event->scenePos();
             // qDebug() << "lastScenePos():" << event->lastScenePos();
-            // qDebug() << "delta:" << delta;
+            // qDebug() << "delta:" << delta;d
 
-            // option: just move one line
-            // m_p1->moveBy(delta.x(), delta.y());
-            // m_p2->moveBy(delta.x(), delta.y());
-            m_p3->moveBy(delta.x(), delta.y());
-            m_p4->moveBy(delta.x(), delta.y());
+            switch (m_move_mode) {
+                case move_mode::shift_both_lines:
+                    m_p1->moveBy(delta.x(), delta.y());
+                    m_p2->moveBy(delta.x(), delta.y());
+                    m_p3->moveBy(delta.x(), delta.y());
+                    m_p4->moveBy(delta.x(), delta.y());
+                    emit viewMoved();
+                    break;
 
-            emit viewMoved();
+                case move_mode::shift_line12:
+                    m_p1->moveBy(delta.x(), delta.y());
+                    m_p2->moveBy(delta.x(), delta.y());
+                    emit viewMoved();
+                    break;
+
+                case move_mode::shift_line34:
+                    m_p3->moveBy(delta.x(), delta.y());
+                    m_p4->moveBy(delta.x(), delta.y());
+                    emit viewMoved();
+                    break;
+
+                case move_mode::rotate_both_lines: {
+
+                    // get current turning angle
+                    auto scnPos = vec2d(cs->x.w_to_au(event->scenePos().x()),
+                                        cs->y.w_to_au(event->scenePos().y()));
+                    auto lscnPos = vec2d(cs->x.w_to_au(event->lastScenePos().x()),
+                                         cs->y.w_to_au(event->lastScenePos().y()));
+                    auto cur_ang = angle(scnPos, lscnPos);
+                    // fmt::println("ang = {}", rad2deg(cur_ang));
+
+
+                    auto cur_p1p = vec2dp(m_p1->scenePos().x, m_p1->scenePos().y, 1.0);
+                    auto cur_p2p = vec2dp(m_p2->scenePos().x, m_p2->scenePos().y, 1.0);
+                    auto cur_p3p = vec2dp(m_p3->scenePos().x, m_p3->scenePos().y, 1.0);
+                    auto cur_p4p = vec2dp(m_p4->scenePos().x, m_p4->scenePos().y, 1.0);
+
+                    // move all 4 projective points around the turning point pt
+                    // auto mot = motor(cur_p1p, cur_ang);
+                    auto mot = motor(tp, cur_ang);
+                    // fmt::println("tp = {}", tp);
+                    // fmt::println("mot = {}", mot);
+
+                    auto new_p1p = unitize(move2dp(cur_p1p, mot));
+                    auto new_p2p = unitize(move2dp(cur_p2p, mot));
+                    auto new_p3p = unitize(move2dp(cur_p3p, mot));
+                    auto new_p4p = unitize(move2dp(cur_p4p, mot));
+
+                    setScenePos_p1_wo_update(vec2d(new_p1p.x, new_p1p.y));
+                    setScenePos_p2_wo_update(vec2d(new_p2p.x, new_p2p.y));
+                    setScenePos_p3_wo_update(vec2d(new_p3p.x, new_p3p.y));
+                    setScenePos_p4_wo_update(vec2d(new_p4p.x, new_p4p.y));
+                }
+                    emit pointsMoved();
+                    break;
+                default:
+                    std::unreachable();
+            }
+            viewChanged();
         }
     }
 }
@@ -287,6 +393,30 @@ void active_reflectionp::viewChanged()
     // view changed by external influence, set to position in model
     reset_item_data(); // update geometry (beg_pos, end_pos, and min- & max-values)
     update();
+}
+
+void active_reflectionp::moveModeChanged(move_mode mode)
+{
+
+    if (mode != m_move_mode) { // only adjust, if actually changed
+        m_move_mode = mode;
+
+        if (m_move_mode == move_mode::rotate_both_lines) {
+            // calculate and store the current intersection point
+            auto p1 = vec2dp(m_p1->scenePos().x, m_p1->scenePos().y, 1.0);
+            auto q1 = vec2dp(m_p2->scenePos().x, m_p2->scenePos().y, 1.0);
+            auto bvt1 = unitize(wdg(p1, q1));
+
+            auto p2 = vec2dp(m_p3->scenePos().x, m_p3->scenePos().y, 1.0);
+            auto q2 = vec2dp(m_p4->scenePos().x, m_p4->scenePos().y, 1.0);
+            auto bvt2 = unitize(wdg(p2, q2));
+
+            // set private variable tp to current intersection point
+            // "turning point" tp is used in mouseMoveEvent
+            tp = rwdg(bvt1, bvt2); // must not be unitized, can be at infinity
+        }
+        update();
+    }
 }
 
 void active_reflectionp::reset_item_data()

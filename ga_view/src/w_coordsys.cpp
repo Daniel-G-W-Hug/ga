@@ -135,6 +135,22 @@ void w_Coordsys::keyPressEvent(QKeyEvent* event)
         // call undo function to reinstate last coordsys
         pop_from_history();
     }
+
+    if (event->key() == Qt::Key_A && m_move_mode != move_mode::shift_line12) {
+        m_move_mode = move_mode::shift_line12;
+        emit moveModeChanged(m_move_mode);
+        // fmt::print("A pressed\n");
+    }
+    if (event->key() == Qt::Key_S && m_move_mode != move_mode::shift_line34) {
+        m_move_mode = move_mode::shift_line34;
+        emit moveModeChanged(m_move_mode);
+        // fmt::print("S pressed\n");
+    }
+    if (event->key() == Qt::Key_D && m_move_mode != move_mode::rotate_both_lines) {
+        m_move_mode = move_mode::rotate_both_lines;
+        emit moveModeChanged(m_move_mode);
+        // fmt::print("S pressed\n");
+    }
 }
 
 void w_Coordsys::keyReleaseEvent(QKeyEvent* event)
@@ -148,6 +164,22 @@ void w_Coordsys::keyReleaseEvent(QKeyEvent* event)
         m_mode = pz_mode::x_and_y;
         // fmt::print("Y released\n");
         emit modeChanged(m_action, m_mode);
+    }
+
+    if (event->key() == Qt::Key_A) {
+        m_move_mode = move_mode::shift_both_lines;
+        emit moveModeChanged(m_move_mode);
+        // fmt::print("A released\n");
+    }
+    if (event->key() == Qt::Key_S) {
+        m_move_mode = move_mode::shift_both_lines;
+        emit moveModeChanged(m_move_mode);
+        // fmt::print("S released\n");
+    }
+    if (event->key() == Qt::Key_D) {
+        m_move_mode = move_mode::shift_both_lines;
+        emit moveModeChanged(m_move_mode);
+        // fmt::print("S released\n");
     }
 }
 

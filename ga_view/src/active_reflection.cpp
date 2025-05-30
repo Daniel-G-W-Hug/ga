@@ -22,6 +22,9 @@ active_reflection::active_reflection(Coordsys* cs, w_Coordsys* wcs, active_pt2d*
     connect(wcs, &w_Coordsys::viewResized, m_n1end, &active_pt2d::viewChanged);
     connect(wcs, &w_Coordsys::viewResized, m_n2end, &active_pt2d::viewChanged);
 
+    connect(this, &active_reflection::pointsMoved, m_n1end, &active_pt2d::viewChanged);
+    connect(this, &active_reflection::pointsMoved, m_n2end, &active_pt2d::viewChanged);
+
     connect(this, &active_reflection::viewMoved, m_n1end, &active_pt2d::posChanged);
     connect(this, &active_reflection::viewMoved, m_n2end, &active_pt2d::posChanged);
 }
@@ -33,8 +36,9 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     Q_UNUSED(widget)
 
     // clipping area is active area of coordsys
-    qp->setClipRect(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
-                          cs->y.nmin() - cs->y.nmax()));
+    qp->setClipRect(
+        mapRectFromScene(QRect(cs->x.nmin(), cs->y.nmax(), cs->x.nmax() - cs->x.nmin(),
+                               cs->y.nmin() - cs->y.nmax())));
 
     // draw in item coordinate system
     qp->save();
@@ -131,9 +135,9 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     // qp->drawRect(boundingRect());
 
     // draw shape (optional for testing)
-    // qp->setPen(col_yel);
-    // qp->setBrush(col_yel);
-    // qp->drawPath(shape());
+    qp->setPen(col_yel);
+    qp->setBrush(col_yel);
+    qp->drawPath(shape());
 
     qp->restore();
 }
@@ -178,6 +182,20 @@ void active_reflection::setScenePos_n2end(pt2d const& pos)
     }
 }
 
+void active_reflection::setScenePos_n1end_wo_update(pt2d const& pos)
+{
+    if (pos != m_n1end->scenePos()) {
+        m_n1end->setScenePos(pos);
+    }
+}
+
+void active_reflection::setScenePos_n2end_wo_update(pt2d const& pos)
+{
+    if (pos != m_n2end->scenePos()) {
+        m_n2end->setScenePos(pos);
+    }
+}
+
 pt2d active_reflection::scenePos_n1end() const { return m_n1end->scenePos(); }
 
 pt2d active_reflection::scenePos_n2end() const { return m_n2end->scenePos(); }
@@ -213,9 +231,7 @@ void active_reflection::mousePressEvent(QGraphicsSceneMouseEvent* event)
         // qDebug() << "active_reflection: Qt::RightButton.";
         m_mouse_r_pressed = true;
     }
-
     update();
-    QGraphicsItem::mousePressEvent(event); // call default implementation
 }
 
 void active_reflection::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
@@ -233,31 +249,43 @@ void active_reflection::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         // qDebug() << "active_pt2d: Qt::RightButton.";
         m_mouse_r_pressed = false;
     }
-
     update();
-    QGraphicsItem::mouseReleaseEvent(event); // call default implementation
 }
 
 void active_reflection::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    Q_UNUSED(event)
 
     // qDebug() << "active_reflection::mouseMoveEvent.";
 
-    // if (m_mouse_l_pressed) {
+    if (m_mouse_l_pressed) {
 
-    //     QPointF delta = event->scenePos() - event->lastScenePos();
+        QPointF delta = event->scenePos() - event->lastScenePos();
 
-    //     if (delta != QPointF(0, 0)) {
+        if (delta != QPointF(0, 0)) {
 
-    //         // qDebug() << "scenePos():" << event->scenePos();
-    //         // qDebug() << "lastScenePos():" << event->lastScenePos();
-    //         // qDebug() << "delta:" << delta;
+            // qDebug() << "scenePos():" << event->scenePos();
+            // qDebug() << "lastScenePos():" << event->lastScenePos();
+            // qDebug() << "delta:" << delta;
 
-    //         m_n1end->moveBy(delta.x(), delta.y());
-    //         m_n2end->moveBy(delta.x(), delta.y());
+            // get current turning angle
+            auto scnPos = vec2d(cs->x.w_to_au(event->scenePos().x()),
+                                cs->y.w_to_au(event->scenePos().y()));
+            auto lscnPos = vec2d(cs->x.w_to_au(event->lastScenePos().x()),
+                                 cs->y.w_to_au(event->lastScenePos().y()));
+            auto cur_ang = angle(lscnPos, scnPos);
+            // fmt::println("ang = {}", rad2deg(cur_ang));
 
-    //         emit viewMoved();
-    //     }
-    // }
+            // get normal vectors and transform them with current turning angle
+            auto cur_n1 = vec2d(scenePos_n1end());
+            auto cur_n2 = vec2d(scenePos_n2end());
+
+            auto new_n1 = rotate(cur_n1, rotor(I_2d, cur_ang));
+            auto new_n2 = rotate(cur_n2, rotor(I_2d, cur_ang));
+
+            setScenePos_n1end_wo_update(new_n1);
+            setScenePos_n2end_wo_update(new_n2);
+
+            emit pointsMoved();
+        }
+    }
 }

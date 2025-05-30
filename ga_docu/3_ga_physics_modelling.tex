@@ -1,0 +1,55 @@
+\subsection{Physics modelling}
+\label{physics_modelling}
+
+The key idea is to represent physical entities and statements using objects that are
+represented as directly as possible in the underlying algebra and have a geometric
+interpretation. \\
+
+$EGA$ is limited to objects that contain the origin. It can be used to directly model
+vectors (i.e. directions), lines and planes through the orgin. In addition, it can model
+complex numbers, quaternions and thus rotations in $2d$ and $3d$ well. To realize them it
+uses sandwich products for calculating the transformation resulting from two consequtive
+reflections either across lines ($2d$-case) or across planes ($3d$-case). The resulting
+transformations are rotations. The advantage of using geometric algebra to model those
+rotations is the intuitive modelling, due to geometric meaning of the objects used and the
+fact that the sandwich products can be used to transform different objects using the same
+formulas regardless of the type of object to be transformed.\\
+
+In additon, $PGA$ is capable to model objects that do not contain the origin. Thus it can
+be used to directly model points, directions, lines, and planes that may or may not
+contain the origin. The additional degree of freedom is possible due to embedding the
+Euclidean space of dimension $n$ into a projective space of dimension $n+1$, e.g. $2d$
+Euclidean algebra is modelled by embedding it in a $3d$ projective space, and $3d$
+Euclidean algebra is modelled in a $4d$ projective space. In a projective space the
+objects must be projected into the modelled space. Thus the objects of the embedding space
+typically have one dimension more than the corresponding objects in modelled space. E.g. a
+projective point (a scalar or $0d$ object) is a vector in the embedding space (a $1d$
+object), and a bivector in projective space (a $2d$ object) is used to model a line (a
+$1d$ object). The projection reduces the object dimension by one. Projective objects
+typcially can be multiplied by a scalar without changing the geometrical meaninig of the
+projective object in the embedding space. \\
+
+Due to its extended expressiveness $PGA$ will be used to model physics of mass points and
+rigid bodies. $PGA$ will be applied to model mass points, as well as velocity,
+acceleration, force, torque, momentum, angular momentum, etc. in order to describe
+kinematics and dynamics of mass points and rigid bodies. The approach used here is
+inspired by \cite{Plane-based_PGA_Dorst-DeKennik:2022} and
+\cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023}, but it does not use plane-based
+$PGA$ with planes as vectors, which are based on dual representations of the objects to be
+modelled. It rather uses the approach as described by \cite{Lengyel_pga-illuminated:2024}
+using projective geometric algebra based on direct representations of points, lines and
+planes. The reasons for choosing the latter approach are explained in
+\cite{Lengyel_poor-foundations_GA:2024}. Further hints on inconsistencies in GA
+application up-to-now can be found as well in \cite{Kritchevsky_case_against_GA:2024}. The
+goal of the this work is to be as consistent in terms of mathematical application of GA
+and as intuitively applicable as possible. \\
+
+
+
+
+
+
+
+
+
+\newpage

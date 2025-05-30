@@ -1,25 +1,24 @@
 \subsection{Introduction}
 \label{intro}
 
-The ga library is intended to make Geometric Algebra more accessible by providing
-functionality for numerical calculations required for simulation of physical systems.
-\\
+The ga library is intended to make Geometric Algebra (GA) more accessible by providing
+functionality for numerical calculations required for simulation of physical systems. \\
 
 It implements functionality for two- and three-dimensional spaces with Euclidean geometry.
 Currently it provides data types and operations to handle the algebras of regular
 Euclidean geometry $(ega2d, ega3d)$ and projective Euclidean geometry $(pga2dp, pga3dp)$.
 The library handles multivectors, even and uneven grade multivectors as well as their
 components like scalars, vectors, bivectors, trivectors, and pseudoscalars of the
-corresponding linear spaces efficiently. It can be easily extended to provide
+corresponding linear spaces efficiently. It could be easily extended to provide
 functionality for handling spacetime algebra $(STA)$ with limited effort. \\
 
-The main library is a header only library in the ga folder which can be used by including
-either
+The main library is a header only library in the ga sub-folder of the library which can be
+used by including either
 \begin{verbatim}
     #include ga/ga_ega.hpp // or
     #include ga/ga_pga.hpp
 \end{verbatim}
-and by making the corresponding namespaces accessible for use by stating
+and by making the corresponding namespaces accessible by stating
 \begin{verbatim}
     using namespace hd::ga;      // and either
     using namespace hd::ga::ega; // or
@@ -31,31 +30,33 @@ in your application code. For a simple usage example please have a look either a
 
 All product expressions are generated via the file \path{ga_prdxpr/ga_prdxpr_main.cpp} and
 user input provided in the header files of the corresponding algebra in that folder. The
-generated coefficient expressions are used to fill-in the source code for geometric
+generated coefficient expressions are used to fill in the source code for geometric
 products, wedge and dot products or their regressive counterparts. If certain combinations
 are not yet implemented in the ga library they can easily be generated within
-\path{ga_prdxpr} as needed and then be added to the library implementation. \\
+\path{ga_prdxpr} as needed and then be added to the implementation. \\
 
 The complement operation used in this library corresponds to the complement as defined in
 \cite{Lengyel_pga-illuminated:2024}. It is uniquely determined with respect to the outer
 product (not with respect to the geometric product as commonly used by many autors working
-with geometric algebra). This is helpful to generate consistent signs of expressions,
-operators, complements and duals. The left complement $\ubar{u}$ is defined as $\ubar{u}
-\wedge u = I_n$ and the right complement $\bar{u}$ as $u \wedge \bar{u} = I_n$ with $I_n$
-as the pseudoscalar of the $n$-dimensional space of the algebra. \\
+with GA). This is helpful to generate consistent signs of expressions, operators,
+complements and duals. The left complement $\ubar{u}$ is defined as $\ubar{u} \wedge u =
+I_n$ and the right complement $\bar{u}$ as $u \wedge \bar{u} = I_n$ with $I_n$ as the
+pseudoscalar of the $n$-dimensional algebra. \\
 
 The complement operation is used in turn to define a unique dualization operation that
-works for cases when the metric is non-degenerate as well as for cases where it is
-degenerate, like in projective geometric algebra. The right dual $A^{\star}$ is defined as
-$A^{\star} = \overline{GA}$, where $A$ is an arbitrary multivector and $G$ the extended
-metric. There is also a corresponding left dualization operation defined as $A_{\star} =
-\underline{GA}$. $\star$ is used as dualization operator (Hodge star). Relations to the
-geometric product $A^{\star} = A^{\dagger} \wedgedot I_n$ and $A_{\star} = I_n \wedgedot
-A^{\dagger}$ also exist with $\dagger$ as the reversion operation. \\
+works for cases when the metric is non-degenerate as well as for cases when it is
+degenerate, like in projective geometric algebra $PGA$. The right dual $A^{\star}$ is
+defined as $A^{\star} = \overline{GA}$, where $A$ is an arbitrary multivector and $G$ the
+extended metric. There is also a corresponding left dualization operation defined as
+$A_{\star} = \underline{GA}$. $\star$ is used as dualization operator (Hodge star).
+Relations to the geometric product are $A^{\star} = A^{\dagger} \wedgedot I_n$ and
+$A_{\star} = I_n \wedgedot A^{\dagger}$, where $\dagger$ is the reversion operation. \\
 
 
-Following products $\emph{op}(a,b)$ and their respective regressive variants
-$\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are implemented:
+Following bi-argument products $\emph{op}(a,b)$ and their respective regressive variants
+$\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are implemented (with
+\path{op(a,b)} as the name of the implemented function). Using $A$ vs. $a$ implies $gr(A)
+\ge gr(a)$, where $gr(arg)$ returns the grade of the argument $arg$):
 \begin{itemize}
     \item inner product, delivering a scalar: $a \bullet b$, \path{dot(a,b)}
     \item outer product of a $j-$ and $k-$vector, delivering a $j+k$-vector in
@@ -90,8 +91,10 @@ $\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are implemented:
     \path{rweight_expand(a,B)} 
 \end{itemize}
 where the items from the left contraction downwards are all considered interior products.
-If an operand is written above as capital letter, the grade of the object must be higher
-than the grade of the other operand for a meaningful result. \\
+They operate on sub-spaces after applying a dualization operation to one operand. Inner
+products like the dot-product above are linked to the metric of the modelled space. Outer
+products like the wedge product connect sub-spaces represented by their operands and
+create new spaces that are defined by the span of the spaces of the operands. \\
 
 
 TODO: \emph{fill in further introductory notes here} \\
