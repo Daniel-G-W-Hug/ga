@@ -32,11 +32,11 @@
 
 #include "ga_usr_consts.hpp"    // user constants (for user convenience)
 #include "ga_usr_types.hpp"     // consistent user types (for user convenience)
-#include "ga_usr_utilities.hpp" // chelper functions (for user convenience)
+#include "ga_usr_utilities.hpp" // helper functions (for user convenience)
 
 // EGA-specific operations are in namespace hd::ga::ega
-#include "ga_ega_2d_ops.hpp" // ega 2d operations
-#include "ga_ega_3d_ops.hpp" // ega 3d operations
+#include "ga_ega_2d_ops.hpp" // ega 2d operations (now uses ga_foundation.hpp)
+#include "ga_ega_3d_ops.hpp" // ega 3d operations (now uses ga_foundation.hpp)
 // TODO: implement operations for ega_4d (better do sta_4d)
 
 // fmt-support is defined outside of other namespaces

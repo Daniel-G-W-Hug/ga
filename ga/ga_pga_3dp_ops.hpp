@@ -2,18 +2,10 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include <algorithm> // std::max
-#include <cmath>     // std::abs
-#include <concepts>  // std::floating_point<T>
-#include <iostream>  // std::cout, std::ostream
-#include <limits>    // std::numeric_limits
-#include <numbers>   // math constants like pi
-#include <stdexcept> // std::runtime_error
-#include <string>    // std::string, std::to_string
-
-#include "detail/ga_error_handling.hpp"
-#include "detail/ga_mvec3dp.hpp" // inclusion of multivector imports all component types
-#include "detail/ga_pga_3dp_objects.hpp" // Point3dp, Vector3d, Point3d, Line3dp
+// Use the new aggregation headers for cleaner dependencies
+#include "detail/ga_foundation.hpp" // Provides all standard library headers and GA infrastructure
+#include "detail/ga_mvec3dp.hpp" // 3dp multivector types (includes component types)
+#include "detail/ga_pga_3dp_objects.hpp" // Point3dp, Vector3d, Point3d, Line3d, Plane3d
 
 namespace hd::ga::pga {
 

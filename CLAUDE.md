@@ -39,7 +39,7 @@ This is a header-only geometric algebra library (`ga/`) with accompanying module
 The library provides two main entry points:
 
 - `#include "ga/ga_ega.hpp"` for Euclidean GA (2D, 3D, 4D)
-- `#include "ga/ga_pga.hpp"` for Projective GA (2D+, 3D+)
+- `#include "ga/ga_pga.hpp"` for Projective GA (2dp, 3dp)
 
 Critical usage requirements:
 

@@ -2,13 +2,9 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include <algorithm> // std::clamp
-
 // PGA-specific operations are in namespace hd::ga::pga
-#include "ga_pga_2dp_ops.hpp" // pga 2d operations
-#include "ga_pga_3dp_ops.hpp" // pga 3d operations
-
-#include "detail/ga_error_handling.hpp"
+#include "ga_pga_2dp_ops.hpp" // pga 2dp operations (includes ga_foundation.hpp)
+#include "ga_pga_3dp_ops.hpp" // pga 3dp operations (includes ga_foundation.hpp)
 
 ////////////////////////////////////////////////////////////////////////////////
 // commonly used operations across pga2dp and pga3dp
