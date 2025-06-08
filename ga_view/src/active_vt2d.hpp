@@ -39,7 +39,7 @@ class active_vt2d : public QObject, public QGraphicsItem {
     pt2d scenePos_beg() const;
     pt2d scenePos_end() const;
 
-    bool isHovered() { return m_mouse_hover; }
+    bool isHovered() const { return m_mouse_hover; }
 
   signals:
     void viewMoved();

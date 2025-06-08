@@ -39,7 +39,7 @@ class active_bivt2dp : public QObject, public QGraphicsItem {
     pt2d scenePos_beg() const;
     pt2d scenePos_end() const;
 
-    bool isHovered() { return m_mouse_hover; }
+    bool isHovered() const { return m_mouse_hover; }
 
   public slots:
     void viewChanged(); // the view changed, e.g. resize

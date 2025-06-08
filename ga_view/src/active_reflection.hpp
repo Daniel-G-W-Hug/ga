@@ -43,7 +43,7 @@ class active_reflection : public QObject, public QGraphicsItem {
     pt2d scenePos_n1end() const;
     pt2d scenePos_n2end() const;
 
-    bool isHovered() { return m_mouse_hover; }
+    bool isHovered() const { return m_mouse_hover; }
 
   signals:
     void viewMoved();

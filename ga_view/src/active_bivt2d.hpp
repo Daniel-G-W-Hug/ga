@@ -40,7 +40,7 @@ class active_bivt2d : public QObject, public QGraphicsItem {
     pt2d scenePos_uend() const;
     pt2d scenePos_vend() const;
 
-    bool isHovered() { return m_mouse_hover; }
+    bool isHovered() const { return m_mouse_hover; }
 
   protected:
 

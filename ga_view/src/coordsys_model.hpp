@@ -197,7 +197,7 @@ class Coordsys_model {
     [[maybe_unused]] size_t add_areflp(arefl2dp const& reflp_in);
 
     void set_label(std::string new_label) { m_label = std::move(new_label); };
-    std::string label() { return m_label; }
+    std::string label() const { return m_label; }
 
     // reset model to empty state, e.g. for reuse in new model
     void clear();

@@ -51,7 +51,7 @@ class active_reflectionp : public QObject, public QGraphicsItem {
     pt2d scenePos_p3() const;
     pt2d scenePos_p4() const;
 
-    bool isHovered() { return m_mouse_hover; }
+    bool isHovered() const { return m_mouse_hover; }
 
   public slots:
     void viewChanged(); // the view changed, e.g. resize
