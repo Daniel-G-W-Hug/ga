@@ -10,6 +10,7 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
+#include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
 
 namespace hd::ga {
@@ -55,7 +56,14 @@ struct MVec8_t {
     friend void swap(MVec8_t& lhs, MVec8_t& rhs) noexcept
     {
         using std::swap;
-        swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
+        swap(lhs.c0, rhs.c0);
+        swap(lhs.c1, rhs.c1);
+        swap(lhs.c2, rhs.c2);
+        swap(lhs.c3, rhs.c3);
+        swap(lhs.c4, rhs.c4);
+        swap(lhs.c5, rhs.c5);
+        swap(lhs.c6, rhs.c6);
+        swap(lhs.c7, rhs.c7);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -76,7 +84,6 @@ struct MVec8_t {
         requires(std::floating_point<U>)
     bool operator==(MVec8_t<U, Tag> const& rhs) const
     {
-        using ctype = std::common_type_t<T, U>;
         // componentwise comparison
         // equality implies same magnitude and direction
         // comparison is not exact, but accepts epsilon deviations
@@ -88,9 +95,7 @@ struct MVec8_t {
         auto abs_delta_c5 = std::abs(rhs.c5 - c5);
         auto abs_delta_c6 = std::abs(rhs.c6 - c6);
         auto abs_delta_c7 = std::abs(rhs.c7 - c7);
-        auto constexpr delta_eps =
-            ctype(5.0) * std::max<ctype>(std::numeric_limits<T>::epsilon(),
-                                         std::numeric_limits<U>::epsilon());
+        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
         if (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
             abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps &&
             abs_delta_c4 < delta_eps && abs_delta_c5 < delta_eps &&
@@ -101,7 +106,7 @@ struct MVec8_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    MVec8_t& operator+=(MVec8_t<U, Tag> const& v)
+    MVec8_t& operator+=(MVec8_t<U, Tag> const& v) noexcept
     {
         c0 += v.c0;
         c1 += v.c1;
@@ -116,7 +121,7 @@ struct MVec8_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    MVec8_t& operator-=(MVec8_t<U, Tag> const& v)
+    MVec8_t& operator-=(MVec8_t<U, Tag> const& v) noexcept
     {
         c0 -= v.c0;
         c1 -= v.c1;
@@ -131,7 +136,7 @@ struct MVec8_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    MVec8_t& operator*=(U s)
+    MVec8_t& operator*=(U s) noexcept
     {
         c0 *= s;
         c1 *= s;
@@ -146,14 +151,9 @@ struct MVec8_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    MVec8_t& operator/=(U s)
+    MVec8_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-        if (s < std::numeric_limits<U>::epsilon()) {
-            throw std::runtime_error("scalar too small for division " +
-                                     std::to_string(s) + "\n");
-        }
-#endif
+        detail::check_division_by_zero<T, U>(s, "multivector division 8 comp.");
         c0 /= s;
         c1 /= s;
         c2 /= s;
@@ -222,17 +222,10 @@ operator*(T s, MVec8_t<U, Tag> const& v)
 // devide a multivector by a scalar
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec8_t<std::common_type_t<T, U>, Tag>
-operator/(MVec8_t<T, Tag> const& v, U s)
+inline MVec8_t<std::common_type_t<T, U>, Tag> operator/(MVec8_t<T, Tag> const& v, U s)
 {
+    detail::check_division_by_zero<T, U>(s, "multivector division");
     using ctype = std::common_type_t<T, U>;
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(s) < std::max<ctype>(std::numeric_limits<T>::epsilon(),
-                                      std::numeric_limits<U>::epsilon())) {
-        throw std::runtime_error("scalar too small, division by zero " +
-                                 std::to_string(s) + "\n");
-    }
-#endif
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return MVec8_t<ctype, Tag>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv, v.c4 * inv,
                                v.c5 * inv, v.c6 * inv, v.c7 * inv);

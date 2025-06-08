@@ -1,10 +1,9 @@
 # Create tests for header-only files in namespace hd
 
 ##################################################################
-# usage: execute "cmake .. && make" from build directory
-#    or: execute "cmake .. -G"Ninja" && ninja from build directory
+# usage: execute "cd build && cmake .." from build directory
 #
-# alternative to build:  "cmake --build ." from build directory
+# to build:  "cmake --build ." from build directory
 ##################################################################
 #]]
 #[[ hint: backet comment will not be formated by cmake-format]]

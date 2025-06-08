@@ -86,3 +86,11 @@
 
 3) Due to low operator priority it is important to always enclose the left and right
    contraction performed by operator<<() and operator>>() in braces!
+
+4) To compile use
+
+    ```bash
+    cd build
+    cmake ..
+    cmake --build .
+    ```

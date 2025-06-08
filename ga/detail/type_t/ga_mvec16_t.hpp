@@ -10,6 +10,7 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
+#include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
 
 namespace hd::ga {
@@ -58,7 +59,22 @@ struct MVec16_t {
     friend void swap(MVec16_t& lhs, MVec16_t& rhs) noexcept
     {
         using std::swap;
-        swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
+        swap(lhs.c0, rhs.c0);
+        swap(lhs.c1, rhs.c1);
+        swap(lhs.c2, rhs.c2);
+        swap(lhs.c3, rhs.c3);
+        swap(lhs.c4, rhs.c4);
+        swap(lhs.c5, rhs.c5);
+        swap(lhs.c6, rhs.c6);
+        swap(lhs.c7, rhs.c7);
+        swap(lhs.c8, rhs.c8);
+        swap(lhs.c9, rhs.c9);
+        swap(lhs.c10, rhs.c10);
+        swap(lhs.c11, rhs.c11);
+        swap(lhs.c12, rhs.c12);
+        swap(lhs.c13, rhs.c13);
+        swap(lhs.c14, rhs.c14);
+        swap(lhs.c15, rhs.c15);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -91,7 +107,6 @@ struct MVec16_t {
         requires(std::floating_point<U>)
     bool operator==(MVec16_t<U, Tag> const& rhs) const
     {
-        using ctype = std::common_type_t<T, U>;
         // componentwise comparison
         // equality implies same magnitude and direction
         // comparison is not exact, but accepts epsilon deviations
@@ -111,9 +126,7 @@ struct MVec16_t {
         auto abs_delta_c13 = std::abs(rhs.c13 - c13);
         auto abs_delta_c14 = std::abs(rhs.c14 - c14);
         auto abs_delta_c15 = std::abs(rhs.c15 - c15);
-        auto constexpr delta_eps =
-            ctype(5.0) * std::max<ctype>(std::numeric_limits<T>::epsilon(),
-                                         std::numeric_limits<U>::epsilon());
+        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
         if (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
             abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps &&
             abs_delta_c4 < delta_eps && abs_delta_c5 < delta_eps &&
@@ -128,7 +141,7 @@ struct MVec16_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    MVec16_t& operator+=(MVec16_t<U, Tag> const& v)
+    MVec16_t& operator+=(MVec16_t<U, Tag> const& v) noexcept
     {
         c0 += v.c0;
         c1 += v.c1;
@@ -151,7 +164,7 @@ struct MVec16_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    MVec16_t& operator-=(MVec16_t<U, Tag> const& v)
+    MVec16_t& operator-=(MVec16_t<U, Tag> const& v) noexcept
     {
         c0 -= v.c0;
         c1 -= v.c1;
@@ -174,7 +187,7 @@ struct MVec16_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    MVec16_t& operator*=(U s)
+    MVec16_t& operator*=(U s) noexcept
     {
         c0 *= s;
         c1 *= s;
@@ -197,14 +210,9 @@ struct MVec16_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    MVec16_t& operator/=(U s)
+    MVec16_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-        if (s < std::numeric_limits<U>::epsilon()) {
-            throw std::runtime_error("scalar too small for division " +
-                                     std::to_string(s) + "\n");
-        }
-#endif
+        detail::check_division_by_zero<T, U>(s, "multivector division 16 comp.");
         c0 /= s;
         c1 /= s;
         c2 /= s;
@@ -290,17 +298,10 @@ operator*(T s, MVec16_t<U, Tag> const& v)
 // devide a multivector by a scalar
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec16_t<std::common_type_t<T, U>, Tag>
-operator/(MVec16_t<T, Tag> const& v, U s)
+inline MVec16_t<std::common_type_t<T, U>, Tag> operator/(MVec16_t<T, Tag> const& v, U s)
 {
+    detail::check_division_by_zero<T, U>(s, "multivector division");
     using ctype = std::common_type_t<T, U>;
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(s) < std::max<ctype>(std::numeric_limits<T>::epsilon(),
-                                      std::numeric_limits<U>::epsilon())) {
-        throw std::runtime_error("scalar too small, division by zero " +
-                                 std::to_string(s) + "\n");
-    }
-#endif
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return MVec16_t<ctype, Tag>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv,
                                 v.c4 * inv, v.c5 * inv, v.c6 * inv, v.c7 * inv,

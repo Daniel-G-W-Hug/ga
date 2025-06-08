@@ -11,9 +11,9 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
+#include "detail/ga_error_handling.hpp"
 #include "detail/ga_mvec2dp.hpp" // inclusion of multivector imports all component types
 #include "detail/ga_pga_2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Line2d
-
 
 namespace hd::ga::pga {
 
@@ -1981,18 +1981,15 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(Vec2dp<T> const& v1,
 // for k-blades: A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
 // pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ... (from reversion)
 ////////////////////////////////////////////////////////////////////////////////
+// HINT: inv() cannot be constexpr due to the checks for division by zero
+//       which might throw
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> inv(Scalar2dp<T> s)
+inline Scalar2dp<T> inv(Scalar2dp<T> s)
 {
     T sq_n = bulk_nrm_sq(s);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("scalar norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "scalar");
     T inv = T(1.0) / sq_n;
 
     return Scalar2dp<T>(rev(s) * inv);
@@ -2000,73 +1997,46 @@ inline constexpr Scalar2dp<T> inv(Scalar2dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> inv(Vec2dp<T> const& v)
+inline Vec2dp<T> inv(Vec2dp<T> const& v)
 {
     // v^(-1) = rev(v)/|v|^2 = v/dot(v,v) = v/bulk_sq_nrm(v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    T sq_v = bulk_nrm_sq(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_v < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector bulk_nrm_sq too small for inversion " +
-                                 std::to_string(sq_v) + "\n");
-    }
-#endif
-    T inv = T(1.0) / sq_v; // inverse of squared norm for a vector
+    T sq_n = bulk_nrm_sq(v);
+    hd::ga::detail::check_normalization<T>(sq_n, "vector");
+    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return Vec2dp<T>(v.x * inv, v.y * inv, v.z * inv);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> inv(BiVec2dp<T> const& B)
+inline BiVec2dp<T> inv(BiVec2dp<T> const& B)
 {
     // B^(-1) = rev(B)/|B|^2
     // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
     T sq_n = bulk_nrm_sq(B);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector bulk_nrm_sq too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "bivector");
     T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
     return BiVec2dp<T>(B.x * inv, B.y * inv, B.z * inv);
 }
 
 // due to the degenerate metric the pseudoscalar does not have an inverse
-// template <typename T>
-//     requires(std::floating_point<T>)
-// inline constexpr PScalar2dp<T> inv(PScalar2dp<T> ps)
-// {
-// }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> inv(MVec2dp_E<T> const& E)
+inline MVec2dp_E<T> inv(MVec2dp_E<T> const& E)
 {
     T sq_n = bulk_nrm_sq(E);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "norm of even grade multivector too small for inversion " +
-            std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "even grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec2dp_E<T>(rev(E) * inv);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> inv(MVec2dp_U<T> const& U)
+inline MVec2dp_U<T> inv(MVec2dp_U<T> const& U)
 {
     T sq_n = bulk_nrm_sq(U);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "norm of uneven grade multivector too small for inversion " +
-            std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "uneven grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec2dp_U<T>(rev(U) * inv);
 }
@@ -2076,16 +2046,10 @@ inline constexpr MVec2dp_U<T> inv(MVec2dp_U<T> const& U)
 // left and a right inverse are the same (see paper of Hitzer, Sangwine)
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> inv(MVec2dp<T> const& M)
+inline MVec2dp<T> inv(MVec2dp<T> const& M)
 {
     T m_conjm = gr0(M * conj(M) * gr_inv(M) * rev(M));
-
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("multivector norm too small for inversion " +
-                                 std::to_string(m_conjm) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(std::abs(m_conjm), "multivector");
     T inv = T(1.0) / m_conjm;
     return MVec2dp<T>(conj(M) * gr_inv(M) * rev(M) * inv);
 }
@@ -2313,7 +2277,7 @@ inline constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline BiVec2dp<T> cmpl(Vec2dp<T> const& v)
+inline constexpr BiVec2dp<T> cmpl(Vec2dp<T> const& v)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = v.x e1 + v.y e2 + v.z e3:
@@ -2326,7 +2290,7 @@ inline BiVec2dp<T> cmpl(Vec2dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline Vec2dp<T> cmpl(BiVec2dp<T> const& B)
+inline constexpr Vec2dp<T> cmpl(BiVec2dp<T> const& B)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = b.x e23 + b.y e31 + b.z e12:

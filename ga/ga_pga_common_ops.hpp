@@ -8,6 +8,8 @@
 #include "ga_pga_2dp_ops.hpp" // pga 2d operations
 #include "ga_pga_3dp_ops.hpp" // pga 3d operations
 
+#include "detail/ga_error_handling.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 // commonly used operations across pga2dp and pga3dp
 ////////////////////////////////////////////////////////////////////////////////
@@ -171,7 +173,7 @@ template <typename arg1> decltype(auto) support3dp(arg1&& a)
 // range of angle: -pi <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
+inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -184,13 +186,7 @@ inline constexpr std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> c
     // angle is defined only between directions towards points at infinity
 
     ctype nrm_prod = bulk_nrm(v1) * bulk_nrm(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
+    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
@@ -225,7 +221,7 @@ inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
 // range of angle: -pi <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(Vec3dp<T> const& v1, Vec3dp<U> const& v2)
+inline std::common_type_t<T, U> angle(Vec3dp<T> const& v1, Vec3dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -238,13 +234,7 @@ inline constexpr std::common_type_t<T, U> angle(Vec3dp<T> const& v1, Vec3dp<U> c
     // angle is defined only between directions towards points a infinity
 
     ctype nrm_prod = bulk_nrm(v1) * bulk_nrm(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
+    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }

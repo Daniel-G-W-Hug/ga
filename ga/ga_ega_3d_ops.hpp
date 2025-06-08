@@ -11,6 +11,7 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
+#include "detail/ga_error_handling.hpp"
 #include "detail/ga_mvec3d.hpp" // inclusion of multivector imports all component types
 
 namespace hd::ga::ega {
@@ -2043,18 +2044,15 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s1,
 // for k-blades: A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
 // pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ... (from reversion)
 ////////////////////////////////////////////////////////////////////////////////
+// HINT: inv() cannot be constexpr due to the checks for division by zero
+//       which might throw
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3d<T> inv(Scalar3d<T> s)
+inline Scalar3d<T> inv(Scalar3d<T> s)
 {
     T sq_n = nrm_sq(s);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("scalar norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "scalar");
     T inv = T(1.0) / sq_n;
 
     return Scalar3d<T>(rev(s) * inv);
@@ -2062,15 +2060,10 @@ inline constexpr Scalar3d<T> inv(Scalar3d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3d<T> inv(Vec3d<T> const& v)
+inline Vec3d<T> inv(Vec3d<T> const& v)
 {
     T sq_n = nrm_sq(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "vector");
     T inv = T(1.0) / sq_n;
     return Vec3d<T>(rev(v) * inv);
 }
@@ -2078,30 +2071,20 @@ inline constexpr Vec3d<T> inv(Vec3d<T> const& v)
 // return the multiplicative inverse of the bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3d<T> inv(BiVec3d<T> const& B)
+inline BiVec3d<T> inv(BiVec3d<T> const& B)
 {
     T sq_n = nrm_sq(B);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "bivector");
     T inv = T(1.0) / sq_n;
     return BiVec3d<T>(rev(B) * inv); // minus sign due to reversion
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3d<T> inv(PScalar3d<T> ps)
+inline PScalar3d<T> inv(PScalar3d<T> ps)
 {
     T sq_n = nrm_sq(ps);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("trivector norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "pseudoscalar");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
 
     return PScalar3d<T>(rev(ps) * inv); // minus sign due to reversion
@@ -2110,16 +2093,10 @@ inline constexpr PScalar3d<T> inv(PScalar3d<T> ps)
 // return the multiplicative inverse of the quaternion (inv(z) = 1/nrm_sq(z)*rev(z))
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_E<T> inv(MVec3d_E<T> const& E)
+inline MVec3d_E<T> inv(MVec3d_E<T> const& E)
 {
     T sq_n = nrm_sq(E);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "norm of even grade multivector too small for inversion " +
-            std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "even grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec3d_E<T>(rev(E) * inv);
 }
@@ -2127,16 +2104,10 @@ inline constexpr MVec3d_E<T> inv(MVec3d_E<T> const& E)
 // return the multiplicative inverse of the uneven grade multivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_U<T> inv(MVec3d_U<T> const& U)
+inline MVec3d_U<T> inv(MVec3d_U<T> const& U)
 {
     T sq_n = nrm_sq(U);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "norm of uneven grade multivector too small for inversion " +
-            std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "uneven grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec3d_U<T>(rev(U) * inv);
 }
@@ -2146,16 +2117,10 @@ inline constexpr MVec3d_U<T> inv(MVec3d_U<T> const& U)
 // left and a right inverse are the same (see paper of Hitzer, Sangwine)
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d<T> inv(MVec3d<T> const& M)
+inline MVec3d<T> inv(MVec3d<T> const& M)
 {
     T m_conjm = gr0(M * conj(M) * gr_inv(M) * rev(M));
-
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("multivector norm too small for inversion " +
-                                 std::to_string(m_conjm) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(std::abs(m_conjm), "multivector");
     T inv = T(1.0) / m_conjm;
     return MVec3d<T>(conj(M) * gr_inv(M) * rev(M) * inv);
 }
@@ -2169,18 +2134,13 @@ inline constexpr MVec3d<T> inv(MVec3d<T> const& M)
 // range of angle: 0 <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> const& v2)
+inline std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
 
     ctype nrm_prod = nrm(v1) * nrm(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
+    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
@@ -2200,12 +2160,7 @@ inline constexpr std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> con
 //     using std::numbers::pi;
 
 // ctype nrm_prod = nrm(v1) * nrm(v2);
-// #if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-// if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-//     throw std::runtime_error("vector norm product too small for calculation "
-//                              "of angle " +
-//                              std::to_string(nrm_prod) + "\n");
-// }
+// hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
 // #endif
 
 // auto cos_angle = std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
@@ -2236,18 +2191,11 @@ inline constexpr std::common_type_t<T, U> angle(Vec3d<T> const& v1, Vec3d<U> con
 // range of angle: 0 <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(BiVec3d<T> const& v1,
-                                                BiVec3d<U> const& v2)
+inline std::common_type_t<T, U> angle(BiVec3d<T> const& v1, BiVec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(v1) * nrm(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
+    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
@@ -2261,12 +2209,7 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(v) * nrm(B);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error("norm product too small for calculation of angle " +
-                                 std::to_string(nrm_prod) + "\n");
-    }
-#endif
+    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
     // std::clamp must be used to take care of numerical inaccuracies
     // return std::acos(
     //     std::clamp(ctype(nrm(dot(v, B))) / nrm_prod, ctype(-1.0), ctype(1.0)));
@@ -2278,16 +2221,12 @@ inline std::common_type_t<T, U> angle(Vec3d<T> const& v, BiVec3d<U> const& B)
 // range of angle: 0 <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(BiVec3d<T> const& B, Vec3d<U> const& v)
+inline std::common_type_t<T, U> angle(BiVec3d<T> const& B, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     ctype nrm_prod = nrm(B) * nrm(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error("norm product too small for calculation of angle " +
-                                 std::to_string(nrm_prod) + "\n");
-    }
-#endif
+    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+
     // std::clamp must be used to take care of numerical inaccuracies
     // return std::acos(
     //     std::clamp(ctype(nrm(dot(B, v))) / nrm_prod, ctype(-1.0), ctype(1.0)));
