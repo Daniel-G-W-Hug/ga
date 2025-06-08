@@ -113,6 +113,8 @@ void active_pt2d::posChanged()
 
 void active_pt2d::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
+    Q_UNUSED(event)
+
     // qDebug() << "active_pt2d::hoverEnterEvent.";
     m_mouse_hover = true;
     update();
@@ -120,6 +122,8 @@ void active_pt2d::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 
 void active_pt2d::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
+    Q_UNUSED(event)
+
     // qDebug() << "active_pt2d::hoverLeaveEvent.";
     m_mouse_hover = false;
     update();

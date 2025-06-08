@@ -1,0 +1,404 @@
+#pragma once
+
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
+
+#include "ga_fmt_core.hpp"
+
+#include "../type_t/ga_bvec6_t.hpp"
+#include "../type_t/ga_mvec16_t.hpp"
+#include "../type_t/ga_mvec2_t.hpp"
+#include "../type_t/ga_mvec4_t.hpp"
+#include "../type_t/ga_mvec8_t.hpp"
+#include "../type_t/ga_scalar_t.hpp"
+#include "../type_t/ga_vec3_t.hpp"
+#include "../type_t/ga_vec4_t.hpp"
+
+#include "../ga_pga_2dp_objects.hpp"
+#include "../ga_pga_3dp_objects.hpp"
+
+////////////////////////////////////////////////////////////////////////////////
+// Formatting support for Projective Geometric Algebra (PGA) types
+// Includes formatters for PGA scalars, vectors, multivectors, and geometric objects
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+// Scalar_t<T, Tag> for PGA types: Scalar2dp<T>, PScalar2dp<T>, Scalar3dp<T>,
+// PScalar3dp<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+    requires(std::is_same_v<Tag, hd::ga::scalar2dp_tag> ||
+             std::is_same_v<Tag, hd::ga::pscalar2dp_tag> ||
+             std::is_same_v<Tag, hd::ga::scalar3dp_tag> ||
+             std::is_same_v<Tag, hd::ga::pscalar3dp_tag>)
+struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::Scalar_t<T, Tag>& v, FormatContext& ctx) const
+    {
+#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
+        if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
+                                     hd::ga::Scalar_t<T, hd::ga::scalar2dp_tag>>) {
+            return fmt::format_to(ctx.out(), "Scalar2dp({})", nested(double(v)));
+        }
+        else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
+                                          hd::ga::Scalar_t<T, hd::ga::pscalar2dp_tag>>) {
+            return fmt::format_to(ctx.out(), "PScalar2dp({})", nested(double(v)));
+        }
+        else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
+                                          hd::ga::Scalar_t<T, hd::ga::scalar3dp_tag>>) {
+            return fmt::format_to(ctx.out(), "Scalar3dp({})", nested(double(v)));
+        }
+        else if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
+                                          hd::ga::Scalar_t<T, hd::ga::pscalar3dp_tag>>) {
+            return fmt::format_to(ctx.out(), "PScalar3dp({})", nested(double(v)));
+        }
+        else {
+            return fmt::format_to(ctx.out(), "({})", nested(double(v)));
+        }
+#else
+        return fmt::format_to(ctx.out(), "({})", nested(double(v)));
+#endif
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Vec3_t<T, Tag> includes Vec2dp<T>, BiVec2dp<T> (PGA types only)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+    requires(std::is_same_v<Tag, hd::ga::vec2dp_tag> ||
+             std::is_same_v<Tag, hd::ga::bivec2dp_tag>)
+struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::Vec3_t<T, Tag>& v, FormatContext& ctx) const
+    {
+#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
+        if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
+                                     hd::ga::Vec3_t<T, hd::ga::vec2dp_tag>>) {
+            return fmt::format_to(ctx.out(), "Vec2dp({}, {}, {})", nested(v.x),
+                                  nested(v.y), nested(v.z));
+        }
+        else if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
+                                          hd::ga::Vec3_t<T, hd::ga::bivec2dp_tag>>) {
+            return fmt::format_to(ctx.out(), "BiVec2dp({}, {}, {})", nested(v.x),
+                                  nested(v.y), nested(v.z));
+        }
+        else {
+            return fmt::format_to(ctx.out(), "({}, {}, {})", nested(v.x), nested(v.y),
+                                  nested(v.z));
+        }
+#else
+        return fmt::format_to(ctx.out(), "({}, {}, {})", nested(v.x), nested(v.y),
+                              nested(v.z));
+#endif
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Vec4_t<T, Tag> includes Vec3dp<T>, TriVec3dp<T> (PGA types only)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+    requires(std::is_same_v<Tag, hd::ga::vec3dp_tag> ||
+             std::is_same_v<Tag, hd::ga::trivec3dp_tag>)
+struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::Vec4_t<T, Tag>& v, FormatContext& ctx) const
+    {
+#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
+        if constexpr (std::is_same_v<hd::ga::Vec4_t<T, Tag>,
+                                     hd::ga::Vec4_t<T, hd::ga::vec3dp_tag>>) {
+            return fmt::format_to(ctx.out(), "Vec3dp({}, {}, {}, {})", nested(v.x),
+                                  nested(v.y), nested(v.z), nested(v.w));
+        }
+        else if constexpr (std::is_same_v<hd::ga::Vec4_t<T, Tag>,
+                                          hd::ga::Vec4_t<T, hd::ga::trivec3dp_tag>>) {
+            return fmt::format_to(ctx.out(), "TriVec3dp({}, {}, {}, {})", nested(v.x),
+                                  nested(v.y), nested(v.z), nested(v.w));
+        }
+        else {
+            return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.x), nested(v.y),
+                                  nested(v.z), nested(v.w));
+        }
+#else
+        return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.x), nested(v.y),
+                              nested(v.z), nested(v.w));
+#endif
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// BVec6_t<T, Tag> - includes BiVec3dp<T> (PGA types only)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+    requires std::is_same_v<Tag, hd::ga::bivec3dp_tag>
+struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::BVec6_t<T, Tag>& v, FormatContext& ctx) const
+    {
+#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
+        return fmt::format_to(ctx.out(), "BiVec3dp({}, {}, {}, {}, {}, {})", nested(v.vx),
+                              nested(v.vy), nested(v.vz), nested(v.mx), nested(v.my),
+                              nested(v.mz));
+#else
+        return fmt::format_to(ctx.out(), "({}, {}, {}, {}, {}, {})", nested(v.vx),
+                              nested(v.vy), nested(v.vz), nested(v.mx), nested(v.my),
+                              nested(v.mz));
+#endif
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec2_t<T, Tag> includes DualNumber2dp<T>, DualNumber3dp<T> (PGA types only)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+    requires(std::is_same_v<Tag, hd::ga::dual_number2dp_tag> ||
+             std::is_same_v<Tag, hd::ga::dual_number3dp_tag>)
+struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::MVec2_t<T, Tag>& v, FormatContext& ctx) const
+    {
+#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
+        if constexpr (std::is_same_v<hd::ga::MVec2_t<T, Tag>,
+                                     hd::ga::MVec2_t<T, hd::ga::dual_number2dp_tag>>) {
+            return fmt::format_to(ctx.out(), "DualNumber2dp({}, {})", nested(v.c0),
+                                  nested(v.c1));
+        }
+        else if constexpr (std::is_same_v<
+                               hd::ga::MVec2_t<T, Tag>,
+                               hd::ga::MVec2_t<T, hd::ga::dual_number3dp_tag>>) {
+            return fmt::format_to(ctx.out(), "DualNumber3dp({}, {})", nested(v.c0),
+                                  nested(v.c1));
+        }
+        else {
+            return fmt::format_to(ctx.out(), "({}, {})", nested(v.c0), nested(v.c1));
+        }
+#else
+        return fmt::format_to(ctx.out(), "({}, {})", nested(v.c0), nested(v.c1));
+#endif
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec4_t<T, Tag> includes MVec2dp_E<T>, MVec2dp_U<T> (PGA types only)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+    requires(std::is_same_v<Tag, hd::ga::mvec2dp_e_tag> ||
+             std::is_same_v<Tag, hd::ga::mvec2dp_u_tag>)
+struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::MVec4_t<T, Tag>& v, FormatContext& ctx) const
+    {
+#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
+        if constexpr (std::is_same_v<hd::ga::MVec4_t<T, Tag>,
+                                     hd::ga::MVec4_t<T, hd::ga::mvec2dp_e_tag>>) {
+            return fmt::format_to(ctx.out(), "MVec2dp_E({}, {}, {}, {})", nested(v.c0),
+                                  nested(v.c1), nested(v.c2), nested(v.c3));
+        }
+        else if constexpr (std::is_same_v<hd::ga::MVec4_t<T, Tag>,
+                                          hd::ga::MVec4_t<T, hd::ga::mvec2dp_u_tag>>) {
+            return fmt::format_to(ctx.out(), "MVec2dp_U({}, {}, {}, {})", nested(v.c0),
+                                  nested(v.c1), nested(v.c2), nested(v.c3));
+        }
+        else {
+            return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.c0),
+                                  nested(v.c1), nested(v.c2), nested(v.c3));
+        }
+#else
+        return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.c0), nested(v.c1),
+                              nested(v.c2), nested(v.c3));
+#endif
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec8_t<T, Tag> includes MVec2dp<T>, MVec3dp_E<T> and MVec3dp_U<T> (PGA types only)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+    requires(std::is_same_v<Tag, hd::ga::mvec2dp_tag> ||
+             std::is_same_v<Tag, hd::ga::mvec3dp_e_tag> ||
+             std::is_same_v<Tag, hd::ga::mvec3dp_u_tag>)
+struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::MVec8_t<T, Tag>& v, FormatContext& ctx) const
+    {
+#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
+        if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
+                                     hd::ga::MVec8_t<T, hd::ga::mvec2dp_tag>>) {
+            return fmt::format_to(ctx.out(), "MVec2dp({}, {}, {}, {}, {}, {}, {}, {})",
+                                  nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
+                                  nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
+        }
+        else if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
+                                          hd::ga::MVec8_t<T, hd::ga::mvec3dp_e_tag>>) {
+            return fmt::format_to(ctx.out(), "MVec3dp_E({}, {}, {}, {}, {}, {}, {}, {})",
+                                  nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
+                                  nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
+        }
+        else if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
+                                          hd::ga::MVec8_t<T, hd::ga::mvec3dp_u_tag>>) {
+            return fmt::format_to(ctx.out(), "MVec3dp_U({}, {}, {}, {}, {}, {}, {}, {})",
+                                  nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
+                                  nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
+        }
+        else {
+            return fmt::format_to(ctx.out(), "({}, {}, {}, {}, {}, {}, {}, {})",
+                                  nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
+                                  nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
+        }
+#else
+        return fmt::format_to(ctx.out(), "({}, {}, {}, {}, {}, {}, {}, {})", nested(v.c0),
+                              nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
+                              nested(v.c5), nested(v.c6), nested(v.c7));
+#endif
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// MVec16_t<T, Tag> includes MVec3dp<T> (PGA types only)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename Tag>
+    requires std::is_same_v<Tag, hd::ga::mvec3dp_tag>
+struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::MVec16_t<T, Tag>& v, FormatContext& ctx) const
+    {
+#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
+        return fmt::format_to(
+            ctx.out(),
+            "MVec3dp({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
+            nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
+            nested(v.c5), nested(v.c6), nested(v.c7), nested(v.c8), nested(v.c9),
+            nested(v.c10), nested(v.c11), nested(v.c12), nested(v.c13), nested(v.c14),
+            nested(v.c15));
+#else
+        return fmt::format_to(
+            ctx.out(), "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
+            nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
+            nested(v.c5), nested(v.c6), nested(v.c7), nested(v.c8), nested(v.c9),
+            nested(v.c10), nested(v.c11), nested(v.c12), nested(v.c13), nested(v.c14),
+            nested(v.c15));
+#endif
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// PGA Geometric Objects - 2D+ Projective Geometry
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+// Vector2d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Vector2d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Vector2d<T>& v, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Vector2d({}, {})", nested(v.x), nested(v.y));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Point2d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Point2d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Point2d<T>& v, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Point2d({}, {})", nested(v.x), nested(v.y));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Point2dp<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Point2dp<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Point2dp<T>& v, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Point2dp({}, {}, {})", nested(v.x), nested(v.y),
+                              nested(v.z));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Line2d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Line2d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Line2d<T>& v, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Line2d({}, {}, {})", nested(v.x), nested(v.y),
+                              nested(v.z));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// PGA Geometric Objects - 3D+ Projective Geometry
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+// Vector3d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Vector3d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Vector3d<T>& v, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Vector3d({}, {}, {})", nested(v.x), nested(v.y),
+                              nested(v.z));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Point3d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Point3d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Point3d<T>& p, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Point3d({}, {}, {})", nested(p.x), nested(p.y),
+                              nested(p.z));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Point3dp<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Point3dp<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Point3dp<T>& p, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Point3dp({}, {}, {}, {})", nested(p.x),
+                              nested(p.y), nested(p.z), nested(p.w));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Line3d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Line3d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Line3d<T>& l, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Line3d({}, {}, {}, {}, {}, {})", nested(l.vx),
+                              nested(l.vy), nested(l.vz), nested(l.mx), nested(l.my),
+                              nested(l.mz));
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Plane3d<T>
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+struct fmt::formatter<hd::ga::pga::Plane3d<T>> : nested_formatter<double> {
+    template <typename FormatContext>
+    auto format(const hd::ga::pga::Plane3d<T>& p, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "Plane3d({}, {}, {}, {})", nested(p.x),
+                              nested(p.y), nested(p.z), nested(p.w));
+    }
+};
