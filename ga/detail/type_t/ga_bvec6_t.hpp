@@ -29,7 +29,7 @@ struct BVec6_t {
     BVec6_t() = default;
 
     // assign all components directly
-    BVec6_t(T vx, T vy, T vz, T mx, T my, T mz) :
+    constexpr BVec6_t(T vx, T vy, T vz, T mx, T my, T mz) :
         vx(vx), vy(vy), vz(vz), mx(mx), my(my), mz(mz)
     {
     }
@@ -54,7 +54,7 @@ struct BVec6_t {
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
-    BVec6_t(BVec6_t<U, Tag> const& v) :
+    constexpr BVec6_t(BVec6_t<U, Tag> const& v) :
         vx(v.vx), vy(v.vy), vz(v.vz), mx(v.mx), my(v.my), mz(v.mz)
     {
     }

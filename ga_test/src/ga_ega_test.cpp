@@ -2001,6 +2001,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
 
         // just to suppress unused variable warnings
         CHECK(v6 == normalize(vec3d(-1.0, -1.0, 0.0)));
+        CHECK(v7 == normalize(vec3d(0.0, -1.0, 0.0)));
         CHECK(v8 == normalize(vec3d(1.0, -1.0, 0.0)));
     }
 

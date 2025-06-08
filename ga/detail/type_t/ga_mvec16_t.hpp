@@ -28,8 +28,8 @@ struct MVec16_t {
     MVec16_t() = default;
 
     // assign all components directly
-    MVec16_t(T s, T vx, T vy, T vz, T vw, T bu, T bv, T bw, T bx, T by, T bz, T tx, T ty,
-             T tz, T tw, T ps) :
+    constexpr MVec16_t(T s, T vx, T vy, T vz, T vw, T bu, T bv, T bw, T bx, T by, T bz,
+                       T tx, T ty, T tz, T tw, T ps) :
         c0(s), c1(vx), c2(vy), c3(vz), c4(vw), c5(bu), c6(bv), c7(bw), c8(bx), c9(by),
         c10(bz), c11(tx), c12(ty), c13(tz), c14(tw), c15(ps)
     {
@@ -49,7 +49,7 @@ struct MVec16_t {
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
-    MVec16_t(MVec16_t<U, Tag> const& v) :
+    constexpr MVec16_t(MVec16_t<U, Tag> const& v) :
         MVec16_t(v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7, v.c8, v.c9, v.c10, v.c11,
                  v.c12, v.c13, v.c14, v.c15)
     {

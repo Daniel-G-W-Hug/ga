@@ -29,7 +29,7 @@ struct Vec2_t {
     // ctors
     Vec2_t() = default;
 
-    Vec2_t(T x_in, T y_in) : x(x_in), y(y_in) {}
+    constexpr Vec2_t(T x_in, T y_in) : x(x_in), y(y_in) {}
 
     // cp & mv ctor
     Vec2_t(Vec2_t const&) = default;
@@ -45,7 +45,7 @@ struct Vec2_t {
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
-    Vec2_t(Vec2_t<U, Tag> const& v) : x(v.x), y(v.y)
+    constexpr Vec2_t(Vec2_t<U, Tag> const& v) : x(v.x), y(v.y)
     {
     }
 

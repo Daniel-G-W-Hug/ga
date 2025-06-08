@@ -44,7 +44,7 @@ struct Vec3_t {
     // ctors
     Vec3_t() = default;
 
-    Vec3_t(T x_in, T y_in, T z_in) : x(x_in), y(y_in), z(z_in) {}
+    constexpr Vec3_t(T x_in, T y_in, T z_in) : x(x_in), y(y_in), z(z_in) {}
 
     // cp & mv ctor
     Vec3_t(Vec3_t const&) = default;
@@ -60,7 +60,7 @@ struct Vec3_t {
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
-    Vec3_t(Vec3_t<U, Tag> const& v) : x(v.x), y(v.y), z(v.z)
+    constexpr Vec3_t(Vec3_t<U, Tag> const& v) : x(v.x), y(v.y), z(v.z)
     {
     }
 

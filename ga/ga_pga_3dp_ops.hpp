@@ -518,7 +518,7 @@ inline constexpr MVec3dp<std::common_type_t<T, U>> wdg(MVec3dp<T> const& A,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar3dp<std::common_type_t<T, U>> wdg(PScalar3dp<T> ps, Scalar3dp<U> s)
+inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(PScalar3dp<T> ps, Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3dp<ctype>(ctype(ps) * ctype(s));
@@ -526,7 +526,7 @@ inline PScalar3dp<std::common_type_t<T, U>> wdg(PScalar3dp<T> ps, Scalar3dp<U> s
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar3dp<std::common_type_t<T, U>> wdg(Scalar3dp<T> s, PScalar3dp<U> ps)
+inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(Scalar3dp<T> s, PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3dp<ctype>(ctype(s) * ctype(ps));
@@ -534,7 +534,7 @@ inline PScalar3dp<std::common_type_t<T, U>> wdg(Scalar3dp<T> s, PScalar3dp<U> ps
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar3dp<std::common_type_t<T, U>> wdg(TriVec3dp<T> const& t, Vec3dp<U> const& v)
+inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(TriVec3dp<T> const& t, Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3dp<ctype>(-t.x * v.x - t.y * v.y - t.z * v.z - t.w * v.w);
@@ -542,7 +542,7 @@ inline PScalar3dp<std::common_type_t<T, U>> wdg(TriVec3dp<T> const& t, Vec3dp<U>
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline PScalar3dp<std::common_type_t<T, U>> wdg(Vec3dp<T> const& v, TriVec3dp<U> const& t)
+inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(Vec3dp<T> const& v, TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3dp<ctype>(v.x * t.x + v.y * t.y + v.z * t.z + v.w * t.w);

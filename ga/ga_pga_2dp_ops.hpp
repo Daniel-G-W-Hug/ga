@@ -1134,8 +1134,8 @@ inline constexpr Scalar2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<T> cons
 // (identically to cmt(v,B))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Vec2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<T> const& B,
-                                                   Vec2dp<U> const& v)
+inline constexpr Vec2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<T> const& B,
+                                                             Vec2dp<U> const& v)
 {
     // this implementation is only valid in an orthonormal basis
     using ctype = std::common_type_t<T, U>;

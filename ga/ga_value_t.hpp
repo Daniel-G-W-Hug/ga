@@ -16,7 +16,7 @@ namespace hd::ga {
 using value_t = double;
 
 // eps is used internally for equality testing
-auto const eps{5.0 * std::numeric_limits<value_t>::epsilon()};
+inline constexpr auto eps = 5.0 * std::numeric_limits<value_t>::epsilon();
 
 
 } // namespace hd::ga
