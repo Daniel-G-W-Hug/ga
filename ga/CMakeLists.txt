@@ -4,7 +4,11 @@ set(LIB_NAME ga)
 
 set(HEADERS
     #
+    detail/fmt/ga_fmt_core.hpp
+    detail/fmt/ga_fmt_ega.hpp
+    detail/fmt/ga_fmt_pga.hpp
     detail/ga_fmt_support.hpp
+    #
     detail/ga_error_handling.hpp
     #
     detail/type_t/ga_scalar_t.hpp
