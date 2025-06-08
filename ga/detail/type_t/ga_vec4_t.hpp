@@ -10,6 +10,7 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
+#include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
 
 namespace hd::ga {
@@ -70,7 +71,10 @@ struct Vec4_t {
     friend void swap(Vec4_t& lhs, Vec4_t& rhs) noexcept
     {
         using std::swap;
-        swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
+        swap(lhs.x, rhs.x);
+        swap(lhs.y, rhs.y);
+        swap(lhs.z, rhs.z);
+        swap(lhs.w, rhs.w);
     }
 
     T x{};
@@ -83,7 +87,6 @@ struct Vec4_t {
         requires(std::floating_point<U>)
     bool operator==(Vec4_t<U, Tag> const& rhs) const
     {
-        using ctype = std::common_type_t<T, U>;
         // componentwise comparison
         // equality implies same magnitude and direction
         // comparison is not exact, but accepts epsilon deviations
@@ -91,9 +94,7 @@ struct Vec4_t {
         auto abs_delta_y = std::abs(rhs.y - y);
         auto abs_delta_z = std::abs(rhs.z - z);
         auto abs_delta_w = std::abs(rhs.w - w);
-        auto constexpr delta_eps =
-            ctype(5.0) * std::max<ctype>(std::numeric_limits<T>::epsilon(),
-                                         std::numeric_limits<U>::epsilon());
+        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
         if (abs_delta_x < delta_eps && abs_delta_y < delta_eps &&
             abs_delta_z < delta_eps && abs_delta_w < delta_eps)
             return true;
@@ -102,7 +103,7 @@ struct Vec4_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    Vec4_t& operator+=(Vec4_t<U, Tag> const& v)
+    Vec4_t& operator+=(Vec4_t<U, Tag> const& v) noexcept
     {
         x += v.x;
         y += v.y;
@@ -113,7 +114,7 @@ struct Vec4_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    Vec4_t& operator-=(Vec4_t<U, Tag> const& v)
+    Vec4_t& operator-=(Vec4_t<U, Tag> const& v) noexcept
     {
         x -= v.x;
         y -= v.y;
@@ -124,7 +125,7 @@ struct Vec4_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    Vec4_t& operator*=(U s)
+    Vec4_t& operator*=(U s) noexcept
     {
         x *= s;
         y *= s;
@@ -135,14 +136,9 @@ struct Vec4_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    Vec4_t& operator/=(U s)
+    Vec4_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-        if (s < std::numeric_limits<T>::epsilon()) {
-            throw std::runtime_error("vector norm too small for normalization " +
-                                     std::to_string(s) + "\n");
-        }
-#endif
+        detail::check_division_by_zero<T, U>(s, "vector division 4 comp.");
         x /= s;
         y /= s;
         z /= s;
@@ -204,17 +200,10 @@ inline constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator*(T s,
 // devide a vector by a scalar
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator/(Vec4_t<T, Tag> const& v,
-                                                                 U s)
+inline Vec4_t<std::common_type_t<T, U>, Tag> operator/(Vec4_t<T, Tag> const& v, U s)
 {
+    detail::check_division_by_zero<T, U>(s, "vector division 4 comp.");
     using ctype = std::common_type_t<T, U>;
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(s) < std::max<ctype>(std::numeric_limits<T>::epsilon(),
-                                      std::numeric_limits<U>::epsilon())) {
-        throw std::runtime_error("scalar too small, division by zero " +
-                                 std::to_string(s) + "\n");
-    }
-#endif
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return Vec4_t<ctype, Tag>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
 }
@@ -261,15 +250,10 @@ inline constexpr T nrm(Vec4_t<T, Tag> const& v)
 // return a vector v normalized to nrm(v) == 1.0
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr Vec4_t<T, Tag> normalize(Vec4_t<T, Tag> const& v)
+inline Vec4_t<T, Tag> normalize(Vec4_t<T, Tag> const& v)
 {
     T m = nrm(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (m < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for normalization " +
-                                 std::to_string(m) + "\n");
-    }
-#endif
+    detail::check_normalization<T>(m, "vector");
     T inv = T(1.0) / m; // for multiplication with inverse of norm
     return Vec4_t<T, Tag>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
 }

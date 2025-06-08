@@ -5,6 +5,7 @@ set(LIB_NAME ga)
 set(HEADERS
     #
     detail/ga_fmt_support.hpp
+    detail/ga_error_handling.hpp
     #
     detail/type_t/ga_scalar_t.hpp
     detail/type_t/ga_vec2_t.hpp

@@ -7,6 +7,7 @@
 #include "type_t/ga_vec2_t.hpp"
 #include "type_t/ga_vec3_t.hpp"
 
+#include "ga_error_handling.hpp"
 
 namespace hd::ga::pga {
 
@@ -470,15 +471,10 @@ inline constexpr DualNum2dp<T> geom_nrm(MVec2dp<T> const& M)
 //    the scalar part represents the geometric norm the after unitization
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> unitize(DualNum2dp<T> const& D)
+inline DualNum2dp<T> unitize(DualNum2dp<T> const& D)
 {
     T n = D.c1; // the pseudoscalar part is the weight_nrm part
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("DualNum2dp weight_norm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(std::abs(n), "dual number (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * D;
 }
@@ -486,15 +482,10 @@ inline constexpr DualNum2dp<T> unitize(DualNum2dp<T> const& D)
 // return a vector unitized to v.z == 1.0  (implies weight_nrm(v) = 1.0)
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> unitize(Vec2dp<T> const& v)
+inline Vec2dp<T> unitize(Vec2dp<T> const& v)
 {
     T n = v.z;
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector weight_nrm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(std::abs(n), "vector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return Vec2dp<T>(v.x * inv, v.y * inv, T(1.0));
 }
@@ -502,15 +493,10 @@ inline constexpr Vec2dp<T> unitize(Vec2dp<T> const& v)
 // return a bivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> unitize(BiVec2dp<T> const& B)
+inline BiVec2dp<T> unitize(BiVec2dp<T> const& B)
 {
     T n = weight_nrm(B);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector weight_norm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(n, "bivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * B;
 }
@@ -518,16 +504,10 @@ inline constexpr BiVec2dp<T> unitize(BiVec2dp<T> const& B)
 // return an even grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> unitize(MVec2dp_E<T> const& M)
+inline MVec2dp_E<T> unitize(MVec2dp_E<T> const& M)
 {
     T n = weight_nrm(M);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "Even grade mulitivector weight_norm too small for unitization " +
-            std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(n, "even grade multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -535,16 +515,10 @@ inline constexpr MVec2dp_E<T> unitize(MVec2dp_E<T> const& M)
 // return an uneven grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> unitize(MVec2dp_U<T> const& M)
+inline MVec2dp_U<T> unitize(MVec2dp_U<T> const& M)
 {
     T n = weight_nrm(M);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "Uneven grade mulitivector weight_norm too small for unitization " +
-            std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(n, "uneven grade multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -552,15 +526,10 @@ inline constexpr MVec2dp_U<T> unitize(MVec2dp_U<T> const& M)
 // return a multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> unitize(MVec2dp<T> const& M)
+inline MVec2dp<T> unitize(MVec2dp<T> const& M)
 {
     T n = weight_nrm(M);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("Mulitivector weight_norm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(n, "multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -741,12 +710,7 @@ struct Point2dp : public Vec2dp<T> {
 
     Point2dp& unitize()
     {
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-        if (std::abs(z) < std::numeric_limits<T>::epsilon()) {
-            throw std::runtime_error("z-component too small for unitization " +
-                                     std::to_string(z) + "\n");
-        }
-#endif
+        hd::ga::detail::check_unitization<T>(std::abs(z), "Point2dp");
         x /= z;
         y /= z;
         z = T(1.0);
@@ -756,14 +720,9 @@ struct Point2dp : public Vec2dp<T> {
 
 template <typename T>
     requires std::floating_point<T>
-inline constexpr Point2dp<T> unitize(Point2dp<T> const& p)
+inline Point2dp<T> unitize(Point2dp<T> const& p)
 {
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(p.z) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("z-component too small for unitization " +
-                                 std::to_string(p.z) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(std::abs(p.z), "Point2dp");
     T inv = T(1.0) / p.z;
     return Point2dp<T>(p.x * inv, p.y * inv, T(1.0));
 }
@@ -801,12 +760,7 @@ struct Line2d : public BiVec2dp<T> {
         // unitization for a 2d bivector means std::sqrt(x^2 + y^2) = 1
         // = weight_nrm of bivector
         T wn = weight_nrm(*this);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-        if (wn < std::numeric_limits<T>::epsilon()) {
-            throw std::runtime_error("bivector weight norm too small for unitization " +
-                                     std::to_string(wn) + "\n");
-        }
-#endif
+        hd::ga::detail::check_unitization<T>(wn, "Line2d");
         T inv = T(1.0) / wn;
         x *= inv;
         y *= inv;
@@ -817,17 +771,12 @@ struct Line2d : public BiVec2dp<T> {
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Line2d<T> unitize(Line2d<T> const& l)
+inline Line2d<T> unitize(Line2d<T> const& l)
 {
     // unitization for a 2d bivector means std::sqrt(x^2 + y^2) = 1
     // i.e. unitization of the direction vector of the line
     T wn = weight_nrm(l);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (wn < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector weight norm too small for unitization " +
-                                 std::to_string(wn) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(wn, "Line2d");
     T inv = T(1.0) / wn;
     return Line2d<T>(l.x * inv, l.y * inv, l.z * inv);
 }

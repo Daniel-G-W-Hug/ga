@@ -11,6 +11,7 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
+#include "detail/ga_error_handling.hpp"
 #include "detail/ga_mvec2d.hpp" // inclusion of multivector imports all component types
 
 namespace hd::ga::ega {
@@ -1514,18 +1515,15 @@ inline constexpr Scalar2d<std::common_type_t<T, U>> operator*(Scalar2d<T> s1,
 // w.r.t. the geometric product:
 // for k-blades: A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
 ////////////////////////////////////////////////////////////////////////////////
+// HINT: inv() cannot be constexpr due to the checks for division by zero
+//       which might throw
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> inv(Scalar2d<T> s)
+inline Scalar2d<T> inv(Scalar2d<T> s)
 {
     T sq_n = nrm_sq(s);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("scalar norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "scalar");
     T inv = T(1.0) / sq_n;
 
     return Scalar2d<T>(rev(s) * inv);
@@ -1533,30 +1531,20 @@ inline constexpr Scalar2d<T> inv(Scalar2d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> inv(Vec2d<T> const& v)
+inline Vec2d<T> inv(Vec2d<T> const& v)
 {
     T sq_n = nrm_sq(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "vector");
     T inv = T(1.0) / sq_n;
     return Vec2d<T>(rev(v) * inv);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> inv(PScalar2d<T> ps)
+inline PScalar2d<T> inv(PScalar2d<T> ps)
 {
     T sq_n = nrm_sq(ps);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "pseudoscalar");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
 
     return PScalar2d<T>(rev(ps) * inv);
@@ -1564,16 +1552,12 @@ inline constexpr PScalar2d<T> inv(PScalar2d<T> ps)
 
 // return the multiplicative inverse of the complex number (inv(z) = 1/nrm_sq(z)*rev(z))
 // with rev(z) being the complex conjugate
-template <typename T> inline constexpr MVec2d_E<T> inv(MVec2d_E<T> const& E)
+template <typename T>
+    requires(std::floating_point<T>)
+inline MVec2d_E<T> inv(MVec2d_E<T> const& E)
 {
     T sq_n = nrm_sq(E);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "complex norm of even grade multivector too small for inversion " +
-            std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "even grade multivector");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return MVec2d_E<T>(rev(E) * inv);
 }
@@ -1581,17 +1565,12 @@ template <typename T> inline constexpr MVec2d_E<T> inv(MVec2d_E<T> const& E)
 // formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
 // Hitzer, Sangwine, 2016
 // left and a right inverse are the same (see paper of Hitzer, Sangwine)
-template <typename T> inline constexpr MVec2d<T> inv(MVec2d<T> const& M)
+template <typename T>
+    requires(std::floating_point<T>)
+inline MVec2d<T> inv(MVec2d<T> const& M)
 {
     T m_conjm = gr0(M * conj(M));
-
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(m_conjm) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("multivector norm too small for inversion " +
-                                 std::to_string(m_conjm) + "\n");
-        // example: MVec2d(1,1,1,1) is not invertible
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(std::abs(m_conjm), "multivector");
     T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
     return MVec2d<T>(conj(M) * inv);
 }
@@ -1605,19 +1584,13 @@ template <typename T> inline constexpr MVec2d<T> inv(MVec2d<T> const& M)
 // range of angle: -pi <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> const& v2)
+inline std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     using std::numbers::pi;
 
     ctype nrm_prod = nrm(v1) * nrm(v2);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (nrm_prod < std::numeric_limits<ctype>::epsilon()) {
-        throw std::runtime_error(
-            "vector norm product too small for calculation of angle " +
-            std::to_string(nrm_prod) + "\n");
-    }
-#endif
+    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
 
     // std::clamp must be used to take care of numerical inaccuracies
     auto cos_angle = std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0));
@@ -1653,6 +1626,9 @@ template <typename T>
     requires(std::floating_point<T>)
 inline constexpr T angle_to_re(MVec2d_E<T> const& v)
 {
+
+    // TODO: replace by atan2 funcion
+
     using std::numbers::pi;
     if (v.c0 > 0.0) {
         // quadrant I & IV

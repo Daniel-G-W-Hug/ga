@@ -11,9 +11,9 @@
 #include <stdexcept> // std::runtime_error
 #include <string>    // std::string, std::to_string
 
+#include "detail/ga_error_handling.hpp"
 #include "detail/ga_mvec3dp.hpp" // inclusion of multivector imports all component types
 #include "detail/ga_pga_3dp_objects.hpp" // Point3dp, Vector3d, Point3d, Line3dp
-
 
 namespace hd::ga::pga {
 
@@ -518,7 +518,8 @@ inline constexpr MVec3dp<std::common_type_t<T, U>> wdg(MVec3dp<T> const& A,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(PScalar3dp<T> ps, Scalar3dp<U> s)
+inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(PScalar3dp<T> ps,
+                                                          Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3dp<ctype>(ctype(ps) * ctype(s));
@@ -526,7 +527,8 @@ inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(PScalar3dp<T> ps, Scal
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(Scalar3dp<T> s, PScalar3dp<U> ps)
+inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(Scalar3dp<T> s,
+                                                          PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3dp<ctype>(ctype(s) * ctype(ps));
@@ -534,7 +536,8 @@ inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(Scalar3dp<T> s, PScala
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(TriVec3dp<T> const& t, Vec3dp<U> const& v)
+inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(TriVec3dp<T> const& t,
+                                                          Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3dp<ctype>(-t.x * v.x - t.y * v.y - t.z * v.z - t.w * v.w);
@@ -542,7 +545,8 @@ inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(TriVec3dp<T> const& t,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(Vec3dp<T> const& v, TriVec3dp<U> const& t)
+inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(Vec3dp<T> const& v,
+                                                          TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3dp<ctype>(v.x * t.x + v.y * t.y + v.z * t.z + v.w * t.w);
@@ -578,7 +582,8 @@ inline constexpr PScalar3dp<std::common_type_t<T, U>> wdg(BiVec3dp<T> const& B1,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline TriVec3dp<std::common_type_t<T, U>> wdg(BiVec3dp<T> const& B, Vec3dp<U> const& v)
+inline constexpr TriVec3dp<std::common_type_t<T, U>> wdg(BiVec3dp<T> const& B,
+                                                         Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return TriVec3dp<ctype>(
@@ -588,7 +593,8 @@ inline TriVec3dp<std::common_type_t<T, U>> wdg(BiVec3dp<T> const& B, Vec3dp<U> c
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline TriVec3dp<std::common_type_t<T, U>> wdg(Vec3dp<T> const& v, BiVec3dp<U> const& B)
+inline constexpr TriVec3dp<std::common_type_t<T, U>> wdg(Vec3dp<T> const& v,
+                                                         BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return TriVec3dp<ctype>(
@@ -620,7 +626,8 @@ inline constexpr BiVec3dp<std::common_type_t<T, U>> wdg(Scalar3dp<T> s,
 // where theta: -pi <= theta <= pi (different to definition of angle for dot product!)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline BiVec3dp<std::common_type_t<T, U>> wdg(Vec3dp<T> const& v1, Vec3dp<U> const& v2)
+inline constexpr BiVec3dp<std::common_type_t<T, U>> wdg(Vec3dp<T> const& v1,
+                                                        Vec3dp<U> const& v2)
 {
     return BiVec3dp<std::common_type_t<T, U>>(
         v1.w * v2.x - v1.x * v2.w, v1.w * v2.y - v1.y * v2.w, v1.w * v2.z - v1.z * v2.w,
@@ -658,7 +665,8 @@ inline constexpr Scalar3dp<std::common_type_t<T, U>> wdg(Scalar3dp<T> s1, Scalar
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Plane3d<std::common_type_t<T, U>> wdg(Line3d<T> const& l, Point3d<U> const& p)
+inline constexpr Plane3d<std::common_type_t<T, U>> wdg(Line3d<T> const& l,
+                                                       Point3d<U> const& p)
 {
     using ctype = std::common_type_t<T, U>;
     return Plane3d<ctype>(l.vy * p.z - l.vz * p.y + l.mx, -l.vx * p.z + l.vz * p.x + l.my,
@@ -668,7 +676,8 @@ inline Plane3d<std::common_type_t<T, U>> wdg(Line3d<T> const& l, Point3d<U> cons
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline Plane3d<std::common_type_t<T, U>> wdg(Point3d<T> const& p, Line3d<U> const& l)
+inline constexpr Plane3d<std::common_type_t<T, U>> wdg(Point3d<T> const& p,
+                                                       Line3d<U> const& l)
 {
     using ctype = std::common_type_t<T, U>;
     return Plane3d<ctype>(-p.y * l.vz + p.z * l.vy + l.mx, p.x * l.vz - p.z * l.vx + l.my,
@@ -1568,8 +1577,8 @@ inline constexpr MVec3dp<std::common_type_t<T, U>> cmt(MVec3dp<T> const& A,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline BiVec3dp<std::common_type_t<T, U>> cmt(TriVec3dp<T> const& t1,
-                                              TriVec3dp<U> const& t2)
+inline constexpr BiVec3dp<std::common_type_t<T, U>> cmt(TriVec3dp<T> const& t1,
+                                                        TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3dp<ctype>(t1.x * t2.w - t1.w * t2.x, t1.y * t2.w - t1.w * t2.y,
@@ -1600,8 +1609,8 @@ inline constexpr TriVec3dp<std::common_type_t<T, U>> cmt(BiVec3dp<T> const& B,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline BiVec3dp<std::common_type_t<T, U>> cmt(BiVec3dp<T> const& B1,
-                                              BiVec3dp<U> const& B2)
+inline constexpr BiVec3dp<std::common_type_t<T, U>> cmt(BiVec3dp<T> const& B1,
+                                                        BiVec3dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3dp<ctype>(-B1.vy * B2.mz + B1.vz * B2.my - B1.my * B2.vz + B1.mz * B2.vy,
@@ -2675,18 +2684,15 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v1,
 // for k-blades: A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
 // pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ... (from reversion)
 ////////////////////////////////////////////////////////////////////////////////
+// HINT: inv() cannot be constexpr due to the checks for division by zero
+//       which might throw
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> inv(Scalar3dp<T> s)
+inline Scalar3dp<T> inv(Scalar3dp<T> s)
 {
     T sq_n = bulk_nrm_sq(s);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("scalar norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "scalar");
     T inv = T(1.0) / sq_n;
 
     return Scalar3dp<T>(rev(s) * inv);
@@ -2694,18 +2700,13 @@ inline constexpr Scalar3dp<T> inv(Scalar3dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> inv(Vec3dp<T> const& v)
+inline Vec3dp<T> inv(Vec3dp<T> const& v)
 {
     // v^(-1) = rev(v)/|v|^2 = v/dot(v,v) = v/bulk_sq_nrm(v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    T sq_v = bulk_nrm_sq(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_v < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("vector bulk_nrm_sq too small for inversion " +
-                                 std::to_string(sq_v) + "\n");
-    }
-#endif
-    T inv = T(1.0) / sq_v; // inverse of squared norm for a vector
+    T sq_n = bulk_nrm_sq(v);
+    hd::ga::detail::check_normalization<T>(sq_n, "vector");
+    T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return Vec3dp<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
 }
 
@@ -2713,7 +2714,7 @@ inline constexpr Vec3dp<T> inv(Vec3dp<T> const& v)
 // Hitzer, Sangwine, 2016
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> inv(BiVec3dp<T> const& B)
+inline BiVec3dp<T> inv(BiVec3dp<T> const& B)
 {
     auto bc = B * conj(B);
     auto bcmap = gr0(bc) + gr2(bc) - gr4(bc);
@@ -2722,12 +2723,7 @@ inline constexpr BiVec3dp<T> inv(BiVec3dp<T> const& B)
     // fmt::println("bcmap={}", bcmap);
     // fmt::println("bc*bcmap={}", bc * bcmap);
     T sq_n = gr0(bc * bcmap);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector bulk_nrm_sq too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "bivector");
     return gr2(conj(B) * bcmap) / sq_n;
 }
 
@@ -2735,7 +2731,7 @@ inline constexpr BiVec3dp<T> inv(BiVec3dp<T> const& B)
 // Hitzer, Sangwine, 2016
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> inv(TriVec3dp<T> const& t)
+inline TriVec3dp<T> inv(TriVec3dp<T> const& t)
 {
     auto tc = t * conj(t);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
@@ -2744,27 +2740,17 @@ inline constexpr TriVec3dp<T> inv(TriVec3dp<T> const& t)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = gr0(tc * tcmap);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("trivector norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "trivector");
     return gr3(conj(t) * tcmap) / sq_n;
 }
 
 // due to the degenerate metric the pseudoscalar does not have an inverse
-// template <typename T>
-//     requires(std::floating_point<T>)
-// inline constexpr PScalar3dp<T> inv(PScalar3dp<T> ps)
-// {
-// }
 
 // formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
 // Hitzer, Sangwine, 2016
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> inv(MVec3dp_E<T> const& E)
+inline MVec3dp_E<T> inv(MVec3dp_E<T> const& E)
 {
     auto tc = E * conj(E);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
@@ -2773,13 +2759,7 @@ inline constexpr MVec3dp_E<T> inv(MVec3dp_E<T> const& E)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = gr0(tc * tcmap);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "norm of even grade multivector too small for inversion " +
-            std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "even grade multivector");
     return conj(E) * tcmap / sq_n;
 }
 
@@ -2787,7 +2767,7 @@ inline constexpr MVec3dp_E<T> inv(MVec3dp_E<T> const& E)
 // Hitzer, Sangwine, 2016
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
+inline MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
 {
     auto tc = U * conj(U);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
@@ -2796,13 +2776,7 @@ inline constexpr MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = gr0(tc * tcmap);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (sq_n < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "norm of uneven grade multivector too small for inversion " +
-            std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "uneven grade multivector");
     return conj(U) * tcmap / sq_n;
 }
 
@@ -2811,7 +2785,7 @@ inline constexpr MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
 // left and a right inverse are the same (see paper of Hitzer, Sangwine)
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> inv(MVec3dp<T> const& M)
+inline MVec3dp<T> inv(MVec3dp<T> const& M)
 {
     auto tc = M * conj(M);
     auto tcmap = gr0(tc) + gr1(tc) + gr2(tc) - gr3(tc) - gr4(tc);
@@ -2820,12 +2794,7 @@ inline constexpr MVec3dp<T> inv(MVec3dp<T> const& M)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = gr0(tc * tcmap);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(sq_n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("multivector norm too small for inversion " +
-                                 std::to_string(sq_n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_normalization<T>(sq_n, "multivector");
     return conj(M) * tcmap / sq_n;
 }
 
@@ -3250,7 +3219,7 @@ inline constexpr PScalar3dp<T> rcmpl(Scalar3dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline TriVec3dp<T> rcmpl(Vec3dp<T> const& v)
+inline constexpr TriVec3dp<T> rcmpl(Vec3dp<T> const& v)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
@@ -3264,7 +3233,7 @@ inline TriVec3dp<T> rcmpl(Vec3dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline BiVec3dp<T> rcmpl(BiVec3dp<T> const& B)
+inline constexpr BiVec3dp<T> rcmpl(BiVec3dp<T> const& B)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
@@ -3280,7 +3249,7 @@ inline BiVec3dp<T> rcmpl(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline Vec3dp<T> rcmpl(TriVec3dp<T> const& t)
+inline constexpr Vec3dp<T> rcmpl(TriVec3dp<T> const& t)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
@@ -3342,7 +3311,7 @@ inline constexpr PScalar3dp<T> lcmpl(Scalar3dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline TriVec3dp<T> lcmpl(Vec3dp<T> const& v)
+inline constexpr TriVec3dp<T> lcmpl(Vec3dp<T> const& v)
 {
     // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
@@ -3356,7 +3325,7 @@ inline TriVec3dp<T> lcmpl(Vec3dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline BiVec3dp<T> lcmpl(BiVec3dp<T> const& B)
+inline constexpr BiVec3dp<T> lcmpl(BiVec3dp<T> const& B)
 {
     // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
@@ -3372,7 +3341,7 @@ inline BiVec3dp<T> lcmpl(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline Vec3dp<T> lcmpl(TriVec3dp<T> const& t)
+inline constexpr Vec3dp<T> lcmpl(TriVec3dp<T> const& t)
 {
     // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:

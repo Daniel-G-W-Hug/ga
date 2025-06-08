@@ -7,6 +7,7 @@
 #include "type_t/ga_vec2_t.hpp"
 #include "type_t/ga_vec3_t.hpp"
 
+#include "ga_error_handling.hpp"
 
 namespace hd::ga::pga {
 
@@ -544,15 +545,10 @@ inline constexpr DualNum3dp<T> geom_nrm(MVec3dp<T> const& M)
 //    the scalar part represents the geometric norm the after unitization
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> unitize(DualNum3dp<T> const& D)
+inline DualNum3dp<T> unitize(DualNum3dp<T> const& D)
 {
     T n = D.c1; // the pseudoscalar part is the weight_nrm part
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("DualNum3dp weight_norm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(std::abs(n), "dual number (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * D;
 }
@@ -560,15 +556,10 @@ inline constexpr DualNum3dp<T> unitize(DualNum3dp<T> const& D)
 // return a vector unitized to v.w == 1.0  (implies weight_nrm(v) = 1.0)
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> unitize(Vec3dp<T> const& v)
+inline Vec3dp<T> unitize(Vec3dp<T> const& v)
 {
     T n = v.w; // v.w == sign(v.w)*weight_nrm(v);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("Vector weight_nrm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(std::abs(n), "vector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return Vec3dp<T>(v.x * inv, v.y * inv, v.z * inv, T(1.0));
 }
@@ -576,15 +567,10 @@ inline constexpr Vec3dp<T> unitize(Vec3dp<T> const& v)
 // return a bivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> unitize(BiVec3dp<T> const& B)
+inline BiVec3dp<T> unitize(BiVec3dp<T> const& B)
 {
     T n = weight_nrm(B);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("Bivector weight_norm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(n, "bivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * B;
 }
@@ -592,15 +578,10 @@ inline constexpr BiVec3dp<T> unitize(BiVec3dp<T> const& B)
 // return a trivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> unitize(TriVec3dp<T> const& t)
+inline TriVec3dp<T> unitize(TriVec3dp<T> const& t)
 {
     T n = weight_nrm(t);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("Trivector weight_norm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(n, "trivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * t;
 }
@@ -608,16 +589,10 @@ inline constexpr TriVec3dp<T> unitize(TriVec3dp<T> const& t)
 // return an even grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> unitize(MVec3dp_E<T> const& M)
+inline MVec3dp_E<T> unitize(MVec3dp_E<T> const& M)
 {
     T n = weight_nrm(M);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "Even grade mulitivector weight_norm too small for unitization " +
-            std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(n, "even grade multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -625,16 +600,10 @@ inline constexpr MVec3dp_E<T> unitize(MVec3dp_E<T> const& M)
 // return an uneven grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> unitize(MVec3dp_U<T> const& M)
+inline MVec3dp_U<T> unitize(MVec3dp_U<T> const& M)
 {
     T n = weight_nrm(M);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error(
-            "Uneven grade mulitivector weight_norm too small for unitization " +
-            std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(n, "uneven grade multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -642,15 +611,10 @@ inline constexpr MVec3dp_U<T> unitize(MVec3dp_U<T> const& M)
 // return a multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> unitize(MVec3dp<T> const& M)
+inline MVec3dp<T> unitize(MVec3dp<T> const& M)
 {
     T n = weight_nrm(M);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(n) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("Mulitivector weight_norm too small for unitization " +
-                                 std::to_string(n) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(n, "multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -848,12 +812,7 @@ struct Point3dp : public Vec3dp<T> {
 
     Point3dp& unitize()
     {
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-        if (std::abs(z) < std::numeric_limits<T>::epsilon()) {
-            throw std::runtime_error("z-component too small for unitization " +
-                                     std::to_string(z) + "\n");
-        }
-#endif
+        hd::ga::detail::check_unitization<T>(std::abs(z), "Point3dp");
         x /= w;
         y /= w;
         z /= w;
@@ -864,14 +823,9 @@ struct Point3dp : public Vec3dp<T> {
 
 template <typename T>
     requires std::floating_point<T>
-inline constexpr Point3dp<T> unitize(Point3dp<T> const& p)
+inline Point3dp<T> unitize(Point3dp<T> const& p)
 {
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(p.w) < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("w-component too small for unitization " +
-                                 std::to_string(p.w) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(std::abs(p.w), "Point3dp");
     T inv = T(1.0) / p.w;
     return Point3dp<T>(p.x * inv, p.y * inv, p.z * inv, 1.0);
 }
@@ -910,12 +864,7 @@ struct Line3d : public BiVec3dp<T> {
         // unitization for a 3d bivector means a normalized direction vector
         // std::sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
         T wn = weight_nrm(*this);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-        if (wn < std::numeric_limits<T>::epsilon()) {
-            throw std::runtime_error("bivector weight norm too small for unitization " +
-                                     std::to_string(wn) + "\n");
-        }
-#endif
+        hd::ga::detail::check_unitization<T>(wn, "Line3d");
         T inv = T(1.0) / wn;
         vx *= inv;
         vy *= inv;
@@ -929,17 +878,12 @@ struct Line3d : public BiVec3dp<T> {
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Line3d<T> unitize(Line3d<T> const& l)
+inline Line3d<T> unitize(Line3d<T> const& l)
 {
     // unitization for a 3d bivector means a normalized direction vector
     // std::sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
     T wn = weight_nrm(l);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (wn < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("bivector weight norm too small for unitization " +
-                                 std::to_string(wn) + "\n");
-    }
-#endif
+    hd::ga::detail::check_unitization<T>(wn, "Line3d");
     T inv = T(1.0) / wn;
     return Line3d<T>(l.vx * inv, l.vy * inv, l.vz * inv, l.mx * inv, l.my * inv,
                      l.mz * inv);

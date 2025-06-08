@@ -18,6 +18,7 @@
 
 // provide common type for Scalar2d<T>, Scalar3d<T>, ..., PScalar2d<T>, PScalar3d<T>, ...
 
+#include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
 
 namespace hd::ga {
@@ -43,12 +44,12 @@ class Scalar_t {
     friend void swap(Scalar_t& lhs, Scalar_t& rhs) noexcept
     {
         using std::swap;
-        swap(static_cast<T&>(lhs), static_cast<T&>(rhs));
+        swap(lhs.value, rhs.value);
     }
 
     template <typename U>
         requires(std::floating_point<U>)
-    Scalar_t& operator+=(Scalar_t<U, Tag> s)
+    Scalar_t& operator+=(Scalar_t<U, Tag> s) noexcept
     {
         value += s.value;
         return (*this);
@@ -56,7 +57,7 @@ class Scalar_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    Scalar_t& operator-=(Scalar_t<U, Tag> s)
+    Scalar_t& operator-=(Scalar_t<U, Tag> s) noexcept
     {
         value -= s.value;
         return (*this);
@@ -64,7 +65,7 @@ class Scalar_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    Scalar_t& operator*=(U s)
+    Scalar_t& operator*=(U s) noexcept
     {
         value *= s;
         return (*this);
@@ -72,14 +73,9 @@ class Scalar_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    Scalar_t& operator/=(U s)
+    Scalar_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-        if (s < std::numeric_limits<U>::epsilon()) {
-            throw std::runtime_error("scalar too small for division " +
-                                     std::to_string(s) + "\n");
-        }
-#endif
+        detail::check_division_by_zero<T, U>(s, "scalar division");
         value /= s;
         return (*this);
     }
@@ -143,17 +139,10 @@ inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator*(T s,
 // devide a pseudoscalar by a scalar
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, Tag> v,
-                                                                   U s)
+inline Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, Tag> v, U s)
 {
+    detail::check_division_by_zero<T, U>(s, "scalar division");
     using ctype = std::common_type_t<T, U>;
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (std::abs(s) < std::max<ctype>(std::numeric_limits<T>::epsilon(),
-                                      std::numeric_limits<U>::epsilon())) {
-        throw std::runtime_error("scalar too small, division by zero " +
-                                 std::to_string(s) + "\n");
-    }
-#endif
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return Scalar_t<ctype, Tag>(ctype(v) * inv);
 }
@@ -177,15 +166,10 @@ inline constexpr T nrm(Scalar_t<T, Tag> s)
 // return a scalar normalized to nrm(s) == 1.0
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr Scalar_t<T, Tag> normalize(Scalar_t<T, Tag> s)
+inline Scalar_t<T, Tag> normalize(Scalar_t<T, Tag> s)
 {
     T m = nrm(s);
-#if defined(_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-    if (m < std::numeric_limits<T>::epsilon()) {
-        throw std::runtime_error("magnitude too small for normalization " +
-                                 std::to_string(m) + "\n");
-    }
-#endif
+    detail::check_normalization<T>(m, "scalar or pseudoscalar");
     T inv = T(1.0) / m; // for multiplication with inverse of norm
     return Scalar_t<T, Tag>(T(s) * inv);
 }

@@ -19,3 +19,5 @@
 - 2025/03: implemented pga2dp and pga3dp including tests; reworked everything into  
            definitions as proposed by Lengyel consistently for ega2d, ega3d, pga2dp,
            pga3dp; startet to implement latex documentation
+- 2025/05: implemented operations and visualization of rotors in ega and motors in pga
+- 2025/06: implemented unified error handling for division by zero
