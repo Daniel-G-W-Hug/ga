@@ -29,7 +29,7 @@
 #include "ga_pga_3dp_ops.hpp"
 
 // Optional: Formatting support (can be omitted for faster compilation)
-#ifndef GA_NO_FMT_SUPPORT
+#ifndef _HD_GA_NO_FMT_SUPPORT
 #include "detail/fmt/ga_fmt_core.hpp"
 #include "detail/fmt/ga_fmt_pga.hpp"
 #endif

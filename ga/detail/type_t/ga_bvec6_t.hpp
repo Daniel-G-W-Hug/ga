@@ -12,6 +12,7 @@
 
 #include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
+#include "ga_vec3_t.hpp" // Required for Vec3d<T> in constructor
 
 namespace hd::ga {
 
@@ -36,7 +37,8 @@ struct BVec6_t {
     }
 
     // assign the vector parts separately
-    BVec6_t(Vec3d<T> const& v, Vec3d<T> const& m) :
+    template <typename Vec1Tag, typename Vec2Tag>
+    BVec6_t(Vec3_t<T, Vec1Tag> const& v, Vec3_t<T, Vec2Tag> const& m) :
         vx(v.x), vy(v.y), vz(v.z), mx(m.x), my(m.y), mz(m.z)
     {
     }
