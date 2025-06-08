@@ -10,13 +10,11 @@
 // and corresponding operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// types used for EGA (provided as templated types):
+// types used for PGA (provided as templated types):
 //
-// Scalar2d<T>, Vec2dp<T>, PScalar2dp<T>, MVec2d_E<T>, MVec2dp<T>
-// Scalar3d<T>, Vec3dp<T>, BiVec3dp<T>, PScalar3dp<T>, MVec3d_E<T>, MVec3d_U<T>,
-// MVec3dp<T>
-// Scalar4d<T>, Vec4dp<T>, BiVec4dp<T>, TriVec4dp<T>, PScalar4dp<T>, MVec4d_E<T>,
-// MVec4d_U<T>, MVec4dp<T>
+// Scalar2dp<T>, Vec2dp<T>, BiVec2dp<T>, PScalar2dp<T>, MVec2dp_E<T>, MVec2dp_U<T>, MVec2dp<T>
+// Scalar3dp<T>, Vec3dp<T>, BiVec3dp<T>, TriVec3dp<T>, PScalar3dp<T>, MVec3dp_E<T>, MVec3dp_U<T>, MVec3dp<T>
+// DualNum2dp<T>, DualNum3dp<T>
 
 // types used for PGA (provided as user types based on value_t for convenience):
 //
@@ -31,10 +29,10 @@
 
 #include "ga_usr_consts.hpp"    // user constants (for user convenience)
 #include "ga_usr_types.hpp"     // consistent user types (for user convenience)
-#include "ga_usr_utilities.hpp" // chelper functions (for user convenience)
+#include "ga_usr_utilities.hpp" // helper functions (for user convenience)
 
 // PGA-specific operations are in namespace hd::ga::pga
-#include "ga_pga_common_ops.hpp" // include all pga operations for 2dp and 3dp
+#include "ga_pga_common_ops.hpp" // include all pga operations for 2dp and 3dp (now uses ga_foundation.hpp)
 
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)
