@@ -9,6 +9,7 @@
 #include "ga_vec4_t.hpp"
 
 #include "ga_mvec16_t.hpp"
+#include "ga_mvec2_t.hpp" // Required for DualNum3dp
 #include "ga_mvec8_t.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////

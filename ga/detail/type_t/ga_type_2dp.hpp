@@ -7,6 +7,7 @@
 #include "ga_scalar_t.hpp"
 #include "ga_vec3_t.hpp"
 
+#include "ga_mvec2_t.hpp" // Required for DualNum2dp
 #include "ga_mvec4_t.hpp"
 #include "ga_mvec8_t.hpp"
 
