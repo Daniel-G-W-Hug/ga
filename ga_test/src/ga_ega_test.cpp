@@ -2252,7 +2252,7 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
     {
         fmt::println("Vec3d: operations - rotations");
 
-        fmt::println("");
+        // fmt::println("");
 
         double phi = deg2rad(30.0);
         auto c = vec3d(std::cos(phi), std::sin(phi), 0.0);
@@ -2260,15 +2260,15 @@ TEST_SUITE("Euclidean Geometric Algebra (EGA)")
         auto cm = vec3d(std::cos(-phi), std::sin(-phi), 0.0);
         auto dm = rotate(e1_3d, rotor(e12_3d, -phi));
 
-        fmt::println("c = {}", c);
-        fmt::println("d = {}", d);
-        fmt::println("cm = {}", cm);
-        fmt::println("dm = {}", dm);
+        // fmt::println("c = {}", c);
+        // fmt::println("d = {}", d);
+        // fmt::println("cm = {}", cm);
+        // fmt::println("dm = {}", dm);
 
         CHECK(c == d);
         CHECK(cm == dm);
 
-        fmt::println("");
+        // fmt::println("");
     }
 
     ////////////////////////////////////////////////////////////////////////////////
