@@ -417,6 +417,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // just to suppress unused variable warnings
         CHECK(v6 == normalize(vec2dp(-1.0, -1.0, 0.0)));
+        CHECK(v7 == normalize(vec2dp(0.0, -1.0, 0.0)));
         CHECK(v8 == normalize(vec2dp(1.0, -1.0, 0.0)));
     }
 
@@ -569,7 +570,6 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // points
         vec2dp p1{5, 1, 1};
-        vec2dp p2{2, 2, 1};
 
         // vectors (=directions) projected and rejected
         vec2dp v3{project_onto(v1, v2)};
@@ -2051,7 +2051,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         auto s3 = scalar2dp{-10.0};
         auto v3 = vec2dp{-2.0, 4.0, -10.0};
-        auto b3 = bivec2dp{1.0, -2.0, 3.0};
+        // auto b3 = bivec2dp{1.0, -2.0, 3.0};
         auto ps3 = pscalar2dp{-12.0};
 
         // dot product
@@ -2812,6 +2812,7 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
 
         // just to suppress unused variable warnings
         CHECK(v6 == normalize(vec3dp(-1.0, -1.0, 0.0, 0.0)));
+        CHECK(v7 == normalize(vec3dp(0.0, -1.0, 0.0, 0.0)));
         CHECK(v8 == normalize(vec3dp(1.0, -1.0, 0.0, 0.0)));
     }
 
@@ -4663,6 +4664,8 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         CHECK(att(t1) == rwdg(t1, rcmpl(e4_3dp)));
         CHECK(att(t2) == bivec3dp{0.0, 0.0, 0.0, t2.x, t2.y, t2.z});
         CHECK(att(t2) == rwdg(t2, rcmpl(e4_3dp)));
+        CHECK(att(t3) == bivec3dp{0.0, 0.0, 0.0, t3.x, t3.y, t3.z});
+        CHECK(att(t3) == rwdg(t3, rcmpl(e4_3dp)));
     }
 
     TEST_CASE("MVec3dp: euclidean distance")
@@ -4874,12 +4877,12 @@ TEST_SUITE("Projective Geometric Algebra (PGA)")
         auto pt0 = origin_3dp;
         auto pt1 = vec3dp{1, 0, 0, 1};
         auto pt2 = vec3dp{1, 1, 0, 1};
-        auto pt3 = vec3dp{0, 1, 0, 1};
-        auto pt4 = vec3dp{0, 1, 1, 1};
+        // auto pt3 = vec3dp{0, 1, 0, 1};
+        // auto pt4 = vec3dp{0, 1, 1, 1};
         auto pt5 = vec3dp{0, 0, 1, 1};
         auto pt6 = vec3dp{1, 0, 1, 1};
         auto pt7 = vec3dp{1, 1, 1, 1};
-        auto pt8 = vec3dp{1, -1, 0, 1};
+        // auto pt8 = vec3dp{1, -1, 0, 1};
         auto pt9 = vec3dp{0, -1, 0, 1};
 
         auto ln01 = join(pt0, pt1); // line containing both points

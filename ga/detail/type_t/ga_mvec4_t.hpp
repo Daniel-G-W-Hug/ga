@@ -28,7 +28,7 @@ struct MVec4_t {
     MVec4_t() = default;
 
     // assign all components
-    MVec4_t(T s, T x, T y, T ps) : c0(s), c1(x), c2(y), c3(ps) {}
+    constexpr MVec4_t(T s, T x, T y, T ps) : c0(s), c1(x), c2(y), c3(ps) {}
 
     // cp & mv ctor
     MVec4_t(MVec4_t const&) = default;
@@ -44,7 +44,7 @@ struct MVec4_t {
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
-    MVec4_t(MVec4_t<U, Tag> const& v) : MVec4_t(v.c0, v.c1, v.c2, v.c3)
+    constexpr MVec4_t(MVec4_t<U, Tag> const& v) : MVec4_t(v.c0, v.c1, v.c2, v.c3)
     {
     }
 

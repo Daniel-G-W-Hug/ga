@@ -28,7 +28,7 @@ struct MVec8_t {
     MVec8_t() = default;
 
     // assign all components directly
-    MVec8_t(T s, T x, T y, T z, T yz, T zx, T xy, T ps) :
+    constexpr MVec8_t(T s, T x, T y, T z, T yz, T zx, T xy, T ps) :
         c0(s), c1(x), c2(y), c3(z), c4(yz), c5(zx), c6(xy), c7(ps)
     {
     }
@@ -47,7 +47,7 @@ struct MVec8_t {
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
-    MVec8_t(MVec8_t<U, Tag> const& v) :
+    constexpr MVec8_t(MVec8_t<U, Tag> const& v) :
         MVec8_t(v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7)
     {
     }
