@@ -10,6 +10,10 @@ set(HEADERS
     detail/ga_fmt_support.hpp
     #
     detail/ga_error_handling.hpp
+    detail/ga_core_types.hpp
+    detail/ga_foundation.hpp
+    detail/ga_ega_types.hpp
+    detail/ga_pga_types.hpp
     #
     detail/type_t/ga_scalar_t.hpp
     detail/type_t/ga_vec2_t.hpp
@@ -20,6 +24,7 @@ set(HEADERS
     detail/type_t/ga_mvec4_t.hpp
     detail/type_t/ga_mvec8_t.hpp
     detail/type_t/ga_mvec16_t.hpp
+    detail/type_t/ga_type_tags.hpp
     detail/type_t/ga_type_2d.hpp
     detail/type_t/ga_type_2dp.hpp
     detail/type_t/ga_type_3d.hpp
@@ -47,10 +52,17 @@ set(HEADERS
     #
     # user facing includes
     #
+    ga_minimal.hpp
     ga_ega.hpp
     ga_pga.hpp
     #
+    ga_ega_2d_only.hpp
+    ga_ega_3d_only.hpp
+    ga_pga_2dp_only.hpp
+    ga_pga_3dp_only.hpp
+    #
     ga_usr_consts.hpp
+    ga_usr_types.hpp
     ga_usr_utilities.hpp
     ga_algebra.hpp
     ga_value_t.hpp
