@@ -38,7 +38,7 @@ class active_pt2d : public QObject, public QGraphicsItem {
 
     pt2d scenePos() const;
 
-    bool isHovered() { return m_mouse_hover; }
+    bool isHovered() const { return m_mouse_hover; }
 
   public slots:
     void viewChanged(); // the view changed, e.g. resize
