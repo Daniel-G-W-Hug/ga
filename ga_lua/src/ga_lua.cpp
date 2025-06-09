@@ -169,6 +169,8 @@ int main(int argc, char* argv[])
 
         register_2d_types(lua);
         register_3d_types(lua);
+        register_2dp_types(lua);
+        register_3dp_types(lua);
         register_functions(lua);
         register_constants(lua);
 
