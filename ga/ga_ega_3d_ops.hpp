@@ -1306,8 +1306,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v1,
                                                        Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
-                        v1.x * v2.y - v1.y * v2.x);
+    return BiVec3d<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
+                           v1.x * v2.y - v1.y * v2.x);
 }
 
 
