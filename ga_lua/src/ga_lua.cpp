@@ -8,6 +8,11 @@
 #include <iostream>     // std::cerr, std::cin
 #include <string>       // std::string
 
+#ifdef _HD_GA_HAVE_READLINE
+#include <readline/readline.h>
+#include <readline/history.h>
+#endif
+
 void print_usage(const char* program_name)
 {
     fmt::println("Usage: {} [options] [script_file]\n", program_name);
@@ -29,19 +34,41 @@ void run_interactive_shell(sol::state& lua)
 {
     fmt::println("GA Lua Interactive Shell");
     fmt::println("Type 'quit' or 'exit' to leave, 'help' for GA functions");
-    fmt::println("All GA types and functions are available (e.g., vec2d.new(1,2))\n");
+    fmt::println("All GA types and functions are available (e.g., vec2d.new(1,2))");
+#ifdef _HD_GA_HAVE_READLINE
+    fmt::println("Use arrow keys for history, Tab for completion\n");
+#else
+    fmt::println();
+#endif
 
     std::string input;
     int line_number = 1;
 
     while (true) {
+#ifdef _HD_GA_HAVE_READLINE
+        char* line = readline(fmt::format("ga_lua[{}]> ", line_number).c_str());
+        if (!line) {
+            // EOF (Ctrl+D on Unix, Ctrl+Z on Windows)
+            fmt::println("\nExiting...");
+            break;
+        }
+        input = line;
+        
+        // Add non-empty lines to history
+        if (!input.empty()) {
+            add_history(line);
+        }
+        
+        free(line);
+#else
         fmt::print("ga_lua[{}]> ", line_number);
-
+        
         if (!std::getline(std::cin, input)) {
             // EOF (Ctrl+D on Unix, Ctrl+Z on Windows)
             fmt::println("\nExiting...");
             break;
         }
+#endif
 
         // Trim whitespace and check for special commands
         if (input.empty()) {
