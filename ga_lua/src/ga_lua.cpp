@@ -113,7 +113,7 @@ std::string get_default_script_path()
     // on the msvc compiler there will be debug and release subfolders
     return "../../../ga_lua/input/ga_lua.lua";
 #else
-    return "../../ga_lua/input/ga_lua.lua";
+    return "../ga_lua/input/ga_lua.lua";
 #endif
 }
 
