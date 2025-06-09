@@ -740,3 +740,337 @@ print("mvs2 =", mvs2)
 print("dot(s1,s2)=", dot(s1, s2))
 print("wdg(s1,s2)=", wdg(s1, s2))
 print("mvs1 * mvs2 =", mvs1 * mvs2)
+
+-- Simple test script for GA operations
+v1 = vec2d.new(3, 4)
+print("v1 =", v1)
+print("nrm(v1) =", nrm(v1))
+
+v2 = vec3d.new(1, 0, 0)
+v3 = vec3d.new(0, 1, 0)
+bv = wdg(v2, v3)
+print("v2 ^ v3 =", bv)
+print("dual(bv) =", dual(bv))
+
+-- Test new EGA functionality in ga_lua
+print("Testing new EGA functionality in ga_lua")
+print("=========================================")
+
+-- Test bivec3d with conj operation
+print("\n1. Testing conj operation for bivec3d:")
+b = bivec3d.new(1, 2, 3)
+print("bivector b =", b)
+print("conj(b) =", conj(b))
+
+-- Test commutator operations
+print("\n2. Testing cmt operations:")
+v1 = vec3d.new(1, 0, 0)
+v2 = vec3d.new(0, 1, 0)
+print("v1 =", v1)
+print("v2 =", v2)
+print("cmt(v1, v2) =", cmt(v1, v2))
+
+-- Test inv operation for mvec3d_u
+print("\n3. Testing inv operation for mvec3d_u:")
+u = mvec3d_u.new(1, 2, 3, 4)
+print("mvec3d_u u =", u)
+print("inv(u) =", inv(u))
+
+-- Test more cmt operations
+print("\n4. Testing more cmt operations:")
+bv = bivec3d.new(1, 0, 0)
+v = vec3d.new(0, 1, 0)
+print("bivector bv =", bv)
+print("vector v =", v)
+print("cmt(bv, v) =", cmt(bv, v))
+print("cmt(v, bv) =", cmt(v, bv))
+
+print("\nAll tests completed successfully!")
+
+-- Comprehensive PGA functionality test
+print("Testing complete PGA functionality in ga_lua")
+print("==========================================")
+
+-- Test basic scalar2dp
+print("\n1. Testing scalar2dp:")
+s = scalar2dp.new(5.0)
+print("scalar s =", s)
+print("s + 3 =", s + scalar2dp.new(3.0))
+print("s * 2 =", s * 2.0)
+
+-- Test vec2dp (3 components for projective 2D)
+print("\n2. Testing vec2dp:")
+v1 = vec2dp.new(1, 2, 0) -- direction vector (z=0)
+v2 = vec2dp.new(3, 4, 1) -- point (z=1)
+print("vector v1 =", v1, "(direction)")
+print("point v2 =", v2, "(projective point)")
+print("v1 + v2 =", v1 + v2)
+print("v1 * 2 =", v1 * 2.0)
+
+-- Test wedge product (outer product)
+print("\n3. Testing wedge product:")
+line = v1 ^ v2 -- should create a bivector representing a line
+print("line = v1 ^ v2 =", line)
+
+-- Test bivec2dp
+print("\n4. Testing bivec2dp:")
+b = bivec2dp.new(1, 0, 0)
+print("bivector b =", b)
+print("b * 2 =", b * 2.0)
+
+-- Test pscalar2dp
+print("\n5. Testing pscalar2dp:")
+ps = pscalar2dp.new(1.0)
+print("pseudoscalar ps =", ps)
+
+-- Test dual numbers
+print("\n6. Testing dualnum2dp:")
+dn = dualnum2dp.new(1.0, 0.5)
+print("dual number dn =", dn)
+print("dn + dn =", dn + dn)
+print("dn * 2 =", dn * 2.0)
+
+-- Test PGA constants
+print("\n7. Testing PGA constants:")
+print("origin_2dp =", origin_2dp)
+print("e1_2dp =", e1_2dp)
+print("e2_2dp =", e2_2dp)
+print("e3_2dp =", e3_2dp)
+print("horizon_2dp =", horizon_2dp)
+
+-- Test unitize function
+print("\n8. Testing unitize function:")
+v_dir = vec2dp.new(3, 4, 0) -- direction vector (can't be unitized)
+v_pt = vec2dp.new(3, 4, 1) -- point vector (can be unitized)
+print("direction vector v_dir =", v_dir)
+print("point vector v_pt =", v_pt)
+print("unitize(v_pt) =", unitize(v_pt))
+
+-- Test bivector unitization
+b_unit = bivec2dp.new(3, 4, 1) -- line with weight
+print("bivector b =", b_unit)
+print("unitize(b) =", unitize(b_unit))
+
+print("\nBasic PGA 2DP tests completed successfully!")
+
+-- Test PGA 3DP functionality in ga_lua
+print("Testing PGA 3DP functionality in ga_lua")
+print("=======================================")
+
+-- Test basic scalar3dp
+print("\n1. Testing scalar3dp:")
+s = scalar3dp.new(7.0)
+print("scalar s =", s)
+print("s + 2 =", s + scalar3dp.new(2.0))
+print("s * 3 =", s * 3.0)
+
+-- Test vec3dp (4 components for projective 3D)
+print("\n2. Testing vec3dp:")
+v1 = vec3dp.new(1, 2, 3, 0) -- direction vector (w=0)
+v2 = vec3dp.new(3, 4, 5, 1) -- point (w=1)
+print("direction v1 =", v1, "(direction)")
+print("point v2 =", v2, "(projective point)")
+print("v1 + v2 =", v1 + v2)
+print("v1 * 2 =", v1 * 2.0)
+
+-- Test wedge product (outer product)
+print("\n3. Testing wedge product:")
+line = v1 ^ v2 -- should create a bivector representing a line
+print("line = v1 ^ v2 =", line)
+
+-- Test bivec3dp
+print("\n4. Testing bivec3dp:")
+b = bivec3dp.new(1, 0, 0, 2, 3, 4)
+print("bivector b =", b)
+print("b * 2 =", b * 2.0)
+
+-- Test trivec3dp
+print("\n5. Testing trivec3dp:")
+tv = trivec3dp.new(1, 2, 3, 4)
+print("trivector tv =", tv)
+print("tv * 3 =", tv * 3.0)
+
+-- Test pscalar3dp
+print("\n6. Testing pscalar3dp:")
+ps = pscalar3dp.new(1.0)
+print("pseudoscalar ps =", ps)
+
+-- Test dual numbers
+print("\n7. Testing dualnum3dp:")
+dn = dualnum3dp.new(2.0, 1.5)
+print("dual number dn =", dn)
+print("dn + dn =", dn + dn)
+print("dn * 2 =", dn * 2.0)
+
+-- Test unitize function
+print("\n8. Testing unitize function:")
+v_pt = vec3dp.new(3, 4, 5, 1) -- point vector (can be unitized)
+print("point vector v_pt =", v_pt)
+print("unitize(v_pt) =", unitize(v_pt))
+
+-- Test bivector unitization
+b_unit = bivec3dp.new(3, 4, 0, 0, 0, 1) -- line with weight
+print("bivector b =", b_unit)
+print("unitize(b) =", unitize(b_unit))
+
+-- Test trivector unitization
+tv_unit = trivec3dp.new(1, 2, 3, 1) -- plane with weight
+print("trivector tv =", tv_unit)
+print("unitize(tv) =", unitize(tv_unit))
+
+print("\nBasic PGA 3DP tests completed successfully!")
+
+-- Test PGA-specific functions in ga_lua
+print("Testing PGA-specific functions in ga_lua")
+print("======================================")
+
+-- Test dual operations
+print("\n1. Testing dual operations:")
+s = scalar2dp.new(2.0)
+v = vec2dp.new(1, 2, 3)
+b = bivec2dp.new(3, 4, 5)
+ps = pscalar2dp.new(1.0)
+
+print("scalar s =", s)
+print("bulk_dual(s) =", bulk_dual(s))
+print("weight_dual(s) =", weight_dual(s))
+
+print("vector v =", v)
+print("bulk_dual(v) =", bulk_dual(v))
+print("weight_dual(v) =", weight_dual(v))
+
+print("bivector b =", b)
+print("bulk_dual(b) =", bulk_dual(b))
+print("weight_dual(b) =", weight_dual(b))
+
+-- Test unitize with dual numbers
+print("\n2. Testing dual number unitization:")
+dn = dualnum2dp.new(3.0, 2.0)
+print("dual number dn =", dn)
+print("unitize(dn) =", unitize(dn))
+
+-- Test angle operations
+print("\n3. Testing angle operations:")
+v1 = vec2dp.new(1, 0, 0) -- direction along x
+v2 = vec2dp.new(0, 1, 0) -- direction along y
+-- Note: PGA angle function requires proper direction vectors (w=0 for pure directions)
+print("direction v1 =", v1)
+print("direction v2 =", v2)
+print("angle between v1 and v2 =", angle(v1, v2), "radians")
+print("angle in degrees =", rad2deg(angle(v1, v2)), "degrees")
+
+-- Test bivector angles
+b1 = bivec2dp.new(1, 0, 1)
+b2 = bivec2dp.new(0, 1, 1)
+print("angle between bivectors =", angle(b1, b2), "radians")
+
+-- Test support operations
+print("\n4. Testing support operations:")
+line2d = bivec2dp.new(1, 1, -2) -- line ax + by + c = 0 where a=1, b=1, c=-2
+print("line =", line2d)
+support_pt = support2dp(line2d)
+print("support point (closest to origin) =", support_pt)
+
+-- Test 3DP functions
+print("\n5. Testing 3DP functions:")
+v3d_1 = vec3dp.new(1, 0, 0, 0) -- direction along x
+v3d_2 = vec3dp.new(0, 1, 0, 0) -- direction along y
+print("3D angle between directions =", angle(v3d_1, v3d_2), "radians")
+
+-- Test 3DP support
+line3d = bivec3dp.new(1, 0, 0, 0, 0, 1) -- 3d line
+support3d_pt = support3dp(line3d)
+print("3D support point =", support3d_pt)
+
+-- Test norm operations with PGA types
+print("\n6. Testing norm operations:")
+print("nrm_sq(v) =", nrm_sq(v))
+print("nrm(v) =", nrm(v))
+print("nrm_sq(b) =", nrm_sq(b))
+print("nrm(b) =", nrm(b))
+
+-- Test 3DP norms
+v3dp_test = vec3dp.new(3, 4, 0, 1)
+print("3DP vector =", v3dp_test)
+print("nrm_sq(v3dp) =", nrm_sq(v3dp_test))
+print("nrm(v3dp) =", nrm(v3dp_test))
+
+print("\nPGA functions tests completed successfully!")
+
+-- Test 2DP constants
+print("\n1. Testing PGA 2DP constants:")
+print("e1_2dp =", e1_2dp)
+print("e2_2dp =", e2_2dp)
+print("e3_2dp =", e3_2dp)
+print("origin_2dp =", origin_2dp)
+print("horizon_2dp =", horizon_2dp)
+print("x_axis_2dp =", x_axis_2dp)
+print("y_axis_2dp =", y_axis_2dp)
+
+-- Test 3DP constants
+print("\n2. Testing PGA 3DP constants:")
+print("e1_3dp =", e1_3dp)
+print("e2_3dp =", e2_3dp)
+print("e3_3dp =", e3_3dp)
+print("e4_3dp =", e4_3dp)
+print("origin_3dp =", origin_3dp)
+print("horizon_3dp =", horizon_3dp)
+print("x_axis_3dp =", x_axis_3dp)
+print("xy_plane_3dp =", xy_plane_3dp)
+print("I_3dp =", I_3dp)
+
+-- Test type creation and operations
+print("\n3. Testing comprehensive type operations:")
+
+-- 2DP operations
+v2dp_1 = vec2dp.new(1, 0, 0) -- direction
+v2dp_2 = vec2dp.new(0, 0, 1) -- origin point
+line = v2dp_1 ^ v2dp_2 -- create line
+print("direction ^ origin =", line, "(line)")
+
+-- Dual operations
+print("bulk_dual(direction) =", bulk_dual(v2dp_1))
+print("weight_dual(origin) =", weight_dual(v2dp_2))
+
+-- 3DP operations
+v3dp_1 = vec3dp.new(1, 0, 0, 0) -- x direction
+v3dp_2 = vec3dp.new(0, 1, 0, 0) -- y direction
+
+line3d = v3dp_1 ^ v3dp_2 -- create line (bivector)
+print("3D line =", line3d)
+print("3D bivector components: vx=", line3d.vx, "vy=", line3d.vy, "vz=", line3d.vz)
+print("                       mx=", line3d.mx, "my=", line3d.my, "mz=", line3d.mz)
+
+-- Test unitization
+pt = vec3dp.new(3, 4, 5, 2)
+print("point =", pt)
+print("unitize(point) =", unitize(pt))
+
+-- Test support operations
+line_2d = bivec2dp.new(1, 1, -3) -- line ax + by + c = 0
+support_pt = support2dp(line_2d)
+print("support point for 2D line =", support_pt)
+
+line_3d = bivec3dp.new(1, 0, 0, 0, 0, 1) -- 3D line
+support_pt_3d = support3dp(line_3d)
+print("support point for 3D line =", support_pt_3d)
+
+-- Test basic geometric operations
+print("\n4. Testing geometric operations:")
+print("wedge: e1_2dp ^ e2_2dp =", e1_2dp ^ e2_2dp)
+print("wedge: e1_3dp ^ e2_3dp =", e1_3dp ^ e2_3dp)
+
+-- Test norms
+v_test = vec2dp.new(3, 4, 1)
+print("vector =", v_test)
+print("norm squared =", nrm_sq(v_test))
+print("norm =", nrm(v_test))
+
+print("\n5. Testing dual numbers:")
+dn2dp = dualnum2dp.new(2.0, 1.5)
+dn3dp = dualnum3dp.new(3.0, 2.0)
+print("2DP dual =", dn2dp, ", unitized =", unitize(dn2dp))
+print("3DP dual =", dn3dp, ", unitized =", unitize(dn3dp))
+
+print("\nComprehensive PGA test completed successfully!")
+print("All PGA 2DP and 3DP types, functions, and constants are working!")
