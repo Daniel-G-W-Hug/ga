@@ -632,6 +632,7 @@ void register_functions(sol::state& lua)
                                            sol::resolve<mvec2d(mvec2d const&)>(conj),
                                            sol::resolve<scalar3d(scalar3d)>(conj),
                                            sol::resolve<vec3d(vec3d const&)>(conj),
+                                           sol::resolve<bivec3d(bivec3d const&)>(conj),
                                            sol::resolve<pscalar3d(pscalar3d)>(conj),
                                            sol::resolve<mvec3d_e(mvec3d_e const&)>(conj),
                                            sol::resolve<mvec3d_u(mvec3d_u const&)>(conj),
@@ -647,6 +648,7 @@ void register_functions(sol::state& lua)
                                           sol::resolve<bivec3d(bivec3d const&)>(inv),
                                           sol::resolve<pscalar3d(pscalar3d)>(inv),
                                           sol::resolve<mvec3d_e(mvec3d_e const&)>(inv),
+                                          sol::resolve<mvec3d_u(mvec3d_u const&)>(inv),
                                           sol::resolve<mvec3d(mvec3d const&)>(inv)));
 
 
@@ -743,7 +745,18 @@ void register_functions(sol::state& lua)
     // other products (inner, fat_dot, cmt, cross)
     ////////////////////////////////////////////////////////////////////////////////
 
-    lua.set_function("cmt", sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(cmt));
+    lua.set_function("cmt", sol::overload(
+                     // 2D commutator operations
+                     sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(cmt),
+                     sol::resolve<vec2d(pscalar2d, vec2d const&)>(cmt),
+                     sol::resolve<vec2d(vec2d const&, pscalar2d)>(cmt),
+                     sol::resolve<pscalar2d(vec2d const&, vec2d const&)>(cmt),
+                     // 3D commutator operations
+                     sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(cmt),
+                     sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(cmt),
+                     sol::resolve<vec3d(bivec3d const&, vec3d const&)>(cmt),
+                     sol::resolve<vec3d(vec3d const&, bivec3d const&)>(cmt),
+                     sol::resolve<bivec3d(vec3d const&, vec3d const&)>(cmt)));
 
     lua.set_function("cross", sol::resolve<vec3d(vec3d const&, vec3d const&)>(cross));
 
