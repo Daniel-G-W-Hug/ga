@@ -317,7 +317,7 @@ void register_3d_types(sol::state& lua)
         "vec3d",
         sol::constructors<vec3d(), vec3d(value_t, value_t, value_t), vec3d(vec3d const&),
                           vec3d(vec3d&&)>(),
-        "x", &vec3d::x, "y", &vec3d::x, "z", &vec3d::y, sol::meta_function::to_string,
+        "x", &vec3d::x, "y", &vec3d::y, "z", &vec3d::z, sol::meta_function::to_string,
         [](const vec3d& v) { return fmt::format("Vec3d({}, {}, {})", v.x, v.y, v.z); },
         sol::meta_function::unary_minus, sol::resolve<vec3d(vec3d const&)>(operator-),
         sol::meta_function::addition,
@@ -365,7 +365,7 @@ void register_3d_types(sol::state& lua)
         "bivec3d",
         sol::constructors<bivec3d(), bivec3d(value_t, value_t, value_t),
                           bivec3d(bivec3d const&), bivec3d(bivec3d&&)>(),
-        "x", &bivec3d::x, "y", &bivec3d::x, "z", &bivec3d::y,
+        "x", &bivec3d::x, "y", &bivec3d::y, "z", &bivec3d::z,
         sol::meta_function::to_string,
         [](const bivec3d& bv) {
             return fmt::format("BiVec3d({}, {}, {})", bv.x, bv.y, bv.z);
