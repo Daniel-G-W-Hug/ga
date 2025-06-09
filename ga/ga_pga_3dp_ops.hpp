@@ -848,7 +848,7 @@ template <typename T, typename U>
 inline constexpr TriVec3dp<std::common_type_t<T, U>> rwdg(TriVec3dp<T> const& t,
                                                           PScalar3dp<U> ps)
 {
-    return Vec3dp<std::common_type_t<T, U>>(t.x * ps, t.y * ps, t.z * ps, t.w * ps);
+    return TriVec3dp<std::common_type_t<T, U>>(t.x * ps, t.y * ps, t.z * ps, t.w * ps);
 }
 
 
@@ -1642,9 +1642,9 @@ inline constexpr BiVec3dp<std::common_type_t<T, U>> cmt(Vec3dp<T> const& v1,
                                                         Vec3dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(-v1.x * v2.w + v1.w * v2.x, -v1.y * v2.w + v1.w * v2.y,
-                         -v1.z * v2.w + v1.w * v2.z, v1.y * v2.z - v1.z * v2.y,
-                         -v1.x * v2.z + v1.z * v2.x, v1.x * v2.y - v1.y * v2.x);
+    return BiVec3dp<ctype>(-v1.x * v2.w + v1.w * v2.x, -v1.y * v2.w + v1.w * v2.y,
+                           -v1.z * v2.w + v1.w * v2.z, v1.y * v2.z - v1.z * v2.y,
+                           -v1.x * v2.z + v1.z * v2.x, v1.x * v2.y - v1.y * v2.x);
 }
 
 

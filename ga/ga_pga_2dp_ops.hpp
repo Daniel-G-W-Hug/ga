@@ -1266,8 +1266,8 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> cmt(Vec2dp<T> const& v1,
                                                         Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
-                         v1.x * v2.y - v1.y * v2.x);
+    return BiVec2dp<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
+                           v1.x * v2.y - v1.y * v2.x);
 }
 
 
