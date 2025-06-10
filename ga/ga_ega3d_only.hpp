@@ -2,15 +2,15 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 // Selective include for 3D Euclidean Geometric Algebra only
-// Provides complete 3D EGA functionality with minimal compile overhead
-////////////////////////////////////////////////////////////////////////////////
+// Provides complete ega3d functionality with minimal compile overhead
+/////////////////////////////////////////////////////////////////////////////////////////
 
 #include "detail/ga_foundation.hpp"
 
 // 3D EGA specific type definitions
-#include "detail/type_t/ga_type_3d.hpp"
+#include "detail/type_t/ga_type3d.hpp"
 
 // 3D EGA multivector implementations
 #include "detail/ga_mvec3d.hpp"   // Complete 3D multivectors
@@ -23,7 +23,7 @@
 #include "ga_usr_utilities.hpp"
 
 // 3D EGA operations
-#include "ga_ega_3d_ops.hpp"
+#include "ga_ega3d_ops.hpp"
 
 // Optional: Formatting support (can be omitted for faster compilation)
 #ifndef _HD_GA_NO_FMT_SUPPORT
@@ -56,7 +56,7 @@
 // - Smaller object files and faster linking
 //
 // **Usage:**
-// #include "ga/ga_ega_3d_only.hpp"
+// #include "ga/ga_ega3d_only.hpp"
 // using namespace hd::ga;
 // using namespace hd::ga::ega;  // For operations
 //

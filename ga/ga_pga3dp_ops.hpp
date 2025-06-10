@@ -2,10 +2,9 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-// Use the new aggregation headers for cleaner dependencies
-#include "detail/ga_foundation.hpp" // Provides all standard library headers and GA infrastructure
-#include "detail/ga_mvec3dp.hpp" // 3dp multivector types (includes component types)
-#include "detail/ga_pga_3dp_objects.hpp" // Point3dp, Vector3d, Point3d, Line3d, Plane3d
+#include "detail/ga_foundation.hpp"     // standard library headers and GA infrastructure
+#include "detail/ga_mvec3dp.hpp"        // 3dp multivector types
+#include "detail/ga_pga3dp_objects.hpp" // Point3dp, Vector3d, Point3d, Line3d, Plane3d
 
 namespace hd::ga::pga {
 
@@ -1908,8 +1907,8 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
                           A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0));
 }
 
-// geometric product A * B for two multivectors from the uneven subalgebra (3d case)
-// uneven grade multivector * uneven grade multivector = even grade multivector
+// geometric product A * B for two multivectors from the odd subalgebra (3d case)
+// odd grade multivector * odd grade multivector = even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& A,
@@ -1932,8 +1931,8 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_U<T> cons
 }
 
 // geometric product A * B of a multivector A from the even subalgebra (3d case)
-// with a multivector B of the uneven subalgebra
-// even grade multivector * uneven grade multivector => uneven grade multivector
+// with a multivector B of the odd subalgebra
+// even grade multivector * odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& A,
@@ -1955,9 +1954,9 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
                          A.c0 * B.c7 - A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2));
 }
 
-// geometric product A * B of a multivector A from the uneven subalgebra (3d case)
+// geometric product A * B of a multivector A from the odd subalgebra (3d case)
 // with a multivector B of the even subalgebra
-// uneven grade multivector * even grade multivector => uneven grade multivector
+// odd grade multivector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& A,
@@ -2142,7 +2141,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(BiVec3dp<T> const
 
 // geometric product A * v of an even grade multivector A with a vector v
 // from the right
-// even grade multivector * vector => uneven grade multivector
+// even grade multivector * vector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& A,
@@ -2162,7 +2161,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> cons
 
 // geometric product v * B of an even grade multivector B with a vector v
 // from the left
-// vector * even grade multivector => uneven grade multivector
+// vector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(Vec3dp<U> const& v,
@@ -2768,7 +2767,7 @@ inline MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = gr0(tc * tcmap);
-    hd::ga::detail::check_normalization<T>(sq_n, "uneven grade multivector");
+    hd::ga::detail::check_normalization<T>(sq_n, "odd grade multivector");
     return conj(U) * tcmap / sq_n;
 }
 

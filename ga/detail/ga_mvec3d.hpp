@@ -2,18 +2,18 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "type_t/ga_type_3d.hpp"
+#include "type_t/ga_type3d.hpp" // type aliases for scalars, vector, pseudoscalar, etc.
 
-#include "ga_mvec3d_e.hpp"
-#include "ga_mvec3d_u.hpp"
+#include "ga_mvec3d_e.hpp" // even grade multivector
+#include "ga_mvec3d_u.hpp" // uneven (or odd) grade multivector
 
 
 namespace hd::ga {
 
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 // use MVec8_t including its ctors and add specific ctors for MVec8_t<T, Tag>
 // by using partial template specialization for the Tag=mvec3d_tag
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T> struct MVec8_t<T, mvec3d_tag> : public MVec8_t<T, default_tag> {
 
@@ -69,7 +69,7 @@ template <typename T> struct MVec8_t<T, mvec3d_tag> : public MVec8_t<T, default_
     {
     }
 
-    // assign from the uneven subalgebra
+    // assign from the odd subalgebra
     MVec8_t(MVec3d_U<T> const& M) :
         MVec8_t(T(0.0), M.c0, M.c1, M.c2, T(0.0), T(0.0), T(0.0), M.c3)
     {

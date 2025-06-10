@@ -2,29 +2,29 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "type_t/ga_type_2d.hpp"
+#include "type_t/ga_type2d.hpp"
 
 
 namespace hd::ga {
 
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 // MVec2d_E<T> M = c0 + c1 I (with I being the bivector of the plane e1^e2)
 //
 // This is the definition of a multivector in the even subalgebra of G<2,0,0>,
 // i.e. it models only multivectors with even grades 0 and 2 in the plane e1^e2
-// (complex numbers).
+// (e.g. complex numbers).
 // This subalgebra is closed under addition and multiplication.
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 // This is defined in order to limit memory requirements and computational effort
 // for these sepecific multivectors vs. usage of a fully populated multivectors.
 // At the same time this enables easy integration with fully populated
 // multivectors, if required by the application.
 
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 // use MVec2_t including its ctors and add specific ctors for MVec2_t<T, Tag>
-// by using partial template specialization for the Tag=mvec2d_tag
-////////////////////////////////////////////////////////////////////////////////
+// by using partial template specialization for the Tag=mvec2d_e_tag
+/////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T> struct MVec2_t<T, mvec2d_e_tag> : public MVec2_t<T, default_tag> {
 

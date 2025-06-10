@@ -2,9 +2,8 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-// Use the new aggregation headers for cleaner dependencies
-#include "detail/ga_foundation.hpp" // Provides all standard library headers and GA infrastructure
-#include "detail/ga_mvec2d.hpp" // 2D multivector types (includes component types)
+#include "detail/ga_foundation.hpp" // all standard library headers and GA infrastructure
+#include "detail/ga_mvec2d.hpp"     // 2D multivector types (includes component types)
 
 namespace hd::ga::ega {
 
@@ -1850,7 +1849,7 @@ inline constexpr MVec2d<T> rcmpl(MVec2d<T> const& M)
 // if M represents the subspace B as subspace of R^2 then
 // dual(M) represents the subspace orthorgonal to B
 //
-// dual(A) = cmpl(A) in spaces of uneven dimension
+// dual(A) = cmpl(A) in spaces of odd dimension
 //         = rcmpl(A) in spaces of even dimension (right dual)
 //
 // this dual satisfies (right) dual(A) = rev(A) * I_n

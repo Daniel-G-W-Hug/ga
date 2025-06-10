@@ -2,10 +2,9 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-// Use the new aggregation headers for cleaner dependencies
-#include "detail/ga_foundation.hpp" // Provides all standard library headers and GA infrastructure
-#include "detail/ga_mvec2dp.hpp" // 2dp multivector types (includes component types)
-#include "detail/ga_pga_2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Line2d
+#include "detail/ga_foundation.hpp"     // standard library headers and GA infrastructure
+#include "detail/ga_mvec2dp.hpp"        // 2dp multivector types
+#include "detail/type_t/ga_type2dp.hpp" // Point2dp, Vector2d, Point2d, Line2d
 
 namespace hd::ga::pga {
 
@@ -635,7 +634,7 @@ template <typename T, typename U>
 inline constexpr Line2d<std::common_type_t<T, U>> expand(Point2d<T> const& p,
                                                          Line2d<U> const& l)
 {
-    return rweight_expansion(point2dp{p}, l);
+    return rweight_expansion(Point2dp<std::common_type_t<T, U>>(p), l);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1346,7 +1345,7 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const&
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
-// multivector * uneven multivector => multivector
+// multivector * odd multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp<T> const& A,
@@ -1365,7 +1364,7 @@ inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp<T> const& A
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
-// uneven multivector * multivector => multivector
+// odd multivector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
@@ -1425,8 +1424,8 @@ inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_E<T> cons
                         A.c0 * B.c3 + A.c3 * B.c0));
 }
 
-// geometric product A * B for two multivectors from the uneven subalgebra (3d case)
-// uneven grade multivector * uneven grade multivector = even grade multivector
+// geometric product A * B for two multivectors from the odd subalgebra (3d case)
+// odd grade multivector * odd grade multivector = even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
@@ -1441,8 +1440,8 @@ inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<T> cons
 }
 
 // geometric product A * B of a multivector A from the even subalgebra (3d case)
-// with a multivector B of the uneven subalgebra
-// even grade multivector * uneven grade multivector => uneven grade multivector
+// with a multivector B of the odd subalgebra
+// even grade multivector * odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
@@ -1455,9 +1454,9 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> cons
         PScalar2dp<ctype>(A.c0 * B.c3 - A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2));
 }
 
-// geometric product A * B of a multivector A from the uneven subalgebra (3d case)
+// geometric product A * B of a multivector A from the odd subalgebra (3d case)
 // with a multivector B of the even subalgebra
-// uneven grade multivector * even grade multivector => uneven grade multivector
+// odd grade multivector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
@@ -1472,7 +1471,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> cons
 
 // geometric product A * ps of an even multivector A multiplied from the right
 // by the trivector ps (=2dp pseudoscalar)
-// even grade multivector * trivector => uneven multivector
+// even grade multivector * trivector => odd multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<U> const& A,
@@ -1486,7 +1485,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<U> cons
 
 // geometric product ps * B of a trivector A (=2dp pseudoscalar) multiplied from the left
 // to the even grade multivector B
-// trivector * even grade multivector => uneven grade multivector
+// trivector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
@@ -1497,9 +1496,9 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
                                         PScalar2dp<ctype>(B.c0));
 }
 
-// geometric product A * B of an uneven grade multivector A multiplied from the right
+// geometric product A * B of an odd grade multivector A multiplied from the right
 // by the trivector B (=2dp pseudoscalar)
-// uneven grade multivector * trivector => even grade multivector
+// odd grade multivector * trivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<U> const& A,
@@ -1512,8 +1511,8 @@ inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<U> cons
 }
 
 // geometric product A * B of a trivector A (=2dp pseudoscalar) multiplied from the left
-// to the uneven grade multivector B
-// trivector * uneven grade multivector => even grade multivector
+// to the odd grade multivector B
+// trivector * odd grade multivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
@@ -1554,8 +1553,8 @@ inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(BiVec2dp<T> const
                                             B.z * M.c0));
 }
 
-// geometric product M * B of an uneven grade multivector M with a bivector B
-// uneven grade multivector * bivector => uneven grade multivector
+// geometric product M * B of an odd grade multivector M with a bivector B
+// odd grade multivector * bivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& M,
@@ -1567,8 +1566,8 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> cons
         PScalar2dp<ctype>(-M.c0 * B.x - M.c1 * B.y - M.c2 * B.z));
 }
 
-// geometric product B * M of a bivector A with an uneven grade multivector B
-// bivector * uneven grade multivector => uneven grade multivector
+// geometric product B * M of a bivector A with an odd grade multivector B
+// bivector * odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B,
@@ -1582,7 +1581,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(BiVec2dp<T> const
 
 // geometric product A * v of an even grade multivector A with a vector v
 // from the right
-// even grade multivector * vector => uneven grade multivector
+// even grade multivector * vector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
@@ -1596,7 +1595,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> cons
 }
 
 // geometric product v * B of a vector v and an even grade multivector B from the left
-// vector * even grade multivector => uneven grade multivector
+// vector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(Vec2dp<T> const& v,
@@ -1714,7 +1713,7 @@ inline constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(BiVec2dp<T> const
 // HINT: if a full 3d multivector is required as result it must be converted explicitly,
 //       since C++ does not allow overloading on different return types
 //
-// => bivector * vector = vector + trivector (= uneven multivector)
+// => bivector * vector = vector + trivector (= odd multivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B,
@@ -1730,7 +1729,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(BiVec2dp<T> const
 // HINT: if a full 3d multivector is required as result it must be converted explicitly,
 //       since C++ does not allow overloading on different return types
 //
-// => vector * bivector = vector + trivector (= uneven multivector)
+// => vector * bivector = vector + trivector (= odd multivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(Vec2dp<T> const& v,
@@ -2028,7 +2027,7 @@ template <typename T>
 inline MVec2dp_U<T> inv(MVec2dp_U<T> const& U)
 {
     T sq_n = bulk_nrm_sq(U);
-    hd::ga::detail::check_normalization<T>(sq_n, "uneven grade multivector");
+    hd::ga::detail::check_normalization<T>(sq_n, "odd grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec2dp_U<T>(rev(U) * inv);
 }
@@ -2064,7 +2063,7 @@ template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, ar
 ////////////////////////////////////////////////////////////////////////////////
 // 2dp motor operations (translation and rotation)
 //
-// Every motor in pga2dp is an uneven grade multivector MVec2dp_U.
+// Every motor in pga2dp is an odd grade multivector MVec2dp_U.
 //
 // A proper isometry in 2dp has a fixed point p = p.x e1 + p.y e2 + p.z e3
 // around which a rotation occurs with an angle phi.

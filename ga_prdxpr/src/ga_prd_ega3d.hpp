@@ -123,13 +123,10 @@ const mvec_coeff mv3d_coeff_M2 = {"M2.c0", "M2.c1", "M2.c2", "M2.c3",
                                   "M2.c4", "M2.c5", "M2.c6", "M2.c7"};
 const mvec_coeff mv3d_coeff_A_even = {"A.c0", "0", "0", "0", "A.c1", "A.c2", "A.c3", "0"};
 const mvec_coeff mv3d_coeff_B_even = {"B.c0", "0", "0", "0", "B.c1", "B.c2", "B.c3", "0"};
-const mvec_coeff mv3d_coeff_A_uneven = {"0", "A.c0", "A.c1", "A.c2",
-                                        "0", "0",    "0",    "A.c3"};
-const mvec_coeff mv3d_coeff_B_uneven = {"0", "B.c0", "B.c1", "B.c2",
-                                        "0", "0",    "0",    "B.c3"};
+const mvec_coeff mv3d_coeff_A_odd = {"0", "A.c0", "A.c1", "A.c2", "0", "0", "0", "A.c3"};
+const mvec_coeff mv3d_coeff_B_odd = {"0", "B.c0", "B.c1", "B.c2", "0", "0", "0", "B.c3"};
 const mvec_coeff mv3d_coeff_M_even = {"M.c0", "0", "0", "0", "M.c1", "M.c2", "M.c3", "0"};
-const mvec_coeff mv3d_coeff_M_uneven = {"0", "M.c0", "M.c1", "M.c2",
-                                        "0", "0",    "0",    "M.c3"};
+const mvec_coeff mv3d_coeff_M_odd = {"0", "M.c0", "M.c1", "M.c2", "0", "0", "0", "M.c3"};
 const mvec_coeff mv3d_coeff_R_even = {"R.c0", "0", "0", "0", "R.c1", "R.c2", "R.c3", "0"};
 const mvec_coeff mv3d_coeff_R_rev_even = {"R.c0",  "0",     "0",     "0",
                                           "-R.c1", "-R.c2", "-R.c3", "0"};

@@ -13,10 +13,10 @@
 #include "../type_t/ga_vec3_t.hpp"
 #include "../type_t/ga_vec4_t.hpp"
 
-#include "../ga_pga_2dp_objects.hpp"
-#include "../ga_pga_3dp_objects.hpp"
+#include "../ga_pga2dp_objects.hpp"
+#include "../ga_pga3dp_objects.hpp"
 
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 // Formatting support for Projective Geometric Algebra (PGA) types
 // Includes formatters for PGA scalars, vectors, multivectors, and geometric objects
 ////////////////////////////////////////////////////////////////////////////////

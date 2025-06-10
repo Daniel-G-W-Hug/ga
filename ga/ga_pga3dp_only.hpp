@@ -2,15 +2,15 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-////////////////////////////////////////////////////////////////////////////////
-// Selective include for 3dp Projective Geometric Algebra only
-// Provides complete 3dp PGA functionality with minimal compile overhead
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+// Selective include for 3D Projective Geometric Algebra only
+// Provides complete pga3dp functionality with minimal compile overhead
+/////////////////////////////////////////////////////////////////////////////////////////
 
 #include "detail/ga_foundation.hpp"
 
 // 3dp PGA specific type definitions
-#include "detail/type_t/ga_type_3dp.hpp"
+#include "detail/type_t/ga_type3dp.hpp"
 
 // 3dp PGA multivector implementations
 #include "detail/ga_mvec3dp.hpp"   // Complete 3dp multivectors
@@ -18,7 +18,7 @@
 #include "detail/ga_mvec3dp_u.hpp" // 3dp odd subalgebra
 
 // 3dp PGA geometric objects
-#include "detail/ga_pga_3dp_objects.hpp" // Point3dp, Point3d, Vector3d, Line3d, Plane3d
+#include "detail/ga_pga3dp_objects.hpp" // Point3dp, Point3d, Vector3d, Line3d, Plane3d
 
 // User convenience includes
 #include "ga_usr_consts.hpp"
@@ -26,7 +26,7 @@
 #include "ga_usr_utilities.hpp"
 
 // 3dp PGA operations
-#include "ga_pga_3dp_ops.hpp"
+#include "ga_pga3dp_ops.hpp"
 
 // Optional: Formatting support (can be omitted for faster compilation)
 #ifndef _HD_GA_NO_FMT_SUPPORT
@@ -75,7 +75,7 @@
 // - Ideal for 3D computer graphics, robotics, and computational geometry
 //
 // **Usage:**
-// #include "ga/ga_pga_3dp_only.hpp"
+// #include "ga/ga_pga3dp_only.hpp"
 // using namespace hd::ga;
 // using namespace hd::ga::pga;  // For operations
 //
@@ -84,4 +84,4 @@
 // point3d p3{7.0, 8.0, 9.0};
 // auto plane = p1 ^ p2 ^ p3;  // Plane through three points
 // auto distance_to_origin = norm(plane);
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////

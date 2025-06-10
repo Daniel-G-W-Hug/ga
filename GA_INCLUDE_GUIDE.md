@@ -7,10 +7,10 @@ This guide helps you choose the optimal include strategy for your geometric alge
 | Use Case | Include Header | Compilation Speed | Features |
 |----------|----------------|-------------------|----------|
 | **Type definitions only** | `#include "ga/ga_minimal.hpp"` | 🚀 Fastest (60-70% faster) | All types, no operations |
-| **2D Euclidean GA only** | `#include "ga/ga_ega_2d_only.hpp"` | 🏃 Fast (30-40% faster) | Complete 2D EGA |
-| **3D Euclidean GA only** | `#include "ga/ga_ega_3d_only.hpp"` | 🏃 Fast (25-35% faster) | Complete 3D EGA |
-| **2DP Projective GA only** | `#include "ga/ga_pga_2dp_only.hpp"` | 🏃 Fast (35-45% faster) | Complete 2DP PGA |
-| **3DP Projective GA only** | `#include "ga/ga_pga_3dp_only.hpp"` | 🏃 Fast (30-40% faster) | Complete 3DP PGA |
+| **2D Euclidean GA only** | `#include "ga/ga_ega2d_only.hpp"` | 🏃 Fast (30-40% faster) | Complete 2D EGA |
+| **3D Euclidean GA only** | `#include "ga/ga_ega3d_only.hpp"` | 🏃 Fast (25-35% faster) | Complete 3D EGA |
+| **2DP Projective GA only** | `#include "ga/ga_pga2dp_only.hpp"` | 🏃 Fast (35-45% faster) | Complete 2DP PGA |
+| **3DP Projective GA only** | `#include "ga/ga_pga3dp_only.hpp"` | 🏃 Fast (30-40% faster) | Complete 3DP PGA |
 | **All Euclidean GA** | `#include "ga/ga_ega.hpp"` | 🐌 Standard | Complete EGA (2D, 3D, 4D) |
 | **All Projective GA** | `#include "ga/ga_pga.hpp"` | 🐌 Standard | Complete PGA (2DP, 3DP) |
 
@@ -35,7 +35,7 @@ public:
 
 ```cpp
 // users implementation.cpp - Include operations when needed
-#include "ga/ga_ega_3d_only.hpp"  // Now operations are available
+#include "ga/ga_ega3d_only.hpp"  // Now operations are available
 
 using namespace hd::ga;
 using namespace hd::ga::ega;
@@ -56,7 +56,7 @@ hd::ga::vec3d GeometryProcessor::getDirection() const {
 #### 2D Computer Graphics
 
 ```cpp
-#include "ga/ga_ega_2d_only.hpp"
+#include "ga/ga_ega2d_only.hpp"
 
 using namespace hd::ga;
 using namespace hd::ga::ega;
@@ -71,7 +71,7 @@ vec2d rotatePoint(const vec2d& point, double angle) {
 #### 3D Computer Graphics & Robotics
 
 ```cpp
-#include "ga/ga_ega_3d_only.hpp"
+#include "ga/ga_ega3d_only.hpp"
 
 using namespace hd::ga;
 using namespace hd::ga::ega;
@@ -86,7 +86,7 @@ vec3d rotateVector(const vec3d& vector, const bivec3d& axis, double angle) {
 #### 2D Projective Geometry
 
 ```cpp
-#include "ga/ga_pga_2dp_only.hpp"
+#include "ga/ga_pga2dp_only.hpp"
 
 using namespace hd::ga;
 using namespace hd::ga::pga;
@@ -104,7 +104,7 @@ point2d intersectLines(const line2d& l1, const line2d& l2) {
 #### 3D Scene Management & CAD
 
 ```cpp
-#include "ga/ga_pga_3dp_only.hpp"
+#include "ga/ga_pga3dp_only.hpp"
 
 using namespace hd::ga;
 using namespace hd::ga::pga;
@@ -129,8 +129,8 @@ When you need both EGA and PGA:
 #include "ga/ga_pga.hpp"
 
 // Option B: Use selective includes
-#include "ga/ga_ega_3d_only.hpp"
-#include "ga/ga_pga_3dp_only.hpp"
+#include "ga/ga_ega3d_only.hpp"
+#include "ga/ga_pga3dp_only.hpp"
 ```
 
 ## Compile-Time Optimization Flags
@@ -141,7 +141,7 @@ For even faster compilation, disable formatting:
 
 ```cpp
 #define _HD_GA_NO_FMT_SUPPORT  // Must be defined before includes
-#include "ga/ga_ega_2d_only.hpp"
+#include "ga/ga_ega2d_only.hpp"
 ```
 
 ### CMake Integration
@@ -185,21 +185,21 @@ target_compile_definitions(your_target PRIVATE
 #include "ga/ga_minimal.hpp"
 
 // Rendering system
-#include "ga/ga_ega_3d_only.hpp"
+#include "ga/ga_ega3d_only.hpp"
 
 // Physics/collision system  
-#include "ga/ga_pga_3dp_only.hpp"
+#include "ga/ga_pga3dp_only.hpp"
 ```
 
 ### Computer Vision
 
 ```cpp
 // 2D image processing
-#include "ga/ga_ega_2d_only.hpp"
-#include "ga/ga_pga_2dp_only.hpp"
+#include "ga/ga_ega2d_only.hpp"
+#include "ga/ga_pga2dp_only.hpp"
 
 // 3D reconstruction
-#include "ga/ga_pga_3dp_only.hpp"
+#include "ga/ga_pga3dp_only.hpp"
 ```
 
 ### Mathematical Research
@@ -215,7 +215,7 @@ target_compile_definitions(your_target PRIVATE
 ```cpp
 // Minimal overhead
 #define _HD_GA_NO_FMT_SUPPORT
-#include "ga/ga_ega_3d_only.hpp"  // Only what you need
+#include "ga/ga_ega3d_only.hpp"  // Only what you need
 ```
 
 ## Migration Guide
@@ -231,7 +231,7 @@ Replace:
 With dimension-specific:
 
 ```cpp
-#include "ga/ga_ega_3d_only.hpp"  // If you only use 3D
+#include "ga/ga_ega3d_only.hpp"  // If you only use 3D
 ```
 
 ### From Individual Headers
@@ -240,14 +240,14 @@ Replace multiple includes:
 
 ```cpp
 #include "ga/detail/ga_mvec3d.hpp"
-#include "ga/ga_ega_3d_ops.hpp"
+#include "ga/ga_ega3d_ops.hpp"
 // ... many individual includes
 ```
 
 With single selective include:
 
 ```cpp
-#include "ga/ga_ega_3d_only.hpp"
+#include "ga/ga_ega3d_only.hpp"
 ```
 
 ## Troubleshooting

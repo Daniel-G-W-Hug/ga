@@ -679,7 +679,7 @@ mvec_coeff_filter get_coeff_filter(filter_3d filter)
             filter_vec = {1, 0, 0, 0, 1, 1, 1, 0}; // even grade components
             break;
         case filter_3d::mv_u:
-            filter_vec = {0, 1, 1, 1, 0, 0, 0, 1}; // uneven grade components
+            filter_vec = {0, 1, 1, 1, 0, 0, 0, 1}; // odd grade components
             break;
         case filter_3d::s:
             filter_vec = {1, 0, 0, 0, 0, 0, 0, 0}; // scalar element
@@ -718,7 +718,7 @@ mvec_coeff_filter get_coeff_filter(filter_4d filter)
             break;
         case filter_4d::mv_u:
             filter_vec = {0, 1, 1, 1, 1, 0, 0, 0,
-                          0, 0, 0, 1, 1, 1, 1, 0}; // uneven grade components
+                          0, 0, 0, 1, 1, 1, 1, 0}; // odd grade components
             break;
         case filter_4d::s:
             filter_vec = {1, 0, 0, 0, 0, 0, 0, 0,

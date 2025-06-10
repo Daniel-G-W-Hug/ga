@@ -25,11 +25,11 @@ set(HEADERS
     detail/type_t/ga_mvec8_t.hpp
     detail/type_t/ga_mvec16_t.hpp
     detail/type_t/ga_type_tags.hpp
-    detail/type_t/ga_type_2d.hpp
-    detail/type_t/ga_type_2dp.hpp
-    detail/type_t/ga_type_3d.hpp
-    detail/type_t/ga_type_3dp.hpp
-    detail/type_t/ga_type_4d.hpp
+    detail/type_t/ga_type2d.hpp
+    detail/type_t/ga_type2dp.hpp
+    detail/type_t/ga_type3d.hpp
+    detail/type_t/ga_type3dp.hpp
+    detail/type_t/ga_type4d.hpp
     #
     detail/ga_mvec2d.hpp
     detail/ga_mvec2d_e.hpp
@@ -56,10 +56,10 @@ set(HEADERS
     ga_ega.hpp
     ga_pga.hpp
     #
-    ga_ega_2d_only.hpp
-    ga_ega_3d_only.hpp
-    ga_pga_2dp_only.hpp
-    ga_pga_3dp_only.hpp
+    ga_ega2d_only.hpp
+    ga_ega3d_only.hpp
+    ga_pga2dp_only.hpp
+    ga_pga3dp_only.hpp
     #
     ga_usr_consts.hpp
     ga_usr_types.hpp
@@ -67,14 +67,14 @@ set(HEADERS
     ga_algebra.hpp
     ga_value_t.hpp
     #
-    ga_ega_2d_ops.hpp
-    ga_ega_3d_ops.hpp
+    ga_ega2d_ops.hpp
+    ga_ega3d_ops.hpp
     #
-    detail/ga_pga_2dp_objects.hpp
-    ga_pga_2dp_ops.hpp
+    detail/ga_pga2dp_objects.hpp
+    ga_pga2dp_ops.hpp
     #
-    detail/ga_pga_3dp_objects.hpp
-    ga_pga_3dp_ops.hpp
+    detail/ga_pga3dp_objects.hpp
+    ga_pga3dp_ops.hpp
     #
     ga_pga_common_ops.hpp
     )

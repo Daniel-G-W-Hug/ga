@@ -2,11 +2,13 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
+/////////////////////////////////////////////////////////////////////////////////////////
 // strong type inspired by Jonathan Boccara's blog:
 // https://www.fluentcpp.com/2016/12/08/strong-types-for-strong-interfaces/
 //
 // and by the blog of foonathan
 // https://www.foonathan.net/2016/10/strong-typedefs/
+/////////////////////////////////////////////////////////////////////////////////////////
 
 
 #include <cmath>     // std::abs, std::sqrt
@@ -67,7 +69,7 @@ class Scalar_t {
         requires(std::floating_point<U>)
     Scalar_t& operator*=(U s) noexcept
     {
-        value *= s;
+        value *= s.value;
         return (*this);
     }
 
@@ -75,8 +77,8 @@ class Scalar_t {
         requires(std::floating_point<U>)
     Scalar_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
-        detail::check_division_by_zero<T, U>(s, "scalar division");
-        value /= s;
+        detail::check_division_by_zero<T, U>(s.value, "scalar division");
+        value /= s.value;
         return (*this);
     }
 

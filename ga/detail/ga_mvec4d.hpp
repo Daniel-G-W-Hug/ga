@@ -2,18 +2,18 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "type_t/ga_type_4d.hpp"
+#include "type_t/ga_type4d.hpp" // type aliases for scalars, vector, pseudoscalar, etc.
 
-#include "ga_mvec4d_e.hpp"
-#include "ga_mvec4d_u.hpp"
+#include "ga_mvec4d_e.hpp" // even grade multivector
+#include "ga_mvec4d_u.hpp" // uneven (or odd) grade multivector
 
 
 namespace hd::ga {
 
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 // use MVec16_t including its ctors and add specific ctors for MVec16_t<T, Tag>
 // by using partial template specialization for the Tag=mvec4d_tag
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, default_tag> {
 
@@ -72,14 +72,14 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     {
     }
 
-    // assign components of an uneven grade subvector
+    // assign components of an odd grade subvector
     MVec16_t(Vec4d<T> const& v, TriVec4d<T> const& t) :
         MVec16_t(T(0.0), v.x, v.y, v.z, v.w, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
                  T(0.0), t.x, t.y, t.z, t.w, T(0.0))
     {
     }
 
-    // assign components of an uneven grade subvector
+    // assign components of an odd grade subvector
     MVec16_t(MVec4d_U<T> const& M) :
         MVec16_t(T(0.0), M.c0, M.c1, M.c2, M.c3, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
                  T(0.0), M.c4, M.c5, M.c6, M.c7, T(0.0))
