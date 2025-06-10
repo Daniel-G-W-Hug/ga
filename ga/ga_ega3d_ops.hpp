@@ -766,7 +766,7 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
     return ctype(s) * M;
 }
 
-// left contraction (s << B) of a scalar s with an uneven grade mulivector B
+// left contraction (s << B) of a scalar s with an odd grade mulivector B
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
@@ -1037,7 +1037,7 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator>>(MVec3d_E<T> const
     return M * ctype(s);
 }
 
-// right contraction (A >> s) of uneven grade multivector A by scalar s
+// right contraction (A >> s) of odd grade multivector A by scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator>>(MVec3d_U<T> const& M,
@@ -1307,7 +1307,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v1,
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3d<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
-                           v1.x * v2.y - v1.y * v2.x);
+                          v1.x * v2.y - v1.y * v2.x);
 }
 
 
@@ -1390,7 +1390,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& A
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
-// multivector * uneven multivector => multivector
+// multivector * odd multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
@@ -1409,7 +1409,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
-// uneven multivector * multivector => multivector
+// odd multivector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
@@ -1566,8 +1566,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_E<T> const&
 }
 
 
-// geometric product A * B for two multivectors from the uneven subalgebra (3d case)
-// uneven grade multivector * uneven grade multivector = even grade multivector
+// geometric product A * B for two multivectors from the odd subalgebra (3d case)
+// odd grade multivector * odd grade multivector = even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
@@ -1582,8 +1582,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const&
 }
 
 // geometric product A * B of a multivector A from the even subalgebra (3d case)
-// with a multivector B of the uneven subalgebra
-// even grade multivector * uneven grade multivector => uneven grade multivector
+// with a multivector B of the odd subalgebra
+// even grade multivector * odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& A,
@@ -1597,9 +1597,9 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const&
         PScalar3d<ctype>(A.c0 * B.c3 + A.c1 * B.c0 + A.c2 * B.c1 + A.c3 * B.c2));
 }
 
-// geometric product A * B of a multivector A from the uneven subalgebra (3d case)
+// geometric product A * B of a multivector A from the odd subalgebra (3d case)
 // with a multivector B of the even subalgebra
-// uneven grade multivector * even grade multivector => uneven grade multivector
+// odd grade multivector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
@@ -1615,7 +1615,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const&
 
 // geometric product M * ps of an even multivector M multiplied from the right
 // by the trivector ps (=3d pseudoscalar)
-// even grade multivector * trivector => uneven multivector
+// even grade multivector * trivector => odd multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<U> const& M,
@@ -1628,7 +1628,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<U> const&
 
 // geometric product ps * M of a trivector ps (=3d pseudoscalar) multiplied from the left
 // to the even grade multivector M
-// trivector * even grade multivector => uneven grade multivector
+// trivector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
@@ -1639,9 +1639,9 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
            MVec3d_U<ctype>(Vec3d<ctype>(-M.c1, -M.c2, -M.c3), PScalar3d<ctype>(M.c0));
 }
 
-// geometric product M * ps of an uneven grade multivector M multiplied from the right
+// geometric product M * ps of an odd grade multivector M multiplied from the right
 // by the trivector ps (=3d pseudoscalar)
-// uneven grade multivector * trivector => even grade multivector
+// odd grade multivector * trivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<U> const& M,
@@ -1653,8 +1653,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<U> const&
 }
 
 // geometric product ps * M of a trivector ps (=3d pseudoscalar) multiplied from the left
-// to the uneven grade multivector M
-// trivector * uneven grade multivector => even grade multivector
+// to the odd grade multivector M
+// trivector * odd grade multivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
@@ -1695,8 +1695,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
                                           -B.x * M.c2 + B.y * M.c1 + B.z * M.c0));
 }
 
-// geometric product M * B of an uneven grade multivector M with a bivector B
-// uneven grade multivector * bivector => uneven grade multivector
+// geometric product M * B of an odd grade multivector M with a bivector B
+// odd grade multivector * bivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& M,
@@ -1709,8 +1709,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const&
                            PScalar3d<ctype>(M.c0 * B.x + M.c1 * B.y + M.c2 * B.z));
 }
 
-// geometric product B * M of a bivector B with an uneven grade multivector M
-// bivector * uneven grade multivector => uneven grade multivector
+// geometric product B * M of a bivector B with an odd grade multivector M
+// bivector * odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
@@ -1725,7 +1725,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
 
 // geometric product M * v of an even grade multivector M with a vector v
 // from the right
-// even grade multivector * vector => uneven grade multivector
+// even grade multivector * vector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& M,
@@ -1739,7 +1739,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const&
 }
 
 // geometric product v * M of a vector v and an even grade multivector M from the left
-// vector * even grade multivector => uneven grade multivector
+// vector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
@@ -1752,9 +1752,9 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
                            PScalar3d<ctype>(v.x * M.c1 + v.y * M.c2 + v.z * M.c3));
 }
 
-// geometric product M * v of an uneven grade multivector M with a vector v
+// geometric product M * v of an odd grade multivector M with a vector v
 // from the right
-// uneven grade multivector * vector => even grade multivector
+// odd grade multivector * vector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& M,
@@ -1767,8 +1767,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const&
                                           M.c0 * v.y - M.c1 * v.x + M.c3 * v.z));
 }
 
-// geometric product v * M of a vector v and an uneven grade multivector B from the left
-// vector * uneven grade multivector => even grade multivector
+// geometric product v * M of a vector v and an odd grade multivector B from the left
+// vector * odd grade multivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
@@ -1803,7 +1803,7 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
     return ctype(s) * M;
 }
 
-// geometric product M * s of uneven multivector M with scalar s
+// geometric product M * s of odd multivector M with scalar s
 // vector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -1931,7 +1931,7 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
 // HINT: if a full 3d multivector is required as result it must be converted explicitly,
 //       since C++ does not allow overloading on different return types
 //
-// => bivector * vector = vector + trivector (= uneven multivector)
+// => bivector * vector = vector + trivector (= odd multivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
@@ -1947,7 +1947,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
 // HINT: if a full 3d multivector is required as result it must be converted explicitly,
 //       since C++ does not allow overloading on different return types
 //
-// => vector * bivector = vector + trivector (= uneven multivector)
+// => vector * bivector = vector + trivector (= odd multivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
@@ -2093,13 +2093,13 @@ inline MVec3d_E<T> inv(MVec3d_E<T> const& E)
     return MVec3d_E<T>(rev(E) * inv);
 }
 
-// return the multiplicative inverse of the uneven grade multivector
+// return the multiplicative inverse of the odd grade multivector
 template <typename T>
     requires(std::floating_point<T>)
 inline MVec3d_U<T> inv(MVec3d_U<T> const& U)
 {
     T sq_n = nrm_sq(U);
-    hd::ga::detail::check_normalization<T>(sq_n, "uneven grade multivector");
+    hd::ga::detail::check_normalization<T>(sq_n, "odd grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec3d_U<T>(rev(U) * inv);
 }
@@ -2501,7 +2501,7 @@ inline constexpr MVec3d<T> cmpl(MVec3d<T> const& M)
 // if M represents the subspace B as subspace of R^3 then
 // dual(M) represents the subspace orthorgonal to B
 //
-// dual(A) = cmpl(A) in spaces of uneven dimension
+// dual(A) = cmpl(A) in spaces of odd dimension
 //         = rcmpl(A) in spaces of even dimension (right dual)
 //
 // this dual satisfies (right) dual(A) = rev(A) * I_n

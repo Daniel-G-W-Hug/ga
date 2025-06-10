@@ -2,35 +2,33 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 // Selective include for 2D Euclidean Geometric Algebra only
-// Provides complete 2D EGA functionality with minimal compile overhead
-////////////////////////////////////////////////////////////////////////////////
+// Provides complete ega2d functionality with minimal compile overhead
+/////////////////////////////////////////////////////////////////////////////////////////
 
 #include "detail/ga_foundation.hpp"
 
-// 2D EGA specific type definitions
-#include "detail/type_t/ga_type_2d.hpp"
+// ega2d specific type definitions
+#include "detail/type_t/ga_type2d.hpp"
 
-// 2D EGA multivector implementations
+// ega2d multivector implementations
 #include "detail/ga_mvec2d.hpp"   // Complete 2D multivectors
 #include "detail/ga_mvec2d_e.hpp" // 2D even subalgebra
 
 // User convenience includes
 #include "ga_usr_consts.hpp"
-#include "ga_usr_types.hpp" // Contains 2D type aliases like scalar2d, vec2d, etc.
+#include "ga_usr_types.hpp" // Contains type aliases like scalar2d, vec2d, etc.
 #include "ga_usr_utilities.hpp"
 
-// 2D EGA operations
-#include "ga_ega_2d_ops.hpp"
+// ega2d operations
+#include "ga_ega2d_ops.hpp"
 
-// Optional: Formatting support (can be omitted for faster compilation)
-#ifndef _HD_GA_NO_FMT_SUPPORT
+// Formatting support
 #include "detail/fmt/ga_fmt_core.hpp"
 #include "detail/fmt/ga_fmt_ega.hpp"
-#endif
 
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 // This header provides complete 2D EGA functionality including:
 //
 // **Types available:**
@@ -53,10 +51,11 @@
 // - Smaller object files and faster linking
 //
 // **Usage:**
-// #include "ga/ga_ega_2d_only.hpp"
+// #include "ga/ga_ega2d_only.hpp"
 // using namespace hd::ga;
-// using namespace hd::ga::ega;  // For operations
+// using namespace hd::ga::ega;  // for operations
 //
 // vec2d v{1.0, 2.0};
 // auto length = norm(v);
-////////////////////////////////////////////////////////////////////////////////
+//
+/////////////////////////////////////////////////////////////////////////////////////////

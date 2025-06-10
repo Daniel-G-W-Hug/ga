@@ -2,14 +2,24 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "type_t/ga_type_3d.hpp"
-#include "type_t/ga_type_3dp.hpp"
-#include "type_t/ga_vec2_t.hpp"
-#include "type_t/ga_vec3_t.hpp"
+#include "type_t/ga_type3dp.hpp"
 
 #include "ga_error_handling.hpp"
 
 namespace hd::ga::pga {
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// define pga3dp specific functions and special geometric object alias definitions:
+//
+// - bulk(), weight()           - return bulk and weight parts of objects
+// - bulk_nrm_sq, bulk_nrm      - return bulk norm
+// - weight_nrm_sq, weight_nrm  - return weight norm
+// - geom_nrm_sq, geom_nrm      - return geometric norm
+// - unitization                - return unitized object (weight_nrm scaled to 1.0)
+// - bulk_dual, weight_dual     - return dual of respective part of object
+// - att                        - return object attitude
+/////////////////////////////////////////////////////////////////////////////////////////
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // bulk: u_bulk = G u (with G as the metric)
@@ -505,7 +515,7 @@ inline constexpr DualNum3dp<T> geom_nrm(MVec3dp_E<T> const& M)
     return DualNum3dp<T>(bulk_nrm(M), weight_nrm(M));
 }
 
-// uneven grade multivector
+// odd grade multivector
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp_U<T> const& M)
@@ -597,13 +607,13 @@ inline MVec3dp_E<T> unitize(MVec3dp_E<T> const& M)
     return inv * M;
 }
 
-// return an uneven grade multivector unitized to weight_nrm == 1.0
+// return an odd grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
 inline MVec3dp_U<T> unitize(MVec3dp_U<T> const& M)
 {
     T n = weight_nrm(M);
-    hd::ga::detail::check_unitization<T>(n, "uneven grade multivector (3dp)");
+    hd::ga::detail::check_unitization<T>(n, "odd grade multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -617,6 +627,38 @@ inline MVec3dp<T> unitize(MVec3dp<T> const& M)
     hd::ga::detail::check_unitization<T>(n, "multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
+}
+
+template <typename T>
+    requires std::floating_point<T>
+inline Point3dp<T> unitize(Point3dp<T> const& p)
+{
+    hd::ga::detail::check_unitization<T>(std::abs(p.w), "Point3dp");
+    T inv = T(1.0) / p.w;
+    return Point3dp<T>(p.x * inv, p.y * inv, p.z * inv, 1.0);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline Line3d<T> unitize(Line3d<T> const& l)
+{
+    // unitization for a 3d bivector means a normalized direction vector
+    // std::sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
+    T wn = weight_nrm(l);
+    hd::ga::detail::check_unitization<T>(wn, "Line3d");
+    T inv = T(1.0) / wn;
+    return Line3d<T>(l.vx * inv, l.vy * inv, l.vz * inv, l.mx * inv, l.my * inv,
+                     l.mz * inv);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline Plane3d<T> unitize(Plane3d<T> const& p)
+{
+    T wn = weight_nrm(p);
+    hd::ga::detail::check_unitization<T>(wn, "Plane3d");
+    T inv = T(1.0) / wn;
+    return Plane3d<T>(p.x * inv, p.y * inv, p.z * inv, p.w * inv);
 }
 
 
@@ -749,165 +791,6 @@ inline constexpr MVec3dp<T> weight_dual(MVec3dp<T> const& M)
                       weight_dual(gr1(M)), weight_dual(gr0(M)));
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// convenient type aliases
-////////////////////////////////////////////////////////////////////////////////
-
-// Vector3d: 3d vector of projective algebra storing only components x, y, z explicitly.
-// The w component is assumed to be w = 0.0
-template <typename T>
-    requires(std::floating_point<T>)
-struct Vector3d : public Vec3d<T> {
-
-    using Vec3d<T>::Vec3d; // inherit base class ctors
-
-    // When using partial template specialization, the compiler needs to know whether
-    // we want to treat symbols as class members.
-    using Vec3d<T>::x;
-    using Vec3d<T>::y;
-    using Vec3d<T>::z;
-
-    Vector3d(Vec3d<T> const& v) : Vec3d<T>(v) {};
-};
-
-// Point3d: 3d point of projective algebra storing only components x, y, z explicitly.
-// The w component is assumed to by w = 1.0
-template <typename T>
-    requires(std::floating_point<T>)
-struct Point3d : public Vec3d<T> {
-
-    using Vec3d<T>::Vec3d; // inherit base class ctors
-
-    // When using partial template specialization, the compiler needs to know whether
-    // we want to treat symbols as class members.
-    using Vec3d<T>::x;
-    using Vec3d<T>::y;
-    using Vec3d<T>::z;
-
-    Point3d(Vec3d<T> const& v) : Vec3d<T>(v) {};
-    Point3d(T x, T y, T z) : Vec3d<T>(x, y, z) {};
-};
-
-// Point3dp: 3d point of projective algebra storing all four components x, y, z, w
-//           explicitly
-//
-// a Point3dp is a Vec3dp, thus all operations defined for Vec3dp
-// work directly for Point3dp - only deviations will be specified
-template <typename T>
-    requires(std::floating_point<T>)
-struct Point3dp : public Vec3dp<T> {
-
-    using Vec3dp<T>::Vec3dp; // inherit base class ctors
-
-    // When using partial template specialization, the compiler needs to know whether
-    // we want to treat symbols as class members.
-    using Vec3dp<T>::x;
-    using Vec3dp<T>::y;
-    using Vec3dp<T>::z;
-    using Vec3dp<T>::w;
-
-    Point3dp(Vec3dp<T> const& v) : Vec3dp<T>(v) {};
-    Point3dp(Point3d<T> const& p) : Vec3dp<T>(p.x, p.y, p.z, T(1.0)) {};
-    Point3dp(Vec3d<T> const& v) : Vec3dp<T>(v.x, v.y, v.z, T(1.0)) {};
-
-    Point3dp& unitize()
-    {
-        hd::ga::detail::check_unitization<T>(std::abs(z), "Point3dp");
-        x /= w;
-        y /= w;
-        z /= w;
-        w = T(1.0);
-        return (*this);
-    }
-};
-
-template <typename T>
-    requires std::floating_point<T>
-inline Point3dp<T> unitize(Point3dp<T> const& p)
-{
-    hd::ga::detail::check_unitization<T>(std::abs(p.w), "Point3dp");
-    T inv = T(1.0) / p.w;
-    return Point3dp<T>(p.x * inv, p.y * inv, p.z * inv, 1.0);
-}
-
-
-// Line3d: 3d line of projective algebra storing all six components
-//          explicitly as components vx, vy, vz, mx, my, mz of a BiVec3dp
-//
-// a Line3d is a BiVec3dp, thus all operations defined for BiVec3dp
-// work directly for Line3d - only deviations will be specified
-template <typename T>
-    requires(std::floating_point<T>)
-struct Line3d : public BiVec3dp<T> {
-
-    using BiVec3dp<T>::BiVec3dp; // inherit base class ctors
-
-    // When using partial template specialization, the compiler needs to know whether
-    // we want to treat symbols as class members.
-    using BiVec3dp<T>::vx;
-    using BiVec3dp<T>::vy;
-    using BiVec3dp<T>::vz;
-    using BiVec3dp<T>::mx;
-    using BiVec3dp<T>::my;
-    using BiVec3dp<T>::mz;
-
-    Line3d() = default;
-    Line3d(T vx, T vy, T vz, T mx, T my, T mz) : BiVec3dp<T>(vx, vy, vz, mx, my, mz) {};
-    Line3d(BiVec3dp<T> const& b) : BiVec3dp<T>(b) {};
-    Line3d(Vec3d<T> const& dir, BiVec3d<T> const& mom) :
-        // direction vector dir and moment bivector mom must match, i.e. be perpendicular
-        // to each other (direction << moment) == 0
-        BiVec3dp<T>(dir.x, dir.y, dir.z, mom.x, mom.y, mom.z) {};
-
-    Line3d& unitize()
-    {
-        // unitization for a 3d bivector means a normalized direction vector
-        // std::sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
-        T wn = weight_nrm(*this);
-        hd::ga::detail::check_unitization<T>(wn, "Line3d");
-        T inv = T(1.0) / wn;
-        vx *= inv;
-        vy *= inv;
-        vz *= inv;
-        mx *= inv;
-        my *= inv;
-        mz *= inv;
-        return (*this);
-    }
-};
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline Line3d<T> unitize(Line3d<T> const& l)
-{
-    // unitization for a 3d bivector means a normalized direction vector
-    // std::sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
-    T wn = weight_nrm(l);
-    hd::ga::detail::check_unitization<T>(wn, "Line3d");
-    T inv = T(1.0) / wn;
-    return Line3d<T>(l.vx * inv, l.vy * inv, l.vz * inv, l.mx * inv, l.my * inv,
-                     l.mz * inv);
-}
-
-// Plane3d: 3d plane of projective algebra (a trivector in the modeling 4d space)
-template <typename T>
-    requires(std::floating_point<T>)
-struct Plane3d : public TriVec3dp<T> {
-
-    using TriVec3dp<T>::TriVec3dp; // inherit base class ctors
-
-    // When using partial template specialization, the compiler needs to know whether
-    // we want to treat symbols as class members.
-    using TriVec3dp<T>::x;
-    using TriVec3dp<T>::y;
-    using TriVec3dp<T>::z;
-    using TriVec3dp<T>::w;
-
-    Plane3d(TriVec3dp<T> const& t) : TriVec3dp<T>(t) {};
-    Plane3d(Line3d<T> const& l, Point3d<T> const& p) : TriVec3dp<T>(join(l, p)) {};
-    Plane3d(Point3d<T> const& p1, Point3d<T> const& p2, Point3d<T> const& p3) :
-        TriVec3dp<T>(join(join(p1, p2), p3)) {};
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 // attitude operations: att = rwdg( u, rcmpl(e4_3dp) ) = rwdg(u, horizon_3dp)

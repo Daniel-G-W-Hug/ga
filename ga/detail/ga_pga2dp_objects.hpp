@@ -2,14 +2,24 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "type_t/ga_type_2d.hpp"
-#include "type_t/ga_type_2dp.hpp"
-#include "type_t/ga_vec2_t.hpp"
-#include "type_t/ga_vec3_t.hpp"
+#include "type_t/ga_type2dp.hpp"
 
 #include "ga_error_handling.hpp"
 
 namespace hd::ga::pga {
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// define pga2dp specific functions and special geometric object alias definitions:
+//
+// - bulk(), weight()           - return bulk and weight parts of objects
+// - bulk_nrm_sq, bulk_nrm      - return bulk norm
+// - weight_nrm_sq, weight_nrm  - return weight norm
+// - geom_nrm_sq, geom_nrm      - return geometric norm
+// - unitization                - return unitized object (weight_nrm scaled to 1.0)
+// - bulk_dual, weight_dual     - return dual of respective part of object
+// - att                        - return object attitude
+/////////////////////////////////////////////////////////////////////////////////////////
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // bulk: u_bulk = G u (with G as the metric)
@@ -431,7 +441,7 @@ inline constexpr DualNum2dp<T> geom_nrm(MVec2dp_E<T> const& M)
     return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
 }
 
-// uneven grade multivector
+// odd grade multivector
 template <typename T>
     requires(std::floating_point<T>)
 inline constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_U<T> const& M)
@@ -512,13 +522,13 @@ inline MVec2dp_E<T> unitize(MVec2dp_E<T> const& M)
     return inv * M;
 }
 
-// return an uneven grade multivector unitized to weight_nrm == 1.0
+// return an odd grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(std::floating_point<T>)
 inline MVec2dp_U<T> unitize(MVec2dp_U<T> const& M)
 {
     T n = weight_nrm(M);
-    hd::ga::detail::check_unitization<T>(n, "uneven grade multivector (2dp)");
+    hd::ga::detail::check_unitization<T>(n, "odd grade multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -534,6 +544,27 @@ inline MVec2dp<T> unitize(MVec2dp<T> const& M)
     return inv * M;
 }
 
+
+template <typename T>
+    requires std::floating_point<T>
+inline Point2dp<T> unitize(Point2dp<T> const& p)
+{
+    hd::ga::detail::check_unitization<T>(std::abs(p.z), "Point2dp");
+    T inv = T(1.0) / p.z;
+    return Point2dp<T>(p.x * inv, p.y * inv, T(1.0));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline Line2d<T> unitize(Line2d<T> const& l)
+{
+    // unitization for a 2d bivector means std::sqrt(x^2 + y^2) = 1
+    // i.e. unitization of the direction vector of the line
+    T wn = weight_nrm(l);
+    hd::ga::detail::check_unitization<T>(wn, "Line2d");
+    T inv = T(1.0) / wn;
+    return Line2d<T>(l.x * inv, l.y * inv, l.z * inv);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // bulk_dual (=complement operation applied to the bulk)
@@ -648,137 +679,6 @@ inline constexpr MVec2dp<T> weight_dual(MVec2dp<T> const& M)
 {
     return MVec2dp<T>(weight_dual(gr3(M)), weight_dual(gr2(M)), weight_dual(gr1(M)),
                       weight_dual(gr0(M)));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// convenient type aliases
-////////////////////////////////////////////////////////////////////////////////
-
-// Vector2d: 2d vector of projective algebra storing only components x, y explicitly.
-// The z component is assumed to be z = 0
-template <typename T>
-    requires(std::floating_point<T>)
-struct Vector2d : public Vec2d<T> {
-
-    using Vec2d<T>::Vec2d; // inherit base class ctors
-
-    // When using partial template specialization, the compiler needs to know whether
-    // we want to treat symbols as class members.
-    using Vec2d<T>::x;
-    using Vec2d<T>::y;
-
-    Vector2d(Vec2d<T> const& v) : Vec2d<T>(v) {};
-};
-
-// Point2d: 2d point of projective algebra storing only components x, y explicitly.
-// The z component is assumed to by z=1
-template <typename T>
-    requires(std::floating_point<T>)
-struct Point2d : public Vec2d<T> {
-
-    using Vec2d<T>::Vec2d; // inherit base class ctors
-
-    // When using partial template specialization, the compiler needs to know whether
-    // we want to treat symbols as class members.
-    using Vec2d<T>::x;
-    using Vec2d<T>::y;
-
-    Point2d(Vec2d<T> const& v) : Vec2d<T>(v) {};
-    Point2d(T x, T y) : Vec2d<T>(x, y) {};
-};
-
-// Point2dp: 2d point of projective algebra storing all three components x, y, z
-//           explicitly
-//
-// a Point2dp is a Vec2dp, thus all operations defined for Vec2dp
-// work directly for Point2dp - only deviations will be specified
-template <typename T>
-    requires(std::floating_point<T>)
-struct Point2dp : public Vec2dp<T> {
-
-    using Vec2dp<T>::Vec2dp; // inherit base class ctors
-
-    // When using partial template specialization, the compiler needs to know whether
-    // we want to treat symbols as class members.
-    using Vec2dp<T>::x;
-    using Vec2dp<T>::y;
-    using Vec2dp<T>::z;
-
-    Point2dp(Vec2dp<T> const& v) : Vec2dp<T>(v) {};
-    Point2dp(Point2d<T> const& p) : Vec2dp<T>(p.x, p.y, T(1.0)) {};
-    Point2dp(Vec2d<T> const& v) : Vec2dp<T>(v.x, v.y, T(1.0)) {};
-
-    Point2dp& unitize()
-    {
-        hd::ga::detail::check_unitization<T>(std::abs(z), "Point2dp");
-        x /= z;
-        y /= z;
-        z = T(1.0);
-        return (*this);
-    }
-};
-
-template <typename T>
-    requires std::floating_point<T>
-inline Point2dp<T> unitize(Point2dp<T> const& p)
-{
-    hd::ga::detail::check_unitization<T>(std::abs(p.z), "Point2dp");
-    T inv = T(1.0) / p.z;
-    return Point2dp<T>(p.x * inv, p.y * inv, T(1.0));
-}
-
-
-// Line2d: 2d line of projective algebra storing all three components
-//          explicitly as components x, y, z of a BiVec2dp
-//
-// a Line2d is a BiVec2dp, thus all operations defined for BiVec2dp
-// work directly for Line2d - only deviations will be specified
-template <typename T>
-    requires(std::floating_point<T>)
-struct Line2d : public BiVec2dp<T> {
-
-    using BiVec2dp<T>::BiVec2dp; // inherit base class ctors
-
-    // When using partial template specialization, the compiler needs to know whether
-    // we want to treat symbols as class members.
-    using BiVec2dp<T>::x;
-    using BiVec2dp<T>::y;
-    using BiVec2dp<T>::z;
-
-    Line2d() = default;
-    Line2d(T x, T y, T z) : BiVec2dp<T>(x, y, z) {};
-    Line2d(BiVec2dp<T> const& b) : BiVec2dp<T>(b) {};
-    Line2d(Point2d<T> const& p, Point2d<T> const& q) :
-        // Line2d = wdg(p,q), but wdg() cannot be used here to avoid circular dependency
-        BiVec2dp<T>(p.y - q.y, q.x - p.x, p.x * q.y - p.y * q.x) {};
-    Line2d(Point2d<T> const& p, Vec2d<T> const& v) :
-        // Line2d constructed from a point and a direction vector
-        BiVec2dp<T>(-v.y, v.x, p.x * v.y - p.y * v.x) {};
-
-    Line2d& unitize()
-    {
-        // unitization for a 2d bivector means std::sqrt(x^2 + y^2) = 1
-        // = weight_nrm of bivector
-        T wn = weight_nrm(*this);
-        hd::ga::detail::check_unitization<T>(wn, "Line2d");
-        T inv = T(1.0) / wn;
-        x *= inv;
-        y *= inv;
-        z *= inv;
-        return (*this);
-    }
-};
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline Line2d<T> unitize(Line2d<T> const& l)
-{
-    // unitization for a 2d bivector means std::sqrt(x^2 + y^2) = 1
-    // i.e. unitization of the direction vector of the line
-    T wn = weight_nrm(l);
-    hd::ga::detail::check_unitization<T>(wn, "Line2d");
-    T inv = T(1.0) / wn;
-    return Line2d<T>(l.x * inv, l.y * inv, l.z * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

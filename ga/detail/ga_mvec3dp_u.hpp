@@ -2,15 +2,15 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "type_t/ga_type_3dp.hpp"
+#include "type_t/ga_type3dp.hpp"
 
 
 namespace hd::ga {
 
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 // use MVec8_t including its ctors and add specific ctors for MVec8_t<T, Tag>
 // by using partial template specialization for the Tag=mvec3dp_u_tag
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T> struct MVec8_t<T, mvec3dp_u_tag> : public MVec8_t<T, default_tag> {
 
@@ -39,7 +39,7 @@ template <typename T> struct MVec8_t<T, mvec3dp_u_tag> : public MVec8_t<T, defau
 // define grade operations for partial specialization MVec8_t<T, mvec3dp_u_tag>
 ////////////////////////////////////////////////////////////////////////////////
 
-// returning various grades of a 3dp uneven multivector
+// returning various grades of a 3dp odd multivector
 //
 // grade 1: gr1() - vector
 // grade 3: gr3() - trivector
@@ -59,10 +59,10 @@ inline constexpr TriVec3dp<T> gr3(MVec3dp_U<T> const& M)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addition operations to combine vectors and trivectors to uneven grade multivectors
+// addition operations to combine vectors and trivectors to odd grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// vector + trivector => uneven grade multivector
+// vector + trivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(Vec3dp<T> const& v,
@@ -72,7 +72,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(Vec3dp<T> const& 
     return MVec3dp_U<ctype>(v, t);
 }
 
-// trivector + vector => uneven grade multivector
+// trivector + vector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(TriVec3dp<T> const& t,
@@ -83,7 +83,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(TriVec3dp<T> cons
 }
 
 
-// uneven grade multivector + trivector => uneven grade multivector
+// odd grade multivector + trivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(MVec3dp_U<T> const& M,
@@ -94,7 +94,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(MVec3dp_U<T> cons
                             M.c7 + t.c3);
 }
 
-// trivector + uneven grade multivector => uneven grade multivector
+// trivector + odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(TriVec3dp<T> const& t,
@@ -105,7 +105,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(TriVec3dp<T> cons
                             M.c7 + t.c3);
 }
 
-// uneven grade multivector + vector => uneven grade multivector
+// odd grade multivector + vector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(MVec3dp_U<T> const& M,
@@ -116,7 +116,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(MVec3dp_U<T> cons
                             M.c6, M.c7);
 }
 
-// vector + uneven grade multivector => uneven grade multivector
+// vector + odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(Vec3dp<T> const& v,
@@ -128,10 +128,10 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(Vec3dp<T> const& 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// subtraction operations to combine vectors and trivectors to uneven grade multivectors
+// subtraction operations to combine vectors and trivectors to odd grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// vector - trivector => uneven grade multivector
+// vector - trivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(Vec3dp<T> const& v,
@@ -141,7 +141,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(Vec3dp<T> const& 
     return MVec3dp_U<ctype>(v, -t);
 }
 
-// trivector - vector => uneven grade multivector
+// trivector - vector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(TriVec3dp<T> const& t,
@@ -151,7 +151,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(TriVec3dp<T> cons
     return MVec3dp_U<ctype>(-v, t);
 }
 
-// uneven grade multivector - trivector => uneven grade multivector
+// odd grade multivector - trivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(MVec3dp_U<T> const& M,
@@ -162,7 +162,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(MVec3dp_U<T> cons
                             M.c7 - t.c3);
 }
 
-// trivector - uneven grade multivector => uneven grade multivector
+// trivector - odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(TriVec3dp<T> const& t,
@@ -173,7 +173,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(TriVec3dp<T> cons
                             -M.c6 + t.c2, -M.c7 + t.c3);
 }
 
-// uneven grade multivector - vector => uneven grade multivector
+// odd grade multivector - vector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(MVec3dp_U<T> const& M,
@@ -184,7 +184,7 @@ inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(MVec3dp_U<T> cons
                             M.c6, M.c7);
 }
 
-// vector - uneven grade multivector => uneven grade multivector
+// vector - odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 inline constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(Vec3dp<T> const& v,

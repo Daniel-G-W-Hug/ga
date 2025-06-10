@@ -2,17 +2,16 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "type_t/ga_type_2d.hpp"
+#include "type_t/ga_type2d.hpp" // type aliases for scalars, vector, pseudoscalar, etc.
 
-#include "ga_mvec2d_e.hpp"
-
+#include "ga_mvec2d_e.hpp" // even grade multivector
 
 namespace hd::ga {
 
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 // use MVec4_t including its ctors and add specific ctors for MVec4_t<T, Tag>
 // by using partial template specialization for the Tag=mvec2d_tag
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T> struct MVec4_t<T, mvec2d_tag> : public MVec4_t<T, default_tag> {
 

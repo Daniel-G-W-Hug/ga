@@ -7,12 +7,14 @@
 
 namespace hd::ga {
 
+/////////////////////////////////////////////////////////////////////////////////////////
 // create an algebra agebra<P,N,Z> = G(P,N,Z) with:
 //      P generators for numbers that square to +1
 //      N generators for numbers that square to -1
 //      Z generators for numbers that square to  0
 //
 // provides infomation on the dimension and basis vectors of the used algebra
+/////////////////////////////////////////////////////////////////////////////////////////
 
 template <uint8_t P, uint8_t N = 0, uint8_t Z = 0>
     requires(P + N + Z >= 2) && (P + N + Z <= 4) && (P >= 2) && (P <= 4) && (N == 0) &&

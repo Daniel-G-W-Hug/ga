@@ -3,8 +3,19 @@
 set(EXEC_NAME1 ga_ega_test)
 set(EXEC_NAME2 ga_pga_test)
 
-add_executable(${EXEC_NAME1} src/ga_ega_test.cpp)  #dep: doctest, fmt, ga
-add_executable(${EXEC_NAME2} src/ga_pga_test.cpp)  #dep: doctest, fmt, ga
+set(EGA_FILES
+    src/ga_ega_test.cpp
+    src/ga_ega2d_test.cpp 
+    src/ga_ega3d_test.cpp
+    src/ga_ega4d_test.cpp)
+
+set(PGA_FILES
+    src/ga_pga_test.cpp
+    src/ga_pga2dp_test.cpp
+    src/ga_pga3dp_test.cpp)
+
+add_executable(${EXEC_NAME1} ${EGA_FILES})  #dep: doctest, fmt, ga
+add_executable(${EXEC_NAME2} ${PGA_FILES})  #dep: doctest, fmt, ga
 
 target_include_directories(${EXEC_NAME1} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME2} PRIVATE ${CMAKE_SOURCE_DIR})

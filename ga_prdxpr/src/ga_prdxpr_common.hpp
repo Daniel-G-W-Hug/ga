@@ -32,12 +32,12 @@ enum class brace_switch { no_braces, use_braces };
 enum class filter_2d { s, vec, ps, mv_e, mv };
 
 // scalar: s, vector: vec, bivector: bivec, pseudoscalar: ps,
-// even grade multivector: mv_e, uneven grade multivector: mv_u, multivector: mv
+// even grade multivector: mv_e, odd grade multivector: mv_u, multivector: mv
 enum class filter_3d { s, vec, bivec, ps, mv_e, mv_u, mv };
 using filter_2dp = filter_3d;
 
 // scalar: s, vector: vec, bivector: bivec, trivector: trivec, pseudoscalar: ps,
-// even grade multivector: mv_e, uneven grade multivector: mv_u, multivector: mv
+// even grade multivector: mv_e, odd grade multivector: mv_u, multivector: mv
 enum class filter_4d { s, vec, bivec, trivec, ps, mv_e, mv_u, mv };
 using filter_3dp = filter_4d;
 

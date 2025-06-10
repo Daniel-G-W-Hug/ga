@@ -8,14 +8,14 @@
 #include "detail/ga_mvec3d.hpp" // 3d types for EGA
 #include "detail/ga_mvec4d.hpp" // 4d types for EGA
 
-#include "detail/ga_mvec2dp.hpp"         // 2dp types for PGA
-#include "detail/ga_mvec3dp.hpp"         // 3dp types for PGA
-#include "detail/ga_pga_2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Line2dp
-#include "detail/ga_pga_3dp_objects.hpp" // Point3dp, Vector3d, Point3d, Line3dp, Plane3d
+#include "detail/ga_mvec2dp.hpp"        // 2dp types for PGA
+#include "detail/ga_mvec3dp.hpp"        // 3dp types for PGA
+#include "detail/ga_pga2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Line2dp
+#include "detail/ga_pga3dp_objects.hpp" // Point3dp, Vector3d, Point3d, Line3dp, Plane3d
 
-////////////////////////////////////////////////////////////////////////////////
-// consistent type definitions for easy use
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+// consistent type definitions for easy and convenient use (based on value_t)
+/////////////////////////////////////////////////////////////////////////////////////////
 
 namespace hd::ga {
 
@@ -32,7 +32,7 @@ namespace hd::ga {
 // But due to the statically typed language, overload resolution and unique scalar types
 // for 2d, 3d, 2dp, etc. work better for avoiding ambiguous function signatures.
 
-// vector and multivector types EGA 2d
+// vector and multivector types ega2d
 
 using scalar2d = Scalar2d<value_t>;
 using vec2d = Vec2d<value_t>;
@@ -40,32 +40,32 @@ using pscalar2d = PScalar2d<value_t>;
 using mvec2d_e = MVec2d_E<value_t>; // multivector 2d of even subalgebra
 using mvec2d = MVec2d<value_t>;     // fully populated 2d multivector
 
-// vector and multivector types EGA 3d
+// vector and multivector types ega3d
 using scalar3d = Scalar3d<value_t>;
 using vec3d = Vec3d<value_t>;
 using bivec3d = BiVec3d<value_t>;
 using pscalar3d = PScalar3d<value_t>;
 using mvec3d_e = MVec3d_E<value_t>; // multivector 3d of even subalgebra
-using mvec3d_u = MVec3d_U<value_t>; // multivector 3d of uneven subalgebra
+using mvec3d_u = MVec3d_U<value_t>; // multivector 3d of odd subalgebra
 using mvec3d = MVec3d<value_t>;     // fully populated 3d multivector
 
-// vector and multivector types EGA 4d
+// vector and multivector types ega4d
 using scalar4d = Scalar4d<value_t>;
 using vec4d = Vec4d<value_t>;
 using bivec4d = BiVec4d<value_t>;
 using trivec4d = TriVec4d<value_t>;
 using pscalar4d = PScalar4d<value_t>;
 using mvec4d_e = MVec4d_E<value_t>; // multivector 4d of even subalgebra
-using mvec4d_u = MVec4d_U<value_t>; // multivector 4d of uneven subalgebra
+using mvec4d_u = MVec4d_U<value_t>; // multivector 4d of odd subalgebra
 using mvec4d = MVec4d<value_t>;     // fully populated 4d multivector
 
-// vector and multivector types PGA 2dp
+// vector and multivector types pga2dp
 using scalar2dp = Scalar2dp<value_t>;
 using vec2dp = Vec2dp<value_t>;
 using bivec2dp = BiVec2dp<value_t>;
 using pscalar2dp = PScalar2dp<value_t>;
 using mvec2dp_e = MVec2dp_E<value_t>; // multivector 2dp of even subalgebra
-using mvec2dp_u = MVec2dp_U<value_t>; // multivector 2dp of uneven subalgebra
+using mvec2dp_u = MVec2dp_U<value_t>; // multivector 2dp of odd subalgebra
 using mvec2dp = MVec2dp<value_t>;     // fully populated 2dp multivector
 
 using dualnum2dp = DualNum2dp<value_t>; // dual number with s 1 + ps e3 (2dp, e3^2 = 0)
@@ -76,14 +76,14 @@ using vector2d = pga::Vector2d<value_t>; // implicit z = 0.0 (alias for Vec2d<T>
 using line2d = pga::Line2d<value_t>;     // bivector         (alias for BiVec2dp<T>)
 
 
-// vector and multivector types PGA 3dp
+// vector and multivector types pga3dp
 using scalar3dp = Scalar3dp<value_t>;
 using vec3dp = Vec3dp<value_t>;
 using bivec3dp = BiVec3dp<value_t>;
 using trivec3dp = TriVec3dp<value_t>;
 using pscalar3dp = PScalar3dp<value_t>;
 using mvec3dp_e = MVec3dp_E<value_t>; // multivector 3dp of even subalgebra
-using mvec3dp_u = MVec3dp_U<value_t>; // multivector 3dp of uneven subalgebra
+using mvec3dp_u = MVec3dp_U<value_t>; // multivector 3dp of odd subalgebra
 using mvec3dp = MVec3dp<value_t>;     // fully populated 3dp multivector
 
 using dualnum3dp = DualNum3dp<value_t>; // dual number with s 1 + ps e4 (3dp, e4^2 = 0)
