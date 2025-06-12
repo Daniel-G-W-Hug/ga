@@ -1,6 +1,6 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "ga_prd_pga2dp.hpp"
+#include "ga_prdxpr_pga2dp.hpp"
 #include "ga_prdxpr_common.hpp"
 
 void generate_and_print_pga2dp_gpr()

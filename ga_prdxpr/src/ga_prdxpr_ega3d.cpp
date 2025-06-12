@@ -1,8 +1,7 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "ga_prd_ega3d.hpp"
+#include "ga_prdxpr_ega3d.hpp"
 #include "ga_prdxpr_common.hpp"
-#include "ga_prdxpr_trafo.hpp"
 
 
 void generate_and_print_ega3d_gpr()

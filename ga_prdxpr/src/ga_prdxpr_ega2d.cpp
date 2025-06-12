@@ -1,6 +1,6 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "ga_prd_ega2d.hpp"
+#include "ga_prdxpr_ega2d.hpp"
 #include "ga_prdxpr_common.hpp"
 
 

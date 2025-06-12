@@ -1,17 +1,18 @@
 set(EXEC_NAME ga_prdxpr)
-set(EXEC2_NAME ga_trafo_test)  # just temporary for testing
+set(EXEC2_NAME ga_trafo)  # just temporary for testing
 
-set(SOURCES src/ga_prdxpr_main.cpp
+set(SOURCES_PRDXPR src/ga_prdxpr_main.cpp
             src/ga_prdxpr_common.cpp
-            src/ga_prdxpr_trafo.cpp
-            src/ga_prd_ega2d.cpp
-            src/ga_prd_ega3d.cpp
-            src/ga_prd_pga2dp.cpp
-            src/ga_prd_pga3dp.cpp
-            )
+            src/ga_prdxpr_ega2d.cpp
+            src/ga_prdxpr_ega3d.cpp
+            src/ga_prdxpr_pga2dp.cpp
+            src/ga_prdxpr_pga3dp.cpp)
 
-add_executable(${EXEC_NAME} ${SOURCES})  #dep: fmt
-add_executable(${EXEC2_NAME} src/ga_prdxpr_trafo.cpp src/ga_prdxpr_trafo_test.cpp)  #dep: fmt, doctest
+set(SOURCES_PRDXPR_TRANSFORMATION src/ga_prdxpr_transformation.cpp
+            src/ga_prdxpr_transformation_test.cpp)
+
+add_executable(${EXEC_NAME} ${SOURCES_PRDXPR})  #dep: fmt
+add_executable(${EXEC2_NAME} ${SOURCES_PRDXPR_TRANSFORMATION})  #dep: fmt, doctest
 
 target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC2_NAME} PRIVATE ${CMAKE_SOURCE_DIR})

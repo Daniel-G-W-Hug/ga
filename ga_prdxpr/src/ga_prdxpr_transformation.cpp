@@ -1,6 +1,6 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "ga_prdxpr_trafo.hpp"
+#include "ga_prdxpr_transformation.hpp"
 
 #include "fmt/chrono.h"  // chrono support
 #include "fmt/format.h"  // formatting

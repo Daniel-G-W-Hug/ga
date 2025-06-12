@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "ga_prdxpr_trafo.hpp"
+#include "ga_prdxpr_transformation.hpp"
 
 TEST_SUITE("expression transformation")
 {
