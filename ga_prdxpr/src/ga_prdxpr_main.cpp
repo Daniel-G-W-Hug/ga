@@ -1,10 +1,10 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "ga_prd_ega2d.hpp"
-#include "ga_prd_ega3d.hpp"
+#include "ga_prdxpr_ega2d.hpp"
+#include "ga_prdxpr_ega3d.hpp"
 
-#include "ga_prd_pga2dp.hpp"
-#include "ga_prd_pga3dp.hpp"
+#include "ga_prdxpr_pga2dp.hpp"
+#include "ga_prdxpr_pga3dp.hpp"
 
 // multivector basis, product rules, simplification rules and coefficients need to be
 // provided in header files included above by the user
