@@ -35,6 +35,10 @@ int main()
         generate_and_print_ega2d_rexpand(); // right expansion
         // => expansions don't yield anything interesting in ega2d
 
+        // ega2d - sandwich products of type rotor * object * rev(rotor)
+        //         based on the geometric product (keeps the origin stable)
+        generate_and_print_ega2d_rotor_gpr();
+
         ///////////////////////////////////////////////////////////////////////
         // ega3d
         ///////////////////////////////////////////////////////////////////////
@@ -57,6 +61,9 @@ int main()
         //    which yields a plane that contains the vec and is perpendicular to
         //    the argument bivec, i.e. the reference plane
 
+        // ega3d - sandwich products of type rotor * object * rev(rotor)
+        //         based on the geometric product (keeps the origin stable)
+        generate_and_print_ega3d_rotor_gpr();
 
         ///////////////////////////////////////////////////////////////////////
         // pga2dp
@@ -82,6 +89,9 @@ int main()
         generate_and_print_pga2dp_lbulk_expand();   // left bulk expansion
         generate_and_print_pga2dp_lweight_expand(); // left weight expansion
 
+        // pga2dp - sandwich products of type motor * object * rev(motor)
+        //          based on the regressive geometric product (keeps the horizon stable)
+        generate_and_print_pga2dp_motor_rgpr();
 
         ///////////////////////////////////////////////////////////////////////
         // pga3dp
@@ -106,19 +116,8 @@ int main()
         generate_and_print_pga3dp_lbulk_expand();   // left bulk expansion
         generate_and_print_pga3dp_lweight_expand(); // left weight expansion
 
-
-        ///////////////////////////////////////////////////////////////////////
-        // sandwich products
-        ///////////////////////////////////////////////////////////////////////
-
-        // ega - sandwich products of type rotor * object * rev(rotor)
-        //       based on the geometric product (keeps the origin stable)
-        generate_and_print_ega2d_rotor_gpr();
-        generate_and_print_ega3d_rotor_gpr();
-
-        // pga - sandwich products of type motor * object * rev(motor)
-        //       based on the regressive geometric product (keeps the horizon stable)
-        generate_and_print_pga2dp_motor_rgpr();
+        // pga3dp - sandwich products of type motor * object * rev(motor)
+        //          based on the regressive geometric product (keeps the horizon stable)
         generate_and_print_pga3dp_motor_rgpr();
     }
 
