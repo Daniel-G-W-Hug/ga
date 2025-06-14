@@ -1055,13 +1055,7 @@ void register_functions(sol::state& lua)
                                       sol::resolve<pscalar2dp(scalar2dp)>(bulk_dual),
                                       sol::resolve<bivec2dp(vec2dp const&)>(bulk_dual),
                                       sol::resolve<vec2dp(bivec2dp const&)>(bulk_dual),
-                                      sol::resolve<scalar2dp(pscalar2dp)>(bulk_dual),
-                                      // PGA 3DP bulk_dual operations
-                                      sol::resolve<pscalar3dp(scalar3dp)>(bulk_dual),
-                                      sol::resolve<trivec3dp(vec3dp const&)>(bulk_dual),
-                                      sol::resolve<bivec3dp(bivec3dp const&)>(bulk_dual),
-                                      sol::resolve<vec3dp(trivec3dp const&)>(bulk_dual),
-                                      sol::resolve<scalar3dp(pscalar3dp)>(bulk_dual)));
+                                      sol::resolve<scalar2dp(pscalar2dp)>(bulk_dual)));
 
     lua.set_function("weight_dual",
                      sol::overload(
@@ -1069,14 +1063,44 @@ void register_functions(sol::state& lua)
                          sol::resolve<pscalar2dp(scalar2dp)>(weight_dual),
                          sol::resolve<bivec2dp(vec2dp const&)>(weight_dual),
                          sol::resolve<vec2dp(bivec2dp const&)>(weight_dual),
-                         sol::resolve<scalar2dp(pscalar2dp)>(weight_dual),
-                         // PGA 3DP weight_dual operations
-                         sol::resolve<pscalar3dp(scalar3dp)>(weight_dual),
-                         sol::resolve<trivec3dp(vec3dp const&)>(weight_dual),
-                         sol::resolve<bivec3dp(bivec3dp const&)>(weight_dual),
-                         sol::resolve<vec3dp(trivec3dp const&)>(weight_dual),
-                         sol::resolve<scalar3dp(pscalar3dp)>(weight_dual)));
+                         sol::resolve<scalar2dp(pscalar2dp)>(weight_dual)));
 
+
+    lua.set_function("right_bulk_dual",
+                     sol::overload(
+                         // PGA 3DP bulk_dual operations
+                         sol::resolve<pscalar3dp(scalar3dp)>(right_bulk_dual),
+                         sol::resolve<trivec3dp(vec3dp const&)>(right_bulk_dual),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(right_bulk_dual),
+                         sol::resolve<vec3dp(trivec3dp const&)>(right_bulk_dual),
+                         sol::resolve<scalar3dp(pscalar3dp)>(right_bulk_dual)));
+
+    lua.set_function("right_weight_dual",
+                     sol::overload(
+                         // PGA 3DP weight_dual operations
+                         sol::resolve<pscalar3dp(scalar3dp)>(right_weight_dual),
+                         sol::resolve<trivec3dp(vec3dp const&)>(right_weight_dual),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(right_weight_dual),
+                         sol::resolve<vec3dp(trivec3dp const&)>(right_weight_dual),
+                         sol::resolve<scalar3dp(pscalar3dp)>(right_weight_dual)));
+
+    lua.set_function("left_bulk_dual",
+                     sol::overload(
+                         // PGA 3DP bulk_dual operations
+                         sol::resolve<pscalar3dp(scalar3dp)>(left_bulk_dual),
+                         sol::resolve<trivec3dp(vec3dp const&)>(left_bulk_dual),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(left_bulk_dual),
+                         sol::resolve<vec3dp(trivec3dp const&)>(left_bulk_dual),
+                         sol::resolve<scalar3dp(pscalar3dp)>(left_bulk_dual)));
+
+    lua.set_function("left_weight_dual",
+                     sol::overload(
+                         // PGA 3DP weight_dual operations
+                         sol::resolve<pscalar3dp(scalar3dp)>(left_weight_dual),
+                         sol::resolve<trivec3dp(vec3dp const&)>(left_weight_dual),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(left_weight_dual),
+                         sol::resolve<vec3dp(trivec3dp const&)>(left_weight_dual),
+                         sol::resolve<scalar3dp(pscalar3dp)>(left_weight_dual)));
     ////////////////////////////////////////////////////////////////////////////////
     // PGA-specific support operations
     ////////////////////////////////////////////////////////////////////////////////
@@ -1520,18 +1544,27 @@ void register_functions(sol::state& lua)
     // dualization operations
     ////////////////////////////////////////////////////////////////////////////////
 
-    lua.set_function("dual", sol::overload(sol::resolve<scalar2d(pscalar2d)>(dual),
-                                           sol::resolve<pscalar2d(scalar2d)>(dual),
-                                           sol::resolve<vec2d(vec2d const&)>(dual),
-                                           sol::resolve<mvec2d_e(mvec2d_e const&)>(dual),
-                                           sol::resolve<mvec2d(mvec2d const&)>(dual),
-                                           sol::resolve<scalar3d(pscalar3d)>(dual),
-                                           sol::resolve<pscalar3d(scalar3d)>(dual),
-                                           sol::resolve<bivec3d(vec3d const&)>(dual),
+    lua.set_function("dual", sol::overload(sol::resolve<scalar3d(pscalar3d)>(dual),
                                            sol::resolve<vec3d(bivec3d const&)>(dual),
+                                           sol::resolve<bivec3d(vec3d const&)>(dual),
+                                           sol::resolve<pscalar3d(scalar3d)>(dual),
                                            sol::resolve<mvec3d_u(mvec3d_e const&)>(dual),
                                            sol::resolve<mvec3d_e(mvec3d_u const&)>(dual),
                                            sol::resolve<mvec3d(mvec3d const&)>(dual)));
+
+    lua.set_function("left_dual",
+                     sol::overload(sol::resolve<scalar2d(pscalar2d)>(left_dual),
+                                   sol::resolve<vec2d(vec2d const&)>(left_dual),
+                                   sol::resolve<pscalar2d(scalar2d)>(left_dual),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(left_dual),
+                                   sol::resolve<mvec2d(mvec2d const&)>(left_dual)));
+
+    lua.set_function("right_dual",
+                     sol::overload(sol::resolve<scalar2d(pscalar2d)>(right_dual),
+                                   sol::resolve<vec2d(vec2d const&)>(right_dual),
+                                   sol::resolve<pscalar2d(scalar2d)>(right_dual),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(right_dual),
+                                   sol::resolve<mvec2d(mvec2d const&)>(right_dual)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // complement operations

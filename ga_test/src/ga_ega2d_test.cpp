@@ -435,15 +435,15 @@ TEST_SUITE("EGA 2D Tests")
 
         // point reflected on a hyperplane that the vector is a normal to
         // the hyperplane can be created by taking the dual (or the rcmpl) of the normal
-        CHECK(reflect_on(p, dual(x_axis_2d)) == vec2d{4, -1});
+        CHECK(reflect_on(p, right_dual(x_axis_2d)) == vec2d{4, -1});
 
         // coordinate axis reflected on perpendicular axis yield their negatives
-        CHECK(reflect_on(y_axis_2d, dual(x_axis_2d)) == -y_axis_2d);
-        CHECK(reflect_on(x_axis_2d, dual(y_axis_2d)) == -x_axis_2d);
+        CHECK(reflect_on(y_axis_2d, right_dual(x_axis_2d)) == -y_axis_2d);
+        CHECK(reflect_on(x_axis_2d, right_dual(y_axis_2d)) == -x_axis_2d);
 
         // coordinate axis reflected on itself remains itself (identity)
-        CHECK(reflect_on(x_axis_2d, dual(x_axis_2d)) == x_axis_2d);
-        CHECK(reflect_on(y_axis_2d, dual(y_axis_2d)) == y_axis_2d);
+        CHECK(reflect_on(x_axis_2d, right_dual(x_axis_2d)) == x_axis_2d);
+        CHECK(reflect_on(y_axis_2d, right_dual(y_axis_2d)) == y_axis_2d);
     }
 
     TEST_CASE("Vec2d: operations - rotations")
@@ -1347,16 +1347,16 @@ TEST_SUITE("EGA 2D Tests")
         //
 
         auto vm_dual_manual = rev(vm) * Im_2d;
-        auto vm_dual = dual(vm);
+        auto vm_dual = right_dual(vm);
 
         auto vm_dual_even_manual = rev(vm_even) * Im_2d;
-        auto vm_dual_even = dual(vm_even);
+        auto vm_dual_even = right_dual(vm_even);
 
         auto vm_dual_manual_E = rev(vm_E) * Im_2d_E;
-        auto vm_dual_E = dual(vm_E);
+        auto vm_dual_E = right_dual(vm_E);
 
         auto v_dual_manual = rev(v) * I_2d;
-        auto v_dual = dual(v);
+        auto v_dual = right_dual(v);
 
         // fmt::println("   I_2d               = {}", I_2d);
         // fmt::println("   Im_2d              = {}", Im_2d);
@@ -1382,9 +1382,9 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(vm_dual_even == vm_dual_even_manual);
         CHECK(vm_dual_E == vm_dual_manual_E);
         CHECK(v_dual == v_dual_manual);
-        CHECK(dual(scalar2d(5)) == pscalar2d(5));
-        CHECK(dual(pscalar2d(5)) == scalar2d(5));
-        CHECK(dual(I_2d) == 1);
+        CHECK(right_dual(scalar2d(5)) == pscalar2d(5));
+        CHECK(right_dual(pscalar2d(5)) == scalar2d(5));
+        CHECK(right_dual(I_2d) == 1);
 
         // dual properties (A. Macdonald, p. 110):
         //
@@ -1396,10 +1396,10 @@ TEST_SUITE("EGA 2D Tests")
         // f) if A is a j-vector then dual(A) is an (n-j)-vector
         //    (remember: a j-vector is a sum of j-blades, which are outer products)
 
-        CHECK(dual(3.0 * vm) == 3.0 * dual(vm));
-        CHECK(dual(vm + vm2) == dual(vm) + dual(vm2));
-        CHECK(dual(I_2d) == 1);
-        CHECK(dual(v) == (vec2d(-v.y, v.x))); // = rcmpl(v)
+        CHECK(right_dual(3.0 * vm) == 3.0 * right_dual(vm));
+        CHECK(right_dual(vm + vm2) == right_dual(vm) + right_dual(vm2));
+        CHECK(right_dual(I_2d) == 1);
+        CHECK(right_dual(v) == (vec2d(-v.y, v.x))); // = rcmpl(v)
 
         // inner and outer products are in G^n are dual (A. Macdonald, p. 111):
         //
@@ -1410,18 +1410,18 @@ TEST_SUITE("EGA 2D Tests")
 
         // fmt::println("   a                 = {}", a);
         // fmt::println("   b                 = {}", b);
-        // fmt::println("   dual(b)           = {}", dual(b));
+        // fmt::println("   dual(b)           = {}", right_dual(b));
         // fmt::println("   dot(a, b)         = {}", dot(a, b));
         // fmt::println("   wdg(a, b)         = {}", wdg(a, b));
         // fmt::println("");
-        // fmt::println("   dual(dot(a, b))   = {}", dual(dot(a, b)));
-        // fmt::println("   wdg(a, dual(b))   = {}", wdg(a, dual(b)));
+        // fmt::println("   dual(dot(a, b))   = {}", right_dual(dot(a, b)));
+        // fmt::println("   wdg(a, dual(b))   = {}", wdg(a, right_dual(b)));
         // fmt::println("");
-        // fmt::println("   dual(wdg(a, b))   = {}", dual(wdg(a, b)));
-        // fmt::println("   dot(a, dual(b))   = {}", dot(a, dual(b)));
+        // fmt::println("   dual(wdg(a, b))   = {}", right_dual(wdg(a, b)));
+        // fmt::println("   dot(a, dual(b))   = {}", dot(a, right_dual(b)));
 
-        CHECK(dual(scalar2d(dot(a, b))) == wdg(a, dual(b)));
-        CHECK(wdg(a, dual(b)) == dot(a, b) * I_2d);
+        CHECK(right_dual(scalar2d(dot(a, b))) == wdg(a, right_dual(b)));
+        CHECK(wdg(a, right_dual(b)) == dot(a, b) * I_2d);
     }
 
     TEST_CASE("MVec2d: product tests")
@@ -1612,9 +1612,9 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(nrm_sq(wdg(v_in_u, u)) < eps);
 
         // v_perp_u should be proportional to the normal vector n of u
-        // n = dual(u) or n = cmpl(u)
+        // n = right_dual(u) or n = cmpl(u)
         // thus, wdg(v_perp_B, n) == 0 is required
-        CHECK(nrm_sq(wdg(v_perp_u, dual(u))) < eps);
+        CHECK(nrm_sq(wdg(v_perp_u, right_dual(u))) < eps);
         CHECK(nrm_sq(wdg(v_perp_u, rcmpl(u))) < eps);
         CHECK(nrm_sq(wdg(lcmpl(u), v_perp_u)) < eps);
 

@@ -160,7 +160,7 @@ const mvec_coeff mv2dp_coeff_svBps2 = {"s2",   "v2.x", "v2.y", "v2.z",
 
 
 void generate_and_print_pga2dp_gpr(); // geometric product
-void generate_and_print_pga2dp_cmt(); // commutator product (asymmetric part of gpr)
+void generate_and_print_ega2dp_cmt(); // commutator product (asymmetric part of gpr)
 void generate_and_print_pga2dp_wdg(); // wegde product (=outer product)
 void generate_and_print_pga2dp_dot(); // dot product (=inner product)
 

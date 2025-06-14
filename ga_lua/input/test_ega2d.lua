@@ -27,7 +27,7 @@ print("v4:", v4, "component ctor v4 = v1 + v3 (by hand)")
 assert(v4 == v1 + v2)
 assert(v1 == v4 - v2)
 if v4 == v1 + v2 and v1 == v4 - v2 then
-    print("v4 == v1 + v2", "comparison, addition and subtraction")
+	print("v4 == v1 + v2", "comparison, addition and subtraction")
 end
 
 local v5 = 3 * v4
@@ -101,7 +101,7 @@ print("mve7:", mve7, "ctor mvec2d(scalar2d(-7),pscalar2d(-8))")
 assert(mve4 == mve1 + mve2)
 assert(mve1 == mve4 - mve2)
 if mve4 == mve1 + mve2 and mve1 == mve4 - mve2 then
-    print("mve4 == mve1 + mve2", "comparison, addition and subtraction")
+	print("mve4 == mve1 + mve2", "comparison, addition and subtraction")
 end
 
 local mve5 = 3 * mve4
@@ -147,7 +147,7 @@ print("mv9:", mv9, "ctor mvec2d(mvec2d_e(2.5,3))")
 assert(mv4 == mv1 + mv2)
 assert(mv1 == mv4 - mv2)
 if mv4 == mv1 + mv2 and mv1 == mv4 - mv2 then
-    print("mv4 == mv1 + mv2", "comparison, addition and subtraction")
+	print("mv4 == mv1 + mv2", "comparison, addition and subtraction")
 end
 
 local mv5 = 3 * mv4
@@ -229,8 +229,10 @@ print("angle(vec2d.new(2,-3),vec2d.new(1,2)) [deg]:", rad2deg(angle(vec2d.new(2,
 print("nrm(vec2d.new(2,-3)):", nrm(vec2d.new(2, -3)))
 print("nrm(vec2d.new(1,2)):", nrm(vec2d.new(1, 2)))
 print("nrm(vec2d.new(2,-3))*nrm(vec2d.new(1,2))", nrm(vec2d.new(2, -3)) * nrm(vec2d.new(1, 2)))
-print("sin(angle)*nrm(vec2d.new(2,-3))*nrm(vec2d.new(1,2)))",
-    math.sin(angle(vec2d.new(2, -3), vec2d.new(1, 2))) * nrm(vec2d.new(2, -3)) * nrm(vec2d.new(1, 2)))
+print(
+	"sin(angle)*nrm(vec2d.new(2,-3))*nrm(vec2d.new(1,2)))",
+	math.sin(angle(vec2d.new(2, -3), vec2d.new(1, 2))) * nrm(vec2d.new(2, -3)) * nrm(vec2d.new(1, 2))
+)
 
 print("vec2d.new(2,-3)*vec2d.new(1,2):", vec2d.new(2, -3) * vec2d.new(1, 2))
 
@@ -239,16 +241,16 @@ print("\n11. Testing dual operations:")
 print("---------------------------")
 
 print("I_2d*mvec2d.new(2,-3,5,7)", I_2d * mvec2d.new(2, -3, 5, 7))
-print("dual(mvec2d.new(2,-3,5,7))", dual(mvec2d.new(2, -3, 5, 7)))
+print("right_dual(mvec2d.new(2,-3,5,7))", right_dual(mvec2d.new(2, -3, 5, 7)))
 
 print("I_2d*mvec2d_e.new(2,7)", I_2d * mvec2d_e.new(2, 7))
-print("dual(mvec2d_e.new(2,7))", dual(mvec2d_e.new(2, 7)))
+print("right_dual(mvec2d_e.new(2,7))", right_dual(mvec2d_e.new(2, 7)))
 
 print("I_2d*vec2d.new(2,7)", I_2d * vec2d.new(2, 7))
-print("dual(vec2d.new(2,7))", dual(vec2d.new(2, 7)))
+print("right_dual(vec2d.new(2,7))", right_dual(vec2d.new(2, 7)))
 
-print("dual(scalar2d.new(5))", dual(scalar2d.new(5)))
-print("dual(pscalar2d.new(3))", dual(pscalar2d.new(3)))
+print("right_dual(scalar2d.new(5))", right_dual(scalar2d.new(5)))
+print("right_dual(pscalar2d.new(3))", right_dual(pscalar2d.new(3)))
 
 -- Test complement operations
 print("\n12. Testing complement operations:")
@@ -265,15 +267,21 @@ print("-------------------------")
 
 print("Exponential rotations:")
 for i = 0, 10 do
-    local theta = math.pi / 10.0 * i
-    print("theta:", theta, "exp(I_2d,theta):", exp(I_2d, theta))
+	local theta = math.pi / 10.0 * i
+	print("theta:", theta, "exp(I_2d,theta):", exp(I_2d, theta))
 end
 
 print("\nRotor rotations:")
 for i = 0, 10 do
-    local theta = math.pi / 10.0 * i
-    print("theta:", theta, "rotor(I_2d,theta):", rotor(I_2d, theta), "rotated:",
-        rotate(vec2d.new(1, 0), rotor(I_2d, theta)))
+	local theta = math.pi / 10.0 * i
+	print(
+		"theta:",
+		theta,
+		"rotor(I_2d,theta):",
+		rotor(I_2d, theta),
+		"rotated:",
+		rotate(vec2d.new(1, 0), rotor(I_2d, theta))
+	)
 end
 
 -- Test wedge operator

@@ -566,11 +566,21 @@ inline Line2d<T> unitize(Line2d<T> const& l)
     return Line2d<T>(l.x * inv, l.y * inv, l.z * inv);
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
-// bulk_dual (=complement operation applied to the bulk)
+// bulk_dual = cmpl(bulk(A))
 //
-// the duals are defined uniquely w.r.t. the outer product
+// -> complement operation applied to the bulk
 //
+////////////////////////////////////////////////////////////////////////////////
+// duality (as defined in Lengyel, "PGA illuminated")
+// is defined w.r.t. the outer product, because the complement is defined w.r.t.
+// the outer product.
+//
+// The only difference between the dual and the complement is the fact that
+// for the dual the argument is multiplied with the extended metric before
+// taking the complement. However, in ega the metric is the identity matrix.
+// Thus the dual and the complement are identical.
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>

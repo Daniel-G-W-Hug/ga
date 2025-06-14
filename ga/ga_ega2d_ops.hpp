@@ -1843,20 +1843,28 @@ inline constexpr MVec2d<T> rcmpl(MVec2d<T> const& M)
 
 ////////////////////////////////////////////////////////////////////////////////
 // duality (as defined in Lengyel, "PGA illuminated")
-// is defined w.r.t. the outer product
+// is defined w.r.t. the outer product, because the complement is defined w.r.t.
+// the outer product.
+//
+// The only difference between the dual and the complement is the fact that
+// for the dual the argument is multiplied with the extended metric before
+// taking the complement. However, in ega the metric is the identity matrix.
+// Thus the dual and the complement are identical.
 ////////////////////////////////////////////////////////////////////////////////
 //
 // if M represents the subspace B as subspace of R^2 then
-// dual(M) represents the subspace orthorgonal to B
+// left_dual(M) and right_dual(M) represent a subspace orthorgonal to B
 //
-// dual(A) = cmpl(A) in spaces of odd dimension
-//         = rcmpl(A) in spaces of even dimension (right dual)
+// right_dual(A) = rcmpl(A) in spaces of even dimension
+// left_dual(A)  = lcmpl(A) in spaces of even dimension
 //
-// this dual satisfies (right) dual(A) = rev(A) * I_n
+// right_dual(A) = left_dual(A) = cmpl(A) in spaces of odd dimension
 //
-// analogy: for the left cmpl/dual the (left) dual satisfies ldual(L) = I_n * rev(L)
+// the right dual satisfies right_dual(A) = rev(A) * I_n
+// the left dual satisfies   left_dual(A) = I_n * rev(A)
 //
 // -> derived from the defining equation of the left and right complements
+////////////////////////////////////////////////////////////////////////////////
 
 
 // this one is problematic for overloading, because 2d and 3d case
@@ -1864,37 +1872,76 @@ inline constexpr MVec2d<T> rcmpl(MVec2d<T> const& M)
 // type is uniquely defined for the corresponding algebra
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> dual(Scalar2d<T> s)
+inline constexpr PScalar2d<T> right_dual(Scalar2d<T> s)
 {
     return rcmpl(s);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> dual(Vec2d<T> const& v)
+inline constexpr Vec2d<T> right_dual(Vec2d<T> const& v)
 {
     return rcmpl(v);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> dual(PScalar2d<T> ps)
+inline constexpr Scalar2d<T> right_dual(PScalar2d<T> ps)
 {
     return rcmpl(ps);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> dual(MVec2d_E<T> const& M)
+inline constexpr MVec2d_E<T> right_dual(MVec2d_E<T> const& M)
 {
     return MVec2d_E<T>(rcmpl(gr2(M)), rcmpl(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> dual(MVec2d<T> const& M)
+inline constexpr MVec2d<T> right_dual(MVec2d<T> const& M)
 {
     return MVec2d<T>(rcmpl(gr2(M)), rcmpl(gr1(M)), rcmpl(gr0(M)));
+}
+
+
+// this one is problematic for overloading, because 2d and 3d case
+// transform scalars to different pseudoscalars, this can only be avoided, when the scalar
+// type is uniquely defined for the corresponding algebra
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2d<T> left_dual(Scalar2d<T> s)
+{
+    return lcmpl(s);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2d<T> left_dual(Vec2d<T> const& v)
+{
+    return lcmpl(v);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2d<T> left_dual(PScalar2d<T> ps)
+{
+    return lcmpl(ps);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d_E<T> left_dual(MVec2d_E<T> const& M)
+{
+    return MVec2d_E<T>(lcmpl(gr2(M)), lcmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2d<T> left_dual(MVec2d<T> const& M)
+{
+    return MVec2d<T>(lcmpl(gr2(M)), lcmpl(gr1(M)), lcmpl(gr0(M)));
 }
 
 

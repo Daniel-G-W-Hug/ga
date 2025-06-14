@@ -69,7 +69,7 @@ int main()
         // pga2dp
         ///////////////////////////////////////////////////////////////////////
         generate_and_print_pga2dp_gpr(); // geometric product
-        generate_and_print_pga2dp_cmt(); // commutator product (asymmetric part of gpr)
+        generate_and_print_ega2dp_cmt(); // commutator product (asymmetric part of gpr)
         generate_and_print_pga2dp_wdg(); // wegde product (=outer product)
         generate_and_print_pga2dp_dot(); // dot product (=inner product)
 

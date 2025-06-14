@@ -33,7 +33,8 @@
 #include "ga_usr_utilities.hpp" // helper functions
 
 // PGA-specific operations are in namespace hd::ga::pga
-#include "ga_pga_common_ops.hpp" // include all pga operations for 2dp and 3dp
+#include "ga_pga2dp_ops.hpp" // include all pga operations for 2dp
+#include "ga_pga3dp_ops.hpp" // include all pga operations for 3dp
 
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

@@ -2495,20 +2495,27 @@ inline constexpr MVec3d<T> cmpl(MVec3d<T> const& M)
 
 ////////////////////////////////////////////////////////////////////////////////
 // duality (as defined in Lengyel, "PGA illuminated")
-// is defined w.r.t. the outer product
+// the outer product.
+//
+// The only difference between the dual and the complement is the fact that
+// for the dual the argument is multiplied with the extended metric before
+// taking the complement. However, in ega the metric is the identity matrix.
+// Thus the dual and the complement are identical.
 ////////////////////////////////////////////////////////////////////////////////
 //
-// if M represents the subspace B as subspace of R^3 then
-// dual(M) represents the subspace orthorgonal to B
+// if M represents the subspace B as subspace of R^2 then
+// left_dual(M) and right_dual(M) represent a subspace orthorgonal to B
 //
-// dual(A) = cmpl(A) in spaces of odd dimension
-//         = rcmpl(A) in spaces of even dimension (right dual)
+// right_dual(A) = rcmpl(A) in spaces of even dimension
+// left_dual(A)  = lcmpl(A) in spaces of even dimension
 //
-// this dual satisfies (right) dual(A) = rev(A) * I_n
+// right_dual(A) = left_dual(A) = cmpl(A) in spaces of odd dimension
 //
-// for the left cmpl/dual the (left) dual: ldual(L) = I_n * rev(L)
+// the right dual satisfies right_dual(A) = rev(A) * I_n
+// the left dual satisfies   left_dual(A) = I_n * rev(A)
 //
 // -> derived from the defining equation of the left and right complements
+////////////////////////////////////////////////////////////////////////////////
 
 
 template <typename T>

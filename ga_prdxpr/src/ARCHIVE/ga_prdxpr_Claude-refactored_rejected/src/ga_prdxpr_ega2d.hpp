@@ -40,10 +40,6 @@ const prd_rules lcmpl_ega2d_rules = {
 const prd_rules rcmpl_ega2d_rules = {
     {"1", "e12"}, {"e1", "e2"}, {"e2", "-e1"}, {"e12", "1"}};
 
-// complement and dual are identical in ega2d (the metric is the identity matrix)
-const prd_rules left_dual_ega2d_rules = lcmpl_ega2d_rules;
-const prd_rules right_dual_ega2d_rules = rcmpl_ega2d_rules;
-
 // coefficients needed to create a multivector = [coeff]^T [mv2d_basis]
 const mvec_coeff mv2d_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3"};
 const mvec_coeff mv2d_coeff_B = {"B.c0", "B.c1", "B.c2", "B.c3"};
