@@ -26,10 +26,10 @@ print("\n2. Testing vec3dp basic operations:")
 print("----------------------------------")
 
 local v0 = vec3dp.new()
-local v1 = vec3dp.new(1, 2, 3, 0)  -- direction vector (w=0)
-local v2 = vec3dp.new(3, 4, 5, 1)  -- point (w=1)
+local v1 = vec3dp.new(1, 2, 3, 0) -- direction vector (w=0)
+local v2 = vec3dp.new(3, 4, 5, 1) -- point (w=1)
 local v3 = vec3dp.new(-v2)
-local v4 = vec3dp.new(4, 6, 8, 1)  -- v1 + v2
+local v4 = vec3dp.new(4, 6, 8, 1) -- v1 + v2
 
 print("v0:", v0, "empty ctor")
 print("v1:", v1, "direction vector (w=0)")
@@ -40,7 +40,7 @@ print("v4:", v4, "component ctor")
 assert(v4 == v1 + v2)
 assert(v1 == v4 - v2)
 if v4 == v1 + v2 and v1 == v4 - v2 then
-    print("v4 == v1 + v2", "comparison, addition and subtraction")
+	print("v4 == v1 + v2", "comparison, addition and subtraction")
 end
 
 local v5 = 3 * v4
@@ -63,7 +63,7 @@ print("wdg(v1,v2):", wdg(v1, v2), "wedge product creates line")
 print("\n4. Testing unitization (PGA specific):")
 print("--------------------------------------")
 
-local v_pt = vec3dp.new(3, 4, 5, 1)  -- point vector (can be unitized)
+local v_pt = vec3dp.new(3, 4, 5, 1) -- point vector (can be unitized)
 print("point vector v_pt =", v_pt)
 print("unitize(v_pt) =", unitize(v_pt))
 
@@ -72,9 +72,9 @@ print("\n5. Testing bivec3dp operations:")
 print("-------------------------------")
 
 local b0 = bivec3dp.new()
-local b1 = bivec3dp.new(1, 0, 0, 2, 3, 4)  -- line
-local b2 = bivec3dp.new(0, 0, 1, 0, 0, 0)  -- z-axis line
-local line = bivec3dp.new(1, 0, 0, 0, 0, 1)  -- 3d line
+local b1 = bivec3dp.new(1, 0, 0, 2, 3, 4) -- line
+local b2 = bivec3dp.new(0, 0, 1, 0, 0, 0) -- z-axis line
+local line = bivec3dp.new(1, 0, 0, 0, 0, 1) -- 3d line
 
 print("b0:", b0, "empty ctor")
 print("b1:", b1, "line")
@@ -92,8 +92,8 @@ print("\n6. Testing trivec3dp operations:")
 print("-------------------------------")
 
 local tv0 = trivec3dp.new()
-local tv1 = trivec3dp.new(1, 2, 3, 4)  -- plane
-local tv2 = trivec3dp.new(0, 0, 1, 0)  -- xy-plane (z = 0)
+local tv1 = trivec3dp.new(1, 2, 3, 4) -- plane
+local tv2 = trivec3dp.new(0, 0, 1, 0) -- xy-plane (z = 0)
 
 print("tv0:", tv0, "empty ctor")
 print("tv1:", tv1, "plane")
@@ -160,24 +160,34 @@ local t = trivec3dp.new(1, 2, 3, 4)
 local ps = pscalar3dp.new(1.0)
 
 print("scalar s =", s)
-print("bulk_dual(s) =", bulk_dual(s))
-print("weight_dual(s) =", weight_dual(s))
+print("left_bulk_dual(s) =", left_bulk_dual(s))
+print("left_weight_dual(s) =", left_weight_dual(s))
+print("right_bulk_dual(s) =", right_bulk_dual(s))
+print("right_weight_dual(s) =", right_weight_dual(s))
 
 print("vector v =", v)
-print("bulk_dual(v) =", bulk_dual(v))
-print("weight_dual(v) =", weight_dual(v))
+print("left_bulk_dual(v) =", left_bulk_dual(v))
+print("left_weight_dual(v) =", left_weight_dual(v))
+print("right_bulk_dual(v) =", right_bulk_dual(v))
+print("right_weight_dual(v) =", right_weight_dual(v))
 
 print("bivector b =", b)
-print("bulk_dual(b) =", bulk_dual(b))
-print("weight_dual(b) =", weight_dual(b))
+print("left_bulk_dual(b) =", left_bulk_dual(b))
+print("left_weight_dual(b) =", left_weight_dual(b))
+print("right_bulk_dual(b) =", right_bulk_dual(b))
+print("right_weight_dual(b) =", right_weight_dual(b))
 
 print("trivector t =", t)
-print("bulk_dual(t) =", bulk_dual(t))
-print("weight_dual(t) =", weight_dual(t))
+print("left_bulk_dual(t) =", left_bulk_dual(t))
+print("left_weight_dual(t) =", left_weight_dual(t))
+print("right_bulk_dual(t) =", right_bulk_dual(t))
+print("right_weight_dual(t) =", right_weight_dual(t))
 
 print("pseudoscalar ps =", ps)
-print("bulk_dual(ps) =", bulk_dual(ps))
-print("weight_dual(ps) =", weight_dual(ps))
+print("left_bulk_dual(ps) =", left_bulk_dual(ps))
+print("left_weight_dual(ps) =", left_weight_dual(ps))
+print("right_bulk_dual(ps) =", right_bulk_dual(ps))
+print("right_weight_dual(ps) =", right_weight_dual(ps))
 
 -- Test complement operations
 print("\n12. Testing complement operations:")
@@ -203,8 +213,8 @@ print("original v =", v)
 print("\n13. Testing angle operations:")
 print("-----------------------------")
 
-local v1_dir = vec3dp.new(1, 0, 0, 0)  -- x direction
-local v2_dir = vec3dp.new(0, 1, 0, 0)  -- y direction
+local v1_dir = vec3dp.new(1, 0, 0, 0) -- x direction
+local v2_dir = vec3dp.new(0, 1, 0, 0) -- y direction
 print("direction v1 =", v1_dir)
 print("direction v2 =", v2_dir)
 print("angle between v1 and v2 =", angle(v1_dir, v2_dir), "radians")
@@ -224,7 +234,7 @@ print("angle between trivectors =", angle(t1, t2), "radians")
 print("\n14. Testing support operations:")
 print("------------------------------")
 
-local line3d = bivec3dp.new(1, 0, 0, 0, 0, 1)  -- 3d line
+local line3d = bivec3dp.new(1, 0, 0, 0, 0, 1) -- 3d line
 print("line =", line3d)
 local support_pt = support3dp(line3d)
 print("support point for 3D line =", support_pt)
@@ -234,7 +244,7 @@ print("\n15. Testing multivector operations:")
 print("----------------------------------")
 
 -- Test mvec3dp_e (even multivector)
-local mve1 = mvec3dp_e.new(1, 2, 3, 4, 5, 6, 7, 8)  -- scalar, bivec, pscalar
+local mve1 = mvec3dp_e.new(1, 2, 3, 4, 5, 6, 7, 8) -- scalar, bivec, pscalar
 print("mvec3dp_e mve1 =", mve1)
 print("gr0(mve1) =", gr0(mve1))
 print("gr2(mve1) =", gr2(mve1))
@@ -245,7 +255,7 @@ print("lcmpl(mve1) =", lcmpl(mve1))
 print("rcmpl(mve1) =", rcmpl(mve1))
 
 -- Test mvec3dp_u (odd multivector)
-local mvu1 = mvec3dp_u.new(9, 10, 11, 12, 13, 14, 15, 16)  -- vec, trivec
+local mvu1 = mvec3dp_u.new(9, 10, 11, 12, 13, 14, 15, 16) -- vec, trivec
 print("mvec3dp_u mvu1 =", mvu1)
 print("gr1(mvu1) =", gr1(mvu1))
 print("gr3(mvu1) =", gr3(mvu1))
@@ -255,7 +265,7 @@ print("lcmpl(mvu1) =", lcmpl(mvu1))
 print("rcmpl(mvu1) =", rcmpl(mvu1))
 
 -- Test mvec3dp (full multivector)
-local mv1 = mvec3dp.new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)  -- all 16 components
+local mv1 = mvec3dp.new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16) -- all 16 components
 print("mvec3dp mv1 =", mv1)
 print("gr0(mv1) =", gr0(mv1))
 print("gr1(mv1) =", gr1(mv1))
@@ -285,8 +295,8 @@ print("-------------------------------")
 
 -- Test rotation motor
 local x_axis = vec3dp.new(1, 0, 0, 0)
-local z_axis = bivec3dp.new(0, 0, 1, 0, 0, 0)  -- z-axis bivector
-local phi = math.pi / 6  -- 30 degrees
+local z_axis = bivec3dp.new(0, 0, 1, 0, 0, 0) -- z-axis bivector
+local phi = math.pi / 6 -- 30 degrees
 print("x_axis =", x_axis)
 print("z_axis =", z_axis)
 print("phi =", phi, "radians (30 degrees)")
@@ -298,7 +308,7 @@ print("rotated x_axis =", rotated_result)
 
 -- Test translation motor
 local p = vec3dp.new(1, -0.5, 0, 1)
-local delta = vec3dp.new(1, 0.5, 0, 0)  -- translation vector
+local delta = vec3dp.new(1, 0.5, 0, 0) -- translation vector
 print("point p =", p)
 print("translation delta =", delta)
 
@@ -313,8 +323,8 @@ local p1_3d = vec3dp.new(2, 0.5, 0, 1)
 local p2_3d = vec3dp.new(2, 1.5, 0, 1)
 local p3_3d = vec3dp.new(1, 0.5, 1, 1)
 
-local pl1 = unitize(wdg(wdg(p0_3d, p3_3d), p1_3d))  -- plane
-local pl2 = unitize(wdg(wdg(p0_3d, p3_3d), p2_3d))  -- plane
+local pl1 = unitize(wdg(wdg(p0_3d, p3_3d), p1_3d)) -- plane
+local pl2 = unitize(wdg(wdg(p0_3d, p3_3d), p2_3d)) -- plane
 print("plane pl1 =", pl1)
 print("plane pl2 =", pl2)
 
@@ -327,8 +337,8 @@ print("------------------------------------------------")
 
 local v_test = vec3dp.new(2, 3, 4, 1)
 local v_onto = vec3dp.new(1, 0, 0, 0)
-local line_test = bivec3dp.new(0, 0, 1, 0, 0, 0)  -- z-axis line
-local plane_test = trivec3dp.new(0, 0, 1, 0)  -- xy-plane
+local line_test = bivec3dp.new(0, 0, 1, 0, 0, 0) -- z-axis line
+local plane_test = trivec3dp.new(0, 0, 1, 0) -- xy-plane
 
 print("vector v_test =", v_test)
 print("vector v_onto =", v_onto)
@@ -352,7 +362,7 @@ local unit_line = unitize(line_test)
 print("reflect_on(unit_line, unit_plane) =", reflect_on(unit_line, unit_plane))
 
 -- Test plane-on-plane reflection
-local another_plane = trivec3dp.new(1, 0, 0, 0)  -- yz-plane
+local another_plane = trivec3dp.new(1, 0, 0, 0) -- yz-plane
 local unit_another_plane = unitize(another_plane)
 print("reflect_on(unit_plane, unit_another_plane) =", reflect_on(unit_plane, unit_another_plane))
 
@@ -407,8 +417,8 @@ local p1_nest = vec3dp.new(2, 0, 0, 1)
 local p2_nest = vec3dp.new(1, 1, 0, 1)
 
 -- Create simpler nested wdg calls
-local line_nest = wdg(p0_nest, p1_nest)  -- line between two points
-local plane_nest = wdg(line_nest, p2_nest)  -- plane through line and point
+local line_nest = wdg(p0_nest, p1_nest) -- line between two points
+local plane_nest = wdg(line_nest, p2_nest) -- plane through line and point
 print("nested wdg result =", plane_nest)
 
 -- Test to_val operations

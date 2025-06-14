@@ -5,7 +5,6 @@
 
 void generate_and_print_pga3dp_gpr()
 {
-    // pga3dp geometric product
 
     std::string prd_name = "pga3dp geometric product";
 
@@ -442,8 +441,8 @@ void generate_and_print_pga3dp_gpr()
 
 void generate_and_print_pga3dp_cmt()
 {
-    // pga3dp commutator product (=asymmetric part of the geometric product)
 
+    // the commutator product is the asymmetric part of the geometric product
     std::string prd_name = "pga3dp commutator product";
 
     auto basis_tab = apply_rules_to_tab(
@@ -879,7 +878,6 @@ void generate_and_print_pga3dp_cmt()
 
 void generate_and_print_pga3dp_wdg()
 {
-    // pga3dp wedge product (=outer product)
 
     std::string prd_name = "pga3dp wedge product";
 
@@ -1315,7 +1313,6 @@ void generate_and_print_pga3dp_wdg()
 
 void generate_and_print_pga3dp_dot()
 {
-    // pga3dp inner product (=dot product)
 
     std::string prd_name = "pga3dp inner product";
 
@@ -1387,10 +1384,89 @@ void generate_and_print_pga3dp_dot()
     return;
 }
 
+void generate_and_print_pga3dp_rdot()
+{
+
+    std::string prd_name = "pga3dp regressive inner product";
+    auto basis = mv3dp_basis;
+
+    // fmt::println("mv_basis for rdot:");
+    // print_mvec(mv3dp_coeff_svBtps, basis);
+    // fmt::println("");
+
+    // create the complement from the input multivector
+    // (=forward transformation of arguments)
+    auto basis_cmpl_func = apply_rules_to_mv(basis, rcmpl_pga3dp_rules);
+    // fmt::println("cmpl:");
+    // print_mvec(mv3dp_coeff_svBtps, basis_cmpl_func);
+    // fmt::println("");
+
+    // product between complements
+    auto basis_tab_with_rules = apply_rules_to_tab(
+        mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str),
+        dot_pga3dp_rules);
+    // fmt::println("basis_tab_with_rules:");
+    // print_prd_tab(basis_tab_with_rules);
+    // fmt::println("");
+
+    // create complements of the table entries (=backward transformation)
+    // (returns the product table in terms of the unmodified input multivectors)
+    auto basis_tab = apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+    fmt::println("{} - basis product table:", prd_name);
+    print_prd_tab(basis_tab);
+    fmt::println("");
+
+
+    fmt::println("{}:", prd_name + space_str + "rdot(mv,mv) -> ps");
+    auto prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_A, mv3dp_coeff_B);
+    auto prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv, filter_3dp::mv);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
+
+
+    fmt::println("{}:", prd_name + space_str + "rdot(ps,ps) -> ps");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::ps, filter_3dp::ps);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
+
+
+    fmt::println("{}:", prd_name + space_str + "rdot(trivec,trivec) -> ps");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::trivec, filter_3dp::trivec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
+
+
+    fmt::println("{}:", prd_name + space_str + "rdot(bivec,bivec) -> ps");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::bivec, filter_3dp::bivec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
+
+
+    fmt::println("{}:", prd_name + space_str + "rdot(vec,vec) -> ps");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::vec, filter_3dp::vec);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
+
+
+    fmt::println("{}:", prd_name + space_str + "rdot(s,s) -> ps");
+    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
+    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::s);
+    print_mvec(prd_mv, basis);
+    fmt::println("");
+
+
+    fmt::println("-------------------------------------------------------------------\n");
+
+    return;
+}
+
+
 void generate_and_print_pga3dp_rwdg()
 {
-    // pga3dp regressive wedge product
-    // rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
 
     // Checking the roundtrip lcmpl(rcmpl(mvec)) == mvec
     //
@@ -1859,92 +1935,9 @@ void generate_and_print_pga3dp_rwdg()
     return;
 }
 
-void generate_and_print_pga3dp_rdot()
-{
-    // pga3dp regressive inner product (=regressive dot product)
-    // rdot(A,B) = lcmpl(dot(rcmpl(A), rcmpl(B)))
-
-    std::string prd_name = "pga3dp regressive inner product";
-    auto basis = mv3dp_basis;
-
-    // fmt::println("mv_basis for rdot:");
-    // print_mvec(mv3dp_coeff_svBtps, basis);
-    // fmt::println("");
-
-    // create the complement from the input multivector
-    // (=forward transformation of arguments)
-    auto basis_cmpl_func = apply_rules_to_mv(basis, rcmpl_pga3dp_rules);
-    // fmt::println("cmpl:");
-    // print_mvec(mv3dp_coeff_svBtps, basis_cmpl_func);
-    // fmt::println("");
-
-    // product between complements
-    auto basis_tab_with_rules = apply_rules_to_tab(
-        mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str),
-        dot_pga3dp_rules);
-    // fmt::println("basis_tab_with_rules:");
-    // print_prd_tab(basis_tab_with_rules);
-    // fmt::println("");
-
-    // create complements of the table entries (=backward transformation)
-    // (returns the product table in terms of the unmodified input multivectors)
-    auto basis_tab = apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
-    fmt::println("{} - basis product table:", prd_name);
-    print_prd_tab(basis_tab);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "rdot(mv,mv) -> ps");
-    auto prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_A, mv3dp_coeff_B);
-    auto prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv, filter_3dp::mv);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "rdot(ps,ps) -> ps");
-    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::ps, filter_3dp::ps);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "rdot(trivec,trivec) -> ps");
-    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::trivec, filter_3dp::trivec);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "rdot(bivec,bivec) -> ps");
-    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::bivec, filter_3dp::bivec);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "rdot(vec,vec) -> ps");
-    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::vec, filter_3dp::vec);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("{}:", prd_name + space_str + "rdot(s,s) -> ps");
-    prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps1, mv3dp_coeff_svBtps2);
-    prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::s, filter_3dp::s);
-    print_mvec(prd_mv, basis);
-    fmt::println("");
-
-
-    fmt::println("-------------------------------------------------------------------\n");
-
-    return;
-}
 
 void generate_and_print_pga3dp_rgpr()
 {
-    // pga3dp regressive geometric product
-    // rgpr(A,B) = lcmpl(gpr(rcmpl(A), rcmpl(B)))
 
     std::string prd_name = "pga3dp regressive geometric product";
     auto basis = mv3dp_basis;
@@ -2401,9 +2394,6 @@ void generate_and_print_pga3dp_rgpr()
 
 void generate_and_print_pga3dp_rbulk_contract()
 {
-    // pga3dp right bulk contraction
-    // A >> B = rwdg(A, right_bulk_dual(B))
-    //        = lcmpl(wdg(rcmpl(A), rcmpl(right_bulk_dual(B)))) in pga3dp
 
     std::string prd_name = "pga3dp right bulk contraction";
 
@@ -2899,11 +2889,9 @@ void generate_and_print_pga3dp_rbulk_contract()
     return;
 }
 
+
 void generate_and_print_pga3dp_rweight_contract()
 {
-    // pga3dp right weight contraction
-    // A >> B = rwdg(A, right_weight_dual(B))
-    //        = lcmpl(wdg(rcmpl(A), rcmpl(right_weight_dual(B))))
 
     std::string prd_name = "pga3dp right weight contraction";
     auto basis = mv3dp_basis;
@@ -2983,13 +2971,98 @@ void generate_and_print_pga3dp_rweight_contract()
     return;
 }
 
+void generate_and_print_pga3dp_lweight_contract()
+{
+
+    std::string prd_name = "pga3dp left weight contraction";
+    auto basis = mv3dp_basis;
+    // fmt::println("mv_basis for rwdg:");
+    // print_mvec(mv3dp_coeff_svBtps, basis);
+    // fmt::println("");
+
+    // check on sequence of applicationn of dualization and complement:
+
+    // // complement first and then dualize -> wrong!
+    // auto rhs_cmpl = apply_rules_to_mv(basis, rcmpl_pga3dp_rules);
+    // fmt::println("rhs_cmpl (rcmpl applied):");
+    // print_mvec(mv3dp_coeff_svBtps, rhs_cmpl);
+    // fmt::println("");
+
+    // auto rhs_cmpl_dual = apply_rules_to_mv(rhs_cmpl, right_weight_dual_pga3dp_rules);
+    // fmt::println("rhs_mv (rcmpl + weight_dualized):");
+    // print_mvec(mv3dp_coeff_svBtps, rhs_cmpl_dual);
+    // fmt::println("");
+
+    // // dualized fist and then complement -> right!
+    // auto rhs_dual = apply_rules_to_mv(basis, right_weight_dual_pga3dp_rules);
+    // fmt::println("rhs_dual (weight_dualized):");
+    // print_mvec(mv3dp_coeff_svBtps, rhs_dual);
+    // fmt::println("");
+
+    // auto rhs_dual_cmpl = apply_rules_to_mv(rhs_dual, rcmpl_pga3dp_rules);
+    // fmt::println("rhs_dual_cmpl (weight_dualized + rcmpl):");
+    // print_mvec(mv3dp_coeff_svBtps, rhs_dual_cmpl);
+    // fmt::println("");
+
+    // => dualization must be the inner operation:
+    //    lcmpl( wdg( rcmpl(a) , rcmpl(b) ) ) = rwdg(a, b)
+    //
+    //    thus: rwdg(a, weight_dual(b) ) = lcmpl( wdg( rcmpl(a) , rcmpl( weight_dual(b) )
+    //    ) )
+
+
+    // create the complement from the input multivector (=forward transformation)
+    // lhs (dualize as inner function before complement)
+    auto basis_dual_cmpl_func = apply_rules_to_mv(
+        apply_rules_to_mv(basis, left_weight_dual_pga3dp_rules), rcmpl_pga3dp_rules);
+    // fmt::println("cmpl:");
+    // print_mvec(mv3dp_coeff_svBtps, basis_cmpl_func);
+    // fmt::println("");
+
+
+    // rhs
+    auto basis_cmpl_func = apply_rules_to_mv(basis, rcmpl_pga3dp_rules);
+    // fmt::println("cmpl:");
+    // print_mvec(mv3dp_coeff_svBtps, basis_cmpl_func);
+    // fmt::println("");
+
+
+    // product between complements
+    auto basis_tab_with_rules = apply_rules_to_tab(
+        mv_coeff_to_coeff_prd_tab(basis_dual_cmpl_func, basis_cmpl_func, wdg_str),
+        wdg_pga3dp_rules);
+    // fmt::println("basis_tab_with_rules:");
+    // print_prd_tab(basis_tab_with_rules);
+    // fmt::println("");
+
+    // create complements of the table entries (=backward transformation)
+    // (returns the product table in terms of the unmodified input multivectors)
+    auto basis_tab = apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+    fmt::println("{} - basis product table:", prd_name);
+    print_prd_tab(basis_tab);
+    fmt::println("");
+
+    // create specific products
+    // fmt::println("{}:", prd_name + space_str + "rweight_contract(mv,mv) -> mv");
+    // auto prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_A, mv3dp_coeff_B);
+    // auto prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv, filter_3dp::mv);
+    // print_mvec(prd_mv, basis);
+    // fmt::println("");
+
+    fmt::println("-------------------------------------------------------------------\n");
+
+    return;
+}
+
+
 void generate_and_print_pga3dp_lbulk_contract()
 {
-    // pga3dp left bulk contraction
-    // (A << B) = rwdg( left_bulk_dual(A),B )
-    //          = lcmpl(wdg(rcmpl(left_bulk_dual(A)), rcmpl(B)))
 
     std::string prd_name = "pga3dp left bulk contraction";
+
+    // (A << B)  = rwdg( ldual(A),B ) -> in pga3dp= rwdg(lbulk_dual(A),B)
+    //
+    // with rwdg(A,B) = lcmpl( wdg( rcmpl(A),rcmpl(B) ) ) in pga3dp
 
     // create the complement from the input multivector (=forward transformation)
     auto basis = mv3dp_basis;
@@ -3450,95 +3523,9 @@ void generate_and_print_pga3dp_lbulk_contract()
     return;
 }
 
-void generate_and_print_pga3dp_lweight_contract()
-{
-    // A << B = rwdg(left_weight_dual(A), B)
-    //        = lcmpl(wdg(rcmpl(left_weight_dual(A)), rcmpl(B)))
-
-    std::string prd_name = "pga3dp left weight contraction";
-    auto basis = mv3dp_basis;
-    // fmt::println("mv_basis for rwdg:");
-    // print_mvec(mv3dp_coeff_svBtps, basis);
-    // fmt::println("");
-
-    // check on sequence of applicationn of dualization and complement:
-
-    // // complement first and then dualize -> wrong!
-    // auto rhs_cmpl = apply_rules_to_mv(basis, rcmpl_pga3dp_rules);
-    // fmt::println("rhs_cmpl (rcmpl applied):");
-    // print_mvec(mv3dp_coeff_svBtps, rhs_cmpl);
-    // fmt::println("");
-
-    // auto rhs_cmpl_dual = apply_rules_to_mv(rhs_cmpl, right_weight_dual_pga3dp_rules);
-    // fmt::println("rhs_mv (rcmpl + weight_dualized):");
-    // print_mvec(mv3dp_coeff_svBtps, rhs_cmpl_dual);
-    // fmt::println("");
-
-    // // dualized fist and then complement -> right!
-    // auto rhs_dual = apply_rules_to_mv(basis, right_weight_dual_pga3dp_rules);
-    // fmt::println("rhs_dual (weight_dualized):");
-    // print_mvec(mv3dp_coeff_svBtps, rhs_dual);
-    // fmt::println("");
-
-    // auto rhs_dual_cmpl = apply_rules_to_mv(rhs_dual, rcmpl_pga3dp_rules);
-    // fmt::println("rhs_dual_cmpl (weight_dualized + rcmpl):");
-    // print_mvec(mv3dp_coeff_svBtps, rhs_dual_cmpl);
-    // fmt::println("");
-
-    // => dualization must be the inner operation:
-    //    lcmpl( wdg( rcmpl(a) , rcmpl(b) ) ) = rwdg(a, b)
-    //
-    //    thus: rwdg(a, weight_dual(b) ) = lcmpl( wdg( rcmpl(a) , rcmpl( weight_dual(b) )
-    //    ) )
-
-
-    // create the complement from the input multivector (=forward transformation)
-    // lhs (dualize as inner function before complement)
-    auto basis_dual_cmpl_func = apply_rules_to_mv(
-        apply_rules_to_mv(basis, left_weight_dual_pga3dp_rules), rcmpl_pga3dp_rules);
-    // fmt::println("cmpl:");
-    // print_mvec(mv3dp_coeff_svBtps, basis_cmpl_func);
-    // fmt::println("");
-
-
-    // rhs
-    auto basis_cmpl_func = apply_rules_to_mv(basis, rcmpl_pga3dp_rules);
-    // fmt::println("cmpl:");
-    // print_mvec(mv3dp_coeff_svBtps, basis_cmpl_func);
-    // fmt::println("");
-
-
-    // product between complements
-    auto basis_tab_with_rules = apply_rules_to_tab(
-        mv_coeff_to_coeff_prd_tab(basis_dual_cmpl_func, basis_cmpl_func, wdg_str),
-        wdg_pga3dp_rules);
-    // fmt::println("basis_tab_with_rules:");
-    // print_prd_tab(basis_tab_with_rules);
-    // fmt::println("");
-
-    // create complements of the table entries (=backward transformation)
-    // (returns the product table in terms of the unmodified input multivectors)
-    auto basis_tab = apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
-    fmt::println("{} - basis product table:", prd_name);
-    print_prd_tab(basis_tab);
-    fmt::println("");
-
-    // create specific products
-    // fmt::println("{}:", prd_name + space_str + "rweight_contract(mv,mv) -> mv");
-    // auto prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_A, mv3dp_coeff_B);
-    // auto prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::mv, filter_3dp::mv);
-    // print_mvec(prd_mv, basis);
-    // fmt::println("");
-
-    fmt::println("-------------------------------------------------------------------\n");
-
-    return;
-}
 
 void generate_and_print_pga3dp_rbulk_expand()
 {
-    // pga3dp right bulk expansion
-    // A >< B = wdg(A, right_bulk_dual(B))
 
     std::string prd_name = "pga3dp right bulk expansion";
     auto basis = mv3dp_basis;
@@ -3567,8 +3554,6 @@ void generate_and_print_pga3dp_rbulk_expand()
 
 void generate_and_print_pga3dp_rweight_expand()
 {
-    // pga3dp right weight expansion
-    // A >< B = wdg(A, right_weight_dual(B))
 
     std::string prd_name = "pga3dp right weight expansion";
     auto basis = mv3dp_basis;
@@ -3596,8 +3581,6 @@ void generate_and_print_pga3dp_rweight_expand()
 
 void generate_and_print_pga3dp_lbulk_expand()
 {
-    // pga3dp left bulk expansion
-    // A >< B = wdg(left_bulk_dual(A), B)
 
     std::string prd_name = "pga3dp left bulk expansion";
     auto basis = mv3dp_basis;
@@ -3626,8 +3609,6 @@ void generate_and_print_pga3dp_lbulk_expand()
 
 void generate_and_print_pga3dp_lweight_expand()
 {
-    // pga3dp left weight expansion
-    // A >< B = wdg(left_weight_dual(A), B)
 
     std::string prd_name = "pga3dp left weight expansion";
     auto basis = mv3dp_basis;
@@ -3653,13 +3634,9 @@ void generate_and_print_pga3dp_lweight_expand()
     return;
 }
 
+
 void generate_and_print_pga3dp_motor_rgpr()
 {
-    // pga3dp regressive sandwich product
-    // pga3dp sandwich product (based on regressive geometric product rgpr)
-    // Sandwich product: gr1(rgpr(rgpr(R, v), rrev(R))) for vector v
-    //                   gr2(rgpr(rgpr(R, B), rrev(R))) for bivector B
-    //                   motor R is mv_e in pga3dp
 
     std::string prd_name = "pga3dp regressive sandwich product";
     auto basis = mv3dp_basis;

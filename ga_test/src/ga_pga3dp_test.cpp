@@ -371,63 +371,65 @@ TEST_SUITE("PGA 3DP Tests")
         auto v2 = vec3dp{3.0, -2.0, 2.0, 5.0};
         auto B2 = bivec3dp{1.0, -2.0, 3.0, -10.0, -20.0, 30.0};
 
-        CHECK(bulk_dual(s) == pscalar3dp{s});
-        CHECK(weight_dual(s) == pscalar3dp{0.0});
+        CHECK(right_bulk_dual(s) == pscalar3dp{s});
+        CHECK(right_weight_dual(s) == pscalar3dp{0.0});
 
-        CHECK(bulk_dual(v) == trivec3dp{1.0, 2.0, 1.0, 0.0});
-        CHECK(weight_dual(v) == trivec3dp{0.0, 0.0, 0.0, 1.0});
+        CHECK(right_bulk_dual(v) == trivec3dp{1.0, 2.0, 1.0, 0.0});
+        CHECK(right_weight_dual(v) == trivec3dp{0.0, 0.0, 0.0, 1.0});
 
-        CHECK(bulk_dual(B) == bivec3dp{10.0, -20.0, -10.0, 0.0, 0.0, 0.0});
-        CHECK(weight_dual(B) == bivec3dp{0.0, 0.0, 0.0, 1.0, -2.0, -1.0});
+        CHECK(right_bulk_dual(B) == bivec3dp{10.0, -20.0, -10.0, 0.0, 0.0, 0.0});
+        CHECK(right_weight_dual(B) == bivec3dp{0.0, 0.0, 0.0, 1.0, -2.0, -1.0});
 
-        CHECK(bulk_dual(t) == vec3dp{0.0, 0.0, 0.0, -3.0});
-        CHECK(weight_dual(t) == vec3dp{-3.0, -6.0, -3.0, 0.0});
+        CHECK(right_bulk_dual(t) == vec3dp{0.0, 0.0, 0.0, -3.0});
+        CHECK(right_weight_dual(t) == vec3dp{-3.0, -6.0, -3.0, 0.0});
 
-        CHECK(bulk_dual(ps) == scalar3dp{0.0});
-        CHECK(weight_dual(ps) == scalar3dp{ps});
+        CHECK(right_bulk_dual(ps) == scalar3dp{0.0});
+        CHECK(right_weight_dual(ps) == scalar3dp{ps});
 
         // duality of wdg and rwdg based on complements
-        CHECK(bulk_dual(wdg(v, v2)) == rwdg(bulk_dual(v), bulk_dual(v2)));
-        CHECK(bulk_dual(wdg(v, B)) == rwdg(bulk_dual(v), bulk_dual(B)));
-        CHECK(bulk_dual(wdg(v, t)) == rwdg(bulk_dual(v), bulk_dual(t)));
-        CHECK(bulk_dual(wdg(t, v)) == rwdg(bulk_dual(t), bulk_dual(v)));
-        CHECK(bulk_dual(wdg(B, v)) == rwdg(bulk_dual(B), bulk_dual(v)));
-        CHECK(bulk_dual(wdg(v, B)) == rwdg(bulk_dual(v), bulk_dual(B)));
-        CHECK(bulk_dual(wdg(B, B2)) == rwdg(bulk_dual(B), bulk_dual(B2)));
+        CHECK(right_bulk_dual(wdg(v, v2)) ==
+              rwdg(right_bulk_dual(v), right_bulk_dual(v2)));
+        CHECK(right_bulk_dual(wdg(v, B)) == rwdg(right_bulk_dual(v), right_bulk_dual(B)));
+        CHECK(right_bulk_dual(wdg(v, t)) == rwdg(right_bulk_dual(v), right_bulk_dual(t)));
+        CHECK(right_bulk_dual(wdg(t, v)) == rwdg(right_bulk_dual(t), right_bulk_dual(v)));
+        CHECK(right_bulk_dual(wdg(B, v)) == rwdg(right_bulk_dual(B), right_bulk_dual(v)));
+        CHECK(right_bulk_dual(wdg(v, B)) == rwdg(right_bulk_dual(v), right_bulk_dual(B)));
+        CHECK(right_bulk_dual(wdg(B, B2)) ==
+              rwdg(right_bulk_dual(B), right_bulk_dual(B2)));
 
         // contractions
-        // CHECK(lbulk_contract(v, v2) == rwdg(bulk_dual(v), v2));
-        // CHECK(lbulk_contract(B, B2) == rwdg(bulk_dual(B), B2));
-        // CHECK(lbulk_contract(B, v) == rwdg(bulk_dual(B), v));
+        CHECK(lbulk_contract3dp(v, v2) == rwdg(left_bulk_dual(v), v2));
+        CHECK(lbulk_contract3dp(B, B2) == rwdg(left_bulk_dual(B), B2));
+        CHECK(lbulk_contract3dp(B, v) == rwdg(left_bulk_dual(B), v));
 
-        // CHECK(lweight_contract(v, v2) == rwdg(weight_dual(v), v2));
-        // CHECK(lweight_contract(B, B2) == rwdg(weight_dual(B), B2));
-        // CHECK(lweight_contract(B, v) == rwdg(weight_dual(B), v));
+        CHECK(lweight_contract3dp(v, v2) == rwdg(left_weight_dual(v), v2));
+        CHECK(lweight_contract3dp(B, B2) == rwdg(left_weight_dual(B), B2));
+        CHECK(lweight_contract3dp(B, v) == rwdg(left_weight_dual(B), v));
 
-        CHECK(rbulk_contract(v, v2) == rwdg(v, bulk_dual(v2)));
-        CHECK(rbulk_contract(B, B2) == rwdg(B, bulk_dual(B2)));
-        CHECK(rbulk_contract(B, v) == rwdg(B, bulk_dual(v))); // contracts v onto B
+        CHECK(rbulk_contract3dp(v, v2) == rwdg(v, right_bulk_dual(v2)));
+        CHECK(rbulk_contract3dp(B, B2) == rwdg(B, right_bulk_dual(B2)));
+        CHECK(rbulk_contract3dp(B, v) == rwdg(B, right_bulk_dual(v)));
 
-        CHECK(rweight_contract(v, v2) == rwdg(v, weight_dual(v2)));
-        CHECK(rweight_contract(B, B2) == rwdg(B, weight_dual(B2)));
-        CHECK(rweight_contract(B, v) == rwdg(B, weight_dual(v)));
+        CHECK(rweight_contract3dp(v, v2) == rwdg(v, right_weight_dual(v2)));
+        CHECK(rweight_contract3dp(B, B2) == rwdg(B, right_weight_dual(B2)));
+        CHECK(rweight_contract3dp(B, v) == rwdg(B, right_weight_dual(v)));
 
         // expansions
-        // CHECK(lweight_expansion(v, v2) == wdg(weight_dual(v), v2));
-        // CHECK(lweight_expansion(B, B2) == wdg(weight_dual(B), B2));
-        // CHECK(lweight_expansion(v, B) == wdg(weight_dual(v), B));
+        CHECK(lweight_expansion3dp(v, v2) == wdg(left_weight_dual(v), v2));
+        CHECK(lweight_expansion3dp(B, B2) == wdg(left_weight_dual(B), B2));
+        CHECK(lweight_expansion3dp(B, v) == wdg(left_weight_dual(B), v));
 
-        // CHECK(lbulk_expansion(v, v2) == wdg(bulk_dual(v), v2));
-        // CHECK(lbulk_expansion(B, B2) == wdg(bulk_dual(B), B2));
-        // CHECK(lbulk_expansion(v, B) == wdg(bulk_dual(v), B));
+        CHECK(lbulk_expansion3dp(v, v2) == wdg(left_bulk_dual(v), v2));
+        CHECK(lbulk_expansion3dp(B, B2) == wdg(left_bulk_dual(B), B2));
+        CHECK(lbulk_expansion3dp(B, v) == wdg(left_bulk_dual(B), v));
 
-        CHECK(rweight_expansion(v, v2) == wdg(v, weight_dual(v2)));
-        CHECK(rweight_expansion(B, B2) == wdg(B, weight_dual(B2)));
-        CHECK(rweight_expansion(v, B) == wdg(v, weight_dual(B)));
+        CHECK(rweight_expansion3dp(v, v2) == wdg(v, right_weight_dual(v2)));
+        CHECK(rweight_expansion3dp(B, B2) == wdg(B, right_weight_dual(B2)));
+        CHECK(rweight_expansion3dp(v, B) == wdg(v, right_weight_dual(B)));
 
-        CHECK(rbulk_expansion(v, v2) == wdg(v, bulk_dual(v2)));
-        CHECK(rbulk_expansion(B, B2) == wdg(B, bulk_dual(B2)));
-        CHECK(rbulk_expansion(v, B) == wdg(v, bulk_dual(B)));
+        CHECK(rbulk_expansion3dp(v, v2) == wdg(v, right_bulk_dual(v2)));
+        CHECK(rbulk_expansion3dp(B, B2) == wdg(B, right_bulk_dual(B2)));
+        CHECK(rbulk_expansion3dp(v, B) == wdg(v, right_bulk_dual(B)));
     }
 
     TEST_CASE("Vec3dp: operations - angle I")
@@ -2492,8 +2494,8 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("");
 
         // connection between contraction and regressive wedge with dualized args
-        lbulk_contract(M1, M2) = rwdg(lcmpl(M1), M2);
-        rbulk_contract(M1, M2) = rwdg(M1, rcmpl(M2));
+        lbulk_contract3dp(M1, M2) = rwdg(lcmpl(M1), M2);
+        rbulk_contract3dp(M1, M2) = rwdg(M1, rcmpl(M2));
     }
 
     TEST_CASE("MVec3dp: join and meet (wdg, rwdg)")
@@ -2592,11 +2594,11 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("");
         // fmt::println("apl02 = {}", rad2deg(apl02));
 
-        auto pt1p = ortho_proj(pt7, pl);
+        auto pt1p = ortho_proj3dp(pt7, pl);
         CHECK(pt1p == vec3dp{1, 0, 1, 1});
 
-        auto pt4p = unitize(ortho_proj(pt1, ln02));
-        auto pt7p = unitize(ortho_proj(vec3dp{1, 0, 1, 1}, ln07));
+        auto pt4p = unitize(ortho_proj3dp(pt1, ln02));
+        auto pt7p = unitize(ortho_proj3dp(vec3dp{1, 0, 1, 1}, ln07));
         auto s = 0.5;
         auto l = 2. / 3.;
 
@@ -2616,7 +2618,7 @@ TEST_SUITE("PGA 3DP Tests")
 
         CHECK(phi0607 - std::atan(1. / std::sqrt(2.0)) < eps);
 
-        auto ln7p = unitize(ortho_proj(ln07, pl));
+        auto ln7p = unitize(ortho_proj3dp(ln07, pl));
         CHECK(ln7p == unitize(ln06));
         CHECK(std::abs(phi - pi / 2) < eps);
         CHECK(apl07 == apl70);
@@ -2638,7 +2640,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto p = vec3dp{10, 10, 0, 1};
 
         auto pl = join(join(p1, p2), p3);
-        auto pp = unitize(central_proj(p, pl));
+        auto pp = unitize(central_proj3dp(p, pl));
 
         // fmt::println("");
         // fmt::println("pl = {}", pl);
@@ -2647,7 +2649,7 @@ TEST_SUITE("PGA 3DP Tests")
 
         // central projection onto line towards origin
         auto ln = join(p2, p3);
-        auto lpt = unitize(central_proj(p, ln));
+        auto lpt = unitize(central_proj3dp(p, ln));
 
         // fmt::println("");
         // fmt::println("ln = {}", ln);
@@ -2659,7 +2661,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto p5 = vec3dp{0, 2, 0, 1};
         auto ln13 = unitize(join(p1, p3));
         auto ln2 = unitize(join(p4, p5));
-        auto ln2p = unitize(central_proj(ln2, pl));
+        auto ln2p = unitize(central_proj3dp(ln2, pl));
 
         // fmt::println("");
         // fmt::println("pl = {}", pl);
@@ -2680,7 +2682,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto p1 = vec3dp{7, 3, -2, 1};
         auto dist_p1_pl = dist3dp(p1, pl).c0 / dist3dp(p1, pl).c1;
 
-        auto plp = ortho_antiproj(pl, p1);
+        auto plp = ortho_antiproj3dp(pl, p1);
         auto dist_p1_plp = dist3dp(p1, plp).c0 / dist3dp(p1, plp).c1;
 
         // fmt::println("");
@@ -2699,7 +2701,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto ln = join(p1, p2);
         auto dist_p3_ln = dist3dp(p3, ln).c0 / dist3dp(p3, ln).c1;
 
-        auto lnp = ortho_antiproj(ln, p3);
+        auto lnp = ortho_antiproj3dp(ln, p3);
         auto dist_p3_lnp = dist3dp(p3, lnp).c0 / dist3dp(p3, lnp).c1;
 
         // fmt::println("");
@@ -2710,7 +2712,7 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(dist_p3_ln != 0.0);
         CHECK(dist_p3_lnp == 0.0); // point is in antiprojected line
 
-        auto plp2 = ortho_antiproj(pl, ln);
+        auto plp2 = ortho_antiproj3dp(pl, ln);
         auto dist_p1_plp2 = dist3dp(p1, plp2).c0 / dist3dp(p1, plp2).c1;
         // fmt::println("");
         // fmt::println("pl  = {}", pl);

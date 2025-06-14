@@ -75,8 +75,6 @@ set(HEADERS
     #
     detail/ga_pga3dp_objects.hpp
     ga_pga3dp_ops.hpp
-    #
-    ga_pga_common_ops.hpp
     )
 
 add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user!)

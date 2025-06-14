@@ -663,132 +663,304 @@ inline Plane3d<T> unitize(Plane3d<T> const& p)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// (right) bulk_dual (= right complement operation applied to the bulk)
+// right_bulk_dual = rcmpl(bulk(A))
 //
-// the duals are defined uniquely w.r.t. the outer product
+// -> right complement operation applied to the bulk
 //
+////////////////////////////////////////////////////////////////////////////////
+// duality (as defined in Lengyel, "PGA illuminated")
+// is defined w.r.t. the outer product, because the complement is defined w.r.t.
+// the outer product.
+//
+// The only difference between the dual and the complement is the fact that
+// for the dual the argument is multiplied with the extended metric before
+// taking the complement. However, in ega the metric is the identity matrix.
+// Thus the dual and the complement are identical.
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> bulk_dual(Scalar3dp<T> s)
+inline constexpr PScalar3dp<T> right_bulk_dual(Scalar3dp<T> s)
 {
     return PScalar3dp<T>(T(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> bulk_dual(Vec3dp<T> const& v)
+inline constexpr TriVec3dp<T> right_bulk_dual(Vec3dp<T> const& v)
 {
     return TriVec3dp<T>(v.x, v.y, v.z, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> bulk_dual(BiVec3dp<T> const& B)
+inline constexpr BiVec3dp<T> right_bulk_dual(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(-B.mx, -B.my, -B.mz, T(0.0), T(0.0), T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> bulk_dual(TriVec3dp<T> const& t)
+inline constexpr Vec3dp<T> right_bulk_dual(TriVec3dp<T> const& t)
 {
     return Vec3dp<T>(T(0.0), T(0.0), T(0.0), -t.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_dual([[maybe_unused]] PScalar3dp<T>)
+inline constexpr Scalar3dp<T> right_bulk_dual([[maybe_unused]] PScalar3dp<T>)
 {
     return Scalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> bulk_dual(MVec3dp_E<T> const& M)
+inline constexpr MVec3dp_E<T> right_bulk_dual(MVec3dp_E<T> const& M)
 {
-    return MVec3dp_E<T>(bulk_dual(gr4(M)), bulk_dual(gr2(M)), bulk_dual(gr0(M)));
+    return MVec3dp_E<T>(right_bulk_dual(gr4(M)), right_bulk_dual(gr2(M)),
+                        right_bulk_dual(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> bulk_dual(MVec3dp_U<T> const& M)
+inline constexpr MVec3dp_U<T> right_bulk_dual(MVec3dp_U<T> const& M)
 {
-    return MVec3dp_U<T>(bulk_dual(gr3(M)), bulk_dual(gr1(M)));
+    return MVec3dp_U<T>(right_bulk_dual(gr3(M)), right_bulk_dual(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> bulk_dual(MVec3dp<T> const& M)
+inline constexpr MVec3dp<T> right_bulk_dual(MVec3dp<T> const& M)
 {
-    return MVec3dp<T>(bulk_dual(gr4(M)), bulk_dual(gr3(M)), bulk_dual(gr2(M)),
-                      bulk_dual(gr1(M)), bulk_dual(gr0(M)));
+    return MVec3dp<T>(right_bulk_dual(gr4(M)), right_bulk_dual(gr3(M)),
+                      right_bulk_dual(gr2(M)), right_bulk_dual(gr1(M)),
+                      right_bulk_dual(gr0(M)));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// (right) weight_dual (=right complement operation applied to the weight)
+// right_weight_dual(A) = = rcmpl(weight(A))
 //
-// the duals are defined uniquely w.r.t. the outer product
+// -> right complement operation applied to the weight
 //
+////////////////////////////////////////////////////////////////////////////////
+// duality (as defined in Lengyel, "PGA illuminated")
+// is defined w.r.t. the outer product, because the complement is defined w.r.t.
+// the outer product.
+//
+// The only difference between the dual and the complement is the fact that
+// for the dual the argument is multiplied with the extended metric before
+// taking the complement. However, in ega the metric is the identity matrix.
+// Thus the dual and the complement are identical.
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_dual([[maybe_unused]] Scalar3dp<T>)
+inline constexpr PScalar3dp<T> right_weight_dual([[maybe_unused]] Scalar3dp<T>)
 {
     return PScalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> weight_dual(Vec3dp<T> const& v)
+inline constexpr TriVec3dp<T> right_weight_dual(Vec3dp<T> const& v)
 {
     return TriVec3dp<T>(T(0.0), T(0.0), T(0.0), v.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> weight_dual(BiVec3dp<T> const& B)
+inline constexpr BiVec3dp<T> right_weight_dual(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> weight_dual(TriVec3dp<T> const& t)
+inline constexpr Vec3dp<T> right_weight_dual(TriVec3dp<T> const& t)
 {
     return Vec3dp<T>(-t.x, -t.y, -t.z, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> weight_dual(PScalar3dp<T> ps)
+inline constexpr Scalar3dp<T> right_weight_dual(PScalar3dp<T> ps)
 {
     return Scalar3dp<T>(T(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> weight_dual(MVec3dp_E<T> const& M)
+inline constexpr MVec3dp_E<T> right_weight_dual(MVec3dp_E<T> const& M)
 {
-    return MVec3dp_E<T>(weight_dual(gr4(M)), weight_dual(gr2(M)), weight_dual(gr0(M)));
+    return MVec3dp_E<T>(right_weight_dual(gr4(M)), right_weight_dual(gr2(M)),
+                        right_weight_dual(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> weight_dual(MVec3dp_U<T> const& M)
+inline constexpr MVec3dp_U<T> right_weight_dual(MVec3dp_U<T> const& M)
 {
-    return MVec3dp_U<T>(weight_dual(gr3(M)), weight_dual(gr1(M)));
+    return MVec3dp_U<T>(right_weight_dual(gr3(M)), right_weight_dual(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> weight_dual(MVec3dp<T> const& M)
+inline constexpr MVec3dp<T> right_weight_dual(MVec3dp<T> const& M)
 {
-    return MVec3dp<T>(weight_dual(gr4(M)), weight_dual(gr3(M)), weight_dual(gr2(M)),
-                      weight_dual(gr1(M)), weight_dual(gr0(M)));
+    return MVec3dp<T>(right_weight_dual(gr4(M)), right_weight_dual(gr3(M)),
+                      right_weight_dual(gr2(M)), right_weight_dual(gr1(M)),
+                      right_weight_dual(gr0(M)));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// left_bulk_dual = lcmpl(bulk(A))
+//
+// -> left complement operation applied to the bulk
+//
+////////////////////////////////////////////////////////////////////////////////
+// duality (as defined in Lengyel, "PGA illuminated")
+// is defined w.r.t. the outer product, because the complement is defined w.r.t.
+// the outer product.
+//
+// The only difference between the dual and the complement is the fact that
+// for the dual the argument is multiplied with the extended metric before
+// taking the complement. However, in ega the metric is the identity matrix.
+// Thus the dual and the complement are identical.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3dp<T> left_bulk_dual(Scalar3dp<T> s)
+{
+    return PScalar3dp<T>(T(s));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr TriVec3dp<T> left_bulk_dual(Vec3dp<T> const& v)
+{
+    return TriVec3dp<T>(-v.x, -v.y, -v.z, T(0.0));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec3dp<T> left_bulk_dual(BiVec3dp<T> const& B)
+{
+    return BiVec3dp<T>(-B.mx, -B.my, -B.mz, T(0.0), T(0.0), T(0.0));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec3dp<T> left_bulk_dual(TriVec3dp<T> const& t)
+{
+    return Vec3dp<T>(T(0.0), T(0.0), T(0.0), t.w);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar3dp<T> left_bulk_dual([[maybe_unused]] PScalar3dp<T>)
+{
+    return Scalar3dp<T>(0.0);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_E<T> left_bulk_dual(MVec3dp_E<T> const& M)
+{
+    return MVec3dp_E<T>(left_bulk_dual(gr4(M)), left_bulk_dual(gr2(M)),
+                        left_bulk_dual(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_U<T> left_bulk_dual(MVec3dp_U<T> const& M)
+{
+    return MVec3dp_U<T>(left_bulk_dual(gr3(M)), left_bulk_dual(gr1(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp<T> left_bulk_dual(MVec3dp<T> const& M)
+{
+    return MVec3dp<T>(left_bulk_dual(gr4(M)), left_bulk_dual(gr3(M)),
+                      left_bulk_dual(gr2(M)), left_bulk_dual(gr1(M)),
+                      left_bulk_dual(gr0(M)));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// left_weight_dual(A) = = lcmpl(weight(A))
+//
+// -> left complement operation applied to the weight
+//
+////////////////////////////////////////////////////////////////////////////////
+// duality (as defined in Lengyel, "PGA illuminated")
+// is defined w.r.t. the outer product, because the complement is defined w.r.t.
+// the outer product.
+//
+// The only difference between the dual and the complement is the fact that
+// for the dual the argument is multiplied with the extended metric before
+// taking the complement. However, in ega the metric is the identity matrix.
+// Thus the dual and the complement are identical.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar3dp<T> left_weight_dual([[maybe_unused]] Scalar3dp<T>)
+{
+    return PScalar3dp<T>(0.0);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr TriVec3dp<T> left_weight_dual(Vec3dp<T> const& v)
+{
+    return TriVec3dp<T>(T(0.0), T(0.0), T(0.0), -v.w);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec3dp<T> left_weight_dual(BiVec3dp<T> const& B)
+{
+    return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), -B.vx, -B.vy, -B.vz);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec3dp<T> left_weight_dual(TriVec3dp<T> const& t)
+{
+    return Vec3dp<T>(t.x, t.y, t.z, T(0.0));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar3dp<T> left_weight_dual(PScalar3dp<T> ps)
+{
+    return Scalar3dp<T>(T(ps));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_E<T> left_weight_dual(MVec3dp_E<T> const& M)
+{
+    return MVec3dp_E<T>(left_weight_dual(gr4(M)), left_weight_dual(gr2(M)),
+                        left_weight_dual(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp_U<T> left_weight_dual(MVec3dp_U<T> const& M)
+{
+    return MVec3dp_U<T>(left_weight_dual(gr3(M)), left_weight_dual(gr1(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec3dp<T> left_weight_dual(MVec3dp<T> const& M)
+{
+    return MVec3dp<T>(left_weight_dual(gr4(M)), left_weight_dual(gr3(M)),
+                      left_weight_dual(gr2(M)), left_weight_dual(gr1(M)),
+                      left_weight_dual(gr0(M)));
 }
 
 
