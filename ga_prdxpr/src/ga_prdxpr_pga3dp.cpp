@@ -3433,7 +3433,7 @@ void generate_and_print_pga3dp_lbulk_contract()
     fmt::println("");
 
 
-    fmt::println("{}:", prd_name + space_str + "lbulk_contract(trivec,vec) ->  0");
+    fmt::println("{}:", prd_name + space_str + "lbulk_contract(trivec,vec) -> 0");
     prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_svBtps, mv3dp_coeff_svBtps);
     prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_3dp::trivec, filter_3dp::vec);
     print_mvec(prd_mv, basis);
@@ -3639,9 +3639,6 @@ void generate_and_print_pga3dp_motor_rgpr()
 {
 
     std::string prd_name = "pga3dp regressive sandwich product";
-    fmt::println("pga3dp regressive sandwich product - motor * object * rrev(motor):");
-    fmt::println("");
-
     auto basis = mv3dp_basis;
 
     // fmt::println("mv_basis for rwdg:");

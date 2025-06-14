@@ -2894,8 +2894,6 @@ void generate_and_print_ega3d_rotor_gpr()
 {
 
     std::string prd_name = "ega3d sandwich product";
-    fmt::println("ega3d sandwich product: rotor * object * rev(rotor):");
-    fmt::println("");
 
     auto basis = mv3d_basis;
     // fmt::println("mv_basis for sandwich product:");
@@ -2973,6 +2971,7 @@ void generate_and_print_ega3d_rotor_gpr()
     //     of rotation interpolation and helpful geometric interpretation when compared to
     //     mere matrix based modeling.
     //
+
     fmt::println("-------------------------------------------------------------------\n");
 
     return;

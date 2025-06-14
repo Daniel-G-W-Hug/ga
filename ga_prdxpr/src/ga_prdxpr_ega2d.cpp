@@ -1592,8 +1592,6 @@ void generate_and_print_ega2d_rotor_gpr()
 {
 
     std::string prd_name = "ega2d sandwich product";
-    fmt::println("ega2d sandwich product: rotor * object * rev(rotor):");
-    fmt::println("");
 
     auto basis = mv2d_basis;
     // fmt::println("mv_basis for sandwich product:");
@@ -1630,4 +1628,8 @@ void generate_and_print_ega2d_rotor_gpr()
     auto vec_res = get_mv_from_prd_tab(prd_tab, basis, filter_2d::vec, filter_2d::mv_e);
     print_mvec(vec_res, basis);
     fmt::println("");
+
+    fmt::println("-------------------------------------------------------------------\n");
+
+    return;
 }

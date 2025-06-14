@@ -2797,7 +2797,7 @@ void generate_and_print_pga2dp_lbulk_contract()
     fmt::println("");
 
 
-    fmt::println("{}:", prd_name + space_str + "lbulk_contract(ps, vec) -> 0");
+    fmt::println("{}:", prd_name + space_str + "lbulk_contract(ps,vec) -> 0");
     prd_tab = get_prd_tab(basis_tab, mv2dp_coeff_svBps, mv2dp_coeff_svBps);
     prd_mv = get_mv_from_prd_tab(prd_tab, basis, filter_2dp::ps, filter_2dp::vec);
     print_mvec(prd_mv, basis);
@@ -4478,9 +4478,6 @@ void generate_and_print_pga2dp_motor_rgpr()
 {
 
     std::string prd_name = "pga2dp regressive sandwich product";
-    fmt::println("pga2dp regressive sandwich product - motor * object * rrev(motor):");
-    fmt::println("");
-
     auto basis = mv2dp_basis;
     // fmt::println("mv_basis for regressive sandwich product:");
     // print_mvec(mv2dp_coeff_svBps, basis);
