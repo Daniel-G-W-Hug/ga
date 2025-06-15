@@ -26,10 +26,10 @@ print("\n2. Testing vec2dp basic operations:")
 print("----------------------------------")
 
 local v0 = vec2dp.new()
-local v1 = vec2dp.new(1, 2, 0)  -- direction vector (z=0)
-local v2 = vec2dp.new(3, 4, 1)  -- point (z=1)
+local v1 = vec2dp.new(1, 2, 0) -- direction vector (z=0)
+local v2 = vec2dp.new(3, 4, 1) -- point (z=1)
 local v3 = vec2dp.new(-v2)
-local v4 = vec2dp.new(4, 6, 1)  -- v1 + v2
+local v4 = vec2dp.new(4, 6, 1) -- v1 + v2
 
 print("v0:", v0, "empty ctor")
 print("v1:", v1, "direction vector (z=0)")
@@ -40,7 +40,7 @@ print("v4:", v4, "component ctor")
 assert(v4 == v1 + v2)
 assert(v1 == v4 - v2)
 if v4 == v1 + v2 and v1 == v4 - v2 then
-    print("v4 == v1 + v2", "comparison, addition and subtraction")
+	print("v4 == v1 + v2", "comparison, addition and subtraction")
 end
 
 local v5 = 3 * v4
@@ -63,7 +63,7 @@ print("wdg(v1,v2):", wdg(v1, v2), "wedge product creates line")
 print("\n4. Testing unitization (PGA specific):")
 print("--------------------------------------")
 
-local v_pt = vec2dp.new(3, 4, 1)  -- point vector (can be unitized)
+local v_pt = vec2dp.new(3, 4, 1) -- point vector (can be unitized)
 print("point vector v_pt =", v_pt)
 print("unitize(v_pt) =", unitize(v_pt))
 
@@ -72,9 +72,9 @@ print("\n5. Testing bivec2dp operations:")
 print("-------------------------------")
 
 local b0 = bivec2dp.new()
-local b1 = bivec2dp.new(1, 0, 0)  -- line
-local b2 = bivec2dp.new(0, 1, 0)  -- horizontal line (y = 0)
-local line = bivec2dp.new(1, 1, -2)  -- line ax + by + c = 0
+local b1 = bivec2dp.new(1, 0, 0) -- line
+local b2 = bivec2dp.new(0, 1, 0) -- horizontal line (y = 0)
+local line = bivec2dp.new(1, 1, -2) -- line ax + by + c = 0
 
 print("b0:", b0, "empty ctor")
 print("b1:", b1, "line")
@@ -170,8 +170,8 @@ print("original v =", v)
 print("\n12. Testing angle operations:")
 print("-----------------------------")
 
-local v1_dir = vec2dp.new(1, 0, 0)  -- x direction
-local v2_dir = vec2dp.new(0, 1, 0)  -- y direction
+local v1_dir = vec2dp.new(1, 0, 0) -- x direction
+local v2_dir = vec2dp.new(0, 1, 0) -- y direction
 print("direction v1 =", v1_dir)
 print("direction v2 =", v2_dir)
 print("angle between v1 and v2 =", angle(v1_dir, v2_dir), "radians")
@@ -186,7 +186,7 @@ print("angle between bivectors =", angle(b1, b2), "radians")
 print("\n13. Testing support operations:")
 print("------------------------------")
 
-local line2d = bivec2dp.new(1, 1, -2)  -- line ax + by + c = 0
+local line2d = bivec2dp.new(1, 1, -2) -- line ax + by + c = 0
 print("line =", line2d)
 local support_pt = support2dp(line2d)
 print("support point (closest to origin) =", support_pt)
@@ -196,7 +196,7 @@ print("\n14. Testing multivector operations:")
 print("----------------------------------")
 
 -- Test mvec2dp_e (even multivector)
-local mve1 = mvec2dp_e.new(1, 2, 3, 4)  -- scalar, bivec components
+local mve1 = mvec2dp_e.new(1, 2, 3, 4) -- scalar, bivec components
 print("mvec2dp_e mve1 =", mve1)
 print("gr0(mve1) =", gr0(mve1))
 print("gr2(mve1) =", gr2(mve1))
@@ -204,23 +204,23 @@ print("rev(mve1) =", rev(mve1))
 print("conj(mve1) =", conj(mve1))
 print("cmpl(mve1) =", cmpl(mve1))
 
--- Test mvec2dp_u (odd multivector)  
-local mvu1 = mvec2dp_u.new(5, 6, 7, 8)  -- vec, pscalar components
+-- Test mvec2dp_u (odd multivector)
+local mvu1 = mvec2dp_u.new(5, 6, 7, 8) -- vec, pscalar components
 print("mvec2dp_u mvu1 =", mvu1)
 print("gr1(mvu1) =", gr1(mvu1))
 -- Note: In PGA 2DP, grade 3 is the pseudoscalar, but let's check if it works
 local success, result = pcall(gr3, mvu1)
 if success then
-    print("gr3(mvu1) =", result)
+	print("gr3(mvu1) =", result)
 else
-    print("gr3(mvu1) - function not available for this type")
+	print("gr3(mvu1) - function not available for this type")
 end
 print("rev(mvu1) =", rev(mvu1))
 print("conj(mvu1) =", conj(mvu1))
 print("cmpl(mvu1) =", cmpl(mvu1))
 
 -- Test mvec2dp (full multivector)
-local mv1 = mvec2dp.new(1, 2, 3, 4, 5, 6, 7, 8)  -- all 8 components
+local mv1 = mvec2dp.new(1, 2, 3, 4, 5, 6, 7, 8) -- all 8 components
 print("mvec2dp mv1 =", mv1)
 print("gr0(mv1) =", gr0(mv1))
 print("gr1(mv1) =", gr1(mv1))
@@ -249,7 +249,7 @@ print("-------------------------------")
 -- Test rotation motor
 local origin = vec2dp.new(0, 0, 1)
 local x_axis = vec2dp.new(1, 0, 0)
-local phi = math.pi / 6  -- 30 degrees
+local phi = math.pi / 6 -- 30 degrees
 print("origin =", origin)
 print("x_axis =", x_axis)
 print("phi =", phi, "radians (30 degrees)")
@@ -261,7 +261,7 @@ print("rotated x_axis =", rotated_result)
 
 -- Test translation motor
 local p = vec2dp.new(1, -0.5, 1)
-local delta = vec2dp.new(1, 0.5, 0)  -- translation vector
+local delta = vec2dp.new(1, 0.5, 0) -- translation vector
 print("point p =", p)
 print("translation delta =", delta)
 
@@ -275,8 +275,8 @@ local p0 = vec2dp.new(1, 0.5, 1)
 local p1 = vec2dp.new(2, 0.5, 1)
 local p2 = vec2dp.new(2, 1.5, 1)
 
-local l1 = unitize(wdg(p0, p1))  -- horizontal line
-local l2 = unitize(wdg(p0, p2))  -- diagonal line
+local l1 = unitize(wdg(p0, p1)) -- horizontal line
+local l2 = unitize(wdg(p0, p2)) -- diagonal line
 print("line l1 =", l1)
 print("line l2 =", l2)
 
@@ -289,7 +289,7 @@ print("------------------------------------------------")
 
 local v_test = vec2dp.new(3, 4, 1)
 local v_onto = vec2dp.new(1, 0, 0)
-local line_test = bivec2dp.new(0, 1, 0)  -- horizontal line
+local line_test = bivec2dp.new(0, 1, 0) -- horizontal line
 
 print("vector v_test =", v_test)
 print("vector v_onto =", v_onto)
@@ -352,14 +352,14 @@ print("\n22. Testing nested operations:")
 print("-----------------------------")
 
 -- Test based on actual PGA test: unitize(rwdg(l1, l2)) (line 1993 in ga_pga_test.cpp)
-local l1 = bivec2dp.new(1, 0, -2)  -- line ax + by + c = 0
-local l2 = bivec2dp.new(0, 1, -4)  -- another line
-local intersection = unitize(rwdg(l1, l2))  -- intersection point of two lines
+local l1 = bivec2dp.new(1, 0, -2) -- line ax + by + c = 0
+local l2 = bivec2dp.new(0, 1, -4) -- another line
+local intersection = unitize(rwdg(l1, l2)) -- intersection point of two lines
 print("unitize(rwdg(l1, l2)) =", intersection, "(intersection point)")
 
 -- Test wdg associativity property (line 544 in ga_pga_test.cpp)
 local v1 = vec2dp.new(1, 0, 0)
-local v2 = vec2dp.new(0, 1, 0) 
+local v2 = vec2dp.new(0, 1, 0)
 local v3 = vec2dp.new(1, 1, 0)
 local wdg_assoc_left = wdg(wdg(v1, v2), v3)
 local wdg_assoc_right = wdg(v1, wdg(v2, v3))
@@ -372,17 +372,3 @@ print("-----------------------------")
 
 print("to_val(scalar2dp) =", to_val(scalar2dp.new(42)))
 print("to_val(pscalar2dp) =", to_val(pscalar2dp.new(7)))
-
-print("\n=== PGA 2DP Test Summary ===")
-print("✓ Basic scalar, vector, bivector operations")
-print("✓ PGA-specific unitization")
-print("✓ Dual operations (bulk_dual, weight_dual)")
-print("✓ Complement operations (cmpl)")
-print("✓ Multivector operations (even, odd, full)")
-print("✓ PGA constants and basis elements")
-print("✓ Motor system (rotation, translation)")
-print("✓ Geometric operations (wdg, rwdg, cmt)")
-print("✓ Projections, rejections, reflections")
-print("✓ Support operations")
-print("✓ Geometric identities")
-print("PGA 2DP testing completed successfully!")

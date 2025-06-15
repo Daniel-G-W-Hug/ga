@@ -27,7 +27,7 @@ print("v4:", v4, "component ctor v4 = v1 + v3 (by hand)")
 assert(v4 == v1 + v2)
 assert(v1 == v4 - v2)
 if v4 == v1 + v2 and v1 == v4 - v2 then
-    print("v4 == v1 + v2", "comparison, addition and subtraction")
+	print("v4 == v1 + v2", "comparison, addition and subtraction")
 end
 
 local v5 = 3 * v4
@@ -120,7 +120,7 @@ print("mve7:", mve7, "ctor mvec3d_e(scalar3d.new(-7),bivec3d.new(-8,-6,1,7))")
 assert(mve4 == mve1 + mve2)
 assert(mve1 == mve4 - mve2)
 if mve4 == mve1 + mve2 and mve1 == mve4 - mve2 then
-    print("mve4 == mve1 + mve2", "comparison, addition and subtraction")
+	print("mve4 == mve1 + mve2", "comparison, addition and subtraction")
 end
 
 local mve5 = 3 * mve4
@@ -182,7 +182,7 @@ print("mv11:", mv11, "ctor mvec3d(mvec3d_u(2.5,-1,2,3))")
 assert(mv4 == mv1 + mv2)
 assert(mv1 == mv4 - mv2)
 if mv4 == mv1 + mv2 and mv1 == mv4 - mv2 then
-    print("mv4 == mv1 + mv2", "comparison, addition and subtraction")
+	print("mv4 == mv1 + mv2", "comparison, addition and subtraction")
 end
 
 local mv5 = 3 * mv4
@@ -248,8 +248,10 @@ print("reflect_on(vec3d.new(3,7,5),bivec3d.new(1,0,0))", reflect_on(vec3d.new(3,
 print("\n12. Testing geometric products:")
 print("------------------------------")
 
-print("mvec3d.new(2,-3,5,7,1,2,3,1)*mvec3d.new(1,2,-5,12,2,3,4,1):",
-    mvec3d.new(2, -3, 5, 7, 1, 2, 3, 1) * mvec3d.new(1, 2, -5, 12, 2, 3, 4, 1))
+print(
+	"mvec3d.new(2,-3,5,7,1,2,3,1)*mvec3d.new(1,2,-5,12,2,3,4,1):",
+	mvec3d.new(2, -3, 5, 7, 1, 2, 3, 1) * mvec3d.new(1, 2, -5, 12, 2, 3, 4, 1)
+)
 
 print("nrm(vec3d.new(-3,5,7)):", nrm(vec3d.new(-3, 5, 7)))
 print("nrm(vec3d.new(2,-5,12)):", nrm(vec3d.new(2, -5, 12)))
@@ -300,15 +302,21 @@ print("-------------------------")
 local bv = bivec3d.new(0, 1, 1)
 print("Exponential rotations:")
 for i = 0, 10 do
-    local theta = math.pi / 10.0 * i
-    print("theta:", theta, "exp(bv,theta):", exp(bv, theta))
+	local theta = math.pi / 10.0 * i
+	print("theta:", theta, "exp(bv,theta):", exp(bv, theta))
 end
 
 print("\nRotor rotations:")
 for i = 0, 10 do
-    local theta = math.pi / 10.0 * i
-    print("theta:", theta, "rotor(bv,theta):", rotor(bv, theta), "rotated:",
-        rotate(vec3d.new(1, 0, 0), rotor(bv, theta)))
+	local theta = math.pi / 10.0 * i
+	print(
+		"theta:",
+		theta,
+		"rotor(bv,theta):",
+		rotor(bv, theta),
+		"rotated:",
+		rotate(vec3d.new(1, 0, 0), rotor(bv, theta))
+	)
 end
 
 -- Test wedge operator
@@ -352,10 +360,14 @@ print("cmt(v, bv) =", cmt(v, bv))
 print("\n18. Testing complex multivector operations:")
 print("------------------------------------------")
 
-print("mvec3d.new(2,0,0,0,1,2,3,0)*mvec3d.new(1,2,-5,12,2,3,4,1):",
-    mvec3d.new(2, 0, 0, 0, 1, 2, 3, 0) * mvec3d.new(1, 2, -5, 12, 2, 3, 4, 1))
-print("mvec3d_e.new(2,1,2,3)*mvec3d.new(1,2,-5,12,2,3,4,1):",
-    mvec3d_e.new(2, 1, 2, 3) * mvec3d.new(1, 2, -5, 12, 2, 3, 4, 1))
+print(
+	"mvec3d.new(2,0,0,0,1,2,3,0)*mvec3d.new(1,2,-5,12,2,3,4,1):",
+	mvec3d.new(2, 0, 0, 0, 1, 2, 3, 0) * mvec3d.new(1, 2, -5, 12, 2, 3, 4, 1)
+)
+print(
+	"mvec3d_e.new(2,1,2,3)*mvec3d.new(1,2,-5,12,2,3,4,1):",
+	mvec3d_e.new(2, 1, 2, 3) * mvec3d.new(1, 2, -5, 12, 2, 3, 4, 1)
+)
 
 print("mvec3d_e.new(2,1,2,3)*mvec3d_e.new(1,2,3,4):", mvec3d_e.new(2, 1, 2, 3) * mvec3d_e.new(1, 2, 3, 4))
 print("mvec3d_u.new(2,1,2,3)*mvec3d_u.new(1,2,3,4):", mvec3d_u.new(2, 1, 2, 3) * mvec3d_u.new(1, 2, 3, 4))
@@ -424,17 +436,3 @@ print("pscalar3d.new(1)*rev(pscalar3d.new(1)):", pscalar3d.new(1) * rev(pscalar3
 -- Test dual with multivector
 local mv = mvec3d.new(0, 0, 0, 0, 1, 2, 3, 0)
 print("mv:", mv, "dual(mv):", dual(mv))
-
-print("\n=== EGA 3D Test Summary ===")
-print("✓ Basic vector operations")
-print("✓ Bivector operations and duals")
-print("✓ Cross product vs dual relationships")
-print("✓ Multivector operations (even, odd, full)")
-print("✓ Inverse operations")
-print("✓ Dual and complement operations")
-print("✓ Projections, rejections, reflections")
-print("✓ 3D rotations (rotors)")
-print("✓ Commutator operations")
-print("✓ Contractions and joins/meets")
-print("✓ Complex geometric product decompositions")
-print("EGA 3D testing completed successfully!")
