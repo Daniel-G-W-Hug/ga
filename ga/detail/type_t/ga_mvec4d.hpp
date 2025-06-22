@@ -2,7 +2,7 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "type_t/ga_type4d.hpp" // type aliases for scalars, vector, pseudoscalar, etc.
+#include "ga_type4d.hpp" // type aliases for scalars, vector, pseudoscalar, etc.
 
 #include "ga_mvec4d_e.hpp" // even grade multivector
 #include "ga_mvec4d_u.hpp" // uneven (or odd) grade multivector

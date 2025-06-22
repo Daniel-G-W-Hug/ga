@@ -3,8 +3,8 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "detail/ga_foundation.hpp"     // standard library headers and GA infrastructure
-#include "detail/ga_mvec3dp.hpp"        // 3dp multivector types
 #include "detail/ga_pga3dp_objects.hpp" // Point3dp, Vector3d, Point3d, Line3d, Plane3d
+#include "detail/type_t/ga_mvec3dp.hpp" // 3dp multivector types
 
 namespace hd::ga::pga {
 

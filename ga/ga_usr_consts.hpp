@@ -10,11 +10,11 @@
 #include "detail/type_t/ga_type2dp.hpp"
 #include "detail/type_t/ga_type3dp.hpp"
 
-#include "detail/ga_mvec2d.hpp" // MVec2d<T> and subtypes
-#include "detail/ga_mvec3d.hpp" // MVec3d<T> and subtypes
+#include "detail/type_t/ga_mvec2d.hpp" // MVec2d<T> and subtypes
+#include "detail/type_t/ga_mvec3d.hpp" // MVec3d<T> and subtypes
 
-#include "detail/ga_mvec2dp.hpp" // MVec2dp<T> and subtypes
-#include "detail/ga_mvec3dp.hpp" // MVec3dp<T> and subtypes
+#include "detail/type_t/ga_mvec2dp.hpp" // MVec2dp<T> and subtypes
+#include "detail/type_t/ga_mvec3dp.hpp" // MVec3dp<T> and subtypes
 
 // provide constants for ega and pga in their respective namespaces
 

@@ -3,7 +3,7 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "detail/ga_foundation.hpp" // all standard library headers and GA infrastructure
-#include "detail/ga_mvec2d.hpp"     // 2D multivector types (includes component types)
+#include "detail/type_t/ga_mvec2d.hpp" // 2D multivector types (includes component types)
 
 namespace hd::ga::ega {
 

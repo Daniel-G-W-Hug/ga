@@ -13,9 +13,9 @@
 #include "detail/type_t/ga_type3dp.hpp"
 
 // 3dp PGA multivector implementations
-#include "detail/ga_mvec3dp.hpp"   // Complete 3dp multivectors
-#include "detail/ga_mvec3dp_e.hpp" // 3dp even subalgebra
-#include "detail/ga_mvec3dp_u.hpp" // 3dp odd subalgebra
+#include "detail/type_t/ga_mvec3dp.hpp"   // Complete 3dp multivectors
+#include "detail/type_t/ga_mvec3dp_e.hpp" // 3dp even subalgebra
+#include "detail/type_t/ga_mvec3dp_u.hpp" // 3dp odd subalgebra
 
 // 3dp PGA geometric objects
 #include "detail/ga_pga3dp_objects.hpp" // Point3dp, Point3d, Vector3d, Line3d, Plane3d

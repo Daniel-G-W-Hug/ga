@@ -14,8 +14,8 @@
 #include "type_t/ga_type3dp.hpp" // pga3dp concrete types (Scalar3dp, Vec3dp, etc.)
 
 // Complete PGA multivector types (includes the even and uneven (odd) subtypes)
-#include "ga_mvec2dp.hpp" // pga2dp multivectors incl. even mvec2dp_e and uneven mvec2dp_u
-#include "ga_mvec3dp.hpp" // pga3dp multivectors incl. even mvec2dp_e and uneven mvec2dp_u
+#include "type_t/ga_mvec2dp.hpp" // pga2dp multivectors incl. even mvec2dp_e and uneven mvec2dp_u
+#include "type_t/ga_mvec3dp.hpp" // pga3dp multivectors incl. even mvec2dp_e and uneven mvec2dp_u
 
 // PGA geometric objects
 #include "ga_pga2dp_objects.hpp" // 2dp objects (Point2dp, Line2d, etc.)
