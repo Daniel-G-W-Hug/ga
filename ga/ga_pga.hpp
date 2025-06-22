@@ -25,8 +25,6 @@
 #include "ga_value_t.hpp" // default type for scalar, vector & bivector components
                           // switch value_t between float/double here, if needed!
 
-#include "ga_algebra.hpp" // algebra (define basis components)
-
 // for user convenience
 #include "ga_usr_consts.hpp"    // user constants
 #include "ga_usr_types.hpp"     // consistent user types
