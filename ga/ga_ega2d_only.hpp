@@ -13,8 +13,8 @@
 #include "detail/type_t/ga_type2d.hpp"
 
 // ega2d multivector implementations
-#include "detail/ga_mvec2d.hpp"   // Complete 2D multivectors
-#include "detail/ga_mvec2d_e.hpp" // 2D even subalgebra
+#include "detail/type_t/ga_mvec2d.hpp"   // Complete 2D multivectors
+#include "detail/type_t/ga_mvec2d_e.hpp" // 2D even subalgebra
 
 // User convenience includes
 #include "ga_usr_consts.hpp"

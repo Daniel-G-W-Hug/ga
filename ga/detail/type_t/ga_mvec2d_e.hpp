@@ -2,7 +2,7 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "type_t/ga_type2d.hpp"
+#include "ga_type2d.hpp"
 
 
 namespace hd::ga {

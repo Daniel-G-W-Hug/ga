@@ -4,7 +4,7 @@
 
 // Use the new aggregation headers for cleaner dependencies
 #include "detail/ga_foundation.hpp" // Provides all standard library headers and GA infrastructure
-#include "detail/ga_mvec3d.hpp" // 3D multivector types (includes component types)
+#include "detail/type_t/ga_mvec3d.hpp" // 3D multivector types (includes component types)
 
 namespace hd::ga::ega {
 

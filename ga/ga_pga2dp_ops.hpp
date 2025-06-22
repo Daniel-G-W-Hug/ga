@@ -3,7 +3,7 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "detail/ga_foundation.hpp"     // standard library headers and GA infrastructure
-#include "detail/ga_mvec2dp.hpp"        // 2dp multivector types
+#include "detail/type_t/ga_mvec2dp.hpp" // 2dp multivector types
 #include "detail/type_t/ga_type2dp.hpp" // Point2dp, Vector2d, Point2d, Line2d
 
 namespace hd::ga::pga {

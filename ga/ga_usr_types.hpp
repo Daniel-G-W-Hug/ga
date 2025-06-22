@@ -4,12 +4,13 @@
 
 #include "ga_value_t.hpp" // defines value_t either as float oder double
 
-#include "detail/ga_mvec2d.hpp" // 2d types for EGA
-#include "detail/ga_mvec3d.hpp" // 3d types for EGA
-#include "detail/ga_mvec4d.hpp" // 4d types for EGA
+#include "detail/type_t/ga_mvec2d.hpp" // 2d types for EGA
+#include "detail/type_t/ga_mvec3d.hpp" // 3d types for EGA
+#include "detail/type_t/ga_mvec4d.hpp" // 4d types for EGA
 
-#include "detail/ga_mvec2dp.hpp"        // 2dp types for PGA
-#include "detail/ga_mvec3dp.hpp"        // 3dp types for PGA
+#include "detail/type_t/ga_mvec2dp.hpp" // 2dp types for PGA
+#include "detail/type_t/ga_mvec3dp.hpp" // 3dp types for PGA
+
 #include "detail/ga_pga2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Line2dp
 #include "detail/ga_pga3dp_objects.hpp" // Point3dp, Vector3d, Point3d, Line3dp, Plane3d
 

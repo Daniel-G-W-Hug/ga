@@ -13,9 +13,9 @@
 #include "detail/type_t/ga_type3d.hpp"
 
 // 3D EGA multivector implementations
-#include "detail/ga_mvec3d.hpp"   // Complete 3D multivectors
-#include "detail/ga_mvec3d_e.hpp" // 3D even subalgebra
-#include "detail/ga_mvec3d_u.hpp" // 3D odd subalgebra
+#include "detail/type_t/ga_mvec3d.hpp"   // Complete 3D multivectors
+#include "detail/type_t/ga_mvec3d_e.hpp" // 3D even subalgebra
+#include "detail/type_t/ga_mvec3d_u.hpp" // 3D odd subalgebra
 
 // User convenience includes
 #include "ga_usr_consts.hpp"

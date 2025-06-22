@@ -31,24 +31,24 @@ set(HEADERS
     detail/type_t/ga_type3dp.hpp
     detail/type_t/ga_type4d.hpp
     #
-    detail/ga_mvec2d.hpp
-    detail/ga_mvec2d_e.hpp
+    detail/type_t/ga_mvec2d.hpp
+    detail/type_t/ga_mvec2d_e.hpp
     #
-    detail/ga_mvec3d.hpp
-    detail/ga_mvec3d_e.hpp
-    detail/ga_mvec3d_u.hpp
+    detail/type_t/ga_mvec3d.hpp
+    detail/type_t/ga_mvec3d_e.hpp
+    detail/type_t/ga_mvec3d_u.hpp
     #
-    detail/ga_mvec4d.hpp
-    detail/ga_mvec4d_e.hpp
-    detail/ga_mvec4d_u.hpp
+    detail/type_t/ga_mvec4d.hpp
+    detail/type_t/ga_mvec4d_e.hpp
+    detail/type_t/ga_mvec4d_u.hpp
     #
-    detail/ga_mvec2dp.hpp
-    detail/ga_mvec2dp_e.hpp
-    detail/ga_mvec2dp_u.hpp
+    detail/type_t/ga_mvec2dp.hpp
+    detail/type_t/ga_mvec2dp_e.hpp
+    detail/type_t/ga_mvec2dp_u.hpp
     #
-    detail/ga_mvec3dp.hpp
-    detail/ga_mvec3dp_e.hpp
-    detail/ga_mvec3dp_u.hpp
+    detail/type_t/ga_mvec3dp.hpp
+    detail/type_t/ga_mvec3dp_e.hpp
+    detail/type_t/ga_mvec3dp_u.hpp
     #
     # user facing includes
     #

@@ -15,9 +15,9 @@
 #include "type_t/ga_type4d.hpp" // ega4d concrete types (Scalar4d, Vec4d, etc.)
 
 // Complete EGA multivector types (includes the even and uneven (odd) subtypes)
-#include "ga_mvec2d.hpp" // ega2d multivectors incl. even mvec2d_e
-#include "ga_mvec3d.hpp" // ega3d multivectors incl. even mvec3d_e and uneven mvec3d_u
-#include "ga_mvec4d.hpp" // ega4d multivectors incl. even mvec4d_e and uneven mvec4d_u
+#include "type_t/ga_mvec2d.hpp" // ega2d multivectors incl. even mvec2d_e
+#include "type_t/ga_mvec3d.hpp" // ega3d multivectors incl. even mvec3d_e and uneven mvec3d_u
+#include "type_t/ga_mvec4d.hpp" // ega4d multivectors incl. even mvec4d_e and uneven mvec4d_u
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // This header provides complete EGA type system including:
