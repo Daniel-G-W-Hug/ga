@@ -2,13 +2,9 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include <algorithm> // std::max
 #include <cmath>     // std::abs, std::sqrt
 #include <concepts>  // std::floating_point<T>
-#include <iostream>  // std::cout, std::ostream
-#include <limits>    // std::numeric_limits
-#include <stdexcept> // std::runtime_error
-#include <string>    // std::string, std::to_string
+#include <iostream>  // std::ostream
 
 #include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
