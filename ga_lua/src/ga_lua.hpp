@@ -1468,6 +1468,25 @@ void register_functions(sol::state& lua)
 
     lua.set_function("cross", sol::resolve<vec3d(vec3d const&, vec3d const&)>(cross));
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // attitude and support for pga
+    ////////////////////////////////////////////////////////////////////////////////
+
+    lua.set_function("att", sol::overload(
+                                // PGA 2DP attitude
+                                sol::resolve<scalar2dp(vec2dp const&)>(att),
+                                sol::resolve<vec2dp(bivec2dp const&)>(att),
+                                sol::resolve<bivec2dp(pscalar2dp)>(att),
+                                // PGA 3DP attitude
+                                sol::resolve<scalar3dp(vec3dp const&)>(att),
+                                sol::resolve<vec3dp(bivec3dp const&)>(att),
+                                sol::resolve<bivec3dp(trivec3dp const&)>(att),
+                                sol::resolve<trivec3dp(pscalar3dp)>(att)));
+
+    lua.set_function("support2dp", sol::resolve<vec2dp(bivec2dp const&)>(support2dp));
+    lua.set_function("support3dp",
+                     sol::overload(sol::resolve<vec3dp(bivec3dp const&)>(support3dp),
+                                   sol::resolve<vec3dp(trivec3dp const&)>(support3dp)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // angles and rotations

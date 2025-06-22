@@ -129,6 +129,18 @@ ProductConfig get_ega2d_dot_config()
             .show_basis_table = true};
 }
 
+ProductConfig get_ega2d_dot_alt_config()
+{
+    return {.product_name = "dot (alternative)",
+            .description = "ega2d inner product (defined via regressive outer product)",
+            .display_name = "inner product (alternative definition, only main diagonale "
+                            "valid, i.e. for arguments of same grade)",
+            .cases = {},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
 ProductConfig get_ega2d_rwdg_config()
 {
     return {.product_name = "rwdg",

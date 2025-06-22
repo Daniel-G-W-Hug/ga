@@ -2,9 +2,37 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Build System
+## Project Paths and Build System
 
-This project uses CMake (minimum version 3.28) with C++23 standard. **IMPORTANT: Always use out-of-source builds exclusively in the `build/` directory.**
+**CRITICAL PATH INFORMATION:**
+
+- **Project Root**: `/Users/hud3bh/prg/cpp/pj/ga/` (absolute path)
+- **Build Directory**: `/Users/hud3bh/prg/cpp/pj/ga/build/` (absolute path)
+- **Working Directory**: Always work from the build directory when running executables
+- **Source Files**: Always in `/Users/hud3bh/prg/cpp/pj/ga/[module]/src/` or `/Users/hud3bh/prg/cpp/pj/ga/ga_prdxpr/src_trafo/`
+
+**Build Directory Structure:**
+
+```
+/Users/hud3bh/prg/cpp/pj/ga/build/          # Main build directory (working directory)
+├── ga_lua/ga_lua                           # Lua interface executable  
+├── ga_test/ga_ega_test                     # EGA test executable
+├── ga_test/ga_pga_test                     # PGA test executable
+├── ga_view/ga_view                         # Qt6 visualization executable
+├── ga_prdxpr/ga_prdxpr                     # Main code generator
+└── ga_prdxpr/ga_visual_comparison_test     # Transformation test system
+```
+
+**File Path Rules for Code:**
+
+- When reading source files from executables: `../[module]/src/filename` (relative to build dir)
+- Reference data files: `../ga_prdxpr/src_trafo/ga_prdxpr_transformation_manual.txt`
+- NEVER guess paths - use these established patterns
+- All executables run from `/Users/hud3bh/prg/cpp/pj/ga/build/` directory
+
+This project uses CMake (minimum version 3.28) with C++23 standard.
+
+**IMPORTANT: Always use out-of-source builds exclusively in the `build/` directory.**
 
 ```bash
 # Configure (from project root)
@@ -12,7 +40,7 @@ mkdir -p build
 cd build
 cmake ..
 
-# Build (from build directory)
+# Build (from build directory)  
 cmake --build .
 
 # Clean build (if needed)
@@ -34,15 +62,17 @@ cd .. && rm -rf build && mkdir build && cd build && cmake ..
 3. Navigate to build directory: `cd build`
 4. Configure: `cmake ..`
 5. Build: `cmake --build .`
-6. Run executables: `./ga_lua/ga_lua`, `./ga_test/ga_ega_test`, etc.
+6. Run executables: `cd ga_lua && ./ga_lua && cd ..`, `cd ga_test && ./ga_ega_test &&
+   cd..`, etc.
+7. For refactoring with reference output data always match reference output 100% character-identical
 
 ## Running Tests
 
 Execute test binaries from the build directory (ensure you're in `build/` directory):
 
 ```bash
-./ga_test/ga_ega_test    # Tests for Euclidean GA
-./ga_test/ga_pga_test    # Tests for Projective GA
+cd ga_test && ./ga_ega_test && cd ..    # Tests for Euclidean GA
+cd ga_test && ./ga_pga_test && cd ..    # Tests for Projective GA
 ```
 
 ## Running Applications
@@ -50,10 +80,10 @@ Execute test binaries from the build directory (ensure you're in `build/` direct
 Execute applications from the build directory:
 
 ```bash
-./ga_lua/ga_lua                    # Interactive Lua shell
-./ga_lua/ga_lua script.lua         # Run Lua script
-./ga_view/ga_view                  # Qt6 visualization tool
-./ga_prdxpr/ga_prdxpr              # Code generator
+cd ga_lua && ./ga_lua && cd ..                    # Interactive Lua shell
+cd ga_lua && ./ga_lua script.lua && cd ..         # Run Lua script
+cd ga_view && ./ga_view && cd ..                  # Qt6 visualization tool
+cd ga_prdxpr && ./ga_prdxpr && cd ..              # Code generator
 ```
 
 ## Project Architecture
@@ -99,7 +129,7 @@ Install on macOS: `brew install fmt doctest qt6 lua`
 - Compiler definitions: `-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO` (extended testing), `-D_HD_GA_PRINT_WITH_TYPE_INFO` (verbose printing)
 - The library supports switching between debug/release builds via CMAKE_BUILD_TYPE
 - MSVC uses `/bigobj` flag due to template instantiation complexity
-- Additional compiler definitions should start with `_HD_GA_` in order to be consistent
+- Additional compiler definitions start with `_HD_GA_` in order to be consistent
   with already existing definitions
 - Use the existing cmake infrastructure as much as possible to test changes
 
@@ -107,22 +137,19 @@ Install on macOS: `brew install fmt doctest qt6 lua`
 
 The `ga_prdxpr/` directory contains a sophisticated **code generator** that produces optimized C++ expressions for geometric algebra operations. It supports four complete algebras: EGA2D, EGA3D, PGA2DP, and PGA3DP.
 
-### Architecture Overview
-
-**Hybrid Two-System Design:**
-- **New System**: ProductDefinition-based configuration framework (recommended for new work)
-- **Legacy System**: Individual function-based generators (maintained for compatibility)
-- **Output**: Both systems generate identical 6928-line mathematical expressions
-
 ### Key Components
 
 **Configuration System:**
-- `ga_prdxpr_config_*.cpp`: Algebra-specific configurations defining basis, coefficients, and product rules
+
+- `ga_prdxpr_*.hpp`: User defined information on algebra, rules and coefficients
+- `ga_prdxpr_*_config.cpp`: Algebra-specific configurations defining basis, coefficients,
+  and product rules to be used for product generation
 - **AlgebraConfig**: Complete algebra specification (basis elements, complement rules, etc.)
 - **ProductDefinition**: Configures product types (geometric, wedge, contraction, sandwich, etc.)
 - **ProductCase**: Individual expression cases with specific coefficient combinations
 
 **Generation Engine:**
+
 - `ga_prdxpr_generator.cpp`: Main generation logic with algebra-specific handlers
 - **Dimensional dispatch**: 2D, 3D, 4D specialized implementations
 - **Product-specific handlers**: Each ProductType gets specialized mathematical treatment
@@ -130,13 +157,14 @@ The `ga_prdxpr/` directory contains a sophisticated **code generator** that prod
 ### Critical Mathematical Patterns
 
 **Complement Transformations:**
-- Standard: `cmpl(operation(cmpl(A), cmpl(B)))`
-- PGA Regressive: `lcmpl(operation(rcmpl(A), rcmpl(B)))`
-- **PGA3DP Exception**: Regressive sandwich uses asymmetric `rcmpl → gpr → lcmpl` sequence
+
+- for odd dimensinal algebras ega3d, pga2dp: `cmpl(operation(cmpl(A), cmpl(B)))`
+- for even dimensinal algebras ega2d, pga3dp: `lcmpl(operation(rcmpl(A), rcmpl(B)))`
 
 **Coefficient Usage Patterns:**
+
 ```cpp
-A/B                    // Pure multivector × multivector operations
+A/B                   // Pure multivector × multivector operations
 A_even/B_even         // Even part operations (rotors)
 R_even/R_rev_even     // Rotor operations (EGA)
 R_odd/R_rrev_odd      // Motor operations (PGA)
@@ -145,55 +173,50 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 ```
 
 **Sandwich Products (Two-Step Pattern):**
+
 1. `rotor/motor * object → intermediate_result` (with parentheses via `brace_switch::use_braces`)
 2. `intermediate_result * rev/rrev(rotor/motor) → final_result`
 
 ### Algebra-Specific Behaviors
 
 **EGA2D/EGA3D (Euclidean):**
+
 - Standard complement sequences
-- Rotor-based sandwich products with `rev()` operations
+- Rotor-based sandwich products with `rev()` operations based on geometric product `gpr()`
 - Coefficient pattern: R_even/R_rev_even
 
 **PGA2DP/PGA3DP (Projective):**
+
 - Regressive complement transformations
-- Motor-based sandwich products with `rrev()` operations
-- **PGA3DP Critical**: Uses asymmetric complement sequence for regressive sandwich
+- Motor-based sandwich products with `rrev()` operations based on regressive geometric
+  product `rgpr()`
 
 ### Usage & Verification
 
 **Build and Run:**
-```bash
-cd build
-./ga_prdxpr/ga_prdxpr          # Original reference implementation
-./ga_prdxpr/ga_prdxpr_new      # New configuration-driven system
-```
 
-**Verification Commands:**
-```bash
-# Should generate exactly 6928 lines
-wc -l output.txt
+- Make sure working directory is build directory of the project
 
-# Should show no differences (100% match required)
-diff reference_output.txt current_output.txt
+```bash
+cd ga_prdxpr && ./ga_prdxpr && cd ..          # Original reference implementation
 ```
 
 **Success Criteria:**
-- Exactly 6928 lines of output
+
 - Character-perfect match with reference implementation
 - All product types working (geometric, wedge, contraction, sandwich, etc.)
 - Mathematical accuracy verified against known GA identities
 
 ### Common Pitfalls
 
-1. **Complement Confusion**: PGA algebras require specific complement sequences, especially PGA3DP
 2. **Coefficient Mismatches**: Each ProductType needs algebra-specific coefficient analysis
 3. **Operator Precedence**: Always parenthesize left/right contractions (`<<`, `>>`) in GA expressions
 4. **Output Format**: Case descriptions must match mathematical reality exactly
 
 ### Key Files for Modifications
+
 - `ga_prdxpr_generator.cpp`: Core generation logic and product-specific handlers
-- `ga_prdxpr_config_*.cpp`: Algebra-specific configurations and coefficient definitions
-- `ga_prdxpr_*.cpp`: Legacy reference implementations (use for verification)
+- `ga_prdxpr_*_config.cpp`: Algebra-specific configurations and coefficient definitions
+- `ga_prdxpr_*.cpp`: Legacy reference implementations (don't modify, use for verification)
 
 **Important**: The ga_prdxpr system is a **complete, production-ready geometric algebra code generator** that produces mathematically accurate, optimized C++ expressions for all four supported algebras.

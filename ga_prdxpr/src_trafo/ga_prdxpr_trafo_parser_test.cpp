@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "ga_prdxpr_transformation.hpp"
+#include "ga_prdxpr_trafo.hpp"
 
 TEST_SUITE("expression transformation")
 {
@@ -267,11 +267,6 @@ TEST_SUITE("expression transformation")
         fmt::println("r: '{}'", r1);
         // std::string r2 = parse_and_print_ast(r1);
         // fmt::println("r: '{}'", r2);
-        fmt::println("");
-
-        std::string r = parse_and_analyse(s);
-        fmt::println("s: '{}'\n", s);
-        fmt::println("r: '{}'", r);
         fmt::println("");
     }
 

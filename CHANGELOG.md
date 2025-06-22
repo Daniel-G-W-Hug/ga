@@ -21,4 +21,9 @@
            pga3dp; startet to implement latex documentation
 - 2025/05: implemented operations and visualization of rotors in ega and motors in pga
 - 2025/06: implemented unified error handling for division by zero; optimized split
-           between files in ga library for improved modularity
+           between files in ga library for improved modularity; reworked ga_prdxpr for
+           more modularized math expression generation and preparation for automated
+           transformation of sandwich product expressions to show they are fully
+           equivalent to matrix * vector expression; created TODO folder to store notes
+           for further work; improved modularization of ga_lua and ga_test with own files
+           for each respective algebra
