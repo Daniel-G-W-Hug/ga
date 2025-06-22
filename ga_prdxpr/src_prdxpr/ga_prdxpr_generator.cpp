@@ -306,10 +306,35 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "dot") {
-            // Inner product (=dot product) - exact reference approach
+            // Inner product (=dot product) - reference approach
             return apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(mv2d_basis, mv2d_basis, mul_str),
                 dot_ega2d_rules);
+        }
+
+        else if (product_name == "dot (alternative)") {
+            // Inner product (=dot product) - defined by outer product
+            // (see Grassmann Algebra, John Browne, p. 35, p. 373)
+            // remember: A ^ rcmpl(A) = I_2d
+            // inner product = rwdg(A,rcmpl(A))
+            //               = lcmpl( wdg( rcmpl(A), rcmpl( rcmpl(A) ) ) )
+            // => only valid, if both operands are of the same grade, i.e. only the
+            // main diagonal is valid
+
+            auto cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            auto dbl_cmpl_func = apply_rules_to_mv(cmpl_func, rcmpl_ega2d_rules);
+            // fmt::println("");
+            // fmt::println("mv2d_basis = {}", mv2d_basis);
+            // fmt::println("cmpl_func = {}", cmpl_func);
+            // fmt::println("dbl_cmpl_func = {}", dbl_cmpl_func);
+            // fmt::println("");
+            auto tmp_tab = mv_coeff_to_coeff_prd_tab(cmpl_func, dbl_cmpl_func, wdg_str);
+            // fmt::println("tmp_tab = {}", tmp_tab);
+            // fmt::println("");
+            auto basis_tab_with_rules = apply_rules_to_tab(tmp_tab, wdg_ega2d_rules);
+            // fmt::println("basis_tab_with_rules = {}", basis_tab_with_rules);
+            // fmt::println("");
+            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
         }
 
         else if (product_name == "rwdg") {

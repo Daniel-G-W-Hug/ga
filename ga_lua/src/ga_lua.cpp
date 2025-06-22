@@ -9,8 +9,8 @@
 #include <string>       // std::string
 
 #ifdef _HD_GA_HAVE_READLINE
-#include <readline/readline.h>
 #include <readline/history.h>
+#include <readline/readline.h>
 #endif
 
 void print_usage(const char* program_name)
@@ -53,16 +53,16 @@ void run_interactive_shell(sol::state& lua)
             break;
         }
         input = line;
-        
+
         // Add non-empty lines to history
         if (!input.empty()) {
             add_history(line);
         }
-        
+
         free(line);
 #else
         fmt::print("ga_lua[{}]> ", line_number);
-        
+
         if (!std::getline(std::cin, input)) {
             // EOF (Ctrl+D on Unix, Ctrl+Z on Windows)
             fmt::println("\nExiting...");
@@ -113,14 +113,16 @@ std::string get_default_script_path()
     // on the msvc compiler there will be debug and release subfolders
     return "../../../ga_lua/input/ga_lua.lua";
 #else
-    return "../ga_lua/input/ga_lua.lua";
+    // return "../ga_lua/input/ga_lua.lua"; // when running from build directory
+    return "../../ga_lua/input/ga_lua.lua"; // when running from build/ga_lua director
 #endif
 }
 
 int main(int argc, char* argv[])
 {
     bool interactive_mode = false;
-    bool use_default_script = false;
+    // bool use_default_script = false;
+    bool use_default_script = true; // let's run the default script for now as standard
     std::string script_file;
 
     // Parse command line arguments

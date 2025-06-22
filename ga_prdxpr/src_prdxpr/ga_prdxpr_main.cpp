@@ -37,11 +37,12 @@ int main()
         {
             auto ega2d_algebra = create_ega2d_algebra_data();
             std::vector<ProductConfig> ega2d_configs = {
-                get_ega2d_gpr_config(),       get_ega2d_cmt_config(),
-                get_ega2d_wdg_config(),       get_ega2d_dot_config(),
-                get_ega2d_rwdg_config(),      get_ega2d_lcontract_config(),
-                get_ega2d_rcontract_config(), get_ega2d_lexpand_config(),
-                get_ega2d_rexpand_config(),   get_ega2d_sandwich_gpr_config()};
+                get_ega2d_gpr_config(),         get_ega2d_cmt_config(),
+                get_ega2d_wdg_config(),         get_ega2d_dot_config(),
+                get_ega2d_dot_alt_config(),     get_ega2d_rwdg_config(),
+                get_ega2d_lcontract_config(),   get_ega2d_rcontract_config(),
+                get_ega2d_lexpand_config(),     get_ega2d_rexpand_config(),
+                get_ega2d_sandwich_gpr_config()};
             generate_algebra_products(generator, ega2d_configs, ega2d_algebra, false);
         }
 
