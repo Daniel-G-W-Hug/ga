@@ -7,10 +7,12 @@ functionality for numerical calculations required for simulation of physical sys
 It implements functionality for two- and three-dimensional spaces with Euclidean geometry.
 Currently it provides data types and operations to handle the algebras of regular
 Euclidean geometry $(ega2d, ega3d)$ and projective Euclidean geometry $(pga2dp, pga3dp)$.
-The library handles multivectors, even and odd grade multivectors as well as their
-components like scalars, vectors, bivectors, trivectors, and pseudoscalars of the
-corresponding linear spaces efficiently. It could be easily extended to provide
-functionality for handling spacetime algebra $(STA)$ with limited effort. \\
+The library handles fully populated multivectors, even and odd grade multivectors as well
+as their components like scalars, vectors, bivectors, trivectors, and pseudoscalars of the
+corresponding linear spaces efficiently. It also provides operations to work with these
+objects. It was designed with extensibiliy in mind and could be easily extended to provide
+functionality for handling additional algebras, e.g. spacetime algebra $(STA)$, with
+limited effort. \\
 
 The main library is a header only library in the ga sub-folder of the library which can be
 used by including either
@@ -28,35 +30,126 @@ in your application code. For a simple usage example please have a look either a
 \path{ga_test/src/ga_ega_test.cpp} or at \path{ga_test/src/ga_pga_test.cpp}.
 \\
 
-All product expressions are generated via the file \path{ga_prdxpr/ga_prdxpr_main.cpp} and
+All product expressions for inner, outer, interior and geometric products and their
+regressive counterparts are generated via the file \path{ga_prdxpr/ga_prdxpr_main.cpp} and
 user input provided in the header files of the corresponding algebra in that folder. The
-generated coefficient expressions are used to fill in the source code for geometric
-products, wedge and dot products or their regressive counterparts. If certain combinations
-are not yet implemented in the ga library they can easily be generated within
-\path{ga_prdxpr} as needed and then be added to the implementation. \\
+generated coefficient expressions are used in the source code to implement dot products,
+wedge products, contractions, expansions, geometric products or their regressive
+counterparts, as well as sandwich products describing rotors and motors of the
+corresponding algebras. If certain products are required for your applicaton, but not yet
+implemented in the ga library they can easily be generated within
+\path{ga_prdxpr/src_prdxpr} as needed and added with minimal effort. \\
 
-The complement operation used in this library corresponds to the complement as defined in
-\cite{Lengyel_pga-illuminated:2024}. It is uniquely determined with respect to the outer
-product (not with respect to the geometric product as commonly used by many autors working
-with GA). This is helpful to generate consistent signs of expressions, operators,
-complements and duals. The left complement $\ubar{u}$ is defined as $\ubar{u} \wedge u =
-I_n$ and the right complement $\bar{u}$ as $u \wedge \bar{u} = I_n$ with $I_n$ as the
-pseudoscalar of the $n$-dimensional algebra. \\
+As mentioned before, we distinguish inner, interior, outer and geometric products.
+\begin{itemize}
+    \item Inner and interior products are grade reducing operations.
+    \item The inner product combines arguments of the same type and grade, while the
+    interior products involve complements/duals in at least one of their arguments,
+    combining and linking arguments of different grades. Inner products are linked to the
+    metric of the modelled space. 
+    \item The outer product is a grade-increasing operation adding the grades of its
+    arguments. Outer products, like the wedge product, connect subspaces represented by
+    their operands and create new subspaces defined by the span of the subspaces of the
+    operands.
+    \item Geometric products are the combination of both types of products in one
+    expression. They typically result in multivectors consisting of parts with different
+    grades as a result of the operation. Their main advantage is invertibility under
+    certain circumstances.
+    \item Regressive products use a complement operation on their arguments before and/or
+    after applying the operation linking the arguments of the product.
+    \item Sandwich products are used to orthogonally transform objects implementation
+    operators for rotation or general motion including rotation and translation. This can
+    be achieved by multiplying the object symmetrically from the left and right side.
+\end{itemize}
 
-The complement operation is used in turn to define a unique dualization operation that
-works for cases when the metric is non-degenerate as well as for cases when it is
-degenerate, like in projective geometric algebra $PGA$. The right dual $A^{\star}$ is
-defined as $A^{\star} = \overline{GA}$, where $A$ is an arbitrary multivector and $G$ the
-extended metric. There is also a corresponding left dualization operation defined as
-$A_{\star} = \underline{GA}$. $\star$ is used as dualization operator (Hodge star).
-Relations to the geometric product are $A^{\star} = A^{\dagger} \wedgedot I_n$ and
-$A_{\star} = I_n \wedgedot A^{\dagger}$, where $\dagger$ is the reversion operation. \\
+The complement operation used in this library is defined
+in~\cite{Lengyel_pga-illuminated:2024}. It is uniquely determined with respect to the
+outer product (not with respect to the geometric product, as commonly used for the
+dualization operation by many autors working with GA). This helps to generate consistent
+signs of expressions, operators, complements and duals. The left complement $\ubar{u}$ and
+the right complement $\bar{u}$ are defined as
+\begin{subeqnarray}
+    % use \label for full label
+    % use \slabel for sublabel
+    \ubar{u} \wedge u & = & I_n \slabel{eq:lcmpl_def} \\
+    u \wedge \bar{u}  & = & I_n \slabel{eq:rcmpl_def}
+\end{subeqnarray}
+with $I_n$ as the pseudoscalar of the $n$-dimensional algebra, and the wedge symbol
+$(\wedge)$ as the operator symbol of the outer product. The effect of the complement is to
+turn basis elements not contained in the object $u$ into the constituting basis elements
+of the complement of the object $\ubar{u}$ or $\bar{u}$. Connecting the object and its
+complement with the wedge products creates an object that fills the available space in the
+sense of requiring all basis elements to represent it. The full space is represented by
+the pseudoscalar of that space, since the pseudoscalar $I_n$ is formed formed by the
+product of all $n$ basis vectors of the space. \\
+
+It can be shown that the left and right complements fulfill
+\begin{equation}
+    \bar{\ubar{a}} = a
+    \label{eq:double_cmpl}
+\end{equation}
+which shows that the left and right complement operations are inverses to each other. This
+is valid independent of the sequence of application, independent of the grade of the
+argument $a$, and independent of the dimension of the space modelled in the algebra. Based
+on this it is possible to define so-called regressive products using rules analog to
+deMorgan's rules in boolean algebra as follows (definitions can be found
+in~\cite{Lengyel_pga-illuminated:2024} and in \cite{Browne_Grassmann-Algebra_Vol1:2012}):
+\begin{subeqnarray}
+    % use \label for full label
+    % use \slabel for sublabel
+    a \vee b & \equiv & \underline{\bar{a} \wedge \bar{b}} \slabel{eq:rwdg_std} \\
+    a \vee b & \equiv & \overline{\ubar{a} \wedge \ubar{b}} \slabel{eq:rwdg_alt}
+\end{subeqnarray}
+The same complement is applied to both arguments first, the resulting expressions are
+combined by the wedge product, and afterwards the result uses the inverse complement
+operation to transform the outcome of the wedge product into the final result of the
+regressive product. The inverted wedge symbol $(\vee)$ is used for the regressive wedge
+product. Both definitions~(\ref{eq:rwdg_std}) and~(\ref{eq:rwdg_alt}) are equivalent,
+but~(\ref{eq:rwdg_std}) is used within the library to derive expressions for regressive
+products. \\
+
+There are some additional formulas for complements which are useful for working with GA
+expressions and thus are provided here for reference. Taking the right and left
+complements of~(\ref{eq:rwdg_std}) and~(\ref{eq:rwdg_alt}) we end up with
+\begin{subeqnarray}
+    % use \label for full label
+    % use \slabel for sublabel
+    \overline{a \vee b}  & = & \overline{\underline{\bar{a} \wedge \bar{b}}}
+    \quad  =  \quad \bar{a} \wedge \bar{b}
+    \slabel{eq:intermediate_std} \\
+    \underline{a \vee b} & = & \underline{\ubar{a} \wedge \ubar{b}}
+    \quad  =  \quad  \ubar{a} \wedge \ubar{b}
+    \slabel{eq:intermediate_alt}
+\end{subeqnarray}
+Substituting $a = \ubar{u}$ and $b = \ubar{v}$ into~(\ref{eq:intermediate_std}) and $a =
+\bar{u}$ and $b = \bar{v}$ into~(\ref{eq:intermediate_alt}) we end up with
+\begin{subeqnarray}
+    % use \label for full label
+    % use \slabel for sublabel
+    u \wedge v & = & \overline{\ubar{u} \vee \ubar{v}} \slabel{eq:wdg_std} \\
+    u \wedge v & = & \underline{\bar{u} \vee \bar{v}} \slabel{eq:wdg_alt}
+\end{subeqnarray}
+This shows that the outer product and the regressive outer product can be expressed by
+each other.
+
+The complement operation is used to define a unique dualization operation that works for
+cases when the metric is non-degenerate and even for cases when it is degenerate, like in
+projective geometric algebra $PGA$. This is the main advantage compared to the usual
+definition used by GA practitioners by multiplying the object with the pseudoscalar (or
+its inverse), since this operation breaks down for spaces with degenerate metrics. The
+right dual $A^{\star}$ is defined as $A^{\star} = \overline{GA}$, where $A$ is an
+arbitrary multivector and $G$ the extended metric and $GA$ a matrix-vector-product. There
+is also a corresponding left dualization operation defined as $A_{\star} =
+\underline{GA}$. $\star$ is used as dualization operator (Hodge star). Relations to the
+geometric product are $A^{\star} = A^{\dagger} \wedgedot I_n$ and $A_{\star} = I_n
+\wedgedot A^{\dagger}$, where $\dagger$ is the reversion operation. \\
 
 
-Following bi-argument products $\emph{op}(a,b)$ and their respective regressive variants
-$\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are implemented (with
-\path{op(a,b)} as the name of the implemented function). Using $A$ vs. $a$ implies $gr(A)
-\ge gr(a)$, where $gr(arg)$ returns the grade of the argument $arg$):
+Following bi-argument products $\emph{op}(a,b) = a \; op \; b$ and their respective
+regressive variants $\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are
+implemented (with \path{op(a,b)} or \path{rop(a,b)} as the name of the implemented
+function). Using $A$ vs. $a$ implies $gr(A) \ge gr(a)$, where $gr(arg)$ returns the grade
+of the argument $arg$:
 \begin{itemize}
     \item inner product, delivering a scalar: $a \bullet b$, \path{dot(a,b)}
     \item outer product of a $j-$ and $k-$vector, delivering a $j+k$-vector in
@@ -70,9 +163,9 @@ $\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are implemented 
     \item regressive outer product: $a \vee b$, \path{rwdg(a,b)}
     \item regressive geometric product: $a \veedot b$, \path{rgpr(a,b)}
     
-    \item left (bulk) contraction: $a \lcontr B$ or $a \ll B = a_{\star} \vee B $,
+    \item left (bulk) contraction: $a \lcontr B = a \ll B = a_{\star} \vee B $,
     \path{operator<<(a,B)}, \path{lbulk_contract(a,B)}  
-    \item right (bulk) contraction: $B \rcontr a$ or $B \gg a = B \vee a^{\star} $,
+    \item right (bulk) contraction: $B \rcontr a = B \gg a = B \vee a^{\star} $,
     \path{operator>>(B,a)}, \path{rbulk_contract(B,a)}
 
     \item left weight contraction: $a_{\smallstar} \vee B $,
@@ -91,10 +184,7 @@ $\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are implemented 
     \path{rweight_expand(a,B)} 
 \end{itemize}
 where the items from the left contraction downwards are all considered interior products.
-They operate on sub-spaces after applying a dualization operation to one operand. Inner
-products like the dot-product above are linked to the metric of the modelled space. Outer
-products like the wedge product connect sub-spaces represented by their operands and
-create new spaces that are defined by the span of the spaces of the operands. \\
+They operate on subspaces after applying a dualization operation to one operand. \\
 
 
 TODO: \emph{fill in further introductory notes here} \\
