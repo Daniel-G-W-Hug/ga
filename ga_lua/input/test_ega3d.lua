@@ -436,3 +436,42 @@ print("pscalar3d.new(1)*rev(pscalar3d.new(1)):", pscalar3d.new(1) * rev(pscalar3
 -- Test dual with multivector
 local mv = mvec3d.new(0, 0, 0, 0, 1, 2, 3, 0)
 print("mv:", mv, "dual(mv):", dual(mv))
+
+-- cross product and equivalence to outer product (wdg)
+print("\n24. Testing cross product and equivalence to wedge product:")
+print("----------------------------------")
+local a = vec3d.new(0, 0, 1)
+local b = vec3d.new(1, 0, 0)
+local c = cross(a, b)
+local wab = wdg(a, b)
+
+print("a = ", a)
+print("b = ", b)
+print("c = a x b = ", c)
+print("a ^ b = ", wab)
+print("dual(a ^ b) = ", dual(wab)) -- here they are simply duals of each other
+print("dual(a x b) = ", dual(c))
+print()
+print("-I_3d * (a ^ b) = ", -I_3d * wab) -- Hestenes form of duality
+print("I_3d * (a x b) = ", I_3d * c)
+
+-- cross product and equivalence to outer product (wdg)
+print("\n25. Testing basic vector product symmetries:")
+print("----------------------------------")
+local a = vec3d.new(1, 0, 2)
+local b = vec3d.new(2, 0, 1)
+local dot_ab = dot(a, b)
+local wdg_ab = wdg(a, b)
+local ab = a * b
+local ba = b * a
+local sym_ab = 0.5 * (a * b + b * a)
+local asym_ab = 0.5 * (a * b - b * a)
+
+print("a = ", a)
+print("b = ", b)
+print("dot_ab = ", dot_ab)
+print("wdg_ab = ", wdg_ab)
+print("a*b = ", ab)
+print("b*a = ", ba)
+print("sym(a,b)  = 0.5*(a*b + b*a) = ", sym_ab, ", gr0 = ", gr0(sym_ab))
+print("asym(a,b) = 0.5*(a*b - b*a) = ", asym_ab, ", gr2 = ", gr2(asym_ab))
