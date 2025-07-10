@@ -9,30 +9,23 @@
 
 #include "detail/ga_foundation.hpp"
 
-// 3dp PGA specific type definitions
+// pga3dp specific type definitions
 #include "detail/type_t/ga_type3dp.hpp"
 
-// 3dp PGA multivector implementations
-#include "detail/type_t/ga_mvec3dp.hpp"   // Complete 3dp multivectors
-#include "detail/type_t/ga_mvec3dp_e.hpp" // 3dp even subalgebra
-#include "detail/type_t/ga_mvec3dp_u.hpp" // 3dp odd subalgebra
+// pga3dp multivector implementations
+#include "detail/type_t/ga_mvec3dp.hpp" // Complete 3dp multivectors incl. even/add grade
 
-// 3dp PGA geometric objects
-#include "detail/ga_pga3dp_objects.hpp" // Point3dp, Point3d, Vector3d, Line3d, Plane3d
-
-// User convenience includes
+// user convenience includes
 #include "ga_usr_consts.hpp"
 #include "ga_usr_types.hpp" // Contains 3dp type aliases like scalar3dp, vec3dp, etc.
 #include "ga_usr_utilities.hpp"
 
-// 3dp PGA operations
+// pga3dp operations (includes basics and products)
 #include "ga_pga3dp_ops.hpp"
 
-// Optional: Formatting support (can be omitted for faster compilation)
-#ifndef _HD_GA_NO_FMT_SUPPORT
+// Formatting support
 #include "detail/fmt/ga_fmt_core.hpp"
 #include "detail/fmt/ga_fmt_pga.hpp"
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // This header provides complete 3dp PGA functionality including:

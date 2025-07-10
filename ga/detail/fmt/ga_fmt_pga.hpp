@@ -4,6 +4,7 @@
 
 #include "ga_fmt_core.hpp"
 
+// basic types used by all algebras
 #include "../type_t/ga_bvec6_t.hpp"
 #include "../type_t/ga_mvec16_t.hpp"
 #include "../type_t/ga_mvec2_t.hpp"
@@ -13,13 +14,15 @@
 #include "../type_t/ga_vec3_t.hpp"
 #include "../type_t/ga_vec4_t.hpp"
 
-#include "../ga_pga2dp_objects.hpp"
-#include "../ga_pga3dp_objects.hpp"
+// specific convenience types for pga
+#include "../type_t/ga_type2dp.hpp"
+#include "../type_t/ga_type3dp.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Formatting support for Projective Geometric Algebra (PGA) types
 // Includes formatters for PGA scalars, vectors, multivectors, and geometric objects
-////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Scalar_t<T, Tag> for PGA types: Scalar2dp<T>, PScalar2dp<T>, Scalar3dp<T>,

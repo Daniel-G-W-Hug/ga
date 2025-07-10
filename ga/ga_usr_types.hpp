@@ -11,8 +11,8 @@
 #include "detail/type_t/ga_mvec2dp.hpp" // 2dp types for PGA
 #include "detail/type_t/ga_mvec3dp.hpp" // 3dp types for PGA
 
-#include "detail/ga_pga2dp_objects.hpp" // Point2dp, Vector2d, Point2d, Line2dp
-#include "detail/ga_pga3dp_objects.hpp" // Point3dp, Vector3d, Point3d, Line3dp, Plane3d
+#include "detail/type_t/ga_type2dp.hpp" // Point2dp, Vector2d, Point2d, Line2dp
+#include "detail/type_t/ga_type3dp.hpp" // Point3dp, Vector3d, Point3d, Line3dp, Plane3d
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // consistent type definitions for easy and convenient use (based on value_t)
@@ -66,7 +66,7 @@ using vec2dp = Vec2dp<value_t>;
 using bivec2dp = BiVec2dp<value_t>;
 using pscalar2dp = PScalar2dp<value_t>;
 using mvec2dp_e = MVec2dp_E<value_t>; // multivector 2dp of even subalgebra
-using mvec2dp_u = MVec2dp_U<value_t>; // multivector 2dp of odd subalgebra
+using mvec2dp_u = MVec2dp_U<value_t>; // multivector 2dp of uneven (odd) subalgebra
 using mvec2dp = MVec2dp<value_t>;     // fully populated 2dp multivector
 
 using dualnum2dp = DualNum2dp<value_t>; // dual number with s 1 + ps e3 (2dp, e3^2 = 0)
@@ -84,7 +84,7 @@ using bivec3dp = BiVec3dp<value_t>;
 using trivec3dp = TriVec3dp<value_t>;
 using pscalar3dp = PScalar3dp<value_t>;
 using mvec3dp_e = MVec3dp_E<value_t>; // multivector 3dp of even subalgebra
-using mvec3dp_u = MVec3dp_U<value_t>; // multivector 3dp of odd subalgebra
+using mvec3dp_u = MVec3dp_U<value_t>; // multivector 3dp of uneven (odd) subalgebra
 using mvec3dp = MVec3dp<value_t>;     // fully populated 3dp multivector
 
 using dualnum3dp = DualNum3dp<value_t>; // dual number with s 1 + ps e4 (3dp, e4^2 = 0)

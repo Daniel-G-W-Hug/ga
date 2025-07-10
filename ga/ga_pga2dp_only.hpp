@@ -13,19 +13,14 @@
 #include "detail/type_t/ga_type2dp.hpp"
 
 // pga2dp multivector implementations
-#include "detail/ga_mvec2dp.hpp"   // Complete 2dp multivectors
-#include "detail/ga_mvec2dp_e.hpp" // 2dp even subalgebra
-#include "detail/ga_mvec2dp_u.hpp" // 2dp uneven (or odd) subalgebra
+#include "detail/type_t/ga_mvec2dp.hpp" // Complete 2dp multivectors incl. even/add grade
 
-// pga2dp geometric objects
-#include "detail/ga_pga2dp_objects.hpp" // Point2dp, Point2d, Vector2d, Line2d
-
-// User convenience includes
+// user convenience includes
 #include "ga_usr_consts.hpp"
 #include "ga_usr_types.hpp" // Contains 2dp type aliases like scalar2dp, vec2dp, etc.
 #include "ga_usr_utilities.hpp"
 
-// pga2dp operations
+// pga2dp operations (includes basics and products)
 #include "ga_pga2dp_ops.hpp"
 
 // Formatting support

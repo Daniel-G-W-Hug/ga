@@ -67,13 +67,19 @@ set(HEADERS
     ga_algebra.hpp
     ga_value_t.hpp
     #
+    ga_ega2d_ops_basics.hpp
+    ga_ega2d_ops_products.hpp
     ga_ega2d_ops.hpp
+    ga_ega3d_ops_basics.hpp
+    ga_ega3d_ops_products.hpp
     ga_ega3d_ops.hpp
     #
-    detail/ga_pga2dp_objects.hpp
+    ga_pga2dp_ops_basics.hpp
+    ga_pga2dp_ops_products.hpp
     ga_pga2dp_ops.hpp
     #
-    detail/ga_pga3dp_objects.hpp
+    ga_pga3dp_ops_basics.hpp
+    ga_pga3dp_ops_products.hpp
     ga_pga3dp_ops.hpp
     )
 
