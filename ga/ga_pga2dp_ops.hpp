@@ -63,7 +63,7 @@ inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
 {
 
     using ctype = std::common_type_t<T, U>;
-    ctype contr = rweight_contract2dp(B1, B2);
+    ctype contr = right_weight_contract2dp(B1, B2);
     // hint: weight_nrm returns a pscalar2dp! ctype() required around each single result,
     // otherwise geometric product between pseudoscalars evaluated, which evaluates to
     // zero
@@ -314,23 +314,23 @@ template <typename T, typename U>
 inline constexpr Line2d<std::common_type_t<T, U>> expand(Point2d<T> const& p,
                                                          Line2d<U> const& l)
 {
-    return rweight_expansion2dp(Point2dp<std::common_type_t<T, U>>(p), l);
+    return right_weight_expand2dp(Point2dp<std::common_type_t<T, U>>(p), l);
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Projections for 2dp:
 //
-// ortho_proj2dp(a, b)     = rwdg(b, rweight_expansion2dp(a, b) )
+// ortho_proj2dp(a, b)     = rwdg(b, right_weight_expand2dp(a, b) )
 // (a projected orthogonally onto b, effectively creating a new a' contained in b)
 // REQUIRES: gr(a) < gr(b)
 //
-// central_proj2dp(a, b)   = rwdg(b, rbulk_expansion2dp(a, b) )
+// central_proj2dp(a, b)   = rwdg(b, right_bulk_expand2dp(a, b) )
 // (a projected centrally towards origin onto b, effectively creating a new a'
 // contained in b)
 // REQUIRES: gr(a) < gr(b)
 //
-// ortho_antiproj2dp(a, b) = wdg(b, rweight_contract2dp(a, b) )
+// ortho_antiproj2dp(a, b) = wdg(b, right_weight_contract2dp(a, b) )
 // (a projected orthogonally onto b, effectively creating a new a' containing b)
 // REQUIRES: gr(a) > gr(b)
 //
@@ -342,7 +342,7 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj2dp(arg1&& a, a
     // REQUIRES: gr(a) < gr(b), or does not compile!
     // project the smaller grade object onto to larger grade object
     return rwdg(std::forward<arg2>(b),
-                rweight_expansion2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+                right_weight_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 }
 
 template <typename arg1, typename arg2> decltype(auto) central_proj2dp(arg1&& a, arg2&& b)
@@ -350,14 +350,14 @@ template <typename arg1, typename arg2> decltype(auto) central_proj2dp(arg1&& a,
     // REQUIRES: gr(a) < gr(b), or does not compile!
     // project the smaller grade object onto to larger grade object
     return rwdg(std::forward<arg2>(b),
-                rbulk_expansion2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+                right_bulk_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 }
 
 template <typename arg1, typename arg2>
 decltype(auto) ortho_antiproj2dp(arg1&& a, arg2&& b)
 {
     return wdg(std::forward<arg2>(b),
-               rweight_contract2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+               right_weight_contract2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 }
 
 

@@ -398,38 +398,38 @@ TEST_SUITE("PGA 3DP Tests")
               rwdg(right_bulk_dual(B), right_bulk_dual(B2)));
 
         // contractions
-        CHECK(lbulk_contract3dp(v, v2) == rwdg(left_bulk_dual(v), v2));
-        CHECK(lbulk_contract3dp(B, B2) == rwdg(left_bulk_dual(B), B2));
-        CHECK(lbulk_contract3dp(B, v) == rwdg(left_bulk_dual(B), v));
+        CHECK(left_bulk_contract3dp(v, v2) == rwdg(left_bulk_dual(v), v2));
+        CHECK(left_bulk_contract3dp(B, B2) == rwdg(left_bulk_dual(B), B2));
+        CHECK(left_bulk_contract3dp(B, v) == rwdg(left_bulk_dual(B), v));
 
-        CHECK(lweight_contract3dp(v, v2) == rwdg(left_weight_dual(v), v2));
-        CHECK(lweight_contract3dp(B, B2) == rwdg(left_weight_dual(B), B2));
-        CHECK(lweight_contract3dp(B, v) == rwdg(left_weight_dual(B), v));
+        CHECK(left_weight_contract3dp(v, v2) == rwdg(left_weight_dual(v), v2));
+        CHECK(left_weight_contract3dp(B, B2) == rwdg(left_weight_dual(B), B2));
+        CHECK(left_weight_contract3dp(B, v) == rwdg(left_weight_dual(B), v));
 
-        CHECK(rbulk_contract3dp(v, v2) == rwdg(v, right_bulk_dual(v2)));
-        CHECK(rbulk_contract3dp(B, B2) == rwdg(B, right_bulk_dual(B2)));
-        CHECK(rbulk_contract3dp(B, v) == rwdg(B, right_bulk_dual(v)));
+        CHECK(right_bulk_contract3dp(v, v2) == rwdg(v, right_bulk_dual(v2)));
+        CHECK(right_bulk_contract3dp(B, B2) == rwdg(B, right_bulk_dual(B2)));
+        CHECK(right_bulk_contract3dp(B, v) == rwdg(B, right_bulk_dual(v)));
 
-        CHECK(rweight_contract3dp(v, v2) == rwdg(v, right_weight_dual(v2)));
-        CHECK(rweight_contract3dp(B, B2) == rwdg(B, right_weight_dual(B2)));
-        CHECK(rweight_contract3dp(B, v) == rwdg(B, right_weight_dual(v)));
+        CHECK(right_weight_contract3dp(v, v2) == rwdg(v, right_weight_dual(v2)));
+        CHECK(right_weight_contract3dp(B, B2) == rwdg(B, right_weight_dual(B2)));
+        CHECK(right_weight_contract3dp(B, v) == rwdg(B, right_weight_dual(v)));
 
         // expansions
-        CHECK(lweight_expansion3dp(v, v2) == wdg(left_weight_dual(v), v2));
-        CHECK(lweight_expansion3dp(B, B2) == wdg(left_weight_dual(B), B2));
-        CHECK(lweight_expansion3dp(B, v) == wdg(left_weight_dual(B), v));
+        CHECK(left_weight_expand3dp(v, v2) == wdg(left_weight_dual(v), v2));
+        CHECK(left_weight_expand3dp(B, B2) == wdg(left_weight_dual(B), B2));
+        CHECK(left_weight_expand3dp(B, v) == wdg(left_weight_dual(B), v));
 
-        CHECK(lbulk_expansion3dp(v, v2) == wdg(left_bulk_dual(v), v2));
-        CHECK(lbulk_expansion3dp(B, B2) == wdg(left_bulk_dual(B), B2));
-        CHECK(lbulk_expansion3dp(B, v) == wdg(left_bulk_dual(B), v));
+        CHECK(left_bulk_expand3dp(v, v2) == wdg(left_bulk_dual(v), v2));
+        CHECK(left_bulk_expand3dp(B, B2) == wdg(left_bulk_dual(B), B2));
+        CHECK(left_bulk_expand3dp(B, v) == wdg(left_bulk_dual(B), v));
 
-        CHECK(rweight_expansion3dp(v, v2) == wdg(v, right_weight_dual(v2)));
-        CHECK(rweight_expansion3dp(B, B2) == wdg(B, right_weight_dual(B2)));
-        CHECK(rweight_expansion3dp(v, B) == wdg(v, right_weight_dual(B)));
+        CHECK(right_weight_expand3dp(v, v2) == wdg(v, right_weight_dual(v2)));
+        CHECK(right_weight_expand3dp(B, B2) == wdg(B, right_weight_dual(B2)));
+        CHECK(right_weight_expand3dp(v, B) == wdg(v, right_weight_dual(B)));
 
-        CHECK(rbulk_expansion3dp(v, v2) == wdg(v, right_bulk_dual(v2)));
-        CHECK(rbulk_expansion3dp(B, B2) == wdg(B, right_bulk_dual(B2)));
-        CHECK(rbulk_expansion3dp(v, B) == wdg(v, right_bulk_dual(B)));
+        CHECK(right_bulk_expand3dp(v, v2) == wdg(v, right_bulk_dual(v2)));
+        CHECK(right_bulk_expand3dp(B, B2) == wdg(B, right_bulk_dual(B2)));
+        CHECK(right_bulk_expand3dp(v, B) == wdg(v, right_bulk_dual(B)));
     }
 
     TEST_CASE("Vec3dp: operations - angle I")
@@ -2491,8 +2491,8 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("");
 
         // connection between contraction and regressive wedge with dualized args
-        lbulk_contract3dp(M1, M2) = rwdg(lcmpl(M1), M2);
-        rbulk_contract3dp(M1, M2) = rwdg(M1, rcmpl(M2));
+        left_bulk_contract3dp(M1, M2) = rwdg(lcmpl(M1), M2);
+        right_bulk_contract3dp(M1, M2) = rwdg(M1, rcmpl(M2));
     }
 
     TEST_CASE("MVec3dp: join and meet (wdg, rwdg)")

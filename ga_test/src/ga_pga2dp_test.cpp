@@ -340,38 +340,39 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(bulk_dual(wdg(B, v)) == rwdg(bulk_dual(B), bulk_dual(v)));
 
         // contractions
-        CHECK(lbulk_contract2dp(v, v2) == rwdg(bulk_dual(v), v2));
-        CHECK(lbulk_contract2dp(B, B2) == rwdg(bulk_dual(B), B2));
-        CHECK(lbulk_contract2dp(B, v) == rwdg(bulk_dual(B), v));
+        CHECK(left_bulk_contract2dp(v, v2) == rwdg(bulk_dual(v), v2));
+        CHECK(left_bulk_contract2dp(B, B2) == rwdg(bulk_dual(B), B2));
+        CHECK(left_bulk_contract2dp(B, v) == rwdg(bulk_dual(B), v));
 
-        CHECK(lweight_contract2dp(v, v2) == rwdg(weight_dual(v), v2));
-        CHECK(lweight_contract2dp(B, B2) == rwdg(weight_dual(B), B2));
-        CHECK(lweight_contract2dp(B, v) == rwdg(weight_dual(B), v));
+        CHECK(left_weight_contract2dp(v, v2) == rwdg(weight_dual(v), v2));
+        CHECK(left_weight_contract2dp(B, B2) == rwdg(weight_dual(B), B2));
+        CHECK(left_weight_contract2dp(B, v) == rwdg(weight_dual(B), v));
 
-        CHECK(rbulk_contract2dp(v, v2) == rwdg(v, bulk_dual(v2)));
-        CHECK(rbulk_contract2dp(B, B2) == rwdg(B, bulk_dual(B2)));
-        CHECK(rbulk_contract2dp(B, v) == rwdg(B, bulk_dual(v))); // contracts v onto B
+        CHECK(right_bulk_contract2dp(v, v2) == rwdg(v, bulk_dual(v2)));
+        CHECK(right_bulk_contract2dp(B, B2) == rwdg(B, bulk_dual(B2)));
+        CHECK(right_bulk_contract2dp(B, v) ==
+              rwdg(B, bulk_dual(v))); // contracts v onto B
 
-        CHECK(rweight_contract2dp(v, v2) == rwdg(v, weight_dual(v2)));
-        CHECK(rweight_contract2dp(B, B2) == rwdg(B, weight_dual(B2)));
-        CHECK(rweight_contract2dp(B, v) == rwdg(B, weight_dual(v)));
+        CHECK(right_weight_contract2dp(v, v2) == rwdg(v, weight_dual(v2)));
+        CHECK(right_weight_contract2dp(B, B2) == rwdg(B, weight_dual(B2)));
+        CHECK(right_weight_contract2dp(B, v) == rwdg(B, weight_dual(v)));
 
         // expansions
-        CHECK(lweight_expansion2dp(v, v2) == wdg(weight_dual(v), v2));
-        CHECK(lweight_expansion2dp(B, B2) == wdg(weight_dual(B), B2));
-        CHECK(lweight_expansion2dp(v, B) == wdg(weight_dual(v), B));
+        CHECK(left_weight_expand2dp(v, v2) == wdg(weight_dual(v), v2));
+        CHECK(left_weight_expand2dp(B, B2) == wdg(weight_dual(B), B2));
+        CHECK(left_weight_expand2dp(v, B) == wdg(weight_dual(v), B));
 
-        CHECK(lbulk_expansion2dp(v, v2) == wdg(bulk_dual(v), v2));
-        CHECK(lbulk_expansion2dp(B, B2) == wdg(bulk_dual(B), B2));
-        CHECK(lbulk_expansion2dp(v, B) == wdg(bulk_dual(v), B));
+        CHECK(left_bulk_expand2dp(v, v2) == wdg(bulk_dual(v), v2));
+        CHECK(left_bulk_expand2dp(B, B2) == wdg(bulk_dual(B), B2));
+        CHECK(left_bulk_expand2dp(v, B) == wdg(bulk_dual(v), B));
 
-        CHECK(rweight_expansion2dp(v, v2) == wdg(v, weight_dual(v2)));
-        CHECK(rweight_expansion2dp(B, B2) == wdg(B, weight_dual(B2)));
-        CHECK(rweight_expansion2dp(v, B) == wdg(v, weight_dual(B)));
+        CHECK(right_weight_expand2dp(v, v2) == wdg(v, weight_dual(v2)));
+        CHECK(right_weight_expand2dp(B, B2) == wdg(B, weight_dual(B2)));
+        CHECK(right_weight_expand2dp(v, B) == wdg(v, weight_dual(B)));
 
-        CHECK(rbulk_expansion2dp(v, v2) == wdg(v, bulk_dual(v2)));
-        CHECK(rbulk_expansion2dp(B, B2) == wdg(B, bulk_dual(B2)));
-        CHECK(rbulk_expansion2dp(v, B) == wdg(v, bulk_dual(B)));
+        CHECK(right_bulk_expand2dp(v, v2) == wdg(v, bulk_dual(v2)));
+        CHECK(right_bulk_expand2dp(B, B2) == wdg(B, bulk_dual(B2)));
+        CHECK(right_bulk_expand2dp(v, B) == wdg(v, bulk_dual(B)));
     }
 
     TEST_CASE("Vec2dp: operations - angle I")
@@ -2361,8 +2362,8 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("");
 
         // connection between contraction and regressive wedge with dualized args
-        lbulk_contract2dp(M1, M2) = rwdg(cmpl(M1), M2);
-        rbulk_contract2dp(M1, M2) = rwdg(M1, cmpl(M2));
+        left_bulk_contract2dp(M1, M2) = rwdg(cmpl(M1), M2);
+        right_bulk_contract2dp(M1, M2) = rwdg(M1, cmpl(M2));
     }
 
     TEST_CASE("MVec2dp: join and meet (wdg, rwdg)")

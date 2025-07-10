@@ -174,24 +174,24 @@ $arg$:
     \item regressive geometric product: $a \veedot b$, \path{rgpr(a,b)}
     
     \item left (bulk) contraction: $a \lcontr B = a \ll B = a_{\star} \vee B $,
-    \path{operator<<(a,B)}, \path{lbulk_contract(a,B)}  
+    \path{operator<<(a,B)}, which implements \path{left_bulk_contract(a,B)}  
     \item right (bulk) contraction: $B \rcontr a = B \gg a = B \vee a^{\star} $,
-    \path{operator>>(B,a)}, \path{rbulk_contract(B,a)}
+    \path{operator>>(B,a)}, which implements \path{right_bulk_contract(B,a)}
 
     \item left weight contraction: $a_{\smallstar} \vee B $,
-    \path{lweight_contract(a,B)} 
+    \path{left_weight_contract(a,B)} 
     \item right weight contraction: $B \vee a^{\smallstar} $,
-    \path{rweight_contract(B,a)} 
+    \path{right_weight_contract(B,a)} 
 
     \item left bulk expansion: $A_{\star} \wedge b $,
-    \path{lbulk_expand(A,b)} 
+    \path{left_bulk_expand(A,b)} 
     \item right bulk expansion: $a \wedge B^{\star} $,
-    \path{rbulk_expand(a,B)} 
+    \path{right_bulk_expand(a,B)} 
 
     \item left weight expansion: $A_{\smallstar} \wedge b $,
-    \path{lweight_expand(A,b)} 
+    \path{left_weight_expand(A,b)} 
     \item right bulk expansion: $a \wedge B^{\smallstar} $,
-    \path{rweight_expand(a,B)} 
+    \path{right_weight_expand(a,B)} 
 \end{itemize}
 where the items from the left contraction downwards are all considered interior products.
 They operate on subspaces after applying a dualization operation to one operand. \\
