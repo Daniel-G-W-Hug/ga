@@ -195,37 +195,38 @@ ProductConfig get_pga2dp_rgpr_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_pga2dp_rbulk_contract_config()
+ProductConfig get_pga2dp_right_bulk_contract_config()
 {
     return {
-        .product_name = "rbulk_contract",
+        .product_name = "right_bulk_contract",
         .description = "pga2dp right bulk contraction",
         .display_name = "right bulk contraction",
-        .cases = {{"rbulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                  {"rbulk_contract(ps,ps) -> 0", "svBps1", "svBps2", "ps", "ps"},
-                  {"rbulk_contract(ps,bivec) -> vec", "svBps", "svBps", "ps", "bivec"},
-                  {"rbulk_contract(bivec,ps) -> 0", "svBps", "svBps", "bivec", "ps"},
-                  {"rbulk_contract(vec,ps) -> 0", "svBps", "svBps", "vec", "ps"},
-                  {"rbulk_contract(ps,s) -> ps", "svBps", "svBps", "ps", "s"},
-                  {"rbulk_contract(s,ps) -> 0", "svBps", "svBps", "s", "ps"},
-                  {"rbulk_contract(bivec,bivec) -> s", "svBps1", "svBps2", "bivec",
-                   "bivec"},
-                  {"rbulk_contract(bivec,vec) -> vec", "svBps", "svBps", "bivec", "vec"},
-                  {"rbulk_contract(vec,bivec) -> 0", "svBps", "svBps", "vec", "bivec"},
-                  {"rbulk_contract(bivec,s) -> bivec", "svBps", "svBps", "bivec", "s"},
-                  {"rbulk_contract(s,bivec) -> 0", "svBps", "svBps", "s", "bivec"},
-                  {"rbulk_contract(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
-                  {"rbulk_contract(vec,s) -> vec", "svBps", "svBps", "vec", "s"},
-                  {"rbulk_contract(s,vec) -> 0", "svBps", "svBps", "s", "vec"},
-                  {"rbulk_contract(s,s) -> s", "svBps1", "svBps2", "s", "s"}},
+        .cases =
+            {{"right_bulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             {"right_bulk_contract(ps,ps) -> 0", "svBps1", "svBps2", "ps", "ps"},
+             {"right_bulk_contract(ps,bivec) -> vec", "svBps", "svBps", "ps", "bivec"},
+             {"right_bulk_contract(bivec,ps) -> 0", "svBps", "svBps", "bivec", "ps"},
+             {"right_bulk_contract(vec,ps) -> 0", "svBps", "svBps", "vec", "ps"},
+             {"right_bulk_contract(ps,s) -> ps", "svBps", "svBps", "ps", "s"},
+             {"right_bulk_contract(s,ps) -> 0", "svBps", "svBps", "s", "ps"},
+             {"right_bulk_contract(bivec,bivec) -> s", "svBps1", "svBps2", "bivec",
+              "bivec"},
+             {"right_bulk_contract(bivec,vec) -> vec", "svBps", "svBps", "bivec", "vec"},
+             {"right_bulk_contract(vec,bivec) -> 0", "svBps", "svBps", "vec", "bivec"},
+             {"right_bulk_contract(bivec,s) -> bivec", "svBps", "svBps", "bivec", "s"},
+             {"right_bulk_contract(s,bivec) -> 0", "svBps", "svBps", "s", "bivec"},
+             {"right_bulk_contract(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
+             {"right_bulk_contract(vec,s) -> vec", "svBps", "svBps", "vec", "s"},
+             {"right_bulk_contract(s,vec) -> 0", "svBps", "svBps", "s", "vec"},
+             {"right_bulk_contract(s,s) -> s", "svBps1", "svBps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
 }
 
-ProductConfig get_pga2dp_rweight_contract_config()
+ProductConfig get_pga2dp_right_weight_contract_config()
 {
-    return {.product_name = "rweight_contract",
+    return {.product_name = "right_weight_contract",
             .description = "pga2dp right weight contraction",
             .display_name = "right weight contraction",
             .cases = {},
@@ -234,38 +235,39 @@ ProductConfig get_pga2dp_rweight_contract_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_pga2dp_lbulk_contract_config()
+ProductConfig get_pga2dp_left_bulk_contract_config()
 {
     return {
-        .product_name = "lbulk_contract",
+        .product_name = "left_bulk_contract",
         .description = "pga2dp left bulk contraction",
         .display_name = "left bulk contraction",
-        .cases = {{"lbulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                  {"lbulk_contract(ps,ps) -> 0", "svBps1", "svBps2", "ps", "ps"},
-                  {"lbulk_contract(ps,bivec) -> 0", "svBps", "svBps", "ps", "bivec"},
-                  {"lbulk_contract(bivec,ps) -> vec", "svBps", "svBps", "bivec", "ps"},
-                  {"lbulk_contract(ps,vec) -> 0", "svBps", "svBps", "ps", "vec"},
-                  {"lbulk_contract(vec,ps) -> bivec", "svBps", "svBps", "vec", "ps"},
-                  {"lbulk_contract(ps,s) -> 0", "svBps", "svBps", "ps", "s"},
-                  {"lbulk_contract(s,ps) -> ps", "svBps", "svBps", "s", "ps"},
-                  {"lbulk_contract(bivec,bivec) -> s", "svBps1", "svBps2", "bivec",
-                   "bivec"},
-                  {"lbulk_contract(bivec,vec) -> 0", "svBps", "svBps", "bivec", "vec"},
-                  {"lbulk_contract(vec,bivec) -> vec", "svBps", "svBps", "vec", "bivec"},
-                  {"lbulk_contract(bivec,s) -> 0", "svBps", "svBps", "bivec", "s"},
-                  {"lbulk_contract(s,bivec) -> bivec", "svBps", "svBps", "s", "bivec"},
-                  {"lbulk_contract(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
-                  {"lbulk_contract(vec,s) -> 0", "svBps", "svBps", "vec", "s"},
-                  {"lbulk_contract(s,vec) -> vec", "svBps", "svBps", "s", "vec"},
-                  {"lbulk_contract(s,s) -> s", "svBps1", "svBps2", "s", "s"}},
+        .cases =
+            {{"left_bulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             {"left_bulk_contract(ps,ps) -> 0", "svBps1", "svBps2", "ps", "ps"},
+             {"left_bulk_contract(ps,bivec) -> 0", "svBps", "svBps", "ps", "bivec"},
+             {"left_bulk_contract(bivec,ps) -> vec", "svBps", "svBps", "bivec", "ps"},
+             {"left_bulk_contract(ps,vec) -> 0", "svBps", "svBps", "ps", "vec"},
+             {"left_bulk_contract(vec,ps) -> bivec", "svBps", "svBps", "vec", "ps"},
+             {"left_bulk_contract(ps,s) -> 0", "svBps", "svBps", "ps", "s"},
+             {"left_bulk_contract(s,ps) -> ps", "svBps", "svBps", "s", "ps"},
+             {"left_bulk_contract(bivec,bivec) -> s", "svBps1", "svBps2", "bivec",
+              "bivec"},
+             {"left_bulk_contract(bivec,vec) -> 0", "svBps", "svBps", "bivec", "vec"},
+             {"left_bulk_contract(vec,bivec) -> vec", "svBps", "svBps", "vec", "bivec"},
+             {"left_bulk_contract(bivec,s) -> 0", "svBps", "svBps", "bivec", "s"},
+             {"left_bulk_contract(s,bivec) -> bivec", "svBps", "svBps", "s", "bivec"},
+             {"left_bulk_contract(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
+             {"left_bulk_contract(vec,s) -> 0", "svBps", "svBps", "vec", "s"},
+             {"left_bulk_contract(s,vec) -> vec", "svBps", "svBps", "s", "vec"},
+             {"left_bulk_contract(s,s) -> s", "svBps1", "svBps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
 }
 
-ProductConfig get_pga2dp_lweight_contract_config()
+ProductConfig get_pga2dp_left_weight_contract_config()
 {
-    return {.product_name = "lweight_contract",
+    return {.product_name = "left_weight_contract",
             .description = "pga2dp left weight contraction",
             .display_name = "left weight contraction",
             .cases = {},
@@ -274,9 +276,9 @@ ProductConfig get_pga2dp_lweight_contract_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_pga2dp_rbulk_expand_config()
+ProductConfig get_pga2dp_right_bulk_expand_config()
 {
-    return {.product_name = "rbulk_expand",
+    return {.product_name = "right_bulk_expand",
             .description = "pga2dp right bulk expansion",
             .display_name = "right bulk expansion",
             .cases = {},
@@ -285,9 +287,9 @@ ProductConfig get_pga2dp_rbulk_expand_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_pga2dp_rweight_expand_config()
+ProductConfig get_pga2dp_right_weight_expand_config()
 {
-    return {.product_name = "rweight_expand",
+    return {.product_name = "right_weight_expand",
             .description = "pga2dp right weight expansion",
             .display_name = "right weight expansion",
             .cases = {},
@@ -296,9 +298,9 @@ ProductConfig get_pga2dp_rweight_expand_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_pga2dp_lbulk_expand_config()
+ProductConfig get_pga2dp_left_bulk_expand_config()
 {
-    return {.product_name = "lbulk_expand",
+    return {.product_name = "left_bulk_expand",
             .description = "pga2dp left bulk expansion",
             .display_name = "left bulk expansion",
             .cases = {},
@@ -307,9 +309,9 @@ ProductConfig get_pga2dp_lbulk_expand_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_pga2dp_lweight_expand_config()
+ProductConfig get_pga2dp_left_weight_expand_config()
 {
-    return {.product_name = "lweight_expand",
+    return {.product_name = "left_weight_expand",
             .description = "pga2dp left weight expansion",
             .display_name = "left weight expansion",
             .cases = {},
