@@ -22,7 +22,7 @@
 #include "ga_usr_types.hpp" // Contains 3D type aliases like scalar3d, vec3d, etc.
 #include "ga_usr_utilities.hpp"
 
-// 3D EGA operations
+// ega3d operations (includes basics and products)
 #include "ga_ega3d_ops.hpp"
 
 // Optional: Formatting support (can be omitted for faster compilation)

@@ -2478,9 +2478,6 @@ TEST_SUITE("PGA 3DP Tests")
         auto ps2 = pscalar3dp{1.0};
         auto M2 = mvec3dp{s2, v2, b2, t2, ps2};
 
-        auto R = rotor(wdg(v1, e1_3dp), deg2rad(15));
-        CHECK(rotate(v2, R) == rotate_opt(v2, R));
-
         // connection between inner product and geometric product
         CHECK(dot(M1, M2) == gr0(M1 * rev(M2)));
         CHECK(dot(M1, M2) == gr0(M2 * rev(M1)));

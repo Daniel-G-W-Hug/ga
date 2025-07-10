@@ -2,23 +2,396 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "type_t/ga_type2dp.hpp"
+#include "detail/ga_foundation.hpp"     // ga library headers and infrastructure
+#include "detail/type_t/ga_mvec2dp.hpp" // 2dp multivector types
+#include "detail/type_t/ga_type2dp.hpp" // Point2dp, Vector2d, Point2d, Line2d
 
-#include "ga_error_handling.hpp"
+#include "detail/ga_error_handling.hpp"
+
 
 namespace hd::ga::pga {
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// define pga2dp specific functions and special geometric object alias definitions:
+// provides pga2dp basic operations:
 //
-// - bulk(), weight()           - return bulk and weight parts of objects
-// - bulk_nrm_sq, bulk_nrm      - return bulk norm
-// - weight_nrm_sq, weight_nrm  - return weight norm
-// - geom_nrm_sq, geom_nrm      - return geometric norm
-// - unitization                - return unitized object (weight_nrm scaled to 1.0)
-// - bulk_dual, weight_dual     - return dual of respective part of object
-// - att                        - return object attitude
+// - gr_inv()                     -> grade inversion
+// - rev()                        -> reversion
+// - rrev()                       -> regressive reversion
+// - conj()                       -> conjugation
+// - cmpl()                       -> complement
+// - dual()                       -> dual
+//
+// - bulk(), weight()             -> return bulk and weight parts of objects
+// - bulk_nrm_sq, bulk_nrm        -> return bulk norm
+// - weight_nrm_sq, weight_nrm    -> return weight norm
+// - geom_nrm_sq, geom_nrm        -> return geometric norm
+// - unitization                  -> return unitized object (weight_nrm scaled to 1.0)
+//
+// - bulk_dual                    -> return bulk dual
+// - weight_dual                  -> return weight dual
+//
 /////////////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////
+// grade inversion operation: reverse the sign of odd blades
+// gr_inv(A_r) = (-1)^r A_r
+// pattern for k = 0, 1, 2, 3, ...: + - + - + - ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> gr_inv(Scalar2dp<T> s)
+{
+    // grade 0: no sign change
+    return s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> gr_inv(Vec2dp<T> const& v)
+{
+    // grade 1: sign reversal
+    return -v;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> gr_inv(BiVec2dp<T> const& B)
+{
+    // grade 2: no sign change
+    return B;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> gr_inv(PScalar2dp<T> ps)
+{
+    // grade 3: sign reversal
+    return -ps;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> gr_inv(MVec2dp_E<T> const& M)
+{
+    // grade 0 and 2: no sign change
+    return M;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> gr_inv(MVec2dp_U<T> const& M)
+{
+    // grade 1 and 3: sign reversal
+    return -M;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> gr_inv(MVec2dp<T> const& M)
+{
+    // grade 0 and 2: no sign change
+    // grade 1 and 3: sign reversal
+    return MVec2dp<T>(gr_inv(gr0(M)), gr_inv(gr1(M)), gr_inv(gr2(M)), gr_inv(gr3(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// reversion operation: reverses the factors in a blade
+// rev(A_r) = (-1)^(r*(r-1)/2) A_r
+// pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> rev(Scalar2dp<T> s)
+{
+    // grade 0: no sign change
+    return s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> rev(Vec2dp<T> const& v)
+{
+    // grade 1: no sign change
+    return v;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> rev(BiVec2dp<T> const& B)
+{
+    // grade 2: sign reversal
+    return -B;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> rev(PScalar2dp<T> ps)
+{
+    // grade 3: sign reversal
+    return -ps;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> rev(MVec2dp_E<T> const& M)
+{
+    // grade 0: no sign change
+    // grade 2: sign change
+    return MVec2dp_E<T>(rev(gr0(M)), rev(gr2(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> rev(MVec2dp_U<T> const& M)
+{
+    // grade 1: no sign change
+    // grade 3: sign change
+    return MVec2dp_U<T>(rev(gr1(M)), rev(gr3(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> rev(MVec2dp<T> const& M)
+{
+    // grade 0: no sign change
+    // grade 1: no sign change
+    // grade 2: sign change
+    // grade 3: sign change
+    return MVec2dp<T>(rev(gr0(M)), rev(gr1(M)), rev(gr2(M)), rev(gr3(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// regressive reversion operation: reverse applied to the complement + backtrafo
+// rrev(A_r) = cmpl((-1)^(r*(r-1)/2) cmpl(A_r)) = (-1)^((n-r)*((n-r)-1)/2) A_r
+// pattern for n=3, r = 0, 1, 2, 3, ...: - - + + - - ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> rrev(Scalar2dp<T> s)
+{
+    // grade 0: sign reversal
+    return -s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> rrev(Vec2dp<T> const& v)
+{
+    // grade 1: sign reversal
+    return -v;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> rrev(BiVec2dp<T> const& B)
+{
+    // grade 2: no sign change
+    return B;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> rrev(PScalar2dp<T> ps)
+{
+    // grade 3: no sign change
+    return ps;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> rrev(MVec2dp_E<T> const& M)
+{
+    // grade 0: sign reversal
+    // grade 2: no sign change
+    return MVec2dp_E<T>(rrev(gr0(M)), rrev(gr2(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> rrev(MVec2dp_U<T> const& M)
+{
+    // grade 1: sign reversal
+    // grade 3: no sign change
+    return MVec2dp_U<T>(rrev(gr1(M)), rrev(gr3(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> rrev(MVec2dp<T> const& M)
+{
+    // grade 0: sign reversal
+    // grade 1: sign reversal
+    // grade 2: no sign change
+    // grade 3: no sign change
+    return MVec2dp<T>(rrev(gr0(M)), rrev(gr1(M)), rrev(gr2(M)), rrev(gr3(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Clifford conjugation:
+// conj(A_r) = (-1)^(r*(r+1)/2) A_r
+// pattern for k = 0, 1, 2, 3, ...: + - - + + - - + + ...
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> conj(Scalar2dp<T> s)
+{
+    // grade 0: no sign change
+    return s;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> conj(Vec2dp<T> const& v)
+{
+    // grade 1: sign reversal
+    return -v;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> conj(BiVec2dp<T> const& B)
+{
+    // grade 2: sign reversal
+    return -B;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> conj(PScalar2dp<T> ps)
+{
+    // grade 3: no sign change
+    return ps;
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> conj(MVec2dp_E<T> const& M)
+{
+    // grade 0: no sign change
+    // grade 2: sign change
+    return MVec2dp_E<T>(conj(gr0(M)), conj(gr2(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> conj(MVec2dp_U<T> const& M)
+{
+    // grade 1: sign reversal
+    // grade 3: no sign change
+    return MVec2dp_U<T>(conj(gr1(M)), conj(gr3(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
+{
+    // grade 0: no sign change
+    // grade 1: sign reversal
+    // grade 2: sign reversal
+    // grade 3: no sign change
+    return MVec2dp<T>(conj(gr0(M)), conj(gr1(M)), conj(gr2(M)), conj(gr3(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// 2dp complement operations
+// (the concept of complement is defined w.r.t. the outer product)
+////////////////////////////////////////////////////////////////////////////////
+
+// if M represents the subspace B of the blade u as subspace of R^2 then
+// compl(M) represents the subspace orthorgonal to B
+// the complement exchanges basis vectors which are in the k-blade u with
+// the basis vectors which are NOT contained in the k-blade u
+// and are needed to fill the space completely to the corresponding pseudoscalar
+//
+// left complement:  lcmpl(u) ^ u  = I_2dp = e1^e2^e3
+// right complement: u ^ rcmpl(u)  = I_2dp = e1^e2^e3
+//
+// in spaces of odd dimension right and left complements are identical and thus there
+// is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
+//
+// in spaces of even dimension and when the grade of the k-vector is odd left and right
+// comploments have different signs
+
+// complement operation with e1^e2^e3 as the pseudoscalar
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
+{
+    // u ^ cmpl(u) = e3^e2^e1
+    // u = 1:
+    //     1 ^ cmpl(u) = e2^e2^e1 => cmpl(u) = s e3^e2^e1
+    return PScalar2dp<T>(T(s));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr BiVec2dp<T> cmpl(Vec2dp<T> const& v)
+{
+    // u ^ compl(u) = e3^e2^e1
+    // u = v.x e1 + v.y e2 + v.z e3:
+    //     u ^ cmpl(u) = e3^e2^e1 =>
+    //     u = e1 => cmpl(u) = -e23
+    //     u = e2 => cmpl(u) = -e31
+    //     u = e3 => cmpl(u) = -e12
+    return BiVec2dp<T>(-v.x, -v.y, -v.z);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Vec2dp<T> cmpl(BiVec2dp<T> const& B)
+{
+    // u ^ compl(u) = e3^e2^e1
+    // u = b.x e23 + b.y e31 + b.z e12:
+    //     u ^ cmpl(u) = e3^e2^e1 =>
+    //     u = e23 => cmpl(u) = -e1
+    //     u = e31 => cmpl(u) = -e2
+    //     u = e12 => cmpl(u) = -e3
+    return Vec2dp<T>(-B.x, -B.y, -B.z);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr Scalar2dp<T> cmpl(PScalar2dp<T> ps)
+{
+    // u ^ compl(u) = e3^e2^e1
+    // u = e3^e2^e1:
+    //     e3^e2^e1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = ps 1
+    return Scalar2dp<T>(T(ps));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_U<T> cmpl(MVec2dp_E<T> const& M)
+{
+    // use the component complements directly
+    return MVec2dp_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp_E<T> cmpl(MVec2dp_U<T> const& M)
+{
+    // use the component complements directly
+    return MVec2dp_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+inline constexpr MVec2dp<T> cmpl(MVec2dp<T> const& M)
+{
+    // use the component complements directly
+    return MVec2dp<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -244,6 +617,7 @@ inline constexpr Scalar2dp<T> bulk_nrm(MVec2dp<T> const& M)
 {
     return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // weight norm
@@ -544,7 +918,6 @@ inline MVec2dp<T> unitize(MVec2dp<T> const& M)
     return inv * M;
 }
 
-
 template <typename T>
     requires std::floating_point<T>
 inline Point2dp<T> unitize(Point2dp<T> const& p)
@@ -689,49 +1062,6 @@ inline constexpr MVec2dp<T> weight_dual(MVec2dp<T> const& M)
 {
     return MVec2dp<T>(weight_dual(gr3(M)), weight_dual(gr2(M)), weight_dual(gr1(M)),
                       weight_dual(gr0(M)));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// attitude operations: att = rwdg( u, cmpl(e3_2dp) ) = rwdg(u, horizon_2dp)
-//
-// (the attitude is the intersection of the object with the horizon)
-// the result of att(object_with_grade_k) is an object with grade k-1
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> att(Vec2dp<T> const& v)
-{
-    return Scalar2dp<T>(v.z);
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> att(Point2dp<T> const& p)
-{
-    return Scalar2dp<T>(p.z);
-}
-
-// return the attitude (i.e. the direction vector) of the line
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> att(BiVec2dp<T> const& B)
-{
-    return Vec2dp<T>(B.y, -B.x, T(0.0));
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> att(Line2d<T> const& l)
-{
-    return Vec2dp<T>(l.y, -l.x, T(0.0));
-}
-
-template <typename T>
-    requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> att(PScalar2dp<T> ps)
-{
-    return BiVec2dp<T>(T(0.0), T(0.0), ps);
 }
 
 } // namespace hd::ga::pga

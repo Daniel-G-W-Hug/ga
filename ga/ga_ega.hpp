@@ -31,8 +31,8 @@
 #include "ga_usr_utilities.hpp" // helper functions
 
 // EGA-specific operations are in namespace hd::ga::ega
-#include "ga_ega2d_ops.hpp" // ega2d operations
-#include "ga_ega3d_ops.hpp" // ega3d operations
+#include "ga_ega2d_ops.hpp" // ega2d operations (includes basics and products)
+#include "ga_ega3d_ops.hpp" // ega3d operations (includes basics and products)
 
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

@@ -21,7 +21,7 @@
 #include "ga_usr_types.hpp" // Contains type aliases like scalar2d, vec2d, etc.
 #include "ga_usr_utilities.hpp"
 
-// ega2d operations
+// ega2d operations (includes basics and products)
 #include "ga_ega2d_ops.hpp"
 
 // Formatting support
