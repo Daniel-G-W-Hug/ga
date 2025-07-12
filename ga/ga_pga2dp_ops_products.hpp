@@ -14,10 +14,11 @@ namespace hd::ga::pga {
 // - rdot()                  -> regressive dot product
 // - wdg(), join()           -> wedge product (join as convenience interface)
 // - rwdg(), meet()          -> regressive wedge product (meet as convenience interface)
-// - operator<<()            -> left contraction
-// - operator>>()            -> right contraction
-// - cmt()                   -> commutator product
-// - operator*()             -> geometric product
+// - operator<<()            -> left contraction (= left bulk contraction)
+// - operator>>()            -> right contraction (= right bulk contraction)
+// - cmt()                   -> commutator product (= asymmetric part of gpr)
+// - rcmt()                  -> regressive commutator product (= asymmetric part of rgpr)
+// - operator*()             -> geometric product (=gpr())
 // - rgpr()                  -> regressive geometric product
 // - inv()                   -> inversion operation (w.r.t. geometric product)
 //
@@ -174,6 +175,33 @@ constexpr PScalar2dp<std::common_type_t<T, U>> rdot([[maybe_unused]] Scalar2dp<T
     return PScalar2dp<ctype>(0.0);
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr PScalar2dp<std::common_type_t<T, U>> rdot(MVec2dp<T> const& A,
+                                                    MVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2dp<ctype>(rdot(gr0(A), gr0(B)) + rdot(gr1(A), gr1(B)) +
+                             rdot(gr2(A), gr2(B)) + rdot(gr3(A), gr3(B)));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr PScalar2dp<std::common_type_t<T, U>> rdot(MVec2dp_E<T> const& A,
+                                                    MVec2dp_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2dp<ctype>(rdot(gr0(A), gr0(B)) + rdot(gr2(A), gr2(B)));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr PScalar2dp<std::common_type_t<T, U>> rdot(MVec2dp_U<T> const& A,
+                                                    MVec2dp_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2dp<ctype>(rdot(gr1(A), gr1(B)) + rdot(gr3(A), gr3(B)));
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // wedge products (= outer product) and join operations
@@ -973,8 +1001,7 @@ template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> cmt(BiVec2dp<T> const& B, Vec2dp<U> const& v)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(B.z * v.y, -B.z * v.x, -B.x * v.y + B.y * v.x);
+    return (v << B);
 }
 
 // cmt(v,B) = -cmt(B,v)
@@ -983,17 +1010,69 @@ template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> cmt(Vec2dp<T> const& v, BiVec2dp<U> const& B)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(-v.y * B.z, v.x * B.z, -v.x * B.y + v.y * B.x);
+    return (B >> v);
 }
 
+// cmt(v1,v2) = wdg(v1,v2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> cmt(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
+    return wdg(v1, v2);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// regressive commutator product
+// (the asymmetric part of the regressive geometric product)
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> rcmt(MVec2dp<T> const& A, MVec2dp<U> const& B)
+{
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
-                           v1.x * v2.y - v1.y * v2.x);
+    return MVec2dp<ctype>(0.0, A.c2 * B.c3 - A.c3 * B.c2 - A.c5 * B.c6 + A.c6 * B.c5,
+                          -A.c1 * B.c3 + A.c3 * B.c1 + A.c4 * B.c6 - A.c6 * B.c4,
+                          -A.c4 * B.c5 + A.c5 * B.c4, -A.c3 * B.c5 + A.c5 * B.c3,
+                          A.c3 * B.c4 - A.c4 * B.c3,
+                          A.c1 * B.c5 - A.c2 * B.c4 + A.c4 * B.c2 - A.c5 * B.c1, 0.0);
+}
+
+// rcmt(B1,B2) = rwdg(B1,B2)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rcmt(BiVec2dp<T> const& B1,
+                                                BiVec2dp<U> const& B2)
+{
+    return rwdg(B1, B2);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> rcmt(BiVec2dp<T> const& B,
+                                                  Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(B.y * v.z, -B.x * v.z, B.x * v.y - B.y * v.x);
+}
+
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> rcmt(Vec2dp<T> const& v,
+                                                  BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(-v.z * B.y, v.z * B.x, v.x * B.y - v.y * B.x);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rcmt(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x, 0.0);
 }
 
 
@@ -1653,38 +1732,34 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(MVec2dp_U<T> const& M,
                             PScalar2dp<ctype>(-M.c2 * v.z));
 }
 
+// rgpr(B1,B2) = rwdg(B1, B2) + rdot(B1, B2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(BiVec2dp<T> const& B1,
                                                    BiVec2dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_U<ctype>(Vec2dp<ctype>(-B1.y * B2.z + B1.z * B2.y,
-                                          B1.x * B2.z - B1.z * B2.x,
-                                          -B1.x * B2.y + B1.y * B2.x),
-                            PScalar2dp<ctype>(B1.x * B2.x + B1.y * B2.y));
+    return MVec2dp_U<ctype>(rwdg(B1, B2), rdot(B1, B2));
 }
 
+// rgpr(B,v) = rwdg(B, v) + rcmt(B, v)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp_E<std::common_type_t<T, U>> rgpr(BiVec2dp<T> const& B,
                                                    Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_E<ctype>(
-        Scalar2dp<ctype>(-B.x * v.x - B.y * v.y - B.z * v.z),
-        BiVec2dp<ctype>(B.y * v.z, -B.x * v.z, B.x * v.y - B.y * v.x));
+    return MVec2dp_E<ctype>(rwdg(B, v), rcmt(B, v));
 }
 
+// rgpr(v1,v2) = rcmt(v1,v2) - rdot(v1,v2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(Vec2dp<T> const& v1,
                                                    Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_U<ctype>(
-        Vec2dp<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x, ctype(0.0)),
-        PScalar2dp<ctype>(-v1.z * v2.z));
+    return MVec2dp_U<ctype>(rcmt(v1, v2), -rdot(v1, v2));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

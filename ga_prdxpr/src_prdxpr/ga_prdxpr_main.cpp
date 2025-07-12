@@ -33,7 +33,7 @@ int main()
     try {
         ConfigurableGenerator generator;
 
-        // EGA2D - All 10 products
+        // EGA2D
         {
             auto ega2d_algebra = create_ega2d_algebra_data();
             std::vector<ProductConfig> ega2d_configs = {
@@ -46,7 +46,7 @@ int main()
             generate_algebra_products(generator, ega2d_configs, ega2d_algebra, false);
         }
 
-        // EGA3D - All 10 products
+        // EGA3D
         {
             auto ega3d_algebra = create_ega3d_algebra_data();
             std::vector<ProductConfig> ega3d_configs = {
@@ -58,7 +58,7 @@ int main()
             generate_algebra_products(generator, ega3d_configs, ega3d_algebra, false);
         }
 
-        // PGA2DP - All 16 products
+        // PGA2DP
         {
             auto pga2dp_algebra = create_pga2dp_algebra_data();
             std::vector<ProductConfig> pga2dp_configs = {
@@ -69,6 +69,7 @@ int main()
                 get_pga2dp_rwdg_config(),
                 get_pga2dp_rdot_config(),
                 get_pga2dp_rgpr_config(),
+                get_pga2dp_rcmt_config(),
                 get_pga2dp_right_bulk_contract_config(),
                 get_pga2dp_right_weight_contract_config(),
                 get_pga2dp_left_bulk_contract_config(),
@@ -81,7 +82,7 @@ int main()
             generate_algebra_products(generator, pga2dp_configs, pga2dp_algebra, false);
         }
 
-        // PGA3DP - All 16 products
+        // PGA3DP
         {
             auto pga3dp_algebra = create_pga3dp_algebra_data();
             std::vector<ProductConfig> pga3dp_configs = {
@@ -92,6 +93,7 @@ int main()
                 get_pga3dp_rwdg_config(),
                 get_pga3dp_rdot_config(),
                 get_pga3dp_rgpr_config(),
+                get_pga3dp_rcmt_config(),
                 get_pga3dp_right_bulk_contract_config(),
                 get_pga3dp_right_weight_contract_config(),
                 get_pga3dp_left_bulk_contract_config(),
