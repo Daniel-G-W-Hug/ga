@@ -57,7 +57,7 @@ TEST_SUITE("PGA 2DP Application Tests")
             auto axis_fr = unitize(wdg(pfr, vec2dp(cos(phi), sin(phi), 0)));
 
             // turning center is intersection point of both axis
-            auto turn_ctr = rwdg(axis_fr, axis_r);
+            auto turn_ctr = rwdg(axis_r, axis_fr);
             // unitize to get projective point for phi != 0
             if (std::abs(turn_ctr.z) > eps) {
                 turn_ctr = unitize(turn_ctr);
@@ -67,7 +67,7 @@ TEST_SUITE("PGA 2DP Application Tests")
             auto axis_fl = unitize(wdg(turn_ctr, pfl));
 
             fmt::print("n = {:>3}", n);
-            if (phi < 0.0) {
+            if (phi <= 0.0) {
                 fmt::print(", phi_l = {:>-5.1f}°", rad2deg(angle(axis_r, axis_fl)) - 180);
             }
             else {

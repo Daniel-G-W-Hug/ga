@@ -26,10 +26,6 @@
 #include "detail/ga_mvec3dp.hpp"
 #include "detail/ga_mvec4d.hpp"
 
-// PGA geometric objects and functionalities
-#include "detail/ga_pga2dp_objects.hpp"
-#include "detail/ga_pga3dp_objects.hpp"
-
 // User convenience types and constants
 #include "ga_usr_consts.hpp"
 #include "ga_usr_types.hpp"

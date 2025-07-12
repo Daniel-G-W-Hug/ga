@@ -42,9 +42,6 @@ endif()
 
 ### Extended testing for division by zero (optional, may cost speed)
 add_definitions(-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
-
-### Print with type info for scalars, vectors, bivectors, etc.
-add_definitions(-D_HD_GA_PRINT_WITH_TYPE_INFO)
  
 add_subdirectory(ga)                     # ga library (header only)
 add_subdirectory(ga_test)                # tests for header only library
