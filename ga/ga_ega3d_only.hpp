@@ -25,11 +25,8 @@
 // ega3d operations (includes basics and products)
 #include "ga_ega3d_ops.hpp"
 
-// Optional: Formatting support (can be omitted for faster compilation)
-#ifndef _HD_GA_NO_FMT_SUPPORT
 #include "detail/fmt/ga_fmt_core.hpp"
 #include "detail/fmt/ga_fmt_ega.hpp"
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // This header provides complete 3D EGA functionality including:

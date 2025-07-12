@@ -133,27 +133,13 @@ When you need both EGA and PGA:
 #include "ga/ga_pga3dp_only.hpp"
 ```
 
-## Compile-Time Optimization Flags
-
-### Disable Formatting Support
-
-For even faster compilation, disable formatting:
-
-```cpp
-#define _HD_GA_NO_FMT_SUPPORT  // Must be defined before includes
-#include "ga/ga_ega2d_only.hpp"
-```
-
 ### CMake Integration
 
 ```cmake
-# For fastest compilation in release builds
-target_compile_definitions(your_target PRIVATE _HD_GA_NO_FMT_SUPPORT)
 
 # For development with full debugging
 target_compile_definitions(your_target PRIVATE 
     _HD_GA_EXTENDED_TEST_DIV_BY_ZERO
-    _HD_GA_PRINT_WITH_TYPE_INFO
 )
 ```
 
@@ -167,8 +153,6 @@ target_compile_definitions(your_target PRIVATE
 ### Production Phase
 
 - Switch to selective includes for your specific use case
-- Define `_HD_GA_NO_FMT_SUPPORT` if you don't need formatting
-- Profile compilation times and adjust accordingly
 
 ### Library Development
 
@@ -208,14 +192,6 @@ target_compile_definitions(your_target PRIVATE
 // Full functionality for experimentation
 #include "ga/ga_ega.hpp" 
 #include "ga/ga_pga.hpp"
-```
-
-### Embedded Systems
-
-```cpp
-// Minimal overhead
-#define _HD_GA_NO_FMT_SUPPORT
-#include "ga/ga_ega3d_only.hpp"  // Only what you need
 ```
 
 ## Migration Guide
@@ -261,7 +237,6 @@ With single selective include:
 ### Performance Issues
 
 - **Slow compilation**: Switch to selective includes
-- **Large object files**: Define `_HD_GA_NO_FMT_SUPPORT`
 - **Template instantiation**: Use `ga_minimal.hpp` in headers
 
 ### Linking Issues

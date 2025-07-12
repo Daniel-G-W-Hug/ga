@@ -37,7 +37,6 @@ struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::Scalar_t<T, Tag>& v, FormatContext& ctx) const
     {
-#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::Scalar_t<T, Tag>,
                                      hd::ga::Scalar_t<T, hd::ga::scalar2dp_tag>>) {
             return fmt::format_to(ctx.out(), "Scalar2dp({})", nested(double(v)));
@@ -57,9 +56,6 @@ struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : nested_formatter<double> {
         else {
             return fmt::format_to(ctx.out(), "({})", nested(double(v)));
         }
-#else
-        return fmt::format_to(ctx.out(), "({})", nested(double(v)));
-#endif
     }
 };
 
@@ -73,7 +69,6 @@ struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::Vec3_t<T, Tag>& v, FormatContext& ctx) const
     {
-#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
                                      hd::ga::Vec3_t<T, hd::ga::vec2dp_tag>>) {
             return fmt::format_to(ctx.out(), "Vec2dp({}, {}, {})", nested(v.x),
@@ -88,10 +83,6 @@ struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : nested_formatter<double> {
             return fmt::format_to(ctx.out(), "({}, {}, {})", nested(v.x), nested(v.y),
                                   nested(v.z));
         }
-#else
-        return fmt::format_to(ctx.out(), "({}, {}, {})", nested(v.x), nested(v.y),
-                              nested(v.z));
-#endif
     }
 };
 
@@ -105,7 +96,6 @@ struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::Vec4_t<T, Tag>& v, FormatContext& ctx) const
     {
-#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::Vec4_t<T, Tag>,
                                      hd::ga::Vec4_t<T, hd::ga::vec3dp_tag>>) {
             return fmt::format_to(ctx.out(), "Vec3dp({}, {}, {}, {})", nested(v.x),
@@ -120,10 +110,6 @@ struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : nested_formatter<double> {
             return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.x), nested(v.y),
                                   nested(v.z), nested(v.w));
         }
-#else
-        return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.x), nested(v.y),
-                              nested(v.z), nested(v.w));
-#endif
     }
 };
 
@@ -136,15 +122,9 @@ struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::BVec6_t<T, Tag>& v, FormatContext& ctx) const
     {
-#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         return fmt::format_to(ctx.out(), "BiVec3dp({}, {}, {}, {}, {}, {})", nested(v.vx),
                               nested(v.vy), nested(v.vz), nested(v.mx), nested(v.my),
                               nested(v.mz));
-#else
-        return fmt::format_to(ctx.out(), "({}, {}, {}, {}, {}, {})", nested(v.vx),
-                              nested(v.vy), nested(v.vz), nested(v.mx), nested(v.my),
-                              nested(v.mz));
-#endif
     }
 };
 
@@ -158,7 +138,6 @@ struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::MVec2_t<T, Tag>& v, FormatContext& ctx) const
     {
-#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::MVec2_t<T, Tag>,
                                      hd::ga::MVec2_t<T, hd::ga::dual_number2dp_tag>>) {
             return fmt::format_to(ctx.out(), "DualNumber2dp({}, {})", nested(v.c0),
@@ -173,9 +152,6 @@ struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : nested_formatter<double> {
         else {
             return fmt::format_to(ctx.out(), "({}, {})", nested(v.c0), nested(v.c1));
         }
-#else
-        return fmt::format_to(ctx.out(), "({}, {})", nested(v.c0), nested(v.c1));
-#endif
     }
 };
 
@@ -189,7 +165,6 @@ struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::MVec4_t<T, Tag>& v, FormatContext& ctx) const
     {
-#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::MVec4_t<T, Tag>,
                                      hd::ga::MVec4_t<T, hd::ga::mvec2dp_e_tag>>) {
             return fmt::format_to(ctx.out(), "MVec2dp_E({}, {}, {}, {})", nested(v.c0),
@@ -204,10 +179,6 @@ struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : nested_formatter<double> {
             return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.c0),
                                   nested(v.c1), nested(v.c2), nested(v.c3));
         }
-#else
-        return fmt::format_to(ctx.out(), "({}, {}, {}, {})", nested(v.c0), nested(v.c1),
-                              nested(v.c2), nested(v.c3));
-#endif
     }
 };
 
@@ -222,7 +193,6 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::MVec8_t<T, Tag>& v, FormatContext& ctx) const
     {
-#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         if constexpr (std::is_same_v<hd::ga::MVec8_t<T, Tag>,
                                      hd::ga::MVec8_t<T, hd::ga::mvec2dp_tag>>) {
             return fmt::format_to(ctx.out(), "MVec2dp({}, {}, {}, {}, {}, {}, {}, {})",
@@ -246,11 +216,6 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : nested_formatter<double> {
                                   nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3),
                                   nested(v.c4), nested(v.c5), nested(v.c6), nested(v.c7));
         }
-#else
-        return fmt::format_to(ctx.out(), "({}, {}, {}, {}, {}, {}, {}, {})", nested(v.c0),
-                              nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
-                              nested(v.c5), nested(v.c6), nested(v.c7));
-#endif
     }
 };
 
@@ -263,7 +228,6 @@ struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : nested_formatter<double> {
     template <typename FormatContext>
     auto format(const hd::ga::MVec16_t<T, Tag>& v, FormatContext& ctx) const
     {
-#if defined(_HD_GA_PRINT_WITH_TYPE_INFO)
         return fmt::format_to(
             ctx.out(),
             "MVec3dp({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
@@ -271,14 +235,6 @@ struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : nested_formatter<double> {
             nested(v.c5), nested(v.c6), nested(v.c7), nested(v.c8), nested(v.c9),
             nested(v.c10), nested(v.c11), nested(v.c12), nested(v.c13), nested(v.c14),
             nested(v.c15));
-#else
-        return fmt::format_to(
-            ctx.out(), "({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
-            nested(v.c0), nested(v.c1), nested(v.c2), nested(v.c3), nested(v.c4),
-            nested(v.c5), nested(v.c6), nested(v.c7), nested(v.c8), nested(v.c9),
-            nested(v.c10), nested(v.c11), nested(v.c12), nested(v.c13), nested(v.c14),
-            nested(v.c15));
-#endif
     }
 };
 

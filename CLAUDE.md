@@ -126,7 +126,7 @@ Install on macOS: `brew install fmt doctest qt6 lua`
 
 ### Development Notes
 
-- Compiler definitions: `-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO` (extended testing), `-D_HD_GA_PRINT_WITH_TYPE_INFO` (verbose printing)
+- Compiler definitions: `-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO` (extended testing), `-D_HD_GA_HAVE_READLINE`(readline support)
 - The library supports switching between debug/release builds via CMAKE_BUILD_TYPE
 - MSVC uses `/bigobj` flag due to template instantiation complexity
 - Additional compiler definitions start with `_HD_GA_` in order to be consistent
@@ -156,7 +156,7 @@ The `ga_prdxpr/` directory contains a sophisticated **code generator** that prod
 
 ### Critical Mathematical Patterns
 
-**Complement Transformations:**
+**Complement Transformations for regressive products:**
 
 - for odd dimensinal algebras ega3d, pga2dp: `cmpl(operation(cmpl(A), cmpl(B)))`
 - for even dimensinal algebras ega2d, pga3dp: `lcmpl(operation(rcmpl(A), rcmpl(B)))`
