@@ -731,7 +731,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> operator<<(TriVec3dp<T> const& t,
                                                       PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(0.0, 0.0, 0.0, t.w) * ctype(ps);
+    return Vec3dp<ctype>(0.0, 0.0, 0.0, t.w * ctype(ps));
 }
 
 template <typename T, typename U>
@@ -793,8 +793,7 @@ template <typename T, typename U>
 constexpr Scalar3dp<std::common_type_t<T, U>> operator<<(TriVec3dp<T> const& t1,
                                                          TriVec3dp<U> const& t2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3dp<ctype>(t1.w * t2.w);
+    return dot(t1, t2);
 }
 
 template <typename T, typename U>
@@ -858,8 +857,7 @@ template <typename T, typename U>
 constexpr Scalar3dp<std::common_type_t<T, U>> operator<<(BiVec3dp<T> const& B1,
                                                          BiVec3dp<U> const& B2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3dp<ctype>(B1.mx * B2.mx + B1.my * B2.my + B1.mz * B2.mz);
+    return dot(B1, B2);
 }
 
 template <typename T, typename U>
@@ -905,8 +903,7 @@ template <typename T, typename U>
 constexpr Scalar3dp<std::common_type_t<T, U>> operator<<(Vec3dp<T> const& v1,
                                                          Vec3dp<U> const& v2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3dp<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
+    return dot(v1, v2);
 }
 
 template <typename T, typename U>
@@ -988,7 +985,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> operator>>(PScalar3dp<T> ps,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * Vec3dp<ctype>(0.0, 0.0, 0.0, -t.w);
+    return Vec3dp<ctype>(0.0, 0.0, 0.0, -ctype(ps) * t.w);
 }
 
 template <typename T, typename U>
@@ -1059,8 +1056,7 @@ template <typename T, typename U>
 constexpr Scalar3dp<std::common_type_t<T, U>> operator>>(TriVec3dp<T> const& t1,
                                                          TriVec3dp<U> const& t2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3dp<ctype>(t1.w * t2.w);
+    return dot(t1, t2);
 }
 
 template <typename T, typename U>
@@ -1124,8 +1120,7 @@ template <typename T, typename U>
 constexpr Scalar3dp<std::common_type_t<T, U>> operator>>(BiVec3dp<T> const& B1,
                                                          BiVec3dp<U> const& B2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3dp<ctype>(B1.mx * B2.mx + B1.my * B2.my + B1.mz * B2.mz);
+    return dot(B1, B2);
 }
 
 // identical to cmt(v,B)
@@ -1171,8 +1166,7 @@ template <typename T, typename U>
 constexpr Scalar3dp<std::common_type_t<T, U>> operator>>(Vec3dp<T> const& v1,
                                                          Vec3dp<U> const& v2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3dp<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
+    return dot(v1, v2);
 }
 
 template <typename T, typename U>
@@ -1286,20 +1280,16 @@ template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> cmt(BiVec3dp<T> const& B, Vec3dp<U> const& v)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(-B.my * v.z + B.mz * v.y, B.mx * v.z - B.mz * v.x,
-                         -B.mx * v.y + B.my * v.x, B.vx * v.x + B.vy * v.y + B.vz * v.z);
+    return (v << B);
 }
 
 // cmt(v,B) = -cmt(B,v)
-// identcial to (B >> v)
+// identical to (B >> v)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> cmt(Vec3dp<T> const& v, BiVec3dp<U> const& B)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(-v.y * B.mz + v.z * B.my, v.x * B.mz - v.z * B.mx,
-                         -v.x * B.my + v.y * B.mx, -v.x * B.vx - v.y * B.vy - v.z * B.vz);
+    return (B >> v);
 }
 
 template <typename T, typename U>

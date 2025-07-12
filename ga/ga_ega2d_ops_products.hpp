@@ -673,8 +673,7 @@ template <typename T, typename U>
 constexpr Scalar2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v1,
                                                         Vec2d<U> const& v2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(v1.x * v2.x + v1.y * v2.y);
+    return dot(v1, v2);
 }
 
 // left contraction - vector contracted onto scalar
@@ -953,8 +952,7 @@ template <typename T, typename U>
 constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v1,
                                                         Vec2d<U> const& v2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(v1.x * v2.x + v1.y * v2.y);
+    return dot(v1, v2);
 }
 
 // right contraction (v >> s) - vector v contracted by scalar s

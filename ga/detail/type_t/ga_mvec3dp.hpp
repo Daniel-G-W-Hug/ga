@@ -191,8 +191,8 @@ template <typename T, typename U>
 constexpr MVec3dp<std::common_type_t<T, U>> operator+(Scalar3dp<T> s, Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, v, BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(s, v, BiVec3dp<ctype>{}, TriVec3dp<ctype>{},
+                          PScalar3dp<ctype>{});
 }
 
 // vector + scalar
@@ -201,8 +201,8 @@ template <typename T, typename U>
 constexpr MVec3dp<std::common_type_t<T, U>> operator+(Vec3dp<T> const& v, Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, v, BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(s, v, BiVec3dp<ctype>{}, TriVec3dp<ctype>{},
+                          PScalar3dp<ctype>{});
 }
 
 // scalar + trivector
@@ -212,9 +212,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(Scalar3dp<T> s,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), t,
-                          PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t, PScalar3dp<ctype>{});
 }
 
 // trivector + scalar
@@ -224,9 +222,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(TriVec3dp<T> const& t,
                                                       Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), t,
-                          PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t, PScalar3dp<ctype>{});
 }
 
 // scalar + pseudoscalar
@@ -235,9 +231,7 @@ template <typename T, typename U>
 constexpr MVec3dp<std::common_type_t<T, U>> operator+(Scalar3dp<T> s, PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), ps);
+    return MVec3dp<ctype>(s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, TriVec3dp<ctype>{}, ps);
 }
 
 // pseudoscalar + scalar
@@ -246,9 +240,7 @@ template <typename T, typename U>
 constexpr MVec3dp<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps, Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), ps);
+    return MVec3dp<ctype>(s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, TriVec3dp<ctype>{}, ps);
 }
 
 // vector + bivector
@@ -258,8 +250,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(Vec3dp<T> const& v,
                                                       BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), v, B,
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, v, B, TriVec3dp<ctype>{},
+                          PScalar3dp<ctype>{});
 }
 
 // bivector + vector
@@ -269,8 +261,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
                                                       Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), v, B,
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, v, B, TriVec3dp<ctype>{},
+                          PScalar3dp<ctype>{});
 }
 
 // vector + pseudoscalar
@@ -280,9 +272,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(Vec3dp<T> const& v,
                                                       PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), v,
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), ps);
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, v, BiVec3dp<ctype>{}, TriVec3dp<ctype>{},
+                          ps);
 }
 
 // pseudoscalar + vector
@@ -292,9 +283,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps,
                                                       Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), v,
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), ps);
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, v, BiVec3dp<ctype>{}, TriVec3dp<ctype>{},
+                          ps);
 }
 
 // bivector + trivector
@@ -304,8 +294,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0), B, t,
-                          PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, Vec3dp<ctype>{}, B, t, PScalar3dp<ctype>{});
 }
 
 // trivector + bivector
@@ -315,8 +304,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(TriVec3dp<T> const& t,
                                                       BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0), B, t,
-                          PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, Vec3dp<ctype>{}, B, t, PScalar3dp<ctype>{});
 }
 
 // pseudoscalar + trivector
@@ -326,8 +314,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), t, ps);
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t, ps);
 }
 
 // trivector + pseudoscalar
@@ -337,11 +324,10 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(TriVec3dp<T> const& t,
                                                       PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), t, ps);
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t, ps);
 }
 
-// mulitivector + scalar
+// multivector + scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp<T> const& M, Scalar3dp<U> s)
@@ -350,7 +336,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp<T> const& M, Scala
     return MVec3dp<ctype>(gr0(M) + s, gr1(M), gr2(M), gr3(M), gr4(M));
 }
 
-// mulitivector + vector
+// multivector + vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp<T> const& M,
@@ -360,7 +346,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp<T> const& M,
     return MVec3dp<ctype>(gr0(M), gr1(M) + v, gr2(M), gr3(M), gr4(M));
 }
 
-// mulitivector + bivector
+// multivector + bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp<T> const& M,
@@ -370,7 +356,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp<T> const& M,
     return MVec3dp<ctype>(gr0(M), gr1(M), gr2(M) + B, gr3(M), gr4(M));
 }
 
-// mulitivector + trivector
+// multivector + trivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp<T> const& M,
@@ -380,7 +366,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp<T> const& M,
     return MVec3dp<ctype>(gr0(M), gr1(M), gr2(M), gr3(M) + t, gr4(M));
 }
 
-// mulitivector + pseudoscalar
+// multivector + pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator+(MVec3dp<T> const& M,
@@ -401,8 +387,8 @@ template <typename T, typename U>
 constexpr MVec3dp<std::common_type_t<T, U>> operator-(Scalar3dp<T> s, Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, -v, BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(s, -v, BiVec3dp<ctype>{}, TriVec3dp<ctype>{},
+                          PScalar3dp<ctype>{});
 }
 
 // vector - scalar
@@ -411,8 +397,8 @@ template <typename T, typename U>
 constexpr MVec3dp<std::common_type_t<T, U>> operator-(Vec3dp<T> const& v, Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(-s, v, BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(-s, v, BiVec3dp<ctype>{}, TriVec3dp<ctype>{},
+                          PScalar3dp<ctype>{});
 }
 
 // scalar - trivector
@@ -422,9 +408,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), -t,
-                          PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, -t, PScalar3dp<ctype>{});
 }
 
 // trivector - scalar
@@ -434,9 +418,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(TriVec3dp<T> const& t,
                                                       Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(-s, Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), t,
-                          PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(-s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t, PScalar3dp<ctype>{});
 }
 
 // scalar - pseudoscalar
@@ -445,9 +427,7 @@ template <typename T, typename U>
 constexpr MVec3dp<std::common_type_t<T, U>> operator-(Scalar3dp<T> s, PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), -ps);
+    return MVec3dp<ctype>(s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, TriVec3dp<ctype>{}, -ps);
 }
 
 // pseudoscalar - scalar
@@ -456,9 +436,7 @@ template <typename T, typename U>
 constexpr MVec3dp<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps, Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(-s, Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), ps);
+    return MVec3dp<ctype>(-s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, TriVec3dp<ctype>{}, ps);
 }
 
 // vector - bivector
@@ -468,8 +446,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(Vec3dp<T> const& v,
                                                       BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), v, -B,
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, v, -B, TriVec3dp<ctype>{},
+                          PScalar3dp<ctype>{});
 }
 
 // bivector - vector
@@ -479,8 +457,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
                                                       Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), -v, B,
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, -v, B, TriVec3dp<ctype>{},
+                          PScalar3dp<ctype>{});
 }
 
 // vector - pseudoscalar
@@ -490,9 +468,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(Vec3dp<T> const& v,
                                                       PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), v,
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), -ps);
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, v, BiVec3dp<ctype>{}, TriVec3dp<ctype>{},
+                          -ps);
 }
 
 // pseudoscalar - vector
@@ -502,9 +479,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps,
                                                       Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), -v,
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                          TriVec3dp<ctype>(0.0, 0.0, 0.0, 0.0), ps);
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, -v, BiVec3dp<ctype>{}, TriVec3dp<ctype>{},
+                          ps);
 }
 
 // bivector - trivector
@@ -514,8 +490,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0), B, -t,
-                          PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, Vec3dp<ctype>{}, B, -t,
+                          PScalar3dp<ctype>{});
 }
 
 // trivector - bivector
@@ -525,8 +501,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(TriVec3dp<T> const& t,
                                                       BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0), -B, t,
-                          PScalar3dp<ctype>(0.0));
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, Vec3dp<ctype>{}, -B, t,
+                          PScalar3dp<ctype>{});
 }
 
 // pseudoscalar - trivector
@@ -536,8 +512,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), -t, ps);
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, -t, ps);
 }
 
 // trivector - pseudoscalar
@@ -547,11 +522,10 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(TriVec3dp<T> const& t,
                                                       PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(Scalar3dp<ctype>(0.0), Vec3dp<ctype>(0.0, 0.0, 0.0, 0.0),
-                          BiVec3dp<ctype>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0), t, -ps);
+    return MVec3dp<ctype>(Scalar3dp<ctype>{}, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t, -ps);
 }
 
-// mulitivector - scalar
+// multivector - scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp<T> const& M, Scalar3dp<U> s)
@@ -560,7 +534,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp<T> const& M, Scala
     return MVec3dp<ctype>(gr0(M) - s, gr1(M), gr2(M), gr3(M), gr4(M));
 }
 
-// mulitivector - vector
+// multivector - vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp<T> const& M,
@@ -570,7 +544,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp<T> const& M,
     return MVec3dp<ctype>(gr0(M), gr1(M) - v, gr2(M), gr3(M), gr4(M));
 }
 
-// mulitivector - bivector
+// multivector - bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp<T> const& M,
@@ -580,7 +554,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp<T> const& M,
     return MVec3dp<ctype>(gr0(M), gr1(M), gr2(M) - B, gr3(M), gr4(M));
 }
 
-// mulitivector - trivector
+// multivector - trivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp<T> const& M,
@@ -590,7 +564,7 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp<T> const& M,
     return MVec3dp<ctype>(gr0(M), gr1(M), gr2(M), gr3(M) - t, gr4(M));
 }
 
-// mulitivector - pseudoscalar
+// multivector - pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator-(MVec3dp<T> const& M,

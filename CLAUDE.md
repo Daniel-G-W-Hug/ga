@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Build Directory Structure:**
 
-```
+```text
 /Users/hud3bh/prg/cpp/pj/ga/build/          # Main build directory (working directory)
 ├── ga_lua/ga_lua                           # Lua interface executable  
 ├── ga_test/ga_ega_test                     # EGA test executable
@@ -209,9 +209,9 @@ cd ga_prdxpr && ./ga_prdxpr && cd ..          # Original reference implementatio
 
 ### Common Pitfalls
 
-2. **Coefficient Mismatches**: Each ProductType needs algebra-specific coefficient analysis
-3. **Operator Precedence**: Always parenthesize left/right contractions (`<<`, `>>`) in GA expressions
-4. **Output Format**: Case descriptions must match mathematical reality exactly
+1. **Coefficient Mismatches**: Each ProductType needs algebra-specific coefficient analysis
+2. **Operator Precedence**: Always parenthesize left/right contractions (`<<`, `>>`) in GA expressions
+3. **Output Format**: Case descriptions must match mathematical reality exactly
 
 ### Key Files for Modifications
 
