@@ -1,5 +1,82 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
+/*
+ * CASE DESCRIPTION FORMAT GUIDE
+ * =============================
+ *
+ * Each ProductConfig contains a .cases array with mathematical operation descriptions.
+ * Cases define which coefficient combinations and type filters to use for code
+ * generation.
+ *
+ * STANDARD FORMAT (5 parameters):
+ * {"case_name", "left_coeff", "right_coeff", "left_filter", "right_filter"}
+ *
+ * SANDWICH FORMAT (7 parameters):
+ * {"case_name", "left_coeff", "right_coeff", "left_filter", "right_filter", is_two_step,
+ * "intermediate_name"}
+ *
+ * PARAMETER DESCRIPTIONS:
+ * ----------------------
+ * 1. case_name:         Mathematical operation description
+ *    Examples: "mv * mv -> mv", "vec ^ s -> vec", "dot(bivec,bivec) -> s"
+ *    Format: "left_type OPERATOR right_type -> result_type"
+ *    Special: Use function notation for non-infix operators: "dot(A,B) -> result"
+ *
+ * 2. left_coeff_name:   Coefficient name for left operand (see COEFFICIENT SYSTEM below)
+ * 3. right_coeff_name:  Coefficient name for right operand (see COEFFICIENT SYSTEM below)
+ * 4. left_filter_name:  Type filter for left operand (see AVAILABLE FILTERS below)
+ * 5. right_filter_name: Type filter for right operand (see AVAILABLE FILTERS below)
+ *
+ * SANDWICH PRODUCTS (7 parameters):
+ * 6. is_two_step:       Always true for sandwich products
+ * 7. intermediate_name: Name for intermediate result (e.g., "vec_tmp")
+ *
+ * COEFFICIENT SYSTEM LINKAGE:
+ * ---------------------------
+ * Coefficient names in config files map to mvec_coeff definitions in corresponding header
+ * files. The mapping is established in create_[algebra]_algebra_data() via
+ * AlgebraData.coefficients:
+ *
+ * Config Name -> Header Definition:
+ * "A"         -> mv2d_coeff_A / mv2dp_coeff_A / mv3d_coeff_A / mv3dp_coeff_A
+ * "B"         -> mv2d_coeff_B / mv2dp_coeff_B / mv3d_coeff_B / mv3dp_coeff_B
+ * "A_even"    -> mv2d_coeff_A_even / mv2dp_coeff_A_even / etc.
+ * "R_even"    -> mv2d_coeff_R_even / mv2dp_coeff_R_even / etc.
+ * "svps"      -> mv2d_coeff_svps (EGA2D/3D naming)
+ * "svBps"     -> mv2dp_coeff_svBps (PGA2DP/3DP naming)
+ *
+ * Each mvec_coeff contains component strings matching the algebra's basis:
+ * - EGA2D: {"1", "e1", "e2", "e12"} -> {"A.c0", "A.c1", "A.c2", "A.c3"}
+ * - PGA3DP: {"1", "e1", "e2", "e3", "e01", "e02", "e03", "e23", "e31", "e12", "e032",
+ * "e013", "e021", "e123", "e0123"} -> {"A.c0"..."A.c15"}
+ *
+ * TO EXTEND THE SYSTEM:
+ * 1. Define new mvec_coeff in the algebra header file (e.g., ga_prdxpr_pga3dp.hpp)
+ * 2. Add mapping in create_[algebra]_algebra_data() coefficients map
+ * 3. Use the coefficient name in .cases arrays
+ *
+ * Example extension for new coefficient "C":
+ * Header: const mvec_coeff mv3dp_coeff_C = {"C.c0", "C.c1", ..., "C.c15"};
+ * Config: pga3dp.coefficients = {..."C", mv3dp_coeff_C}...
+ * Usage:  {"mv * mv -> mv", "C", "B", "mv", "mv"}
+ *
+ * AVAILABLE COEFFICIENTS (PGA3DP):
+ * - General: A, B, M, M1, M2 (full multivectors)
+ * - Even/Odd: A_even, B_even, A_odd, B_odd, M_even, M_odd (grade-filtered)
+ * - Motors: R_even, R_odd, R_rev_even, R_rev_odd, R_rrev_even, R_rrev_odd
+ * - Symmetric: svBtps, svBtps1, svBtps2 (scalar, vector, bivector, trivector,
+ * pseudoscalar patterns)
+ *
+ * AVAILABLE FILTERS (PGA3DP):
+ * - s (scalar), vec (vector), bivec (bivector), trivec (trivector), ps (pseudoscalar)
+ * - mv_e (even), mv_u (odd), mv (multivector)
+ *
+ * NAMING CONVENTIONS:
+ * - Use lowercase for all type names: s, vec, bivec, trivec, ps, mv, mv_e, mv_u
+ * - Result types should match geometric algebra conventions
+ * - Zero results: Use "0" as result type for operations that yield zero
+ */
+
 #include "ga_prdxpr_pga3dp_config.hpp"
 
 namespace configurable {
@@ -48,6 +125,8 @@ ProductConfig get_pga3dp_gpr_config()
         .product_name = "gpr",
         .description = "pga3dp geometric product",
         .display_name = "geometric product",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
         .cases = {{"mv * mv -> mv", "A", "B", "mv", "mv"},
                   {"mv * mv_e -> mv", "A", "B_even", "mv", "mv_e"},
                   {"mv_e * mv -> mv", "A_even", "B", "mv_e", "mv"},
@@ -100,6 +179,8 @@ ProductConfig get_pga3dp_cmt_config()
         .product_name = "cmt",
         .description = "pga3dp commutator product",
         .display_name = "commutator product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
         .cases = {{"cmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
                   {"cmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
                    "trivec"},
@@ -119,6 +200,8 @@ ProductConfig get_pga3dp_wdg_config()
     return {.product_name = "wdg",
             .description = "pga3dp wedge product",
             .display_name = "wedge product",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
             .cases = {{"mv ^ mv -> mv", "A", "B", "mv", "mv"},
                       {"ps ^ s -> ps", "svBtps", "svBtps", "ps", "s"},
                       {"s ^ ps -> ps", "svBtps", "svBtps", "s", "ps"},
@@ -146,6 +229,8 @@ ProductConfig get_pga3dp_dot_config()
         .product_name = "dot",
         .description = "pga3dp inner product",
         .display_name = "inner product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
         .cases = {{"dot(mv,mv) -> s", "A", "B", "mv", "mv"},
                   {"dot(ps,ps) -> s", "svBtps1", "svBtps2", "ps", "ps"},
                   {"dot(trivec,trivec) -> s", "svBtps1", "svBtps2", "trivec", "trivec"},
@@ -163,6 +248,8 @@ ProductConfig get_pga3dp_rwdg_config()
         .product_name = "rwdg",
         .description = "pga3dp regressive wedge product",
         .display_name = "regressive wedge product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
         .cases = {{"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
                   {"rwdg(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},
                   {"rwdg(trivec,ps) -> trivec", "svBtps", "svBtps", "trivec", "ps"},
@@ -184,6 +271,8 @@ ProductConfig get_pga3dp_rdot_config()
         .product_name = "rdot",
         .description = "pga3dp regressive inner product",
         .display_name = "regressive inner product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
         .cases = {{"rdot(mv,mv) -> ps", "A", "B", "mv", "mv"},
                   {"rdot(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
                   {"rdot(trivec,trivec) -> ps", "svBtps1", "svBtps2", "trivec", "trivec"},
@@ -201,6 +290,8 @@ ProductConfig get_pga3dp_rgpr_config()
         .product_name = "rgpr",
         .description = "pga3dp regressive geometric product",
         .display_name = "regressive geometric product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
         .cases = {{"rgpr(mv,mv) -> mv", "A", "B", "mv", "mv"},
                   {"rgpr(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
                   {"rgpr(mv_u,mv_e) -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
@@ -226,6 +317,8 @@ ProductConfig get_pga3dp_right_bulk_contract_config()
         .product_name = "right_bulk_contract",
         .description = "pga3dp right bulk contraction",
         .display_name = "right bulk contraction",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
         .cases =
             {{"right_bulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
              {"right_bulk_contract(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
@@ -274,6 +367,8 @@ ProductConfig get_pga3dp_right_weight_contract_config()
     return {.product_name = "right_weight_contract",
             .description = "pga3dp right weight contraction",
             .display_name = "right weight contraction",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
             .cases = {}, // For brevity, the weight contractions and expansions show basis
                          // tables but no specific
                          // cases yet
@@ -288,6 +383,8 @@ ProductConfig get_pga3dp_left_bulk_contract_config()
         .product_name = "left_bulk_contract",
         .description = "pga3dp left bulk contraction",
         .display_name = "left bulk contraction",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
         .cases =
             {{"left_bulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
              {"left_bulk_contract(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
@@ -331,6 +428,8 @@ ProductConfig get_pga3dp_left_weight_contract_config()
     return {.product_name = "left_weight_contract",
             .description = "pga3dp left weight contraction",
             .display_name = "left weight contraction",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
             .cases = {},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -342,6 +441,8 @@ ProductConfig get_pga3dp_right_bulk_expand_config()
     return {.product_name = "right_bulk_expand",
             .description = "pga3dp right bulk expansion",
             .display_name = "right bulk expansion",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
             .cases = {},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -353,6 +454,8 @@ ProductConfig get_pga3dp_right_weight_expand_config()
     return {.product_name = "right_weight_expand",
             .description = "pga3dp right weight expansion",
             .display_name = "right weight expansion",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
             .cases = {},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -364,6 +467,8 @@ ProductConfig get_pga3dp_left_bulk_expand_config()
     return {.product_name = "left_bulk_expand",
             .description = "pga3dp left bulk expansion",
             .display_name = "left bulk expansion",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
             .cases = {},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -375,6 +480,8 @@ ProductConfig get_pga3dp_left_weight_expand_config()
     return {.product_name = "left_weight_expand",
             .description = "pga3dp left weight expansion",
             .display_name = "left weight expansion",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
             .cases = {},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -387,6 +494,8 @@ ProductConfig get_pga3dp_sandwich_rgpr_config()
         .product_name = "sandwich_rgpr",
         .description = "pga3dp regressive sandwich product",
         .display_name = "regressive sandwich product",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter", is_two_step, "intermediate"}
         .cases =
             {// Single case that triggers regressive sandwich product behavior - motor
              // operations
