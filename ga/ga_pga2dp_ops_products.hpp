@@ -593,7 +593,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> operator<<(BiVec2dp<T> const& B,
                                                       PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(0.0, 0.0, -B.z) * ctype(ps);
+    return Vec2dp<ctype>(0.0, 0.0, -B.z * ctype(ps));
 }
 
 // left contraction - pseudoscalar contracted onto vector
@@ -647,8 +647,7 @@ template <typename T, typename U>
 constexpr Scalar2dp<std::common_type_t<T, U>> operator<<(BiVec2dp<T> const& B1,
                                                          BiVec2dp<U> const& B2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2dp<ctype>(B1.z * B2.z);
+    return dot(B1, B2);
 }
 
 // left contraction - bivector contracted onto vector
@@ -703,8 +702,7 @@ template <typename T, typename U>
 constexpr Scalar2dp<std::common_type_t<T, U>> operator<<(Vec2dp<T> const& v1,
                                                          Vec2dp<U> const& v2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2dp<ctype>(v1.x * v2.x + v1.y * v2.y);
+    return dot(v1, v2);
 }
 
 // left contraction - vector contracted onto scalar
@@ -788,7 +786,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> operator>>(PScalar2dp<T> ps,
                                                       BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * Vec2dp<ctype>(ctype(0.0), ctype(0.0), -B.z);
+    return Vec2dp<ctype>(ctype(0.0), ctype(0.0), -ctype(ps) * B.z);
 }
 
 // right contraction - bivector contracted by a pseudoscalar
@@ -853,8 +851,7 @@ template <typename T, typename U>
 constexpr Scalar2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<T> const& B1,
                                                          BiVec2dp<U> const& B2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2dp<ctype>(B1.z * B2.z);
+    return dot(B1, B2);
 }
 
 // right contraction of bivector B by vector v ("B contracted by v")
@@ -910,8 +907,7 @@ template <typename T, typename U>
 constexpr Scalar2dp<std::common_type_t<T, U>> operator>>(Vec2dp<T> const& v1,
                                                          Vec2dp<U> const& v2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2dp<ctype>(v1.x * v2.x + v1.y * v2.y);
+    return dot(v1, v2);
 }
 
 // right contraction (v >> s) - vector v contracted by scalar s

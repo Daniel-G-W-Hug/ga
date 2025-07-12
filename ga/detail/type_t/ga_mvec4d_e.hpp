@@ -100,7 +100,7 @@ template <typename T, typename U>
 constexpr MVec4d_E<std::common_type_t<T, U>> operator+(Scalar4d<T> s, BiVec4d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec4d_E<ctype>(s, B, Pscalar4d<ctype>(0.0));
+    return MVec4d_E<ctype>(s, B, PScalar4d<ctype>{});
 }
 
 // bivector + scalar => even grade multivector
@@ -109,7 +109,7 @@ template <typename T, typename U>
 constexpr MVec4d_E<std::common_type_t<T, U>> operator+(BiVec4d<T> const& B, Scalar4d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec4d_E<ctype>(s, B, Pscalar4d<ctype>(0.0));
+    return MVec4d_E<ctype>(s, B, PScalar4d<ctype>{});
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,7 @@ template <typename T, typename U>
 constexpr MVec4d_E<std::common_type_t<T, U>> operator-(Scalar4d<T> s, BiVec4d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec4d_E<ctype>(s, -B, Pscalar4d<ctype>(0.0));
+    return MVec4d_E<ctype>(s, -B, PScalar4d<ctype>{});
 }
 
 // bivector + scalar => even grade multivector
@@ -131,7 +131,7 @@ template <typename T, typename U>
 constexpr MVec4d_E<std::common_type_t<T, U>> operator-(BiVec4d<T> const& B, Scalar4d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec4d_E<ctype>(-s, B, Pscalar4d<ctype>(0.0));
+    return MVec4d_E<ctype>(-s, B, PScalar4d<ctype>{});
 }
 
 } // namespace hd::ga

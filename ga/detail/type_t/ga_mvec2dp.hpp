@@ -156,7 +156,7 @@ template <typename T, typename U>
 constexpr MVec2dp<std::common_type_t<T, U>> operator+(Scalar2dp<T> s, Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(s, v, BiVec2dp<ctype>(0.0, 0.0, 0.0), PScalar2dp<ctype>(0.0));
+    return MVec2dp<ctype>(s, v, BiVec2dp<ctype>{}, PScalar2dp<ctype>{});
 }
 
 // vector + scalar
@@ -165,7 +165,7 @@ template <typename T, typename U>
 constexpr MVec2dp<std::common_type_t<T, U>> operator+(Vec2dp<T> const& v, Scalar2dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(s, v, BiVec2dp<ctype>(0.0, 0.0, 0.0), PScalar2dp<ctype>(0.0));
+    return MVec2dp<ctype>(s, v, BiVec2dp<ctype>{}, PScalar2dp<ctype>{});
 }
 
 // scalar + pseudoscalar
@@ -174,8 +174,7 @@ template <typename T, typename U>
 constexpr MVec2dp<std::common_type_t<T, U>> operator+(Scalar2dp<T> s, PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(s, Vec2dp<ctype>(0.0, 0.0, 0.0), BiVec2dp<ctype>(0.0, 0.0, 0.0),
-                          ps);
+    return MVec2dp<ctype>(s, Vec2dp<ctype>{}, BiVec2dp<ctype>{}, ps);
 }
 
 // pseudoscalar + scalar
@@ -184,8 +183,7 @@ template <typename T, typename U>
 constexpr MVec2dp<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps, Scalar2dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(s, Vec2dp<ctype>(0.0, 0.0, 0.0), BiVec2dp<ctype>(0.0, 0.0, 0.0),
-                          ps);
+    return MVec2dp<ctype>(s, Vec2dp<ctype>{}, BiVec2dp<ctype>{}, ps);
 }
 
 // vector + bivector
@@ -195,7 +193,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator+(Vec2dp<T> const& v,
                                                       BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(Scalar2dp<ctype>(0.0), v, B, PScalar2dp<ctype>(0.0));
+    return MVec2dp<ctype>(Scalar2dp<ctype>{}, v, B, PScalar2dp<ctype>{});
 }
 
 // bivector + vector
@@ -205,7 +203,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator+(BiVec2dp<T> const& B,
                                                       Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(Scalar2dp<ctype>(0.0), v, B, PScalar2dp<ctype>(0.0));
+    return MVec2dp<ctype>(Scalar2dp<ctype>{}, v, B, PScalar2dp<ctype>{});
 }
 
 // pseudoscalar + bivector
@@ -215,7 +213,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps,
                                                       BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(Scalar2dp<ctype>(0.0), Vec2dp<ctype>(0.0, 0.0, 0.0), B, ps);
+    return MVec2dp<ctype>(Scalar2dp<ctype>{}, Vec2dp<ctype>{}, B, ps);
 }
 
 // bivector + pseudoscalar
@@ -225,10 +223,10 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator+(BiVec2dp<T> const& B,
                                                       PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(Scalar2dp<ctype>(0.0), Vec2dp<ctype>(0.0, 0.0, 0.0), B, ps);
+    return MVec2dp<ctype>(Scalar2dp<ctype>{}, Vec2dp<ctype>{}, B, ps);
 }
 
-// mulitivector + scalar
+// multivector + scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator+(MVec2dp<T> const& M, Scalar2dp<U> s)
@@ -237,7 +235,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator+(MVec2dp<T> const& M, Scala
     return MVec2dp<ctype>(gr0(M) + s, gr1(M), gr2(M), gr3(M));
 }
 
-// mulitivector + vector
+// multivector + vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator+(MVec2dp<T> const& M,
@@ -247,7 +245,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator+(MVec2dp<T> const& M,
     return MVec2dp<ctype>(gr0(M), gr1(M) + v, gr2(M), gr3(M));
 }
 
-// mulitivector + bivector
+// multivector + bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator+(MVec2dp<T> const& M,
@@ -257,7 +255,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator+(MVec2dp<T> const& M,
     return MVec2dp<ctype>(gr0(M), gr1(M), gr2(M) + B, gr3(M));
 }
 
-// mulitivector + pseudoscalar
+// multivector + pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator+(MVec2dp<T> const& M,
@@ -279,7 +277,7 @@ template <typename T, typename U>
 constexpr MVec2dp<std::common_type_t<T, U>> operator-(Scalar2dp<T> s, Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(s, -v, BiVec2dp<ctype>(0.0, 0.0, 0.0), PScalar2dp<ctype>(0.0));
+    return MVec2dp<ctype>(s, -v, BiVec2dp<ctype>{}, PScalar2dp<ctype>{});
 }
 
 // vector - scalar
@@ -288,7 +286,7 @@ template <typename T, typename U>
 constexpr MVec2dp<std::common_type_t<T, U>> operator-(Vec2dp<T> const& v, Scalar2dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(-s, v, BiVec2dp<ctype>(0.0, 0.0, 0.0), PScalar2dp<ctype>(0.0));
+    return MVec2dp<ctype>(-s, v, BiVec2dp<ctype>{}, PScalar2dp<ctype>{});
 }
 
 // scalar - pseudoscalar
@@ -297,8 +295,7 @@ template <typename T, typename U>
 constexpr MVec2dp<std::common_type_t<T, U>> operator-(Scalar2dp<T> s, PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(s, Vec2dp<ctype>(0.0, 0.0, 0.0), BiVec2dp<ctype>(0.0, 0.0, 0.0),
-                          -ps);
+    return MVec2dp<ctype>(s, Vec2dp<ctype>{}, BiVec2dp<ctype>{}, -ps);
 }
 
 // pseudoscalar - scalar
@@ -307,8 +304,7 @@ template <typename T, typename U>
 constexpr MVec2dp<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps, Scalar2dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(-s, Vec2dp<ctype>(0.0, 0.0, 0.0),
-                          BiVec2dp<ctype>(0.0, 0.0, 0.0), ps);
+    return MVec2dp<ctype>(-s, Vec2dp<ctype>{}, BiVec2dp<ctype>{}, ps);
 }
 
 // vector - bivector
@@ -318,7 +314,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator-(Vec2dp<T> const& v,
                                                       BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(Scalar2dp<ctype>(0.0), v, -B, PScalar2dp<ctype>(0.0));
+    return MVec2dp<ctype>(Scalar2dp<ctype>{}, v, -B, PScalar2dp<ctype>{});
 }
 
 // bivector - vector
@@ -328,7 +324,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator-(BiVec2dp<T> const& B,
                                                       Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(Scalar2dp<ctype>(0.0), -v, B, PScalar2dp<ctype>(0.0));
+    return MVec2dp<ctype>(Scalar2dp<ctype>{}, -v, B, PScalar2dp<ctype>{});
 }
 
 // pseudoscalar - bivector
@@ -338,7 +334,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps,
                                                       BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(Scalar2dp<ctype>(0.0), Vec2dp<ctype>(0.0, 0.0, 0.0), -B, ps);
+    return MVec2dp<ctype>(Scalar2dp<ctype>{}, Vec2dp<ctype>{}, -B, ps);
 }
 
 // bivector - pseudoscalar
@@ -348,10 +344,10 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator-(BiVec2dp<T> const& B,
                                                       PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(Scalar2dp<ctype>(0.0), Vec2dp<ctype>(0.0, 0.0, 0.0), B, -ps);
+    return MVec2dp<ctype>(Scalar2dp<ctype>{}, Vec2dp<ctype>{}, B, -ps);
 }
 
-// mulitivector - scalar
+// multivector - scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator-(MVec2dp<T> const& M, Scalar2dp<U> s)
@@ -360,7 +356,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator-(MVec2dp<T> const& M, Scala
     return MVec2dp<ctype>(gr0(M) - s, gr1(M), gr2(M), gr3(M));
 }
 
-// mulitivector - vector
+// multivector - vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator-(MVec2dp<T> const& M,
@@ -370,7 +366,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator-(MVec2dp<T> const& M,
     return MVec2dp<ctype>(gr0(M), gr1(M) - v, gr2(M), gr3(M));
 }
 
-// mulitivector - bivector
+// multivector - bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator-(MVec2dp<T> const& M,
@@ -380,7 +376,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator-(MVec2dp<T> const& M,
     return MVec2dp<ctype>(gr0(M), gr1(M), gr2(M) - B, gr3(M));
 }
 
-// mulitivector - pseudoscalar
+// multivector - pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator-(MVec2dp<T> const& M,

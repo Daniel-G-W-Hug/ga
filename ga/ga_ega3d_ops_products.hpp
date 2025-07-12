@@ -655,8 +655,7 @@ template <typename T, typename U>
 constexpr Scalar3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const& B1,
                                                         BiVec3d<U> const& B2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(B1.x * B2.x + B1.y * B2.y + B1.z * B2.z);
+    return dot(B1, B2);
 }
 
 // left contraction - bivector contracted onto vector
@@ -711,8 +710,7 @@ template <typename T, typename U>
 constexpr Scalar3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v1,
                                                         Vec3d<U> const& v2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
+    return dot(v1, v2);
 }
 
 // left contraction - vector contracted onto scalar
@@ -919,8 +917,7 @@ template <typename T, typename U>
 constexpr Scalar3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& B1,
                                                         BiVec3d<U> const& B2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(B1.x * B2.x + B1.y * B2.y + B1.z * B2.z);
+    return dot(B1, B2);
 }
 
 // right contraction of bivector B by vector v ("B contracted by v")
@@ -975,8 +972,7 @@ template <typename T, typename U>
 constexpr Scalar3d<std::common_type_t<T, U>> operator>>(Vec3d<T> const& v1,
                                                         Vec3d<U> const& v2)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
+    return dot(v1, v2);
 }
 
 // right contraction (v >> s) - vector v contracted by scalar s
