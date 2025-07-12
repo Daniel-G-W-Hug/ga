@@ -284,6 +284,23 @@ ProductConfig get_pga2dp_rgpr_config()
             .show_basis_table = true};
 }
 
+ProductConfig get_pga2dp_rcmt_config()
+{
+    return {.product_name = "rcmt",
+            .description = "pga2dp regressive commutator product",
+            .display_name = "regressive commutator product",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases = {{"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      {"rcmt(bivec,bivec) -> vec", "svBps1", "svBps2", "bivec", "bivec"},
+                      {"rcmt(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
+                      {"rcmt(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
+                      {"rcmt(vec,vec) -> vec", "svBps1", "svBps2", "vec", "vec"}},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
 ProductConfig get_pga2dp_right_bulk_contract_config()
 {
     return {

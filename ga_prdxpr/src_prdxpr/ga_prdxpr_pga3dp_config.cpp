@@ -311,6 +311,28 @@ ProductConfig get_pga3dp_rgpr_config()
         .show_basis_table = true};
 }
 
+ProductConfig get_pga3dp_rcmt_config()
+{
+    return {
+        .product_name = "rcmt",
+        .description = "pga3dp regressive commutator product",
+        .display_name = "regressive commutator product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        .cases = {{"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                  {"rcmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
+                   "trivec"},
+                  {"rcmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+                  {"rcmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+                  {"rcmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
+                  {"rcmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+                  {"rcmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
+                  {"rcmt(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
+}
+
 ProductConfig get_pga3dp_right_bulk_contract_config()
 {
     return {

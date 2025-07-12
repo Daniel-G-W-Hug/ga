@@ -486,6 +486,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "cmt") {
             // Commutator product (=asymmetric part of the geometric product)
+            //                   cmt(A,B) = asym(gpr(A,B))
             auto basis_tab = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(mv2dp_basis, mv2dp_basis, mul_str),
                 gpr_pga2dp_rules);
@@ -506,7 +507,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rwdg") {
-            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
+            // Regressive wedge: rwdg(A,B) = cmpl(wdg(cmpl(A), cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str),
@@ -515,7 +516,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rdot") {
-            // Regressive inner product: rdot(A,B) = rcmpl(dot(cmpl(A), cmpl(B)))
+            // Regressive inner product: rdot(A,B) = cmpl(dot(cmpl(A), cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str),
@@ -524,12 +525,24 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rgpr") {
-            // Regressive geometric product: rgpr(A,B) = rcmpl(gpr(cmpl(A), cmpl(B)))
+            // Regressive geometric product: rgpr(A,B) = cmpl(gpr(cmpl(A), cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str),
                 gpr_pga2dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
+        }
+
+        else if (product_name == "rcmt") {
+            // Commutator product: cmt(A,B) = asym(gpr(A,B))
+            // Regressive commutator product:
+            // rcmt(A,B) = asym(cmpl(gpr(cmpl(A),cmpl(B))))
+            auto basis_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str),
+                gpr_pga2dp_rules);
+            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
+            return get_prd_tab_asym(full_tab);
         }
 
         else if (product_name == "right_bulk_contract") {
@@ -628,6 +641,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "cmt") {
             // Commutator product (=asymmetric part of the geometric product)
+            //                   cmt(A,B) = asym(gpr(A,B))
             auto basis_tab = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(mv3dp_basis, mv3dp_basis, mul_str),
                 gpr_pga3dp_rules);
@@ -672,6 +686,18 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str),
                 gpr_pga3dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+        }
+
+        else if (product_name == "rcmt") {
+            // Commutator product: cmt(A,B) = asym(gpr(A,B))
+            // Regressive commutator product:
+            // rcmt(A,B) = asym(lcmpl(gpr(rcmpl(A),rcmpl(B))))
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str),
+                gpr_pga3dp_rules);
+            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+            return get_prd_tab_asym(full_tab);
         }
 
         else if (product_name == "right_bulk_contract") {

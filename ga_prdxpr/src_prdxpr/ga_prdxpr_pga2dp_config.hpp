@@ -18,6 +18,7 @@ ProductConfig get_pga2dp_dot_config();                   // inner product
 ProductConfig get_pga2dp_rwdg_config();                  // regressive wedge product
 ProductConfig get_pga2dp_rdot_config();                  // regressive inner product
 ProductConfig get_pga2dp_rgpr_config();                  // regressive geometric product
+ProductConfig get_pga2dp_rcmt_config();                  // regressive commutator product
 ProductConfig get_pga2dp_right_bulk_contract_config();   // right bulk contraction
 ProductConfig get_pga2dp_right_weight_contract_config(); // right weight contraction
 ProductConfig get_pga2dp_left_bulk_contract_config();    // left bulk contraction
