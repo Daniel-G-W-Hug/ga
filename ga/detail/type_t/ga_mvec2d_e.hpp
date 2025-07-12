@@ -53,14 +53,14 @@ template <typename T> struct MVec2_t<T, mvec2d_e_tag> : public MVec2_t<T, defaul
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> gr0(MVec2d_E<T> const& M)
+constexpr Scalar2d<T> gr0(MVec2d_E<T> const& M)
 {
     return Scalar2d<T>(M.c0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> gr2(MVec2d_E<T> const& M)
+constexpr PScalar2d<T> gr2(MVec2d_E<T> const& M)
 {
     return PScalar2d<T>(M.c1);
 }
@@ -72,8 +72,7 @@ inline constexpr PScalar2d<T> gr2(MVec2d_E<T> const& M)
 // scalar + pseudoscalar (=bivector) => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
-                                                              PScalar2d<U> ps)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(s, ps);
@@ -82,8 +81,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
 // pseudoscalar (=bivector) + scalar => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
-                                                              Scalar2d<U> s)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(s, ps);
@@ -92,8 +90,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
 // scalar + even grade mulivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
-                                                              MVec2d_E<U> const& M)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
+                                                       MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(s + M.c0, M.c1);
@@ -102,8 +100,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
 // even grade multivector + scalar => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
-                                                              Scalar2d<U> s)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
+                                                       Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(s + M.c0, M.c1);
@@ -112,8 +110,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const&
 // pseudosscalar + even grade mulivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
-                                                              MVec2d_E<U> const& M)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
+                                                       MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(M.c0, ps + M.c1);
@@ -122,8 +120,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
 // even grade multivector + pseudoscalar => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
-                                                              PScalar2d<U> ps)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
+                                                       PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(M.c0, ps + M.c1);
@@ -136,8 +134,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const&
 // scalar - pseudoscalar (=bivector) => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s,
-                                                              PScalar2d<U> ps)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(s, -ps);
@@ -146,8 +143,7 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s,
 // pseudoscalar (=bivector) - scalar => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps,
-                                                              Scalar2d<U> s)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(-s, ps);
@@ -156,8 +152,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps,
 // scalar - even grade mulivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s,
-                                                              MVec2d_E<U> const& M)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s,
+                                                       MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(s - M.c0, -M.c1);
@@ -166,8 +162,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s,
 // even grade multivector - scalar => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& M,
-                                                              Scalar2d<U> s)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& M,
+                                                       Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(M.c0 - s, M.c1);
@@ -176,8 +172,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(MVec2d_E<T> const&
 // pseudosscalar (=bivector) - even grade mulivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps,
-                                                              MVec2d_E<U> const& M)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps,
+                                                       MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(-M.c0, ps - M.c1);
@@ -186,8 +182,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps,
 // even grade multivector - pseudoscalar (=bivector) => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& M,
-                                                              PScalar2d<U> ps)
+constexpr MVec2d_E<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& M,
+                                                       PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d_E<ctype>(M.c0, M.c1 - ps);

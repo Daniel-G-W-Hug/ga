@@ -95,10 +95,8 @@ struct Vec4_t {
         auto abs_delta_z = std::abs(rhs.z - z);
         auto abs_delta_w = std::abs(rhs.w - w);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        if (abs_delta_x < delta_eps && abs_delta_y < delta_eps &&
-            abs_delta_z < delta_eps && abs_delta_w < delta_eps)
-            return true;
-        return false;
+        return (abs_delta_x < delta_eps && abs_delta_y < delta_eps &&
+                abs_delta_z < delta_eps && abs_delta_w < delta_eps);
     }
 
     template <typename U>
@@ -154,7 +152,7 @@ struct Vec4_t {
 // unary minus
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr Vec4_t<T, Tag> operator-(Vec4_t<T, Tag> const& v)
+constexpr Vec4_t<T, Tag> operator-(Vec4_t<T, Tag> const& v)
 {
     return Vec4_t<T, Tag>(-v.x, -v.y, -v.z, -v.w);
 }
@@ -162,8 +160,8 @@ inline constexpr Vec4_t<T, Tag> operator-(Vec4_t<T, Tag> const& v)
 // adding vectors
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator+(Vec4_t<T, Tag> const& v1,
-                                                                 Vec4_t<U, Tag> const& v2)
+constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator+(Vec4_t<T, Tag> const& v1,
+                                                          Vec4_t<U, Tag> const& v2)
 {
     return Vec4_t<std::common_type_t<T, U>, Tag>(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z,
                                                  v1.w + v2.w);
@@ -172,8 +170,8 @@ inline constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator+(Vec4_t<T, Tag> 
 // substracting vectors
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator-(Vec4_t<T, Tag> const& v1,
-                                                                 Vec4_t<U, Tag> const& v2)
+constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator-(Vec4_t<T, Tag> const& v1,
+                                                          Vec4_t<U, Tag> const& v2)
 {
     return Vec4_t<std::common_type_t<T, U>, Tag>(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z,
                                                  v1.w - v2.w);
@@ -183,16 +181,14 @@ inline constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator-(Vec4_t<T, Tag> 
 // multiply a vector with a scalar (in both constellations)
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator*(Vec4_t<T, Tag> const& v,
-                                                                 U s)
+constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator*(Vec4_t<T, Tag> const& v, U s)
 {
     return Vec4_t<std::common_type_t<T, U>, Tag>(v.x * s, v.y * s, v.z * s, v.w * s);
 }
 
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator*(T s,
-                                                                 Vec4_t<U, Tag> const& v)
+constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator*(T s, Vec4_t<U, Tag> const& v)
 {
     return Vec4_t<std::common_type_t<T, U>, Tag>(v.x * s, v.y * s, v.z * s, v.w * s);
 }
@@ -232,7 +228,7 @@ inline Vec4_t<std::common_type_t<T, U>, Tag> operator/(Vec4_t<T, Tag> const& v, 
 //
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm_sq(Vec4_t<T, Tag> const& v)
+constexpr T nrm_sq(Vec4_t<T, Tag> const& v)
 {
     // implements the scalar product as defined by the geometric product *
     // for the vector and trivector case in 4d and for the modeling space in 3dp:
@@ -242,7 +238,7 @@ inline constexpr T nrm_sq(Vec4_t<T, Tag> const& v)
 
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm(Vec4_t<T, Tag> const& v)
+constexpr T nrm(Vec4_t<T, Tag> const& v)
 {
     return std::sqrt(nrm_sq(v));
 }

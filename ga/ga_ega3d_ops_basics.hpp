@@ -27,7 +27,7 @@ namespace hd::ga::ega {
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3d<T> gr_inv(Scalar3d<T> s)
+constexpr Scalar3d<T> gr_inv(Scalar3d<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -35,7 +35,7 @@ inline constexpr Scalar3d<T> gr_inv(Scalar3d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3d<T> gr_inv(Vec3d<T> const& v)
+constexpr Vec3d<T> gr_inv(Vec3d<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -43,7 +43,7 @@ inline constexpr Vec3d<T> gr_inv(Vec3d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3d<T> gr_inv(BiVec3d<T> const& B)
+constexpr BiVec3d<T> gr_inv(BiVec3d<T> const& B)
 {
     // grade 2: no sign change
     return B;
@@ -51,7 +51,7 @@ inline constexpr BiVec3d<T> gr_inv(BiVec3d<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3d<T> gr_inv(PScalar3d<T> ps)
+constexpr PScalar3d<T> gr_inv(PScalar3d<T> ps)
 {
     // grade 3: sign reversal
     return -ps;
@@ -59,7 +59,7 @@ inline constexpr PScalar3d<T> gr_inv(PScalar3d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_E<T> gr_inv(MVec3d_E<T> const& M)
+constexpr MVec3d_E<T> gr_inv(MVec3d_E<T> const& M)
 {
     // grade 0 and 2: no sign change
     return M;
@@ -67,7 +67,7 @@ inline constexpr MVec3d_E<T> gr_inv(MVec3d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_U<T> gr_inv(MVec3d_U<T> const& M)
+constexpr MVec3d_U<T> gr_inv(MVec3d_U<T> const& M)
 {
     // grade 1 and 3: sign reversal
     return -M;
@@ -75,7 +75,7 @@ inline constexpr MVec3d_U<T> gr_inv(MVec3d_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d<T> gr_inv(MVec3d<T> const& M)
+constexpr MVec3d<T> gr_inv(MVec3d<T> const& M)
 {
     // grade 0 and 2: no sign change
     // grade 1 and 3: sign reversal
@@ -90,7 +90,7 @@ inline constexpr MVec3d<T> gr_inv(MVec3d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3d<T> rev(Scalar3d<T> s)
+constexpr Scalar3d<T> rev(Scalar3d<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -98,7 +98,7 @@ inline constexpr Scalar3d<T> rev(Scalar3d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3d<T> rev(Vec3d<T> const& v)
+constexpr Vec3d<T> rev(Vec3d<T> const& v)
 {
     // grade 1: no sign change
     return v;
@@ -106,7 +106,7 @@ inline constexpr Vec3d<T> rev(Vec3d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3d<T> rev(BiVec3d<T> const& B)
+constexpr BiVec3d<T> rev(BiVec3d<T> const& B)
 {
     // grade 2: sign reversal
     return -B;
@@ -114,7 +114,7 @@ inline constexpr BiVec3d<T> rev(BiVec3d<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3d<T> rev(PScalar3d<T> ps)
+constexpr PScalar3d<T> rev(PScalar3d<T> ps)
 {
     // grade 3: sign reversal
     return -ps;
@@ -122,7 +122,7 @@ inline constexpr PScalar3d<T> rev(PScalar3d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_E<T> rev(MVec3d_E<T> const& M)
+constexpr MVec3d_E<T> rev(MVec3d_E<T> const& M)
 {
     // grade 0: no sign change
     // grade 2: sign change
@@ -131,7 +131,7 @@ inline constexpr MVec3d_E<T> rev(MVec3d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_U<T> rev(MVec3d_U<T> const& M)
+constexpr MVec3d_U<T> rev(MVec3d_U<T> const& M)
 {
     // grade 1: no sign change
     // grade 3: sign change
@@ -140,7 +140,7 @@ inline constexpr MVec3d_U<T> rev(MVec3d_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d<T> rev(MVec3d<T> const& M)
+constexpr MVec3d<T> rev(MVec3d<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: no sign change
@@ -157,7 +157,7 @@ inline constexpr MVec3d<T> rev(MVec3d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3d<T> conj(Scalar3d<T> s)
+constexpr Scalar3d<T> conj(Scalar3d<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -165,7 +165,7 @@ inline constexpr Scalar3d<T> conj(Scalar3d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3d<T> conj(Vec3d<T> const& v)
+constexpr Vec3d<T> conj(Vec3d<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -173,7 +173,7 @@ inline constexpr Vec3d<T> conj(Vec3d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3d<T> conj(BiVec3d<T> const& B)
+constexpr BiVec3d<T> conj(BiVec3d<T> const& B)
 {
     // grade 2: sign reversal
     return -B;
@@ -181,7 +181,7 @@ inline constexpr BiVec3d<T> conj(BiVec3d<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3d<T> conj(PScalar3d<T> ps)
+constexpr PScalar3d<T> conj(PScalar3d<T> ps)
 {
     // grade 3: no sign change
     return ps;
@@ -189,7 +189,7 @@ inline constexpr PScalar3d<T> conj(PScalar3d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_E<T> conj(MVec3d_E<T> const& M)
+constexpr MVec3d_E<T> conj(MVec3d_E<T> const& M)
 {
     // grade 0: no sign change
     // grade 2: sign change
@@ -198,7 +198,7 @@ inline constexpr MVec3d_E<T> conj(MVec3d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_U<T> conj(MVec3d_U<T> const& M)
+constexpr MVec3d_U<T> conj(MVec3d_U<T> const& M)
 {
     // grade 1: sign reversal
     // grade 3: no sign change
@@ -207,7 +207,7 @@ inline constexpr MVec3d_U<T> conj(MVec3d_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d<T> conj(MVec3d<T> const& M)
+constexpr MVec3d<T> conj(MVec3d<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: sign reversal
@@ -241,7 +241,7 @@ inline constexpr MVec3d<T> conj(MVec3d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3d<T> cmpl(Scalar3d<T> s)
+constexpr PScalar3d<T> cmpl(Scalar3d<T> s)
 {
     // u ^ cmpl(u) = e1^e2^e3
     // u = s 1:
@@ -251,7 +251,7 @@ inline constexpr PScalar3d<T> cmpl(Scalar3d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3d<T> cmpl(Vec3d<T> const& v)
+constexpr BiVec3d<T> cmpl(Vec3d<T> const& v)
 {
     // u ^ compl(u) = e1^e2^e3
     // u = v.x e1 + v.y e2 + v.z e3:
@@ -264,7 +264,7 @@ inline constexpr BiVec3d<T> cmpl(Vec3d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3d<T> cmpl(BiVec3d<T> const& B)
+constexpr Vec3d<T> cmpl(BiVec3d<T> const& B)
 {
     // u ^ compl(u) = e1^e2^e3
     // u = B.x e23 + B.y e31 + B.z e12:
@@ -277,7 +277,7 @@ inline constexpr Vec3d<T> cmpl(BiVec3d<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3d<T> cmpl(PScalar3d<T> ps)
+constexpr Scalar3d<T> cmpl(PScalar3d<T> ps)
 {
     // u ^ compl(u) = e1^e2^e3
     // u = ps e1^e2^e3:
@@ -287,7 +287,7 @@ inline constexpr Scalar3d<T> cmpl(PScalar3d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_U<T> cmpl(MVec3d_E<T> const& M)
+constexpr MVec3d_U<T> cmpl(MVec3d_E<T> const& M)
 {
     // use the component complements directly
     return MVec3d_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
@@ -295,7 +295,7 @@ inline constexpr MVec3d_U<T> cmpl(MVec3d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_E<T> cmpl(MVec3d_U<T> const& M)
+constexpr MVec3d_E<T> cmpl(MVec3d_U<T> const& M)
 {
     // use the component complements directly
     return MVec3d_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
@@ -303,7 +303,7 @@ inline constexpr MVec3d_E<T> cmpl(MVec3d_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d<T> cmpl(MVec3d<T> const& M)
+constexpr MVec3d<T> cmpl(MVec3d<T> const& M)
 {
     // use the component complements directly
     return MVec3d<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
@@ -337,49 +337,49 @@ inline constexpr MVec3d<T> cmpl(MVec3d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3d<T> dual(Scalar3d<T> s)
+constexpr PScalar3d<T> dual(Scalar3d<T> s)
 {
     return cmpl(s);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3d<T> dual(Vec3d<T> const& v)
+constexpr BiVec3d<T> dual(Vec3d<T> const& v)
 {
     return cmpl(v);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3d<T> dual(BiVec3d<T> const& B)
+constexpr Vec3d<T> dual(BiVec3d<T> const& B)
 {
     return cmpl(B);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3d<T> dual(PScalar3d<T> ps)
+constexpr Scalar3d<T> dual(PScalar3d<T> ps)
 {
     return cmpl(ps);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_U<T> dual(MVec3d_E<T> const& M)
+constexpr MVec3d_U<T> dual(MVec3d_E<T> const& M)
 {
     return MVec3d_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d_E<T> dual(MVec3d_U<T> const& M)
+constexpr MVec3d_E<T> dual(MVec3d_U<T> const& M)
 {
     return MVec3d_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3d<T> dual(MVec3d<T> const& M)
+constexpr MVec3d<T> dual(MVec3d<T> const& M)
 {
     return MVec3d<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
 }

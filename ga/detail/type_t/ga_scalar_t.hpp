@@ -94,7 +94,7 @@ class Scalar_t {
 // unary minus
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr Scalar_t<T, Tag> operator-(Scalar_t<T, Tag> v)
+constexpr Scalar_t<T, Tag> operator-(Scalar_t<T, Tag> v)
 {
     return Scalar_t<T, Tag>(-T(v));
 }
@@ -102,8 +102,8 @@ inline constexpr Scalar_t<T, Tag> operator-(Scalar_t<T, Tag> v)
 // adding pseudoscalars
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator+(Scalar_t<T, Tag> v1,
-                                                                   Scalar_t<U, Tag> v2)
+constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator+(Scalar_t<T, Tag> v1,
+                                                            Scalar_t<U, Tag> v2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar_t<ctype, Tag>(ctype(v1) + ctype(v2));
@@ -112,8 +112,8 @@ inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator+(Scalar_t<T, T
 // substracting pseudoscalars
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator-(Scalar_t<T, Tag> v1,
-                                                                   Scalar_t<U, Tag> v2)
+constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator-(Scalar_t<T, Tag> v1,
+                                                            Scalar_t<U, Tag> v2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar_t<ctype, Tag>(ctype(v1) - ctype(v2));
@@ -122,8 +122,7 @@ inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator-(Scalar_t<T, T
 // multiply a pseudoscalar with a scalar (in both constellations)
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator*(Scalar_t<T, Tag> v,
-                                                                   U s)
+constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator*(Scalar_t<T, Tag> v, U s)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar_t<ctype, Tag>(ctype(v) * s);
@@ -131,8 +130,7 @@ inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator*(Scalar_t<T, T
 
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator*(T s,
-                                                                   Scalar_t<U, Tag> v)
+constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator*(T s, Scalar_t<U, Tag> v)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar_t<ctype, Tag>(s * ctype(v));
@@ -152,7 +150,7 @@ inline Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, Tag> v, U s
 // magnitude squared
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm_sq(Scalar_t<T, Tag> s)
+constexpr T nrm_sq(Scalar_t<T, Tag> s)
 {
     return T(s) * T(s);
 }
@@ -160,7 +158,7 @@ inline constexpr T nrm_sq(Scalar_t<T, Tag> s)
 // magnitude
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm(Scalar_t<T, Tag> s)
+constexpr T nrm(Scalar_t<T, Tag> s)
 {
     return std::sqrt(nrm_sq(s));
 }
@@ -190,7 +188,7 @@ std::ostream& operator<<(std::ostream& os, Scalar_t<T, Tag> v)
 // return the scalar value as value_t (for use in scripting)
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T to_val(Scalar_t<T, Tag> s)
+constexpr T to_val(Scalar_t<T, Tag> s)
 {
     return T(s);
 }

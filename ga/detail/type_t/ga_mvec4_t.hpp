@@ -2,9 +2,9 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include <cmath>     // std::abs, std::sqrt
-#include <concepts>  // std::floating_point<T>
-#include <iostream>  // std::ostream
+#include <cmath>    // std::abs, std::sqrt
+#include <concepts> // std::floating_point<T>
+#include <iostream> // std::ostream
 
 #include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
@@ -77,10 +77,8 @@ struct MVec4_t {
         auto abs_delta_c2 = std::abs(rhs.c2 - c2);
         auto abs_delta_c3 = std::abs(rhs.c3 - c3);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        if (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
-            abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps)
-            return true;
-        return false;
+        return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
+                abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps);
     }
 
     template <typename U>
@@ -136,7 +134,7 @@ struct MVec4_t {
 // unary minus
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr MVec4_t<T, Tag> operator-(MVec4_t<T, Tag> const& v)
+constexpr MVec4_t<T, Tag> operator-(MVec4_t<T, Tag> const& v)
 {
     return MVec4_t<T, Tag>(-v.c0, -v.c1, -v.c2, -v.c3);
 }
@@ -144,8 +142,8 @@ inline constexpr MVec4_t<T, Tag> operator-(MVec4_t<T, Tag> const& v)
 // add multivectors
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec4_t<std::common_type_t<T, U>, Tag>
-operator+(MVec4_t<T, Tag> const& v1, MVec4_t<U, Tag> const& v2)
+constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator+(MVec4_t<T, Tag> const& v1,
+                                                           MVec4_t<U, Tag> const& v2)
 {
     return MVec4_t<std::common_type_t<T, U>, Tag>(v1.c0 + v2.c0, v1.c1 + v2.c1,
                                                   v1.c2 + v2.c2, v1.c3 + v2.c3);
@@ -154,8 +152,8 @@ operator+(MVec4_t<T, Tag> const& v1, MVec4_t<U, Tag> const& v2)
 // substract multivectors
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec4_t<std::common_type_t<T, U>, Tag>
-operator-(MVec4_t<T, Tag> const& v1, MVec4_t<U, Tag> const& v2)
+constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator-(MVec4_t<T, Tag> const& v1,
+                                                           MVec4_t<U, Tag> const& v2)
 {
     return MVec4_t<std::common_type_t<T, U>, Tag>(v1.c0 - v2.c0, v1.c1 - v2.c1,
                                                   v1.c2 - v2.c2, v1.c3 - v2.c3);
@@ -164,16 +162,14 @@ operator-(MVec4_t<T, Tag> const& v1, MVec4_t<U, Tag> const& v2)
 // multiply a multivector with a scalar
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec4_t<std::common_type_t<T, U>, Tag>
-operator*(MVec4_t<T, Tag> const& v, U s)
+constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator*(MVec4_t<T, Tag> const& v, U s)
 {
     return MVec4_t<std::common_type_t<T, U>, Tag>(v.c0 * s, v.c1 * s, v.c2 * s, v.c3 * s);
 }
 
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec4_t<std::common_type_t<T, U>, Tag>
-operator*(T s, MVec4_t<U, Tag> const& v)
+constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator*(T s, MVec4_t<U, Tag> const& v)
 {
     return MVec4_t<std::common_type_t<T, U>, Tag>(v.c0 * s, v.c1 * s, v.c2 * s, v.c3 * s);
 }
@@ -193,14 +189,14 @@ inline MVec4_t<std::common_type_t<T, U>, Tag> operator/(MVec4_t<T, Tag> const& v
 // |Z|^2 = Z rev(Z) = c0^2 + c1^2 + c2^2 + c3^2
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm_sq(MVec4_t<T, Tag> const& v)
+constexpr T nrm_sq(MVec4_t<T, Tag> const& v)
 {
     return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
 }
 
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm(MVec4_t<T, Tag> const& v)
+constexpr T nrm(MVec4_t<T, Tag> const& v)
 {
     return std::sqrt(nrm_sq(v));
 }

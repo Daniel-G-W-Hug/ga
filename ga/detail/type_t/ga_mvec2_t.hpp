@@ -2,9 +2,9 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include <cmath>     // std::abs, std::sqrt
-#include <concepts>  // std::floating_point<T>
-#include <iostream>  // std::ostream
+#include <cmath>    // std::abs, std::sqrt
+#include <concepts> // std::floating_point<T>
+#include <iostream> // std::ostream
 
 #include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
@@ -70,8 +70,7 @@ struct MVec2_t {
         auto abs_delta_c0 = std::abs(rhs.c0 - c0);
         auto abs_delta_c1 = std::abs(rhs.c1 - c1);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        if (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps) return true;
-        return false;
+        return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps);
     }
 
     template <typename U>
@@ -119,7 +118,7 @@ struct MVec2_t {
 // unary minus for multivectors from the even subalgebra
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr MVec2_t<T, Tag> operator-(MVec2_t<T, Tag> const& v)
+constexpr MVec2_t<T, Tag> operator-(MVec2_t<T, Tag> const& v)
 {
     return MVec2_t<T, Tag>(-v.c0, -v.c1);
 }
@@ -127,8 +126,8 @@ inline constexpr MVec2_t<T, Tag> operator-(MVec2_t<T, Tag> const& v)
 // add multivectors from the even subalgebra
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2_t<std::common_type_t<T, U>, Tag>
-operator+(MVec2_t<T, Tag> const& v1, MVec2_t<U, Tag> const& v2)
+constexpr MVec2_t<std::common_type_t<T, U>, Tag> operator+(MVec2_t<T, Tag> const& v1,
+                                                           MVec2_t<U, Tag> const& v2)
 {
     return MVec2_t<std::common_type_t<T, U>, Tag>(v1.c0 + v2.c0, v1.c1 + v2.c1);
 }
@@ -136,8 +135,8 @@ operator+(MVec2_t<T, Tag> const& v1, MVec2_t<U, Tag> const& v2)
 // substract multivectors multivectors from the even subalgebra
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2_t<std::common_type_t<T, U>, Tag>
-operator-(MVec2_t<T, Tag> const& v1, MVec2_t<U, Tag> const& v2)
+constexpr MVec2_t<std::common_type_t<T, U>, Tag> operator-(MVec2_t<T, Tag> const& v1,
+                                                           MVec2_t<U, Tag> const& v2)
 {
     return MVec2_t<std::common_type_t<T, U>, Tag>(v1.c0 - v2.c0, v1.c1 - v2.c1);
 }
@@ -146,16 +145,14 @@ operator-(MVec2_t<T, Tag> const& v1, MVec2_t<U, Tag> const& v2)
 // multiply a multivector multivectors from the even subalgebra with a scalar
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2_t<std::common_type_t<T, U>, Tag>
-operator*(MVec2_t<T, Tag> const& v, U s)
+constexpr MVec2_t<std::common_type_t<T, U>, Tag> operator*(MVec2_t<T, Tag> const& v, U s)
 {
     return MVec2_t<std::common_type_t<T, U>, Tag>(v.c0 * s, v.c1 * s);
 }
 
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2_t<std::common_type_t<T, U>, Tag>
-operator*(T s, MVec2_t<U, Tag> const& v)
+constexpr MVec2_t<std::common_type_t<T, U>, Tag> operator*(T s, MVec2_t<U, Tag> const& v)
 {
     return MVec2_t<std::common_type_t<T, U>, Tag>(v.c0 * s, v.c1 * s);
 }
@@ -176,14 +173,14 @@ inline MVec2_t<std::common_type_t<T, U>, Tag> operator/(MVec2_t<T, Tag> const& v
 // |Z|^2 = Z rev(Z) = c0^2 + c1^2
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm_sq(MVec2_t<T, Tag> const& v)
+constexpr T nrm_sq(MVec2_t<T, Tag> const& v)
 {
     return v.c0 * v.c0 + v.c1 * v.c1;
 }
 
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm(MVec2_t<T, Tag> const& v)
+constexpr T nrm(MVec2_t<T, Tag> const& v)
 {
     return std::sqrt(nrm_sq(v));
 }

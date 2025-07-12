@@ -27,7 +27,7 @@ namespace hd::ga::ega {
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> gr_inv(Scalar2d<T> s)
+constexpr Scalar2d<T> gr_inv(Scalar2d<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -35,7 +35,7 @@ inline constexpr Scalar2d<T> gr_inv(Scalar2d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> gr_inv(Vec2d<T> const& v)
+constexpr Vec2d<T> gr_inv(Vec2d<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -43,7 +43,7 @@ inline constexpr Vec2d<T> gr_inv(Vec2d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> gr_inv(PScalar2d<T> ps)
+constexpr PScalar2d<T> gr_inv(PScalar2d<T> ps)
 {
     // grade 2: no sign change
     return ps;
@@ -51,7 +51,7 @@ inline constexpr PScalar2d<T> gr_inv(PScalar2d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> gr_inv(MVec2d_E<T> const& M)
+constexpr MVec2d_E<T> gr_inv(MVec2d_E<T> const& M)
 {
     // grade 0 and 2: no sign change
     return M;
@@ -59,7 +59,7 @@ inline constexpr MVec2d_E<T> gr_inv(MVec2d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> gr_inv(MVec2d<T> const& M)
+constexpr MVec2d<T> gr_inv(MVec2d<T> const& M)
 {
     // grade 0 and 2: no sign change
     // grade 1: sign reversal
@@ -74,7 +74,7 @@ inline constexpr MVec2d<T> gr_inv(MVec2d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> rev(Scalar2d<T> s)
+constexpr Scalar2d<T> rev(Scalar2d<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -82,7 +82,7 @@ inline constexpr Scalar2d<T> rev(Scalar2d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> rev(Vec2d<T> const& v)
+constexpr Vec2d<T> rev(Vec2d<T> const& v)
 {
     // grade 1: no sign change
     return v;
@@ -90,7 +90,7 @@ inline constexpr Vec2d<T> rev(Vec2d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> rev(PScalar2d<T> ps)
+constexpr PScalar2d<T> rev(PScalar2d<T> ps)
 {
     // grade 2: sign reversal
     return -ps;
@@ -98,7 +98,7 @@ inline constexpr PScalar2d<T> rev(PScalar2d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> rev(MVec2d_E<T> const& M)
+constexpr MVec2d_E<T> rev(MVec2d_E<T> const& M)
 {
     // grade 0: no sign change
     // grade 2: sign reversal
@@ -107,7 +107,7 @@ inline constexpr MVec2d_E<T> rev(MVec2d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> rev(MVec2d<T> const& M)
+constexpr MVec2d<T> rev(MVec2d<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: no sign change
@@ -123,7 +123,7 @@ inline constexpr MVec2d<T> rev(MVec2d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> conj(Scalar2d<T> s)
+constexpr Scalar2d<T> conj(Scalar2d<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -131,7 +131,7 @@ inline constexpr Scalar2d<T> conj(Scalar2d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> conj(Vec2d<T> const& v)
+constexpr Vec2d<T> conj(Vec2d<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -139,7 +139,7 @@ inline constexpr Vec2d<T> conj(Vec2d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> conj(PScalar2d<T> ps)
+constexpr PScalar2d<T> conj(PScalar2d<T> ps)
 {
     // grade 2: sign reversal
     return -ps;
@@ -147,7 +147,7 @@ inline constexpr PScalar2d<T> conj(PScalar2d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> conj(MVec2d_E<T> const& M)
+constexpr MVec2d_E<T> conj(MVec2d_E<T> const& M)
 {
     // grade 0: no sign change
     // grade 2: sign reversal
@@ -156,7 +156,7 @@ inline constexpr MVec2d_E<T> conj(MVec2d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> conj(MVec2d<T> const& M)
+constexpr MVec2d<T> conj(MVec2d<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: sign reversal
@@ -191,7 +191,7 @@ inline constexpr MVec2d<T> conj(MVec2d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> lcmpl(Scalar2d<T> s)
+constexpr PScalar2d<T> lcmpl(Scalar2d<T> s)
 {
     // lcmpl(u) ^ u = e1^e2
     // u = s 1:
@@ -201,7 +201,7 @@ inline constexpr PScalar2d<T> lcmpl(Scalar2d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> lcmpl(Vec2d<T> const& v)
+constexpr Vec2d<T> lcmpl(Vec2d<T> const& v)
 {
     // lcmpl(u) ^ u = e1^e2
     // u = v.x e1 + v.y e2:
@@ -215,7 +215,7 @@ inline constexpr Vec2d<T> lcmpl(Vec2d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> lcmpl(PScalar2d<T> ps)
+constexpr Scalar2d<T> lcmpl(PScalar2d<T> ps)
 {
     // lcmpl(u) ^ u = e1^e2
     // u = ps e1^e2:
@@ -225,7 +225,7 @@ inline constexpr Scalar2d<T> lcmpl(PScalar2d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> lcmpl(MVec2d_E<T> const& M)
+constexpr MVec2d_E<T> lcmpl(MVec2d_E<T> const& M)
 {
     // use the component complements directly
     return MVec2d_E<T>(lcmpl(gr2(M)), lcmpl(gr0(M)));
@@ -233,7 +233,7 @@ inline constexpr MVec2d_E<T> lcmpl(MVec2d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> lcmpl(MVec2d<T> const& M)
+constexpr MVec2d<T> lcmpl(MVec2d<T> const& M)
 {
     // use the component complements directly
     return MVec2d<T>(lcmpl(gr2(M)), lcmpl(gr1(M)), lcmpl(gr0(M)));
@@ -242,7 +242,7 @@ inline constexpr MVec2d<T> lcmpl(MVec2d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> rcmpl(Scalar2d<T> s)
+constexpr PScalar2d<T> rcmpl(Scalar2d<T> s)
 {
     // u ^ rcmpl(u) = e1^e2
     // u = s 1:
@@ -252,7 +252,7 @@ inline constexpr PScalar2d<T> rcmpl(Scalar2d<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> rcmpl(Vec2d<T> const& v)
+constexpr Vec2d<T> rcmpl(Vec2d<T> const& v)
 {
     // u ^ rcmpl(u) = e1^e2
     // u = v.x e1 + v.y e2:
@@ -267,7 +267,7 @@ inline constexpr Vec2d<T> rcmpl(Vec2d<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> rcmpl(PScalar2d<T> ps)
+constexpr Scalar2d<T> rcmpl(PScalar2d<T> ps)
 {
     // u ^ rcmpl(u) = e1^e2
     // u = ps e1^e2:
@@ -277,7 +277,7 @@ inline constexpr Scalar2d<T> rcmpl(PScalar2d<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> rcmpl(MVec2d_E<T> const& M)
+constexpr MVec2d_E<T> rcmpl(MVec2d_E<T> const& M)
 {
     // use the component complements directly
     return MVec2d_E<T>(rcmpl(gr2(M)), rcmpl(gr0(M)));
@@ -285,7 +285,7 @@ inline constexpr MVec2d_E<T> rcmpl(MVec2d_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> rcmpl(MVec2d<T> const& M)
+constexpr MVec2d<T> rcmpl(MVec2d<T> const& M)
 {
     // use the component complements directly
     return MVec2d<T>(rcmpl(gr2(M)), rcmpl(gr1(M)), rcmpl(gr0(M)));
@@ -323,35 +323,35 @@ inline constexpr MVec2d<T> rcmpl(MVec2d<T> const& M)
 // type is uniquely defined for the corresponding algebra
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> right_dual(Scalar2d<T> s)
+constexpr PScalar2d<T> right_dual(Scalar2d<T> s)
 {
     return rcmpl(s);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> right_dual(Vec2d<T> const& v)
+constexpr Vec2d<T> right_dual(Vec2d<T> const& v)
 {
     return rcmpl(v);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> right_dual(PScalar2d<T> ps)
+constexpr Scalar2d<T> right_dual(PScalar2d<T> ps)
 {
     return rcmpl(ps);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> right_dual(MVec2d_E<T> const& M)
+constexpr MVec2d_E<T> right_dual(MVec2d_E<T> const& M)
 {
     return MVec2d_E<T>(rcmpl(gr2(M)), rcmpl(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> right_dual(MVec2d<T> const& M)
+constexpr MVec2d<T> right_dual(MVec2d<T> const& M)
 {
     return MVec2d<T>(rcmpl(gr2(M)), rcmpl(gr1(M)), rcmpl(gr0(M)));
 }
@@ -362,35 +362,35 @@ inline constexpr MVec2d<T> right_dual(MVec2d<T> const& M)
 // type is uniquely defined for the corresponding algebra
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> left_dual(Scalar2d<T> s)
+constexpr PScalar2d<T> left_dual(Scalar2d<T> s)
 {
     return lcmpl(s);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> left_dual(Vec2d<T> const& v)
+constexpr Vec2d<T> left_dual(Vec2d<T> const& v)
 {
     return lcmpl(v);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> left_dual(PScalar2d<T> ps)
+constexpr Scalar2d<T> left_dual(PScalar2d<T> ps)
 {
     return lcmpl(ps);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d_E<T> left_dual(MVec2d_E<T> const& M)
+constexpr MVec2d_E<T> left_dual(MVec2d_E<T> const& M)
 {
     return MVec2d_E<T>(lcmpl(gr2(M)), lcmpl(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2d<T> left_dual(MVec2d<T> const& M)
+constexpr MVec2d<T> left_dual(MVec2d<T> const& M)
 {
     return MVec2d<T>(lcmpl(gr2(M)), lcmpl(gr1(M)), lcmpl(gr0(M)));
 }

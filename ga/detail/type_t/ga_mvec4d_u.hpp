@@ -52,14 +52,14 @@ template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, defaul
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec4d<T> gr1(MVec4d_U<T> const& M)
+constexpr Vec4d<T> gr1(MVec4d_U<T> const& M)
 {
     return Vec4d<T>(M.c0, M.c1, M.c2, M.c3);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec4d<T> gr3(MVec4d_U<T> const& M)
+constexpr TriVec4d<T> gr3(MVec4d_U<T> const& M)
 {
     return TriVec4d<T>(M.c4, M.c5, M.c6, M.c7);
 }
@@ -71,8 +71,8 @@ inline constexpr TriVec4d<T> gr3(MVec4d_U<T> const& M)
 // vector + trivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec4d_U<std::common_type_t<T, U>> operator+(Vec4d<T> const& v,
-                                                              TriVec4d<T> const& t)
+constexpr MVec4d_U<std::common_type_t<T, U>> operator+(Vec4d<T> const& v,
+                                                       TriVec4d<T> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec4d_U<ctype>(v, t);
@@ -81,8 +81,8 @@ inline constexpr MVec4d_U<std::common_type_t<T, U>> operator+(Vec4d<T> const& v,
 // trivector + vector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec4d_U<std::common_type_t<T, U>> operator+(TriVec4d<T> const& t,
-                                                              Vec4d<U> const& v)
+constexpr MVec4d_U<std::common_type_t<T, U>> operator+(TriVec4d<T> const& t,
+                                                       Vec4d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec4d_U<ctype>(v, t);
@@ -95,8 +95,8 @@ inline constexpr MVec4d_U<std::common_type_t<T, U>> operator+(TriVec4d<T> const&
 // vector + trivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec4d_U<std::common_type_t<T, U>> operator-(Vec4d<T> const& v,
-                                                              TriVec4d<T> const& t)
+constexpr MVec4d_U<std::common_type_t<T, U>> operator-(Vec4d<T> const& v,
+                                                       TriVec4d<T> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec4d_U<ctype>(v, -t);
@@ -105,8 +105,8 @@ inline constexpr MVec4d_U<std::common_type_t<T, U>> operator-(Vec4d<T> const& v,
 // trivector + vector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec4d_U<std::common_type_t<T, U>> operator-(TriVec4d<T> const& t,
-                                                              Vec4d<U> const& v)
+constexpr MVec4d_U<std::common_type_t<T, U>> operator-(TriVec4d<T> const& t,
+                                                       Vec4d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec4d_U<ctype>(-v, t);

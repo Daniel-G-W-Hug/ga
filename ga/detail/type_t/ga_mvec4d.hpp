@@ -110,35 +110,35 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar4d<T> gr0(MVec4d<T> const& M)
+constexpr Scalar4d<T> gr0(MVec4d<T> const& M)
 {
     return Scalar4d<T>(M.c0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec4d<T> gr1(MVec4d<T> const& M)
+constexpr Vec4d<T> gr1(MVec4d<T> const& M)
 {
     return Vec4d<T>(M.c1, M.c2, M.c3, M.c4);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec4d<T> gr2(MVec4d<T> const& M)
+constexpr BiVec4d<T> gr2(MVec4d<T> const& M)
 {
     return BiVec4d<T>(M.c5, M.c6, M.c7, M.c8, M.c9, M.c10);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec4d<T> gr3(MVec4d<T> const& M)
+constexpr TriVec4d<T> gr3(MVec4d<T> const& M)
 {
     return TriVec4d<T>(M.c11, M.c12, M.c13, M.c14);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar4d<T> gr4(MVec4d<T> const& M)
+constexpr PScalar4d<T> gr4(MVec4d<T> const& M)
 {
     return PScalar4d<T>(M.c15);
 }
@@ -147,35 +147,35 @@ inline constexpr PScalar4d<T> gr4(MVec4d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr size_t gr([[maybe_unused]] Scalar4d<T>)
+constexpr size_t gr([[maybe_unused]] Scalar4d<T>)
 {
     return 0;
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr size_t gr([[maybe_unused]] Vec4d<T> const&)
+constexpr size_t gr([[maybe_unused]] Vec4d<T> const&)
 {
     return 1;
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr size_t gr([[maybe_unused]] BiVec4d<T> const&)
+constexpr size_t gr([[maybe_unused]] BiVec4d<T> const&)
 {
     return 2;
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr size_t gr([[maybe_unused]] TriVec4d<T> const&)
+constexpr size_t gr([[maybe_unused]] TriVec4d<T> const&)
 {
     return 3;
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr size_t gr([[maybe_unused]] PScalar4d<T>)
+constexpr size_t gr([[maybe_unused]] PScalar4d<T>)
 {
     return 4;
 }

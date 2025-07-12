@@ -95,11 +95,9 @@ struct BVec6_t {
         auto abs_delta_my = std::abs(rhs.my - my);
         auto abs_delta_mz = std::abs(rhs.mz - mz);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        if (abs_delta_vx < delta_eps && abs_delta_vy < delta_eps &&
-            abs_delta_vz < delta_eps && abs_delta_mx < delta_eps &&
-            abs_delta_my < delta_eps && abs_delta_mz < delta_eps)
-            return true;
-        return false;
+        return (abs_delta_vx < delta_eps && abs_delta_vy < delta_eps &&
+                abs_delta_vz < delta_eps && abs_delta_mx < delta_eps &&
+                abs_delta_my < delta_eps && abs_delta_mz < delta_eps);
     }
 
     template <typename U>
@@ -163,7 +161,7 @@ struct BVec6_t {
 // unary minus
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr BVec6_t<T, Tag> operator-(BVec6_t<T, Tag> const& v)
+constexpr BVec6_t<T, Tag> operator-(BVec6_t<T, Tag> const& v)
 {
     return BVec6_t<T, Tag>(-v.vx, -v.vy, -v.vz, -v.mx, -v.my, -v.mz);
 }
@@ -171,8 +169,8 @@ inline constexpr BVec6_t<T, Tag> operator-(BVec6_t<T, Tag> const& v)
 // add multivectors
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BVec6_t<std::common_type_t<T, U>, Tag>
-operator+(BVec6_t<T, Tag> const& v1, BVec6_t<U, Tag> const& v2)
+constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator+(BVec6_t<T, Tag> const& v1,
+                                                           BVec6_t<U, Tag> const& v2)
 {
     return BVec6_t<std::common_type_t<T, U>, Tag>(v1.vx + v2.vx, v1.vy + v2.vy,
                                                   v1.vz + v2.vz, v1.mx + v2.mx,
@@ -182,8 +180,8 @@ operator+(BVec6_t<T, Tag> const& v1, BVec6_t<U, Tag> const& v2)
 // substract multivectors
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BVec6_t<std::common_type_t<T, U>, Tag>
-operator-(BVec6_t<T, Tag> const& v1, BVec6_t<U, Tag> const& v2)
+constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator-(BVec6_t<T, Tag> const& v1,
+                                                           BVec6_t<U, Tag> const& v2)
 {
     return BVec6_t<std::common_type_t<T, U>, Tag>(v1.vx - v2.vx, v1.vy - v2.vy,
                                                   v1.vz - v2.vz, v1.mx - v2.mx,
@@ -193,8 +191,7 @@ operator-(BVec6_t<T, Tag> const& v1, BVec6_t<U, Tag> const& v2)
 // multiply a multivector with a scalar
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BVec6_t<std::common_type_t<T, U>, Tag>
-operator*(BVec6_t<T, Tag> const& v, U s)
+constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator*(BVec6_t<T, Tag> const& v, U s)
 {
     return BVec6_t<std::common_type_t<T, U>, Tag>(v.vx * s, v.vy * s, v.vz * s, v.mx * s,
                                                   v.my * s, v.mz * s);
@@ -202,8 +199,7 @@ operator*(BVec6_t<T, Tag> const& v, U s)
 
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BVec6_t<std::common_type_t<T, U>, Tag>
-operator*(T s, BVec6_t<U, Tag> const& v)
+constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator*(T s, BVec6_t<U, Tag> const& v)
 {
     return BVec6_t<std::common_type_t<T, U>, Tag>(v.vx * s, v.vy * s, v.vz * s, v.mx * s,
                                                   v.my * s, v.mz * s);
@@ -245,7 +241,7 @@ inline BVec6_t<std::common_type_t<T, U>, Tag> operator/(BVec6_t<T, Tag> const& v
 //
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm_sq(BVec6_t<T, Tag> const& b)
+constexpr T nrm_sq(BVec6_t<T, Tag> const& b)
 {
     return b.vx * b.vx + b.vy * b.vy + b.vz * b.vz + b.mx * b.mx + b.my * b.my +
            b.mz * b.mz;
@@ -253,7 +249,7 @@ inline constexpr T nrm_sq(BVec6_t<T, Tag> const& b)
 
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm(BVec6_t<T, Tag> const& v)
+constexpr T nrm(BVec6_t<T, Tag> const& v)
 {
     return std::sqrt(nrm_sq(v));
 }
