@@ -86,7 +86,6 @@ SandwichTransformer::generateOptimizedCoefficients(const MatrixTransformation& t
 
     // Extract common sub-expressions like R.c0*R.c0, R.c0*R.c1, etc.
     std::map<std::string, std::string> k_coefficients;
-    int k_index = 0;
 
     for (const auto& [result_comp, var_coeffs] : transform.matrix_coefficients) {
         for (const auto& [var, coeff] : var_coeffs) {
