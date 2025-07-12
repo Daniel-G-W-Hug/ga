@@ -53,21 +53,21 @@ template <typename T> struct MVec4_t<T, mvec2d_tag> : public MVec4_t<T, default_
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2d<T> gr0(MVec2d<T> const& M)
+constexpr Scalar2d<T> gr0(MVec2d<T> const& M)
 {
     return Scalar2d<T>(M.c0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2d<T> gr1(MVec2d<T> const& M)
+constexpr Vec2d<T> gr1(MVec2d<T> const& M)
 {
     return Vec2d<T>(M.c1, M.c2);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2d<T> gr2(MVec2d<T> const& M)
+constexpr PScalar2d<T> gr2(MVec2d<T> const& M)
 {
     return PScalar2d<T>(M.c3);
 }
@@ -76,21 +76,21 @@ inline constexpr PScalar2d<T> gr2(MVec2d<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr size_t gr([[maybe_unused]] Scalar2d<T>)
+constexpr size_t gr([[maybe_unused]] Scalar2d<T>)
 {
     return 0;
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr size_t gr([[maybe_unused]] Vec2d<T> const&)
+constexpr size_t gr([[maybe_unused]] Vec2d<T> const&)
 {
     return 1;
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr size_t gr([[maybe_unused]] PScalar2d<T>)
+constexpr size_t gr([[maybe_unused]] PScalar2d<T>)
 {
     return 2;
 }
@@ -103,8 +103,7 @@ inline constexpr size_t gr([[maybe_unused]] PScalar2d<T>)
 // scalar + vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
-                                                            Vec2d<U> const& v)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(Scalar2d<T> s, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(s, v, PScalar2d<ctype>(0.0));
@@ -113,8 +112,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
 // vector + scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator+(Vec2d<T> const& v,
-                                                            Scalar2d<U> s)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(Vec2d<T> const& v, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(s, v, PScalar2d<ctype>(0.0));
@@ -123,8 +121,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator+(Vec2d<T> const& v,
 // pseudoscalar + vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
-                                                            Vec2d<U> const& v)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(PScalar2d<T> ps, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(Scalar2d<ctype>(0.0), v, ps);
@@ -133,8 +130,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
 // vector + pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator+(Vec2d<T> const& v,
-                                                            PScalar2d<U> ps)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(Vec2d<T> const& v, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(Scalar2d<ctype>(0.0), v, ps);
@@ -143,8 +139,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator+(Vec2d<T> const& v,
 // mulitivector + scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M,
-                                                            Scalar2d<U> s)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(gr0(M) + s, gr1(M), gr2(M));
@@ -153,8 +148,8 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M,
 // mulitivector + vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M,
-                                                            Vec2d<U> const& v)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M,
+                                                     Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(gr0(M), gr1(M) + v, gr2(M));
@@ -163,8 +158,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M,
 // mulitivector + pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M,
-                                                            PScalar2d<U> ps)
+constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(gr0(M), gr1(M), gr2(M) + ps);
@@ -178,8 +172,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator+(MVec2d<T> const& M,
 // scalar - vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator-(Scalar2d<T> s,
-                                                            Vec2d<U> const& v)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(Scalar2d<T> s, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(s, -v, PScalar2d<ctype>(0.0));
@@ -188,8 +181,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator-(Scalar2d<T> s,
 // vector - scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator-(Vec2d<T> const& v,
-                                                            Scalar2d<U> s)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(Vec2d<T> const& v, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(-s, v, PScalar2d<ctype>(0.0));
@@ -198,8 +190,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator-(Vec2d<T> const& v,
 // pseudoscalar - vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator-(PScalar2d<T> ps,
-                                                            Vec2d<U> const& v)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(PScalar2d<T> ps, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(Scalar2d<ctype>(0.0), -v, ps);
@@ -208,8 +199,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator-(PScalar2d<T> ps,
 // vector - pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator-(Vec2d<T> const& v,
-                                                            PScalar2d<U> ps)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(Vec2d<T> const& v, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(Scalar2d<ctype>(0.0), v, -ps);
@@ -218,8 +208,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator-(Vec2d<T> const& v,
 // mulitivector - scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& M,
-                                                            Scalar2d<U> s)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& M, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(gr0(M) - s, gr1(M), gr2(M));
@@ -228,8 +217,8 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& M,
 // mulitivector - vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& M,
-                                                            Vec2d<U> const& v)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& M,
+                                                     Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(gr0(M), gr1(M) - v, gr2(M));
@@ -238,8 +227,7 @@ inline constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& M,
 // mulitivector - pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& M,
-                                                            PScalar2d<U> ps)
+constexpr MVec2d<std::common_type_t<T, U>> operator-(MVec2d<T> const& M, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(gr0(M), gr1(M), gr2(M) - ps);

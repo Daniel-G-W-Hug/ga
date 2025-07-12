@@ -41,7 +41,7 @@ namespace hd::ga::pga {
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> gr_inv(Scalar2dp<T> s)
+constexpr Scalar2dp<T> gr_inv(Scalar2dp<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -49,7 +49,7 @@ inline constexpr Scalar2dp<T> gr_inv(Scalar2dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> gr_inv(Vec2dp<T> const& v)
+constexpr Vec2dp<T> gr_inv(Vec2dp<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -57,7 +57,7 @@ inline constexpr Vec2dp<T> gr_inv(Vec2dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> gr_inv(BiVec2dp<T> const& B)
+constexpr BiVec2dp<T> gr_inv(BiVec2dp<T> const& B)
 {
     // grade 2: no sign change
     return B;
@@ -65,7 +65,7 @@ inline constexpr BiVec2dp<T> gr_inv(BiVec2dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> gr_inv(PScalar2dp<T> ps)
+constexpr PScalar2dp<T> gr_inv(PScalar2dp<T> ps)
 {
     // grade 3: sign reversal
     return -ps;
@@ -73,7 +73,7 @@ inline constexpr PScalar2dp<T> gr_inv(PScalar2dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> gr_inv(MVec2dp_E<T> const& M)
+constexpr MVec2dp_E<T> gr_inv(MVec2dp_E<T> const& M)
 {
     // grade 0 and 2: no sign change
     return M;
@@ -81,7 +81,7 @@ inline constexpr MVec2dp_E<T> gr_inv(MVec2dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> gr_inv(MVec2dp_U<T> const& M)
+constexpr MVec2dp_U<T> gr_inv(MVec2dp_U<T> const& M)
 {
     // grade 1 and 3: sign reversal
     return -M;
@@ -89,7 +89,7 @@ inline constexpr MVec2dp_U<T> gr_inv(MVec2dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> gr_inv(MVec2dp<T> const& M)
+constexpr MVec2dp<T> gr_inv(MVec2dp<T> const& M)
 {
     // grade 0 and 2: no sign change
     // grade 1 and 3: sign reversal
@@ -105,7 +105,7 @@ inline constexpr MVec2dp<T> gr_inv(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> rev(Scalar2dp<T> s)
+constexpr Scalar2dp<T> rev(Scalar2dp<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -113,7 +113,7 @@ inline constexpr Scalar2dp<T> rev(Scalar2dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> rev(Vec2dp<T> const& v)
+constexpr Vec2dp<T> rev(Vec2dp<T> const& v)
 {
     // grade 1: no sign change
     return v;
@@ -121,7 +121,7 @@ inline constexpr Vec2dp<T> rev(Vec2dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> rev(BiVec2dp<T> const& B)
+constexpr BiVec2dp<T> rev(BiVec2dp<T> const& B)
 {
     // grade 2: sign reversal
     return -B;
@@ -129,7 +129,7 @@ inline constexpr BiVec2dp<T> rev(BiVec2dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> rev(PScalar2dp<T> ps)
+constexpr PScalar2dp<T> rev(PScalar2dp<T> ps)
 {
     // grade 3: sign reversal
     return -ps;
@@ -137,7 +137,7 @@ inline constexpr PScalar2dp<T> rev(PScalar2dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> rev(MVec2dp_E<T> const& M)
+constexpr MVec2dp_E<T> rev(MVec2dp_E<T> const& M)
 {
     // grade 0: no sign change
     // grade 2: sign change
@@ -146,7 +146,7 @@ inline constexpr MVec2dp_E<T> rev(MVec2dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> rev(MVec2dp_U<T> const& M)
+constexpr MVec2dp_U<T> rev(MVec2dp_U<T> const& M)
 {
     // grade 1: no sign change
     // grade 3: sign change
@@ -155,7 +155,7 @@ inline constexpr MVec2dp_U<T> rev(MVec2dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> rev(MVec2dp<T> const& M)
+constexpr MVec2dp<T> rev(MVec2dp<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: no sign change
@@ -173,7 +173,7 @@ inline constexpr MVec2dp<T> rev(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> rrev(Scalar2dp<T> s)
+constexpr Scalar2dp<T> rrev(Scalar2dp<T> s)
 {
     // grade 0: sign reversal
     return -s;
@@ -181,7 +181,7 @@ inline constexpr Scalar2dp<T> rrev(Scalar2dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> rrev(Vec2dp<T> const& v)
+constexpr Vec2dp<T> rrev(Vec2dp<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -189,7 +189,7 @@ inline constexpr Vec2dp<T> rrev(Vec2dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> rrev(BiVec2dp<T> const& B)
+constexpr BiVec2dp<T> rrev(BiVec2dp<T> const& B)
 {
     // grade 2: no sign change
     return B;
@@ -197,7 +197,7 @@ inline constexpr BiVec2dp<T> rrev(BiVec2dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> rrev(PScalar2dp<T> ps)
+constexpr PScalar2dp<T> rrev(PScalar2dp<T> ps)
 {
     // grade 3: no sign change
     return ps;
@@ -205,7 +205,7 @@ inline constexpr PScalar2dp<T> rrev(PScalar2dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> rrev(MVec2dp_E<T> const& M)
+constexpr MVec2dp_E<T> rrev(MVec2dp_E<T> const& M)
 {
     // grade 0: sign reversal
     // grade 2: no sign change
@@ -214,7 +214,7 @@ inline constexpr MVec2dp_E<T> rrev(MVec2dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> rrev(MVec2dp_U<T> const& M)
+constexpr MVec2dp_U<T> rrev(MVec2dp_U<T> const& M)
 {
     // grade 1: sign reversal
     // grade 3: no sign change
@@ -223,7 +223,7 @@ inline constexpr MVec2dp_U<T> rrev(MVec2dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> rrev(MVec2dp<T> const& M)
+constexpr MVec2dp<T> rrev(MVec2dp<T> const& M)
 {
     // grade 0: sign reversal
     // grade 1: sign reversal
@@ -241,7 +241,7 @@ inline constexpr MVec2dp<T> rrev(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> conj(Scalar2dp<T> s)
+constexpr Scalar2dp<T> conj(Scalar2dp<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -249,7 +249,7 @@ inline constexpr Scalar2dp<T> conj(Scalar2dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> conj(Vec2dp<T> const& v)
+constexpr Vec2dp<T> conj(Vec2dp<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -257,7 +257,7 @@ inline constexpr Vec2dp<T> conj(Vec2dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> conj(BiVec2dp<T> const& B)
+constexpr BiVec2dp<T> conj(BiVec2dp<T> const& B)
 {
     // grade 2: sign reversal
     return -B;
@@ -265,7 +265,7 @@ inline constexpr BiVec2dp<T> conj(BiVec2dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> conj(PScalar2dp<T> ps)
+constexpr PScalar2dp<T> conj(PScalar2dp<T> ps)
 {
     // grade 3: no sign change
     return ps;
@@ -273,7 +273,7 @@ inline constexpr PScalar2dp<T> conj(PScalar2dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> conj(MVec2dp_E<T> const& M)
+constexpr MVec2dp_E<T> conj(MVec2dp_E<T> const& M)
 {
     // grade 0: no sign change
     // grade 2: sign change
@@ -282,7 +282,7 @@ inline constexpr MVec2dp_E<T> conj(MVec2dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> conj(MVec2dp_U<T> const& M)
+constexpr MVec2dp_U<T> conj(MVec2dp_U<T> const& M)
 {
     // grade 1: sign reversal
     // grade 3: no sign change
@@ -291,7 +291,7 @@ inline constexpr MVec2dp_U<T> conj(MVec2dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
+constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: sign reversal
@@ -325,7 +325,7 @@ inline constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
+constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
 {
     // u ^ cmpl(u) = e3^e2^e1
     // u = 1:
@@ -335,7 +335,7 @@ inline constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> cmpl(Vec2dp<T> const& v)
+constexpr BiVec2dp<T> cmpl(Vec2dp<T> const& v)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = v.x e1 + v.y e2 + v.z e3:
@@ -348,7 +348,7 @@ inline constexpr BiVec2dp<T> cmpl(Vec2dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> cmpl(BiVec2dp<T> const& B)
+constexpr Vec2dp<T> cmpl(BiVec2dp<T> const& B)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = b.x e23 + b.y e31 + b.z e12:
@@ -361,7 +361,7 @@ inline constexpr Vec2dp<T> cmpl(BiVec2dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> cmpl(PScalar2dp<T> ps)
+constexpr Scalar2dp<T> cmpl(PScalar2dp<T> ps)
 {
     // u ^ compl(u) = e3^e2^e1
     // u = e3^e2^e1:
@@ -371,7 +371,7 @@ inline constexpr Scalar2dp<T> cmpl(PScalar2dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> cmpl(MVec2dp_E<T> const& M)
+constexpr MVec2dp_U<T> cmpl(MVec2dp_E<T> const& M)
 {
     // use the component complements directly
     return MVec2dp_U<T>(cmpl(gr2(M)), cmpl(gr0(M)));
@@ -379,7 +379,7 @@ inline constexpr MVec2dp_U<T> cmpl(MVec2dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> cmpl(MVec2dp_U<T> const& M)
+constexpr MVec2dp_E<T> cmpl(MVec2dp_U<T> const& M)
 {
     // use the component complements directly
     return MVec2dp_E<T>(cmpl(gr3(M)), cmpl(gr1(M)));
@@ -387,7 +387,7 @@ inline constexpr MVec2dp_E<T> cmpl(MVec2dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> cmpl(MVec2dp<T> const& M)
+constexpr MVec2dp<T> cmpl(MVec2dp<T> const& M)
 {
     // use the component complements directly
     return MVec2dp<T>(cmpl(gr3(M)), cmpl(gr2(M)), cmpl(gr1(M)), cmpl(gr0(M)));
@@ -400,49 +400,49 @@ inline constexpr MVec2dp<T> cmpl(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk(Scalar2dp<T> s)
+constexpr Scalar2dp<T> bulk(Scalar2dp<T> s)
 {
     return s;
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> bulk(Vec2dp<T> const& v)
+constexpr Vec2dp<T> bulk(Vec2dp<T> const& v)
 {
     return Vec2dp<T>(v.x, v.y, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> bulk(BiVec2dp<T> const& B)
+constexpr BiVec2dp<T> bulk(BiVec2dp<T> const& B)
 {
     return BiVec2dp<T>(T(0.0), T(0.0), B.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> bulk([[maybe_unused]] PScalar2dp<T>)
+constexpr PScalar2dp<T> bulk([[maybe_unused]] PScalar2dp<T>)
 {
     return PScalar2dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> bulk(MVec2dp_E<T> const& M)
+constexpr MVec2dp_E<T> bulk(MVec2dp_E<T> const& M)
 {
     return MVec2dp_E<T>(bulk(gr0(M)), bulk(gr2(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> bulk(MVec2dp_U<T> const& M)
+constexpr MVec2dp_U<T> bulk(MVec2dp_U<T> const& M)
 {
     return MVec2dp_U<T>(bulk(gr1(M)), bulk(gr3(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> bulk(MVec2dp<T> const& M)
+constexpr MVec2dp<T> bulk(MVec2dp<T> const& M)
 {
     return MVec2dp<T>(bulk(gr0(M)), bulk(gr1(M)), bulk(gr2(M)), bulk(gr3(M)));
 }
@@ -455,49 +455,49 @@ inline constexpr MVec2dp<T> bulk(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> weight([[maybe_unused]] Scalar2dp<T>)
+constexpr Scalar2dp<T> weight([[maybe_unused]] Scalar2dp<T>)
 {
     return Scalar2dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> weight(Vec2dp<T> const& v)
+constexpr Vec2dp<T> weight(Vec2dp<T> const& v)
 {
     return Vec2dp<T>(T(0.0), T(0.0), v.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> weight(BiVec2dp<T> const& B)
+constexpr BiVec2dp<T> weight(BiVec2dp<T> const& B)
 {
     return BiVec2dp<T>(B.x, B.y, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight(PScalar2dp<T> ps)
+constexpr PScalar2dp<T> weight(PScalar2dp<T> ps)
 {
     return PScalar2dp<T>(ps);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> weight(MVec2dp_E<T> const& M)
+constexpr MVec2dp_E<T> weight(MVec2dp_E<T> const& M)
 {
     return MVec2dp_E<T>(weight(gr0(M)), weight(gr2(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> weight(MVec2dp_U<T> const& M)
+constexpr MVec2dp_U<T> weight(MVec2dp_U<T> const& M)
 {
     return MVec2dp_U<T>(weight(gr1(M)), weight(gr3(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> weight(MVec2dp<T> const& M)
+constexpr MVec2dp<T> weight(MVec2dp<T> const& M)
 {
     return MVec2dp<T>(weight(gr0(M)), weight(gr1(M)), weight(gr2(M)), weight(gr3(M)));
 }
@@ -510,7 +510,7 @@ inline constexpr MVec2dp<T> weight(MVec2dp<T> const& M)
 // return squared bulk norm of scalar
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm_sq(Scalar2dp<T> s)
+constexpr Scalar2dp<T> bulk_nrm_sq(Scalar2dp<T> s)
 {
     // ||bulk(s)||^2 = dot(s,s) = s^(T) G s = gr0(s*rev(s)) = s*s
     // using rev(s) = (-1)^[k(k-1)/2] s for a k-blade: 0-blade => rev(s) = s
@@ -520,7 +520,7 @@ inline constexpr Scalar2dp<T> bulk_nrm_sq(Scalar2dp<T> s)
 // return bulk norm of scalar
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm(Scalar2dp<T> s)
+constexpr Scalar2dp<T> bulk_nrm(Scalar2dp<T> s)
 {
     return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(s)));
 }
@@ -528,7 +528,7 @@ inline constexpr Scalar2dp<T> bulk_nrm(Scalar2dp<T> s)
 // return squared bulk norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm_sq(Vec2dp<T> const& v)
+constexpr Scalar2dp<T> bulk_nrm_sq(Vec2dp<T> const& v)
 {
     // ||bulk(v)||^2 = dot(v,v) = v^(T) G v = gr0(v*rev(v)) = v.x * v.x + v.y * v.y
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
@@ -538,7 +538,7 @@ inline constexpr Scalar2dp<T> bulk_nrm_sq(Vec2dp<T> const& v)
 // return bulk norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm(Vec2dp<T> const& v)
+constexpr Scalar2dp<T> bulk_nrm(Vec2dp<T> const& v)
 {
     return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(v)));
 }
@@ -546,7 +546,7 @@ inline constexpr Scalar2dp<T> bulk_nrm(Vec2dp<T> const& v)
 // return squared bulk magnitude of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm_sq(BiVec2dp<T> const& B)
+constexpr Scalar2dp<T> bulk_nrm_sq(BiVec2dp<T> const& B)
 {
     // ||bulk(B)||^2 = dot(B,B) = B^(T) G B = gr0(B*rev(B)) = B.z * B.z
     // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
@@ -556,56 +556,56 @@ inline constexpr Scalar2dp<T> bulk_nrm_sq(BiVec2dp<T> const& B)
 // return magnitude of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm(BiVec2dp<T> const& B)
+constexpr Scalar2dp<T> bulk_nrm(BiVec2dp<T> const& B)
 {
     return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(B)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm_sq([[maybe_unused]] PScalar2dp<T>)
+constexpr Scalar2dp<T> bulk_nrm_sq([[maybe_unused]] PScalar2dp<T>)
 {
     return Scalar2dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm([[maybe_unused]] PScalar2dp<T>)
+constexpr Scalar2dp<T> bulk_nrm([[maybe_unused]] PScalar2dp<T>)
 {
     return Scalar2dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp_E<T> const& M)
+constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp_E<T> const& M)
 {
     return Scalar2dp<T>(bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr2(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm(MVec2dp_E<T> const& M)
+constexpr Scalar2dp<T> bulk_nrm(MVec2dp_E<T> const& M)
 {
     return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp_U<T> const& M)
+constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp_U<T> const& M)
 {
     return Scalar2dp<T>(bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr3(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm(MVec2dp_U<T> const& M)
+constexpr Scalar2dp<T> bulk_nrm(MVec2dp_U<T> const& M)
 {
     return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp<T> const& M)
+constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp<T> const& M)
 {
     return Scalar2dp<T>(bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr2(M)) +
                         bulk_nrm_sq(gr3(M)));
@@ -613,7 +613,7 @@ inline constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_nrm(MVec2dp<T> const& M)
+constexpr Scalar2dp<T> bulk_nrm(MVec2dp<T> const& M)
 {
     return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
@@ -625,14 +625,14 @@ inline constexpr Scalar2dp<T> bulk_nrm(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> weight_nrm_sq([[maybe_unused]] Scalar2dp<T>)
+constexpr Scalar2dp<T> weight_nrm_sq([[maybe_unused]] Scalar2dp<T>)
 {
     return PScalar2dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> weight_nrm([[maybe_unused]] Scalar2dp<T>)
+constexpr Scalar2dp<T> weight_nrm([[maybe_unused]] Scalar2dp<T>)
 {
     return PScalar2dp<T>(0.0);
 }
@@ -641,7 +641,7 @@ inline constexpr Scalar2dp<T> weight_nrm([[maybe_unused]] Scalar2dp<T>)
 // ||weight(v)||^2 = cmpl( dot(cmpl(v), cmpl(v)) ) = rdot(v,v) = v.z * v.z
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm_sq(Vec2dp<T> const& v)
+constexpr PScalar2dp<T> weight_nrm_sq(Vec2dp<T> const& v)
 {
     return PScalar2dp<T>(v.z * v.z);
 }
@@ -649,7 +649,7 @@ inline constexpr PScalar2dp<T> weight_nrm_sq(Vec2dp<T> const& v)
 // return weigth norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm(Vec2dp<T> const& v)
+constexpr PScalar2dp<T> weight_nrm(Vec2dp<T> const& v)
 {
     return PScalar2dp<T>(std::sqrt(weight_nrm_sq(v)));
 }
@@ -658,7 +658,7 @@ inline constexpr PScalar2dp<T> weight_nrm(Vec2dp<T> const& v)
 // ||weight(B)||^2 = cmpl( dot(cmpl(B),cmpl(B)) ) = rdot(B, B) = B.x * B.x + B.y * B.y
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm_sq(BiVec2dp<T> const& B)
+constexpr PScalar2dp<T> weight_nrm_sq(BiVec2dp<T> const& B)
 {
     return PScalar2dp<T>(B.x * B.x + B.y * B.y);
 }
@@ -666,7 +666,7 @@ inline constexpr PScalar2dp<T> weight_nrm_sq(BiVec2dp<T> const& B)
 // return weight norm of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm(BiVec2dp<T> const& B)
+constexpr PScalar2dp<T> weight_nrm(BiVec2dp<T> const& B)
 {
     return PScalar2dp<T>(std::sqrt(weight_nrm_sq(B)));
 }
@@ -675,7 +675,7 @@ inline constexpr PScalar2dp<T> weight_nrm(BiVec2dp<T> const& B)
 // ||weight(ps)||^2 = cmpl( dot(cmpl(ps),cmpl(ps)) ) = rdot(ps, ps) = ps * ps
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm_sq(PScalar2dp<T> ps)
+constexpr PScalar2dp<T> weight_nrm_sq(PScalar2dp<T> ps)
 {
     return PScalar2dp<T>(T(ps) * T(ps));
 }
@@ -683,42 +683,42 @@ inline constexpr PScalar2dp<T> weight_nrm_sq(PScalar2dp<T> ps)
 // return weight norm of pseudoscalar
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm(PScalar2dp<T> ps)
+constexpr PScalar2dp<T> weight_nrm(PScalar2dp<T> ps)
 {
     return PScalar2dp<T>(std::sqrt(weight_nrm_sq(ps)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp_E<T> const& M)
+constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp_E<T> const& M)
 {
     return PScalar2dp<T>(weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr2(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm(MVec2dp_E<T> const& M)
+constexpr PScalar2dp<T> weight_nrm(MVec2dp_E<T> const& M)
 {
     return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp_U<T> const& M)
+constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp_U<T> const& M)
 {
     return PScalar2dp<T>(weight_nrm_sq(gr1(M)) + weight_nrm_sq(gr3(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm(MVec2dp_U<T> const& M)
+constexpr PScalar2dp<T> weight_nrm(MVec2dp_U<T> const& M)
 {
     return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp<T> const& M)
+constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp<T> const& M)
 {
     return PScalar2dp<T>(weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr1(M)) +
                          weight_nrm_sq(gr2(M)) + weight_nrm_sq(gr3(M)));
@@ -726,7 +726,7 @@ inline constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_nrm(MVec2dp<T> const& M)
+constexpr PScalar2dp<T> weight_nrm(MVec2dp<T> const& M)
 {
     return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
@@ -742,14 +742,14 @@ inline constexpr PScalar2dp<T> weight_nrm(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm_sq(Scalar2dp<T> s)
+constexpr DualNum2dp<T> geom_nrm_sq(Scalar2dp<T> s)
 {
     return DualNum2dp<T>(bulk_nrm_sq(s), weight_nrm_sq(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm(Scalar2dp<T> s)
+constexpr DualNum2dp<T> geom_nrm(Scalar2dp<T> s)
 {
     return DualNum2dp<T>(bulk_nrm(s), weight_nrm(s));
 }
@@ -757,7 +757,7 @@ inline constexpr DualNum2dp<T> geom_nrm(Scalar2dp<T> s)
 // provide the distance of the point from the origin
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm_sq(Vec2dp<T> const& v)
+constexpr DualNum2dp<T> geom_nrm_sq(Vec2dp<T> const& v)
 {
     return DualNum2dp<T>(bulk_nrm_sq(v), weight_nrm_sq(v));
 }
@@ -765,7 +765,7 @@ inline constexpr DualNum2dp<T> geom_nrm_sq(Vec2dp<T> const& v)
 // return geometric norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm(Vec2dp<T> const& v)
+constexpr DualNum2dp<T> geom_nrm(Vec2dp<T> const& v)
 {
     return DualNum2dp<T>(bulk_nrm(v), weight_nrm(v));
 }
@@ -773,7 +773,7 @@ inline constexpr DualNum2dp<T> geom_nrm(Vec2dp<T> const& v)
 // provide the perpendicular distance of the line to the origin
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm_sq(BiVec2dp<T> const& B)
+constexpr DualNum2dp<T> geom_nrm_sq(BiVec2dp<T> const& B)
 {
     return DualNum2dp<T>(bulk_nrm_sq(B), weight_nrm_sq(B));
 }
@@ -781,21 +781,21 @@ inline constexpr DualNum2dp<T> geom_nrm_sq(BiVec2dp<T> const& B)
 // return geometric norm of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm(BiVec2dp<T> const& B)
+constexpr DualNum2dp<T> geom_nrm(BiVec2dp<T> const& B)
 {
     return DualNum2dp<T>(bulk_nrm(B), weight_nrm(B));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm_sq(PScalar2dp<T> ps)
+constexpr DualNum2dp<T> geom_nrm_sq(PScalar2dp<T> ps)
 {
     return DualNum2dp<T>(bulk_nrm_sq(ps), weight_nrm_sq(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm(PScalar2dp<T> ps)
+constexpr DualNum2dp<T> geom_nrm(PScalar2dp<T> ps)
 {
     return DualNum2dp<T>(bulk_nrm(ps), weight_nrm(ps));
 }
@@ -803,14 +803,14 @@ inline constexpr DualNum2dp<T> geom_nrm(PScalar2dp<T> ps)
 // even grade multivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_E<T> const& M)
+constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_E<T> const& M)
 {
     return DualNum2dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm(MVec2dp_E<T> const& M)
+constexpr DualNum2dp<T> geom_nrm(MVec2dp_E<T> const& M)
 {
     return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
 }
@@ -818,14 +818,14 @@ inline constexpr DualNum2dp<T> geom_nrm(MVec2dp_E<T> const& M)
 // odd grade multivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_U<T> const& M)
+constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_U<T> const& M)
 {
     return DualNum2dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm(MVec2dp_U<T> const& M)
+constexpr DualNum2dp<T> geom_nrm(MVec2dp_U<T> const& M)
 {
     return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
 }
@@ -833,14 +833,14 @@ inline constexpr DualNum2dp<T> geom_nrm(MVec2dp_U<T> const& M)
 // multivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp<T> const& M)
+constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp<T> const& M)
 {
     return DualNum2dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum2dp<T> geom_nrm(MVec2dp<T> const& M)
+constexpr DualNum2dp<T> geom_nrm(MVec2dp<T> const& M)
 {
     return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
 }
@@ -958,49 +958,49 @@ inline Line2d<T> unitize(Line2d<T> const& l)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> bulk_dual(Scalar2dp<T> s)
+constexpr PScalar2dp<T> bulk_dual(Scalar2dp<T> s)
 {
     return PScalar2dp<T>(T(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> bulk_dual(Vec2dp<T> const& v)
+constexpr BiVec2dp<T> bulk_dual(Vec2dp<T> const& v)
 {
     return BiVec2dp<T>(-v.x, -v.y, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> bulk_dual(BiVec2dp<T> const& B)
+constexpr Vec2dp<T> bulk_dual(BiVec2dp<T> const& B)
 {
     return Vec2dp<T>(T(0.0), T(0.0), -B.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> bulk_dual([[maybe_unused]] PScalar2dp<T>)
+constexpr Scalar2dp<T> bulk_dual([[maybe_unused]] PScalar2dp<T>)
 {
     return Scalar2dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> bulk_dual(MVec2dp_E<T> const& M)
+constexpr MVec2dp_U<T> bulk_dual(MVec2dp_E<T> const& M)
 {
     return MVec2dp_U<T>(bulk_dual(gr2(M)), bulk_dual(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> bulk_dual(MVec2dp_U<T> const& M)
+constexpr MVec2dp_E<T> bulk_dual(MVec2dp_U<T> const& M)
 {
     return MVec2dp_E<T>(bulk_dual(gr3(M)), bulk_dual(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> bulk_dual(MVec2dp<T> const& M)
+constexpr MVec2dp<T> bulk_dual(MVec2dp<T> const& M)
 {
     return MVec2dp<T>(bulk_dual(gr3(M)), bulk_dual(gr2(M)), bulk_dual(gr1(M)),
                       bulk_dual(gr0(M)));
@@ -1016,49 +1016,49 @@ inline constexpr MVec2dp<T> bulk_dual(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar2dp<T> weight_dual([[maybe_unused]] Scalar2dp<T>)
+constexpr PScalar2dp<T> weight_dual([[maybe_unused]] Scalar2dp<T>)
 {
     return PScalar2dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> weight_dual(Vec2dp<T> const& v)
+constexpr BiVec2dp<T> weight_dual(Vec2dp<T> const& v)
 {
     return BiVec2dp<T>(T(0.0), T(0.0), -v.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> weight_dual(BiVec2dp<T> const& B)
+constexpr Vec2dp<T> weight_dual(BiVec2dp<T> const& B)
 {
     return Vec2dp<T>(-B.x, -B.y, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> weight_dual(PScalar2dp<T> ps)
+constexpr Scalar2dp<T> weight_dual(PScalar2dp<T> ps)
 {
     return Scalar2dp<T>(T(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> weight_dual(MVec2dp_E<T> const& M)
+constexpr MVec2dp_U<T> weight_dual(MVec2dp_E<T> const& M)
 {
     return MVec2dp_U<T>(weight_dual(gr2(M)), weight_dual(gr0(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_E<T> weight_dual(MVec2dp_U<T> const& M)
+constexpr MVec2dp_E<T> weight_dual(MVec2dp_U<T> const& M)
 {
     return MVec2dp_E<T>(weight_dual(gr3(M)), weight_dual(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp<T> weight_dual(MVec2dp<T> const& M)
+constexpr MVec2dp<T> weight_dual(MVec2dp<T> const& M)
 {
     return MVec2dp<T>(weight_dual(gr3(M)), weight_dual(gr2(M)), weight_dual(gr1(M)),
                       weight_dual(gr0(M)));

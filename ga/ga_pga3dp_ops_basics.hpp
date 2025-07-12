@@ -42,7 +42,7 @@ namespace hd::ga::pga {
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> gr_inv(Scalar3dp<T> s)
+constexpr Scalar3dp<T> gr_inv(Scalar3dp<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -50,7 +50,7 @@ inline constexpr Scalar3dp<T> gr_inv(Scalar3dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> gr_inv(Vec3dp<T> const& v)
+constexpr Vec3dp<T> gr_inv(Vec3dp<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -58,7 +58,7 @@ inline constexpr Vec3dp<T> gr_inv(Vec3dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> gr_inv(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> gr_inv(BiVec3dp<T> const& B)
 {
     // grade 2: no sign change
     return B;
@@ -66,7 +66,7 @@ inline constexpr BiVec3dp<T> gr_inv(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> gr_inv(TriVec3dp<T> const& t)
+constexpr TriVec3dp<T> gr_inv(TriVec3dp<T> const& t)
 {
     // grade 3: sign reversal
     return -t;
@@ -74,7 +74,7 @@ inline constexpr TriVec3dp<T> gr_inv(TriVec3dp<T> const& t)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> gr_inv(PScalar3dp<T> ps)
+constexpr PScalar3dp<T> gr_inv(PScalar3dp<T> ps)
 {
     // grade 4: no sign change
     return ps;
@@ -82,7 +82,7 @@ inline constexpr PScalar3dp<T> gr_inv(PScalar3dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> gr_inv(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> gr_inv(MVec3dp_E<T> const& M)
 {
     // grade 0, 2, and 4: no sign change
     return M;
@@ -90,7 +90,7 @@ inline constexpr MVec3dp_E<T> gr_inv(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> gr_inv(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> gr_inv(MVec3dp_U<T> const& M)
 {
     // grade 1 and 3: sign reversal
     return -M;
@@ -98,7 +98,7 @@ inline constexpr MVec3dp_U<T> gr_inv(MVec3dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> gr_inv(MVec3dp<T> const& M)
+constexpr MVec3dp<T> gr_inv(MVec3dp<T> const& M)
 {
     // grade 0, 2, and 4: no sign change
     // grade 1 and 3: sign reversal
@@ -115,7 +115,7 @@ inline constexpr MVec3dp<T> gr_inv(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> rev(Scalar3dp<T> s)
+constexpr Scalar3dp<T> rev(Scalar3dp<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -123,7 +123,7 @@ inline constexpr Scalar3dp<T> rev(Scalar3dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> rev(Vec3dp<T> const& v)
+constexpr Vec3dp<T> rev(Vec3dp<T> const& v)
 {
     // grade 1: no sign change
     return v;
@@ -131,7 +131,7 @@ inline constexpr Vec3dp<T> rev(Vec3dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> rev(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> rev(BiVec3dp<T> const& B)
 {
     // grade 2: sign reversal
     return -B;
@@ -139,7 +139,7 @@ inline constexpr BiVec3dp<T> rev(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> rev(TriVec3dp<T> const& t)
+constexpr TriVec3dp<T> rev(TriVec3dp<T> const& t)
 {
     // grade 3: sign reversal
     return -t;
@@ -147,7 +147,7 @@ inline constexpr TriVec3dp<T> rev(TriVec3dp<T> const& t)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> rev(PScalar3dp<T> ps)
+constexpr PScalar3dp<T> rev(PScalar3dp<T> ps)
 {
     // grade 4: no sign change
     return ps;
@@ -155,7 +155,7 @@ inline constexpr PScalar3dp<T> rev(PScalar3dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> rev(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> rev(MVec3dp_E<T> const& M)
 {
     // grade 0, 4: no sign change
     // grade 2: sign change
@@ -164,7 +164,7 @@ inline constexpr MVec3dp_E<T> rev(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> rev(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> rev(MVec3dp_U<T> const& M)
 {
     // grade 1: no sign change
     // grade 3: sign change
@@ -173,7 +173,7 @@ inline constexpr MVec3dp_U<T> rev(MVec3dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> rev(MVec3dp<T> const& M)
+constexpr MVec3dp<T> rev(MVec3dp<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: no sign change
@@ -192,7 +192,7 @@ inline constexpr MVec3dp<T> rev(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> rrev(Scalar3dp<T> s)
+constexpr Scalar3dp<T> rrev(Scalar3dp<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -200,7 +200,7 @@ inline constexpr Scalar3dp<T> rrev(Scalar3dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> rrev(Vec3dp<T> const& v)
+constexpr Vec3dp<T> rrev(Vec3dp<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -208,7 +208,7 @@ inline constexpr Vec3dp<T> rrev(Vec3dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> rrev(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> rrev(BiVec3dp<T> const& B)
 {
     // grade 2: sign reversal
     return -B;
@@ -216,7 +216,7 @@ inline constexpr BiVec3dp<T> rrev(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> rrev(TriVec3dp<T> const& t)
+constexpr TriVec3dp<T> rrev(TriVec3dp<T> const& t)
 {
     // grade 3: no sign change
     return t;
@@ -224,7 +224,7 @@ inline constexpr TriVec3dp<T> rrev(TriVec3dp<T> const& t)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> rrev(PScalar3dp<T> ps)
+constexpr PScalar3dp<T> rrev(PScalar3dp<T> ps)
 {
     // grade 4: no sign change
     return ps;
@@ -232,7 +232,7 @@ inline constexpr PScalar3dp<T> rrev(PScalar3dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> rrev(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> rrev(MVec3dp_E<T> const& M)
 {
     // grade 0, 4: no sign change
     // grade 2: sign reversal
@@ -241,7 +241,7 @@ inline constexpr MVec3dp_E<T> rrev(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> rrev(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> rrev(MVec3dp_U<T> const& M)
 {
     // grade 1: sign reversal
     // grade 3: no sign change
@@ -250,7 +250,7 @@ inline constexpr MVec3dp_U<T> rrev(MVec3dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> rrev(MVec3dp<T> const& M)
+constexpr MVec3dp<T> rrev(MVec3dp<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: sign reversal
@@ -270,7 +270,7 @@ inline constexpr MVec3dp<T> rrev(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> conj(Scalar3dp<T> s)
+constexpr Scalar3dp<T> conj(Scalar3dp<T> s)
 {
     // grade 0: no sign change
     return s;
@@ -278,7 +278,7 @@ inline constexpr Scalar3dp<T> conj(Scalar3dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> conj(Vec3dp<T> const& v)
+constexpr Vec3dp<T> conj(Vec3dp<T> const& v)
 {
     // grade 1: sign reversal
     return -v;
@@ -286,7 +286,7 @@ inline constexpr Vec3dp<T> conj(Vec3dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> conj(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> conj(BiVec3dp<T> const& B)
 {
     // grade 2: sign reversal
     return -B;
@@ -294,7 +294,7 @@ inline constexpr BiVec3dp<T> conj(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> conj(TriVec3dp<T> const& t)
+constexpr TriVec3dp<T> conj(TriVec3dp<T> const& t)
 {
     // grade 3: no sign change
     return t;
@@ -302,7 +302,7 @@ inline constexpr TriVec3dp<T> conj(TriVec3dp<T> const& t)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> conj(PScalar3dp<T> ps)
+constexpr PScalar3dp<T> conj(PScalar3dp<T> ps)
 {
     // grade 4: no sign change
     return ps;
@@ -310,7 +310,7 @@ inline constexpr PScalar3dp<T> conj(PScalar3dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> conj(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> conj(MVec3dp_E<T> const& M)
 {
     // grade 0, 4: no sign change
     // grade 2: sign change
@@ -319,7 +319,7 @@ inline constexpr MVec3dp_E<T> conj(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> conj(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> conj(MVec3dp_U<T> const& M)
 {
     // grade 1: sign reversal
     // grade 3: no sign change
@@ -328,7 +328,7 @@ inline constexpr MVec3dp_U<T> conj(MVec3dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> conj(MVec3dp<T> const& M)
+constexpr MVec3dp<T> conj(MVec3dp<T> const& M)
 {
     // grade 0: no sign change
     // grade 1: sign reversal
@@ -366,7 +366,7 @@ inline constexpr MVec3dp<T> conj(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> rcmpl(Scalar3dp<T> s)
+constexpr PScalar3dp<T> rcmpl(Scalar3dp<T> s)
 {
     // u ^ rcmpl(u) = e1^e2^e3^e4
     // u = 1:
@@ -376,7 +376,7 @@ inline constexpr PScalar3dp<T> rcmpl(Scalar3dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> rcmpl(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> rcmpl(Vec3dp<T> const& v)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
@@ -390,7 +390,7 @@ inline constexpr TriVec3dp<T> rcmpl(Vec3dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> rcmpl(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> rcmpl(BiVec3dp<T> const& B)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
@@ -406,7 +406,7 @@ inline constexpr BiVec3dp<T> rcmpl(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> rcmpl(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> rcmpl(TriVec3dp<T> const& t)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
@@ -420,7 +420,7 @@ inline constexpr Vec3dp<T> rcmpl(TriVec3dp<T> const& t)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> rcmpl(PScalar3dp<T> ps)
+constexpr Scalar3dp<T> rcmpl(PScalar3dp<T> ps)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = e1^e2^e3^e4:
@@ -430,7 +430,7 @@ inline constexpr Scalar3dp<T> rcmpl(PScalar3dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> rcmpl(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> rcmpl(MVec3dp_U<T> const& M)
 {
     // use the component complements directly
     return MVec3dp_U<T>(rcmpl(gr3(M)), rcmpl(gr1(M)));
@@ -438,7 +438,7 @@ inline constexpr MVec3dp_U<T> rcmpl(MVec3dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> rcmpl(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> rcmpl(MVec3dp_E<T> const& M)
 {
     // use the component complements directly
     return MVec3dp_E<T>(rcmpl(gr4(M)), rcmpl(gr2(M)), rcmpl(gr0(M)));
@@ -446,7 +446,7 @@ inline constexpr MVec3dp_E<T> rcmpl(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> rcmpl(MVec3dp<T> const& M)
+constexpr MVec3dp<T> rcmpl(MVec3dp<T> const& M)
 {
     // use the component complements directly
     return MVec3dp<T>(rcmpl(gr4(M)), rcmpl(gr3(M)), rcmpl(gr2(M)), rcmpl(gr1(M)),
@@ -458,7 +458,7 @@ inline constexpr MVec3dp<T> rcmpl(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> lcmpl(Scalar3dp<T> s)
+constexpr PScalar3dp<T> lcmpl(Scalar3dp<T> s)
 {
     // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = 1:
@@ -468,7 +468,7 @@ inline constexpr PScalar3dp<T> lcmpl(Scalar3dp<T> s)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> lcmpl(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> lcmpl(Vec3dp<T> const& v)
 {
     // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
@@ -482,7 +482,7 @@ inline constexpr TriVec3dp<T> lcmpl(Vec3dp<T> const& v)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> lcmpl(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> lcmpl(BiVec3dp<T> const& B)
 {
     // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
@@ -498,7 +498,7 @@ inline constexpr BiVec3dp<T> lcmpl(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> lcmpl(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> lcmpl(TriVec3dp<T> const& t)
 {
     // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
@@ -512,7 +512,7 @@ inline constexpr Vec3dp<T> lcmpl(TriVec3dp<T> const& t)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> lcmpl(PScalar3dp<T> ps)
+constexpr Scalar3dp<T> lcmpl(PScalar3dp<T> ps)
 {
     // lcmpl(u) ^ u = e1^e2^e3^e4
     // u = e1^e2^e3^e4:
@@ -522,7 +522,7 @@ inline constexpr Scalar3dp<T> lcmpl(PScalar3dp<T> ps)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> lcmpl(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> lcmpl(MVec3dp_U<T> const& M)
 {
     // use the component complements directly
     return MVec3dp_U<T>(lcmpl(gr3(M)), lcmpl(gr1(M)));
@@ -530,7 +530,7 @@ inline constexpr MVec3dp_U<T> lcmpl(MVec3dp_U<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> lcmpl(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> lcmpl(MVec3dp_E<T> const& M)
 {
     // use the component complements directly
     return MVec3dp_E<T>(lcmpl(gr4(M)), lcmpl(gr2(M)), lcmpl(gr0(M)));
@@ -538,7 +538,7 @@ inline constexpr MVec3dp_E<T> lcmpl(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> lcmpl(MVec3dp<T> const& M)
+constexpr MVec3dp<T> lcmpl(MVec3dp<T> const& M)
 {
     // use the component complements directly
     return MVec3dp<T>(lcmpl(gr4(M)), lcmpl(gr3(M)), lcmpl(gr2(M)), lcmpl(gr1(M)),
@@ -552,56 +552,56 @@ inline constexpr MVec3dp<T> lcmpl(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk(Scalar3dp<T> s)
+constexpr Scalar3dp<T> bulk(Scalar3dp<T> s)
 {
     return s;
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> bulk(Vec3dp<T> const& v)
+constexpr Vec3dp<T> bulk(Vec3dp<T> const& v)
 {
     return Vec3dp<T>(v.x, v.y, v.z, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> bulk(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> bulk(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), B.mx, B.my, B.mz);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> bulk(TriVec3dp<T> const& t)
+constexpr TriVec3dp<T> bulk(TriVec3dp<T> const& t)
 {
     return TriVec3dp<T>(T(0.0), T(0.0), T(0.0), t.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> bulk([[maybe_unused]] PScalar3dp<T>)
+constexpr PScalar3dp<T> bulk([[maybe_unused]] PScalar3dp<T>)
 {
     return PScalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> bulk(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> bulk(MVec3dp_E<T> const& M)
 {
     return MVec3dp_E<T>(bulk(gr0(M)), bulk(gr2(M)), bulk(gr4(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> bulk(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> bulk(MVec3dp_U<T> const& M)
 {
     return MVec3dp_U<T>(bulk(gr1(M)), bulk(gr3(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> bulk(MVec3dp<T> const& M)
+constexpr MVec3dp<T> bulk(MVec3dp<T> const& M)
 {
     return MVec3dp<T>(bulk(gr0(M)), bulk(gr1(M)), bulk(gr2(M)), bulk(gr3(M)),
                       bulk(gr4(M)));
@@ -615,56 +615,56 @@ inline constexpr MVec3dp<T> bulk(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> weight([[maybe_unused]] Scalar3dp<T>)
+constexpr Scalar3dp<T> weight([[maybe_unused]] Scalar3dp<T>)
 {
     return Scalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> weight(Vec3dp<T> const& v)
+constexpr Vec3dp<T> weight(Vec3dp<T> const& v)
 {
     return Vec3dp<T>(T(0.0), T(0.0), T(0.0), v.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> weight(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> weight(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(B.vx, B.vy, B.vz, T(0.0), T(0.0), T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> weight(TriVec3dp<T> const& t)
+constexpr TriVec3dp<T> weight(TriVec3dp<T> const& t)
 {
     return TriVec3dp<T>(t.x, t.y, t.z, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight(PScalar3dp<T> ps)
+constexpr PScalar3dp<T> weight(PScalar3dp<T> ps)
 {
     return PScalar3dp<T>(ps);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> weight(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> weight(MVec3dp_E<T> const& M)
 {
     return MVec3dp_E<T>(weight(gr0(M)), weight(gr2(M)), weight(gr4(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> weight(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> weight(MVec3dp_U<T> const& M)
 {
     return MVec3dp_U<T>(weight(gr1(M)), weight(gr3(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> weight(MVec3dp<T> const& M)
+constexpr MVec3dp<T> weight(MVec3dp<T> const& M)
 {
     return MVec3dp<T>(weight(gr0(M)), weight(gr1(M)), weight(gr2(M)), weight(gr3(M)),
                       weight(gr4(M)));
@@ -678,7 +678,7 @@ inline constexpr MVec3dp<T> weight(MVec3dp<T> const& M)
 // return squared bulk norm of scalar
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm_sq(Scalar3dp<T> s)
+constexpr Scalar3dp<T> bulk_nrm_sq(Scalar3dp<T> s)
 {
     // ||bulk(s)||^2 = dot(s,s) = s^(T) G s = gr0(s*rev(s)) = s*s
     // using rev(s) = (-1)^[k(k-1)/2] s for a k-blade: 0-blade => rev(s) = s
@@ -688,7 +688,7 @@ inline constexpr Scalar3dp<T> bulk_nrm_sq(Scalar3dp<T> s)
 // return bulk norm of scalar
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm(Scalar3dp<T> s)
+constexpr Scalar3dp<T> bulk_nrm(Scalar3dp<T> s)
 {
     return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(s)));
 }
@@ -696,7 +696,7 @@ inline constexpr Scalar3dp<T> bulk_nrm(Scalar3dp<T> s)
 // return squared bulk norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm_sq(Vec3dp<T> const& v)
+constexpr Scalar3dp<T> bulk_nrm_sq(Vec3dp<T> const& v)
 {
     // ||bulk(v)||^2 = dot(v,v) = v^(T) G v = gr0(v*rev(v))
     //               = v.x * v.x + v.y * v.y + v.z * v.z
@@ -707,7 +707,7 @@ inline constexpr Scalar3dp<T> bulk_nrm_sq(Vec3dp<T> const& v)
 // return bulk norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm(Vec3dp<T> const& v)
+constexpr Scalar3dp<T> bulk_nrm(Vec3dp<T> const& v)
 {
     return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(v)));
 }
@@ -715,7 +715,7 @@ inline constexpr Scalar3dp<T> bulk_nrm(Vec3dp<T> const& v)
 // return squared bulk magnitude of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm_sq(BiVec3dp<T> const& B)
+constexpr Scalar3dp<T> bulk_nrm_sq(BiVec3dp<T> const& B)
 {
     // ||bulk(B)||^2 = dot(B,B) = B^(T) G B = gr0(B*rev(B))
     //               = B.mx * B.mx + B.my * B.my + B.mz * B.mz
@@ -726,7 +726,7 @@ inline constexpr Scalar3dp<T> bulk_nrm_sq(BiVec3dp<T> const& B)
 // return magnitude of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm(BiVec3dp<T> const& B)
+constexpr Scalar3dp<T> bulk_nrm(BiVec3dp<T> const& B)
 {
     return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(B)));
 }
@@ -734,7 +734,7 @@ inline constexpr Scalar3dp<T> bulk_nrm(BiVec3dp<T> const& B)
 // return squared bulk norm of trivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm_sq(TriVec3dp<T> const& t)
+constexpr Scalar3dp<T> bulk_nrm_sq(TriVec3dp<T> const& t)
 {
     // ||bulk(t)||^2 = dot(t,t) = t^(T) G t = gr0(t*rev(t)) = t.w * t.w
     // using rev(t) = (-1)^[k(k-1)/2] t for a k-blade: 3-blade => rev(t) = -t
@@ -744,56 +744,56 @@ inline constexpr Scalar3dp<T> bulk_nrm_sq(TriVec3dp<T> const& t)
 // return bulk norm of trivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm(TriVec3dp<T> const& t)
+constexpr Scalar3dp<T> bulk_nrm(TriVec3dp<T> const& t)
 {
     return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(t)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm_sq([[maybe_unused]] PScalar3dp<T>)
+constexpr Scalar3dp<T> bulk_nrm_sq([[maybe_unused]] PScalar3dp<T>)
 {
     return Scalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm([[maybe_unused]] PScalar3dp<T>)
+constexpr Scalar3dp<T> bulk_nrm([[maybe_unused]] PScalar3dp<T>)
 {
     return Scalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm_sq(MVec3dp_E<T> const& M)
+constexpr Scalar3dp<T> bulk_nrm_sq(MVec3dp_E<T> const& M)
 {
     return Scalar3dp<T>(bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr2(M)) + bulk_nrm_sq(gr4(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm(MVec3dp_E<T> const& M)
+constexpr Scalar3dp<T> bulk_nrm(MVec3dp_E<T> const& M)
 {
     return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm_sq(MVec3dp_U<T> const& M)
+constexpr Scalar3dp<T> bulk_nrm_sq(MVec3dp_U<T> const& M)
 {
     return Scalar3dp<T>(bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr3(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm(MVec3dp_U<T> const& M)
+constexpr Scalar3dp<T> bulk_nrm(MVec3dp_U<T> const& M)
 {
     return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm_sq(MVec3dp<T> const& M)
+constexpr Scalar3dp<T> bulk_nrm_sq(MVec3dp<T> const& M)
 {
     return Scalar3dp<T>(bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr2(M)) +
                         bulk_nrm_sq(gr3(M)) + bulk_nrm_sq(gr4(M)));
@@ -801,7 +801,7 @@ inline constexpr Scalar3dp<T> bulk_nrm_sq(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> bulk_nrm(MVec3dp<T> const& M)
+constexpr Scalar3dp<T> bulk_nrm(MVec3dp<T> const& M)
 {
     return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
@@ -813,14 +813,14 @@ inline constexpr Scalar3dp<T> bulk_nrm(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm_sq([[maybe_unused]] Scalar3dp<T>)
+constexpr PScalar3dp<T> weight_nrm_sq([[maybe_unused]] Scalar3dp<T>)
 {
     return PScalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm([[maybe_unused]] Scalar3dp<T>)
+constexpr PScalar3dp<T> weight_nrm([[maybe_unused]] Scalar3dp<T>)
 {
     return PScalar3dp<T>(0.0);
 }
@@ -829,7 +829,7 @@ inline constexpr PScalar3dp<T> weight_nrm([[maybe_unused]] Scalar3dp<T>)
 // ||weight(v)||^2 = lcmpl( dot(rcmpl(v), rcmpl(v)) ) = rdot(v,v) = v.w * v.w
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm_sq(Vec3dp<T> const& v)
+constexpr PScalar3dp<T> weight_nrm_sq(Vec3dp<T> const& v)
 {
     return PScalar3dp<T>(v.w * v.w);
 }
@@ -837,7 +837,7 @@ inline constexpr PScalar3dp<T> weight_nrm_sq(Vec3dp<T> const& v)
 // return weigth norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm(Vec3dp<T> const& v)
+constexpr PScalar3dp<T> weight_nrm(Vec3dp<T> const& v)
 {
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(v)));
 }
@@ -847,7 +847,7 @@ inline constexpr PScalar3dp<T> weight_nrm(Vec3dp<T> const& v)
 //                 = B.vx * B.vx + B.vy * B.vy + B.vz * B.vz
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm_sq(BiVec3dp<T> const& B)
+constexpr PScalar3dp<T> weight_nrm_sq(BiVec3dp<T> const& B)
 {
     return PScalar3dp<T>(B.vx * B.vx + B.vy * B.vy + B.vz * B.vz);
 }
@@ -855,7 +855,7 @@ inline constexpr PScalar3dp<T> weight_nrm_sq(BiVec3dp<T> const& B)
 // return weight norm of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm(BiVec3dp<T> const& B)
+constexpr PScalar3dp<T> weight_nrm(BiVec3dp<T> const& B)
 {
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(B)));
 }
@@ -865,7 +865,7 @@ inline constexpr PScalar3dp<T> weight_nrm(BiVec3dp<T> const& B)
 //                 = t.x * t.x + t.y * t.y + t.z * t.z
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm_sq(TriVec3dp<T> const& t)
+constexpr PScalar3dp<T> weight_nrm_sq(TriVec3dp<T> const& t)
 {
     return PScalar3dp<T>(t.x * t.x + t.y * t.y + t.z * t.z);
 }
@@ -873,7 +873,7 @@ inline constexpr PScalar3dp<T> weight_nrm_sq(TriVec3dp<T> const& t)
 // return weight norm of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm(TriVec3dp<T> const& t)
+constexpr PScalar3dp<T> weight_nrm(TriVec3dp<T> const& t)
 {
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(t)));
 }
@@ -882,7 +882,7 @@ inline constexpr PScalar3dp<T> weight_nrm(TriVec3dp<T> const& t)
 // ||weight(ps)||^2 = cmpl( dot(cmpl(ps),cmpl(ps)) ) = rdot(ps, ps) = ps * ps
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm_sq(PScalar3dp<T> ps)
+constexpr PScalar3dp<T> weight_nrm_sq(PScalar3dp<T> ps)
 {
     return PScalar3dp<T>(T(ps) * T(ps));
 }
@@ -890,14 +890,14 @@ inline constexpr PScalar3dp<T> weight_nrm_sq(PScalar3dp<T> ps)
 // return weight norm of pseudoscalar
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm(PScalar3dp<T> ps)
+constexpr PScalar3dp<T> weight_nrm(PScalar3dp<T> ps)
 {
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(ps)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp_E<T> const& M)
+constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp_E<T> const& M)
 {
     return PScalar3dp<T>(weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr2(M)) +
                          weight_nrm_sq(gr4(M)));
@@ -905,28 +905,28 @@ inline constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm(MVec3dp_E<T> const& M)
+constexpr PScalar3dp<T> weight_nrm(MVec3dp_E<T> const& M)
 {
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp_U<T> const& M)
+constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp_U<T> const& M)
 {
     return PScalar3dp<T>(weight_nrm_sq(gr1(M)) + weight_nrm_sq(gr3(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm(MVec3dp_U<T> const& M)
+constexpr PScalar3dp<T> weight_nrm(MVec3dp_U<T> const& M)
 {
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp<T> const& M)
+constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp<T> const& M)
 {
     return PScalar3dp<T>(weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr1(M)) +
                          weight_nrm_sq(gr2(M)) + weight_nrm_sq(gr3(M)) +
@@ -935,7 +935,7 @@ inline constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> weight_nrm(MVec3dp<T> const& M)
+constexpr PScalar3dp<T> weight_nrm(MVec3dp<T> const& M)
 {
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
@@ -951,14 +951,14 @@ inline constexpr PScalar3dp<T> weight_nrm(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm_sq(Scalar3dp<T> s)
+constexpr DualNum3dp<T> geom_nrm_sq(Scalar3dp<T> s)
 {
     return DualNum3dp<T>(bulk_nrm_sq(s), weight_nrm_sq(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm(Scalar3dp<T> s)
+constexpr DualNum3dp<T> geom_nrm(Scalar3dp<T> s)
 {
     return DualNum3dp<T>(bulk_nrm(s), weight_nrm(s));
 }
@@ -966,7 +966,7 @@ inline constexpr DualNum3dp<T> geom_nrm(Scalar3dp<T> s)
 // provide the distance of the point from the origin
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm_sq(Vec3dp<T> const& v)
+constexpr DualNum3dp<T> geom_nrm_sq(Vec3dp<T> const& v)
 {
     return DualNum3dp<T>(bulk_nrm_sq(v), weight_nrm_sq(v));
 }
@@ -974,7 +974,7 @@ inline constexpr DualNum3dp<T> geom_nrm_sq(Vec3dp<T> const& v)
 // return geometric norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm(Vec3dp<T> const& v)
+constexpr DualNum3dp<T> geom_nrm(Vec3dp<T> const& v)
 {
     return DualNum3dp<T>(bulk_nrm(v), weight_nrm(v));
 }
@@ -982,7 +982,7 @@ inline constexpr DualNum3dp<T> geom_nrm(Vec3dp<T> const& v)
 // provide the perpendicular distance of the line to the origin
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm_sq(BiVec3dp<T> const& B)
+constexpr DualNum3dp<T> geom_nrm_sq(BiVec3dp<T> const& B)
 {
     return DualNum3dp<T>(bulk_nrm_sq(B), weight_nrm_sq(B));
 }
@@ -990,7 +990,7 @@ inline constexpr DualNum3dp<T> geom_nrm_sq(BiVec3dp<T> const& B)
 // return geometric norm of bivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm(BiVec3dp<T> const& B)
+constexpr DualNum3dp<T> geom_nrm(BiVec3dp<T> const& B)
 {
     return DualNum3dp<T>(bulk_nrm(B), weight_nrm(B));
 }
@@ -998,7 +998,7 @@ inline constexpr DualNum3dp<T> geom_nrm(BiVec3dp<T> const& B)
 // provide the perpendicular distance of the plane to the origin
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm_sq(TriVec3dp<T> const& t)
+constexpr DualNum3dp<T> geom_nrm_sq(TriVec3dp<T> const& t)
 {
     return DualNum3dp<T>(bulk_nrm_sq(t), weight_nrm_sq(t));
 }
@@ -1006,21 +1006,21 @@ inline constexpr DualNum3dp<T> geom_nrm_sq(TriVec3dp<T> const& t)
 // return geometric norm of vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm(TriVec3dp<T> const& t)
+constexpr DualNum3dp<T> geom_nrm(TriVec3dp<T> const& t)
 {
     return DualNum3dp<T>(bulk_nrm(t), weight_nrm(t));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm_sq(PScalar3dp<T> ps)
+constexpr DualNum3dp<T> geom_nrm_sq(PScalar3dp<T> ps)
 {
     return DualNum3dp<T>(bulk_nrm_sq(ps), weight_nrm_sq(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm(PScalar3dp<T> ps)
+constexpr DualNum3dp<T> geom_nrm(PScalar3dp<T> ps)
 {
     return DualNum3dp<T>(bulk_nrm(ps), weight_nrm(ps));
 }
@@ -1028,14 +1028,14 @@ inline constexpr DualNum3dp<T> geom_nrm(PScalar3dp<T> ps)
 // even grade multivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp_E<T> const& M)
+constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp_E<T> const& M)
 {
     return DualNum3dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm(MVec3dp_E<T> const& M)
+constexpr DualNum3dp<T> geom_nrm(MVec3dp_E<T> const& M)
 {
     return DualNum3dp<T>(bulk_nrm(M), weight_nrm(M));
 }
@@ -1043,14 +1043,14 @@ inline constexpr DualNum3dp<T> geom_nrm(MVec3dp_E<T> const& M)
 // odd grade multivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp_U<T> const& M)
+constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp_U<T> const& M)
 {
     return DualNum3dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm(MVec3dp_U<T> const& M)
+constexpr DualNum3dp<T> geom_nrm(MVec3dp_U<T> const& M)
 {
     return DualNum3dp<T>(bulk_nrm(M), weight_nrm(M));
 }
@@ -1058,14 +1058,14 @@ inline constexpr DualNum3dp<T> geom_nrm(MVec3dp_U<T> const& M)
 // multivector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp<T> const& M)
+constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp<T> const& M)
 {
     return DualNum3dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr DualNum3dp<T> geom_nrm(MVec3dp<T> const& M)
+constexpr DualNum3dp<T> geom_nrm(MVec3dp<T> const& M)
 {
     return DualNum3dp<T>(bulk_nrm(M), weight_nrm(M));
 }
@@ -1205,42 +1205,42 @@ inline Plane3d<T> unitize(Plane3d<T> const& p)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> right_bulk_dual(Scalar3dp<T> s)
+constexpr PScalar3dp<T> right_bulk_dual(Scalar3dp<T> s)
 {
     return PScalar3dp<T>(T(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> right_bulk_dual(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> right_bulk_dual(Vec3dp<T> const& v)
 {
     return TriVec3dp<T>(v.x, v.y, v.z, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> right_bulk_dual(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> right_bulk_dual(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(-B.mx, -B.my, -B.mz, T(0.0), T(0.0), T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> right_bulk_dual(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> right_bulk_dual(TriVec3dp<T> const& t)
 {
     return Vec3dp<T>(T(0.0), T(0.0), T(0.0), -t.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> right_bulk_dual([[maybe_unused]] PScalar3dp<T>)
+constexpr Scalar3dp<T> right_bulk_dual([[maybe_unused]] PScalar3dp<T>)
 {
     return Scalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> right_bulk_dual(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> right_bulk_dual(MVec3dp_E<T> const& M)
 {
     return MVec3dp_E<T>(right_bulk_dual(gr4(M)), right_bulk_dual(gr2(M)),
                         right_bulk_dual(gr0(M)));
@@ -1248,14 +1248,14 @@ inline constexpr MVec3dp_E<T> right_bulk_dual(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> right_bulk_dual(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> right_bulk_dual(MVec3dp_U<T> const& M)
 {
     return MVec3dp_U<T>(right_bulk_dual(gr3(M)), right_bulk_dual(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> right_bulk_dual(MVec3dp<T> const& M)
+constexpr MVec3dp<T> right_bulk_dual(MVec3dp<T> const& M)
 {
     return MVec3dp<T>(right_bulk_dual(gr4(M)), right_bulk_dual(gr3(M)),
                       right_bulk_dual(gr2(M)), right_bulk_dual(gr1(M)),
@@ -1281,42 +1281,42 @@ inline constexpr MVec3dp<T> right_bulk_dual(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> right_weight_dual([[maybe_unused]] Scalar3dp<T>)
+constexpr PScalar3dp<T> right_weight_dual([[maybe_unused]] Scalar3dp<T>)
 {
     return PScalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> right_weight_dual(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> right_weight_dual(Vec3dp<T> const& v)
 {
     return TriVec3dp<T>(T(0.0), T(0.0), T(0.0), v.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> right_weight_dual(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> right_weight_dual(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> right_weight_dual(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> right_weight_dual(TriVec3dp<T> const& t)
 {
     return Vec3dp<T>(-t.x, -t.y, -t.z, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> right_weight_dual(PScalar3dp<T> ps)
+constexpr Scalar3dp<T> right_weight_dual(PScalar3dp<T> ps)
 {
     return Scalar3dp<T>(T(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> right_weight_dual(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> right_weight_dual(MVec3dp_E<T> const& M)
 {
     return MVec3dp_E<T>(right_weight_dual(gr4(M)), right_weight_dual(gr2(M)),
                         right_weight_dual(gr0(M)));
@@ -1324,14 +1324,14 @@ inline constexpr MVec3dp_E<T> right_weight_dual(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> right_weight_dual(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> right_weight_dual(MVec3dp_U<T> const& M)
 {
     return MVec3dp_U<T>(right_weight_dual(gr3(M)), right_weight_dual(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> right_weight_dual(MVec3dp<T> const& M)
+constexpr MVec3dp<T> right_weight_dual(MVec3dp<T> const& M)
 {
     return MVec3dp<T>(right_weight_dual(gr4(M)), right_weight_dual(gr3(M)),
                       right_weight_dual(gr2(M)), right_weight_dual(gr1(M)),
@@ -1357,42 +1357,42 @@ inline constexpr MVec3dp<T> right_weight_dual(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> left_bulk_dual(Scalar3dp<T> s)
+constexpr PScalar3dp<T> left_bulk_dual(Scalar3dp<T> s)
 {
     return PScalar3dp<T>(T(s));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> left_bulk_dual(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> left_bulk_dual(Vec3dp<T> const& v)
 {
     return TriVec3dp<T>(-v.x, -v.y, -v.z, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> left_bulk_dual(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> left_bulk_dual(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(-B.mx, -B.my, -B.mz, T(0.0), T(0.0), T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> left_bulk_dual(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> left_bulk_dual(TriVec3dp<T> const& t)
 {
     return Vec3dp<T>(T(0.0), T(0.0), T(0.0), t.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> left_bulk_dual([[maybe_unused]] PScalar3dp<T>)
+constexpr Scalar3dp<T> left_bulk_dual([[maybe_unused]] PScalar3dp<T>)
 {
     return Scalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> left_bulk_dual(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> left_bulk_dual(MVec3dp_E<T> const& M)
 {
     return MVec3dp_E<T>(left_bulk_dual(gr4(M)), left_bulk_dual(gr2(M)),
                         left_bulk_dual(gr0(M)));
@@ -1400,14 +1400,14 @@ inline constexpr MVec3dp_E<T> left_bulk_dual(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> left_bulk_dual(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> left_bulk_dual(MVec3dp_U<T> const& M)
 {
     return MVec3dp_U<T>(left_bulk_dual(gr3(M)), left_bulk_dual(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> left_bulk_dual(MVec3dp<T> const& M)
+constexpr MVec3dp<T> left_bulk_dual(MVec3dp<T> const& M)
 {
     return MVec3dp<T>(left_bulk_dual(gr4(M)), left_bulk_dual(gr3(M)),
                       left_bulk_dual(gr2(M)), left_bulk_dual(gr1(M)),
@@ -1433,42 +1433,42 @@ inline constexpr MVec3dp<T> left_bulk_dual(MVec3dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr PScalar3dp<T> left_weight_dual([[maybe_unused]] Scalar3dp<T>)
+constexpr PScalar3dp<T> left_weight_dual([[maybe_unused]] Scalar3dp<T>)
 {
     return PScalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> left_weight_dual(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> left_weight_dual(Vec3dp<T> const& v)
 {
     return TriVec3dp<T>(T(0.0), T(0.0), T(0.0), -v.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> left_weight_dual(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> left_weight_dual(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> left_weight_dual(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> left_weight_dual(TriVec3dp<T> const& t)
 {
     return Vec3dp<T>(t.x, t.y, t.z, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> left_weight_dual(PScalar3dp<T> ps)
+constexpr Scalar3dp<T> left_weight_dual(PScalar3dp<T> ps)
 {
     return Scalar3dp<T>(T(ps));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> left_weight_dual(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> left_weight_dual(MVec3dp_E<T> const& M)
 {
     return MVec3dp_E<T>(left_weight_dual(gr4(M)), left_weight_dual(gr2(M)),
                         left_weight_dual(gr0(M)));
@@ -1476,14 +1476,14 @@ inline constexpr MVec3dp_E<T> left_weight_dual(MVec3dp_E<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_U<T> left_weight_dual(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> left_weight_dual(MVec3dp_U<T> const& M)
 {
     return MVec3dp_U<T>(left_weight_dual(gr3(M)), left_weight_dual(gr1(M)));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp<T> left_weight_dual(MVec3dp<T> const& M)
+constexpr MVec3dp<T> left_weight_dual(MVec3dp<T> const& M)
 {
     return MVec3dp<T>(left_weight_dual(gr4(M)), left_weight_dual(gr3(M)),
                       left_weight_dual(gr2(M)), left_weight_dual(gr1(M)),

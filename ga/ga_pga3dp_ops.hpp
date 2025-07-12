@@ -59,8 +59,7 @@ inline std::common_type_t<T, U> angle(Vec3dp<T> const& v1, Vec3dp<U> const& v2)
 // range of angle: 0 <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B1,
-                                                BiVec3dp<U> const& B2)
+constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B1, BiVec3dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
     ctype contr = right_weight_contract3dp(B1, B2);
@@ -80,8 +79,7 @@ inline constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B1,
 // range of angle: 0 <= angle <= pi/2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t,
-                                                BiVec3dp<U> const& B)
+constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t, BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype contr = ctype(bulk_nrm(right_weight_contract3dp(t, B)));
@@ -101,8 +99,7 @@ inline constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t,
 // range of angle: 0 <= angle <= pi/2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B,
-                                                TriVec3dp<U> const& t)
+constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B, TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     ctype contr = ctype(bulk_nrm(right_weight_contract3dp(t, B)));
@@ -122,8 +119,7 @@ inline constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B,
 // range of angle: 0 <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1,
-                                                TriVec3dp<U> const& t2)
+constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
     ctype contr = ctype(right_weight_contract3dp(t1, t2));
@@ -160,7 +156,7 @@ inline constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1,
 // create a (unitized) motor from a fixed line of rotation and a turning angle
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_E<std::common_type_t<T, U>> motor(BiVec3dp<T> const& l, U theta)
+constexpr MVec3dp_E<std::common_type_t<T, U>> motor(BiVec3dp<T> const& l, U theta)
 {
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = 0.5 * theta;
@@ -174,7 +170,7 @@ inline constexpr MVec3dp_E<std::common_type_t<T, U>> motor(BiVec3dp<T> const& l,
 //            the w-component is ignored and only the x-, y- and z-components are used
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec3dp_E<T> motor(Vec3dp<T> const& direction)
+constexpr MVec3dp_E<T> motor(Vec3dp<T> const& direction)
 {
     return MVec3dp_E<T>(
         0.5 * BiVec3dp<T>(T(0.0), T(0.0), T(0.0), direction.x, direction.y, direction.z),
@@ -183,8 +179,8 @@ inline constexpr MVec3dp_E<T> motor(Vec3dp<T> const& direction)
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3dp_E<std::common_type_t<T, U>>
-motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
+constexpr MVec3dp_E<std::common_type_t<T, U>> motor_from_planes(TriVec3dp<T> const& t1,
+                                                                TriVec3dp<U> const& t2)
 {
     // take planes as input and return a motor R
     // 1st apply reflection across plane t1, then across t2 to get a motor that rotates
@@ -207,8 +203,8 @@ motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> move3dp(Vec3dp<T> const& v,
-                                                          MVec3dp_E<U> const& R)
+constexpr Vec3dp<std::common_type_t<T, U>> move3dp(Vec3dp<T> const& v,
+                                                   MVec3dp_E<U> const& R)
 {
     // assumes: motor R is unitized
 
@@ -219,8 +215,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> move3dp(Vec3dp<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3dp<std::common_type_t<T, U>> move3dp(BiVec3dp<T> const& B,
-                                                            MVec3dp_E<U> const& R)
+constexpr BiVec3dp<std::common_type_t<T, U>> move3dp(BiVec3dp<T> const& B,
+                                                     MVec3dp_E<U> const& R)
 {
     // assumes: motor R is unitized
 
@@ -231,8 +227,8 @@ inline constexpr BiVec3dp<std::common_type_t<T, U>> move3dp(BiVec3dp<T> const& B
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr TriVec3dp<std::common_type_t<T, U>> move3dp(TriVec3dp<T> const& t,
-                                                             MVec3dp_E<U> const& R)
+constexpr TriVec3dp<std::common_type_t<T, U>> move3dp(TriVec3dp<T> const& t,
+                                                      MVec3dp_E<U> const& R)
 {
     // assumes: motor R is unitized
 
@@ -243,8 +239,8 @@ inline constexpr TriVec3dp<std::common_type_t<T, U>> move3dp(TriVec3dp<T> const&
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> move3dp_opt(Vec3dp<T> const& v,
-                                                              MVec3dp_E<U> const& R)
+constexpr Vec3dp<std::common_type_t<T, U>> move3dp_opt(Vec3dp<T> const& v,
+                                                       MVec3dp_E<U> const& R)
 {
     // moves v (a vector representing a projective point) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
@@ -287,8 +283,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> move3dp_opt(Vec3dp<T> const& v
 // TODO: implement the optimized versions (optional, since -O3 already has same effect)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3dp<std::common_type_t<T, U>> move3dp_opt(BiVec3dp<T> const& B,
-                                                                MVec3dp_E<U> const& R)
+constexpr BiVec3dp<std::common_type_t<T, U>> move3dp_opt(BiVec3dp<T> const& B,
+                                                         MVec3dp_E<U> const& R)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3dp<ctype>(gr2(rgpr(rgpr(R, B), rrev(R))));
@@ -296,8 +292,8 @@ inline constexpr BiVec3dp<std::common_type_t<T, U>> move3dp_opt(BiVec3dp<T> cons
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr TriVec3dp<std::common_type_t<T, U>> move3dp_opt(TriVec3dp<T> const& t,
-                                                                 MVec3dp_E<U> const& R)
+constexpr TriVec3dp<std::common_type_t<T, U>> move3dp_opt(TriVec3dp<T> const& t,
+                                                          MVec3dp_E<U> const& R)
 {
     using ctype = std::common_type_t<T, U>;
     return TriVec3dp<ctype>(gr3(rgpr(rgpr(R, t), rrev(R))));
@@ -522,8 +518,8 @@ inline constexpr TriVec3dp<std::common_type_t<T, U>> move3dp_opt(TriVec3dp<T> co
 // returns component of v1 parallel to v2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v1,
-                                                               Vec3dp<U> const& v2)
+constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v1,
+                                                        Vec3dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(dot(v1, v2)) * inv(v2);
@@ -533,8 +529,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& 
 // returns component of v1 perpendicular to v2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v1,
-                                                              Vec3dp<U> const& v2)
+constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v1,
+                                                       Vec3dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3dp<ctype>(v1 - project_onto(v1, v2));
@@ -547,8 +543,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v
 // projection of a vector v onto a bivector B (a line)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
-                                                               BiVec3dp<U> const& B)
+constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
+                                                        BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3dp<ctype>(rwdg(B, wdg(v, right_weight_dual(B)))); // ortho_proj3dp
@@ -557,8 +553,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& 
 // rejection of vector v from a bivector B (a line)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
-                                                              BiVec3dp<U> const& B)
+constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
+                                                       BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3dp<ctype>(v - project_onto(v, B));
@@ -568,8 +564,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v
 // projection of a vector v onto a trivector t (a plane)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
-                                                               TriVec3dp<U> const& t)
+constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
+                                                        TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3dp<ctype>(rwdg(t, wdg(v, right_weight_dual(t)))); // ortho_proj3dp
@@ -579,8 +575,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& 
 // u_perp = gr1(wdg(v1,v2) * inv(v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
-                                                              TriVec3dp<U> const& t)
+constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
+                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3dp<ctype>(v - project_onto(v, t));
@@ -591,8 +587,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v
 // => returns a line (aka a bivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Line3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
-                                                         Plane3d<U> const& plane)
+constexpr Line3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
+                                                  Plane3d<U> const& plane)
 {
     return weight_expansion(point3dp{point}, plane);
 }
@@ -601,8 +597,8 @@ inline constexpr Line3d<std::common_type_t<T, U>> expand(Point3d<T> const& point
 // => returns a plane (aka a trivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Plane3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
-                                                          Line3d<U> const& line)
+constexpr Plane3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
+                                                   Line3d<U> const& line)
 {
     return weight_expansion(point3dp{point}, line);
 }
@@ -611,8 +607,8 @@ inline constexpr Plane3d<std::common_type_t<T, U>> expand(Point3d<T> const& poin
 // => returns a plane (aka a bivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Plane3d<std::common_type_t<T, U>> expand(Line3d<T> const& line,
-                                                          Plane3d<U> const& plane)
+constexpr Plane3d<std::common_type_t<T, U>> expand(Line3d<T> const& line,
+                                                   Plane3d<U> const& plane)
 {
     return weight_expansion(line, plane);
 }
@@ -670,8 +666,8 @@ decltype(auto) ortho_antiproj3dp(arg1&& a, arg2&& b)
 // t must be unitized
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3dp<std::common_type_t<T, U>> reflect_on(Vec3dp<T> const& v,
-                                                             TriVec3dp<U> const& t)
+constexpr Vec3dp<std::common_type_t<T, U>> reflect_on(Vec3dp<T> const& v,
+                                                      TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3dp<ctype>(-gr1(rgpr(rgpr(t, v), t)));
@@ -681,8 +677,8 @@ inline constexpr Vec3dp<std::common_type_t<T, U>> reflect_on(Vec3dp<T> const& v,
 // t must be unitized
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3dp<std::common_type_t<T, U>> reflect_on(BiVec3dp<T> const& B,
-                                                               TriVec3dp<U> const& t)
+constexpr BiVec3dp<std::common_type_t<T, U>> reflect_on(BiVec3dp<T> const& B,
+                                                        TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3dp<ctype>(-gr2(rgpr(rgpr(t, B), t)));
@@ -692,8 +688,8 @@ inline constexpr BiVec3dp<std::common_type_t<T, U>> reflect_on(BiVec3dp<T> const
 // t2 must be unitized
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr TriVec3dp<std::common_type_t<T, U>> reflect_on(TriVec3dp<T> const& t1,
-                                                                TriVec3dp<U> const& t2)
+constexpr TriVec3dp<std::common_type_t<T, U>> reflect_on(TriVec3dp<T> const& t1,
+                                                         TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
     return TriVec3dp<ctype>(-gr3(rgpr(rgpr(t2, t1), t2)));
@@ -720,14 +716,14 @@ template <typename arg1> decltype(auto) support3dp(arg1&& a)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> att(Vec3dp<T> const& v)
+constexpr Scalar3dp<T> att(Vec3dp<T> const& v)
 {
     return Scalar3dp<T>(v.w);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar3dp<T> att(Point3dp<T> const& p)
+constexpr Scalar3dp<T> att(Point3dp<T> const& p)
 {
     return Scalar3dp<T>(p.w);
 }
@@ -735,14 +731,14 @@ inline constexpr Scalar3dp<T> att(Point3dp<T> const& p)
 // return the attitude (i.e. the direction vector) of the line
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> att(BiVec3dp<T> const& B)
+constexpr Vec3dp<T> att(BiVec3dp<T> const& B)
 {
     return Vec3dp<T>(B.vx, B.vy, B.vz, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec3dp<T> att(Line3d<T> const& l)
+constexpr Vec3dp<T> att(Line3d<T> const& l)
 {
     return Vec3dp<T>(l.vx, l.vy, l.vz, T(0.0));
 }
@@ -750,14 +746,14 @@ inline constexpr Vec3dp<T> att(Line3d<T> const& l)
 // return the attitude (i.e. the normal vector) of the plane
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> att(TriVec3dp<T> const& t)
+constexpr BiVec3dp<T> att(TriVec3dp<T> const& t)
 {
     return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), t.x, t.y, t.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec3dp<T> att(Plane3d<T> const& l)
+constexpr BiVec3dp<T> att(Plane3d<T> const& l)
 {
     return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), l.x, l.y, l.z);
 }
@@ -765,7 +761,7 @@ inline constexpr BiVec3dp<T> att(Plane3d<T> const& l)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr TriVec3dp<T> att(PScalar3dp<T> ps)
+constexpr TriVec3dp<T> att(PScalar3dp<T> ps)
 {
     return TriVec3dp<T>(T(0.0), T(0.0), T(0.0), ps);
 }
@@ -777,7 +773,7 @@ inline constexpr TriVec3dp<T> att(PScalar3dp<T> ps)
 
 // returns the euclidean distance between objects as homogeneous magnitude
 template <typename arg1, typename arg2>
-inline constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
+constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
 {
     if (gr(a) + gr(b) == 4) {
         return DualNum3dp<value_t>(rwdg(a, b), weight_nrm(wdg(a, att(b))));

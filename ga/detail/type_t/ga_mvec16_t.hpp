@@ -2,9 +2,9 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include <cmath>     // std::abs, std::sqrt
-#include <concepts>  // std::floating_point<T>
-#include <iostream>  // std::ostream
+#include <cmath>    // std::abs, std::sqrt
+#include <concepts> // std::floating_point<T>
+#include <iostream> // std::ostream
 
 #include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
@@ -123,16 +123,14 @@ struct MVec16_t {
         auto abs_delta_c14 = std::abs(rhs.c14 - c14);
         auto abs_delta_c15 = std::abs(rhs.c15 - c15);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        if (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
-            abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps &&
-            abs_delta_c4 < delta_eps && abs_delta_c5 < delta_eps &&
-            abs_delta_c6 < delta_eps && abs_delta_c7 < delta_eps &&
-            abs_delta_c8 < delta_eps && abs_delta_c9 < delta_eps &&
-            abs_delta_c10 < delta_eps && abs_delta_c11 < delta_eps &&
-            abs_delta_c12 < delta_eps && abs_delta_c13 < delta_eps &&
-            abs_delta_c14 < delta_eps && abs_delta_c15 < delta_eps)
-            return true;
-        return false;
+        return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
+                abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps &&
+                abs_delta_c4 < delta_eps && abs_delta_c5 < delta_eps &&
+                abs_delta_c6 < delta_eps && abs_delta_c7 < delta_eps &&
+                abs_delta_c8 < delta_eps && abs_delta_c9 < delta_eps &&
+                abs_delta_c10 < delta_eps && abs_delta_c11 < delta_eps &&
+                abs_delta_c12 < delta_eps && abs_delta_c13 < delta_eps &&
+                abs_delta_c14 < delta_eps && abs_delta_c15 < delta_eps);
     }
 
     template <typename U>
@@ -236,7 +234,7 @@ struct MVec16_t {
 // unary minus
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr MVec16_t<T, Tag> operator-(MVec16_t<T, Tag> const& v)
+constexpr MVec16_t<T, Tag> operator-(MVec16_t<T, Tag> const& v)
 {
     return MVec16_t<T, Tag>(-v.c0, -v.c1, -v.c2, -v.c3, -v.c4, -v.c5, -v.c6, -v.c7, -v.c8,
                             -v.c9, -v.c10, -v.c11, -v.c12, -v.c13, -v.c14, -v.c15);
@@ -245,8 +243,8 @@ inline constexpr MVec16_t<T, Tag> operator-(MVec16_t<T, Tag> const& v)
 // add multivectors
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec16_t<std::common_type_t<T, U>, Tag>
-operator+(MVec16_t<T, Tag> const& v1, MVec16_t<U, Tag> const& v2)
+constexpr MVec16_t<std::common_type_t<T, U>, Tag> operator+(MVec16_t<T, Tag> const& v1,
+                                                            MVec16_t<U, Tag> const& v2)
 {
     return MVec16_t<std::common_type_t<T, U>, Tag>(
         v1.c0 + v2.c0, v1.c1 + v2.c1, v1.c2 + v2.c2, v1.c3 + v2.c3, v1.c4 + v2.c4,
@@ -258,8 +256,8 @@ operator+(MVec16_t<T, Tag> const& v1, MVec16_t<U, Tag> const& v2)
 // substract multivectors
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec16_t<std::common_type_t<T, U>, Tag>
-operator-(MVec16_t<T, Tag> const& v1, MVec16_t<U, Tag> const& v2)
+constexpr MVec16_t<std::common_type_t<T, U>, Tag> operator-(MVec16_t<T, Tag> const& v1,
+                                                            MVec16_t<U, Tag> const& v2)
 {
     return MVec16_t<std::common_type_t<T, U>, Tag>(
         v1.c0 - v2.c0, v1.c1 - v2.c1, v1.c2 - v2.c2, v1.c3 - v2.c3, v1.c4 - v2.c4,
@@ -271,8 +269,8 @@ operator-(MVec16_t<T, Tag> const& v1, MVec16_t<U, Tag> const& v2)
 // multiply a multivector with a scalar
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec16_t<std::common_type_t<T, U>, Tag>
-operator*(MVec16_t<T, Tag> const& v, U s)
+constexpr MVec16_t<std::common_type_t<T, U>, Tag> operator*(MVec16_t<T, Tag> const& v,
+                                                            U s)
 {
     return MVec16_t<std::common_type_t<T, U>, Tag>(
         v.c0 * s, v.c1 * s, v.c2 * s, v.c3 * s, v.c4 * s, v.c5 * s, v.c6 * s, v.c7 * s,
@@ -282,8 +280,8 @@ operator*(MVec16_t<T, Tag> const& v, U s)
 
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec16_t<std::common_type_t<T, U>, Tag>
-operator*(T s, MVec16_t<U, Tag> const& v)
+constexpr MVec16_t<std::common_type_t<T, U>, Tag> operator*(T s,
+                                                            MVec16_t<U, Tag> const& v)
 {
     return MVec16_t<std::common_type_t<T, U>, Tag>(
         v.c0 * s, v.c1 * s, v.c2 * s, v.c3 * s, v.c4 * s, v.c5 * s, v.c6 * s, v.c7 * s,
@@ -308,7 +306,7 @@ inline MVec16_t<std::common_type_t<T, U>, Tag> operator/(MVec16_t<T, Tag> const&
 // magnitude of the sum of a k-vector (in representational space)
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm_sq(MVec16_t<T, Tag> const& v)
+constexpr T nrm_sq(MVec16_t<T, Tag> const& v)
 {
     return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3 + v.c4 * v.c4 +
            v.c5 * v.c5 + v.c6 * v.c6 + v.c7 * v.c7 + v.c8 * v.c8 + v.c9 * v.c9 +
@@ -318,7 +316,7 @@ inline constexpr T nrm_sq(MVec16_t<T, Tag> const& v)
 
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm(MVec16_t<T, Tag> const& v)
+constexpr T nrm(MVec16_t<T, Tag> const& v)
 {
     return std::sqrt(nrm_sq(v));
 }

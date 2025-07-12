@@ -58,8 +58,7 @@ inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 // range of angle: 0 <= angle <= pi
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
-                                                BiVec2dp<U> const& B2)
+constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
 {
 
     using ctype = std::common_type_t<T, U>;
@@ -94,7 +93,7 @@ inline constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1,
 // create a (unitized) motor from a fixed point and a turning angle
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2dp_U<std::common_type_t<T, U>> motor(Vec2dp<T> const& p, U theta)
+constexpr MVec2dp_U<std::common_type_t<T, U>> motor(Vec2dp<T> const& p, U theta)
 {
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = 0.5 * theta;
@@ -108,7 +107,7 @@ inline constexpr MVec2dp_U<std::common_type_t<T, U>> motor(Vec2dp<T> const& p, U
 //            the z-component is ignored and only the x- and y-components are used
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> motor(Vec2dp<T> const& direction)
+constexpr MVec2dp_U<T> motor(Vec2dp<T> const& direction)
 {
     return MVec2dp_U<T>(0.5 * Vec2dp<T>(-direction.y, direction.x, T(0.0)),
                         PScalar2dp<T>(1.0));
@@ -118,7 +117,7 @@ inline constexpr MVec2dp_U<T> motor(Vec2dp<T> const& direction)
 // move in direction and by length of direction vector
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr MVec2dp_U<T> motor(Vector2d<T> const& direction)
+constexpr MVec2dp_U<T> motor(Vector2d<T> const& direction)
 {
     return MVec2dp_U<T>(0.5 * Vec2dp<T>(-direction.y, direction.x, T(0.0)),
                         PScalar2dp<T>(1.0));
@@ -127,8 +126,8 @@ inline constexpr MVec2dp_U<T> motor(Vector2d<T> const& direction)
 // create a (unitized) motor directly from two (potentially intersecting) lines
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2dp_U<std::common_type_t<T, U>>
-motor_from_lines(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
+constexpr MVec2dp_U<std::common_type_t<T, U>> motor_from_lines(BiVec2dp<T> const& B1,
+                                                               BiVec2dp<U> const& B2)
 {
     // take lines (=bivectors) as input and return a motor R
     // 1st apply reflection across line B1, then across B2 to get a motor that rotates
@@ -148,8 +147,8 @@ motor_from_lines(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
-                                                          MVec2dp_U<U> const& R)
+constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
+                                                   MVec2dp_U<U> const& R)
 {
     // assumes: motor R is unitized
 
@@ -160,8 +159,8 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
-                                                            MVec2dp_U<U> const& R)
+constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
+                                                     MVec2dp_U<U> const& R)
 {
     // assumes: motor R is unitized
 
@@ -172,8 +171,8 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
-                                                              MVec2dp_U<U> const& R)
+constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
+                                                       MVec2dp_U<U> const& R)
 {
     // moves v (a vector representing a projective point) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
@@ -197,8 +196,8 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> const& B,
-                                                                MVec2dp_U<U> const& R)
+constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> const& B,
+                                                         MVec2dp_U<U> const& R)
 {
     // moves B (a bivector representing a line) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
@@ -222,8 +221,8 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> cons
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt2(Vec2dp<T> const& v,
-                                                               MVec2dp_U<U> const& R)
+constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt2(Vec2dp<T> const& v,
+                                                        MVec2dp_U<U> const& R)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -238,8 +237,8 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt2(Vec2dp<T> const& 
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt2(BiVec2dp<T> const& B,
-                                                                 MVec2dp_U<U> const& R)
+constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt2(BiVec2dp<T> const& B,
+                                                          MVec2dp_U<U> const& R)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -264,8 +263,8 @@ inline constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt2(BiVec2dp<T> con
 // returns component of v1 parallel to v2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v1,
-                                                               Vec2dp<U> const& v2)
+constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v1,
+                                                        Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(dot(v1, v2)) * inv(v2);
@@ -275,8 +274,8 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& 
 // returns component of v1 perpendicular to v2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v1,
-                                                              Vec2dp<U> const& v2)
+constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v1,
+                                                       Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2dp<ctype>(v1 - project_onto(v1, v2));
@@ -289,8 +288,8 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v
 // projection of a vector v onto a bivector B (a line)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v,
-                                                               BiVec2dp<U> const& B)
+constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v,
+                                                        BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2dp<ctype>(rwdg(B, wdg(v, weight_dual(B)))); // ortho_proj
@@ -299,8 +298,8 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& 
 // rejection of vector v from a bivector B (a line)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v,
-                                                              BiVec2dp<U> const& B)
+constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v,
+                                                       BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2dp<ctype>(v - project_onto(v, B));
@@ -311,8 +310,7 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v
 // => returns a line (aka a bivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Line2d<std::common_type_t<T, U>> expand(Point2d<T> const& p,
-                                                         Line2d<U> const& l)
+constexpr Line2d<std::common_type_t<T, U>> expand(Point2d<T> const& p, Line2d<U> const& l)
 {
     return right_weight_expand2dp(Point2dp<std::common_type_t<T, U>>(p), l);
 }
@@ -369,8 +367,8 @@ decltype(auto) ortho_antiproj2dp(arg1&& a, arg2&& b)
 // B must be unitized, or object will be scaled as well!
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& v,
-                                                             BiVec2dp<U> const& B)
+constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& v,
+                                                      BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2dp<ctype>(-gr1(rgpr(rgpr(B, v), B)));
@@ -380,8 +378,8 @@ inline constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& v,
 // B must be unitized, or object will be scaled as well!
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
-                                                               BiVec2dp<U> const& B)
+constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
+                                                        BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec2dp<ctype>(gr2(rgpr(rgpr(B, UB), B)));
@@ -408,14 +406,14 @@ template <typename arg1> decltype(auto) support2dp(arg1&& a)
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> att(Vec2dp<T> const& v)
+constexpr Scalar2dp<T> att(Vec2dp<T> const& v)
 {
     return Scalar2dp<T>(v.z);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Scalar2dp<T> att(Point2dp<T> const& p)
+constexpr Scalar2dp<T> att(Point2dp<T> const& p)
 {
     return Scalar2dp<T>(p.z);
 }
@@ -423,21 +421,21 @@ inline constexpr Scalar2dp<T> att(Point2dp<T> const& p)
 // return the attitude (i.e. the direction vector) of the line
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> att(BiVec2dp<T> const& B)
+constexpr Vec2dp<T> att(BiVec2dp<T> const& B)
 {
     return Vec2dp<T>(B.y, -B.x, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr Vec2dp<T> att(Line2d<T> const& l)
+constexpr Vec2dp<T> att(Line2d<T> const& l)
 {
     return Vec2dp<T>(l.y, -l.x, T(0.0));
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr BiVec2dp<T> att(PScalar2dp<T> ps)
+constexpr BiVec2dp<T> att(PScalar2dp<T> ps)
 {
     return BiVec2dp<T>(T(0.0), T(0.0), ps);
 }

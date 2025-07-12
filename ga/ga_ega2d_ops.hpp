@@ -70,7 +70,7 @@ inline std::common_type_t<T, U> angle(Vec2d<T> const& v1, Vec2d<U> const& v2)
 // range of angle: -pi <= angle <= pi
 template <typename T>
     requires(std::floating_point<T>)
-inline constexpr T angle_to_re(MVec2d_E<T> const& v)
+constexpr T angle_to_re(MVec2d_E<T> const& v)
 {
 
     // TODO: replace by atan2 funcion
@@ -90,8 +90,12 @@ inline constexpr T angle_to_re(MVec2d_E<T> const& v)
     }
     if (v.c0 == 0.0) {
         // on y-axis
-        if (v.c1 > 0.0) return pi / 2.0;
-        if (v.c1 < 0.0) return -pi / 2.0;
+        if (v.c1 > 0.0) {
+            return pi / 2.0;
+        }
+        if (v.c1 < 0.0) {
+            return -pi / 2.0;
+        }
     }
     return 0.0; // zero as input => define 0 as corresponding angle
 }
@@ -109,8 +113,7 @@ inline constexpr T angle_to_re(MVec2d_E<T> const& v)
 // with r = |u| |v| = sqrt(a^2 + b^2) = 1
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> exp([[maybe_unused]] PScalar2d<T> I,
-                                                        U theta)
+constexpr MVec2d_E<std::common_type_t<T, U>> exp([[maybe_unused]] PScalar2d<T> I, U theta)
 {
     // PScalar2d<T> is just used here for a unique overload of exp()
     // and to make the function signature similar to the 3d case
@@ -139,8 +142,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> exp([[maybe_unused]] PScalar
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d_E<std::common_type_t<T, U>> rotor([[maybe_unused]] PScalar2d<T> I,
-                                                          U theta)
+constexpr MVec2d_E<std::common_type_t<T, U>> rotor([[maybe_unused]] PScalar2d<T> I,
+                                                   U theta)
 {
     // PScalar2d<T> is just used here to be able to overload exp
     // and to make the function similar to the 3d case
@@ -152,8 +155,8 @@ inline constexpr MVec2d_E<std::common_type_t<T, U>> rotor([[maybe_unused]] PScal
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> rotate(Vec2d<T> const& v,
-                                                        MVec2d_E<U> const& rotor)
+constexpr Vec2d<std::common_type_t<T, U>> rotate(Vec2d<T> const& v,
+                                                 MVec2d_E<U> const& rotor)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(rotor * v * rev(rotor));
@@ -161,8 +164,8 @@ inline constexpr Vec2d<std::common_type_t<T, U>> rotate(Vec2d<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
-                                                         MVec2d_E<U> const& rotor)
+constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
+                                                  MVec2d_E<U> const& rotor)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(rotor * M * rev(rotor));
@@ -176,8 +179,8 @@ inline constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
 // projection of v1 onto v2
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v1,
-                                                              Vec2d<U> const& v2)
+constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v1,
+                                                       Vec2d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(dot(v1, v2)) * inv(v2);
@@ -187,8 +190,8 @@ inline constexpr Vec2d<std::common_type_t<T, U>> project_onto(Vec2d<T> const& v1
 // v_perp = gr1(wdg(v1,v2) * inv(v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
-                                                             Vec2d<U> const& v2)
+constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
+                                                      Vec2d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(v1 - project_onto(v1, v2));
@@ -209,8 +212,7 @@ inline constexpr Vec2d<std::common_type_t<T, U>> reject_from(Vec2d<T> const& v1,
 // (call dual(nb) to create b from the normal vector nb)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> reflect_on(Vec2d<T> const& u,
-                                                            Vec2d<U> const& B)
+constexpr Vec2d<std::common_type_t<T, U>> reflect_on(Vec2d<T> const& u, Vec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(-B * u * inv(B));
@@ -219,8 +221,8 @@ inline constexpr Vec2d<std::common_type_t<T, U>> reflect_on(Vec2d<T> const& u,
 // reflect a vector u another vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec2d<std::common_type_t<T, U>> reflect_on_vec(Vec2d<T> const& u,
-                                                                Vec2d<U> const& b)
+constexpr Vec2d<std::common_type_t<T, U>> reflect_on_vec(Vec2d<T> const& u,
+                                                         Vec2d<U> const& b)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(b * u * inv(b));
@@ -234,8 +236,8 @@ inline constexpr Vec2d<std::common_type_t<T, U>> reflect_on_vec(Vec2d<T> const& 
 // perpendicular to u in the orientation of v, both forming an orthogonal system
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::vector<Vec2d<std::common_type_t<T, U>>>
-gs_orthogonal(Vec2d<T> const& u, Vec2d<U> const& v)
+constexpr std::vector<Vec2d<std::common_type_t<T, U>>> gs_orthogonal(Vec2d<T> const& u,
+                                                                     Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     std::vector<Vec2d<ctype>> basis;
@@ -250,8 +252,8 @@ gs_orthogonal(Vec2d<T> const& u, Vec2d<U> const& v)
 // both forming an orthogonal system
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr std::vector<Vec2d<std::common_type_t<T, U>>>
-gs_orthonormal(Vec2d<T> const& u, Vec2d<U> const& v)
+constexpr std::vector<Vec2d<std::common_type_t<T, U>>> gs_orthonormal(Vec2d<T> const& u,
+                                                                      Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     std::vector<Vec2d<ctype>> basis;

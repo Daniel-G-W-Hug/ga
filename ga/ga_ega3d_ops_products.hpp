@@ -34,8 +34,7 @@ namespace hd::ga::ega {
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> dot(MVec3d<T> const& A,
-                                                        MVec3d<U> const& B)
+constexpr Scalar3d<std::common_type_t<T, U>> dot(MVec3d<T> const& A, MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 +
@@ -44,8 +43,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> dot(MVec3d<T> const& A,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> dot(PScalar3d<T> ps1,
-                                                        PScalar3d<U> ps2)
+constexpr Scalar3d<std::common_type_t<T, U>> dot(PScalar3d<T> ps1, PScalar3d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(ctype(ps1) * ctype(ps2));
@@ -53,8 +51,8 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> dot(PScalar3d<T> ps1,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> dot(BiVec3d<T> const& B1,
-                                                        BiVec3d<U> const& B2)
+constexpr Scalar3d<std::common_type_t<T, U>> dot(BiVec3d<T> const& B1,
+                                                 BiVec3d<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(B1.x * B2.x + B1.y * B2.y + B1.z * B2.z);
@@ -63,8 +61,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> dot(BiVec3d<T> const& B1,
 // coordinate free definition: dot(v1,v2) = nrm(v1)*nrm(v2)*cos(angle)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> dot(Vec3d<T> const& v1,
-                                                        Vec3d<U> const& v2)
+constexpr Scalar3d<std::common_type_t<T, U>> dot(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
@@ -72,7 +69,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> dot(Vec3d<T> const& v1,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> dot(Scalar3d<T> s1, Scalar3d<U> s2)
+constexpr Scalar3d<std::common_type_t<T, U>> dot(Scalar3d<T> s1, Scalar3d<U> s2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(ctype(s1) * ctype(s2));
@@ -86,8 +83,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> dot(Scalar3d<T> s1, Scalar3d
 // wedge product extended to fully populated multivectors
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& A,
-                                                      MVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& A, MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = A.c0 * B.c0;
@@ -105,8 +101,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& A,
 // wedge product between a multivector M and a bivector B
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& M,
-                                                      BiVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& M, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = 0.0;
@@ -123,8 +118,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& M,
 // wedge product between a bivector B and a multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& B,
-                                                      MVec3d<U> const& M)
+constexpr MVec3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& B, MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = 0;
@@ -141,8 +135,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& B,
 // wedge product between a multivector M and a vector v
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& M,
-                                                      Vec3d<U> const& v)
+constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& M, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = 0.0;
@@ -159,8 +152,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& M,
 // wedge product between a vector v and a multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v,
-                                                      MVec3d<U> const& M)
+constexpr MVec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v, MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = 0;
@@ -177,7 +169,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v,
 // wedge product between multivector M and scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<U> const& M, Scalar3d<T> s)
+constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<U> const& M, Scalar3d<T> s)
 {
     using ctype = std::common_type_t<T, U>;
     return M * ctype(s);
@@ -186,7 +178,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<U> const& M, Scalar
 // wedge product between a scalar s and a multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, MVec3d<U> const& M)
+constexpr MVec3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * M;
@@ -196,8 +188,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, MVec3d<U> c
 // => returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar3d<T>,
-                                                        [[maybe_unused]] PScalar3d<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar3d<T>,
+                                                 [[maybe_unused]] PScalar3d<U>)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -207,8 +199,8 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar
 // => returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
-wdg([[maybe_unused]] PScalar3d<T>, [[maybe_unused]] BiVec3d<U> const&)
+constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar3d<T>,
+                                                 [[maybe_unused]] BiVec3d<U> const&)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -218,8 +210,8 @@ wdg([[maybe_unused]] PScalar3d<T>, [[maybe_unused]] BiVec3d<U> const&)
 // => returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
-wdg([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] PScalar3d<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] BiVec3d<T> const&,
+                                                 [[maybe_unused]] PScalar3d<U>)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -229,8 +221,8 @@ wdg([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] PScalar3d<U>)
 // => returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar3d<T>,
-                                                        [[maybe_unused]] Vec3d<U> const&)
+constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar3d<T>,
+                                                 [[maybe_unused]] Vec3d<U> const&)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -240,8 +232,8 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar
 // => returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] Vec3d<T> const&,
-                                                        [[maybe_unused]] PScalar3d<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] Vec3d<T> const&,
+                                                 [[maybe_unused]] PScalar3d<U>)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -250,7 +242,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] Vec3d<T
 // wedge product with one scalar (returns a scaled vector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3d<std::common_type_t<T, U>> wdg(PScalar3d<T> ps, Scalar3d<U> s)
+constexpr PScalar3d<std::common_type_t<T, U>> wdg(PScalar3d<T> ps, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3d<ctype>(ctype(ps) * ctype(s));
@@ -259,7 +251,7 @@ inline constexpr PScalar3d<std::common_type_t<T, U>> wdg(PScalar3d<T> ps, Scalar
 // wedge product with a pscalar (returns a scaled pscalar)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, PScalar3d<U> ps)
+constexpr PScalar3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3d<ctype>(ctype(s) * ctype(ps));
@@ -269,8 +261,8 @@ inline constexpr PScalar3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, PScalar3
 // => returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
-wdg([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] BiVec3d<U> const&)
+constexpr Scalar3d<std::common_type_t<T, U>> wdg([[maybe_unused]] BiVec3d<T> const&,
+                                                 [[maybe_unused]] BiVec3d<U> const&)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -280,8 +272,7 @@ wdg([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] BiVec3d<U> const&)
 // => returns a trivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& B,
-                                                         Vec3d<U> const& v)
+constexpr PScalar3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& B, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3d<ctype>(B.x * v.x + B.y * v.y + B.z * v.z);
@@ -291,8 +282,7 @@ inline constexpr PScalar3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& B,
 // => returns a trivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v,
-                                                         BiVec3d<U> const& B)
+constexpr PScalar3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3d<ctype>(v.x * B.x + v.y * B.y + v.z * B.z);
@@ -301,7 +291,7 @@ inline constexpr PScalar3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v,
 // wedge product with one scalar (returns a scaled bivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& B, Scalar3d<U> s)
+constexpr BiVec3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& B, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return B * ctype(s);
@@ -310,7 +300,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& B, Scal
 // wedge product with one scalar (returns a scaled bivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, BiVec3d<U> const& B)
+constexpr BiVec3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * B;
@@ -321,8 +311,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, BiVec3d<U>
 // where theta: -pi <= theta <= pi (different to definition of angle for dot product!)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v1,
-                                                       Vec3d<U> const& v2)
+constexpr BiVec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3d<ctype>(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z,
@@ -332,7 +321,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v1,
 // wedge product with one scalar (returns a scaled vector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v, Scalar3d<U> s)
+constexpr Vec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return v * ctype(s);
@@ -341,7 +330,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v, Scalar3d
 // wedge product with one scalar (returns a scaled vector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, Vec3d<U> const& v)
+constexpr Vec3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * v;
@@ -350,7 +339,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s, Vec3d<U> con
 // wedge product between two scalars (returns a scalar)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s1, Scalar3d<U> s2)
+constexpr Scalar3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s1, Scalar3d<U> s2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(ctype(s1) * ctype(s2));
@@ -373,8 +362,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> wdg(Scalar3d<T> s1, Scalar3d
 // => returns a multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> rwdg(MVec3d<T> const& A,
-                                                       MVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> rwdg(MVec3d<T> const& A, MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -394,8 +382,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> rwdg(MVec3d<T> const& A,
 // => returns a scaled pseudoscalar (=trivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps1,
-                                                          PScalar3d<U> ps2)
+constexpr PScalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps1, PScalar3d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3d<ctype>(ctype(ps1) * ctype(ps2));
@@ -405,8 +392,7 @@ inline constexpr PScalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps1,
 // => returns a bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps,
-                                                        BiVec3d<U> const& B)
+constexpr BiVec3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(ps) * BiVec3d<ctype>(B.x, B.y, B.z);
@@ -416,8 +402,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps,
 // => returns a bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B,
-                                                        PScalar3d<U> ps)
+constexpr BiVec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3d<ctype>(B.x, B.y, B.z) * ctype(ps);
@@ -427,7 +412,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B,
 // => returns a vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Vec3d<U> const& v)
+constexpr Vec3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(ps) * Vec3d<ctype>(v.x, v.y, v.z);
@@ -437,7 +422,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Vec3d<U> 
 // => returns a vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v, PScalar3d<U> ps)
+constexpr Vec3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(v.x, v.y, v.z) * ctype(ps);
@@ -448,7 +433,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v, PScalar
 // => returns a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Scalar3d<U> s)
+constexpr Scalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(ctype(ps) * ctype(s));
@@ -458,7 +443,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps, Scalar
 // => returns a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Scalar3d<T> s, PScalar3d<U> ps)
+constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Scalar3d<T> s, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(ctype(s) * ctype(ps));
@@ -468,8 +453,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Scalar3d<T> s, PScalar3
 // => returns a vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B1,
-                                                      BiVec3d<U> const& B2)
+constexpr Vec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B1, BiVec3d<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(B1.y * B2.z - B1.z * B2.y, B1.z * B2.x - B1.x * B2.z,
@@ -480,8 +464,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B1,
 // => returns a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B,
-                                                         Vec3d<U> const& v)
+constexpr Scalar3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(B.x * v.x + B.y * v.y + B.z * v.z);
@@ -491,8 +474,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B,
 // => returns a scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v,
-                                                         BiVec3d<U> const& B)
+constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(v.x * B.x + v.y * B.y + v.z * B.z);
@@ -511,8 +493,8 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> rwdg(Vec3d<T> const& v,
 // left contraction (A << B) extended to full multivectors
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator<<(MVec3d<T> const& A,
-                                                             MVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator<<(MVec3d<T> const& A,
+                                                      MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c4 * B.c4 +
@@ -530,8 +512,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator<<(MVec3d<T> const& A,
 // left contraction (B << M) of a bivector B onto a multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const& B,
-                                                             MVec3d<U> const& M)
+constexpr MVec3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const& B,
+                                                      MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = B.x * M.c4 + B.y * M.c5 + B.z * M.c6;
@@ -548,8 +530,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const& B
 // left contraction (v << M) of a vector v onto a multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
-                                                             MVec3d<U> const& M)
+constexpr MVec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
+                                                      MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = v.x * M.c1 + v.y * M.c2 + v.z * M.c3;
@@ -566,8 +548,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
 // left contraction (s << M) of a scalar s with a mulivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
-                                                             MVec3d<U> const& M)
+constexpr MVec3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s, MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * M;
@@ -576,8 +557,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
 // left contraction (s << B) of a scalar s with an even grade mulivector B
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
-                                                               MVec3d_E<U> const& M)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
+                                                        MVec3d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * M;
@@ -586,8 +567,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
 // left contraction (s << B) of a scalar s with an odd grade mulivector B
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
-                                                               MVec3d_U<U> const& M)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
+                                                        MVec3d_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * M;
@@ -597,8 +578,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
 // returns a scalar (the product of the pseudoscalars)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> operator<<(PScalar3d<T> ps1,
-                                                               PScalar3d<U> ps2)
+constexpr Scalar3d<std::common_type_t<T, U>> operator<<(PScalar3d<T> ps1,
+                                                        PScalar3d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(ctype(ps1) * ctype(ps2));
@@ -608,7 +589,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator<<(PScalar3d<T> ps1,
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
+constexpr Scalar3d<std::common_type_t<T, U>>
 operator<<([[maybe_unused]] PScalar3d<T>, [[maybe_unused]] BiVec3d<U> const&)
 {
     using ctype = std::common_type_t<T, U>;
@@ -619,8 +600,7 @@ operator<<([[maybe_unused]] PScalar3d<T>, [[maybe_unused]] BiVec3d<U> const&)
 // => returns a vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const& B,
-                                                            PScalar3d<U> ps)
+constexpr Vec3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const& B, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(B.x, B.y, B.z) * ctype(ps);
@@ -630,8 +610,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const& B,
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
-operator<<([[maybe_unused]] PScalar3d<T>, [[maybe_unused]] Vec3d<U> const&)
+constexpr Scalar3d<std::common_type_t<T, U>> operator<<([[maybe_unused]] PScalar3d<T>,
+                                                        [[maybe_unused]] Vec3d<U> const&)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -641,8 +621,7 @@ operator<<([[maybe_unused]] PScalar3d<T>, [[maybe_unused]] Vec3d<U> const&)
 // => returns a bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
-                                                              PScalar3d<U> ps)
+constexpr BiVec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3d<ctype>(v.x, v.y, v.z) * ctype(ps);
@@ -652,8 +631,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
-operator<<([[maybe_unused]] PScalar3d<T>, [[maybe_unused]] Scalar3d<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> operator<<([[maybe_unused]] PScalar3d<T>,
+                                                        [[maybe_unused]] Scalar3d<U>)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -663,8 +642,7 @@ operator<<([[maybe_unused]] PScalar3d<T>, [[maybe_unused]] Scalar3d<U>)
 // identical with scalar multiplication of the pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
-                                                                PScalar3d<U> ps)
+constexpr PScalar3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3d<ctype>(ctype(s) * ctype(ps));
@@ -674,8 +652,8 @@ inline constexpr PScalar3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
 // (=identical to scalar product dot(B1,B2) of two bivectors; identical to (B1 >> B2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const& B1,
-                                                               BiVec3d<U> const& B2)
+constexpr Scalar3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const& B1,
+                                                        BiVec3d<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(B1.x * B2.x + B1.y * B2.y + B1.z * B2.z);
@@ -685,7 +663,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const&
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
+constexpr Scalar3d<std::common_type_t<T, U>>
 operator<<([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] Vec3d<U> const&)
 {
     using ctype = std::common_type_t<T, U>;
@@ -697,8 +675,8 @@ operator<<([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] Vec3d<U> const&)
 // (identical to cmt(B,v))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
-                                                            BiVec3d<U> const& B)
+constexpr Vec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
+                                                     BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(v.y * B.z - v.z * B.y, -v.x * B.z + v.z * B.x,
@@ -709,7 +687,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
+constexpr Scalar3d<std::common_type_t<T, U>>
 operator<<([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] Scalar3d<U>)
 {
     using ctype = std::common_type_t<T, U>;
@@ -720,8 +698,7 @@ operator<<([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] Scalar3d<U>)
 // identical with scalar multiplication of the bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
-                                                              BiVec3d<U> const& B)
+constexpr BiVec3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * B;
@@ -731,8 +708,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
 // (=identical to scalar product dot(v1,v2) of two vectors; identical to (v1 >> v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v1,
-                                                               Vec3d<U> const& v2)
+constexpr Scalar3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v1,
+                                                        Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
@@ -742,8 +719,8 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
-operator<<([[maybe_unused]] Vec3d<T> const&, [[maybe_unused]] Scalar3d<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> operator<<([[maybe_unused]] Vec3d<T> const&,
+                                                        [[maybe_unused]] Scalar3d<U>)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -753,8 +730,7 @@ operator<<([[maybe_unused]] Vec3d<T> const&, [[maybe_unused]] Scalar3d<U>)
 // identical with scalar multiplication of the vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
-                                                            Vec3d<U> const& v)
+constexpr Vec3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * v;
@@ -764,8 +740,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s,
 // returns a scalar (the product of the scalars)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s1,
-                                                               Scalar3d<U> s2)
+constexpr Scalar3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s1, Scalar3d<U> s2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(ctype(s1) * ctype(s2));
@@ -781,8 +756,8 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator<<(Scalar3d<T> s1,
 // right contraction (A >> B) extended to a full multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& A,
-                                                             MVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& A,
+                                                      MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c4 * B.c4 +
@@ -801,8 +776,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& A,
 // right contraction (A >> B) extended to a full multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M,
-                                                             BiVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M,
+                                                      BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = M.c4 * B.x + M.c5 * B.y + M.c6 * B.z;
@@ -819,8 +794,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M,
 // right contraction (M >> v) of a multivector M contracted by a vector v
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M,
-                                                             Vec3d<U> const& v)
+constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M,
+                                                      Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = M.c1 * v.x + M.c2 * v.y + M.c3 * v.z;
@@ -837,8 +812,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M,
 // right contraction (M >> s) of a multivector by a scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M,
-                                                             Scalar3d<U> s)
+constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return M * ctype(s);
@@ -847,8 +821,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M,
 // right contraction (A >> s) of even grade multivector A by scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator>>(MVec3d_E<T> const& M,
-                                                               Scalar3d<U> s)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator>>(MVec3d_E<T> const& M,
+                                                        Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return M * ctype(s);
@@ -857,8 +831,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator>>(MVec3d_E<T> const
 // right contraction (A >> s) of odd grade multivector A by scalar s
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator>>(MVec3d_U<T> const& M,
-                                                               Scalar3d<U> s)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator>>(MVec3d_U<T> const& M,
+                                                        Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return M * ctype(s);
@@ -868,8 +842,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator>>(MVec3d_U<T> const
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps1,
-                                                               PScalar3d<U> ps2)
+constexpr Scalar3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps1,
+                                                        PScalar3d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(ctype(ps1) * ctype(ps2));
@@ -879,8 +853,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps1,
 // => returns a vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps,
-                                                            BiVec3d<U> const& B)
+constexpr Vec3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(ps) * Vec3d<ctype>(B.x, B.y, B.z);
@@ -890,7 +863,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps,
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
+constexpr Scalar3d<std::common_type_t<T, U>>
 operator>>([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] PScalar3d<U>)
 {
     using ctype = std::common_type_t<T, U>;
@@ -901,8 +874,7 @@ operator>>([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] PScalar3d<U>)
 // => returns a bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps,
-                                                              Vec3d<U> const& v)
+constexpr BiVec3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(ps) * BiVec3d<ctype>(v.x, v.y, v.z);
@@ -912,8 +884,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps,
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
-operator>>([[maybe_unused]] Vec3d<T> const&, [[maybe_unused]] PScalar3d<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> operator>>([[maybe_unused]] Vec3d<T> const&,
+                                                        [[maybe_unused]] PScalar3d<U>)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -923,8 +895,7 @@ operator>>([[maybe_unused]] Vec3d<T> const&, [[maybe_unused]] PScalar3d<U>)
 // identical with scalar multiplication of the pseudoscalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps,
-                                                                Scalar3d<U> s)
+constexpr PScalar3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3d<ctype>(ctype(ps) * ctype(s));
@@ -934,8 +905,8 @@ inline constexpr PScalar3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps,
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
-operator>>([[maybe_unused]] Scalar3d<T>, [[maybe_unused]] PScalar3d<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> operator>>([[maybe_unused]] Scalar3d<T>,
+                                                        [[maybe_unused]] PScalar3d<U>)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -945,8 +916,8 @@ operator>>([[maybe_unused]] Scalar3d<T>, [[maybe_unused]] PScalar3d<U>)
 // (=identical to scalar product dot(B1,B2) of two bivectors; identical to (B1 >> B2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& B1,
-                                                               BiVec3d<U> const& B2)
+constexpr Scalar3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& B1,
+                                                        BiVec3d<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(B1.x * B2.x + B1.y * B2.y + B1.z * B2.z);
@@ -957,8 +928,8 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const&
 // (identical to cmt(v, B))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& B,
-                                                            Vec3d<U> const& v)
+constexpr Vec3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& B,
+                                                     Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(B.y * v.z - B.z * v.y, -B.x * v.z + B.z * v.x,
@@ -969,7 +940,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& B,
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
+constexpr Scalar3d<std::common_type_t<T, U>>
 operator>>([[maybe_unused]] Vec3d<T> const&, [[maybe_unused]] BiVec3d<U> const&)
 {
     using ctype = std::common_type_t<T, U>;
@@ -980,8 +951,7 @@ operator>>([[maybe_unused]] Vec3d<T> const&, [[maybe_unused]] BiVec3d<U> const&)
 // identical with scalar multiplication of the bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& B,
-                                                              Scalar3d<U> s)
+constexpr BiVec3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& B, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return B * ctype(s);
@@ -991,7 +961,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& 
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
+constexpr Scalar3d<std::common_type_t<T, U>>
 operator>>([[maybe_unused]] Scalar3d<T>, [[maybe_unused]] BiVec3d<U> const&)
 {
     using ctype = std::common_type_t<T, U>;
@@ -1002,8 +972,8 @@ operator>>([[maybe_unused]] Scalar3d<T>, [[maybe_unused]] BiVec3d<U> const&)
 // (=identical to scalar product dot(v1,v2) of two vectors; identical to (v1 << v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> operator>>(Vec3d<T> const& v1,
-                                                               Vec3d<U> const& v2)
+constexpr Scalar3d<std::common_type_t<T, U>> operator>>(Vec3d<T> const& v1,
+                                                        Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
@@ -1013,8 +983,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator>>(Vec3d<T> const& v
 // identical with scalar multiplication of the vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> operator>>(Vec3d<T> const& v,
-                                                            Scalar3d<U> s)
+constexpr Vec3d<std::common_type_t<T, U>> operator>>(Vec3d<T> const& v, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return v * ctype(s);
@@ -1024,8 +993,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator>>(Vec3d<T> const& v,
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>>
-operator>>([[maybe_unused]] Scalar3d<T>, [[maybe_unused]] Vec3d<U> const&)
+constexpr Scalar3d<std::common_type_t<T, U>> operator>>([[maybe_unused]] Scalar3d<T>,
+                                                        [[maybe_unused]] Vec3d<U> const&)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(0.0);
@@ -1035,8 +1004,7 @@ operator>>([[maybe_unused]] Scalar3d<T>, [[maybe_unused]] Vec3d<U> const&)
 // returns a scalar (the product of the scalars)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> operator>>(Scalar3d<T> s1,
-                                                               Scalar3d<U> s2)
+constexpr Scalar3d<std::common_type_t<T, U>> operator>>(Scalar3d<T> s1, Scalar3d<U> s2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(ctype(s1) * ctype(s2));
@@ -1049,8 +1017,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator>>(Scalar3d<T> s1,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> cross(Vec3d<T> const& v1,
-                                                       Vec3d<U> const& v2)
+constexpr Vec3d<std::common_type_t<T, U>> cross(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
     return Vec3d<std::common_type_t<T, U>>(
         v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
@@ -1063,8 +1030,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> cross(Vec3d<T> const& v1,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> cmt(MVec3d<T> const& A,
-                                                      MVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> cmt(MVec3d<T> const& A, MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d<ctype>(
@@ -1080,8 +1046,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> cmt(MVec3d<T> const& A,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B1,
-                                                       BiVec3d<U> const& B2)
+constexpr BiVec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B1,
+                                                BiVec3d<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3d<ctype>(-B1.y * B2.z + B1.z * B2.y, B1.x * B2.z - B1.z * B2.x,
@@ -1092,8 +1058,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B1,
 // identical to (v << B)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B,
-                                                     Vec3d<U> const& v)
+constexpr Vec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(-B.y * v.z + B.z * v.y, B.x * v.z - B.z * v.x,
@@ -1104,8 +1069,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B,
 // identical to (B >> v)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v,
-                                                     BiVec3d<U> const& B)
+constexpr Vec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(-v.y * B.z + v.z * B.y, v.x * B.z - v.z * B.x,
@@ -1114,8 +1078,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v1,
-                                                       Vec3d<U> const& v2)
+constexpr BiVec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3d<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
@@ -1140,8 +1103,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v1,
 // multivector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
-                                                            MVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
+                                                     MVec3d<U> const& B)
 {
     // geometric product of two fully populated 3d multivectors
     using ctype = std::common_type_t<T, U>;
@@ -1168,8 +1131,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
 // multivector * even grade multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
-                                                            MVec3d_E<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
+                                                     MVec3d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = A.c0 * B.c0 - A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3;
@@ -1187,8 +1150,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
 // even grade multivector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& A,
-                                                            MVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& A,
+                                                     MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = A.c0 * B.c0 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6;
@@ -1205,8 +1168,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& A
 // multivector * odd multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
-                                                            MVec3d_U<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
+                                                     MVec3d_U<U> const& B)
 {
     // geometric product of two fully populated 3d multivectors
     using ctype = std::common_type_t<T, U>;
@@ -1224,8 +1187,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
 // odd multivector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
-                                                            MVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
+                                                     MVec3d<U> const& B)
 {
     // geometric product of two fully populated 3d multivectors
     using ctype = std::common_type_t<T, U>;
@@ -1244,8 +1207,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A
 // multivector * trivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
-                                                            PScalar3d<U> B)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A, PScalar3d<U> B)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d<ctype>(-A.c7, -A.c4, -A.c5, -A.c6, A.c1, A.c2, A.c3, A.c0) * ctype(B);
@@ -1256,8 +1218,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A,
 // trivector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> A,
-                                                            MVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> A, MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(A) * MVec3d<ctype>(-B.c7, -B.c4, -B.c5, -B.c6, B.c1, B.c2, B.c3, B.c0);
@@ -1267,8 +1228,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> A,
 // bivector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& M,
-                                                            BiVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& M,
+                                                     BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = -M.c4 * B.x - M.c5 * B.y - M.c6 * B.z;
@@ -1286,8 +1247,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& M,
 // bivector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(BiVec3d<U> const& B,
-                                                            MVec3d<T> const& M)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(BiVec3d<U> const& B,
+                                                     MVec3d<T> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = -B.x * M.c4 - B.y * M.c5 - B.z * M.c6;
@@ -1306,8 +1267,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(BiVec3d<U> const& B,
 // vector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& M,
-                                                            Vec3d<U> const& v)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& M,
+                                                     Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = M.c1 * v.x + M.c2 * v.y + M.c3 * v.z;
@@ -1325,8 +1286,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& M,
 // vector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
-                                                            MVec3d<U> const& M)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
+                                                     MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = v.x * M.c1 + v.y * M.c2 + v.z * M.c3;
@@ -1344,8 +1305,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
 // vector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& M,
-                                                            Scalar3d<U> s)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& M, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return M * ctype(s);
@@ -1355,8 +1315,7 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& M,
 // vector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
-                                                            MVec3d<U> const& M)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s, MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * M;
@@ -1366,8 +1325,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
 // even grade multivector * even grade multivector = even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& A,
-                                                              MVec3d_E<U> const& B)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& A,
+                                                       MVec3d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>(
@@ -1382,8 +1341,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_E<T> const&
 // odd grade multivector * odd grade multivector = even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
-                                                              MVec3d_U<U> const& B)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
+                                                       MVec3d_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>(
@@ -1398,8 +1357,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const&
 // even grade multivector * odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& A,
-                                                              MVec3d_U<U> const& B)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& A,
+                                                       MVec3d_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_U<ctype>(
@@ -1414,8 +1373,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const&
 // odd grade multivector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
-                                                              MVec3d_E<U> const& B)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
+                                                       MVec3d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_U<ctype>(
@@ -1430,8 +1389,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const&
 // even grade multivector * trivector => odd multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<U> const& M,
-                                                              PScalar3d<T> ps)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<U> const& M,
+                                                       PScalar3d<T> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_U<ctype>(Vec3d<ctype>(-M.c1, -M.c2, -M.c3), PScalar3d<ctype>(M.c0)) *
@@ -1443,8 +1402,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<U> const&
 // trivector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
-                                                              MVec3d_E<U> const& M)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
+                                                       MVec3d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(ps) *
@@ -1456,8 +1415,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
 // odd grade multivector * trivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<U> const& M,
-                                                              PScalar3d<T> ps)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<U> const& M,
+                                                       PScalar3d<T> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>(Scalar3d<ctype>(-M.c3), BiVec3d<ctype>(M.c0, M.c1, M.c2)) *
@@ -1469,8 +1428,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<U> const&
 // trivector * odd grade multivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
-                                                              MVec3d_U<U> const& M)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
+                                                       MVec3d_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(ps) *
@@ -1482,8 +1441,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
 // even grade multivector * bivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& M,
-                                                              BiVec3d<U> const& B)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& M,
+                                                       BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>(Scalar3d<ctype>(-M.c1 * B.x - M.c2 * B.y - M.c3 * B.z),
@@ -1497,8 +1456,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_E<T> const&
 // bivector * even grade multivector => returns an even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
-                                                              MVec3d_E<U> const& M)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
+                                                       MVec3d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>(Scalar3d<ctype>(-B.x * M.c1 - B.y * M.c2 - B.z * M.c3),
@@ -1511,8 +1470,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
 // odd grade multivector * bivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& M,
-                                                              BiVec3d<U> const& B)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& M,
+                                                       BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_U<ctype>(Vec3d<ctype>(-M.c1 * B.z + M.c2 * B.y - M.c3 * B.x,
@@ -1525,8 +1484,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const&
 // bivector * odd grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
-                                                              MVec3d_U<U> const& M)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
+                                                       MVec3d_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_U<ctype>(Vec3d<ctype>(-B.x * M.c3 - B.y * M.c2 + B.z * M.c1,
@@ -1540,8 +1499,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
 // even grade multivector * vector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& M,
-                                                              Vec3d<U> const& v)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& M,
+                                                       Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_U<ctype>(Vec3d<ctype>(M.c0 * v.x - M.c2 * v.z + M.c3 * v.y,
@@ -1554,8 +1513,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const&
 // vector * even grade multivector => odd grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
-                                                              MVec3d_E<U> const& M)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
+                                                       MVec3d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_U<ctype>(Vec3d<ctype>(v.x * M.c0 - v.y * M.c3 + v.z * M.c2,
@@ -1569,8 +1528,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
 // odd grade multivector * vector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& M,
-                                                              Vec3d<U> const& v)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& M,
+                                                       Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>(Scalar3d<ctype>(M.c0 * v.x + M.c1 * v.y + M.c2 * v.z),
@@ -1583,8 +1542,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const&
 // vector * odd grade multivector => even grade multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
-                                                              MVec3d_U<U> const& M)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
+                                                       MVec3d_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>(Scalar3d<ctype>(v.x * M.c0 + v.y * M.c1 + v.z * M.c2),
@@ -1597,8 +1556,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
 // vector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& M,
-                                                              Scalar3d<U> s)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& M,
+                                                       Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return M * ctype(s);
@@ -1608,8 +1567,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_E<T> const&
 // vector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
-                                                              MVec3d_E<U> const& M)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
+                                                       MVec3d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * M;
@@ -1619,8 +1578,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
 // vector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& M,
-                                                              Scalar3d<U> s)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& M,
+                                                       Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return M * ctype(s);
@@ -1630,8 +1589,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const&
 // vector * multivector => multivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
-                                                              MVec3d_U<U> const& M)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
+                                                       MVec3d_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * M;
@@ -1641,8 +1600,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
 // trivector * trivector => scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps1,
-                                                              PScalar3d<U> ps2)
+constexpr Scalar3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps1, PScalar3d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(-ctype(ps1) * ctype(ps2)); // trivectors in 3d square to -1
@@ -1652,8 +1610,7 @@ inline constexpr Scalar3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps1,
 // bivector * trivector => vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
-                                                           PScalar3d<U> ps)
+constexpr Vec3d<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(-B.x, -B.y, -B.z) * ctype(ps);
@@ -1664,8 +1621,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
 // trivector * bivector => vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
-                                                           BiVec3d<U> const& B)
+constexpr Vec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(ps) * Vec3d<ctype>(-B.x, -B.y, -B.z);
@@ -1675,8 +1631,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
 // vector * trivector => bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
-                                                             PScalar3d<U> ps)
+constexpr BiVec3d<std::common_type_t<T, U>> operator*(Vec3d<T> const& v, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3d<ctype>(v.x, v.y, v.z) * ctype(ps);
@@ -1687,8 +1642,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
 // trivector * vector => bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
-                                                             Vec3d<U> const& v)
+constexpr BiVec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(ps) * BiVec3d<ctype>(v.x, v.y, v.z);
@@ -1698,8 +1652,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
 // bivector * scalar => bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
-                                                               Scalar3d<U> s)
+constexpr PScalar3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3d<ctype>(ctype(ps) *
@@ -1710,8 +1663,7 @@ inline constexpr PScalar3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
 // scalar * bivector => bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr PScalar3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
-                                                               PScalar3d<U> ps)
+constexpr PScalar3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3d<ctype>(ctype(s) *
@@ -1730,8 +1682,8 @@ inline constexpr PScalar3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
 // => bivector*bivector = scalar + bivector = even grade multivector (in 3d)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B1,
-                                                              BiVec3d<U> const& B2)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B1,
+                                                       BiVec3d<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>(-dot(B1, B2), cmt(B1, B2));
@@ -1746,8 +1698,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
 // => bivector * vector = vector + trivector (= odd multivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
-                                                              Vec3d<U> const& v)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
+                                                       Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_U<ctype>((v << B), wdg(B, v));
@@ -1762,8 +1714,8 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(BiVec3d<T> const& 
 // => vector * bivector = vector + trivector (= odd multivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
-                                                              BiVec3d<U> const& B)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
+                                                       BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_U<ctype>((B >> v), wdg(v, B));
@@ -1774,8 +1726,7 @@ inline constexpr MVec3d_U<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
 // bivector * scalar => bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
-                                                             Scalar3d<U> s)
+constexpr BiVec3d<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return B * ctype(s);
@@ -1785,8 +1736,7 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B
 // scalar * bivector => bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
-                                                             BiVec3d<U> const& B)
+constexpr BiVec3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * B;
@@ -1801,8 +1751,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
 // vector * vector => even grade multivector (= scalar + bivector)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Vec3d<T> const& a,
-                                                              Vec3d<U> const& b)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Vec3d<T> const& a,
+                                                       Vec3d<U> const& b)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>((b >> a), wdg(a, b));
@@ -1812,8 +1762,7 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Vec3d<T> const& a,
 // vector * scalar => vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
-                                                           Scalar3d<U> s)
+constexpr Vec3d<std::common_type_t<T, U>> operator*(Vec3d<T> const& v, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return v * ctype(s);
@@ -1823,8 +1772,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator*(Vec3d<T> const& v,
 // scalar * vector => vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
-                                                           Vec3d<U> const& v)
+constexpr Vec3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(s) * v;
@@ -1834,8 +1782,7 @@ inline constexpr Vec3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s,
 // scalar * scalar => scalar
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Scalar3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s1,
-                                                              Scalar3d<U> s2)
+constexpr Scalar3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s1, Scalar3d<U> s2)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>(ctype(s1) * ctype(s2));

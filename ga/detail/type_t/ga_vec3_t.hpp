@@ -89,9 +89,8 @@ struct Vec3_t {
         auto abs_delta_y = std::abs(rhs.y - y);
         auto abs_delta_z = std::abs(rhs.z - z);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        if (abs_delta_x < delta_eps && abs_delta_y < delta_eps && abs_delta_z < delta_eps)
-            return true;
-        return false;
+        return (abs_delta_x < delta_eps && abs_delta_y < delta_eps &&
+                abs_delta_z < delta_eps);
     }
 
     template <typename U>
@@ -143,7 +142,7 @@ struct Vec3_t {
 // unary minus
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr Vec3_t<T, Tag> operator-(Vec3_t<T, Tag> const& v)
+constexpr Vec3_t<T, Tag> operator-(Vec3_t<T, Tag> const& v)
 {
     return Vec3_t<T, Tag>(-v.x, -v.y, -v.z);
 }
@@ -151,8 +150,8 @@ inline constexpr Vec3_t<T, Tag> operator-(Vec3_t<T, Tag> const& v)
 // adding vectors
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator+(Vec3_t<T, Tag> const& v1,
-                                                                 Vec3_t<U, Tag> const& v2)
+constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator+(Vec3_t<T, Tag> const& v1,
+                                                          Vec3_t<U, Tag> const& v2)
 {
     return Vec3_t<std::common_type_t<T, U>, Tag>(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 }
@@ -160,8 +159,8 @@ inline constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator+(Vec3_t<T, Tag> 
 // substracting vectors
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator-(Vec3_t<T, Tag> const& v1,
-                                                                 Vec3_t<U, Tag> const& v2)
+constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator-(Vec3_t<T, Tag> const& v1,
+                                                          Vec3_t<U, Tag> const& v2)
 {
     return Vec3_t<std::common_type_t<T, U>, Tag>(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 }
@@ -170,16 +169,14 @@ inline constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator-(Vec3_t<T, Tag> 
 // multiply a vector with a scalar (in both constellations)
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator*(Vec3_t<T, Tag> const& v,
-                                                                 U s)
+constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator*(Vec3_t<T, Tag> const& v, U s)
 {
     return Vec3_t<std::common_type_t<T, U>, Tag>(v.x * s, v.y * s, v.z * s);
 }
 
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator*(T s,
-                                                                 Vec3_t<U, Tag> const& v)
+constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator*(T s, Vec3_t<U, Tag> const& v)
 {
     return Vec3_t<std::common_type_t<T, U>, Tag>(v.x * s, v.y * s, v.z * s);
 }
@@ -219,7 +216,7 @@ inline Vec3_t<std::common_type_t<T, U>, Tag> operator/(Vec3_t<T, Tag> const& v, 
 //
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm_sq(Vec3_t<T, Tag> const& v)
+constexpr T nrm_sq(Vec3_t<T, Tag> const& v)
 {
     // implements the scalar product as defined by the geometric product *
     //
@@ -238,7 +235,7 @@ inline constexpr T nrm_sq(Vec3_t<T, Tag> const& v)
 
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline constexpr T nrm(Vec3_t<T, Tag> const& v)
+constexpr T nrm(Vec3_t<T, Tag> const& v)
 {
     return std::sqrt(nrm_sq(v));
 }

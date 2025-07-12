@@ -159,7 +159,7 @@ inline std::common_type_t<T, U> angle(BiVec3d<T> const& B, Vec3d<U> const& v)
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& I, U theta)
+constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& I, U theta)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>(Scalar3d<ctype>(std::cos(theta)),
@@ -185,7 +185,7 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& I, U t
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d_E<std::common_type_t<T, U>> rotor(BiVec3d<T> const& I, U theta)
+constexpr MVec3d_E<std::common_type_t<T, U>> rotor(BiVec3d<T> const& I, U theta)
 {
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = -0.5 * theta;
@@ -195,8 +195,8 @@ inline constexpr MVec3d_E<std::common_type_t<T, U>> rotor(BiVec3d<T> const& I, U
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> rotate(Vec3d<T> const& v,
-                                                        MVec3d_E<U> const& rotor)
+constexpr Vec3d<std::common_type_t<T, U>> rotate(Vec3d<T> const& v,
+                                                 MVec3d_E<U> const& rotor)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -216,8 +216,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> rotate(Vec3d<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> rotate_opt1(Vec3d<T> const& v,
-                                                             MVec3d_E<U> const& rotor)
+constexpr Vec3d<std::common_type_t<T, U>> rotate_opt1(Vec3d<T> const& v,
+                                                      MVec3d_E<U> const& rotor)
 {
     using ctype = std::common_type_t<T, U>;
     // optimized version:
@@ -232,8 +232,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> rotate_opt1(Vec3d<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> rotate_opt2(Vec3d<T> const& v,
-                                                             MVec3d_E<U> const& R)
+constexpr Vec3d<std::common_type_t<T, U>> rotate_opt2(Vec3d<T> const& v,
+                                                      MVec3d_E<U> const& R)
 {
     using ctype = std::common_type_t<T, U>;
     ctype k1 = R.c0 * v.x - R.c2 * v.z + R.c3 * v.y;
@@ -247,8 +247,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> rotate_opt2(Vec3d<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> rotate(BiVec3d<T> const& B,
-                                                          MVec3d_E<U> const& rotor)
+constexpr BiVec3d<std::common_type_t<T, U>> rotate(BiVec3d<T> const& B,
+                                                   MVec3d_E<U> const& rotor)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -263,8 +263,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> rotate(BiVec3d<T> const& B,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt1(BiVec3d<T> const& B,
-                                                               MVec3d_E<U> const& rotor)
+constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt1(BiVec3d<T> const& B,
+                                                        MVec3d_E<U> const& rotor)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -280,8 +280,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt1(BiVec3d<T> const&
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt2(BiVec3d<T> const& B,
-                                                               MVec3d_E<U> const& R)
+constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt2(BiVec3d<T> const& B,
+                                                        MVec3d_E<U> const& R)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -296,8 +296,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt2(BiVec3d<T> const&
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& M,
-                                                         MVec3d_E<U> const& rotor)
+constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& M,
+                                                  MVec3d_E<U> const& rotor)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d<ctype>(rotor * M * rev(rotor));
@@ -312,8 +312,8 @@ inline constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& M,
 // v_parallel = dot(v1, v2)) * inv(v2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1,
-                                                              Vec3d<U> const& v2)
+constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1,
+                                                       Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return ctype(dot(v1, v2)) * inv(v2);
@@ -323,8 +323,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v1
 // v_perp = gr1(wdg(v1,v2) * inv(v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
-                                                             Vec3d<U> const& v2)
+constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
+                                                      Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(v1 - project_onto(v1, v2));
@@ -337,8 +337,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v1,
 // v_parallel = gr1((B >> v) * inv(B))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v,
-                                                              BiVec3d<U> const& B)
+constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v,
+                                                       BiVec3d<U> const& B)
 {
     return gr1((B >> v) * inv(B));
 }
@@ -347,8 +347,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> project_onto(Vec3d<T> const& v,
 // u_perp = gr1(wdg(v1,v2) * inv(v2))
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v,
-                                                             BiVec3d<U> const& B)
+constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v,
+                                                      BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(v - project_onto(v, B));
@@ -378,8 +378,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reject_from(Vec3d<T> const& v,
 //
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on(Vec3d<T> const& v,
-                                                            Vec3d<U> const& nB)
+constexpr Vec3d<std::common_type_t<T, U>> reflect_on(Vec3d<T> const& v,
+                                                     Vec3d<U> const& nB)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(gr1(-nB * v * inv(nB)));
@@ -388,8 +388,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on(Vec3d<T> const& v,
 // reflect a vector v in an arbitrary bivector B, i.e. a plane
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on(Vec3d<T> const& v,
-                                                            BiVec3d<U> const& B)
+constexpr Vec3d<std::common_type_t<T, U>> reflect_on(Vec3d<T> const& v,
+                                                     BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(gr1(-B * v * inv(B)));
@@ -398,8 +398,8 @@ inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on(Vec3d<T> const& v,
 // reflect a bivector UB in an arbitrary bivector B (both modelling planes)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr BiVec3d<std::common_type_t<T, U>> reflect_on(BiVec3d<T> const& UB,
-                                                              BiVec3d<U> const& B)
+constexpr BiVec3d<std::common_type_t<T, U>> reflect_on(BiVec3d<T> const& UB,
+                                                       BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     return BiVec3d<ctype>(gr2(B * UB * inv(B)));
@@ -408,8 +408,8 @@ inline constexpr BiVec3d<std::common_type_t<T, U>> reflect_on(BiVec3d<T> const& 
 // reflect a vector v on another vector b
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline constexpr Vec3d<std::common_type_t<T, U>> reflect_on_vec(Vec3d<T> const& v,
-                                                                Vec3d<U> const& b)
+constexpr Vec3d<std::common_type_t<T, U>> reflect_on_vec(Vec3d<T> const& v,
+                                                         Vec3d<U> const& b)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec3d<ctype>(gr1(b * v * inv(b)));
@@ -461,7 +461,7 @@ std::vector<Vec3d<std::common_type_t<T, U>>> gs_orthonormal(Vec3d<T> const& u,
 // All three from an orthogonal system
 template <typename U, typename V, typename W>
     requires(std::floating_point<U> && std::floating_point<V> && std::floating_point<W>)
-inline constexpr std::vector<Vec3d<std::common_type_t<U, V, W>>>
+constexpr std::vector<Vec3d<std::common_type_t<U, V, W>>>
 gs_orthogonal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
 {
     using ctype = std::common_type_t<U, V, W>;
@@ -479,7 +479,7 @@ gs_orthogonal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
 // respectively. All three from an orthogonal system
 template <typename U, typename V, typename W>
     requires(std::floating_point<U> && std::floating_point<V> && std::floating_point<W>)
-inline constexpr std::vector<Vec3d<std::common_type_t<U, V, W>>>
+constexpr std::vector<Vec3d<std::common_type_t<U, V, W>>>
 gs_orthonormal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
 {
     using ctype = std::common_type_t<U, V, W>;
