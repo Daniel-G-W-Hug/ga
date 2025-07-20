@@ -22,6 +22,7 @@ namespace hd::ga::pga {
 // - central_proj3dp()              -> central projection towards origin onto object
 // - ortho_antiproj3dp()            -> orthogonal antiprojection onto object
 // - reflect_on()                   -> reflections
+// - invert_on()                    -> inversions
 // - support3dp()                   -> point on line that is nearest to origin
 // - att                            -> object attitude
 // - dist3dp()                      -> Euclidean distance and homogeneous magnitude
