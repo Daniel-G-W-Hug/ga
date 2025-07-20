@@ -695,6 +695,45 @@ constexpr TriVec3dp<std::common_type_t<T, U>> reflect_on(TriVec3dp<T> const& t1,
     return TriVec3dp<ctype>(-gr3(rgpr(rgpr(t2, t1), t2)));
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// inversion
+// (=point reflection resuling from reflecting across three perpendicular planes)
+// the resulting minus comes for the 3 consecutive reflections
+////////////////////////////////////////////////////////////////////////////////
+
+// (point-)reflect a point q in an arbitrary point p
+// p must be unitized, or object will be scaled as well!
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> invert_on(Vec3dp<T> const& q,
+                                                     Vec3dp<U> const& p)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(-gr1(rgpr(rgpr(p, q), rrev(p))));
+}
+
+// (point-)reflect a line l in an arbitrary point p
+// p must be unitized, or object will be scaled as well!
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> invert_on(BiVec3dp<T> const& l,
+                                                       Vec3dp<U> const& p)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(-gr2(rgpr(rgpr(p, l), rrev(p))));
+}
+
+// (point-)reflect a plane t in an arbitrary point p
+// p must be unitized, or object will be scaled as well!
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> invert_on(TriVec3dp<T> const& t,
+                                                        Vec3dp<U> const& p)
+{
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(-gr3(rgpr(rgpr(p, t), rrev(p))));
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // support3dp: nearest point to the origin (by projecting origin onto line/plane)
