@@ -278,6 +278,7 @@ ProductConfig get_pga2dp_rgpr_config()
                       {"rgpr(mv_u,vec) -> mv_u", "M_odd", "svBps", "mv_u", "vec"},
                       {"rgpr(bivec,bivec) -> mv_u", "svBps1", "svBps2", "bivec", "bivec"},
                       {"rgpr(bivec,vec) -> mv_e", "svBps", "svBps", "bivec", "vec"},
+                      {"rgpr(vec,bivec) -> mv_e", "svBps", "svBps", "vec", "bivec"},
                       {"rgpr(vec,vec) -> mv_u", "svBps1", "svBps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,

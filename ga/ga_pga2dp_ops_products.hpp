@@ -1752,6 +1752,16 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> rgpr(BiVec2dp<T> const& B,
     return MVec2dp_E<ctype>(rwdg(B, v), rcmt(B, v));
 }
 
+// rgpr(v,B) = rwdg(v, B) + rcmt(v, B)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec2dp_E<std::common_type_t<T, U>> rgpr(Vec2dp<T> const& v,
+                                                   BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_E<ctype>(rwdg(v, B), rcmt(v, B));
+}
+
 // rgpr(v1,v2) = rcmt(v1,v2) - rdot(v1,v2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)

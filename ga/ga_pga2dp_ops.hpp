@@ -387,6 +387,35 @@ constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// inversion
+// (=point reflection resuling from reflecting across two perpendicular lines)
+// the resulting positive sign comes from the two consecutive reflections
+////////////////////////////////////////////////////////////////////////////////
+
+// (point-)reflect a point q in an arbitrary point p
+// p must be unitized, or object will be scaled as well!
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> invert_on(Vec2dp<T> const& q,
+                                                     Vec2dp<U> const& p)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(gr1(rgpr(rgpr(p, q), rrev(p))));
+}
+
+// (point-)reflect a line l in an arbitrary point p
+// p must be unitized, or object will be scaled as well!
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> invert_on(BiVec2dp<T> const& l,
+                                                       Vec2dp<U> const& p)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(gr2(rgpr(rgpr(p, l), rrev(p))));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // support2dp: nearest point to the origin (by projecting origin onto line)
 ////////////////////////////////////////////////////////////////////////////////
 

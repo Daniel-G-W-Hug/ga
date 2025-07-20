@@ -292,7 +292,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         for (int i = 0; i <= 23; ++i) {
             double phi = i * pi / 12 + pi / 2.;
-            bivt2dp b(cos(phi), sin(phi), 0); // lines through origin
+            bivt2dp b(cos(phi), sin(phi), 0.0); // lines through origin
             cm.add_bivtp(b);
         }
 
@@ -323,19 +323,26 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         auto p2x = pt2dp{2, 0.5, 1};
         auto p1xr = reflect_on(p1x, x_axis_2dp);
         auto p2xr = reflect_on(p2x, x_axis_2dp);
+
+
         pt2d_mark pxm;
         pxm.symbol = Symbol::circle;
         pxm.pen = QPen(Qt::green, 2, Qt::SolidLine);
+
+        bivt2dp_mark bvm;
+        bvm.pen = pxm.pen;
+
         cm.add_pt(p1x, pxm);
         cm.add_pt(p2x, pxm);
+        auto b12x = wdg(p1x, p2x);
+        cm.add_bivtp(b12x, bvm);
+
         pxm.pen = QPen(Qt::cyan, 2, Qt::SolidLine);
         cm.add_pt(p1xr, pxm);
         cm.add_pt(p2xr, pxm);
-
-        auto b12x = wdg(p1x, p2x);
+        bvm.pen = pxm.pen;
         auto b12xr = reflect_on(b12x, x_axis_2dp);
-        cm.add_bivtp(b12x);
-        cm.add_bivtp(b12xr);
+        cm.add_bivtp(b12xr, bvm);
 
         // lines and reflected lines
         auto p = pt2dp{-1.5, -1.5, 1};
@@ -349,24 +356,31 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         auto pry = reflect_on(p, y_axis_2dp); // reflect on y-axis
         auto qry = reflect_on(q, y_axis_2dp); // reflect on y-axis
 
+        // default pt2d_mark (blue, 2pt, solid; plus; size=4)
+        pt2d_mark ptm;
+        ptm.symbol = Symbol::circle;
+        ptm.pen = QPen(Qt::blue, 2, Qt::SolidLine);
 
-        cm.add_pt(p);
-        cm.add_pt(q);
+        cm.add_pt(p, ptm);
+        cm.add_pt(q, ptm);
+        bvm.pen = ptm.pen;
+        cm.add_bivtp(b, bvm);
 
-        pt2d_mark qrm;
-        qrm.pen = QPen(Qt::darkBlue, 2, Qt::SolidLine);
-        cm.add_pt(prx, qrm);
-        cm.add_pt(qrx, qrm);
+        ptm.pen = QPen(Qt::darkBlue, 2, Qt::SolidLine);
+        cm.add_pt(prx, ptm);
+        cm.add_pt(qrx, ptm);
+        bvm.pen = ptm.pen;
+        cm.add_bivtp(brx, bvm);
 
-        qrm.pen = QPen(Qt::red, 2, Qt::SolidLine);
-        cm.add_pt(pry, qrm);
-        cm.add_pt(qry, qrm);
+        ptm.pen = QPen(Qt::red, 2, Qt::SolidLine);
+        cm.add_pt(pry, ptm);
+        cm.add_pt(qry, ptm);
+        bvm.pen = ptm.pen;
+        cm.add_bivtp(bry, bvm);
 
-        cm.add_bivtp(b);
-        cm.add_bivtp(brx);
-        cm.add_bivtp(bry);
-        cm.add_bivtp(x_axis_2dp);
-        cm.add_bivtp(y_axis_2dp);
+        bvm.pen = QPen(Qt::black, 2, Qt::SolidLine);
+        cm.add_bivtp(x_axis_2dp, bvm);
+        cm.add_bivtp(y_axis_2dp, bvm);
 
         // fmt::println("p = {}", p);
         // fmt::println("q = {}", q);
@@ -396,6 +410,107 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         vm.push_back(cm);
     }
+
+    {
+        Coordsys_model cm;
+
+        // reference line l and reference point p
+        auto l = wdg(pt2dp{-0.5, 1, 1}, pt2dp{1, 1.5, 1});
+        auto p = pt2dp{-0.5, 0.5, 1};
+
+        // default pt2d_mark (blue, 2pt, solid; plus; size=4)
+        pt2d_mark ptm;
+        ptm.symbol = Symbol::circle;
+        ptm.pen = QPen(Qt::red, 2, Qt::SolidLine);
+        bivt2dp_mark bvm;
+        bvm.pen = ptm.pen;
+        cm.add_pt(p, ptm);
+        cm.add_bivtp(l, bvm);
+
+        // projection perpendiclar to line through p
+        auto bv_perp = right_weight_expand2dp(p, l); // line perpendicular to l through p
+        auto p_perp = rwdg(l, bv_perp);              // intersection point bv_perp and l
+        ptm.pen = QPen(Qt::gray, 2, Qt::SolidLine);
+        bvm.pen = ptm.pen;
+        cm.add_pt(p_perp, ptm);
+        cm.add_bivtp(bv_perp, bvm);
+
+        // orthogonal antiprojection of line onto p (i.e. line parallel to l through p)
+        auto dir_antiproj = right_weight_contract2dp(l, p); // direction of line
+                                                            // (=same attidude as l)
+        auto bv_antiproj = wdg(p, dir_antiproj);            // line through p in direction
+        bvm.pen = QPen(Qt::darkBlue, 2, Qt::SolidLine);
+        cm.add_bivtp(bv_antiproj, bvm);
+
+        // reflect point p on line l
+        auto pr = reflect_on(p, l);
+        ptm.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
+        cm.add_pt(pr, ptm);
+
+        // (point-)reflect line l on point p
+        auto lpr = invert_on(l, p);
+        bvm.pen = ptm.pen;
+        cm.add_bivtp(lpr, bvm);
+
+        // show coord-axes as bivectors
+        bvm.pen = QPen(Qt::black, 2, Qt::SolidLine);
+        cm.add_bivtp(x_axis_2dp, bvm);
+        cm.add_bivtp(y_axis_2dp, bvm);
+
+        cm.set_label("proj. - products, refl./ortho. proj.");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        // lines and reflected lines parallel to x-axis
+        auto l = wdg(pt2dp{-0.5, 1, 1}, pt2dp{1, 1.5, 1});
+        auto p = pt2dp{-0.5, 0.5, 1};
+
+        // default pt2d_mark (blue, 2pt, solid; plus; size=4)
+        pt2d_mark ptm;
+        ptm.symbol = Symbol::circle;
+        ptm.pen = QPen(Qt::red, 2, Qt::SolidLine);
+        cm.add_pt(p, ptm);
+
+        bivt2dp_mark bvm;
+        bvm.pen = ptm.pen;
+        cm.add_bivtp(l, bvm);
+
+        // central projection through p towards origin
+        auto bv_central = right_bulk_expand2dp(p, l); // proj. line
+        auto p_central = rwdg(l, bv_central);         // central proj. point
+        ptm.pen = QPen(Qt::cyan, 2, Qt::SolidLine);
+        bvm.pen = QPen(Qt::cyan, 1, Qt::SolidLine);
+        cm.add_pt(p_central, ptm);
+        cm.add_bivtp(bv_central, bvm);
+
+        // central antiprojection of line onto p (i.e. line parallel to l through p)
+        auto dir_cproj = right_bulk_contract2dp(l, p); // direction of line
+        auto bv_cproj = wdg(p, dir_cproj);             // line through p in direction
+        auto p_cproj = rwdg(l, bv_cproj);
+        ptm.pen = QPen(Qt::cyan, 2, Qt::SolidLine);
+        bvm.pen = QPen(Qt::cyan, 1, Qt::SolidLine);
+        cm.add_pt(p_cproj, ptm);
+        cm.add_bivtp(bv_cproj, bvm);
+
+        auto lp = right_weight_expand2dp(p_cproj, bv_central);
+        bvm.pen = QPen(Qt::gray, 1, Qt::SolidLine);
+        cm.add_bivtp(lp, bvm);
+
+
+        // show coord-axes as bivectors
+        bvm.pen = QPen(Qt::black, 2, Qt::SolidLine);
+        cm.add_bivtp(x_axis_2dp, bvm);
+        cm.add_bivtp(y_axis_2dp, bvm);
+
+        cm.set_label("proj. - products, central proj.");
+
+        vm.push_back(cm);
+    }
+
 
     {
         Coordsys_model cm;
