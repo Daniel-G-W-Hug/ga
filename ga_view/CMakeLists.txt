@@ -49,7 +49,8 @@ set(SOURCES src/main.cpp
             src/item_cln2dp.cpp
             src/item_vt2d.cpp
             src/item_bivt2dp.cpp
-            src/active_reflectionp.cpp)
+            src/active_reflectionp.cpp
+            src/active_kinematics2dp.cpp)
 
 add_executable(${EXEC_NAME} ${SOURCES} )
 

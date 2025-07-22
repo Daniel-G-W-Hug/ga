@@ -7,6 +7,7 @@
 
 #include "active_bivt2d.hpp"
 #include "active_bivt2dp.hpp"
+#include "active_kinematics2dp.hpp"
 #include "active_projection.hpp"
 #include "active_pt2d.hpp"
 #include "active_reflection.hpp"
@@ -591,6 +592,48 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
+        akinematic2dp pt_chain;
+        size_t p0_id = cm.add_apt(pt2d{-3.5, 0.5});
+        pt_chain.apt.push_back(p0_id);
+        size_t p1_id = cm.add_apt(pt2d{-3.0, 0.5});
+        pt_chain.apt.push_back(p1_id);
+        size_t p2_id = cm.add_apt(pt2d{-2.5, 0.5});
+        pt_chain.apt.push_back(p2_id);
+        size_t p3_id = cm.add_apt(pt2d{-2.0, 0.5});
+        pt_chain.apt.push_back(p3_id);
+        size_t p4_id = cm.add_apt(pt2d{-1.5, 0.5});
+        pt_chain.apt.push_back(p4_id);
+        size_t p5_id = cm.add_apt(pt2d{-1.0, 0.5});
+        pt_chain.apt.push_back(p5_id);
+        size_t p6_id = cm.add_apt(pt2d{-0.5, 0.5});
+        pt_chain.apt.push_back(p6_id);
+        size_t p7_id = cm.add_apt(pt2d{0, 0.5});
+        pt_chain.apt.push_back(p7_id);
+        size_t p8_id = cm.add_apt(pt2d{0.5, 0.5});
+        pt_chain.apt.push_back(p8_id);
+        size_t p9_id = cm.add_apt(pt2d{1.0, 0.5});
+        pt_chain.apt.push_back(p9_id);
+        size_t p10_id = cm.add_apt(pt2d{1.5, 0.5});
+        pt_chain.apt.push_back(p10_id);
+        size_t p11_id = cm.add_apt(pt2d{2.0, 0.5});
+        pt_chain.apt.push_back(p11_id);
+        size_t p12_id = cm.add_apt(pt2d{2.5, 0.5});
+        pt_chain.apt.push_back(p12_id);
+        size_t p13_id = cm.add_apt(pt2d{3.0, 0.5});
+        pt_chain.apt.push_back(p13_id);
+        size_t p14_id = cm.add_apt(pt2d{3.5, 0.5});
+        pt_chain.apt.push_back(p14_id);
+
+        cm.add_akinem(pt_chain);
+
+        cm.set_label("active kinematics");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
         size_t p0_id = cm.add_apt(pt2d{0, 0});
         size_t p1_id = cm.add_apt(pt2d{3, 0});
         size_t p2_id = cm.add_apt(pt2d{2, 2});
@@ -815,6 +858,18 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(new active_reflectionp(
             cs, wcs, apt2d_map[cm->areflp[idx].p1_idx], apt2d_map[cm->areflp[idx].p2_idx],
             apt2d_map[cm->areflp[idx].p3_idx], apt2d_map[cm->areflp[idx].p4_idx]));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // active projective kinematics chains
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->akinemp.size(); ++idx) {
+
+        std::vector<active_pt2d*> kinematic_chain;
+        for (size_t pt_idx = 0; pt_idx < cm->akinemp[idx].apt.size(); ++pt_idx) {
+            kinematic_chain.push_back(apt2d_map[cm->akinemp[idx].apt[pt_idx]]);
+        }
+        scene->addItem(new active_kinematics2dp(cs, wcs, kinematic_chain));
     }
 }
 

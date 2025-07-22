@@ -135,6 +135,14 @@
     return areflp.size() - 1;
 }
 
+[[maybe_unused]] size_t Coordsys_model::add_akinem(akinematic2dp const& akinem_in)
+{
+
+    akinemp.push_back(akinem_in);
+
+    return akinemp.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -162,6 +170,7 @@ void Coordsys_model::clear()
     arefl.clear();
     abivtp.clear();
     areflp.clear();
+    akinemp.clear();
 
     m_label.clear();
 }

@@ -143,6 +143,14 @@ struct arefl2dp {
     size_t p4_idx;
 };
 
+// active open kinematics chain using an arbitrary number of active points
+struct akinematic2dp {
+
+    // first point is base, last point is target
+    // open kinematic chain is defined until one point before target
+    std::vector<size_t> apt; // index of active point
+};
+
 // ----------------------------------------------------------------------------
 // convenience alias to make pt2d and ln2d look similar
 // convenience alias to make pt2dp and ln2dp look similar
@@ -196,6 +204,9 @@ class Coordsys_model {
     // add active projective reflection
     [[maybe_unused]] size_t add_areflp(arefl2dp const& reflp_in);
 
+    // add active open kinematic chaing
+    [[maybe_unused]] size_t add_akinem(akinematic2dp const& akinem_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -244,6 +255,9 @@ class Coordsys_model {
 
     // data for active projective reflections using active points
     std::vector<arefl2dp> areflp;
+
+    // data for active projective reflections using active points
+    std::vector<akinematic2dp> akinemp;
 
     // model label, e.g. time stamp description of current Coordsys_model
     std::string m_label{};
