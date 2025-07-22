@@ -92,13 +92,13 @@ void active_pt2d::setScenePos_wo_update(pt2d const& pos)
 
 pt2d active_pt2d::scenePos() const { return m_pos; }
 
-
 void active_pt2d::viewChanged()
 {
     // qDebug() << "active_pt2d: viewChanged() received.";
 
     // view changed by external influence, set to m_pos
     setPos(cs->x.au_to_w(m_pos.x), cs->y.au_to_w(m_pos.y));
+    update();
 }
 
 void active_pt2d::posChanged()
