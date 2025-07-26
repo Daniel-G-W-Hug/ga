@@ -1449,6 +1449,11 @@ TEST_SUITE("EGA 2D Tests")
         auto V3 = mvec2d{v3};
         auto B = mvec2d{wdg(v1, v2)};
 
+        CHECK(gr1(V1) == v1);
+        CHECK(gr1(V2) == v2);
+        CHECK(gr1(V3) == v3);
+        CHECK(gr2(B) == wdg(v1, v2));
+
         // show values
         // fmt::println("\n   mv1      = {}, nrm_sq = {}, nrm = {}", mv1, nrm_sq(mv1),
         //              nrm(mv1));

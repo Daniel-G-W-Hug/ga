@@ -416,11 +416,6 @@ TEST_SUITE("EGA 3D Tests")
         vec3d v7{0.0, -1.0, 0.0};
         vec3d v8{normalize(vec3d(1.0, -1.0, 0.0))};
 
-        double sd = 2.3;
-        double st = -5.1;
-        auto s = scalar3d{sd};
-        auto t = scalar3d{st};
-
         // fmt::println("v1 = {: .4f}, wdg(v1,v1) = {: .4f}, "
         //              "angle = {: .4f}",
         //              v1, wdg(v1, v1), angle(v1, v1));
@@ -1888,12 +1883,19 @@ TEST_SUITE("EGA 3D Tests")
         auto V3 = mvec3d{v3};
         auto B12 = mvec3d{wdg(v1, v2)};
 
+        CHECK(gr1(V1) == v1);
+        CHECK(gr1(V2) == v2);
+        CHECK(gr1(V3) == v3);
+        CHECK(gr2(B12) == wdg(v1, v2));
+
         CHECK(nrm_sq(M1) == nrm_sq(s1) + nrm_sq(v1) + nrm_sq(b1) + nrm_sq(ps1));
         CHECK(nrm_sq(M2) == nrm_sq(s2) + nrm_sq(v2) + nrm_sq(b2) + nrm_sq(ps2));
+        CHECK(nrm_sq(M3) == nrm_sq(s3) + nrm_sq(v3) + nrm_sq(b3) + nrm_sq(ps3));
 
         CHECK(dot(M1, M2) == dot(s1, s2) + dot(v1, v2) + dot(b1, b2) + dot(ps1, ps2));
         CHECK(dot(M1, M1) == nrm_sq(M1));
         CHECK(dot(M2, M2) == nrm_sq(M2));
+        CHECK(dot(M3, M3) == nrm_sq(M3));
 
         // wedge product
         CHECK(wdg(v1, v2) == gr2(wdg(mvec3d(v1), mvec3d(v2))));

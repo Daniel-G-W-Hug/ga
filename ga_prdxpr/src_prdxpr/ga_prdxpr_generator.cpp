@@ -101,7 +101,6 @@ void ConfigurableGenerator::generate_sandwich_case(const AlgebraData& algebra,
                                                    const OutputCase& /* case_def */,
                                                    const prd_table& basis_tab)
 {
-    std::string space_str = " ";
     std::string prd_name = algebra.name + " " + config.display_name;
 
     if (algebra.name == "ega2d") {
