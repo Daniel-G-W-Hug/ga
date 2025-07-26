@@ -80,7 +80,7 @@ struct Point3d : public Vec3d<T> {
     using Vec3d<T>::z;
 
     Point3d(Vec3d<T> const& v) : Vec3d<T>(v) {};
-    Point3d(T x, T y, T z) : Vec3d<T>(x, y, z) {};
+    Point3d(T x_in, T y_in, T z_in) : Vec3d<T>(x_in, y_in, z_in) {};
 };
 
 // Point3dp: 3d point of projective algebra storing all four components x, y, z, w
@@ -127,7 +127,8 @@ struct Line3d : public BiVec3dp<T> {
     using BiVec3dp<T>::mz;
 
     Line3d() = default;
-    Line3d(T vx, T vy, T vz, T mx, T my, T mz) : BiVec3dp<T>(vx, vy, vz, mx, my, mz) {};
+    Line3d(T vx_in, T vy_in, T vz_in, T mx_in, T my_in, T mz_in) :
+        BiVec3dp<T>(vx_in, vy_in, vz_in, mx_in, my_in, mz_in) {};
     Line3d(BiVec3dp<T> const& b) : BiVec3dp<T>(b) {};
     Line3d(Vec3d<T> const& dir, BiVec3d<T> const& mom) :
         // direction vector dir and moment bivector mom must match, i.e. be perpendicular

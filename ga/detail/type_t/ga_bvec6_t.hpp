@@ -31,8 +31,8 @@ struct BVec6_t {
     BVec6_t() = default;
 
     // assign all components directly
-    constexpr BVec6_t(T vx, T vy, T vz, T mx, T my, T mz) :
-        vx(vx), vy(vy), vz(vz), mx(mx), my(my), mz(mz)
+    constexpr BVec6_t(T vx_in, T vy_in, T vz_in, T mx_in, T my_in, T mz_in) :
+        vx(vx_in), vy(vy_in), vz(vz_in), mx(mx_in), my(my_in), mz(mz_in)
     {
     }
 
