@@ -2129,11 +2129,11 @@ TEST_SUITE("PGA 2DP Tests")
         auto b1 = bivec2dp{2.0, -4.0, 1.0};
         auto ps1 = pscalar2dp{-2.0};
 
-        auto s2 = scalar2dp{-1.0};
+        // auto s2 = scalar2dp{-1.0};
         auto v2 = vec2dp{2.0, 1.5, 0.0};
         // auto v2 = vec2dp{0.0, 1.0, 0.0};
         auto b2 = bivec2dp{-2.0, 10.5, 3.0};
-        auto ps2 = pscalar2dp{3.0};
+        // auto ps2 = pscalar2dp{3.0};
 
         auto s3 = scalar2dp{-10.0};
         auto v3 = vec2dp{-2.0, 4.0, -10.0};
