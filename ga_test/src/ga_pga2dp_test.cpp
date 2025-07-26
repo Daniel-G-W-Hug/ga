@@ -2135,10 +2135,10 @@ TEST_SUITE("PGA 2DP Tests")
         auto b2 = bivec2dp{-2.0, 10.5, 3.0};
         // auto ps2 = pscalar2dp{3.0};
 
-        auto s3 = scalar2dp{-10.0};
+        // auto s3 = scalar2dp{-10.0};
         auto v3 = vec2dp{-2.0, 4.0, -10.0};
         // auto b3 = bivec2dp{1.0, -2.0, 3.0};
-        auto ps3 = pscalar2dp{-12.0};
+        // auto ps3 = pscalar2dp{-12.0};
 
         // dot product
         CHECK(dot(scalar2dp(1.0), scalar2dp(1.0)) == scalar2dp(1.0));
