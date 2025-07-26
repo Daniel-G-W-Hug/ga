@@ -36,7 +36,7 @@ struct BVec6_t {
     {
     }
 
-    // assign the vector parts separately
+    // assign the vector parts separately to the bivector
     template <typename Vec1Tag, typename Vec2Tag>
     BVec6_t(Vec3_t<T, Vec1Tag> const& v, Vec3_t<T, Vec2Tag> const& m) :
         vx(v.x), vy(v.y), vz(v.z), mx(m.x), my(m.y), mz(m.z)
@@ -57,8 +57,8 @@ struct BVec6_t {
     // floating point type conversion
     template <typename U>
         requires(std::floating_point<U>)
-    constexpr BVec6_t(BVec6_t<U, Tag> const& v) :
-        vx(v.vx), vy(v.vy), vz(v.vz), mx(v.mx), my(v.my), mz(v.mz)
+    constexpr BVec6_t(BVec6_t<U, Tag> const& B) :
+        vx(B.vx), vy(B.vy), vz(B.vz), mx(B.mx), my(B.my), mz(B.mz)
     {
     }
 
@@ -88,12 +88,12 @@ struct BVec6_t {
         // componentwise comparison
         // equality implies same magnitude and direction
         // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_vx = std::abs(rhs.vx - vx);
-        auto abs_delta_vy = std::abs(rhs.vy - vy);
-        auto abs_delta_vz = std::abs(rhs.vz - vz);
-        auto abs_delta_mx = std::abs(rhs.mx - mx);
-        auto abs_delta_my = std::abs(rhs.my - my);
-        auto abs_delta_mz = std::abs(rhs.mz - mz);
+        auto abs_delta_vx = std::abs(vx - rhs.vx);
+        auto abs_delta_vy = std::abs(vy - rhs.vy);
+        auto abs_delta_vz = std::abs(vz - rhs.vz);
+        auto abs_delta_mx = std::abs(mx - rhs.mx);
+        auto abs_delta_my = std::abs(my - rhs.my);
+        auto abs_delta_mz = std::abs(mz - rhs.mz);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
         return (abs_delta_vx < delta_eps && abs_delta_vy < delta_eps &&
                 abs_delta_vz < delta_eps && abs_delta_mx < delta_eps &&
@@ -102,27 +102,27 @@ struct BVec6_t {
 
     template <typename U>
         requires(std::floating_point<U>)
-    BVec6_t& operator+=(BVec6_t<U, Tag> const& v) noexcept
+    BVec6_t& operator+=(BVec6_t<U, Tag> const& B) noexcept
     {
-        vx += v.vx;
-        vy += v.vy;
-        vz += v.vz;
-        mx += v.mx;
-        my += v.my;
-        mz += v.mz;
+        vx += B.vx;
+        vy += B.vy;
+        vz += B.vz;
+        mx += B.mx;
+        my += B.my;
+        mz += B.mz;
         return (*this);
     }
 
     template <typename U>
         requires(std::floating_point<U>)
-    BVec6_t& operator-=(BVec6_t<U, Tag> const& v) noexcept
+    BVec6_t& operator-=(BVec6_t<U, Tag> const& B) noexcept
     {
-        vx -= v.vx;
-        vy -= v.vy;
-        vz -= v.vz;
-        mx -= v.mx;
-        my -= v.my;
-        mz -= v.mz;
+        vx -= B.vx;
+        vy -= B.vy;
+        vz -= B.vz;
+        mx -= B.mx;
+        my -= B.my;
+        mz -= B.mz;
         return (*this);
     }
 
@@ -161,9 +161,9 @@ struct BVec6_t {
 // unary minus
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-constexpr BVec6_t<T, Tag> operator-(BVec6_t<T, Tag> const& v)
+constexpr BVec6_t<T, Tag> operator-(BVec6_t<T, Tag> const& B)
 {
-    return BVec6_t<T, Tag>(-v.vx, -v.vy, -v.vz, -v.mx, -v.my, -v.mz);
+    return BVec6_t<T, Tag>(-B.vx, -B.vy, -B.vz, -B.mx, -B.my, -B.mz);
 }
 
 // add multivectors
@@ -191,30 +191,30 @@ constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator-(BVec6_t<T, Tag> const
 // multiply a multivector with a scalar
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator*(BVec6_t<T, Tag> const& v, U s)
+constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator*(BVec6_t<T, Tag> const& B, U s)
 {
-    return BVec6_t<std::common_type_t<T, U>, Tag>(v.vx * s, v.vy * s, v.vz * s, v.mx * s,
-                                                  v.my * s, v.mz * s);
+    return BVec6_t<std::common_type_t<T, U>, Tag>(B.vx * s, B.vy * s, B.vz * s, B.mx * s,
+                                                  B.my * s, B.mz * s);
 }
 
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator*(T s, BVec6_t<U, Tag> const& v)
+constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator*(T s, BVec6_t<U, Tag> const& B)
 {
-    return BVec6_t<std::common_type_t<T, U>, Tag>(v.vx * s, v.vy * s, v.vz * s, v.mx * s,
-                                                  v.my * s, v.mz * s);
+    return BVec6_t<std::common_type_t<T, U>, Tag>(B.vx * s, B.vy * s, B.vz * s, B.mx * s,
+                                                  B.my * s, B.mz * s);
 }
 
 // devide a multivector by a scalar
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
-inline BVec6_t<std::common_type_t<T, U>, Tag> operator/(BVec6_t<T, Tag> const& v, U s)
+inline BVec6_t<std::common_type_t<T, U>, Tag> operator/(BVec6_t<T, Tag> const& B, U s)
 {
     detail::check_division_by_zero<T, U>(s, "bivector division");
     using ctype = std::common_type_t<T, U>;
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
-    return BVec6_t<ctype, Tag>(v.vx * inv, v.vy * inv, v.vz * inv, v.mx * inv, v.my * inv,
-                               v.mz * inv);
+    return BVec6_t<ctype, Tag>(B.vx * inv, B.vy * inv, B.vz * inv, B.mx * inv, B.my * inv,
+                               B.mz * inv);
 }
 
 // magnitude of the k-vector (in representational space)
@@ -241,29 +241,29 @@ inline BVec6_t<std::common_type_t<T, U>, Tag> operator/(BVec6_t<T, Tag> const& v
 //
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-constexpr T nrm_sq(BVec6_t<T, Tag> const& b)
+constexpr T nrm_sq(BVec6_t<T, Tag> const& B)
 {
-    return b.vx * b.vx + b.vy * b.vy + b.vz * b.vz + b.mx * b.mx + b.my * b.my +
-           b.mz * b.mz;
+    return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz + B.mx * B.mx + B.my * B.my +
+           B.mz * B.mz;
 }
 
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-constexpr T nrm(BVec6_t<T, Tag> const& v)
+constexpr T nrm(BVec6_t<T, Tag> const& B)
 {
-    return std::sqrt(nrm_sq(v));
+    return std::sqrt(nrm_sq(B));
 }
 
-// return a vector v normalized to nrm(v) == 1.0
+// return a bivector B normalized to nrm(B) == 1.0
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-inline BVec6_t<T, Tag> normalize(BVec6_t<T, Tag> const& v)
+inline BVec6_t<T, Tag> normalize(BVec6_t<T, Tag> const& B)
 {
-    T m = nrm(v);
+    T m = nrm(B);
     detail::check_normalization<T>(m, "bivector");
     T inv = T(1.0) / m; // for multiplication with inverse of norm
-    return BVec6_t<T, Tag>(v.vx * inv, v.vy * inv, v.vz * inv, v.mx * inv, v.my * inv,
-                           v.mz * inv);
+    return BVec6_t<T, Tag>(B.vx * inv, B.vy * inv, B.vz * inv, B.mx * inv, B.my * inv,
+                           B.mz * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -271,10 +271,10 @@ inline BVec6_t<T, Tag> normalize(BVec6_t<T, Tag> const& v)
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
     requires(std::floating_point<T>)
-std::ostream& operator<<(std::ostream& os, BVec6_t<T, Tag> const& v)
+std::ostream& operator<<(std::ostream& os, BVec6_t<T, Tag> const& B)
 {
-    os << "(" << v.vx << "," << v.vy << "," << v.vz << "," << v.mx << "," << v.my << ","
-       << v.mz << ")";
+    os << "(" << B.vx << "," << B.vy << "," << B.vz << "," << B.mx << "," << B.my << ","
+       << B.mz << ")";
     return os;
 }
 
