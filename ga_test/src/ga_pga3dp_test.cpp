@@ -967,6 +967,10 @@ TEST_SUITE("PGA 3DP Tests")
 
         CHECK(mv5f == mv5e);
 
+        CHECK(gr0(mv5g) == s);
+        CHECK(gr2(mv5g) == B);
+        CHECK(gr4(mv5g) == ps);
+
         CHECK(gr0(mv5h) == s);
         CHECK(gr2(mv5h) == B);
         CHECK(gr4(mv5h) == pscalar3dp{});
