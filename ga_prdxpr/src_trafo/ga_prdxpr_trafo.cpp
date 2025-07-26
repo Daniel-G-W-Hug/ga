@@ -124,7 +124,7 @@ bool ExpressionValidator::validateIdentifier(std::string const& name)
 // Lexer implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-Lexer::Lexer(std::string const& input) : input(input), position(0)
+Lexer::Lexer(std::string const& input_in) : input(input_in), position(0)
 {
     ExpressionValidator::validateParentheses(input);
     ExpressionValidator::validateOperatorSequence(input);
@@ -870,6 +870,9 @@ std::string Primary::to_string() const
         case Primary_t::EXPRESSION:
             if (expr) {
                 return "(" + expr->to_string() + ")";
+            }
+            else {
+                return "EXPRESSION EMPTY";
             }
         default:
             // return "";

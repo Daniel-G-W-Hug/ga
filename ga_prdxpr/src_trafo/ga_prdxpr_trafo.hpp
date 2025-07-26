@@ -115,7 +115,7 @@ struct Token {
 class Lexer {
   public:
 
-    explicit Lexer(const std::string& input);
+    explicit Lexer(const std::string& input_in);
     Token getNextToken();
     const Token& getCurrentToken() const { return currentToken; }
     void advance() { currentToken = getNextToken(); }
