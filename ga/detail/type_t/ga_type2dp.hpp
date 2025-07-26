@@ -116,7 +116,7 @@ struct Point2d : public Vec2d<T> {
     using Vec2d<T>::y;
 
     Point2d(Vec2d<T> const& v) : Vec2d<T>(v) {};
-    Point2d(T x, T y) : Vec2d<T>(x, y) {};
+    Point2d(T x_in, T y_in) : Vec2d<T>(x_in, y_in) {};
 };
 
 // Point2dp: 2d point of projective algebra storing all three components x, y, z
@@ -159,7 +159,7 @@ struct Line2d : public BiVec2dp<T> {
     using BiVec2dp<T>::z;
 
     Line2d() = default;
-    Line2d(T x, T y, T z) : BiVec2dp<T>(x, y, z) {};
+    Line2d(T x_in, T y_in, T z_in) : BiVec2dp<T>(x_in, y_in, z_in) {};
     Line2d(BiVec2dp<T> const& b) : BiVec2dp<T>(b) {};
     Line2d(Point2d<T> const& p, Point2d<T> const& q) :
         // Line2d = wdg(p,q), but wdg() cannot be used here to avoid circular dependency
