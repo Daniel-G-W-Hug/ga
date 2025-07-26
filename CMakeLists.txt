@@ -38,7 +38,8 @@ else()
   # lots of warnings and all warnings as errors
   #add_compile_options(-Wall -Wextra -pedantic -Werror)
   # add_compile_options(-Wall -Wextra -Wshadow -Wconversion -pedantic)
-  add_compile_options(-Wall -Wextra -Wshadow -pedantic)
+  # add_compile_options(-Wall -Wextra -Wshadow -pedantic)
+  add_compile_options(-Wall -Wextra -pedantic)
 endif()
 
 ### Extended testing for division by zero (optional, may cost speed)
