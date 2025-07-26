@@ -72,10 +72,10 @@ struct MVec4_t {
         // componentwise comparison
         // equality implies same magnitude and direction
         // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_c0 = std::abs(rhs.c0 - c0);
-        auto abs_delta_c1 = std::abs(rhs.c1 - c1);
-        auto abs_delta_c2 = std::abs(rhs.c2 - c2);
-        auto abs_delta_c3 = std::abs(rhs.c3 - c3);
+        auto abs_delta_c0 = std::abs(c0 - rhs.c0);
+        auto abs_delta_c1 = std::abs(c1 - rhs.c1);
+        auto abs_delta_c2 = std::abs(c2 - rhs.c2);
+        auto abs_delta_c3 = std::abs(c3 - rhs.c3);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
         return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
                 abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps);

@@ -83,14 +83,14 @@ struct MVec8_t {
         // componentwise comparison
         // equality implies same magnitude and direction
         // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_c0 = std::abs(rhs.c0 - c0);
-        auto abs_delta_c1 = std::abs(rhs.c1 - c1);
-        auto abs_delta_c2 = std::abs(rhs.c2 - c2);
-        auto abs_delta_c3 = std::abs(rhs.c3 - c3);
-        auto abs_delta_c4 = std::abs(rhs.c4 - c4);
-        auto abs_delta_c5 = std::abs(rhs.c5 - c5);
-        auto abs_delta_c6 = std::abs(rhs.c6 - c6);
-        auto abs_delta_c7 = std::abs(rhs.c7 - c7);
+        auto abs_delta_c0 = std::abs(c0 - rhs.c0);
+        auto abs_delta_c1 = std::abs(c1 - rhs.c1);
+        auto abs_delta_c2 = std::abs(c2 - rhs.c2);
+        auto abs_delta_c3 = std::abs(c3 - rhs.c3);
+        auto abs_delta_c4 = std::abs(c4 - rhs.c4);
+        auto abs_delta_c5 = std::abs(c5 - rhs.c5);
+        auto abs_delta_c6 = std::abs(c6 - rhs.c6);
+        auto abs_delta_c7 = std::abs(c7 - rhs.c7);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
         return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
                 abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps &&

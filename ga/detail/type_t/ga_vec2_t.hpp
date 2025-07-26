@@ -68,8 +68,8 @@ struct Vec2_t {
         // componentwise comparison
         // equality implies same magnitude and direction
         // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_x = std::abs(rhs.x - x);
-        auto abs_delta_y = std::abs(rhs.y - y);
+        auto abs_delta_x = std::abs(x - rhs.x);
+        auto abs_delta_y = std::abs(y - rhs.y);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
         return (abs_delta_x < delta_eps && abs_delta_y < delta_eps);
     }

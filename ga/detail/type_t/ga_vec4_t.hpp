@@ -90,10 +90,10 @@ struct Vec4_t {
         // componentwise comparison
         // equality implies same magnitude and direction
         // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_x = std::abs(rhs.x - x);
-        auto abs_delta_y = std::abs(rhs.y - y);
-        auto abs_delta_z = std::abs(rhs.z - z);
-        auto abs_delta_w = std::abs(rhs.w - w);
+        auto abs_delta_x = std::abs(x - rhs.x);
+        auto abs_delta_y = std::abs(y - rhs.y);
+        auto abs_delta_z = std::abs(z - rhs.z);
+        auto abs_delta_w = std::abs(w - rhs.w);
         auto constexpr delta_eps = detail::safe_epsilon<T, U>();
         return (abs_delta_x < delta_eps && abs_delta_y < delta_eps &&
                 abs_delta_z < delta_eps && abs_delta_w < delta_eps);
