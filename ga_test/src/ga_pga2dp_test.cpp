@@ -1988,7 +1988,7 @@ TEST_SUITE("PGA 2DP Tests")
         // a Point2d is-a Vec2dp, thus all operations defined for Vec2dp should work
         // directly for Point2dp
         CHECK(dot(v, v) == dot(p, p));
-        CHECK(p2d == Point2d(v2d));
+        CHECK(p2d == Point2d<double>(v2d));
         CHECK(unitize(p) == Point2dp<double>(p2d));
         CHECK(unitize(p) == Point2dp<double>(v2d));
         CHECK(dot(BiVec2dp<double>(1, 7, 3), BiVec2dp<double>(4, 5, 6)) == 18.0);
