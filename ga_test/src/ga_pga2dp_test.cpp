@@ -245,9 +245,8 @@ TEST_SUITE("PGA 2DP Tests")
         mvec2dp_u mvu1{v1, ps1};
         mvec2dp mv1{s1, v1, b1, ps1};
 
-        auto v3m = mvec2dp{v3};
-        auto v4m = mvec2dp{v4};
-
+        // auto v3m = mvec2dp{v3};
+        // auto v4m = mvec2dp{v4};
         // fmt::println("v1 = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
         // fmt::println("v2 = normalize(v1) = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
         // fmt::println("v3 = {: .4f}, nrm(v1) = {: .4f}", v3, nrm(v3));
@@ -1990,8 +1989,8 @@ TEST_SUITE("PGA 2DP Tests")
         // directly for Point2dp
         CHECK(dot(v, v) == dot(p, p));
         CHECK(p2d == Point2d(v2d));
-        CHECK(unitize(p) == Point2dp(p2d));
-        CHECK(unitize(p) == Point2dp(v2d));
+        CHECK(unitize(p) == Point2dp<double>(p2d));
+        CHECK(unitize(p) == Point2dp<double>(v2d));
         CHECK(dot(BiVec2dp<double>(1, 7, 3), BiVec2dp<double>(4, 5, 6)) == 18.0);
 
         auto vector = Vector2d<double>(1.0, 2.0);
@@ -2006,9 +2005,9 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("l1 = {}", l1);
         //
         // Line2d ctors
-        auto l2 = Line2d(p1, p2);
-        auto l3 = Line2d(BiVec2dp<double>{-1, 1, -1});
-        auto l4 = Line2d(p1, Vec2d<double>{1, 1});
+        auto l2 = Line2d<double>(p1, p2);
+        auto l3 = Line2d<double>(BiVec2dp<double>{-1, 1, -1});
+        auto l4 = Line2d<double>(p1, Vec2d<double>{1, 1});
         auto l5 = Line2d<double>(-1, 1, -1);
         auto l6 = Line2d<double>();
         CHECK(l1 == l2);

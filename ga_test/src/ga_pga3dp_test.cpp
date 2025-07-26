@@ -251,9 +251,8 @@ TEST_SUITE("PGA 3DP Tests")
         mvec3dp_u mvu1{v1, t1};
         mvec3dp mv1{s1, v1, b1, t1, ps1};
 
-        auto v3m = mvec3dp{v3};
-        auto v4m = mvec3dp{v4};
-
+        // auto v3m = mvec3dp{v3};
+        // auto v4m = mvec3dp{v4};
         // fmt::println("v1                  = {: .4f}, nrm(v1)         = {: .4f}",
         // v1,
         //              nrm(v1));

@@ -626,6 +626,18 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_akinem(pt_chain);
 
+        akinematic2dp pt_chain2;
+        size_t p20_id = cm.add_apt(pt2d{-3.5, 2.5});
+        pt_chain2.apt.push_back(p20_id);
+        size_t p21_id = cm.add_apt(pt2d{-3.0, 2.5});
+        pt_chain2.apt.push_back(p21_id);
+        size_t p22_id = cm.add_apt(pt2d{-2.5, 2.5});
+        pt_chain2.apt.push_back(p22_id);
+        size_t p23_id = cm.add_apt(pt2d{-2.0, 2.5});
+        pt_chain2.apt.push_back(p23_id);
+
+        cm.add_akinem(pt_chain2);
+
         cm.set_label("active kinematics");
 
         vm.push_back(cm);
