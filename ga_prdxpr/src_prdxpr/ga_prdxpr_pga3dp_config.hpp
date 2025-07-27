@@ -5,6 +5,9 @@
 #include "ga_prdxpr_config_types.hpp"
 #include "ga_prdxpr_pga3dp.hpp"
 
+// Algebra configuration function (used by rule generation)
+AlgebraConfig get_pga3dp_algebra_config();
+
 namespace configurable {
 
 // PGA3DP algebra data creation

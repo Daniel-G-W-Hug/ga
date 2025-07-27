@@ -5,6 +5,9 @@
 #include "ga_prdxpr_config_types.hpp"
 #include "ga_prdxpr_ega2d.hpp"
 
+// Algebra configuration function (used by rule generation)
+AlgebraConfig get_ega2d_algebra_config();
+
 namespace configurable {
 
 // Create EGA2D algebra data using existing mathematical definitions (unchanged)

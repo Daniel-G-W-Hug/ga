@@ -5,6 +5,9 @@
 #include "ga_prdxpr_config_types.hpp"
 #include "ga_prdxpr_ega3d.hpp"
 
+// Algebra configuration function (used by rule generation)
+AlgebraConfig get_ega3d_algebra_config();
+
 namespace configurable {
 
 // EGA3D algebra configuration
