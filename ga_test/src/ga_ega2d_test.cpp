@@ -799,6 +799,13 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(s * t == t * s);    // gpr between scalars equivalent to scalar mult.
         CHECK(s * v1 == v1 * s);  // gpr between scalar and vector
         CHECK(s * v1 == sd * v1); // gpr between scalar and vector
+
+        CHECK((e12_2d >> e1_2d) == e2_2d);
+        CHECK((e12_2d >> e2_2d) == -e1_2d);
+        CHECK((e1_2d << e12_2d) == -e2_2d);
+        CHECK((e2_2d << e12_2d) == e1_2d);
+        CHECK((e12_2d >> (2.0 * e1_2d - 3.0 * e2_2d)) == 3.0 * e1_2d + 2.0 * e2_2d);
+        CHECK(((2.0 * e1_2d - 3.0 * e2_2d) << e12_2d) == -3.0 * e1_2d - 2.0 * e2_2d);
     }
 
     TEST_CASE("MVec2d: geometric product tests")
