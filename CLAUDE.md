@@ -219,4 +219,94 @@ cd ga_prdxpr && ./ga_prdxpr && cd ..          # Original reference implementatio
 - `ga_prdxpr_*_config.cpp`: Algebra-specific configurations and coefficient definitions
 - `ga_prdxpr_*.cpp`: Legacy reference implementations (don't modify, use for verification)
 
-**Important**: The ga_prdxpr system is a **complete, production-ready geometric algebra code generator** that produces mathematically accurate, optimized C++ expressions for all four supported algebras.
+**Important**: The ga_prdxpr system is a **complete, production-ready geometric algebra code generator** that produces mathematically accurate, optimized C++ expressions for all supported algebras.
+
+## Geometric Algebra Mathematical Foundations
+
+### Core GA Concepts Learned
+
+**Geometric Algebra Structure:**
+
+- **G(p,q,r)** notation: p positive, q negative, r null (degenerate) basis vectors
+- **Basis Elements**: Ordered combinations like `e1`, `e12`, `e123` with canonical ordering
+- **Grade Structure**: scalar (grade 0), vectors (grade 1), bivectors (grade 2), trivectors (grade 3), etc.
+- **Metric Signature**: Defines how basis vectors square (e.g., e1² = +1, e2² = -1, e3² = 0)
+
+**Product Operations:**
+
+1. **Geometric Product**: Full GA multiplication with metric effects
+2. **Wedge Product**: Antisymmetric exterior product (zero for repeated indices)
+3. **Dot Product**: Symmetric contraction using extended metric values
+
+**Indexing Systems:**
+
+- **1-based**: e1, e2, e3 (traditional mathematical notation)
+- **0-based**: e0, g0, g1, g2 (often used in physics/spacetime)
+- Algorithm must detect and handle both automatically
+
+### Supported Algebra Types
+
+**EGA2D - G(2,0,0)**: Euclidean 2D
+
+- Basis: `{1, e1, e2, e12}`
+- Metric: `{+1, +1}`
+- Extended Metric: `{1, 1, 1, 1}`
+
+**EGA3D - G(3,0,0)**: Euclidean 3D
+
+- Basis: `{1, e1, e2, e3, e23, e31, e12, e123}`
+- Metric: `{+1, +1, +1}`
+- Extended Metric: `{1, 1, 1, 1, 1, 1, 1, 1}`
+
+**PGA2DP - G(2,0,1)**: Projective 2D
+
+- Basis: `{1, e1, e2, e3, e23, e31, e12, e321}`
+- Metric: `{+1, +1, 0}`
+- Extended Metric: `{1, 1, 1, 0, 0, 0, 1, 0}`
+
+**PGA3DP - G(3,0,1)**: Projective 3D
+
+- Basis: `{1, e1, e2, e3, e4, e41, e42, e43, e23, e31, e12, e423, e431, e412, e321, e1234}`
+- Metric: `{+1, +1, +1, 0}`
+- Extended Metric: `{1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0}`
+
+**STA3D - G(1,3,0)**: Space-Time Algebra
+
+- Basis: `{1, g0, g1, g2, g3, g01, g02, g03, g23, g31, g12, g023, g031, g012, g123, g0123}`
+- Metric: `{+1, -1, -1, -1}` (timelike g0, spacelike g1,g2,g3)
+- Extended Metric: Special mixed signature rules
+
+### Extended Metric Calculation Rules
+
+**Standard Algebras (EGA, PGA):**
+
+- **Vectors**: Use base metric signature directly
+- **Higher grades**: Product of constituent vector metrics
+- **Pseudoscalar**: Determinant of metric tensor
+- **Mixed signatures**: Apply conforming property G(a ∧ b) = G(a) ∧ G(b)
+
+**Space-Time Algebra (STA3D) Special Rules:**
+
+- **Bivectors with g0**: Extended metric = +1 (e.g., g01, g02, g03)
+- **Bivectors without g0**: Extended metric = -1 (e.g., g12, g23, g31)
+- **Trivectors with g0**: Extended metric = -1 (e.g., g012, g023, g031)
+- **Trivectors without g0**: Extended metric = +1 (e.g., g123)
+- **Pseudoscalar**: Extended metric = determinant = -1
+
+### Automatic Rule Generation System
+
+**Core Algorithm Components:**
+
+- **AlgebraConfig**: Defines basis vectors, metric signature, canonical basis ordering
+- **multiply_basis_elements()**: Implements geometric product with sign tracking
+- **Extended Metric Calculator**: Handles dot product values for all basis elements
+- **Validation System**: Character-by-character comparison with reference implementations
+
+**Key Mathematical Insights:**
+
+1. **Sign Calculation**: Count swaps needed for canonical ordering
+2. **Metric Application**: Handle both 1-based and 0-based indexing automatically
+3. **Canonical Forms**: Use user-provided basis ordering to avoid ambiguity
+4. **Mixed Signatures**: Require algebra-specific extended metric rules
+
+**Validation Success**: The automatic generation system produces character-identical results for all five tested algebras (EGA2D, EGA3D, PGA2DP, PGA3DP, STA3D) across geometric, wedge, and dot products.

@@ -75,6 +75,17 @@
 
 #include "ga_prdxpr_ega2d_config.hpp"
 
+// Automatic rule generation configuration for EGA2D
+AlgebraConfig get_ega2d_algebra_config()
+{
+    return {.basis_vectors = {"e1", "e2"},
+            .metric_signature = {+1, +1},
+            .multivector_basis = {"1", "e1", "e2", "e12"}, // Copy from mv2d_basis
+            .scalar_name = one_str,
+            .basis_prefix = "e"};
+}
+
+
 namespace configurable {
 
 AlgebraData create_ega2d_algebra_data()

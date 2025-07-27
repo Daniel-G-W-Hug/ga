@@ -633,6 +633,24 @@ void print_prd_tab(prd_table const& tab)
     }
 }
 
+void print_prd_rules(const prd_rules& rules, const std::string& title,
+                     const mvec_coeff& basis_order, const std::string& operator_symbol)
+{
+    fmt::println("\n=== {} ===", title);
+
+    // Print in grade order by iterating through basis in order
+    for (const auto& a : basis_order) {
+        for (const auto& b : basis_order) {
+            std::string key = a + " " + operator_symbol + " " + b;
+
+            auto it = rules.find(key);
+            if (it != rules.end()) {
+                fmt::println("    {{\"{}\", \"{}\"}},", key, it->second);
+            }
+        }
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // helper functions (not directly intended for user)

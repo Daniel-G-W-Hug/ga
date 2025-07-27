@@ -77,6 +77,29 @@
 
 #include "ga_prdxpr_ega3d_config.hpp"
 
+// Automatic rule generation configuration for EGA3D
+AlgebraConfig get_ega3d_algebra_config()
+{
+    return {.basis_vectors = {"e1", "e2", "e3"},
+            .metric_signature = {+1, +1, +1},
+            .multivector_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12",
+                                  "e123"}, // Copy from mv3d_basis
+            .scalar_name = one_str,
+            .basis_prefix = "e"};
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// ALGEBRA CONFIGURATION - EGA3D
+//
+// This file contains pure configuration for the EGA3D geometric algebra.
+// Product rule generation is handled in ga_prdxpr_ega3d.cpp.
+//
+// Configuration includes:
+// - Algebra parameters (basis vectors, metric signature)
+// - Coefficient definitions
+// - Product case specifications
+////////////////////////////////////////////////////////////////////////////////
+
 namespace configurable {
 
 AlgebraData create_ega3d_algebra_data()

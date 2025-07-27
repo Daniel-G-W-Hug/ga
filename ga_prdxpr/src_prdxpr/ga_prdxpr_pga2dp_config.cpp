@@ -76,7 +76,29 @@
  */
 
 #include "ga_prdxpr_pga2dp_config.hpp"
-#include "ga_prdxpr_pga2dp.hpp"
+
+// Automatic rule generation configuration for PGA2DP
+AlgebraConfig get_pga2dp_algebra_config()
+{
+    return {.basis_vectors = {"e1", "e2", "e3"},
+            .metric_signature = {+1, +1, 0}, // G(2,0,1) - e1²=+1, e2²=+1, e3²=0
+            .multivector_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12",
+                                  "e321"}, // Copy from mv2dp_basis
+            .scalar_name = one_str,
+            .basis_prefix = "e"};
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// ALGEBRA CONFIGURATION - PGA2DP
+//
+// This file contains pure configuration for the PGA2DP geometric algebra.
+// Product rule generation is handled in ga_prdxpr_pga2dp.cpp.
+//
+// Configuration includes:
+// - Algebra parameters (basis vectors, metric signature)
+// - Coefficient definitions
+// - Product case specifications
+////////////////////////////////////////////////////////////////////////////////
 
 namespace configurable {
 

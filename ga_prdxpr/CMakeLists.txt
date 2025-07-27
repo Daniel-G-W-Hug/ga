@@ -2,6 +2,7 @@
 set(EXEC_NAME ga_prdxpr)
 set(EXEC2_NAME ga_prdxpr_viscmp)
 set(EXEC3_NAME ga_prdxpr_parser_test)
+set(EXEC4_NAME ga_prdxpr_rule_generator_test)
 
 # Source files
 set(SOURCES
@@ -13,6 +14,13 @@ set(SOURCES
     src_prdxpr/ga_prdxpr_pga3dp_config.cpp
     # Reference mathematical computation files
     src_prdxpr/ga_prdxpr_common.cpp
+    # Automatic rule generation system
+    src_prdxpr/ga_prdxpr_rule_generator.cpp
+    # Rule generation for each algebra
+    src_prdxpr/ga_prdxpr_ega2d.cpp
+    src_prdxpr/ga_prdxpr_ega3d.cpp
+    src_prdxpr/ga_prdxpr_pga2dp.cpp
+    src_prdxpr/ga_prdxpr_pga3dp.cpp
 )
 
 # Headers
@@ -30,6 +38,7 @@ set(HEADERS
     src_prdxpr/ga_prdxpr_ega3d.hpp
     src_prdxpr/ga_prdxpr_pga2dp.hpp
     src_prdxpr/ga_prdxpr_pga3dp.hpp
+    src_prdxpr/ga_prdxpr_rule_generator.hpp
 )
 
 # Core transformation system
@@ -42,15 +51,29 @@ set(SOURCES_VISUAL_COMPARISON_TEST src_trafo/ga_prdxpr_trafo.cpp
 set(SOURCES_PARSER_TEST src_trafo/ga_prdxpr_trafo_parser_test.cpp
             src_trafo/ga_prdxpr_trafo.cpp)
 
+set(SOURCES_RULE_GENERATOR_TEST src_prdxpr/ga_prdxpr_rule_generator_test.cpp
+            src_prdxpr/ga_prdxpr_common.cpp
+            src_prdxpr/ga_prdxpr_rule_generator.cpp
+            src_prdxpr/ga_prdxpr_ega2d_config.cpp
+            src_prdxpr/ga_prdxpr_ega3d_config.cpp
+            src_prdxpr/ga_prdxpr_pga2dp_config.cpp
+            src_prdxpr/ga_prdxpr_pga3dp_config.cpp
+            src_prdxpr/ga_prdxpr_ega2d.cpp
+            src_prdxpr/ga_prdxpr_ega3d.cpp
+            src_prdxpr/ga_prdxpr_pga2dp.cpp
+            src_prdxpr/ga_prdxpr_pga3dp.cpp)
+
 # Create executables
 add_executable(${EXEC_NAME} ${SOURCES} ${HEADERS})  #dep: fmt
 add_executable(${EXEC2_NAME} ${SOURCES_VISUAL_COMPARISON_TEST})  #dep: fmt
 add_executable(${EXEC3_NAME} ${SOURCES_PARSER_TEST})  #dep: fmt, doctest
+add_executable(${EXEC4_NAME} ${SOURCES_RULE_GENERATOR_TEST})  #dep: fmt
 
 # Include directories
 target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC2_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC3_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(${EXEC4_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 
 find_package(fmt CONFIG REQUIRED)
 find_package(doctest REQUIRED)
@@ -59,6 +82,7 @@ find_package(doctest REQUIRED)
 target_link_libraries(${EXEC_NAME} PRIVATE fmt::fmt-header-only)
 target_link_libraries(${EXEC2_NAME} PRIVATE fmt::fmt-header-only)
 target_link_libraries(${EXEC3_NAME} PRIVATE fmt::fmt-header-only doctest::doctest)
+target_link_libraries(${EXEC4_NAME} PRIVATE fmt::fmt-header-only)
 
 # Compiler-specific options
 if(MSVC)

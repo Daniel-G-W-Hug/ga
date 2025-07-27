@@ -114,6 +114,13 @@ mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
 void print_mvec(mvec_coeff const& mv, mvec_coeff const& mv_basis);
 void print_prd_tab(prd_table const& tab);
 
+// Pretty print prd_rules in grade-ordered format
+// Usage example:
+//   print_prd_rules(gpr_ega2d_rules, "EGA2D Geometric Product", mv2d_basis, "*");
+//   print_prd_rules(wdg_ega2d_rules, "EGA2D Wedge Product", mv2d_basis, "^");
+void print_prd_rules(const prd_rules& rules, const std::string& title, 
+                     const mvec_coeff& basis_order, const std::string& operator_symbol = "*");
+
 ////////////////////////////////////////////////////////////////////////////////
 // helper functions (not directly intended for user)
 ////////////////////////////////////////////////////////////////////////////////

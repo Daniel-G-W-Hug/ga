@@ -3,6 +3,7 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "ga_prdxpr_common.hpp"
+#include "ga_prdxpr_rule_generator.hpp"
 
 // ega2d: euclidean geometric algebra with
 //        e1*e1 = +1, e2*e2 = +1
@@ -11,24 +12,19 @@
 // multivector basis components
 const mvec_coeff mv2d_basis = {"1", "e1", "e2", "e12"};
 
-// rules to create produc tables (must contain space_str around operator_str on each side)
-const prd_rules gpr_ega2d_rules = {
-    {"1 * 1", "1"},     {"1 * e1", "e1"},    {"1 * e2", "e2"},   {"1 * e12", "e12"},
-    {"e1 * 1", "e1"},   {"e1 * e1", "1"},    {"e1 * e2", "e12"}, {"e1 * e12", "e2"},
-    {"e2 * 1", "e2"},   {"e2 * e1", "-e12"}, {"e2 * e2", "1"},   {"e2 * e12", "-e1"},
-    {"e12 * 1", "e12"}, {"e12 * e1", "-e2"}, {"e12 * e2", "e1"}, {"e12 * e12", "-1"}};
-
-const prd_rules wdg_ega2d_rules = {
-    {"1 ^ 1", "1"},     {"1 ^ e1", "e1"},    {"1 ^ e2", "e2"},   {"1 ^ e12", "e12"},
-    {"e1 ^ 1", "e1"},   {"e1 ^ e1", "0"},    {"e1 ^ e2", "e12"}, {"e1 ^ e12", "0"},
-    {"e2 ^ 1", "e2"},   {"e2 ^ e1", "-e12"}, {"e2 ^ e2", "0"},   {"e2 ^ e12", "0"},
-    {"e12 ^ 1", "e12"}, {"e12 ^ e1", "0"},   {"e12 ^ e2", "0"},  {"e12 ^ e12", "0"}};
-
-const prd_rules dot_ega2d_rules = {
-    {"1 * 1", "1"},   {"1 * e1", "0"},   {"1 * e2", "0"},   {"1 * e12", "0"},
-    {"e1 * 1", "0"},  {"e1 * e1", "1"},  {"e1 * e2", "0"},  {"e1 * e12", "0"},
-    {"e2 * 1", "0"},  {"e2 * e1", "0"},  {"e2 * e2", "1"},  {"e2 * e12", "0"},
-    {"e12 * 1", "0"}, {"e12 * e1", "0"}, {"e12 * e2", "0"}, {"e12 * e12", "1"}};
+////////////////////////////////////////////////////////////////////////////////
+// AUTOMATIC RULE GENERATION - EGA2D
+//
+// Product tables are generated automatically using the rule generation system:
+// - Configuration: ga_prdxpr_ega2d_config.cpp (defines algebra parameters)
+// - Generation: ga_prdxpr_ega2d.cpp (creates product rules at startup)
+// - Interface: This file (declares available rules)
+//
+// This ensures mathematically correct, consistent rules without manual errors.
+////////////////////////////////////////////////////////////////////////////////
+extern const prd_rules gpr_ega2d_rules; // Geometric product: a * b
+extern const prd_rules wdg_ega2d_rules; // Wedge product: a ^ b
+extern const prd_rules dot_ega2d_rules; // Dot product: a · b
 
 
 // complement in 2d: lcmpl(rcmpl(u)) = u
