@@ -2231,6 +2231,41 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(lcmpl(e321_3dp) == e4_3dp);
         CHECK(lcmpl(I_3dp) == scalar2d(1.0));
 
+
+        // complements are defined for basis elements only
+        // => magnitude has to be covered separately for non-normalized elements
+
+        // left complements
+        CHECK(wdg(lcmpl(s), s) / nrm_sq(s) == I_3dp);
+        CHECK(wdg(lcmpl(v), v) / nrm_sq(v) == I_3dp);
+        CHECK(wdg(lcmpl(B), B) / nrm_sq(B) == I_3dp);
+        CHECK(wdg(lcmpl(t), t) / nrm_sq(t) == I_3dp);
+        CHECK(wdg(lcmpl(ps), ps) / nrm_sq(ps) == I_3dp);
+
+        // right complements
+        CHECK(wdg(s, rcmpl(s)) / nrm_sq(s) == I_3dp);
+        CHECK(wdg(v, rcmpl(v)) / nrm_sq(v) == I_3dp);
+        CHECK(wdg(B, rcmpl(B)) / nrm_sq(B) == I_3dp);
+        CHECK(wdg(t, rcmpl(t)) / nrm_sq(t) == I_3dp);
+        CHECK(wdg(ps, rcmpl(ps)) / nrm_sq(ps) == I_3dp);
+
+        // correspondence of complements with geometric products:
+        // bulk_duals differ from complements in pga3dp (influence of degenerate metric)
+        // left and right bulk duals correspond to
+        // left and right complements of the bulk in pga3dp
+        CHECK((I_3dp * rev(s)) == left_bulk_dual(s));
+        CHECK((I_3dp * rev(v)) == left_bulk_dual(v));
+        CHECK((I_3dp * rev(B)) == left_bulk_dual(B));
+        CHECK((I_3dp * rev(t)) == left_bulk_dual(t));
+        CHECK((I_3dp * rev(ps)) == left_bulk_dual(ps));
+
+        CHECK((rev(s) * I_3dp) == right_bulk_dual(s));
+        CHECK((rev(v) * I_3dp) == right_bulk_dual(v));
+        CHECK((rev(B) * I_3dp) == right_bulk_dual(B));
+        CHECK((rev(t) * I_3dp) == right_bulk_dual(t));
+        CHECK((rev(ps) * I_3dp) == right_bulk_dual(ps));
+
+
         // linearity of the right and left complement operation
         double a = 2.0;
         CHECK(rcmpl(a * s) == a * rcmpl(s));

@@ -1684,16 +1684,30 @@ TEST_SUITE("EGA 2D Tests")
         //
         CHECK(lcmpl(rcmpl(mv1)) == mv1);
         CHECK(lcmpl(rcmpl(mvec2d_e(s1, ps1))) == mvec2d_e(s1, ps1));
-        //
-        CHECK(wdg(scalar2d(5), rcmpl(scalar2d(5))) / nrm_sq(scalar2d(5)) == I_2d);
-        CHECK(wdg(lcmpl(scalar2d(5)), scalar2d(5)) / nrm_sq(scalar2d(5)) == I_2d);
-        CHECK(wdg(v, rcmpl(v)) / nrm_sq(v) == I_2d);
-        CHECK(wdg(lcmpl(v), v) / nrm_sq(v) == I_2d);
-        CHECK(wdg(pscalar2d(3), rcmpl(pscalar2d(3))) / nrm_sq(pscalar2d(3)) == I_2d);
-        CHECK(wdg(lcmpl(pscalar2d(3)), pscalar2d(3)) / nrm_sq(pscalar2d(3)) == I_2d);
 
-        CHECK((rev(v) * I_2d) == rcmpl(v));
-        CHECK((I_2d * rev(v)) == lcmpl(v));
+        // complements are defined for basis elements only
+        // => magnitude has to be covered separately for non-normalized elements
+
+        // left complements
+        CHECK(wdg(lcmpl(s1), s1) / nrm_sq(s1) == I_2d);
+        CHECK(wdg(lcmpl(v1), v1) / nrm_sq(v1) == I_2d);
+        CHECK(wdg(lcmpl(ps1), ps1) / nrm_sq(ps1) == I_2d);
+
+        // right complements
+        CHECK(wdg(s1, rcmpl(s1)) / nrm_sq(s1) == I_2d);
+        CHECK(wdg(v1, rcmpl(v1)) / nrm_sq(v1) == I_2d);
+        CHECK(wdg(ps1, rcmpl(ps1)) / nrm_sq(ps1) == I_2d);
+
+        // correspondence of complements with geometric products:
+        // left and right duals correspond to left and right complements in ega2d
+        // (non-degenerate metric = identity in ega2d)
+        CHECK((I_2d * rev(s1)) == left_dual(s1));
+        CHECK((I_2d * rev(v1)) == left_dual(v1));
+        CHECK((I_2d * rev(ps1)) == left_dual(ps1));
+
+        CHECK((rev(s1) * I_2d) == right_dual(s1));
+        CHECK((rev(v1) * I_2d) == right_dual(v1));
+        CHECK((rev(ps1) * I_2d) == right_dual(ps1));
     }
 
     // TEST_CASE("trial")

@@ -2298,14 +2298,33 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(cmpl(cmpl(mvec2dp_e(s1, b1))) == mvec2dp_e(s1, b1));
         CHECK(cmpl(cmpl(mvec2dp_u(v1, ps1))) == mvec2dp_u(v1, ps1));
         //
-        CHECK(wdg(scalar2dp(5), cmpl(scalar2dp(5))) / nrm_sq(scalar2dp(5)) == I_2dp);
-        CHECK(wdg(cmpl(scalar2dp(5)), scalar2dp(5)) / nrm_sq(scalar2dp(5)) == I_2dp);
-        CHECK(wdg(v, cmpl(v)) / nrm_sq(v) == I_2dp);
-        CHECK(wdg(cmpl(v), v) / nrm_sq(v) == I_2dp);
-        CHECK(wdg(B, cmpl(B)) / nrm_sq(B) == I_2dp);
-        CHECK(wdg(cmpl(B), B) / nrm_sq(B) == I_2dp);
-        CHECK(wdg(pscalar2dp(3), cmpl(pscalar2dp(3))) / nrm_sq(pscalar2dp(3)) == I_2dp);
-        CHECK(wdg(cmpl(pscalar2dp(3)), pscalar2dp(3)) / nrm_sq(pscalar2dp(3)) == I_2dp);
+        // complements are defined for basis elements only
+        // => magnitude has to be covered separately for non-normalized elements
+
+        // left complements = complements in spaces of odd dimension
+        CHECK(wdg(cmpl(s1), s1) / nrm_sq(s1) == I_2dp);
+        CHECK(wdg(cmpl(v1), v1) / nrm_sq(v1) == I_2dp);
+        CHECK(wdg(cmpl(b1), b1) / nrm_sq(b1) == I_2dp);
+        CHECK(wdg(cmpl(ps1), ps1) / nrm_sq(ps1) == I_2dp);
+
+        // right complements = complements in spaces of odd dimension
+        CHECK(wdg(s1, cmpl(s1)) / nrm_sq(s1) == I_2dp);
+        CHECK(wdg(v1, cmpl(v1)) / nrm_sq(v1) == I_2dp);
+        CHECK(wdg(b1, cmpl(b1)) / nrm_sq(b1) == I_2dp);
+        CHECK(wdg(ps1, cmpl(ps1)) / nrm_sq(ps1) == I_2dp);
+
+        // correspondence of complements with geometric products:
+        // bulk_duals differ from complements in pga2dp (influence of degenerate metric)
+        // they correspond to complements of the bulk in pga3dp
+        CHECK((I_2dp * rev(s1)) == bulk_dual(s1));
+        CHECK((I_2dp * rev(v1)) == bulk_dual(v1));
+        CHECK((I_2dp * rev(b1)) == bulk_dual(b1));
+        CHECK((I_2dp * rev(ps1)) == bulk_dual(ps1));
+
+        CHECK((rev(s1) * I_2dp) == bulk_dual(s1));
+        CHECK((rev(v1) * I_2dp) == bulk_dual(v1));
+        CHECK((rev(b1) * I_2dp) == bulk_dual(b1));
+        CHECK((rev(ps1) * I_2dp) == bulk_dual(ps1));
 
         // check contractions: <<, >> and rwdg( u, compl(v) )
         // fmt::println("");

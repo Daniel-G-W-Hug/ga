@@ -841,6 +841,10 @@ void ConfigurableGenerator::print_basis_table(const AlgebraData& algebra,
     print_product_header(algebra, config);
     // Use EXISTING print function from reference implementation
     print_prd_tab(basis_tab);
+    fmt::println("\nsymmetric part:");
+    print_prd_tab(get_prd_tab_sym(basis_tab));
+    fmt::println("\nasymmetric part:");
+    print_prd_tab(get_prd_tab_asym(basis_tab));
 }
 
 void ConfigurableGenerator::print_case_header(const AlgebraData& algebra,

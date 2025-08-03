@@ -1201,6 +1201,7 @@ inline Plane3d<T> unitize(Plane3d<T> const& p)
 // for the dual the argument is multiplied with the extended metric before
 // taking the complement. However, in ega the metric is the identity matrix.
 // Thus the dual and the complement are identical.
+// Due to the degenerate metric in pga some elements are zero (not the identity matrix!).
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
