@@ -1969,8 +1969,88 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(Vec3dp<U> const& v,
                          -v.x * B.c4 - v.y * B.c5 - v.z * B.c6));
 }
 
-// geometric product ps * s of a trivector ps and a scalar s
-// bivector * scalar => bivector
+// geometric product of two quadvectors (=3dp pseudoscalars)
+// quadvector * quadvector => scalar == 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3dp<std::common_type_t<T, U>> operator*([[maybe_unused]] PScalar3dp<T>,
+                                                        [[maybe_unused]] PScalar3dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3dp<ctype>(0.0); // pseudoscalar in pga3dp contains e4^2 = 0
+}
+
+// geometric product ps * t of a quadvector ps (=3dp pseudoscalar) multiplied from the
+// left to the trivector t quadvector * trivector => vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
+                                                     TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * Vec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), -t.w);
+}
+
+// geometric product t * ps of trivector t multiplied by a quadvector ps from the right
+// trivector * quadvector => vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> operator*(TriVec3dp<T> const& t,
+                                                     PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), t.w) * ctype(ps);
+}
+
+// geometric product ps * B of a quadvector ps (=3dp pseudoscalar) multiplied from the
+// left to the bivector B quadvector * bivector => bivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
+                                                       BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) *
+           BiVec3dp<ctype>(B.mx, B.my, B.mz, ctype(0.0), ctype(0.0), ctype(0.0));
+}
+
+// geometric product B * ps of bivector B multiplied by a quadvector ps from the right
+// bivector * quadvector => bivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
+                                                       PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(B.mx, B.my, B.mz, ctype(0.0), ctype(0.0), ctype(0.0)) *
+           ctype(ps);
+}
+
+// geometric product ps * v of a quadvector ps (=3dp pseudoscalar) multiplied from the
+// left to the vector v
+// quadvector * vector => trivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
+                                                        Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * TriVec3dp<ctype>(-v.x, -v.y, -v.z, ctype(0.0));
+}
+
+// geometric product v * ps of a vector v multiplied with a quadvector ps from the right
+// vector * quadvector => trivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> operator*(Vec3dp<T> const& v,
+                                                        PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(v.x, v.y, v.z, ctype(0.0)) * ctype(ps);
+}
+
+// geometric product ps * s of a quadvector ps and a scalar s
+// quadvector * scalar => quadvector (=3dp pseudoscalar)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr PScalar3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps, Scalar3dp<U> s)
@@ -1980,15 +2060,15 @@ constexpr PScalar3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps, Scala
                              ctype(s)); // scalar multiplication with a trivector
 }
 
-// geometric product s * ps of a scalar s and a trivector ps
-// scalar * bivector => bivector
+// geometric product s * ps of a scalar s and a quadvector ps
+// scalar * quadvector => quadvector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr PScalar3dp<std::common_type_t<T, U>> operator*(Scalar3dp<T> s, PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar3dp<ctype>(ctype(s) *
-                             ctype(ps)); // scalar multiplication with a trivector
+                             ctype(ps)); // scalar multiplication with a quadvector
 }
 
 // t1 * t2 = -dot(t1, t2) + cmt(t1, t2)

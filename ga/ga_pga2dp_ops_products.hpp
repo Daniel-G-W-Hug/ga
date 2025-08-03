@@ -1437,7 +1437,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
     return ctype(ps) * Vec2dp<ctype>(ctype(0.0), ctype(0.0), B.z);
 }
 
-// geometric product B * ps of bivector A multiplied by a trivector ps from the right
+// geometric product B * ps of bivector B multiplied by a trivector ps from the right
 // bivector * trivector => vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -1449,7 +1449,8 @@ constexpr Vec2dp<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B,
 }
 
 // geometric product ps * v of a trivector ps (=2dp pseudoscalar) multiplied from the
-// left to the vector v trivector * vector => bivector
+// left to the vector v
+// trivector * vector => bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
@@ -1459,7 +1460,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
     return -ctype(ps) * BiVec2dp<ctype>(v.x, v.y, ctype(0.0));
 }
 
-// geometric product v * ps of a vector a multiplied with a trivector ps from the right
+// geometric product v * ps of a vector v multiplied with a trivector ps from the right
 // vector * trivector => bivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)

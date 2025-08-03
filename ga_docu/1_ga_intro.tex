@@ -140,19 +140,44 @@ in projective geometric algebra $PGA$. This is the main advantage compared to th
 prodedure of dualization by multiplying the object with the pseudoscalar (or its inverse),
 since the latter breaks down for spaces with degenerate metrics. The right dual
 $A^{\star}$ is defined as $A^{\star} = \overline{GA}$, where $A$ is an arbitrary
-multivector, $G$ the extended metric and $GA$ a matrix-vector-product between them. There
-is also a corresponding left dualization operation defined as $A_{\star} =
-\underline{GA}$. $\star$ is used as dualization operator (Hodge star). The only difference
-between the hodge dual and the complement is taking the metric into account. However, this
+multivector, $G$ the extended metric and $GA$ a matrix-vector-product between them.
+$A^{\star}$ is also called the Hodge dual. There is also a corresponding left dualization
+operation defined as $A_{\star} = \underline{GA}$. $\star$ is used as dualization operator
+(Hodge star) in both cases. The difference between the hodge dual and the complement is
+taking the metric into account before taking the corresponding complement. However, this
 does not lead to different results in spaces where the metric is the identity, but is
-relevant for spaces with a more involved metric. Relations to the geometric product are
-given by
+relevant for spaces with a more involved metric, e.g. in projective spaces. Relations to
+the geometric product are given by
 \begin{subeqnarray}
     A^{\star} & = &  A^{\dagger} \wedgedot I_n \slabel{eq:hodge_right} \\
     A_{\star} & = & I_n \wedgedot A^{\dagger} \slabel{eq:hodge_left}
 \end{subeqnarray}
 with $I_n = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n}$ as the pseudoscalar of the
-$n$-dimensional space and where $\dagger$ is the reversion operation. \\
+$n$-dimensional space and where $\dagger$ is the reversion operation. Following identities
+hold for operands of same grade. They link the outer product and the dot product in that
+case: 
+\begin{subeqnarray}
+    A \wedge B^{\star} & = & (A \bullet B) I_n, \quad \text{when \path{gr(A)} =
+    \path{gr(B)}} \\
+    A_{\star} \wedge B & = & (A \bullet B) I_n, \quad \text{when \path{gr(A)} =
+    \path{gr(B)}}
+\end{subeqnarray}
+The influence of the
+metric for the dualization operation can be seen in its effect for the different algebras
+which also depends on the dimension of the modelled space:
+\begin{itemize}
+\item $ega2d: A^{\star} = \text{\path{right_dual(A)}}$, $A_{\star} =
+\text{\path{left_dual(A)}}$
+\item $ega3d: A^{\star} = \text{\path{dual(A)}}$, $A_{\star} = \text{\path{dual(A)}}$
+\item $pga2dp: A^{\star} = \text{\path{bulk_dual(A)}}$, $A_{\star} =
+\text{\path{bulk_dual(A)}}$
+\item $pga3dp: A^{\star} = \text{\path{right_bulk_dual(A)}}$, $A_{\star} =
+\text{\path{left_bulk_dual(A)}}$
+\end{itemize}
+In even dimensional spaces we have to distinguish left and right operations, while in odd
+dimensional spaces we do not have to, and for projective spaces, like $pga$, the
+degenerate metric results in using the bulk part only for the dualization operation with
+the Hodge star.\\
 
 
 Following bi-argument operations $\emph{op}(a,b) = a \; op \; b$ and their regressive

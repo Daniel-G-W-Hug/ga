@@ -2089,14 +2089,32 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(cmpl(cmpl(mvec3d_e(s1, b1))) == mvec3d_e(s1, b1));
         CHECK(cmpl(cmpl(mvec3d_u(v1, ps1))) == mvec3d_u(v1, ps1));
         //
-        CHECK(wdg(scalar3d(5), cmpl(scalar3d(5))) / nrm_sq(scalar3d(5)) == I_3d);
-        CHECK(wdg(cmpl(scalar3d(5)), scalar3d(5)) / nrm_sq(scalar3d(5)) == I_3d);
-        CHECK(wdg(v, cmpl(v)) / nrm_sq(v) == I_3d);
-        CHECK(wdg(cmpl(v), v) / nrm_sq(v) == I_3d);
-        CHECK(wdg(B, cmpl(B)) / nrm_sq(B) == I_3d);
-        CHECK(wdg(cmpl(B), B) / nrm_sq(B) == I_3d);
-        CHECK(wdg(pscalar3d(3), cmpl(pscalar3d(3))) / nrm_sq(pscalar3d(3)) == I_3d);
-        CHECK(wdg(cmpl(pscalar3d(3)), pscalar3d(3)) / nrm_sq(pscalar3d(3)) == I_3d);
+        // complements are defined for basis elements only
+        // => magnitude has to be covered separately for non-normalized elements
+
+        // left complements = complements in spaces of odd dimension
+        CHECK(wdg(cmpl(s1), s1) / nrm_sq(s1) == I_3d);
+        CHECK(wdg(cmpl(v1), v1) / nrm_sq(v1) == I_3d);
+        CHECK(wdg(cmpl(b1), b1) / nrm_sq(b1) == I_3d);
+        CHECK(wdg(cmpl(ps1), ps1) / nrm_sq(ps1) == I_3d);
+
+        // right complements = complements in spaces of odd dimension
+        CHECK(wdg(s1, cmpl(s1)) / nrm_sq(s1) == I_3d);
+        CHECK(wdg(v1, cmpl(v1)) / nrm_sq(v1) == I_3d);
+        CHECK(wdg(b1, cmpl(b1)) / nrm_sq(b1) == I_3d);
+        CHECK(wdg(ps1, cmpl(ps1)) / nrm_sq(ps1) == I_3d);
+
+        // correspondence of complements with geometric products:
+        // duals correspond to complements in ega3d (non-degenerate metric = identity)
+        CHECK((I_3d * rev(s1)) == dual(s1));
+        CHECK((I_3d * rev(v1)) == dual(v1));
+        CHECK((I_3d * rev(b1)) == dual(b1));
+        CHECK((I_3d * rev(ps1)) == dual(ps1));
+
+        CHECK((rev(s1) * I_3d) == dual(s1));
+        CHECK((rev(v1) * I_3d) == dual(v1));
+        CHECK((rev(b1) * I_3d) == dual(b1));
+        CHECK((rev(ps1) * I_3d) == dual(ps1));
 
         // check contractions: <<, >> and rwdg( u, compl(v) )
         // fmt::println("   v         = {:.3f}", v);
