@@ -25,6 +25,7 @@ namespace hd::ga::pga {
 // - support2dp()                   -> point on line that is nearest to origin
 // - att                            -> object attitude
 // - dist2dp()                      -> Euclidean distance and homogeneous magnitude
+// - is_congruent2dp()              -> Same up to a scalar factor (is same subspace)
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -484,6 +485,142 @@ template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, ar
     else {
         return DualNum2dp<value_t>(bulk_nrm(att(wdg(a, b))), weight_nrm(wdg(a, att(b))));
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// test congruence (same up to a scalar factor, i.e. representing same subspace)
+////////////////////////////////////////////////////////////////////////////////
+
+// For scalars: all non-zero scalars represent the same 0-dimensional subspace
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool is_congruent2dp(Scalar2dp<T> a, Scalar2dp<U> b, value_t tolerance = eps)
+{
+    // Handle zero cases
+    if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {
+        return true; // Both are effectively zero
+    }
+    if (std::abs(T(a)) < tolerance || std::abs(U(b)) < tolerance) {
+        return false; // Only one is zero
+    }
+
+    // All non-zero scalars are congruent (represent the same 0-dimensional subspace)
+    return true;
+}
+
+// For vectors: use unified A = k*B component-wise approach
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool is_congruent2dp(Vec2dp<T> const& a, Vec2dp<U> const& b, value_t tolerance = eps)
+{
+    using ctype = std::common_type_t<T, U>;
+
+    // Handle zero cases using component-wise check (bulk_nrm_sq can be zero for non-zero
+    // PGA elements)
+    bool a_is_zero = (std::abs(a.x) < tolerance) && (std::abs(a.y) < tolerance) &&
+                     (std::abs(a.z) < tolerance);
+    bool b_is_zero = (std::abs(b.x) < tolerance) && (std::abs(b.y) < tolerance) &&
+                     (std::abs(b.z) < tolerance);
+
+    if (a_is_zero && b_is_zero) {
+        return true; // Both are effectively zero
+    }
+    if (a_is_zero || b_is_zero) {
+        return false; // Only one is zero
+    }
+
+    // Find scale factor k where a = k*b, checking all components
+    ctype k = 0.0;
+    bool k_found = false;
+
+    // Find first non-zero component pair to establish k
+    if (std::abs(b.x) > tolerance) {
+        k = a.x / b.x;
+        k_found = true;
+    }
+    else if (std::abs(b.y) > tolerance) {
+        k = a.y / b.y;
+        k_found = true;
+    }
+    else if (std::abs(b.z) > tolerance) {
+        k = a.z / b.z;
+        k_found = true;
+    }
+
+    if (!k_found) return false; // All components of b are zero, but a is not
+
+    // Check if a = k*b for all components using relative tolerance
+    value_t rel_tol =
+        tolerance * std::max({std::abs(a.x), std::abs(a.y), std::abs(a.z), std::abs(b.x),
+                              std::abs(b.y), std::abs(b.z), value_t(1.0)});
+    return (std::abs(a.x - k * b.x) < rel_tol) && (std::abs(a.y - k * b.y) < rel_tol) &&
+           (std::abs(a.z - k * b.z) < rel_tol);
+}
+
+// For bivectors: use unified A = k*B component-wise approach
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool is_congruent2dp(BiVec2dp<T> const& a, BiVec2dp<U> const& b, value_t tolerance = eps)
+{
+    using ctype = std::common_type_t<T, U>;
+
+    // Handle zero cases using component-wise check (bulk_nrm_sq can be zero for non-zero
+    // PGA elements)
+    bool a_is_zero = (std::abs(a.x) < tolerance) && (std::abs(a.y) < tolerance) &&
+                     (std::abs(a.z) < tolerance);
+    bool b_is_zero = (std::abs(b.x) < tolerance) && (std::abs(b.y) < tolerance) &&
+                     (std::abs(b.z) < tolerance);
+
+    if (a_is_zero && b_is_zero) {
+        return true; // Both are effectively zero
+    }
+    if (a_is_zero || b_is_zero) {
+        return false; // Only one is zero
+    }
+
+    // Find scale factor k where a = k*b, checking all components
+    ctype k = 0.0;
+    bool k_found = false;
+
+    // Find first non-zero component pair to establish k
+    if (std::abs(b.x) > tolerance) {
+        k = a.x / b.x;
+        k_found = true;
+    }
+    else if (std::abs(b.y) > tolerance) {
+        k = a.y / b.y;
+        k_found = true;
+    }
+    else if (std::abs(b.z) > tolerance) {
+        k = a.z / b.z;
+        k_found = true;
+    }
+
+    if (!k_found) return false; // All components of b are zero, but a is not
+
+    // Check if a = k*b for all components using relative tolerance
+    value_t rel_tol =
+        tolerance * std::max({std::abs(a.x), std::abs(a.y), std::abs(a.z), std::abs(b.x),
+                              std::abs(b.y), std::abs(b.z), value_t(1.0)});
+    return (std::abs(a.x - k * b.x) < rel_tol) && (std::abs(a.y - k * b.y) < rel_tol) &&
+           (std::abs(a.z - k * b.z) < rel_tol);
+}
+
+// For pseudoscalars: all non-zero pseudoscalars in 2DP represent the same subspace
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool is_congruent2dp(PScalar2dp<T> a, PScalar2dp<U> b, value_t tolerance = eps)
+{
+    // Handle zero cases
+    if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {
+        return true; // Both are effectively zero
+    }
+    if (std::abs(T(a)) < tolerance || std::abs(U(b)) < tolerance) {
+        return false; // Only one is zero
+    }
+
+    // All non-zero pseudoscalars in 2DP are congruent (represent the full 3D space)
+    return true;
 }
 
 } // namespace hd::ga::pga

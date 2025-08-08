@@ -26,6 +26,7 @@ namespace hd::ga::pga {
 // - support3dp()                   -> point on line that is nearest to origin
 // - att                            -> object attitude
 // - dist3dp()                      -> Euclidean distance and homogeneous magnitude
+// - is_congruent3dp()              -> Same up to a scalar factor (is same subspace)
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -821,6 +822,218 @@ constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
     else {
         return DualNum3dp<value_t>(bulk_nrm(att(wdg(a, b))), weight_nrm(wdg(a, att(b))));
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// test congruence (same up to a scalar factor, i.e. representing same subspace)
+////////////////////////////////////////////////////////////////////////////////
+
+// For scalars: all non-zero scalars represent the same 0-dimensional subspace
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool is_congruent3dp(Scalar3dp<T> a, Scalar3dp<U> b, value_t tolerance = eps)
+{
+    // Handle zero cases
+    if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {
+        return true; // Both are effectively zero
+    }
+    if (std::abs(T(a)) < tolerance || std::abs(U(b)) < tolerance) {
+        return false; // Only one is zero
+    }
+
+    // All non-zero scalars are congruent (represent the same 0-dimensional subspace)
+    return true;
+}
+
+// For vectors: use unified A = k*B component-wise approach
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool is_congruent3dp(Vec3dp<T> const& a, Vec3dp<U> const& b, value_t tolerance = eps)
+{
+    using ctype = std::common_type_t<T, U>;
+
+    // Handle zero cases using component-wise check (bulk_nrm_sq can be zero for non-zero
+    // PGA elements)
+    bool a_is_zero = (std::abs(a.x) < tolerance) && (std::abs(a.y) < tolerance) &&
+                     (std::abs(a.z) < tolerance) && (std::abs(a.w) < tolerance);
+    bool b_is_zero = (std::abs(b.x) < tolerance) && (std::abs(b.y) < tolerance) &&
+                     (std::abs(b.z) < tolerance) && (std::abs(b.w) < tolerance);
+
+    if (a_is_zero && b_is_zero) {
+        return true; // Both are effectively zero
+    }
+    if (a_is_zero || b_is_zero) {
+        return false; // Only one is zero
+    }
+
+    // Find scale factor k where a = k*b, checking all components
+    ctype k = 0.0;
+    bool k_found = false;
+
+    // Find first non-zero component pair to establish k
+    if (std::abs(b.x) > tolerance) {
+        k = a.x / b.x;
+        k_found = true;
+    }
+    else if (std::abs(b.y) > tolerance) {
+        k = a.y / b.y;
+        k_found = true;
+    }
+    else if (std::abs(b.z) > tolerance) {
+        k = a.z / b.z;
+        k_found = true;
+    }
+    else if (std::abs(b.w) > tolerance) {
+        k = a.w / b.w;
+        k_found = true;
+    }
+
+    if (!k_found) return false; // All components of b are zero, but a is not
+
+    // Check if a = k*b for all components using relative tolerance
+    value_t rel_tol = tolerance * std::max({std::abs(a.x), std::abs(a.y), std::abs(a.z),
+                                            std::abs(a.w), std::abs(b.x), std::abs(b.y),
+                                            std::abs(b.z), std::abs(b.w), value_t(1.0)});
+    return (std::abs(a.x - k * b.x) < rel_tol) && (std::abs(a.y - k * b.y) < rel_tol) &&
+           (std::abs(a.z - k * b.z) < rel_tol) && (std::abs(a.w - k * b.w) < rel_tol);
+}
+
+// For bivectors: use unified A = k*B component-wise approach
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool is_congruent3dp(BiVec3dp<T> const& a, BiVec3dp<U> const& b, value_t tolerance = eps)
+{
+    using ctype = std::common_type_t<T, U>;
+
+    // Handle zero cases using component-wise check
+    bool a_is_zero = (std::abs(a.vx) < tolerance) && (std::abs(a.vy) < tolerance) &&
+                     (std::abs(a.vz) < tolerance) && (std::abs(a.mx) < tolerance) &&
+                     (std::abs(a.my) < tolerance) && (std::abs(a.mz) < tolerance);
+    bool b_is_zero = (std::abs(b.vx) < tolerance) && (std::abs(b.vy) < tolerance) &&
+                     (std::abs(b.vz) < tolerance) && (std::abs(b.mx) < tolerance) &&
+                     (std::abs(b.my) < tolerance) && (std::abs(b.mz) < tolerance);
+
+    if (a_is_zero && b_is_zero) {
+        return true; // Both are effectively zero
+    }
+    if (a_is_zero || b_is_zero) {
+        return false; // Only one is zero
+    }
+
+    // Find scale factor k where a = k*b, checking all components
+    ctype k = 0.0;
+    bool k_found = false;
+
+    // Find first non-zero component pair to establish k
+    if (std::abs(b.vx) > tolerance) {
+        k = a.vx / b.vx;
+        k_found = true;
+    }
+    else if (std::abs(b.vy) > tolerance) {
+        k = a.vy / b.vy;
+        k_found = true;
+    }
+    else if (std::abs(b.vz) > tolerance) {
+        k = a.vz / b.vz;
+        k_found = true;
+    }
+    else if (std::abs(b.mx) > tolerance) {
+        k = a.mx / b.mx;
+        k_found = true;
+    }
+    else if (std::abs(b.my) > tolerance) {
+        k = a.my / b.my;
+        k_found = true;
+    }
+    else if (std::abs(b.mz) > tolerance) {
+        k = a.mz / b.mz;
+        k_found = true;
+    }
+
+    if (!k_found) return false; // All components of b are zero, but a is not
+
+    // Check if a = k*b for all components using relative tolerance
+    value_t rel_tol =
+        tolerance *
+        std::max({std::abs(a.vx), std::abs(a.vy), std::abs(a.vz), std::abs(a.mx),
+                  std::abs(a.my), std::abs(a.mz), std::abs(b.vx), std::abs(b.vy),
+                  std::abs(b.vz), std::abs(b.mx), std::abs(b.my), std::abs(b.mz),
+                  value_t(1.0)});
+    return (std::abs(a.vx - k * b.vx) < rel_tol) &&
+           (std::abs(a.vy - k * b.vy) < rel_tol) &&
+           (std::abs(a.vz - k * b.vz) < rel_tol) &&
+           (std::abs(a.mx - k * b.mx) < rel_tol) &&
+           (std::abs(a.my - k * b.my) < rel_tol) && (std::abs(a.mz - k * b.mz) < rel_tol);
+}
+
+// For trivectors: use unified A = k*B component-wise approach
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool is_congruent3dp(TriVec3dp<T> const& a, TriVec3dp<U> const& b,
+                     value_t tolerance = eps)
+{
+    using ctype = std::common_type_t<T, U>;
+
+    // Handle zero cases using component-wise check
+    bool a_is_zero = (std::abs(a.x) < tolerance) && (std::abs(a.y) < tolerance) &&
+                     (std::abs(a.z) < tolerance) && (std::abs(a.w) < tolerance);
+    bool b_is_zero = (std::abs(b.x) < tolerance) && (std::abs(b.y) < tolerance) &&
+                     (std::abs(b.z) < tolerance) && (std::abs(b.w) < tolerance);
+
+    if (a_is_zero && b_is_zero) {
+        return true; // Both are effectively zero
+    }
+    if (a_is_zero || b_is_zero) {
+        return false; // Only one is zero
+    }
+
+    // Find scale factor k where a = k*b, checking all components
+    ctype k = 0.0;
+    bool k_found = false;
+
+    // Find first non-zero component pair to establish k
+    if (std::abs(b.x) > tolerance) {
+        k = a.x / b.x;
+        k_found = true;
+    }
+    else if (std::abs(b.y) > tolerance) {
+        k = a.y / b.y;
+        k_found = true;
+    }
+    else if (std::abs(b.z) > tolerance) {
+        k = a.z / b.z;
+        k_found = true;
+    }
+    else if (std::abs(b.w) > tolerance) {
+        k = a.w / b.w;
+        k_found = true;
+    }
+
+    if (!k_found) return false; // All components of b are zero, but a is not
+
+    // Check if a = k*b for all components using relative tolerance
+    value_t rel_tol = tolerance * std::max({std::abs(a.x), std::abs(a.y), std::abs(a.z),
+                                            std::abs(a.w), std::abs(b.x), std::abs(b.y),
+                                            std::abs(b.z), std::abs(b.w), value_t(1.0)});
+    return (std::abs(a.x - k * b.x) < rel_tol) && (std::abs(a.y - k * b.y) < rel_tol) &&
+           (std::abs(a.z - k * b.z) < rel_tol) && (std::abs(a.w - k * b.w) < rel_tol);
+}
+
+// For pseudoscalars: all non-zero pseudoscalars in 3DP represent the same subspace
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool is_congruent3dp(PScalar3dp<T> a, PScalar3dp<U> b, value_t tolerance = eps)
+{
+    // Handle zero cases
+    if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {
+        return true; // Both are effectively zero
+    }
+    if (std::abs(T(a)) < tolerance || std::abs(U(b)) < tolerance) {
+        return false; // Only one is zero
+    }
+
+    // All non-zero pseudoscalars in 3DP are congruent (represent the full 4D space)
+    return true;
 }
 
 } // namespace hd::ga::pga

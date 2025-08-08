@@ -2756,4 +2756,72 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(dist_p1_plp2 == 0);
     }
 
+    TEST_CASE("PGA3DP: congruence tests")
+    {
+        fmt::println("PGA3DP: congruence tests");
+
+        // Test scalars
+        scalar3dp s1{5.0};
+        scalar3dp s2{-3.0}; // different sign
+        scalar3dp s3{2.5};  // same sign as s1
+        scalar3dp s_zero{0.0};
+
+        CHECK(is_congruent3dp(s1, s2) == true);         // different signs are congruent
+        CHECK(is_congruent3dp(s1, s3) == true);         // same signs are congruent
+        CHECK(is_congruent3dp(s1, s_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent3dp(s_zero, s_zero) == true); // zero vs zero
+
+        // Test vectors (points in PGA3DP)
+        vec3dp v1{1.0, 0.0, 0.0, 1.0};   // point on x-axis
+        vec3dp v2{0.0, 1.0, 0.0, 1.0};   // point on y-axis
+        vec3dp v3{2.0, 0.0, 0.0, 2.0};   // parallel to v1
+        vec3dp v4{-1.0, 0.0, 0.0, -1.0}; // antiparallel to v1
+        vec3dp v_zero{0.0, 0.0, 0.0, 0.0};
+
+        CHECK(is_congruent3dp(v1, v2) == false);        // different directions
+        CHECK(is_congruent3dp(v1, v3) == true);         // parallel directions
+        CHECK(is_congruent3dp(v1, v4) == true);         // antiparallel directions
+        CHECK(is_congruent3dp(v1, v_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent3dp(v_zero, v_zero) == true); // zero vs zero
+
+        // Test bivectors (lines in PGA3DP) - use wedge product since it exists in 4D
+        bivec3dp b1{1.0, 0.0, 0.0, 0.0, 0.0, 0.0};  // line in xy-plane
+        bivec3dp b2{0.0, 1.0, 0.0, 0.0, 0.0, 0.0};  // different line orientation
+        bivec3dp b3{2.0, 0.0, 0.0, 0.0, 0.0, 0.0};  // parallel to b1
+        bivec3dp b4{-1.5, 0.0, 0.0, 0.0, 0.0, 0.0}; // antiparallel to b1
+        bivec3dp b_zero{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+        CHECK(is_congruent3dp(b1, b2) == false);        // different line orientations
+        CHECK(is_congruent3dp(b1, b3) == true);         // same line orientation
+        CHECK(is_congruent3dp(b1, b4) == true);         // same line, opposite orientation
+        CHECK(is_congruent3dp(b1, b_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent3dp(b_zero, b_zero) == true); // zero vs zero
+
+        // Test trivectors (planes in PGA3DP) - use dot product method
+        trivec3dp t1{1.0, 0.0, 0.0, 0.0};  // plane
+        trivec3dp t2{0.0, 1.0, 0.0, 0.0};  // different plane orientation
+        trivec3dp t3{2.0, 0.0, 0.0, 0.0};  // parallel to t1
+        trivec3dp t4{-1.5, 0.0, 0.0, 0.0}; // antiparallel to t1
+        trivec3dp t_zero{0.0, 0.0, 0.0, 0.0};
+
+        CHECK(is_congruent3dp(t1, t2) == false);     // different plane orientations
+        CHECK(is_congruent3dp(t1, t3) == true);      // same plane orientation
+        CHECK(is_congruent3dp(t1, t4) == true);      // same plane, opposite orientation
+        CHECK(is_congruent3dp(t1, t_zero) == false); // zero vs non-zero
+        CHECK(is_congruent3dp(t_zero, t_zero) == true); // zero vs zero
+
+        // Test pseudoscalars (max grade in PGA3DP)
+        pscalar3dp p1{1.0};
+        pscalar3dp p2{2.0};  // different magnitude
+        pscalar3dp p3{-1.0}; // opposite sign
+        pscalar3dp p_zero{0.0};
+
+        CHECK(is_congruent3dp(p1, p2) == true); // all non-zero pseudoscalars congruent
+        CHECK(is_congruent3dp(p1, p3) == true); // different signs still congruent
+        CHECK(is_congruent3dp(p1, p_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent3dp(p_zero, p_zero) == true); // zero vs zero
+
+        fmt::println("   All PGA3DP congruence tests passed");
+    }
+
 } // PGA 3DP Tests

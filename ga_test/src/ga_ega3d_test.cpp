@@ -1017,22 +1017,82 @@ TEST_SUITE("EGA 3D Tests")
         vec3d v1{1.0, 2.0, 1.0};
         vec3d v2{0.5, 3.0, 2.0};
         vec3d v3{-2.0, 6.0, 3.0};
+        bivec3d B{-3.4, 2.1, 0.7};
+        pscalar3d ps{1.0};
 
         double sd = 2.3;
         double st = -5.1;
         auto s = scalar3d{sd};
         auto t = scalar3d{st};
 
+        CHECK(wdg(wdg(v1, v2), v3) == wdg(v1, wdg(v2, v3)));  // wdg is associative
         CHECK(wdg(v1, v1) == bivec3d{});                      // wdg=0 for collin. vectors
         CHECK(wdg(v1, v2) == -wdg(v2, v1));                   // anticommutative for vect.
-        CHECK(wdg(wdg(v1, v2), v3) == wdg(v1, wdg(v2, v3)));  // wdg is associative
         CHECK(wdg(v1, v2 + v3) == wdg(v1, v2) + wdg(v1, v3)); // wdg distributes over add.
         CHECK(wdg(v1 + v2, v3) == wdg(v1, v3) + wdg(v2, v3)); // wdg distributes over add.
         CHECK(wdg(sd * v1, v2) == wdg(v1, sd * v2)); // scalars can be factored out of wdg
         CHECK(wdg(sd * v1, v2) == sd * wdg(v1, v2)); // scalars can be factored out of wdg
-        CHECK(wdg(s, t) == wdg(t, s));   // wdg between scalars equivalent to scalar mult.
-        CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
-        CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
+        CHECK(wdg(s, t) == wdg(t, s)); // wdg between scalars equivalent to scalar mult.
+        CHECK(wdg(s, t) == s * t);
+        CHECK(wdg(s, v1) == wdg(v1, s));       // wdg between scalar and vector
+        CHECK(wdg(s, B) == wdg(B, s));         // wdg between scalar and bivector
+        CHECK(wdg(scalar3d{1.0}, I_3d) == ps); // wdg between scalar and trivector
+        CHECK(wdg(I_3d, scalar3d{1.0}) == ps); // (=pseudoscalar); 1.0 is neutral element
+                                               // for the wedge product
+        CHECK(wdg(s, v1) == sd * v1);          // wdg between scalar and vector
+    }
+
+    TEST_CASE("MVec3d: regressive wedge product - basic properties")
+    {
+        fmt::println("MVec3d: regressive wedge product - basic properties");
+
+        bivec3d B1{1.0, 2.0, 1.0};
+        bivec3d B2{0.5, 3.0, 2.0};
+        bivec3d B3{-2.0, 6.0, 3.0};
+        vec3d v1{-3.4, 2.1, 0.7};
+        vec3d v2{1, 2, 3};
+        vec3d z = {-2, 3, 7};
+        scalar3d sc{2.0};
+
+        double sd = 2.3;
+        double st = -5.1;
+        auto s = pscalar3d{sd};
+        auto t = pscalar3d{st};
+
+        CHECK(rwdg(rwdg(B1, B2), B3) == rwdg(B1, rwdg(B2, B3))); // rwdg is associative
+        CHECK(rwdg(B1, B1) == vec3d{});       // wdg=0 for coplanar bivectors
+        CHECK(rwdg(B1, B2) == -rwdg(B2, B1)); // rwdg is anticommutative for bivectors
+        CHECK(rwdg(B1, B2 + B3) ==
+              rwdg(B1, B2) + rwdg(B1, B3)); // rwdg distributes over add.
+        CHECK(rwdg(B1 + B2, B3) ==
+              rwdg(B1, B3) + rwdg(B2, B3)); // rwdg distributes over add.
+        CHECK(rwdg(sd * B1, B2) ==
+              rwdg(B1, sd * B2)); // scalars can be factored out of wdg
+        CHECK(rwdg(sd * B1, B2) ==
+              sd * rwdg(B1, B2));        // scalars can be factored out of wdg
+        CHECK(rwdg(s, t) == rwdg(t, s)); // rwdg between pscalars equivalent to smult.
+        CHECK(rwdg(s, t) == double(s) * double(t));
+        CHECK(rwdg(s, B1) == rwdg(B1, s)); // rwdg between pscalar and bivector
+        CHECK(rwdg(s, v1) == rwdg(v1, s)); // rwdg between pscalar and vector
+        CHECK(rwdg(sc, I_3d) == sc);       // rwdg between pscalar and scalar
+        CHECK(rwdg(I_3d, sc) == sc);       // (=pseudoscalar); I_3d is neutral element
+                                           // for the wedge product
+        CHECK(rwdg(s, B1) == sd * B1);     // rwdg between pseudoscalar and vector
+        // (I_3d is neutral element: s = sd * I_3d)
+
+        // congruence
+        CHECK(is_congruent3d(v1, 2.3 * v1));
+        CHECK(is_congruent3d(v1, -12.3 * v1));
+        CHECK(is_congruent3d(wdg(v1, v2), wdg(v2, v1)));
+        CHECK_FALSE(is_congruent3d(v1, v2));
+
+        // common factor axiom
+        auto lhs = rwdg(wdg(v1, z), wdg(v2, z));
+        auto rhs = rwdg(wdg(wdg(v1, v2), z), z);
+        CHECK(lhs.x == doctest::Approx(rhs.x).epsilon(eps));
+        CHECK(lhs.y == doctest::Approx(rhs.y).epsilon(eps));
+        CHECK(lhs.z == doctest::Approx(rhs.z).epsilon(eps));
+        CHECK(is_congruent3d(rwdg(wdg(v1, z), wdg(v2, z)), z));
     }
 
     TEST_CASE("MVec3d: geometric product - basic properties")
@@ -2154,6 +2214,61 @@ TEST_SUITE("EGA 3D Tests")
         // duality of the contraction and the wedge product (based on complement)
         CHECK(cmpl(v << B) == wdg(v, cmpl(B)));
         CHECK(cmpl(B >> v) == wdg(cmpl(B), v));
+    }
+
+    TEST_CASE("EGA3D: congruence tests")
+    {
+        fmt::println("EGA3D: congruence tests");
+
+        // Test scalars
+        scalar3d s1{5.0};
+        scalar3d s2{-3.0}; // different sign
+        scalar3d s3{2.5};  // same sign as s1
+        scalar3d s_zero{0.0};
+
+        CHECK(is_congruent3d(s1, s2) == true);         // different signs are congruent
+        CHECK(is_congruent3d(s1, s3) == true);         // same signs are congruent
+        CHECK(is_congruent3d(s1, s_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent3d(s_zero, s_zero) == true); // zero vs zero
+
+        // Test vectors
+        vec3d v1{1.0, 0.0, 0.0};  // x-axis
+        vec3d v2{0.0, 1.0, 0.0};  // y-axis (perpendicular)
+        vec3d v3{2.0, 0.0, 0.0};  // parallel to v1
+        vec3d v4{-1.5, 0.0, 0.0}; // antiparallel to v1
+        vec3d v_zero{0.0, 0.0, 0.0};
+
+        CHECK(is_congruent3d(v1, v2) == false);        // perpendicular vectors
+        CHECK(is_congruent3d(v1, v3) == true);         // parallel vectors
+        CHECK(is_congruent3d(v1, v4) == true);         // antiparallel vectors
+        CHECK(is_congruent3d(v1, v_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent3d(v_zero, v_zero) == true); // zero vs zero
+
+        // Test bivectors
+        bivec3d b1{1.0, 0.0, 0.0};  // e23 plane
+        bivec3d b2{0.0, 1.0, 0.0};  // e31 plane (different)
+        bivec3d b3{2.0, 0.0, 0.0};  // e23 plane (parallel to b1)
+        bivec3d b4{-1.5, 0.0, 0.0}; // e23 plane (antiparallel to b1)
+        bivec3d b_zero{0.0, 0.0, 0.0};
+
+        CHECK(is_congruent3d(b1, b2) == false);        // different planes
+        CHECK(is_congruent3d(b1, b3) == true);         // same plane
+        CHECK(is_congruent3d(b1, b4) == true);         // same plane, opposite orientation
+        CHECK(is_congruent3d(b1, b_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent3d(b_zero, b_zero) == true); // zero vs zero
+
+        // Test pseudoscalars
+        pscalar3d p1{1.0};
+        pscalar3d p2{2.0};  // different magnitude
+        pscalar3d p3{-1.0}; // opposite sign
+        pscalar3d p_zero{0.0};
+
+        CHECK(is_congruent3d(p1, p2) == true); // all non-zero pseudoscalars congruent
+        CHECK(is_congruent3d(p1, p3) == true); // different signs still congruent
+        CHECK(is_congruent3d(p1, p_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent3d(p_zero, p_zero) == true); // zero vs zero
+
+        fmt::println("   All EGA3D congruence tests passed");
     }
 
 } // EGA 3D Tests

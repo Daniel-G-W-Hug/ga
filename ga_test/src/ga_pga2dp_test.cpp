@@ -2460,4 +2460,59 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(lp == ld); // both lines are equivalent
     }
 
+    TEST_CASE("PGA2DP: congruence tests")
+    {
+        fmt::println("PGA2DP: congruence tests");
+
+        // Test scalars
+        scalar2dp s1{5.0};
+        scalar2dp s2{-3.0}; // different sign
+        scalar2dp s3{2.5};  // same sign as s1
+        scalar2dp s_zero{0.0};
+
+        CHECK(is_congruent2dp(s1, s2) == true);         // different signs are congruent
+        CHECK(is_congruent2dp(s1, s3) == true);         // same signs are congruent
+        CHECK(is_congruent2dp(s1, s_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent2dp(s_zero, s_zero) == true); // zero vs zero
+
+        // Test vectors (points in PGA2DP)
+        vec2dp v1{1.0, 0.0, 1.0};   // point on x-axis
+        vec2dp v2{0.0, 1.0, 1.0};   // point on y-axis
+        vec2dp v3{2.0, 0.0, 2.0};   // parallel to v1 (same direction from origin)
+        vec2dp v4{-1.0, 0.0, -1.0}; // antiparallel to v1
+        vec2dp v_zero{0.0, 0.0, 0.0};
+
+        CHECK(is_congruent2dp(v1, v2) == false);        // different directions
+        CHECK(is_congruent2dp(v1, v3) == true);         // parallel directions
+        CHECK(is_congruent2dp(v1, v4) == true);         // antiparallel directions
+        CHECK(is_congruent2dp(v1, v_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent2dp(v_zero, v_zero) == true); // zero vs zero
+
+        // Test bivectors (lines in PGA2DP)
+        bivec2dp b1{1.0, 0.0, 0.0};  // line parallel to y-axis
+        bivec2dp b2{0.0, 1.0, 0.0};  // line parallel to x-axis
+        bivec2dp b3{2.0, 0.0, 0.0};  // parallel to b1
+        bivec2dp b4{-1.5, 0.0, 0.0}; // antiparallel to b1
+        bivec2dp b_zero{0.0, 0.0, 0.0};
+
+        CHECK(is_congruent2dp(b1, b2) == false);        // different line orientations
+        CHECK(is_congruent2dp(b1, b3) == true);         // same line orientation
+        CHECK(is_congruent2dp(b1, b4) == true);         // same line, opposite orientation
+        CHECK(is_congruent2dp(b1, b_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent2dp(b_zero, b_zero) == true); // zero vs zero
+
+        // Test pseudoscalars (max grade in PGA2DP)
+        pscalar2dp p1{1.0};
+        pscalar2dp p2{2.0};  // different magnitude
+        pscalar2dp p3{-1.0}; // opposite sign
+        pscalar2dp p_zero{0.0};
+
+        CHECK(is_congruent2dp(p1, p2) == true); // all non-zero pseudoscalars congruent
+        CHECK(is_congruent2dp(p1, p3) == true); // different signs still congruent
+        CHECK(is_congruent2dp(p1, p_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent2dp(p_zero, p_zero) == true); // zero vs zero
+
+        fmt::println("   All PGA2DP congruence tests passed");
+    }
+
 } // PGA 2DP Tests
