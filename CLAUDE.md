@@ -8,8 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Project Root**: `/Users/hud3bh/prg/cpp/pj/ga/` (absolute path)
 - **Build Directory**: `/Users/hud3bh/prg/cpp/pj/ga/build/` (absolute path)
-- **Working Directory**: Always work from the build directory when running executables
+- **Working Directory**: Always work from the build directory when running executables or when creating temporary files
 - **Source Files**: Always in `/Users/hud3bh/prg/cpp/pj/ga/[module]/src/` or `/Users/hud3bh/prg/cpp/pj/ga/ga_prdxpr/src_trafo/`
+- **File Organization**: Keep all temporary/debug files in the build directory (`build/`) rather than the source tree to maintain clean project organization.
 
 **Build Directory Structure:**
 
@@ -19,14 +20,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ├── ga_test/ga_ega_test                     # EGA test executable
 ├── ga_test/ga_pga_test                     # PGA test executable
 ├── ga_view/ga_view                         # Qt6 visualization executable
-├── ga_prdxpr/ga_prdxpr                     # Main code generator
-└── ga_prdxpr/ga_visual_comparison_test     # Transformation test system
+└── ga_prdxpr/ga_prdxpr                     # Main code generator
 ```
 
 **File Path Rules for Code:**
 
 - When reading source files from executables: `../[module]/src/filename` (relative to build dir)
-- Reference data files: `../ga_prdxpr/src_trafo/ga_prdxpr_transformation_manual.txt`
 - NEVER guess paths - use these established patterns
 - All executables run from `/Users/hud3bh/prg/cpp/pj/ga/build/` directory
 
@@ -114,7 +113,12 @@ Critical usage requirements:
 
 - Template types: `Scalar2d<T>`, `Vec2d<T>`, `BiVec2d<T>`, `MVec2d_E<T>`, etc.
 - User convenience types: `scalar2d`, `vec2d`, `bivec2d`, `mvec2d`, etc. (based on `value_t`)
-- Multivector types differentiate between even (`_E`), odd (`_U`), and full (`MVec`) algebras
+- Multivector types differentiate between even (`_E`), odd (`_U`), and full (`MVec`)
+  multivectors
+- Function call arguments for scalar and pscalar use `Scalar2d<T> a`, etc. directly
+  instead of `Scalar2d<T> const& a` (cheap to copy), while for vector and bivector, etc. use
+  `Vec2d<T> const&` for unmodifiable arguments
+- ALWAYS use `Vec3dp<T> const&` instead of `const Vec3dp<T>&` etc. (i.e. use "east const" convention)
 
 ### Dependencies
 
@@ -191,16 +195,6 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 - Motor-based sandwich products with `rrev()` operations based on regressive geometric
   product `rgpr()`
 
-### Usage & Verification
-
-**Build and Run:**
-
-- Make sure working directory is build directory of the project
-
-```bash
-cd ga_prdxpr && ./ga_prdxpr && cd ..          # Original reference implementation
-```
-
 **Success Criteria:**
 
 - Character-perfect match with reference implementation
@@ -213,13 +207,40 @@ cd ga_prdxpr && ./ga_prdxpr && cd ..          # Original reference implementatio
 2. **Operator Precedence**: Always parenthesize left/right contractions (`<<`, `>>`) in GA expressions
 3. **Output Format**: Case descriptions must match mathematical reality exactly
 
-### Key Files for Modifications
+### Key Files for Modifications in ga_prdxpr subfolder
 
 - `ga_prdxpr_generator.cpp`: Core generation logic and product-specific handlers
 - `ga_prdxpr_*_config.cpp`: Algebra-specific configurations and coefficient definitions
 - `ga_prdxpr_*.cpp`: Legacy reference implementations (don't modify, use for verification)
 
 **Important**: The ga_prdxpr system is a **complete, production-ready geometric algebra code generator** that produces mathematically accurate, optimized C++ expressions for all supported algebras.
+
+## Congruence Testing in Geometric Algebra
+
+**Key Mathematical Insight**: Elements are congruent if they represent the same geometric subspace up to scalar multiplication, **regardless of sign or magnitude**. The congruence test varies by grade:
+
+**Congruence Rules by Grade:**
+
+- **Grade 0 (Scalars)**: All non-zero scalars represent the same 0-dimensional subspace
+- **Grade 1 (Vectors)**: Congruent if same subspace, e.g. parallel/antiparallel
+- **Grade 2+ (Bivectors, etc.)**: Congruent if same subspace, e.g. parallel/antiparallel
+- **Grade n (Pseudoscalars)**: All non-zero pseudoscalars represent the same n-dimensional subspace
+
+**Implementation Pattern**: Use type-specific function overloads with `requires` clauses instead of generic templates, since wedge products between same-grade high-order elements are often undefined (e.g., `wdg(BiVec3d, BiVec3d)` → grade 4, invalid in 3D).
+
+**Critical**: This logic applies to all algebras (EGA2D, EGA3D, PGA2DP, PGA3DP) but must account for algebra-specific grade structures and available operations.
+
+- **EGA2D**: `is_congruent2d()` for `Scalar2d`, `Vec2d`, `PScalar2d`
+- **EGA3D**: `is_congruent3d()` for `Scalar3d`, `Vec3d`, `BiVec3d`, `PScalar3d`
+- **PGA2DP**: `is_congruent2dp()` for `Scalar2dp`, `Vec2dp`, `BiVec2dp`, `PScalar2dp`
+- **PGA3DP**: `is_congruent3dp()` for `Scalar3dp`, `Vec3dp`, `BiVec3dp`, `TriVec3dp`, `PScalar3dp`
+
+**Unified Algorithm**:
+
+1. Component-wise zero detection (avoids issues with degenerate PGA metrics)
+2. Find scale factor `k` from first non-zero component pair where `a = k*b`
+3. Verify `a = k*b` holds for all components within tolerance
+4. Special cases: scalars and pseudoscalars at max grade always congruent if non-zero
 
 ## Geometric Algebra Mathematical Foundations
 
@@ -310,3 +331,53 @@ cd ga_prdxpr && ./ga_prdxpr && cd ..          # Original reference implementatio
 4. **Mixed Signatures**: Require algebra-specific extended metric rules
 
 **Validation Success**: The automatic generation system produces character-identical results for all five tested algebras (EGA2D, EGA3D, PGA2DP, PGA3DP, STA3D) across geometric, wedge, and dot products.
+
+## Congruence Implementation and Numerical Precision
+
+### Congruence Testing for Geometric Algebra Elements
+
+The library implements unified congruence testing using the `is_congruent*()` functions to determine when two GA elements represent the same subspace (i.e., are scalar multiples of each other).
+
+**Implementation Pattern (Unified A = k*B Approach):**
+
+```cpp
+bool is_congruent(const T& a, const U& b, value_t tolerance = eps)
+{
+    // 1. Handle zero cases using component-wise checks
+    // 2. Find scale factor k where a = k*b 
+    // 3. Verify a = k*b for all components within tolerance
+}
+```
+
+**Type-Specific Logic:**
+
+- **Scalars/Pseudoscalars**: All non-zero elements of same grade are congruent (represent same-dimensional subspace)
+- **Vectors/Bivectors/Trivectors**: Use component-wise proportionality testing with `A = k*B` relationship
+
+### Critical Numerical Precision Lessons
+
+**Problem**: Initial implementation used absolute tolerance (`eps ≈ 1.11e-15`) which
+failed for floating-point calculations involving:
+
+- Wedge products followed by division operations
+- Complex geometric algebra expressions with accumulated numerical errors
+
+**Solution**: Implemented **relative tolerance** scaling:
+
+```cpp
+// OLD: Absolute tolerance (too strict)
+return (std::abs(a.x - k * b.x) < tolerance);
+
+// NEW: Relative tolerance (numerically stable)
+value_t rel_tol = tolerance * std::max({std::abs(a.x), std::abs(a.y), ..., value_t(1.0)});
+return (std::abs(a.x - k * b.x) < rel_tol);
+```
+
+**Key Insight**: When working with GA operations that involve multiple floating-point calculations (wedge products, divisions, etc.), accumulated numerical errors can exceed extremely tight absolute tolerances. Relative tolerance provides better numerical stability while maintaining mathematical correctness.
+
+**Applied Consistently Across All Algebras:**
+
+- EGA2D: Vector functions
+- EGA3D: Vector and bivector functions  
+- PGA2DP: Vector and bivector functions
+- PGA3DP: Vector, bivector, and trivector functions
