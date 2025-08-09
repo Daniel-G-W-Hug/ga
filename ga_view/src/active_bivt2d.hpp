@@ -52,6 +52,9 @@ class active_bivt2d : public QObject, public QGraphicsItem {
 
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
 
+  public slots:
+    void rotateModeChanged(rotate_pt_mode mode);
+
   private:
 
     Coordsys* cs;
@@ -63,4 +66,6 @@ class active_bivt2d : public QObject, public QGraphicsItem {
     bool m_mouse_hover{false};     // mouse is hovering over the item
     bool m_mouse_l_pressed{false}; // left button mouse is pressed
     bool m_mouse_r_pressed{false}; // right button mouse is pressed
+
+    rotate_pt_mode m_rotate_pt_mode{rotate_pt_mode::rotate_none}; // how to move endpoints
 };

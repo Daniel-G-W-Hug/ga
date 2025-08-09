@@ -24,4 +24,8 @@ enum class pz_mode { x_and_y, x_only, y_only };
 // rotation around intersection point of lines
 enum class move_mode { shift_both_lines, shift_line12, shift_line34, rotate_both_lines };
 
+// mouse move mode for active_bivt2d
+// rotate endpoint(s) of vectors instead of translation
+enum class rotate_pt_mode { rotate_none, rotate_u, rotate_v, rotate_both_uv };
+
 bool anyHovered(QList<QGraphicsItem*> const& items);

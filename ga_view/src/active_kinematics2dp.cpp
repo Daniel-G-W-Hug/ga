@@ -131,8 +131,6 @@ void active_kinematics2dp::pointMoved()
     for (auto* pt : m_pts) {
         pt->blockSignals(false);
     }
-
-    update();
 }
 
 void active_kinematics2dp::solve_kinematic_chain()
