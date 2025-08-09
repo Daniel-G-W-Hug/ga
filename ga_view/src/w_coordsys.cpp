@@ -151,6 +151,22 @@ void w_Coordsys::keyPressEvent(QKeyEvent* event)
         emit moveModeChanged(m_move_mode);
         // fmt::print("S pressed\n");
     }
+
+    if (event->key() == Qt::Key_U && m_rotate_pt_mode != rotate_pt_mode::rotate_u) {
+        m_rotate_pt_mode = rotate_pt_mode::rotate_u;
+        emit rotateModeChanged(m_rotate_pt_mode);
+        // fmt::print("U pressed\n");
+    }
+    if (event->key() == Qt::Key_V && m_rotate_pt_mode != rotate_pt_mode::rotate_v) {
+        m_rotate_pt_mode = rotate_pt_mode::rotate_v;
+        emit rotateModeChanged(m_rotate_pt_mode);
+        // fmt::print("V pressed\n");
+    }
+    if (event->key() == Qt::Key_B && m_rotate_pt_mode != rotate_pt_mode::rotate_both_uv) {
+        m_rotate_pt_mode = rotate_pt_mode::rotate_both_uv;
+        emit rotateModeChanged(m_rotate_pt_mode);
+        // fmt::print("B pressed\n");
+    }
 }
 
 void w_Coordsys::keyReleaseEvent(QKeyEvent* event)
@@ -179,7 +195,23 @@ void w_Coordsys::keyReleaseEvent(QKeyEvent* event)
     if (event->key() == Qt::Key_D) {
         m_move_mode = move_mode::shift_both_lines;
         emit moveModeChanged(m_move_mode);
-        // fmt::print("S released\n");
+        // fmt::print("D released\n");
+    }
+
+    if (event->key() == Qt::Key_U) {
+        m_rotate_pt_mode = rotate_pt_mode::rotate_none;
+        emit rotateModeChanged(m_rotate_pt_mode);
+        // fmt::print("U released\n");
+    }
+    if (event->key() == Qt::Key_V) {
+        m_rotate_pt_mode = rotate_pt_mode::rotate_none;
+        emit rotateModeChanged(m_rotate_pt_mode);
+        // fmt::print("V released\n");
+    }
+    if (event->key() == Qt::Key_B) {
+        m_rotate_pt_mode = rotate_pt_mode::rotate_none;
+        emit rotateModeChanged(m_rotate_pt_mode);
+        // fmt::print("B released\n");
     }
 }
 

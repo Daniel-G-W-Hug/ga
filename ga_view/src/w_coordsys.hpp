@@ -44,6 +44,7 @@ class w_Coordsys : public QGraphicsView {
     void mouseMoved(bool hot, mouse_pos_t mouse_pos);
     void modeChanged(pz_action action, pz_mode mode);
     void moveModeChanged(move_mode mode);
+    void rotateModeChanged(rotate_pt_mode mode);
     void undoChanged(size_t undo_steps);
     void scalingChanged(axis_scal xscal, axis_scal yscal);
 
@@ -69,7 +70,8 @@ class w_Coordsys : public QGraphicsView {
     bool m_rightButton{false};           // right button pressed in hot area
     pz_action m_action{pz_action::none}; // normal movement, no pan or zoom
     pz_mode m_mode{pz_mode::x_and_y};    // no pan or zoom restrictions
-    move_mode m_move_mode{move_mode::shift_both_lines}; // shift both lines
+    move_mode m_move_mode{move_mode::shift_both_lines};           // shift both lines
+    rotate_pt_mode m_rotate_pt_mode{rotate_pt_mode::rotate_none}; // no point rotation
     int m_nx_leftPress{0}; // x-position of leftButtonPress-Event
     int m_ny_leftPress{0}; // y-position of leftButtonPress-Event
 };
