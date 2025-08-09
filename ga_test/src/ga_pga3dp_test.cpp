@@ -758,7 +758,7 @@ TEST_SUITE("PGA 3DP Tests")
         for (int i = -12; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = vec3dp(std::cos(phi), std::sin(phi), 0.0, 0.0);
-            auto d = move3dp(x_axis_direction_3dp, motor(z_axis_3dp, phi));
+            auto d = move3dp(x_axis_direction_3dp, get_motor(z_axis_3dp, phi));
             v.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
@@ -1916,7 +1916,7 @@ TEST_SUITE("PGA 3DP Tests")
 
             auto l = wdg(p0, p);
 
-            auto R = motor_from_planes(pl1, pl2);
+            auto R = get_motor_from_planes(pl1, pl2);
             CHECK(R == unitize(rgpr(pl2, pl1)));
 
             auto pm_manual = gr1(rgpr(rgpr(R, p), rrev(R)));
@@ -1964,7 +1964,7 @@ TEST_SUITE("PGA 3DP Tests")
         //         auto l = wdg(p0, p);
         //         auto pl = wdg(wdg(p0, p), p3);
 
-        //         auto R = motor_from_planes(pl1, pl2);
+        //         auto R = get_motor_from_planes(pl1, pl2);
         //         CHECK(R == unitize(rgpr(pl2, pl1)));
 
         //         // checking time required
@@ -2077,7 +2077,7 @@ TEST_SUITE("PGA 3DP Tests")
                                                 // using this sequence, otherwise the
                                                 // attitude will be in the other direction
 
-            auto R = motor_from_planes(pl1, pl2);
+            auto R = get_motor_from_planes(pl1, pl2);
             CHECK(R == unitize(rgpr(pl2, pl1)));
 
             auto pm = gr1(rgpr(rgpr(R, p), rrev(R)));  // transformation
@@ -2114,8 +2114,8 @@ TEST_SUITE("PGA 3DP Tests")
             CHECK(unitize(pb) == unitize(p));
 
             // now build the motor by hand
-            auto S = motor(lis, pi / 2.); // ATTENTION: sign of turning angle depends
-                                          //            on attitude of line!
+            auto S = get_motor(lis, pi / 2.); // ATTENTION: sign of turning angle depends
+                                              //            on attitude of line!
             auto ps = move3dp(p, S);
 
             // fmt::println("");
@@ -2130,7 +2130,7 @@ TEST_SUITE("PGA 3DP Tests")
             CHECK(ps == pt);
             CHECK(move3dp(l, S) == wdg(p0, pt));
 
-            auto T = motor(delta);
+            auto T = get_motor(delta);
             auto pst = move3dp(p, T);
             // fmt::println("");
             // fmt::println("p: {:.4g}, pu: {:.4g}", p, unitize(p));

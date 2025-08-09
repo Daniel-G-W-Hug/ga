@@ -13,7 +13,7 @@ namespace hd::ga::ega {
 //
 // - angle()                        -> angle operations
 // - exp()                          -> exponential function
-// - rotor()                        -> provide a rotor
+// - get_rotor()                    -> provide a rotor
 // - rotate()                       -> rotate object with rotor
 // - project_onto(), reject_from()  -> projection and rejection
 // - reflect_on(), reflect_on_vec() -> reflections
@@ -186,7 +186,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& I, U theta)
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec3d_E<std::common_type_t<T, U>> rotor(BiVec3d<T> const& I, U theta)
+constexpr MVec3d_E<std::common_type_t<T, U>> get_rotor(BiVec3d<T> const& I, U theta)
 {
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = -0.5 * theta;

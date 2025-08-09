@@ -361,8 +361,8 @@ void active_reflectionp::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
                     auto cur_p4p = vec2dp(m_p4->scenePos().x, m_p4->scenePos().y, 1.0);
 
                     // move all 4 projective points around the turning point pt
-                    // auto mot = motor(cur_p1p, cur_ang);
-                    auto mot = motor(tp, cur_ang);
+                    // auto mot = get_motor(cur_p1p, cur_ang);
+                    auto mot = get_motor(tp, cur_ang);
                     // fmt::println("tp = {}", tp);
                     // fmt::println("mot = {}", mot);
 

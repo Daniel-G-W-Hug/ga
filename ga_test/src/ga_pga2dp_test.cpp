@@ -620,7 +620,7 @@ TEST_SUITE("PGA 2DP Tests")
         for (int i = -12; i <= 12; ++i) {
             double phi = i * pi / 12;
             auto c = vec2dp(std::cos(phi), std::sin(phi), 0.0);
-            auto d = move2dp(x_axis_direction_2dp, motor(origin_2dp, phi));
+            auto d = move2dp(x_axis_direction_2dp, get_motor(origin_2dp, phi));
             v.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
@@ -1688,7 +1688,7 @@ TEST_SUITE("PGA 2DP Tests")
             auto l1 = unitize(wdg(p0, p1));
             auto l2 = unitize(wdg(p0, p2));
 
-            auto R = motor_from_lines(l1, l2);
+            auto R = get_motor_from_lines(l1, l2);
             CHECK(R == rgpr(l2, l1));
 
             auto pm_manual = gr1(rgpr(rgpr(R, p), rrev(R)));
@@ -1733,7 +1733,7 @@ TEST_SUITE("PGA 2DP Tests")
         //     auto l1 = unitize(wdg(p0, p1));
         //     auto l2 = unitize(wdg(p0, p2));
 
-        //     auto R = motor_from_lines(l1, l2);
+        //     auto R = get_motor_from_lines(l1, l2);
         //     CHECK(R == rgpr(l2, l1));
 
         //     // checking time required
@@ -1819,7 +1819,7 @@ TEST_SUITE("PGA 2DP Tests")
 
             auto pis = unitize(rwdg(l1, l2)); // intersection point of lines
 
-            auto R = motor_from_lines(l1, l2);
+            auto R = get_motor_from_lines(l1, l2);
             CHECK(R == unitize(rgpr(l2, l1)));
             auto pfix = unitize(vec2dp{R.c0, R.c1, R.c2});
 
@@ -1865,7 +1865,7 @@ TEST_SUITE("PGA 2DP Tests")
             CHECK(pfix == p0);
 
             // now build the motor by hand
-            auto S = motor(pis, pi / 2.);
+            auto S = get_motor(pis, pi / 2.);
             auto ps = move2dp(p, S);
 
             // fmt::println("");
@@ -1879,7 +1879,7 @@ TEST_SUITE("PGA 2DP Tests")
             CHECK(R == S);
             CHECK(ps == pt);
 
-            auto T = motor(delta);
+            auto T = get_motor(delta);
             auto pst = move2dp(p, T);
             // fmt::println("");
             // fmt::println("p: {:.4g}, pu: {:.4g}", p, unitize(p));

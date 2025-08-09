@@ -11,22 +11,22 @@ namespace hd::ga::pga {
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides functionality that is based on pga3dp ops basics and products:
 //
-// - angle()                        -> angle operations
+// - angle()                              -> angle operations
 // - TODO: exp()                          -> exponential function
-// - motor(), motor_from_planes()   -> provide a motor
-// - move3dp(), move3dp_opt()       -> move object with motor
-// - project_onto(), reject_from()  -> simple projection and rejection
-// - expand()                       -> expansion: new line/plane through point/line
-//                                                perpendicular to line/plane
-// - ortho_proj3dp()                -> orthogonal projection onto object
-// - central_proj3dp()              -> central projection towards origin onto object
-// - ortho_antiproj3dp()            -> orthogonal antiprojection onto object
-// - reflect_on()                   -> reflections
-// - invert_on()                    -> inversions
-// - support3dp()                   -> point on line that is nearest to origin
-// - att                            -> object attitude
-// - dist3dp()                      -> Euclidean distance and homogeneous magnitude
-// - is_congruent3dp()              -> Same up to a scalar factor (is same subspace)
+// - get_motor(), get_motor_from_planes() -> provide a motor
+// - move3dp(), move3dp_opt()             -> move object with motor
+// - project_onto(), reject_from()        -> simple projection and rejection
+// - expand()                             -> expansion: new line/plane through point/line
+//                                                      perpendicular to line/plane
+// - ortho_proj3dp()                      -> orthogonal projection onto object
+// - central_proj3dp()                    -> central projection towards origin onto object
+// - ortho_antiproj3dp()                  -> orthogonal antiprojection onto object
+// - reflect_on()                         -> reflections
+// - invert_on()                          -> inversions
+// - support3dp()                         -> point on line that is nearest to origin
+// - att                                  -> object attitude
+// - dist3dp()                            -> Euclidean distance and homogeneous magnitude
+// - is_congruent3dp()                    -> Same up to a scalar factor (is same subspace)
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -158,7 +158,7 @@ constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1, TriVec3dp<U> co
 // create a (unitized) motor from a fixed line of rotation and a turning angle
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec3dp_E<std::common_type_t<T, U>> motor(BiVec3dp<T> const& l, U theta)
+constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor(BiVec3dp<T> const& l, U theta)
 {
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = 0.5 * theta;
@@ -172,7 +172,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> motor(BiVec3dp<T> const& l, U thet
 //            the w-component is ignored and only the x-, y- and z-components are used
 template <typename T>
     requires(std::floating_point<T>)
-constexpr MVec3dp_E<T> motor(Vec3dp<T> const& direction)
+constexpr MVec3dp_E<T> get_motor(Vec3dp<T> const& direction)
 {
     return MVec3dp_E<T>(
         0.5 * BiVec3dp<T>(T(0.0), T(0.0), T(0.0), direction.x, direction.y, direction.z),
@@ -181,8 +181,8 @@ constexpr MVec3dp_E<T> motor(Vec3dp<T> const& direction)
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec3dp_E<std::common_type_t<T, U>> motor_from_planes(TriVec3dp<T> const& t1,
-                                                                TriVec3dp<U> const& t2)
+constexpr MVec3dp_E<std::common_type_t<T, U>>
+get_motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
 {
     // take planes as input and return a motor R
     // 1st apply reflection across plane t1, then across t2 to get a motor that rotates
@@ -362,7 +362,7 @@ constexpr TriVec3dp<std::common_type_t<T, U>> move3dp_opt(TriVec3dp<T> const& t,
 
 // template <typename T, typename U>
 //     requires(std::floating_point<T> && std::floating_point<U>)
-// inline constexpr MVec3dp_E<std::common_type_t<T, U>> rotor(BiVec3dp<T> const& B, U
+// inline constexpr MVec3dp_E<std::common_type_t<T, U>> get_rotor(BiVec3dp<T> const& B, U
 // theta)
 // {
 //     using ctype = std::common_type_t<T, U>;

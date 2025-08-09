@@ -255,10 +255,10 @@ for i = 0, 10 do
 	print(
 		"theta:",
 		theta,
-		"rotor(I_2d,theta):",
-		rotor(I_2d, theta),
+		"get_rotor(I_2d,theta):",
+		get_rotor(I_2d, theta),
 		"rotated:",
-		rotate(vec2d.new(1, 0), rotor(I_2d, theta))
+		rotate(vec2d.new(1, 0), get_rotor(I_2d, theta))
 	)
 end
 print()
@@ -587,10 +587,10 @@ for i = 0, 10 do
 	print(
 		"theta:",
 		theta,
-		"rotor(bv,theta):",
-		rotor(bv, theta),
+		"get_rotor(bv,theta):",
+		get_rotor(bv, theta),
 		"rotated:",
-		rotate(vec3d.new(1, 0, 0), rotor(bv, theta))
+		rotate(vec3d.new(1, 0, 0), get_rotor(bv, theta))
 	)
 end
 print()
@@ -1089,7 +1089,7 @@ print("x_axis_direction_2dp =", x_axis_direction_2dp)
 print("phi =", phi, "radians (15 degrees)")
 print("expected result =", expected)
 
-local rotation_motor = motor(origin_2dp, phi)
+local rotation_motor = get_motor(origin_2dp, phi)
 local result = move2dp(x_axis_direction_2dp, rotation_motor)
 
 print("rotation motor =", rotation_motor)
@@ -1107,7 +1107,7 @@ print("point p =", p)
 print("translation delta =", delta)
 print("expected result =", expected_translated)
 
-local translation_motor = motor(delta)
+local translation_motor = get_motor(delta)
 local translated_result = move2dp(p, translation_motor)
 
 print("translation motor =", translation_motor)
@@ -1136,7 +1136,7 @@ print("z_axis_3dp =", z_axis_3dp)
 print("phi =", phi3, "radians (15 degrees)")
 print("expected result =", expected3)
 
-local rotation_motor3 = motor(z_axis_3dp, phi3)
+local rotation_motor3 = get_motor(z_axis_3dp, phi3)
 local result3 = move3dp(x_axis_direction_3dp, rotation_motor3)
 
 print("rotation motor =", rotation_motor3)
@@ -1154,7 +1154,7 @@ print("point p =", p3)
 print("translation delta =", delta3)
 print("expected result =", expected_translated3)
 
-local translation_motor3 = motor(delta3)
+local translation_motor3 = get_motor(delta3)
 local translated_result3 = move3dp(p3, translation_motor3)
 
 print("translation motor =", translation_motor3)
@@ -1185,7 +1185,7 @@ print("p0 =", p0)
 print("l1 (horizontal) =", l1)
 print("l2 (diagonal) =", l2)
 
-local motor_from_2lines = motor_from_lines(l1, l2)
+local motor_from_2lines = get_motor_from_lines(l1, l2)
 print("motor_from_lines =", motor_from_2lines)
 
 -- Test Case 6: motor_from_planes (from line 4250 in test)
@@ -1204,7 +1204,7 @@ print("p0_3d =", p0_3d)
 print("pl1 =", pl1)
 print("pl2 =", pl2)
 
-local motor_from_2planes = motor_from_planes(pl1, pl2)
+local motor_from_2planes = get_motor_from_planes(pl1, pl2)
 print("motor_from_planes =", motor_from_2planes)
 
 print("\nPGA motor and movement test completed successfully!")

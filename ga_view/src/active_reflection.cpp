@@ -279,8 +279,8 @@ void active_reflection::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
             auto cur_n1 = vec2d(scenePos_n1end());
             auto cur_n2 = vec2d(scenePos_n2end());
 
-            auto new_n1 = rotate(cur_n1, rotor(I_2d, cur_ang));
-            auto new_n2 = rotate(cur_n2, rotor(I_2d, cur_ang));
+            auto new_n1 = rotate(cur_n1, get_rotor(I_2d, cur_ang));
+            auto new_n2 = rotate(cur_n2, get_rotor(I_2d, cur_ang));
 
             setScenePos_n1end_wo_update(new_n1);
             setScenePos_n2end_wo_update(new_n2);

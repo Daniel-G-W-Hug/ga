@@ -277,10 +277,10 @@ for i = 0, 10 do
 	print(
 		"theta:",
 		theta,
-		"rotor(I_2d,theta):",
-		rotor(I_2d, theta),
+		"get_rotor(I_2d,theta):",
+		get_rotor(I_2d, theta),
 		"rotated:",
-		rotate(vec2d.new(1, 0), rotor(I_2d, theta))
+		rotate(vec2d.new(1, 0), get_rotor(I_2d, theta))
 	)
 end
 

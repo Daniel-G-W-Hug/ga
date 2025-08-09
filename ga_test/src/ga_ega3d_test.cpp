@@ -597,9 +597,9 @@ TEST_SUITE("EGA 3D Tests")
 
         double phi = deg2rad(30.0);
         auto c = vec3d(std::cos(phi), std::sin(phi), 0.0);
-        auto d = rotate(e1_3d, rotor(e12_3d, phi));
+        auto d = rotate(e1_3d, get_rotor(e12_3d, phi));
         auto cm = vec3d(std::cos(-phi), std::sin(-phi), 0.0);
-        auto dm = rotate(e1_3d, rotor(e12_3d, -phi));
+        auto dm = rotate(e1_3d, get_rotor(e12_3d, -phi));
 
         // fmt::println("c = {}", c);
         // fmt::println("d = {}", d);
@@ -1667,7 +1667,7 @@ TEST_SUITE("EGA 3D Tests")
         auto B = wdg(u, v); // normalized bivector describing the plane spanned by u and v
 
         auto my_exp = exp(-B, angle_uv);
-        auto my_rot = rotor(B, 2.0 * angle_uv);
+        auto my_rot = get_rotor(B, 2.0 * angle_uv);
 
         // definition of rotor used here: B = u^v
         // => B determines the meaning of the positive sign of the rotation
@@ -1728,7 +1728,7 @@ TEST_SUITE("EGA 3D Tests")
         // fmt::println("   R  = exp(-B,angle_uv)            = {: .3}", R);
         // fmt::println("   Rr = rev(R)                      = {: .3}", Rr);
         // fmt::println("   my_exp = exp(-B, angle_uv)       = {: .3}", my_exp);
-        // fmt::println("   my_rot = rotor(B, 2*angle_uv)    = {: .3}", my_rot);
+        // fmt::println("   my_rot = get_rotor(B, 2*angle_uv)    = {: .3}", my_rot);
         // fmt::println("");
         // fmt::println("Left multiplication of rotor first:");
         // fmt::println("   c_tmp_l = R*c            = {: .3}", c_tmp_l);
@@ -1751,28 +1751,28 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(rotate(c, R) == rotate_opt1(c, R));
         CHECK(rotate(c, R) == rotate_opt2(c, R));
         // n I_3d approach:
-        CHECK(rotate(vec3d{1.0, 0.0, 0.0}, rotor(e3_3d * I_3d, pi / 4)) ==
+        CHECK(rotate(vec3d{1.0, 0.0, 0.0}, get_rotor(e3_3d * I_3d, pi / 4)) ==
               normalize(vec3d{1.0, 1.0, 0.0}));
         // using a bivector directly:
-        CHECK(rotate(vec3d{1.0, 0.0, 0.0}, rotor(e12_3d, pi / 4)) ==
+        CHECK(rotate(vec3d{1.0, 0.0, 0.0}, get_rotor(e12_3d, pi / 4)) ==
               normalize(vec3d{1.0, 1.0, 0.0}));
 
         // direct rotation of a bivector
-        CHECK(rotate(bivec3d{0.0, 0.0, 1.0}, rotor(e23_3d, pi / 2)) == -e31_3d);
+        CHECK(rotate(bivec3d{0.0, 0.0, 1.0}, get_rotor(e23_3d, pi / 2)) == -e31_3d);
 
         // example see Macdonald "Linear and Geometric Algebra", Exercise 7.12, p. 127
         auto Bv =
             wdg(e2_3d, e1_3d + std::sqrt(3.0) * e3_3d); // bivector describing the plane
         CHECK(std::abs(nrm(Bv) - 2.0) < eps);
-        CHECK(rotate(Bv, rotor(e31_3d, pi / 3)) == -2.0 * e12_3d);
-        CHECK(rotate(Bv, rotor(e31_3d, pi / 3)) ==
-              rotate_opt1(Bv, rotor(e31_3d, pi / 3)));
-        CHECK(rotate(Bv, rotor(e31_3d, pi / 3)) ==
-              rotate_opt2(Bv, rotor(e31_3d, pi / 3)));
+        CHECK(rotate(Bv, get_rotor(e31_3d, pi / 3)) == -2.0 * e12_3d);
+        CHECK(rotate(Bv, get_rotor(e31_3d, pi / 3)) ==
+              rotate_opt1(Bv, get_rotor(e31_3d, pi / 3)));
+        CHECK(rotate(Bv, get_rotor(e31_3d, pi / 3)) ==
+              rotate_opt2(Bv, get_rotor(e31_3d, pi / 3)));
 
         // just to silence unused variable warnings
         CHECK(my_exp == exp(-B, angle_uv));
-        CHECK(my_rot == rotor(B, 2.0 * angle_uv));
+        CHECK(my_rot == get_rotor(B, 2.0 * angle_uv));
         CHECK(c_rot_r == gr1(c_rot_u_r));
         CHECK(angle_c_c_rot == angle(c, c_rot_l));
         CHECK(angle_proj == angle(c_proj, c_rot_proj));

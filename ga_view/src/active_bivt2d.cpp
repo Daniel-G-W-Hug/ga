@@ -476,7 +476,7 @@ void active_bivt2d::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
                     // fmt::println("ang = {}", rad2deg(cur_ang));
 
                     auto cur_u = vec2d(m_uend->scenePos().x, m_uend->scenePos().y);
-                    auto rot = rotor(I_2d, cur_ang);
+                    auto rot = get_rotor(I_2d, cur_ang);
                     auto new_u = rotate(cur_u, rot);
                     m_uend->setScenePos(new_u);
 
@@ -492,7 +492,7 @@ void active_bivt2d::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
                     // fmt::println("ang = {}", rad2deg(cur_ang));
 
                     auto cur_v = vec2d(m_vend->scenePos().x, m_vend->scenePos().y);
-                    auto rot = rotor(I_2d, cur_ang);
+                    auto rot = get_rotor(I_2d, cur_ang);
                     auto new_v = rotate(cur_v, rot);
                     m_vend->setScenePos(new_v);
 
@@ -510,7 +510,7 @@ void active_bivt2d::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
                     auto cur_u = vec2d(m_uend->scenePos().x, m_uend->scenePos().y);
                     auto cur_v = vec2d(m_vend->scenePos().x, m_vend->scenePos().y);
 
-                    auto rot = rotor(I_2d, cur_ang);
+                    auto rot = get_rotor(I_2d, cur_ang);
 
                     auto new_u = rotate(cur_u, rot);
                     auto new_v = rotate(cur_v, rot);

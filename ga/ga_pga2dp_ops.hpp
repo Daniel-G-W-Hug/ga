@@ -11,21 +11,22 @@ namespace hd::ga::pga {
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides functionality that is based on pga2dp ops basics and products:
 //
-// - angle()                        -> angle operations
-// - TODO: exp()                          -> exponential function
-// - motor(), motor_from_lines()    -> provide a motor
-// - move2dp(), move2dp_opt()       -> move object with motor
-// - project_onto(), reject_from()  -> simple projection and rejection
-// - expand()                       -> expansion: new line through point perpend. to line
-// - ortho_proj2dp()                -> orthogonal projection onto object
-// - central_proj2dp()              -> central projection towards origin onto object
-// - ortho_antiproj2dp()            -> orthogonal antiprojection onto object
-// - reflect_on()                   -> reflections
-// - invert_on()                    -> inversions
-// - support2dp()                   -> point on line that is nearest to origin
-// - att                            -> object attitude
-// - dist2dp()                      -> Euclidean distance and homogeneous magnitude
-// - is_congruent2dp()              -> Same up to a scalar factor (is same subspace)
+// - angle()                             -> angle operations
+// - TODO: exp()                         -> exponential function
+// - get_motor(), get_motor_from_lines() -> provide a motor
+// - move2dp(), move2dp_opt()            -> move object with motor
+// - project_onto(), reject_from()       -> simple projection and rejection
+// - expand()                            -> expansion: new line through point
+//                                                     perpendicular to line
+// - ortho_proj2dp()                     -> orthogonal projection onto object
+// - central_proj2dp()                   -> central projection towards origin onto object
+// - ortho_antiproj2dp()                 -> orthogonal antiprojection onto object
+// - reflect_on()                        -> reflections
+// - invert_on()                         -> inversions
+// - support2dp()                        -> point on line that is nearest to origin
+// - att                                 -> object attitude
+// - dist2dp()                           -> Euclidean distance and homogeneous magnitude
+// - is_congruent2dp()                   -> Same up to a scalar factor (is same subspace)
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -95,7 +96,7 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
 // create a (unitized) motor from a fixed point and a turning angle
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec2dp_U<std::common_type_t<T, U>> motor(Vec2dp<T> const& p, U theta)
+constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& p, U theta)
 {
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = 0.5 * theta;
@@ -109,7 +110,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> motor(Vec2dp<T> const& p, U theta)
 //            the z-component is ignored and only the x- and y-components are used
 template <typename T>
     requires(std::floating_point<T>)
-constexpr MVec2dp_U<T> motor(Vec2dp<T> const& direction)
+constexpr MVec2dp_U<T> get_motor(Vec2dp<T> const& direction)
 {
     return MVec2dp_U<T>(0.5 * Vec2dp<T>(-direction.y, direction.x, T(0.0)),
                         PScalar2dp<T>(1.0));
@@ -119,7 +120,7 @@ constexpr MVec2dp_U<T> motor(Vec2dp<T> const& direction)
 // move in direction and by length of direction vector
 template <typename T>
     requires(std::floating_point<T>)
-constexpr MVec2dp_U<T> motor(Vector2d<T> const& direction)
+constexpr MVec2dp_U<T> get_motor(Vector2d<T> const& direction)
 {
     return MVec2dp_U<T>(0.5 * Vec2dp<T>(-direction.y, direction.x, T(0.0)),
                         PScalar2dp<T>(1.0));
@@ -128,8 +129,8 @@ constexpr MVec2dp_U<T> motor(Vector2d<T> const& direction)
 // create a (unitized) motor directly from two (potentially intersecting) lines
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec2dp_U<std::common_type_t<T, U>> motor_from_lines(BiVec2dp<T> const& B1,
-                                                               BiVec2dp<U> const& B2)
+constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> const& B1,
+                                                                   BiVec2dp<U> const& B2)
 {
     // take lines (=bivectors) as input and return a motor R
     // 1st apply reflection across line B1, then across B2 to get a motor that rotates

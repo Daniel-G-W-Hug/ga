@@ -460,7 +460,7 @@ TEST_SUITE("EGA 2D Tests")
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
             //              " angle={: .4f}",
             //              i, phi, rad2deg(phi), c, angle(e1_2d, c));
-            CHECK(c == rotate(e1_2d, rotor(I_2d, phi)));
+            CHECK(c == rotate(e1_2d, get_rotor(I_2d, phi)));
         }
         // fmt::println("");
     }
@@ -1242,11 +1242,12 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(exp(I_2d, pi / 4) == rev(exp(I_2d, -pi / 4)));
         CHECK(exp(I_2d, -angle_uv) * u == u * exp(I_2d, angle_uv)); // 2d rotation direct
         CHECK(exp(I_2d, -angle_uv) * u == v);
-        CHECK(rotate(u, rotor(I_2d, angle_uv)) == v); // 2d rotation with double product
-                                                      // completely as in the 3d case
-                                                      // more effort computationally,
-                                                      // but independent of dimension of
-                                                      // space
+        CHECK(rotate(u, get_rotor(I_2d, angle_uv)) ==
+              v); // 2d rotation with double product
+                  // completely as in the 3d case
+                  // more effort computationally,
+                  // but independent of dimension of
+                  // space
     }
 
     TEST_CASE("MVec2d_E: modelling complex numbers - products")

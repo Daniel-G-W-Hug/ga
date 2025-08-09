@@ -254,7 +254,7 @@ print("origin =", origin)
 print("x_axis =", x_axis)
 print("phi =", phi, "radians (30 degrees)")
 
-local rotation_motor = motor(origin, phi)
+local rotation_motor = get_motor(origin, phi)
 local rotated_result = move2dp(x_axis, rotation_motor)
 print("rotation motor =", rotation_motor)
 print("rotated x_axis =", rotated_result)
@@ -265,7 +265,7 @@ local delta = vec2dp.new(1, 0.5, 0) -- translation vector
 print("point p =", p)
 print("translation delta =", delta)
 
-local translation_motor = motor(delta)
+local translation_motor = get_motor(delta)
 local translated_result = move2dp(p, translation_motor)
 print("translation motor =", translation_motor)
 print("translated point =", translated_result)
@@ -280,7 +280,7 @@ local l2 = unitize(wdg(p0, p2)) -- diagonal line
 print("line l1 =", l1)
 print("line l2 =", l2)
 
-local motor_lines = motor_from_lines(l1, l2)
+local motor_lines = get_motor_from_lines(l1, l2)
 print("motor_from_lines =", motor_lines)
 
 -- Test projections, rejections, reflections
