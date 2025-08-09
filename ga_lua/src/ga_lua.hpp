@@ -1516,8 +1516,9 @@ void register_functions(sol::state& lua)
                                    sol::resolve<mvec3d_e(bivec3d const&, value_t)>(exp)));
 
     lua.set_function(
-        "rotor", sol::overload(sol::resolve<mvec2d_e(pscalar2d, value_t)>(rotor),
-                               sol::resolve<mvec3d_e(bivec3d const&, value_t)>(rotor)));
+        "get_rotor",
+        sol::overload(sol::resolve<mvec2d_e(pscalar2d, value_t)>(get_rotor),
+                      sol::resolve<mvec3d_e(bivec3d const&, value_t)>(get_rotor)));
 
     lua.set_function(
         "rotate",
@@ -1527,23 +1528,23 @@ void register_functions(sol::state& lua)
                       sol::resolve<bivec3d(bivec3d const&, mvec3d_e const&)>(rotate),
                       sol::resolve<mvec3d(mvec3d const&, mvec3d_e const&)>(rotate)));
 
-    // PGA motor functions (analogue to EGA rotor)
-    lua.set_function("motor",
+    // PGA motor functions (analogue to EGA get_rotor)
+    lua.set_function("get_motor",
                      sol::overload(
                          // PGA 2DP motor functions
-                         sol::resolve<mvec2dp_u(vec2dp const&, value_t)>(motor),
-                         sol::resolve<mvec2dp_u(vec2dp const&)>(motor),
+                         sol::resolve<mvec2dp_u(vec2dp const&, value_t)>(get_motor),
+                         sol::resolve<mvec2dp_u(vec2dp const&)>(get_motor),
                          // PGA 3DP motor functions
-                         sol::resolve<mvec3dp_e(bivec3dp const&, value_t)>(motor),
-                         sol::resolve<mvec3dp_e(vec3dp const&)>(motor)));
+                         sol::resolve<mvec3dp_e(bivec3dp const&, value_t)>(get_motor),
+                         sol::resolve<mvec3dp_e(vec3dp const&)>(get_motor)));
 
     lua.set_function(
-        "motor_from_lines",
-        sol::resolve<mvec2dp_u(bivec2dp const&, bivec2dp const&)>(motor_from_lines));
+        "get_motor_from_lines",
+        sol::resolve<mvec2dp_u(bivec2dp const&, bivec2dp const&)>(get_motor_from_lines));
 
-    lua.set_function(
-        "motor_from_planes",
-        sol::resolve<mvec3dp_e(trivec3dp const&, trivec3dp const&)>(motor_from_planes));
+    lua.set_function("get_motor_from_planes",
+                     sol::resolve<mvec3dp_e(trivec3dp const&, trivec3dp const&)>(
+                         get_motor_from_planes));
 
     // PGA movement functions (analogue to EGA rotate)
     lua.set_function(

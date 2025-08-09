@@ -312,10 +312,10 @@ for i = 0, 10 do
 	print(
 		"theta:",
 		theta,
-		"rotor(bv,theta):",
-		rotor(bv, theta),
+		"get_rotor(bv,theta):",
+		get_rotor(bv, theta),
 		"rotated:",
-		rotate(vec3d.new(1, 0, 0), rotor(bv, theta))
+		rotate(vec3d.new(1, 0, 0), get_rotor(bv, theta))
 	)
 end
 

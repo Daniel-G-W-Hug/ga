@@ -13,7 +13,7 @@ namespace hd::ga::ega {
 //
 // - angle(), angle_to_re()         -> angle operations
 // - exp()                          -> exponential function
-// - rotor()                        -> provide a rotor
+// - get_rotor()                    -> provide a rotor
 // - rotate()                       -> rotate object with rotor
 // - project_onto(), reject_from()  -> projection and rejection
 // - reflect_on(), reflect_on_vec() -> reflections
@@ -143,8 +143,8 @@ constexpr MVec2d_E<std::common_type_t<T, U>> exp([[maybe_unused]] PScalar2d<T> I
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec2d_E<std::common_type_t<T, U>> rotor([[maybe_unused]] PScalar2d<T> I,
-                                                   U theta)
+constexpr MVec2d_E<std::common_type_t<T, U>> get_rotor([[maybe_unused]] PScalar2d<T> I,
+                                                       U theta)
 {
     // PScalar2d<T> is just used here to be able to overload exp
     // and to make the function similar to the 3d case

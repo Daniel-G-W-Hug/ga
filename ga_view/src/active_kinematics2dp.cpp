@@ -158,7 +158,7 @@ void active_kinematics2dp::solve_kinematic_chain()
 
         // move against current direction between elements
         auto direction = -normalize(pts[i + 1] - pts[i]) * segment_length;
-        pts[i] = move2dp(pts[i + 1], motor(direction));
+        pts[i] = move2dp(pts[i + 1], get_motor(direction));
         // fmt::println("backwards: pts[{}] = {}", i, pts[i]);
     }
 
@@ -167,7 +167,7 @@ void active_kinematics2dp::solve_kinematic_chain()
 
         // move in current direction between elements
         auto direction = normalize(pts[i] - pts[i - 1]) * segment_length;
-        pts[i] = move2dp(pts[i - 1], motor(direction));
+        pts[i] = move2dp(pts[i - 1], get_motor(direction));
         // fmt::println("forwards: pts[{}] = {}", i, pts[i]);
     }
 

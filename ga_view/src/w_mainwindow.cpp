@@ -203,7 +203,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_ln(l2);
 
         // first rotation by 5 degrees counter-clockwise
-        auto mot = motor(pc, deg2rad(5));
+        auto mot = get_motor(pc, deg2rad(5));
 
         m.symbol = Symbol::square;
         m.pen = QPen(Qt::green, 2, Qt::SolidLine);
@@ -226,7 +226,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_ln(l2r);
 
         // second rotation by 10 degrees counter-clockwise
-        mot = motor(pc, deg2rad(10));
+        mot = get_motor(pc, deg2rad(10));
 
         m.symbol = Symbol::square;
         m.pen = QPen(Qt::cyan, 2, Qt::SolidLine);

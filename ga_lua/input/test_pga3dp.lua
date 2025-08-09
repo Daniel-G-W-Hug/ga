@@ -301,7 +301,7 @@ print("x_axis =", x_axis)
 print("z_axis =", z_axis)
 print("phi =", phi, "radians (30 degrees)")
 
-local rotation_motor = motor(z_axis, phi)
+local rotation_motor = get_motor(z_axis, phi)
 local rotated_result = move3dp(x_axis, rotation_motor)
 print("rotation motor =", rotation_motor)
 print("rotated x_axis =", rotated_result)
@@ -312,7 +312,7 @@ local delta = vec3dp.new(1, 0.5, 0, 0) -- translation vector
 print("point p =", p)
 print("translation delta =", delta)
 
-local translation_motor = motor(delta)
+local translation_motor = get_motor(delta)
 local translated_result = move3dp(p, translation_motor)
 print("translation motor =", translation_motor)
 print("translated point =", translated_result)
@@ -328,7 +328,7 @@ local pl2 = unitize(wdg(wdg(p0_3d, p3_3d), p2_3d)) -- plane
 print("plane pl1 =", pl1)
 print("plane pl2 =", pl2)
 
-local motor_planes = motor_from_planes(pl1, pl2)
+local motor_planes = get_motor_from_planes(pl1, pl2)
 print("motor_from_planes =", motor_planes)
 
 -- Test projections, rejections, reflections
