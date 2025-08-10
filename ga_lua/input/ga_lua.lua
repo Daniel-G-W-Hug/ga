@@ -2,7 +2,7 @@
 -- This file coordinates testing of GA functionality across different algebras
 
 -- Set global test precision constant
-eps = 1e-12
+local eps = 1e-12
 
 print("\nStarting comprehensive GA testing across all algebras...")
 print("Test precision: eps =", eps)
