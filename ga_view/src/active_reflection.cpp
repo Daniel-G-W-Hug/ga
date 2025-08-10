@@ -61,7 +61,7 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
         qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine));
     }
     else if (m_mouse_hover && m_mouse_l_pressed) {
-        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine));
+        qp->setPen(QPen(QBrush(col_blue), 2, Qt::SolidLine));
     }
     else {
         qp->setPen(Qt::gray);
@@ -93,7 +93,7 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
         qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine));
     }
     else if (m_mouse_hover && m_mouse_l_pressed) {
-        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine));
+        qp->setPen(QPen(QBrush(col_blue), 2, Qt::SolidLine));
     }
     else {
         qp->setPen(Qt::gray);
