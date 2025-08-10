@@ -56,8 +56,18 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
 
     qp->setPen(QPen(QBrush(col_lgreen), 2, Qt::SolidLine));
     qp->drawPath(arrowLine(beg_pos, end_n1pos_nrm));
-    qp->setPen(Qt::gray);
+
+    if (m_mouse_hover && !m_mouse_l_pressed) {
+        qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine));
+    }
+    else if (m_mouse_hover && m_mouse_l_pressed) {
+        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine));
+    }
+    else {
+        qp->setPen(Qt::gray);
+    }
     qp->drawPath(arrowLine(end_n1pos_nrm, end_n1pos));
+
     qp->setPen(QPen(QBrush(col_lgreen), 1, Qt::SolidLine));
     qp->setBrush(col_lgreen);
     // from here on we want to draw with a small pen to get a pointy vector head
@@ -78,7 +88,16 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
 
     qp->setPen(QPen(QBrush(col_lred), 2, Qt::SolidLine));
     qp->drawPath(arrowLine(beg_pos, end_n2pos_nrm));
-    qp->setPen(Qt::gray);
+
+    if (m_mouse_hover && !m_mouse_l_pressed) {
+        qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine));
+    }
+    else if (m_mouse_hover && m_mouse_l_pressed) {
+        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine));
+    }
+    else {
+        qp->setPen(Qt::gray);
+    }
     qp->drawPath(arrowLine(end_n2pos_nrm, end_n2pos));
     qp->setPen(QPen(QBrush(col_lred), 2, Qt::SolidLine));
     // from here on we want to draw with a small pen to get a pointy vector head
@@ -117,15 +136,15 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     refl1.closeSubpath();
     refl2.closeSubpath();
 
-    qp->setPen(QPen(QBrush(col_lblue), 1, Qt::SolidLine)); // pressed: red
+    qp->setPen(QPen(QBrush(col_lblue), 1, Qt::SolidLine));
     qp->setBrush(col_lblue);
     qp->drawPath(org);
 
-    qp->setPen(QPen(QBrush(col_lgreen), 1, Qt::SolidLine)); // pressed: red
+    qp->setPen(QPen(QBrush(col_lgreen), 1, Qt::SolidLine));
     qp->setBrush(col_lgreen);
     qp->drawPath(refl1);
 
-    qp->setPen(QPen(QBrush(col_lred), 1, Qt::SolidLine)); // pressed: red
+    qp->setPen(QPen(QBrush(col_lred), 1, Qt::SolidLine));
     qp->setBrush(col_lred);
     qp->drawPath(refl2);
 
@@ -135,9 +154,9 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     // qp->drawRect(boundingRect());
 
     // draw shape (optional for testing)
-    qp->setPen(col_yel);
-    qp->setBrush(col_yel);
-    qp->drawPath(shape());
+    // qp->setPen(col_yel);
+    // qp->setBrush(col_yel);
+    // qp->drawPath(shape());
 
     qp->restore();
 }
