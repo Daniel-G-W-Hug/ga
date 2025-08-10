@@ -883,6 +883,9 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         }
         scene->addItem(new active_kinematics2dp(cs, wcs, kinematic_chain));
     }
+
+    // Set focus to wcs widget so that key presses are received immediately
+    wcs->setFocus();
 }
 
 
