@@ -78,18 +78,6 @@ void active_pt2d::setScenePos(pt2d const& pos)
     }
 }
 
-void active_pt2d::setScenePos_wo_update(pt2d const& pos)
-{
-
-    // just store, no update (for use when several points need to be updated)
-
-    // qDebug() << "active_pt2d::setScenePos called.";
-    if (m_pos != pos) {
-        // qDebug() << "active_pt2d::setScenePos changed.";
-        m_pos = pos;
-    }
-}
-
 pt2d active_pt2d::scenePos() const { return m_pos; }
 
 void active_pt2d::viewChanged()

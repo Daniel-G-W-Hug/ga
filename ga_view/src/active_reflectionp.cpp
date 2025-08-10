@@ -33,11 +33,6 @@ active_reflectionp::active_reflectionp(Coordsys* cs, w_Coordsys* wcs, active_pt2
     connect(this, &active_reflectionp::viewMoved, m_p3, &active_pt2d::posChanged);
     connect(this, &active_reflectionp::viewMoved, m_p4, &active_pt2d::posChanged);
 
-    connect(this, &active_reflectionp::pointsMoved, m_p1, &active_pt2d::viewChanged);
-    connect(this, &active_reflectionp::pointsMoved, m_p2, &active_pt2d::viewChanged);
-    connect(this, &active_reflectionp::pointsMoved, m_p3, &active_pt2d::viewChanged);
-    connect(this, &active_reflectionp::pointsMoved, m_p4, &active_pt2d::viewChanged);
-
     connect(m_p1, &active_pt2d::pointMoved, this, &active_reflectionp::viewChanged);
     connect(m_p2, &active_pt2d::pointMoved, this, &active_reflectionp::viewChanged);
     connect(m_p3, &active_pt2d::pointMoved, this, &active_reflectionp::viewChanged);
@@ -61,6 +56,8 @@ void active_reflectionp::paint(QPainter* qp, const QStyleOptionGraphicsItem* opt
     // draw in item coordinate system
     qp->save();
 
+    // draw first hyperplane (=line)
+
     qp->setPen(QPen(QBrush(Qt::black), 2, Qt::SolidLine));
     qp->setBrush(Qt::black);
 
@@ -68,12 +65,23 @@ void active_reflectionp::paint(QPainter* qp, const QStyleOptionGraphicsItem* opt
         qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
         qp->setBrush(col_green);
     }
-    if (m_mouse_hover && m_mouse_l_pressed) {
+    if (m_mouse_hover && m_mouse_l_pressed &&
+        m_move_mode == move_mode::shift_both_lines) {
         qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // pressed: red
         qp->setBrush(col_red);
     }
-
-    // draw first hyperplane (=line)
+    if (m_mouse_hover && m_move_mode == move_mode::shift_line12) {
+        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // shift: red
+        qp->setBrush(col_red);
+    }
+    if (m_mouse_hover && m_move_mode == move_mode::shift_line34) {
+        qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
+        qp->setBrush(col_green);
+    }
+    if (m_mouse_hover && m_move_mode == move_mode::rotate_both_lines) {
+        qp->setPen(QPen(QBrush(col_blue), 2, Qt::SolidLine)); // rotate: blue
+        qp->setBrush(col_blue);
+    }
 
     qp->drawPath(arrowLine(bvt1_beg_pos, bvt1_end_pos));
     // from here on we want to draw with a small pen to get a pointy vector head
@@ -84,6 +92,31 @@ void active_reflectionp::paint(QPainter* qp, const QStyleOptionGraphicsItem* opt
 
 
     // draw second hyperplane (=line)
+
+    qp->setPen(QPen(QBrush(Qt::black), 2, Qt::SolidLine));
+    qp->setBrush(Qt::black);
+
+    if (m_mouse_hover && !m_mouse_l_pressed) {
+        qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
+        qp->setBrush(col_green);
+    }
+    if (m_mouse_hover && m_mouse_l_pressed &&
+        m_move_mode == move_mode::shift_both_lines) {
+        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // pressed: red
+        qp->setBrush(col_red);
+    }
+    if (m_mouse_hover && m_move_mode == move_mode::shift_line12) {
+        qp->setPen(QPen(QBrush(col_green), 2, Qt::SolidLine)); // hover: green
+        qp->setBrush(col_green);
+    }
+    if (m_mouse_hover && m_move_mode == move_mode::shift_line34) {
+        qp->setPen(QPen(QBrush(col_red), 2, Qt::SolidLine)); // shift: red
+        qp->setBrush(col_red);
+    }
+    if (m_mouse_hover && m_move_mode == move_mode::rotate_both_lines) {
+        qp->setPen(QPen(QBrush(col_blue), 2, Qt::SolidLine)); // rotate: blue
+        qp->setBrush(col_blue);
+    }
 
     qp->drawPath(arrowLine(bvt2_beg_pos, bvt2_end_pos));
     // from here on we want to draw with a small pen to get a pointy vector head
@@ -129,15 +162,15 @@ void active_reflectionp::paint(QPainter* qp, const QStyleOptionGraphicsItem* opt
     refl1.closeSubpath();
     refl2.closeSubpath();
 
-    qp->setPen(QPen(QBrush(col_lblue), 1, Qt::SolidLine)); // pressed: red
+    qp->setPen(QPen(QBrush(col_lblue), 1, Qt::SolidLine));
     qp->setBrush(col_lblue);
     qp->drawPath(org);
 
-    qp->setPen(QPen(QBrush(col_lgreen), 1, Qt::SolidLine)); // pressed: red
+    qp->setPen(QPen(QBrush(col_lgreen), 1, Qt::SolidLine));
     qp->setBrush(col_lgreen);
     qp->drawPath(refl1);
 
-    qp->setPen(QPen(QBrush(col_lred), 1, Qt::SolidLine)); // pressed: red
+    qp->setPen(QPen(QBrush(col_lred), 1, Qt::SolidLine));
     qp->setBrush(col_lred);
     qp->drawPath(refl2);
 
@@ -147,9 +180,9 @@ void active_reflectionp::paint(QPainter* qp, const QStyleOptionGraphicsItem* opt
     // qp->drawRect(boundingRect());
 
     // draw shape (optional for testing)
-    qp->setPen(col_yel);
-    qp->setBrush(col_yel);
-    qp->drawPath(shape());
+    // qp->setPen(col_yel);
+    // qp->setBrush(col_yel);
+    // qp->drawPath(shape());
 
     qp->restore();
 }
@@ -202,34 +235,6 @@ void active_reflectionp::setScenePos_p4(pt2d const& pos)
         prepareGeometryChange();
         m_p4->setScenePos(pos);
         reset_item_data();
-    }
-}
-
-void active_reflectionp::setScenePos_p1_wo_update(pt2d const& pos)
-{
-    if (pos != m_p1->scenePos()) {
-        m_p1->setScenePos_wo_update(pos);
-    }
-}
-
-void active_reflectionp::setScenePos_p2_wo_update(pt2d const& pos)
-{
-    if (pos != m_p2->scenePos()) {
-        m_p2->setScenePos_wo_update(pos);
-    }
-}
-
-void active_reflectionp::setScenePos_p3_wo_update(pt2d const& pos)
-{
-    if (pos != m_p3->scenePos()) {
-        m_p3->setScenePos_wo_update(pos);
-    }
-}
-
-void active_reflectionp::setScenePos_p4_wo_update(pt2d const& pos)
-{
-    if (pos != m_p4->scenePos()) {
-        m_p4->setScenePos_wo_update(pos);
     }
 }
 
@@ -371,13 +376,23 @@ void active_reflectionp::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
                     auto new_p3p = unitize(move2dp(cur_p3p, mot));
                     auto new_p4p = unitize(move2dp(cur_p4p, mot));
 
-                    setScenePos_p1_wo_update(vec2d(new_p1p.x, new_p1p.y));
-                    setScenePos_p2_wo_update(vec2d(new_p2p.x, new_p2p.y));
-                    setScenePos_p3_wo_update(vec2d(new_p3p.x, new_p3p.y));
-                    setScenePos_p4_wo_update(vec2d(new_p4p.x, new_p4p.y));
-                }
-                    emit pointsMoved();
-                    break;
+                    // Block all signals during update (avoid recursive updates)
+                    m_p1->blockSignals(true);
+                    m_p2->blockSignals(true);
+                    m_p3->blockSignals(true);
+                    m_p4->blockSignals(true);
+
+                    setScenePos_p1(vec2d(new_p1p.x, new_p1p.y));
+                    setScenePos_p2(vec2d(new_p2p.x, new_p2p.y));
+                    setScenePos_p3(vec2d(new_p3p.x, new_p3p.y));
+                    setScenePos_p4(vec2d(new_p4p.x, new_p4p.y));
+
+                    // Re-enable signals - Qt will update automatically
+                    m_p1->blockSignals(false);
+                    m_p2->blockSignals(false);
+                    m_p3->blockSignals(false);
+                    m_p4->blockSignals(false);
+                } break;
                 default:
                     std::unreachable();
             }
