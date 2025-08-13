@@ -974,6 +974,145 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(b == gr1(gpr_left));
     }
 
+    TEST_CASE("MVec2d: geometric product - link to inner and outer products")
+    {
+        fmt::println("MVec2d: geometric product - link to inner and outer products");
+        vec2d u{1.0, 2.0};
+
+        scalar2d s{3};
+        vec2d v{-3.0, 2.5};
+        pscalar2d ps{4.0};
+
+        // fmt::println("");
+        // fmt::println("u = {}", u);
+        // fmt::println("s = {}", s);
+        // fmt::println("v = {}", v);
+        // fmt::println("ps = {}", ps);
+        // fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("scalar case: ");
+        CHECK(u * s == gr1((s >> u) + wdg(u, s)));
+        CHECK(u * s == gr1(rwdg(s, right_dual(u)) + wdg(u, s)));
+
+        // fmt::println("");
+        // fmt::println("u * s = {}", u * s);
+        // fmt::println("");
+        // fmt::println("(s >> u) = {}", (s >> u));
+        // fmt::println("wdg(u, s) = {}", wdg(u, s));
+        // fmt::println("(s >> u) + wdg(u, s) = {}", (s >> u) + wdg(u, s));
+        // fmt::println("gr1((s >> u) + wdg(u, s)) = {}", gr1((s >> u) + wdg(u, s)));
+        // fmt::println("");
+        // fmt::println("right_dual(u) = {}", right_dual(u));
+        // fmt::println("rwdg(s,right_dual(u))= {}", rwdg(s, right_dual(u)));
+        // fmt::println("wdg(u, s) = {}", wdg(u, s));
+        // fmt::println("rwdg(s,right_dual(u)) + wdg(u, s) = {}",
+        //              rwdg(s, right_dual(u)) + wdg(u, s));
+        // fmt::println("gr1(rwdg(s,right_dual(u)) + wdg(u, s)) = {}",
+        //              gr1(rwdg(s, right_dual(u)) + wdg(u, s)));
+        // fmt::println("");
+
+        CHECK(s * u == gr1((u << s) + wdg(s, u)));
+        CHECK(s * u == gr1(rwdg(left_dual(u), s) + wdg(s, u)));
+
+        // fmt::println("");
+        // fmt::println("s * u = {}", s * u);
+        // fmt::println("");
+        // fmt::println("(u << s) = {}", (u << s));
+        // fmt::println("wdg(s, u) = {}", wdg(s, u));
+        // fmt::println("(u << s) + wdg(s, u) = {}", (u << s) + wdg(s, u));
+        // fmt::println("gr1((u << s) + wdg(s, u)) = {}", gr1((u << s) + wdg(s, u)));
+        // fmt::println("");
+        // fmt::println("left_dual(u) = {}", left_dual(u));
+        // fmt::println("rwdg(left_dual(u), s)= {}", rwdg(left_dual(u), s));
+        // fmt::println("wdg(s, u) = {}", wdg(s, u));
+        // fmt::println("rwdg(left_dual(u), s) + wdg(s, u) = {}",
+        //              rwdg(left_dual(u), s) + wdg(s, u));
+        // fmt::println("gr1(rwdg(left_dual(u), s) + wdg(s, u)) = {}",
+        //              gr1(rwdg(left_dual(u), s) + wdg(s, u)));
+        // fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("vector case: ");
+        CHECK(u * v == (v >> u) + wdg(u, v));
+        CHECK(u * v == rwdg(v, right_dual(u)) + wdg(u, v));
+
+        // fmt::println("");
+        // fmt::println("u * v = {}", u * v);
+        // fmt::println("");
+        // fmt::println("(v >> u) = {}", (v >> u));
+        // fmt::println("wdg(u, v) = {}", wdg(u, v));
+        // fmt::println("(v >> u) + wdg(u, v) = {}", (v >> u) + wdg(u, v));
+        // fmt::println("");
+        // fmt::println("right_dual(u) = {}", right_dual(u));
+        // fmt::println("rwdg(v,right_dual(u))= {}", rwdg(v, right_dual(u)));
+        // fmt::println("wdg(u, v) = {}", wdg(u, v));
+        // fmt::println("rwdg(v,right_dual(u)) + wdg(u, v) = {}",
+        //              rwdg(v, right_dual(u)) + wdg(u, v));
+        // fmt::println("");
+
+        CHECK(v * u == (u << v) + wdg(v, u));
+        CHECK(v * u == rwdg(left_dual(u), v) + wdg(v, u));
+
+        // fmt::println("");
+        // fmt::println("v * u = {}", v * u);
+        // fmt::println("");
+        // fmt::println("(u << v) = {}", (u << v));
+        // fmt::println("wdg(v, u) = {}", wdg(v, u));
+        // fmt::println("(u << v) + wdg(v, u) = {}", (u << v) + wdg(v, u));
+        // fmt::println("");
+        // fmt::println("left_dual(u) = {}", left_dual(u));
+        // fmt::println("rwdg(left_dual(u), v)= {}", rwdg(left_dual(u), v));
+        // fmt::println("wdg(v, u) = {}", wdg(v, u));
+        // fmt::println("rwdg(left_dual(u), v) + wdg(v, u) = {}",
+        //              rwdg(left_dual(u), v) + wdg(v, u));
+        // fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("pscalar case: ");
+        CHECK(u * ps == gr1((ps >> u) + wdg(u, ps)));
+        CHECK(u * ps == gr1(rwdg(ps, right_dual(u)) + wdg(u, ps)));
+
+        // fmt::println("");
+        // fmt::println("u * ps = {}", u * ps);
+        // fmt::println("");
+        // fmt::println("(ps >> u) = {}", (ps >> u));
+        // fmt::println("wdg(u, ps) = {}", wdg(u, ps));
+        // fmt::println("(ps >> u) + wdg(u, ps) = {}", (ps >> u) + wdg(u, ps));
+        // fmt::println("gr1((ps >> u) + wdg(u, ps)) = {}", gr1((ps >> u) + wdg(u, ps)));
+        // fmt::println("");
+        // fmt::println("right_dual(u) = {}", right_dual(u));
+        // fmt::println("rwdg(ps,right_dual(u))= {}", rwdg(ps, right_dual(u)));
+        // fmt::println("wdg(u, ps) = {}", wdg(u, ps));
+        // fmt::println("rwdg(ps,right_dual(u)) + wdg(u, ps) = {}",
+        //              rwdg(ps, right_dual(u)) + wdg(u, ps));
+        // fmt::println("gr1(rwdg(ps,right_dual(u)) + wdg(u, ps)) = {}",
+        //              gr1(rwdg(ps, right_dual(u)) + wdg(u, ps)));
+        // fmt::println("");
+
+        CHECK(ps * u == gr1((u << ps) + wdg(ps, u)));
+        CHECK(ps * u == gr1(rwdg(left_dual(u), ps) + wdg(ps, u)));
+
+        // fmt::println("");
+        // fmt::println("ps * u = {}", ps * u);
+        // fmt::println("");
+        // fmt::println("(u << ps) = {}", (u << ps));
+        // fmt::println("wdg(ps, u) = {}", wdg(ps, u));
+        // fmt::println("(u << ps) + wdg(ps, u) = {}", (u << ps) + wdg(ps, u));
+        // fmt::println("gr1((u << ps) + wdg(ps, u)) = {}", gr1((u << ps) + wdg(ps, u)));
+        // fmt::println("");
+        // fmt::println("left_dual(u) = {}", left_dual(u));
+        // fmt::println("rwdg(left_dual(u), ps)= {}", rwdg(left_dual(u), ps));
+        // fmt::println("wdg(ps, u) = {}", wdg(ps, u));
+        // fmt::println("rwdg(left_dual(u), ps) + wdg(ps, u) = {}",
+        //              rwdg(left_dual(u), ps) + wdg(ps, u));
+        // fmt::println("gr1(rwdg(left_dual(u), ps) + wdg(ps, u)) = {}",
+        //              gr1(rwdg(left_dual(u), ps) + wdg(ps, u)));
+        // fmt::println("");
+
+        // fmt::println("");
+    }
+
     TEST_CASE("MVec2d: geometric product tests - equivalence tests")
     {
         fmt::println("MVec2d: geometric product tests - equivalence tests");
@@ -1750,7 +1889,191 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(is_congruent2d(p1, p_zero) == false);    // zero vs non-zero
         CHECK(is_congruent2d(p_zero, p_zero) == true); // zero vs zero
 
-        fmt::println("   All EGA2D congruence tests passed");
+        // fmt::println("   All EGA2D congruence tests passed");
+    }
+
+
+    TEST_CASE("G<2,0,0>: ega2d - trial transwedge product")
+    {
+        fmt::println("G<2,0,0>: ega2d - trial transwedge product");
+        // fmt::println("");
+
+        scalar2d s{3.0};
+        vec2d v{1.0, 2.0};
+        pscalar2d ps{4.0};
+
+        // template:
+        // tr_wdg(k,a,b) = wdg(rwdg(lcmpl(c),a),rwdg(b,right_dual(c)))
+        // with c from B_k = {{1},{e1,e2},{e12}} for ega2d
+
+        // c = e12, a = e12
+        {
+            auto a = e12_2d;
+            auto b = s;
+            auto c = e12_2d;
+
+            CHECK(wdg(rwdg(lcmpl(c), a), rwdg(b, right_dual(c))) == 0.0);
+        }
+        {
+            auto a = e12_2d;
+            auto b = v;
+            auto c = e12_2d;
+
+            CHECK(wdg(rwdg(lcmpl(c), a), rwdg(b, right_dual(c))) == 0.0);
+        }
+        {
+            auto a = e12_2d;
+            auto b = ps;
+            auto c = e12_2d;
+
+            CHECK(wdg(rwdg(lcmpl(c), a), rwdg(b, right_dual(c))) == b);
+        }
+
+        // component extraction by using the left complement (e.g. for twdg)
+
+        // transwedge for k = 0: wdg( rwdg(lcmpl(c),a), rwdg(b,right_dual(c)) )
+        // scalar c = s
+        CHECK(rwdg(lcmpl(e1_2d), s) == 0.0); // zero (left contraction)
+        CHECK(rwdg(lcmpl(e2_2d), s) == 0.0); // zero (left contraction)
+
+        CHECK(rwdg(s, rcmpl(e1_2d)) == 0.0); // zero (right contraction)
+        CHECK(rwdg(s, rcmpl(e2_2d)) == 0.0); // zero (right contraction)
+
+        CHECK(rwdg(lcmpl(e1_2d), v) == 1.0); // extract v.x - remove e1 (left contr.)
+        CHECK(rwdg(lcmpl(e2_2d), v) == 2.0); // extract v.y - remove e2 (left contr.)
+
+        CHECK(rwdg(v, rcmpl(e1_2d)) == 1.0); // extract v.x - remove e1 (right contr.)
+        CHECK(rwdg(v, rcmpl(e2_2d)) == 2.0); // extract v.y - remove e2 (right contr.)
+
+        CHECK(rwdg(lcmpl(e1_2d), ps) == -4.0 * e2_2d); // remove e1 (left contr.)
+        CHECK(rwdg(lcmpl(e2_2d), ps) == 4.0 * e1_2d);  // remove e2 (left contr.)
+
+        CHECK(rwdg(ps, rcmpl(e1_2d)) == 4.0 * e2_2d);  // remove e1 (right contr.)
+        CHECK(rwdg(ps, rcmpl(e2_2d)) == -4.0 * e1_2d); // remove e2 (right contr.)
+
+
+        CHECK(rwdg(scalar2d(1), I_2d) == 1); // identity for pseudoscalar
+        CHECK(rwdg(I_2d, scalar2d(1)) == 1); // identity for pseudoscalar
+
+        CHECK(rwdg(scalar2d(1), 3.0 * I_2d) == 3.0); // scalar factored out
+        CHECK(rwdg(3.0 * I_2d, scalar2d(1)) == 3.0); // scalar factored out
+
+        CHECK(wdg(rwdg(scalar2d(1), 2.0 * I_2d), rwdg(3.0 * I_2d, scalar2d(1))) == 6.0);
+
+        // fmt::println("");
+    }
+
+    TEST_CASE("G<2,0,0>: ega2d - multivector basis trial")
+    {
+
+        fmt::println("G<2,0,0>: ega2d - multivector basis trial");
+
+        // multivector basis components
+        const std::vector<std::string> mv2d_basis_str = {"1", "e1", "e2", "e12"};
+
+        // multivector k_basis components
+        // => strings representing scalar2d, vec2d, and pscalar2d
+        const std::vector<std::vector<std::string>> k_basis_str = {
+            {"1"}, {"e1", "e2"}, {"e12"}};
+
+
+        fmt::println("mvec_coeff = {}", mv2d_basis_str);
+        fmt::println("");
+
+        fmt::println("k_basis_str = {}", k_basis_str);
+        fmt::println("");
+        for (size_t k = 0; k < k_basis_str.size(); ++k) {
+            fmt::println("k_basis_str[{}] = {}", k, k_basis_str.at(k));
+        }
+        // fmt::println("");
+    }
+
+    TEST_CASE("G<2,0,0>: ega2d - multivector variant trial")
+    {
+
+        fmt::println("G<2,0,0>: ega2d - multivector variant trial");
+        fmt::println("");
+
+        // Experimental multivector2d variant type (mv2d)
+        using mv2d = std::variant<scalar2d, vec2d, pscalar2d, mvec2d_e, mvec2d>;
+
+        // Helper function to get type name for variant
+        auto get_type_name = [](const mv2d& v) -> std::string {
+            return std::visit(
+                [](const auto& arg) -> std::string {
+                    using T = std::decay_t<decltype(arg)>;
+                    if constexpr (std::is_same_v<T, scalar2d>) return "scalar2d";
+                    else if constexpr (std::is_same_v<T, vec2d>) return "vec2d";
+                    else if constexpr (std::is_same_v<T, pscalar2d>) return "pscalar2d";
+                    else if constexpr (std::is_same_v<T, mvec2d_e>) return "mvec2d_e";
+                    else if constexpr (std::is_same_v<T, mvec2d>) return "mvec2d";
+                    else return "unknown";
+                },
+                v);
+        };
+
+        // Test creation of different types
+        mv2d mv_scalar = scalar2d{2.5};
+        mv2d mv_vector = vec2d{1.0, 2.0};
+        mv2d mv_pscalar = pscalar2d{3.14};
+        mv2d mv_even = mvec2d_e{1.0, 2.0};         // scalar + bivector
+        mv2d mv_full = mvec2d{1.0, 2.0, 3.0, 4.0}; // scalar + vector + bivector
+
+        mv2d mv_even2 = scalar2d{7.0} + pscalar2d{12.0};
+
+        fmt::println("mv2d variant type tests:");
+        fmt::println("mv_scalar: {} (type: {})", mv_scalar.index(),
+                     get_type_name(mv_scalar));
+        fmt::println("mv_vector: {} (type: {})", mv_vector.index(),
+                     get_type_name(mv_vector));
+        fmt::println("mv_pscalar: {} (type: {})", mv_pscalar.index(),
+                     get_type_name(mv_pscalar));
+        fmt::println("mv_even: {} (type: {})", mv_even.index(), get_type_name(mv_even));
+        fmt::println("mv_full: {} (type: {})", mv_full.index(), get_type_name(mv_full));
+        fmt::println("");
+
+        // Test visitor pattern for operations
+        auto print_value = [](const mv2d& v) {
+            std::visit([](const auto& arg) { fmt::println("Value: {}", arg); }, v);
+        };
+
+        fmt::println("Values:");
+        print_value(mv_scalar);
+        print_value(mv_vector);
+        print_value(mv_pscalar);
+        print_value(mv_even);
+        print_value(mv_full);
+        fmt::println("");
+
+        print_value(mv_even2);
+        // fmt::println("");
+
+        // Test type checking with std::holds_alternative
+        CHECK(std::holds_alternative<scalar2d>(mv_scalar));
+        CHECK(std::holds_alternative<vec2d>(mv_vector));
+        CHECK(std::holds_alternative<pscalar2d>(mv_pscalar));
+        CHECK(std::holds_alternative<mvec2d_e>(mv_even));
+        CHECK(std::holds_alternative<mvec2d>(mv_full));
+
+        // Test std::get access
+        CHECK(std::get<scalar2d>(mv_scalar) == doctest::Approx(2.5).epsilon(eps));
+        CHECK(std::get<vec2d>(mv_vector).x == doctest::Approx(1.0).epsilon(eps));
+        CHECK(std::get<vec2d>(mv_vector).y == doctest::Approx(2.0).epsilon(eps));
+        CHECK(std::get<pscalar2d>(mv_pscalar) == doctest::Approx(3.14).epsilon(eps));
+
+        // Test mvec2d_e and mvec2d component access
+        CHECK(std::get<mvec2d_e>(mv_even).c0 ==
+              doctest::Approx(1.0).epsilon(eps)); // scalar part
+        CHECK(std::get<mvec2d_e>(mv_even).c1 ==
+              doctest::Approx(2.0).epsilon(eps)); // bivector part
+        CHECK(std::get<mvec2d>(mv_full).c0 ==
+              doctest::Approx(1.0).epsilon(eps)); // scalar
+        CHECK(std::get<mvec2d>(mv_full).c1 == doctest::Approx(2.0).epsilon(eps)); // e1
+        CHECK(std::get<mvec2d>(mv_full).c2 == doctest::Approx(3.0).epsilon(eps)); // e2
+        CHECK(std::get<mvec2d>(mv_full).c3 == doctest::Approx(4.0).epsilon(eps)); // e12
+
+        fmt::println("mv2d variant type trial implementation complete");
+        fmt::println("");
     }
 
 } // EGA 2D Tests

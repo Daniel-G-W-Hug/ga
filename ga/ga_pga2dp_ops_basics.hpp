@@ -19,7 +19,7 @@ namespace hd::ga::pga {
 // - rrev()                       -> regressive reversion
 // - conj()                       -> conjugation
 // - cmpl()                       -> complement
-// - dual()                       -> dual
+// - bulk_dual(), weight_dual()   -> bulk dual and weight dual
 //
 // - bulk(), weight()             -> return bulk and weight parts of objects
 // - bulk_nrm_sq, bulk_nrm        -> return bulk norm
@@ -397,6 +397,14 @@ constexpr MVec2dp<T> cmpl(MVec2dp<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // bulk: u_bulk = G u (with G as the metric)
 ////////////////////////////////////////////////////////////////////////////////
+// By the multiplication with the metric G (which is degenerate in this case)
+// the bulk selects the components of the blade argument which dot NOT contain e3.
+//
+// => bulk():
+//    - does not contain a factor of e3 (the basis component with e3*e3 = 0)
+//    - contains positional information about u
+//    - zero bulk means that u contains the origin (e3)
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
     requires(std::floating_point<T>)
@@ -451,6 +459,14 @@ constexpr MVec2dp<T> bulk(MVec2dp<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // weight: u_weight = lcmpl( G rcmpl(u) ) = rG u
 //         (with G as the metric and rG as the anti-metric as given by Lengyel)
+////////////////////////////////////////////////////////////////////////////////
+// By the multiplication with the metric G (which is degenerate in this case)
+// the weight selects the components of the blade argument which do contain e3.
+//
+// => weight():
+//    - does contain a factor of e3 (the basis component with e3*e3 = 0)
+//    - contains directional information about u
+//    - zero weight means that u is contained in the horizon = cmpl(e3) = e12_2dp
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>

@@ -271,7 +271,13 @@ ProductConfig get_ega3d_rwdg_config()
                       {"rwdg(s,ps) -> s", "svBps", "svBps", "s", "ps"},
                       {"rwdg(bivec,bivec) -> vec", "svBps1", "svBps2", "bivec", "bivec"},
                       {"rwdg(bivec,vec) -> s", "svBps", "svBps", "bivec", "vec"},
-                      {"rwdg(vec,bivec) -> s", "svBps", "svBps", "vec", "bivec"}}};
+                      {"rwdg(vec,bivec) -> s", "svBps", "svBps", "vec", "bivec"},
+                      {"rwdg(bivec,s) -> 0", "svBps", "svBps", "bivec", "s"},
+                      {"rwdg(s,bivec) -> 0", "svBps", "svBps", "s", "bivec"},
+                      {"rwdg(vec,vec) -> 0", "svBps1", "svBps2", "vec", "vec"},
+                      {"rwdg(vec,s) -> 0", "svBps", "svBps", "vec", "s"},
+                      {"rwdg(s,vec) -> 0", "svBps", "svBps", "s", "vec"},
+                      {"rwdg(s,s) -> 0", "svBps1", "svBps2", "s", "s"}}};
 }
 
 ProductConfig get_ega3d_lcontract_config()

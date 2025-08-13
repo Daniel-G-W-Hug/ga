@@ -416,6 +416,33 @@ constexpr Scalar2d<std::common_type_t<T, U>> rwdg(Vec2d<T> const& v1, Vec2d<U> c
     return Scalar2d<ctype>(v1.x * v2.y - v1.y * v2.x);
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2d<std::common_type_t<T, U>> rwdg([[maybe_unused]] Vec2d<T> const&,
+                                                  [[maybe_unused]] Scalar2d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>{0.0};
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2d<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar2d<T>,
+                                                  [[maybe_unused]] Vec2d<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>{0.0};
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2d<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar2d<T>,
+                                                  [[maybe_unused]] Scalar2d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>{0.0};
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // left contractions A << B
