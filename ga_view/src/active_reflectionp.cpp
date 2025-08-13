@@ -332,7 +332,10 @@ void active_reflectionp::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
                 case move_mode::shift_both_lines:
                     m_p1->moveBy(delta.x(), delta.y());
                     m_p2->moveBy(delta.x(), delta.y());
-                    m_p3->moveBy(delta.x(), delta.y());
+                    if (m_p1 != m_p3) {
+                        // do only move, if p1 != p3 (same point in in one of the demos)
+                        m_p3->moveBy(delta.x(), delta.y());
+                    }
                     m_p4->moveBy(delta.x(), delta.y());
                     emit viewMoved();
                     break;
