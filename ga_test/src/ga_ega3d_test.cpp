@@ -1444,6 +1444,179 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(std::abs(gr2(prd) - 0.0) < eps);
     }
 
+
+    TEST_CASE("MVec3d: geometric product - link to inner and outer products")
+    {
+        fmt::println("MVec3d: geometric product - link to inner and outer products");
+        vec3d u{1.0, 2.0, 3.0};
+
+        scalar3d s{3};
+        vec3d v{-3.0, 2.5, -0.5};
+        bivec3d B{2.5, 3.5, 1.5};
+        pscalar3d ps{4.0};
+
+        // fmt::println("");
+        // fmt::println("u = {}", u);
+        // fmt::println("s = {}", s);
+        // fmt::println("v = {}", v);
+        // fmt::println("B = {}", B);
+        // fmt::println("ps = {}", ps);
+        // fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("scalar case: ");
+        CHECK(u * s == gr1((s >> u) + wdg(u, s)));
+        CHECK(u * s == gr1(rwdg(s, dual(u)) + wdg(u, s)));
+
+        // fmt::println("");
+        // fmt::println("u * s = {}", u * s);
+        // fmt::println("");
+        // fmt::println("(s >> u) = {}", (s >> u));
+        // fmt::println("wdg(u, s) = {}", wdg(u, s));
+        // fmt::println("(s >> u) + wdg(u, s) = {}", (s >> u) + wdg(u, s));
+        // fmt::println("gr1((s >> u) + wdg(u, s)) = {}", gr1((s >> u) + wdg(u, s)));
+        // fmt::println("");
+        // fmt::println("dual(u) = {}", dual(u));
+        // fmt::println("rwdg(s,dual(u))= {}", rwdg(s, dual(u)));
+        // fmt::println("wdg(u, s) = {}", wdg(u, s));
+        // fmt::println("rwdg(s,dual(u)) + wdg(u, s) = {}", rwdg(s, dual(u)) + wdg(u, s));
+        // fmt::println("gr1(rwdg(s,dual(u)) + wdg(u, s)) = {}",
+        //              gr1(rwdg(s, dual(u)) + wdg(u, s)));
+        // fmt::println("");
+
+        CHECK(s * u == gr1((u << s) + wdg(s, u)));
+        CHECK(s * u == gr1(rwdg(dual(u), s) + wdg(s, u)));
+
+        // fmt::println("");
+        // fmt::println("s * u = {}", s * u);
+        // fmt::println("");
+        // fmt::println("(u << s) = {}", (u << s));
+        // fmt::println("wdg(s, u) = {}", wdg(s, u));
+        // fmt::println("(u << s) + wdg(s, u) = {}", (u << s) + wdg(s, u));
+        // fmt::println("gr1((u << s) + wdg(s, u)) = {}", gr1((u << s) + wdg(s, u)));
+        // fmt::println("");
+        // fmt::println("dual(u) = {}", dual(u));
+        // fmt::println("rwdg(dual(u), s)= {}", rwdg(dual(u), s));
+        // fmt::println("wdg(s, u) = {}", wdg(s, u));
+        // fmt::println("rwdg(ldual(u), s) + wdg(s, u) = {}", rwdg(dual(u), s) + wdg(s,
+        // u)); fmt::println("gr1(rwdg(dual(u), s) + wdg(s, u)) = {}",
+        //              gr1(rwdg(dual(u), s) + wdg(s, u)));
+        // fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("vector case: ");
+        CHECK(u * v == (v >> u) + wdg(u, v));
+        CHECK(u * v == rwdg(v, dual(u)) + wdg(u, v));
+
+        // fmt::println("");
+        // fmt::println("u * v = {}", u * v);
+        // fmt::println("");
+        // fmt::println("(v >> u) = {}", (v >> u));
+        // fmt::println("wdg(u, v) = {}", wdg(u, v));
+        // fmt::println("(v >> u) + wdg(u, v) = {}", (v >> u) + wdg(u, v));
+        // fmt::println("");
+        // fmt::println("dual(u) = {}", dual(u));
+        // fmt::println("rwdg(v,dual(u))= {}", rwdg(v, dual(u)));
+        // fmt::println("wdg(u, v) = {}", wdg(u, v));
+        // fmt::println("rwdg(v,dual(u)) + wdg(u, v) = {}", rwdg(v, dual(u)) + wdg(u, v));
+        // fmt::println("");
+
+        CHECK(v * u == (u << v) + wdg(v, u));
+        CHECK(v * u == rwdg(dual(u), v) + wdg(v, u));
+
+        // fmt::println("");
+        // fmt::println("v * u = {}", v * u);
+        // fmt::println("");
+        // fmt::println("(u << v) = {}", (u << v));
+        // fmt::println("wdg(v, u) = {}", wdg(v, u));
+        // fmt::println("(u << v) + wdg(v, u) = {}", (u << v) + wdg(v, u));
+        // fmt::println("");
+        // fmt::println("dual(u) = {}", dual(u));
+        // fmt::println("rwdg(dual(u), v)= {}", rwdg(dual(u), v));
+        // fmt::println("wdg(v, u) = {}", wdg(v, u));
+        // fmt::println("rwdg(dual(u), v) + wdg(v, u) = {}", rwdg(dual(u), v) + wdg(v,
+        // u)); fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("bivector case: ");
+        CHECK(u * B == (B >> u) + wdg(u, B));
+        CHECK(u * B == rwdg(B, dual(u)) + wdg(u, B));
+
+        // fmt::println("");
+        // fmt::println("u * B = {}", u * B);
+        // fmt::println("");
+        // fmt::println("(B >> u) = {}", (B >> u));
+        // fmt::println("wdg(u, B) = {}", wdg(u, B));
+        // fmt::println("(B >> u) + wdg(u, B) = {}", (B >> u) + wdg(u, B));
+        // fmt::println("");
+        // fmt::println("dual(u) = {}", dual(u));
+        // fmt::println("rwdg(B,dual(u))= {}", rwdg(B, dual(u)));
+        // fmt::println("wdg(u, B) = {}", wdg(u, B));
+        // fmt::println("rwdg(B,dual(u)) + wdg(u, B) = {}", rwdg(B, dual(u)) + wdg(u, B));
+        // fmt::println("");
+
+        CHECK(B * u == (u << B) + wdg(B, u));
+        CHECK(B * u == rwdg(dual(u), B) + wdg(B, u));
+
+        // fmt::println("");
+        // fmt::println("B * u = {}", B * u);
+        // fmt::println("");
+        // fmt::println("(u << B) = {}", (u << B));
+        // fmt::println("wdg(B, u) = {}", wdg(B, u));
+        // fmt::println("(u << B) + wdg(B, u) = {}", (u << B) + wdg(B, u));
+        // fmt::println("");
+        // fmt::println("dual(u) = {}", dual(u));
+        // fmt::println("rwdg(dual(u), B)= {}", rwdg(dual(u), B));
+        // fmt::println("wdg(B, u) = {}", wdg(B, u));
+        // fmt::println("rwdg(dual(u), B) + wdg(B, u) = {}", rwdg(dual(u), B) + wdg(B,
+        // u)); fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("pscalar case: ");
+        CHECK(u * ps == gr2((ps >> u) + wdg(u, ps)));
+        CHECK(u * ps == gr2(rwdg(ps, dual(u)) + wdg(u, ps)));
+
+        // fmt::println("");
+        // fmt::println("u * ps = {}", u * ps);
+        // fmt::println("");
+        // fmt::println("(ps >> u) = {}", (ps >> u));
+        // fmt::println("wdg(u, ps) = {}", wdg(u, ps));
+        // fmt::println("(ps >> u) + wdg(u, ps) = {}", (ps >> u) + wdg(u, ps));
+        // fmt::println("gr1((ps >> u) + wdg(u, ps)) = {}", gr2((ps >> u) + wdg(u, ps)));
+        // fmt::println("");
+        // fmt::println("dual(u) = {}", dual(u));
+        // fmt::println("rwdg(ps,dual(u))= {}", rwdg(ps, dual(u)));
+        // fmt::println("wdg(u, ps) = {}", wdg(u, ps));
+        // fmt::println("rwdg(ps,dual(u)) + wdg(u, ps) = {}",
+        //              rwdg(ps, dual(u)) + wdg(u, ps));
+        // fmt::println("gr2(rwdg(ps,dual(u)) + wdg(u, ps)) = {}",
+        //              gr2(rwdg(ps, dual(u)) + wdg(u, ps)));
+        // fmt::println("");
+
+        CHECK(ps * u == gr2((u << ps) + wdg(ps, u)));
+        CHECK(ps * u == gr2(rwdg(dual(u), ps) + wdg(ps, u)));
+
+        // fmt::println("");
+        // fmt::println("ps * u = {}", ps * u);
+        // fmt::println("");
+        // fmt::println("(u << ps) = {}", (u << ps));
+        // fmt::println("wdg(ps, u) = {}", wdg(ps, u));
+        // fmt::println("(u << ps) + wdg(ps, u) = {}", (u << ps) + wdg(ps, u));
+        // fmt::println("gr1((u << ps) + wdg(ps, u)) = {}", gr2((u << ps) + wdg(ps, u)));
+        // fmt::println("");
+        // fmt::println("dual(u) = {}", dual(u));
+        // fmt::println("rwdg(dual(u), ps)= {}", rwdg(dual(u), ps));
+        // fmt::println("wdg(ps, u) = {}", wdg(ps, u));
+        // fmt::println("rwdg(dual(u), ps) + wdg(ps, u) = {}",
+        //              rwdg(dual(u), ps) + wdg(ps, u));
+        // fmt::println("gr2(rwdg(dual(u), ps) + wdg(ps, u)) = {}",
+        //              gr2(rwdg(dual(u), ps) + wdg(ps, u)));
+        // fmt::println("");
+
+        // fmt::println("");
+    }
+
+
     TEST_CASE("MVec3d: geometric product tests - equivalence tests")
     {
         fmt::println("MVec3d: geometric product tests - equivalence tests");
@@ -2268,7 +2441,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(is_congruent3d(p1, p_zero) == false);    // zero vs non-zero
         CHECK(is_congruent3d(p_zero, p_zero) == true); // zero vs zero
 
-        fmt::println("   All EGA3D congruence tests passed");
+        // fmt::println("   All EGA3D congruence tests passed");
     }
 
 } // EGA 3D Tests

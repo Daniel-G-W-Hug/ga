@@ -490,6 +490,46 @@ constexpr BiVec2dp<std::common_type_t<T, U>> rwdg(BiVec2dp<T> const& B, PScalar2
     return B * ctype(ps);
 }
 
+// regressive wedge product between a pseudoscalar ps (=trivector) and a vector v
+// => returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rwdg(PScalar2dp<T> ps, Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * Vec2dp<ctype>(v.x, v.y, v.z);
+}
+
+// regressive wedge product between a vector v and a pseudoscalar ps (=trivector)
+// => returns a vector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rwdg(Vec2dp<T> const& v, PScalar2dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(v.x, v.y, v.z) * ctype(ps);
+}
+
+// regressive wedge product between a pseudoscalar ps (=trivector) and a scalar s
+// => returns a scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2dp<std::common_type_t<T, U>> rwdg(PScalar2dp<T> ps, Scalar2dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(ctype(ps) * ctype(s));
+}
+
+// regressive wedge product between a scalar s and a pseudoscalar ps (=trivector)
+// => returns a scalar
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2dp<std::common_type_t<T, U>> rwdg(Scalar2dp<T> s, PScalar2dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(ctype(s) * ctype(ps));
+}
+
 // regressive wedge product of two bivectors
 // rwdg(a,b) = !wgd(!a,!b) with ! as the complement operation
 // => returns a vector
@@ -530,6 +570,24 @@ constexpr Scalar2dp<std::common_type_t<T, U>> rwdg(Vec2dp<T> const& v,
     return Scalar2dp<ctype>(-v.x * B.x - v.y * B.y - v.z * B.z);
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2dp<std::common_type_t<T, U>> rwdg([[maybe_unused]] BiVec2dp<T> const&,
+                                                   [[maybe_unused]] Scalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>{0.0};
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2dp<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar2dp<T>,
+                                                   [[maybe_unused]] BiVec2dp<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>{0.0};
+}
+
 // required to be present for dist2dp (to complile, even if not used)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -539,6 +597,34 @@ constexpr Scalar2dp<std::common_type_t<T, U>> rwdg([[maybe_unused]] Vec2dp<T> co
     using ctype = std::common_type_t<T, U>;
     return Scalar2dp<ctype>(0.0);
 }
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2dp<std::common_type_t<T, U>> rwdg([[maybe_unused]] Vec2dp<T> const&,
+                                                   [[maybe_unused]] Scalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>{0.0};
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2dp<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar2dp<T>,
+                                                   [[maybe_unused]] Vec2dp<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>{0.0};
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2dp<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar2dp<T>,
+                                                   [[maybe_unused]] Scalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>{0.0};
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // convenience functions rwdg -> meet
@@ -1773,6 +1859,34 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(Vec2dp<T> const& v1,
     return MVec2dp_U<ctype>(rcmt(v1, v2), -rdot(v1, v2));
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> rgpr(Vec2dp<T> const& v,
+                                                  Scalar2dp<U> const& s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(T(0.0), T(0.0), v.z * ctype(s));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> rgpr(Scalar2dp<T> const& s,
+                                                  Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(T(0.0), T(0.0), ctype(s) * v.z);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2dp<std::common_type_t<T, U>> rgpr([[maybe_unused]] Scalar2dp<T>,
+                                                   [[maybe_unused]] Scalar2dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>{0.0};
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // multiplicative inverses of scalars, blades and multivectors
 // w.r.t. the geometric product:
@@ -1839,9 +1953,9 @@ inline MVec2dp_U<T> inv(MVec2dp_U<T> const& U)
     return MVec2dp_U<T>(rev(U) * inv);
 }
 
-// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
-// Hitzer, Sangwine, 2016
-// left and a right inverse are the same (see paper of Hitzer, Sangwine)
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord
+// algebras", Hitzer, Sangwine, 2016 left and a right inverse are the same (see paper
+// of Hitzer, Sangwine)
 template <typename T>
     requires(std::floating_point<T>)
 inline MVec2dp<T> inv(MVec2dp<T> const& M)
@@ -1904,11 +2018,13 @@ decltype(auto) right_weight_contract2dp(arg1&& a, arg2&& b)
 ////////////////////////////////////////////////////////////////////////////////
 // Projective expansions for 2dp:
 //
-// left_bulk_expand2dp(a,b) = wdg(bulk_dual(a), b)       (dual to left_weight_contract)
-// left_weight_expand2dp(a,b) = wdg(weight_dual(a), b)   (dual to left_bulk_contract)
+// left_bulk_expand2dp(a,b) = wdg(bulk_dual(a), b)       (dual to
+// left_weight_contract) left_weight_expand2dp(a,b) = wdg(weight_dual(a), b)   (dual
+// to left_bulk_contract)
 //
-// right_bulk_expand2dp(a,b) = wdg(a, bulk_dual(b))       (dual to right_weight_contract)
-// right_weight_expand2dp(a,b) = wdg(a, weight_dual(b))   (dual to right_bulk_contract)
+// right_bulk_expand2dp(a,b) = wdg(a, bulk_dual(b))       (dual to
+// right_weight_contract) right_weight_expand2dp(a,b) = wdg(a, weight_dual(b))   (dual
+// to right_bulk_contract)
 //
 // The expansion subtracts the antigrades of the objects.
 //

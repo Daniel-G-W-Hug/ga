@@ -246,6 +246,32 @@ constexpr MVec3dp<std::common_type_t<T, U>> wdg(MVec3dp<T> const& A, MVec3dp<U> 
                           c15);
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3dp<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar3dp<T>,
+                                                  [[maybe_unused]] PScalar3dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3dp<ctype>{0.0};
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3dp<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar3dp<T>,
+                                                  [[maybe_unused]] Vec3dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3dp<ctype>{0.0};
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3dp<std::common_type_t<T, U>> wdg([[maybe_unused]] Vec3dp<T>,
+                                                  [[maybe_unused]] PScalar3dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3dp<ctype>{0.0};
+}
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -595,6 +621,22 @@ constexpr Scalar3dp<std::common_type_t<T, U>> rwdg(Vec3dp<T> const& v,
 {
     return Scalar3dp<std::common_type_t<T, U>>(v.x * t.x + v.y * t.y + v.z * t.z +
                                                v.w * t.w);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3dp<std::common_type_t<T, U>> rwdg([[maybe_unused]] TriVec3dp<T> const&,
+                                                   [[maybe_unused]] Scalar3dp<U>)
+{
+    return Scalar3dp<std::common_type_t<T, U>>{0.0};
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3dp<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar3dp<T>,
+                                                   [[maybe_unused]] TriVec3dp<U> const&)
+{
+    return Scalar3dp<std::common_type_t<T, U>>{0.0};
 }
 
 

@@ -235,6 +235,9 @@ ProductConfig get_pga3dp_wdg_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             .cases = {{"mv ^ mv -> mv", "A", "B", "mv", "mv"},
+                      {"ps ^ ps -> 0", "svBtps1", "svBtps2", "ps", "ps"},
+                      {"ps ^ vec -> 0", "svBtps", "svBtps", "ps", "vec"},
+                      {"vec ^ ps -> 0", "svBtps", "svBtps", "vec", "ps"},
                       {"ps ^ s -> ps", "svBtps", "svBtps", "ps", "s"},
                       {"s ^ ps -> ps", "svBtps", "svBtps", "s", "ps"},
                       {"trivec ^ vec -> ps", "svBtps", "svBtps", "trivec", "vec"},
@@ -291,6 +294,8 @@ ProductConfig get_pga3dp_rwdg_config()
                   {"rwdg(bivec,trivec) -> vec", "svBtps", "svBtps", "bivec", "trivec"},
                   {"rwdg(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
                   {"rwdg(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
+                  {"rwdg(trivec,s) -> 0", "svBtps", "svBtps", "trivec", "s"},
+                  {"rwdg(s,trivec) -> 0", "svBtps", "svBtps", "s", "trivec"},
                   {"rwdg(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec", "bivec"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,

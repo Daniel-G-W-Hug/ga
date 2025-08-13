@@ -248,7 +248,10 @@ ProductConfig get_ega2d_rwdg_config()
                       {"rwdg(vec,ps) -> vec", "svps", "svps", "vec", "ps"},
                       {"rwdg(ps,s) -> s", "svps", "svps", "ps", "s"},
                       {"rwdg(s,ps) -> s", "svps", "svps", "s", "ps"},
-                      {"rwdg(vec,vec) -> s", "svps1", "svps2", "vec", "vec"}},
+                      {"rwdg(vec,vec) -> s", "svps1", "svps2", "vec", "vec"},
+                      {"rwdg(vec,s) -> 0", "svps", "svps", "vec", "s"},
+                      {"rwdg(s,vec) -> 0", "svps", "svps", "s", "vec"},
+                      {"rwdg(s,s) -> 0", "svps1", "svps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

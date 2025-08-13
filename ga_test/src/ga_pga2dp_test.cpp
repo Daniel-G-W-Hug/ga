@@ -1273,6 +1273,185 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(wdg_aB == gr3(mvab_sym));
     }
 
+    TEST_CASE("MVec2dp: geometric product - link to inner and outer products")
+    {
+        fmt::println("MVec2dp: geometric product - link to inner and outer products");
+        // vec2dp u{1.0, 2.0, 3.0};  // 3d vector from ega3d case
+        vec2dp u{1.0, 2.0, 1.0}; //     2d point in pga2dp
+
+        scalar2dp s{3};
+        // vec2dp v{-3.0, 2.5, -0.5}; // 3d vector from ega3d case
+        vec2dp v{-3.0, 2.5, 1.0}; //     2d point in pga2dp
+        bivec2dp B{2.5, 3.5, 1.5};
+        pscalar2dp ps{4.0};
+
+        // fmt::println("");
+        // fmt::println("u = {}", u);
+        // fmt::println("s = {}", s);
+        // fmt::println("v = {}", v);
+        // fmt::println("B = {}", B);
+        // fmt::println("ps = {}", ps);
+        // fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("scalar case: ");
+        CHECK(u * s == gr1((s >> u) + wdg(u, s)));
+        CHECK(u * s == gr1(rwdg(s, bulk_dual(u)) + wdg(u, s)));
+
+        // fmt::println("");
+        // fmt::println("u * s = {}", u * s);
+        // fmt::println("");
+        // fmt::println("(s >> u) = {}", (s >> u));
+        // fmt::println("wdg(u, s) = {}", wdg(u, s));
+        // fmt::println("(s >> u) + wdg(u, s) = {}", (s >> u) + wdg(u, s));
+        // fmt::println("gr1((s >> u) + wdg(u, s)) = {}", gr1((s >> u) + wdg(u, s)));
+        // fmt::println("");
+        // fmt::println("bulk_dual(u) = {}", bulk_dual(u));
+        // fmt::println("rwdg(s,bulk_dual(u))= {}", rwdg(s, bulk_dual(u)));
+        // fmt::println("wdg(u, s) = {}", wdg(u, s));
+        // fmt::println("rwdg(s,bulk_dual(u)) + wdg(u, s) = {}",
+        //              rwdg(s, bulk_dual(u)) + wdg(u, s));
+        // fmt::println("gr1(rwdg(s,bulk_dual(u)) + wdg(u, s)) = {}",
+        //              gr1(rwdg(s, bulk_dual(u)) + wdg(u, s)));
+        // fmt::println("");
+
+        CHECK(s * u == gr1((u << s) + wdg(s, u)));
+        CHECK(s * u == gr1(rwdg(bulk_dual(u), s) + wdg(s, u)));
+
+        // fmt::println("");
+        // fmt::println("s * u = {}", s * u);
+        // fmt::println("");
+        // fmt::println("(u << s) = {}", (u << s));
+        // fmt::println("wdg(s, u) = {}", wdg(s, u));
+        // fmt::println("(u << s) + wdg(s, u) = {}", (u << s) + wdg(s, u));
+        // fmt::println("gr1((u << s) + wdg(s, u)) = {}", gr1((u << s) + wdg(s, u)));
+        // fmt::println("");
+        // fmt::println("bulk_dual(u) = {}", bulk_dual(u));
+        // fmt::println("rwdg(bulk_dual(u), s)= {}", rwdg(bulk_dual(u), s));
+        // fmt::println("wdg(s, u) = {}", wdg(s, u));
+        // fmt::println("rwdg(lbulk_dual(u), s) + wdg(s, u) = {}",
+        //              rwdg(bulk_dual(u), s) + wdg(s, u));
+        // fmt::println("gr1(rwdg(bulk_dual(u), s) + wdg(s, u)) = {}",
+        //              gr1(rwdg(bulk_dual(u), s) + wdg(s, u)));
+        // fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("vector case: ");
+        CHECK(u * v == (v >> u) + wdg(u, v));
+        CHECK(u * v == rwdg(v, bulk_dual(u)) + wdg(u, v));
+
+        // fmt::println("");
+        // fmt::println("u * v = {}", u * v);
+        // fmt::println("");
+        // fmt::println("(v >> u) = {}", (v >> u));
+        // fmt::println("wdg(u, v) = {}", wdg(u, v));
+        // fmt::println("(v >> u) + wdg(u, v) = {}", (v >> u) + wdg(u, v));
+        // fmt::println("");
+        // fmt::println("bulk_dual(u) = {}", bulk_dual(u));
+        // fmt::println("rwdg(v,bulk_dual(u))= {}", rwdg(v, bulk_dual(u)));
+        // fmt::println("wdg(u, v) = {}", wdg(u, v));
+        // fmt::println("rwdg(v,bulk_dual(u)) + wdg(u, v) = {}",
+        //              rwdg(v, bulk_dual(u)) + wdg(u, v));
+        // fmt::println("");
+
+        CHECK(v * u == (u << v) + wdg(v, u));
+        CHECK(v * u == rwdg(bulk_dual(u), v) + wdg(v, u));
+
+        // fmt::println("");
+        // fmt::println("v * u = {}", v * u);
+        // fmt::println("");
+        // fmt::println("(u << v) = {}", (u << v));
+        // fmt::println("wdg(v, u) = {}", wdg(v, u));
+        // fmt::println("(u << v) + wdg(v, u) = {}", (u << v) + wdg(v, u));
+        // fmt::println("");
+        // fmt::println("bulk_dual(u) = {}", bulk_dual(u));
+        // fmt::println("rwdg(bulk_dual(u), v)= {}", rwdg(bulk_dual(u), v));
+        // fmt::println("wdg(v, u) = {}", wdg(v, u));
+        // fmt::println("rwdg(bulk_dual(u), v) + wdg(v, u) = {}",
+        //              rwdg(bulk_dual(u), v) + wdg(v, u));
+        // fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("bivector case: ");
+        CHECK(u * B == (B >> u) + wdg(u, B));
+        CHECK(u * B == rwdg(B, bulk_dual(u)) + wdg(u, B));
+
+        // fmt::println("");
+        // fmt::println("u * B = {}", u * B);
+        // fmt::println("");
+        // fmt::println("(B >> u) = {}", (B >> u));
+        // fmt::println("wdg(u, B) = {}", wdg(u, B));
+        // fmt::println("(B >> u) + wdg(u, B) = {}", (B >> u) + wdg(u, B));
+        // fmt::println("");
+        // fmt::println("bulk_dual(u) = {}", bulk_dual(u));
+        // fmt::println("rwdg(B,bulk_dual(u))= {}", rwdg(B, bulk_dual(u)));
+        // fmt::println("wdg(u, B) = {}", wdg(u, B));
+        // fmt::println("rwdg(B,bulk_dual(u)) + wdg(u, B) = {}",
+        //              rwdg(B, bulk_dual(u)) + wdg(u, B));
+        // fmt::println("");
+
+        CHECK(B * u == (u << B) + wdg(B, u));
+        CHECK(B * u == rwdg(bulk_dual(u), B) + wdg(B, u));
+
+        // fmt::println("");
+        // fmt::println("B * u = {}", B * u);
+        // fmt::println("");
+        // fmt::println("(u << B) = {}", (u << B));
+        // fmt::println("wdg(B, u) = {}", wdg(B, u));
+        // fmt::println("(u << B) + wdg(B, u) = {}", (u << B) + wdg(B, u));
+        // fmt::println("");
+        // fmt::println("bulk_dual(u) = {}", bulk_dual(u));
+        // fmt::println("rwdg(bulk_dual(u), B)= {}", rwdg(bulk_dual(u), B));
+        // fmt::println("wdg(B, u) = {}", wdg(B, u));
+        // fmt::println("rwdg(bulk_dual(u), B) + wdg(B, u) = {}",
+        //              rwdg(bulk_dual(u), B) + wdg(B, u));
+        // fmt::println("");
+
+        // fmt::println("");
+        // fmt::println("pscalar case: ");
+        CHECK(u * ps == gr2((ps >> u) + wdg(u, ps)));
+        CHECK(u * ps == gr2(rwdg(ps, bulk_dual(u)) + wdg(u, ps)));
+
+        // fmt::println("");
+        // fmt::println("u * ps = {}", u * ps);
+        // fmt::println("");
+        // fmt::println("(ps >> u) = {}", (ps >> u));
+        // fmt::println("wdg(u, ps) = {}", wdg(u, ps));
+        // fmt::println("(ps >> u) + wdg(u, ps) = {}", (ps >> u) + wdg(u, ps));
+        // fmt::println("gr2((ps >> u) + wdg(u, ps)) = {}", gr2((ps >> u) + wdg(u, ps)));
+        // fmt::println("");
+        // fmt::println("bulk_dual(u) = {}", bulk_dual(u));
+        // fmt::println("rwdg(ps,bulk_dual(u))= {}", rwdg(ps, bulk_dual(u)));
+        // fmt::println("wdg(u, ps) = {}", wdg(u, ps));
+        // fmt::println("rwdg(ps,bulk_dual(u)) + wdg(u, ps) = {}",
+        //              rwdg(ps, bulk_dual(u)) + wdg(u, ps));
+        // fmt::println("gr2(rwdg(ps,bulk_dual(u)) + wdg(u, ps)) = {}",
+        //              gr2(rwdg(ps, bulk_dual(u)) + wdg(u, ps)));
+        // fmt::println("");
+
+        CHECK(ps * u == gr2((u << ps) + wdg(ps, u)));
+        CHECK(ps * u == gr2(rwdg(bulk_dual(u), ps) + wdg(ps, u)));
+
+        // fmt::println("");
+        // fmt::println("ps * u = {}", ps * u);
+        // fmt::println("");
+        // fmt::println("(u << ps) = {}", (u << ps));
+        // fmt::println("wdg(ps, u) = {}", wdg(ps, u));
+        // fmt::println("(u << ps) + wdg(ps, u) = {}", (u << ps) + wdg(ps, u));
+        // fmt::println("gr2((u << ps) + wdg(ps, u)) = {}", gr2((u << ps) + wdg(ps, u)));
+        // fmt::println("");
+        // fmt::println("bulk_dual(u) = {}", bulk_dual(u));
+        // fmt::println("rwdg(bulk_dual(u), ps)= {}", rwdg(bulk_dual(u), ps));
+        // fmt::println("wdg(ps, u) = {}", wdg(ps, u));
+        // fmt::println("rwdg(bulk_dual(u), ps) + wdg(ps, u) = {}",
+        //              rwdg(bulk_dual(u), ps) + wdg(ps, u));
+        // fmt::println("gr2(rwdg(bulk_dual(u), ps) + wdg(ps, u)) = {}",
+        //              gr2(rwdg(bulk_dual(u), ps) + wdg(ps, u)));
+        // fmt::println("");
+
+        // fmt::println("");
+    }
+
     TEST_CASE("MVec2dp: geometric product tests - equivalence tests")
     {
         fmt::println("MVec2dp: geometric product tests - equivalence tests");
@@ -2512,7 +2691,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(is_congruent2dp(p1, p_zero) == false);    // zero vs non-zero
         CHECK(is_congruent2dp(p_zero, p_zero) == true); // zero vs zero
 
-        fmt::println("   All PGA2DP congruence tests passed");
+        // fmt::println("   All PGA2DP congruence tests passed");
     }
 
 } // PGA 2DP Tests

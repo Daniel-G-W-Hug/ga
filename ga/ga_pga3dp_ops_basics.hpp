@@ -549,6 +549,14 @@ constexpr MVec3dp<T> lcmpl(MVec3dp<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // bulk: u_bulk = G u (with G as the metric)
 ////////////////////////////////////////////////////////////////////////////////
+// By the multiplication with the metric G (which is degenerate in this case)
+// the bulk selects the components of the blade argument which dot NOT contain e4.
+//
+// => bulk():
+//    - does not contain a factor of e3 (the basis component with e4*e4 = 0)
+//    - contains positional information about u
+//    - zero bulk means that u contains the origin (e4)
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
     requires(std::floating_point<T>)
@@ -611,6 +619,14 @@ constexpr MVec3dp<T> bulk(MVec3dp<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // weight: u_weight = lcmpl( G rcmpl(u) ) = rG u
 //         (with G as the metric and rG as the anti-metric as given by Lengyel)
+////////////////////////////////////////////////////////////////////////////////
+// By the multiplication with the metric G (which is degenerate in this case)
+// the weight selects the components of the blade argument which do contain e3.
+//
+// => weight():
+//    - does contain a factor of e4 (the basis component with e4*e4 = 0)
+//    - contains directional information about u
+//    - zero weight means that u is contained in the horizon = rcmpl(e4) = e321_3dp
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
