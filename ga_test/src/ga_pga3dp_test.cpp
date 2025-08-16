@@ -53,10 +53,10 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("Vec3dp: default init");
         vec3dp v;
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.x) < eps);
-        CHECK(std::abs(v.y) < eps);
-        CHECK(std::abs(v.z) < eps);
-        CHECK(std::abs(v.w) < eps);
+        CHECK(abs(v.x) < eps);
+        CHECK(abs(v.y) < eps);
+        CHECK(abs(v.z) < eps);
+        CHECK(abs(v.w) < eps);
     }
 
     TEST_CASE("Vec3dp: with curly braced intializer")
@@ -64,10 +64,10 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("Vec3dp: with curly braced intializer");
         vec3dp v{0.0, 0.0, 0.0, 0.0};
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.x) < eps);
-        CHECK(std::abs(v.y) < eps);
-        CHECK(std::abs(v.z) < eps);
-        CHECK(std::abs(v.w) < eps);
+        CHECK(abs(v.x) < eps);
+        CHECK(abs(v.y) < eps);
+        CHECK(abs(v.z) < eps);
+        CHECK(abs(v.w) < eps);
     }
 
     TEST_CASE("Vec3dp: cp ctor & cp assign incl. type deduction")
@@ -83,18 +83,18 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(std::abs(v1.x - 1.0) < eps);
-        CHECK(std::abs(v1.y - 2.0) < eps);
-        CHECK(std::abs(v1.z - 3.0) < eps);
-        CHECK(std::abs(v1.w - 1.0) < eps);
-        CHECK(std::abs(v2.x - 1.0) < eps);
-        CHECK(std::abs(v2.y - 2.0) < eps);
-        CHECK(std::abs(v2.z - 3.0) < eps);
-        CHECK(std::abs(v2.w - 1.0) < eps);
-        CHECK(std::abs(v3.x - 1.0) < eps);
-        CHECK(std::abs(v3.y - 2.0) < eps);
-        CHECK(std::abs(v3.z - 3.0) < eps);
-        CHECK(std::abs(v3.w - 1.0) < eps);
+        CHECK(abs(v1.x - 1.0) < eps);
+        CHECK(abs(v1.y - 2.0) < eps);
+        CHECK(abs(v1.z - 3.0) < eps);
+        CHECK(abs(v1.w - 1.0) < eps);
+        CHECK(abs(v2.x - 1.0) < eps);
+        CHECK(abs(v2.y - 2.0) < eps);
+        CHECK(abs(v2.z - 3.0) < eps);
+        CHECK(abs(v2.w - 1.0) < eps);
+        CHECK(abs(v3.x - 1.0) < eps);
+        CHECK(abs(v3.y - 2.0) < eps);
+        CHECK(abs(v3.z - 3.0) < eps);
+        CHECK(abs(v3.w - 1.0) < eps);
         CHECK(v4 == -v2);
 
         // check direct assignment operators (sequence of tests decisive!)
@@ -292,42 +292,42 @@ TEST_SUITE("PGA 3DP Tests")
         // v3m)); fmt::println("0.5*(v3m*v4m - v4m*v3m) = {}", 0.5 * (v3m * v4m - v4m
         // * v3m));
 
-        CHECK(std::abs(nrm_sq(v1) - 13) < eps);
-        CHECK(std::abs(bulk_nrm_sq(v1) - 9) < eps);
-        CHECK(std::abs(weight_nrm_sq(v1) - 4) < eps);
+        CHECK(abs(nrm_sq(v1) - 13) < eps);
+        CHECK(abs(bulk_nrm_sq(v1) - 9) < eps);
+        CHECK(abs(weight_nrm_sq(v1) - 4) < eps);
 
-        CHECK(std::abs(nrm_sq(v1n) - 1) < eps);
-        CHECK(std::abs(weight_nrm_sq(v1u) - 1) < eps);
+        CHECK(abs(nrm_sq(v1n) - 1) < eps);
+        CHECK(abs(weight_nrm_sq(v1u) - 1) < eps);
 
-        CHECK(std::abs(bulk_nrm_sq(v3) - 56) < eps);
-        CHECK(std::abs(nrm(v4 * v3) - 1.0) < eps);
-        CHECK(std::abs(dot(v4, v3) - 1.0) < eps);
-        CHECK(std::abs(nrm(wdg(v4, v3))) < eps);
+        CHECK(abs(bulk_nrm_sq(v3) - 56) < eps);
+        CHECK(abs(nrm(v4 * v3) - 1.0) < eps);
+        CHECK(abs(dot(v4, v3) - 1.0) < eps);
+        CHECK(abs(nrm(wdg(v4, v3))) < eps);
 
         // check inverses - scalar
         // fmt::println("");
         // fmt::println("s1 * inv(s1) = {}", s1 * inv(s1)); // s
-        CHECK(std::abs(nrm(s1 * inv(s1)) - 1) < eps);
-        CHECK(std::abs(inv(s1) - rev(s1) / bulk_nrm_sq(s1)) < eps);
+        CHECK(abs(nrm(s1 * inv(s1)) - 1) < eps);
+        CHECK(abs(inv(s1) - rev(s1) / value_t(bulk_nrm_sq(s1))) < eps);
 
         // check inverses - vector
         // fmt::println("v1 * inv(v1) = {}", v1 * inv(v1)); // mv_e
-        CHECK(std::abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr4(v1 * inv(v1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(v1) - rev(v1) / value_t(bulk_nrm_sq(v1)))) < eps);
+        CHECK(abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
+        CHECK(abs(nrm(gr4(v1 * inv(v1))) - 0) < eps);
+        CHECK(abs(nrm(inv(v1) - rev(v1) / value_t(bulk_nrm_sq(v1)))) < eps);
 
         // check inverses - bivector
         // fmt::println("b1 * inv(b1) = {}", b1 * inv(b1)); // mv_e
-        CHECK(std::abs(nrm(gr0(b1 * inv(b1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(b1 * inv(b1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr4(b1 * inv(b1))) - 0) < eps);
+        CHECK(abs(nrm(gr0(b1 * inv(b1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(b1 * inv(b1))) - 0) < eps);
+        CHECK(abs(nrm(gr4(b1 * inv(b1))) - 0) < eps);
 
         // check inverses - trivector
         // fmt::println("t1 * inv(t1) = {}", t1 * inv(t1)); // mv_e
-        CHECK(std::abs(nrm(gr0(t1 * inv(t1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(t1 * inv(t1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr4(t1 * inv(t1))) - 0) < eps);
+        CHECK(abs(nrm(gr0(t1 * inv(t1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(t1 * inv(t1))) - 0) < eps);
+        CHECK(abs(nrm(gr4(t1 * inv(t1))) - 0) < eps);
 
 
         // check inverses - pseudoscalar
@@ -335,24 +335,24 @@ TEST_SUITE("PGA 3DP Tests")
 
         // check inverses - even grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
-        CHECK(std::abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr4(mve1 * inv(mve1))) - 0) < eps);
+        CHECK(abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
+        CHECK(abs(nrm(gr4(mve1 * inv(mve1))) - 0) < eps);
 
         // check inverses - odd grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
-        CHECK(std::abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr4(mvu1 * inv(mvu1))) - 0) < eps);
+        CHECK(abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
+        CHECK(abs(nrm(gr4(mvu1 * inv(mvu1))) - 0) < eps);
 
         // check inverses - multivector
         // fmt::println("mv1 * inv(mv1) = {}", mv1 * inv(mv1)); // mv
-        CHECK(std::abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr3(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr4(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
+        CHECK(abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
+        CHECK(abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr3(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr4(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
                                                              // are equal
         // fmt::println("");
     }
@@ -370,7 +370,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto v2 = vec3dp{3.0, -2.0, 2.0, 5.0};
         auto B2 = bivec3dp{1.0, -2.0, 3.0, -10.0, -20.0, 30.0};
 
-        CHECK(right_bulk_dual(s) == pscalar3dp{s});
+        CHECK(value_t(right_bulk_dual(s)) == value_t(s));
         CHECK(right_weight_dual(s) == pscalar3dp{0.0});
 
         CHECK(right_bulk_dual(v) == trivec3dp{1.0, 2.0, 1.0, 0.0});
@@ -383,7 +383,7 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(right_weight_dual(t) == vec3dp{-3.0, -6.0, -3.0, 0.0});
 
         CHECK(right_bulk_dual(ps) == scalar3dp{0.0});
-        CHECK(right_weight_dual(ps) == scalar3dp{ps});
+        CHECK(value_t(right_weight_dual(ps)) == value_t(ps));
 
         // duality of wdg and rwdg based on complements
         CHECK(right_bulk_dual(wdg(v, v2)) ==
@@ -469,11 +469,11 @@ TEST_SUITE("PGA 3DP Tests")
         //              "angle(v1,v8) = {:.8f}, {:.8f} ",
         //              v8, nrm(v8), angle(v1, v8), angle(v1, v8) / pi);
 
-        CHECK(std::abs(angle(v1, v1) - 0.0) < eps);
-        CHECK(std::abs(angle(v1, v2) - pi * 0.25) < eps);
-        CHECK(std::abs(angle(v1, v3) - pi * 0.5) < eps);
-        CHECK(std::abs(angle(v1, v4) - pi * 0.75) < eps);
-        CHECK(std::abs(angle(v1, v5) - pi) < eps);
+        CHECK(abs(angle(v1, v1) - 0.0) < eps);
+        CHECK(abs(angle(v1, v2) - pi * 0.25) < eps);
+        CHECK(abs(angle(v1, v3) - pi * 0.5) < eps);
+        CHECK(abs(angle(v1, v4) - pi * 0.75) < eps);
+        CHECK(abs(angle(v1, v5) - pi) < eps);
 
         // just to suppress unused variable warnings
         CHECK(v6 == normalize(vec3dp(-1.0, -1.0, 0.0, 0.0)));
@@ -524,14 +524,14 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("");
 
         for (auto const& [phi, c] : v1) {
-            CHECK(std::abs(phi - angle(e1_3dp, c)) < eps);
+            CHECK(abs(phi - angle(e1_3dp, c)) < eps);
         }
         for (auto const& [phi, c] : v2) {
-            CHECK(std::abs(phi - angle(e2_3dp, c)) < eps);
+            CHECK(abs(phi - angle(e2_3dp, c)) < eps);
         }
         auto ref_vec = normalize(e1_3dp + e2_3dp);
         for (auto const& [phi, c] : v3) {
-            CHECK(std::abs(phi - angle(ref_vec, c)) < eps);
+            CHECK(abs(phi - angle(ref_vec, c)) < eps);
         }
     }
 
@@ -590,14 +590,14 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
         CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
 
-        CHECK(std::abs(bulk_nrm(wdg(v1, v1)) - sin(angle(v1, v1))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v2)) - sin(angle(v1, v2))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v3)) - sin(angle(v1, v3))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v4)) - sin(angle(v1, v4))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v5)) - sin(angle(v1, v5))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v6)) - sin(angle(v1, v6))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v7)) - sin(angle(v1, v7))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v8)) - sin(angle(v1, v8))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v1)) - sin(angle(v1, v1))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v2)) - sin(angle(v1, v2))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v3)) - sin(angle(v1, v3))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v4)) - sin(angle(v1, v4))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v5)) - sin(angle(v1, v5))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v6)) - sin(angle(v1, v6))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v7)) - sin(angle(v1, v7))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v8)) - sin(angle(v1, v8))) < eps);
     }
 
     TEST_CASE("Vec3dp: operations - project / reject / reflect")
@@ -779,22 +779,22 @@ TEST_SUITE("PGA 3DP Tests")
         // default initialization
         mvec3dp v;
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.c0) < eps);
-        CHECK(std::abs(v.c1) < eps);
-        CHECK(std::abs(v.c2) < eps);
-        CHECK(std::abs(v.c3) < eps);
-        CHECK(std::abs(v.c4) < eps);
-        CHECK(std::abs(v.c5) < eps);
-        CHECK(std::abs(v.c6) < eps);
-        CHECK(std::abs(v.c7) < eps);
-        CHECK(std::abs(v.c8) < eps);
-        CHECK(std::abs(v.c9) < eps);
-        CHECK(std::abs(v.c10) < eps);
-        CHECK(std::abs(v.c11) < eps);
-        CHECK(std::abs(v.c12) < eps);
-        CHECK(std::abs(v.c13) < eps);
-        CHECK(std::abs(v.c14) < eps);
-        CHECK(std::abs(v.c15) < eps);
+        CHECK(abs(v.c0) < eps);
+        CHECK(abs(v.c1) < eps);
+        CHECK(abs(v.c2) < eps);
+        CHECK(abs(v.c3) < eps);
+        CHECK(abs(v.c4) < eps);
+        CHECK(abs(v.c5) < eps);
+        CHECK(abs(v.c6) < eps);
+        CHECK(abs(v.c7) < eps);
+        CHECK(abs(v.c8) < eps);
+        CHECK(abs(v.c9) < eps);
+        CHECK(abs(v.c10) < eps);
+        CHECK(abs(v.c11) < eps);
+        CHECK(abs(v.c12) < eps);
+        CHECK(abs(v.c13) < eps);
+        CHECK(abs(v.c14) < eps);
+        CHECK(abs(v.c15) < eps);
     }
     TEST_CASE("MVec3dp: with curly braced intializer")
     {
@@ -803,22 +803,22 @@ TEST_SUITE("PGA 3DP Tests")
         mvec3dp v{0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0,
                   0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0};
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.c0 - 0.0) < eps);
-        CHECK(std::abs(v.c1 - 1.0) < eps);
-        CHECK(std::abs(v.c2 - 2.0) < eps);
-        CHECK(std::abs(v.c3 - 3.0) < eps);
-        CHECK(std::abs(v.c4 - 23.0) < eps);
-        CHECK(std::abs(v.c5 - 31.0) < eps);
-        CHECK(std::abs(v.c6 - 12.0) < eps);
-        CHECK(std::abs(v.c7 - 123.0) < eps);
-        CHECK(std::abs(v.c8 - 0.0) < eps);
-        CHECK(std::abs(v.c9 - 1.0) < eps);
-        CHECK(std::abs(v.c10 - 2.0) < eps);
-        CHECK(std::abs(v.c11 - 3.0) < eps);
-        CHECK(std::abs(v.c12 - 23.0) < eps);
-        CHECK(std::abs(v.c13 - 31.0) < eps);
-        CHECK(std::abs(v.c14 - 12.0) < eps);
-        CHECK(std::abs(v.c15 - 123.0) < eps);
+        CHECK(abs(v.c0 - 0.0) < eps);
+        CHECK(abs(v.c1 - 1.0) < eps);
+        CHECK(abs(v.c2 - 2.0) < eps);
+        CHECK(abs(v.c3 - 3.0) < eps);
+        CHECK(abs(v.c4 - 23.0) < eps);
+        CHECK(abs(v.c5 - 31.0) < eps);
+        CHECK(abs(v.c6 - 12.0) < eps);
+        CHECK(abs(v.c7 - 123.0) < eps);
+        CHECK(abs(v.c8 - 0.0) < eps);
+        CHECK(abs(v.c9 - 1.0) < eps);
+        CHECK(abs(v.c10 - 2.0) < eps);
+        CHECK(abs(v.c11 - 3.0) < eps);
+        CHECK(abs(v.c12 - 23.0) < eps);
+        CHECK(abs(v.c13 - 31.0) < eps);
+        CHECK(abs(v.c14 - 12.0) < eps);
+        CHECK(abs(v.c15 - 123.0) < eps);
     }
 
     TEST_CASE("MVec3dp: cp ctor & cp assign incl. type deduction")
@@ -838,39 +838,39 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(std::abs(v2.c0 - 0.0) < eps);
-        CHECK(std::abs(v2.c1 - 1.0) < eps);
-        CHECK(std::abs(v2.c2 - 2.0) < eps);
-        CHECK(std::abs(v2.c3 - 3.0) < eps);
-        CHECK(std::abs(v2.c4 - 23.0) < eps);
-        CHECK(std::abs(v2.c5 - 31.0) < eps);
-        CHECK(std::abs(v2.c6 - 12.0) < eps);
-        CHECK(std::abs(v2.c7 - 123.0) < eps);
-        CHECK(std::abs(v2.c8 - 0.0) < eps);
-        CHECK(std::abs(v2.c9 - 1.0) < eps);
-        CHECK(std::abs(v2.c10 - 2.0) < eps);
-        CHECK(std::abs(v2.c11 - 3.0) < eps);
-        CHECK(std::abs(v2.c12 - 23.0) < eps);
-        CHECK(std::abs(v2.c13 - 31.0) < eps);
-        CHECK(std::abs(v2.c14 - 12.0) < eps);
-        CHECK(std::abs(v2.c15 - 123.0) < eps);
+        CHECK(abs(v2.c0 - 0.0) < eps);
+        CHECK(abs(v2.c1 - 1.0) < eps);
+        CHECK(abs(v2.c2 - 2.0) < eps);
+        CHECK(abs(v2.c3 - 3.0) < eps);
+        CHECK(abs(v2.c4 - 23.0) < eps);
+        CHECK(abs(v2.c5 - 31.0) < eps);
+        CHECK(abs(v2.c6 - 12.0) < eps);
+        CHECK(abs(v2.c7 - 123.0) < eps);
+        CHECK(abs(v2.c8 - 0.0) < eps);
+        CHECK(abs(v2.c9 - 1.0) < eps);
+        CHECK(abs(v2.c10 - 2.0) < eps);
+        CHECK(abs(v2.c11 - 3.0) < eps);
+        CHECK(abs(v2.c12 - 23.0) < eps);
+        CHECK(abs(v2.c13 - 31.0) < eps);
+        CHECK(abs(v2.c14 - 12.0) < eps);
+        CHECK(abs(v2.c15 - 123.0) < eps);
 
-        CHECK(std::abs(v3.c0 - 0.0) < eps);
-        CHECK(std::abs(v3.c1 - 1.0) < eps);
-        CHECK(std::abs(v3.c2 - 2.0) < eps);
-        CHECK(std::abs(v3.c3 - 3.0) < eps);
-        CHECK(std::abs(v3.c4 - 23.0) < eps);
-        CHECK(std::abs(v3.c5 - 31.0) < eps);
-        CHECK(std::abs(v3.c6 - 12.0) < eps);
-        CHECK(std::abs(v3.c7 - 123.0) < eps);
-        CHECK(std::abs(v3.c8 - 0.0) < eps);
-        CHECK(std::abs(v3.c9 - 1.0) < eps);
-        CHECK(std::abs(v3.c10 - 2.0) < eps);
-        CHECK(std::abs(v3.c11 - 3.0) < eps);
-        CHECK(std::abs(v3.c12 - 23.0) < eps);
-        CHECK(std::abs(v3.c13 - 31.0) < eps);
-        CHECK(std::abs(v3.c14 - 12.0) < eps);
-        CHECK(std::abs(v3.c15 - 123.0) < eps);
+        CHECK(abs(v3.c0 - 0.0) < eps);
+        CHECK(abs(v3.c1 - 1.0) < eps);
+        CHECK(abs(v3.c2 - 2.0) < eps);
+        CHECK(abs(v3.c3 - 3.0) < eps);
+        CHECK(abs(v3.c4 - 23.0) < eps);
+        CHECK(abs(v3.c5 - 31.0) < eps);
+        CHECK(abs(v3.c6 - 12.0) < eps);
+        CHECK(abs(v3.c7 - 123.0) < eps);
+        CHECK(abs(v3.c8 - 0.0) < eps);
+        CHECK(abs(v3.c9 - 1.0) < eps);
+        CHECK(abs(v3.c10 - 2.0) < eps);
+        CHECK(abs(v3.c11 - 3.0) < eps);
+        CHECK(abs(v3.c12 - 23.0) < eps);
+        CHECK(abs(v3.c13 - 31.0) < eps);
+        CHECK(abs(v3.c14 - 12.0) < eps);
+        CHECK(abs(v3.c15 - 123.0) < eps);
 
         CHECK(v4 == -v3);
 
@@ -1760,19 +1760,19 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(unitize(gr1(Ab)) == unitize(gr1(Abd)));
         CHECK(gr2(Abd) == bivec3dp{});
         CHECK(gr3(Ab) == gr3(Abd));
-        CHECK(gr4(Abd) == scalar3dp{});
+        CHECK(gr4(Abd) == pscalar3dp{});
 
         CHECK(gr0(aBm) == 0);
         CHECK(unitize(gr1(aB)) == unitize(gr1(aBm)));
         CHECK(gr2(aBm) == bivec3dp{});
         CHECK(gr3(aB) == gr3(aBm));
-        CHECK(gr4(aBm) == scalar3dp{});
+        CHECK(gr4(aBm) == pscalar3dp{});
 
         CHECK(gr0(aBd) == 0);
         CHECK(unitize(gr1(aB)) == unitize(gr1(aBd)));
         CHECK(gr2(aBd) == bivec3dp{});
         CHECK(gr3(aB) == gr3(aBd));
-        CHECK(gr4(aBd) == scalar3dp{});
+        CHECK(gr4(aBd) == pscalar3dp{});
     }
 
     TEST_CASE("MVec3dp: assignment tests")
@@ -1962,7 +1962,7 @@ TEST_SUITE("PGA 3DP Tests")
             //              gr4(rgpr(motor, rrev(motor))));
             // fmt::println("");
 
-            // CHECK(std::abs(double(gr4(rgpr(motor, rrev(motor))) - I_3dp)) < eps);
+            // CHECK(abs(double(gr4(rgpr(motor, rrev(motor))) - I_3dp)) < eps);
             // CHECK(rrev(motor) == inv(motor));
         }
 
@@ -2431,7 +2431,7 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(rcmpl(e431_3dp) == -e2_3dp);
         CHECK(rcmpl(e412_3dp) == -e3_3dp);
         CHECK(rcmpl(e321_3dp) == -e4_3dp);
-        CHECK(rcmpl(I_3dp) == scalar2d(1.0));
+        CHECK(rcmpl(I_3dp) == scalar3dp(1.0));
 
         CHECK(lcmpl(scalar3dp(1.0)) == I_3dp);
         CHECK(lcmpl(e1_3dp) == -e423_3dp);
@@ -2448,7 +2448,7 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(lcmpl(e431_3dp) == e2_3dp);
         CHECK(lcmpl(e412_3dp) == e3_3dp);
         CHECK(lcmpl(e321_3dp) == e4_3dp);
-        CHECK(lcmpl(I_3dp) == scalar2d(1.0));
+        CHECK(lcmpl(I_3dp) == scalar3dp(1.0));
 
 
         // complements are defined for basis elements only
@@ -2874,7 +2874,7 @@ TEST_SUITE("PGA 3DP Tests")
 
         auto ln7p = unitize(ortho_proj3dp(ln07, pl));
         CHECK(ln7p == unitize(ln06));
-        CHECK(std::abs(phi - pi / 2) < eps);
+        CHECK(abs(phi - pi / 2) < eps);
         CHECK(apl07 == apl70);
         CHECK(a21 == a12);
         CHECK(a29 == a92);

@@ -1033,7 +1033,7 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> cmt(PScalar2d<T> ps, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(ps * v.y, -ps * v.x);
+    return Vec2d<ctype>(ctype(ps) * v.y, -ctype(ps) * v.x);
 }
 
 // cmt(v,B) = -cmt(B,v)
@@ -1043,7 +1043,7 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> cmt(Vec2d<T> const& v, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-v.y * ps, v.x * ps);
+    return Vec2d<ctype>(-v.y * ctype(ps), v.x * ctype(ps));
 }
 
 template <typename T, typename U>
@@ -1406,7 +1406,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec2d<T> inv(MVec2d<T> const& M)
 {
-    T m_conjm = gr0(M * conj(M));
+    T m_conjm = T(gr0(M * conj(M)));
     hd::ga::detail::check_normalization<T>(std::abs(m_conjm), "multivector");
     T inv = T(1.0) / m_conjm; // inverse of squared norm for a vector
     return MVec2d<T>(conj(M) * inv);

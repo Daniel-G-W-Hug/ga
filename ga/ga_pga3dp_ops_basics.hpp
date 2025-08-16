@@ -706,7 +706,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar3dp<T> bulk_nrm(Scalar3dp<T> s)
 {
-    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(s)));
+    return Scalar3dp<T>(sqrt(bulk_nrm_sq(s)));
 }
 
 // return squared bulk norm of vector
@@ -725,7 +725,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar3dp<T> bulk_nrm(Vec3dp<T> const& v)
 {
-    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(v)));
+    return Scalar3dp<T>(sqrt(bulk_nrm_sq(v)));
 }
 
 // return squared bulk magnitude of bivector
@@ -744,7 +744,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar3dp<T> bulk_nrm(BiVec3dp<T> const& B)
 {
-    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(B)));
+    return Scalar3dp<T>(sqrt(bulk_nrm_sq(B)));
 }
 
 // return squared bulk norm of trivector
@@ -762,7 +762,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar3dp<T> bulk_nrm(TriVec3dp<T> const& t)
 {
-    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(t)));
+    return Scalar3dp<T>(sqrt(bulk_nrm_sq(t)));
 }
 
 template <typename T>
@@ -790,7 +790,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar3dp<T> bulk_nrm(MVec3dp_E<T> const& M)
 {
-    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(M)));
+    return Scalar3dp<T>(sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
@@ -804,7 +804,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar3dp<T> bulk_nrm(MVec3dp_U<T> const& M)
 {
-    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(M)));
+    return Scalar3dp<T>(sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
@@ -819,7 +819,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar3dp<T> bulk_nrm(MVec3dp<T> const& M)
 {
-    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(M)));
+    return Scalar3dp<T>(sqrt(bulk_nrm_sq(M)));
 }
 
 
@@ -855,7 +855,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar3dp<T> weight_nrm(Vec3dp<T> const& v)
 {
-    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(v)));
+    return PScalar3dp<T>(sqrt(weight_nrm_sq(v)));
 }
 
 // return squared weight norm of bivector
@@ -873,7 +873,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar3dp<T> weight_nrm(BiVec3dp<T> const& B)
 {
-    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(B)));
+    return PScalar3dp<T>(sqrt(weight_nrm_sq(B)));
 }
 
 // return squared weight norm of trivector
@@ -891,7 +891,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar3dp<T> weight_nrm(TriVec3dp<T> const& t)
 {
-    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(t)));
+    return PScalar3dp<T>(sqrt(weight_nrm_sq(t)));
 }
 
 // return squared weight norm of pseudoscalar
@@ -908,7 +908,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar3dp<T> weight_nrm(PScalar3dp<T> ps)
 {
-    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(ps)));
+    return PScalar3dp<T>(sqrt(weight_nrm_sq(ps)));
 }
 
 template <typename T>
@@ -923,7 +923,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar3dp<T> weight_nrm(MVec3dp_E<T> const& M)
 {
-    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(M)));
+    return PScalar3dp<T>(sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
@@ -937,7 +937,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar3dp<T> weight_nrm(MVec3dp_U<T> const& M)
 {
-    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(M)));
+    return PScalar3dp<T>(sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
@@ -953,7 +953,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar3dp<T> weight_nrm(MVec3dp<T> const& M)
 {
-    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(M)));
+    return PScalar3dp<T>(sqrt(weight_nrm_sq(M)));
 }
 
 
@@ -1120,7 +1120,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline BiVec3dp<T> unitize(BiVec3dp<T> const& B)
 {
-    T n = weight_nrm(B);
+    T n = T(weight_nrm(B));
     hd::ga::detail::check_unitization<T>(n, "bivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * B;
@@ -1131,7 +1131,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline TriVec3dp<T> unitize(TriVec3dp<T> const& t)
 {
-    T n = weight_nrm(t);
+    T n = T(weight_nrm(t));
     hd::ga::detail::check_unitization<T>(n, "trivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * t;
@@ -1142,7 +1142,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec3dp_E<T> unitize(MVec3dp_E<T> const& M)
 {
-    T n = weight_nrm(M);
+    T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "even grade multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
@@ -1153,7 +1153,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec3dp_U<T> unitize(MVec3dp_U<T> const& M)
 {
-    T n = weight_nrm(M);
+    T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "odd grade multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
@@ -1164,7 +1164,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec3dp<T> unitize(MVec3dp<T> const& M)
 {
-    T n = weight_nrm(M);
+    T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
@@ -1184,8 +1184,8 @@ template <typename T>
 inline Line3d<T> unitize(Line3d<T> const& l)
 {
     // unitization for a 3d bivector means a normalized direction vector
-    // std::sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
-    T wn = weight_nrm(l);
+    // sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
+    T wn = T(weight_nrm(l));
     hd::ga::detail::check_unitization<T>(wn, "Line3d");
     T inv = T(1.0) / wn;
     return Line3d<T>(l.vx * inv, l.vy * inv, l.vz * inv, l.mx * inv, l.my * inv,
@@ -1196,7 +1196,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline Plane3d<T> unitize(Plane3d<T> const& p)
 {
-    T wn = weight_nrm(p);
+    T wn = T(weight_nrm(p));
     hd::ga::detail::check_unitization<T>(wn, "Plane3d");
     T inv = T(1.0) / wn;
     return Plane3d<T>(p.x * inv, p.y * inv, p.z * inv, p.w * inv);

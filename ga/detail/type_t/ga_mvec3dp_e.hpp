@@ -159,7 +159,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(Scalar3dp<T> s,
                                                         MVec3dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(s + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
+    return MVec3dp_E<ctype>(T(s) + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
 }
 
 // even grade multivector + scalar => even grade multivector
@@ -169,7 +169,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
                                                         Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(s + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
+    return MVec3dp_E<ctype>(U(s) + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
 }
 
 // bivector + even grade mulivector => even grade multivector
@@ -201,7 +201,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps,
                                                         MVec3dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, ps + M.c7);
+    return MVec3dp_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, T(ps) + M.c7);
 }
 
 // even grade multivector + pseudoscalar => even grade multivector
@@ -211,7 +211,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
                                                         PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, ps + M.c7);
+    return MVec3dp_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, U(ps) + M.c7);
 }
 
 
@@ -284,7 +284,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
                                                         MVec3dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(s - M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, -M.c7);
+    return MVec3dp_E<ctype>(T(s) - M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, -M.c7);
 }
 
 // even grade multivector - scalar => even grade multivector
@@ -294,7 +294,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& M,
                                                         Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(-s + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
+    return MVec3dp_E<ctype>(-U(s) + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
 }
 
 // bivector - even grade mulivector => even grade multivector
@@ -326,7 +326,8 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps,
                                                         MVec3dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(-M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, ps - M.c7);
+    return MVec3dp_E<ctype>(-M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6,
+                            T(ps) - M.c7);
 }
 
 // even grade multivector - pseudoscalar => even grade multivector
@@ -336,7 +337,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& M,
                                                         PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, -ps + M.c7);
+    return MVec3dp_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, -U(ps) + M.c7);
 }
 
 } // namespace hd::ga

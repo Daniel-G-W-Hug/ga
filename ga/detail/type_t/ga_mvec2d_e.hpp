@@ -31,10 +31,10 @@ template <typename T> struct MVec2_t<T, mvec2d_e_tag> : public MVec2_t<T, defaul
     using MVec2_t<T, default_tag>::MVec2_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec2_t(Scalar2d<T> s) : MVec2_t(s, T(0.0)) {}
+    MVec2_t(Scalar2d<T> s) : MVec2_t(T(s), T(0.0)) {}
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec2_t(PScalar2d<T> ps) : MVec2_t(T(0.0), ps) {}
+    MVec2_t(PScalar2d<T> ps) : MVec2_t(T(0.0), T(ps)) {}
 
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) directly (other grades = 0)
@@ -94,7 +94,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
                                                        MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(s + M.c0, M.c1);
+    return MVec2d_E<ctype>(T(s) + M.c0, M.c1);
 }
 
 // even grade multivector + scalar => even grade multivector
@@ -104,7 +104,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
                                                        Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(s + M.c0, M.c1);
+    return MVec2d_E<ctype>(U(s) + M.c0, M.c1);
 }
 
 // pseudosscalar + even grade mulivector => even grade multivector
@@ -114,7 +114,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
                                                        MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(M.c0, ps + M.c1);
+    return MVec2d_E<ctype>(M.c0, T(ps) + M.c1);
 }
 
 // even grade multivector + pseudoscalar => even grade multivector
@@ -124,7 +124,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
                                                        PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(M.c0, ps + M.c1);
+    return MVec2d_E<ctype>(M.c0, U(ps) + M.c1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -156,7 +156,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s,
                                                        MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(s - M.c0, -M.c1);
+    return MVec2d_E<ctype>(T(s) - M.c0, -M.c1);
 }
 
 // even grade multivector - scalar => even grade multivector
@@ -166,7 +166,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& M,
                                                        Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(M.c0 - s, M.c1);
+    return MVec2d_E<ctype>(M.c0 - U(s), M.c1);
 }
 
 // pseudosscalar (=bivector) - even grade mulivector => even grade multivector
@@ -176,7 +176,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps,
                                                        MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(-M.c0, ps - M.c1);
+    return MVec2d_E<ctype>(-M.c0, T(ps) - M.c1);
 }
 
 // even grade multivector - pseudoscalar (=bivector) => even grade multivector
@@ -186,7 +186,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& M,
                                                        PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(M.c0, M.c1 - ps);
+    return MVec2d_E<ctype>(M.c0, M.c1 - U(ps));
 }
 
 } // namespace hd::ga

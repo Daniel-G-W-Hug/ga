@@ -562,7 +562,9 @@ template <typename T, typename U>
 constexpr TriVec3dp<std::common_type_t<T, U>> rwdg(PScalar3dp<T> ps,
                                                    TriVec3dp<U> const& t)
 {
-    return TriVec3dp<std::common_type_t<T, U>>(ps * t.x, ps * t.y, ps * t.z, ps * t.w);
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(ctype(ps) * t.x, ctype(ps) * t.y, ctype(ps) * t.z,
+                            ctype(ps) * t.w);
 }
 
 template <typename T, typename U>
@@ -570,7 +572,9 @@ template <typename T, typename U>
 constexpr TriVec3dp<std::common_type_t<T, U>> rwdg(TriVec3dp<T> const& t,
                                                    PScalar3dp<U> ps)
 {
-    return TriVec3dp<std::common_type_t<T, U>>(t.x * ps, t.y * ps, t.z * ps, t.w * ps);
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(t.x * ctype(ps), t.y * ctype(ps), t.z * ctype(ps),
+                            t.w * ctype(ps));
 }
 
 
@@ -2557,7 +2561,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline Scalar3dp<T> inv(Scalar3dp<T> s)
 {
-    T sq_n = bulk_nrm_sq(s);
+    T sq_n = T(bulk_nrm_sq(s));
     hd::ga::detail::check_normalization<T>(sq_n, "scalar");
     T inv = T(1.0) / sq_n;
 
@@ -2570,7 +2574,7 @@ inline Vec3dp<T> inv(Vec3dp<T> const& v)
 {
     // v^(-1) = rev(v)/|v|^2 = v/dot(v,v) = v/bulk_sq_nrm(v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    T sq_n = bulk_nrm_sq(v);
+    T sq_n = T(bulk_nrm_sq(v));
     hd::ga::detail::check_normalization<T>(sq_n, "vector");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return Vec3dp<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
@@ -2588,7 +2592,7 @@ inline BiVec3dp<T> inv(BiVec3dp<T> const& B)
     // fmt::println("bc={}", bc);
     // fmt::println("bcmap={}", bcmap);
     // fmt::println("bc*bcmap={}", bc * bcmap);
-    T sq_n = gr0(bc * bcmap);
+    T sq_n = T(gr0(bc * bcmap));
     hd::ga::detail::check_normalization<T>(sq_n, "bivector");
     return gr2(conj(B) * bcmap) / sq_n;
 }
@@ -2605,7 +2609,7 @@ inline TriVec3dp<T> inv(TriVec3dp<T> const& t)
     // fmt::println("tc={}", tc);
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
-    T sq_n = gr0(tc * tcmap);
+    T sq_n = T(gr0(tc * tcmap));
     hd::ga::detail::check_normalization<T>(sq_n, "trivector");
     return gr3(conj(t) * tcmap) / sq_n;
 }
@@ -2624,7 +2628,7 @@ inline MVec3dp_E<T> inv(MVec3dp_E<T> const& E)
     // fmt::println("tc={}", tc);
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
-    T sq_n = gr0(tc * tcmap);
+    T sq_n = T(gr0(tc * tcmap));
     hd::ga::detail::check_normalization<T>(sq_n, "even grade multivector");
     return conj(E) * tcmap / sq_n;
 }
@@ -2641,7 +2645,7 @@ inline MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
     // fmt::println("tc={}", tc);
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
-    T sq_n = gr0(tc * tcmap);
+    T sq_n = T(gr0(tc * tcmap));
     hd::ga::detail::check_normalization<T>(sq_n, "odd grade multivector");
     return conj(U) * tcmap / sq_n;
 }
@@ -2659,7 +2663,7 @@ inline MVec3dp<T> inv(MVec3dp<T> const& M)
     // fmt::println("tc={}", tc);
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
-    T sq_n = gr0(tc * tcmap);
+    T sq_n = T(gr0(tc * tcmap));
     hd::ga::detail::check_normalization<T>(sq_n, "multivector");
     return conj(M) * tcmap / sq_n;
 }

@@ -319,6 +319,34 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
+        double phi = deg2rad(15);
+        // normal is rcmpl(direction), since rcmpl turns the vector in direction of e12
+        auto normal = rcmpl(vec2d{cos(phi), sin(phi)});
+        // 1.5 is distance to origin
+        bivt2dp a(normal.x, normal.y, 1.5); // tangent lines to circle with r = 1.5
+        phi = deg2rad(75);
+        normal = rcmpl(vec2d{cos(phi), sin(phi)});
+        bivt2dp b(normal.x, normal.y, 1.5); // tangent lines to circle with r = 1.5
+
+        bivt2dp_mark force_mark;
+
+        auto c = a + b;
+        force_mark.pen = QPen(Qt::green, 2, Qt::SolidLine);
+        cm.add_bivtp(a, force_mark);
+        force_mark.pen = QPen(Qt::darkGreen, 2, Qt::SolidLine);
+        cm.add_bivtp(b, force_mark);
+        force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
+        cm.add_bivtp(c, force_mark);
+
+        cm.set_label("proj. - adding force lines");
+
+        vm.push_back(cm);
+    }
+
+
+    {
+        Coordsys_model cm;
+
         // lines and reflected lines parallel to x-axis
         auto p1x = pt2dp{-2, 0.5, 1};
         auto p2x = pt2dp{2, 0.5, 1};

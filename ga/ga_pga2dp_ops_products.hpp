@@ -1900,7 +1900,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline Scalar2dp<T> inv(Scalar2dp<T> s)
 {
-    T sq_n = bulk_nrm_sq(s);
+    T sq_n = T(bulk_nrm_sq(s));
     hd::ga::detail::check_normalization<T>(sq_n, "scalar");
     T inv = T(1.0) / sq_n;
 
@@ -1913,7 +1913,7 @@ inline Vec2dp<T> inv(Vec2dp<T> const& v)
 {
     // v^(-1) = rev(v)/|v|^2 = v/dot(v,v) = v/bulk_sq_nrm(v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    T sq_n = bulk_nrm_sq(v);
+    T sq_n = T(bulk_nrm_sq(v));
     hd::ga::detail::check_normalization<T>(sq_n, "vector");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return Vec2dp<T>(v.x * inv, v.y * inv, v.z * inv);
@@ -1925,7 +1925,7 @@ inline BiVec2dp<T> inv(BiVec2dp<T> const& B)
 {
     // B^(-1) = rev(B)/|B|^2
     // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
-    T sq_n = bulk_nrm_sq(B);
+    T sq_n = T(bulk_nrm_sq(B));
     hd::ga::detail::check_normalization<T>(sq_n, "bivector");
     T inv = -T(1.0) / sq_n; // negative inverse of squared norm for a bivector
     return BiVec2dp<T>(B.x * inv, B.y * inv, B.z * inv);
@@ -1937,7 +1937,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec2dp_E<T> inv(MVec2dp_E<T> const& E)
 {
-    T sq_n = bulk_nrm_sq(E);
+    T sq_n = T(bulk_nrm_sq(E));
     hd::ga::detail::check_normalization<T>(sq_n, "even grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec2dp_E<T>(rev(E) * inv);
@@ -1947,7 +1947,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec2dp_U<T> inv(MVec2dp_U<T> const& U)
 {
-    T sq_n = bulk_nrm_sq(U);
+    T sq_n = T(bulk_nrm_sq(U));
     hd::ga::detail::check_normalization<T>(sq_n, "odd grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec2dp_U<T>(rev(U) * inv);
@@ -1960,7 +1960,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec2dp<T> inv(MVec2dp<T> const& M)
 {
-    T m_conjm = gr0(M * conj(M) * gr_inv(M) * rev(M));
+    T m_conjm = T(gr0(M * conj(M) * gr_inv(M) * rev(M)));
     hd::ga::detail::check_normalization<T>(std::abs(m_conjm), "multivector");
     T inv = T(1.0) / m_conjm;
     return MVec2dp<T>(conj(M) * gr_inv(M) * rev(M) * inv);

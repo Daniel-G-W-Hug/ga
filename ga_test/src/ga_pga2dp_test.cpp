@@ -53,9 +53,9 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("Vec2dp: default init");
         vec2dp v;
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.x) < eps);
-        CHECK(std::abs(v.y) < eps);
-        CHECK(std::abs(v.z) < eps);
+        CHECK(abs(v.x) < eps);
+        CHECK(abs(v.y) < eps);
+        CHECK(abs(v.z) < eps);
     }
 
     TEST_CASE("Vec2dp: with curly braced intializer")
@@ -63,9 +63,9 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("Vec2dp: with curly braced intializer");
         vec2dp v{0.0, 0.0, 0.0};
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.x) < eps);
-        CHECK(std::abs(v.y) < eps);
-        CHECK(std::abs(v.z) < eps);
+        CHECK(abs(v.x) < eps);
+        CHECK(abs(v.y) < eps);
+        CHECK(abs(v.z) < eps);
     }
 
     TEST_CASE("Vec2dp: cp ctor & cp assign incl. type deduction")
@@ -81,15 +81,15 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(std::abs(v1.x - 1.0) < eps);
-        CHECK(std::abs(v1.y - 2.0) < eps);
-        CHECK(std::abs(v1.z - 3.0) < eps);
-        CHECK(std::abs(v2.x - 1.0) < eps);
-        CHECK(std::abs(v2.y - 2.0) < eps);
-        CHECK(std::abs(v2.z - 3.0) < eps);
-        CHECK(std::abs(v3.x - 1.0) < eps);
-        CHECK(std::abs(v3.y - 2.0) < eps);
-        CHECK(std::abs(v3.z - 3.0) < eps);
+        CHECK(abs(v1.x - 1.0) < eps);
+        CHECK(abs(v1.y - 2.0) < eps);
+        CHECK(abs(v1.z - 3.0) < eps);
+        CHECK(abs(v2.x - 1.0) < eps);
+        CHECK(abs(v2.y - 2.0) < eps);
+        CHECK(abs(v2.z - 3.0) < eps);
+        CHECK(abs(v3.x - 1.0) < eps);
+        CHECK(abs(v3.y - 2.0) < eps);
+        CHECK(abs(v3.z - 3.0) < eps);
         CHECK(v4 == -v2);
 
         // check direct assignment operators (sequence of tests decisive!)
@@ -259,52 +259,52 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("0.5*(v3m*v4m + v4m*v3m) = {}", 0.5 * (v3m * v4m + v4m * v3m));
         // fmt::println("0.5*(v3m*v4m - v4m*v3m) = {}", 0.5 * (v3m * v4m - v4m * v3m));
 
-        CHECK(std::abs(nrm_sq(v1) - 9.0) < eps);
-        CHECK(std::abs(bulk_nrm_sq(v1) - 5.0) < eps);
-        CHECK(std::abs(nrm_sq(v2) - 1.0) < eps);
-        CHECK(std::abs(bulk_nrm_sq(v3) - 40.0) < eps);
-        CHECK(std::abs(dot(v4, v3) - 1.0) < eps);
+        CHECK(abs(nrm_sq(v1) - 9.0) < eps);
+        CHECK(abs(bulk_nrm_sq(v1) - 5.0) < eps);
+        CHECK(abs(nrm_sq(v2) - 1.0) < eps);
+        CHECK(abs(bulk_nrm_sq(v3) - 40.0) < eps);
+        CHECK(abs(dot(v4, v3) - 1.0) < eps);
 
         // check inverses - scalar
         // fmt::println("");
         // fmt::println("s1 * inv(s1) = {}", s1 * inv(s1)); // s
-        CHECK(std::abs(nrm(s1 * inv(s1)) - 1) < eps);
-        CHECK(std::abs(inv(s1) - rev(s1) / bulk_nrm_sq(s1)) < eps);
+        CHECK(abs(nrm(s1 * inv(s1)) - 1) < eps);
+        CHECK(abs(inv(s1) - rev(s1) / value_t(bulk_nrm_sq(s1))) < eps);
 
         // check inverses - vector
         // fmt::println("v1 * inv(v1) = {}", v1 * inv(v1)); // mv_e
-        CHECK(std::abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(v1) - rev(v1) / value_t(bulk_nrm_sq(v1)))) < eps);
+        CHECK(abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
+        CHECK(abs(nrm(inv(v1) - rev(v1) / value_t(bulk_nrm_sq(v1)))) < eps);
 
         // check inverses - bivector
         // fmt::println("b1 * inv(b1) = {}", b1 * inv(b1)); // mv_e
-        CHECK(std::abs(nrm(gr0(b1 * inv(b1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(b1 * inv(b1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(b1) - rev(b1) / value_t(bulk_nrm_sq(b1)))) < eps);
+        CHECK(abs(nrm(gr0(b1 * inv(b1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(b1 * inv(b1))) - 0) < eps);
+        CHECK(abs(nrm(inv(b1) - rev(b1) / value_t(bulk_nrm_sq(b1)))) < eps);
 
         // check inverses - pseudoscalar
         // due to the degenerate metric there is no inverse of the pseudoscalar
 
         // check inverses - even grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
-        CHECK(std::abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(mve1) - rev(mve1) / value_t(bulk_nrm_sq(mve1)))) < eps);
+        CHECK(abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
+        CHECK(abs(nrm(inv(mve1) - rev(mve1) / value_t(bulk_nrm_sq(mve1)))) < eps);
 
         // check inverses - odd grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
-        CHECK(std::abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(mvu1) - rev(mvu1) / value_t(bulk_nrm_sq(mvu1)))) < eps);
+        CHECK(abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
+        CHECK(abs(nrm(inv(mvu1) - rev(mvu1) / value_t(bulk_nrm_sq(mvu1)))) < eps);
 
         // check inverses - multivector
         // fmt::println("mv1 * inv(mv1) = {}", mv1 * inv(mv1)); // mv
-        CHECK(std::abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr3(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
+        CHECK(abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
+        CHECK(abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr3(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
                                                              // are equal
         // fmt::println("");
     }
@@ -321,7 +321,7 @@ TEST_SUITE("PGA 2DP Tests")
         auto v2 = vec2dp{3.0, -2.0, 1.0};
         auto B2 = bivec2dp{-3.0, 2.0, 5.0};
 
-        CHECK(bulk_dual(s) == pscalar2dp{s});
+        CHECK(value_t(bulk_dual(s)) == value_t(s));
         CHECK(weight_dual(s) == pscalar2dp{0.0});
 
         CHECK(bulk_dual(v) == -bivec2dp{1.0, 2.0, 0.0});
@@ -331,7 +331,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(weight_dual(B) == -vec2dp{-1.0, 2.0, 0.0});
 
         CHECK(bulk_dual(ps) == scalar2dp{0.0});
-        CHECK(weight_dual(ps) == scalar2dp{ps});
+        CHECK(value_t(weight_dual(ps)) == value_t(ps));
 
         // duality of wdg and rwdg based on complements
         CHECK(bulk_dual(wdg(v, v2)) == rwdg(bulk_dual(v), bulk_dual(v2)));
@@ -412,11 +412,11 @@ TEST_SUITE("PGA 2DP Tests")
         //              "angle(v1,v8) = {:.8f}, {:.8f} ",
         //              v8, nrm(v8), angle(v1, v8), angle(v1, v8) / pi);
 
-        CHECK(std::abs(angle(v1, v1) - 0.0) < eps);
-        CHECK(std::abs(angle(v1, v2) - pi * 0.25) < eps);
-        CHECK(std::abs(angle(v1, v3) - pi * 0.5) < eps);
-        CHECK(std::abs(angle(v1, v4) - pi * 0.75) < eps);
-        CHECK(std::abs(angle(v1, v5) - pi) < eps);
+        CHECK(abs(angle(v1, v1) - 0.0) < eps);
+        CHECK(abs(angle(v1, v2) - pi * 0.25) < eps);
+        CHECK(abs(angle(v1, v3) - pi * 0.5) < eps);
+        CHECK(abs(angle(v1, v4) - pi * 0.75) < eps);
+        CHECK(abs(angle(v1, v5) - pi) < eps);
 
         // just to suppress unused variable warnings
         CHECK(v6 == normalize(vec2dp(-1.0, -1.0, 0.0)));
@@ -465,14 +465,14 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("");
 
         for (auto const& [phi, c] : v1) {
-            CHECK(std::abs(phi - angle(e1_2dp, c)) < eps);
+            CHECK(abs(phi - angle(e1_2dp, c)) < eps);
         }
         for (auto const& [phi, c] : v2) {
-            CHECK(std::abs(phi - angle(e2_2dp, c)) < eps);
+            CHECK(abs(phi - angle(e2_2dp, c)) < eps);
         }
         auto ref_vec = normalize(e1_2dp + e2_2dp);
         for (auto const& [phi, c] : v3) {
-            CHECK(std::abs(phi - angle(ref_vec, c)) < eps);
+            CHECK(abs(phi - angle(ref_vec, c)) < eps);
         }
     }
 
@@ -553,14 +553,14 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(wdg(s, v1) == wdg(v1, s)); // wdg between scalar and vector
         CHECK(wdg(s, v1) == sd * v1);    // wdg between scalar and vector
 
-        CHECK(std::abs(bulk_nrm(wdg(v1, v1)) - sin(angle(v1, v1))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v2)) - sin(angle(v1, v2))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v3)) - sin(angle(v1, v3))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v4)) - sin(angle(v1, v4))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v5)) - sin(angle(v1, v5))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v6)) - sin(angle(v1, v6))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v7)) - sin(angle(v1, v7))) < eps);
-        CHECK(std::abs(bulk_nrm(wdg(v1, v8)) - sin(angle(v1, v8))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v1)) - sin(angle(v1, v1))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v2)) - sin(angle(v1, v2))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v3)) - sin(angle(v1, v3))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v4)) - sin(angle(v1, v4))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v5)) - sin(angle(v1, v5))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v6)) - sin(angle(v1, v6))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v7)) - sin(angle(v1, v7))) < eps);
+        CHECK(abs(bulk_nrm(wdg(v1, v8)) - sin(angle(v1, v8))) < eps);
     }
 
     TEST_CASE("Vec2dp: operations - project / reject / reflect")
@@ -727,14 +727,14 @@ TEST_SUITE("PGA 2DP Tests")
         // default initialization
         mvec2dp v;
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.c0) < eps);
-        CHECK(std::abs(v.c1) < eps);
-        CHECK(std::abs(v.c2) < eps);
-        CHECK(std::abs(v.c3) < eps);
-        CHECK(std::abs(v.c4) < eps);
-        CHECK(std::abs(v.c5) < eps);
-        CHECK(std::abs(v.c6) < eps);
-        CHECK(std::abs(v.c7) < eps);
+        CHECK(abs(v.c0) < eps);
+        CHECK(abs(v.c1) < eps);
+        CHECK(abs(v.c2) < eps);
+        CHECK(abs(v.c3) < eps);
+        CHECK(abs(v.c4) < eps);
+        CHECK(abs(v.c5) < eps);
+        CHECK(abs(v.c6) < eps);
+        CHECK(abs(v.c7) < eps);
     }
     TEST_CASE("MVec2dp: with curly braced intializer")
     {
@@ -742,14 +742,14 @@ TEST_SUITE("PGA 2DP Tests")
         // default initialization
         mvec2dp v{0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0};
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.c0 - 0.0) < eps);
-        CHECK(std::abs(v.c1 - 1.0) < eps);
-        CHECK(std::abs(v.c2 - 2.0) < eps);
-        CHECK(std::abs(v.c3 - 3.0) < eps);
-        CHECK(std::abs(v.c4 - 23.0) < eps);
-        CHECK(std::abs(v.c5 - 31.0) < eps);
-        CHECK(std::abs(v.c6 - 12.0) < eps);
-        CHECK(std::abs(v.c7 - 123.0) < eps);
+        CHECK(abs(v.c0 - 0.0) < eps);
+        CHECK(abs(v.c1 - 1.0) < eps);
+        CHECK(abs(v.c2 - 2.0) < eps);
+        CHECK(abs(v.c3 - 3.0) < eps);
+        CHECK(abs(v.c4 - 23.0) < eps);
+        CHECK(abs(v.c5 - 31.0) < eps);
+        CHECK(abs(v.c6 - 12.0) < eps);
+        CHECK(abs(v.c7 - 123.0) < eps);
     }
 
     TEST_CASE("MVec2dp: cp ctor & cp assign incl. type deduction")
@@ -767,23 +767,23 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(std::abs(v2.c0 - 0.0) < eps);
-        CHECK(std::abs(v2.c1 - 1.0) < eps);
-        CHECK(std::abs(v2.c2 - 2.0) < eps);
-        CHECK(std::abs(v2.c3 - 3.0) < eps);
-        CHECK(std::abs(v2.c4 - 23.0) < eps);
-        CHECK(std::abs(v2.c5 - 31.0) < eps);
-        CHECK(std::abs(v2.c6 - 12.0) < eps);
-        CHECK(std::abs(v2.c7 - 123.0) < eps);
+        CHECK(abs(v2.c0 - 0.0) < eps);
+        CHECK(abs(v2.c1 - 1.0) < eps);
+        CHECK(abs(v2.c2 - 2.0) < eps);
+        CHECK(abs(v2.c3 - 3.0) < eps);
+        CHECK(abs(v2.c4 - 23.0) < eps);
+        CHECK(abs(v2.c5 - 31.0) < eps);
+        CHECK(abs(v2.c6 - 12.0) < eps);
+        CHECK(abs(v2.c7 - 123.0) < eps);
 
-        CHECK(std::abs(v3.c0 - 0.0) < eps);
-        CHECK(std::abs(v3.c1 - 1.0) < eps);
-        CHECK(std::abs(v3.c2 - 2.0) < eps);
-        CHECK(std::abs(v3.c3 - 3.0) < eps);
-        CHECK(std::abs(v3.c4 - 23.0) < eps);
-        CHECK(std::abs(v3.c5 - 31.0) < eps);
-        CHECK(std::abs(v3.c6 - 12.0) < eps);
-        CHECK(std::abs(v3.c7 - 123.0) < eps);
+        CHECK(abs(v3.c0 - 0.0) < eps);
+        CHECK(abs(v3.c1 - 1.0) < eps);
+        CHECK(abs(v3.c2 - 2.0) < eps);
+        CHECK(abs(v3.c3 - 3.0) < eps);
+        CHECK(abs(v3.c4 - 23.0) < eps);
+        CHECK(abs(v3.c5 - 31.0) < eps);
+        CHECK(abs(v3.c6 - 12.0) < eps);
+        CHECK(abs(v3.c7 - 123.0) < eps);
 
         CHECK(v4 == -v3);
 
@@ -2109,7 +2109,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(cmpl(e23_2dp) == -e1_2dp);
         CHECK(cmpl(e31_2dp) == -e2_2dp);
         CHECK(cmpl(e12_2dp) == -e3_2dp);
-        CHECK(cmpl(I_2dp) == scalar2d(1.0));
+        CHECK(cmpl(I_2dp) == scalar2dp(1.0));
         //
         CHECK(cmpl(cmpl(mv)) == mv);
         CHECK(cmpl(cmpl(mv_e)) == mv_e);
@@ -2227,8 +2227,8 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(weight_nrm(l1) == std::sqrt(l1.x * l1.x + l1.y * l1.y));
 
         // geom_nrm
-        CHECK(geom_nrm(p1).c0 / geom_nrm(p1).c1 == bulk_nrm(p1) / weight_nrm(p1));
-        CHECK(geom_nrm(l1).c0 / geom_nrm(l1).c1 == bulk_nrm(l1) / weight_nrm(l1));
+        CHECK(geom_nrm(p1).c0 / geom_nrm(p1).c1 == value_t(bulk_nrm(p1)) / value_t(weight_nrm(p1)));
+        CHECK(geom_nrm(l1).c0 / geom_nrm(l1).c1 == value_t(bulk_nrm(l1)) / value_t(weight_nrm(l1)));
         CHECK(3.0 * geom_nrm(l1).c0 == geom_nrm(l2).c0);
         CHECK(geom_nrm(l1).c1 == geom_nrm(l2).c1);
 
@@ -2471,7 +2471,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(cmpl(e23_2dp) == -e1_2dp);
         CHECK(cmpl(e31_2dp) == -e2_2dp);
         CHECK(cmpl(e12_2dp) == -e3_2dp);
-        CHECK(cmpl(I_2dp) == scalar2d(1.0));
+        CHECK(cmpl(I_2dp) == scalar2dp(1.0));
         //
         CHECK(cmpl(cmpl(M1)) == M1);
         CHECK(cmpl(cmpl(mvec2dp_e(s1, b1))) == mvec2dp_e(s1, b1));

@@ -35,13 +35,30 @@ constexpr T safe_epsilon() noexcept
 }
 
 // Consistent epsilon calculation for mixed types
+// hint: important to evaluate std::max<ctype>
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr std::common_type_t<T, U> safe_epsilon() noexcept
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(5.0) *
-           std::max(std::numeric_limits<T>::epsilon(), std::numeric_limits<U>::epsilon());
+    constexpr ctype eps_t = ctype(std::numeric_limits<T>::epsilon());
+    constexpr ctype eps_u = ctype(std::numeric_limits<U>::epsilon());
+    return ctype(5.0) * std::max(eps_t, eps_u);
+}
+
+// Epsilon calculation for floating point with integral types
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::integral<U>)
+constexpr T safe_epsilon() noexcept
+{
+    return T(5.0) * std::numeric_limits<T>::epsilon();
+}
+
+template <typename T, typename U>
+    requires(std::integral<T> && std::floating_point<U>)
+constexpr U safe_epsilon() noexcept
+{
+    return U(5.0) * std::numeric_limits<U>::epsilon();
 }
 
 // Standardized error checking and throwing for division operations

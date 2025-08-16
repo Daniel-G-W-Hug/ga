@@ -87,15 +87,6 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator+(PScalar3d<T> ps, Vec3d<U>
     return MVec3d_U<ctype>(v, ps);
 }
 
-// odd grade mulivector + pseudoscalar => odd grade multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec3d_U<std::common_type_t<T, U>> operator+(MVec3d_U<T> const& M,
-                                                       PScalar3d<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3d_U<ctype>(M.c0, M.c1, M.c2, M.c3 + ps);
-}
 
 // pseudoscalar + odd grade vector => odd grade multivector
 template <typename T, typename U>
@@ -104,8 +95,19 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator+(PScalar3d<T> ps,
                                                        MVec3d_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d_U<ctype>(M.c0, M.c1, M.c2, M.c3 + ps);
+    return MVec3d_U<ctype>(M.c0, M.c1, M.c2, M.c3 + T(ps));
 }
+
+// odd grade mulivector + pseudoscalar => odd grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator+(MVec3d_U<T> const& M,
+                                                       PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d_U<ctype>(M.c0, M.c1, M.c2, M.c3 + U(ps));
+}
+
 
 // odd grade mulivector + vector => odd grade multivector
 template <typename T, typename U>
@@ -149,15 +151,6 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator-(PScalar3d<T> ps, Vec3d<U>
     return MVec3d_U<ctype>(-v, ps);
 }
 
-// odd grade mulivector - pseudoscalar (=trivector)=> odd grade multivector
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec3d_U<std::common_type_t<T, U>> operator-(MVec3d_U<T> const& M,
-                                                       PScalar3d<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3d_U<ctype>(M.c0, M.c1, M.c2, M.c3 - ps);
-}
 
 // pseudoscalar (=trivector) - odd grade vector => odd grade multivector
 template <typename T, typename U>
@@ -166,8 +159,19 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator-(PScalar3d<T> ps,
                                                        MVec3d_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d_U<ctype>(-M.c0, -M.c1, -M.c2, ps - M.c3);
+    return MVec3d_U<ctype>(-M.c0, -M.c1, -M.c2, T(ps) - M.c3);
 }
+
+// odd grade mulivector - pseudoscalar (=trivector)=> odd grade multivector
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator-(MVec3d_U<T> const& M,
+                                                       PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3d_U<ctype>(M.c0, M.c1, M.c2, M.c3 - U(ps));
+}
+
 
 // odd grade multivector - vector => odd grade multivector
 template <typename T, typename U>

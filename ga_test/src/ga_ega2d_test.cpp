@@ -43,6 +43,34 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("");
     }
 
+    TEST_CASE("Scalar2d: comparison")
+    {
+        fmt::println("Scalar2d: comparison");
+        scalar2d s1{3.0};
+        scalar2d s2{3.0};
+        scalar3d s3{3.0};
+        pscalar2d ps{3.0};
+
+        // fmt::println("   s1 = {}", s1);
+        // fmt::println("   s2 = {}", s2);
+
+        // same tag comparisons should work
+        CHECK(s1 == s2);
+        CHECK(s1 != scalar2d{4.0});
+        CHECK(s1 < scalar2d{4.0});
+        CHECK(s1 <= scalar2d{3.0});
+        CHECK(scalar2d{4.0} > s1);
+        CHECK(scalar2d{3.0} >= s1);
+
+        // different floating point types with same tag should work
+        Scalar_t<float, scalar2d_tag> sf{3.0f};
+        CHECK(s1 == sf); // double vs float with same tag
+
+        // different tags should NOT compile (these lines would cause compilation errors):
+        // CHECK(s1 == ps); // scalar2d vs pscalar2d (different tags)
+        // CHECK(s1 == s3); // scalar2d vs scalar3d (different tags)
+        // CHECK(s2 == s3); // scalar2d vs scalar3d (different tags)
+    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // Vec2d<T> basic test cases
@@ -53,16 +81,16 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("Vec2d: default init");
         vec2d v;
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.x) < eps);
-        CHECK(std::abs(v.y) < eps);
+        CHECK(abs(v.x) < eps);
+        CHECK(abs(v.y) < eps);
     }
     TEST_CASE("Vec2d: with curly braced intializer")
     {
         fmt::println("Vec2d: with curly braced intializer");
         vec2d v{0.0, 0.0};
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.x) < eps);
-        CHECK(std::abs(v.y) < eps);
+        CHECK(abs(v.x) < eps);
+        CHECK(abs(v.y) < eps);
     }
     TEST_CASE("Vec2d: cp ctor & cp assign incl. type deduction")
     {
@@ -77,12 +105,12 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(std::abs(v1.x - 1.0) < eps);
-        CHECK(std::abs(v1.y - 2.0) < eps);
-        CHECK(std::abs(v2.x - 1.0) < eps);
-        CHECK(std::abs(v2.y - 2.0) < eps);
-        CHECK(std::abs(v3.x - 1.0) < eps);
-        CHECK(std::abs(v3.y - 2.0) < eps);
+        CHECK(abs(v1.x - 1.0) < eps);
+        CHECK(abs(v1.y - 2.0) < eps);
+        CHECK(abs(v2.x - 1.0) < eps);
+        CHECK(abs(v2.y - 2.0) < eps);
+        CHECK(abs(v3.x - 1.0) < eps);
+        CHECK(abs(v3.y - 2.0) < eps);
         CHECK(v4 == -v2);
 
         // check direct assignment operators (sequence of tests decisive!)
@@ -242,43 +270,43 @@ TEST_SUITE("EGA 2D Tests")
 
         CHECK(std::abs(nrm_sq(v1) - 5.0) < eps);
         CHECK(std::abs(nrm_sq(v2) - 1.0) < eps);
-        CHECK(std::abs(dot(v4, v3) - 1.0) < eps);
+        CHECK(abs(value_t(dot(v4, v3)) - 1.0) < eps);
 
         auto m = vec2d{13.0, 5.0};
         auto prd = m * inv(m);
-        CHECK(std::abs(gr0(prd) - 1.0) < eps);
-        CHECK(std::abs(gr2(prd) - 0.0) < eps);
+        CHECK(abs(value_t(gr0(prd)) - 1.0) < eps);
+        CHECK(abs(value_t(gr2(prd)) - 0.0) < eps);
 
         // check inverses - scalar
         // fmt::println("");
         // fmt::println("s1 * inv(s1) = {}", s1 * inv(s1)); // s
-        CHECK(std::abs(nrm(s1 * inv(s1)) - 1) < eps);
-        CHECK(std::abs(inv(s1) - rev(s1) / nrm_sq(s1)) < eps);
+        CHECK(abs(value_t(nrm(s1 * inv(s1))) - 1) < eps);
+        CHECK(abs(value_t(inv(s1) - rev(s1) / nrm_sq(s1))) < eps);
 
         // check inverses - vector
         // fmt::println("v1 * inv(v1) = {}", v1 * inv(v1)); // mv_e
-        CHECK(std::abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(v1) - rev(v1) / nrm_sq(v1))) < eps);
+        CHECK(abs(value_t(nrm(gr0(v1 * inv(v1)))) - 1) < eps);
+        CHECK(abs(value_t(nrm(gr2(v1 * inv(v1)))) - 0) < eps);
+        CHECK(abs(value_t(nrm(inv(v1) - rev(v1) / nrm_sq(v1)))) < eps);
 
         // check inverses - pseudoscalar
         // fmt::println("ps1 * inv(ps1) = {}", ps1 * inv(ps1)); // s
-        CHECK(std::abs(nrm(ps1 * inv(ps1)) - 1) < eps);
-        CHECK(std::abs(nrm(inv(ps1) - rev(ps1) / nrm_sq(ps1))) < eps);
+        CHECK(abs(nrm(ps1 * inv(ps1)) - 1) < eps);
+        CHECK(abs(nrm(inv(ps1) - rev(ps1) / nrm_sq(ps1))) < eps);
 
         // check inverses - even grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
-        CHECK(std::abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(mve1) - rev(mve1) / nrm_sq(mve1))) < eps);
+        CHECK(abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
+        CHECK(abs(nrm(inv(mve1) - rev(mve1) / nrm_sq(mve1))) < eps);
 
         // check inverses - multivector
         // fmt::println("mv1 * inv(mv1) = {}", mv1 * inv(mv1)); // mv
-        CHECK(std::abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
-                                                             // are equal
+        CHECK(abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
+        CHECK(abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
+                                                        // are equal
         // fmt::println("");
     }
 
@@ -321,14 +349,14 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("");
 
         for (auto const& [phi, c] : v1) {
-            CHECK(std::abs(phi - angle(e1_2d, c)) < eps);
+            CHECK(abs(phi - angle(e1_2d, c)) < eps);
         }
         for (auto const& [phi, c] : v2) {
-            CHECK(std::abs(phi - angle(e2_2d, c)) < eps);
+            CHECK(abs(phi - angle(e2_2d, c)) < eps);
         }
         auto ref_vec = normalize(e1_2d + e2_2d);
         for (auto const& [phi, c] : v3) {
-            CHECK(std::abs(phi - angle(ref_vec, c)) < eps);
+            CHECK(abs(phi - angle(ref_vec, c)) < eps);
         }
 
         // auto v = Vec2d<double>{1.0, 0.0};
@@ -360,7 +388,7 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("");
 
         for (auto const& [phi, c] : v) {
-            CHECK(std::abs(wdg(e1_2d, c) - sin(angle(e1_2d, c))) < eps);
+            CHECK(abs(value_t(wdg(e1_2d, c)) - sin(angle(e1_2d, c))) < eps);
         }
     }
 
@@ -401,7 +429,7 @@ TEST_SUITE("EGA 2D Tests")
 
 
         CHECK(v3 + v4 == v5);
-        CHECK(std::abs(dot(v3, v4)) < eps);
+        CHECK(abs(value_t(dot(v3, v4))) < eps);
         CHECK(v5 == v1);
 
         CHECK(inv(v2) * wdg(v2, v1) == wdg(v1, v2) * inv(v2));
@@ -516,14 +544,14 @@ TEST_SUITE("EGA 2D Tests")
         //     sign(wdg(on13[0], on13[1]) / I_2d));
         // fmt::println("");
 
-        CHECK(std::abs(dot(og12[0], og12[1])) < eps);
-        CHECK(std::abs(dot(on12[0], on12[1])) < eps);
-        CHECK(std::abs(nrm(on12[0]) - 1.0) < eps);
-        CHECK(std::abs(nrm(on12[1]) - 1.0) < eps);
-        CHECK(std::abs(dot(og13[0], og13[1])) < eps);
-        CHECK(std::abs(dot(on13[0], on13[1])) < eps);
-        CHECK(std::abs(nrm(on13[0]) - 1.0) < eps);
-        CHECK(std::abs(nrm(on13[1]) - 1.0) < eps);
+        CHECK(abs(value_t(dot(og12[0], og12[1]))) < eps);
+        CHECK(abs(value_t(dot(on12[0], on12[1]))) < eps);
+        CHECK(abs(nrm(on12[0]) - 1.0) < eps);
+        CHECK(abs(nrm(on12[1]) - 1.0) < eps);
+        CHECK(abs(value_t(dot(og13[0], og13[1]))) < eps);
+        CHECK(abs(value_t(dot(on13[0], on13[1]))) < eps);
+        CHECK(abs(nrm(on13[0]) - 1.0) < eps);
+        CHECK(abs(nrm(on13[1]) - 1.0) < eps);
     }
 
     TEST_CASE("Vec2d: vector ratio")
@@ -552,8 +580,8 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("Rs = {}", Rs);
         // fmt::println("");
 
-        CHECK(std::abs(angle(v1, v2) - angle(v3, x)) < eps);
-        CHECK(std::abs(nrm(v2) / nrm(v1) - nrm(x) / nrm(v3)) < eps);
+        CHECK(abs(angle(v1, v2) - angle(v3, x)) < eps);
+        CHECK(abs(nrm(v2) / nrm(v1) - nrm(x) / nrm(v3)) < eps);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -566,10 +594,10 @@ TEST_SUITE("EGA 2D Tests")
         // default initialization
         mvec2d v;
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.c0) < eps);
-        CHECK(std::abs(v.c1) < eps);
-        CHECK(std::abs(v.c2) < eps);
-        CHECK(std::abs(v.c3) < eps);
+        CHECK(abs(v.c0) < eps);
+        CHECK(abs(v.c1) < eps);
+        CHECK(abs(v.c2) < eps);
+        CHECK(abs(v.c3) < eps);
     }
     TEST_CASE("MVec2d: with curly braced intializer")
     {
@@ -577,10 +605,10 @@ TEST_SUITE("EGA 2D Tests")
         // default initialization
         mvec2d v{0.0, 1.0, 2.0, 3.0};
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.c0 - 0.0) < eps);
-        CHECK(std::abs(v.c1 - 1.0) < eps);
-        CHECK(std::abs(v.c2 - 2.0) < eps);
-        CHECK(std::abs(v.c3 - 3.0) < eps);
+        CHECK(abs(v.c0 - 0.0) < eps);
+        CHECK(abs(v.c1 - 1.0) < eps);
+        CHECK(abs(v.c2 - 2.0) < eps);
+        CHECK(abs(v.c3 - 3.0) < eps);
     }
 
     TEST_CASE("MVec2d: cp ctor & cp assign incl. type deduction")
@@ -597,14 +625,14 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(std::abs(v2.c0 - 0.0) < eps);
-        CHECK(std::abs(v2.c1 - 1.0) < eps);
-        CHECK(std::abs(v2.c2 - 2.0) < eps);
-        CHECK(std::abs(v2.c3 - 3.0) < eps);
-        CHECK(std::abs(v3.c0 - 0.0) < eps);
-        CHECK(std::abs(v3.c1 - 1.0) < eps);
-        CHECK(std::abs(v3.c2 - 2.0) < eps);
-        CHECK(std::abs(v3.c3 - 3.0) < eps);
+        CHECK(abs(v2.c0 - 0.0) < eps);
+        CHECK(abs(v2.c1 - 1.0) < eps);
+        CHECK(abs(v2.c2 - 2.0) < eps);
+        CHECK(abs(v2.c3 - 3.0) < eps);
+        CHECK(abs(v3.c0 - 0.0) < eps);
+        CHECK(abs(v3.c1 - 1.0) < eps);
+        CHECK(abs(v3.c2 - 2.0) < eps);
+        CHECK(abs(v3.c3 - 3.0) < eps);
         CHECK(v4 == -v3);
 
         // check direct assignment operators (sequence of tests decisive!)
@@ -775,7 +803,7 @@ TEST_SUITE("EGA 2D Tests")
         auto t = scalar2d{st};
 
         // nrm_sq(v1) = dot(v1,v1)  for every vector
-        CHECK(nrm_sq(v1) == dot(v1, v1));
+        CHECK(nrm_sq(v1) == value_t(dot(v1, v1)));
 
         CHECK(v1 * v2 == dot(v1, v2) + wdg(v1, v2)); // valid for vectors only
         CHECK(v1 * v2 == (v2 >> v1) + wdg(v1, v2));  // contraction = dot for same grades
@@ -1208,7 +1236,7 @@ TEST_SUITE("EGA 2D Tests")
         auto uv = u * v; // complex number with real part and bivector part
         auto a = gr0(uv);
         auto b = gr2(uv);
-        auto r = sqrt(a * a + b * b);
+        auto r = sqrt(value_t(a * a + b * b));
 
         // fmt::println("   I_2d          = {}", I_2d);
         // fmt::println("   Im_2d         = {}", Im_2d);
@@ -1245,8 +1273,8 @@ TEST_SUITE("EGA 2D Tests")
         // if you don't declare it as such, the normal exponential function
         //            will be called, resulting in a scalar result!
 
-        CHECK(std::abs(angle_uv - pi / 6.0) < eps);
-        CHECK(std::abs(r - 0.5 * std::sqrt(2.0)) < eps);
+        CHECK(abs(angle_uv - pi / 6.0) < eps);
+        CHECK(abs(r - 0.5 * std::sqrt(2.0)) < eps);
         CHECK(gr0(vc) == gr0(vcm));
         CHECK(gr2(vc) == gr2(vcm));
         CHECK(gr0(vr) == gr0(vrm));
@@ -1257,7 +1285,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(v1.y == -(v1 * I_2d).x);
         CHECK(v1.x == -(I_2d * v1).y); // rotation -90°
         CHECK(v1.y == (I_2d * v1).x);
-        CHECK(std::abs(nrm(vc) - std::sqrt(2.0)) < eps);
+        CHECK(abs(nrm(vc) - std::sqrt(2.0)) < eps);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1278,7 +1306,7 @@ TEST_SUITE("EGA 2D Tests")
         auto v2 = exp(I_2d, angle_uv);
         auto re = gr0(uv);
         auto im = gr2(uv);
-        auto r = sqrt(re * re + im * im);
+        auto r = sqrt(value_t(re * re + im * im));
 
         mvec2d_e a{1.0, 0.0};
         mvec2d_e b{1.0, 1.0};
@@ -1335,7 +1363,7 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("   m = Im_2d_E                      = {}", m);
         // fmt::println("   n = Im_2d                        = {}", n);
 
-        CHECK(std::abs(r - 0.5 * std::sqrt(2.0)) < eps);
+        CHECK(abs(r - 0.5 * std::sqrt(2.0)) < eps);
         CHECK(c == a + b);
         CHECK(d == a - b);
         CHECK(e == 2.0 * b);
@@ -1356,25 +1384,24 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(nrm(b * c) == nrm(b) * nrm(c));
         CHECK(b * c == c * b);
 
-        CHECK(std::abs(nrm_sq(mvec2d_e{1.0, 1.0}) - 2.0) < eps);
-        CHECK(std::abs(nrm(mvec2d_e{1.0, 1.0}) - std::sqrt(2.0)) < eps);
+        CHECK(abs(nrm_sq(mvec2d_e{1.0, 1.0}) - 2.0) < eps);
+        CHECK(abs(nrm(mvec2d_e{1.0, 1.0}) - std::sqrt(2.0)) < eps);
         CHECK(rev(mvec2d_e{1.0, 1.0}) == mvec2d_e{1.0, -1.0});
-        CHECK(std::abs(nrm(mvec2d_e{scalar2d(1.0), pscalar2d(1.0)}) - std::sqrt(2.0)) <
-              eps);
+        CHECK(abs(nrm(mvec2d_e{scalar2d(1.0), pscalar2d(1.0)}) - std::sqrt(2.0)) < eps);
 
         CHECK(mvec2d_e{-1.0, 1.0} * inv(mvec2d_e{-1.0, 1.0}) == mvec2d_e{1.0, 0.0});
-        CHECK(std::abs(gr0(mvec2d_e{-1.0, 1.0} * rev(mvec2d_e{-1.0, 1.0})) -
-                       nrm_sq(mvec2d_e{-1.0, 1.0})) < eps);
-        CHECK(std::abs(gr2(mvec2d_e{-1.0, 1.0} * rev(mvec2d_e{-1.0, 1.0}))) < eps);
+        CHECK(abs(value_t(gr0(mvec2d_e{-1.0, 1.0} * rev(mvec2d_e{-1.0, 1.0}))) -
+                  nrm_sq(mvec2d_e{-1.0, 1.0})) < eps);
+        CHECK(abs(value_t(gr2(mvec2d_e{-1.0, 1.0} * rev(mvec2d_e{-1.0, 1.0})))) < eps);
 
-        CHECK(std::abs(angle_to_re(mvec2d_e{1.0, 0.0}) - 0.0) < eps);
-        CHECK(std::abs(angle_to_re(mvec2d_e{1.0, 1.0}) - pi / 4.0) < eps);
-        CHECK(std::abs(angle_to_re(mvec2d_e{0.0, 1.0}) - pi / 2.0) < eps);
-        CHECK(std::abs(angle_to_re(mvec2d_e{-1.0, 1.0}) - pi * 3.0 / 4.0) < eps);
-        CHECK(std::abs(angle_to_re(mvec2d_e{-1.0, 0.0}) - pi) < eps);
-        CHECK(std::abs(angle_to_re(mvec2d_e{1.0, -1.0}) - (-pi / 4.0)) < eps);
-        CHECK(std::abs(angle_to_re(mvec2d_e{0.0, -1.0}) - (-pi / 2.0)) < eps);
-        CHECK(std::abs(angle_to_re(mvec2d_e{-1.0, -1.0}) - (-pi * 3.0 / 4.0)) < eps);
+        CHECK(abs(angle_to_re(mvec2d_e{1.0, 0.0}) - 0.0) < eps);
+        CHECK(abs(angle_to_re(mvec2d_e{1.0, 1.0}) - pi / 4.0) < eps);
+        CHECK(abs(angle_to_re(mvec2d_e{0.0, 1.0}) - pi / 2.0) < eps);
+        CHECK(abs(angle_to_re(mvec2d_e{-1.0, 1.0}) - pi * 3.0 / 4.0) < eps);
+        CHECK(abs(angle_to_re(mvec2d_e{-1.0, 0.0}) - pi) < eps);
+        CHECK(abs(angle_to_re(mvec2d_e{1.0, -1.0}) - (-pi / 4.0)) < eps);
+        CHECK(abs(angle_to_re(mvec2d_e{0.0, -1.0}) - (-pi / 2.0)) < eps);
+        CHECK(abs(angle_to_re(mvec2d_e{-1.0, -1.0}) - (-pi * 3.0 / 4.0)) < eps);
 
         CHECK(vec2d{1.0, 0.0} * vec2d{1.1, 1.1} ==
               rev(vec2d{1.1, 1.1} * vec2d{1.0, 0.0}));
@@ -1470,8 +1497,8 @@ TEST_SUITE("EGA 2D Tests")
 
         auto m = mvec2d_e{13.0, 5.0};
         auto prd = m * inv(m);
-        CHECK(std::abs(gr0(prd) - 1.0) < eps);
-        CHECK(std::abs(gr2(prd) - 0.0) < eps);
+        CHECK(abs(value_t(gr0(prd)) - 1.0) < eps);
+        CHECK(abs(value_t(gr2(prd)) - 0.0) < eps);
     }
 
 
@@ -1701,7 +1728,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK((mvec2d{s1} << mv2) == value_t(s1) * mv2);
 
         CHECK((mvec2d{s2, v2, pscalar2d{0.0}} << mvec2d{s1}) ==
-              mvec2d{s1 * s2, 0.0, 0.0, 0.0});
+              mvec2d{value_t(s1 * s2), 0.0, 0.0, 0.0});
         CHECK((mvec2d{v2} << mvec2d{s1}) == mvec2d{0.0, 0.0, 0.0, 0.0});
 
         CHECK((wdg(v2, v3) >> v1) == wdg(v1 << v2, v3) + wdg(gr_inv(v2), v1 << v3));
@@ -1926,7 +1953,7 @@ TEST_SUITE("EGA 2D Tests")
             auto b = ps;
             auto c = e12_2d;
 
-            CHECK(wdg(rwdg(lcmpl(c), a), rwdg(b, right_dual(c))) == b);
+            CHECK(value_t(wdg(rwdg(lcmpl(c), a), rwdg(b, right_dual(c)))) == value_t(b));
         }
 
         // component extraction by using the left complement (e.g. for twdg)

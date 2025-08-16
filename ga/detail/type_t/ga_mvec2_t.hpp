@@ -27,6 +27,13 @@ struct MVec2_t {
     // assign all components
     constexpr MVec2_t(T s, T ps) : c0(s), c1(ps) {}
 
+    // constructor accepting Scalar_t types (for library function results)
+    template <typename Tag_S, typename Tag_PS>
+        requires(std::floating_point<T>)
+    constexpr MVec2_t(Scalar_t<T, Tag_S> s, Scalar_t<T, Tag_PS> ps) : c0(T(s)), c1(T(ps))
+    {
+    }
+
     // cp & mv ctor
     MVec2_t(MVec2_t const&) = default;
     MVec2_t(MVec2_t&&) noexcept = default;
@@ -182,7 +189,7 @@ template <typename T, typename Tag>
     requires(std::floating_point<T>)
 constexpr T nrm(MVec2_t<T, Tag> const& v)
 {
-    return std::sqrt(nrm_sq(v));
+    return sqrt(nrm_sq(v));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

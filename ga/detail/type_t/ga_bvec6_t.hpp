@@ -251,7 +251,7 @@ template <typename T, typename Tag>
     requires(std::floating_point<T>)
 constexpr T nrm(BVec6_t<T, Tag> const& B)
 {
-    return std::sqrt(nrm_sq(B));
+    return sqrt(nrm_sq(B));
 }
 
 // return a bivector B normalized to nrm(B) == 1.0

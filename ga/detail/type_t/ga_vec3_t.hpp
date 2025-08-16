@@ -237,7 +237,7 @@ template <typename T, typename Tag>
     requires(std::floating_point<T>)
 constexpr T nrm(Vec3_t<T, Tag> const& v)
 {
-    return std::sqrt(nrm_sq(v));
+    return sqrt(nrm_sq(v));
 }
 
 // return a vector v normalized to nrm(v) == 1.0
