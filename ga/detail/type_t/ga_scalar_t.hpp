@@ -38,16 +38,142 @@ class Scalar_t {
     {
     }
 
-    // these operators bring implicit conversion to the underlying type T
-    // (hint: can be suppressed with marking the operator explicit)
-    operator T&() noexcept { return value; }
-    operator T const&() const noexcept { return value; }
+    // These operators bring implicit conversion to the underlying type T,
+    // if not made explicit!
+    // HINT: This is unfortunate, because implicit conversion to floating point type
+    // allows for comparison of scalar and pscalar types, or for comparison of 2d and 3d
+    // scalars, despite the comparison operator requiring same types
+    // (hint: this must be suppressed with marking the operator explicit for type safety!)
+    explicit operator T&() noexcept { return value; }
+    explicit operator T const&() const noexcept { return value; }
 
     friend void swap(Scalar_t& lhs, Scalar_t& rhs) noexcept
     {
         using std::swap;
         swap(lhs.value, rhs.value);
     }
+
+    // equality (only compare, if same tag, i.e. don't mix up scalars and pseudoscalars,
+    //           or 2d and 3d scalars, for example)
+    template <typename U, typename U_Tag>
+        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
+    bool operator==(Scalar_t<U, U_Tag> rhs) const
+    {
+        // equality implies same magnitude
+        // comparison is not exact, but accepts epsilon deviations
+        auto abs_delta = std::abs(T(value) - U(rhs));
+        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
+        return (abs_delta < delta_eps);
+    }
+
+    // inequality
+    template <typename U, typename U_Tag>
+        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
+    bool operator!=(Scalar_t<U, U_Tag> rhs) const
+    {
+        return !(*this == rhs);
+    }
+
+    // less than
+    template <typename U, typename U_Tag>
+        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
+    bool operator<(Scalar_t<U, U_Tag> rhs) const
+    {
+        return (value < U(rhs));
+    }
+
+    // less than or equal
+    template <typename U, typename U_Tag>
+        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
+    bool operator<=(Scalar_t<U, U_Tag> rhs) const
+    {
+        return (*this < rhs) || (*this == rhs);
+    }
+
+    // greater than
+    template <typename U, typename U_Tag>
+        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
+    bool operator>(Scalar_t<U, U_Tag> rhs) const
+    {
+        return rhs < *this;
+    }
+
+    // greater than or equal
+    template <typename U, typename U_Tag>
+        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
+    bool operator>=(Scalar_t<U, U_Tag> rhs) const
+    {
+        return (*this > rhs) || (*this == rhs);
+    }
+
+    // Comparison operators with raw numeric types (floating point and integral)
+    template <typename U>
+        requires(std::floating_point<U> || std::integral<U>)
+    bool operator==(U rhs) const
+    {
+        // equality implies same magnitude
+        // comparison is not exact, but accepts epsilon deviations
+        auto abs_delta = std::abs(T(value) - U(rhs));
+        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
+        return (abs_delta < delta_eps);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U> || std::integral<U>)
+    bool operator!=(U rhs) const
+    {
+        return !(*this == rhs);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U> || std::integral<U>)
+    bool operator<(U rhs) const
+    {
+        return value < rhs;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U> || std::integral<U>)
+    bool operator<=(U rhs) const
+    {
+        return (*this < rhs) || (*this == rhs);
+    }
+
+    template <typename U>
+        requires(std::floating_point<U> || std::integral<U>)
+    bool operator>(U rhs) const
+    {
+        return value > rhs;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U> || std::integral<U>)
+    bool operator>=(U rhs) const
+    {
+        return (*this > rhs) || (*this == rhs);
+    }
+
+    // Arithmetic operators with raw numeric types
+    template <typename U>
+        requires(std::floating_point<U> || std::integral<U>)
+    Scalar_t<std::common_type_t<T, U>, Tag> operator+(U rhs) const
+    {
+        using ctype = std::common_type_t<T, U>;
+        return Scalar_t<ctype, Tag>(ctype(value) + ctype(rhs));
+    }
+
+    template <typename U>
+        requires(std::floating_point<U> || std::integral<U>)
+    Scalar_t<std::common_type_t<T, U>, Tag> operator-(U rhs) const
+    {
+        using ctype = std::common_type_t<T, U>;
+        return Scalar_t<ctype, Tag>(ctype(value) - ctype(rhs));
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // other operators for raw floating point types with Scalar_t
+    ////////////////////////////////////////////////////////////////////////////////
 
     template <typename U>
         requires(std::floating_point<U>)
@@ -86,6 +212,71 @@ class Scalar_t {
 
     T value{};
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// Reverse operators for raw floating point types with Scalar_t
+////////////////////////////////////////////////////////////////////////////////
+
+// Comparison operators: raw type with Scalar_t
+template <typename T, typename U, typename Tag>
+    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+bool operator==(T lhs, Scalar_t<U, Tag> rhs)
+{
+    return rhs == lhs; // Use the member operator
+}
+
+template <typename T, typename U, typename Tag>
+    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+bool operator!=(T lhs, Scalar_t<U, Tag> rhs)
+{
+    return rhs != lhs; // Use the member operator
+}
+
+template <typename T, typename U, typename Tag>
+    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+bool operator<(T lhs, Scalar_t<U, Tag> rhs)
+{
+    return lhs < U(rhs);
+}
+
+template <typename T, typename U, typename Tag>
+    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+bool operator<=(T lhs, Scalar_t<U, Tag> rhs)
+{
+    return (lhs < rhs) || (lhs == rhs);
+}
+
+template <typename T, typename U, typename Tag>
+    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+bool operator>(T lhs, Scalar_t<U, Tag> rhs)
+{
+    return lhs > U(rhs);
+}
+
+template <typename T, typename U, typename Tag>
+    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+bool operator>=(T lhs, Scalar_t<U, Tag> rhs)
+{
+    return (lhs > rhs) || (lhs == rhs);
+}
+
+// Arithmetic operators: raw type with Scalar_t
+template <typename T, typename U, typename Tag>
+    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator+(T lhs, Scalar_t<U, Tag> rhs)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar_t<ctype, Tag>(ctype(lhs) + ctype(rhs));
+}
+
+template <typename T, typename U, typename Tag>
+    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator-(T lhs, Scalar_t<U, Tag> rhs)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar_t<ctype, Tag>(ctype(lhs) - ctype(rhs));
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Scalar_t<T, Tag> core operations
@@ -160,7 +351,7 @@ template <typename T, typename Tag>
     requires(std::floating_point<T>)
 constexpr T nrm(Scalar_t<T, Tag> s)
 {
-    return std::sqrt(nrm_sq(s));
+    return sqrt(nrm_sq(s));
 }
 
 // return a scalar normalized to nrm(s) == 1.0
@@ -191,6 +382,54 @@ template <typename T, typename Tag>
 constexpr T to_val(Scalar_t<T, Tag> s)
 {
     return T(s);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// abs and sqrt for Scalar_t<T, Tag> printing support via iostream
+////////////////////////////////////////////////////////////////////////////////
+// Unified mathematical functions for consistent interface throughout the GA library
+//
+// IMPORTANT: The GA library uses unqualified calls to mathematical functions (abs, sqrt,
+// etc.) instead of std::abs, std::sqrt, etc. This allows these unified functions to be
+// found via ADL (Argument Dependent Lookup) when called with Scalar_t types, while still
+// working correctly with raw numeric types.
+//
+// This design provides:
+// - Consistent interface for both raw types (double, float) and Scalar_t types
+// - Seamless integration throughout the library without explicit conversions
+// - Natural mathematical notation in user code
+//
+// Usage: Use unqualified function calls like abs(x) and sqrt(x) instead of std::abs(x),
+// sqrt(x)
+
+// Unified abs function that works for both raw numeric types and Scalar_t types
+template <typename T>
+    requires(std::floating_point<T> || std::integral<T>)
+constexpr T abs(T value)
+{
+    return std::abs(value);
+}
+
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+constexpr T abs(Scalar_t<T, Tag> s)
+{
+    return std::abs(T(s));
+}
+
+// Unified sqrt function that works for both raw numeric types and Scalar_t types
+template <typename T>
+    requires(std::floating_point<T> || std::integral<T>)
+constexpr auto sqrt(T value) -> decltype(std::sqrt(value))
+{
+    return std::sqrt(value);
+}
+
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+constexpr T sqrt(Scalar_t<T, Tag> s)
+{
+    return std::sqrt(T(s));
 }
 
 } // namespace hd::ga

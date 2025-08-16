@@ -59,7 +59,7 @@ TEST_SUITE("PGA 2DP Application Tests")
             // turning center is intersection point of both axis
             auto turn_ctr = rwdg(axis_r, axis_fr);
             // unitize to get projective point for phi != 0
-            if (std::abs(turn_ctr.z) > eps) {
+            if (abs(turn_ctr.z) > eps) {
                 turn_ctr = unitize(turn_ctr);
             }
 

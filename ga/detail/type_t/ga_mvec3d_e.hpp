@@ -90,7 +90,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator+(Scalar3d<T> s,
                                                        MVec3d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d_E<ctype>(s + M.c0, M.c1, M.c2, M.c3);
+    return MVec3d_E<ctype>(T(s) + M.c0, M.c1, M.c2, M.c3);
 }
 
 // even grade multivector + scalar => even grade multivector
@@ -100,7 +100,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator+(MVec3d_E<T> const& M,
                                                        Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d_E<ctype>(s + M.c0, M.c1, M.c2, M.c3);
+    return MVec3d_E<ctype>(U(s) + M.c0, M.c1, M.c2, M.c3);
 }
 
 // bivector + even grade mulivector => even grade multivector
@@ -152,7 +152,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator-(Scalar3d<T> s,
                                                        MVec3d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d_E<ctype>(s - M.c0, -M.c1, -M.c2, -M.c3);
+    return MVec3d_E<ctype>(T(s) - M.c0, -M.c1, -M.c2, -M.c3);
 }
 
 // even grade multivector - scalar => even grade multivector
@@ -162,7 +162,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator-(MVec3d_E<T> const& M,
                                                        Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d_E<ctype>(M.c0 - s, M.c1, M.c2, M.c3);
+    return MVec3d_E<ctype>(M.c0 - U(s), M.c1, M.c2, M.c3);
 }
 
 // bivector - even grade mulivector => even grade multivector

@@ -93,7 +93,7 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> operator+(Scalar2dp<T> s,
                                                         MVec2dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_E<ctype>(s + M.c0, M.c1, M.c2, M.c3);
+    return MVec2dp_E<ctype>(T(s) + M.c0, M.c1, M.c2, M.c3);
 }
 
 // even grade multivector + scalar => even grade multivector
@@ -103,7 +103,7 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> operator+(MVec2dp_E<T> const& M,
                                                         Scalar2dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_E<ctype>(s + M.c0, M.c1, M.c2, M.c3);
+    return MVec2dp_E<ctype>(U(s) + M.c0, M.c1, M.c2, M.c3);
 }
 
 // bivector + even grade mulivector => even grade multivector
@@ -157,7 +157,7 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> operator-(Scalar2dp<T> s,
                                                         MVec2dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_E<ctype>(s - M.c0, -M.c1, -M.c2, -M.c3);
+    return MVec2dp_E<ctype>(T(s) - M.c0, -M.c1, -M.c2, -M.c3);
 }
 
 // even grade multivector - scalar => even grade multivector
@@ -167,7 +167,7 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> operator-(MVec2dp_E<T> const& M,
                                                         Scalar2dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_E<ctype>(M.c0 - s, M.c1, M.c2, M.c3);
+    return MVec2dp_E<ctype>(M.c0 - U(s), M.c1, M.c2, M.c3);
 }
 
 // bivector - even grade mulivector => even grade multivector

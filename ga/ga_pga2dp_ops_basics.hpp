@@ -538,7 +538,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar2dp<T> bulk_nrm(Scalar2dp<T> s)
 {
-    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(s)));
+    return Scalar2dp<T>(sqrt(bulk_nrm_sq(s)));
 }
 
 // return squared bulk norm of vector
@@ -556,7 +556,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar2dp<T> bulk_nrm(Vec2dp<T> const& v)
 {
-    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(v)));
+    return Scalar2dp<T>(sqrt(bulk_nrm_sq(v)));
 }
 
 // return squared bulk magnitude of bivector
@@ -574,7 +574,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar2dp<T> bulk_nrm(BiVec2dp<T> const& B)
 {
-    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(B)));
+    return Scalar2dp<T>(sqrt(bulk_nrm_sq(B)));
 }
 
 template <typename T>
@@ -602,7 +602,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar2dp<T> bulk_nrm(MVec2dp_E<T> const& M)
 {
-    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
+    return Scalar2dp<T>(sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
@@ -616,7 +616,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar2dp<T> bulk_nrm(MVec2dp_U<T> const& M)
 {
-    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
+    return Scalar2dp<T>(sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
@@ -631,7 +631,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr Scalar2dp<T> bulk_nrm(MVec2dp<T> const& M)
 {
-    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
+    return Scalar2dp<T>(sqrt(bulk_nrm_sq(M)));
 }
 
 
@@ -641,14 +641,14 @@ constexpr Scalar2dp<T> bulk_nrm(MVec2dp<T> const& M)
 
 template <typename T>
     requires(std::floating_point<T>)
-constexpr Scalar2dp<T> weight_nrm_sq([[maybe_unused]] Scalar2dp<T>)
+constexpr PScalar2dp<T> weight_nrm_sq([[maybe_unused]] Scalar2dp<T>)
 {
     return PScalar2dp<T>(0.0);
 }
 
 template <typename T>
     requires(std::floating_point<T>)
-constexpr Scalar2dp<T> weight_nrm([[maybe_unused]] Scalar2dp<T>)
+constexpr PScalar2dp<T> weight_nrm([[maybe_unused]] Scalar2dp<T>)
 {
     return PScalar2dp<T>(0.0);
 }
@@ -667,7 +667,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar2dp<T> weight_nrm(Vec2dp<T> const& v)
 {
-    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(v)));
+    return PScalar2dp<T>(sqrt(weight_nrm_sq(v)));
 }
 
 // return squared weight norm of bivector
@@ -684,7 +684,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar2dp<T> weight_nrm(BiVec2dp<T> const& B)
 {
-    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(B)));
+    return PScalar2dp<T>(sqrt(T(weight_nrm_sq(B))));
 }
 
 // return squared weight norm of pseudoscalar
@@ -701,7 +701,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar2dp<T> weight_nrm(PScalar2dp<T> ps)
 {
-    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(ps)));
+    return PScalar2dp<T>(sqrt(weight_nrm_sq(ps)));
 }
 
 template <typename T>
@@ -715,7 +715,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar2dp<T> weight_nrm(MVec2dp_E<T> const& M)
 {
-    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
+    return PScalar2dp<T>(sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
@@ -729,7 +729,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar2dp<T> weight_nrm(MVec2dp_U<T> const& M)
 {
-    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
+    return PScalar2dp<T>(sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
@@ -744,7 +744,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr PScalar2dp<T> weight_nrm(MVec2dp<T> const& M)
 {
-    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
+    return PScalar2dp<T>(sqrt(weight_nrm_sq(M)));
 }
 
 
@@ -895,7 +895,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline BiVec2dp<T> unitize(BiVec2dp<T> const& B)
 {
-    T n = weight_nrm(B);
+    T n = T(weight_nrm(B));
     hd::ga::detail::check_unitization<T>(n, "bivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * B;
@@ -906,7 +906,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec2dp_E<T> unitize(MVec2dp_E<T> const& M)
 {
-    T n = weight_nrm(M);
+    T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "even grade multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
@@ -917,7 +917,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec2dp_U<T> unitize(MVec2dp_U<T> const& M)
 {
-    T n = weight_nrm(M);
+    T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "odd grade multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
@@ -928,7 +928,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec2dp<T> unitize(MVec2dp<T> const& M)
 {
-    T n = weight_nrm(M);
+    T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
@@ -947,9 +947,9 @@ template <typename T>
     requires(std::floating_point<T>)
 inline Line2d<T> unitize(Line2d<T> const& l)
 {
-    // unitization for a 2d bivector means std::sqrt(x^2 + y^2) = 1
+    // unitization for a 2d bivector means sqrt(x^2 + y^2) = 1
     // i.e. unitization of the direction vector of the line
-    T wn = weight_nrm(l);
+    T wn = T(weight_nrm(l));
     hd::ga::detail::check_unitization<T>(wn, "Line2d");
     T inv = T(1.0) / wn;
     return Line2d<T>(l.x * inv, l.y * inv, l.z * inv);

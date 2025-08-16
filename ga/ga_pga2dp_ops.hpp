@@ -43,7 +43,7 @@ inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
 
-    if ((weight_nrm_sq(v1) != 0.0) || (weight_nrm_sq(v2) != 0.0)) {
+    if ((ctype(weight_nrm_sq(v1)) != 0.0) || (ctype(weight_nrm_sq(v2) != 0.0))) {
         // the angle between points not at infinity or points not at infinity and a
         // direction towards infinity is defined as zero
         return 0.0;
@@ -51,7 +51,7 @@ inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 
     // angle is defined only between directions towards points at infinity
 
-    ctype nrm_prod = bulk_nrm(v1) * bulk_nrm(v2);
+    ctype nrm_prod = ctype(bulk_nrm(v1)) * ctype(bulk_nrm(v2));
     hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
     // std::clamp must be used to take care of numerical inaccuracies
     return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
@@ -65,7 +65,7 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
 {
 
     using ctype = std::common_type_t<T, U>;
-    ctype contr = right_weight_contract2dp(B1, B2);
+    ctype contr = ctype(right_weight_contract2dp(B1, B2));
     // hint: weight_nrm returns a pscalar2dp! ctype() required around each single result,
     // otherwise geometric product between pseudoscalars evaluated, which evaluates to
     // zero
@@ -469,7 +469,7 @@ template <typename T>
     requires(std::floating_point<T>)
 constexpr BiVec2dp<T> att(PScalar2dp<T> ps)
 {
-    return BiVec2dp<T>(T(0.0), T(0.0), ps);
+    return BiVec2dp<T>(T(0.0), T(0.0), T(ps));
 }
 
 

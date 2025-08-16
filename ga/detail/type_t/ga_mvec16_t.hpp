@@ -318,7 +318,7 @@ template <typename T, typename Tag>
     requires(std::floating_point<T>)
 constexpr T nrm(MVec16_t<T, Tag> const& v)
 {
-    return std::sqrt(nrm_sq(v));
+    return sqrt(nrm_sq(v));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

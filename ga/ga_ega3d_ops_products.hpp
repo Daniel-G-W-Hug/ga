@@ -1925,7 +1925,7 @@ template <typename T>
     requires(std::floating_point<T>)
 inline MVec3d<T> inv(MVec3d<T> const& M)
 {
-    T m_conjm = gr0(M * conj(M) * gr_inv(M) * rev(M));
+    T m_conjm = T(gr0(M * conj(M) * gr_inv(M) * rev(M)));
     hd::ga::detail::check_normalization<T>(std::abs(m_conjm), "multivector");
     T inv = T(1.0) / m_conjm;
     return MVec3d<T>(conj(M) * gr_inv(M) * rev(M) * inv);

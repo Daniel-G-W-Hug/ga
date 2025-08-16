@@ -17,6 +17,7 @@
 
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
+using std::abs;             // bring std::abs into scope for ADL with our abs overload
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -53,18 +54,18 @@ TEST_SUITE("EGA 3D Tests")
         fmt::println("Vec3d: default init");
         vec3d v;
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.x) < eps);
-        CHECK(std::abs(v.y) < eps);
-        CHECK(std::abs(v.z) < eps);
+        CHECK(abs(v.x) < eps);
+        CHECK(abs(v.y) < eps);
+        CHECK(abs(v.z) < eps);
     }
     TEST_CASE("Vec3d: with curly braced intializer")
     {
         fmt::println("Vec3d: with curly braced intializer");
         vec3d v{0.0, 0.0, 0.0};
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.x) < eps);
-        CHECK(std::abs(v.y) < eps);
-        CHECK(std::abs(v.z) < eps);
+        CHECK(abs(v.x) < eps);
+        CHECK(abs(v.y) < eps);
+        CHECK(abs(v.z) < eps);
     }
     TEST_CASE("Vec3d: cp ctor & cp assign incl. type deduction")
     {
@@ -79,15 +80,15 @@ TEST_SUITE("EGA 3D Tests")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(std::abs(v1.x - 1.0) < eps);
-        CHECK(std::abs(v1.y - 2.0) < eps);
-        CHECK(std::abs(v1.z - 3.0) < eps);
-        CHECK(std::abs(v2.x - 1.0) < eps);
-        CHECK(std::abs(v2.y - 2.0) < eps);
-        CHECK(std::abs(v2.z - 3.0) < eps);
-        CHECK(std::abs(v3.x - 1.0) < eps);
-        CHECK(std::abs(v3.y - 2.0) < eps);
-        CHECK(std::abs(v3.z - 3.0) < eps);
+        CHECK(abs(v1.x - 1.0) < eps);
+        CHECK(abs(v1.y - 2.0) < eps);
+        CHECK(abs(v1.z - 3.0) < eps);
+        CHECK(abs(v2.x - 1.0) < eps);
+        CHECK(abs(v2.y - 2.0) < eps);
+        CHECK(abs(v2.z - 3.0) < eps);
+        CHECK(abs(v3.x - 1.0) < eps);
+        CHECK(abs(v3.y - 2.0) < eps);
+        CHECK(abs(v3.z - 3.0) < eps);
         CHECK(v4 == -v2);
 
         // check direct assignment operators (sequence of tests decisive!)
@@ -251,51 +252,51 @@ TEST_SUITE("EGA 3D Tests")
         //     "v4 = inv(v3) = {: .4f}, nrm(v3) = {: .4f}, nrm(v3)*nrm(v4) = {: .4f}", v4,
         //     nrm(v4), nrm(v3) * nrm(v4));
 
-        CHECK(std::abs(nrm_sq(v1) - 9.0) < eps);
-        CHECK(std::abs(nrm_sq(v2) - 1.0) < eps);
-        CHECK(std::abs(dot(v4, v3) - 1.0) < eps);
+        CHECK(abs(nrm_sq(v1) - 9.0) < eps);
+        CHECK(abs(nrm_sq(v2) - 1.0) < eps);
+        CHECK(abs(value_t(dot(v4, v3)) - 1.0) < eps);
 
         // check inverses - scalar
         // fmt::println("");
         // fmt::println("s1 * inv(s1) = {}", s1 * inv(s1)); // s
-        CHECK(std::abs(nrm(s1 * inv(s1)) - 1) < eps);
-        CHECK(std::abs(inv(s1) - rev(s1) / nrm_sq(s1)) < eps);
+        CHECK(abs(nrm(s1 * inv(s1)) - 1) < eps);
+        CHECK(abs(value_t(inv(s1) - rev(s1) / nrm_sq(s1))) < eps);
 
         // check inverses - vector
         // fmt::println("v1 * inv(v1) = {}", v1 * inv(v1)); // mv_e
-        CHECK(std::abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(v1) - rev(v1) / nrm_sq(v1))) < eps);
+        CHECK(abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
+        CHECK(abs(nrm(inv(v1) - rev(v1) / nrm_sq(v1))) < eps);
 
         // check inverses - bivector
         // fmt::println("b1 * inv(b1) = {}", b1 * inv(b1)); // mv_e
-        CHECK(std::abs(nrm(gr0(b1 * inv(b1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(b1 * inv(b1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(b1) - rev(b1) / nrm_sq(b1))) < eps);
+        CHECK(abs(nrm(gr0(b1 * inv(b1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(b1 * inv(b1))) - 0) < eps);
+        CHECK(abs(nrm(inv(b1) - rev(b1) / nrm_sq(b1))) < eps);
 
         // check inverses - pseudoscalar
         // fmt::println("ps1 * inv(ps1) = {}", ps1 * inv(ps1)); // s
-        CHECK(std::abs(nrm(ps1 * inv(ps1)) - 1) < eps);
-        CHECK(std::abs(nrm(inv(ps1) - rev(ps1) / nrm_sq(ps1))) < eps);
+        CHECK(abs(nrm(ps1 * inv(ps1)) - 1) < eps);
+        CHECK(abs(nrm(inv(ps1) - rev(ps1) / nrm_sq(ps1))) < eps);
 
         // check inverses - even grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
-        CHECK(std::abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(mve1) - rev(mve1) / nrm_sq(mve1))) < eps);
+        CHECK(abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
+        CHECK(abs(nrm(inv(mve1) - rev(mve1) / nrm_sq(mve1))) < eps);
 
         // check inverses - odd grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
-        CHECK(std::abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
-        CHECK(std::abs(nrm(inv(mvu1) - rev(mvu1) / nrm_sq(mvu1))) < eps);
+        CHECK(abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
+        CHECK(abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
+        CHECK(abs(nrm(inv(mvu1) - rev(mvu1) / nrm_sq(mvu1))) < eps);
 
         // check inverses - multivector
         // fmt::println("mv1 * inv(mv1) = {}", mv1 * inv(mv1)); // mv
-        CHECK(std::abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
-        CHECK(std::abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(std::abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
+        CHECK(abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
+        CHECK(abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
                                                              // are equal
 
         // fmt::println("");
@@ -339,11 +340,11 @@ TEST_SUITE("EGA 3D Tests")
         //              "angle(v1,v8) = {:.8f}, {:.8f} ",
         //              v8, nrm(v8), angle(v1, v8), angle(v1, v8) / pi);
 
-        CHECK(std::abs(angle(v1, v1) - 0.0) < eps);
-        CHECK(std::abs(angle(v1, v2) - pi * 0.25) < eps);
-        CHECK(std::abs(angle(v1, v3) - pi * 0.5) < eps);
-        CHECK(std::abs(angle(v1, v4) - pi * 0.75) < eps);
-        CHECK(std::abs(angle(v1, v5) - pi) < eps);
+        CHECK(abs(angle(v1, v1) - 0.0) < eps);
+        CHECK(abs(angle(v1, v2) - pi * 0.25) < eps);
+        CHECK(abs(angle(v1, v3) - pi * 0.5) < eps);
+        CHECK(abs(angle(v1, v4) - pi * 0.75) < eps);
+        CHECK(abs(angle(v1, v5) - pi) < eps);
 
         // just to suppress unused variable warnings
         CHECK(v6 == normalize(vec3d(-1.0, -1.0, 0.0)));
@@ -392,14 +393,14 @@ TEST_SUITE("EGA 3D Tests")
         // fmt::println("");
 
         for (auto const& [phi, c] : v1) {
-            CHECK(std::abs(phi - angle(e1_3d, c)) < eps);
+            CHECK(abs(phi - angle(e1_3d, c)) < eps);
         }
         for (auto const& [phi, c] : v2) {
-            CHECK(std::abs(phi - angle(e2_3d, c)) < eps);
+            CHECK(abs(phi - angle(e2_3d, c)) < eps);
         }
         auto ref_vec = normalize(e1_3d + e2_3d);
         for (auto const& [phi, c] : v3) {
-            CHECK(std::abs(phi - angle(ref_vec, c)) < eps);
+            CHECK(abs(phi - angle(ref_vec, c)) < eps);
         }
     }
 
@@ -441,14 +442,14 @@ TEST_SUITE("EGA 3D Tests")
         //              "angle = {: .4f}",
         //              v8, wdg(v1, v8), angle(v1, v8));
 
-        CHECK(std::abs(nrm(wdg(v1, v1)) - sin(angle(v1, v1))) < eps);
-        CHECK(std::abs(nrm(wdg(v1, v2)) - sin(angle(v1, v2))) < eps);
-        CHECK(std::abs(nrm(wdg(v1, v3)) - sin(angle(v1, v3))) < eps);
-        CHECK(std::abs(nrm(wdg(v1, v4)) - sin(angle(v1, v4))) < eps);
-        CHECK(std::abs(nrm(wdg(v1, v5)) - sin(angle(v1, v5))) < eps);
-        CHECK(std::abs(nrm(wdg(v1, v6)) - sin(angle(v1, v6))) < eps);
-        CHECK(std::abs(nrm(wdg(v1, v7)) - sin(angle(v1, v7))) < eps);
-        CHECK(std::abs(nrm(wdg(v1, v8)) - sin(angle(v1, v8))) < eps);
+        CHECK(abs(nrm(wdg(v1, v1)) - sin(angle(v1, v1))) < eps);
+        CHECK(abs(nrm(wdg(v1, v2)) - sin(angle(v1, v2))) < eps);
+        CHECK(abs(nrm(wdg(v1, v3)) - sin(angle(v1, v3))) < eps);
+        CHECK(abs(nrm(wdg(v1, v4)) - sin(angle(v1, v4))) < eps);
+        CHECK(abs(nrm(wdg(v1, v5)) - sin(angle(v1, v5))) < eps);
+        CHECK(abs(nrm(wdg(v1, v6)) - sin(angle(v1, v6))) < eps);
+        CHECK(abs(nrm(wdg(v1, v7)) - sin(angle(v1, v7))) < eps);
+        CHECK(abs(nrm(wdg(v1, v8)) - sin(angle(v1, v8))) < eps);
     }
 
     TEST_CASE("Vec3d: operations - project / reject / reflect (vector - vector)")
@@ -667,16 +668,16 @@ TEST_SUITE("EGA 3D Tests")
         //              on13[1], nrm(on13[1]), rad2deg(angle(e1_3d, on13[1])));
         // fmt::println("");
 
-        CHECK(std::abs(dot(og12[0], og12[1])) < eps);
-        CHECK(std::abs(dot(og13[0], og13[1])) < eps);
+        CHECK(abs(value_t(dot(og12[0], og12[1]))) < eps);
+        CHECK(abs(value_t(dot(og13[0], og13[1]))) < eps);
 
-        CHECK(std::abs(dot(on12[0], on12[1])) < eps);
-        CHECK(std::abs(nrm(on12[0]) - 1.0) < eps);
-        CHECK(std::abs(nrm(on12[1]) - 1.0) < eps);
+        CHECK(abs(value_t(dot(on12[0], on12[1]))) < eps);
+        CHECK(abs(nrm(on12[0]) - 1.0) < eps);
+        CHECK(abs(nrm(on12[1]) - 1.0) < eps);
 
-        CHECK(std::abs(dot(on13[0], on13[1])) < eps);
-        CHECK(std::abs(nrm(on13[0]) - 1.0) < eps);
-        CHECK(std::abs(nrm(on13[1]) - 1.0) < eps);
+        CHECK(abs(value_t(dot(on13[0], on13[1]))) < eps);
+        CHECK(abs(nrm(on13[0]) - 1.0) < eps);
+        CHECK(abs(nrm(on13[1]) - 1.0) < eps);
 
         fmt::println("Vec3d: Gram-Schmidt-Orthogonalization - part 2 (space)");
 
@@ -722,17 +723,17 @@ TEST_SUITE("EGA 3D Tests")
         //              sign(wdg(on123[0], wdg(on123[1], on123[2])) / I_3d));
         // fmt::println("");
 
-        CHECK(std::abs(dot(og123[0], og123[1])) < eps);
-        CHECK(std::abs(dot(og123[1], og123[2])) < eps);
-        CHECK(std::abs(dot(og123[0], og123[2])) < eps);
+        CHECK(abs(value_t(dot(og123[0], og123[1]))) < eps);
+        CHECK(abs(value_t(dot(og123[1], og123[2]))) < eps);
+        CHECK(abs(value_t(dot(og123[0], og123[2]))) < eps);
 
-        CHECK(std::abs(dot(on123[0], on123[1])) < eps);
-        CHECK(std::abs(dot(on123[1], on123[2])) < eps);
-        CHECK(std::abs(dot(on123[0], on123[2])) < eps);
+        CHECK(abs(value_t(dot(on123[0], on123[1]))) < eps);
+        CHECK(abs(value_t(dot(on123[1], on123[2]))) < eps);
+        CHECK(abs(value_t(dot(on123[0], on123[2]))) < eps);
 
-        CHECK(std::abs(nrm(on123[0]) - 1.0) < eps);
-        CHECK(std::abs(nrm(on123[1]) - 1.0) < eps);
-        CHECK(std::abs(nrm(on123[2]) - 1.0) < eps);
+        CHECK(abs(nrm(on123[0]) - 1.0) < eps);
+        CHECK(abs(nrm(on123[1]) - 1.0) < eps);
+        CHECK(abs(nrm(on123[2]) - 1.0) < eps);
     }
 
     TEST_CASE("Vec3d: cross-product")
@@ -776,14 +777,14 @@ TEST_SUITE("EGA 3D Tests")
         // default initialization
         mvec3d v;
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.c0) < eps);
-        CHECK(std::abs(v.c1) < eps);
-        CHECK(std::abs(v.c2) < eps);
-        CHECK(std::abs(v.c3) < eps);
-        CHECK(std::abs(v.c4) < eps);
-        CHECK(std::abs(v.c5) < eps);
-        CHECK(std::abs(v.c6) < eps);
-        CHECK(std::abs(v.c7) < eps);
+        CHECK(abs(v.c0) < eps);
+        CHECK(abs(v.c1) < eps);
+        CHECK(abs(v.c2) < eps);
+        CHECK(abs(v.c3) < eps);
+        CHECK(abs(v.c4) < eps);
+        CHECK(abs(v.c5) < eps);
+        CHECK(abs(v.c6) < eps);
+        CHECK(abs(v.c7) < eps);
     }
     TEST_CASE("MVec3d: with curly braced intializer")
     {
@@ -791,14 +792,14 @@ TEST_SUITE("EGA 3D Tests")
         // default initialization
         mvec3d v{0.0, 1.0, 2.0, 3.0, 23.0, 31.0, 12.0, 123.0};
         // fmt::println("   v = {}", v);
-        CHECK(std::abs(v.c0 - 0.0) < eps);
-        CHECK(std::abs(v.c1 - 1.0) < eps);
-        CHECK(std::abs(v.c2 - 2.0) < eps);
-        CHECK(std::abs(v.c3 - 3.0) < eps);
-        CHECK(std::abs(v.c4 - 23.0) < eps);
-        CHECK(std::abs(v.c5 - 31.0) < eps);
-        CHECK(std::abs(v.c6 - 12.0) < eps);
-        CHECK(std::abs(v.c7 - 123.0) < eps);
+        CHECK(abs(v.c0 - 0.0) < eps);
+        CHECK(abs(v.c1 - 1.0) < eps);
+        CHECK(abs(v.c2 - 2.0) < eps);
+        CHECK(abs(v.c3 - 3.0) < eps);
+        CHECK(abs(v.c4 - 23.0) < eps);
+        CHECK(abs(v.c5 - 31.0) < eps);
+        CHECK(abs(v.c6 - 12.0) < eps);
+        CHECK(abs(v.c7 - 123.0) < eps);
     }
 
     TEST_CASE("MVec3d: cp ctor & cp assign incl. type deduction")
@@ -816,23 +817,23 @@ TEST_SUITE("EGA 3D Tests")
         // fmt::println("   v3 = {}", v3);
         // fmt::println("   v4 = {}", v4);
 
-        CHECK(std::abs(v2.c0 - 0.0) < eps);
-        CHECK(std::abs(v2.c1 - 1.0) < eps);
-        CHECK(std::abs(v2.c2 - 2.0) < eps);
-        CHECK(std::abs(v2.c3 - 3.0) < eps);
-        CHECK(std::abs(v2.c4 - 23.0) < eps);
-        CHECK(std::abs(v2.c5 - 31.0) < eps);
-        CHECK(std::abs(v2.c6 - 12.0) < eps);
-        CHECK(std::abs(v2.c7 - 123.0) < eps);
+        CHECK(abs(v2.c0 - 0.0) < eps);
+        CHECK(abs(v2.c1 - 1.0) < eps);
+        CHECK(abs(v2.c2 - 2.0) < eps);
+        CHECK(abs(v2.c3 - 3.0) < eps);
+        CHECK(abs(v2.c4 - 23.0) < eps);
+        CHECK(abs(v2.c5 - 31.0) < eps);
+        CHECK(abs(v2.c6 - 12.0) < eps);
+        CHECK(abs(v2.c7 - 123.0) < eps);
 
-        CHECK(std::abs(v3.c0 - 0.0) < eps);
-        CHECK(std::abs(v3.c1 - 1.0) < eps);
-        CHECK(std::abs(v3.c2 - 2.0) < eps);
-        CHECK(std::abs(v3.c3 - 3.0) < eps);
-        CHECK(std::abs(v3.c4 - 23.0) < eps);
-        CHECK(std::abs(v3.c5 - 31.0) < eps);
-        CHECK(std::abs(v3.c6 - 12.0) < eps);
-        CHECK(std::abs(v3.c7 - 123.0) < eps);
+        CHECK(abs(v3.c0 - 0.0) < eps);
+        CHECK(abs(v3.c1 - 1.0) < eps);
+        CHECK(abs(v3.c2 - 2.0) < eps);
+        CHECK(abs(v3.c3 - 3.0) < eps);
+        CHECK(abs(v3.c4 - 23.0) < eps);
+        CHECK(abs(v3.c5 - 31.0) < eps);
+        CHECK(abs(v3.c6 - 12.0) < eps);
+        CHECK(abs(v3.c7 - 123.0) < eps);
 
         CHECK(v4 == -v3);
 
@@ -1439,9 +1440,9 @@ TEST_SUITE("EGA 3D Tests")
 
         auto m = mvec2d{13.0, -27.0, 3.0, 5.0};
         auto prd = m * inv(m);
-        CHECK(std::abs(gr0(prd) - 1.0) < eps);
+        CHECK(abs(gr0(prd) - 1.0) < eps);
         CHECK(nrm(gr1(prd)) < eps);
-        CHECK(std::abs(gr2(prd) - 0.0) < eps);
+        CHECK(abs(gr2(prd) - 0.0) < eps);
     }
 
 
@@ -1936,7 +1937,7 @@ TEST_SUITE("EGA 3D Tests")
         // example see Macdonald "Linear and Geometric Algebra", Exercise 7.12, p. 127
         auto Bv =
             wdg(e2_3d, e1_3d + std::sqrt(3.0) * e3_3d); // bivector describing the plane
-        CHECK(std::abs(nrm(Bv) - 2.0) < eps);
+        CHECK(abs(nrm(Bv) - 2.0) < eps);
         CHECK(rotate(Bv, get_rotor(e31_3d, pi / 3)) == -2.0 * e12_3d);
         CHECK(rotate(Bv, get_rotor(e31_3d, pi / 3)) ==
               rotate_opt1(Bv, get_rotor(e31_3d, pi / 3)));
@@ -2145,7 +2146,7 @@ TEST_SUITE("EGA 3D Tests")
 
 
         CHECK((mvec3d{s2, v2, b2, pscalar3d{0.0}} << mvec3d{s1}) ==
-              mvec3d{s1 * s2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+              mvec3d{value_t(s1 * s2), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
 
         CHECK((mvec3d{v2} << mvec3d{s1}) ==
               mvec3d{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
@@ -2315,7 +2316,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(cmpl(e31_3d) == rev(e31_3d) * I_3d);
         CHECK(cmpl(e12_3d) == e3_3d);
         CHECK(cmpl(e12_3d) == rev(e12_3d) * I_3d);
-        CHECK(cmpl(I_3d) == scalar2d(1.0));
+        CHECK(cmpl(I_3d) == scalar3d(1.0));
         CHECK(cmpl(I_3d) == rev(I_3d) * I_3d);
         //
         CHECK(cmpl(cmpl(M1)) == M1);

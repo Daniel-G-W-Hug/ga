@@ -167,7 +167,7 @@ void active_bivt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
 
         auto wdg_uv = wdg(u, v);
         // orientation relative to I_2d (= right-handed system of e1 and e2)
-        auto orientation = sign(wdg_uv / I_2d);
+        auto orientation = sign(wdg_uv * inv(I_2d));
         // qDebug() << "orientation " << orientation;
 
         auto dot_uv = dot(u, v);
