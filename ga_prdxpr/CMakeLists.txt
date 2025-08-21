@@ -75,14 +75,32 @@ target_include_directories(${EXEC2_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC3_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC4_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 
-find_package(fmt CONFIG REQUIRED)
-find_package(doctest REQUIRED)
+# Dependencies are handled by the main CMakeLists.txt dependency system
+# Just link against the targets that should be available
 
-# Link with fmt library
-target_link_libraries(${EXEC_NAME} PRIVATE fmt::fmt-header-only)
-target_link_libraries(${EXEC2_NAME} PRIVATE fmt::fmt-header-only)
-target_link_libraries(${EXEC3_NAME} PRIVATE fmt::fmt-header-only doctest::doctest)
-target_link_libraries(${EXEC4_NAME} PRIVATE fmt::fmt-header-only)
+# Helper function to link fmt to a target
+function(link_fmt_to_target target_name)
+    if(TARGET fmt::fmt-header-only)
+        target_link_libraries(${target_name} PRIVATE fmt::fmt-header-only)
+    elseif(TARGET fmt::fmt)
+        target_link_libraries(${target_name} PRIVATE fmt::fmt)
+    else()
+        message(FATAL_ERROR "fmt library not found - dependency system may not be working correctly")
+    endif()
+endfunction()
+
+# Link fmt to all executables
+link_fmt_to_target(${EXEC_NAME})
+link_fmt_to_target(${EXEC2_NAME})
+link_fmt_to_target(${EXEC4_NAME})
+
+# For EXEC3_NAME, also link doctest
+if(TARGET doctest::doctest)
+    target_link_libraries(${EXEC3_NAME} PRIVATE doctest::doctest)
+    link_fmt_to_target(${EXEC3_NAME})
+else()
+    message(FATAL_ERROR "doctest not found - dependency system may not be working correctly")
+endif()
 
 # Compiler-specific options
 if(MSVC)

@@ -44,9 +44,64 @@ endif()
 
 ### Extended testing for division by zero (optional, may cost speed)
 add_definitions(-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
+
+#################################################################
+# Cross-platform dependency management
+#################################################################
+
+# Add our custom cmake modules to the module path
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+# Include and setup dependencies
+include(dependencies)
+setup_ga_dependencies()
+
+# Optional readline support for ga_lua interactive shell
+option(GA_USE_READLINE "Enable readline support for ga_lua interactive shell" ON)
+
+#################################################################
+# Project modules
+#################################################################
  
 add_subdirectory(ga)                     # ga library (header only)
 add_subdirectory(ga_test)                # tests for header only library
 add_subdirectory(ga_lua)                 # lua scripting for ga
 add_subdirectory(ga_view)                # qt-based viewer
 add_subdirectory(ga_prdxpr)              # generate product expressions
+
+#################################################################
+# Summary
+#################################################################
+
+# Print dependency summary
+message(STATUS "")
+message(STATUS "GA Project Configuration Summary:")
+message(STATUS "=================================")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "C++ standard: ${CMAKE_CXX_STANDARD}")
+if(TARGET fmt::fmt OR TARGET fmt::fmt-header-only)
+    message(STATUS "fmt: ✓ Available")
+else()
+    message(STATUS "fmt: ✗ Missing")
+endif()
+if(TARGET doctest::doctest)
+    message(STATUS "doctest: ✓ Available")
+else()
+    message(STATUS "doctest: ✗ Missing")
+endif()
+if(TARGET sol2::sol2)
+    message(STATUS "sol2: ✓ Available")
+else()
+    message(STATUS "sol2: ✗ Missing")
+endif()
+if(TARGET Qt6::Core)
+    message(STATUS "Qt6: ✓ Available")
+else()
+    message(STATUS "Qt6: ✗ Missing")
+endif()
+if(TARGET ${LUA_LIBRARIES} OR Lua_FOUND)
+    message(STATUS "Lua: ✓ Available")
+else()
+    message(STATUS "Lua: ✗ Missing")
+endif()
+message(STATUS "")
