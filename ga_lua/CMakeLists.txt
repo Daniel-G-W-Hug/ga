@@ -5,6 +5,7 @@ set(EXEC_NAME ga_lua)
 add_executable(${EXEC_NAME} src/ga_lua.cpp)   #dep: lua, sol2, ga
 
 target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/../../include)
 
 # Dependencies are handled by the main CMakeLists.txt dependency system
 # Just link against the targets that should be available

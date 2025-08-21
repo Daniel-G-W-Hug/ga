@@ -96,6 +96,7 @@ No changes needed to your existing scripts or documentation.
 | fmt | brew | vcpkg | apt-get | ✅ FetchContent |
 | doctest | brew | vcpkg | apt-get | ✅ FetchContent |
 | sol2 | ❌ | ❌ | ❌ | ✅ FetchContent |
+| hd utils | ../../include/hd | ../../include/hd | ../../include/hd | ❌ Project-specific |
 | readline | brew | ❌ | apt-get | ❌ Optional |
 
 ## Configuration Summary Display
@@ -112,6 +113,7 @@ doctest: ✓ Available
 sol2: ✓ Available
 Qt6: ✓ Available
 Lua: ✓ Available
+hd utils: ✓ Available
 ```
 
 This immediately shows you what's working and what might need attention.
