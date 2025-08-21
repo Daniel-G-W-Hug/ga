@@ -10,7 +10,7 @@ target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 # Just link against the targets that should be available
 
 # Lua is required and should be found by the dependency system
-if(NOT Lua_FOUND)
+if(NOT Lua_FOUND AND NOT LUA_FOUND)
     message(FATAL_ERROR "Lua not found - please install Lua 5.1 or later on your system")
 endif()
 

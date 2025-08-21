@@ -55,7 +55,7 @@ function(setup_sol2_fetchcontent)
     FetchContent_Declare(
         sol2
         GIT_REPOSITORY https://github.com/ThePhD/sol2.git
-        GIT_TAG        v3.3.0  # Use a stable release tag
+        GIT_TAG        develop  # Use development branch for latest C++23 fixes
         GIT_SHALLOW    TRUE
     )
     
