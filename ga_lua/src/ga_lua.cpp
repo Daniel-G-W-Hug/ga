@@ -38,7 +38,7 @@ void run_interactive_shell(sol::state& lua)
 #ifdef _HD_GA_HAVE_READLINE
     fmt::println("Use arrow keys for history, Tab for completion\n");
 #else
-    fmt::println();
+    fmt::println("");
 #endif
 
     std::string input;

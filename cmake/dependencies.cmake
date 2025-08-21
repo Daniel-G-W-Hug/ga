@@ -13,6 +13,16 @@ include(${CMAKE_CURRENT_LIST_DIR}/fetch_dependencies.cmake)
 macro(setup_ga_dependencies)
     message(STATUS "Setting up GA dependencies...")
     
+    # Check for local hd utility library (project-specific dependency)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/../../include/hd")
+        message(STATUS "✓ Found local hd utility library at: ${CMAKE_SOURCE_DIR}/../../include/hd")
+        set(GA_HAS_HD_UTILS TRUE)
+    else()
+        message(WARNING "hd utility library not found at expected location: ${CMAKE_SOURCE_DIR}/../../include/hd")
+        message(STATUS "Some ga_view functionality may not work properly")
+        set(GA_HAS_HD_UTILS FALSE)
+    endif()
+    
     # First, find required system dependencies (Qt6, Lua) in global scope
     find_package(Qt6 COMPONENTS Core Gui Widgets QUIET)
     find_package(Lua 5.1 QUIET)
