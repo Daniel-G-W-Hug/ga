@@ -21,7 +21,7 @@ item_vt2d::item_vt2d(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm, size_t i
 
     connect(wcs, &w_Coordsys::viewResized, this, &item_vt2d::viewChanged);
 
-    // setZValue(0); // passive vectors should be far down in the stack
+    setZValue(10); // z-value (higher is "more on top")
 
     beg_pos = mapFromScene(
         QPointF(cs->x.au_to_w(cm->vt[idx].beg.x), cs->y.au_to_w(cm->vt[idx].beg.y)));
