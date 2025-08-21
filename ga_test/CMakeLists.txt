@@ -28,9 +28,22 @@ target_include_directories(${EXEC_NAME1} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME2} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME3} PRIVATE ${CMAKE_SOURCE_DIR})
 
-find_package(doctest REQUIRED)
-find_package(fmt CONFIG REQUIRED)
+# Dependencies are handled by the main CMakeLists.txt dependency system
+# Just link against the targets that should be available
 
-target_link_libraries(${EXEC_NAME1} PRIVATE doctest::doctest fmt::fmt-header-only ga)
-target_link_libraries(${EXEC_NAME2} PRIVATE doctest::doctest fmt::fmt-header-only ga)
-target_link_libraries(${EXEC_NAME3} PRIVATE doctest::doctest fmt::fmt-header-only ga)
+target_link_libraries(${EXEC_NAME1} PRIVATE doctest::doctest ga)
+target_link_libraries(${EXEC_NAME2} PRIVATE doctest::doctest ga)
+target_link_libraries(${EXEC_NAME3} PRIVATE doctest::doctest ga)
+
+# Link fmt (prefer header-only if available, otherwise regular)
+if(TARGET fmt::fmt-header-only)
+    target_link_libraries(${EXEC_NAME1} PRIVATE fmt::fmt-header-only)
+    target_link_libraries(${EXEC_NAME2} PRIVATE fmt::fmt-header-only)
+    target_link_libraries(${EXEC_NAME3} PRIVATE fmt::fmt-header-only)
+elseif(TARGET fmt::fmt)
+    target_link_libraries(${EXEC_NAME1} PRIVATE fmt::fmt)
+    target_link_libraries(${EXEC_NAME2} PRIVATE fmt::fmt)
+    target_link_libraries(${EXEC_NAME3} PRIVATE fmt::fmt)
+else()
+    message(FATAL_ERROR "fmt library not found - dependency system may not be working correctly")
+endif()

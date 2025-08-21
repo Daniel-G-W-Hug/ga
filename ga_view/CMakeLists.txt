@@ -56,23 +56,22 @@ add_executable(${EXEC_NAME} ${SOURCES} )
 
 # target link libraries have to be added AFTER add_executable or add_lnibrary!
 target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC_NAME}
-                           PRIVATE ${CMAKE_SOURCE_DIR}/../../include)
 
-#
-# Use the Widgets module from Qt 6.
-#
-# Find the QtWidgets library
-find_package(
-  Qt6
-  COMPONENTS Core Gui Widgets 
-  REQUIRED)
+# Dependencies are handled by the main CMakeLists.txt dependency system
+# Just link against the targets that should be available
 
-  # make fmt available
-find_package(fmt CONFIG REQUIRED)
+# Qt6 is required and should be found by the dependency system
+if(NOT TARGET Qt6::Core)
+    message(FATAL_ERROR "Qt6 not found - please install Qt6 on your system")
+endif()
 
-target_link_libraries(${EXEC_NAME} PRIVATE Qt6::Core
-                                           Qt6::Gui
-                                           Qt6::Widgets
-                                           fmt::fmt-header-only
-                                           ga)
+target_link_libraries(${EXEC_NAME} PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets ga)
+
+# Link fmt (prefer header-only if available, otherwise regular)
+if(TARGET fmt::fmt-header-only)
+    target_link_libraries(${EXEC_NAME} PRIVATE fmt::fmt-header-only)
+elseif(TARGET fmt::fmt)
+    target_link_libraries(${EXEC_NAME} PRIVATE fmt::fmt)
+else()
+    message(FATAL_ERROR "fmt library not found - dependency system may not be working correctly")
+endif()
