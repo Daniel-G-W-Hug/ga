@@ -319,26 +319,202 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        double phi = deg2rad(15);
-        // normal is rcmpl(direction), since rcmpl turns the vector in direction of e12
-        auto normal = rcmpl(vec2d{cos(phi), sin(phi)});
-        // 1.5 is distance to origin
-        bivt2dp a(normal.x, normal.y, 1.5); // tangent lines to circle with r = 1.5
-        phi = deg2rad(75);
-        normal = rcmpl(vec2d{cos(phi), sin(phi)});
-        bivt2dp b(normal.x, normal.y, 1.5); // tangent lines to circle with r = 1.5
+        pt2d p1(1.5, -1); // point p1 (f1 is attached to p1)
+        pt2d p2(1, -0.5); // point p2 (f2 is attached to p2)
+
+        auto p1p = vec2dp{p1.x, p1.y, 1}; // point p1 as projective point
+        auto p2p = vec2dp{p2.x, p2.y, 1}; // point p2 as projective point
+
+        double phi = deg2rad(15); // direction of force f1 vs. e1
+        double f1_magn = 1.5;     // magnitude of force f1
+        auto f1_vec = f1_magn * vec2dp{cos(phi), sin(phi), 0.0}; // force vector f1
+        auto f1 = wdg(p1p, f1_vec);                              // force f1 acting at p1
+
+        phi = deg2rad(75);    // direction of force f2 vs. e1
+        double f2_magn = 3.0; // magnitude of force f2
+        auto f2_vec = f2_magn * vec2dp{cos(phi), sin(phi), 0.0}; // force vector f2
+        auto f2 = wdg(p2p, f2_vec);                              // force f2 acting at p2
+
+        auto pip = unitize(rwdg(f1, f2)); // intersection point of force lines
+        pt2d pi{pip.x, pip.y};
+        cm.add_pt(pi);
+
+        // -> variant with force vectors starting at p1, p2
+        // cm.add_pt(p1);
+        // cm.add_pt(p2);
+        // auto p1pf = p1p + f1_vec;
+        // auto p2pf = p2p + f2_vec;
+        // pt2d p1f{p1pf.x, p1pf.y};
+        // pt2d p2f{p2pf.x, p2pf.y};
+        // vt2d v1{p1, p1f}, v2{p2, p2f};
+
+        // -> variant with force vectors starting at pi
+        auto p1pf = pip + f1_vec;
+        auto p2pf = pip + f2_vec;
+        pt2d p1f{p1pf.x, p1pf.y};
+        pt2d p2f{p2pf.x, p2pf.y};
+        vt2d v1{pi, p1f}, v2{pi, p2f};
+
+        cm.add_pt(p1f);
+        cm.add_pt(p2f);
+        cm.add_vt(v1);
+        cm.add_vt(v2);
 
         bivt2dp_mark force_mark;
 
-        auto c = a + b;
         force_mark.pen = QPen(Qt::green, 2, Qt::SolidLine);
-        cm.add_bivtp(a, force_mark);
-        force_mark.pen = QPen(Qt::darkGreen, 2, Qt::SolidLine);
-        cm.add_bivtp(b, force_mark);
-        force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
-        cm.add_bivtp(c, force_mark);
+        cm.add_bivtp(f1, force_mark);
 
-        cm.set_label("proj. - adding force lines");
+        auto v1_beg = vec2d{p1.x, p1.y};
+        auto v1_end = vec2d{p1f.x, p1f.y};
+
+
+        force_mark.pen = QPen(Qt::darkGreen, 2, Qt::SolidLine);
+        cm.add_bivtp(f2, force_mark);
+
+        force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
+        auto fres = f1 + f2;
+        fmt::println("inclined: fres = {}", fres);
+        auto pfresp = pip + att(fres);
+        pt2d pfres{pfresp.x, pfresp.y};
+        cm.add_pt(pfres);
+
+        vt2d vres{pi, pfres};
+        cm.add_vt(vres);
+
+        cm.add_bivtp(fres, force_mark);
+
+        cm.set_label("proj. - adding force lines (inclined)");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        pt2d p1(0, -0.5); // point p1 (f1 is attached to p1)
+        pt2d p2(0, 0.5);  // point p2 (f2 is attached to p2)
+
+        auto p1p = vec2dp{p1.x, p1.y, 1}; // point p1 as projective point
+        auto p2p = vec2dp{p2.x, p2.y, 1}; // point p2 as projective point
+
+        double phi = deg2rad(0); // direction of force f1 vs. e1
+        double f1_magn = 1.5;    // magnitude of force f1
+        auto f1_vec = f1_magn * vec2dp{cos(phi), sin(phi), 0.0}; // force vector f1
+        auto f1 = wdg(p1p, f1_vec);                              // force f1 acting at p1
+
+        phi = deg2rad(0);     // direction of force f2 vs. e1
+        double f2_magn = 0.5; // magnitude of force f2
+        auto f2_vec = f2_magn * vec2dp{cos(phi), sin(phi), 0.0}; // force vector f2
+        auto f2 = wdg(p2p, f2_vec);                              // force f2 acting at p2
+
+        // -> variant with force vectors starting at p1, p2
+        cm.add_pt(p1);
+        cm.add_pt(p2);
+        auto p1pf = p1p + f1_vec;
+        auto p2pf = p2p + f2_vec;
+        pt2d p1f{p1pf.x, p1pf.y};
+        pt2d p2f{p2pf.x, p2pf.y};
+        vt2d v1{p1, p1f}, v2{p2, p2f};
+
+        cm.add_pt(p1f);
+        cm.add_pt(p2f);
+        cm.add_vt(v1);
+        cm.add_vt(v2);
+
+        bivt2dp_mark force_mark;
+
+        force_mark.pen = QPen(Qt::green, 2, Qt::SolidLine);
+        cm.add_bivtp(f1, force_mark);
+
+        auto v1_beg = vec2d{p1.x, p1.y};
+        auto v1_end = vec2d{p1f.x, p1f.y};
+
+
+        force_mark.pen = QPen(Qt::darkGreen, 2, Qt::SolidLine);
+        cm.add_bivtp(f2, force_mark);
+
+        force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
+        auto fres = f1 + f2;
+        fmt::println("parallel: fres = {}", fres);
+        auto psupp = support2dp(fres);
+        auto pfresp = psupp + att(fres);
+        pt2d psup = pt2d{psupp.x, psupp.y};
+        pt2d pfres{pfresp.x, pfresp.y};
+
+        cm.add_pt(psup);
+        cm.add_pt(pfres);
+        vt2d vres{psup, pfres};
+        cm.add_vt(vres);
+
+        cm.add_bivtp(fres, force_mark);
+
+        cm.set_label("proj. - adding force lines (parallel)");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        pt2d p1(0, -1); // point p1 (f1 is attached to p1)
+        pt2d p2(0, 1);  // point p2 (f2 is attached to p2)
+
+        auto p1p = vec2dp{p1.x, p1.y, 1}; // point p1 as projective point
+        auto p2p = vec2dp{p2.x, p2.y, 1}; // point p2 as projective point
+
+        double phi = deg2rad(180); // direction of force f1 vs. e1
+        double f1_magn = 1.5;      // magnitude of force f1
+        auto f1_vec = f1_magn * vec2dp{cos(phi), sin(phi), 0.0}; // force vector f1
+        auto f1 = wdg(p1p, f1_vec);                              // force f1 acting at p1
+
+        phi = deg2rad(0);     // direction of force f2 vs. e1
+        double f2_magn = 1.5; // magnitude of force f2
+        auto f2_vec = f2_magn * vec2dp{cos(phi), sin(phi), 0.0}; // force vector f2
+        auto f2 = wdg(p2p, f2_vec);                              // force f2 acting at p2
+
+        // -> variant with force vectors starting at p1, p2
+        cm.add_pt(p1);
+        cm.add_pt(p2);
+        auto p1pf = p1p + f1_vec;
+        auto p2pf = p2p + f2_vec;
+        pt2d p1f{p1pf.x, p1pf.y};
+        pt2d p2f{p2pf.x, p2pf.y};
+        vt2d v1{p1, p1f}, v2{p2, p2f};
+
+        cm.add_pt(p1f);
+        cm.add_pt(p2f);
+        cm.add_vt(v1);
+        cm.add_vt(v2);
+
+        bivt2dp_mark force_mark;
+
+        force_mark.pen = QPen(Qt::green, 2, Qt::SolidLine);
+        cm.add_bivtp(f1, force_mark);
+
+        auto v1_beg = vec2d{p1.x, p1.y};
+        auto v1_end = vec2d{p1f.x, p1f.y};
+
+
+        force_mark.pen = QPen(Qt::darkGreen, 2, Qt::SolidLine);
+        cm.add_bivtp(f2, force_mark);
+
+        force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
+        auto fres = f1 + f2;
+        fmt::println("anti-parallel: fres = {}", fres);
+        auto psupp = support2dp(fres);
+        auto pfresp = psupp + att(fres);
+        pt2d psup = pt2d{psupp.x, psupp.y};
+        pt2d pfres{pfresp.x, pfresp.y};
+
+        cm.add_pt(psup);
+        cm.add_pt(pfres);
+        vt2d vres{psup, pfres};
+        cm.add_vt(vres);
+
+        cm.add_bivtp(fres, force_mark);
+
+        cm.set_label("proj. - adding force lines (anti-parallel)");
 
         vm.push_back(cm);
     }

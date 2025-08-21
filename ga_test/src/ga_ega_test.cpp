@@ -27,10 +27,10 @@ using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Generic Euclideon geometric algebra (valid for ega independent of dimension)
+// Generic Euclidean geometric algebra (valid for ega independent of dimension)
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // TEST_SUITE("EGA")
 // {
 
-// }
+// } // EGA tests
