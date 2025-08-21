@@ -59,9 +59,15 @@ function(find_system_dependencies)
     
     # Lua - must be system installed
     find_package(Lua 5.1 QUIET)
-    if(Lua_FOUND)
+    if(Lua_FOUND OR LUA_FOUND)
         message(STATUS "✓ Found Lua: ${LUA_VERSION_STRING}")
         set(GA_HAS_LUA TRUE PARENT_SCOPE)
+        # Make sure the variables are available in parent scope
+        set(Lua_FOUND ${Lua_FOUND} PARENT_SCOPE)
+        set(LUA_FOUND ${LUA_FOUND} PARENT_SCOPE)
+        set(LUA_LIBRARIES ${LUA_LIBRARIES} PARENT_SCOPE)
+        set(LUA_INCLUDE_DIR ${LUA_INCLUDE_DIR} PARENT_SCOPE)
+        set(LUA_VERSION_STRING ${LUA_VERSION_STRING} PARENT_SCOPE)
     else()
         message(WARNING "Lua not found! Please install:")
         if(APPLE)

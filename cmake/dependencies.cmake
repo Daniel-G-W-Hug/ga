@@ -9,11 +9,15 @@ option(GA_FORCE_FETCH_CONTENT "Force use of FetchContent for supported dependenc
 include(${CMAKE_CURRENT_LIST_DIR}/find_dependencies.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/fetch_dependencies.cmake)
 
-# Main dependency resolution function
-function(setup_ga_dependencies)
+# Main dependency resolution macro (uses macro to avoid scoping issues)
+macro(setup_ga_dependencies)
     message(STATUS "Setting up GA dependencies...")
     
-    # First, attempt to find system dependencies
+    # First, find required system dependencies (Qt6, Lua) in global scope
+    find_package(Qt6 COMPONENTS Core Gui Widgets QUIET)
+    find_package(Lua 5.1 QUIET)
+    
+    # Then attempt to find flexible system dependencies
     find_system_dependencies()
     
     # Handle flexible dependencies based on platform and options
@@ -30,5 +34,5 @@ function(setup_ga_dependencies)
     
     # Setup optional dependencies
     find_readline_optional()
-endfunction()
+endmacro()
 
