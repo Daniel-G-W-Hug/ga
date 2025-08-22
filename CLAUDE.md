@@ -215,6 +215,52 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 
 **Important**: The ga_prdxpr system is a **complete, production-ready geometric algebra code generator** that produces mathematically accurate, optimized C++ expressions for all supported algebras.
 
+### Static Initialization Order Safety in ga_prdxpr
+
+**Critical Lesson**: ga_prdxpr experienced static initialization order fiasco (segmentation faults) during complement rule generation implementation. Key safety principles learned:
+
+**Root Causes of Static Initialization Issues:**
+
+1. **Static string constants** in headers that depend on each other
+2. **Circular references** between extern declarations and const initializations
+3. **Cross-file static dependencies** during rule generation
+
+**Required Safety Patterns:**
+
+1. **Inline Functions for Constants**: Convert all static string constants to inline functions:
+
+   ```cpp
+   // UNSAFE: Static variables
+   static const std::string one_str{"1"s};
+   
+   // SAFE: Inline functions  
+   inline const std::string& one_str() { static const std::string s{"1"s}; return s; }
+   ```
+
+2. **Staged Initialization**: Generate all rules in single pass, then assign to const variables:
+
+   ```cpp
+   // Stage 1: Generate all rules together (no dependencies)
+   static auto generated_rules = generate_algebra_rules(config);
+   
+   // Stage 2: Assign to const variables (safe, already generated)
+   const prd_rules gpr_rules = generated_rules.geometric_product;
+   const prd_rules complement_rules = generated_rules.complement;
+   ```
+
+3. **Explicit Values for Cross-Referenced Rules**: Never reference extern variables in const initializations:
+
+   ```cpp
+   // UNSAFE: References extern before initialization
+   extern const prd_rules complement_rules;
+   const prd_rules dual_rules = complement_rules;  // BAD!
+   
+   // SAFE: Explicit values
+   const prd_rules dual_rules = {{"1", "e123"}, {"e1", "e23"}, ...};
+   ```
+
+**Future Dual Rule Implementation**: When adding dual rules, maintain these safety patterns to avoid recreating static initialization order issues.
+
 ## Congruence Testing in Geometric Algebra
 
 **Key Mathematical Insight**: Elements are congruent if they represent the same geometric subspace up to scalar multiplication, **regardless of sign or magnitude**. The congruence test varies by grade:

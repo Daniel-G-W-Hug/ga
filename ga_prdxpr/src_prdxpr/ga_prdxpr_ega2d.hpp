@@ -26,19 +26,17 @@ extern const prd_rules gpr_ega2d_rules; // Geometric product: a * b
 extern const prd_rules wdg_ega2d_rules; // Wedge product: a ^ b
 extern const prd_rules dot_ega2d_rules; // Dot product: a · b
 
-
 // complement in 2d: lcmpl(rcmpl(u)) = u
 // lcmpl:  lcmpl(u) ^ u = e12
-const prd_rules lcmpl_ega2d_rules = {
-    {"1", "e12"}, {"e1", "-e2"}, {"e2", "e1"}, {"e12", "1"}};
-
 // rcmpl:  u ^ rcmpl(u) = e12
-const prd_rules rcmpl_ega2d_rules = {
-    {"1", "e12"}, {"e1", "e2"}, {"e2", "-e1"}, {"e12", "1"}};
+extern const prd_rules lcmpl_ega2d_rules;
+extern const prd_rules rcmpl_ega2d_rules;
 
 // complement and dual are identical in ega2d (the metric is the identity matrix)
-const prd_rules left_dual_ega2d_rules = lcmpl_ega2d_rules;
-const prd_rules right_dual_ega2d_rules = rcmpl_ega2d_rules;
+const prd_rules left_dual_ega2d_rules = {
+    {"1", "e12"}, {"e1", "-e2"}, {"e2", "e1"}, {"e12", "1"}};
+const prd_rules right_dual_ega2d_rules = {
+    {"1", "e12"}, {"e1", "e2"}, {"e2", "-e1"}, {"e12", "1"}};
 
 // coefficients needed to create a multivector = [coeff]^T [mv2d_basis]
 const mvec_coeff mv2d_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3"};

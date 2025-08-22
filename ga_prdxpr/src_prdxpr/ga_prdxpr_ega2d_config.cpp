@@ -1,9 +1,38 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 /*
- * CASE DESCRIPTION FORMAT GUIDE
- * =============================
+ * GA PRODUCT RULE GENERATION SYSTEM GUIDE
+ * =======================================
  *
+ * This configuration file defines two types of product rule generation:
+ *
+ * 1. AUTOMATIC GENERATION (AlgebraConfig): Complement rules generated mathematically
+ * 2. MANUAL CASES (ProductConfig): Expression cases configured manually
+ *
+ * AUTOMATIC RULE GENERATION:
+ * --------------------------
+ * The get_ega2d_algebra_config() function provides mathematical algebra parameters:
+ * - basis_vectors: Basis vector names (e.g., {"e1", "e2"})
+ * - metric_signature: Quadratic form values (e.g., {+1, +1})
+ * - multivector_basis: Complete basis element names (e.g., {"1", "e1", "e2", "e12"})
+ * - scalar_name: Name for scalar element (typically "1")
+ * - basis_prefix: Prefix for basis elements (typically "e")
+ *
+ * From this configuration, the system automatically generates:
+ * - Geometric product rules (geometric multiplication with metric)
+ * - Wedge product rules (antisymmetric exterior product)
+ * - Dot product rules (symmetric contraction with extended metric)
+ * - Complement rules (computed from wedge product tables)
+ *
+ * COMPLEMENT RULE GENERATION:
+ * The complement rules are now AUTOMATICALLY GENERATED using mathematical algorithms:
+ * - Even algebras (EGA2D, PGA3DP): Generate left_complement and right_complement
+ * - Odd algebras (EGA3D, PGA2DP): Generate single complement
+ * - Algorithm: Search wedge product table for pseudoscalar relationships
+ * - Result: Mathematically verified complement rules with zero transcription errors
+ *
+ * MANUAL CASE CONFIGURATION:
+ * --------------------------
  * Each ProductConfig contains a .cases array with mathematical operation descriptions.
  * Cases define which coefficient combinations and type filters to use for code
  * generation.
@@ -81,7 +110,7 @@ AlgebraConfig get_ega2d_algebra_config()
     return {.basis_vectors = {"e1", "e2"},
             .metric_signature = {+1, +1},
             .multivector_basis = {"1", "e1", "e2", "e12"}, // Copy from mv2d_basis
-            .scalar_name = one_str,
+            .scalar_name = one_str(),
             .basis_prefix = "e"};
 }
 

@@ -26,12 +26,9 @@ extern const prd_rules gpr_pga2dp_rules; // Geometric product: a * b
 extern const prd_rules wdg_pga2dp_rules; // Wedge product: a ^ b
 extern const prd_rules dot_pga2dp_rules; // Dot product: a · b
 
-
 // complement in 2dp: cmpl(cmpl(u)) = u
 // lcmpl(u) ^ u = u ^ rcmpl(u) = cmpl(u) ^ u = u ^ cmpl(u) = e321
-const prd_rules cmpl_pga2dp_rules = {{"1", "e321"},  {"e1", "-e23"}, {"e2", "-e31"},
-                                     {"e3", "-e12"}, {"e23", "-e1"}, {"e31", "-e2"},
-                                     {"e12", "-e3"}, {"e321", "1"}};
+extern const prd_rules cmpl_pga2dp_rules;
 
 // rules needed to derive contractions and expansions using bulk_dual and weight_dual
 // same for left hand and right hand side

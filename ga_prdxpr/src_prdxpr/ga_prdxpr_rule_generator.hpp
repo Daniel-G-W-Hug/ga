@@ -32,7 +32,7 @@
 //             {"g0", "g1", "g2", "g3"},        // basis_vectors
 //             {+1, -1, -1, -1},                // metric_signature
 //             mvSTA3d_basis,                    // multivector_basis (from header)
-//             one_str,                         // scalar_name
+//             one_str(),                         // scalar_name
 //             "g"                              // basis_prefix
 //         };
 //     }
@@ -76,7 +76,7 @@ struct AlgebraConfig {
     std::vector<int> metric_signature;      // {+1, +1, +1} or {+1, -1, -1, -1}
     mvec_coeff
         multivector_basis; // {"1", "e1", "e2", "e12"} - complete basis in canonical order
-    std::string scalar_name = one_str; // Use consistent "1" from common
+    std::string scalar_name = one_str(); // Use consistent "1" from common
     std::string basis_prefix = "e";
 };
 
@@ -85,6 +85,15 @@ struct ProductRules {
     prd_rules geometric_product;
     prd_rules wedge_product;
     prd_rules dot_product;
+    // Complement rules - generated based on algebra dimensionality
+    prd_rules right_complement; // For even algebras (EGA2D, PGA3DP)
+    prd_rules left_complement;  // For even algebras (EGA2D, PGA3DP)
+    prd_rules complement;       // For odd algebras (EGA3D, PGA2DP)
+    
+    // TODO: Dual rules - will be generated from complement rules + extended metric
+    // prd_rules right_dual;    // For even algebras (EGA2D, PGA3DP) 
+    // prd_rules left_dual;     // For even algebras (EGA2D, PGA3DP)
+    // prd_rules dual;          // For odd algebras (EGA3D, PGA2DP)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -124,6 +133,12 @@ std::pair<std::string, int> multiply_basis_elements_dot(const std::string& a,
                                                         const AlgebraConfig& config);
 prd_rules generate_wedge_product_rules(const AlgebraConfig& config);
 prd_rules generate_dot_product_rules(const AlgebraConfig& config);
+prd_rules generate_right_complement_rules(const AlgebraConfig& config,
+                                          const prd_rules& wedge_rules);
+prd_rules generate_left_complement_rules(const AlgebraConfig& config,
+                                         const prd_rules& wedge_rules);
+prd_rules generate_complement_rules(const AlgebraConfig& config,
+                                    const prd_rules& wedge_rules);
 ProductRules generate_algebra_rules(const AlgebraConfig& config);
 
 ////////////////////////////////////////////////////////////////////////////////
