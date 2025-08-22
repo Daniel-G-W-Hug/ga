@@ -136,6 +136,7 @@ mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
 
 void print_mvec(mvec_coeff const& mv, mvec_coeff const& mv_basis);
 void print_prd_tab(prd_table const& tab);
+void print_prd_tab_with_headers(prd_table const& tab, mvec_coeff const& basis);
 
 // Pretty print prd_rules in grade-ordered format
 // Usage example:

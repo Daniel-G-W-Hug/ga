@@ -596,17 +596,12 @@ void print_mvec(mvec_coeff const& mv, mvec_coeff const& mv_basis)
     }
     // fmt::println("max_width = {}", max_width);
 
-    // print elements right aligned fitting to max_width
+    // print elements right aligned fitting to max_width with vertical separator like tables
     for (size_t i = 0; i < mv.size(); ++i) {
         const auto& e = mv[i];
         fmt::print("[ ");
         fmt::print("{:>{w}}", e, fmt::arg("w", max_width));
-        if (&e != &mv.back()) {
-            fmt::println(" ] {},", mv_basis[i]);
-        }
-        else {
-            fmt::println(" ] {}", mv_basis[i]);
-        }
+        fmt::println(" ] | {}", mv_basis[i]);
     }
 }
 
@@ -630,6 +625,78 @@ void print_prd_tab(prd_table const& tab)
         else {
             fmt::println(" ] ");
         }
+    }
+}
+
+void print_prd_tab_with_headers(prd_table const& tab, mvec_coeff const& basis)
+{
+    if (tab.empty() || basis.empty()) {
+        fmt::println("Error: Empty table or basis");
+        return;
+    }
+
+    // Calculate maximum width for table cells and headers
+    size_t max_cell_width = 0;
+    for (const auto& row : tab) {
+        for (const auto& cell : row) {
+            max_cell_width = std::max(max_cell_width, cell.size());
+        }
+    }
+    
+    size_t max_header_width = 0;
+    for (const auto& header : basis) {
+        max_header_width = std::max(max_header_width, header.size());
+    }
+    
+    size_t cell_width = std::max(max_cell_width, max_header_width);
+    
+    // Calculate max width for row headers
+    size_t max_row_header_width = 0;
+    for (const auto& header : basis) {
+        max_row_header_width = std::max(max_row_header_width, header.size());
+    }
+    
+    // Print column headers (multivector basis elements)
+    // Headers align with table entries but without brackets: "  entry, entry, entry | header"
+    fmt::print("  "); // Small indent to align with table content inside brackets
+    for (size_t col = 0; col < basis.size() && col < tab[0].size(); ++col) {
+        fmt::print("{:>{w}}", basis[col], fmt::arg("w", cell_width));
+        if (col < tab[0].size() - 1) {
+            fmt::print(", ");
+        }
+    }
+    fmt::print("   |");
+    fmt::println("");
+    
+    // Calculate total width for horizontal separator
+    size_t table_width = 2; // "[ "
+    for (size_t col = 0; col < basis.size() && col < tab[0].size(); ++col) {
+        table_width += cell_width;
+        if (col < tab[0].size() - 1) {
+            table_width += 2; // ", "
+        }
+    }
+    table_width += 5; // " ] | "
+    table_width += max_row_header_width;
+    
+    // Print horizontal separator line
+    fmt::print("{:-<{}}", "", table_width);
+    fmt::println("");
+    
+    // Print table rows with row headers on the right
+    for (size_t row = 0; row < tab.size() && row < basis.size(); ++row) {
+        // Print table row
+        fmt::print("[ ");
+        for (size_t col = 0; col < tab[row].size(); ++col) {
+            fmt::print("{:>{w}}", tab[row][col], fmt::arg("w", cell_width));
+            if (col < tab[row].size() - 1) {
+                fmt::print(", ");
+            }
+        }
+        
+        // Print vertical separator and row header (basis element for this row) on the right, left-aligned
+        fmt::print(" ] | {}", basis[row]);
+        fmt::println("");
     }
 }
 
