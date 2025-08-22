@@ -19,8 +19,17 @@
 // - Guaranteed consistency through algorithmic generation
 ////////////////////////////////////////////////////////////////////////////////
 
+// Stage 1: Generate all algebra rules in one go
 static auto pga2dp_generated_rules = generate_algebra_rules(get_pga2dp_algebra_config());
 
+// Stage 2: Initialize product rules (no dependencies)
 const prd_rules gpr_pga2dp_rules = pga2dp_generated_rules.geometric_product;
 const prd_rules wdg_pga2dp_rules = pga2dp_generated_rules.wedge_product;
 const prd_rules dot_pga2dp_rules = pga2dp_generated_rules.dot_product;
+
+// Stage 3: Initialize complement rules (depend on wedge rules, but those are already generated)
+const prd_rules cmpl_pga2dp_rules = pga2dp_generated_rules.complement;
+
+// Stage 4: TODO - Initialize dual rules (will depend on complement rules + extended metric)
+// For now, dual rules are derived manually from complement rules
+// Future: Generate dual rules from complement rules + extended metric information

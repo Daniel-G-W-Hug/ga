@@ -15,7 +15,7 @@ std::vector<int> parse_indices(const std::string& basis_element,
                                const std::string& prefix)
 {
     std::vector<int> indices;
-    if (basis_element == one_str) return indices; // scalar has no indices
+    if (basis_element == one_str()) return indices; // scalar has no indices
 
     if (basis_element.substr(0, prefix.length()) == prefix) {
         std::string indices_str = basis_element.substr(prefix.length());
@@ -31,7 +31,7 @@ std::vector<int> parse_indices(const std::string& basis_element,
 // Create basis element from indices (simple concatenation)
 std::string indices_to_basis(const std::vector<int>& indices, const std::string& prefix)
 {
-    if (indices.empty()) return one_str;
+    if (indices.empty()) return one_str();
 
     std::string result = prefix;
     for (int idx : indices) {
@@ -273,17 +273,17 @@ prd_rules generate_ordered_rules(
             auto [result, sign] = multiply_func(a, b, config);
 
             // Create key using consistent operators from common header
-            std::string key = a + space_str + operator_str + space_str + b;
+            std::string key = a + space_str() + operator_str + space_str() + b;
             std::string value;
 
             if (sign == 1) {
                 value = result;
             }
             else if (sign == -1) {
-                value = minus_str + result;
+                value = minus_str() + result;
             }
             else {
-                value = zero_str; // For null results
+                value = zero_str(); // For null results
             }
 
             rules[key] = value;
@@ -295,7 +295,7 @@ prd_rules generate_ordered_rules(
 
 prd_rules generate_geometric_product_rules(const AlgebraConfig& config)
 {
-    return generate_ordered_rules(config, mul_str, multiply_basis_elements);
+    return generate_ordered_rules(config, mul_str(), multiply_basis_elements);
 }
 
 std::pair<std::string, int> multiply_basis_elements_wedge(const std::string& a,
@@ -314,7 +314,7 @@ std::pair<std::string, int> multiply_basis_elements_wedge(const std::string& a,
                           std::back_inserter(intersection));
 
     if (!intersection.empty()) {
-        return {zero_str, 0};
+        return {zero_str(), 0};
     }
     else {
         // Use geometric product for non-intersecting indices
@@ -331,12 +331,12 @@ std::pair<std::string, int> multiply_basis_elements_dot(const std::string& a,
         return {config.scalar_name, 1};
     }
     else if (a == config.scalar_name || b == config.scalar_name) {
-        return {zero_str, 0};
+        return {zero_str(), 0};
     }
 
     // Dot product is only non-zero when both elements are identical
     if (a != b) {
-        return {zero_str, 0};
+        return {zero_str(), 0};
     }
 
     // For identical elements: use the extended metric value
@@ -346,17 +346,17 @@ std::pair<std::string, int> multiply_basis_elements_dot(const std::string& a,
     auto it =
         std::find(config.multivector_basis.begin(), config.multivector_basis.end(), a);
     if (it == config.multivector_basis.end()) {
-        return {zero_str, 0}; // Element not found in basis
+        return {zero_str(), 0}; // Element not found in basis
     }
 
     size_t index = std::distance(config.multivector_basis.begin(), it);
     if (index >= extended_metric.size()) {
-        return {zero_str, 0}; // Index out of range
+        return {zero_str(), 0}; // Index out of range
     }
 
     int metric_value = extended_metric[index];
     if (metric_value == 0) {
-        return {zero_str, 0};
+        return {zero_str(), 0};
     }
     else {
         return {config.scalar_name, metric_value};
@@ -365,12 +365,130 @@ std::pair<std::string, int> multiply_basis_elements_dot(const std::string& a,
 
 prd_rules generate_wedge_product_rules(const AlgebraConfig& config)
 {
-    return generate_ordered_rules(config, wdg_str, multiply_basis_elements_wedge);
+    return generate_ordered_rules(config, wdg_str(), multiply_basis_elements_wedge);
 }
 
 prd_rules generate_dot_product_rules(const AlgebraConfig& config)
 {
-    return generate_ordered_rules(config, mul_str, multiply_basis_elements_dot);
+    return generate_ordered_rules(config, mul_str(), multiply_basis_elements_dot);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Complement Rule Generation Implementation
+////////////////////////////////////////////////////////////////////////////////
+
+// Generate complement rules from wedge product table
+// Algorithm: For complement relationship u ^ cmpl(u) = I_n (right complement)
+//            or cmpl(u) ^ u = I_n (left complement)
+prd_rules generate_complement_from_wedge_table(const AlgebraConfig& config,
+                                               const prd_rules& wedge_rules,
+                                               bool is_left_complement)
+{
+    prd_rules complement_rules;
+
+    // Get pseudoscalar (last element of multivector basis)
+    if (config.multivector_basis.empty()) {
+        throw std::runtime_error("Empty multivector basis in config");
+    }
+
+    std::string pseudoscalar = config.multivector_basis.back();
+
+    // Create wedge product table from rules - this is the key insight!
+    // Step 1: Create coefficient table structure
+    prd_table wedge_table =
+        apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(config.multivector_basis,
+                                                     config.multivector_basis, wdg_str()),
+                           wedge_rules);
+
+    size_t basis_size = config.multivector_basis.size();
+
+    // For each basis element, find its complement using table lookup
+    for (size_t i = 0; i < basis_size; ++i) {
+        const std::string& basis_element = config.multivector_basis[i];
+        bool found_complement = false;
+
+        // Special case: scalar complement is always the pseudoscalar
+        if (basis_element == config.scalar_name) {
+            complement_rules[basis_element] = pseudoscalar;
+            found_complement = true;
+        }
+        // Special case: pseudoscalar complement is always the scalar
+        else if (basis_element == pseudoscalar) {
+            complement_rules[basis_element] = config.scalar_name;
+            found_complement = true;
+        }
+        else {
+            if (is_left_complement) {
+                // Left complement: lcmpl(u) ^ u = I_n
+                // Search column i for pseudoscalar
+                for (size_t row = 0; row < basis_size; ++row) {
+                    if (row < wedge_table.size() && i < wedge_table[row].size()) {
+                        const std::string& table_entry = wedge_table[row][i];
+                        if (table_entry == pseudoscalar) {
+                            complement_rules[basis_element] =
+                                config.multivector_basis[row];
+                            found_complement = true;
+                            break;
+                        }
+                        else if (table_entry == "-" + pseudoscalar) {
+                            complement_rules[basis_element] =
+                                "-" + config.multivector_basis[row];
+                            found_complement = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            else {
+                // Right complement: u ^ rcmpl(u) = I_n
+                // Search row i for pseudoscalar
+                if (i < wedge_table.size()) {
+                    for (size_t col = 0; col < basis_size && col < wedge_table[i].size();
+                         ++col) {
+                        const std::string& table_entry = wedge_table[i][col];
+                        if (table_entry == pseudoscalar) {
+                            complement_rules[basis_element] =
+                                config.multivector_basis[col];
+                            found_complement = true;
+                            break;
+                        }
+                        else if (table_entry == "-" + pseudoscalar) {
+                            complement_rules[basis_element] =
+                                "-" + config.multivector_basis[col];
+                            found_complement = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!found_complement) {
+            throw std::runtime_error("Could not find complement for basis element: " +
+                                     basis_element);
+        }
+    }
+
+    return complement_rules;
+}
+
+prd_rules generate_right_complement_rules(const AlgebraConfig& config,
+                                          const prd_rules& wedge_rules)
+{
+    return generate_complement_from_wedge_table(config, wedge_rules, false);
+}
+
+prd_rules generate_left_complement_rules(const AlgebraConfig& config,
+                                         const prd_rules& wedge_rules)
+{
+    return generate_complement_from_wedge_table(config, wedge_rules, true);
+}
+
+prd_rules generate_complement_rules(const AlgebraConfig& config,
+                                    const prd_rules& wedge_rules)
+{
+    // For odd algebras, left and right complements are the same
+    return generate_complement_from_wedge_table(config, wedge_rules, false);
 }
 
 ProductRules generate_algebra_rules(const AlgebraConfig& config)
@@ -386,6 +504,25 @@ ProductRules generate_algebra_rules(const AlgebraConfig& config)
     result.geometric_product = generate_geometric_product_rules(config);
     result.wedge_product = generate_wedge_product_rules(config);
     result.dot_product = generate_dot_product_rules(config);
+
+    // Generate complement rules based on algebra dimensionality
+    // Even-dimensional algebras (EGA2D: 2D, PGA3DP: 4D) have left and right complements
+    // Odd-dimensional algebras (EGA3D: 3D, PGA2DP: 3D) have a single complement
+    size_t num_basis_vectors = config.basis_vectors.size();
+    bool is_even_dimensional = (num_basis_vectors % 2 == 0);
+
+    if (is_even_dimensional) {
+        // Generate both left and right complements for even algebras
+        result.left_complement =
+            generate_left_complement_rules(config, result.wedge_product);
+        result.right_complement =
+            generate_right_complement_rules(config, result.wedge_product);
+    }
+    else {
+        // Generate single complement for odd algebras
+        result.complement = generate_complement_rules(config, result.wedge_product);
+    }
+
     return result;
 }
 

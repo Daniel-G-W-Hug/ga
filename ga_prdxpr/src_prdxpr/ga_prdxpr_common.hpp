@@ -49,18 +49,41 @@ using prd_table = std::vector<mvec_coeff>;
 
 // required literals for string handling
 using namespace std::literals::string_literals;
-static const std::string empty_str{""s};
-static const std::string zero_str{"0"s};
-static const std::string one_str{"1"s};
-static const std::string plus_str{"+"s};
-static const std::string minus_str{"-"s};
-static const std::string mul_str{"*"s};
-static const std::string wdg_str{"^"s};
-static const std::string lcontr_str{"<<"s};
-static const std::string rcontr_str{">>"s};
-static const std::string space_str{" "s};
-static const std::string brace_open_str{"("s};
-static const std::string brace_close_str{")"s};
+
+// Static initialization order safe string constants
+//
+// These inline functions use function-local static variables (Meyer's Singleton pattern)
+// to avoid static initialization order fiasco. Key properties:
+//
+// 1. GUARANTEED INITIALIZATION ON FIRST CALL: Function-local static variables are
+//    initialized exactly when the function is first called, not at some undefined
+//    time during program startup. This eliminates race conditions between translation units.
+//
+// 2. THREAD-SAFE (C++11+): The compiler guarantees that initialization of function-local
+//    statics is thread-safe. Multiple threads calling the function simultaneously will
+//    not cause data races during initialization.
+//
+// 3. INITIALIZATION ON DEMAND: Variables are only created when actually needed,
+//    avoiding wasteful initialization of unused constants.
+//
+// 4. NO CROSS-FILE DEPENDENCIES: Unlike file-scope static variables, these cannot
+//    depend on other static variables in undefined initialization order.
+//
+// This pattern prevented segmentation faults that occurred when file-scope static
+// variables were used and accessed before initialization during complement rule generation.
+//
+inline const std::string& empty_str() { static const std::string s{""s}; return s; }
+inline const std::string& zero_str() { static const std::string s{"0"s}; return s; }
+inline const std::string& one_str() { static const std::string s{"1"s}; return s; }
+inline const std::string& plus_str() { static const std::string s{"+"s}; return s; }
+inline const std::string& minus_str() { static const std::string s{"-"s}; return s; }
+inline const std::string& mul_str() { static const std::string s{"*"s}; return s; }
+inline const std::string& wdg_str() { static const std::string s{"^"s}; return s; }
+inline const std::string& lcontr_str() { static const std::string s{"<<"s}; return s; }
+inline const std::string& rcontr_str() { static const std::string s{">>"s}; return s; }
+inline const std::string& space_str() { static const std::string s{" "s}; return s; }
+inline const std::string& brace_open_str() { static const std::string s{"("s}; return s; }
+inline const std::string& brace_close_str() { static const std::string s{")"s}; return s; }
 
 ////////////////////////////////////////////////////////////////////////////////
 // user related functions
@@ -71,7 +94,7 @@ static const std::string brace_close_str{")"s};
 // mvec_coeff get_filtered_mv(mvec_coeff const& mv, filter_4d filter = filter_4d::mv);
 
 prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& rcoeff,
-                                    std::string const& operator_str = mul_str);
+                                    std::string const& operator_str = mul_str());
 
 prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
                                            prd_table const& basis_tab);

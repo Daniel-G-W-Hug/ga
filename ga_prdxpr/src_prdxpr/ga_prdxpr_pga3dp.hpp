@@ -28,20 +28,11 @@ extern const prd_rules gpr_pga3dp_rules; // Geometric product: a * b
 extern const prd_rules wdg_pga3dp_rules; // Wedge product: a ^ b
 extern const prd_rules dot_pga3dp_rules; // Dot product: a · b
 
-
 // complement in 3dp: lcmpl(rcmpl(u)) = u
 // lcmpl:  lcmpl(u) ^ u        = e1234
-const prd_rules lcmpl_pga3dp_rules = {
-    {"1", "e1234"},  {"e1", "-e423"}, {"e2", "-e431"}, {"e3", "-e412"},
-    {"e4", "-e321"}, {"e41", "-e23"}, {"e42", "-e31"}, {"e43", "-e12"},
-    {"e23", "-e41"}, {"e31", "-e42"}, {"e12", "-e43"}, {"e423", "e1"},
-    {"e431", "e2"},  {"e412", "e3"},  {"e321", "e4"},  {"e1234", "1"}};
 // rcmpl:  u        ^ rcmpl(u) = e1234
-const prd_rules rcmpl_pga3dp_rules = {
-    {"1", "e1234"},  {"e1", "e423"},  {"e2", "e431"},  {"e3", "e412"},
-    {"e4", "e321"},  {"e41", "-e23"}, {"e42", "-e31"}, {"e43", "-e12"},
-    {"e23", "-e41"}, {"e31", "-e42"}, {"e12", "-e43"}, {"e423", "-e1"},
-    {"e431", "-e2"}, {"e412", "-e3"}, {"e321", "-e4"}, {"e1234", "1"}};
+extern const prd_rules lcmpl_pga3dp_rules;
+extern const prd_rules rcmpl_pga3dp_rules;
 
 // rules needed to derive contractions and expansions using bulk_dual and weight_dual
 // (derived from the right complement -> right bulk dual is equivalent to the Hodge dual)

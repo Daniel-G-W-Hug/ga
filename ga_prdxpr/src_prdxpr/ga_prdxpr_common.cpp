@@ -15,22 +15,22 @@ prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& 
         throw std::runtime_error("Multivector sizes must match.");
     }
 
-    // check rules: there must be not leading or trailing space_str
+    // check rules: there must be not leading or trailing space_str()
     // (check for potential user error, when manually entering the coefficients)
     for (auto const& e : lcoeff) {
-        if (e.starts_with(space_str) || e.ends_with(space_str)) {
+        if (e.starts_with(space_str()) || e.ends_with(space_str())) {
             fmt::println("mvec: {}", lcoeff);
             fmt::println("mvec coefficient: '{}'", e);
             throw std::runtime_error("Product coefficients on left hand side must not "
-                                     "start or end with space_str.");
+                                     "start or end with space_str().");
         }
     }
     for (auto const& e : rcoeff) {
-        if (e.starts_with(space_str) || e.ends_with(space_str)) {
+        if (e.starts_with(space_str()) || e.ends_with(space_str())) {
             fmt::println("mvec: {}", rcoeff);
             fmt::println("mvec coefficient: '{}'", e);
             throw std::runtime_error("Product coefficients on right hand side must not "
-                                     "start or end with space_str.");
+                                     "start or end with space_str().");
         }
     }
 
@@ -45,26 +45,26 @@ prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& 
             std::string lhs{lcoeff[i]};
             std::string rhs{rcoeff[j]};
 
-            if (lcoeff[i].starts_with(minus_str)) {
+            if (lcoeff[i].starts_with(minus_str())) {
                 toggle_bool(is_negative);
                 lhs = lcoeff[i].substr(1, lcoeff[i].size() - 1);
             }
 
-            if (rcoeff[j].starts_with(minus_str)) {
+            if (rcoeff[j].starts_with(minus_str())) {
                 toggle_bool(is_negative);
                 rhs = rcoeff[j].substr(1, rcoeff[j].size() - 1);
             }
 
-            if (lhs == zero_str || rhs == zero_str) {
+            if (lhs == zero_str() || rhs == zero_str()) {
                 // product result is zero, thus coefficient becomes zero
-                prd_coeff_tab[i][j] = zero_str;
+                prd_coeff_tab[i][j] = zero_str();
             }
             else if (is_negative) {
                 prd_coeff_tab[i][j] =
-                    minus_str + lhs + space_str + operator_str + space_str + rhs;
+                    minus_str() + lhs + space_str() + operator_str + space_str() + rhs;
             }
             else {
-                prd_coeff_tab[i][j] = lhs + space_str + operator_str + space_str + rhs;
+                prd_coeff_tab[i][j] = lhs + space_str() + operator_str + space_str() + rhs;
             }
         }
     }
@@ -99,25 +99,25 @@ prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
             std::string lhs{coeff_tab[i][j]};
             std::string rhs{basis_tab[i][j]};
 
-            if (coeff_tab[i][j].starts_with(minus_str)) {
+            if (coeff_tab[i][j].starts_with(minus_str())) {
                 toggle_bool(is_negative);
                 lhs = coeff_tab[i][j].substr(1, coeff_tab[i][j].size() - 1);
             }
 
-            if (basis_tab[i][j].starts_with(minus_str)) {
+            if (basis_tab[i][j].starts_with(minus_str())) {
                 toggle_bool(is_negative);
                 rhs = basis_tab[i][j].substr(1, basis_tab[i][j].size() - 1);
             }
 
-            if (basis_tab[i][j] == zero_str || coeff_tab[i][j] == zero_str) {
+            if (basis_tab[i][j] == zero_str() || coeff_tab[i][j] == zero_str()) {
                 // if either coefficient or basis entry is zero the product must be zero
-                prd_tab[i][j] = zero_str;
+                prd_tab[i][j] = zero_str();
             }
             else if (is_negative) {
-                prd_tab[i][j] = minus_str + lhs + space_str + rhs;
+                prd_tab[i][j] = minus_str() + lhs + space_str() + rhs;
             }
             else {
-                prd_tab[i][j] = lhs + space_str + rhs;
+                prd_tab[i][j] = lhs + space_str() + rhs;
             }
         }
     }
@@ -152,7 +152,7 @@ prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
 //                 value_new{basis_elements[k]};
 
 //                 // remove the minus-sign, if it is present in the input
-//                 if (tmp_tab[i][j].starts_with(minus_str)) {
+//                 if (tmp_tab[i][j].starts_with(minus_str())) {
 //                     toggle_bool(is_negative);
 //                     value = tmp_tab[i][j].substr(1, tmp_tab[i][j].size() - 1);
 //                 }
@@ -162,26 +162,26 @@ prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
 //                 //              is_negative);
 
 //                 // in case the added value does have a minus sign on its own
-//                 if (basis_elements[k].starts_with(minus_str)) {
+//                 if (basis_elements[k].starts_with(minus_str())) {
 //                     toggle_bool(is_negative);
 //                     value_new = basis_elements[k].substr(1, basis_elements[k].size() -
 //                     1);
 //                 }
 
 //                 if (is_negative &&
-//                     (value != zero_str)) { // zero doesn't need a minus sign
-//                     tmp_tab[i][j] = minus_str + value + space_str + operator_str +
-//                                     space_str + value_new;
+//                     (value != zero_str())) { // zero doesn't need a minus sign
+//                     tmp_tab[i][j] = minus_str() + value + space_str() + operator_str +
+//                                     space_str() + value_new;
 //                 }
 //                 else {
 
-//                     if (value == zero_str || value_new == zero_str) {
-//                         tmp_tab[i][j] = zero_str;
+//                     if (value == zero_str() || value_new == zero_str()) {
+//                         tmp_tab[i][j] = zero_str();
 //                     }
 //                     else {
 
 //                         tmp_tab[i][j] =
-//                             value + space_str + operator_str + space_str + value_new;
+//                             value + space_str() + operator_str + space_str() + value_new;
 //                     }
 //                 }
 //             }
@@ -206,13 +206,13 @@ prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
 mvec_coeff apply_rules_to_mv(mvec_coeff const& coeff, mvec_rules const& rules)
 {
 
-    // check rules: there must be not leading or trailing space_str
+    // check rules: there must be not leading or trailing space_str()
     // (check for potential user error, when defininig the rules manually entered)
     for (auto const& r : rules) {
-        if (r.first.starts_with(space_str) || r.first.ends_with(space_str) ||
-            r.second.starts_with(space_str) || r.second.ends_with(space_str)) {
+        if (r.first.starts_with(space_str()) || r.first.ends_with(space_str()) ||
+            r.second.starts_with(space_str()) || r.second.ends_with(space_str())) {
             fmt::println("Rule key: '{}', rule value: '{}'", r.first, r.second);
-            throw std::runtime_error("Rules must not start or end with space_str.");
+            throw std::runtime_error("Rules must not start or end with space_str().");
         }
     }
 
@@ -224,31 +224,31 @@ mvec_coeff apply_rules_to_mv(mvec_coeff const& coeff, mvec_rules const& rules)
         std::string value{coeff[i]};
 
         // remove the minus-sign, if it is present in the input
-        if (coeff[i].starts_with(minus_str)) {
+        if (coeff[i].starts_with(minus_str())) {
             toggle_bool(is_negative);
             value = coeff[i].substr(1, coeff[i].size() - 1);
         }
 
         // fmt::println("i: {}, value: '{}', is_negative: {}", i, value, is_negative);
 
-        // apply the rule to the input, after the input is without intial minus_str
-        // zero_str value will be left unchanged, i.e. implicit rule "0" -> "0"
-        if (value != zero_str) {
+        // apply the rule to the input, after the input is without intial minus_str()
+        // zero_str() value will be left unchanged, i.e. implicit rule "0" -> "0"
+        if (value != zero_str()) {
             value = rules.at(value);
         }
 
         // fmt::println("i: {}, value: '{}', is_negative: {}", i, value, is_negative);
 
         // in case the replaced value does already have a minus sign on its own
-        if (value.starts_with(minus_str)) {
+        if (value.starts_with(minus_str())) {
             toggle_bool(is_negative);
             value = value.substr(1, value.size() - 1);
         }
 
         // fmt::println("i: {}, value: '{}', is_negative: {}", i, value, is_negative);
 
-        if (is_negative && (value != zero_str)) { // zero doesn't need a minus sign
-            mvec[i] = minus_str + value;
+        if (is_negative && (value != zero_str())) { // zero doesn't need a minus sign
+            mvec[i] = minus_str() + value;
         }
         else {
             mvec[i] = value;
@@ -268,13 +268,13 @@ prd_table apply_rules_to_tab(prd_table const& tab, prd_rules const& rules)
         }
     }
 
-    // check rules: there must be not leading or trailing space_str
+    // check rules: there must be not leading or trailing space_str()
     // (check for potential user error, when defininig the rules manually entered)
     for (auto const& r : rules) {
-        if (r.first.starts_with(space_str) || r.first.ends_with(space_str) ||
-            r.second.starts_with(space_str) || r.second.ends_with(space_str)) {
+        if (r.first.starts_with(space_str()) || r.first.ends_with(space_str()) ||
+            r.second.starts_with(space_str()) || r.second.ends_with(space_str())) {
             fmt::println("Rule key: '{}', rule value: '{}'", r.first, r.second);
-            throw std::runtime_error("Rules must not start or end with empty_str.");
+            throw std::runtime_error("Rules must not start or end with empty_str().");
         }
     }
 
@@ -288,7 +288,7 @@ prd_table apply_rules_to_tab(prd_table const& tab, prd_rules const& rules)
             std::string value{tab[i][j]};
 
             // remove the minus-sign, if it is present in the input
-            if (tab[i][j].starts_with(minus_str)) {
+            if (tab[i][j].starts_with(minus_str())) {
                 toggle_bool(is_negative);
                 value = tab[i][j].substr(1, tab[i][j].size() - 1);
             }
@@ -297,9 +297,9 @@ prd_table apply_rules_to_tab(prd_table const& tab, prd_rules const& rules)
             //              is_negative);
 
             // apply the rule to the input, after the input is without intial
-            // minus_str zero_str value will be left unchanged, i.e. implicit rule "0"
+            // minus_str() zero_str() value will be left unchanged, i.e. implicit rule "0"
             // -> "0"
-            if (value != zero_str) {
+            if (value != zero_str()) {
                 value = rules.at(value);
             }
 
@@ -307,7 +307,7 @@ prd_table apply_rules_to_tab(prd_table const& tab, prd_rules const& rules)
             //              is_negative);
 
             // in case the replaced value does already have a minus sign on its own
-            if (value.starts_with(minus_str)) {
+            if (value.starts_with(minus_str())) {
                 toggle_bool(is_negative);
                 value = value.substr(1, value.size() - 1);
             }
@@ -315,8 +315,8 @@ prd_table apply_rules_to_tab(prd_table const& tab, prd_rules const& rules)
             // fmt::println("i: {}, j: {}, value: '{}', is_negative: {}", i, j, value,
             //              is_negative);
 
-            if (is_negative && (value != zero_str)) { // zero doesn't need a minus sign
-                prd_tab[i][j] = minus_str + value;
+            if (is_negative && (value != zero_str())) { // zero doesn't need a minus sign
+                prd_tab[i][j] = minus_str() + value;
             }
             else {
                 prd_tab[i][j] = value;
@@ -368,28 +368,28 @@ prd_table get_prd_tab_sym(prd_table const& tab)
             // sym[i][j] = tab[i][j] is already contained from initialization
             if (sym[i][j] == tab[j][i]) continue; // symmetric part already contained
 
-            if ((sym[i][j].starts_with(minus_str) &&
+            if ((sym[i][j].starts_with(minus_str()) &&
                  sym[i][j].substr(1, sym[i][j].size()) == tab[j][i]) ||
-                (tab[j][i].starts_with(minus_str) &&
+                (tab[j][i].starts_with(minus_str()) &&
                  tab[j][i].substr(1, tab[j][i].size()) == sym[i][j])) {
-                sym[i][j] = zero_str; // asymmetric part, so set element to zero_str
+                sym[i][j] = zero_str(); // asymmetric part, so set element to zero_str()
             }
-            else if (sym[i][j].starts_with(minus_str) && tab[j][i] == zero_str) {
+            else if (sym[i][j].starts_with(minus_str()) && tab[j][i] == zero_str()) {
                 sym[i][j] = "-0.5 * " + sym[i][j].substr(1, sym[i][j].size());
             }
-            else if (sym[i][j] == zero_str && tab[j][i].starts_with(minus_str)) {
+            else if (sym[i][j] == zero_str() && tab[j][i].starts_with(minus_str())) {
                 sym[i][j] = "-0.5 * " + tab[j][i].substr(1, tab[j][i].size());
             }
-            else if (!sym[i][j].starts_with(minus_str) && tab[j][i] == zero_str) {
+            else if (!sym[i][j].starts_with(minus_str()) && tab[j][i] == zero_str()) {
                 sym[i][j] = "0.5 * " + sym[i][j];
             }
-            else if (sym[i][j] == zero_str && !tab[j][i].starts_with(minus_str)) {
+            else if (sym[i][j] == zero_str() && !tab[j][i].starts_with(minus_str())) {
                 sym[i][j] = "0.5 * " + tab[j][i];
             }
             else {
                 // this occurs only when tab does not contain expected base
                 // vector products
-                sym[i][j] = "0.5 * (" + tab[i][j] + space_str + plus_str + space_str +
+                sym[i][j] = "0.5 * (" + tab[i][j] + space_str() + plus_str() + space_str() +
                             tab[j][i] + ")";
             }
         }
@@ -423,32 +423,32 @@ prd_table get_prd_tab_asym(prd_table const& tab)
         for (size_t j = 0; j < tab[i].size(); ++j) {
 
             // asym[i][j] = tab[i][j] is already contained from initialization
-            if ((asym[i][j].starts_with(minus_str) &&
+            if ((asym[i][j].starts_with(minus_str()) &&
                  asym[i][j].substr(1, asym[i][j].size()) == tab[j][i]) ||
-                (tab[j][i].starts_with(minus_str) &&
+                (tab[j][i].starts_with(minus_str()) &&
                  tab[j][i].substr(1, tab[j][i].size()) == asym[i][j])) {
                 continue; // asymmetric part already contained
             }
 
             if (asym[i][j] == tab[j][i]) {
-                asym[i][j] = zero_str; // symmetric part, so set element to zero_str
+                asym[i][j] = zero_str(); // symmetric part, so set element to zero_str()
             }
-            else if (asym[i][j].starts_with(minus_str) && tab[j][i] == zero_str) {
+            else if (asym[i][j].starts_with(minus_str()) && tab[j][i] == zero_str()) {
                 asym[i][j] = "-0.5 * " + asym[i][j].substr(1, asym[i][j].size());
             }
-            else if (asym[i][j] == zero_str && tab[j][i].starts_with(minus_str)) {
+            else if (asym[i][j] == zero_str() && tab[j][i].starts_with(minus_str())) {
                 asym[i][j] = "0.5 * " + tab[j][i].substr(1, tab[j][i].size());
             }
-            else if (!asym[i][j].starts_with(minus_str) && tab[j][i] == zero_str) {
+            else if (!asym[i][j].starts_with(minus_str()) && tab[j][i] == zero_str()) {
                 asym[i][j] = "0.5 * " + asym[i][j];
             }
-            else if (asym[i][j] == zero_str && !tab[j][i].starts_with(minus_str)) {
+            else if (asym[i][j] == zero_str() && !tab[j][i].starts_with(minus_str())) {
                 asym[i][j] = "-0.5 * " + tab[j][i];
             }
             else {
                 // this occurs only when tab does not contain expected base
                 // vector products
-                asym[i][j] = "0.5 * (" + tab[i][j] + space_str + minus_str + space_str +
+                asym[i][j] = "0.5 * (" + tab[i][j] + space_str() + minus_str() + space_str() +
                              tab[j][i] + ")";
             }
         }
@@ -536,28 +536,28 @@ mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
             for (size_t j = 0; j < prd_tab.size(); ++j) {
                 if (rcoeff_filter[j] == 0) continue; // skip filtered elements on rhs
 
-                if (prd_tab[i][j].ends_with(space_str + basis_element)) {
+                if (prd_tab[i][j].ends_with(space_str() + basis_element)) {
                     // found a contribution
-                    if (mv_prd[b] == empty_str) {
+                    if (mv_prd[b] == empty_str()) {
                         // add the first entry (including a minus-sign, if present)
-                        // remove empty_str and basis element from prd_tab entry
+                        // remove empty_str() and basis element from prd_tab entry
                         mv_prd[b] += prd_tab[i][j].substr(0, prd_tab[i][j].size() -
                                                                  mv_basis[b].size() - 1);
                     }
                     else {
                         // add the 2nd and following entries
-                        if (prd_tab[i][j].starts_with(minus_str)) {
-                            // remove empty_str and basis element and minus sign from
+                        if (prd_tab[i][j].starts_with(minus_str())) {
+                            // remove empty_str() and basis element and minus sign from
                             // prd_tab entry
                             mv_prd[b] +=
-                                space_str + minus_str + space_str +
+                                space_str() + minus_str() + space_str() +
                                 prd_tab[i][j].substr(1, prd_tab[i][j].size() -
                                                             mv_basis[b].size() - 2);
                         }
                         else {
-                            // remove empty_str and basis element from prd_tab entry
+                            // remove empty_str() and basis element from prd_tab entry
                             mv_prd[b] +=
-                                space_str + plus_str + space_str +
+                                space_str() + plus_str() + space_str() +
                                 prd_tab[i][j].substr(0, prd_tab[i][j].size() -
                                                             mv_basis[b].size() - 1);
                         }
@@ -565,13 +565,13 @@ mvec_coeff extractor(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                 }
             }
         }
-        // replace remaining empty elements by zero_str
-        if (mv_prd[b] == empty_str) {
-            mv_prd[b] = zero_str;
+        // replace remaining empty elements by zero_str()
+        if (mv_prd[b] == empty_str()) {
+            mv_prd[b] = zero_str();
         }
         // add braces for non-empty elements, if requested
-        if (brsw == brace_switch::use_braces && mv_prd[b] != zero_str) {
-            mv_prd[b] = brace_open_str + mv_prd[b] + brace_close_str;
+        if (brsw == brace_switch::use_braces && mv_prd[b] != zero_str()) {
+            mv_prd[b] = brace_open_str() + mv_prd[b] + brace_close_str();
         }
     }
     return mv_prd;

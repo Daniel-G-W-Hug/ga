@@ -1,9 +1,38 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 /*
- * CASE DESCRIPTION FORMAT GUIDE
- * =============================
+ * GA PRODUCT RULE GENERATION SYSTEM GUIDE
+ * =======================================
  *
+ * This configuration file defines two types of product rule generation:
+ *
+ * 1. AUTOMATIC GENERATION (AlgebraConfig): Complement rules generated mathematically
+ * 2. MANUAL CASES (ProductConfig): Expression cases configured manually
+ *
+ * AUTOMATIC RULE GENERATION:
+ * --------------------------
+ * The get_pga3dp_algebra_config() function provides mathematical algebra parameters:
+ * - basis_vectors: Basis vector names (e.g., {"e1", "e2", "e3", "e4"})
+ * - metric_signature: Quadratic form values (e.g., {+1, +1, +1, 0})
+ * - multivector_basis: Complete basis element names (e.g., {"1", "e1", "e2", "e3", "e4", "e41", "e42", "e43", "e23", "e31", "e12", "e423", "e431", "e412", "e321", "e1234"})
+ * - scalar_name: Name for scalar element (typically "1")
+ * - basis_prefix: Prefix for basis elements (typically "e")
+ *
+ * From this configuration, the system automatically generates:
+ * - Geometric product rules (geometric multiplication with metric)
+ * - Wedge product rules (antisymmetric exterior product)
+ * - Dot product rules (symmetric contraction with extended metric)
+ * - Complement rules (computed from wedge product tables)
+ *
+ * COMPLEMENT RULE GENERATION:
+ * The complement rules are now AUTOMATICALLY GENERATED using mathematical algorithms:
+ * - Even algebras (EGA2D, PGA3DP): Generate left_complement and right_complement
+ * - Odd algebras (EGA3D, PGA2DP): Generate single complement
+ * - Algorithm: Search wedge product table for pseudoscalar relationships
+ * - Result: Mathematically verified complement rules with zero transcription errors
+ *
+ * MANUAL CASE CONFIGURATION:
+ * --------------------------
  * Each ProductConfig contains a .cases array with mathematical operation descriptions.
  * Cases define which coefficient combinations and type filters to use for code
  * generation.
@@ -11,7 +40,7 @@
  * STANDARD FORMAT (5 parameters):
  * {"case_name", "left_coeff", "right_coeff", "left_filter", "right_filter"}
  *
- * SANDWICH FORMAT (7 parameters):
+ * SANDBOX FORMAT (7 parameters):
  * {"case_name", "left_coeff", "right_coeff", "left_filter", "right_filter", is_two_step,
  * "intermediate_name"}
  *
@@ -88,7 +117,7 @@ AlgebraConfig get_pga3dp_algebra_config()
         .multivector_basis = {"1", "e1", "e2", "e3", "e4", "e41", "e42", "e43", "e23",
                               "e31", "e12", "e423", "e431", "e412", "e321",
                               "e1234"}, // Copy from mv3dp_basis
-        .scalar_name = one_str,
+        .scalar_name = one_str(),
         .basis_prefix = "e"};
 }
 
