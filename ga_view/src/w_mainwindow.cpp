@@ -374,7 +374,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
         auto fres = f1 + f2;
-        fmt::println("inclined: fres = {}", fres);
+        // fmt::println("inclined: fres = {}", fres);
         auto pfresp = pip + att(fres);
         pt2d pfres{pfresp.x, pfresp.y};
         cm.add_pt(pfres);
@@ -436,7 +436,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
         auto fres = f1 + f2;
-        fmt::println("parallel: fres = {}", fres);
+        // fmt::println("parallel: fres = {}", fres);
         auto psupp = support2dp(fres);
         auto pfresp = psupp + att(fres);
         pt2d psup = pt2d{psupp.x, psupp.y};
@@ -501,7 +501,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
         auto fres = f1 + f2;
-        fmt::println("anti-parallel: fres = {}", fres);
+        // fmt::println("anti-parallel: fres = {}", fres);
         auto psupp = support2dp(fres);
         auto pfresp = psupp + att(fres);
         pt2d psup = pt2d{psupp.x, psupp.y};

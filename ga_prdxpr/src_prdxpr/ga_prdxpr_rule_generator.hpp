@@ -89,9 +89,9 @@ struct ProductRules {
     prd_rules right_complement; // For even algebras (EGA2D, PGA3DP)
     prd_rules left_complement;  // For even algebras (EGA2D, PGA3DP)
     prd_rules complement;       // For odd algebras (EGA3D, PGA2DP)
-    
+
     // TODO: Dual rules - will be generated from complement rules + extended metric
-    // prd_rules right_dual;    // For even algebras (EGA2D, PGA3DP) 
+    // prd_rules right_dual;    // For even algebras (EGA2D, PGA3DP)
     // prd_rules left_dual;     // For even algebras (EGA2D, PGA3DP)
     // prd_rules dual;          // For odd algebras (EGA3D, PGA2DP)
 };

@@ -14,7 +14,8 @@
  * The get_pga3dp_algebra_config() function provides mathematical algebra parameters:
  * - basis_vectors: Basis vector names (e.g., {"e1", "e2", "e3", "e4"})
  * - metric_signature: Quadratic form values (e.g., {+1, +1, +1, 0})
- * - multivector_basis: Complete basis element names (e.g., {"1", "e1", "e2", "e3", "e4", "e41", "e42", "e43", "e23", "e31", "e12", "e423", "e431", "e412", "e321", "e1234"})
+ * - multivector_basis: Complete basis element names (e.g., {"1", "e1", "e2", "e3", "e4",
+ * "e41", "e42", "e43", "e23", "e31", "e12", "e423", "e431", "e412", "e321", "e1234"})
  * - scalar_name: Name for scalar element (typically "1")
  * - basis_prefix: Prefix for basis elements (typically "e")
  *
