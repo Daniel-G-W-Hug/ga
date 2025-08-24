@@ -80,18 +80,18 @@ function(setup_all_fetchcontent_dependencies)
     message(STATUS "All FetchContent dependencies configured")
 endfunction()
 
-# Fallback setup for missing system dependencies
+# Fallback setup for missing dependencies (system and local ../../include/)
 function(setup_missing_dependencies)
-    # Only setup dependencies that weren't found on the system
-    if(NOT GA_HAS_SYSTEM_FMT)
+    # Only setup dependencies that weren't found anywhere (system or ../../include/)
+    if(NOT GA_HAS_FMT)
         setup_fmt_fetchcontent()
     endif()
     
-    if(NOT GA_HAS_SYSTEM_DOCTEST)
+    if(NOT GA_HAS_DOCTEST)
         setup_doctest_fetchcontent()
     endif()
     
-    if(NOT GA_HAS_SYSTEM_SOL2)
+    if(NOT GA_HAS_SOL2)
         setup_sol2_fetchcontent()
     endif()
 endfunction()

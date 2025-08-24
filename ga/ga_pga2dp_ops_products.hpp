@@ -476,6 +476,14 @@ constexpr MVec2dp<std::common_type_t<T, U>> rwdg(MVec2dp<T> const& A, MVec2dp<U>
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
+constexpr PScalar2dp<std::common_type_t<T, U>> rwdg(PScalar2dp<T> ps1, PScalar2dp<U> ps2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2dp(ctype(ps1) * ctype(ps2)); // convert to ctype before product!
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> rwdg(PScalar2dp<T> ps, BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;

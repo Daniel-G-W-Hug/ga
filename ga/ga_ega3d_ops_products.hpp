@@ -385,7 +385,7 @@ template <typename T, typename U>
 constexpr PScalar3d<std::common_type_t<T, U>> rwdg(PScalar3d<T> ps1, PScalar3d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar3d<ctype>(ctype(ps1) * ctype(ps2));
+    return PScalar3d<ctype>(ctype(ps1) * ctype(ps2)); // convert to ctype before product!
 }
 
 // regressive wedge product between a pseudoscalar ps (=trivector) and a bivector B
@@ -635,7 +635,7 @@ constexpr Scalar3d<std::common_type_t<T, U>> operator<<(PScalar3d<T> ps1,
                                                         PScalar3d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar3d<ctype>(ctype(ps1) * ctype(ps2));
+    return Scalar3d<ctype>(ctype(ps1) * ctype(ps2)); // convert to ctype before product!
 }
 
 // left contraction - pseudoscalar contracted onto bivector

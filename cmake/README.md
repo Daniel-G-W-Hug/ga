@@ -4,16 +4,17 @@ This directory contains modular CMake scripts for flexible dependency management
 
 ## Features
 
-- **Flexible Dependencies**: Automatically uses system packages when available, falls back to FetchContent
+- **Three-Tier Resolution**: Automatically resolves dependencies in order: system → ../../include/ → FetchContent
 - **Platform Awareness**: Different strategies for different platforms
 - **User Control**: Options to force system-only or FetchContent-only approaches
 - **Maximum Reuse**: Common dependency resolution logic shared across platforms
+- **Local Development**: Supports local dependencies in ../../include/ for development workflows
 
 ## Usage Options
 
-### Option 1: Default (Hybrid approach)
+### Option 1: Default (Three-tier approach)
 ```cmake
-# Uses system dependencies when available, FetchContent for missing ones
+# Uses system deps → ../../include/ deps → FetchContent for missing ones
 cmake .. 
 ```
 
@@ -25,7 +26,7 @@ cmake .. -DGA_FORCE_FETCH_CONTENT=ON
 
 ### Option 3: System Only
 ```cmake
-# Only uses system dependencies, fails if any are missing
+# Only uses system dependencies, skips ../../include/ and FetchContent
 cmake .. -DGA_USE_SYSTEM_DEPENDENCIES=ON -DGA_FORCE_FETCH_CONTENT=OFF
 ```
 
@@ -41,13 +42,13 @@ cmake .. -DGA_USE_READLINE=OFF
 - **Qt6**: Must be installed separately (GUI framework)  
 - **Lua 5.1+**: Must be installed separately (scripting runtime)
 
-### Flexible (System or FetchContent)
+### Flexible (System → ../../include/ → FetchContent)
 - **fmt**: Formatting library (header-only preferred)
 - **doctest**: Testing framework (header-only)
 - **sol2**: Lua C++ binding (header-only)
 
-### Optional
-- **readline**: Enhanced command-line editing (system only)
+### Optional (System → ../../include/ → skip)
+- **readline**: Enhanced command-line editing (three-tier detection, no FetchContent fallback)
 
 ## Platform-Specific Installation
 
@@ -56,7 +57,7 @@ cmake .. -DGA_USE_READLINE=OFF
 # Required
 brew install qt6 lua
 
-# Optional (if using system dependencies)
+# Optional (if not using ../../include/ or FetchContent)
 brew install fmt doctest readline
 ```
 
@@ -64,7 +65,7 @@ brew install fmt doctest readline
 ```bash
 # Required - install Qt6 from qt.io and Lua from lua.org
 
-# Optional (if using system dependencies)
+# Optional (if not using ../../include/ or FetchContent)
 vcpkg install fmt doctest
 ```
 
@@ -73,20 +74,27 @@ vcpkg install fmt doctest
 # Required
 sudo apt-get install qt6-base-dev qt6-tools-dev lua5.1-dev
 
-# Optional (if using system dependencies)  
+# Optional (if not using ../../include/ or FetchContent)  
 sudo apt-get install libfmt-dev libdoctest-dev libreadline-dev
 ```
 
 ## Architecture
 
-- `dependencies.cmake`: Main coordinator, handles user options
-- `find_dependencies.cmake`: System dependency detection with helpful error messages
+- `dependencies.cmake`: Main coordinator, handles user options and three-tier resolution
+- `find_dependencies.cmake`: Three-tier dependency detection (system → ../../include/ → FetchContent)
 - `fetch_dependencies.cmake`: FetchContent setup with version pinning and configuration
+
+## Three-Tier Dependency Resolution
+
+1. **Tier 1: System Dependencies** - Uses `find_package()` to locate system-installed libraries
+2. **Tier 2: Local Dependencies** - Checks `../../include/` for header-only libraries (development workflow)
+3. **Tier 3: FetchContent** - Downloads and builds dependencies from source as fallback
 
 ## Benefits
 
-1. **Developer Flexibility**: Works whether dependencies are system-installed or not
-2. **CI/CD Friendly**: Can force FetchContent for reproducible builds
-3. **Beginner Friendly**: Clear error messages with installation instructions
-4. **Cross-Platform**: Handles platform differences automatically
-5. **Maintainable**: Centralized dependency logic, easy to update versions
+1. **Developer Flexibility**: Works whether dependencies are system-installed, local, or downloaded
+2. **Local Development**: Supports ../../include/ workflow for development with local dependencies
+3. **CI/CD Friendly**: Can force FetchContent for reproducible builds
+4. **Beginner Friendly**: Clear error messages with installation instructions
+5. **Cross-Platform**: Handles platform differences automatically
+6. **Maintainable**: Centralized dependency logic, easy to update versions

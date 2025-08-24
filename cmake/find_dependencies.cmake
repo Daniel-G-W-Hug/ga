@@ -1,9 +1,9 @@
 # System dependency finding for GA project
 # Handles finding system-installed packages
 
-# Enhanced system dependency finding with better error messages
+# Enhanced system dependency finding with three-tier resolution
 function(find_system_dependencies)
-    message(STATUS "Searching for system dependencies...")
+    message(STATUS "Searching for dependencies (system -> ../../include/ -> FetchContent)...")
     
     # Platform-specific package manager hints
     if(APPLE)
@@ -17,28 +17,14 @@ function(find_system_dependencies)
         set(PREFIX_HINTS /usr /usr/local)
     endif()
     
-    # fmt - required for formatting
-    find_package(fmt CONFIG QUIET)
-    if(fmt_FOUND)
-        message(STATUS "✓ Found system fmt: ${fmt_VERSION}")
-        set(GA_HAS_SYSTEM_FMT TRUE PARENT_SCOPE)
-    else()
-        message(STATUS "✗ fmt not found. ${PKG_MANAGER_HINT}")
-        set(GA_HAS_SYSTEM_FMT FALSE PARENT_SCOPE)
-    endif()
+    # fmt - required for formatting (tier 1: system, tier 2: ../../include/, tier 3: FetchContent)
+    find_fmt_tiered()
     
-    # doctest - required for testing
-    find_package(doctest QUIET)
-    if(doctest_FOUND)
-        message(STATUS "✓ Found system doctest")
-        set(GA_HAS_SYSTEM_DOCTEST TRUE PARENT_SCOPE)
-    else()
-        message(STATUS "✗ doctest not found. ${PKG_MANAGER_HINT}")
-        set(GA_HAS_SYSTEM_DOCTEST FALSE PARENT_SCOPE)
-    endif()
+    # doctest - required for testing (tier 1: system, tier 2: ../../include/, tier 3: FetchContent)  
+    find_doctest_tiered()
     
-    # sol2 - header-only Lua binding (special handling)
-    find_sol2_system()
+    # sol2 - header-only Lua binding (tier 1: system, tier 2: ../../include/, tier 3: FetchContent)
+    find_sol2_tiered()
     
     # Qt6 - must be system installed
     find_package(Qt6 COMPONENTS Core Gui Widgets QUIET)
@@ -81,50 +67,208 @@ function(find_system_dependencies)
     endif()
 endfunction()
 
-# Special handling for sol2 (header-only library)
-function(find_sol2_system)
-    # Look for sol2 in common locations
-    find_path(SOL2_INCLUDE_DIR 
+# Three-tier fmt finding: system -> ../../include/ -> FetchContent
+function(find_fmt_tiered)
+    # Tier 1: System packages
+    find_package(fmt CONFIG QUIET)
+    if(fmt_FOUND)
+        message(STATUS "✓ Found system fmt: ${fmt_VERSION}")
+        set(GA_HAS_SYSTEM_FMT TRUE PARENT_SCOPE)
+        set(GA_HAS_LOCAL_FMT FALSE PARENT_SCOPE)
+        set(GA_HAS_FMT TRUE PARENT_SCOPE)  # Overall flag
+        return()
+    endif()
+    
+    # Tier 2: Local ../../include/ directory
+    set(LOCAL_FMT_DIR "${CMAKE_SOURCE_DIR}/../../include/fmt")
+    if(EXISTS "${LOCAL_FMT_DIR}/include/fmt/core.h")
+        message(STATUS "✓ Found local fmt at: ${LOCAL_FMT_DIR}")
+        if(NOT TARGET fmt::fmt)
+            add_library(fmt::fmt INTERFACE IMPORTED)
+            target_include_directories(fmt::fmt INTERFACE "${LOCAL_FMT_DIR}/include")
+        endif()
+        set(GA_HAS_SYSTEM_FMT FALSE PARENT_SCOPE)
+        set(GA_HAS_LOCAL_FMT TRUE PARENT_SCOPE)
+        set(GA_HAS_FMT TRUE PARENT_SCOPE)  # Overall flag
+        return()
+    endif()
+    
+    # Tier 3: Will use FetchContent (handled elsewhere)
+    message(STATUS "✗ fmt not found in system or ../../include/. Will use FetchContent.")
+    set(GA_HAS_SYSTEM_FMT FALSE PARENT_SCOPE)
+    set(GA_HAS_LOCAL_FMT FALSE PARENT_SCOPE)
+    set(GA_HAS_FMT FALSE PARENT_SCOPE)  # Overall flag
+endfunction()
+
+# Three-tier doctest finding: system -> ../../include/ -> FetchContent  
+function(find_doctest_tiered)
+    # Tier 1: System packages
+    find_package(doctest QUIET)
+    if(doctest_FOUND)
+        message(STATUS "✓ Found system doctest")
+        set(GA_HAS_SYSTEM_DOCTEST TRUE PARENT_SCOPE)
+        set(GA_HAS_LOCAL_DOCTEST FALSE PARENT_SCOPE)
+        set(GA_HAS_DOCTEST TRUE PARENT_SCOPE)  # Overall flag
+        return()
+    endif()
+    
+    # Tier 2: Local ../../include/ directory  
+    set(LOCAL_DOCTEST_DIR "${CMAKE_SOURCE_DIR}/../../include/doctest")
+    if(EXISTS "${LOCAL_DOCTEST_DIR}/doctest/doctest.h")
+        message(STATUS "✓ Found local doctest at: ${LOCAL_DOCTEST_DIR}")
+        if(NOT TARGET doctest::doctest)
+            add_library(doctest::doctest INTERFACE IMPORTED)
+            target_include_directories(doctest::doctest INTERFACE "${LOCAL_DOCTEST_DIR}")
+        endif()
+        set(GA_HAS_SYSTEM_DOCTEST FALSE PARENT_SCOPE)
+        set(GA_HAS_LOCAL_DOCTEST TRUE PARENT_SCOPE)
+        set(GA_HAS_DOCTEST TRUE PARENT_SCOPE)  # Overall flag
+        return()
+    endif()
+    
+    # Tier 3: Will use FetchContent (handled elsewhere)
+    message(STATUS "✗ doctest not found in system or ../../include/. Will use FetchContent.")
+    set(GA_HAS_SYSTEM_DOCTEST FALSE PARENT_SCOPE)
+    set(GA_HAS_LOCAL_DOCTEST FALSE PARENT_SCOPE)
+    set(GA_HAS_DOCTEST FALSE PARENT_SCOPE)  # Overall flag
+endfunction()
+
+# Three-tier sol2 finding: system -> ../../include/ -> FetchContent
+function(find_sol2_tiered)
+    # Tier 1: System packages
+    find_path(SOL2_SYSTEM_INCLUDE_DIR 
               NAMES sol/sol.hpp
               PATHS ${PREFIX_HINTS}
               PATH_SUFFIXES include sol2/include
               DOC "sol2 header-only library include directory")
     
-    if(SOL2_INCLUDE_DIR)
-        # Create imported target for system sol2
+    if(SOL2_SYSTEM_INCLUDE_DIR)
+        message(STATUS "✓ Found system sol2 at: ${SOL2_SYSTEM_INCLUDE_DIR}")
         if(NOT TARGET sol2::sol2)
             add_library(sol2::sol2 INTERFACE IMPORTED)
-            target_include_directories(sol2::sol2 INTERFACE ${SOL2_INCLUDE_DIR})
+            target_include_directories(sol2::sol2 INTERFACE ${SOL2_SYSTEM_INCLUDE_DIR})
         endif()
-        message(STATUS "✓ Found system sol2 at: ${SOL2_INCLUDE_DIR}")
         set(GA_HAS_SYSTEM_SOL2 TRUE PARENT_SCOPE)
-    else()
-        message(STATUS "✗ sol2 not found. Will use FetchContent.")
-        set(GA_HAS_SYSTEM_SOL2 FALSE PARENT_SCOPE)
+        set(GA_HAS_LOCAL_SOL2 FALSE PARENT_SCOPE)
+        set(GA_HAS_SOL2 TRUE PARENT_SCOPE)  # Overall flag
+        return()
     endif()
+    
+    # Tier 2: Local ../../include/ directory
+    set(LOCAL_SOL2_DIR "${CMAKE_SOURCE_DIR}/../../include/sol2")
+    if(EXISTS "${LOCAL_SOL2_DIR}/include/sol/sol.hpp")
+        message(STATUS "✓ Found local sol2 at: ${LOCAL_SOL2_DIR}")
+        if(NOT TARGET sol2::sol2)
+            add_library(sol2::sol2 INTERFACE IMPORTED)
+            target_include_directories(sol2::sol2 INTERFACE "${LOCAL_SOL2_DIR}/include")
+        endif()
+        set(GA_HAS_SYSTEM_SOL2 FALSE PARENT_SCOPE)
+        set(GA_HAS_LOCAL_SOL2 TRUE PARENT_SCOPE)
+        set(GA_HAS_SOL2 TRUE PARENT_SCOPE)  # Overall flag
+        return()
+    endif()
+    
+    # Tier 3: Will use FetchContent (handled elsewhere)
+    message(STATUS "✗ sol2 not found in system or ../../include/. Will use FetchContent.")
+    set(GA_HAS_SYSTEM_SOL2 FALSE PARENT_SCOPE)
+    set(GA_HAS_LOCAL_SOL2 FALSE PARENT_SCOPE)
+    set(GA_HAS_SOL2 FALSE PARENT_SCOPE)  # Overall flag
 endfunction()
 
-# Optional: Enhanced readline detection
-function(find_readline_optional)
-    if(GA_USE_READLINE)
-        find_library(READLINE_LIBRARY readline)
-        find_path(READLINE_INCLUDE_DIR readline/readline.h)
+# Three-tier readline finding: local compiled -> system -> skip (optional dependency)
+function(find_readline_tiered)
+    if(NOT GA_USE_READLINE)
+        message(STATUS "readline support disabled")
+        set(GA_HAS_SYSTEM_READLINE FALSE PARENT_SCOPE)
+        set(GA_HAS_LOCAL_READLINE FALSE PARENT_SCOPE)
+        set(GA_HAS_READLINE FALSE PARENT_SCOPE)
+        return()
+    endif()
+    
+    # Tier 1: Local compiled libraries (prioritized for development)
+    set(LOCAL_READLINE_DIR "${CMAKE_SOURCE_DIR}/../../include/readline")
+    if(EXISTS "${LOCAL_READLINE_DIR}/readline.h")
+        # Enhanced search for compiled libraries in common build output directories
+        find_library(READLINE_LOCAL_LIBRARY 
+                     NAMES libreadline.dylib libreadline.so libreadline.a readline
+                     PATHS ${LOCAL_READLINE_DIR}
+                     PATH_SUFFIXES . shlib .libs lib
+                     NO_DEFAULT_PATH)
         
-        if(READLINE_LIBRARY AND READLINE_INCLUDE_DIR)
-            message(STATUS "✓ Found readline: ${READLINE_LIBRARY}")
+        if(READLINE_LOCAL_LIBRARY)
+            message(STATUS "✓ Found local compiled readline: ${READLINE_LOCAL_LIBRARY}")
+            message(STATUS "  Using local version instead of system (for development)")
+            
+            # Find required terminal capabilities library for local readline
+            find_library(TERMCAP_LIBRARY NAMES ncurses curses termcap)
+            if(TERMCAP_LIBRARY)
+                message(STATUS "  Found terminal library: ${TERMCAP_LIBRARY}")
+            else()
+                message(STATUS "  Warning: No terminal library found - linking may fail")
+            endif()
+            
             if(NOT TARGET readline::readline)
                 add_library(readline::readline UNKNOWN IMPORTED)
-                set_target_properties(readline::readline PROPERTIES
-                    IMPORTED_LOCATION ${READLINE_LIBRARY}
-                    INTERFACE_INCLUDE_DIRECTORIES ${READLINE_INCLUDE_DIR})
+                if(TERMCAP_LIBRARY)
+                    set_target_properties(readline::readline PROPERTIES
+                        IMPORTED_LOCATION ${READLINE_LOCAL_LIBRARY}
+                        INTERFACE_INCLUDE_DIRECTORIES ${LOCAL_READLINE_DIR}
+                        INTERFACE_LINK_LIBRARIES ${TERMCAP_LIBRARY})
+                else()
+                    set_target_properties(readline::readline PROPERTIES
+                        IMPORTED_LOCATION ${READLINE_LOCAL_LIBRARY}
+                        INTERFACE_INCLUDE_DIRECTORIES ${LOCAL_READLINE_DIR})
+                endif()
             endif()
+            set(GA_HAS_SYSTEM_READLINE FALSE PARENT_SCOPE)
+            set(GA_HAS_LOCAL_READLINE TRUE PARENT_SCOPE)
             set(GA_HAS_READLINE TRUE PARENT_SCOPE)
+            return()
         else()
-            message(STATUS "✗ readline not found (optional)")
-            if(APPLE)
-                message(STATUS "  Install with: brew install readline")
-            endif()
-            set(GA_HAS_READLINE FALSE PARENT_SCOPE)
+            # Headers found but no compiled library - continue to check system
+            message(STATUS "✓ Found local readline headers at: ${LOCAL_READLINE_DIR}")
+            message(STATUS "  No compiled library found - checking system version")
         endif()
     endif()
+    
+    # Tier 2: System packages (fallback)
+    find_library(READLINE_SYSTEM_LIBRARY readline)
+    find_path(READLINE_SYSTEM_INCLUDE_DIR readline/readline.h)
+    
+    if(READLINE_SYSTEM_LIBRARY AND READLINE_SYSTEM_INCLUDE_DIR)
+        message(STATUS "✓ Found system readline: ${READLINE_SYSTEM_LIBRARY}")
+        if(NOT TARGET readline::readline)
+            add_library(readline::readline UNKNOWN IMPORTED)
+            set_target_properties(readline::readline PROPERTIES
+                IMPORTED_LOCATION ${READLINE_SYSTEM_LIBRARY}
+                INTERFACE_INCLUDE_DIRECTORIES ${READLINE_SYSTEM_INCLUDE_DIR})
+        endif()
+        set(GA_HAS_SYSTEM_READLINE TRUE PARENT_SCOPE)
+        set(GA_HAS_LOCAL_READLINE FALSE PARENT_SCOPE)
+        set(GA_HAS_READLINE TRUE PARENT_SCOPE)
+        return()
+    endif()
+    
+    # Tier 3: Headers-only fallback (if local headers exist but no system library)
+    if(EXISTS "${LOCAL_READLINE_DIR}/readline.h")
+        message(STATUS "✓ Using local readline headers with no library fallback")
+        message(STATUS "  Warning: May have linking issues without compiled library")
+        if(NOT TARGET readline::readline)
+            add_library(readline::readline INTERFACE IMPORTED)
+            target_include_directories(readline::readline INTERFACE ${LOCAL_READLINE_DIR})
+        endif()
+        set(GA_HAS_SYSTEM_READLINE FALSE PARENT_SCOPE)
+        set(GA_HAS_LOCAL_READLINE TRUE PARENT_SCOPE)
+        set(GA_HAS_READLINE TRUE PARENT_SCOPE)
+        return()
+    endif()
+    
+    # Tier 4: Not found (optional dependency - don't use FetchContent)
+    message(STATUS "✗ readline not found (optional)")
+    if(APPLE)
+        message(STATUS "  Install with: brew install readline")
+    endif()
+    set(GA_HAS_SYSTEM_READLINE FALSE PARENT_SCOPE)
+    set(GA_HAS_LOCAL_READLINE FALSE PARENT_SCOPE)
+    set(GA_HAS_READLINE FALSE PARENT_SCOPE)
 endfunction()

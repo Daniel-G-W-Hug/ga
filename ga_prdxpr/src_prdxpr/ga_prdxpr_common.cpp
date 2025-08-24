@@ -64,7 +64,8 @@ prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& 
                     minus_str() + lhs + space_str() + operator_str + space_str() + rhs;
             }
             else {
-                prd_coeff_tab[i][j] = lhs + space_str() + operator_str + space_str() + rhs;
+                prd_coeff_tab[i][j] =
+                    lhs + space_str() + operator_str + space_str() + rhs;
             }
         }
     }
@@ -125,83 +126,6 @@ prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
     return prd_tab;
 }
 
-////// experimental change for alternative way towards sandwich products
-//
-// sandwich_prd_table basis_prd_tab_times_basis_elements(prd_table const& basis_tab,
-//                                                       mvec_coeff const& basis_elements,
-//                                                       prd_rules const& rules,
-//                                                       std::string const& operator_str)
-// {
-
-//     // make sure sizes match as required
-//     if (basis_tab.size() != basis_elements.size()) {
-//         throw std::runtime_error("Multivector sizes must match.");
-//     }
-
-//     sandwich_prd_table prd_tab3d;
-
-//     for (size_t k = 0; k < basis_elements.size(); ++k) {
-
-//         auto tmp_tab = basis_tab;
-
-//         for (size_t i = 0; i < basis_tab.size(); ++i) {
-//             for (size_t j = 0; j < basis_tab.size(); ++j) {
-
-//                 bool is_negative{false}; // must be "false" for toggle logic below to
-//                 work std::string value{tmp_tab[i][j]}; std::string
-//                 value_new{basis_elements[k]};
-
-//                 // remove the minus-sign, if it is present in the input
-//                 if (tmp_tab[i][j].starts_with(minus_str())) {
-//                     toggle_bool(is_negative);
-//                     value = tmp_tab[i][j].substr(1, tmp_tab[i][j].size() - 1);
-//                 }
-
-//                 // fmt::println("i: {}, j: {}, value: '{}', is_negative: {}", i, j,
-//                 value,
-//                 //              is_negative);
-
-//                 // in case the added value does have a minus sign on its own
-//                 if (basis_elements[k].starts_with(minus_str())) {
-//                     toggle_bool(is_negative);
-//                     value_new = basis_elements[k].substr(1, basis_elements[k].size() -
-//                     1);
-//                 }
-
-//                 if (is_negative &&
-//                     (value != zero_str())) { // zero doesn't need a minus sign
-//                     tmp_tab[i][j] = minus_str() + value + space_str() + operator_str +
-//                                     space_str() + value_new;
-//                 }
-//                 else {
-
-//                     if (value == zero_str() || value_new == zero_str()) {
-//                         tmp_tab[i][j] = zero_str();
-//                     }
-//                     else {
-
-//                         tmp_tab[i][j] =
-//                             value + space_str() + operator_str + space_str() + value_new;
-//                     }
-//                 }
-//             }
-//         }
-
-//         // fmt::println("k: {}", k);
-//         // print_prd_tab(tmp_tab);
-//         // fmt::println("");
-
-//         tmp_tab = apply_rules_to_tab(tmp_tab, rules);
-
-//         // fmt::println("k: {}", k);
-//         // print_prd_tab(tmp_tab);
-//         // fmt::println("");
-
-//         prd_tab3d.push_back(tmp_tab);
-//     }
-
-//     return prd_tab3d;
-// }
 
 mvec_coeff apply_rules_to_mv(mvec_coeff const& coeff, mvec_rules const& rules)
 {
@@ -389,8 +313,8 @@ prd_table get_prd_tab_sym(prd_table const& tab)
             else {
                 // this occurs only when tab does not contain expected base
                 // vector products
-                sym[i][j] = "0.5 * (" + tab[i][j] + space_str() + plus_str() + space_str() +
-                            tab[j][i] + ")";
+                sym[i][j] = "0.5 * (" + tab[i][j] + space_str() + plus_str() +
+                            space_str() + tab[j][i] + ")";
             }
         }
     }
@@ -448,8 +372,8 @@ prd_table get_prd_tab_asym(prd_table const& tab)
             else {
                 // this occurs only when tab does not contain expected base
                 // vector products
-                asym[i][j] = "0.5 * (" + tab[i][j] + space_str() + minus_str() + space_str() +
-                             tab[j][i] + ")";
+                asym[i][j] = "0.5 * (" + tab[i][j] + space_str() + minus_str() +
+                             space_str() + tab[j][i] + ")";
             }
         }
     }
@@ -596,7 +520,8 @@ void print_mvec(mvec_coeff const& mv, mvec_coeff const& mv_basis)
     }
     // fmt::println("max_width = {}", max_width);
 
-    // print elements right aligned fitting to max_width with vertical separator like tables
+    // print elements right aligned fitting to max_width with vertical separator like
+    // tables
     for (size_t i = 0; i < mv.size(); ++i) {
         const auto& e = mv[i];
         fmt::print("[ ");
@@ -642,22 +567,23 @@ void print_prd_tab_with_headers(prd_table const& tab, mvec_coeff const& basis)
             max_cell_width = std::max(max_cell_width, cell.size());
         }
     }
-    
+
     size_t max_header_width = 0;
     for (const auto& header : basis) {
         max_header_width = std::max(max_header_width, header.size());
     }
-    
+
     size_t cell_width = std::max(max_cell_width, max_header_width);
-    
+
     // Calculate max width for row headers
     size_t max_row_header_width = 0;
     for (const auto& header : basis) {
         max_row_header_width = std::max(max_row_header_width, header.size());
     }
-    
+
     // Print column headers (multivector basis elements)
-    // Headers align with table entries but without brackets: "  entry, entry, entry | header"
+    // Headers align with table entries but without brackets: "  entry, entry, entry |
+    // header"
     fmt::print("  "); // Small indent to align with table content inside brackets
     for (size_t col = 0; col < basis.size() && col < tab[0].size(); ++col) {
         fmt::print("{:>{w}}", basis[col], fmt::arg("w", cell_width));
@@ -667,7 +593,7 @@ void print_prd_tab_with_headers(prd_table const& tab, mvec_coeff const& basis)
     }
     fmt::print("   |");
     fmt::println("");
-    
+
     // Calculate total width for horizontal separator
     size_t table_width = 2; // "[ "
     for (size_t col = 0; col < basis.size() && col < tab[0].size(); ++col) {
@@ -678,11 +604,11 @@ void print_prd_tab_with_headers(prd_table const& tab, mvec_coeff const& basis)
     }
     table_width += 5; // " ] | "
     table_width += max_row_header_width;
-    
+
     // Print horizontal separator line
     fmt::print("{:-<{}}", "", table_width);
     fmt::println("");
-    
+
     // Print table rows with row headers on the right
     for (size_t row = 0; row < tab.size() && row < basis.size(); ++row) {
         // Print table row
@@ -693,8 +619,9 @@ void print_prd_tab_with_headers(prd_table const& tab, mvec_coeff const& basis)
                 fmt::print(", ");
             }
         }
-        
-        // Print vertical separator and row header (basis element for this row) on the right, left-aligned
+
+        // Print vertical separator and row header (basis element for this row) on the
+        // right, left-aligned
         fmt::print(" ] | {}", basis[row]);
         fmt::println("");
     }
@@ -720,7 +647,7 @@ void print_prd_rules(const prd_rules& rules, const std::string& title,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// helper functions (not directly intended for user)
+// helper functions
 ////////////////////////////////////////////////////////////////////////////////
 mvec_coeff_filter get_coeff_filter(filter_2d filter)
 {
