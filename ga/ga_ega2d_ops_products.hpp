@@ -207,7 +207,7 @@ constexpr PScalar2d<std::common_type_t<T, U>> wdg(PScalar2d<T> ps, MVec2d_E<U> c
 // wedge product between even grade multivector M and vector v
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec2d_E<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& M, Vec2d<U> const& v)
+constexpr Vec2d<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& M, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(M.c0 * v.x, M.c0 * v.y);
@@ -216,7 +216,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& M, Vec2d<U> 
 // wedge product between vector v and even grade multivector M
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec2d_E<std::common_type_t<T, U>> wdg(Vec2d<T> const& v, MVec2d_E<U> const& M)
+constexpr Vec2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v, MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(v.x * M.c0, v.y * M.c0);
@@ -251,23 +251,23 @@ constexpr Scalar2d<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar2d<T>,
     return Scalar2d<ctype>(0.0);
 }
 
-// wedge product of a vector with a pseudoscalar
-// returns 0
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
-constexpr Scalar2d<std::common_type_t<T, U>> wdg([[maybe_unused]] Vec2d<T> const&,
-                                                 [[maybe_unused]] PScalar2d<U>)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(0.0);
-}
-
 // wedge product of a pseudoscalar with a vector
 // returns 0
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr Scalar2d<std::common_type_t<T, U>> wdg([[maybe_unused]] PScalar2d<T>,
                                                  [[maybe_unused]] Vec2d<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(0.0);
+}
+
+// wedge product of a vector with a pseudoscalar
+// returns 0
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2d<std::common_type_t<T, U>> wdg([[maybe_unused]] Vec2d<T> const&,
+                                                 [[maybe_unused]] PScalar2d<U>)
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar2d<ctype>(0.0);
@@ -363,7 +363,7 @@ template <typename T, typename U>
 constexpr PScalar2d<std::common_type_t<T, U>> rwdg(PScalar2d<T> ps1, PScalar2d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar2d<ctype>(ctype(ps1) * ctype(ps2));
+    return PScalar2d<ctype>(ctype(ps1) * ctype(ps2)); // convert to ctype before product!
 }
 
 // regressive wedge product between a pseudoscalar ps (=bivector) and a vector v

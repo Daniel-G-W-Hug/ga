@@ -14,7 +14,8 @@
  * The get_ega3d_algebra_config() function provides mathematical algebra parameters:
  * - basis_vectors: Basis vector names (e.g., {"e1", "e2", "e3"})
  * - metric_signature: Quadratic form values (e.g., {+1, +1, +1})
- * - multivector_basis: Complete basis element names (e.g., {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e123"})
+ * - multivector_basis: Complete basis element names (e.g., {"1", "e1", "e2", "e3", "e23",
+ * "e31", "e12", "e123"})
  * - scalar_name: Name for scalar element (typically "1")
  * - basis_prefix: Prefix for basis elements (typically "e")
  *

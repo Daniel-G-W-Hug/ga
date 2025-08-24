@@ -44,9 +44,6 @@ using filter_3dp = filter_4d;
 // multivector product table - contains products of scalars and basis elements
 using prd_table = std::vector<mvec_coeff>;
 
-// // sandwich product table of multivector products of type: rotor * object * rev(rotor)
-// using sandwich_prd_table = std::vector<prd_table>;
-
 // required literals for string handling
 using namespace std::literals::string_literals;
 
@@ -57,7 +54,8 @@ using namespace std::literals::string_literals;
 //
 // 1. GUARANTEED INITIALIZATION ON FIRST CALL: Function-local static variables are
 //    initialized exactly when the function is first called, not at some undefined
-//    time during program startup. This eliminates race conditions between translation units.
+//    time during program startup. This eliminates race conditions between translation
+//    units.
 //
 // 2. THREAD-SAFE (C++11+): The compiler guarantees that initialization of function-local
 //    statics is thread-safe. Multiple threads calling the function simultaneously will
@@ -69,29 +67,74 @@ using namespace std::literals::string_literals;
 // 4. NO CROSS-FILE DEPENDENCIES: Unlike file-scope static variables, these cannot
 //    depend on other static variables in undefined initialization order.
 //
-// This pattern prevented segmentation faults that occurred when file-scope static
-// variables were used and accessed before initialization during complement rule generation.
+// This pattern prevents segmentation faults that occurred when file-scope static
+// variables were used and accessed before initialization during complement rule
+// generation.
 //
-inline const std::string& empty_str() { static const std::string s{""s}; return s; }
-inline const std::string& zero_str() { static const std::string s{"0"s}; return s; }
-inline const std::string& one_str() { static const std::string s{"1"s}; return s; }
-inline const std::string& plus_str() { static const std::string s{"+"s}; return s; }
-inline const std::string& minus_str() { static const std::string s{"-"s}; return s; }
-inline const std::string& mul_str() { static const std::string s{"*"s}; return s; }
-inline const std::string& wdg_str() { static const std::string s{"^"s}; return s; }
-inline const std::string& lcontr_str() { static const std::string s{"<<"s}; return s; }
-inline const std::string& rcontr_str() { static const std::string s{">>"s}; return s; }
-inline const std::string& space_str() { static const std::string s{" "s}; return s; }
-inline const std::string& brace_open_str() { static const std::string s{"("s}; return s; }
-inline const std::string& brace_close_str() { static const std::string s{")"s}; return s; }
+inline const std::string& empty_str()
+{
+    static const std::string s{""s};
+    return s;
+}
+inline const std::string& zero_str()
+{
+    static const std::string s{"0"s};
+    return s;
+}
+inline const std::string& one_str()
+{
+    static const std::string s{"1"s};
+    return s;
+}
+inline const std::string& plus_str()
+{
+    static const std::string s{"+"s};
+    return s;
+}
+inline const std::string& minus_str()
+{
+    static const std::string s{"-"s};
+    return s;
+}
+inline const std::string& mul_str()
+{
+    static const std::string s{"*"s};
+    return s;
+}
+inline const std::string& wdg_str()
+{
+    static const std::string s{"^"s};
+    return s;
+}
+inline const std::string& lcontr_str()
+{
+    static const std::string s{"<<"s};
+    return s;
+}
+inline const std::string& rcontr_str()
+{
+    static const std::string s{">>"s};
+    return s;
+}
+inline const std::string& space_str()
+{
+    static const std::string s{" "s};
+    return s;
+}
+inline const std::string& brace_open_str()
+{
+    static const std::string s{"("s};
+    return s;
+}
+inline const std::string& brace_close_str()
+{
+    static const std::string s{")"s};
+    return s;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // user related functions
 ////////////////////////////////////////////////////////////////////////////////
-
-// mvec_coeff get_filtered_mv(mvec_coeff const& mv, filter_2d filter = filter_2d::mv);
-// mvec_coeff get_filtered_mv(mvec_coeff const& mv, filter_3d filter = filter_3d::mv);
-// mvec_coeff get_filtered_mv(mvec_coeff const& mv, filter_4d filter = filter_4d::mv);
 
 prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& rcoeff,
                                     std::string const& operator_str = mul_str());
@@ -142,8 +185,9 @@ void print_prd_tab_with_headers(prd_table const& tab, mvec_coeff const& basis);
 // Usage example:
 //   print_prd_rules(gpr_ega2d_rules, "EGA2D Geometric Product", mv2d_basis, "*");
 //   print_prd_rules(wdg_ega2d_rules, "EGA2D Wedge Product", mv2d_basis, "^");
-void print_prd_rules(const prd_rules& rules, const std::string& title, 
-                     const mvec_coeff& basis_order, const std::string& operator_symbol = "*");
+void print_prd_rules(const prd_rules& rules, const std::string& title,
+                     const mvec_coeff& basis_order,
+                     const std::string& operator_symbol = "*");
 
 ////////////////////////////////////////////////////////////////////////////////
 // helper functions (not directly intended for user)

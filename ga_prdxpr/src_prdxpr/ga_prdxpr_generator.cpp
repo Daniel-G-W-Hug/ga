@@ -168,7 +168,7 @@ void ConfigurableGenerator::generate_sandwich_case(const AlgebraData& algebra,
 
     else if (algebra.name == "pga2dp") {
 
-        // Vector case: first product between multivectors in basis_tab (R * v)
+        // Vector case: first product between multivectors in basis_tab rgpr(M,v)
         fmt::println("{}:", prd_name + space_str() + "rgpr(mv_u, vec) -> mv_u_tmp");
         auto prd_tab = get_prd_tab(basis_tab, mv2dp_coeff_R_odd, mv2dp_coeff_svBps);
 
@@ -178,8 +178,9 @@ void ConfigurableGenerator::generate_sandwich_case(const AlgebraData& algebra,
         print_mvec(mv_u_tmp, algebra.basis);
         fmt::println("");
 
-        // Second product between multivectors for the product mv_u_tmp * rrev(R)
-        fmt::println("{}:", prd_name + space_str() + "mv_u_tmp * rrev(mv_u) -> mv_u_res");
+        // Second product between multivectors for the product rgpr(mv_u_tmp, rrev(M))
+        fmt::println("{}:",
+                     prd_name + space_str() + "rgpr(mv_u_tmp, rrev(mv_u)) -> mv_u_res");
         auto prd_tab_v = get_prd_tab(basis_tab, mv_u_tmp, mv2dp_coeff_R_rrev_odd);
 
         auto mv_u_res_v = get_mv_from_prd_tab(prd_tab_v, algebra.basis, filter_3d::mv_u,
@@ -189,16 +190,17 @@ void ConfigurableGenerator::generate_sandwich_case(const AlgebraData& algebra,
 
         //// Bivector case
 
-        // First product between multivectors in basis_tab (R * B)
-        fmt::println("{}:", prd_name + space_str() + "mv_u * bivec -> mv_e_tmp");
+        // First product between multivectors in basis_tab rgpr(M,B)
+        fmt::println("{}:", prd_name + space_str() + "rgpr(mv_u, bivec) -> mv_e_tmp");
         auto mv_e_tmp = get_mv_from_prd_tab(prd_tab, algebra.basis, filter_3d::mv_u,
                                             filter_3d::bivec, brace_switch::use_braces);
         fmt::println("mv_e_tmp:");
         print_mvec(mv_e_tmp, algebra.basis);
         fmt::println("");
 
-        // Second product between multivectors for the product mv_e_tmp * rrev(R)
-        fmt::println("{}:", prd_name + space_str() + "mv_e_tmp * rrev(mv_u) -> mv_e_res");
+        // Second product between multivectors for the product rgpr(mv_e_tmp,rrev(M))
+        fmt::println("{}:",
+                     prd_name + space_str() + "rgpr(mv_e_tmp, rrev(mv_u)) -> mv_e_res");
         auto prd_tab_B = get_prd_tab(basis_tab, mv_e_tmp, mv2dp_coeff_R_rrev_odd);
 
         auto mv_e_res_B = get_mv_from_prd_tab(prd_tab_B, algebra.basis, filter_3d::mv_e,
@@ -209,8 +211,8 @@ void ConfigurableGenerator::generate_sandwich_case(const AlgebraData& algebra,
 
     else if (algebra.name == "pga3dp") {
 
-        // Vector case: first product between multivectors in basis_tab (R * v)
-        fmt::println("{}:", prd_name + space_str() + "mv_e * vec -> mv_u_tmp");
+        // Vector case: first product between multivectors in basis_tab rgpr(M,v)
+        fmt::println("{}:", prd_name + space_str() + "rgpr(mv_e, vec) -> mv_u_tmp");
         auto prd_tab = get_prd_tab(basis_tab, mv3dp_coeff_R_even, mv3dp_coeff_svBtps);
 
         auto mv_u_tmp = get_mv_from_prd_tab(prd_tab, algebra.basis, filter_4d::mv_e,
@@ -219,8 +221,9 @@ void ConfigurableGenerator::generate_sandwich_case(const AlgebraData& algebra,
         print_mvec(mv_u_tmp, algebra.basis);
         fmt::println("");
 
-        // Second product between multivectors for the product mv_u_tmp * rrev(R)
-        fmt::println("{}:", prd_name + space_str() + "mv_u_tmp * rrev(mv_e) -> mv_u_res");
+        // Second product between multivectors for the product rgpr(mv_u_tmp,rrev(M))
+        fmt::println("{}:",
+                     prd_name + space_str() + "rgpr(mv_u_tmp, rrev(mv_e)) -> mv_u_res");
         auto prd_tab_v = get_prd_tab(basis_tab, mv_u_tmp, mv3dp_coeff_R_rrev_even);
 
         auto mv_u_res_v = get_mv_from_prd_tab(prd_tab_v, algebra.basis, filter_4d::mv_u,
@@ -230,16 +233,17 @@ void ConfigurableGenerator::generate_sandwich_case(const AlgebraData& algebra,
 
         //// Bivector case
 
-        // First product between multivectors in basis_tab (R * B)
-        fmt::println("{}:", prd_name + space_str() + "mv_e * bivec -> mv_e_tmp");
+        // First product between multivectors in basis_tab rgpr(M,B)
+        fmt::println("{}:", prd_name + space_str() + "rgpr(mv_e, bivec) -> mv_e_tmp");
         auto mv_e_tmp = get_mv_from_prd_tab(prd_tab, algebra.basis, filter_4d::mv_e,
                                             filter_4d::bivec, brace_switch::use_braces);
         fmt::println("mv_e_tmp:");
         print_mvec(mv_e_tmp, algebra.basis);
         fmt::println("");
 
-        // Second product between multivectors for the product mv_e_tmp * rrev(R)
-        fmt::println("{}:", prd_name + space_str() + "mv_e_tmp * rrev(mv_e) -> mv_e_res");
+        // Second product between multivectors for the product rgpr(mv_e_tmp, rrev(M))
+        fmt::println("{}:",
+                     prd_name + space_str() + "rgpr(mv_e_tmp, rrev(mv_e)) -> mv_e_res");
         auto prd_tab_B = get_prd_tab(basis_tab, mv_e_tmp, mv3dp_coeff_R_rrev_even);
 
         auto mv_e_res_B = get_mv_from_prd_tab(prd_tab_B, algebra.basis, filter_4d::mv_e,
@@ -249,8 +253,8 @@ void ConfigurableGenerator::generate_sandwich_case(const AlgebraData& algebra,
 
         //// Trivector case
 
-        // First product between multivectors in basis_tab (R * T)
-        fmt::println("{}:", prd_name + space_str() + "mv_e * trivec -> mv_u_tmp_t");
+        // First product between multivectors in basis_tab rgpr(M, T)
+        fmt::println("{}:", prd_name + space_str() + "rgpr(mv_e, trivec) -> mv_u_tmp_t");
         auto mv_u_tmp_t =
             get_mv_from_prd_tab(prd_tab, algebra.basis, filter_4d::mv_e,
                                 filter_4d::trivec, brace_switch::use_braces);
@@ -258,9 +262,9 @@ void ConfigurableGenerator::generate_sandwich_case(const AlgebraData& algebra,
         print_mvec(mv_u_tmp_t, algebra.basis);
         fmt::println("");
 
-        // Second product between multivectors for the product mv_u_tmp_t * rrev(R)
-        fmt::println("{}:",
-                     prd_name + space_str() + "mv_u_tmp_t * rrev(mv_e) -> mv_u_res_t");
+        // Second product between multivectors for the product rgpr(mv_u_tmp_t,rrev(M))
+        fmt::println("{}:", prd_name + space_str() +
+                                "rgpr(mv_u_tmp_t, rrev(mv_e)) -> mv_u_res_t");
         auto prd_tab_t = get_prd_tab(basis_tab, mv_u_tmp_t, mv3dp_coeff_R_rrev_even);
 
         auto mv_u_res_t = get_mv_from_prd_tab(prd_tab_t, algebra.basis, filter_4d::mv_u,
@@ -840,7 +844,7 @@ void ConfigurableGenerator::print_basis_table(const AlgebraData& algebra,
 {
     print_product_header(algebra, config);
     print_prd_tab_with_headers(basis_tab, algebra.basis);
-    
+
     fmt::println("\nsymmetric part:");
     print_prd_tab_with_headers(get_prd_tab_sym(basis_tab), algebra.basis);
     fmt::println("\nasymmetric part:");
