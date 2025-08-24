@@ -488,8 +488,7 @@ int main(int argc, char* argv[])
         if (test_consistency) {
             bool ega2d_success = test_algebra_with_complements(
                 ega2d_config, "EGA2D", mv2d_basis, gpr_ega2d_rules, wdg_ega2d_rules,
-                dot_ega2d_rules, &lcmpl_ega2d_rules,
-                &rcmpl_ega2d_rules);
+                dot_ega2d_rules, &lcmpl_ega2d_rules, &rcmpl_ega2d_rules);
             test_results.push_back(ega2d_success);
         }
         else {

@@ -27,10 +27,11 @@ const prd_rules gpr_pga3dp_rules = pga3dp_generated_rules.geometric_product;
 const prd_rules wdg_pga3dp_rules = pga3dp_generated_rules.wedge_product;
 const prd_rules dot_pga3dp_rules = pga3dp_generated_rules.dot_product;
 
-// Stage 3: Initialize complement rules (depend on wedge rules, but those are already generated)
+// Stage 3: Initialize complement rules (depend on wedge rules, but those are already
+// generated)
 const prd_rules lcmpl_pga3dp_rules = pga3dp_generated_rules.left_complement;
 const prd_rules rcmpl_pga3dp_rules = pga3dp_generated_rules.right_complement;
 
-// Stage 4: TODO - Initialize dual rules (will depend on complement rules + extended metric)
-// For now, dual rules are derived manually from complement rules
-// Future: Generate dual rules from complement rules + extended metric information
+// Stage 4: TODO - Initialize dual rules (will depend on complement rules + extended
+// metric) For now, dual rules are derived manually from complement rules Future: Generate
+// dual rules from complement rules + extended metric information
