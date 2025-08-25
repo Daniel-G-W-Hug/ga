@@ -46,10 +46,22 @@ class SandwichTransformer {
         const std::string& sandwich_expression,
         const std::string& algebra_type = "ega2d" // ega2d, ega3d, pga2dp, pga3dp
     );
+    
+    // Main transformation interface with custom patterns
+    static MatrixTransformation transformSandwichProduct(
+        const std::string& sandwich_expression,
+        const std::string& algebra_type,
+        const GeometricVariablePatterns& patterns
+    );
 
     // Simple string-to-string interface for src_prdxpr integration
     static std::string transformExpression(const std::string& expression,
                                            const std::string& algebra_type = "ega2d");
+                                           
+    // Simple string-to-string interface with custom patterns
+    static std::string transformExpression(const std::string& expression,
+                                           const std::string& algebra_type,
+                                           const GeometricVariablePatterns& patterns);
 
     // Transform complete multivector result (vector of component expressions)
     static std::vector<std::string>

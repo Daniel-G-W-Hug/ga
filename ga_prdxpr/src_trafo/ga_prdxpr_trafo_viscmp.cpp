@@ -5,7 +5,9 @@
 // be compared with the modified result" "lines 20 and 21 contain the original input
 // strings and line 31 and 32 contain the reference solution"
 
+#include "ga_prdxpr_trafo_expr_simplifier.hpp"
 #include "ga_prdxpr_trafo_sandwich_transformer.hpp"
+#include "ga_prdxpr_trafo_tests.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -587,7 +589,13 @@ int main()
 {
     VisualComparisonTester tester;
 
+    // Test Step 2 & 3: Pattern-based system with predefined patterns
+    SimplificationTests::testMotorCoefficientOrdering();
+    SimplificationTests::testPatternAwareTransformation();
+    SimplificationTests::testPredefinedPatterns();
+
     // Run visual comparison tests with detailed INPUT/EXPECTED/RESULT analysis
+    // Note: Uses default "R.c" patterns to match current input data
     tester.run_comparison_tests();
 
     return 0;
