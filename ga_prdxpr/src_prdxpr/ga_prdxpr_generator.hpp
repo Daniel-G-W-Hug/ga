@@ -4,6 +4,7 @@
 
 #include "ga_prdxpr_common.hpp"
 #include "ga_prdxpr_config_types.hpp"
+#include "ga_prdxpr_sandwich_transformer.hpp"
 
 namespace configurable {
 
@@ -42,6 +43,13 @@ class ConfigurableGenerator {
     void print_case_header(const AlgebraData& algebra, const ProductConfig& config,
                            const std::string& case_name);
     void print_case_result(const mvec_coeff& result, const mvec_coeff& basis);
+    
+    // Transform and print sandwich result in consistent multivector format
+    void print_transformed_result(const mvec_coeff& result, const mvec_coeff& basis,
+                                 const AlgebraData& algebra, const ProductConfig& config);
+    
+    // Helper function to apply coefficient alignment to transformation expressions                             
+    void apply_coefficient_alignment(mvec_coeff& expressions);
 };
 
 } // namespace configurable
