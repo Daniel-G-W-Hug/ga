@@ -1,6 +1,7 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "ga_prdxpr_trafo_expr_simplifier.hpp"
+#include "ga_prdxpr_trafo_nary_expression.hpp" // For NAryConverter
 
 #include <algorithm>
 #include <cmath>
@@ -566,106 +567,162 @@ std::shared_ptr<ast_node> convertSingleTermToAst(const SimplifiedTerm& term)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// GeometricVariablePatterns implementation
+///////////////////////////////////////////////////////////////////////////////
+
+GeometricVariablePatterns GeometricVariablePatterns::createEGA3DPatterns()
+{
+    GeometricVariablePatterns patterns;
+    patterns.coeff_prefix = "R.c";              // Rotors for Euclidean GA
+    patterns.vectors = {"v.x", "v.y", "v.z"};   // 3D Euclidean vectors
+    patterns.bivectors = {"B.x", "B.y", "B.z"}; // Standard bivector components
+    patterns.trivectors = {}; // EGA3D has no separate trivectors (pseudoscalar is e123)
+    return patterns;
+}
+
+GeometricVariablePatterns GeometricVariablePatterns::createPGA3DPPatterns()
+{
+    GeometricVariablePatterns patterns;
+    patterns.coeff_prefix = "M.c";                   // Motors for Projective GA
+    patterns.vectors = {"v.x", "v.y", "v.z", "v.w"}; // 4D projective coordinates
+    patterns.bivectors = {"B.vx", "B.vy", "B.vz", "B.mx",
+                          "B.my", "B.mz"}; // 6 bivector components: 3 velocity + 3 moment
+    patterns.trivectors = {"t.x", "t.y", "t.z", "t.w"}; // 4 trivector components
+    return patterns;
+}
+
+GeometricVariablePatterns GeometricVariablePatterns::createEGA2DPatterns()
+{
+    GeometricVariablePatterns patterns;
+    patterns.coeff_prefix = "R.c";     // Rotors for Euclidean GA
+    patterns.vectors = {"v.x", "v.y"}; // 2D Euclidean vectors
+    patterns.bivectors = {};           // EGA2D has only one bivector (pseudoscalar e12)
+    patterns.trivectors = {};          // No trivectors in 2D
+    return patterns;
+}
+
+GeometricVariablePatterns GeometricVariablePatterns::createPGA2DPPatterns()
+{
+    GeometricVariablePatterns patterns;
+    patterns.coeff_prefix = "M.c";            // Motors for Projective GA
+    patterns.vectors = {"v.x", "v.y", "v.z"}; // 3D coordinates for 2D projective space
+    patterns.bivectors = {
+        "B.x", "B.y", "B.z"}; // 3 bivector components (the ones causing sorting issues)
+    patterns
+        .trivectors = {}; // PGA2DP has only pseudoscalar (e321), not separate trivectors
+    return patterns;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // GAAlgebraRules implementation
 ///////////////////////////////////////////////////////////////////////////////
 
-int GAAlgebraRules::getCanonicalOrderPriority(const std::string& var)
+int GAAlgebraRules::getCanonicalOrderPriority(const std::string& var,
+                                              const GeometricVariablePatterns& patterns)
 {
-    // Comprehensive canonical ordering for all GA algebras (EGA2D, EGA3D, PGA2DP, PGA3DP)
+    // Comprehensive canonical ordering for coefficient extraction in sandwich products
     // Lower numbers = higher priority (appear first in expressions)
+    //
+    // CRITICAL FOR COEFFICIENT EXTRACTION: Rotor coefficients must come BEFORE
+    // geometric variables to enable proper matrix coefficient extraction
+    // (e.g., "R.c2 * R.c3 * B.y" not "B.y * R.c2 * R.c3")
 
-    // GROUP 0: Numeric coefficients (0-4) - Always first
+    // GROUP 0: Numeric coefficients (1-9) - Always first
     try {
-        return 1; // All numeric coefficients get priority 1
+        std::stod(var); // Try to parse as number
+        return 1;       // All numeric coefficients get priority 1
     }
     catch (...) {
         // Not a numeric coefficient, continue to other checks
     }
 
-    // GROUP 1: Parenthesized rotor coefficient expressions (5-9) - After numeric
-    // coefficients
-    if (var.starts_with("(") && var.find("R.c") != std::string::npos) {
-        return 5; // All parenthesized rotor expressions get priority 5
+    // GROUP 1: Parenthesized coefficient expressions (10-99) - After numeric coefficients
+    if (var.starts_with("(") && var.find(patterns.coeff_prefix) != std::string::npos) {
+        return 50; // All parenthesized coefficient expressions get priority 50
     }
 
-    // GROUP 2: Simple rotor/motor coefficients (10-99) - After parenthesized expressions
-    if (var.starts_with("R.c")) {
+    // GROUP 2: Simple rotor/motor coefficients (100-199) - Essential for coefficient
+    // extraction Treat both R.c and M.c as equivalent coefficient patterns
+    if (var.starts_with("R.c") || var.starts_with("M.c")) {
         try {
-            int coeff_num = std::stoi(var.substr(3));
-            return 10 + coeff_num; // R.c0=10, R.c1=11, R.c2=12, ..., R.c7=17
+            // Extract coefficient number (R.c0 -> 0, R.c15 -> 15, M.c2 -> 2, etc.)
+            std::string coeff_str;
+            if (var.starts_with("R.c")) {
+                coeff_str = var.substr(3); // Skip "R.c" - handles multi-digit indices
+            }
+            else if (var.starts_with("M.c")) {
+                coeff_str = var.substr(3); // Skip "M.c" - handles multi-digit indices
+            }
+            int coeff_num = std::stoi(coeff_str); // Parses full number string (0-99+)
+            // Ensure coefficient priority stays within allocated range (100-1999)
+            int priority = 100 + coeff_num;
+            if (priority >= 2000) {
+                return 1999; // Clamp to maximum coefficient priority
+            }
+            return priority; // R.c0/M.c0=100, R.c1/M.c1=101, R.c15/M.c15=115, etc.
         }
         catch (...) {
-            return 99; // fallback for malformed R.c variables
+            return 199; // fallback for malformed coefficient variables
         }
     }
 
-    // GROUP 3: Bivector components (1000-1099) - Before vectors in output expressions
-    if (var.starts_with("B.")) {
-        // Standard bivector components (for all algebras)
-        if (var == "B.x") return 1000; // EGA3D/PGA bivector x-component
-        if (var == "B.y") return 1001; // EGA3D/PGA bivector y-component
-        if (var == "B.z") return 1002; // EGA3D/PGA bivector z-component
-        if (var == "B.w") return 1003; // PGA bivector w-component
-
-        // PGA3DP bivector components (moment + velocity)
-        if (var == "B.vx") return 1010; // PGA3DP bivector velocity x
-        if (var == "B.vy") return 1011; // PGA3DP bivector velocity y
-        if (var == "B.vz") return 1012; // PGA3DP bivector velocity z
-        if (var == "B.mx") return 1020; // PGA3DP bivector moment x
-        if (var == "B.my") return 1021; // PGA3DP bivector moment y
-        if (var == "B.mz") return 1022; // PGA3DP bivector moment z
-
-        return 1099; // fallback for other B. variables
+    // GROUP 3: Vector components (2000-2099) - After coefficients for coefficient
+    // extraction
+    for (size_t i = 0; i < patterns.vectors.size(); ++i) {
+        if (var == patterns.vectors[i]) {
+            return 2000 + static_cast<int>(i); // v.x=2000, v.y=2001, v.z=2002, v.w=2003
+        }
     }
 
-    // GROUP 3: Vector components (2000-2099)
-    if (var.starts_with("v.")) {
-        if (var == "v.x") return 2000; // Vector x-component (all algebras)
-        if (var == "v.y") return 2001; // Vector y-component (all algebras)
-        if (var == "v.z") return 2002; // Vector z-component (EGA3D, PGA)
-        if (var == "v.w") return 2003; // Vector w-component (PGA3DP)
-        return 2099;                   // fallback for other v. variables
+    // GROUP 4: Bivector components (3000-3099) - After coefficients for coefficient
+    // extraction
+    for (size_t i = 0; i < patterns.bivectors.size(); ++i) {
+        if (var == patterns.bivectors[i]) {
+            return 3000 + static_cast<int>(i); // First bivector=3000, second=3001, etc.
+        }
     }
 
-    // GROUP 4: Trivector components (3000-3099) - PGA3DP only
-    if (var.starts_with("t.")) {
-        if (var == "t.x") return 3000; // Trivector x-component
-        if (var == "t.y") return 3001; // Trivector y-component
-        if (var == "t.z") return 3002; // Trivector z-component
-        if (var == "t.w") return 3003; // Trivector w-component
-        return 3099;                   // fallback for other t. variables
+    // GROUP 5: Trivector components (4000-4099) - After coefficients for coefficient
+    // extraction
+    for (size_t i = 0; i < patterns.trivectors.size(); ++i) {
+        if (var == patterns.trivectors[i]) {
+            return 4000 + static_cast<int>(i); // First trivector=4000, second=4001, etc.
+        }
     }
 
-    // GROUP 5: Everything else (5000+) - Alphabetical ordering
+    // GROUP 6: Everything else (5000+) - Alphabetical ordering
     return 5000 + static_cast<int>(var[0]);
 }
 
 std::vector<std::pair<std::string, int>>
-GAAlgebraRules::getSortedVariablePairs(const std::map<std::string, int>& factors)
+GAAlgebraRules::getSortedVariablePairs(const std::map<std::string, int>& factors,
+                                       const GeometricVariablePatterns& patterns)
 {
 
     // Convert map to vector for custom sorting
     std::vector<std::pair<std::string, int>> var_pairs(factors.begin(), factors.end());
 
     // Sort by canonical order priority, then alphabetically for ties
-    std::sort(var_pairs.begin(), var_pairs.end(), [](const auto& a, const auto& b) {
-        int order_a = getCanonicalOrderPriority(a.first);
-        int order_b = getCanonicalOrderPriority(b.first);
-        if (order_a != order_b) {
-            return order_a < order_b;
-        }
-        return a.first < b.first; // alphabetical for ties
-    });
+    std::sort(var_pairs.begin(), var_pairs.end(),
+              [&patterns](const auto& a, const auto& b) {
+                  int order_a = getCanonicalOrderPriority(a.first, patterns);
+                  int order_b = getCanonicalOrderPriority(b.first, patterns);
+                  if (order_a != order_b) {
+                      return order_a < order_b;
+                  }
+                  return a.first < b.first; // alphabetical for ties
+              });
 
     return var_pairs;
 }
 
 std::map<std::string, int>
-GAAlgebraRules::reorderCommutativeFactors(const std::map<std::string, int>& factors)
+GAAlgebraRules::reorderCommutativeFactors(const std::map<std::string, int>& factors,
+                                          const GeometricVariablePatterns& patterns)
 {
 
     // Use the new canonical ordering system
-    auto sorted_pairs = getSortedVariablePairs(factors);
+    auto sorted_pairs = getSortedVariablePairs(factors, patterns);
 
     // Rebuild map (NOTE: this loses the ordering due to std::map's nature)
     // This function is kept for backward compatibility but toString methods
@@ -678,33 +735,28 @@ GAAlgebraRules::reorderCommutativeFactors(const std::map<std::string, int>& fact
     return result;
 }
 
-bool GAAlgebraRules::isRotorCoefficient(const std::string& var)
+// Legacy overload for getSortedVariablePairs with simple coefficient prefix
+std::vector<std::pair<std::string, int>>
+GAAlgebraRules::getSortedVariablePairs(const std::map<std::string, int>& factors,
+                                       const std::string& coeff_prefix)
 {
-    return var.starts_with("R.c");
+    // Create default patterns with specified coefficient prefix
+    GeometricVariablePatterns patterns;
+    patterns.coeff_prefix = coeff_prefix;
+    // Use default vector/bivector/trivector patterns for backward compatibility
+
+    return getSortedVariablePairs(factors, patterns);
 }
 
-bool GAAlgebraRules::isVectorComponent(const std::string& var)
+// Legacy overload for simple coefficient prefix (backward compatibility)
+std::map<std::string, int>
+GAAlgebraRules::reorderCommutativeFactors(const std::map<std::string, int>& factors,
+                                          const std::string& coeff_prefix)
 {
-    return var.starts_with("v.") || var.starts_with("B.") || var.starts_with("t.");
-}
+    // Create default patterns with specified coefficient prefix
+    GeometricVariablePatterns patterns;
+    patterns.coeff_prefix = coeff_prefix;
+    // Use default vector/bivector/trivector patterns for backward compatibility
 
-///////////////////////////////////////////////////////////////////////////////
-// Test implementation for validation
-///////////////////////////////////////////////////////////////////////////////
-
-void SimplificationTests::testEGA2DExpansion()
-{
-    fmt::println("=== Testing EGA2D Expression Expansion ===");
-
-    std::string input =
-        "(R.c0 * v.x + R.c1 * v.y) * R.c0 + (R.c0 * v.y - R.c1 * v.x) * R.c1";
-    fmt::println("Input: {}", input);
-
-    Parser parser(input);
-    auto ast = parser.parse();
-
-    auto simplified = ExpressionSimplifier::simplify(ast);
-
-    fmt::println("Simplified: {}", simplified->to_string());
-    fmt::println("");
+    return reorderCommutativeFactors(factors, patterns);
 }

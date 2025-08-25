@@ -54,10 +54,24 @@ void NAryTerm::applyCommutativity()
     // Apply canonical ordering to variables using centralized function
     // Note: This recreates the map, which loses ordering, but ensures consistent internal
     // state
-    variables = GAAlgebraRules::reorderCommutativeFactors(variables);
+    // Use default patterns for backward compatibility
+    variables =
+        GAAlgebraRules::reorderCommutativeFactors(variables, GeometricVariablePatterns{});
+}
+
+void NAryTerm::applyCommutativity(const GeometricVariablePatterns& patterns)
+{
+    // Apply canonical ordering to variables using custom patterns
+    variables = GAAlgebraRules::reorderCommutativeFactors(variables, patterns);
 }
 
 std::string NAryTerm::toString() const
+{
+    // Use default patterns for backward compatibility
+    return toString(GeometricVariablePatterns{});
+}
+
+std::string NAryTerm::toString(const GeometricVariablePatterns& patterns) const
 {
     if (isZero()) return "0";
 
@@ -85,8 +99,8 @@ std::string NAryTerm::toString() const
         result = "1.0";
     }
 
-    // Add variables using centralized canonical ordering
-    auto var_pairs = GAAlgebraRules::getSortedVariablePairs(variables);
+    // Add variables using pattern-based canonical ordering
+    auto var_pairs = GAAlgebraRules::getSortedVariablePairs(variables, patterns);
 
     bool first_var = (result.empty() || result == "-");
     for (const auto& [var, power] : var_pairs) {
@@ -127,9 +141,18 @@ void NAryExpression::expandDistributiveProducts()
 
 void NAryExpression::normalizeSignsAndCommutativity()
 {
-    // Step 2: Sign normalization and apply commutativity
+    // Step 2: Sign normalization and apply commutativity (default patterns)
     for (auto& term : terms) {
         term.applyCommutativity();
+    }
+}
+
+void NAryExpression::normalizeSignsAndCommutativity(
+    const GeometricVariablePatterns& patterns)
+{
+    // Step 2: Sign normalization and apply commutativity with custom patterns
+    for (auto& term : terms) {
+        term.applyCommutativity(patterns);
     }
 }
 
@@ -199,15 +222,21 @@ void NAryExpression::combineTermsAndRegroup()
             auto sorted_indices = indices;
             std::sort(sorted_indices.begin(), sorted_indices.end(),
                       [&result](size_t a, size_t b) {
-                          auto get_first_rotor = [](const NAryTerm& term) -> std::string {
+                          // Extract coefficient pattern recognition for sorting
+                          auto get_first_coeff = [](const NAryTerm& term) -> std::string {
                               for (const auto& [var, power] : term.variables) {
-                                  if (var.starts_with("R.c")) return var;
+                                  // Support common coefficient patterns: R.c, M.c, etc.
+                                  if (var.contains(".c") &&
+                                      (var.starts_with("R.") || var.starts_with("M."))) {
+                                      return var;
+                                  }
                               }
                               return "";
                           };
 
-                          // Sort by rotor coefficient order (R.c0 < R.c1 < R.c2 < R.c3)
-                          return get_first_rotor(result[a]) < get_first_rotor(result[b]);
+                          // Sort by coefficient order (R.c0 < R.c1 < R.c2 < R.c3 or M.c0
+                          // < M.c1 < M.c2 < M.c3)
+                          return get_first_coeff(result[a]) < get_first_coeff(result[b]);
                       });
 
             // Check for common factors to extract (like 2 in "-2*A + 2*B" -> "2*(-A +
@@ -465,6 +494,31 @@ std::string NAryExpression::toString() const
             }
         }
         result += terms[i].toString();
+    }
+
+    return result;
+}
+
+std::string NAryExpression::toString(const GeometricVariablePatterns& patterns) const
+{
+    if (terms.empty()) return "0";
+
+    std::string result;
+    for (size_t i = 0; i < terms.size(); ++i) {
+        if (i > 0) {
+            if (terms[i].coefficient >= 0) {
+                result += " + ";
+            }
+            else {
+                result += " - ";
+                // Create a positive version of the term for display
+                NAryTerm positive_term = terms[i];
+                positive_term.coefficient = std::abs(positive_term.coefficient);
+                result += positive_term.toString(patterns); // Use patterns here
+                continue;
+            }
+        }
+        result += terms[i].toString(patterns); // Use patterns here
     }
 
     return result;

@@ -46,6 +46,7 @@ set(SOURCES_VISUAL_COMPARISON_TEST src_trafo/ga_prdxpr_trafo.cpp
             src_trafo/ga_prdxpr_trafo_expr_simplifier.cpp
             src_trafo/ga_prdxpr_trafo_sandwich_transformer.cpp
             src_trafo/ga_prdxpr_trafo_nary_expression.cpp
+            src_trafo/ga_prdxpr_trafo_tests.cpp
             src_trafo/ga_prdxpr_trafo_viscmp.cpp)
 
 set(SOURCES_PARSER_TEST src_trafo/ga_prdxpr_trafo_parser_test.cpp

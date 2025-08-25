@@ -3,6 +3,7 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "ga_prdxpr_trafo.hpp"
+#include "ga_prdxpr_trafo_expr_simplifier.hpp" // For GeometricVariablePatterns
 
 #include <map>
 #include <memory>
@@ -29,8 +30,11 @@ class NAryTerm {
 
     // Utilities
     std::string toString() const;
+    std::string toString(const GeometricVariablePatterns& patterns) const;
     bool isZero() const;
-    void applyCommutativity(); // Sort variables canonically
+    void applyCommutativity(); // Sort variables canonically (default patterns)
+    void applyCommutativity(
+        const GeometricVariablePatterns& patterns); // Sort with custom patterns
 
   private:
 
@@ -47,12 +51,14 @@ class NAryExpression {
     NAryExpression(const std::vector<NAryTerm>& t) : terms(t) {}
 
     // Core 3-step transformation process (following manual approach)
-    void expandDistributiveProducts(); // Step 1: Resolve braces by multiplication
-    void
-    normalizeSignsAndCommutativity(); // Step 2: Sign normalization and variable ordering
-    void combineTermsAndRegroup();    // Step 3: Combine like terms
-    void factorCommonVariables();     // Step 4: Factor out common variables for cleaner
-                                      // parenthesization
+    void expandDistributiveProducts();     // Step 1: Resolve braces by multiplication
+    void normalizeSignsAndCommutativity(); // Step 2: Sign normalization and variable
+                                           // ordering (default patterns)
+    void normalizeSignsAndCommutativity(
+        const GeometricVariablePatterns& patterns); // Step 2 with custom patterns
+    void combineTermsAndRegroup();                  // Step 3: Combine like terms
+    void factorCommonVariables(); // Step 4: Factor out common variables for cleaner
+                                  // parenthesization
 
     // Combined transformation
     void simplify()
@@ -64,8 +70,19 @@ class NAryExpression {
         removeZeroTerms();
     }
 
+    // Combined transformation with custom patterns
+    void simplify(const GeometricVariablePatterns& patterns)
+    {
+        expandDistributiveProducts();
+        normalizeSignsAndCommutativity(patterns);
+        combineTermsAndRegroup();
+        factorCommonVariables();
+        removeZeroTerms();
+    }
+
     // Conversion and utilities
     std::string toString() const;
+    std::string toString(const GeometricVariablePatterns& patterns) const;
     void removeZeroTerms();
     size_t termCount() const { return terms.size(); }
 

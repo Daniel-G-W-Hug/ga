@@ -52,6 +52,42 @@ SandwichTransformer::transformSandwichProduct(const std::string& sandwich_expres
     return result;
 }
 
+// Main transformation interface with custom patterns
+SandwichTransformer::MatrixTransformation
+SandwichTransformer::transformSandwichProduct(const std::string& sandwich_expression,
+                                              const std::string& algebra_type,
+                                              const GeometricVariablePatterns& patterns)
+{
+    MatrixTransformation result;
+    result.input_expression = sandwich_expression;
+
+    // Get algebra configuration
+    auto config = AlgebraRegistry::getConfig(algebra_type);
+    result.result_dimension = config.result_components.size();
+    result.input_dimension = config.geometric_variables.size();
+
+    // Parse and get the N-ary factorized result directly using custom patterns
+    Parser parser(sandwich_expression);
+    auto ast = parser.parse();
+    auto expanded_ast = ExpressionSimplifier::expandProducts(ast);
+    auto nary_expr = NAryConverter::fromBinaryAST(expanded_ast);
+    nary_expr.normalizeSignsAndCommutativity(patterns); // Use custom patterns here
+    nary_expr.combineTermsAndRegroup();
+    nary_expr.removeZeroTerms();
+    result.nary_ast_result = nary_expr.toString();
+
+    // Extract matrix coefficients and generate expressions
+    auto simplified_terms = ExpressionSimplifier::astToTerms(expanded_ast);
+    extractMatrixCoefficients(simplified_terms, result, algebra_type);
+    generateSimplifiedExpressions(result, algebra_type);
+
+    // Validation
+    result.coefficients_isolated = !result.matrix_coefficients.empty();
+    result.symmetric_terms_cancelled = simplified_terms.size() < 10;
+
+    return result;
+}
+
 std::vector<SandwichTransformer::MatrixTransformation>
 SandwichTransformer::transformMultipleExpressions(
     const std::vector<std::string>& expressions, const std::string& algebra_type)
@@ -311,13 +347,27 @@ SandwichTransformer::combineCoefficients(const std::vector<std::string>& coeffs)
 std::string SandwichTransformer::transformExpression(const std::string& expression,
                                                      const std::string& algebra_type)
 {
-
     if (expression == "0" || expression.empty()) {
         return "0";
     }
 
     // Use existing transformation pipeline with minimal overhead
     auto result = transformSandwichProduct(expression, algebra_type);
+    return result.nary_ast_result;
+}
+
+// Simple string-to-string interface with custom patterns
+std::string
+SandwichTransformer::transformExpression(const std::string& expression,
+                                         const std::string& algebra_type,
+                                         const GeometricVariablePatterns& patterns)
+{
+    if (expression == "0" || expression.empty()) {
+        return "0";
+    }
+
+    // Use pattern-aware transformation pipeline
+    auto result = transformSandwichProduct(expression, algebra_type, patterns);
     return result.nary_ast_result;
 }
 

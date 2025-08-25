@@ -105,6 +105,25 @@ class ExpressionSimplifier {
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+// Geometric Variable Pattern Configuration
+///////////////////////////////////////////////////////////////////////////////
+
+// Configuration structure for all geometric algebra variable patterns
+struct GeometricVariablePatterns {
+    std::string coeff_prefix = "R.c"; // Coefficient prefix: "R.c" or "M.c"
+    std::vector<std::string> vectors = {"v.x", "v.y", "v.z", "v.w"}; // Vector components
+    std::vector<std::string> bivectors = {"B.x", "B.y", "B.z"}; // Bivector components
+    std::vector<std::string> trivectors = {"t.x", "t.y", "t.z",
+                                           "t.w"}; // Trivector components
+
+    // Predefined pattern factories
+    static GeometricVariablePatterns createEGA3DPatterns();
+    static GeometricVariablePatterns createPGA3DPPatterns();
+    static GeometricVariablePatterns createEGA2DPatterns();
+    static GeometricVariablePatterns createPGA2DPPatterns();
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // Specific GA algebraic rules
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -113,15 +132,28 @@ class GAAlgebraRules {
 
     // Comprehensive canonical ordering for all GA variable types
     // Returns priority value where lower numbers come first in ordering
-    static int getCanonicalOrderPriority(const std::string& var);
+    static int getCanonicalOrderPriority(const std::string& var,
+                                         const GeometricVariablePatterns& patterns = {});
 
     // Get sorted vector of variable pairs in canonical order
     static std::vector<std::pair<std::string, int>>
-    getSortedVariablePairs(const std::map<std::string, int>& factors);
+    getSortedVariablePairs(const std::map<std::string, int>& factors,
+                           const GeometricVariablePatterns& patterns = {});
+
+    // Legacy overload for simple coefficient prefix (backward compatibility)
+    static std::vector<std::pair<std::string, int>>
+    getSortedVariablePairs(const std::map<std::string, int>& factors,
+                           const std::string& coeff_prefix);
 
     // Legacy function - kept for backward compatibility but uses new canonical ordering
     static std::map<std::string, int>
-    reorderCommutativeFactors(const std::map<std::string, int>& factors);
+    reorderCommutativeFactors(const std::map<std::string, int>& factors,
+                              const GeometricVariablePatterns& patterns = {});
+
+    // Legacy overload for simple coefficient prefix (backward compatibility)
+    static std::map<std::string, int>
+    reorderCommutativeFactors(const std::map<std::string, int>& factors,
+                              const std::string& coeff_prefix);
 
     // Detect and apply GA-specific simplifications
     // Example: (R.c0^2 + R.c1^2 - R.c2^2 - R.c3^2) patterns
@@ -133,39 +165,10 @@ class GAAlgebraRules {
 
   private:
 
-    static bool isRotorCoefficient(const std::string& var);
-    static bool isVectorComponent(const std::string& var);
-    static bool isBivectorComponent(const std::string& var);
+    // Private helper functions removed - were unused legacy code
 };
 
-///////////////////////////////////////////////////////////////////////////////
-// Test cases for validation
-///////////////////////////////////////////////////////////////////////////////
-
-class SimplificationTests {
-  public:
-
-    // Test EGA2D vector sandwich expansion
-    // Input: "(R.c0 * v.x + R.c1 * v.y) * R.c0 + (R.c0 * v.y - R.c1 * v.x) * R.c1"
-    // Expected: "R.c0*R.c0*v.x + R.c1*R.c0*v.y + R.c0*R.c1*v.y - R.c1*R.c1*v.x"
-    static void testEGA2DExpansion();
-
-    // Test commutativity application
-    // Input: "R.c1*R.c0*v.y + R.c0*R.c1*v.y"
-    // Expected: "2*R.c0*R.c1*v.y"
-    static void testCommutativeCollection();
-
-    // Test symmetry cancellation
-    // Input: "R.c0*v.x*R.c1 - R.c1*v.x*R.c0"
-    // Expected: "0" (should cancel due to commutativity)
-    static void testSymmetryCancellation();
-
-    // Test complete EGA2D transformation
-    // Verify against manual example results
-    static void testCompleteEGA2DTransformation();
-
-    static void runAllTests();
-};
+// Test classes have been moved to ga_prdxpr_trafo_tests.hpp for better organization
 
 ///////////////////////////////////////////////////////////////////////////////
 // Helper function declarations
