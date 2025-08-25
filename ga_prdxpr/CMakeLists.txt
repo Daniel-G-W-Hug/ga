@@ -21,6 +21,11 @@ set(SOURCES
     src_prdxpr/ga_prdxpr_ega3d.cpp
     src_prdxpr/ga_prdxpr_pga2dp.cpp
     src_prdxpr/ga_prdxpr_pga3dp.cpp
+    # Sandwich product transformation system
+    src_prdxpr/ga_prdxpr_sandwich_parser.cpp
+    src_prdxpr/ga_prdxpr_sandwich_simplifier.cpp
+    src_prdxpr/ga_prdxpr_sandwich_nary_expression.cpp
+    src_prdxpr/ga_prdxpr_sandwich_transformer.cpp
 )
 
 # Headers
@@ -39,6 +44,11 @@ set(HEADERS
     src_prdxpr/ga_prdxpr_pga2dp.hpp
     src_prdxpr/ga_prdxpr_pga3dp.hpp
     src_prdxpr/ga_prdxpr_rule_generator.hpp
+    # Sandwich product transformation headers
+    src_prdxpr/ga_prdxpr_sandwich_parser.hpp
+    src_prdxpr/ga_prdxpr_sandwich_simplifier.hpp
+    src_prdxpr/ga_prdxpr_sandwich_nary_expression.hpp
+    src_prdxpr/ga_prdxpr_sandwich_transformer.hpp
 )
 
 # Core transformation system
