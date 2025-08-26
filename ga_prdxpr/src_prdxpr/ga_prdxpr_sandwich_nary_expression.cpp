@@ -485,7 +485,7 @@ std::string NAryExpression::toString() const
                 result += " + ";
             }
             else {
-                result += " - ";
+                result += "  -";
                 // Create a positive version of the term for display
                 NAryTerm positive_term = terms[i];
                 positive_term.coefficient = std::abs(positive_term.coefficient);
@@ -510,7 +510,7 @@ std::string NAryExpression::toString(const GeometricVariablePatterns& patterns) 
                 result += " + ";
             }
             else {
-                result += " - ";
+                result += "  -";
                 // Create a positive version of the term for display
                 NAryTerm positive_term = terms[i];
                 positive_term.coefficient = std::abs(positive_term.coefficient);

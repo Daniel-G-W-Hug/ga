@@ -43,13 +43,15 @@ class ConfigurableGenerator {
     void print_case_header(const AlgebraData& algebra, const ProductConfig& config,
                            const std::string& case_name);
     void print_case_result(const mvec_coeff& result, const mvec_coeff& basis);
-    
+
     // Transform and print sandwich result in consistent multivector format
     void print_transformed_result(const mvec_coeff& result, const mvec_coeff& basis,
-                                 const AlgebraData& algebra, const ProductConfig& config);
-    
-    // Helper function to apply coefficient alignment to transformation expressions                             
-    void apply_coefficient_alignment(mvec_coeff& expressions);
+                                  const AlgebraData& algebra,
+                                  const ProductConfig& config);
+
+    // Helper function to apply coefficient alignment to transformation expressions
+    void apply_coefficient_alignment(mvec_coeff& expressions,
+                                     const std::string& algebra_name);
 };
 
 } // namespace configurable

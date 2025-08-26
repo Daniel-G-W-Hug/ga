@@ -42,6 +42,7 @@ SandwichTransformer::transformSandwichProduct(const std::string& sandwich_expres
     nary_expr.removeZeroTerms();
     result.nary_ast_result = nary_expr.toString();
 
+
     // Use the traditional approach for matrix form
     generateSimplifiedExpressions(result, algebra_type);
 
@@ -326,10 +327,15 @@ SandwichTransformer::combineCoefficients(const std::vector<std::string>& coeffs)
     for (size_t i = 1; i < coeffs.size(); ++i) {
         const std::string& coeff = coeffs[i];
 
-        // Check if the coefficient starts with a minus sign
-        if (coeff.starts_with("-")) {
-            // Already has minus sign, use subtraction
-            result += " - " + coeff.substr(1);
+        // Check if the coefficient has a minus sign (after any leading whitespace)
+        size_t first_non_space = coeff.find_first_not_of(" \t");
+        bool has_leading_minus =
+            (first_non_space != std::string::npos && coeff[first_non_space] == '-');
+
+        if (has_leading_minus) {
+            // Already has minus sign, just add a space and the full coefficient
+            // (preserving whitespace)
+            result += " " + coeff;
         }
         else {
             // Positive coefficient, use addition
