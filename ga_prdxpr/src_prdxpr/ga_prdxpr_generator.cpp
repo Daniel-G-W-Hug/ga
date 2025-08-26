@@ -1,11 +1,12 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "ga_prdxpr_generator.hpp"
+#include "ga_prdxpr_sandwich_simplifier.hpp"
 #include <fmt/core.h>
-#include <stdexcept>
+#include <map>
 #include <regex>
 #include <set>
-#include <map>
+#include <stdexcept>
 
 // Include mathematical definitions
 #include "ga_prdxpr_ega2d.hpp"
@@ -894,13 +895,13 @@ void ConfigurableGenerator::print_case_result(const mvec_coeff& result,
 }
 
 void ConfigurableGenerator::print_transformed_result(const mvec_coeff& result,
-                                                    const mvec_coeff& basis,
-                                                    const AlgebraData& algebra,
-                                                    const ProductConfig& config)
+                                                     const mvec_coeff& basis,
+                                                     const AlgebraData& algebra,
+                                                     const ProductConfig& config)
 {
     // Create algebra-specific header using correct display name
     fmt::println("{} {} (after transformation):", algebra.name, config.display_name);
-    
+
     try {
         // Convert each component to string for transformation
         std::vector<std::string> component_expressions;
@@ -917,19 +918,20 @@ void ConfigurableGenerator::print_transformed_result(const mvec_coeff& result,
         // Convert back to mvec_coeff format with explicit "0" for empty results
         mvec_coeff transformed_result(basis.size());
         for (size_t i = 0; i < basis.size(); ++i) {
-            if (i < transformed_expressions.size() && 
-                !transformed_expressions[i].empty() && 
+            if (i < transformed_expressions.size() &&
+                !transformed_expressions[i].empty() &&
                 transformed_expressions[i] != "0") {
                 transformed_result[i] = transformed_expressions[i];
-            } else {
+            }
+            else {
                 // Use explicit "0" for empty/zero components to make copy-paste ready
                 transformed_result[i] = "0";
             }
         }
 
         // Apply coefficient alignment before printing
-        apply_coefficient_alignment(transformed_result);
-        
+        apply_coefficient_alignment(transformed_result, algebra.name);
+
         // Use the same print function as original results for consistent right-alignment
         print_mvec(transformed_result, basis);
     }
@@ -939,17 +941,18 @@ void ConfigurableGenerator::print_transformed_result(const mvec_coeff& result,
     fmt::println("");
 }
 
-void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions)
+void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
+                                                        const std::string& algebra_name)
 {
     if (expressions.empty()) return;
-    
+
     // Dynamically find geometric variables (avoid rotor coefficients like R.c)
     std::regex var_regex(R"([a-zA-Z]+\.[a-zA-Z]+)");
     std::set<std::string> all_variables;
-    
+
     for (const auto& expr : expressions) {
         if (expr.empty() || expr == "0") continue;
-        
+
         std::sregex_iterator iter(expr.begin(), expr.end(), var_regex);
         std::sregex_iterator end;
         for (; iter != end; ++iter) {
@@ -961,130 +964,191 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions)
             }
         }
     }
-    
-    std::vector<std::string> sorted_variables(all_variables.begin(), all_variables.end());
+
+    if (all_variables.empty()) return;
+
+    // Get appropriate geometric patterns based on algebra
+    GeometricVariablePatterns patterns;
+    if (algebra_name == "pga3dp") {
+        patterns = GeometricVariablePatterns::createPGA3DPPatterns();
+    }
+    else if (algebra_name == "pga2dp") {
+        patterns = GeometricVariablePatterns::createPGA2DPPatterns();
+    }
+    else if (algebra_name == "ega3d") {
+        patterns = GeometricVariablePatterns::createEGA3DPatterns();
+    }
+    else if (algebra_name == "ega2d") {
+        patterns = GeometricVariablePatterns::createEGA2DPatterns();
+    }
+    else {
+        // Default to PGA3DP patterns as fallback
+        patterns = GeometricVariablePatterns::createPGA3DPPatterns();
+        fmt::println("WARNING: Default pattern used. Provide algebra specific pattern.");
+    }
+
+    // Create factors map from variables (all with power 1)
+    std::map<std::string, int> factors_map;
+    for (const auto& var : all_variables) {
+        factors_map[var] = 1;
+    }
+
+    // Use canonical ordering
+    auto sorted_pairs = GAAlgebraRules::getSortedVariablePairs(factors_map, patterns);
+
+    // Extract just the variable names in canonical order
+    std::vector<std::string> sorted_variables;
+    for (const auto& pair : sorted_pairs) {
+        sorted_variables.push_back(pair.first);
+    }
+
     if (sorted_variables.empty()) return;
-    
-    // Step 1: Calculate maximum coefficient space needed for each variable across ALL expressions
+
+    // Step 1: Calculate maximum coefficient space needed for each variable across ALL
+    // expressions
     std::map<std::string, size_t> max_coeff_widths;
-    
+
     for (const auto& var : sorted_variables) {
         size_t max_width = 0;
         bool found_in_any_expr = false;
-        
+
         for (const auto& expr : expressions) {
             if (expr.empty() || expr == "0") continue;
-            
+
             std::string pattern = " * " + var;
             size_t pos = expr.find(pattern);
-            
+
             if (pos != std::string::npos) {
                 found_in_any_expr = true;
-                
+
                 // Find coefficient start by walking backwards respecting parentheses
                 size_t coeff_start = pos;
                 int paren_depth = 0;
-                
+
                 while (coeff_start > 0) {
                     char c = expr[coeff_start - 1];
                     if (c == ')') {
                         paren_depth++;
-                    } else if (c == '(') {
+                    }
+                    else if (c == '(') {
                         paren_depth--;
-                    } else if (paren_depth == 0) {
-                        if (c == '+' || (c == '-' && coeff_start > 1 && expr[coeff_start - 2] == ' ')) {
+                    }
+                    else if (paren_depth == 0) {
+                        if (c == '+' || (c == '-' && coeff_start > 1 &&
+                                         expr[coeff_start - 2] == ' ')) {
                             if (c == '-') {
                                 coeff_start--;
                             }
                             break;
-                        } else if (c == '[') {
+                        }
+                        else if (c == '[') {
                             break;
                         }
                     }
                     coeff_start--;
                 }
-                
+
                 // Skip leading spaces for calculation
                 while (coeff_start < pos && expr[coeff_start] == ' ') {
                     coeff_start++;
                 }
-                
+
                 if (coeff_start < pos) {
                     size_t coeff_width = pos - coeff_start;
                     max_width = std::max(max_width, coeff_width);
                 }
             }
         }
-        
+
         if (found_in_any_expr) {
             max_coeff_widths[var] = max_width;
         }
     }
-    
+
     // Step 2: For each expression, rebuild it with proper column alignment
     for (auto& expr : expressions) {
         if (expr.empty() || expr == "0") {
             expr = " 0";
             continue;
         }
-        
+
         // Preserve the prefix (like "[0] = ")
         std::string prefix = "";
         size_t bracket_end = expr.find("] = ");
         if (bracket_end != std::string::npos) {
             prefix = expr.substr(0, bracket_end + 4);
         }
-        
+
         // Build new expression with proper column alignment
         std::string result = " "; // Start with leading space
-        
+
         for (const auto& var : sorted_variables) {
             if (max_coeff_widths.find(var) == max_coeff_widths.end()) continue;
-            
+
             std::string pattern = " * " + var;
             size_t pos = expr.find(pattern);
-            
+
+            // Also try to match patterns for cases like ") * var"
+            if (pos == std::string::npos) {
+                // Try pattern with closing parenthesis
+                std::string paren_pattern = ") * " + var;
+                size_t paren_pos = expr.find(paren_pattern);
+                if (paren_pos != std::string::npos) {
+                    pos = paren_pos + 1; // Position at the space before *
+                }
+            }
+
+
             if (pos != std::string::npos) {
                 // Variable is present - extract and format coefficient
                 size_t coeff_start = pos;
                 int paren_depth = 0;
-                
+
                 while (coeff_start > 0) {
                     char c = expr[coeff_start - 1];
                     if (c == ')') {
                         paren_depth++;
-                    } else if (c == '(') {
+                    }
+                    else if (c == '(') {
                         paren_depth--;
-                    } else if (paren_depth == 0) {
-                        if (c == '+' || (c == '-' && coeff_start > 1 && expr[coeff_start - 2] == ' ')) {
+                    }
+                    else if (paren_depth == 0) {
+                        if (c == '+' || (c == '-' && coeff_start > 1 &&
+                                         expr[coeff_start - 2] == ' ')) {
                             if (c == '-') {
                                 coeff_start--;
                             }
                             break;
-                        } else if (c == '[') {
+                        }
+                        else if (c == '[') {
                             break;
                         }
                     }
                     coeff_start--;
                 }
-                
+
                 // Skip leading spaces
                 while (coeff_start < pos && expr[coeff_start] == ' ') {
                     coeff_start++;
                 }
-                
+
                 // Extract coefficient
                 std::string coefficient = expr.substr(coeff_start, pos - coeff_start);
-                
+
+
                 // Pad coefficient to maximum width for this variable
                 size_t target_width = max_coeff_widths[var];
-                size_t padding_needed = (coefficient.length() < target_width) ? 
-                                      target_width - coefficient.length() : 0;
-                
+                size_t padding_needed = (coefficient.length() < target_width)
+                                            ? target_width - coefficient.length()
+                                            : 0;
+
+
                 // Check if any subsequent variables exist in this expression
                 bool has_next_var = false;
-                auto current_var_it = std::find(sorted_variables.begin(), sorted_variables.end(), var);
-                for (auto next_it = current_var_it + 1; next_it != sorted_variables.end(); ++next_it) {
+                auto current_var_it =
+                    std::find(sorted_variables.begin(), sorted_variables.end(), var);
+                for (auto next_it = current_var_it + 1; next_it != sorted_variables.end();
+                     ++next_it) {
                     if (max_coeff_widths.find(*next_it) != max_coeff_widths.end()) {
                         std::string next_pattern = " * " + *next_it;
                         if (expr.find(next_pattern) != std::string::npos) {
@@ -1093,18 +1157,82 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions)
                         }
                     }
                 }
-                
+
                 // Add properly aligned variable term
                 if (has_next_var) {
-                    result += std::string(padding_needed, ' ') + coefficient + " * " + var + " + ";
-                } else {
-                    result += std::string(padding_needed, ' ') + coefficient + " * " + var;
+                    // Check if the next coefficient starts with a minus sign
+                    bool next_coeff_has_minus = false;
+                    for (auto next_it = current_var_it + 1;
+                         next_it != sorted_variables.end(); ++next_it) {
+                        if (max_coeff_widths.find(*next_it) != max_coeff_widths.end()) {
+                            std::string next_pattern = " * " + *next_it;
+                            size_t next_pos = expr.find(next_pattern);
+                            if (next_pos != std::string::npos) {
+                                // Find the next coefficient start
+                                size_t next_coeff_start = next_pos;
+                                int next_paren_depth = 0;
+                                while (next_coeff_start > 0) {
+                                    char c = expr[next_coeff_start - 1];
+                                    if (c == ')') {
+                                        next_paren_depth++;
+                                    }
+                                    else if (c == '(') {
+                                        next_paren_depth--;
+                                    }
+                                    else if (next_paren_depth == 0) {
+                                        if (c == '+' ||
+                                            (c == '-' && next_coeff_start > 1 &&
+                                             expr[next_coeff_start - 2] == ' ')) {
+                                            if (c == '-') {
+                                                next_coeff_start--;
+                                            }
+                                            break;
+                                        }
+                                        else if (c == '[') {
+                                            break;
+                                        }
+                                    }
+                                    next_coeff_start--;
+                                }
+
+                                // Skip leading spaces and check for minus
+                                while (next_coeff_start < next_pos &&
+                                       expr[next_coeff_start] == ' ') {
+                                    next_coeff_start++;
+                                }
+                                if (next_coeff_start < next_pos &&
+                                    expr[next_coeff_start] == '-') {
+                                    next_coeff_has_minus = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    if (next_coeff_has_minus) {
+                        // Add 2 extra spaces when the next coefficient has a minus to
+                        // match target format
+                        result += std::string(padding_needed + 2, ' ') + coefficient +
+                                  " * " + var + "   ";
+                    }
+                    else {
+                        result += std::string(padding_needed, ' ') + coefficient + " * " +
+                                  var + " + ";
+                    }
                 }
-            } else {
-                // Variable is missing - check if any subsequent variables exist in this expression
+                else {
+                    result +=
+                        std::string(padding_needed, ' ') + coefficient + " * " + var;
+                }
+            }
+            else {
+                // Variable is missing - check if any subsequent variables exist in this
+                // expression
                 bool has_next_var = false;
-                auto current_var_it = std::find(sorted_variables.begin(), sorted_variables.end(), var);
-                for (auto next_it = current_var_it + 1; next_it != sorted_variables.end(); ++next_it) {
+                auto current_var_it =
+                    std::find(sorted_variables.begin(), sorted_variables.end(), var);
+                for (auto next_it = current_var_it + 1; next_it != sorted_variables.end();
+                     ++next_it) {
                     if (max_coeff_widths.find(*next_it) != max_coeff_widths.end()) {
                         std::string next_pattern = " * " + *next_it;
                         if (expr.find(next_pattern) != std::string::npos) {
@@ -1113,30 +1241,33 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions)
                         }
                     }
                 }
-                
+
                 // Reserve space for missing variable
                 size_t target_coeff_width = max_coeff_widths[var];
                 size_t total_column_width;
                 if (has_next_var) {
                     // Variable has successors: " + coeff * var + " (with trailing " + ")
-                    total_column_width = 3 + target_coeff_width + 3 + var.length() + 3; // " + " + coeff + " * " + var + " + "
-                } else {
+                    total_column_width = 3 + target_coeff_width + 3 + var.length() +
+                                         3; // " + " + coeff + " * " + var + " + "
+                }
+                else {
                     // Variable is last: " + coeff * var" (no trailing " + ")
-                    total_column_width = 3 + target_coeff_width + 3 + var.length(); // " + " + coeff + " * " + var
+                    total_column_width = 3 + target_coeff_width + 3 +
+                                         var.length(); // " + " + coeff + " * " + var
                 }
                 result += std::string(total_column_width, ' ');
             }
         }
-        
+
         // Remove trailing " + "
         if (result.length() >= 3 && result.substr(result.length() - 3) == " + ") {
             result = result.substr(0, result.length() - 3);
         }
-        
+
         // Apply prefix if it exists
         expr = prefix + result;
     }
-    
+
     // Step 3: Clean up excessive leading whitespace
     for (auto& expr : expressions) {
         if (!expr.empty() && expr != "0") {
