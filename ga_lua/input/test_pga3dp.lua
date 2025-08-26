@@ -134,10 +134,10 @@ print("e1_3dp =", e1_3dp)
 print("e2_3dp =", e2_3dp)
 print("e3_3dp =", e3_3dp)
 print("e4_3dp =", e4_3dp)
-print("origin_3dp =", origin_3dp)
-print("horizon_3dp =", horizon_3dp)
+print("O_3dp =", O_3dp)
+print("H_3dp =", H_3dp)
 print("x_axis_3dp =", x_axis_3dp)
-print("xy_plane_3dp =", xy_plane_3dp)
+print("xy_3dp =", xy_3dp)
 print("I_3dp =", I_3dp)
 
 -- Test wedge products with constants

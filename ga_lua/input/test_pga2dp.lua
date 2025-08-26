@@ -112,11 +112,11 @@ print("unitize(dn2) =", unitize(dn2))
 print("\n8. Testing PGA 2DP constants:")
 print("-----------------------------")
 
-print("origin_2dp =", origin_2dp)
+print("O_2dp =", O_2dp)
 print("e1_2dp =", e1_2dp)
 print("e2_2dp =", e2_2dp)
 print("e3_2dp =", e3_2dp)
-print("horizon_2dp =", horizon_2dp)
+print("H_2dp =", H_2dp)
 print("x_axis_2dp =", x_axis_2dp)
 print("y_axis_2dp =", y_axis_2dp)
 

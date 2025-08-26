@@ -151,9 +151,10 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> c
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
-                                                   MVec2dp_U<U> const& R)
+                                                   MVec2dp_U<U> const& M)
 {
-    // assumes: motor R is unitized
+    // motor M must be unitized to avoid surprises
+    auto R = unitize(M);
 
     // moves v (a vector representing a projective point) according to the motor R
     using ctype = std::common_type_t<T, U>;
@@ -162,10 +163,70 @@ constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
-                                                     MVec2dp_U<U> const& R)
+constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
+                                                       MVec2dp_U<U> const& M)
 {
-    // assumes: motor R is unitized
+    // motor M must be unitized to avoid surprises
+    auto R = unitize(M);
+
+    // move one vector v with motor R (optimized)
+    using ctype = std::common_type_t<T, U>;
+    // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
+
+    ctype k11 = -R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k12 = -2.0 * R.c2 * R.c3;
+    ctype k13 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
+
+    ctype k21 = 2.0 * R.c2 * R.c3;
+    ctype k22 = -R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k23 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
+
+    ctype k33 = R.c2 * R.c2 + R.c3 * R.c3;
+
+    return Vec2dp<ctype>(k11 * v.x + k12 * v.y + k13 * v.z,
+                         k21 * v.x + k22 * v.y + k23 * v.z, k33 * v.z);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr std::vector<Vec2dp<std::common_type_t<T, U>>>
+move2dp_opt(std::vector<Vec2dp<T>> const& vec, MVec2dp_U<U> const& M)
+{
+    // motor M must be unitized to avoid surprises
+    auto R = unitize(M);
+
+    // move many vectors vec(v) with motor R (optimized)
+    using ctype = std::common_type_t<T, U>;
+    // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
+
+    ctype k11 = -R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k12 = -2.0 * R.c2 * R.c3;
+    ctype k13 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
+
+    ctype k21 = 2.0 * R.c2 * R.c3;
+    ctype k22 = -R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k23 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
+
+    ctype k33 = R.c2 * R.c2 + R.c3 * R.c3;
+
+    std::vector<Vec2dp<ctype>> result;
+    result.reserve(vec.size());
+
+    for (auto const& v : vec) {
+        result.emplace_back(Vec2dp<ctype>(k11 * v.x + k12 * v.y + k13 * v.z,
+                                          k21 * v.x + k22 * v.y + k23 * v.z, k33 * v.z));
+    }
+    return result;
+}
+
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
+                                                     MVec2dp_U<U> const& M)
+{
+    // motor M must be unitized to avoid surprises
+    auto R = unitize(M);
 
     // moves B (a bivector representing a line) according to the motor R
     using ctype = std::common_type_t<T, U>;
@@ -174,83 +235,74 @@ constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
-                                                       MVec2dp_U<U> const& R)
-{
-    // moves v (a vector representing a projective point) according to the motor R
-    // optimized by avoiding non-required calculations vs. original version
-    //
-    // (could potentially be further optimized by exporting the matrix-representation
-    // if many transformations should be calculated using the same rotor as
-    // v' = matrix * v)
-
-    using ctype = std::common_type_t<T, U>;
-    auto k02 = R.c0 * R.c2;
-    auto k03 = R.c0 * R.c3;
-    auto k12 = R.c1 * R.c2;
-    auto k13 = R.c1 * R.c3;
-    auto k22 = R.c2 * R.c2;
-    auto k23 = R.c2 * R.c3;
-    auto k33 = R.c3 * R.c3;
-    return Vec2dp<ctype>((-k22 + k33) * v.x - 2.0 * k23 * v.y + 2.0 * (k02 + k13) * v.z,
-                         2.0 * k23 * v.x + (-k22 + k33) * v.y + 2.0 * (-k03 + k12) * v.z,
-                         (k22 + k33) * v.z);
-}
-
-template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> const& B,
-                                                         MVec2dp_U<U> const& R)
+                                                         MVec2dp_U<U> const& M)
 {
-    // moves B (a bivector representing a line) according to the motor R
-    // optimized by avoiding non-required calculations vs. original version
-    //
-    // (could potentially be further optimized by exporting the matrix-representation
-    // if many transformations should be calculated using the same rotor as
-    // B' = matrix * B)
+    // motor M must be unitized to avoid surprises
+    auto R = unitize(M);
 
+    // move one bivector B with motor R (optimized)
     using ctype = std::common_type_t<T, U>;
-    auto k02 = R.c0 * R.c2;
-    auto k03 = R.c0 * R.c3;
-    auto k12 = R.c1 * R.c2;
-    auto k13 = R.c1 * R.c3;
-    auto k22 = R.c2 * R.c2;
-    auto k23 = R.c2 * R.c3;
-    auto k33 = R.c3 * R.c3;
-    return BiVec2dp<ctype>(
-        (-k22 + k33) * B.x + 2.0 * (-k23) * B.y, 2.0 * k23 * B.x + (-k22 + k33) * B.y,
-        2.0 * (k02 - k13) * B.x + 2.0 * (k12 + k03) * B.y + (k22 + k33) * B.z);
+    // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
+
+    ctype k11 = -R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k12 = -2.0 * R.c2 * R.c3;
+
+    ctype k21 = 2.0 * R.c2 * R.c3;
+    ctype k22 = -R.c2 * R.c2 + R.c3 * R.c3;
+
+    ctype k31 = 2.0 * (R.c0 * R.c2 - R.c1 * R.c3);
+    ctype k32 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k33 = R.c2 * R.c2 + R.c3 * R.c3;
+    return BiVec2dp<ctype>(k11 * B.x + k12 * B.y, k21 * B.x + k22 * B.y,
+                           k31 * B.x + k32 * B.y + k33 * B.z);
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt2(Vec2dp<T> const& v,
-                                                        MVec2dp_U<U> const& R)
+constexpr std::vector<BiVec2dp<std::common_type_t<T, U>>>
+move2dp_opt(std::vector<BiVec2dp<T>> const& bvec, MVec2dp_U<U> const& M)
 {
-    using ctype = std::common_type_t<T, U>;
+    // motor M must be unitized to avoid surprises
+    auto R = unitize(M);
 
-    ctype k1 = R.c1 * v.z - R.c2 * v.y + R.c3 * v.x;
-    ctype k2 = -R.c0 * v.z + R.c2 * v.x + R.c3 * v.y;
-    ctype k3 = R.c3 * v.z;
-    ctype k4 = -R.c2 * v.z;
-    return Vec2dp<ctype>(k1 * R.c3 - k2 * R.c2 + k3 * R.c1 - k4 * R.c0,
-                         k1 * R.c2 + k2 * R.c3 - k3 * R.c0 - k4 * R.c1,
-                         k3 * R.c3 - k4 * R.c2);
+    // move many bivectors bvec(B) with motor R (optimized)
+    using ctype = std::common_type_t<T, U>;
+    // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
+
+    ctype k11 = -R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k12 = -2.0 * R.c2 * R.c3;
+
+    ctype k21 = 2.0 * R.c2 * R.c3;
+    ctype k22 = -R.c2 * R.c2 + R.c3 * R.c3;
+
+    ctype k31 = 2.0 * (R.c0 * R.c2 - R.c1 * R.c3);
+    ctype k32 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k33 = R.c2 * R.c2 + R.c3 * R.c3;
+
+    std::vector<BiVec2dp<ctype>> result;
+    result.reserve(bvec.size());
+
+    for (auto const& B : bvec) {
+        result.emplace_back(BiVec2dp<ctype>(k11 * B.x + k12 * B.y, k21 * B.x + k22 * B.y,
+                                            k31 * B.x + k32 * B.y + k33 * B.z));
+    }
+    return result;
 }
+
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt2(BiVec2dp<T> const& B,
-                                                          MVec2dp_U<U> const& R)
+constexpr MVec2dp<std::common_type_t<T, U>> move2dp(MVec2dp<T> const& MV,
+                                                    MVec2dp_U<U> const& M)
 {
-    using ctype = std::common_type_t<T, U>;
+    // motor M must be unitized to avoid surprises
+    auto R = unitize(M);
 
-    ctype k1 = -R.c0 * B.x - R.c1 * B.y - R.c2 * B.z;
-    ctype k2 = -R.c2 * B.y + R.c3 * B.x;
-    ctype k3 = R.c2 * B.x + R.c3 * B.y;
-    ctype k4 = R.c0 * B.y - R.c1 * B.x + R.c3 * B.z;
-    return BiVec2dp<ctype>(k2 * R.c3 - k3 * R.c2, k2 * R.c2 + k3 * R.c3,
-                           -k1 * R.c2 - k2 * R.c1 + k3 * R.c0 + k4 * R.c3);
+    // rotate one multivector M with motor R
+    // (only rotates the vector and bivector components of the 2dp multivector)
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(rgpr(rgpr(R, MV), rrev(R)));
 }
 
 
@@ -425,12 +477,12 @@ constexpr BiVec2dp<std::common_type_t<T, U>> invert_on(BiVec2dp<T> const& l,
 template <typename arg1> decltype(auto) support2dp(arg1&& a)
 {
     // REQUIRES: a line (BiVec2dp) as argument
-    return ortho_proj2dp(origin_2dp, std::forward<arg1>(a));
+    return ortho_proj2dp(O_2dp, std::forward<arg1>(a));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// attitude operations: att = rwdg( u, cmpl(e3_2dp) ) = rwdg(u, horizon_2dp)
+// attitude operations: att = rwdg( u, cmpl(e3_2dp) ) = rwdg(u, H_2dp)
 //
 // (the attitude is the intersection of the object with the horizon)
 // the result of att(object_with_grade_k) is an object with grade k-1

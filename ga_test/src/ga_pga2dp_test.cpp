@@ -305,7 +305,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
         CHECK(abs(nrm(gr3(mv1 * inv(mv1))) - 0) < eps);
         CHECK(abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
-                                                             // are equal
+                                                        // are equal
         // fmt::println("");
     }
 
@@ -613,22 +613,71 @@ TEST_SUITE("PGA 2DP Tests")
     TEST_CASE("Vec2dp: operations - rotations")
     {
         fmt::println("Vec2dp: operations - rotations");
+        {
+            std::vector<std::tuple<double, Vec2dp<double>>> v;
 
-        std::vector<std::tuple<double, Vec2dp<double>>> v;
-
-        // fmt::println("");
-        for (int i = -12; i <= 12; ++i) {
-            double phi = i * pi / 12;
-            auto c = vec2dp(std::cos(phi), std::sin(phi), 0.0);
-            auto d = move2dp(x_axis_direction_2dp, get_motor(origin_2dp, phi));
-            v.emplace_back(std::make_tuple(phi, c));
-            // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
-            //              " angle={: .4f}",
-            //              i, phi, rad2deg(phi), c,
-            //              rad2deg(angle(x_axis_direction_2dp, c)));
-            // fmt::println("                                  d={: .3f}", d);
-            CHECK(c == d);
+            // fmt::println("");
+            for (int i = -12; i <= 12; ++i) {
+                double phi = i * pi / 12;
+                auto c = vec2dp(std::cos(phi), std::sin(phi), 0.0);
+                auto d = move2dp(x_dir_2dp, get_motor(O_2dp, phi));
+                v.emplace_back(std::make_tuple(phi, c));
+                // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
+                //              " angle={: .4f}",
+                //              i, phi, rad2deg(phi), c,
+                //              rad2deg(angle(x_dir_2dp, c)));
+                // fmt::println("                                  d={: .3f}", d);
+                CHECK(c == d);
+            }
         }
+
+        {
+            // rotations in a plane (using motors)
+            std::vector<std::tuple<double, Vec2dp<double>>> v;
+
+            // fmt::println("");
+            for (int i = -12; i <= 12; ++i) {
+                double phi = i * pi / 12;
+                auto c = vec2dp(std::cos(phi), std::sin(phi), 1.0);
+                v.emplace_back(std::make_tuple(phi, c));
+                // auto b = cmpl(c); // bivec, representing plane with normal c
+                // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
+                //              " angle={: .4f}, b={: .3f}",
+                //              i, phi, rad2deg(phi), c, angle(e1_2dp, c), b);
+                CHECK(c == move2dp(e1_2dp + O_2dp, get_motor(O_2dp, phi)));
+
+                // check rotate optimization (use points on the projective plan)
+                CHECK(move2dp(e1_2dp + O_2dp, get_motor(O_2dp, phi)) ==
+                      move2dp_opt(e1_2dp + O_2dp, get_motor(O_2dp, phi)));
+
+                // rotation of a ega2dp multivector is to rotate the vector part
+                // exclusively
+                // the bivector part should remain unchanged for rotations in the e12
+                // plane
+                auto mv_rev =
+                    mvec2dp{scalar2dp{4.0}, e1_2dp + O_2dp, e12_2dp, pscalar2dp{-2.0}};
+                auto mv_rot = mvec2dp{scalar2dp{4.0}, c, e12_2dp, pscalar2dp{-2.0}};
+                CHECK(mv_rot == move2dp(mv_rev, get_motor(O_2dp, phi)));
+            }
+
+            // check same rotation applied to many points
+            std::vector<Vec2dp<double>> vec_ref(100);
+            std::vector<Vec2dp<double>> vec_rot(100);
+            std::vector<Vec2dp<double>> vec_rot_calc(100);
+
+            // prepare for checking vector-based rotation (after the loop)
+            double phi = pi / 12;
+            for (size_t i = 0; i < 100; ++i) {
+                vec_ref.push_back(e1_2dp);
+                vec_rot.emplace_back(move2dp(e1_2dp, get_motor(O_2dp, phi)));
+            }
+
+            vec_rot_calc = move2dp_opt(vec_ref, get_motor(O_2dp, phi));
+            for (size_t i = 0; i < 100; ++i) {
+                CHECK(vec_rot_calc[i] == vec_rot[i]);
+            }
+        }
+
         // fmt::println("");
     }
 
@@ -638,7 +687,7 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("Vec2dp: modeling force & torque = forque");
 
         // points and directions are distinguished (different from ega)
-        auto O = origin_2dp;       // O is the origin (= an arbitrary reference point)
+        auto O = O_2dp;            // O is the origin (= an arbitrary reference point)
         auto R = vec2dp{1, 3, 1};  // R is the point of action of force f
         auto r = R - O;            // r is the direction from origin towards R
         auto C = vec2dp{1, 1, 1};  // C in an arbitrary point (e.g. of a rigid body B)
@@ -1672,7 +1721,7 @@ TEST_SUITE("PGA 2DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and lines
-            auto p0 = origin_2dp;
+            auto p0 = O_2dp;
             auto p1 = vec2dp{1, 0, 1};
             auto p2 = vec2dp{1, 1, 1};
             auto p = vec2dp{1, -0.5, 1};
@@ -1716,7 +1765,7 @@ TEST_SUITE("PGA 2DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and lines
-            auto p0 = origin_2dp;
+            auto p0 = O_2dp;
             auto p1 = vec2dp{1, 0, 1};
             auto p2 = vec2dp{1, 1, 1};
             auto p = vec2dp{1, -0.5, 1};
@@ -1764,8 +1813,8 @@ TEST_SUITE("PGA 2DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and lines
-            auto p0 = vec2dp{1, 0.5, 1}; // was origin_2dp, now shifted to that new point
-            auto delta = p0 - origin_2dp;
+            auto p0 = vec2dp{1, 0.5, 1}; // was O_2dp, now shifted to that new point
+            auto delta = p0 - O_2dp;
             auto p1 = vec2dp{1, 0, 1} + delta;
             auto p2 = vec2dp{1, 1, 1} + delta;
             auto p = vec2dp{1, -0.5, 1} + delta;
@@ -1808,8 +1857,8 @@ TEST_SUITE("PGA 2DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and lines
-            auto p0 = vec2dp{1, 0.5, 1}; // was origin_2dp, now shifted to that new point
-            auto delta = p0 - origin_2dp;
+            auto p0 = vec2dp{1, 0.5, 1}; // was O_2dp, now shifted to that new point
+            auto delta = p0 - O_2dp;
             auto p1 = vec2dp{1, 0, 1} + delta;
             auto p2 = vec2dp{1, 1, 1} + delta;
             auto p = vec2dp{1, -0.5, 1} + delta;
@@ -1857,8 +1906,8 @@ TEST_SUITE("PGA 2DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and lines
-            auto p0 = vec2dp{1, 0.5, 1}; // was origin_2dp, now shifted to that new point
-            auto delta = p0 - origin_2dp;
+            auto p0 = vec2dp{1, 0.5, 1}; // was O_2dp, now shifted to that new point
+            auto delta = p0 - O_2dp;
             auto p1 = vec2dp{1, 0, 1} + delta;
             auto p2 = vec2dp{1, 1, 1} + delta;
             auto p = vec2dp{1, -0.5, 1} + delta;
@@ -1900,10 +1949,10 @@ TEST_SUITE("PGA 2DP Tests")
         //     /////////////////////////////////////////////////////////////////////////////
 
         //     // define points and lines
-        //     auto p0 = vec2dp{1, 0.5, 1}; // was origin_2dp,
+        //     auto p0 = vec2dp{1, 0.5, 1}; // was O_2dp,
         //     // now shifted to that new point
 
-        //     auto delta = p0 - origin_2dp;
+        //     auto delta = p0 - O_2dp;
         //     auto p1 = vec2dp{1, 0, 1} + delta;
         //     auto p2 = vec2dp{1, 1, 1} + delta;
         //     auto p = vec2dp{1, -0.5, 1} + delta;
@@ -1943,6 +1992,22 @@ TEST_SUITE("PGA 2DP Tests")
         //     fmt::println("pm_sum = {}", unitize(pm_sum * (1.0 / steps)));
         //     fmt::println("");
 
+        //     vec2dp pm_vsum{};
+        //     std::vector<vec2dp> pm_vecsum(steps);
+        //     for (auto& e : pm_vecsum) {
+        //         e = p;
+        //     }
+        //     start = std::chrono::system_clock::now();
+        //     auto pm_vec = move2dp_opt(pm_vecsum, R);
+        //     for (size_t i = 0; i < steps; ++i) {
+        //         pm_vsum += pm_vec[i]; // just to avoid full replacement with opt
+        //     }
+        //     end = std::chrono::system_clock::now();
+        //     elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end -
+        //     start); fmt::println("The measurement opt for vec of points took {}",
+        //     elapsed); fmt::println("pm_vsum = {}", unitize(pm_vsum * (1.0 / steps)));
+        //     fmt::println("");
+
         //     bivec2dp lm_sum_orig{};
         //     start = std::chrono::system_clock::now();
         //     for (size_t i = 0; i < steps; ++i) {
@@ -1973,6 +2038,7 @@ TEST_SUITE("PGA 2DP Tests")
         //     // summary: manual optimization brings benefit in debug-mode.
         //     //          In release-mode with -O3 optimization there is no speed delta
         //     //          => manual optimization does NOT bring benefit
+        //     //          => use unoptimized function calls directly (rely on compiler)
         // }
 
         {
@@ -1981,10 +2047,10 @@ TEST_SUITE("PGA 2DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and lines
-            // auto p0 = origin_2dp;
+            // auto p0 = O_2dp;
             auto p0 = vec2dp{1, 0.5, 1}; // was origin initally
 
-            auto delta = p0 - origin_2dp;
+            auto delta = p0 - O_2dp;
             auto p1 = vec2dp{1, 0, 1} + delta;
             auto p2 = vec2dp{1, 1, 1} + delta;
             // auto p2 = vec2dp{1, 0.5, 1} + delta;
@@ -2227,8 +2293,10 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(weight_nrm(l1) == std::sqrt(l1.x * l1.x + l1.y * l1.y));
 
         // geom_nrm
-        CHECK(geom_nrm(p1).c0 / geom_nrm(p1).c1 == value_t(bulk_nrm(p1)) / value_t(weight_nrm(p1)));
-        CHECK(geom_nrm(l1).c0 / geom_nrm(l1).c1 == value_t(bulk_nrm(l1)) / value_t(weight_nrm(l1)));
+        CHECK(geom_nrm(p1).c0 / geom_nrm(p1).c1 ==
+              value_t(bulk_nrm(p1)) / value_t(weight_nrm(p1)));
+        CHECK(geom_nrm(l1).c0 / geom_nrm(l1).c1 ==
+              value_t(bulk_nrm(l1)) / value_t(weight_nrm(l1)));
         CHECK(3.0 * geom_nrm(l1).c0 == geom_nrm(l2).c0);
         CHECK(geom_nrm(l1).c1 == geom_nrm(l2).c1);
 
@@ -2294,7 +2362,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(dp1p3.c0 / dp1p3.c1 - 2.0 * std::sqrt(2.0) < eps);
         CHECK(dp2l3.c0 / dp2l3.c1 - std::sqrt(2.0) < eps);
 
-        // auto res = rwdg(pscalar2dp(2.5), horizon_2dp);
+        // auto res = rwdg(pscalar2dp(2.5), H_2dp);
         // fmt::println("res = {}", res);
     }
 

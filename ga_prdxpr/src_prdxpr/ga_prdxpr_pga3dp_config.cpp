@@ -360,6 +360,8 @@ ProductConfig get_pga3dp_rgpr_config()
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
         .cases = {{"rgpr(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                  {"rgpr(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+                  {"rgpr(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
                   {"rgpr(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
                   {"rgpr(mv_u,mv_e) -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
                   {"rgpr(mv_e,trivec) -> mv_u", "M_even", "svBtps", "mv_e", "trivec"},

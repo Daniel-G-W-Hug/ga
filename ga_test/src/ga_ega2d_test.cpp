@@ -451,32 +451,33 @@ TEST_SUITE("EGA 2D Tests")
 
         // point reflected on a vector
         vec2d p{4, 1};
-        CHECK(reflect_on_vec(p, x_axis_2d) == vec2d{4, -1});
+        CHECK(reflect_on_vec(p, x_dir_2d) == vec2d{4, -1});
 
         // coordinate axis reflected on perpendicular axis yield their negatives
-        CHECK(reflect_on_vec(y_axis_2d, x_axis_2d) == -y_axis_2d);
-        CHECK(reflect_on_vec(x_axis_2d, y_axis_2d) == -x_axis_2d);
+        CHECK(reflect_on_vec(y_dir_2d, x_dir_2d) == -y_dir_2d);
+        CHECK(reflect_on_vec(x_dir_2d, y_dir_2d) == -x_dir_2d);
 
         // coordinate axis reflected on itself remains itself (identity)
-        CHECK(reflect_on_vec(x_axis_2d, x_axis_2d) == x_axis_2d);
-        CHECK(reflect_on_vec(y_axis_2d, y_axis_2d) == y_axis_2d);
+        CHECK(reflect_on_vec(x_dir_2d, x_dir_2d) == x_dir_2d);
+        CHECK(reflect_on_vec(y_dir_2d, y_dir_2d) == y_dir_2d);
 
         // point reflected on a hyperplane that the vector is a normal to
         // the hyperplane can be created by taking the dual (or the rcmpl) of the normal
-        CHECK(reflect_on(p, right_dual(x_axis_2d)) == vec2d{4, -1});
+        CHECK(reflect_on(p, right_dual(x_dir_2d)) == vec2d{4, -1});
 
         // coordinate axis reflected on perpendicular axis yield their negatives
-        CHECK(reflect_on(y_axis_2d, right_dual(x_axis_2d)) == -y_axis_2d);
-        CHECK(reflect_on(x_axis_2d, right_dual(y_axis_2d)) == -x_axis_2d);
+        CHECK(reflect_on(y_dir_2d, right_dual(x_dir_2d)) == -y_dir_2d);
+        CHECK(reflect_on(x_dir_2d, right_dual(y_dir_2d)) == -x_dir_2d);
 
         // coordinate axis reflected on itself remains itself (identity)
-        CHECK(reflect_on(x_axis_2d, right_dual(x_axis_2d)) == x_axis_2d);
-        CHECK(reflect_on(y_axis_2d, right_dual(y_axis_2d)) == y_axis_2d);
+        CHECK(reflect_on(x_dir_2d, right_dual(x_dir_2d)) == x_dir_2d);
+        CHECK(reflect_on(y_dir_2d, right_dual(y_dir_2d)) == y_dir_2d);
     }
 
     TEST_CASE("Vec2d: operations - rotations")
     {
         fmt::println("Vec2d: operations - rotations");
+
 
         std::vector<std::tuple<double, Vec2d<double>>> v;
 
@@ -489,7 +490,35 @@ TEST_SUITE("EGA 2D Tests")
             //              " angle={: .4f}",
             //              i, phi, rad2deg(phi), c, angle(e1_2d, c));
             CHECK(c == rotate(e1_2d, get_rotor(I_2d, phi)));
+
+            // check rotate optimization
+            CHECK(rotate(e1_2d, get_rotor(I_2d, phi)) ==
+                  rotate_opt(e1_2d, get_rotor(I_2d, phi)));
+
+            // rotation of a ega2d multivector is to rotate the vector part exclusively
+            auto mv_rev = mvec2d{scalar2d{4.0}, e1_2d, pscalar2d{-2.0}};
+            auto mv_rot = mvec2d{scalar2d{4.0}, c, pscalar2d{-2.0}};
+            CHECK(mv_rot == rotate(mv_rev, get_rotor(I_2d, phi)));
         }
+
+
+        // check same rotation applied to many points
+        std::vector<Vec2d<double>> vec_ref(100);
+        std::vector<Vec2d<double>> vec_rot(100);
+        std::vector<Vec2d<double>> vec_rot_calc(100);
+
+        // prepare for checking vector-based rotation (after the loop)
+        double phi = pi / 12;
+        for (size_t i = 0; i < 100; ++i) {
+            vec_ref.push_back(e1_2d);
+            vec_rot.emplace_back(rotate(e1_2d, get_rotor(I_2d, phi)));
+        }
+
+        vec_rot_calc = rotate_opt(vec_ref, get_rotor(I_2d, phi));
+        for (size_t i = 0; i < 100; ++i) {
+            CHECK(vec_rot_calc[i] == vec_rot[i]);
+        }
+
         // fmt::println("");
     }
 
@@ -1218,15 +1247,15 @@ TEST_SUITE("EGA 2D Tests")
         // i.e. a multivector with a scalar (=Re) and a bivector part (=Im)
         // (for test purposes here, the even subalgebra would be sufficient)
         auto vc = e1_2d * v1;
-        auto vcm = e1m_2d * v1m; // full gpr
+        auto vcm = e1_2d_mv * v1m; // full gpr
 
         // multiplying with I2 from the right should rotate by +90°
         auto vr = vc * I_2d;
-        auto vrm = vcm * Im_2d; // full gpr
+        auto vrm = vcm * I_2d_mv; // full gpr
 
         // multiplying with I2 from the left should rotate by -90°
         auto vl = I_2d * vc;
-        auto vlm = Im_2d * vcm; // full gpr
+        auto vlm = I_2d_mv * vcm; // full gpr
 
         // defining a complex number in all three forms
         auto u = vec2d{1.0, 0.0};
@@ -1239,14 +1268,14 @@ TEST_SUITE("EGA 2D Tests")
         auto r = sqrt(value_t(a * a + b * b));
 
         // fmt::println("   I_2d          = {}", I_2d);
-        // fmt::println("   Im_2d         = {}", Im_2d);
+        // fmt::println("   I_2d_mv         = {}", I_2d_mv);
         // fmt::println("   I_2d * I_2d   = {}", I_2d * I_2d);
-        // fmt::println("   Im_2d * Im_2d = {}", Im_2d * Im_2d);
+        // fmt::println("   I_2d_mv * I_2d_mv = {}", I_2d_mv * I_2d_mv);
         // fmt::println("");
         // fmt::println("   e1_2d  = {}", e1_2d);
-        // fmt::println("   e1m_2d = {}", e1m_2d);
+        // fmt::println("   e1_2d_mv = {}", e1_2d_mv);
         // fmt::println("   e2_2d  = {}", e2_2d);
-        // fmt::println("   e2m_2d = {}", e2m_2d);
+        // fmt::println("   e2_2d_mv = {}", e2_2d_mv);
         // fmt::println("");
         // fmt::println("   vc   = {}", vc);
         // fmt::println("   vcm  = {}", vcm);
@@ -1322,8 +1351,8 @@ TEST_SUITE("EGA 2D Tests")
         mvec2d_e j = b * c;
         auto k = I_2d;
         mvec2d_e l = exp(I_2d, pi / 2);
-        mvec2d_e m = Im_2d_E;
-        mvec2d n = Im_2d;
+        mvec2d_e m = I_2d_mv_e;
+        mvec2d n = I_2d_mv;
         // fmt::println("   Multivector form of complex numbers:");
         // fmt::println("   u                     = {}", u);
         // fmt::println("   v                     = {}", v);
@@ -1360,8 +1389,8 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("");
         // fmt::println("   k = I_2d                         = {}", k);
         // fmt::println("   l = exp(pscalar2d(pi/2)) = {:.3f}", l);
-        // fmt::println("   m = Im_2d_E                      = {}", m);
-        // fmt::println("   n = Im_2d                        = {}", n);
+        // fmt::println("   m = I_2d_mv_e                      = {}", m);
+        // fmt::println("   n = I_2d_mv                        = {}", n);
 
         CHECK(abs(r - 0.5 * std::sqrt(2.0)) < eps);
         CHECK(c == a + b);
@@ -1378,7 +1407,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(b * h ==
               h * b); // the 2d pseudoscalar commutes commutes with complex numbers
         CHECK(l == m);
-        CHECK(n == Im_2d);
+        CHECK(n == I_2d_mv);
         CHECK(rev(b + c) == rev(b) + rev(c));
         CHECK(rev(b * c) == rev(b) * rev(c));
         CHECK(nrm(b * c) == nrm(b) * nrm(c));
@@ -1520,32 +1549,32 @@ TEST_SUITE("EGA 2D Tests")
         //         = rcmpl(A) in spaces of even dimension
         //
 
-        auto vm_dual_manual = rev(vm) * Im_2d;
+        auto vm_dual_manual = rev(vm) * I_2d_mv;
         auto vm_dual = right_dual(vm);
 
-        auto vm_dual_even_manual = rev(vm_even) * Im_2d;
+        auto vm_dual_even_manual = rev(vm_even) * I_2d_mv;
         auto vm_dual_even = right_dual(vm_even);
 
-        auto vm_dual_manual_E = rev(vm_E) * Im_2d_E;
+        auto vm_dual_manual_E = rev(vm_E) * I_2d_mv_e;
         auto vm_dual_E = right_dual(vm_E);
 
         auto v_dual_manual = rev(v) * I_2d;
         auto v_dual = right_dual(v);
 
         // fmt::println("   I_2d               = {}", I_2d);
-        // fmt::println("   Im_2d              = {}", Im_2d);
-        // fmt::println("   Im_2d_E            = {}", Im_2d_E);
+        // fmt::println("   I_2d_mv              = {}", I_2d_mv);
+        // fmt::println("   I_2d_mv_e            = {}", I_2d_mv_e);
         // fmt::println("");
         // fmt::println("   vm                 = {}", vm);
-        // fmt::println("   vm*rev(Im_2d)      = {}", vm_dual_manual);
+        // fmt::println("   vm*rev(I_2d_mv)      = {}", vm_dual_manual);
         // fmt::println("   dual(vm)           = {}", vm_dual);
         // fmt::println("");
         // fmt::println("   vm_even            = {}", vm_even);
-        // fmt::println("   vm_even*rev(Im_2d) = {}", vm_dual_even_manual);
+        // fmt::println("   vm_even*rev(I_2d_mv) = {}", vm_dual_even_manual);
         // fmt::println("   dual(vm_even)      = {}", vm_dual_even);
         // fmt::println("");
         // fmt::println("   vm_E               = {}", vm_E);
-        // fmt::println("   vm_E*rev(Im_2d_E)  = {}", vm_dual_manual_E);
+        // fmt::println("   vm_E*rev(I_2d_mv_e)  = {}", vm_dual_manual_E);
         // fmt::println("   dual(vm_E)         = {}", vm_dual_E);
         // fmt::println("");
         // fmt::println("   v                  = {}", v);
@@ -1706,10 +1735,10 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("   V1 >> V2      = {}", V1 >> V2);
         // fmt::println("   V2 >> V2      = {}", V2 >> V1);
         // fmt::println("");
-        // fmt::println("   V1 << Im_2d   = {}", V1 << Im_2d);
-        // fmt::println("   Im_2d >> V1   = {}", Im_2d >> V2);
-        // fmt::println("   B << Im2d     = {}", B << Im_2d);
-        // fmt::println("   Im2d >> B     = {}", Im_2d >> B);
+        // fmt::println("   V1 << I_2d_mv   = {}", V1 << I_2d_mv);
+        // fmt::println("   I_2d_mv >> V1   = {}", I_2d_mv >> V2);
+        // fmt::println("   B << Im2d     = {}", B << I_2d_mv);
+        // fmt::println("   Im2d >> B     = {}", I_2d_mv >> B);
         // fmt::println("");
 
         // connection between products (2.2.5)

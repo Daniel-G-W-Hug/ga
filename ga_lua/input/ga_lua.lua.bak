@@ -832,11 +832,11 @@ print("dn * 2 =", dn * 2.0)
 
 -- Test PGA constants
 print("\n7. Testing PGA constants:")
-print("origin_2dp =", origin_2dp)
+print("O_2dp =", O_2dp)
 print("e1_2dp =", e1_2dp)
 print("e2_2dp =", e2_2dp)
 print("e3_2dp =", e3_2dp)
-print("horizon_2dp =", horizon_2dp)
+print("H_2dp =", H_2dp)
 
 -- Test unitize function
 print("\n8. Testing unitize function:")
@@ -1002,8 +1002,8 @@ print("\n1. Testing PGA 2DP constants:")
 print("e1_2dp =", e1_2dp)
 print("e2_2dp =", e2_2dp)
 print("e3_2dp =", e3_2dp)
-print("origin_2dp =", origin_2dp)
-print("horizon_2dp =", horizon_2dp)
+print("O_2dp =", O_2dp)
+print("H_2dp =", H_2dp)
 print("x_axis_2dp =", x_axis_2dp)
 print("y_axis_2dp =", y_axis_2dp)
 
@@ -1013,10 +1013,10 @@ print("e1_3dp =", e1_3dp)
 print("e2_3dp =", e2_3dp)
 print("e3_3dp =", e3_3dp)
 print("e4_3dp =", e4_3dp)
-print("origin_3dp =", origin_3dp)
-print("horizon_3dp =", horizon_3dp)
+print("O_3dp =", O_3dp)
+print("H_3dp =", H_3dp)
 print("x_axis_3dp =", x_axis_3dp)
-print("xy_plane_3dp =", xy_plane_3dp)
+print("xy_3dp =", xy_3dp)
 print("I_3dp =", I_3dp)
 
 -- Test type creation and operations
@@ -1079,18 +1079,18 @@ print("======================================")
 -- Test Case 1: PGA 2DP rotation motor (from line 620 in test)
 print("\n1. Testing PGA 2DP rotation motor:")
 
-local origin_2dp = vec2dp.new(0, 0, 1)
-local x_axis_direction_2dp = vec2dp.new(1, 0, 0)
+local O_2dp = vec2dp.new(0, 0, 1)
+local x_dir_2dp = vec2dp.new(1, 0, 0)
 local phi = math.pi / 12 -- 15 degrees
 local expected = vec2dp.new(math.cos(phi), math.sin(phi), 0.0)
 
-print("origin_2dp =", origin_2dp)
-print("x_axis_direction_2dp =", x_axis_direction_2dp)
+print("O_2dp =", O_2dp)
+print("x_dir_2dp =", x_dir_2dp)
 print("phi =", phi, "radians (15 degrees)")
 print("expected result =", expected)
 
-local rotation_motor = get_motor(origin_2dp, phi)
-local result = move2dp(x_axis_direction_2dp, rotation_motor)
+local rotation_motor = get_motor(O_2dp, phi)
+local result = move2dp(x_dir_2dp, rotation_motor)
 
 print("rotation motor =", rotation_motor)
 print("move2dp result =", result)
@@ -1126,18 +1126,18 @@ print(
 -- Test Case 3: PGA 3DP rotation motor (from line 3096 in test)
 print("\n3. Testing PGA 3DP rotation motor:")
 
-local x_axis_direction_3dp = vec3dp.new(1, 0, 0, 0)
+local x_dir_3dp = vec3dp.new(1, 0, 0, 0)
 local z_axis_3dp = bivec3dp.new(0, 0, 1, 0, 0, 0) -- e43_3dp = z-axis bivector
 local phi3 = math.pi / 12 -- 15 degrees
 local expected3 = vec3dp.new(math.cos(phi3), math.sin(phi3), 0.0, 0.0)
 
-print("x_axis_direction_3dp =", x_axis_direction_3dp)
+print("x_dir_3dp =", x_dir_3dp)
 print("z_axis_3dp =", z_axis_3dp)
 print("phi =", phi3, "radians (15 degrees)")
 print("expected result =", expected3)
 
 local rotation_motor3 = get_motor(z_axis_3dp, phi3)
-local result3 = move3dp(x_axis_direction_3dp, rotation_motor3)
+local result3 = move3dp(x_dir_3dp, rotation_motor3)
 
 print("rotation motor =", rotation_motor3)
 print("move3dp result =", result3)

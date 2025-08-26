@@ -14,7 +14,8 @@
  * The get_pga2dp_algebra_config() function provides mathematical algebra parameters:
  * - basis_vectors: Basis vector names (e.g., {"e1", "e2", "e3"})
  * - metric_signature: Quadratic form values (e.g., {+1, +1, 0})
- * - multivector_basis: Complete basis element names (e.g., {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e321"})
+ * - multivector_basis: Complete basis element names (e.g., {"1", "e1", "e2", "e3", "e23",
+ * "e31", "e12", "e321"})
  * - scalar_name: Name for scalar element (typically "1")
  * - basis_prefix: Prefix for basis elements (typically "e")
  *
@@ -329,6 +330,8 @@ ProductConfig get_pga2dp_rgpr_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {{"rgpr(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      {"rgpr(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
+                      {"rgpr(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
                       {"rgpr(mv_e,mv_e) -> mv_u", "A_even", "B_even", "mv_e", "mv_e"},
                       {"rgpr(mv_u,mv_u) -> mv_u", "A_odd", "B_odd", "mv_u", "mv_u"},
                       {"rgpr(mv_e,mv_u) -> mv_e", "A_even", "B_odd", "mv_e", "mv_u"},

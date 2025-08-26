@@ -2453,6 +2453,80 @@ constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& A, MVec3dp<U>
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& A,
+                                                 MVec3dp_E<U> const& B)
+{
+    // regressive geometric product of two fully populated 3dp multivectors
+    // => due to the degenerate algebra some terms are not present in G<3,0,1> compared to
+    // G<4,0,0>
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c7 - A.c5 * B.c4 - A.c6 * B.c5 - A.c7 * B.c6 - A.c8 * B.c1 -
+               A.c9 * B.c2 - A.c10 * B.c3 + A.c15 * B.c0;
+    ctype c1 = A.c1 * B.c7 + A.c2 * B.c3 - A.c3 * B.c2 - A.c4 * B.c4 - A.c11 * B.c0 -
+               A.c12 * B.c6 + A.c13 * B.c5 + A.c14 * B.c1;
+    ctype c2 = -A.c1 * B.c3 + A.c2 * B.c7 + A.c3 * B.c1 - A.c4 * B.c5 + A.c11 * B.c6 -
+               A.c12 * B.c0 - A.c13 * B.c4 + A.c14 * B.c2;
+    ctype c3 = A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c7 - A.c4 * B.c6 - A.c11 * B.c5 +
+               A.c12 * B.c4 - A.c13 * B.c0 + A.c14 * B.c3;
+    ctype c4 = A.c4 * B.c7 - A.c11 * B.c1 - A.c12 * B.c2 - A.c13 * B.c3;
+    ctype c5 = A.c5 * B.c7 + A.c6 * B.c3 - A.c7 * B.c2 + A.c15 * B.c1;
+    ctype c6 = -A.c5 * B.c3 + A.c6 * B.c7 + A.c7 * B.c1 + A.c15 * B.c2;
+    ctype c7 = A.c5 * B.c2 - A.c6 * B.c1 + A.c7 * B.c7 + A.c15 * B.c3;
+    ctype c8 = A.c0 * B.c1 + A.c5 * B.c0 + A.c6 * B.c6 - A.c7 * B.c5 + A.c8 * B.c7 +
+               A.c9 * B.c3 - A.c10 * B.c2 + A.c15 * B.c4;
+    ctype c9 = A.c0 * B.c2 - A.c5 * B.c6 + A.c6 * B.c0 + A.c7 * B.c4 - A.c8 * B.c3 +
+               A.c9 * B.c7 + A.c10 * B.c1 + A.c15 * B.c5;
+    ctype c10 = A.c0 * B.c3 + A.c5 * B.c5 - A.c6 * B.c4 + A.c7 * B.c0 + A.c8 * B.c2 -
+                A.c9 * B.c1 + A.c10 * B.c7 + A.c15 * B.c6;
+    ctype c11 = A.c4 * B.c1 + A.c11 * B.c7 + A.c12 * B.c3 - A.c13 * B.c2;
+    ctype c12 = A.c4 * B.c2 - A.c11 * B.c3 + A.c12 * B.c7 + A.c13 * B.c1;
+    ctype c13 = A.c4 * B.c3 + A.c11 * B.c2 - A.c12 * B.c1 + A.c13 * B.c7;
+    ctype c14 = -A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 - A.c4 * B.c0 + A.c11 * B.c4 +
+                A.c12 * B.c5 + A.c13 * B.c6 + A.c14 * B.c7;
+    ctype c15 = -A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 + A.c15 * B.c7;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& A,
+                                                 MVec3dp<U> const& B)
+{
+    // regressive geometric product of two fully populated 3dp multivectors
+    // => due to the degenerate algebra some terms are not present in G<3,0,1> compared to
+    // G<4,0,0>
+    using ctype = std::common_type_t<T, U>;
+    ctype c0 = A.c0 * B.c15 - A.c1 * B.c8 - A.c2 * B.c9 - A.c3 * B.c10 - A.c4 * B.c5 -
+               A.c5 * B.c6 - A.c6 * B.c7 + A.c7 * B.c0;
+    ctype c1 = A.c0 * B.c11 + A.c1 * B.c14 + A.c2 * B.c3 - A.c3 * B.c2 + A.c4 * B.c4 +
+               A.c5 * B.c13 - A.c6 * B.c12 + A.c7 * B.c1;
+    ctype c2 = A.c0 * B.c12 - A.c1 * B.c3 + A.c2 * B.c14 + A.c3 * B.c1 - A.c4 * B.c13 +
+               A.c5 * B.c4 + A.c6 * B.c11 + A.c7 * B.c2;
+    ctype c3 = A.c0 * B.c13 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c14 + A.c4 * B.c12 -
+               A.c5 * B.c11 + A.c6 * B.c4 + A.c7 * B.c3;
+    ctype c4 = -A.c1 * B.c11 - A.c2 * B.c12 - A.c3 * B.c13 + A.c7 * B.c4;
+    ctype c5 = A.c1 * B.c15 + A.c2 * B.c7 - A.c3 * B.c6 + A.c7 * B.c5;
+    ctype c6 = -A.c1 * B.c7 + A.c2 * B.c15 + A.c3 * B.c5 + A.c7 * B.c6;
+    ctype c7 = A.c1 * B.c6 - A.c2 * B.c5 + A.c3 * B.c15 + A.c7 * B.c7;
+    ctype c8 = A.c0 * B.c5 + A.c1 * B.c0 + A.c2 * B.c10 - A.c3 * B.c9 + A.c4 * B.c15 +
+               A.c5 * B.c7 - A.c6 * B.c6 + A.c7 * B.c8;
+    ctype c9 = A.c0 * B.c6 - A.c1 * B.c10 + A.c2 * B.c0 + A.c3 * B.c8 - A.c4 * B.c7 +
+               A.c5 * B.c15 + A.c6 * B.c5 + A.c7 * B.c9;
+    ctype c10 = A.c0 * B.c7 + A.c1 * B.c9 - A.c2 * B.c8 + A.c3 * B.c0 + A.c4 * B.c6 -
+                A.c5 * B.c5 + A.c6 * B.c15 + A.c7 * B.c10;
+    ctype c11 = A.c1 * B.c4 + A.c2 * B.c13 - A.c3 * B.c12 + A.c7 * B.c11;
+    ctype c12 = -A.c1 * B.c13 + A.c2 * B.c4 + A.c3 * B.c11 + A.c7 * B.c12;
+    ctype c13 = A.c1 * B.c12 - A.c2 * B.c11 + A.c3 * B.c4 + A.c7 * B.c13;
+    ctype c14 = A.c0 * B.c4 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 - A.c4 * B.c11 -
+                A.c5 * B.c12 - A.c6 * B.c13 + A.c7 * B.c14;
+    ctype c15 = -A.c1 * B.c5 - A.c2 * B.c6 - A.c3 * B.c7 + A.c7 * B.c15;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& A,
                                                    MVec3dp_E<U> const& B)
 {

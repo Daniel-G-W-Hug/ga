@@ -14,7 +14,7 @@ namespace hd::ga::ega {
 // - angle()                        -> angle operations
 // - exp()                          -> exponential function
 // - get_rotor()                    -> provide a rotor
-// - rotate()                       -> rotate object with rotor
+// - rotate(), rotate_opt()         -> rotate object with rotor (sandwich + optimized)
 // - project_onto(), reject_from()  -> projection and rejection
 // - reflect_on(), reflect_on_vec() -> reflections
 // - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
@@ -186,12 +186,14 @@ constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& I, U theta)
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec3d_E<std::common_type_t<T, U>> get_rotor(BiVec3d<T> const& I, U theta)
+constexpr MVec3d_E<std::common_type_t<T, U>> get_rotor(BiVec3d<T> const& B, U theta)
 {
+    // attention: Bivector B which describes the plane of rotation is normalized
+    //            to avoid unexpected surprises
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = -0.5 * theta;
     return MVec3d_E<ctype>(Scalar3d<ctype>(std::cos(half_angle)),
-                           normalize(I) * std::sin(half_angle));
+                           normalize(B) * std::sin(half_angle));
 }
 
 template <typename T, typename U>
@@ -199,6 +201,7 @@ template <typename T, typename U>
 constexpr Vec3d<std::common_type_t<T, U>> rotate(Vec3d<T> const& v,
                                                  MVec3d_E<U> const& rotor)
 {
+    // rotate one vector
     using ctype = std::common_type_t<T, U>;
 
     // MVec3d_E<ctype> rr = rev(rotor);
@@ -210,41 +213,61 @@ constexpr Vec3d<std::common_type_t<T, U>> rotate(Vec3d<T> const& v,
     // optimization potential for sandwich product by replacing the second product
     // with a specific operation that skips the calculation of the pseudoscalar part
     // which will be zero anyway
-    // return Vec3d<ctype>(gr1<ctype>(rotor * v * rev(rotor)));
-
+    // (typically done automatically with a good optimizer in -O3)
     return Vec3d<ctype>(gr1(rotor * v * rev(rotor)));
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr Vec3d<std::common_type_t<T, U>> rotate_opt1(Vec3d<T> const& v,
-                                                      MVec3d_E<U> const& rotor)
+constexpr Vec3d<std::common_type_t<T, U>> rotate_opt(Vec3d<T> const& v,
+                                                     MVec3d_E<U> const& R)
 {
+    // rotate one vector with rotor R (optimized)
     using ctype = std::common_type_t<T, U>;
-    // optimized version:
-    MVec3d_E<ctype> rr = rev(rotor);
-    MVec3d_U<ctype> tmp = rotor * v;
-    // formular from operator*(MVec3d_U<T>, MVec3d_E<U>) - only vector part
-    return Vec3d<ctype>(tmp.c0 * rr.c0 - tmp.c1 * rr.c3 + tmp.c2 * rr.c2 - tmp.c3 * rr.c1,
-                        tmp.c0 * rr.c3 + tmp.c1 * rr.c0 - tmp.c2 * rr.c1 - tmp.c3 * rr.c2,
-                        -tmp.c0 * rr.c2 + tmp.c1 * rr.c1 + tmp.c2 * rr.c0 -
-                            tmp.c3 * rr.c3);
+    // coefficients calculated with ga_prdxpr (ega3d sandwich product)
+    ctype k11 = R.c0 * R.c0 + R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3;
+    ctype k12 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k13 = 2.0 * (-R.c0 * R.c2 + R.c1 * R.c3);
+    ctype k21 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k22 = (R.c0 * R.c0 - R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3);
+    ctype k23 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c3);
+    ctype k31 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
+    ctype k32 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c3);
+    ctype k33 = (R.c0 * R.c0 - R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3);
+    return Vec3d<ctype>(k11 * v.x + k12 * v.y + k13 * v.z,
+                        k21 * v.x + k22 * v.y + k23 * v.z,
+                        k31 * v.x + k32 * v.y + k33 * v.z);
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr Vec3d<std::common_type_t<T, U>> rotate_opt2(Vec3d<T> const& v,
-                                                      MVec3d_E<U> const& R)
+constexpr std::vector<Vec3d<std::common_type_t<T, U>>>
+rotate_opt(std::vector<Vec3d<T>> const& vec, MVec3d_E<U> const& R)
 {
+    // rotate one vector with rotor R (optimized)
     using ctype = std::common_type_t<T, U>;
-    ctype k1 = R.c0 * v.x - R.c2 * v.z + R.c3 * v.y;
-    ctype k2 = R.c0 * v.y + R.c1 * v.z - R.c3 * v.x;
-    ctype k3 = R.c0 * v.z - R.c1 * v.y + R.c2 * v.x;
-    ctype k4 = R.c1 * v.x + R.c2 * v.y + R.c3 * v.z;
-    return Vec3d<ctype>(k1 * R.c0 + k2 * R.c3 - k3 * R.c2 + k4 * R.c1,
-                        -k1 * R.c3 + k2 * R.c0 + k3 * R.c1 + k4 * R.c2,
-                        k1 * R.c2 - k2 * R.c1 + k3 * R.c0 + k4 * R.c3);
+    // coefficients calculated with ga_prdxpr (ega3d sandwich product)
+    ctype k11 = R.c0 * R.c0 + R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3;
+    ctype k12 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k13 = 2.0 * (-R.c0 * R.c2 + R.c1 * R.c3);
+    ctype k21 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k22 = (R.c0 * R.c0 - R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3);
+    ctype k23 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c3);
+    ctype k31 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
+    ctype k32 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c3);
+    ctype k33 = (R.c0 * R.c0 - R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3);
+
+    std::vector<Vec3d<ctype>> result;
+    result.reserve(vec.size());
+
+    for (auto const& v : vec) {
+        result.emplace_back(Vec3d<ctype>(k11 * v.x + k12 * v.y + k13 * v.z,
+                                         k21 * v.x + k22 * v.y + k23 * v.z,
+                                         k31 * v.x + k32 * v.y + k33 * v.z));
+    }
+    return result;
 }
+
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -264,42 +287,65 @@ constexpr BiVec3d<std::common_type_t<T, U>> rotate(BiVec3d<T> const& B,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt1(BiVec3d<T> const& B,
-                                                        MVec3d_E<U> const& rotor)
+constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt(BiVec3d<T> const& B,
+                                                       MVec3d_E<U> const& R)
 {
+    // rotate one bivector B with rotor R (optimized)
     using ctype = std::common_type_t<T, U>;
-
-    // optimized version:
-    MVec3d_E<ctype> rr = rev(rotor);
-    MVec3d_E<ctype> tmp = rotor * B;
-    // formular from operator*(MVec3d_E<T>, MVec3d_E<U>) - only bivector part
-    return BiVec3d<ctype>(
-        tmp.c0 * rr.c1 + tmp.c1 * rr.c0 - tmp.c2 * rr.c3 + tmp.c3 * rr.c2,
-        tmp.c0 * rr.c2 + tmp.c1 * rr.c3 + tmp.c2 * rr.c0 - tmp.c3 * rr.c1,
-        tmp.c0 * rr.c3 - tmp.c1 * rr.c2 + tmp.c2 * rr.c1 + tmp.c3 * rr.c0);
+    // coefficients calculated with ga_prdxpr (ega3d sandwich product)
+    // coefficients kij are identical to coefficients used for vector transformation
+    ctype k11 = R.c0 * R.c0 + R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3;
+    ctype k12 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k13 = 2.0 * (-R.c0 * R.c2 + R.c1 * R.c3);
+    ctype k21 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k22 = R.c0 * R.c0 - R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3;
+    ctype k23 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c3);
+    ctype k31 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
+    ctype k32 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c3);
+    ctype k33 = R.c0 * R.c0 - R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3;
+    return BiVec3d<ctype>(k11 * B.x + k12 * B.y + k13 * B.z,
+                          k21 * B.x + k22 * B.y + k23 * B.z,
+                          k31 * B.x + k32 * B.y + k33 * B.z);
 }
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt2(BiVec3d<T> const& B,
-                                                        MVec3d_E<U> const& R)
+constexpr std::vector<BiVec3d<std::common_type_t<T, U>>>
+rotate_opt(std::vector<BiVec3d<T>> const& bvec, MVec3d_E<U> const& R)
 {
+    // rotate many bivectors bivec(B) with rotor R (optimized)
     using ctype = std::common_type_t<T, U>;
+    // coefficients calculated with ga_prdxpr (ega3d sandwich product)
+    // coefficients kij are identical to coefficients used for vector transformation
+    ctype k11 = R.c0 * R.c0 + R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3;
+    ctype k12 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k13 = 2.0 * (-R.c0 * R.c2 + R.c1 * R.c3);
+    ctype k21 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k22 = R.c0 * R.c0 - R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3;
+    ctype k23 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c3);
+    ctype k31 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
+    ctype k32 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c3);
+    ctype k33 = R.c0 * R.c0 - R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3;
 
-    ctype k1 = R.c1 * B.x + R.c2 * B.y + R.c3 * B.z;
-    ctype k2 = R.c0 * B.x - R.c2 * B.z + R.c3 * B.y;
-    ctype k3 = R.c0 * B.y + R.c1 * B.z - R.c3 * B.x;
-    ctype k4 = R.c0 * B.z - R.c1 * B.y + R.c2 * B.x;
-    return BiVec3d<ctype>(k1 * R.c1 + k2 * R.c0 + k3 * R.c3 - k4 * R.c2,
-                          k1 * R.c2 - k2 * R.c3 + k3 * R.c0 + k4 * R.c1,
-                          k1 * R.c3 + k2 * R.c2 - k3 * R.c1 + k4 * R.c0);
+    std::vector<BiVec3d<ctype>> result;
+    result.reserve(bvec.size());
+
+    for (auto const& B : bvec) {
+        result.emplace_back(BiVec3d<ctype>(k11 * B.x + k12 * B.y + k13 * B.z,
+                                           k21 * B.x + k22 * B.y + k23 * B.z,
+                                           k31 * B.x + k32 * B.y + k33 * B.z));
+    }
+    return result;
 }
+
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3d<std::common_type_t<T, U>> rotate(MVec3d<T> const& M,
                                                   MVec3d_E<U> const& rotor)
 {
+    // rotate one multivector M with rotor R
+    // (only rotates the vector and bivector components of the 3d multivector)
     using ctype = std::common_type_t<T, U>;
     return MVec3d<ctype>(rotor * M * rev(rotor));
 }
