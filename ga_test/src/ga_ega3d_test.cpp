@@ -17,7 +17,7 @@
 
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
-using std::abs;             // bring std::abs into scope for ADL with our abs overload
+using std::abs;              // bring std::abs into scope for ADL with our abs overload
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -297,7 +297,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
         CHECK(abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
         CHECK(abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
-                                                             // are equal
+                                                        // are equal
 
         // fmt::println("");
     }
@@ -521,39 +521,39 @@ TEST_SUITE("EGA 3D Tests")
 
         // point reflected on a vector
         vec3d p{4, 1, 0};
-        CHECK(reflect_on_vec(p, x_axis_3d) == vec3d{4, -1, 0});
+        CHECK(reflect_on_vec(p, x_dir_3d) == vec3d{4, -1, 0});
 
         // coordinate axis reflected on perpendicular axis yield their negatives
-        CHECK(reflect_on_vec(y_axis_3d, x_axis_3d) == -y_axis_3d);
-        CHECK(reflect_on_vec(z_axis_3d, x_axis_3d) == -z_axis_3d);
-        CHECK(reflect_on_vec(x_axis_3d, y_axis_3d) == -x_axis_3d);
-        CHECK(reflect_on_vec(z_axis_3d, y_axis_3d) == -z_axis_3d);
-        CHECK(reflect_on_vec(x_axis_3d, z_axis_3d) == -x_axis_3d);
-        CHECK(reflect_on_vec(y_axis_3d, z_axis_3d) == -y_axis_3d);
+        CHECK(reflect_on_vec(y_dir_3d, x_dir_3d) == -y_dir_3d);
+        CHECK(reflect_on_vec(z_dir_3d, x_dir_3d) == -z_dir_3d);
+        CHECK(reflect_on_vec(x_dir_3d, y_dir_3d) == -x_dir_3d);
+        CHECK(reflect_on_vec(z_dir_3d, y_dir_3d) == -z_dir_3d);
+        CHECK(reflect_on_vec(x_dir_3d, z_dir_3d) == -x_dir_3d);
+        CHECK(reflect_on_vec(y_dir_3d, z_dir_3d) == -y_dir_3d);
 
         // coordinate axis reflected on itself remains itself (identity)
-        CHECK(reflect_on_vec(x_axis_3d, x_axis_3d) == x_axis_3d);
-        CHECK(reflect_on_vec(y_axis_3d, y_axis_3d) == y_axis_3d);
-        CHECK(reflect_on_vec(z_axis_3d, z_axis_3d) == z_axis_3d);
+        CHECK(reflect_on_vec(x_dir_3d, x_dir_3d) == x_dir_3d);
+        CHECK(reflect_on_vec(y_dir_3d, y_dir_3d) == y_dir_3d);
+        CHECK(reflect_on_vec(z_dir_3d, z_dir_3d) == z_dir_3d);
 
         // point reflected on a hyperplane that the vector is a normal to
         // the hyperplane can be created by taking the dual (or the rcmpl) of the normal
-        CHECK(reflect_on(p, dual(y_axis_3d)) == vec3d{4, -1, 0});
+        CHECK(reflect_on(p, dual(y_dir_3d)) == vec3d{4, -1, 0});
         // alternatively the plane can be used directly (represented by a bivector)
-        CHECK(reflect_on(p, zx_plane_3d) == vec3d{4, -1, 0});
+        CHECK(reflect_on(p, zx_3d) == vec3d{4, -1, 0});
 
         // coordinate axis reflected on perpendicular base planes yield their negatives
-        CHECK(reflect_on(x_axis_3d, yz_plane_3d) == -x_axis_3d);
-        CHECK(reflect_on(x_axis_3d, dual(x_axis_3d)) == -x_axis_3d);
-        CHECK(reflect_on(y_axis_3d, zx_plane_3d) == -y_axis_3d);
-        CHECK(reflect_on(y_axis_3d, dual(y_axis_3d)) == -y_axis_3d);
-        CHECK(reflect_on(z_axis_3d, xy_plane_3d) == -z_axis_3d);
-        CHECK(reflect_on(z_axis_3d, dual(z_axis_3d)) == -z_axis_3d);
+        CHECK(reflect_on(x_dir_3d, yz_3d) == -x_dir_3d);
+        CHECK(reflect_on(x_dir_3d, dual(x_dir_3d)) == -x_dir_3d);
+        CHECK(reflect_on(y_dir_3d, zx_3d) == -y_dir_3d);
+        CHECK(reflect_on(y_dir_3d, dual(y_dir_3d)) == -y_dir_3d);
+        CHECK(reflect_on(z_dir_3d, xy_3d) == -z_dir_3d);
+        CHECK(reflect_on(z_dir_3d, dual(z_dir_3d)) == -z_dir_3d);
 
         // a coordinate plane reflected on itself remains itself (identity)
-        CHECK(reflect_on(yz_plane_3d, yz_plane_3d) == yz_plane_3d);
-        CHECK(reflect_on(zx_plane_3d, zx_plane_3d) == zx_plane_3d);
-        CHECK(reflect_on(xy_plane_3d, xy_plane_3d) == xy_plane_3d);
+        CHECK(reflect_on(yz_3d, yz_3d) == yz_3d);
+        CHECK(reflect_on(zx_3d, zx_3d) == zx_3d);
+        CHECK(reflect_on(xy_3d, xy_3d) == xy_3d);
 
         // reflect planes on planes directly
         CHECK(reflect_on(e23_3d + e12_3d, e12_3d) == -e23_3d + e12_3d);
@@ -609,6 +609,48 @@ TEST_SUITE("EGA 3D Tests")
 
         CHECK(c == d);
         CHECK(cm == dm);
+
+        // rotations in a plane (using rotors)
+        std::vector<std::tuple<double, Vec3d<double>>> v;
+
+        // fmt::println("");
+        for (int i = -12; i <= 12; ++i) {
+            double phi = i * pi / 12;
+            auto c = vec3d(std::cos(phi), std::sin(phi), 0.0);
+            auto b = cmpl(c); // bivec, representing plane with normal c
+            v.emplace_back(std::make_tuple(phi, c));
+            // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
+            //              " angle={: .4f}",
+            //              i, phi, rad2deg(phi), c, angle(e1_3d, c));
+            CHECK(c == rotate(e1_3d, get_rotor(e12_3d, phi)));
+
+            // check rotate optimization
+            CHECK(rotate(e1_3d, get_rotor(e12_3d, phi)) ==
+                  rotate_opt(e1_3d, get_rotor(e12_3d, phi)));
+
+            // rotation of a ega3d multivector is to rotate the vector and bivector parts
+            // exclusively
+            auto mv_rev = mvec3d{scalar3d{4.0}, e1_3d, e23_3d, pscalar3d{-2.0}};
+            auto mv_rot = mvec3d{scalar3d{4.0}, c, b, pscalar3d{-2.0}};
+            CHECK(mv_rot == rotate(mv_rev, get_rotor(e12_3d, phi)));
+        }
+
+        // check same rotation applied to many points
+        std::vector<Vec3d<double>> vec_ref(100);
+        std::vector<Vec3d<double>> vec_rot(100);
+        std::vector<Vec3d<double>> vec_rot_calc(100);
+
+        // prepare for checking vector-based rotation (after the loop)
+        phi = pi / 12;
+        for (size_t i = 0; i < 100; ++i) {
+            vec_ref.push_back(e1_3d);
+            vec_rot.emplace_back(rotate(e1_3d, get_rotor(e12_3d, phi)));
+        }
+
+        vec_rot_calc = rotate_opt(vec_ref, get_rotor(e12_3d, phi));
+        for (size_t i = 0; i < 100; ++i) {
+            CHECK(vec_rot_calc[i] == vec_rot[i]);
+        }
 
         // fmt::println("");
     }
@@ -1922,8 +1964,7 @@ TEST_SUITE("EGA 3D Tests")
 
         CHECK(nrm(rotate(c, R)) == nrm(c));
         CHECK(gr1(c_rot_m) == rotate(c, R));
-        CHECK(rotate(c, R) == rotate_opt1(c, R));
-        CHECK(rotate(c, R) == rotate_opt2(c, R));
+        CHECK(rotate(c, R) == rotate_opt(c, R));
         // n I_3d approach:
         CHECK(rotate(vec3d{1.0, 0.0, 0.0}, get_rotor(e3_3d * I_3d, pi / 4)) ==
               normalize(vec3d{1.0, 1.0, 0.0}));
@@ -1940,9 +1981,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(abs(nrm(Bv) - 2.0) < eps);
         CHECK(rotate(Bv, get_rotor(e31_3d, pi / 3)) == -2.0 * e12_3d);
         CHECK(rotate(Bv, get_rotor(e31_3d, pi / 3)) ==
-              rotate_opt1(Bv, get_rotor(e31_3d, pi / 3)));
-        CHECK(rotate(Bv, get_rotor(e31_3d, pi / 3)) ==
-              rotate_opt2(Bv, get_rotor(e31_3d, pi / 3)));
+              rotate_opt(Bv, get_rotor(e31_3d, pi / 3)));
 
         // just to silence unused variable warnings
         CHECK(my_exp == exp(-B, angle_uv));
@@ -1980,13 +2019,13 @@ TEST_SUITE("EGA 3D Tests")
         //         = rcmpl(A) in spaces of even dimension
         //
 
-        auto vm_dual_manual = rev(vm) * Im_3d;
+        auto vm_dual_manual = rev(vm) * I_3d_mv;
         auto vm_dual = dual(vm);
 
-        auto vm_dual_even_manual = rev(vm_even) * Im_3d;
+        auto vm_dual_even_manual = rev(vm_even) * I_3d_mv;
         auto vm_dual_even = dual(vm_even);
 
-        auto vm_dual_odd_manual = rev(vm_odd) * Im_3d;
+        auto vm_dual_odd_manual = rev(vm_odd) * I_3d_mv;
         auto vm_dual_odd = dual(vm_odd);
 
         // result is odd, naming chosen for consistency
@@ -1994,7 +2033,7 @@ TEST_SUITE("EGA 3D Tests")
         auto vm_dual_E = dual(vm_E);
 
         // result is even, naming chosen for consistency
-        auto vm_dual_manual_U = rev(vm_U) * Im_3d_U;
+        auto vm_dual_manual_U = rev(vm_U) * I_3d_mv_u;
         auto vm_dual_U = dual(vm_U);
 
         auto v_dual_manual = rev(v) * I_3d;
@@ -2005,18 +2044,18 @@ TEST_SUITE("EGA 3D Tests")
 
         // fmt::println("");
         // fmt::println("   I_3d                   = {}", I_3d);
-        // fmt::println("   Im_3d                  = {}", Im_3d);
-        // fmt::println("   Im_3d_U                = {}", Im_3d_U);
+        // fmt::println("   I_3d_mv                  = {}", I_3d_mv);
+        // fmt::println("   I_3d_mv_u                = {}", I_3d_mv_u);
         // fmt::println("");
         // fmt::println("   v                      = {}", v);
         // fmt::println("   B                      = {}", B);
         // fmt::println("");
         // fmt::println("   vm                     = {}", vm);
-        // fmt::println("   rev(vm) * Im_3d        = {}", vm_dual_manual);
+        // fmt::println("   rev(vm) * I_3d_mv        = {}", vm_dual_manual);
         // fmt::println("   dual(vm)               = {}", vm_dual);
         // fmt::println("");
         // fmt::println("   vm_even                = {}", vm_even);
-        // fmt::println("   rev(vm_even) * Im_3d   = {}", vm_dual_even_manual);
+        // fmt::println("   rev(vm_even) * I_3d_mv   = {}", vm_dual_even_manual);
         // fmt::println("   dual(vm_even)          = {}", vm_dual_even);
         // fmt::println("");
         // fmt::println("   vm_E                   = {}", vm_E);
@@ -2024,11 +2063,11 @@ TEST_SUITE("EGA 3D Tests")
         // fmt::println("   dual(vm_E)             = {}", vm_dual_E);
         // fmt::println("");
         // fmt::println("   vm_odd              = {}", vm_odd);
-        // fmt::println("   rev(vm_odd) * Im_3d = {}", vm_dual_odd_manual);
+        // fmt::println("   rev(vm_odd) * I_3d_mv = {}", vm_dual_odd_manual);
         // fmt::println("   dual(vm_odd)        = {}", vm_dual_odd);
         // fmt::println("");
         // fmt::println("   vm_U                   = {}", vm_U);
-        // fmt::println("   rev(vm_U) * Im_3d_U    = {}", vm_dual_manual_U);
+        // fmt::println("   rev(vm_U) * I_3d_mv_u    = {}", vm_dual_manual_U);
         // fmt::println("   dual(vm_U)             = {}", vm_dual_U);
         // fmt::println("");
         // fmt::println("   v                      = {}", v);

@@ -353,7 +353,7 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(abs(nrm(gr3(mv1 * inv(mv1))) - 0) < eps);
         CHECK(abs(nrm(gr4(mv1 * inv(mv1))) - 0) < eps);
         CHECK(abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
-                                                             // are equal
+                                                        // are equal
         // fmt::println("");
     }
 
@@ -676,23 +676,23 @@ TEST_SUITE("PGA 3DP Tests")
 
         // point reflected on a plane
         vec3dp p{4, 1, 1, 1};
-        CHECK(unitize(reflect_on(p, zx_plane_3dp)) == vec3dp{4, -1, 1, 1});
+        CHECK(unitize(reflect_on(p, zx_3dp)) == vec3dp{4, -1, 1, 1});
 
         // coordinate axis reflected on perpendicular base planes yield their negatives
-        CHECK(reflect_on(x_axis_3dp, yz_plane_3dp) == -x_axis_3dp);
-        CHECK(reflect_on(y_axis_3dp, zx_plane_3dp) == -y_axis_3dp);
-        CHECK(reflect_on(z_axis_3dp, xy_plane_3dp) == -z_axis_3dp);
+        CHECK(reflect_on(x_axis_3dp, yz_3dp) == -x_axis_3dp);
+        CHECK(reflect_on(y_axis_3dp, zx_3dp) == -y_axis_3dp);
+        CHECK(reflect_on(z_axis_3dp, xy_3dp) == -z_axis_3dp);
 
         // lines parallel to coordinate axis after reflexion:
         // remain parallel, have same orientation, but are on other side of axis
         p1 = vec3dp{0, 1, 1, 1};
         p2 = vec3dp{1, 1, 1, 1};
         l12 = unitize(wdg(p1, p2)); // l12 = BiVec3dp(1, 0, 0, 0, 1, -1)
-        p1r = unitize(reflect_on(p1, zx_plane_3dp));
-        p2r = unitize(reflect_on(p2, zx_plane_3dp));
+        p1r = unitize(reflect_on(p1, zx_3dp));
+        p2r = unitize(reflect_on(p2, zx_3dp));
         l12r = unitize(wdg(p1r, p2r)); // l12r = BiVec3dp(1, 0, 0, 0, 1, 1)
-        auto basept = unitize(rwdg(l12, yz_plane_3dp));
-        auto baseptr = unitize(rwdg(l12r, yz_plane_3dp));
+        auto basept = unitize(rwdg(l12, yz_3dp));
+        auto baseptr = unitize(rwdg(l12r, yz_3dp));
 
         // fmt::println("");
         // fmt::println("p1  = {},  p2 = {}", p1, p2);
@@ -707,23 +707,23 @@ TEST_SUITE("PGA 3DP Tests")
 
         CHECK(p1r == vec3dp{0, -1, 1, 1});
         CHECK(p2r == vec3dp{1, -1, 1, 1});
-        CHECK(reflect_on(l12, zx_plane_3dp) == bivec3dp{1, 0, 0, 0, 1, 1});
-        CHECK(reflect_on(l12, xy_plane_3dp) == bivec3dp{1, 0, 0, 0, -1, -1});
+        CHECK(reflect_on(l12, zx_3dp) == bivec3dp{1, 0, 0, 0, 1, 1});
+        CHECK(reflect_on(l12, xy_3dp) == bivec3dp{1, 0, 0, 0, -1, -1});
         CHECK(basept == vec3dp{0, 1, 1, 1});
         CHECK(baseptr == vec3dp{0, -1, 1, 1});
 
         // a coordinate plane reflected on itself changes orientation, i.e. direction of
         // its normal vector!
-        CHECK(reflect_on(yz_plane_3dp, yz_plane_3dp) == -yz_plane_3dp);
-        CHECK(reflect_on(zx_plane_3dp, zx_plane_3dp) == -zx_plane_3dp);
-        CHECK(reflect_on(xy_plane_3dp, xy_plane_3dp) == -xy_plane_3dp);
+        CHECK(reflect_on(yz_3dp, yz_3dp) == -yz_3dp);
+        CHECK(reflect_on(zx_3dp, zx_3dp) == -zx_3dp);
+        CHECK(reflect_on(xy_3dp, xy_3dp) == -xy_3dp);
 
         // a plane with a given distance to the origin, reflected on a plane parallel to
         // itself containing the origin, changes orientation and has the same distance to
         // the origin after the reflection
         p3 = {1, 1, 0, 1};
-        p123 = unitize(wdg(wdg(p1, p2), p3));   // TriVec3dp(0, 1, 0, -1)
-        p123r = reflect_on(p123, zx_plane_3dp); // TriVec3dp(-0, -1, -0, -1)
+        p123 = unitize(wdg(wdg(p1, p2), p3)); // TriVec3dp(0, 1, 0, -1)
+        p123r = reflect_on(p123, zx_3dp);     // TriVec3dp(-0, -1, -0, -1)
 
         auto s123 = support3dp(p123);   // point in p123 that is closest to the origin
         auto s123r = support3dp(p123r); // point in p123r that is closest to the origin
@@ -752,20 +752,75 @@ TEST_SUITE("PGA 3DP Tests")
     {
         fmt::println("Vec3dp: operations - rotations");
 
-        std::vector<std::tuple<double, Vec3dp<double>>> v;
+        {
+            std::vector<std::tuple<double, Vec3dp<double>>> v;
 
-        // fmt::println("");
-        for (int i = -12; i <= 12; ++i) {
-            double phi = i * pi / 12;
-            auto c = vec3dp(std::cos(phi), std::sin(phi), 0.0, 0.0);
-            auto d = move3dp(x_axis_direction_3dp, get_motor(z_axis_3dp, phi));
-            v.emplace_back(std::make_tuple(phi, c));
-            // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
-            //              " angle={: .4f}",
-            //              i, phi, rad2deg(phi), c, rad2deg(angle(e1_3dp, c)));
-            // fmt::println("                                  d={: .3f}", d);
-            CHECK(c == d);
+            // fmt::println("");
+            for (int i = -12; i <= 12; ++i) {
+                double phi = i * pi / 12;
+                auto c = vec3dp(std::cos(phi), std::sin(phi), 0.0, 0.0);
+                auto d = move3dp(x_dir_3dp, get_motor(z_axis_3dp, phi));
+                v.emplace_back(std::make_tuple(phi, c));
+                // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
+                //              " angle={: .4f}",
+                //              i, phi, rad2deg(phi), c, rad2deg(angle(e1_3dp, c)));
+                // fmt::println("                                  d={: .3f}", d);
+                CHECK(c == d);
+            }
         }
+
+        {
+
+            // rotations in a plane (using motors)
+            std::vector<std::tuple<double, Vec3dp<double>>> v;
+
+            // fmt::println("");
+            for (int i = -12; i <= 12; ++i) {
+                double phi = i * pi / 12;
+                auto c = vec3dp(std::cos(phi), std::sin(phi), 0.0, 1.0);
+                // auto b = bivec3dp(std::cos(phi), std::sin(phi), 0.0, 0.0, 0.0, 0.0);
+                // auto t = trivec3dp(std::cos(phi), std::sin(phi), 0.0, 0.0);
+                v.emplace_back(std::make_tuple(phi, c));
+                // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
+                //              " angle={: .4f}, b={: .3f}",
+                //              i, phi, rad2deg(phi), c, angle(e1_3dp, c), b);
+                CHECK(c == move3dp(e1_3dp + O_3dp, get_motor(e43_3dp, phi)));
+                // CHECK(b == move3dp(b, get_motor(e43_3dp, phi)));
+                // CHECK(t == move3dp(t, get_motor(e43_3dp, phi)));
+
+                // check rotate optimization (use points on the projective plan)
+                CHECK(move3dp(e1_3dp + O_3dp, get_motor(e43_3dp, phi)) ==
+                      move3dp_opt(e1_3dp + O_3dp, get_motor(e43_3dp, phi)));
+
+                // rotation of a ega3dp multivector is to rotate the vector and
+                // trivector parts; rotation plane bivector,scalar and pscalar should be
+                // unchanged
+
+                // auto mv_rev = mvec3dp{scalar3dp{4.0}, e1_3dp + O_3dp, e41_3dp,
+                // e423_3dp,
+                //                       pscalar3dp{-2.0}};
+                // auto mv_rot = mvec3dp{scalar3dp{4.0}, c, b, t, pscalar3dp{-2.0}};
+                // CHECK(mv_rot == move3dp(mv_rev, get_motor(e43_3dp, phi)));
+            }
+
+            // check same rotation applied to many points
+            std::vector<Vec3dp<double>> vec_ref(100);
+            std::vector<Vec3dp<double>> vec_rot(100);
+            std::vector<Vec3dp<double>> vec_rot_calc(100);
+
+            // prepare for checking vector-based rotation (after the loop)
+            double phi = pi / 12;
+            for (size_t i = 0; i < 100; ++i) {
+                vec_ref.push_back(e1_3dp);
+                vec_rot.emplace_back(move3dp(e1_3dp, get_motor(e43_3dp, phi)));
+            }
+
+            vec_rot_calc = move3dp_opt(vec_ref, get_motor(e43_3dp, phi));
+            for (size_t i = 0; i < 100; ++i) {
+                CHECK(vec_rot_calc[i] == vec_rot[i]);
+            }
+        }
+
         // fmt::println("");
     }
 
@@ -1913,7 +1968,7 @@ TEST_SUITE("PGA 3DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and planes
-            auto p0 = origin_3dp;
+            auto p0 = O_3dp;
             auto p1 = vec3dp{1, 0, 0, 1};
             auto p2 = vec3dp{1, 1, 0, 1};
             auto p3 = vec3dp{0, 0, 1, 1};
@@ -1973,7 +2028,7 @@ TEST_SUITE("PGA 3DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and planes
-            auto p0 = origin_3dp;
+            auto p0 = O_3dp;
             auto p1 = vec3dp{1, 0, 0, 1};
             auto p2 = vec3dp{1, 1, 0, 1};
             auto p3 = vec3dp{0, 0, 1, 1};
@@ -2022,9 +2077,9 @@ TEST_SUITE("PGA 3DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and planes
-            // p0 was origin_3dp, now shifted to new point
+            // p0 was O_3dp, now shifted to new point
             auto p0 = vec3dp{1, 0.5, 0, 1};
-            auto delta = p0 - origin_3dp;
+            auto delta = p0 - O_3dp;
             auto p1 = vec3dp{1, 0, 0, 1} + delta;
             auto p2 = vec3dp{1, 1, 0, 1} + delta;
             auto p3 = vec3dp{0, 0, 1, 1} + delta;
@@ -2067,9 +2122,9 @@ TEST_SUITE("PGA 3DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and planes
-            // p0 was origin_3dp, now shifted to new point
+            // p0 was O_3dp, now shifted to new point
             auto p0 = vec3dp{1, 0.5, 0, 1};
-            auto delta = p0 - origin_3dp;
+            auto delta = p0 - O_3dp;
             auto p1 = vec3dp{1, 0, 0, 1} + delta;
             auto p2 = vec3dp{1, 1, 0, 1} + delta;
             auto p3 = vec3dp{0, 0, 1, 1} + delta;
@@ -2122,9 +2177,9 @@ TEST_SUITE("PGA 3DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and planes
-            // p0 was origin_3dp, now shifted to that new point
+            // p0 was O_3dp, now shifted to that new point
             auto p0 = vec3dp{1, 0.5, 0, 1};
-            auto delta = p0 - origin_3dp;
+            auto delta = p0 - O_3dp;
             auto p1 = vec3dp{1, 0, 0, 1} + delta;
             auto p2 = vec3dp{1, 1, 0, 1} + delta;
             auto p3 = vec3dp{0, 0, 1, 1} + delta;
@@ -2169,9 +2224,9 @@ TEST_SUITE("PGA 3DP Tests")
         //         /////////////////////////////////////////////////////////////////////////////
 
         //         // define points and planes
-        //         // p0 was origin_3dp, now shifted to that new position
+        //         // p0 was O_3dp, now shifted to that new position
         //         auto p0 = vec3dp{1, 0.5, 0, 1};
-        //         auto delta = p0 - origin_3dp;
+        //         auto delta = p0 - O_3dp;
         //         auto p1 = vec3dp{1, 0, 0, 1} + delta;
         //         auto p2 = vec3dp{1, 1, 0, 1} + delta;
         //         auto p3 = vec3dp{0, 0, 1, 1} + delta;
@@ -2276,9 +2331,9 @@ TEST_SUITE("PGA 3DP Tests")
             /////////////////////////////////////////////////////////////////////////////
 
             // define points and planes
-            // p0 was origin_3dp, now shifted to that new point
+            // p0 was O_3dp, now shifted to that new point
             auto p0 = vec3dp{1, 0.5, 0, 1};
-            auto delta = p0 - origin_3dp;
+            auto delta = p0 - O_3dp;
             auto p1 = vec3dp{1, 0, 0, 1} + delta;
             auto p2 = vec3dp{1, 1, 0, 1} + delta;
             auto p3 = vec3dp{0, 0, 1, 1} + delta;
@@ -2595,7 +2650,7 @@ TEST_SUITE("PGA 3DP Tests")
     {
         fmt::println("MVec3dp: euclidean distance");
 
-        auto p0 = origin_3dp;
+        auto p0 = O_3dp;
         auto p1 = vec3dp{0.0, 3.0, 0.0, 1.0};
         auto p2 = vec3dp{1.0, 3.0, 0.0, 1.0};
         auto p3 = vec3dp{0.0, 0.0, 1.0, 1.0};
@@ -2644,7 +2699,7 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(dist_p2_t1.c0 / dist_p2_t1.c1 == 3);
         CHECK(dist_l1_l2 == dist_p0_p1);
 
-        // auto res = rwdg(pscalar3dp(2.5), horizon_3dp);
+        // auto res = rwdg(pscalar3dp(2.5), H_3dp);
         // fmt::println("res = {}", res);
     }
 
@@ -2794,7 +2849,7 @@ TEST_SUITE("PGA 3DP Tests")
     {
         fmt::println("MVec3dp: orthogonal projections");
 
-        auto pt0 = origin_3dp;
+        auto pt0 = O_3dp;
         auto pt1 = vec3dp{1, 0, 0, 1};
         auto pt2 = vec3dp{1, 1, 0, 1};
         // auto pt3 = vec3dp{0, 1, 0, 1};

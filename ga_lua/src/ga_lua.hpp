@@ -1894,12 +1894,42 @@ void register_functions(sol::state& lua)
                          sol::resolve<vec3dp(vec3dp const&, bivec3dp const&)>(rcmt),
                          sol::resolve<bivec3dp(vec3dp const&, vec3dp const&)>(rcmt)));
 
-    lua.set_function("rgpr",
-                     sol::overload(
-                         // PGA 2DP types (verified signatures - starting with basic ones)
-                         sol::resolve<mvec2dp(mvec2dp const&, mvec2dp const&)>(rgpr),
-                         // PGA 3DP types (verified signatures - starting with basic ones)
-                         sol::resolve<mvec3dp(mvec3dp const&, mvec3dp const&)>(rgpr)));
+    lua.set_function(
+        "rgpr", sol::overload(
+                    // PGA 2DP types (verified signatures - starting with basic ones)
+                    sol::resolve<mvec2dp(mvec2dp const&, mvec2dp const&)>(rgpr),
+                    sol::resolve<mvec2dp(mvec2dp const&, mvec2dp_u const&)>(rgpr),
+                    sol::resolve<mvec2dp(mvec2dp_u const&, mvec2dp const&)>(rgpr),
+                    sol::resolve<mvec2dp_u(mvec2dp_e const&, mvec2dp_e const&)>(rgpr),
+                    sol::resolve<mvec2dp_u(mvec2dp_u const&, mvec2dp_u const&)>(rgpr),
+                    sol::resolve<mvec2dp_e(mvec2dp_e const&, mvec2dp_u const&)>(rgpr),
+                    sol::resolve<mvec2dp_e(mvec2dp_u const&, mvec2dp_e const&)>(rgpr),
+                    sol::resolve<mvec2dp_u(mvec2dp_e const&, bivec2dp const&)>(rgpr),
+                    sol::resolve<mvec2dp_e(mvec2dp_u const&, bivec2dp const&)>(rgpr),
+                    sol::resolve<mvec2dp_e(mvec2dp_e const&, vec2dp const&)>(rgpr),
+                    sol::resolve<mvec2dp_u(mvec2dp_u const&, vec2dp const&)>(rgpr),
+                    sol::resolve<mvec2dp_u(bivec2dp const&, bivec2dp const&)>(rgpr),
+                    sol::resolve<mvec2dp_e(bivec2dp const&, vec2dp const&)>(rgpr),
+                    sol::resolve<mvec2dp_e(vec2dp const&, bivec2dp const&)>(rgpr),
+                    sol::resolve<mvec2dp_u(vec2dp const&, vec2dp const&)>(rgpr),
+                    sol::resolve<bivec2dp(vec2dp const&, scalar2dp)>(rgpr),
+                    sol::resolve<bivec2dp(scalar2dp, vec2dp const&)>(rgpr),
+                    sol::resolve<scalar2dp(scalar2dp, scalar2dp)>(rgpr),
+                    // PGA 3DP types (verified signatures - starting with basic ones)
+                    sol::resolve<mvec3dp(mvec3dp const&, mvec3dp const&)>(rgpr),
+                    sol::resolve<mvec3dp(mvec3dp_e const&, mvec3dp const&)>(rgpr),
+                    sol::resolve<mvec3dp(mvec3dp const&, mvec3dp_e const&)>(rgpr),
+                    sol::resolve<mvec3dp_e(mvec3dp_e const&, mvec3dp_e const&)>(rgpr),
+                    sol::resolve<mvec3dp_u(mvec3dp_u const&, mvec3dp_e const&)>(rgpr),
+                    sol::resolve<mvec3dp_e(mvec3dp_u const&, trivec3dp const&)>(rgpr),
+                    sol::resolve<mvec3dp_e(mvec3dp_e const&, bivec3dp const&)>(rgpr),
+                    sol::resolve<mvec3dp_u(mvec3dp_u const&, bivec3dp const&)>(rgpr),
+                    sol::resolve<mvec3dp_u(mvec3dp_e const&, vec3dp const&)>(rgpr),
+                    sol::resolve<mvec3dp_e(trivec3dp const&, trivec3dp const&)>(rgpr),
+                    sol::resolve<mvec3dp_u(trivec3dp const&, bivec3dp const&)>(rgpr),
+                    sol::resolve<mvec3dp_e(trivec3dp const&, vec3dp const&)>(rgpr),
+                    sol::resolve<mvec3dp_e(bivec3dp const&, bivec3dp const&)>(rgpr),
+                    sol::resolve<mvec3dp_e(vec3dp const&, vec3dp const&)>(rgpr)));
 
     // Note:
     // - Geometric product is only available as operator*, not as gpr() function
@@ -1925,50 +1955,50 @@ void register_constants(sol::state& lua)
     // 2d constants
     lua["e1_2d"] = e1_2d; // as 2d vector
     lua["e2_2d"] = e2_2d;
-    lua["x_axis_2d"] = x_axis_2d;
-    lua["y_axis_2d"] = y_axis_2d;
-    lua["origin_2d"] = origin_2d;
+    lua["x_dir_2d"] = x_dir_2d;
+    lua["y_dir_2d"] = y_dir_2d;
+    lua["O_2d"] = O_2d;
 
-    lua["e1m_2d"] = e1m_2d; // as 2d multivector
-    lua["e2m_2d"] = e2m_2d;
+    lua["e1_2d_mv"] = e1_2d_mv; // as 2d multivector
+    lua["e2_2d_mv"] = e2_2d_mv;
 
     lua["I_2d"] = I_2d; // as pscalar2d
     lua["e12_2d"] = I_2d;
-    lua["Im_2d"] = Im_2d;     // as 2d multivector
-    lua["Im_2d_E"] = Im_2d_E; // as even grade 2d multivector
+    lua["I_2d_mv"] = I_2d_mv;     // as 2d multivector
+    lua["I_2d_mv_e"] = I_2d_mv_e; // as even grade 2d multivector
 
     // 3d constants
     lua["e1_3d"] = e1_3d; // as 3d vector
     lua["e2_3d"] = e2_3d;
     lua["e3_3d"] = e3_3d;
-    lua["x_axis_3d"] = x_axis_3d;
-    lua["y_axis_3d"] = y_axis_3d;
-    lua["z_axis_3d"] = z_axis_3d;
-    lua["origin_3d"] = origin_3d;
+    lua["x_dir_3d"] = x_dir_3d;
+    lua["y_dir_3d"] = y_dir_3d;
+    lua["z_dir_3d"] = z_dir_3d;
+    lua["O_3d"] = O_3d;
 
-    lua["e1m_3d"] = e1m_3d; // as 3d multivector
-    lua["e2m_3d"] = e2m_3d;
-    lua["e3m_3d"] = e3m_3d;
+    lua["e1_3d_mv"] = e1_3d_mv; // as 3d multivector
+    lua["e2_3d_mv"] = e2_3d_mv;
+    lua["e3_3d_mv"] = e3_3d_mv;
 
     lua["e23_3d"] = e23_3d; // as 3d bivector
     lua["e31_3d"] = e31_3d;
     lua["e12_3d"] = e12_3d;
-    lua["yz_plane_3d"] = yz_plane_3d;
-    lua["zx_plane_3d"] = zx_plane_3d;
-    lua["xy_plane_3d"] = xy_plane_3d;
+    lua["yz_3d"] = yz_3d;
+    lua["zx_3d"] = zx_3d;
+    lua["xy_3d"] = xy_3d;
 
 
-    lua["e23m_3d"] = e23m_3d; // as 3d multivector
-    lua["e31m_3d"] = e31m_3d;
-    lua["e12m_3d"] = e12m_3d;
-    lua["e23me_3d"] = e23me_3d; // as even grade 3d multivector
-    lua["e31me_3d"] = e31me_3d;
-    lua["e12me_3d"] = e12me_3d;
+    lua["e23_3d_mv"] = e23_3d_mv; // as 3d multivector
+    lua["e31_3d_mv"] = e31_3d_mv;
+    lua["e12_3d_mv"] = e12_3d_mv;
+    lua["e23_3d_mv_e"] = e23_3d_mv_e; // as even grade 3d multivector
+    lua["e31_3d_mv_e"] = e31_3d_mv_e;
+    lua["e12_3d_mv_e"] = e12_3d_mv_e;
 
     lua["I_3d"] = I_3d; // as pscalar3d
     lua["e123_3d"] = e123_3d;
-    lua["Im_3d"] = Im_3d;     // as 3d multivector
-    lua["Im_3d_U"] = Im_3d_U; // as odd grade 3d multivector
+    lua["I_3d_mv"] = I_3d_mv;     // as 3d multivector
+    lua["I_3d_mv_u"] = I_3d_mv_u; // as odd grade 3d multivector
 
     ////////////////////////////////////////////////////////////////////////////////
     // PGA 2dp constants
@@ -1979,16 +2009,16 @@ void register_constants(sol::state& lua)
     lua["e1_2dp"] = e1_2dp;
     lua["e2_2dp"] = e2_2dp;
     lua["e3_2dp"] = e3_2dp;
-    lua["origin_2dp"] = origin_2dp;
+    lua["O_2dp"] = O_2dp;
 
     // 2dp direction vectors
-    lua["x_axis_direction_2dp"] = x_axis_direction_2dp;
-    lua["y_axis_direction_2dp"] = y_axis_direction_2dp;
+    lua["x_dir_2dp"] = x_dir_2dp;
+    lua["y_dir_2dp"] = y_dir_2dp;
 
     // 2dp multivector versions
-    lua["e1m_2dp"] = e1m_2dp;
-    lua["e2m_2dp"] = e2m_2dp;
-    lua["e3m_2dp"] = e3m_2dp;
+    lua["e1_2dp_mv"] = e1_2dp_mv;
+    lua["e2_2dp_mv"] = e2_2dp_mv;
+    lua["e3_2dp_mv"] = e3_2dp_mv;
 
     // 2dp bivectors
     lua["e23_2dp"] = e23_2dp;
@@ -1998,7 +2028,7 @@ void register_constants(sol::state& lua)
     // 2dp axes as bivectors
     lua["x_axis_2dp"] = x_axis_2dp;
     lua["y_axis_2dp"] = y_axis_2dp;
-    lua["horizon_2dp"] = horizon_2dp;
+    lua["H_2dp"] = H_2dp;
 
     ////////////////////////////////////////////////////////////////////////////////
     // PGA 3dp constants
@@ -2009,18 +2039,18 @@ void register_constants(sol::state& lua)
     lua["e2_3dp"] = e2_3dp;
     lua["e3_3dp"] = e3_3dp;
     lua["e4_3dp"] = e4_3dp;
-    lua["origin_3dp"] = origin_3dp;
+    lua["O_3dp"] = O_3dp;
 
     // 3dp direction vectors
-    lua["x_axis_direction_3dp"] = x_axis_direction_3dp;
-    lua["y_axis_direction_3dp"] = y_axis_direction_3dp;
-    lua["z_axis_direction_3dp"] = z_axis_direction_3dp;
+    lua["x_dir_3dp"] = x_dir_3dp;
+    lua["y_dir_3dp"] = y_dir_3dp;
+    lua["z_dir_3dp"] = z_dir_3dp;
 
     // 3dp multivector versions
-    lua["e1m_3dp"] = e1m_3dp;
-    lua["e2m_3dp"] = e2m_3dp;
-    lua["e3m_3dp"] = e3m_3dp;
-    lua["e4m_3dp"] = e4m_3dp;
+    lua["e1_3dp_mv"] = e1_3dp_mv;
+    lua["e2_3dp_mv"] = e2_3dp_mv;
+    lua["e3_3dp_mv"] = e3_3dp_mv;
+    lua["e4_3dp_mv"] = e4_3dp_mv;
 
     // 3dp bivectors
     lua["e41_3dp"] = e41_3dp;
@@ -2042,10 +2072,10 @@ void register_constants(sol::state& lua)
     lua["e321_3dp"] = e321_3dp;
 
     // 3dp planes
-    lua["yz_plane_3dp"] = yz_plane_3dp;
-    lua["zx_plane_3dp"] = zx_plane_3dp;
-    lua["xy_plane_3dp"] = xy_plane_3dp;
-    lua["horizon_3dp"] = horizon_3dp;
+    lua["yz_3dp"] = yz_3dp;
+    lua["zx_3dp"] = zx_3dp;
+    lua["xy_3dp"] = xy_3dp;
+    lua["H_3dp"] = H_3dp;
 
     // 3dp pseudoscalar
     lua["I_3dp"] = I_3dp;

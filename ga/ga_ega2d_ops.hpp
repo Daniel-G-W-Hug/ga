@@ -14,7 +14,7 @@ namespace hd::ga::ega {
 // - angle(), angle_to_re()         -> angle operations
 // - exp()                          -> exponential function
 // - get_rotor()                    -> provide a rotor
-// - rotate()                       -> rotate object with rotor
+// - rotate(), rotate_opt()         -> rotate object with rotor (sandwich + optimized)
 // - project_onto(), reject_from()  -> projection and rejection
 // - reflect_on(), reflect_on_vec() -> reflections
 // - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
@@ -159,8 +159,47 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> rotate(Vec2d<T> const& v,
                                                  MVec2d_E<U> const& rotor)
 {
+    // rotate one vector
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(rotor * v * rev(rotor));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2d<std::common_type_t<T, U>> rotate_opt(Vec2d<T> const& v,
+                                                     MVec2d_E<U> const& R)
+{
+    // rotate one vector v with rotor R (optimized)
+    using ctype = std::common_type_t<T, U>;
+    // coefficients calculated with ga_prdxpr (ega2d sandwich product)
+    auto k11 = R.c0 * R.c0 - R.c1 * R.c1;
+    auto k12 = 2.0 * R.c0 * R.c1;
+    auto k21 = -2.0 * R.c0 * R.c1;
+    auto k22 = R.c0 * R.c0 - R.c1 * R.c1;
+    return Vec2d<ctype>(k11 * v.x + k12 * v.y, k21 * v.x + k22 * v.y);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr std::vector<Vec2d<std::common_type_t<T, U>>>
+rotate_opt(std::vector<Vec2d<T>> const& vec, MVec2d_E<U> const& R)
+{
+    // rotate many vectors vec(v) with rotor R (optimized)
+    using ctype = std::common_type_t<T, U>;
+    // coefficients of transformed sandwich product calculated with ga_prdxpr
+    // (ega2d sandwich product)
+    auto k11 = R.c0 * R.c0 - R.c1 * R.c1;
+    auto k12 = 2.0 * R.c0 * R.c1;
+    auto k21 = -2.0 * R.c0 * R.c1;
+    auto k22 = R.c0 * R.c0 - R.c1 * R.c1;
+
+    std::vector<Vec2d<ctype>> result;
+    result.reserve(vec.size());
+
+    for (auto const& v : vec) {
+        result.emplace_back(Vec2d<ctype>(k11 * v.x + k12 * v.y, k21 * v.x + k22 * v.y));
+    }
+    return result;
 }
 
 template <typename T, typename U>
@@ -168,6 +207,8 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> rotate(MVec2d<T> const& M,
                                                   MVec2d_E<U> const& rotor)
 {
+    // rotate one multivector M with rotor R
+    // (only rotates the vector component of the 2d multivector)
     using ctype = std::common_type_t<T, U>;
     return MVec2d<ctype>(rotor * M * rev(rotor));
 }

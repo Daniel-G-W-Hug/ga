@@ -59,8 +59,8 @@ TEST_SUITE("EGA2D PGA2DP Comparison Tests")
 
         fmt::println("up = {}, bulk_nrm(up) = {}", up, bulk_nrm(up));
         fmt::println("ap = {}", ap);
-        fmt::println("dp = support(Lp) = {}, dist2dp(origin_2dp, dp) = {}", dp,
-                     dist2dp(origin_2dp, dp));
+        fmt::println("dp = support(Lp) = {}, dist2dp(O_2dp, dp) = {}", dp,
+                     dist2dp(O_2dp, dp));
         fmt::println("Lp = {}", Lp);
         fmt::println("att(Lp) = {}", att(Lp));
         fmt::println("moment(Lp) = {}", Lp.z);
