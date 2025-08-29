@@ -385,6 +385,85 @@ prd_table get_prd_tab_asym(prd_table const& tab)
     return asym;
 }
 
+prd_table add_prd_tab(prd_table const& ta, prd_table const& tb)
+{
+    // add two product tables
+
+    // make sure the table a has quadradic shape
+    for (size_t i = 0; i < ta.size(); ++i) {
+        if (ta[i].size() != ta.size()) {
+            throw std::runtime_error("Product tables must be square matrices. Sizes of "
+                                     "rows and columns must match.");
+        }
+    }
+    // make sure the table b has quadradic shape
+    for (size_t i = 0; i < tb.size(); ++i) {
+        if (tb[i].size() != tb.size()) {
+            throw std::runtime_error("Product tables must be square matrices. Sizes of "
+                                     "rows and columns must match.");
+        }
+    }
+    // make sure both matrices are of same size
+    if (ta.size() != tb.size()) {
+        throw std::runtime_error("Product table sizes must match to add tables.");
+    }
+
+    prd_table tres;
+    tres.resize(ta.size());
+    for (size_t i = 0; i < ta.size(); ++i) {
+        tres[i].resize(ta.size());
+    }
+
+    for (size_t i = 0; i < ta.size(); ++i) {
+        for (size_t j = 0; j < ta[i].size(); ++j) {
+
+            tres[i][j] = ta[i][j];
+
+            if (tres[i][j] != zero_str() && tb[i][j] != zero_str()) {
+
+                tres[i][j] += space_str() + plus_str() + space_str() + tb[i][j];
+            }
+
+            if (tres[i][j] == zero_str() && tb[i][j] != zero_str()) {
+
+                tres[i][j] = tb[i][j];
+            }
+        }
+    }
+
+    return tres;
+}
+
+prd_table negate_prd_tab(prd_table const& t)
+{
+    // negate the product table (change only entries != "0")
+
+    prd_table tres;
+    tres.resize(t.size());
+    for (size_t i = 0; i < t.size(); ++i) {
+        tres[i].resize(t.size());
+    }
+
+    for (size_t i = 0; i < t.size(); ++i) {
+        for (size_t j = 0; j < t[i].size(); ++j) {
+
+            tres[i][j] = t[i][j];
+
+            if (tres[i][j] != zero_str()) {
+
+                if (tres[i][j].starts_with(minus_str())) {
+                    tres[i][j] = tres[i][j].substr(1);
+                }
+                else {
+                    tres[i][j] = minus_str() + tres[i][j];
+                }
+            }
+        }
+    }
+
+    return tres;
+}
+
 mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                                filter_2d lfilter, filter_2d rfilter, brace_switch brsw)
 {

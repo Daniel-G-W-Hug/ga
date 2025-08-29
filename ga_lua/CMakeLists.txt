@@ -47,3 +47,4 @@ elseif(GA_USE_READLINE AND GA_HAS_READLINE)
 else()
     message(STATUS "ga_lua: readline not available or disabled")
 endif()
+

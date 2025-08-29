@@ -44,9 +44,9 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
 \begin{itemize}
     \item Inner and interior products are grade reducing operations.
     \item The inner product combines arguments of the same type and grade, while the
-    interior products involve complements/duals in at least one of their arguments,
-    combining and linking arguments of different grades. Inner products are linked to the
-    metric of the modelled space. 
+    interior products involve duals of one of their arguments, combining and linking
+    arguments of danifferent grades. Inner products are linked to the metric of the modelled
+    space. 
     \item The outer product is a grade-increasing operation adding the grades of its
     arguments. Outer products, like the wedge product, connect subspaces represented by
     their operands and create new subspaces defined by the span of the subspaces of the
@@ -55,12 +55,12 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
     expression. They typically result in multivectors consisting of parts with different
     grades as a result of the operation. Their main advantage is invertibility under
     certain circumstances.
-    \item Regressive products use a complement operation on their arguments before and/or
+    \item Regressive products use complement operations on their arguments before and
     after applying the operation linking the arguments of the product.
-    \item Sandwich products are used to implement orthogonal transformations of objects.
-    They realize rotations or general motions including rotation and translations. This
-    can be achieved by multiplying the object symmetrically from the left and right hand
-    side with the appropriate objects.
+    \item Sandwich products are used to implement orthogonal transformations of geometric
+    objects. They realize general motions including rotation and translation by
+    concatenating two consecutive reflections. This can be achieved by multiplying the
+    object symmetrically from the left and right hand side with the appropriate objects.
 \end{itemize}
 
 The complement operation used in this library is defined
@@ -106,8 +106,8 @@ The same complement is applied to both arguments first, the resulting expression
 combined with the wedge product, and the inverse complement operation is used to transform
 the outcome into the final result, the regressive product. The inverted wedge symbol
 $(\vee)$ is used for the regressive wedge product. Both definitions~(\ref{eq:rwdg_std})
-and~(\ref{eq:rwdg_alt}) are equivalent, but~(\ref{eq:rwdg_std}) is used within the library
-to derive expressions for regressive products. \\
+and~(\ref{eq:rwdg_alt}) are equivalent, but~(\ref{eq:rwdg_std}) is to derive expressions
+for regressive products in \path{ga_prdxpr}. \\
 
 There are some additional formulas for complements which are useful for working with GA
 expressions and thus are provided here for reference. Taking the right and left
@@ -153,9 +153,9 @@ the geometric product are given by
     A_{\star} & = & I_n \wedgedot A^{\dagger} \slabel{eq:hodge_left}
 \end{subeqnarray}
 with $I_n = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n}$ as the pseudoscalar of the
-$n$-dimensional space and where $\dagger$ is the reversion operation. Following identities
-hold for operands of same grade. They link the outer product and the dot product in that
-case: 
+$n$-dimensional space and where $\dagger$ is the reversion operation and $\wedgedot$ is
+the symbol for the geometric product. Following identities hold for operands of same
+grade. They link the outer product and the dot product in that case: 
 \begin{subeqnarray}
     A \wedge B^{\star} & = & (A \bullet B) I_n, \quad \text{when \path{gr(A)} =
     \path{gr(B)}} \\
@@ -175,10 +175,9 @@ which also depends on the dimension of the modelled space:
 \text{\path{left_bulk_dual(A)}}$
 \end{itemize}
 In even dimensional spaces we have to distinguish left and right operations, while in odd
-dimensional spaces we do not have to, and for projective spaces, like $pga$, the
-degenerate metric results in using the bulk part only for the dualization operation with
-the Hodge star.\\
-
+dimensional spaces we don't, since they produce the same result. For projective algebras,
+like $pga$, we use only the bulk part for the dualization operation with the Hodge star (a
+consequence of the degenerate metric). \\
 
 Following bi-argument operations $\emph{op}(a,b) = a \; op \; b$ and their regressive
 variants $\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are implemented

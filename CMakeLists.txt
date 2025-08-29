@@ -25,6 +25,20 @@ project(
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
+# Fix for Homebrew LLVM on macOS - ensure proper libc++ linking
+if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Check if we're using Homebrew LLVM
+    if(CMAKE_CXX_COMPILER MATCHES "/opt/homebrew")
+        message(STATUS "Using Homebrew LLVM - configuring for proper libc++ usage")
+        # Add compiler and linker flags to use Homebrew LLVM's toolchain consistently
+        add_compile_options(-stdlib=libc++)
+        add_link_options(-stdlib=libc++)
+        # Include header path for Homebrew LLVM's libc++
+        include_directories(/opt/homebrew/opt/llvm/include/c++/v1)
+        link_directories(/opt/homebrew/opt/llvm/lib)
+    endif()
+endif()
+
 # set a default build type: Debug | RelWithDebInfo | Release | MinSizeRel
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug")
