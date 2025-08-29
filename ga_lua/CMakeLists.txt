@@ -48,3 +48,58 @@ else()
     message(STATUS "ga_lua: readline not available or disabled")
 endif()
 
+# Fix for macOS C++ runtime linking - sol2 requires proper hash symbol resolution
+if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    message(STATUS "ga_lua: Configuring robust C++ runtime linking for sol2 compatibility")
+    
+    # Comprehensive Homebrew LLVM detection
+    set(NEEDS_EXPLICIT_LIBCXX FALSE)
+    
+    # Check 1: Compiler path explicitly contains Homebrew
+    if(CMAKE_CXX_COMPILER MATCHES "/opt/homebrew")
+        message(STATUS "ga_lua: Detected Homebrew LLVM compiler: ${CMAKE_CXX_COMPILER}")
+        set(NEEDS_EXPLICIT_LIBCXX TRUE)
+    endif()
+    
+    # Check 2: Homebrew paths in CMAKE_PREFIX_PATH
+    if(CMAKE_PREFIX_PATH MATCHES "/opt/homebrew")
+        message(STATUS "ga_lua: Detected Homebrew in CMAKE_PREFIX_PATH")
+        set(NEEDS_EXPLICIT_LIBCXX TRUE)
+    endif()
+    
+    # Check 3: Check if LUA_LIBRARIES comes from Homebrew
+    if(LUA_LIBRARIES MATCHES "/opt/homebrew")
+        message(STATUS "ga_lua: Detected Homebrew Lua libraries")
+        set(NEEDS_EXPLICIT_LIBCXX TRUE)
+    endif()
+    
+    # Check 4: Check various CMake variables for Homebrew paths
+    get_cmake_property(_variableNames VARIABLES)
+    foreach(_variableName ${_variableNames})
+        if("${${_variableName}}" MATCHES "/opt/homebrew")
+            message(STATUS "ga_lua: Detected Homebrew in ${_variableName}")
+            set(NEEDS_EXPLICIT_LIBCXX TRUE)
+            break()
+        endif()
+    endforeach()
+    
+    if(NEEDS_EXPLICIT_LIBCXX)
+        message(STATUS "ga_lua: Applying Homebrew LLVM-compatible linking strategy")
+        # Essential for Homebrew LLVM: explicit stdlib specification
+        target_compile_options(${EXEC_NAME} PRIVATE -stdlib=libc++)
+        target_link_options(${EXEC_NAME} PRIVATE -stdlib=libc++)
+        
+        # Critical: Add Homebrew LLVM C++ library path to ensure we link against the right libc++
+        target_link_options(${EXEC_NAME} PRIVATE -L/opt/homebrew/opt/llvm/lib/c++)
+        target_link_options(${EXEC_NAME} PRIVATE -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++)
+        
+        # Link the complete C++ runtime to resolve __hash_memory symbols using explicit paths
+        target_link_libraries(${EXEC_NAME} PRIVATE /opt/homebrew/opt/llvm/lib/c++/libc++.dylib)
+        target_link_libraries(${EXEC_NAME} PRIVATE /opt/homebrew/opt/llvm/lib/c++/libc++abi.dylib)
+    else()
+        # Safety fallback: always ensure C++ runtime is linked for sol2's hash operations
+        message(STATUS "ga_lua: Applying standard C++ runtime linking for sol2 compatibility")
+        target_link_libraries(${EXEC_NAME} PRIVATE c++)
+    endif()
+endif()
+
