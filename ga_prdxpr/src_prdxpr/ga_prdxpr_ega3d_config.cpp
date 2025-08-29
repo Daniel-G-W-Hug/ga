@@ -224,6 +224,21 @@ ProductConfig get_ega3d_gpr_config()
                       {"s * s -> s", "svBps1", "svBps2", "s", "s"}}};
 }
 
+ProductConfig get_ega3d_gpr_alt_config()
+{
+    return {.product_name = "gpr (alternative)",
+            .description =
+                "ega3d geometric product (defined from Grassmann algebra operations)",
+            .display_name = "geometric product (alternative definition from Grassmann "
+                            "algebra operations)",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases = {}, // no cases, just for generating the product tables
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
 ProductConfig get_ega3d_cmt_config()
 {
     return {.product_name = "cmt",

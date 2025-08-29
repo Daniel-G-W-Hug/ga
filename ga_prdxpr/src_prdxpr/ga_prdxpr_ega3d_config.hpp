@@ -15,6 +15,7 @@ AlgebraData create_ega3d_algebra_data();
 
 // EGA3D product configurations
 ProductConfig get_ega3d_gpr_config();          // geometric product
+ProductConfig get_ega3d_gpr_alt_config();      // geometric product (alternative def.)
 ProductConfig get_ega3d_cmt_config();          // commutator product
 ProductConfig get_ega3d_wdg_config();          // wedge product
 ProductConfig get_ega3d_dot_config();          // inner product

@@ -14,6 +14,7 @@ namespace configurable {
 AlgebraData create_ega2d_algebra_data();
 
 ProductConfig get_ega2d_gpr_config();          // geometric product
+ProductConfig get_ega2d_gpr_alt_config();      // geometric product (alternative def.)
 ProductConfig get_ega2d_cmt_config();          // commutator product
 ProductConfig get_ega2d_wdg_config();          // wedge product
 ProductConfig get_ega2d_dot_config();          // inner product

@@ -155,6 +155,9 @@ prd_table get_prd_tab(prd_table const& basis_tab, mvec_coeff const& mv_lcoeff,
 prd_table get_prd_tab_sym(prd_table const& tab);  // get the symmetric part
 prd_table get_prd_tab_asym(prd_table const& tab); // get the asymmetric part
 
+prd_table add_prd_tab(prd_table const& ta, prd_table const& tb); // add produc tables
+prd_table negate_prd_tab(prd_table const& t);                    // negate product table
+
 mvec_coeff get_mv_from_prd_tab(prd_table const& prd_tab, mvec_coeff const& mv_basis,
                                filter_2d lfilter, filter_2d rfilter,
                                brace_switch brsw = brace_switch::no_braces);

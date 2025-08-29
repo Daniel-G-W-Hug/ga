@@ -317,6 +317,118 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 gpr_ega2d_rules);
         }
 
+        if (product_name == "gpr (alternative)") {
+
+            // calculation of the geometric product based on the "transwedge product"
+            // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: geometric product is derived from primitives of Grassmann
+            //            algebra exclusively (only requires wdg, rwdg, cmpl and dual).
+            //            Shows that geometric product is not more fundamental, since
+            //            it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a)
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_rcmpl = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, lcmpl_ega2d_rules), rcmpl_ega2d_rules);
+                auto rhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
+                    wdg_ega2d_rules);
+                auto lhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side: rwdg(b, right_dual(c))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+                auto rhs_rcmpl = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, right_dual_ega2d_rules), rcmpl_ega2d_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
+                    wdg_ega2d_rules);
+                auto rhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            mvec_coeff c0 = mv2d_basis;
+            for (auto& e : c0) {
+                e = "0";
+            } // now c0 has size of mv2d_basis with all elements "0"
+
+            std::vector<prd_table> tab; // result tables for each index
+
+            prd_table tab_res; // result table
+            tab_res.resize(mv2d_basis.size());
+            for (size_t i = 0; i < mv2d_basis.size(); ++i) {
+                tab_res[i] = c0;
+            } // now tab_res has required size and is initialized with "0" elements
+
+            // for printing later on we need a "0" initialized
+            // and right sized product table as well
+            prd_table print_res0 = tab_res;
+
+            // calculate the transwedge product and the geometric product resulting
+            // from summing up its components
+            size_t idx = 0; // index into multivector
+            for (size_t k = 0; k < mv2d_basis_kvec.size(); ++k) {
+
+                // for each order k
+
+                for (size_t cnt = 0; cnt < mv2d_basis_kvec[k].size(); ++cnt) {
+
+                    // for each element within each order k
+
+                    auto c = c0;
+                    c[idx] = mv2d_basis[idx]; // c is a multivector with one entry != "0"
+
+                    auto lhs = get_lhs(c, idx); // lhs of transwedge product of order k
+                    auto rhs = get_rhs(c, idx); // rhs of transwedge product of order k
+
+                    tab.emplace_back(apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega2d_rules));
+
+                    if ((k * (k - 1) / 2) % 2 != 0) {
+                        // negate tab for odd values of k*(k-1)/2
+                        // sign = (-1)^[k*(k-1)/2]
+                        tab.back() = negate_prd_tab(tab.back());
+                    }
+                    tab_res = add_prd_tab(tab_res, tab.back());
+
+                    ++idx; // advance to next multivector entry
+                }
+            } // tab_res contains geometric product table after loops over k & cnt
+
+            // now print the resulting product table for each order k
+            fmt::println("");
+            idx = 0; // index into multivector
+            for (size_t k = 0; k < mv2d_basis_kvec.size(); ++k) {
+
+                // for each order k
+
+                auto p_tab = print_res0; // empty table initialized with "0" elements
+
+                for (size_t cnt = 0; cnt < mv2d_basis_kvec[k].size(); ++cnt) {
+
+                    // for each element within each order k
+                    p_tab = add_prd_tab(p_tab, tab[idx]);
+
+                    ++idx; // advance to next multivector entry
+                }
+                fmt::println("order k = {}:", k);
+                print_prd_tab(p_tab);
+                fmt::println("");
+            }
+
+            return tab_res;
+        }
+
         else if (product_name == "cmt") {
             // Commutator product (=asymmetric part of the geometric product)
             auto basis_tab = apply_rules_to_tab(
@@ -424,6 +536,116 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(mv3d_basis, mv3d_basis, mul_str()),
                 gpr_ega3d_rules);
+        }
+
+        if (product_name == "gpr (alternative)") {
+
+            // calculation of the geometric product based on the "transwedge product"
+            // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: geometric product is derived from primitives of Grassmann
+            //            algebra exclusively (only requires wdg, rwdg, cmpl and dual).
+            //            Shows that geometric product is not more fundamental, since
+            //            it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a)
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_cmpl = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, cmpl_ega3d_rules), cmpl_ega3d_rules);
+                auto rhs_cmpl = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_cmpl, rhs_cmpl, wdg_str()),
+                    wdg_ega3d_rules);
+                auto lhs_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side: rwdg(b, right_dual(c))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_cmpl = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+                auto rhs_cmpl = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, dual_ega3d_rules), cmpl_ega3d_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_cmpl, rhs_cmpl, wdg_str()),
+                    wdg_ega3d_rules);
+                auto rhs_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            mvec_coeff c0 = mv3d_basis;
+            for (auto& e : c0) {
+                e = "0";
+            } // now c0 has size of mv3d_basis with all elements "0"
+
+            std::vector<prd_table> tab; // result tables for each index
+
+            prd_table tab_res; // result table
+            tab_res.resize(mv3d_basis.size());
+            for (size_t i = 0; i < mv3d_basis.size(); ++i) {
+                tab_res[i] = c0;
+            } // now tab_res has required size and is initialized with "0" elements
+
+            // for printing later on we need a "0" initialized
+            // and right sized product table as well
+            prd_table print_res0 = tab_res;
+
+            // calculate the transwedge product and the geometric product resulting
+            // from summing up its components
+            size_t idx = 0; // index into multivector
+            for (size_t k = 0; k < mv3d_basis_kvec.size(); ++k) {
+
+                // for each order k
+
+                for (size_t cnt = 0; cnt < mv3d_basis_kvec[k].size(); ++cnt) {
+
+                    // for each element within each order k
+
+                    auto c = c0;
+                    c[idx] = mv3d_basis[idx]; // c is a multivector with one entry != "0"
+
+                    auto lhs = get_lhs(c, idx); // lhs of transwedge product of order k
+                    auto rhs = get_rhs(c, idx); // rhs of transwedge product of order k
+
+                    tab.emplace_back(apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega3d_rules));
+
+                    if ((k * (k - 1) / 2) % 2 != 0) {
+                        // negate tab for odd values of k*(k-1)/2
+                        // sign = (-1)^[k*(k-1)/2]
+                        tab.back() = negate_prd_tab(tab.back());
+                    }
+                    tab_res = add_prd_tab(tab_res, tab.back());
+
+                    ++idx; // advance to next multivector entry
+                }
+            } // tab_res contains geometric product table after loops over k & cnt
+
+            // now print the resulting product table for each order k
+            fmt::println("");
+            idx = 0; // index into multivector
+            for (size_t k = 0; k < mv3d_basis_kvec.size(); ++k) {
+
+                // for each order k
+
+                auto p_tab = print_res0; // empty table initialized with "0" elements
+
+                for (size_t cnt = 0; cnt < mv3d_basis_kvec[k].size(); ++cnt) {
+
+                    // for each element within each order k
+                    p_tab = add_prd_tab(p_tab, tab[idx]);
+
+                    ++idx; // advance to next multivector entry
+                }
+                fmt::println("order k = {}:", k);
+                print_prd_tab(p_tab);
+                fmt::println("");
+            }
+
+            return tab_res;
         }
 
         else if (product_name == "cmt") {
@@ -588,7 +810,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "right_weight_contract") {
-            // Right weight contraction: A >> B = cmpl(wdg(cmpl(A), cmpl(weight_dual(B))))
+            // Right weight contraction: A >> B = cmpl(wdg(cmpl(A),
+            // cmpl(weight_dual(B))))
             auto lhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
             auto rhs = apply_rules_to_mv(
                 apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules),
@@ -610,7 +833,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "left_weight_contract") {
-            // Left weight contraction: A << B = cmpl(wdg(cmpl(weight_dual(A)), cmpl(B)))
+            // Left weight contraction: A << B = cmpl(wdg(cmpl(weight_dual(A)),
+            // cmpl(B)))
             auto lhs = apply_rules_to_mv(
                 apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules),
                 cmpl_pga2dp_rules);
@@ -733,7 +957,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "right_bulk_contract") {
             // Right bulk contraction:
-            // right_bulk_contract(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(right_bulk_dual(B))))
+            // right_bulk_contract(A,B) = lcmpl(wdg(rcmpl(A),
+            // rcmpl(right_bulk_dual(B))))
             auto lhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto rhs = apply_rules_to_mv(
                 apply_rules_to_mv(mv3dp_basis, right_bulk_dual_pga3dp_rules),
@@ -780,7 +1005,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "right_bulk_expand") {
-            // Right bulk expansion: right_bulk_expand(A,B) = wdg(A, right_bulk_dual(B))
+            // Right bulk expansion: right_bulk_expand(A,B) = wdg(A,
+            // right_bulk_dual(B))
             auto lhs = mv3dp_basis;
             auto rhs = apply_rules_to_mv(mv3dp_basis, right_bulk_dual_pga3dp_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
@@ -932,7 +1158,8 @@ void ConfigurableGenerator::print_transformed_result(const mvec_coeff& result,
         // Apply coefficient alignment before printing
         apply_coefficient_alignment(transformed_result, algebra.name);
 
-        // Use the same print function as original results for consistent right-alignment
+        // Use the same print function as original results for consistent
+        // right-alignment
         print_mvec(transformed_result, basis);
     }
     catch (const std::exception& e) {
@@ -1226,8 +1453,8 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
                 }
             }
             else {
-                // Variable is missing - check if any subsequent variables exist in this
-                // expression
+                // Variable is missing - check if any subsequent variables exist in
+                // this expression
                 bool has_next_var = false;
                 auto current_var_it =
                     std::find(sorted_variables.begin(), sorted_variables.end(), var);
@@ -1246,7 +1473,8 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
                 size_t target_coeff_width = max_coeff_widths[var];
                 size_t total_column_width;
                 if (has_next_var) {
-                    // Variable has successors: " + coeff * var + " (with trailing " + ")
+                    // Variable has successors: " + coeff * var + " (with trailing " +
+                    // ")
                     total_column_width = 3 + target_coeff_width + 3 + var.length() +
                                          3; // " + " + coeff + " * " + var + " + "
                 }
