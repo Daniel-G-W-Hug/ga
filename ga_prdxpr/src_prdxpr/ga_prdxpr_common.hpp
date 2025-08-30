@@ -142,10 +142,6 @@ prd_table mv_coeff_to_coeff_prd_tab(mvec_coeff const& lcoeff, mvec_coeff const& 
 prd_table combine_coeff_and_basis_prd_tabs(prd_table const& coeff_tab,
                                            prd_table const& basis_tab);
 
-// sandwich_prd_table basis_prd_tab_times_basis_elements(
-//     prd_table const& basis_tab, mvec_coeff const& basis_elements, prd_rules const&
-//     rules, std::string const& operator_str = mul_str);
-
 mvec_coeff apply_rules_to_mv(mvec_coeff const& coeff, mvec_rules const& rules);
 prd_table apply_rules_to_tab(prd_table const& tab, prd_rules const& rules);
 
@@ -200,3 +196,18 @@ mvec_coeff_filter get_coeff_filter(filter_3d filter = filter_3d::mv);
 mvec_coeff_filter get_coeff_filter(filter_4d filter = filter_4d::mv);
 
 void toggle_bool(bool& value);
+
+////////////////////////////////////////////////////////////////////////////////
+// transwedge product helper functions for alternative geometric product calculation
+////////////////////////////////////////////////////////////////////////////////
+
+// Initialize a multivector of given size with all elements set to "0"
+mvec_coeff init_zero_multivector(size_t size);
+
+// Initialize a product table of given size with all elements set to "0"
+prd_table init_zero_product_table(size_t size);
+
+// Print product tables organized by grade (k-vector order)
+// Used for alternative geometric product calculation debug output
+void print_product_tables_by_grade(std::vector<prd_table> const& tables,
+                                   std::vector<mvec_coeff> const& basis_kvec);
