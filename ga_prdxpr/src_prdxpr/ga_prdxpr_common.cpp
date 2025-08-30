@@ -874,17 +874,25 @@ prd_table init_zero_product_table(size_t size)
     return tab;
 }
 
-void print_product_tables_by_grade(std::vector<prd_table> const& tables, 
+void print_product_tables_by_grade(std::vector<prd_table> const& tables,
                                    std::vector<mvec_coeff> const& basis_kvec)
 {
     if (tables.empty()) return;
-    
+
     auto print_res0 = init_zero_product_table(tables[0].size());
-    
+
+    // flatten basis_kvec to multivector basis (for printing)
+    mvec_coeff basis;
+    for (size_t k = 0; k < basis_kvec.size(); ++k) {
+        for (size_t cnt = 0; cnt < basis_kvec[k].size(); ++cnt) {
+            basis.push_back(basis_kvec[k][cnt]);
+        }
+    }
+
     size_t idx = 0;
     for (size_t k = 0; k < basis_kvec.size(); ++k) {
         auto p_tab = print_res0; // empty table initialized with "0" elements
-        
+
         for (size_t cnt = 0; cnt < basis_kvec[k].size(); ++cnt) {
             if (idx < tables.size()) {
                 p_tab = add_prd_tab(p_tab, tables[idx]);
@@ -892,7 +900,7 @@ void print_product_tables_by_grade(std::vector<prd_table> const& tables,
             ++idx;
         }
         fmt::println("order k = {}:", k);
-        print_prd_tab(p_tab);
+        print_prd_tab_with_headers(p_tab, basis);
         fmt::println("");
     }
 }

@@ -20,6 +20,7 @@ ProductConfig get_ega2d_wdg_config();          // wedge product
 ProductConfig get_ega2d_dot_config();          // inner product
 ProductConfig get_ega2d_dot_alt_config();      // inner product (alternative definition)
 ProductConfig get_ega2d_rwdg_config();         // regressive wedge
+ProductConfig get_ega2d_rgpr_alt_config();     // regressive geometric product (alt. def.)
 ProductConfig get_ega2d_lcontract_config();    // left contraction
 ProductConfig get_ega2d_rcontract_config();    // right contraction
 ProductConfig get_ega2d_lexpand_config();      // left expansion

@@ -395,6 +395,22 @@ ProductConfig get_pga3dp_rgpr_config()
         .show_basis_table = true};
 }
 
+ProductConfig get_pga3dp_rgpr_alt_config()
+{
+    return {.product_name = "rgpr (alternative)",
+            .description = "pga3dp regressive geometric product (defined from Grassmann "
+                           "algebra operations)",
+            .display_name =
+                "regressive geometric product (alternative definition from Grassmann "
+                "algebra operations)",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases = {}, // no cases, just for generating the product tables
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
 ProductConfig get_pga3dp_rcmt_config()
 {
     return {

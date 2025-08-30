@@ -301,6 +301,22 @@ ProductConfig get_ega2d_rwdg_config()
             .show_basis_table = true};
 }
 
+ProductConfig get_ega2d_rgpr_alt_config()
+{
+    return {.product_name = "rgpr (alternative)",
+            .description = "ega2d regressive geometric product (defined from Grassmann "
+                           "algebra operations)",
+            .display_name =
+                "regressive geometric product (alternative definition from Grassmann "
+                "algebra operations)",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases{}, // no cases, just for generating the product tables
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
 ProductConfig get_ega2d_lcontract_config()
 {
     return {.product_name = "lcontract",
@@ -377,36 +393,36 @@ ProductConfig get_ega2d_rcontract_config()
 
 ProductConfig get_ega2d_lexpand_config()
 {
-    return {
-        .product_name = "lexpand",
-        .description = "ega2d left expansion",
-        .display_name = "left expansion",
-        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
-        // "right_filter"}
-        .cases =
-            {
-                // Expansions show basis product tables but no specific cases for ega2d
-            },
-        .is_sandwich_product = false,
-        .uses_brace_switch = false,
-        .show_basis_table = true};
+    return {.product_name = "lexpand",
+            .description = "ega2d left expansion",
+            .display_name = "left expansion",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases =
+                {
+                    // Expansions show basis product tables but no specific cases for
+                    // ega2d
+                },
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
 }
 
 ProductConfig get_ega2d_rexpand_config()
 {
-    return {
-        .product_name = "rexpand",
-        .description = "ega2d right expansion",
-        .display_name = "right expansion",
-        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
-        // "right_filter"}
-        .cases =
-            {
-                // Expansions show basis product tables but no specific cases for ega2d
-            },
-        .is_sandwich_product = false,
-        .uses_brace_switch = false,
-        .show_basis_table = true};
+    return {.product_name = "rexpand",
+            .description = "ega2d right expansion",
+            .display_name = "right expansion",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases =
+                {
+                    // Expansions show basis product tables but no specific cases for
+                    // ega2d
+                },
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
 }
 
 ProductConfig get_ega2d_sandwich_gpr_config()
@@ -418,8 +434,8 @@ ProductConfig get_ega2d_sandwich_gpr_config()
         // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
         // "right_filter", is_two_step, "intermediate"}
         .cases =
-            {// Single case that triggers sandwich product behavior - reference only does
-             // vec case
+            {// Single case that triggers sandwich product behavior - reference only
+             // does vec case
              {"dummy", "dummy", "dummy", "dummy", "dummy", true, "vec_tmp"}},
         .is_sandwich_product = true,
         .uses_brace_switch = true, // true is important for sandwich products

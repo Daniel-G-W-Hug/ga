@@ -17,7 +17,7 @@
 using namespace configurable;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Template function for transwedge geometric product calculation
+// Template function for (regressive) transwedge geometric product calculation
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename GetLhsFunc, typename GetRhsFunc>
@@ -43,6 +43,48 @@ std::pair<prd_table, std::vector<prd_table>> calculate_transwedge_geometric_prod
 
             tab.emplace_back(apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wedge_rules));
+
+            if ((k * (k - 1) / 2) % 2 != 0) {
+                // negate tab for odd values of k*(k-1)/2
+                // sign = (-1)^[k*(k-1)/2]
+                tab.back() = negate_prd_tab(tab.back());
+            }
+            tab_res = add_prd_tab(tab_res, tab.back());
+
+            ++idx; // advance to next multivector entry
+        }
+    } // tab_res contains geometric product table after loops over k & cnt
+
+    return {tab_res, tab};
+}
+
+template <typename GetLhsFunc, typename GetRhsFunc>
+std::pair<prd_table, std::vector<prd_table>>
+calculate_regressive_transwedge_geometric_product(
+    mvec_coeff const& basis, std::vector<mvec_coeff> const& basis_kvec,
+    prd_rules const& wedge_rules, prd_rules const& rcmpl_rules, GetLhsFunc const& get_lhs,
+    GetRhsFunc const& get_rhs)
+{
+    std::vector<prd_table> tab; // result tables for each index
+    prd_table tab_res = init_zero_product_table(basis.size());
+
+    // calculate the transwedge product and the geometric product resulting
+    // from summing up its components
+    size_t idx = 0; // index into multivector
+    for (size_t k = 0; k < basis_kvec.size(); ++k) {
+        // for each order k
+        for (size_t cnt = 0; cnt < basis_kvec[k].size(); ++cnt) {
+            // for each element within each order k
+            auto c = init_zero_multivector(basis.size());
+            c[idx] = basis[idx]; // c is a multivector with one entry != "0"
+
+            auto lhs = get_lhs(c, idx); // lhs of transwedge product of order k
+            auto rhs = get_rhs(c, idx); // rhs of transwedge product of order k
+
+            tab.emplace_back(apply_rules_to_tab(
+                apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                   wedge_rules),
+                rcmpl_rules));
 
             if ((k * (k - 1) / 2) % 2 != 0) {
                 // negate tab for odd values of k*(k-1)/2
@@ -369,10 +411,10 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a)
+            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
+            // lcmpl(wdg(a,rcmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_rcmpl = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, lcmpl_ega2d_rules), rcmpl_ega2d_rules);
+                auto lhs_rcmpl = coeff; // rcmpl(lcmpl(coeff)) is identity transformation
                 auto rhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
@@ -382,7 +424,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 return lhs_tab[index];
             };
 
-            // Lambda for calculating right-hand side: rwdg(b, right_dual(c))
+            // Lambda for calculating right-hand side: rwdg(b, right_dual(c)) =
+            // lcmpl(wdg(rcmpl(b),rcmpl(right_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
                 auto rhs_rcmpl = apply_rules_to_mv(
@@ -466,6 +509,60 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
         }
 
+        if (product_name == "rgpr (alternative)") {
+
+            // calculation of the regressive geometric product based on the "anti
+            // transwedge product" as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: regressive geometric product is derived from primitives of
+            //            Grassmann algebra exclusively (only requires wdg, rwdg, cmpl and
+            //            dual). Shows that geometric product is not more fundamental,
+            //            since it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: lcmpl(wdg(c,a))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = coeff;
+                auto rhs_arg = mv2d_basis;
+                auto lhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_ega2d_rules),
+                    lcmpl_ega2d_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side:
+            // lcmpl(wdg(b,rcmpl(right_dual(c))))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = mv2d_basis;
+                auto rhs_arg = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, right_dual_ega2d_rules), rcmpl_ega2d_rules);
+                auto rhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_ega2d_rules),
+                    lcmpl_ega2d_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
+                mv2d_basis, mv2d_basis_kvec, wdg_ega2d_rules, rcmpl_ega2d_rules, get_lhs,
+                get_rhs);
+
+            // now print the resulting product table for each order k
+            fmt::println("ega2d regressive geometric product (alternative definition) - "
+                         "intermediate results:");
+            fmt::println("");
+            print_product_tables_by_grade(tab, mv2d_basis_kvec);
+
+            return tab_res;
+        }
+
         else if (product_name == "lcontract") {
             // A << B = rwdg(lcmpl(A), B)
             //        = lcmpl( wdg( rcmpl(lcmpl(A)), rcmpl(B) ) )
@@ -530,10 +627,10 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a)
+            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
+            // lcmpl(wdg(a,rcmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_cmpl = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, cmpl_ega3d_rules), cmpl_ega3d_rules);
+                auto lhs_cmpl = coeff; // cmpl(cmpl(coeff)) is identity transformation
                 auto rhs_cmpl = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_cmpl, rhs_cmpl, wdg_str()),
@@ -542,7 +639,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 return lhs_tab[index];
             };
 
-            // Lambda for calculating right-hand side: rwdg(b, right_dual(c))
+            // Lambda for calculating right-hand side: rwdg(b, dual(c)) =
+            // cmpl(wdg(cmpl(b),cmpl(dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_cmpl = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
                 auto rhs_cmpl = apply_rules_to_mv(
@@ -599,6 +697,60 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
                 wdg_ega3d_rules);
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
+        }
+
+        if (product_name == "rgpr (alternative)") {
+
+            // calculation of the regressive geometric product based on the "anti
+            // transwedge product" as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: regressive geometric product is derived from primitives of
+            //            Grassmann algebra exclusively (only requires wdg, rwdg, cmpl and
+            //            dual). Shows that geometric product is not more fundamental,
+            //            since it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: cmpl(wdg(c,a))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = coeff;
+                auto rhs_arg = mv3d_basis;
+                auto lhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_ega3d_rules),
+                    cmpl_ega3d_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side:
+            // cmpl(wdg(b,cmpl(dual(c))))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = mv3d_basis;
+                auto rhs_arg = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, dual_ega3d_rules), cmpl_ega3d_rules);
+                auto rhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_ega3d_rules),
+                    cmpl_ega3d_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
+                mv3d_basis, mv3d_basis_kvec, wdg_ega3d_rules, cmpl_ega3d_rules, get_lhs,
+                get_rhs);
+
+            // now print the resulting product table for each order k
+            fmt::println("ega3d regressive geometric product (alternative definition) - "
+                         "intermediate results:");
+            fmt::println("");
+            print_product_tables_by_grade(tab, mv3d_basis_kvec);
+
+            return tab_res;
         }
 
         else if (product_name == "lcontract") {
@@ -669,10 +821,10 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a)
+            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
+            // lcmpl(wdg(a,rcmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_cmpl = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, cmpl_pga2dp_rules), cmpl_pga2dp_rules);
+                auto lhs_cmpl = coeff; // cmpl(cmpl(coeff)) is identity transformation
                 auto rhs_cmpl = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_cmpl, rhs_cmpl, wdg_str()),
@@ -682,7 +834,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 return lhs_tab[index];
             };
 
-            // Lambda for calculating right-hand side: rwdg(b, right_dual(c))
+            // Lambda for calculating right-hand side: rwdg(b, bulk_dual(c)) =
+            // cmpl(wdg(cmpl(b),cmpl(bulk_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_cmpl = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
                 auto rhs_cmpl = apply_rules_to_mv(
@@ -758,6 +911,60 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 gpr_pga2dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
+        }
+
+        if (product_name == "rgpr (alternative)") {
+
+            // calculation of the regressive geometric product based on the "anti
+            // transwedge product" as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: regressive geometric product is derived from primitives of
+            //            Grassmann algebra exclusively (only requires wdg, rwdg, cmpl and
+            //            dual). Shows that geometric product is not more fundamental,
+            //            since it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: cmpl(wdg(c,a))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = coeff;
+                auto rhs_arg = mv2dp_basis;
+                auto lhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_pga2dp_rules),
+                    cmpl_pga2dp_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side:
+            // cmpl(wdg(b,cmpl(dual(c))))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = mv2dp_basis;
+                auto rhs_arg = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, bulk_dual_pga2dp_rules), cmpl_pga2dp_rules);
+                auto rhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_pga2dp_rules),
+                    cmpl_pga2dp_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
+                mv2dp_basis, mv2dp_basis_kvec, wdg_pga2dp_rules, cmpl_pga2dp_rules,
+                get_lhs, get_rhs);
+
+            // now print the resulting product table for each order k
+            fmt::println("pga2dp regressive geometric product (alternative definition) - "
+                         "intermediate results:");
+            fmt::println("");
+            print_product_tables_by_grade(tab, mv2dp_basis_kvec);
+
+            return tab_res;
         }
 
         else if (product_name == "rcmt") {
@@ -878,10 +1085,10 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a)
+            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
+            // lcmpl(wdg(a,rcmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_rcmpl = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, lcmpl_pga3dp_rules), rcmpl_pga3dp_rules);
+                auto lhs_rcmpl = coeff; // rcmpl(lcmpl(coeff)) is identity transformation
                 auto rhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
@@ -891,7 +1098,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 return lhs_tab[index];
             };
 
-            // Lambda for calculating right-hand side: rwdg(b, right_dual(c))
+            // Lambda for calculating right-hand side: rwdg(b, right_bulk_dual(c)) =
+            // lcmpl(wdg(rcmpl(b),rcmpl(right_bulk_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
                 auto rhs_rcmpl = apply_rules_to_mv(
@@ -968,6 +1176,61 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 gpr_pga3dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+        }
+
+        if (product_name == "rgpr (alternative)") {
+
+            // calculation of the regressive geometric product based on the "anti
+            // transwedge product" as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: regressive geometric product is derived from primitives of
+            //            Grassmann algebra exclusively (only requires wdg, rwdg, cmpl and
+            //            dual). Shows that geometric product is not more fundamental,
+            //            since it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: lcmpl(wdg(c,a))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = coeff;
+                auto rhs_arg = mv3dp_basis;
+                auto lhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_pga3dp_rules),
+                    lcmpl_pga3dp_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side:
+            // lcmpl(wdg(b,rcmpl(right_bulk_dual(c))))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = mv3dp_basis;
+                auto rhs_arg = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, right_bulk_dual_pga3dp_rules),
+                    rcmpl_pga3dp_rules);
+                auto rhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_pga3dp_rules),
+                    lcmpl_pga3dp_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
+                mv3dp_basis, mv3dp_basis_kvec, wdg_pga3dp_rules, rcmpl_pga3dp_rules,
+                get_lhs, get_rhs);
+
+            // now print the resulting product table for each order k
+            fmt::println("pga3dp regressive geometric product (alternative definition) - "
+                         "intermediate results:");
+            fmt::println("");
+            print_product_tables_by_grade(tab, mv3dp_basis_kvec);
+
+            return tab_res;
         }
 
         else if (product_name == "rcmt") {
