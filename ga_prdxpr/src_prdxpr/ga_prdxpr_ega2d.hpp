@@ -12,7 +12,7 @@
 // multivector basis components
 const mvec_coeff mv2d_basis = {"1", "e1", "e2", "e12"};
 
-// multivector basis components as k-vector for each order k
+// multivector basis components as vector for each order k
 // order k=0: scalar
 // order k=1: vectors
 // order k=2: bivector (=pseudoscalar for ega2d)

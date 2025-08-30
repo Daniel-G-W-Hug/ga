@@ -14,6 +14,18 @@ const mvec_coeff mv3dp_basis = {"1",    "e1",   "e2",   "e3",   "e4",  "e41",
                                 "e42",  "e43",  "e23",  "e31",  "e12", "e423",
                                 "e431", "e412", "e321", "e1234"};
 
+// multivector basis components as vector for each order k
+// order k=0: scalar
+// order k=1: vectors
+// order k=2: bivectors
+// order k=3: trivectors
+// order k=4: quadvector (=pseudoscalar for pga3dp)
+const std::vector<mvec_coeff> mv3dp_basis_kvec = {
+    {"1"},
+    {"e1", "e2", "e3", "e4"},
+    {"e41", "e42", "e43", "e23", "e31", "e12"},
+    {"e423", "e431", "e412", "e321"},
+    {"e1234"}};
 ////////////////////////////////////////////////////////////////////////////////
 // AUTOMATIC RULE GENERATION - PGA3DP
 //

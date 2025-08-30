@@ -849,3 +849,50 @@ void toggle_bool(bool& truth_value)
     }
     return;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// transwedge product helper functions for alternative geometric product calculation
+////////////////////////////////////////////////////////////////////////////////
+
+mvec_coeff init_zero_multivector(size_t size)
+{
+    mvec_coeff c0(size);
+    for (auto& e : c0) {
+        e = zero_str();
+    }
+    return c0;
+}
+
+prd_table init_zero_product_table(size_t size)
+{
+    auto c0 = init_zero_multivector(size);
+    prd_table tab;
+    tab.resize(size);
+    for (size_t i = 0; i < size; ++i) {
+        tab[i] = c0;
+    }
+    return tab;
+}
+
+void print_product_tables_by_grade(std::vector<prd_table> const& tables, 
+                                   std::vector<mvec_coeff> const& basis_kvec)
+{
+    if (tables.empty()) return;
+    
+    auto print_res0 = init_zero_product_table(tables[0].size());
+    
+    size_t idx = 0;
+    for (size_t k = 0; k < basis_kvec.size(); ++k) {
+        auto p_tab = print_res0; // empty table initialized with "0" elements
+        
+        for (size_t cnt = 0; cnt < basis_kvec[k].size(); ++cnt) {
+            if (idx < tables.size()) {
+                p_tab = add_prd_tab(p_tab, tables[idx]);
+            }
+            ++idx;
+        }
+        fmt::println("order k = {}:", k);
+        print_prd_tab(p_tab);
+        fmt::println("");
+    }
+}

@@ -64,6 +64,7 @@ int main()
             auto pga2dp_algebra = create_pga2dp_algebra_data();
             std::vector<ProductConfig> pga2dp_configs = {
                 get_pga2dp_gpr_config(),
+                get_pga2dp_gpr_alt_config(),
                 get_pga2dp_cmt_config(),
                 get_pga2dp_wdg_config(),
                 get_pga2dp_dot_config(),
@@ -88,6 +89,7 @@ int main()
             auto pga3dp_algebra = create_pga3dp_algebra_data();
             std::vector<ProductConfig> pga3dp_configs = {
                 get_pga3dp_gpr_config(),
+                get_pga3dp_gpr_alt_config(),
                 get_pga3dp_cmt_config(),
                 get_pga3dp_wdg_config(),
                 get_pga3dp_dot_config(),

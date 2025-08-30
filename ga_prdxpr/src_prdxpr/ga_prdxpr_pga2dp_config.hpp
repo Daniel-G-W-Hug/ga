@@ -14,14 +14,15 @@ namespace configurable {
 AlgebraData create_pga2dp_algebra_data();
 
 // PGA2DP Product configurations
-ProductConfig get_pga2dp_gpr_config();                   // geometric product
-ProductConfig get_pga2dp_cmt_config();                   // commutator product
-ProductConfig get_pga2dp_wdg_config();                   // wedge product
-ProductConfig get_pga2dp_dot_config();                   // inner product
-ProductConfig get_pga2dp_rwdg_config();                  // regressive wedge product
-ProductConfig get_pga2dp_rdot_config();                  // regressive inner product
-ProductConfig get_pga2dp_rgpr_config();                  // regressive geometric product
-ProductConfig get_pga2dp_rcmt_config();                  // regressive commutator product
+ProductConfig get_pga2dp_gpr_config();     // geometric product
+ProductConfig get_pga2dp_gpr_alt_config(); // geometric product (alternative def.)
+ProductConfig get_pga2dp_cmt_config();     // commutator product
+ProductConfig get_pga2dp_wdg_config();     // wedge product
+ProductConfig get_pga2dp_dot_config();     // inner product
+ProductConfig get_pga2dp_rwdg_config();    // regressive wedge product
+ProductConfig get_pga2dp_rdot_config();    // regressive inner product
+ProductConfig get_pga2dp_rgpr_config();    // regressive geometric product
+ProductConfig get_pga2dp_rcmt_config();    // regressive commutator product
 ProductConfig get_pga2dp_right_bulk_contract_config();   // right bulk contraction
 ProductConfig get_pga2dp_right_weight_contract_config(); // right weight contraction
 ProductConfig get_pga2dp_left_bulk_contract_config();    // left bulk contraction
