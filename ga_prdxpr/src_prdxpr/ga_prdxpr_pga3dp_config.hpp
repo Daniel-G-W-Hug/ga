@@ -14,24 +14,30 @@ namespace configurable {
 AlgebraData create_pga3dp_algebra_data();
 
 // PGA3DP product configurations
-ProductConfig get_pga3dp_gpr_config();      // geometric product
-ProductConfig get_pga3dp_gpr_alt_config();  // geometric product (alternative def.)
-ProductConfig get_pga3dp_cmt_config();      // commutator product
-ProductConfig get_pga3dp_wdg_config();      // wedge product
-ProductConfig get_pga3dp_dot_config();      // inner product
-ProductConfig get_pga3dp_rwdg_config();     // regressive wedge product
-ProductConfig get_pga3dp_rdot_config();     // regressive inner product
+ProductConfig get_pga3dp_gpr_config();     // geometric product
+ProductConfig get_pga3dp_gpr_alt_config(); // geometric product (alternative def.)
+ProductConfig get_pga3dp_twdg1_config();   // transwedge product for k=1
+ProductConfig get_pga3dp_cmt_config();     // commutator product
+ProductConfig get_pga3dp_wdg_config();     // wedge product
+ProductConfig get_pga3dp_dot_config();     // inner product
+
+ProductConfig get_pga3dp_left_bulk_contract_config();    // left bulk contraction
+ProductConfig get_pga3dp_right_bulk_contract_config();   // right bulk contraction
+ProductConfig get_pga3dp_left_weight_contract_config();  // left weight contraction
+ProductConfig get_pga3dp_right_weight_contract_config(); // right weight contraction
+
+ProductConfig get_pga3dp_left_bulk_expand_config();    // left bulk expansion
+ProductConfig get_pga3dp_right_bulk_expand_config();   // right bulk expansion
+ProductConfig get_pga3dp_left_weight_expand_config();  // left weight expansion
+ProductConfig get_pga3dp_right_weight_expand_config(); // right weight expansion
+
 ProductConfig get_pga3dp_rgpr_config();     // regressive geometric product
 ProductConfig get_pga3dp_rgpr_alt_config(); // regressive geometric product (alt. def.)
+ProductConfig get_pga3dp_rtwdg1_config();   // regressive transwedge product for k=1
 ProductConfig get_pga3dp_rcmt_config();     // regressive commutator product
-ProductConfig get_pga3dp_right_bulk_contract_config();   // right bulk contraction
-ProductConfig get_pga3dp_right_weight_contract_config(); // right weight contraction
-ProductConfig get_pga3dp_left_bulk_contract_config();    // left bulk contraction
-ProductConfig get_pga3dp_left_weight_contract_config();  // left weight contraction
-ProductConfig get_pga3dp_right_bulk_expand_config();     // right bulk expansion
-ProductConfig get_pga3dp_right_weight_expand_config();   // right weight expansion
-ProductConfig get_pga3dp_left_bulk_expand_config();      // left bulk expansion
-ProductConfig get_pga3dp_left_weight_expand_config();    // left weight expansion
-ProductConfig get_pga3dp_sandwich_rgpr_config();         // regressive sandwich product
+ProductConfig get_pga3dp_rwdg_config();     // regressive wedge product
+ProductConfig get_pga3dp_rdot_config();     // regressive inner product
+
+ProductConfig get_pga3dp_sandwich_rgpr_config(); // regressive sandwich product
 
 } // namespace configurable
