@@ -54,6 +54,7 @@ std::pair<prd_table, std::vector<prd_table>> calculate_transwedge_geometric_prod
             ++idx; // advance to next multivector entry
         }
     } // tab_res contains geometric product table after loops over k & cnt
+      // tab[k] contains (-1)^[(k * (k - 1) / 2] * trw[k]
 
     return {tab_res, tab};
 }
@@ -96,6 +97,7 @@ calculate_regressive_transwedge_geometric_product(
             ++idx; // advance to next multivector entry
         }
     } // tab_res contains geometric product table after loops over k & cnt
+      // tab[k] contains (-1)^[(k * (k - 1) / 2] * rtrw[k]
 
     return {tab_res, tab};
 }
@@ -401,7 +403,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 gpr_ega2d_rules);
         }
 
-        if (product_name == "gpr (alternative)") {
+        else if (product_name == "gpr (alternative)") {
 
             // calculation of the geometric product based on the "transwedge product"
             // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
@@ -454,6 +456,54 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return tab_res;
         }
 
+        else if (product_name == "twdg1") {
+
+            // calculation of the geometric product based on the "transwedge product"
+            // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: geometric product is derived from primitives of Grassmann
+            //            algebra exclusively (only requires wdg, rwdg, cmpl and dual).
+            //            Shows that geometric product is not more fundamental, since
+            //            it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
+            // lcmpl(wdg(a,rcmpl(a)))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_rcmpl = coeff; // rcmpl(lcmpl(coeff)) is identity transformation
+                auto rhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
+                    wdg_ega2d_rules);
+                auto lhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side: rwdg(b, right_dual(c)) =
+            // lcmpl(wdg(rcmpl(b),rcmpl(right_dual(c)))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+                auto rhs_rcmpl = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, right_dual_ega2d_rules), rcmpl_ega2d_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
+                    wdg_ega2d_rules);
+                auto rhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_transwedge_geometric_product(
+                mv2d_basis, mv2d_basis_kvec, wdg_ega2d_rules, get_lhs, get_rhs);
+
+            tab_res = add_prd_tab(tab[1], tab[2]);
+            return tab_res; // return transwedge product for k=1
+        }
+
         else if (product_name == "cmt") {
             // Commutator product (=asymmetric part of the geometric product)
             auto basis_tab = apply_rules_to_tab(
@@ -500,16 +550,54 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
         }
 
-        else if (product_name == "rwdg") {
-            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+        else if (product_name == "lcontract") {
+            // A << B = rwdg(lcmpl(A), B)
+            //        = lcmpl( wdg( rcmpl(lcmpl(A)), rcmpl(B) ) )
+            auto lhs = apply_rules_to_mv(apply_rules_to_mv(mv2d_basis, lcmpl_ega2d_rules),
+                                         rcmpl_ega2d_rules);
+            auto rhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
-                wdg_ega2d_rules);
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega2d_rules);
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
         }
 
-        if (product_name == "rgpr (alternative)") {
+        else if (product_name == "rcontract") {
+            // A >> B = rwdg(A,rcmpl(B))
+            //        = lcmpl( wdg( rcmpl(A),rcmpl(rcmpl(B)) )  )
+            auto lhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            auto rhs = apply_rules_to_mv(apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules),
+                                         rcmpl_ega2d_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega2d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+        }
+
+        else if (product_name == "lexpand") {
+            // Left expansion: lexpand(A,B) = wdg(lcmpl(A), B)
+            auto lhs = apply_rules_to_mv(mv2d_basis, lcmpl_ega2d_rules);
+            auto rhs = mv2d_basis;
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_ega2d_rules);
+        }
+
+        else if (product_name == "rexpand") {
+            // Right expansion: rexpand(A,B) = wdg(A, rcmpl(B))
+            auto lhs = mv2d_basis;
+            auto rhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_ega2d_rules);
+        }
+
+        else if (product_name == "rgpr") {
+            // Regressive geometric: rgpr(A,B) = lcmpl(gpr(rcmpl(A), rcmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
+                gpr_ega2d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+        }
+
+        else if (product_name == "rgpr (alternative)") {
 
             // calculation of the regressive geometric product based on the "anti
             // transwedge product" as proposed by Lengyel
@@ -563,42 +651,71 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return tab_res;
         }
 
-        else if (product_name == "lcontract") {
-            // A << B = rwdg(lcmpl(A), B)
-            //        = lcmpl( wdg( rcmpl(lcmpl(A)), rcmpl(B) ) )
-            auto lhs = apply_rules_to_mv(apply_rules_to_mv(mv2d_basis, lcmpl_ega2d_rules),
-                                         rcmpl_ega2d_rules);
-            auto rhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+        else if (product_name == "rtwdg1") {
+
+            // calculation of the regressive geometric product based on the "anti
+            // transwedge product" as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: regressive geometric product is derived from primitives of
+            //            Grassmann algebra exclusively (only requires wdg, rwdg, cmpl and
+            //            dual). Shows that geometric product is not more fundamental,
+            //            since it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: lcmpl(wdg(c,a))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = coeff;
+                auto rhs_arg = mv2d_basis;
+                auto lhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_ega2d_rules),
+                    lcmpl_ega2d_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side:
+            // lcmpl(wdg(b,rcmpl(right_dual(c))))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = mv2d_basis;
+                auto rhs_arg = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, right_dual_ega2d_rules), rcmpl_ega2d_rules);
+                auto rhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_ega2d_rules),
+                    lcmpl_ega2d_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
+                mv2d_basis, mv2d_basis_kvec, wdg_ega2d_rules, rcmpl_ega2d_rules, get_lhs,
+                get_rhs);
+
+            tab_res = add_prd_tab(tab[1], tab[2]);
+            return tab_res; // return transwedge product for k=1
+        }
+
+        else if (product_name == "rwdg") {
+            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega2d_rules);
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
+                wdg_ega2d_rules);
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
         }
 
-        else if (product_name == "rcontract") {
-            // A >> B = rwdg(A,rcmpl(B))
-            //        = lcmpl( wdg( rcmpl(A),rcmpl(rcmpl(B)) )  )
-            auto lhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
-            auto rhs = apply_rules_to_mv(apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules),
-                                         rcmpl_ega2d_rules);
+        else if (product_name == "rdot") {
+            // Regressive inner: rdot(A,B) = lcmpl(dot(rcmpl(A), rcmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega2d_rules);
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
+                dot_ega2d_rules);
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
-        }
-
-        else if (product_name == "lexpand") {
-            // Left expansion: lexpand(A,B) = wdg(lcmpl(A), B)
-            auto lhs = apply_rules_to_mv(mv2d_basis, lcmpl_ega2d_rules);
-            auto rhs = mv2d_basis;
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_ega2d_rules);
-        }
-
-        else if (product_name == "rexpand") {
-            // Right expansion: rexpand(A,B) = wdg(A, rcmpl(B))
-            auto lhs = mv2d_basis;
-            auto rhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_ega2d_rules);
         }
 
         else if (product_name == "sandwich_gpr") {
@@ -617,7 +734,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 gpr_ega3d_rules);
         }
 
-        if (product_name == "gpr (alternative)") {
+        else if (product_name == "gpr (alternative)") {
 
             // calculation of the geometric product based on the "transwedge product"
             // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
@@ -665,7 +782,54 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             fmt::println("");
             print_product_tables_by_grade(tab, mv3d_basis_kvec);
 
-            return tab_res;
+            return tab_res; // return full geometric product
+        }
+
+        else if (product_name == "twdg1") {
+
+            // calculation of the geometric product based on the "transwedge product"
+            // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: geometric product is derived from primitives of Grassmann
+            //            algebra exclusively (only requires wdg, rwdg, cmpl and dual).
+            //            Shows that geometric product is not more fundamental, since
+            //            it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
+            // lcmpl(wdg(a,rcmpl(a)))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_cmpl = coeff; // cmpl(cmpl(coeff)) is identity transformation
+                auto rhs_cmpl = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_cmpl, rhs_cmpl, wdg_str()),
+                    wdg_ega3d_rules);
+                auto lhs_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side: rwdg(b, dual(c)) =
+            // cmpl(wdg(cmpl(b),cmpl(dual(c)))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_cmpl = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+                auto rhs_cmpl = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, dual_ega3d_rules), cmpl_ega3d_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_cmpl, rhs_cmpl, wdg_str()),
+                    wdg_ega3d_rules);
+                auto rhs_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_transwedge_geometric_product(
+                mv3d_basis, mv3d_basis_kvec, wdg_ega3d_rules, get_lhs, get_rhs);
+
+            tab_res = add_prd_tab(tab[1], tab[2]);
+            tab_res = add_prd_tab(tab_res, tab[3]);
+            return tab_res; // return transwedge product for k=1
         }
 
         else if (product_name == "cmt") {
@@ -689,17 +853,59 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 dot_ega3d_rules);
         }
 
-        else if (product_name == "rwdg") {
-            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
-            // For EGA3D: lcmpl = rcmpl = cmpl
-            auto basis_cmpl_func = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+        else if (product_name == "lcontract") {
+            // Left contraction: A << B = rwdg(lcmpl(A), B)
+            // For EGA3D: lcmpl = cmpl
+            //                          = cmpl( wdg( cmpl(cmpl(A)), cmpl(B) ) )
+            auto lhs = apply_rules_to_mv(apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules),
+                                         cmpl_ega3d_rules);
+            auto rhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
-                wdg_ega3d_rules);
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega3d_rules);
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
         }
 
-        if (product_name == "rgpr (alternative)") {
+        else if (product_name == "rcontract") {
+            // Right contraction: A >> B = rwdg(A, rcmpl(B)))
+            // For EGA3D: lcmpl = rcmpl = cmpl
+            //                           = cmpl( wdg( cmpl(A),cmpl(cmpl(B)) )  )
+            auto lhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+            auto rhs = apply_rules_to_mv(apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules),
+                                         cmpl_ega3d_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega3d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
+        }
+
+        else if (product_name == "lexpand") {
+            // Left expansion: lexpand(A,B) = wdg(lcmpl(A), B)
+            // For EGA3D: lcmpl = cmpl
+            auto lhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+            auto rhs = mv3d_basis;
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_ega3d_rules);
+        }
+
+        else if (product_name == "rexpand") {
+            // Right expansion: rexpand(A,B) = wdg(A, rcmpl(B))
+            // For EGA3D: rcmpl = cmpl
+            auto lhs = mv3d_basis;
+            auto rhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_ega3d_rules);
+        }
+
+        else if (product_name == "rgpr") {
+            // Regressive geometric: rgpr(A,B) = lcmpl(gpr(rcmpl(A), rcmpl(B)))
+            //                                 =  cmpl(gpr( cmpl(A),  cmpl(B))) in ega3d
+            auto basis_cmpl_func = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
+                gpr_ega3d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
+        }
+
+        else if (product_name == "rgpr (alternative)") {
 
             // calculation of the regressive geometric product based on the "anti
             // transwedge product" as proposed by Lengyel
@@ -753,46 +959,74 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return tab_res;
         }
 
-        else if (product_name == "lcontract") {
-            // Left contraction: A << B = rwdg(lcmpl(A), B)
-            // For EGA3D: lcmpl = cmpl
-            //                          = cmpl( wdg( cmpl(cmpl(A)), cmpl(B) ) )
-            auto lhs = apply_rules_to_mv(apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules),
-                                         cmpl_ega3d_rules);
-            auto rhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+        else if (product_name == "rtwdg1") {
+
+            // calculation of the regressive geometric product based on the "anti
+            // transwedge product" as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: regressive geometric product is derived from primitives of
+            //            Grassmann algebra exclusively (only requires wdg, rwdg, cmpl and
+            //            dual). Shows that geometric product is not more fundamental,
+            //            since it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: cmpl(wdg(c,a))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = coeff;
+                auto rhs_arg = mv3d_basis;
+                auto lhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_ega3d_rules),
+                    cmpl_ega3d_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side:
+            // cmpl(wdg(b,cmpl(dual(c))))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = mv3d_basis;
+                auto rhs_arg = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, dual_ega3d_rules), cmpl_ega3d_rules);
+                auto rhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_ega3d_rules),
+                    cmpl_ega3d_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
+                mv3d_basis, mv3d_basis_kvec, wdg_ega3d_rules, cmpl_ega3d_rules, get_lhs,
+                get_rhs);
+
+            tab_res = add_prd_tab(tab[1], tab[2]);
+            tab_res = add_prd_tab(tab_res, tab[3]);
+            return tab_res; // return regressive transwedge product for k=1
+        }
+
+        else if (product_name == "rwdg") {
+            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
+            //                             =  cmpl(wdg( cmpl(A),  cmpl(B))) in ega3d
+            auto basis_cmpl_func = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega3d_rules);
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
+                wdg_ega3d_rules);
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
         }
 
-        else if (product_name == "rcontract") {
-            // Right contraction: A >> B = rwdg(A, rcmpl(B)))
-            // For EGA3D: lcmpl = rcmpl = cmpl
-            //                           = cmpl( wdg( cmpl(A),cmpl(cmpl(B)) )  )
-            auto lhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
-            auto rhs = apply_rules_to_mv(apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules),
-                                         cmpl_ega3d_rules);
+        else if (product_name == "rdot") {
+            // Regressive inner: rdot(A,B) = lcmpl(dot(rcmpl(A), rcmpl(B)))
+            //                             =  cmpl(dot( cmpl(A),  cmpl(B))) in ega3d
+            auto basis_cmpl_func = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega3d_rules);
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
+                dot_ega3d_rules);
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
-        }
-
-        else if (product_name == "lexpand") {
-            // Left expansion: lexpand(A,B) = wdg(lcmpl(A), B)
-            // For EGA3D: lcmpl = cmpl
-            auto lhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
-            auto rhs = mv3d_basis;
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_ega3d_rules);
-        }
-
-        else if (product_name == "rexpand") {
-            // Right expansion: rexpand(A,B) = wdg(A, rcmpl(B))
-            // For EGA3D: rcmpl = cmpl
-            auto lhs = mv3d_basis;
-            auto rhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_ega3d_rules);
         }
 
         else if (product_name == "sandwich_gpr") {
@@ -811,7 +1045,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 gpr_pga2dp_rules);
         }
 
-        if (product_name == "gpr (alternative)") {
+        else if (product_name == "gpr (alternative)") {
 
             // calculation of the geometric product based on the "transwedge product"
             // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
@@ -864,6 +1098,55 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return tab_res;
         }
 
+        else if (product_name == "twdg1") {
+
+            // calculation of the geometric product based on the "transwedge product"
+            // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: geometric product is derived from primitives of Grassmann
+            //            algebra exclusively (only requires wdg, rwdg, cmpl and dual).
+            //            Shows that geometric product is not more fundamental, since
+            //            it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
+            // lcmpl(wdg(a,rcmpl(a)))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_cmpl = coeff; // cmpl(cmpl(coeff)) is identity transformation
+                auto rhs_cmpl = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_cmpl, rhs_cmpl, wdg_str()),
+                    wdg_pga2dp_rules);
+                auto lhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side: rwdg(b, bulk_dual(c)) =
+            // cmpl(wdg(cmpl(b),cmpl(bulk_dual(c)))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_cmpl = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
+                auto rhs_cmpl = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, bulk_dual_pga2dp_rules), cmpl_pga2dp_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_cmpl, rhs_cmpl, wdg_str()),
+                    wdg_pga2dp_rules);
+                auto rhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_transwedge_geometric_product(
+                mv2dp_basis, mv2dp_basis_kvec, wdg_pga2dp_rules, get_lhs, get_rhs);
+
+            tab_res = add_prd_tab(tab[1], tab[2]);
+            tab_res = add_prd_tab(tab_res, tab[3]);
+            return tab_res; // return transwedge product for k=1
+        }
+
         else if (product_name == "cmt") {
             // Commutator product (=asymmetric part of the geometric product)
             //                   cmt(A,B) = asym(gpr(A,B))
@@ -886,22 +1169,83 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 dot_pga2dp_rules);
         }
 
-        else if (product_name == "rwdg") {
-            // Regressive wedge: rwdg(A,B) = cmpl(wdg(cmpl(A), cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
+        else if (product_name == "left_bulk_contract") {
+            // Left bulk contraction: A << B = cmpl(wdg(cmpl(bulk_dual(A)), cmpl(B)))
+            auto lhs =
+                apply_rules_to_mv(apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules),
+                                  cmpl_pga2dp_rules);
+            auto rhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
-                wdg_pga2dp_rules);
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga2dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
         }
 
-        else if (product_name == "rdot") {
-            // Regressive inner product: rdot(A,B) = cmpl(dot(cmpl(A), cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
+        else if (product_name == "right_bulk_contract") {
+            // Right bulk contraction: A >> B = cmpl(wdg(cmpl(A), cmpl(bulk_dual(B))))
+            auto lhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
+            auto rhs =
+                apply_rules_to_mv(apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules),
+                                  cmpl_pga2dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
-                dot_pga2dp_rules);
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga2dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
+        }
+
+
+        else if (product_name == "left_weight_contract") {
+            // Left weight contraction: A << B = cmpl(wdg(cmpl(weight_dual(A)),
+            // cmpl(B)))
+            auto lhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules),
+                cmpl_pga2dp_rules);
+            auto rhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga2dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
+        }
+
+        else if (product_name == "right_weight_contract") {
+            // Right weight contraction: A >> B = cmpl(wdg(cmpl(A),
+            // cmpl(weight_dual(B))))
+            auto lhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
+            auto rhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules),
+                cmpl_pga2dp_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga2dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
+        }
+
+        else if (product_name == "left_bulk_expand") {
+            // Left bulk expansion: A <> B = wdg(bulk_dual(A), B)
+            auto lhs = apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules);
+            auto rhs = mv2dp_basis;
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_pga2dp_rules);
+        }
+
+        else if (product_name == "right_bulk_expand") {
+            // Right bulk expansion: A >< B = wdg(A, bulk_dual(B))
+            auto lhs = mv2dp_basis;
+            auto rhs = apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules);
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_pga2dp_rules);
+        }
+
+        else if (product_name == "left_weight_expand") {
+            // Left weight expansion: A <> B = wdg(weight_dual(A), B)
+            auto lhs = apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules);
+            auto rhs = mv2dp_basis;
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_pga2dp_rules);
+        }
+
+        else if (product_name == "right_weight_expand") {
+            // Right weight expansion: A >< B = wdg(A, weight_dual(B))
+            auto lhs = mv2dp_basis;
+            auto rhs = apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules);
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_pga2dp_rules);
         }
 
         else if (product_name == "rgpr") {
@@ -913,7 +1257,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
         }
 
-        if (product_name == "rgpr (alternative)") {
+        else if (product_name == "rgpr (alternative)") {
 
             // calculation of the regressive geometric product based on the "anti
             // transwedge product" as proposed by Lengyel
@@ -967,6 +1311,56 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return tab_res;
         }
 
+        else if (product_name == "rtwdg1") {
+
+            // calculation of the regressive geometric product based on the "anti
+            // transwedge product" as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: regressive geometric product is derived from primitives of
+            //            Grassmann algebra exclusively (only requires wdg, rwdg, cmpl and
+            //            dual). Shows that geometric product is not more fundamental,
+            //            since it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: cmpl(wdg(c,a))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = coeff;
+                auto rhs_arg = mv2dp_basis;
+                auto lhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_pga2dp_rules),
+                    cmpl_pga2dp_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side:
+            // cmpl(wdg(b,cmpl(dual(c))))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = mv2dp_basis;
+                auto rhs_arg = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, bulk_dual_pga2dp_rules), cmpl_pga2dp_rules);
+                auto rhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_pga2dp_rules),
+                    cmpl_pga2dp_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
+                mv2dp_basis, mv2dp_basis_kvec, wdg_pga2dp_rules, cmpl_pga2dp_rules,
+                get_lhs, get_rhs);
+
+            tab_res = add_prd_tab(tab[1], tab[2]);
+            tab_res = add_prd_tab(tab_res, tab[3]);
+            return tab_res; // return regressive transwedge product for k=1
+        }
+
         else if (product_name == "rcmt") {
             // Commutator product: cmt(A,B) = asym(gpr(A,B))
             // Regressive commutator product:
@@ -979,82 +1373,22 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return get_prd_tab_asym(full_tab);
         }
 
-        else if (product_name == "right_bulk_contract") {
-            // Right bulk contraction: A >> B = cmpl(wdg(cmpl(A), cmpl(bulk_dual(B))))
-            auto lhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
-            auto rhs =
-                apply_rules_to_mv(apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules),
-                                  cmpl_pga2dp_rules);
+        else if (product_name == "rwdg") {
+            // Regressive wedge: rwdg(A,B) = cmpl(wdg(cmpl(A), cmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga2dp_rules);
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
+                wdg_pga2dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
         }
 
-        else if (product_name == "right_weight_contract") {
-            // Right weight contraction: A >> B = cmpl(wdg(cmpl(A),
-            // cmpl(weight_dual(B))))
-            auto lhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
-            auto rhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules),
-                cmpl_pga2dp_rules);
+        else if (product_name == "rdot") {
+            // Regressive inner product: rdot(A,B) = cmpl(dot(cmpl(A), cmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga2dp_rules);
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
+                dot_pga2dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
-        }
-
-        else if (product_name == "left_bulk_contract") {
-            // Left bulk contraction: A << B = cmpl(wdg(cmpl(bulk_dual(A)), cmpl(B)))
-            auto lhs =
-                apply_rules_to_mv(apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules),
-                                  cmpl_pga2dp_rules);
-            auto rhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
-            auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga2dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
-        }
-
-        else if (product_name == "left_weight_contract") {
-            // Left weight contraction: A << B = cmpl(wdg(cmpl(weight_dual(A)),
-            // cmpl(B)))
-            auto lhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules),
-                cmpl_pga2dp_rules);
-            auto rhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
-            auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga2dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
-        }
-
-        else if (product_name == "right_bulk_expand") {
-            // Right bulk expansion: A >< B = wdg(A, bulk_dual(B))
-            auto lhs = mv2dp_basis;
-            auto rhs = apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules);
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_pga2dp_rules);
-        }
-
-        else if (product_name == "right_weight_expand") {
-            // Right weight expansion: A >< B = wdg(A, weight_dual(B))
-            auto lhs = mv2dp_basis;
-            auto rhs = apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules);
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_pga2dp_rules);
-        }
-
-        else if (product_name == "left_bulk_expand") {
-            // Left bulk expansion: A <> B = wdg(bulk_dual(A), B)
-            auto lhs = apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules);
-            auto rhs = mv2dp_basis;
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_pga2dp_rules);
-        }
-
-        else if (product_name == "left_weight_expand") {
-            // Left weight expansion: A <> B = wdg(weight_dual(A), B)
-            auto lhs = apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules);
-            auto rhs = mv2dp_basis;
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_pga2dp_rules);
         }
 
         else if (product_name == "sandwich_rgpr") {
@@ -1075,7 +1409,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 gpr_pga3dp_rules);
         }
 
-        if (product_name == "gpr (alternative)") {
+        else if (product_name == "gpr (alternative)") {
 
             // calculation of the geometric product based on the "transwedge product"
             // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
@@ -1129,6 +1463,57 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return tab_res;
         }
 
+        else if (product_name == "twdg1") {
+
+            // calculation of the geometric product based on the "transwedge product"
+            // as proposed by Lengyel (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: geometric product is derived from primitives of Grassmann
+            //            algebra exclusively (only requires wdg, rwdg, cmpl and dual).
+            //            Shows that geometric product is not more fundamental, since
+            //            it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
+            // lcmpl(wdg(a,rcmpl(a)))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_rcmpl = coeff; // rcmpl(lcmpl(coeff)) is identity transformation
+                auto rhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
+                    wdg_pga3dp_rules);
+                auto lhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side: rwdg(b, right_bulk_dual(c)) =
+            // lcmpl(wdg(rcmpl(b),rcmpl(right_bulk_dual(c)))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+                auto rhs_rcmpl = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, right_bulk_dual_pga3dp_rules),
+                    rcmpl_pga3dp_rules);
+                auto basis_tab_with_rules = apply_rules_to_tab(
+                    mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
+                    wdg_pga3dp_rules);
+                auto rhs_tab =
+                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_transwedge_geometric_product(
+                mv3dp_basis, mv3dp_basis_kvec, wdg_pga3dp_rules, get_lhs, get_rhs);
+
+            tab_res = add_prd_tab(tab[1], tab[2]);
+            tab_res = add_prd_tab(tab_res, tab[3]);
+            tab_res = add_prd_tab(tab_res, tab[4]);
+            return tab_res; // return transwedge product for k=1
+        }
+
         else if (product_name == "cmt") {
             // Commutator product (=asymmetric part of the geometric product)
             //                   cmt(A,B) = asym(gpr(A,B))
@@ -1151,22 +1536,88 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 dot_pga3dp_rules);
         }
 
-        else if (product_name == "rwdg") {
-            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+        else if (product_name == "left_bulk_contract") {
+            // Left bulk contraction: left_bulk_contract(A,B) =
+            // lcmpl(wdg(rcmpl(left_bulk_dual(A)), rcmpl(B)))
+            auto lhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv3dp_basis, left_bulk_dual_pga3dp_rules),
+                rcmpl_pga3dp_rules);
+            auto rhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
-                wdg_pga3dp_rules);
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
         }
 
-        else if (product_name == "rdot") {
-            // Regressive inner: rdot(A,B) = lcmpl(dot(rcmpl(A), rcmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+        else if (product_name == "right_bulk_contract") {
+            // Right bulk contraction:
+            // right_bulk_contract(A,B) = lcmpl(wdg(rcmpl(A),
+            // rcmpl(right_bulk_dual(B))))
+            auto lhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto rhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv3dp_basis, right_bulk_dual_pga3dp_rules),
+                rcmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
-                dot_pga3dp_rules);
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+        }
+
+        else if (product_name == "left_weight_contract") {
+            // Left weight contraction: left_weight_contract(A,B) =
+            // lcmpl(wdg(rcmpl(left_weight_dual(A)), rcmpl(B)))
+            auto lhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv3dp_basis, left_weight_dual_pga3dp_rules),
+                rcmpl_pga3dp_rules);
+            auto rhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+        }
+
+        else if (product_name == "right_weight_contract") {
+            // Right weight contraction: right_weight_contract(A,B) =
+            // lcmpl(wdg(rcmpl(A), rcmpl(right_weight_dual(B))))
+            auto lhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto rhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv3dp_basis, right_weight_dual_pga3dp_rules),
+                rcmpl_pga3dp_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+        }
+
+        else if (product_name == "left_bulk_expand") {
+            // Left bulk expansion: left_bulk_expand(A,B) = wdg(left_bulk_dual(A), B)
+            auto lhs = apply_rules_to_mv(mv3dp_basis, left_bulk_dual_pga3dp_rules);
+            auto rhs = mv3dp_basis;
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_pga3dp_rules);
+        }
+
+        else if (product_name == "right_bulk_expand") {
+            // Right bulk expansion: right_bulk_expand(A,B) = wdg(A,
+            // right_bulk_dual(B))
+            auto lhs = mv3dp_basis;
+            auto rhs = apply_rules_to_mv(mv3dp_basis, right_bulk_dual_pga3dp_rules);
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_pga3dp_rules);
+        }
+
+        else if (product_name == "left_weight_expand") {
+            // Left weight expansion:
+            // left_weight_expand(A,B) = wdg(left_weight_dual(A), B)
+            auto lhs = apply_rules_to_mv(mv3dp_basis, left_weight_dual_pga3dp_rules);
+            auto rhs = mv3dp_basis;
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_pga3dp_rules);
+        }
+
+        else if (product_name == "right_weight_expand") {
+            // Right weight expansion: right_weight_expand(A,B) = wdg(A,
+            // right_weight_dual(B))
+            auto lhs = mv3dp_basis;
+            auto rhs = apply_rules_to_mv(mv3dp_basis, right_weight_dual_pga3dp_rules);
+            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
+                                      wdg_pga3dp_rules);
         }
 
         else if (product_name == "rgpr") {
@@ -1178,7 +1629,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
         }
 
-        if (product_name == "rgpr (alternative)") {
+        else if (product_name == "rgpr (alternative)") {
 
             // calculation of the regressive geometric product based on the "anti
             // transwedge product" as proposed by Lengyel
@@ -1233,6 +1684,58 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return tab_res;
         }
 
+        else if (product_name == "rtwdg1") {
+
+            // calculation of the regressive geometric product based on the "anti
+            // transwedge product" as proposed by Lengyel
+            // (https://terathon.com/blog/transwedge-product.html)
+
+            // advantage: regressive geometric product is derived from primitives of
+            //            Grassmann algebra exclusively (only requires wdg, rwdg, cmpl and
+            //            dual). Shows that geometric product is not more fundamental,
+            //            since it can be derived from other primitives.
+
+            // Lambda for calculating left-hand side: lcmpl(wdg(c,a))
+            auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = coeff;
+                auto rhs_arg = mv3dp_basis;
+                auto lhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_pga3dp_rules),
+                    lcmpl_pga3dp_rules);
+                return lhs_tab[index];
+            };
+
+            // Lambda for calculating right-hand side:
+            // lcmpl(wdg(b,rcmpl(right_bulk_dual(c))))
+            auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
+                auto lhs_arg = mv3dp_basis;
+                auto rhs_arg = apply_rules_to_mv(
+                    apply_rules_to_mv(coeff, right_bulk_dual_pga3dp_rules),
+                    rcmpl_pga3dp_rules);
+                auto rhs_tab = apply_rules_to_tab(
+                    apply_rules_to_tab(
+                        mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
+                        wdg_pga3dp_rules),
+                    lcmpl_pga3dp_rules);
+                mvec_coeff rhs = rhs_tab[index];
+                for (size_t i = 0; i < coeff.size(); ++i) {
+                    rhs[i] = rhs_tab[i][index];
+                }
+                return rhs;
+            };
+
+            auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
+                mv3dp_basis, mv3dp_basis_kvec, wdg_pga3dp_rules, rcmpl_pga3dp_rules,
+                get_lhs, get_rhs);
+
+            tab_res = add_prd_tab(tab[1], tab[2]);
+            tab_res = add_prd_tab(tab_res, tab[3]);
+            tab_res = add_prd_tab(tab_res, tab[4]);
+            return tab_res; // return regressive transwedge product for k=1
+        }
+
         else if (product_name == "rcmt") {
             // Commutator product: cmt(A,B) = asym(gpr(A,B))
             // Regressive commutator product:
@@ -1245,88 +1748,22 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return get_prd_tab_asym(full_tab);
         }
 
-        else if (product_name == "right_bulk_contract") {
-            // Right bulk contraction:
-            // right_bulk_contract(A,B) = lcmpl(wdg(rcmpl(A),
-            // rcmpl(right_bulk_dual(B))))
-            auto lhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
-            auto rhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv3dp_basis, right_bulk_dual_pga3dp_rules),
-                rcmpl_pga3dp_rules);
+        else if (product_name == "rwdg") {
+            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
+                wdg_pga3dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
         }
 
-        else if (product_name == "right_weight_contract") {
-            // Right weight contraction: right_weight_contract(A,B) =
-            // lcmpl(wdg(rcmpl(A), rcmpl(right_weight_dual(B))))
-            auto lhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
-            auto rhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv3dp_basis, right_weight_dual_pga3dp_rules),
-                rcmpl_pga3dp_rules);
+        else if (product_name == "rdot") {
+            // Regressive inner: rdot(A,B) = lcmpl(dot(rcmpl(A), rcmpl(B)))
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
+                dot_pga3dp_rules);
             return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
-        }
-
-        else if (product_name == "left_bulk_contract") {
-            // Left bulk contraction: left_bulk_contract(A,B) =
-            // lcmpl(wdg(rcmpl(left_bulk_dual(A)), rcmpl(B)))
-            auto lhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv3dp_basis, left_bulk_dual_pga3dp_rules),
-                rcmpl_pga3dp_rules);
-            auto rhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
-            auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
-        }
-
-        else if (product_name == "left_weight_contract") {
-            // Left weight contraction: left_weight_contract(A,B) =
-            // lcmpl(wdg(rcmpl(left_weight_dual(A)), rcmpl(B)))
-            auto lhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv3dp_basis, left_weight_dual_pga3dp_rules),
-                rcmpl_pga3dp_rules);
-            auto rhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
-            auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
-        }
-
-        else if (product_name == "right_bulk_expand") {
-            // Right bulk expansion: right_bulk_expand(A,B) = wdg(A,
-            // right_bulk_dual(B))
-            auto lhs = mv3dp_basis;
-            auto rhs = apply_rules_to_mv(mv3dp_basis, right_bulk_dual_pga3dp_rules);
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_pga3dp_rules);
-        }
-
-        else if (product_name == "right_weight_expand") {
-            // Right weight expansion: right_weight_expand(A,B) = wdg(A,
-            // right_weight_dual(B))
-            auto lhs = mv3dp_basis;
-            auto rhs = apply_rules_to_mv(mv3dp_basis, right_weight_dual_pga3dp_rules);
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_pga3dp_rules);
-        }
-
-        else if (product_name == "left_bulk_expand") {
-            // Left bulk expansion: left_bulk_expand(A,B) = wdg(left_bulk_dual(A), B)
-            auto lhs = apply_rules_to_mv(mv3dp_basis, left_bulk_dual_pga3dp_rules);
-            auto rhs = mv3dp_basis;
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_pga3dp_rules);
-        }
-
-        else if (product_name == "left_weight_expand") {
-            // Left weight expansion:
-            // left_weight_expand(A,B) = wdg(left_weight_dual(A), B)
-            auto lhs = apply_rules_to_mv(mv3dp_basis, left_weight_dual_pga3dp_rules);
-            auto rhs = mv3dp_basis;
-            return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_pga3dp_rules);
         }
 
         else if (product_name == "sandwich_rgpr") {

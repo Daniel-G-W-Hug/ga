@@ -196,6 +196,19 @@ ProductConfig get_ega2d_gpr_alt_config()
             .show_basis_table = true};
 }
 
+ProductConfig get_ega2d_twdg1_config()
+{
+    return {.product_name = "twdg1",
+            .description = "ega2d transwedge product for k=1 (see gpr (alternative))",
+            .display_name = "transwedge product (k=1)",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases{}, // no cases, just for generating the product tables
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
 ProductConfig get_ega2d_cmt_config()
 {
     return {.product_name = "cmt",
@@ -274,44 +287,6 @@ ProductConfig get_ega2d_dot_alt_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
-}
-
-ProductConfig get_ega2d_rwdg_config()
-{
-    return {.product_name = "rwdg",
-            .description = "ega2d regressive wedge product",
-            .display_name = "regressive wedge product",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {{"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                      {"rwdg(ps,ps) -> ps", "svps1", "svps2", "ps", "ps"},
-                      {"rwdg(ps,vec) -> vec", "svps", "svps", "ps", "vec"},
-                      {"rwdg(vec,ps) -> vec", "svps", "svps", "vec", "ps"},
-                      {"rwdg(ps,s) -> s", "svps", "svps", "ps", "s"},
-                      {"rwdg(s,ps) -> s", "svps", "svps", "s", "ps"},
-                      {"rwdg(vec,vec) -> s", "svps1", "svps2", "vec", "vec"},
-                      {"rwdg(vec,s) -> 0", "svps", "svps", "vec", "s"},
-                      {"rwdg(s,vec) -> 0", "svps", "svps", "s", "vec"},
-                      {"rwdg(s,s) -> 0", "svps1", "svps2", "s", "s"}},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
-}
-
-ProductConfig get_ega2d_rgpr_alt_config()
-{
-    return {.product_name = "rgpr (alternative)",
-            .description = "ega2d regressive geometric product (defined from Grassmann "
-                           "algebra operations)",
-            .display_name =
-                "regressive geometric product (alternative definition from Grassmann "
-                "algebra operations)",
-            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
-            // "right_filter"}
-            .cases{}, // no cases, just for generating the product tables
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -420,6 +395,87 @@ ProductConfig get_ega2d_rexpand_config()
                     // Expansions show basis product tables but no specific cases for
                     // ega2d
                 },
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
+ProductConfig get_ega2d_rgpr_config()
+{
+    return {.product_name = "rgpr",
+            .description = "ega2d regressive geometric product",
+            .display_name = "regressive geometric product",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases = {},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
+ProductConfig get_ega2d_rgpr_alt_config()
+{
+    return {.product_name = "rgpr (alternative)",
+            .description = "ega2d regressive geometric product (defined from Grassmann "
+                           "algebra operations)",
+            .display_name =
+                "regressive geometric product (alternative definition from Grassmann "
+                "algebra operations)",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases{}, // no cases, just for generating the product tables
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
+ProductConfig get_ega2d_rtwdg1_config()
+{
+    return {.product_name = "rtwdg1",
+            .description =
+                "ega2d regressive transwedge product for k=1 (see gpr (alternative))",
+            .display_name = "regressive transwedge product (k=1)",
+            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+            // "right_filter"}
+            .cases{}, // no cases, just for generating the product tables
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
+ProductConfig get_ega2d_rwdg_config()
+{
+    return {.product_name = "rwdg",
+            .description = "ega2d regressive wedge product",
+            .display_name = "regressive wedge product",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases = {{"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      {"rwdg(ps,ps) -> ps", "svps1", "svps2", "ps", "ps"},
+                      {"rwdg(ps,vec) -> vec", "svps", "svps", "ps", "vec"},
+                      {"rwdg(vec,ps) -> vec", "svps", "svps", "vec", "ps"},
+                      {"rwdg(ps,s) -> s", "svps", "svps", "ps", "s"},
+                      {"rwdg(s,ps) -> s", "svps", "svps", "s", "ps"},
+                      {"rwdg(vec,vec) -> s", "svps1", "svps2", "vec", "vec"},
+                      {"rwdg(vec,s) -> 0", "svps", "svps", "vec", "s"},
+                      {"rwdg(s,vec) -> 0", "svps", "svps", "s", "vec"},
+                      {"rwdg(s,s) -> 0", "svps1", "svps2", "s", "s"}},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
+ProductConfig get_ega2d_rdot_config()
+{
+    return {.product_name = "rdot",
+            .description = "ega2d regressive inner product",
+            .display_name = "regressive inner product",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases = {{"rdot(mv,mv) -> s", "A", "B", "mv", "mv"},
+                      {"rdot(ps,ps) -> s", "svps1", "svps2", "ps", "ps"},
+                      {"rdot(vec,vec) -> s", "svps1", "svps2", "vec", "vec"},
+                      {"rdot(s,s) -> s", "svps1", "svps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
