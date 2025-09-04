@@ -52,8 +52,8 @@ equation (\ref{eq:scalar3d}) is the scalar part $s_{3d}$, equation (\ref{eq:vec3
 vector part $v_{3d}$, equation (\ref{eq:bivec3d}) is the bivector part $b_{3d}$, and
 equation (\ref{eq:pscalar3d}) is the pseudoscalar part $ps_{3d}$. The index $3d$ is
 typically omitted when clear from context. Comparing to the $2d$-case it becomes obvious,
-that all parts depend on context, specifically on the dimensionality of the modeled space,
-and thus need to be defined and treated accordingly (\emph{hint}: since \Cpp is a
+that all parts depend on context, specifically on the dimensionality of the modelled
+space, and thus need to be defined and treated accordingly (\emph{hint}: since \Cpp is a
 statically typed language those types need to be well-defined and distinguishable from
 each other). The basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31},
 \bv{12}, \bv{123}\}$. Using these components a multivector $M$ of $3d$ space is defined as
@@ -75,19 +75,19 @@ TODO: \emph{fill in pga2d and pga3d definitions here} \\
 
 The inner product between multivectors $A$ and $B$ is defined as
 \begin{equation}
-    A \bullet B = A^{T} G B
+    A \cdot B = A^{T} G B
     \label{eg:inner_product_metric}
 \end{equation}
 with $G$ as the extended metric and matrix multiplication on the right hand side. It
 satisfies the identity
 \begin{equation}
-    A \bullet B  = \grprj{A \wedgedot \tilde{B}}{0} = \grprj{ B \wedgedot \tilde{A} }{0}
+    A \cdot B  = \grprj{A \wedgedot \tilde{B}}{0} = \grprj{ B \wedgedot \tilde{A} }{0}
     \label{eq:inner_product_link_to_gpr}
 \end{equation}
 where $\wedgedot$ stands for the geometric product within the grade projection operator
 \grprj{}{k} for grade $k$. The norm of a multivector $A$ is defined as
 \begin{equation}
-    \nrm{A} = \sqrt{A \bullet A}
+    \nrm{A} = \sqrt{A \cdot A}
     \label{eq:norm_mv}
 \end{equation}
 with a positive argument under the square root due to the definition of the inner product.
@@ -114,7 +114,7 @@ For blades A and B, they satisfy
     \label{eq:rcontr_gpr}
     \end{align}
 \end{subequations}
-and fulfill the requirement that $A \lcontr B = A \rcontr B = A \bullet B$ whenever $A$
+and fulfill the requirement that $A \lcontr B = A \rcontr B = A \cdot B$ whenever $A$
 and $B$ have the same grade. In this case the contractions reduce to the inner product. \\
 
 
@@ -147,9 +147,9 @@ then $B \gg a$ represents a subspace of $B$. $a \wedge B$ is a $(k+1)$-blade. If
 $a_{\perp} \neq 0$ then $a \wedge B$ represents $span(a,B)$.
 
 For arguments of equal grade the contractions reduce to the dot
-product $\bullet$, so that one can write specifically for two vectors $a$ and $b$:
+product $\cdot$, so that one can write specifically for two vectors $a$ and $b$:
 \begin{equation}
-    a \wedgedot b =  a \bullet b + a \wedge b
+    a \wedgedot b =  a \cdot b + a \wedge b
 \end{equation}
 
 TODO: \emph{fill in further basic formulas here} \\

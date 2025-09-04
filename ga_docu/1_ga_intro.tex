@@ -45,22 +45,25 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
     \item Inner and interior products are grade reducing operations.
     \item The inner product combines arguments of the same type and grade, while the
     interior products involve duals of one of their arguments, combining and linking
-    arguments of danifferent grades. Inner products are linked to the metric of the modelled
+    arguments of different grades. Inner products are linked to the metric of the modelled
     space. 
     \item The outer product is a grade-increasing operation adding the grades of its
     arguments. Outer products, like the wedge product, connect subspaces represented by
     their operands and create new subspaces defined by the span of the subspaces of the
-    operands.
+    operands. They establish a join operation between the involved subspaces.
     \item Geometric products are the combination of both types of products in one
-    expression. They typically result in multivectors consisting of parts with different
-    grades as a result of the operation. Their main advantage is invertibility under
-    certain circumstances.
+    expression. They can result in multivectors consisting of parts with different grades
+    as a result of the operation. Their main advantage is invertibility under certain
+    circumstances.
     \item Regressive products use complement operations on their arguments before and
-    after applying the operation linking the arguments of the product.
+    after applying the operation linking the arguments of the product. Regressive products
+    create an intersection of the spaces used by their arguments, thus effectively
+    creating a meet operation of between the involved spaces.
     \item Sandwich products are used to implement orthogonal transformations of geometric
     objects. They realize general motions including rotation and translation by
-    concatenating two consecutive reflections. This can be achieved by multiplying the
-    object symmetrically from the left and right hand side with the appropriate objects.
+    concatenating two consecutive reflections, which are used as primitives. This can be
+    achieved by multiplying the object symmetrically from the left and right hand side
+    with the appropriate objects, we either call rotors in $ega$ or motors in $pga$.
 \end{itemize}
 
 The complement operation used in this library is defined
@@ -83,7 +86,8 @@ or $\bar{u}$. Connecting the object and its complement with the wedge products c
 object that fills the available space in the sense of requiring all basis elements of the
 space to represent it. The full space itself is represented by the pseudoscalar of that
 space, since the pseudoscalar $I_n$ is formed formed by the product of all $n$ basis
-vectors of the space. \\
+vectors of the space. An implication of the definition is that the complement ($\ubar{u}$
+or $\bar{u}$) is orthogonal to $u$. \\
 
 It can be shown that the left and right complements fulfill
 \begin{equation}
@@ -106,8 +110,8 @@ The same complement is applied to both arguments first, the resulting expression
 combined with the wedge product, and the inverse complement operation is used to transform
 the outcome into the final result, the regressive product. The inverted wedge symbol
 $(\vee)$ is used for the regressive wedge product. Both definitions~(\ref{eq:rwdg_std})
-and~(\ref{eq:rwdg_alt}) are equivalent, but~(\ref{eq:rwdg_std}) is to derive expressions
-for regressive products in \path{ga_prdxpr}. \\
+and~(\ref{eq:rwdg_alt}) are equivalent. Equation~(\ref{eq:rwdg_std}) is used to derive
+expressions for regressive products in \path{ga_prdxpr}. \\
 
 There are some additional formulas for complements which are useful for working with GA
 expressions and thus are provided here for reference. Taking the right and left
@@ -131,23 +135,31 @@ right hand sides of the equations we end up with
     u \wedge v & = & \overline{\ubar{u} \vee \ubar{v}} \slabel{eq:wdg_std} \\
     u \wedge v & = & \underline{\bar{u} \vee \bar{v}} \slabel{eq:wdg_alt}
 \end{subeqnarray}
-This shows that the outer product and the regressive outer product can be expressed by
-each other.
+which shows that the outer and the regressive outer product can be expressed by each
+other. \\
 
 The complement operation is used to define a unique dualization operation that works for
-cases where the metric is non-degenerate and even for cases where it is degenerate, like
-in projective geometric algebra $PGA$. This is the main advantage compared to the usual
-prodedure of dualization by multiplying the object with the pseudoscalar (or its inverse),
-since the latter breaks down for spaces with degenerate metrics. The right dual
-$A^{\star}$ is defined as $A^{\star} = \overline{GA}$, where $A$ is an arbitrary
-multivector, $G$ the extended metric and $GA$ a matrix-vector-product between them.
-$A^{\star}$ is also called the Hodge dual. There is also a corresponding left dualization
-operation defined as $A_{\star} = \underline{GA}$. $\star$ is used as dualization operator
-(Hodge star) in both cases. The difference between the hodge dual and the complement is
-taking the metric into account before taking the corresponding complement. However, this
-does not lead to different results in spaces where the metric is the identity, but is
-relevant for spaces with a more involved metric, e.g. in projective spaces. Relations to
-the geometric product are given by
+cases with non-degenerate as well as for cases with degenerate metric, like in projective
+geometric algebra $PGA$. This is the main advantage compared to the usual prodedure of
+dualization by multiplying the object with the pseudoscalar (or its inverse) using the
+geometric product, since the latter breaks down for spaces with degenerate metrics. \\
+
+The right dual $A^{\star}$ is defined as $A^{\star} = \overline{GA}$, where $A$ is an
+arbitrary multivector, $G$ the extended metric and $GA$ a matrix-vector-product between
+them. $A^{\star}$ is also called the Hodge dual. There is also a corresponding left
+dualization operation defined as $A_{\star} = \underline{GA}$. $\star$ is used as
+dualization operator (Hodge star) in both cases. The difference between the hodge dual and
+the complement is taking the metric into account before taking the corresponding
+complement. However, this does not lead to different results in spaces where the metric is
+the identity, but is relevant for spaces with a more involved metric, e.g. in projective
+spaces. \\
+
+In a two-dimensional algebra, like $ega2d$ the effect of the right dual on a vector $u$ is
+to turn the vector by $+90°$, i.e. into the orientation of $\bv{12}$, while the left dual
+turns the vector by $-90°$, i.e. into the direction against the orientientation of
+$\bv{12}$. This statement is valid for both right- and left-handed coordinate systems. \\
+
+Relations to the geometric product are given by
 \begin{subeqnarray}
     A^{\star} & = &  A^{\dagger} \wedgedot I_n \slabel{eq:hodge_right} \\
     A_{\star} & = & I_n \wedgedot A^{\dagger} \slabel{eq:hodge_left}
@@ -157,9 +169,9 @@ $n$-dimensional space and where $\dagger$ is the reversion operation and $\wedge
 the symbol for the geometric product. Following identities hold for operands of same
 grade. They link the outer product and the dot product in that case: 
 \begin{subeqnarray}
-    A \wedge B^{\star} & = & (A \bullet B) I_n, \quad \text{when \path{gr(A)} =
+    A \wedge B^{\star} & = & (A \cdot B) I_n, \quad \text{when \path{gr(A)} =
     \path{gr(B)}} \\
-    A_{\star} \wedge B & = & (A \bullet B) I_n, \quad \text{when \path{gr(A)} =
+    A_{\star} \wedge B & = & (A \cdot B) I_n, \quad \text{when \path{gr(A)} =
     \path{gr(B)}}
 \end{subeqnarray}
 The influence of the
@@ -174,10 +186,15 @@ which also depends on the dimension of the modelled space:
 \item $pga3dp: A^{\star} = \text{\path{right_bulk_dual(A)}}$, $A_{\star} =
 \text{\path{left_bulk_dual(A)}}$
 \end{itemize}
-In even dimensional spaces we have to distinguish left and right operations, while in odd
-dimensional spaces we don't, since they produce the same result. For projective algebras,
-like $pga$, we use only the bulk part for the dualization operation with the Hodge star (a
-consequence of the degenerate metric). \\
+In even dimensional spaces ($ega2d$, $pga3dp$) we have to distinguish left and right
+operations, while in odd dimensional spaces ($ega3d$, $pga2dp$) we don't, since they
+produce the same result. For projective algebras, like $pga$, we use only the bulk part
+for the dualization operation with the Hodge star (a consequence of the extended
+degenerate metric, which results in some terms, i.e. the weight terms, being multiplied by
+zero). The "left" operations are typically used on the left-hand side of the operation and
+the "right" operations on the right-hand side of the product operator. The only deviation
+from that pattern occurs for the definition of the regressive products, as defined below.
+\\
 
 Following bi-argument operations $\emph{op}(a,b) = a \; op \; b$ and their regressive
 variants $\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are implemented
@@ -185,10 +202,18 @@ variants $\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are imp
 $A$ vs. $a$ implies $gr(A) \ge gr(a)$, where $gr(arg)$ returns the grade of the argument
 $arg$:
 \begin{itemize}
-    \item inner product, delivering a scalar: $a \bullet b$, \path{dot(a,b)}
+    \item inner product, delivering a scalar: $a \cdot b$, \path{dot(a,b)}
     \item outer product of a $j-$ and $k-$vector, delivering a $j+k$-vector in
     $span(a,b)$: $a \wedge b$, \path{wdg(a,b)}
     \item geometric product:  $a \wedgedot b$, \path{operator*(a,b)}
+    \begin{itemize}
+        \item For vectors $a$ and $b$:  $a \wedgedot b = a \cdot b + a \wedge b$
+        \item For a vector $a$ and a multivector $B$:
+        $a \wedgedot B = B \gg a + a \wedge B$
+                \item For a multivector $A$ and a vector $b$:
+        $A \wedgedot b = b \ll A + A \wedge b$
+    \end{itemize}
+
     \item commutator product (the asymmetric part of the geometric product): $cmt(a,b) =
     \frac{1}{2}(a \wedgedot b - b \wedgedot a)$,
     \path{cmt(a,b)}
@@ -219,6 +244,69 @@ $arg$:
 \end{itemize}
 where the items from the left contraction downwards are all considered interior products.
 They operate on subspaces after applying a dualization operation to one operand. \\
+
+\cite{Lengyel_transwedge_product:2025} has shown that the geometric product can be derived
+by using operations from Grassmann algebra exclusively. These are the wedge product, the
+complement and the duality operations. This demonstrates that the geometric product is not
+a fundamental operation in its own right, but can be derived from even more fundamental
+basic operations.
+
+For that purpose Lengyel introduced the transwedge product of order $k$ by following
+definition:
+\begin{equation}
+    a \underset{k}{\doublewedge} b = \sum_{c \, \in \, \mathcal{B}_k}
+    (\ubar{c}\vee a) \wedge (b \vee \rightbulkdual{c})
+    \label{eq:twdg_orig}
+\end{equation}
+where $\mathcal{B}_k$ is the set of all basis elements of order $k$. For $ega3d$ it means
+for example $\mathcal{B}_0 = \{1\}$, $\mathcal{B}_1 = \{\bv{1}, \bv{2}, \bv{3}\}$,
+$\mathcal{B}_2 = \{\bv{23}, \bv{31}, \bv{12}\}$, and $\mathcal{B}_3 = \{\bv{123}\}$. From
+these expressions the geometric product can be formed by
+\begin{equation}
+    a \wedgedot b = \sum_{k \, = \, 0}^{n} (-1)^{k(k-1)/2} a \underset{k}{\doublewedge} b
+    \label{eq:grp_twdg}
+\end{equation}
+
+For $k=0$ the formula yields the outer product (wedge product). For higher values of $k$
+other products are generated which sum up to the full geometric product. The transwedge
+products helps to decompose the geometric product into a sum of terms. The most
+interesting terms for applications beyond the wedge product resulting for $k=0$ is the
+transwedge product resulting for the order $k=1$. \\
+
+The product tables for all products are generated in \path{ga_prdxpr}, and coefficient
+expressions can be generated based on those product tables. For that purpose the
+regressive wedge product can be replaced by the wedge product using the complement-based
+definitions given in equations~(\ref{eq:double_cmpl}) to~(\ref{eq:wdg_alt}). That means
+for example that equation~(\ref{eq:twdg_orig}) can be written equivalently as
+\begin{equation}
+    a \underset{k}{\doublewedge} b = \sum_{c \, \in \, \mathcal{B}_k}
+    (\underline{c \wedge \bar{a}}) \wedge
+    (\underline{\bar{b} \wedge \overline{\rightbulkdual{c}}})
+    \label{eq:twdg_wdg}
+\end{equation}
+expressing it by only using the wedge product. \\
+
+Since every product can by assigned a corresponding regressive product in analogy to
+definition~(\ref{eq:rwdg_std}) or~(\ref{eq:rwdg_alt}), the transwedge
+product~(\ref{eq:twdg_orig}) also has a regressive form:
+\begin{equation}
+    a \underset{k}{\doublevee} b \equiv
+    \overline{\ubar{a} \underset{k}{\doublewedge} \ubar{b}} =
+    \sum_{c \, \in \, \mathcal{B}_k} \overline{
+    (\ubar{c}\vee \ubar{a}) \wedge (\ubar{b} \vee \rightbulkdual{c})}
+    \label{eq:rtwdg_orig}
+\end{equation}
+which in turn can be expressed in terms of the wedge product exclusively as
+\begin{equation}
+    a \underset{k}{\doublevee} b = \sum_{c \, \in \, \mathcal{B}_k}  \overline{
+    (\underline{c\vee a}) \wedge (\underline{b \vee \overline{\rightbulkdual{c}}})}
+    \label{eq:rtwdg_wdg}
+\end{equation}
+for calculation of the product tables in \path{ga_prdxpr}. \\
+
+% Missing products needed for specific applications can be implemented in the ga library
+% easily, if required with minor effort. \\
+
 
 
 TODO: \emph{fill in further introductory notes here} \\

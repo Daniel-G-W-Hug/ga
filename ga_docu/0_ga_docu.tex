@@ -78,8 +78,10 @@
 % bulk and weight (by adding a filled or empty circle as right downstairs index)
 \newcommand{\bulk}[1]{\ensuremath{{#1}_\bullet}}
 \newcommand{\weight}[1]{\ensuremath{{#1}_\circ}}
-\newcommand{\bulkdual}[1]{\ensuremath{{#1}_\star}}
-\newcommand{\weightdual}[1]{\ensuremath{{#1}_\circ}}
+\newcommand{\leftbulkdual}[1]{\ensuremath{{#1}_\star}}
+\newcommand{\rightbulkdual}[1]{\ensuremath{{#1}^\star}}
+\newcommand{\leftweightdual}[1]{\ensuremath{{#1}_\smallstar}}
+\newcommand{\rightweightdual}[1]{\ensuremath{{#1}^\smallstar}}
 
 % parallel sign scaled to the hight of the perpendicular sign (package scalerel)
 \newcommand*{\parall}{\stretchrel*{\parallel}{\perp}}
@@ -97,7 +99,6 @@
 % in addition to \nrm{} we need \bulknrm and \weightnrm{}
 \newcommand{\bulknrm}[1]{\ensuremath{\bulk{\nrm{#1}}}}
 \newcommand{\weightnrm}[1]{\ensuremath{\weight{\nrm{#1}}}}
-
 
 
 \begin{document}

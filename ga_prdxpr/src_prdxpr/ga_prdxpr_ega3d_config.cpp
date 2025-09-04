@@ -252,7 +252,8 @@ ProductConfig get_ega3d_twdg1_config()
             // .cases{}, // no cases, just for generating the product tables
             .cases = {{"bivec * bivec -> bivec", "svBps1", "svBps2", "bivec", "bivec"},
                       {"bivec * vec -> vec", "svBps", "svBps", "bivec", "vec"},
-                      {"vec * bivec -> vec", "svBps", "svBps", "vec", "bivec"}},
+                      {"vec * bivec -> vec", "svBps", "svBps", "vec", "bivec"},
+                      {"vec * vec -> s", "svBps1", "svBps1", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

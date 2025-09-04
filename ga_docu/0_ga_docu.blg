@@ -3,44 +3,44 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: 0_ga_docu.aux
 The style file: apalike.bst
 Database file #1: 9_ga_literature-db.bib
-You've used 6 entries,
+You've used 7 entries,
             1935 wiz_defined-function locations,
-            507 strings with 4743 characters,
-and the built_in function-call counts, 1752 in all, are:
-= -- 165
-> -- 54
-< -- 7
-+ -- 19
-- -- 16
-* -- 119
-:= -- 332
-add.period$ -- 18
-call.type$ -- 6
-change.case$ -- 36
-chr.to.int$ -- 5
-cite$ -- 6
-duplicate$ -- 80
-empty$ -- 127
-format.name$ -- 26
-if$ -- 333
+            511 strings with 4897 characters,
+and the built_in function-call counts, 2022 in all, are:
+= -- 191
+> -- 61
+< -- 8
++ -- 21
+- -- 18
+* -- 136
+:= -- 384
+add.period$ -- 21
+call.type$ -- 7
+change.case$ -- 42
+chr.to.int$ -- 6
+cite$ -- 7
+duplicate$ -- 93
+empty$ -- 147
+format.name$ -- 29
+if$ -- 384
 int.to.chr$ -- 2
 int.to.str$ -- 0
-missing$ -- 8
-newline$ -- 33
-num.names$ -- 18
-pop$ -- 33
+missing$ -- 9
+newline$ -- 38
+num.names$ -- 21
+pop$ -- 38
 preamble$ -- 1
-purify$ -- 38
+purify$ -- 44
 quote$ -- 0
-skip$ -- 67
+skip$ -- 78
 stack$ -- 0
-substring$ -- 74
-swap$ -- 7
+substring$ -- 86
+swap$ -- 8
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 32
+type$ -- 38
 warning$ -- 0
-while$ -- 12
+while$ -- 14
 width$ -- 0
-write$ -- 77
+write$ -- 89
