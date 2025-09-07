@@ -389,7 +389,8 @@ ProductConfig get_ega3d_lexpand_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {{"lexpand(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                      {"lexpand(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"}}};
+                      {"lexpand(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
+                      {"lexpand(vec,vec) -> ps", "svBps1", "svBps1", "vec", "vec"}}};
 }
 
 ProductConfig get_ega3d_rexpand_config()
@@ -400,7 +401,8 @@ ProductConfig get_ega3d_rexpand_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {{"rexpand(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                      {"rexpand(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"}}};
+                      {"rexpand(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
+                      {"rexpand(vec,vec) -> ps", "svBps1", "svBps2", "vec", "vec"}}};
 }
 
 ProductConfig get_ega3d_rgpr_config()
