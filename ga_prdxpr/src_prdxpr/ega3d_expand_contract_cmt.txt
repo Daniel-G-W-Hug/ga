@@ -1,0 +1,125 @@
+ega3d right expansion rexpand(vec,bivec) -> bivec:
+[                      0 ] | 1
+[                      0 ] | e1
+[                      0 ] | e2
+[                      0 ] | e3
+[  v.y * B.z - v.z * B.y ] | e23
+[ -v.x * B.z + v.z * B.x ] | e31
+[  v.x * B.y - v.y * B.x ] | e12
+[                      0 ] | e123
+
+ega3d left expansion lexpand(bivec,vec) -> bivec:
+[                      0 ] | 1
+[                      0 ] | e1
+[                      0 ] | e2
+[                      0 ] | e3
+[  B.y * v.z - B.z * v.y ] | e23
+[ -B.x * v.z + B.z * v.x ] | e31
+[  B.x * v.y - B.y * v.x ] | e12
+[                      0 ] | e123
+
+ega3d left expansion lexpand(vec,vec) -> vec // rexpand(vec,vec) -> vec:
+[                                       0 ] | 1
+[                                       0 ] | e1
+[                                       0 ] | e2
+[                                       0 ] | e3
+[                                       0 ] | e23
+[                                       0 ] | e31
+[                                       0 ] | e12
+[ v1.x * v1.x + v1.y * v1.y + v1.z * v1.z ] | e123
+
+
+
+
+
+
+
+
+
+
+
+
+
+ega3d left contraction vec << bivec -> vec:
+[                      0 ] | 1
+[  v.y * B.z - v.z * B.y ] | e1
+[ -v.x * B.z + v.z * B.x ] | e2
+[  v.x * B.y - v.y * B.x ] | e3
+[                      0 ] | e23
+[                      0 ] | e31
+[                      0 ] | e12
+[                      0 ] | e123
+
+ega3d right contraction bivec >> vec -> vec:
+[                      0 ] | 1
+[  B.y * v.z - B.z * v.y ] | e1
+[ -B.x * v.z + B.z * v.x ] | e2
+[  B.x * v.y - B.y * v.x ] | e3
+[                      0 ] | e23
+[                      0 ] | e31
+[                      0 ] | e12
+[                      0 ] | e123
+
+ega3d left contraction vec << vec -> s and vec >> vec -> s:
+[ v1.x * v2.x + v1.y * v2.y + v1.z * v2.z ] | 1
+[                                       0 ] | e1
+[                                       0 ] | e2
+[                                       0 ] | e3
+[                                       0 ] | e23
+[                                       0 ] | e31
+[                                       0 ] | e12
+[                                       0 ] | e123
+
+
+
+
+
+
+
+
+
+
+
+
+
+ega3d commutator product cmt(bivec,bivec) -> bivec:
+[                          0 ] | 1
+[                          0 ] | e1
+[                          0 ] | e2
+[                          0 ] | e3
+[ -B1.y * B2.z + B1.z * B2.y ] | e23
+[  B1.x * B2.z - B1.z * B2.x ] | e31
+[ -B1.x * B2.y + B1.y * B2.x ] | e12
+[                          0 ] | e123
+
+ega3d commutator product cmt(bivec,vec) -> vec:
+[                      0 ] | 1
+[ -B.y * v.z + B.z * v.y ] | e1
+[  B.x * v.z - B.z * v.x ] | e2
+[ -B.x * v.y + B.y * v.x ] | e3
+[                      0 ] | e23
+[                      0 ] | e31
+[                      0 ] | e12
+[                      0 ] | e123
+
+ega3d commutator product cmt(vec,bivec) -> vec:
+[                      0 ] | 1
+[ -v.y * B.z + v.z * B.y ] | e1
+[  v.x * B.z - v.z * B.x ] | e2
+[ -v.x * B.y + v.y * B.x ] | e3
+[                      0 ] | e23
+[                      0 ] | e31
+[                      0 ] | e12
+[                      0 ] | e123
+
+ega3d commutator product cmt(vec,vec) -> bivec:
+[                          0 ] | 1
+[                          0 ] | e1
+[                          0 ] | e2
+[                          0 ] | e3
+[  v1.y * v2.z - v1.z * v2.y ] | e23
+[ -v1.x * v2.z + v1.z * v2.x ] | e31
+[  v1.x * v2.y - v1.y * v2.x ] | e12
+[                          0 ] | e123
+
+-------------------------------------------------------------------
