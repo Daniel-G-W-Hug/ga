@@ -25,14 +25,23 @@ else()
     message(FATAL_ERROR "sol2 not found - dependency system may not be working correctly")
 endif()
 
-# Link fmt (prefer header-only if available, otherwise regular)
-if(TARGET fmt::fmt-header-only)
-    target_link_libraries(${EXEC_NAME} PRIVATE fmt::fmt-header-only)
-elseif(TARGET fmt::fmt)
-    target_link_libraries(${EXEC_NAME} PRIVATE fmt::fmt)
-else()
-    message(FATAL_ERROR "fmt library not found - dependency system may not be working correctly")
-endif()
+# Helper function to link fmt to a target
+function(link_fmt_to_target target_name)
+    if(TARGET fmt::fmt-header-only)
+        target_link_libraries(${target_name} PRIVATE fmt::fmt-header-only)
+    elseif(TARGET fmt::fmt)
+        target_link_libraries(${target_name} PRIVATE fmt::fmt)
+        # On MSVC, fmt needs to be compiled - define FMT_HEADER_ONLY=0 to use compiled version
+        if(MSVC)
+            target_compile_definitions(${target_name} PRIVATE FMT_HEADER_ONLY=0)
+        endif()
+    else()
+        message(FATAL_ERROR "fmt library not found - dependency system may not be working correctly")
+    endif()
+endfunction()
+
+# Link fmt to executable
+link_fmt_to_target(${EXEC_NAME})
 
 # Optional readline support for better interactive experience
 if(GA_USE_READLINE AND TARGET readline::readline)

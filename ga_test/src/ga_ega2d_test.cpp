@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iostream>
 #include <tuple>
+#include <variant>
 #include <vector>
 
 #include "fmt/chrono.h"  // chrono support
@@ -2112,10 +2113,10 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(std::holds_alternative<mvec2d>(mv_full));
 
         // Test std::get access
-        CHECK(std::get<scalar2d>(mv_scalar) == doctest::Approx(2.5).epsilon(eps));
+        CHECK(to_val(std::get<scalar2d>(mv_scalar)) == doctest::Approx(2.5).epsilon(eps));
         CHECK(std::get<vec2d>(mv_vector).x == doctest::Approx(1.0).epsilon(eps));
         CHECK(std::get<vec2d>(mv_vector).y == doctest::Approx(2.0).epsilon(eps));
-        CHECK(std::get<pscalar2d>(mv_pscalar) == doctest::Approx(3.14).epsilon(eps));
+        CHECK(to_val(std::get<pscalar2d>(mv_pscalar)) == doctest::Approx(3.14).epsilon(eps));
 
         // Test mvec2d_e and mvec2d component access
         CHECK(std::get<mvec2d_e>(mv_even).c0 ==

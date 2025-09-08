@@ -37,8 +37,14 @@ class VisualComparisonTester {
         std::map<std::string, std::string> input_components;
 
         // Read manual file (using documented path pattern from CLAUDE.md)
+        // Path differs based on platform: Windows MSVC builds in Debug/Release subdirs
+#ifdef _WIN32
+        std::ifstream file(
+            "../../../ga_prdxpr/src_trafo/ga_prdxpr_transformation_manual.txt");
+#else
         std::ifstream file(
             "../../ga_prdxpr/src_trafo/ga_prdxpr_transformation_manual.txt");
+#endif
         if (!file.is_open()) {
             fmt::println("Error: Could not open manual file");
             return input_components;
@@ -378,8 +384,14 @@ class VisualComparisonTester {
     {
         std::map<std::string, std::string> expected_components;
 
+        // Path differs based on platform: Windows MSVC builds in Debug/Release subdirs
+#ifdef _WIN32
+        std::ifstream file(
+            "../../../ga_prdxpr/src_trafo/ga_prdxpr_transformation_manual.txt");
+#else
         std::ifstream file(
             "../../ga_prdxpr/src_trafo/ga_prdxpr_transformation_manual.txt");
+#endif
         if (!file.is_open()) {
             fmt::println("Error: Could not open manual file for expected results");
             return expected_components;

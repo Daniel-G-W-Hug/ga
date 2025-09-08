@@ -336,8 +336,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         auto f2 = wdg(p2p, f2_vec);                              // force f2 acting at p2
 
         auto pip = unitize(rwdg(f1, f2)); // intersection point of force lines
-        pt2d pi{pip.x, pip.y};
-        cm.add_pt(pi);
+        pt2d p_intsec{pip.x, pip.y};
+        cm.add_pt(p_intsec);
 
         // -> variant with force vectors starting at p1, p2
         // cm.add_pt(p1);
@@ -353,7 +353,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         auto p2pf = pip + f2_vec;
         pt2d p1f{p1pf.x, p1pf.y};
         pt2d p2f{p2pf.x, p2pf.y};
-        vt2d v1{pi, p1f}, v2{pi, p2f};
+        vt2d v1(p_intsec, p1f);
+        vt2d v2(p_intsec, p2f);
 
         cm.add_pt(p1f);
         cm.add_pt(p2f);
@@ -379,7 +380,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         pt2d pfres{pfresp.x, pfresp.y};
         cm.add_pt(pfres);
 
-        vt2d vres{pi, pfres};
+        vt2d vres(p_intsec, pfres);
         cm.add_vt(vres);
 
         cm.add_bivtp(fres, force_mark);

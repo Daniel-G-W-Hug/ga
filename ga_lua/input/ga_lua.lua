@@ -8,8 +8,8 @@ print("\nStarting comprehensive GA testing across all algebras...")
 print("Test precision: eps =", eps)
 
 -- Helper function to get script directory and build paths
--- local script_dir = "../ga_lua/input/" -- relative to build directory
-local script_dir = "../../ga_lua/input/" -- relative to build/ga_lua directory
+-- script_dir is set by the C++ code to handle platform-specific paths
+-- (Windows MSVC uses Debug/Release subdirs, others don't)
 
 -- Test EGA 2D functionality
 print("\n" .. string.rep("=", 60))

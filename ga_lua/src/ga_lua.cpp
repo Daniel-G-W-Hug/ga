@@ -109,12 +109,21 @@ void run_interactive_shell(sol::state& lua)
 
 std::string get_default_script_path()
 {
-#if _MSC_VER >= 1900
-    // on the msvc compiler there will be debug and release subfolders
+    // Path differs based on platform: Windows MSVC builds in Debug/Release subdirs
+#ifdef _WIN32
     return "../../../ga_lua/input/ga_lua.lua";
 #else
-    // return "../ga_lua/input/ga_lua.lua"; // when running from build directory
-    return "../../ga_lua/input/ga_lua.lua"; // when running from build/ga_lua director
+    return "../../ga_lua/input/ga_lua.lua"; // when running from build/ga_lua directory
+#endif
+}
+
+std::string get_script_directory()
+{
+    // Return directory path for Lua scripts to use via dofile()
+#ifdef _WIN32
+    return "../../../ga_lua/input/";
+#else
+    return "../../ga_lua/input/";
 #endif
 }
 
@@ -175,6 +184,9 @@ int main(int argc, char* argv[])
         register_3dp_types(lua);
         register_functions(lua);
         register_constants(lua);
+        
+        // Set script directory as global variable for platform-aware path handling
+        lua["script_dir"] = get_script_directory();
 
         if (interactive_mode) {
             run_interactive_shell(lua);
