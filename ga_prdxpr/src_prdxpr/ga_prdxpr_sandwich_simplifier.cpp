@@ -629,8 +629,8 @@ int GAAlgebraRules::getCanonicalOrderPriority(const std::string& var,
 
     // GROUP 0: Numeric coefficients (1-9) - Always first
     try {
-        std::stod(var); // Try to parse as number
-        return 1;       // All numeric coefficients get priority 1
+        (void)std::stod(var); // Try to parse as number
+        return 1;             // All numeric coefficients get priority 1
     }
     catch (...) {
         // Not a numeric coefficient, continue to other checks

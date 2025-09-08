@@ -615,24 +615,24 @@ TEST_SUITE("EGA 3D Tests")
 
         // fmt::println("");
         for (int i = -12; i <= 12; ++i) {
-            double phi = i * pi / 12;
-            auto c = vec3d(std::cos(phi), std::sin(phi), 0.0);
-            auto b = cmpl(c); // bivec, representing plane with normal c
-            v.emplace_back(std::make_tuple(phi, c));
-            // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .3f},"
+            double angle = i * pi / 12;
+            auto c_val = vec3d(std::cos(angle), std::sin(angle), 0.0);
+            auto b = cmpl(c_val); // bivec, representing plane with normal cos_val
+            v.emplace_back(std::make_tuple(angle, c_val));
+            // fmt::println("   i={: 3}: angle={: .4f}, angle={: 4.0f}°, c_val={: .3f},"
             //              " angle={: .4f}",
-            //              i, phi, rad2deg(phi), c, angle(e1_3d, c));
-            CHECK(c == rotate(e1_3d, get_rotor(e12_3d, phi)));
+            //              i, angle, rad2deg(angle), c_val, angle(e1_3d, c_val));
+            CHECK(c_val == rotate(e1_3d, get_rotor(e12_3d, angle)));
 
             // check rotate optimization
-            CHECK(rotate(e1_3d, get_rotor(e12_3d, phi)) ==
-                  rotate_opt(e1_3d, get_rotor(e12_3d, phi)));
+            CHECK(rotate(e1_3d, get_rotor(e12_3d, angle)) ==
+                  rotate_opt(e1_3d, get_rotor(e12_3d, angle)));
 
             // rotation of a ega3d multivector is to rotate the vector and bivector parts
             // exclusively
             auto mv_rev = mvec3d{scalar3d{4.0}, e1_3d, e23_3d, pscalar3d{-2.0}};
-            auto mv_rot = mvec3d{scalar3d{4.0}, c, b, pscalar3d{-2.0}};
-            CHECK(mv_rot == rotate(mv_rev, get_rotor(e12_3d, phi)));
+            auto mv_rot = mvec3d{scalar3d{4.0}, c_val, b, pscalar3d{-2.0}};
+            CHECK(mv_rot == rotate(mv_rev, get_rotor(e12_3d, angle)));
         }
 
         // check same rotation applied to many points

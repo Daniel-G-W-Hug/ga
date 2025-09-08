@@ -87,7 +87,7 @@ std::pair<std::string, int> multiply_basis_elements(const std::string& a,
                     sign *= config.metric_signature[metric_index];
 
                     // Count swaps needed to bring indices together
-                    int swaps = j - i - 1;
+                    int swaps = static_cast<int>(j - i - 1);
                     if (swaps % 2 == 1) {
                         sign *= -1;
                     }

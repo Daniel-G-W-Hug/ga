@@ -33,7 +33,7 @@ endif()
 
 if(MSVC)
   # warning level 4 and all warnings as errors
-  add_compile_options(/bigobj /Wall /W4 /WX /EHs)
+  add_compile_options(/bigobj /Wall /W4 /WX /EHs /utf-8)
 else()
   # lots of warnings and all warnings as errors
   #add_compile_options(-Wall -Wextra -pedantic -Werror)
