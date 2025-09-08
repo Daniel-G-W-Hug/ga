@@ -108,7 +108,7 @@ auto const x_axis_2dp = BiVec2dp<value_t>{0.0, 1.0, 0.0};
 // att(y-axis) = vec2dp(0, 1, 0) = y_dir_2dp = e2_2dp
 auto const y_axis_2dp = BiVec2dp<value_t>{-1.0, 0.0, 0.0};
 
-auto const H_2dp = e12_2dp; // horizon == line at infinity == cmpl(origin)
+auto const H_2dp = -e12_2dp; // horizon == line at infinity == cmpl(origin)
 
 auto const e23_2dp_mv = MVec2dp<value_t>{e23_2dp}; // e23_2dp as multivector
 auto const e31_2dp_mv = MVec2dp<value_t>{e31_2dp}; // e31_2dp as multivector
