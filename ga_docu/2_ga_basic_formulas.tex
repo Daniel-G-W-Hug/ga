@@ -1,77 +1,294 @@
-\subsection{Basic formulas}
-\label{basic_formulas}
+\subsection{Basic formulae}
+\label{basic_formulae}
 
-The following is provided for Euclidean algebra of two-dimensional space (\emph{ega2d})
-using an orthormal basis \bv{1}, \bv{2}:
+The following is provided for Euclidean geometric algebra of two-dimensional space
+(\emph{ega2d}) using an orthormal basis \bv{1}, \bv{2}:
 \begin{subequations}
     \begin{align}
-        (\bv{1})^2 & = \bv{1}^2 = +1, \;\text{and}\; (\bv{2})^2 = \bv{2}^2 = +1
-        \label{eq:ega2d_base_vec} \\
-        s_{2d} & = s\bm{1}
+        (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
+        \;\text{and}\; \bv{2}^2 = +1 \nonumber\\
+        s_{2d} & = s \, \bm{1}
         \label{eq:scalar2d} \\
         v_{2d} & = v_1\bv{1} + v_2\bv{2} 
         \label{eq:vec2d} \\
-        ps_{2d} & = ps \bv{12}  = ps\mathds{1}
+        ps_{2d} & = ps \, \bv{12}  = ps \, \pseudoscalar
         \label{eq:pscalar2d}
     \end{align}
 \end{subequations}
 equation (\ref{eq:scalar2d}) is the scalar part $s_{2d}$, equation (\ref{eq:vec2d})
 contains the vector part $v_{2d}$, and equation (\ref{eq:pscalar2d}) contains the
 pseudoscalar part $ps_{2d}$. The index $2d$ is typically omitted when clear from context.
-The basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{12}\}$. Using these components a
-multivector $M$ of $2d$ space is defined as
+The four basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{12}\}$. Using these components
+a multivector $M$ of $2d$ space is defined as
 \begin{equation}
-     M = s \bm{1} + v_1\bv{1} + v_2\bv{2} + ps\bv{12}
+     M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + ps \, \bv{12}
     \label{eq:mvec2d}   
 \end{equation}
-where equation (\ref{eq:mvec2d}) contains three parts: the scalar part $s\bm{1}$ (basis
-element is the scalar \textbf{1}; if \textbf{1} is not shown, it is implicitly assumed for
-scalar values), the vector part $v$ (basis elements \bv{1} and \bv{2}) and the
-pseudoscalar part $ps \bv{12} = ps \mathds{1}$ (basis element is \bv{12}, which is
-sometimes written as $\mathds{1}$ to show its character as pseudoscalar of this space. It
-is a bivector in $2d$-Euclidean space). \\
+where equation (\ref{eq:mvec2d}) contains three parts: the scalar part $s \, \bm{1}$
+(basis element is the scalar \textbf{1}; if \textbf{1} is not shown, it is implicitly
+assumed for scalar values), the vector part $v$ (basis elements \bv{1} and \bv{2}) and the
+pseudoscalar part $ps \, \bv{12} = ps \, \pseudoscalar$ (basis element is $I_{2d} =
+\bv{12}$, which is sometimes written as $\pseudoscalar$ to show its character as
+pseudoscalar of this space. $I_{2d}$ is a bivector in $2d$ Euclidean space). \\
 
-For Euclidean algebra of three-dimensional space (\emph{ega3d}) using an orthonormal basis
-\bv{1}, \bv{2}, \bv{3} there are:
+For Euclidean geometric algebra of three-dimensional space (\emph{ega3d}) using an
+orthonormal basis \bv{1}, \bv{2}, \bv{3} there are:
 \begin{subequations}
     \begin{align}
-        (\bv{1})^2 = \bv{1}^2 & = +1, (\bv{2})^2 = \bv{2}^2 = +1,
-        \;\text{and}\; (\bv{3})^2 = \bv{3}^2 = +1
-        \label{eq:ega3d_base_vec} \\ 
-        s_{3d} & = s\bm{1}
+        (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
+        \bv{2}^2 = +1, \;\text{and}\; \bv{3}^2 = +1 \nonumber\\ 
+        s_{3d} & = s \, \bm{1}
         \label{eq:scalar3d} \\
         v_{3d} & = v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
         \label{eq:vec3d} \\ 
-        b_{3d} & = b_1\bv{23} + b_2\bv{31} + b_3\bv{12} 
+        B_{3d} & = b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} 
         \label{eq:bivec3d} \\ 
-        ps_{3d} & = ps \bv{123}  = ps\mathds{1}
+        ps_{3d} & = ps \, \bv{123}  = ps \, \pseudoscalar
         \label{eq:pscalar3d}
     \end{align}
 \end{subequations}
 equation (\ref{eq:scalar3d}) is the scalar part $s_{3d}$, equation (\ref{eq:vec3d}) is the
-vector part $v_{3d}$, equation (\ref{eq:bivec3d}) is the bivector part $b_{3d}$, and
+vector part $v_{3d}$, equation (\ref{eq:bivec3d}) is the bivector part $B_{3d}$, and
 equation (\ref{eq:pscalar3d}) is the pseudoscalar part $ps_{3d}$. The index $3d$ is
-typically omitted when clear from context. Comparing to the $2d$-case it becomes obvious,
-that all parts depend on context, specifically on the dimensionality of the modelled
-space, and thus need to be defined and treated accordingly (\emph{hint}: since \Cpp is a
-statically typed language those types need to be well-defined and distinguishable from
-each other). The basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31},
-\bv{12}, \bv{123}\}$. Using these components a multivector $M$ of $3d$ space is defined as
+typically omitted when clear from context. Compared to the $2d$-case it is obvious, that
+all parts depend on context, specifically on the dimensionality of the modelled space, and
+thus need to be defined and treated accordingly.\footnote{\emph{hint}: Since \Cpp is a
+statically typed language, those types need to be well-defined and distinguishable from
+each other. This is especially important for the different scalar and pseudoscalar types.
+The ga library uses type tagging extensively for that purpose.} The eight basis elements
+are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31}, \bv{12}, \bv{123}\}$. Using these
+components a multivector $M$ of $3d$ space is defined as
 \begin{equation}
-    M = s \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
-    + b_1\bv{23} + b_2\bv{31} + b_3\bv{12} + ps\bv{123}
+    M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
+    + b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} + ps \, \bv{123}
     \label{eq:mvec3d}  
 \end{equation}
-where equation (\ref{eq:mvec3d}) contains four parts: the scalar component $s\bm{1}$
+where equation (\ref{eq:mvec3d}) contains four parts: the scalar component $s \, \bm{1}$
+(basis element is the scalar \textbf{1}, the vector part $v$ (basis elements \bv{1},
+\bv{2} and \bv{3}), the bivector part $B$ (basis elements \bv{23}, \bv{31} and \bv{12})
+and the pseudoscalar part $ps \, \bv{123} = ps \, \pseudoscalar$ (basis element is $I_{3d}
+= \bv{123}$, which is sometimes written as $\pseudoscalar$ to show its character as
+pseudoscalar of this space. $I_{3d}$ is a trivector in $3d$ Euclidean space). \\
+
+Projective geometric algebra of two-dimensional Euclidean space (\emph{pga2dp}) is
+modelled by embedding it in a three-dimensional space. Using an orthonormal basis \bv{1},
+\bv{2}, \bv{3} there are following basis vectors:
+\begin{subequations}
+    \begin{align}
+        (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
+        \bv{2}^2 = +1, \;\text{and}\; \bv{3}^2 = 0  \nonumber\\ 
+        s_{2dp} & = s \, \bm{1}
+        \label{eq:scalar2dp} \\
+        v_{2dp} & = v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
+        \label{eq:vec2dp} \\ 
+        B_{2dp} & = b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} 
+        \label{eq:bivec2dp} \\ 
+        ps_{2dp} & = ps \, \bv{321}  = ps \, \pseudoscalar
+        \label{eq:pscalar2dp}
+    \end{align}
+\end{subequations}
+The most obvious difference is the basis vector~\bv{3} that squares to zero and the
+pseudoscalar of that space that is chosen to be \bv{321}. The trivector \bv{321} squares
+to $0$, because of it's component \bv{3}. Equation (\ref{eq:scalar2dp}) is the scalar part
+$s_{2dp}$, equation (\ref{eq:vec2dp}) is the vector part $v_{2dp}$, equation
+(\ref{eq:bivec2dp}) is the bivector part $B_{2dp}$, and equation (\ref{eq:pscalar2dp}) is
+the pseudoscalar part $ps_{2dp}$. The index $2dp$ is typically omitted when clear from
+context. The eight basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31},
+\bv{12}, \bv{321}\}$. Using these components a multivector $M$ of two-dimensional
+projective space ($2dp$) is defined as
+\begin{equation}
+    M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
+    + b_1\bv{23} + b_2\bv{31} + b_3\bv{12} + ps \, \bv{321}
+    \label{eq:mvec2dp}  
+\end{equation}
+where equation (\ref{eq:mvec2dp}) contains four parts: the scalar component $s \, \bm{1}$
 (basis element is the scalar \textbf{1}, the vector part $v$ (basis elements \bv{1},
 \bv{2} and \bv{3}), the bivector part $b$ (basis elements \bv{23}, \bv{31} and \bv{12})
-and the pseudoscalar part $ps \bv{123} = ps \mathds{1}$ (basis element is \bv{123}, which
-is sometimes written as $\mathds{1}$ to show its character as pseudoscalar of this space.
-It is a trivector in $3d$-Euclidean space). \\
+and the pseudoscalar part $ps \, \bv{321} = ps \, \pseudoscalar$ (basis element is
+$I_{2dp} = \bv{321}$, which is sometimes written as $\pseudoscalar$ to show its character
+as pseudoscalar of this space. It is a trivector in $2dp$ Euclidean space). \\
 
+Projective geometric algebra of three-dimensional Euclidean space (\emph{pga3dp}) is
+modelled by embedding it in a four-dimensional space. Using an orthonormal basis \bv{1},
+\bv{2}, \bv{3}, \bv{4} there are following basis vectors:
+\begin{subequations}
+    \begin{align}
+        (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
+        \bv{2}^2 = +1, \bv{3}^2 = +1,\;\text{and}\; \bv{4}^2 = 0 \nonumber\\ 
+        s_{3dp} & = s \, \bm{1}
+        \label{eq:scalar3dp} \\
+        v_{3dp} & = v_1\bv{1} + v_2\bv{2} + v_3\bv{3} + v_4\bv{4} 
+        \label{eq:vec3dp} \\ 
+        B_{3dp} & = b_{41}\bv{41} + b_{42}\bv{42} + b_{43}\bv{43} +
+                    b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} 
+        \label{eq:bivec3dp} \\ 
+        t_{3dp} & = t_{423}\bv{423} + t_{431}\bv{431} + t_{412}\bv{412} + t_{321}\bv{321} 
+        \label{eq:trivec3dp} \\ 
+        ps_{3dp} & = ps \, \bv{1234}  = ps \, \pseudoscalar
+        \label{eq:pscalar3dp}
+    \end{align}
+\end{subequations}
+Now we have a basis vector~\bv{4} that squares to zero. The bivector has 6 components, and
+there is a trivector $t$. The pseudoscalar \bv{1234} is a quadvector that
+squares to $0$, because of it's component \bv{4}. Equation (\ref{eq:scalar3dp}) is the
+scalar part $s_{3dp}$, equation (\ref{eq:vec3dp}) is the vector part $v_{3dp}$, equation
+(\ref{eq:bivec3dp}) is the bivector part $B_{3dp}$, equation (\ref{eq:trivec3dp}) is the
+trivector part $t_{3dp}$ and equation (\ref{eq:pscalar3dp}) is the pseudoscalar part
+$ps_{3dp}$. The index $3dp$ is typically omitted when clear from context. The sixteen
+basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{4}, \bv{41}, \bv{42}, \bv{43},
+\bv{23}, \bv{31}, \bv{12}, \bv{423}, \bv{431}, \bv{412}, \bv{321}, \bv{1234}\}$.
 
-TODO: \emph{fill in pga2d and pga3d definitions here} \\
+Using these components a multivector $M$ of three-dimensional projective space ($3dp$) is
+defined as
+\begin{equation}
+    \begin{split}
+    M & = s \, \bm{1} \\
+      & + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} + v_4\bv{4} \\
+      & + b_{41}\bv{41} + b_{42}\bv{42} + b_{43}\bv{43} 
+        + b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} \\
+      & + t_{423}\bv{423} + t_{431}\bv{431} + t_{412}\bv{412} + t_{321}\bv{321} \\
+      & + ps \, \bv{1234}
+    \label{eq:mvec3dp}
+    \end{split}
+\end{equation}
+where equation (\ref{eq:mvec3dp}) contains five parts: the scalar component $s \, \bm{1}$
+(basis element is the scalar \textbf{1}), the vector part $v$ (basis elements \bv{1},
+\bv{2}, \bv{3} and \bv{4}), the bivector part $B$ (basis elements \bv{41}, \bv{42},
+\bv{43}, \bv{23}, \bv{31} and \bv{12}), the trivector part $t$ (basis elements \bv{423},
+\bv{431}, \bv{412} and \bv{321}) and the pseudoscalar part $ps \, \bv{1234} = ps \,
+\pseudoscalar$ (basis element is $I_{3dp} = \bv{1234}$, which is sometimes written as
+$\pseudoscalar$ to show its character as pseudoscalar of this space. It is a quadvector in
+$3dp$ Euclidean space). \\
 
+The complement operation used in this library is defined
+in~\cite{Lengyel_pga-illuminated:2024}. It is uniquely determined with respect to the
+outer product (not with respect to the geometric product, as commonly used for dualization
+by many autors working with GA). This is essential to generate consistent signs of
+expressions, operators, complements and duals. The left complement $\ubar{u}$ and the
+right complement $\bar{u}$ are defined as
+\begin{subeqnarray}
+    % use \label for full label
+    % use \slabel for sublabel
+    \ubar{u} \wedge u & = & I_n \slabel{eq:lcmpl_def} \\
+    u \wedge \bar{u}  & = & I_n \slabel{eq:rcmpl_def}
+\end{subeqnarray}
+with $I_n  = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n}$ as the pseudoscalar of the
+$n$-dimensional algebra, and the wedge symbol $(\wedge)$ as the operator symbol of the
+outer product. The effect of the complement is to turn basis elements not contained in the
+object $u$ into the constituting basis elements of the complement of the object $\ubar{u}$
+or $\bar{u}$. Connecting the object and its complement with the wedge products creates an
+object that fills the available space in the sense of requiring all basis elements of the
+space to represent it. The full space itself is represented by the pseudoscalar of that
+space, since the pseudoscalar $I_n$ is formed formed by the product of all $n$ basis
+vectors of the space. An implication of the definition is that the complement ($\ubar{u}$
+or $\bar{u}$) is orthogonal to $u$. \\
+
+It can be shown that the left and right complements fulfill
+\begin{equation}
+    \bar{\ubar{a}} = a
+    \label{eq:double_cmpl}
+\end{equation}
+thus the left and right complement operations are inverses to each other. This is valid
+independent of the sequence of application, independent of the grade of the argument $a$,
+and independent of the dimension of the space modelled in the algebra. Based on this it is
+possible to define so-called regressive products using rules analog to deMorgan's rules in
+boolean algebra as follows (definitions can be found
+in~\cite{Lengyel_pga-illuminated:2024} and in \cite{Browne_Grassmann-Algebra_Vol1:2012}):
+\begin{subeqnarray}
+    % use \label for full label
+    % use \slabel for sublabel
+    a \vee b & \equiv & \underline{\bar{a} \wedge \bar{b}} \slabel{eq:rwdg_std} \\
+    a \vee b & \equiv & \overline{\ubar{a} \wedge \ubar{b}} \slabel{eq:rwdg_alt}
+\end{subeqnarray}
+The same complement is applied to both arguments first, the resulting expressions are
+combined with the wedge product, and the inverse complement operation is used to transform
+the outcome into the final result, the regressive product. The inverted wedge symbol
+$(\vee)$ is used for the regressive wedge product. Both definitions~(\ref{eq:rwdg_std})
+and~(\ref{eq:rwdg_alt}) are equivalent. Equation~(\ref{eq:rwdg_std}) is used to derive
+expressions for regressive products in \path{ga_prdxpr}. \\
+
+There are some additional formulas for complements which are useful for working with GA
+expressions and thus are provided here for reference. Taking the right and left
+complements of~(\ref{eq:rwdg_std}) and~(\ref{eq:rwdg_alt}) we end up with
+\begin{subeqnarray}
+    % use \label for full label
+    % use \slabel for sublabel
+    \overline{a \vee b}  & = & \overline{\underline{\bar{a} \wedge \bar{b}}}
+    \quad  =  \quad \bar{a} \wedge \bar{b}
+    \slabel{eq:intermediate_std} \\
+    \underline{a \vee b} & = & \underline{\overline{\ubar{a} \wedge \ubar{b}}}
+    \quad  =  \quad  \ubar{a} \wedge \ubar{b}
+    \slabel{eq:intermediate_alt}
+\end{subeqnarray}
+Substituting $a = \ubar{u}$ and $b = \ubar{v}$ into~(\ref{eq:intermediate_std}) and $a =
+\bar{u}$ and $b = \bar{v}$ into~(\ref{eq:intermediate_alt}) and exchanging the left and
+right hand sides of the equations we end up with
+\begin{subeqnarray}
+    % use \label for full label
+    % use \slabel for sublabel
+    u \wedge v & = & \overline{\ubar{u} \vee \ubar{v}} \slabel{eq:wdg_std} \\
+    u \wedge v & = & \underline{\bar{u} \vee \bar{v}} \slabel{eq:wdg_alt}
+\end{subeqnarray}
+which shows that the outer and the regressive outer product can be expressed by each
+other. \\
+
+The complement operation is used to define a unique dualization operation that works for
+cases with non-degenerate as well as for cases with degenerate metric, like in projective
+geometric algebra $PGA$. This is the main advantage compared to the usual prodedure of
+dualization by multiplying the object with the pseudoscalar (or its inverse) using the
+geometric product, since the latter breaks down for spaces with degenerate metrics. \\
+
+The right dual $A^{\star}$ is defined as $A^{\star} = \overline{GA}$, where $A$ is an
+arbitrary multivector, $G$ the extended metric and $GA$ a matrix-vector-product between
+them. $A^{\star}$ is also called the Hodge dual. There is also a corresponding left
+dualization operation defined as $A_{\star} = \underline{GA}$. $\star$ is used as
+dualization operator (Hodge star) in both cases. The difference between the hodge dual and
+the complement is taking the metric into account before taking the corresponding
+complement. However, this does not lead to different results in spaces where the metric is
+the identity, but is relevant for spaces with a more involved metric, e.g. in projective
+spaces. \\
+
+In a two-dimensional algebra, like $ega2d$ the effect of the right dual on a vector $u$ is
+to turn the vector by $+90°$, i.e. into the orientation of $\bv{12}$, while the left dual
+turns the vector by $-90°$, i.e. into the direction against the orientientation of
+$\bv{12}$. This statement is valid for both right- and left-handed coordinate systems. \\
+
+Relations to the geometric product are given by
+\begin{subeqnarray}
+    A^{\star} & = &  \revtilde{A} \wedgedot I_n \slabel{eq:hodge_right} \\
+    A_{\star} & = & I_n \wedgedot \revtilde{A} \slabel{eq:hodge_left}
+\end{subeqnarray}
+with $I_n = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n}$ as the pseudoscalar of the
+$n$-dimensional space, and $\revtilde{A}$ is the reversion operation applied to $A$ (e.g.
+with $A = \bv{1} \wedge \bv{2}$ the reverse is $\revtilde{A} = \bv{2} \wedge \bv{1}$), and
+$\wedgedot$ is the symbol for the geometric product. Following identities link the outer
+product and the inner product and hold for operands of same grade: 
+\begin{subeqnarray}
+    A \wedge B^{\star} & = & (A \cdot B) I_n, \quad \text{when \path{gr(A)} =
+    \path{gr(B)}} \\
+    A_{\star} \wedge B & = & (A \cdot B) I_n, \quad \text{when \path{gr(A)} =
+    \path{gr(B)}}
+\end{subeqnarray}
+The influence of the metric for the dualization operation can be seen in its effect for
+the different algebras which also depends on the dimension of the modelled space:
+\begin{itemize}
+\item $ega2d: A^{\star} = \text{\path{right_dual(A)}}$, $A_{\star} =
+\text{\path{left_dual(A)}}$
+\item $ega3d: A^{\star} = \text{\path{dual(A)}}$, $A_{\star} = \text{\path{dual(A)}}$
+\item $pga2dp: A^{\star} = \text{\path{bulk_dual(A)}}$, $A_{\star} =
+\text{\path{bulk_dual(A)}}$
+\item $pga3dp: A^{\star} = \text{\path{right_bulk_dual(A)}}$, $A_{\star} =
+\text{\path{left_bulk_dual(A)}}$
+\end{itemize}
+In even dimensional spaces ($ega2d$, $pga3dp$) we have to distinguish left and right
+operations, while in odd dimensional spaces ($ega3d$, $pga2dp$) we don't, since they
+produce the same result. For projective algebras, like $pga$, we use only the bulk part
+for the dualization operation with the Hodge star (a consequence of the extended
+degenerate metric, which results in some terms, i.e. the weight terms, being multiplied by
+zero). The "left" operations are typically used on the left-hand side of the operation and
+the "right" operations on the right-hand side of the product operator. The only deviation
+from that pattern occurs for the definition of the regressive products, as defined below.
+\\
 
 The inner product between multivectors $A$ and $B$ is defined as
 \begin{equation}
@@ -146,23 +363,78 @@ equation {(\ref{eq:gpr_Bshrc})}: $B \gg a$ is a $(k-1)$-blade. If $a_{\parall} \
 then $B \gg a$ represents a subspace of $B$. $a \wedge B$ is a $(k+1)$-blade. If
 $a_{\perp} \neq 0$ then $a \wedge B$ represents $span(a,B)$.
 
-For arguments of equal grade the contractions reduce to the dot
-product $\cdot$, so that one can write specifically for two vectors $a$ and $b$:
+For arguments of equal grade the contractions reduce to the dot product, so that one can
+write specifically for two vectors $a$ and $b$:
 \begin{equation}
     a \wedgedot b =  a \cdot b + a \wedge b
 \end{equation}
 
-TODO: \emph{fill in further basic formulas here} \\
+\cite{Lengyel_transwedge_product:2025} has shown that the geometric product can be derived
+by using operations from Grassmann algebra exclusively. These are the wedge product, the
+complement and the duality operations. This demonstrates that the geometric product is not
+a fundamental operation in its own right, but can be derived from even more fundamental
+basic operations.
 
-% Text with a norm $\nrm{x}$ and an indexed norm as $\bulk{\nrm{u}}$ and
-% $\weight{\nrm{u}}$.\\
-Text with a norm $\nrm{x}$ and an indexed norm as $\bulknrm{u}$ and
-$\weightnrm{u}$.\\
+For that purpose Lengyel introduced the transwedge product of order $k$ by following
+definition:
+\begin{equation}
+    a \underset{k}{\doublewedge} b = \sum_{c \, \in \, \mathcal{B}_k}
+    (\ubar{c}\vee a) \wedge (b \vee \rightbulkdual{c})
+    \label{eq:twdg_orig}
+\end{equation}
+where $\mathcal{B}_k$ is the set of all basis elements of order $k$. For $ega3d$ it means
+for example $\mathcal{B}_0 = \{1\}$, $\mathcal{B}_1 = \{\bv{1}, \bv{2}, \bv{3}\}$,
+$\mathcal{B}_2 = \{\bv{23}, \bv{31}, \bv{12}\}$, and $\mathcal{B}_3 = \{\bv{123}\}$. From
+these expressions the geometric product can be formed by
+\begin{equation}
+    a \wedgedot b = \sum_{k \, = \, 0}^{n} (-1)^{k(k-1)/2} a \underset{k}{\doublewedge} b
+    \label{eq:grp_twdg}
+\end{equation}
 
-$\bm{e}_1$, \bv{1}, $\bv{123}$, $\filledstar$, $\star$, $\smallstar$
-\\
+For $k=0$ the formula yields the outer product (wedge product). For higher values of $k$
+other products are generated which sum up to the full geometric product. Thus the
+transwedge products helps to decompose the geometric product. The most interesting for
+applications are the wedge product resulting for $k=0$ and the transwedge product of order
+$k=1$ (it has no well-defined name yet). \\
+
+The regressive wedge product in equation~(\ref{eq:twdg_orig}) can be replaced by the wedge
+product using the complement-based definitions given in equations~(\ref{eq:double_cmpl})
+to (\ref{eq:wdg_alt}). That means for example that equation~(\ref{eq:twdg_orig}) can be
+transformed to the equivalent expression
+\begin{equation}
+    a \underset{k}{\doublewedge} b = \sum_{c \, \in \, \mathcal{B}_k}
+    (\underline{c \wedge \bar{a}}) \wedge
+    (\underline{\bar{b} \wedge \overline{\rightbulkdual{c}}})
+    \label{eq:twdg_wdg}
+\end{equation}
+expressing it by using the wedge product exclusively. \\
+
+Since every product can by assigned a corresponding regressive product in analogy to
+definition~(\ref{eq:rwdg_std}) or~(\ref{eq:rwdg_alt}), the transwedge
+product~(\ref{eq:twdg_orig}) also has a regressive form:
+\begin{equation}
+    a \underset{k}{\doublevee} b \equiv
+    \overline{\ubar{a} \underset{k}{\doublewedge} \ubar{b}} =
+    \sum_{c \, \in \, \mathcal{B}_k} \overline{
+    (\ubar{c}\vee \ubar{a}) \wedge (\ubar{b} \vee \rightbulkdual{c})}
+    \label{eq:rtwdg_orig}
+\end{equation}
+which in turn can be expressed in terms of the wedge product exclusively as:
+\begin{equation}
+    a \underset{k}{\doublevee} b = \sum_{c \, \in \, \mathcal{B}_k}  \overline{
+    (\underline{c\vee a}) \wedge (\underline{b \vee \overline{\rightbulkdual{c}}})}
+    \label{eq:rtwdg_wdg}
+\end{equation}
+Equations~(\ref{eq:twdg_wdg}) and (\ref{eq:rtwdg_wdg}) are used for calculation of the
+product tables of the (regressive) transwedge products of order $k$ and the resulting
+(regressive) geometric products in \path{ga_prdxpr}. \\
 
 
+ToDo: \emph{fill in further basic formulae here as required} \\
+
+TRIALS:
+Text with a norm $\nrm{x}$ and an indexed norm as $\bulknrm{u}$ and $\weightnrm{u}$.
+$\filledstar$, $\smallstar$ \\
 
 
 \newpage

@@ -42,10 +42,10 @@ TEST_SUITE("EGA2D PGA2DP Comparison Tests")
         auto L = u + M;
 
         fmt::println("u = {}, nrm(u) = {}", u, nrm(u));
-        fmt::println("a = {}", a);
-        fmt::println("M = {}", M);
+        fmt::println("a = {}, nrm(a) = {}", a, nrm(a));
+        fmt::println("M = wdg(a,u) = {}", M);
+        fmt::println("d = M * inv(u) = {}, nrm(d) = {}", d, nrm(d));
         fmt::println("nrm(u) * nrm(d) = {}", nrm(u) * nrm(d));
-        fmt::println("d = {}, nrm(d) = {}", d, nrm(d));
         fmt::println("L = {}", L);
 
 
@@ -58,12 +58,12 @@ TEST_SUITE("EGA2D PGA2DP Comparison Tests")
 
 
         fmt::println("up = {}, bulk_nrm(up) = {}", up, bulk_nrm(up));
-        fmt::println("ap = {}", ap);
-        fmt::println("dp = support(Lp) = {}, dist2dp(O_2dp, dp) = {}", dp,
-                     dist2dp(O_2dp, dp));
+        fmt::println("ap = {}, bulk_nrm(up) = {}", ap, bulk_nrm(ap));
+        fmt::println("dp = unitize(support2dp(Lp)) = {}, bulk_nrm(dp) = {}", dp,
+                     bulk_nrm(dp));
         fmt::println("Lp = {}", Lp);
-        fmt::println("att(Lp) = {}", att(Lp));
-        fmt::println("moment(Lp) = {}", Lp.z);
+        fmt::println("att(Lp) = {}", att(Lp));   // direction vector
+        fmt::println("bulk(Lp) = {}", bulk(Lp)); // resulting moment w.r.t. origion
 
         fmt::println("");
     }

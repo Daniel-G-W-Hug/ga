@@ -60,7 +60,8 @@
 
 \pagestyle{fancy}       % Turn on the style
 \fancyfoot{}            % Clear the footer
-\fancyfoot[R]{\thepage} % Set the right side of the footer to be the page numberå
+\fancyfoot[R]{\thepage} % Set the right side of the footer to be the page number
+\setlength{\headheight}{15pt}
 
 % new commands for partial derivatives
 \newcommand{\pd}[2]{\ensuremath{\frac{\partial {#1}}{\partial {#2}}}}
@@ -91,6 +92,15 @@
 
 % printing the basis vectors (bv) in bold (uses package bm for \bm)
 \newcommand{\bv}[1]{\ensuremath{\bm{e}_{#1}}}
+
+% definition of the reverse via dagger
+\newcommand{\revdagger}[1]{\ensuremath{{#1}^\dagger}}
+
+% definition of the reverse via tilde
+\newcommand{\revtilde}[1]{\ensuremath{\tilde{#1}}}
+
+% define the pseudoscalar as 
+\newcommand*{\pseudoscalar}{\ensuremath{\mathds{1}}}
 
 % for typesetting C++ (uses packages relsize and xspace)
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
