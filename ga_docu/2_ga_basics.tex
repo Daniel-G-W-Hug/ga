@@ -1,5 +1,5 @@
-\subsection{Basic formulae}
-\label{basic_formulae}
+\subsection{Basics}
+\label{basics}
 
 The following is provided for Euclidean geometric algebra of two-dimensional space
 (\emph{ega2d}) using an orthormal basis \bv{1}, \bv{2}:
@@ -18,8 +18,8 @@ The following is provided for Euclidean geometric algebra of two-dimensional spa
 equation (\ref{eq:scalar2d}) is the scalar part $s_{2d}$, equation (\ref{eq:vec2d})
 contains the vector part $v_{2d}$, and equation (\ref{eq:pscalar2d}) contains the
 pseudoscalar part $ps_{2d}$. The index $2d$ is typically omitted when clear from context.
-The four basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{12}\}$. Using these components
-a multivector $M$ of $2d$ space is defined as
+The four basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{12}\}$. Using this basis a
+multivector $M$ of $2d$ space is defined as
 \begin{equation}
      M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + ps \, \bv{12}
     \label{eq:mvec2d}   
@@ -55,9 +55,9 @@ all parts depend on context, specifically on the dimensionality of the modelled 
 thus need to be defined and treated accordingly.\footnote{\emph{hint}: Since \Cpp is a
 statically typed language, those types need to be well-defined and distinguishable from
 each other. This is especially important for the different scalar and pseudoscalar types.
-The ga library uses type tagging extensively for that purpose.} The eight basis elements
-are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31}, \bv{12}, \bv{123}\}$. Using these
-components a multivector $M$ of $3d$ space is defined as
+The ga library uses type tagging extensively for that purpose.} The basis elements are
+$\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31}, \bv{12}, \bv{123}\}$. Using this
+basis a multivector $M$ of $3d$ space is defined as
 \begin{equation}
     M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
     + b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} + ps \, \bv{123}
@@ -94,8 +94,8 @@ $s_{2dp}$, equation (\ref{eq:vec2dp}) is the vector part $v_{2dp}$, equation
 (\ref{eq:bivec2dp}) is the bivector part $B_{2dp}$, and equation (\ref{eq:pscalar2dp}) is
 the pseudoscalar part $ps_{2dp}$. The index $2dp$ is typically omitted when clear from
 context. The eight basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31},
-\bv{12}, \bv{321}\}$. Using these components a multivector $M$ of two-dimensional
-projective space ($2dp$) is defined as
+\bv{12}, \bv{321}\}$. Using this basis a multivector $M$ of two-dimensional projective
+space ($2dp$) is defined as
 \begin{equation}
     M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
     + b_1\bv{23} + b_2\bv{31} + b_3\bv{12} + ps \, \bv{321}
@@ -106,7 +106,8 @@ where equation (\ref{eq:mvec2dp}) contains four parts: the scalar component $s \
 \bv{2} and \bv{3}), the bivector part $b$ (basis elements \bv{23}, \bv{31} and \bv{12})
 and the pseudoscalar part $ps \, \bv{321} = ps \, \pseudoscalar$ (basis element is
 $I_{2dp} = \bv{321}$, which is sometimes written as $\pseudoscalar$ to show its character
-as pseudoscalar of this space. It is a trivector in $2dp$ Euclidean space). \\
+as pseudoscalar of this space. It is a trivector in $2dp$ Euclidean space that squares to
+zero). \\
 
 Projective geometric algebra of three-dimensional Euclidean space (\emph{pga3dp}) is
 modelled by embedding it in a four-dimensional space. Using an orthonormal basis \bv{1},
@@ -129,17 +130,16 @@ modelled by embedding it in a four-dimensional space. Using an orthonormal basis
     \end{align}
 \end{subequations}
 Now we have a basis vector~\bv{4} that squares to zero. The bivector has 6 components, and
-there is a trivector $t$. The pseudoscalar \bv{1234} is a quadvector that
-squares to $0$, because of it's component \bv{4}. Equation (\ref{eq:scalar3dp}) is the
-scalar part $s_{3dp}$, equation (\ref{eq:vec3dp}) is the vector part $v_{3dp}$, equation
+there is a trivector $t$. The pseudoscalar \bv{1234} is a quadvector that squares to $0$,
+because of it's component \bv{4}. Equation (\ref{eq:scalar3dp}) is the scalar part
+$s_{3dp}$, equation (\ref{eq:vec3dp}) is the vector part $v_{3dp}$, equation
 (\ref{eq:bivec3dp}) is the bivector part $B_{3dp}$, equation (\ref{eq:trivec3dp}) is the
 trivector part $t_{3dp}$ and equation (\ref{eq:pscalar3dp}) is the pseudoscalar part
 $ps_{3dp}$. The index $3dp$ is typically omitted when clear from context. The sixteen
-basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{4}, \bv{41}, \bv{42}, \bv{43},
-\bv{23}, \bv{31}, \bv{12}, \bv{423}, \bv{431}, \bv{412}, \bv{321}, \bv{1234}\}$.
-
-Using these components a multivector $M$ of three-dimensional projective space ($3dp$) is
-defined as
+basis elements of $pga3d$ are: $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{4}, \bv{41},
+\bv{42}, \bv{43}, \bv{23}, \bv{31}, \bv{12}, \bv{423}, \bv{431}, \bv{412}, \bv{321},
+\bv{1234}\}$. A multivector $M$ of three-dimensional projective space ($3dp$) is defined
+as
 \begin{equation}
     \begin{split}
     M & = s \, \bm{1} \\
@@ -158,9 +158,16 @@ where equation (\ref{eq:mvec3dp}) contains five parts: the scalar component $s \
 \bv{431}, \bv{412} and \bv{321}) and the pseudoscalar part $ps \, \bv{1234} = ps \,
 \pseudoscalar$ (basis element is $I_{3dp} = \bv{1234}$, which is sometimes written as
 $\pseudoscalar$ to show its character as pseudoscalar of this space. It is a quadvector in
-$3dp$ Euclidean space). \\
+$3dp$ Euclidean space that squares to zero). \\
 
-The complement operation used in this library is defined
+It is important to note that it is seldomly required to use a full multivector in the
+respective algebra. For most applications it is sufficient to use a blade or $k$-vector
+exclusively, which represents one grade of the multivector, e.g. a vector or a bivector.
+This reduces the effort in terms of memory and computational requirements significantly --
+typically down to a level that reflects the actual need of information to solve the
+underlying application problem. \\ 
+
+The complement operation used in the library is defined
 in~\cite{Lengyel_pga-illuminated:2024}. It is uniquely determined with respect to the
 outer product (not with respect to the geometric product, as commonly used for dualization
 by many autors working with GA). This is essential to generate consistent signs of
@@ -248,9 +255,9 @@ complement. However, this does not lead to different results in spaces where the
 the identity, but is relevant for spaces with a more involved metric, e.g. in projective
 spaces. \\
 
-In a two-dimensional algebra, like $ega2d$ the effect of the right dual on a vector $u$ is
-to turn the vector by $+90°$, i.e. into the orientation of $\bv{12}$, while the left dual
-turns the vector by $-90°$, i.e. into the direction against the orientientation of
+In a two-dimensional algebra, like $ega2d$, the effect of the right dual on a vector $u$
+is to turn the vector by $+90$°, i.e. into the orientation of $\bv{12}$, while the left
+dual turns the vector by $-90$°, i.e. into the direction against the orientation of
 $\bv{12}$. This statement is valid for both right- and left-handed coordinate systems. \\
 
 Relations to the geometric product are given by
@@ -280,23 +287,56 @@ the different algebras which also depends on the dimension of the modelled space
 \item $pga3dp: A^{\star} = \text{\path{right_bulk_dual(A)}}$, $A_{\star} =
 \text{\path{left_bulk_dual(A)}}$
 \end{itemize}
-In even dimensional spaces ($ega2d$, $pga3dp$) we have to distinguish left and right
-operations, while in odd dimensional spaces ($ega3d$, $pga2dp$) we don't, since they
+In even-dimensional spaces ($ega2d$, $pga3dp$) we have to distinguish left and right
+operations, while in odd-dimensional spaces ($ega3d$, $pga2dp$) we don't, since they
 produce the same result. For projective algebras, like $pga$, we use only the bulk part
 for the dualization operation with the Hodge star (a consequence of the extended
-degenerate metric, which results in some terms, i.e. the weight terms, being multiplied by
-zero). The "left" operations are typically used on the left-hand side of the operation and
-the "right" operations on the right-hand side of the product operator. The only deviation
-from that pattern occurs for the definition of the regressive products, as defined below.
-\\
+(degenerate) metric, which results in some terms, i.e. the weight terms, being multiplied
+by zero). The ``left'' operations are typically used on the left-hand side of the
+operation and the ``right'' operations on the right-hand side of the product operator. The
+only deviation from that pattern occurs for the definition of the regressive products, as
+defined in~(\ref{eq:rwdg_std}) or (\ref{eq:rwdg_alt}). \\
+
+The multiplicative identity of the geometric product is the scalar $\bm{1}$:
+\begin{equation}
+    1 \wedgedot a = a \wedgedot 1 = a
+    \label{eq:wedgedot_identity} 
+\end{equation}
+The geometric product combines the dimensions that are present in an object
+representation, e.g. for $pga2dp$:
+\begin{eqnarray}
+    \label{eq:gpr_combine_what_is_there}
+    \bv{1} \wedgedot \bv{1} = 1 \nonumber\\
+    \bv{2} \wedgedot \bv{2} = 1 \\
+    \bv{3} \wedgedot \bv{3} = 0 \nonumber
+\end{eqnarray}
+
+The multiplicative identity of the regressive geometric product is the pseudoscalar
+$\pseudoscalar = I_n$ of the respective algebra:
+\begin{equation}
+    \pseudoscalar \veedot a = a \veedot \pseudoscalar = a
+    \label{eq:veedot_identity} 
+\end{equation}
+The regressive geometric product combines the dimensions that are \underline{not} present
+in an object
+representation, e.g. for $pga2dp$:
+\begin{eqnarray}
+    \label{eq:rgpr_combine_what_is_not_there}
+    \overline{\bv{1}} \veedot \overline{\bv{1}} = \pseudoscalar \nonumber\\
+    \overline{\bv{2}} \veedot \overline{\bv{2}} = \pseudoscalar \\
+    \overline{\bv{3}} \veedot \overline{\bv{3}} = 0 \nonumber
+\end{eqnarray}
+where eqs.~(\ref{eq:rgpr_combine_what_is_not_there}) can be shown to be equivalent to
+eqs.~(\ref{eq:gpr_combine_what_is_there}) by taking the left complement of both sides and
+applying the complement definition~(\ref{eq:rwdg_std}) to it. \\
 
 The inner product between multivectors $A$ and $B$ is defined as
 \begin{equation}
-    A \cdot B = A^{T} G B
+    A \cdot B = A^{T} \mathds{G} B
     \label{eg:inner_product_metric}
 \end{equation}
-with $G$ as the extended metric and matrix multiplication on the right hand side. It
-satisfies the identity
+with $\mathds{G}$ as the extended metric and matrix multiplication on the right hand side.
+It satisfies the identity
 \begin{equation}
     A \cdot B  = \grprj{A \wedgedot \tilde{B}}{0} = \grprj{ B \wedgedot \tilde{A} }{0}
     \label{eq:inner_product_link_to_gpr}
