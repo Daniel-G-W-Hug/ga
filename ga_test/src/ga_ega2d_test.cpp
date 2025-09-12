@@ -147,6 +147,130 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(nrm_sq(pf - pd) < eps);
     }
 
+    TEST_CASE("G<2,0,0>: Scalar2d and PScalar2d formatting tests")
+    {
+        fmt::println("G<2,0,0>: Scalar2d and PScalar2d formatting tests");
+
+        // Test Scalar2d formatting
+        Scalar2d<double> scalar_val{3.14159};
+
+        // Basic output
+        std::string scalar_basic = fmt::format("{}", scalar_val);
+        CHECK(scalar_basic == "Scalar2d(3.14159)");
+
+        // Two decimal places
+        std::string scalar_two_decimals = fmt::format("{:.2f}", scalar_val);
+        CHECK(scalar_two_decimals == "Scalar2d(3.14)");
+
+        // Scientific notation
+        std::string scalar_scientific = fmt::format("{:.2e}", scalar_val);
+        CHECK(scalar_scientific == "Scalar2d(3.14e+00)");
+
+        // Contextual usage
+        std::string scalar_contextual = fmt::format("Value: {:.3f}", scalar_val);
+        CHECK(scalar_contextual == "Value: Scalar2d(3.142)");
+
+        // Test PScalar2d formatting
+        PScalar2d<double> pscalar_val{2.71828};
+
+        // Basic output
+        std::string pscalar_basic = fmt::format("{}", pscalar_val);
+        CHECK(pscalar_basic == "PScalar2d(2.71828)");
+
+        // Two decimal places
+        std::string pscalar_two_decimals = fmt::format("{:.2f}", pscalar_val);
+        CHECK(pscalar_two_decimals == "PScalar2d(2.72)");
+
+        // Scientific notation
+        std::string pscalar_scientific = fmt::format("{:.2e}", pscalar_val);
+        CHECK(pscalar_scientific == "PScalar2d(2.72e+00)");
+
+        // Contextual usage
+        std::string pscalar_contextual = fmt::format("Area: {:.3f}", pscalar_val);
+        CHECK(pscalar_contextual == "Area: PScalar2d(2.718)");
+
+        fmt::println("   Scalar2d basic: {}", scalar_basic);
+        fmt::println("   Scalar2d 2-decimal: {}", scalar_two_decimals);
+        fmt::println("   Scalar2d scientific: {}", scalar_scientific);
+        fmt::println("   Scalar2d contextual: {}", scalar_contextual);
+
+        fmt::println("   PScalar2d basic: {}", pscalar_basic);
+        fmt::println("   PScalar2d 2-decimal: {}", pscalar_two_decimals);
+        fmt::println("   PScalar2d scientific: {}", pscalar_scientific);
+        fmt::println("   PScalar2d contextual: {}", pscalar_contextual);
+    }
+
+    TEST_CASE("Vec2d: comprehensive format specifier tests with pre-computed values")
+    {
+        fmt::println(
+            "Vec2d: comprehensive format specifier tests with pre-computed values:\n");
+
+        // Test with precise values for predictable output
+        vec2d vd{3.14159, 2.71828};
+        Vec2d<float> vf{3.14159f, 2.71828f};
+
+        // Test default formatting and verify expected output
+        std::string default_vd = fmt::format("{}", vd);
+        std::string default_vf = fmt::format("{}", vf);
+        fmt::println("   Default vd:      '{}'", default_vd);
+        fmt::println("   Default vf:      '{}'", default_vf);
+
+        // Expected patterns (will contain Vec2d(x, y) structure)
+        CHECK(default_vd.find("Vec2d(") == 0); // Should start with Vec2d(
+        CHECK(default_vd.find(", ") !=
+              std::string::npos);        // Should contain comma separator
+        CHECK(default_vd.back() == ')'); // Should end with )
+
+        // Test precision formatting with expected outputs
+        std::string two_decimals = fmt::format("{:.2f}", vd);
+        std::string expected_2f = "Vec2d(3.14, 2.72)";
+        fmt::println("   2 decimals:      '{}' (expected: '{}')", two_decimals,
+                     expected_2f);
+        CHECK(two_decimals == expected_2f);
+
+        std::string four_decimals = fmt::format("{:.4f}", vd);
+        std::string expected_4f = "Vec2d(3.1416, 2.7183)";
+        fmt::println("   4 decimals:      '{}' (expected: '{}')", four_decimals,
+                     expected_4f);
+        CHECK(four_decimals == expected_4f);
+
+        // Test scientific notation
+        std::string scientific = fmt::format("{:.2e}", vd);
+        fmt::println("   Scientific .2e:  '{}'", scientific);
+        CHECK(scientific.find("Vec2d(") == 0);
+        bool has_scientific = (scientific.find("e+") != std::string::npos ||
+                               scientific.find("e-") != std::string::npos);
+        CHECK(has_scientific);
+
+        // Test width formatting
+        std::string width_10_2f = fmt::format("{:10.2f}", vd);
+        fmt::println("   Width 10.2f:     '{}'", width_10_2f);
+        CHECK(width_10_2f.length() >= expected_2f.length()); // Should be at least as long
+
+        // Test with different precision for float type
+        std::string float_3f = fmt::format("{:.3f}", vf);
+        std::string expected_float_3f = "Vec2d(3.142, 2.718)";
+        fmt::println("   Float .3f:       '{}' (expected: '{}')", float_3f,
+                     expected_float_3f);
+        CHECK(float_3f == expected_float_3f);
+
+        // Test contextual usage like in the reference example
+        std::string position_log = fmt::format("Position: {:.2f}", vd);
+        std::string expected_log = "Position: Vec2d(3.14, 2.72)";
+        fmt::println("   Context usage:   '{}' (expected: '{}')", position_log,
+                     expected_log);
+        CHECK(position_log == expected_log);
+
+        std::string velocity_str = fmt::format("Velocity: {:.3f}", vf);
+        std::string expected_vel = "Velocity: Vec2d(3.142, 2.718)";
+        fmt::println("   Context float:   '{}' (expected: '{}')", velocity_str,
+                     expected_vel);
+        CHECK(velocity_str == expected_vel);
+
+        fmt::println("");
+        fmt::println("   All Vec2d format tests passed with expected values!");
+    }
+
     TEST_CASE("Vec2d: comparison float")
     {
         fmt::println("Vec2d: comparison float");
@@ -2132,6 +2256,59 @@ TEST_SUITE("EGA 2D Tests")
 
         fmt::println("mv2d variant type trial implementation complete");
         fmt::println("");
+    }
+
+    TEST_CASE("G<2,0,0>: MVec2d_E and MVec2d formatting tests")
+    {
+        fmt::println("G<2,0,0>: MVec2d_E and MVec2d formatting tests");
+
+        // Test MVec2d_E formatting (MVec2_t with 2 components: c0, c1)
+        MVec2d_E<double> mvec2d_e_val{3.14159, 2.71828};
+
+        // Basic output
+        std::string mvec2d_e_basic = fmt::format("{}", mvec2d_e_val);
+        CHECK(mvec2d_e_basic == "MVec2d_E(3.14159, 2.71828)");
+
+        // Two decimal places
+        std::string mvec2d_e_two_decimals = fmt::format("{:.2f}", mvec2d_e_val);
+        CHECK(mvec2d_e_two_decimals == "MVec2d_E(3.14, 2.72)");
+
+        // Scientific notation
+        std::string mvec2d_e_scientific = fmt::format("{:.2e}", mvec2d_e_val);
+        CHECK(mvec2d_e_scientific == "MVec2d_E(3.14e+00, 2.72e+00)");
+
+        // Contextual usage
+        std::string mvec2d_e_contextual = fmt::format("Even MV: {:.2f}", mvec2d_e_val);
+        CHECK(mvec2d_e_contextual == "Even MV: MVec2d_E(3.14, 2.72)");
+
+        // Test MVec2d formatting (MVec4_t with 4 components: c0, c1, c2, c3)
+        MVec2d<double> mvec2d_val{1.0, 2.0, 3.0, 4.0};
+
+        // Basic output
+        std::string mvec2d_basic = fmt::format("{}", mvec2d_val);
+        CHECK(mvec2d_basic == "MVec2d(1, 2, 3, 4)");
+
+        // Two decimal places
+        std::string mvec2d_two_decimals = fmt::format("{:.2f}", mvec2d_val);
+        CHECK(mvec2d_two_decimals == "MVec2d(1.00, 2.00, 3.00, 4.00)");
+
+        // Scientific notation
+        std::string mvec2d_scientific = fmt::format("{:.2e}", mvec2d_val);
+        CHECK(mvec2d_scientific == "MVec2d(1.00e+00, 2.00e+00, 3.00e+00, 4.00e+00)");
+
+        // Contextual usage
+        std::string mvec2d_contextual = fmt::format("Full MV: {:.1f}", mvec2d_val);
+        CHECK(mvec2d_contextual == "Full MV: MVec2d(1.0, 2.0, 3.0, 4.0)");
+
+        fmt::println("   MVec2d_E basic: {}", mvec2d_e_basic);
+        fmt::println("   MVec2d_E 2-decimal: {}", mvec2d_e_two_decimals);
+        fmt::println("   MVec2d_E scientific: {}", mvec2d_e_scientific);
+        fmt::println("   MVec2d_E contextual: {}", mvec2d_e_contextual);
+
+        fmt::println("   MVec2d basic: {}", mvec2d_basic);
+        fmt::println("   MVec2d 2-decimal: {}", mvec2d_two_decimals);
+        fmt::println("   MVec2d scientific: {}", mvec2d_scientific);
+        fmt::println("   MVec2d contextual: {}", mvec2d_contextual);
     }
 
 } // EGA 2D Tests

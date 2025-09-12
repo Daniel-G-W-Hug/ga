@@ -124,6 +124,139 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(nrm_sq(pf - pd) < eps);
     }
 
+    TEST_CASE("G<3,0,0>: Scalar3d and PScalar3d formatting tests")
+    {
+        fmt::println("G<3,0,0>: Scalar3d and PScalar3d formatting tests");
+
+        // Test Scalar3d formatting
+        Scalar3d<double> scalar_val{1.41421};
+
+        // Basic output
+        std::string scalar_basic = fmt::format("{}", scalar_val);
+        CHECK(scalar_basic == "Scalar3d(1.41421)");
+
+        // Two decimal places
+        std::string scalar_two_decimals = fmt::format("{:.2f}", scalar_val);
+        CHECK(scalar_two_decimals == "Scalar3d(1.41)");
+
+        // Scientific notation
+        std::string scalar_scientific = fmt::format("{:.2e}", scalar_val);
+        CHECK(scalar_scientific == "Scalar3d(1.41e+00)");
+
+        // Contextual usage
+        std::string scalar_contextual = fmt::format("Magnitude: {:.3f}", scalar_val);
+        CHECK(scalar_contextual == "Magnitude: Scalar3d(1.414)");
+
+        // Test PScalar3d formatting
+        PScalar3d<double> pscalar_val{1.73205};
+
+        // Basic output
+        std::string pscalar_basic = fmt::format("{}", pscalar_val);
+        CHECK(pscalar_basic == "PScalar3d(1.73205)");
+
+        // Two decimal places
+        std::string pscalar_two_decimals = fmt::format("{:.2f}", pscalar_val);
+        CHECK(pscalar_two_decimals == "PScalar3d(1.73)");
+
+        // Scientific notation
+        std::string pscalar_scientific = fmt::format("{:.2e}", pscalar_val);
+        CHECK(pscalar_scientific == "PScalar3d(1.73e+00)");
+
+        // Contextual usage
+        std::string pscalar_contextual = fmt::format("Volume: {:.3f}", pscalar_val);
+        CHECK(pscalar_contextual == "Volume: PScalar3d(1.732)");
+
+        fmt::println("   Scalar3d basic: {}", scalar_basic);
+        fmt::println("   Scalar3d 2-decimal: {}", scalar_two_decimals);
+        fmt::println("   Scalar3d scientific: {}", scalar_scientific);
+        fmt::println("   Scalar3d contextual: {}", scalar_contextual);
+
+        fmt::println("   PScalar3d basic: {}", pscalar_basic);
+        fmt::println("   PScalar3d 2-decimal: {}", pscalar_two_decimals);
+        fmt::println("   PScalar3d scientific: {}", pscalar_scientific);
+        fmt::println("   PScalar3d contextual: {}", pscalar_contextual);
+    }
+
+    TEST_CASE("Vec3d: comprehensive format specifier tests with pre-computed values")
+    {
+        fmt::println(
+            "Vec3d: comprehensive format specifier tests with pre-computed values:\n");
+
+        // Test Vec3d and BiVec3d with precise values for predictable output
+        vec3d vd{3.14159, 2.71828, 1.41421};
+        Vec3d<float> vf{3.14159f, 2.71828f, 1.41421f};
+        bivec3d bv{1.2, 2.3, 3.4};
+
+        // Test default formatting and verify expected output
+        std::string default_vd = fmt::format("{}", vd);
+        std::string default_vf = fmt::format("{}", vf);
+        std::string default_bv = fmt::format("{}", bv);
+        fmt::println("   Default Vec3d:   '{}'", default_vd);
+        fmt::println("   Default Vec3d<f>: '{}'", default_vf);
+        fmt::println("   Default BiVec3d: '{}'", default_bv);
+
+        // Expected patterns for Vec3d
+        CHECK(default_vd.find("Vec3d(") == 0);
+        CHECK(default_vd.find(", ") != std::string::npos);
+        CHECK(default_vd.back() == ')');
+
+        // Expected patterns for BiVec3d
+        CHECK(default_bv.find("BiVec3d(") == 0);
+        CHECK(default_bv.back() == ')');
+
+        // Test precision formatting with expected outputs for Vec3d
+        std::string two_decimals = fmt::format("{:.2f}", vd);
+        std::string expected_2f = "Vec3d(3.14, 2.72, 1.41)";
+        fmt::println("   Vec3d .2f:       '{}' (expected: '{}')", two_decimals,
+                     expected_2f);
+        CHECK(two_decimals == expected_2f);
+
+        std::string three_decimals = fmt::format("{:.3f}", vd);
+        std::string expected_3f = "Vec3d(3.142, 2.718, 1.414)";
+        fmt::println("   Vec3d .3f:       '{}' (expected: '{}')", three_decimals,
+                     expected_3f);
+        CHECK(three_decimals == expected_3f);
+
+        // Test BiVec3d formatting
+        std::string bivec_2f = fmt::format("{:.2f}", bv);
+        std::string expected_bv_2f = "BiVec3d(1.20, 2.30, 3.40)";
+        fmt::println("   BiVec3d .2f:     '{}' (expected: '{}')", bivec_2f,
+                     expected_bv_2f);
+        CHECK(bivec_2f == expected_bv_2f);
+
+        // Test scientific notation
+        std::string scientific = fmt::format("{:.2e}", vd);
+        fmt::println("   Scientific .2e:  '{}'", scientific);
+        CHECK(scientific.find("Vec3d(") == 0);
+        bool has_scientific = (scientific.find("e+") != std::string::npos ||
+                               scientific.find("e-") != std::string::npos);
+        CHECK(has_scientific);
+
+        // Test with float type
+        std::string float_2f = fmt::format("{:.2f}", vf);
+        std::string expected_float_2f = "Vec3d(3.14, 2.72, 1.41)";
+        fmt::println("   Float .2f:       '{}' (expected: '{}')", float_2f,
+                     expected_float_2f);
+        CHECK(float_2f == expected_float_2f);
+
+        // Test contextual usage like in the reference example
+        std::string position_3d = fmt::format("Position: {:.2f}", vd);
+        std::string expected_pos_3d = "Position: Vec3d(3.14, 2.72, 1.41)";
+        fmt::println("   Context Vec3d:   '{}' (expected: '{}')", position_3d,
+                     expected_pos_3d);
+        CHECK(position_3d == expected_pos_3d);
+
+        std::string orientation_log = fmt::format("Orientation: {:.2f}", bv);
+        std::string expected_orient = "Orientation: BiVec3d(1.20, 2.30, 3.40)";
+        fmt::println("   Context BiVec:   '{}' (expected: '{}')", orientation_log,
+                     expected_orient);
+        CHECK(orientation_log == expected_orient);
+
+        fmt::println("");
+        fmt::println(
+            "   All Vec3d and BiVec3d format tests passed with expected values!");
+    }
+
     TEST_CASE("Vec3d: comparison float")
     {
         fmt::println("Vec3d: comparison float");
@@ -2482,6 +2615,147 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(is_congruent3d(p_zero, p_zero) == true); // zero vs zero
 
         // fmt::println("   All EGA3D congruence tests passed");
+    }
+
+    TEST_CASE("G<3,0,0>: MVec3d_E, MVec3d_U, and MVec3d formatting tests")
+    {
+        fmt::println("G<3,0,0>: MVec3d_E, MVec3d_U, and MVec3d formatting tests");
+
+        // Test MVec3d_E formatting (MVec4_t with 4 components: c0, c1, c2, c3)
+        MVec3d_E<double> mvec3d_e_val{1.1, 2.2, 3.3, 4.4};
+
+        // Basic output
+        std::string mvec3d_e_basic = fmt::format("{}", mvec3d_e_val);
+        CHECK(mvec3d_e_basic == "MVec3d_E(1.1, 2.2, 3.3, 4.4)");
+
+        // Two decimal places
+        std::string mvec3d_e_two_decimals = fmt::format("{:.2f}", mvec3d_e_val);
+        CHECK(mvec3d_e_two_decimals == "MVec3d_E(1.10, 2.20, 3.30, 4.40)");
+
+        // Scientific notation
+        std::string mvec3d_e_scientific = fmt::format("{:.2e}", mvec3d_e_val);
+        CHECK(mvec3d_e_scientific == "MVec3d_E(1.10e+00, 2.20e+00, 3.30e+00, 4.40e+00)");
+
+        // Contextual usage
+        std::string mvec3d_e_contextual = fmt::format("Even MV: {:.2f}", mvec3d_e_val);
+        CHECK(mvec3d_e_contextual == "Even MV: MVec3d_E(1.10, 2.20, 3.30, 4.40)");
+
+        // Test MVec3d_U formatting (MVec4_t with 4 components: c0, c1, c2, c3)
+        MVec3d_U<double> mvec3d_u_val{5.5, 6.6, 7.7, 8.8};
+
+        // Basic output
+        std::string mvec3d_u_basic = fmt::format("{}", mvec3d_u_val);
+        CHECK(mvec3d_u_basic == "MVec3d_U(5.5, 6.6, 7.7, 8.8)");
+
+        // Two decimal places
+        std::string mvec3d_u_two_decimals = fmt::format("{:.2f}", mvec3d_u_val);
+        CHECK(mvec3d_u_two_decimals == "MVec3d_U(5.50, 6.60, 7.70, 8.80)");
+
+        // Scientific notation
+        std::string mvec3d_u_scientific = fmt::format("{:.2e}", mvec3d_u_val);
+        CHECK(mvec3d_u_scientific == "MVec3d_U(5.50e+00, 6.60e+00, 7.70e+00, 8.80e+00)");
+
+        // Contextual usage
+        std::string mvec3d_u_contextual = fmt::format("Odd MV: {:.2f}", mvec3d_u_val);
+        CHECK(mvec3d_u_contextual == "Odd MV: MVec3d_U(5.50, 6.60, 7.70, 8.80)");
+
+        // Test MVec3d formatting (MVec8_t with 8 components: c0 through c7)
+        MVec3d<double> mvec3d_val{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
+
+        // Basic output
+        std::string mvec3d_basic = fmt::format("{}", mvec3d_val);
+        CHECK(mvec3d_basic == "MVec3d(1, 2, 3, 4, 5, 6, 7, 8)");
+
+        // Two decimal places
+        std::string mvec3d_two_decimals = fmt::format("{:.2f}", mvec3d_val);
+        CHECK(mvec3d_two_decimals ==
+              "MVec3d(1.00, 2.00, 3.00, 4.00, 5.00, 6.00, 7.00, 8.00)");
+
+        // Scientific notation
+        std::string mvec3d_scientific = fmt::format("{:.2e}", mvec3d_val);
+        CHECK(mvec3d_scientific == "MVec3d(1.00e+00, 2.00e+00, 3.00e+00, 4.00e+00, "
+                                   "5.00e+00, 6.00e+00, 7.00e+00, 8.00e+00)");
+
+        // Contextual usage
+        std::string mvec3d_contextual = fmt::format("Full MV: {:.1f}", mvec3d_val);
+        CHECK(mvec3d_contextual ==
+              "Full MV: MVec3d(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)");
+
+        fmt::println("   MVec3d_E basic: {}", mvec3d_e_basic);
+        fmt::println("   MVec3d_E 2-decimal: {}", mvec3d_e_two_decimals);
+        fmt::println("   MVec3d_E scientific: {}", mvec3d_e_scientific);
+        fmt::println("   MVec3d_E contextual: {}", mvec3d_e_contextual);
+
+        fmt::println("   MVec3d_U basic: {}", mvec3d_u_basic);
+        fmt::println("   MVec3d_U 2-decimal: {}", mvec3d_u_two_decimals);
+        fmt::println("   MVec3d_U scientific: {}", mvec3d_u_scientific);
+        fmt::println("   MVec3d_U contextual: {}", mvec3d_u_contextual);
+
+        fmt::println("   MVec3d basic: {}", mvec3d_basic);
+        fmt::println("   MVec3d 2-decimal: {}", mvec3d_two_decimals);
+        fmt::println("   MVec3d scientific: {}", mvec3d_scientific);
+        fmt::println("   MVec3d contextual: {}", mvec3d_contextual);
+    }
+
+    TEST_CASE("G<3,0,0>: MVec4d_E and MVec4d_U formatting tests")
+    {
+        fmt::println("G<3,0,0>: MVec4d_E and MVec4d_U formatting tests");
+
+        // Test MVec4d_E formatting (MVec8_t with 8 components: c0 through c7)
+        MVec4d_E<double> mvec4d_e_val{10.1, 20.2, 30.3, 40.4, 50.5, 60.6, 70.7, 80.8};
+
+        // Basic output
+        std::string mvec4d_e_basic = fmt::format("{}", mvec4d_e_val);
+        CHECK(mvec4d_e_basic ==
+              "MVec4d_E(10.1, 20.2, 30.3, 40.4, 50.5, 60.6, 70.7, 80.8)");
+
+        // Two decimal places
+        std::string mvec4d_e_two_decimals = fmt::format("{:.2f}", mvec4d_e_val);
+        CHECK(mvec4d_e_two_decimals ==
+              "MVec4d_E(10.10, 20.20, 30.30, 40.40, 50.50, 60.60, 70.70, 80.80)");
+
+        // Scientific notation
+        std::string mvec4d_e_scientific = fmt::format("{:.2e}", mvec4d_e_val);
+        CHECK(mvec4d_e_scientific == "MVec4d_E(1.01e+01, 2.02e+01, 3.03e+01, 4.04e+01, "
+                                     "5.05e+01, 6.06e+01, 7.07e+01, 8.08e+01)");
+
+        // Contextual usage
+        std::string mvec4d_e_contextual = fmt::format("Even 4D MV: {:.1f}", mvec4d_e_val);
+        CHECK(mvec4d_e_contextual ==
+              "Even 4D MV: MVec4d_E(10.1, 20.2, 30.3, 40.4, 50.5, 60.6, 70.7, 80.8)");
+
+        // Test MVec4d_U formatting (MVec8_t with 8 components: c0 through c7)
+        MVec4d_U<double> mvec4d_u_val{11.1, 22.2, 33.3, 44.4, 55.5, 66.6, 77.7, 88.8};
+
+        // Basic output
+        std::string mvec4d_u_basic = fmt::format("{}", mvec4d_u_val);
+        CHECK(mvec4d_u_basic ==
+              "MVec4d_U(11.1, 22.2, 33.3, 44.4, 55.5, 66.6, 77.7, 88.8)");
+
+        // Two decimal places
+        std::string mvec4d_u_two_decimals = fmt::format("{:.2f}", mvec4d_u_val);
+        CHECK(mvec4d_u_two_decimals ==
+              "MVec4d_U(11.10, 22.20, 33.30, 44.40, 55.50, 66.60, 77.70, 88.80)");
+
+        // Scientific notation
+        std::string mvec4d_u_scientific = fmt::format("{:.2e}", mvec4d_u_val);
+        CHECK(mvec4d_u_scientific == "MVec4d_U(1.11e+01, 2.22e+01, 3.33e+01, 4.44e+01, "
+                                     "5.55e+01, 6.66e+01, 7.77e+01, 8.88e+01)");
+
+        // Contextual usage
+        std::string mvec4d_u_contextual = fmt::format("Odd 4D MV: {:.1f}", mvec4d_u_val);
+        CHECK(mvec4d_u_contextual ==
+              "Odd 4D MV: MVec4d_U(11.1, 22.2, 33.3, 44.4, 55.5, 66.6, 77.7, 88.8)");
+
+        fmt::println("   MVec4d_E basic: {}", mvec4d_e_basic);
+        fmt::println("   MVec4d_E 2-decimal: {}", mvec4d_e_two_decimals);
+        fmt::println("   MVec4d_E scientific: {}", mvec4d_e_scientific);
+        fmt::println("   MVec4d_E contextual: {}", mvec4d_e_contextual);
+
+        fmt::println("   MVec4d_U basic: {}", mvec4d_u_basic);
+        fmt::println("   MVec4d_U 2-decimal: {}", mvec4d_u_two_decimals);
+        fmt::println("   MVec4d_U scientific: {}", mvec4d_u_scientific);
+        fmt::println("   MVec4d_U contextual: {}", mvec4d_u_contextual);
     }
 
 } // EGA 3D Tests

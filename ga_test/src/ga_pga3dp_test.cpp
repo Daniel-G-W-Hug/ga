@@ -3030,6 +3030,195 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(dist_p1_plp2 == 0);
     }
 
+    TEST_CASE("G<3,0,1>: Scalar3dp and PScalar3dp formatting tests")
+    {
+        fmt::println("G<3,0,1>: Scalar3dp and PScalar3dp formatting tests");
+
+        // Test scalar formatting with different format specifiers
+        scalar3dp s{3.14159};
+        pscalar3dp ps{2.71828};
+
+        // Default formatting
+        std::string default_scalar = fmt::format("{}", s);
+        std::string default_pscalar = fmt::format("{}", ps);
+        CHECK(default_scalar == "Scalar3dp(3.14159)");
+        CHECK(default_pscalar == "PScalar3dp(2.71828)");
+
+        // Two decimal places
+        std::string two_decimals_scalar = fmt::format("{:.2f}", s);
+        std::string two_decimals_pscalar = fmt::format("{:.2f}", ps);
+        CHECK(two_decimals_scalar == "Scalar3dp(3.14)");
+        CHECK(two_decimals_pscalar == "PScalar3dp(2.72)");
+
+        // Scientific notation
+        std::string scientific_scalar = fmt::format("{:.2e}", s);
+        std::string scientific_pscalar = fmt::format("{:.2e}", ps);
+        CHECK(scientific_scalar == "Scalar3dp(3.14e+00)");
+        CHECK(scientific_pscalar == "PScalar3dp(2.72e+00)");
+
+        // Six decimal places
+        std::string six_decimals_scalar = fmt::format("{:.6f}", s);
+        std::string six_decimals_pscalar = fmt::format("{:.6f}", ps);
+        CHECK(six_decimals_scalar == "Scalar3dp(3.141590)");
+        CHECK(six_decimals_pscalar == "PScalar3dp(2.718280)");
+
+        fmt::println(
+            "   All Scalar3dp and PScalar3dp format tests passed with expected values!");
+        fmt::println("");
+    }
+
+    TEST_CASE("Vec3dp: comprehensive format specifier tests with pre-computed values")
+    {
+        fmt::println(
+            "Vec3dp: comprehensive format specifier tests with pre-computed values:\n");
+
+        // Test vector with specific values for predictable output
+        vec3dp v{3.14159, 2.71828, 1.41421, 1.73205};
+
+        // Default formatting - using value_t precision
+        std::string default_format = fmt::format("{}", v);
+        CHECK(default_format == "Vec3dp(3.14159, 2.71828, 1.41421, 1.73205)");
+
+        // Two decimal places
+        std::string two_decimals = fmt::format("{:.2f}", v);
+        CHECK(two_decimals == "Vec3dp(3.14, 2.72, 1.41, 1.73)");
+
+        // Scientific notation with 2 decimal places
+        std::string scientific = fmt::format("{:.2e}", v);
+        CHECK(scientific == "Vec3dp(3.14e+00, 2.72e+00, 1.41e+00, 1.73e+00)");
+
+        // Six decimal places
+        std::string six_decimals = fmt::format("{:.6f}", v);
+        CHECK(six_decimals == "Vec3dp(3.141590, 2.718280, 1.414210, 1.732050)");
+
+        // Test with different vector values for edge cases
+        vec3dp v_zero{0.0, 0.0, 0.0, 0.0};
+        vec3dp v_negative{-1.5, -2.5, -3.5, -4.5};
+
+        std::string zero_format = fmt::format("{:.1f}", v_zero);
+        std::string negative_format = fmt::format("{:.1f}", v_negative);
+        CHECK(zero_format == "Vec3dp(0.0, 0.0, 0.0, 0.0)");
+        CHECK(negative_format == "Vec3dp(-1.5, -2.5, -3.5, -4.5)");
+
+        fmt::println("   All Vec3dp format tests passed with expected values!");
+        fmt::println("");
+    }
+
+    TEST_CASE("G<3,0,1>: TriVec3dp formatting tests")
+    {
+        fmt::println("G<3,0,1>: TriVec3dp formatting tests");
+
+        // Test trivector formatting with different format specifiers
+        trivec3dp tv{1.234, 5.678, 9.012, 2.468};
+
+        // Default formatting
+        std::string default_format = fmt::format("{}", tv);
+        CHECK(default_format == "TriVec3dp(1.234, 5.678, 9.012, 2.468)");
+
+        // Two decimal places
+        std::string two_decimals = fmt::format("{:.2f}", tv);
+        CHECK(two_decimals == "TriVec3dp(1.23, 5.68, 9.01, 2.47)");
+
+        // Scientific notation
+        std::string scientific = fmt::format("{:.2e}", tv);
+        CHECK(scientific == "TriVec3dp(1.23e+00, 5.68e+00, 9.01e+00, 2.47e+00)");
+
+        // Four decimal places
+        std::string four_decimals = fmt::format("{:.4f}", tv);
+        CHECK(four_decimals == "TriVec3dp(1.2340, 5.6780, 9.0120, 2.4680)");
+
+        fmt::println("   All TriVec3dp format tests passed with expected values!");
+        fmt::println("");
+    }
+
+    TEST_CASE("G<3,0,1>: BiVec3dp formatting tests")
+    {
+        fmt::println("G<3,0,1>: BiVec3dp formatting tests");
+
+        // Test bivector formatting with different format specifiers
+        bivec3dp bv{1.11, 2.22, 3.33, 4.44, 5.55, 6.66};
+
+        // Default formatting
+        std::string default_format = fmt::format("{}", bv);
+        CHECK(default_format == "BiVec3dp(1.11, 2.22, 3.33, 4.44, 5.55, 6.66)");
+
+        // Two decimal places
+        std::string two_decimals = fmt::format("{:.2f}", bv);
+        CHECK(two_decimals == "BiVec3dp(1.11, 2.22, 3.33, 4.44, 5.55, 6.66)");
+
+        // Scientific notation
+        std::string scientific = fmt::format("{:.1e}", bv);
+        CHECK(scientific ==
+              "BiVec3dp(1.1e+00, 2.2e+00, 3.3e+00, 4.4e+00, 5.5e+00, 6.7e+00)");
+
+        // Three decimal places
+        std::string three_decimals = fmt::format("{:.3f}", bv);
+        CHECK(three_decimals == "BiVec3dp(1.110, 2.220, 3.330, 4.440, 5.550, 6.660)");
+
+        fmt::println("   All BiVec3dp format tests passed with expected values!");
+        fmt::println("");
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp formatting tests")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp formatting tests");
+
+        // Test dual number formatting with different format specifiers
+        DualNum3dp dn{2.5, 3.7};
+
+        // Default formatting
+        std::string default_format = fmt::format("{}", dn);
+        CHECK(default_format == "DualNum3dp(2.5, 3.7)");
+
+        // Two decimal places
+        std::string two_decimals = fmt::format("{:.2f}", dn);
+        CHECK(two_decimals == "DualNum3dp(2.50, 3.70)");
+
+        // Scientific notation
+        std::string scientific = fmt::format("{:.2e}", dn);
+        CHECK(scientific == "DualNum3dp(2.50e+00, 3.70e+00)");
+
+        // Three decimal places
+        std::string three_decimals = fmt::format("{:.3f}", dn);
+        CHECK(three_decimals == "DualNum3dp(2.500, 3.700)");
+
+        fmt::println("   All DualNum3dp format tests passed with expected values!");
+        fmt::println("");
+    }
+
+    TEST_CASE("G<3,0,1>: MVec3dp_E, MVec3dp_U, and MVec3dp formatting tests")
+    {
+        fmt::println("G<3,0,1>: MVec3dp_E, MVec3dp_U, and MVec3dp formatting tests");
+
+        // Test multivector even formatting
+        mvec3dp_e me{1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8};
+        std::string even_default = fmt::format("{}", me);
+        std::string even_two_dec = fmt::format("{:.1f}", me);
+        CHECK(even_default == "MVec3dp_E(1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8)");
+        CHECK(even_two_dec == "MVec3dp_E(1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8)");
+
+        // Test multivector odd formatting
+        mvec3dp_u mu{1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5};
+        std::string odd_default = fmt::format("{}", mu);
+        std::string odd_two_dec = fmt::format("{:.1f}", mu);
+        CHECK(odd_default == "MVec3dp_U(1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5)");
+        CHECK(odd_two_dec == "MVec3dp_U(1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5)");
+
+        // Test full multivector formatting (16 components)
+        mvec3dp m{1.0, 2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
+                  9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0};
+        std::string full_default = fmt::format("{}", m);
+        std::string full_scientific = fmt::format("{:.1e}", m);
+        CHECK(full_default ==
+              "MVec3dp(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)");
+        CHECK(full_scientific == "MVec3dp(1.0e+00, 2.0e+00, 3.0e+00, 4.0e+00, 5.0e+00, "
+                                 "6.0e+00, 7.0e+00, 8.0e+00, 9.0e+00, 1.0e+01, 1.1e+01, "
+                                 "1.2e+01, 1.3e+01, 1.4e+01, 1.5e+01, 1.6e+01)");
+
+        fmt::println("   All MVec3dp format tests passed with expected values!");
+        fmt::println("");
+    }
+
     TEST_CASE("PGA3DP: congruence tests")
     {
         fmt::println("PGA3DP: congruence tests");
