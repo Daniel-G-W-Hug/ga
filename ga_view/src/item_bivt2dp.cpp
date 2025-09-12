@@ -34,14 +34,45 @@ void item_bivt2dp::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     // draw in item coordinate system
     qp->save();
 
+    // qDebug() << "beg_pos" << beg_pos;
+    // qDebug() << "end_pos" << end_pos << "\n";
+
     qp->setPen(cm->bivtp_mark[idx].pen);
-    qp->drawPath(arrowLine(beg_pos, end_pos));
+    if (beg_pos != end_pos) {
+        // only draw arrow line if length != 0
+        qp->drawPath(arrowLine(beg_pos, end_pos));
+    }
 
     // from here on we want to draw with a small pen to get a pointy vector head
     QPen pen = qp->pen();
     pen.setWidth(1);
     qp->setBrush(pen.color());
-    qp->drawPath(arrowHead(beg_pos, end_pos));
+    if (beg_pos != end_pos) {
+        // only draw arrow head if length != 0
+        qp->drawPath(arrowHead(beg_pos, end_pos));
+    }
+
+    // fmt::println("display_name = {}", cm->bivtp_mark[idx].display_name);
+
+    if (cm->bivtp_mark[idx].display_name != "") {
+        // draw vector name
+
+        qp->setFont(QFont("Helvetica", 14, QFont::Bold));
+        QFontMetrics fm = qp->fontMetrics();
+        QString qstr = QString::fromStdString(cm->bivtp_mark[idx].display_name);
+
+        auto mid_pos = 0.5 * (beg_pos + end_pos);
+
+        pen.setColor(Qt::white); // 1 pt frame around background
+        qp->setPen(pen);
+        qp->setBrush(Qt::lightGray);
+        QRectF rect =
+            QRectF(mid_pos.x() - fm.horizontalAdvance(qstr) / 2 - 4, mid_pos.y() + 6,
+                   fm.horizontalAdvance(qstr) + 8, fm.height() + 8);
+        qp->drawRect(rect.adjusted(0, 0, -pen.width(), -pen.width()));
+        qp->setPen(Qt::white);
+        qp->drawText(rect, Qt::AlignCenter, qstr);
+    }
 
     // draw bounding box (optional for testing)
     // qp->setPen(col_yel);
@@ -83,6 +114,16 @@ void item_bivt2dp::reset_item_data()
     // update geometry, for initialization of if view changed
 
     try {
+
+        // fmt::println("att(cm->bivtp[idx]) = {}", cm->bivtp[idx]);
+
+        if (att(cm->bivtp[idx]) == vec2dp{}) {
+            // return origin for simple bivector (moment only)
+            beg_pos = mapFromScene(QPointF(cs->x.au_to_w(0.0), cs->y.au_to_w(0.0)));
+            end_pos = mapFromScene(QPointF(cs->x.au_to_w(0.0), cs->y.au_to_w(0.0)));
+            return;
+        }
+
         // determine the angle of the projective line
         auto const x_axis = bivec2dp{0, 1, 0};
         auto const y_axis = bivec2dp{1, 0, 0}; // really this is -y_axis_2dp
@@ -251,6 +292,7 @@ void item_bivt2dp::reset_item_data()
         // fmt::println("p_from_24 = {:.2g}, p_to_24 = {:.2g}", p_from_24, p_to_24);
         // fmt::println("p_from_13 = {:.2g}, p_to_13 = {:.2g}", p_from_13, p_to_13);
         // fmt::println("p_from    = {:.2g}, p_to    = {:.2g}", p_from, p_to);
+        // fmt::println("p_from    = {}, p_to    = {}", p_from, p_to);
 
         // create the lines and map them to the coordinate system
         beg_pos = mapFromScene(QPointF(cs->x.au_to_w(p_from.x), cs->y.au_to_w(p_from.y)));

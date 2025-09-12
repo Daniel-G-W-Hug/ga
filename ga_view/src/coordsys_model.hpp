@@ -14,11 +14,15 @@
 // use the ga framework
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
+
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
 using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 
 using namespace fmt::literals; // just to make the format literals visible
+
+// required literals for string handling
+using namespace std::literals::string_literals;
 
 enum Symbol { plus, cross, circle, square };
 
@@ -74,6 +78,7 @@ struct vt2d {
 struct vt2d_mark {
 
     QPen pen{QPen(Qt::black, 2, Qt::SolidLine)};
+    std::string display_name = ""s; // default empty string, i.e. don't draw anyting
 };
 
 const vt2d_mark vt2d_mark_default; // for default arguments;
@@ -82,6 +87,7 @@ const vt2d_mark vt2d_mark_default; // for default arguments;
 struct bivt2dp_mark {
 
     QPen pen{QPen(Qt::gray, 1, Qt::SolidLine)};
+    std::string display_name = ""s; // default empty string, i.e. don't draw anyting
 };
 
 const bivt2dp_mark bivt2dp_mark_default; // for default arguments;
@@ -268,7 +274,7 @@ class Coordsys_model {
 // ----------------------------------------------------------------------------
 
 // formating for user defined types (pt2d)
-template <> struct fmt::formatter<pt2d> : nested_formatter<double> {
+template <> struct fmt::formatter<pt2d> : fmt::nested_formatter<double> {
     template <typename ParseContext> constexpr auto parse(ParseContext& ctx);
     template <typename FormatContext>
     auto format(pt2d const& pt, FormatContext& ctx) const;
@@ -287,7 +293,7 @@ auto fmt::formatter<pt2d>::format(pt2d const& pt, FormatContext& ctx) const
 }
 
 // formating for user defined types (pt2dp)
-template <> struct fmt::formatter<pt2dp> : nested_formatter<double> {
+template <> struct fmt::formatter<pt2dp> : fmt::nested_formatter<double> {
     template <typename ParseContext> constexpr auto parse(ParseContext& ctx);
     template <typename FormatContext>
     auto format(const pt2dp& pt, FormatContext& ctx) const;
@@ -307,7 +313,7 @@ auto fmt::formatter<pt2dp>::format(pt2dp const& pt, FormatContext& ctx) const
 
 
 // formating for user defined types (vt2d)
-template <> struct fmt::formatter<vt2d> : nested_formatter<double> {
+template <> struct fmt::formatter<vt2d> : fmt::nested_formatter<double> {
     template <typename ParseContext> constexpr auto parse(ParseContext& ctx);
     template <typename FormatContext>
     auto format(vt2d const& vt, FormatContext& ctx) const;
@@ -327,7 +333,7 @@ auto fmt::formatter<vt2d>::format(vt2d const& vt, FormatContext& ctx) const
 }
 
 // formating for user defined types (bivt2dp)
-template <> struct fmt::formatter<bivt2dp> : nested_formatter<double> {
+template <> struct fmt::formatter<bivt2dp> : fmt::nested_formatter<double> {
     template <typename ParseContext> constexpr auto parse(ParseContext& ctx);
     template <typename FormatContext>
     auto format(bivt2dp const& bivt, FormatContext& ctx) const;

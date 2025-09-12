@@ -426,6 +426,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         bivt2dp_mark force_mark;
 
         force_mark.pen = QPen(Qt::green, 2, Qt::SolidLine);
+        force_mark.display_name = "bivec1";
         cm.add_bivtp(f1, force_mark);
 
         auto v1_beg = vec2d{p1.x, p1.y};
@@ -433,12 +434,16 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
 
         force_mark.pen = QPen(Qt::darkGreen, 2, Qt::SolidLine);
+        force_mark.display_name = "bivec2";
         cm.add_bivtp(f2, force_mark);
 
-        force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
+
         auto fres = f1 + f2;
+        // fmt::println("parallel: f1 = {}", f1);
+        // fmt::println("parallel: f2 = {}", f2);
         // fmt::println("parallel: fres = {}", fres);
-        auto psupp = support2dp(fres);
+        auto psupp = unitize(support2dp(fres)); // unitize is essential or resulting force
+                                                // vector might not be located on line
         auto pfresp = psupp + att(fres);
         pt2d psup = pt2d{psupp.x, psupp.y};
         pt2d pfres{pfresp.x, pfresp.y};
@@ -448,6 +453,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         vt2d vres{psup, pfres};
         cm.add_vt(vres);
 
+        force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
+        force_mark.display_name = "bivec_res";
         cm.add_bivtp(fres, force_mark);
 
         cm.set_label("proj. - adding force lines (parallel)");
@@ -485,12 +492,17 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_pt(p1f);
         cm.add_pt(p2f);
-        cm.add_vt(v1);
-        cm.add_vt(v2);
+
+        vt2d_mark vec_mark;
+        vec_mark.display_name = "f1";
+        cm.add_vt(v1, vec_mark);
+        vec_mark.display_name = "f2";
+        cm.add_vt(v2, vec_mark);
 
         bivt2dp_mark force_mark;
 
         force_mark.pen = QPen(Qt::green, 2, Qt::SolidLine);
+        force_mark.display_name = "bivec1";
         cm.add_bivtp(f1, force_mark);
 
         auto v1_beg = vec2d{p1.x, p1.y};
@@ -498,9 +510,10 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
 
         force_mark.pen = QPen(Qt::darkGreen, 2, Qt::SolidLine);
+        force_mark.display_name = "bivec2";
         cm.add_bivtp(f2, force_mark);
 
-        force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
+
         auto fres = f1 + f2;
         // fmt::println("anti-parallel: fres = {}", fres);
         auto psupp = support2dp(fres);
@@ -513,6 +526,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         vt2d vres{psup, pfres};
         cm.add_vt(vres);
 
+        force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
+        force_mark.display_name = "bivec_res = " + fmt::format("(0,0,{})", fres.z);
         cm.add_bivtp(fres, force_mark);
 
         cm.set_label("proj. - adding force lines (anti-parallel)");

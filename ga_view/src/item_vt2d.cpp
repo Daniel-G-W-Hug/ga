@@ -43,15 +43,45 @@ void item_vt2d::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     // draw in item coordinate system
     qp->save();
 
+    // qDebug() << "beg_pos" << beg_pos;
+    // qDebug() << "end_pos" << end_pos << "\n";
+
     // draw vector from beg to end
     qp->setPen(cm->vt_mark[idx].pen);
-    qp->drawPath(arrowLine(beg_pos, end_pos));
+    if (beg_pos != end_pos) {
+        // only draw arrow line if length != 0
+        qp->drawPath(arrowLine(beg_pos, end_pos));
+    }
 
     // from here on we want to draw with a small pen to get a pointy vector head
     QPen pen = qp->pen();
     pen.setWidth(1);
     qp->setBrush(pen.color());
-    qp->drawPath(arrowHead(beg_pos, end_pos));
+
+    if (beg_pos != end_pos) {
+        // only draw arrow head if length != 0
+        qp->drawPath(arrowHead(beg_pos, end_pos));
+    }
+
+    if (cm->vt_mark[idx].display_name != "") {
+        // draw vector name
+
+        qp->setFont(QFont("Helvetica", 14, QFont::Bold));
+        QFontMetrics fm = qp->fontMetrics();
+        QString qstr = QString::fromStdString(cm->vt_mark[idx].display_name);
+
+        auto mid_pos = 0.5 * (beg_pos + end_pos);
+
+        pen.setColor(Qt::white); // 1 pt frame around background
+        qp->setPen(pen);
+        qp->setBrush(Qt::lightGray);
+        QRectF rect = QRectF(mid_pos.x() - fm.horizontalAdvance(qstr) / 2 - 4,
+                             mid_pos.y() - fm.height() / 2 - 4,
+                             fm.horizontalAdvance(qstr) + 8, fm.height() + 8);
+        qp->drawRect(rect.adjusted(0, 0, -pen.width(), -pen.width()));
+        qp->setPen(Qt::white);
+        qp->drawText(rect, Qt::AlignCenter, qstr);
+    }
 
     // draw bounding box (optional for testing)
     // qp->setPen(col_yel);

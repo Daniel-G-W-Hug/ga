@@ -23,12 +23,12 @@ using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 // projective geometric algebra pga2dp application tests
 /////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_SUITE("PGA 2DP Application Tests")
+TEST_SUITE("PGA2DP: application tests")
 {
 
-    TEST_CASE("pga2dp: steering angle application")
+    TEST_CASE("pga2dp: application tests - steering angle application")
     {
-        fmt::println("pga2dp: steering angle application");
+        fmt::println("pga2dp: application tests - steering angle application");
 
         // wheel positions rear (pr) and front (pf)
         constexpr double track = 2.0;
