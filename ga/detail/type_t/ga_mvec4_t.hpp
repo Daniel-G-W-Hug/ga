@@ -15,7 +15,7 @@ namespace hd::ga {
 // MVec4_t<T, Tag> definition of a multivector with 4 components c0, ..., c3
 /////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T = value_t, typename Tag = default_tag>
+template <typename T, typename Tag = default_tag>
     requires(std::floating_point<T>)
 struct MVec4_t {
 

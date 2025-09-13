@@ -283,13 +283,18 @@ template <> struct fmt::formatter<pt2d> : fmt::nested_formatter<double> {
 template <typename ParseContext>
 constexpr auto fmt::formatter<pt2d>::parse(ParseContext& ctx)
 {
-    return ctx.begin();
+    return nested_formatter<double>::parse(ctx);
 }
 
 template <typename FormatContext>
 auto fmt::formatter<pt2d>::format(pt2d const& pt, FormatContext& ctx) const
 {
-    return fmt::format_to(ctx.out(), "pt2d({}, {})", pt.x, pt.y);
+    auto out = fmt::format_to(ctx.out(), "pt2d(");
+    out = fmt::format_to(out, "{}", nested(pt.x));
+    out = fmt::format_to(out, ", ");
+    ctx.advance_to(out);
+    out = fmt::format_to(out, "{}", nested(pt.y));
+    return fmt::format_to(out, ")");
 }
 
 // formating for user defined types (pt2dp)
@@ -302,13 +307,21 @@ template <> struct fmt::formatter<pt2dp> : fmt::nested_formatter<double> {
 template <typename ParseContext>
 constexpr auto fmt::formatter<pt2dp>::parse(ParseContext& ctx)
 {
-    return ctx.begin();
+    return nested_formatter<double>::parse(ctx);
 }
 
 template <typename FormatContext>
 auto fmt::formatter<pt2dp>::format(pt2dp const& pt, FormatContext& ctx) const
 {
-    return fmt::format_to(ctx.out(), "pt2dp({}, {}, {})", pt.x, pt.y, pt.z);
+    auto out = fmt::format_to(ctx.out(), "pt2dp(");
+    out = fmt::format_to(out, "{}", nested(pt.x));
+    out = fmt::format_to(out, ", ");
+    ctx.advance_to(out);
+    out = fmt::format_to(out, "{}", nested(pt.y));
+    out = fmt::format_to(out, ", ");
+    ctx.advance_to(out);
+    out = fmt::format_to(out, "{}", nested(pt.z));
+    return fmt::format_to(out, ")");
 }
 
 
@@ -322,14 +335,24 @@ template <> struct fmt::formatter<vt2d> : fmt::nested_formatter<double> {
 template <typename ParseContext>
 constexpr auto fmt::formatter<vt2d>::parse(ParseContext& ctx)
 {
-    return ctx.begin();
+    return nested_formatter<double>::parse(ctx);
 }
 
 template <typename FormatContext>
 auto fmt::formatter<vt2d>::format(vt2d const& vt, FormatContext& ctx) const
 {
-    return fmt::format_to(ctx.out(), "vt2d(pt2d({}, {}), pt2d({}, {}))", vt.beg.x,
-                          vt.beg.y, vt.end.x, vt.end.y);
+    auto out = fmt::format_to(ctx.out(), "vt2d(pt2d(");
+    out = fmt::format_to(out, "{}", nested(vt.beg.x));
+    out = fmt::format_to(out, ", ");
+    ctx.advance_to(out);
+    out = fmt::format_to(out, "{}", nested(vt.beg.y));
+    out = fmt::format_to(out, "), pt2d(");
+    ctx.advance_to(out);
+    out = fmt::format_to(out, "{}", nested(vt.end.x));
+    out = fmt::format_to(out, ", ");
+    ctx.advance_to(out);
+    out = fmt::format_to(out, "{}", nested(vt.end.y));
+    return fmt::format_to(out, "))");
 }
 
 // formating for user defined types (bivt2dp)
@@ -342,13 +365,21 @@ template <> struct fmt::formatter<bivt2dp> : fmt::nested_formatter<double> {
 template <typename ParseContext>
 constexpr auto fmt::formatter<bivt2dp>::parse(ParseContext& ctx)
 {
-    return ctx.begin();
+    return nested_formatter<double>::parse(ctx);
 }
 
 template <typename FormatContext>
 auto fmt::formatter<bivt2dp>::format(bivt2dp const& bivt, FormatContext& ctx) const
 {
-    return fmt::format_to(ctx.out(), "bivt2dp({}, {}, {})", bivt.x, bivt.y, bivt.z);
+    auto out = fmt::format_to(ctx.out(), "bivt2dp(");
+    out = fmt::format_to(out, "{}", nested(bivt.x));
+    out = fmt::format_to(out, ", ");
+    ctx.advance_to(out);
+    out = fmt::format_to(out, "{}", nested(bivt.y));
+    out = fmt::format_to(out, ", ");
+    ctx.advance_to(out);
+    out = fmt::format_to(out, "{}", nested(bivt.z));
+    return fmt::format_to(out, ")");
 }
 
 // Bsp. für Anwendung

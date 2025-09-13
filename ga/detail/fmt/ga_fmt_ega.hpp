@@ -4,15 +4,21 @@
 
 #include "ga_fmt_core.hpp"
 
+// hint: inclusion sequence is important
+// (scalar and vector types need to come before multivector types for mv ctors to work)
+
+#include "../type_t/ga_scalar_t.hpp"
+
+#include "../type_t/ga_vec2_t.hpp"
+#include "../type_t/ga_vec3_t.hpp"
+#include "../type_t/ga_vec4_t.hpp"
+
 #include "../type_t/ga_bvec6_t.hpp"
+
 #include "../type_t/ga_mvec16_t.hpp"
 #include "../type_t/ga_mvec2_t.hpp"
 #include "../type_t/ga_mvec4_t.hpp"
 #include "../type_t/ga_mvec8_t.hpp"
-#include "../type_t/ga_scalar_t.hpp"
-#include "../type_t/ga_vec2_t.hpp"
-#include "../type_t/ga_vec3_t.hpp"
-#include "../type_t/ga_vec4_t.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Formatting support for Euclidean Geometric Algebra (EGA) types
@@ -23,8 +29,8 @@
 // Scalar_t<T, Tag>: Scalar2d<T>, PScalar2d<T>, Scalar3d<T>, PScalar3d<T>, etc.
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx)
+struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : fmt::nested_formatter<T> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         return fmt::nested_formatter<T>::parse(ctx);
     }
@@ -67,8 +73,8 @@ struct fmt::formatter<hd::ga::Scalar_t<T, Tag>> : nested_formatter<T> {
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
     requires std::is_same_v<Tag, hd::ga::vec2d_tag>
-struct fmt::formatter<hd::ga::Vec2_t<T, Tag>> : nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx)
+struct fmt::formatter<hd::ga::Vec2_t<T, Tag>> : fmt::nested_formatter<T> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         return fmt::nested_formatter<T>::parse(ctx);
     }
@@ -98,8 +104,8 @@ struct fmt::formatter<hd::ga::Vec2_t<T, Tag>> : nested_formatter<T> {
 template <typename T, typename Tag>
     requires(std::is_same_v<Tag, hd::ga::vec3d_tag> ||
              std::is_same_v<Tag, hd::ga::bivec3d_tag>)
-struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx)
+struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : fmt::nested_formatter<T> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         return fmt::nested_formatter<T>::parse(ctx);
     }
@@ -153,8 +159,8 @@ struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : nested_formatter<T> {
 template <typename T, typename Tag>
     requires(std::is_same_v<Tag, hd::ga::vec4d_tag> ||
              std::is_same_v<Tag, hd::ga::trivec4d_tag>)
-struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx)
+struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : fmt::nested_formatter<T> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         return fmt::nested_formatter<T>::parse(ctx);
     }
@@ -216,8 +222,8 @@ struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : nested_formatter<T> {
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
     requires std::is_same_v<Tag, hd::ga::bivec4d_tag>
-struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx)
+struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : fmt::nested_formatter<T> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         return fmt::nested_formatter<T>::parse(ctx);
     }
@@ -252,8 +258,8 @@ struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : nested_formatter<T> {
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
     requires std::is_same_v<Tag, hd::ga::mvec2d_e_tag>
-struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx)
+struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : fmt::nested_formatter<T> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         return fmt::nested_formatter<T>::parse(ctx);
     }
@@ -278,8 +284,8 @@ template <typename T, typename Tag>
     requires(std::is_same_v<Tag, hd::ga::mvec2d_tag> ||
              std::is_same_v<Tag, hd::ga::mvec3d_e_tag> ||
              std::is_same_v<Tag, hd::ga::mvec3d_u_tag>)
-struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx)
+struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : fmt::nested_formatter<T> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         return fmt::nested_formatter<T>::parse(ctx);
     }
@@ -359,8 +365,8 @@ template <typename T, typename Tag>
     requires(std::is_same_v<Tag, hd::ga::mvec3d_tag> ||
              std::is_same_v<Tag, hd::ga::mvec4d_e_tag> ||
              std::is_same_v<Tag, hd::ga::mvec4d_u_tag>)
-struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx)
+struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : fmt::nested_formatter<T> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         return fmt::nested_formatter<T>::parse(ctx);
     }
@@ -486,8 +492,8 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : nested_formatter<T> {
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
     requires std::is_same_v<Tag, hd::ga::mvec4d_tag>
-struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : nested_formatter<T> {
-    constexpr auto parse(format_parse_context& ctx)
+struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : fmt::nested_formatter<T> {
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
     {
         return fmt::nested_formatter<T>::parse(ctx);
     }
