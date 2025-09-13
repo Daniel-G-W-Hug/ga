@@ -1,7 +1,14 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "w_mainwindow.hpp"
+#include "ga/ga_ega.hpp"
+#include "ga/ga_pga.hpp"
+
+using namespace hd::ga;
+using namespace hd::ga::ega;
+using namespace hd::ga::pga;
+
 #include "w_coordsys.hpp"
+#include "w_mainwindow.hpp"
 #include "w_statusbar.hpp"
 
 
@@ -527,7 +534,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_vt(vres);
 
         force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
-        force_mark.display_name = "bivec_res = " + fmt::format("(0,0,{})", fres.z);
+        force_mark.display_name = fmt::format("bivec_res = {:.2f}", fres);
         cm.add_bivtp(fres, force_mark);
 
         cm.set_label("proj. - adding force lines (anti-parallel)");
