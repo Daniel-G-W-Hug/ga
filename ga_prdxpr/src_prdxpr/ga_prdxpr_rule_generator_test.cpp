@@ -11,15 +11,19 @@
 
 // Helper function to print all rules in grade-ordered way
 void print_all_rules(const prd_rules& rules, const std::string& title,
-                     const mvec_coeff& basis_order)
+                     const mvec_coeff& basis_order, const std::string& algebra_name = "")
 {
-    fmt::println("\n=== {} ===", title);
+    if (!algebra_name.empty()) {
+        fmt::println("\n{} {}", algebra_name, title);
+    } else {
+        fmt::println("\n=== {} ===", title);
+    }
 
     // Print in grade order by iterating through basis in order
     for (const auto& a : basis_order) {
         for (const auto& b : basis_order) {
             std::string key = a + " * " + b;
-            if (title.find("Wedge") != std::string::npos) {
+            if (title.find("wedge") != std::string::npos || title.find("Wedge") != std::string::npos) {
                 key = a + " ^ " + b; // Use wedge operator for wedge products
             }
 
@@ -33,9 +37,13 @@ void print_all_rules(const prd_rules& rules, const std::string& title,
 
 // Print complement rules in grade order (scalars, vectors, bivectors, etc.)
 void print_complement_rules(const prd_rules& rules, const std::string& title,
-                            const mvec_coeff& basis_order)
+                            const mvec_coeff& basis_order, const std::string& algebra_name = "")
 {
-    fmt::println("\n=== {} ===", title);
+    if (!algebra_name.empty()) {
+        fmt::println("\n{} {}", algebra_name, title);
+    } else {
+        fmt::println("\n=== {} ===", title);
+    }
 
     // Print complement rules in grade order by iterating through basis in order
     for (const auto& basis_element : basis_order) {
@@ -82,9 +90,9 @@ bool compare_all_rules(const prd_rules& generated, const prd_rules& reference,
         }
     }
 
-    fmt::println("  Rules: {}/{} match", matching_rules, total_rules);
-    fmt::println("  Generated rules count: {}", generated.size());
-    fmt::println("  Reference rules count: {}", reference.size());
+    fmt::println("  rules: {}/{} match", matching_rules, total_rules);
+    fmt::println("  generated rules count: {}", generated.size());
+    fmt::println("  reference rules count: {}", reference.size());
 
     if (all_match && generated.size() == reference.size()) {
         fmt::println("  ✓ PERFECT MATCH: All {} rules match character-by-character",
@@ -103,75 +111,75 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
 {
     std::string separator(80, '=');
     fmt::println("\n{}", separator);
-    fmt::println("=== {} ALGEBRA RULES ===", algebra_name);
-    fmt::println("Algebra: {} - {}", algebra_name,
-                 algebra_name.find("EGA2D") != std::string::npos    ? "Euclidean 2D"
-                 : algebra_name.find("EGA3D") != std::string::npos  ? "Euclidean 3D"
-                 : algebra_name.find("PGA2DP") != std::string::npos ? "Projective 2D"
-                 : algebra_name.find("PGA3DP") != std::string::npos ? "Projective 3D"
-                 : algebra_name.find("STA3D") != std::string::npos  ? "Space-Time 3D"
+    fmt::println("=== {} algebra rules ===", algebra_name);
+    fmt::println("algebra: {} - {}", algebra_name,
+                 algebra_name.find("ega2d") != std::string::npos    ? "euclidean 2d"
+                 : algebra_name.find("ega3d") != std::string::npos  ? "euclidean 3d"
+                 : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
+                 : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
+                 : algebra_name.find("sta3d") != std::string::npos  ? "space-time 3d"
                                                                     : "Unknown");
-    fmt::println("Basis vectors: {}", fmt::join(config.basis_vectors, ", "));
-    fmt::println("Metric signature: {}", fmt::join(config.metric_signature, ", "));
+    fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
+    fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
 
     // Generate all rules
     auto generated_rules = generate_algebra_rules(config);
 
-    fmt::println("\n=== Generated Basis (Grade-Ordered) ===");
-    fmt::println("Basis: {}", fmt::join(generated_rules.basis, ", "));
+    fmt::println("\n=== generated basis (grade-ordered) ===");
+    fmt::println("basis: {}", fmt::join(generated_rules.basis, ", "));
 
     if (generated_rules.basis.size() == 4) {
-        fmt::println("  Grade 0 (scalar):  {}", generated_rules.basis[0]);
-        fmt::println("  Grade 1 (vectors): {}, {}", generated_rules.basis[1],
+        fmt::println("  grade 0 (scalar):  {}", generated_rules.basis[0]);
+        fmt::println("  grade 1 (vectors): {}, {}", generated_rules.basis[1],
                      generated_rules.basis[2]);
-        fmt::println("  Grade 2 (bivector): {}", generated_rules.basis[3]);
+        fmt::println("  grade 2 (bivector): {}", generated_rules.basis[3]);
     }
     else if (generated_rules.basis.size() == 8) {
-        fmt::println("  Grade 0 (scalar):   {}", generated_rules.basis[0]);
-        fmt::println("  Grade 1 (vectors):  {}, {}, {}", generated_rules.basis[1],
+        fmt::println("  grade 0 (scalar):   {}", generated_rules.basis[0]);
+        fmt::println("  grade 1 (vectors):  {}, {}, {}", generated_rules.basis[1],
                      generated_rules.basis[2], generated_rules.basis[3]);
-        fmt::println("  Grade 2 (bivectors): {}, {}, {}", generated_rules.basis[4],
+        fmt::println("  grade 2 (bivectors): {}, {}, {}", generated_rules.basis[4],
                      generated_rules.basis[5], generated_rules.basis[6]);
         std::string trivector_name = generated_rules.basis[7];
-        fmt::println("  Grade 3 (trivector): {} {}", trivector_name,
+        fmt::println("  grade 3 (trivector): {} {}", trivector_name,
                      trivector_name == "e123"   ? "(EGA)"
                      : trivector_name == "e321" ? "(PGA)"
                                                 : "");
     }
     else if (generated_rules.basis.size() == 16) {
-        fmt::println("  Grade 0 (scalar):     {}", generated_rules.basis[0]);
-        fmt::println("  Grade 1 (vectors):    {}, {}, {}, {}", generated_rules.basis[1],
+        fmt::println("  grade 0 (scalar):     {}", generated_rules.basis[0]);
+        fmt::println("  grade 1 (vectors):    {}, {}, {}, {}", generated_rules.basis[1],
                      generated_rules.basis[2], generated_rules.basis[3],
                      generated_rules.basis[4]);
-        fmt::println("  Grade 2 (bivectors):  {}, {}, {}, {}, {}, {}",
+        fmt::println("  grade 2 (bivectors):  {}, {}, {}, {}, {}, {}",
                      generated_rules.basis[5], generated_rules.basis[6],
                      generated_rules.basis[7], generated_rules.basis[8],
                      generated_rules.basis[9], generated_rules.basis[10]);
-        fmt::println("  Grade 3 (trivectors): {}, {}, {}, {}", generated_rules.basis[11],
+        fmt::println("  grade 3 (trivectors): {}, {}, {}, {}", generated_rules.basis[11],
                      generated_rules.basis[12], generated_rules.basis[13],
                      generated_rules.basis[14]);
-        fmt::println("  Grade 4 (pseudoscalar): {}", generated_rules.basis[15]);
+        fmt::println("  grade 4 (pseudoscalar): {}", generated_rules.basis[15]);
     }
 
     // Calculate and display extended metric
     auto extended_metric = calculate_extended_metric(config);
-    fmt::println("\n=== Extended Metric ===");
-    fmt::println("Extended Metric: {}", fmt::join(extended_metric, ", "));
+    fmt::println("\n=== extended metric ===");
+    fmt::println("extended metric: {}", fmt::join(extended_metric, ", "));
 
     // Show mapping of basis elements to their extended metric values
-    fmt::println("Basis → Extended Metric mapping:");
+    fmt::println("basis → extended metric mapping:");
     for (size_t i = 0; i < std::min(generated_rules.basis.size(), extended_metric.size());
          ++i) {
         fmt::println("  {} → {}", generated_rules.basis[i], extended_metric[i]);
     }
 
-    // Print all generated rules clearly
-    print_all_rules(generated_rules.geometric_product, "Geometric Product Rules",
-                    generated_rules.basis);
-    print_all_rules(generated_rules.wedge_product, "Wedge Product Rules",
-                    generated_rules.basis);
-    print_all_rules(generated_rules.dot_product, "Dot Product Rules",
-                    generated_rules.basis);
+    // Print all generated rules clearly with algebra prefix
+    print_all_rules(generated_rules.geometric_product, "geometric product rules",
+                    generated_rules.basis, algebra_name);
+    print_all_rules(generated_rules.wedge_product, "wedge product rules",
+                    generated_rules.basis, algebra_name);
+    print_all_rules(generated_rules.dot_product, "dot product rules",
+                    generated_rules.basis, algebra_name);
 
     // Print complement rules based on algebra dimensionality in grade order
     size_t num_basis_vectors = config.basis_vectors.size();
@@ -179,15 +187,15 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
 
     if (is_even_dimensional) {
         // Even-dimensional algebras have left and right complements
-        print_complement_rules(generated_rules.left_complement,
-                               "Generated Left Complement Rules", generated_rules.basis);
-        print_complement_rules(generated_rules.right_complement,
-                               "Generated Right Complement Rules", generated_rules.basis);
+        print_complement_rules(generated_rules.left_complement, "left complement rules",
+                               generated_rules.basis, algebra_name);
+        print_complement_rules(generated_rules.right_complement, "right complement rules",
+                               generated_rules.basis, algebra_name);
     }
     else {
         // Odd-dimensional algebras have a single complement
-        print_complement_rules(generated_rules.complement, "Generated Complement Rules",
-                               generated_rules.basis);
+        print_complement_rules(generated_rules.complement, "complement rules",
+                               generated_rules.basis, algebra_name);
     }
 }
 
@@ -201,86 +209,86 @@ bool test_algebra_with_complements(
 {
     std::string separator(80, '=');
     fmt::println("\n{}", separator);
-    fmt::println("=== Testing {} ===", algebra_name);
-    fmt::println("Algebra: {} - {}", algebra_name,
-                 algebra_name.find("EGA2D") != std::string::npos    ? "Euclidean 2D"
-                 : algebra_name.find("EGA3D") != std::string::npos  ? "Euclidean 3D"
-                 : algebra_name.find("PGA2DP") != std::string::npos ? "Projective 2D"
-                 : algebra_name.find("PGA3DP") != std::string::npos ? "Projective 3D"
-                 : algebra_name.find("STA3D") != std::string::npos  ? "Space-Time 3D"
+    fmt::println("=== testing {} ===", algebra_name);
+    fmt::println("algebra: {} - {}", algebra_name,
+                 algebra_name.find("ega2d") != std::string::npos    ? "euclidean 2d"
+                 : algebra_name.find("ega3d") != std::string::npos  ? "euclidean 3d"
+                 : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
+                 : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
+                 : algebra_name.find("sta3d") != std::string::npos  ? "space-time 3d"
                                                                     : "Unknown");
-    fmt::println("Basis vectors: {}", fmt::join(config.basis_vectors, ", "));
-    fmt::println("Metric signature: {}", fmt::join(config.metric_signature, ", "));
+    fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
+    fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
 
     // Generate all rules
     auto generated_rules = generate_algebra_rules(config);
 
-    fmt::println("\n=== Generated Basis (Grade-Ordered) ===");
-    fmt::println("Generated: {}", fmt::join(generated_rules.basis, ", "));
+    fmt::println("\n=== generated basis (grade-ordered) ===");
+    fmt::println("generated: {}", fmt::join(generated_rules.basis, ", "));
 
     if (generated_rules.basis.size() == 4) {
-        fmt::println("  Grade 0 (scalar):  {}", generated_rules.basis[0]);
-        fmt::println("  Grade 1 (vectors): {}, {}", generated_rules.basis[1],
+        fmt::println("  grade 0 (scalar):  {}", generated_rules.basis[0]);
+        fmt::println("  grade 1 (vectors): {}, {}", generated_rules.basis[1],
                      generated_rules.basis[2]);
-        fmt::println("  Grade 2 (bivector): {}", generated_rules.basis[3]);
+        fmt::println("  grade 2 (bivector): {}", generated_rules.basis[3]);
     }
     else if (generated_rules.basis.size() == 8) {
-        fmt::println("  Grade 0 (scalar):   {}", generated_rules.basis[0]);
-        fmt::println("  Grade 1 (vectors):  {}, {}, {}", generated_rules.basis[1],
+        fmt::println("  grade 0 (scalar):   {}", generated_rules.basis[0]);
+        fmt::println("  grade 1 (vectors):  {}, {}, {}", generated_rules.basis[1],
                      generated_rules.basis[2], generated_rules.basis[3]);
-        fmt::println("  Grade 2 (bivectors): {}, {}, {}", generated_rules.basis[4],
+        fmt::println("  grade 2 (bivectors): {}, {}, {}", generated_rules.basis[4],
                      generated_rules.basis[5], generated_rules.basis[6]);
         std::string trivector_name = generated_rules.basis[7];
-        fmt::println("  Grade 3 (trivector): {} {}", trivector_name,
+        fmt::println("  grade 3 (trivector): {} {}", trivector_name,
                      trivector_name == "e123"   ? "(EGA)"
                      : trivector_name == "e321" ? "(PGA)"
                                                 : "");
     }
     else if (generated_rules.basis.size() == 16) {
-        fmt::println("  Grade 0 (scalar):     {}", generated_rules.basis[0]);
-        fmt::println("  Grade 1 (vectors):    {}, {}, {}, {}", generated_rules.basis[1],
+        fmt::println("  grade 0 (scalar):     {}", generated_rules.basis[0]);
+        fmt::println("  grade 1 (vectors):    {}, {}, {}, {}", generated_rules.basis[1],
                      generated_rules.basis[2], generated_rules.basis[3],
                      generated_rules.basis[4]);
-        fmt::println("  Grade 2 (bivectors):  {}, {}, {}, {}, {}, {}",
+        fmt::println("  grade 2 (bivectors):  {}, {}, {}, {}, {}, {}",
                      generated_rules.basis[5], generated_rules.basis[6],
                      generated_rules.basis[7], generated_rules.basis[8],
                      generated_rules.basis[9], generated_rules.basis[10]);
-        fmt::println("  Grade 3 (trivectors): {}, {}, {}, {}", generated_rules.basis[11],
+        fmt::println("  grade 3 (trivectors): {}, {}, {}, {}", generated_rules.basis[11],
                      generated_rules.basis[12], generated_rules.basis[13],
                      generated_rules.basis[14]);
-        fmt::println("  Grade 4 (pseudoscalar): {}", generated_rules.basis[15]);
+        fmt::println("  grade 4 (pseudoscalar): {}", generated_rules.basis[15]);
     }
 
-    fmt::println("\nReference: {}", fmt::join(reference_basis, ", "));
+    fmt::println("\nreference: {}", fmt::join(reference_basis, ", "));
 
     // Calculate and display extended metric
     auto extended_metric = calculate_extended_metric(config);
-    fmt::println("\n=== Extended Metric ===");
-    fmt::println("Extended Metric: {}", fmt::join(extended_metric, ", "));
+    fmt::println("\n=== extended metric ===");
+    fmt::println("extended metric: {}", fmt::join(extended_metric, ", "));
 
-    // Show mapping of basis elements to their extended metric values
-    fmt::println("Basis → Extended Metric mapping:");
+    // show mapping of basis elements to their extended metric values
+    fmt::println("basis → extended metric mapping:");
     for (size_t i = 0; i < std::min(generated_rules.basis.size(), extended_metric.size());
          ++i) {
         fmt::println("  {} → {}", generated_rules.basis[i], extended_metric[i]);
     }
 
-    // Validate basis
+    // validate basis
     bool basis_match = (generated_rules.basis == reference_basis);
-    fmt::println("Basis match: {}", basis_match ? "✓ PERFECT" : "✗ DIFFERENT");
+    fmt::println("basis match: {}", basis_match ? "✓ PERFECT" : "✗ DIFFERENT");
 
     // Print complete generated rules
-    print_all_rules(generated_rules.geometric_product,
-                    "Generated Geometric Product Rules", generated_rules.basis);
-    print_all_rules(reference_gpr, "Reference Geometric Product Rules", reference_basis);
-
-    print_all_rules(generated_rules.wedge_product, "Generated Wedge Product Rules",
+    print_all_rules(generated_rules.geometric_product, "geometric product rules",
                     generated_rules.basis);
-    print_all_rules(reference_wdg, "Reference Wedge Product Rules", reference_basis);
+    print_all_rules(reference_gpr, "reference geometric product rules", reference_basis);
 
-    print_all_rules(generated_rules.dot_product, "Generated Dot Product Rules",
+    print_all_rules(generated_rules.wedge_product, "wedge product rules",
                     generated_rules.basis);
-    print_all_rules(reference_dot, "Reference Dot Product Rules", reference_basis);
+    print_all_rules(reference_wdg, "reference wedge product rules", reference_basis);
+
+    print_all_rules(generated_rules.dot_product, "dot product rules",
+                    generated_rules.basis);
+    print_all_rules(reference_dot, "reference dot product rules", reference_basis);
 
     // Do complete character-by-character validation
     fmt::println("\n{}", separator);
@@ -288,47 +296,47 @@ bool test_algebra_with_complements(
     fmt::println("{}", separator);
 
     bool gpr_perfect = compare_all_rules(generated_rules.geometric_product, reference_gpr,
-                                         "Geometric Product");
+                                         "geometric product");
     bool wdg_perfect =
-        compare_all_rules(generated_rules.wedge_product, reference_wdg, "Wedge Product");
+        compare_all_rules(generated_rules.wedge_product, reference_wdg, "wedge product");
     bool dot_perfect =
-        compare_all_rules(generated_rules.dot_product, reference_dot, "Dot Product");
+        compare_all_rules(generated_rules.dot_product, reference_dot, "dot product");
 
-    // Validate complements if provided
+    // validate complements if provided
     bool lcmpl_perfect = true, rcmpl_perfect = true, cmpl_perfect = true;
 
     if (reference_lcmpl) {
         lcmpl_perfect = compare_all_rules(generated_rules.left_complement,
-                                          *reference_lcmpl, "Left Complement");
+                                          *reference_lcmpl, "left complement");
     }
     if (reference_rcmpl) {
         rcmpl_perfect = compare_all_rules(generated_rules.right_complement,
-                                          *reference_rcmpl, "Right Complement");
+                                          *reference_rcmpl, "right complement");
     }
     if (reference_cmpl) {
         cmpl_perfect =
-            compare_all_rules(generated_rules.complement, *reference_cmpl, "Complement");
+            compare_all_rules(generated_rules.complement, *reference_cmpl, "complement");
     }
 
     // Final summary
     fmt::println("\n{}", separator);
     fmt::println("FINAL VALIDATION SUMMARY - {}", algebra_name);
     fmt::println("{}", separator);
-    fmt::println("Basis Generation:     {}", basis_match ? "✓ PERFECT" : "✗ FAILED");
-    fmt::println("Geometric Product:    {}", gpr_perfect ? "✓ PERFECT" : "✗ FAILED");
-    fmt::println("Wedge Product:        {}", wdg_perfect ? "✓ PERFECT" : "✗ FAILED");
-    fmt::println("Dot Product:          {}", dot_perfect ? "✓ PERFECT" : "✗ FAILED");
+    fmt::println("basis generation:     {}", basis_match ? "✓ PERFECT" : "✗ FAILED");
+    fmt::println("geometric product:    {}", gpr_perfect ? "✓ PERFECT" : "✗ FAILED");
+    fmt::println("wedge product:        {}", wdg_perfect ? "✓ PERFECT" : "✗ FAILED");
+    fmt::println("dot product:          {}", dot_perfect ? "✓ PERFECT" : "✗ FAILED");
 
     if (reference_lcmpl) {
-        fmt::println("Left Complement:      {}",
+        fmt::println("left complement:      {}",
                      lcmpl_perfect ? "✓ PERFECT" : "✗ FAILED");
     }
     if (reference_rcmpl) {
-        fmt::println("Right Complement:     {}",
+        fmt::println("right complement:     {}",
                      rcmpl_perfect ? "✓ PERFECT" : "✗ FAILED");
     }
     if (reference_cmpl) {
-        fmt::println("Complement:           {}", cmpl_perfect ? "✓ PERFECT" : "✗ FAILED");
+        fmt::println("complement:           {}", cmpl_perfect ? "✓ PERFECT" : "✗ FAILED");
     }
 
     bool overall_success = basis_match && gpr_perfect && wdg_perfect && dot_perfect &&
@@ -347,65 +355,65 @@ bool test_algebra(const AlgebraConfig& config, const std::string& algebra_name,
 
     std::string separator(80, '=');
     fmt::println("\n{}", separator);
-    fmt::println("=== Testing {} ===", algebra_name);
-    fmt::println("Algebra: {} - {}", algebra_name,
-                 algebra_name.find("EGA2D") != std::string::npos    ? "Euclidean 2D"
-                 : algebra_name.find("EGA3D") != std::string::npos  ? "Euclidean 3D"
-                 : algebra_name.find("PGA2DP") != std::string::npos ? "Projective 2D"
-                 : algebra_name.find("PGA3DP") != std::string::npos ? "Projective 3D"
-                 : algebra_name.find("STA3D") != std::string::npos  ? "Space-Time 3D"
+    fmt::println("=== testing {} ===", algebra_name);
+    fmt::println("algebra: {} - {}", algebra_name,
+                 algebra_name.find("ega2d") != std::string::npos    ? "euclidean 2d"
+                 : algebra_name.find("ega3d") != std::string::npos  ? "euclidean 3d"
+                 : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
+                 : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
+                 : algebra_name.find("sta3d") != std::string::npos  ? "space-time 3d"
                                                                     : "Unknown");
-    fmt::println("Basis vectors: {}", fmt::join(config.basis_vectors, ", "));
-    fmt::println("Metric signature: {}", fmt::join(config.metric_signature, ", "));
+    fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
+    fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
 
     // Generate all rules
     auto generated_rules = generate_algebra_rules(config);
 
-    fmt::println("\n=== Generated Basis (Grade-Ordered) ===");
-    fmt::println("Generated: {}", fmt::join(generated_rules.basis, ", "));
+    fmt::println("\n=== generated basis (grade-ordered) ===");
+    fmt::println("generated: {}", fmt::join(generated_rules.basis, ", "));
 
     if (generated_rules.basis.size() == 4) {
-        fmt::println("  Grade 0 (scalar):  {}", generated_rules.basis[0]);
-        fmt::println("  Grade 1 (vectors): {}, {}", generated_rules.basis[1],
+        fmt::println("  grade 0 (scalar):  {}", generated_rules.basis[0]);
+        fmt::println("  grade 1 (vectors): {}, {}", generated_rules.basis[1],
                      generated_rules.basis[2]);
-        fmt::println("  Grade 2 (bivector): {}", generated_rules.basis[3]);
+        fmt::println("  grade 2 (bivector): {}", generated_rules.basis[3]);
     }
     else if (generated_rules.basis.size() == 8) {
-        fmt::println("  Grade 0 (scalar):   {}", generated_rules.basis[0]);
-        fmt::println("  Grade 1 (vectors):  {}, {}, {}", generated_rules.basis[1],
+        fmt::println("  grade 0 (scalar):   {}", generated_rules.basis[0]);
+        fmt::println("  grade 1 (vectors):  {}, {}, {}", generated_rules.basis[1],
                      generated_rules.basis[2], generated_rules.basis[3]);
-        fmt::println("  Grade 2 (bivectors): {}, {}, {}", generated_rules.basis[4],
+        fmt::println("  grade 2 (bivectors): {}, {}, {}", generated_rules.basis[4],
                      generated_rules.basis[5], generated_rules.basis[6]);
         std::string trivector_name = generated_rules.basis[7];
-        fmt::println("  Grade 3 (trivector): {} {}", trivector_name,
+        fmt::println("  grade 3 (trivector): {} {}", trivector_name,
                      trivector_name == "e123"   ? "(EGA)"
                      : trivector_name == "e321" ? "(PGA)"
                                                 : "");
     }
     else if (generated_rules.basis.size() == 16) {
-        fmt::println("  Grade 0 (scalar):     {}", generated_rules.basis[0]);
-        fmt::println("  Grade 1 (vectors):    {}, {}, {}, {}", generated_rules.basis[1],
+        fmt::println("  grade 0 (scalar):     {}", generated_rules.basis[0]);
+        fmt::println("  grade 1 (vectors):    {}, {}, {}, {}", generated_rules.basis[1],
                      generated_rules.basis[2], generated_rules.basis[3],
                      generated_rules.basis[4]);
-        fmt::println("  Grade 2 (bivectors):  {}, {}, {}, {}, {}, {}",
+        fmt::println("  grade 2 (bivectors):  {}, {}, {}, {}, {}, {}",
                      generated_rules.basis[5], generated_rules.basis[6],
                      generated_rules.basis[7], generated_rules.basis[8],
                      generated_rules.basis[9], generated_rules.basis[10]);
-        fmt::println("  Grade 3 (trivectors): {}, {}, {}, {}", generated_rules.basis[11],
+        fmt::println("  grade 3 (trivectors): {}, {}, {}, {}", generated_rules.basis[11],
                      generated_rules.basis[12], generated_rules.basis[13],
                      generated_rules.basis[14]);
-        fmt::println("  Grade 4 (pseudoscalar): {}", generated_rules.basis[15]);
+        fmt::println("  grade 4 (pseudoscalar): {}", generated_rules.basis[15]);
     }
 
-    fmt::println("\nReference: {}", fmt::join(reference_basis, ", "));
+    fmt::println("\nreference: {}", fmt::join(reference_basis, ", "));
 
-    // Calculate and display extended metric
+    // calculate and display extended metric
     auto extended_metric = calculate_extended_metric(config);
-    fmt::println("\n=== Extended Metric ===");
-    fmt::println("Extended Metric: {}", fmt::join(extended_metric, ", "));
+    fmt::println("\n=== extended metric ===");
+    fmt::println("extended metric: {}", fmt::join(extended_metric, ", "));
 
-    // Show mapping of basis elements to their extended metric values
-    fmt::println("Basis → Extended Metric mapping:");
+    // show mapping of basis elements to their extended metric values
+    fmt::println("basis → extended metric mapping:");
     for (size_t i = 0; i < std::min(generated_rules.basis.size(), extended_metric.size());
          ++i) {
         fmt::println("  {} → {}", generated_rules.basis[i], extended_metric[i]);
@@ -413,20 +421,20 @@ bool test_algebra(const AlgebraConfig& config, const std::string& algebra_name,
 
     // Validate basis
     bool basis_match = (generated_rules.basis == reference_basis);
-    fmt::println("Basis match: {}", basis_match ? "✓ PERFECT" : "✗ DIFFERENT");
+    fmt::println("basis match: {}", basis_match ? "✓ PERFECT" : "✗ DIFFERENT");
 
-    // Print complete generated rules
-    print_all_rules(generated_rules.geometric_product,
-                    "Generated Geometric Product Rules", generated_rules.basis);
-    print_all_rules(reference_gpr, "Reference Geometric Product Rules", reference_basis);
-
-    print_all_rules(generated_rules.wedge_product, "Generated Wedge Product Rules",
+    // print complete generated rules
+    print_all_rules(generated_rules.geometric_product, "geometric product rules",
                     generated_rules.basis);
-    print_all_rules(reference_wdg, "Reference Wedge Product Rules", reference_basis);
+    print_all_rules(reference_gpr, "reference geometric product rules", reference_basis);
 
-    print_all_rules(generated_rules.dot_product, "Generated Dot Product Rules",
+    print_all_rules(generated_rules.wedge_product, "wedge product rules",
                     generated_rules.basis);
-    print_all_rules(reference_dot, "Reference Dot Product Rules", reference_basis);
+    print_all_rules(reference_wdg, "reference wedge product rules", reference_basis);
+
+    print_all_rules(generated_rules.dot_product, "dot product rules",
+                    generated_rules.basis);
+    print_all_rules(reference_dot, "reference dot product rules", reference_basis);
 
     // Do complete character-by-character validation
     fmt::println("\n{}", separator);
@@ -434,20 +442,20 @@ bool test_algebra(const AlgebraConfig& config, const std::string& algebra_name,
     fmt::println("{}", separator);
 
     bool gpr_perfect = compare_all_rules(generated_rules.geometric_product, reference_gpr,
-                                         "Geometric Product");
+                                         "geometric product");
     bool wdg_perfect =
-        compare_all_rules(generated_rules.wedge_product, reference_wdg, "Wedge Product");
+        compare_all_rules(generated_rules.wedge_product, reference_wdg, "wedge product");
     bool dot_perfect =
-        compare_all_rules(generated_rules.dot_product, reference_dot, "Dot Product");
+        compare_all_rules(generated_rules.dot_product, reference_dot, "dot product");
 
     // Final summary
     fmt::println("\n{}", separator);
     fmt::println("FINAL VALIDATION SUMMARY - {}", algebra_name);
     fmt::println("{}", separator);
-    fmt::println("Basis Generation:     {}", basis_match ? "✓ PERFECT" : "✗ FAILED");
-    fmt::println("Geometric Product:    {}", gpr_perfect ? "✓ PERFECT" : "✗ FAILED");
-    fmt::println("Wedge Product:        {}", wdg_perfect ? "✓ PERFECT" : "✗ FAILED");
-    fmt::println("Dot Product:          {}", dot_perfect ? "✓ PERFECT" : "✗ FAILED");
+    fmt::println("basis generation:     {}", basis_match ? "✓ PERFECT" : "✗ FAILED");
+    fmt::println("geometric product:    {}", gpr_perfect ? "✓ PERFECT" : "✗ FAILED");
+    fmt::println("wedge product:        {}", wdg_perfect ? "✓ PERFECT" : "✗ FAILED");
+    fmt::println("dot product:          {}", dot_perfect ? "✓ PERFECT" : "✗ FAILED");
 
     bool overall_success = basis_match && gpr_perfect && wdg_perfect && dot_perfect;
     fmt::println("\nOVERALL RESULT: {}",
@@ -487,12 +495,12 @@ int main(int argc, char* argv[])
 
         if (test_consistency) {
             bool ega2d_success = test_algebra_with_complements(
-                ega2d_config, "EGA2D", mv2d_basis, gpr_ega2d_rules, wdg_ega2d_rules,
+                ega2d_config, "ega2d", mv2d_basis, gpr_ega2d_rules, wdg_ega2d_rules,
                 dot_ega2d_rules, &lcmpl_ega2d_rules, &rcmpl_ega2d_rules);
             test_results.push_back(ega2d_success);
         }
         else {
-            display_algebra_rules(ega2d_config, "EGA2D");
+            display_algebra_rules(ega2d_config, "ega2d");
         }
 
         // Configure and test EGA3D algebra
@@ -506,12 +514,12 @@ int main(int argc, char* argv[])
 
         if (test_consistency) {
             bool ega3d_success = test_algebra_with_complements(
-                ega3d_config, "EGA3D", mv3d_basis, gpr_ega3d_rules, wdg_ega3d_rules,
+                ega3d_config, "ega3d", mv3d_basis, gpr_ega3d_rules, wdg_ega3d_rules,
                 dot_ega3d_rules, nullptr, nullptr, &cmpl_ega3d_rules);
             test_results.push_back(ega3d_success);
         }
         else {
-            display_algebra_rules(ega3d_config, "EGA3D");
+            display_algebra_rules(ega3d_config, "ega3d");
         }
 
         // Configure and test PGA2DP algebra
@@ -525,12 +533,12 @@ int main(int argc, char* argv[])
 
         if (test_consistency) {
             bool pga2dp_success = test_algebra_with_complements(
-                pga2dp_config, "PGA2DP", mv2dp_basis, gpr_pga2dp_rules, wdg_pga2dp_rules,
+                pga2dp_config, "pga2dp", mv2dp_basis, gpr_pga2dp_rules, wdg_pga2dp_rules,
                 dot_pga2dp_rules, nullptr, nullptr, &cmpl_pga2dp_rules);
             test_results.push_back(pga2dp_success);
         }
         else {
-            display_algebra_rules(pga2dp_config, "PGA2DP");
+            display_algebra_rules(pga2dp_config, "pga2dp");
         }
 
         // Configure and test PGA3DP algebra
@@ -546,12 +554,12 @@ int main(int argc, char* argv[])
 
         if (test_consistency) {
             bool pga3dp_success = test_algebra_with_complements(
-                pga3dp_config, "PGA3DP", mv3dp_basis, gpr_pga3dp_rules, wdg_pga3dp_rules,
+                pga3dp_config, "pga3dp", mv3dp_basis, gpr_pga3dp_rules, wdg_pga3dp_rules,
                 dot_pga3dp_rules, &lcmpl_pga3dp_rules, &rcmpl_pga3dp_rules);
             test_results.push_back(pga3dp_success);
         }
         else {
-            display_algebra_rules(pga3dp_config, "PGA3DP");
+            display_algebra_rules(pga3dp_config, "pga3dp");
         }
 
         // Configure and test STA3D algebra (Space-Time Algebra)
@@ -568,13 +576,13 @@ int main(int argc, char* argv[])
 
         if (test_consistency) {
             bool sta3d_success = test_algebra(
-                sta3d_config, "STA3D", mvsta3d_basis, gpr_sta3d_rules, wdg_sta3d_rules,
-                dot_sta3d_rules); // Testing all three product types - complete manual
+                sta3d_config, "sta3d", mvsta3d_basis, gpr_sta3d_rules, wdg_sta3d_rules,
+                dot_sta3d_rules); // testing all three product types - complete manual
                                   // implementation
             test_results.push_back(sta3d_success);
         }
         else {
-            display_algebra_rules(sta3d_config, "STA3D");
+            display_algebra_rules(sta3d_config, "sta3d");
         }
 
         if (test_consistency) {
@@ -583,15 +591,15 @@ int main(int argc, char* argv[])
             fmt::println("\n{}", separator);
             fmt::println("MULTI-ALGEBRA TEST SUMMARY");
             fmt::println("{}", separator);
-            fmt::println("EGA2D (G(2,0,0)): {}",
+            fmt::println("ega2d (G(2,0,0)): {}",
                          test_results[0] ? "✓ PERFECT" : "✗ FAILED");
-            fmt::println("EGA3D (G(3,0,0)): {}",
+            fmt::println("ega3d (G(3,0,0)): {}",
                          test_results[1] ? "✓ PERFECT" : "✗ FAILED");
-            fmt::println("PGA2DP (G(2,0,1)): {}",
+            fmt::println("pga2dp (G(2,0,1)): {}",
                          test_results[2] ? "✓ PERFECT" : "✗ FAILED");
-            fmt::println("PGA3DP (G(3,0,1)): {}",
+            fmt::println("pga3dp (G(3,0,1)): {}",
                          test_results[3] ? "✓ PERFECT" : "✗ FAILED");
-            fmt::println("STA3D (G(1,3,0)): {}",
+            fmt::println("sta3d (G(1,3,0)): {}",
                          test_results[4] ? "✓ PERFECT" : "✗ FAILED");
 
             bool all_success = std::all_of(test_results.begin(), test_results.end(),
