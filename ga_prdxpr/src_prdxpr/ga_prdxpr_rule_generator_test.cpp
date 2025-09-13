@@ -15,7 +15,8 @@ void print_all_rules(const prd_rules& rules, const std::string& title,
 {
     if (!algebra_name.empty()) {
         fmt::println("\n{} {}", algebra_name, title);
-    } else {
+    }
+    else {
         fmt::println("\n=== {} ===", title);
     }
 
@@ -23,7 +24,8 @@ void print_all_rules(const prd_rules& rules, const std::string& title,
     for (const auto& a : basis_order) {
         for (const auto& b : basis_order) {
             std::string key = a + " * " + b;
-            if (title.find("wedge") != std::string::npos || title.find("Wedge") != std::string::npos) {
+            if (title.find("wedge") != std::string::npos ||
+                title.find("Wedge") != std::string::npos) {
                 key = a + " ^ " + b; // Use wedge operator for wedge products
             }
 
@@ -37,11 +39,13 @@ void print_all_rules(const prd_rules& rules, const std::string& title,
 
 // Print complement rules in grade order (scalars, vectors, bivectors, etc.)
 void print_complement_rules(const prd_rules& rules, const std::string& title,
-                            const mvec_coeff& basis_order, const std::string& algebra_name = "")
+                            const mvec_coeff& basis_order,
+                            const std::string& algebra_name = "")
 {
     if (!algebra_name.empty()) {
         fmt::println("\n{} {}", algebra_name, title);
-    } else {
+    }
+    else {
         fmt::println("\n=== {} ===", title);
     }
 
@@ -113,12 +117,12 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
     fmt::println("\n{}", separator);
     fmt::println("=== {} algebra rules ===", algebra_name);
     fmt::println("algebra: {} - {}", algebra_name,
-                 algebra_name.find("ega2d") != std::string::npos    ? "euclidean 2d"
-                 : algebra_name.find("ega3d") != std::string::npos  ? "euclidean 3d"
+                 algebra_name.find("ega2d") != std::string::npos    ? "Euclidean 2d"
+                 : algebra_name.find("ega3d") != std::string::npos  ? "Euclidean 3d"
                  : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
                  : algebra_name.find("sta3d") != std::string::npos  ? "space-time 3d"
-                                                                    : "Unknown");
+                                                                    : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
 
@@ -211,12 +215,12 @@ bool test_algebra_with_complements(
     fmt::println("\n{}", separator);
     fmt::println("=== testing {} ===", algebra_name);
     fmt::println("algebra: {} - {}", algebra_name,
-                 algebra_name.find("ega2d") != std::string::npos    ? "euclidean 2d"
-                 : algebra_name.find("ega3d") != std::string::npos  ? "euclidean 3d"
+                 algebra_name.find("ega2d") != std::string::npos    ? "Euclidean 2d"
+                 : algebra_name.find("ega3d") != std::string::npos  ? "Euclidean 3d"
                  : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
                  : algebra_name.find("sta3d") != std::string::npos  ? "space-time 3d"
-                                                                    : "Unknown");
+                                                                    : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
 
@@ -357,12 +361,12 @@ bool test_algebra(const AlgebraConfig& config, const std::string& algebra_name,
     fmt::println("\n{}", separator);
     fmt::println("=== testing {} ===", algebra_name);
     fmt::println("algebra: {} - {}", algebra_name,
-                 algebra_name.find("ega2d") != std::string::npos    ? "euclidean 2d"
-                 : algebra_name.find("ega3d") != std::string::npos  ? "euclidean 3d"
+                 algebra_name.find("ega2d") != std::string::npos    ? "Euclidean 2d"
+                 : algebra_name.find("ega3d") != std::string::npos  ? "Euclidean 3d"
                  : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
                  : algebra_name.find("sta3d") != std::string::npos  ? "space-time 3d"
-                                                                    : "Unknown");
+                                                                    : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
 
