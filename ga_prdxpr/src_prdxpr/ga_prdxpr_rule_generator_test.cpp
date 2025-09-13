@@ -24,8 +24,7 @@ void print_all_rules(const prd_rules& rules, const std::string& title,
     for (const auto& a : basis_order) {
         for (const auto& b : basis_order) {
             std::string key = a + " * " + b;
-            if (title.find("wedge") != std::string::npos ||
-                title.find("Wedge") != std::string::npos) {
+            if (title.find("wedge") != std::string::npos) {
                 key = a + " ^ " + b; // Use wedge operator for wedge products
             }
 
