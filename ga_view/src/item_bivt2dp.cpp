@@ -67,7 +67,7 @@ void item_bivt2dp::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
         qp->setPen(pen);
         qp->setBrush(Qt::lightGray);
         QRectF rect =
-            QRectF(mid_pos.x() - fm.horizontalAdvance(qstr) / 2 - 4, mid_pos.y() + 6,
+            QRectF(mid_pos.x() - fm.horizontalAdvance(qstr) / 2 - 4, mid_pos.y() + 10,
                    fm.horizontalAdvance(qstr) + 8, fm.height() + 8);
         qp->drawRect(rect.adjusted(0, 0, -pen.width(), -pen.width()));
         qp->setPen(Qt::white);
