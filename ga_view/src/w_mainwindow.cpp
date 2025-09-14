@@ -407,7 +407,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         auto p2p = vec2dp{p2.x, p2.y, 1}; // point p2 as projective point
 
         double phi = deg2rad(0); // direction of force f1 vs. e1
-        double f1_magn = 1.5;    // magnitude of force f1
+        double f1_magn = 1.0;    // magnitude of force f1
         auto f1_vec = f1_magn * vec2dp{cos(phi), sin(phi), 0.0}; // force vector f1
         auto f1 = wdg(p1p, f1_vec);                              // force f1 acting at p1
 
@@ -427,13 +427,17 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_pt(p1f);
         cm.add_pt(p2f);
-        cm.add_vt(v1);
-        cm.add_vt(v2);
+
+        vt2d_mark vec_mark;
+        vec_mark.display_name = "f1";
+        cm.add_vt(v1, vec_mark);
+        vec_mark.display_name = "f2";
+        cm.add_vt(v2, vec_mark);
 
         bivt2dp_mark force_mark;
 
         force_mark.pen = QPen(Qt::green, 2, Qt::SolidLine);
-        force_mark.display_name = "bivec1";
+        force_mark.display_name = fmt::format("bivec1 = {:.2f}", f1);
         cm.add_bivtp(f1, force_mark);
 
         auto v1_beg = vec2d{p1.x, p1.y};
@@ -441,7 +445,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
 
         force_mark.pen = QPen(Qt::darkGreen, 2, Qt::SolidLine);
-        force_mark.display_name = "bivec2";
+        force_mark.display_name = fmt::format("bivec2 = {:.2f}", f2);
         cm.add_bivtp(f2, force_mark);
 
 
@@ -458,10 +462,11 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_pt(psup);
         cm.add_pt(pfres);
         vt2d vres{psup, pfres};
-        cm.add_vt(vres);
+        vec_mark.display_name = "f_res";
+        cm.add_vt(vres, vec_mark);
 
         force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
-        force_mark.display_name = "bivec_res";
+        force_mark.display_name = fmt::format("bivec_res = {:.2f}", fres);
         cm.add_bivtp(fres, force_mark);
 
         cm.set_label("proj. - adding force lines (parallel)");
@@ -509,7 +514,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         bivt2dp_mark force_mark;
 
         force_mark.pen = QPen(Qt::green, 2, Qt::SolidLine);
-        force_mark.display_name = "bivec1";
+        force_mark.display_name = fmt::format("bivec1 = {:.2f}", f1);
         cm.add_bivtp(f1, force_mark);
 
         auto v1_beg = vec2d{p1.x, p1.y};
@@ -517,7 +522,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
 
         force_mark.pen = QPen(Qt::darkGreen, 2, Qt::SolidLine);
-        force_mark.display_name = "bivec2";
+        force_mark.display_name = fmt::format("bivec2 = {:.2f}", f2);
         cm.add_bivtp(f2, force_mark);
 
 
@@ -531,7 +536,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_pt(psup);
         cm.add_pt(pfres);
         vt2d vres{psup, pfres};
-        cm.add_vt(vres);
+        vec_mark.display_name = "f_res";
+        cm.add_vt(vres, vec_mark);
 
         force_mark.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
         force_mark.display_name = fmt::format("bivec_res = {:.2f}", fres);
