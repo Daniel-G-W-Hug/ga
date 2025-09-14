@@ -128,6 +128,49 @@ Optional: doctest (testing), Qt6 (visualization), Lua + sol2 (scripting), readli
 
 Install on macOS: `brew install fmt doctest qt6 lua`
 
+### Windows Dependency Management (vcpkg + System Lua)
+
+**Critical Windows Build Requirements:**
+
+The Windows build uses a hybrid approach: vcpkg for most dependencies + direct system Lua static linking. This avoids ABI compatibility issues between MSVC and different Lua implementations.
+
+**Build Command Sequence:**
+
+```bash
+cd "C:\Users\danie\prg\cpp\pj\ga"
+rm -rf build
+mkdir build && cd build
+cmake .. -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake --build . --target ga_lua --config Debug
+```
+
+**Expected Success Indicators:**
+
+- ✅ `"Using system-installed Lua with static linking (no vcpkg)"`
+- ✅ `"✓ Found static system lua: headers at C:/Users/danie/AppData/Local/Programs/Lua/include, lib at C:/Users/danie/AppData/Local/Programs/Lua/lib/lua54.lib"`
+- ✅ `"ga_lua: Using sol2 headers from ...vcpkg_installed/x64-windows/include"`
+- ✅ `"ga_lua: Include order: Lua (...) then sol2 (...)"`
+- ✅ Final: `"ga_lua.vcxproj -> ...ga_lua.exe"` (NO DLL copying message)
+
+**Troubleshooting Windows Build Issues:**
+
+1. **CMake Variable Issues**: Check `ga_lua: DEBUG - LUA_INCLUDE_DIR=` and `LUA_LIBRARIES=` are populated
+2. **Include Order Problems**: Lua headers MUST come before sol2 in `target_include_directories`
+3. **Static Linking Verification**: Should link to `lua54.lib`, NOT `lua54.dll`
+4. **vcpkg Integration**: Ensure `CMAKE_TOOLCHAIN_FILE` points to vcpkg toolchain
+
+**Key Architecture Files:**
+
+- `cmake/vcpkg_dependencies.cmake` - System Lua detection + vcpkg integration
+- `ga_lua/CMakeLists.txt` - Include ordering + static linking (no DLL copying)
+- `vcpkg.json` - Dependencies without Lua (fmt, doctest, sol2 only)
+
+**Prerequisites:**
+
+- vcpkg installed at `C:/vcpkg/`
+- System Lua 5.4+ installed at `C:/Users/[USERNAME]/AppData/Local/Programs/Lua/`
+- MSVC compiler (Visual Studio 2022 recommended)
+
 ### Development Notes
 
 - Compiler definitions: `-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO` (extended testing), `-D_HD_GA_HAVE_READLINE`(readline support)

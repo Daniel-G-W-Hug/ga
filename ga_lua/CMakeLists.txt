@@ -11,18 +11,31 @@ target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/../../includ
 # Just link against the targets that should be available
 
 # Lua is required and should be found by the dependency system
-if(NOT Lua_FOUND AND NOT LUA_FOUND)
+if(NOT GA_HAS_LUA)
     message(FATAL_ERROR "Lua not found - please install Lua 5.1 or later on your system")
 endif()
 
+# Debug: Check what Lua variables we received
+message(STATUS "ga_lua: DEBUG - LUA_INCLUDE_DIR=${LUA_INCLUDE_DIR}")
+message(STATUS "ga_lua: DEBUG - LUA_LIBRARIES=${LUA_LIBRARIES}")
+
+# CRITICAL: Lua include directory must come FIRST so sol2 finds the right lua.h
 target_include_directories(${EXEC_NAME} PRIVATE ${LUA_INCLUDE_DIR})
 target_link_libraries(${EXEC_NAME} PRIVATE ${LUA_LIBRARIES} ga)
 
-# Link sol2 (should be available from dependency system)
-if(TARGET sol2::sol2)
-    target_link_libraries(${EXEC_NAME} PRIVATE sol2::sol2)
+# sol2 is header-only - add AFTER Lua includes to ensure correct lua.h is found
+if(SOL2_INCLUDE_DIRS)
+    target_include_directories(${EXEC_NAME} PRIVATE ${SOL2_INCLUDE_DIRS})
+    message(STATUS "ga_lua: Using sol2 headers from ${SOL2_INCLUDE_DIRS}")
+    message(STATUS "ga_lua: Include order: Lua (${LUA_INCLUDE_DIR}) then sol2 (${SOL2_INCLUDE_DIRS})")
 else()
-    message(FATAL_ERROR "sol2 not found - dependency system may not be working correctly")
+    # Fallback: try to find sol2::sol2 target for backwards compatibility
+    if(TARGET sol2::sol2)
+        target_link_libraries(${EXEC_NAME} PRIVATE sol2::sol2)
+        message(STATUS "ga_lua: Using sol2::sol2 target")
+    else()
+        message(FATAL_ERROR "sol2 not found - dependency system may not be working correctly")
+    endif()
 endif()
 
 # Helper function to link fmt to a target
@@ -42,6 +55,8 @@ endfunction()
 
 # Link fmt to executable
 link_fmt_to_target(${EXEC_NAME})
+
+# Note: DLL copying not needed - using static Lua library (lua54.lib) for clean deployment
 
 # Optional readline support for better interactive experience
 if(GA_USE_READLINE AND TARGET readline::readline)

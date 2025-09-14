@@ -76,7 +76,7 @@ TEST_SUITE("PGA2DP: comparison tests")
 
 
             auto M =
-                bulk_nrm(xp) * bulk_nrm(xq) * sin(angle(xp, xq)) * sign(wdg(xp, xq).z);
+                to_val(bulk_nrm(xp) * bulk_nrm(xq) * sin(angle(xp, xq)) * sign(wdg(xp, xq).z));
 
             fmt::println("angle(xp, xq)       = {}°", rad2deg(angle(xp, xq)));
             fmt::println("wdg(xp, xq)         = {}", wdg(xp, xq));

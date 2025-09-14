@@ -5,6 +5,8 @@
 #include "ga_ega3d_ops_basics.hpp"   // ega3d ops basics
 #include "ga_ega3d_ops_products.hpp" // ega3d ops products
 
+#include <vector>
+
 
 namespace hd::ga::ega {
 

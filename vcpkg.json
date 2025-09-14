@@ -1,0 +1,18 @@
+{
+  "name": "ga-library",
+  "version": "0.1.0",
+  "description": "Geometric Algebra Library with Lua Interface and Visualization",
+  "dependencies": [
+    "doctest",
+    "fmt",
+    "sol2"
+  ],
+  "features": {
+    "readline": {
+      "description": "Enable readline support for interactive ga_lua shell",
+      "dependencies": [
+        "readline-win32"
+      ]
+    }
+  }
+}

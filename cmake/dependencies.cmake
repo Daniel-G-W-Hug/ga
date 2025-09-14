@@ -9,10 +9,23 @@ option(GA_FORCE_FETCH_CONTENT "Force use of FetchContent for supported dependenc
 include(${CMAKE_CURRENT_LIST_DIR}/find_dependencies.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/fetch_dependencies.cmake)
 
+# Detect vcpkg usage and include appropriate handler
+if(WIN32 AND DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg")
+    message(STATUS "Detected vcpkg toolchain on Windows")
+    include(${CMAKE_CURRENT_LIST_DIR}/vcpkg_dependencies.cmake)
+endif()
+
 # Main dependency resolution function
 function(setup_ga_dependencies)
+    # Use vcpkg-based dependency management if vcpkg toolchain detected
+    if(WIN32 AND DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "vcpkg")
+        setup_vcpkg_dependencies()
+        return()
+    endif()
+
+    # Otherwise use traditional dependency management
     message(STATUS "Setting up GA dependencies...")
-    
+
     # Check for local hd utility library (project-specific dependency)
     if(EXISTS "${CMAKE_SOURCE_DIR}/../../include/hd")
         message(STATUS "✓ Found local hd utility library at: ${CMAKE_SOURCE_DIR}/../../include/hd")
@@ -22,12 +35,12 @@ function(setup_ga_dependencies)
         message(STATUS "Some ga_view functionality may not work properly")
         set(GA_HAS_HD_UTILS FALSE)
     endif()
-    
+
     # Find flexible dependencies using three-tier logic
     find_fmt_tiered()
-    find_doctest_tiered() 
+    find_doctest_tiered()
     find_sol2_tiered()
-    
+
     # Find required system dependencies (Qt6, Lua) - must be system installed
     find_package(Qt6 COMPONENTS Core Gui Widgets QUIET)
     if(Qt6_FOUND)
@@ -42,13 +55,13 @@ function(setup_ga_dependencies)
             message(STATUS "  Linux: sudo apt-get install qt6-base-dev qt6-tools-dev")
         endif()
     endif()
-    
+
     find_package(Lua 5.1 QUIET)
     if(Lua_FOUND OR LUA_FOUND)
         message(STATUS "✓ Found Lua: ${LUA_VERSION_STRING}")
         # Make sure Lua variables are available in parent scope (for modules)
         set(Lua_FOUND ${Lua_FOUND} PARENT_SCOPE)
-        set(LUA_FOUND ${LUA_FOUND} PARENT_SCOPE) 
+        set(LUA_FOUND ${LUA_FOUND} PARENT_SCOPE)
         set(LUA_LIBRARIES ${LUA_LIBRARIES} PARENT_SCOPE)
         set(LUA_INCLUDE_DIR ${LUA_INCLUDE_DIR} PARENT_SCOPE)
         set(LUA_VERSION_STRING ${LUA_VERSION_STRING} PARENT_SCOPE)
@@ -64,10 +77,10 @@ function(setup_ga_dependencies)
         endif()
         set(GA_HAS_LUA FALSE PARENT_SCOPE)
     endif()
-    
+
     # Setup optional dependencies using three-tier logic
     find_readline_tiered()
-    
+
     # Handle flexible dependencies based on platform and options
     if(GA_FORCE_FETCH_CONTENT)
         message(STATUS "Forcing FetchContent for all supported dependencies")
@@ -79,6 +92,6 @@ function(setup_ga_dependencies)
         message(STATUS "Using FetchContent for all supported dependencies")
         setup_all_fetchcontent_dependencies()
     endif()
-    
+
 endfunction()
 
