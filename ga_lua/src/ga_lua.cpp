@@ -89,8 +89,10 @@ void run_interactive_shell(sol::state& lua)
             fmt::println("  Example: v = vec2d.new(1, 2); print(v); print(nrm(v))");
             fmt::println("");
             fmt::println("IMPORTANT - Reference vs Value Semantics:");
-            fmt::println("  local v = u           -- Creates alias (reference), changes affect both");
-            fmt::println("  local v = u:copy()    -- Creates independent copy (value semantics)");
+            fmt::println("  local v = u           -- Creates alias (reference), changes "
+                         "affect both");
+            fmt::println(
+                "  local v = u:copy()    -- Creates independent copy (value semantics)");
             fmt::println("  Use :copy() method for independent copies of GA objects\n");
             continue;
         }
@@ -194,7 +196,7 @@ int main(int argc, char* argv[])
         register_3dp_types(lua);
         register_functions(lua);
         register_constants(lua);
-        
+
         // Set script directory as global variable for platform-aware path handling
         lua["script_dir"] = get_script_directory();
 
