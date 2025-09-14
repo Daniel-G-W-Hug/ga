@@ -34,6 +34,7 @@ void register_2d_types(sol::state& lua)
     lua.new_usertype<scalar2d>(
         "scalar2d",
         sol::constructors<scalar2d(), scalar2d(value_t const&), scalar2d(value_t&&)>(),
+        "copy", [](const scalar2d& s) { return scalar2d(s); },
         sol::meta_function::to_string,
         [](const scalar2d& s) { return fmt::format("Scalar2d({})", double(s)); },
         sol::meta_function::unary_minus, sol::resolve<scalar2d(scalar2d)>(operator-),
@@ -75,6 +76,7 @@ void register_2d_types(sol::state& lua)
         "vec2d",
         sol::constructors<vec2d(), vec2d(value_t, value_t), vec2d(vec2d const&),
                           vec2d(vec2d&&)>(),
+        "copy", [](const vec2d& v) { return vec2d(v); },
         "x", &vec2d::x, "y", &vec2d::y, sol::meta_function::to_string,
         [](const vec2d& v) { return fmt::format("Vec2d({}, {})", v.x, v.y); },
         sol::meta_function::unary_minus, sol::resolve<vec2d(vec2d const&)>(operator-),
@@ -116,6 +118,7 @@ void register_2d_types(sol::state& lua)
     lua.new_usertype<pscalar2d>(
         "pscalar2d",
         sol::constructors<pscalar2d(), pscalar2d(value_t const&), pscalar2d(value_t&&)>(),
+        "copy", [](const pscalar2d& ps) { return pscalar2d(ps); },
         sol::meta_function::to_string,
         [](const pscalar2d& ps) { return fmt::format("PScalar2d({})", double(ps)); },
         sol::meta_function::unary_minus, sol::resolve<pscalar2d(pscalar2d)>(operator-),
@@ -160,6 +163,7 @@ void register_2d_types(sol::state& lua)
                           mvec2d_e(mvec2d_e const&), mvec2d_e(mvec2d_e&&),
                           mvec2d_e(scalar2d), mvec2d_e(pscalar2d),
                           mvec2d_e(scalar2d, pscalar2d)>(),
+        "copy", [](const mvec2d_e& obj) { return mvec2d_e(obj); },
         "c0", &mvec2d_e::c0, "c1", &mvec2d_e::c1, sol::meta_function::to_string,
         [](const mvec2d_e& mv) { return fmt::format("MVec2d_E({}, {})", mv.c0, mv.c1); },
         sol::meta_function::unary_minus,
@@ -199,6 +203,7 @@ void register_2d_types(sol::state& lua)
                           mvec2d(vec2d const&), mvec2d(pscalar2d),
                           mvec2d(scalar2d, pscalar2d), mvec2d(mvec2d_e const&),
                           mvec2d(scalar2d, vec2d const&, pscalar2d)>(),
+        "copy", [](const mvec2d& obj) { return mvec2d(obj); },
         "c0", &mvec2d::c0, "c1", &mvec2d::c1, "c2", &mvec2d::c2, "c3", &mvec2d::c3,
         sol::meta_function::to_string,
         [](const mvec2d& mv) {
@@ -248,6 +253,7 @@ void register_3d_types(sol::state& lua)
     lua.new_usertype<scalar3d>(
         "scalar3d",
         sol::constructors<scalar3d(), scalar3d(value_t const&), scalar3d(value_t&&)>(),
+        "copy", [](const scalar3d& obj) { return scalar3d(obj); },
         sol::meta_function::to_string,
         [](const scalar3d& s) { return fmt::format("Scalar3d({})", double(s)); },
         sol::meta_function::unary_minus, sol::resolve<scalar3d(scalar3d)>(operator-),
@@ -294,6 +300,7 @@ void register_3d_types(sol::state& lua)
         "vec3d",
         sol::constructors<vec3d(), vec3d(value_t, value_t, value_t), vec3d(vec3d const&),
                           vec3d(vec3d&&)>(),
+        "copy", [](const vec3d& obj) { return vec3d(obj); },
         "x", &vec3d::x, "y", &vec3d::y, "z", &vec3d::z, sol::meta_function::to_string,
         [](const vec3d& v) { return fmt::format("Vec3d({}, {}, {})", v.x, v.y, v.z); },
         sol::meta_function::unary_minus, sol::resolve<vec3d(vec3d const&)>(operator-),
@@ -342,6 +349,7 @@ void register_3d_types(sol::state& lua)
         "bivec3d",
         sol::constructors<bivec3d(), bivec3d(value_t, value_t, value_t),
                           bivec3d(bivec3d const&), bivec3d(bivec3d&&)>(),
+        "copy", [](const bivec3d& obj) { return bivec3d(obj); },
         "x", &bivec3d::x, "y", &bivec3d::y, "z", &bivec3d::z,
         sol::meta_function::to_string,
         [](const bivec3d& bv) {
@@ -392,6 +400,7 @@ void register_3d_types(sol::state& lua)
     lua.new_usertype<pscalar3d>(
         "pscalar3d",
         sol::constructors<pscalar3d(), pscalar3d(value_t const&), pscalar3d(value_t&&)>(),
+        "copy", [](const pscalar3d& obj) { return pscalar3d(obj); },
         sol::meta_function::to_string,
         [](const pscalar3d& ps) { return fmt::format("PScalar3d({})", double(ps)); },
         sol::meta_function::unary_minus, sol::resolve<pscalar3d(pscalar3d)>(operator-),
@@ -441,6 +450,7 @@ void register_3d_types(sol::state& lua)
                           mvec3d_e(mvec3d_e const&), mvec3d_e(mvec3d_e&&),
                           mvec3d_e(scalar3d), mvec3d_e(bivec3d const&),
                           mvec3d_e(scalar3d, bivec3d const&)>(),
+        "copy", [](const mvec3d_e& obj) { return mvec3d_e(obj); },
         "c0", &mvec3d_e::c0, "c1", &mvec3d_e::c1, "c2", &mvec3d_e::c2, "c3",
         &mvec3d_e::c3, sol::meta_function::to_string,
         [](const mvec3d_e& mv) {
@@ -477,6 +487,7 @@ void register_3d_types(sol::state& lua)
                           mvec3d_u(mvec3d_u const&), mvec3d_u(mvec3d_u&&),
                           mvec3d_u(vec3d const&), mvec3d_u(pscalar3d),
                           mvec3d_u(vec3d const&, pscalar3d)>(),
+        "copy", [](const mvec3d_u& obj) { return mvec3d_u(obj); },
         "c0", &mvec3d_u::c0, "c1", &mvec3d_u::c1, "c2", &mvec3d_u::c2, "c3",
         &mvec3d_u::c3, sol::meta_function::to_string,
         [](const mvec3d_u& mv) {
@@ -514,6 +525,7 @@ void register_3d_types(sol::state& lua)
                           mvec3d(scalar3d, bivec3d const&), mvec3d(mvec3d_e const&),
                           mvec3d(vec3d const&, pscalar3d), mvec3d(mvec3d_u const&),
                           mvec3d(scalar3d, vec3d const&, bivec3d const&, pscalar3d)>(),
+        "copy", [](const mvec3d& obj) { return mvec3d(obj); },
         "c0", &mvec3d::c0, "c1", &mvec3d::c1, "c2", &mvec3d::c2, "c3", &mvec3d::c3, "c4",
         &mvec3d::c4, "c5", &mvec3d::c5, "c6", &mvec3d::c6, "c7", &mvec3d::c7,
         sol::meta_function::to_string,
@@ -563,6 +575,7 @@ void register_2dp_types(sol::state& lua)
     lua.new_usertype<scalar2dp>(
         "scalar2dp",
         sol::constructors<scalar2dp(), scalar2dp(value_t const&), scalar2dp(value_t&&)>(),
+        "copy", [](const scalar2dp& obj) { return scalar2dp(obj); },
         sol::meta_function::to_string,
         [](const scalar2dp& s) { return fmt::format("Scalar2dp({})", double(s)); },
         sol::meta_function::unary_minus, sol::resolve<scalar2dp(scalar2dp)>(operator-),
@@ -582,6 +595,7 @@ void register_2dp_types(sol::state& lua)
         "vec2dp",
         sol::constructors<vec2dp(), vec2dp(value_t, value_t, value_t),
                           vec2dp(vec2dp const&), vec2dp(vec2dp&&)>(),
+        "copy", [](const vec2dp& obj) { return vec2dp(obj); },
         "x", &vec2dp::x, "y", &vec2dp::y, "z", &vec2dp::z, sol::meta_function::to_string,
         [](const vec2dp& v) { return fmt::format("Vec2dp({}, {}, {})", v.x, v.y, v.z); },
         sol::meta_function::unary_minus, sol::resolve<vec2dp(vec2dp const&)>(operator-),
@@ -602,6 +616,7 @@ void register_2dp_types(sol::state& lua)
         "bivec2dp",
         sol::constructors<bivec2dp(), bivec2dp(value_t, value_t, value_t),
                           bivec2dp(bivec2dp const&), bivec2dp(bivec2dp&&)>(),
+        "copy", [](const bivec2dp& obj) { return bivec2dp(obj); },
         "x", &bivec2dp::x, "y", &bivec2dp::y, "z", &bivec2dp::z,
         sol::meta_function::to_string,
         [](const bivec2dp& bv) {
@@ -623,6 +638,7 @@ void register_2dp_types(sol::state& lua)
         "pscalar2dp",
         sol::constructors<pscalar2dp(), pscalar2dp(value_t const&),
                           pscalar2dp(value_t&&)>(),
+        "copy", [](const pscalar2dp& obj) { return pscalar2dp(obj); },
         sol::meta_function::to_string,
         [](const pscalar2dp& ps) { return fmt::format("PScalar2dp({})", double(ps)); },
         sol::meta_function::unary_minus, sol::resolve<pscalar2dp(pscalar2dp)>(operator-),
@@ -641,6 +657,7 @@ void register_2dp_types(sol::state& lua)
         "dualnum2dp",
         sol::constructors<dualnum2dp(), dualnum2dp(value_t, value_t),
                           dualnum2dp(dualnum2dp const&), dualnum2dp(dualnum2dp&&)>(),
+        "copy", [](const dualnum2dp& obj) { return dualnum2dp(obj); },
         "c0", &dualnum2dp::c0, "c1", &dualnum2dp::c1, sol::meta_function::to_string,
         [](const dualnum2dp& dn) {
             return fmt::format("DualNum2dp({}, {})", dn.c0, dn.c1);
@@ -664,6 +681,7 @@ void register_2dp_types(sol::state& lua)
                           mvec2dp_e(mvec2dp_e const&), mvec2dp_e(mvec2dp_e&&),
                           mvec2dp_e(scalar2dp), mvec2dp_e(bivec2dp const&),
                           mvec2dp_e(scalar2dp, bivec2dp const&)>(),
+        "copy", [](const mvec2dp_e& obj) { return mvec2dp_e(obj); },
         "c0", &mvec2dp_e::c0, "c1", &mvec2dp_e::c1, "c2", &mvec2dp_e::c2, "c3",
         &mvec2dp_e::c3, sol::meta_function::to_string,
         [](const mvec2dp_e& mve) {
@@ -690,6 +708,7 @@ void register_2dp_types(sol::state& lua)
                           mvec2dp_u(mvec2dp_u const&), mvec2dp_u(mvec2dp_u&&),
                           mvec2dp_u(vec2dp const&), mvec2dp_u(pscalar2dp),
                           mvec2dp_u(vec2dp const&, pscalar2dp)>(),
+        "copy", [](const mvec2dp_u& obj) { return mvec2dp_u(obj); },
         "c0", &mvec2dp_u::c0, "c1", &mvec2dp_u::c1, "c2", &mvec2dp_u::c2, "c3",
         &mvec2dp_u::c3, sol::meta_function::to_string,
         [](const mvec2dp_u& mvu) {
@@ -717,6 +736,7 @@ void register_2dp_types(sol::state& lua)
                           mvec2dp(vec2dp const&), mvec2dp(bivec2dp const&),
                           mvec2dp(pscalar2dp), mvec2dp(mvec2dp_e const&),
                           mvec2dp(mvec2dp_u const&)>(),
+        "copy", [](const mvec2dp& obj) { return mvec2dp(obj); },
         "c0", &mvec2dp::c0, "c1", &mvec2dp::c1, "c2", &mvec2dp::c2, "c3", &mvec2dp::c3,
         "c4", &mvec2dp::c4, "c5", &mvec2dp::c5, "c6", &mvec2dp::c6, "c7", &mvec2dp::c7,
         sol::meta_function::to_string,
@@ -750,6 +770,7 @@ void register_3dp_types(sol::state& lua)
     lua.new_usertype<scalar3dp>(
         "scalar3dp",
         sol::constructors<scalar3dp(), scalar3dp(value_t const&), scalar3dp(value_t&&)>(),
+        "copy", [](const scalar3dp& obj) { return scalar3dp(obj); },
         sol::meta_function::to_string,
         [](const scalar3dp& s) { return fmt::format("Scalar3dp({})", double(s)); },
         sol::meta_function::unary_minus, sol::resolve<scalar3dp(scalar3dp)>(operator-),
@@ -769,6 +790,7 @@ void register_3dp_types(sol::state& lua)
         "vec3dp",
         sol::constructors<vec3dp(), vec3dp(value_t, value_t, value_t, value_t),
                           vec3dp(vec3dp const&), vec3dp(vec3dp&&)>(),
+        "copy", [](const vec3dp& obj) { return vec3dp(obj); },
         "x", &vec3dp::x, "y", &vec3dp::y, "z", &vec3dp::z, "w", &vec3dp::w,
         sol::meta_function::to_string,
         [](const vec3dp& v) {
@@ -793,6 +815,7 @@ void register_3dp_types(sol::state& lua)
         sol::constructors<bivec3dp(),
                           bivec3dp(value_t, value_t, value_t, value_t, value_t, value_t),
                           bivec3dp(bivec3dp const&), bivec3dp(bivec3dp&&)>(),
+        "copy", [](const bivec3dp& obj) { return bivec3dp(obj); },
         "vx", &bivec3dp::vx, "vy", &bivec3dp::vy, "vz", &bivec3dp::vz, "mx",
         &bivec3dp::mx, "my", &bivec3dp::my, "mz", &bivec3dp::mz,
         sol::meta_function::to_string,
@@ -816,6 +839,7 @@ void register_3dp_types(sol::state& lua)
         "trivec3dp",
         sol::constructors<trivec3dp(), trivec3dp(value_t, value_t, value_t, value_t),
                           trivec3dp(trivec3dp const&), trivec3dp(trivec3dp&&)>(),
+        "copy", [](const trivec3dp& obj) { return trivec3dp(obj); },
         "x", &trivec3dp::x, "y", &trivec3dp::y, "z", &trivec3dp::z, "w", &trivec3dp::w,
         sol::meta_function::to_string,
         [](const trivec3dp& tv) {
@@ -838,6 +862,7 @@ void register_3dp_types(sol::state& lua)
         "pscalar3dp",
         sol::constructors<pscalar3dp(), pscalar3dp(value_t const&),
                           pscalar3dp(value_t&&)>(),
+        "copy", [](const pscalar3dp& obj) { return pscalar3dp(obj); },
         sol::meta_function::to_string,
         [](const pscalar3dp& ps) { return fmt::format("PScalar3dp({})", double(ps)); },
         sol::meta_function::unary_minus, sol::resolve<pscalar3dp(pscalar3dp)>(operator-),
@@ -856,6 +881,7 @@ void register_3dp_types(sol::state& lua)
         "dualnum3dp",
         sol::constructors<dualnum3dp(), dualnum3dp(value_t, value_t),
                           dualnum3dp(dualnum3dp const&), dualnum3dp(dualnum3dp&&)>(),
+        "copy", [](const dualnum3dp& obj) { return dualnum3dp(obj); },
         "c0", &dualnum3dp::c0, "c1", &dualnum3dp::c1, sol::meta_function::to_string,
         [](const dualnum3dp& dn) {
             return fmt::format("DualNum3dp({}, {})", dn.c0, dn.c1);
@@ -884,6 +910,7 @@ void register_3dp_types(sol::state& lua)
                           mvec3dp_e(bivec3dp const&, pscalar3dp),
                           mvec3dp_e(scalar3dp, pscalar3dp),
                           mvec3dp_e(scalar3dp, bivec3dp const&, pscalar3dp)>(),
+        "copy", [](const mvec3dp_e& obj) { return mvec3dp_e(obj); },
         "c0", &mvec3dp_e::c0, "c1", &mvec3dp_e::c1, "c2", &mvec3dp_e::c2, "c3",
         &mvec3dp_e::c3, "c4", &mvec3dp_e::c4, "c5", &mvec3dp_e::c5, "c6", &mvec3dp_e::c6,
         "c7", &mvec3dp_e::c7, sol::meta_function::to_string,
@@ -913,6 +940,7 @@ void register_3dp_types(sol::state& lua)
                           mvec3dp_u(mvec3dp_u const&), mvec3dp_u(mvec3dp_u&&),
                           mvec3dp_u(vec3dp const&), mvec3dp_u(trivec3dp const&),
                           mvec3dp_u(vec3dp const&, trivec3dp const&)>(),
+        "copy", [](const mvec3dp_u& obj) { return mvec3dp_u(obj); },
         "c0", &mvec3dp_u::c0, "c1", &mvec3dp_u::c1, "c2", &mvec3dp_u::c2, "c3",
         &mvec3dp_u::c3, "c4", &mvec3dp_u::c4, "c5", &mvec3dp_u::c5, "c6", &mvec3dp_u::c6,
         "c7", &mvec3dp_u::c7, sol::meta_function::to_string,
@@ -942,6 +970,7 @@ void register_3dp_types(sol::state& lua)
                           mvec3dp(vec3dp const&), mvec3dp(bivec3dp const&),
                           mvec3dp(trivec3dp const&), mvec3dp(pscalar3dp),
                           mvec3dp(mvec3dp_e const&), mvec3dp(mvec3dp_u const&)>(),
+        "copy", [](const mvec3dp& obj) { return mvec3dp(obj); },
         "c0", &mvec3dp::c0, "c1", &mvec3dp::c1, "c2", &mvec3dp::c2, "c3", &mvec3dp::c3,
         "c4", &mvec3dp::c4, "c5", &mvec3dp::c5, "c6", &mvec3dp::c6, "c7", &mvec3dp::c7,
         "c8", &mvec3dp::c8, "c9", &mvec3dp::c9, "c10", &mvec3dp::c10, "c11",

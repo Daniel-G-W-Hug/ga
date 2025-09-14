@@ -18,13 +18,12 @@ void print_usage(const char* program_name)
     fmt::println("Usage: {} [options] [script_file]\n", program_name);
     fmt::println("Options:");
     fmt::println("  -h, --help     Show this help message");
-    fmt::println(
-        "  -i, --interactive  Start interactive shell (default if no arguments)");
+    fmt::println("  -i, --interactive  Start interactive shell");
     fmt::println("  -d, --default  Run the default demo script\n");
     fmt::println("Arguments:");
     fmt::println("  script_file    Lua script file to execute\n");
     fmt::println("Examples:");
-    fmt::println("  {}                     # Interactive shell", program_name);
+    fmt::println("  {}                     # Run default demo script", program_name);
     fmt::println("  {} -i                  # Interactive shell", program_name);
     fmt::println("  {} -d                  # Run default demo script", program_name);
     fmt::println("  {} my_script.lua       # Run custom script file", program_name);
@@ -87,7 +86,12 @@ void run_interactive_shell(sol::state& lua)
             fmt::println("  Functions: dot, wdg, nrm, normalize, inv, dual, etc.");
             fmt::println(
                 "  Constants: e1_2d, e2_2d, I_2d, e1_3d, e2_3d, e3_3d, I_3d, etc.");
-            fmt::println("  Example: v = vec2d.new(1, 2); print(v); print(nrm(v))\n");
+            fmt::println("  Example: v = vec2d.new(1, 2); print(v); print(nrm(v))");
+            fmt::println("");
+            fmt::println("IMPORTANT - Reference vs Value Semantics:");
+            fmt::println("  local v = u           -- Creates alias (reference), changes affect both");
+            fmt::println("  local v = u:copy()    -- Creates independent copy (value semantics)");
+            fmt::println("  Use :copy() method for independent copies of GA objects\n");
             continue;
         }
 
@@ -165,14 +169,20 @@ int main(int argc, char* argv[])
     }
 
     // Determine execution mode
-    if (use_default_script) {
-        script_file = get_default_script_path();
-        interactive_mode = false;
+    if (interactive_mode) {
+        // Interactive mode explicitly requested - don't run any script
+        use_default_script = false;
     }
     else if (script_file.empty() && !interactive_mode) {
-        // Default to interactive mode if no script file specified and no explicit mode
-        interactive_mode = true;
+        // No script file and no interactive mode - default to default script
+        use_default_script = true;
+        script_file = get_default_script_path();
     }
+    else if (use_default_script && script_file.empty()) {
+        // -d flag was used - run default script
+        script_file = get_default_script_path();
+    }
+    // If script_file is not empty (user provided script), just use it as-is
 
     try {
         sol::state lua;
