@@ -59,11 +59,11 @@ link_fmt_to_target(${EXEC_NAME})
 # Note: DLL copying not needed - using static Lua library (lua54.lib) for clean deployment
 
 # Optional readline support for better interactive experience
-if(GA_USE_READLINE AND TARGET readline::readline)
+if(_GA_USE_READLINE AND TARGET readline::readline)
     target_compile_definitions(${EXEC_NAME} PRIVATE _HD_GA_HAVE_READLINE)
     target_link_libraries(${EXEC_NAME} PRIVATE readline::readline)
     message(STATUS "ga_lua: Using readline for enhanced interactive experience")
-elseif(GA_USE_READLINE AND GA_HAS_READLINE)
+elseif(_GA_USE_READLINE AND GA_HAS_READLINE)
     # Fallback to raw library if target not created
     target_compile_definitions(${EXEC_NAME} PRIVATE _HD_GA_HAVE_READLINE)
     target_link_libraries(${EXEC_NAME} PRIVATE ${READLINE_LIBRARY})

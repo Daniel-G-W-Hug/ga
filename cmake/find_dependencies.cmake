@@ -177,7 +177,7 @@ endfunction()
 
 # Three-tier readline finding: local compiled -> system -> skip (optional dependency)
 function(find_readline_tiered)
-    if(NOT GA_USE_READLINE)
+    if(NOT _GA_USE_READLINE)
         message(STATUS "readline support disabled")
         set(GA_HAS_SYSTEM_READLINE FALSE PARENT_SCOPE)
         set(GA_HAS_LOCAL_READLINE FALSE PARENT_SCOPE)
@@ -185,20 +185,53 @@ function(find_readline_tiered)
         return()
     endif()
     
-    # Tier 1: Local compiled libraries (prioritized for development)
+    # Tier 1: System packages (preferred)
+    # On macOS, prefer Homebrew readline over system libedit (which masquerades as readline)
+    if(APPLE)
+        find_library(READLINE_SYSTEM_LIBRARY readline
+                     PATHS /opt/homebrew/opt/readline/lib /usr/local/opt/readline/lib
+                     NO_DEFAULT_PATH)
+        find_path(READLINE_SYSTEM_INCLUDE_DIR readline/readline.h
+                  PATHS /opt/homebrew/opt/readline/include /usr/local/opt/readline/include
+                  NO_DEFAULT_PATH)
+        if(READLINE_SYSTEM_LIBRARY AND READLINE_SYSTEM_INCLUDE_DIR)
+            message(STATUS "✓ Found Homebrew readline: ${READLINE_SYSTEM_LIBRARY}")
+        endif()
+    else()
+        find_library(READLINE_SYSTEM_LIBRARY readline)
+        find_path(READLINE_SYSTEM_INCLUDE_DIR readline/readline.h)
+        if(READLINE_SYSTEM_LIBRARY AND READLINE_SYSTEM_INCLUDE_DIR)
+            message(STATUS "✓ Found system readline: ${READLINE_SYSTEM_LIBRARY}")
+        endif()
+    endif()
+
+    if(READLINE_SYSTEM_LIBRARY AND READLINE_SYSTEM_INCLUDE_DIR)
+        if(NOT TARGET readline::readline)
+            add_library(readline::readline UNKNOWN IMPORTED)
+            set_target_properties(readline::readline PROPERTIES
+                IMPORTED_LOCATION ${READLINE_SYSTEM_LIBRARY}
+                INTERFACE_INCLUDE_DIRECTORIES ${READLINE_SYSTEM_INCLUDE_DIR})
+        endif()
+        set(GA_HAS_SYSTEM_READLINE TRUE PARENT_SCOPE)
+        set(GA_HAS_LOCAL_READLINE FALSE PARENT_SCOPE)
+        set(GA_HAS_READLINE TRUE PARENT_SCOPE)
+        return()
+    endif()
+
+    # Tier 2: Local compiled libraries (fallback)
     set(LOCAL_READLINE_DIR "${CMAKE_SOURCE_DIR}/../../include/readline")
     if(EXISTS "${LOCAL_READLINE_DIR}/readline.h")
         # Enhanced search for compiled libraries in common build output directories
-        find_library(READLINE_LOCAL_LIBRARY 
+        find_library(READLINE_LOCAL_LIBRARY
                      NAMES libreadline.dylib libreadline.so libreadline.a readline
                      PATHS ${LOCAL_READLINE_DIR}
                      PATH_SUFFIXES . shlib .libs lib
                      NO_DEFAULT_PATH)
-        
+
         if(READLINE_LOCAL_LIBRARY)
             message(STATUS "✓ Found local compiled readline: ${READLINE_LOCAL_LIBRARY}")
-            message(STATUS "  Using local version instead of system (for development)")
-            
+            message(STATUS "  Using local version as fallback")
+
             # Find required terminal capabilities library for local readline
             find_library(TERMCAP_LIBRARY NAMES ncurses curses termcap)
             if(TERMCAP_LIBRARY)
@@ -206,7 +239,7 @@ function(find_readline_tiered)
             else()
                 message(STATUS "  Warning: No terminal library found - linking may fail")
             endif()
-            
+
             if(NOT TARGET readline::readline)
                 add_library(readline::readline UNKNOWN IMPORTED)
                 if(TERMCAP_LIBRARY)
@@ -225,28 +258,10 @@ function(find_readline_tiered)
             set(GA_HAS_READLINE TRUE PARENT_SCOPE)
             return()
         else()
-            # Headers found but no compiled library - continue to check system
+            # Headers found but no compiled library
             message(STATUS "✓ Found local readline headers at: ${LOCAL_READLINE_DIR}")
-            message(STATUS "  No compiled library found - checking system version")
+            message(STATUS "  No compiled library found")
         endif()
-    endif()
-    
-    # Tier 2: System packages (fallback)
-    find_library(READLINE_SYSTEM_LIBRARY readline)
-    find_path(READLINE_SYSTEM_INCLUDE_DIR readline/readline.h)
-    
-    if(READLINE_SYSTEM_LIBRARY AND READLINE_SYSTEM_INCLUDE_DIR)
-        message(STATUS "✓ Found system readline: ${READLINE_SYSTEM_LIBRARY}")
-        if(NOT TARGET readline::readline)
-            add_library(readline::readline UNKNOWN IMPORTED)
-            set_target_properties(readline::readline PROPERTIES
-                IMPORTED_LOCATION ${READLINE_SYSTEM_LIBRARY}
-                INTERFACE_INCLUDE_DIRECTORIES ${READLINE_SYSTEM_INCLUDE_DIR})
-        endif()
-        set(GA_HAS_SYSTEM_READLINE TRUE PARENT_SCOPE)
-        set(GA_HAS_LOCAL_READLINE FALSE PARENT_SCOPE)
-        set(GA_HAS_READLINE TRUE PARENT_SCOPE)
-        return()
     endif()
     
     # Tier 3: Headers-only fallback (if local headers exist but no system library)

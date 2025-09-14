@@ -4,7 +4,7 @@ This directory contains modular CMake scripts for flexible dependency management
 
 ## Features
 
-- **Three-Tier Resolution**: Automatically resolves dependencies in order: system → ../../include/ → FetchContent
+- **Three-Tier Resolution**: Automatically resolves dependencies in order: system → ../../include/ → FetchContent (readline prefers system)
 - **Platform Awareness**: Different strategies for different platforms
 - **User Control**: Options to force system-only or FetchContent-only approaches
 - **Maximum Reuse**: Common dependency resolution logic shared across platforms
@@ -33,7 +33,7 @@ cmake .. -DGA_USE_SYSTEM_DEPENDENCIES=ON -DGA_FORCE_FETCH_CONTENT=OFF
 ### Option 4: Disable readline
 ```cmake
 # Disables optional readline support
-cmake .. -DGA_USE_READLINE=OFF
+cmake .. -D_GA_USE_READLINE=OFF
 ```
 
 ## Dependencies by Category

@@ -124,9 +124,9 @@ Critical usage requirements:
 
 Required: fmt library (header-only)
 Optional: doctest (testing), Qt6 (visualization), Lua + sol2 (scripting), readline
-(optional for scripting)
+(for enhanced interactive scripting experience)
 
-Install on macOS: `brew install fmt doctest qt6 lua`
+Install on macOS: `brew install fmt doctest qt6 lua readline`
 
 ### Windows Dependency Management (vcpkg + System Lua)
 

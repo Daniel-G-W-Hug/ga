@@ -57,7 +57,7 @@ include(dependencies)
 setup_ga_dependencies()
 
 # Optional readline support for ga_lua interactive shell
-option(GA_USE_READLINE "Enable readline support for ga_lua interactive shell" ON)
+option(_GA_USE_READLINE "Enable readline support for ga_lua interactive shell" ON)
 
 #################################################################
 # Project modules
