@@ -2311,4 +2311,40 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("   MVec2d contextual: {}", mvec2d_contextual);
     }
 
+    TEST_CASE("G<2,0,0>: transwedge and regressive transwedge products")
+    {
+        fmt::println("G<2,0,0>: transwedge and regressive transwedge products");
+
+        auto s = scalar2d{4.0};
+        auto v = vec2d{1.0, 2.0};
+        auto v2 = vec2d{-1.0, 3.0};
+        auto ps = pscalar2d{-3.0};
+
+        // check identities of transwedge product
+        CHECK(twdg1(ps, v) == ps * v);
+        CHECK(twdg1(ps, v) == (v << ps));
+        CHECK(twdg1(ps, v) == -(ps >> v));
+        CHECK(twdg1(ps, v) ==
+              -rwdg(ps, right_dual(v))); // contraction expressed as rwdg prod.
+
+        CHECK(twdg1(ps, v) == -twdg1(v, ps));
+
+        CHECK(twdg1(v, ps) == v * ps);
+        CHECK(twdg1(v, ps) == (ps >> v));
+        CHECK(twdg1(v, ps) == -(v << ps));
+        CHECK(twdg1(v, ps) ==
+              -rwdg(left_dual(v), ps)); // contraction expressed as rwdg prod.
+
+        CHECK(twdg1(v, v2) == dot(v, v2));
+        CHECK(twdg1(v, v2) == dot(v2, v));
+
+        // check identities of regressive transwedge product
+        CHECK(rtwdg1(v, v2) == pscalar2d(value_t(dot(v, v2))));
+        CHECK(rtwdg1(v, v2) == pscalar2d(value_t(dot(v2, v))));
+
+        CHECK(rtwdg1(v, s) == wdg(s, right_dual(v))); // expansion expressed as wdg prod.
+        CHECK(rtwdg1(s, v) == -rtwdg1(v, s));         // vector and scalar anticommute!
+        CHECK(rtwdg1(s, v) == wdg(left_dual(v), s));  // expansion expressed as wdg prod.
+    }
+
 } // EGA 2D Tests

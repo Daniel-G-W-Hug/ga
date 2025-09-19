@@ -13,6 +13,8 @@ namespace hd::ga::ega {
 // - dot()              -> dot product
 // - wdg()              -> wedge product
 // - rwdg()             -> regressive wedge product
+// - twdg1()            -> transwedge product (k=1)
+// - rtwdg1()           -> regressive transwedge product (k=1)
 // - operator<<()       -> left contraction
 // - operator>>()       -> right contraction
 // - cmt()              -> commutator product
@@ -441,6 +443,79 @@ constexpr Scalar2d<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar2d<T>,
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar2d<ctype>{0.0};
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// transwedge product (k=1)
+////////////////////////////////////////////////////////////////////////////////
+
+// twdg1(ps,vec) = vec -> identical to geometric product gpr(ps,vec)
+//                     -> and identical to the left contraction vec << ps
+// (turn by -90°, i.e. against orientation of e12)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2d<std::common_type_t<T, U>> twdg1(PScalar2d<T> ps, Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * Vec2d<ctype>(v.y, -v.x);
+}
+
+// twdg1(vec,ps) = vec -> identical to geometric product gpr(vec,ps)
+//                     -> and identical to the right contraction ps >> vec
+// (turn by +90°, i.e. into orientation of e12)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2d<std::common_type_t<T, U>> twdg1(Vec2d<T> const& v, PScalar2d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(-v.y, v.x) * ctype(ps);
+}
+
+// twdg1(vec,vec) = scalar -> identical to dot product dot(vec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2d<std::common_type_t<T, U>> twdg1(Vec2d<T> const& v1, Vec2d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(v1.x * v2.x + v1.y * v2.y);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// regressive transwedge product (k=1)
+////////////////////////////////////////////////////////////////////////////////
+
+// rtwdg1(vec,vec) = pseudoscalar -> identical to regressive dot product rdot(vec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr PScalar2d<std::common_type_t<T, U>> rtwdg1(Vec2d<T> const& v1,
+                                                     Vec2d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(v1.x * v2.x + v1.y * v2.y);
+}
+
+// rtwdg1(vec,s) = vec -> returns a vector perpendicular to vec scaled by s
+// identical to right expansions: -lexpand(vec,s) = rexpand(s,vec)
+// => sign change makes sense since expansions are derived from the wedge product
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2d<std::common_type_t<T, U>> rtwdg1(Vec2d<T> const& v, Scalar2d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2d<ctype>(-v.y, v.x) * ctype(s);
+}
+
+// rtwdg1(s,vec) -> returns a vector perpendicular to vec scaled by s
+// identical to expansions: -rexpand(s,vec) = lexpand(vec,s)
+// => sign change makes sense since expansions are derived from the wedge product
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2d<std::common_type_t<T, U>> rtwdg1(Scalar2d<T> s, Vec2d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * Vec2d<ctype>(v.y, -v.x);
 }
 
 

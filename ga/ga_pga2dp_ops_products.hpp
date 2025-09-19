@@ -14,6 +14,8 @@ namespace hd::ga::pga {
 // - rdot()                  -> regressive dot product
 // - wdg(), join()           -> wedge product (join as convenience interface)
 // - rwdg(), meet()          -> regressive wedge product (meet as convenience interface)
+// - twdg1()                 -> transwedge product (k=1)
+// - rtwdg1()                -> regressive transwedge product (k=1)
 // - operator<<()            -> left contraction (= left bulk contraction)
 // - operator>>()            -> right contraction (= right bulk contraction)
 // - cmt()                   -> commutator product (= asymmetric part of gpr)
@@ -656,6 +658,140 @@ constexpr Vec2dp<std::common_type_t<T, U>> meet(Line2d<T> const& l1, Line2d<U> c
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// transwedge product (k=1)
+////////////////////////////////////////////////////////////////////////////////
+
+// twdg1(ps,vec) = bivec -> identical to geometric product gpr(ps,vec)
+//                       -> and identical to the left contraction vec << ps
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> twdg1(PScalar2dp<T> ps, Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * BiVec2dp<ctype>(-v.x, -v.y, ctype(0.0));
+}
+
+// twdg1(vec,ps) = bivec -> identical to geometric product gpr(vec,ps)
+//                       -> and identical to the right contraction ps >> vec
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> twdg1(Vec2dp<T> const& v, PScalar2dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(-v.x, -v.y, ctype(0.0)) * ctype(ps);
+}
+
+// twdg1(bivec,bivec) = bivector -> identical to commutator product cmt(bivec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> twdg1(BiVec2dp<T> const& B1,
+                                                   BiVec2dp<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(-B1.y * B2.z + B1.z * B2.y, B1.x * B2.z - B1.z * B2.x,
+                           ctype(0.0));
+}
+
+// twdg1(bivec,vec) = vector -> identical to left contraction operator<<(vec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> twdg1(BiVec2dp<T> const& B, Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(B.z * v.y, -B.z * v.x, -B.x * v.y + B.y * v.x);
+}
+
+// twdg1(vec,bivec) = vector -> identical to right contraction operator>>(bivec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> twdg1(Vec2dp<T> const& v, BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(-v.y * B.z, v.x * B.z, -v.x * B.y + v.y * B.x);
+}
+
+// twdg1(vec,vec) = scalar -> identical to dot product dot(vec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar2dp<std::common_type_t<T, U>> twdg1(Vec2dp<T> const& v1,
+                                                    Vec2dp<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2dp<ctype>(v1.x * v2.x + v1.y * v2.y);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// regressive transwedge product (k=1)
+////////////////////////////////////////////////////////////////////////////////
+
+// rtwdg1(vec,vec) = pseudoscalar -> identical to regressive dot product rdot(vec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr PScalar2dp<std::common_type_t<T, U>> rtwdg1(BiVec2dp<T> const& B1,
+                                                      BiVec2dp<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2dp<ctype>(B1.x * B2.x + B1.y * B2.y);
+}
+
+// rtwdg1(bivec,vec) = bivec -> identical to right_weight_expand2dp(vec,bivec)
+//                           ->            = vec ^ weight_dual(bivec)
+//                           ->            = rcmt(bivec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> rtwdg1(BiVec2dp<T> const& B,
+                                                    Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(B.y * v.z, -B.x * v.z, B.x * v.y - B.y * v.x);
+}
+
+// rtwdg1(vec,bivec) = bivec -> identical to left_weight_expand2dp(bivec,vec)
+//                           ->            = weight_dual(bivec) ^ vec
+//                           ->            = rcmt(vec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> rtwdg1(Vec2dp<T> const& v,
+                                                    BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(-v.z * B.y, v.z * B.x, v.x * B.y - v.y * B.x);
+}
+
+// rtwdg1(bivec,s) = vec -> identical to right_weight_expand2dp(s,bivec)
+//                           ->        = s ^ weight_dual(bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rtwdg1(BiVec2dp<T> const& B, Scalar2dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(-B.x, -B.y, ctype(0.0)) * ctype(s);
+}
+
+// rtwdg1(s,bivec) -> identical to left_weight_expand2dp(bivec,s)
+//                           ->  = weight_dual(bivec) ^ s
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rtwdg1(Scalar2dp<T> s, BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * Vec2dp<ctype>(-B.x, -B.y, ctype(0.0));
+}
+
+// rtwdg1(vec1,vec2) -> identical to regressive commutator product rcmt(vec1,vec2)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rtwdg1(Vec2dp<T> const& v1,
+                                                  Vec2dp<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
+                         ctype(0.0));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // left contractions A << B: "A contracted onto B"
 //
 // The resulting object is a lies in B and is perpendicular to A
@@ -1166,7 +1302,8 @@ template <typename T, typename U>
 constexpr Vec2dp<std::common_type_t<T, U>> rcmt(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x, 0.0);
+    return Vec2dp<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
+                         ctype(0.0));
 }
 
 

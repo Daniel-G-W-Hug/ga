@@ -258,13 +258,16 @@ ProductConfig get_pga3dp_twdg1_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             // .cases{}, // no cases, just for generating the product tables
-            .cases = {{"trivec * vec -> bivec", "svBtps", "svBtps", "trivec", "vec"},
+            .cases = {{"ps * vec -> trivec", "svBtps", "svBtps", "ps", "vec"},
+                      {"vec * ps -> trivec", "svBtps", "svBtps", "vec", "ps"},
+                      {"trivec * vec -> bivec", "svBtps", "svBtps", "trivec", "vec"},
                       {"vec * trivec -> bivec", "svBtps", "svBtps", "vec", "trivec"},
                       {"trivec * bivec -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
                       {"bivec * trivec -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
                       {"bivec * bivec -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
                       {"bivec * vec -> vec", "svBtps", "svBtps", "bivec", "vec"},
-                      {"vec * bivec -> vec", "svBtps", "svBtps", "vec", "bivec"}},
+                      {"vec * bivec -> vec", "svBtps", "svBtps", "vec", "bivec"},
+                      {"vec * vec -> s", "svBtps1", "svBtps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -572,10 +575,13 @@ ProductConfig get_pga3dp_rtwdg1_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             // .cases{}, // no cases, just for generating the product tables
-            .cases = {{"trivec * bivec -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+            .cases = {{"trivec * trivec -> ps", "svBtps1", "svBtps2", "trivec", "trivec"},
+                      {"trivec * bivec -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
                       {"bivec * trivec -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
                       {"trivec * vec -> bivec", "svBtps", "svBtps", "trivec", "vec"},
                       {"vec * trivec -> bivec", "svBtps", "svBtps", "vec", "trivec"},
+                      {"trivec * s -> vec", "svBtps", "svBtps", "trivec", "s"},
+                      {"s * trivec -> vec", "svBtps", "svBtps", "s", "trivec"},
                       {"bivec * bivec -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
                       {"bivec * vec -> vec", "svBtps", "svBtps", "bivec", "vec"},
                       {"vec * bivec -> vec", "svBtps", "svBtps", "vec", "bivec"}},

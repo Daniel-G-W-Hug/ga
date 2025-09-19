@@ -250,10 +250,12 @@ ProductConfig get_ega3d_twdg1_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             // .cases{}, // no cases, just for generating the product tables
-            .cases = {{"bivec * bivec -> bivec", "svBps1", "svBps2", "bivec", "bivec"},
+            .cases = {{"ps * vec -> bivec", "svBps", "svBps", "ps", "vec"},
+                      {"vec * ps -> bivec", "svBps", "svBps", "vec", "ps"},
+                      {"bivec * bivec -> bivec", "svBps1", "svBps2", "bivec", "bivec"},
                       {"bivec * vec -> vec", "svBps", "svBps", "bivec", "vec"},
                       {"vec * bivec -> vec", "svBps", "svBps", "vec", "bivec"},
-                      {"vec * vec -> s", "svBps1", "svBps1", "vec", "vec"}},
+                      {"vec * vec -> s", "svBps1", "svBps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -443,8 +445,11 @@ ProductConfig get_ega3d_rtwdg1_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             // .cases{}, // no cases, just for generating the product tables
-            .cases = {{"bivec * vec -> bivec", "svBps", "svBps", "bivec", "vec"},
+            .cases = {{"bivec * bivec -> ps", "svBps1", "svBps2", "bivec", "bivec"},
+                      {"bivec * vec -> bivec", "svBps", "svBps", "bivec", "vec"},
                       {"vec * bivec -> bivec", "svBps", "svBps", "vec", "bivec"},
+                      {"bivec * s -> vec", "svBps", "svBps", "bivec", "s"},
+                      {"s * bivec -> vec", "svBps", "svBps", "s", "bivec"},
                       {"vec * vec -> vec", "svBps1", "svBps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,

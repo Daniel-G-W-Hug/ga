@@ -3287,4 +3287,73 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("   All PGA3DP congruence tests passed");
     }
 
+    TEST_CASE("G<3,0,1>: transwedge and regressive transwedge products")
+    {
+        fmt::println("G<3,0,1>: transwedge and regressive transwedge products");
+
+        auto s = scalar3dp{4.0};
+        auto v = vec3dp{1.0, 2.0, 3.0, 1.0};
+        auto v2 = vec3dp{-1.0, 3.0, -2.0, 1.0};
+        auto B = bivec3dp{10.0, 20.0, 30.0, 40.0, 50.0, 60.0};
+        auto B2 = bivec3dp{-20.0, -40.0, -60.0, -12.0, -15.0, -10.0};
+        auto t = trivec3dp{100.0, 200.0, 300.0, 400.0};
+        auto t2 = trivec3dp{-200.0, -400.0, -600.0, -120.0};
+        auto ps = pscalar3dp{-3.0};
+
+        // check identities of transwedge product
+        CHECK(twdg1(ps, v) == ps * v);
+        CHECK(twdg1(ps, v) == (v << ps));
+        CHECK(twdg1(ps, v) ==
+              rwdg(left_bulk_dual(v), ps)); // contraction expressed as rwdg prod.
+
+        CHECK(twdg1(ps, v) == -twdg1(v, ps)); // vec and ps do not commute
+
+        CHECK(twdg1(v, ps) == v * ps);
+        CHECK(twdg1(v, ps) == (ps >> v));
+        CHECK(twdg1(v, ps) ==
+              rwdg(ps, right_bulk_dual(v))); // contraction expressed as rwdg prod.
+
+
+        CHECK(twdg1(t, v) == (v << t));
+        CHECK(twdg1(t, v) == (t >> v));
+
+        CHECK(twdg1(t, v) == twdg1(v, t));
+
+        CHECK(twdg1(v, t) == (t >> v));
+        CHECK(twdg1(v, t) == (v << t));
+
+        CHECK(twdg1(t, B) == cmt(t, B));
+        CHECK(twdg1(B, t) == cmt(B, t));
+        CHECK(twdg1(B, B2) == cmt(B, B2));
+        CHECK(twdg1(B, v) == (v << B));
+        CHECK(twdg1(v, B) == (B >> v));
+
+        CHECK(twdg1(v, v2) == dot(v, v2));
+        CHECK(twdg1(v, v2) == dot(v2, v));
+
+        // check identities of regressive transwedge product
+        CHECK(rtwdg1(t, t2) == rdot(t, t2));
+        CHECK(rtwdg1(t, t2) == rdot(t2, t));
+
+        CHECK(rtwdg1(t, B) == rcmt(t, B));
+        CHECK(rtwdg1(B, t) == rcmt(B, t));
+
+        CHECK(rtwdg1(t, v) == right_weight_expand3dp(v, t));
+        CHECK(rtwdg1(t, v) == wdg(v, right_weight_dual(t)));
+        CHECK(rtwdg1(v, t) == left_weight_expand3dp(t, v));
+        CHECK(rtwdg1(v, t) == wdg(left_weight_dual(t), v));
+
+        CHECK(rtwdg1(t, s) == right_weight_expand3dp(s, t));
+        CHECK(rtwdg1(t, s) == wdg(s, right_weight_dual(t)));
+        CHECK(rtwdg1(s, t) == left_weight_expand3dp(t, s));
+        CHECK(rtwdg1(s, t) == wdg(left_weight_dual(t), s));
+
+        CHECK(rtwdg1(B, B2) == rcmt(B, B2));
+
+        CHECK(rtwdg1(B, v) == rcmt(B, v));
+        CHECK(rtwdg1(B, v) == -rtwdg1(v, B)); // vector ans bivector anticommute
+        CHECK(rtwdg1(v, B) == rcmt(v, B));
+    }
+
+
 } // PGA 3DP Tests

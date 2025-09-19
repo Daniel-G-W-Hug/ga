@@ -29,11 +29,11 @@ function(setup_ga_dependencies)
     # Check for local hd utility library (project-specific dependency)
     if(EXISTS "${CMAKE_SOURCE_DIR}/../../include/hd")
         message(STATUS "✓ Found local hd utility library at: ${CMAKE_SOURCE_DIR}/../../include/hd")
-        set(GA_HAS_HD_UTILS TRUE)
+        set(GA_HAS_HD_UTILS TRUE PARENT_SCOPE)
     else()
         message(WARNING "hd utility library not found at expected location: ${CMAKE_SOURCE_DIR}/../../include/hd")
         message(STATUS "Some ga_view functionality may not work properly")
-        set(GA_HAS_HD_UTILS FALSE)
+        set(GA_HAS_HD_UTILS FALSE PARENT_SCOPE)
     endif()
 
     # Find flexible dependencies using three-tier logic

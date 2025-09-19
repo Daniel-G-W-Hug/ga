@@ -13,6 +13,8 @@ namespace hd::ga::ega {
 // - dot()              -> dot product
 // - wdg()              -> wedge product
 // - rwdg()             -> regressive wedge product
+// - twdg1()            -> transwedge product (k=1)
+// - rtwdg1()           -> regressive transwedge product (k=1)
 // - operator<<()       -> left contraction
 // - operator>>()       -> right contraction
 // - cross()            -> cross product
@@ -533,6 +535,142 @@ constexpr Scalar3d<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar3d<T>,
     using ctype = std::common_type_t<T, U>;
     return Scalar3d<ctype>{0.0};
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+// transwedge product (k=1)
+////////////////////////////////////////////////////////////////////////////////
+
+// twdg1(ps,vec) = vec -> identical to geometric product gpr(ps,vec)
+//                     -> and identical to the left contraction vec << ps
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3d<std::common_type_t<T, U>> twdg1(PScalar3d<T> ps, Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * BiVec3d<ctype>(v.x, v.y, v.z);
+}
+
+// twdg1(vec,ps) = vec -> identical to geometric product gpr(vec,ps)
+//                     -> and identical to the right contraction ps >> vec
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3d<std::common_type_t<T, U>> twdg1(Vec3d<T> const& v, PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3d<ctype>(v.x, v.y, v.z) * ctype(ps);
+}
+
+// twdg1(bivec,bivec) = bivector -> identical to commutator product cmt(bivec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3d<std::common_type_t<T, U>> twdg1(BiVec3d<T> const& B1,
+                                                  BiVec3d<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3d<ctype>(-B1.y * B2.z + B1.z * B2.y, B1.x * B2.z - B1.z * B2.x,
+                          -B1.x * B2.y + B1.y * B2.x);
+}
+
+// twdg1(bivec,vec) = vector -> identical to left contraction operator<<(vec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3d<std::common_type_t<T, U>> twdg1(BiVec3d<T> const& B, Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(-B.y * v.z + B.z * v.y, B.x * v.z - B.z * v.x,
+                        -B.x * v.y + B.y * v.x);
+}
+
+// twdg1(vec,bivec) = vector -> identical to right contraction operator>>(bivec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3d<std::common_type_t<T, U>> twdg1(Vec3d<T> const& v, BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(-v.y * B.z + v.z * B.y, v.x * B.z - v.z * B.x,
+                        -v.x * B.y + v.y * B.x);
+}
+
+// twdg1(vec,vec) = scalar -> identical to dot product dot(vec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> twdg1(Vec3d<T> const& v1, Vec3d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// regressive transwedge product (k=1)
+////////////////////////////////////////////////////////////////////////////////
+
+// rtwdg1(vec,vec) = pseudoscalar -> identical to regressive dot product rdot(vec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr PScalar3d<std::common_type_t<T, U>> rtwdg1(BiVec3d<T> const& B1,
+                                                     BiVec3d<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar3d<ctype>(B1.x * B2.x + B1.y * B2.y + B1.z * B2.z);
+}
+
+// rtwdg1(bivec,vec) = bivec -> identical to right expansion rexpand(vec,bivec)
+//                           ->                             = vec ^ dual(bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3d<std::common_type_t<T, U>> rtwdg1(BiVec3d<T> const& B, Vec3d<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3d<ctype>(-B.y * v.z + B.z * v.y, B.x * v.z - B.z * v.x,
+                          -B.x * v.y + B.y * v.x);
+}
+
+// rtwdg1(vec,bivec) = bivec -> identical to left expansion lexpand(bivec,vec)
+//                           ->                             = dual(bivec) ^ vec
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3d<std::common_type_t<T, U>> rtwdg1(Vec3d<T> const& v, BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3d<ctype>(-v.y * B.z + v.z * B.y, v.x * B.z - v.z * B.x,
+                          -v.x * B.y + v.y * B.x);
+}
+
+// rtwdg1(bivec,s) = vec -> returns a vector perpendicular to bivec scaled by s
+// identical to right expansion: -lexpand(bivec,s) = rexpand(s,bivec)
+// => sign change makes sense since expansions are derived from the wedge product
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3d<std::common_type_t<T, U>> rtwdg1(BiVec3d<T> const& B, Scalar3d<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(B.x, B.y, B.z) * ctype(s);
+}
+
+// rtwdg1(s,bivec) -> returns a vector perpendicular to bivec scaled by s
+// identical to expansions: -rexpand(s,bivec) = lexpand(bivec,s)
+// => sign change makes sense since expansions are derived from the wedge product
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3d<std::common_type_t<T, U>> rtwdg1(Scalar3d<T> s, BiVec3d<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * Vec3d<ctype>(B.x, B.y, B.z);
+}
+
+// rtwdg1(vec1,vec2) = vector -> identical to cross product cross(vec2,vec1)
+//                                                       = -cross(vec1,vec2)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3d<std::common_type_t<T, U>> rtwdg1(Vec3d<T> const& v1, Vec3d<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3d<ctype>(-v1.y * v2.z + v1.z * v2.y, v1.x * v2.z - v1.z * v2.x,
+                        -v1.x * v2.y + v1.y * v2.x);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // left contractions A << B: "A contracted onto B"

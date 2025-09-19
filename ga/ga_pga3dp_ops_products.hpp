@@ -14,6 +14,8 @@ namespace hd::ga::pga {
 // - rdot()                  -> regressive dot product
 // - wdg(), join()           -> wedge product (join as convenience interface)
 // - rwdg(), meet()          -> regressive wedge product (meet as convenience interface)
+// - twdg1()                 -> transwedge product (k=1)
+// - rtwdg1()                -> regressive transwedge product (k=1)
 // - operator<<()            -> left contraction (= left bulk contraction)
 // - operator>>()            -> right contraction (= right bulk contraction)
 // - cmt()                   -> commutator product (= asymmetric part of gpr)
@@ -826,6 +828,251 @@ constexpr Vec3dp<std::common_type_t<T, U>> meet(Line3d<T> const& l, Plane3d<U> c
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// transwedge product (k=1)
+////////////////////////////////////////////////////////////////////////////////
+
+// twdg1(ps,vec) = trivec -> identical to geometric product gpr(ps,vec)
+//                        -> and identical to the left contraction vec << ps
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> twdg1(PScalar3dp<T> ps, Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * TriVec3dp<ctype>(-v.x, -v.y, -v.z, ctype(0.0));
+}
+
+// twdg1(vec,ps) = trivec -> identical to geometric product gpr(vec,ps)
+//                        -> and identical to the right contraction ps >> vec
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> twdg1(Vec3dp<T> const& v, PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(v.x, v.y, v.z, ctype(0.0)) * ctype(ps);
+}
+
+// twdg1(trivec,vec) = bivector -> identical to left contraction operator<<(vec,trivec)
+//                              -> identical to right contraction operator>>(trivec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> twdg1(TriVec3dp<T> const& t,
+                                                   Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(-t.y * v.z + t.z * v.y, t.x * v.z - t.z * v.x,
+                           -t.x * v.y + t.y * v.x, -t.w * v.x, -t.w * v.y, -t.w * v.z);
+}
+
+// twdg1(vec,trivec) = bivector -> identical to right contraction operator>>(trivec,vec)
+//                              -> identical to left contraction operator<<(vec,trivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> twdg1(Vec3dp<T> const& v,
+                                                   TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(v.y * t.z - v.z * t.y, -v.x * t.z + v.z * t.x,
+                           v.x * t.y - v.y * t.x, -v.x * t.w, -v.y * t.w, -v.z * t.w);
+}
+
+// twdg1(trivec,bivec) = trivector -> identical to commutator product cmt(bivec,trivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> twdg1(TriVec3dp<T> const& t,
+                                                    BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(-t.y * B.mz + t.z * B.my + t.w * B.vx,
+                            t.x * B.mz - t.z * B.mx + t.w * B.vy,
+                            -t.x * B.my + t.y * B.mx + t.w * B.vz, ctype(0.0));
+}
+
+// twdg1(bivec,trivec) = trivector -> identical to commutator product cmt(trivec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> twdg1(BiVec3dp<T> const& B,
+                                                    TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(-B.vx * t.w - B.my * t.z + B.mz * t.y,
+                            -B.vy * t.w + B.mx * t.z - B.mz * t.x,
+                            -B.vz * t.w - B.mx * t.y + B.my * t.x, ctype(0.0));
+}
+
+
+// twdg1(bivec,bivec) = bivector -> identical to commutator product cmt(bivec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> twdg1(BiVec3dp<T> const& B1,
+                                                   BiVec3dp<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(-B1.vy * B2.mz + B1.vz * B2.my - B1.my * B2.vz + B1.mz * B2.vy,
+                           B1.vx * B2.mz - B1.vz * B2.mx + B1.mx * B2.vz - B1.mz * B2.vx,
+                           -B1.vx * B2.my + B1.vy * B2.mx - B1.mx * B2.vy + B1.my * B2.vx,
+                           -B1.my * B2.mz + B1.mz * B2.my, B1.mx * B2.mz - B1.mz * B2.mx,
+                           -B1.mx * B2.my + B1.my * B2.mx);
+}
+
+// twdg1(bivec,vec) = vector -> identical to left contraction operator<<(vec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> twdg1(BiVec3dp<T> const& B, Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(-B.my * v.z + B.mz * v.y, B.mx * v.z - B.mz * v.x,
+                         -B.mx * v.y + B.my * v.x, B.vx * v.x + B.vy * v.y + B.vz * v.z);
+}
+
+// twdg1(vec,bivec) = vector -> identical to right contraction operator>>(bivec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> twdg1(Vec3dp<T> const& v, BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(-v.y * B.mz + v.z * B.my, v.x * B.mz - v.z * B.mx,
+                         -v.x * B.my + v.y * B.mx, -v.x * B.vx - v.y * B.vy - v.z * B.vz);
+}
+
+// twdg1(vec,vec) = scalar -> identical to dot product dot(vec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3dp<std::common_type_t<T, U>> twdg1(Vec3dp<T> const& v1,
+                                                    Vec3dp<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3dp<ctype>(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// regressive transwedge product (k=1)
+////////////////////////////////////////////////////////////////////////////////
+
+// rtwdg1(trivec,trivec) = pseudoscalar -> identical to regressive dot product
+// rdot(trivec,trivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr PScalar3dp<std::common_type_t<T, U>> rtwdg1(TriVec3dp<T> const& t1,
+                                                      TriVec3dp<U> const& t2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar3dp<ctype>(t1.x * t2.x + t1.y * t2.y + t1.z * t2.z);
+}
+
+// rtwdg1(trivec,bivec) = trivector -> identical to regressive commutator product
+// rcmt(trivec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> rtwdg1(TriVec3dp<T> const& t,
+                                                     BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(t.y * B.vz - t.z * B.vy, -t.x * B.vz + t.z * B.vx,
+                            t.x * B.vy - t.y * B.vx,
+                            t.x * B.mx + t.y * B.my + t.z * B.mz);
+}
+
+// rtwdg1(bivec,trivec) = trivector -> identical to regressive commutator product
+// rcmt(bivec,trivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> rtwdg1(BiVec3dp<T> const& B,
+                                                     TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(B.vy * t.z - B.vz * t.y, -B.vx * t.z + B.vz * t.x,
+                            B.vx * t.y - B.vy * t.x,
+                            -B.mx * t.x - B.my * t.y - B.mz * t.z);
+}
+
+// rtwdg1(trivec,vec) = bivec -> identical to right_weight_expand3dp(vec,trivec)
+//                            ->            = vec ^ right_weight_dual(trivec)
+//                            ->            = left_weight_dual(trivec) ^ vec
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> rtwdg1(TriVec3dp<T> const& t,
+                                                    Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(-t.x * v.w, -t.y * v.w, -t.z * v.w, t.y * v.z - t.z * v.y,
+                           -t.x * v.z + t.z * v.x, t.x * v.y - t.y * v.x);
+}
+
+// rtwdg1(vec,trivec) = bivec -> identical to left_weight_expand3dp(trivec,vec)
+//                            ->            = left_weight_dual(trivec) ^ vec
+//                            ->            = vec ^ right_weight_dual(trivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> rtwdg1(Vec3dp<T> const& v,
+                                                    TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(-v.w * t.x, -v.w * t.y, -v.w * t.z, -v.y * t.z + v.z * t.y,
+                           v.x * t.z - v.z * t.x, -v.x * t.y + v.y * t.x);
+}
+
+// rtwdg1(trivec,s) = vec -> identical to right_weight_expand3dp(s,trivec)
+//                              ->        = s ^ right_weight_dual(trivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> rtwdg1(TriVec3dp<T> const& t, Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(-t.x, -t.y, -t.z, ctype(0.0)) * ctype(s);
+}
+
+// rtwdg1(s,trivec) -> identical to left_weight_expand3dp(trivec,s)
+//                            ->  = left_weight_dual(trivec) ^ s
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> rtwdg1(Scalar3dp<T> s, TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * Vec3dp<ctype>(t.x, t.y, t.z, ctype(0.0));
+}
+
+// rtwdg1(bivec,bivec) = bivec -> identical to regressive commutator product
+// rcmt(bivec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> rtwdg1(BiVec3dp<T> const& B1,
+                                                    BiVec3dp<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(B1.vy * B2.vz - B1.vz * B2.vy, -B1.vx * B2.vz + B1.vz * B2.vx,
+                           B1.vx * B2.vy - B1.vy * B2.vx,
+                           B1.vy * B2.mz - B1.vz * B2.my + B1.my * B2.vz - B1.mz * B2.vy,
+                           -B1.vx * B2.mz + B1.vz * B2.mx - B1.mx * B2.vz + B1.mz * B2.vx,
+                           B1.vx * B2.my - B1.vy * B2.mx + B1.mx * B2.vy - B1.my * B2.vx);
+}
+
+// rtwdg1(bivec,vec) = vec ->            = rcmt(bivec,vec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> rtwdg1(BiVec3dp<T> const& B,
+                                                  Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(B.vy * v.z - B.vz * v.y + B.mx * v.w,
+                         -B.vx * v.z + B.vz * v.x + B.my * v.w,
+                         B.vx * v.y - B.vy * v.x + B.mz * v.w, ctype(0.0));
+}
+
+// rtwdg1(vec,bivec) = vec ->            = rcmt(vec,bivec)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> rtwdg1(Vec3dp<T> const& v,
+                                                  BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(v.y * B.vz - v.z * B.vy - v.w * B.mx,
+                         -v.x * B.vz + v.z * B.vx - v.w * B.my,
+                         v.x * B.vy - v.y * B.vx - v.w * B.mz, ctype(0.0));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // left contractions A << B: "A contracted onto B"
 //
 // The resulting object is a lies in B and is perpendicular to A
@@ -888,7 +1135,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> operator<<(TriVec3dp<T> const& t,
                                                       PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(0.0, 0.0, 0.0, t.w * ctype(ps));
+    return Vec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), t.w * ctype(ps));
 }
 
 template <typename T, typename U>
@@ -906,7 +1153,8 @@ constexpr BiVec3dp<std::common_type_t<T, U>> operator<<(BiVec3dp<T> const& B,
                                                         PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-B.mx, -B.my, -B.mz, 0.0, 0.0, 0.0) * ctype(ps);
+    return BiVec3dp<ctype>(-B.mx, -B.my, -B.mz, ctype(0.0), ctype(0.0), ctype(0.0)) *
+           ctype(ps);
 }
 
 template <typename T, typename U>
@@ -924,7 +1172,7 @@ constexpr TriVec3dp<std::common_type_t<T, U>> operator<<(Vec3dp<T> const& v,
                                                          PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(-v.x, -v.y, -v.z, 0.0) * ctype(ps);
+    return TriVec3dp<ctype>(-v.x, -v.y, -v.z, ctype(0.0)) * ctype(ps);
 }
 
 template <typename T, typename U>
@@ -1142,7 +1390,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> operator>>(PScalar3dp<T> ps,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(0.0, 0.0, 0.0, -ctype(ps) * t.w);
+    return Vec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), -ctype(ps) * t.w);
 }
 
 template <typename T, typename U>
@@ -1160,7 +1408,8 @@ constexpr BiVec3dp<std::common_type_t<T, U>> operator>>(PScalar3dp<T> ps,
                                                         BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * BiVec3dp<ctype>(-B.mx, -B.my, -B.mz, 0.0, 0.0, 0.0);
+    return ctype(ps) *
+           BiVec3dp<ctype>(-B.mx, -B.my, -B.mz, ctype(0.0), ctype(0.0), ctype(0.0));
 }
 
 template <typename T, typename U>
@@ -1178,7 +1427,7 @@ constexpr TriVec3dp<std::common_type_t<T, U>> operator>>(PScalar3dp<T> ps,
                                                          Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * TriVec3dp<ctype>(v.x, v.y, v.z, 0.0);
+    return ctype(ps) * TriVec3dp<ctype>(v.x, v.y, v.z, ctype(0.0));
 }
 
 template <typename T, typename U>
@@ -1404,7 +1653,7 @@ constexpr TriVec3dp<std::common_type_t<T, U>> cmt(TriVec3dp<T> const& t,
     using ctype = std::common_type_t<T, U>;
     return TriVec3dp<ctype>(-t.y * B.mz + t.z * B.my + t.w * B.vx,
                             t.x * B.mz - t.z * B.mx + t.w * B.vy,
-                            -t.x * B.my + t.y * B.mx + t.w * B.vz, 0.0);
+                            -t.x * B.my + t.y * B.mx + t.w * B.vz, ctype(0.0));
 }
 
 template <typename T, typename U>
@@ -1415,7 +1664,7 @@ constexpr TriVec3dp<std::common_type_t<T, U>> cmt(BiVec3dp<T> const& B,
     using ctype = std::common_type_t<T, U>;
     return TriVec3dp<ctype>(-B.vx * t.w - B.my * t.z + B.mz * t.y,
                             -B.vy * t.w + B.mx * t.z - B.mz * t.x,
-                            -B.vz * t.w - B.mx * t.y + B.my * t.x, 0.0);
+                            -B.vz * t.w - B.mx * t.y + B.my * t.x, ctype(0.0));
 }
 
 template <typename T, typename U>
@@ -1551,7 +1800,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> rcmt(BiVec3dp<T> const& B, Vec3dp<U> 
     using ctype = std::common_type_t<T, U>;
     return Vec3dp<ctype>(B.vy * v.z - B.vz * v.y + B.mx * v.w,
                          -B.vx * v.z + B.vz * v.x + B.my * v.w,
-                         B.vx * v.y - B.vy * v.x + B.mz * v.w, 0.0);
+                         B.vx * v.y - B.vy * v.x + B.mz * v.w, ctype(0.0));
 }
 
 template <typename T, typename U>
@@ -1561,7 +1810,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> rcmt(Vec3dp<T> const& v, BiVec3dp<U> 
     using ctype = std::common_type_t<T, U>;
     return Vec3dp<ctype>(v.y * B.vz - v.z * B.vy - v.w * B.mx,
                          -v.x * B.vz + v.z * B.vx - v.w * B.my,
-                         v.x * B.vy - v.y * B.vx - v.w * B.mz, 0.0);
+                         v.x * B.vy - v.y * B.vx - v.w * B.mz, ctype(0.0));
 }
 
 template <typename T, typename U>
@@ -1583,9 +1832,10 @@ constexpr BiVec3dp<std::common_type_t<T, U>> rcmt(Vec3dp<T> const& v1,
 // REALLY VERY Expensive! - Don't use if you don't have to!
 //
 // Use equivalent formulae instead for not fully populated multivectors:
-// a * b = dot(a,b) + wdg(a,b) = gr0(ab) + gr2(ab)  (vector*vector = scalar + bivector)
-// A * b = (A>>b) + wdg(A,b) = gr1(Ab) + gr3(Ab)  (bivector*vector = vector + trivector)
-// a * B = (a<<B) + wdg(a,B) = gr1(aB) + gr3(aB)  (vector*bivector = vector + trivector)
+// a * b = dot(a,b) + wdg(a,b) = gr0(ab) + gr2(ab)  (vector*vector = scalar +
+// bivector) A * b = (A>>b) + wdg(A,b) = gr1(Ab) + gr3(Ab)  (bivector*vector = vector
+// + trivector) a * B = (a<<B) + wdg(a,B) = gr1(aB) + gr3(aB)  (vector*bivector =
+// vector + trivector)
 //
 // multivector * multivector => multivector
 template <typename T, typename U>
@@ -1594,8 +1844,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& A,
                                                       MVec3dp<U> const& B)
 {
     // geometric product of two fully populated 3dp multivectors
-    // => due to the degenerate algebra some terms are not present in G<3,0,1> compared to
-    // G<4,0,0>
+    // => due to the degenerate algebra some terms are not present in G<3,0,1>
+    // compared to G<4,0,0>
     using ctype = std::common_type_t<T, U>;
     ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c8 * B.c8 -
                A.c9 * B.c9 - A.c10 * B.c10 - A.c14 * B.c14;
@@ -2128,8 +2378,8 @@ constexpr Vec3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
     return ctype(ps) * Vec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), -t.w);
 }
 
-// geometric product t * ps of trivector t multiplied by a quadvector ps from the right
-// trivector * quadvector => vector
+// geometric product t * ps of trivector t multiplied by a quadvector ps from the
+// right trivector * quadvector => vector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> operator*(TriVec3dp<T> const& t,
@@ -2175,8 +2425,8 @@ constexpr TriVec3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
     return ctype(ps) * TriVec3dp<ctype>(-v.x, -v.y, -v.z, ctype(0.0));
 }
 
-// geometric product v * ps of a vector v multiplied with a quadvector ps from the right
-// vector * quadvector => trivector
+// geometric product v * ps of a vector v multiplied with a quadvector ps from the
+// right vector * quadvector => trivector
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr TriVec3dp<std::common_type_t<T, U>> operator*(Vec3dp<T> const& v,
@@ -2285,11 +2535,13 @@ constexpr TriVec3dp<std::common_type_t<T, U>> operator*(Scalar3dp<T> s,
 // the full geometric bivector product only exists in >= 4d spaces:
 // A * B = gr0(A * B) + gr2(A * B) + gr4(A * B) = -dot(A,B) + cmt(A,B) + wdg(A,B)
 // In 3D we don't have gr4(A * B) and thus only the terms up to grade 3 remain.
-// The bivector product AxB = cmt(A,B) = 0.5*(A*B-B*A) is called the commutator product.
+// The bivector product AxB = cmt(A,B) = 0.5*(A*B-B*A) is called the commutator
+// product.
 //
 // A * B = -dot(A,B) + cmt(A,B) + wdg(A,B)  (in 4d and higher dimensional spaces)
 //
-// => bivector*bivector = scalar + bivector + quadvector = even grade multivector (in 4d)
+// => bivector*bivector = scalar + bivector + quadvector = even grade multivector (in
+// 4d)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B1,
@@ -2343,7 +2595,8 @@ constexpr BiVec3dp<std::common_type_t<T, U>> operator*(Scalar3dp<T> s,
 // geometric product a * b of two vectors
 // a * b = dot(a,b) + wdg(a,b) = gr0(a * b) + gr2(a * b)
 //
-// HINT: if a full 3d multivector is required as result, it must be converted explicitly,
+// HINT: if a full 3d multivector is required as result, it must be converted
+// explicitly,
 //       since C++ does not allow overloading on different return types
 //
 // vector * vector => even grade multivector (= scalar + bivector)
@@ -2396,8 +2649,8 @@ template <typename T, typename U>
 constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& A, MVec3dp<U> const& B)
 {
     // regressive geometric product of two fully populated 3dp multivectors
-    // => due to the degenerate algebra some terms are not present in G<3,0,1> compared to
-    // G<4,0,0>
+    // => due to the degenerate algebra some terms are not present in G<3,0,1>
+    // compared to G<4,0,0>
     using ctype = std::common_type_t<T, U>;
     ctype c0 = A.c0 * B.c15 + A.c1 * B.c11 + A.c2 * B.c12 + A.c3 * B.c13 + A.c4 * B.c14 -
                A.c5 * B.c8 - A.c6 * B.c9 - A.c7 * B.c10 - A.c8 * B.c5 - A.c9 * B.c6 -
@@ -2457,8 +2710,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& A,
                                                  MVec3dp_E<U> const& B)
 {
     // regressive geometric product of two fully populated 3dp multivectors
-    // => due to the degenerate algebra some terms are not present in G<3,0,1> compared to
-    // G<4,0,0>
+    // => due to the degenerate algebra some terms are not present in G<3,0,1>
+    // compared to G<4,0,0>
     using ctype = std::common_type_t<T, U>;
     ctype c0 = A.c0 * B.c7 - A.c5 * B.c4 - A.c6 * B.c5 - A.c7 * B.c6 - A.c8 * B.c1 -
                A.c9 * B.c2 - A.c10 * B.c3 + A.c15 * B.c0;
@@ -2494,8 +2747,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& A,
                                                  MVec3dp<U> const& B)
 {
     // regressive geometric product of two fully populated 3dp multivectors
-    // => due to the degenerate algebra some terms are not present in G<3,0,1> compared to
-    // G<4,0,0>
+    // => due to the degenerate algebra some terms are not present in G<3,0,1>
+    // compared to G<4,0,0>
     using ctype = std::common_type_t<T, U>;
     ctype c0 = A.c0 * B.c15 - A.c1 * B.c8 - A.c2 * B.c9 - A.c3 * B.c10 - A.c4 * B.c5 -
                A.c5 * B.c6 - A.c6 * B.c7 + A.c7 * B.c0;
@@ -2745,8 +2998,8 @@ inline Vec3dp<T> inv(Vec3dp<T> const& v)
     return Vec3dp<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
 }
 
-// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
-// Hitzer, Sangwine, 2016
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord
+// algebras", Hitzer, Sangwine, 2016
 template <typename T>
     requires(std::floating_point<T>)
 inline BiVec3dp<T> inv(BiVec3dp<T> const& B)
@@ -2762,8 +3015,8 @@ inline BiVec3dp<T> inv(BiVec3dp<T> const& B)
     return gr2(conj(B) * bcmap) / sq_n;
 }
 
-// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
-// Hitzer, Sangwine, 2016
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord
+// algebras", Hitzer, Sangwine, 2016
 template <typename T>
     requires(std::floating_point<T>)
 inline TriVec3dp<T> inv(TriVec3dp<T> const& t)
@@ -2781,8 +3034,8 @@ inline TriVec3dp<T> inv(TriVec3dp<T> const& t)
 
 // due to the degenerate metric the pseudoscalar does not have an inverse
 
-// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
-// Hitzer, Sangwine, 2016
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord
+// algebras", Hitzer, Sangwine, 2016
 template <typename T>
     requires(std::floating_point<T>)
 inline MVec3dp_E<T> inv(MVec3dp_E<T> const& E)
@@ -2798,8 +3051,8 @@ inline MVec3dp_E<T> inv(MVec3dp_E<T> const& E)
     return conj(E) * tcmap / sq_n;
 }
 
-// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
-// Hitzer, Sangwine, 2016
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord
+// algebras", Hitzer, Sangwine, 2016
 template <typename T>
     requires(std::floating_point<T>)
 inline MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
@@ -2815,9 +3068,9 @@ inline MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
     return conj(U) * tcmap / sq_n;
 }
 
-// formula from "Multivector and multivector matrix inverses in real Cliﬀord algebras",
-// Hitzer, Sangwine, 2016
-// left and a right inverse are the same (see paper of Hitzer, Sangwine)
+// formula from "Multivector and multivector matrix inverses in real Cliﬀord
+// algebras", Hitzer, Sangwine, 2016 left and a right inverse are the same (see paper
+// of Hitzer, Sangwine)
 template <typename T>
     requires(std::floating_point<T>)
 inline MVec3dp<T> inv(MVec3dp<T> const& M)
@@ -2886,12 +3139,12 @@ decltype(auto) right_weight_contract3dp(arg1&& a, arg2&& b)
 // Projective expansions for 3dp:
 //
 // left_bulk_expand3dp(a,b) = wdg(left_bulk_dual(a), b)       (dual to
-// left_weight_contract) left_weight_expand3dp(a,b) = wdg(left_weight_dual(a), b)   (dual
-// to left_bulk_contract)
+// left_weight_contract) left_weight_expand3dp(a,b) = wdg(left_weight_dual(a), b)
+// (dual to left_bulk_contract)
 //
 // right_bulk_expand3dp(a,b) = wdg(a, right_bulk_dual(b))       (dual to
-// right_weight_contract) right_weight_expand3dp(a,b) = wdg(a, right_weight_dual(b)) (dual
-// to right_bulk_contract)
+// right_weight_contract) right_weight_expand3dp(a,b) = wdg(a, right_weight_dual(b))
+// (dual to right_bulk_contract)
 //
 // The expansion subtracts the antigrades of the objects.
 //
