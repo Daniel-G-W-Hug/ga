@@ -203,7 +203,9 @@ ProductConfig get_ega2d_twdg1_config()
             .display_name = "transwedge product (k=1)",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases{}, // no cases, just for generating the product tables
+            .cases{{"ps * vec -> vec", "svps", "svps", "ps", "vec"},
+                   {"vec * ps -> vec", "svps", "svps", "vec", "ps"},
+                   {"vec * vec -> s", "svps1", "svps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -373,11 +375,7 @@ ProductConfig get_ega2d_lexpand_config()
             .display_name = "left expansion",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases =
-                {
-                    // Expansions show basis product tables but no specific cases for
-                    // ega2d
-                },
+            .cases = {{"vec * s -> vec", "svps", "svps", "vec", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -390,11 +388,7 @@ ProductConfig get_ega2d_rexpand_config()
             .display_name = "right expansion",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases =
-                {
-                    // Expansions show basis product tables but no specific cases for
-                    // ega2d
-                },
+            .cases = {{"s * vec -> vec", "svps", "svps", "s", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -437,7 +431,9 @@ ProductConfig get_ega2d_rtwdg1_config()
             .display_name = "regressive transwedge product (k=1)",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases{}, // no cases, just for generating the product tables
+            .cases{{"vec * vec -> ps", "svps1", "svps2", "vec", "vec"},
+                   {"vec * s -> vec", "svps", "svps", "vec", "s"},
+                   {"s * vec -> vec", "svps", "svps", "s", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

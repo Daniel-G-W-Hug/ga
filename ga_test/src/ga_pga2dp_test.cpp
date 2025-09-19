@@ -2920,4 +2920,63 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("   All PGA2DP congruence tests passed");
     }
 
+    TEST_CASE("G<2,0,1>: transwedge and regressive transwedge products")
+    {
+        fmt::println("G<2,0,1>: transwedge and regressive transwedge products");
+
+        auto s = scalar2dp{4.0};
+        auto v = vec2dp{1.0, 2.0, 1.0};
+        auto v2 = vec2dp{-1.0, 3.0, 1.0};
+        auto B = bivec2dp{10.0, 20.0, 30.0};
+        auto B2 = bivec2dp{-20.0, -40.0, -60.0};
+        auto ps = pscalar2dp{-3.0};
+
+        // check identities of transwedge product
+        CHECK(twdg1(ps, v) == ps * v);
+        CHECK(twdg1(ps, v) == (v << ps));
+        CHECK(twdg1(ps, v) == (ps >> v));
+        CHECK(twdg1(ps, v) ==
+              rwdg(ps, bulk_dual(v))); // contraction expressed as rwdg prod.
+
+        CHECK(twdg1(ps, v) == twdg1(v, ps));
+
+        CHECK(twdg1(v, ps) == v * ps);
+        CHECK(twdg1(v, ps) == (ps >> v));
+        CHECK(twdg1(v, ps) == (v << ps));
+        CHECK(twdg1(v, ps) ==
+              rwdg(bulk_dual(v), ps)); // contraction expressed as rwdg prod.
+
+        CHECK(twdg1(B, B2) == cmt(B, B2));
+
+        CHECK(twdg1(B, v) == (v << B));
+        CHECK(twdg1(v, B) == (B >> v));
+
+        CHECK(twdg1(v, v2) == dot(v, v2));
+        CHECK(twdg1(v, v2) == dot(v2, v));
+
+        // check identities of regressive transwedge product
+        CHECK(rtwdg1(B, B2) == rdot(B, B2));
+        CHECK(rtwdg1(B, B2) == rdot(B2, B));
+
+        CHECK(rtwdg1(B, v) == wdg(v, weight_dual(B))); // expansion expressed as wdg prod.
+        CHECK(rtwdg1(B, v) ==
+              right_weight_expand2dp(v, B)); // expansion expressed as wdg prod.
+        CHECK(rtwdg1(B, v) == rcmt(B, v));
+        CHECK(rtwdg1(B, v) == -rtwdg1(v, B));          // vector ans bivector anticommute
+        CHECK(rtwdg1(v, B) == wdg(weight_dual(B), v)); // expansion expressed as wdg prod.
+        CHECK(rtwdg1(v, B) ==
+              left_weight_expand2dp(B, v)); // expansion expressed as wdg prod.
+        CHECK(rtwdg1(v, B) == rcmt(v, B));
+
+        CHECK(rtwdg1(B, s) == wdg(s, weight_dual(B))); // expansion expressed as wdg prod.
+        CHECK(rtwdg1(B, s) ==
+              right_weight_expand2dp(s, B));           // expansion expressed as wdg prod.
+        CHECK(rtwdg1(s, B) == rtwdg1(B, s));           // bivector and scalar commute
+        CHECK(rtwdg1(s, B) == wdg(weight_dual(B), s)); // expansion expressed as wdg prod.
+        CHECK(rtwdg1(s, B) ==
+              left_weight_expand2dp(B, s)); // expansion expressed as wdg prod.
+
+        CHECK(rtwdg1(v, v2) == rcmt(v, v2)); // identity to regressive commutator product
+    }
+
 } // PGA 2DP Tests

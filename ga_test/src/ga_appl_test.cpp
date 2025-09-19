@@ -6,3 +6,4 @@
 // Include dimension-specific application test files
 #include "ga_2d_2dp_compare_test.cpp"
 #include "ga_appl2dp_test.cpp"
+#include "ga_appl3dp_test.cpp"

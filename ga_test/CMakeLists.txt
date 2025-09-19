@@ -18,6 +18,7 @@ set(PGA_FILES
     set(APPL_FILES
     src/ga_appl_test.cpp
     src/ga_appl2dp_test.cpp
+    src/ga_appl3dp_test.cpp
     src/ga_2d_2dp_compare_test.cpp)
 
 add_executable(${EXEC_NAME1} ${EGA_FILES})   #dep: doctest, fmt, ga

@@ -2758,4 +2758,52 @@ TEST_SUITE("EGA 3D Tests")
         fmt::println("   MVec4d_U contextual: {}", mvec4d_u_contextual);
     }
 
+    TEST_CASE("G<3,0,0>: transwedge and regressive transwedge products")
+    {
+        fmt::println("G<3,0,0>: transwedge and regressive transwedge products");
+
+        auto s = scalar3d{4.0};
+        auto v = vec3d{1.0, 2.0, 3.0};
+        auto v2 = vec3d{-1.0, 3.0, 4.0};
+        auto B = bivec3d{10.0, 20.0, 30.0};
+        auto B2 = bivec3d{-20.0, -40.0, -60.0};
+        auto ps = pscalar3d{-3.0};
+
+        // check identities of transwedge product
+        CHECK(twdg1(ps, v) == ps * v);
+        CHECK(twdg1(ps, v) == (v << ps));
+        CHECK(twdg1(ps, v) == (ps >> v));
+        CHECK(twdg1(ps, v) == rwdg(ps, dual(v))); // contraction expressed as rwdg prod.
+
+        CHECK(twdg1(ps, v) == twdg1(v, ps));
+
+        CHECK(twdg1(v, ps) == v * ps);
+        CHECK(twdg1(v, ps) == (ps >> v));
+        CHECK(twdg1(v, ps) == (v << ps));
+        CHECK(twdg1(v, ps) == rwdg(dual(v), ps)); // contraction expressed as rwdg prod.
+
+        CHECK(twdg1(B, B2) == cmt(B, B2));
+
+        CHECK(twdg1(B, v) == (v << B));
+        CHECK(twdg1(v, B) == (B >> v));
+
+        CHECK(twdg1(v, v2) == dot(v, v2));
+        CHECK(twdg1(v, v2) == dot(v2, v));
+
+        // check identities of regressive transwedge product
+        CHECK(rtwdg1(B, B2) == pscalar3d(value_t(dot(B, B2))));
+        CHECK(rtwdg1(B, B2) == pscalar3d(value_t(dot(B2, B))));
+
+        CHECK(rtwdg1(B, v) == wdg(v, dual(B))); // expansion expressed as wdg prod.
+        CHECK(rtwdg1(B, v) == -rtwdg1(v, B));   // vector and bivector anticommute
+        CHECK(rtwdg1(v, B) == wdg(dual(B), v)); // expansion expressed as wdg prod.
+
+        CHECK(rtwdg1(B, s) == wdg(s, dual(B))); // expansion expressed as wdg prod.
+        CHECK(rtwdg1(s, B) == rtwdg1(B, s));    // bivector and scalar commute
+        CHECK(rtwdg1(s, B) == wdg(dual(B), s)); // expansion expressed as wdg prod.
+
+        CHECK(rtwdg1(v, v2) == cross(v2, v));  // identity to cross product
+        CHECK(rtwdg1(v, v2) == -cross(v, v2)); // identity to cross product
+    }
+
 } // EGA 3D Tests
