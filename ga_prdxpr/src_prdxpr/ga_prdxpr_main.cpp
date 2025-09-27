@@ -47,8 +47,8 @@ int main()
                 get_ega2d_lexpand_config(),     get_ega2d_rexpand_config(),
 
                 get_ega2d_rgpr_config(),        get_ega2d_rgpr_alt_config(),
-                get_ega2d_rtwdg1_config(),      get_ega2d_rwdg_config(),
-                get_ega2d_rdot_config(),
+                get_ega2d_rtwdg1_config(),      get_ega2d_rcmt_config(),
+                get_ega2d_rwdg_config(),        get_ega2d_rdot_config(),
 
                 get_ega2d_sandwich_gpr_config()};
 
@@ -68,8 +68,8 @@ int main()
                 get_ega3d_lexpand_config(),     get_ega3d_rexpand_config(),
 
                 get_ega3d_rgpr_config(),        get_ega3d_rgpr_alt_config(),
-                get_ega3d_rtwdg1_config(),      get_ega3d_rwdg_config(),
-                get_ega3d_rdot_config(),
+                get_ega3d_rtwdg1_config(),      get_ega3d_rcmt_config(),
+                get_ega3d_rwdg_config(),        get_ega3d_rdot_config(),
 
                 get_ega3d_sandwich_gpr_config()};
 

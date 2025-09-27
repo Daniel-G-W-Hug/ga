@@ -30,6 +30,7 @@ ProductConfig get_ega2d_rexpand_config(); // right expansion
 ProductConfig get_ega2d_rgpr_config();     // regressive geometric product
 ProductConfig get_ega2d_rgpr_alt_config(); // regressive geometric product (alt. def.)
 ProductConfig get_ega2d_rtwdg1_config();   // regressive transwedge product for k=1
+ProductConfig get_ega2d_rcmt_config();     // regressive commutator product
 ProductConfig get_ega2d_rwdg_config();     // regressive wedge product
 ProductConfig get_ega2d_rdot_config();     // regressive inner product
 

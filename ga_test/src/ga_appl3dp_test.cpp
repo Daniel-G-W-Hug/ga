@@ -145,8 +145,8 @@ TEST_SUITE("PGA3DP: application tests")
         auto tc = vec3dp{150, 0, -0.5, 1}; // overlap is 0.5 mm in z direction
         // modify u to tilt the tool-plane (+e3-comp. => volume becomes larger)
         //                                 (-e3-comp. => volume becomes smaller)
-        u += vec3dp{0.0, 0.0, 0.005, 0};
-        u = u / to_val(bulk_nrm(u));
+        // u += vec3dp{0.0, 0.0, 0.005, 0};
+        // u = u / to_val(bulk_nrm(u));
         auto tool = disc(tc, 200, u, -v); // wafer plane is identical with -e12 plane
                                           // located at tc
                                           // 200 mm tool diameter
@@ -197,17 +197,17 @@ TEST_SUITE("PGA3DP: application tests")
 
                 for (size_t i = 0; i < nphi; ++i) {
 
-                    double phi = i * dphi;
+                    double phi = i * dphi;          // current angle
                     double phim = phi + dphi * 0.5; // mean angle f. calc. geom. centroid
 
                     double dA = rm * dphi * dr;
                     // fmt::println("r = {}, phi = {}, da = {:>-8.5f}", r, phi, dA);
 
                     // calculate position of current geometric centroid
-                    auto r_i_sq = r * r;               // inner radius squared
-                    auto r_i_tr = r_i_sq * r;          // inner radius to power of 3
-                    auto r_o_sq = (r + dr) * (r + dr); // outer radius squared
-                    auto r_o_tr = r_o_sq * (r + dr);   // outer radius to power of 3
+                    auto r_i_sq = r * r;               // inner radius r_i^2
+                    auto r_i_tr = r_i_sq * r;          // inner radius r_i^3
+                    auto r_o_sq = (r + dr) * (r + dr); // outer radius r_o^2
+                    auto r_o_tr = r_o_sq * (r + dr);   // outer radius r_o^3
 
                     // distance to geometric centroid of ring segment (annulus)
                     auto r_gc = 2.0 * (r_o_tr - r_i_tr) * sin(dphi * 0.5) /

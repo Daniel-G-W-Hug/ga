@@ -700,6 +700,19 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return tab_res; // return transwedge product for k=1
         }
 
+        else if (product_name == "rcmt") {
+            // Commutator product: cmt(A,B) = asym(gpr(A,B))
+            // Regressive commutator product:
+            //                    rcmt(A,B) = asym(rgpr(A,B))
+            //                    rcmt(A,B) = asym(lcmpl(gpr(rcmpl(A),rcmpl(B))))
+            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
+                gpr_ega2d_rules);
+            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+            return get_prd_tab_asym(full_tab);
+        }
+
         else if (product_name == "rwdg") {
             // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
@@ -1007,6 +1020,19 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             tab_res = add_prd_tab(tab[1], tab[2]);
             tab_res = add_prd_tab(tab_res, tab[3]);
             return tab_res; // return regressive transwedge product for k=1
+        }
+
+        else if (product_name == "rcmt") {
+            // Commutator product: cmt(A,B) = asym(gpr(A,B))
+            // Regressive commutator product:
+            //                    rcmt(A,B) = asym(rgpr(A,B))
+            //                    rcmt(A,B) = asym(cmpl(gpr(cmpl(A),cmpl(B))))
+            auto basis_cmpl_func = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
+            auto basis_tab_with_rules = apply_rules_to_tab(
+                mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
+                gpr_ega3d_rules);
+            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
+            return get_prd_tab_asym(full_tab);
         }
 
         else if (product_name == "rwdg") {
@@ -1364,7 +1390,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         else if (product_name == "rcmt") {
             // Commutator product: cmt(A,B) = asym(gpr(A,B))
             // Regressive commutator product:
-            // rcmt(A,B) = asym(cmpl(gpr(cmpl(A),cmpl(B))))
+            //                    rcmt(A,B) = asym(rgpr(A,B))
+            //                    rcmt(A,B) = asym(cmpl(gpr(cmpl(A),cmpl(B))))
             auto basis_cmpl_func = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
@@ -1739,7 +1766,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         else if (product_name == "rcmt") {
             // Commutator product: cmt(A,B) = asym(gpr(A,B))
             // Regressive commutator product:
-            // rcmt(A,B) = asym(lcmpl(gpr(rcmpl(A),rcmpl(B))))
+            //                    rcmt(A,B) = asym(rgpr(A,B))
+            //                    rcmt(A,B) = asym(lcmpl(gpr(rcmpl(A),rcmpl(B))))
             auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
