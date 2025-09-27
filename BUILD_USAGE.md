@@ -44,7 +44,7 @@ brew install fmt doctest readline
 # Install Lua from lua.org
 
 # Optional (if you want system dependencies)
-vcpkg install fmt doctest
+vcpkg install fmt doctest sol2 readline-win32 --triplet x64-windows
 ```
 
 ### Linux (Ubuntu/Debian)
