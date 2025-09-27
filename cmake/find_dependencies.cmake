@@ -70,7 +70,20 @@ endfunction()
 # Three-tier fmt finding: system -> ../../include/ -> FetchContent
 function(find_fmt_tiered)
     # Tier 1: System packages
+    # Add vcpkg paths for Windows if available
+    if(WIN32)
+        set(CMAKE_PREFIX_PATH_BACKUP ${CMAKE_PREFIX_PATH})
+        list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x64-windows")
+        list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x86-windows")
+    endif()
+
     find_package(fmt CONFIG QUIET)
+
+    # Restore original CMAKE_PREFIX_PATH
+    if(WIN32 AND CMAKE_PREFIX_PATH_BACKUP)
+        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH_BACKUP})
+    endif()
+
     if(fmt_FOUND)
         message(STATUS "✓ Found system fmt: ${fmt_VERSION}")
         set(GA_HAS_SYSTEM_FMT TRUE PARENT_SCOPE)
@@ -100,10 +113,23 @@ function(find_fmt_tiered)
     set(GA_HAS_FMT FALSE PARENT_SCOPE)  # Overall flag
 endfunction()
 
-# Three-tier doctest finding: system -> ../../include/ -> FetchContent  
+# Three-tier doctest finding: system -> ../../include/ -> FetchContent
 function(find_doctest_tiered)
     # Tier 1: System packages
+    # Add vcpkg paths for Windows if available
+    if(WIN32)
+        set(CMAKE_PREFIX_PATH_BACKUP ${CMAKE_PREFIX_PATH})
+        list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x64-windows")
+        list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x86-windows")
+    endif()
+
     find_package(doctest QUIET)
+
+    # Restore original CMAKE_PREFIX_PATH
+    if(WIN32 AND CMAKE_PREFIX_PATH_BACKUP)
+        set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH_BACKUP})
+    endif()
+
     if(doctest_FOUND)
         message(STATUS "✓ Found system doctest")
         set(GA_HAS_SYSTEM_DOCTEST TRUE PARENT_SCOPE)
