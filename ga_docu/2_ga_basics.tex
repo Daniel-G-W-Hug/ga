@@ -275,27 +275,43 @@ product and the inner product and hold for operands of same grade:
     \path{gr(B)}} \\
     A_{\star} \wedge B & = & (A \cdot B) I_n, \quad \text{when \path{gr(A)} =
     \path{gr(B)}}
-\end{subeqnarray}
+\end{subeqnarray} \\
+
+ToDo: \emph{here an Introducion of the metric and the extended metric is needed (can also
+happen in the text below)} \\
+
+
 The influence of the metric for the dualization operation can be seen in its effect for
 the different algebras which also depends on the dimension of the modelled space:
 \begin{itemize}
-\item $ega2d: A^{\star} = \text{\path{right_dual(A)}}$, $A_{\star} =
-\text{\path{left_dual(A)}}$
-\item $ega3d: A^{\star} = \text{\path{dual(A)}}$, $A_{\star} = \text{\path{dual(A)}}$
-\item $pga2dp: A^{\star} = \text{\path{bulk_dual(A)}}$, $A_{\star} =
-\text{\path{bulk_dual(A)}}$
-\item $pga3dp: A^{\star} = \text{\path{right_bulk_dual(A)}}$, $A_{\star} =
-\text{\path{left_bulk_dual(A)}}$
+\item $ega2d$: $\;\:A_{\star} = \text{\path{left_dual(A)}}$, $A^{\star} =
+\text{\path{right_dual(A)}}$
+\item $ega3d$: $\;\:A_{\star} = \text{\path{dual(A)}}$, $A^{\star} =
+\text{\path{dual(A)}}$
+\item $pga2dp$: $A_{\star} = \text{\path{bulk_dual(A)}}$, $A^{\star} =
+\text{\path{bulk_dual(A)}}$ 
+\item $pga2dp$: $A_{\smallstar} = \text{\path{weight_dual(A)}}$, $A^{\smallstar} =
+\text{\path{weight_dual(A)}}$
+\item $pga3dp$: $A_{\star} = \text{\path{left_bulk_dual(A)}}$, $A^{\star} =
+\text{\path{right_bulk_dual(A)}}$
+\item $pga3dp$: $A_{\smallstar} = \text{\path{left_weight_dual(A)}}$, $A^{\smallstar} =
+\text{\path{right_weight_dual(A)}}$
 \end{itemize}
 In even-dimensional spaces ($ega2d$, $pga3dp$) we have to distinguish left and right
 operations, while in odd-dimensional spaces ($ega3d$, $pga2dp$) we don't, since they
-produce the same result. For projective algebras, like $pga$, we use only the bulk part
-for the dualization operation with the Hodge star (a consequence of the extended
-(degenerate) metric, which results in some terms, i.e. the weight terms, being multiplied
-by zero). The ``left'' operations are typically used on the left-hand side of the
-operation and the ``right'' operations on the right-hand side of the product operator. The
-only deviation from that pattern occurs for the definition of the regressive products, as
-defined in~(\ref{eq:rwdg_std}) or (\ref{eq:rwdg_alt}). \\
+produce the same result. The ``left'' operations are typically used on the left-hand side
+of the binary operation and the ``right'' operations on the right-hand side of the product
+operator. The only deviation from that pattern occurs for the definition of the regressive
+products, as defined in~(\ref{eq:rwdg_std}) or (\ref{eq:rwdg_alt}). \\
+For projective algebras, like $pga$, we use the bulk part for the dualization operation
+with the Hodge star (symbolized by a filled star). It is the dualization operation applied
+to the bulk part of an object, the bulk dual. The need for a distinction between bulk and
+weight is a consequence of the extended degenerate metric, which results in some terms,
+i.e. the weight terms, being multiplied by zero in the dualization operation. \\
+To be able to dualize the other part of the object as well, there is the dualization
+operation specifically applied to the weight part of an object, the weight dual
+(symbolized by an unfilled star). \\
+
 
 The multiplicative identity of the geometric product is the scalar $\bm{1}$:
 \begin{equation}

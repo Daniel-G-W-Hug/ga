@@ -439,6 +439,22 @@ ProductConfig get_ega2d_rtwdg1_config()
             .show_basis_table = true};
 }
 
+ProductConfig get_ega2d_rcmt_config()
+{
+    return {.product_name = "rcmt",
+            .description = "ega2d regressive commutator product",
+            .display_name = "regressive commutator product",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases = {{"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      {"rcmt(vec,vec) -> s", "svps1", "svps2", "vec", "vec"},
+                      {"rcmt(vec,s) -> vec", "svps", "svps", "vec", "s"},
+                      {"rcmt(s,vec) -> vec", "svps", "svps", "s", "vec"}},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
+}
+
 ProductConfig get_ega2d_rwdg_config()
 {
     return {.product_name = "rwdg",

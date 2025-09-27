@@ -456,6 +456,20 @@ ProductConfig get_ega3d_rtwdg1_config()
             .show_basis_table = true};
 }
 
+ProductConfig get_ega3d_rcmt_config()
+{
+    return {.product_name = "rcmt",
+            .description = "ega3d regressive commutator product",
+            .display_name = "regressive commutator product",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases = {{"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      {"rcmt(bivec,bivec) -> vec", "svBps1", "svBps2", "bivec", "bivec"},
+                      {"rcmt(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
+                      {"rcmt(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
+                      {"rcmt(vec,vec) -> vec", "svBps1", "svBps2", "vec", "vec"}}};
+}
+
 ProductConfig get_ega3d_rwdg_config()
 {
     return {.product_name = "rwdg",
