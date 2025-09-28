@@ -250,15 +250,16 @@ The metric is defined by the dot product of the basis vectors as
 \begin{equation}
     \mathfrak{g}_{ij} \equiv \bv{i} \cdot \bv{j}
 \end{equation}
-It is a square matrix that is the identity matrix $I_n$ for $ega$, since all basis vectors
+It is a square matrix that is the identity matrix $I_n$ for $EGA$, since all basis vectors
 square to $\bv{i} \cdot \bv{i} = +1$, and $\bv{i} \cdot \bv{j} = 0$ for $i \neq j$. It is
-invertible in this case. However, for $pga$ one basis vector squares to zero, and thus
+invertible in this case. However, for $PGA$ one basis vector squares to zero, and thus
 there is one zero on the main diagonal of the corresponding matrix of the metric, which is
 therefore not invertible. It is called degenerate for that reason. \\
 
 The extended metric $\mathbf{G}$ is a so-called exomorphism matrix that fulfills
 \begin{equation}
-\mathbf{G}(A \wedge B) = \mathbf{G}(A) \wedge \mathbf{G}(B)
+    \mathbf{G}(A \wedge B) = \mathbf{G}(A) \wedge \mathbf{G}(B)
+    \label{eq:exomorphism}
 \end{equation} for any multivector $A$ and $B$ (see~\cite{Lengyel_pga-illuminated:2024},
 pp. 61ff.). \\
 Regarding $\mathbf{G}(u) = \mathbf{G} u$ as a unary operation on $u$ we can define the
@@ -278,7 +279,13 @@ Thus, if all basis vectors square to $\pm 1$, we have $\mathbf{G} \mathbf{\mathb
 $\mathbf{G} \mathbf{\mathbb{G}} = 0$, which means that none of them is invertible, i.e. we
 have a degenerate metric.\\
 
-In $pga$ the product $\mathbf{G} u$ defines the bulk of of an object $u$. It is defined as
+For $\mathbf{\mathbb{G}}$ there is the relation
+\begin{equation}
+    \mathbf{\mathbb{G}}(A \vee B) = \mathbf{\mathbb{G}}(A) \vee \mathbf{\mathbb{G}}(B)
+\end{equation}
+that is complementary to equation (\ref{eq:exomorphism}). \\
+
+In $PGA$ the product $\mathbf{G} u$ defines the bulk of of an object $u$. It is defined as
 \begin{equation}
     \bulk{u} = \mathbf{G} u
 \end{equation}
@@ -286,7 +293,7 @@ The bulk only contains components that \emph{do not} contain the projective dime
 (\bv{3} for $pga2dp$ or \bv{4} for $pga3dp$) as a factor. It contains positional
 information on $u$ relative to the origin. Zero bulk means that $u$ contains the origin.\\
 
-In $pga$ the product $\mathbf{\mathbb{G}} u$ defines the weight of of an object $u$. It is
+In $PGA$ the product $\mathbf{\mathbb{G}} u$ defines the weight of of an object $u$. It is
 defined as
 \begin{equation}
     \weight{u} = \mathbf{\mathbb{G}} u
@@ -296,43 +303,87 @@ $pga2dp$ or \bv{4} for $pga3dp$) as a factor. It contains directional informatio
 i.e. its attitude and direction independent of its position. Zero weight means that $u$ is
 contained in the horizon, i.e. it is infinitely far away.\\
 
+This effective split for each object into bulk and weight in projective algebras can be
+written as
+\begin{equation}
+    u = \bulk{u} + \weight{u}
+\end{equation}
+This split is also relevant for the corresponding norms
+\begin{equation}
+    \nrm{u} = \bulknrm{u} + \weightnrm{u} = \sqrt{A \cdot A} + \sqrt{A \circ A}
+\end{equation}
+where the left hand side is called the geometric norm and the right hand side consists of
+the sums of the bulk and weight norms. The bulk norm returns a scalar value of the
+corresponding algebra, whereas the weight norm provides a pseudoscalar value of the
+respective algebra. Consequently, the geometric norm is an object consisting of two
+distinct parts, defined here as a dual number in the corresponding algebra. When we apply
+unitization to geometric objects we devide the object in such a way that the magnitude of
+the weight norm becomes a value of one. Both, bulk and weight norms, have a positive
+argument under the square root due to the definition of the inner product and the
+regressive inner product.\\
 
-The right bulk dual \rightbulkdual{A} is defined as $\rightbulkdual{A} =
-\overline{\mathbf{G}A} = \overline{\bulk{A}}$, where $A$ is an arbitrary multivector,
-$\mathbf{G}$ the extended metric and $\mathbf{G}A$ a matrix-vector-product between them.
-\rightbulkdual{A} is also called the Hodge dual. There is also a corresponding left dual
-operation defined as $\leftbulkdual{A} = \underline{\mathbf{G}A} = \underline{\bulk{A}}$.
+Using the metric and the right complement the right bulk dual \rightbulkdual{A} is defined
+as
+\begin{equation}
+    \rightbulkdual{A} = \overline{\mathbf{G}A} = \overline{\bulk{A}}
+    \label{eq:rightbulkdual}
+\end{equation}
+where $A$ is an arbitrary multivector, $\mathbf{G}$ the extended metric and $\mathbf{G}A$
+a matrix-vector-product between them. \rightbulkdual{A} is also called the Hodge dual. The
+multiplication with the metric happens before the application of the complement
+operation.\\
+
+There is also a corresponding left dual $\leftbulkdual{A}$ operation using the metric and
+the left complement. It is defined as
+\begin{equation}
+    \leftbulkdual{A} = \underline{\mathbf{G}A} = \underline{\bulk{A}}
+    \label{eq:leftbulkdual}
+\end{equation}
 The Hodge star (symbolized by a filled star $\star$) is used as dualization operator in
-both cases. The difference between the hodge dual and the complement is multiplying the
-multivector with the extended metric \emph{before} taking the corresponding complement.
-However, this does not lead to different results in spaces where the metric is the
-identity matrix. It is only relevant for spaces with a more involved metric, especially so
-in projective spaces like $pga$ with a non-invertible, i.e. degenerate metric. \\
+both cases. The lower or upper position symbolizes the left and right application. The
+difference between the hodge dual and the complement is in both cases that multiplying the
+multivector with the extended metric happens \emph{before} taking the corresponding
+complement. However, this does not lead to different results in spaces where the metric is
+the identity matrix. It only yields different results in spaces with a more involved
+metric, e.g. like in projective spaces with a non-invertible (degenerate) metric as we
+have in $PGA$. \\
 
 The effect of applying the metric before taking the complement is equivalent to applying
 the complement operation on the bulk part of the object $u$ exclusively, and not on the
 full object $u$. Of course, the dualization can be applied to the weight part as well.
-This operation (symbolized by an unfilled star $\smallstar$)uses the regressive metric and
-is defined for the right weight dual \rightweightdual{A} as $\rightweightdual{A} =
-\overline{\mathbf{\mathbb{G}}A} = \overline{\weight{A}}$ for an arbitrary multivector $A$.
-The corresponding left weight dual \leftweightdual{A} is defined as $\leftweightdual{A} =
-\underline{\mathbf{\mathbb{G}}A} = \underline{\weight{A}}$.\\
+This operation (symbolized by an unfilled star~``$\smallstar$'') uses the regressive
+extended metric and is defined for the right weight dual \rightweightdual{A} using the
+right complement as
+\begin{equation}
+    \rightweightdual{A} = \overline{\mathbf{\mathbb{G}}A} = \overline{\weight{A}}
+        \label{eq:rightweightdual}
+\end{equation}
+for an arbitrary multivector $A$. The corresponding left weight dual \leftweightdual{A} is
+defined as
+\begin{equation}
+    \leftweightdual{A} = \underline{\mathbf{\mathbb{G}}A} = \underline{\weight{A}}
+        \label{eq:leftweightdual}
+\end{equation}
+using the left complement on the weight part of $A$.\\
 
-In a two-dimensional algebra, like $ega2d$, the effect of the right dual of a vector $u$
-is to turn the vector by $+90$°, i.e. into the orientation of $\bv{12}$, while the left
-dual turns the vector by $-90$°, i.e. into the direction against the orientation of
-$\bv{12}$. This statement is valid for both right- and left-handed coordinate systems. \\
-
-Relations to the geometric product are given by
+Relations to the geometric product and the regressive geometric product are given by
 \begin{subeqnarray}
-    \rightbulkdual{A} & = &  \revtilde{A} \wedgedot I_n \slabel{eq:hodge_right} \\
-    \leftbulkdual{A} & = & I_n \wedgedot \revtilde{A} \slabel{eq:hodge_left}
+    \rightbulkdual{A} & = &  \revtilde{A} \wedgedot I_n = \revtilde{A} \wedgedot
+    \pseudoscalar \slabel{eq:hodge_right} \\
+    \leftbulkdual{A} & = & I_n \wedgedot \revtilde{A} = \pseudoscalar \wedgedot
+    \revtilde{A} \slabel{eq:hodge_left} \\
+    \rightweightdual{A} & = &  \undertilde{A} \veedot \bm{1} \slabel{eq:weight_right} \\
+    \leftweightdual{A} & = & \bm{1} \veedot \undertilde{A} \slabel{eq:weight_left}
 \end{subeqnarray}
-with $I_n = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n}$ as the pseudoscalar of the
-$n$-dimensional space, and $\revtilde{A}$ is the reversion operation applied to $A$ (e.g.
-with $A = \bv{1} \wedge \bv{2}$ the reverse is $\revtilde{A} = \bv{2} \wedge \bv{1}$), and
-$\wedgedot$ is the symbol for the geometric product. Following identities link the outer
-product and the inner product and hold for operands of same grade: 
+with $I_n = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n} = \pseudoscalar$ as the
+pseudoscalar of the $n$-dimensional space. $\revtilde{A}$ is the reversion operation, and
+$\undertilde{A}$ is the regressive reversion operation applied to $A$ (e.g. with $A =
+\bv{1} \wedge \bv{2}$ the reverse is $\revtilde{A} = \bv{2} \wedge \bv{1}$), and
+``$\wedgedot$'' and ``$\veedot$'' are the symbols for the geometric and regressive
+geometric products. \\
+
+Following identities link the outer product and the inner product. They hold for operands
+of same grade: 
 \begin{subeqnarray}
     A \wedge B^{\star} & = & (A \cdot B) I_n, \quad \text{when \path{gr(A)} =
     \path{gr(B)}} \\
@@ -363,9 +414,14 @@ of the binary operation and the ``right'' operations on the right-hand side of t
 operator. The only deviation from that pattern occurs for the definition of the regressive
 operations, as defined in~(\ref{eq:rwdg_std}) or (\ref{eq:rwdg_alt}). \\
 
+In a two-dimensional algebra, like $ega2d$, the effect of the right dual of a vector $u$
+is to turn the vector by $+90$°, i.e. into the orientation of $\bv{12}$, while the left
+dual turns the vector by $-90$°, i.e. into the direction against the orientation of
+$\bv{12}$. This statement is valid for both right- and left-handed coordinate systems. \\
+
 The multiplicative identity of the geometric product is the scalar $\bm{1}$:
 \begin{equation}
-    1 \wedgedot a = a \wedgedot 1 = a
+    \bm{1} \wedgedot a = a \wedgedot \bm{1} = a
     \label{eq:wedgedot_identity} 
 \end{equation}
 The geometric product combines the dimensions that are present in an object
@@ -398,22 +454,17 @@ applying the complement definition~(\ref{eq:rwdg_std}) to it. \\
 
 The inner product between multivectors $A$ and $B$ is defined as
 \begin{equation}
-    A \cdot B = A^{T} \mathds{G} B
+    A \cdot B = A^{T} \mathbf{G} B
     \label{eg:inner_product_metric}
 \end{equation}
-with $\mathds{G}$ as the extended metric and matrix multiplication on the right hand side.
+with $\mathbf{G}$ as the extended metric and matrix multiplication on the right hand side.
 It satisfies the identity
 \begin{equation}
     A \cdot B  = \grprj{A \wedgedot \tilde{B}}{0} = \grprj{ B \wedgedot \tilde{A} }{0}
     \label{eq:inner_product_link_to_gpr}
 \end{equation}
 where $\wedgedot$ stands for the geometric product within the grade projection operator
-\grprj{}{k} for grade $k$. The norm of a multivector $A$ is defined as
-\begin{equation}
-    \nrm{A} = \sqrt{A \cdot A}
-    \label{eq:norm_mv}
-\end{equation}
-with a positive argument under the square root due to the definition of the inner product.
+\grprj{}{k} for grade $k$. \\
 \\
 
 The contraction is explicitly defined as
@@ -446,28 +497,39 @@ interior and exterior products, i.e. the right contraction $\rcontr$, the left c
 $\lcontr$ and wedge product $\wedge$ as follows:
 \begin{subequations}
     \begin{align}
-    a \wedgedot B & =  B \rcontr a + a \wedge B
+    v \wedgedot B & =  B \rcontr v + v \wedge B
     \label{eq:gpr_Brc} \\
-    B \wedgedot a & =  a \lcontr B + B \wedge a
+    B \wedgedot v & =  v \lcontr B + B \wedge v
     \label{eq:gpr_Blc}
     \end{align}
 \end{subequations}
-or sometimes using the right shift ($\gg$) or left shift ($\ll$) operators directly
+or sometimes expressed using the right shift ($\gg$) or left shift ($\ll$) operators for
+the contractions (as implemented in the ga library)
 \begin{subequations}
     \begin{align}
-    a \wedgedot B & = B \gg a + a \wedge B
+    v \wedgedot B & = B \gg v + v \wedge B
     \label{eq:gpr_Bshrc} \\
-    B \wedgedot a & =  a \ll B + B \wedge a
+    B \wedgedot v & =  v \ll B + B \wedge v
     \label{eq:gpr_Bshlc}
     \end{align}
 \end{subequations}
-as an alternative. \\
+or sometimes by exclusively using the operations of the exterior algebra (wedge product
+``$\wedge$'', bulk dual ``$\star$'' and regressive wedge product ``$\vee$'')
+\begin{subequations}
+    \begin{align}
+    v \wedgedot B & = B \vee \rightbulkdual{v} + v \wedge B
+    \label{eq:gpr_Bshrc_exterior} \\
+    B \wedgedot v & = \leftbulkdual{v} \vee B + B \wedge v
+    \label{eq:gpr_Bshlc_exterior}
+    \end{align}
+\end{subequations}
+as an alternative. Each one is equivalent. \\
 
-Every vector $a$ can be decomposed into parts $a_{\parall}$ parallel to the $k$-blade $B$
-and $a_{\perp}$ perpendicular to $B$, such that $a = a_{\parall} + a_{\perp}$. For
-equation {(\ref{eq:gpr_Bshrc})}: $B \gg a$ is a $(k-1)$-blade. If $a_{\parall} \neq 0$
-then $B \gg a$ represents a subspace of $B$. $a \wedge B$ is a $(k+1)$-blade. If
-$a_{\perp} \neq 0$ then $a \wedge B$ represents $span(a,B)$.
+Every vector $v$ can be decomposed into parts $v_{\parall}$ parallel to the $k$-blade $B$
+and $v_{\perp}$ perpendicular to $B$, such that $v = v_{\parall} + v_{\perp}$. For
+equation {(\ref{eq:gpr_Bshrc})}: $B \gg v$ is a $(k-1)$-blade. If $v_{\parall} \neq 0$
+then $B \gg v$ represents a subspace of $B$. $v \wedge B$ is a $(k+1)$-blade. If
+$v_{\perp} \neq 0$ then $v \wedge B$ represents $span(v,B)$.
 
 For arguments of equal grade the contractions reduce to the dot product, so that one can
 write specifically for two vectors $a$ and $b$:
@@ -478,8 +540,8 @@ write specifically for two vectors $a$ and $b$:
 \cite{Lengyel_transwedge_product:2025} has shown that the geometric product can be derived
 by using operations from Grassmann algebra exclusively. These are the wedge product, the
 complement and the duality operations. This demonstrates that the geometric product is not
-a fundamental operation in its own right, but can be derived from even more fundamental
-basic operations.
+a fundamental operation in its own right, but can be derived from more fundamental basic
+operations. \\
 
 For that purpose Lengyel introduced the transwedge product of order $k$ by following
 definition:
@@ -501,7 +563,7 @@ For $k=0$ the formula yields the outer product (wedge product). For higher value
 other products are generated which sum up to the full geometric product. Thus the
 transwedge products helps to decompose the geometric product. The most interesting for
 applications are the wedge product resulting for $k=0$ and the transwedge product of order
-$k=1$ (it has no well-defined name yet). \\
+$k=1$. \\
 
 The regressive wedge product in equation~(\ref{eq:twdg_orig}) can be replaced by the wedge
 product using the complement-based definitions given in equations~(\ref{eq:double_cmpl})
@@ -533,13 +595,10 @@ which in turn can be expressed in terms of the wedge product exclusively as:
 \end{equation}
 Equations~(\ref{eq:twdg_wdg}) and (\ref{eq:rtwdg_wdg}) are used for calculation of the
 product tables of the (regressive) transwedge products of order $k$ and the resulting
-(regressive) geometric products in \path{ga_prdxpr}. \\
-
-
-ToDo: \emph{fill in further basic formulae here as required} \\
-
-TRIALS:
-Text with a norm $\nrm{x}$ and an indexed norm as $\bulknrm{u}$ and $\weightnrm{u}$. \\
-
+(regressive) geometric products in \path{ga_prdxpr}. The transwedge product is very useful
+to show that the geometric product can be derived from primitives of Grassmann algebra.
+When (regressive) transwedge product expressions are calculated, it can be shown that each
+transwedge product and the resulting coefficient expressions are equivalent to specific
+combinations of wedge-, commutator-, dot-products, and their regressive counterparts. \\
 
 \newpage
