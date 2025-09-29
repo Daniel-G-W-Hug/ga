@@ -23,7 +23,8 @@
 - 2025/02: started to implement parser for string manipulation with ga_prdxpr to
            manipulate and simplify expressions resulting from sandwich products in order
            to optimize performance (still needs completion for automatic simplification)
-           Reworked pga2dp and implemented pga3dp based on expressions generated using ga_prdxpr
+           Reworked pga2dp and implemented pga3dp based on expressions generated using
+           ga_prdxpr
 - 2025/03: implemented pga2dp and pga3dp including tests; reworked everything into  
            definitions as proposed by Lengyel consistently for ega2d, ega3d, pga2dp,
            pga3dp; added regressive geometric products (rgpr) and motors for PGA;
@@ -55,3 +56,13 @@
            in 2D ga_view; implemented cross-platform modular dependency management system
            supporting flexible use of system packages vs FetchContent for better
            developer experience across macOS, Windows, and Linux
+- 2025/09: enhanced documentation with metric signatures, bulk/weight concepts, and norms;
+           added reverse commutator product (rcmt) consistently across EGA and PGA
+           algebras in ga_prdxpr; implemented transwedge products for all algebras with
+           application tests; introduced grinding tool overlap calculation example;
+           improved ga_lua with readline support, command-line option handling, and copy
+           semantics for user-defined types; enhanced ga_view visualization with
+           bivector/vector labels and force vector display; improved story-telling flow
+           through reordered examples in ga_view; refined Windows/vcpkg integration;
+           optimized fmt library integration using nested_formatter for proper GA type
+           formatting; automatically generate algebra rules in ga_prdxpr

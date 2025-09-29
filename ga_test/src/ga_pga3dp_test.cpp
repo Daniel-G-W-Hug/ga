@@ -2577,6 +2577,10 @@ TEST_SUITE("PGA 3DP Tests")
 
         CHECK(lcmpl(rwdg(B, B2)) == wdg(rcmpl(B), rcmpl(B2)));
         CHECK(lcmpl(wdg(v, v2)) == rwdg(rcmpl(v), rcmpl(v2)));
+
+        // origin and horizon
+        CHECK(H_3dp == rcmpl(O_3dp));
+        CHECK(O_3dp == lcmpl(H_3dp));
     }
 
     TEST_CASE("MVec3dp: bulk and weight")

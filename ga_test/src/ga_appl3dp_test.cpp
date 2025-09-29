@@ -259,10 +259,10 @@ TEST_SUITE("PGA3DP: application tests")
         fmt::println("");
     }
 
-    TEST_CASE("pga3dp: intersection of non-intersecting lines")
+    TEST_CASE("pga3dp: intersection of non-intersecting lines (rcmt)")
     {
 
-        fmt::println("pga3dp: intersection of non-intersecting lines");
+        fmt::println("pga3dp: intersection of non-intersecting lines (rcmt)");
 
         auto l1 = x_axis_3dp;
         auto l2 = wdg(vec3dp{0, 1, 0, 1}, vec3dp{0, 1, -1, 1});

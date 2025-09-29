@@ -2216,6 +2216,10 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(rrev(v) == cmpl(rev(cmpl(v))));
         CHECK(rrev(B) == cmpl(rev(cmpl(B))));
         CHECK(rrev(ps) == cmpl(rev(cmpl(ps))));
+
+        // origin and horizon
+        CHECK(H_2dp == cmpl(O_2dp));
+        CHECK(O_2dp == cmpl(H_2dp));
     }
 
     TEST_CASE("MVec2dp: convenience types")
