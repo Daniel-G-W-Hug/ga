@@ -98,41 +98,6 @@ struct MVec16_t {
              //
     T c15{}; // quadvector 4d = 4d pseudoscalar - maps to basis quadvector e1^e2^e3^e4
 
-    // equality
-    template <typename U>
-        requires(std::floating_point<U>)
-    bool operator==(MVec16_t<U, Tag> const& rhs) const
-    {
-        // componentwise comparison
-        // equality implies same magnitude and direction
-        // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_c0 = std::abs(c0 - rhs.c0);
-        auto abs_delta_c1 = std::abs(c1 - rhs.c1);
-        auto abs_delta_c2 = std::abs(c2 - rhs.c2);
-        auto abs_delta_c3 = std::abs(c3 - rhs.c3);
-        auto abs_delta_c4 = std::abs(c4 - rhs.c4);
-        auto abs_delta_c5 = std::abs(c5 - rhs.c5);
-        auto abs_delta_c6 = std::abs(c6 - rhs.c6);
-        auto abs_delta_c7 = std::abs(c7 - rhs.c7);
-        auto abs_delta_c8 = std::abs(c8 - rhs.c8);
-        auto abs_delta_c9 = std::abs(c9 - rhs.c9);
-        auto abs_delta_c10 = std::abs(c10 - rhs.c10);
-        auto abs_delta_c11 = std::abs(c11 - rhs.c11);
-        auto abs_delta_c12 = std::abs(c12 - rhs.c12);
-        auto abs_delta_c13 = std::abs(c13 - rhs.c13);
-        auto abs_delta_c14 = std::abs(c14 - rhs.c14);
-        auto abs_delta_c15 = std::abs(c15 - rhs.c15);
-        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
-                abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps &&
-                abs_delta_c4 < delta_eps && abs_delta_c5 < delta_eps &&
-                abs_delta_c6 < delta_eps && abs_delta_c7 < delta_eps &&
-                abs_delta_c8 < delta_eps && abs_delta_c9 < delta_eps &&
-                abs_delta_c10 < delta_eps && abs_delta_c11 < delta_eps &&
-                abs_delta_c12 < delta_eps && abs_delta_c13 < delta_eps &&
-                abs_delta_c14 < delta_eps && abs_delta_c15 < delta_eps);
-    }
-
     template <typename U>
         requires(std::floating_point<U>)
     MVec16_t& operator+=(MVec16_t<U, Tag> const& v) noexcept
@@ -230,6 +195,49 @@ struct MVec16_t {
 ////////////////////////////////////////////////////////////////////////////////
 // MVec16_t<T, Tag> core operations
 ////////////////////////////////////////////////////////////////////////////////
+
+// equality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator==(MVec16_t<T, Tag> const& lhs, MVec16_t<U, Tag> const& rhs)
+{
+    // componentwise comparison
+    // equality implies same magnitude and direction
+    // comparison is not exact, but accepts epsilon deviations
+    auto abs_delta_c0 = std::abs(lhs.c0 - rhs.c0);
+    auto abs_delta_c1 = std::abs(lhs.c1 - rhs.c1);
+    auto abs_delta_c2 = std::abs(lhs.c2 - rhs.c2);
+    auto abs_delta_c3 = std::abs(lhs.c3 - rhs.c3);
+    auto abs_delta_c4 = std::abs(lhs.c4 - rhs.c4);
+    auto abs_delta_c5 = std::abs(lhs.c5 - rhs.c5);
+    auto abs_delta_c6 = std::abs(lhs.c6 - rhs.c6);
+    auto abs_delta_c7 = std::abs(lhs.c7 - rhs.c7);
+    auto abs_delta_c8 = std::abs(lhs.c8 - rhs.c8);
+    auto abs_delta_c9 = std::abs(lhs.c9 - rhs.c9);
+    auto abs_delta_c10 = std::abs(lhs.c10 - rhs.c10);
+    auto abs_delta_c11 = std::abs(lhs.c11 - rhs.c11);
+    auto abs_delta_c12 = std::abs(lhs.c12 - rhs.c12);
+    auto abs_delta_c13 = std::abs(lhs.c13 - rhs.c13);
+    auto abs_delta_c14 = std::abs(lhs.c14 - rhs.c14);
+    auto abs_delta_c15 = std::abs(lhs.c15 - rhs.c15);
+    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
+    return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
+            abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps &&
+            abs_delta_c4 < delta_eps && abs_delta_c5 < delta_eps &&
+            abs_delta_c6 < delta_eps && abs_delta_c7 < delta_eps &&
+            abs_delta_c8 < delta_eps && abs_delta_c9 < delta_eps &&
+            abs_delta_c10 < delta_eps && abs_delta_c11 < delta_eps &&
+            abs_delta_c12 < delta_eps && abs_delta_c13 < delta_eps &&
+            abs_delta_c14 < delta_eps && abs_delta_c15 < delta_eps);
+}
+
+// inequality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator!=(MVec16_t<T, Tag> const& lhs, MVec16_t<U, Tag> const& rhs)
+{
+    return !(lhs == rhs);
+}
 
 // unary minus
 template <typename T, typename Tag>
