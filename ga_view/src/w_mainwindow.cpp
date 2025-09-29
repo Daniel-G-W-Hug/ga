@@ -160,6 +160,22 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         Coordsys_model cm;
 
         pt2d p0(0, 0);
+        pt2d p1(-1, 1);
+        pt2d p2(-2, 1);
+
+        cm.add_vt(vt2d{p0, p1});
+        cm.add_vt(vt2d{p0, p2});
+        cm.add_vt(vt2d{p1, p2});
+
+        cm.set_label("vector model 1");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        pt2d p0(0, 0);
         pt2d p1(1, 1);
         pt2d p2(2, 1);
 
@@ -173,7 +189,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_vt(v2);
         cm.add_vt(v3);
 
-        cm.set_label("vector model 1");
+        cm.set_label("vector model 2");
 
         vm.push_back(cm);
     }
@@ -181,81 +197,57 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        pt2dp pc(-1, -1, 1); // rotation center
+        size_t p0_id = cm.add_apt(pt2d{0, 1});
+        size_t p1a_id = cm.add_apt(pt2d{-1.5, 1});
+        size_t p1b_id = cm.add_apt(pt2d{-1.5, 1});
+        size_t p2_id = cm.add_apt(pt2d{0, 2});
 
-        pt2d_mark m;
-        m.symbol = Symbol::circle;
-        m.pen = QPen(Qt::red, 2, Qt::SolidLine);
-        cm.add_pt(pc, m);
+        cm.add_avt(avt2d{p0_id, p1a_id});
+        cm.add_avt(avt2d{p1b_id, p2_id});
 
-        // reference lines
-        pt2dp p0(0, 0, 1);
-        pt2dp p1(1, 0, 1);
-        pt2dp p2(0, 1, 1);
+        cm.set_label("avts with separate apts");
 
-        m.symbol = Symbol::square;
-        m.pen = QPen(Qt::magenta, 2, Qt::SolidLine);
+        vm.push_back(cm);
+    }
 
-        cm.add_pt(p0, m);
-        cm.add_pt(p1, m);
-        cm.add_pt(p2, m);
+    {
+        Coordsys_model cm;
 
-        cln2dp l1;
-        l1.push_back(p0);
-        l1.push_back(p1);
-        cln2dp l2;
-        l2.push_back(p0);
-        l2.push_back(p2);
-        cm.add_ln(l1);
-        cm.add_ln(l2);
+        size_t p0_id = cm.add_apt(pt2d{0, 1});
+        size_t p1_id = cm.add_apt(pt2d{3, 1});
+        size_t p2_id = cm.add_apt(pt2d{0, 2});
 
-        // first rotation by 5 degrees counter-clockwise
-        auto mot = get_motor(pc, deg2rad(5));
+        cm.add_avt(avt2d{p0_id, p1_id});
+        cm.add_avt(avt2d{p1_id, p2_id});
 
-        m.symbol = Symbol::square;
-        m.pen = QPen(Qt::green, 2, Qt::SolidLine);
+        cm.set_label("avts with common apt");
 
-        auto p0r = move2dp(p0, mot);
-        auto p1r = move2dp(p1, mot);
-        auto p2r = move2dp(p2, mot);
+        vm.push_back(cm);
+    }
 
-        cm.add_pt(p0r, m);
-        cm.add_pt(p1r, m);
-        cm.add_pt(p2r, m);
+    {
+        Coordsys_model cm;
 
-        cln2dp l1r;
-        l1r.push_back(p0r);
-        l1r.push_back(p1r);
-        cln2dp l2r;
-        l2r.push_back(p0r);
-        l2r.push_back(p2r);
-        cm.add_ln(l1r);
-        cm.add_ln(l2r);
+        size_t p0_id = cm.add_apt(pt2d{0, 0});
+        size_t p1_id = cm.add_apt(pt2d{3, 0});
+        size_t p2_id = cm.add_apt(pt2d{2, 2});
 
-        // second rotation by 10 degrees counter-clockwise
-        mot = get_motor(pc, deg2rad(10));
+        cm.add_aproj(aproj2d{p0_id, p1_id, p2_id});
 
-        m.symbol = Symbol::square;
-        m.pen = QPen(Qt::cyan, 2, Qt::SolidLine);
+        cm.set_label("active projection");
 
-        p0r = move2dp(p0, mot);
-        p1r = move2dp(p1, mot);
-        p2r = move2dp(p2, mot);
+        vm.push_back(cm);
+    }
 
-        cm.add_pt(p0r, m);
-        cm.add_pt(p1r, m);
-        cm.add_pt(p2r, m);
+    {
+        Coordsys_model cm;
 
-        cln2dp l1rr;
-        l1rr.push_back(p0r);
-        l1rr.push_back(p1r);
-        cln2dp l2rr;
-        l2rr.push_back(p0r);
-        l2rr.push_back(p2r);
-        cm.add_ln(l1rr);
-        cm.add_ln(l2rr);
+        size_t p1_id = cm.add_apt(pt2d{3, 0});
+        size_t p2_id = cm.add_apt(pt2d{0, 2});
 
-        cm.set_label("proj. 0 - rotated lines (not origin)");
+        cm.add_abivt(abivt2d{p1_id, p2_id});
+
+        cm.set_label("active bivec - visualized geometric product");
 
         vm.push_back(cm);
     }
@@ -319,6 +311,22 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         }
 
         cm.set_label("proj. - lines tangent to circle r = 1.5");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        size_t p_id = cm.add_apt(pt2d{-1.5, -1});
+        size_t q_id = cm.add_apt(pt2d{0.5, 1});
+
+        cm.add_abivtp(abivt2dp{p_id, q_id});
+
+        // fmt::println("p = {}", p);
+        // fmt::println("q = {}", q);
+
+        cm.set_label("proj. - join line p ^ q");
 
         vm.push_back(cm);
     }
@@ -745,83 +753,6 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         vm.push_back(cm);
     }
 
-
-    {
-        Coordsys_model cm;
-
-        size_t p_id = cm.add_apt(pt2d{-1.5, -1});
-        size_t q_id = cm.add_apt(pt2d{0.5, 1});
-
-        cm.add_abivtp(abivt2dp{p_id, q_id});
-
-        // fmt::println("p = {}", p);
-        // fmt::println("q = {}", q);
-
-        cm.set_label("proj. - join line p ^ q");
-
-        vm.push_back(cm);
-    }
-
-    {
-        Coordsys_model cm;
-
-        pt2d p0(0, 0);
-        pt2d p1(-1, 1);
-        pt2d p2(-2, 1);
-
-        cm.add_vt(vt2d{p0, p1});
-        cm.add_vt(vt2d{p0, p2});
-        cm.add_vt(vt2d{p1, p2});
-
-        cm.set_label("vector model 2");
-
-        vm.push_back(cm);
-    }
-
-    {
-        Coordsys_model cm;
-
-        size_t p0_id = cm.add_apt(pt2d{0, 1});
-        size_t p1a_id = cm.add_apt(pt2d{-1.5, 1});
-        size_t p1b_id = cm.add_apt(pt2d{-1.5, 1});
-        size_t p2_id = cm.add_apt(pt2d{0, 2});
-
-        cm.add_avt(avt2d{p0_id, p1a_id});
-        cm.add_avt(avt2d{p1b_id, p2_id});
-
-        cm.set_label("avts with separate apts");
-
-        vm.push_back(cm);
-    }
-
-    {
-        Coordsys_model cm;
-
-        size_t p0_id = cm.add_apt(pt2d{0, 1});
-        size_t p1_id = cm.add_apt(pt2d{3, 1});
-        size_t p2_id = cm.add_apt(pt2d{0, 2});
-
-        cm.add_avt(avt2d{p0_id, p1_id});
-        cm.add_avt(avt2d{p1_id, p2_id});
-
-        cm.set_label("avts with common apt");
-
-        vm.push_back(cm);
-    }
-
-    {
-        Coordsys_model cm;
-
-        size_t p1_id = cm.add_apt(pt2d{3, 0});
-        size_t p2_id = cm.add_apt(pt2d{0, 2});
-
-        cm.add_abivt(abivt2d{p1_id, p2_id});
-
-        cm.set_label("active bivector");
-
-        vm.push_back(cm);
-    }
-
     {
         Coordsys_model cm;
 
@@ -879,20 +810,6 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        size_t p0_id = cm.add_apt(pt2d{0, 0});
-        size_t p1_id = cm.add_apt(pt2d{3, 0});
-        size_t p2_id = cm.add_apt(pt2d{2, 2});
-
-        cm.add_aproj(aproj2d{p0_id, p1_id, p2_id});
-
-        cm.set_label("active projection");
-
-        vm.push_back(cm);
-    }
-
-    {
-        Coordsys_model cm;
-
         size_t p0_id = cm.add_apt(pt2d{0, 2.5});
         size_t p1_id = cm.add_apt(pt2d{2.5, 0});
 
@@ -928,6 +845,88 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_areflp(arefl2dp{p0_id, p1_id, p2_id, p3_id});
 
         cm.set_label("active reflection projective (2x)");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        pt2dp pc(-1, -1, 1); // rotation center
+
+        pt2d_mark m;
+        m.symbol = Symbol::circle;
+        m.pen = QPen(Qt::red, 2, Qt::SolidLine);
+        cm.add_pt(pc, m);
+
+        // reference lines
+        pt2dp p0(0, 0, 1);
+        pt2dp p1(1, 0, 1);
+        pt2dp p2(0, 1, 1);
+
+        m.symbol = Symbol::square;
+        m.pen = QPen(Qt::magenta, 2, Qt::SolidLine);
+
+        cm.add_pt(p0, m);
+        cm.add_pt(p1, m);
+        cm.add_pt(p2, m);
+
+        cln2dp l1;
+        l1.push_back(p0);
+        l1.push_back(p1);
+        cln2dp l2;
+        l2.push_back(p0);
+        l2.push_back(p2);
+        cm.add_ln(l1);
+        cm.add_ln(l2);
+
+        // first rotation by 5 degrees counter-clockwise
+        auto mot = get_motor(pc, deg2rad(5));
+
+        m.symbol = Symbol::square;
+        m.pen = QPen(Qt::green, 2, Qt::SolidLine);
+
+        auto p0r = move2dp(p0, mot);
+        auto p1r = move2dp(p1, mot);
+        auto p2r = move2dp(p2, mot);
+
+        cm.add_pt(p0r, m);
+        cm.add_pt(p1r, m);
+        cm.add_pt(p2r, m);
+
+        cln2dp l1r;
+        l1r.push_back(p0r);
+        l1r.push_back(p1r);
+        cln2dp l2r;
+        l2r.push_back(p0r);
+        l2r.push_back(p2r);
+        cm.add_ln(l1r);
+        cm.add_ln(l2r);
+
+        // second rotation by 10 degrees counter-clockwise
+        mot = get_motor(pc, deg2rad(10));
+
+        m.symbol = Symbol::square;
+        m.pen = QPen(Qt::cyan, 2, Qt::SolidLine);
+
+        p0r = move2dp(p0, mot);
+        p1r = move2dp(p1, mot);
+        p2r = move2dp(p2, mot);
+
+        cm.add_pt(p0r, m);
+        cm.add_pt(p1r, m);
+        cm.add_pt(p2r, m);
+
+        cln2dp l1rr;
+        l1rr.push_back(p0r);
+        l1rr.push_back(p1r);
+        cln2dp l2rr;
+        l2rr.push_back(p0r);
+        l2rr.push_back(p2r);
+        cm.add_ln(l1rr);
+        cm.add_ln(l2rr);
+
+        cm.set_label("proj. 0 - rotated lines (not origin)");
 
         vm.push_back(cm);
     }
