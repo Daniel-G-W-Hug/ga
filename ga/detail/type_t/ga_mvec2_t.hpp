@@ -66,20 +66,6 @@ struct MVec2_t {
     T c0{}; // scalar component
     T c1{}; // bivector component (2d pseudoscalar)
 
-    // equality
-    template <typename U>
-        requires(std::floating_point<U>)
-    bool operator==(MVec2_t<U, Tag> const& rhs) const
-    {
-        // componentwise comparison
-        // equality implies same magnitude and direction
-        // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_c0 = std::abs(c0 - rhs.c0);
-        auto abs_delta_c1 = std::abs(c1 - rhs.c1);
-        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps);
-    }
-
     template <typename U>
         requires(std::floating_point<U>)
     MVec2_t& operator+=(MVec2_t<U, Tag> const& v) noexcept
@@ -121,6 +107,28 @@ struct MVec2_t {
 ////////////////////////////////////////////////////////////////////////////////
 // MVec2_t<T> core operations
 ////////////////////////////////////////////////////////////////////////////////
+
+// equality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator==(MVec2_t<T, Tag> const& lhs, MVec2_t<U, Tag> const& rhs)
+{
+    // componentwise comparison
+    // equality implies same magnitude and direction
+    // comparison is not exact, but accepts epsilon deviations
+    auto abs_delta_c0 = std::abs(lhs.c0 - rhs.c0);
+    auto abs_delta_c1 = std::abs(lhs.c1 - rhs.c1);
+    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
+    return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps);
+}
+
+// inequality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator!=(MVec2_t<T, Tag> const& lhs, MVec2_t<U, Tag> const& rhs)
+{
+    return !(lhs == rhs);
+}
 
 // unary minus for multivectors from the even subalgebra
 template <typename T, typename Tag>

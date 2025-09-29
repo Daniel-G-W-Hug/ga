@@ -64,23 +64,6 @@ struct MVec4_t {
     T c2{}; // e2        // e3^e1 = e31 = zy       // e3
     T c3{}; // e12       // e1^e2 = e12 = xy       // e123 (pseudoscalar)
 
-    // equality
-    template <typename U>
-        requires(std::floating_point<U>)
-    bool operator==(MVec4_t<U, Tag> const& rhs) const
-    {
-        // componentwise comparison
-        // equality implies same magnitude and direction
-        // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_c0 = std::abs(c0 - rhs.c0);
-        auto abs_delta_c1 = std::abs(c1 - rhs.c1);
-        auto abs_delta_c2 = std::abs(c2 - rhs.c2);
-        auto abs_delta_c3 = std::abs(c3 - rhs.c3);
-        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
-                abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps);
-    }
-
     template <typename U>
         requires(std::floating_point<U>)
     MVec4_t& operator+=(MVec4_t<U, Tag> const& v) noexcept
@@ -130,6 +113,31 @@ struct MVec4_t {
 ////////////////////////////////////////////////////////////////////////////////
 // MVec4_t<T> core operations
 ////////////////////////////////////////////////////////////////////////////////
+
+// equality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator==(MVec4_t<T, Tag> const& lhs, MVec4_t<U, Tag> const& rhs)
+{
+    // componentwise comparison
+    // equality implies same magnitude and direction
+    // comparison is not exact, but accepts epsilon deviations
+    auto abs_delta_c0 = std::abs(lhs.c0 - rhs.c0);
+    auto abs_delta_c1 = std::abs(lhs.c1 - rhs.c1);
+    auto abs_delta_c2 = std::abs(lhs.c2 - rhs.c2);
+    auto abs_delta_c3 = std::abs(lhs.c3 - rhs.c3);
+    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
+    return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
+            abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps);
+}
+
+// inequality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator!=(MVec4_t<T, Tag> const& lhs, MVec4_t<U, Tag> const& rhs)
+{
+    return !(lhs == rhs);
+}
 
 // unary minus
 template <typename T, typename Tag>

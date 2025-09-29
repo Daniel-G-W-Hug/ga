@@ -80,26 +80,6 @@ struct BVec6_t {
     T my{}; // as BiVec3dp<T> maps to basis bivector e3^e1 - as Line3dp<T> to my
     T mz{}; // as BiVec3dp<T> maps to basis bivector e1^e2 - as Line3dp<T> to mz
 
-    // equality
-    template <typename U>
-        requires(std::floating_point<U>)
-    bool operator==(BVec6_t<U, Tag> const& rhs) const
-    {
-        // componentwise comparison
-        // equality implies same magnitude and direction
-        // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_vx = std::abs(vx - rhs.vx);
-        auto abs_delta_vy = std::abs(vy - rhs.vy);
-        auto abs_delta_vz = std::abs(vz - rhs.vz);
-        auto abs_delta_mx = std::abs(mx - rhs.mx);
-        auto abs_delta_my = std::abs(my - rhs.my);
-        auto abs_delta_mz = std::abs(mz - rhs.mz);
-        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        return (abs_delta_vx < delta_eps && abs_delta_vy < delta_eps &&
-                abs_delta_vz < delta_eps && abs_delta_mx < delta_eps &&
-                abs_delta_my < delta_eps && abs_delta_mz < delta_eps);
-    }
-
     template <typename U>
         requires(std::floating_point<U>)
     BVec6_t& operator+=(BVec6_t<U, Tag> const& B) noexcept
@@ -157,6 +137,34 @@ struct BVec6_t {
 ////////////////////////////////////////////////////////////////////////////////
 // BVec6_t<T> core operations
 ////////////////////////////////////////////////////////////////////////////////
+
+// equality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator==(BVec6_t<T, Tag> const& lhs, BVec6_t<U, Tag> const& rhs)
+{
+    // componentwise comparison
+    // equality implies same magnitude and direction
+    // comparison is not exact, but accepts epsilon deviations
+    auto abs_delta_vx = std::abs(lhs.vx - rhs.vx);
+    auto abs_delta_vy = std::abs(lhs.vy - rhs.vy);
+    auto abs_delta_vz = std::abs(lhs.vz - rhs.vz);
+    auto abs_delta_mx = std::abs(lhs.mx - rhs.mx);
+    auto abs_delta_my = std::abs(lhs.my - rhs.my);
+    auto abs_delta_mz = std::abs(lhs.mz - rhs.mz);
+    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
+    return (abs_delta_vx < delta_eps && abs_delta_vy < delta_eps &&
+            abs_delta_vz < delta_eps && abs_delta_mx < delta_eps &&
+            abs_delta_my < delta_eps && abs_delta_mz < delta_eps);
+}
+
+// inequality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator!=(BVec6_t<T, Tag> const& lhs, BVec6_t<U, Tag> const& rhs)
+{
+    return !(lhs == rhs);
+}
 
 // unary minus
 template <typename T, typename Tag>

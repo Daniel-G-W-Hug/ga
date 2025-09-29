@@ -77,22 +77,6 @@ struct Vec3_t {
     T y{};
     T z{};
 
-    // equality
-    template <typename U>
-        requires(std::floating_point<U>)
-    bool operator==(Vec3_t<U, Tag> const& rhs) const
-    {
-        // componentwise comparison
-        // equality implies same magnitude and direction
-        // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta_x = std::abs(x - rhs.x);
-        auto abs_delta_y = std::abs(y - rhs.y);
-        auto abs_delta_z = std::abs(z - rhs.z);
-        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        return (abs_delta_x < delta_eps && abs_delta_y < delta_eps &&
-                abs_delta_z < delta_eps);
-    }
-
     template <typename U>
         requires(std::floating_point<U>)
     Vec3_t& operator+=(Vec3_t<U, Tag> const& v) noexcept
@@ -138,6 +122,30 @@ struct Vec3_t {
 ////////////////////////////////////////////////////////////////////////////////
 // Vec3_t<T> core operations
 ////////////////////////////////////////////////////////////////////////////////
+
+// equality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator==(Vec3_t<T, Tag> const& lhs, Vec3_t<U, Tag> const& rhs)
+{
+    // componentwise comparison
+    // equality implies same magnitude and direction
+    // comparison is not exact, but accepts epsilon deviations
+    auto abs_delta_x = std::abs(lhs.x - rhs.x);
+    auto abs_delta_y = std::abs(lhs.y - rhs.y);
+    auto abs_delta_z = std::abs(lhs.z - rhs.z);
+    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
+    return (abs_delta_x < delta_eps && abs_delta_y < delta_eps &&
+            abs_delta_z < delta_eps);
+}
+
+// inequality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator!=(Vec3_t<T, Tag> const& lhs, Vec3_t<U, Tag> const& rhs)
+{
+    return !(lhs == rhs);
+}
 
 // unary minus
 template <typename T, typename Tag>
