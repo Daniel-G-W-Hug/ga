@@ -3355,5 +3355,41 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(rtwdg1(v, B) == rcmt(v, B));
     }
 
+    TEST_CASE("G<3,0,1>: adding and reducing bound vectors")
+    {
+        fmt::println("G<3,0,1>: adding and reducing bound vectors");
+
+        // case taken from: "Grassmann Algebra, Vol. 1 - Foundations", John Browne, p. 177
+
+        auto P1 = vec3dp{1, 3, -4, 1};
+        auto P2 = vec3dp{2, -1, -2, 1};
+        auto P3 = vec3dp{-5, 3, -6, 1};
+        auto P4 = vec3dp{4, 2, -9, 1};
+
+        auto x1 = vec3dp{1, 0, -1, 0};
+        auto x2 = vec3dp{1, -1, 1, 0};
+        auto x3 = vec3dp{2, 3, 0, 0};
+        auto x4 = vec3dp{0, 0, 5, 0};
+
+        auto L1 = wdg(P1, x1);
+        auto L2 = wdg(P2, x2);
+        auto L3 = wdg(P3, x3);
+        auto L4 = wdg(P4, x4);
+
+        auto dir_vec = x1 + x2 + x3 + x4;
+        auto L = L1 + L2 + L3 + L4;
+        CHECK(dir_vec == vec3dp{4, 2, 5, 0});
+        CHECK(L == bivec3dp{4, 2, 5, 22, -39, -25});
+
+        // moving a bound vector: L = O_3dp ^ dir_vec + bivec_part
+        // (= first three components: direction vector; last three components: bivec part)
+        // now expressed through another reference point:
+        // R = O_3dp + x
+        // => L = R ^ dir_vec + L - R ^ dir_vec
+
+        fmt::println("dir_vec =   {}", dir_vec);
+        fmt::println("L       = {}", L);
+    }
+
 
 } // PGA 3DP Tests
