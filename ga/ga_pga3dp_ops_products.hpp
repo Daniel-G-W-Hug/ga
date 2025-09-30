@@ -1832,10 +1832,14 @@ constexpr BiVec3dp<std::common_type_t<T, U>> rcmt(Vec3dp<T> const& v1,
 // REALLY VERY Expensive! - Don't use if you don't have to!
 //
 // Use equivalent formulae instead for not fully populated multivectors:
-// a * b = dot(a,b) + wdg(a,b) = gr0(ab) + gr2(ab)  (vector*vector = scalar +
-// bivector) A * b = (A>>b) + wdg(A,b) = gr1(Ab) + gr3(Ab)  (bivector*vector = vector
-// + trivector) a * B = (a<<B) + wdg(a,B) = gr1(aB) + gr3(aB)  (vector*bivector =
-// vector + trivector)
+// a * b = dot(a,b) + wdg(a,b)
+// (vector*vector = scalar + bivector)
+//
+// A * b = (b<<A) + wdg(A,b)
+// (bivector*vector = vector + trivector)
+//
+// a * B = (B>>a) + wdg(a,B)
+// (vector*bivector = vector + trivector)
 //
 // multivector * multivector => multivector
 template <typename T, typename U>
