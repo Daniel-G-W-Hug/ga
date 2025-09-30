@@ -12,7 +12,7 @@
 
 #include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
-#include "ga_vec3_t.hpp" // Required for Vec3d<T> in constructor
+#include "ga_vec3_t.hpp" // Required for Vec3_t<T> in constructor
 
 namespace hd::ga {
 
@@ -37,6 +37,16 @@ struct BVec6_t {
     }
 
     // assign the vector parts separately to the bivector
+    // (both vectors must have the same tag to ensure type safety)
+    template <typename VecTag>
+    BVec6_t(Vec3_t<T, VecTag> const& v, Vec3_t<T, VecTag> const& m) :
+        vx(v.x), vy(v.y), vz(v.z), mx(m.x), my(m.y), mz(m.z)
+    {
+    }
+
+    // assign the vector parts from two Vec3_t with different tags
+    // (for special cases where semantically different types are combined,
+    //  e.g., Line3d: direction vector + moment bivector)
     template <typename Vec1Tag, typename Vec2Tag>
     BVec6_t(Vec3_t<T, Vec1Tag> const& v, Vec3_t<T, Vec2Tag> const& m) :
         vx(v.x), vy(v.y), vz(v.z), mx(m.x), my(m.y), mz(m.z)

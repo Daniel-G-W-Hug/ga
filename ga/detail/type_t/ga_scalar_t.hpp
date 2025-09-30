@@ -53,59 +53,6 @@ class Scalar_t {
         swap(lhs.value, rhs.value);
     }
 
-    // equality (only compare, if same tag, i.e. don't mix up scalars and pseudoscalars,
-    //           or 2d and 3d scalars, for example)
-    template <typename U, typename U_Tag>
-        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
-    bool operator==(Scalar_t<U, U_Tag> rhs) const
-    {
-        // equality implies same magnitude
-        // comparison is not exact, but accepts epsilon deviations
-        auto abs_delta = std::abs(T(value) - U(rhs));
-        auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-        return (abs_delta < delta_eps);
-    }
-
-    // inequality
-    template <typename U, typename U_Tag>
-        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
-    bool operator!=(Scalar_t<U, U_Tag> rhs) const
-    {
-        return !(*this == rhs);
-    }
-
-    // less than
-    template <typename U, typename U_Tag>
-        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
-    bool operator<(Scalar_t<U, U_Tag> rhs) const
-    {
-        return (value < U(rhs));
-    }
-
-    // less than or equal
-    template <typename U, typename U_Tag>
-        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
-    bool operator<=(Scalar_t<U, U_Tag> rhs) const
-    {
-        return (*this < rhs) || (*this == rhs);
-    }
-
-    // greater than
-    template <typename U, typename U_Tag>
-        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
-    bool operator>(Scalar_t<U, U_Tag> rhs) const
-    {
-        return rhs < *this;
-    }
-
-    // greater than or equal
-    template <typename U, typename U_Tag>
-        requires(std::floating_point<U> && std::is_same_v<Tag, U_Tag>)
-    bool operator>=(Scalar_t<U, U_Tag> rhs) const
-    {
-        return (*this > rhs) || (*this == rhs);
-    }
-
     // Comparison operators with raw numeric types (floating point and integral)
     template <typename U>
         requires(std::floating_point<U> || std::integral<U>)
@@ -195,7 +142,7 @@ class Scalar_t {
         requires(std::floating_point<U>)
     Scalar_t& operator*=(U s) noexcept
     {
-        value *= s.value;
+        value *= s;
         return (*this);
     }
 
@@ -203,8 +150,8 @@ class Scalar_t {
         requires(std::floating_point<U>)
     Scalar_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
-        detail::check_division_by_zero<T, U>(s.value, "scalar division");
-        value /= s.value;
+        detail::check_division_by_zero<T, U>(s, "scalar division");
+        value /= s;
         return (*this);
     }
 
@@ -281,6 +228,58 @@ constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator-(T lhs, Scalar_t<U, T
 ////////////////////////////////////////////////////////////////////////////////
 // Scalar_t<T, Tag> core operations
 ////////////////////////////////////////////////////////////////////////////////
+
+// equality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator==(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
+{
+    // equality implies same magnitude
+    // comparison is not exact, but accepts epsilon deviations
+    auto abs_delta = std::abs(T(lhs) - U(rhs));
+    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
+    return (abs_delta < delta_eps);
+}
+
+// inequality - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator!=(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
+{
+    return !(lhs == rhs);
+}
+
+// less than - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator<(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
+{
+    return (T(lhs) < U(rhs));
+}
+
+// less than or equal - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator<=(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
+{
+    return (lhs < rhs) || (lhs == rhs);
+}
+
+// greater than - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator>(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
+{
+    return rhs < lhs;
+}
+
+// greater than or equal - only allows comparison between same tag types
+template <typename T, typename U, typename Tag>
+    requires(std::floating_point<T> && std::floating_point<U>)
+bool operator>=(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
+{
+    return (lhs > rhs) || (lhs == rhs);
+}
 
 // unary minus
 template <typename T, typename Tag>
