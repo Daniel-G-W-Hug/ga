@@ -24,6 +24,7 @@ project(
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_CXX_EXTENSIONS OFF)  # Disable GNU extensions (-std=c++23 instead of -std=gnu++23)
 
 # set a default build type: Debug | RelWithDebInfo | Release | MinSizeRel
 if(NOT CMAKE_BUILD_TYPE)
@@ -52,21 +53,31 @@ add_definitions(-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
 # Add our custom cmake modules to the module path
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+# Optional readline support for ga_lua interactive shell
+option(_GA_USE_READLINE "Enable readline support for ga_lua interactive shell" ON)
+
 # Include and setup dependencies
 include(dependencies)
 setup_ga_dependencies()
 
-# Optional readline support for ga_lua interactive shell
-option(_GA_USE_READLINE "Enable readline support for ga_lua interactive shell" ON)
-
 #################################################################
 # Project modules
 #################################################################
- 
+
 add_subdirectory(ga)                     # ga library (header only)
 add_subdirectory(ga_test)                # tests for header only library
 add_subdirectory(ga_lua)                 # lua scripting for ga
-add_subdirectory(ga_view)                # qt-based viewer
+
+# ga_view: Skip on macOS with GCC due to Qt6 header incompatibility
+# Qt6 uses _Pragma in function signatures which GCC rejects but Clang allows
+# This is a known Qt6+GCC issue on macOS, may work on Linux
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND APPLE)
+    message(STATUS "ga_view: Skipped (Qt6 headers incompatible with GCC on macOS)")
+    message(STATUS "         Use Clang to build ga_view, or build on Linux")
+else()
+    add_subdirectory(ga_view)            # qt-based viewer
+endif()
+
 add_subdirectory(ga_prdxpr)              # generate product expressions
 
 #################################################################
