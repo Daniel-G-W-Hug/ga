@@ -2,7 +2,7 @@
 \label{basics}
 
 The following is provided for Euclidean geometric algebra of two-dimensional space
-(\emph{ega2d}) using an orthormal basis \bv{1}, \bv{2}:
+(\emph{EGA2D}) using an orthormal basis \bv{1}, \bv{2}:
 \begin{subequations}
     \begin{align}
         (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
@@ -31,7 +31,7 @@ pseudoscalar part $ps \, \bv{12} = ps \, \pseudoscalar$ (basis element is $I_{2d
 \bv{12}$, which is sometimes written as $\pseudoscalar$ to show its character as
 pseudoscalar of this space. $I_{2d}$ is a bivector in two-dimensional Euclidean space). \\
 
-For Euclidean geometric algebra of three-dimensional space (\emph{ega3d}) using an
+For Euclidean geometric algebra of three-dimensional space (\emph{EGA3D}) using an
 orthonormal basis \bv{1}, \bv{2}, \bv{3} there are:
 \begin{subequations}
     \begin{align}
@@ -213,7 +213,7 @@ combined with the wedge product, and the inverse complement operation is used to
 the outcome into the final result, the regressive product. The inverted wedge symbol
 $(\vee)$ is used for the regressive wedge product. Both definitions~(\ref{eq:rwdg_std})
 and~(\ref{eq:rwdg_alt}) are equivalent. Equation~(\ref{eq:rwdg_std}) is used to derive
-expressions for regressive products in \path{ga_prdxpr}. \\
+expressions for regressive products in \path{ga/ga_prdxpr}. \\
 
 There are some additional formulas for complements which are useful for working with GA
 expressions and thus are provided here for reference. Taking the right and left
@@ -394,27 +394,27 @@ of same grade:
 The influence of the metric for the dualization operation can be seen in its effect for
 the different algebras which also depends on the dimension of the modelled space:
 \begin{itemize}
-\item $ega2d$: $\;\:A_{\star} = \text{\path{left_dual(A)}}$, $A^{\star} =
+\item $EGA2D$: $\;\:A_{\star} = \text{\path{left_dual(A)}}$, $A^{\star} =
 \text{\path{right_dual(A)}}$
-\item $ega3d$: $\;\:A_{\star} = \text{\path{dual(A)}}$, $A^{\star} =
+\item $EGA3D$: $\;\:A_{\star} = \text{\path{dual(A)}}$, $A^{\star} =
 \text{\path{dual(A)}}$
-\item $pga2dp$: $A_{\star} = \text{\path{bulk_dual(A)}}$, $A^{\star} =
+\item $PGA2DP$: $A_{\star} = \text{\path{bulk_dual(A)}}$, $A^{\star} =
 \text{\path{bulk_dual(A)}}$ 
-\item $pga2dp$: $A_{\smallstar} = \text{\path{weight_dual(A)}}$, $A^{\smallstar} =
+\item $PGA2DP$: $A_{\smallstar} = \text{\path{weight_dual(A)}}$, $A^{\smallstar} =
 \text{\path{weight_dual(A)}}$
-\item $pga3dp$: $A_{\star} = \text{\path{left_bulk_dual(A)}}$, $A^{\star} =
+\item $PGA3DP$: $A_{\star} = \text{\path{left_bulk_dual(A)}}$, $A^{\star} =
 \text{\path{right_bulk_dual(A)}}$
-\item $pga3dp$: $A_{\smallstar} = \text{\path{left_weight_dual(A)}}$, $A^{\smallstar} =
+\item $PGA3DP$: $A_{\smallstar} = \text{\path{left_weight_dual(A)}}$, $A^{\smallstar} =
 \text{\path{right_weight_dual(A)}}$
 \end{itemize}
-In even-dimensional spaces ($ega2d$, $pga3dp$) we have to distinguish left and right
-operations, while in odd-dimensional spaces ($ega3d$, $pga2dp$) we don't, since they
+In even-dimensional spaces ($EGA2D$, $PGA3DP$) we have to distinguish left and right
+operations, while in odd-dimensional spaces ($EGA3D$, $PGA2DP$) we don't, since they
 produce the same result. The ``left'' operations are typically used on the left-hand side
 of the binary operation and the ``right'' operations on the right-hand side of the product
 operator. The only deviation from that pattern occurs for the definition of the regressive
 operations, as defined in~(\ref{eq:rwdg_std}) or (\ref{eq:rwdg_alt}). \\
 
-In a two-dimensional algebra, like $ega2d$, the effect of the right dual of a vector $u$
+In a two-dimensional algebra, like $EGA2D$, the effect of the right dual of a vector $u$
 is to turn the vector by $+90$°, i.e. into the orientation of $\bv{12}$, while the left
 dual turns the vector by $-90$°, i.e. into the direction against the orientation of
 $\bv{12}$. This statement is valid for both right- and left-handed coordinate systems. \\
@@ -550,7 +550,7 @@ definition:
     (\ubar{c}\vee a) \wedge (b \vee \rightbulkdual{c})
     \label{eq:twdg_orig}
 \end{equation}
-where $\mathcal{B}_k$ is the set of all basis elements of order $k$. For $ega3d$ it means
+where $\mathcal{B}_k$ is the set of all basis elements of order $k$. For $EGA3D$ it means
 for example $\mathcal{B}_0 = \{1\}$, $\mathcal{B}_1 = \{\bv{1}, \bv{2}, \bv{3}\}$,
 $\mathcal{B}_2 = \{\bv{23}, \bv{31}, \bv{12}\}$, and $\mathcal{B}_3 = \{\bv{123}\}$. From
 these expressions the geometric product can be formed by
@@ -595,10 +595,11 @@ which in turn can be expressed in terms of the wedge product exclusively as:
 \end{equation}
 Equations~(\ref{eq:twdg_wdg}) and (\ref{eq:rtwdg_wdg}) are used for calculation of the
 product tables of the (regressive) transwedge products of order $k$ and the resulting
-(regressive) geometric products in \path{ga_prdxpr}. The transwedge product is very useful
-to show that the geometric product can be derived from primitives of Grassmann algebra.
-When (regressive) transwedge product expressions are calculated, it can be shown that each
-transwedge product and the resulting coefficient expressions are equivalent to specific
-combinations of wedge-, commutator-, dot-products, and their regressive counterparts. \\
+(regressive) geometric products in \path{ga/ga_prdxpr}. The transwedge product is very
+useful to show that the geometric product can be derived from primitives of Grassmann
+algebra. When (regressive) transwedge product expressions are calculated, it can be shown
+that each transwedge product and the resulting coefficient expressions are equivalent to
+specific combinations of wedge-, commutator-, dot-products, and their regressive
+counterparts. \\
 
 \newpage
