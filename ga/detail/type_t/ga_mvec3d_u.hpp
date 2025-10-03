@@ -40,6 +40,54 @@ template <typename T> struct MVec4_t<T, mvec3d_u_tag> : public MVec4_t<T, defaul
 
     // assign vector and pseudoscalar parts
     MVec4_t(Vec3d<T> const& v, PScalar3d<T> ps) : MVec4_t(v.x, v.y, v.z, T(ps)) {}
+
+    // Override compound assignment operators to return correct derived type
+    // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag
+    // comparisons
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec4_t& operator+=(MVec4_t<U, mvec3d_u_tag> const& v) noexcept
+    {
+        this->c0 += v.c0;
+        this->c1 += v.c1;
+        this->c2 += v.c2;
+        this->c3 += v.c3;
+        return *this;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec4_t& operator-=(MVec4_t<U, mvec3d_u_tag> const& v) noexcept
+    {
+        this->c0 -= v.c0;
+        this->c1 -= v.c1;
+        this->c2 -= v.c2;
+        this->c3 -= v.c3;
+        return *this;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec4_t& operator*=(U s) noexcept
+    {
+        this->c0 *= s;
+        this->c1 *= s;
+        this->c2 *= s;
+        this->c3 *= s;
+        return *this;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec4_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
+    {
+        detail::check_division_by_zero<T, U>(s, "multivector division 4 comp.");
+        this->c0 /= s;
+        this->c1 /= s;
+        this->c2 /= s;
+        this->c3 /= s;
+        return *this;
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////

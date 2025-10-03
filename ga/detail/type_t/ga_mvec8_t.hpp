@@ -164,74 +164,10 @@ bool operator==(MVec8_t<T, Tag> const& lhs, MVec8_t<U, Tag> const& rhs)
             abs_delta_c6 < delta_eps && abs_delta_c7 < delta_eps);
 }
 
-// equality - cross-tag comparison: default_tag on left, specific tag on right
-// GCC+doctest: MVec8_t<T,Tag> inherits from MVec8_t<T,default_tag>, causing base class binding
-template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U> &&
-             !std::same_as<Tag, default_tag>)
-bool operator==(MVec8_t<T, default_tag> const& lhs, MVec8_t<U, Tag> const& rhs)
-{
-    auto abs_delta_c0 = std::abs(lhs.c0 - rhs.c0);
-    auto abs_delta_c1 = std::abs(lhs.c1 - rhs.c1);
-    auto abs_delta_c2 = std::abs(lhs.c2 - rhs.c2);
-    auto abs_delta_c3 = std::abs(lhs.c3 - rhs.c3);
-    auto abs_delta_c4 = std::abs(lhs.c4 - rhs.c4);
-    auto abs_delta_c5 = std::abs(lhs.c5 - rhs.c5);
-    auto abs_delta_c6 = std::abs(lhs.c6 - rhs.c6);
-    auto abs_delta_c7 = std::abs(lhs.c7 - rhs.c7);
-    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-    return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
-            abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps &&
-            abs_delta_c4 < delta_eps && abs_delta_c5 < delta_eps &&
-            abs_delta_c6 < delta_eps && abs_delta_c7 < delta_eps);
-}
-
-// equality - cross-tag comparison: specific tag on left, default_tag on right
-// GCC+doctest: symmetric version of the above operator
-template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U> &&
-             !std::same_as<Tag, default_tag>)
-bool operator==(MVec8_t<T, Tag> const& lhs, MVec8_t<U, default_tag> const& rhs)
-{
-    auto abs_delta_c0 = std::abs(lhs.c0 - rhs.c0);
-    auto abs_delta_c1 = std::abs(lhs.c1 - rhs.c1);
-    auto abs_delta_c2 = std::abs(lhs.c2 - rhs.c2);
-    auto abs_delta_c3 = std::abs(lhs.c3 - rhs.c3);
-    auto abs_delta_c4 = std::abs(lhs.c4 - rhs.c4);
-    auto abs_delta_c5 = std::abs(lhs.c5 - rhs.c5);
-    auto abs_delta_c6 = std::abs(lhs.c6 - rhs.c6);
-    auto abs_delta_c7 = std::abs(lhs.c7 - rhs.c7);
-    auto constexpr delta_eps = detail::safe_epsilon<T, U>();
-    return (abs_delta_c0 < delta_eps && abs_delta_c1 < delta_eps &&
-            abs_delta_c2 < delta_eps && abs_delta_c3 < delta_eps &&
-            abs_delta_c4 < delta_eps && abs_delta_c5 < delta_eps &&
-            abs_delta_c6 < delta_eps && abs_delta_c7 < delta_eps);
-}
-
 // inequality - allows comparison between same tag types
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
 bool operator!=(MVec8_t<T, Tag> const& lhs, MVec8_t<U, Tag> const& rhs)
-{
-    return !(lhs == rhs);
-}
-
-// inequality - cross-tag: default_tag on left
-// GCC+doctest: same rationale as equality cross-tag operators
-template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U> &&
-             !std::same_as<Tag, default_tag>)
-bool operator!=(MVec8_t<T, default_tag> const& lhs, MVec8_t<U, Tag> const& rhs)
-{
-    return !(lhs == rhs);
-}
-
-// inequality - cross-tag: default_tag on right
-// GCC+doctest: symmetric version
-template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U> &&
-             !std::same_as<Tag, default_tag>)
-bool operator!=(MVec8_t<T, Tag> const& lhs, MVec8_t<U, default_tag> const& rhs)
 {
     return !(lhs == rhs);
 }

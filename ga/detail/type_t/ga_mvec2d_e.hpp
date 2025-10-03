@@ -40,6 +40,46 @@ template <typename T> struct MVec2_t<T, mvec2d_e_tag> : public MVec2_t<T, defaul
     // via dot(v1,v2) and wdg(v1,v2) directly (other grades = 0)
     // (less expensive compared to full geometric product)
     MVec2_t(Scalar2d<T> s, PScalar2d<T> ps) : MVec2_t(T(s), T(ps)) {}
+
+    // Override compound assignment operators to return correct derived type
+    // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag
+    // comparisons
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec2_t& operator+=(MVec2_t<U, mvec2d_e_tag> const& v) noexcept
+    {
+        this->c0 += v.c0;
+        this->c1 += v.c1;
+        return *this;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec2_t& operator-=(MVec2_t<U, mvec2d_e_tag> const& v) noexcept
+    {
+        this->c0 -= v.c0;
+        this->c1 -= v.c1;
+        return *this;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec2_t& operator*=(U s) noexcept
+    {
+        this->c0 *= s;
+        this->c1 *= s;
+        return *this;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec2_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
+    {
+        detail::check_division_by_zero<T, U>(s, "multivector division 2 comp.");
+        this->c0 /= s;
+        this->c1 /= s;
+        return *this;
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
