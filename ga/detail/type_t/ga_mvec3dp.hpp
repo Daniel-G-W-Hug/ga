@@ -94,6 +94,102 @@ template <typename T> struct MVec16_t<T, mvec3dp_tag> : public MVec16_t<T, defau
                  t.z, t.w, T(ps))
     {
     }
+
+    // Override compound assignment operators to return correct derived type
+    // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag
+    // comparisons
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec16_t& operator+=(MVec16_t<U, mvec3dp_tag> const& v) noexcept
+    {
+        this->c0 += v.c0;
+        this->c1 += v.c1;
+        this->c2 += v.c2;
+        this->c3 += v.c3;
+        this->c4 += v.c4;
+        this->c5 += v.c5;
+        this->c6 += v.c6;
+        this->c7 += v.c7;
+        this->c8 += v.c8;
+        this->c9 += v.c9;
+        this->c10 += v.c10;
+        this->c11 += v.c11;
+        this->c12 += v.c12;
+        this->c13 += v.c13;
+        this->c14 += v.c14;
+        this->c15 += v.c15;
+        return *this;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec16_t& operator-=(MVec16_t<U, mvec3dp_tag> const& v) noexcept
+    {
+        this->c0 -= v.c0;
+        this->c1 -= v.c1;
+        this->c2 -= v.c2;
+        this->c3 -= v.c3;
+        this->c4 -= v.c4;
+        this->c5 -= v.c5;
+        this->c6 -= v.c6;
+        this->c7 -= v.c7;
+        this->c8 -= v.c8;
+        this->c9 -= v.c9;
+        this->c10 -= v.c10;
+        this->c11 -= v.c11;
+        this->c12 -= v.c12;
+        this->c13 -= v.c13;
+        this->c14 -= v.c14;
+        this->c15 -= v.c15;
+        return *this;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec16_t& operator*=(U s) noexcept
+    {
+        this->c0 *= s;
+        this->c1 *= s;
+        this->c2 *= s;
+        this->c3 *= s;
+        this->c4 *= s;
+        this->c5 *= s;
+        this->c6 *= s;
+        this->c7 *= s;
+        this->c8 *= s;
+        this->c9 *= s;
+        this->c10 *= s;
+        this->c11 *= s;
+        this->c12 *= s;
+        this->c13 *= s;
+        this->c14 *= s;
+        this->c15 *= s;
+        return *this;
+    }
+
+    template <typename U>
+        requires(std::floating_point<U>)
+    MVec16_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
+    {
+        detail::check_division_by_zero<T, U>(s, "multivector division 16 comp.");
+        this->c0 /= s;
+        this->c1 /= s;
+        this->c2 /= s;
+        this->c3 /= s;
+        this->c4 /= s;
+        this->c5 /= s;
+        this->c6 /= s;
+        this->c7 /= s;
+        this->c8 /= s;
+        this->c9 /= s;
+        this->c10 /= s;
+        this->c11 /= s;
+        this->c12 /= s;
+        this->c13 /= s;
+        this->c14 /= s;
+        this->c15 /= s;
+        return *this;
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
