@@ -44,16 +44,18 @@ types for each algebra. Following types are provided:
 \begin{verbatim}
 namespace hd::ga {
 
-template <typename T> using Scalar2d = Scalar_t<T, scalar2d_tag>;
-template <typename T> using Vec2d = Vec2_t<T, vec2d_tag>;
-template <typename T> using PScalar2d = Scalar_t<T, pscalar2d_tag>;
-template <typename T> using MVec2d_E = MVec2_t<T, mvec2d_e_tag>;
-template <typename T> using MVec2d = MVec4_t<T, mvec2d_tag>;
+template <typename T> using Scalar2d
+                           = Scalar_t<T,scalar2d_tag>;
+template <typename T> using Vec2d = Vec2_t<T,vec2d_tag>;
+template <typename T> using PScalar2d
+                           = Scalar_t<T,pscalar2d_tag>;
+template <typename T> using MVec2d_E = MVec2_t<T,mvec2d_e_tag>;
+template <typename T> using MVec2d = MVec4_t<T,mvec2d_tag>;
 
 } // namespace hd::ga
 \end{verbatim}
 Based on these template aliases types like \path{Vec2d<T>} can be used directly. However,
-for further user convenience additional template specializations are defined in
+for increased user convenience additional template specializations have been defined in
 \path{ga/ga_usr_types.hpp} as
 \begin{verbatim}
 using scalar2d = Scalar2d<value_t>;
@@ -62,11 +64,11 @@ using pscalar2d = PScalar2d<value_t>;
 using mvec2d_e = MVec2d_E<value_t>;
 using mvec2d = MVec2d<value_t>;
 \end{verbatim}
-where \path{value_t} is defined centrally for the whole library in \path{ga/value_t.hpp}.
-Thus the user can simply select \path{value_t = double} (set as default value) or
-\path{float} for the library and the user application at one location. There is no need to
-use template parameters at all, if the user-defined types like \path{vec2d},
-\path{mvec2d}, etc. are used for the application. \\
+where \path{value_t} is defined for the whole library in \path{ga/value_t.hpp}. Thus the
+user can simply select \path{value_t = double} (set as default value) or \path{float} for
+the library and the user application at one location. There is no need to use template
+parameters at all, if the user-defined types like \path{scalar2, vec2d, pscalar2d,
+mvec2d_e}, and \path{mvec2d} are used for the application. \\
 
 All algebras follow the same pattern. Just to give a second example for $PGA3DP$ following
 user types are defined: \path{scalar3dp, vec3dp, bivec3dp, trivec3dp, pscalar3dp,
