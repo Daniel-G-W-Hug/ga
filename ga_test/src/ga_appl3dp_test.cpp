@@ -2,21 +2,16 @@
 
 #include "doctest/doctest.h"
 
-#include <chrono>
-#include <iostream>
-#include <tuple>
-#include <vector>
-
-#include "fmt/chrono.h"  // chrono support
-#include "fmt/format.h"  // formatting
-#include "fmt/ostream.h" // ostream support
-#include "fmt/ranges.h"  // support printing of (nested) containers & tuples
+#include <algorithm> // std::min, std::max
+#include <limits>    // std::numeric_limits
 
 // include functions to be tested
+#include "ga/ga_ega.hpp" // for cross product
 #include "ga/ga_pga.hpp"
 
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
+using namespace hd::ga::ega; // use specific operations of EGA (for cross product)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -29,6 +24,7 @@ TEST_SUITE("PGA3DP: application tests")
     TEST_CASE("pga3dp: reference and tumbling plane (for grinding application)")
     {
 
+        fmt::println("");
         fmt::println("pga3dp: reference and tumbling plane (for grinding application)");
         fmt::println("");
 
@@ -93,18 +89,26 @@ TEST_SUITE("PGA3DP: application tests")
     TEST_CASE("pga3dp: intersecting discs (for grinding application)")
     {
 
+        fmt::println("");
         fmt::println("pga3dp: intersecting discs (for grinding application)");
         fmt::println("");
 
         // to get started simple: no thickness of disc modelled, but assumed to have
         // material thickness in direction against normal vector of modelled plane
+        // ctor interface needs to be improved for practical use (distinguishable types)
         struct disc {
 
-            disc(vec3dp const& cp_in, double d_in, vec3dp const& u_in,
-                 vec3dp const& v_in) :
-                cp(cp_in), r(d_in / 2.0), u(u_in), v(v_in), B_uv(wdg(u, v)),
-                pl(wdg(cp, B_uv)), pl_normal(left_weight_dual(pl))
+            disc(vec3dp const& cp_in, double d_in, double r_min_in, double r_max_in,
+                 double rs_in, vec3dp const& u_in, vec3dp const& v_in) :
+                cp(cp_in), r(d_in / 2.0), r_min(r_min_in), r_max(r_max_in), rs(rs_in),
+                u(u_in), v(v_in), B_uv(wdg(u, v)), pl(wdg(cp, B_uv)),
+                pl_normal(left_weight_dual(pl))
             {
+                if (cp.w != 1.0)
+                    throw std::runtime_error("disc: cp must be a point (w=1).");
+                if (d_in <= 0.0) throw std::runtime_error("disc: invalid diameter.");
+                if (r_min < 0.0 || r_max < 0.0 || r_min > r_max || r > r_max)
+                    throw std::runtime_error("disc: invalid radius.");
                 if (dot(u, v) != 0.0)
                     throw std::runtime_error("disc: u and v must be perpendicular.");
                 if (bulk_nrm(u) != 1.0 || u.w != 0.0)
@@ -113,10 +117,13 @@ TEST_SUITE("PGA3DP: application tests")
                     throw std::runtime_error("disc: v must be a unit-vector.");
             }
 
-            vec3dp cp; // center point [mm]
-            double r;  // radius [mm]
-            vec3dp u;  // unit vector in plane of disc (local cs, u-direction)
-            vec3dp v;  // unit vector in plane of disc (local cs, v-direction, perp. to u)
+            vec3dp cp;    // center point [mm]
+            double r;     // radius [mm]
+            double r_min; // min radius [mm] (for tool with ring shape)
+            double r_max; // max radius [mm] (for tool with ring shape)
+            double rs;    // rotating speed [rad/s]
+            vec3dp u;     // unit vector in plane of disc (local cs, u-direction)
+            vec3dp v; // unit vector in plane of disc (local cs, v-direction, perp. to u)
 
             bivec3dp B_uv;    // bivector (calculated)
             trivec3dp pl;     // plane (calculated)
@@ -126,19 +133,26 @@ TEST_SUITE("PGA3DP: application tests")
         auto u = vec3dp{1, 0, 0, 0}; // unit vector in plane of disc
         auto v = vec3dp{0, 1, 0, 0}; // unit vector in plane of disc
 
+        // wafer is located on chuck
         // normal of plane of wafer showing upwards (towards e3)
-        // center point as reference point located on top of wafer
+        // center point (=reference point) is on top of wafer -> here: cp at origin
         // (wafer thickness would be going downwards, i.e. against direction of normal)
-        auto wafer = disc(O_3dp, 200, u, v); // wafer plane is identical with e12 plane
-                                             // located at origin
-                                             // 200 mm wafer diameter
+        // wafer plane is identical with e12 plane, rotation axis is e3
+        // wafer diameter is 200 mm
+        // wafer rotation speed is 300 rpm (defined by rotation speed of chuck)
+        // u and v define right-handed local coordinate system of disc
+        // (here identical with global coordinate system e1,e2 for untilted disc)
+        auto wafer = disc(O_3dp, 200.0, 0.0, 100.0, rpm2radps(300.0), u, v);
 
-        fmt::println("u               = {:>-8.5f}", u);
-        fmt::println("v               = {:>-8.5f}", v);
-        fmt::println("wafer.cp        = {}", wafer.cp);
-        fmt::println("wafer.r         = {}", wafer.r);
-        fmt::println("wafer.pl        = {:>-8.5f}", wafer.pl);
-        fmt::println("wafer.pl_normal = {:>-8.5f}", wafer.pl_normal);
+        fmt::println("wafer.cp         = {}", wafer.cp);
+        fmt::println("wafer.r [mm]     = {}", wafer.r);
+        fmt::println("wafer.r_min [mm] = {}", wafer.r_min);
+        fmt::println("wafer.r_max [mm] = {}", wafer.r_max);
+        fmt::println("wafer.rs [rad/s] = {}", wafer.rs);
+        fmt::println("wafer.pl         = {:>-8.5f}", wafer.pl);
+        fmt::println("wafer.pl_normal  = {:>-8.5f}", wafer.pl_normal);
+        fmt::println("u                = {:>-8.5f}", u);
+        fmt::println("v                = {:>-8.5f}", v);
         fmt::println("");
 
         // tool center
@@ -147,16 +161,25 @@ TEST_SUITE("PGA3DP: application tests")
         //                                 (-e3-comp. => volume becomes smaller)
         // u += vec3dp{0.0, 0.0, 0.005, 0};
         // u = u / to_val(bulk_nrm(u));
-        auto tool = disc(tc, 200, u, -v); // wafer plane is identical with -e12 plane
-                                          // located at tc
-                                          // 200 mm tool diameter
+        //
+        // wafer plane is identical with -e12 plane
+        // tool is located at tc
+        // tool diameter is 200 mm (r=100 mm)
+        // tool min radius is 95 mm (ring shape)
+        // tool max radius is 100 mm
+        // tool rotation speed is 2000 rpm (typical value for grinding is 1500-3000 rpm)
+        // u and v define right-handed local coordinate system of disc
+        auto tool = disc(tc, 200.0, 95.0, 100.0, rpm2radps(2000), u, -v);
 
-        fmt::println("u               = {:>-8.5f}", u);
-        fmt::println("v               = {:>-8.5f}", -v);
         fmt::println("tool.cp         = {}", tool.cp);
-        fmt::println("tool.r          = {}", tool.r);
+        fmt::println("tool.r [mm]     = {}", tool.r);
+        fmt::println("tool.r_min [mm] = {}", tool.r_min);
+        fmt::println("tool.r_max [mm] = {}", tool.r_max);
+        fmt::println("tool.rs [rad/s] = {}", tool.rs);
         fmt::println("tool.pl         = {:>-8.5f}", tool.pl);
         fmt::println("tool.pl_normal  = {:>-8.5f}", tool.pl_normal);
+        fmt::println("u               = {:>-8.5f}", u);
+        fmt::println("v               = {:>-8.5f}", -v);
         fmt::println("");
 
         // begin detour: just to show how it works, not directly needed here
@@ -172,6 +195,8 @@ TEST_SUITE("PGA3DP: application tests")
 
         auto volume = 0.0;
         auto area = 0.0;
+        double min_tot_speed = std::numeric_limits<double>::max();
+        double max_tot_speed = std::numeric_limits<double>::min();
 
         if (bulk_nrm(tool.cp - wafer.cp) < tool.r + wafer.r) {
 
@@ -180,20 +205,21 @@ TEST_SUITE("PGA3DP: application tests")
             // r- and phi-range could be reduced to actually needed range with a little
             // more effort
 
-            size_t nr = 250;
-            double dr = tool.r / nr;
+            size_t nr = 25; // number of steps in radial direction
+            double dr = (tool.r_max - tool.r_min) / nr;
 
-            size_t nphi = 720;
+            size_t nphi = 720;             // number of steps in angular direction
             double dphi = 2.0 * pi / nphi; // angle in rad
 
-            fmt::println("nr = {}, dr = {}, nphi = {}, dphi = {:>-8.5f}", nr, dr, nphi,
-                         dphi);
+            fmt::println("nr = {}, dr = {:>-8.5f}, nphi = {}, dphi = {:>-8.5f}", nr, dr,
+                         nphi, dphi);
             fmt::println("");
 
             for (size_t j = 0; j < nr; ++j) {
 
-                double r = j * dr;        // current inner radius
-                double rm = r + dr * 0.5; // mean radius for calculation of area
+                // integrate from r_min to r_max only
+                double r = tool.r_min + j * dr; // current inner radius
+                double rm = r + dr * 0.5;       // mean radius for calculation of area
 
                 for (size_t i = 0; i < nphi; ++i) {
 
@@ -201,7 +227,8 @@ TEST_SUITE("PGA3DP: application tests")
                     double phim = phi + dphi * 0.5; // mean angle f. calc. geom. centroid
 
                     double dA = rm * dphi * dr;
-                    // fmt::println("r = {}, phi = {}, da = {:>-8.5f}", r, phi, dA);
+                    // fmt::println("r = {}, phi = {:>-8.5f}, da = {:>-8.5f}", r, phi,
+                    // dA);
 
                     // calculate position of current geometric centroid
                     auto r_i_sq = r * r;               // inner radius r_i^2
@@ -245,24 +272,53 @@ TEST_SUITE("PGA3DP: application tests")
 
                             area += dA;
                             volume += dA * to_val(bulk_nrm(delta_vec));
+
+                            // calculate total speed at current position
+                            auto wafer_speed =
+                                wafer.rs * wafer.B_uv >> (cur_proj_pos - wafer.cp);
+
+                            auto tool_speed = tool.rs * tool.B_uv >> (cur_pos - tool.cp);
+                            auto tot_speed_vec = tool_speed + wafer_speed;
+                            auto tot_speed = to_val(bulk_nrm(tot_speed_vec));
+                            // fmt::println("wafer_speed = {:>-8.5f}, nrm = {:>-8.5f}",
+                            //              wafer_speed, to_val(bulk_nrm(wafer_speed)));
+                            // fmt::println("tool_speed  = {:>-8.5f}, nrm = {:>-8.5f}",
+                            //              tool_speed, to_val(bulk_nrm(tool_speed)));
+                            // fmt::println("tot_speed_vec = {:>-8.5f}, nrm = {:>-8.5f}",
+                            //              tot_speed_vec, tot_speed);
+                            // fmt::println("");
+
+                            if (tot_speed != 0.0) {
+                                min_tot_speed = std::min(min_tot_speed, tot_speed);
+                                max_tot_speed = std::max(max_tot_speed, tot_speed);
+                            }
                         }
                     }
                 }
             }
         }
 
-        double tool_area = pi * tool.r * tool.r;
-        fmt::println("area = {:>-8.5f} mm^2, tool_area = {:>-8.5f} mm^2", area,
-                     tool_area);
+        // double tool_area = pi * tool.r * tool.r;
+        // fmt::println("area = {:>-8.5f} mm^2, tool_area = {:>-8.5f} mm^2", area,
+        //              tool_area);
+        fmt::println("area = {:>-8.5f} mm^2", area);
         fmt::println("volume = {:>-8.5f} mm^3", volume);
-
+        fmt::println("min_tot_speed = {:>-8.5f} mm/s", min_tot_speed);
+        fmt::println("max_tot_speed = {:>-8.5f} mm/s", max_tot_speed);
+        fmt::println("");
+        fmt::println("wafer speed at r = {} mm = {:>-8.5f} mm/s", wafer.r_max,
+                     wafer.rs * wafer.r_max); // v = omega * r
+        fmt::println("tool  speed at r = {} mm = {:>-8.5f} mm/s", tool.r_max,
+                     tool.rs * tool.r_max); // v = omega * r
         fmt::println("");
     }
 
-    TEST_CASE("pga3dp: intersection of non-intersecting lines (rcmt)")
+    TEST_CASE("pga3dp: line perpendicular to non-intersecting lines (rcmt)")
     {
 
-        fmt::println("pga3dp: intersection of non-intersecting lines (rcmt)");
+        fmt::println("");
+        fmt::println("pga3dp: line perpendicular to non-intersecting lines (rcmt)");
+        fmt::println("");
 
         auto l1 = x_axis_3dp;
         auto l2 = wdg(vec3dp{0, 1, 0, 1}, vec3dp{0, 1, -1, 1});
@@ -273,6 +329,72 @@ TEST_SUITE("PGA3DP: application tests")
         fmt::println("l1 = {}", l1);
         fmt::println("l2 = {}", l2);
         fmt::println("l3 = {}", l3);
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: speed of rotation (via bivector)")
+    {
+
+        fmt::println("");
+        fmt::println("pga3dp: speed of rotation (via bivector)");
+        fmt::println("");
+
+        // rotating plane defined by point P and bivector B
+
+        // defined in EGA3D
+        auto omega_ega = cross(vec3d{1, 0.5, 0}, vec3d{0, 1, 0}); // normal of rot.-plane
+                                                                  // = rotation axis
+
+        omega_ega /= nrm(omega_ega); // normalize to length 1
+
+        auto r_ega = vec3d{1, 1, 0} / nrm(vec3d{1, 1, 0}); // relative vector to point
+                                                           // (direction only, length 1)
+
+        // defined in PGA3DP
+        auto B = wdg(vec3dp{1, 0.5, 0, 0}, vec3dp{0, 1, 0, 0}); // bivector in rot.-plane
+
+        // bulk_normalize B to prepare for multiplication with turning rate, if required
+        // (otherwise speed would be scaled with bulk_nrm(B))
+        B /= to_val(bulk_nrm(B));
+
+
+        double omega = rpm2radps(300); // angular speed in rad/s
+
+        omega_ega *= omega;     // angular velocity [rad/s] (encoded in axis of rotation)
+        auto Omega = omega * B; // bivector that encodes turing rate and plane of rotation
+
+
+        // speed v of rotation at point r relative to center of rotation
+        auto r = vec3dp{1, 1, 0, 0};
+        r /= to_val(bulk_nrm(r)); // normalize r to get direction vector of length 1
+
+        auto v1_ega = cross(omega_ega, r_ega); // speed calculated in EGA3D
+
+        auto v2 = Omega >> r;  // right contraction turns in direction of B (or Omega)
+        auto a2 = Omega >> v2; // acceleration vector (not used here)
+
+        // convert v1_ega to pga3dp type for comparison
+        auto v1 = vec3dp{v1_ega.x, v1_ega.y, v1_ega.z, 0};
+
+        CHECK(v1 == v2);
+
+        fmt::println("B = {}", B);
+        fmt::println("bulk(B)   = {}, bulk_nrm(B)   = {}", bulk(B), bulk_nrm(B));
+        fmt::println("weight(B) = {}, weight_nrm(B) = {}", weight(B), weight_nrm(B));
+        fmt::println("");
+        fmt::println("r = {}", r);
+        fmt::println("omega [rad/s]     = {}", omega);
+        fmt::println("omega_ega         = {}", omega_ega);
+        fmt::println("Omega = omega * B = {}", Omega);
+        fmt::println("");
+        fmt::println("v1_ega = omega * (omega_ega x r_ega) =  {}", v1_ega);
+        fmt::println("v1     = omega * (v1_ega, 1.0)       = {},       nrm(v1) = {}", v1,
+                     nrm(v1));
+        fmt::println("v2 = Omega >> r                      = {}, bulk_nrm(v2) = {}", v2,
+                     to_val(bulk_nrm(v2)));
+        fmt::println("a2 = Omega >> v2                     = {}, bulk_nrm(a2) = {}", a2,
+                     to_val(bulk_nrm(a2)));
 
         fmt::println("");
     }

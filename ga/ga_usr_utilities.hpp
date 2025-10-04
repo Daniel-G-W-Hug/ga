@@ -11,10 +11,32 @@ namespace hd::ga {
 
 using std::numbers::pi; // make pi available for users
 
+// conversion between degrees and radians [360° = 2*pi rad]
 constexpr value_t deg2rad(value_t value) { return value / 180.0 * pi; }
 constexpr value_t rad2deg(value_t value) { return value * 180.0 / pi; }
 
-constexpr value_t sign(value_t value) { return (value >= 0.0) ? 1.0 : -1.0; }
+// conversion between revolutions per minute [rpm] and radians per second [rad/s = radps]
+constexpr value_t rpm2radps(value_t value) { return value * 2.0 * pi / 60.0; };
+constexpr value_t radps2rpm(value_t value) { return value * 60.0 / (2.0 * pi); };
+
+// conversion between revolutions per second (rps) = Hertz [1 rps = 1 Hz = 1 1/s^(-1)] and
+// radians per second [rad/s = radps]
+constexpr value_t Hz2radps(value_t value) { return value * 2.0 * pi; };
+constexpr value_t radps2Hz(value_t value) { return value / (2.0 * pi); };
+
+// sign function for floating point types
+template <typename T>
+    requires(std::floating_point<T>)
+constexpr T sign(T value)
+{
+    if (value > 0.0) {
+        return 1.0;
+    }
+    if (value < 0.0) {
+        return -1.0;
+    }
+    return 0.0; // value == 0.0
+}
 
 // sign function overload for Scalar_t types
 template <typename T, typename Tag>
@@ -24,18 +46,25 @@ constexpr T sign(Scalar_t<T, Tag> s)
     return sign(T(s));
 }
 
-constexpr value_t kronecker(size_t i, size_t j) { return (i == j) ? 1.0 : 0.0; }
+// Kronecker delta function for value_t and int return types
+constexpr value_t kronecker(size_t i, size_t j)
+{
+    return (i == j) ? value_t(1.0) : value_t(0.0);
+}
+constexpr int kronecker_int(size_t i, size_t j) { return (i == j) ? 1 : 0; }
 
 // Templates for is_even and is_odd work with any integer type
-template <typename T> bool is_even(T arg)
+template <typename T>
+    requires(std::is_integral_v<T>) // is_even: argument must be an integral type
+bool is_even(T arg)
 {
-    static_assert(std::is_integral_v<T>, "is_even: argument must be an integral type");
     return arg % 2 == 0;
 }
 
-template <typename T> bool is_odd(T arg)
+template <typename T>
+    requires(std::is_integral_v<T>) // is_odd: argument must be an integral type
+bool is_odd(T arg)
 {
-    static_assert(std::is_integral_v<T>, "is_odd: argument must be an integral type");
     return arg % 2 != 0;
 }
 
