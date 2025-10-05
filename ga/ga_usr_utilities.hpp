@@ -25,17 +25,19 @@ constexpr value_t Hz2radps(value_t value) { return value * 2.0 * pi; };
 constexpr value_t radps2Hz(value_t value) { return value / (2.0 * pi); };
 
 // sign function for floating point types
+// returns +1.0 for value >= 0.0 and -1.0 for value < 0.0
+// HINT: this is intentionally NOT the typical signum function
+//       returning 0.0 for value == 0.0
 template <typename T>
     requires(std::floating_point<T>)
 constexpr T sign(T value)
 {
-    if (value > 0.0) {
+    if (value >= 0.0) {
         return 1.0;
     }
     if (value < 0.0) {
         return -1.0;
     }
-    return 0.0; // value == 0.0
 }
 
 // sign function overload for Scalar_t types
@@ -45,13 +47,6 @@ constexpr T sign(Scalar_t<T, Tag> s)
 {
     return sign(T(s));
 }
-
-// Kronecker delta function for value_t and int return types
-constexpr value_t kronecker(size_t i, size_t j)
-{
-    return (i == j) ? value_t(1.0) : value_t(0.0);
-}
-constexpr int kronecker_int(size_t i, size_t j) { return (i == j) ? 1 : 0; }
 
 // Templates for is_even and is_odd work with any integer type
 template <typename T>
