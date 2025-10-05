@@ -266,9 +266,9 @@ TEST_SUITE("PGA3DP: application tests")
                         // fmt::println("delta_vec = {}", delta_vec);
 
                         if (sign(dot(delta_vec, tool.pl_normal)) == 1) {
-                            // only if delta vec is aligned with direction of tool normal
-                            // vector there is a real overlap of the materials of wafer
-                            // and tool
+                            // only if delta vec is aligned with the direction of tool
+                            // normal vector there is a real overlap of the materials of
+                            // wafer and tool
 
                             area += dA;
                             volume += dA * to_val(bulk_nrm(delta_vec));
@@ -329,7 +329,19 @@ TEST_SUITE("PGA3DP: application tests")
         fmt::println("l1 = {}", l1);
         fmt::println("l2 = {}", l2);
         fmt::println("l3 = {}", l3);
+        fmt::println("");
 
+        // use the opportunity to test the sign function
+        fmt::println("sign(val) yields +1.0 for val >= 0.0 and -1.0 for val < 0.0).");
+        fmt::println("val==0 is always regarded as positive sign:");
+        fmt::println("sign(l2.vx) = {} (postive zero)", sign(l2.vx));
+        fmt::println("sign(l2.vz) = {} (negative one)", sign(l2.vz));
+        fmt::println("sign(l3.vx) = {} (negative zero)", sign(l3.vx));
+        fmt::println("sign(l3.vy) = {} (postive one)", sign(l3.vy));
+        CHECK(sign(l2.vx) == 1.0);
+        CHECK(sign(l2.vz) == -1.0);
+        CHECK(sign(l3.vx) == 1.0);
+        CHECK(sign(l3.vy) == 1.0);
         fmt::println("");
     }
 
