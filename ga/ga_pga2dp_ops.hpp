@@ -372,7 +372,7 @@ constexpr Line2d<std::common_type_t<T, U>> expand(Point2d<T> const& p, Line2d<U>
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Projections for 2dp:
+// Projections for 2dp: (HINT: unitize after projection, if not at infinity)
 //
 // ortho_proj2dp(a, b)     = rwdg(b, right_weight_expand2dp(a, b) )
 // (a projected orthogonally onto b, effectively creating a new a' contained in b)
@@ -391,19 +391,34 @@ constexpr Line2d<std::common_type_t<T, U>> expand(Point2d<T> const& p, Line2d<U>
 
 template <typename arg1, typename arg2> decltype(auto) ortho_proj2dp(arg1&& a, arg2&& b)
 {
-
     // REQUIRES: gr(a) < gr(b), or does not compile!
+
     // project the smaller grade object onto to larger grade object
-    return rwdg(std::forward<arg2>(b),
-                right_weight_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+    auto p = rwdg(std::forward<arg2>(b),
+                  right_weight_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+
+    // return a unitized object, if it is not located in the horizon
+    if (weight_nrm_sq(p) != 0.0) {
+        p = unitize(p);
+    }
+
+    return p;
 }
 
 template <typename arg1, typename arg2> decltype(auto) central_proj2dp(arg1&& a, arg2&& b)
 {
     // REQUIRES: gr(a) < gr(b), or does not compile!
+
     // project the smaller grade object onto to larger grade object
-    return rwdg(std::forward<arg2>(b),
-                right_bulk_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+    auto p = rwdg(std::forward<arg2>(b),
+                  right_bulk_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+
+    // return a unitized object, if it is not located in the horizon
+    if (weight_nrm_sq(p) != 0.0) {
+        p = unitize(p);
+    }
+
+    return p;
 }
 
 template <typename arg1, typename arg2>
@@ -477,6 +492,8 @@ constexpr BiVec2dp<std::common_type_t<T, U>> invert_on(BiVec2dp<T> const& l,
 template <typename arg1> decltype(auto) support2dp(arg1&& a)
 {
     // REQUIRES: a line (BiVec2dp) as argument
+
+    // project origin onto line
     return ortho_proj2dp(O_2dp, std::forward<arg1>(a));
 }
 

@@ -27,7 +27,7 @@ constexpr value_t radps2Hz(value_t value) { return value / (2.0 * pi); };
 // sign function for floating point types
 // returns +1.0 for value >= 0.0 and -1.0 for value < 0.0
 // HINT: this is intentionally NOT the typical signum function
-//       returning 0.0 for value == 0.0
+//       which returns 0.0 for value == 0.0
 template <typename T>
     requires(std::floating_point<T>)
 constexpr T sign(T value)
@@ -35,9 +35,7 @@ constexpr T sign(T value)
     if (value >= 0.0) {
         return 1.0;
     }
-    if (value < 0.0) {
-        return -1.0;
-    }
+    return -1.0;
 }
 
 // sign function overload for Scalar_t types
