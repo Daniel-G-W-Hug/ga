@@ -21,9 +21,9 @@ using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
 
 // Include dimension-specific test files
-#include "ga_ega2d_test.cpp"
-#include "ga_ega3d_test.cpp"
-#include "ga_ega4d_test.cpp"
+#include "ga_ega2d_test.hpp"
+#include "ga_ega3d_test.hpp"
+#include "ga_ega4d_test.hpp"
 
 
 /////////////////////////////////////////////////////////////////////////////////////////

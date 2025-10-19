@@ -632,7 +632,7 @@ constexpr Plane3d<std::common_type_t<T, U>> expand(Line3d<T> const& line,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Projections for 3dp:
+// Projections for 3dp: (HINT: unitize after projection, if not at infinity)
 //
 // ortho_proj3dp(a, b)     = rwdg(b, right_weight_expand3dp(a, b) )
 // (a projected orthogonally onto b, effectively creating a new a' contained in b)
@@ -652,19 +652,34 @@ constexpr Plane3d<std::common_type_t<T, U>> expand(Line3d<T> const& line,
 
 template <typename arg1, typename arg2> decltype(auto) ortho_proj3dp(arg1&& a, arg2&& b)
 {
-
     // REQUIRES: gr(a) < gr(b), or does not compile!
+
     // project the smaller grade object onto to larger grade object
-    return rwdg(std::forward<arg2>(b),
-                right_weight_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+    auto p = rwdg(std::forward<arg2>(b),
+                  right_weight_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+
+    // return a unitized object, if it is not located in the horizon
+    if (weight_nrm_sq(p) != 0.0) {
+        p = unitize(p);
+    }
+
+    return p;
 }
 
 template <typename arg1, typename arg2> decltype(auto) central_proj3dp(arg1&& a, arg2&& b)
 {
     // REQUIRES: gr(a) < gr(b), or does not compile!
+
     // project the smaller grade object onto to larger grade object
-    return rwdg(std::forward<arg2>(b),
-                right_bulk_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+    auto p = rwdg(std::forward<arg2>(b),
+                  right_bulk_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+
+    // return a unitized object, if it is not located in the horizon
+    if (weight_nrm_sq(p) != 0.0) {
+        p = unitize(p);
+    }
+
+    return p;
 }
 
 template <typename arg1, typename arg2>
