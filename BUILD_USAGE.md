@@ -3,6 +3,7 @@
 ## Quick Start
 
 ### Default Configuration (Recommended)
+
 ```bash
 mkdir -p build && cd build
 cmake ..
@@ -10,6 +11,7 @@ cmake --build .
 ```
 
 This automatically:
+
 - Uses system dependencies when available (macOS: homebrew, Windows: vcpkg)
 - Falls back to FetchContent for missing dependencies
 - Shows clear summary of what was found/downloaded
@@ -30,6 +32,7 @@ cmake .. -DGA_USE_READLINE=OFF
 ## Platform-Specific Setup
 
 ### macOS (Homebrew)
+
 ```bash
 # Required dependencies
 brew install qt6 lua
@@ -39,6 +42,7 @@ brew install fmt doctest readline
 ```
 
 ### Windows (vcpkg recommended)
+
 ```bash
 # Install Qt6 from qt.io installer
 # Install Lua from lua.org
@@ -48,6 +52,7 @@ vcpkg install fmt doctest sol2 readline-win32 --triplet x64-windows
 ```
 
 ### Linux (Ubuntu/Debian)
+
 ```bash
 # Required dependencies
 sudo apt-get install qt6-base-dev qt6-tools-dev lua5.1-dev
@@ -59,17 +64,20 @@ sudo apt-get install libfmt-dev libdoctest-dev libreadline-dev
 ## Build System Benefits
 
 ### ✅ Fixed Issues
+
 - **Lua Linking**: Fixed scoping issues with CMake functions vs macros
 - **sol2 Compatibility**: Updated to development branch for C++23 support
 - **Cross-Platform**: Works consistently across macOS, Windows, Linux
 
 ### ✅ New Features
+
 - **Flexible Dependencies**: System-first with FetchContent fallback
 - **User Control**: Multiple build configuration options
 - **Clear Feedback**: Detailed dependency resolution messages
 - **Version Pinning**: Stable versions for FetchContent dependencies
 
 ### ✅ Developer Experience
+
 - **Just Works**: Default configuration handles most scenarios
 - **CI/CD Ready**: Force FetchContent for reproducible builds
 - **Informative**: Clear error messages with installation instructions
@@ -103,7 +111,7 @@ No changes needed to your existing scripts or documentation.
 
 After running `cmake ..`, you'll see a helpful summary:
 
-```
+```text
 GA Project Configuration Summary:
 =================================
 Build type: Debug

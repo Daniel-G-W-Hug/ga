@@ -1,0 +1,15 @@
+-- demo of inversion using GA
+local u = vec2d.new(2,1)
+local z = vec2d.new(1,0)*u -- Z = e1*u (equivalent to a complex number)
+--
+print("u = ", u)
+print()
+print("inv(u)   = ", inv(u))
+print("u*inv(u) = ",u*inv(u), "gr0(u*inv(u)) = ",gr0(u*inv(u)))
+print("inv(u)*u = ",inv(u)*u, "gr0(inv(u)*u) = ",gr0(inv(u)*u))
+print()
+print()
+print("z = ", z)
+print()
+print("inv(z) = ", inv(z))
+print("z*inv(z) = ", z*inv(z))

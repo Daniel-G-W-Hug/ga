@@ -44,6 +44,7 @@ TEST_SUITE("PGA2DP: comparison tests")
             CHECK(is_congruent2dp(xv, -1.2 * xv));
             CHECK(is_congruent2dp(xp, 3.2 * xp));
             CHECK(is_congruent2dp(xp, -1.2 * xp));
+            fmt::println("");
         }
 
         {
@@ -61,6 +62,7 @@ TEST_SUITE("PGA2DP: comparison tests")
             CHECK(P - Q == xp - xq);                 // point difference = direction
             CHECK(P + Q == 2.0 * O_2dp + (xp + xq)); // weighted point
             CHECK(CG == O_2dp + 0.5 * (xp + xq));    // center of gravity
+            fmt::println("");
         }
 
         {
@@ -75,8 +77,8 @@ TEST_SUITE("PGA2DP: comparison tests")
             auto Q = vec2dp{2.0, 1.4, 1.0};
 
 
-            auto M =
-                to_val(bulk_nrm(xp) * bulk_nrm(xq) * sin(angle(xp, xq)) * sign(wdg(xp, xq).z));
+            auto M = to_val(bulk_nrm(xp) * bulk_nrm(xq) * sin(angle(xp, xq)) *
+                            sign(wdg(xp, xq).z));
 
             fmt::println("angle(xp, xq)       = {}°", rad2deg(angle(xp, xq)));
             fmt::println("wdg(xp, xq)         = {}", wdg(xp, xq));
@@ -100,7 +102,6 @@ TEST_SUITE("PGA2DP: comparison tests")
             fmt::println("wdg(P, Q)         = {}", wdg(P, Q));
             fmt::println("att(wdg(P, Q))    = {}", att(wdg(P, Q)));
             fmt::println("bulk(wdg(P, Q))   = {}", bulk(wdg(P, Q)));
-
             fmt::println("");
         }
 
@@ -127,8 +128,6 @@ TEST_SUITE("PGA2DP: comparison tests")
                                                        // of bound vector
             fmt::println("L         = {}", L);
             fmt::println("L_shifted = {}", L_shifted);
-
-
             fmt::println("");
         }
 
@@ -166,9 +165,54 @@ TEST_SUITE("PGA2DP: comparison tests")
             fmt::println("Lp = {}", Lp);
             fmt::println("att(Lp) = {}", att(Lp));   // direction vector
             fmt::println("bulk(Lp) = {}", bulk(Lp)); // resulting moment w.r.t. origion
+            fmt::println("");
         }
 
-        fmt::println("");
+        {
+            fmt::println("pga2dp: ega2d comparison tests (contractions)");
+
+            auto u = vec2d{1, 0};
+            auto v = vec2d{0, 1};
+            auto uv = wdg(u, v);
+
+            fmt::println("u  = {}, nrm(u)  = {}", u, nrm(u));
+            fmt::println("v  = {}, nrm(v)  = {}", v, nrm(v));
+            fmt::println("uv = {}, nrm(uv) = {}", uv, nrm(uv));
+            fmt::println("");
+            fmt::println("uv >> u = {}", uv >> u);
+            fmt::println("uv >> v = {}", uv >> v);
+            fmt::println("u << uv = {}", u << uv);
+            fmt::println("v << uv = {}", v << uv);
+            fmt::println("");
+
+            CHECK(rwdg(left_dual(u), uv) == u << uv); // left contractions
+            CHECK(rwdg(left_dual(v), uv) == v << uv);
+            CHECK(rwdg(uv, right_dual(u)) == uv >> u); // right contractions
+            CHECK(rwdg(uv, right_dual(v)) == uv >> v);
+
+            auto up = vec2dp{1, 0, 0};
+            auto vp = vec2dp{0, 1, 0};
+            auto uvp = wdg(up, vp);
+
+            fmt::println("up  = {}, nrm(up)  = {}", up, nrm(up));
+            fmt::println("vp  = {}, nrm(vp)  = {}", vp, nrm(vp));
+            fmt::println("uvp = {}, nrm(uvp) = {}", uvp, nrm(uvp));
+            fmt::println("");
+            fmt::println("uvp >> up = {}", uvp >> up);
+            fmt::println("uvp >> vp = {}", uvp >> vp);
+            fmt::println("up << uvp = {}", up << uvp);
+            fmt::println("vp << uvp = {}", vp << uvp);
+            fmt::println("");
+
+            CHECK(rwdg(bulk_dual(up), uvp) == up << uvp);
+            CHECK(rwdg(bulk_dual(vp), uvp) == vp << uvp);
+            CHECK(rwdg(bulk_dual(up), uvp) == left_bulk_contract2dp(up, uvp));
+            CHECK(rwdg(bulk_dual(vp), uvp) == left_bulk_contract2dp(vp, uvp));
+            CHECK(rwdg(uvp, bulk_dual(up)) == uvp >> up);
+            CHECK(rwdg(uvp, bulk_dual(vp)) == uvp >> vp);
+            CHECK(rwdg(uvp, bulk_dual(up)) == right_bulk_contract2dp(uvp, up));
+            CHECK(rwdg(uvp, bulk_dual(vp)) == right_bulk_contract2dp(uvp, vp));
+        }
     }
 
 } // EGA2D PGA2DP Comparison Tests

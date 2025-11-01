@@ -2347,4 +2347,23 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(rtwdg1(s, v) == wdg(left_dual(v), s));  // expansion expressed as wdg prod.
     }
 
+    TEST_CASE("G<2,0,0>: wegde and gpr inverse combined")
+    {
+        fmt::println("G<2,0,0>: wegde and gpr inverse combined");
+
+        auto u = vec2d{3, 1};
+        auto v = vec2d{2, 5};
+        auto uv = wdg(u, v);
+
+        fmt::println("u   = {}, nrm(u)  = {}", u, nrm(u));
+        fmt::println("v   = {}, nrm(v)  = {}", v, nrm(v));
+        fmt::println("u^v = {}, nrm(uv) = {}", uv, nrm(uv));
+        fmt::println("");
+        fmt::println("d = (u^v) * inv(v) = {}, nrm((u^v) * inv(v)) = {}", uv * inv(v),
+                     nrm(uv * inv(v)));
+        fmt::println("h = inv(u) * (u^v) = {}, nrm(inv(u) * (u^v)) = {}", inv(u) * uv,
+                     nrm(inv(u) * uv));
+        fmt::println("");
+    }
+
 } // EGA 2D Tests
