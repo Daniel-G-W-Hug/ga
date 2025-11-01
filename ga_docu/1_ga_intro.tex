@@ -5,14 +5,14 @@ The ga library is intended to make Geometric Algebra (GA) more accessible by pro
 functionality for numerical calculations required for simulation of physical systems. \\
 
 It implements functionality for two- and three-dimensional spaces with Euclidean geometry.
-Currently, it provides data types and operations to handle the algebras of regular
-Euclidean geometric algebra $(ega2d, ega3d)$ and projective Euclidean geometric algebra
-$(pga2dp, pga3dp)$. The library handles fully populated multivectors, even and odd grade
+Currently, it provides data types and operations to handle the algebras of Euclidean
+geometric algebra $(ega2d, ega3d)$ and projective Euclidean geometric algebra $(pga2dp,
+pga3dp)$. The library efficiently handles fully populated multivectors, even and odd grade
 multivectors as well as their components like scalars, vectors, bivectors, trivectors, and
-pseudoscalars of the corresponding linear spaces efficiently. It also provides operations
-to work with these objects. It was designed with easy extensibility in mind and can be
-extended to provide functionality for handling additional algebras, e.g. spacetime algebra
-$(STA)$, with limited effort. \\
+pseudoscalars of the corresponding linear spaces. It also provides operations to work with
+these objects. It was designed with easy extensibility in mind and can be extended to
+provide functionality for handling additional algebras, e.g. spacetime algebra $(STA)$,
+with limited effort. \\
 
 The main library is a header only library in the \path{ga} sub-folder of the library which
 can be
@@ -99,10 +99,11 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
     The inner product combines arguments of the same type and grade, while the interior
     products involve duals of one of their arguments, combining and linking arguments of
     different grades. Inner products are linked to the metric of the modelled space. 
-    \item The outer product ($a \wedge b$) is a grade-increasing operation adding the grades of its
-    arguments. Outer products, like the wedge product, connect subspaces represented by
-    their operands and create new subspaces defined by the span of the subspaces of the
-    operands. They establish a join-operation between the involved subspaces.
+    \item The outer product ($a \wedge b$) is a grade-increasing operation adding the
+    grades of its arguments. Outer products, like the wedge product, connect subspaces
+    represented by their operands and create new subspaces defined by the span of the
+    subspaces of the operands. They establish a join-operation between the involved
+    subspaces.
     \item The geometric product ($a \wedgedot b$) is the combination of both types of
     products in one expression. They can result in multivectors consisting of parts with
     different grades as result of the operation. The main advantage of the geometric
@@ -184,5 +185,23 @@ expressions for specific argument types like scalars, vector, bivectors, etc. ca
 generated based on those product tables using configuration options of
 \path{ga/ga_prdxpr}. \\
 
+$PGA$ explicitly means Projective Geometric Algebra in the context of the ga library.
+There is also an alternative approach called Plane-based Geometric Algebra (also
+abbreviated $PGA$) that is based on a space that is dual to the space modelled and used
+here. The alternative approach was introduced by~\cite{Gunn_PGA:2020} and further promoted
+for applications in projective geometry
+by~\cite{Dorst_deKennick_A_guided_tour_to_PGA:2022}. That model uses dual representations
+of primarily used geometric objects represented in the algebra. Planes are used instead of
+vectors to model everything, e.g. a point is modelled by three planes intersecting in a
+point. Both representations are mathematically equivalent, i.e. dual to each other. They
+are linked by the definition of complements and the interconnection between geometric and
+regressive geometric product, as defined above: $a \veedot b \equiv \underline{\bar{a}
+\wedgedot \bar{b}}$. In the plane-based approach the geometric product is used to operate
+on complements and duals, which are defined as the primary objects used for the approach,
+while the approach introduced by Lengyel in~\cite{Lengyel_pga-illuminated:2024} favors the
+use of points, vectors, bivectors and planes plus the explicit use of regressive products
+and complements as well as duals for applying geometric operations to these objects. The
+latter approach unifies the use of the wedge product for join operations and of the
+regressive wedge product for meet operations for application in $EGA$ and $PGA$. \\
 
 \newpage
