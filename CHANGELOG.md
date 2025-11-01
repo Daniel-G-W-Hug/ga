@@ -66,3 +66,15 @@
            through reordered examples in ga_view; refined Windows/vcpkg integration;
            optimized fmt library integration using nested_formatter for proper GA type
            formatting; automatically generate algebra rules in ga_prdxpr
+- 2025/10: restructured multivector type system eliminating cross-tag comparison
+           requirements on GCC within the algebra-specific headers (mvec2d, mvec3d,
+           mvec2dp, mvec3dp, mvec4d); reorganized test suite converting implementation
+           files to header-only structure for better modularity; revised projection
+           operations in pga2dp and pga3dp; enhanced documentation covering user-defined
+           types, projective vs plane-based geometric algebra distinctions, and expanded
+           literature database; added comprehensive demo scripts to ga_lua (contraction,
+           reflection, rotation, inversion, expansion examples); further developed
+           grinding tool application with improved overlap calculations and enhanced
+           utility functions; test case added to show how to recover the perpendicular
+           distance from a bivector created with the wedge product by applying the
+           geometric product
