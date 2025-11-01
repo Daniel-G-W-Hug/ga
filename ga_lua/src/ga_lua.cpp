@@ -167,6 +167,7 @@ int main(int argc, char* argv[])
                 return 1;
             }
             script_file = arg;
+            use_default_script = false; // User provided a script, not using default
         }
     }
 

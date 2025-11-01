@@ -553,8 +553,11 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         else if (product_name == "lcontract") {
             // A << B = rwdg(lcmpl(A), B)
             //        = lcmpl( wdg( rcmpl(lcmpl(A)), rcmpl(B) ) )
-            auto lhs = apply_rules_to_mv(apply_rules_to_mv(mv2d_basis, lcmpl_ega2d_rules),
-                                         rcmpl_ega2d_rules);
+            //        = lcmpl( wdg(             A,   rcmpl(B) ) )
+            //
+            // auto lhs = apply_rules_to_mv(apply_rules_to_mv(mv2d_basis,
+            // lcmpl_ega2d_rules), rcmpl_ega2d_rules);
+            auto lhs = mv2d_basis;
             auto rhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega2d_rules);
