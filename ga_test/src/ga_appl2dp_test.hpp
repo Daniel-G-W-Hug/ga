@@ -26,58 +26,120 @@ using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 TEST_SUITE("PGA2DP: application tests")
 {
 
-    TEST_CASE("pga2dp: application tests - steering angle application")
+    TEST_CASE("pga2dp: application tests - Ackermann steering angle application")
     {
-        fmt::println("pga2dp: application tests - steering angle application");
+        fmt::println("pga2dp: application tests - Ackermann steering angle application");
 
         // wheel positions rear (pr) and front (pf)
         constexpr double track = 2.0;
         constexpr double wheelbase = 3.0;
-        // rear wheel positions
-        auto prl = point2dp{-0.5 * track, 0, 1};
-        auto prr = point2dp{0.5 * track, 0, 1};
-        // front wheel postitions
-        auto pfl = point2dp{-0.5 * track, wheelbase, 1};
-        auto pfr = point2dp{0.5 * track, wheelbase, 1};
+        // wheel positions (r: rear, f: front, l:left, r:right )
+        auto p_rl = point2dp{-0.5 * track, 0, 1};
+        auto p_rr = point2dp{0.5 * track, 0, 1};
+        auto p_fl = point2dp{-0.5 * track, wheelbase, 1};
+        auto p_fr = point2dp{0.5 * track, wheelbase, 1};
 
         // rear axis - connecting left and right rear wheels
-        auto axis_r = unitize(wdg(prl, prr));
+        auto axis_r = unitize(wdg(p_rl, p_rr));
 
         const int step_max = 10;
-        const double max_angle_deg = 30;
+        const double max_angle_deg = 25;
 
         // right front wheel direction defines turning angle
         for (int n = -step_max; n <= step_max; ++n) {
-            // for (int n = 0; n <= step_max; ++n) {
 
-            // steering angle phi of right front wheel
-            double phi = n * deg2rad(max_angle_deg) / step_max;
+            // steering angle phi_fr of right front wheel
+            double phi_fr = n * deg2rad(max_angle_deg) / step_max;
 
             // axis of right front wheel defined by postion and direction
-            auto axis_fr = unitize(wdg(pfr, vec2dp(cos(phi), sin(phi), 0)));
+            auto axis_fr = unitize(wdg(p_fr, vec2dp(cos(phi_fr), sin(phi_fr), 0)));
 
             // turning center is intersection point of both axis
             auto turn_ctr = rwdg(axis_r, axis_fr);
-            // unitize to get projective point for phi != 0
+            // unitize to get projective point for phi_fr != 0 (i.e. not at infinity)
             if (abs(turn_ctr.z) > eps) {
                 turn_ctr = unitize(turn_ctr);
             }
 
             // now create axis_fl from turning point and position of left front wheel
-            auto axis_fl = unitize(wdg(turn_ctr, pfl));
+            auto axis_fl = unitize(wdg(turn_ctr, p_fl));
 
             fmt::print("n = {:>3}", n);
-            if (phi <= 0.0) {
-                fmt::print(", phi_l = {:>-5.1f}°", rad2deg(angle(axis_r, axis_fl)) - 180);
+            if (phi_fr <= 0.0) {
+                fmt::print(", phi_fl = {:>-5.1f}°",
+                           rad2deg(angle(axis_r, axis_fl)) - 180);
             }
             else {
-                fmt::print(", phi_l = {:>-5.1f}°", rad2deg(angle(axis_r, axis_fl)));
+                fmt::print(", phi_fl = {:>-5.1f}°", rad2deg(angle(axis_r, axis_fl)));
             }
-            fmt::print(", phi_r (deg) = {:>-5.1f}°", rad2deg(phi));
-            // fmt::print(", att(axis_fr) = {:>-6.3f}", att(axis_fr));
-            // fmt::print(", axis_fr = {:>-8.3f}", axis_fr);
-            // fmt::print(", axis_fl = {:>-8.3f}", axis_fl);
+            fmt::print(", phi_fr = {:>-5.1f}°", rad2deg(phi_fr));
             fmt::println(", turn_ctr = {:>-8.3f}", turn_ctr);
+        }
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: application tests - Four wheel steering angle application")
+    {
+        fmt::println("pga2dp: application tests - Four wheel steering angle application");
+
+        // wheel positions rear (pr) and front (pf)
+        constexpr double track = 2.0;
+        constexpr double wheelbase = 3.0;
+        // wheel positions (r: rear, f: front, l:left, r:right )
+        auto p_rl = point2dp{-0.5 * track, 0, 1};
+        auto p_rr = point2dp{0.5 * track, 0, 1};
+        auto p_fl = point2dp{-0.5 * track, wheelbase, 1};
+        auto p_fr = point2dp{0.5 * track, wheelbase, 1};
+
+        // rear axis - virtually set to 20% of wheelbase in front of rear wheels
+        auto axis_r = unitize(wdg(point2dp{0, 0.2 * wheelbase, 1}, vec2dp{1, 0, 0}));
+
+        const int step_max = 10;
+        const double max_angle_deg = 25;
+
+        // right front wheel direction defines turning angle
+        for (int n = -step_max; n <= step_max; ++n) {
+
+            // steering angle phi_fr of right front wheel
+            double phi_fr = n * deg2rad(max_angle_deg) / step_max;
+
+            // axis of right front wheel defined by postion and direction
+            auto axis_fr = unitize(wdg(p_fr, vec2dp(cos(phi_fr), sin(phi_fr), 0)));
+
+            // turning center is intersection point of both axis
+            auto turn_ctr = rwdg(axis_r, axis_fr);
+            // unitize to get projective point for phi_fr != 0 (i.e. not at infinity)
+            if (abs(turn_ctr.z) > eps) {
+                turn_ctr = unitize(turn_ctr);
+            }
+
+            // now create axis from turning point and position of remaining wheels
+            auto axis_fl = unitize(wdg(turn_ctr, p_fl));
+            auto axis_rl = unitize(wdg(turn_ctr, p_rl));
+            auto axis_rr = unitize(wdg(turn_ctr, p_rr));
+
+            fmt::print("n = {:>3}", n);
+            if (phi_fr <= 0.0) {
+                fmt::print(", phi_fl = {:>-5.1f}°",
+                           rad2deg(angle(axis_r, axis_fl)) - 180);
+            }
+            else {
+                fmt::print(", phi_fl = {:>-5.1f}°", rad2deg(angle(axis_r, axis_fl)));
+            }
+            fmt::print(", phi_fr = {:>-5.1f}°", rad2deg(phi_fr));
+            fmt::println(", turn_ctr = {:>-8.3f}", turn_ctr);
+
+            if (phi_fr <= 0.0) {
+                fmt::print("         phi_rl = {:>-5.1f}°",
+                           -rad2deg(angle(axis_r, axis_rl)) + 180);
+                fmt::println(", phi_rr = {:>-5.1f}°",
+                             -rad2deg(angle(axis_r, axis_rr)) + 180);
+            }
+            else {
+                fmt::print("         phi_rl = {:>-5.1f}°",
+                           -rad2deg(angle(axis_r, axis_rl)));
+                fmt::println(", phi_rr = {:>-5.1f}°", -rad2deg(angle(axis_r, axis_rr)));
+            }
         }
         fmt::println("");
     }

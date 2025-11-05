@@ -29,6 +29,9 @@ namespace hd::ga::pga {
 // - right_bulk_contract3dp()   -> right bulk contraction
 // - right_weight_contract3dp() -> right weight contraction
 //
+// Bulk expansions are the regressive versions of the corresponding weight contractions.
+// Weight expansions are the regressive versions of the corresponding bulk contractions.
+//
 // - left_bulk_expand3dp()      -> left bulk expansion
 // - left_weight_expand3dp()    -> left weight expansion
 // - right_bulk_expand3dp()     -> right bulk expansion
