@@ -515,7 +515,10 @@ ProductConfig get_pga3dp_right_weight_expand_config()
             .display_name = "right weight expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {},
+            .cases = {{"right_weight_expand(bivec,trivec) -> trivec", "svBtps1",
+                       "svBtps2", "bivec", "trivec"},
+                      {"right_weight_expand(vec,trivec) -> bivec", "svBtps1", "svBtps2",
+                       "vec", "trivec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

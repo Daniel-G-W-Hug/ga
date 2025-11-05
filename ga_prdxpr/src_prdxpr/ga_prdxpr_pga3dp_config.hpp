@@ -26,6 +26,9 @@ ProductConfig get_pga3dp_right_bulk_contract_config();   // right bulk contracti
 ProductConfig get_pga3dp_left_weight_contract_config();  // left weight contraction
 ProductConfig get_pga3dp_right_weight_contract_config(); // right weight contraction
 
+// Bulk expansions are the regressive versions of the corresponding weight contractions.
+// Weight expansions are the regressive versions of the corresponding bulk contractions.
+//
 ProductConfig get_pga3dp_left_bulk_expand_config();    // left bulk expansion
 ProductConfig get_pga3dp_right_bulk_expand_config();   // right bulk expansion
 ProductConfig get_pga3dp_left_weight_expand_config();  // left weight expansion
