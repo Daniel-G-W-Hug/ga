@@ -206,9 +206,10 @@ get_motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> move3dp(Vec3dp<T> const& v,
-                                                   MVec3dp_E<U> const& R)
+                                                   MVec3dp_E<U> const& M)
 {
-    // assumes: motor R is unitized
+    // motor M must be unitized to avoid surprises
+    auto R = unitize(M);
 
     // moves v (a vector representing a projective point) according to the motor R
     using ctype = std::common_type_t<T, U>;
@@ -239,6 +240,22 @@ constexpr TriVec3dp<std::common_type_t<T, U>> move3dp(TriVec3dp<T> const& t,
     // moves t (a trivector representing a plane) according to the motor R
     using ctype = std::common_type_t<T, U>;
     return TriVec3dp<ctype>(gr3(rgpr(rgpr(R, t), rrev(R))));
+}
+
+// rotate a motor (required for robotics applications using kinematic chains)
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> move3dp(MVec3dp_E<T> const& M_orig,
+                                                      MVec3dp_E<U> const& M)
+{
+    // motor M must be unitized to avoid surprises
+    auto R = unitize(M);
+
+    // moves M_orig (a motor) according to the motor R
+    // e.g. kinematic chains in robotics application with coupled joints
+    // effectively "rotating the rotation direction"
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(rgpr(rgpr(R, M_orig), rrev(R)));
 }
 
 template <typename T, typename U>

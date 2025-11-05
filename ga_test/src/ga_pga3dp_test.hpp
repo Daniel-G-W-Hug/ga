@@ -3395,5 +3395,17 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("L       = {}", L);
     }
 
+    TEST_CASE("MVec3dp: rotated motors (for robotics applications)")
+    {
+        fmt::println("MVec3dp: rotated motors (for robotics applications)");
 
+        // get motor that rotates around z_axis (e3 direction) by +45°
+        auto M1 = get_motor(z_axis_3dp, deg2rad(45));
+        CHECK(move3dp(e1_3dp, M1) == vec3dp{1, 1, 0, 0} / sqrt(2.));
+
+        // now modify the rotor to rotate around x_axis (e1 direction) by +90° in addition
+        auto M2 = get_motor(x_axis_3dp, deg2rad(90));
+        auto M1_rotated = move3dp(M1, M2);
+        CHECK(move3dp(e1_3dp, M1_rotated) == vec3dp{1, 0, 1, 0} / sqrt(2.));
+    }
 } // PGA 3DP Tests
