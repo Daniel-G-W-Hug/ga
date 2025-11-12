@@ -15,6 +15,7 @@ using namespace hd::ga::pga;
 #include "active_bivt2d.hpp"
 #include "active_bivt2dp.hpp"
 #include "active_kinematics2dp.hpp"
+#include "active_ode.hpp"
 #include "active_projection.hpp"
 #include "active_pt2d.hpp"
 #include "active_reflection.hpp"
@@ -810,6 +811,27 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
+        // Create spring-mass ODE system
+        spring_params params; // Use default values: m=1.0, c=0.01, k=40.0, g=9.81
+
+        // Fixation point (user-controllable)
+        size_t fix_id = cm.add_apt(pt2d{0.0, 0.0});
+
+        // Create ODE system (mass point is drawn internally, not an active point)
+        aode_spring2d spring_system;
+        spring_system.fixation_idx = fix_id;
+        spring_system.params = params;
+
+        cm.add_aode(spring_system);
+
+        cm.set_label("spring-mass ODE system (drag fixation, R=reset, Space=pause)");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
         size_t p0_id = cm.add_apt(pt2d{0, 2.5});
         size_t p1_id = cm.add_apt(pt2d{2.5, 0});
 
@@ -1114,6 +1136,21 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
             kinematic_chain.push_back(apt2d_map[cm->akinemp[idx].apt[pt_idx]]);
         }
         scene->addItem(new active_kinematics2dp(cs, wcs, kinematic_chain));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // active ODE spring-mass systems
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->aode.size(); ++idx) {
+        active_ode* ode_system = new active_ode(cs, wcs,
+                                                 apt2d_map[cm->aode[idx].fixation_idx],
+                                                 cm->aode[idx].params);
+        // Connect keyboard signals for reset and pause/resume
+        QObject::connect(wcs, &w_Coordsys::resetRequested, ode_system,
+                         &active_ode::resetSimulation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, ode_system,
+                         &active_ode::togglePause);
+        scene->addItem(ode_system);
     }
 
     // Set focus to wcs widget so that key presses are received immediately

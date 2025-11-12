@@ -167,6 +167,18 @@ void w_Coordsys::keyPressEvent(QKeyEvent* event)
         emit rotateModeChanged(m_rotate_pt_mode);
         // fmt::print("B pressed\n");
     }
+
+    // Reset active simulations (ODE systems)
+    if (event->key() == Qt::Key_R && !event->isAutoRepeat()) {
+        emit resetRequested();
+        // fmt::print("R pressed - reset requested\n");
+    }
+
+    // Toggle pause/resume for active simulations
+    if (event->key() == Qt::Key_Space && !event->isAutoRepeat()) {
+        emit pauseToggleRequested();
+        // fmt::print("Space pressed - pause toggle requested\n");
+    }
 }
 
 void w_Coordsys::keyReleaseEvent(QKeyEvent* event)

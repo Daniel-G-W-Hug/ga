@@ -50,13 +50,19 @@ set(SOURCES src/main.cpp
             src/item_vt2d.cpp
             src/item_bivt2dp.cpp
             src/active_reflectionp.cpp
-            src/active_kinematics2dp.cpp)
+            src/active_kinematics2dp.cpp
+            src/active_ode.cpp
+            src/rk4_integration.cpp)
 
 add_executable(${EXEC_NAME} ${SOURCES} )
 
 # target link libraries have to be added AFTER add_executable or add_lnibrary!
 target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/../../include)
+target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/../../include/mdspan/include)
+
+# mdspan configuration for bracket operator
+target_compile_definitions(${EXEC_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_USE_PAREN_OPERATOR=0 MDSPAN_CXX_STANDARD=23)
 
 # Dependencies are handled by the main CMakeLists.txt dependency system
 # Just link against the targets that should be available
