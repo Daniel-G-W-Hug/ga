@@ -47,6 +47,8 @@ class w_Coordsys : public QGraphicsView {
     void rotateModeChanged(rotate_pt_mode mode);
     void undoChanged(size_t undo_steps);
     void scalingChanged(axis_scal xscal, axis_scal yscal);
+    void resetRequested();      // 'R' key pressed - reset active simulations
+    void pauseToggleRequested(); // Space key pressed - toggle pause/resume
 
   private:
 

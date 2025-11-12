@@ -143,6 +143,14 @@
     return akinemp.size() - 1;
 }
 
+[[maybe_unused]] size_t Coordsys_model::add_aode(aode_spring2d const& aode_in)
+{
+
+    aode.push_back(aode_in);
+
+    return aode.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -171,6 +179,7 @@ void Coordsys_model::clear()
     abivtp.clear();
     areflp.clear();
     akinemp.clear();
+    aode.clear();
 
     m_label.clear();
 }

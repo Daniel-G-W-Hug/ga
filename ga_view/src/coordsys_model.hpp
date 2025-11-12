@@ -157,6 +157,22 @@ struct akinematic2dp {
     std::vector<size_t> apt; // index of active point
 };
 
+// Physical parameters for spring-mass system
+struct spring_params {
+    double m = 1.0;  // mass [kg]
+    double c = 0.01; // damping constant [Ns/m]
+    double k = 40.0; // spring constant [N/m]
+    double l0 = 0.1; // initial spring length (w/o force being created by spring)
+    double g = 9.81; // gravitational acceleration [m/s²] in -y direction
+};
+
+// active ODE spring-mass system using fixation point
+struct aode_spring2d {
+
+    size_t fixation_idx;  // index to active_pt2d (fixation point)
+    spring_params params; // physical parameters
+};
+
 // ----------------------------------------------------------------------------
 // convenience alias to make pt2d and ln2d look similar
 // convenience alias to make pt2dp and ln2dp look similar
@@ -213,6 +229,9 @@ class Coordsys_model {
     // add active open kinematic chaing
     [[maybe_unused]] size_t add_akinem(akinematic2dp const& akinem_in);
 
+    // add active ODE spring-mass system
+    [[maybe_unused]] size_t add_aode(aode_spring2d const& aode_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -262,8 +281,11 @@ class Coordsys_model {
     // data for active projective reflections using active points
     std::vector<arefl2dp> areflp;
 
-    // data for active projective reflections using active points
+    // data for active projective kinematics chains using active points
     std::vector<akinematic2dp> akinemp;
+
+    // data for active ODE spring-mass systems using active points
+    std::vector<aode_spring2d> aode;
 
     // model label, e.g. time stamp description of current Coordsys_model
     std::string m_label{};
