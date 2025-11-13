@@ -25,7 +25,8 @@ namespace hd::ga::pga {
 // - bulk_nrm_sq, bulk_nrm        -> return bulk norm
 // - weight_nrm_sq, weight_nrm    -> return weight norm
 // - geom_nrm_sq, geom_nrm        -> return geometric norm
-// - unitization                  -> return unitized object (weight_nrm scaled to 1.0)
+// - bulk_normalize               -> return normalized object (bulk_nrm scaled to 1.0)
+// - unitize                      -> return unitized object (weight_nrm scaled to 1.0)
 //
 // - bulk_dual                    -> return bulk dual
 // - weight_dual                  -> return weight dual
@@ -859,6 +860,66 @@ template <typename T>
 constexpr DualNum2dp<T> geom_nrm(MVec2dp<T> const& M)
 {
     return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// bulk normalization operations
+////////////////////////////////////////////////////////////////////////////////
+
+// return a vector normalized to bulk_nrm(v) == 1.0
+template <typename T>
+    requires(std::floating_point<T>)
+inline Vec2dp<T> bulk_normalize(Vec2dp<T> const& v)
+{
+    T n = to_val(bulk_nrm(v));
+    hd::ga::detail::check_normalization<T>(std::abs(n), "vector (2dp)");
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * v;
+}
+
+// return a bivector normalized to bulk_nrm(B) == 1.0
+template <typename T>
+    requires(std::floating_point<T>)
+inline BiVec2dp<T> bulk_normalize(BiVec2dp<T> const& B)
+{
+    T n = to_val(bulk_nrm(B));
+    hd::ga::detail::check_normalization<T>(n, "bivector (2dp)");
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * B;
+}
+
+// return an even grade multivector normalized to bulk_nrm(M) == 1.0
+template <typename T>
+    requires(std::floating_point<T>)
+inline MVec2dp_E<T> bulk_normalize(MVec2dp_E<T> const& M)
+{
+    T n = to_val(bulk_nrm(M));
+    hd::ga::detail::check_normalization<T>(n, "even grade multivector (2dp)");
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * M;
+}
+
+// return an odd grade multivector normalized to bulk_nrm(M) == 1.0
+template <typename T>
+    requires(std::floating_point<T>)
+inline MVec2dp_U<T> bulk_normalize(MVec2dp_U<T> const& M)
+{
+    T n = to_val(bulk_nrm(M));
+    hd::ga::detail::check_normalization<T>(n, "odd grade multivector (2dp)");
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * M;
+}
+
+// return a multivector normalized to bulk_nrm(M) == 1.0
+template <typename T>
+    requires(std::floating_point<T>)
+inline MVec2dp<T> bulk_normalize(MVec2dp<T> const& M)
+{
+    T n = to_val(bulk_nrm(M));
+    hd::ga::detail::check_normalization<T>(n, "multivector (2dp)");
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * M;
 }
 
 

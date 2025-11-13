@@ -22,17 +22,24 @@
 // make mdspan less verbose
 using namespace Kokkos;
 
-#include "ga/ga_ega.hpp"
+#include "ga/ga_pga.hpp"
 using namespace hd::ga;
 
 namespace hd {
 
 double get_time_rkstep(double ti, double dt, size_t rk);
 
-void rk4_step(mdspan<vec2d, dextents<size_t, 1>> u, mdspan<vec2d, dextents<size_t, 2>> uh,
-              mdspan<vec2d const, dextents<size_t, 1>> rhs, double const dt,
+// Templatized to support both vec2d, vec2dp, vec3dp, etc.
+template<typename VecType>
+void rk4_step(mdspan<VecType, dextents<size_t, 1>> u,
+              mdspan<VecType, dextents<size_t, 2>> uh,
+              mdspan<VecType const, dextents<size_t, 1>> rhs,
+              double const dt,
               size_t rk_step);
 
 } // namespace hd
+
+// Include implementation since it's a template
+#include "rk4_integration_impl.hpp"
 
 #endif // HD_RK4_INTEGRATION_H

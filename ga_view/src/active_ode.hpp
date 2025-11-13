@@ -7,7 +7,7 @@
 #include "coordsys_model.hpp"
 #include "w_coordsys.hpp"
 
-#include "ga/ga_ega.hpp"
+#include "ga/ga_pga.hpp"
 
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
@@ -66,22 +66,22 @@ class active_ode : public QObject, public QGraphicsItem {
     spring_params m_params;
 
     // State variables (in model coordinates, not widget pixels)
-    pt2d m_initial_fixation;  // For reset
-    pt2d m_initial_mass;      // For reset
-    hd::ga::vec2d m_velocity; // Current velocity [m/s]
+    vec2dp m_initial_fixation;  // For reset (point: w=1.0)
+    vec2dp m_initial_mass;      // For reset (point: w=1.0)
+    vec2dp m_velocity;          // Current velocity [m/s] (vector: w=0.0)
 
     // Force vectors for visualization (in Newton [N])
-    hd::ga::vec2d m_spring_force;
-    hd::ga::vec2d m_damping_force;
-    hd::ga::vec2d m_gravity_force;
+    vec2dp m_spring_force;   // (vector: w=0.0)
+    vec2dp m_damping_force;  // (vector: w=0.0)
+    vec2dp m_gravity_force;  // (vector: w=0.0)
 
     // RK4 integration state (FST_ODR_SYS_SIZE = 2: [position, velocity])
-    std::vector<hd::ga::vec2d> u_mem;   // [position, velocity]
-    std::vector<hd::ga::vec2d> uh_mem;  // helper for integration
-    std::vector<hd::ga::vec2d> rhs_mem; // right-hand side values
+    std::vector<vec2dp> u_mem;   // [position(w=1.0), velocity(w=0.0)]
+    std::vector<vec2dp> uh_mem;  // helper for integration
+    std::vector<vec2dp> rhs_mem; // right-hand side values
 
     // Trajectory trace
-    std::deque<pt2d> m_trajectory; // Limited-length trajectory
+    std::deque<vec2dp> m_trajectory; // Limited-length trajectory (points: w=1.0)
     static constexpr size_t MAX_TRAJECTORY_POINTS = 250;
 
     // Timer for continuous integration
