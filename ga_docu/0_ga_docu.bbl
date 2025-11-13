@@ -5,15 +5,15 @@ Browne, J. (2012).
 \newblock {\em Grassmann Algebra}, volume 1: Foundations.
 \newblock Barnard Publishing.
 
-\bibitem[Dorst and {De Keninck}, 2022a]{Dorst_deKennick_A_guided_tour_to_PGA:2022}
-Dorst, L. and {De Keninck}, S. (14.03.2022a).
-\newblock A guided tour to the plane-based geometric algebra pga.
-\newblock {\em University of Amsterdam}, Version 2.0.
-
 \bibitem[Dorst and {De Keninck}, 2023]{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023}
 Dorst, L. and {De Keninck}, S. (August 15, 2023).
 \newblock May the forque be with you - dynamics in pga.
 \newblock {\em University of Amsterdam, The Netherlands}, V2.6.
+
+\bibitem[Dorst and {De Keninck}, 2022a]{Dorst_deKennick_A_guided_tour_to_PGA:2022}
+Dorst, L. and {De Keninck}, S. (March 14, 2022a).
+\newblock A guided tour to the plane-based geometric algebra pga.
+\newblock {\em University of Amsterdam}, Version 2.0.
 
 \bibitem[Dorst and {De Keninck}, 2022b]{Plane-based_PGA_Dorst-DeKennik:2022}
 Dorst, L. and {De Keninck}, S. (March 14, 2022b).
@@ -21,7 +21,7 @@ Dorst, L. and {De Keninck}, S. (March 14, 2022b).
 \newblock {\em University of Amsterdam, The Netherlands}, V2.0.
 
 \bibitem[Gunn, 2020]{Gunn_PGA:2020}
-Gunn, C.~G. (08/2020).
+Gunn, C.~G. (August 2020).
 \newblock Projective geometric algebra: A new framework for doing euclidean geometry.
 \newblock {\em Raum+Gegenraum Falkensee, Germany}.
 

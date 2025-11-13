@@ -3393,6 +3393,7 @@ TEST_SUITE("PGA 3DP Tests")
 
         fmt::println("dir_vec =   {}", dir_vec);
         fmt::println("L       = {}", L);
+        fmt::println("");
     }
 
     TEST_CASE("MVec3dp: rotated motors (for robotics applications)")
@@ -3407,5 +3408,32 @@ TEST_SUITE("PGA 3DP Tests")
         auto M2 = get_motor(x_axis_3dp, deg2rad(90));
         auto M1_rotated = move3dp(M1, M2);
         CHECK(move3dp(e1_3dp, M1_rotated) == vec3dp{1, 0, 1, 0} / sqrt(2.));
+        fmt::println("");
     }
+
+    TEST_CASE("MVec3dp: contraction vs. projection")
+    {
+        fmt::println("MVec3dp: contraction vs. projection");
+
+        // get vector to poject into coordinate planes
+        auto v = vec3dp{1, 1, 1, 0};
+        auto B = e31_3dp; // bivector of e31 plane (see ga_usr_consts.hpp)
+
+        // from v ⟑ B = B >> v + v ^ B
+        // get  v = (v ⟑ B) ⟑ B^(-1) = (B >> v) ⟑ B^(-1) + (v ^ B) ⟑ B^(-1)
+        //                           =      v_parallel   + v_perpendicular
+
+        fmt::println("v = {}", v);
+        fmt::println("B = {}", B);
+        fmt::println("");
+        fmt::println("B >> v = {}", B >> v);
+        fmt::println("v ^ B = {}", wdg(v, B));
+        fmt::println("");
+        fmt::println("inv(B) = {}", inv(B));
+        fmt::println("");
+        fmt::println("v_para = (B >> v) * inv(B) = {}", gr1((B >> v) * inv(B)));
+        fmt::println("v_perp = (v ^ B) * inv(B) = {}", gr1(wdg(v, B) * inv(B)));
+        fmt::println("");
+    }
+
 } // PGA 3DP Tests
