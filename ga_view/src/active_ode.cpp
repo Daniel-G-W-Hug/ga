@@ -9,6 +9,7 @@
 #include <fmt/core.h> // fmt::print
 
 using namespace hd::ga;
+using namespace hd::ga::pga;
 using namespace Kokkos;
 
 active_ode::active_ode(Coordsys* cs, w_Coordsys* wcs, active_pt2d* fixation_pt,
@@ -25,12 +26,13 @@ active_ode::active_ode(Coordsys* cs, w_Coordsys* wcs, active_pt2d* fixation_pt,
     double y_eq = m_params.m * m_params.g / m_params.k + m_params.l0;
 
     // Store initial conditions
-    m_initial_fixation = fixation_pt->scenePos();
-    vec2d downward{0.0, y_eq};
+    pt2d fix_pt = fixation_pt->scenePos();
+    m_initial_fixation = vec2dp(fix_pt.x, fix_pt.y, 1.0);
+    vec2dp downward{0.0, y_eq, 0.0};
     m_initial_mass = m_initial_fixation - downward;
 
     // Initialize velocity to zero
-    m_velocity = vec2d(0.0, 0.0);
+    m_velocity = vec2dp(0.0, 0.0, 0.0);
 
     // Allocate RK4 memory
     u_mem.resize(FST_ODR_SYS_SIZE);
@@ -38,13 +40,13 @@ active_ode::active_ode(Coordsys* cs, w_Coordsys* wcs, active_pt2d* fixation_pt,
     rhs_mem.resize(FST_ODR_SYS_SIZE);
 
     // Set initial state: u[0] = position, u[1] = velocity
-    u_mem[0] = m_initial_mass;  // Store position vector directly
-    u_mem[1] = vec2d{0.0, 0.0}; // Zero velocity
+    u_mem[0] = m_initial_mass;         // Store position as point (w=1.0)
+    u_mem[1] = vec2dp{0.0, 0.0, 0.0};  // Zero velocity as vector (w=0.0)
 
     // Initialize forces
-    m_spring_force = vec2d(0.0, m_params.m * m_params.g);
-    m_damping_force = vec2d(0.0, 0.0);
-    m_gravity_force = vec2d(0.0, -m_params.m * m_params.g);
+    m_spring_force = vec2dp(0.0, m_params.m * m_params.g, 0.0);
+    m_damping_force = vec2dp(0.0, 0.0, 0.0);
+    m_gravity_force = vec2dp(0.0, -m_params.m * m_params.g, 0.0);
 
     // Connect signals
     connect(m_fixation_pt, &active_pt2d::pointMoved, this, &active_ode::fixationMoved);
@@ -84,7 +86,7 @@ void active_ode::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     }
 
     // 2. Draw mass point (filled circle, dark gray)
-    pt2d mass_model_pos = u_mem[0]; // Current mass position from integration
+    vec2dp mass_model_pos = u_mem[0]; // Current mass position from integration
     QPointF mass_widget_pos(cs->x.au_to_w(mass_model_pos.x),
                             cs->y.au_to_w(mass_model_pos.y));
     constexpr double mass_radius = 6.0; // pixels
@@ -97,16 +99,17 @@ void active_ode::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     qp->setPen(spring_pen);
     qp->setBrush(Qt::NoBrush);
 
-    QPointF fix_pos(cs->x.au_to_w(m_fixation_pt->scenePos().x),
-                    cs->y.au_to_w(m_fixation_pt->scenePos().y));
+    pt2d fix_pt = m_fixation_pt->scenePos();
+    QPointF fix_pos(cs->x.au_to_w(fix_pt.x),
+                    cs->y.au_to_w(fix_pt.y));
     qp->drawLine(fix_pos, mass_widget_pos);
 
     // 4. Draw equilibrium position marker (orange horizontal line)
     // Calculate equilibrium position: y_eq below fixation point
     double y_eq = m_params.m * m_params.g / m_params.k + m_params.l0;
-    pt2d fixation_model_pos = m_fixation_pt->scenePos();
-    vec2d downward{0.0, y_eq};
-    pt2d equilibrium_pos = fixation_model_pos - downward;
+    vec2dp fixation_model_pos(fix_pt.x, fix_pt.y, 1.0);
+    vec2dp downward{0.0, y_eq, 0.0};
+    vec2dp equilibrium_pos = fixation_model_pos - downward;
 
     // Draw horizontal line at equilibrium position along the spring line
     constexpr double eq_marker_width = 0.1; // width in model coordinates
@@ -123,8 +126,8 @@ void active_ode::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     constexpr double force_scale = 0.02; // scale forces to coordinate units
 
     // Spring force (red)
-    if (nrm(m_spring_force) > 1e-3) {
-        vec2d spring_vec = m_spring_force * force_scale;
+    if (bulk_nrm(m_spring_force) > 1e-3) {
+        vec2dp spring_vec = m_spring_force * force_scale;
         QPointF spring_start(cs->x.au_to_w(mass_model_pos.x),
                              cs->y.au_to_w(mass_model_pos.y));
         QPointF spring_end(cs->x.au_to_w(mass_model_pos.x + spring_vec.x),
@@ -137,8 +140,8 @@ void active_ode::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
 
     // Damping force (magenta/purple)
     // Note: Damping force is always along spring direction (by physics calculation)
-    if (nrm(m_damping_force) > 1e-3 && m_damping_force != vec2d(0.0, 0.0)) {
-        vec2d damping_vec = m_damping_force * force_scale;
+    if (bulk_nrm(m_damping_force) > 1e-3 && m_damping_force != vec2dp(0.0, 0.0, 0.0)) {
+        vec2dp damping_vec = m_damping_force * force_scale;
         QPointF damping_start(cs->x.au_to_w(mass_model_pos.x),
                               cs->y.au_to_w(mass_model_pos.y));
         QPointF damping_end(cs->x.au_to_w(mass_model_pos.x + damping_vec.x),
@@ -150,8 +153,8 @@ void active_ode::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     }
 
     // Gravity force (green)
-    if (nrm(m_gravity_force) > 1e-3) {
-        vec2d gravity_vec = m_gravity_force * force_scale;
+    if (bulk_nrm(m_gravity_force) > 1e-3) {
+        vec2dp gravity_vec = m_gravity_force * force_scale;
         QPointF gravity_start(cs->x.au_to_w(mass_model_pos.x),
                               cs->y.au_to_w(mass_model_pos.y));
         QPointF gravity_end(cs->x.au_to_w(mass_model_pos.x + gravity_vec.x),
@@ -168,11 +171,12 @@ void active_ode::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
 QRectF active_ode::boundingRect() const
 {
     // Bounding box should include fixation, mass, and trajectory
-    pt2d mass_pos = u_mem[0];
-    double min_x = std::min(m_fixation_pt->scenePos().x, mass_pos.x);
-    double max_x = std::max(m_fixation_pt->scenePos().x, mass_pos.x);
-    double min_y = std::min(m_fixation_pt->scenePos().y, mass_pos.y);
-    double max_y = std::max(m_fixation_pt->scenePos().y, mass_pos.y);
+    vec2dp mass_pos = u_mem[0];
+    pt2d fix_pt = m_fixation_pt->scenePos();
+    double min_x = std::min(fix_pt.x, mass_pos.x);
+    double max_x = std::max(fix_pt.x, mass_pos.x);
+    double min_y = std::min(fix_pt.y, mass_pos.y);
+    double max_y = std::max(fix_pt.y, mass_pos.y);
 
     // Extend to include trajectory
     for (const auto& pt : m_trajectory) {
@@ -215,16 +219,17 @@ void active_ode::fixationMoved()
 void active_ode::calculateRHS()
 {
     // Get current state
-    pt2d fixation_pos = m_fixation_pt->scenePos();
-    pt2d mass_pos = u_mem[0];  // position is stored as vec2d in u[0]
-    vec2d velocity = u_mem[1]; // velocity is stored as vec2d in u[1]
+    pt2d fix_pt = m_fixation_pt->scenePos();
+    vec2dp fixation_pos(fix_pt.x, fix_pt.y, 1.0);
+    vec2dp mass_pos = u_mem[0];  // position is stored as point (w=1.0) in u[0]
+    vec2dp velocity = u_mem[1];  // velocity is stored as vector (w=0.0) in u[1]
 
     // Calculate spring displacement from fixation to mass minus initial spring length l0
-    vec2d displacement_vec = mass_pos - fixation_pos;
-    vec2d displacement_unit_vec = normalize(displacement_vec);
+    vec2dp displacement_vec = mass_pos - fixation_pos;
+    vec2dp displacement_unit_vec = bulk_normalize(displacement_vec);
 
-    double elongated_spring_length = std::max(nrm(displacement_vec) - m_params.l0, 0.0);
-    vec2d elongation_vec = displacement_unit_vec * elongated_spring_length;
+    double elongated_spring_length = std::max(to_val(bulk_nrm(displacement_vec)) - m_params.l0, 0.0);
+    vec2dp elongation_vec = displacement_unit_vec * elongated_spring_length;
 
     // Spring force: F = -k * elongation_vec (Hooke's law)
     // At equilibrium (displacement = -y_eq where y_eq = m*g/k + m_params.l0):
@@ -241,10 +246,10 @@ void active_ode::calculateRHS()
         m_damping_force = -m_params.c * velocity_along_spring * displacement_unit_vec;
     }
     else {
-        m_damping_force = vec2d(0.0, 0.0); // avoid division by zero
+        m_damping_force = vec2dp(0.0, 0.0, 0.0); // avoid division by zero
     }
 
-    m_gravity_force = vec2d(0.0, -m_params.m * m_params.g);
+    m_gravity_force = vec2dp(0.0, -m_params.m * m_params.g, 0.0);
 
     // Debug output when damping force is significant
     // double vel_mag = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
@@ -256,8 +261,8 @@ void active_ode::calculateRHS()
     //     m_damping_force.x, m_damping_force.y, damp_mag);
     // }
 
-    vec2d F_total = m_spring_force + m_damping_force + m_gravity_force;
-    vec2d acceleration = F_total / m_params.m;
+    vec2dp F_total = m_spring_force + m_damping_force + m_gravity_force;
+    vec2dp acceleration = F_total / m_params.m;
 
     // Set right-hand side for ODE system
     // u[0]' = velocity
@@ -272,7 +277,7 @@ void active_ode::updateMassPosition()
     m_velocity = u_mem[1];
 
     // Add to trajectory
-    pt2d new_mass_pos = u_mem[0];
+    vec2dp new_mass_pos = u_mem[0];
     m_trajectory.push_back(new_mass_pos);
     if (m_trajectory.size() > MAX_TRAJECTORY_POINTS) {
         m_trajectory.pop_front();
@@ -286,9 +291,9 @@ void active_ode::integrationStep()
     }
 
     // Create mdspan views for RK4 integration
-    auto u = mdspan<vec2d, extents<size_t, FST_ODR_SYS_SIZE>>(u_mem.data());
-    auto uh = mdspan<vec2d, extents<size_t, 2, FST_ODR_SYS_SIZE>>(uh_mem.data());
-    auto rhs = mdspan<vec2d const, extents<size_t, FST_ODR_SYS_SIZE>>(rhs_mem.data());
+    auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), FST_ODR_SYS_SIZE);
+    auto uh = mdspan<vec2dp, dextents<size_t, 2>>(uh_mem.data(), 2, FST_ODR_SYS_SIZE);
+    auto rhs = mdspan<vec2dp const, dextents<size_t, 1>>(rhs_mem.data(), FST_ODR_SYS_SIZE);
 
     // Perform RK4 integration (4 sub-steps)
     for (size_t rk_step = 1; rk_step <= 4; ++rk_step) {
@@ -308,19 +313,19 @@ void active_ode::integrationStep()
 void active_ode::resetSimulation()
 {
     // Restore initial fixation position
-    m_fixation_pt->setScenePos(m_initial_fixation);
+    m_fixation_pt->setScenePos(pt2d(m_initial_fixation.x, m_initial_fixation.y));
 
     // Reset integration state
-    u_mem[0] = m_initial_mass;  // Store position vector directly
-    u_mem[1] = vec2d{0.0, 0.0}; // Zero velocity
+    u_mem[0] = m_initial_mass;         // Store position as point (w=1.0)
+    u_mem[1] = vec2dp{0.0, 0.0, 0.0};  // Zero velocity as vector (w=0.0)
 
     // Reset velocity
-    m_velocity = vec2d{0.0, 0.0};
+    m_velocity = vec2dp{0.0, 0.0, 0.0};
 
     // Reset forces
-    m_spring_force = vec2d(0.0, m_params.m * m_params.g);
-    m_damping_force = vec2d(0.0, 0.0);
-    m_gravity_force = vec2d(0.0, -m_params.m * m_params.g);
+    m_spring_force = vec2dp(0.0, m_params.m * m_params.g, 0.0);
+    m_damping_force = vec2dp(0.0, 0.0, 0.0);
+    m_gravity_force = vec2dp(0.0, -m_params.m * m_params.g, 0.0);
 
     // Clear trajectory
     m_trajectory.clear();
