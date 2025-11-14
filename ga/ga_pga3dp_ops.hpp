@@ -23,8 +23,8 @@ namespace hd::ga::pga {
 // - ortho_antiproj3dp()                  -> orthogonal antiprojection onto object
 // - reflect_on()                         -> reflections
 // - invert_on()                          -> inversions
-// - support3dp()                         -> point on line that is nearest to origin
-// - att                                  -> object attitude
+// - support()                            -> point on line/plane that is nearest to origin
+// - att()                                -> object attitude
 // - dist3dp()                            -> Euclidean distance and homogeneous magnitude
 // - is_congruent3dp()                    -> Same up to a scalar factor (is same subspace)
 //
@@ -785,13 +785,27 @@ constexpr TriVec3dp<std::common_type_t<T, U>> invert_on(TriVec3dp<T> const& t,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// support3dp: nearest point to the origin (by projecting origin onto line/plane)
+// support: nearest point to the origin (by projecting origin onto line/plane)
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename arg1> decltype(auto) support3dp(arg1&& a)
+template <typename T>
+    requires(std::floating_point<T>)
+Vec3dp<T> support(BiVec3dp<T> const& B)
 {
-    // REQUIRES: a line (BiVec3dp) or a plane (TriVec3dp) as argument
-    return ortho_proj3dp(O_3dp, std::forward<arg1>(a));
+    // REQUIRES: a line (BiVec3dp) as argument
+
+    // project origin onto line
+    return ortho_proj3dp(O_3dp, B);
+}
+
+template <typename T>
+    requires(std::floating_point<T>)
+Vec3dp<T> support(TriVec3dp<T> const& t)
+{
+    // REQUIRES: a plane (TriVec3dp) as argument
+
+    // project origin onto line
+    return ortho_proj3dp(O_3dp, t);
 }
 
 

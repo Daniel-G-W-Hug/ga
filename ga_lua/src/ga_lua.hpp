@@ -1172,12 +1172,6 @@ void register_functions(sol::state& lua)
                          sol::resolve<bivec3dp(bivec3dp const&)>(left_weight_dual),
                          sol::resolve<vec3dp(trivec3dp const&)>(left_weight_dual),
                          sol::resolve<scalar3dp(pscalar3dp)>(left_weight_dual)));
-    ////////////////////////////////////////////////////////////////////////////////
-    // PGA-specific support operations
-    ////////////////////////////////////////////////////////////////////////////////
-
-    lua.set_function("support2dp", sol::resolve<vec2dp(bivec2dp const&)>(support2dp));
-    lua.set_function("support3dp", sol::resolve<vec3dp(bivec3dp const&)>(support3dp));
 
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1625,10 +1619,12 @@ void register_functions(sol::state& lua)
                                 sol::resolve<bivec3dp(trivec3dp const&)>(att),
                                 sol::resolve<trivec3dp(pscalar3dp)>(att)));
 
-    lua.set_function("support2dp", sol::resolve<vec2dp(bivec2dp const&)>(support2dp));
-    lua.set_function("support3dp",
-                     sol::overload(sol::resolve<vec3dp(bivec3dp const&)>(support3dp),
-                                   sol::resolve<vec3dp(trivec3dp const&)>(support3dp)));
+    lua.set_function("support", sol::overload(
+                                    // PGA 2DP support
+                                    sol::resolve<vec2dp(bivec2dp const&)>(support),
+                                    // PGA 3DP support
+                                    sol::resolve<vec3dp(bivec3dp const&)>(support),
+                                    sol::resolve<vec3dp(trivec3dp const&)>(support)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // angles and rotations
