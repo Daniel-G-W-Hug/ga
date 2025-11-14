@@ -39,7 +39,10 @@ void register_2d_types(sol::state& lua)
         sol::constructors<scalar2d(), scalar2d(value_t const&), scalar2d(value_t&&)>(),
         "copy", [](const scalar2d& s) { return scalar2d(s); },
         sol::meta_function::to_string,
-        [](const scalar2d& s) { return fmt::format("Scalar2d({})", double(s)); },
+        [](const scalar2d& s) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("Scalar2d({})", suppress_negative_zero(double(s)));
+        },
         sol::meta_function::unary_minus, sol::resolve<scalar2d(scalar2d)>(operator-),
         sol::meta_function::addition,
         sol::overload(sol::resolve<scalar2d(scalar2d, scalar2d)>(operator+),
@@ -82,7 +85,11 @@ void register_2d_types(sol::state& lua)
         "copy", [](const vec2d& v) { return vec2d(v); },
         // component access
         "x", &vec2d::x, "y", &vec2d::y, sol::meta_function::to_string,
-        [](const vec2d& v) { return fmt::format("Vec2d({}, {})", v.x, v.y); },
+        [](const vec2d& v) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("Vec2d({}, {})", suppress_negative_zero(v.x),
+                               suppress_negative_zero(v.y));
+        },
         sol::meta_function::unary_minus, sol::resolve<vec2d(vec2d const&)>(operator-),
         sol::meta_function::addition,
         sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(operator+),
@@ -124,7 +131,10 @@ void register_2d_types(sol::state& lua)
         sol::constructors<pscalar2d(), pscalar2d(value_t const&), pscalar2d(value_t&&)>(),
         "copy", [](const pscalar2d& ps) { return pscalar2d(ps); },
         sol::meta_function::to_string,
-        [](const pscalar2d& ps) { return fmt::format("PScalar2d({})", double(ps)); },
+        [](const pscalar2d& ps) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("PScalar2d({})", suppress_negative_zero(double(ps)));
+        },
         sol::meta_function::unary_minus, sol::resolve<pscalar2d(pscalar2d)>(operator-),
         sol::meta_function::addition,
         sol::overload(sol::resolve<pscalar2d(pscalar2d, pscalar2d)>(operator+),
@@ -170,7 +180,11 @@ void register_2d_types(sol::state& lua)
         "copy", [](const mvec2d_e& obj) { return mvec2d_e(obj); },
         // component access
         "c0", &mvec2d_e::c0, "c1", &mvec2d_e::c1, sol::meta_function::to_string,
-        [](const mvec2d_e& mv) { return fmt::format("MVec2d_E({}, {})", mv.c0, mv.c1); },
+        [](const mvec2d_e& mv) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("MVec2d_E({}, {})", suppress_negative_zero(mv.c0),
+                               suppress_negative_zero(mv.c1));
+        },
         sol::meta_function::unary_minus,
         sol::resolve<mvec2d_e(mvec2d_e const&)>(operator-), sol::meta_function::addition,
         sol::overload(sol::resolve<mvec2d_e(mvec2d_e const&, mvec2d_e const&)>(operator+),
@@ -213,7 +227,11 @@ void register_2d_types(sol::state& lua)
         "c0", &mvec2d::c0, "c1", &mvec2d::c1, "c2", &mvec2d::c2, "c3", &mvec2d::c3,
         sol::meta_function::to_string,
         [](const mvec2d& mv) {
-            return fmt::format("MVec2d({}, {}, {}, {})", mv.c0, mv.c1, mv.c2, mv.c3);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("MVec2d({}, {}, {}, {})", suppress_negative_zero(mv.c0),
+                               suppress_negative_zero(mv.c1),
+                               suppress_negative_zero(mv.c2),
+                               suppress_negative_zero(mv.c3));
         },
         sol::meta_function::unary_minus, sol::resolve<mvec2d(mvec2d const&)>(operator-),
         sol::meta_function::addition,
@@ -261,7 +279,10 @@ void register_3d_types(sol::state& lua)
         sol::constructors<scalar3d(), scalar3d(value_t const&), scalar3d(value_t&&)>(),
         "copy", [](const scalar3d& obj) { return scalar3d(obj); },
         sol::meta_function::to_string,
-        [](const scalar3d& s) { return fmt::format("Scalar3d({})", double(s)); },
+        [](const scalar3d& s) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("Scalar3d({})", suppress_negative_zero(double(s)));
+        },
         sol::meta_function::unary_minus, sol::resolve<scalar3d(scalar3d)>(operator-),
         sol::meta_function::addition,
         sol::overload(sol::resolve<scalar3d(scalar3d, scalar3d)>(operator+),
@@ -309,7 +330,11 @@ void register_3d_types(sol::state& lua)
         "copy", [](const vec3d& obj) { return vec3d(obj); },
         // component access
         "x", &vec3d::x, "y", &vec3d::y, "z", &vec3d::z, sol::meta_function::to_string,
-        [](const vec3d& v) { return fmt::format("Vec3d({}, {}, {})", v.x, v.y, v.z); },
+        [](const vec3d& v) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("Vec3d({}, {}, {})", suppress_negative_zero(v.x),
+                               suppress_negative_zero(v.y), suppress_negative_zero(v.z));
+        },
         sol::meta_function::unary_minus, sol::resolve<vec3d(vec3d const&)>(operator-),
         sol::meta_function::addition,
         sol::overload(sol::resolve<vec3d(vec3d const&, vec3d const&)>(operator+),
@@ -361,7 +386,10 @@ void register_3d_types(sol::state& lua)
         "x", &bivec3d::x, "y", &bivec3d::y, "z", &bivec3d::z,
         sol::meta_function::to_string,
         [](const bivec3d& bv) {
-            return fmt::format("BiVec3d({}, {}, {})", bv.x, bv.y, bv.z);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("BiVec3d({}, {}, {})", suppress_negative_zero(bv.x),
+                               suppress_negative_zero(bv.y),
+                               suppress_negative_zero(bv.z));
         },
         sol::meta_function::unary_minus, sol::resolve<bivec3d(bivec3d const&)>(operator-),
         sol::meta_function::addition,
@@ -410,7 +438,10 @@ void register_3d_types(sol::state& lua)
         sol::constructors<pscalar3d(), pscalar3d(value_t const&), pscalar3d(value_t&&)>(),
         "copy", [](const pscalar3d& obj) { return pscalar3d(obj); },
         sol::meta_function::to_string,
-        [](const pscalar3d& ps) { return fmt::format("PScalar3d({})", double(ps)); },
+        [](const pscalar3d& ps) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("PScalar3d({})", suppress_negative_zero(double(ps)));
+        },
         sol::meta_function::unary_minus, sol::resolve<pscalar3d(pscalar3d)>(operator-),
         sol::meta_function::addition,
         sol::overload(sol::resolve<pscalar3d(pscalar3d, pscalar3d)>(operator+),
@@ -463,7 +494,11 @@ void register_3d_types(sol::state& lua)
         "c0", &mvec3d_e::c0, "c1", &mvec3d_e::c1, "c2", &mvec3d_e::c2, "c3",
         &mvec3d_e::c3, sol::meta_function::to_string,
         [](const mvec3d_e& mv) {
-            return fmt::format("MVec3d_E({}, {}, {}, {})", mv.c0, mv.c1, mv.c2, mv.c3);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("MVec3d_E({}, {}, {}, {})", suppress_negative_zero(mv.c0),
+                               suppress_negative_zero(mv.c1),
+                               suppress_negative_zero(mv.c2),
+                               suppress_negative_zero(mv.c3));
         },
         sol::meta_function::unary_minus,
         sol::resolve<mvec3d_e(mvec3d_e const&)>(operator-), sol::meta_function::addition,
@@ -501,7 +536,11 @@ void register_3d_types(sol::state& lua)
         "c0", &mvec3d_u::c0, "c1", &mvec3d_u::c1, "c2", &mvec3d_u::c2, "c3",
         &mvec3d_u::c3, sol::meta_function::to_string,
         [](const mvec3d_u& mv) {
-            return fmt::format("MVec3d_U({}, {}, {}, {})", mv.c0, mv.c1, mv.c2, mv.c3);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("MVec3d_U({}, {}, {}, {})", suppress_negative_zero(mv.c0),
+                               suppress_negative_zero(mv.c1),
+                               suppress_negative_zero(mv.c2),
+                               suppress_negative_zero(mv.c3));
         },
         sol::meta_function::unary_minus,
         sol::resolve<mvec3d_u(mvec3d_u const&)>(operator-), sol::meta_function::addition,
@@ -541,8 +580,13 @@ void register_3d_types(sol::state& lua)
         &mvec3d::c4, "c5", &mvec3d::c5, "c6", &mvec3d::c6, "c7", &mvec3d::c7,
         sol::meta_function::to_string,
         [](const mvec3d& mv) {
-            return fmt::format("MVec3d({}, {}, {}, {}, {}, {}, {}, {})", mv.c0, mv.c1,
-                               mv.c2, mv.c3, mv.c4, mv.c5, mv.c6, mv.c7);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format(
+                "MVec3d({}, {}, {}, {}, {}, {}, {}, {})", suppress_negative_zero(mv.c0),
+                suppress_negative_zero(mv.c1), suppress_negative_zero(mv.c2),
+                suppress_negative_zero(mv.c3), suppress_negative_zero(mv.c4),
+                suppress_negative_zero(mv.c5), suppress_negative_zero(mv.c6),
+                suppress_negative_zero(mv.c7));
         },
         sol::meta_function::unary_minus, sol::resolve<mvec3d(mvec3d const&)>(operator-),
         sol::meta_function::addition,
@@ -609,7 +653,11 @@ void register_2dp_types(sol::state& lua)
         "copy", [](const vec2dp& obj) { return vec2dp(obj); },
         // component access
         "x", &vec2dp::x, "y", &vec2dp::y, "z", &vec2dp::z, sol::meta_function::to_string,
-        [](const vec2dp& v) { return fmt::format("Vec2dp({}, {}, {})", v.x, v.y, v.z); },
+        [](const vec2dp& v) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("Vec2dp({}, {}, {})", suppress_negative_zero(v.x),
+                               suppress_negative_zero(v.y), suppress_negative_zero(v.z));
+        },
         sol::meta_function::unary_minus, sol::resolve<vec2dp(vec2dp const&)>(operator-),
         sol::meta_function::addition,
         sol::resolve<vec2dp(vec2dp const&, vec2dp const&)>(operator+),
@@ -633,7 +681,10 @@ void register_2dp_types(sol::state& lua)
         "x", &bivec2dp::x, "y", &bivec2dp::y, "z", &bivec2dp::z,
         sol::meta_function::to_string,
         [](const bivec2dp& bv) {
-            return fmt::format("BiVec2dp({}, {}, {})", bv.x, bv.y, bv.z);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("BiVec2dp({}, {}, {})", suppress_negative_zero(bv.x),
+                               suppress_negative_zero(bv.y),
+                               suppress_negative_zero(bv.z));
         },
         sol::meta_function::unary_minus,
         sol::resolve<bivec2dp(bivec2dp const&)>(operator-), sol::meta_function::addition,
@@ -653,7 +704,10 @@ void register_2dp_types(sol::state& lua)
                           pscalar2dp(value_t&&)>(),
         "copy", [](const pscalar2dp& obj) { return pscalar2dp(obj); },
         sol::meta_function::to_string,
-        [](const pscalar2dp& ps) { return fmt::format("PScalar2dp({})", double(ps)); },
+        [](const pscalar2dp& ps) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("PScalar2dp({})", suppress_negative_zero(double(ps)));
+        },
         sol::meta_function::unary_minus, sol::resolve<pscalar2dp(pscalar2dp)>(operator-),
         sol::meta_function::addition,
         sol::resolve<pscalar2dp(pscalar2dp, pscalar2dp)>(operator+),
@@ -674,7 +728,9 @@ void register_2dp_types(sol::state& lua)
         // component access
         "c0", &dualnum2dp::c0, "c1", &dualnum2dp::c1, sol::meta_function::to_string,
         [](const dualnum2dp& dn) {
-            return fmt::format("DualNum2dp({}, {})", dn.c0, dn.c1);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("DualNum2dp({}, {})", suppress_negative_zero(dn.c0),
+                               suppress_negative_zero(dn.c1));
         },
         sol::meta_function::unary_minus,
         sol::resolve<dualnum2dp(dualnum2dp const&)>(operator-),
@@ -789,7 +845,10 @@ void register_3dp_types(sol::state& lua)
         sol::constructors<scalar3dp(), scalar3dp(value_t const&), scalar3dp(value_t&&)>(),
         "copy", [](const scalar3dp& obj) { return scalar3dp(obj); },
         sol::meta_function::to_string,
-        [](const scalar3dp& s) { return fmt::format("Scalar3dp({})", double(s)); },
+        [](const scalar3dp& s) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("Scalar3dp({})", suppress_negative_zero(double(s)));
+        },
         sol::meta_function::unary_minus, sol::resolve<scalar3dp(scalar3dp)>(operator-),
         sol::meta_function::addition,
         sol::resolve<scalar3dp(scalar3dp, scalar3dp)>(operator+),
@@ -812,7 +871,10 @@ void register_3dp_types(sol::state& lua)
         "x", &vec3dp::x, "y", &vec3dp::y, "z", &vec3dp::z, "w", &vec3dp::w,
         sol::meta_function::to_string,
         [](const vec3dp& v) {
-            return fmt::format("Vec3dp({}, {}, {}, {})", v.x, v.y, v.z, v.w);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("Vec3dp({}, {}, {}, {})", suppress_negative_zero(v.x),
+                               suppress_negative_zero(v.y), suppress_negative_zero(v.z),
+                               suppress_negative_zero(v.w));
         },
         sol::meta_function::unary_minus, sol::resolve<vec3dp(vec3dp const&)>(operator-),
         sol::meta_function::addition,
@@ -839,8 +901,12 @@ void register_3dp_types(sol::state& lua)
         &bivec3dp::mx, "my", &bivec3dp::my, "mz", &bivec3dp::mz,
         sol::meta_function::to_string,
         [](const bivec3dp& bv) {
-            return fmt::format("BiVec3dp({}, {}, {}, {}, {}, {})", bv.vx, bv.vy, bv.vz,
-                               bv.mx, bv.my, bv.mz);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format(
+                "BiVec3dp({}, {}, {}, {}, {}, {})", suppress_negative_zero(bv.vx),
+                suppress_negative_zero(bv.vy), suppress_negative_zero(bv.vz),
+                suppress_negative_zero(bv.mx), suppress_negative_zero(bv.my),
+                suppress_negative_zero(bv.mz));
         },
         sol::meta_function::unary_minus,
         sol::resolve<bivec3dp(bivec3dp const&)>(operator-), sol::meta_function::addition,
@@ -863,7 +929,10 @@ void register_3dp_types(sol::state& lua)
         "x", &trivec3dp::x, "y", &trivec3dp::y, "z", &trivec3dp::z, "w", &trivec3dp::w,
         sol::meta_function::to_string,
         [](const trivec3dp& tv) {
-            return fmt::format("TriVec3dp({}, {}, {}, {})", tv.x, tv.y, tv.z, tv.w);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("TriVec3dp({}, {}, {}, {})", suppress_negative_zero(tv.x),
+                               suppress_negative_zero(tv.y), suppress_negative_zero(tv.z),
+                               suppress_negative_zero(tv.w));
         },
         sol::meta_function::unary_minus,
         sol::resolve<trivec3dp(trivec3dp const&)>(operator-),
@@ -884,7 +953,10 @@ void register_3dp_types(sol::state& lua)
                           pscalar3dp(value_t&&)>(),
         "copy", [](const pscalar3dp& obj) { return pscalar3dp(obj); },
         sol::meta_function::to_string,
-        [](const pscalar3dp& ps) { return fmt::format("PScalar3dp({})", double(ps)); },
+        [](const pscalar3dp& ps) {
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("PScalar3dp({})", suppress_negative_zero(double(ps)));
+        },
         sol::meta_function::unary_minus, sol::resolve<pscalar3dp(pscalar3dp)>(operator-),
         sol::meta_function::addition,
         sol::resolve<pscalar3dp(pscalar3dp, pscalar3dp)>(operator+),
@@ -905,7 +977,9 @@ void register_3dp_types(sol::state& lua)
         // component access
         "c0", &dualnum3dp::c0, "c1", &dualnum3dp::c1, sol::meta_function::to_string,
         [](const dualnum3dp& dn) {
-            return fmt::format("DualNum3dp({}, {})", dn.c0, dn.c1);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format("DualNum3dp({}, {})", suppress_negative_zero(dn.c0),
+                               suppress_negative_zero(dn.c1));
         },
         sol::meta_function::unary_minus,
         sol::resolve<dualnum3dp(dualnum3dp const&)>(operator-),
@@ -937,8 +1011,13 @@ void register_3dp_types(sol::state& lua)
         &mvec3dp_e::c3, "c4", &mvec3dp_e::c4, "c5", &mvec3dp_e::c5, "c6", &mvec3dp_e::c6,
         "c7", &mvec3dp_e::c7, sol::meta_function::to_string,
         [](const mvec3dp_e& mve) {
-            return fmt::format("MVec3dp_E({}, {}, {}, {}, {}, {}, {}, {})", mve.c0,
-                               mve.c1, mve.c2, mve.c3, mve.c4, mve.c5, mve.c6, mve.c7);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format(
+                "MVec3dp_E({}, {}, {}, {}, {}, {}, {}, {})",
+                suppress_negative_zero(mve.c0), suppress_negative_zero(mve.c1),
+                suppress_negative_zero(mve.c2), suppress_negative_zero(mve.c3),
+                suppress_negative_zero(mve.c4), suppress_negative_zero(mve.c5),
+                suppress_negative_zero(mve.c6), suppress_negative_zero(mve.c7));
         },
         sol::meta_function::unary_minus,
         sol::resolve<mvec3dp_e(mvec3dp_e const&)>(operator-),
@@ -968,8 +1047,13 @@ void register_3dp_types(sol::state& lua)
         &mvec3dp_u::c3, "c4", &mvec3dp_u::c4, "c5", &mvec3dp_u::c5, "c6", &mvec3dp_u::c6,
         "c7", &mvec3dp_u::c7, sol::meta_function::to_string,
         [](const mvec3dp_u& mvu) {
-            return fmt::format("MVec3dp_U({}, {}, {}, {}, {}, {}, {}, {})", mvu.c0,
-                               mvu.c1, mvu.c2, mvu.c3, mvu.c4, mvu.c5, mvu.c6, mvu.c7);
+            using hd::ga::detail::suppress_negative_zero;
+            return fmt::format(
+                "MVec3dp_U({}, {}, {}, {}, {}, {}, {}, {})",
+                suppress_negative_zero(mvu.c0), suppress_negative_zero(mvu.c1),
+                suppress_negative_zero(mvu.c2), suppress_negative_zero(mvu.c3),
+                suppress_negative_zero(mvu.c4), suppress_negative_zero(mvu.c5),
+                suppress_negative_zero(mvu.c6), suppress_negative_zero(mvu.c7));
         },
         sol::meta_function::unary_minus,
         sol::resolve<mvec3dp_u(mvec3dp_u const&)>(operator-),
@@ -1001,10 +1085,17 @@ void register_3dp_types(sol::state& lua)
         &mvec3dp::c11, "c12", &mvec3dp::c12, "c13", &mvec3dp::c13, "c14", &mvec3dp::c14,
         "c15", &mvec3dp::c15, sol::meta_function::to_string,
         [](const mvec3dp& mv) {
+            using hd::ga::detail::suppress_negative_zero;
             return fmt::format(
                 "MVec3dp({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
-                mv.c0, mv.c1, mv.c2, mv.c3, mv.c4, mv.c5, mv.c6, mv.c7, mv.c8, mv.c9,
-                mv.c10, mv.c11, mv.c12, mv.c13, mv.c14, mv.c15);
+                suppress_negative_zero(mv.c0), suppress_negative_zero(mv.c1),
+                suppress_negative_zero(mv.c2), suppress_negative_zero(mv.c3),
+                suppress_negative_zero(mv.c4), suppress_negative_zero(mv.c5),
+                suppress_negative_zero(mv.c6), suppress_negative_zero(mv.c7),
+                suppress_negative_zero(mv.c8), suppress_negative_zero(mv.c9),
+                suppress_negative_zero(mv.c10), suppress_negative_zero(mv.c11),
+                suppress_negative_zero(mv.c12), suppress_negative_zero(mv.c13),
+                suppress_negative_zero(mv.c14), suppress_negative_zero(mv.c15));
         },
         sol::meta_function::unary_minus, sol::resolve<mvec3dp(mvec3dp const&)>(operator-),
         sol::meta_function::addition,
