@@ -728,16 +728,16 @@ TEST_SUITE("PGA 3DP Tests")
         p123 = unitize(wdg(wdg(p1, p2), p3)); // TriVec3dp(0, 1, 0, -1)
         p123r = reflect_on(p123, zx_3dp);     // TriVec3dp(-0, -1, -0, -1)
 
-        auto s123 = support3dp(p123);   // point in p123 that is closest to the origin
-        auto s123r = support3dp(p123r); // point in p123r that is closest to the origin
+        auto s123 = support(p123);   // point in p123 that is closest to the origin
+        auto s123r = support(p123r); // point in p123r that is closest to the origin
 
         // fmt::println("");
         // fmt::println("p123  = {}", p123);
         // fmt::println("p123r = {}", p123r);
         // fmt::println("att(p123)  = {}", att(p123));
         // fmt::println("att(p123r) = {}", att(p123r));
-        // fmt::println("support3dp(p123)  = {}", s123);
-        // fmt::println("support3dp(p123r) = {}", s123r);
+        // fmt::println("support(p123)  = {}", s123);
+        // fmt::println("support(p123r) = {}", s123r);
         // fmt::println("");
 
         CHECK(p123.x == -p123r.x); // minus sign is the mirrored normal
@@ -3470,7 +3470,7 @@ TEST_SUITE("PGA 3DP Tests")
                      bulk_nrm(F), att(F), bulk(F));
         fmt::println("");
 
-        CHECK(support3dp(F) == P);
+        CHECK(support(F) == P);
 
         auto R1 = vec3dp{0.5, 0, -1, 1};
         auto R2 = vec3dp{1.5, 0, -1, 1};

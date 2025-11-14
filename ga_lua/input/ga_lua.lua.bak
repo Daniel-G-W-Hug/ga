@@ -968,7 +968,7 @@ print("angle between bivectors =", angle(b1, b2), "radians")
 print("\n4. Testing support operations:")
 line2d = bivec2dp.new(1, 1, -2) -- line ax + by + c = 0 where a=1, b=1, c=-2
 print("line =", line2d)
-support_pt = support2dp(line2d)
+support_pt = support(line2d)
 print("support point (closest to origin) =", support_pt)
 
 -- Test 3DP functions
@@ -979,7 +979,7 @@ print("3D angle between directions =", angle(v3d_1, v3d_2), "radians")
 
 -- Test 3DP support
 line3d = bivec3dp.new(1, 0, 0, 0, 0, 1) -- 3d line
-support3d_pt = support3dp(line3d)
+support3d_pt = support(line3d)
 print("3D support point =", support3d_pt)
 
 -- Test norm operations with PGA types
@@ -1048,11 +1048,11 @@ print("unitize(point) =", unitize(pt))
 
 -- Test support operations
 line_2d = bivec2dp.new(1, 1, -3) -- line ax + by + c = 0
-support_pt = support2dp(line_2d)
+support_pt = support(line_2d)
 print("support point for 2D line =", support_pt)
 
 line_3d = bivec3dp.new(1, 0, 0, 0, 0, 1) -- 3D line
-support_pt_3d = support3dp(line_3d)
+support_pt_3d = support(line_3d)
 print("support point for 3D line =", support_pt_3d)
 
 -- Test basic geometric operations
