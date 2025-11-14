@@ -20,7 +20,7 @@ namespace hd::ga::ega {
 // - project_onto(), reject_from()  -> projection and rejection
 // - reflect_on(), reflect_on_vec() -> reflections
 // - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
-// - is_congruent3d()               -> Same up to a scalar factor (is same subspace)
+// - is_congruent()                 -> Same up to a scalar factor (is same subspace)
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -548,7 +548,7 @@ gs_orthonormal(Vec3d<U> const& u, Vec3d<V> const& v, Vec3d<W> const& w)
 // For scalars: all non-zero scalars represent the same 0-dimensional subspace
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent3d(Scalar3d<T> a, Scalar3d<U> b, value_t tolerance = eps)
+bool is_congruent(Scalar3d<T> a, Scalar3d<U> b, value_t tolerance = eps)
 {
     // Handle zero cases
     if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {
@@ -565,7 +565,7 @@ bool is_congruent3d(Scalar3d<T> a, Scalar3d<U> b, value_t tolerance = eps)
 // For vectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent3d(Vec3d<T> const& a, Vec3d<U> const& b, value_t tolerance = eps)
+bool is_congruent(Vec3d<T> const& a, Vec3d<U> const& b, value_t tolerance = eps)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -613,7 +613,7 @@ bool is_congruent3d(Vec3d<T> const& a, Vec3d<U> const& b, value_t tolerance = ep
 // For bivectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent3d(BiVec3d<T> const& a, BiVec3d<U> const& b, value_t tolerance = eps)
+bool is_congruent(BiVec3d<T> const& a, BiVec3d<U> const& b, value_t tolerance = eps)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -661,7 +661,7 @@ bool is_congruent3d(BiVec3d<T> const& a, BiVec3d<U> const& b, value_t tolerance 
 // For pseudoscalars: all non-zero pseudoscalars in 3D represent the same subspace
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent3d(PScalar3d<T> a, PScalar3d<U> b, value_t tolerance = eps)
+bool is_congruent(PScalar3d<T> a, PScalar3d<U> b, value_t tolerance = eps)
 {
     // Handle zero cases
     if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {

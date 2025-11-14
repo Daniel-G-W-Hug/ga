@@ -19,7 +19,7 @@ namespace hd::ga::ega {
 // - project_onto(), reject_from()  -> projection and rejection
 // - reflect_on(), reflect_on_vec() -> reflections
 // - gs_orthogonal()                -> Gram-Schmidt-orthogonalization
-// - is_congruent2d()               -> Same up to a scalar factor (is same subspace)
+// - is_congruent()                 -> Same up to a scalar factor (is same subspace)
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -313,7 +313,7 @@ constexpr std::vector<Vec2d<std::common_type_t<T, U>>> gs_orthonormal(Vec2d<T> c
 // For scalars: all non-zero scalars represent the same 0-dimensional subspace
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent2d(Scalar2d<T> a, Scalar2d<U> b, value_t tolerance = eps)
+bool is_congruent(Scalar2d<T> a, Scalar2d<U> b, value_t tolerance = eps)
 {
     // Handle zero cases
     if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {
@@ -330,7 +330,7 @@ bool is_congruent2d(Scalar2d<T> a, Scalar2d<U> b, value_t tolerance = eps)
 // For vectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent2d(Vec2d<T> const& a, Vec2d<U> const& b, value_t tolerance = eps)
+bool is_congruent(Vec2d<T> const& a, Vec2d<U> const& b, value_t tolerance = eps)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -370,7 +370,7 @@ bool is_congruent2d(Vec2d<T> const& a, Vec2d<U> const& b, value_t tolerance = ep
 // For pseudoscalars: all non-zero pseudoscalars in 2D represent the same subspace
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent2d(PScalar2d<T> a, PScalar2d<U> b, value_t tolerance = eps)
+bool is_congruent(PScalar2d<T> a, PScalar2d<U> b, value_t tolerance = eps)
 {
     // Handle zero cases
     if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {

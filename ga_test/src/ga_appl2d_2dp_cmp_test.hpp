@@ -38,12 +38,12 @@ TEST_SUITE("PGA2DP: comparison tests")
             auto xv = vec2dp{1.0, -7.2, 0.0};
             auto xp = vec2dp{1.0, -7.2, 1.0};
 
-            CHECK(is_congruent2d(x, 3.2 * x));
-            CHECK(is_congruent2d(x, -1.2 * x));
-            CHECK(is_congruent2dp(xv, 3.2 * xv));
-            CHECK(is_congruent2dp(xv, -1.2 * xv));
-            CHECK(is_congruent2dp(xp, 3.2 * xp));
-            CHECK(is_congruent2dp(xp, -1.2 * xp));
+            CHECK(is_congruent(x, 3.2 * x));
+            CHECK(is_congruent(x, -1.2 * x));
+            CHECK(is_congruent(xv, 3.2 * xv));
+            CHECK(is_congruent(xv, -1.2 * xv));
+            CHECK(is_congruent(xp, 3.2 * xp));
+            CHECK(is_congruent(xp, -1.2 * xp));
             fmt::println("");
         }
 

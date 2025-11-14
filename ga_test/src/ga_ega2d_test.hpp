@@ -2041,10 +2041,10 @@ TEST_SUITE("EGA 2D Tests")
         scalar2d s3{2.5};  // same sign as s1
         scalar2d s_zero{0.0};
 
-        CHECK(is_congruent2d(s1, s2) == true);         // different signs are congruent
-        CHECK(is_congruent2d(s1, s3) == true);         // same signs are congruent
-        CHECK(is_congruent2d(s1, s_zero) == false);    // zero vs non-zero
-        CHECK(is_congruent2d(s_zero, s_zero) == true); // zero vs zero
+        CHECK(is_congruent(s1, s2) == true);         // different signs are congruent
+        CHECK(is_congruent(s1, s3) == true);         // same signs are congruent
+        CHECK(is_congruent(s1, s_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent(s_zero, s_zero) == true); // zero vs zero
 
         // Test vectors
         vec2d v1{1.0, 0.0};  // x-axis
@@ -2053,11 +2053,11 @@ TEST_SUITE("EGA 2D Tests")
         vec2d v4{-1.5, 0.0}; // antiparallel to v1
         vec2d v_zero{0.0, 0.0};
 
-        CHECK(is_congruent2d(v1, v2) == false);        // perpendicular vectors
-        CHECK(is_congruent2d(v1, v3) == true);         // parallel vectors
-        CHECK(is_congruent2d(v1, v4) == true);         // antiparallel vectors
-        CHECK(is_congruent2d(v1, v_zero) == false);    // zero vs non-zero
-        CHECK(is_congruent2d(v_zero, v_zero) == true); // zero vs zero
+        CHECK(is_congruent(v1, v2) == false);        // perpendicular vectors
+        CHECK(is_congruent(v1, v3) == true);         // parallel vectors
+        CHECK(is_congruent(v1, v4) == true);         // antiparallel vectors
+        CHECK(is_congruent(v1, v_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent(v_zero, v_zero) == true); // zero vs zero
 
         // Test pseudoscalars (max grade in EGA2D)
         pscalar2d p1{1.0};
@@ -2065,10 +2065,10 @@ TEST_SUITE("EGA 2D Tests")
         pscalar2d p3{-1.0}; // opposite sign
         pscalar2d p_zero{0.0};
 
-        CHECK(is_congruent2d(p1, p2) == true); // all non-zero pseudoscalars congruent
-        CHECK(is_congruent2d(p1, p3) == true); // different signs still congruent
-        CHECK(is_congruent2d(p1, p_zero) == false);    // zero vs non-zero
-        CHECK(is_congruent2d(p_zero, p_zero) == true); // zero vs zero
+        CHECK(is_congruent(p1, p2) == true);      // all non-zero pseudoscalars congruent
+        CHECK(is_congruent(p1, p3) == true);      // different signs still congruent
+        CHECK(is_congruent(p1, p_zero) == false); // zero vs non-zero
+        CHECK(is_congruent(p_zero, p_zero) == true); // zero vs zero
 
         // fmt::println("   All EGA2D congruence tests passed");
     }
