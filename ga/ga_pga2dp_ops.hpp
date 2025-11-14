@@ -26,7 +26,7 @@ namespace hd::ga::pga {
 // - support()                           -> point on line that is nearest to origin
 // - att()                               -> object attitude
 // - dist2dp()                           -> Euclidean distance and homogeneous magnitude
-// - is_congruent2dp()                   -> Same up to a scalar factor (is same subspace)
+// - is_congruent()                      -> Same up to a scalar factor (is same subspace)
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -566,7 +566,7 @@ template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, ar
 // For scalars: all non-zero scalars represent the same 0-dimensional subspace
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent2dp(Scalar2dp<T> a, Scalar2dp<U> b, value_t tolerance = eps)
+bool is_congruent(Scalar2dp<T> a, Scalar2dp<U> b, value_t tolerance = eps)
 {
     // Handle zero cases
     if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {
@@ -583,7 +583,7 @@ bool is_congruent2dp(Scalar2dp<T> a, Scalar2dp<U> b, value_t tolerance = eps)
 // For vectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent2dp(Vec2dp<T> const& a, Vec2dp<U> const& b, value_t tolerance = eps)
+bool is_congruent(Vec2dp<T> const& a, Vec2dp<U> const& b, value_t tolerance = eps)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -632,7 +632,7 @@ bool is_congruent2dp(Vec2dp<T> const& a, Vec2dp<U> const& b, value_t tolerance =
 // For bivectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent2dp(BiVec2dp<T> const& a, BiVec2dp<U> const& b, value_t tolerance = eps)
+bool is_congruent(BiVec2dp<T> const& a, BiVec2dp<U> const& b, value_t tolerance = eps)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -681,7 +681,7 @@ bool is_congruent2dp(BiVec2dp<T> const& a, BiVec2dp<U> const& b, value_t toleran
 // For pseudoscalars: all non-zero pseudoscalars in 2DP represent the same subspace
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent2dp(PScalar2dp<T> a, PScalar2dp<U> b, value_t tolerance = eps)
+bool is_congruent(PScalar2dp<T> a, PScalar2dp<U> b, value_t tolerance = eps)
 {
     // Handle zero cases
     if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {

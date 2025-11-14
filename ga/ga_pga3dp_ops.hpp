@@ -26,7 +26,7 @@ namespace hd::ga::pga {
 // - support()                            -> point on line/plane that is nearest to origin
 // - att()                                -> object attitude
 // - dist3dp()                            -> Euclidean distance and homogeneous magnitude
-// - is_congruent3dp()                    -> Same up to a scalar factor (is same subspace)
+// - is_congruent()                       -> Same up to a scalar factor (is same subspace)
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -892,7 +892,7 @@ constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
 // For scalars: all non-zero scalars represent the same 0-dimensional subspace
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent3dp(Scalar3dp<T> a, Scalar3dp<U> b, value_t tolerance = eps)
+bool is_congruent(Scalar3dp<T> a, Scalar3dp<U> b, value_t tolerance = eps)
 {
     // Handle zero cases
     if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {
@@ -909,7 +909,7 @@ bool is_congruent3dp(Scalar3dp<T> a, Scalar3dp<U> b, value_t tolerance = eps)
 // For vectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent3dp(Vec3dp<T> const& a, Vec3dp<U> const& b, value_t tolerance = eps)
+bool is_congruent(Vec3dp<T> const& a, Vec3dp<U> const& b, value_t tolerance = eps)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -962,7 +962,7 @@ bool is_congruent3dp(Vec3dp<T> const& a, Vec3dp<U> const& b, value_t tolerance =
 // For bivectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent3dp(BiVec3dp<T> const& a, BiVec3dp<U> const& b, value_t tolerance = eps)
+bool is_congruent(BiVec3dp<T> const& a, BiVec3dp<U> const& b, value_t tolerance = eps)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -1030,8 +1030,7 @@ bool is_congruent3dp(BiVec3dp<T> const& a, BiVec3dp<U> const& b, value_t toleran
 // For trivectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent3dp(TriVec3dp<T> const& a, TriVec3dp<U> const& b,
-                     value_t tolerance = eps)
+bool is_congruent(TriVec3dp<T> const& a, TriVec3dp<U> const& b, value_t tolerance = eps)
 {
     using ctype = std::common_type_t<T, U>;
 
@@ -1083,7 +1082,7 @@ bool is_congruent3dp(TriVec3dp<T> const& a, TriVec3dp<U> const& b,
 // For pseudoscalars: all non-zero pseudoscalars in 3DP represent the same subspace
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-bool is_congruent3dp(PScalar3dp<T> a, PScalar3dp<U> b, value_t tolerance = eps)
+bool is_congruent(PScalar3dp<T> a, PScalar3dp<U> b, value_t tolerance = eps)
 {
     // Handle zero cases
     if (std::abs(T(a)) < tolerance && std::abs(U(b)) < tolerance) {

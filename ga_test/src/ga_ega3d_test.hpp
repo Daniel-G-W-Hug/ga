@@ -1257,10 +1257,10 @@ TEST_SUITE("EGA 3D Tests")
         // (I_3d is neutral element: s = sd * I_3d)
 
         // congruence
-        CHECK(is_congruent3d(v1, 2.3 * v1));
-        CHECK(is_congruent3d(v1, -12.3 * v1));
-        CHECK(is_congruent3d(wdg(v1, v2), wdg(v2, v1)));
-        CHECK_FALSE(is_congruent3d(v1, v2));
+        CHECK(is_congruent(v1, 2.3 * v1));
+        CHECK(is_congruent(v1, -12.3 * v1));
+        CHECK(is_congruent(wdg(v1, v2), wdg(v2, v1)));
+        CHECK_FALSE(is_congruent(v1, v2));
 
         // common factor axiom
         auto lhs = rwdg(wdg(v1, z), wdg(v2, z));
@@ -1268,7 +1268,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(lhs.x == doctest::Approx(rhs.x).epsilon(eps));
         CHECK(lhs.y == doctest::Approx(rhs.y).epsilon(eps));
         CHECK(lhs.z == doctest::Approx(rhs.z).epsilon(eps));
-        CHECK(is_congruent3d(rwdg(wdg(v1, z), wdg(v2, z)), z));
+        CHECK(is_congruent(rwdg(wdg(v1, z), wdg(v2, z)), z));
     }
 
     TEST_CASE("MVec3d: geometric product - basic properties")
@@ -2572,10 +2572,10 @@ TEST_SUITE("EGA 3D Tests")
         scalar3d s3{2.5};  // same sign as s1
         scalar3d s_zero{0.0};
 
-        CHECK(is_congruent3d(s1, s2) == true);         // different signs are congruent
-        CHECK(is_congruent3d(s1, s3) == true);         // same signs are congruent
-        CHECK(is_congruent3d(s1, s_zero) == false);    // zero vs non-zero
-        CHECK(is_congruent3d(s_zero, s_zero) == true); // zero vs zero
+        CHECK(is_congruent(s1, s2) == true);         // different signs are congruent
+        CHECK(is_congruent(s1, s3) == true);         // same signs are congruent
+        CHECK(is_congruent(s1, s_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent(s_zero, s_zero) == true); // zero vs zero
 
         // Test vectors
         vec3d v1{1.0, 0.0, 0.0};  // x-axis
@@ -2584,11 +2584,11 @@ TEST_SUITE("EGA 3D Tests")
         vec3d v4{-1.5, 0.0, 0.0}; // antiparallel to v1
         vec3d v_zero{0.0, 0.0, 0.0};
 
-        CHECK(is_congruent3d(v1, v2) == false);        // perpendicular vectors
-        CHECK(is_congruent3d(v1, v3) == true);         // parallel vectors
-        CHECK(is_congruent3d(v1, v4) == true);         // antiparallel vectors
-        CHECK(is_congruent3d(v1, v_zero) == false);    // zero vs non-zero
-        CHECK(is_congruent3d(v_zero, v_zero) == true); // zero vs zero
+        CHECK(is_congruent(v1, v2) == false);        // perpendicular vectors
+        CHECK(is_congruent(v1, v3) == true);         // parallel vectors
+        CHECK(is_congruent(v1, v4) == true);         // antiparallel vectors
+        CHECK(is_congruent(v1, v_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent(v_zero, v_zero) == true); // zero vs zero
 
         // Test bivectors
         bivec3d b1{1.0, 0.0, 0.0};  // e23 plane
@@ -2597,11 +2597,11 @@ TEST_SUITE("EGA 3D Tests")
         bivec3d b4{-1.5, 0.0, 0.0}; // e23 plane (antiparallel to b1)
         bivec3d b_zero{0.0, 0.0, 0.0};
 
-        CHECK(is_congruent3d(b1, b2) == false);        // different planes
-        CHECK(is_congruent3d(b1, b3) == true);         // same plane
-        CHECK(is_congruent3d(b1, b4) == true);         // same plane, opposite orientation
-        CHECK(is_congruent3d(b1, b_zero) == false);    // zero vs non-zero
-        CHECK(is_congruent3d(b_zero, b_zero) == true); // zero vs zero
+        CHECK(is_congruent(b1, b2) == false);        // different planes
+        CHECK(is_congruent(b1, b3) == true);         // same plane
+        CHECK(is_congruent(b1, b4) == true);         // same plane, opposite orientation
+        CHECK(is_congruent(b1, b_zero) == false);    // zero vs non-zero
+        CHECK(is_congruent(b_zero, b_zero) == true); // zero vs zero
 
         // Test pseudoscalars
         pscalar3d p1{1.0};
@@ -2609,10 +2609,10 @@ TEST_SUITE("EGA 3D Tests")
         pscalar3d p3{-1.0}; // opposite sign
         pscalar3d p_zero{0.0};
 
-        CHECK(is_congruent3d(p1, p2) == true); // all non-zero pseudoscalars congruent
-        CHECK(is_congruent3d(p1, p3) == true); // different signs still congruent
-        CHECK(is_congruent3d(p1, p_zero) == false);    // zero vs non-zero
-        CHECK(is_congruent3d(p_zero, p_zero) == true); // zero vs zero
+        CHECK(is_congruent(p1, p2) == true);      // all non-zero pseudoscalars congruent
+        CHECK(is_congruent(p1, p3) == true);      // different signs still congruent
+        CHECK(is_congruent(p1, p_zero) == false); // zero vs non-zero
+        CHECK(is_congruent(p_zero, p_zero) == true); // zero vs zero
 
         // fmt::println("   All EGA3D congruence tests passed");
     }

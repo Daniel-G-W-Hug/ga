@@ -319,10 +319,10 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 
 **Critical**: This logic applies to all algebras (EGA2D, EGA3D, PGA2DP, PGA3DP) but must account for algebra-specific grade structures and available operations.
 
-- **EGA2D**: `is_congruent2d()` for `Scalar2d`, `Vec2d`, `PScalar2d`
-- **EGA3D**: `is_congruent3d()` for `Scalar3d`, `Vec3d`, `BiVec3d`, `PScalar3d`
-- **PGA2DP**: `is_congruent2dp()` for `Scalar2dp`, `Vec2dp`, `BiVec2dp`, `PScalar2dp`
-- **PGA3DP**: `is_congruent3dp()` for `Scalar3dp`, `Vec3dp`, `BiVec3dp`, `TriVec3dp`, `PScalar3dp`
+- **EGA2D**: `is_congruent()` for `Scalar2d`, `Vec2d`, `PScalar2d`
+- **EGA3D**: `is_congruent()` for `Scalar3d`, `Vec3d`, `BiVec3d`, `PScalar3d`
+- **PGA2DP**: `is_congruent()` for `Scalar2dp`, `Vec2dp`, `BiVec2dp`, `PScalar2dp`
+- **PGA3DP**: `is_congruent()` for `Scalar3dp`, `Vec3dp`, `BiVec3dp`, `TriVec3dp`, `PScalar3dp`
 
 **Unified Algorithm**:
 
