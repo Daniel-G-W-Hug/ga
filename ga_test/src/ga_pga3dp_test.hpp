@@ -18,6 +18,9 @@
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 
+#include "ga/ga_ega.hpp"     // for comparison with ega results
+using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // projective geometric algebra 3d: pga3dp (embedded in a 4d representational space)
@@ -3433,6 +3436,63 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
         fmt::println("v_para = (B >> v) * inv(B) = {}", gr1((B >> v) * inv(B)));
         fmt::println("v_perp = (v ^ B) * inv(B) = {}", gr1(wdg(v, B) * inv(B)));
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: application tests - force and moment (I/II)")
+    {
+        fmt::println("pga2dp: application tests - force and moment (I/II)");
+
+        // EGA implementation
+        auto p_ega = vec3d{1, 0, 0};
+        auto f_ega = vec3d{0, 0, -1}; // yields a positive moment in a right-handed system
+
+        auto p_cross_f_ega = cross(p_ega, f_ega);
+        auto p_wdg_f_ega = wdg(p_ega, f_ega);
+
+        fmt::println("p_ega = {}", p_ega);
+        fmt::println("f_ega = {}", f_ega);
+        fmt::println("pxf = {}, nrm(pxf) = {}", p_cross_f_ega, nrm(p_cross_f_ega));
+        fmt::println("p^f = {}, nrm(p^f) = {}", p_wdg_f_ega, nrm(p_wdg_f_ega));
+        fmt::println("");
+
+        CHECK(nrm(p_cross_f_ega) == 1.0);
+
+        // PGA implementation
+        auto P = vec3dp{1, 0, 0, 1};
+        auto f = vec3dp{0, 0, 1, 0}; // yields a positive moment in a right-handed system
+
+        auto F = wdg(P, f);
+
+        fmt::println("P = {}", P);
+        fmt::println("f = {}", f);
+        fmt::println("F = P^f = {}, bulk_nrm(F) = {}, att(f) = {}, bulk(F) = {}", F,
+                     bulk_nrm(F), att(F), bulk(F));
+        fmt::println("");
+
+        CHECK(support3dp(F) == P);
+
+        auto R1 = vec3dp{0.5, 0, -1, 1};
+        auto R2 = vec3dp{1.5, 0, -1, 1};
+
+        auto M_R1 = wdg(R1 - P, f);
+        auto M_R2 = wdg(R2 - P, f);
+        auto d_perp1 = R1 - ortho_proj3dp(R1, F);
+        auto d_perp2 = R2 - ortho_proj3dp(R2, F);
+
+        fmt::println("M_R1 = wdg(R1 - P, f) = {}, bulk(M_R1) = {}", M_R1, bulk(M_R1));
+        fmt::println("M_R2 = wdg(R2 - P, f) = {}, bulk(M_R2) = {}", M_R2, bulk(M_R2));
+        fmt::println("");
+        fmt::println("ortho_proj3dp(R1, F) = {}", ortho_proj3dp(R1, F));
+        fmt::println("ortho_proj3dp(R2, F) = {}", ortho_proj3dp(R2, F));
+        fmt::println("d_perp1 = {}", d_perp1);
+        fmt::println("d_perp2 = {}", d_perp2);
+        fmt::println("d_perp1 ^ f = {}", wdg(d_perp1, f));
+        fmt::println("d_perp2 ^ f = {}", wdg(d_perp2, f));
+
+        CHECK(wdg(R1 - P, f) == wdg(d_perp1, f));
+        CHECK(wdg(R2 - P, f) == wdg(d_perp2, f));
+
         fmt::println("");
     }
 

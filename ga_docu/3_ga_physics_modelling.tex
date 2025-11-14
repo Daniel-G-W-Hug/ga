@@ -5,42 +5,123 @@ The key idea is to represent physical entities using objects that are represente
 in the underlying algebra. They have a geometric interpretation and can be directly
 manipulated by applying algebraic operations. \\
 
-$EGA$ is limited to objects that contain the origin. It can be used to directly model
-vectors (i.e. directions), lines, and planes through the orgin. In addition, it can model
-complex numbers, quaternions and thus rotations in $2d$ and $3d$ well. To realize them, it
-uses sandwich products for calculating the transformation resulting from two consequtive
-reflections either across lines ($2d$-case) or across planes ($3d$-case). The resulting
-transformations are rotations. The advantage of using geometric algebra to model those
-rotations is the intuitive modelling, due to geometric meaning of the objects and the fact
-that the sandwich products can be used to transform different objects using the same
-formulas regardless of the type of object to be transformed.\\
+$EGA$ is limited to objects that contain the origin. Thus, it can be used to directly
+model vectors (i.e. directions), lines, and planes through the orgin. In addition, it can
+model complex numbers, quaternions and thus rotations in $2d$ and $3d$ well. To realize
+them, it uses sandwich products based on the geometric product for calculating the
+transformation resulting from two consequtive reflections either across lines ($2d$-case)
+or across planes ($3d$-case). The resulting transformations are rotations. The advantage
+of using geometric algebra to model those rotations is the intuitive modelling, due to
+geometric meaning of the objects and the fact that the sandwich products can be used to
+transform different objects, like vectors, bivectors or rotation operators using the same
+sandwich product formulas in a unified fashion regardless of the type of object to be
+transformed.\\
 
-In addition, $PGA$ is capable to model objects that do not contain the origin. Thus it can
-be used to directly model points, directions, lines, and planes that may or may not
-contain the origin. The additional degree of freedom is possible due to embedding the
-Euclidean space of dimension $n$ into a projective space of dimension $n+1$, e.g.
-$2d$-Euclidean algebra is modelled by embedding it in a $3d$-projective space, and
-$3d$-Euclidean algebra is modelled in a $4d$-projective space. In a projective space the
-objects must be projected into the modelled space. Thus the objects of the embedding space
-typically have one dimension more than the corresponding objects in modelled space. E.g. a
-projective point (a scalar or $0d$-object) is a vector in the embedding space (a
-$1d$-object), and a bivector in projective space (a $2d$-object) is used to model a line
-(a $1d$-object). The projection reduces the object dimension by one. Projective objects
-can be multiplied by a scalar without changing the geometrical meaninig of the projective
-object in the embedding space. \\
+In addition, $PGA$ is capable to model objects that do not necessarily contain the origin.
+Thus it can be used to directly model points, directions, lines, and planes that may or
+may not contain the origin. Translations can be implemented in $PGA$ as an additional
+orthogonal transformation using a sandwich product in the algebra. The operation is
+realized by two consequtive reflections across parallel lines or planes. It is based on
+the regressive form of the geometric product. The reason for this deviation from $EGA$,
+which uses the geometric product for that purpose, is that the Euclidean isometries
+(rotation, translation, and screw motion) can only be performed in a space that is dual to
+the space we use for modelling our projective objects (for explanation
+see~\cite{Lengyel_pga-illuminated:2024}). The use of the regressive geometric product on
+these objects is equivalent to first transforming the object into dual space by applying
+the complement operation, then using the geometric product in that space for the intended
+transformation and finally transforming the resulting transformed object back into the
+original space, by applying the inverse complement operation. Thus the sandwich product
+transformation formulas in $PGA$ differ from the formulas used in $EGA$ by using the
+regressive geometric product instead of the geometric product, but are otherwise the same.
+\\
+
+The additional degree of freedom in $PGA$ is possible due to embedding the Euclidean space
+of dimension $n$ into a projective space of dimension $n+1$, e.g. two-dimensional
+Euclidean space is modelled by embedding it in a three-dimensional projective space, and
+three-dimensional Euclidean space is modelled in a four-dimensional projective space. In
+the $n+1$-dimensional projective space all algebraic objects contain the origin (exactly
+as in $EGA$), but in the modelled $n$-dimensional Euclidean space the objects do not need
+to contain the origin. They can be located anywhere in the modelled space including
+postions at infinity. In projective geometry the objects must be projected into the
+modelled space. Thus the objects of the embedding space have one dimension more than the
+corresponding objects in modelled space. A projective point (a scalar or $0d$-object) is a
+vector representing a ray or line in the embedding space (a $1d$-object), and a bivector
+in projective space (a $2d$-object) is used to model a line (a $1d$-object) in modelled
+space, and so on for higher grade objects. The projection reduces the object dimension by
+one. Objects modelled in projective space can be multiplied by a scalar value without
+changing the geometrical meaninig of the object in the modelled Euclidean space. \\
 
 Due to its extended expressiveness $PGA$ is suitable to model physics of mass points and
-rigid bodies. It can model position, velocity, acceleration, force, torque, momentum,
-angular momentum, etc. to describe kinematics and dynamics of mass points and rigid
-bodies. The approach used here is inspired by \cite{Plane-based_PGA_Dorst-DeKennik:2022}
-and \cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023}, but it does not use
-Plane-based $GA$ with planes as vectors, which are based on dual representations of the
+rigid bodies. For example it can model position, velocity, acceleration, force, torque,
+momentum, angular momentum, etc., and thus it can be used to describe kinematics and
+dynamics of mass points and rigid bodies. The approach used here is inspired by
+\cite{Plane-based_PGA_Dorst-DeKennik:2022} and
+\cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023}, but it does not use the
+plane-based ansatz with planes as vectors, which are based on dual representations of the
 objects to be modelled. It rather uses the approach as described by
 \cite{Lengyel_pga-illuminated:2024} using projective geometric algebra based on direct
-representations of points, lines and planes. The reasons for choosing the latter approach
-are explained in \cite{Lengyel_poor-foundations_GA:2024}. Further hints on inconsistencies
-in typical GA application up-to-now can be found as well in
+representations of points, lines and planes, who also gives reasons for choosing the
+latter approach and explains the background in more detail compared to the short
+indications given above. \\
+
+\cite{Lengyel_poor-foundations_GA:2024} also points out potential inconsistencies in
+applications of geometric algebra as often used up-to-now. Further hints on
+inconsistencies in some GA approaches can be found as well in
 \cite{Kritchevsky_case_against_GA:2024}. The goal of the this work is to be as consistent
-in terms of mathematical application of GA and as intuitively applicable as possible. \\
+and mathematically rigoros as possible implementing GA functionality, and at the same time
+providing an intuitively applicable framework for modelling of physics. \\
+
+\cite{Browne_Grassmann-Algebra_Vol1:2012} (see sections 4.1-4.5) is a very good source
+showing how to use Grassmann algebra and projective geometry in order to model forces and
+moments. Classical approaches based-on vector algebra only model forces by providing
+vectors of adequate magnitude and direction to represent the force. However, the
+physically very meaningful ``line of action'' is not modelled mathematically at all. It
+rather needs to be derived from the description of the context in order to know where the
+force is actually acting. \\
+
+This changes in $PGA$ since any force can be directly modelled by its line of action which
+can be fully encoded within the mathematical approach: A force is directly modelled by a
+line $F$ in $PGA$. If $f$ is the force vector of corresponding magnitude and direction,
+and $P$ is any point on its line of action then the force line of action is modelled as
+\begin{equation}
+F = P \wedge f
+\end{equation}
+The resulting bivector $F$ represents a line as geometric object which contains all
+physically relevant information of the force $F$ and its effects, like moments generated
+by the force at any point in space. \\
+
+The force vector $f$ itself can be retrieved from $F$ by using the attitude function
+$att()$:
+\begin{equation}
+    f = att(F) = F \vee \overline{\bv{n}}
+    \label{force_attitude}
+\end{equation}
+with $\bv{n}$ denoting the basis vector of the projective dimension that squares to $0$ in
+the respective algebra. The moment generated relative to the origin $O$ is encoded in the
+bulk of the bivector:
+\begin{equation}
+    M_{origin} = bulk(F)
+    \label{force_moment_origin}
+\end{equation}
+while the resulting moment from the application of $f$ at any given
+point $R$ in space can be retrieved from $F$, either with any known point $P$ on $F$
+(which is in principle always available via the $support(F)$ function which provides the
+point on $F$ with the shortest distance to the origin $O$), or alternatively by projecting
+$R$ onto $F$ and using the perpendicular distance vector $d_\perp$ from the line $F$
+towards $R$ in order to calculate the resulting moment $M_F(R)$ as
+\begin{subeqnarray}
+    M_F(R) & = &  (R-P) \wedge f = (R-P) \wedge att(F)
+    \slabel{eq:action_line_moment_simple} \\
+    M_F(R) & = & d_\perp \wedge f  = (R - F \vee (R \wedge \rightweightdual{F})) \wedge
+    att(F)
+    \slabel{eq:action_line_moment_projection}
+\end{subeqnarray}
+where equation~(\ref{eq:action_line_moment_simple}) is the formula with the least
+computational effort using a known point $P$, while
+equation~(\ref{eq:action_line_moment_projection}) uses the othogonal projection of $R$
+onto $F$ on the left-hand side to calculate the perpendicular distance vector $d_\perp$.
+\\
+
+% The geometrical situation is depicted in figure XXX for a two-dimensional case.
 
 \newpage
