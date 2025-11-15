@@ -136,12 +136,54 @@ void active_reflection::paint(QPainter* qp, const QStyleOptionGraphicsItem* opti
     refl1.closeSubpath();
     refl2.closeSubpath();
 
+    // Draw connecting arrows showing reflection geometry
+    // For each corner: original -> hyperplane -> reflected
+    qp->setBrush(col_lgrey);
+
+    // First reflection: blue -> grey (through n1 hyperplane)
+    for (size_t i = 0; i < v.size(); ++i) {
+        QPointF p_orig(cs->x.au_to_w(v[i].x), cs->y.au_to_w(v[i].y));
+        QPointF p_refl(cs->x.au_to_w(vr[i].x), cs->y.au_to_w(vr[i].y));
+        QPointF p_mid = (p_orig + p_refl) / 2.0;  // Point on hyperplane
+
+        // Arrow from original to hyperplane (dashed line, solid arrow head)
+        qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::DashLine));
+        qp->drawLine(p_orig, p_mid);
+        qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::SolidLine));
+        qp->drawPath(arrowHead(p_orig, p_mid));
+
+        // Arrow from hyperplane to reflected (dashed line, solid arrow head)
+        qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::DashLine));
+        qp->drawLine(p_mid, p_refl);
+        qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::SolidLine));
+        qp->drawPath(arrowHead(p_mid, p_refl));
+    }
+
+    // Second reflection: grey -> red (through n2 hyperplane)
+    for (size_t i = 0; i < vr.size(); ++i) {
+        QPointF p_orig(cs->x.au_to_w(vr[i].x), cs->y.au_to_w(vr[i].y));
+        QPointF p_refl(cs->x.au_to_w(vrr[i].x), cs->y.au_to_w(vrr[i].y));
+        QPointF p_mid = (p_orig + p_refl) / 2.0;  // Point on hyperplane
+
+        // Arrow from original to hyperplane (dashed line, solid arrow head)
+        qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::DashLine));
+        qp->drawLine(p_orig, p_mid);
+        qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::SolidLine));
+        qp->drawPath(arrowHead(p_orig, p_mid));
+
+        // Arrow from hyperplane to reflected (dashed line, solid arrow head)
+        qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::DashLine));
+        qp->drawLine(p_mid, p_refl);
+        qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::SolidLine));
+        qp->drawPath(arrowHead(p_mid, p_refl));
+    }
+
     qp->setPen(QPen(QBrush(col_lblue), 1, Qt::SolidLine));
     qp->setBrush(col_lblue);
     qp->drawPath(org);
 
-    qp->setPen(QPen(QBrush(col_lgreen), 1, Qt::SolidLine));
-    qp->setBrush(col_lgreen);
+    qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::SolidLine));
+    qp->setBrush(col_lgrey);
     qp->drawPath(refl1);
 
     qp->setPen(QPen(QBrush(col_lred), 1, Qt::SolidLine));

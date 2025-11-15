@@ -837,7 +837,9 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_arefl(arefl2d{p0_id, p1_id});
 
-        cm.set_label("active reflection (2x)");
+        cm.set_label("active reflection ega; "
+            "move points indiviually or both lines together "
+            "(sensitive area between arrow and point)");
 
         vm.push_back(cm);
     }
@@ -851,7 +853,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_areflp(arefl2dp{p0_id, p1_id, p0_id, p2_id});
 
-        cm.set_label("active reflection projective, common pt (2x)");
+        cm.set_label("active reflection pga w/ common point; "
+            "(sensitive area on lines plus A: move 1st line, B: move 2nd line, D: rotate both lines)");
 
         vm.push_back(cm);
     }
@@ -866,7 +869,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_areflp(arefl2dp{p0_id, p1_id, p2_id, p3_id});
 
-        cm.set_label("active reflection projective (2x)");
+        cm.set_label("active reflection pga w/ separate points; "
+            "(sensitive area on lines plus A: move 1st line, B: move 2nd line, D: rotate both lines)");
 
         vm.push_back(cm);
     }
