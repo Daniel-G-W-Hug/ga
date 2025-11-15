@@ -27,6 +27,8 @@ inline QColor const col_red = QColor(255, 0, 0, 255);
 inline QColor const col_lred = QColor(127, 0, 0, 50);
 inline QColor const col_yel = QColor(255, 255, 0, 127);
 inline QColor const col_lyel = QColor(255, 255, 0, 50);
+inline QColor const col_grey = QColor(127, 127, 127, 127);
+inline QColor const col_lgrey = QColor(50, 50, 50, 50);
 
 qreal nrm(QPointF const& u);
 qreal dot(QPointF const& u, QPointF const& v);
