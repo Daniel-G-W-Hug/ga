@@ -2981,6 +2981,62 @@ TEST_SUITE("PGA 2DP Tests")
               left_weight_expand2dp(B, s)); // expansion expressed as wdg prod.
 
         CHECK(rtwdg1(v, v2) == rcmt(v, v2)); // identity to regressive commutator product
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: application tests - force and moment (I/II)")
+    {
+        fmt::println("pga2dp: application tests - force and moment (I/II)");
+
+
+        // PGA implementation
+        auto P = vec2dp{2.25, 1, 1};
+        auto f = vec2dp{0, 0.75, 0};
+        auto F = wdg(P, f); // force line resulting from f acting at P (=forque)
+
+        fmt::println("P = {}", P);
+        fmt::println("f = {}", f);
+        fmt::println("F = P^f = {}, att(f) = {}, M_O = bulk(F) = {}", F, att(F), bulk(F));
+        fmt::println("");
+        fmt::println("O_2dp^f = {}, att(O_2dp^f) = {} (=force)", wdg(O_2dp, f),
+                     att(wdg(O_2dp, f)));
+        fmt::println("p^f = {}, bulk(p^f) = {} (=torque)", wdg(P - O_2dp, f),
+                     bulk(wdg(P - O_2dp, f)));
+        fmt::println("");
+        CHECK(support(F) == vec2dp{2.25, 0, 1});
+        CHECK(wdg(P, f) == wdg(O_2dp, f) + wdg(P - O_2dp, f));
+
+        auto R1 = vec2dp{1.5, 2, 1};
+        auto R2 = vec2dp{3.0, 2, 1};
+        auto R3 = vec2dp{3.0, 0, 1};
+        auto R4 = vec2dp{1.5, 0, 1};
+        auto F_R1 = wdg(P - R1, f);
+        auto F_R2 = wdg(P - R2, f);
+        auto F_R3 = wdg(P - R3, f);
+        auto F_R4 = wdg(P - R4, f);
+
+        fmt::println("R1 = {}", R1);
+        fmt::println("R2 = {}", R2);
+        fmt::println("R3 = {}", R3);
+        fmt::println("R4 = {}", R4);
+        fmt::println("");
+        fmt::println("F_R1 = (P - R1)^f = {}, att(f) = {}, M_R1 = bulk(F_R1) = {}", F_R1,
+                     att(F_R1), bulk(F_R1));
+        fmt::println("F_R2 = (P - R2)^f = {}, att(f) = {}, M_R2 = bulk(F_R2) = {}", F_R2,
+                     att(F_R2), bulk(F_R2));
+        fmt::println("F_R3 = (P - R3)^f = {}, att(f) = {}, M_R3 = bulk(F_R3) = {}", F_R3,
+                     att(F_R3), bulk(F_R3));
+        fmt::println("F_R4 = (P - R4)^f = {}, att(f) = {}, M_R4 = bulk(F_R4) = {}", F_R4,
+                     att(F_R4), bulk(F_R4));
+        fmt::println("");
+
+        CHECK(F_R1 == F - wdg(R1, f));
+        CHECK(F_R2 == F - wdg(R2, f));
+        CHECK(F_R3 == F - wdg(R3, f));
+        CHECK(F_R4 == F - wdg(R4, f));
+
+        fmt::println("");
     }
 
 } // PGA 2DP Tests
