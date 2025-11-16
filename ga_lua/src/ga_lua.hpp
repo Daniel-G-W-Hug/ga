@@ -1938,8 +1938,10 @@ void register_functions(sol::state& lua)
 
     lua.set_function(
         "reflect_on",
-        sol::overload( // EGA reflection functions
+        sol::overload(
+            // EGA 2D reflection functions
             sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on),
+            // EGA 3D reflection functions
             sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on),
             sol::resolve<vec3d(vec3d const&, bivec3d const&)>(reflect_on),
             sol::resolve<bivec3d(bivec3d const&, bivec3d const&)>(reflect_on),
@@ -1955,6 +1957,54 @@ void register_functions(sol::state& lua)
         "reflect_on_vec",
         sol::overload(sol::resolve<vec2d(vec2d const&, vec2d const&)>(reflect_on_vec),
                       sol::resolve<vec3d(vec3d const&, vec3d const&)>(reflect_on_vec)));
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // testing for congruence
+    ////////////////////////////////////////////////////////////////////////////////
+
+    lua.set_function(
+        "is_congruent",
+        sol::overload(
+            // EGA 2D congruence (with explicit tolerance)
+            sol::resolve<bool(scalar2d, scalar2d, value_t)>(is_congruent),
+            sol::resolve<bool(vec2d const&, vec2d const&, value_t)>(is_congruent),
+            sol::resolve<bool(pscalar2d, pscalar2d, value_t)>(is_congruent),
+            // EGA 2D congruence (with default tolerance)
+            [](scalar2d a, scalar2d b) { return is_congruent(a, b); },
+            [](vec2d const& a, vec2d const& b) { return is_congruent(a, b); },
+            [](pscalar2d a, pscalar2d b) { return is_congruent(a, b); },
+            // EGA 3D congruence (with explicit tolerance)
+            sol::resolve<bool(scalar3d, scalar3d, value_t)>(is_congruent),
+            sol::resolve<bool(vec3d const&, vec3d const&, value_t)>(is_congruent),
+            sol::resolve<bool(bivec3d const&, bivec3d const&, value_t)>(is_congruent),
+            sol::resolve<bool(pscalar3d, pscalar3d, value_t)>(is_congruent),
+            // EGA 3D congruence (with default tolerance)
+            [](scalar3d a, scalar3d b) { return is_congruent(a, b); },
+            [](vec3d const& a, vec3d const& b) { return is_congruent(a, b); },
+            [](bivec3d const& a, bivec3d const& b) { return is_congruent(a, b); },
+            [](pscalar3d a, pscalar3d b) { return is_congruent(a, b); },
+            // PGA 2DP congruence (with explicit tolerance)
+            sol::resolve<bool(scalar2dp, scalar2dp, value_t)>(is_congruent),
+            sol::resolve<bool(vec2dp const&, vec2dp const&, value_t)>(is_congruent),
+            sol::resolve<bool(bivec2dp const&, bivec2dp const&, value_t)>(is_congruent),
+            sol::resolve<bool(pscalar2dp, pscalar2dp, value_t)>(is_congruent),
+            // PGA 2DP congruence (with default tolerance)
+            [](scalar2dp a, scalar2dp b) { return is_congruent(a, b); },
+            [](vec2dp const& a, vec2dp const& b) { return is_congruent(a, b); },
+            [](bivec2dp const& a, bivec2dp const& b) { return is_congruent(a, b); },
+            [](pscalar2dp a, pscalar2dp b) { return is_congruent(a, b); },
+            // PGA 3DP congruence (with explicit tolerance)
+            sol::resolve<bool(scalar3dp, scalar3dp, value_t)>(is_congruent),
+            sol::resolve<bool(vec3dp const&, vec3dp const&, value_t)>(is_congruent),
+            sol::resolve<bool(bivec3dp const&, bivec3dp const&, value_t)>(is_congruent),
+            sol::resolve<bool(trivec3dp const&, trivec3dp const&, value_t)>(is_congruent),
+            sol::resolve<bool(pscalar3dp, pscalar3dp, value_t)>(is_congruent),
+            // PGA 3DP congruence (with default tolerance)
+            [](scalar3dp a, scalar3dp b) { return is_congruent(a, b); },
+            [](vec3dp const& a, vec3dp const& b) { return is_congruent(a, b); },
+            [](bivec3dp const& a, bivec3dp const& b) { return is_congruent(a, b); },
+            [](trivec3dp const& a, trivec3dp const& b) { return is_congruent(a, b); },
+            [](pscalar3dp a, pscalar3dp b) { return is_congruent(a, b); }));
 
     ////////////////////////////////////////////////////////////////////////////////
     // common helper functions for scripting in lua
