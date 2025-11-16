@@ -175,7 +175,7 @@ TEST_SUITE("PGA2DP: application tests")
         // moment of force line at reference point R, just from line and reference point
         // distance of R to L calculated from orthogonal projection of R onto L
         // moment = force ^ lever arm
-        auto d = R - ortho_proj2dp(R, L);
+        auto d = ortho_proj2dp(R, L) - R;
         auto M_LR = wdg(d, F); // lever arm ^ force
 
         // alternative approach: calculate moment from support point D and f
@@ -188,7 +188,7 @@ TEST_SUITE("PGA2DP: application tests")
         //
         // The resulting moment on the point R is M = d ^ f = (D - R) ^ att(L)
         //
-        auto M_LR_calc = wdg(R - gr1(L * inv(F)), F);
+        auto M_LR_calc = wdg(gr1(L * inv(F)) - R, F);
 
         fmt::println("point P = {}", P);
         fmt::println("f       = {}", f);
@@ -204,7 +204,7 @@ TEST_SUITE("PGA2DP: application tests")
         fmt::println("retrieved d = to_val(bulk_nrm(D)) = {}",
                      to_val(bulk_nrm(gr1(L * inv(att(L))))));
         fmt::println("");
-        fmt::println("moment at R:  M_LR = (R - proj(R, L)) ^ F = {}", M_LR);
+        fmt::println("moment at R:  M_LR = (proj(R, L) - R) ^ F = {}", M_LR);
         fmt::println("altern. calc. M_LR_calc                   = {}", M_LR_calc);
         fmt::println("");
         double M_LR_calc_free = 0.0;
