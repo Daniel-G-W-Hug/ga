@@ -14,23 +14,23 @@ namespace hd::ga::pga {
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides pga3dp basic operations:
 //
-// - gr_inv()                     -> grade inversion
-// - rev()                        -> reversion
-// - rrev()                       -> regressive reversion
-// - conj()                       -> conjugation
-// - lcmpl(), rcmpl()             -> left and right complement
+// - gr_inv()                      -> grade inversion
+// - rev()                         -> reversion
+// - rrev()                        -> regressive reversion
+// - conj()                        -> conjugation
+// - lcmpl(), rcmpl()              -> left and right complement
 //
-// - bulk(), weight()             -> return bulk and weight parts of objects
-// - bulk_nrm_sq, bulk_nrm        -> return bulk norm
-// - weight_nrm_sq, weight_nrm    -> return weight norm
-// - geom_nrm_sq, geom_nrm        -> return geometric norm
-// - bulk_normalize               -> return normalized object (bulk_nrm scaled to 1.0)
-// - unitize                      -> return unitized object (weight_nrm scaled to 1.0)
+// - bulk(), weight()              -> return bulk and weight parts of objects
+// - bulk_nrm_sq(), bulk_nrm()     -> return bulk norm
+// - weight_nrm_sq(), weight_nrm() -> return weight norm
+// - geom_nrm_sq(), geom_nrm()     -> return geometric norm
+// - bulk_normalize()              -> return normalized object (bulk_nrm scaled to 1.0)
+// - unitize()                     -> return unitized object (weight_nrm scaled to 1.0)
 //
-// - right_bulk_dual              -> return right bulk dual
-// - right_weight_dual            -> return right weight dual
-// - left_bulk_dual               -> return right bulk dual
-// - left_weight_dual             -> return right weight dual
+// - right_bulk_dual()             -> return right bulk dual
+// - right_weight_dual()           -> return right weight dual
+// - left_bulk_dual()              -> return right bulk dual
+// - left_weight_dual()            -> return right weight dual
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1114,6 +1114,17 @@ inline BiVec3dp<T> bulk_normalize(BiVec3dp<T> const& B)
     return inv * B;
 }
 
+// return a trivector normalized to bulk_nrm(t) == 1.0
+template <typename T>
+    requires(std::floating_point<T>)
+inline TriVec3dp<T> bulk_normalize(TriVec3dp<T> const& t)
+{
+    T n = to_val(bulk_nrm(t));
+    hd::ga::detail::check_normalization<T>(n, "trivector (3dp)");
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * t;
+}
+
 // return an even grade multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(std::floating_point<T>)
@@ -1151,19 +1162,6 @@ inline MVec3dp<T> bulk_normalize(MVec3dp<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // unitization operations
 ////////////////////////////////////////////////////////////////////////////////
-
-// return a DualNum3dp unitized to weight_nrm == 1.0
-// => if the dual number represents a homogeneous norm,
-//    the scalar part represents the geometric norm the after unitization
-template <typename T>
-    requires(std::floating_point<T>)
-inline DualNum3dp<T> unitize(DualNum3dp<T> const& D)
-{
-    T n = D.c1; // the pseudoscalar part is the weight_nrm part
-    hd::ga::detail::check_unitization<T>(std::abs(n), "dual number (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * D;
-}
 
 // return a vector unitized to v.w == 1.0  (implies weight_nrm(v) = 1.0)
 template <typename T>
@@ -1261,6 +1259,19 @@ inline Plane3d<T> unitize(Plane3d<T> const& p)
     hd::ga::detail::check_unitization<T>(wn, "Plane3d");
     T inv = T(1.0) / wn;
     return Plane3d<T>(p.x * inv, p.y * inv, p.z * inv, p.w * inv);
+}
+
+// return a DualNum3dp unitized to weight_nrm == 1.0
+// => if the dual number represents a homogeneous norm,
+//    the scalar part represents the geometric norm the after unitization
+template <typename T>
+    requires(std::floating_point<T>)
+inline DualNum3dp<T> unitize(DualNum3dp<T> const& D)
+{
+    T n = D.c1; // the pseudoscalar part is the weight_nrm part
+    hd::ga::detail::check_unitization<T>(std::abs(n), "dual number (3dp)");
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * D;
 }
 
 
