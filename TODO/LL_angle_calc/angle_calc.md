@@ -4,7 +4,9 @@
 
 ## Overview
 
-This document explains the simplification of angle calculations in `active_bivt2dp.cpp` from using two GA angle functions to a single `atan2` call, while maintaining identical behavior for arrow rendering.
+This document explains the simplification of angle calculations in `active_bivt2dp.cpp`
+from using two GA angle functions to a single `atan2` call, while maintaining identical
+behavior for arrow rendering.
 
 ---
 
@@ -39,7 +41,7 @@ For rendering in `active_bivt2dp.cpp`:
 
 ## Original Implementation (Two Angles)
 
-### Calculation Method
+### Calculation Method (orig.)
 
 ```cpp
 auto const x_axis = bivec2dp{0, 1, 0};
@@ -76,7 +78,7 @@ The original code uses combinations of `phi_x` and `phi_y` to determine 8 cases:
 7. **neg y-axis**: `phi_x ≈ 90°` AND `phi_y ≈ 0°`
 8. **fourth quadrant**: `phi_x ∈ (0°, 90°)` AND `phi_y ∈ (0°, 90°)`
 
-### Intersection Calculation Conditions
+### Intersection Calculation Conditions (orig.)
 
 ```cpp
 // Calculate horizontal boundary intersections (left/right)
@@ -96,7 +98,7 @@ if (std::abs(phi_y - pi / 2.0) > eps) {  // NOT on ±x-axis
 
 ## New Implementation (Single atan2 Angle)
 
-### Calculation Method
+### Calculation Method (new)
 
 ```cpp
 // For bivector (x,y,z), the line direction is perpendicular to normal (-y, x)
@@ -152,7 +154,7 @@ Ordered from `line_angle = -180°` to `+180°`:
 7. **neg x-axis**: `|line_angle - π/2| < eps` → `line_angle ≈ +90°`
 8. **second quadrant**: `line_angle ∈ (+90°, +180°)`
 
-### Intersection Calculation Conditions
+### Intersection Calculation Conditions (new)
 
 ```cpp
 // Calculate horizontal boundary intersections (left/right)
@@ -219,7 +221,8 @@ On macOS ARM64 with clang++:
   - `q = 90.00°` → `line_angle = -180.00°` (wraps to negative π)
   - `q = 90.05°` → `line_angle = +179.95°`
 
-The condition `|abs(line_angle) - π| < eps` is **platform-independent** because it treats +π and -π as identical.
+The condition `|abs(line_angle) - π| < eps` is **platform-independent** because it treats
++π and -π as identical.
 
 ---
 
@@ -272,14 +275,16 @@ The condition `|abs(line_angle) - π| < eps` is **platform-independent** because
 
 ### What "Quadrants" Mean Here
 
-The 8 cases are NOT classical mathematical quadrants! They are **boundary crossing patterns**:
+The 8 cases are NOT classical mathematical quadrants! They are **boundary crossing
+patterns**:
 
 - **"first quadrant"**: line crosses from bottom-left to top-right
 - **"second quadrant"**: line crosses from bottom-right to top-left
 - **"third quadrant"**: line crosses from top-left to bottom-right
 - **"fourth quadrant"**: line crosses from top-right to bottom-left
 
-These names are legacy from the original implementation and represent which viewport boundaries the line intersects, rotated 45° from classical quadrants.
+These names are legacy from the original implementation and represent which viewport
+boundaries the line intersects, rotated 45° from classical quadrants.
 
 ### Unique Angle for Geometric Lines
 
@@ -322,7 +327,8 @@ auto const phi_y = angle(y_axis, bvt);
 value_t line_angle = std::atan2(-bvt.y, bvt.x);
 ```
 
-**All 8 case conditions updated** to use `line_angle` instead of `(phi_x, phi_y)` combinations.
+**All 8 case conditions updated** to use `line_angle` instead of `(phi_x, phi_y)`
+combinations.
 
 **Intersection calculation conditions updated** with correct atan2 range mappings.
 
@@ -338,7 +344,8 @@ The simplification from two angles to one atan2-based angle is:
 ✅ **Platform-independent** - robust edge case handling
 ✅ **Production-ready** - zero behavioral changes
 
-This refactoring maintains 100% identical behavior while improving code clarity and performance.
+This refactoring maintains 100% identical behavior while improving code clarity and
+performance.
 
 ---
 

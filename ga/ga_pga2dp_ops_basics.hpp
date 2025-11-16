@@ -14,22 +14,22 @@ namespace hd::ga::pga {
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides pga2dp basic operations:
 //
-// - gr_inv()                     -> grade inversion
-// - rev()                        -> reversion
-// - rrev()                       -> regressive reversion
-// - conj()                       -> conjugation
-// - cmpl()                       -> complement
-// - bulk_dual(), weight_dual()   -> bulk dual and weight dual
+// - gr_inv()                      -> grade inversion
+// - rev()                         -> reversion
+// - rrev()                        -> regressive reversion
+// - conj()                        -> conjugation
+// - cmpl()                        -> complement
+// - bulk_dual(), weight_dual()    -> bulk dual and weight dual
 //
-// - bulk(), weight()             -> return bulk and weight parts of objects
-// - bulk_nrm_sq, bulk_nrm        -> return bulk norm
-// - weight_nrm_sq, weight_nrm    -> return weight norm
-// - geom_nrm_sq, geom_nrm        -> return geometric norm
-// - bulk_normalize               -> return normalized object (bulk_nrm scaled to 1.0)
-// - unitize                      -> return unitized object (weight_nrm scaled to 1.0)
+// - bulk(), weight()              -> return bulk and weight parts of objects
+// - bulk_nrm_sq(), bulk_nrm()     -> return bulk norm
+// - weight_nrm_sq(), weight_nrm() -> return weight norm
+// - geom_nrm_sq(), geom_nrm()     -> return geometric norm
+// - bulk_normalize()              -> return normalized object (bulk_nrm scaled to 1.0)
+// - unitize()                     -> return unitized object (weight_nrm scaled to 1.0)
 //
-// - bulk_dual                    -> return bulk dual
-// - weight_dual                  -> return weight dual
+// - bulk_dual()                   -> return bulk dual
+// - weight_dual()                 -> return weight dual
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -927,19 +927,6 @@ inline MVec2dp<T> bulk_normalize(MVec2dp<T> const& M)
 // unitization operations
 ////////////////////////////////////////////////////////////////////////////////
 
-// return a DualNum2dp unitized to weight_nrm == 1.0
-// => if the dual number represents a homogeneous norm,
-//    the scalar part represents the geometric norm the after unitization
-template <typename T>
-    requires(std::floating_point<T>)
-inline DualNum2dp<T> unitize(DualNum2dp<T> const& D)
-{
-    T n = D.c1; // the pseudoscalar part is the weight_nrm part
-    hd::ga::detail::check_unitization<T>(std::abs(n), "dual number (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * D;
-}
-
 // return a vector unitized to v.z == 1.0  (implies weight_nrm(v) = 1.0)
 template <typename T>
     requires(std::floating_point<T>)
@@ -1014,6 +1001,19 @@ inline Line2d<T> unitize(Line2d<T> const& l)
     hd::ga::detail::check_unitization<T>(wn, "Line2d");
     T inv = T(1.0) / wn;
     return Line2d<T>(l.x * inv, l.y * inv, l.z * inv);
+}
+
+// return a DualNum2dp unitized to weight_nrm == 1.0
+// => if the dual number represents a homogeneous norm,
+//    the scalar part represents the geometric norm the after unitization
+template <typename T>
+    requires(std::floating_point<T>)
+inline DualNum2dp<T> unitize(DualNum2dp<T> const& D)
+{
+    T n = D.c1; // the pseudoscalar part is the weight_nrm part
+    hd::ga::detail::check_unitization<T>(std::abs(n), "dual number (2dp)");
+    T inv = T(1.0) / n; // for multiplication with inverse of norm
+    return inv * D;
 }
 
 

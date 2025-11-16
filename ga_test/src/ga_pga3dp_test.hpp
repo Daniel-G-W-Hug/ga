@@ -3441,7 +3441,7 @@ TEST_SUITE("PGA 3DP Tests")
 
     TEST_CASE("pga3dp: application tests - force and moment (I/II)")
     {
-        fmt::println("pga2dp: application tests - force and moment (I/II)");
+        fmt::println("pga3dp: application tests - force and moment (I/II)");
 
         // EGA implementation
         auto p_ega = vec3d{1, 0, 0};

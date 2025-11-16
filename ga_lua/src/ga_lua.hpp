@@ -1189,24 +1189,58 @@ void register_functions(sol::state& lua)
                                 sol::resolve<value_t(mvec3dp const&)>(nrm),
                                 sol::resolve<value_t(dualnum3dp const&)>(nrm)));
 
-    lua.set_function("normalize",
-                     sol::overload(sol::resolve<scalar2d(scalar2d)>(normalize),
-                                   sol::resolve<vec2d(vec2d const&)>(normalize),
-                                   sol::resolve<pscalar2d(pscalar2d)>(normalize),
-                                   sol::resolve<scalar3d(scalar3d)>(normalize),
-                                   sol::resolve<vec3d(vec3d const&)>(normalize),
-                                   sol::resolve<bivec3d(bivec3d const&)>(normalize),
-                                   sol::resolve<pscalar3d(pscalar3d)>(normalize)));
+    // normalization in EGA
+    lua.set_function("normalize", sol::overload(
+                                      // EGA 2D types
+                                      sol::resolve<scalar2d(scalar2d)>(normalize),
+                                      sol::resolve<vec2d(vec2d const&)>(normalize),
+                                      sol::resolve<pscalar2d(pscalar2d)>(normalize),
+                                      // EGA 3D types
+                                      sol::resolve<scalar3d(scalar3d)>(normalize),
+                                      sol::resolve<vec3d(vec3d const&)>(normalize),
+                                      sol::resolve<bivec3d(bivec3d const&)>(normalize),
+                                      sol::resolve<pscalar3d(pscalar3d)>(normalize)));
 
-    // PGA unitize functions (analogue to EGA normalize)
+    // bulk_normalization in PGA
+    lua.set_function("bulk_normalize",
+                     sol::overload(
+                         // PGA 2DP types
+                         sol::resolve<vec2dp(vec2dp const&)>(bulk_normalize),
+                         sol::resolve<bivec2dp(bivec2dp const&)>(bulk_normalize),
+                         sol::resolve<mvec2dp_e(mvec2dp_e const&)>(bulk_normalize),
+                         sol::resolve<mvec2dp_u(mvec2dp_u const&)>(bulk_normalize),
+                         sol::resolve<mvec2dp(mvec2dp const&)>(bulk_normalize),
+                         // PGA 3DP types
+                         sol::resolve<vec3dp(vec3dp const&)>(bulk_normalize),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(bulk_normalize),
+                         sol::resolve<trivec3dp(trivec3dp const&)>(bulk_normalize),
+                         sol::resolve<mvec3dp_e(mvec3dp_e const&)>(bulk_normalize),
+                         sol::resolve<mvec3dp_u(mvec3dp_u const&)>(bulk_normalize),
+                         sol::resolve<mvec3dp(mvec3dp const&)>(bulk_normalize)));
+
+    // PGA unitize functions (analogue to EGA normalize, but for weight == 1.0)
     lua.set_function("unitize",
-                     sol::overload(sol::resolve<vec2dp(vec2dp const&)>(unitize),
-                                   sol::resolve<bivec2dp(bivec2dp const&)>(unitize),
-                                   sol::resolve<dualnum2dp(dualnum2dp const&)>(unitize),
-                                   sol::resolve<vec3dp(vec3dp const&)>(unitize),
-                                   sol::resolve<bivec3dp(bivec3dp const&)>(unitize),
-                                   sol::resolve<trivec3dp(trivec3dp const&)>(unitize),
-                                   sol::resolve<dualnum3dp(dualnum3dp const&)>(unitize)));
+                     sol::overload(
+                         // PGA 2DP types
+                         sol::resolve<vec2dp(vec2dp const&)>(unitize),
+                         sol::resolve<bivec2dp(bivec2dp const&)>(unitize),
+                         sol::resolve<mvec2dp_e(mvec2dp_e const&)>(unitize),
+                         sol::resolve<mvec2dp_u(mvec2dp_u const&)>(unitize),
+                         sol::resolve<mvec2dp(mvec2dp const&)>(unitize),
+                         sol::resolve<point2dp(point2dp const&)>(unitize),
+                         sol::resolve<line2d(line2d const&)>(unitize),
+                         sol::resolve<dualnum2dp(dualnum2dp const&)>(unitize),
+                         // PGA 3DP types
+                         sol::resolve<vec3dp(vec3dp const&)>(unitize),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(unitize),
+                         sol::resolve<trivec3dp(trivec3dp const&)>(unitize),
+                         sol::resolve<mvec3dp_e(mvec3dp_e const&)>(unitize),
+                         sol::resolve<mvec3dp_u(mvec3dp_u const&)>(unitize),
+                         sol::resolve<mvec3dp(mvec3dp const&)>(unitize),
+                         sol::resolve<point3dp(point3dp const&)>(unitize),
+                         sol::resolve<line3d(line3d const&)>(unitize),
+                         sol::resolve<plane3d(plane3d const&)>(unitize),
+                         sol::resolve<dualnum3dp(dualnum3dp const&)>(unitize)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // PGA-specific dual operations
