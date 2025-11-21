@@ -6,6 +6,7 @@
 #include "ga_prdxpr_generator.hpp"
 #include "ga_prdxpr_pga2dp_config.hpp"
 #include "ga_prdxpr_pga3dp_config.hpp"
+#include "ga_prdxpr_sta3d_config.hpp"
 #include <fmt/core.h>
 #include <vector>
 
@@ -144,6 +145,25 @@ int main()
                 get_pga3dp_sandwich_rgpr_config()};
 
             generate_algebra_products(generator, pga3dp_configs, pga3dp_algebra, true);
+        }
+
+        // STA3D
+        {
+            auto sta3d_algebra = create_sta3d_algebra_data();
+            std::vector<ProductConfig> sta3d_configs = {
+                get_sta3d_gpr_config(),           get_sta3d_cmt_config(),
+                get_sta3d_wdg_config(),           get_sta3d_dot_config(),
+
+                get_sta3d_left_contract_config(), get_sta3d_right_contract_config(),
+
+                get_sta3d_left_expand_config(),   get_sta3d_right_expand_config(),
+
+                get_sta3d_rgpr_config(),          get_sta3d_rcmt_config(),
+                get_sta3d_rwdg_config(),          get_sta3d_rdot_config(),
+
+                get_sta3d_sandwich_gpr_config()};
+
+            generate_algebra_products(generator, sta3d_configs, sta3d_algebra, true);
         }
 
         fmt::println(
