@@ -1,0 +1,36 @@
+// Copyright 2024-2025, Daniel Hug. All rights reserved.
+
+#pragma once
+
+#include "ga_prdxpr_config_types.hpp"
+#include "ga_prdxpr_sta3d.hpp"
+
+// Algebra configuration function (used by rule generation)
+AlgebraConfig get_sta3d_algebra_config();
+
+namespace configurable {
+
+// sta3d algebra data creation
+AlgebraData create_sta3d_algebra_data();
+
+// sta3d product configurations
+ProductConfig get_sta3d_gpr_config(); // geometric product
+ProductConfig get_sta3d_cmt_config(); // commutator product
+ProductConfig get_sta3d_wdg_config(); // wedge product
+ProductConfig get_sta3d_dot_config(); // inner product
+
+ProductConfig get_sta3d_left_contract_config();  // left contraction
+ProductConfig get_sta3d_right_contract_config(); // right contraction
+
+// Expansions are the regressive versions of the corresponding contractions.
+ProductConfig get_sta3d_left_expand_config();  // left expansion
+ProductConfig get_sta3d_right_expand_config(); // right expansion
+
+ProductConfig get_sta3d_rgpr_config(); // regressive geometric product
+ProductConfig get_sta3d_rcmt_config(); // regressive commutator product
+ProductConfig get_sta3d_rwdg_config(); // regressive wedge product
+ProductConfig get_sta3d_rdot_config(); // regressive inner product
+
+ProductConfig get_sta3d_sandwich_gpr_config(); // sandwich product
+
+} // namespace configurable

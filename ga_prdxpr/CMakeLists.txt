@@ -12,6 +12,7 @@ set(SOURCES
     src_prdxpr/ga_prdxpr_ega3d_config.cpp
     src_prdxpr/ga_prdxpr_pga2dp_config.cpp
     src_prdxpr/ga_prdxpr_pga3dp_config.cpp
+    src_prdxpr/ga_prdxpr_sta3d_config.cpp
     # Reference mathematical computation files
     src_prdxpr/ga_prdxpr_common.cpp
     # Automatic rule generation system
@@ -21,6 +22,7 @@ set(SOURCES
     src_prdxpr/ga_prdxpr_ega3d.cpp
     src_prdxpr/ga_prdxpr_pga2dp.cpp
     src_prdxpr/ga_prdxpr_pga3dp.cpp
+    src_prdxpr/ga_prdxpr_sta3d.cpp
     # Sandwich product transformation system
     src_prdxpr/ga_prdxpr_sandwich_parser.cpp
     src_prdxpr/ga_prdxpr_sandwich_simplifier.cpp
@@ -37,12 +39,14 @@ set(HEADERS
     src_prdxpr/ga_prdxpr_ega3d_config.hpp
     src_prdxpr/ga_prdxpr_pga2dp_config.hpp
     src_prdxpr/ga_prdxpr_pga3dp_config.hpp
+    src_prdxpr/ga_prdxpr_sta3d_config.hpp
     # Reference mathematical headers
     src_prdxpr/ga_prdxpr_common.hpp
     src_prdxpr/ga_prdxpr_ega2d.hpp
     src_prdxpr/ga_prdxpr_ega3d.hpp
     src_prdxpr/ga_prdxpr_pga2dp.hpp
     src_prdxpr/ga_prdxpr_pga3dp.hpp
+    src_prdxpr/ga_prdxpr_sta3d.hpp
     src_prdxpr/ga_prdxpr_rule_generator.hpp
     # Sandwich product transformation headers
     src_prdxpr/ga_prdxpr_sandwich_parser.hpp
@@ -69,10 +73,12 @@ set(SOURCES_RULE_GENERATOR_TEST src_prdxpr/ga_prdxpr_rule_generator_test.cpp
             src_prdxpr/ga_prdxpr_ega3d_config.cpp
             src_prdxpr/ga_prdxpr_pga2dp_config.cpp
             src_prdxpr/ga_prdxpr_pga3dp_config.cpp
+            src_prdxpr/ga_prdxpr_sta3d_config.cpp
             src_prdxpr/ga_prdxpr_ega2d.cpp
             src_prdxpr/ga_prdxpr_ega3d.cpp
             src_prdxpr/ga_prdxpr_pga2dp.cpp
-            src_prdxpr/ga_prdxpr_pga3dp.cpp)
+            src_prdxpr/ga_prdxpr_pga3dp.cpp
+            src_prdxpr/ga_prdxpr_sta3d.cpp)
 
 # Create executables
 add_executable(${EXEC_NAME} ${SOURCES} ${HEADERS})  #dep: fmt
