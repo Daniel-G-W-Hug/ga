@@ -1,5 +1,5 @@
 \subsection{Physics modelling}
-\label{physics_modelling}
+\label{section_physics_modelling}
 
 The key idea is to represent physical entities using objects that are represented directly
 in the underlying algebra. They have a geometric interpretation and can be directly
@@ -63,12 +63,27 @@ representations of points, lines and planes, who also gives reasons for choosing
 latter approach and explains the background in more detail compared to the short
 indications given above. \\
 
-\cite{Lengyel_poor-foundations_GA:2024} also points out potential inconsistencies in
-applications of geometric algebra as often used up-to-now. Further hints on
+Objects modelled in projective space can be multiplied by a scalar value without changing
+the \emph{geometric} meaninig of the object in the modelled Euclidean space, i.e. its
+interpretation after the projection. Equality of modelled geometric objects is thus often
+only defined up to a scalar factor. This kind of equality up to a scalar factor is defined
+as congruence. Therefore, it is important for modelling of physical facts that unitization
+is used consciously to avoid false interpretations. For example, a heavy point can be
+modelled by multiplying a \emph{unitized} point with the scalar value of its mass, but of
+course the multiplication with $m$ must happen after unitization in order to keep the
+scalar factor $m$ in the calculation. Other geometric objects need to be unitized in order
+to focus on the intended geometric operation and avoid additional scaling, i.e. the
+rotation operators. They must be unitized before use as well. Thus it is advisable to
+think through the geometric operations and their physical interpretation well to avoid
+suprises and to be consistent.
+
+\cite{Lengyel_poor-foundations_GA:2024} points out potential mathematical inconsistencies
+in applications of geometric algebra as often used up-to-now. Further hints on
 inconsistencies in some GA approaches can be found as well in
 \cite{Kritchevsky_case_against_GA:2024}. The goal of the this work is to be as consistent
 and mathematically rigoros as possible implementing GA functionality, and at the same time
-providing an intuitively applicable framework for modelling of physics. \\
+providing an intuitively applicable framework for modelling of physics and applications.
+\\
 
 \cite{Browne_Grassmann-Algebra_Vol1:2012} (see sections 4.1-4.5) is a very good source
 showing how to use Grassmann algebra and projective geometry in order to model forces and
@@ -205,28 +220,24 @@ onto $F$ to calculate the perpendicular distance vector $d_\perp$. \\
 
 Please remember:
 \begin{itemize}
-    \item Objects modelled in projective space can be multiplied by a scalar value without
-    changing the geometric meaninig of the object in the modelled Euclidean space, i.e.
-    after the projection. Equality is often only defined up to a scalar factor. This is
-    defined as congruence. This is also true for $F$. Those factors will be removed during
-    unitization, e.g. when the line of action is actually drawn.
     \item Neither a vector nor a bivector are located anywhere. They can be moved around
     freely. A line however represents a bound vector that is bound by its line. Thus the
     vector can only be moved along its line without changing the geometric and physical
     meaning (see~\cite{Browne_Grassmann-Algebra_Vol1:2012}, p. 169).
     \item A free torque is modelled by a bivector with force components being zero, i.e.
-    the force vector has no direction and zero length.
+    the force vector has no direction and zero length. But it still will contain a
+    resulting torque value.
     \item The torque calculated from either equation (\ref{eq:action_line_moment_simple})
-    or (\ref{eq:action_line_moment_projection}) are necessary free torque values as can be
-    seen from the formulas: The origin does not occur in the calculation any more due to
-    the difference of the two projective points involved.
+    or (\ref{eq:action_line_moment_projection}) are necessarily free torque values as can
+    be seen from the formulas: The origin does not occur in the calculation any more due
+    to the difference of the two projective points involved.
     \item The sum of forces and their induced torque values can be directly created by the
-    sum of their respective line of action, i.e. the bivectors representing those lines.
-    The resulting lines of action contain all relevant information incl. the resulting
-    vector sum of the forces and the resulting torque values from the summation. There is
-    no need to calculate these separately. The result will always be a resulting line of
-    action that contains the sum of a bound vector and a free bivector
-    (see~\cite{Browne_Grassmann-Algebra_Vol1:2012}, p. 176).
+    sum of their respective lines of action, i.e. by summing the bivectors representing
+    those lines. The resulting lines of action contain all relevant information incl. the
+    resulting vector sum of the forces and the resulting torque values from the summation.
+    There is no need to calculate these separately. The result will always be a resulting
+    line of action that contains a bound vector representing the resulting force and the
+    resulting torque. (see~\cite{Browne_Grassmann-Algebra_Vol1:2012}, p. 176).
 \end{itemize}
 
 % The geometrical situation is depicted in figure XXX for a two-dimensional case.

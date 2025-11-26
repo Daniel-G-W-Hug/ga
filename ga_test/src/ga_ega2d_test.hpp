@@ -2366,4 +2366,21 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("");
     }
 
+    TEST_CASE("utilities: test user utilities test")
+    {
+        fmt::println("utilities: test user utilities test");
+
+        CHECK(sign(3.0) == 1.0);
+        CHECK(sign(-3.0) == -1.0);
+        CHECK(sign(0.0) == 1.0);
+
+        CHECK(is_even(2));
+        CHECK(is_odd(3));
+
+        CosSin val{pi / 12.};
+
+        CHECK(val.c() == std::cos(pi / 12.));
+        CHECK(val.s() == std::sin(pi / 12.));
+    }
+
 } // EGA 2D Tests

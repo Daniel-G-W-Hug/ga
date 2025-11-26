@@ -2,6 +2,7 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
+#include <cmath>   // std::cos, std::sin
 #include <numbers> // math constants like pi
 
 #include "detail/type_t/ga_scalar_t.hpp"
@@ -60,5 +61,25 @@ bool is_odd(T arg)
 {
     return arg % 2 != 0;
 }
+
+template <typename T>
+    requires(std::floating_point<T>)
+class CosSin {
+
+  public:
+
+    // ctor
+    CosSin() = delete; // always require an argument for initialization
+    CosSin(T const& x) : m_c(std::cos(x)), m_s(std::sin(x)) {}
+
+    // simple gettern (no setter, this must be done via the ctor)
+    T const& c() const { return m_c; }
+    T const& s() const { return m_s; }
+
+  private:
+
+    T m_c;
+    T m_s;
+};
 
 } // namespace hd::ga
