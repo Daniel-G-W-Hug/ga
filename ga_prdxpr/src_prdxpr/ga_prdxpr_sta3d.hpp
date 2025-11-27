@@ -50,21 +50,12 @@ extern const prd_rules dot_sta3d_rules; // Dot product: a · b
 extern const prd_rules lcmpl_sta3d_rules;
 extern const prd_rules rcmpl_sta3d_rules;
 
-// rules needed to derive contractions and expansions using bulk_dual and weight_dual
-// (derived from the right complement -> right dual is equivalent to the Hodge dual)
-const prd_rules right_dual_sta3d_rules = {
-    {"1", "g0123"},  {"g0", "g123"},  {"g1", "g023"},  {"g2", "g031"},
-    {"g3", "g012"},  {"g01", "g23"},  {"g02", "g31"},  {"g03", "g12"},
-    {"g23", "-g01"}, {"g31", "-g02"}, {"g12", "-g03"}, {"g023", "-g1"},
-    {"g031", "-g2"}, {"g012", "-g3"}, {"g123", "-g0"}, {"g0123", "-1"}};
-
-// (derived from the left complement)
-const prd_rules left_dual_sta3d_rules = {
-    {"1", "g0123"},  {"g0", "-g123"}, {"g1", "-g023"}, {"g2", "-g031"},
-    {"g3", "-g012"}, {"g01", "g23"},  {"g02", "g31"},  {"g03", "g12"},
-    {"g23", "-g01"}, {"g31", "-g02"}, {"g12", "-g03"}, {"g023", "g1"},
-    {"g031", "g2"},  {"g012", "g3"},  {"g123", "g0"},  {"g0123", "-1"}};
-
+// dual rules: generated automatically from complement rules + extended metric
+// dual(u) = complement(G × u) where G is the extended metric matrix
+// left_dual and right_dual are derived from left_complement and right_complement respectively
+// Note: right_dual is equivalent to the Hodge dual for STA3D
+extern const prd_rules left_dual_sta3d_rules;
+extern const prd_rules right_dual_sta3d_rules;
 
 // coefficients needed to create a multivector = [coeff]^T [mvsta3d_basis]
 const mvec_coeff mvsta3d_coeff_A = {"A.c0",  "A.c1",  "A.c2",  "A.c3", "A.c4",  "A.c5",

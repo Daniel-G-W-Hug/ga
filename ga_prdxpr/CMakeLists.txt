@@ -123,6 +123,12 @@ else()
     message(FATAL_ERROR "doctest not found - dependency system may not be working correctly")
 endif()
 
+# mdspan configuration - enable square bracket operator
+target_compile_definitions(${EXEC_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_CXX_STANDARD=23)
+target_compile_definitions(${EXEC2_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_CXX_STANDARD=23)
+target_compile_definitions(${EXEC3_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_CXX_STANDARD=23)
+target_compile_definitions(${EXEC4_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_CXX_STANDARD=23)
+
 # Compiler-specific options
 if(MSVC)
     target_compile_options(${EXEC_NAME} PRIVATE /bigobj)

@@ -38,15 +38,13 @@ extern const prd_rules dot_pga2dp_rules; // Dot product: a · b
 // lcmpl(u) ^ u = u ^ rcmpl(u) = cmpl(u) ^ u = u ^ cmpl(u) = e321
 extern const prd_rules cmpl_pga2dp_rules;
 
-// rules needed to derive contractions and expansions using bulk_dual and weight_dual
-// same for left hand and right hand side
-// (derived from the complement -> bulk dual is equivalent to the Hodge dual)
-const prd_rules bulk_dual_pga2dp_rules = {{"1", "e321"},  {"e1", "-e23"}, {"e2", "-e31"},
-                                          {"e3", "0"},    {"e23", "0"},   {"e31", "0"},
-                                          {"e12", "-e3"}, {"e321", "0"}};
-const prd_rules weight_dual_pga2dp_rules = {
-    {"1", "0"},     {"e1", "0"},    {"e2", "0"},  {"e3", "-e12"},
-    {"e23", "-e1"}, {"e31", "-e2"}, {"e12", "0"}, {"e321", "1"}};
+// dual rules: generated automatically from complement rules + extended metric
+// PGA2DP (odd-dimensional) has bulk_dual and weight_dual
+// bulk_dual(u) = complement(G × u) where G is the extended metric matrix
+// weight_dual(u) = complement(G × complement(u)) uses the regressive metric
+// Note: bulk_dual is equivalent to the Hodge dual for PGA2DP
+extern const prd_rules bulk_dual_pga2dp_rules;
+extern const prd_rules weight_dual_pga2dp_rules;
 
 // coefficients needed to create a multivector = [coeff]^T [mv2dp_basis]
 const mvec_coeff mv2dp_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3",

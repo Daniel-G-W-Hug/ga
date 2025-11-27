@@ -31,6 +31,5 @@ const prd_rules dot_ega3d_rules = ega3d_generated_rules.dot_product;
 // generated)
 const prd_rules cmpl_ega3d_rules = ega3d_generated_rules.complement;
 
-// Stage 4: TODO - Initialize dual rules (will depend on complement rules + extended
-// metric) For now, dual rules reference complement rules manually (metric is identity in
-// EGA3D) Future: Generate dual rules from complement rules + extended metric information
+// Stage 4: Initialize dual rules (generated from complement rules + extended metric)
+const prd_rules dual_ega3d_rules = ega3d_generated_rules.dual;

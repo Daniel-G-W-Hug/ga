@@ -3,6 +3,7 @@
 set(EXEC_NAME1 ga_ega_test)
 set(EXEC_NAME2 ga_pga_test)
 set(EXEC_NAME3 ga_appl_test)
+set(EXEC_NAME4 ga_sta_test)
 
 set(EGA_FILES
     src/ga_ega_test.cpp)
@@ -13,13 +14,18 @@ set(PGA_FILES
 set(APPL_FILES
     src/ga_appl_test.cpp)
 
+set(STA_FILES
+    src/ga_sta_test.cpp)
+
 add_executable(${EXEC_NAME1} ${EGA_FILES})   #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME2} ${PGA_FILES})   #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME3} ${APPL_FILES})  #dep: doctest, fmt, ga
+add_executable(${EXEC_NAME4} ${STA_FILES})   #dep: doctest, fmt, ga
 
 target_include_directories(${EXEC_NAME1} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME2} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME3} PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(${EXEC_NAME4} PRIVATE ${CMAKE_SOURCE_DIR})
 
 # Dependencies are handled by the main CMakeLists.txt dependency system
 # Just link against the targets that should be available
@@ -27,6 +33,7 @@ target_include_directories(${EXEC_NAME3} PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(${EXEC_NAME1} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME2} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME3} PRIVATE doctest::doctest ga)
+target_link_libraries(${EXEC_NAME4} PRIVATE doctest::doctest ga)
 
 # Helper function to link fmt to a target
 function(link_fmt_to_target target_name)
@@ -47,3 +54,4 @@ endfunction()
 link_fmt_to_target(${EXEC_NAME1})
 link_fmt_to_target(${EXEC_NAME2})
 link_fmt_to_target(${EXEC_NAME3})
+link_fmt_to_target(${EXEC_NAME4})

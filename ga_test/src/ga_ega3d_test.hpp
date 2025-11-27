@@ -2806,4 +2806,81 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(rtwdg1(v, v2) == -cross(v, v2)); // identity to cross product
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // Dual Mathematical Properties Tests
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<3,0,0>: dual involution properties")
+    {
+        fmt::println("G<3,0,0>: dual involution properties");
+
+        // Test dual involution: dual(dual(u)) = ±u
+        // For EGA3D (odd-dimensional, Euclidean): dual(dual(u)) = +u
+
+        scalar3d s{3.0};
+        vec3d v{2.0, 5.0, 7.0};
+        bivec3d B{1.0, 2.0, 3.0};
+        pscalar3d ps{11.0};
+        mvec3d_e M_e{scalar3d{1.0}, bivec3d{2.0, 3.0, 4.0}};
+        mvec3d M{scalar3d{1.0}, vec3d{2.0, 3.0, 4.0}, bivec3d{5.0, 6.0, 7.0},
+                 pscalar3d{8.0}};
+
+        // dual involution for odd-dimensional: dual(dual(u)) = +u
+        CHECK(dual(dual(s)) == s);
+        CHECK(dual(dual(v)) == v);
+        CHECK(dual(dual(B)) == B);
+        CHECK(dual(dual(ps)) == ps);
+        CHECK(dual(dual(M_e)) == M_e);
+        CHECK(dual(dual(M)) == M);
+
+        fmt::println("  ✓ dual involution: dual(dual(u)) = +u for odd-dimensional");
+    }
+
+    TEST_CASE("G<3,0,0>: complement involution properties")
+    {
+        fmt::println("G<3,0,0>: complement involution properties");
+
+        // For odd-dimensional algebras: cmpl(cmpl(u)) = +u
+        scalar3d s{3.0};
+        vec3d v{2.0, 5.0, 7.0};
+        bivec3d B{1.0, 2.0, 3.0};
+        pscalar3d ps{11.0};
+        mvec3d_e M_e{scalar3d{1.0}, bivec3d{2.0, 3.0, 4.0}};
+        mvec3d M{scalar3d{1.0}, vec3d{2.0, 3.0, 4.0}, bivec3d{5.0, 6.0, 7.0},
+                 pscalar3d{8.0}};
+
+        CHECK(cmpl(cmpl(s)) == s);
+        CHECK(cmpl(cmpl(v)) == v);
+        CHECK(cmpl(cmpl(B)) == B);
+        CHECK(cmpl(cmpl(ps)) == ps);
+        CHECK(cmpl(cmpl(M_e)) == M_e);
+        CHECK(cmpl(cmpl(M)) == M);
+
+        fmt::println("  ✓ complement involution: cmpl(cmpl(u)) = +u for odd-dimensional");
+    }
+
+    TEST_CASE("G<3,0,0>: complement-dual relationship")
+    {
+        fmt::println("G<3,0,0>: complement-dual relationship");
+
+        // For EGA3D with identity metric: dual = complement
+        scalar3d s{3.0};
+        vec3d v{2.0, 5.0, 7.0};
+        bivec3d B{1.0, 2.0, 3.0};
+        pscalar3d ps{11.0};
+        mvec3d_e M_e{scalar3d{1.0}, bivec3d{2.0, 3.0, 4.0}};
+        mvec3d M{scalar3d{1.0}, vec3d{2.0, 3.0, 4.0}, bivec3d{5.0, 6.0, 7.0},
+                 pscalar3d{8.0}};
+
+        // dual = complement (identity metric)
+        CHECK(dual(s) == cmpl(s));
+        CHECK(dual(v) == cmpl(v));
+        CHECK(dual(B) == cmpl(B));
+        CHECK(dual(ps) == cmpl(ps));
+        CHECK(dual(M_e) == cmpl(M_e));
+        CHECK(dual(M) == cmpl(M));
+
+        fmt::println("  ✓ dual = complement for Euclidean algebras with identity metric");
+    }
+
 } // EGA 3D Tests

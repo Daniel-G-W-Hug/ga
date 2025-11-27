@@ -3557,4 +3557,44 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // Complement Mathematical Properties Tests
+    // Note: Dual involution tests are excluded for PGA due to degenerate metric
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<3,0,1>: left-right complement composition")
+    {
+        fmt::println("G<3,0,1>: left-right complement composition");
+
+        // For even-dimensional algebras: lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u
+        scalar3dp s{3.0};
+        vec3dp v{2.0, 5.0, 7.0, 1.0};
+        bivec3dp B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        trivec3dp T{1.0, 2.0, 3.0, 4.0};
+        pscalar3dp ps{11.0};
+        mvec3dp_e M_e{scalar3dp{1.0}, bivec3dp{2.0, 3.0, 4.0, 5.0, 6.0, 7.0}, pscalar3dp{8.0}};
+        mvec3dp M{scalar3dp{1.0}, vec3dp{2.0, 3.0, 4.0, 1.0},
+                  bivec3dp{5.0, 6.0, 7.0, 8.0, 9.0, 10.0}, trivec3dp{11.0, 12.0, 13.0, 14.0},
+                  pscalar3dp{15.0}};
+
+        CHECK(lcmpl(rcmpl(s)) == s);
+        CHECK(lcmpl(rcmpl(v)) == v);
+        CHECK(lcmpl(rcmpl(B)) == B);
+        CHECK(lcmpl(rcmpl(T)) == T);
+        CHECK(lcmpl(rcmpl(ps)) == ps);
+        CHECK(lcmpl(rcmpl(M_e)) == M_e);
+        CHECK(lcmpl(rcmpl(M)) == M);
+
+        // Also test rcmpl(lcmpl(u)) = u
+        CHECK(rcmpl(lcmpl(s)) == s);
+        CHECK(rcmpl(lcmpl(v)) == v);
+        CHECK(rcmpl(lcmpl(B)) == B);
+        CHECK(rcmpl(lcmpl(T)) == T);
+        CHECK(rcmpl(lcmpl(ps)) == ps);
+        CHECK(rcmpl(lcmpl(M_e)) == M_e);
+        CHECK(rcmpl(lcmpl(M)) == M);
+
+        fmt::println("  ✓ lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u for even-dimensional");
+    }
+
 } // PGA 3DP Tests

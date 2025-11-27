@@ -8,6 +8,7 @@
 #include "ga_prdxpr_sta3d.hpp"
 
 #include <iostream>
+#include <mdspan>
 
 // Helper function to print all rules in grade-ordered way
 void print_all_rules(const prd_rules& rules, const std::string& title,
@@ -164,16 +165,88 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
         fmt::println("  grade 4 (pseudoscalar): {}", generated_rules.basis[15]);
     }
 
-    // Calculate and display extended metric
+    // Calculate and display extended metric (diagonal only - for reference)
     auto extended_metric = calculate_extended_metric(config);
-    fmt::println("\n=== extended metric ===");
-    fmt::println("extended metric: {}", fmt::join(extended_metric, ", "));
+    fmt::println("\n{} extended metric (diagonal)", algebra_name);
+    fmt::println("extended metric diagonal: {}", fmt::join(extended_metric, ", "));
 
     // Show mapping of basis elements to their extended metric values
-    fmt::println("basis → extended metric mapping:");
+    fmt::println("basis → extended metric diagonal mapping:");
     for (size_t i = 0; i < std::min(generated_rules.basis.size(), extended_metric.size());
          ++i) {
         fmt::println("  {} → {}", generated_rules.basis[i], extended_metric[i]);
+    }
+
+    // Detect PGA algebras (have degenerate dimensions with metric signature 0)
+    bool is_pga = false;
+    for (int metric_val : config.metric_signature) {
+        if (metric_val == 0) {
+            is_pga = true;
+            break;
+        }
+    }
+
+    // Calculate and display regressive extended metric for PGA algebras
+    if (is_pga) {
+        auto regressive_metric = calculate_regressive_extended_metric(config);
+        fmt::println("\n{} regressive extended metric (diagonal)", algebra_name);
+        fmt::println("regressive extended metric diagonal: {}", fmt::join(regressive_metric, ", "));
+
+        // Show mapping of basis elements to their regressive extended metric values
+        fmt::println("basis → regressive extended metric diagonal mapping:");
+        for (size_t i = 0; i < std::min(generated_rules.basis.size(), regressive_metric.size());
+             ++i) {
+            fmt::println("  {} → {}", generated_rules.basis[i], regressive_metric[i]);
+        }
+    }
+
+    // Calculate and display full extended metric matrix
+    auto matrix_data = calculate_extended_metric_matrix(config);
+    const size_t n = generated_rules.basis.size();
+    std::mdspan G{matrix_data.data(), n, n};
+
+    fmt::println("\n{} extended metric matrix (full)", algebra_name);
+    fmt::println("Extended metric matrix G ({}×{}):", n, n);
+
+    // Print column headers
+    fmt::print("      ");
+    for (size_t j = 0; j < n; ++j) {
+        fmt::print("{:>6}", generated_rules.basis[j]);
+    }
+    fmt::println("");
+
+    // Print matrix rows with row headers
+    for (size_t i = 0; i < n; ++i) {
+        fmt::print("{:>6}", generated_rules.basis[i]);
+        for (size_t j = 0; j < n; ++j) {
+            fmt::print("{:>6}", G[i, j]);
+        }
+        fmt::println("");
+    }
+
+    // Calculate and display full regressive extended metric matrix for PGA algebras
+    if (is_pga) {
+        auto regressive_matrix_data = calculate_regressive_extended_metric_matrix(config);
+        std::mdspan G_reg{regressive_matrix_data.data(), n, n};
+
+        fmt::println("\n{} regressive extended metric matrix (full)", algebra_name);
+        fmt::println("Regressive extended metric matrix Ḡ ({}×{}):", n, n);
+
+        // Print column headers
+        fmt::print("      ");
+        for (size_t j = 0; j < n; ++j) {
+            fmt::print("{:>6}", generated_rules.basis[j]);
+        }
+        fmt::println("");
+
+        // Print matrix rows with row headers
+        for (size_t i = 0; i < n; ++i) {
+            fmt::print("{:>6}", generated_rules.basis[i]);
+            for (size_t j = 0; j < n; ++j) {
+                fmt::print("{:>6}", G_reg[i, j]);
+            }
+            fmt::println("");
+        }
     }
 
     // Print all generated rules clearly with algebra prefix
@@ -194,11 +267,49 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
                                generated_rules.basis, algebra_name);
         print_complement_rules(generated_rules.right_complement, "right complement rules",
                                generated_rules.basis, algebra_name);
+
+        // Print dual rules (only for non-PGA algebras)
+        if (is_pga) {
+            // For even-dimensional PGA, only print bulk and weight duals
+            print_complement_rules(generated_rules.left_bulk_dual,
+                                   "left bulk dual rules", generated_rules.basis,
+                                   algebra_name);
+            print_complement_rules(generated_rules.right_bulk_dual,
+                                   "right bulk dual rules", generated_rules.basis,
+                                   algebra_name);
+            print_complement_rules(generated_rules.left_weight_dual,
+                                   "left weight dual rules", generated_rules.basis,
+                                   algebra_name);
+            print_complement_rules(generated_rules.right_weight_dual,
+                                   "right weight dual rules", generated_rules.basis,
+                                   algebra_name);
+        } else {
+            // For non-PGA even-dimensional algebras (EGA, STA), print standard duals
+            print_complement_rules(generated_rules.left_dual, "left dual rules",
+                                   generated_rules.basis, algebra_name);
+            print_complement_rules(generated_rules.right_dual, "right dual rules",
+                                   generated_rules.basis, algebra_name);
+        }
     }
     else {
         // Odd-dimensional algebras have a single complement
         print_complement_rules(generated_rules.complement, "complement rules",
                                generated_rules.basis, algebra_name);
+
+        // Print dual rules (only for non-PGA algebras)
+        if (is_pga) {
+            // For odd-dimensional PGA, only print bulk and weight duals
+            print_complement_rules(generated_rules.bulk_dual,
+                                   "bulk dual rules", generated_rules.basis,
+                                   algebra_name);
+            print_complement_rules(generated_rules.weight_dual,
+                                   "weight dual rules", generated_rules.basis,
+                                   algebra_name);
+        } else {
+            // For non-PGA odd-dimensional algebras (EGA), print standard dual
+            print_complement_rules(generated_rules.dual, "dual rules",
+                                   generated_rules.basis, algebra_name);
+        }
     }
 }
 
@@ -264,16 +375,88 @@ bool test_algebra_with_complements(
 
     fmt::println("\nreference: {}", fmt::join(reference_basis, ", "));
 
-    // Calculate and display extended metric
+    // Calculate and display extended metric (diagonal only - for reference)
     auto extended_metric = calculate_extended_metric(config);
-    fmt::println("\n=== extended metric ===");
-    fmt::println("extended metric: {}", fmt::join(extended_metric, ", "));
+    fmt::println("\n{} extended metric (diagonal)", algebra_name);
+    fmt::println("extended metric diagonal: {}", fmt::join(extended_metric, ", "));
 
     // show mapping of basis elements to their extended metric values
-    fmt::println("basis → extended metric mapping:");
+    fmt::println("basis → extended metric diagonal mapping:");
     for (size_t i = 0; i < std::min(generated_rules.basis.size(), extended_metric.size());
          ++i) {
         fmt::println("  {} → {}", generated_rules.basis[i], extended_metric[i]);
+    }
+
+    // Detect PGA algebras (have degenerate dimensions with metric signature 0)
+    bool is_pga_test = false;
+    for (int metric_val : config.metric_signature) {
+        if (metric_val == 0) {
+            is_pga_test = true;
+            break;
+        }
+    }
+
+    // Calculate and display regressive extended metric for PGA algebras
+    if (is_pga_test) {
+        auto regressive_metric = calculate_regressive_extended_metric(config);
+        fmt::println("\n{} regressive extended metric (diagonal)", algebra_name);
+        fmt::println("regressive extended metric diagonal: {}", fmt::join(regressive_metric, ", "));
+
+        // Show mapping of basis elements to their regressive extended metric values
+        fmt::println("basis → regressive extended metric diagonal mapping:");
+        for (size_t i = 0; i < std::min(generated_rules.basis.size(), regressive_metric.size());
+             ++i) {
+            fmt::println("  {} → {}", generated_rules.basis[i], regressive_metric[i]);
+        }
+    }
+
+    // Calculate and display full extended metric matrix
+    auto matrix_data = calculate_extended_metric_matrix(config);
+    const size_t n = generated_rules.basis.size();
+    std::mdspan G{matrix_data.data(), n, n};
+
+    fmt::println("\n{} extended metric matrix (full)", algebra_name);
+    fmt::println("Extended metric matrix G ({}×{}):", n, n);
+
+    // Print column headers
+    fmt::print("      ");
+    for (size_t j = 0; j < n; ++j) {
+        fmt::print("{:>6}", generated_rules.basis[j]);
+    }
+    fmt::println("");
+
+    // Print matrix rows with row headers
+    for (size_t i = 0; i < n; ++i) {
+        fmt::print("{:>6}", generated_rules.basis[i]);
+        for (size_t j = 0; j < n; ++j) {
+            fmt::print("{:>6}", G[i, j]);
+        }
+        fmt::println("");
+    }
+
+    // Calculate and display full regressive extended metric matrix for PGA algebras
+    if (is_pga_test) {
+        auto regressive_matrix_data = calculate_regressive_extended_metric_matrix(config);
+        std::mdspan G_reg{regressive_matrix_data.data(), n, n};
+
+        fmt::println("\n{} regressive extended metric matrix (full)", algebra_name);
+        fmt::println("Regressive extended metric matrix Ḡ ({}×{}):", n, n);
+
+        // Print column headers
+        fmt::print("      ");
+        for (size_t j = 0; j < n; ++j) {
+            fmt::print("{:>6}", generated_rules.basis[j]);
+        }
+        fmt::println("");
+
+        // Print matrix rows with row headers
+        for (size_t i = 0; i < n; ++i) {
+            fmt::print("{:>6}", generated_rules.basis[i]);
+            for (size_t j = 0; j < n; ++j) {
+                fmt::print("{:>6}", G_reg[i, j]);
+            }
+            fmt::println("");
+        }
     }
 
     // validate basis
