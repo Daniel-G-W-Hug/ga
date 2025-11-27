@@ -32,6 +32,9 @@ const prd_rules dot_pga3dp_rules = pga3dp_generated_rules.dot_product;
 const prd_rules lcmpl_pga3dp_rules = pga3dp_generated_rules.left_complement;
 const prd_rules rcmpl_pga3dp_rules = pga3dp_generated_rules.right_complement;
 
-// Stage 4: TODO - Initialize dual rules (will depend on complement rules + extended
-// metric) For now, dual rules are derived manually from complement rules Future: Generate
-// dual rules from complement rules + extended metric information
+// Stage 4: Initialize dual rules (generated from complement rules + extended metric)
+// PGA3DP has left_bulk_dual, right_bulk_dual, left_weight_dual, right_weight_dual
+const prd_rules left_bulk_dual_pga3dp_rules = pga3dp_generated_rules.left_bulk_dual;
+const prd_rules right_bulk_dual_pga3dp_rules = pga3dp_generated_rules.right_bulk_dual;
+const prd_rules left_weight_dual_pga3dp_rules = pga3dp_generated_rules.left_weight_dual;
+const prd_rules right_weight_dual_pga3dp_rules = pga3dp_generated_rules.right_weight_dual;

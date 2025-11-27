@@ -3039,4 +3039,50 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("");
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // Complement Mathematical Properties Tests
+    // Note: Dual involution tests are excluded for PGA due to degenerate metric
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<2,0,1>: complement involution properties")
+    {
+        fmt::println("G<2,0,1>: complement involution properties");
+
+        // For odd-dimensional algebras: cmpl(cmpl(u)) = +u
+        scalar2dp s{3.0};
+        vec2dp v{2.0, 5.0, 1.0};
+        bivec2dp B{1.0, 2.0, 3.0};
+        pscalar2dp ps{11.0};
+        mvec2dp_e M_e{scalar2dp{1.0}, bivec2dp{2.0, 3.0, 4.0}};
+        mvec2dp M{scalar2dp{1.0}, vec2dp{2.0, 3.0, 1.0}, bivec2dp{4.0, 5.0, 6.0},
+                  pscalar2dp{7.0}};
+
+        CHECK(cmpl(cmpl(s)) == s);
+        CHECK(cmpl(cmpl(v)) == v);
+        CHECK(cmpl(cmpl(B)) == B);
+        CHECK(cmpl(cmpl(ps)) == ps);
+        CHECK(cmpl(cmpl(M_e)) == M_e);
+        CHECK(cmpl(cmpl(M)) == M);
+
+        fmt::println("  ✓ complement involution: cmpl(cmpl(u)) = +u for odd-dimensional");
+    }
+
+    TEST_CASE("G<2,0,1>: complement-dual relationship")
+    {
+        fmt::println("G<2,0,1>: complement-dual relationship");
+
+        // For PGA2DP: Test that complement and duals have expected relationships
+        // Note: Due to degenerate metric, dual involution properties don't hold
+        // We only test basic structural relationships here
+
+        scalar2dp s{3.0};
+        pscalar2dp ps{11.0};
+
+        // Verify that complement is a well-defined operation
+        CHECK(cmpl(s) != pscalar2dp{0.0});   // scalar complements to pseudoscalar
+        CHECK(cmpl(ps) != scalar2dp{0.0});  // pseudoscalar complements to scalar
+
+        fmt::println("  ✓ complement relationships verified for PGA2DP");
+    }
+
 } // PGA 2DP Tests

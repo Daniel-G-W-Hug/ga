@@ -31,6 +31,7 @@ const prd_rules dot_pga2dp_rules = pga2dp_generated_rules.dot_product;
 // generated)
 const prd_rules cmpl_pga2dp_rules = pga2dp_generated_rules.complement;
 
-// Stage 4: TODO - Initialize dual rules (will depend on complement rules + extended
-// metric) For now, dual rules are derived manually from complement rules Future: Generate
-// dual rules from complement rules + extended metric information
+// Stage 4: Initialize dual rules (generated from complement rules + extended metric)
+// PGA2DP has bulk_dual and weight_dual (no left/right distinction for odd-dimensional)
+const prd_rules bulk_dual_pga2dp_rules = pga2dp_generated_rules.bulk_dual;
+const prd_rules weight_dual_pga2dp_rules = pga2dp_generated_rules.weight_dual;

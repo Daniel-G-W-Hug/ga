@@ -59,6 +59,17 @@
 //   - Projective: G(p,0,r) - metric signature: p positive, r zeros
 //   - General: G(p,q,r) - any combination
 //
+// LIMITATION - ORTHOGONAL BASIS ONLY:
+//   Current implementation assumes ORTHOGONAL basis vectors (diagonal metric)
+//   ✓ Supports: EGA, PGA, STA (all have orthogonal bases)
+//   ✗ NOT supported: CGA (Conformal GA) - has non-orthogonal null vectors
+//
+//   For CGA support, AlgebraConfig would need extension:
+//     - Add: std::vector<std::vector<int>> metric_matrix; // Full metric matrix
+//     - Current: metric_signature only provides diagonal: g_{ii}
+//     - CGA needs: off-diagonal elements g_{ij} for i≠j
+//     - Example CGA3D: e₊·e₋ = -1 (off-diagonal), e₊·e₊ = 0 (diagonal)
+//
 // INDEXING SYSTEMS:
 //   - 1-based: e1, e2, e3 (traditional GA notation)
 //   - 0-based: g0, g1, g2, g3 (physics/spacetime notation)
@@ -74,10 +85,19 @@
 struct AlgebraConfig {
     std::vector<std::string> basis_vectors; // {"e1", "e2", "e3"}
     std::vector<int> metric_signature;      // {+1, +1, +1} or {+1, -1, -1, -1}
+                                            // LIMITATION: Diagonal metric only!
+                                            // For CGA, need full metric matrix
     mvec_coeff
         multivector_basis; // {"1", "e1", "e2", "e12"} - complete basis in canonical order
     std::string scalar_name = one_str(); // Use consistent "1" from common
     std::string basis_prefix = "e";
+
+    // FUTURE CGA EXTENSION:
+    // std::vector<std::vector<int>> metric_matrix; // Full n×n metric matrix
+    //   - Would replace metric_signature for non-orthogonal algebras
+    //   - metric_matrix[i][j] = e_i · e_j (dot product of basis vectors)
+    //   - For orthogonal algebras: metric_matrix[i][j] = 0 for i≠j
+    //   - For CGA: non-zero off-diagonal elements (e.g., e₊·e₋ = -1)
 };
 
 struct ProductRules {
@@ -90,10 +110,21 @@ struct ProductRules {
     prd_rules left_complement;  // For even algebras (EGA2D, PGA3DP)
     prd_rules complement;       // For odd algebras (EGA3D, PGA2DP)
 
-    // TODO: Dual rules - will be generated from complement rules + extended metric
-    // prd_rules right_dual;    // For even algebras (EGA2D, PGA3DP)
-    // prd_rules left_dual;     // For even algebras (EGA2D, PGA3DP)
-    // prd_rules dual;          // For odd algebras (EGA3D, PGA2DP)
+    // Dual rules - generated from complement rules + extended metric
+    prd_rules right_dual; // For even Euclidean/Minkowski algebras (EGA2D, STA3D)
+    prd_rules left_dual;  // For even Euclidean/Minkowski algebras (EGA2D, STA3D)
+    prd_rules dual;       // For odd Euclidean algebras (EGA3D)
+
+    // PGA-specific dual rules (for projective algebras with degenerate dimensions)
+    // Odd-dimensional PGA (PGA2DP): single bulk_dual and weight_dual
+    prd_rules bulk_dual;   // For PGA2DP (odd-dimensional)
+    prd_rules weight_dual; // For PGA2DP (odd-dimensional)
+
+    // Even-dimensional PGA (PGA3DP): left/right bulk_dual and weight_dual
+    prd_rules left_bulk_dual;    // For PGA3DP (even-dimensional)
+    prd_rules right_bulk_dual;   // For PGA3DP (even-dimensional)
+    prd_rules left_weight_dual;  // For PGA3DP (even-dimensional)
+    prd_rules right_weight_dual; // For PGA3DP (even-dimensional)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -112,7 +143,10 @@ std::pair<std::string, int> multiply_basis_elements(const std::string& a,
 // Extended Metric Calculation (declarations)
 ////////////////////////////////////////////////////////////////////////////////
 
+std::vector<int> calculate_extended_metric_matrix(const AlgebraConfig& config);
 std::vector<int> calculate_extended_metric(const AlgebraConfig& config);
+std::vector<int> calculate_regressive_extended_metric(const AlgebraConfig& config);
+std::vector<int> calculate_regressive_extended_metric_matrix(const AlgebraConfig& config);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Main Generation Functions (declarations)
@@ -139,6 +173,30 @@ prd_rules generate_left_complement_rules(const AlgebraConfig& config,
                                          const prd_rules& wedge_rules);
 prd_rules generate_complement_rules(const AlgebraConfig& config,
                                     const prd_rules& wedge_rules);
+prd_rules generate_left_dual_rules(const AlgebraConfig& config,
+                                   const prd_rules& left_complement_rules);
+prd_rules generate_right_dual_rules(const AlgebraConfig& config,
+                                    const prd_rules& right_complement_rules);
+prd_rules generate_dual_rules(const AlgebraConfig& config, const prd_rules& complement_rules);
+
+// PGA-specific dual generation (bulk and weight duals for projective algebras)
+prd_rules generate_bulk_dual_rules(const AlgebraConfig& config,
+                                   const prd_rules& complement_rules);
+prd_rules generate_weight_dual_rules(const AlgebraConfig& config,
+                                     const prd_rules& complement_rules,
+                                     const prd_rules& left_complement_rules,
+                                     const prd_rules& right_complement_rules);
+prd_rules generate_left_bulk_dual_rules(const AlgebraConfig& config,
+                                        const prd_rules& left_complement_rules);
+prd_rules generate_right_bulk_dual_rules(const AlgebraConfig& config,
+                                         const prd_rules& right_complement_rules);
+prd_rules generate_left_weight_dual_rules(const AlgebraConfig& config,
+                                          const prd_rules& left_complement_rules,
+                                          const prd_rules& right_complement_rules);
+prd_rules generate_right_weight_dual_rules(const AlgebraConfig& config,
+                                           const prd_rules& left_complement_rules,
+                                           const prd_rules& right_complement_rules);
+
 ProductRules generate_algebra_rules(const AlgebraConfig& config);
 
 ////////////////////////////////////////////////////////////////////////////////

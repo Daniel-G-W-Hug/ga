@@ -2383,4 +2383,93 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(val.s() == std::sin(pi / 12.));
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // Dual Mathematical Properties Tests
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<2,0,0>: dual composition properties")
+    {
+        fmt::println("G<2,0,0>: dual composition properties");
+
+        // For even-dimensional algebras: left_dual(right_dual(u)) = right_dual(left_dual(u)) = u
+        // This follows from left_complement(right_complement(u)) = u
+
+        scalar2d s{3.0};
+        vec2d v{2.0, 5.0};
+        pscalar2d ps{7.0};
+        mvec2d_e M_e{scalar2d{1.0}, pscalar2d{2.0}};
+        mvec2d M{scalar2d{1.0}, vec2d{2.0, 3.0}, pscalar2d{4.0}};
+
+        // left_dual(right_dual(u)) = u
+        CHECK(left_dual(right_dual(s)) == s);
+        CHECK(left_dual(right_dual(v)) == v);
+        CHECK(left_dual(right_dual(ps)) == ps);
+        CHECK(left_dual(right_dual(M_e)) == M_e);
+        CHECK(left_dual(right_dual(M)) == M);
+
+        // right_dual(left_dual(u)) = u
+        CHECK(right_dual(left_dual(s)) == s);
+        CHECK(right_dual(left_dual(v)) == v);
+        CHECK(right_dual(left_dual(ps)) == ps);
+        CHECK(right_dual(left_dual(M_e)) == M_e);
+        CHECK(right_dual(left_dual(M)) == M);
+
+        fmt::println("  ✓ left_dual(right_dual(u)) = right_dual(left_dual(u)) = u");
+    }
+
+    TEST_CASE("G<2,0,0>: complement-dual relationship")
+    {
+        fmt::println("G<2,0,0>: complement-dual relationship");
+
+        // For EGA2D with identity metric: dual = complement
+        scalar2d s{3.0};
+        vec2d v{2.0, 5.0};
+        pscalar2d ps{7.0};
+        mvec2d_e M_e{scalar2d{1.0}, pscalar2d{2.0}};
+        mvec2d M{scalar2d{1.0}, vec2d{2.0, 3.0}, pscalar2d{4.0}};
+
+        // left_dual = left_complement (identity metric)
+        CHECK(left_dual(s) == lcmpl(s));
+        CHECK(left_dual(v) == lcmpl(v));
+        CHECK(left_dual(ps) == lcmpl(ps));
+        CHECK(left_dual(M_e) == lcmpl(M_e));
+        CHECK(left_dual(M) == lcmpl(M));
+
+        // right_dual = right_complement (identity metric)
+        CHECK(right_dual(s) == rcmpl(s));
+        CHECK(right_dual(v) == rcmpl(v));
+        CHECK(right_dual(ps) == rcmpl(ps));
+        CHECK(right_dual(M_e) == rcmpl(M_e));
+        CHECK(right_dual(M) == rcmpl(M));
+
+        fmt::println("  ✓ dual = complement for Euclidean algebras with identity metric");
+    }
+
+    TEST_CASE("G<2,0,0>: left-right complement composition")
+    {
+        fmt::println("G<2,0,0>: left-right complement composition");
+
+        // For even-dimensional algebras: lcmpl(rcmpl(u)) = u
+        scalar2d s{3.0};
+        vec2d v{2.0, 5.0};
+        pscalar2d ps{7.0};
+        mvec2d_e M_e{scalar2d{1.0}, pscalar2d{2.0}};
+        mvec2d M{scalar2d{1.0}, vec2d{2.0, 3.0}, pscalar2d{4.0}};
+
+        CHECK(lcmpl(rcmpl(s)) == s);
+        CHECK(lcmpl(rcmpl(v)) == v);
+        CHECK(lcmpl(rcmpl(ps)) == ps);
+        CHECK(lcmpl(rcmpl(M_e)) == M_e);
+        CHECK(lcmpl(rcmpl(M)) == M);
+
+        // Also test rcmpl(lcmpl(u)) = u
+        CHECK(rcmpl(lcmpl(s)) == s);
+        CHECK(rcmpl(lcmpl(v)) == v);
+        CHECK(rcmpl(lcmpl(ps)) == ps);
+        CHECK(rcmpl(lcmpl(M_e)) == M_e);
+        CHECK(rcmpl(lcmpl(M)) == M);
+
+        fmt::println("  ✓ lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u for even-dimensional");
+    }
+
 } // EGA 2D Tests

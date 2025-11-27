@@ -33,6 +33,6 @@ const prd_rules dot_sta3d_rules = sta3d_generated_rules.dot_product;
 const prd_rules lcmpl_sta3d_rules = sta3d_generated_rules.left_complement;
 const prd_rules rcmpl_sta3d_rules = sta3d_generated_rules.right_complement;
 
-// Stage 4: TODO - Initialize dual rules (will depend on complement rules + extended
-// metric) For now, dual rules are derived manually from complement rules Future: Generate
-// dual rules from complement rules + extended metric information
+// Stage 4: Initialize dual rules (generated from complement rules + extended metric)
+const prd_rules left_dual_sta3d_rules = sta3d_generated_rules.left_dual;
+const prd_rules right_dual_sta3d_rules = sta3d_generated_rules.right_dual;

@@ -38,10 +38,10 @@ extern const prd_rules dot_ega3d_rules; // Dot product: a · b
 // lcmpl(u) ^ u = u ^ rcmpl(u) = cmpl(u) ^ u = u ^ cmpl(u) = e123
 extern const prd_rules cmpl_ega3d_rules;
 
-// complement and dual are identical in ega3d (the metric is the identity matrix)
-const prd_rules dual_ega3d_rules = {{"1", "e123"}, {"e1", "e23"}, {"e2", "e31"},
-                                    {"e3", "e12"}, {"e23", "e1"}, {"e31", "e2"},
-                                    {"e12", "e3"}, {"e123", "1"}};
+// dual rules: generated automatically from complement rules + extended metric
+// dual(u) = complement(G × u) where G is the extended metric matrix
+// In EGA3D, the metric is the identity matrix, so dual = complement
+extern const prd_rules dual_ega3d_rules;
 
 // coefficients needed to create a multivector = [coeff]^T [mv3d_basis]
 const mvec_coeff mv3d_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3",
