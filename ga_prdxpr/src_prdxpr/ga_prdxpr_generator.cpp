@@ -103,8 +103,8 @@ calculate_regressive_transwedge_geometric_product(
     return {tab_res, tab};
 }
 
-void ConfigurableGenerator::generate_product_expressions(const AlgebraData& algebra,
-                                                         const ProductConfig& config)
+void ConfigurableGenerator::generate_product_expressions(AlgebraData const& algebra,
+                                                         ProductConfig const& config)
 {
     // No separator logic here - separators are handled at the end of each product
 
@@ -136,10 +136,10 @@ void ConfigurableGenerator::generate_product_expressions(const AlgebraData& alge
     }
 }
 
-void ConfigurableGenerator::generate_single_case(const AlgebraData& algebra,
-                                                 const ProductConfig& config,
-                                                 const OutputCase& case_def,
-                                                 const prd_table& basis_tab)
+void ConfigurableGenerator::generate_single_case(AlgebraData const& algebra,
+                                                 ProductConfig const& config,
+                                                 OutputCase const& case_def,
+                                                 prd_table const& basis_tab)
 {
     // Get coefficients from algebra data (maps to existing coefficient objects)
     auto left_coeff_it = algebra.coefficients.find(case_def.left_coeff_name);
@@ -154,8 +154,8 @@ void ConfigurableGenerator::generate_single_case(const AlgebraData& algebra,
                                     case_def.right_coeff_name);
     }
 
-    const auto& left_coeff = left_coeff_it->second;
-    const auto& right_coeff = right_coeff_it->second;
+    auto const& left_coeff = left_coeff_it->second;
+    auto const& right_coeff = right_coeff_it->second;
 
     // Get filters based on algebra dimension
     mvec_coeff prd_mv;
@@ -187,10 +187,10 @@ void ConfigurableGenerator::generate_single_case(const AlgebraData& algebra,
     fmt::println("");
 }
 
-void ConfigurableGenerator::generate_sandwich_case(const AlgebraData& algebra,
-                                                   const ProductConfig& config,
-                                                   const OutputCase& /* case_def */,
-                                                   const prd_table& basis_tab)
+void ConfigurableGenerator::generate_sandwich_case(AlgebraData const& algebra,
+                                                   ProductConfig const& config,
+                                                   OutputCase const& /* case_def */,
+                                                   prd_table const& basis_tab)
 {
     std::string prd_name = algebra.name + " " + config.display_name;
 
@@ -2006,8 +2006,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                                 "::" + product_name);
 }
 
-filter_2d ConfigurableGenerator::get_filter_2d(const AlgebraData& algebra,
-                                               const std::string& filter_name)
+filter_2d ConfigurableGenerator::get_filter_2d(AlgebraData const& algebra,
+                                               std::string const& filter_name)
 {
     auto it = algebra.filters_2d.find(filter_name);
     if (it == algebra.filters_2d.end()) {
@@ -2016,8 +2016,8 @@ filter_2d ConfigurableGenerator::get_filter_2d(const AlgebraData& algebra,
     return it->second;
 }
 
-filter_3d ConfigurableGenerator::get_filter_3d(const AlgebraData& algebra,
-                                               const std::string& filter_name)
+filter_3d ConfigurableGenerator::get_filter_3d(AlgebraData const& algebra,
+                                               std::string const& filter_name)
 {
     auto it = algebra.filters_3d.find(filter_name);
     if (it == algebra.filters_3d.end()) {
@@ -2026,8 +2026,8 @@ filter_3d ConfigurableGenerator::get_filter_3d(const AlgebraData& algebra,
     return it->second;
 }
 
-filter_4d ConfigurableGenerator::get_filter_4d(const AlgebraData& algebra,
-                                               const std::string& filter_name)
+filter_4d ConfigurableGenerator::get_filter_4d(AlgebraData const& algebra,
+                                               std::string const& filter_name)
 {
     auto it = algebra.filters_4d.find(filter_name);
     if (it == algebra.filters_4d.end()) {
@@ -2036,15 +2036,15 @@ filter_4d ConfigurableGenerator::get_filter_4d(const AlgebraData& algebra,
     return it->second;
 }
 
-void ConfigurableGenerator::print_product_header(const AlgebraData& algebra,
-                                                 const ProductConfig& config)
+void ConfigurableGenerator::print_product_header(AlgebraData const& algebra,
+                                                 ProductConfig const& config)
 {
     fmt::println("{} {} - basis product table:", algebra.name, config.display_name);
 }
 
-void ConfigurableGenerator::print_basis_table(const AlgebraData& algebra,
-                                              const ProductConfig& config,
-                                              const prd_table& basis_tab)
+void ConfigurableGenerator::print_basis_table(AlgebraData const& algebra,
+                                              ProductConfig const& config,
+                                              prd_table const& basis_tab)
 {
     print_product_header(algebra, config);
     print_prd_tab_with_headers(basis_tab, algebra.basis);
@@ -2055,25 +2055,25 @@ void ConfigurableGenerator::print_basis_table(const AlgebraData& algebra,
     print_prd_tab_with_headers(get_prd_tab_asym(basis_tab), algebra.basis);
 }
 
-void ConfigurableGenerator::print_case_header(const AlgebraData& algebra,
-                                              const ProductConfig& config,
-                                              const std::string& case_name)
+void ConfigurableGenerator::print_case_header(AlgebraData const& algebra,
+                                              ProductConfig const& config,
+                                              std::string const& case_name)
 {
     // reference format, e.g. "ega2d geometric product mv * mv -> mv:"
     fmt::println("{} {} {}:", algebra.name, config.display_name, case_name);
 }
 
-void ConfigurableGenerator::print_case_result(const mvec_coeff& result,
-                                              const mvec_coeff& basis)
+void ConfigurableGenerator::print_case_result(mvec_coeff const& result,
+                                              mvec_coeff const& basis)
 {
     // Use EXISTING print function from reference implementation
     print_mvec(result, basis);
 }
 
-void ConfigurableGenerator::print_transformed_result(const mvec_coeff& result,
-                                                     const mvec_coeff& basis,
-                                                     const AlgebraData& algebra,
-                                                     const ProductConfig& config)
+void ConfigurableGenerator::print_transformed_result(mvec_coeff const& result,
+                                                     mvec_coeff const& basis,
+                                                     AlgebraData const& algebra,
+                                                     ProductConfig const& config)
 {
     // Create algebra-specific header using correct display name
     fmt::println("{} {} (after transformation):", algebra.name, config.display_name);
@@ -2119,7 +2119,7 @@ void ConfigurableGenerator::print_transformed_result(const mvec_coeff& result,
 }
 
 void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
-                                                        const std::string& algebra_name)
+                                                        std::string const& algebra_name)
 {
     if (expressions.empty()) return;
 

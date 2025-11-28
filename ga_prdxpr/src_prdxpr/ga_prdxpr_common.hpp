@@ -184,9 +184,9 @@ void print_prd_tab_with_headers(prd_table const& tab, mvec_coeff const& basis);
 // Usage example:
 //   print_prd_rules(gpr_ega2d_rules, "EGA2D Geometric Product", mv2d_basis, "*");
 //   print_prd_rules(wdg_ega2d_rules, "EGA2D Wedge Product", mv2d_basis, "^");
-void print_prd_rules(const prd_rules& rules, const std::string& title,
-                     const mvec_coeff& basis_order,
-                     const std::string& operator_symbol = "*");
+void print_prd_rules(prd_rules const& rules, std::string const& title,
+                     mvec_coeff const& basis_order,
+                     std::string const& operator_symbol = "*");
 
 ////////////////////////////////////////////////////////////////////////////////
 // helper functions (not directly intended for user)

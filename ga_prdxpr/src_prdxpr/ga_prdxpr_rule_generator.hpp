@@ -131,78 +131,74 @@ struct ProductRules {
 // Helper Functions (declarations)
 ////////////////////////////////////////////////////////////////////////////////
 
-std::vector<int> parse_indices(const std::string& basis_element,
-                               const std::string& prefix = "e");
-std::string indices_to_basis(const std::vector<int>& indices,
-                             const std::string& prefix = "e");
-std::pair<std::string, int> multiply_basis_elements(const std::string& a,
-                                                    const std::string& b,
-                                                    const AlgebraConfig& config);
+std::vector<int> parse_indices(std::string const& basis_element,
+                               std::string const& prefix = "e");
+std::string indices_to_basis(std::vector<int> const& indices,
+                             std::string const& prefix = "e");
+std::pair<std::string, int> multiply_basis_elements(std::string const& a,
+                                                    std::string const& b,
+                                                    AlgebraConfig const& config);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Extended Metric Calculation (declarations)
 ////////////////////////////////////////////////////////////////////////////////
 
-std::vector<int> calculate_extended_metric_matrix(const AlgebraConfig& config);
-std::vector<int> calculate_extended_metric(const AlgebraConfig& config);
-std::vector<int> calculate_regressive_extended_metric(const AlgebraConfig& config);
-std::vector<int> calculate_regressive_extended_metric_matrix(const AlgebraConfig& config);
+std::vector<int> calculate_extended_metric_matrix(AlgebraConfig const& config);
+std::vector<int> calculate_extended_metric(AlgebraConfig const& config);
+std::vector<int> calculate_regressive_extended_metric(AlgebraConfig const& config);
+std::vector<int> calculate_regressive_extended_metric_matrix(AlgebraConfig const& config);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Main Generation Functions (declarations)
 ////////////////////////////////////////////////////////////////////////////////
 
-mvec_coeff generate_basis(const AlgebraConfig& config);
+mvec_coeff generate_basis(AlgebraConfig const& config);
 prd_rules generate_ordered_rules(
-    const AlgebraConfig& config, const std::string& operator_str,
-    std::function<std::pair<std::string, int>(const std::string&, const std::string&,
-                                              const AlgebraConfig&)>
+    AlgebraConfig const& config, std::string const& operator_str,
+    std::function<std::pair<std::string, int>(std::string const&, std::string const&,
+                                              AlgebraConfig const&)>
         multiply_func);
-prd_rules generate_geometric_product_rules(const AlgebraConfig& config);
-std::pair<std::string, int> multiply_basis_elements_wedge(const std::string& a,
-                                                          const std::string& b,
-                                                          const AlgebraConfig& config);
-std::pair<std::string, int> multiply_basis_elements_dot(const std::string& a,
-                                                        const std::string& b,
-                                                        const AlgebraConfig& config);
-prd_rules generate_wedge_product_rules(const AlgebraConfig& config);
-prd_rules generate_dot_product_rules(const AlgebraConfig& config);
-prd_rules generate_right_complement_rules(const AlgebraConfig& config,
-                                          const prd_rules& wedge_rules);
-prd_rules generate_left_complement_rules(const AlgebraConfig& config,
-                                         const prd_rules& wedge_rules);
-prd_rules generate_complement_rules(const AlgebraConfig& config,
-                                    const prd_rules& wedge_rules);
-prd_rules generate_left_dual_rules(const AlgebraConfig& config,
-                                   const prd_rules& left_complement_rules);
-prd_rules generate_right_dual_rules(const AlgebraConfig& config,
-                                    const prd_rules& right_complement_rules);
-prd_rules generate_dual_rules(const AlgebraConfig& config, const prd_rules& complement_rules);
+prd_rules generate_geometric_product_rules(AlgebraConfig const& config);
+std::pair<std::string, int> multiply_basis_elements_wedge(std::string const& a,
+                                                          std::string const& b,
+                                                          AlgebraConfig const& config);
+std::pair<std::string, int> multiply_basis_elements_dot(std::string const& a,
+                                                        std::string const& b,
+                                                        AlgebraConfig const& config);
+prd_rules generate_wedge_product_rules(AlgebraConfig const& config);
+prd_rules generate_dot_product_rules(AlgebraConfig const& config);
+prd_rules generate_right_complement_rules(AlgebraConfig const& config,
+                                          prd_rules const& wedge_rules);
+prd_rules generate_left_complement_rules(AlgebraConfig const& config,
+                                         prd_rules const& wedge_rules);
+prd_rules generate_complement_rules(AlgebraConfig const& config,
+                                    prd_rules const& wedge_rules);
+prd_rules generate_left_dual_rules(AlgebraConfig const& config,
+                                   prd_rules const& left_complement_rules);
+prd_rules generate_right_dual_rules(AlgebraConfig const& config,
+                                    prd_rules const& right_complement_rules);
+prd_rules generate_dual_rules(AlgebraConfig const& config, prd_rules const& complement_rules);
 
 // PGA-specific dual generation (bulk and weight duals for projective algebras)
-prd_rules generate_bulk_dual_rules(const AlgebraConfig& config,
-                                   const prd_rules& complement_rules);
-prd_rules generate_weight_dual_rules(const AlgebraConfig& config,
-                                     const prd_rules& complement_rules,
-                                     const prd_rules& left_complement_rules,
-                                     const prd_rules& right_complement_rules);
-prd_rules generate_left_bulk_dual_rules(const AlgebraConfig& config,
-                                        const prd_rules& left_complement_rules);
-prd_rules generate_right_bulk_dual_rules(const AlgebraConfig& config,
-                                         const prd_rules& right_complement_rules);
-prd_rules generate_left_weight_dual_rules(const AlgebraConfig& config,
-                                          const prd_rules& left_complement_rules,
-                                          const prd_rules& right_complement_rules);
-prd_rules generate_right_weight_dual_rules(const AlgebraConfig& config,
-                                           const prd_rules& left_complement_rules,
-                                           const prd_rules& right_complement_rules);
+prd_rules generate_bulk_dual_rules(AlgebraConfig const& config,
+                                   prd_rules const& complement_rules);
+prd_rules generate_weight_dual_rules(AlgebraConfig const& config,
+                                     prd_rules const& complement_rules);
+prd_rules generate_left_bulk_dual_rules(AlgebraConfig const& config,
+                                        prd_rules const& left_complement_rules);
+prd_rules generate_right_bulk_dual_rules(AlgebraConfig const& config,
+                                         prd_rules const& right_complement_rules);
+prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
+                                          prd_rules const& left_complement_rules);
+prd_rules generate_right_weight_dual_rules(AlgebraConfig const& config,
+                                           prd_rules const& right_complement_rules);
 
-ProductRules generate_algebra_rules(const AlgebraConfig& config);
+ProductRules generate_algebra_rules(AlgebraConfig const& config);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Validation and Testing Functions (declarations)
 ////////////////////////////////////////////////////////////////////////////////
 
-bool validate_rules(const prd_rules& generated, const prd_rules& reference);
-void print_rule_comparison(const prd_rules& generated, const prd_rules& reference,
-                           const std::string& product_name);
+bool validate_rules(prd_rules const& generated, prd_rules const& reference);
+void print_rule_comparison(prd_rules const& generated, prd_rules const& reference,
+                           std::string const& product_name);

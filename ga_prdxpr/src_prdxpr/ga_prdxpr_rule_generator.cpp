@@ -13,8 +13,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 // Parse basis element to extract indices (e.g., "e12" -> {1, 2})
-std::vector<int> parse_indices(const std::string& basis_element,
-                               const std::string& prefix)
+std::vector<int> parse_indices(std::string const& basis_element,
+                               std::string const& prefix)
 {
     std::vector<int> indices;
     if (basis_element == one_str()) return indices; // scalar has no indices
@@ -31,7 +31,7 @@ std::vector<int> parse_indices(const std::string& basis_element,
 }
 
 // Create basis element from indices (simple concatenation)
-std::string indices_to_basis(const std::vector<int>& indices, const std::string& prefix)
+std::string indices_to_basis(std::vector<int> const& indices, std::string const& prefix)
 {
     if (indices.empty()) return one_str();
 
@@ -43,9 +43,9 @@ std::string indices_to_basis(const std::vector<int>& indices, const std::string&
 }
 
 // Multiply two basis elements using geometric algebra rules
-std::pair<std::string, int> multiply_basis_elements(const std::string& a,
-                                                    const std::string& b,
-                                                    const AlgebraConfig& config)
+std::pair<std::string, int> multiply_basis_elements(std::string const& a,
+                                                    std::string const& b,
+                                                    AlgebraConfig const& config)
 {
     // Handle scalar multiplication - use consistent string constants
     if (a == config.scalar_name) return {b, 1};
@@ -165,10 +165,10 @@ std::pair<std::string, int> multiply_basis_elements(const std::string& a,
 // - For higher grades: G(e_i ∧ e_j) = G(e_i) ∧ G(e_j) (conforming property)
 //
 // The matrix is block diagonal by grade in canonical basis ordering
-std::vector<int> calculate_extended_metric_matrix(const AlgebraConfig& config)
+std::vector<int> calculate_extended_metric_matrix(AlgebraConfig const& config)
 {
-    const auto& basis = config.multivector_basis;
-    const size_t n = basis.size();
+    auto const& basis = config.multivector_basis;
+    size_t const n = basis.size();
 
     // Flattened row-major storage: matrix[i,j] = data[i*n + j]
     std::vector<int> matrix_data(n * n, 0);
@@ -289,10 +289,10 @@ std::vector<int> calculate_extended_metric_matrix(const AlgebraConfig& config)
     return matrix_data;
 }
 
-std::vector<int> calculate_extended_metric(const AlgebraConfig& config)
+std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
 {
-    const auto& basis = config.multivector_basis;
-    const auto& metric = config.metric_signature;
+    auto const& basis = config.multivector_basis;
+    auto const& metric = config.metric_signature;
     std::vector<int> extended_metric(basis.size(), 0);
 
     // Scalar always has metric value 1
@@ -399,9 +399,9 @@ std::vector<int> calculate_extended_metric(const AlgebraConfig& config)
 // For CGA support, would need to implement:
 //   - Full matrix complement transformation: Ḡ = cmpl · G · cmpl
 //   - Where cmpl represents the complement operation as a matrix transformation
-std::vector<int> calculate_regressive_extended_metric(const AlgebraConfig& config)
+std::vector<int> calculate_regressive_extended_metric(AlgebraConfig const& config)
 {
-    const auto& basis = config.multivector_basis;
+    auto const& basis = config.multivector_basis;
 
     // Get standard extended metric
     auto standard_metric = calculate_extended_metric(config);
@@ -434,10 +434,10 @@ std::vector<int> calculate_regressive_extended_metric(const AlgebraConfig& confi
 //   - Need matrix-based complement transformation
 //   - Or compute via: Ḡ = cmpl_matrix · G · cmpl_matrix^T
 //   - Where cmpl_matrix represents complement as linear transformation
-std::vector<int> calculate_regressive_extended_metric_matrix(const AlgebraConfig& config)
+std::vector<int> calculate_regressive_extended_metric_matrix(AlgebraConfig const& config)
 {
-    const auto& basis = config.multivector_basis;
-    const size_t n = basis.size();
+    auto const& basis = config.multivector_basis;
+    size_t const n = basis.size();
 
     // Get standard extended metric matrix
     auto standard_matrix = calculate_extended_metric_matrix(config);
@@ -463,15 +463,15 @@ std::vector<int> calculate_regressive_extended_metric_matrix(const AlgebraConfig
 // Main Generation Functions Implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-mvec_coeff generate_basis(const AlgebraConfig& config)
+mvec_coeff generate_basis(AlgebraConfig const& config)
 {
     return config.multivector_basis;
 }
 
 prd_rules generate_ordered_rules(
-    const AlgebraConfig& config, const std::string& operator_str,
-    std::function<std::pair<std::string, int>(const std::string&, const std::string&,
-                                              const AlgebraConfig&)>
+    AlgebraConfig const& config, std::string const& operator_str,
+    std::function<std::pair<std::string, int>(std::string const&, std::string const&,
+                                              AlgebraConfig const&)>
         multiply_func)
 {
     // Use ordered map to maintain insertion order which follows our grade-ordered basis
@@ -504,14 +504,14 @@ prd_rules generate_ordered_rules(
     return rules;
 }
 
-prd_rules generate_geometric_product_rules(const AlgebraConfig& config)
+prd_rules generate_geometric_product_rules(AlgebraConfig const& config)
 {
     return generate_ordered_rules(config, mul_str(), multiply_basis_elements);
 }
 
-std::pair<std::string, int> multiply_basis_elements_wedge(const std::string& a,
-                                                          const std::string& b,
-                                                          const AlgebraConfig& config)
+std::pair<std::string, int> multiply_basis_elements_wedge(std::string const& a,
+                                                          std::string const& b,
+                                                          AlgebraConfig const& config)
 {
     auto indices_a = parse_indices(a, config.basis_prefix);
     auto indices_b = parse_indices(b, config.basis_prefix);
@@ -533,9 +533,9 @@ std::pair<std::string, int> multiply_basis_elements_wedge(const std::string& a,
     }
 }
 
-std::pair<std::string, int> multiply_basis_elements_dot(const std::string& a,
-                                                        const std::string& b,
-                                                        const AlgebraConfig& config)
+std::pair<std::string, int> multiply_basis_elements_dot(std::string const& a,
+                                                        std::string const& b,
+                                                        AlgebraConfig const& config)
 {
     // Handle scalar cases directly
     if (a == config.scalar_name && b == config.scalar_name) {
@@ -574,12 +574,12 @@ std::pair<std::string, int> multiply_basis_elements_dot(const std::string& a,
     }
 }
 
-prd_rules generate_wedge_product_rules(const AlgebraConfig& config)
+prd_rules generate_wedge_product_rules(AlgebraConfig const& config)
 {
     return generate_ordered_rules(config, wdg_str(), multiply_basis_elements_wedge);
 }
 
-prd_rules generate_dot_product_rules(const AlgebraConfig& config)
+prd_rules generate_dot_product_rules(AlgebraConfig const& config)
 {
     return generate_ordered_rules(config, mul_str(), multiply_basis_elements_dot);
 }
@@ -591,8 +591,8 @@ prd_rules generate_dot_product_rules(const AlgebraConfig& config)
 // Generate complement rules from wedge product table
 // Algorithm: For complement relationship u ^ cmpl(u) = I_n (right complement)
 //            or cmpl(u) ^ u = I_n (left complement)
-prd_rules generate_complement_from_wedge_table(const AlgebraConfig& config,
-                                               const prd_rules& wedge_rules,
+prd_rules generate_complement_from_wedge_table(AlgebraConfig const& config,
+                                               prd_rules const& wedge_rules,
                                                bool is_left_complement)
 {
     prd_rules complement_rules;
@@ -683,20 +683,20 @@ prd_rules generate_complement_from_wedge_table(const AlgebraConfig& config,
     return complement_rules;
 }
 
-prd_rules generate_right_complement_rules(const AlgebraConfig& config,
-                                          const prd_rules& wedge_rules)
+prd_rules generate_right_complement_rules(AlgebraConfig const& config,
+                                          prd_rules const& wedge_rules)
 {
     return generate_complement_from_wedge_table(config, wedge_rules, false);
 }
 
-prd_rules generate_left_complement_rules(const AlgebraConfig& config,
-                                         const prd_rules& wedge_rules)
+prd_rules generate_left_complement_rules(AlgebraConfig const& config,
+                                         prd_rules const& wedge_rules)
 {
     return generate_complement_from_wedge_table(config, wedge_rules, true);
 }
 
-prd_rules generate_complement_rules(const AlgebraConfig& config,
-                                    const prd_rules& wedge_rules)
+prd_rules generate_complement_rules(AlgebraConfig const& config,
+                                    prd_rules const& wedge_rules)
 {
     // For odd algebras, left and right complements are the same
     return generate_complement_from_wedge_table(config, wedge_rules, false);
@@ -708,11 +708,11 @@ prd_rules generate_complement_rules(const AlgebraConfig& config,
 
 // Generate left dual rules: left_dual(u) = left_complement(G × u)
 // where G is the extended metric matrix and × is matrix-vector multiplication
-prd_rules generate_left_dual_rules(const AlgebraConfig& config,
-                                    const prd_rules& left_complement_rules)
+prd_rules generate_left_dual_rules(AlgebraConfig const& config,
+                                    prd_rules const& left_complement_rules)
 {
-    const auto& basis = config.multivector_basis;
-    const size_t n = basis.size();
+    auto const& basis = config.multivector_basis;
+    size_t const n = basis.size();
 
     // Calculate extended metric matrix
     auto matrix_data = calculate_extended_metric_matrix(config);
@@ -787,11 +787,11 @@ prd_rules generate_left_dual_rules(const AlgebraConfig& config,
 }
 
 // Generate right dual rules: right_dual(u) = right_complement(G × u)
-prd_rules generate_right_dual_rules(const AlgebraConfig& config,
-                                     const prd_rules& right_complement_rules)
+prd_rules generate_right_dual_rules(AlgebraConfig const& config,
+                                     prd_rules const& right_complement_rules)
 {
-    const auto& basis = config.multivector_basis;
-    const size_t n = basis.size();
+    auto const& basis = config.multivector_basis;
+    size_t const n = basis.size();
 
     // Calculate extended metric matrix
     auto matrix_data = calculate_extended_metric_matrix(config);
@@ -857,10 +857,10 @@ prd_rules generate_right_dual_rules(const AlgebraConfig& config,
 }
 
 // Generate dual rules for odd-dimensional algebras: dual(u) = complement(G × u)
-prd_rules generate_dual_rules(const AlgebraConfig& config, const prd_rules& complement_rules)
+prd_rules generate_dual_rules(AlgebraConfig const& config, prd_rules const& complement_rules)
 {
-    const auto& basis = config.multivector_basis;
-    const size_t n = basis.size();
+    auto const& basis = config.multivector_basis;
+    size_t const n = basis.size();
 
     // Calculate extended metric matrix
     auto matrix_data = calculate_extended_metric_matrix(config);
@@ -931,8 +931,8 @@ prd_rules generate_dual_rules(const AlgebraConfig& config, const prd_rules& comp
 
 // Generate bulk_dual rules for odd-dimensional PGA (uses complement)
 // bulk_dual(u) = complement(G × u) where G is the extended metric matrix
-prd_rules generate_bulk_dual_rules(const AlgebraConfig& config,
-                                   const prd_rules& complement_rules)
+prd_rules generate_bulk_dual_rules(AlgebraConfig const& config,
+                                   prd_rules const& complement_rules)
 {
     // For odd-dimensional PGA, bulk_dual is the same as regular dual
     return generate_dual_rules(config, complement_rules);
@@ -942,14 +942,12 @@ prd_rules generate_bulk_dual_rules(const AlgebraConfig& config,
 // weight_dual(u) = complement(Ḡ × u) where Ḡ = regressive metric
 // Regressive metric: Ḡ × u = complement(G × complement(u))
 // Therefore: weight_dual(u) = complement(complement(G × complement(u))) = G × complement(u)
-prd_rules generate_weight_dual_rules(const AlgebraConfig& config,
-                                     const prd_rules& complement_rules,
-                                     const prd_rules& left_complement_rules,
-                                     const prd_rules& right_complement_rules)
+prd_rules generate_weight_dual_rules(AlgebraConfig const& config,
+                                     prd_rules const& complement_rules)
 {
     // For odd-dimensional PGA: weight_dual(u) = G × complement(u)
-    const mvec_coeff& basis = config.multivector_basis;
-    const size_t n = basis.size();
+    mvec_coeff const& basis = config.multivector_basis;
+    size_t const n = basis.size();
     auto G_data = calculate_extended_metric_matrix(config);
     std::mdspan G{G_data.data(), n, n};
 
@@ -1021,15 +1019,15 @@ prd_rules generate_weight_dual_rules(const AlgebraConfig& config,
 }
 
 // Generate left_bulk_dual rules for even-dimensional PGA
-prd_rules generate_left_bulk_dual_rules(const AlgebraConfig& config,
-                                        const prd_rules& left_complement_rules)
+prd_rules generate_left_bulk_dual_rules(AlgebraConfig const& config,
+                                        prd_rules const& left_complement_rules)
 {
     return generate_left_dual_rules(config, left_complement_rules);
 }
 
 // Generate right_bulk_dual rules for even-dimensional PGA
-prd_rules generate_right_bulk_dual_rules(const AlgebraConfig& config,
-                                         const prd_rules& right_complement_rules)
+prd_rules generate_right_bulk_dual_rules(AlgebraConfig const& config,
+                                         prd_rules const& right_complement_rules)
 {
     return generate_right_dual_rules(config, right_complement_rules);
 }
@@ -1039,13 +1037,12 @@ prd_rules generate_right_bulk_dual_rules(const AlgebraConfig& config,
 // Regressive metric: Ḡ × u = left_complement(G × left_complement(u))
 // Therefore: left_weight_dual(u) = left_complement(left_complement(G × left_complement(u)))
 //                                  = G × left_complement(u) (using left_complement involution)
-prd_rules generate_left_weight_dual_rules(const AlgebraConfig& config,
-                                          const prd_rules& left_complement_rules,
-                                          const prd_rules& right_complement_rules)
+prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
+                                          prd_rules const& left_complement_rules)
 {
     // For even-dimensional PGA: left_weight_dual(u) = G × left_complement(u)
-    const mvec_coeff& basis = config.multivector_basis;
-    const size_t n = basis.size();
+    mvec_coeff const& basis = config.multivector_basis;
+    size_t const n = basis.size();
     auto G_data = calculate_extended_metric_matrix(config);
     std::mdspan G{G_data.data(), n, n};
 
@@ -1120,13 +1117,12 @@ prd_rules generate_left_weight_dual_rules(const AlgebraConfig& config,
 // Regressive metric: Ḡ × u = left_complement(G × right_complement(u))
 // Therefore: right_weight_dual(u) = right_complement(left_complement(G × right_complement(u)))
 //                                  = G × right_complement(u) (using complement involution)
-prd_rules generate_right_weight_dual_rules(const AlgebraConfig& config,
-                                           const prd_rules& left_complement_rules,
-                                           const prd_rules& right_complement_rules)
+prd_rules generate_right_weight_dual_rules(AlgebraConfig const& config,
+                                           prd_rules const& right_complement_rules)
 {
     // For even-dimensional PGA: right_weight_dual(u) = G × right_complement(u)
-    const mvec_coeff& basis = config.multivector_basis;
-    const size_t n = basis.size();
+    mvec_coeff const& basis = config.multivector_basis;
+    size_t const n = basis.size();
     auto G_data = calculate_extended_metric_matrix(config);
     std::mdspan G{G_data.data(), n, n};
 
@@ -1196,7 +1192,7 @@ prd_rules generate_right_weight_dual_rules(const AlgebraConfig& config,
     return right_weight_dual_rules;
 }
 
-ProductRules generate_algebra_rules(const AlgebraConfig& config)
+ProductRules generate_algebra_rules(AlgebraConfig const& config)
 {
     // Validate input
     if (config.basis_vectors.size() != config.metric_signature.size()) {
@@ -1244,10 +1240,10 @@ ProductRules generate_algebra_rules(const AlgebraConfig& config)
                 generate_left_bulk_dual_rules(config, result.left_complement);
             result.right_bulk_dual =
                 generate_right_bulk_dual_rules(config, result.right_complement);
-            result.left_weight_dual = generate_left_weight_dual_rules(
-                config, result.left_complement, result.right_complement);
-            result.right_weight_dual = generate_right_weight_dual_rules(
-                config, result.left_complement, result.right_complement);
+            result.left_weight_dual =
+                generate_left_weight_dual_rules(config, result.left_complement);
+            result.right_weight_dual =
+                generate_right_weight_dual_rules(config, result.right_complement);
         }
     }
     else {
@@ -1262,8 +1258,7 @@ ProductRules generate_algebra_rules(const AlgebraConfig& config)
         // For odd-dimensional PGA, generate bulk and weight duals
         if (is_pga) {
             result.bulk_dual = generate_bulk_dual_rules(config, result.complement);
-            result.weight_dual = generate_weight_dual_rules(
-                config, result.complement, result.left_complement, result.right_complement);
+            result.weight_dual = generate_weight_dual_rules(config, result.complement);
         }
     }
 
@@ -1274,7 +1269,7 @@ ProductRules generate_algebra_rules(const AlgebraConfig& config)
 // Validation and Testing Functions Implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-bool validate_rules(const prd_rules& generated, const prd_rules& reference)
+bool validate_rules(prd_rules const& generated, prd_rules const& reference)
 {
     if (generated.size() != reference.size()) {
         return false;
@@ -1290,8 +1285,8 @@ bool validate_rules(const prd_rules& generated, const prd_rules& reference)
     return true;
 }
 
-void print_rule_comparison(const prd_rules& generated, const prd_rules& reference,
-                           const std::string& product_name)
+void print_rule_comparison(prd_rules const& generated, prd_rules const& reference,
+                           std::string const& product_name)
 {
     fmt::println("Validating {} rules:", product_name);
 

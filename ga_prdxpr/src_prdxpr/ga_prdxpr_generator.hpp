@@ -13,45 +13,45 @@ class ConfigurableGenerator {
 
     // Main generation function - replaces all the individual generate_and_print_*
     // functions
-    void generate_product_expressions(const AlgebraData& algebra,
-                                      const ProductConfig& config);
+    void generate_product_expressions(AlgebraData const& algebra,
+                                      ProductConfig const& config);
 
   private:
 
     // Generate a single output case
-    void generate_single_case(const AlgebraData& algebra, const ProductConfig& config,
-                              const OutputCase& case_def, const prd_table& basis_tab);
+    void generate_single_case(AlgebraData const& algebra, ProductConfig const& config,
+                              OutputCase const& case_def, prd_table const& basis_tab);
 
     // Generate two-step sandwich product case
-    void generate_sandwich_case(const AlgebraData& algebra, const ProductConfig& config,
-                                const OutputCase& case_def, const prd_table& basis_tab);
+    void generate_sandwich_case(AlgebraData const& algebra, ProductConfig const& config,
+                                OutputCase const& case_def, prd_table const& basis_tab);
 
     // Get the appropriate basis table for a product type
     // This uses the EXISTING mathematical functions from reference implementation
-    prd_table get_basis_table_for_product(const AlgebraData& algebra,
-                                          const std::string& product_name);
+    prd_table get_basis_table_for_product(AlgebraData const& algebra,
+                                          std::string const& product_name);
 
     // Helper to get filter based on algebra dimension
-    filter_2d get_filter_2d(const AlgebraData& algebra, const std::string& filter_name);
-    filter_3d get_filter_3d(const AlgebraData& algebra, const std::string& filter_name);
-    filter_4d get_filter_4d(const AlgebraData& algebra, const std::string& filter_name);
+    filter_2d get_filter_2d(AlgebraData const& algebra, std::string const& filter_name);
+    filter_3d get_filter_3d(AlgebraData const& algebra, std::string const& filter_name);
+    filter_4d get_filter_4d(AlgebraData const& algebra, std::string const& filter_name);
 
     // Print formatted output matching reference implementation exactly
-    void print_product_header(const AlgebraData& algebra, const ProductConfig& config);
-    void print_basis_table(const AlgebraData& algebra, const ProductConfig& config,
-                           const prd_table& basis_tab);
-    void print_case_header(const AlgebraData& algebra, const ProductConfig& config,
-                           const std::string& case_name);
-    void print_case_result(const mvec_coeff& result, const mvec_coeff& basis);
+    void print_product_header(AlgebraData const& algebra, ProductConfig const& config);
+    void print_basis_table(AlgebraData const& algebra, ProductConfig const& config,
+                           prd_table const& basis_tab);
+    void print_case_header(AlgebraData const& algebra, ProductConfig const& config,
+                           std::string const& case_name);
+    void print_case_result(mvec_coeff const& result, mvec_coeff const& basis);
 
     // Transform and print sandwich result in consistent multivector format
-    void print_transformed_result(const mvec_coeff& result, const mvec_coeff& basis,
-                                  const AlgebraData& algebra,
-                                  const ProductConfig& config);
+    void print_transformed_result(mvec_coeff const& result, mvec_coeff const& basis,
+                                  AlgebraData const& algebra,
+                                  ProductConfig const& config);
 
     // Helper function to apply coefficient alignment to transformation expressions
     void apply_coefficient_alignment(mvec_coeff& expressions,
-                                     const std::string& algebra_name);
+                                     std::string const& algebra_name);
 };
 
 } // namespace configurable
