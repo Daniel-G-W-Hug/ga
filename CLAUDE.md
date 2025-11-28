@@ -118,7 +118,88 @@ Critical usage requirements:
 - Function call arguments for scalar and pscalar use `Scalar2d<T> a`, etc. directly
   instead of `Scalar2d<T> const& a` (cheap to copy), while for vector and bivector, etc. use
   `Vec2d<T> const&` for unmodifiable arguments
-- ALWAYS use `Vec3dp<T> const&` instead of `const Vec3dp<T>&` etc. (i.e. use "east const" convention)
+- **CRITICAL**: ALWAYS use "east const" convention (see dedicated section below)
+
+### East Const Convention (MANDATORY)
+
+**This codebase uses "east const" (const on the right) convention throughout.**
+
+When writing or modifying ANY C++ code in this repository, you MUST follow these rules:
+
+**✅ CORRECT (East Const):**
+
+```cpp
+// Function parameters - references
+void foo(std::string const& str);
+void bar(AlgebraConfig const& config);
+void baz(prd_rules const& rules);
+Vec3d<T> const& getVector();
+
+// Function parameters - pointers
+void process(int const* data);
+char const* getMessage();
+
+// Local variables and member variables
+std::vector<int> const values = {1, 2, 3};
+auto const& item = container[0];
+size_t const n = basis.size();
+mvec_coeff const& basis = config.multivector_basis;
+
+// Return types
+std::string const& getName() const;
+std::vector<int> const getValues();
+```
+
+**❌ INCORRECT (West Const - DO NOT USE):**
+
+```cpp
+// DO NOT write any of these patterns:
+const std::string& str           // Wrong! Use: std::string const& str
+const AlgebraConfig& config      // Wrong! Use: AlgebraConfig const& config
+const auto& item                 // Wrong! Use: auto const& item
+const size_t n                   // Wrong! Use: size_t const n
+```
+
+**EXCEPTIONS (Keep "const" on the left in these cases ONLY):**
+
+1. **Static and extern declarations with initialization:**
+
+   ```cpp
+   static const std::string one_str{"1"};     // OK - static initialization
+   extern const prd_rules gpr_rules;          // OK - extern declaration
+   inline const std::string& one_str() { ... } // OK - inline function return
+   ```
+
+2. **Member function const qualifiers:**
+
+   ```cpp
+   void getValue() const;              // OK - member function qualifier
+   int operator[](size_t i) const;     // OK - const member function
+   ```
+
+3. **Const iterator types (standard library convention):**
+
+   ```cpp
+   std::vector<int>::const_iterator it;  // OK - STL convention
+   ```
+
+**WHY East Const?**
+
+- **Consistency**: Type qualifiers read left-to-right: `int const*` = "pointer to const int"
+- **Clarity**: `T const&` clearly shows "const reference to T"
+- **No Ambiguity**: With templates, `T const` works uniformly regardless of what T is
+- **This Project's Standard**: All existing code in ga/ and ga_prdxpr/ follows this convention
+
+**IMPORTANT FOR CODE GENERATION:**
+
+When you generate new C++ code (functions, classes, templates), you MUST:
+
+- Use east const for ALL function parameters taking references: `Type const&`
+- Use east const for ALL function parameters taking pointers: `Type const*`
+- Use east const for ALL local const variables: `auto const`, `size_t const`, etc.
+- Use east const for ALL return types: `std::string const&`, `Type const`, etc.
+
+**This is NOT optional** - all code must follow this convention for consistency with the existing codebase.
 
 ### Dependencies
 
