@@ -451,6 +451,16 @@ AlgebraConfig AlgebraRegistry::createPGA3DPConfig()
             .matrix_size = 4};
 }
 
+AlgebraConfig AlgebraRegistry::createSTA4DConfig()
+{
+    return {.name = "sta4d",
+            .geometric_variables = {"v.x", "v.y", "v.z", "v.w"},
+            .result_components = {"g0", "g1", "g2", "g3"},
+            .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3", "R.c4", "R.c5", "R.c6",
+                                   "R.c7"},
+            .matrix_size = 4};
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Test implementation
 ///////////////////////////////////////////////////////////////////////////////
