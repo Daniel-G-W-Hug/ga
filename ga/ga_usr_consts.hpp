@@ -16,6 +16,8 @@
 #include "detail/type_t/ga_mvec2dp.hpp" // MVec2dp<T> and subtypes
 #include "detail/type_t/ga_mvec3dp.hpp" // MVec3dp<T> and subtypes
 
+#include <mdspan>
+
 // provide constants for ega and pga in their respective namespaces
 
 namespace hd::ga::ega {
@@ -37,6 +39,22 @@ auto const I_2d = PScalar2d<value_t>(1.0);
 auto const e12_2d = I_2d;
 auto const I_2d_mv = MVec2d<value_t>{I_2d};     // I_2d as multivector
 auto const I_2d_mv_e = MVec2d_E<value_t>{I_2d}; // I_2d as even grade multivector
+
+// extended metric for ega2d (4×4 matrix, 16 elements)
+// Basis: 1, e1, e2, e12
+inline constexpr std::array<int, 16> ega2d_metric = {
+    1, 0, 0, 0,   // 1
+    0, 1, 0, 0,   // e1
+    0, 0, 1, 0,   // e2
+    0, 0, 0, 1    // e12
+};
+
+// Accessor function for convenient 2D indexing: G[i,j]
+inline constexpr auto ega2d_metric_view() {
+    return std::mdspan<int const, std::extents<size_t, 4, 4>>{
+        ega2d_metric.data()
+    };
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // 3d constants
@@ -72,6 +90,26 @@ auto const I_3d = PScalar3d<value_t>(1.0);
 auto const e123_3d = I_3d;
 auto const I_3d_mv = MVec3d<value_t>{I_3d};     // I_3d as multivector
 auto const I_3d_mv_u = MVec3d_U<value_t>{I_3d}; // I_3d as odd grade multivector
+
+// extended metric for ega3d (8×8 matrix, 64 elements)
+// Basis: 1, e1, e2, e3, e23, e31, e12, e123
+inline constexpr std::array<int, 64> ega3d_metric = {
+    1, 0, 0, 0, 0, 0, 0, 0,   // 1
+    0, 1, 0, 0, 0, 0, 0, 0,   // e1
+    0, 0, 1, 0, 0, 0, 0, 0,   // e2
+    0, 0, 0, 1, 0, 0, 0, 0,   // e3
+    0, 0, 0, 0, 1, 0, 0, 0,   // e23
+    0, 0, 0, 0, 0, 1, 0, 0,   // e31
+    0, 0, 0, 0, 0, 0, 1, 0,   // e12
+    0, 0, 0, 0, 0, 0, 0, 1    // e123
+};
+
+// Accessor function for convenient 2D indexing: G[i,j]
+inline constexpr auto ega3d_metric_view() {
+    return std::mdspan<int const, std::extents<size_t, 8, 8>>{
+        ega3d_metric.data()
+    };
+}
 
 } // namespace hd::ga::ega
 
@@ -122,6 +160,46 @@ auto const I_2dp = PScalar2dp<value_t>(1.0); // I_2dp = e3^e2^e1 = e321
 auto const e321_2dp = I_2dp;
 auto const I_2dp_mv = MVec2dp<value_t>{I_2dp};     // I_2dp as multivector
 auto const I_2dp_mv_u = MVec2dp_U<value_t>{I_2dp}; // I_2dp as odd grade multivector
+
+// extended metric for pga2dp (8×8 matrix, 64 elements)
+// Basis: 1, e1, e2, e3, e23, e31, e12, e321
+inline constexpr std::array<int, 64> pga2dp_metric = {
+    1, 0, 0, 0, 0, 0, 0, 0,   // 1
+    0, 1, 0, 0, 0, 0, 0, 0,   // e1
+    0, 0, 1, 0, 0, 0, 0, 0,   // e2
+    0, 0, 0, 0, 0, 0, 0, 0,   // e3
+    0, 0, 0, 0, 0, 0, 0, 0,   // e23
+    0, 0, 0, 0, 0, 0, 0, 0,   // e31
+    0, 0, 0, 0, 0, 0, 1, 0,   // e12
+    0, 0, 0, 0, 0, 0, 0, 0    // e321
+};
+
+// Accessor function for convenient 2D indexing: G[i,j]
+inline constexpr auto pga2dp_metric_view() {
+    return std::mdspan<int const, std::extents<size_t, 8, 8>>{
+        pga2dp_metric.data()
+    };
+}
+
+// Regressive extended metric for pga2dp (8×8 matrix, 64 elements)
+// Basis: 1, e1, e2, e3, e23, e31, e12, e321
+inline constexpr std::array<int, 64> pga2dp_rmetric = {
+    0, 0, 0, 0, 0, 0, 0, 0,   // 1
+    0, 0, 0, 0, 0, 0, 0, 0,   // e1
+    0, 0, 0, 0, 0, 0, 0, 0,   // e2
+    0, 0, 0, 1, 0, 0, 0, 0,   // e3
+    0, 0, 0, 0, 1, 0, 0, 0,   // e23
+    0, 0, 0, 0, 0, 1, 0, 0,   // e31
+    0, 0, 0, 0, 0, 0, 0, 0,   // e12
+    0, 0, 0, 0, 0, 0, 0, 1    // e321
+};
+
+// Accessor function for convenient 2D indexing: Ḡ[i,j]
+inline constexpr auto pga2dp_rmetric_view() {
+    return std::mdspan<int const, std::extents<size_t, 8, 8>>{
+        pga2dp_rmetric.data()
+    };
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // 3dp constants
@@ -193,5 +271,61 @@ auto const I_3dp = PScalar3dp<value_t>(1.0); // I_3dp = e1^e2^e3^e4 = e1234
 auto const e1234_3dp = I_3dp;
 auto const I_3dp_mv = MVec3dp<value_t>{I_3dp};     // I_3dp as multivector
 auto const I_3dp_mv_e = MVec3dp_E<value_t>{I_3dp}; // I_3dp as even grade multivector
+
+// extended metric for pga3dp (16×16 matrix, 256 elements)
+// Basis: 1, e1, e2, e3, e4, e41, e42, e43, e23, e31, e12, e423, e431, e412, e321, e1234
+inline constexpr std::array<int, 256> pga3dp_metric = {
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // 1
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e1
+    0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e2
+    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e3
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e4
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e41
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e42
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e43
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,   // e23
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,   // e31
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,   // e12
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e423
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e431
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e412
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,   // e321
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0    // e1234
+};
+
+// Accessor function for convenient 2D indexing: G[i,j]
+inline constexpr auto pga3dp_metric_view() {
+    return std::mdspan<int const, std::extents<size_t, 16, 16>>{
+        pga3dp_metric.data()
+    };
+}
+
+// Regressive extended metric for pga3dp (16×16 matrix, 256 elements)
+// Basis: 1, e1, e2, e3, e4, e41, e42, e43, e23, e31, e12, e423, e431, e412, e321, e1234
+inline constexpr std::array<int, 256> pga3dp_rmetric = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // 1
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e1
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e2
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e3
+    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e4
+    0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e41
+    0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e42
+    0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,   // e43
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e23
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e31
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e12
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,   // e423
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,   // e431
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,   // e412
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // e321
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1    // e1234
+};
+
+// Accessor function for convenient 2D indexing: Ḡ[i,j]
+inline constexpr auto pga3dp_rmetric_view() {
+    return std::mdspan<int const, std::extents<size_t, 16, 16>>{
+        pga3dp_rmetric.data()
+    };
+}
 
 } // namespace hd::ga::pga
