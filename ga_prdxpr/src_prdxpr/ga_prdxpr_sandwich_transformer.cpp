@@ -410,8 +410,8 @@ SandwichAlgebraConfig AlgebraRegistry::getConfig(const std::string& algebra_type
     else if (algebra_type == "pga3dp") {
         return createPGA3DPConfig();
     }
-    else if (algebra_type == "sta3d") {
-        return createSTA3DConfig();
+    else if (algebra_type == "sta4d") {
+        return createSTA4DConfig();
     }
     else {
         throw std::runtime_error("Unknown algebra type: " + algebra_type);
@@ -457,9 +457,9 @@ SandwichAlgebraConfig AlgebraRegistry::createPGA3DPConfig()
             .matrix_size = 4};
 }
 
-SandwichAlgebraConfig AlgebraRegistry::createSTA3DConfig()
+SandwichAlgebraConfig AlgebraRegistry::createSTA4DConfig()
 {
-    return {.name = "sta3d",
+    return {.name = "sta4d",
             .geometric_variables = {"v.x", "v.y", "v.z", "v.w"},
             .result_components = {"g0", "g1", "g2", "g3"},
             .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3", "R.c4", "R.c5", "R.c6",

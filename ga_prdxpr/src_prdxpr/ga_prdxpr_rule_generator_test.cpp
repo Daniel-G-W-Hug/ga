@@ -5,7 +5,7 @@
 #include "ga_prdxpr_pga2dp.hpp"
 #include "ga_prdxpr_pga3dp.hpp"
 #include "ga_prdxpr_rule_generator.hpp"
-#include "ga_prdxpr_sta3d.hpp"
+#include "ga_prdxpr_sta4d.hpp"
 
 #include <iostream>
 #include <mdspan>
@@ -121,7 +121,7 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
                  : algebra_name.find("ega3d") != std::string::npos  ? "Euclidean 3d"
                  : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
-                 : algebra_name.find("sta3d") != std::string::npos  ? "space-time 3d"
+                 : algebra_name.find("sta4d") != std::string::npos  ? "space-time 3d"
                                                                     : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
@@ -329,7 +329,7 @@ bool test_algebra_with_complements(
                  : algebra_name.find("ega3d") != std::string::npos  ? "Euclidean 3d"
                  : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
-                 : algebra_name.find("sta3d") != std::string::npos  ? "space-time 3d"
+                 : algebra_name.find("sta4d") != std::string::npos  ? "space-time 3d"
                                                                     : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
@@ -547,7 +547,7 @@ bool test_algebra(const AlgebraConfig& config, const std::string& algebra_name,
                  : algebra_name.find("ega3d") != std::string::npos  ? "Euclidean 3d"
                  : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
-                 : algebra_name.find("sta3d") != std::string::npos  ? "space-time 3d"
+                 : algebra_name.find("sta4d") != std::string::npos  ? "space-time 3d"
                                                                     : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
@@ -748,27 +748,27 @@ int main(int argc, char* argv[])
             display_algebra_rules(pga3dp_config, "pga3dp");
         }
 
-        // Configure and test STA3D algebra (Space-Time Algebra)
-        AlgebraConfig sta3d_config = {
+        // Configure and test STA4D algebra (Space-Time Algebra)
+        AlgebraConfig sta4d_config = {
             .basis_vectors = {"g0", "g1", "g2", "g3"},
             .metric_signature = {+1, -1, -1,
                                  -1}, // G(1,3,0) - g0²=+1, g1²=-1, g2²=-1, g3²=-1
             .multivector_basis = {"1", "g0", "g1", "g2", "g3", "g01", "g02", "g03", "g23",
                                   "g31", "g12", "g023", "g031", "g012", "g123",
-                                  "g0123"}, // Copy from ga_prdxpr_sta3d.hpp line 16-18
+                                  "g0123"}, // Copy from ga_prdxpr_sta4d.hpp line 16-18
             .scalar_name = one_str(),
             .basis_prefix = "g" // Uses gamma notation instead of e
         };
 
         if (test_consistency) {
-            bool sta3d_success = test_algebra(
-                sta3d_config, "sta3d", mvsta3d_basis, gpr_sta3d_rules, wdg_sta3d_rules,
-                dot_sta3d_rules); // testing all three product types - complete manual
+            bool sta4d_success = test_algebra(
+                sta4d_config, "sta4d", mvsta4d_basis, gpr_sta4d_rules, wdg_sta4d_rules,
+                dot_sta4d_rules); // testing all three product types - complete manual
                                   // implementation
-            test_results.push_back(sta3d_success);
+            test_results.push_back(sta4d_success);
         }
         else {
-            display_algebra_rules(sta3d_config, "sta3d");
+            display_algebra_rules(sta4d_config, "sta4d");
         }
 
         if (test_consistency) {
@@ -785,7 +785,7 @@ int main(int argc, char* argv[])
                          test_results[2] ? "✓ PERFECT" : "✗ FAILED");
             fmt::println("pga3dp (G(3,0,1)): {}",
                          test_results[3] ? "✓ PERFECT" : "✗ FAILED");
-            fmt::println("sta3d (G(1,3,0)): {}",
+            fmt::println("sta4d (G(1,3,0)): {}",
                          test_results[4] ? "✓ PERFECT" : "✗ FAILED");
 
             bool all_success = std::all_of(test_results.begin(), test_results.end(),

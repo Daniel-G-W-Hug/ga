@@ -44,7 +44,7 @@ class SandwichTransformer {
     // Output: Matrix transformation with simplified coefficients
     static MatrixTransformation transformSandwichProduct(
         const std::string& sandwich_expression,
-        const std::string& algebra_type = "ega2d" // ega2d, ega3d, pga2dp, pga3dp, sta3d
+        const std::string& algebra_type = "ega2d" // ega2d, ega3d, pga2dp, pga3dp, sta4d
     );
 
     // Main transformation interface with custom patterns
@@ -126,7 +126,7 @@ class AlgebraRegistry {
     static SandwichAlgebraConfig createEGA3DConfig();
     static SandwichAlgebraConfig createPGA2DPConfig();
     static SandwichAlgebraConfig createPGA3DPConfig();
-    static SandwichAlgebraConfig createSTA3DConfig();
+    static SandwichAlgebraConfig createSTA4DConfig();
 };
 
 ///////////////////////////////////////////////////////////////////////////////

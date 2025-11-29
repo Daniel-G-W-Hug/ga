@@ -461,7 +461,7 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 - Metric: `{+1, +1, +1, 0}`
 - Extended Metric: `{1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0}`
 
-**STA3D - G(1,3,0)**: Space-Time Algebra
+**STA4D - G(1,3,0)**: Space-Time Algebra
 
 - Basis: `{1, g0, g1, g2, g3, g01, g02, g03, g23, g31, g12, g023, g031, g012, g123, g0123}`
 - Metric: `{+1, -1, -1, -1}` (timelike g0, spacelike g1,g2,g3)
@@ -476,7 +476,7 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 - **Pseudoscalar**: Determinant of metric tensor
 - **Mixed signatures**: Apply conforming property G(a ∧ b) = G(a) ∧ G(b)
 
-**Space-Time Algebra (STA3D) Special Rules:**
+**Space-Time Algebra (STA4D) Special Rules:**
 
 - **Bivectors with g0**: Extended metric = +1 (e.g., g01, g02, g03)
 - **Bivectors without g0**: Extended metric = -1 (e.g., g12, g23, g31)
@@ -500,7 +500,7 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 3. **Canonical Forms**: Use user-provided basis ordering to avoid ambiguity
 4. **Mixed Signatures**: Require algebra-specific extended metric rules
 
-**Validation Success**: The automatic generation system produces character-identical results for all five tested algebras (EGA2D, EGA3D, PGA2DP, PGA3DP, STA3D) across geometric, wedge, and dot products.
+**Validation Success**: The automatic generation system produces character-identical results for all five tested algebras (EGA2D, EGA3D, PGA2DP, PGA3DP, STA4D) across geometric, wedge, and dot products.
 
 ## Congruence Implementation and Numerical Precision
 

@@ -404,8 +404,8 @@ AlgebraConfig AlgebraRegistry::getConfig(const std::string& algebra_type)
     else if (algebra_type == "pga3dp") {
         return createPGA3DPConfig();
     }
-    else if (algebra_type == "sta3d") {
-        return createSTA3DConfig();
+    else if (algebra_type == "sta4d") {
+        return createSTA4DConfig();
     }
     else {
         throw std::runtime_error("Unknown algebra type: " + algebra_type);

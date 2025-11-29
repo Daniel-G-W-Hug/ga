@@ -6,7 +6,9 @@
 #include "ga_prdxpr_generator.hpp"
 #include "ga_prdxpr_pga2dp_config.hpp"
 #include "ga_prdxpr_pga3dp_config.hpp"
-#include "ga_prdxpr_sta3d_config.hpp"
+#include "ga_prdxpr_sta4d_config.hpp"
+#include "ga_prdxpr_metric_export.hpp"
+#include "ga_prdxpr_rule_generator.hpp"
 #include <fmt/core.h>
 #include <vector>
 
@@ -147,27 +149,64 @@ int main()
             generate_algebra_products(generator, pga3dp_configs, pga3dp_algebra, true);
         }
 
-        // STA3D
+        // STA4D
         {
-            auto sta3d_algebra = create_sta3d_algebra_data();
-            std::vector<ProductConfig> sta3d_configs = {
-                get_sta3d_gpr_config(),           get_sta3d_cmt_config(),
-                get_sta3d_wdg_config(),           get_sta3d_dot_config(),
+            auto sta4d_algebra = create_sta4d_algebra_data();
+            std::vector<ProductConfig> sta4d_configs = {
+                get_sta4d_gpr_config(),           get_sta4d_cmt_config(),
+                get_sta4d_wdg_config(),           get_sta4d_dot_config(),
 
-                get_sta3d_left_contract_config(), get_sta3d_right_contract_config(),
+                get_sta4d_left_contract_config(), get_sta4d_right_contract_config(),
 
-                get_sta3d_left_expand_config(),   get_sta3d_right_expand_config(),
+                get_sta4d_left_expand_config(),   get_sta4d_right_expand_config(),
 
-                get_sta3d_rgpr_config(),          get_sta3d_rcmt_config(),
-                get_sta3d_rwdg_config(),          get_sta3d_rdot_config(),
+                get_sta4d_rgpr_config(),          get_sta4d_rcmt_config(),
+                get_sta4d_rwdg_config(),          get_sta4d_rdot_config(),
 
-                get_sta3d_sandwich_gpr_config()};
+                get_sta4d_sandwich_gpr_config()};
 
-            generate_algebra_products(generator, sta3d_configs, sta3d_algebra, true);
+            generate_algebra_products(generator, sta4d_configs, sta4d_algebra, true);
         }
 
         fmt::println(
             "-------------------------------------------------------------------");
+        fmt::println("");
+
+        // Generate extended metric exports for all algebras
+        fmt::println("================================================================================");
+        fmt::println("EXTENDED METRIC EXPORTS");
+        fmt::println("================================================================================");
+        fmt::println("");
+        fmt::println("Generating C++ constexpr arrays for extended and regressive metrics...");
+        fmt::println("");
+
+        // Export metrics for each algebra
+        {
+            AlgebraConfig ega2d_config = get_ega2d_algebra_config();
+            print_metrics_for_algebra(ega2d_config);
+        }
+
+        {
+            AlgebraConfig ega3d_config = get_ega3d_algebra_config();
+            print_metrics_for_algebra(ega3d_config);
+        }
+
+        {
+            AlgebraConfig pga2dp_config = get_pga2dp_algebra_config();
+            print_metrics_for_algebra(pga2dp_config);
+        }
+
+        {
+            AlgebraConfig pga3dp_config = get_pga3dp_algebra_config();
+            print_metrics_for_algebra(pga3dp_config);
+        }
+
+        {
+            AlgebraConfig sta4d_config = get_sta4d_algebra_config();
+            print_metrics_for_algebra(sta4d_config);
+        }
+
+        fmt::println("================================================================================");
         fmt::println("");
 
         return 0;
