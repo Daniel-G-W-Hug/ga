@@ -87,7 +87,7 @@ std::string export_extended_metric_to_code(
     std::ostringstream oss;
 
     // Header comment
-    oss << "// Extended metric for " << algebra_name
+    oss << "// extended metric for " << algebra_name
         << " (" << n << "×" << n << " matrix, " << total_elements << " elements)\n";
 
     // Basis comment
@@ -100,7 +100,7 @@ std::string export_extended_metric_to_code(
 
     // Array declaration
     oss << "inline constexpr std::array<int, " << total_elements << "> "
-        << algebra_name << "_extended_metric = {\n";
+        << algebra_name << "_metric = {\n";
 
     // Calculate maximum row length for comment alignment
     size_t max_row_length = calculate_max_row_length(matrix_data, n);
@@ -116,9 +116,9 @@ std::string export_extended_metric_to_code(
     // Accessor function
     oss << "\n";
     oss << "// Accessor function for convenient 2D indexing: G[i,j]\n";
-    oss << "inline constexpr auto " << algebra_name << "_extended_metric_view() {\n";
+    oss << "inline constexpr auto " << algebra_name << "_metric_view() {\n";
     oss << "    return std::mdspan<int const, std::extents<size_t, " << n << ", " << n << ">>{\n";
-    oss << "        " << algebra_name << "_extended_metric.data()\n";
+    oss << "        " << algebra_name << "_metric.data()\n";
     oss << "    };\n";
     oss << "}\n";
 
@@ -149,7 +149,7 @@ std::string export_regressive_metric_to_code(
 
     // Array declaration
     oss << "inline constexpr std::array<int, " << total_elements << "> "
-        << algebra_name << "_regressive_metric = {\n";
+        << algebra_name << "_rmetric = {\n";
 
     // Calculate maximum row length for comment alignment
     size_t max_row_length = calculate_max_row_length(matrix_data, n);
@@ -165,13 +165,11 @@ std::string export_regressive_metric_to_code(
     // Accessor function
     oss << "\n";
     oss << "// Accessor function for convenient 2D indexing: Ḡ[i,j]\n";
-    oss << "inline constexpr auto " << algebra_name << "_regressive_metric_view() {\n";
+    oss << "inline constexpr auto " << algebra_name << "_rmetric_view() {\n";
     oss << "    return std::mdspan<int const, std::extents<size_t, " << n << ", " << n << ">>{\n";
-    oss << "        " << algebra_name << "_regressive_metric.data()\n";
+    oss << "        " << algebra_name << "_rmetric.data()\n";
     oss << "    };\n";
     oss << "}\n";
-    oss << "\n";
-    oss << "// Note: Complementary property: G[i,i] + Ḡ[i,i] = 1 for all i (PGA)\n";
 
     return oss.str();
 }
@@ -221,7 +219,7 @@ void print_metrics_for_algebra(AlgebraConfig const& config)
     std::string algebra_name = generate_algebra_name(config);
 
     std::cout << "////////////////////////////////////////////////////////////////////////////////\n";
-    std::cout << "// Metric Export for " << algebra_name << "\n";
+    std::cout << "// extended metric for " << algebra_name << "\n";
     std::cout << "////////////////////////////////////////////////////////////////////////////////\n";
     std::cout << "\n";
 
@@ -248,12 +246,5 @@ void print_metrics_for_algebra(AlgebraConfig const& config)
         std::string regressive_code = export_regressive_metric_to_code(
             algebra_name, basis, G_reg_data);
         std::cout << regressive_code << "\n";
-
-        // Add complementary property verification comment
-        std::cout << "// Verification: G[i,i] + Ḡ[i,i] = 1 for all basis elements\n";
-        std::cout << "// This complementary property is fundamental to PGA\n";
     }
-
-    std::cout << "////////////////////////////////////////////////////////////////////////////////\n";
-    std::cout << "\n";
 }

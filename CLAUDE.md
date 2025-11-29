@@ -82,8 +82,10 @@ Execute applications from the build directory:
 cd ga_lua && ./ga_lua && cd ..                    # Interactive Lua shell
 cd ga_lua && ./ga_lua script.lua && cd ..         # Run Lua script
 cd ga_view && ./ga_view && cd ..                  # Qt6 visualization tool
-cd ga_prdxpr && ./ga_prdxpr && cd ..              # Code generator
+cd ga_prdxpr && ./ga_prdxpr --help && cd ..       # Code generator - see README.md for details
 ```
+
+**Note:** For complete `ga_prdxpr` usage documentation, see the [README.md](README.md#ga-product-expression-generator-ga_prdxpr) file.
 
 ## Project Architecture
 
