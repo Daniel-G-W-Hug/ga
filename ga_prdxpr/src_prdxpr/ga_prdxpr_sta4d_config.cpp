@@ -11,7 +11,7 @@
  *
  * AUTOMATIC RULE GENERATION:
  * --------------------------
- * The get_sta3d_algebra_config() function provides mathematical algebra parameters:
+ * The get_sta4d_algebra_config() function provides mathematical algebra parameters:
  * - basis_vectors: Basis vector names (e.g., {"e1", "e2", "e3", "e4"})
  * - metric_signature: Quadratic form values (e.g., {+1, +1, +1, 0})
  * - multivector_basis: Complete basis element names (e.g., {"1", "e1", "e2", "e3", "e4",
@@ -107,26 +107,26 @@
  * - Zero results: Use "0" as result type for operations that yield zero
  */
 
-#include "ga_prdxpr_sta3d_config.hpp"
+#include "ga_prdxpr_sta4d_config.hpp"
 
-// Automatic rule generation configuration for sta3d
-AlgebraConfig get_sta3d_algebra_config()
+// Automatic rule generation configuration for sta4d
+AlgebraConfig get_sta4d_algebra_config()
 {
     return {
         .basis_vectors = {"g0", "g1", "g2", "g3"},
         .metric_signature = {1, -1, -1, -1}, // G(1,3,0) - g0²=+1, g1²=-1, g2²=-1, g3²=-1,
         .multivector_basis = {"1", "g0", "g1", "g2", "g3", "g01", "g02", "g03", "g23",
                               "g31", "g12", "g023", "g031", "g012", "g123",
-                              "g0123"}, // Copy from mvsta3d_basis
+                              "g0123"}, // Copy from mvsta4d_basis
         .scalar_name = one_str(),
         .basis_prefix = "g"};
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// ALGEBRA CONFIGURATION - sta3d
+// ALGEBRA CONFIGURATION - sta4d
 //
-// This file contains pure configuration for the sta3d geometric algebra.
-// Product rule generation is handled in ga_prdxpr_sta3d.cpp.
+// This file contains pure configuration for the sta4d geometric algebra.
+// Product rule generation is handled in ga_prdxpr_sta4d.cpp.
 //
 // Configuration includes:
 // - Algebra parameters (basis vectors, metric signature)
@@ -136,48 +136,48 @@ AlgebraConfig get_sta3d_algebra_config()
 
 namespace configurable {
 
-AlgebraData create_sta3d_algebra_data()
+AlgebraData create_sta4d_algebra_data()
 {
-    AlgebraData sta3d;
-    sta3d.name = "sta3d";
-    sta3d.basis = mvsta3d_basis; // Use existing basis
-    sta3d.dimension = 4;         // g0: time, g1,g2,g3: space
+    AlgebraData sta4d;
+    sta4d.name = "sta4d";
+    sta4d.basis = mvsta4d_basis; // Use existing basis
+    sta4d.dimension = 4;         // g0: time, g1,g2,g3: space
 
     // Map coefficient names to existing coefficient objects
-    sta3d.coefficients = {{"A", mvsta3d_coeff_A},
-                          {"B", mvsta3d_coeff_B},
-                          {"M", mvsta3d_coeff_M},
-                          {"M1", mvsta3d_coeff_M1},
-                          {"M2", mvsta3d_coeff_M2},
-                          {"M_even", mvsta3d_coeff_M_even},
-                          {"M_odd", mvsta3d_coeff_M_odd},
-                          {"A_even", mvsta3d_coeff_A_even},
-                          {"B_even", mvsta3d_coeff_B_even},
-                          {"A_odd", mvsta3d_coeff_A_odd},
-                          {"B_odd", mvsta3d_coeff_B_odd},
-                          {"R_even", mvsta3d_coeff_R_even},
-                          {"R_odd", mvsta3d_coeff_R_odd},
-                          {"R_rev_even", mvsta3d_coeff_R_rev_even},
-                          {"R_rev_odd", mvsta3d_coeff_R_rev_odd},
-                          {"R_rrev_even", mvsta3d_coeff_R_rrev_even},
-                          {"R_rrev_odd", mvsta3d_coeff_R_rrev_odd},
-                          {"svBtps", mvsta3d_coeff_svBtps},
-                          {"svBtps1", mvsta3d_coeff_svBtps1},
-                          {"svBtps2", mvsta3d_coeff_svBtps2}};
+    sta4d.coefficients = {{"A", mvsta4d_coeff_A},
+                          {"B", mvsta4d_coeff_B},
+                          {"M", mvsta4d_coeff_M},
+                          {"M1", mvsta4d_coeff_M1},
+                          {"M2", mvsta4d_coeff_M2},
+                          {"M_even", mvsta4d_coeff_M_even},
+                          {"M_odd", mvsta4d_coeff_M_odd},
+                          {"A_even", mvsta4d_coeff_A_even},
+                          {"B_even", mvsta4d_coeff_B_even},
+                          {"A_odd", mvsta4d_coeff_A_odd},
+                          {"B_odd", mvsta4d_coeff_B_odd},
+                          {"R_even", mvsta4d_coeff_R_even},
+                          {"R_odd", mvsta4d_coeff_R_odd},
+                          {"R_rev_even", mvsta4d_coeff_R_rev_even},
+                          {"R_rev_odd", mvsta4d_coeff_R_rev_odd},
+                          {"R_rrev_even", mvsta4d_coeff_R_rrev_even},
+                          {"R_rrev_odd", mvsta4d_coeff_R_rrev_odd},
+                          {"svBtps", mvsta4d_coeff_svBtps},
+                          {"svBtps1", mvsta4d_coeff_svBtps1},
+                          {"svBtps2", mvsta4d_coeff_svBtps2}};
 
     // Map filter names to existing filter enums
-    sta3d.filters_4d = {{"s", filter_4d::s},         {"vec", filter_4d::vec},
+    sta4d.filters_4d = {{"s", filter_4d::s},         {"vec", filter_4d::vec},
                         {"bivec", filter_4d::bivec}, {"trivec", filter_4d::trivec},
                         {"ps", filter_4d::ps},       {"mv_e", filter_4d::mv_e},
                         {"mv_u", filter_4d::mv_u},   {"mv", filter_4d::mv}};
 
-    return sta3d;
+    return sta4d;
 }
 
-ProductConfig get_sta3d_gpr_config()
+ProductConfig get_sta4d_gpr_config()
 {
     return {.product_name = "gpr",
-            .description = "sta3d geometric product",
+            .description = "sta4d geometric product",
             .display_name = "geometric product",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
@@ -187,10 +187,10 @@ ProductConfig get_sta3d_gpr_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_cmt_config()
+ProductConfig get_sta4d_cmt_config()
 {
     return {.product_name = "cmt",
-            .description = "sta3d commutator product",
+            .description = "sta4d commutator product",
             .display_name = "commutator product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -200,10 +200,10 @@ ProductConfig get_sta3d_cmt_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_wdg_config()
+ProductConfig get_sta4d_wdg_config()
 {
     return {.product_name = "wdg",
-            .description = "sta3d wedge product",
+            .description = "sta4d wedge product",
             .display_name = "wedge product",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
@@ -213,10 +213,10 @@ ProductConfig get_sta3d_wdg_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_dot_config()
+ProductConfig get_sta4d_dot_config()
 {
     return {.product_name = "dot",
-            .description = "sta3d inner product",
+            .description = "sta4d inner product",
             .display_name = "inner product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -226,10 +226,10 @@ ProductConfig get_sta3d_dot_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_left_contract_config()
+ProductConfig get_sta4d_left_contract_config()
 {
     return {.product_name = "left_contract",
-            .description = "sta3d left contraction",
+            .description = "sta4d left contraction",
             .display_name = "left contraction",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -239,10 +239,10 @@ ProductConfig get_sta3d_left_contract_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_right_contract_config()
+ProductConfig get_sta4d_right_contract_config()
 {
     return {.product_name = "right_contract",
-            .description = "sta3d right contraction",
+            .description = "sta4d right contraction",
             .display_name = "right contraction",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -252,10 +252,10 @@ ProductConfig get_sta3d_right_contract_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_left_expand_config()
+ProductConfig get_sta4d_left_expand_config()
 {
     return {.product_name = "left_expand",
-            .description = "sta3d left expansion",
+            .description = "sta4d left expansion",
             .display_name = "left expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -265,10 +265,10 @@ ProductConfig get_sta3d_left_expand_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_right_expand_config()
+ProductConfig get_sta4d_right_expand_config()
 {
     return {.product_name = "right_expand",
-            .description = "sta3d right expansion",
+            .description = "sta4d right expansion",
             .display_name = "right expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -278,10 +278,10 @@ ProductConfig get_sta3d_right_expand_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_rgpr_config()
+ProductConfig get_sta4d_rgpr_config()
 {
     return {.product_name = "rgpr",
-            .description = "sta3d regressive geometric product",
+            .description = "sta4d regressive geometric product",
             .display_name = "regressive geometric product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -291,10 +291,10 @@ ProductConfig get_sta3d_rgpr_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_rcmt_config()
+ProductConfig get_sta4d_rcmt_config()
 {
     return {.product_name = "rcmt",
-            .description = "sta3d regressive commutator product",
+            .description = "sta4d regressive commutator product",
             .display_name = "regressive commutator product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -304,10 +304,10 @@ ProductConfig get_sta3d_rcmt_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_rwdg_config()
+ProductConfig get_sta4d_rwdg_config()
 {
     return {.product_name = "rwdg",
-            .description = "sta3d regressive wedge product",
+            .description = "sta4d regressive wedge product",
             .display_name = "regressive wedge product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -317,10 +317,10 @@ ProductConfig get_sta3d_rwdg_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_rdot_config()
+ProductConfig get_sta4d_rdot_config()
 {
     return {.product_name = "rdot",
-            .description = "sta3d regressive inner product",
+            .description = "sta4d regressive inner product",
             .display_name = "regressive inner product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -330,11 +330,11 @@ ProductConfig get_sta3d_rdot_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta3d_sandwich_gpr_config()
+ProductConfig get_sta4d_sandwich_gpr_config()
 {
     return {
         .product_name = "sandwich_gpr",
-        .description = "sta3d sandwich product",
+        .description = "sta4d sandwich product",
         .display_name = "sandwich product",
         // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
         // "right_filter", is_two_step, "intermediate"}

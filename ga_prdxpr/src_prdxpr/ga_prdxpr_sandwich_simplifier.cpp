@@ -613,7 +613,7 @@ GeometricVariablePatterns GeometricVariablePatterns::createPGA2DPPatterns()
     return patterns;
 }
 
-GeometricVariablePatterns GeometricVariablePatterns::createSTA3DPatterns()
+GeometricVariablePatterns GeometricVariablePatterns::createSTA4DPatterns()
 {
     GeometricVariablePatterns patterns;
     patterns.coeff_prefix = "M.c";                   // Motors for Projective GA

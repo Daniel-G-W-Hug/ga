@@ -11,23 +11,23 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Automatic GA Rule Generation System
 //
-// HOW TO ADD A NEW GEOMETRIC ALGEBRA (e.g., STA3D)
+// HOW TO ADD A NEW GEOMETRIC ALGEBRA (e.g., STA4D)
 //
 // This system automatically generates mathematically correct product rules
 // for any geometric algebra from its metric signature and basis vectors.
 //
-// STEP 1: Create Header File (e.g., ga_prdxpr_sta3d.hpp)
+// STEP 1: Create Header File (e.g., ga_prdxpr_sta4d.hpp)
 //   - Define multivector basis: const mvec_coeff mvSTA3d_basis = {"1", "g0", "g1", "g2",
 //   "g3", ...};
 //   - Add extern declarations for product rules:
-//     extern const prd_rules gpr_sta3d_rules;  // Geometric product
-//     extern const prd_rules wdg_sta3d_rules;  // Wedge product
-//     extern const prd_rules dot_sta3d_rules;  // Dot product
+//     extern const prd_rules gpr_sta4d_rules;  // Geometric product
+//     extern const prd_rules wdg_sta4d_rules;  // Wedge product
+//     extern const prd_rules dot_sta4d_rules;  // Dot product
 //   - Define coefficient arrays and complement rules as needed
 //
-// STEP 2: Create Config File (e.g., ga_prdxpr_sta3d_config.cpp)
+// STEP 2: Create Config File (e.g., ga_prdxpr_sta4d_config.cpp)
 //   - Implement AlgebraConfig function:
-//     AlgebraConfig get_sta3d_algebra_config() {
+//     AlgebraConfig get_sta4d_algebra_config() {
 //         return {
 //             {"g0", "g1", "g2", "g3"},        // basis_vectors
 //             {+1, -1, -1, -1},                // metric_signature
@@ -37,20 +37,20 @@
 //         };
 //     }
 //   - Generate rules with static initialization:
-//     static auto sta3d_generated_rules =
-//     generate_algebra_rules(get_sta3d_algebra_config()); const prd_rules gpr_sta3d_rules
-//     = sta3d_generated_rules.geometric_product; const prd_rules wdg_sta3d_rules =
-//     sta3d_generated_rules.wedge_product; const prd_rules dot_sta3d_rules =
-//     sta3d_generated_rules.dot_product;
+//     static auto sta4d_generated_rules =
+//     generate_algebra_rules(get_sta4d_algebra_config()); const prd_rules gpr_sta4d_rules
+//     = sta4d_generated_rules.geometric_product; const prd_rules wdg_sta4d_rules =
+//     sta4d_generated_rules.wedge_product; const prd_rules dot_sta4d_rules =
+//     sta4d_generated_rules.dot_product;
 //
 // STEP 3: Add to Build System (CMakeLists.txt)
-//   - Add config file to SOURCES: src_prdxpr/ga_prdxpr_sta3d_config.cpp
-//   - Add header to HEADERS: src_prdxpr/ga_prdxpr_sta3d.hpp
+//   - Add config file to SOURCES: src_prdxpr/ga_prdxpr_sta4d_config.cpp
+//   - Add header to HEADERS: src_prdxpr/ga_prdxpr_sta4d.hpp
 //   - Include in test program if needed
 //
 // STEP 4: Integration (ga_prdxpr_generator.cpp)
-//   - Include the new header: #include "ga_prdxpr_sta3d.hpp"
-//   - Add switch case for STA3D in dimension handlers
+//   - Include the new header: #include "ga_prdxpr_sta4d.hpp"
+//   - Add switch case for STA4D in dimension handlers
 //   - Add product generation calls as needed
 //
 // SUPPORTED ALGEBRAS:
@@ -111,8 +111,8 @@ struct ProductRules {
     prd_rules complement;       // For odd algebras (EGA3D, PGA2DP)
 
     // Dual rules - generated from complement rules + extended metric
-    prd_rules right_dual; // For even Euclidean/Minkowski algebras (EGA2D, STA3D)
-    prd_rules left_dual;  // For even Euclidean/Minkowski algebras (EGA2D, STA3D)
+    prd_rules right_dual; // For even Euclidean/Minkowski algebras (EGA2D, STA4D)
+    prd_rules left_dual;  // For even Euclidean/Minkowski algebras (EGA2D, STA4D)
     prd_rules dual;       // For odd Euclidean algebras (EGA3D)
 
     // PGA-specific dual rules (for projective algebras with degenerate dimensions)

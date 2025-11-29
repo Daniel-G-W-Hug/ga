@@ -121,7 +121,7 @@ struct GeometricVariablePatterns {
     static GeometricVariablePatterns createPGA3DPPatterns();
     static GeometricVariablePatterns createEGA2DPatterns();
     static GeometricVariablePatterns createPGA2DPPatterns();
-    static GeometricVariablePatterns createSTA3DPatterns();
+    static GeometricVariablePatterns createSTA4DPatterns();
 };
 
 ///////////////////////////////////////////////////////////////////////////////

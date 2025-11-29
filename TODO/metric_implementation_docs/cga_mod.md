@@ -312,7 +312,7 @@ cmake --build . --target ga_prdxpr_rule_generator_test
 ./ga_prdxpr/ga_prdxpr_rule_generator_test
 ```
 
-**Expected**: All existing algebras (EGA2D, EGA3D, PGA2DP, PGA3DP, STA3D) should produce **identical** results.
+**Expected**: All existing algebras (EGA2D, EGA3D, PGA2DP, PGA3DP, STA4D) should produce **identical** results.
 
 ### 2. CGA Validation
 
@@ -402,7 +402,7 @@ Dual calculations may need updates for non-diagonal metrics:
 
 ### Issue 3: Special Cases
 
-Some algebras (like STA3D) have algebra-specific extended metric rules (line 247). Need to ensure these still work with matrix approach.
+Some algebras (like STA4D) have algebra-specific extended metric rules (line 247). Need to ensure these still work with matrix approach.
 
 ## References
 

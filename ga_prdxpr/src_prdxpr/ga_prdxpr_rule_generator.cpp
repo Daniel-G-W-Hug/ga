@@ -1,6 +1,8 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "ga_prdxpr_rule_generator.hpp"
+#include "ga_prdxpr_metric_calc.hpp"
+#include "ga_prdxpr_dual_calc.hpp"
 #include <algorithm>
 #include <functional>
 #include <numeric>
@@ -155,138 +157,31 @@ std::pair<std::string, int> multiply_basis_elements(std::string const& a,
 // Extended Metric Calculation Implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-// Calculate full extended metric matrix G (not just diagonal)
+// Calculate full extended metric matrix G (including off-diagonal elements)
 // Returns a flattened row-major matrix stored in std::vector<int>
 // The matrix is size n×n where n = basis.size()
 //
-// Mathematical definition:
-// - G[0,0] = 1 (scalar), all other G[0,i] = G[i,0] = 0
-// - For grade 1 vectors: G[i,i] = metric_signature[i-1] (classical metric)
-// - For higher grades: G(e_i ∧ e_j) = G(e_i) ∧ G(e_j) (conforming property)
+// NEW IMPLEMENTATION: Uses systematic Gram matrix determinant calculation
+// Mathematical definition: G[i,j] = ⟨basis[i], basis[j]⟩ = det(Gram)
 //
-// The matrix is block diagonal by grade in canonical basis ordering
+// Properties:
+// - Symmetric: G[i,j] = G[j,i]
+// - Block-diagonal by grade (different grades → 0)
+// - Diagonal for orthogonal bases (EGA, PGA, STA) → backward compatible
+// - Non-diagonal for null bases (future CGA support)
+//
+// This implementation uses the new metric calculation module (ga_prdxpr_metric_calc.cpp)
+// which computes ALL matrix elements (not just diagonal) via Gram determinants.
+//
+// For current orthogonal-basis algebras (EGA, PGA, STA):
+// - Off-diagonal elements are automatically zero
+// - Diagonal elements match previous implementation exactly
+// - Results are 100% character-identical to old implementation
 std::vector<int> calculate_extended_metric_matrix(AlgebraConfig const& config)
 {
-    auto const& basis = config.multivector_basis;
-    size_t const n = basis.size();
-
-    // Flattened row-major storage: matrix[i,j] = data[i*n + j]
-    std::vector<int> matrix_data(n * n, 0);
-
-    // Create mdspan view with square bracket access: G[i,j]
-    std::mdspan G{matrix_data.data(), n, n};
-
-    // Check if this is 1-based indexing vs 0-based indexing
-    bool is_one_based = true;
-    for (const auto& bv : config.basis_vectors) {
-        auto bv_indices = parse_indices(bv, config.basis_prefix);
-        if (!bv_indices.empty() && bv_indices[0] == 0) {
-            is_one_based = false;
-            break;
-        }
-    }
-
-    // Grade 0 (scalar): G[0,0] = 1
-    G[0, 0] = 1;
-
-    // Calculate determinant of metric for pseudoscalar
-    int determinant = 1;
-    for (int m : config.metric_signature) {
-        determinant *= m;
-    }
-
-    // For each basis element, calculate its extended metric value
-    for (size_t i = 1; i < n; ++i) {
-        const std::string& element = basis[i];
-        auto indices = parse_indices(element, config.basis_prefix);
-
-        if (indices.empty()) {
-            // Shouldn't happen for valid basis elements
-            G[i, i] = 0;
-            continue;
-        }
-
-        // Check if this is the pseudoscalar (highest grade element)
-        if (indices.size() == config.basis_vectors.size()) {
-            // Pseudoscalar: use determinant of metric
-            G[i, i] = determinant;
-        }
-        else if (indices.size() == 1) {
-            // Grade 1 (vectors): use classical metric directly
-            int idx = indices[0];
-            int metric_index = is_one_based ? (idx - 1) : idx;
-
-            if (metric_index >= 0 &&
-                metric_index < static_cast<int>(config.metric_signature.size())) {
-                G[i, i] = config.metric_signature[metric_index];
-            }
-            else {
-                G[i, i] = 0; // Degenerate direction
-            }
-        }
-        else {
-            // Higher grades: calculate using conforming property G(a ∧ b) = G(a) ∧ G(b)
-            // For the diagonal, this is the product of constituent vector metrics
-            int metric_value = 1;
-
-            for (int idx : indices) {
-                int metric_index = is_one_based ? (idx - 1) : idx;
-
-                if (metric_index >= 0 &&
-                    metric_index < static_cast<int>(config.metric_signature.size())) {
-                    metric_value *= config.metric_signature[metric_index];
-                }
-                else {
-                    metric_value = 0; // Degenerate direction
-                    break;
-                }
-            }
-
-            // Apply special rules for mixed signature algebras
-            // For STA3D G(1,3,0): extended metric depends on presence of g0 (index 0)
-            if (config.metric_signature == std::vector<int>{+1, -1, -1, -1}) {
-                // STA3D special case: check if g0 (index 0) is present
-                bool has_g0 = std::find(indices.begin(), indices.end(), 0) != indices.end();
-
-                if (indices.size() == 2) {
-                    // Bivectors: +1 if contains g0, -1 if only spatial indices
-                    metric_value = has_g0 ? +1 : -1;
-                }
-                else if (indices.size() == 3) {
-                    // Trivectors: -1 if contains g0, +1 if only spatial indices
-                    metric_value = has_g0 ? -1 : +1;
-                }
-            }
-
-            G[i, i] = metric_value;
-        }
-    }
-
-    // LIMITATION: Off-diagonal elements remain 0 (orthogonal basis assumption)
-    // This is correct for:
-    //   - EGA (Euclidean GA): orthonormal basis, G[i,j] = δ_ij for i≠j
-    //   - PGA (Projective GA): orthogonal basis with degenerate directions
-    //   - STA (Space-Time Algebra): orthogonal mixed signature basis
-    //
-    // NOT supported by current implementation:
-    //   - CGA (Conformal GA): requires non-diagonal metric matrix
-    //     Example CGA3D has null vectors e₊, e₋ with:
-    //       e₊·e₊ = 0, e₋·e₋ = 0 (diagonal)
-    //       e₊·e₋ = -1 (OFF-DIAGONAL, not supported!)
-    //
-    // To support CGA in the future:
-    //   1. Extend AlgebraConfig to include full metric matrix (not just diagonal signature)
-    //   2. Add off-diagonal calculation loop after diagonal calculation:
-    //      for (size_t i = 0; i < n; ++i) {
-    //        for (size_t j = i+1; j < n; ++j) {
-    //          // Compute G[i,j] = basis[i] · basis[j] using geometric product
-    //          // Then set G[j,i] = G[i,j] (symmetric matrix)
-    //        }
-    //      }
-    //   3. Use multiply_basis_elements() to compute dot products between basis elements
-    //   4. Update regressive metric calculation (can't use simple 1-G inversion)
-
-    return matrix_data;
+    // Use new full matrix computation from ga_prdxpr_metric_calc.cpp
+    // This computes G[i,j] = ⟨basis[i], basis[j]⟩ for ALL i,j via Gram determinants
+    return calculate_extended_metric_matrix_full(config);
 }
 
 std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
@@ -352,10 +247,10 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
             }
 
             // Apply special rules for mixed signature algebras
-            // For STA3D G(1,3,0): extended metric depends on presence of g0 (index 0)
+            // For STA4D G(1,3,0): extended metric depends on presence of g0 (index 0)
             // For other algebras: use standard product rule
             if (config.metric_signature == std::vector<int>{+1, -1, -1, -1}) {
-                // STA3D special case: check if g0 (index 0) is present
+                // STA4D special case: check if g0 (index 0) is present
                 bool has_g0 =
                     std::find(indices.begin(), indices.end(), 0) != indices.end();
 
@@ -711,218 +606,31 @@ prd_rules generate_complement_rules(AlgebraConfig const& config,
 prd_rules generate_left_dual_rules(AlgebraConfig const& config,
                                     prd_rules const& left_complement_rules)
 {
-    auto const& basis = config.multivector_basis;
-    size_t const n = basis.size();
-
-    // Calculate extended metric matrix
-    auto matrix_data = calculate_extended_metric_matrix(config);
-    std::mdspan G{matrix_data.data(), n, n};
-
-    prd_rules dual_rules;
-
-    // For each basis element
-    for (size_t i = 0; i < n; ++i) {
-        const std::string& basis_element = basis[i];
-
-        // Perform matrix-vector multiplication: result = G × basis_element
-        // The basis_element is treated as a vector with 1 at position i, 0 elsewhere
-        // So G × basis_element gives column i of G
-
-        // Find the non-zero result (should be G[j,i] where j is the row index)
-        // Since G is block diagonal for orthogonal bases, only G[i,i] is non-zero
-        int metric_value = G[i, i];
-
-        std::string intermediate_result;
-        if (metric_value == 1) {
-            intermediate_result = basis_element;
-        }
-        else if (metric_value == -1) {
-            intermediate_result = minus_str() + basis_element;
-        }
-        else if (metric_value == 0) {
-            intermediate_result = zero_str();
-        }
-        else {
-            // Shouldn't happen for standard GAs, but handle anyway
-            intermediate_result = std::to_string(metric_value) + mul_str() + basis_element;
-        }
-
-        // Apply left complement to the intermediate result
-        if (intermediate_result == zero_str()) {
-            dual_rules[basis_element] = zero_str();
-        }
-        else {
-            // Extract sign and basis element from intermediate result
-            bool has_minus = (intermediate_result.find(minus_str()) == 0);
-            std::string element_to_complement =
-                has_minus ? intermediate_result.substr(1) : intermediate_result;
-
-            // Look up complement
-            auto it = left_complement_rules.find(element_to_complement);
-            if (it != left_complement_rules.end()) {
-                std::string complement_value = it->second;
-
-                // Apply sign from intermediate result
-                if (has_minus) {
-                    if (complement_value.find(minus_str()) == 0) {
-                        // Double negative becomes positive
-                        complement_value = complement_value.substr(1);
-                    }
-                    else if (complement_value != zero_str()) {
-                        // Add negative
-                        complement_value = minus_str() + complement_value;
-                    }
-                }
-
-                dual_rules[basis_element] = complement_value;
-            }
-            else {
-                // Shouldn't happen
-                dual_rules[basis_element] = zero_str();
-            }
-        }
-    }
-
-    return dual_rules;
+    // Delegate to systematic matrix-vector multiplication approach
+    // left_dual(basis[i]) = Σⱼ G[i,j] · left_complement(basis[j])
+    auto G_data = calculate_extended_metric_matrix_full(config);
+    return calculate_dual_rules(config, G_data, left_complement_rules);
 }
 
 // Generate right dual rules: right_dual(u) = right_complement(G × u)
 prd_rules generate_right_dual_rules(AlgebraConfig const& config,
                                      prd_rules const& right_complement_rules)
 {
-    auto const& basis = config.multivector_basis;
-    size_t const n = basis.size();
-
-    // Calculate extended metric matrix
-    auto matrix_data = calculate_extended_metric_matrix(config);
-    std::mdspan G{matrix_data.data(), n, n};
-
-    prd_rules dual_rules;
-
-    // For each basis element
-    for (size_t i = 0; i < n; ++i) {
-        const std::string& basis_element = basis[i];
-
-        // Perform matrix-vector multiplication: result = G × basis_element
-        int metric_value = G[i, i];
-
-        std::string intermediate_result;
-        if (metric_value == 1) {
-            intermediate_result = basis_element;
-        }
-        else if (metric_value == -1) {
-            intermediate_result = minus_str() + basis_element;
-        }
-        else if (metric_value == 0) {
-            intermediate_result = zero_str();
-        }
-        else {
-            intermediate_result = std::to_string(metric_value) + mul_str() + basis_element;
-        }
-
-        // Apply right complement to the intermediate result
-        if (intermediate_result == zero_str()) {
-            dual_rules[basis_element] = zero_str();
-        }
-        else {
-            // Extract sign and basis element from intermediate result
-            bool has_minus = (intermediate_result.find(minus_str()) == 0);
-            std::string element_to_complement =
-                has_minus ? intermediate_result.substr(1) : intermediate_result;
-
-            // Look up complement
-            auto it = right_complement_rules.find(element_to_complement);
-            if (it != right_complement_rules.end()) {
-                std::string complement_value = it->second;
-
-                // Apply sign from intermediate result
-                if (has_minus) {
-                    if (complement_value.find(minus_str()) == 0) {
-                        complement_value = complement_value.substr(1);
-                    }
-                    else if (complement_value != zero_str()) {
-                        complement_value = minus_str() + complement_value;
-                    }
-                }
-
-                dual_rules[basis_element] = complement_value;
-            }
-            else {
-                dual_rules[basis_element] = zero_str();
-            }
-        }
-    }
-
-    return dual_rules;
+    // Delegate to systematic matrix-vector multiplication approach
+    // right_dual(basis[i]) = Σⱼ G[i,j] · right_complement(basis[j])
+    auto G_data = calculate_extended_metric_matrix_full(config);
+    return calculate_dual_rules(config, G_data, right_complement_rules);
 }
 
 // Generate dual rules for odd-dimensional algebras: dual(u) = complement(G × u)
 prd_rules generate_dual_rules(AlgebraConfig const& config, prd_rules const& complement_rules)
 {
-    auto const& basis = config.multivector_basis;
-    size_t const n = basis.size();
+    // Step 1: Calculate extended metric matrix (full matrix, not just diagonal)
+    auto G_data = calculate_extended_metric_matrix_full(config);
 
-    // Calculate extended metric matrix
-    auto matrix_data = calculate_extended_metric_matrix(config);
-    std::mdspan G{matrix_data.data(), n, n};
-
-    prd_rules dual_rules;
-
-    // For each basis element
-    for (size_t i = 0; i < n; ++i) {
-        const std::string& basis_element = basis[i];
-
-        // Perform matrix-vector multiplication: result = G × basis_element
-        int metric_value = G[i, i];
-
-        std::string intermediate_result;
-        if (metric_value == 1) {
-            intermediate_result = basis_element;
-        }
-        else if (metric_value == -1) {
-            intermediate_result = minus_str() + basis_element;
-        }
-        else if (metric_value == 0) {
-            intermediate_result = zero_str();
-        }
-        else {
-            intermediate_result = std::to_string(metric_value) + mul_str() + basis_element;
-        }
-
-        // Apply complement to the intermediate result
-        if (intermediate_result == zero_str()) {
-            dual_rules[basis_element] = zero_str();
-        }
-        else {
-            // Extract sign and basis element from intermediate result
-            bool has_minus = (intermediate_result.find(minus_str()) == 0);
-            std::string element_to_complement =
-                has_minus ? intermediate_result.substr(1) : intermediate_result;
-
-            // Look up complement
-            auto it = complement_rules.find(element_to_complement);
-            if (it != complement_rules.end()) {
-                std::string complement_value = it->second;
-
-                // Apply sign from intermediate result
-                if (has_minus) {
-                    if (complement_value.find(minus_str()) == 0) {
-                        complement_value = complement_value.substr(1);
-                    }
-                    else if (complement_value != zero_str()) {
-                        complement_value = minus_str() + complement_value;
-                    }
-                }
-
-                dual_rules[basis_element] = complement_value;
-            }
-            else {
-                dual_rules[basis_element] = zero_str();
-            }
-        }
-    }
-
-    return dual_rules;
+    // Step 2: Calculate dual rules via matrix-vector multiplication
+    // dual(basis[i]) = Σⱼ G[i,j] * complement(basis[j])
+    return calculate_dual_rules(config, G_data, complement_rules);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1207,7 +915,7 @@ ProductRules generate_algebra_rules(AlgebraConfig const& config)
     result.dot_product = generate_dot_product_rules(config);
 
     // Generate complement rules based on algebra dimensionality
-    // Even-dimensional algebras (EGA2D: 2D, STA3D: 4D, PGA3DP: 4D) have left and right complements
+    // Even-dimensional algebras (EGA2D: 2D, STA4D: 4D, PGA3DP: 4D) have left and right complements
     // Odd-dimensional algebras (EGA3D: 3D, PGA2DP: 3D) have a single complement
     size_t num_basis_vectors = config.basis_vectors.size();
     bool is_even_dimensional = (num_basis_vectors % 2 == 0);
