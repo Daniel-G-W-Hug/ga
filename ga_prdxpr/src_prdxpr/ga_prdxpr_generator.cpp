@@ -104,33 +104,36 @@ calculate_regressive_transwedge_geometric_product(
 }
 
 void ConfigurableGenerator::generate_product_expressions(AlgebraData const& algebra,
-                                                         ProductConfig const& config)
+                                                         ProductConfig const& config,
+                                                         GeneratorOptions const& options)
 {
     // No separator logic here - separators are handled at the end of each product
 
     // Get the basis table using EXISTING mathematical functions
     auto basis_tab = get_basis_table_for_product(algebra, config.product_name);
 
-    // Print basis table if enabled (matches reference format)
-    if (config.show_basis_table) {
-        print_basis_table(algebra, config, basis_tab);
+    // Print basis table if enabled (matches reference format) and if tables are requested
+    if (config.show_basis_table && options.should_show_tables()) {
+        print_basis_table(algebra, config, basis_tab, options.show_symmetric_asymmetric);
         fmt::println("");
     }
 
-    // Generate each configured case
-    if (config.is_sandwich_product) {
-        // For sandwich products, generate the complete two-step process regardless of
-        // individual case settings
-        OutputCase dummy_case("", "", "", "", "");
-        generate_sandwich_case(algebra, config, dummy_case, basis_tab);
-    }
-    else {
-        for (const auto& case_def : config.cases) {
-            if (case_def.is_two_step) {
-                generate_sandwich_case(algebra, config, case_def, basis_tab);
-            }
-            else {
-                generate_single_case(algebra, config, case_def, basis_tab);
+    // Generate each configured case (only if product expressions are requested)
+    if (options.should_show_products()) {
+        if (config.is_sandwich_product) {
+            // For sandwich products, generate the complete two-step process regardless of
+            // individual case settings
+            OutputCase dummy_case("", "", "", "", "");
+            generate_sandwich_case(algebra, config, dummy_case, basis_tab);
+        }
+        else {
+            for (const auto& case_def : config.cases) {
+                if (case_def.is_two_step) {
+                    generate_sandwich_case(algebra, config, case_def, basis_tab);
+                }
+                else {
+                    generate_single_case(algebra, config, case_def, basis_tab);
+                }
             }
         }
     }
@@ -2044,15 +2047,18 @@ void ConfigurableGenerator::print_product_header(AlgebraData const& algebra,
 
 void ConfigurableGenerator::print_basis_table(AlgebraData const& algebra,
                                               ProductConfig const& config,
-                                              prd_table const& basis_tab)
+                                              prd_table const& basis_tab,
+                                              bool show_sym_asym)
 {
     print_product_header(algebra, config);
     print_prd_tab_with_headers(basis_tab, algebra.basis);
 
-    fmt::println("\nsymmetric part:");
-    print_prd_tab_with_headers(get_prd_tab_sym(basis_tab), algebra.basis);
-    fmt::println("\nasymmetric part:");
-    print_prd_tab_with_headers(get_prd_tab_asym(basis_tab), algebra.basis);
+    if (show_sym_asym) {
+        fmt::println("\nsymmetric part:");
+        print_prd_tab_with_headers(get_prd_tab_sym(basis_tab), algebra.basis);
+        fmt::println("\nasymmetric part:");
+        print_prd_tab_with_headers(get_prd_tab_asym(basis_tab), algebra.basis);
+    }
 }
 
 void ConfigurableGenerator::print_case_header(AlgebraData const& algebra,

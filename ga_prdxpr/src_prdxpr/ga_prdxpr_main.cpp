@@ -9,6 +9,7 @@
 #include "ga_prdxpr_sta4d_config.hpp"
 #include "ga_prdxpr_metric_export.hpp"
 #include "ga_prdxpr_rule_generator.hpp"
+#include "ga_prdxpr_options.hpp"
 #include <fmt/core.h>
 #include <vector>
 
@@ -16,28 +17,66 @@ using namespace configurable;
 
 // Helper function to generate all products for an algebra with proper separators
 void generate_algebra_products(ConfigurableGenerator& generator,
-                               const std::vector<ProductConfig>& configs,
-                               const AlgebraData& algebra_data, bool is_last_algebra)
+                               std::vector<ProductConfig> const& configs,
+                               AlgebraData const& algebra_data, bool is_last_algebra,
+                               GeneratorOptions const& options)
 {
-    for (size_t i = 0; i < configs.size(); ++i) {
-        generator.generate_product_expressions(algebra_data, configs[i]);
+    bool first_product = true;
 
-        // Add separator after each product (except the last product of the last algebra)
-        if (!(is_last_algebra && i == configs.size() - 1)) {
-            fmt::println(
-                "-------------------------------------------------------------------");
+    for (size_t i = 0; i < configs.size(); ++i) {
+        ProductConfig const& config = configs[i];
+
+        // Filter products if requested
+        if (!options.should_generate_product(config.product_name)) {
+            continue;
+        }
+
+        // Add separator before product (except first)
+        if (!first_product) {
+            fmt::println("-------------------------------------------------------------------");
             fmt::println("");
         }
+        first_product = false;
+
+        generator.generate_product_expressions(algebra_data, config, options);
+    }
+
+    // Add separator after last product if not the last algebra
+    if (!first_product && !is_last_algebra) {
+        fmt::println("-------------------------------------------------------------------");
+        fmt::println("");
     }
 }
 
-int main()
+int main(int argc, char const* argv[])
 {
     try {
+        // Parse command-line arguments
+        ArgumentParser parser(argc, argv);
+
+        // Handle special flags
+        if (parser.should_show_help()) {
+            parser.print_help();
+            return 0;
+        }
+
+        if (parser.should_show_list()) {
+            parser.print_list();
+            return 0;
+        }
+
+        if (parser.has_error()) {
+            fmt::println("Error: {}", parser.get_error_message());
+            fmt::println("");
+            parser.print_help();
+            return 1;
+        }
+
+        GeneratorOptions const& options = parser.get_options();
         ConfigurableGenerator generator;
 
         // EGA2D
-        {
+        if (options.should_generate_algebra("ega2d") && (options.should_show_products() || options.should_show_tables())) {
             auto ega2d_algebra = create_ega2d_algebra_data();
             std::vector<ProductConfig> ega2d_configs = {
                 get_ega2d_gpr_config(),         get_ega2d_gpr_alt_config(),
@@ -55,11 +94,11 @@ int main()
 
                 get_ega2d_sandwich_gpr_config()};
 
-            generate_algebra_products(generator, ega2d_configs, ega2d_algebra, false);
+            generate_algebra_products(generator, ega2d_configs, ega2d_algebra, false, options);
         }
 
         // EGA3D
-        {
+        if (options.should_generate_algebra("ega3d") && (options.should_show_products() || options.should_show_tables())) {
             auto ega3d_algebra = create_ega3d_algebra_data();
             std::vector<ProductConfig> ega3d_configs = {
                 get_ega3d_gpr_config(),         get_ega3d_gpr_alt_config(),
@@ -76,11 +115,11 @@ int main()
 
                 get_ega3d_sandwich_gpr_config()};
 
-            generate_algebra_products(generator, ega3d_configs, ega3d_algebra, false);
+            generate_algebra_products(generator, ega3d_configs, ega3d_algebra, false, options);
         }
 
         // PGA2DP
-        {
+        if (options.should_generate_algebra("pga2dp") && (options.should_show_products() || options.should_show_tables())) {
             auto pga2dp_algebra = create_pga2dp_algebra_data();
             std::vector<ProductConfig> pga2dp_configs = {
                 get_pga2dp_gpr_config(),
@@ -111,11 +150,11 @@ int main()
 
                 get_pga2dp_sandwich_rgpr_config()};
 
-            generate_algebra_products(generator, pga2dp_configs, pga2dp_algebra, false);
+            generate_algebra_products(generator, pga2dp_configs, pga2dp_algebra, false, options);
         }
 
         // PGA3DP
-        {
+        if (options.should_generate_algebra("pga3dp") && (options.should_show_products() || options.should_show_tables())) {
             auto pga3dp_algebra = create_pga3dp_algebra_data();
             std::vector<ProductConfig> pga3dp_configs = {
                 get_pga3dp_gpr_config(),
@@ -146,11 +185,11 @@ int main()
 
                 get_pga3dp_sandwich_rgpr_config()};
 
-            generate_algebra_products(generator, pga3dp_configs, pga3dp_algebra, true);
+            generate_algebra_products(generator, pga3dp_configs, pga3dp_algebra, true, options);
         }
 
         // STA4D
-        {
+        if (options.should_generate_algebra("sta4d") && (options.should_show_products() || options.should_show_tables())) {
             auto sta4d_algebra = create_sta4d_algebra_data();
             std::vector<ProductConfig> sta4d_configs = {
                 get_sta4d_gpr_config(),           get_sta4d_cmt_config(),
@@ -165,49 +204,38 @@ int main()
 
                 get_sta4d_sandwich_gpr_config()};
 
-            generate_algebra_products(generator, sta4d_configs, sta4d_algebra, true);
+            generate_algebra_products(generator, sta4d_configs, sta4d_algebra, true, options);
         }
 
-        fmt::println(
-            "-------------------------------------------------------------------");
-        fmt::println("");
+        // Generate extended metric exports for all algebras (if requested)
+        if (options.should_show_metrics()) {
 
-        // Generate extended metric exports for all algebras
-        fmt::println("================================================================================");
-        fmt::println("EXTENDED METRIC EXPORTS");
-        fmt::println("================================================================================");
-        fmt::println("");
-        fmt::println("Generating C++ constexpr arrays for extended and regressive metrics...");
-        fmt::println("");
+            // Export metrics for each algebra (filtered by algebra selection)
+            if (options.should_generate_algebra("ega2d")) {
+                AlgebraConfig ega2d_config = get_ega2d_algebra_config();
+                print_metrics_for_algebra(ega2d_config);
+            }
 
-        // Export metrics for each algebra
-        {
-            AlgebraConfig ega2d_config = get_ega2d_algebra_config();
-            print_metrics_for_algebra(ega2d_config);
+            if (options.should_generate_algebra("ega3d")) {
+                AlgebraConfig ega3d_config = get_ega3d_algebra_config();
+                print_metrics_for_algebra(ega3d_config);
+            }
+
+            if (options.should_generate_algebra("pga2dp")) {
+                AlgebraConfig pga2dp_config = get_pga2dp_algebra_config();
+                print_metrics_for_algebra(pga2dp_config);
+            }
+
+            if (options.should_generate_algebra("pga3dp")) {
+                AlgebraConfig pga3dp_config = get_pga3dp_algebra_config();
+                print_metrics_for_algebra(pga3dp_config);
+            }
+
+            if (options.should_generate_algebra("sta4d")) {
+                AlgebraConfig sta4d_config = get_sta4d_algebra_config();
+                print_metrics_for_algebra(sta4d_config);
+            }
         }
-
-        {
-            AlgebraConfig ega3d_config = get_ega3d_algebra_config();
-            print_metrics_for_algebra(ega3d_config);
-        }
-
-        {
-            AlgebraConfig pga2dp_config = get_pga2dp_algebra_config();
-            print_metrics_for_algebra(pga2dp_config);
-        }
-
-        {
-            AlgebraConfig pga3dp_config = get_pga3dp_algebra_config();
-            print_metrics_for_algebra(pga3dp_config);
-        }
-
-        {
-            AlgebraConfig sta4d_config = get_sta4d_algebra_config();
-            print_metrics_for_algebra(sta4d_config);
-        }
-
-        fmt::println("================================================================================");
-        fmt::println("");
 
         return 0;
     }

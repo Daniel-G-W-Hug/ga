@@ -8,6 +8,7 @@ set(EXEC4_NAME ga_prdxpr_rule_generator_test)
 set(SOURCES
     src_prdxpr/ga_prdxpr_main.cpp
     src_prdxpr/ga_prdxpr_generator.cpp
+    src_prdxpr/ga_prdxpr_options.cpp
     src_prdxpr/ga_prdxpr_ega2d_config.cpp
     src_prdxpr/ga_prdxpr_ega3d_config.cpp
     src_prdxpr/ga_prdxpr_pga2dp_config.cpp
@@ -37,6 +38,7 @@ set(SOURCES
 set(HEADERS
     src_prdxpr/ga_prdxpr_config_types.hpp
     src_prdxpr/ga_prdxpr_generator.hpp
+    src_prdxpr/ga_prdxpr_options.hpp
     # User configuration files
     src_prdxpr/ga_prdxpr_ega2d_config.hpp
     src_prdxpr/ga_prdxpr_ega3d_config.hpp

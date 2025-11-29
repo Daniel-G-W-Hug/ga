@@ -4,6 +4,7 @@
 
 #include "ga_prdxpr_common.hpp"
 #include "ga_prdxpr_config_types.hpp"
+#include "ga_prdxpr_options.hpp"
 #include "ga_prdxpr_sandwich_transformer.hpp"
 
 namespace configurable {
@@ -14,7 +15,8 @@ class ConfigurableGenerator {
     // Main generation function - replaces all the individual generate_and_print_*
     // functions
     void generate_product_expressions(AlgebraData const& algebra,
-                                      ProductConfig const& config);
+                                      ProductConfig const& config,
+                                      GeneratorOptions const& options);
 
   private:
 
@@ -39,7 +41,7 @@ class ConfigurableGenerator {
     // Print formatted output matching reference implementation exactly
     void print_product_header(AlgebraData const& algebra, ProductConfig const& config);
     void print_basis_table(AlgebraData const& algebra, ProductConfig const& config,
-                           prd_table const& basis_tab);
+                           prd_table const& basis_tab, bool show_sym_asym);
     void print_case_header(AlgebraData const& algebra, ProductConfig const& config,
                            std::string const& case_name);
     void print_case_result(mvec_coeff const& result, mvec_coeff const& basis);
