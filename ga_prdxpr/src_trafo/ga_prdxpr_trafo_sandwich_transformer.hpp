@@ -127,6 +127,7 @@ class AlgebraRegistry {
     static AlgebraConfig createEGA3DConfig();
     static AlgebraConfig createPGA2DPConfig();
     static AlgebraConfig createPGA3DPConfig();
+    static AlgebraConfig createSTA4DConfig();
 };
 
 ///////////////////////////////////////////////////////////////////////////////
