@@ -29,8 +29,10 @@ struct MVec2_t {
 
     // constructor accepts Scalar_t types from same base class exclusively
     // (avoid mixing types from different algebras)
+    // MSVC compatibility: require different tags to disambiguate from MVec2_t(T, T)
     template <typename Tag_S, typename Tag_PS>
-        requires(std::floating_point<T> && same_base_class<Tag_S, Tag_PS>)
+        requires(std::floating_point<T> && same_base_class<Tag_S, Tag_PS> &&
+                 !std::same_as<Tag_S, Tag_PS>)
     constexpr MVec2_t(Scalar_t<T, Tag_S> s, Scalar_t<T, Tag_PS> ps) : c0(T(s)), c1(T(ps))
     {
     }
