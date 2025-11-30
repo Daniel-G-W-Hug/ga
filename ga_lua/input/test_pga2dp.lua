@@ -100,13 +100,38 @@ print("ps2:", ps2)
 print("\n7. Testing dualnum2dp:")
 print("---------------------")
 
+-- Test basic constructors
 local dn1 = dualnum2dp.new(1.0, 0.5)
 local dn2 = dualnum2dp.new(3.0, 2.0)
-print("dn1:", dn1, "dual number")
-print("dn2:", dn2, "dual number")
+print("dn1:", dn1, "dual number (from two components)")
+print("dn2:", dn2, "dual number (from two components)")
 print("dn1 + dn2:", dn1 + dn2, "addition")
 print("dn1 * 2:", dn1 * 2.0, "scalar multiplication")
 print("unitize(dn2) =", unitize(dn2))
+
+-- Test constructors from scalar and pseudoscalar
+local s_dn = scalar2dp.new(2.0)
+local ps_dn = pscalar2dp.new(3.0)
+local dn3 = dualnum2dp.new(s_dn, ps_dn)
+print("dn3 from scalar+pseudoscalar:", dn3)
+
+-- Test grade extraction
+print("gr0(dn3) =", gr0(dn3), "(scalar component)")
+print("gr3(dn3) =", gr3(dn3), "(pseudoscalar component)")
+
+-- Test operations with scalar and pseudoscalar
+local dn4 = dn1 + s_dn
+print("dn1 + scalar =", dn4)
+local dn5 = dn1 + ps_dn
+print("dn1 + pseudoscalar =", dn5)
+local dn6 = dn1 - s_dn
+print("dn1 - scalar =", dn6)
+local dn7 = dn1 - ps_dn
+print("dn1 - pseudoscalar =", dn7)
+
+-- Test dual number properties
+print("nrm_sq(dn2) =", nrm_sq(dn2), "(squared norm)")
+print("nrm(dn2) =", nrm(dn2), "(norm)")
 
 -- Test PGA constants
 print("\n8. Testing PGA 2DP constants:")

@@ -24,24 +24,28 @@ namespace hd::ga {
 // The pseudoscalar describes the "unit volume" of the respective space.
 // It is a bivector for 2d space, a trivector for 3d space, etc.
 // It's scalar component describes a multiple of the unit volume of that space.
-//
 // Thus the pseudoscalar needs a unique type for each space in order to not mix up
 // pseudoscalars from different algebras in the type system.
 //
+// Also for computing complements and duals consistently, the the scalar types must
+// be defined uniquely for each algebra.
+// There is actually only one scalar type, but due to the statically typed language,
+// overload resolution and unique scalar types for 2d, 3d, 2dp, etc. to work it is
+// necessary to avoid ambiguous function signatures for those scalar types.
 
-// There is actually only one scalar type!
-// But due to the statically typed language, overload resolution and unique scalar types
-// for 2d, 3d, 2dp, etc. work better for avoiding ambiguous function signatures.
-
+/////////////////////////////////////////////////////////////////////////////////////////
 // vector and multivector types ega2d
-
+/////////////////////////////////////////////////////////////////////////////////////////
 using scalar2d = Scalar2d<value_t>;
 using vec2d = Vec2d<value_t>;
 using pscalar2d = PScalar2d<value_t>;
 using mvec2d_e = MVec2d_E<value_t>; // multivector 2d of even subalgebra
 using mvec2d = MVec2d<value_t>;     // fully populated 2d multivector
 
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // vector and multivector types ega3d
+/////////////////////////////////////////////////////////////////////////////////////////
 using scalar3d = Scalar3d<value_t>;
 using vec3d = Vec3d<value_t>;
 using bivec3d = BiVec3d<value_t>;
@@ -50,7 +54,10 @@ using mvec3d_e = MVec3d_E<value_t>; // multivector 3d of even subalgebra
 using mvec3d_u = MVec3d_U<value_t>; // multivector 3d of odd subalgebra
 using mvec3d = MVec3d<value_t>;     // fully populated 3d multivector
 
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // vector and multivector types ega4d
+/////////////////////////////////////////////////////////////////////////////////////////
 using scalar4d = Scalar4d<value_t>;
 using vec4d = Vec4d<value_t>;
 using bivec4d = BiVec4d<value_t>;
@@ -60,7 +67,10 @@ using mvec4d_e = MVec4d_E<value_t>; // multivector 4d of even subalgebra
 using mvec4d_u = MVec4d_U<value_t>; // multivector 4d of odd subalgebra
 using mvec4d = MVec4d<value_t>;     // fully populated 4d multivector
 
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // vector and multivector types pga2dp
+/////////////////////////////////////////////////////////////////////////////////////////
 using scalar2dp = Scalar2dp<value_t>;
 using vec2dp = Vec2dp<value_t>;
 using bivec2dp = BiVec2dp<value_t>;
@@ -69,15 +79,20 @@ using mvec2dp_e = MVec2dp_E<value_t>; // multivector 2dp of even subalgebra
 using mvec2dp_u = MVec2dp_U<value_t>; // multivector 2dp of uneven (odd) subalgebra
 using mvec2dp = MVec2dp<value_t>;     // fully populated 2dp multivector
 
-using dualnum2dp = DualNum2dp<value_t>; // dual number with s 1 + ps e3 (2dp, e3^2 = 0)
+// dual number with s 1 + ps I_2dp (I_2dp = e321, where e321^2 = 0)
+using dualnum2dp = DualNum2dp<value_t>;
 
+// for now we only want these types to be defined in the pga namespace, but the aliases to
+// be known here for ease of use
 using point2dp = pga::Point2dp<value_t>; // explicitly w/ z  (alias for Vec2dp<T>)
 using point2d = pga::Point2d<value_t>;   // implicit z = 1.0 (alias for Vec2d<T>)
 using vector2d = pga::Vector2d<value_t>; // implicit z = 0.0 (alias for Vec2d<T>)
 using line2d = pga::Line2d<value_t>;     // bivector         (alias for BiVec2dp<T>)
 
 
+/////////////////////////////////////////////////////////////////////////////////////////
 // vector and multivector types pga3dp
+/////////////////////////////////////////////////////////////////////////////////////////
 using scalar3dp = Scalar3dp<value_t>;
 using vec3dp = Vec3dp<value_t>;
 using bivec3dp = BiVec3dp<value_t>;
@@ -87,8 +102,11 @@ using mvec3dp_e = MVec3dp_E<value_t>; // multivector 3dp of even subalgebra
 using mvec3dp_u = MVec3dp_U<value_t>; // multivector 3dp of uneven (odd) subalgebra
 using mvec3dp = MVec3dp<value_t>;     // fully populated 3dp multivector
 
-using dualnum3dp = DualNum3dp<value_t>; // dual number with s 1 + ps e4 (3dp, e4^2 = 0)
+// dual number with s 1 + ps I_3dp (I_3dp = e1234, where e1234^2 = 0)
+using dualnum3dp = DualNum3dp<value_t>;
 
+// for now we only want these types to be defined in the pga namespace, but the aliases to
+// be known here for ease of use
 using point3dp = pga::Point3dp<value_t>; // explicitly w/ w  (alias for Vec3dp<T>)
 using point3d = pga::Point3d<value_t>;   // implicit w = 1.0 (alias for Vec3d<T>)
 using vector3d = pga::Vector3d<value_t>; // implicit w = 0.0 (alias for Vec3d<T>)

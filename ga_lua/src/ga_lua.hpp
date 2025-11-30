@@ -723,6 +723,8 @@ void register_2dp_types(sol::state& lua)
     lua.new_usertype<dualnum2dp>(
         "dualnum2dp",
         sol::constructors<dualnum2dp(), dualnum2dp(value_t, value_t),
+                          dualnum2dp(scalar2dp), dualnum2dp(pscalar2dp),
+                          dualnum2dp(scalar2dp, pscalar2dp),
                           dualnum2dp(dualnum2dp const&), dualnum2dp(dualnum2dp&&)>(),
         "copy", [](const dualnum2dp& obj) { return dualnum2dp(obj); },
         // component access
@@ -735,9 +737,17 @@ void register_2dp_types(sol::state& lua)
         sol::meta_function::unary_minus,
         sol::resolve<dualnum2dp(dualnum2dp const&)>(operator-),
         sol::meta_function::addition,
-        sol::resolve<dualnum2dp(dualnum2dp const&, dualnum2dp const&)>(operator+),
+        sol::overload(sol::resolve<dualnum2dp(dualnum2dp const&, dualnum2dp const&)>(operator+),
+                      sol::resolve<dualnum2dp(scalar2dp, dualnum2dp const&)>(operator+),
+                      sol::resolve<dualnum2dp(dualnum2dp const&, scalar2dp)>(operator+),
+                      sol::resolve<dualnum2dp(pscalar2dp, dualnum2dp const&)>(operator+),
+                      sol::resolve<dualnum2dp(dualnum2dp const&, pscalar2dp)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<dualnum2dp(dualnum2dp const&, dualnum2dp const&)>(operator-),
+        sol::overload(sol::resolve<dualnum2dp(dualnum2dp const&, dualnum2dp const&)>(operator-),
+                      sol::resolve<dualnum2dp(scalar2dp, dualnum2dp const&)>(operator-),
+                      sol::resolve<dualnum2dp(dualnum2dp const&, scalar2dp)>(operator-),
+                      sol::resolve<dualnum2dp(pscalar2dp, dualnum2dp const&)>(operator-),
+                      sol::resolve<dualnum2dp(dualnum2dp const&, pscalar2dp)>(operator-)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<dualnum2dp(dualnum2dp const&, value_t)>(operator*),
                       sol::resolve<dualnum2dp(value_t, dualnum2dp const&)>(operator*)),
@@ -972,6 +982,8 @@ void register_3dp_types(sol::state& lua)
     lua.new_usertype<dualnum3dp>(
         "dualnum3dp",
         sol::constructors<dualnum3dp(), dualnum3dp(value_t, value_t),
+                          dualnum3dp(scalar3dp), dualnum3dp(pscalar3dp),
+                          dualnum3dp(scalar3dp, pscalar3dp),
                           dualnum3dp(dualnum3dp const&), dualnum3dp(dualnum3dp&&)>(),
         "copy", [](const dualnum3dp& obj) { return dualnum3dp(obj); },
         // component access
@@ -984,9 +996,17 @@ void register_3dp_types(sol::state& lua)
         sol::meta_function::unary_minus,
         sol::resolve<dualnum3dp(dualnum3dp const&)>(operator-),
         sol::meta_function::addition,
-        sol::resolve<dualnum3dp(dualnum3dp const&, dualnum3dp const&)>(operator+),
+        sol::overload(sol::resolve<dualnum3dp(dualnum3dp const&, dualnum3dp const&)>(operator+),
+                      sol::resolve<dualnum3dp(scalar3dp, dualnum3dp const&)>(operator+),
+                      sol::resolve<dualnum3dp(dualnum3dp const&, scalar3dp)>(operator+),
+                      sol::resolve<dualnum3dp(pscalar3dp, dualnum3dp const&)>(operator+),
+                      sol::resolve<dualnum3dp(dualnum3dp const&, pscalar3dp)>(operator+)),
         sol::meta_function::subtraction,
-        sol::resolve<dualnum3dp(dualnum3dp const&, dualnum3dp const&)>(operator-),
+        sol::overload(sol::resolve<dualnum3dp(dualnum3dp const&, dualnum3dp const&)>(operator-),
+                      sol::resolve<dualnum3dp(scalar3dp, dualnum3dp const&)>(operator-),
+                      sol::resolve<dualnum3dp(dualnum3dp const&, scalar3dp)>(operator-),
+                      sol::resolve<dualnum3dp(pscalar3dp, dualnum3dp const&)>(operator-),
+                      sol::resolve<dualnum3dp(dualnum3dp const&, pscalar3dp)>(operator-)),
         sol::meta_function::multiplication,
         sol::overload(sol::resolve<dualnum3dp(dualnum3dp const&, value_t)>(operator*),
                       sol::resolve<dualnum3dp(value_t, dualnum3dp const&)>(operator*)),
@@ -1311,8 +1331,10 @@ void register_functions(sol::state& lua)
                                 // PGA grade 0 operations
                                 sol::resolve<scalar2dp(mvec2dp_e const&)>(gr0),
                                 sol::resolve<scalar2dp(mvec2dp const&)>(gr0),
+                                sol::resolve<scalar2dp(dualnum2dp const&)>(gr0),
                                 sol::resolve<scalar3dp(mvec3dp_e const&)>(gr0),
-                                sol::resolve<scalar3dp(mvec3dp const&)>(gr0)));
+                                sol::resolve<scalar3dp(mvec3dp const&)>(gr0),
+                                sol::resolve<scalar3dp(dualnum3dp const&)>(gr0)));
 
     lua.set_function("gr1", sol::overload(
                                 // EGA grade 1 operations
@@ -1344,6 +1366,7 @@ void register_functions(sol::state& lua)
                                 // PGA 2DP grade 3 operations
                                 sol::resolve<pscalar2dp(mvec2dp_u const&)>(gr3),
                                 sol::resolve<pscalar2dp(mvec2dp const&)>(gr3),
+                                sol::resolve<pscalar2dp(dualnum2dp const&)>(gr3),
                                 // PGA 3DP grade 3 operations
                                 sol::resolve<trivec3dp(mvec3dp_u const&)>(gr3),
                                 sol::resolve<trivec3dp(mvec3dp const&)>(gr3)));
@@ -1352,7 +1375,8 @@ void register_functions(sol::state& lua)
     lua.set_function("gr4", sol::overload(
                                 // PGA grade 4 operations
                                 sol::resolve<pscalar3dp(mvec3dp_e const&)>(gr4),
-                                sol::resolve<pscalar3dp(mvec3dp const&)>(gr4)));
+                                sol::resolve<pscalar3dp(mvec3dp const&)>(gr4),
+                                sol::resolve<pscalar3dp(dualnum3dp const&)>(gr4)));
 
 
     ////////////////////////////////////////////////////////////////////////////////

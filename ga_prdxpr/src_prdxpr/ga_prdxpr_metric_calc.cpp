@@ -9,21 +9,24 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 int compute_integer_determinant_2x2(
-    std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const& M)
+    std::mdspan<int const,
+                std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const& M)
 {
     return M[0, 0] * M[1, 1] - M[0, 1] * M[1, 0];
 }
 
 int compute_integer_determinant_3x3(
-    std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const& M)
+    std::mdspan<int const,
+                std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const& M)
 {
-    return M[0, 0] * (M[1, 1] * M[2, 2] - M[1, 2] * M[2, 1])
-         - M[0, 1] * (M[1, 0] * M[2, 2] - M[1, 2] * M[2, 0])
-         + M[0, 2] * (M[1, 0] * M[2, 1] - M[1, 1] * M[2, 0]);
+    return M[0, 0] * (M[1, 1] * M[2, 2] - M[1, 2] * M[2, 1]) -
+           M[0, 1] * (M[1, 0] * M[2, 2] - M[1, 2] * M[2, 0]) +
+           M[0, 2] * (M[1, 0] * M[2, 1] - M[1, 1] * M[2, 0]);
 }
 
 int compute_integer_determinant_4x4(
-    std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const& M)
+    std::mdspan<int const,
+                std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const& M)
 {
     // Cofactor expansion along first row
     int det = 0;
@@ -36,10 +39,10 @@ int compute_integer_determinant_4x4(
             minor{minor_data.data(), 3, 3};
 
         int minor_row = 0;
-        for (int i = 1; i < 4; ++i) {  // Skip row 0
+        for (int i = 1; i < 4; ++i) { // Skip row 0
             int minor_col = 0;
             for (int j = 0; j < 4; ++j) {
-                if (j != col) {  // Skip column col
+                if (j != col) { // Skip column col
                     minor[minor_row, minor_col] = M[i, j];
                     ++minor_col;
                 }
@@ -59,7 +62,8 @@ int compute_integer_determinant_4x4(
 }
 
 int compute_integer_determinant_5x5(
-    std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const& M)
+    std::mdspan<int const,
+                std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const& M)
 {
     // Cofactor expansion along first row
     int det = 0;
@@ -72,10 +76,10 @@ int compute_integer_determinant_5x5(
             minor{minor_data.data(), 4, 4};
 
         int minor_row = 0;
-        for (int i = 1; i < 5; ++i) {  // Skip row 0
+        for (int i = 1; i < 5; ++i) { // Skip row 0
             int minor_col = 0;
             for (int j = 0; j < 5; ++j) {
-                if (j != col) {  // Skip column col
+                if (j != col) { // Skip column col
                     minor[minor_row, minor_col] = M[i, j];
                     ++minor_col;
                 }
@@ -95,7 +99,8 @@ int compute_integer_determinant_5x5(
 }
 
 int compute_integer_determinant(
-    std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const& M,
+    std::mdspan<int const,
+                std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> const& M,
     int n)
 {
     if (n == 1) return M[0, 0];
@@ -134,7 +139,7 @@ int get_vector_metric(int index_i, int index_j, AlgebraConfig const& config)
             metric_idx_i < static_cast<int>(config.metric_signature.size())) {
             return config.metric_signature[metric_idx_i];
         }
-        return 0;  // Degenerate direction
+        return 0; // Degenerate direction
     }
 
     // Different vectors: check if full metric matrix provided (future CGA support)
@@ -155,11 +160,11 @@ int compute_gram_determinant(std::vector<int> const& indices_a,
     int k = static_cast<int>(indices_a.size());
 
     if (k != static_cast<int>(indices_b.size())) {
-        return 0;  // Different grades → zero inner product
+        return 0; // Different grades → zero inner product
     }
 
     if (k == 0) {
-        return 1;  // Scalars: ⟨1, 1⟩ = 1
+        return 1; // Scalars: ⟨1, 1⟩ = 1
     }
 
     if (k == 1) {
@@ -169,8 +174,8 @@ int compute_gram_determinant(std::vector<int> const& indices_a,
 
     // Build k×k Gram matrix: Gram[p,q] = metric(a[p], b[q])
     std::vector<int> gram_data(k * k, 0);
-    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>>
-        Gram{gram_data.data(), static_cast<size_t>(k), static_cast<size_t>(k)};
+    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> Gram{
+        gram_data.data(), static_cast<size_t>(k), static_cast<size_t>(k)};
 
     for (int p = 0; p < k; ++p) {
         for (int q = 0; q < k; ++q) {
@@ -182,16 +187,15 @@ int compute_gram_determinant(std::vector<int> const& indices_a,
     return compute_integer_determinant(Gram, k);
 }
 
-int compute_blade_inner_product(std::string const& blade_a,
-                                std::string const& blade_b,
+int compute_blade_inner_product(std::string const& blade_a, std::string const& blade_b,
                                 AlgebraConfig const& config)
 {
     // Special case: scalars
     if (blade_a == config.scalar_name && blade_b == config.scalar_name) {
-        return 1;  // ⟨1, 1⟩ = 1
+        return 1; // ⟨1, 1⟩ = 1
     }
     if (blade_a == config.scalar_name || blade_b == config.scalar_name) {
-        return 0;  // ⟨scalar, vector⟩ = 0
+        return 0; // ⟨scalar, vector⟩ = 0
     }
 
     // Parse indices from blade names (e.g., "e12" → {1, 2})
@@ -220,12 +224,12 @@ std::vector<int> calculate_extended_metric_matrix_full(AlgebraConfig const& conf
     std::vector<int> matrix_data(n * n, 0);
 
     // Create mdspan view with square bracket access: G[i,j]
-    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>>
-        G{matrix_data.data(), n, n};
+    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> G{
+        matrix_data.data(), n, n};
 
     // Compute ALL elements G[i,j] = ⟨basis[i], basis[j]⟩
     for (size_t i = 0; i < n; ++i) {
-        for (size_t j = i; j < n; ++j) {  // Upper triangular (symmetric matrix)
+        for (size_t j = i; j < n; ++j) { // Upper triangular (symmetric matrix)
 
             std::string const& blade_i = basis[i];
             std::string const& blade_j = basis[j];
@@ -234,7 +238,7 @@ std::vector<int> calculate_extended_metric_matrix_full(AlgebraConfig const& conf
             int metric_value = compute_blade_inner_product(blade_i, blade_j, config);
 
             G[i, j] = metric_value;
-            G[j, i] = metric_value;  // Symmetric: G[j,i] = G[i,j]
+            G[j, i] = metric_value; // Symmetric: G[j,i] = G[i,j]
         }
     }
 
@@ -246,7 +250,7 @@ std::vector<int> calculate_extended_metric_matrix_full(AlgebraConfig const& conf
 ////////////////////////////////////////////////////////////////////////////////
 
 std::pair<int, int> parse_signed_basis_element(std::string const& signed_element,
-                                                 mvec_coeff const& basis)
+                                               mvec_coeff const& basis)
 {
     // Handle zero case
     if (signed_element == zero_str() || signed_element == "0") {
@@ -255,12 +259,13 @@ std::pair<int, int> parse_signed_basis_element(std::string const& signed_element
 
     // Check for minus sign
     bool has_minus = (signed_element.find(minus_str()) == 0);
-    std::string element = has_minus ? signed_element.substr(minus_str().length()) : signed_element;
+    std::string element =
+        has_minus ? signed_element.substr(minus_str().length()) : signed_element;
 
     // Find element in basis
     auto it = std::find(basis.begin(), basis.end(), element);
     if (it == basis.end()) {
-        return {-1, 0};  // Not found
+        return {-1, 0}; // Not found
     }
 
     int basis_index = static_cast<int>(std::distance(basis.begin(), it));
@@ -270,14 +275,14 @@ std::pair<int, int> parse_signed_basis_element(std::string const& signed_element
 }
 
 std::vector<int> build_complement_matrix(mvec_coeff const& basis,
-                                          prd_rules const& complement_rules)
+                                         prd_rules const& complement_rules)
 {
     size_t const n = basis.size();
 
     // Initialize n×n matrix with zeros
     std::vector<int> C_data(n * n, 0);
-    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>>
-        C{C_data.data(), n, n};
+    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> C{
+        C_data.data(), n, n};
 
     // Build matrix representation: C[i,j] = coeff of basis[j] in complement(basis[i])
     for (size_t i = 0; i < n; ++i) {
@@ -301,8 +306,7 @@ std::vector<int> build_complement_matrix(mvec_coeff const& basis,
 }
 
 std::vector<int> matrix_multiply(std::vector<int> const& A_data,
-                                 std::vector<int> const& B_data,
-                                 size_t n)
+                                 std::vector<int> const& B_data, size_t n)
 {
     std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>>
         A{A_data.data(), n, n};
@@ -311,8 +315,8 @@ std::vector<int> matrix_multiply(std::vector<int> const& A_data,
 
     // Result matrix
     std::vector<int> R_data(n * n, 0);
-    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>>
-        R{R_data.data(), n, n};
+    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> R{
+        R_data.data(), n, n};
 
     // Standard matrix multiplication: R[i,j] = Σ A[i,k] * B[k,j]
     for (size_t i = 0; i < n; ++i) {
@@ -328,16 +332,15 @@ std::vector<int> matrix_multiply(std::vector<int> const& A_data,
     return R_data;
 }
 
-std::vector<int> matrix_transpose(std::vector<int> const& A_data,
-                                  size_t n)
+std::vector<int> matrix_transpose(std::vector<int> const& A_data, size_t n)
 {
     std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>>
         A{A_data.data(), n, n};
 
     // Result matrix
     std::vector<int> R_data(n * n, 0);
-    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>>
-        R{R_data.data(), n, n};
+    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> R{
+        R_data.data(), n, n};
 
     // Transpose: R[i,j] = A[j,i]
     for (size_t i = 0; i < n; ++i) {
@@ -350,8 +353,7 @@ std::vector<int> matrix_transpose(std::vector<int> const& A_data,
 }
 
 std::vector<int> matrix_triple_product(std::vector<int> const& C_data,
-                                       std::vector<int> const& G_data,
-                                       size_t n)
+                                       std::vector<int> const& G_data, size_t n)
 {
     // Compute: R = C · G · C^T
 
@@ -367,9 +369,9 @@ std::vector<int> matrix_triple_product(std::vector<int> const& C_data,
     return R_data;
 }
 
-std::vector<int> calculate_regressive_extended_metric_matrix_full(
-    AlgebraConfig const& config,
-    prd_rules const& complement_rules)
+std::vector<int>
+calculate_regressive_extended_metric_matrix_full(AlgebraConfig const& config,
+                                                 prd_rules const& complement_rules)
 {
     auto const& basis = config.multivector_basis;
     size_t const n = basis.size();

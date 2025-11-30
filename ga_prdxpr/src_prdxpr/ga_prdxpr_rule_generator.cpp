@@ -1,13 +1,13 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include "ga_prdxpr_rule_generator.hpp"
-#include "ga_prdxpr_metric_calc.hpp"
 #include "ga_prdxpr_dual_calc.hpp"
+#include "ga_prdxpr_metric_calc.hpp"
 #include <algorithm>
 #include <functional>
+#include <mdspan>
 #include <numeric>
 #include <set>
-#include <mdspan>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -604,7 +604,7 @@ prd_rules generate_complement_rules(AlgebraConfig const& config,
 // Generate left dual rules: left_dual(u) = left_complement(G × u)
 // where G is the extended metric matrix and × is matrix-vector multiplication
 prd_rules generate_left_dual_rules(AlgebraConfig const& config,
-                                    prd_rules const& left_complement_rules)
+                                   prd_rules const& left_complement_rules)
 {
     // Delegate to systematic matrix-vector multiplication approach
     // left_dual(basis[i]) = Σⱼ G[i,j] · left_complement(basis[j])
@@ -614,7 +614,7 @@ prd_rules generate_left_dual_rules(AlgebraConfig const& config,
 
 // Generate right dual rules: right_dual(u) = right_complement(G × u)
 prd_rules generate_right_dual_rules(AlgebraConfig const& config,
-                                     prd_rules const& right_complement_rules)
+                                    prd_rules const& right_complement_rules)
 {
     // Delegate to systematic matrix-vector multiplication approach
     // right_dual(basis[i]) = Σⱼ G[i,j] · right_complement(basis[j])
@@ -623,7 +623,8 @@ prd_rules generate_right_dual_rules(AlgebraConfig const& config,
 }
 
 // Generate dual rules for odd-dimensional algebras: dual(u) = complement(G × u)
-prd_rules generate_dual_rules(AlgebraConfig const& config, prd_rules const& complement_rules)
+prd_rules generate_dual_rules(AlgebraConfig const& config,
+                              prd_rules const& complement_rules)
 {
     // Step 1: Calculate extended metric matrix (full matrix, not just diagonal)
     auto G_data = calculate_extended_metric_matrix_full(config);
@@ -649,7 +650,8 @@ prd_rules generate_bulk_dual_rules(AlgebraConfig const& config,
 // Generate weight_dual rules for odd-dimensional PGA
 // weight_dual(u) = complement(Ḡ × u) where Ḡ = regressive metric
 // Regressive metric: Ḡ × u = complement(G × complement(u))
-// Therefore: weight_dual(u) = complement(complement(G × complement(u))) = G × complement(u)
+// Therefore: weight_dual(u) = complement(complement(G × complement(u))) = G ×
+// complement(u)
 prd_rules generate_weight_dual_rules(AlgebraConfig const& config,
                                      prd_rules const& complement_rules)
 {
@@ -743,8 +745,10 @@ prd_rules generate_right_bulk_dual_rules(AlgebraConfig const& config,
 // Generate left_weight_dual rules for even-dimensional PGA
 // left_weight_dual(u) = left_complement(Ḡ × u) where Ḡ = regressive metric
 // Regressive metric: Ḡ × u = left_complement(G × left_complement(u))
-// Therefore: left_weight_dual(u) = left_complement(left_complement(G × left_complement(u)))
-//                                  = G × left_complement(u) (using left_complement involution)
+// Therefore: left_weight_dual(u) = left_complement(left_complement(G ×
+// left_complement(u)))
+//                                  = G × left_complement(u) (using left_complement
+//                                  involution)
 prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
                                           prd_rules const& left_complement_rules)
 {
@@ -773,7 +777,8 @@ prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
             continue;
         }
 
-        // Step 2: Find the index of left_complement(u) in the basis (strip sign if present)
+        // Step 2: Find the index of left_complement(u) in the basis (strip sign if
+        // present)
         bool lcmpl_has_minus = (lcmpl_u.find(minus_str()) == 0);
         std::string lcmpl_u_unsigned = lcmpl_has_minus ? lcmpl_u.substr(1) : lcmpl_u;
 
@@ -790,8 +795,8 @@ prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
             continue;
         }
 
-        // Step 3: Multiply by extended metric G[left_complement_index, left_complement_index]
-        // Result is G × left_complement(u)
+        // Step 3: Multiply by extended metric G[left_complement_index,
+        // left_complement_index] Result is G × left_complement(u)
         int metric_value = G[lcmpl_index, lcmpl_index];
 
         if (metric_value == 1) {
@@ -804,7 +809,8 @@ prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
                 left_weight_dual_rules[basis_element] = lcmpl_u_unsigned; // remove minus
             }
             else {
-                left_weight_dual_rules[basis_element] = minus_str() + lcmpl_u; // add minus
+                left_weight_dual_rules[basis_element] =
+                    minus_str() + lcmpl_u; // add minus
             }
         }
         else if (metric_value == 0) {
@@ -823,8 +829,10 @@ prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
 // Generate right_weight_dual rules for even-dimensional PGA
 // right_weight_dual(u) = right_complement(Ḡ × u) where Ḡ = regressive metric
 // Regressive metric: Ḡ × u = left_complement(G × right_complement(u))
-// Therefore: right_weight_dual(u) = right_complement(left_complement(G × right_complement(u)))
-//                                  = G × right_complement(u) (using complement involution)
+// Therefore: right_weight_dual(u) = right_complement(left_complement(G ×
+// right_complement(u)))
+//                                  = G × right_complement(u) (using complement
+//                                  involution)
 prd_rules generate_right_weight_dual_rules(AlgebraConfig const& config,
                                            prd_rules const& right_complement_rules)
 {
@@ -853,7 +861,8 @@ prd_rules generate_right_weight_dual_rules(AlgebraConfig const& config,
             continue;
         }
 
-        // Step 2: Find the index of right_complement(u) in the basis (strip sign if present)
+        // Step 2: Find the index of right_complement(u) in the basis (strip sign if
+        // present)
         bool rcmpl_has_minus = (rcmpl_u.find(minus_str()) == 0);
         std::string rcmpl_u_unsigned = rcmpl_has_minus ? rcmpl_u.substr(1) : rcmpl_u;
 
@@ -870,8 +879,8 @@ prd_rules generate_right_weight_dual_rules(AlgebraConfig const& config,
             continue;
         }
 
-        // Step 3: Multiply by extended metric G[right_complement_index, right_complement_index]
-        // Result is G × right_complement(u)
+        // Step 3: Multiply by extended metric G[right_complement_index,
+        // right_complement_index] Result is G × right_complement(u)
         int metric_value = G[rcmpl_index, rcmpl_index];
 
         if (metric_value == 1) {
@@ -884,7 +893,8 @@ prd_rules generate_right_weight_dual_rules(AlgebraConfig const& config,
                 right_weight_dual_rules[basis_element] = rcmpl_u_unsigned; // remove minus
             }
             else {
-                right_weight_dual_rules[basis_element] = minus_str() + rcmpl_u; // add minus
+                right_weight_dual_rules[basis_element] =
+                    minus_str() + rcmpl_u; // add minus
             }
         }
         else if (metric_value == 0) {
@@ -915,8 +925,9 @@ ProductRules generate_algebra_rules(AlgebraConfig const& config)
     result.dot_product = generate_dot_product_rules(config);
 
     // Generate complement rules based on algebra dimensionality
-    // Even-dimensional algebras (EGA2D: 2D, STA4D: 4D, PGA3DP: 4D) have left and right complements
-    // Odd-dimensional algebras (EGA3D: 3D, PGA2DP: 3D) have a single complement
+    // Even-dimensional algebras (EGA2D: 2D, STA4D: 4D, PGA3DP: 4D) have left and right
+    // complements Odd-dimensional algebras (EGA3D: 3D, PGA2DP: 3D) have a single
+    // complement
     size_t num_basis_vectors = config.basis_vectors.size();
     bool is_even_dimensional = (num_basis_vectors % 2 == 0);
 
@@ -939,7 +950,8 @@ ProductRules generate_algebra_rules(AlgebraConfig const& config)
         // Generate left and right dual rules from complements (only for non-PGA)
         if (!is_pga) {
             result.left_dual = generate_left_dual_rules(config, result.left_complement);
-            result.right_dual = generate_right_dual_rules(config, result.right_complement);
+            result.right_dual =
+                generate_right_dual_rules(config, result.right_complement);
         }
 
         // For even-dimensional PGA, generate bulk and weight duals

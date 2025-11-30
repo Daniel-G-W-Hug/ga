@@ -52,8 +52,8 @@ extern const prd_rules rcmpl_sta4d_rules;
 
 // dual rules: generated automatically from complement rules + extended metric
 // dual(u) = complement(G × u) where G is the extended metric matrix
-// left_dual and right_dual are derived from left_complement and right_complement respectively
-// Note: right_dual is equivalent to the Hodge dual for STA4D
+// left_dual and right_dual are derived from left_complement and right_complement
+// respectively Note: right_dual is equivalent to the Hodge dual for STA4D
 extern const prd_rules left_dual_sta4d_rules;
 extern const prd_rules right_dual_sta4d_rules;
 

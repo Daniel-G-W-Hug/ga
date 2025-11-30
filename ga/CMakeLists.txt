@@ -45,10 +45,12 @@ set(HEADERS
     detail/type_t/ga_mvec2dp.hpp
     detail/type_t/ga_mvec2dp_e.hpp
     detail/type_t/ga_mvec2dp_u.hpp
+    detail/type_t/ga_dualnum2dp.hpp
     #
     detail/type_t/ga_mvec3dp.hpp
     detail/type_t/ga_mvec3dp_e.hpp
     detail/type_t/ga_mvec3dp_u.hpp
+    detail/type_t/ga_dualnum3dp.hpp
     #
     # user facing includes
     #

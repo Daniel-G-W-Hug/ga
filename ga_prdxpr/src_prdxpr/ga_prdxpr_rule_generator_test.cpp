@@ -190,12 +190,13 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
     if (is_pga) {
         auto regressive_metric = calculate_regressive_extended_metric(config);
         fmt::println("\n{} regressive extended metric (diagonal)", algebra_name);
-        fmt::println("regressive extended metric diagonal: {}", fmt::join(regressive_metric, ", "));
+        fmt::println("regressive extended metric diagonal: {}",
+                     fmt::join(regressive_metric, ", "));
 
         // Show mapping of basis elements to their regressive extended metric values
         fmt::println("basis → regressive extended metric diagonal mapping:");
-        for (size_t i = 0; i < std::min(generated_rules.basis.size(), regressive_metric.size());
-             ++i) {
+        for (size_t i = 0;
+             i < std::min(generated_rules.basis.size(), regressive_metric.size()); ++i) {
             fmt::println("  {} → {}", generated_rules.basis[i], regressive_metric[i]);
         }
     }
@@ -271,9 +272,8 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
         // Print dual rules (only for non-PGA algebras)
         if (is_pga) {
             // For even-dimensional PGA, only print bulk and weight duals
-            print_complement_rules(generated_rules.left_bulk_dual,
-                                   "left bulk dual rules", generated_rules.basis,
-                                   algebra_name);
+            print_complement_rules(generated_rules.left_bulk_dual, "left bulk dual rules",
+                                   generated_rules.basis, algebra_name);
             print_complement_rules(generated_rules.right_bulk_dual,
                                    "right bulk dual rules", generated_rules.basis,
                                    algebra_name);
@@ -283,7 +283,8 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
             print_complement_rules(generated_rules.right_weight_dual,
                                    "right weight dual rules", generated_rules.basis,
                                    algebra_name);
-        } else {
+        }
+        else {
             // For non-PGA even-dimensional algebras (EGA, STA), print standard duals
             print_complement_rules(generated_rules.left_dual, "left dual rules",
                                    generated_rules.basis, algebra_name);
@@ -299,13 +300,12 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
         // Print dual rules (only for non-PGA algebras)
         if (is_pga) {
             // For odd-dimensional PGA, only print bulk and weight duals
-            print_complement_rules(generated_rules.bulk_dual,
-                                   "bulk dual rules", generated_rules.basis,
-                                   algebra_name);
-            print_complement_rules(generated_rules.weight_dual,
-                                   "weight dual rules", generated_rules.basis,
-                                   algebra_name);
-        } else {
+            print_complement_rules(generated_rules.bulk_dual, "bulk dual rules",
+                                   generated_rules.basis, algebra_name);
+            print_complement_rules(generated_rules.weight_dual, "weight dual rules",
+                                   generated_rules.basis, algebra_name);
+        }
+        else {
             // For non-PGA odd-dimensional algebras (EGA), print standard dual
             print_complement_rules(generated_rules.dual, "dual rules",
                                    generated_rules.basis, algebra_name);
@@ -400,12 +400,13 @@ bool test_algebra_with_complements(
     if (is_pga_test) {
         auto regressive_metric = calculate_regressive_extended_metric(config);
         fmt::println("\n{} regressive extended metric (diagonal)", algebra_name);
-        fmt::println("regressive extended metric diagonal: {}", fmt::join(regressive_metric, ", "));
+        fmt::println("regressive extended metric diagonal: {}",
+                     fmt::join(regressive_metric, ", "));
 
         // Show mapping of basis elements to their regressive extended metric values
         fmt::println("basis → regressive extended metric diagonal mapping:");
-        for (size_t i = 0; i < std::min(generated_rules.basis.size(), regressive_metric.size());
-             ++i) {
+        for (size_t i = 0;
+             i < std::min(generated_rules.basis.size(), regressive_metric.size()); ++i) {
             fmt::println("  {} → {}", generated_rules.basis[i], regressive_metric[i]);
         }
     }

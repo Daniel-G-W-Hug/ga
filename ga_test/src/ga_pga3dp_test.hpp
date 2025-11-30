@@ -3166,12 +3166,256 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
     }
 
+    TEST_CASE("G<3,0,1>: DualNum3dp - default init")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - default init");
+        dualnum3dp dn;
+        CHECK(abs(dn.c0) < eps);
+        CHECK(abs(dn.c1) < eps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - constructor from two components")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - constructor from two components");
+        dualnum3dp dn{2.5, 3.7};
+        CHECK(abs(dn.c0 - 2.5) < eps);
+        CHECK(abs(dn.c1 - 3.7) < eps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - constructor from scalar")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - constructor from scalar");
+        scalar3dp s{5.0};
+        dualnum3dp dn{s};
+        CHECK(abs(dn.c0 - 5.0) < eps);
+        CHECK(abs(dn.c1) < eps);
+        CHECK(gr0(dn) == s);
+        CHECK(gr4(dn) == pscalar3dp{0.0});
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - constructor from pseudoscalar")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - constructor from pseudoscalar");
+        pscalar3dp ps{7.5};
+        dualnum3dp dn{ps};
+        CHECK(abs(dn.c0) < eps);
+        CHECK(abs(dn.c1 - 7.5) < eps);
+        CHECK(gr0(dn) == scalar3dp{0.0});
+        CHECK(gr4(dn) == ps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - constructor from scalar and pseudoscalar")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - constructor from scalar and pseudoscalar");
+        scalar3dp s{3.0};
+        pscalar3dp ps{4.0};
+        dualnum3dp dn{s, ps};
+        CHECK(abs(dn.c0 - 3.0) < eps);
+        CHECK(abs(dn.c1 - 4.0) < eps);
+        CHECK(gr0(dn) == s);
+        CHECK(gr4(dn) == ps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - copy constructor and assignment")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - copy constructor and assignment");
+        dualnum3dp dn1{2.5, 3.7};
+        dualnum3dp dn2{dn1};   // copy constructor
+        dualnum3dp dn3 = dn1;  // copy assignment
+        dualnum3dp dn4 = -dn1; // unary minus
+
+        CHECK(abs(dn2.c0 - 2.5) < eps);
+        CHECK(abs(dn2.c1 - 3.7) < eps);
+        CHECK(abs(dn3.c0 - 2.5) < eps);
+        CHECK(abs(dn3.c1 - 3.7) < eps);
+        CHECK(abs(dn4.c0 + 2.5) < eps);
+        CHECK(abs(dn4.c1 + 3.7) < eps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - grade extraction")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - grade extraction");
+        dualnum3dp dn{5.0, 7.0};
+
+        scalar3dp s = gr0(dn);
+        pscalar3dp ps = gr4(dn);
+
+        CHECK(abs(value_t(s) - 5.0) < eps);
+        CHECK(abs(value_t(ps) - 7.0) < eps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - addition operations")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - addition operations");
+
+        scalar3dp s{2.0};
+        pscalar3dp ps{3.0};
+        dualnum3dp dn1{1.0, 2.0};
+        dualnum3dp dn2{3.0, 4.0};
+
+        // scalar + pseudoscalar => dual number (explicit construction to avoid ambiguity)
+        DualNum3dp result1{s, ps};
+        CHECK(abs(result1.c0 - 2.0) < eps);
+        CHECK(abs(result1.c1 - 3.0) < eps);
+
+        // scalar + dual number
+        DualNum3dp result3 = s + dn1;
+        CHECK(abs(result3.c0 - 3.0) < eps);
+        CHECK(abs(result3.c1 - 2.0) < eps);
+
+        // dual number + scalar
+        DualNum3dp result4 = dn1 + s;
+        CHECK(abs(result4.c0 - 3.0) < eps);
+        CHECK(abs(result4.c1 - 2.0) < eps);
+
+        // pseudoscalar + dual number
+        DualNum3dp result5 = ps + dn1;
+        CHECK(abs(result5.c0 - 1.0) < eps);
+        CHECK(abs(result5.c1 - 5.0) < eps);
+
+        // dual number + pseudoscalar
+        DualNum3dp result6 = dn1 + ps;
+        CHECK(abs(result6.c0 - 1.0) < eps);
+        CHECK(abs(result6.c1 - 5.0) < eps);
+
+        // dual number + dual number (using compound assignment)
+        dualnum3dp dn3 = dn1;
+        dn3 += dn2;
+        CHECK(abs(dn3.c0 - 4.0) < eps);
+        CHECK(abs(dn3.c1 - 6.0) < eps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - subtraction operations")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - subtraction operations");
+
+        scalar3dp s{5.0};
+        pscalar3dp ps{3.0};
+        dualnum3dp dn1{7.0, 4.0};
+        dualnum3dp dn2{2.0, 1.0};
+
+        // scalar - dual number
+        DualNum3dp result3 = s - dn1;
+        CHECK(abs(result3.c0 + 2.0) < eps);
+        CHECK(abs(result3.c1 + 4.0) < eps);
+
+        // dual number - scalar
+        DualNum3dp result4 = dn1 - s;
+        CHECK(abs(result4.c0 - 2.0) < eps);
+        CHECK(abs(result4.c1 - 4.0) < eps);
+
+        // pseudoscalar - dual number
+        DualNum3dp result5 = ps - dn1;
+        CHECK(abs(result5.c0 + 7.0) < eps);
+        CHECK(abs(result5.c1 + 1.0) < eps);
+
+        // dual number - pseudoscalar
+        DualNum3dp result6 = dn1 - ps;
+        CHECK(abs(result6.c0 - 7.0) < eps);
+        CHECK(abs(result6.c1 - 1.0) < eps);
+
+        // dual number - dual number (using compound assignment)
+        dualnum3dp dn3 = dn1;
+        dn3 -= dn2;
+        CHECK(abs(dn3.c0 - 5.0) < eps);
+        CHECK(abs(dn3.c1 - 3.0) < eps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - scalar multiplication and division")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - scalar multiplication and division");
+
+        dualnum3dp dn{6.0, 8.0};
+
+        // scalar multiplication
+        dualnum3dp dn2 = dn;
+        dn2 *= 2.0;
+        CHECK(abs(dn2.c0 - 12.0) < eps);
+        CHECK(abs(dn2.c1 - 16.0) < eps);
+
+        // scalar division
+        dualnum3dp dn3 = dn;
+        dn3 /= 2.0;
+        CHECK(abs(dn3.c0 - 3.0) < eps);
+        CHECK(abs(dn3.c1 - 4.0) < eps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - compound assignment operators")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - compound assignment operators");
+
+        dualnum3dp dn1{10.0, 20.0};
+        dualnum3dp dn2{3.0, 5.0};
+
+        // test +=
+        DualNum3dp result1 = dn1;
+        result1 += dn2;
+        CHECK(abs(result1.c0 - 13.0) < eps);
+        CHECK(abs(result1.c1 - 25.0) < eps);
+
+        // test -=
+        DualNum3dp result2 = dn1;
+        result2 -= dn2;
+        CHECK(abs(result2.c0 - 7.0) < eps);
+        CHECK(abs(result2.c1 - 15.0) < eps);
+
+        // test *=
+        DualNum3dp result3 = dn1;
+        result3 *= 0.5;
+        CHECK(abs(result3.c0 - 5.0) < eps);
+        CHECK(abs(result3.c1 - 10.0) < eps);
+
+        // test /=
+        DualNum3dp result4 = dn1;
+        result4 /= 2.0;
+        CHECK(abs(result4.c0 - 5.0) < eps);
+        CHECK(abs(result4.c1 - 10.0) < eps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - mixed type operations")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - mixed type operations");
+
+        // Test that operations work with different floating point types
+        scalar3dp s{2.0};
+        pscalar3dp ps{3.0};
+        dualnum3dp dn{1.5, 2.5};
+
+        // Test dual number operations with scalar and pseudoscalar
+        DualNum3dp result2 = dn + s;
+        CHECK(abs(result2.c0 - 3.5) < eps);
+        CHECK(abs(result2.c1 - 2.5) < eps);
+
+        DualNum3dp result3 = ps + dn;
+        CHECK(abs(result3.c0 - 1.5) < eps);
+        CHECK(abs(result3.c1 - 5.5) < eps);
+
+        DualNum3dp result4 = dn - s;
+        CHECK(abs(result4.c0 + 0.5) < eps);
+        CHECK(abs(result4.c1 - 2.5) < eps);
+    }
+
+    TEST_CASE("G<3,0,1>: DualNum3dp - property: I_3dp^2 = 0")
+    {
+        fmt::println("G<3,0,1>: DualNum3dp - property: I_3dp^2 = 0");
+
+        // The pseudoscalar in PGA3DP squares to zero (degenerate metric)
+        // For dual numbers: (c0 + c1*I)(c0 + c1*I) = c0^2 + 2*c0*c1*I + c1^2*I^2
+        // Since I^2 = 0: result = c0^2 + 2*c0*c1*I
+
+        // Verify that I_3dp^2 = 0 through geometric product (using operator*)
+        auto I_squared = I_3dp * I_3dp;
+        CHECK(abs(value_t(I_squared)) < eps);
+
+        fmt::println("   ✓ I_3dp^2 = 0 (degenerate metric property verified)");
+    }
+
     TEST_CASE("G<3,0,1>: DualNum3dp formatting tests")
     {
         fmt::println("G<3,0,1>: DualNum3dp formatting tests");
 
         // Test dual number formatting with different format specifiers
-        DualNum3dp dn{2.5, 3.7};
+        dualnum3dp dn{2.5, 3.7};
 
         // Default formatting
         std::string default_format = fmt::format("{}", dn);
@@ -3572,10 +3816,11 @@ TEST_SUITE("PGA 3DP Tests")
         bivec3dp B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
         trivec3dp T{1.0, 2.0, 3.0, 4.0};
         pscalar3dp ps{11.0};
-        mvec3dp_e M_e{scalar3dp{1.0}, bivec3dp{2.0, 3.0, 4.0, 5.0, 6.0, 7.0}, pscalar3dp{8.0}};
+        mvec3dp_e M_e{scalar3dp{1.0}, bivec3dp{2.0, 3.0, 4.0, 5.0, 6.0, 7.0},
+                      pscalar3dp{8.0}};
         mvec3dp M{scalar3dp{1.0}, vec3dp{2.0, 3.0, 4.0, 1.0},
-                  bivec3dp{5.0, 6.0, 7.0, 8.0, 9.0, 10.0}, trivec3dp{11.0, 12.0, 13.0, 14.0},
-                  pscalar3dp{15.0}};
+                  bivec3dp{5.0, 6.0, 7.0, 8.0, 9.0, 10.0},
+                  trivec3dp{11.0, 12.0, 13.0, 14.0}, pscalar3dp{15.0}};
 
         CHECK(lcmpl(rcmpl(s)) == s);
         CHECK(lcmpl(rcmpl(v)) == v);

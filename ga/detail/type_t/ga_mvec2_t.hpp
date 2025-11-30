@@ -27,9 +27,10 @@ struct MVec2_t {
     // assign all components
     constexpr MVec2_t(T s, T ps) : c0(s), c1(ps) {}
 
-    // constructor accepting Scalar_t types (for library function results)
+    // constructor accepts Scalar_t types from same base class exclusively
+    // (avoid mixing types from different algebras)
     template <typename Tag_S, typename Tag_PS>
-        requires(std::floating_point<T>)
+        requires(std::floating_point<T> && same_base_class<Tag_S, Tag_PS>)
     constexpr MVec2_t(Scalar_t<T, Tag_S> s, Scalar_t<T, Tag_PS> ps) : c0(T(s)), c1(T(ps))
     {
     }
