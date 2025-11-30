@@ -289,7 +289,7 @@ constexpr Scalar_t<T, Tag> operator-(Scalar_t<T, Tag> s)
     return Scalar_t<T, Tag>(-T(s));
 }
 
-// adding pseudoscalars
+// adding scalars and pseudoscalars
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator+(Scalar_t<T, Tag> s1,
@@ -299,7 +299,7 @@ constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator+(Scalar_t<T, Tag> s1,
     return Scalar_t<ctype, Tag>(ctype(s1) + ctype(s2));
 }
 
-// substracting pseudoscalars
+// substracting scalars and pseudoscalars
 template <typename T, typename U, typename Tag>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator-(Scalar_t<T, Tag> s1,

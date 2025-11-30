@@ -2,9 +2,10 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include "detail/ga_foundation.hpp"     // ga library headers and infrastructure
-#include "detail/type_t/ga_mvec2dp.hpp" // 2dp multivector types
-#include "detail/type_t/ga_type2dp.hpp" // Point2dp, Vector2d, Point2d, Line2d
+#include "detail/ga_foundation.hpp"        // ga library headers and infrastructure
+#include "detail/type_t/ga_dualnum2dp.hpp" // DualNum2dp
+#include "detail/type_t/ga_mvec2dp.hpp"    // 2dp multivector types
+#include "detail/type_t/ga_type2dp.hpp"    // Point2dp, Vector2d, Point2d, Line2d
 
 #include "detail/ga_error_handling.hpp"
 

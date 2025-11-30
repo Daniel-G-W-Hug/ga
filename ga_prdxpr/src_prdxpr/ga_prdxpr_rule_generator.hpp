@@ -177,7 +177,8 @@ prd_rules generate_left_dual_rules(AlgebraConfig const& config,
                                    prd_rules const& left_complement_rules);
 prd_rules generate_right_dual_rules(AlgebraConfig const& config,
                                     prd_rules const& right_complement_rules);
-prd_rules generate_dual_rules(AlgebraConfig const& config, prd_rules const& complement_rules);
+prd_rules generate_dual_rules(AlgebraConfig const& config,
+                              prd_rules const& complement_rules);
 
 // PGA-specific dual generation (bulk and weight duals for projective algebras)
 prd_rules generate_bulk_dual_rules(AlgebraConfig const& config,

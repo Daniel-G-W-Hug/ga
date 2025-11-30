@@ -20,10 +20,9 @@
 //   Full matrix-vector multiplication required
 //
 // Returns: Map of {basis_element → dual_expression}
-prd_rules calculate_dual_rules(
-    AlgebraConfig const& config,
-    std::vector<int> const& G_data,
-    prd_rules const& complement_rules);
+prd_rules calculate_dual_rules(AlgebraConfig const& config,
+                               std::vector<int> const& G_data,
+                               prd_rules const& complement_rules);
 
 // Calculate regressive dual rules using regressive metric matrix Ḡ
 // Mathematical definition: regressive_dual(basis[i]) = Σⱼ Ḡ[i,j] * complement(basis[j])
@@ -34,9 +33,8 @@ prd_rules calculate_dual_rules(
 // Used for weight-part operations in projective geometric algebra
 //
 // Returns: Map of {basis_element → regressive_dual_expression}
-prd_rules calculate_regressive_dual_rules(
-    AlgebraConfig const& config,
-    std::vector<int> const& G_reg_data,
-    prd_rules const& complement_rules);
+prd_rules calculate_regressive_dual_rules(AlgebraConfig const& config,
+                                          std::vector<int> const& G_reg_data,
+                                          prd_rules const& complement_rules);
 
 #endif // GA_PRDXPR_DUAL_CALC_HPP

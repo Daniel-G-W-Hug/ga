@@ -2812,6 +2812,250 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("");
     }
 
+    TEST_CASE("G<2,0,1>: DualNum2dp - default init")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - default init");
+        dualnum2dp dn;
+        CHECK(abs(dn.c0) < eps);
+        CHECK(abs(dn.c1) < eps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - constructor from two components")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - constructor from two components");
+        dualnum2dp dn{2.5, 3.7};
+        CHECK(abs(dn.c0 - 2.5) < eps);
+        CHECK(abs(dn.c1 - 3.7) < eps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - constructor from scalar")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - constructor from scalar");
+        scalar2dp s{5.0};
+        dualnum2dp dn{s};
+        CHECK(abs(dn.c0 - 5.0) < eps);
+        CHECK(abs(dn.c1) < eps);
+        CHECK(gr0(dn) == s);
+        CHECK(gr3(dn) == pscalar2dp{0.0});
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - constructor from pseudoscalar")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - constructor from pseudoscalar");
+        pscalar2dp ps{7.5};
+        dualnum2dp dn{ps};
+        CHECK(abs(dn.c0) < eps);
+        CHECK(abs(dn.c1 - 7.5) < eps);
+        CHECK(gr0(dn) == scalar2dp{0.0});
+        CHECK(gr3(dn) == ps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - constructor from scalar and pseudoscalar")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - constructor from scalar and pseudoscalar");
+        scalar2dp s{3.0};
+        pscalar2dp ps{4.0};
+        dualnum2dp dn{s, ps};
+        CHECK(abs(dn.c0 - 3.0) < eps);
+        CHECK(abs(dn.c1 - 4.0) < eps);
+        CHECK(gr0(dn) == s);
+        CHECK(gr3(dn) == ps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - copy constructor and assignment")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - copy constructor and assignment");
+        dualnum2dp dn1{2.5, 3.7};
+        dualnum2dp dn2{dn1};   // copy constructor
+        dualnum2dp dn3 = dn1;  // copy assignment
+        dualnum2dp dn4 = -dn1; // unary minus
+
+        CHECK(abs(dn2.c0 - 2.5) < eps);
+        CHECK(abs(dn2.c1 - 3.7) < eps);
+        CHECK(abs(dn3.c0 - 2.5) < eps);
+        CHECK(abs(dn3.c1 - 3.7) < eps);
+        CHECK(abs(dn4.c0 + 2.5) < eps);
+        CHECK(abs(dn4.c1 + 3.7) < eps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - grade extraction")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - grade extraction");
+        dualnum2dp dn{5.0, 7.0};
+
+        scalar2dp s = gr0(dn);
+        pscalar2dp ps = gr3(dn);
+
+        CHECK(abs(value_t(s) - 5.0) < eps);
+        CHECK(abs(value_t(ps) - 7.0) < eps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - addition operations")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - addition operations");
+
+        scalar2dp s{2.0};
+        pscalar2dp ps{3.0};
+        dualnum2dp dn1{1.0, 2.0};
+        dualnum2dp dn2{3.0, 4.0};
+
+        // scalar + pseudoscalar => dual number (explicit construction to avoid ambiguity)
+        dualnum2dp result1{s, ps};
+        CHECK(abs(result1.c0 - 2.0) < eps);
+        CHECK(abs(result1.c1 - 3.0) < eps);
+
+        // scalar + dual number
+        dualnum2dp result3 = s + dn1;
+        CHECK(abs(result3.c0 - 3.0) < eps);
+        CHECK(abs(result3.c1 - 2.0) < eps);
+
+        // dual number + scalar
+        dualnum2dp result4 = dn1 + s;
+        CHECK(abs(result4.c0 - 3.0) < eps);
+        CHECK(abs(result4.c1 - 2.0) < eps);
+
+        // pseudoscalar + dual number
+        dualnum2dp result5 = ps + dn1;
+        CHECK(abs(result5.c0 - 1.0) < eps);
+        CHECK(abs(result5.c1 - 5.0) < eps);
+
+        // dual number + pseudoscalar
+        dualnum2dp result6 = dn1 + ps;
+        CHECK(abs(result6.c0 - 1.0) < eps);
+        CHECK(abs(result6.c1 - 5.0) < eps);
+
+        // dual number + dual number (using compound assignment)
+        dualnum2dp dn3 = dn1;
+        dn3 += dn2;
+        CHECK(abs(dn3.c0 - 4.0) < eps);
+        CHECK(abs(dn3.c1 - 6.0) < eps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - subtraction operations")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - subtraction operations");
+
+        scalar2dp s{5.0};
+        pscalar2dp ps{3.0};
+        dualnum2dp dn1{7.0, 4.0};
+        dualnum2dp dn2{2.0, 1.0};
+
+        // scalar - dual number
+        dualnum2dp result3 = s - dn1;
+        CHECK(abs(result3.c0 + 2.0) < eps);
+        CHECK(abs(result3.c1 + 4.0) < eps);
+
+        // dual number - scalar
+        dualnum2dp result4 = dn1 - s;
+        CHECK(abs(result4.c0 - 2.0) < eps);
+        CHECK(abs(result4.c1 - 4.0) < eps);
+
+        // pseudoscalar - dual number
+        dualnum2dp result5 = ps - dn1;
+        CHECK(abs(result5.c0 + 7.0) < eps);
+        CHECK(abs(result5.c1 + 1.0) < eps);
+
+        // dual number - pseudoscalar
+        dualnum2dp result6 = dn1 - ps;
+        CHECK(abs(result6.c0 - 7.0) < eps);
+        CHECK(abs(result6.c1 - 1.0) < eps);
+
+        // dual number - dual number (using compound assignment)
+        dualnum2dp dn3 = dn1;
+        dn3 -= dn2;
+        CHECK(abs(dn3.c0 - 5.0) < eps);
+        CHECK(abs(dn3.c1 - 3.0) < eps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - scalar multiplication and division")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - scalar multiplication and division");
+
+        dualnum2dp dn{6.0, 8.0};
+
+        // scalar multiplication
+        dualnum2dp dn2 = dn;
+        dn2 *= 2.0;
+        CHECK(abs(dn2.c0 - 12.0) < eps);
+        CHECK(abs(dn2.c1 - 16.0) < eps);
+
+        // scalar division
+        dualnum2dp dn3 = dn;
+        dn3 /= 2.0;
+        CHECK(abs(dn3.c0 - 3.0) < eps);
+        CHECK(abs(dn3.c1 - 4.0) < eps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - compound assignment operators")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - compound assignment operators");
+
+        dualnum2dp dn1{10.0, 20.0};
+        dualnum2dp dn2{3.0, 5.0};
+
+        // test +=
+        dualnum2dp result1 = dn1;
+        result1 += dn2;
+        CHECK(abs(result1.c0 - 13.0) < eps);
+        CHECK(abs(result1.c1 - 25.0) < eps);
+
+        // test -=
+        dualnum2dp result2 = dn1;
+        result2 -= dn2;
+        CHECK(abs(result2.c0 - 7.0) < eps);
+        CHECK(abs(result2.c1 - 15.0) < eps);
+
+        // test *=
+        dualnum2dp result3 = dn1;
+        result3 *= 0.5;
+        CHECK(abs(result3.c0 - 5.0) < eps);
+        CHECK(abs(result3.c1 - 10.0) < eps);
+
+        // test /=
+        dualnum2dp result4 = dn1;
+        result4 /= 2.0;
+        CHECK(abs(result4.c0 - 5.0) < eps);
+        CHECK(abs(result4.c1 - 10.0) < eps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - mixed type operations")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - mixed type operations");
+
+        // Test that operations work with different floating point types
+        scalar2dp s{2.0};
+        pscalar2dp ps{3.0};
+        dualnum2dp dn{1.5, 2.5};
+
+        // Test dual number operations with scalar and pseudoscalar
+        dualnum2dp result2 = dn + s;
+        CHECK(abs(result2.c0 - 3.5) < eps);
+        CHECK(abs(result2.c1 - 2.5) < eps);
+
+        dualnum2dp result3 = ps + dn;
+        CHECK(abs(result3.c0 - 1.5) < eps);
+        CHECK(abs(result3.c1 - 5.5) < eps);
+
+        dualnum2dp result4 = dn - s;
+        CHECK(abs(result4.c0 + 0.5) < eps);
+        CHECK(abs(result4.c1 - 2.5) < eps);
+    }
+
+    TEST_CASE("G<2,0,1>: DualNum2dp - property: I_2dp^2 = 0")
+    {
+        fmt::println("G<2,0,1>: DualNum2dp - property: I_2dp^2 = 0");
+
+        // The pseudoscalar in PGA2DP squares to zero (degenerate metric)
+        // For dual numbers: (c0 + c1*I)(c0 + c1*I) = c0^2 + 2*c0*c1*I + c1^2*I^2
+        // Since I^2 = 0: result = c0^2 + 2*c0*c1*I
+
+        // Verify that I_2dp^2 = 0 through geometric product (using operator*)
+        auto I_squared = I_2dp * I_2dp;
+        CHECK(abs(value_t(I_squared)) < eps);
+
+        fmt::println("   ✓ I_2dp^2 = 0 (degenerate metric property verified)");
+    }
+
     TEST_CASE("G<2,0,1>: DualNum2dp formatting tests")
     {
         fmt::println("G<2,0,1>: DualNum2dp formatting tests");
@@ -3079,8 +3323,8 @@ TEST_SUITE("PGA 2DP Tests")
         pscalar2dp ps{11.0};
 
         // Verify that complement is a well-defined operation
-        CHECK(cmpl(s) != pscalar2dp{0.0});   // scalar complements to pseudoscalar
-        CHECK(cmpl(ps) != scalar2dp{0.0});  // pseudoscalar complements to scalar
+        CHECK(cmpl(s) != pscalar2dp{0.0}); // scalar complements to pseudoscalar
+        CHECK(cmpl(ps) != scalar2dp{0.0}); // pseudoscalar complements to scalar
 
         fmt::println("  ✓ complement relationships verified for PGA2DP");
     }

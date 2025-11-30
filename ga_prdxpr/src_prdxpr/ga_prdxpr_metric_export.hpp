@@ -25,27 +25,24 @@
 //       0, 1, 0, 0, 0, 0, 0, 0,
 //       ...
 //   };
-std::string export_extended_metric_to_code(
-    std::string const& algebra_name,
-    mvec_coeff const& basis,
-    std::vector<int> const& matrix_data);
+std::string export_extended_metric_to_code(std::string const& algebra_name,
+                                           mvec_coeff const& basis,
+                                           std::vector<int> const& matrix_data);
 
 // Export regressive extended metric matrix as C++ constexpr array code
 // Used for PGA algebras with bulk/weight dual operations
 //
 // Output format similar to extended metric export
-std::string export_regressive_metric_to_code(
-    std::string const& algebra_name,
-    mvec_coeff const& basis,
-    std::vector<int> const& matrix_data);
+std::string export_regressive_metric_to_code(std::string const& algebra_name,
+                                             mvec_coeff const& basis,
+                                             std::vector<int> const& matrix_data);
 
 // Export both extended and regressive metrics for a PGA algebra
 // Returns combined code block with both metrics
-std::string export_pga_metrics_to_code(
-    std::string const& algebra_name,
-    mvec_coeff const& basis,
-    std::vector<int> const& extended_metric_data,
-    std::vector<int> const& regressive_metric_data);
+std::string export_pga_metrics_to_code(std::string const& algebra_name,
+                                       mvec_coeff const& basis,
+                                       std::vector<int> const& extended_metric_data,
+                                       std::vector<int> const& regressive_metric_data);
 
 // Print all metrics for an algebra to stdout (ready for copy-paste)
 void print_metrics_for_algebra(AlgebraConfig const& config);

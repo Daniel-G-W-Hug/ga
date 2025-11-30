@@ -108,7 +108,8 @@ void ArgumentParser::parse_argument(std::string const& arg)
         }
         else {
             has_error_ = true;
-            error_message_ = "Invalid value for --show-sym-asym: " + value + " (expected true/false)";
+            error_message_ =
+                "Invalid value for --show-sym-asym: " + value + " (expected true/false)";
         }
     }
     else {
@@ -215,8 +216,8 @@ void ArgumentParser::parse_output_list(std::string const& value)
 
 bool ArgumentParser::is_valid_algebra(std::string const& name) const
 {
-    static std::set<std::string> const valid_algebras = {"ega2d", "ega3d", "pga2dp",
-                                                          "pga3dp", "sta4d", "all", "none"};
+    static std::set<std::string> const valid_algebras = {
+        "ega2d", "ega3d", "pga2dp", "pga3dp", "sta4d", "all", "none"};
     return valid_algebras.count(name) > 0;
 }
 
@@ -229,7 +230,8 @@ bool ArgumentParser::is_valid_product(std::string const& name) const
 
 bool ArgumentParser::is_valid_output_type(std::string const& name) const
 {
-    static std::set<std::string> const valid_types = {"products", "tables", "metrics", "all", "none"};
+    static std::set<std::string> const valid_types = {"products", "tables", "metrics",
+                                                      "all", "none"};
     return valid_types.count(name) > 0;
 }
 
@@ -278,28 +280,36 @@ void ArgumentParser::print_help() const
     fmt::println("  --help, -h              Show this help message");
     fmt::println("  --list, -l              List available algebras and product types");
     fmt::println("");
-    fmt::println("  --algebra=ALGEBRAS      Generate only specified algebras (comma-separated)");
-    fmt::println("                          Special: 'all' (all algebras), 'none' (no algebras)");
+    fmt::println(
+        "  --algebra=ALGEBRAS      Generate only specified algebras (comma-separated)");
+    fmt::println(
+        "                          Special: 'all' (all algebras), 'none' (no algebras)");
     fmt::println("                          Example: --algebra=ega2d,ega3d");
     fmt::println("                          Example: --algebra=all");
     fmt::println("");
-    fmt::println("  --products=PRODUCTS     Generate only specified products (comma-separated)");
-    fmt::println("                          Special: 'all' (all products), 'none' (no products)");
+    fmt::println(
+        "  --products=PRODUCTS     Generate only specified products (comma-separated)");
+    fmt::println(
+        "                          Special: 'all' (all products), 'none' (no products)");
     fmt::println("                          Example: --products=gpr,wdg,dot");
     fmt::println("                          Example: --products=all");
     fmt::println("");
-    fmt::println("  --output=TYPES          Show only specified output types (comma-separated)");
+    fmt::println(
+        "  --output=TYPES          Show only specified output types (comma-separated)");
     fmt::println("                          Types: products, tables, metrics");
-    fmt::println("                          Special: 'all' (all types), 'none' (no types)");
+    fmt::println(
+        "                          Special: 'all' (all types), 'none' (no types)");
     fmt::println("                          Example: --output=products,tables");
     fmt::println("                          Example: --output=all");
     fmt::println("");
-    fmt::println("  --show-sym-asym=BOOL    Show symmetric/asymmetric parts of basis tables");
+    fmt::println(
+        "  --show-sym-asym=BOOL    Show symmetric/asymmetric parts of basis tables");
     fmt::println("                          Values: true/false (default: false)");
     fmt::println("                          Example: --show-sym-asym=true");
     fmt::println("");
     fmt::println("Common Workflows:");
-    fmt::println("  # View only product tables for one algebra (no coefficient expressions)");
+    fmt::println(
+        "  # View only product tables for one algebra (no coefficient expressions)");
     fmt::println("  ga_prdxpr --algebra=ega2d --output=tables");
     fmt::println("");
     fmt::println("  # View only coefficient expressions for one product (no tables)");
@@ -309,9 +319,11 @@ void ArgumentParser::print_help() const
     fmt::println("  ga_prdxpr --algebra=ega2d,ega3d --products=gpr --output=products");
     fmt::println("");
     fmt::println("More Examples:");
-    fmt::println("  ga_prdxpr                              # Generate everything (default)");
+    fmt::println(
+        "  ga_prdxpr                              # Generate everything (default)");
     fmt::println("  ga_prdxpr --algebra=ega2d              # Only EGA2D algebra");
-    fmt::println("  ga_prdxpr --output=tables              # Only basis tables (all algebras)");
+    fmt::println(
+        "  ga_prdxpr --output=tables              # Only basis tables (all algebras)");
     fmt::println("  ga_prdxpr --output=tables --show-sym-asym=true");
     fmt::println("");
     fmt::println("With no arguments, generates complete output (searchable reference).");
@@ -340,8 +352,10 @@ void ArgumentParser::print_list() const
     fmt::println("  sandwich_gpr     - Sandwich product (geometric)");
     fmt::println("  sandwich_rgpr    - Sandwich product (regressive)");
     fmt::println("");
-    fmt::println("Note: PGA algebras have additional bulk/weight contract/expand products.");
-    fmt::println("      Use --algebra=pga2dp (or pga3dp) to see all products for that algebra.");
+    fmt::println(
+        "Note: PGA algebras have additional bulk/weight contract/expand products.");
+    fmt::println(
+        "      Use --algebra=pga2dp (or pga3dp) to see all products for that algebra.");
     fmt::println("");
     fmt::println("Output Types:");
     fmt::println("  products  - Product expressions");
