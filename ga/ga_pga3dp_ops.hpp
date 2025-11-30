@@ -151,32 +151,73 @@ constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1, TriVec3dp<U> co
 //
 // In this case the motor has the form: M = l sin(phi) + e1234 cos(phi).
 //
-// (derived from the exponential function with respect to the regressive
-// geometric product)
+// Translations can be covered by a rotation around a point at infinity.
+//
+// Combined rotations and translations must be created by concatenating the motion
+// operations in the sequence gpr(motor_applied_last, motor_applied_first)
 ////////////////////////////////////////////////////////////////////////////////
 
-// create a (unitized) motor from a fixed line of rotation and a turning angle
+// create a motor from a fixed line of rotation and a turning angle
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
-constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor(BiVec3dp<T> const& l, U theta)
+constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor(BiVec3dp<T> const& L, U theta)
 {
+    // line L must be unitized to avoid surprises
+    auto l = unitize(L);
+
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = 0.5 * theta;
-    return unitize(MVec3dp_E<ctype>(BiVec3dp<ctype>(l * std::sin(half_angle)),
-                                    PScalar3dp<ctype>(std::cos(half_angle))));
+    return MVec3dp_E<ctype>(BiVec3dp<ctype>(l * std::sin(half_angle)),
+                            PScalar3dp<ctype>(std::cos(half_angle)));
 }
 
-// create a translation motor from a direction vector (given as a Vec3dp)
-// move in direction and by length of direction vector (length = its bulk_nrm)
-// ATTENTION: the direction is assumed to be a direction vector, i.e. with w == 0
-//            the w-component is ignored and only the x-, y- and z-components are used
+// create a translation motor from a translation vector (given as a Vec3dp).
+// Move in direction and by length of translation vector (length = its bulk_nrm)
+// ATTENTION: The translation is assumed to be a vector, i.e. with w-component == 0.
+//            The w-component is ignored and only the x-, y- and z-components are used.
+//            Due to the application via the regressive sandwich product the vector needs
+//            to be multiplied by 0.5 before application.
 template <typename T>
     requires(std::floating_point<T>)
-constexpr MVec3dp_E<T> get_motor(Vec3dp<T> const& direction)
+constexpr MVec3dp_E<T> get_motor(Vec3dp<T> const& translation)
 {
-    return MVec3dp_E<T>(
-        0.5 * BiVec3dp<T>(T(0.0), T(0.0), T(0.0), direction.x, direction.y, direction.z),
-        PScalar3dp<T>(1.0));
+    return MVec3dp_E<T>(0.5 * BiVec3dp<T>(T(0.0), T(0.0), T(0.0), translation.x,
+                                          translation.y, translation.z),
+                        PScalar3dp<T>(1.0));
+}
+
+// overload of translation motor:
+// create a translation motor from a translation vector (given as a Vector3d)
+// move in direction and by length of translation vector
+template <typename T>
+    requires(std::floating_point<T>)
+constexpr MVec3dp_E<T> get_motor(Vector3d<T> const& translation)
+{
+    return MVec3dp_E<T>(0.5 * BiVec3dp<T>(T(0.0), T(0.0), T(0.0), translation.x,
+                                          translation.y, translation.z),
+                        PScalar3dp<T>(1.0));
+}
+
+// create a motor from a fixed line of rotation l, a turning angle theta, and a
+// distance dist to move along the line
+// => screw motion with axis l, turnging angle theta and movement along l by dist
+// see e.g. E. Lengyel, "PGA Illuminated", p. 143 (equation 3.93)
+template <typename T, typename U, typename V>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U, V>> get_motor(BiVec3dp<T> const& L, U theta,
+                                                           V dist)
+{
+    // line L must be unitized to avoid surprises
+    auto l = unitize(L);
+
+    using ctype = std::common_type_t<T, U, V>;
+    ctype half_angle = 0.5 * theta;
+    ctype half_dist = 0.5 * dist;
+    return MVec3dp_E<ctype>(
+        Scalar3dp<ctype>(-half_dist * std::sin(half_angle)),
+        BiVec3dp<ctype>(l * std::sin(half_angle) -
+                        right_weight_dual(l) * half_dist * std::cos(half_angle)),
+        PScalar3dp<ctype>(std::cos(half_angle)));
 }
 
 template <typename T, typename U>
@@ -295,7 +336,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> move3dp_opt(Vec3dp<T> const& v,
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr std::vector<Vec3dp<std::common_type_t<T, U>>>
-move3dp_opt(std::vector<Vec3dp<T>> const& vec, MVec3dp_E<U> const& M)
+move3dp(std::vector<Vec3dp<T>> const& vec, MVec3dp_E<U> const& M)
 {
     // motor M must be unitized to avoid surprises
     auto R = unitize(M);
@@ -391,7 +432,7 @@ constexpr BiVec3dp<std::common_type_t<T, U>> move3dp_opt(BiVec3dp<T> const& B,
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr std::vector<BiVec3dp<std::common_type_t<T, U>>>
-move3dp_opt(std::vector<BiVec3dp<T>> const& bvec, MVec3dp_E<U> const& M)
+move3dp(std::vector<BiVec3dp<T>> const& bvec, MVec3dp_E<U> const& M)
 {
     // motor M must be unitized to avoid surprises
     auto R = unitize(M);
@@ -487,7 +528,7 @@ constexpr TriVec3dp<std::common_type_t<T, U>> move3dp_opt(TriVec3dp<T> const& t,
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr std::vector<TriVec3dp<std::common_type_t<T, U>>>
-move3dp_opt(std::vector<TriVec3dp<T>> const& tvec, MVec3dp_E<U> const& M)
+move3dp(std::vector<TriVec3dp<T>> const& tvec, MVec3dp_E<U> const& M)
 {
     // motor M must be unitized to avoid surprises
     auto R = unitize(M);
