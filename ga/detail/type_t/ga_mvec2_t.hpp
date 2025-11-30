@@ -24,16 +24,18 @@ struct MVec2_t {
     // (all grades = 0)
     MVec2_t() = default;
 
-    // assign all components
+    // assign all components (works with raw floating-point types and implicit conversions)
     constexpr MVec2_t(T s, T ps) : c0(s), c1(ps) {}
 
     // constructor accepts Scalar_t types from same base class exclusively
     // (avoid mixing types from different algebras)
-    // MSVC compatibility: require different tags to disambiguate from MVec2_t(T, T)
+    // MSVC compatibility workaround: accepts any two Scalar_t types with different tags
+    // The constraint ensures type safety by requiring same base class
     template <typename Tag_S, typename Tag_PS>
         requires(std::floating_point<T> && same_base_class<Tag_S, Tag_PS> &&
                  !std::same_as<Tag_S, Tag_PS>)
-    constexpr MVec2_t(Scalar_t<T, Tag_S> s, Scalar_t<T, Tag_PS> ps) : c0(T(s)), c1(T(ps))
+    constexpr MVec2_t(Scalar_t<T, Tag_S> const& s, Scalar_t<T, Tag_PS> const& ps) :
+        c0(static_cast<T const&>(s)), c1(static_cast<T const&>(ps))
     {
     }
 
