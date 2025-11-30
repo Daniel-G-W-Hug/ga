@@ -3363,7 +3363,7 @@ TEST_SUITE("PGA 3DP Tests")
 
         // scalar + pseudoscalar => dual number (explicit construction to avoid ambiguity)
         // MSVC workaround: explicit cast to value_t for cross-platform compatibility
-        DualNum3dp result1{static_cast<value_t>(s), static_cast<value_t>(ps)};
+        DualNum3dp result1{s, ps};
         CHECK(abs(result1.c0 - 2.0) < eps);
         CHECK(abs(result1.c1 - 3.0) < eps);
 
