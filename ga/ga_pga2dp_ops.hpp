@@ -87,10 +87,12 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
 // A proper isometry in 2dp has a fixed point p = p.x e1 + p.y e2 + p.z e3
 // around which a rotation occurs with an angle phi.
 //
-// Every motor has the form: M = p sin(phi) + e321 cos(phi).
+// Every rotating motor has the form: M = p sin(phi) + e321 cos(phi).
 //
-// (derived from the exponential function with respect to the regressive
-// geometric product)
+// Translations can be covered by a rotation around a point at infinity.
+//
+// Combined rotations and translations must be created by concatenating the motion
+// operations in the sequence gpr(motor_applied_last, motor_applied_first)
 ////////////////////////////////////////////////////////////////////////////////
 
 // create a (unitized) motor from a fixed point and a turning angle
@@ -104,25 +106,28 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& p, U th
                                     PScalar2dp<ctype>(std::cos(half_angle))));
 }
 
-// create a translation motor from a direction vector (given as a Vec2dp)
-// move in direction and by length of direction vector (lenght = its bulk_nrm)
-// ATTENTION: the direction is assumed to be a direction vector, i.e. with z == 0
-//            the z-component is ignored and only the x- and y-components are used
+// create a translation motor from a translation vector (given as a Vec2dp).
+// Move in direction and by length of translation vector (length = its bulk_nrm)
+// ATTENTION: The translation is assumed to be a vector, i.e. with z-component == 0.
+//            The z-component is ignored and only the x- and y-components are used.
+//            Due to the application via the regressive sandwich product the vector needs
+//            to be multiplied by 0.5 before application.
 template <typename T>
     requires(std::floating_point<T>)
-constexpr MVec2dp_U<T> get_motor(Vec2dp<T> const& direction)
+constexpr MVec2dp_U<T> get_motor(Vec2dp<T> const& translation)
 {
-    return MVec2dp_U<T>(0.5 * Vec2dp<T>(-direction.y, direction.x, T(0.0)),
+    return MVec2dp_U<T>(0.5 * Vec2dp<T>(-translation.y, translation.x, T(0.0)),
                         PScalar2dp<T>(1.0));
 }
 
-// create a translation motor from a direction vector (given as a Vector2d)
+// overload of translation motor:
+// create a translation motor from a translation vector (given as a Vector2d)
 // move in direction and by length of direction vector
 template <typename T>
     requires(std::floating_point<T>)
-constexpr MVec2dp_U<T> get_motor(Vector2d<T> const& direction)
+constexpr MVec2dp_U<T> get_motor(Vector2d<T> const& translation)
 {
-    return MVec2dp_U<T>(0.5 * Vec2dp<T>(-direction.y, direction.x, T(0.0)),
+    return MVec2dp_U<T>(0.5 * Vec2dp<T>(-translation.y, translation.x, T(0.0)),
                         PScalar2dp<T>(1.0));
 }
 
@@ -190,7 +195,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr std::vector<Vec2dp<std::common_type_t<T, U>>>
-move2dp_opt(std::vector<Vec2dp<T>> const& vec, MVec2dp_U<U> const& M)
+move2dp(std::vector<Vec2dp<T>> const& vec, MVec2dp_U<U> const& M)
 {
     // motor M must be unitized to avoid surprises
     auto R = unitize(M);
@@ -261,7 +266,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> const& B,
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
 constexpr std::vector<BiVec2dp<std::common_type_t<T, U>>>
-move2dp_opt(std::vector<BiVec2dp<T>> const& bvec, MVec2dp_U<U> const& M)
+move2dp(std::vector<BiVec2dp<T>> const& bvec, MVec2dp_U<U> const& M)
 {
     // motor M must be unitized to avoid surprises
     auto R = unitize(M);

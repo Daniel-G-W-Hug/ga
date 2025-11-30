@@ -908,8 +908,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_ln(l1);
         cm.add_ln(l2);
 
-        // first rotation by 5 degrees counter-clockwise
-        auto mot = get_motor(pc, deg2rad(5));
+        // first rotation by 7.5 degrees counter-clockwise
+        auto mot = get_motor(pc, deg2rad(7.5));
 
         m.symbol = Symbol::square;
         m.pen = QPen(Qt::green, 2, Qt::SolidLine);
@@ -931,8 +931,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_ln(l1r);
         cm.add_ln(l2r);
 
-        // second rotation by 10 degrees counter-clockwise
-        mot = get_motor(pc, deg2rad(10));
+        // second rotation by 15 degrees counter-clockwise
+        mot = get_motor(pc, deg2rad(15));
 
         m.symbol = Symbol::square;
         m.pen = QPen(Qt::cyan, 2, Qt::SolidLine);
@@ -954,7 +954,103 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_ln(l1rr);
         cm.add_ln(l2rr);
 
-        cm.set_label("proj. 0 - rotated lines (not origin)");
+        // after rotation additionally translate the last points by (-2,1,0)
+        mot = get_motor(vec2dp{-2, 1, 0});
+
+        m.symbol = Symbol::square;
+        m.pen = QPen(Qt::blue, 2, Qt::SolidLine);
+
+        auto p0rt = move2dp(p0r, mot);
+        auto p1rt = move2dp(p1r, mot);
+        auto p2rt = move2dp(p2r, mot);
+
+        cm.add_pt(p0rt, m);
+        cm.add_pt(p1rt, m);
+        cm.add_pt(p2rt, m);
+
+        cln2dp l1rt;
+        l1rt.push_back(p0rt);
+        l1rt.push_back(p1rt);
+        cln2dp l2rt;
+        l2rt.push_back(p0rt);
+        l2rt.push_back(p2rt);
+        cm.add_ln(l1rt);
+        cm.add_ln(l2rt);
+
+        // first translate the original points by (-2,1,0)
+        mot = get_motor(vec2dp{-2, 1, 0});
+
+
+        auto p0t = move2dp(p0, mot);
+        auto p1t = move2dp(p1, mot);
+        auto p2t = move2dp(p2, mot);
+
+        // then rotate the translated points by 15°
+        mot = get_motor(pc, deg2rad(15));
+
+        auto p0tr = move2dp(p0t, mot);
+        auto p1tr = move2dp(p1t, mot);
+        auto p2tr = move2dp(p2t, mot);
+
+        m.symbol = Symbol::square;
+        m.pen = QPen(Qt::darkRed, 2, Qt::SolidLine);
+        cm.add_pt(p0tr, m);
+        cm.add_pt(p1tr, m);
+        cm.add_pt(p2tr, m);
+
+        m.pen = QPen(Qt::red, 2, Qt::SolidLine);
+        cm.add_pt(p0t, m);
+
+        cln2dp l1tr;
+        l1tr.push_back(p0tr);
+        l1tr.push_back(p1tr);
+        cln2dp l2tr;
+        l2tr.push_back(p0tr);
+        l2tr.push_back(p2tr);
+
+        ln2d_mark l;
+        l.pen = QPen(Qt::gray, 2, Qt::DashLine);
+        cm.add_ln(l1tr, l);
+        cm.add_ln(l2tr, l);
+
+        // now draw the connecting lines
+        cln2dp cln_r0;
+        cln_r0.push_back(pc);
+        cln_r0.push_back(p0);
+
+        cln2dp cln_r0r;
+        cln_r0r.push_back(pc);
+        cln_r0r.push_back(p0r);
+
+        cln2dp cln_rt;
+        cln_rt.push_back(p0r);
+        cln_rt.push_back(p0rt);
+
+        l.pen = QPen(Qt::blue, 1, Qt::DashDotLine);
+        cm.add_ln(cln_r0, l);
+        cm.add_ln(cln_r0r, l);
+        cm.add_ln(cln_rt, l);
+
+
+        cln2dp cln_tr;
+        cln_tr.push_back(p0);
+        cln_tr.push_back(p0t);
+
+        cln2dp cln_t0t;
+        cln_t0t.push_back(pc);
+        cln_t0t.push_back(p0t);
+
+        cln2dp cln_t0tr;
+        cln_t0tr.push_back(pc);
+        cln_t0tr.push_back(p0tr);
+
+        l.pen = QPen(Qt::red, 1, Qt::DashDotLine);
+        cm.add_ln(cln_tr, l);
+        cm.add_ln(cln_t0t, l);
+        cm.add_ln(cln_t0tr, l);
+
+        cm.set_label("sequence matters: rotate 1st (not origin) + 2nd translate and vice "
+                     "versa (dashed)");
 
         vm.push_back(cm);
     }

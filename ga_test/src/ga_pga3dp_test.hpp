@@ -500,7 +500,7 @@ TEST_SUITE("PGA 3DP Tests")
             v1.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .g},"
             //              " angle={: .4f}",
-            //              i, phi, rad2deg(phi), c, angle(e1_2dp, c));
+            //              i, phi, rad2deg(phi), c, angle(e1_3dp, c));
         }
         // fmt::println("");
 
@@ -511,7 +511,7 @@ TEST_SUITE("PGA 3DP Tests")
             v2.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .g},"
             //              " angle={: .4f}",
-            //              i, phi, rad2deg(phi), c, angle(e2_2dp, c));
+            //              i, phi, rad2deg(phi), c, angle(e2_3dp, c));
         }
         // fmt::println("");
 
@@ -522,7 +522,7 @@ TEST_SUITE("PGA 3DP Tests")
             v3.emplace_back(std::make_tuple(phi, c));
             // fmt::println("   i={: 3}: phi={: .4f}, phi={: 4.0f}°, c={: .g},"
             //              " angle={: .4f}",
-            //              i, phi, rad2deg(phi), c, angle(e1_2dp + e2_2dp, c));
+            //              i, phi, rad2deg(phi), c, angle(e1_3dp + e2_3dp, c));
         }
         // fmt::println("");
 
@@ -818,13 +818,121 @@ TEST_SUITE("PGA 3DP Tests")
                 vec_rot.emplace_back(move3dp(e1_3dp, get_motor(e43_3dp, phi)));
             }
 
-            vec_rot_calc = move3dp_opt(vec_ref, get_motor(e43_3dp, phi));
+            vec_rot_calc = move3dp(vec_ref, get_motor(e43_3dp, phi));
             for (size_t i = 0; i < 100; ++i) {
                 CHECK(vec_rot_calc[i] == vec_rot[i]);
             }
         }
 
-        // fmt::println("");
+        fmt::println("");
+    }
+
+
+    TEST_CASE("Vec3dp: operations - rotation + translation combined")
+    {
+        fmt::println("Vec3dp: operations - rotation + translation combined");
+
+        // three points representing two lines l0=(p0,p1), l1 = (p0,p2)
+        auto const p0 = vec3dp{0, 0, -1, 1};
+        auto const p1 = vec3dp{1, 0, 1, 1};
+        auto const p2 = vec3dp{0, 1, 0, 1};
+
+        auto vp = std::vector<vec3dp>{p0, p1, p2};
+
+
+        auto phi = deg2rad(15);           // turning angle
+        auto B = e42_3dp + 0.5 * e43_3dp; // turning axis (a bivector)
+        auto t = vec3dp{-2, 1, 1, 0};     // translation vector
+
+        // stepwise movement: turn around turning axis by 15°, then shift by t
+        auto m_rot = get_motor(B, phi);
+        auto m_tra = get_motor(t);
+
+        auto m_rt_c = rgpr(m_tra, m_rot); // concatenation: translation after rotation
+        auto m_tr_c = rgpr(m_rot, m_tra); // concatenation: rotation after translation
+                                          // sequence matters!
+
+        auto vr = move3dp(vp, m_rot);
+        auto vt = move3dp(vp, m_tra);
+        auto vrt = move3dp(vr, m_tra);
+        auto vtr = move3dp(vt, m_rot);
+        auto vrt_c = move3dp(vp, m_rt_c);
+        auto vtr_c = move3dp(vp, m_tr_c);
+
+        fmt::println("m_rot  = {: 5.3f}", m_rot);
+        fmt::println("m_tra  = {: 5.3f}", m_tra);
+        fmt::println("m_rt_c = rgpr(m_tra,m_rot)  = {: 5.3f}", m_rt_c);
+        fmt::println("m_tr_c = rgpr(m_rot,m_tra)  = {: 5.3f}", m_tr_c);
+        fmt::println("");
+        fmt::println("vp     = {: 5.3f}", fmt::join(vp, ", "));
+        fmt::println("vr     = {: 5.3f}", fmt::join(vr, ", "));
+        fmt::println("vt     = {: 5.3f}", fmt::join(vt, ", "));
+        fmt::println("");
+        fmt::println("vrt    = {: 5.3f}", fmt::join(vrt, ", "));
+        fmt::println("vrt_c  = {: 5.3f}", fmt::join(vrt_c, ", "));
+        fmt::println("");
+        fmt::println("vtr    = {: 5.3f}", fmt::join(vtr, ", "));
+        fmt::println("vtr_c  = {: 5.3f}", fmt::join(vtr_c, ", "));
+
+        CHECK(vrt == vrt_c); // same result stepwise or combined
+        CHECK(vtr == vtr_c); // same result stepwise or combined
+
+        fmt::println("");
+    }
+
+    TEST_CASE("Vec3dp: operations - rotation + translation combined (screw motion)")
+    {
+        fmt::println(
+            "Vec3dp: operations - rotation + translation combined (screw motion)");
+
+        auto axis = x_axis_3dp + 0.3 * y_axis_3dp; // axis direction
+        auto theta = deg2rad(180);                 // = will turn to neg. direction
+        auto d = 2.0;                              // = dist d for half a turn
+        auto t =
+            bulk_normalize(att(axis)) * d; // vector t in direction of axis with length d
+
+        auto vp = vec3dp{0, 1, 0, 1}; // reference point for transformation
+
+        auto m_rot = get_motor(axis, theta);
+        auto m_tra = get_motor(t);
+        auto m_c = get_motor(axis, theta, d);
+
+        auto m_rt_c = rgpr(m_tra, m_rot); // concatenation: translation after rotation
+        auto m_tr_c = rgpr(m_rot, m_tra); // concatenation: rotation after translation
+                                          // sequence does not matter for screw motion
+
+        auto vr = move3dp(vp, m_rot);
+        auto vt = move3dp(vp, m_tra);
+        auto vrt = move3dp(vr, m_tra);
+        auto vtr = move3dp(vt, m_rot);
+        auto vrt_c = move3dp(vp, m_rt_c);
+        auto vtr_c = move3dp(vp, m_tr_c);
+        auto v_c = move3dp(vp, m_c);
+
+        fmt::println("m_rot                      = {: 5.3f}", m_rot);
+        fmt::println("m_tra                      = {: 5.3f}", m_tra);
+        fmt::println("m_rt_c = rgpr(m_tra,m_rot) = {: 5.3f}", m_rt_c);
+        fmt::println("m_tr_c = rgpr(m_rot,m_tra) = {: 5.3f}", m_tr_c);
+        fmt::println("m_c                        = {: 5.3f}", m_c);
+        fmt::println("");
+        fmt::println("vp     = {: 5.3f}", vp, ", ");
+        fmt::println("vr     = {: 5.3f}", vr, ", ");
+        fmt::println("t      = {: 5.3f}", t, ", ");
+        fmt::println("vt     = {: 5.3f}", vt, ", ");
+        fmt::println("");
+        fmt::println("vrt    = {: 5.3f}", vrt, ", ");
+        fmt::println("vrt_c  = {: 5.3f}", vrt_c, ", ");
+        fmt::println("vtr    = {: 5.3f}", vtr, ", ");
+        fmt::println("vrt_c  = {: 5.3f}", vtr_c, ", ");
+        fmt::println("");
+        fmt::println("v_c    = {: 5.3f}", v_c, ", ");
+
+        CHECK(vrt == vrt_c); // same result stepwise or combined
+        CHECK(vtr == vtr_c); // same result stepwise or combined
+        CHECK(vtr_c == v_c); // same result stepwise or combined
+        CHECK(vrt_c == v_c); // same result stepwise or combined
+
+        fmt::println("");
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1525,7 +1633,7 @@ TEST_SUITE("PGA 3DP Tests")
         scalar3dp s{3};
         // vec3d v{-3.0, 2.5, -0.5};    // 3d vector from ega3d case
         vec3dp v{-3.0, 2.5, -0.5, 1.0}; // 3d point in pga3dp
-        // bivec2dp B{2.5, 3.5, 1.5};
+        // bivec3dp B{2.5, 3.5, 1.5};
         bivec3dp B{2.5, 3.5, 1.5, -2.5, -3.5, -1.5};
         trivec3dp t{-7.0, 2.0, -1.0, 2.0};
         pscalar3dp ps{4.0};
@@ -1775,25 +1883,25 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("   mva                               = {}", mva);
         // fmt::println("   b                                 = {}", b);
         // fmt::println("   mvb                               = {}", mvb);
-        // fmt::println("   ab  = mvec2dp_e(a * b)            = {}", ab);
+        // fmt::println("   ab  = mvec3dp_e(a * b)            = {}", ab);
         // fmt::println("   abm = mva * mvb                   = {}", abm);
-        // fmt::println("   abd = mvec2dp(dot(a,b), wdg(a,b)) = {}", abd);
+        // fmt::println("   abd = mvec3dp(dot(a,b), wdg(a,b)) = {}", abd);
         // fmt::println("");
         // fmt::println("   A                                 = {}", A);
         // fmt::println("   mvA                               = {}", mvA);
         // fmt::println("   b                                 = {}", b);
         // fmt::println("   mvb                               = {}", mvb);
-        // fmt::println("   Ab  = mvec2dp_u(A * b)            = {}", Ab);
+        // fmt::println("   Ab  = mvec3dp_u(A * b)            = {}", Ab);
         // fmt::println("   Abm = mvA * mvb                   = {}", Abm);
-        // fmt::println("   Abd = mvec2dp((b << A), wdg(A,b)) = {}", Abd);
+        // fmt::println("   Abd = mvec3dp((b << A), wdg(A,b)) = {}", Abd);
         // fmt::println("");
         // fmt::println("   a                                 = {}", a);
         // fmt::println("   mva                               = {}", mva);
         // fmt::println("   B                                 = {}", B);
         // fmt::println("   mvB                               = {}", mvB);
-        // fmt::println("   aB  = mvec2dp_u(a * B)            = {}", aB);
+        // fmt::println("   aB  = mvec3dp_u(a * B)            = {}", aB);
         // fmt::println("   aBm = mva * mvB                   = {}", aBm);
-        // fmt::println("   aBd = mvec2dp((B >> a), wdg(a,B)) = {}", aBd);
+        // fmt::println("   aBd = mvec3dp((B >> a), wdg(a,B)) = {}", aBd);
         // fmt::println("");
 
         CHECK(gr0(ab) == gr0(abm));
@@ -3814,32 +3922,31 @@ TEST_SUITE("PGA 3DP Tests")
         scalar3dp s{3.0};
         vec3dp v{2.0, 5.0, 7.0, 1.0};
         bivec3dp B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
-        trivec3dp T{1.0, 2.0, 3.0, 4.0};
+        trivec3dp t{1.0, 2.0, 3.0, 4.0};
         pscalar3dp ps{11.0};
-        mvec3dp_e M_e{scalar3dp{1.0}, bivec3dp{2.0, 3.0, 4.0, 5.0, 6.0, 7.0},
-                      pscalar3dp{8.0}};
-        mvec3dp M{scalar3dp{1.0}, vec3dp{2.0, 3.0, 4.0, 1.0},
-                  bivec3dp{5.0, 6.0, 7.0, 8.0, 9.0, 10.0},
-                  trivec3dp{11.0, 12.0, 13.0, 14.0}, pscalar3dp{15.0}};
+        mvec3dp_e M_e{s, B, ps};
+        mvec3dp_u M_u{v, t};
+        mvec3dp M{s, v, B, t, ps};
 
         CHECK(lcmpl(rcmpl(s)) == s);
         CHECK(lcmpl(rcmpl(v)) == v);
         CHECK(lcmpl(rcmpl(B)) == B);
-        CHECK(lcmpl(rcmpl(T)) == T);
+        CHECK(lcmpl(rcmpl(t)) == t);
         CHECK(lcmpl(rcmpl(ps)) == ps);
         CHECK(lcmpl(rcmpl(M_e)) == M_e);
+        CHECK(lcmpl(rcmpl(M_u)) == M_u);
         CHECK(lcmpl(rcmpl(M)) == M);
 
         // Also test rcmpl(lcmpl(u)) = u
         CHECK(rcmpl(lcmpl(s)) == s);
         CHECK(rcmpl(lcmpl(v)) == v);
         CHECK(rcmpl(lcmpl(B)) == B);
-        CHECK(rcmpl(lcmpl(T)) == T);
+        CHECK(rcmpl(lcmpl(t)) == t);
         CHECK(rcmpl(lcmpl(ps)) == ps);
         CHECK(rcmpl(lcmpl(M_e)) == M_e);
         CHECK(rcmpl(lcmpl(M)) == M);
 
-        fmt::println("  ✓ lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u for even-dimensional");
+        fmt::println("  ✓ lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u");
     }
 
 } // PGA 3DP Tests
