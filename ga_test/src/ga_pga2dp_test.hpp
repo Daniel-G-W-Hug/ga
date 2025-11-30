@@ -2951,7 +2951,8 @@ TEST_SUITE("PGA 2DP Tests")
         dualnum2dp dn2{3.0, 4.0};
 
         // scalar + pseudoscalar => dual number (explicit construction to avoid ambiguity)
-        dualnum2dp result1{s, ps};
+        // MSVC workaround: explicit cast to value_t for cross-platform compatibility
+        dualnum2dp result1{static_cast<value_t>(s), static_cast<value_t>(ps)};
         CHECK(abs(result1.c0 - 2.0) < eps);
         CHECK(abs(result1.c1 - 3.0) < eps);
 
