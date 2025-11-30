@@ -88,31 +88,6 @@ static std::string build_dual_expression(std::vector<int> const& coefficients,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Matrix-Vector Multiplication for Dual Calculation
-////////////////////////////////////////////////////////////////////////////////
-
-// Compute matrix-vector product: result[i] = Σⱼ G[i,j] * v[j]
-// Where v[j] represents the complement transformation
-static std::vector<int> matrix_vector_multiply(std::vector<int> const& G_data,
-                                               std::vector<int> const& v_data, size_t n)
-{
-    std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>>
-        G{G_data.data(), n, n};
-
-    std::vector<int> result(n, 0);
-
-    for (size_t i = 0; i < n; ++i) {
-        int sum = 0;
-        for (size_t j = 0; j < n; ++j) {
-            sum += G[i, j] * v_data[j];
-        }
-        result[i] = sum;
-    }
-
-    return result;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Dual Rule Calculation
 ////////////////////////////////////////////////////////////////////////////////
 
