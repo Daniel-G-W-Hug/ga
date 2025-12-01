@@ -3363,27 +3363,27 @@ TEST_SUITE("PGA 3DP Tests")
 
         // scalar + pseudoscalar => dual number (explicit construction to avoid ambiguity)
         // MSVC workaround: explicit cast to value_t for cross-platform compatibility
-        DualNum3dp result1{s, ps};
+        dualnum3dp result1{s, ps};
         CHECK(abs(result1.c0 - 2.0) < eps);
         CHECK(abs(result1.c1 - 3.0) < eps);
 
         // scalar + dual number
-        DualNum3dp result3 = s + dn1;
+        dualnum3dp result3 = s + dn1;
         CHECK(abs(result3.c0 - 3.0) < eps);
         CHECK(abs(result3.c1 - 2.0) < eps);
 
         // dual number + scalar
-        DualNum3dp result4 = dn1 + s;
+        dualnum3dp result4 = dn1 + s;
         CHECK(abs(result4.c0 - 3.0) < eps);
         CHECK(abs(result4.c1 - 2.0) < eps);
 
         // pseudoscalar + dual number
-        DualNum3dp result5 = ps + dn1;
+        dualnum3dp result5 = ps + dn1;
         CHECK(abs(result5.c0 - 1.0) < eps);
         CHECK(abs(result5.c1 - 5.0) < eps);
 
         // dual number + pseudoscalar
-        DualNum3dp result6 = dn1 + ps;
+        dualnum3dp result6 = dn1 + ps;
         CHECK(abs(result6.c0 - 1.0) < eps);
         CHECK(abs(result6.c1 - 5.0) < eps);
 
@@ -3404,22 +3404,22 @@ TEST_SUITE("PGA 3DP Tests")
         dualnum3dp dn2{2.0, 1.0};
 
         // scalar - dual number
-        DualNum3dp result3 = s - dn1;
+        dualnum3dp result3 = s - dn1;
         CHECK(abs(result3.c0 + 2.0) < eps);
         CHECK(abs(result3.c1 + 4.0) < eps);
 
         // dual number - scalar
-        DualNum3dp result4 = dn1 - s;
+        dualnum3dp result4 = dn1 - s;
         CHECK(abs(result4.c0 - 2.0) < eps);
         CHECK(abs(result4.c1 - 4.0) < eps);
 
         // pseudoscalar - dual number
-        DualNum3dp result5 = ps - dn1;
+        dualnum3dp result5 = ps - dn1;
         CHECK(abs(result5.c0 + 7.0) < eps);
         CHECK(abs(result5.c1 + 1.0) < eps);
 
         // dual number - pseudoscalar
-        DualNum3dp result6 = dn1 - ps;
+        dualnum3dp result6 = dn1 - ps;
         CHECK(abs(result6.c0 - 7.0) < eps);
         CHECK(abs(result6.c1 - 1.0) < eps);
 
@@ -3457,25 +3457,25 @@ TEST_SUITE("PGA 3DP Tests")
         dualnum3dp dn2{3.0, 5.0};
 
         // test +=
-        DualNum3dp result1 = dn1;
+        dualnum3dp result1 = dn1;
         result1 += dn2;
         CHECK(abs(result1.c0 - 13.0) < eps);
         CHECK(abs(result1.c1 - 25.0) < eps);
 
         // test -=
-        DualNum3dp result2 = dn1;
+        dualnum3dp result2 = dn1;
         result2 -= dn2;
         CHECK(abs(result2.c0 - 7.0) < eps);
         CHECK(abs(result2.c1 - 15.0) < eps);
 
         // test *=
-        DualNum3dp result3 = dn1;
+        dualnum3dp result3 = dn1;
         result3 *= 0.5;
         CHECK(abs(result3.c0 - 5.0) < eps);
         CHECK(abs(result3.c1 - 10.0) < eps);
 
         // test /=
-        DualNum3dp result4 = dn1;
+        dualnum3dp result4 = dn1;
         result4 /= 2.0;
         CHECK(abs(result4.c0 - 5.0) < eps);
         CHECK(abs(result4.c1 - 10.0) < eps);
@@ -3491,15 +3491,15 @@ TEST_SUITE("PGA 3DP Tests")
         dualnum3dp dn{1.5, 2.5};
 
         // Test dual number operations with scalar and pseudoscalar
-        DualNum3dp result2 = dn + s;
+        dualnum3dp result2 = dn + s;
         CHECK(abs(result2.c0 - 3.5) < eps);
         CHECK(abs(result2.c1 - 2.5) < eps);
 
-        DualNum3dp result3 = ps + dn;
+        dualnum3dp result3 = ps + dn;
         CHECK(abs(result3.c0 - 1.5) < eps);
         CHECK(abs(result3.c1 - 5.5) < eps);
 
-        DualNum3dp result4 = dn - s;
+        dualnum3dp result4 = dn - s;
         CHECK(abs(result4.c0 + 0.5) < eps);
         CHECK(abs(result4.c1 - 2.5) < eps);
     }
