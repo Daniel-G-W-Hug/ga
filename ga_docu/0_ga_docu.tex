@@ -23,7 +23,7 @@
 \usepackage{MnSymbol}              % MnSymbols, e.g. \wedgedot, \veedot
 \usepackage{subeqnarray}           % numbering of equations within a block
 
-\usepackage[dvipsnames]{xcolor}    % Textcolor for dvips w/ standard color names
+\usepackage[table,dvipsnames]{xcolor}    % Textcolor for dvips w/ standard color names
 \usepackage{fancyhdr}              % to change header and footers
 
 % Deutsch als Hauptsprache im Dokument (Layout von Datum, Trennungsregeln etc.)
@@ -49,6 +49,8 @@
 
 \usepackage{relsize} % for typesetting C++
 \usepackage{xspace}  % for typesetting C++
+
+\usepackage{rotating}
 
 %\DeclareMathSizes{11}{19}{13}{9}
 %\DeclareMathSizes{12}{20}{14}{10}  % Larger formulas vs. text
@@ -100,7 +102,7 @@
 \newcommand{\revtilde}[1]{\ensuremath{\tilde{#1}}}
 
 % define the pseudoscalar as 
-\newcommand*{\pseudoscalar}{\ensuremath{\mathds{1}}}
+\newcommand*{\ps}{\ensuremath{\mathds{1}}}
 
 % for typesetting C++ (uses packages relsize and xspace)
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
@@ -148,7 +150,8 @@ Sources:
 
 \input{1_ga_intro.tex}
 \input{2_ga_basics.tex}
-\input{3_ga_physics_modelling.tex}
+\input{3_ga_basics_tables.tex}
+\input{4_ga_physics_modelling.tex}
 \input{8_ga_glossary.tex}
 \input{9_ga_literature.tex}
 
