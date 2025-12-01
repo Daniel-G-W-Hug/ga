@@ -244,7 +244,9 @@ The complement operation is used to define a unique dualization operation that w
 cases with non-degenerate as well as for cases with degenerate metric, like in projective
 geometric algebra $PGA$. This is the main advantage compared to the usual prodedure of
 dualization by multiplying the object with the pseudoscalar (or its inverse) using the
-geometric product, since the latter breaks down for spaces with degenerate metrics. \\
+geometric product, since the latter breaks down for spaces with degenerate metrics. For an
+overview on all complements in $pga3dp$ see table \ref{tab:pga3dp_complement} at the end
+of this section. \\
 
 The metric is defined by the dot product of the basis vectors as
 \begin{equation}
@@ -375,12 +377,13 @@ Relations to the geometric product and the regressive geometric product are give
     \rightweightdual{A} & = &  \undertilde{A} \veedot \bm{1} \slabel{eq:weight_right} \\
     \leftweightdual{A} & = & \bm{1} \veedot \undertilde{A} \slabel{eq:weight_left}
 \end{subeqnarray}
-with $I_n = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n} = \ps$ as the
-pseudoscalar of the $n$-dimensional space. $\revtilde{A}$ is the reversion operation, and
-$\undertilde{A}$ is the regressive reversion operation applied to $A$ (e.g. with $A =
-\bv{1} \wedge \bv{2}$ the reverse is $\revtilde{A} = \bv{2} \wedge \bv{1}$), and
-``$\wedgedot$'' and ``$\veedot$'' are the symbols for the geometric and regressive
-geometric products. \\
+with $I_n = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n} = \ps$ as the pseudoscalar of
+the $n$-dimensional space. $\revtilde{A}$ is the reversion operation, and $\undertilde{A}$
+is the regressive reversion operation applied to $A$ (e.g. with $A = \bv{1} \wedge \bv{2}$
+the reverse is $\revtilde{A} = \bv{2} \wedge \bv{1}$), and ``$\wedgedot$'' and
+``$\veedot$'' are the symbols for the geometric and regressive geometric products. For an
+overview on all bulk and weight duals in $pga3dp$ see table
+\ref{tab:pga3dp_bulk_weight_duals} at the end of this section.\\
 
 Following identities link the outer product and the inner product. They hold for operands
 of same grade: 
@@ -601,5 +604,115 @@ algebra. When (regressive) transwedge product expressions are calculated, it can
 that each transwedge product and the resulting coefficient expressions are equivalent to
 specific combinations of wedge-, commutator-, dot-products, and their regressive
 counterparts. \\
+
+\begin{sidewaystable}
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
+                    & $\bv{41}$      & $\bv{42}$     & $\bv{43}$ 
+                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
+                    & $\ps$
+                    \\ \hline
+    $\bm{u}\cdot\bm{u}$  & $\bm{1}$        
+                         & $\bm{1}$  & $\bm{1}$      & $\bm{1}$     & $0$
+                         & $0$       & $0$           & $0$
+                         & $\bm{1}$  & $\bm{1}$      & $\bm{1}$ 
+                         & $0$       & $0$           & $0$          & $\bm{1}$
+                         & $0$
+                         \\ \hline
+    $\bm{u}\circ\bm{u}$ & $0$        
+                        & $0$        & $0$           & $0$          & $\ps$
+                        & $\ps$      & $\ps$         & $\ps$
+                        & $0$        & $0$           & $0$ 
+                        & $\ps$      & $\ps$         & $\ps$        & $0$
+                        & $\ps$
+                        \\ \hline
+    \end{tabular}
+    \caption{\small Dot and regressive dot products in pga3dp for every basis element.}
+    \label{tab:pga3dp_dot_products}
+    \end{center}
+
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
+                    & $\bv{41}$      & $\bv{42}$     & $\bv{43}$ 
+                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
+                    & $\ps$
+                    \\ \hline
+    $\bar{\bm{u}}$  & $\ps$        
+                    & $\bv{423}$    & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
+                    & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
+                    & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                    & $-\bv{1}$     & $-\bv{2}$     & $-\bv{3}$     & $-\bv{4}$
+                    & $\bm{1}$
+                    \\ \hline
+    $\ubar{\bm{u}}$ & $\ps$        
+                    & $-\bv{423}$   & $-\bv{431}$   & $-\bv{412}$   & $-\bv{321}$
+                    & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
+                    & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                    & $\bv{1}$      & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
+                    & $\bm{1}$
+                    \\ \hline
+    \end{tabular}
+    \caption{\small Right and left complements in pga3dp for every basis element.}
+    \label{tab:pga3dp_complement}
+    \end{center}
+
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
+                    & $\bv{41}$      & $\bv{42}$     & $\bv{43}$ 
+                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
+                    & $\ps$
+                    \\ \hline
+    $\rightbulkdual{\bm{u}}$  & $\ps$        
+                         & $\bv{423}$    & $\bv{431}$    & $\bv{412}$    & $0$
+                         & $0$           & $0$           & $0$
+                         & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                         & $0$           & $0$           & $0$           & $-\bv{4}$
+                         & $0$
+                         \\ \hline
+    $\leftbulkdual{\bm{u}}$ & $\ps$        
+                         & $-\bv{423}$   & $-\bv{431}$   & $-\bv{412}$   & $0$
+                         & $0$           & $0$           & $0$
+                         & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                         & $0$           & $0$           & $0$           & $\bv{4}$
+                         & $0$
+                         \\ \hline
+    $\rightweightdual{\bm{u}}$  & $0$        
+                           & $0$          & $0$    & $0$  & $\bv{321}$
+                           & $-\bv{23}$   & $-\bv{31}$    & $-\bv{12}$
+                           & $0$          & $0$           & $0$ 
+                           & $-\bv{1}$    & $-\bv{2}$     & $-\bv{3}$    & $0$
+                           & $\bm{1}$
+                           \\ \hline
+    $\leftweightdual{\bm{u}}$ & $0$        
+                           & $0$          & $0$    & $0$  & $-\bv{321}$
+                           & $-\bv{23}$   & $-\bv{31}$    & $-\bv{12}$
+                           & $0$          & $0$           & $0$
+                           & $\bv{1}$     & $\bv{2}$      & $\bv{3}$     & $0$
+                           & $\bm{1}$
+                           \\ \hline
+    \end{tabular}
+    \caption{\small Right/left bulk duals and right/left weight duals in pga3dp
+    for every basis element.}
+    \label{tab:pga3dp_bulk_weight_duals}
+    \end{center}
+\end{sidewaystable}
 
 \newpage
