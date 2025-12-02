@@ -108,16 +108,16 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
     products in one expression. They can result in multivectors consisting of parts with
     different grades as result of the operation. The main advantage of the geometric
     product is its invertibility under certain circumstances.
-    \item Regressive products ($a \circ b \equiv \underline{\bar{a} \cdot \bar{b}}$, $a
-    \vee b \equiv \underline{\bar{a} \wedge \bar{b}}$, $rcmt(a,b) \equiv
-    \underline{cmt(\bar{a},\bar{b})}$, $a \veedot b \equiv \underline{\bar{a} \wedgedot
-    \bar{b}}$) use complement operations on their arguments before and after applying the
-    operation\footnote{for definition of the left and right complement operations marked
-    with underbar and overbar, see next section}. The regressive wedge product creates an
-    intersection of the (sub-)spaces used by their arguments, thus effectively creating a
-    meet-operation between the involved spaces.
-    \item Sandwich products ($R \wedgedot u \wedgedot \revtilde{R}$ for $EGA$, $M \veedot
-    u \veedot \revtilde{M}$ for $PGA$) are used to implement orthogonal transformations of
+    \item Regressive products ($a \circ b \equiv \lcmpl{\rcmpl{a} \cdot \rcmpl{b}}$, $a
+    \vee b \equiv \lcmpl{\rcmpl{a} \wedge \rcmpl{b}}$, $rcmt(a,b) \equiv
+    \lcmpl{cmt(\rcmpl{a},\rcmpl{b})}$, $a \veedot b \equiv \lcmpl{\rcmpl{a} \wedgedot
+    \rcmpl{b}}$) use complement operations on their arguments before and after applying
+    the operation\footnote{for definition of the left and right complement operations
+    marked with underbar and overbar, see next section}. The regressive wedge product
+    creates an intersection of the (sub-)spaces used by their arguments, thus effectively
+    creating a meet-operation between the involved spaces.
+    \item Sandwich products ($R \wedgedot u \wedgedot \rev{R}$ for $EGA$, $M \veedot
+    u \veedot \rrev{M}$ for $PGA$) are used to implement orthogonal transformations of
     geometric objects. They realize rotations for $EGA$ and general motions including
     rotation and translation for $PGA$ by concatenating two consecutive reflections, used
     as primitives to realize the resulting transformations. This can be achieved
@@ -127,7 +127,7 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
 \end{itemize}
 
 Following bi-argument operations $\emph{op}(a,b) = a \; op \; b$ and their regressive
-variants $\emph{rop}(a,b) = \underline{\bar{a} \; \emph{op} \; \bar{b}}$ are implemented
+variants $\emph{rop}(a,b) = \lcmpl{\rcmpl{a} \; \emph{op} \; \rcmpl{b}}$ are implemented
 (with \path{op(a,b)} or \path{rop(a,b)} as the name of the implemented function). Using
 $A$ vs. $a$ implies $gr(A) \ge gr(a)$, where $gr(arg)$ returns the grade of the argument
 $arg$:
@@ -148,8 +148,8 @@ $arg$:
     \equiv \frac{1}{2}(a \wedgedot b - b \wedgedot a)$,
     \item Regressive commutator product (the asymmetric part of the regressive geometric
     product): \\
-    $rcmt(a,b) \equiv \frac{1}{2}(\underline{\bar{a} \wedgedot \bar{b} - \bar{b}
-    \wedgedot \bar{a}}) = \frac{1}{2}(a \veedot b - b \veedot a)$,
+    $rcmt(a,b) \equiv \frac{1}{2}(\lcmpl{\rcmpl{a} \wedgedot \rcmpl{b} - \rcmpl{b}
+    \wedgedot \rcmpl{a}}) = \frac{1}{2}(a \veedot b - b \veedot a)$,
     \path{rcmt(a,b)}
     \item Regressive inner product, delivering a pseudoscalar: $a \circ b$,
     \path{rdot(a,b)} (for comparison of the dot product and the regressive dot product for
@@ -158,24 +158,24 @@ $arg$:
     \item Regressive outer product: $a \vee b$, \path{rwdg(a,b)}
     \item Regressive geometric product: $a \veedot b$, \path{rgpr(a,b)}
     
-    \item Left (bulk) contraction: $a \lcontr B = a \ll B = a_{\star} \vee B $,
+    \item Left (bulk) contraction: $a \lcontr B = a \ll B = \leftbulkdual{a} \vee B $,
     \path{operator<<(a,B)}, which implements \path{left_bulk_contract(a,B)}  
-    \item Right (bulk) contraction: $B \rcontr a = B \gg a = B \vee a^{\star} $,
+    \item Right (bulk) contraction: $B \rcontr a = B \gg a = B \vee \rightbulkdual{a} $,
     \path{operator>>(B,a)}, which implements \path{right_bulk_contract(B,a)}
 
-    \item Left weight contraction: $a_{\smallstar} \vee B $,
+    \item Left weight contraction: $\leftweightdual{a} \vee B $,
     \path{left_weight_contract(a,B)} 
-    \item Right weight contraction: $B \vee a^{\smallstar} $,
+    \item Right weight contraction: $B \vee \rightweightdual{a} $,
     \path{right_weight_contract(B,a)} 
 
-    \item Left bulk expansion: $A_{\star} \wedge b $,
+    \item Left bulk expansion: $\leftbulkdual{A} \wedge b $,
     \path{left_bulk_expand(A,b)} 
-    \item Right bulk expansion: $a \wedge B^{\star} $,
+    \item Right bulk expansion: $a \wedge \rightbulkdual{B} $,
     \path{right_bulk_expand(a,B)} 
 
-    \item Left weight expansion: $A_{\smallstar} \wedge b $,
+    \item Left weight expansion: $\leftweightdual{A} \wedge b $,
     \path{left_weight_expand(A,b)} 
-    \item Right bulk expansion: $a \wedge B^{\smallstar} $,
+    \item Right bulk expansion: $a \wedge \rightweightdual{B} $,
     \path{right_weight_expand(a,B)} 
 \end{itemize}
 where the items from the left contraction downwards are all considered interior products.
@@ -197,8 +197,8 @@ of primarily used geometric objects represented in the algebra. Planes are used 
 vectors to model everything, e.g. a point is modelled by three planes intersecting in a
 point. Both representations are mathematically equivalent, i.e. dual to each other. They
 are linked by the definition of complements and the interconnection between geometric and
-regressive geometric product, as defined above: $a \veedot b \equiv \underline{\bar{a}
-\wedgedot \bar{b}}$. In the plane-based approach the geometric product is used to operate
+regressive geometric product, as defined above: $a \veedot b \equiv \lcmpl{\rcmpl{a}
+\wedgedot \rcmpl{b}}$. In the plane-based approach the geometric product is used to operate
 on complements and duals, which are defined as the primary objects used for the approach,
 while the approach introduced by Lengyel in~\cite{Lengyel_pga-illuminated:2024} favors the
 use of points, vectors, bivectors and planes plus the explicit use of regressive products

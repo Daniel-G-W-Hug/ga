@@ -172,28 +172,28 @@ The complement operation used in the library is defined
 in~\cite{Lengyel_pga-illuminated:2024}. It is uniquely determined with respect to the
 outer product (not with respect to the geometric product, as commonly used for dualization
 by many autors working with GA). This is essential to generate consistent signs of
-expressions, operators, complements and duals. The left complement $\ubar{u}$ and the
-right complement $\bar{u}$ are defined as
+expressions, operators, complements and duals. The left complement $\lcmpl{u}$ and the
+right complement $\rcmpl{u}$ are defined as
 \begin{subeqnarray}
     % use \label for full label
     % use \slabel for sublabel
-    \ubar{u} \wedge u & = & I_n \slabel{eq:lcmpl_def} \\
-    u \wedge \bar{u}  & = & I_n \slabel{eq:rcmpl_def}
+    \lcmpl{u} \wedge u & = & I_n \slabel{eq:lcmpl_def} \\
+    u \wedge \rcmpl{u}  & = & I_n \slabel{eq:rcmpl_def}
 \end{subeqnarray}
 with $I_n  = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n}$ as the pseudoscalar of the
 $n$-dimensional algebra, and the wedge symbol $(\wedge)$ as the operator symbol of the
 outer product. The effect of the complement is to turn basis elements not contained in the
-object $u$ into the constituting basis elements of the complement of the object $\ubar{u}$
-or $\bar{u}$. Connecting the object and its complement with the wedge products creates an
+object $u$ into the constituting basis elements of the complement of the object $\lcmpl{u}$
+or $\rcmpl{u}$. Connecting the object and its complement with the wedge products creates an
 object that fills the available space in the sense of requiring all basis elements of the
 space to represent it. The full space itself is represented by the pseudoscalar of that
 space, since the pseudoscalar $I_n$ is formed by the product of all $n$ basis vectors of
-the space. An implication of the definition is that the complement ($\ubar{u}$ or
-$\bar{u}$) is orthogonal to $u$. \\
+the space. An implication of the definition is that the complement ($\lcmpl{u}$ or
+$\rcmpl{u}$) is orthogonal to $u$. \\
 
 It can be shown that the left and right complements fulfill
 \begin{equation}
-    \bar{\ubar{a}} = a
+    \rcmpl{\lcmpl{a}} = a
     \label{eq:double_cmpl}
 \end{equation}
 thus the left and right complement operations are inverses to each other. This is valid
@@ -205,8 +205,8 @@ in~\cite{Lengyel_pga-illuminated:2024} and in \cite{Browne_Grassmann-Algebra_Vol
 \begin{subeqnarray}
     % use \label for full label
     % use \slabel for sublabel
-    a \vee b & \equiv & \underline{\bar{a} \wedge \bar{b}} \slabel{eq:rwdg_std} \\
-    a \vee b & \equiv & \overline{\ubar{a} \wedge \ubar{b}} \slabel{eq:rwdg_alt}
+    a \vee b & \equiv & \lcmpl{\rcmpl{a} \wedge \rcmpl{b}} \slabel{eq:rwdg_std} \\
+    a \vee b & \equiv & \rcmpl{\lcmpl{a} \wedge \lcmpl{b}} \slabel{eq:rwdg_alt}
 \end{subeqnarray}
 The same complement is applied to both arguments first, the resulting expressions are
 combined with the wedge product, and the inverse complement operation is used to transform
@@ -221,21 +221,21 @@ complements of~(\ref{eq:rwdg_std}) and~(\ref{eq:rwdg_alt}) we end up with
 \begin{subeqnarray}
     % use \label for full label
     % use \slabel for sublabel
-    \overline{a \vee b}  & = & \overline{\underline{\bar{a} \wedge \bar{b}}}
-    \quad  =  \quad \bar{a} \wedge \bar{b}
+    \rcmpl{a \vee b}  & = & \rcmpl{\lcmpl{\rcmpl{a} \wedge \rcmpl{b}}}
+    \quad  =  \quad \rcmpl{a} \wedge \rcmpl{b}
     \slabel{eq:intermediate_std} \\
-    \underline{a \vee b} & = & \underline{\overline{\ubar{a} \wedge \ubar{b}}}
-    \quad  =  \quad  \ubar{a} \wedge \ubar{b}
+    \lcmpl{a \vee b} & = & \lcmpl{\rcmpl{\lcmpl{a} \wedge \lcmpl{b}}}
+    \quad  =  \quad  \lcmpl{a} \wedge \lcmpl{b}
     \slabel{eq:intermediate_alt}
 \end{subeqnarray}
-Substituting $a = \ubar{u}$ and $b = \ubar{v}$ into~(\ref{eq:intermediate_std}) and $a =
-\bar{u}$ and $b = \bar{v}$ into~(\ref{eq:intermediate_alt}) and exchanging the left and
+Substituting $a = \lcmpl{u}$ and $b = \lcmpl{v}$ into~(\ref{eq:intermediate_std}) and $a =
+\rcmpl{u}$ and $b = \rcmpl{v}$ into~(\ref{eq:intermediate_alt}) and exchanging the left and
 right hand sides of the equations we end up with
 \begin{subeqnarray}
     % use \label for full label
     % use \slabel for sublabel
-    u \wedge v & = & \overline{\ubar{u} \vee \ubar{v}} \slabel{eq:wdg_std} \\
-    u \wedge v & = & \underline{\bar{u} \vee \bar{v}} \slabel{eq:wdg_alt}
+    u \wedge v & = & \rcmpl{\lcmpl{u} \vee \lcmpl{v}} \slabel{eq:wdg_std} \\
+    u \wedge v & = & \lcmpl{\rcmpl{u} \vee \rcmpl{v}} \slabel{eq:wdg_alt}
 \end{subeqnarray}
 which shows that the outer and the regressive outer product can be expressed by each
 other. \\
@@ -258,47 +258,47 @@ invertible in this case. However, for $PGA$ one basis vector squares to zero, an
 there is one zero on the main diagonal of the corresponding matrix of the metric, which is
 therefore not invertible. It is called degenerate for that reason. \\
 
-The extended metric $\mathbf{G}$ is a so-called exomorphism matrix that fulfills
+The extended metric $\metric{G}$ is a so-called exomorphism matrix that fulfills
 \begin{equation}
-    \mathbf{G}(A \wedge B) = \mathbf{G}(A) \wedge \mathbf{G}(B)
+    \metric{G}(A \wedge B) = \metric{G}(A) \wedge \metric{G}(B)
     \label{eq:exomorphism}
 \end{equation} for any multivector $A$ and $B$ (see~\cite{Lengyel_pga-illuminated:2024},
 pp. 61ff.). \\
-Regarding $\mathbf{G}(u) = \mathbf{G} u$ as a unary operation on $u$ we can define the
+Regarding $\metric{G}(u) = \metric{G} u$ as a unary operation on $u$ we can define the
 corresponding regressive operation by first taking the complement of the argument and then
 applying the opposed complement on the result. This defines the regressive metric
-$\mathbf{\mathbb{G}}$ (named anti-metric by Lengyel). It is defined as
+$\rmetric{G}$ (named anti-metric by Lengyel). It is defined as
 \begin{equation}
-    \mathbf{\mathbb{G}} u \equiv \underline{\mathbf{G} \overline{u}}
-    = \overline{\mathbf{G} \underline{u}}
+    \rmetric{G} u \equiv \lcmpl{\metric{G} \rcmpl{u}}
+    = \rcmpl{\metric{G} \lcmpl{u}}
 \end{equation}
-$\mathbf{G}$ and $\mathbf{\mathbb{G}}$ are related by 
+$\metric{G}$ and $\rmetric{G}$ are related by 
 \begin{equation}
-    \mathbf{G} \mathbf{\mathbb{G}} = det(\mathfrak{g}) I_n
+    \metric{G} \rmetric{G} = det(\mathfrak{g}) I_n
 \end{equation}
-Thus, if all basis vectors square to $\pm 1$, we have $\mathbf{G} \mathbf{\mathbb{G}} =
+Thus, if all basis vectors square to $\pm 1$, we have $\metric{G} \rmetric{G} =
 \pm I_n$, and both are invertible. However, if one basis vector squares to zero, we get
-$\mathbf{G} \mathbf{\mathbb{G}} = 0$, which means that none of them is invertible, i.e. we
+$\metric{G} \rmetric{G} = 0$, which means that none of them is invertible, i.e. we
 have a degenerate metric.\\
 
-For $\mathbf{\mathbb{G}}$ there is the relation
+For $\rmetric{G}$ there is the relation
 \begin{equation}
-    \mathbf{\mathbb{G}}(A \vee B) = \mathbf{\mathbb{G}}(A) \vee \mathbf{\mathbb{G}}(B)
+    \rmetric{G}(A \vee B) = \rmetric{G}(A) \vee \rmetric{G}(B)
 \end{equation}
 that is complementary to equation (\ref{eq:exomorphism}). \\
 
-In $PGA$ the product $\mathbf{G} u$ defines the bulk of of an object $u$. It is defined as
+In $PGA$ the product $\metric{G} u$ defines the bulk of of an object $u$. It is defined as
 \begin{equation}
-    \bulk{u} = \mathbf{G} u
+    \bulk{u} = \metric{G} u
 \end{equation}
 The bulk only contains components that \emph{do not} contain the projective dimension
 (\bv{3} for $pga2dp$ or \bv{4} for $pga3dp$) as a factor. It contains positional
 information on $u$ relative to the origin. Zero bulk means that $u$ contains the origin.\\
 
-In $PGA$ the product $\mathbf{\mathbb{G}} u$ defines the weight of of an object $u$. It is
+In $PGA$ the product $\rmetric{G} u$ defines the weight of of an object $u$. It is
 defined as
 \begin{equation}
-    \weight{u} = \mathbf{\mathbb{G}} u
+    \weight{u} = \rmetric{G} u
 \end{equation}
 The weight selects components that \emph{do} contain the projective dimension (\bv{3} for
 $pga2dp$ or \bv{4} for $pga3dp$) as a factor. It contains directional information on $u$,
@@ -327,10 +327,10 @@ regressive inner product.\\
 Using the metric and the right complement the right bulk dual \rightbulkdual{A} is defined
 as
 \begin{equation}
-    \rightbulkdual{A} = \overline{\mathbf{G}A} = \overline{\bulk{A}}
+    \rightbulkdual{A} = \rcmpl{\metric{G}A} = \rcmpl{\bulk{A}}
     \label{eq:rightbulkdual}
 \end{equation}
-where $A$ is an arbitrary multivector, $\mathbf{G}$ the extended metric and $\mathbf{G}A$
+where $A$ is an arbitrary multivector, $\metric{G}$ the extended metric and $\metric{G}A$
 a matrix-vector-product between them. \rightbulkdual{A} is also called the Hodge dual. The
 multiplication with the metric happens before the application of the complement
 operation.\\
@@ -338,7 +338,7 @@ operation.\\
 There is also a corresponding left dual $\leftbulkdual{A}$ operation using the metric and
 the left complement. It is defined as
 \begin{equation}
-    \leftbulkdual{A} = \underline{\mathbf{G}A} = \underline{\bulk{A}}
+    \leftbulkdual{A} = \lcmpl{\metric{G}A} = \lcmpl{\bulk{A}}
     \label{eq:leftbulkdual}
 \end{equation}
 The Hodge star (symbolized by a filled star $\star$) is used as dualization operator in
@@ -357,30 +357,30 @@ This operation (symbolized by an unfilled star~``$\smallstar$'') uses the regres
 extended metric and is defined for the right weight dual \rightweightdual{A} using the
 right complement as
 \begin{equation}
-    \rightweightdual{A} = \overline{\mathbf{\mathbb{G}}A} = \overline{\weight{A}}
+    \rightweightdual{A} = \rcmpl{\rmetric{G}A} = \rcmpl{\weight{A}}
         \label{eq:rightweightdual}
 \end{equation}
 for an arbitrary multivector $A$. The corresponding left weight dual \leftweightdual{A} is
 defined as
 \begin{equation}
-    \leftweightdual{A} = \underline{\mathbf{\mathbb{G}}A} = \underline{\weight{A}}
+    \leftweightdual{A} = \lcmpl{\rmetric{G}A} = \lcmpl{\weight{A}}
         \label{eq:leftweightdual}
 \end{equation}
 using the left complement on the weight part of $A$.\\
 
 Relations to the geometric product and the regressive geometric product are given by
 \begin{subeqnarray}
-    \rightbulkdual{A} & = &  \revtilde{A} \wedgedot I_n = \revtilde{A} \wedgedot
+    \rightbulkdual{A} & = &  \rev{A} \wedgedot I_n = \rev{A} \wedgedot
     \ps \slabel{eq:hodge_right} \\
-    \leftbulkdual{A} & = & I_n \wedgedot \revtilde{A} = \ps \wedgedot
-    \revtilde{A} \slabel{eq:hodge_left} \\
-    \rightweightdual{A} & = &  \undertilde{A} \veedot \bm{1} \slabel{eq:weight_right} \\
-    \leftweightdual{A} & = & \bm{1} \veedot \undertilde{A} \slabel{eq:weight_left}
+    \leftbulkdual{A} & = & I_n \wedgedot \rev{A} = \ps \wedgedot
+    \rev{A} \slabel{eq:hodge_left} \\
+    \rightweightdual{A} & = &  \rrev{A} \veedot \bm{1} \slabel{eq:weight_right} \\
+    \leftweightdual{A} & = & \bm{1} \veedot \rrev{A} \slabel{eq:weight_left}
 \end{subeqnarray}
 with $I_n = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n} = \ps$ as the pseudoscalar of
-the $n$-dimensional space. $\revtilde{A}$ is the reversion operation, and $\undertilde{A}$
+the $n$-dimensional space. $\rev{A}$ is the reversion operation, and $\undertilde{A}$
 is the regressive reversion operation applied to $A$ (e.g. with $A = \bv{1} \wedge \bv{2}$
-the reverse is $\revtilde{A} = \bv{2} \wedge \bv{1}$), and ``$\wedgedot$'' and
+the reverse is $\rev{A} = \bv{2} \wedge \bv{1}$), and ``$\wedgedot$'' and
 ``$\veedot$'' are the symbols for the geometric and regressive geometric products. For an
 overview on all bulk and weight duals in $pga3dp$ see table
 \ref{tab:pga3dp_bulk_weight_duals} at the end of this section.\\
@@ -442,14 +442,14 @@ $\ps = I_n$ of the respective algebra:
     \ps \veedot a = a \veedot \ps = a
     \label{eq:veedot_identity} 
 \end{equation}
-The regressive geometric product combines the dimensions that are \underline{not} present
+The regressive geometric product combines the dimensions that are \lcmpl{not} present
 in an object
 representation, e.g. for $pga2dp$:
 \begin{eqnarray}
     \label{eq:rgpr_combine_what_is_not_there}
-    \overline{\bv{1}} \veedot \overline{\bv{1}} = \ps \nonumber\\
-    \overline{\bv{2}} \veedot \overline{\bv{2}} = \ps \\
-    \overline{\bv{3}} \veedot \overline{\bv{3}} = 0 \nonumber
+    \rcmpl{\bv{1}} \veedot \rcmpl{\bv{1}} = \ps \nonumber\\
+    \rcmpl{\bv{2}} \veedot \rcmpl{\bv{2}} = \ps \\
+    \rcmpl{\bv{3}} \veedot \rcmpl{\bv{3}} = 0 \nonumber
 \end{eqnarray}
 where eqs.~(\ref{eq:rgpr_combine_what_is_not_there}) can be shown to be equivalent to
 eqs.~(\ref{eq:gpr_combine_what_is_there}) by taking the left complement of both sides and
@@ -457,10 +457,10 @@ applying the complement definition~(\ref{eq:rwdg_std}) to it. \\
 
 The inner product between multivectors $A$ and $B$ is defined as
 \begin{equation}
-    A \cdot B = A^{T} \mathbf{G} B
+    A \cdot B = A^{T} \metric{G} B
     \label{eg:inner_product_metric}
 \end{equation}
-with $\mathbf{G}$ as the extended metric and matrix multiplication on the right hand side.
+with $\metric{G}$ as the extended metric and matrix multiplication on the right hand side.
 It satisfies the identity
 \begin{equation}
     A \cdot B  = \grprj{A \wedgedot \tilde{B}}{0} = \grprj{ B \wedgedot \tilde{A} }{0}
@@ -550,7 +550,7 @@ For that purpose Lengyel introduced the transwedge product of order $k$ by follo
 definition:
 \begin{equation}
     a \underset{k}{\doublewedge} b = \sum_{c \, \in \, \mathcal{B}_k}
-    (\ubar{c}\vee a) \wedge (b \vee \rightbulkdual{c})
+    (\lcmpl{c}\vee a) \wedge (b \vee \rightbulkdual{c})
     \label{eq:twdg_orig}
 \end{equation}
 where $\mathcal{B}_k$ is the set of all basis elements of order $k$. For $EGA3D$ it means
@@ -574,8 +574,8 @@ to (\ref{eq:wdg_alt}). That means for example that equation~(\ref{eq:twdg_orig})
 transformed to the equivalent expression
 \begin{equation}
     a \underset{k}{\doublewedge} b = \sum_{c \, \in \, \mathcal{B}_k}
-    (\underline{c \wedge \bar{a}}) \wedge
-    (\underline{\bar{b} \wedge \overline{\rightbulkdual{c}}})
+    (\lcmpl{c \wedge \rcmpl{a}}) \wedge
+    (\lcmpl{\rcmpl{b} \wedge \rcmpl{\rightbulkdual{c}}})
     \label{eq:twdg_wdg}
 \end{equation}
 expressing it by using the wedge product exclusively. \\
@@ -585,15 +585,15 @@ definition~(\ref{eq:rwdg_std}) or~(\ref{eq:rwdg_alt}), the transwedge
 product~(\ref{eq:twdg_orig}) also has a regressive form:
 \begin{equation}
     a \underset{k}{\doublevee} b \equiv
-    \overline{\ubar{a} \underset{k}{\doublewedge} \ubar{b}} =
-    \sum_{c \, \in \, \mathcal{B}_k} \overline{
-    (\ubar{c}\vee \ubar{a}) \wedge (\ubar{b} \vee \rightbulkdual{c})}
+    \rcmpl{\lcmpl{a} \underset{k}{\doublewedge} \lcmpl{b}} =
+    \sum_{c \, \in \, \mathcal{B}_k} \rcmpl{
+    (\lcmpl{c}\vee \lcmpl{a}) \wedge (\lcmpl{b} \vee \rightbulkdual{c})}
     \label{eq:rtwdg_orig}
 \end{equation}
 which in turn can be expressed in terms of the wedge product exclusively as:
 \begin{equation}
-    a \underset{k}{\doublevee} b = \sum_{c \, \in \, \mathcal{B}_k}  \overline{
-    (\underline{c\wedge a}) \wedge (\underline{b \wedge \overline{\rightbulkdual{c}}})}
+    a \underset{k}{\doublevee} b = \sum_{c \, \in \, \mathcal{B}_k}  \rcmpl{
+    (\lcmpl{c\wedge a}) \wedge (\lcmpl{b \wedge \rcmpl{\rightbulkdual{c}}})}
     \label{eq:rtwdg_wdg}
 \end{equation}
 Equations~(\ref{eq:twdg_wdg}) and (\ref{eq:rtwdg_wdg}) are used for calculation of the
@@ -649,14 +649,14 @@ counterparts. \\
                     & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
                     & $\ps$
                     \\ \hline
-    $\bar{\bm{u}}$  & $\ps$        
+    $\rcmpl{\bm{u}}$  & $\ps$        
                     & $\bv{423}$    & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
                     & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
                     & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
                     & $-\bv{1}$     & $-\bv{2}$     & $-\bv{3}$     & $-\bv{4}$
                     & $\bm{1}$
                     \\ \hline
-    $\ubar{\bm{u}}$ & $\ps$        
+    $\lcmpl{\bm{u}}$ & $\ps$        
                     & $-\bv{423}$   & $-\bv{431}$   & $-\bv{412}$   & $-\bv{321}$
                     & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
                     & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
@@ -712,6 +712,37 @@ counterparts. \\
     \caption{\small Right/left bulk duals and right/left weight duals in pga3dp
     for every basis element.}
     \label{tab:pga3dp_bulk_weight_duals}
+    \end{center}
+
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
+                    & $\bv{41}$      & $\bv{42}$     & $\bv{43}$ 
+                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
+                    & $\ps$
+                    \\ \hline
+    $\rev{\bm{u}}$  & $\bm{1}$     
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
+                    & $-\bv{41}$     & $-\bv{42}$    & $-\bv{43}$ 
+                    & $-\bv{23}$     & $-\bv{31}$    & $-\bv{12}$
+                    & $-\bv{423}$    & $-\bv{431}$   & $-\bv{412}$   & $-\bv{321}$
+                    & $\ps$
+                         \\ \hline
+    $\rrev{\bm{u}}$ & $\bm{1}$    
+                    & $-\bv{1}$      & $-\bv{2}$     & $-\bv{3}$     & $-\bv{4}$
+                    & $-\bv{41}$     & $-\bv{42}$    & $-\bv{43}$ 
+                    & $-\bv{23}$     & $-\bv{31}$    & $-\bv{12}$
+                    & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
+                    & $\ps$
+                        \\ \hline
+    \end{tabular}
+    \caption{\small Reverse and regressive reverse in pga3dp for every basis element.}
+    \label{tab:pga3dp_rev_rrev}
     \end{center}
 \end{sidewaystable}
 
