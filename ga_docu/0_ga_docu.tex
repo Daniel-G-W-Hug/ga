@@ -81,6 +81,12 @@
 % bulk and weight (by adding a filled or empty circle as right downstairs index)
 \newcommand{\bulk}[1]{\ensuremath{{#1}_\bullet}}
 \newcommand{\weight}[1]{\ensuremath{{#1}_\circ}}
+
+% in addition to \nrm{} we need \bulknrm and \weightnrm{}
+\newcommand{\bulknrm}[1]{\ensuremath{\bulk{\nrm{#1}}}}
+\newcommand{\weightnrm}[1]{\ensuremath{\weight{\nrm{#1}}}}
+
+% dual definitions
 \newcommand{\leftbulkdual}[1]{\ensuremath{{#1}_\star}}
 \newcommand{\rightbulkdual}[1]{\ensuremath{{#1}^\star}}
 \newcommand{\leftweightdual}[1]{\ensuremath{{#1}_\smallstar}}
@@ -90,7 +96,7 @@
 \newcommand*{\parall}{\stretchrel*{\parallel}{\perp}}
 
 % underbar by using \bar with the accents package
-\newcommand{\ubar}[1]{\underaccent{\bar}{#1}}
+%\newcommand{\ubar}[1]{\underaccent{\bar}{#1}}
 
 % printing the basis vectors (bv) in bold (uses package bm for \bm)
 \newcommand{\bv}[1]{\ensuremath{\bm{e}_{#1}}}
@@ -98,8 +104,17 @@
 % definition of the reverse via dagger
 \newcommand{\revdagger}[1]{\ensuremath{{#1}^\dagger}}
 
-% definition of the reverse via tilde
-\newcommand{\revtilde}[1]{\ensuremath{\tilde{#1}}}
+% definition of the reverse and regressive reverse via tilde
+\newcommand{\rev}[1]{\ensuremath{\widetilde{#1}}}
+\newcommand{\rrev}[1]{\ensuremath{\undertilde{#1}}}
+
+% definition of complements via over-/underline
+\newcommand{\rcmpl}[1]{\ensuremath{\overline{#1}}}
+\newcommand{\lcmpl}[1]{\ensuremath{\underline{#1}}}
+
+% define metrics and regressive metrics
+\newcommand{\metric}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\rmetric}[1]{\ensuremath{\mathbf{\mathbb{#1}}}}
 
 % define the pseudoscalar as 
 \newcommand*{\ps}{\ensuremath{\mathds{1}}}
@@ -107,10 +122,6 @@
 % for typesetting C++ (uses packages relsize and xspace)
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}
 \newcommand{\Cpp}{\mbox{C\Rplus\Rplus}\xspace}
-
-% in addition to \nrm{} we need \bulknrm and \weightnrm{}
-\newcommand{\bulknrm}[1]{\ensuremath{\bulk{\nrm{#1}}}}
-\newcommand{\weightnrm}[1]{\ensuremath{\weight{\nrm{#1}}}}
 
 
 \begin{document}
