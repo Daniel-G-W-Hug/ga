@@ -179,17 +179,32 @@ right complement $\rcmpl{u}$ are defined as
     % use \slabel for sublabel
     \lcmpl{u} \wedge u & = & I_n \slabel{eq:lcmpl_def} \\
     u \wedge \rcmpl{u}  & = & I_n \slabel{eq:rcmpl_def}
+    \label{eq:cmpl_def}
 \end{subeqnarray}
 with $I_n  = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n}$ as the pseudoscalar of the
 $n$-dimensional algebra, and the wedge symbol $(\wedge)$ as the operator symbol of the
 outer product. The effect of the complement is to turn basis elements not contained in the
-object $u$ into the constituting basis elements of the complement of the object $\lcmpl{u}$
-or $\rcmpl{u}$. Connecting the object and its complement with the wedge products creates an
-object that fills the available space in the sense of requiring all basis elements of the
-space to represent it. The full space itself is represented by the pseudoscalar of that
-space, since the pseudoscalar $I_n$ is formed by the product of all $n$ basis vectors of
-the space. An implication of the definition is that the complement ($\lcmpl{u}$ or
-$\rcmpl{u}$) is orthogonal to $u$. \\
+object $u$ into the constituting basis elements of the complement of the object
+$\lcmpl{u}$ or $\rcmpl{u}$. Connecting the object and its complement with the wedge
+products creates an object that fills the available space in the sense of requiring all
+basis elements of the space to represent it. The full space itself is represented by the
+pseudoscalar of that space, since the pseudoscalar $I_n$ is formed by the product of all
+$n$ basis vectors of the space. An implication of the definition is that the complement
+($\lcmpl{u}$ or $\rcmpl{u}$) is orthogonal to $u$. The complement is defined as given
+above in equation~(\ref{eq:cmpl_def}) for any basis element. It is extended to full
+multivectors $A$ and $B$ by linearity as
+\begin{subeqnarray}
+    % use \label for full label
+    % use \slabel for sublabel
+    \rcmpl{sA}  \!  & = & \! s \rcmpl{A}, \quad
+    \rcmpl{A + B} \:\: = \:\: \rcmpl{A} + \rcmpl{B}
+    \slabel{eq:rcmpl_linearity_def} \\
+    \lcmpl{sA}  \!  & = & \! s \lcmpl{A}, \quad
+    \lcmpl{A + B} \:\: = \:\: \lcmpl{A} + \lcmpl{B}
+    \slabel{eq:rcmpl_linearity_def}
+    \label{eq:cmpl_linearity_def}
+\end{subeqnarray}
+where $s$ is a scalar.\\
 
 It can be shown that the left and right complements fulfill
 \begin{equation}
@@ -378,12 +393,26 @@ Relations to the geometric product and the regressive geometric product are give
     \leftweightdual{A} & = & \bm{1} \veedot \rrev{A} \slabel{eq:weight_left}
 \end{subeqnarray}
 with $I_n = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n} = \ps$ as the pseudoscalar of
-the $n$-dimensional space. $\rev{A}$ is the reversion operation, and $\undertilde{A}$
-is the regressive reversion operation applied to $A$ (e.g. with $A = \bv{1} \wedge \bv{2}$
-the reverse is $\rev{A} = \bv{2} \wedge \bv{1}$), and ``$\wedgedot$'' and
-``$\veedot$'' are the symbols for the geometric and regressive geometric products. For an
-overview on all bulk and weight duals in $pga3dp$ see table
-\ref{tab:pga3dp_bulk_weight_duals} at the end of this section.\\
+the $n$-dimensional space. $\rev{A}$ is the reversion operation, and $\undertilde{A}$ is
+the regressive reversion operation applied to $A$ (e.g. with $A = \bv{1} \wedge \bv{2}$
+the reverse is $\rev{A} = \bv{2} \wedge \bv{1}$), and ``$\wedgedot$'' and ``$\veedot$''
+are the symbols for the geometric and regressive geometric products. As the complement,
+the reverse is defined for any basis element. It is extended to full multivectors $A$ and
+$B$ by linearity as
+\begin{subeqnarray}
+    % use \label for full label
+    % use \slabel for sublabel
+    \rev{sA}  \!  & = & \! s \rev{A}, \quad
+    \rev{A + B} \:\: = \:\: \rev{A} + \rev{B}
+    \slabel{eq:rev_linearity_def} \\
+    \rrev{sA}  \!  & = & \! s \rrev{A}, \quad
+    \rrev{A + B} \:\: = \:\: \rrev{A} + \rrev{B}
+    \slabel{eq:rrev_linearity_def}
+    \label{eq:rev_linearity_def}
+\end{subeqnarray}
+where $s$ is a scalar. For an overview on all bulk and weight duals in $pga3dp$ see table
+\ref{tab:pga3dp_bulk_weight_duals} at the end of this section. As well the reverses can be
+found in table~\ref{tab:pga3dp_rev_rrev} at the end of the section.\\
 
 Following identities link the outer product and the inner product. They hold for operands
 of same grade: 
