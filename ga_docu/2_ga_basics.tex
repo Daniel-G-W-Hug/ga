@@ -201,7 +201,7 @@ multivectors $A$ and $B$ by linearity as
     \slabel{eq:rcmpl_linearity_def} \\
     \lcmpl{sA}  \!  & = & \! s \lcmpl{A}, \quad
     \lcmpl{A + B} \:\: = \:\: \lcmpl{A} + \lcmpl{B}
-    \slabel{eq:rcmpl_linearity_def}
+    \slabel{eq:lcmpl_linearity_def}
     \label{eq:cmpl_linearity_def}
 \end{subeqnarray}
 where $s$ is a scalar.\\
@@ -410,7 +410,7 @@ $B$ by linearity as
     \rrev{A + B} \:\: = \:\: \rrev{A} + \rrev{B}, \quad
     \rrev{A \veedot B} \:\: = \:\: \rrev{B} \veedot \rrev{A}
     \slabel{eq:rrev_linearity_def}
-    \label{eq:rev_linearity_def}
+    \label{eq:reverse_linearity_def}
 \end{subeqnarray}
 where $s$ is a scalar. 
 
@@ -469,14 +469,6 @@ The multiplicative identity of the geometric product and the wedge product is th
     \bm{1} \wedge a = a \wedge \bm{1} = a
     \label{eq:wedge_identity} 
 \end{subeqnarray}
-The geometric product combines the dimensions that are present in an object
-representation, e.g. for $pga2dp$:
-\begin{eqnarray}
-    \label{eq:gpr_combine_what_is_there}
-    \bv{1} \wedgedot \bv{1} = 1 \nonumber\\
-    \bv{2} \wedgedot \bv{2} = 1 \\
-    \bv{3} \wedgedot \bv{3} = 0 \nonumber
-\end{eqnarray}
 
 The multiplicative identity of the regressive geometric product and the regressive wedge
 product is the pseudoscalar $\ps = I_n$ of the respective algebra:
@@ -486,6 +478,16 @@ product is the pseudoscalar $\ps = I_n$ of the respective algebra:
     \ps \vee a = a \vee \ps = a
     \label{eq:vee_identity}
 \end{subeqnarray}
+
+The geometric product combines the dimensions that are present in an object
+representation, e.g. for $pga2dp$:
+\begin{eqnarray}
+    \label{eq:gpr_combine_what_is_there}
+    \bv{1} \wedgedot \bv{1} = 1 \nonumber\\
+    \bv{2} \wedgedot \bv{2} = 1 \\
+    \bv{3} \wedgedot \bv{3} = 0 \nonumber
+\end{eqnarray}
+
 The regressive geometric product combines the dimensions that are \lcmpl{not} present
 in an object
 representation, e.g. for $pga2dp$:
