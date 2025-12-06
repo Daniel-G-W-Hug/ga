@@ -1019,7 +1019,7 @@ inline DualNum2dp<T> unitize(DualNum2dp<T> const& D)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// bulk_dual = cmpl(bulk(A))
+// bulk_dual(A) = cmpl(bulk(A)) = cmpl( metric * A )
 //
 // -> complement operation applied to the bulk
 //
@@ -1087,7 +1087,9 @@ constexpr MVec2dp<T> bulk_dual(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight_dual (=complement operation applied to the weight)
+// weight_dual(A) = cmpl(weight(A)) = cmpl( regressive_metric * A )
+//
+// -> complement operation applied to the weight
 //
 // the duals are defined uniquely w.r.t. the outer product
 //

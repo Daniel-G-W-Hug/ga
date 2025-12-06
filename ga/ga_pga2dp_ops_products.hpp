@@ -2001,6 +2001,24 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> rgpr(MVec2dp_U<T> const& M,
                             PScalar2dp<ctype>(-M.c2 * v.z));
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rgpr(MVec2dp_E<T> const& M, Scalar2dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(-M.c1, -M.c2, ctype(0.0)) * ctype(s);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec2dp_E<std::common_type_t<T, U>> rgpr(MVec2dp_U<T> const& M, Scalar2dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_E<ctype>(Scalar2dp<ctype>(M.c3),
+                            BiVec2dp<ctype>(ctype(0.0), ctype(0.0), M.c2)) *
+           ctype(s);
+}
+
 // rgpr(B1,B2) = rwdg(B1, B2) + rdot(B1, B2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -2029,6 +2047,24 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> rgpr(Vec2dp<T> const& v,
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2dp_E<ctype>(rwdg(v, B), rcmt(v, B));
+}
+
+// rgpr(B,s) = v
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rgpr(BiVec2dp<T> const& B, Scalar2dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(-B.x, -B.y, ctype(0.0)) * ctype(s);
+}
+
+// rgpr(s,B) = v
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rgpr(Scalar2dp<T> s, BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * Vec2dp<ctype>(-B.x, -B.y, ctype(0.0));
 }
 
 // rgpr(v1,v2) = rcmt(v1,v2) - rdot(v1,v2)
