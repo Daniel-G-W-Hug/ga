@@ -650,6 +650,53 @@ constexpr TriVec3dp<std::common_type_t<T, U>> rwdg(TriVec3dp<T> const& t,
     return t * ctype(ps);
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> rwdg(PScalar3dp<T> ps, BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * B;
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> rwdg(BiVec3dp<T> const& B, PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return B * ctype(ps);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> rwdg(PScalar3dp<T> ps, Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * v;
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> rwdg(Vec3dp<T> const& v, PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return v * ctype(ps);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3dp<std::common_type_t<T, U>> rwdg(PScalar3dp<T> ps, Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(ps) * s;
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3dp<std::common_type_t<T, U>> rwdg(Scalar3dp<T> s, PScalar3dp<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return s * ctype(ps);
+}
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -2916,6 +2963,27 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& M,
                          M.c0 * v.w - M.c1 * v.x - M.c2 * v.y - M.c3 * v.z));
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& M, Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(
+               Scalar3dp<ctype>(M.c7),
+               BiVec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), M.c1, M.c2, M.c3)) *
+           ctype(s);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(MVec3dp_U<T> const& M, Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(-M.c4, -M.c5, -M.c6, ctype(0.0)),
+                            TriVec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), -M.c3)) *
+           ctype(s);
+}
+
 // rgpr(t1,t2 = rcmt(t1, t2) + rdot(t1, t2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -2942,6 +3010,20 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(TriVec3dp<T> const& t,
 
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(BiVec3dp<T> const& B,
+                                                   TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(
+        Vec3dp<ctype>(
+            B.vx * t.w + B.my * t.z - B.mz * t.y, B.vy * t.w - B.mx * t.z + B.mz * t.x,
+            B.vz * t.w + B.mx * t.y - B.my * t.x, -B.vx * t.x - B.vy * t.y - B.vz * t.z),
+        TriVec3dp<ctype>(B.vy * t.z - B.vz * t.y, -B.vx * t.z + B.vz * t.x,
+                         B.vx * t.y - B.vy * t.x, -B.mx * t.x - B.my * t.y - B.mz * t.z));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(TriVec3dp<T> const& t,
                                                    Vec3dp<U> const& v)
 {
@@ -2950,6 +3032,34 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(TriVec3dp<T> const& t,
         Scalar3dp<ctype>(-t.x * v.x - t.y * v.y - t.z * v.z - t.w * v.w),
         BiVec3dp<ctype>(-t.x * v.w, -t.y * v.w, -t.z * v.w, t.y * v.z - t.z * v.y,
                         -t.x * v.z + t.z * v.x, t.x * v.y - t.y * v.x));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v,
+                                                   TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(
+        Scalar3dp<ctype>(v.x * t.x + v.y * t.y + v.z * t.z + v.w * t.w),
+        BiVec3dp<ctype>(-v.w * t.x, -v.w * t.y, -v.w * t.z, -v.y * t.z + v.z * t.y,
+                        v.x * t.z - v.z * t.x, -v.x * t.y + v.y * t.x));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> rgpr(TriVec3dp<T> const& t, Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec3dp<ctype>(-t.x, -t.y, -t.z, ctype(0.0)) * ctype(s);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Vec3dp<std::common_type_t<T, U>> rgpr(Scalar3dp<T> s, TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * Vec3dp<ctype>(t.x, t.y, t.z, ctype(0.0));
 }
 
 // rgpr(B1,B2) = rwdg(B1, B2) + rcmt(B1, B2) - rdot(B1, B2)
@@ -2962,6 +3072,52 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(BiVec3dp<T> const& B1,
     return MVec3dp_E<ctype>(rwdg(B1, B2), rcmt(B1, B2), -rdot(B1, B2));
 }
 
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(BiVec3dp<T> const& B,
+                                                   Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(B.vy * v.z - B.vz * v.y + B.mx * v.w,
+                                          -B.vx * v.z + B.vz * v.x + B.my * v.w,
+                                          B.vx * v.y - B.vy * v.x + B.mz * v.w,
+                                          ctype(0.0)),
+                            TriVec3dp<ctype>(B.vx * v.w, B.vy * v.w, B.vz * v.w,
+                                             -B.vx * v.x - B.vy * v.y - B.vz * v.z));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v,
+                                                   BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(v.y * B.vz - v.z * B.vy - v.w * B.mx,
+                                          -v.x * B.vz + v.z * B.vx - v.w * B.my,
+                                          v.x * B.vy - v.y * B.vx - v.w * B.mz,
+                                          ctype(0.0)),
+                            TriVec3dp<ctype>(v.w * B.vx, v.w * B.vy, v.w * B.vz,
+                                             -v.x * B.vx - v.y * B.vy - v.z * B.vz));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> rgpr(BiVec3dp<T> const& B, Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), B.vx, B.vy, B.vz) *
+           ctype(s);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> rgpr(Scalar3dp<T> s, BiVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) *
+           BiVec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), B.vx, B.vy, B.vz);
+}
+
 // rgpr(v1,v2) = rcmt(v1, v2) - rdot(v1, v2)
 template <typename T, typename U>
     requires(std::floating_point<T> && std::floating_point<U>)
@@ -2970,6 +3126,31 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v1,
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3dp_E<ctype>(rcmt(v1, v2), -rdot(v1, v2));
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v, Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return TriVec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), -v.w) * ctype(s);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr TriVec3dp<std::common_type_t<T, U>> rgpr(Scalar3dp<T> s, Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return ctype(s) * TriVec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), v.w);
+}
+
+template <typename T, typename U>
+    requires(std::floating_point<T> && std::floating_point<U>)
+constexpr Scalar3dp<std::common_type_t<T, U>> rgpr([[maybe_unused]] Scalar3dp<T>,
+                                                   [[maybe_unused]] Scalar3dp<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3dp<ctype>(0.0);
 }
 
 

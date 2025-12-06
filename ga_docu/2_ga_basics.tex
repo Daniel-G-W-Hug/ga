@@ -403,24 +403,35 @@ $B$ by linearity as
     % use \label for full label
     % use \slabel for sublabel
     \rev{sA}  \!  & = & \! s \rev{A}, \quad
-    \rev{A + B} \:\: = \:\: \rev{A} + \rev{B}
+    \rev{A + B} \:\: = \:\: \rev{A} + \rev{B}, \quad
+    \rev{A \wedgedot B} \:\: = \:\: \rev{B} \wedgedot \rev{A}
     \slabel{eq:rev_linearity_def} \\
     \rrev{sA}  \!  & = & \! s \rrev{A}, \quad
-    \rrev{A + B} \:\: = \:\: \rrev{A} + \rrev{B}
+    \rrev{A + B} \:\: = \:\: \rrev{A} + \rrev{B}, \quad
+    \rrev{A \veedot B} \:\: = \:\: \rrev{B} \veedot \rrev{A}
     \slabel{eq:rrev_linearity_def}
     \label{eq:rev_linearity_def}
 \end{subeqnarray}
-where $s$ is a scalar. For an overview on all bulk and weight duals in $pga3dp$ see table
-\ref{tab:pga3dp_bulk_weight_duals} at the end of this section. As well the reverses can be
-found in table~\ref{tab:pga3dp_rev_rrev} at the end of the section.\\
+where $s$ is a scalar. 
 
-Following identities link the outer product and the inner product. They hold for operands
-of same grade: 
+For an overview on all bulk and weight duals in $pga3dp$ see table
+\ref{tab:pga3dp_bulk_weight_duals} at the end of this section. The reverses can be found
+in table~\ref{tab:pga3dp_rev_rrev} at the end of the section as well.\\
+
+Following identities link the expansions and contractions and thus the outer and inner
+products: 
 \begin{subeqnarray}
-    A \wedge B^{\star} & = & (A \cdot B) I_n, \quad \text{when \path{gr(A)} =
-    \path{gr(B)}} \\
-    A_{\star} \wedge B & = & (A \cdot B) I_n, \quad \text{when \path{gr(A)} =
-    \path{gr(B)}}
+    \rightbulkdual{(A \wedge B)} & = & \rightbulkdual{A} \vee \rightbulkdual{B} \\
+    A \wedge \rightbulkdual{B} & = & (A \cdot B) \wedge \ps,
+    \quad \text{when \path{gr(A)} = \path{gr(B)}} \\
+    A \wedge \rightweightdual{B} & = & A \circ B,
+    \quad \text{when \path{gr(A)} = \path{gr(B)}} \\[10pt]
+    \rightweightdual{(A \vee B)} & = & \rightweightdual{A} \wedge
+    \rightweightdual{B} \\
+    A \vee \rightbulkdual{B} & = & A \cdot B,
+    \quad \text{when \path{gr(A)} = \path{gr(B)}} \\
+    A \vee \rightweightdual{B} & = & (A \circ B) \vee \bm{1},
+    \quad \text{when \path{gr(A)} = \path{gr(B)}}
 \end{subeqnarray}
 
 The influence of the metric for the dualization operation can be seen in its effect for
@@ -451,11 +462,13 @@ is to turn the vector by $+90$°, i.e. into the orientation of $\bv{12}$, while 
 dual turns the vector by $-90$°, i.e. into the direction against the orientation of
 $\bv{12}$. This statement is valid for both right- and left-handed coordinate systems. \\
 
-The multiplicative identity of the geometric product is the scalar $\bm{1}$:
-\begin{equation}
+The multiplicative identity of the geometric product and the wedge product is the scalar $\bm{1}$:
+\begin{subeqnarray}
     \bm{1} \wedgedot a = a \wedgedot \bm{1} = a
-    \label{eq:wedgedot_identity} 
-\end{equation}
+    \label{eq:wedgedot_identity} \\
+    \bm{1} \wedge a = a \wedge \bm{1} = a
+    \label{eq:wedge_identity} 
+\end{subeqnarray}
 The geometric product combines the dimensions that are present in an object
 representation, e.g. for $pga2dp$:
 \begin{eqnarray}
@@ -465,12 +478,14 @@ representation, e.g. for $pga2dp$:
     \bv{3} \wedgedot \bv{3} = 0 \nonumber
 \end{eqnarray}
 
-The multiplicative identity of the regressive geometric product is the pseudoscalar
-$\ps = I_n$ of the respective algebra:
-\begin{equation}
+The multiplicative identity of the regressive geometric product and the regressive wedge
+product is the pseudoscalar $\ps = I_n$ of the respective algebra:
+\begin{subeqnarray}
     \ps \veedot a = a \veedot \ps = a
-    \label{eq:veedot_identity} 
-\end{equation}
+    \label{eq:veedot_identity} \\
+    \ps \vee a = a \vee \ps = a
+    \label{eq:vee_identity}
+\end{subeqnarray}
 The regressive geometric product combines the dimensions that are \lcmpl{not} present
 in an object
 representation, e.g. for $pga2dp$:

@@ -2,8 +2,8 @@
 
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
-#include <type_traits>
 #include <concepts>
+#include <type_traits>
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // type tags for consistent type definitions
@@ -75,50 +75,49 @@ struct dual_number3dp_tag : public pga3dp_tag {};
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // Primary template - will trigger static_assert for unknown types
-template<typename T>
-struct base_class {
-    static_assert(std::is_same_v<T, void>, "Type doesn't belong to any known base class family");
+template <typename T> struct base_class {
+    static_assert(std::is_same_v<T, void>,
+                  "Type doesn't belong to any known base class family");
 };
 
 // Specialization for each base class family
-template<typename T>
+template <typename T>
     requires std::is_base_of_v<ega2d_tag, T>
 struct base_class<T> {
     using type = ega2d_tag;
 };
 
-template<typename T>
+template <typename T>
     requires std::is_base_of_v<ega3d_tag, T>
 struct base_class<T> {
     using type = ega3d_tag;
 };
 
-template<typename T>
+template <typename T>
     requires std::is_base_of_v<ega4d_tag, T>
 struct base_class<T> {
     using type = ega4d_tag;
 };
 
-template<typename T>
+template <typename T>
     requires std::is_base_of_v<pga2dp_tag, T>
 struct base_class<T> {
     using type = pga2dp_tag;
 };
 
-template<typename T>
+template <typename T>
     requires std::is_base_of_v<pga3dp_tag, T>
 struct base_class<T> {
     using type = pga3dp_tag;
 };
 
-//hint: just add newly defined tag classes here
+// hint: just add newly defined tag classes here
 
 // Helper alias template
-template<typename T>
-using base_class_t = typename base_class<T>::type;
+template <typename T> using base_class_t = typename base_class<T>::type;
 
 // Concept to check if two types have the same base class
-template<typename T, typename U>
+template <typename T, typename U>
 concept same_base_class = std::same_as<base_class_t<T>, base_class_t<U>>;
 
 } // namespace hd::ga

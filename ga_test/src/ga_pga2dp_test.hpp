@@ -223,6 +223,81 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(dot(u, v) == dot(v, u));
     }
 
+    TEST_CASE("Vec2dp: linking inner and outer product")
+    {
+        fmt::println("Vec2dp: linking inner and outer product");
+
+        auto s1 = scalar2dp{2.0};
+        auto s2 = scalar2dp{3.0};
+        auto v1 = vec2dp{1.0, 2.0, 3.0};
+        auto v2 = vec2dp{-1.0, 4.0, -5.0};
+        auto B1 = bivec2dp{4.0, 5.0, 6.0};
+        auto B2 = bivec2dp{-4.0, -5.0, -6.0};
+        auto ps1 = pscalar2dp{-2.0};
+        auto ps2 = pscalar2dp{4.0};
+
+        CHECK(bulk_dual(wdg(v1, B1)) == rwdg(bulk_dual(v1), bulk_dual(B1)));
+
+        fmt::println("");
+        fmt::println("wdg(s1, bulk_dual(s2)) = {}", wdg(s1, bulk_dual(s2)));
+        fmt::println("dot(s1, s2) ^ I_2dp = {}", wdg(dot(s1, s2), I_2dp));
+        fmt::println("");
+        fmt::println("wdg(v1, bulk_dual(v2)) = {}", wdg(v1, bulk_dual(v2)));
+        fmt::println("dot(v1, v2) ^ I_2dp = {}", wdg(dot(v1, v2), I_2dp));
+        fmt::println("");
+        fmt::println("wdg(B1, bulk_dual(B2)) = {}", wdg(B1, bulk_dual(B2)));
+        fmt::println("dot(B1, B2) ^ I_2dp = {}", wdg(dot(B1, B2), I_2dp));
+        fmt::println("");
+        fmt::println("wdg(ps1, bulk_dual(ps2)) = {}", wdg(ps1, bulk_dual(ps2)));
+        fmt::println("dot(ps1, ps2) ^ I_2dp = {}", wdg(dot(ps1, ps2), I_2dp));
+        fmt::println("");
+
+        CHECK(wdg(s1, bulk_dual(s2)) == wdg(dot(s1, s2), I_2dp));
+        //
+        CHECK(wdg(v1, bulk_dual(v2)) == wdg(dot(v1, v2), I_2dp));
+        //
+        CHECK(wdg(B1, bulk_dual(B2)) == wdg(dot(B1, B2), I_2dp));
+        //
+        CHECK(wdg(ps1, bulk_dual(ps2)) == wdg(dot(ps1, ps2), I_2dp));
+
+        CHECK(wdg(v1, weight_dual(v2)) == rdot(v1, v2));
+
+        fmt::println("");
+
+
+        CHECK(weight_dual(rwdg(v1, B1)) == wdg(weight_dual(v1), weight_dual(B1)));
+
+        CHECK(rwdg(v1, bulk_dual(v2)) == dot(v1, v2));
+
+        fmt::println("");
+        fmt::println("rwdg(s1, weight_dual(s2)) = {}", rwdg(s1, weight_dual(s2)));
+        fmt::println("rwdg(rdot(s1, s2), I_2dp) = {}",
+                     rwdg(rdot(s1, s2), scalar2dp{1.0}));
+        fmt::println("");
+        fmt::println("rwdg(v1, weight_dual(v2)) = {}", rwdg(v1, weight_dual(v2)));
+        fmt::println("rwdg(rdot(v1, v2), I_2dp) = {}",
+                     rwdg(rdot(v1, v2), scalar2dp{1.0}));
+        fmt::println("");
+        fmt::println("rwdg(B1, weight_dual(B2)) = {}", rwdg(B1, weight_dual(B2)));
+        fmt::println("rwdg(rdot(B1, B2), I_2dp) = {}",
+                     rwdg(rdot(B1, B2), scalar2dp{1.0}));
+        fmt::println("");
+        fmt::println("rwdg(ps1, weight_dual(ps2)) = {}", rwdg(ps1, weight_dual(ps2)));
+        fmt::println("rwdg(rdot(ps1, ps2), I_2dp) = {}",
+                     rwdg(rdot(ps1, ps2), scalar2dp{1.0}));
+        fmt::println("");
+
+        CHECK(rwdg(s1, weight_dual(s2)) == rwdg(rdot(s1, s2), scalar2dp{1.0}));
+        //
+        CHECK(rwdg(v1, weight_dual(v2)) == rwdg(rdot(v1, v2), scalar2dp{1.0}));
+        //
+        CHECK(rwdg(B1, weight_dual(B2)) == rwdg(rdot(B1, B2), scalar2dp{1.0}));
+        //
+        CHECK(rwdg(ps1, weight_dual(ps2)) == rwdg(rdot(ps1, ps2), scalar2dp{1.0}));
+
+        fmt::println("");
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Vec2dp<T> operations test cases
     ////////////////////////////////////////////////////////////////////////////////
@@ -321,7 +396,7 @@ TEST_SUITE("PGA 2DP Tests")
         auto v2 = vec2dp{3.0, -2.0, 1.0};
         auto B2 = bivec2dp{-3.0, 2.0, 5.0};
 
-        CHECK(value_t(bulk_dual(s)) == value_t(s));
+        CHECK(bulk_dual(s) == pscalar2dp(to_val(s)));
         CHECK(weight_dual(s) == pscalar2dp{0.0});
 
         CHECK(bulk_dual(v) == -bivec2dp{1.0, 2.0, 0.0});
@@ -331,7 +406,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(weight_dual(B) == -vec2dp{-1.0, 2.0, 0.0});
 
         CHECK(bulk_dual(ps) == scalar2dp{0.0});
-        CHECK(value_t(weight_dual(ps)) == value_t(ps));
+        CHECK(weight_dual(ps) == scalar2dp(to_val(ps)));
 
         // duality of wdg and rwdg based on complements
         CHECK(bulk_dual(wdg(v, v2)) == rwdg(bulk_dual(v), bulk_dual(v2)));
@@ -677,6 +752,49 @@ TEST_SUITE("PGA 2DP Tests")
                 CHECK(vec_rot_calc[i] == vec_rot[i]);
             }
         }
+
+        fmt::println("");
+    }
+
+    TEST_CASE("Vec2dp: operations - translation")
+    {
+        fmt::println("Vec2dp: operations - translation");
+
+        // three points representing two lines l0=(p0,p1), l1 = (p0,p2)
+        auto const P = vec2dp{3.5, 0.5, 1}; // point P
+        auto const p = vec2dp{3.5, 0.5, 0}; // vector from O to P: p = P-O
+        auto const d = bulk_nrm(p);
+
+        auto m_tra = get_motor(p);
+        auto Pt = move2dp(P, m_tra);
+
+        fmt::println("m_tra  = {: 5.3f}", m_tra);
+        fmt::println("");
+        fmt::println("P     = {: 5.3f}", P);
+        fmt::println("p     = {: 5.3f}", p);
+        fmt::println("Pt    = {: 5.3f}", Pt);
+        fmt::println("");
+
+        CHECK(Pt == O_2dp + 2.0 * p);
+
+        auto ln = unitize(wdg(O_2dp, P));
+
+        fmt::println("ln  = {: 5.3f}", ln);
+        fmt::println("rgpr(ln,ln)  = {: 5.3f}", rgpr(ln, ln));
+        fmt::println("rgpr(d/2.0*ln,P)  = {: 5.3f}", rgpr(d / 2.0 * ln, P));
+        fmt::println("rgpr(P,d/2.0*ln)  = {: 5.3f}", rgpr(P, d / 2.0 * ln));
+        fmt::println("rgrp(rgpr(d / 2.0 * ln,P),rrev(d / 2.0 * ln))  = {: 5.3f}",
+                     rgpr(rgpr(d / 2.0 * ln, P), rrev(d / 2.0 * ln)));
+        fmt::println("unitize(gr1(rgrp(rgpr(d/2.0*ln,P),rrev(d/2.0*ln))))  = {: 5.3f}",
+                     unitize(gr1(rgpr(rgpr(d / 2.0 * ln, P), rrev(d / 2.0 * ln)))));
+
+        fmt::println("");
+        fmt::println("rgpr(-d/2*ln,d/2*ln)  = {: 5.3f}",
+                     rgpr((-d / 2.0) * ln, (d / 2.0) * ln));
+        fmt::println("-d*d/4  = {: 5.3f}", -d * d / 4.0);
+
+        auto m_tra_c = rgpr(d / 2.0, ln) + pscalar2dp{1.0};
+        fmt::println("m_tra_c  = {: 5.3f}", m_tra_c);
 
         fmt::println("");
     }

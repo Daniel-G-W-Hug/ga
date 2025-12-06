@@ -1277,7 +1277,7 @@ inline DualNum3dp<T> unitize(DualNum3dp<T> const& D)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// right_bulk_dual = rcmpl(bulk(A))
+// right_bulk_dual(A) = rcmpl(bulk(A)) = rcmpl( metric * A )
 //
 // -> right complement operation applied to the bulk
 //
@@ -1354,7 +1354,7 @@ constexpr MVec3dp<T> right_bulk_dual(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// right_weight_dual(A) = = rcmpl(weight(A))
+// right_weight_dual(A) = rcmpl(weight(A)) = rcmpl( regressive_metric * A )
 //
 // -> right complement operation applied to the weight
 //
@@ -1430,7 +1430,7 @@ constexpr MVec3dp<T> right_weight_dual(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// left_bulk_dual = lcmpl(bulk(A))
+// left_bulk_dual(A) = lcmpl(bulk(A)) = lcmpl( metric * A )
 //
 // -> left complement operation applied to the bulk
 //
@@ -1506,7 +1506,7 @@ constexpr MVec3dp<T> left_bulk_dual(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// left_weight_dual(A) = = lcmpl(weight(A))
+// left_weight_dual(A) = = lcmpl(weight(A)) = lcmpl( regressive_metric * A )
 //
 // -> left complement operation applied to the weight
 //

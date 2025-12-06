@@ -230,6 +230,108 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(dot(u, v) == dot(v, u));
     }
 
+    TEST_CASE("Vec3dp: linking inner and outer product")
+    {
+        fmt::println("Vec3dp: linking inner and outer product");
+
+        auto s1 = scalar3dp{2.0};
+        auto s2 = scalar3dp{3.0};
+        auto v1 = vec3dp{1.0, 2.0, 3.0, 1.0};
+        auto v2 = vec3dp{-1.0, 4.0, -5.0, 1.0};
+        auto B1 = bivec3dp{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        auto B2 = bivec3dp{-1.0, -2.0, -3.0, -4.0, -5.0, -6.0};
+        auto t1 = trivec3dp{10.0, 20.0, 30.0, 10.0};
+        auto t2 = trivec3dp{-10.0, 40.0, -50.0, 10.0};
+        auto ps1 = pscalar3dp{-2.0};
+        auto ps2 = pscalar3dp{4.0};
+
+        CHECK(right_bulk_dual(wdg(v1, B1)) ==
+              rwdg(right_bulk_dual(v1), right_bulk_dual(B1)));
+
+        fmt::println("");
+        fmt::println("wdg(s1, right_bulk_dual(s2)) = {}", wdg(s1, right_bulk_dual(s2)));
+        fmt::println("dot(s1, s2) ^ I_3dp = {}", wdg(dot(s1, s2), I_3dp));
+        fmt::println("");
+        fmt::println("wdg(v1, right_bulk_dual(v2)) = {}", wdg(v1, right_bulk_dual(v2)));
+        fmt::println("dot(v1, v2) ^ I_3dp = {}", wdg(dot(v1, v2), I_3dp));
+        fmt::println("");
+        fmt::println("wdg(B1, right_bulk_dual(B2)) = {}", wdg(B1, right_bulk_dual(B2)));
+        fmt::println("dot(B1, B2) ^ I_3dp = {}", wdg(dot(B1, B2), I_3dp));
+        fmt::println("");
+        fmt::println("wdg(t1, right_bulk_dual(t2)) = {}", wdg(t1, right_bulk_dual(t2)));
+        fmt::println("dot(t1, t2) ^ I_3dp = {}", wdg(dot(t1, t2), I_3dp));
+        fmt::println("");
+        fmt::println("wdg(ps1, right_bulk_dual(ps2)) = {}",
+                     wdg(ps1, right_bulk_dual(ps2)));
+        fmt::println("dot(ps1, ps2) ^ I_3dp = {}", wdg(dot(ps1, ps2), I_3dp));
+        fmt::println("");
+
+        CHECK(wdg(s1, right_bulk_dual(s2)) == wdg(dot(s1, s2), I_3dp));
+        //
+        CHECK(wdg(v1, right_bulk_dual(v2)) == wdg(dot(v1, v2), I_3dp));
+        //
+        CHECK(wdg(B1, right_bulk_dual(B2)) == wdg(dot(B1, B2), I_3dp));
+        //
+        CHECK(wdg(t1, right_bulk_dual(t2)) == wdg(dot(t1, t2), I_3dp));
+        //
+        CHECK(wdg(ps1, right_bulk_dual(ps2)) == wdg(dot(ps1, ps2), I_3dp));
+
+        CHECK(wdg(v1, right_weight_dual(v2)) == rdot(v1, v2));
+
+        fmt::println("");
+
+        // zero values can always be compared (only true if the value is actually zero!)
+        CHECK(to_val(right_weight_dual(rwdg(v1, B1))) ==
+              to_val(wdg(right_weight_dual(v1), right_weight_dual(B1))));
+        CHECK(to_val(right_weight_dual(rwdg(v1, B1))) == 0.0);
+        CHECK(to_val(wdg(right_weight_dual(v1), right_weight_dual(B1))) == 0.0);
+        // alternative valid way to test this in one step is to test this via conversion
+        // to full multivector:
+        CHECK(mvec3dp(right_weight_dual(rwdg(v1, B1))) ==
+              mvec3dp(wdg(right_weight_dual(v1), right_weight_dual(B1))));
+
+        CHECK(rwdg(v1, right_bulk_dual(v2)) == dot(v1, v2));
+
+        fmt::println("");
+        fmt::println("rwdg(s1, right_weight_dual(s2)) = {}",
+                     rwdg(s1, right_weight_dual(s2)));
+        fmt::println("rwdg(rdot(s1, s2), I_3dp) = {}",
+                     rwdg(rdot(s1, s2), scalar3dp{1.0}));
+        fmt::println("");
+        fmt::println("rwdg(v1, right_weight_dual(v2)) = {}",
+                     rwdg(v1, right_weight_dual(v2)));
+        fmt::println("rwdg(rdot(v1, v2), I_3dp) = {}",
+                     rwdg(rdot(v1, v2), scalar3dp{1.0}));
+        fmt::println("");
+        fmt::println("rwdg(B1, right_weight_dual(B2)) = {}",
+                     rwdg(B1, right_weight_dual(B2)));
+        fmt::println("rwdg(rdot(B1, B2), I_3dp) = {}",
+                     rwdg(rdot(B1, B2), scalar3dp{1.0}));
+        fmt::println("");
+        fmt::println("rwdg(t1, right_weight_dual(t2)) = {}",
+                     rwdg(t1, right_weight_dual(t2)));
+        fmt::println("rwdg(rdot(t1, t2), I_3dp) = {}",
+                     rwdg(rdot(t1, t2), scalar3dp{1.0}));
+        fmt::println("");
+        fmt::println("rwdg(ps1, right_weight_dual(ps2)) = {}",
+                     rwdg(ps1, right_weight_dual(ps2)));
+        fmt::println("rwdg(rdot(ps1, ps2), I_3dp) = {}",
+                     rwdg(rdot(ps1, ps2), scalar3dp{1.0}));
+        fmt::println("");
+
+        CHECK(rwdg(s1, right_weight_dual(s2)) == rwdg(rdot(s1, s2), scalar3dp{1.0}));
+        //
+        CHECK(rwdg(v1, right_weight_dual(v2)) == rwdg(rdot(v1, v2), scalar3dp{1.0}));
+        //
+        CHECK(rwdg(B1, right_weight_dual(B2)) == rwdg(rdot(B1, B2), scalar3dp{1.0}));
+        //
+        CHECK(rwdg(t1, right_weight_dual(t2)) == rwdg(rdot(t1, t2), scalar3dp{1.0}));
+        //
+        CHECK(rwdg(ps1, right_weight_dual(ps2)) == rwdg(rdot(ps1, ps2), scalar3dp{1.0}));
+
+        fmt::println("");
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Vec3dp<T> operations test cases
     ////////////////////////////////////////////////////////////////////////////////
@@ -373,7 +475,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto v2 = vec3dp{3.0, -2.0, 2.0, 5.0};
         auto B2 = bivec3dp{1.0, -2.0, 3.0, -10.0, -20.0, 30.0};
 
-        CHECK(value_t(right_bulk_dual(s)) == value_t(s));
+        CHECK(right_bulk_dual(s) == pscalar3dp(to_val(s)));
         CHECK(right_weight_dual(s) == pscalar3dp{0.0});
 
         CHECK(right_bulk_dual(v) == trivec3dp{1.0, 2.0, 1.0, 0.0});
@@ -386,7 +488,7 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(right_weight_dual(t) == vec3dp{-3.0, -6.0, -3.0, 0.0});
 
         CHECK(right_bulk_dual(ps) == scalar3dp{0.0});
-        CHECK(value_t(right_weight_dual(ps)) == value_t(ps));
+        CHECK(right_weight_dual(ps) == scalar3dp(to_val(ps)));
 
         // duality of wdg and rwdg based on complements
         CHECK(right_bulk_dual(wdg(v, v2)) ==
@@ -873,9 +975,29 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
         fmt::println("vtr    = {: 5.3f}", fmt::join(vtr, ", "));
         fmt::println("vtr_c  = {: 5.3f}", fmt::join(vtr_c, ", "));
+        fmt::println("");
 
         CHECK(vrt == vrt_c); // same result stepwise or combined
         CHECK(vtr == vtr_c); // same result stepwise or combined
+
+        fmt::println("m_rot                          = {: 5.3f}", m_rot);
+        fmt::println("rrev(m_rot)                    = {: 5.3f}", rrev(m_rot));
+        fmt::println("rgpr(m_rot, rrev(m_rot))       = {: 5.3f}",
+                     rgpr(m_rot, rrev(m_rot)));
+        fmt::println("gr4(rgpr(m_rot, rrev(m_rot)))  = {: 5.3f}",
+                     rgpr(m_rot, rrev(m_rot)));
+        fmt::println("gr4(rgpr(rrev(m_rot),m_rot))  = {: 5.3f}",
+                     rgpr(rrev(m_rot), m_rot));
+        // rotors in pga multiply to the pseudoscalar as neutral element of rgpr(),
+        // not to 1 (which is the neutral element of gpr()) like in ega
+        CHECK(gr0(rgpr(m_rot, rrev(m_rot))) == scalar3dp{});
+        CHECK(gr2(rgpr(m_rot, rrev(m_rot))) == bivec3dp{});
+        CHECK(gr4(rgpr(m_rot, rrev(m_rot))) == pscalar3dp{1.0});
+
+        CHECK(gr0(rgpr(rrev(m_rot), m_rot)) == scalar3dp{});
+        CHECK(gr2(rgpr(rrev(m_rot), m_rot)) == bivec3dp{});
+        CHECK(gr4(rgpr(rrev(m_rot), m_rot)) == pscalar3dp{1.0});
+
 
         fmt::println("");
     }
