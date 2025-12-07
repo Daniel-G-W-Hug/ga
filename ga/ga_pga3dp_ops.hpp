@@ -227,14 +227,15 @@ get_motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
 {
     // take planes as input and return a motor R
     // 1st apply reflection across plane t1, then across t2 to get a motor that rotates
-    // (or translates) around the intersection line of planes t1 and t2
+    // around the intersection line of planes t1 and t2
+    // or translates when t1 and t2 are parallel
     //
-    // for use of motor R either directly on object u (inefficient):
-    //     auto v_moved = gr1(rgpr(rgpr(R, v), rrev(R))));
+    // for use of motor R either directly on object u (potentially inefficient):
+    //     auto v_moved = gr1( rgpr(rgpr(R, v), rrev(R)) );
     // or
-    //     auto B_moved = gr2(rgpr(rgpr(R, B), rrev(R))));
+    //     auto B_moved = gr2( rgpr(rgpr(R, B), rrev(R)) );
     // or
-    //     auto t_moved = gr3(rgpr(rgpr(R, t), rrev(R))));
+    //     auto t_moved = gr3( rgpr(rgpr(R, t), rrev(R)) );
     // or
     //                                   // optimized for reduced effort
     //     auto v_moved = move3dp(v,R);  // moves v according to the motor R

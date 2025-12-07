@@ -930,6 +930,37 @@ TEST_SUITE("PGA 3DP Tests")
     }
 
 
+    TEST_CASE("Vec3dp: operations - simple rotation")
+    {
+        fmt::println("Vec3dp: operations - simple rotation");
+
+        // rotation in e431 plane, normalized rotation axis is showing in e2 direction
+        auto const axis = unitize(wdg(vec3dp{1, 0, 1, 1}, vec3dp{1, 1, 1, 1}));
+        auto const phi = deg2rad(90);
+        auto const X0 = vec3dp{0, 0, 2, 1};
+
+        auto const M = get_motor(axis, phi);
+        auto const X = move3dp(X0, M);
+
+        fmt::println("axis = {}", axis);
+        fmt::println("phi  = {}", phi);
+        fmt::println("X0   = {}", X0);
+        fmt::println("");
+        fmt::println("M    = {}", M);
+        fmt::println("X    = {}", X);
+        fmt::println("");
+        fmt::println("phi/2*I_3dp = {}", phi / 2 * I_3dp);
+        fmt::println("rgpr(phi/2*I_3dp,axis) = {}", rgpr(phi / 2 * I_3dp, axis));
+        fmt::println("rgpr(axis,axis) = {}", rgpr(axis, axis));
+
+        CHECK(X == vec3dp{2.0, 0.0, 2.0, 1.0});
+        //
+        CHECK(rgpr(axis, rrev(axis)) == mvec3dp_e(pscalar3dp(1.0)));
+        CHECK(rgpr(axis, axis) == mvec3dp_e(pscalar3dp(-1.0)));
+
+        fmt::println("");
+    }
+
     TEST_CASE("Vec3dp: operations - rotation + translation combined")
     {
         fmt::println("Vec3dp: operations - rotation + translation combined");

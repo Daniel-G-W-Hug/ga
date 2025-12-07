@@ -537,15 +537,35 @@ ProductConfig get_pga3dp_rgpr_config()
         .cases = {{"rgpr(mv,mv) -> mv", "A", "B", "mv", "mv"},
                   {"rgpr(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
                   {"rgpr(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+                  //
                   {"rgpr(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
                   {"rgpr(mv_u,mv_e) -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
+                  //
                   {"rgpr(mv_e,trivec) -> mv_u", "M_even", "svBtps", "mv_e", "trivec"},
+                  {"rgpr(trivec,mv_e) -> mv_u", "svBtps", "M_even", "trivec", "mv_e"},
                   {"rgpr(mv_u,trivec) -> mv_e", "M_odd", "svBtps", "mv_u", "trivec"},
+                  {"rgpr(trivec,mv_u) -> mv_e", "svBtps", "M_odd", "trivec", "mv_u"},
                   {"rgpr(mv_e,bivec) -> mv_e", "M_even", "svBtps", "mv_e", "bivec"},
+                  {"rgpr(bivec,mv_e) -> mv_e", "svBtps", "M_even", "bivec", "mv_e"},
                   {"rgpr(mv_u,bivec) -> mv_u", "M_odd", "svBtps", "mv_u", "bivec"},
+                  {"rgpr(bivec,mv_u) -> mv_u", "svBtps", "M_odd", "bivec", "mv_u"},
                   {"rgpr(mv_e,vec) -> mv_u", "M_even", "svBtps", "mv_e", "vec"},
+                  {"rgpr(vec,mv_e) -> mv_u", "svBtps", "M_even", "vec", "mv_e"},
                   {"rgpr(mv_e,s) -> mv_e", "M_even", "svBtps", "mv_e", "s"},
+                  {"rgpr(s,mv_e) -> mv_e", "svBtps", "M_even", "s", "mv_e"},
                   {"rgpr(mv_u,s) -> mv_u", "M_odd", "svBtps", "mv_u", "s"},
+                  {"rgpr(s,mv_u) -> mv_u", "svBtps", "M_odd", "s", "mv_u"},
+                  //
+                  {"rgpr(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
+                  {"rgpr(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},
+                  {"rgpr(trivec,ps) -> trivec", "svBtps", "svBtps", "trivec", "ps"},
+                  {"rgpr(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},
+                  {"rgpr(bivec,ps) -> bivec", "svBtps", "svBtps", "bivec", "ps"},
+                  {"rgpr(ps,vec) -> vec", "svBtps", "svBtps", "ps", "vec"},
+                  {"rgpr(vec,ps) -> vec", "svBtps", "svBtps", "vec", "ps"},
+                  {"rgpr(ps,s) -> s", "svBtps", "svBtps", "ps", "s"},
+                  {"rgpr(s,ps) -> s", "svBtps", "svBtps", "s", "ps"},
+                  //
                   {"rgpr(trivec,trivec) -> mv_e", "svBtps1", "svBtps2", "trivec",
                    "trivec"},
                   {"rgpr(trivec,bivec) -> mv_u", "svBtps", "svBtps", "trivec", "bivec"},
@@ -554,14 +574,17 @@ ProductConfig get_pga3dp_rgpr_config()
                   {"rgpr(vec,trivec) -> mv_e", "svBtps", "svBtps", "vec", "trivec"},
                   {"rgpr(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
                   {"rgpr(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
+                  //
                   {"rgpr(bivec,bivec) -> mv_e", "svBtps1", "svBtps2", "bivec", "bivec"},
                   {"rgpr(bivec,vec) -> mv_u", "svBtps", "svBtps", "bivec", "vec"},
                   {"rgpr(vec,bivec) -> mv_u", "svBtps", "svBtps", "vec", "bivec"},
                   {"rgpr(bivec,s) -> bivec", "svBtps", "svBtps", "bivec", "s"},
                   {"rgpr(s,bivec) -> bivec", "svBtps", "svBtps", "s", "bivec"},
+                  //
                   {"rgpr(vec,vec) -> mv_e", "svBtps1", "svBtps2", "vec", "vec"},
                   {"rgpr(vec,s) ->trivec", "svBtps", "svBtps", "vec", "s"},
                   {"rgrp(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"},
+                  //
                   {"rgrp(s,s) -> 0", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
@@ -646,6 +669,8 @@ ProductConfig get_pga3dp_rwdg_config()
             .cases =
                 {
                     {"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                    //
+                    {"rwdg(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
                     {"rwdg(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},
                     {"rwdg(trivec,ps) -> trivec", "svBtps", "svBtps", "trivec", "ps"},
                     {"rwdg(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},
@@ -654,6 +679,7 @@ ProductConfig get_pga3dp_rwdg_config()
                     {"rwdg(vec,ps) -> vec", "svBtps", "svBtps", "vec", "ps"},
                     {"rwdg(ps,s) -> s", "svBtps", "svBtps", "ps", "s"},
                     {"rwdg(s,ps) -> s", "svBtps", "svBtps", "s", "ps"},
+                    //
                     {"rwdg(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
                      "trivec"},
                     {"rwdg(trivec,bivec) -> vec", "svBtps", "svBtps", "trivec", "bivec"},
