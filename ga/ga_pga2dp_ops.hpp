@@ -139,7 +139,8 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> c
 {
     // take lines (=bivectors) as input and return a motor R
     // 1st apply reflection across line B1, then across B2 to get a motor that rotates
-    // (or translates) around the intersection point of lines B1 and B2
+    // around the intersection point of lines B1 and B2
+    // or translates if the lines are parallel
     //
     // for use of motor R either directly on object u (inefficient):
     //     auto v_moved = gr1( rgpr(rgpr(R, v), rrev(R)) );
