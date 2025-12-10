@@ -24,7 +24,8 @@ struct MVec2_t {
     // (all grades = 0)
     MVec2_t() = default;
 
-    // assign all components (works with raw floating-point types and implicit conversions)
+    // assign all components (works with raw floating-point types and implicit
+    // conversions)
     constexpr MVec2_t(T s, T ps) : c0(s), c1(ps) {}
 
     template <typename Tag_S, typename Tag_PS>
@@ -199,6 +200,17 @@ template <typename T, typename Tag>
 constexpr T nrm(MVec2_t<T, Tag> const& v)
 {
     return sqrt(nrm_sq(v));
+}
+
+// return a multivector M normalized to nrm(M) == 1.0
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline MVec2_t<T, Tag> normalize(MVec2_t<T, Tag> const& M)
+{
+    T m = nrm(M);
+    detail::check_normalization<T>(m, "multivector");
+    T inv = T(1.0) / m; // for multiplication with inverse of norm
+    return MVec2_t<T, Tag>(M.c0 * inv, M.c1 * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
