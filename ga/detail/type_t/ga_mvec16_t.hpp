@@ -329,6 +329,20 @@ constexpr T nrm(MVec16_t<T, Tag> const& v)
     return sqrt(nrm_sq(v));
 }
 
+// return a multivector M normalized to nrm(M) == 1.0
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline MVec16_t<T, Tag> normalize(MVec16_t<T, Tag> const& M)
+{
+    T m = nrm(M);
+    detail::check_normalization<T>(m, "multivector");
+    T inv = T(1.0) / m; // for multiplication with inverse of norm
+    return MVec16_t<T, Tag>(M.c0 * inv, M.c1 * inv, M.c2 * inv, M.c3 * inv, M.c4 * inv,
+                            M.c5 * inv, M.c6 * inv, M.c7 * inv, M.c8 * inv, M.c9 * inv,
+                            M.c10 * inv, M.c11 * inv, M.c12 * inv, M.c13 * inv,
+                            M.c14 * inv, M.c15 * inv);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // MVec16_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////

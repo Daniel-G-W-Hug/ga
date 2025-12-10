@@ -1,0 +1,158 @@
+\subsection{Modelling motion}
+\label{section_modelling_motion}
+
+In order to model motion in $PGA$ we need to work with the exponential function and apply
+it in the context of the geometric product (symbol ``$\wedgedot$'') and the regressive
+geometric product (symbol ``$\veedot$'').
+% Exponential function
+\begin{align}
+\exp(x) &= \sum_{n=0}^{\infty} \frac{x^n}{n!} 
+&= 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \frac{x^4}{4!} +
+\frac{x^5}{5!} + \frac{x^6}{6!} + \frac{x^7}{7!} + \cdots
+\label{eq:exp_taylor}
+\end{align}
+% Cosine function
+\begin{align}
+\cos(x) &= \sum_{n=0}^{\infty} \frac{(-1)^n x^{2n}}{(2n)!} 
+&= 1 - \frac{x^2}{2!} + \frac{x^4}{4!} - \frac{x^6}{6!} + \frac{x^8}{8!}
+- \frac{x^{10}}{10!} + \frac{x^{12}}{12!} - \frac{x^{14}}{14!} + \cdots
+\label{eq:cos_taylor}
+\end{align}
+% Sine function
+\begin{align}
+\sin(x) &= \sum_{n=0}^{\infty} \frac{(-1)^n x^{2n+1}}{(2n+1)!} 
+&= x - \frac{x^3}{3!} + \frac{x^5}{5!} - \frac{x^7}{7!} + \frac{x^9}{9!}
+- \frac{x^{11}}{11!} + \frac{x^{13}}{13!} - \frac{x^{15}}{15!} + \cdots
+\label{eq:sin_taylor}
+\end{align}
+
+If we substitute $x = i \phi$ with $i$ as the imaginary unit that squares to -1, we get
+Euler's formula:
+% Exponential function with x = i*phi
+\begin{align}
+\exp(i\phi) &= \sum_{n=0}^{\infty} \frac{(i\phi)^n}{n!} \nonumber \\ 
+&= 1 + i\phi + \frac{(i\phi)^2}{2!} + \frac{(i\phi)^3}{3!} + \frac{(i\phi)^4}{4!} +
+   \frac{(i\phi)^5}{5!} + \frac{(i\phi)^6}{6!} + \frac{(i\phi)^7}{7!} +
+   \cdots \\
+&= 1 + i\phi - \frac{\phi^2}{2!} - i\frac{\phi^3}{3!} + \frac{\phi^4}{4!} +
+   i\frac{\phi^5}{5!} - \frac{\phi^6}{6!} - i\frac{\phi^7}{7!} + \cdots
+   \nonumber \\
+&= 1 - \frac{\phi^2}{2!} + \frac{\phi^4}{4!} - \frac{\phi^6}{6!} + \cdots
+   + i (\phi - \frac{\phi^3}{3!} + \frac{\phi^5}{5!} - \frac{\phi^7}{7!} +
+   \cdots) \\[10pt]
+\exp(i\phi) &= \cos(\phi) + i\sin(\phi)
+\end{align}
+
+Applying this for geometric algebra we have to distinguish between calculating the powers
+in the Taylor series using the geometric product (e.g. in $EGA$) and using the regressive
+geometric product (e.g. in $PGA$). We assume a unitized bivector $B$ and a scalar $\phi$.
+Based on the geometric product we know that $B \wedgedot B = -\bm{1}$, and for its
+regressive counterpart we know that $B \veedot B = -\ps$. Thus, $B$ plays a role
+equivalent to $i$ in both cases. In addition, taking any value to the power of $0$ results
+in the neutral element of the product, which is $\bm{1}$ for the geometric product, and
+$\ps$ for the regressive geometric product. Taking the powers works like this:
+\begin{subeqnarray}
+\cdots \nonumber \\[5pt]
+\frac{(B\phi)^2_\wedgedot}{2!} & = & \frac{1}{2!} (B \phi \wedgedot B \phi)
+= \frac{\phi^2}{2!}  (B \wedgedot B) = \frac{\phi^2}{2!}  (-\bm{1})= - \frac{\phi^2}{2!}
+\\
+\frac{(B\phi)^3_\wedgedot}{3!} & = &
+\frac{\phi^3}{3!} (B \wedgedot B \wedgedot B)
+= \frac{\phi^3}{3!} (-\bm{1} \wedgedot B) = - \frac{\phi^3}{3!}  B \\[5pt]
+\cdots \nonumber \\[5pt]
+\frac{(B\phi)^2_\veedot}{2!} & = & \frac{1}{2!} (B \phi \veedot B \phi)
+= \frac{\phi^2}{2!}  (B \veedot B) = \frac{\phi^2}{2!}  (-\ps)= - \frac{\phi^2}{2!} \ps
+\\
+\frac{(B\phi)^3_\veedot}{3!} & = & \frac{1}{3!} B \phi \veedot B \phi \veedot B \phi
+= \frac{1}{3!} \phi^3 (-\ps \veedot B) = - \frac{\phi^3}{3!} B \\[5pt]
+\cdots \nonumber 
+\end{subeqnarray}
+
+Thus, the result of exponentiating a bivector $B$ is:
+% Geometric Product Version
+\begin{align}
+\exp_\wedgedot(B\phi) &= \sum_{n=0}^{\infty} \frac{(B\phi)^n_\wedgedot}{n!} \nonumber \\ 
+&= 1 + B\phi + \frac{(B\phi)^2_\wedgedot}{2!} + \frac{(B\phi)^3_\wedgedot}{3!} +
+\frac{(B\phi)^4_\wedgedot}{4!} + \frac{(B\phi)^5_\wedgedot}{5!} +
+\frac{(B\phi)^6_\wedgedot}{6!} + 
+\cdots \\
+&= 1 + B\phi - \frac{\phi^2}{2!} - B\frac{\phi^3}{3!} + \frac{\phi^4}{4!} +
+   B\frac{\phi^5}{5!} - \frac{\phi^6}{6!} - B\frac{\phi^7}{7!} + \cdots
+   \nonumber \\
+&= 1 - \frac{\phi^2}{2!} + \frac{\phi^4}{4!} - \frac{\phi^6}{6!} + \cdots
+   + B (\phi - \frac{\phi^3}{3!} + \frac{\phi^5}{5!} - \frac{\phi^7}{7!} +
+   \cdots)  \nonumber \\[10pt]
+\exp_\wedgedot(B\phi) &= \cos(\phi) + \sin(\phi) B
+\label{eq:exp_B}
+\end{align}
+The last step of moving B after the brackets is allowed, since scalar factors commute with
+any object using the regular product. The result structurally is an even-grade multivector
+with a scalar and a bivector component. We get the correct sign and angle of rotation if
+we replace $\phi$ by $-\frac{1}{2}\phi$, which was not considered above to keep the
+formulas as simple as possible. The substitution yields the final form of a rotor in $EGA$
+with $B$ as normalized bivector and $\phi$ the rotation angle:
+\begin{align}
+    R = \exp_\wedgedot(-\frac{\phi}{2}B)
+      &= \cos(-\frac{\phi}{2}) + \sin(-\frac{\phi}{2}) B \nonumber \\
+    R &= \cos(\frac{\phi}{2}) - \sin(\frac{\phi}{2}) B 
+\end{align}
+
+And for the case using the regressive geometric product it becomes:
+% Regressive Geometric Product Version
+\begin{align}
+\exp_\veedot(B\phi) &= \sum_{n=0}^{\infty} \frac{(B\phi)^n_\veedot}{n!} \nonumber \\ 
+&= \ps + B\phi + \frac{(B\phi)^2_\veedot}{2!} + \frac{(B\phi)^3_\veedot}{3!} +
+   \frac{(B\phi)^4_\veedot}{4!} + \frac{(B\phi)^5_\veedot}{5!} +
+   \frac{(B\phi)^6_\veedot}{6!} + 
+   \cdots \\
+&= \ps + B\phi - \ps\frac{\phi^2}{2!} - B\frac{\phi^3}{3!} + \ps\frac{\phi^4}{4!} +
+   B\frac{\phi^5}{5!} - \ps\frac{\phi^6}{6!} - B\frac{\phi^7}{7!} + \cdots
+   \nonumber \\
+&= \ps (1 - \frac{\phi^2}{2!} + \frac{\phi^4}{4!} - \frac{\phi^6}{6!} + \cdots) 
+   + B (\phi - \frac{\phi^3}{3!} + \frac{\phi^5}{5!} - \frac{\phi^7}{7!} +
+   \cdots)  \nonumber \\[10pt]
+\exp_\veedot(B\phi) &= \cos(\phi)\ps + \sin(\phi) B
+\label{eq:rexp_B}
+\end{align}
+The last step of moving $\ps$ and $B$ after the brackets is allowed, since scalar factors
+commute with any object using the regular product. The result structurally is an
+even-grade multivector with a bivector and a pseudoscalar component. \\
+
+Eqn. (\ref{eq:exp_B}) allows us to model rotations in geometric algebra, specifically in
+$EGA$, where the bivector $B$ is the complement of the axis of rotation and $\theta =
+-2\phi$ is the angle of the rotation around that axis. If we directly want to specify the
+angle of rotation $\theta$ we need to substitute $\phi$ by $-\frac{\phi}{2}$ in eqn.
+(\ref{eq:exp_B}). The rotated object $X$ can be obtained from the original object $X_0$
+by:
+\begin{equation}
+    X = R \wedgedot X_0 \wedgedot \rev{R} = \exp_\wedgedot(-\frac{\phi}{2} B )
+    \wedgedot X_0 \wedgedot \exp_\wedgedot(\frac{\phi}{2} B) \quad (\text{for $EGA$})
+\end{equation}
+
+If we want to model translations and rotations in $PGA$, we need to look into another
+extension of the exponential function. We follow the approach defined by
+\cite{Lengyel_pga-illuminated:2024} in chapter 3.2 and 3.6.2, where it is shown that a
+general motor in $PGA$ can be expressed as a rotation around a normalized line $l$ by an
+angle $\phi$ and a translation along $l$ by a displacement $\delta$ as
+\begin{eqnarray}
+    M = \exp_\veedot\left[(\frac{\delta}{2} \bm{1} + \frac{\phi}{2}\ps) \veedot l \right]=
+    \cos_\veedot(\frac{\delta}{2} \bm{1} + \frac{\phi}{2} \ps) +
+    \sin_\veedot(\frac{\delta}{2} \bm{1} + \frac{\phi}{2} \ps) \veedot \bm{l}
+    \nonumber \\
+    = -\frac{\delta}{2} \bm{1} \sin(\frac{\phi}{2}) + \ps\cos(\frac{\phi}{2})
+     + \left( \frac{\delta}{2} \bm{1} \cos(\frac{\phi}{2}) + \ps\sin(\frac{\phi}{2})
+       \right) \veedot \bm{l} \nonumber \\
+  M = -\frac{\delta}{2}\bm{1}\sin(\frac{\phi}{2})
+      - \rightweightdual{\bm{l}}\frac{\delta}{2} \cos(\frac{\phi}{2})
+      + \bm{l}\sin(\frac{\phi}{2})
+      + \ps\cos(\frac{\phi}{2}) 
+\label{eq:rexp_pga_motor}
+\end{eqnarray}
+which structurally is an even grade multivector with scalar, bivector and pseudoscalar
+parts in $3D$ $PGA$.
+The resulting transformation is then obtained from
+\begin{equation}
+    X = M \veedot X_0 \veedot \rrev{M} \quad (\text{for $PGA$})
+\end{equation}
+
+\newpage

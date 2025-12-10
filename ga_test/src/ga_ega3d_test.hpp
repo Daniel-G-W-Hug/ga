@@ -788,6 +788,35 @@ TEST_SUITE("EGA 3D Tests")
         // fmt::println("");
     }
 
+    TEST_CASE("Vec3d: operations - simple rotation")
+    {
+        fmt::println("Vec3d: operations - simple rotation");
+
+        // rotation in e31 plane, normalized rotation axis is showing in e2 direction
+        auto const axis = e2_3d;
+        auto const phi = deg2rad(90);
+        auto const X0 = vec3d{0, 0, 2};
+
+        auto const M_rot = get_rotor(cmpl(axis), phi);
+        auto const X_rot = rotate(X0, M_rot);
+
+        fmt::println("axis = {}", axis);
+        fmt::println("phi  = {}", phi);
+        fmt::println("X0   = {}", X0);
+        fmt::println("");
+        fmt::println("M_rot    = {}", M_rot);
+        fmt::println("X_rot    = {}", X_rot);
+        fmt::println("");
+        auto const Xh = 0.5 * (X_rot + X0);
+        fmt::println("Xh = 0.5*(X + X0) = {}", Xh);
+        fmt::println("X0*Xh = {}", normalize(X0 * Xh));
+        fmt::println("Xh*X0 = {}", normalize(Xh * X0));
+
+        CHECK(X_rot == vec3d{2.0, 0.0, 0.0});
+
+        fmt::println("");
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Vec3d<T> Gram-Schmidt-Orthogonalization
     ////////////////////////////////////////////////////////////////////////////////

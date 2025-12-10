@@ -249,6 +249,18 @@ constexpr T nrm(MVec8_t<T, Tag> const& v)
     return sqrt(nrm_sq(v));
 }
 
+// return a multivector M normalized to nrm(M) == 1.0
+template <typename T, typename Tag>
+    requires(std::floating_point<T>)
+inline MVec8_t<T, Tag> normalize(MVec8_t<T, Tag> const& M)
+{
+    T m = nrm(M);
+    detail::check_normalization<T>(m, "multivector");
+    T inv = T(1.0) / m; // for multiplication with inverse of norm
+    return MVec8_t<T, Tag>(M.c0 * inv, M.c1 * inv, M.c2 * inv, M.c3 * inv, M.c4 * inv,
+                           M.c5 * inv, M.c6 * inv, M.c7 * inv);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // MVec8_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
