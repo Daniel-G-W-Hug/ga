@@ -51,7 +51,7 @@ namespace hd::ga::pga {
 // Vector3d: 3d vector of projective algebra storing only components x, y, z explicitly.
 // The w component is assumed to be w = 0.0
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct Vector3d : public Vec3d<T> {
 
     using Vec3d<T>::Vec3d; // inherit base class ctors
@@ -68,7 +68,7 @@ struct Vector3d : public Vec3d<T> {
 // Point3d: 3d point of projective algebra storing only components x, y, z explicitly.
 // The w component is assumed to by w = 1.0
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct Point3d : public Vec3d<T> {
 
     using Vec3d<T>::Vec3d; // inherit base class ctors
@@ -89,7 +89,7 @@ struct Point3d : public Vec3d<T> {
 // a Point3dp is a Vec3dp, thus all operations defined for Vec3dp
 // work directly for Point3dp - only deviations will be specified
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct Point3dp : public Vec3dp<T> {
 
     using Vec3dp<T>::Vec3dp; // inherit base class ctors
@@ -112,7 +112,7 @@ struct Point3dp : public Vec3dp<T> {
 // a Line3d is a BiVec3dp, thus all operations defined for BiVec3dp
 // work directly for Line3d - only deviations will be specified
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct Line3d : public BiVec3dp<T> {
 
     using BiVec3dp<T>::BiVec3dp; // inherit base class ctors
@@ -138,7 +138,7 @@ struct Line3d : public BiVec3dp<T> {
 
 // Plane3d: 3d plane of projective algebra (a trivector in the modeling 4d space)
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct Plane3d : public TriVec3dp<T> {
 
     using TriVec3dp<T>::TriVec3dp; // inherit base class ctors

@@ -4,7 +4,7 @@
 
 #include <algorithm> // std::max
 #include <cmath>     // std::abs, std::sqrt
-#include <concepts>  // std::floating_point<T>
+#include <concepts>  // numeric_type<T>
 #include <iostream>  // std::cout, std::ostream
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error
@@ -20,7 +20,7 @@ namespace hd::ga {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename Tag = default_tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct Vec2_t {
 
     // assumes a right-handed orthonormal vector basis {e1, e2} in EGA
@@ -45,7 +45,7 @@ struct Vec2_t {
 
     // floating point type conversion
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     constexpr Vec2_t(Vec2_t<U, Tag> const& v) : x(v.x), y(v.y)
     {
     }
@@ -61,7 +61,7 @@ struct Vec2_t {
     T y{};
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     Vec2_t& operator+=(Vec2_t<U, Tag> const& v) noexcept
     {
         x += v.x;
@@ -70,7 +70,7 @@ struct Vec2_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     Vec2_t& operator-=(Vec2_t<U, Tag> const& v) noexcept
     {
         x -= v.x;
@@ -79,7 +79,7 @@ struct Vec2_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     Vec2_t& operator*=(U s) noexcept
     {
         x *= s;
@@ -88,7 +88,7 @@ struct Vec2_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     Vec2_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
         detail::check_normalization<U>(std::abs(s), "vector division 2 comp.");
@@ -104,7 +104,7 @@ struct Vec2_t {
 
 // equality - only allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator==(Vec2_t<T, Tag> const& lhs, Vec2_t<U, Tag> const& rhs)
 {
     // componentwise comparison
@@ -118,7 +118,7 @@ bool operator==(Vec2_t<T, Tag> const& lhs, Vec2_t<U, Tag> const& rhs)
 
 // inequality - only allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator!=(Vec2_t<T, Tag> const& lhs, Vec2_t<U, Tag> const& rhs)
 {
     return !(lhs == rhs);
@@ -126,7 +126,7 @@ bool operator!=(Vec2_t<T, Tag> const& lhs, Vec2_t<U, Tag> const& rhs)
 
 // unary minus
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Vec2_t<T, Tag> operator-(Vec2_t<T, Tag> const& v)
 {
     return Vec2_t<T, Tag>(-v.x, -v.y);
@@ -134,7 +134,7 @@ constexpr Vec2_t<T, Tag> operator-(Vec2_t<T, Tag> const& v)
 
 // adding vectors
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2_t<std::common_type_t<T, U>, Tag> operator+(Vec2_t<T, Tag> const& v1,
                                                           Vec2_t<U, Tag> const& v2)
 {
@@ -143,7 +143,7 @@ constexpr Vec2_t<std::common_type_t<T, U>, Tag> operator+(Vec2_t<T, Tag> const& 
 
 // substracting vectors
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2_t<std::common_type_t<T, U>, Tag> operator-(Vec2_t<T, Tag> const& v1,
                                                           Vec2_t<U, Tag> const& v2)
 {
@@ -153,14 +153,14 @@ constexpr Vec2_t<std::common_type_t<T, U>, Tag> operator-(Vec2_t<T, Tag> const& 
 
 // multiply a vector with a scalar (in both constellations)
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2_t<std::common_type_t<T, U>, Tag> operator*(Vec2_t<T, Tag> const& v, U s)
 {
     return Vec2_t<std::common_type_t<T, U>, Tag>(v.x * s, v.y * s);
 }
 
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2_t<std::common_type_t<T, U>, Tag> operator*(T s, Vec2_t<U, Tag> const& v)
 {
     return Vec2_t<std::common_type_t<T, U>, Tag>(v.x * s, v.y * s);
@@ -168,7 +168,7 @@ constexpr Vec2_t<std::common_type_t<T, U>, Tag> operator*(T s, Vec2_t<U, Tag> co
 
 // devide a vector by a scalar
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 inline Vec2_t<std::common_type_t<T, U>, Tag> operator/(Vec2_t<T, Tag> const& v, U s)
 {
     detail::check_division_by_zero<T, U>(s, "vector division 2 comp.");
@@ -200,7 +200,7 @@ inline Vec2_t<std::common_type_t<T, U>, Tag> operator/(Vec2_t<T, Tag> const& v, 
 //    "Projective geometric algebra illuminated"
 //
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T nrm_sq(Vec2_t<T, Tag> const& v)
 {
     // implements the scalar product as defined by the geometric product *
@@ -209,7 +209,7 @@ constexpr T nrm_sq(Vec2_t<T, Tag> const& v)
 }
 
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T nrm(Vec2_t<T, Tag> const& v)
 {
     return sqrt(nrm_sq(v));
@@ -217,7 +217,7 @@ constexpr T nrm(Vec2_t<T, Tag> const& v)
 
 // return a vector v normalized to nrm(v) == 1.0
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 inline Vec2_t<T, Tag> normalize(Vec2_t<T, Tag> const& v)
 {
     T m = nrm(v);
@@ -230,7 +230,7 @@ inline Vec2_t<T, Tag> normalize(Vec2_t<T, Tag> const& v)
 // Vec2_t<T> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 std::ostream& operator<<(std::ostream& os, Vec2_t<T, Tag> const& v)
 {
     os << "(" << v.x << "," << v.y << ")";

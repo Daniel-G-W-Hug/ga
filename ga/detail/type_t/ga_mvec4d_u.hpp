@@ -12,7 +12,9 @@ namespace hd::ga {
 // by using partial template specialization for the Tag=mvec4d_u_tag
 /////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, default_tag> {
+template <typename T>
+    requires(numeric_type<T>)
+struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, default_tag> {
 
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
@@ -44,7 +46,7 @@ template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, defaul
     // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag
     // comparisons
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec8_t& operator+=(MVec8_t<U, mvec4d_u_tag> const& v) noexcept
     {
         this->c0 += v.c0;
@@ -59,7 +61,7 @@ template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec8_t& operator-=(MVec8_t<U, mvec4d_u_tag> const& v) noexcept
     {
         this->c0 -= v.c0;
@@ -74,7 +76,7 @@ template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec8_t& operator*=(U s) noexcept
     {
         this->c0 *= s;
@@ -89,7 +91,7 @@ template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec8_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
         detail::check_division_by_zero<T, U>(s, "multivector division 8 comp.");
@@ -115,14 +117,14 @@ template <typename T> struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, defaul
 // grade 3: gr3() - trivector
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Vec4d<T> gr1(MVec4d_U<T> const& M)
 {
     return Vec4d<T>(M.c0, M.c1, M.c2, M.c3);
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr TriVec4d<T> gr3(MVec4d_U<T> const& M)
 {
     return TriVec4d<T>(M.c4, M.c5, M.c6, M.c7);
@@ -134,7 +136,7 @@ constexpr TriVec4d<T> gr3(MVec4d_U<T> const& M)
 
 // vector + trivector => odd grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_U<std::common_type_t<T, U>> operator+(Vec4d<T> const& v,
                                                        TriVec4d<T> const& t)
 {
@@ -144,7 +146,7 @@ constexpr MVec4d_U<std::common_type_t<T, U>> operator+(Vec4d<T> const& v,
 
 // trivector + vector => odd grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_U<std::common_type_t<T, U>> operator+(TriVec4d<T> const& t,
                                                        Vec4d<U> const& v)
 {
@@ -158,7 +160,7 @@ constexpr MVec4d_U<std::common_type_t<T, U>> operator+(TriVec4d<T> const& t,
 
 // vector + trivector => odd grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_U<std::common_type_t<T, U>> operator-(Vec4d<T> const& v,
                                                        TriVec4d<T> const& t)
 {
@@ -168,7 +170,7 @@ constexpr MVec4d_U<std::common_type_t<T, U>> operator-(Vec4d<T> const& v,
 
 // trivector + vector => odd grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_U<std::common_type_t<T, U>> operator-(TriVec4d<T> const& t,
                                                        Vec4d<U> const& v)
 {

@@ -4,7 +4,7 @@
 
 #include <algorithm> // std::max
 #include <cmath>     // std::abs, std::sqrt
-#include <concepts>  // std::floating_point<T>
+#include <concepts>  // numeric_type<T>
 #include <iostream>  // std::cout, std::ostream
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error
@@ -22,7 +22,7 @@ namespace hd::ga {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename Tag = default_tag>
-    requires std::floating_point<T>
+    requires numeric_type<T>
 struct BVec6_t {
 
     // ctors
@@ -66,7 +66,7 @@ struct BVec6_t {
 
     // floating point type conversion
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     constexpr BVec6_t(BVec6_t<U, Tag> const& B) :
         vx(B.vx), vy(B.vy), vz(B.vz), mx(B.mx), my(B.my), mz(B.mz)
     {
@@ -91,7 +91,7 @@ struct BVec6_t {
     T mz{}; // as BiVec3dp<T> maps to basis bivector e1^e2 - as Line3dp<T> to mz
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     BVec6_t& operator+=(BVec6_t<U, Tag> const& B) noexcept
     {
         vx += B.vx;
@@ -104,7 +104,7 @@ struct BVec6_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     BVec6_t& operator-=(BVec6_t<U, Tag> const& B) noexcept
     {
         vx -= B.vx;
@@ -117,7 +117,7 @@ struct BVec6_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     BVec6_t& operator*=(U s) noexcept
     {
         vx *= s;
@@ -130,7 +130,7 @@ struct BVec6_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     BVec6_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
         detail::check_division_by_zero<T, U>(s, "bivector_division 6 comp.");
@@ -150,7 +150,7 @@ struct BVec6_t {
 
 // equality - only allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator==(BVec6_t<T, Tag> const& lhs, BVec6_t<U, Tag> const& rhs)
 {
     // componentwise comparison
@@ -170,7 +170,7 @@ bool operator==(BVec6_t<T, Tag> const& lhs, BVec6_t<U, Tag> const& rhs)
 
 // inequality - only allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator!=(BVec6_t<T, Tag> const& lhs, BVec6_t<U, Tag> const& rhs)
 {
     return !(lhs == rhs);
@@ -178,7 +178,7 @@ bool operator!=(BVec6_t<T, Tag> const& lhs, BVec6_t<U, Tag> const& rhs)
 
 // unary minus
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr BVec6_t<T, Tag> operator-(BVec6_t<T, Tag> const& B)
 {
     return BVec6_t<T, Tag>(-B.vx, -B.vy, -B.vz, -B.mx, -B.my, -B.mz);
@@ -186,7 +186,7 @@ constexpr BVec6_t<T, Tag> operator-(BVec6_t<T, Tag> const& B)
 
 // add multivectors
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator+(BVec6_t<T, Tag> const& v1,
                                                            BVec6_t<U, Tag> const& v2)
 {
@@ -197,7 +197,7 @@ constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator+(BVec6_t<T, Tag> const
 
 // substract multivectors
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator-(BVec6_t<T, Tag> const& v1,
                                                            BVec6_t<U, Tag> const& v2)
 {
@@ -208,7 +208,7 @@ constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator-(BVec6_t<T, Tag> const
 
 // multiply a multivector with a scalar
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator*(BVec6_t<T, Tag> const& B, U s)
 {
     return BVec6_t<std::common_type_t<T, U>, Tag>(B.vx * s, B.vy * s, B.vz * s, B.mx * s,
@@ -216,7 +216,7 @@ constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator*(BVec6_t<T, Tag> const
 }
 
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator*(T s, BVec6_t<U, Tag> const& B)
 {
     return BVec6_t<std::common_type_t<T, U>, Tag>(B.vx * s, B.vy * s, B.vz * s, B.mx * s,
@@ -225,7 +225,7 @@ constexpr BVec6_t<std::common_type_t<T, U>, Tag> operator*(T s, BVec6_t<U, Tag> 
 
 // devide a multivector by a scalar
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 inline BVec6_t<std::common_type_t<T, U>, Tag> operator/(BVec6_t<T, Tag> const& B, U s)
 {
     detail::check_division_by_zero<T, U>(s, "bivector division");
@@ -258,7 +258,7 @@ inline BVec6_t<std::common_type_t<T, U>, Tag> operator/(BVec6_t<T, Tag> const& B
 //    "Projective geometric algebra illuminated"
 //
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T nrm_sq(BVec6_t<T, Tag> const& B)
 {
     return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz + B.mx * B.mx + B.my * B.my +
@@ -266,7 +266,7 @@ constexpr T nrm_sq(BVec6_t<T, Tag> const& B)
 }
 
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T nrm(BVec6_t<T, Tag> const& B)
 {
     return sqrt(nrm_sq(B));
@@ -274,7 +274,7 @@ constexpr T nrm(BVec6_t<T, Tag> const& B)
 
 // return a bivector B normalized to nrm(B) == 1.0
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 inline BVec6_t<T, Tag> normalize(BVec6_t<T, Tag> const& B)
 {
     T m = nrm(B);
@@ -288,7 +288,7 @@ inline BVec6_t<T, Tag> normalize(BVec6_t<T, Tag> const& B)
 // BVec6_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 std::ostream& operator<<(std::ostream& os, BVec6_t<T, Tag> const& B)
 {
     os << "(" << B.vx << "," << B.vy << "," << B.vz << "," << B.mx << "," << B.my << ","

@@ -35,7 +35,7 @@ struct MVec2_t<T, dual_number2dp_tag> : public MVec2_t<T, default_tag> {
     // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag
     // comparisons
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec2_t& operator+=(MVec2_t<U, dual_number2dp_tag> const& v) noexcept
     {
         this->c0 += v.c0;
@@ -44,7 +44,7 @@ struct MVec2_t<T, dual_number2dp_tag> : public MVec2_t<T, default_tag> {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec2_t& operator-=(MVec2_t<U, dual_number2dp_tag> const& v) noexcept
     {
         this->c0 -= v.c0;
@@ -53,7 +53,7 @@ struct MVec2_t<T, dual_number2dp_tag> : public MVec2_t<T, default_tag> {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec2_t& operator*=(U s) noexcept
     {
         this->c0 *= s;
@@ -62,7 +62,7 @@ struct MVec2_t<T, dual_number2dp_tag> : public MVec2_t<T, default_tag> {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec2_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
         detail::check_division_by_zero<T, U>(s, "multivector division 2 comp.");
@@ -83,14 +83,14 @@ struct MVec2_t<T, dual_number2dp_tag> : public MVec2_t<T, default_tag> {
 // grade 3: gr3() - pseudoscalar in pga2dp
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Scalar2dp<T> gr0(DualNum2dp<T> const& M)
 {
     return Scalar2dp<T>(M.c0);
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr PScalar2dp<T> gr3(DualNum2dp<T> const& M)
 {
     return PScalar2dp<T>(M.c1);
@@ -102,7 +102,7 @@ constexpr PScalar2dp<T> gr3(DualNum2dp<T> const& M)
 
 // scalar + pseudoscalar => dual number
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator+(Scalar2dp<T> s, PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
@@ -111,7 +111,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator+(Scalar2dp<T> s, PScalar
 
 // pseudoscalar + scalar => dual number
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps, Scalar2dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
@@ -120,7 +120,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps, Scala
 
 // scalar + dual number
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator+(Scalar2dp<T> s,
                                                          DualNum2dp<U> const& M)
 {
@@ -130,7 +130,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator+(Scalar2dp<T> s,
 
 // dual number + scalar
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator+(DualNum2dp<T> const& M,
                                                          Scalar2dp<U> s)
 {
@@ -140,7 +140,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator+(DualNum2dp<T> const& M,
 
 // pseudosscalar + dual number
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps,
                                                          DualNum2dp<U> const& M)
 {
@@ -150,7 +150,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps,
 
 // dual number + pseudoscalar
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator+(DualNum2dp<T> const& M,
                                                          PScalar2dp<U> ps)
 {
@@ -164,7 +164,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator+(DualNum2dp<T> const& M,
 
 // scalar - pseudoscalar => dual number
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator-(Scalar2dp<T> s, PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
@@ -173,7 +173,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator-(Scalar2dp<T> s, PScalar
 
 // pseudoscalar - scalar => dual number
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps, Scalar2dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
@@ -182,7 +182,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps, Scala
 
 // scalar - dual number
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator-(Scalar2dp<T> s,
                                                          DualNum2dp<U> const& M)
 {
@@ -192,7 +192,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator-(Scalar2dp<T> s,
 
 // dual number - scalar
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator-(DualNum2dp<T> const& M,
                                                          Scalar2dp<U> s)
 {
@@ -202,7 +202,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator-(DualNum2dp<T> const& M,
 
 // pseudosscalar - dual number
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps,
                                                          DualNum2dp<U> const& M)
 {
@@ -212,7 +212,7 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps,
 
 // dual number - pseudoscalar
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr DualNum2dp<std::common_type_t<T, U>> operator-(DualNum2dp<T> const& M,
                                                          PScalar2dp<U> ps)
 {

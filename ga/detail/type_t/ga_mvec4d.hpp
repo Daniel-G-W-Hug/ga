@@ -15,7 +15,9 @@ namespace hd::ga {
 // by using partial template specialization for the Tag=mvec4d_tag
 /////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, default_tag> {
+template <typename T>
+    requires(numeric_type<T>)
+struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, default_tag> {
 
     using MVec16_t<T, default_tag>::MVec16_t; // inherit base class ctors
 
@@ -99,7 +101,7 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag
     // comparisons
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec16_t& operator+=(MVec16_t<U, mvec4d_tag> const& v) noexcept
     {
         this->c0 += v.c0;
@@ -122,7 +124,7 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec16_t& operator-=(MVec16_t<U, mvec4d_tag> const& v) noexcept
     {
         this->c0 -= v.c0;
@@ -145,7 +147,7 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec16_t& operator*=(U s) noexcept
     {
         this->c0 *= s;
@@ -168,7 +170,7 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec16_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
         detail::check_division_by_zero<T, U>(s, "multivector division 16 comp.");
@@ -205,35 +207,35 @@ template <typename T> struct MVec16_t<T, mvec4d_tag> : public MVec16_t<T, defaul
 // grade 4: gr4() - quadvector (= pseudoscalar in 4d)
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Scalar4d<T> gr0(MVec4d<T> const& M)
 {
     return Scalar4d<T>(M.c0);
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Vec4d<T> gr1(MVec4d<T> const& M)
 {
     return Vec4d<T>(M.c1, M.c2, M.c3, M.c4);
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr BiVec4d<T> gr2(MVec4d<T> const& M)
 {
     return BiVec4d<T>(M.c5, M.c6, M.c7, M.c8, M.c9, M.c10);
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr TriVec4d<T> gr3(MVec4d<T> const& M)
 {
     return TriVec4d<T>(M.c11, M.c12, M.c13, M.c14);
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr PScalar4d<T> gr4(MVec4d<T> const& M)
 {
     return PScalar4d<T>(M.c15);
@@ -242,35 +244,35 @@ constexpr PScalar4d<T> gr4(MVec4d<T> const& M)
 // return the grades of the basic types
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr size_t gr([[maybe_unused]] Scalar4d<T>)
 {
     return 0;
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr size_t gr([[maybe_unused]] Vec4d<T> const&)
 {
     return 1;
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr size_t gr([[maybe_unused]] BiVec4d<T> const&)
 {
     return 2;
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr size_t gr([[maybe_unused]] TriVec4d<T> const&)
 {
     return 3;
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr size_t gr([[maybe_unused]] PScalar4d<T>)
 {
     return 4;

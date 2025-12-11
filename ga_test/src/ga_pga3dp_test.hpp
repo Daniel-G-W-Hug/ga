@@ -973,6 +973,70 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
     }
 
+    TEST_CASE("Vec3dp: operations - vanishing points, plane at infinity")
+    {
+        fmt::println("Vec3dp: operations - vanishing points, plane at infinity");
+
+        // simple line
+        auto const line = unitize(wdg(vec3dp{1, 0, 1, 1}, vec3dp{1, 1, 1, 1}));
+
+        // horizon = plane at infinity (H_3dp = rmpl(O_3dp) = e321_3dp)
+
+        // vanishing point vp = intersection of line with horizon plane
+        auto vp = rgpr(line, H_3dp);
+
+        fmt::println("");
+        fmt::println("vp      = {}", vp);
+        fmt::println("gr1(vp) = {}", gr1(vp)); // this is what we are looking for
+        fmt::println("gr3(vp) = {}", gr3(vp));
+
+        CHECK(gr1(vp) == vec3dp{0.0, 1.0, 0.0, 0.0}); // e2 direction
+        CHECK(gr3(vp) == trivec3dp{});                // no plane part
+
+        fmt::println("");
+    }
+
+    TEST_CASE("Vec3dp: operations - test point lies in plane")
+    {
+        fmt::println("Vec3dp: operations - test point in plane");
+
+        // plane is e431 plane
+        auto const plane1 = e431_3dp;
+        // plane is parallel to e431 plane (shifted by dy = vec3dp{0,1,0,0})
+        auto const plane2 = unitize(
+            wdg(wdg(vec3dp{0, 1, 0, 1}, vec3dp{1, 1, 0, 1}), vec3dp{1, 1, -1, 1}));
+
+        // point P
+        auto const P1 = vec3dp{2.0, 0.0, 1.0, 1.0};
+        auto const P2 = vec3dp{2.0, 1.0, 1.0, 1.0};
+
+        // P = O + p is in plane, if wp == 0 (=> p is part of the trivector of the plane)
+        auto wp11 = wdg(plane1, P1);
+        auto wp12 = wdg(plane1, P2);
+        auto wp21 = wdg(plane2, P1);
+        auto wp22 = wdg(plane2, P2);
+
+        fmt::println("");
+        fmt::println("plane1      = {}", plane1);
+        fmt::println("plane2      = {}", plane2);
+        fmt::println("");
+        fmt::println("P1      = {}", P1);
+        fmt::println("P2      = {}", P2);
+        fmt::println("");
+        fmt::println("wp11      = {}", wp11);
+        fmt::println("wp12      = {}", wp12);
+        fmt::println("");
+        fmt::println("wp21      = {}", wp21);
+        fmt::println("wp22      = {}", wp22);
+
+        CHECK(wp11 == 0.0); // == works because scalar_t can be compared to raw values
+        CHECK(wp12 != 0.0);
+        CHECK(wp21 != 0.0);
+        CHECK(wp22 == 0.0);
+
+        fmt::println("");
+    }
+
     TEST_CASE("Vec3dp: operations - rotation + translation combined")
     {
         fmt::println("Vec3dp: operations - rotation + translation combined");

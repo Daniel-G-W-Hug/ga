@@ -30,7 +30,7 @@ constexpr value_t radps2Hz(value_t value) { return value / (2.0 * pi); };
 // HINT: this is intentionally NOT the typical signum function
 //       which returns 0.0 for value == 0.0
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T sign(T value)
 {
     if (value >= 0.0) {
@@ -41,7 +41,7 @@ constexpr T sign(T value)
 
 // sign function overload for Scalar_t types
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T sign(Scalar_t<T, Tag> s)
 {
     return sign(T(s));
@@ -63,7 +63,7 @@ bool is_odd(T arg)
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 class CosSin {
 
   public:

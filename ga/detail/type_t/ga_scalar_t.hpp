@@ -12,7 +12,7 @@
 
 
 #include <cmath>     // std::abs, std::sqrt
-#include <concepts>  // std::floating_point
+#include <concepts>  // std::floating_point etc.
 #include <iostream>  // std::ostream
 #include <limits>    // std::numeric_limits
 #include <stdexcept> // std::runtime_error
@@ -26,7 +26,7 @@
 namespace hd::ga {
 
 template <typename T, typename Tag = default_tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 class Scalar_t {
 
   public:
@@ -55,7 +55,7 @@ class Scalar_t {
 
     // Comparison operators with raw numeric types (floating point and integral)
     template <typename U>
-        requires(std::floating_point<U> || std::integral<U>)
+        requires(numeric_type<U>)
     bool operator==(U rhs) const
     {
         // equality implies same magnitude
@@ -66,35 +66,35 @@ class Scalar_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U> || std::integral<U>)
+        requires(numeric_type<U>)
     bool operator!=(U rhs) const
     {
         return !(*this == rhs);
     }
 
     template <typename U>
-        requires(std::floating_point<U> || std::integral<U>)
+        requires(numeric_type<U>)
     bool operator<(U rhs) const
     {
         return value < rhs;
     }
 
     template <typename U>
-        requires(std::floating_point<U> || std::integral<U>)
+        requires(numeric_type<U>)
     bool operator<=(U rhs) const
     {
         return (*this < rhs) || (*this == rhs);
     }
 
     template <typename U>
-        requires(std::floating_point<U> || std::integral<U>)
+        requires(numeric_type<U>)
     bool operator>(U rhs) const
     {
         return value > rhs;
     }
 
     template <typename U>
-        requires(std::floating_point<U> || std::integral<U>)
+        requires(numeric_type<U>)
     bool operator>=(U rhs) const
     {
         return (*this > rhs) || (*this == rhs);
@@ -102,7 +102,7 @@ class Scalar_t {
 
     // Arithmetic operators with raw numeric types
     template <typename U>
-        requires(std::floating_point<U> || std::integral<U>)
+        requires(numeric_type<U>)
     Scalar_t<std::common_type_t<T, U>, Tag> operator+(U rhs) const
     {
         using ctype = std::common_type_t<T, U>;
@@ -110,7 +110,7 @@ class Scalar_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U> || std::integral<U>)
+        requires(numeric_type<U>)
     Scalar_t<std::common_type_t<T, U>, Tag> operator-(U rhs) const
     {
         using ctype = std::common_type_t<T, U>;
@@ -123,7 +123,7 @@ class Scalar_t {
     ////////////////////////////////////////////////////////////////////////////////
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     Scalar_t& operator+=(Scalar_t<U, Tag> s) noexcept
     {
         value += s.value;
@@ -131,7 +131,7 @@ class Scalar_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     Scalar_t& operator-=(Scalar_t<U, Tag> s) noexcept
     {
         value -= s.value;
@@ -139,7 +139,7 @@ class Scalar_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     Scalar_t& operator*=(U s) noexcept
     {
         value *= s;
@@ -147,7 +147,7 @@ class Scalar_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     Scalar_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
         detail::check_division_by_zero<T, U>(s, "scalar division");
@@ -166,42 +166,42 @@ class Scalar_t {
 
 // Comparison operators: raw type with Scalar_t
 template <typename T, typename U, typename Tag>
-    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator==(T lhs, Scalar_t<U, Tag> rhs)
 {
     return rhs == lhs; // Use the member operator
 }
 
 template <typename T, typename U, typename Tag>
-    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator!=(T lhs, Scalar_t<U, Tag> rhs)
 {
     return rhs != lhs; // Use the member operator
 }
 
 template <typename T, typename U, typename Tag>
-    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator<(T lhs, Scalar_t<U, Tag> rhs)
 {
     return lhs < U(rhs);
 }
 
 template <typename T, typename U, typename Tag>
-    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator<=(T lhs, Scalar_t<U, Tag> rhs)
 {
     return (lhs < rhs) || (lhs == rhs);
 }
 
 template <typename T, typename U, typename Tag>
-    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator>(T lhs, Scalar_t<U, Tag> rhs)
 {
     return lhs > U(rhs);
 }
 
 template <typename T, typename U, typename Tag>
-    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator>=(T lhs, Scalar_t<U, Tag> rhs)
 {
     return (lhs > rhs) || (lhs == rhs);
@@ -209,7 +209,7 @@ bool operator>=(T lhs, Scalar_t<U, Tag> rhs)
 
 // Arithmetic operators: raw type with Scalar_t
 template <typename T, typename U, typename Tag>
-    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator+(T lhs, Scalar_t<U, Tag> rhs)
 {
     using ctype = std::common_type_t<T, U>;
@@ -217,7 +217,7 @@ constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator+(T lhs, Scalar_t<U, T
 }
 
 template <typename T, typename U, typename Tag>
-    requires((std::floating_point<T> || std::integral<T>) && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator-(T lhs, Scalar_t<U, Tag> rhs)
 {
     using ctype = std::common_type_t<T, U>;
@@ -231,7 +231,7 @@ constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator-(T lhs, Scalar_t<U, T
 
 // equality - only allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator==(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 {
     // equality implies same magnitude
@@ -243,7 +243,7 @@ bool operator==(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 
 // inequality - only allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator!=(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 {
     return !(lhs == rhs);
@@ -251,7 +251,7 @@ bool operator!=(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 
 // less than - only allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator<(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 {
     return (T(lhs) < U(rhs));
@@ -259,7 +259,7 @@ bool operator<(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 
 // less than or equal - only allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator<=(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 {
     return (lhs < rhs) || (lhs == rhs);
@@ -267,7 +267,7 @@ bool operator<=(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 
 // greater than - only allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator>(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 {
     return rhs < lhs;
@@ -275,7 +275,7 @@ bool operator>(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 
 // greater than or equal - only allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator>=(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 {
     return (lhs > rhs) || (lhs == rhs);
@@ -283,7 +283,7 @@ bool operator>=(Scalar_t<T, Tag> lhs, Scalar_t<U, Tag> rhs)
 
 // unary minus
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Scalar_t<T, Tag> operator-(Scalar_t<T, Tag> s)
 {
     return Scalar_t<T, Tag>(-T(s));
@@ -291,7 +291,7 @@ constexpr Scalar_t<T, Tag> operator-(Scalar_t<T, Tag> s)
 
 // adding scalars and pseudoscalars
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator+(Scalar_t<T, Tag> s1,
                                                             Scalar_t<U, Tag> s2)
 {
@@ -301,7 +301,7 @@ constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator+(Scalar_t<T, Tag> s1,
 
 // substracting scalars and pseudoscalars
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator-(Scalar_t<T, Tag> s1,
                                                             Scalar_t<U, Tag> s2)
 {
@@ -311,7 +311,7 @@ constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator-(Scalar_t<T, Tag> s1,
 
 // multiply a pseudoscalar with a scalar (in both constellations)
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator*(Scalar_t<T, Tag> s1, U s2)
 {
     using ctype = std::common_type_t<T, U>;
@@ -319,7 +319,7 @@ constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator*(Scalar_t<T, Tag> s1,
 }
 
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator*(T s1, Scalar_t<U, Tag> s2)
 {
     using ctype = std::common_type_t<T, U>;
@@ -328,7 +328,7 @@ constexpr Scalar_t<std::common_type_t<T, U>, Tag> operator*(T s1, Scalar_t<U, Ta
 
 // devide a pseudoscalar by a scalar
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 inline Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, Tag> s1, U s2)
 {
     detail::check_division_by_zero<T, U>(s2, "scalar division");
@@ -339,7 +339,7 @@ inline Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, Tag> s1, U 
 
 // magnitude squared
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T nrm_sq(Scalar_t<T, Tag> s)
 {
     return T(s) * T(s);
@@ -347,7 +347,7 @@ constexpr T nrm_sq(Scalar_t<T, Tag> s)
 
 // magnitude
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T nrm(Scalar_t<T, Tag> s)
 {
     return sqrt(nrm_sq(s));
@@ -355,7 +355,7 @@ constexpr T nrm(Scalar_t<T, Tag> s)
 
 // return a scalar normalized to nrm(s) == 1.0
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 inline Scalar_t<T, Tag> normalize(Scalar_t<T, Tag> s)
 {
     T m = nrm(s);
@@ -368,7 +368,7 @@ inline Scalar_t<T, Tag> normalize(Scalar_t<T, Tag> s)
 // Scalar_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 std::ostream& operator<<(std::ostream& os, Scalar_t<T, Tag> s)
 {
     os << "(" << T(s) << ")";
@@ -377,7 +377,7 @@ std::ostream& operator<<(std::ostream& os, Scalar_t<T, Tag> s)
 
 // return the scalar value as value_t (for use in scripting)
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T to_val(Scalar_t<T, Tag> s)
 {
     return T(s);
@@ -403,14 +403,14 @@ constexpr T to_val(Scalar_t<T, Tag> s)
 
 // Unified abs function that works for both raw numeric types and Scalar_t types
 template <typename T>
-    requires(std::floating_point<T> || std::integral<T>)
+    requires(numeric_type<T>)
 constexpr T abs(T value)
 {
     return std::abs(value);
 }
 
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T abs(Scalar_t<T, Tag> s)
 {
     return std::abs(T(s));
@@ -418,14 +418,14 @@ constexpr T abs(Scalar_t<T, Tag> s)
 
 // Unified sqrt function that works for both raw numeric types and Scalar_t types
 template <typename T>
-    requires(std::floating_point<T> || std::integral<T>)
+    requires(numeric_type<T>)
 constexpr auto sqrt(T value) -> decltype(std::sqrt(value))
 {
     return std::sqrt(value);
 }
 
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T sqrt(Scalar_t<T, Tag> s)
 {
     return std::sqrt(T(s));

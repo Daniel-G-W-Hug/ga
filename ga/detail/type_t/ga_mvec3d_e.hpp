@@ -24,7 +24,9 @@ namespace hd::ga {
 // At the same time this enables easy integration with fully populated
 // multivectors, if required by the application.
 
-template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, default_tag> {
+template <typename T>
+    requires(numeric_type<T>)
+struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, default_tag> {
 
     using MVec4_t<T, default_tag>::MVec4_t; // inherit base class ctors
 
@@ -41,7 +43,7 @@ template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, defaul
     // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag
     // comparisons
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec4_t& operator+=(MVec4_t<U, mvec3d_e_tag> const& v) noexcept
     {
         this->c0 += v.c0;
@@ -52,7 +54,7 @@ template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec4_t& operator-=(MVec4_t<U, mvec3d_e_tag> const& v) noexcept
     {
         this->c0 -= v.c0;
@@ -63,7 +65,7 @@ template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec4_t& operator*=(U s) noexcept
     {
         this->c0 *= s;
@@ -74,7 +76,7 @@ template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec4_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
         detail::check_division_by_zero<T, U>(s, "multivector division 4 comp.");
@@ -96,14 +98,14 @@ template <typename T> struct MVec4_t<T, mvec3d_e_tag> : public MVec4_t<T, defaul
 // grade 2: gr2() - bivector
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Scalar3d<T> gr0(MVec3d_E<T> const& M)
 {
     return Scalar3d<T>(M.c0);
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr BiVec3d<T> gr2(MVec3d_E<T> const& M)
 {
     return BiVec3d<T>(M.c1, M.c2, M.c3);
@@ -115,7 +117,7 @@ constexpr BiVec3d<T> gr2(MVec3d_E<T> const& M)
 
 // scalar + bivector => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator+(Scalar3d<T> s, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
@@ -124,7 +126,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator+(Scalar3d<T> s, BiVec3d<U>
 
 // bivector + scalar => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator+(BiVec3d<T> const& B, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
@@ -133,7 +135,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator+(BiVec3d<T> const& B, Scal
 
 // scalar + even grade mulivector => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator+(Scalar3d<T> s,
                                                        MVec3d_E<U> const& M)
 {
@@ -143,7 +145,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator+(Scalar3d<T> s,
 
 // even grade multivector + scalar => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator+(MVec3d_E<T> const& M,
                                                        Scalar3d<U> s)
 {
@@ -153,7 +155,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator+(MVec3d_E<T> const& M,
 
 // bivector + even grade mulivector => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator+(BiVec3d<T> const& B,
                                                        MVec3d_E<U> const& M)
 {
@@ -163,7 +165,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator+(BiVec3d<T> const& B,
 
 // even grade multivector + bivector => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator+(MVec3d_E<T> const& M,
                                                        BiVec3d<U> const& B)
 {
@@ -177,7 +179,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator+(MVec3d_E<T> const& M,
 
 // scalar - bivector => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator-(Scalar3d<T> s, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
@@ -186,7 +188,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator-(Scalar3d<T> s, BiVec3d<U>
 
 // bivector - scalar => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator-(BiVec3d<T> const& B, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
@@ -195,7 +197,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator-(BiVec3d<T> const& B, Scal
 
 // scalar - even grade mulivector => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator-(Scalar3d<T> s,
                                                        MVec3d_E<U> const& M)
 {
@@ -205,7 +207,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator-(Scalar3d<T> s,
 
 // even grade multivector - scalar => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator-(MVec3d_E<T> const& M,
                                                        Scalar3d<U> s)
 {
@@ -215,7 +217,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator-(MVec3d_E<T> const& M,
 
 // bivector - even grade mulivector => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator-(BiVec3d<T> const& B,
                                                        MVec3d_E<U> const& M)
 {
@@ -225,7 +227,7 @@ constexpr MVec3d_E<std::common_type_t<T, U>> operator-(BiVec3d<T> const& B,
 
 // even grade multivector - bivector => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_E<std::common_type_t<T, U>> operator-(MVec3d_E<T> const& M,
                                                        BiVec3d<U> const& B)
 {
