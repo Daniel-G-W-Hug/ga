@@ -120,4 +120,36 @@ template <typename T> using base_class_t = typename base_class<T>::type;
 template <typename T, typename U>
 concept same_base_class = std::same_as<base_class_t<T>, base_class_t<U>>;
 
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// concept to check for numerically permissible types
+// (with more precision/clarity for template type checking)
+//
+// USAGE:
+//
+// template<typename T>
+//     requires(numeric_type<T>)
+// ... your code added here
+//
+// Accepts:
+//        Floating-point: float, double, long double
+//        Integer types: short, int, long, long long, unsigned short, unsigned int,
+//        unsigned long, unsigned long long
+//
+// Rejects:
+//        bool, char, signed char, unsigned char, char8_t, char16_t, char32_t, wchar_t
+//
+/////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+concept numeric_type = std::floating_point<T> ||
+                       (std::integral<T> && !std::same_as<std::remove_cv_t<T>, bool> &&
+                        !std::same_as<std::remove_cv_t<T>, char> &&
+                        !std::same_as<std::remove_cv_t<T>, signed char> &&
+                        !std::same_as<std::remove_cv_t<T>, unsigned char> &&
+                        !std::same_as<std::remove_cv_t<T>, char8_t> &&
+                        !std::same_as<std::remove_cv_t<T>, char16_t> &&
+                        !std::same_as<std::remove_cv_t<T>, char32_t> &&
+                        !std::same_as<std::remove_cv_t<T>, wchar_t>);
+
 } // namespace hd::ga

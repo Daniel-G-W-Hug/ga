@@ -3,7 +3,7 @@
 // Copyright 2024-2025, Daniel Hug. All rights reserved.
 
 #include <cmath>    // std::abs, std::sqrt
-#include <concepts> // std::floating_point<T>
+#include <concepts> // numeric_type<T>
 #include <iostream> // std::ostream
 
 #include "../ga_error_handling.hpp"
@@ -16,7 +16,7 @@ namespace hd::ga {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename Tag = default_tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct MVec4_t {
 
     // ctors
@@ -40,7 +40,7 @@ struct MVec4_t {
 
     // floating point type conversion
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     constexpr MVec4_t(MVec4_t<U, Tag> const& v) : MVec4_t(v.c0, v.c1, v.c2, v.c3)
     {
     }
@@ -65,7 +65,7 @@ struct MVec4_t {
     T c3{}; // e12       // e1^e2 = e12 = xy       // e123 (pseudoscalar)
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec4_t& operator+=(MVec4_t<U, Tag> const& v) noexcept
     {
         c0 += v.c0;
@@ -76,7 +76,7 @@ struct MVec4_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec4_t& operator-=(MVec4_t<U, Tag> const& v) noexcept
     {
         c0 -= v.c0;
@@ -87,7 +87,7 @@ struct MVec4_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec4_t& operator*=(U s) noexcept
     {
         c0 *= s;
@@ -98,7 +98,7 @@ struct MVec4_t {
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec4_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
         detail::check_division_by_zero<T, U>(s, "multivector division 4 comp.");
@@ -116,7 +116,7 @@ struct MVec4_t {
 
 // equality - allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator==(MVec4_t<T, Tag> const& lhs, MVec4_t<U, Tag> const& rhs)
 {
     // componentwise comparison
@@ -133,7 +133,7 @@ bool operator==(MVec4_t<T, Tag> const& lhs, MVec4_t<U, Tag> const& rhs)
 
 // inequality - allows comparison between same tag types
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool operator!=(MVec4_t<T, Tag> const& lhs, MVec4_t<U, Tag> const& rhs)
 {
     return !(lhs == rhs);
@@ -141,7 +141,7 @@ bool operator!=(MVec4_t<T, Tag> const& lhs, MVec4_t<U, Tag> const& rhs)
 
 // unary minus
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr MVec4_t<T, Tag> operator-(MVec4_t<T, Tag> const& v)
 {
     return MVec4_t<T, Tag>(-v.c0, -v.c1, -v.c2, -v.c3);
@@ -149,7 +149,7 @@ constexpr MVec4_t<T, Tag> operator-(MVec4_t<T, Tag> const& v)
 
 // add multivectors
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator+(MVec4_t<T, Tag> const& v1,
                                                            MVec4_t<U, Tag> const& v2)
 {
@@ -159,7 +159,7 @@ constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator+(MVec4_t<T, Tag> const
 
 // substract multivectors
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator-(MVec4_t<T, Tag> const& v1,
                                                            MVec4_t<U, Tag> const& v2)
 {
@@ -169,14 +169,14 @@ constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator-(MVec4_t<T, Tag> const
 
 // multiply a multivector with a scalar
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator*(MVec4_t<T, Tag> const& v, U s)
 {
     return MVec4_t<std::common_type_t<T, U>, Tag>(v.c0 * s, v.c1 * s, v.c2 * s, v.c3 * s);
 }
 
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator*(T s, MVec4_t<U, Tag> const& v)
 {
     return MVec4_t<std::common_type_t<T, U>, Tag>(v.c0 * s, v.c1 * s, v.c2 * s, v.c3 * s);
@@ -184,7 +184,7 @@ constexpr MVec4_t<std::common_type_t<T, U>, Tag> operator*(T s, MVec4_t<U, Tag> 
 
 // devide a multivector by a scalar
 template <typename T, typename U, typename Tag>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 inline MVec4_t<std::common_type_t<T, U>, Tag> operator/(MVec4_t<T, Tag> const& v, U s)
 {
     detail::check_division_by_zero<T, U>(s, "multivector division");
@@ -196,14 +196,14 @@ inline MVec4_t<std::common_type_t<T, U>, Tag> operator/(MVec4_t<T, Tag> const& v
 // magnitude of a k-vector (in representational space)
 // |Z|^2 = Z rev(Z) = c0^2 + c1^2 + c2^2 + c3^2
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T nrm_sq(MVec4_t<T, Tag> const& v)
 {
     return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
 }
 
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr T nrm(MVec4_t<T, Tag> const& v)
 {
     return sqrt(nrm_sq(v));
@@ -211,7 +211,7 @@ constexpr T nrm(MVec4_t<T, Tag> const& v)
 
 // return a multivector M normalized to nrm(M) == 1.0
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 inline MVec4_t<T, Tag> normalize(MVec4_t<T, Tag> const& M)
 {
     T m = nrm(M);
@@ -224,7 +224,7 @@ inline MVec4_t<T, Tag> normalize(MVec4_t<T, Tag> const& M)
 // MVec4_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename Tag>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 std::ostream& operator<<(std::ostream& os, MVec4_t<T, Tag> const& v)
 {
     os << "(" << v.c0 << "," << v.c1 << "," << v.c2 << "," << v.c3 << ")";

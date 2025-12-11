@@ -12,7 +12,9 @@ namespace hd::ga {
 // by using partial template specialization for the Tag=mvec4d_e_tag
 /////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T> struct MVec8_t<T, mvec4d_e_tag> : public MVec8_t<T, default_tag> {
+template <typename T>
+    requires(numeric_type<T>)
+struct MVec8_t<T, mvec4d_e_tag> : public MVec8_t<T, default_tag> {
 
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
@@ -62,7 +64,7 @@ template <typename T> struct MVec8_t<T, mvec4d_e_tag> : public MVec8_t<T, defaul
     // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag
     // comparisons
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec8_t& operator+=(MVec8_t<U, mvec4d_e_tag> const& v) noexcept
     {
         this->c0 += v.c0;
@@ -77,7 +79,7 @@ template <typename T> struct MVec8_t<T, mvec4d_e_tag> : public MVec8_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec8_t& operator-=(MVec8_t<U, mvec4d_e_tag> const& v) noexcept
     {
         this->c0 -= v.c0;
@@ -92,7 +94,7 @@ template <typename T> struct MVec8_t<T, mvec4d_e_tag> : public MVec8_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec8_t& operator*=(U s) noexcept
     {
         this->c0 *= s;
@@ -107,7 +109,7 @@ template <typename T> struct MVec8_t<T, mvec4d_e_tag> : public MVec8_t<T, defaul
     }
 
     template <typename U>
-        requires(std::floating_point<U>)
+        requires(numeric_type<U>)
     MVec8_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
     {
         detail::check_division_by_zero<T, U>(s, "multivector division 8 comp.");
@@ -134,21 +136,21 @@ template <typename T> struct MVec8_t<T, mvec4d_e_tag> : public MVec8_t<T, defaul
 // grade 3: gr4() - quadvector (= pseudoscalar in 4d)
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Scalar4d<T> gr0(MVec4d_E<T> const& M)
 {
     return Scalar4d<T>(M.c0);
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr BiVec4d<T> gr2(MVec4d_E<T> const& M)
 {
     return BiVec4d<T>(M.c1, M.c2, M.c3, M.c4, M.c5, M.c6);
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr PScalar4d<T> gr4(MVec4d_E<T> const& M)
 {
     return PScalar4d<T>(M.c7);
@@ -160,7 +162,7 @@ constexpr PScalar4d<T> gr4(MVec4d_E<T> const& M)
 
 // scalar + bivector => even grade multivector (in 4d imply a zero pseudoscalar)
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_E<std::common_type_t<T, U>> operator+(Scalar4d<T> s, BiVec4d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
@@ -169,7 +171,7 @@ constexpr MVec4d_E<std::common_type_t<T, U>> operator+(Scalar4d<T> s, BiVec4d<U>
 
 // bivector + scalar => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_E<std::common_type_t<T, U>> operator+(BiVec4d<T> const& B, Scalar4d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
@@ -182,7 +184,7 @@ constexpr MVec4d_E<std::common_type_t<T, U>> operator+(BiVec4d<T> const& B, Scal
 
 // scalar + bivector => even grade multivector (in 4d imply a zero pseudoscalar)
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_E<std::common_type_t<T, U>> operator-(Scalar4d<T> s, BiVec4d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
@@ -191,7 +193,7 @@ constexpr MVec4d_E<std::common_type_t<T, U>> operator-(Scalar4d<T> s, BiVec4d<U>
 
 // bivector + scalar => even grade multivector
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_E<std::common_type_t<T, U>> operator-(BiVec4d<T> const& B, Scalar4d<U> s)
 {
     using ctype = std::common_type_t<T, U>;

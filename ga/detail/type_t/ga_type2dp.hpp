@@ -89,7 +89,7 @@ namespace hd::ga::pga {
 // Vector2d: 2d vector of projective algebra storing only components x, y explicitly.
 // The z component is assumed to be z = 0
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct Vector2d : public Vec2d<T> {
 
     using Vec2d<T>::Vec2d; // inherit base class ctors
@@ -105,7 +105,7 @@ struct Vector2d : public Vec2d<T> {
 // Point2d: 2d point of projective algebra storing only components x, y explicitly.
 // The z component is assumed to by z=1
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct Point2d : public Vec2d<T> {
 
     using Vec2d<T>::Vec2d; // inherit base class ctors
@@ -125,7 +125,7 @@ struct Point2d : public Vec2d<T> {
 // a Point2dp is a Vec2dp, thus all operations defined for Vec2dp
 // work directly for Point2dp - only deviations will be specified
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct Point2dp : public Vec2dp<T> {
 
     using Vec2dp<T>::Vec2dp; // inherit base class ctors
@@ -147,7 +147,7 @@ struct Point2dp : public Vec2dp<T> {
 // a Line2d is a BiVec2dp, thus all operations defined for BiVec2dp
 // work directly for Line2d - only deviations will be specified
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 struct Line2d : public BiVec2dp<T> {
 
     using BiVec2dp<T>::BiVec2dp; // inherit base class ctors

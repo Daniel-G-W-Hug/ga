@@ -38,7 +38,7 @@ namespace hd::ga::pga {
 // return the angle between of two vectors, i.e. directions to points at infinity
 // range of angle: -pi <= angle <= pi
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
@@ -60,7 +60,7 @@ inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 // return the angle between two bivectors, i.e. between two lines
 // range of angle: 0 <= angle <= pi
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> const& B2)
 {
 
@@ -97,7 +97,7 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
 
 // create a (unitized) motor from a fixed point and a turning angle
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& p, U theta)
 {
     using ctype = std::common_type_t<T, U>;
@@ -113,7 +113,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& p, U th
 //            Due to the application via the regressive sandwich product the vector needs
 //            to be multiplied by 0.5 before application.
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr MVec2dp_U<T> get_motor(Vec2dp<T> const& translation)
 {
     return MVec2dp_U<T>(0.5 * Vec2dp<T>(-translation.y, translation.x, T(0.0)),
@@ -124,7 +124,7 @@ constexpr MVec2dp_U<T> get_motor(Vec2dp<T> const& translation)
 // create a translation motor from a translation vector (given as a Vector2d)
 // move in direction and by length of direction vector
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr MVec2dp_U<T> get_motor(Vector2d<T> const& translation)
 {
     return MVec2dp_U<T>(0.5 * Vec2dp<T>(-translation.y, translation.x, T(0.0)),
@@ -133,7 +133,7 @@ constexpr MVec2dp_U<T> get_motor(Vector2d<T> const& translation)
 
 // create a (unitized) motor directly from two (potentially intersecting) lines
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> const& B1,
                                                                    BiVec2dp<U> const& B2)
 {
@@ -155,7 +155,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> c
 }
 
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
                                                    MVec2dp_U<U> const& M)
 {
@@ -168,7 +168,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
 }
 
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
                                                        MVec2dp_U<U> const& M)
 {
@@ -194,7 +194,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
 }
 
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr std::vector<Vec2dp<std::common_type_t<T, U>>>
 move2dp(std::vector<Vec2dp<T>> const& vec, MVec2dp_U<U> const& M)
 {
@@ -227,7 +227,7 @@ move2dp(std::vector<Vec2dp<T>> const& vec, MVec2dp_U<U> const& M)
 
 
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
                                                      MVec2dp_U<U> const& M)
 {
@@ -240,7 +240,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
 }
 
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> const& B,
                                                          MVec2dp_U<U> const& M)
 {
@@ -265,7 +265,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> const& B,
 }
 
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr std::vector<BiVec2dp<std::common_type_t<T, U>>>
 move2dp(std::vector<BiVec2dp<T>> const& bvec, MVec2dp_U<U> const& M)
 {
@@ -298,7 +298,7 @@ move2dp(std::vector<BiVec2dp<T>> const& bvec, MVec2dp_U<U> const& M)
 
 
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> move2dp(MVec2dp<T> const& MV,
                                                     MVec2dp_U<U> const& M)
 {
@@ -323,7 +323,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> move2dp(MVec2dp<T> const& MV,
 // projection of a vector v1 onto vector v2
 // returns component of v1 parallel to v2
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v1,
                                                         Vec2dp<U> const& v2)
 {
@@ -334,7 +334,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v1,
 // rejection of vector v1 from a vector v2
 // returns component of v1 perpendicular to v2
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v1,
                                                        Vec2dp<U> const& v2)
 {
@@ -348,7 +348,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v1,
 
 // projection of a vector v onto a bivector B (a line)
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v,
                                                         BiVec2dp<U> const& B)
 {
@@ -358,7 +358,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> project_onto(Vec2dp<T> const& v,
 
 // rejection of vector v from a bivector B (a line)
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v,
                                                        BiVec2dp<U> const& B)
 {
@@ -370,7 +370,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v,
 // expand to a new line with goes through point p and is perpendicular to line l
 // => returns a line (aka a bivector)
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Line2d<std::common_type_t<T, U>> expand(Point2d<T> const& p, Line2d<U> const& l)
 {
     return right_weight_expand2dp(Point2dp<std::common_type_t<T, U>>(p), l);
@@ -442,7 +442,7 @@ decltype(auto) ortho_antiproj2dp(arg1&& a, arg2&& b)
 // reflect a vector u in an arbitrary bivector, i.e. a line
 // B must be unitized, or object will be scaled as well!
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& v,
                                                       BiVec2dp<U> const& B)
 {
@@ -453,7 +453,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& v,
 // reflect a bivector UB in an arbitrary bivector B (both modelling lines)
 // B must be unitized, or object will be scaled as well!
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
                                                         BiVec2dp<U> const& B)
 {
@@ -471,7 +471,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
 // (point-)reflect a point q in an arbitrary point p
 // p must be unitized, or object will be scaled as well!
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> invert_on(Vec2dp<T> const& q,
                                                      Vec2dp<U> const& p)
 {
@@ -482,7 +482,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> invert_on(Vec2dp<T> const& q,
 // (point-)reflect a line l in an arbitrary point p
 // p must be unitized, or object will be scaled as well!
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> invert_on(BiVec2dp<T> const& l,
                                                        Vec2dp<U> const& p)
 {
@@ -496,7 +496,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> invert_on(BiVec2dp<T> const& l,
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 Vec2dp<T> support(BiVec2dp<T> const& B)
 {
     // REQUIRES: a line (BiVec2dp) as argument
@@ -514,14 +514,14 @@ Vec2dp<T> support(BiVec2dp<T> const& B)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Scalar2dp<T> att(Vec2dp<T> const& v)
 {
     return Scalar2dp<T>(v.z);
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Scalar2dp<T> att(Point2dp<T> const& p)
 {
     return Scalar2dp<T>(p.z);
@@ -529,21 +529,21 @@ constexpr Scalar2dp<T> att(Point2dp<T> const& p)
 
 // return the attitude (i.e. the direction vector) of the line
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Vec2dp<T> att(BiVec2dp<T> const& B)
 {
     return Vec2dp<T>(B.y, -B.x, T(0.0));
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr Vec2dp<T> att(Line2d<T> const& l)
 {
     return Vec2dp<T>(l.y, -l.x, T(0.0));
 }
 
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 constexpr BiVec2dp<T> att(PScalar2dp<T> ps)
 {
     return BiVec2dp<T>(T(0.0), T(0.0), T(ps));
@@ -571,7 +571,7 @@ template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, ar
 
 // For scalars: all non-zero scalars represent the same 0-dimensional subspace
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool is_congruent(Scalar2dp<T> a, Scalar2dp<U> b, value_t tolerance = eps)
 {
     // Handle zero cases
@@ -588,7 +588,7 @@ bool is_congruent(Scalar2dp<T> a, Scalar2dp<U> b, value_t tolerance = eps)
 
 // For vectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool is_congruent(Vec2dp<T> const& a, Vec2dp<U> const& b, value_t tolerance = eps)
 {
     using ctype = std::common_type_t<T, U>;
@@ -637,7 +637,7 @@ bool is_congruent(Vec2dp<T> const& a, Vec2dp<U> const& b, value_t tolerance = ep
 
 // For bivectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool is_congruent(BiVec2dp<T> const& a, BiVec2dp<U> const& b, value_t tolerance = eps)
 {
     using ctype = std::common_type_t<T, U>;
@@ -686,7 +686,7 @@ bool is_congruent(BiVec2dp<T> const& a, BiVec2dp<U> const& b, value_t tolerance 
 
 // For pseudoscalars: all non-zero pseudoscalars in 2DP represent the same subspace
 template <typename T, typename U>
-    requires(std::floating_point<T> && std::floating_point<U>)
+    requires(numeric_type<T> && numeric_type<U>)
 bool is_congruent(PScalar2dp<T> a, PScalar2dp<U> b, value_t tolerance = eps)
 {
     // Handle zero cases
