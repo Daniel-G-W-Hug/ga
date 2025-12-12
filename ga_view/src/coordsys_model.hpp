@@ -159,7 +159,7 @@ struct akinematic2dp {
 
 // Physical parameters for spring-mass system
 struct spring_params {
-    double m = 1.0;  // mass [kg]
+    double m = 2.0;  // mass [kg]
     double c = 0.01; // damping constant [Ns/m]
     double k = 40.0; // spring constant [N/m]
     double l0 = 0.1; // initial spring length (w/o force being created by spring)
