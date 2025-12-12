@@ -996,15 +996,88 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
     }
 
+    TEST_CASE("Vec3dp: operations - different kinds of lines")
+    {
+        fmt::println("Vec3dp: operations - different kinds of lines");
+
+        // simple line defined by two points in e1 direction
+        auto const l1 = unitize(wdg(vec3dp{0, 1, -1, 1}, vec3dp{1, 1, -1, 1}));
+
+        // line defined by containing the first point and the direction is identical
+        // (what Dorst calls a "vanishing line", because it contains a point at infinity)
+        CHECK(unitize(wdg(vec3dp{0, 1, -1, 1}, e1_3dp)) == l1);
+
+        // simple line in e2 direction
+        auto const l2 = unitize(wdg(vec3dp{1, 0, 1, 1}, vec3dp{1, 1, 1, 1}));
+        CHECK(unitize(wdg(vec3dp{1, 0, 1, 1}, e2_3dp)) == l2);
+
+        // line l1 + l2
+        auto const l3 = unitize(l1 + l2);
+
+        // let's take an non-blade bivector now
+        auto const l4 = wdg(e1_3dp - e3_3dp, e2_3dp) + wdg(e4_3dp, e3_3dp);
+
+        // horizon = plane at infinity (H_3dp = rmpl(O_3dp) = e321_3dp)
+        // vanishing point vp1 = intersection of line with horizon plane
+        // => results in a direction towards infinity, not a localized point!
+        auto vp1 = rgpr(l1, H_3dp);
+        auto vp2 = rgpr(l2, H_3dp);
+        auto vp3 = rgpr(l3, H_3dp);
+
+        fmt::println("");
+        fmt::println("l1  = {: 5.3f}, att(l1) = {: 5.3f}, support(l1) = {: 5.3f}", l1,
+                     att(l1), support(l1));
+        fmt::println("l2  = {: 5.3f}, att(l2) = {: 5.3f}, support(l2) = {: 5.3f}", l2,
+                     att(l2), support(l2));
+        fmt::println("l3  = {: 5.3f}, att(l3) = {: 5.3f}, support(l3) = {: 5.3f}", l3,
+                     att(l3), support(l3));
+        fmt::println("l4  = {: 5.3f}, att(l4) = {: 5.3f}, support(l4) = {: 5.3f}", l4,
+                     att(l4), support(l4));
+        fmt::println("");
+        fmt::println("vp1 = {: 5.3f}", vp1);
+        fmt::println("vp2 = {: 5.3f}", vp2);
+        fmt::println("vp3 = {: 5.3f}", vp3);
+        fmt::println("");
+        fmt::println("rgpr(l1,l1) = {: 5.3f}", rgpr(l1, l1));
+        fmt::println("rgpr(l1,rrev(l1)) = {: 5.3f}", rgpr(l1, rrev(l1)));
+        fmt::println("rwdg(l1,l1) = {: 5.3f}", rwdg(l1, l1));
+        fmt::println("rcmt(l1,l1) = {: 5.3f}", rcmt(l1, l1));
+        fmt::println("rdot(l1,l1) = {: 5.3f}", rdot(l1, l1));
+        fmt::println("");
+        fmt::println("rgpr(l4,l4) = {: 5.3f}", rgpr(l4, l4));
+        fmt::println("rgpr(l4,rrev(l4)) = {: 5.3f}", rgpr(l4, rrev(l4)));
+        fmt::println("rwdg(l4,l4) = {: 5.3f}", rwdg(l4, l4));
+        fmt::println("rcmt(l4,l4) = {: 5.3f}", rcmt(l4, l4));
+        fmt::println("rdot(l4,l4) = {: 5.3f}", rdot(l4, l4));
+        fmt::println("");
+
+        CHECK(gr1(vp1) == e1_3dp);
+        CHECK(gr1(vp2) == e2_3dp);
+
+        fmt::println("");
+    }
+
     TEST_CASE("Vec3dp: operations - test point lies in plane")
     {
         fmt::println("Vec3dp: operations - test point in plane");
 
-        // plane is e431 plane
+        // plane is e431 plane (bivector of the plane is e31)
         auto const plane1 = e431_3dp;
-        // plane is parallel to e431 plane (shifted by dy = vec3dp{0,1,0,0})
+        // plane is parallel to e431 plane (defined by three points in the new plane)
         auto const plane2 = unitize(
             wdg(wdg(vec3dp{0, 1, 0, 1}, vec3dp{1, 1, 0, 1}), vec3dp{1, 1, -1, 1}));
+
+        // alternative way to shift the plane:
+        // shift a plane with its reference point in a direction x,
+        // while keeping the same orientation:
+        // 1.) pl = P ^ u ^ v
+        // 2.) pl_shifted = P ^ u ^ v + x ^ u ^ v = (P + x) ^ (u ^ v)
+        //
+        // see Browne, "Grassmann Algebra": a vector acts as carrier of points
+        //                                  a bivector acts as carrier of lines
+        //                                  a trivector acts as carrier of planes
+        auto const x = vec3dp{0, 1, 0, 0};
+        CHECK(plane2 == plane1 + wdg(x, e31_3dp));
 
         // point P
         auto const P1 = vec3dp{2.0, 0.0, 1.0, 1.0};

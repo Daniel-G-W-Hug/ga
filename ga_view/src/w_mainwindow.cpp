@@ -812,7 +812,11 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         Coordsys_model cm;
 
         // Create spring-mass ODE system
-        spring_params params; // Use default values: m=1.0, c=0.01, k=40.0, g=9.81
+        spring_params params; // Use default values:
+                              // m=2.0, c=0.01, k=40.0, g=9.81, l0=0.1, g=9.81
+        // params.c = 1.0;
+        // params.l0 = 0.0;
+        // params.m = 5.0;
 
         // Fixation point (user-controllable)
         size_t fix_id = cm.add_apt(pt2d{0.0, 0.0});
