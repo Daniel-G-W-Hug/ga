@@ -42,17 +42,17 @@ inline double get_time_rkstep(double ti, double dt, size_t rk)
         case 3:
             return ti + dt;
         default:
-            throw std::invalid_argument("hd::get_time_rkstep: rk out of range (0 <= rk < 4).");
+            throw std::invalid_argument(
+                "hd::get_time_rkstep: rk out of range (0 <= rk < 4).");
     }
 }
 
 // Templatized RK4 step to support vec2d, vec2dp, vec3d, vec3dp, etc.
 // This allows modeling dynamic systems in different geometric algebras (EGA, PGA)
-template<typename VecType>
+template <typename VecType>
 void rk4_step(mdspan<VecType, dextents<size_t, 1>> u,
               mdspan<VecType, dextents<size_t, 2>> uh,
-              mdspan<VecType const, dextents<size_t, 1>> rhs,
-              double const dt,
+              mdspan<VecType const, dextents<size_t, 1>> rhs, double const dt,
               size_t rk_step)
 {
     double rk1 = 1. / 6. * dt;
