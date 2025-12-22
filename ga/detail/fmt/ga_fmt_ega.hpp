@@ -97,7 +97,7 @@ struct fmt::formatter<hd::ga::Vec2_t<T, Tag>> : fmt::nested_formatter<T> {
         // Use nested formatter for x component
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.x)));
 
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
 
         // Update context and use nested formatter for y component
         ctx.advance_to(out);
@@ -128,10 +128,10 @@ struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : fmt::nested_formatter<T> {
             // Format as Vec3d(x, y, z)
             auto out = fmt::format_to(ctx.out(), "Vec3d(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.x)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.y)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.z)));
             return fmt::format_to(out, ")");
@@ -141,10 +141,10 @@ struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : fmt::nested_formatter<T> {
             // Format as BiVec3d(x, y, z)
             auto out = fmt::format_to(ctx.out(), "BiVec3d(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.x)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.y)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.z)));
             return fmt::format_to(out, ")");
@@ -152,10 +152,10 @@ struct fmt::formatter<hd::ga::Vec3_t<T, Tag>> : fmt::nested_formatter<T> {
         else {
             auto out = fmt::format_to(ctx.out(), "(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.x)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.y)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.z)));
             return fmt::format_to(out, ")");
@@ -184,13 +184,13 @@ struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : fmt::nested_formatter<T> {
             // Format as Vec4d(x, y, z, w)
             auto out = fmt::format_to(ctx.out(), "Vec4d(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.x)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.y)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.z)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.w)));
             return fmt::format_to(out, ")");
@@ -200,13 +200,13 @@ struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : fmt::nested_formatter<T> {
             // Format as TriVec4d(x, y, z, w)
             auto out = fmt::format_to(ctx.out(), "TriVec4d(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.x)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.y)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.z)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.w)));
             return fmt::format_to(out, ")");
@@ -214,13 +214,13 @@ struct fmt::formatter<hd::ga::Vec4_t<T, Tag>> : fmt::nested_formatter<T> {
         else {
             auto out = fmt::format_to(ctx.out(), "(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.x)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.y)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.z)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.w)));
             return fmt::format_to(out, ")");
@@ -246,19 +246,19 @@ struct fmt::formatter<hd::ga::BVec6_t<T, Tag>> : fmt::nested_formatter<T> {
         // Format as BiVec4d(vx, vy, vz, mx, my, mz)
         auto out = fmt::format_to(ctx.out(), "BiVec4d(");
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.vx)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.vy)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.vz)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.mx)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.my)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.mz)));
         return fmt::format_to(out, ")");
@@ -283,7 +283,7 @@ struct fmt::formatter<hd::ga::MVec2_t<T, Tag>> : fmt::nested_formatter<T> {
         // Format as MVec2d_E(c0, c1)
         auto out = fmt::format_to(ctx.out(), "MVec2d_E(");
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
         return fmt::format_to(out, ")");
@@ -312,13 +312,13 @@ struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : fmt::nested_formatter<T> {
             // Format as MVec2d(c0, c1, c2, c3)
             auto out = fmt::format_to(ctx.out(), "MVec2d(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c2)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c3)));
             return fmt::format_to(out, ")");
@@ -328,13 +328,13 @@ struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : fmt::nested_formatter<T> {
             // Format as MVec3d_E(c0, c1, c2, c3)
             auto out = fmt::format_to(ctx.out(), "MVec3d_E(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c2)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c3)));
             return fmt::format_to(out, ")");
@@ -344,13 +344,13 @@ struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : fmt::nested_formatter<T> {
             // Format as MVec3d_U(c0, c1, c2, c3)
             auto out = fmt::format_to(ctx.out(), "MVec3d_U(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c2)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c3)));
             return fmt::format_to(out, ")");
@@ -358,13 +358,13 @@ struct fmt::formatter<hd::ga::MVec4_t<T, Tag>> : fmt::nested_formatter<T> {
         else {
             auto out = fmt::format_to(ctx.out(), "(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c2)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c3)));
             return fmt::format_to(out, ")");
@@ -394,25 +394,25 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : fmt::nested_formatter<T> {
             // Format as MVec3d(c0, c1, c2, c3, c4, c5, c6, c7)
             auto out = fmt::format_to(ctx.out(), "MVec3d(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c2)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c3)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c4)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c5)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c6)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c7)));
             return fmt::format_to(out, ")");
@@ -422,25 +422,25 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : fmt::nested_formatter<T> {
             // Format as MVec4d_E(c0, c1, c2, c3, c4, c5, c6, c7)
             auto out = fmt::format_to(ctx.out(), "MVec4d_E(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c2)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c3)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c4)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c5)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c6)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c7)));
             return fmt::format_to(out, ")");
@@ -450,25 +450,25 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : fmt::nested_formatter<T> {
             // Format as MVec4d_U(c0, c1, c2, c3, c4, c5, c6, c7)
             auto out = fmt::format_to(ctx.out(), "MVec4d_U(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c2)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c3)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c4)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c5)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c6)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c7)));
             return fmt::format_to(out, ")");
@@ -476,25 +476,25 @@ struct fmt::formatter<hd::ga::MVec8_t<T, Tag>> : fmt::nested_formatter<T> {
         else {
             auto out = fmt::format_to(ctx.out(), "(");
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c2)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c3)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c4)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c5)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c6)));
-            out = fmt::format_to(out, ", ");
+            out = fmt::format_to(out, ",");
             ctx.advance_to(out);
             out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c7)));
             return fmt::format_to(out, ")");
@@ -520,49 +520,49 @@ struct fmt::formatter<hd::ga::MVec16_t<T, Tag>> : fmt::nested_formatter<T> {
         // Format as MVec4d(c0, c1, c2, ..., c15)
         auto out = fmt::format_to(ctx.out(), "MVec4d(");
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c0)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c1)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c2)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c3)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c4)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c5)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c6)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c7)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c8)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c9)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c10)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c11)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c12)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c13)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c14)));
-        out = fmt::format_to(out, ", ");
+        out = fmt::format_to(out, ",");
         ctx.advance_to(out);
         out = fmt::format_to(out, "{}", this->nested(suppress_negative_zero(v.c15)));
         return fmt::format_to(out, ")");

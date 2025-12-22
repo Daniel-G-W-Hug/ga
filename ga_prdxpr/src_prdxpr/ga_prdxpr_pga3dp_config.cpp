@@ -303,25 +303,32 @@ ProductConfig get_pga3dp_wdg_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             .cases = {{"mv ^ mv -> mv", "A", "B", "mv", "mv"},
+                      {"mv_e ^ mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                      {"mv_u ^ mv_u -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+                      //
                       {"ps ^ ps -> 0", "svBtps1", "svBtps2", "ps", "ps"},
                       {"ps ^ vec -> 0", "svBtps", "svBtps", "ps", "vec"},
                       {"vec ^ ps -> 0", "svBtps", "svBtps", "vec", "ps"},
                       {"ps ^ s -> ps", "svBtps", "svBtps", "ps", "s"},
                       {"s ^ ps -> ps", "svBtps", "svBtps", "s", "ps"},
+                      //
                       {"trivec ^ bivec -> 0", "svBtps", "svBtps", "trivec", "bivec"},
                       {"bivec ^ trivec -> 0", "svBtps", "svBtps", "bivec", "trivec"},
                       {"trivec ^ vec -> ps", "svBtps", "svBtps", "trivec", "vec"},
                       {"vec ^ trivec -> ps", "svBtps", "svBtps", "vec", "trivec"},
                       {"trivec ^ s -> trivec", "svBtps", "svBtps", "trivec", "s"},
                       {"s ^ trivec -> trivec", "svBtps", "svBtps", "s", "trivec"},
+                      //
                       {"bivec ^ bivec -> ps", "svBtps1", "svBtps2", "bivec", "bivec"},
                       {"bivec ^ vec -> trivec", "svBtps", "svBtps", "bivec", "vec"},
                       {"vec ^ bivec -> trivec", "svBtps", "svBtps", "vec", "bivec"},
                       {"bivec ^ s -> bivec", "svBtps", "svBtps", "bivec", "s"},
                       {"s ^ bivec -> bivec", "svBtps", "svBtps", "s", "bivec"},
+                      //
                       {"vec ^ vec -> bivec", "svBtps1", "svBtps2", "vec", "vec"},
                       {"vec ^ s -> vec", "svBtps", "svBtps", "vec", "s"},
                       {"s ^ vec -> vec", "svBtps", "svBtps", "s", "vec"},
+                      //
                       {"s ^ s -> s", "svBtps1", "svBtps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -669,6 +676,8 @@ ProductConfig get_pga3dp_rwdg_config()
             .cases =
                 {
                     {"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                    {"rwdg(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                    {"rwdg(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
                     //
                     {"rwdg(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
                     {"rwdg(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},

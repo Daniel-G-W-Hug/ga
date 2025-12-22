@@ -279,6 +279,8 @@ ProductConfig get_pga2dp_wdg_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             .cases = {{"mv ^ mv -> mv", "A", "B", "mv", "mv"},
+                      {"mv_e ^ mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                      {"mv_u ^ mv_u -> bivec", "A_odd", "B_odd", "mv_u", "mv_u"},
                       //
                       {"ps ^ ps -> 0", "svBps1", "svBps2", "ps", "ps"},
                       {"ps ^ bivec -> 0", "svBps", "svBps", "ps", "bivec"},
@@ -574,6 +576,8 @@ ProductConfig get_pga2dp_rwdg_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {{"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      {"rwdg(mv_e,mv_e) -> vec", "A_even", "B_even", "mv_e", "mv_e"},
+                      {"rwdg(mv_u,mv_u) -> mv_u", "A_odd", "B_odd", "mv_u", "mv_u"},
                       //
                       {"rwdg(ps,ps) -> ps", "svBps1", "svBps2", "ps", "ps"},
                       {"rwdg(ps,bivec) -> bivec", "svBps", "svBps", "ps", "bivec"},
@@ -588,9 +592,11 @@ ProductConfig get_pga2dp_rwdg_config()
                       {"rwdg(vec,bivec) -> s", "svBps", "svBps", "vec", "bivec"},
                       {"rwdg(bivec,s) -> 0", "svBps", "svBps", "bivec", "s"},
                       {"rwdg(s,bivec) -> 0", "svBps", "svBps", "s", "bivec"},
+                      //
                       {"rwdg(vec,vec) -> 0", "svBps1", "svBps2", "vec", "vec"},
                       {"rwdg(vec,s) -> 0", "svBps", "svBps", "vec", "s"},
                       {"rwdg(s,vec) -> 0", "svBps", "svBps", "s", "vec"},
+                      //
                       {"rwdg(s,s) -> 0", "svBps1", "svBps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,

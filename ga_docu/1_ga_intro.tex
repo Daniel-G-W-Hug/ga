@@ -7,12 +7,12 @@ functionality for numerical calculations required for simulation of physical sys
 It implements functionality for two- and three-dimensional spaces with Euclidean geometry.
 Currently, it provides data types and operations to handle the algebras of Euclidean
 geometric algebra $(ega2d, ega3d)$ and projective Euclidean geometric algebra $(pga2dp,
-pga3dp)$. The library efficiently handles fully populated multivectors, even and odd grade
+pga3dp)$. The library efficiently handles fully populated multivectors, even and odd-grade
 multivectors as well as their components like scalars, vectors, bivectors, trivectors, and
 pseudoscalars of the corresponding linear spaces. It also provides operations to work with
-these objects. It was designed with easy extensibility in mind and can be extended to
-provide functionality for handling additional algebras, e.g. spacetime algebra $(STA)$,
-with limited effort. \\
+these objects. It was designed with extensibility in mind and can be extended to provide
+functionality for handling additional algebras, e.g. spacetime-algebra $(STA)$, with
+limited effort. \\
 
 The main library is a header only library in the \path{ga} sub-folder of the library which
 can be
@@ -191,19 +191,20 @@ $PGA$ explicitly means Projective Geometric Algebra in the context of the ga lib
 There is also an alternative approach called Plane-based Geometric Algebra (also
 abbreviated $PGA$) that is based on a space that is dual to the space modelled and used
 here. The alternative approach was introduced by~\cite{Gunn_PGA:2020} and further promoted
-for applications in projective geometry
-by~\cite{Dorst_deKennick_A_guided_tour_to_PGA:2022}. That model uses dual representations
-of primarily used geometric objects represented in the algebra. Planes are used instead of
-vectors to model everything, e.g. a point is modelled by three planes intersecting in a
-point. Both representations are mathematically equivalent, i.e. dual to each other. They
-are linked by the definition of complements and the interconnection between geometric and
+for applications in projective geometry by~\cite{Plane-based_PGA_Dorst-DeKennik:2022}.
+That model uses dual representations of objects represented in the algebra (it uses
+$G^*(3,0,1)$, a space dual to $G(3,0,1)$). Planes are used instead of vectors to model
+everything, e.g. a point is modelled by three planes intersecting in a point. Both
+representations are mathematically equivalent, i.e. they are dual to each other. They are
+linked by the definition of complements and the interconnection between geometric and
 regressive geometric product, as defined above: $a \veedot b \equiv \lcmpl{\rcmpl{a}
-\wedgedot \rcmpl{b}}$. In the plane-based approach the geometric product is used to operate
-on complements and duals, which are defined as the primary objects used for the approach,
-while the approach introduced by Lengyel in~\cite{Lengyel_pga-illuminated:2024} favors the
-use of points, vectors, bivectors and planes plus the explicit use of regressive products
-and complements as well as duals for applying geometric operations to these objects. The
-latter approach unifies the use of the wedge product for join operations and of the
-regressive wedge product for meet operations for application in $EGA$ and $PGA$. \\
+\wedgedot \rcmpl{b}}$. In the plane-based approach the geometric product is used to
+operate on complements and duals, which are defined as the primary objects used for the
+approach, while the approach introduced by Lengyel in~\cite{Lengyel_pga-illuminated:2024}
+favors the use of points, vectors, bivectors and planes plus the explicit use of
+regressive products and complements as well as duals for applying geometric operations to
+these objects. The latter approach unifies the use of the wedge product for join
+operations and of the regressive wedge product for meet operations for application in
+$EGA$ and $PGA$. For our work we use $G(3,0,1)$.\\
 
 \newpage

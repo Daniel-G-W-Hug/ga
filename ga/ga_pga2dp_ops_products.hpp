@@ -230,6 +230,28 @@ constexpr MVec2dp<std::common_type_t<T, U>> wdg(MVec2dp<T> const& A, MVec2dp<U> 
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp_E<std::common_type_t<T, U>> wdg(MVec2dp_E<T> const& A,
+                                                  MVec2dp_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_E<ctype>(Scalar2dp<ctype>(A.c0 * B.c0),
+                            BiVec2dp<ctype>(A.c0 * B.c1 + A.c1 * B.c0,
+                                            A.c0 * B.c2 + A.c2 * B.c0,
+                                            A.c0 * B.c3 + A.c3 * B.c0));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> wdg(MVec2dp_U<T> const& A,
+                                                 MVec2dp_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(A.c1 * B.c2 - A.c2 * B.c1, -A.c0 * B.c2 + A.c2 * B.c0,
+                           A.c0 * B.c1 - A.c1 * B.c0);
+}
+
 // wedge product between two pseudoscalars
 // => returns 0
 template <typename T, typename U>
@@ -477,6 +499,28 @@ constexpr MVec2dp<std::common_type_t<T, U>> rwdg(MVec2dp<T> const& A, MVec2dp<U>
     ctype c6 = A.c6 * B.c7 + A.c7 * B.c6;
     ctype c7 = A.c7 * B.c7;
     return MVec2dp<std::common_type_t<T, U>>(c0, c1, c2, c3, c4, c5, c6, c7);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec2dp<std::common_type_t<T, U>> rwdg(MVec2dp_E<T> const& A,
+                                                MVec2dp_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Vec2dp<ctype>(-A.c2 * B.c3 + A.c3 * B.c2, A.c1 * B.c3 - A.c3 * B.c1,
+                         -A.c1 * B.c2 + A.c2 * B.c1);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp_U<std::common_type_t<T, U>> rwdg(MVec2dp_U<T> const& A,
+                                                   MVec2dp_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_U<ctype>(Vec2dp<ctype>(A.c0 * B.c3 + A.c3 * B.c0,
+                                          A.c1 * B.c3 + A.c3 * B.c1,
+                                          A.c2 * B.c3 + A.c3 * B.c2),
+                            PScalar2dp<ctype>(A.c3 * B.c3));
 }
 
 template <typename T, typename U>

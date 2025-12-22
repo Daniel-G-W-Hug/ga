@@ -216,12 +216,12 @@ auto const e2_3dp_mv = MVec3dp<value_t>{e2_3dp}; // e2_3dp as multivector
 auto const e3_3dp_mv = MVec3dp<value_t>{e3_3dp}; // e3_3dp as multivector
 auto const e4_3dp_mv = MVec3dp<value_t>{e4_3dp}; // e4_3dp as multivector
 
-auto const e41_3dp = BiVec3dp<value_t>{1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-auto const e42_3dp = BiVec3dp<value_t>{0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
-auto const e43_3dp = BiVec3dp<value_t>{0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
-auto const e23_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0};
-auto const e31_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 0.0, 1.0, 0.0};
-auto const e12_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+auto const e41_3dp = BiVec3dp<value_t>{1.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // = wdg(e4,e1)
+auto const e42_3dp = BiVec3dp<value_t>{0.0, 1.0, 0.0, 0.0, 0.0, 0.0}; // = wdg(e4,e2)
+auto const e43_3dp = BiVec3dp<value_t>{0.0, 0.0, 1.0, 0.0, 0.0, 0.0}; // = wdg(e4,e3)
+auto const e23_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0}; // = wdg(e2,e3)
+auto const e31_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 0.0, 1.0, 0.0}; // = wdg(e3,e1)
+auto const e12_3dp = BiVec3dp<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 1.0}; // = wdg(e1,e2)
 
 // x-axis as bivector
 //      x-axis = wdg(vec3dp{0, 0, 0, 1}, vec3dp{1, 0, 0, 1}) = bivec3dp(1, 0, 0, 0, 0, 0)

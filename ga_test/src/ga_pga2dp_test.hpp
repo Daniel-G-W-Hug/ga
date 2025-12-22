@@ -2927,19 +2927,19 @@ TEST_SUITE("PGA 2DP Tests")
 
         // Default formatting - using value_t precision
         std::string default_format = fmt::format("{}", v);
-        CHECK(default_format == "Vec2dp(3.14159, 2.71828, 1.41421)");
+        CHECK(default_format == "Vec2dp(3.14159,2.71828,1.41421)");
 
         // Two decimal places
         std::string two_decimals = fmt::format("{:.2f}", v);
-        CHECK(two_decimals == "Vec2dp(3.14, 2.72, 1.41)");
+        CHECK(two_decimals == "Vec2dp(3.14,2.72,1.41)");
 
         // Scientific notation with 2 decimal places
         std::string scientific = fmt::format("{:.2e}", v);
-        CHECK(scientific == "Vec2dp(3.14e+00, 2.72e+00, 1.41e+00)");
+        CHECK(scientific == "Vec2dp(3.14e+00,2.72e+00,1.41e+00)");
 
         // Six decimal places
         std::string six_decimals = fmt::format("{:.6f}", v);
-        CHECK(six_decimals == "Vec2dp(3.141590, 2.718280, 1.414210)");
+        CHECK(six_decimals == "Vec2dp(3.141590,2.718280,1.414210)");
 
         // Test with different vector values for edge cases
         vec2dp v_zero{0.0, 0.0, 0.0};
@@ -2947,8 +2947,8 @@ TEST_SUITE("PGA 2DP Tests")
 
         std::string zero_format = fmt::format("{:.1f}", v_zero);
         std::string negative_format = fmt::format("{:.1f}", v_negative);
-        CHECK(zero_format == "Vec2dp(0.0, 0.0, 0.0)");
-        CHECK(negative_format == "Vec2dp(-1.5, -2.5, -3.5)");
+        CHECK(zero_format == "Vec2dp(0.0,0.0,0.0)");
+        CHECK(negative_format == "Vec2dp(-1.5,-2.5,-3.5)");
 
         fmt::println("   All Vec2dp format tests passed with expected values!");
         fmt::println("");
@@ -2963,19 +2963,19 @@ TEST_SUITE("PGA 2DP Tests")
 
         // Default formatting
         std::string default_format = fmt::format("{}", bv);
-        CHECK(default_format == "BiVec2dp(1.234, 5.678, 9.012)");
+        CHECK(default_format == "BiVec2dp(1.234,5.678,9.012)");
 
         // Two decimal places
         std::string two_decimals = fmt::format("{:.2f}", bv);
-        CHECK(two_decimals == "BiVec2dp(1.23, 5.68, 9.01)");
+        CHECK(two_decimals == "BiVec2dp(1.23,5.68,9.01)");
 
         // Scientific notation
         std::string scientific = fmt::format("{:.2e}", bv);
-        CHECK(scientific == "BiVec2dp(1.23e+00, 5.68e+00, 9.01e+00)");
+        CHECK(scientific == "BiVec2dp(1.23e+00,5.68e+00,9.01e+00)");
 
         // Four decimal places
         std::string four_decimals = fmt::format("{:.4f}", bv);
-        CHECK(four_decimals == "BiVec2dp(1.2340, 5.6780, 9.0120)");
+        CHECK(four_decimals == "BiVec2dp(1.2340,5.6780,9.0120)");
 
         fmt::println("   All BiVec2dp format tests passed with expected values!");
         fmt::println("");
@@ -3235,19 +3235,19 @@ TEST_SUITE("PGA 2DP Tests")
 
         // Default formatting
         std::string default_format = fmt::format("{}", dn);
-        CHECK(default_format == "DualNum2dp(2.5, 3.7)");
+        CHECK(default_format == "DualNum2dp(2.5,3.7)");
 
         // Two decimal places
         std::string two_decimals = fmt::format("{:.2f}", dn);
-        CHECK(two_decimals == "DualNum2dp(2.50, 3.70)");
+        CHECK(two_decimals == "DualNum2dp(2.50,3.70)");
 
         // Scientific notation
         std::string scientific = fmt::format("{:.2e}", dn);
-        CHECK(scientific == "DualNum2dp(2.50e+00, 3.70e+00)");
+        CHECK(scientific == "DualNum2dp(2.50e+00,3.70e+00)");
 
         // Three decimal places
         std::string three_decimals = fmt::format("{:.3f}", dn);
-        CHECK(three_decimals == "DualNum2dp(2.500, 3.700)");
+        CHECK(three_decimals == "DualNum2dp(2.500,3.700)");
 
         fmt::println("   All DualNum2dp format tests passed with expected values!");
         fmt::println("");
@@ -3261,23 +3261,23 @@ TEST_SUITE("PGA 2DP Tests")
         mvec2dp_e me{1.1, 2.2, 3.3, 4.4};
         std::string even_default = fmt::format("{}", me);
         std::string even_two_dec = fmt::format("{:.2f}", me);
-        CHECK(even_default == "MVec2dp_E(1.1, 2.2, 3.3, 4.4)");
-        CHECK(even_two_dec == "MVec2dp_E(1.10, 2.20, 3.30, 4.40)");
+        CHECK(even_default == "MVec2dp_E(1.1,2.2,3.3,4.4)");
+        CHECK(even_two_dec == "MVec2dp_E(1.10,2.20,3.30,4.40)");
 
         // Test multivector odd formatting
         mvec2dp_u mu{1.5, 2.5, 3.5, 4.5};
         std::string odd_default = fmt::format("{}", mu);
         std::string odd_two_dec = fmt::format("{:.2f}", mu);
-        CHECK(odd_default == "MVec2dp_U(1.5, 2.5, 3.5, 4.5)");
-        CHECK(odd_two_dec == "MVec2dp_U(1.50, 2.50, 3.50, 4.50)");
+        CHECK(odd_default == "MVec2dp_U(1.5,2.5,3.5,4.5)");
+        CHECK(odd_two_dec == "MVec2dp_U(1.50,2.50,3.50,4.50)");
 
         // Test full multivector formatting
         mvec2dp m{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
         std::string full_default = fmt::format("{}", m);
         std::string full_scientific = fmt::format("{:.1e}", m);
-        CHECK(full_default == "MVec2dp(1, 2, 3, 4, 5, 6, 7, 8)");
-        CHECK(full_scientific == "MVec2dp(1.0e+00, 2.0e+00, 3.0e+00, 4.0e+00, 5.0e+00, "
-                                 "6.0e+00, 7.0e+00, 8.0e+00)");
+        CHECK(full_default == "MVec2dp(1,2,3,4,5,6,7,8)");
+        CHECK(full_scientific == "MVec2dp(1.0e+00,2.0e+00,3.0e+00,4.0e+00,5.0e+00,"
+                                 "6.0e+00,7.0e+00,8.0e+00)");
 
         fmt::println("   All MVec2dp format tests passed with expected values!");
         fmt::println("");
