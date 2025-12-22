@@ -1,6 +1,33 @@
 \subsection{Modelling motion}
 \label{section_modelling_motion}
 
+For translational motion in physical contexts we typically use the following naming
+convention for scalars or vectors:
+\begin{align*}
+s(t)        & = s \\
+\dot{s}(t)  & = v(t) = \dot{s} = v \\
+\ddot{s}(t) & = \dot{v}(t) = a(t) =\ddot{s} = \dot{v} = a
+\end{align*}
+while for rotational motion we typically use:
+\begin{align*}
+\phi(t)        & = \phi \\
+\dot{\phi}(t)  & = \omega(t) = \dot{\phi} = \omega \\
+\ddot{\phi}(t) & = \dot{\omega}(t) =\ddot{\phi} = \dot{\omega}
+\end{align*}
+Especially in $PGA$, we will be able to combine the translational and rotational aspects
+in one physical variable. Thus we will use a convention of using capital letters for
+physical quantities to distinguish them from the classical convention, especially so for
+bivectors and even-grade multivectors that do not occur in classical descriptions. We will
+use:
+\begin{align*}
+B(t)        & = B \qquad \qquad \qquad  \quad \! \text{(bivector)} \\
+\dot{B}(t)  & = \Omega(t) = \dot{B} = \Omega \qquad
+                \text{(rate of change of bivector, bivector speed)} \\
+\ddot{B}(t) & = \dot{\Omega}(t) =\ddot{B} = \dot{\Omega} \qquad
+                \text{(rate of change of bivector speed)}
+\end{align*}
+especially when we want to emphazise rotational aspects of motion in $PGA$. \\
+
 In order to model motion in $PGA$ we need to work with the exponential function and apply
 it in the context of the geometric product (symbol ``$\wedgedot$'') and the regressive
 geometric product (symbol ``$\veedot$'').
@@ -44,13 +71,13 @@ Euler's formula:
 \end{align}
 
 Applying this for geometric algebra we have to distinguish between calculating the powers
-in the Taylor series using the geometric product (e.g. in $EGA$) and using the regressive
-geometric product (e.g. in $PGA$). We assume a unitized bivector $B$ and a scalar $\phi$.
-Based on the geometric product we know that $B \wedgedot B = -\bm{1}$, and for its
-regressive counterpart we know that $B \veedot B = -\ps$. Thus, $B$ plays a role
-equivalent to $i$ in both cases. In addition, taking any value to the power of $0$ results
-in the neutral element of the product, which is $\bm{1}$ for the geometric product, and
-$\ps$ for the regressive geometric product. Taking the powers works like this:
+in the Taylor series using the geometric product (in $EGA$) and using the regressive
+geometric product (in $PGA$). We assume a unitized bivector $B$ and a scalar $\phi$. Based
+on the geometric product we know that $B \wedgedot B = -\bm{1}$, and for its regressive
+counterpart we know that $B \veedot B = -\ps$. Thus, $B$ plays a role equivalent to $i$ in
+both cases. In addition, taking any value to the power of $0$ results in the neutral
+element of the product, which is $\bm{1}$ for the geometric product, and $\ps$ for the
+regressive geometric product. Taking the powers then works like this:
 \begin{subeqnarray}
 \cdots \nonumber \\[5pt]
 \frac{(B\phi)^2_\wedgedot}{2!} & = & \frac{1}{2!} (B \phi \wedgedot B \phi)
@@ -89,15 +116,16 @@ The last step of moving B after the brackets is allowed, since scalar factors co
 any object using the regular product. The result structurally is an even-grade multivector
 with a scalar and a bivector component. We get the correct sign and angle of rotation if
 we replace $\phi$ by $-\frac{1}{2}\phi$, which was not considered above to keep the
-formulas as simple as possible. The substitution yields the final form of a rotor in $EGA$
-with $B$ as normalized bivector and $\phi$ the rotation angle:
+formulas as simple as possible. The substitution yields the final form of a rotor $R$ in
+$EGA$ with $B$ as unitized bivector and $\phi$ the rotation angle:
 \begin{align}
     R = \exp_\wedgedot(-\frac{\phi}{2}B)
       &= \cos(-\frac{\phi}{2}) + \sin(-\frac{\phi}{2}) B \nonumber \\
     R &= \cos(\frac{\phi}{2}) - \sin(\frac{\phi}{2}) B 
+    \label{eq:rotor_ega}
 \end{align}
 
-And for the case using the regressive geometric product it becomes:
+For the case using the regressive geometric product it becomes:
 % Regressive Geometric Product Version
 \begin{align}
 \exp_\veedot(B\phi) &= \sum_{n=0}^{\infty} \frac{(B\phi)^n_\veedot}{n!} \nonumber \\ 
@@ -114,16 +142,16 @@ And for the case using the regressive geometric product it becomes:
 \exp_\veedot(B\phi) &= \cos(\phi)\ps + \sin(\phi) B
 \label{eq:rexp_B}
 \end{align}
-The last step of moving $\ps$ and $B$ after the brackets is allowed, since scalar factors
-commute with any object using the regular product. The result structurally is an
-even-grade multivector with a bivector and a pseudoscalar component. \\
+The last step of moving $\ps$ and $B$ after the brackets is allowed, since scalar factors,
+like the results of the trigonometric functions, commute with any object using the regular
+product. The result structurally is an even-grade multivector with a bivector and a
+pseudoscalar component. \\
 
-Eqn. (\ref{eq:exp_B}) allows us to model rotations in geometric algebra, specifically in
-$EGA$, where the bivector $B$ is the complement of the axis of rotation and $\theta =
--2\phi$ is the angle of the rotation around that axis. If we directly want to specify the
-angle of rotation $\theta$ we need to substitute $\phi$ by $-\frac{\phi}{2}$ in eqn.
-(\ref{eq:exp_B}). The rotated object $X$ can be obtained from the original object $X_0$
-by:
+Eqn. (\ref{eq:exp_B}) allows us to model rotations in $EGA$, where the bivector $B$ is the
+complement of the axis of rotation and $\theta = -2\phi$ is the angle of the rotation
+around that axis. If we directly want to specify the angle of rotation $\theta$ we need to
+substitute $\phi$ by $-\frac{\phi}{2}$ in eqn. (\ref{eq:exp_B}). The rotated object $X$
+can then be obtained from the original object $X_0$ by:
 \begin{equation}
     X = R \wedgedot X_0 \wedgedot \rev{R} = \exp_\wedgedot(-\frac{\phi}{2} B )
     \wedgedot X_0 \wedgedot \exp_\wedgedot(\frac{\phi}{2} B) \quad (\text{for $EGA$})
@@ -132,7 +160,7 @@ by:
 If we want to model translations and rotations in $PGA$, we need to look into another
 extension of the exponential function. We follow the approach defined by
 \cite{Lengyel_pga-illuminated:2024} in chapter 3.2 and 3.6.2, where it is shown that a
-general motor in $PGA$ can be expressed as a rotation around a normalized line $l$ by an
+general motor in $PGA$ can be expressed as a rotation around a unitized line $l$ by an
 angle $\phi$ and a translation along $l$ by a displacement $\delta$ as
 \begin{eqnarray}
     M = \exp_\veedot\left[(\frac{\delta}{2} \bm{1} + \frac{\phi}{2}\ps) \veedot l \right]=
@@ -148,11 +176,441 @@ angle $\phi$ and a translation along $l$ by a displacement $\delta$ as
       + \ps\cos(\frac{\phi}{2}) 
 \label{eq:rexp_pga_motor}
 \end{eqnarray}
-which structurally is an even grade multivector with scalar, bivector and pseudoscalar
-parts in $3D$ $PGA$.
-The resulting transformation is then obtained from
+where $M$ structurally is an even grade multivector with scalar, bivector and pseudoscalar
+parts in $3D$ $PGA$. The argument in the exponential function again results in a bivector.
+This can be derived from inspecting the product table for the regressive geometric
+product. However, this time we only have a common factor of $\frac{1}{2}$, and not
+$-\frac{1}{2}$ as in $EGA$. This will impact some signs for the transformations in the
+regressive case for $PGA$, compared to the corresponding transformations in $EGA$.  The
+resulting transformation is then obtained from
 \begin{equation}
     X = M \veedot X_0 \veedot \rrev{M} \quad (\text{for $PGA$})
+\end{equation} \\
+
+\newpage
+
+In order to dive deeper into modelling of motions we first start with the $EGA$ case. It
+is identical to the derivation shown in
+\cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023} for their plane-based approach.
+This will help to better recognize the differences to the $PGA$ approach used here. \\
+
+Before going into more detail, we need to prepare some formulas we later need for our
+derivations: \\
+
+For $EGA$ the rotor will now be written as $M$ instead of $R$ to make it easy to compare
+to our $PGA$-derivations using motors $M$ later on. $M$ as a rotor in $EGA$ is an
+orthonomal transformation and thus satisfies
+\begin{equation}
+M \wedgedot \rev{M} = \rev{M} \wedgedot M = 1
+\label{eq:motor_relation_gpr_neutral_element}
 \end{equation}
+(remember: $M^{-1} = \rev{M}$), and therefore
+\begin{equation}
+   \frac{d}{dt}(M\wedgedot\rev{M}) = \dot{M}\wedgedot\rev{M} + M\wedgedot\dot{\rev{M}} = 0
+   \label{eq:dot_rev_m}
+\end{equation}
+It follows that $M\wedgedot\dot{\rev{M}} = -\dot{M}\wedgedot\rev{M}$, which results in
+\begin{equation}
+   \dot{\rev{M}} = -\rev{M}\wedgedot\dot{M}\wedgedot\rev{M}
+   \label{eq:dot_rev_m_as_dot_m}
+\end{equation}
+Starting from $\rev{M} \wedgedot M = 1$ instead yields the same result for
+$\dot{\rev{M}}$. \\
+
+In order to model rigid body mechanics we consider two coordinate frames:
+\begin{itemize}
+   \item A \emph{world frame} (index $w$) that is normally chosen to be an inertial frame.
+   \item A \emph{body frame} (index $b$) that is attached to a rigid body. Typically at
+   its center of gravity, but this is not strictly required. Rigid body's internal forces
+   are in equilibrium and thus need not be considered explicitly. It is sufficient to
+   describe the translational of the body's center of gravity and its rotational motion
+   with respect to the center of gravity. The resulting motion of the body frame relative
+   to the world frame then fully covers rigid body movement (kinematics and dynamics),
+   which depends on distribution of the mass of the body as well as on external forces and
+   moments acting on the body.
+   \item To describe the motion we use a time dependend motor $M=M(t)$. At time $t=0$ we
+   call it $M_0 = M(t=0)$. $M_0$ brings an element $X$ of the body to its position $X_0$
+   at time $t=0$.
+\end{itemize}
+
+\newpage
+
+\textbf{\emph{World frame}}: From eqn.~(\ref{eq:rotor_ega}) we know the form of a general
+rotor in $EGA$ and use the ansatz for a time dependent rotor $M(t)$ after the the object
+$X$ was brought into its initial position by $M_0$ as $X_0 = M \wedgedot X \wedgedot
+\rev{M}$. If there is no difference between world and body frames at $t=0$ then $M_0=1$:
+\begin{equation}
+   M(t) = exp_\wedgedot(-\frac{1}{2}B_w(t)) \wedgedot M_0
+   \label{eq:rotor_ega_world_frame}
+\end{equation}
+with $B_w(t)$ as a time-dependent bivector that models the rotational plane and the
+turning angle. The derivative of $M$ with respect to time $t$ is
+\begin{equation}
+   \dot{M}(t) = -\frac{1}{2} \dot{B_w}(t) \wedgedot
+                exp_\wedgedot (-\frac{1}{2}B_w(t)) \wedgedot M_0
+              = -\frac{1}{2} \dot{B_w}(t) \wedgedot M(t)   
+\end{equation}
+where we use that the exponential of the bivector and the bivector rate commute
+\emph{(tbd: show why this is the case)}. Using $\Omega_w = \dot{B_w}(t)$ as the bivector
+rate of change in the \emph{world frame}, we get
+\begin{equation}
+   \dot{M} = -\frac{1}{2} \Omega_w \wedgedot M 
+   \label{eq:motor_rate_world_frame}   
+\end{equation}
+By multiplying this from the right with ``$\wedgedot\;\rev{M}$'' this can transformed to
+\begin{equation}
+   \Omega_w = -2 \dot{M} \wedgedot \rev{M}
+   \label{eq:bivector_rate_world_frame}
+\end{equation}
+
+\textbf{\emph{Body frame}}: Here we first move the object in the \emph{body frame} and
+then transform it into the in the world frame by the transformation $M_0$. In this case
+eqn.~(\ref{eq:rotor_ega_world_frame}) becomes 
+\begin{equation}
+   M(t) = M_0 \wedgedot  exp_\wedgedot(-\frac{1}{2}B_b(t))
+   \label{eq:rotor_ega_body_frame}
+\end{equation}
+which in turn restults in
+\begin{equation}
+   \dot{M}(t) = -\frac{1}{2} M_0 \wedgedot
+                exp_\wedgedot (-\frac{1}{2}B_b(t)) \wedgedot \dot{B_b}(t) 
+              = -\frac{1}{2} M(t)  \wedgedot \dot{B_b}(t) 
+\end{equation}
+while eqn.~(\ref{eq:motor_rate_world_frame}) for the bivector rate of change in the
+\emph{body frame} becomes
+\begin{equation}
+   \dot{M} = -\frac{1}{2} M \wedgedot \Omega_b  
+   \label{eq:motor_rate_body_frame}   
+\end{equation}
+using $\Omega_b = \dot{B_b}(t)$ as the bivector rate of change in the \emph{body frame}.
+This can be transformed by multiplying it from the left by ``$\rev{M}\;\wedgedot$'' to
+obtain
+\begin{equation}
+   \Omega_b = -2 \rev{M} \wedgedot \dot{M}
+   \label{eq:bivector_rate_body_frame}
+\end{equation}
+
+From equations (\ref{eq:bivector_rate_world_frame}) and
+(\ref{eq:bivector_rate_body_frame}) we can see how world and body frame rates are
+connected to each other: $\Omega_w \wedgedot M = M \wedgedot \Omega_b$, which can be
+transformed into
+\begin{subeqnarray}
+   \Omega_w & = M \wedgedot \Omega_b \wedgedot \rev{M} \\
+   \Omega_b & = \rev{M} \wedgedot \Omega_w \wedgedot M
+\end{subeqnarray}
+
+\newpage
+
+Now we derive the rate of change of a point $X(t)$, i.e. its speed $\dot{X}(t)$, in the
+\emph{world frame}, first assuming that $X(t=0) = X_0 = const.$, i.e. as a constant
+element that is transformed to become $X$ by a time dependent motor $M(t)$. During the
+derivation we will use the associativity of the geometric product and the neutral element
+1 of the geometric product. We can write
+\begin{eqnarray*}
+   \dot{X}(t) &=& \frac{d}{dt}X(t) =\frac{d}{dt}(M \wedgedot X_0 \wedgedot \rev{M}) \\
+              &=& \dot{M} \wedgedot X_0 \wedgedot \rev{M}
+                  + M \wedgedot X_0 \wedgedot \dot{\rev{M}} \\
+              &\overset{\mathrm{(\ref{eq:dot_rev_m_as_dot_m})}}{=}&
+                  \dot{M} \wedgedot 1 \wedgedot X_0 \wedgedot \rev{M}
+                  -M \wedgedot X_0 \wedgedot (\rev{M}\wedgedot\dot{M}\wedgedot\rev{M})
+                  \\
+              &\overset{\mathrm{(\ref{eq:motor_relation_gpr_neutral_element})}}{=}&
+                  \dot{M} \wedgedot (\rev{M} \wedgedot M) \wedgedot X_0 \wedgedot \rev{M}
+                  -(M \wedgedot X_0 \wedgedot \rev{M}) \wedgedot \dot{M} \wedgedot \rev{M}
+                  \\
+              &=& (\dot{M} \wedgedot \rev{M}) \wedgedot (M\wedgedot X_0 \wedgedot \rev{M})
+                  -(M\wedgedot X_0 \wedgedot\rev{M}) \wedgedot (\dot{M} \wedgedot \rev{M})
+\end{eqnarray*}
+From eqn. (\ref{eq:bivector_rate_world_frame}) we can conclude that
+$-\frac{1}{2}\Omega_w (t) = \dot{M} \wedgedot \rev{M}$, resulting in
+\begin{eqnarray}
+   \dot{X}(t) &=&(-\frac{1}{2}\Omega_w(t)) \wedgedot X(t) - X(t) \wedgedot
+              (-\frac{1}{2}\Omega_w(t)) \nonumber \\
+              &=& -\frac{1}{2}\left( \Omega_w \wedgedot X - X \wedgedot \Omega_w\right)
+              \nonumber \\
+              &=& -cmt(\Omega_w,X) \nonumber \\[10pt]
+   \dot{X}_w    &=& cmt(X_w,\Omega_w)
+   \slabel{eq:cmt_ega_world} 
+\end{eqnarray}
+with $cmt(X_w,\Omega_w)$ as the commutator product between $X_w$ and $\Omega_w$. \\
+
+So, if the bivector rate of change $\Omega_w$ is known, the rate of change of $X_w$, which
+is $\dot{X}_w$, can be calculated from eqn.~(\ref{eq:cmt_ega_world}) using the commutator
+product. \\
+
+It can be shown that $\dot{M} \wedgedot \rev{M}$ is always a bivector: From equations
+(\ref{eq:bivector_rate_world_frame}) and (\ref{eq:dot_rev_m}), and the linearity of the
+involved operations, we get
+\begin{equation}
+   \Omega_w = -2 \dot{M} \wedgedot \rev{M} = 2 M \wedgedot
+   \dot{\rev{M}} = 2 (\rev{\dot{M}\wedgedot\rev{M}})= -\rev{\Omega}_w
+   \label{eq:bivector_poof_gpr}
+\end{equation}
+Considering the grade-dependent sign-reversal of the reverse in 3D $EGA$, $\Omega_w$ must
+either be a bivector or a trivector.
+%% for PGA (see table~\ref{tab:pga3dp_rev_rrev} at the end of
+%% section~\ref{section_basics}).
+Since $\dot{M}$ and $\rev{M}$ are even-grade multivectors, their geometric product results
+in an even-grade multivector as well, which does not have a trivector part. Thus,
+$\Omega_w$ and therefore $\dot{M} \wedgedot \rev{M}$ must indeed be a bivector. \\
+
+This also assures, that the grade of $X$ and $\dot{X}$ are identical. If $X$ is a vector
+then $\dot{X}$ is a vector as well. This statement is true for any grade of $X$ as long as
+$\Omega_w$ is a bivector.\\
+
+\newpage
+
+If $X_0$ is not a constant element, but a function of time, which means that $X_0$ is a
+time dependent element in the \emph{body frame} $X_0 = X_b(t)$, we have to add another
+term to the derivative in eqn.~(\ref{eq:cmt_ega_world}) as follows:
+\begin{eqnarray}
+   \dot{X}(t) &=& \frac{d}{dt}(M \wedgedot X_b \wedgedot \rev{M}) \nonumber \\
+              &=& \dot{M} \wedgedot X_b \wedgedot \rev{M} + M \wedgedot X_b \wedgedot
+                  \dot{\rev{M}} + M \wedgedot \dot{X_b} \wedgedot \rev{M} \nonumber \\
+              &=& cmt(M\wedgedot X_b \wedgedot\rev{M},\Omega_w)
+                  + M \wedgedot \dot{X_b} \wedgedot \rev{M} \nonumber \\[10 pt]
+   \dot{X}_w  &=& cmt(X_w,\Omega_w) + (\dot{X_b})_w
+   \slabel{eq:cmt_ega_world_incl_X0_of_t}
+\end{eqnarray}
+Eqn.~(\ref{eq:cmt_ega_world_incl_X0_of_t}) is to be considered in the world frame.
+However, we can also do our derivations in a completely equivalent way using the
+corresponding bivector rates and rotors of the \emph{body frame}. \\
+
+Now we derive the rate of change of a point $X(t)$ in the \emph{body frame}, again
+assuming first that $X(t=0) = X_0 = const.$. We can write
+\begin{eqnarray*}
+   \dot{X}(t) &=& \dot{M} \wedgedot X_0 \wedgedot \rev{M}
+                  + M \wedgedot X_0 \wedgedot \dot{\rev{M}} \\
+              &\overset{\mathrm{(\ref{eq:dot_rev_m_as_dot_m})}}{=}&
+                  1 \wedgedot \dot{M} \wedgedot 1 \wedgedot X_0 \wedgedot \rev{M}
+                  -M \wedgedot X_0 \wedgedot (\rev{M}\wedgedot\dot{M}\wedgedot\rev{M})
+                  \\
+              &\overset{\mathrm{(\ref{eq:motor_relation_gpr_neutral_element})}}{=}& M
+                  \wedgedot (\rev{M} \wedgedot \dot{M}) \wedgedot \rev{M} \wedgedot (M
+                  \wedgedot X_0 \wedgedot \rev{M}) -(M \wedgedot X_0 \wedgedot \rev{M})
+                  \wedgedot 1 \wedgedot \dot{M} \wedgedot \rev{M} \\
+              &=& \left( M \wedgedot (\rev{M} \wedgedot \dot{M}) \wedgedot \rev{M} \right)
+                  \wedgedot X(t) - X(t) \wedgedot \left(
+                  M \wedgedot (\rev{M} \wedgedot \dot{M}) \wedgedot \rev{M} \right) \\
+              &=& \left( M \wedgedot (\rev{M} \wedgedot \dot{M}) \wedgedot \rev{M} \right)
+                  \wedgedot X(t) - X(t) \wedgedot \left(
+                  M \wedgedot (\rev{M} \wedgedot \dot{M}) \wedgedot \rev{M} \right)
+\end{eqnarray*}
+From eqn. (\ref{eq:bivector_rate_body_frame}) we can conclude that
+$-\frac{1}{2}\Omega_b (t) = \rev{M} \wedgedot \dot{M}$, resulting in
+\begin{eqnarray}
+   \dot{X}(t) &=&\left( M \wedgedot (-\frac{1}{2}\Omega_b(t)) \wedgedot \rev{M} \right) 
+                 \wedgedot X(t) - X(t) \wedgedot
+              \left( M \wedgedot (-\frac{1}{2}\Omega_b(t)) \wedgedot \rev{M} \right)
+              \nonumber \\
+              &=& -\frac{1}{2}\left( (\Omega_b)_w \wedgedot X
+              - X \wedgedot (\Omega_b)_w\right)
+              \nonumber \\
+              &=& -\frac{1}{2}\left( \Omega_w \wedgedot X - X \wedgedot \Omega_w\right)
+              \nonumber \\
+              &=& -cmt(\Omega_w,X) \nonumber \\[10pt]
+   \dot{X}_w  &=& cmt((X_b)_w,\Omega_w) = cmt(X_w,\Omega_w)
+   \slabel{eq:cmt_ega_body} 
+\end{eqnarray}
+with $cmt(X_w,\Omega_w)$ as the commutator product between $X_w$ and $\Omega_w$. This is
+exactly the same result as before, just based on bivector rate measured in the \emph{body
+frame}. \\
+
+It can be shown that $\rev{M} \wedgedot \dot{M}$ is always a bivector with the same
+argument as before. So we don't repeat that here. \\
+
+If $X_0$ is not a constant element, but itself a function of time $X_b(t)$, we have to add
+another term to the derivative in eqn.~(\ref{eq:cmt_ega_body}) again as follows:
+\begin{eqnarray}
+   \dot{X}(t) &=& \frac{d}{dt}(M \wedgedot X_b \wedgedot \rev{M}) \nonumber \\
+              &=& \dot{M} \wedgedot X_b \wedgedot \rev{M} + M \wedgedot X_b \wedgedot
+                  \dot{\rev{M}} + M \wedgedot \dot{X_b} \wedgedot \rev{M} \nonumber \\
+              &=& cmt(M\wedgedot X_b \wedgedot\rev{M},\Omega_w)
+                  + M \wedgedot \dot{X_b} \wedgedot \rev{M} \nonumber \\
+              &=& cmt((X_b)_w,\Omega_w) + (\dot{X_b})_w \nonumber \\[10 pt]
+   \dot{X}_w  &=& cmt(X_w,\Omega_w) + (\dot{X_b})_w
+   \slabel{eq:cmt_ega_body_incl_X0_of_t}
+\end{eqnarray}
+Eqn.~(\ref{eq:cmt_ega_body_incl_X0_of_t}) is again to be considered in the \emph{world
+frame}. The result derived in the \emph{body frame} is of course identical to the result
+derived in the \emph{world frame}. \\
+
+In $EGA$ rotation as a Euclidean isometry can be described with sandwich products based on
+the geometric product. Now looking into $PGA$ Lengyel has shown in
+\cite{Lengyel_pga-illuminated:2024} that Euclidean isometries (covering translations as
+well as rotations) can be described with sandwich products based on the regressive
+geometric product in $PGA$. If we do that, we can stay in the space $G(3,0,1)$ and do not
+need to switch to its dual space in order to implement these orthonormal transformations
+as already described above. \\
+
+Now we repeat the derivation of the time-derivative $\dot{X}$ of a point $X(t)$ for $PGA$:
+We will use the regressive geometric product, $\ps$ as its neutral element. The derivation
+is then completely analogous to the $EGA$ case with the given substitutions. \\
+
+$M$ as a rotor in $PGA$ is an orthonomal transformation and thus satisfies
+\begin{equation}
+M \veedot \rrev{M} = \rrev{M} \veedot M = \ps
+\label{eq:motor_relation_rgpr_neutral_element}
+\end{equation}
+as the defining equation for a motor in $PGA$ (remember: $M^{-1} = \rrev{M}$), thus
+\begin{equation}
+   \frac{d}{dt}(M\veedot\rrev{M}) = \dot{M}\veedot\rrev{M} + M\veedot\dot{\rrev{M}} = 0
+   \label{eq:dot_rrev_m}
+\end{equation}
+It follows that $M\veedot\dot{\rrev{M}} = -\dot{M}\veedot\rrev{M}$, which results in
+\begin{equation}
+   \dot{\rrev{M}} = -\rrev{M}\veedot\dot{M}\veedot\rrev{M}
+   \label{eq:dot_rrev_m_as_dot_m}
+\end{equation}
+Starting from $\rrev{M} \veedot M = \ps$ instead yields the same result for
+$\dot{\rrev{M}}$. \\
+
+
+%%% change below from here from EGA to PGA
+
+\newpage
+
+\textbf{\emph{World frame}}: From eqn.~(\ref{eq:rexp_pga_motor}) we know the form of a
+general rotor in $PGA$ and use the ansatz for a time dependent rotor $M(t)$ after the the
+object $X$ was brought into its initial position by $M_0$ as $X_0 = M \veedot X \veedot
+\rrev{M}$. If there is no difference between world and body frames at $t=0$ then
+$M_0=\ps$:
+\begin{equation}
+   M(t) = exp_\veedot(\frac{1}{2}B_w(t)) \veedot M_0
+   \label{eq:motor_pga_world_frame}
+\end{equation}
+with $B_w(t)$ as a time-dependent bivector that models the rotational plane and the
+turning angle. The derivative of $M$ with respect to time $t$ is
+\begin{equation}
+   \dot{M}(t) = \frac{1}{2} \dot{B_w}(t) \veedot
+                exp_\veedot (\frac{1}{2}B_w(t)) \veedot M_0
+              = \frac{1}{2} \dot{B_w}(t) \veedot M(t)   
+\end{equation}
+where we use that the exponential of the bivector and the bivector rate commute
+\emph{(tbd: show why this is the case)}. Using $\Omega_w = \dot{B_w}(t)$ as the bivector
+rate of change in the \emph{world frame}, we get
+\begin{equation}
+   \dot{M} = \frac{1}{2} \Omega_w \veedot M 
+   \label{eq:motor_rate_world_frame_pga}   
+\end{equation}
+By multiplying this from the right with ``$\veedot\;\rrev{M}$'' this can transformed to
+\begin{equation}
+   \Omega_w = 2 \dot{M} \veedot \rrev{M}
+   \label{eq:bivector_rate_world_frame_pga}
+\end{equation}
+
+\textbf{\emph{Body frame}}: Here we first move the object in the \emph{body frame} and
+then transform it into the in the world frame by the transformation $M_0$. In this case
+eqn.~(\ref{eq:motor_pga_world_frame}) becomes 
+\begin{equation}
+   M(t) = M_0 \veedot  exp_\veedot(\frac{1}{2}B_b(t))
+   \label{eq:motor_pga_body_frame}
+\end{equation}
+which in turn restults in
+\begin{equation}
+   \dot{M}(t) = \frac{1}{2} M_0 \veedot
+                exp_\veedot (\frac{1}{2}B_b(t)) \veedot \dot{B_b}(t) 
+              = \frac{1}{2} M(t)  \veedot \dot{B_b}(t) 
+\end{equation}
+while eqn.~(\ref{eq:motor_rate_world_frame_pga}) for the bivector rate of change in the
+\emph{body frame} becomes
+\begin{equation}
+   \dot{M} = \frac{1}{2} M \veedot \Omega_b  
+   \label{eq:motor_rate_body_frame_pga}   
+\end{equation}
+using $\Omega_b = \dot{B_b}(t)$ as the bivector rate of change in the \emph{body frame}.
+This can be transformed by multiplying it from the left by ``$\rrev{M}\;\veedot$'' to
+obtain
+\begin{equation}
+   \Omega_b = 2 \rrev{M} \veedot \dot{M}
+   \label{eq:bivector_rate_body_frame_pga}
+\end{equation}
+
+From equations (\ref{eq:bivector_rate_world_frame_pga}) and
+(\ref{eq:bivector_rate_body_frame_pga}) we can see how world and body frame rates are
+connected to each other: $\Omega_w \veedot M = M \veedot \Omega_b$, which can be
+transformed into
+\begin{subeqnarray}
+   \Omega_w & = M \veedot \Omega_b \veedot \rrev{M} \\
+   \Omega_b & = \rrev{M} \veedot \Omega_w \veedot M
+\end{subeqnarray}
+
+\newpage
+
+Now we derive the rate of change of a point $X(t)$, i.e. its speed $\dot{X}(t)$, in the
+\emph{world frame}, first assuming that $X(t=0) = X_0 = const.$, i.e. as a constant
+element that is transformed by a time dependent motor $M(t)$. During the derivation we
+will use the associativity of the regressive geometric product and the neutral element
+$\ps$ of the regressive geometric product. We can write
+\begin{eqnarray*}
+   \dot{X}(t) &=& \frac{d}{dt}X(t) =\frac{d}{dt}(M \veedot X_0 \veedot \rrev{M}) \\
+              &=& \dot{M} \veedot X_0 \veedot \rrev{M}
+                  + M \veedot X_0 \veedot \dot{\rrev{M}} \\
+              &\overset{\mathrm{(\ref{eq:dot_rrev_m_as_dot_m})}}{=}&
+                  \dot{M} \veedot \ps \veedot X_0 \veedot \rrev{M}
+                  -M \veedot X_0 \veedot (\rrev{M}\veedot\dot{M}\veedot\rrev{M})
+                  \\
+              &\overset{\mathrm{(\ref{eq:motor_relation_rgpr_neutral_element})}}{=}&
+                  \dot{M} \veedot (\rrev{M} \veedot M) \veedot X_0 \veedot \rrev{M}
+                  -(M \veedot X_0 \veedot \rrev{M}) \veedot \dot{M} \veedot \rrev{M}
+                  \\
+              &=& (\dot{M} \veedot \rrev{M}) \veedot (M\veedot X_0 \veedot \rrev{M})
+                  -(M\veedot X_0 \veedot\rrev{M}) \veedot (\dot{M} \veedot \rrev{M})
+\end{eqnarray*}
+From eqn. (\ref{eq:bivector_rate_world_frame_pga}) we can conclude that
+$\frac{1}{2}\Omega_w (t) = \dot{M} \veedot \rrev{M}$, resulting in
+\begin{eqnarray}
+   \dot{X}(t) &=&(\frac{1}{2}\Omega_w(t)) \veedot X_w(t) - X_w(t) \veedot
+              (\frac{1}{2}\Omega_w(t)) \nonumber \\
+              &=& \frac{1}{2}\left( \Omega_w \veedot X_w - X_w \veedot \Omega_w\right)
+              \nonumber \\[10pt]
+   \dot{X}_w  &=&  cmt(\Omega_w,X_w) = -cmt(X_w,\Omega_w)
+   \slabel{eq:cmt_pga_world} 
+\end{eqnarray}
+with $cmt(\Omega_w, X_w)$ as the commutator product between $\Omega_w$ and $X_w$. The
+resulting minus sign in eqn.~(\ref{eq:cmt_pga_world}) compared to
+eqn.~(\ref{eq:cmt_ega_world}) is the only difference between $PGA$ and $EGA$. This is
+caused by the different ansatz for the motors comparing equations (\ref{eq:rotor_ega}) and
+(\ref{eq:rexp_pga_motor}).\\
+
+It can be shown that $\dot{M} \veedot \rrev{M}$ is always a bivector: From equations
+(\ref{eq:bivector_rate_world_frame_pga}) and (\ref{eq:dot_rrev_m}), and the linearity of
+the involved operations, we get
+\begin{equation}
+   \Omega_w = 2 \dot{M} \veedot \rrev{M} = - 2 M \veedot
+   \dot{\rrev{M}} = - 2 (\rrev{\dot{M} \veedot \rrev{M} })= -\rrev{\Omega}_w
+   \label{eq:bivector_poof_gpr}
+\end{equation}
+Considering the grade-dependent sign-reversal of the reverse in 3D $PGA$, $\Omega_w$ must
+either be a vector or a bivector in PGA (see table~\ref{tab:pga3dp_rev_rrev} at the end of
+section~\ref{section_basics}). Since $\dot{M}$ and $\rrev{M}$ are even-grade multivectors,
+their geometric product results in an even-grade multivector as well, which does not have
+a vector part. Thus, $\Omega_w$ and therefore $\dot{M} \veedot \rrev{M}$ must indeed be a
+bivector. \\
+
+This also assures, that the grade of $X$ and $\dot{X}$ are identical. If $X$ is a vector
+then $\dot{X}$ is a vector as well. This statement is true for any grade of $X$ as long as
+$\Omega_w$ is a bivector.\\
+
+\newpage
+
+If $X_0$ is not a constant element, but a function of time, which means that $X_0$ is a
+time dependent element in the \emph{body frame} $X_0 = X_b(t)$, we have to add another
+term to the derivative in eqn.~(\ref{eq:cmt_pga_world}) as follows:
+\begin{eqnarray}
+   \dot{X}(t) &=& \frac{d}{dt}(M \veedot X_b \veedot \rrev{M}) \nonumber \\
+              &=& \dot{M} \veedot X_b \veedot \rrev{M} + M \veedot X_b \veedot
+                  \dot{\rrev{M}} + M \veedot \dot{X_b} \veedot \rrev{M} \nonumber \\
+              &=& -cmt(M\veedot X_b \veedot\rrev{M},\Omega_w)
+                  + M \veedot \dot{X_b} \veedot \rrev{M} \nonumber \\[10 pt]
+   \dot{X}_w  &=& -cmt(X_w,\Omega_w) + (\dot{X_b})_w
+   \slabel{eq:cmt_ega_world_incl_X0_of_t}
+\end{eqnarray}
+Eqn.~(\ref{eq:cmt_ega_world_incl_X0_of_t}) is to be considered in the world frame.
+However, we can also do our derivations in a completely equivalent way using the
+corresponding bivector rates and rotors of the \emph{body frame}. \\
+
+The derivation in the \emph{body frame} does not bring new insight so we don't reproduce
+that here for $PGA$ again.
 
 \newpage

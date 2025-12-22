@@ -25,7 +25,7 @@ using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 // Euclidean geometric algebra of two-dimensional space: ega2d, pga2dp comparison
 /////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_SUITE("PGA2DP: comparison tests")
+TEST_SUITE("pga2dp: ega2d pga2dp comparison tests")
 {
 
     TEST_CASE("pga2dp: ega2d comparison tests")

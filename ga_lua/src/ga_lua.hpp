@@ -87,7 +87,7 @@ void register_2d_types(sol::state& lua)
         "x", &vec2d::x, "y", &vec2d::y, sol::meta_function::to_string,
         [](const vec2d& v) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("Vec2d({}, {})", suppress_negative_zero(v.x),
+            return fmt::format("Vec2d({},{})", suppress_negative_zero(v.x),
                                suppress_negative_zero(v.y));
         },
         sol::meta_function::unary_minus, sol::resolve<vec2d(vec2d const&)>(operator-),
@@ -182,7 +182,7 @@ void register_2d_types(sol::state& lua)
         "c0", &mvec2d_e::c0, "c1", &mvec2d_e::c1, sol::meta_function::to_string,
         [](const mvec2d_e& mv) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("MVec2d_E({}, {})", suppress_negative_zero(mv.c0),
+            return fmt::format("MVec2d_E({},{})", suppress_negative_zero(mv.c0),
                                suppress_negative_zero(mv.c1));
         },
         sol::meta_function::unary_minus,
@@ -228,7 +228,7 @@ void register_2d_types(sol::state& lua)
         sol::meta_function::to_string,
         [](const mvec2d& mv) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("MVec2d({}, {}, {}, {})", suppress_negative_zero(mv.c0),
+            return fmt::format("MVec2d({},{},{},{})", suppress_negative_zero(mv.c0),
                                suppress_negative_zero(mv.c1),
                                suppress_negative_zero(mv.c2),
                                suppress_negative_zero(mv.c3));
@@ -332,7 +332,7 @@ void register_3d_types(sol::state& lua)
         "x", &vec3d::x, "y", &vec3d::y, "z", &vec3d::z, sol::meta_function::to_string,
         [](const vec3d& v) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("Vec3d({}, {}, {})", suppress_negative_zero(v.x),
+            return fmt::format("Vec3d({},{},{})", suppress_negative_zero(v.x),
                                suppress_negative_zero(v.y), suppress_negative_zero(v.z));
         },
         sol::meta_function::unary_minus, sol::resolve<vec3d(vec3d const&)>(operator-),
@@ -387,7 +387,7 @@ void register_3d_types(sol::state& lua)
         sol::meta_function::to_string,
         [](const bivec3d& bv) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("BiVec3d({}, {}, {})", suppress_negative_zero(bv.x),
+            return fmt::format("BiVec3d({},{},{})", suppress_negative_zero(bv.x),
                                suppress_negative_zero(bv.y),
                                suppress_negative_zero(bv.z));
         },
@@ -495,7 +495,7 @@ void register_3d_types(sol::state& lua)
         &mvec3d_e::c3, sol::meta_function::to_string,
         [](const mvec3d_e& mv) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("MVec3d_E({}, {}, {}, {})", suppress_negative_zero(mv.c0),
+            return fmt::format("MVec3d_E({},{},{},{})", suppress_negative_zero(mv.c0),
                                suppress_negative_zero(mv.c1),
                                suppress_negative_zero(mv.c2),
                                suppress_negative_zero(mv.c3));
@@ -537,7 +537,7 @@ void register_3d_types(sol::state& lua)
         &mvec3d_u::c3, sol::meta_function::to_string,
         [](const mvec3d_u& mv) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("MVec3d_U({}, {}, {}, {})", suppress_negative_zero(mv.c0),
+            return fmt::format("MVec3d_U({},{},{},{})", suppress_negative_zero(mv.c0),
                                suppress_negative_zero(mv.c1),
                                suppress_negative_zero(mv.c2),
                                suppress_negative_zero(mv.c3));
@@ -582,7 +582,7 @@ void register_3d_types(sol::state& lua)
         [](const mvec3d& mv) {
             using hd::ga::detail::suppress_negative_zero;
             return fmt::format(
-                "MVec3d({}, {}, {}, {}, {}, {}, {}, {})", suppress_negative_zero(mv.c0),
+                "MVec3d({},{},{},{},{},{},{},{})", suppress_negative_zero(mv.c0),
                 suppress_negative_zero(mv.c1), suppress_negative_zero(mv.c2),
                 suppress_negative_zero(mv.c3), suppress_negative_zero(mv.c4),
                 suppress_negative_zero(mv.c5), suppress_negative_zero(mv.c6),
@@ -655,7 +655,7 @@ void register_2dp_types(sol::state& lua)
         "x", &vec2dp::x, "y", &vec2dp::y, "z", &vec2dp::z, sol::meta_function::to_string,
         [](const vec2dp& v) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("Vec2dp({}, {}, {})", suppress_negative_zero(v.x),
+            return fmt::format("Vec2dp({},{},{})", suppress_negative_zero(v.x),
                                suppress_negative_zero(v.y), suppress_negative_zero(v.z));
         },
         sol::meta_function::unary_minus, sol::resolve<vec2dp(vec2dp const&)>(operator-),
@@ -682,7 +682,7 @@ void register_2dp_types(sol::state& lua)
         sol::meta_function::to_string,
         [](const bivec2dp& bv) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("BiVec2dp({}, {}, {})", suppress_negative_zero(bv.x),
+            return fmt::format("BiVec2dp({},{},{})", suppress_negative_zero(bv.x),
                                suppress_negative_zero(bv.y),
                                suppress_negative_zero(bv.z));
         },
@@ -731,7 +731,7 @@ void register_2dp_types(sol::state& lua)
         "c0", &dualnum2dp::c0, "c1", &dualnum2dp::c1, sol::meta_function::to_string,
         [](const dualnum2dp& dn) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("DualNum2dp({}, {})", suppress_negative_zero(dn.c0),
+            return fmt::format("DualNum2dp({},{})", suppress_negative_zero(dn.c0),
                                suppress_negative_zero(dn.c1));
         },
         sol::meta_function::unary_minus,
@@ -768,8 +768,7 @@ void register_2dp_types(sol::state& lua)
         "c0", &mvec2dp_e::c0, "c1", &mvec2dp_e::c1, "c2", &mvec2dp_e::c2, "c3",
         &mvec2dp_e::c3, sol::meta_function::to_string,
         [](const mvec2dp_e& mve) {
-            return fmt::format("MVec2dp_E({}, {}, {}, {})", mve.c0, mve.c1, mve.c2,
-                               mve.c3);
+            return fmt::format("MVec2dp_E({},{},{},{})", mve.c0, mve.c1, mve.c2, mve.c3);
         },
         sol::meta_function::unary_minus,
         sol::resolve<mvec2dp_e(mvec2dp_e const&)>(operator-),
@@ -796,8 +795,7 @@ void register_2dp_types(sol::state& lua)
         "c0", &mvec2dp_u::c0, "c1", &mvec2dp_u::c1, "c2", &mvec2dp_u::c2, "c3",
         &mvec2dp_u::c3, sol::meta_function::to_string,
         [](const mvec2dp_u& mvu) {
-            return fmt::format("MVec2dp_U({}, {}, {}, {})", mvu.c0, mvu.c1, mvu.c2,
-                               mvu.c3);
+            return fmt::format("MVec2dp_U({},{},{},{})", mvu.c0, mvu.c1, mvu.c2, mvu.c3);
         },
         sol::meta_function::unary_minus,
         sol::resolve<mvec2dp_u(mvec2dp_u const&)>(operator-),
@@ -826,8 +824,8 @@ void register_2dp_types(sol::state& lua)
         "c4", &mvec2dp::c4, "c5", &mvec2dp::c5, "c6", &mvec2dp::c6, "c7", &mvec2dp::c7,
         sol::meta_function::to_string,
         [](const mvec2dp& mv) {
-            return fmt::format("MVec2dp({}, {}, {}, {}, {}, {}, {}, {})", mv.c0, mv.c1,
-                               mv.c2, mv.c3, mv.c4, mv.c5, mv.c6, mv.c7);
+            return fmt::format("MVec2dp({},{},{},{},{},{},{},{})", mv.c0, mv.c1, mv.c2,
+                               mv.c3, mv.c4, mv.c5, mv.c6, mv.c7);
         },
         sol::meta_function::unary_minus, sol::resolve<mvec2dp(mvec2dp const&)>(operator-),
         sol::meta_function::addition,
@@ -884,7 +882,7 @@ void register_3dp_types(sol::state& lua)
         sol::meta_function::to_string,
         [](const vec3dp& v) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("Vec3dp({}, {}, {}, {})", suppress_negative_zero(v.x),
+            return fmt::format("Vec3dp({},{},{},{})", suppress_negative_zero(v.x),
                                suppress_negative_zero(v.y), suppress_negative_zero(v.z),
                                suppress_negative_zero(v.w));
         },
@@ -915,7 +913,7 @@ void register_3dp_types(sol::state& lua)
         [](const bivec3dp& bv) {
             using hd::ga::detail::suppress_negative_zero;
             return fmt::format(
-                "BiVec3dp({}, {}, {}, {}, {}, {})", suppress_negative_zero(bv.vx),
+                "BiVec3dp({},{},{},{},{},{})", suppress_negative_zero(bv.vx),
                 suppress_negative_zero(bv.vy), suppress_negative_zero(bv.vz),
                 suppress_negative_zero(bv.mx), suppress_negative_zero(bv.my),
                 suppress_negative_zero(bv.mz));
@@ -942,7 +940,7 @@ void register_3dp_types(sol::state& lua)
         sol::meta_function::to_string,
         [](const trivec3dp& tv) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("TriVec3dp({}, {}, {}, {})", suppress_negative_zero(tv.x),
+            return fmt::format("TriVec3dp({},{},{},{})", suppress_negative_zero(tv.x),
                                suppress_negative_zero(tv.y), suppress_negative_zero(tv.z),
                                suppress_negative_zero(tv.w));
         },
@@ -992,7 +990,7 @@ void register_3dp_types(sol::state& lua)
         "c0", &dualnum3dp::c0, "c1", &dualnum3dp::c1, sol::meta_function::to_string,
         [](const dualnum3dp& dn) {
             using hd::ga::detail::suppress_negative_zero;
-            return fmt::format("DualNum3dp({}, {})", suppress_negative_zero(dn.c0),
+            return fmt::format("DualNum3dp({},{})", suppress_negative_zero(dn.c0),
                                suppress_negative_zero(dn.c1));
         },
         sol::meta_function::unary_minus,
@@ -1037,11 +1035,11 @@ void register_3dp_types(sol::state& lua)
         [](const mvec3dp_e& mve) {
             using hd::ga::detail::suppress_negative_zero;
             return fmt::format(
-                "MVec3dp_E({}, {}, {}, {}, {}, {}, {}, {})",
-                suppress_negative_zero(mve.c0), suppress_negative_zero(mve.c1),
-                suppress_negative_zero(mve.c2), suppress_negative_zero(mve.c3),
-                suppress_negative_zero(mve.c4), suppress_negative_zero(mve.c5),
-                suppress_negative_zero(mve.c6), suppress_negative_zero(mve.c7));
+                "MVec3dp_E({},{},{},{},{},{},{},{})", suppress_negative_zero(mve.c0),
+                suppress_negative_zero(mve.c1), suppress_negative_zero(mve.c2),
+                suppress_negative_zero(mve.c3), suppress_negative_zero(mve.c4),
+                suppress_negative_zero(mve.c5), suppress_negative_zero(mve.c6),
+                suppress_negative_zero(mve.c7));
         },
         sol::meta_function::unary_minus,
         sol::resolve<mvec3dp_e(mvec3dp_e const&)>(operator-),
@@ -1073,11 +1071,11 @@ void register_3dp_types(sol::state& lua)
         [](const mvec3dp_u& mvu) {
             using hd::ga::detail::suppress_negative_zero;
             return fmt::format(
-                "MVec3dp_U({}, {}, {}, {}, {}, {}, {}, {})",
-                suppress_negative_zero(mvu.c0), suppress_negative_zero(mvu.c1),
-                suppress_negative_zero(mvu.c2), suppress_negative_zero(mvu.c3),
-                suppress_negative_zero(mvu.c4), suppress_negative_zero(mvu.c5),
-                suppress_negative_zero(mvu.c6), suppress_negative_zero(mvu.c7));
+                "MVec3dp_U({},{},{},{},{},{},{},{})", suppress_negative_zero(mvu.c0),
+                suppress_negative_zero(mvu.c1), suppress_negative_zero(mvu.c2),
+                suppress_negative_zero(mvu.c3), suppress_negative_zero(mvu.c4),
+                suppress_negative_zero(mvu.c5), suppress_negative_zero(mvu.c6),
+                suppress_negative_zero(mvu.c7));
         },
         sol::meta_function::unary_minus,
         sol::resolve<mvec3dp_u(mvec3dp_u const&)>(operator-),
@@ -1111,7 +1109,7 @@ void register_3dp_types(sol::state& lua)
         [](const mvec3dp& mv) {
             using hd::ga::detail::suppress_negative_zero;
             return fmt::format(
-                "MVec3dp({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
+                "MVec3dp({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{})",
                 suppress_negative_zero(mv.c0), suppress_negative_zero(mv.c1),
                 suppress_negative_zero(mv.c2), suppress_negative_zero(mv.c3),
                 suppress_negative_zero(mv.c4), suppress_negative_zero(mv.c5),
@@ -1567,6 +1565,8 @@ void register_functions(sol::state& lua)
                          sol::resolve<scalar3d(scalar3d, scalar3d)>(wdg),
                          // PGA 2DP wedge products
                          sol::resolve<mvec2dp(mvec2dp const&, mvec2dp const&)>(wdg),
+                         sol::resolve<mvec2dp_e(mvec2dp_e const&, mvec2dp_e const&)>(wdg),
+                         sol::resolve<bivec2dp(mvec2dp_u const&, mvec2dp_u const&)>(wdg),
                          sol::resolve<scalar2dp(pscalar2dp, pscalar2dp)>(wdg),
                          sol::resolve<scalar2dp(pscalar2dp, bivec2dp const&)>(wdg),
                          sol::resolve<scalar2dp(bivec2dp const&, pscalar2dp)>(wdg),
@@ -1587,6 +1587,8 @@ void register_functions(sol::state& lua)
                          sol::resolve<line2d(point2d const&, point2d const&)>(wdg),
                          // PGA 3DP wedge products
                          sol::resolve<mvec3dp(mvec3dp const&, mvec3dp const&)>(wdg),
+                         sol::resolve<mvec3dp_e(mvec3dp_e const&, mvec3dp_e const&)>(wdg),
+                         sol::resolve<mvec3dp_e(mvec3dp_u const&, mvec3dp_u const&)>(wdg),
                          sol::resolve<scalar3dp(pscalar3dp, pscalar3dp)>(wdg),
                          sol::resolve<scalar3dp(pscalar3dp, trivec3dp const&)>(wdg),
                          sol::resolve<scalar3dp(trivec3dp const&, pscalar3dp)>(wdg),
@@ -1639,84 +1641,88 @@ void register_functions(sol::state& lua)
     // regressive wedge product (= outer product for complements) (rwdg)
     ////////////////////////////////////////////////////////////////////////////////
 
-    lua.set_function("rwdg",
-                     sol::overload(
-                         // EGA 2D regressive wedge products
-                         sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(rwdg),
-                         sol::resolve<pscalar2d(pscalar2d, pscalar2d)>(rwdg),
-                         sol::resolve<vec2d(pscalar2d, vec2d const&)>(rwdg),
-                         sol::resolve<vec2d(vec2d const&, pscalar2d)>(rwdg),
-                         sol::resolve<scalar2d(pscalar2d, scalar2d)>(rwdg),
-                         sol::resolve<scalar2d(scalar2d, pscalar2d)>(rwdg),
-                         sol::resolve<scalar2d(vec2d const&, vec2d const&)>(rwdg),
-                         sol::resolve<scalar2d(vec2d const&, scalar2d)>(rwdg),
-                         sol::resolve<scalar2d(scalar2d, vec2d const&)>(rwdg),
-                         sol::resolve<scalar2d(scalar2d, scalar2d)>(rwdg),
-                         // EGA 3D regressive wedge products
-                         sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(rwdg),
-                         sol::resolve<pscalar3d(pscalar3d, pscalar3d)>(rwdg),
-                         sol::resolve<bivec3d(pscalar3d, bivec3d const&)>(rwdg),
-                         sol::resolve<bivec3d(bivec3d const&, pscalar3d)>(rwdg),
-                         sol::resolve<vec3d(pscalar3d, vec3d const&)>(rwdg),
-                         sol::resolve<vec3d(vec3d const&, pscalar3d)>(rwdg),
-                         sol::resolve<scalar3d(pscalar3d, scalar3d)>(rwdg),
-                         sol::resolve<scalar3d(scalar3d, pscalar3d)>(rwdg),
-                         sol::resolve<vec3d(bivec3d const&, bivec3d const&)>(rwdg),
-                         sol::resolve<scalar3d(bivec3d const&, vec3d const&)>(rwdg),
-                         sol::resolve<scalar3d(vec3d const&, bivec3d const&)>(rwdg),
-                         sol::resolve<scalar3d(bivec3d const&, scalar3d)>(rwdg),
-                         sol::resolve<scalar3d(scalar3d, bivec3d const&)>(rwdg),
-                         sol::resolve<scalar3d(vec3d const&, vec3d const&)>(rwdg),
-                         sol::resolve<scalar3d(vec3d const&, scalar3d)>(rwdg),
-                         sol::resolve<scalar3d(scalar3d, vec3d const&)>(rwdg),
-                         sol::resolve<scalar3d(scalar3d, scalar3d)>(rwdg),
-                         // PGA 2DP regressive wedge products
-                         sol::resolve<mvec2dp(mvec2dp const&, mvec2dp const&)>(rwdg),
-                         //
-                         sol::resolve<pscalar2dp(pscalar2dp, pscalar2dp)>(rwdg),
-                         sol::resolve<bivec2dp(pscalar2dp, bivec2dp const&)>(rwdg),
-                         sol::resolve<bivec2dp(bivec2dp const&, pscalar2dp)>(rwdg),
-                         sol::resolve<vec2dp(pscalar2dp, vec2dp const&)>(rwdg),
-                         sol::resolve<vec2dp(vec2dp const&, pscalar2dp)>(rwdg),
-                         sol::resolve<scalar2dp(pscalar2dp, scalar2dp)>(rwdg),
-                         sol::resolve<scalar2dp(scalar2dp, pscalar2dp)>(rwdg),
-                         //
-                         sol::resolve<vec2dp(bivec2dp const&, bivec2dp const&)>(rwdg),
-                         sol::resolve<scalar2dp(bivec2dp const&, vec2dp const&)>(rwdg),
-                         sol::resolve<scalar2dp(vec2dp const&, bivec2dp const&)>(rwdg),
-                         sol::resolve<scalar2dp(bivec2dp const&, scalar2dp)>(rwdg),
-                         sol::resolve<scalar2dp(scalar2dp, bivec2dp const&)>(rwdg),
-                         sol::resolve<scalar2dp(vec2dp const&, vec2dp const&)>(rwdg),
-                         sol::resolve<scalar2dp(vec2dp const&, scalar2dp)>(rwdg),
-                         sol::resolve<scalar2dp(scalar2dp, vec2dp const&)>(rwdg),
-                         sol::resolve<scalar2dp(scalar2dp, scalar2dp)>(rwdg),
-                         // PGA 3DP regressive wedge products
-                         sol::resolve<mvec3dp(mvec3dp const&, mvec3dp const&)>(rwdg),
-                         //
-                         sol::resolve<pscalar3dp(pscalar3dp, pscalar3dp)>(rwdg),
-                         sol::resolve<trivec3dp(pscalar3dp, trivec3dp const&)>(rwdg),
-                         sol::resolve<trivec3dp(trivec3dp const&, pscalar3dp)>(rwdg),
-                         sol::resolve<bivec3dp(pscalar3dp, bivec3dp const&)>(rwdg),
-                         sol::resolve<bivec3dp(bivec3dp const&, pscalar3dp)>(rwdg),
-                         sol::resolve<vec3dp(pscalar3dp, vec3dp const&)>(rwdg),
-                         sol::resolve<vec3dp(vec3dp const&, pscalar3dp)>(rwdg),
-                         sol::resolve<scalar3dp(pscalar3dp, scalar3dp)>(rwdg),
-                         sol::resolve<scalar3dp(scalar3dp, pscalar3dp)>(rwdg),
-                         //
-                         sol::resolve<bivec3dp(trivec3dp const&, trivec3dp const&)>(rwdg),
-                         sol::resolve<vec3dp(trivec3dp const&, bivec3dp const&)>(rwdg),
-                         sol::resolve<vec3dp(bivec3dp const&, trivec3dp const&)>(rwdg),
-                         sol::resolve<scalar3dp(trivec3dp const&, vec3dp const&)>(rwdg),
-                         sol::resolve<scalar3dp(vec3dp const&, trivec3dp const&)>(rwdg),
-                         sol::resolve<scalar3dp(trivec3dp const&, scalar3dp)>(rwdg),
-                         sol::resolve<scalar3dp(scalar3dp, trivec3dp const&)>(rwdg),
-                         sol::resolve<scalar3dp(bivec3dp const&, bivec3dp const&)>(rwdg),
-                         sol::resolve<scalar3dp(bivec3dp const&, vec3dp const&)>(rwdg),
-                         sol::resolve<scalar3dp(vec3dp const&, bivec3dp const&)>(rwdg),
-                         sol::resolve<scalar3dp(vec3dp const&, vec3dp const&)>(rwdg),
-                         sol::resolve<scalar3dp(vec3dp const&, scalar3dp)>(rwdg),
-                         sol::resolve<scalar3dp(scalar3dp, vec3dp const&)>(rwdg),
-                         sol::resolve<scalar3dp(scalar3dp, scalar3dp)>(rwdg)));
+    lua.set_function(
+        "rwdg", sol::overload(
+                    // EGA 2D regressive wedge products
+                    sol::resolve<mvec2d(mvec2d const&, mvec2d const&)>(rwdg),
+                    sol::resolve<pscalar2d(pscalar2d, pscalar2d)>(rwdg),
+                    sol::resolve<vec2d(pscalar2d, vec2d const&)>(rwdg),
+                    sol::resolve<vec2d(vec2d const&, pscalar2d)>(rwdg),
+                    sol::resolve<scalar2d(pscalar2d, scalar2d)>(rwdg),
+                    sol::resolve<scalar2d(scalar2d, pscalar2d)>(rwdg),
+                    sol::resolve<scalar2d(vec2d const&, vec2d const&)>(rwdg),
+                    sol::resolve<scalar2d(vec2d const&, scalar2d)>(rwdg),
+                    sol::resolve<scalar2d(scalar2d, vec2d const&)>(rwdg),
+                    sol::resolve<scalar2d(scalar2d, scalar2d)>(rwdg),
+                    // EGA 3D regressive wedge products
+                    sol::resolve<mvec3d(mvec3d const&, mvec3d const&)>(rwdg),
+                    sol::resolve<pscalar3d(pscalar3d, pscalar3d)>(rwdg),
+                    sol::resolve<bivec3d(pscalar3d, bivec3d const&)>(rwdg),
+                    sol::resolve<bivec3d(bivec3d const&, pscalar3d)>(rwdg),
+                    sol::resolve<vec3d(pscalar3d, vec3d const&)>(rwdg),
+                    sol::resolve<vec3d(vec3d const&, pscalar3d)>(rwdg),
+                    sol::resolve<scalar3d(pscalar3d, scalar3d)>(rwdg),
+                    sol::resolve<scalar3d(scalar3d, pscalar3d)>(rwdg),
+                    sol::resolve<vec3d(bivec3d const&, bivec3d const&)>(rwdg),
+                    sol::resolve<scalar3d(bivec3d const&, vec3d const&)>(rwdg),
+                    sol::resolve<scalar3d(vec3d const&, bivec3d const&)>(rwdg),
+                    sol::resolve<scalar3d(bivec3d const&, scalar3d)>(rwdg),
+                    sol::resolve<scalar3d(scalar3d, bivec3d const&)>(rwdg),
+                    sol::resolve<scalar3d(vec3d const&, vec3d const&)>(rwdg),
+                    sol::resolve<scalar3d(vec3d const&, scalar3d)>(rwdg),
+                    sol::resolve<scalar3d(scalar3d, vec3d const&)>(rwdg),
+                    sol::resolve<scalar3d(scalar3d, scalar3d)>(rwdg),
+                    // PGA 2DP regressive wedge products
+                    sol::resolve<mvec2dp(mvec2dp const&, mvec2dp const&)>(rwdg),
+                    sol::resolve<vec2dp(mvec2dp_e const&, mvec2dp_e const&)>(rwdg),
+                    sol::resolve<mvec2dp_u(mvec2dp_u const&, mvec2dp_u const&)>(rwdg),
+                    //
+                    sol::resolve<pscalar2dp(pscalar2dp, pscalar2dp)>(rwdg),
+                    sol::resolve<bivec2dp(pscalar2dp, bivec2dp const&)>(rwdg),
+                    sol::resolve<bivec2dp(bivec2dp const&, pscalar2dp)>(rwdg),
+                    sol::resolve<vec2dp(pscalar2dp, vec2dp const&)>(rwdg),
+                    sol::resolve<vec2dp(vec2dp const&, pscalar2dp)>(rwdg),
+                    sol::resolve<scalar2dp(pscalar2dp, scalar2dp)>(rwdg),
+                    sol::resolve<scalar2dp(scalar2dp, pscalar2dp)>(rwdg),
+                    //
+                    sol::resolve<vec2dp(bivec2dp const&, bivec2dp const&)>(rwdg),
+                    sol::resolve<scalar2dp(bivec2dp const&, vec2dp const&)>(rwdg),
+                    sol::resolve<scalar2dp(vec2dp const&, bivec2dp const&)>(rwdg),
+                    sol::resolve<scalar2dp(bivec2dp const&, scalar2dp)>(rwdg),
+                    sol::resolve<scalar2dp(scalar2dp, bivec2dp const&)>(rwdg),
+                    sol::resolve<scalar2dp(vec2dp const&, vec2dp const&)>(rwdg),
+                    sol::resolve<scalar2dp(vec2dp const&, scalar2dp)>(rwdg),
+                    sol::resolve<scalar2dp(scalar2dp, vec2dp const&)>(rwdg),
+                    sol::resolve<scalar2dp(scalar2dp, scalar2dp)>(rwdg),
+                    // PGA 3DP regressive wedge products
+                    sol::resolve<mvec3dp(mvec3dp const&, mvec3dp const&)>(rwdg),
+                    sol::resolve<mvec3dp_e(mvec3dp_e const&, mvec3dp_e const&)>(rwdg),
+                    sol::resolve<mvec3dp_e(mvec3dp_u const&, mvec3dp_u const&)>(rwdg),
+                    //
+                    sol::resolve<pscalar3dp(pscalar3dp, pscalar3dp)>(rwdg),
+                    sol::resolve<trivec3dp(pscalar3dp, trivec3dp const&)>(rwdg),
+                    sol::resolve<trivec3dp(trivec3dp const&, pscalar3dp)>(rwdg),
+                    sol::resolve<bivec3dp(pscalar3dp, bivec3dp const&)>(rwdg),
+                    sol::resolve<bivec3dp(bivec3dp const&, pscalar3dp)>(rwdg),
+                    sol::resolve<vec3dp(pscalar3dp, vec3dp const&)>(rwdg),
+                    sol::resolve<vec3dp(vec3dp const&, pscalar3dp)>(rwdg),
+                    sol::resolve<scalar3dp(pscalar3dp, scalar3dp)>(rwdg),
+                    sol::resolve<scalar3dp(scalar3dp, pscalar3dp)>(rwdg),
+                    //
+                    sol::resolve<bivec3dp(trivec3dp const&, trivec3dp const&)>(rwdg),
+                    sol::resolve<vec3dp(trivec3dp const&, bivec3dp const&)>(rwdg),
+                    sol::resolve<vec3dp(bivec3dp const&, trivec3dp const&)>(rwdg),
+                    sol::resolve<scalar3dp(trivec3dp const&, vec3dp const&)>(rwdg),
+                    sol::resolve<scalar3dp(vec3dp const&, trivec3dp const&)>(rwdg),
+                    sol::resolve<scalar3dp(trivec3dp const&, scalar3dp)>(rwdg),
+                    sol::resolve<scalar3dp(scalar3dp, trivec3dp const&)>(rwdg),
+                    sol::resolve<scalar3dp(bivec3dp const&, bivec3dp const&)>(rwdg),
+                    sol::resolve<scalar3dp(bivec3dp const&, vec3dp const&)>(rwdg),
+                    sol::resolve<scalar3dp(vec3dp const&, bivec3dp const&)>(rwdg),
+                    sol::resolve<scalar3dp(vec3dp const&, vec3dp const&)>(rwdg),
+                    sol::resolve<scalar3dp(vec3dp const&, scalar3dp)>(rwdg),
+                    sol::resolve<scalar3dp(scalar3dp, vec3dp const&)>(rwdg),
+                    sol::resolve<scalar3dp(scalar3dp, scalar3dp)>(rwdg)));
 
     // meet as convenience alias for rwdg()
     lua.set_function("meet",

@@ -38,7 +38,8 @@ TEST_SUITE("STA 3D Tests")
         CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
         CHECK(alg.num_components() == 16);           // num_components == 2^dim
         CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
-        fmt::println("   sta4d: dim_grade = {}", fmt::join(alg.num_components_grade, ", "));
+        fmt::println("   sta4d: dim_grade = {}",
+                     fmt::join(alg.num_components_grade, ", "));
         fmt::println("   sta4d: basis_name = {}", fmt::join(alg.basis_name, ", "));
         fmt::println("");
     }
@@ -71,18 +72,20 @@ TEST_SUITE("STA 3D Tests")
     {
         fmt::println("G<1,3,0>: dual composition properties");
 
-        // For STA4D (even-dimensional): left_dual(right_dual(u)) = right_dual(left_dual(u)) = u
-        // This follows from left_complement(right_complement(u)) = u
+        // For STA4D (even-dimensional): left_dual(right_dual(u)) =
+        // right_dual(left_dual(u)) = u This follows from
+        // left_complement(right_complement(u)) = u
 
         scalar4ds s{3.0};
         vec4ds v{2.0, 5.0, 7.0, 9.0};
         bivec4ds B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
         trivec4ds T{1.0, 2.0, 3.0, 4.0};
         pscalar4ds ps{11.0};
-        mvec4ds_e M_e{scalar4ds{1.0}, bivec4ds{2.0, 3.0, 4.0, 5.0, 6.0, 7.0}, pscalar4ds{8.0}};
+        mvec4ds_e M_e{scalar4ds{1.0}, bivec4ds{2.0, 3.0, 4.0, 5.0, 6.0, 7.0},
+                      pscalar4ds{8.0}};
         mvec4ds M{scalar4ds{1.0}, vec4ds{2.0, 3.0, 4.0, 5.0},
-                  bivec4ds{6.0, 7.0, 8.0, 9.0, 10.0, 11.0}, trivec4ds{12.0, 13.0, 14.0, 15.0},
-                  pscalar4ds{16.0}};
+                  bivec4ds{6.0, 7.0, 8.0, 9.0, 10.0, 11.0},
+                  trivec4ds{12.0, 13.0, 14.0, 15.0}, pscalar4ds{16.0}};
 
         // left_dual(right_dual(u)) = u
         CHECK(left_dual(right_dual(s)) == s);
@@ -115,10 +118,11 @@ TEST_SUITE("STA 3D Tests")
         bivec4ds B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
         trivec4ds T{1.0, 2.0, 3.0, 4.0};
         pscalar4ds ps{11.0};
-        mvec4ds_e M_e{scalar4ds{1.0}, bivec4ds{2.0, 3.0, 4.0, 5.0, 6.0, 7.0}, pscalar4ds{8.0}};
+        mvec4ds_e M_e{scalar4ds{1.0}, bivec4ds{2.0, 3.0, 4.0, 5.0, 6.0, 7.0},
+                      pscalar4ds{8.0}};
         mvec4ds M{scalar4ds{1.0}, vec4ds{2.0, 3.0, 4.0, 5.0},
-                  bivec4ds{6.0, 7.0, 8.0, 9.0, 10.0, 11.0}, trivec4ds{12.0, 13.0, 14.0, 15.0},
-                  pscalar4ds{16.0}};
+                  bivec4ds{6.0, 7.0, 8.0, 9.0, 10.0, 11.0},
+                  trivec4ds{12.0, 13.0, 14.0, 15.0}, pscalar4ds{16.0}};
 
         CHECK(lcmpl(rcmpl(s)) == s);
         CHECK(lcmpl(rcmpl(v)) == v);
