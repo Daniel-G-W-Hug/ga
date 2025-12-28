@@ -1779,6 +1779,24 @@ constexpr TriVec3dp<std::common_type_t<T, U>> cmt(BiVec3dp<T> const& B,
 
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar3dp<std::common_type_t<T, U>> cmt(TriVec3dp<T> const& t,
+                                                   Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar3dp<ctype>(-t.x * v.x - t.y * v.y - t.z * v.z - t.w * v.w);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar3dp<std::common_type_t<T, U>> cmt(Vec3dp<T> const& v,
+                                                   TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar3dp<ctype>(v.x * t.x + v.y * t.y + v.z * t.z + v.w * t.w);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec3dp<std::common_type_t<T, U>> cmt(BiVec3dp<T> const& B1,
                                                  BiVec3dp<U> const& B2)
 {
@@ -3521,6 +3539,8 @@ inline MVec3dp<T> inv(MVec3dp<T> const& M)
 /////////////////////////////////////////////////////////////////////////////////////////
 // Projective contractions for 3dp:
 //
+// REQUIRES: the dualized operand must be of smaller grade, or the result is zero
+//
 // left_bulk_contract3dp(a,b) = rwdg(left_bulk_dual(a), b)
 // left_weight_contract3dp(a,b) = rwdg(left_weight_dual(a), b)
 //
@@ -3536,6 +3556,8 @@ inline MVec3dp<T> inv(MVec3dp<T> const& M)
 // In general a contraction throws away parts that are perpendicular to each other.
 // The result of right_bulk_contract(B,v) lies in B and is perpendicular to v.
 /////////////////////////////////////////////////////////////////////////////////////////
+
+// REQUIRES: the dualized operand must be of smaller grade, or the result is zero
 
 template <typename arg1, typename arg2>
 decltype(auto) left_bulk_contract3dp(arg1&& a, arg2&& b)
@@ -3569,13 +3591,13 @@ decltype(auto) right_weight_contract3dp(arg1&& a, arg2&& b)
 ////////////////////////////////////////////////////////////////////////////////
 // Projective expansions for 3dp:
 //
-// left_bulk_expand3dp(a,b) = wdg(left_bulk_dual(a), b)       (dual to
-// left_weight_contract) left_weight_expand3dp(a,b) = wdg(left_weight_dual(a), b)
-// (dual to left_bulk_contract)
+// REQUIRES: the dualized operand must be of larger grade, or the result is zero
 //
-// right_bulk_expand3dp(a,b) = wdg(a, right_bulk_dual(b))       (dual to
-// right_weight_contract) right_weight_expand3dp(a,b) = wdg(a, right_weight_dual(b))
-// (dual to right_bulk_contract)
+// left_bulk_expand3dp(a,b)   = wdg(left_bulk_dual(a),b)   (dual to left_weight_contract)
+// left_weight_expand3dp(a,b) = wdg(left_weight_dual(a),b) (dual to left_bulk_contract)
+//
+// right_bulk_expand3dp(a,b)   = wdg(a,right_bulk_dual(b)) (dual to right_weight_contract)
+// right_weight_expand3dp(a,b) = wdg(a,right_weight_dual(b)) (dual to right_bulk_contract)
 //
 // The expansion subtracts the antigrades of the objects.
 //
@@ -3587,6 +3609,8 @@ decltype(auto) right_weight_contract3dp(arg1&& a, arg2&& b)
 // object and combines them with the space that is perpendicular to that other
 // dualized object.
 ////////////////////////////////////////////////////////////////////////////////
+
+// REQUIRES: the dualized operand must be of larger grade, or the result is zero
 
 template <typename arg1, typename arg2>
 decltype(auto) left_bulk_expand3dp(arg1&& a, arg2&& b)

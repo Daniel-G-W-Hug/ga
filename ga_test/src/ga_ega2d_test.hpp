@@ -217,19 +217,19 @@ TEST_SUITE("EGA 2D Tests")
 
         // Expected patterns (will contain Vec2d(x, y) structure)
         CHECK(default_vd.find("Vec2d(") == 0); // Should start with Vec2d(
-        CHECK(default_vd.find(", ") !=
+        CHECK(default_vd.find(",") !=
               std::string::npos);        // Should contain comma separator
         CHECK(default_vd.back() == ')'); // Should end with )
 
         // Test precision formatting with expected outputs
         std::string two_decimals = fmt::format("{:.2f}", vd);
-        std::string expected_2f = "Vec2d(3.14, 2.72)";
+        std::string expected_2f = "Vec2d(3.14,2.72)";
         fmt::println("   2 decimals:      '{}' (expected: '{}')", two_decimals,
                      expected_2f);
         CHECK(two_decimals == expected_2f);
 
         std::string four_decimals = fmt::format("{:.4f}", vd);
-        std::string expected_4f = "Vec2d(3.1416, 2.7183)";
+        std::string expected_4f = "Vec2d(3.1416,2.7183)";
         fmt::println("   4 decimals:      '{}' (expected: '{}')", four_decimals,
                      expected_4f);
         CHECK(four_decimals == expected_4f);
@@ -249,20 +249,20 @@ TEST_SUITE("EGA 2D Tests")
 
         // Test with different precision for float type
         std::string float_3f = fmt::format("{:.3f}", vf);
-        std::string expected_float_3f = "Vec2d(3.142, 2.718)";
+        std::string expected_float_3f = "Vec2d(3.142,2.718)";
         fmt::println("   Float .3f:       '{}' (expected: '{}')", float_3f,
                      expected_float_3f);
         CHECK(float_3f == expected_float_3f);
 
         // Test contextual usage like in the reference example
         std::string position_log = fmt::format("Position: {:.2f}", vd);
-        std::string expected_log = "Position: Vec2d(3.14, 2.72)";
+        std::string expected_log = "Position: Vec2d(3.14,2.72)";
         fmt::println("   Context usage:   '{}' (expected: '{}')", position_log,
                      expected_log);
         CHECK(position_log == expected_log);
 
         std::string velocity_str = fmt::format("Velocity: {:.3f}", vf);
-        std::string expected_vel = "Velocity: Vec2d(3.142, 2.718)";
+        std::string expected_vel = "Velocity: Vec2d(3.142,2.718)";
         fmt::println("   Context float:   '{}' (expected: '{}')", velocity_str,
                      expected_vel);
         CHECK(velocity_str == expected_vel);
@@ -2267,38 +2267,38 @@ TEST_SUITE("EGA 2D Tests")
 
         // Basic output
         std::string mvec2d_e_basic = fmt::format("{}", mvec2d_e_val);
-        CHECK(mvec2d_e_basic == "MVec2d_E(3.14159, 2.71828)");
+        CHECK(mvec2d_e_basic == "MVec2d_E(3.14159,2.71828)");
 
         // Two decimal places
         std::string mvec2d_e_two_decimals = fmt::format("{:.2f}", mvec2d_e_val);
-        CHECK(mvec2d_e_two_decimals == "MVec2d_E(3.14, 2.72)");
+        CHECK(mvec2d_e_two_decimals == "MVec2d_E(3.14,2.72)");
 
         // Scientific notation
         std::string mvec2d_e_scientific = fmt::format("{:.2e}", mvec2d_e_val);
-        CHECK(mvec2d_e_scientific == "MVec2d_E(3.14e+00, 2.72e+00)");
+        CHECK(mvec2d_e_scientific == "MVec2d_E(3.14e+00,2.72e+00)");
 
         // Contextual usage
         std::string mvec2d_e_contextual = fmt::format("Even MV: {:.2f}", mvec2d_e_val);
-        CHECK(mvec2d_e_contextual == "Even MV: MVec2d_E(3.14, 2.72)");
+        CHECK(mvec2d_e_contextual == "Even MV: MVec2d_E(3.14,2.72)");
 
-        // Test MVec2d formatting (MVec4_t with 4 components: c0, c1, c2, c3)
+        // Test MVec2d formatting (MVec4_t with 4 components: c0,c1,c2,c3)
         MVec2d<double> mvec2d_val{1.0, 2.0, 3.0, 4.0};
 
         // Basic output
         std::string mvec2d_basic = fmt::format("{}", mvec2d_val);
-        CHECK(mvec2d_basic == "MVec2d(1, 2, 3, 4)");
+        CHECK(mvec2d_basic == "MVec2d(1,2,3,4)");
 
         // Two decimal places
         std::string mvec2d_two_decimals = fmt::format("{:.2f}", mvec2d_val);
-        CHECK(mvec2d_two_decimals == "MVec2d(1.00, 2.00, 3.00, 4.00)");
+        CHECK(mvec2d_two_decimals == "MVec2d(1.00,2.00,3.00,4.00)");
 
         // Scientific notation
         std::string mvec2d_scientific = fmt::format("{:.2e}", mvec2d_val);
-        CHECK(mvec2d_scientific == "MVec2d(1.00e+00, 2.00e+00, 3.00e+00, 4.00e+00)");
+        CHECK(mvec2d_scientific == "MVec2d(1.00e+00,2.00e+00,3.00e+00,4.00e+00)");
 
         // Contextual usage
         std::string mvec2d_contextual = fmt::format("Full MV: {:.1f}", mvec2d_val);
-        CHECK(mvec2d_contextual == "Full MV: MVec2d(1.0, 2.0, 3.0, 4.0)");
+        CHECK(mvec2d_contextual == "Full MV: MVec2d(1.0,2.0,3.0,4.0)");
 
         fmt::println("   MVec2d_E basic: {}", mvec2d_e_basic);
         fmt::println("   MVec2d_E 2-decimal: {}", mvec2d_e_two_decimals);
@@ -2391,8 +2391,9 @@ TEST_SUITE("EGA 2D Tests")
     {
         fmt::println("G<2,0,0>: dual composition properties");
 
-        // For even-dimensional algebras: left_dual(right_dual(u)) = right_dual(left_dual(u)) = u
-        // This follows from left_complement(right_complement(u)) = u
+        // For even-dimensional algebras: left_dual(right_dual(u)) =
+        // right_dual(left_dual(u)) = u This follows from
+        // left_complement(right_complement(u)) = u
 
         scalar2d s{3.0};
         vec2d v{2.0, 5.0};

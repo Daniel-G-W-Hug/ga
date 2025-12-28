@@ -286,6 +286,8 @@ ProductConfig get_pga3dp_cmt_config()
                    "trivec"},
                   {"cmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
                   {"cmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+                  {"cmt(trivec,vec) -> ps", "svBtps", "svBtps", "trivec", "vec"},
+                  {"cmt(vec,trivec) -> ps", "svBtps", "svBtps", "vec", "trivec"},
                   {"cmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
                   {"cmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
                   {"cmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
@@ -457,7 +459,10 @@ ProductConfig get_pga3dp_left_weight_contract_config()
             .display_name = "left weight contraction",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {},
+            .cases = {{"left_weight_contract(bivec,vec) -> 0", "svBtps", "svBtps",
+                       "bivec", "vec"},
+                      {"left_weight_contract(vec,bivec) -> vec", "svBtps", "svBtps",
+                       "vec", "bivec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -465,17 +470,22 @@ ProductConfig get_pga3dp_left_weight_contract_config()
 
 ProductConfig get_pga3dp_right_weight_contract_config()
 {
-    return {.product_name = "right_weight_contract",
-            .description = "pga3dp right weight contraction",
-            .display_name = "right weight contraction",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {}, // For brevity, the weight contractions and expansions show basis
-                         // tables but no specific
-                         // cases yet
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "right_weight_contract",
+        .description = "pga3dp right weight contraction",
+        .display_name = "right weight contraction",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        // .cases = {}, // For brevity, the weight contractions and expansions show basis
+        //              // tables but no specific
+        //              // cases yet
+        .cases = {{"right_weight_contract(bivec,vec) -> vec", "svBtps", "svBtps", "bivec",
+                   "vec"},
+                  {"right_weight_contract(vec,bivec) -> 0", "svBtps", "svBtps", "vec",
+                   "bivec"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_pga3dp_left_bulk_expand_config()
@@ -485,7 +495,10 @@ ProductConfig get_pga3dp_left_bulk_expand_config()
             .display_name = "left bulk expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {},
+            .cases = {{"left_bulk_expand(bivec,vec) -> trivec", "svBtps", "svBtps",
+                       "bivec", "vec"},
+                      {"left_bulk_expand(vec,bivec) -> 0", "svBtps", "svBtps", "vec",
+                       "bivec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -498,7 +511,10 @@ ProductConfig get_pga3dp_right_bulk_expand_config()
             .display_name = "right bulk expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {},
+            .cases = {{"right_bulk_expand(bivec,vec) -> 0", "svBtps", "svBtps", "bivec",
+                       "vec"},
+                      {"right_bulk_expand(vec,bivec) -> trivec", "svBtps", "svBtps",
+                       "vec", "bivec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -511,7 +527,10 @@ ProductConfig get_pga3dp_left_weight_expand_config()
             .display_name = "left weight expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {},
+            .cases = {{"left_weight_expand(bivec,vec) -> trivec", "svBtps", "svBtps",
+                       "bivec", "vec"},
+                      {"left_weight_expand(vec,bivec) -> 0", "svBtps", "svBtps", "vec",
+                       "bivec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -527,7 +546,11 @@ ProductConfig get_pga3dp_right_weight_expand_config()
             .cases = {{"right_weight_expand(bivec,trivec) -> trivec", "svBtps1",
                        "svBtps2", "bivec", "trivec"},
                       {"right_weight_expand(vec,trivec) -> bivec", "svBtps1", "svBtps2",
-                       "vec", "trivec"}},
+                       "vec", "trivec"},
+                      {"right_weight_expand(bivec,vec) -> 0", "svBtps", "svBtps", "bivec",
+                       "vec"},
+                      {"right_weight_expand(vec,bivec) -> trivec", "svBtps", "svBtps",
+                       "vec", "bivec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

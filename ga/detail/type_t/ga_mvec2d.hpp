@@ -122,28 +122,6 @@ constexpr PScalar2d<T> gr2(MVec2d<T> const& M)
     return PScalar2d<T>(M.c3);
 }
 
-// return the grades of the basic types
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t gr([[maybe_unused]] Scalar2d<T>)
-{
-    return 0;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t gr([[maybe_unused]] Vec2d<T> const&)
-{
-    return 1;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t gr([[maybe_unused]] PScalar2d<T>)
-{
-    return 2;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // addition operations to combine scalars, pseudoscalar and vectors to multivectors

@@ -1,0 +1,96 @@
+result:
+        rgpr(a,B) = - a_{\smallstar} ^ B + rcmt(a,B) = -left_weight_expand3dp(B,a)  + rcmt(a,B)
+        rgpr(B,a) = - B ^ a^{\smallstar} + rcmt(B,a) = -right_weight_expand3dp(a,B) + rcmt(B,a)
+
+---------------------------------------------------------------------------
+
+rgpr vec * bivec:
+
+-e321,     e3,    -e2,      0,      0,      0,
+  -e3,  -e321,     e1,      0,      0,      0,
+   e2,    -e1,  -e321,      0,      0,      0,
+ e423,   e431,   e412,    -e1,    -e2,    -e3,
+
+
+rwdg vec * bivec: (=regressive transwedge k=0)
+
+   0,     0,     0,     0,     0,     0,
+   0,     0,     0,     0,     0,     0,
+   0,     0,     0,     0,     0,     0,
+   0,     0,     0,     0,     0,     0,
+
+
+ rcmt vec * bivec: (=regressive transwedge k=1)
+
+  0,    e3,   -e2,     0,     0,     0,
+-e3,     0,    e1,     0,     0,     0,
+ e2,   -e1,     0,     0,     0,     0,
+  0,     0,     0,   -e1,   -e2,   -e3,
+
+
+regressive transwedge (k=2) vec * bivec:
+
+-e321,      0,      0,      0,      0,      0,
+    0,  -e321,      0,      0,      0,      0,
+    0,      0,  -e321,      0,      0,      0,
+ e423,   e431,   e412,      0,      0,      0,
+
+
+-right weight expansion (vec, bivec) = -left weight expansion(bivec, vec):
+
+ -e321,      0,      0,     0,     0,     0,
+     0,  -e321,      0,     0,     0,     0,
+     0,      0,  -e321,     0,     0,     0,
+  e423,   e431,   e412,     0,     0,     0,
+
+
+---------------------------------------------------------------------------
+
+rgpr bivec * vec:
+
+-e321,     e3,    -e2,   e423,
+  -e3,  -e321,     e1,   e431,
+   e2,    -e1,  -e321,   e412,
+    0,      0,      0,     e1,
+    0,      0,      0,     e2,
+    0,      0,      0,     e3,
+
+
+rwdg bivec * vec: (=regressive transwedge k=0)
+
+0,     0,     0,     0,
+0,     0,     0,     0,
+0,     0,     0,     0,
+0,     0,     0,     0,
+0,     0,     0,     0,
+0,     0,     0,     0,
+
+
+ rcmt bivec * vec: (=regressive transwedge k=1)
+
+  0,    e3,   -e2,     0,
+-e3,     0,    e1,     0,
+ e2,   -e1,     0,     0,
+  0,     0,     0,    e1,
+  0,     0,     0,    e2,
+  0,     0,     0,    e3,
+
+
+regressive transwedge (k=2) bivec * vec:
+
+-e321,      0,      0,   e423,
+    0,  -e321,      0,   e431,
+    0,      0,  -e321,   e412,
+    0,      0,      0,      0,
+    0,      0,      0,      0,
+    0,      0,      0,      0,
+
+
+-left weight expansion(bivec, vec) = -right weight expansion (vec, bivec):
+
+-e321,      0,      0,  e423,
+    0,  -e321,      0,  e431,
+    0,      0,  -e321,  e412,
+    0,      0,      0,     0,
+    0,      0,      0,     0,
+    0,      0,      0,     0,

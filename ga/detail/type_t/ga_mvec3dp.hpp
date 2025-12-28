@@ -241,42 +241,6 @@ constexpr PScalar3dp<T> gr4(MVec3dp<T> const& M)
     return PScalar3dp<T>(M.c15);
 }
 
-// return the grades of the basic types
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t gr([[maybe_unused]] Scalar3dp<T>)
-{
-    return 0;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t gr([[maybe_unused]] Vec3dp<T> const&)
-{
-    return 1;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t gr([[maybe_unused]] BiVec3dp<T> const&)
-{
-    return 2;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t gr([[maybe_unused]] TriVec3dp<T> const&)
-{
-    return 3;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr size_t gr([[maybe_unused]] PScalar3dp<T>)
-{
-    return 4;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // addition operations to combine scalars, pseudoscalar and vectors to multivectors

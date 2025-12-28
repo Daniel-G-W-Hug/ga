@@ -163,7 +163,11 @@ template <typename T, typename U>
 constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor(BiVec3dp<T> const& L, U theta)
 {
     // line L must be unitized to avoid surprises
-    auto l = unitize(L);
+    auto nrm_sq = to_val(weight_nrm_sq(L));
+    auto l{L};
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        l = unitize(L);
+    }
 
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = 0.5 * theta;
@@ -208,7 +212,11 @@ constexpr MVec3dp_E<std::common_type_t<T, U, V>> get_motor(BiVec3dp<T> const& L,
                                                            V dist)
 {
     // line L must be unitized to avoid surprises
-    auto l = unitize(L);
+    auto nrm_sq = to_val(weight_nrm_sq(L));
+    auto l{L};
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        l = unitize(L);
+    }
 
     using ctype = std::common_type_t<T, U, V>;
     ctype half_angle = 0.5 * theta;
@@ -242,7 +250,14 @@ get_motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
     //     auto B_moved = move3dp(B,R);  // moves B according to the motor R
     //     auto t_moved = move3dp(t,R);  // moves t according to the motor R
     //
-    return unitize(rgpr(t2, t1)); // based on the regressive geometric product
+
+    // line L and thus the resulting motor must be unitized to avoid surprises
+    auto M{rgpr(t2, t1)};
+    auto nrm_sq = to_val(weight_nrm_sq(M));
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        M = unitize(M);
+    }
+    return M; // based on the regressive geometric product
 }
 
 template <typename T, typename U>
@@ -250,12 +265,11 @@ template <typename T, typename U>
 constexpr Vec3dp<std::common_type_t<T, U>> move3dp(Vec3dp<T> const& v,
                                                    MVec3dp_E<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
-    // moves v (a vector representing a projective point) according to the motor R
+    // moves v (a vector representing a projective point) according to the motor M
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(gr1(rgpr(rgpr(R, v), rrev(R))));
+    return Vec3dp<ctype>(gr1(rgpr(rgpr(M, v), rrev(M))));
 }
 
 template <typename T, typename U>
@@ -263,12 +277,11 @@ template <typename T, typename U>
 constexpr BiVec3dp<std::common_type_t<T, U>> move3dp(BiVec3dp<T> const& B,
                                                      MVec3dp_E<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
     // moves B (a bivector representing a line) according to the motor R
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(gr2(rgpr(rgpr(R, B), rrev(R))));
+    return BiVec3dp<ctype>(gr2(rgpr(rgpr(M, B), rrev(M))));
 }
 
 template <typename T, typename U>
@@ -277,11 +290,10 @@ constexpr TriVec3dp<std::common_type_t<T, U>> move3dp(TriVec3dp<T> const& t,
                                                       MVec3dp_E<U> const& M)
 {
     // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
 
     // moves t (a trivector representing a plane) according to the motor R
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(gr3(rgpr(rgpr(R, t), rrev(R))));
+    return TriVec3dp<ctype>(gr3(rgpr(rgpr(M, t), rrev(M))));
 }
 
 // rotate a motor (required for robotics applications using kinematic chains)
@@ -290,14 +302,13 @@ template <typename T, typename U>
 constexpr MVec3dp_E<std::common_type_t<T, U>> move3dp(MVec3dp_E<T> const& M_orig,
                                                       MVec3dp_E<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
     // moves M_orig (a motor) according to the motor R
     // e.g. kinematic chains in robotics application with coupled joints
     // effectively "rotating the rotation direction"
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(rgpr(rgpr(R, M_orig), rrev(R)));
+    return MVec3dp_E<ctype>(rgpr(rgpr(M, M_orig), rrev(M)));
 }
 
 template <typename T, typename U>
@@ -305,29 +316,28 @@ template <typename T, typename U>
 constexpr Vec3dp<std::common_type_t<T, U>> move3dp_opt(Vec3dp<T> const& v,
                                                        MVec3dp_E<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
     // moves v (a vector representing a projective point) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
 
-    auto k11 = R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k12 = 2.0 * (R.c1 * R.c2 - R.c3 * R.c7);
-    auto k13 = 2.0 * (R.c1 * R.c3 + R.c2 * R.c7);
+    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
+    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
 
-    auto k14 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c6 - R.c3 * R.c5 + R.c4 * R.c7);
-    auto k21 = 2.0 * (R.c1 * R.c2 + R.c3 * R.c7);
-    auto k22 = -R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k23 = 2.0 * (-R.c1 * R.c7 + R.c2 * R.c3);
-    auto k24 = 2.0 * (-R.c0 * R.c2 - R.c1 * R.c6 + R.c3 * R.c4 + R.c5 * R.c7);
+    auto k14 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 + M.c4 * M.c7);
+    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
+    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
+    auto k24 = 2.0 * (-M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
 
-    auto k31 = 2.0 * (R.c1 * R.c3 - R.c2 * R.c7);
-    auto k32 = 2.0 * (R.c1 * R.c7 + R.c2 * R.c3);
-    auto k33 = -R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
-    auto k34 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c5 - R.c2 * R.c4 + R.c6 * R.c7);
-    auto k44 = R.c1 * R.c1 + R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
+    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
+    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
+    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
+    auto k34 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 + M.c6 * M.c7);
+    auto k44 = M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
 
     return Vec3dp<ctype>(k11 * v.x + k12 * v.y + k13 * v.z + k14 * v.w,
                          k21 * v.x + k22 * v.y + k23 * v.z + k24 * v.w,
@@ -339,30 +349,29 @@ template <typename T, typename U>
 constexpr std::vector<Vec3dp<std::common_type_t<T, U>>>
 move3dp(std::vector<Vec3dp<T>> const& vec, MVec3dp_E<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
     // moves v (a vector representing a projective point) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
 
-    auto k11 = R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k12 = 2.0 * (R.c1 * R.c2 - R.c3 * R.c7);
-    auto k13 = 2.0 * (R.c1 * R.c3 + R.c2 * R.c7);
-    auto k14 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c6 - R.c3 * R.c5 + R.c4 * R.c7);
+    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
+    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
+    auto k14 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 + M.c4 * M.c7);
 
-    auto k21 = 2.0 * (R.c1 * R.c2 + R.c3 * R.c7);
-    auto k22 = -R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k23 = 2.0 * (-R.c1 * R.c7 + R.c2 * R.c3);
-    auto k24 = 2.0 * (-R.c0 * R.c2 - R.c1 * R.c6 + R.c3 * R.c4 + R.c5 * R.c7);
+    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
+    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
+    auto k24 = 2.0 * (-M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
 
-    auto k31 = 2.0 * (R.c1 * R.c3 - R.c2 * R.c7);
-    auto k32 = 2.0 * (R.c1 * R.c7 + R.c2 * R.c3);
-    auto k33 = -R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
-    auto k34 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c5 - R.c2 * R.c4 + R.c6 * R.c7);
+    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
+    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
+    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
+    auto k34 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 + M.c6 * M.c7);
 
-    auto k44 = R.c1 * R.c1 + R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
+    auto k44 = M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
 
     std::vector<Vec3dp<ctype>> result;
     result.reserve(vec.size());
@@ -381,46 +390,45 @@ template <typename T, typename U>
 constexpr BiVec3dp<std::common_type_t<T, U>> move3dp_opt(BiVec3dp<T> const& B,
                                                          MVec3dp_E<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
     // moves B a bivector representing a line according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
 
-    auto k11 = R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k12 = 2.0 * (R.c1 * R.c2 - R.c3 * R.c7);
-    auto k13 = 2.0 * (R.c1 * R.c3 + R.c2 * R.c7);
+    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
+    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
 
-    auto k21 = 2.0 * (R.c1 * R.c2 + R.c3 * R.c7);
-    auto k22 = -R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k23 = 2.0 * (-R.c1 * R.c7 + R.c2 * R.c3);
+    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
+    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
 
-    auto k31 = 2.0 * (R.c1 * R.c3 - R.c2 * R.c7);
-    auto k32 = 2.0 * (R.c1 * R.c7 + R.c2 * R.c3);
-    auto k33 = -R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
+    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
+    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
+    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
 
-    auto k41 = 2.0 * (R.c0 * R.c7 + R.c1 * R.c4 - R.c2 * R.c5 - R.c3 * R.c6);
-    auto k42 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c5 + R.c2 * R.c4 - R.c6 * R.c7);
-    auto k43 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c6 + R.c3 * R.c4 + R.c5 * R.c7);
-    auto k44 = R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k45 = 2.0 * (R.c1 * R.c2 - R.c3 * R.c7);
-    auto k46 = 2.0 * (R.c1 * R.c3 + R.c2 * R.c7);
+    auto k41 = 2.0 * (M.c0 * M.c7 + M.c1 * M.c4 - M.c2 * M.c5 - M.c3 * M.c6);
+    auto k42 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 + M.c2 * M.c4 - M.c6 * M.c7);
+    auto k43 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
+    auto k44 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k45 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
+    auto k46 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
 
-    auto k51 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c5 + R.c2 * R.c4 + R.c6 * R.c7);
-    auto k52 = 2.0 * (R.c0 * R.c7 - R.c1 * R.c4 + R.c2 * R.c5 - R.c3 * R.c6);
-    auto k53 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c6 + R.c3 * R.c5 - R.c4 * R.c7);
-    auto k54 = 2.0 * (R.c1 * R.c2 + R.c3 * R.c7);
-    auto k55 = -R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k56 = 2.0 * (-R.c1 * R.c7 + R.c2 * R.c3);
+    auto k51 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 + M.c2 * M.c4 + M.c6 * M.c7);
+    auto k52 = 2.0 * (M.c0 * M.c7 - M.c1 * M.c4 + M.c2 * M.c5 - M.c3 * M.c6);
+    auto k53 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 + M.c3 * M.c5 - M.c4 * M.c7);
+    auto k54 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
+    auto k55 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k56 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
 
-    auto k61 = 2.0 * (-R.c0 * R.c2 + R.c1 * R.c6 + R.c3 * R.c4 - R.c5 * R.c7);
-    auto k62 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c6 + R.c3 * R.c5 + R.c4 * R.c7);
-    auto k63 = 2.0 * (R.c0 * R.c7 - R.c1 * R.c4 - R.c2 * R.c5 + R.c3 * R.c6);
-    auto k64 = 2.0 * (R.c1 * R.c3 - R.c2 * R.c7);
-    auto k65 = 2.0 * (R.c1 * R.c7 + R.c2 * R.c3);
-    auto k66 = -R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
+    auto k61 = 2.0 * (-M.c0 * M.c2 + M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
+    auto k62 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 + M.c3 * M.c5 + M.c4 * M.c7);
+    auto k63 = 2.0 * (M.c0 * M.c7 - M.c1 * M.c4 - M.c2 * M.c5 + M.c3 * M.c6);
+    auto k64 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
+    auto k65 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
+    auto k66 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
 
     return BiVec3dp<ctype>(
         k11 * B.vx + k12 * B.vy + k13 * B.vz, k21 * B.vx + k22 * B.vy + k23 * B.vz,
@@ -435,46 +443,45 @@ template <typename T, typename U>
 constexpr std::vector<BiVec3dp<std::common_type_t<T, U>>>
 move3dp(std::vector<BiVec3dp<T>> const& bvec, MVec3dp_E<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
     // moves B a bivector representing a line according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
 
-    auto k11 = R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k12 = 2.0 * (R.c1 * R.c2 - R.c3 * R.c7);
-    auto k13 = 2.0 * (R.c1 * R.c3 + R.c2 * R.c7);
+    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
+    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
 
-    auto k21 = 2.0 * (R.c1 * R.c2 + R.c3 * R.c7);
-    auto k22 = -R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k23 = 2.0 * (-R.c1 * R.c7 + R.c2 * R.c3);
+    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
+    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
 
-    auto k31 = 2.0 * (R.c1 * R.c3 - R.c2 * R.c7);
-    auto k32 = 2.0 * (R.c1 * R.c7 + R.c2 * R.c3);
-    auto k33 = -R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
+    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
+    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
+    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
 
-    auto k41 = 2.0 * (R.c0 * R.c7 + R.c1 * R.c4 - R.c2 * R.c5 - R.c3 * R.c6);
-    auto k42 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c5 + R.c2 * R.c4 - R.c6 * R.c7);
-    auto k43 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c6 + R.c3 * R.c4 + R.c5 * R.c7);
-    auto k44 = R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k45 = 2.0 * (R.c1 * R.c2 - R.c3 * R.c7);
-    auto k46 = 2.0 * (R.c1 * R.c3 + R.c2 * R.c7);
+    auto k41 = 2.0 * (M.c0 * M.c7 + M.c1 * M.c4 - M.c2 * M.c5 - M.c3 * M.c6);
+    auto k42 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 + M.c2 * M.c4 - M.c6 * M.c7);
+    auto k43 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
+    auto k44 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k45 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
+    auto k46 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
 
-    auto k51 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c5 + R.c2 * R.c4 + R.c6 * R.c7);
-    auto k52 = 2.0 * (R.c0 * R.c7 - R.c1 * R.c4 + R.c2 * R.c5 - R.c3 * R.c6);
-    auto k53 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c6 + R.c3 * R.c5 - R.c4 * R.c7);
-    auto k54 = 2.0 * (R.c1 * R.c2 + R.c3 * R.c7);
-    auto k55 = -R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k56 = 2.0 * (-R.c1 * R.c7 + R.c2 * R.c3);
+    auto k51 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 + M.c2 * M.c4 + M.c6 * M.c7);
+    auto k52 = 2.0 * (M.c0 * M.c7 - M.c1 * M.c4 + M.c2 * M.c5 - M.c3 * M.c6);
+    auto k53 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 + M.c3 * M.c5 - M.c4 * M.c7);
+    auto k54 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
+    auto k55 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k56 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
 
-    auto k61 = 2.0 * (-R.c0 * R.c2 + R.c1 * R.c6 + R.c3 * R.c4 - R.c5 * R.c7);
-    auto k62 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c6 + R.c3 * R.c5 + R.c4 * R.c7);
-    auto k63 = 2.0 * (R.c0 * R.c7 - R.c1 * R.c4 - R.c2 * R.c5 + R.c3 * R.c6);
-    auto k64 = 2.0 * (R.c1 * R.c3 - R.c2 * R.c7);
-    auto k65 = 2.0 * (R.c1 * R.c7 + R.c2 * R.c3);
-    auto k66 = -R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
+    auto k61 = 2.0 * (-M.c0 * M.c2 + M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
+    auto k62 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 + M.c3 * M.c5 + M.c4 * M.c7);
+    auto k63 = 2.0 * (M.c0 * M.c7 - M.c1 * M.c4 - M.c2 * M.c5 + M.c3 * M.c6);
+    auto k64 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
+    auto k65 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
+    auto k66 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
 
     std::vector<BiVec3dp<ctype>> result;
     result.reserve(bvec.size());
@@ -496,30 +503,29 @@ template <typename T, typename U>
 constexpr TriVec3dp<std::common_type_t<T, U>> move3dp_opt(TriVec3dp<T> const& t,
                                                           MVec3dp_E<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
     // moves t (a trivector representing a plane) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
 
-    auto k11 = R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k12 = 2.0 * (R.c1 * R.c2 - R.c3 * R.c7);
-    auto k13 = 2.0 * (R.c1 * R.c3 + R.c2 * R.c7);
+    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
+    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
 
-    auto k21 = 2.0 * (R.c1 * R.c2 + R.c3 * R.c7);
-    auto k22 = -R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k23 = 2.0 * (-R.c1 * R.c7 + R.c2 * R.c3);
+    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
+    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
 
-    auto k31 = 2.0 * (R.c1 * R.c3 - R.c2 * R.c7);
-    auto k32 = 2.0 * (R.c1 * R.c7 + R.c2 * R.c3);
-    auto k33 = -R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
+    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
+    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
+    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
 
-    auto k41 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c6 - R.c3 * R.c5 - R.c4 * R.c7);
-    auto k42 = 2.0 * (R.c0 * R.c2 - R.c1 * R.c6 + R.c3 * R.c4 - R.c5 * R.c7);
-    auto k43 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c5 - R.c2 * R.c4 - R.c6 * R.c7);
-    auto k44 = R.c1 * R.c1 + R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
+    auto k41 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 - M.c4 * M.c7);
+    auto k42 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
+    auto k43 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 - M.c6 * M.c7);
+    auto k44 = M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
 
     return TriVec3dp<ctype>(
         k11 * t.x + k12 * t.y + k13 * t.z, k21 * t.x + k22 * t.y + k23 * t.z,
@@ -531,30 +537,29 @@ template <typename T, typename U>
 constexpr std::vector<TriVec3dp<std::common_type_t<T, U>>>
 move3dp(std::vector<TriVec3dp<T>> const& tvec, MVec3dp_E<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
     // moves v (a vector representing a projective point) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
 
-    auto k11 = R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k12 = 2.0 * (R.c1 * R.c2 - R.c3 * R.c7);
-    auto k13 = 2.0 * (R.c1 * R.c3 + R.c2 * R.c7);
+    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
+    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
 
-    auto k21 = 2.0 * (R.c1 * R.c2 + R.c3 * R.c7);
-    auto k22 = -R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3 + R.c7 * R.c7;
-    auto k23 = 2.0 * (-R.c1 * R.c7 + R.c2 * R.c3);
+    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
+    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
+    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
 
-    auto k31 = 2.0 * (R.c1 * R.c3 - R.c2 * R.c7);
-    auto k32 = 2.0 * (R.c1 * R.c7 + R.c2 * R.c3);
-    auto k33 = -R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
+    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
+    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
+    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
 
-    auto k41 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c6 - R.c3 * R.c5 - R.c4 * R.c7);
-    auto k42 = 2.0 * (R.c0 * R.c2 - R.c1 * R.c6 + R.c3 * R.c4 - R.c5 * R.c7);
-    auto k43 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c5 - R.c2 * R.c4 - R.c6 * R.c7);
-    auto k44 = R.c1 * R.c1 + R.c2 * R.c2 + R.c3 * R.c3 + R.c7 * R.c7;
+    auto k41 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 - M.c4 * M.c7);
+    auto k42 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
+    auto k43 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 - M.c6 * M.c7);
+    auto k44 = M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
 
     std::vector<TriVec3dp<ctype>> result;
     result.reserve(tvec.size());
@@ -574,12 +579,11 @@ template <typename T, typename U>
 constexpr MVec3dp<std::common_type_t<T, U>> move3dp(MVec3dp<T> const& MV,
                                                     MVec3dp_E<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
     // rotate one multivector M with motor R
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(rgpr(rgpr(R, MV), rrev(R)));
+    return MVec3dp<ctype>(rgpr(rgpr(M, MV), rrev(M)));
 }
 
 
@@ -919,7 +923,7 @@ constexpr TriVec3dp<T> att(PScalar3dp<T> ps)
 template <typename arg1, typename arg2>
 constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
 {
-    if (gr(a) + gr(b) == 4) {
+    if constexpr (gr(a) + gr(b) == 4) {
         return DualNum3dp<value_t>(rwdg(a, b), weight_nrm(wdg(a, att(b))));
     }
     else {

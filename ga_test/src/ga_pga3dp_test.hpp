@@ -4187,4 +4187,36 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
     }
 
+    TEST_CASE("G<3,0,1>: equivalence tests")
+    {
+        fmt::println("G<3,0,1>: equivalence tests");
+
+        // auto const s = scalar3dp(2);
+        auto const v = vec3dp(1, 2, 3, 4);
+        auto const B = bivec3dp(5, 6, 7, 8, 9, 10);
+        auto const t = trivec3dp(11, 12, 13, 14);
+        // auto const ps = pscalar3dp(-2);
+
+        // grp(v,B) -> mvec3dp_u
+        CHECK(v * B == (B >> v) + wdg(v, B));
+        CHECK(v * B == rwdg(B, right_bulk_dual(v)) + wdg(v, B));
+        CHECK(v * B == cmt(v, B) + wdg(v, B)); // only valid for vec*bivec
+        // grp(B,v) -> mvec3dp_u
+        CHECK(B * v == (v << B) + wdg(B, v));
+        CHECK(B * v == rwdg(left_bulk_dual(v), B) + wdg(B, v));
+        CHECK(B * v == cmt(B, v) + wdg(B, v));
+        // rgpr(v,B) -> mvec3dp_u
+        CHECK(rgpr(v, B) == -left_weight_expand3dp(B, v) + rcmt(v, B));
+        CHECK(rgpr(v, B) == -wdg(left_weight_dual(B), v) + rcmt(v, B));
+        //  rgpr(B,v) -> mvec3dp_u
+        CHECK(rgpr(B, v) == -right_weight_expand3dp(v, B) + rcmt(B, v));
+        CHECK(rgpr(B, v) == -wdg(v, right_weight_dual(B)) + rcmt(B, v));
+
+        // grp(v,t) -> mvec3dp_e
+        CHECK(v * t == (t >> v) + wdg(v, t));
+        CHECK(v * t == rwdg(t, right_bulk_dual(v)) + wdg(v, t));
+
+        fmt::println("");
+    }
+
 } // PGA 3DP Tests

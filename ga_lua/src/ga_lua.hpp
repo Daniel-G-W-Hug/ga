@@ -1766,6 +1766,8 @@ void register_functions(sol::state& lua)
                          sol::resolve<bivec3dp(trivec3dp const&, trivec3dp const&)>(cmt),
                          sol::resolve<trivec3dp(trivec3dp const&, bivec3dp const&)>(cmt),
                          sol::resolve<trivec3dp(bivec3dp const&, trivec3dp const&)>(cmt),
+                         sol::resolve<pscalar3dp(trivec3dp const&, vec3dp const&)>(cmt),
+                         sol::resolve<pscalar3dp(vec3dp const&, trivec3dp const&)>(cmt),
                          sol::resolve<bivec3dp(bivec3dp const&, bivec3dp const&)>(cmt),
                          sol::resolve<vec3dp(bivec3dp const&, vec3dp const&)>(cmt),
                          sol::resolve<vec3dp(vec3dp const&, bivec3dp const&)>(cmt),

@@ -288,7 +288,8 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
             auto const t = t0 + nt * dt;
             auto const M_rot = get_motor(B_rot, omega * t); // time dependent rot. angle
             auto const P = move3dp(P0, M_rot);
-            auto const v = -rcmt(P, B_rot * omega);
+            // auto const v = -rcmt(P, B_rot * omega);
+            auto const v = rcmt(B_rot * omega, P); // get rid of minus sign
             fmt::println("t = {:>-5.2f},  P = {:>-7.4f},  "
                          "v = {:>-7.4f}",
                          t, P, v);
@@ -356,7 +357,7 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
             auto const t = t0 + nt * dt;
 
             // compute in body system
-            auto const Me_rot = get_rotor(Be_rot, omega * t); // time dependent rot.
+            auto const Me_rot = get_rotor(Be_rot, omega * t); // time dependent rotation
             auto pe = rotate(p0e, Me_rot);
             auto ve = cmt(pe, Be_rot * omega);
 
@@ -388,11 +389,133 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
             // compute in world system
             auto const M_tra = get_motor(v0 * t);
             P = move3dp(P, M_tra);
-            auto const B_tra = bivec3dp(0, 0, 0, v0.x * t, v0.y * t, v0.z * t);
+            v += v0;
+
             fmt::println("t = {:>-5.2f},  P = {:>-7.4f},  "
                          "v = {:>-7.4f}",
                          t, P, v);
         }
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: elementary movement")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: elementary movement");
+
+
+        // rotational movement with axis through origin
+        // (rotational plane and rotational speed):
+        //
+        // - the weight contains only components which have a factor of e4
+        // - directional information of B is contained in its weight
+        // - multiplying a vector with e4 only keeps the e4x components
+        // - zero weight means B is contained in the horizon
+        //
+        // - if the vector is a direction of the rotation axis,
+        //   B_rot contains this info after the wedge product with e4
+        //
+        //   B_rot = e4 ^ rot_axis_vec = O_3dp ^ rot_axis_vec
+        //                             = O_3dp ^ left_weight_dual(plane of rotation plr)
+        //                             = lcmpl(rwdg(H_3dp, right_bulk_dual(plr)))
+        //
+        auto n = vec3dp{1, 1, 1, 0};   // only components e1, e2, e3 relevant
+        auto plr = right_bulk_dual(n); // plane with normal n, containing origin
+        //
+        auto B_rot = wdg(O_3dp, n); // calc from normal (only keeps e4x components)
+                                    // only keeps e41, e42 and e43, since e4 ^ e4 == 0
+        auto B_rot2 = wdg(O_3dp,
+                          left_weight_dual(plr)); // calc from plane directly
+        auto B_rot3 = lcmpl(rwdg(H_3dp, rcmpl(n)));
+        auto B_rot4 = lcmpl(rwdg(H_3dp, weight(plr)));
+
+        fmt::println("n        -> normal vector = {}", n);
+        fmt::println("plr      -> rot. plane    = {}", plr);
+        fmt::println("B_rot                     = {}", B_rot);
+        fmt::println("");
+        fmt::println("B_rot2                    = {}", B_rot2);
+        fmt::println("B_rot3                    = {}", B_rot3);
+        fmt::println("B_rot4                    = {}", B_rot4);
+        fmt::println("");
+
+
+        // translational movement (for position, speed, acceleration, etc.)
+        //
+        // - the bulk only contains components which do not contain a factor of e4
+        // - positional information of B is contained in its bulk
+        // - zero bulk means that B contains the origin
+        //
+        //   B_tra = att(right_bulk_dual(v)) = att(plane with normal v)
+        //
+        auto const v = vec3dp{1, 2, 3, 0};
+        auto B_tra = att(right_bulk_dual(v));
+        // creates a plane that has a normal v (a trivec)
+        // att(plane) is a bivector with respective orientation
+
+        fmt::println("v                              = {}", v);
+        fmt::println("right_bulk_dual(v)             = {}", right_bulk_dual(v));
+        fmt::println("att(right_bulk_dual(v))        = {}", att(right_bulk_dual(v)));
+        fmt::println("rwdg(right_bulk_dual(v),H_3dp) = {}",
+                     rwdg(right_bulk_dual(v), H_3dp));
+        fmt::println("B_tra                          = {}", B_tra);
+        fmt::println("");
+
+        // split a bivector rate into the parts carrying info on rotation and translation
+        auto B_full = bivec3dp{1, 2, 3, 4, 5, 6};
+        fmt::println("B_full = {}", B_full);
+        fmt::println("B_full_bulk   = bulk(B_full)   = {}", bulk(B_full));
+        fmt::println("B_full_weight = weight(B_full) = {}", weight(B_full));
+        fmt::println("");
+
+        auto const B_tot = B_rot + B_tra;
+        auto const B_tot_alt = wdg(O_3dp, n) - rcmpl(wdg(O_3dp, v));
+
+        fmt::println("B_tot = B_rot + B_tra                           = {}", B_tot);
+        fmt::println("B_tot_alt = wdg(O_3dp, n) - rcmpl(wdg(O_3dp, v) = {}", B_tot_alt);
+        fmt::println("");
+
+        fmt::println("Derivatives at P_i:");
+        fmt::println("");
+        auto const P_1 = vec3dp{1, 0, 0, 1};
+        auto const P_2 = vec3dp{2, 0, 0, 1};
+        auto const P_3 = vec3dp{0, 1, 0, 1};
+        auto const P_4 = vec3dp{0, 2, 0, 1};
+        auto const P_5 = vec3dp{1, 1, 0, 1};
+        fmt::println("P_1 = {}", P_1);
+        fmt::println("P_2 = {}", P_2);
+        fmt::println("P_3 = {}", P_3);
+        fmt::println("P_4 = {}", P_4);
+        fmt::println("P_5 = {}", P_5);
+        fmt::println("");
+        fmt::println("Rotational speed:");
+        fmt::println("v_rot = rcmt(B_rot,P_1) = {}", rcmt(B_rot, P_1));
+        fmt::println("v_rot = rcmt(B_rot,P_2) = {}", rcmt(B_rot, P_2));
+        fmt::println("v_rot = rcmt(B_rot,P_3) = {}", rcmt(B_rot, P_3));
+        fmt::println("v_rot = rcmt(B_rot,P_4) = {}", rcmt(B_rot, P_4));
+        fmt::println("v_rot = rcmt(B_rot,P_5) = {}", rcmt(B_rot, P_5));
+        fmt::println("");
+        fmt::println("Translational speed:");
+        fmt::println("v_tra = rcmt(B_tra,P_1) = {}", rcmt(B_tra, P_1));
+        fmt::println("v_tra = rcmt(B_tra,P_2) = {}", rcmt(B_tra, P_2));
+        fmt::println("v_tra = rcmt(B_tra,P_3) = {}", rcmt(B_tra, P_3));
+        fmt::println("v_tra = rcmt(B_tra,P_4) = {}", rcmt(B_tra, P_4));
+        fmt::println("v_tra = rcmt(B_tra,P_5) = {}", rcmt(B_tra, P_5));
+        fmt::println("");
+        fmt::println("Total speed:");
+        fmt::println("v_tot = rcmt(B_tot,P_1) = {}", rcmt(B_tot, P_1));
+        fmt::println("v_tot = rcmt(B_tot,P_2) = {}", rcmt(B_tot, P_2));
+        fmt::println("v_tot = rcmt(B_tot,P_3) = {}", rcmt(B_tot, P_3));
+        fmt::println("v_tot = rcmt(B_tot,P_4) = {}", rcmt(B_tot, P_4));
+        fmt::println("v_tot = rcmt(B_tot,P_5) = {}", rcmt(B_tot, P_5));
+        fmt::println("");
+        fmt::println("Pure rotational speed around reference point P1:");
+        fmt::println("v_rot = rcmt(B_rot,P_1) = {}", rcmt(B_rot, P_1 - P_1));
+        fmt::println("v_rot = rcmt(B_rot,P_2) = {}", rcmt(B_rot, P_2 - P_1));
+        fmt::println("v_rot = rcmt(B_rot,P_3) = {}", rcmt(B_rot, P_3 - P_1));
+        fmt::println("v_rot = rcmt(B_rot,P_4) = {}", rcmt(B_rot, P_4 - P_1));
+        fmt::println("v_rot = rcmt(B_rot,P_5) = {}", rcmt(B_rot, P_5 - P_1));
+        fmt::println("");
 
         fmt::println("");
     }

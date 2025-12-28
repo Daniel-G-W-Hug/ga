@@ -223,11 +223,11 @@ In order to model rigid body mechanics we consider two coordinate frames:
    \item A \emph{body frame} (index $b$) that is attached to a rigid body. Typically at
    its center of gravity, but this is not strictly required. Rigid body's internal forces
    are in equilibrium and thus need not be considered explicitly. It is sufficient to
-   describe the translational of the body's center of gravity and its rotational motion
-   with respect to the center of gravity. The resulting motion of the body frame relative
-   to the world frame then fully covers rigid body movement (kinematics and dynamics),
-   which depends on distribution of the mass of the body as well as on external forces and
-   moments acting on the body.
+   describe the translational motion of the body's center of gravity and its rotational
+   motion with respect to the center of gravity. The resulting motion of the body frame
+   relative to the world frame then fully covers rigid body motion (kinematics and
+   dynamics), which depends on distribution of the mass of the body as well as on external
+   forces and moments acting on the body.
    \item To describe the motion we use a time dependend motor $M=M(t)$. At time $t=0$ we
    call it $M_0 = M(t=0)$. $M_0$ brings an element $X$ of the body to its position $X_0$
    at time $t=0$.
@@ -290,8 +290,8 @@ obtain
    \label{eq:bivector_rate_body_frame}
 \end{equation}
 
-From equations (\ref{eq:bivector_rate_world_frame}) and
-(\ref{eq:bivector_rate_body_frame}) we can see how world and body frame rates are
+From equations (\ref{eq:motor_rate_world_frame}) and
+(\ref{eq:motor_rate_body_frame}) we can see how world and body frame rates are
 connected to each other: $\Omega_w \wedgedot M = M \wedgedot \Omega_b$, which can be
 transformed into
 \begin{subeqnarray}
@@ -346,7 +346,7 @@ involved operations, we get
    \dot{\rev{M}} = 2 (\rev{\dot{M}\wedgedot\rev{M}})= -\rev{\Omega}_w
    \label{eq:bivector_poof_gpr}
 \end{equation}
-Considering the grade-dependent sign-reversal of the reverse in 3D $EGA$, $\Omega_w$ must
+Considering the grade-dependent sign-reversal of the reverse in $3D$ $EGA$, $\Omega_w$ must
 either be a bivector or a trivector.
 %% for PGA (see table~\ref{tab:pga3dp_rev_rrev} at the end of
 %% section~\ref{section_basics}).
@@ -443,16 +443,17 @@ geometric product in $PGA$. If we do that, we can stay in the space $G(3,0,1)$ a
 need to switch to its dual space in order to implement these orthonormal transformations
 as already described above. \\
 
-Now we repeat the derivation of the time-derivative $\dot{X}$ of a point $X(t)$ for $PGA$:
-We will use the regressive geometric product, $\ps$ as its neutral element. The derivation
-is then completely analogous to the $EGA$ case with the given substitutions. \\
+Now we repeat the derivation of the time-derivative $\dot{X}$ of a point $X(t)$ for the
+projective approach of $PGA$ used here: We will use the regressive geometric product,
+$\ps$ as its neutral element. The derivation is then completely analogous to the $EGA$
+case with the given substitutions. \\
 
-$M$ as a rotor in $PGA$ is an orthonomal transformation and thus satisfies
+$M$ as a motor in $PGA$ is an orthonomal transformation and satisfies
 \begin{equation}
 M \veedot \rrev{M} = \rrev{M} \veedot M = \ps
 \label{eq:motor_relation_rgpr_neutral_element}
 \end{equation}
-as the defining equation for a motor in $PGA$ (remember: $M^{-1} = \rrev{M}$), thus
+as the defining equation for a motor in $PGA$ (remember: $M^{-1} = \rrev{M}$), leads to 
 \begin{equation}
    \frac{d}{dt}(M\veedot\rrev{M}) = \dot{M}\veedot\rrev{M} + M\veedot\dot{\rrev{M}} = 0
    \label{eq:dot_rrev_m}
@@ -471,7 +472,7 @@ $\dot{\rrev{M}}$. \\
 \newpage
 
 \textbf{\emph{World frame}}: From eqn.~(\ref{eq:rexp_pga_motor}) we know the form of a
-general rotor in $PGA$ and use the ansatz for a time dependent rotor $M(t)$ after the the
+general motor in $PGA$ and use the ansatz for a time dependent motor $M(t)$ after the the
 object $X$ was brought into its initial position by $M_0$ as $X_0 = M \veedot X \veedot
 \rrev{M}$. If there is no difference between world and body frames at $t=0$ then
 $M_0=\ps$:
@@ -487,8 +488,8 @@ turning angle. The derivative of $M$ with respect to time $t$ is
               = \frac{1}{2} \dot{B_w}(t) \veedot M(t)   
 \end{equation}
 where we use that the exponential of the bivector and the bivector rate commute
-\emph{(tbd: show why this is the case)}. Using $\Omega_w = \dot{B_w}(t)$ as the bivector
-rate of change in the \emph{world frame}, we get
+\emph{(tbd: show why this is the case)}. Using $\Omega_w = \Omega_w(t) = \dot{B_w}(t)$ as
+the bivector rate of change in the \emph{world frame}, we get
 \begin{equation}
    \dot{M} = \frac{1}{2} \Omega_w \veedot M 
    \label{eq:motor_rate_world_frame_pga}   
@@ -518,16 +519,16 @@ while eqn.~(\ref{eq:motor_rate_world_frame_pga}) for the bivector rate of change
    \dot{M} = \frac{1}{2} M \veedot \Omega_b  
    \label{eq:motor_rate_body_frame_pga}   
 \end{equation}
-using $\Omega_b = \dot{B_b}(t)$ as the bivector rate of change in the \emph{body frame}.
-This can be transformed by multiplying it from the left by ``$\rrev{M}\;\veedot$'' to
-obtain
+using $\Omega_b = \Omega_b(t) = \dot{B_b}(t)$ as the bivector rate of change in the
+\emph{body frame}. This can be transformed by multiplying it from the left by
+``$\rrev{M}\;\veedot$'' to obtain
 \begin{equation}
    \Omega_b = 2 \rrev{M} \veedot \dot{M}
    \label{eq:bivector_rate_body_frame_pga}
 \end{equation}
 
-From equations (\ref{eq:bivector_rate_world_frame_pga}) and
-(\ref{eq:bivector_rate_body_frame_pga}) we can see how world and body frame rates are
+From equations (\ref{eq:motor_rate_world_frame_pga}) and
+(\ref{eq:motor_rate_body_frame_pga}) we can see how world and body frame rates are
 connected to each other: $\Omega_w \veedot M = M \veedot \Omega_b$, which can be
 transformed into
 \begin{subeqnarray}
@@ -564,11 +565,11 @@ $\frac{1}{2}\Omega_w (t) = \dot{M} \veedot \rrev{M}$, resulting in
               (\frac{1}{2}\Omega_w(t)) \nonumber \\
               &=& \frac{1}{2}\left( \Omega_w \veedot X_w - X_w \veedot \Omega_w\right)
               \nonumber \\[10pt]
-   \dot{X}_w  &=&  cmt(\Omega_w,X_w) = -cmt(X_w,\Omega_w)
-   \slabel{eq:cmt_pga_world} 
+   \dot{X}_w  &=&  rcmt(\Omega_w,X_w) = -rcmt(X_w,\Omega_w)
+   \slabel{eq:rcmt_pga_world} 
 \end{eqnarray}
-with $cmt(\Omega_w, X_w)$ as the commutator product between $\Omega_w$ and $X_w$. The
-resulting minus sign in eqn.~(\ref{eq:cmt_pga_world}) compared to
+with $rcmt(\Omega_w, X_w)$ as the regressive commutator product between $\Omega_w$ and
+$X_w$. The resulting minus sign in eqn.~(\ref{eq:rcmt_pga_world}) compared to
 eqn.~(\ref{eq:cmt_ega_world}) is the only difference between $PGA$ and $EGA$. This is
 caused by the different ansatz for the motors comparing equations (\ref{eq:rotor_ega}) and
 (\ref{eq:rexp_pga_motor}).\\
@@ -581,12 +582,12 @@ the involved operations, we get
    \dot{\rrev{M}} = - 2 (\rrev{\dot{M} \veedot \rrev{M} })= -\rrev{\Omega}_w
    \label{eq:bivector_poof_rgpr}
 \end{equation}
-Considering the grade-dependent sign-reversal of the reverse in 3D $PGA$, $\Omega_w$ must
-either be a vector or a bivector in PGA (see table~\ref{tab:pga3dp_rev_rrev} at the end of
-section~\ref{section_basics}). Since $\dot{M}$ and $\rrev{M}$ are even-grade multivectors,
-their geometric product results in an even-grade multivector as well, which does not have
-a vector part. Thus, $\Omega_w$ and therefore $\dot{M} \veedot \rrev{M}$ must indeed be a
-bivector. \\
+Considering the grade-dependent sign-reversal of the reverse in $3D$ $PGA$, $\Omega_w$
+must either be a vector or a bivector in PGA (see table~\ref{tab:pga3dp_rev_rrev} at the
+end of section~\ref{section_basics}). Since $\dot{M}$ and $\rrev{M}$ are even-grade
+multivectors, their geometric product results in an even-grade multivector as well, which
+does not have a vector part. Thus, $\Omega_w$ and therefore $\dot{M} \veedot \rrev{M}$
+must indeed be a bivector. \\
 
 This also assures, that the grade of $X$ and $\dot{X}$ are identical. If $X$ is a vector
 then $\dot{X}$ is a vector as well. This statement is true for any grade of $X$ as long as
@@ -596,21 +597,111 @@ $\Omega_w$ is a bivector.\\
 
 If $X_0$ is not a constant element, but a function of time, which means that $X_0$ is a
 time dependent element in the \emph{body frame} $X_0 = X_b(t)$, we have to add another
-term to the derivative in eqn.~(\ref{eq:cmt_pga_world}) as follows:
+term to the derivative in eqn.~(\ref{eq:rcmt_pga_world}) as follows:
 \begin{eqnarray}
    \dot{X}(t) &=& \frac{d}{dt}(M \veedot X_b \veedot \rrev{M}) \nonumber \\
               &=& \dot{M} \veedot X_b \veedot \rrev{M} + M \veedot X_b \veedot
                   \dot{\rrev{M}} + M \veedot \dot{X_b} \veedot \rrev{M} \nonumber \\
-              &=& -cmt(M\veedot X_b \veedot\rrev{M},\Omega_w)
+              &=& -rcmt(M\veedot X_b \veedot\rrev{M},\Omega_w)
                   + M \veedot \dot{X_b} \veedot \rrev{M} \nonumber \\[10 pt]
-   \dot{X}_w  &=& -cmt(X_w,\Omega_w) + (\dot{X_b})_w
-   \slabel{eq:cmt_pga_world_incl_X0_of_t}
+   \dot{X}_w  &=& -rcmt(X_w,\Omega_w) + (\dot{X_b})_w = rcmt(\Omega_w,X_w)+ (\dot{X_b})_w
+   \slabel{eq:rcmt_pga_world_incl_X0_of_t}
 \end{eqnarray}
-Eqn.~(\ref{eq:cmt_pga_world_incl_X0_of_t}) is to be considered in the world frame.
+Eqn.~(\ref{eq:rcmt_pga_world_incl_X0_of_t}) is to be considered in the world frame.
 However, we can also do our derivations in a completely equivalent way using the
 corresponding bivector rates and rotors of the \emph{body frame}. \\
 
 The derivation in the \emph{body frame} does not bring new insight so we don't reproduce
-that here for $PGA$ again.
+that here for $PGA$ again. \\
+
+\newpage
+
+The final step before we move on to modelling physics is to show how points are moved in
+$PGA$ using the approach described above. Every bivector $B$ or every bivector rate
+$\Omega$ has its basis components
+\begin{equation}
+   \Omega = (\underbrace{\bv{41}, \bv{42}, \bv{43}}_{\text{weight($\Omega$)}=\weight{\Omega}},
+             \underbrace{\bv{23}, \bv{31}, \bv{12}}_{\text{bulk($\Omega$)}=\bulk{\Omega}})
+   \label{eq:bivector_component_definition}
+\end{equation}
+where the weight part $\weight{\Omega}$ carries rotational information and the bulk part
+$\bulk{\Omega}$ carries translational information. \\
+
+In general, the weight part only contains components that do contain a factor of $\bv{4}$.
+It has \emph{directional} information on $\Omega$. If there is zero weight, the object is
+contained in the horizon ($H_{3dp}$). The bulk part only has components that do not
+contain a factor of $\bv{4}$. It has \emph{positional} information on $\Omega$. If there
+is zero bulk, the object contains the origin ($O_{3dp}$). \\
+
+The total bivector rate $\Omega$ can be split into
+\begin{equation}
+   \Omega = \weight{\Omega} + \bulk{\Omega} = \Omega_{rot} + \Omega_{tra}
+   \label{eq:bivector_euclidean_split}
+\end{equation}
+where eqn.~(\ref{eq:bivector_euclidean_split}) is called the ``Euclidean split'' of the
+bivector rate $\Omega$ because it separates the rotational and translational aspects of a
+moving object. \\
+
+For a simple rotation around an axis $\vec{\omega} = \omega$ that contains the origin
+$O_{3dp}$ and models the angular speed of rotation by the bulk norm $\bulk{\nrm{\omega}}$
+the rotational bivector rate $\Omega_{rot}$ must only contain components that contain the
+basis vectors $\bv{4x}$ (where $x=1,2,3$). That is achieved by multiplying $\omega$ from
+the left with $\bv{4}$ using the wedge product, since it only keeps the required
+components.
+\begin{equation}
+   \Omega_{rot} = \bv{4} \wedge \omega = O_{3dp} \wedge \omega
+                = (\omega_x \bv{41}, \omega_y \bv{42}, \omega_z \bv{43}, 0, 0, 0)
+   \label{eq:bivector_rot_rate_omega_vec}
+\end{equation}
+Of course, $\Omega_{rot}$ can also be expressed by a plane of rotation $plr$ (a trivector)
+if the magnitude of the plane encodes the angular speed. Considering that the left weight
+dual of the plane $\leftweightdual{plr}$ provides the normal vector of the plane including
+its magnitude, eqn.~(\ref{eq:bivector_rot_rate_omega_vec}) can be written in the
+equivalent form in terms of the plane of rotation $plr$
+\begin{equation}
+   \Omega_{rot} = \bv{4} \wedge \leftweightdual{plr}
+                = O_{3dp} \wedge \leftweightdual{plr} 
+   \label{eq:bivector_rot_rate_omega_pl_rot}
+\end{equation}
+
+For modelling translational speed $\vec{v} = v$  we need a bivector rate $\Omega_{tra}$
+that does not contain a factor of $\bv{4}$. This can be achieved by encoding the speed of
+translation in the normal vector $v$ of a plane and then intersecting this plane with the
+horizon $\rcmpl{\bv{4}} = \rcmpl{O_{3dp}} = H_{3dp}$. The plane with the corresponding
+attitude can be encoded by using the right bulk dual $\rightbulkdual{v}$ to model the
+plane (a trivector) with the bulk norm $\bulknrm{v}$ as magnitude. It contains the origin
+$O_{3dp}$ and results in a bivector rate $\Omega_{tra}$ of the translation as
+\begin{equation}
+   \Omega_{tra} = \rightbulkdual{v} \vee \rcmpl{\bv{4}} = \rightbulkdual{v} \vee H_{3dp}
+                = att(\rightbulkdual{v})
+                = (0, 0, 0, v_x \bv{23}, v_y \bv{31}, v_z \bv{12})
+   \label{eq:bivector_trans_rate_v_vec}
+\end{equation}
+To summarize the formulas for these cases combined we can write 
+\begin{eqnarray}
+   \Omega &=& \Omega_{rot} + \Omega_{tra} \nonumber \\
+          &=& \bv{4} \wedge \omega + \rightbulkdual{v} \vee \rcmpl{\bv{4}} \nonumber \\
+          &=& \bv{4} \wedge \omega - \rcmpl{\bv{4} \wedge v}
+\end{eqnarray}
+where the last transformation uses the complement rules~(\ref{eq:intermediate_std}), the
+definition of the dual (\ref{eq:rightbulkdual}) as well as the fact that wedging a vector
+with $\bv{4}$ renders the need for the bulk dual operation unnecessary. \\
+
+Using for example eqn.~(\ref{eq:rcmt_pga_world}) and the Euclidean split as defined in
+eqn.~(\ref{eq:bivector_euclidean_split}) we can write
+\begin{subeqnarray}
+   \dot{X}_w &=& rcmt(\Omega_w,X_w) \;\; = \;\; \dot{x}_w \nonumber \\
+             &=& rcmt(\Omega_{rot} + \Omega_{tra},X_w) \nonumber \\
+   \dot{x}_w &=& rcmt(\Omega_{rot},X_w) + rcmt(\Omega_{tra},X_w) \\
+   \dot{x}_w &=& v_{rot} + v_{tra}  
+\end{subeqnarray}
+to calculate the combined speed $\dot{x}_w$ from rotational and translational effects at a
+position $X_w$. \\
+
+For a case where the rotation is around an axis that does not include the origin
+$O_{3dp}$, but another reference point $P_{ref}$ on the rotational axis, use $X_w -
+P_{ref}$ as argument of the regressive commutator product for the rotational part instead
+of $X_w$. This transforms the reference point as new fictive origin to obtain the correct
+rotational speed around the reference point. Everything else can remain unchanged.
 
 \newpage

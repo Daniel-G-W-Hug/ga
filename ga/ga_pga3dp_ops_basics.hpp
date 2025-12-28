@@ -555,7 +555,7 @@ constexpr MVec3dp<T> lcmpl(MVec3dp<T> const& M)
 // the bulk selects the components of the blade argument which dot NOT contain e4.
 //
 // => bulk():
-//    - does not contain a factor of e3 (the basis component with e4*e4 = 0)
+//    - does not contain a factor of e4 (the basis component with e4*e4 = 0)
 //    - contains positional information about u
 //    - zero bulk means that u contains the origin (e4)
 ////////////////////////////////////////////////////////////////////////////////
