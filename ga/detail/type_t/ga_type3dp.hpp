@@ -15,7 +15,7 @@
 #include "ga_type3d.hpp"  // for Vec3d<T>
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// consistent type definitions in namespace hd::ga for pga3dp
+// consistent type and grade definitions in namespace hd::ga for pga3dp
 // convenience type aliases in namespace hd::ga::pga (needed there for name resolution)
 //     - Vector3d
 //     - Point3d
@@ -34,6 +34,43 @@ template <typename T> using PScalar3dp = Scalar_t<T, pscalar3dp_tag>;
 template <typename T> using MVec3dp_E = MVec8_t<T, mvec3dp_e_tag>;
 template <typename T> using MVec3dp_U = MVec8_t<T, mvec3dp_u_tag>;
 template <typename T> using MVec3dp = MVec16_t<T, mvec3dp_tag>;
+
+// return the grades of the basic types
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr size_t gr([[maybe_unused]] Scalar3dp<T>)
+{
+    return 0;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr size_t gr([[maybe_unused]] Vec3dp<T> const&)
+{
+    return 1;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr size_t gr([[maybe_unused]] BiVec3dp<T> const&)
+{
+    return 2;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr size_t gr([[maybe_unused]] TriVec3dp<T> const&)
+{
+    return 3;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr size_t gr([[maybe_unused]] PScalar3dp<T>)
+{
+    return 4;
+}
 
 // for the geometric norm as homogeneous quantity,
 // which has a scalar part (c0 component) and a pseudoscalar part (c1 component)

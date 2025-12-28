@@ -2342,6 +2342,8 @@ inline MVec2dp<T> inv(MVec2dp<T> const& M)
 /////////////////////////////////////////////////////////////////////////////////////////
 // Projective contractions for 2dp:
 //
+// REQUIRES: the dualized operand must be of smaller grade, or the result is zero
+//
 // left_bulk_contract2dp(a,b) = rwdg(bulk_dual(a), b)
 // left_weight_contract2dp(a,b) = rwdg(weight_dual(a), b)
 //
@@ -2357,6 +2359,8 @@ inline MVec2dp<T> inv(MVec2dp<T> const& M)
 // In general a contraction throws away parts that are perpendicular to each other.
 // The result of right_bulk_contract(B,v) lies in B and is perpendicular to v.
 /////////////////////////////////////////////////////////////////////////////////////////
+
+// REQUIRES: the dualized operand must be of smaller grade, or the result is zero
 
 template <typename arg1, typename arg2>
 decltype(auto) left_bulk_contract2dp(arg1&& a, arg2&& b)
@@ -2390,6 +2394,8 @@ decltype(auto) right_weight_contract2dp(arg1&& a, arg2&& b)
 ////////////////////////////////////////////////////////////////////////////////
 // Projective expansions for 2dp:
 //
+// REQUIRES: the dualized operand must be of larger grade, or the result is zero
+//
 // left_bulk_expand2dp(a,b) = wdg(bulk_dual(a), b)       (dual to
 // left_weight_contract) left_weight_expand2dp(a,b) = wdg(weight_dual(a), b)   (dual
 // to left_bulk_contract)
@@ -2408,6 +2414,8 @@ decltype(auto) right_weight_contract2dp(arg1&& a, arg2&& b)
 // object and combines them with the space that is perpendicular to that other
 // dualized object.
 ////////////////////////////////////////////////////////////////////////////////
+
+// REQUIRES: the dualized operand must be of larger grade, or the result is zero
 
 template <typename arg1, typename arg2>
 decltype(auto) left_bulk_expand2dp(arg1&& a, arg2&& b)

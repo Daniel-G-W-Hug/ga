@@ -98,11 +98,18 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
 // create a (unitized) motor from a fixed point and a turning angle
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& p, U theta)
+constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& P, U theta)
 {
+    // point p must be unitized to avoid supprises
+    auto nrm_sq = to_val(weight_nrm_sq(P));
+    auto Pn{P};
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        Pn = unitize(P);
+    }
+
     using ctype = std::common_type_t<T, U>;
     ctype half_angle = 0.5 * theta;
-    return unitize(MVec2dp_U<ctype>(Vec2dp<ctype>(p * std::sin(half_angle)),
+    return unitize(MVec2dp_U<ctype>(Vec2dp<ctype>(Pn * std::sin(half_angle)),
                                     PScalar2dp<ctype>(std::cos(half_angle))));
 }
 
@@ -151,7 +158,12 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> c
     //     auto v_moved = move2dp(v,R);  // moves v according to the motor R
     //     auto B_moved = move2dp(B,R);  // moves B according to the motor R
     //
-    return unitize(rgpr(B2, B1)); // based on the regressive geometric product
+    auto M = rgpr(B2, B1);
+    auto nrm_sq = to_val(weight_nrm_sq(M));
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        M = unitize(M);
+    }
+    return M; // based on the regressive geometric product
 }
 
 template <typename T, typename U>
@@ -159,12 +171,11 @@ template <typename T, typename U>
 constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
                                                    MVec2dp_U<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
     // moves v (a vector representing a projective point) according to the motor R
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(gr1(rgpr(rgpr(R, v), rrev(R))));
+    return Vec2dp<ctype>(gr1(rgpr(rgpr(M, v), rrev(M))));
 }
 
 template <typename T, typename U>
@@ -172,22 +183,21 @@ template <typename T, typename U>
 constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
                                                        MVec2dp_U<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
-    // move one vector v with motor R (optimized)
+    // move one vector v with motor M (optimized)
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
 
-    ctype k11 = -R.c2 * R.c2 + R.c3 * R.c3;
-    ctype k12 = -2.0 * R.c2 * R.c3;
-    ctype k13 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
+    ctype k11 = -M.c2 * M.c2 + M.c3 * M.c3;
+    ctype k12 = -2.0 * M.c2 * M.c3;
+    ctype k13 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c3);
 
-    ctype k21 = 2.0 * R.c2 * R.c3;
-    ctype k22 = -R.c2 * R.c2 + R.c3 * R.c3;
-    ctype k23 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k21 = 2.0 * M.c2 * M.c3;
+    ctype k22 = -M.c2 * M.c2 + M.c3 * M.c3;
+    ctype k23 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c2);
 
-    ctype k33 = R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k33 = M.c2 * M.c2 + M.c3 * M.c3;
 
     return Vec2dp<ctype>(k11 * v.x + k12 * v.y + k13 * v.z,
                          k21 * v.x + k22 * v.y + k23 * v.z, k33 * v.z);
@@ -198,22 +208,21 @@ template <typename T, typename U>
 constexpr std::vector<Vec2dp<std::common_type_t<T, U>>>
 move2dp(std::vector<Vec2dp<T>> const& vec, MVec2dp_U<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
-    // move many vectors vec(v) with motor R (optimized)
+    // move many vectors vec(v) with motor M (optimized)
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
 
-    ctype k11 = -R.c2 * R.c2 + R.c3 * R.c3;
-    ctype k12 = -2.0 * R.c2 * R.c3;
-    ctype k13 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
+    ctype k11 = -M.c2 * M.c2 + M.c3 * M.c3;
+    ctype k12 = -2.0 * M.c2 * M.c3;
+    ctype k13 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c3);
 
-    ctype k21 = 2.0 * R.c2 * R.c3;
-    ctype k22 = -R.c2 * R.c2 + R.c3 * R.c3;
-    ctype k23 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
+    ctype k21 = 2.0 * M.c2 * M.c3;
+    ctype k22 = -M.c2 * M.c2 + M.c3 * M.c3;
+    ctype k23 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c2);
 
-    ctype k33 = R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k33 = M.c2 * M.c2 + M.c3 * M.c3;
 
     std::vector<Vec2dp<ctype>> result;
     result.reserve(vec.size());
@@ -244,22 +253,21 @@ template <typename T, typename U>
 constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> const& B,
                                                          MVec2dp_U<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
-    // move one bivector B with motor R (optimized)
+    // move one bivector B with motor M (optimized)
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
 
-    ctype k11 = -R.c2 * R.c2 + R.c3 * R.c3;
-    ctype k12 = -2.0 * R.c2 * R.c3;
+    ctype k11 = -M.c2 * M.c2 + M.c3 * M.c3;
+    ctype k12 = -2.0 * M.c2 * M.c3;
 
-    ctype k21 = 2.0 * R.c2 * R.c3;
-    ctype k22 = -R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k21 = 2.0 * M.c2 * M.c3;
+    ctype k22 = -M.c2 * M.c2 + M.c3 * M.c3;
 
-    ctype k31 = 2.0 * (R.c0 * R.c2 - R.c1 * R.c3);
-    ctype k32 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
-    ctype k33 = R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k31 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c3);
+    ctype k32 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c2);
+    ctype k33 = M.c2 * M.c2 + M.c3 * M.c3;
     return BiVec2dp<ctype>(k11 * B.x + k12 * B.y, k21 * B.x + k22 * B.y,
                            k31 * B.x + k32 * B.y + k33 * B.z);
 }
@@ -269,22 +277,21 @@ template <typename T, typename U>
 constexpr std::vector<BiVec2dp<std::common_type_t<T, U>>>
 move2dp(std::vector<BiVec2dp<T>> const& bvec, MVec2dp_U<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
-    // move many bivectors bvec(B) with motor R (optimized)
+    // move many bivectors bvec(B) with motor M (optimized)
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
 
-    ctype k11 = -R.c2 * R.c2 + R.c3 * R.c3;
-    ctype k12 = -2.0 * R.c2 * R.c3;
+    ctype k11 = -M.c2 * M.c2 + M.c3 * M.c3;
+    ctype k12 = -2.0 * M.c2 * M.c3;
 
-    ctype k21 = 2.0 * R.c2 * R.c3;
-    ctype k22 = -R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k21 = 2.0 * M.c2 * M.c3;
+    ctype k22 = -M.c2 * M.c2 + M.c3 * M.c3;
 
-    ctype k31 = 2.0 * (R.c0 * R.c2 - R.c1 * R.c3);
-    ctype k32 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
-    ctype k33 = R.c2 * R.c2 + R.c3 * R.c3;
+    ctype k31 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c3);
+    ctype k32 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c2);
+    ctype k33 = M.c2 * M.c2 + M.c3 * M.c3;
 
     std::vector<BiVec2dp<ctype>> result;
     result.reserve(bvec.size());
@@ -302,13 +309,12 @@ template <typename T, typename U>
 constexpr MVec2dp<std::common_type_t<T, U>> move2dp(MVec2dp<T> const& MV,
                                                     MVec2dp_U<U> const& M)
 {
-    // motor M must be unitized to avoid surprises
-    auto R = unitize(M);
+    // pre: motor M must be unitized to avoid surprises
 
-    // rotate one multivector M with motor R
+    // rotate one multivector MV with motor M
     // (only rotates the vector and bivector components of the 2dp multivector)
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(rgpr(rgpr(R, MV), rrev(R)));
+    return MVec2dp<ctype>(rgpr(rgpr(M, MV), rrev(M)));
 }
 
 
@@ -557,7 +563,7 @@ constexpr BiVec2dp<T> att(PScalar2dp<T> ps)
 // returns the euclidean distance between objects as homogeneous magnitude
 template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, arg2&& b)
 {
-    if (gr(a) + gr(b) == 3) {
+    if constexpr (gr(a) + gr(b) == 3) {
         return DualNum2dp<value_t>(rwdg(a, b), weight_nrm(wdg(a, att(b))));
     }
     else {

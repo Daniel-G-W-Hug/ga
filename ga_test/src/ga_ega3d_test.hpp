@@ -197,7 +197,7 @@ TEST_SUITE("EGA 3D Tests")
 
         // Expected patterns for Vec3d
         CHECK(default_vd.find("Vec3d(") == 0);
-        CHECK(default_vd.find(", ") != std::string::npos);
+        CHECK(default_vd.find(",") != std::string::npos);
         CHECK(default_vd.back() == ')');
 
         // Expected patterns for BiVec3d
@@ -206,20 +206,20 @@ TEST_SUITE("EGA 3D Tests")
 
         // Test precision formatting with expected outputs for Vec3d
         std::string two_decimals = fmt::format("{:.2f}", vd);
-        std::string expected_2f = "Vec3d(3.14, 2.72, 1.41)";
+        std::string expected_2f = "Vec3d(3.14,2.72,1.41)";
         fmt::println("   Vec3d .2f:       '{}' (expected: '{}')", two_decimals,
                      expected_2f);
         CHECK(two_decimals == expected_2f);
 
         std::string three_decimals = fmt::format("{:.3f}", vd);
-        std::string expected_3f = "Vec3d(3.142, 2.718, 1.414)";
+        std::string expected_3f = "Vec3d(3.142,2.718,1.414)";
         fmt::println("   Vec3d .3f:       '{}' (expected: '{}')", three_decimals,
                      expected_3f);
         CHECK(three_decimals == expected_3f);
 
         // Test BiVec3d formatting
         std::string bivec_2f = fmt::format("{:.2f}", bv);
-        std::string expected_bv_2f = "BiVec3d(1.20, 2.30, 3.40)";
+        std::string expected_bv_2f = "BiVec3d(1.20,2.30,3.40)";
         fmt::println("   BiVec3d .2f:     '{}' (expected: '{}')", bivec_2f,
                      expected_bv_2f);
         CHECK(bivec_2f == expected_bv_2f);
@@ -234,20 +234,20 @@ TEST_SUITE("EGA 3D Tests")
 
         // Test with float type
         std::string float_2f = fmt::format("{:.2f}", vf);
-        std::string expected_float_2f = "Vec3d(3.14, 2.72, 1.41)";
+        std::string expected_float_2f = "Vec3d(3.14,2.72,1.41)";
         fmt::println("   Float .2f:       '{}' (expected: '{}')", float_2f,
                      expected_float_2f);
         CHECK(float_2f == expected_float_2f);
 
         // Test contextual usage like in the reference example
         std::string position_3d = fmt::format("Position: {:.2f}", vd);
-        std::string expected_pos_3d = "Position: Vec3d(3.14, 2.72, 1.41)";
+        std::string expected_pos_3d = "Position: Vec3d(3.14,2.72,1.41)";
         fmt::println("   Context Vec3d:   '{}' (expected: '{}')", position_3d,
                      expected_pos_3d);
         CHECK(position_3d == expected_pos_3d);
 
         std::string orientation_log = fmt::format("Orientation: {:.2f}", bv);
-        std::string expected_orient = "Orientation: BiVec3d(1.20, 2.30, 3.40)";
+        std::string expected_orient = "Orientation: BiVec3d(1.20,2.30,3.40)";
         fmt::println("   Context BiVec:   '{}' (expected: '{}')", orientation_log,
                      expected_orient);
         CHECK(orientation_log == expected_orient);
@@ -2655,60 +2655,58 @@ TEST_SUITE("EGA 3D Tests")
 
         // Basic output
         std::string mvec3d_e_basic = fmt::format("{}", mvec3d_e_val);
-        CHECK(mvec3d_e_basic == "MVec3d_E(1.1, 2.2, 3.3, 4.4)");
+        CHECK(mvec3d_e_basic == "MVec3d_E(1.1,2.2,3.3,4.4)");
 
         // Two decimal places
         std::string mvec3d_e_two_decimals = fmt::format("{:.2f}", mvec3d_e_val);
-        CHECK(mvec3d_e_two_decimals == "MVec3d_E(1.10, 2.20, 3.30, 4.40)");
+        CHECK(mvec3d_e_two_decimals == "MVec3d_E(1.10,2.20,3.30,4.40)");
 
         // Scientific notation
         std::string mvec3d_e_scientific = fmt::format("{:.2e}", mvec3d_e_val);
-        CHECK(mvec3d_e_scientific == "MVec3d_E(1.10e+00, 2.20e+00, 3.30e+00, 4.40e+00)");
+        CHECK(mvec3d_e_scientific == "MVec3d_E(1.10e+00,2.20e+00,3.30e+00,4.40e+00)");
 
         // Contextual usage
         std::string mvec3d_e_contextual = fmt::format("Even MV: {:.2f}", mvec3d_e_val);
-        CHECK(mvec3d_e_contextual == "Even MV: MVec3d_E(1.10, 2.20, 3.30, 4.40)");
+        CHECK(mvec3d_e_contextual == "Even MV: MVec3d_E(1.10,2.20,3.30,4.40)");
 
-        // Test MVec3d_U formatting (MVec4_t with 4 components: c0, c1, c2, c3)
+        // Test MVec3d_U formatting (MVec4_t with 4 components: c0,c1,c2,c3)
         MVec3d_U<double> mvec3d_u_val{5.5, 6.6, 7.7, 8.8};
 
         // Basic output
         std::string mvec3d_u_basic = fmt::format("{}", mvec3d_u_val);
-        CHECK(mvec3d_u_basic == "MVec3d_U(5.5, 6.6, 7.7, 8.8)");
+        CHECK(mvec3d_u_basic == "MVec3d_U(5.5,6.6,7.7,8.8)");
 
         // Two decimal places
         std::string mvec3d_u_two_decimals = fmt::format("{:.2f}", mvec3d_u_val);
-        CHECK(mvec3d_u_two_decimals == "MVec3d_U(5.50, 6.60, 7.70, 8.80)");
+        CHECK(mvec3d_u_two_decimals == "MVec3d_U(5.50,6.60,7.70,8.80)");
 
         // Scientific notation
         std::string mvec3d_u_scientific = fmt::format("{:.2e}", mvec3d_u_val);
-        CHECK(mvec3d_u_scientific == "MVec3d_U(5.50e+00, 6.60e+00, 7.70e+00, 8.80e+00)");
+        CHECK(mvec3d_u_scientific == "MVec3d_U(5.50e+00,6.60e+00,7.70e+00,8.80e+00)");
 
         // Contextual usage
         std::string mvec3d_u_contextual = fmt::format("Odd MV: {:.2f}", mvec3d_u_val);
-        CHECK(mvec3d_u_contextual == "Odd MV: MVec3d_U(5.50, 6.60, 7.70, 8.80)");
+        CHECK(mvec3d_u_contextual == "Odd MV: MVec3d_U(5.50,6.60,7.70,8.80)");
 
         // Test MVec3d formatting (MVec8_t with 8 components: c0 through c7)
         MVec3d<double> mvec3d_val{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
 
         // Basic output
         std::string mvec3d_basic = fmt::format("{}", mvec3d_val);
-        CHECK(mvec3d_basic == "MVec3d(1, 2, 3, 4, 5, 6, 7, 8)");
+        CHECK(mvec3d_basic == "MVec3d(1,2,3,4,5,6,7,8)");
 
         // Two decimal places
         std::string mvec3d_two_decimals = fmt::format("{:.2f}", mvec3d_val);
-        CHECK(mvec3d_two_decimals ==
-              "MVec3d(1.00, 2.00, 3.00, 4.00, 5.00, 6.00, 7.00, 8.00)");
+        CHECK(mvec3d_two_decimals == "MVec3d(1.00,2.00,3.00,4.00,5.00,6.00,7.00,8.00)");
 
         // Scientific notation
         std::string mvec3d_scientific = fmt::format("{:.2e}", mvec3d_val);
-        CHECK(mvec3d_scientific == "MVec3d(1.00e+00, 2.00e+00, 3.00e+00, 4.00e+00, "
-                                   "5.00e+00, 6.00e+00, 7.00e+00, 8.00e+00)");
+        CHECK(mvec3d_scientific == "MVec3d(1.00e+00,2.00e+00,3.00e+00,4.00e+00,"
+                                   "5.00e+00,6.00e+00,7.00e+00,8.00e+00)");
 
         // Contextual usage
         std::string mvec3d_contextual = fmt::format("Full MV: {:.1f}", mvec3d_val);
-        CHECK(mvec3d_contextual ==
-              "Full MV: MVec3d(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)");
+        CHECK(mvec3d_contextual == "Full MV: MVec3d(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0)");
 
         fmt::println("   MVec3d_E basic: {}", mvec3d_e_basic);
         fmt::println("   MVec3d_E 2-decimal: {}", mvec3d_e_two_decimals);
@@ -2735,46 +2733,44 @@ TEST_SUITE("EGA 3D Tests")
 
         // Basic output
         std::string mvec4d_e_basic = fmt::format("{}", mvec4d_e_val);
-        CHECK(mvec4d_e_basic ==
-              "MVec4d_E(10.1, 20.2, 30.3, 40.4, 50.5, 60.6, 70.7, 80.8)");
+        CHECK(mvec4d_e_basic == "MVec4d_E(10.1,20.2,30.3,40.4,50.5,60.6,70.7,80.8)");
 
         // Two decimal places
         std::string mvec4d_e_two_decimals = fmt::format("{:.2f}", mvec4d_e_val);
         CHECK(mvec4d_e_two_decimals ==
-              "MVec4d_E(10.10, 20.20, 30.30, 40.40, 50.50, 60.60, 70.70, 80.80)");
+              "MVec4d_E(10.10,20.20,30.30,40.40,50.50,60.60,70.70,80.80)");
 
         // Scientific notation
         std::string mvec4d_e_scientific = fmt::format("{:.2e}", mvec4d_e_val);
-        CHECK(mvec4d_e_scientific == "MVec4d_E(1.01e+01, 2.02e+01, 3.03e+01, 4.04e+01, "
-                                     "5.05e+01, 6.06e+01, 7.07e+01, 8.08e+01)");
+        CHECK(mvec4d_e_scientific == "MVec4d_E(1.01e+01,2.02e+01,3.03e+01,4.04e+01,"
+                                     "5.05e+01,6.06e+01,7.07e+01,8.08e+01)");
 
         // Contextual usage
         std::string mvec4d_e_contextual = fmt::format("Even 4D MV: {:.1f}", mvec4d_e_val);
         CHECK(mvec4d_e_contextual ==
-              "Even 4D MV: MVec4d_E(10.1, 20.2, 30.3, 40.4, 50.5, 60.6, 70.7, 80.8)");
+              "Even 4D MV: MVec4d_E(10.1,20.2,30.3,40.4,50.5,60.6,70.7,80.8)");
 
         // Test MVec4d_U formatting (MVec8_t with 8 components: c0 through c7)
         MVec4d_U<double> mvec4d_u_val{11.1, 22.2, 33.3, 44.4, 55.5, 66.6, 77.7, 88.8};
 
         // Basic output
         std::string mvec4d_u_basic = fmt::format("{}", mvec4d_u_val);
-        CHECK(mvec4d_u_basic ==
-              "MVec4d_U(11.1, 22.2, 33.3, 44.4, 55.5, 66.6, 77.7, 88.8)");
+        CHECK(mvec4d_u_basic == "MVec4d_U(11.1,22.2,33.3,44.4,55.5,66.6,77.7,88.8)");
 
         // Two decimal places
         std::string mvec4d_u_two_decimals = fmt::format("{:.2f}", mvec4d_u_val);
         CHECK(mvec4d_u_two_decimals ==
-              "MVec4d_U(11.10, 22.20, 33.30, 44.40, 55.50, 66.60, 77.70, 88.80)");
+              "MVec4d_U(11.10,22.20,33.30,44.40,55.50,66.60,77.70,88.80)");
 
         // Scientific notation
         std::string mvec4d_u_scientific = fmt::format("{:.2e}", mvec4d_u_val);
-        CHECK(mvec4d_u_scientific == "MVec4d_U(1.11e+01, 2.22e+01, 3.33e+01, 4.44e+01, "
-                                     "5.55e+01, 6.66e+01, 7.77e+01, 8.88e+01)");
+        CHECK(mvec4d_u_scientific == "MVec4d_U(1.11e+01,2.22e+01,3.33e+01,4.44e+01,"
+                                     "5.55e+01,6.66e+01,7.77e+01,8.88e+01)");
 
         // Contextual usage
         std::string mvec4d_u_contextual = fmt::format("Odd 4D MV: {:.1f}", mvec4d_u_val);
         CHECK(mvec4d_u_contextual ==
-              "Odd 4D MV: MVec4d_U(11.1, 22.2, 33.3, 44.4, 55.5, 66.6, 77.7, 88.8)");
+              "Odd 4D MV: MVec4d_U(11.1,22.2,33.3,44.4,55.5,66.6,77.7,88.8)");
 
         fmt::println("   MVec4d_E basic: {}", mvec4d_e_basic);
         fmt::println("   MVec4d_E 2-decimal: {}", mvec4d_e_two_decimals);

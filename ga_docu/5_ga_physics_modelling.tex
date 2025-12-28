@@ -7,10 +7,10 @@ manipulated by applying algebraic operations. \\
 
 $EGA$ is limited to objects that contain the origin. Thus, it can be used to directly
 model vectors (i.e. directions), lines, and planes through the orgin. In addition, it can
-model complex numbers, quaternions and thus rotations in $2d$ and $3d$ well. To realize
+model complex numbers, quaternions and thus rotations in $2D$ and $3D$ well. To realize
 them, it uses sandwich products based on the geometric product for calculating the
 transformation resulting from two consequtive reflections either across lines ($2d$-case)
-or across planes ($3d$-case). The resulting transformations are rotations. The advantage
+or across planes ($3D$-case). The resulting transformations are rotations. The advantage
 of using geometric algebra to model those rotations is the intuitive modelling, due to
 geometric meaning of the objects and the fact that the sandwich products can be used to
 transform different objects, like vectors, bivectors or rotation operators using the same
@@ -201,11 +201,12 @@ the bulk of the bivector:
     \label{eq:force_torque_origin}
 \end{equation}
 while the resulting torque from the application of $f$ at any given point $R$ in space can
-be retrieved from $F$, either using any known point $P$ on $F$\footnote{Which is in
-principle always available via the function $support(F)$. It provides the point on $F$
-with the shortest distance to the origin $O$.}, or alternatively by projecting $R$ onto
-$F$ and using the perpendicular distance vector $d_\perp$ from $R$ towards the line $F$ in
-order to calculate the resulting free torque $M_F(R)$ as
+be retrieved from $F$, either using any known point $P$ on $F$\footnote{Which is always
+available via the function $support(F)$. It provides the point on $F$ with the shortest
+distance to the origin $O$ by orthogonally projecting the origin onto $F$.}, or
+alternatively by projecting $R$ onto $F$ and using the perpendicular distance vector
+$d_\perp$ from $R$ towards the line $F$ in order to calculate the resulting free torque
+$M_F(R)$ as
 \begin{subeqnarray}
     M_F(R) & = &  (P-R) \wedge f = (P-R) \wedge att(F)
     \slabel{eq:action_line_moment_simple} \\
@@ -229,8 +230,8 @@ Please remember:
     resulting torque value.
     \item The torque calculated from either equation (\ref{eq:action_line_moment_simple})
     or (\ref{eq:action_line_moment_projection}) are necessarily free torque values as can
-    be seen from the formulas: The origin does not occur in the calculation any more due
-    to the difference of the two projective points involved.
+    be seen from the formulas: The origin does not occur in the calculation result anymore
+    due to the difference of the two projective points involved.
     \item The sum of forces and their induced torque values can be directly created by the
     sum of their respective lines of action, i.e. by summing the bivectors representing
     those lines. The resulting lines of action contain all relevant information incl. the

@@ -340,8 +340,8 @@ the weight norm becomes a value of one. Both, bulk and weight norms, have a posi
 argument under the square root due to the definition of the inner product and the
 regressive inner product.\\
 
-Using the metric and the right complement the right bulk dual \rightbulkdual{A} is defined
-as
+Using the metric and the right complement, the right bulk dual \rightbulkdual{A} is
+defined as
 \begin{equation}
     \rightbulkdual{A} = \rcmpl{\metric{G}A} = \rcmpl{\bulk{A}}
     \label{eq:rightbulkdual}
@@ -351,8 +351,8 @@ a matrix-vector-product between them. \rightbulkdual{A} is also called the Hodge
 multiplication with the metric happens before the application of the complement
 operation.\\
 
-There is also a corresponding left dual $\leftbulkdual{A}$ operation using the metric and
-the left complement. It is defined as
+There is also a corresponding left bulk dual $\leftbulkdual{A}$ operation using the metric
+and the left complement. It is defined as
 \begin{equation}
     \leftbulkdual{A} = \lcmpl{\metric{G}A} = \lcmpl{\bulk{A}}
     \label{eq:leftbulkdual}
@@ -569,14 +569,33 @@ for the contractions (as implemented in the ga library)
 or sometimes by exclusively using the operations of the exterior algebra (wedge product
 ``$\wedge$'', bulk dual ``$\star$'' and regressive wedge product ``$\vee$'')
 \begin{subequations}
+    \label{eq:gpr_Bsh_exterior}
     \begin{align}
     v \wedgedot B & = B \vee \rightbulkdual{v} + v \wedge B
-    \label{eq:gpr_Bshrc_exterior} \\
+    \slabel{eq:gpr_Bshrc_exterior} \\
     B \wedgedot v & = \leftbulkdual{v} \vee B + B \wedge v
-    \label{eq:gpr_Bshlc_exterior}
+    \slabel{eq:gpr_Bshlc_exterior}
     \end{align}
 \end{subequations}
 as an alternative. Each one is equivalent. \\
+
+Be carefull, when using the equivalent formulas like the right-hand side of
+equations~(\ref{eq:gpr_Bsh_exterior}) when deriving regressive products. Resulting
+formulas may not be valid! The equivalent formulas for the regressive products must be
+derived directly from the regressive product table. To give one example, here is the
+corresponding formula for the regressive geometric product for the case of a regressive
+product between a vector $v$ and a bivector $B$:
+\begin{subequations}
+    \begin{align}
+    v \veedot B & = -\leftweightdual{B} \wedge v + rcmt(v,B) \\
+    B \veedot v & = -v \wedge \rightweightdual{B}  + rcmt(B,v)
+    \end{align}
+\end{subequations}
+It is obviously not the result one would get from creating the regressive versions
+directly from the right-hand side of equations~(\ref{eq:gpr_Bsh_exterior}). The reason is
+that the specific pre-conditions for the validity of the equivalence between the geometric
+product and the corresponding right-hand sides may change when taking the complements. \\
+
 
 Every vector $v$ can be decomposed into parts $v_{\parall}$ parallel to a $k$-blade $B$
 and $v_{\perp}$ perpendicular to $B$, such that $v = v_{\parall} + v_{\perp}$. For
