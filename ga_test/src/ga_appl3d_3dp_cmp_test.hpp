@@ -404,7 +404,6 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         fmt::println("");
         fmt::println("pga3dp: elementary movement");
 
-
         // rotational movement with axis through origin
         // (rotational plane and rotational speed):
         //
@@ -475,7 +474,7 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         fmt::println("B_tot_alt = wdg(O_3dp, n) - rcmpl(wdg(O_3dp, v) = {}", B_tot_alt);
         fmt::println("");
 
-        fmt::println("Derivatives at P_i:");
+        fmt::println("Derivatives at P_i (must be normlized points with p.w == 1):");
         fmt::println("");
         auto const P_1 = vec3dp{1, 0, 0, 1};
         auto const P_2 = vec3dp{2, 0, 0, 1};
@@ -516,6 +515,63 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         fmt::println("v_rot = rcmt(B_rot,P_4) = {}", rcmt(B_rot, P_4 - P_1));
         fmt::println("v_rot = rcmt(B_rot,P_5) = {}", rcmt(B_rot, P_5 - P_1));
         fmt::println("");
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: momentum bivector")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: momentum bivector");
+
+        // a mass point at position X (=typically a distance to the center of force)
+        // has mass m and speed dX/dt = Xv
+        // => total momentum P ist defined as bivector mX^Xv
+        //
+        // P = X ^ m*Xv = (O + x) ^ m*X_v
+        //              = (O ^ m*X_v) + (x ^ m*X_v)
+        // where att(P) is the classical linear momentum p = m*v = m*Xv
+        // and bulk(P) is the classical angular momentum l = m*(r x v) (as vector)
+        //                                               L = X^m*Xv    (as bivector)
+        //
+        // angular momentum w.r.t. onother point R is given by bivector equilibrium:
+        // P_O(X) = X ^ m*Xv
+        // P_Y(X) = (X-Y) ^ m*Xv
+        // Thus the momentum at any point can be calculated from the given momentum line!
+        //
+        // => this is completely analogous to the force line and force and torque relation
+
+        // momentum at point X
+        auto m = 2.5;
+        auto X = vec3dp{2, 0, 0, 1};
+        auto Xv = vec3dp{0, 2, 0, 0};
+
+        // other reference points
+        auto R1 = vec3dp{1, 0, 0, 1};
+        auto R2 = vec3dp{3, 0, 0, 1};
+
+        // total momentum (as bivector)
+        auto P = m * wdg(X, Xv);
+
+        fmt::println("m                                    = {}", m);
+        fmt::println("X                                    = {}", X);
+        fmt::println("Xv                                   = {}", Xv);
+        fmt::println("P                                    = {}", P);
+        fmt::println("");
+        fmt::println("att(P)  = linear momentum            = {}", att(P));
+        fmt::println("bulk(P) = angular momentum vs. O_3dp = {}", bulk(P));
+        fmt::println("");
+        fmt::println("R1                                                = {}", R1);
+        fmt::println("bulk(wdg(X - R1,att(P)) = angular momentum vs. R1 = {}",
+                     bulk(wdg(X - R1, att(P))));
+        fmt::println("bulk(wdg(ortho_proj3dp(R1, P) - R1,att(P)))       = {}",
+                     bulk(wdg(ortho_proj3dp(R1, P) - R1, att(P))));
+
+        fmt::println("R2                                                = {}", R2);
+        fmt::println("bulk(wdg(X - R2,att(P)) = angular momentum vs. R2 = {}",
+                     bulk(wdg(X - R2, att(P))));
+        fmt::println("bulk(wdg(ortho_proj3dp(R2, P) - R2,att(P)))       = {}",
+                     bulk(wdg(ortho_proj3dp(R2, P) - R2, att(P))));
 
         fmt::println("");
     }
