@@ -244,8 +244,8 @@ Please remember:
     those lines. The resulting lines of action contain all relevant information incl. the
     resulting vector sum of the forces and the resulting torque values from the summation.
     There is no need to calculate these separately. The result will always be a resulting
-    line of action that contains a bound vector representing the resulting force and the
-    resulting torque. (see~\cite{Browne_Grassmann-Algebra_Vol1:2012}, p. 176).
+    bivector that contains a bound vector and a resulting torque.
+    (see~\cite{Browne_Grassmann-Algebra_Vol1:2012}, p. 176).
 \end{itemize}
 
 % The geometrical situation is depicted in figure XXX for a two-dimensional case.
@@ -261,7 +261,7 @@ they cannot be combined in one object in the classical approach. \\
 
 The $PGA$ approach to momentum is to define both the linear and the angular aspects within
 one entity. This happens in complete analogy to what we have seen in the last subsection
-for force and torque. \\
+for force and torque resulting in a force line of action. \\
 
 Projective total momentum $P$ of a point mass $m$ at position $X$ that moves with velocity
 $\dot{X}$ is defined as a bivector $P$ where
@@ -270,9 +270,10 @@ $\dot{X}$ is defined as a bivector $P$ where
 \end{equation}
 It defines the total momentum including linear and angular momentum as part of the
 bivector $P(X)$ at the position $X$ which can be shown by splitting the projective point
-$X$ into its components $X = O + x$ (so-called point split) in the $3D$ case with the
+$X$ into its components $X = O + x$ (so-called point split). In the $3D$ case with the
 origin $O = O_{3dp} = (0,0,0,1)$ and the direction vector $x$ where $x = (X_x, X_y, X_z,
-0)$, i.e. specifically $X_w = 0$, representing a direction towards a point at infinity.
+0)$, i.e. specifically $X_w = 0$, representing a direction towards a point at infinity,
+this results in
 \begin{subeqnarray}
     P(X) &=& X \wedge m \dot{X} = (O + x) \wedge m \dot{X} \nonumber \\
          &=& O \wedge m \dot{X} + x \wedge m \dot{X} \nonumber \\
@@ -290,7 +291,7 @@ point. This is one reason why $PGA$ can combine linear and angular aspects as se
 physical effects in one algebraic object.} \\
 
 The physical aspects encoded in the momentum line $P$ can be retrieved in complete analogy
-to the case of force and torque in the last subsection
+to the case of force and torque in subsection
 \ref{subsubsection_modelling_force_and_torque}: \\
 
 The linear momentum vector $p$ itself can be retrieved from $P$ by using the attitude
@@ -313,9 +314,9 @@ retrieved from the momentum line $P$ by
          = \bulk{\left[ (X-R) \wedge att(P) \right]}
            \slabel{eq:action_momentum_line_simple}
 \end{equation}
-using $X$ as a known point on $P$. This provides the resulting angular momentum
-$L(R)$ with respect to $R$. So the momentum line encodes the resulting angular momentum
-relative to any arbitrarily chosen origin. \\
+using $X$ as a known point on $P$. This provides the resulting angular momentum $L(R)$
+with respect to $R$. The momentum line encodes the resulting momentum and its linear and
+angular aspects relative to any arbitrarily chosen origin. \\
 
 The formulas above allow for separating the linear and angular effects and in the
 classical approach, if needed. However, in $PGA$ these aspects need not be separated at
