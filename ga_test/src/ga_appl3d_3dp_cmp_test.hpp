@@ -564,14 +564,9 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         fmt::println("R1                                                = {}", R1);
         fmt::println("bulk(wdg(X - R1,att(P)) = angular momentum vs. R1 = {}",
                      bulk(wdg(X - R1, att(P))));
-        fmt::println("bulk(wdg(ortho_proj3dp(R1, P) - R1,att(P)))       = {}",
-                     bulk(wdg(ortho_proj3dp(R1, P) - R1, att(P))));
-
         fmt::println("R2                                                = {}", R2);
         fmt::println("bulk(wdg(X - R2,att(P)) = angular momentum vs. R2 = {}",
                      bulk(wdg(X - R2, att(P))));
-        fmt::println("bulk(wdg(ortho_proj3dp(R2, P) - R2,att(P)))       = {}",
-                     bulk(wdg(ortho_proj3dp(R2, P) - R2, att(P))));
 
         fmt::println("");
     }
