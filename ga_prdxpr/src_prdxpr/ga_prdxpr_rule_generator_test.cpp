@@ -780,6 +780,49 @@ bool test_algebra(const AlgebraConfig& config, const std::string& algebra_name,
     return overall_success;
 }
 
+// Test recursive extraction of extended metric
+// Compares recursive extraction against the current hardcoded implementation
+void test_extended_metric_recursive_extraction(AlgebraConfig const& config,
+                                                std::string const& algebra_name)
+{
+    std::string separator(80, '-');
+    fmt::println("\n{}", separator);
+    fmt::println("RECURSIVE EXTENDED METRIC EXTRACTION TEST - {}", algebra_name);
+    fmt::println("{}", separator);
+
+    // Generate wedge and dot product rules (independent of extended metric)
+    auto wedge_rules = generate_wedge_product_rules(config);
+    auto dot_rules = generate_dot_product_rules(config);
+
+    // Get extended metric from current hardcoded implementation
+    auto metric_hardcoded = calculate_extended_metric(config);
+
+    // Get extended metric from new recursive extraction
+    auto metric_recursive = calculate_extended_metric_recursive(config, wedge_rules, dot_rules);
+
+    // Compare the results
+    bool perfect_match = (metric_hardcoded == metric_recursive);
+
+    fmt::println("\nComparison Results:");
+    fmt::println("  Basis size: {}", config.multivector_basis.size());
+    fmt::println("  Match status: {}", perfect_match ? "✓ PERFECT" : "✗ DIFFERENCES FOUND");
+
+    if (!perfect_match) {
+        fmt::println("\nDifferences found:");
+        for (size_t i = 0; i < config.multivector_basis.size(); ++i) {
+            if (metric_hardcoded[i] != metric_recursive[i]) {
+                fmt::println("  [{}] {}: hardcoded={}, recursive={}",
+                             i, config.multivector_basis[i],
+                             metric_hardcoded[i], metric_recursive[i]);
+            }
+        }
+    }
+    else {
+        fmt::println("\n✓ Recursive extraction produces identical results!");
+        fmt::println("  All {} extended metric values match.", metric_hardcoded.size());
+    }
+}
+
 int main(int argc, char* argv[])
 {
     try {
@@ -928,9 +971,21 @@ int main(int argc, char* argv[])
             display_algebra_rules(sta4d_config, "sta4d");
         }
 
-        // Investigate antimetric relationship for EGA3D and STA4D
+        // Test recursive extended metric extraction for all algebras
         fmt::println("\n");
         std::string separator_long(80, '=');
+        fmt::println("{}", separator_long);
+        fmt::println("RECURSIVE EXTENDED METRIC EXTRACTION TESTS");
+        fmt::println("{}", separator_long);
+
+        test_extended_metric_recursive_extraction(ega2d_config, "ega2d");
+        test_extended_metric_recursive_extraction(ega3d_config, "ega3d");
+        test_extended_metric_recursive_extraction(pga2dp_config, "pga2dp");
+        test_extended_metric_recursive_extraction(pga3dp_config, "pga3dp");
+        test_extended_metric_recursive_extraction(sta4d_config, "sta4d");
+
+        // Investigate antimetric relationship for EGA3D and STA4D
+        fmt::println("\n");
         fmt::println("{}", separator_long);
         fmt::println("ANTIMETRIC RELATIONSHIP INVESTIGATION");
         fmt::println("{}", separator_long);
