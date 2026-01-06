@@ -2474,4 +2474,77 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("  ✓ lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u for even-dimensional");
     }
 
+    TEST_CASE("G<2,0,0>: extended metric matrix validation")
+    {
+        fmt::println("G<2,0,0>: extended metric matrix validation");
+
+        // Get the extended metric matrix from stored constants
+        auto G = ega2d_metric_view();
+
+        // Verify all diagonal elements are +1 (Euclidean signature)
+        // Basis order: 1, e1, e2, e12
+        CHECK(G[0, 0] == 1); // scalar
+        CHECK(G[1, 1] == 1); // e1
+        CHECK(G[2, 2] == 1); // e2
+        CHECK(G[3, 3] == 1); // e12
+
+        // Verify off-diagonal elements are zero (orthogonal basis)
+        for (size_t i = 0; i < 4; ++i) {
+            for (size_t j = 0; j < 4; ++j) {
+                if (i != j) {
+                    CHECK(G[i, j] == 0);
+                }
+            }
+        }
+
+        fmt::println("  ✓ Extended metric matrix is identity (all diagonal = 1, off-diagonal = 0)");
+    }
+
+    TEST_CASE("G<2,0,0>: extended metric recursive extraction via wedge products")
+    {
+        fmt::println("G<2,0,0>: extended metric recursive extraction via wedge products");
+
+        auto G = ega2d_metric_view();
+
+        // Level 0: Scalar (always 1)
+        CHECK(G[0, 0] == 1);
+
+        // Level 1: Vectors (extract from dot products)
+        value_t g_e1 = value_t(dot(e1_2d, e1_2d));
+        value_t g_e2 = value_t(dot(e2_2d, e2_2d));
+        CHECK(abs(g_e1 - value_t(G[1, 1])) < eps);
+        CHECK(abs(g_e2 - value_t(G[2, 2])) < eps);
+
+        // Level 2: Bivectors/Pseudoscalar (extract from wedge products + dot)
+        // Create bivector from wedge product of basis vectors
+        auto e12_constructed = wdg(e1_2d, e2_2d);
+        value_t g_e12 = value_t(dot(e12_constructed, e12_constructed));
+        CHECK(abs(g_e12 - value_t(G[3, 3])) < eps);
+
+        // Verify the constructed bivector matches the canonical one
+        CHECK(e12_constructed == e12_2d);
+
+        fmt::println("  ✓ Recursive extraction: scalar → vectors → bivectors all match");
+    }
+
+    TEST_CASE("G<2,0,0>: extended metric vs dot products")
+    {
+        fmt::println("G<2,0,0>: extended metric vs dot products");
+
+        // The extended metric diagonal should match dot(basis, basis)
+        auto G = ega2d_metric_view();
+
+        // Scalars: always 1
+        CHECK(G[0, 0] == 1);
+
+        // Vectors: e1·e1, e2·e2
+        CHECK(abs(value_t(dot(e1_2d, e1_2d)) - value_t(G[1, 1])) < eps);
+        CHECK(abs(value_t(dot(e2_2d, e2_2d)) - value_t(G[2, 2])) < eps);
+
+        // Pseudoscalar (bivector in 2D): e12·e12
+        CHECK(abs(value_t(dot(e12_2d, e12_2d)) - value_t(G[3, 3])) < eps);
+
+        fmt::println("  ✓ Extended metric diagonal matches dot products for all basis elements");
+    }
+
 } // EGA 2D Tests

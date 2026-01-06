@@ -111,6 +111,134 @@ bool compare_all_rules(const prd_rules& generated, const prd_rules& reference,
     return all_match && generated.size() == reference.size();
 }
 
+// Helper function to build antimetric matrix from complement rules
+std::vector<int> build_antimetric_matrix(mvec_coeff const& basis,
+                                         prd_rules const& complement_rules)
+{
+    size_t const n = basis.size();
+    std::vector<int> antimetric(n * n, 0);
+    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> G_anti{
+        antimetric.data(), n, n};
+
+    // For each basis element, find its complement and encode in matrix
+    for (size_t i = 0; i < n; ++i) {
+        auto it = complement_rules.find(basis[i]);
+        if (it != complement_rules.end()) {
+            std::string cmpl_value = it->second;
+
+            // Parse sign and basis element
+            int sign = 1;
+            if (!cmpl_value.empty() && cmpl_value[0] == '-') {
+                sign = -1;
+                cmpl_value = cmpl_value.substr(1);
+            }
+
+            // Find which basis element this is
+            for (size_t j = 0; j < n; ++j) {
+                if (basis[j] == cmpl_value) {
+                    G_anti[i, j] = sign;
+                    break;
+                }
+            }
+        }
+    }
+
+    return antimetric;
+}
+
+// Matrix multiplication for extended metric verification
+std::vector<int> multiply_matrices(std::vector<int> const& A, std::vector<int> const& B,
+                                    size_t n)
+{
+    std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> A_view{
+        A.data(), n, n};
+    std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> B_view{
+        B.data(), n, n};
+
+    std::vector<int> result(n * n, 0);
+    std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> C{
+        result.data(), n, n};
+
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            for (size_t k = 0; k < n; ++k) {
+                C[i, j] += A_view[i, k] * B_view[k, j];
+            }
+        }
+    }
+
+    return result;
+}
+
+// Investigate antimetric relationship: G · 𝔾 = det(g) · I
+void investigate_antimetric_relationship(AlgebraConfig const& config,
+                                         std::string const& algebra_name)
+{
+    fmt::println("\n=== Antimetric Relationship Investigation: {} ===", algebra_name);
+
+    // Generate rules
+    auto rules = generate_algebra_rules(config);
+
+    // Get extended metric matrix
+    auto G_data = calculate_extended_metric_matrix(config);
+    size_t n = rules.basis.size();
+
+    // Calculate determinant of base metric
+    int det_g = 1;
+    for (int m : config.metric_signature) {
+        det_g *= m;
+    }
+
+    fmt::println("Metric signature: {}", fmt::join(config.metric_signature, ", "));
+    fmt::println("det(g) = {}", det_g);
+
+    // Get complement rules (for odd/even dimensional algebras)
+    prd_rules complement_rules;
+    bool is_even = (config.basis_vectors.size() % 2 == 0);
+
+    if (is_even) {
+        // Use right complement for even algebras
+        complement_rules = rules.right_complement;
+        fmt::println("Algebra dimension: {} (even) - using right complement", config.basis_vectors.size());
+    } else {
+        complement_rules = rules.complement;
+        fmt::println("Algebra dimension: {} (odd) - using complement", config.basis_vectors.size());
+    }
+
+    // Build antimetric matrix from complement rules
+    auto G_anti_data = build_antimetric_matrix(rules.basis, complement_rules);
+
+    // Compute G · 𝔾
+    auto product = multiply_matrices(G_data, G_anti_data, n);
+
+    // Check if product equals det(g) · I
+    std::mdspan<int const, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> product_view{
+        product.data(), n, n};
+
+    fmt::println("\nVerifying: G · 𝔾 = det(g) · I");
+    fmt::println("Expected diagonal value: {}", det_g);
+
+    bool matches = true;
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            int expected = (i == j) ? det_g : 0;
+            if (product_view[i, j] != expected) {
+                if (matches) {
+                    fmt::println("Mismatches found:");
+                }
+                fmt::println("  [{},{}]: got {}, expected {}", i, j, product_view[i, j], expected);
+                matches = false;
+            }
+        }
+    }
+
+    if (matches) {
+        fmt::println("✓ VERIFIED: G · 𝔾 = det(g) · I holds for {}", algebra_name);
+    } else {
+        fmt::println("✗ FAILED: G · 𝔾 ≠ det(g) · I for {}", algebra_name);
+    }
+}
+
 // Function to display generated rules for a specific algebra
 void display_algebra_rules(const AlgebraConfig& config, const std::string& algebra_name)
 {
@@ -799,6 +927,16 @@ int main(int argc, char* argv[])
         else {
             display_algebra_rules(sta4d_config, "sta4d");
         }
+
+        // Investigate antimetric relationship for EGA3D and STA4D
+        fmt::println("\n");
+        std::string separator_long(80, '=');
+        fmt::println("{}", separator_long);
+        fmt::println("ANTIMETRIC RELATIONSHIP INVESTIGATION");
+        fmt::println("{}", separator_long);
+
+        investigate_antimetric_relationship(ega3d_config, "ega3d");
+        investigate_antimetric_relationship(sta4d_config, "sta4d");
 
         if (test_consistency) {
             // Overall summary for test mode

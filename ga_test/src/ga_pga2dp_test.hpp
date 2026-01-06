@@ -3483,4 +3483,109 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("");
     }
 
+    TEST_CASE("G<2,0,1>: extended metric matrix validation")
+    {
+        fmt::println("G<2,0,1>: extended metric matrix validation");
+
+        // Get the extended metric matrix from stored constants
+        auto G = pga2dp_metric_view();
+
+        // PGA2DP has degenerate metric: e1²=1, e2²=1, e3²=0
+        // Basis order: 1, e1, e2, e3, e23, e31, e12, e321
+
+        // Verify expected diagonal values
+        CHECK(G[0, 0] == 1); // scalar: always 1
+        CHECK(G[1, 1] == 1); // e1: +1 (Euclidean)
+        CHECK(G[2, 2] == 1); // e2: +1 (Euclidean)
+        CHECK(G[3, 3] == 0); // e3: 0 (null/degenerate)
+        CHECK(G[4, 4] == 0); // e23: involves e3, so 0
+        CHECK(G[5, 5] == 0); // e31: involves e3, so 0
+        CHECK(G[6, 6] == 1); // e12: both Euclidean, so +1
+        CHECK(G[7, 7] == 0); // e321: involves e3, so 0
+
+        // Verify off-diagonal elements are zero (orthogonal basis)
+        for (size_t i = 0; i < 8; ++i) {
+            for (size_t j = 0; j < 8; ++j) {
+                if (i != j) {
+                    CHECK(G[i, j] == 0);
+                }
+            }
+        }
+
+        fmt::println("  ✓ Extended metric diagonal correct for PGA2DP (degenerate e3)");
+    }
+
+    TEST_CASE("G<2,0,1>: extended metric recursive extraction via wedge products")
+    {
+        fmt::println("G<2,0,1>: extended metric recursive extraction via wedge products");
+
+        auto G = pga2dp_metric_view();
+
+        // Level 0: Scalar (always 1)
+        CHECK(G[0, 0] == 1);
+
+        // Level 1: Vectors (extract from dot products)
+        // Note: e3 is the null vector (origin in PGA2DP)
+        value_t g_e1 = value_t(dot(e1_2dp, e1_2dp));
+        value_t g_e2 = value_t(dot(e2_2dp, e2_2dp));
+        value_t g_e3 = value_t(dot(e3_2dp, e3_2dp));  // Should be 0 (null)
+        CHECK(abs(g_e1 - value_t(G[1, 1])) < eps);
+        CHECK(abs(g_e2 - value_t(G[2, 2])) < eps);
+        CHECK(abs(g_e3 - value_t(G[3, 3])) < eps);
+
+        // Level 2: Bivectors (extract from wedge products + dot)
+        // Basis order: e23, e31, e12
+        auto e23_constructed = wdg(e2_2dp, e3_2dp);
+        auto e31_constructed = wdg(e3_2dp, e1_2dp);
+        auto e12_constructed = wdg(e1_2dp, e2_2dp);
+
+        value_t g_e23 = value_t(dot(e23_constructed, e23_constructed));  // Should be 0 (involves e3)
+        value_t g_e31 = value_t(dot(e31_constructed, e31_constructed));  // Should be 0 (involves e3)
+        value_t g_e12 = value_t(dot(e12_constructed, e12_constructed));  // Should be 1 (both Euclidean)
+
+        CHECK(abs(g_e23 - value_t(G[4, 4])) < eps);
+        CHECK(abs(g_e31 - value_t(G[5, 5])) < eps);
+        CHECK(abs(g_e12 - value_t(G[6, 6])) < eps);
+
+        // Verify constructed bivectors match canonical ones
+        CHECK(e23_constructed == e23_2dp);
+        CHECK(e31_constructed == e31_2dp);
+        CHECK(e12_constructed == e12_2dp);
+
+        // Level 3: Trivector/Pseudoscalar (extract from wedge products + dot)
+        auto e321_constructed = wdg(wdg(e3_2dp, e2_2dp), e1_2dp);
+        value_t g_e321 = value_t(dot(e321_constructed, e321_constructed));  // Should be 0 (involves e3)
+        CHECK(abs(g_e321 - value_t(G[7, 7])) < eps);
+        CHECK(e321_constructed == e321_2dp);
+
+        fmt::println("  ✓ Recursive extraction: scalar → vectors → bivectors → trivector all match (including null dimension)");
+    }
+
+    TEST_CASE("G<2,0,1>: extended metric vs dot products")
+    {
+        fmt::println("G<2,0,1>: extended metric vs dot products");
+
+        // The extended metric diagonal should match dot(basis, basis)
+        auto G = pga2dp_metric_view();
+
+        // Scalars: always 1
+        CHECK(G[0, 0] == 1);
+
+        // Vectors: e1·e1=1, e2·e2=1, e3·e3=0
+        CHECK(abs(value_t(dot(e1_2dp, e1_2dp)) - value_t(G[1, 1])) < eps);
+        CHECK(abs(value_t(dot(e2_2dp, e2_2dp)) - value_t(G[2, 2])) < eps);
+        CHECK(abs(value_t(dot(e3_2dp, e3_2dp)) - value_t(G[3, 3])) < eps);
+
+        // Bivectors: e23·e23=0, e31·e31=0, e12·e12=1
+        CHECK(abs(value_t(dot(e23_2dp, e23_2dp)) - value_t(G[4, 4])) < eps);
+        CHECK(abs(value_t(dot(e31_2dp, e31_2dp)) - value_t(G[5, 5])) < eps);
+        CHECK(abs(value_t(dot(e12_2dp, e12_2dp)) - value_t(G[6, 6])) < eps);
+
+        // Pseudoscalar: e321·e321=0 (involves null dimension)
+        CHECK(abs(value_t(dot(e321_2dp, e321_2dp)) - value_t(G[7, 7])) < eps);
+
+        fmt::println(
+            "  ✓ Extended metric diagonal matches dot products (including null e3)");
+    }
+
 } // PGA 2DP Tests
