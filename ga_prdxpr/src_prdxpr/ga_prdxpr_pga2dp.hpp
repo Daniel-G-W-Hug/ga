@@ -11,6 +11,8 @@
 
 // multivector basis components
 const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e321"};
+// const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e31", "e32", "e12", "e321"};
+// const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e31", "e32", "e12", "e123"};
 
 // multivector basis components as vector for each order k
 // order k=0: scalar
@@ -19,6 +21,10 @@ const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e32
 // order k=3: trivector (=pseudoscalar for pga2dp)
 const std::vector<mvec_coeff> mv2dp_basis_kvec = {
     {"1"}, {"e1", "e2", "e3"}, {"e23", "e31", "e12"}, {"e321"}};
+// const std::vector<mvec_coeff> mv2dp_basis_kvec = {
+//     {"1"}, {"e1", "e2", "e3"}, {"e31", "e32", "e12"}, {"e321"}};
+// const std::vector<mvec_coeff> mv2dp_basis_kvec = {
+//     {"1"}, {"e1", "e2", "e3"}, {"e31", "e32", "e12"}, {"e123"}};
 
 ////////////////////////////////////////////////////////////////////////////////
 // AUTOMATIC RULE GENERATION - PGA2DP

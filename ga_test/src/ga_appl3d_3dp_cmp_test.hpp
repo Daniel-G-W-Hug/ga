@@ -560,6 +560,7 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         fmt::println("");
         fmt::println("att(P)  = linear momentum            = {}", att(P));
         fmt::println("bulk(P) = angular momentum vs. O_3dp = {}", bulk(P));
+        fmt::println("simple blade test: wdg(P,P) == 0:    = {}", wdg(P, P));
         fmt::println("");
         fmt::println("R1                                                = {}", R1);
         fmt::println("bulk(wdg(X - R1,att(P)) = angular momentum vs. R1 = {}",
