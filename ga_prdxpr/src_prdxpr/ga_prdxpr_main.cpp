@@ -1,4 +1,5 @@
-// Copyright 2024-2025, Daniel Hug. All rights reserved.
+// Copyright 2024-2026, Daniel Hug. All rights reserved.
+// Licensed under the terms specified in LICENSE.txt file.
 // Complete configurable GA product expression generator for all four algebras
 
 #include "ga_prdxpr_ega2d_config.hpp"

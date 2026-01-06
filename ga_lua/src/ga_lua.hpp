@@ -1,6 +1,7 @@
 #pragma once
 
-// Copyright 2024-2025, Daniel Hug. All rights reserved.
+// Copyright 2024-2026, Daniel Hug. All rights reserved.
+// Licensed under the terms specified in LICENSE.txt file.
 
 // GCC compatibility: Include <climits> before Lua headers to ensure LLONG_MAX is defined
 #include <climits>
