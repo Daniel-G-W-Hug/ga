@@ -280,6 +280,164 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
     return extended_metric;
 }
 
+// Calculate extended metric using recursive extraction from product rules
+// This approach avoids hardcoded special cases by extracting metric values
+// directly from the algebra's own wedge and dot product operations.
+//
+// Algorithm:
+// 1. Level 0 (scalar): always 1 by definition
+// 2. Level 1 (vectors): extract from dot products g_i = dot(ei, ei)
+// 3. Level k (k≥2): recursively construct from wedge products, then extract
+//                    via dot product: g_basis = dot(basis_constructed, basis_constructed)
+//
+// This works for all algebras (EGA, STA, PGA) and naturally handles:
+// - Mixed signatures (STA4D: one timelike among spacelike)
+// - Null dimensions (PGA: degenerate directions)
+// - Any metric signature without special-case code
+//
+// The conforming property G(a∧b) = (Ga)∧(Gb) ensures correctness.
+std::vector<int> calculate_extended_metric_recursive(AlgebraConfig const& config,
+                                                      prd_rules const& wedge_rules,
+                                                      prd_rules const& dot_rules)
+{
+    auto const& basis = config.multivector_basis;
+    std::vector<int> extended_metric(basis.size(), 0);
+
+    // Level 0: Scalar always has metric value 1
+    extended_metric[0] = 1;
+
+    // Level 1: Vectors - extract from dot products
+    // For each basis vector ei: g_i = dot(ei, ei)
+    for (size_t i = 1; i < basis.size(); ++i) {
+        std::string const& element = basis[i];
+        auto indices = parse_indices(element, config.basis_prefix);
+
+        if (indices.size() == 1) {
+            // This is a vector - look up dot(element, element)
+            std::string key = element + space_str() + mul_str() + space_str() + element;
+            auto it = dot_rules.find(key);
+
+            if (it != dot_rules.end()) {
+                std::string const& result = it->second;
+                // Parse the scalar coefficient (should be "+1", "-1", or "0")
+                if (result == plus_str() + one_str() || result == one_str()) {
+                    extended_metric[i] = +1;
+                }
+                else if (result == minus_str() + one_str()) {
+                    extended_metric[i] = -1;
+                }
+                else if (result == zero_str()) {
+                    extended_metric[i] = 0;
+                }
+                else {
+                    // Unexpected result format
+                    throw std::runtime_error(
+                        fmt::format("Unexpected dot product result for vector {}: {}",
+                                    element, result));
+                }
+            }
+        }
+    }
+
+    // Level k (k≥2): Higher grades - recursively construct via wedge products
+    // Strategy: For each basis element of grade k, find a decomposition into
+    //           wedge product of two lower-grade elements, construct it,
+    //           then extract metric via dot product
+    //
+    // For simplicity, decompose grade-k elements into: (grade-1) ∧ (grade-(k-1))
+    // This works because wedge products are well-defined bottom-up.
+
+    for (size_t i = 1; i < basis.size(); ++i) {
+        std::string const& element = basis[i];
+        auto indices = parse_indices(element, config.basis_prefix);
+
+        if (indices.size() >= 2) {
+            // Grade k ≥ 2: Try to find wedge decomposition
+            // Strategy: Try all possible decompositions from the existing basis
+            // For element with indices {i1, i2, ..., ik}, try wedging any lower-grade
+            // basis elements that could produce it.
+            //
+            // Simpler approach: Search through all basis elements of grade (k-1)
+            // and grade 1, find which wedge product produces current element.
+
+            bool found_metric = false;
+            for (auto const& basis_a : config.multivector_basis) {
+                if (found_metric) break;
+
+                auto indices_a = parse_indices(basis_a, config.basis_prefix);
+                if (indices_a.empty()) continue; // Skip scalar
+
+                for (auto const& basis_b : config.multivector_basis) {
+                    if (found_metric) break;
+
+                    auto indices_b = parse_indices(basis_b, config.basis_prefix);
+                    if (indices_b.empty()) continue; // Skip scalar
+
+                    // Check if grades add up correctly
+                    if (indices_a.size() + indices_b.size() != indices.size()) continue;
+
+                    // Look up wedge product: basis_a ∧ basis_b
+                    std::string wedge_key = basis_a + space_str() + wdg_str() + space_str() + basis_b;
+                    auto wedge_it = wedge_rules.find(wedge_key);
+
+                    if (wedge_it != wedge_rules.end()) {
+                        std::string constructed = wedge_it->second;
+
+                        // Remove sign prefix if present
+                        std::string canonical_constructed = constructed;
+                        if (constructed.length() > 0 &&
+                            (constructed[0] == '+' || constructed[0] == '-')) {
+                            canonical_constructed = constructed.substr(1);
+                        }
+
+                        // Check if this produces our target element
+                        if (canonical_constructed == element) {
+                            // Found the right decomposition!
+                            // Now compute dot(element, element)
+                            std::string dot_key = element + space_str() + mul_str() + space_str() + element;
+                            auto dot_it = dot_rules.find(dot_key);
+
+                            if (dot_it != dot_rules.end()) {
+                                std::string const& dot_result = dot_it->second;
+
+                                // Parse the scalar result
+                                if (dot_result == plus_str() + one_str() || dot_result == one_str()) {
+                                    extended_metric[i] = +1;
+                                }
+                                else if (dot_result == minus_str() + one_str()) {
+                                    extended_metric[i] = -1;
+                                }
+                                else if (dot_result == zero_str()) {
+                                    extended_metric[i] = 0;
+                                }
+                                else {
+                                    throw std::runtime_error(
+                                        fmt::format("Unexpected dot product result for {}: {}",
+                                                    element, dot_result));
+                                }
+
+                                found_metric = true;
+                                break;
+                            }
+                            else {
+                                throw std::runtime_error(
+                                    fmt::format("Dot product rule not found for key: {}", dot_key));
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!found_metric) {
+                throw std::runtime_error(
+                    fmt::format("Could not find wedge decomposition for basis element: {}", element));
+            }
+        }
+    }
+
+    return extended_metric;
+}
+
 // Calculate regressive extended metric (for PGA algebras)
 // Regressive metric: Ḡ(u) is complementary to G(u)
 // Where G(u) = 1, Ḡ(u) = 0; where G(u) = 0, Ḡ(u) = 1
