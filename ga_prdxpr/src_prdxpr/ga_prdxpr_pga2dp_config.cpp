@@ -110,12 +110,15 @@
 // Automatic rule generation configuration for PGA2DP
 AlgebraConfig get_pga2dp_algebra_config()
 {
-    return {.basis_vectors = {"e1", "e2", "e3"},
-            .metric_signature = {+1, +1, 0}, // G(2,0,1) - e1²=+1, e2²=+1, e3²=0
-            .multivector_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12",
-                                  "e321"}, // Copy from mv2dp_basis
+    // Extract basis prefix from vector basis and validate consistency
+    std::string const prefix = extract_basis_prefix(mv2dp_basis_kvec[1]);
+    validate_basis_consistency(mv2dp_basis, mv2dp_basis_kvec, prefix, one_str());
+
+    return {.basis_vectors = mv2dp_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mv2dp_metric_signature, // Use metric from header
+            .multivector_basis = mv2dp_basis,           // Use mv2dp_basis from header
             .scalar_name = one_str(),
-            .basis_prefix = "e"};
+            .basis_prefix = prefix}; // Use extracted and validated prefix
 }
 
 ////////////////////////////////////////////////////////////////////////////////

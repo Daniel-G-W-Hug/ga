@@ -13,6 +13,9 @@
 //
 // G(1,3,0)
 
+// metric signature: g0²=+1, g1²=-1, g2²=-1, g3²=-1
+const std::vector<int> mvsta4d_metric_signature = {+1, -1, -1, -1};
+
 // multivector basis components
 const mvec_coeff mvsta4d_basis = {"1",    "g0",   "g1",   "g2",   "g3",  "g01",
                                   "g02",  "g03",  "g23",  "g31",  "g12", "g023",

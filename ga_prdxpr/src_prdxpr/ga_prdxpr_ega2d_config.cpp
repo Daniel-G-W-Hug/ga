@@ -107,11 +107,15 @@
 // Automatic rule generation configuration for EGA2D
 AlgebraConfig get_ega2d_algebra_config()
 {
-    return {.basis_vectors = {"e1", "e2"},
-            .metric_signature = {+1, +1},
-            .multivector_basis = {"1", "e1", "e2", "e12"}, // Copy from mv2d_basis
+    // Extract basis prefix from vector basis and validate consistency
+    std::string const prefix = extract_basis_prefix(mv2d_basis_kvec[1]);
+    validate_basis_consistency(mv2d_basis, mv2d_basis_kvec, prefix, one_str());
+
+    return {.basis_vectors = mv2d_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mv2d_metric_signature, // Use metric from header
+            .multivector_basis = mv2d_basis,           // Use mv2d_basis from header
             .scalar_name = one_str(),
-            .basis_prefix = "e"};
+            .basis_prefix = prefix}; // Use extracted and validated prefix
 }
 
 

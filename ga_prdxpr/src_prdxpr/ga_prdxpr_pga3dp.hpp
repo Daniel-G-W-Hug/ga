@@ -9,6 +9,9 @@
 //         e1*e1 = +1, e2*e2 = +1, e3*e3 = +1, e4*e4 = 0
 // G(3,0,1)
 
+// metric signature: e1²=+1, e2²=+1, e3²=+1, e4²=0
+const std::vector<int> mv3dp_metric_signature = {+1, +1, +1, 0};
+
 // multivector basis components
 const mvec_coeff mv3dp_basis = {"1",    "e1",   "e2",   "e3",   "e4",  "e41",
                                 "e42",  "e43",  "e23",  "e31",  "e12", "e423",
@@ -47,12 +50,12 @@ extern const prd_rules lcmpl_pga3dp_rules;
 extern const prd_rules rcmpl_pga3dp_rules;
 
 // dual rules: generated automatically from complement rules + extended metric
-// PGA3DP (even-dimensional) has left_bulk_dual, right_bulk_dual, left_weight_dual, right_weight_dual
-// left_bulk_dual(u) = left_complement(G × u) where G is the extended metric matrix
-// right_bulk_dual(u) = right_complement(G × u)
-// left_weight_dual(u) = left_complement(G × left_complement(u)) uses the regressive metric
-// right_weight_dual(u) = right_complement(G × right_complement(u)) uses the regressive metric
-// Note: right_bulk_dual is equivalent to the Hodge dual for PGA3DP
+// PGA3DP (even-dimensional) has left_bulk_dual, right_bulk_dual, left_weight_dual,
+// right_weight_dual left_bulk_dual(u) = left_complement(G × u) where G is the extended
+// metric matrix right_bulk_dual(u) = right_complement(G × u) left_weight_dual(u) =
+// left_complement(G × left_complement(u)) uses the regressive metric right_weight_dual(u)
+// = right_complement(G × right_complement(u)) uses the regressive metric Note:
+// right_bulk_dual is equivalent to the Hodge dual for PGA3DP
 extern const prd_rules left_bulk_dual_pga3dp_rules;
 extern const prd_rules right_bulk_dual_pga3dp_rules;
 extern const prd_rules left_weight_dual_pga3dp_rules;

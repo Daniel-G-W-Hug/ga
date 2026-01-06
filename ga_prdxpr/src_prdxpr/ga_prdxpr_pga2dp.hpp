@@ -9,6 +9,9 @@
 //         e1*e1 = +1, e2*e2 = +1, e3*e3 = 0
 // G(2,0,1)
 
+// metric signature: e1²=+1, e2²=+1, e3²=0
+const std::vector<int> mv2dp_metric_signature = {+1, +1, 0};
+
 // multivector basis components
 const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e321"};
 // const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e31", "e32", "e12", "e321"};

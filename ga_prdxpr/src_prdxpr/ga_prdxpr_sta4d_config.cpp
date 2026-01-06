@@ -112,14 +112,15 @@
 // Automatic rule generation configuration for sta4d
 AlgebraConfig get_sta4d_algebra_config()
 {
-    return {
-        .basis_vectors = {"g0", "g1", "g2", "g3"},
-        .metric_signature = {1, -1, -1, -1}, // G(1,3,0) - g0²=+1, g1²=-1, g2²=-1, g3²=-1,
-        .multivector_basis = {"1", "g0", "g1", "g2", "g3", "g01", "g02", "g03", "g23",
-                              "g31", "g12", "g023", "g031", "g012", "g123",
-                              "g0123"}, // Copy from mvsta4d_basis
-        .scalar_name = one_str(),
-        .basis_prefix = "g"};
+    // Extract basis prefix from vector basis and validate consistency
+    std::string const prefix = extract_basis_prefix(mvsta4d_basis_kvec[1]);
+    validate_basis_consistency(mvsta4d_basis, mvsta4d_basis_kvec, prefix, one_str());
+
+    return {.basis_vectors = mvsta4d_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mvsta4d_metric_signature, // Use metric from header
+            .multivector_basis = mvsta4d_basis,           // Use mvsta4d_basis from header
+            .scalar_name = one_str(),
+            .basis_prefix = prefix}; // Use extracted and validated prefix
 }
 
 ////////////////////////////////////////////////////////////////////////////////
