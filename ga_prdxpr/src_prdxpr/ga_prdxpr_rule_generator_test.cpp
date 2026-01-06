@@ -656,17 +656,31 @@ int main(int argc, char* argv[])
 {
     try {
         // Check if user wants consistency test mode (display is now default)
+        //
+        // NOTE: The --test_consistency mode validates DETERMINISM and CONSISTENCY
+        // of rule generation by comparing freshly generated rules against rules
+        // generated at static initialization time. It does NOT compare against
+        // hand-crafted mathematical references.
+        //
+        // What it validates:
+        // - Determinism: Generator produces identical results with same configuration
+        // - Static initialization stability: No initialization order issues
+        // - Configuration consistency: Test config matches production config
+        // - Regression detection: Algorithm changes are caught immediately
+        //
+        // This serves as a safety net during refactoring and ensures the rule
+        // generation system remains stable across code changes.
         bool test_consistency =
             (argc > 1 && std::string(argv[1]) == "--test_consistency");
 
         if (test_consistency) {
             fmt::println("=== Automatic GA Rule Generation - Multi-Algebra Test ===");
-            fmt::println("Running internal consistency tests...");
+            fmt::println("Running determinism and consistency validation...");
         }
         else {
             fmt::println("=== Automatic GA Rule Generation - Rule Display ===");
             fmt::println(
-                "Tip: Use '--test_consistency' argument to run comparison testing");
+                "Tip: Use '--test_consistency' argument to run determinism testing");
         }
 
         // Test results (only used in test mode)
