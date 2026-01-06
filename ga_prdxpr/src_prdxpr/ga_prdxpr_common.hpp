@@ -197,7 +197,11 @@ void print_prd_rules(prd_rules const& rules, std::string const& title,
 // Throws std::runtime_error if vector_basis is empty
 std::string extract_basis_prefix(mvec_coeff const& vector_basis);
 
-// Validate that all non-scalar basis elements use the same prefix consistently
+// Validate that all basis elements are consistent and properly structured
+// Performs comprehensive validation:
+// 1. Checks scalar element is present and correct in both structures
+// 2. Validates all non-scalar basis elements use the same prefix consistently
+// 3. Verifies multivector_basis matches flattened basis_kvec exactly
 // Checks both multivector_basis and all grades in basis_kvec
 // Throws std::runtime_error if inconsistent or if basis structures are invalid
 void validate_basis_consistency(mvec_coeff const& multivector_basis,

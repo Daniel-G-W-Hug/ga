@@ -891,32 +891,52 @@ void validate_basis_consistency(mvec_coeff const& multivector_basis,
             "validate_basis_consistency: multivector_basis is empty, cannot validate");
     }
 
-    // Check consistency in multivector_basis
-    for (std::string const& element : multivector_basis) {
-        // Skip scalar element
-        if (element == scalar_name) {
-            continue;
-        }
+    // Validate that scalar element is present in multivector_basis
+    if (multivector_basis[0] != scalar_name) {
+        throw std::runtime_error(fmt::format(
+            "validate_basis_consistency: first element of multivector_basis must be "
+            "scalar '{}', but found '{}'",
+            scalar_name, multivector_basis[0]));
+    }
+
+    // Validate that scalar element is present in basis_kvec[0]
+    if (basis_kvec[0].empty()) {
+        throw std::runtime_error(
+            "validate_basis_consistency: basis_kvec[0] (scalar grade) is empty");
+    }
+
+    if (basis_kvec[0].size() != 1) {
+        throw std::runtime_error(fmt::format(
+            "validate_basis_consistency: basis_kvec[0] (scalar grade) must contain "
+            "exactly 1 element, but contains {} elements",
+            basis_kvec[0].size()));
+    }
+
+    if (basis_kvec[0][0] != scalar_name) {
+        throw std::runtime_error(fmt::format(
+            "validate_basis_consistency: basis_kvec[0][0] must be scalar '{}', but "
+            "found '{}'",
+            scalar_name, basis_kvec[0][0]));
+    }
+
+    // Check consistency in multivector_basis (all non-scalar elements)
+    for (size_t i = 1; i < multivector_basis.size(); ++i) {
+        std::string const& element = multivector_basis[i];
 
         // Check if element starts with expected_prefix
         if (!element.starts_with(expected_prefix)) {
             throw std::runtime_error(fmt::format(
-                "validate_basis_consistency: multivector_basis element '{}' does "
+                "validate_basis_consistency: multivector_basis[{}] element '{}' does "
                 "not start with expected prefix '{}'",
-                element, expected_prefix));
+                i, element, expected_prefix));
         }
     }
 
-    // Check consistency across all grades in basis_kvec
-    for (size_t grade = 0; grade < basis_kvec.size(); ++grade) {
+    // Check consistency across all grades in basis_kvec (skip grade 0, already checked)
+    for (size_t grade = 1; grade < basis_kvec.size(); ++grade) {
         mvec_coeff const& grade_basis = basis_kvec[grade];
 
         for (std::string const& element : grade_basis) {
-            // Skip scalar element (grade 0)
-            if (element == scalar_name) {
-                continue;
-            }
-
             // Check if element starts with expected_prefix
             if (!element.starts_with(expected_prefix)) {
                 throw std::runtime_error(fmt::format(
@@ -924,6 +944,33 @@ void validate_basis_consistency(mvec_coeff const& multivector_basis,
                     "not start with expected prefix '{}'",
                     grade, element, expected_prefix));
             }
+        }
+    }
+
+    // Validate that multivector_basis matches flattened basis_kvec
+    // Flatten basis_kvec into a single vector
+    mvec_coeff flattened_basis_kvec;
+    for (mvec_coeff const& grade_basis : basis_kvec) {
+        for (std::string const& element : grade_basis) {
+            flattened_basis_kvec.push_back(element);
+        }
+    }
+
+    // Check that sizes match
+    if (multivector_basis.size() != flattened_basis_kvec.size()) {
+        throw std::runtime_error(fmt::format(
+            "validate_basis_consistency: multivector_basis size ({}) does not match "
+            "flattened basis_kvec size ({})",
+            multivector_basis.size(), flattened_basis_kvec.size()));
+    }
+
+    // Check that all elements match in order
+    for (size_t i = 0; i < multivector_basis.size(); ++i) {
+        if (multivector_basis[i] != flattened_basis_kvec[i]) {
+            throw std::runtime_error(fmt::format(
+                "validate_basis_consistency: multivector_basis[{}] = '{}' does not "
+                "match flattened basis_kvec[{}] = '{}'",
+                i, multivector_basis[i], i, flattened_basis_kvec[i]));
         }
     }
 }
