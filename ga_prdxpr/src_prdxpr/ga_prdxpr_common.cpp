@@ -838,6 +838,96 @@ mvec_coeff_filter get_coeff_filter(filter_4d filter)
     return filter_vec;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Basis prefix validation and extraction
+////////////////////////////////////////////////////////////////////////////////
+
+std::string extract_basis_prefix(mvec_coeff const& vector_basis)
+{
+    if (vector_basis.empty()) {
+        throw std::runtime_error(
+            "extract_basis_prefix: vector_basis is empty, cannot extract prefix");
+    }
+
+    std::string const& first_vector = vector_basis[0];
+    if (first_vector.empty()) {
+        throw std::runtime_error(
+            "extract_basis_prefix: first vector element is empty, cannot extract prefix");
+    }
+
+    // Extract all leading non-digit characters as the prefix
+    // Examples: "e1" -> "e", "e12" -> "e", "g0" -> "g", "g123" -> "g"
+    std::string prefix;
+    for (char c : first_vector) {
+        if (std::isdigit(static_cast<unsigned char>(c))) {
+            break;
+        }
+        prefix += c;
+    }
+
+    if (prefix.empty()) {
+        throw std::runtime_error(fmt::format("extract_basis_prefix: could not extract "
+                                             "prefix from first vector element '{}'",
+                                             first_vector));
+    }
+
+    return prefix;
+}
+
+void validate_basis_consistency(mvec_coeff const& multivector_basis,
+                                std::vector<mvec_coeff> const& basis_kvec,
+                                std::string const& expected_prefix,
+                                std::string const& scalar_name)
+{
+    // Validate that basis_kvec is not empty
+    if (basis_kvec.empty()) {
+        throw std::runtime_error(
+            "validate_basis_consistency: basis_kvec is empty, cannot validate");
+    }
+
+    // Validate that multivector_basis is not empty
+    if (multivector_basis.empty()) {
+        throw std::runtime_error(
+            "validate_basis_consistency: multivector_basis is empty, cannot validate");
+    }
+
+    // Check consistency in multivector_basis
+    for (std::string const& element : multivector_basis) {
+        // Skip scalar element
+        if (element == scalar_name) {
+            continue;
+        }
+
+        // Check if element starts with expected_prefix
+        if (!element.starts_with(expected_prefix)) {
+            throw std::runtime_error(fmt::format(
+                "validate_basis_consistency: multivector_basis element '{}' does "
+                "not start with expected prefix '{}'",
+                element, expected_prefix));
+        }
+    }
+
+    // Check consistency across all grades in basis_kvec
+    for (size_t grade = 0; grade < basis_kvec.size(); ++grade) {
+        mvec_coeff const& grade_basis = basis_kvec[grade];
+
+        for (std::string const& element : grade_basis) {
+            // Skip scalar element (grade 0)
+            if (element == scalar_name) {
+                continue;
+            }
+
+            // Check if element starts with expected_prefix
+            if (!element.starts_with(expected_prefix)) {
+                throw std::runtime_error(fmt::format(
+                    "validate_basis_consistency: basis_kvec[{}] element '{}' does "
+                    "not start with expected prefix '{}'",
+                    grade, element, expected_prefix));
+            }
+        }
+    }
+}
+
 
 void toggle_bool(bool& truth_value)
 {

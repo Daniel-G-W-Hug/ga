@@ -189,6 +189,23 @@ void print_prd_rules(prd_rules const& rules, std::string const& title,
                      std::string const& operator_symbol = "*");
 
 ////////////////////////////////////////////////////////////////////////////////
+// Basis prefix validation and extraction
+////////////////////////////////////////////////////////////////////////////////
+
+// Extract basis prefix from the first vector element
+// Example: "e1" -> "e", "g0" -> "g"
+// Throws std::runtime_error if vector_basis is empty
+std::string extract_basis_prefix(mvec_coeff const& vector_basis);
+
+// Validate that all non-scalar basis elements use the same prefix consistently
+// Checks both multivector_basis and all grades in basis_kvec
+// Throws std::runtime_error if inconsistent or if basis structures are invalid
+void validate_basis_consistency(mvec_coeff const& multivector_basis,
+                                std::vector<mvec_coeff> const& basis_kvec,
+                                std::string const& expected_prefix,
+                                std::string const& scalar_name);
+
+////////////////////////////////////////////////////////////////////////////////
 // helper functions (not directly intended for user)
 ////////////////////////////////////////////////////////////////////////////////
 mvec_coeff_filter get_coeff_filter(filter_2d filter = filter_2d::mv);

@@ -112,14 +112,15 @@
 // Automatic rule generation configuration for PGA3DP
 AlgebraConfig get_pga3dp_algebra_config()
 {
-    return {
-        .basis_vectors = {"e1", "e2", "e3", "e4"},
-        .metric_signature = {+1, +1, +1, 0}, // G(3,0,1) - e1²=+1, e2²=+1, e3²=+1, e4²=0
-        .multivector_basis = {"1", "e1", "e2", "e3", "e4", "e41", "e42", "e43", "e23",
-                              "e31", "e12", "e423", "e431", "e412", "e321",
-                              "e1234"}, // Copy from mv3dp_basis
-        .scalar_name = one_str(),
-        .basis_prefix = "e"};
+    // Extract basis prefix from vector basis and validate consistency
+    std::string const prefix = extract_basis_prefix(mv3dp_basis_kvec[1]);
+    validate_basis_consistency(mv3dp_basis, mv3dp_basis_kvec, prefix, one_str());
+
+    return {.basis_vectors = mv3dp_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mv3dp_metric_signature, // Use metric from header
+            .multivector_basis = mv3dp_basis,           // Use mv3dp_basis from header
+            .scalar_name = one_str(),
+            .basis_prefix = prefix}; // Use extracted and validated prefix
 }
 
 ////////////////////////////////////////////////////////////////////////////////
