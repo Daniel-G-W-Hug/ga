@@ -2,6 +2,7 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include "ga_prdxpr_metric_calc.hpp"
+#include "ga_prdxpr_rule_generator.hpp" // For calculate_extended_metric()
 #include <algorithm>
 #include <stdexcept>
 
@@ -228,15 +229,27 @@ std::vector<int> calculate_extended_metric_matrix_full(AlgebraConfig const& conf
     std::mdspan<int, std::extents<size_t, std::dynamic_extent, std::dynamic_extent>> G{
         matrix_data.data(), n, n};
 
+    // Get the correct diagonal values from calculate_extended_metric()
+    // This uses the STA4D special case logic and is known to be correct
+    auto diagonal_values = calculate_extended_metric(config);
+
     // Compute ALL elements G[i,j] = ⟨basis[i], basis[j]⟩
     for (size_t i = 0; i < n; ++i) {
         for (size_t j = i; j < n; ++j) { // Upper triangular (symmetric matrix)
 
-            std::string const& blade_i = basis[i];
-            std::string const& blade_j = basis[j];
+            int metric_value;
 
-            // Compute inner product of two basis blades
-            int metric_value = compute_blade_inner_product(blade_i, blade_j, config);
+            if (i == j) {
+                // Use diagonal calculation as source of truth
+                // This handles STA4D special cases correctly
+                metric_value = diagonal_values[i];
+            }
+            else {
+                // Off-diagonal: compute inner product of different basis blades
+                std::string const& blade_i = basis[i];
+                std::string const& blade_j = basis[j];
+                metric_value = compute_blade_inner_product(blade_i, blade_j, config);
+            }
 
             G[i, j] = metric_value;
             G[j, i] = metric_value; // Symmetric: G[j,i] = G[i,j]

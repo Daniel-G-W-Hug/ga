@@ -2909,4 +2909,124 @@ TEST_SUITE("EGA 3D Tests")
         fmt::println("  ✓ dual = complement for Euclidean algebras with identity metric");
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // Extended Metric Tests - Verify correctness using stored metric matrices
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<3,0,0>: extended metric matrix validation")
+    {
+        fmt::println("G<3,0,0>: extended metric matrix validation");
+
+        // Get the extended metric matrix from stored constants
+        auto G = ega3d_metric_view();
+
+        // Basis order: 1, e1, e2, e3, e23, e31, e12, e123
+        // Expected values (all +1 for Euclidean with identity metric):
+        // - Scalar (1):    G[0,0] = 1
+        // - Vectors:       G[1,1] = G[2,2] = G[3,3] = 1
+        // - Bivectors:     G[4,4] = G[5,5] = G[6,6] = 1
+        // - Pseudoscalar:  G[7,7] = 1
+
+        fmt::println("  Extended metric diagonal values:");
+        fmt::println("    G[0,0] = {} (scalar 1)", G[0, 0]);
+        fmt::println("    G[1,1] = {} (e1)", G[1, 1]);
+        fmt::println("    G[2,2] = {} (e2)", G[2, 2]);
+        fmt::println("    G[3,3] = {} (e3)", G[3, 3]);
+        fmt::println("    G[4,4] = {} (e23)", G[4, 4]);
+        fmt::println("    G[5,5] = {} (e31)", G[5, 5]);
+        fmt::println("    G[6,6] = {} (e12)", G[6, 6]);
+        fmt::println("    G[7,7] = {} (e123)", G[7, 7]);
+
+        // Verify all diagonal elements are +1
+        CHECK(G[0, 0] == 1); // scalar
+        CHECK(G[1, 1] == 1); // e1
+        CHECK(G[2, 2] == 1); // e2
+        CHECK(G[3, 3] == 1); // e3
+        CHECK(G[4, 4] == 1); // e23
+        CHECK(G[5, 5] == 1); // e31
+        CHECK(G[6, 6] == 1); // e12
+        CHECK(G[7, 7] == 1); // e123
+
+        // Verify off-diagonal elements are zero (orthogonal basis)
+        for (size_t i = 0; i < 8; ++i) {
+            for (size_t j = 0; j < 8; ++j) {
+                if (i != j) {
+                    CHECK(G[i, j] == 0);
+                }
+            }
+        }
+
+        fmt::println("  ✓ All extended metric values correct for EGA3D");
+        fmt::println(
+            "  ✓ Conforming property: G(eᵢ ∧ eⱼ) = G(eᵢ) · G(eⱼ) = (+1)·(+1) = +1");
+    }
+
+    TEST_CASE("G<3,0,0>: extended metric recursive extraction via wedge products")
+    {
+        fmt::println("G<3,0,0>: extended metric recursive extraction via wedge products");
+
+        auto G = ega3d_metric_view();
+
+        // Level 0: Scalar (always 1)
+        CHECK(G[0, 0] == 1);
+
+        // Level 1: Vectors (extract from dot products)
+        value_t g_e1 = value_t(dot(e1_3d, e1_3d));
+        value_t g_e2 = value_t(dot(e2_3d, e2_3d));
+        value_t g_e3 = value_t(dot(e3_3d, e3_3d));
+        CHECK(abs(g_e1 - value_t(G[1, 1])) < eps);
+        CHECK(abs(g_e2 - value_t(G[2, 2])) < eps);
+        CHECK(abs(g_e3 - value_t(G[3, 3])) < eps);
+
+        // Level 2: Bivectors (extract from wedge products + dot)
+        // Basis order: e23, e31, e12
+        auto e23_constructed = wdg(e2_3d, e3_3d);
+        auto e31_constructed = wdg(e3_3d, e1_3d);
+        auto e12_constructed = wdg(e1_3d, e2_3d);
+
+        value_t g_e23 = value_t(dot(e23_constructed, e23_constructed));
+        value_t g_e31 = value_t(dot(e31_constructed, e31_constructed));
+        value_t g_e12 = value_t(dot(e12_constructed, e12_constructed));
+
+        CHECK(abs(g_e23 - value_t(G[4, 4])) < eps);
+        CHECK(abs(g_e31 - value_t(G[5, 5])) < eps);
+        CHECK(abs(g_e12 - value_t(G[6, 6])) < eps);
+
+        // Verify constructed bivectors match canonical ones
+        CHECK(e23_constructed == e23_3d);
+        CHECK(e31_constructed == e31_3d);
+        CHECK(e12_constructed == e12_3d);
+
+        // Level 3: Trivector/Pseudoscalar (extract from wedge products + dot)
+        auto e123_constructed = wdg(wdg(e1_3d, e2_3d), e3_3d);
+        value_t g_e123 = value_t(dot(e123_constructed, e123_constructed));
+        CHECK(abs(g_e123 - value_t(G[7, 7])) < eps);
+        CHECK(e123_constructed == I_3d);
+
+        fmt::println("  ✓ Recursive extraction: scalar → vectors → bivectors → trivector all match");
+    }
+
+    TEST_CASE("G<3,0,0>: extended metric vs dot products")
+    {
+        fmt::println("G<3,0,0>: extended metric vs dot products");
+
+        // The extended metric diagonal should match dot(basis, basis)
+        auto G = ega3d_metric_view();
+
+        // Vectors
+        CHECK(abs(value_t(dot(e1_3d, e1_3d)) - value_t(G[1, 1])) < eps);
+        CHECK(abs(value_t(dot(e2_3d, e2_3d)) - value_t(G[2, 2])) < eps);
+        CHECK(abs(value_t(dot(e3_3d, e3_3d)) - value_t(G[3, 3])) < eps);
+
+        // Bivectors
+        CHECK(abs(value_t(dot(e23_3d, e23_3d)) - value_t(G[4, 4])) < eps);
+        CHECK(abs(value_t(dot(e31_3d, e31_3d)) - value_t(G[5, 5])) < eps);
+        CHECK(abs(value_t(dot(e12_3d, e12_3d)) - value_t(G[6, 6])) < eps);
+
+        // Pseudoscalar
+        CHECK(abs(value_t(dot(I_3d, I_3d)) - value_t(G[7, 7])) < eps);
+
+        fmt::println("  ✓ Dot products match extended metric diagonal");
+    }
+
 } // EGA 3D Tests
