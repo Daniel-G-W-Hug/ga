@@ -673,13 +673,16 @@ int main(int argc, char* argv[])
         std::vector<bool> test_results;
 
         // Configure and test EGA2D algebra
+        // Extract basis prefix from vector basis and validate consistency
+        std::string const ega2d_prefix = extract_basis_prefix(mv2d_basis_kvec[1]);
+        validate_basis_consistency(mv2d_basis, mv2d_basis_kvec, ega2d_prefix, one_str());
+
         AlgebraConfig ega2d_config = {
-            .basis_vectors = {"e1", "e2"},
-            .metric_signature = {+1, +1},
-            .multivector_basis = {"1", "e1", "e2",
-                                  "e12"}, // Copy from ga_prdxpr_ega2d.hpp line 12
+            .basis_vectors = mv2d_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mv2d_metric_signature, // Use metric from header
+            .multivector_basis = mv2d_basis,           // Use mv2d_basis from header
             .scalar_name = one_str(),
-            .basis_prefix = "e"};
+            .basis_prefix = ega2d_prefix}; // Use extracted and validated prefix
 
         if (test_consistency) {
             bool ega2d_success = test_algebra_with_complements(
@@ -692,13 +695,16 @@ int main(int argc, char* argv[])
         }
 
         // Configure and test EGA3D algebra
+        // Extract basis prefix from vector basis and validate consistency
+        std::string const ega3d_prefix = extract_basis_prefix(mv3d_basis_kvec[1]);
+        validate_basis_consistency(mv3d_basis, mv3d_basis_kvec, ega3d_prefix, one_str());
+
         AlgebraConfig ega3d_config = {
-            .basis_vectors = {"e1", "e2", "e3"},
-            .metric_signature = {+1, +1, +1},
-            .multivector_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12",
-                                  "e123"}, // Copy from ga_prdxpr_ega3d.hpp line 12
+            .basis_vectors = mv3d_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mv3d_metric_signature, // Use metric from header
+            .multivector_basis = mv3d_basis,           // Use mv3d_basis from header
             .scalar_name = one_str(),
-            .basis_prefix = "e"};
+            .basis_prefix = ega3d_prefix}; // Use extracted and validated prefix
 
         if (test_consistency) {
             bool ega3d_success = test_algebra_with_complements(
@@ -711,13 +717,17 @@ int main(int argc, char* argv[])
         }
 
         // Configure and test PGA2DP algebra
+        // Extract basis prefix from vector basis and validate consistency
+        std::string const pga2dp_prefix = extract_basis_prefix(mv2dp_basis_kvec[1]);
+        validate_basis_consistency(mv2dp_basis, mv2dp_basis_kvec, pga2dp_prefix,
+                                   one_str());
+
         AlgebraConfig pga2dp_config = {
-            .basis_vectors = {"e1", "e2", "e3"},
-            .metric_signature = {+1, +1, 0}, // G(2,0,1) - e1²=+1, e2²=+1, e3²=0
-            .multivector_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12",
-                                  "e321"}, // Copy from ga_prdxpr_pga2dp.hpp line 12
+            .basis_vectors = mv2dp_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mv2dp_metric_signature, // Use metric from header
+            .multivector_basis = mv2dp_basis,           // Use mv2dp_basis from header
             .scalar_name = one_str(),
-            .basis_prefix = "e"};
+            .basis_prefix = pga2dp_prefix}; // Use extracted and validated prefix
 
         if (test_consistency) {
             bool pga2dp_success = test_algebra_with_complements(
@@ -730,15 +740,17 @@ int main(int argc, char* argv[])
         }
 
         // Configure and test PGA3DP algebra
+        // Extract basis prefix from vector basis and validate consistency
+        std::string const pga3dp_prefix = extract_basis_prefix(mv3dp_basis_kvec[1]);
+        validate_basis_consistency(mv3dp_basis, mv3dp_basis_kvec, pga3dp_prefix,
+                                   one_str());
+
         AlgebraConfig pga3dp_config = {
-            .basis_vectors = {"e1", "e2", "e3", "e4"},
-            .metric_signature = {+1, +1, +1,
-                                 0}, // G(3,0,1) - e1²=+1, e2²=+1, e3²=+1, e4²=0
-            .multivector_basis = {"1", "e1", "e2", "e3", "e4", "e41", "e42", "e43", "e23",
-                                  "e31", "e12", "e423", "e431", "e412", "e321",
-                                  "e1234"}, // Copy from ga_prdxpr_pga3dp.hpp line 12-14
+            .basis_vectors = mv3dp_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mv3dp_metric_signature, // Use metric from header
+            .multivector_basis = mv3dp_basis,           // Use mv3dp_basis from header
             .scalar_name = one_str(),
-            .basis_prefix = "e"};
+            .basis_prefix = pga3dp_prefix}; // Use extracted and validated prefix
 
         if (test_consistency) {
             bool pga3dp_success = test_algebra_with_complements(
@@ -751,16 +763,17 @@ int main(int argc, char* argv[])
         }
 
         // Configure and test STA4D algebra (Space-Time Algebra)
+        // Extract basis prefix from vector basis and validate consistency
+        std::string const sta4d_prefix = extract_basis_prefix(mvsta4d_basis_kvec[1]);
+        validate_basis_consistency(mvsta4d_basis, mvsta4d_basis_kvec, sta4d_prefix,
+                                   one_str());
+
         AlgebraConfig sta4d_config = {
-            .basis_vectors = {"g0", "g1", "g2", "g3"},
-            .metric_signature = {+1, -1, -1,
-                                 -1}, // G(1,3,0) - g0²=+1, g1²=-1, g2²=-1, g3²=-1
-            .multivector_basis = {"1", "g0", "g1", "g2", "g3", "g01", "g02", "g03", "g23",
-                                  "g31", "g12", "g023", "g031", "g012", "g123",
-                                  "g0123"}, // Copy from ga_prdxpr_sta4d.hpp line 16-18
+            .basis_vectors = mvsta4d_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mvsta4d_metric_signature, // Use metric from header
+            .multivector_basis = mvsta4d_basis,           // Use mvsta4d_basis from header
             .scalar_name = one_str(),
-            .basis_prefix = "g" // Uses gamma notation instead of e
-        };
+            .basis_prefix = sta4d_prefix}; // Use extracted and validated prefix
 
         if (test_consistency) {
             bool sta4d_success = test_algebra(
