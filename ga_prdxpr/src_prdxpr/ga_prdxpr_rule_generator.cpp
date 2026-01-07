@@ -1,9 +1,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "ga_prdxpr_rule_generator.hpp"
 #include "ga_prdxpr_dual_calc.hpp"
 #include "ga_prdxpr_metric_calc.hpp"
+#include "ga_prdxpr_rule_generator.hpp"
 #include <algorithm>
 #include <functional>
 #include <mdspan>
@@ -297,8 +297,8 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
 //
 // The conforming property G(a∧b) = (Ga)∧(Gb) ensures correctness.
 std::vector<int> calculate_extended_metric_recursive(AlgebraConfig const& config,
-                                                      prd_rules const& wedge_rules,
-                                                      prd_rules const& dot_rules)
+                                                     prd_rules const& wedge_rules,
+                                                     prd_rules const& dot_rules)
 {
     auto const& basis = config.multivector_basis;
     std::vector<int> extended_metric(basis.size(), 0);
@@ -377,7 +377,8 @@ std::vector<int> calculate_extended_metric_recursive(AlgebraConfig const& config
                     if (indices_a.size() + indices_b.size() != indices.size()) continue;
 
                     // Look up wedge product: basis_a ∧ basis_b
-                    std::string wedge_key = basis_a + space_str() + wdg_str() + space_str() + basis_b;
+                    std::string wedge_key =
+                        basis_a + space_str() + wdg_str() + space_str() + basis_b;
                     auto wedge_it = wedge_rules.find(wedge_key);
 
                     if (wedge_it != wedge_rules.end()) {
@@ -394,14 +395,16 @@ std::vector<int> calculate_extended_metric_recursive(AlgebraConfig const& config
                         if (canonical_constructed == element) {
                             // Found the right decomposition!
                             // Now compute dot(element, element)
-                            std::string dot_key = element + space_str() + mul_str() + space_str() + element;
+                            std::string dot_key =
+                                element + space_str() + mul_str() + space_str() + element;
                             auto dot_it = dot_rules.find(dot_key);
 
                             if (dot_it != dot_rules.end()) {
                                 std::string const& dot_result = dot_it->second;
 
                                 // Parse the scalar result
-                                if (dot_result == plus_str() + one_str() || dot_result == one_str()) {
+                                if (dot_result == plus_str() + one_str() ||
+                                    dot_result == one_str()) {
                                     extended_metric[i] = +1;
                                 }
                                 else if (dot_result == minus_str() + one_str()) {
@@ -411,17 +414,17 @@ std::vector<int> calculate_extended_metric_recursive(AlgebraConfig const& config
                                     extended_metric[i] = 0;
                                 }
                                 else {
-                                    throw std::runtime_error(
-                                        fmt::format("Unexpected dot product result for {}: {}",
-                                                    element, dot_result));
+                                    throw std::runtime_error(fmt::format(
+                                        "Unexpected dot product result for {}: {}",
+                                        element, dot_result));
                                 }
 
                                 found_metric = true;
                                 break;
                             }
                             else {
-                                throw std::runtime_error(
-                                    fmt::format("Dot product rule not found for key: {}", dot_key));
+                                throw std::runtime_error(fmt::format(
+                                    "Dot product rule not found for key: {}", dot_key));
                             }
                         }
                     }
@@ -429,8 +432,8 @@ std::vector<int> calculate_extended_metric_recursive(AlgebraConfig const& config
             }
 
             if (!found_metric) {
-                throw std::runtime_error(
-                    fmt::format("Could not find wedge decomposition for basis element: {}", element));
+                throw std::runtime_error(fmt::format(
+                    "Could not find wedge decomposition for basis element: {}", element));
             }
         }
     }

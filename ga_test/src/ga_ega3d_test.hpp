@@ -3003,7 +3003,8 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(abs(g_e123 - value_t(G[7, 7])) < eps);
         CHECK(e123_constructed == I_3d);
 
-        fmt::println("  ✓ Recursive extraction: scalar → vectors → bivectors → trivector all match");
+        fmt::println("  ✓ Recursive extraction: scalar → vectors → bivectors → trivector "
+                     "all match");
     }
 
     TEST_CASE("G<3,0,0>: extended metric vs dot products")

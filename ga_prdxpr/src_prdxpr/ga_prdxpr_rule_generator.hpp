@@ -147,8 +147,8 @@ std::pair<std::string, int> multiply_basis_elements(std::string const& a,
 std::vector<int> calculate_extended_metric_matrix(AlgebraConfig const& config);
 std::vector<int> calculate_extended_metric(AlgebraConfig const& config);
 std::vector<int> calculate_extended_metric_recursive(AlgebraConfig const& config,
-                                                      prd_rules const& wedge_rules,
-                                                      prd_rules const& dot_rules);
+                                                     prd_rules const& wedge_rules,
+                                                     prd_rules const& dot_rules);
 std::vector<int> calculate_regressive_extended_metric(AlgebraConfig const& config);
 std::vector<int> calculate_regressive_extended_metric_matrix(AlgebraConfig const& config);
 

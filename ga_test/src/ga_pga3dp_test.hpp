@@ -4228,19 +4228,20 @@ TEST_SUITE("PGA 3DP Tests")
         auto G = pga3dp_metric_view();
 
         // PGA3DP has degenerate metric: e1²=1, e2²=1, e3²=1, e4²=0
-        // Basis order: 1, e1, e2, e3, e4, e41, e42, e43, e23, e31, e12, e423, e431, e412, e321, e1234
+        // Basis order: 1, e1, e2, e3, e4, e41, e42, e43, e23, e31, e12, e423, e431, e412,
+        // e321, e1234
 
         // Verify expected diagonal values
-        CHECK(G[0, 0] == 1);  // scalar: always 1
-        CHECK(G[1, 1] == 1);  // e1: +1 (Euclidean)
-        CHECK(G[2, 2] == 1);  // e2: +1 (Euclidean)
-        CHECK(G[3, 3] == 1);  // e3: +1 (Euclidean)
-        CHECK(G[4, 4] == 0);  // e4: 0 (null/degenerate)
-        CHECK(G[5, 5] == 0);  // e41: involves e4, so 0
-        CHECK(G[6, 6] == 0);  // e42: involves e4, so 0
-        CHECK(G[7, 7] == 0);  // e43: involves e4, so 0
-        CHECK(G[8, 8] == 1);  // e23: both Euclidean, so +1
-        CHECK(G[9, 9] == 1);  // e31: both Euclidean, so +1
+        CHECK(G[0, 0] == 1);   // scalar: always 1
+        CHECK(G[1, 1] == 1);   // e1: +1 (Euclidean)
+        CHECK(G[2, 2] == 1);   // e2: +1 (Euclidean)
+        CHECK(G[3, 3] == 1);   // e3: +1 (Euclidean)
+        CHECK(G[4, 4] == 0);   // e4: 0 (null/degenerate)
+        CHECK(G[5, 5] == 0);   // e41: involves e4, so 0
+        CHECK(G[6, 6] == 0);   // e42: involves e4, so 0
+        CHECK(G[7, 7] == 0);   // e43: involves e4, so 0
+        CHECK(G[8, 8] == 1);   // e23: both Euclidean, so +1
+        CHECK(G[9, 9] == 1);   // e31: both Euclidean, so +1
         CHECK(G[10, 10] == 1); // e12: both Euclidean, so +1
         CHECK(G[11, 11] == 0); // e423: involves e4, so 0
         CHECK(G[12, 12] == 0); // e431: involves e4, so 0
@@ -4274,7 +4275,7 @@ TEST_SUITE("PGA 3DP Tests")
         value_t g_e1 = value_t(dot(e1_3dp, e1_3dp));
         value_t g_e2 = value_t(dot(e2_3dp, e2_3dp));
         value_t g_e3 = value_t(dot(e3_3dp, e3_3dp));
-        value_t g_e4 = value_t(dot(e4_3dp, e4_3dp));  // Should be 0 (null)
+        value_t g_e4 = value_t(dot(e4_3dp, e4_3dp)); // Should be 0 (null)
         CHECK(abs(g_e1 - value_t(G[1, 1])) < eps);
         CHECK(abs(g_e2 - value_t(G[2, 2])) < eps);
         CHECK(abs(g_e3 - value_t(G[3, 3])) < eps);
@@ -4289,12 +4290,18 @@ TEST_SUITE("PGA 3DP Tests")
         auto e31_constructed = wdg(e3_3dp, e1_3dp);
         auto e12_constructed = wdg(e1_3dp, e2_3dp);
 
-        value_t g_e41 = value_t(dot(e41_constructed, e41_constructed));  // Should be 0 (involves e4)
-        value_t g_e42 = value_t(dot(e42_constructed, e42_constructed));  // Should be 0 (involves e4)
-        value_t g_e43 = value_t(dot(e43_constructed, e43_constructed));  // Should be 0 (involves e4)
-        value_t g_e23 = value_t(dot(e23_constructed, e23_constructed));  // Should be 1 (Euclidean)
-        value_t g_e31 = value_t(dot(e31_constructed, e31_constructed));  // Should be 1 (Euclidean)
-        value_t g_e12 = value_t(dot(e12_constructed, e12_constructed));  // Should be 1 (Euclidean)
+        value_t g_e41 =
+            value_t(dot(e41_constructed, e41_constructed)); // Should be 0 (involves e4)
+        value_t g_e42 =
+            value_t(dot(e42_constructed, e42_constructed)); // Should be 0 (involves e4)
+        value_t g_e43 =
+            value_t(dot(e43_constructed, e43_constructed)); // Should be 0 (involves e4)
+        value_t g_e23 =
+            value_t(dot(e23_constructed, e23_constructed)); // Should be 1 (Euclidean)
+        value_t g_e31 =
+            value_t(dot(e31_constructed, e31_constructed)); // Should be 1 (Euclidean)
+        value_t g_e12 =
+            value_t(dot(e12_constructed, e12_constructed)); // Should be 1 (Euclidean)
 
         CHECK(abs(g_e41 - value_t(G[5, 5])) < eps);
         CHECK(abs(g_e42 - value_t(G[6, 6])) < eps);
@@ -4309,10 +4316,14 @@ TEST_SUITE("PGA 3DP Tests")
         auto e412_constructed = wdg(wdg(e4_3dp, e1_3dp), e2_3dp);
         auto e321_constructed = wdg(wdg(e3_3dp, e2_3dp), e1_3dp);
 
-        value_t g_e423 = value_t(dot(e423_constructed, e423_constructed));  // Should be 0 (involves e4)
-        value_t g_e431 = value_t(dot(e431_constructed, e431_constructed));  // Should be 0 (involves e4)
-        value_t g_e412 = value_t(dot(e412_constructed, e412_constructed));  // Should be 0 (involves e4)
-        value_t g_e321 = value_t(dot(e321_constructed, e321_constructed));  // Should be 1 (Euclidean)
+        value_t g_e423 =
+            value_t(dot(e423_constructed, e423_constructed)); // Should be 0 (involves e4)
+        value_t g_e431 =
+            value_t(dot(e431_constructed, e431_constructed)); // Should be 0 (involves e4)
+        value_t g_e412 =
+            value_t(dot(e412_constructed, e412_constructed)); // Should be 0 (involves e4)
+        value_t g_e321 =
+            value_t(dot(e321_constructed, e321_constructed)); // Should be 1 (Euclidean)
 
         CHECK(abs(g_e423 - value_t(G[11, 11])) < eps);
         CHECK(abs(g_e431 - value_t(G[12, 12])) < eps);
@@ -4321,10 +4332,12 @@ TEST_SUITE("PGA 3DP Tests")
 
         // Level 4: Pseudoscalar (extract from wedge products + dot)
         auto e1234_constructed = wdg(wdg(wdg(e1_3dp, e2_3dp), e3_3dp), e4_3dp);
-        value_t g_e1234 = value_t(dot(e1234_constructed, e1234_constructed));  // Should be 0 (involves e4)
+        value_t g_e1234 = value_t(
+            dot(e1234_constructed, e1234_constructed)); // Should be 0 (involves e4)
         CHECK(abs(g_e1234 - value_t(G[15, 15])) < eps);
 
-        fmt::println("  ✓ Recursive extraction: all levels match (including null dimension e4)");
+        fmt::println(
+            "  ✓ Recursive extraction: all levels match (including null dimension e4)");
     }
 
     TEST_CASE("G<3,0,1>: extended metric vs dot products")
@@ -4362,7 +4375,8 @@ TEST_SUITE("PGA 3DP Tests")
         // Pseudoscalar: e1234·e1234=0 (involves null dimension e4)
         CHECK(abs(value_t(dot(e1234_3dp, e1234_3dp)) - value_t(G[15, 15])) < eps);
 
-        fmt::println("  ✓ Extended metric diagonal matches dot products (including null e4)");
+        fmt::println(
+            "  ✓ Extended metric diagonal matches dot products (including null e4)");
     }
 
 } // PGA 3DP Tests
