@@ -3528,7 +3528,7 @@ TEST_SUITE("PGA 2DP Tests")
         // Note: e3 is the null vector (origin in PGA2DP)
         value_t g_e1 = value_t(dot(e1_2dp, e1_2dp));
         value_t g_e2 = value_t(dot(e2_2dp, e2_2dp));
-        value_t g_e3 = value_t(dot(e3_2dp, e3_2dp));  // Should be 0 (null)
+        value_t g_e3 = value_t(dot(e3_2dp, e3_2dp)); // Should be 0 (null)
         CHECK(abs(g_e1 - value_t(G[1, 1])) < eps);
         CHECK(abs(g_e2 - value_t(G[2, 2])) < eps);
         CHECK(abs(g_e3 - value_t(G[3, 3])) < eps);
@@ -3539,9 +3539,12 @@ TEST_SUITE("PGA 2DP Tests")
         auto e31_constructed = wdg(e3_2dp, e1_2dp);
         auto e12_constructed = wdg(e1_2dp, e2_2dp);
 
-        value_t g_e23 = value_t(dot(e23_constructed, e23_constructed));  // Should be 0 (involves e3)
-        value_t g_e31 = value_t(dot(e31_constructed, e31_constructed));  // Should be 0 (involves e3)
-        value_t g_e12 = value_t(dot(e12_constructed, e12_constructed));  // Should be 1 (both Euclidean)
+        value_t g_e23 =
+            value_t(dot(e23_constructed, e23_constructed)); // Should be 0 (involves e3)
+        value_t g_e31 =
+            value_t(dot(e31_constructed, e31_constructed)); // Should be 0 (involves e3)
+        value_t g_e12 = value_t(
+            dot(e12_constructed, e12_constructed)); // Should be 1 (both Euclidean)
 
         CHECK(abs(g_e23 - value_t(G[4, 4])) < eps);
         CHECK(abs(g_e31 - value_t(G[5, 5])) < eps);
@@ -3554,11 +3557,13 @@ TEST_SUITE("PGA 2DP Tests")
 
         // Level 3: Trivector/Pseudoscalar (extract from wedge products + dot)
         auto e321_constructed = wdg(wdg(e3_2dp, e2_2dp), e1_2dp);
-        value_t g_e321 = value_t(dot(e321_constructed, e321_constructed));  // Should be 0 (involves e3)
+        value_t g_e321 =
+            value_t(dot(e321_constructed, e321_constructed)); // Should be 0 (involves e3)
         CHECK(abs(g_e321 - value_t(G[7, 7])) < eps);
         CHECK(e321_constructed == e321_2dp);
 
-        fmt::println("  ✓ Recursive extraction: scalar → vectors → bivectors → trivector all match (including null dimension)");
+        fmt::println("  ✓ Recursive extraction: scalar → vectors → bivectors → trivector "
+                     "all match (including null dimension)");
     }
 
     TEST_CASE("G<2,0,1>: extended metric vs dot products")

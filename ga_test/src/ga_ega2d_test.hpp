@@ -2497,7 +2497,8 @@ TEST_SUITE("EGA 2D Tests")
             }
         }
 
-        fmt::println("  ✓ Extended metric matrix is identity (all diagonal = 1, off-diagonal = 0)");
+        fmt::println("  ✓ Extended metric matrix is identity (all diagonal = 1, "
+                     "off-diagonal = 0)");
     }
 
     TEST_CASE("G<2,0,0>: extended metric recursive extraction via wedge products")
@@ -2544,7 +2545,8 @@ TEST_SUITE("EGA 2D Tests")
         // Pseudoscalar (bivector in 2D): e12·e12
         CHECK(abs(value_t(dot(e12_2d, e12_2d)) - value_t(G[3, 3])) < eps);
 
-        fmt::println("  ✓ Extended metric diagonal matches dot products for all basis elements");
+        fmt::println(
+            "  ✓ Extended metric diagonal matches dot products for all basis elements");
     }
 
 } // EGA 2D Tests

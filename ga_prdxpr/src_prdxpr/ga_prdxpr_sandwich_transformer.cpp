@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "ga_prdxpr_sandwich_transformer.hpp"
 #include "ga_prdxpr_sandwich_nary_expression.hpp"
+#include "ga_prdxpr_sandwich_transformer.hpp"
 
 #include <algorithm>
 #include <numeric>
