@@ -450,6 +450,7 @@ Validate that the recursive extraction approach (building extended metric from w
 Instead of computing extended metric from Gram determinants (which fails for STA4D), we extract it directly from the algebra's own operations:
 
 **Algorithm**:
+
 1. **Level 0 (Scalar)**: Extended metric element is always 1 by definition
 2. **Level 1 (Vectors)**: Extract from dot products: `g_ei = dot(ei, ei)`
 3. **Level k (k≥2)**: Construct basis element from wedge products of lower-level elements, then extract: `g_basis = dot(basis_constructed, basis_constructed)`
@@ -459,6 +460,7 @@ Instead of computing extended metric from Gram determinants (which fails for STA
 ### Implementation: Test Cases Added
 
 #### EGA2D - G(2,0,0)
+
 **File**: [ga_ega2d_test.hpp:2503-2528](../ga_test/src/ga_ega2d_test.hpp#L2503-L2528)
 
 ```cpp
@@ -485,6 +487,7 @@ TEST_CASE("G<2,0,0>: extended metric recursive extraction via wedge products")
 **Result**: ✓ All checks pass
 
 #### EGA3D - G(3,0,0)
+
 **File**: [ga_ega3d_test.hpp:2964-3007](../ga_test/src/ga_ega3d_test.hpp#L2964-L3007)
 
 ```cpp
@@ -524,6 +527,7 @@ TEST_CASE("G<3,0,0>: extended metric recursive extraction via wedge products")
 **Result**: ✓ All checks pass
 
 #### PGA2DP - G(2,0,1)
+
 **File**: [ga_pga2dp_test.hpp:3518-3562](../ga_test/src/ga_pga2dp_test.hpp#L3518-L3562)
 
 **Challenge**: Null dimension e3² = 0 propagates through wedge products
@@ -565,6 +569,7 @@ TEST_CASE("G<2,0,1>: extended metric recursive extraction via wedge products")
 **Result**: ✓ All checks pass (null dimensions handled correctly)
 
 #### PGA3DP - G(3,0,1)
+
 **File**: [ga_pga3dp_test.hpp:4263-4328](../ga_test/src/ga_pga3dp_test.hpp#L4263-L4328)
 
 **Challenge**: More complex propagation of null dimension e4² = 0
@@ -633,11 +638,13 @@ TEST_CASE("G<3,0,1>: extended metric recursive extraction via wedge products")
 ### Test Results
 
 **Test Execution**:
+
 ```bash
 cd build/ga_test && ./ga_ega_test && ./ga_pga_test && cd ../..
 ```
 
 **Output**:
+
 ```
 [doctest] test cases:   76 |   76 passed | 0 failed | 0 skipped
 [doctest] assertions: 2323 | 2323 passed | 0 failed |
@@ -663,6 +670,7 @@ Total: 4378 assertions passed ✓
 **Cannot test STA4D yet**: The STA4D wedge and dot products are **not yet implemented** in the `ga/` library. They exist only in the `ga_prdxpr` code generator as text string rules, not as executable operations.
 
 **File**: [ga_sta4d_test.hpp](../ga_test/src/ga_sta4d_test.hpp) contains only 4 basic test cases:
+
 - Type checking test
 - Dual composition properties test
 - Complement composition properties test
@@ -673,6 +681,7 @@ No product operations (wedge, dot, geometric) are available to construct basis e
 ### Conclusion
 
 **Validation Complete**: The recursive extraction approach is mathematically sound and has been proven to work for:
+
 - ✓ Euclidean algebras (EGA2D, EGA3D)
 - ✓ Projective algebras with null dimensions (PGA2DP, PGA3DP)
 - ✓ All grade levels (0 through pseudoscalar)
@@ -681,11 +690,13 @@ No product operations (wedge, dot, geometric) are available to construct basis e
 **Recommendation**: This approach should be adopted in `ga_prdxpr` for extended metric calculation, replacing the Gram determinant approach that fails for STA4D.
 
 **Next Steps**:
+
 1. Commit these validation tests as regression tests
 2. Analyze why Gram determinants fail for STA4D
 3. Implement recursive extraction in `ga_prdxpr_rule_generator.cpp` or `ga_prdxpr_rule_generator_test.cpp`
 
 **Related Code**:
+
 - [ga_ega2d_test.hpp:2503-2528](../ga_test/src/ga_ega2d_test.hpp#L2503-L2528)
 - [ga_ega3d_test.hpp:2964-3007](../ga_test/src/ga_ega3d_test.hpp#L2964-L3007)
 - [ga_pga2dp_test.hpp:3518-3562](../ga_test/src/ga_pga2dp_test.hpp#L3518-L3562)
@@ -874,6 +885,7 @@ RECURSIVE EXTENDED METRIC EXTRACTION TEST - sta4d
 ```
 
 **STA4D Extended Metric Values (Correct)**:
+
 ```
 Index  Basis    Metric  Description
 [0]    1        +1      Scalar
@@ -926,6 +938,7 @@ Index  Basis    Metric  Description
 Examining the generated output files revealed the **actual changes** when the special case is removed:
 
 **Before Removal (CORRECT VALUES)**:
+
 ```
 g01 * g01 = +1    (time-space bivector containing g0)
 g02 * g02 = +1    (time-space bivector containing g0)
@@ -936,6 +949,7 @@ g12 * g12 = -1    (purely spatial bivector)
 ```
 
 **After Removal (WRONG VALUES)**:
+
 ```
 g01 * g01 = -1    ❌ WRONG (should be +1)
 g02 * g02 = -1    ❌ WRONG (should be +1)
@@ -950,12 +964,14 @@ All bivector signs are **flipped** - completely wrong for Minkowski spacetime ge
 ### Why the Test Suite Passed Despite Wrong Values
 
 The test compared:
+
 ```cpp
 auto metric_hardcoded = calculate_extended_metric(config);      // Uses general product rule (WRONG)
 auto metric_recursive = calculate_extended_metric_recursive(config, wedge_rules, dot_rules);  // Uses dot rules (WRONG)
 ```
 
 Both approaches produce **the same wrong values** because:
+
 1. `calculate_extended_metric()` without the special case uses simple product of vector metrics
 2. `calculate_extended_metric_recursive()` uses dot product rules that were GENERATED using the wrong extended metric
 3. **Circular dependency**: dot rules depend on extended metric, but we're using dot rules to validate extended metric
@@ -965,12 +981,14 @@ Both approaches produce **the same wrong values** because:
 **Minkowski Signature G(1,3,0) with {+1,-1,-1,-1}**:
 
 For **time-space bivectors** (containing timelike g0):
+
 - g01 = g0 ∧ g1
 - Simple product rule: G(g01) = G(g0) × G(g1) = (+1) × (-1) = **-1** ❌
 - **Correct value**: G(g01) = **+1** ✓
 - **Why**: In Minkowski spacetime, time-space planes have opposite signature to purely spatial planes
 
 For **spatial bivectors** (no g0):
+
 - g23 = g2 ∧ g3
 - Simple product rule: G(g23) = G(g2) × G(g3) = (-1) × (-1) = **+1** ❌
 - **Correct value**: G(g23) = **-1** ✓
@@ -1000,6 +1018,7 @@ This is NOT a bug in the test - it's a fundamental limitation of the approach.
 4. **Circular dependency**: You cannot use product rules to validate the extended metric that generated those rules
 
 **The special case encodes genuine mathematical structure** of Minkowski spacetime:
+
 - Time-space bivectors (containing g0) square to +1
 - Purely spatial bivectors square to -1
 - This pattern is fundamental to relativity and cannot be derived from simple vector metric products
@@ -1007,6 +1026,7 @@ This is NOT a bug in the test - it's a fundamental limitation of the approach.
 ### Recommendation
 
 **Keep the current implementation with the hardcoded STA4D special case.** The special case is:
+
 - ✓ Mathematically correct (validated by physics)
 - ✓ Verified by recursive extraction tests
 - ✓ Well-documented in code comments
@@ -1054,6 +1074,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 #### 1. ga_prdxpr_rule_generator.cpp/hpp
 
 **Primary extended metric calculation function**: `calculate_extended_metric()`
+
 - **Location**: [ga_prdxpr_rule_generator.cpp:182-281](../ga_prdxpr/src_prdxpr/ga_prdxpr_rule_generator.cpp#L182-L281)
 - **Purpose**: Calculates diagonal extended metric values for all basis elements
 - **Algorithm**:
@@ -1065,6 +1086,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 - **Returns**: `std::vector<int>` with extended metric values (diagonal only)
 
 **Recursive extraction function**: `calculate_extended_metric_recursive()`
+
 - **Location**: [ga_prdxpr_rule_generator.cpp:283-439](../ga_prdxpr/src_prdxpr/ga_prdxpr_rule_generator.cpp#L283-L439)
 - **Purpose**: Validates extended metric by extracting values from algebra operations
 - **Algorithm**:
@@ -1076,6 +1098,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 - **Returns**: `std::vector<int>` matching `calculate_extended_metric()` output
 
 **Helper functions**:
+
 - `parse_indices()`: Extract numeric indices from basis element strings (e.g., "e12" → {1, 2})
 - `indices_to_basis()`: Convert numeric indices to basis element strings (e.g., {1, 2} → "e12")
 - `multiply_basis_elements()`: Core geometric product multiplication with sign tracking
@@ -1083,6 +1106,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 #### 2. ga_prdxpr_metric_calc.cpp/hpp
 
 **Full extended metric matrix computation**: `calculate_extended_metric_matrix_full()`
+
 - **Location**: [ga_prdxpr_metric_calc.cpp:220-260](../ga_prdxpr/src_prdxpr/ga_prdxpr_metric_calc.cpp#L220-L260)
 - **Purpose**: Calculates complete n×n extended metric matrix including off-diagonal elements
 - **Algorithm**:
@@ -1092,6 +1116,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 - **Usage**: Required for dual rule generation and future CGA support
 
 **Gram matrix determinant calculation**: `compute_gram_determinant()`
+
 - **Location**: [ga_prdxpr_metric_calc.cpp:158-190](../ga_prdxpr/src_prdxpr/ga_prdxpr_metric_calc.cpp#L158-L190)
 - **Purpose**: Compute inner product ⟨a, b⟩ for basis blades using Gram matrix
 - **Mathematical Definition**: Gram[p,q] = metric(a[p], b[q]), result = det(Gram)
@@ -1101,11 +1126,13 @@ The metric system in `ga_prdxpr` consists of three main components:
 - **Returns**: Integer inner product value
 
 **Blade inner product**: `compute_blade_inner_product()`
+
 - **Location**: [ga_prdxpr_metric_calc.cpp:192-214](../ga_prdxpr/src_prdxpr/ga_prdxpr_metric_calc.cpp#L192-L214)
 - **Purpose**: Compute ⟨blade_a, blade_b⟩ for any two basis elements
 - **Returns**: 0 for different grades, Gram determinant for same grade
 
 **Integer determinant functions**:
+
 - `compute_integer_determinant_2x2()`: Lines 13-18 - Direct formula
 - `compute_integer_determinant_3x3()`: Lines 20-27 - Sarrus rule
 - `compute_integer_determinant_4x4()`: Lines 29-64 - Cofactor expansion
@@ -1113,6 +1140,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 - `compute_integer_determinant()`: Lines 103-116 - Dispatcher function
 
 **Vector metric lookup**: `get_vector_metric()`
+
 - **Location**: [ga_prdxpr_metric_calc.cpp:122-156](../ga_prdxpr/src_prdxpr/ga_prdxpr_metric_calc.cpp#L122-L156)
 - **Purpose**: Get metric value for two basis vector indices
 - **Features**:
@@ -1122,6 +1150,7 @@ The metric system in `ga_prdxpr` consists of three main components:
   - **Future CGA**: Will need full metric matrix for non-orthogonal bases
 
 **Regressive metric calculation**: `calculate_regressive_extended_metric_matrix_full()`
+
 - **Location**: [ga_prdxpr_metric_calc.cpp:386-403](../ga_prdxpr/src_prdxpr/ga_prdxpr_metric_calc.cpp#L386-L403)
 - **Purpose**: Calculate regressive metric Ḡ = C·G·C^T for PGA algebras
 - **Mathematical Definition**: Transforms standard metric via complement operator
@@ -1132,12 +1161,14 @@ The metric system in `ga_prdxpr` consists of three main components:
 - **Returns**: n×n regressive metric matrix (flattened row-major)
 
 **Matrix operations**:
+
 - `build_complement_matrix()`: Lines 291-320 - Build C from complement rules
 - `matrix_multiply()`: Lines 322-347 - Standard matrix multiplication
 - `matrix_transpose()`: Lines 349-367 - Matrix transpose
 - `matrix_triple_product()`: Lines 369-384 - Compute C·G·C^T
 
 **Basis element parsing**: `parse_signed_basis_element()`
+
 - **Location**: [ga_prdxpr_metric_calc.cpp:266-289](../ga_prdxpr/src_prdxpr/ga_prdxpr_metric_calc.cpp#L266-L289)
 - **Purpose**: Parse strings like "-e23" into (basis_index, sign)
 - **Returns**: `std::pair<int, int>` = (index, sign)
@@ -1145,6 +1176,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 #### 3. ga_prdxpr_dual_calc.cpp/hpp
 
 **Dual rule generation**: `calculate_dual_rules()`
+
 - **Location**: [ga_prdxpr_dual_calc.cpp:95-125](../ga_prdxpr/src_prdxpr/ga_prdxpr_dual_calc.cpp#L95-L125)
 - **Purpose**: Generate dual rules using extended metric and complement rules
 - **Mathematical Definition**: dual(basis[i]) = Σⱼ G[i,j] · complement(basis[j])
@@ -1155,6 +1187,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 - **Returns**: `prd_rules` map of {basis_element → dual_expression}
 
 **Regressive dual rule generation**: `calculate_regressive_dual_rules()`
+
 - **Location**: [ga_prdxpr_dual_calc.cpp:127-158](../ga_prdxpr/src_prdxpr/ga_prdxpr_dual_calc.cpp#L127-L158)
 - **Purpose**: Generate regressive dual rules for PGA algebras
 - **Mathematical Definition**: regressive_dual(basis[i]) = Σⱼ Ḡ[i,j] · complement(basis[j])
@@ -1162,6 +1195,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 - **Returns**: `prd_rules` map with regressive dual expressions
 
 **Expression builder**: `build_dual_expression()`
+
 - **Location**: [ga_prdxpr_dual_calc.cpp:15-89](../ga_prdxpr/src_prdxpr/ga_prdxpr_dual_calc.cpp#L15-L89)
 - **Purpose**: Construct dual expression string from matrix row and complement rules
 - **Algorithm**:
@@ -1173,9 +1207,11 @@ The metric system in `ga_prdxpr` consists of three main components:
 #### 4. ga_prdxpr_metric_export.cpp/hpp
 
 **Extended metric export**: `export_extended_metric_to_code()`
+
 - **Location**: [ga_prdxpr_metric_export.cpp:75-123](../ga_prdxpr/src_prdxpr/ga_prdxpr_metric_export.cpp#L75-L123)
 - **Purpose**: Generate C++ constexpr array code for extended metric
 - **Output Format**:
+
   ```cpp
   inline constexpr std::array<int, 64> ega3d_metric = {
       1, 0, 0, 0, 0, 0, 0, 0,  // 1
@@ -1183,19 +1219,23 @@ The metric system in `ga_prdxpr` consists of three main components:
       ...
   };
   ```
+
 - **Usage**: Copy-paste into ga_usr_consts.hpp for header-only library
 
 **Regressive metric export**: `export_regressive_metric_to_code()`
+
 - **Location**: [ga_prdxpr_metric_export.cpp:125-173](../ga_prdxpr/src_prdxpr/ga_prdxpr_metric_export.cpp#L125-L173)
 - **Purpose**: Export regressive metric Ḡ for PGA algebras
 - **Output Format**: Similar to extended metric, with "_rmetric" suffix
 
 **Combined PGA export**: `export_pga_metrics_to_code()`
+
 - **Location**: [ga_prdxpr_metric_export.cpp:175-197](../ga_prdxpr/src_prdxpr/ga_prdxpr_metric_export.cpp#L175-L197)
 - **Purpose**: Export both G and Ḡ for projective algebras
 - **Returns**: Combined code block with both metrics
 
 **Print function**: `print_metrics_for_algebra()`
+
 - **Location**: [ga_prdxpr_metric_export.cpp:217-255](../ga_prdxpr/src_prdxpr/ga_prdxpr_metric_export.cpp#L217-L255)
 - **Purpose**: Print all metrics for an algebra to stdout
 - **Algorithm**:
@@ -1205,6 +1245,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 - **Usage**: Called from test programs or standalone utilities
 
 **Helper functions**:
+
 - `calculate_max_row_length()`: Lines 14-35 - Calculate row length for alignment
 - `format_matrix_row()`: Lines 38-69 - Format matrix row with comment
 - `generate_algebra_name()`: Lines 200-215 - Generate name from config
@@ -1216,12 +1257,14 @@ The metric system in `ga_prdxpr` consists of three main components:
 **Definition**: `G[i,j] = ⟨basis[i], basis[j]⟩` where ⟨·,·⟩ is the geometric algebra inner product.
 
 **Properties**:
+
 - **Symmetric**: G[i,j] = G[j,i]
 - **Block-diagonal by grade**: Different grades → 0
 - **Diagonal for orthogonal bases**: EGA, PGA, STA all have orthogonal bases
 - **Non-diagonal for null bases**: Future CGA support will require full matrix
 
 **Calculation Methods**:
+
 1. **Standard Approach** (`calculate_extended_metric()`):
    - Vectors: Direct from metric_signature
    - Higher grades: Product of constituent vector metrics
@@ -1247,6 +1290,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 **Mathematical Meaning**: Metric for regressive (meet) operations in projective geometry.
 
 **For Diagonal PGA Metrics**: Simplifies to `Ḡ[i,i] = 1 - G[i,i]`
+
 - If G[i,i] = +1, then Ḡ[i,i] = 0 (Euclidean part)
 - If G[i,i] = 0, then Ḡ[i,i] = +1 (Null part)
 
@@ -1255,12 +1299,15 @@ The metric system in `ga_prdxpr` consists of three main components:
 #### Gram Determinant Method
 
 **Definition**: For blades a = e_{i₁∧...∧iₖ} and b = e_{j₁∧...∧jₖ}, the inner product is:
+
 ```
 ⟨a, b⟩ = det(Gram)
 ```
+
 where `Gram[p,q] = metric(e_{iₚ}, e_{jᵩ})` is the k×k Gram matrix.
 
 **Properties**:
+
 - Works for all grades
 - Returns 0 for different grades
 - Handles mixed signatures correctly
@@ -1269,21 +1316,25 @@ where `Gram[p,q] = metric(e_{iₚ}, e_{jᵩ})` is the k×k Gram matrix.
 #### Dual Operations
 
 **Standard Dual**: `dual(a) = Σⱼ G[i,j] · complement(basis[j])`
+
 - For diagonal metrics: `dual(a) = G[i,i] · complement(a)`
 - Used in EGA and STA for Hodge dual operations
 
 **Regressive Dual (PGA)**: `regressive_dual(a) = Σⱼ Ḡ[i,j] · complement(basis[j])`
+
 - **Bulk Dual**: Uses extended metric G (for join/exterior operations)
 - **Weight Dual**: Uses regressive metric Ḡ (for meet/interior operations)
 - Critical for projective geometric algebra duality
 
 **Even vs Odd Algebras**:
+
 - **Odd-dimensional** (EGA3D, PGA2DP): Single complement/dual
 - **Even-dimensional** (EGA2D, PGA3DP, STA4D): Left and right complement/dual
 
 ### Data Structures
 
 **AlgebraConfig** (ga_prdxpr_rule_generator.hpp:86-102):
+
 ```cpp
 struct AlgebraConfig {
     std::vector<std::string> basis_vectors;  // {"e1", "e2", "e3"}
@@ -1298,6 +1349,7 @@ struct AlgebraConfig {
 ```
 
 **ProductRules** (ga_prdxpr_rule_generator.hpp:104-129):
+
 ```cpp
 struct ProductRules {
     mvec_coeff basis;
@@ -1322,6 +1374,7 @@ struct ProductRules {
 ### Integration Points
 
 **Main Rule Generation** (`generate_algebra_rules()`):
+
 - **Location**: [ga_prdxpr_rule_generator.cpp:648-743](../ga_prdxpr/src_prdxpr/ga_prdxpr_rule_generator.cpp#L648-L743)
 - **Generates**: All product rules including metric-dependent dual rules
 - **Order of Operations**:
@@ -1333,6 +1386,7 @@ struct ProductRules {
   6. For PGA: Calculate regressive metric and regressive dual rules
 
 **Algebra-Specific Configurations**:
+
 - `ga_prdxpr_ega2d_config.cpp`: EGA2D configuration
 - `ga_prdxpr_ega3d_config.cpp`: EGA3D configuration
 - `ga_prdxpr_pga2dp_config.cpp`: PGA2DP configuration
@@ -1346,6 +1400,7 @@ struct ProductRules {
 To support Conformal Geometric Algebra (CGA) with non-orthogonal null vectors:
 
 1. **AlgebraConfig Extension**:
+
    ```cpp
    std::vector<std::vector<int>> metric_matrix;  // Full n×n metric
    ```
@@ -1356,6 +1411,7 @@ To support Conformal Geometric Algebra (CGA) with non-orthogonal null vectors:
    - All dual generation functions: Handle non-diagonal metric matrices
 
 3. **Example CGA3D Metric**:
+
    ```
    e₊ · e₊ = 0  (null)
    e₋ · e₋ = 0  (null)
@@ -1366,6 +1422,7 @@ To support Conformal Geometric Algebra (CGA) with non-orthogonal null vectors:
 ### Testing and Validation
 
 **Test Files**:
+
 - `ga_prdxpr_rule_generator_test.cpp`: Unit tests for rule generation
 - `ga_test/src/ga_ega2d_test.hpp`: Integration tests for EGA2D
 - `ga_test/src/ga_ega3d_test.hpp`: Integration tests for EGA3D
@@ -1373,6 +1430,7 @@ To support Conformal Geometric Algebra (CGA) with non-orthogonal null vectors:
 - `ga_test/src/ga_pga3dp_test.hpp`: Integration tests for PGA3DP
 
 **Validation Tests** (in main test files):
+
 - Recursive extraction validation (lines 2503-2528 in ega2d_test, etc.)
 - Extended metric correctness via algebra operations
 - 4378+ passing assertions across all algebras
