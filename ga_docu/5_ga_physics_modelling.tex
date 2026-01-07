@@ -246,6 +246,13 @@ computational effort using a known point $Q$ on $F$, while
 equation~(\ref{eq:action_line_moment_projection}) uses the othogonal projection of $R$
 onto $F$ to calculate the perpendicular distance vector $d_\perp$. \\
 
+The resulting total force and torque that act on an object are then given by the sum
+\begin{equation}
+    F_{total} = \sum_i{F_i}
+    \label{eq:total_sum_forque}
+\end{equation}
+This resulting sum will be used later on for calculation of dynamics. \\
+
 Please remember:
 \begin{itemize}
     \item Neither a vector nor a bivector are located anywhere. They can be moved around
@@ -397,6 +404,7 @@ The total momentum of a set of mass points $m_i X_i$ is defined as the sum of al
 blades.
 \begin{equation}
     P_{total} = \sum_i{P_i}
+    \label{eq:total_sum_momentum}
 \end{equation}
 $P_{total}$ will always be a momentum blade in $2D$ $PGA$, while in $3D$ $PGA$ (a
 four-dimensional algebra) it could also result in a general bivector that might not be
@@ -405,6 +413,61 @@ the case, if $P \wedge P \ne 0 \; \ps$, i.e. when the result is a pseudoscalar t
 equal to a zero multiple of the pseudoscalar \bv{1234}. This can always be used to
 determine whether a bivector is a blade in $3D$ $PGA$. \\
 
+Using points $X_i$ moved by a motor $M(t) = exp_\veedot(\frac{1}{2}B_w(t)) \veedot M_0$ in
+the world frame as in eqn.~(\ref{eq:motor_pga_world_frame}) results in a local speed of
+$\dot{X}_w = rcmt(\Omega_w,X_w)$ as shown in eqn.~(\ref{eq:rcmt_pga_world}). Therefore we
+can write the total momentum as
+\begin{eqnarray}
+    P_{total} &=& \sum_i{P_i} \nonumber \\
+              &=& \sum_i X_i \wedge m_i \dot{X}_i \nonumber \\
+              &=& \sum_i X_i \wedge m_i \; rcmt(\Omega_w,X_i) \nonumber \\
+    P_{total} &\equiv& I_w[\Omega_w]
+              \label{eq:intertia_map_world_frame}
+\end{eqnarray}
+where eqn.~(\ref{eq:intertia_map_world_frame}) is a linear function of $\Omega_w$ that
+maps the bivector rate in the world frame $\Omega_w$ to the total momentum $P_{total}$. It
+is a function that takes a bivector as an argument and returns a bivector (``intertia
+map'' $I_w$). It describes the influence of the mass distribution of the points on the
+movement via the combined Newton/Euler law
+\begin{equation}
+    \dot{P}_{total}=F_{total}
+    \label{eq:Newton_Euler_law}
+\end{equation}
+(for $F_{total}$ see eqn.~(\ref{eq:total_sum_forque})). If we go from discrete mass points
+to a continuous mass distribution the sum has to be replaced by an integral over $dm =
+\rho dV$. \\
+
+If we want to switch to the body frame, we have to transform the components of
+eqn.~(\ref{eq:intertia_map_world_frame}) accordingly using
+eqn.~(\ref{eq:world_to_body_pga}), i.e. $\Omega_b = \rrev{M} \veedot \Omega_w \veedot M$
+and eqn.~(\ref{eq:body_to_world_pga}), i.e. $\Omega_w  = M \veedot \Omega_b \veedot
+\rrev{M}$ resulting in
+\begin{equation}
+    I_b[\Omega_b] \equiv \rrev{M} \veedot I_w[ M \veedot \Omega_b \veedot \rrev{M} ] \veedot M
+    \label{eq:intertia_map_body_frame}
+\end{equation}
+The mapping to the classical intertia can be done when splitting $\Omega_b$ relative to
+the centroid of the body with a projective point split on $\Omega_b$ and on
+$I_b[\Omega_b]$ as shown by \cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023} on page
+25f and adjusted to our approach using regressive geometric products.
+
+Now we introduce some typically used reference points to describe our kinemetics (via the
+bivector rate of change $\Omega$) and our dynamics (via the total momentum $P$):
+\begin{itemize}
+    \item \emph{Fixed body refence point} $O_b$ used as origin of the body frame. When
+    the body is moved by the motor $M$ it will move in the world frame to $O_{b,w} = M
+    \veedot O_b \veedot \rrev{M}$.
+    \item \emph{Relative locations $r_i$ versus $O_b$} are relative positions in the body
+    frame. Their projective counterpart in the body frame is $R_i = O_b + r_i$. When
+    transformed to the world frame we get $X_i$ in the world frame by the usual
+    transformation $X_i = M \veedot R_i \veedot \rrev{M} = M \veedot (O_b + r_i) \veedot
+    \rrev{M}$.
+    \item \emph{Center of mass} in the body frame is chosen to be located at $O_b$, such
+    that $\sum_i{m_i r_i} = \vec{0}$. Thus the origin of the body frame is located at the
+    center of mass. The center of mass in the world frame $C_w$ then is $C_w \equiv
+    \sum_i{m_i X_i} / \sum_i{m_i} = \sum_i{m_i (M \veedot (O_b + r_i) \veedot \rrev{M})} /
+    \sum_i{m_i} = M \veedot O_b \veedot \rrev{M}$
+\end{itemize}
 
 
 \newpage
