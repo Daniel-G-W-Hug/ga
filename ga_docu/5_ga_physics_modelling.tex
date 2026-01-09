@@ -173,7 +173,11 @@ component of the bivector $F$. \\
 
 For $3D$ $PGA$ the encoding is similar, but of course now requires six bivector components
 instead of three (the corresponding basis bivector compontents are shown on the right-hand
-side in square brackets for reference):
+side in square brackets for reference)\footnote{Having the normal of the force in the $2D$
+bivector instead of the force itself as in $3D$ is a consequence of the chosen basis
+bivectors. When switching the sequence to \bv{31}, \bv{32}, \bv{12} in $2D$ $PGA$ the
+force vector components appear in the expected sequence. This might be a more convenient
+choice for $2D$ $PGA$ bivectors in a future version of the library.}
 \begin{subeqnarray}
     O \wedge f & = &
     \begin{pmatrix}
@@ -210,7 +214,6 @@ side in square brackets for reference):
     \end{bmatrix}
     \slabel{eq:pga3dp_force_line_torque_component}
 \end{subeqnarray}
- \\
 
 The force vector $f$ itself can be retrieved from $F$ by using the attitude function
 $att()$:
@@ -451,22 +454,21 @@ the centroid of the body with a projective point split on $\Omega_b$ and on
 $I_b[\Omega_b]$ as shown by \cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023} on page
 25f and adjusted to our approach using regressive geometric products.
 
-Now we introduce some typically used reference points to describe our kinemetics (via the
-bivector rate of change $\Omega$) and our dynamics (via the total momentum $P$):
+Now we introduce some typically used reference points to describe kinemetics via the
+bivector rate of change $\Omega$ and dynamics via the total momentum $P$:
 \begin{itemize}
     \item \emph{Fixed body refence point} $O_b$ used as origin of the body frame. When
     the body is moved by the motor $M$ it will move in the world frame to $O_{b,w} = M
     \veedot O_b \veedot \rrev{M}$.
-    \item \emph{Relative locations $r_i$ versus $O_b$} are relative positions in the body
-    frame. Their projective counterpart in the body frame is $R_i = O_b + r_i$. When
-    transformed to the world frame we get $X_i$ in the world frame by the usual
-    transformation $X_i = M \veedot R_i \veedot \rrev{M} = M \veedot (O_b + r_i) \veedot
-    \rrev{M}$.
+    \item \emph{Relative locations $r_i$ versus $O_b$} are positions in the body frame.
+    Their projective counterpart in the body frame is $R_i = O_b + r_i$. When transformed
+    to the world frame we get $X_i$ in the world frame by the usual transformation $X_i =
+    M \veedot R_i \veedot \rrev{M} = M \veedot (O_b + r_i) \veedot \rrev{M}$.
     \item \emph{Center of mass} in the body frame is chosen to be located at $O_b$, such
     that $\sum_i{m_i r_i} = \vec{0}$. Thus the origin of the body frame is located at the
     center of mass. The center of mass in the world frame $C_w$ then is $C_w \equiv
     \sum_i{m_i X_i} / \sum_i{m_i} = \sum_i{m_i (M \veedot (O_b + r_i) \veedot \rrev{M})} /
-    \sum_i{m_i} = M \veedot O_b \veedot \rrev{M}$
+    \sum_i{m_i} = M \veedot O_b \veedot \rrev{M}$.
 \end{itemize}
 
 

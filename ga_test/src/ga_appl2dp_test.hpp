@@ -200,6 +200,7 @@ TEST_SUITE("PGA2DP: application tests")
         fmt::println("distance to line d = {}", d);
         fmt::println("");
         fmt::println("retrieved force F  = att(L) = {}", F);
+        fmt::println("retrieved force F  = rwdg(L, H_2dp) = {}", rwdg(L, H_2dp));
         fmt::println("retrieved D = L*inv(att(L)) = {}", L * inv(att(L)));
         fmt::println("retrieved D = gr1(L*inv(att(L))) = {}", gr1(L * inv(att(L))));
         fmt::println("retrieved d = to_val(bulk_nrm(D)) = {}",
