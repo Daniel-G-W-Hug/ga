@@ -126,36 +126,53 @@
 
 \begin{document}
 
-\maketitle
-
 % no paragraph indentation on first line
 \setlength{\parindent}{0pt}
 
-\section{Documentation}
+\maketitle
+
+\begin{figure}[b]
+    \includegraphics[width=7cm]{projective_point.png}
+    \centering
+    \caption*{\scriptsize  Projective point. Source: „Foundations of Projective Geometric
+    Algebra“, presentation Eric Lengyel, 05/2024}
+\end{figure}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{GA library}
 
 Overview (high-level initial intros on youtube):
-\scriptsize
 \begin{itemize}
-    \item \href{https://www.youtube.com/watch?v=1cRFfYQYGxE&list=PLcGKfGEEONaBNsY_bOj8IhbCPvj6OAdWo&index=33}{\textit{https://www.thestrangeloop.com}}
-    \item \href{https://www.youtube.com/watch?v=60z_hpEAtD8&t=17s}{\textit{https://www.youtube.com/@sudgylacmoe}}
-    \item \href{https://www.youtube.com/watch?v=zgi-13F2Kec&list=PLsSPBzvBkYjxV8QMlOTYgrqa-nmlt_L7A&index=11}{\textit{https://www.youtube.com/@bivector}}
+    \scriptsize
+    \item
+    \href{https://www.youtube.com/watch?v=1cRFfYQYGxE&list=PLcGKfGEEONaBNsY_bOj8IhbCPvj6OAdWo&index=33}{\textit{https://www.thestrangeloop.com}}
+    (Jack Rusher)
+    \item
+    \href{https://www.youtube.com/watch?v=60z_hpEAtD8&t=17s}{\textit{https://www.youtube.com/@sudgylacmoe}}
+    (sudgylacmore, A swift intro to GA)
+    \item
+    \href{https://www.youtube.com/watch?v=zgi-13F2Kec&list=PLsSPBzvBkYjxV8QMlOTYgrqa-nmlt_L7A&index=11}{\textit{https://www.youtube.com/@bivector}}
+    (De Keninck and Roelfs, GAME 2023 - Intro to GA)
 \end{itemize}
-
-\normalsize
 
 Sources:
-\scriptsize
 \begin{itemize}
-    \item \url{https://projectivegeometricalgebra.org}
-    \item \url{https://terathon.com/blog/poor-foundations-ga.html}
-    \item \url{https://bivector.net}
+    \scriptsize
+    \item \url{https://projectivegeometricalgebra.org} (Eric Lengyel)
+    \item \url{https://terathon.com/blog/poor-foundations-ga.html} (Eric Lengyel)
+    \item \url{https://bivector.net} (Leo Dorst et.al.)
     \item \url{https://www.youtube.com/@bivector}
     \item \url{https://www.youtube.com/@sudgylacmoe}
-    \item \url{https://www.youtube.com/watch?v=ItGlUbFBFfc}
-    \item \url{https://www.youtube.com/watch?v=v-WG02ILMXA&t=1476s}
+    \item \url{https://www.youtube.com/watch?v=ItGlUbFBFfc} (Hestenes, Tutorial Geometric
+    Calculus)
+    \item \url{https://www.youtube.com/watch?v=v-WG02ILMXA&t=1476s} (Leo Dorst, Dynamics
+    in PGA)
 \end{itemize}
-\normalsize
-
 
 \newpage
 
@@ -163,6 +180,7 @@ Sources:
 \input{2_ga_basics.tex}
 \input{3_ga_modelling_motion.tex}
 \input{5_ga_physics_modelling.tex}
+\input{7_ga_comparison.tex}
 \input{8_ga_glossary.tex}
 \input{9_ga_literature.tex}
 

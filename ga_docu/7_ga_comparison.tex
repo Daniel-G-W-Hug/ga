@@ -1,0 +1,64 @@
+\subsection{Approaches with increasing expressivenes}
+\label{subsection_comparison_of_approaches}
+
+\subsubsection{Classic approach (vector algebra)}
+
+\begin{itemize}
+    \item Use of scalars and vectors, exclusively
+    \item Use of the cross-product between vectors to create directions perpendicular to
+    both vectors (a concept that can only be defined in three-dimensional space)
+    \item Rotations are defined by a rotation axis (a concept that is only defined in
+    three-dimensional space)\footnote{the last two concepts cannot be extended to
+    higher-dimensional spaces}
+\end{itemize}
+
+\subsubsection{General observations for Geometric Algebra (GA)}
+
+\begin{itemize}
+    \item The GA approach is coordinate-free!
+    \item W.r.t. a vector, the dot product (or interior product) takes into account the
+    parts parallel to the vector, exclusively. Thus, it is not invertible itself.
+    \item W.r.t. a vector, the wedge product (or outer product) takes into account the
+    parts perpendicular to the vector, exclusively. Thus, it is not invertible itself.
+    \item Only the geometric product taking both parts into account is invertible.
+\end{itemize}
+
+\subsubsection{Euclidean Geometric Algebra (EGA)}
+
+\begin{itemize}
+    \item Use of scalars, vectors, bivectors, ..., pseudoscalars (higher grade objects up
+    to order $n$ depend on the dimension $n$ of the modelled space).
+    \item Use of the outer product (wedge product) between vectors, which defines the
+    space spanned by both vectors (can be defined in any dimension, used as join
+    operation).
+    \item Use of the regressive outer product (regressive wedge product) which defines the
+    space shared by both objects (represents the intersection of the spaces used by the
+    objects, used as meet operation).
+    \item Modelled objects cover scalars, directions, planes (in $3D$) and the whole space
+    directly.
+    \item All objects modelled in the algebra contain the (non-distinguishable) origin
+    $O=(0,0,...,0)$. Objects outside of the origin must be modeled by explicitly adding
+    translations (leading to objects not directly covered within the algebra).
+    \item Orthogonal transformations in the algebra can directly model reflections and
+    rotations. Rotations are defined in a plane spanned by two vectors defining the
+    rotation.
+\end{itemize}
+
+\subsubsection{Projective (Euclidean) Geometric Algebra (PGA)}
+
+\begin{itemize}
+    \item Like EGA, but in addition having a distinguishable origin encoded in an
+    additional dimension $O=(0,0,...,0,1)$ (in a projective space with an additional
+    dimension projected onto a fixed value, typically 1).
+    \item Use of the outer and regressive outer products as join and meet operations.
+    \item Directly models points, directions and planes (in $3D$), as well as the whole
+    space, including objects located in the horizon, i.e. at infinity (points at
+    infinity are modeled as directions towards those points).
+    \item Can directly model higher grade objects by products between objects in the
+    algebra that do not contain the origin, e.g. the wedge product between two points
+    defines a line.
+    \item Orthogonal transformations in the algebra can directly model reflections,
+    rotations and translations.
+\end{itemize}
+
+\newpage
