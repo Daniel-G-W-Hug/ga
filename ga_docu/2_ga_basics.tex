@@ -191,7 +191,7 @@ basis elements of the space to represent it. The full space itself is represente
 pseudoscalar of that space, since the pseudoscalar $I_n$ is formed by the product of all
 $n$ basis vectors of the space. An implication of the definition is that the complement
 ($\lcmpl{u}$ or $\rcmpl{u}$) is orthogonal to $u$. The complement is defined as given
-above in equation~(\ref{eq:cmpl_def}) for any basis element. It is extended to full
+above in equations~(\ref{eq:cmpl_def}) for any basis element. It is extended to full
 multivectors $A$ and $B$ by linearity as
 \begin{subeqnarray}
     % use \label for full label
@@ -272,7 +272,8 @@ It is a square matrix that is the identity matrix $I_n$ for $EGA$, since all bas
 square to $\bv{i} \cdot \bv{i} = +1$, and $\bv{i} \cdot \bv{j} = 0$ for $i \neq j$. It is
 invertible in this case. However, for $PGA$ one basis vector squares to zero, and thus
 there is one zero on the main diagonal of the corresponding matrix of the metric, which is
-therefore not invertible. It is called degenerate for that reason. \\
+therefore not invertible (its determinant is zero). It is called degenerate for that
+reason. \\
 
 The extended metric $\metric{G}$ is a so-called exomorphism matrix that fulfills
 \begin{equation}
@@ -509,8 +510,8 @@ The inner product between multivectors $A$ and $B$ is defined as
     A \cdot B = A^{T} \metric{G} B
     \label{eg:inner_product_metric}
 \end{equation}
-with $\metric{G}$ as the extended metric and matrix multiplication on the right hand side.
-It satisfies the identity
+with $\metric{G}$ as the extended metric and using standard matrix multiplication on the
+right hand side. It satisfies the identity
 \begin{equation}
     A \cdot B  = \grprj{A \wedgedot \tilde{B}}{0} = \grprj{ B \wedgedot \tilde{A} }{0}
     \label{eq:inner_product_link_to_gpr}
