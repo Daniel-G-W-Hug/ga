@@ -436,7 +436,7 @@ frame}. The result derived in the \emph{body frame} is of course identical to th
 derived in the \emph{world frame}. \\
 
 In $EGA$ rotation as a Euclidean isometry can be described with sandwich products based on
-the geometric product. Now looking into $PGA$ Lengyel has shown in
+the geometric product. Now looking into $PGA$, Lengyel has shown in
 \cite{Lengyel_pga-illuminated:2024} that Euclidean isometries (covering translations as
 well as rotations) can be described with sandwich products based on the regressive
 geometric product in $PGA$. If we do that, we can stay in the space $G(3,0,1)$ and do not
@@ -444,7 +444,7 @@ need to switch to its dual space in order to implement these orthonormal transfo
 as already described above. \\
 
 Now we repeat the derivation of the time-derivative $\dot{X}$ of a point $X(t)$ for the
-projective approach of $PGA$ used here: We will use the regressive geometric product,
+projective approach of $PGA$ used here: We will use the regressive geometric product, and
 $\ps$ as its neutral element. The derivation is then completely analogous to the $EGA$
 case with the given substitutions. \\
 
@@ -509,9 +509,10 @@ eqn.~(\ref{eq:motor_pga_world_frame}) becomes
 \end{equation}
 which in turn restults in
 \begin{equation}
-   \dot{M}(t) = \frac{1}{2} M_0 \veedot
-                exp_\veedot (\frac{1}{2}B_b(t)) \veedot \dot{B_b}(t) 
-              = \frac{1}{2} M(t)  \veedot \dot{B_b}(t) 
+   \dot{M}_b(t) = \frac{1}{2} M_0 \veedot
+                  exp_\veedot (\frac{1}{2}B_b(t)) \veedot \dot{B_b}(t) 
+                = \frac{1}{2} M(t) \veedot \dot{B_b}(t)
+   \label{eq:motor_rate_pga_body_frame}
 \end{equation}
 while eqn.~(\ref{eq:motor_rate_world_frame_pga}) for the bivector rate of change in the
 \emph{body frame} becomes
@@ -613,18 +614,21 @@ Eqn.~(\ref{eq:rcmt_pga_world_incl_X0_of_t}) is to be considered in the world fra
 However, we can also do our derivations in a completely equivalent way using the
 corresponding bivector rates and rotors of the \emph{body frame}. \\
 
-The derivation in the \emph{body frame} does not bring new insight so we don't reproduce
+The derivation in the \emph{body frame} does not bring new insights so we don't reproduce
 that here for $PGA$ again. \\
 
 \newpage
 
 The final step before we move on to modelling physics is to show how points are moved in
-$PGA$ using the approach described above. Every bivector $B$ or every bivector rate
-$\Omega$ has its basis components
+$PGA$ using the approach described above. \\
+
+In $3D$ $PGA$ every bivector $B$ or every bivector rate $\Omega$ has its basis components
 \begin{equation}
-   \Omega = (\underbrace{\bv{41}, \bv{42}, \bv{43}}_{\text{weight($\Omega$)}=\weight{\Omega}},
-             \underbrace{\bv{23}, \bv{31}, \bv{12}}_{\text{bulk($\Omega$)}=\bulk{\Omega}})
-   \label{eq:bivector_component_definition}
+   \Omega_{3D} = (\underbrace{\bv{41}, \bv{42}, \bv{43}}_{\text{weight($\Omega$)}
+               =  \weight{\Omega}},
+                  \underbrace{\bv{23}, \bv{31}, \bv{12}}_{\text{bulk($\Omega$)}
+               =\bulk{\Omega}})
+   \label{eq:rate_bivector_component_definition}
 \end{equation}
 where the weight part $\weight{\Omega}$ carries rotational information and the bulk part
 $\bulk{\Omega}$ carries translational information. \\
@@ -638,9 +642,9 @@ is zero bulk, the object contains the origin ($O_{3dp}$). \\
 The total bivector rate $\Omega$ can be split into
 \begin{equation}
    \Omega = \weight{\Omega} + \bulk{\Omega} = \Omega_{rot} + \Omega_{tra}
-   \label{eq:bivector_euclidean_split}
+   \label{eq:rate_bivector_euclidean_split}
 \end{equation}
-where eqn.~(\ref{eq:bivector_euclidean_split}) is called the ``Euclidean split'' of the
+where eqn.~(\ref{eq:rate_bivector_euclidean_split}) is called the ``Euclidean split'' of the
 bivector rate $\Omega$ because it separates the rotational and translational aspects of a
 moving object. \\
 
@@ -655,11 +659,13 @@ components.
                 = (\omega_x \bv{41}, \omega_y \bv{42}, \omega_z \bv{43}, 0, 0, 0)
    \label{eq:bivector_rot_rate_omega_vec}
 \end{equation}
-Of course, $\Omega_{rot}$ can also be expressed by a plane of rotation $plr$ (a trivector)
-if the magnitude of the plane encodes the angular speed. Considering that the left weight
-dual of the plane $\leftweightdual{plr}$ provides the normal vector of the plane including
-its magnitude, eqn.~(\ref{eq:bivector_rot_rate_omega_vec}) can be written in the
-equivalent form in terms of the plane of rotation $plr$
+Of course, $\Omega_{rot}$ can also be expressed directly by the plane of rotation $plr$ (a
+trivector) if the magnitude of the plane encodes the angular speed. Given the vector
+$\omega$ the plane is given by $plr = \rightbulkdual{\omega}$ (the right bulk dual of
+$\omega$). Considering that the left weight dual of the plane $\leftweightdual{plr}$
+provides the normal vector of the plane including its magnitude,
+eqn.~(\ref{eq:bivector_rot_rate_omega_vec}) can be written in the equivalent form directly
+in terms of the plane of rotation $plr$
 \begin{equation}
    \Omega_{rot} = \bv{4} \wedge \leftweightdual{plr}
                 = O_{3dp} \wedge \leftweightdual{plr} 
@@ -690,20 +696,95 @@ definition of the dual (\ref{eq:rightbulkdual}) as well as the fact that wedging
 with $\bv{4}$ renders the need for the bulk operation unnecessary. \\
 
 Using for example eqn.~(\ref{eq:rcmt_pga_world}) and the Euclidean split as defined in
-eqn.~(\ref{eq:bivector_euclidean_split}) we can write
+eqn.~(\ref{eq:rate_bivector_euclidean_split}) we can write
 \begin{subeqnarray}
    \dot{X}_w &=& rcmt(\Omega_w,X_w) \;\; = \;\; \dot{x}_w \nonumber \\
              &=& rcmt(\Omega_{rot} + \Omega_{tra},X_w) \nonumber \\
    \dot{x}_w &=& rcmt(\Omega_{rot},X_w) + rcmt(\Omega_{tra},X_w) \\
    \dot{x}_w &=& v_{rot} + v_{tra}  
+   \label{eq:speed_from_rate}
 \end{subeqnarray}
 to calculate the combined speed $\dot{x}_w$ from rotational and translational effects at a
 position $X_w$. \\
 
 For a case where the rotation is around an axis that does not include the origin
-$O_{3dp}$, but another reference point $P_{ref}$ on the rotational axis, use $X_w -
+$O_{3dp}$, but another reference point $P_{ref}$, use $X_w - P_{ref}$ as argument of the
+regressive commutator product for the rotational part instead of $X_w$. This transforms
+the reference point as new fictive origin to obtain the correct rotational speed around
+the reference point. Everything else can remain unchanged. \\
+
+\newpage
+
+In $2D$ $PGA$ the equations are very similar, but the rate of change is not a rate of
+change bivector, but is it a rate of change vector, since the rotation is not around an
+axis, as in $3D$, but it is around a point. The translation is characterized by a $2D$
+vector, whereas the rotation rate can be characterized by a single scalar value. To show
+that we still get comparable equations, we will also use $\Omega$ for the rate of change.
+In $2D$ $PGA$ has its basis components
+\begin{equation}
+   \Omega_{2D} = (\underbrace{\bv{1}, \qquad \bv{2}}_{\text{bulk($\Omega$)}
+               =  \bulk{\Omega}}, \quad
+                  \underbrace{\bv{3}}_{\text{weight($\Omega$)}
+               =  \weight{\Omega}}\!\!\!\!\!\!\!\!\!)
+   \label{eq:rate_vector_component_definition}
+\end{equation}
+where the weight part $\weight{\Omega}$ carries rotational information and the bulk part
+$\bulk{\Omega}$ carries translational information. \\
+
+In general, the weight part only contains components that do contain a factor of $\bv{3}$
+(which here takes a role equivalent to $\bv{4}$ in the $3D$ case). \\
+
+The total vector rate of change $\Omega$ can be split into
+\begin{equation}
+   \Omega = \weight{\Omega} + \bulk{\Omega} = \Omega_{rot} + \Omega_{tra}
+   \label{eq:rate_vector_euclidean_split}
+\end{equation}
+where eqn.~(\ref{eq:rate_vector_euclidean_split}) is called the ``Euclidean split'' of the
+vector rate of change $\Omega$ separating the rotational and translational aspects of a
+moving object. \\
+
+A simple rotation in $2D$ with an angular speed $\omega$ around the origin $O_{2dp}$ can
+be modelled by multiplying $\omega$ with $\bv{3}$ using the wedge product. This links it
+to the required $\bv{3}$ component as in the $3D$ case.
+\begin{equation}
+   \Omega_{rot} = \bv{3} \wedge \omega = O_{2dp} \wedge \omega
+                = (0,0, \omega \bv{3})
+   \label{eq:vector_rot_rate_omega}
+\end{equation}
+
+For modelling translational speed $\vec{v} = v$  we need a vector rate of change
+$\Omega_{tra}$ that does not contain a factor of $\bv{3}$. This is of course the
+translational speed of the point, but our choice of bivectors makes this not the speed
+directly but the normal of the speed.\footnote{This choice could be reconsidered in a
+future version of the $2D$ $PGA$ implementation to make it more unified between the $2D$
+and $3D$.} To show this we use exactly the same equations as in the $3D$ case by encoding
+the speed of translation in the normal vector $v$ of a line and then intersecting this
+line with the horizon $\rcmpl{\bv{3}} = \rcmpl{O_{2dp}} = H_{2dp}$. The line with the
+corresponding attitude can be encoded by using the right bulk dual $\rightbulkdual{v}$ to
+model the line (a bivector) with the bulk norm $\bulknrm{v}$ as magnitude. It contains the
+origin $O_{2dp}$ and results in a vector rate of change $\Omega_{tra}$ of the translation
+as
+\begin{equation}
+   \Omega_{tra} = \rightbulkdual{v} \vee \rcmpl{\bv{3}} = \rightbulkdual{v} \vee H_{3dp}
+                = att(\rightbulkdual{v})
+                = (-v_y \bv{1}, v_x \bv{2}, 0)
+   \label{eq:vector_trans_rate_v_vec}
+\end{equation}
+To summarize the formulas for these cases combined we can write 
+\begin{eqnarray}
+   \Omega &=& \Omega_{rot} + \Omega_{tra} \nonumber \\
+          &=& \bv{3} \wedge \omega + \rightbulkdual{v} \vee \rcmpl{\bv{3}} \nonumber \\
+          &=& \bv{3} \wedge \omega - \rcmpl{\bv{3} \wedge v} \\
+          &=& -v_y \bv{1} + v_x \bv{2} + \omega\bv3 \nonumber
+\end{eqnarray}
+To calculate actual resulting speed from the rate of change one would use
+eqn.~(\ref{eq:speed_from_rate}) again. And for a case where the rotation is around a point
+that is not the origin $O_{2dp}$, but another reference point $P_{ref}$, use $X_w -
 P_{ref}$ as argument of the regressive commutator product for the rotational part instead
 of $X_w$. This transforms the reference point as new fictive origin to obtain the correct
 rotational speed around the reference point. Everything else can remain unchanged.
+
+
+
 
 \newpage

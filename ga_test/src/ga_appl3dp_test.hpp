@@ -345,4 +345,114 @@ TEST_SUITE("PGA3DP: application tests")
         CHECK(sign(l3.vy) == 1.0);
         fmt::println("");
     }
+
+    TEST_CASE("pga: bivector rate of change")
+    {
+
+        fmt::println("");
+        fmt::println("pga: bivector rate of change - translation:");
+
+        auto v2dp = vec2dp{1, 2, 0};    // translation vector 2d
+        auto v3dp = vec3dp{1, 2, 3, 0}; // translation vector 3d
+
+        auto omega_tra_2dp = att(bulk_dual(v2dp));       // rate of change is a vec (2D)
+        auto omega_tra_3dp = att(right_bulk_dual(v3dp)); // rate of change is a bivec (3D)
+
+        CHECK(omega_tra_2dp == -cmpl(wdg(e3_2dp, v2dp)));  // -cmpl(bivec)  = vec
+        CHECK(omega_tra_3dp == -rcmpl(wdg(e4_3dp, v3dp))); // -rcmpl(bivec) = bivec
+
+        fmt::println("v2dp          = {}", v2dp);
+        fmt::println("v3dp          = {}", v3dp);
+        fmt::println("omega_tra_2dp = {}", omega_tra_2dp);
+        fmt::println("omega_tra_3dp = {}", omega_tra_3dp);
+        fmt::println("");
+        // fmt::println("att(bulk_dual(v2dp)) = {}", att(bulk_dual(v2dp)));
+        // fmt::println("");
+
+        fmt::println("pga: bivector rate of change - rotation:");
+
+        auto omeg2dp = scalar2dp{3};       // omega as angular speed which is a scalar
+        auto omeg3dp = vec3dp{1, 2, 3, 0}; // rotation rate omega as vec
+
+        auto omega_rot_2dp = wdg(e3_2dp, omeg2dp); // rate of change is a vec (2D)
+        auto omega_rot_3dp = wdg(e4_3dp, omeg3dp); // rate of change is a bivec (3D)
+
+        CHECK(omega_rot_2dp == wdg(e3_2dp, weight_dual(bulk_dual(omeg2dp))));
+        CHECK(omega_rot_3dp == wdg(e4_3dp, left_weight_dual(right_bulk_dual(omeg3dp))));
+
+        fmt::println("omeg2dp       = {}", omeg2dp);
+        fmt::println("omeg3dp       = {}", omeg3dp);
+        fmt::println("omega_rot_2dp = {}", omega_rot_2dp);
+        // fmt::println("plr_2dp       = {}", bulk_dual(omeg2dp));
+        fmt::println("omega_rot_3dp = {}", omega_rot_3dp);
+        // fmt::println("plr_3dp       = {}", right_bulk_dual(omeg3dp));
+        fmt::println("");
+
+        fmt::println("pga: bivector rate of change - checking translational speed.");
+
+        auto X1_2dp = vec2dp{1, 0, 1};
+        auto X2_2dp = vec2dp{2, 0, 1};
+        auto X3_2dp = vec2dp{0, 1, 1};
+
+        CHECK(rcmt(omega_tra_2dp, X1_2dp) == v2dp);
+        CHECK(rcmt(omega_tra_2dp, X2_2dp) == v2dp);
+        CHECK(rcmt(omega_tra_2dp, X3_2dp) == v2dp);
+
+        auto X1_3dp = vec3dp{1, 0, 0, 1};
+        auto X2_3dp = vec3dp{2, 0, 0, 1};
+        auto X3_3dp = vec3dp{0, 1, 0, 1};
+
+        CHECK(rcmt(omega_tra_3dp, X1_3dp) == v3dp);
+        CHECK(rcmt(omega_tra_3dp, X2_3dp) == v3dp);
+        CHECK(rcmt(omega_tra_3dp, X3_3dp) == v3dp);
+
+        fmt::println("pga: bivector rate of change - checking rotational speed.");
+
+        CHECK(bulk_nrm(rcmt(omega_rot_2dp, X1_2dp)) == omeg2dp * bulk_nrm(X1_2dp));
+        CHECK(bulk_nrm(rcmt(omega_rot_2dp, X2_2dp)) == omeg2dp * bulk_nrm(X2_2dp));
+        CHECK(bulk_nrm(rcmt(omega_rot_2dp, X3_2dp)) == omeg2dp * bulk_nrm(X3_2dp));
+
+        auto L = wdg(O_3dp, omeg3dp); // rotational axis
+        CHECK(bulk_nrm(rcmt(omega_rot_3dp, X1_3dp)) ==
+              bulk_nrm(omeg3dp) * bulk_nrm(ortho_proj3dp(X1_3dp, L) - X1_3dp));
+        CHECK(bulk_nrm(rcmt(omega_rot_3dp, X2_3dp)) ==
+              bulk_nrm(omeg3dp) * bulk_nrm(ortho_proj3dp(X2_3dp, L) - X2_3dp));
+        CHECK(bulk_nrm(rcmt(omega_rot_3dp, X3_3dp)) ==
+              bulk_nrm(omeg3dp) * bulk_nrm(ortho_proj3dp(X3_3dp, L) - X3_3dp));
+
+        fmt::println("");
+    }
+
+
+    TEST_CASE("pga: simple orbit (WIP, to be further refined)")
+    {
+
+        fmt::println("");
+        fmt::println("pga: simple orbit (WIP, to be further refined)");
+
+        auto omeg2dp = scalar2dp{Hz2radps(0.5)}; // 2s for a full turn
+        auto X0 = vec2dp{1, 0, 1};               // radius 1 m
+        auto m = 1.0;                            // mass m kg
+
+        auto omega_rot_2dp = wdg(e3_2dp, omeg2dp); // rate of change is a vec (2D)
+        auto v0 = rcmt(omega_rot_2dp, X0);         // inital speed
+        auto P0 = wdg(X0, m * v0);                 // inital momentum
+
+        auto X = X0;
+        auto v = v0;
+
+        // radial acceleration in equilibrium (zentral force for circular movement)
+        // a_r = r_0 * omega^2 = v^2 / r_0
+        auto F0 = unitize(wdg(X, O_2dp)) * m * bulk_nrm(X0) * bulk_nrm(v) * bulk_nrm(v);
+
+        fmt::println("omeg2dp       = {}", omeg2dp);
+        fmt::println("omega_rot_2dp = {}", omega_rot_2dp);
+        fmt::println("v0            = {}", v0);
+        fmt::println("P0            = {}", P0);
+        fmt::println("F0            = {}", F0);
+        fmt::println("att(F0)       = {}", att(F0));
+        fmt::println("");
+
+        fmt::println("");
+    }
 }
