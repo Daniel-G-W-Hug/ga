@@ -261,8 +261,8 @@ cases with non-degenerate as well as for cases with degenerate metric, like in p
 geometric algebra $PGA$. This is the main advantage compared to the usual prodedure of
 dualization by multiplying the object with the pseudoscalar (or its inverse) using the
 geometric product, since the latter breaks down for spaces with degenerate metrics. For an
-overview on all complements in $pga3dp$ see table \ref{tab:pga3dp_complement} at the end
-of this section. \\
+overview on all complements in $PGA$ see tables \ref{tab:pga3dp_complement} and
+\ref{tab:pga2dp_complement} at the end of this section. \\
 
 The metric is defined by the dot product of the basis vectors as
 \begin{equation}
@@ -418,9 +418,10 @@ $B$ by linearity as
 where $s$ is a scalar. The reverse and regressive reverse are their own inverses, i.e.
 applying the same reverse twice returns the original object. \\
 
-For an overview on all bulk and weight duals in $pga3dp$ see table
-\ref{tab:pga3dp_bulk_weight_duals} at the end of this section. The reverses can be found
-in table~\ref{tab:pga3dp_rev_rrev} at the end of the section as well.\\
+For an overview on all bulk and weight duals in $PGA$ see tables
+\ref{tab:pga3dp_bulk_weight_duals} and \ref{tab:pga2dp_bulk_weight_duals} at the end of
+this section. The reverses can be found in tables~\ref{tab:pga3dp_rev_rrev} and
+\ref{tab:pga2dp_rev_rrev} at the end of the section as well.\\
 
 Following identities link the expansions and contractions and thus the outer and inner
 products: 
@@ -815,6 +816,104 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
     \end{tabular}
     \caption{\small Reverse and regressive reverse in pga3dp for every basis element.}
     \label{tab:pga3dp_rev_rrev}
+    \end{center}
+\end{sidewaystable}
+
+
+\begin{sidewaystable}
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
+                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $\ps$
+                    \\ \hline
+    $\bm{u}\cdot\bm{u}$  & $\bm{1}$        
+                         & $\bm{1}$      & $\bm{1}$      & $0$           
+                         & $0$           & $0$           & $\bm{1}$
+                         & $0$
+                         \\ \hline
+    $\bm{u}\circ\bm{u}$ & $0$        
+                        & $0$            & $0$           & $\ps$
+                        & $\ps$          & $\ps$         & $0$
+                        & $\ps$
+                        \\ \hline
+    \end{tabular}
+    \caption{\small Dot and regressive dot products in pga2dp for every basis element.}
+    \label{tab:pga2dp_dot_products}
+    \end{center}
+
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
+                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $\ps$
+                    \\ \hline
+    $\rcmpl{\bm{u}}$  & $\ps$        
+                      & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
+                      & $-\bv{1}$     & $-\bv{2}$     & $-\bv{3}$
+                      & $\bm{1}$
+                      \\ \hline
+    \end{tabular}
+    \caption{\small Complements in pga2dp for every basis element.}
+    \label{tab:pga2dp_complement}
+    \end{center}
+
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
+                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $\ps$
+                    \\ \hline
+    $\rightbulkdual{\bm{u}}$  & $\ps$        
+                              & $-\bv{23}$    & $-\bv{31}$    & $0$           
+                              & $0$           & $0$           & $-\bv{3}$
+                              & $0$
+                              \\ \hline
+    $\rightweightdual{\bm{u}}$  & $0$        
+                                & $0$          & $0$           & $-\bv{12}$
+                                & $-\bv{1}$    & $-\bv{2}$     & $0$
+                                & $\bm{1}$
+                                \\ \hline
+    \end{tabular}
+    \caption{\small Bulk duals and weight duals in pga2dp for every basis element.}
+    \label{tab:pga2dp_bulk_weight_duals}
+    \end{center}
+
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
+                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $\ps$
+                    \\ \hline
+    $\rev{\bm{u}}$  & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
+                    & $-\bv{23}$      & $-\bv{31}$     & $-\bv{12}$
+                    & $-\ps$
+                    \\ \hline
+    $\rrev{\bm{u}}$ & $-\bm{1}$
+                    & $-\bv{1}$       & $-\bv{2}$      & $-\bv{3}$     
+                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $\ps$
+                    \\ \hline
+    \end{tabular}
+    \caption{\small Reverse and regressive reverse in pga2dp for every basis element.}
+    \label{tab:pga2dp_rev_rrev}
     \end{center}
 \end{sidewaystable}
 
