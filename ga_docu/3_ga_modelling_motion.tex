@@ -144,8 +144,14 @@ For the case using the regressive geometric product it becomes:
 \end{align}
 The last step of moving $\ps$ and $B$ after the brackets is allowed, since scalar factors,
 like the results of the trigonometric functions, commute with any object using the regular
-product. The result structurally is an even-grade multivector with a bivector and a
-pseudoscalar component. \\
+product. The resulting motor structurally is an even-grade multivector with a bivector and a
+pseudoscalar component for $3D$ $PGA$. \\
+
+In $2D$ $PGA$ we have the same expression, but the argument of the exponential to create a
+motor is not a bivector $B$, but a unitized point $P$. Here $P \veedot P = -\ps$ is valid
+as well, and equation~(\ref{eq:rexp_B}) becomes $\exp_\veedot(P\phi) = \cos(\phi)\ps +
+\sin(\phi) P$ instead, which leads to a motor that structurally is an odd-grade
+multivector with a vector and a pseudoscalar component. \\
 
 Eqn. (\ref{eq:exp_B}) allows us to model rotations in $EGA$, where the bivector $B$ is the
 complement of the axis of rotation and $\theta = -2\phi$ is the angle of the rotation
@@ -443,6 +449,8 @@ geometric product in $PGA$. If we do that, we can stay in the space $G(3,0,1)$ a
 need to switch to its dual space in order to implement these orthonormal transformations
 as already described above. \\
 
+\newpage
+
 Now we repeat the derivation of the time-derivative $\dot{X}$ of a point $X(t)$ for the
 projective approach of $PGA$ used here: We will use the regressive geometric product, and
 $\ps$ as its neutral element. The derivation is then completely analogous to the $EGA$
@@ -465,6 +473,24 @@ It follows that $M\veedot\dot{\rrev{M}} = -\dot{M}\veedot\rrev{M}$, which result
 \end{equation}
 Starting from $\rrev{M} \veedot M = \ps$ instead yields the same result for
 $\dot{\rrev{M}}$. \\
+
+However, we still have to take additional aspects into account: \\
+
+First, Lengyel has shown that a motor in $3D$ $PGA$ can be created from the exponential in
+eqn.~(\ref{eq:rexp_pga_motor}) as $M = \exp_\veedot\left[(\frac{\delta}{2} \bm{1} +
+\frac{\phi}{2}\ps) \veedot l \right]$ where it is easy to show that the regressive
+geometric product of the line $l$, a bivector, with the scalar part yields a bivector and
+the same is true for the regressive geometric product between the pseudoscalar and the
+line. Thus, it is sufficient to consider the exponential function of a bivector argument
+for the derivation for $3D$ $PGA$. The resulting motor $M$ will be an even-grade
+multivector in this case. \\
+
+Second, for $2D$ $PGA$ the motor is derived from $M = \exp_\veedot\left[\frac{\phi}{2} P
+\right]$ with the unitized point $P$, a vector, as an argument. The resulting motor $M$
+will be an odd-grade multivector. We need to distinguish these two cases later on.
+However, since the equations are structurally similar (an exponential function with either
+a vector or a bivector as argument), we only do the derivation for the $3D$ case once and
+then will interpret the results for the $2D$ case separately afterwards. 
 
 
 %%% change below from here from EGA to PGA
@@ -577,26 +603,26 @@ eqn.~(\ref{eq:cmt_ega_world}) is the only difference between $PGA$ and $EGA$. Th
 caused by the different ansatz for the motors comparing equations (\ref{eq:rotor_ega}) and
 (\ref{eq:rexp_pga_motor}).\\
 
-It can be shown that $\dot{M} \veedot \rrev{M}$ is always a bivector: From equations
-(\ref{eq:bivector_rate_world_frame_pga}) and (\ref{eq:dot_rrev_m}), and the linearity of
-the involved operations, we get
+It can be shown that $\dot{M} \veedot \rrev{M}$ is either always vector or a bivector:
+From equations (\ref{eq:bivector_rate_world_frame_pga}) and (\ref{eq:dot_rrev_m}), and the
+linearity of the involved operations, we get
 \begin{equation}
    \Omega_w = 2 \dot{M} \veedot \rrev{M} = - 2 M \veedot
    \dot{\rrev{M}} = - 2 (\rrev{\dot{M} \veedot \rrev{M} })= -\rrev{\Omega}_w
    \label{eq:bivector_poof_rgpr}
 \end{equation}
-Considering the grade-dependent sign-reversal of the reverse in $3D$ $PGA$, $\Omega_w$
-must either be a vector or a bivector in PGA (see table~\ref{tab:pga3dp_rev_rrev} at the
-end of section~\ref{subsection_basics}). Since $\dot{M}$ and $\rrev{M}$ are even-grade
-multivectors, their geometric product results in an even-grade multivector as well, which
-does not have a vector part. Thus, $\Omega_w$ and therefore $\dot{M} \veedot \rrev{M}$
-must indeed be a bivector. \\
+Considering the grade-dependent sign-reversal of the regressive reverse in $3D$ $PGA$,
+$\Omega_w$ must either be a vector or a bivector (see table~\ref{tab:pga3dp_rev_rrev} at
+the end of section~\ref{subsection_basics}). Since $\dot{M}$ and $\rrev{M}$ are even-grade
+multivectors, their regressive geometric product results in an even-grade multivector as
+well, which does not have a vector part. Thus, $\Omega_w$ and $\dot{M} \veedot \rrev{M}$
+must indeed be a bivector in $3D$ $PGA$. \\
 
-This also assures, that the grade of $X$ and $\dot{X}$ are identical. If $X$ is a vector
-then $\dot{X}$ is a vector as well. This statement is true for any grade of $X$ as long as
-$\Omega_w$ is a bivector.\\
-
-\newpage
+However, in $2D$ $PGA$ due to the grade-dependent sign-reversal of the regressive reverse,
+$\Omega_w$ must either be a scalar or a vector (see $rrev()$ function in $2D$ $PGA$).
+Since $\dot{M}$ and $\rrev{M}$ are odd-grade multivectors, their regressive geometric
+product results in an odd-grade multivector as well, which does not have a scalar part.
+Thus, $\Omega_w$ and $\dot{M} \veedot \rrev{M}$ must indeed be a vector in $2D$ $PGA$. \\
 
 If $X_0$ is not a constant element, but a function of time, which means that $X_0$ is a
 time dependent element in the \emph{body frame} $X_0 = X_b(t)$, we have to add another
@@ -728,8 +754,8 @@ In $2D$ $PGA$ has its basis components
                =  \weight{\Omega}}\!\!\!\!\!\!\!\!\!)
    \label{eq:rate_vector_component_definition}
 \end{equation}
-where the weight part $\weight{\Omega}$ carries rotational information and the bulk part
-$\bulk{\Omega}$ carries translational information. \\
+where again the weight part $\weight{\Omega}$ carries rotational information and the bulk
+part $\bulk{\Omega}$ carries translational information. \\
 
 In general, the weight part only contains components that do contain a factor of $\bv{3}$
 (which here takes a role equivalent to $\bv{4}$ in the $3D$ case). \\
@@ -743,9 +769,9 @@ where eqn.~(\ref{eq:rate_vector_euclidean_split}) is called the ``Euclidean spli
 vector rate of change $\Omega$ separating the rotational and translational aspects of a
 moving object. \\
 
-A simple rotation in $2D$ with an angular speed $\omega$ around the origin $O_{2dp}$ can
-be modelled by multiplying $\omega$ with $\bv{3}$ using the wedge product. This links it
-to the required $\bv{3}$ component as in the $3D$ case.
+A simple rotation in $2D$ with an angular speed $\omega$ (a simple scalar in this case)
+around the origin $O_{2dp}$ can be modelled by multiplying $\omega$ with $\bv{3}$ using
+the wedge product. This links it to the required $\bv{3}$ component as in the $3D$ case.
 \begin{equation}
    \Omega_{rot} = \bv{3} \wedge \omega = O_{2dp} \wedge \omega
                 = (0,0, \omega \bv{3})
@@ -783,8 +809,5 @@ that is not the origin $O_{2dp}$, but another reference point $P_{ref}$, use $X_
 P_{ref}$ as argument of the regressive commutator product for the rotational part instead
 of $X_w$. This transforms the reference point as new fictive origin to obtain the correct
 rotational speed around the reference point. Everything else can remain unchanged.
-
-
-
 
 \newpage
