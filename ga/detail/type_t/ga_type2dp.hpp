@@ -85,29 +85,18 @@ template <typename T> using DualNum2dp = MVec2_t<T, dual_number2dp_tag>;
 // join(p,q) = wdg(p,q)
 // meet(p,q) = rwdg(p,q) = !wdg(!a,!b) with !a as the complement of a, where a^!a = I_2dp
 //
-//  u:     1 |  e1 |  e2 |  e3 | e23 | e31 | e12 | e123
-// !u:  e123 | e23 | e31 | e12 |  e1 |  e2 |  e3 |    1
+//  u:     1 |  e1  |  e2  |   e3 |  e31 |  e32 |  e12 | e321
+// !u:  e321 |  e32 | -e31 | -e12 |  -e2 |   e1 |  -e3 |    1
 //
 //  right complement (a^(!a)=e123) and left complement ((!a)^a=e123) are identical in 2dp
 //
-// BiVec2dp: represents a line in 2d when created as join from two points p and q as
+// BiVec2dp: represents a line in 2d when created as join from two (normalized) points p
+// and q as
 //           wdg(p, q) = p^q
-//              l(p,q) = (p.y * q.z - p.z * q.y) * e23
-//                     + (p.z * q.x - p.x * q.z) * e31
+//              l(p,q) = (q.x - p.x) * e31
+//                     + (q.y - p.y) * e32
 //                     + (p.x * q.y - p.y * q.x) * e12
-//                     = l.x * e23 + l.y * e31 + l.z * e12
-//
-//           The line is created where the 2d projective plane through the origin e3 (!e3)
-//           and the plane represented by the bivector (which goes through the origin
-//           (0,0,0) of the representational space) intersect:
-//
-//           meet(l,!e3) = !wdg(!l,e3) = !wdg( (-l.x*e1 - l.y*e2 - l.z*e3), e3)
-//                       = !( (-l.y)*e23 + (l.x)*e31 + (0.0)*e12 )
-//                       = (l.y) * e1 + (-l.x) * e2
-//
-//           l = x*e23 + y*e31 + z*e12
-//               (normal: x*e23 + y*e31)
-//               (position: z*e12)
+//                     = l.x * e31 + l.y * e32 + l.z * e12
 
 } // namespace hd::ga
 
@@ -195,10 +184,10 @@ struct Line2d : public BiVec2dp<T> {
     Line2d(BiVec2dp<T> const& b) : BiVec2dp<T>(b) {};
     Line2d(Point2d<T> const& p, Point2d<T> const& q) :
         // Line2d = wdg(p,q), but wdg() cannot be used here to avoid circular dependency
-        BiVec2dp<T>(p.y - q.y, q.x - p.x, p.x * q.y - p.y * q.x) {};
+        BiVec2dp<T>(q.x - p.x, q.y - p.y, p.x * q.y - p.y * q.x) {};
     Line2d(Point2d<T> const& p, Vec2d<T> const& v) :
         // Line2d constructed from a point and a direction vector
-        BiVec2dp<T>(-v.y, v.x, p.x * v.y - p.y * v.x) {};
+        BiVec2dp<T>(v.x, v.y, p.x * v.y - p.y * v.x) {};
 };
 
 } // namespace hd::ga::pga

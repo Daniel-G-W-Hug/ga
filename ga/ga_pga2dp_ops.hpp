@@ -24,7 +24,7 @@ namespace hd::ga::pga {
 // - ortho_antiproj2dp()                 -> orthogonal antiprojection onto object
 // - reflect_on()                        -> reflections
 // - invert_on()                         -> inversions
-// - support()                           -> point on line that is nearest to origin
+// - sup()                           -> point on line that is nearest to origin
 // - att()                               -> object attitude
 // - dist2dp()                           -> Euclidean distance and homogeneous magnitude
 // - is_congruent()                      -> Same up to a scalar factor (is same subspace)
@@ -101,7 +101,7 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& P, U theta)
 {
-    // point p must be unitized to avoid supprises
+    // point p must be unitized to avoid suprises
     auto nrm_sq = to_val(weight_nrm_sq(P));
     auto Pn{P};
     if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
@@ -266,9 +266,10 @@ constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> const& B,
     ctype k21 = 2.0 * M.c2 * M.c3;
     ctype k22 = -M.c2 * M.c2 + M.c3 * M.c3;
 
-    ctype k31 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c3);
-    ctype k32 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c2);
+    ctype k31 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c2);
+    ctype k32 = 2.0 * (-M.c0 * M.c2 + M.c1 * M.c3);
     ctype k33 = M.c2 * M.c2 + M.c3 * M.c3;
+
     return BiVec2dp<ctype>(k11 * B.x + k12 * B.y, k21 * B.x + k22 * B.y,
                            k31 * B.x + k32 * B.y + k33 * B.z);
 }
@@ -290,8 +291,8 @@ move2dp(std::vector<BiVec2dp<T>> const& bvec, MVec2dp_U<U> const& M)
     ctype k21 = 2.0 * M.c2 * M.c3;
     ctype k22 = -M.c2 * M.c2 + M.c3 * M.c3;
 
-    ctype k31 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c3);
-    ctype k32 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c2);
+    ctype k31 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c2);
+    ctype k32 = 2.0 * (-M.c0 * M.c2 + M.c1 * M.c3);
     ctype k33 = M.c2 * M.c2 + M.c3 * M.c3;
 
     std::vector<BiVec2dp<ctype>> result;
@@ -322,10 +323,6 @@ constexpr MVec2dp<std::common_type_t<T, U>> move2dp(MVec2dp<T> const& MV,
 ////////////////////////////////////////////////////////////////////////////////
 // projections, rejections
 ////////////////////////////////////////////////////////////////////////////////
-
-// TODO: check whether the vector-vector formulas make sense at all, since they model
-//       the representational space an not the modelled subspace
-//       => potentially only meaningful, when implemented based on type vector2dp
 
 // projection of a vector v1 onto vector v2
 // returns component of v1 parallel to v2
@@ -372,7 +369,6 @@ constexpr Vec2dp<std::common_type_t<T, U>> reject_from(Vec2dp<T> const& v,
     using ctype = std::common_type_t<T, U>;
     return Vec2dp<ctype>(v - project_onto(v, B));
 }
-
 
 // expand to a new line with goes through point p and is perpendicular to line l
 // => returns a line (aka a bivector)
@@ -504,7 +500,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> invert_on(BiVec2dp<T> const& l,
 
 template <typename T>
     requires(numeric_type<T>)
-Vec2dp<T> support(BiVec2dp<T> const& B)
+Vec2dp<T> sup(BiVec2dp<T> const& B)
 {
     // REQUIRES: a line (BiVec2dp) as argument
 
@@ -539,14 +535,14 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr Vec2dp<T> att(BiVec2dp<T> const& B)
 {
-    return Vec2dp<T>(B.y, -B.x, T(0.0));
+    return Vec2dp<T>(B.x, B.y, T(0.0));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Vec2dp<T> att(Line2d<T> const& l)
 {
-    return Vec2dp<T>(l.y, -l.x, T(0.0));
+    return Vec2dp<T>(l.x, l.y, T(0.0));
 }
 
 template <typename T>

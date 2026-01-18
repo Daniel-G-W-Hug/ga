@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "item_bivt2dp.hpp"
 #include "active_common.hpp"
+#include "item_bivt2dp.hpp"
 
 #include "ga/ga_pga.hpp"
 using namespace hd::ga;      // use ga types, constants, etc.
@@ -126,8 +126,8 @@ void item_bivt2dp::reset_item_data()
         }
 
         // determine the angle of the projective line
-        auto const x_axis = bivec2dp{0, 1, 0};
-        auto const y_axis = bivec2dp{1, 0, 0}; // really this is -y_axis_2dp
+        auto const x_axis = bivec2dp{1, 0, 0};
+        auto const y_axis = bivec2dp{0, -1, 0}; // really this is -y_axis_2dp
 
         auto phi_x = angle(x_axis, cm->bivtp[idx]);
         auto phi_y = angle(y_axis, cm->bivtp[idx]);

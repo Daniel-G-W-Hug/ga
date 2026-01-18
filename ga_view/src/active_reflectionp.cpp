@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "active_reflectionp.hpp"
 #include "active_common.hpp"
+#include "active_reflectionp.hpp"
 
 #include "ga/ga_ega.hpp"
 
@@ -171,7 +171,7 @@ void active_reflectionp::paint(QPainter* qp, const QStyleOptionGraphicsItem* opt
     for (size_t i = 0; i < v.size(); ++i) {
         QPointF p_orig(cs->x.au_to_w(v[i].x), cs->y.au_to_w(v[i].y));
         QPointF p_refl(cs->x.au_to_w(vr[i].x), cs->y.au_to_w(vr[i].y));
-        QPointF p_mid = (p_orig + p_refl) / 2.0;  // Point on hyperplane
+        QPointF p_mid = (p_orig + p_refl) / 2.0; // Point on hyperplane
 
         // Arrow from original to hyperplane (dashed line, solid arrow head)
         qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::DashLine));
@@ -190,7 +190,7 @@ void active_reflectionp::paint(QPainter* qp, const QStyleOptionGraphicsItem* opt
     for (size_t i = 0; i < vr.size(); ++i) {
         QPointF p_orig(cs->x.au_to_w(vr[i].x), cs->y.au_to_w(vr[i].y));
         QPointF p_refl(cs->x.au_to_w(vrr[i].x), cs->y.au_to_w(vrr[i].y));
-        QPointF p_mid = (p_orig + p_refl) / 2.0;  // Point on hyperplane
+        QPointF p_mid = (p_orig + p_refl) / 2.0; // Point on hyperplane
 
         // Arrow from original to hyperplane (dashed line, solid arrow head)
         qp->setPen(QPen(QBrush(col_lgrey), 1, Qt::DashLine));
@@ -491,8 +491,8 @@ void active_reflectionp::reset_item_data()
     // get the actual start and end points of the line in the coordsystem
     auto reset_bivecp = [this](pt2dp p, pt2dp q) -> res_vec2dp {
         // determine the angle of the projective line
-        auto const x_axis = bivec2dp{0, 1, 0};
-        auto const y_axis = bivec2dp{1, 0, 0}; // really this is -y_axis_2dp
+        auto const x_axis = bivec2dp{1, 0, 0};
+        auto const y_axis = bivec2dp{0, -1, 0}; // really this is -y_axis_2dp
 
         auto bvt = wdg(p, q);
         auto const phi_x = angle(x_axis, bvt);

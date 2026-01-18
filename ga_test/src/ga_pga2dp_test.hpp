@@ -400,11 +400,11 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(bulk_dual(s) == pscalar2dp(to_val(s)));
         CHECK(weight_dual(s) == pscalar2dp{0.0});
 
-        CHECK(bulk_dual(v) == -bivec2dp{1.0, 2.0, 0.0});
-        CHECK(weight_dual(v) == -bivec2dp{0.0, 0.0, 1.0});
+        CHECK(bulk_dual(v) == bivec2dp{-v.y, v.x, 0.0});
+        CHECK(weight_dual(v) == bivec2dp{0.0, 0.0, -v.z});
 
-        CHECK(bulk_dual(B) == -vec2dp{0.0, 0.0, 1.0});
-        CHECK(weight_dual(B) == -vec2dp{-1.0, 2.0, 0.0});
+        CHECK(bulk_dual(B) == vec2dp{0.0, 0.0, -B.z});
+        CHECK(weight_dual(B) == vec2dp{B.y, -B.x, 0.0});
 
         CHECK(bulk_dual(ps) == scalar2dp{0.0});
         CHECK(weight_dual(ps) == scalar2dp(to_val(ps)));
@@ -682,8 +682,8 @@ TEST_SUITE("PGA 2DP Tests")
 
         // lines parallel to coordinate axis after reflexion:
         // remain parallel, have same orientation, but are on other side of axis
-        CHECK(reflect_on(bivec2dp{0, 1, 1}, x_axis_2dp) == bivec2dp{0, 1, -1});
-        CHECK(reflect_on(bivec2dp{-1, 0, 1}, y_axis_2dp) == bivec2dp{-1, 0, -1});
+        CHECK(reflect_on(bivec2dp{1, 0, 1}, x_axis_2dp) == bivec2dp{1, 0, -1});
+        CHECK(reflect_on(bivec2dp{0, 1, 1}, y_axis_2dp) == bivec2dp{0, 1, -1});
     }
 
     TEST_CASE("Vec2dp: operations - rotation")
@@ -769,11 +769,12 @@ TEST_SUITE("PGA 2DP Tests")
         auto m_tra = get_motor(p);
         auto Pt = move2dp(P, m_tra);
 
-        fmt::println("m_tra  = {: 5.3f}", m_tra);
+        fmt::println("m_tra        = {: 5.3f}", m_tra);
         fmt::println("");
-        fmt::println("P     = {: 5.3f}", P);
-        fmt::println("p     = {: 5.3f}", p);
-        fmt::println("Pt    = {: 5.3f}", Pt);
+        fmt::println("P            = {: 5.3f}", P);
+        fmt::println("p            = {: 5.3f}", p);
+        fmt::println("Pt           = {: 5.3f}", Pt);
+        fmt::println("O_2dp + 2*p  = {: 5.3f}", O_2dp + 2 * p);
         fmt::println("");
 
         CHECK(Pt == O_2dp + 2.0 * p);
@@ -1907,12 +1908,13 @@ TEST_SUITE("PGA 2DP Tests")
 
             auto prr = -gr1(rgpr(rgpr(l2, pr), l2));
 
-            // fmt::println("");
-            // fmt::println("l1: {}, l1u: {}, l2: {}, l2u: {}", l1, unitize(l1), l2,
-            //              unitize(l2));
-            // fmt::println("pr: {}, pru: {}", pr, unitize(pr));
-            // fmt::println("prr: {}, prru: {}", prr, unitize(prr));
-            // fmt::println("");
+            fmt::println("test_refl");
+            fmt::println("");
+            fmt::println("l1: {}, l1u: {}, l2: {}, l2u: {}", l1, unitize(l1), l2,
+                         unitize(l2));
+            fmt::println("pr: {}, pru: {}", pr, unitize(pr));
+            fmt::println("prr: {}, prru: {}", prr, unitize(prr));
+            fmt::println("");
 
             CHECK(unitize(pr) == vec2dp{1, 0.5, 1});
             CHECK(unitize(prr) == vec2dp{0.5, 1, 1});
@@ -1923,9 +1925,15 @@ TEST_SUITE("PGA 2DP Tests")
 
             auto pm = gr1(rgpr(rgpr(motor, p), rmotor));
 
-            // fmt::println("");
-            // fmt::println("pm: {}, pmu: {}", pm, unitize(pm));
-            // fmt::println("");
+            fmt::println("");
+            fmt::println("motor: {}, rmotor: {}", motor, rmotor);
+            fmt::println("");
+            fmt::println("pm: {}, pmu: {}", pm, unitize(pm));
+            fmt::println("");
+            auto motor_calc = get_motor(O_2dp, deg2rad(90));
+            fmt::println("motor_calc: {}, rmotor_calc: {}", motor_calc, rrev(motor_calc));
+            fmt::println("p_calc = {}", move2dp(p, motor_calc));
+
 
             CHECK(unitize(prr) == unitize(pm));
         }
@@ -2296,12 +2304,12 @@ TEST_SUITE("PGA 2DP Tests")
 
             auto T = get_motor(delta);
             auto pst = move2dp(p, T);
-            // fmt::println("");
-            // fmt::println("p: {:.4g}, pu: {:.4g}", p, unitize(p));
-            // fmt::println("delta: {:.4g}", delta);
-            // fmt::println("T: {:.4g}, Tu: {:.4g}", T, unitize(T));
-            // fmt::println("pst: {:.4g}, pstu: {:.4g} (after trafo)", pst, unitize(pst));
-            // fmt::println("");
+            fmt::println("");
+            fmt::println("p: {:.4g}, pu: {:.4g}", p, unitize(p));
+            fmt::println("delta: {:.4g}", delta);
+            fmt::println("T: {:.4g}, Tu: {:.4g}", T, unitize(T));
+            fmt::println("pst: {:.4g}, pstu: {:.4g} (after trafo)", pst, unitize(pst));
+            fmt::println("");
 
             CHECK(pst == p + delta);
         }
@@ -2339,11 +2347,11 @@ TEST_SUITE("PGA 2DP Tests")
         // complement values
         CHECK(cmpl(scalar2dp(1.0)) == I_2dp);
         CHECK(cmpl(scalar2dp(1.0)) == rev(scalar2dp(1.0)) * I_2dp);
-        CHECK(cmpl(e1_2dp) == -e23_2dp);
+        CHECK(cmpl(e1_2dp) == e32_2dp);
         CHECK(cmpl(e2_2dp) == -e31_2dp);
         CHECK(cmpl(e3_2dp) == -e12_2dp);
-        CHECK(cmpl(e23_2dp) == -e1_2dp);
         CHECK(cmpl(e31_2dp) == -e2_2dp);
+        CHECK(cmpl(e32_2dp) == e1_2dp);
         CHECK(cmpl(e12_2dp) == -e3_2dp);
         CHECK(cmpl(I_2dp) == scalar2dp(1.0));
         //
@@ -2425,9 +2433,9 @@ TEST_SUITE("PGA 2DP Tests")
         //
         // Line2d ctors
         auto l2 = Line2d<double>(p1, p2);
-        auto l3 = Line2d<double>(BiVec2dp<double>{-1, 1, -1});
+        auto l3 = Line2d<double>(BiVec2dp<double>{1, 1, -1});
         auto l4 = Line2d<double>(p1, Vec2d<double>{1, 1});
-        auto l5 = Line2d<double>(-1, 1, -1);
+        auto l5 = Line2d<double>(1, 1, -1);
         auto l6 = Line2d<double>();
         CHECK(l1 == l2);
         CHECK(l1 == l3);
@@ -2479,7 +2487,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(att(p1) == rwdg(p1, cmpl(e3_2dp)));
         CHECK(att(p2) == p2.z);
         CHECK(att(p2) == rwdg(p2, cmpl(e3_2dp)));
-        CHECK(att(l1) == vec2dp{l1.y, -l1.x, 0.0});
+        CHECK(att(l1) == vec2dp{l1.x, l1.y, 0.0});
         CHECK(att(l1) == rwdg(l1, cmpl(e3_2dp)));
         CHECK(att(l2) == rwdg(l2, cmpl(e3_2dp)));
         CHECK(att(l3) == rwdg(l3, cmpl(e3_2dp)));
@@ -2489,15 +2497,27 @@ TEST_SUITE("PGA 2DP Tests")
         auto l5 = bivec2dp{1.0, 1.0, 0.0};
         auto int_sec =
             rwdg(l4, l5); // should intersect at infinity, i.e. att(int_sec) == 0.0
-        // fmt::println("   att(l4) = {}", att(l4));
-        // fmt::println("   att(l5) = {}", att(l5));
-        // fmt::println("   normalize(int_sec(l4,l5)) = {}", normalize(int_sec));
+        fmt::println("   att(l4) = {}", att(l4));
+        fmt::println("   att(l5) = {}", att(l5));
+        fmt::println("   normalize(int_sec(l4,l5)) = {}", normalize(int_sec));
         CHECK(att(int_sec) == 0.0);
 
-        // fmt::println("   att(l1) = {}", att(l1));
-        // fmt::println("   att(l2) = {}", att(l2));
-        // fmt::println("   unitize(rwdg(l1, l2)) = {}", unitize(rwdg(l1, l2)));
-        CHECK(unitize(rwdg(l1, l2)) == vec2dp{0.5, -2.0, 1.0});
+        fmt::println("   att(l1) = {}", att(l1));
+        fmt::println("   att(l2) = {}", att(l2));
+        fmt::println("   sup(l1) = {}", sup(l1));
+        fmt::println("   sup(l2) = {}", sup(l2));
+        fmt::println("   unitize(rwdg(l1, l2)) = {}", unitize(rwdg(l1, l2)));
+        CHECK(unitize(rwdg(l1, l2)) == vec2dp{2.0, 0.5, 1.0});
+
+        auto P1 = vec2dp{1, 1, 1};
+        auto P2 = vec2dp{3, 2, 1};
+        auto l12 = wdg(P1, P2);
+
+        fmt::println("   P1           = {}", P1);
+        fmt::println("   P2           = {}", P2);
+        fmt::println("   wdg(P1,P2)   = {}", l12);
+        fmt::println("   att(l12)     = {}", att(l12));
+        fmt::println("   sup(l12) = {}", sup(l12));
     }
 
     TEST_CASE("MVec2dp: euclidean distance")
@@ -2566,8 +2586,8 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(dot(e1_2dp, e1_2dp) == scalar2dp(1.0));
         CHECK(dot(e2_2dp, e2_2dp) == scalar2dp(1.0));
         CHECK(dot(e3_2dp, e3_2dp) == scalar2dp(0.0));
-        CHECK(dot(e23_2dp, e23_2dp) == scalar2dp(0.0));
         CHECK(dot(e31_2dp, e31_2dp) == scalar2dp(0.0));
+        CHECK(dot(e32_2dp, e32_2dp) == scalar2dp(0.0));
         CHECK(dot(e12_2dp, e12_2dp) == scalar2dp(1.0));
         CHECK(dot(pscalar2dp(1.0), pscalar2dp(1.0)) == scalar2dp(0.0));
 
@@ -2576,8 +2596,8 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(rdot(e1_2dp, e1_2dp) == pscalar2dp(0.0));
         CHECK(rdot(e2_2dp, e2_2dp) == pscalar2dp(0.0));
         CHECK(rdot(e3_2dp, e3_2dp) == pscalar2dp(1.0));
-        CHECK(rdot(e23_2dp, e23_2dp) == pscalar2dp(1.0));
         CHECK(rdot(e31_2dp, e31_2dp) == pscalar2dp(1.0));
+        CHECK(rdot(e32_2dp, e32_2dp) == pscalar2dp(1.0));
         CHECK(rdot(e12_2dp, e12_2dp) == pscalar2dp(0.0));
         CHECK(rdot(pscalar2dp(1.0), pscalar2dp(1.0)) == pscalar2dp(1.0));
 
@@ -2707,11 +2727,11 @@ TEST_SUITE("PGA 2DP Tests")
 
         // check complements
         CHECK(cmpl(scalar2dp(1.0)) == I_2dp);
-        CHECK(cmpl(e1_2dp) == -e23_2dp);
+        CHECK(cmpl(e1_2dp) == e32_2dp);
         CHECK(cmpl(e2_2dp) == -e31_2dp);
         CHECK(cmpl(e3_2dp) == -e12_2dp);
-        CHECK(cmpl(e23_2dp) == -e1_2dp);
         CHECK(cmpl(e31_2dp) == -e2_2dp);
+        CHECK(cmpl(e32_2dp) == e1_2dp);
         CHECK(cmpl(e12_2dp) == -e3_2dp);
         CHECK(cmpl(I_2dp) == scalar2dp(1.0));
         //
@@ -3419,7 +3439,7 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("p^f = {}, bulk(p^f) = {} (=torque)", wdg(P - O_2dp, f),
                      bulk(wdg(P - O_2dp, f)));
         fmt::println("");
-        CHECK(support(F) == vec2dp{2.25, 0, 1});
+        CHECK(sup(F) == vec2dp{2.25, 0, 1});
         CHECK(wdg(P, f) == wdg(O_2dp, f) + wdg(P - O_2dp, f));
 
         auto R1 = vec2dp{1.5, 2, 1};
@@ -3534,25 +3554,25 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(abs(g_e3 - value_t(G[3, 3])) < eps);
 
         // Level 2: Bivectors (extract from wedge products + dot)
-        // Basis order: e23, e31, e12
-        auto e23_constructed = wdg(e2_2dp, e3_2dp);
+        // Basis order: e31, e32, e12
         auto e31_constructed = wdg(e3_2dp, e1_2dp);
+        auto e32_constructed = wdg(e3_2dp, e2_2dp);
         auto e12_constructed = wdg(e1_2dp, e2_2dp);
 
-        value_t g_e23 =
-            value_t(dot(e23_constructed, e23_constructed)); // Should be 0 (involves e3)
         value_t g_e31 =
             value_t(dot(e31_constructed, e31_constructed)); // Should be 0 (involves e3)
+        value_t g_e32 =
+            value_t(dot(e32_constructed, e32_constructed)); // Should be 0 (involves e3)
         value_t g_e12 = value_t(
             dot(e12_constructed, e12_constructed)); // Should be 1 (both Euclidean)
 
-        CHECK(abs(g_e23 - value_t(G[4, 4])) < eps);
-        CHECK(abs(g_e31 - value_t(G[5, 5])) < eps);
+        CHECK(abs(g_e31 - value_t(G[4, 4])) < eps);
+        CHECK(abs(g_e32 - value_t(G[5, 5])) < eps);
         CHECK(abs(g_e12 - value_t(G[6, 6])) < eps);
 
         // Verify constructed bivectors match canonical ones
-        CHECK(e23_constructed == e23_2dp);
         CHECK(e31_constructed == e31_2dp);
+        CHECK(e32_constructed == e32_2dp);
         CHECK(e12_constructed == e12_2dp);
 
         // Level 3: Trivector/Pseudoscalar (extract from wedge products + dot)
@@ -3582,8 +3602,8 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(abs(value_t(dot(e3_2dp, e3_2dp)) - value_t(G[3, 3])) < eps);
 
         // Bivectors: e23·e23=0, e31·e31=0, e12·e12=1
-        CHECK(abs(value_t(dot(e23_2dp, e23_2dp)) - value_t(G[4, 4])) < eps);
-        CHECK(abs(value_t(dot(e31_2dp, e31_2dp)) - value_t(G[5, 5])) < eps);
+        CHECK(abs(value_t(dot(e31_2dp, e31_2dp)) - value_t(G[4, 4])) < eps);
+        CHECK(abs(value_t(dot(e32_2dp, e32_2dp)) - value_t(G[5, 5])) < eps);
         CHECK(abs(value_t(dot(e12_2dp, e12_2dp)) - value_t(G[6, 6])) < eps);
 
         // Pseudoscalar: e321·e321=0 (involves null dimension)

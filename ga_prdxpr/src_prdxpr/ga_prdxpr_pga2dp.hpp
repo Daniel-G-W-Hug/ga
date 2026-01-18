@@ -14,21 +14,18 @@
 const std::vector<int> mv2dp_metric_signature = {+1, +1, 0};
 
 // multivector basis components
-const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e321"};
-// const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e31", "e32", "e12", "e321"};
-// const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e31", "e32", "e12", "e123"};
+// const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e321"};
+const mvec_coeff mv2dp_basis = {"1", "e1", "e2", "e3", "e31", "e32", "e12", "e321"};
 
 // multivector basis components as vector for each order k
 // order k=0: scalar
 // order k=1: vectors
 // order k=2: bivectors
 // order k=3: trivector (=pseudoscalar for pga2dp)
+// const std::vector<mvec_coeff> mv2dp_basis_kvec = {
+//     {"1"}, {"e1", "e2", "e3"}, {"e23", "e31", "e12"}, {"e321"}};
 const std::vector<mvec_coeff> mv2dp_basis_kvec = {
-    {"1"}, {"e1", "e2", "e3"}, {"e23", "e31", "e12"}, {"e321"}};
-// const std::vector<mvec_coeff> mv2dp_basis_kvec = {
-//     {"1"}, {"e1", "e2", "e3"}, {"e31", "e32", "e12"}, {"e321"}};
-// const std::vector<mvec_coeff> mv2dp_basis_kvec = {
-//     {"1"}, {"e1", "e2", "e3"}, {"e31", "e32", "e12"}, {"e123"}};
+    {"1"}, {"e1", "e2", "e3"}, {"e31", "e32", "e12"}, {"e321"}};
 
 ////////////////////////////////////////////////////////////////////////////////
 // AUTOMATIC RULE GENERATION - PGA2DP

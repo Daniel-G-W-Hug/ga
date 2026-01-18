@@ -131,44 +131,44 @@ auto const e1_2dp_mv = MVec2dp<value_t>{e1_2dp}; // e1_2dp as multivector
 auto const e2_2dp_mv = MVec2dp<value_t>{e2_2dp}; // e2_2dp as multivector
 auto const e3_2dp_mv = MVec2dp<value_t>{e3_2dp}; // e3_2dp as multivector
 
-auto const e23_2dp = BiVec2dp<value_t>{1.0, 0.0, 0.0};
-auto const e31_2dp = BiVec2dp<value_t>{0.0, 1.0, 0.0};
-auto const e12_2dp = BiVec2dp<value_t>{0.0, 0.0, 1.0};
+auto const e31_2dp = BiVec2dp<value_t>{1.0, 0.0, 0.0}; // = wdg(e3,e1)
+auto const e32_2dp = BiVec2dp<value_t>{0.0, 1.0, 0.0}; // = wdg(e3,e2)
+auto const e12_2dp = BiVec2dp<value_t>{0.0, 0.0, 1.0}; // = wdg(e1,e2)
 
 // x-axis as bivector
-//      x-axis = wdg(vec2dp{0, 0, 1}, vec2dp{1, 0, 1}) = bivt2dp(0, 1, 0)
+//      x-axis = wdg(vec2dp{0, 0, 1}, vec2dp{1, 0, 1}) = wdg(e3,e1) = bivt2dp(1, 0, 0)
 // att(x-axis) = vec2dp(1, 0, 0) = x_dir_2dp = e1_2dp
-auto const x_axis_2dp = BiVec2dp<value_t>{0.0, 1.0, 0.0};
+auto const x_axis_2dp = BiVec2dp<value_t>{1.0, 0.0, 0.0}; // = e31_3dp
 
 // y-axis as bivector
-//      y-axis = wdg(vec2dp{0, 0, 1}, vec2dp{0, 1, 1})
+//      y-axis = wdg(vec2dp{0, 0, 1}, vec2dp{0, 1, 1}) = wdg(e3,e2) = bivt2dp(0, 1, 0)
 // att(y-axis) = vec2dp(0, 1, 0) = y_dir_2dp = e2_2dp
-auto const y_axis_2dp = BiVec2dp<value_t>{-1.0, 0.0, 0.0};
+auto const y_axis_2dp = BiVec2dp<value_t>{0.0, 1.0, 0.0}; // = e32_3dp
 
 auto const H_2dp = -e12_2dp; // horizon == line at infinity == cmpl(origin)
 
-auto const e23_2dp_mv = MVec2dp<value_t>{e23_2dp}; // e23_2dp as multivector
 auto const e31_2dp_mv = MVec2dp<value_t>{e31_2dp}; // e31_2dp as multivector
+auto const e32_2dp_mv = MVec2dp<value_t>{e32_2dp}; // e32_2dp as multivector
 auto const e12_2dp_mv = MVec2dp<value_t>{e12_2dp}; // e12_2dp as multivector
 
-auto const e23_2dp_mv_e = MVec2dp_E<value_t>{e23_2dp}; // e23_2dp as even multivector
 auto const e31_2dp_mv_e = MVec2dp_E<value_t>{e31_2dp}; // e31_2dp as even multivector
+auto const e32_2dp_mv_e = MVec2dp_E<value_t>{e32_2dp}; // e32_2dp as even multivector
 auto const e12_2dp_mv_e = MVec2dp_E<value_t>{e12_2dp}; // e12_2dp as even multivector
 
 auto const I_2dp = PScalar2dp<value_t>(1.0); // I_2dp = e3^e2^e1 = e321
 auto const e321_2dp = I_2dp;
 auto const I_2dp_mv = MVec2dp<value_t>{I_2dp};     // I_2dp as multivector
-auto const I_2dp_mv_u = MVec2dp_U<value_t>{I_2dp}; // I_2dp as odd grade multivector
+auto const I_2dp_mv_u = MVec2dp_U<value_t>{I_2dp}; // I_2dp as odd-grade multivector
 
 // extended metric for pga2dp (8×8 matrix, 64 elements)
-// Basis: 1, e1, e2, e3, e23, e31, e12, e321
+// Basis: 1, e1, e2, e3, e31, e32, e12, e321
 inline constexpr std::array<int, 64> pga2dp_metric = {
     1, 0, 0, 0, 0, 0, 0, 0, // 1
     0, 1, 0, 0, 0, 0, 0, 0, // e1
     0, 0, 1, 0, 0, 0, 0, 0, // e2
     0, 0, 0, 0, 0, 0, 0, 0, // e3
-    0, 0, 0, 0, 0, 0, 0, 0, // e23
     0, 0, 0, 0, 0, 0, 0, 0, // e31
+    0, 0, 0, 0, 0, 0, 0, 0, // e32
     0, 0, 0, 0, 0, 0, 1, 0, // e12
     0, 0, 0, 0, 0, 0, 0, 0  // e321
 };
@@ -180,14 +180,14 @@ inline constexpr auto pga2dp_metric_view()
 }
 
 // Regressive extended metric for pga2dp (8×8 matrix, 64 elements)
-// Basis: 1, e1, e2, e3, e23, e31, e12, e321
+// Basis: 1, e1, e2, e3, e31, e32, e12, e321
 inline constexpr std::array<int, 64> pga2dp_rmetric = {
     0, 0, 0, 0, 0, 0, 0, 0, // 1
     0, 0, 0, 0, 0, 0, 0, 0, // e1
     0, 0, 0, 0, 0, 0, 0, 0, // e2
     0, 0, 0, 1, 0, 0, 0, 0, // e3
-    0, 0, 0, 0, 1, 0, 0, 0, // e23
-    0, 0, 0, 0, 0, 1, 0, 0, // e31
+    0, 0, 0, 0, 1, 0, 0, 0, // e31
+    0, 0, 0, 0, 0, 1, 0, 0, // e32
     0, 0, 0, 0, 0, 0, 0, 0, // e12
     0, 0, 0, 0, 0, 0, 0, 1  // e321
 };

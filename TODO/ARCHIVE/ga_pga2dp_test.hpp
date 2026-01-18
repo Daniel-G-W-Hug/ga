@@ -3419,7 +3419,7 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("p^f = {}, bulk(p^f) = {} (=torque)", wdg(P - O_2dp, f),
                      bulk(wdg(P - O_2dp, f)));
         fmt::println("");
-        CHECK(support(F) == vec2dp{2.25, 0, 1});
+        CHECK(sup(F) == vec2dp{2.25, 0, 1});
         CHECK(wdg(P, f) == wdg(O_2dp, f) + wdg(P - O_2dp, f));
 
         auto R1 = vec2dp{1.5, 2, 1};

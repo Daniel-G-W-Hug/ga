@@ -1791,12 +1791,12 @@ void register_functions(sol::state& lua)
                                 sol::resolve<bivec3dp(trivec3dp const&)>(att),
                                 sol::resolve<trivec3dp(pscalar3dp)>(att)));
 
-    lua.set_function("support", sol::overload(
-                                    // PGA 2DP support
-                                    sol::resolve<vec2dp(bivec2dp const&)>(support),
-                                    // PGA 3DP support
-                                    sol::resolve<vec3dp(bivec3dp const&)>(support),
-                                    sol::resolve<vec3dp(trivec3dp const&)>(support)));
+    lua.set_function("sup", sol::overload(
+                                // PGA 2DP support
+                                sol::resolve<vec2dp(bivec2dp const&)>(sup),
+                                // PGA 3DP support
+                                sol::resolve<vec3dp(bivec3dp const&)>(sup),
+                                sol::resolve<vec3dp(trivec3dp const&)>(sup)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // angles and rotations
@@ -2351,8 +2351,8 @@ void register_constants(sol::state& lua)
     lua["e3_2dp_mv"] = e3_2dp_mv;
 
     // 2dp bivectors
-    lua["e23_2dp"] = e23_2dp;
     lua["e31_2dp"] = e31_2dp;
+    lua["e32_2dp"] = e32_2dp;
     lua["e12_2dp"] = e12_2dp;
 
     // 2dp axes as bivectors
