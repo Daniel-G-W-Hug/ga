@@ -78,3 +78,34 @@
            utility functions; test case added to show how to recover the perpendicular
            distance from a bivector created with the wedge product by applying the
            geometric product
+- 2025/11: added dynamic systems support with spring-mass system implementation in
+           pga2dp; extended motor operations for robotics applications with kinematic
+           chains; enhanced physics modelling documentation including forces as lines
+           (forque); improved ga_prdxpr with automatic dual calculation via extended
+           metric and STA4D product tables; unified function naming (support(),
+           is_congruent()); added DualNum2dp/3dp infrastructure with tests and lua
+           integration; reworked transformations in pga2dp/pga3dp including screw motion;
+           improved ga_view with connecting arrows for reflections and updated angle
+           calculation; added bulk_normalize to lua; added metrics and regressive metrics
+           to user constants; MSVC compatibility improvements
+- 2025/12: added regressive wedge and geometric products for PGA multivectors in ga lib
+           and ga_lua; implemented multivector normalization; added motion modelling
+           chapter for EGA and PGA with tests in ega3d and pga3dp; extended commutator
+           products for trivector-vector combinations; added conditional rotor/motor
+           normalization; implemented product table output from ga_prdxpr for easy
+           reference; enhanced documentation with complements, duals, dot products for
+           pga3dp; added momentum tests and documentation; stricter numeric_types type
+           checking; simplified rk_integration file structure; extended wdg/rwdg for
+           even/odd PGA multivectors; fixed MSVC compatibility issues
+- 2026/01: switched pga2dp basis bivectors from (e23, e31, e12) to (e31, e32, e12) for
+           better compatibility with pga3dp where lines encode direction in bivectors;
+           added metric signature as user input for each algebra in ga_prdxpr removing
+           hard-coded elements; implemented recursive extended metric extraction from
+           wedge/dot product rules with validation tests; added consistency checks for
+           user input of multivector basis; updated rule generator to use header file
+           input instead of hard-coding; added dynamics foundation with inertia map and
+           bivector rate of change documentation; added comparison chapter of different
+           approaches with table of contents; added pga2dp tables and basis variant
+           comparison; renamed support() to sup(); added LICENSE file; prepared ideas
+           for direct C++ codegen by ga_prdxpr; adapted ga_view for active bivectors
+           after basis change
