@@ -129,7 +129,7 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         fmt::println("p^f = {}, bulk(p^f) = {} (=torque)", wdg(P - O_3dp, f),
                      bulk(wdg(P - O_3dp, f)));
         fmt::println("");
-        CHECK(support(F) == vec3dp{2.25, 0, 0, 1});
+        CHECK(sup(F) == vec3dp{2.25, 0, 0, 1});
         CHECK(wdg(P, f) == wdg(O_3dp, f) + wdg(P - O_3dp, f));
 
         auto R1 = vec3dp{1.5, 2, 0, 1};
@@ -198,7 +198,7 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
                      bulk(wdg(P - O_3dp, f)));
         fmt::println("");
 
-        CHECK(support(F) == P);
+        CHECK(sup(F) == P);
 
         auto R1 = vec3dp{0.5, 0, -1, 1};
         auto R2 = vec3dp{1.5, 0, -1, 1};

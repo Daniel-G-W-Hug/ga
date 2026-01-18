@@ -17,7 +17,7 @@ The following is provided for Euclidean geometric algebra of two-dimensional spa
 \end{subequations}
 equation (\ref{eq:scalar2d}) is the scalar part $s_{2d}$, equation (\ref{eq:vec2d})
 contains the vector part $v_{2d}$, and equation (\ref{eq:pscalar2d}) contains the
-pseudoscalar part $ps_{2d}$. The index $2d$ is typically omitted when clear from context.
+pseudoscalar part $ps_{2d}$. The index $2d$ is omitted when clear from context.
 The four basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{12}\}$. Using this basis a
 multivector $M$ of $2d$-space is defined as
 \begin{equation}
@@ -41,7 +41,7 @@ orthonormal basis \bv{1}, \bv{2}, \bv{3} there are:
         \label{eq:scalar3d} \\
         v_{3d} & = v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
         \label{eq:vec3d} \\ 
-        B_{3d} & = b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} 
+        B_{3d} & = b_{1}\bv{23} + b_{2}\bv{31} + b_{3}\bv{12} 
         \label{eq:bivec3d} \\ 
         ps_{3d} & = ps \, \bv{123}  = ps \, \ps
         \label{eq:pscalar3d}
@@ -50,17 +50,17 @@ orthonormal basis \bv{1}, \bv{2}, \bv{3} there are:
 equation (\ref{eq:scalar3d}) is the scalar part $s_{3d}$, equation (\ref{eq:vec3d}) is the
 vector part $v_{3d}$, equation (\ref{eq:bivec3d}) is the bivector part $B_{3d}$, and
 equation (\ref{eq:pscalar3d}) is the pseudoscalar part $ps_{3d}$. The index $3d$ is
-typically omitted when clear from context. Compared to the $2d$-case it is obvious, that
-all parts depend on context, specifically on the dimensionality of the modelled space, and
-thus need to be defined and treated accordingly.\footnote{\emph{hint}: Since \Cpp is a
-statically typed language, those types need to be well-defined and distinguishable from
-each other. This is especially important for the different scalar and pseudoscalar types.
-The ga library uses type tagging extensively for that purpose.} The basis elements are
-$\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31}, \bv{12}, \bv{123}\}$. Using this
-basis a multivector $M$ of $3d$-space is defined as
+omitted when clear from context. Compared to the $2d$-case it is obvious, that all parts
+depend on context, specifically on the dimensionality of the modelled space, and thus need
+to be defined and treated accordingly.\footnote{\emph{hint}: Since \Cpp is a statically
+typed language, those types need to be well-defined and distinguishable from each other.
+This is especially important for the different scalar and pseudoscalar types. The ga
+library uses type tagging extensively for that purpose.} The basis elements are $\{\bm{1},
+\bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31}, \bv{12}, \bv{123}\}$. Using this basis a
+multivector $M$ of $3d$-space is defined as
 \begin{equation}
     M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
-    + b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} + ps \, \bv{123}
+    + b_{1}\bv{23} + b_{2}\bv{31} + b_{3}\bv{12} + ps \, \bv{123}
     \label{eq:mvec3d}  
 \end{equation}
 where equation (\ref{eq:mvec3d}) contains four parts: the scalar component $s \, \bm{1}$
@@ -82,7 +82,7 @@ modelled by embedding it in a three-dimensional space. Using an orthonormal basi
         \label{eq:scalar2dp} \\
         v_{2dp} & = v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
         \label{eq:vec2dp} \\ 
-        B_{2dp} & = b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} 
+        B_{2dp} & = b_{1}\bv{31} + b_{2}\bv{32} + b_{3}\bv{12} 
         \label{eq:bivec2dp} \\ 
         ps_{2dp} & = ps \, \bv{321}  = ps \, \ps
         \label{eq:pscalar2dp}
@@ -92,14 +92,19 @@ The most obvious difference is the basis vector~\bv{3} that squares to zero and 
 pseudoscalar of that space that is chosen to be \bv{321}. The trivector \bv{321} squares
 to $0$, because of it's component \bv{3} contained as a factor. Equation
 (\ref{eq:scalar2dp}) is the scalar part $s_{2dp}$, equation (\ref{eq:vec2dp}) is the
-vector part $v_{2dp}$, equation (\ref{eq:bivec2dp}) is the bivector part $B_{2dp}$, and
-equation (\ref{eq:pscalar2dp}) is the pseudoscalar part $ps_{2dp}$. The index $2dp$ is
-typically omitted when clear from context. The eight basis elements are $\{\bm{1}, \bv{1},
-\bv{2}, \bv{3}, \bv{23}, \bv{31}, \bv{12}, \bv{321}\}$. Using this basis a multivector $M$
-of two-dimensional projective space ($2dp$) is defined as
+vector part $v_{2dp}$, equation (\ref{eq:bivec2dp}) is the bivector part
+$B_{2dp}$\footnote{Here we deviate from Lengyel's approach chosen in
+\cite{Lengyel_pga-illuminated:2024}. Since we want to model physics, it is important to
+generate unified handling for two- and three-dimensional cases.  The chosen sequence of
+basis bivectors assures that lines, which are used to model forces and moments later on,
+have their directions encoded in a unified way.}, and equation (\ref{eq:pscalar2dp}) is
+the pseudoscalar part $ps_{2dp}$. The index $2dp$ is omitted when clear from context. The
+eight basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{31}, \bv{32}, \bv{12},
+\bv{321}\}$. Using this basis a multivector $M$ of two-dimensional projective space
+($2dp$) is defined as
 \begin{equation}
     M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
-    + b_1\bv{23} + b_2\bv{31} + b_3\bv{12} + ps \, \bv{321}
+    + b_1\bv{31} + b_2\bv{32} + b_3\bv{12} + ps \, \bv{321}
     \label{eq:mvec2dp}  
 \end{equation}
 where equation (\ref{eq:mvec2dp}) contains four parts: the scalar component $s \, \bm{1}$
@@ -109,6 +114,25 @@ and the pseudoscalar part $ps \, \bv{321} = ps \, \ps$ (basis element is
 $I_{2dp} = \bv{321}$, which is sometimes written as $\ps$ to show its character
 as pseudoscalar of this space. It is a trivector in two-dimensional Euclidean projective
 space that squares to zero). \\
+
+In $2D$ $PGA$ a projective point $Q$ is modelled as a vector
+\begin{equation}
+    Q_{pga2dp} = \underbrace{q_x \bv{1} + q_y \bv{1}}_{position} +
+                 \underbrace{q_z \bv{3}}_{weight}
+\end{equation}
+where the position is encoded in the bulk part\footnote{Bulk and weight parts are defined
+further below in this section.} of the point, and the weight is the projective component
+$q_z$ that must be unitized (=scaled to 1.0) in order to project the point into the
+Euclidean space. \\
+
+A line $L$ is modelled as a bivector
+\begin{equation}
+    L_{pga2dp} = \underbrace{l_x \bv{31} + l_y \bv{32}}_{direction} +
+                 \underbrace{l_z \bv{12}}_{position}
+\end{equation}
+where the weight part encodes the two-dimensional direction vector $(l_x,l_y)$ of the line
+and the bulk part encodes the position of the line as distance to the origin $O_{2dp} =
+(0,0,1)$. When $l_z = 0$ the line passes through the origin. \\
 
 Projective geometric algebra of three-dimensional Euclidean space (\emph{pga3dp}) is
 modelled by embedding it in a four-dimensional space. Using an orthonormal basis \bv{1},
@@ -121,10 +145,10 @@ modelled by embedding it in a four-dimensional space. Using an orthonormal basis
         \label{eq:scalar3dp} \\
         v_{3dp} & = v_1\bv{1} + v_2\bv{2} + v_3\bv{3} + v_4\bv{4} 
         \label{eq:vec3dp} \\ 
-        B_{3dp} & = b_{41}\bv{41} + b_{42}\bv{42} + b_{43}\bv{43} +
-                    b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} 
+        B_{3dp} & = b_{1}\bv{41} + b_{2}\bv{42} + b_{3}\bv{43} +
+                    b_{4}\bv{23} + b_{5}\bv{31} + b_{6}\bv{12} 
         \label{eq:bivec3dp} \\ 
-        t_{3dp} & = t_{423}\bv{423} + t_{431}\bv{431} + t_{412}\bv{412} + t_{321}\bv{321} 
+        t_{3dp} & = t_{1}\bv{423} + t_{2}\bv{431} + t_{3}\bv{412} + t_{4}\bv{321} 
         \label{eq:trivec3dp} \\ 
         ps_{3dp} & = ps \, \bv{1234}  = ps \, \ps
         \label{eq:pscalar3dp}
@@ -136,18 +160,17 @@ $0$, because of it's component \bv{4} contained as a factor. Equation (\ref{eq:s
 is the scalar part $s_{3dp}$, equation (\ref{eq:vec3dp}) is the vector part $v_{3dp}$,
 equation (\ref{eq:bivec3dp}) is the bivector part $B_{3dp}$, equation (\ref{eq:trivec3dp})
 is the trivector part $t_{3dp}$, and equation (\ref{eq:pscalar3dp}) is the pseudoscalar
-part $ps_{3dp}$. The index $3dp$ is typically omitted when clear from context. The sixteen
-basis elements of $pga3d$ are: $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{4}, \bv{41},
-\bv{42}, \bv{43}, \bv{23}, \bv{31}, \bv{12}, \bv{423}, \bv{431}, \bv{412}, \bv{321},
-\bv{1234}\}$. A multivector $M$ of three-dimensional projective space ($3dp$) is defined
-as
+part $ps_{3dp}$. The index $3dp$ is omitted when clear from context. The sixteen basis
+elements of $pga3d$ are: $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{4}, \bv{41}, \bv{42},
+\bv{43}, \bv{23}, \bv{31}, \bv{12}, \bv{423}, \bv{431}, \bv{412}, \bv{321}, \bv{1234}\}$.
+A multivector $M$ of three-dimensional projective space ($3dp$) is defined as
 \begin{equation}
     \begin{split}
     M & = s \, \bm{1} \\
       & + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} + v_4\bv{4} \\
-      & + b_{41}\bv{41} + b_{42}\bv{42} + b_{43}\bv{43} 
-        + b_{23}\bv{23} + b_{31}\bv{31} + b_{12}\bv{12} \\
-      & + t_{423}\bv{423} + t_{431}\bv{431} + t_{412}\bv{412} + t_{321}\bv{321} \\
+      & + b_{1}\bv{41} + b_{2}\bv{42} + b_{3}\bv{43} 
+        + b_{4}\bv{23} + b_{5}\bv{31} + b_{6}\bv{12} \\
+      & + t_{1}\bv{423} + t_{2}\bv{431} + t_{3}\bv{412} + t_{4}\bv{321} \\
       & + ps \, \bv{1234}
     \label{eq:mvec3dp}
     \end{split}
@@ -161,17 +184,46 @@ where equation (\ref{eq:mvec3dp}) contains five parts: the scalar component $s \
 show its character as pseudoscalar of this space. It is a quadvector in three-dimensional
 Euclidean projective space that squares to zero). \\
 
+In $3D$ $PGA$ a projective point $Q$ is modelled as a vector
+\begin{equation}
+    Q_{pga3dp} = \underbrace{q_x \bv{1} + q_y \bv{1} + q_z \bv{1}}_{position} +
+                 \underbrace{q_w \bv{4}}_{weight}
+\end{equation}
+where the position is encoded in the bulk part of the point, and the weight is the
+projective component $q_w$ that must be unitized (=scaled to 1.0) in order to project the
+point into the Euclidean space. \\
+
+A line $L$ is modelled as a bivector
+\begin{equation}
+    L_{pga3dp} = \underbrace{l_{vx} \bv{41} + l_{vy} \bv{42} + l_{vz} \bv{43}}_{direction}
+                 +
+                 \underbrace{l_{mx} \bv{23} + l_{my} \bv{31} + l_{mz} \bv{12}}_{moment}
+\end{equation}
+where the weight part encodes the three-dimensional direction vector of the line $l_v =
+(l_{vx},l_{vy},l_{vz})$, and the bulk part encodes the moment of the line $l_m =
+(l_{mx},l_{my},l_{mz})$ when interpreted as a vector. Both are encoded in the bivector
+object that captures all parameters needed to model the line. \\
+
+Additionally, there are planes $T$ that are modelled as trivectors
+\begin{equation}
+    T_{pga3dp} = \underbrace{t_x \bv{423} + t_y \bv{431} + t_z \bv{412}}_{normal} +
+                 \underbrace{t_w \bv{312}}_{position}
+\end{equation}
+where the first three components represent the normal vector of the plane $n = (t_x, t_y,
+t_z)$ and the fourth component $t_w$ corresponds to the signed distance to the origin
+$O_{3dp} = (0,0,0,1)$. \\
+
 It is important to note that it is seldomly required to use a full multivector in the
 respective algebra. For most applications it is sufficient to use a blade or $k$-vector
 exclusively, which represents one grade of the multivector, e.g. a vector or a bivector.
 This reduces the effort in terms of memory and computational requirements significantly --
-typically reduced to a level that is required to to solve the underlying application
-problem anyway. \\ 
+typically reduced to a level that is required anyway to solve the underlying application
+problem. \\
 
 The complement operation used in the library is defined
 in~\cite{Lengyel_pga-illuminated:2024}. It is uniquely determined with respect to the
-outer product (not with respect to the geometric product, as commonly used for dualization
-by many autors working with GA). This is essential to generate consistent signs of
+outer product (\emph{not} with respect to the geometric product, as commonly used for
+dualization by many autors working with GA). This is ensures consistent signs of
 expressions, operators, complements and duals. The left complement $\lcmpl{u}$ and the
 right complement $\rcmpl{u}$ are defined as
 \begin{subeqnarray}
@@ -190,9 +242,11 @@ products creates an object that fills the available space in the sense of requir
 basis elements of the space to represent it. The full space itself is represented by the
 pseudoscalar of that space, since the pseudoscalar $I_n$ is formed by the product of all
 $n$ basis vectors of the space. An implication of the definition is that the complement
-($\lcmpl{u}$ or $\rcmpl{u}$) is orthogonal to $u$. The complement is defined as given
-above in equations~(\ref{eq:cmpl_def}) for any basis element. It is extended to full
-multivectors $A$ and $B$ by linearity as
+($\lcmpl{u}$ or $\rcmpl{u}$) is orthogonal to $u$, since we exclusively use orthogonal
+basis vectors to model our space. \\
+
+The complement is defined as given above in equations~(\ref{eq:cmpl_def}) for any basis
+element. It is extended to full multivectors $A$ and $B$ by linearity as
 \begin{subeqnarray}
     % use \label for full label
     % use \slabel for sublabel
@@ -215,9 +269,19 @@ and independent of the dimension of the space modelled in the algebra. In spaces
 dimension, where we only have one complement, applying the complement twice of course
 returns the original object as well. \\
 
-Based on this it is possible to define so-called regressive products using rules analog to
-deMorgan's rules in Boolean algebra as follows (definitions can be found
-in~\cite{Lengyel_pga-illuminated:2024} and in \cite{Browne_Grassmann-Algebra_Vol1:2012}):
+Applying the same complement complement operation several times does not ensure that you
+get back the original object. The result is dependent on the grade of the basis vector and
+the dimension $n$ of the space. When applying the same complement twice we get
+\begin{equation}
+    \rcmpl{\rcmpl{u}} = \lcmpl{\lcmpl{u}} = (-1)^{gr(u)(n-gr(u))} u
+\end{equation}
+i.e. this involves grade-dependent sign changes. So it is favorable to use left and right
+complements as inverses to each other. \\
+
+Based on the given complement definition it is possible to define regressive products
+using rules analog to deMorgan's rules in Boolean algebra as follows (definitions can be
+found in~\cite{Lengyel_pga-illuminated:2024} and in
+\cite{Browne_Grassmann-Algebra_Vol1:2012}):
 \begin{subeqnarray}
     % use \label for full label
     % use \slabel for sublabel
@@ -364,8 +428,8 @@ difference between the hodge dual and the complement is in both cases that multi
 multivector with the extended metric happens \emph{before} taking the corresponding
 complement. However, this does not lead to different results in spaces where the metric is
 the identity matrix. It only yields different results in spaces with a more involved
-metric, e.g. like in projective spaces with a non-invertible (degenerate) metric as we
-have in $PGA$. \\
+metric, e.g. in projective spaces with a non-invertible (degenerate) metric as in $PGA$.
+\\
 
 The effect of applying the metric before taking the complement is equivalent to applying
 the complement operation on the bulk part of the object $u$ exclusively, and not on the
@@ -377,15 +441,14 @@ right complement as
     \rightweightdual{A} = \rcmpl{\rmetric{G}A} = \rcmpl{\weight{A}}
         \label{eq:rightweightdual}
 \end{equation}
-for an arbitrary multivector $A$. The corresponding left weight dual \leftweightdual{A} is
-defined as
+for an arbitrary multivector $A$. The left weight dual \leftweightdual{A} is defined as
 \begin{equation}
     \leftweightdual{A} = \lcmpl{\rmetric{G}A} = \lcmpl{\weight{A}}
         \label{eq:leftweightdual}
 \end{equation}
 using the left complement on the weight part of $A$.\\
 
-Relations to the geometric product and the regressive geometric product are given by
+Relations to the (regressive) geometric product product are given by
 \begin{subeqnarray}
     \rightbulkdual{A} & = &  \rev{A} \wedgedot I_n = \rev{A} \wedgedot
     \ps \slabel{eq:hodge_right} \\
@@ -611,6 +674,8 @@ write specifically for two vectors $a$ and $b$:
     a \wedgedot b =  a \cdot b + a \wedge b
 \end{equation}
 
+\newpage
+
 \cite{Lengyel_transwedge_product:2025} has shown that the geometric product can be derived
 by using operations from Grassmann algebra exclusively. These are the wedge product, the
 complement and the duality operations. This demonstrates that the geometric product is not
@@ -633,11 +698,10 @@ these expressions the geometric product can be formed by
     \label{eq:grp_twdg}
 \end{equation}
 
-For $k=0$ the formula yields the outer product (wedge product). For higher values of $k$
-other products are generated which sum up to the full geometric product. Thus the
-transwedge products helps to decompose the geometric product. The most interesting for
-applications are the wedge product resulting for $k=0$ and the transwedge product of order
-$k=1$. \\
+For $k=0$ this yields the outer product (wedge product). For higher values of $k$ other
+products are generated which sum up to the full geometric product. Thus the transwedge
+products helps to decompose the geometric product. The most interesting for applications
+are the wedge product resulting for $k=0$ and the transwedge product of order $k=1$. \\
 
 The regressive wedge product in equation~(\ref{eq:twdg_orig}) can be replaced by the wedge
 product using the complement-based definitions given in equations~(\ref{eq:double_cmpl})
@@ -684,27 +748,27 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
-    $\bm{u}$        & $\bm{1}$
-                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
-                    & $\bv{41}$      & $\bv{42}$     & $\bv{43}$ 
-                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
-                    & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
-                    & $\ps$
-                    \\ \hline
+    $\bm{u}$             & $\bm{1}$
+                         & $\bv{1}$    & $\bv{2}$      & $\bv{3}$     & $\bv{4}$
+                         & $\bv{41}$   & $\bv{42}$     & $\bv{43}$ 
+                         & $\bv{23}$   & $\bv{31}$     & $\bv{12}$
+                         & $\bv{423}$  & $\bv{431}$    & $\bv{412}$   & $\bv{321}$
+                         & $\ps$
+                         \\ \hline
     $\bm{u}\cdot\bm{u}$  & $\bm{1}$        
-                         & $\bm{1}$  & $\bm{1}$      & $\bm{1}$     & $0$
-                         & $0$       & $0$           & $0$
-                         & $\bm{1}$  & $\bm{1}$      & $\bm{1}$ 
-                         & $0$       & $0$           & $0$          & $\bm{1}$
+                         & $\bm{1}$    & $\bm{1}$      & $\bm{1}$     & $0$
+                         & $0$         & $0$           & $0$
+                         & $\bm{1}$    & $\bm{1}$      & $\bm{1}$ 
+                         & $0$         & $0$           & $0$          & $\bm{1}$
                          & $0$
                          \\ \hline
-    $\bm{u}\circ\bm{u}$ & $0$        
-                        & $0$        & $0$           & $0$          & $\ps$
-                        & $\ps$      & $\ps$         & $\ps$
-                        & $0$        & $0$           & $0$ 
-                        & $\ps$      & $\ps$         & $\ps$        & $0$
-                        & $\ps$
-                        \\ \hline
+    $\bm{u}\circ\bm{u}$  & $0$        
+                         & $0$         & $0$           & $0$          & $\ps$
+                         & $\ps$       & $\ps$         & $\ps$
+                         & $0$         & $0$           & $0$ 
+                         & $\ps$       & $\ps$         & $\ps$        & $0$
+                         & $\ps$
+                         \\ \hline
     \end{tabular}
     \caption{\small Dot and regressive dot products in pga3dp for every basis element.}
     \label{tab:pga3dp_dot_products}
@@ -715,27 +779,27 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
-    $\bm{u}$        & $\bm{1}$
-                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
-                    & $\bv{41}$      & $\bv{42}$     & $\bv{43}$ 
-                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
-                    & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
-                    & $\ps$
-                    \\ \hline
-    $\rcmpl{\bm{u}}$  & $\ps$        
-                    & $\bv{423}$    & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
-                    & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
-                    & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
-                    & $-\bv{1}$     & $-\bv{2}$     & $-\bv{3}$     & $-\bv{4}$
-                    & $\bm{1}$
-                    \\ \hline
+    $\bm{u}$         & $\bm{1}$
+                     & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     & $\bv{4}$
+                     & $\bv{41}$      & $\bv{42}$     & $\bv{43}$ 
+                     & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                     & $\bv{423}$     & $\bv{431}$    & $\bv{412}$   & $\bv{321}$
+                     & $\ps$
+                     \\ \hline
+    $\rcmpl{\bm{u}}$ & $\ps$        
+                     & $\bv{423}$    & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
+                     & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
+                     & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                     & $-\bv{1}$     & $-\bv{2}$     & $-\bv{3}$     & $-\bv{4}$
+                     & $\bm{1}$
+                     \\ \hline
     $\lcmpl{\bm{u}}$ & $\ps$        
-                    & $-\bv{423}$   & $-\bv{431}$   & $-\bv{412}$   & $-\bv{321}$
-                    & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
-                    & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
-                    & $\bv{1}$      & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
-                    & $\bm{1}$
-                    \\ \hline
+                     & $-\bv{423}$   & $-\bv{431}$   & $-\bv{412}$   & $-\bv{321}$
+                     & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
+                     & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                     & $\bv{1}$      & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
+                     & $\bm{1}$
+                     \\ \hline
     \end{tabular}
     \caption{\small Right and left complements in pga3dp for every basis element.}
     \label{tab:pga3dp_complement}
@@ -746,44 +810,44 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
-    $\bm{u}$        & $\bm{1}$
-                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
-                    & $\bv{41}$      & $\bv{42}$     & $\bv{43}$ 
-                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
-                    & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
-                    & $\ps$
-                    \\ \hline
-    $\rightbulkdual{\bm{u}}$  & $\ps$        
-                         & $\bv{423}$    & $\bv{431}$    & $\bv{412}$    & $0$
-                         & $0$           & $0$           & $0$
-                         & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
-                         & $0$           & $0$           & $0$           & $-\bv{4}$
-                         & $0$
-                         \\ \hline
-    $\leftbulkdual{\bm{u}}$ & $\ps$        
-                         & $-\bv{423}$   & $-\bv{431}$   & $-\bv{412}$   & $0$
-                         & $0$           & $0$           & $0$
-                         & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
-                         & $0$           & $0$           & $0$           & $\bv{4}$
-                         & $0$
-                         \\ \hline
-    $\rightweightdual{\bm{u}}$  & $0$        
-                           & $0$          & $0$    & $0$  & $\bv{321}$
-                           & $-\bv{23}$   & $-\bv{31}$    & $-\bv{12}$
-                           & $0$          & $0$           & $0$ 
-                           & $-\bv{1}$    & $-\bv{2}$     & $-\bv{3}$    & $0$
-                           & $\bm{1}$
-                           \\ \hline
-    $\leftweightdual{\bm{u}}$ & $0$        
-                           & $0$          & $0$    & $0$  & $-\bv{321}$
-                           & $-\bv{23}$   & $-\bv{31}$    & $-\bv{12}$
-                           & $0$          & $0$           & $0$
-                           & $\bv{1}$     & $\bv{2}$      & $\bv{3}$     & $0$
-                           & $\bm{1}$
-                           \\ \hline
+    $\bm{u}$                   & $\bm{1}$
+                               & $\bv{1}$      & $\bv{2}$      & $\bv{3}$    & $\bv{4}$
+                               & $\bv{41}$     & $\bv{42}$     & $\bv{43}$ 
+                               & $\bv{23}$     & $\bv{31}$     & $\bv{12}$
+                               & $\bv{423}$    & $\bv{431}$    & $\bv{412}$  & $\bv{321}$
+                               & $\ps$
+                               \\ \hline
+    $\rightbulkdual{\bm{u}}$   & $\ps$        
+                               & $\bv{423}$    & $\bv{431}$    & $\bv{412}$  & $0$
+                               & $0$           & $0$           & $0$
+                               & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                               & $0$           & $0$           & $0$         & $-\bv{4}$
+                               & $0$
+                               \\ \hline
+    $\leftbulkdual{\bm{u}}$    & $\ps$        
+                               & $-\bv{423}$   & $-\bv{431}$   & $-\bv{412}$ & $0$
+                               & $0$           & $0$           & $0$
+                               & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                               & $0$           & $0$           & $0$         & $\bv{4}$
+                               & $0$
+                               \\ \hline
+    $\rightweightdual{\bm{u}}$ & $0$        
+                               & $0$          & $0$    & $0$  & $\bv{321}$
+                               & $-\bv{23}$   & $-\bv{31}$    & $-\bv{12}$
+                               & $0$          & $0$           & $0$ 
+                               & $-\bv{1}$    & $-\bv{2}$     & $-\bv{3}$    & $0$
+                               & $\bm{1}$
+                               \\ \hline
+    $\leftweightdual{\bm{u}}$  & $0$        
+                               & $0$          & $0$           & $0$          & $-\bv{321}$
+                               & $-\bv{23}$   & $-\bv{31}$    & $-\bv{12}$
+                               & $0$          & $0$           & $0$
+                               & $\bv{1}$     & $\bv{2}$      & $\bv{3}$     & $0$
+                               & $\bm{1}$
+                               \\ \hline
     \end{tabular}
     \caption{\small Right/left bulk duals and right/left weight duals in pga3dp
-    for every basis element.}
+    for every basis element (=complement applied to bulk and weight).}
     \label{tab:pga3dp_bulk_weight_duals}
     \end{center}
 
@@ -819,6 +883,9 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
     \end{center}
 \end{sidewaystable}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% pga2dp from here on
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{sidewaystable}
     \begin{center}
@@ -826,21 +893,21 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
-    $\bm{u}$        & $\bm{1}$
-                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
-                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
-                    & $\ps$
-                    \\ \hline
+    $\bm{u}$             & $\bm{1}$
+                         & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
+                         & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
+                         & $\ps$
+                         \\ \hline
     $\bm{u}\cdot\bm{u}$  & $\bm{1}$        
-                         & $\bm{1}$      & $\bm{1}$      & $0$           
-                         & $0$           & $0$           & $\bm{1}$
+                         & $\bm{1}$       & $\bm{1}$      & $0$           
+                         & $0$            & $0$           & $\bm{1}$
                          & $0$
                          \\ \hline
-    $\bm{u}\circ\bm{u}$ & $0$        
-                        & $0$            & $0$           & $\ps$
-                        & $\ps$          & $\ps$         & $0$
-                        & $\ps$
-                        \\ \hline
+    $\bm{u}\circ\bm{u}$  & $0$        
+                         & $0$            & $0$           & $\ps$
+                         & $\ps$          & $\ps$         & $0$
+                         & $\ps$
+                         \\ \hline
     \end{tabular}
     \caption{\small Dot and regressive dot products in pga2dp for every basis element.}
     \label{tab:pga2dp_dot_products}
@@ -851,14 +918,14 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
-    $\bm{u}$        & $\bm{1}$
-                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
-                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
-                    & $\ps$
-                    \\ \hline
+    $\bm{u}$          & $\bm{1}$
+                      & $\bv{1}$      & $\bv{2}$      & $\bv{3}$     
+                      & $\bv{31}$     & $\bv{32}$     & $\bv{12}$
+                      & $\ps$
+                      \\ \hline
     $\rcmpl{\bm{u}}$  & $\ps$        
-                      & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
-                      & $-\bv{1}$     & $-\bv{2}$     & $-\bv{3}$
+                      & $\bv{32}$     & $-\bv{31}$    & $-\bv{12}$
+                      & $-\bv{2}$     & $ \bv{1} $    & $-\bv{3}$
                       & $\bm{1}$
                       \\ \hline
     \end{tabular}
@@ -871,23 +938,24 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
-    $\bm{u}$        & $\bm{1}$
-                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
-                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
-                    & $\ps$
-                    \\ \hline
-    $\rightbulkdual{\bm{u}}$  & $\ps$        
-                              & $-\bv{23}$    & $-\bv{31}$    & $0$           
-                              & $0$           & $0$           & $-\bv{3}$
-                              & $0$
-                              \\ \hline
+    $\bm{u}$                    & $\bm{1}$
+                                & $\bv{1}$      & $\bv{2}$     & $\bv{3}$     
+                                & $\bv{31}$     & $\bv{32}$    & $\bv{12}$
+                                & $\ps$
+                                \\ \hline
+    $\rightbulkdual{\bm{u}}$    & $\ps$        
+                                & $\bv{32}$     & $-\bv{31}$   & $0$           
+                                & $0$           & $0$          & $-\bv{3}$
+                                & $0$
+                                \\ \hline
     $\rightweightdual{\bm{u}}$  & $0$        
-                                & $0$          & $0$           & $-\bv{12}$
-                                & $-\bv{1}$    & $-\bv{2}$     & $0$
+                                & $0$           & $0$          & $-\bv{12}$
+                                & $-\bv{2}$     & $\bv{1}$     & $0$
                                 & $\bm{1}$
                                 \\ \hline
     \end{tabular}
-    \caption{\small Bulk duals and weight duals in pga2dp for every basis element.}
+    \caption{\small Bulk duals and weight duals in pga2dp for every basis element
+    (=complement applied to bulk and weight).}
     \label{tab:pga2dp_bulk_weight_duals}
     \end{center}
 
@@ -898,17 +966,17 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
     \rowcolor{blue!20}
     $\bm{u}$        & $\bm{1}$
                     & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
-                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
                     & $\ps$
                     \\ \hline
     $\rev{\bm{u}}$  & $\bm{1}$
                     & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
-                    & $-\bv{23}$      & $-\bv{31}$     & $-\bv{12}$
+                    & $-\bv{31}$     & $-\bv{32}$    & $-\bv{12}$
                     & $-\ps$
                     \\ \hline
     $\rrev{\bm{u}}$ & $-\bm{1}$
-                    & $-\bv{1}$       & $-\bv{2}$      & $-\bv{3}$     
-                    & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
+                    & $-\bv{1}$      & $-\bv{2}$     & $-\bv{3}$     
+                    & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
                     & $\ps$
                     \\ \hline
     \end{tabular}

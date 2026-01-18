@@ -828,16 +828,16 @@ TEST_SUITE("PGA 3DP Tests")
         p123 = unitize(wdg(wdg(p1, p2), p3)); // TriVec3dp(0, 1, 0, -1)
         p123r = reflect_on(p123, zx_3dp);     // TriVec3dp(-0, -1, -0, -1)
 
-        auto s123 = support(p123);   // point in p123 that is closest to the origin
-        auto s123r = support(p123r); // point in p123r that is closest to the origin
+        auto s123 = sup(p123);   // point in p123 that is closest to the origin
+        auto s123r = sup(p123r); // point in p123r that is closest to the origin
 
         // fmt::println("");
         // fmt::println("p123  = {}", p123);
         // fmt::println("p123r = {}", p123r);
         // fmt::println("att(p123)  = {}", att(p123));
         // fmt::println("att(p123r) = {}", att(p123r));
-        // fmt::println("support(p123)  = {}", s123);
-        // fmt::println("support(p123r) = {}", s123r);
+        // fmt::println("sup(p123)  = {}", s123);
+        // fmt::println("sup(p123r) = {}", s123r);
         // fmt::println("");
 
         CHECK(p123.x == -p123r.x); // minus sign is the mirrored normal
@@ -1023,14 +1023,14 @@ TEST_SUITE("PGA 3DP Tests")
         auto vp3 = rgpr(l3, H_3dp);
 
         fmt::println("");
-        fmt::println("l1  = {: 5.3f}, att(l1) = {: 5.3f}, support(l1) = {: 5.3f}", l1,
-                     att(l1), support(l1));
-        fmt::println("l2  = {: 5.3f}, att(l2) = {: 5.3f}, support(l2) = {: 5.3f}", l2,
-                     att(l2), support(l2));
-        fmt::println("l3  = {: 5.3f}, att(l3) = {: 5.3f}, support(l3) = {: 5.3f}", l3,
-                     att(l3), support(l3));
-        fmt::println("l4  = {: 5.3f}, att(l4) = {: 5.3f}, support(l4) = {: 5.3f}", l4,
-                     att(l4), support(l4));
+        fmt::println("l1  = {: 5.3f}, att(l1) = {: 5.3f}, sup(l1) = {: 5.3f}", l1,
+                     att(l1), sup(l1));
+        fmt::println("l2  = {: 5.3f}, att(l2) = {: 5.3f}, sup(l2) = {: 5.3f}", l2,
+                     att(l2), sup(l2));
+        fmt::println("l3  = {: 5.3f}, att(l3) = {: 5.3f}, sup(l3) = {: 5.3f}", l3,
+                     att(l3), sup(l3));
+        fmt::println("l4  = {: 5.3f}, att(l4) = {: 5.3f}, sup(l4) = {: 5.3f}", l4,
+                     att(l4), sup(l4));
         fmt::println("");
         fmt::println("vp1 = {: 5.3f}", vp1);
         fmt::println("vp2 = {: 5.3f}", vp2);

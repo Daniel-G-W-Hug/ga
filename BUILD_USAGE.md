@@ -85,7 +85,8 @@ sudo apt-get install libfmt-dev libdoctest-dev libreadline-dev
 
 ## Migration from Old System
 
-The new system is **fully backward compatible**. Your existing build workflow continues to work:
+The new system is **fully backward compatible**. Your existing build workflow continues to
+work:
 
 ```bash
 cd build
@@ -97,15 +98,15 @@ No changes needed to your existing scripts or documentation.
 
 ## Dependency Resolution Summary
 
-| Dependency | macOS | Windows | Linux | Fallback |
-|------------|-------|---------|-------|----------|
-| Qt6 | brew | qt.io installer | apt-get | ❌ Required |
-| Lua | brew | lua.org | apt-get | ❌ Required |
-| fmt | brew | vcpkg | apt-get | ✅ FetchContent |
-| doctest | brew | vcpkg | apt-get | ✅ FetchContent |
-| sol2 | ❌ | ❌ | ❌ | ✅ FetchContent |
-| hd utils | ../../include/hd | ../../include/hd | ../../include/hd | ❌ Project-specific |
-| readline | brew | ❌ | apt-get | ❌ Optional |
+| Dependency | macOS            | Windows          | Linux   | Fallback            |
+|------------|------------------|------------------|---------|---------------------|
+| Qt6        | brew             | qt.io installer  | apt-get | Required            |
+| Lua        | brew             | lua.org          | apt-get | Required            |
+| fmt        | brew             | vcpkg            | apt-get | FetchContent        |
+| doctest    | brew             | vcpkg            | apt-get | FetchContent        |
+| sol2       | n/a              | n/a              | n/a     | FetchContent        |
+| hd utils   | ../../include/hd | ../../include/hd | same    | Project-specific    |
+| readline   | brew             | n/a              | apt-get | Optional            |
 
 ## Configuration Summary Display
 

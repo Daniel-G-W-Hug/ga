@@ -10,7 +10,7 @@
 namespace configurable {
 
 // Output type flags
-enum class OutputType { Products, Tables, Metrics };
+enum class OutputType { Coeffs, Tables, Metrics };
 
 // Generator runtime options
 struct GeneratorOptions {
@@ -29,7 +29,7 @@ struct GeneratorOptions {
     // Helper functions
     bool should_generate_algebra(std::string const& algebra_name) const;
     bool should_generate_product(std::string const& product_name) const;
-    bool should_show_products() const;
+    bool should_show_coeffs() const;
     bool should_show_tables() const;
     bool should_show_metrics() const;
     bool is_filtering_active() const;

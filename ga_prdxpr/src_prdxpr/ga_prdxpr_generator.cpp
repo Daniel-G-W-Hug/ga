@@ -120,7 +120,7 @@ void ConfigurableGenerator::generate_product_expressions(AlgebraData const& alge
     }
 
     // Generate each configured case (only if product expressions are requested)
-    if (options.should_show_products()) {
+    if (options.should_show_coeffs()) {
         if (config.is_sandwich_product) {
             // For sandwich products, generate the complete two-step process regardless of
             // individual case settings

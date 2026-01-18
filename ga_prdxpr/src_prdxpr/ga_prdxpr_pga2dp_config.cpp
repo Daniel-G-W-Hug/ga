@@ -318,6 +318,9 @@ ProductConfig get_pga2dp_dot_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {{"dot(mv,mv) -> s", "A", "B", "mv", "mv"},
+                      {"dot(mv_e,mv_e) -> s", "A_even", "B_even", "mv_e", "mv_e"},
+                      {"dot(mv_u,mv_u) -> s", "A_odd", "B_odd", "mv_u", "mv_u"},
+                      //
                       {"dot(ps,ps) -> 0", "svBps1", "svBps2", "ps", "ps"},
                       {"dot(bivec,bivec) -> s", "svBps1", "svBps2", "bivec", "bivec"},
                       {"dot(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
@@ -369,21 +372,26 @@ ProductConfig get_pga2dp_right_bulk_contract_config()
         // "left_filter", "right_filter"}
         .cases =
             {{"right_bulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             //
              {"right_bulk_contract(ps,ps) -> 0", "svBps1", "svBps2", "ps", "ps"},
              {"right_bulk_contract(ps,bivec) -> vec", "svBps", "svBps", "ps", "bivec"},
              {"right_bulk_contract(bivec,ps) -> 0", "svBps", "svBps", "bivec", "ps"},
+             {"right_bulk_contract(ps,vec) -> bivec", "svBps", "svBps", "ps", "vec"},
              {"right_bulk_contract(vec,ps) -> 0", "svBps", "svBps", "vec", "ps"},
              {"right_bulk_contract(ps,s) -> ps", "svBps", "svBps", "ps", "s"},
              {"right_bulk_contract(s,ps) -> 0", "svBps", "svBps", "s", "ps"},
+             //
              {"right_bulk_contract(bivec,bivec) -> s", "svBps1", "svBps2", "bivec",
               "bivec"},
              {"right_bulk_contract(bivec,vec) -> vec", "svBps", "svBps", "bivec", "vec"},
              {"right_bulk_contract(vec,bivec) -> 0", "svBps", "svBps", "vec", "bivec"},
              {"right_bulk_contract(bivec,s) -> bivec", "svBps", "svBps", "bivec", "s"},
              {"right_bulk_contract(s,bivec) -> 0", "svBps", "svBps", "s", "bivec"},
+             //
              {"right_bulk_contract(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
              {"right_bulk_contract(vec,s) -> vec", "svBps", "svBps", "vec", "s"},
              {"right_bulk_contract(s,vec) -> 0", "svBps", "svBps", "s", "vec"},
+             //
              {"right_bulk_contract(s,s) -> s", "svBps1", "svBps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
@@ -547,8 +555,8 @@ ProductConfig get_pga2dp_rtwdg1_config()
             .cases = {{"bivec * bivec -> ps", "svBps1", "svBps2", "bivec", "bivec"},
                       {"bivec * vec -> bivec", "svBps", "svBps", "bivec", "vec"},
                       {"vec * bivec -> bivec", "svBps", "svBps", "vec", "bivec"},
-                      {"s * bivec -> vec", "svBps", "svBps", "s", "bivec"},
                       {"bivec * s -> vec", "svBps", "svBps", "bivec", "s"},
+                      {"s * bivec -> vec", "svBps", "svBps", "s", "bivec"},
                       {"vec * vec -> vec", "svBps1", "svBps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -614,7 +622,11 @@ ProductConfig get_pga2dp_rdot_config()
             .display_name = "regressive inner product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {{"rdot(ps,ps) -> ps", "svBps1", "svBps2", "ps", "ps"},
+            .cases = {{"rdot(mv,mv) -> ps", "A", "B", "mv", "mv"},
+                      {"rdot(mv_e,mv_e) -> ps", "A_even", "B_even", "mv_e", "mv_e"},
+                      {"rdot(mv_u,mv_u) -> ps", "A_odd", "B_odd", "mv_u", "mv_u"},
+                      //
+                      {"rdot(ps,ps) -> ps", "svBps1", "svBps2", "ps", "ps"},
                       {"rdot(bivec,bivec) -> ps", "svBps1", "svBps2", "bivec", "bivec"},
                       {"rdot(vec,vec) -> ps", "svBps1", "svBps2", "vec", "vec"},
                       {"rdot(s,s) -> 0", "svBps1", "svBps2", "s", "s"}},

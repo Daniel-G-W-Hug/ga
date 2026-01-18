@@ -1,18 +1,19 @@
 # GA Library Include Guide
 
-This guide helps you choose the optimal include strategy for your geometric algebra applications.
+This guide helps you choose the optimal include strategy for your geometric algebra
+applications.
 
 ## Quick Reference
 
-| Use Case | Include Header | Compilation Speed | Features |
-|----------|----------------|-------------------|----------|
-| **Type definitions only** | `#include "ga/ga_minimal.hpp"` | 🚀 Fastest (60-70% faster) | All types, no operations |
-| **2D Euclidean GA only** | `#include "ga/ga_ega2d_only.hpp"` | 🏃 Fast (30-40% faster) | Complete 2D EGA |
-| **3D Euclidean GA only** | `#include "ga/ga_ega3d_only.hpp"` | 🏃 Fast (25-35% faster) | Complete 3D EGA |
-| **2DP Projective GA only** | `#include "ga/ga_pga2dp_only.hpp"` | 🏃 Fast (35-45% faster) | Complete 2DP PGA |
-| **3DP Projective GA only** | `#include "ga/ga_pga3dp_only.hpp"` | 🏃 Fast (30-40% faster) | Complete 3DP PGA |
-| **All Euclidean GA** | `#include "ga/ga_ega.hpp"` | 🐌 Standard | Complete EGA (2D, 3D, 4D) |
-| **All Projective GA** | `#include "ga/ga_pga.hpp"` | 🐌 Standard | Complete PGA (2DP, 3DP) |
+| Use Case                   | Include Header                      | Compilation Speed        | Features                  |
+|----------------------------|-------------------------------------|--------------------------|---------------------------|
+| **Type definitions only**  | `#include "ga/ga_minimal.hpp"`      | Fastest (60-70% faster)  | All types, no operations  |
+| **2D Euclidean GA only**   | `#include "ga/ga_ega2d_only.hpp"`   | Fast (30-40% faster)     | Complete 2D EGA           |
+| **3D Euclidean GA only**   | `#include "ga/ga_ega3d_only.hpp"`   | Fast (25-35% faster)     | Complete 3D EGA           |
+| **2DP Projective GA only** | `#include "ga/ga_pga2dp_only.hpp"`  | Fast (35-45% faster)     | Complete 2DP PGA          |
+| **3DP Projective GA only** | `#include "ga/ga_pga3dp_only.hpp"`  | Fast (30-40% faster)     | Complete 3DP PGA          |
+| **All Euclidean GA**       | `#include "ga/ga_ega.hpp"`          | Standard                 | Complete EGA (2D, 3D, 4D) |
+| **All Projective GA**      | `#include "ga/ga_pga.hpp"`          | Standard                 | Complete PGA (2DP, 3DP)   |
 
 ## Detailed Usage Patterns
 
@@ -136,7 +137,6 @@ When you need both EGA and PGA:
 ### CMake Integration
 
 ```cmake
-
 # For development with full debugging
 target_compile_definitions(your_target PRIVATE 
     _HD_GA_EXTENDED_TEST_DIV_BY_ZERO
@@ -246,4 +246,5 @@ With single selective include:
 
 ---
 
-*For more information, see the main library documentation and examples in the `ga_test/` directory.*
+*For more information, see the main library documentation and examples in the `ga_test/`
+directory.*

@@ -142,11 +142,11 @@ components are shown on the right-hand side in square brackets for reference):
     \end{pmatrix}
     =
     \begin{pmatrix}
-         -f_y \\ f_x \\ 0 
+         f_x \\ f_y \\ 0 
     \end{pmatrix}
-    \qquad \qquad \quad \;\;
+    \qquad \qquad \quad \;\;\;\;
     \begin{bmatrix}
-         \bv{23} \\ \bv{31} \\ \bv{12} 
+         \bv{31} \\ \bv{32} \\ \bv{12} 
     \end{bmatrix}
     \slabel{eq:pga2dp_force_line_force_component} \\[10 pt]
         q \wedge f & = &
@@ -163,7 +163,7 @@ components are shown on the right-hand side in square brackets for reference):
     \end{pmatrix}
     \qquad
     \begin{bmatrix}
-         \bv{23} \\ \bv{31} \\ \bv{12} 
+         \bv{31} \\ \bv{32} \\ \bv{12} 
     \end{bmatrix}
     \slabel{eq:pga2dp_force_line_torque_component}
 \end{subeqnarray}
@@ -174,11 +174,7 @@ component of the bivector $F$. \\
 
 For $3D$ $PGA$ the encoding is similar, but now requires six bivector components instead
 of three (the corresponding basis bivector compontents are shown on the right-hand side in
-square brackets for reference)\footnote{Having the normal of the force in the $2D$
-bivector instead of the force itself as in $3D$ is a consequence of the chosen basis
-bivectors. When switching the sequence to \bv{31}, \bv{32}, \bv{12} in $2D$ $PGA$ the
-force vector components appear in the expected sequence. This might be a more convenient
-choice for $2D$ $PGA$ bivectors in a future version of the library.}
+square brackets for reference):
 \begin{subeqnarray}
     O \wedge f & = &
     \begin{pmatrix}
@@ -215,6 +211,7 @@ choice for $2D$ $PGA$ bivectors in a future version of the library.}
     \end{bmatrix}
     \slabel{eq:pga3dp_force_line_torque_component}
 \end{subeqnarray}
+\\
 
 The force vector $f$ itself can be retrieved from $F$ by using the attitude function
 $att()$:
@@ -231,18 +228,16 @@ the bulk of the bivector:
 \end{equation}
 while the resulting torque from the application of $f$ at any given point $R$ in space can
 be retrieved from $F$, either using any known point $Q$ on $F$\footnote{Which is always
-available via the function $support(F)$. It provides the point on $F$ with the shortest
+available via the function $sup(F)$. It provides the point on $F$ with the shortest
 distance to the origin $O$ by orthogonally projecting the origin onto $F$.}, or
 alternatively by projecting $R$ onto $F$ and using the perpendicular distance vector
 $d_\perp$ from $R$ towards the line $F$ in order to calculate the resulting free torque
 $M_F(R)$ as
 \begin{subeqnarray}
-    M_F(R) & = &  \bulk{\left[ (Q-R) \wedge f \right]}
-             = \bulk{\left[ (Q-R) \wedge att(F) \right]}
-             \slabel{eq:action_line_moment_simple} \\
-    M_F(R) & = & \bulk{\left[ d_\perp \wedge f \right]}
-             = \bulk{\left[ (F \vee (R \wedge \rightweightdual{F}) - R)
-             \wedge att(F) \right]}
+    M_F(R) & = &  \bulk{\left[ (Q-R) \wedge f \right]} = \bulk{\left[ (Q-R) \wedge att(F)
+             \right]} \slabel{eq:action_line_moment_simple} \\
+    M_F(R) & = & \bulk{\left[ d_\perp \wedge f \right]} = \bulk{\left[ (F \vee (R \wedge
+             \rightweightdual{F}) - R) \wedge att(F) \right]}
     \slabel{eq:action_line_moment_projection}
 \end{subeqnarray}
 where equation~(\ref{eq:action_line_moment_simple}) is the formula with the least
@@ -459,9 +454,9 @@ $I_b[\Omega_b]$ as shown by \cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:202
 Now we introduce some typically used reference points to describe kinemetics via the
 bivector rate of change $\Omega$ and dynamics via the total momentum $P$:
 \begin{itemize}
-    \item \emph{Fixed body refence point} $O_b$ used as origin of the body frame. When
-    the body is moved by the motor $M$ it will move in the world frame to $O_{b,w} = M
-    \veedot O_b \veedot \rrev{M}$.
+    \item \emph{Fixed body refence point} $O_b$ used as origin of the body frame. When the
+    body is moved by the motor $M$ it will move in the world frame to $O_{b,w} = M \veedot
+    O_b \veedot \rrev{M}$.
     \item \emph{Relative locations $r_i$ versus $O_b$} are positions in the body frame.
     Their projective counterpart in the body frame is $R_i = O_b + r_i$. When transformed
     to the world frame we get $X_i$ in the world frame by the usual transformation $X_i =
@@ -521,11 +516,10 @@ rcmt(\Omega_b,X)$ to express the total momentum $P$ written in component form:
     \end{pmatrix}
     =
     \begin{pmatrix}
-         X_y Y_z - X_z Y_y \\ X_z Y_x - X_x Y_z \\ X_x Y_y - X_y Y_x
+         X_z Y_x - X_x Y_z \\ X_z Y_y - X_y Y_z \\ X_x Y_y - X_y Y_x
     \end{pmatrix}
     \slabel{eq:wedge_X_Y_2D} \\[10 pt]
-    m \; rcmt(\Omega_b,X) & = &
-    m
+    m \; rcmt(\Omega_b,X) & = & m
     \begin{pmatrix}
          \Omega_y X_z - \Omega_z X_y \\ \Omega_z X_x - \Omega_x X_z \\ 0
     \end{pmatrix} 
@@ -537,14 +531,14 @@ expressed in the $2D$ case as
     I_{2D}[\Omega] &=& X \wedge m \; rcmt(\Omega,X) \nonumber \\[10pt]
     &=& m 
     \begin{pmatrix}
-        -X_z (\Omega_z X_x - \Omega_x X_z) \\
-        X_z  (\Omega_y X_z - \Omega_z X_y ) \\
+        X_z (\Omega_y X_z - \Omega_z X_y) \\
+        X_z (\Omega_z X_x - \Omega_x X_z) \\
         X_x (\Omega_z X_x - \Omega_x X_z) - X_y (\Omega_y X_z - \Omega_z X_y)
     \end{pmatrix} \nonumber \\[10pt]
     I_{2D}[\Omega] &=& m
     \begin{bmatrix}
-        X_z^2    &      0   & -X_x X_z      \\
-        0        & X_z^2    & -X_y X_z      \\
+        0        &  X_z^2   & -X_y X_z      \\
+        -X_z^2   &  0       &  X_x X_z      \\
         -X_x X_z & -X_y X_z & X_x^2 + X_y^2
     \end{bmatrix}
     \begin{bmatrix}
@@ -582,8 +576,7 @@ component expressions are generated from the corresponding product tables in
          X_x Y_y - X_y Y_x
     \end{pmatrix}
     \slabel{eq:wedge_X_Y_3D} \\[10 pt]
-    m \; rcmt(\Omega_b,X) & = &
-    m
+    m \; rcmt(\Omega_b,X) & = & m
     \begin{pmatrix}
          \Omega_{vy} X_z - \Omega_{vz} X_y + \Omega_{mx} X_w \\
          \Omega_{vz} X_x - \Omega_{vx} X_z + \Omega_{my} X_w \\

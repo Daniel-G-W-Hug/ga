@@ -202,54 +202,70 @@ void active_bivt2dp::reset_item_data()
         auto q = pt2dp(m_end->scenePos().x, m_end->scenePos().y, 1.0);
         auto bvt = wdg(p, q);
 
-        // Determine the angle of the projective line using atan2
-        // For bivector (x,y,z), the line direction is (-y, x)
-        // This gives us the full orientation in range [-π, π]
-        value_t line_angle = std::atan2(-bvt.y, bvt.x);
+        // Two-angle approach: measure angle from x-axis and (-y)-axis Using (-y)-axis
+        // gives consistent angle ranges that work correctly with the angle() function
+        // which returns values in [0, π]
+        auto const x_axis = bivec2dp{1, 0, 0};
+        auto const neg_y_axis = bivec2dp{0, -1, 0};
 
-        // qDebug() << "line_angle = " << rad2deg(line_angle);
+        auto const phi_x = angle(x_axis, bvt);     // angle from x-axis [0, π]
+        auto const phi_y = angle(neg_y_axis, bvt); // angle from (-y)-axis [0, π]
 
+        // Define corner points of the coordinate system boundary
         auto p1 = vec2dp(cs->x.min(), cs->y.max(), 1.0);
         auto p2 = vec2dp(cs->x.max(), cs->y.max(), 1.0);
         auto p3 = vec2dp(cs->x.min(), cs->y.min(), 1.0);
         auto p4 = vec2dp(cs->x.max(), cs->y.min(), 1.0);
 
-        auto l1 = unitize(wdg(p1, p2)); // from min.x to max.x @ max.y
-        auto l2 = unitize(wdg(p3, p1)); // from min.y to max.y @ min.x
-        auto l3 = unitize(wdg(p3, p4)); // from min.x to max.x @ min.y
-        auto l4 = unitize(wdg(p4, p2)); // from min.y to max.y @ max.x
+        // Define boundary lines (edges of the coordinate system)
+        auto l1 = unitize(wdg(p1, p2)); // top:    from min.x to max.x @ max.y
+        auto l2 = unitize(wdg(p3, p1)); // left:   from min.y to max.y @ min.x
+        auto l3 = unitize(wdg(p3, p4)); // bottom: from min.x to max.x @ min.y
+        auto l4 = unitize(wdg(p4, p2)); // right:  from min.y to max.y @ max.x
 
         vec2dp p_from;
         vec2dp p_to;
-        vec2dp p_from_24;
-        vec2dp p_to_24;
-        vec2dp p_from_13;
-        vec2dp p_to_13;
+        vec2dp p_from_24; // intersection with left boundary (l2)
+        vec2dp p_to_24;   // intersection with right boundary (l4)
+        vec2dp p_from_13; // intersection with bottom boundary (l3)
+        vec2dp p_to_13;   // intersection with top boundary (l1)
 
-        // Calculate intersection candidates for horizontal (left/right) boundaries
-        // Skip when on ±y-axis: line_angle ≈ ±π (pos y-axis) or line_angle ≈ 0 (neg
-        // y-axis)
-        if (!(std::abs(std::abs(line_angle) - pi) < eps || std::abs(line_angle) < eps)) {
+        // Calculate intersection with left/right boundaries (l2, l4)
+        // Skip when line is near horizontal (phi_x ≈ π/2), parallel to these boundaries
+        if (std::abs(phi_x - pi / 2.0) > eps) {
             p_from_24 = unitize(rwdg(l2, bvt)); // left boundary (lower x)
             p_to_24 = unitize(rwdg(l4, bvt));   // right boundary (higher x)
         }
 
-        // Calculate intersection candidates for vertical (top/bottom) boundaries
-        // Skip when on pos x-axis (line_angle ≈ -π/2) or neg x-axis (line_angle ≈ π/2)
-        if (!(std::abs(line_angle - pi / 2.0) < eps ||
-              std::abs(line_angle + pi / 2.0) < eps)) {
+        // Calculate intersection with top/bottom boundaries (l1, l3)
+        // Skip when line is near vertical (phi_y ≈ π/2), parallel to these boundaries
+        if (std::abs(phi_y - pi / 2.0) > eps) {
             p_from_13 = unitize(rwdg(l3, bvt)); // bottom boundary (lower y)
             p_to_13 = unitize(rwdg(l1, bvt));   // top boundary (higher y)
         }
 
-        // Select final endpoints based on line_angle using atan2 ranges
-        // pos. x-axis: line_angle ≈ -π/2
-        if (std::abs(line_angle + pi / 2.0) < eps) {
+        // Select final endpoints based on phi_x and phi_y angles
+        // With (-y)-axis reference:
+        // phi_x ≈ 0:   line parallel to +x axis
+        // phi_x ≈ π:   line parallel to -x axis
+        // phi_y ≈ 0:   line parallel to -y axis (pointing down)
+        // phi_y ≈ π:   line parallel to +y axis (pointing up)
+        //
+        // Quadrant angle ranges:
+        // Q1 (upper-right): phi_x ∈ (0, π/2), phi_y ∈ (π/2, π)
+        // Q2 (upper-left):  phi_x ∈ (π/2, π), phi_y ∈ (π/2, π)
+        // Q3 (lower-left):  phi_x ∈ (π/2, π), phi_y ∈ (0, π/2)
+        // Q4 (lower-right): phi_x ∈ (0, π/2), phi_y ∈ (0, π/2)
+
+        // positive x-axis: phi_x ≈ 0, phi_y ≈ π/2
+        if ((std::abs(phi_x) < eps) && (std::abs(phi_y - pi / 2.0) < eps)) {
             p_from = p_from_24;
             p_to = p_to_24;
         }
-        // first quadrant: line_angle ∈ (-π, -π/2)
-        else if (line_angle < -pi / 2.0 - eps && line_angle > -pi + eps) {
+
+        // first quadrant (upper-right): phi_x ∈ (0, π/2), phi_y ∈ (π/2, π)
+        else if (phi_x > eps && phi_x < (pi / 2.0 - eps) && phi_y > (pi / 2.0 + eps) &&
+                 phi_y < (pi - eps)) {
             if (p_to_13.x < cs->x.max()) {
                 p_to = p_to_13;
             }
@@ -261,76 +277,77 @@ void active_bivt2dp::reset_item_data()
             }
             else {
                 p_from = p_from_24;
-            }
-        }
-        // pos. y-axis: line_angle ≈ ±π
-        else if (std::abs(std::abs(line_angle) - pi) < eps) {
-            p_from = p_from_13;
-            p_to = p_to_13;
-        }
-        // second quadrant: line_angle ∈ (π/2, π)
-        else if (line_angle > pi / 2.0 + eps && line_angle < pi - eps) {
-            if (p_from_24.y < cs->y.max()) {
-                p_to = p_from_24;
-            }
-            else {
-                p_to = p_to_13;
-            }
-            if (p_to_24.y > cs->y.min()) {
-                p_from = p_to_24;
-            }
-            else {
-                p_from = p_from_13;
-            }
-        }
-        // neg. x-axis: line_angle ≈ π/2
-        else if (std::abs(line_angle - pi / 2.0) < eps) {
-            p_from = p_to_24;
-            p_to = p_from_24;
-        }
-        // third quadrant: line_angle ∈ (0, π/2)
-        else if (line_angle > eps && line_angle < pi / 2.0 - eps) {
-            if (p_from_13.x > cs->x.min()) {
-                p_to = p_from_13;
-            }
-            else {
-                p_to = p_from_24;
-            }
-            if (p_to_13.x < cs->x.max()) {
-                p_from = p_to_13;
-            }
-            else {
-                p_from = p_to_24;
-            }
-        }
-        // neg. y-axis: line_angle ≈ 0
-        else if (std::abs(line_angle) < eps) {
-            p_from = p_to_13;
-            p_to = p_from_13;
-        }
-        // fourth quadrant: line_angle ∈ (-π/2, 0)
-        else if (line_angle > -pi / 2.0 + eps && line_angle < -eps) {
-            if (p_to_24.y > cs->y.min()) {
-                p_to = p_to_24;
-            }
-            else {
-                p_to = p_from_13;
-            }
-            if (p_from_24.y < cs->y.max()) {
-                p_from = p_from_24;
-            }
-            else {
-                p_from = p_to_13;
             }
         }
 
-        // fmt::println("idx={},       B.x={:.4g}, B.y={:.4g}, B.z={:.4g}", idx,
-        //              bvt.x, bvt.y, bvt.z);
-        // fmt::println("phi_x={:.3g}, phi_y={:.3g}, att={:.4g}", rad2deg(phi_x),
-        //              rad2deg(phi_y), att(bvt));
-        // fmt::println("p_from_24 = {:.2g}, p_to_24 = {:.2g}", p_from_24, p_to_24);
-        // fmt::println("p_from_13 = {:.2g}, p_to_13 = {:.2g}", p_from_13, p_to_13);
-        // fmt::println("p_from    = {:.2g}, p_to    = {:.2g}", p_from, p_to);
+        // positive y-axis: phi_x ≈ π/2, phi_y ≈ π
+        else if ((std::abs(phi_x - pi / 2.0) < eps) && (std::abs(phi_y - pi) < eps)) {
+            p_from = p_from_13;
+            p_to = p_to_13;
+        }
+
+        // second quadrant (upper-left): phi_x ∈ (π/2, π), phi_y ∈ (π/2, π)
+        else if (phi_x > (pi / 2.0 + eps) && phi_x < (pi - eps) &&
+                 phi_y > (pi / 2.0 + eps) && phi_y < (pi - eps)) {
+            if (p_from_24.y < cs->y.max()) {
+                p_to = p_from_24;
+            }
+            else {
+                p_to = p_to_13;
+            }
+            if (p_to_24.y > cs->y.min()) {
+                p_from = p_to_24;
+            }
+            else {
+                p_from = p_from_13;
+            }
+        }
+
+        // negative x-axis: phi_x ≈ π, phi_y ≈ π/2
+        else if ((std::abs(phi_x - pi) < eps) && (std::abs(phi_y - pi / 2.0) < eps)) {
+            p_from = p_to_24;
+            p_to = p_from_24;
+        }
+
+        // third quadrant (lower-left): phi_x ∈ (π/2, π), phi_y ∈ (0, π/2)
+        else if (phi_x > (pi / 2.0 + eps) && phi_x < (pi - eps) && phi_y > eps &&
+                 phi_y < (pi / 2.0 - eps)) {
+            if (p_from_13.x > cs->x.min()) {
+                p_to = p_from_13;
+            }
+            else {
+                p_to = p_from_24;
+            }
+            if (p_to_13.x < cs->x.max()) {
+                p_from = p_to_13;
+            }
+            else {
+                p_from = p_to_24;
+            }
+        }
+
+        // negative y-axis: phi_x ≈ π/2, phi_y ≈ 0
+        else if ((std::abs(phi_x - pi / 2.0) < eps) && (std::abs(phi_y) < eps)) {
+            p_from = p_to_13;
+            p_to = p_from_13;
+        }
+
+        // fourth quadrant (lower-right): phi_x ∈ (0, π/2), phi_y ∈ (0, π/2)
+        else if (phi_x > eps && phi_x < (pi / 2.0 - eps) && phi_y > eps &&
+                 phi_y < (pi / 2.0 - eps)) {
+            if (p_to_24.y > cs->y.min()) {
+                p_to = p_to_24;
+            }
+            else {
+                p_to = p_from_13;
+            }
+            if (p_from_24.y < cs->y.max()) {
+                p_from = p_from_24;
+            }
+            else {
+                p_from = p_to_13;
+            }
+        }
 
         // create the lines and map them to the coordinate system
         beg_pos = mapFromScene(QPointF(cs->x.au_to_w(p_from.x), cs->y.au_to_w(p_from.y)));

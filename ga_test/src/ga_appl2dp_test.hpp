@@ -194,7 +194,7 @@ TEST_SUITE("PGA2DP: application tests")
         fmt::println("point P = {}", P);
         fmt::println("f       = {}", f);
         fmt::println("force line L = {}", L);
-        fmt::println("support(L) = {}", support(L));
+        fmt::println("sup(L) = {}", sup(L));
         fmt::println("");
         fmt::println("reference point R  = {}", R);
         fmt::println("distance to line d = {}", d);
@@ -220,7 +220,7 @@ TEST_SUITE("PGA2DP: application tests")
         CHECK(gr2(f * inv(f)) == bivec2dp{});
 
         CHECK(f == F);
-        CHECK(support(L) == gr1(L * inv(att(L))));
+        CHECK(sup(L) == gr1(L * inv(att(L))));
         CHECK(pscalar2dp{0.0} == gr3(L * inv(att(L))));
 
         fmt::println("");

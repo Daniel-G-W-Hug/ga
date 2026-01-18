@@ -213,7 +213,7 @@ print("------------------------------")
 
 local line2d = bivec2dp.new(1, 1, -2) -- line ax + by + c = 0
 print("line =", line2d)
-local support_pt = support(line2d)
+local support_pt = sup(line2d)
 print("support point (closest to origin) =", support_pt)
 
 -- Test multivector operations

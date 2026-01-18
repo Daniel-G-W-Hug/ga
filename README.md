@@ -97,7 +97,9 @@
 
 ## GA Product Expression Generator (ga_prdxpr)
 
-The `ga_prdxpr` tool generates optimized C++ expressions for geometric algebra operations across multiple algebras. It supports selective output generation through command-line arguments.
+The `ga_prdxpr` tool generates optimized C++ expressions for geometric algebra operations
+across multiple algebras. It supports selective output generation through command-line
+arguments.
 
 ### Quick Reference - Common Workflows
 
@@ -106,10 +108,10 @@ The `ga_prdxpr` tool generates optimized C++ expressions for geometric algebra o
 cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega2d --output=tables && cd ../..
 
 # View only coefficient expressions for one product (no tables)
-cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega3d --products=gpr --output=products && cd ../..
+cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega3d --products=gpr --output=coeffs && cd ../..
 
 # Compare one product across multiple algebras
-cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega2d,ega3d --products=gpr --output=products && cd ../..
+cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega2d,ega3d --products=gpr --output=coeffs && cd ../..
 ```
 
 ### All Command-Line Options
@@ -133,8 +135,9 @@ cd build/ga_prdxpr && ./ga_prdxpr && cd ../..                # Generate everythi
   - Special keywords: `all` (all products), `none` (no products)
 
 - `--output=TYPES` or `--o=TYPES`: Show only specified output types (comma-separated)
-  - Example: `--output=products,tables`
-  - Types: `products` (coefficient expressions), `tables` (basis multiplication tables), `metrics` (C++ array exports)
+  - Example: `--output=coeffs,tables`
+  - Types: `coeffs` (coefficient expressions), `tables` (basis multiplication tables),
+    `metrics` (C++ array exports)
   - Special keywords: `all` (all types), `none` (no types)
 
 - `--show-sym-asym=BOOL`: Show symmetric/asymmetric parts of basis tables
@@ -155,7 +158,7 @@ cd build/ga_prdxpr && ./ga_prdxpr --output=tables && cd ../..
 cd build/ga_prdxpr && ./ga_prdxpr --output=tables --show-sym-asym=true && cd ../..
 
 # Compare geometric product across all algebras (expressions only)
-cd build/ga_prdxpr && ./ga_prdxpr --products=gpr --output=products && cd ../..
+cd build/ga_prdxpr && ./ga_prdxpr --products=gpr --output=coeffs && cd ../..
 
 # Generate metric exports for PGA algebras only
 cd build/ga_prdxpr && ./ga_prdxpr --algebra=pga2dp,pga3dp --output=metrics && cd ../..
@@ -187,9 +190,11 @@ cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega3d --products=wdg,dot && cd ../..
 - `sandwich_gpr` - Sandwich product (geometric)
 - `sandwich_rgpr` - Sandwich product (regressive)
 
-**Note**: PGA algebras have additional products for bulk/weight operations (`left_bulk_contract`, `right_weight_expand`, etc.). Use `--algebra=pga2dp` or `--algebra=pga3dp` to see all products for those algebras.
+**Note**: PGA algebras have additional products for bulk/weight operations
+(`left_bulk_contract`, `right_weight_expand`, etc.). Use `--algebra=pga2dp` or
+`--algebra=pga3dp` to see all products for those algebras.
 
 ### Default Behavior
 
-With no arguments, `ga_prdxpr` generates complete output for all algebras, products, and output types. This serves as a comprehensive searchable reference.
-
+With no arguments, `ga_prdxpr` generates complete output for all algebras, products, and
+output types. This serves as a comprehensive searchable reference.

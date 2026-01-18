@@ -261,7 +261,7 @@ print("------------------------------")
 
 local line3d = bivec3dp.new(1, 0, 0, 0, 0, 1) -- 3d line
 print("line =", line3d)
-local support_pt = support(line3d)
+local support_pt = sup(line3d)
 print("support point for 3D line =", support_pt)
 
 -- Test multivector operations

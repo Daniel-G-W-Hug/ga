@@ -156,12 +156,12 @@ TEST_SUITE("pga2dp: ega2d pga2dp comparison tests")
             auto ap = vec2dp{2, 5, 1.0};
 
             auto Lp = wdg(ap, up);
-            auto dp = unitize(support(Lp));
+            auto dp = unitize(sup(Lp));
 
 
             fmt::println("up = {}, bulk_nrm(up) = {}", up, bulk_nrm(up));
             fmt::println("ap = {}, bulk_nrm(up) = {}", ap, bulk_nrm(ap));
-            fmt::println("dp = unitize(support(Lp)) = {}, bulk_nrm(dp) = {}", dp,
+            fmt::println("dp = unitize(sup(Lp)) = {}, bulk_nrm(dp) = {}", dp,
                          bulk_nrm(dp));
             fmt::println("Lp = {}", Lp);
             fmt::println("att(Lp) = {}", att(Lp));   // direction vector

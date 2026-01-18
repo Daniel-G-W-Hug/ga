@@ -24,7 +24,7 @@ namespace hd::ga::pga {
 // - ortho_antiproj2dp()                 -> orthogonal antiprojection onto object
 // - reflect_on()                        -> reflections
 // - invert_on()                         -> inversions
-// - support()                           -> point on line that is nearest to origin
+// - sup()                           -> point on line that is nearest to origin
 // - att()                               -> object attitude
 // - dist2dp()                           -> Euclidean distance and homogeneous magnitude
 // - is_congruent()                      -> Same up to a scalar factor (is same subspace)
@@ -504,7 +504,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> invert_on(BiVec2dp<T> const& l,
 
 template <typename T>
     requires(numeric_type<T>)
-Vec2dp<T> support(BiVec2dp<T> const& B)
+Vec2dp<T> sup(BiVec2dp<T> const& B)
 {
     // REQUIRES: a line (BiVec2dp) as argument
 

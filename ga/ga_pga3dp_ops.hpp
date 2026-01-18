@@ -24,7 +24,7 @@ namespace hd::ga::pga {
 // - ortho_antiproj3dp()                  -> orthogonal antiprojection onto object
 // - reflect_on()                         -> reflections
 // - invert_on()                          -> inversions
-// - support()                            -> point on line/plane that is nearest to origin
+// - sup()                            -> point on line/plane that is nearest to origin
 // - att()                                -> object attitude
 // - dist3dp()                            -> Euclidean distance and homogeneous magnitude
 // - is_congruent()                       -> Same up to a scalar factor (is same subspace)
@@ -837,7 +837,7 @@ constexpr TriVec3dp<std::common_type_t<T, U>> invert_on(TriVec3dp<T> const& t,
 
 template <typename T>
     requires(numeric_type<T>)
-Vec3dp<T> support(BiVec3dp<T> const& B)
+Vec3dp<T> sup(BiVec3dp<T> const& B)
 {
     // REQUIRES: a line (BiVec3dp) as argument
 
@@ -847,7 +847,7 @@ Vec3dp<T> support(BiVec3dp<T> const& B)
 
 template <typename T>
     requires(numeric_type<T>)
-Vec3dp<T> support(TriVec3dp<T> const& t)
+Vec3dp<T> sup(TriVec3dp<T> const& t)
 {
     // REQUIRES: a plane (TriVec3dp) as argument
 

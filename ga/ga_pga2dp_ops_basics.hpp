@@ -315,8 +315,8 @@ constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 // the basis vectors which are NOT contained in the k-blade u
 // and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  lcmpl(u) ^ u  = I_2dp = e1^e2^e3
-// right complement: u ^ rcmpl(u)  = I_2dp = e1^e2^e3
+// left complement:  lcmpl(u) ^ u  = I_2dp = e3^e2^e1
+// right complement: u ^ rcmpl(u)  = I_2dp = e3^e2^e1
 //
 // in spaces of odd dimension right and left complements are identical and thus there
 // is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
@@ -324,7 +324,7 @@ constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // comploments have different signs
 
-// complement operation with e1^e2^e3 as the pseudoscalar
+// complement operation with e3^e2^e1 as the pseudoscalar
 
 template <typename T>
     requires(numeric_type<T>)
@@ -332,7 +332,7 @@ constexpr PScalar2dp<T> cmpl(Scalar2dp<T> s)
 {
     // u ^ cmpl(u) = e3^e2^e1
     // u = 1:
-    //     1 ^ cmpl(u) = e2^e2^e1 => cmpl(u) = s e3^e2^e1
+    //     1 ^ cmpl(u) = e3^e2^e1 => cmpl(u) = s e3^e2^e1
     return PScalar2dp<T>(T(s));
 }
 
@@ -343,10 +343,10 @@ constexpr BiVec2dp<T> cmpl(Vec2dp<T> const& v)
     // u ^ compl(u) = e3^e2^e1
     // u = v.x e1 + v.y e2 + v.z e3:
     //     u ^ cmpl(u) = e3^e2^e1 =>
-    //     u = e1 => cmpl(u) = -e23
+    //     u = e1 => cmpl(u) = e32
     //     u = e2 => cmpl(u) = -e31
     //     u = e3 => cmpl(u) = -e12
-    return BiVec2dp<T>(-v.x, -v.y, -v.z);
+    return BiVec2dp<T>(-v.y, v.x, -v.z);
 }
 
 template <typename T>
@@ -354,12 +354,12 @@ template <typename T>
 constexpr Vec2dp<T> cmpl(BiVec2dp<T> const& B)
 {
     // u ^ compl(u) = e3^e2^e1
-    // u = b.x e23 + b.y e31 + b.z e12:
+    // u = b.x e31 + b.y e32 + b.z e12:
     //     u ^ cmpl(u) = e3^e2^e1 =>
-    //     u = e23 => cmpl(u) = -e1
     //     u = e31 => cmpl(u) = -e2
+    //     u = e32 => cmpl(u) = e1
     //     u = e12 => cmpl(u) = -e3
-    return Vec2dp<T>(-B.x, -B.y, -B.z);
+    return Vec2dp<T>(B.y, -B.x, -B.z);
 }
 
 template <typename T>
@@ -957,7 +957,7 @@ template <typename T>
 inline MVec2dp_E<T> unitize(MVec2dp_E<T> const& M)
 {
     T n = T(weight_nrm(M));
-    hd::ga::detail::check_unitization<T>(n, "even grade multivector (2dp)");
+    hd::ga::detail::check_unitization<T>(n, "even-grade multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -968,7 +968,7 @@ template <typename T>
 inline MVec2dp_U<T> unitize(MVec2dp_U<T> const& M)
 {
     T n = T(weight_nrm(M));
-    hd::ga::detail::check_unitization<T>(n, "odd grade multivector (2dp)");
+    hd::ga::detail::check_unitization<T>(n, "odd-grade multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -1047,7 +1047,7 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec2dp<T> bulk_dual(Vec2dp<T> const& v)
 {
-    return BiVec2dp<T>(-v.x, -v.y, T(0.0));
+    return BiVec2dp<T>(-v.y, v.x, T(0.0));
 }
 
 template <typename T>
@@ -1114,7 +1114,7 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr Vec2dp<T> weight_dual(BiVec2dp<T> const& B)
 {
-    return Vec2dp<T>(-B.x, -B.y, T(0.0));
+    return Vec2dp<T>(B.y, -B.x, T(0.0));
 }
 
 template <typename T>

@@ -463,8 +463,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // fmt::println("parallel: f1 = {}", f1);
         // fmt::println("parallel: f2 = {}", f2);
         // fmt::println("parallel: fres = {}", fres);
-        auto psupp = unitize(support(fres)); // unitize is essential or resulting force
-                                             // vector might not be located on line
+        auto psupp = unitize(sup(fres)); // unitize is essential or resulting force
+                                         // vector might not be located on line
         auto pfresp = psupp + att(fres);
         pt2d psup = pt2d{psupp.x, psupp.y};
         pt2d pfres{pfresp.x, pfresp.y};
@@ -538,7 +538,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         auto fres = f1 + f2;
         // fmt::println("anti-parallel: fres = {}", fres);
-        auto psupp = support(fres);
+        auto psupp = sup(fres);
         auto pfresp = psupp + att(fres);
         pt2d psup = pt2d{psupp.x, psupp.y};
         pt2d pfres{pfresp.x, pfresp.y};
