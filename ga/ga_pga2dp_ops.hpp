@@ -560,7 +560,7 @@ constexpr BiVec2dp<T> att(PScalar2dp<T> ps)
 // returns the euclidean distance between objects as homogeneous magnitude
 template <typename arg1, typename arg2> DualNum2dp<value_t> dist2dp(arg1&& a, arg2&& b)
 {
-    if constexpr (gr(a) + gr(b) == 3) {
+    if constexpr (gr(std::decay_t<arg1>{}) + gr(std::decay_t<arg2>{}) == 3) {
         return DualNum2dp<value_t>(rwdg(a, b), weight_nrm(wdg(a, att(b))));
     }
     else {
