@@ -924,7 +924,7 @@ constexpr TriVec3dp<T> att(PScalar3dp<T> ps)
 template <typename arg1, typename arg2>
 constexpr DualNum3dp<value_t> dist3dp(arg1&& a, arg2&& b)
 {
-    if constexpr (gr(a) + gr(b) == 4) {
+    if constexpr (gr(std::decay_t<arg1>{}) + gr(std::decay_t<arg2>{}) == 4) {
         return DualNum3dp<value_t>(rwdg(a, b), weight_nrm(wdg(a, att(b))));
     }
     else {
