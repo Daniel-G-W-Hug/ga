@@ -35,5 +35,9 @@
 #include "ga_pga2dp_ops.hpp" // include all pga operations for 2dp
 #include "ga_pga3dp_ops.hpp" // include all pga operations for 3dp
 
+// PGA physics operations (inertia, rigid body dynamics)
+#include "ga_pga2dp_ops_physics.hpp" // physics operations for 2dp
+#include "ga_pga3dp_ops_physics.hpp" // physics operations for 3dp
+
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

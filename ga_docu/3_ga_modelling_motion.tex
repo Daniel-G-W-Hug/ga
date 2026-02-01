@@ -18,15 +18,14 @@ Especially in $PGA$, we will be able to combine the translational and rotational
 in one physical variable. Thus we will use a convention of using capital letters for
 physical quantities to distinguish them from the classical convention, especially so for
 bivectors and even-grade multivectors that do not occur in classical descriptions. We will
-use:
+use in $PGA$:
 \begin{align*}
 B(t)        & = B \qquad \qquad \qquad  \quad \! \text{(bivector)} \\
 \dot{B}(t)  & = \Omega(t) = \dot{B} = \Omega \qquad
-                \text{(rate of change of bivector, bivector speed)} \\
+                \text{(rate of change of bivector, ``bivector speed'')} \\
 \ddot{B}(t) & = \dot{\Omega}(t) =\ddot{B} = \dot{\Omega} \qquad
                 \text{(rate of change of bivector speed)}
 \end{align*}
-especially when we want to emphazise rotational aspects of motion in $PGA$. \\
 
 In order to model motion in $PGA$ we need to work with the exponential function and apply
 it in the context of the geometric product (symbol ``$\wedgedot$'') and the regressive
@@ -145,13 +144,13 @@ product. The resulting motor structurally is an even-grade multivector with a bi
 a pseudoscalar component for $3D$ $PGA$. \\
 
 In $2D$ $PGA$ we have the same expression, but the argument of the exponential to create a
-motor is not a bivector $B$, but a unitized point $P$. Here $P \veedot P = -\ps$ is valid
-as well, and equation~(\ref{eq:rexp_B}) becomes $\exp_\veedot(P\phi) = \cos(\phi)\ps +
-\sin(\phi) P$ instead, which leads to a motor that structurally is an odd-grade
-multivector with a vector and a pseudoscalar component. In order to get unified signs of
-the trigonometric functions are determined by the chosen pseudoscalar. It was chosen for
-$pga2dp$ as \bv{321} in order to make signs for rotation angles consistent between $2D$
-and $3D$ $PGA$. \\
+motor is not a bivector $B$, but a unitized point $P$. Here $P \veedot P = -\ps$ is valid,
+and equation~(\ref{eq:rexp_B}) becomes $\exp_\veedot(P\phi) = \cos(\phi)\ps + \sin(\phi)
+P$ instead, which leads to a motor that structurally is an odd-grade multivector with a
+vector and a pseudoscalar component. The resulting rotation direction of the motor depend
+on the chosen pseudoscalar. The pseudoscalar for $pga2dp$  was chosen as \bv{321} in order
+to make signs (and thus turning directions) of rotation angles consistent between $2D$ and
+$3D$ $PGA$. \\
 
 Eqn. (\ref{eq:exp_B}) allows us to model rotations in $EGA$, where the bivector $B$ is the
 complement of the axis of rotation and $\theta = -2\phi$ is the angle of the rotation
@@ -166,8 +165,9 @@ can then be obtained from the original object $X_0$ by:
 If we want to model translations and rotations in $PGA$, we need to look into another
 extension of the exponential function. We follow the approach defined by
 \cite{Lengyel_pga-illuminated:2024} in chapter 3.2 and 3.6.2, where it is shown that a
-general motor in $PGA$ can be expressed as a rotation around a unitized line $l$ by an
-angle $\phi$ and a translation along $l$ by a displacement $\delta$ as
+general motor in $PGA$ can be expressed as a screw motion, i.e. a rotation around a
+unitized line $l$ by an angle $\phi$ and a translation along $l$ by a displacement
+$\delta$ as
 \begin{eqnarray}
     M = \exp_\veedot\left[(\frac{\delta}{2} \bm{1} + \frac{\phi}{2}\ps) \veedot l \right]=
     \cos_\veedot(\frac{\delta}{2} \bm{1} + \frac{\phi}{2} \ps) +
@@ -734,11 +734,11 @@ the reference point. Everything else can remain unchanged. \\
 \newpage
 
 In $2D$ $PGA$ the equations are very similar, but the rate of change is not a rate of
-change bivector, but is it a rate of change vector, since the rotation is not around an
-axis, as in $3D$, but it is around a point. The translation is characterized by a $2D$
-vector, whereas the rotation rate can be characterized by a single scalar value. To show
-that we still get comparable equations, we will also use $\Omega$ for the rate of change.
-In $2D$ $PGA$ has its basis components
+change bivector, but is it a rate of change vector, since the rotation is not around a
+fixed axis, as in $3D$, but it is around a fixed point. The translation is characterized
+by a $2D$ vector, whereas the rotation rate can be characterized by a single scalar value.
+To show that we still get comparable equations, we will also use $\Omega$ for the rate of
+change. In $2D$ $PGA$ has its basis components
 \begin{equation}
    \Omega_{2D} = (\underbrace{\bv{1}, \qquad \bv{2}}_{\text{bulk($\Omega$)}
                =  \bulk{\Omega}}, \quad

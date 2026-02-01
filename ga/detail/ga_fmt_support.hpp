@@ -3,9 +3,10 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "fmt/ga_fmt_core.hpp" // Core infrastructure
-#include "fmt/ga_fmt_ega.hpp"  // EGA type formatters
-#include "fmt/ga_fmt_pga.hpp"  // PGA type formatters
+#include "fmt/ga_fmt_core.hpp"    // Core infrastructure
+#include "fmt/ga_fmt_ega.hpp"     // EGA type formatters
+#include "fmt/ga_fmt_pga.hpp"     // PGA type formatters
+#include "fmt/ga_fmt_physics.hpp" // Physics type formatters (Inertia)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Unified formatting support for all GA library types (backward compatibility)

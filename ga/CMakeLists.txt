@@ -79,10 +79,17 @@ set(HEADERS
     ga_pga2dp_ops_basics.hpp
     ga_pga2dp_ops_products.hpp
     ga_pga2dp_ops.hpp
+    ga_pga2dp_ops_physics.hpp
     #
     ga_pga3dp_ops_basics.hpp
     ga_pga3dp_ops_products.hpp
     ga_pga3dp_ops.hpp
+    ga_pga3dp_ops_physics.hpp
     )
 
 add_library(${LIB_NAME} INTERFACE ${HEADERS})   #dep: fmt (must be provided by user!)
+
+# Add hd utility library include path for physics operations (hd_solver.hpp)
+if(GA_HAS_HD_UTILS)
+    target_include_directories(${LIB_NAME} INTERFACE ${CMAKE_SOURCE_DIR}/../../include)
+endif()

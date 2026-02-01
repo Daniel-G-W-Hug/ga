@@ -208,6 +208,7 @@ Additionally, there are planes $T$ that are modelled as trivectors
 \begin{equation}
     T_{pga3dp} = \underbrace{t_x \bv{423} + t_y \bv{431} + t_z \bv{412}}_{normal} +
                  \underbrace{t_w \bv{312}}_{position}
+                 \label{eq:plane_def_pga3dp}
 \end{equation}
 where the first three components represent the normal vector of the plane $n = (t_x, t_y,
 t_z)$ and the fourth component $t_w$ corresponds to the signed distance to the origin
@@ -530,7 +531,51 @@ is to turn the vector by $+90$°, i.e. into the orientation of $\bv{12}$, while 
 dual turns the vector by $-90$°, i.e. into the direction against the orientation of
 $\bv{12}$. This statement is valid for both right- and left-handed coordinate systems. \\
 
-The multiplicative identity of the geometric product and the wedge product is the scalar $\bm{1}$:
+% potentially bring the explanation of the next couple of paragraphs later when all
+% other concepts have been introduced
+
+Before we go on to the geometric product, let's return to eqn.~(\ref{eq:plane_def_pga3dp})
+for a moment, which provided the definition of a plane as trivector in projective space.
+We are going to use this example to show what can be done geometrically using the
+definitions provided above: \\
+
+The trivector defining a plane can be created in multiple ways, e.g. either by wedge
+products between three unitized projective points $P, Q, R$ that span the plane as $pl = P
+\wedge Q \wedge R$ as their common subspace, or alternatively as wedge products between a
+unitized projective point $P$ and two direction vectors $u$ and $v$ that span the plane as
+a bivector such that $pl = P \wedge u \wedge v$. In the latter case, the plane $pl$ can be
+interpreted as bound bivector as suggested by \cite{Browne_Grassmann-Algebra_Vol1:2012}.
+For this case it is also easy to shift the plane to contain the unitized point $P+x$
+instead of $P$. This can be achieved easily by applying the rules for the wedge product as
+$pl_{shifted} = P \wedge u \wedge v + x \wedge u \wedge v = (P+x) \wedge u \wedge v$.\\
+
+The attitude of the plane, i.e. its orientation in space, is given by a bivector that can
+be calculated using the attitude function $att(pl)$. It is defined for $3D$ projective
+space as $att(u) = u \vee \rcmpl{\bv{4}}$ and as such can be interpreted as the
+intersection of the plane with the horizon $H_{3dp} =\rcmpl{\bv{4}}$. It yields the result
+$att(pl) = t_x \bv{23} + t_y \bv{31} + t_z \bv{12}$.\\
+
+The definition of a plane as given in eqn.~(\ref{eq:plane_def_pga3dp}) implies that the
+normal direction $n$ of the plane $pl$ can always simply be recovered from its trivector
+definition by applying the left weight dual to the plane, such that $n =
+\leftweightdual{pl}$. The left weight dual operation was introduced in
+eqn.~(\ref{eq:leftweightdual}). It can also be found in table
+\ref{tab:pga3dp_bulk_weight_duals}. \\
+
+The reverse is also true, i.e. if the plane normal $n$ is known, the trivector
+representing the plane can be directly found by applying the right bulk dual operation to
+the normal $n$, such that $pl_O = \rightbulkdual{n}$. The right bulk dual operation was
+defined in eqn.~(\ref{eq:rightbulkdual}), and can be found in table
+\ref{tab:pga3dp_bulk_weight_duals}. This operation yields a plane that contains the origin
+and has the required orientation with $n$ as normal. The signed distance to the origin
+could now be given as coefficient $t_w$ to the bulk component \bv{312} in case the plane
+needs to be shifted parallel. \\
+
+As demonstrated, this enables quite a number of relevant geometric operations by applying
+rather simple operations to the modelled objects in $3D$ $PGA$. \\
+
+Now let's move on in more detail to the geometric product. The multiplicative identity of
+the geometric product and the wedge product is the scalar basis element $\bm{1}$:
 \begin{subeqnarray}
     \bm{1} \wedgedot a = a \wedgedot \bm{1} = a
     \label{eq:wedgedot_identity} \\
@@ -539,7 +584,7 @@ The multiplicative identity of the geometric product and the wedge product is th
 \end{subeqnarray}
 
 The multiplicative identity of the regressive geometric product and the regressive wedge
-product is the pseudoscalar $\ps = I_n$ of the respective algebra:
+product is the pseudoscalar basis element $\ps = I_n$ of the respective algebra:
 \begin{subeqnarray}
     \ps \veedot a = a \veedot \ps = a
     \label{eq:veedot_identity} \\

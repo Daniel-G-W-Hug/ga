@@ -2,14 +2,14 @@
 \contentsline {section}{\numberline {1}GA library}{3}{section.1}%
 \contentsline {subsection}{\numberline {1.1}Introduction to the ga library}{4}{subsection.1.1}%
 \contentsline {subsection}{\numberline {1.2}Basics of the mathematical approach}{9}{subsection.1.2}%
-\contentsline {subsection}{\numberline {1.3}Modelling motion}{26}{subsection.1.3}%
-\contentsline {subsection}{\numberline {1.4}Physics modelling}{43}{subsection.1.4}%
-\contentsline {subsubsection}{\numberline {1.4.1}Modelling force and torque}{45}{subsubsection.1.4.1}%
-\contentsline {subsubsection}{\numberline {1.4.2}Modelling linear and angular momentum}{48}{subsubsection.1.4.2}%
-\contentsline {subsection}{\numberline {1.5}Approaches with increasing expressivenes}{56}{subsection.1.5}%
-\contentsline {subsubsection}{\numberline {1.5.1}Classic approach (vector algebra)}{56}{subsubsection.1.5.1}%
-\contentsline {subsubsection}{\numberline {1.5.2}General observations for Geometric Algebra (GA)}{56}{subsubsection.1.5.2}%
-\contentsline {subsubsection}{\numberline {1.5.3}Euclidean Geometric Algebra (EGA)}{56}{subsubsection.1.5.3}%
-\contentsline {subsubsection}{\numberline {1.5.4}Projective (Euclidean) Geometric Algebra (PGA)}{57}{subsubsection.1.5.4}%
-\contentsline {subsection}{\numberline {1.6}Glossary}{58}{subsection.1.6}%
-\contentsline {subsection}{\numberline {1.7}Literature}{59}{subsection.1.7}%
+\contentsline {subsection}{\numberline {1.3}Modelling motion}{27}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Physics modelling}{44}{subsection.1.4}%
+\contentsline {subsubsection}{\numberline {1.4.1}Modelling force and torque}{46}{subsubsection.1.4.1}%
+\contentsline {subsubsection}{\numberline {1.4.2}Modelling linear and angular momentum}{49}{subsubsection.1.4.2}%
+\contentsline {subsection}{\numberline {1.5}Approaches with increasing expressivenes}{57}{subsection.1.5}%
+\contentsline {subsubsection}{\numberline {1.5.1}Classic approach (vector algebra)}{57}{subsubsection.1.5.1}%
+\contentsline {subsubsection}{\numberline {1.5.2}General observations for Geometric Algebra (GA)}{57}{subsubsection.1.5.2}%
+\contentsline {subsubsection}{\numberline {1.5.3}Euclidean Geometric Algebra (EGA)}{57}{subsubsection.1.5.3}%
+\contentsline {subsubsection}{\numberline {1.5.4}Projective (Euclidean) Geometric Algebra (PGA)}{58}{subsubsection.1.5.4}%
+\contentsline {subsection}{\numberline {1.6}Glossary}{59}{subsection.1.6}%
+\contentsline {subsection}{\numberline {1.7}Literature}{60}{subsection.1.7}%
