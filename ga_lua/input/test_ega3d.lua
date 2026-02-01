@@ -1,5 +1,5 @@
--- test_ega3d.lua - Comprehensive EGA 3D testing module
--- Tests all Euclidean Geometric Algebra 3D functionality
+-- test_ega3d.lua - Comprehensive EGA 3D testing module Tests all Euclidean Geometric
+-- Algebra 3D functionality
 
 print("=================================================")
 print("Testing EGA 3D (Euclidean Geometric Algebra 3D)")
@@ -220,8 +220,8 @@ print("I+I:", I + I, "I-I:", I - I, "I/3:", I / 3, "to_val(I):", to_val(I))
 print("\n10. Testing mixed geometric operations:")
 print("--------------------------------------")
 
-print("bivec3d.new(0,0,1)>>vec3d.new(1,1,1))", (bivec3d.new(0, 0, 1) >> vec3d.new(1, 1, 1)))
-print("vec3d.new(1,1,1)<<bivec3d.new(0,0,1))", (vec3d.new(1, 1, 1) << bivec3d.new(0, 0, 1)))
+print("bivec3d.new(0,0,1)>>vec3d.new(1,1,1))", bivec3d.new(0, 0, 1) >> vec3d.new(1, 1, 1))
+print("vec3d.new(1,1,1)<<bivec3d.new(0,0,1))", vec3d.new(1, 1, 1) << bivec3d.new(0, 0, 1))
 
 print("dot(bivec3d.new(1,1,1),bivec3d.new(0,0,1))", dot(bivec3d.new(1, 1, 1), bivec3d.new(0, 0, 1)))
 print("cmt(bivec3d.new(1,1,1),bivec3d.new(0,0,1))", cmt(bivec3d.new(1, 1, 1), bivec3d.new(0, 0, 1)))

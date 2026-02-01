@@ -1039,8 +1039,7 @@ constexpr Scalar3d<std::common_type_t<T, U>> operator>>(PScalar3d<T> ps1,
     return Scalar3d<ctype>(ctype(ps1) * ctype(ps2));
 }
 
-// right contraction of pseudoscalar ps (=trivector) by bivector B "ps contracted by
-// B"
+// right contraction of pseudoscalar ps (=trivector) by bivector B "ps contracted by B"
 // => returns a vector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
@@ -1061,8 +1060,7 @@ operator>>([[maybe_unused]] BiVec3d<T> const&, [[maybe_unused]] PScalar3d<U>)
     return Scalar3d<ctype>(0.0);
 }
 
-// right contraction of pseudoscalar ps (=trivector) by vector v (" ps contracted by
-// v")
+// right contraction of pseudoscalar ps (=trivector) by vector v ("ps contracted by v")
 // => returns a bivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)

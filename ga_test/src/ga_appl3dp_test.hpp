@@ -422,37 +422,4 @@ TEST_SUITE("PGA3DP: application tests")
 
         fmt::println("");
     }
-
-
-    TEST_CASE("pga: simple orbit (WIP, to be further refined)")
-    {
-
-        fmt::println("");
-        fmt::println("pga: simple orbit (WIP, to be further refined)");
-
-        auto omeg2dp = scalar2dp{Hz2radps(0.5)}; // 2s for a full turn
-        auto X0 = vec2dp{1, 0, 1};               // radius 1 m
-        auto m = 1.0;                            // mass m kg
-
-        auto omega_rot_2dp = wdg(e3_2dp, omeg2dp); // rate of change is a vec (2D)
-        auto v0 = rcmt(omega_rot_2dp, X0);         // inital speed
-        auto P0 = wdg(X0, m * v0);                 // inital momentum
-
-        auto X = X0;
-        auto v = v0;
-
-        // radial acceleration in equilibrium (zentral force for circular movement)
-        // a_r = r_0 * omega^2 = v^2 / r_0
-        auto F0 = unitize(wdg(X, O_2dp)) * m * bulk_nrm(X0) * bulk_nrm(v) * bulk_nrm(v);
-
-        fmt::println("omeg2dp       = {}", omeg2dp);
-        fmt::println("omega_rot_2dp = {}", omega_rot_2dp);
-        fmt::println("v0            = {}", v0);
-        fmt::println("P0            = {}", P0);
-        fmt::println("F0            = {}", F0);
-        fmt::println("att(F0)       = {}", att(F0));
-        fmt::println("");
-
-        fmt::println("");
-    }
 }

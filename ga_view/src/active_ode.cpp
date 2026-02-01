@@ -1,9 +1,10 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "active_ode.hpp"
 #include "active_common.hpp"
-#include "rk4_integration.hpp"
+#include "active_ode.hpp"
+
+#include "ga/ga_pga.hpp" // includes ga_usr_utilities.hpp with RK4 integration
 
 #include <algorithm>  // std::min, std::max
 #include <cmath>      // std::sqrt
@@ -11,7 +12,6 @@
 
 using namespace hd::ga;
 using namespace hd::ga::pga;
-using namespace Kokkos;
 
 active_ode::active_ode(Coordsys* cs, w_Coordsys* wcs, active_pt2d* fixation_pt,
                        spring_params const& params, QGraphicsItem* parent) :
@@ -41,8 +41,8 @@ active_ode::active_ode(Coordsys* cs, w_Coordsys* wcs, active_pt2d* fixation_pt,
     rhs_mem.resize(FST_ODR_SYS_SIZE);
 
     // Set initial state: u[0] = position, u[1] = velocity
-    u_mem[0] = m_initial_mass;         // Store position as point (w=1.0)
-    u_mem[1] = vec2dp{0.0, 0.0, 0.0};  // Zero velocity as vector (w=0.0)
+    u_mem[0] = m_initial_mass;        // Store position as point (w=1.0)
+    u_mem[1] = vec2dp{0.0, 0.0, 0.0}; // Zero velocity as vector (w=0.0)
 
     // Initialize forces
     m_spring_force = vec2dp(0.0, m_params.m * m_params.g, 0.0);
@@ -101,8 +101,7 @@ void active_ode::paint(QPainter* qp, const QStyleOptionGraphicsItem* option,
     qp->setBrush(Qt::NoBrush);
 
     pt2d fix_pt = m_fixation_pt->scenePos();
-    QPointF fix_pos(cs->x.au_to_w(fix_pt.x),
-                    cs->y.au_to_w(fix_pt.y));
+    QPointF fix_pos(cs->x.au_to_w(fix_pt.x), cs->y.au_to_w(fix_pt.y));
     qp->drawLine(fix_pos, mass_widget_pos);
 
     // 4. Draw equilibrium position marker (orange horizontal line)
@@ -222,14 +221,15 @@ void active_ode::calculateRHS()
     // Get current state
     pt2d fix_pt = m_fixation_pt->scenePos();
     vec2dp fixation_pos(fix_pt.x, fix_pt.y, 1.0);
-    vec2dp mass_pos = u_mem[0];  // position is stored as point (w=1.0) in u[0]
-    vec2dp velocity = u_mem[1];  // velocity is stored as vector (w=0.0) in u[1]
+    vec2dp mass_pos = u_mem[0]; // position is stored as point (w=1.0) in u[0]
+    vec2dp velocity = u_mem[1]; // velocity is stored as vector (w=0.0) in u[1]
 
     // Calculate spring displacement from fixation to mass minus initial spring length l0
     vec2dp displacement_vec = mass_pos - fixation_pos;
     vec2dp displacement_unit_vec = bulk_normalize(displacement_vec);
 
-    double elongated_spring_length = std::max(to_val(bulk_nrm(displacement_vec)) - m_params.l0, 0.0);
+    double elongated_spring_length =
+        std::max(to_val(bulk_nrm(displacement_vec)) - m_params.l0, 0.0);
     vec2dp elongation_vec = displacement_unit_vec * elongated_spring_length;
 
     // Spring force: F = -k * elongation_vec (Hooke's law)
@@ -294,12 +294,13 @@ void active_ode::integrationStep()
     // Create mdspan views for RK4 integration
     auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), FST_ODR_SYS_SIZE);
     auto uh = mdspan<vec2dp, dextents<size_t, 2>>(uh_mem.data(), 2, FST_ODR_SYS_SIZE);
-    auto rhs = mdspan<vec2dp const, dextents<size_t, 1>>(rhs_mem.data(), FST_ODR_SYS_SIZE);
+    auto rhs =
+        mdspan<vec2dp const, dextents<size_t, 1>>(rhs_mem.data(), FST_ODR_SYS_SIZE);
 
     // Perform RK4 integration (4 sub-steps)
     for (size_t rk_step = 1; rk_step <= 4; ++rk_step) {
         calculateRHS();
-        hd::rk4_step(u, uh, rhs, DT, rk_step);
+        rk4_step(u, uh, rhs, DT, rk_step);
     }
 
     // Update mass position and trajectory
@@ -317,8 +318,8 @@ void active_ode::resetSimulation()
     m_fixation_pt->setScenePos(pt2d(m_initial_fixation.x, m_initial_fixation.y));
 
     // Reset integration state
-    u_mem[0] = m_initial_mass;         // Store position as point (w=1.0)
-    u_mem[1] = vec2dp{0.0, 0.0, 0.0};  // Zero velocity as vector (w=0.0)
+    u_mem[0] = m_initial_mass;        // Store position as point (w=1.0)
+    u_mem[1] = vec2dp{0.0, 0.0, 0.0}; // Zero velocity as vector (w=0.0)
 
     // Reset velocity
     m_velocity = vec2dp{0.0, 0.0, 0.0};
