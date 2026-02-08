@@ -761,7 +761,6 @@ TEST_SUITE("PGA 2DP Tests")
     {
         fmt::println("Vec2dp: operations - translation");
 
-        // three points representing two lines l0=(p0,p1), l1 = (p0,p2)
         auto const P = vec2dp{3.5, 0.5, 1}; // point P
         auto const p = vec2dp{3.5, 0.5, 0}; // vector from O to P: p = P-O
         auto const d = bulk_nrm(p);
@@ -781,8 +780,9 @@ TEST_SUITE("PGA 2DP Tests")
 
         auto ln = unitize(wdg(O_2dp, P));
 
-        fmt::println("ln  = {: 5.3f}", ln);
-        fmt::println("rgpr(ln,ln)  = {: 5.3f}", rgpr(ln, ln));
+        fmt::println("ln                = {: 5.3f}", ln);
+        fmt::println("rgpr(ln,ln)       = {: 5.3f}", rgpr(ln, ln));
+        fmt::println("rgpr(ln,rrev(ln)) = {: 5.3f}", rgpr(ln, rrev(ln)));
         fmt::println("rgpr(d/2.0*ln,P)  = {: 5.3f}", rgpr(d / 2.0 * ln, P));
         fmt::println("rgpr(P,d/2.0*ln)  = {: 5.3f}", rgpr(P, d / 2.0 * ln));
         fmt::println("rgrp(rgpr(d / 2.0 * ln,P),rrev(d / 2.0 * ln))  = {: 5.3f}",
