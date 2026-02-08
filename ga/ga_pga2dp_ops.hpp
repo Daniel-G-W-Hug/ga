@@ -145,19 +145,19 @@ template <typename T, typename U>
 constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> const& B1,
                                                                    BiVec2dp<U> const& B2)
 {
-    // take lines (=bivectors) as input and return a motor R
+    // take lines (=bivectors) as input and return a motor M
     // 1st apply reflection across line B1, then across B2 to get a motor that rotates
     // around the intersection point of lines B1 and B2
     // or translates if the lines are parallel
     //
-    // for use of motor R either directly on object u (inefficient):
-    //     auto v_moved = gr1( rgpr(rgpr(R, v), rrev(R)) );
+    // for use of motor M either directly on object u (inefficient):
+    //     auto v_moved = gr1( rgpr(rgpr(M, v), rrev(M)) );
     // or
-    //     auto B_moved = gr2( rgpr(rgpr(R, B), rrev(R)) );
+    //     auto B_moved = gr2( rgpr(rgpr(M, B), rrev(M)) );
     // or
     //                                   // optimized for reduced effort
-    //     auto v_moved = move2dp(v,R);  // moves v according to the motor R
-    //     auto B_moved = move2dp(B,R);  // moves B according to the motor R
+    //     auto v_moved = move2dp(v,M);  // moves v according to the motor M
+    //     auto B_moved = move2dp(B,M);  // moves B according to the motor M
     //
     auto M = rgpr(B2, B1);
     auto nrm_sq = to_val(weight_nrm_sq(M));

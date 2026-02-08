@@ -467,6 +467,10 @@ TEST_SUITE("PGA3DP: physics tests")
                 size_t n = 0;
                 u[n, 0] = vec3d{0, 1, 0}; // initial position;
                 u[n, 1] = vec3d{1, 0, 0}; // initial velocity;
+
+                n = 1;
+                u[n, 0] = vec3d{0, -1, 0}; // initial position;
+                u[n, 1] = vec3d{1, 0, 0};  // initial velocity;
             }
 
             void calc_rhs()
@@ -483,9 +487,9 @@ TEST_SUITE("PGA3DP: physics tests")
                     vec3d velocity = u[n, 1]; // velocity is stored as vector in u[n,1]
 
                     // forces and torques to change linear and angular acceleration
-                    // auto force = vec2d{0.0, 0.0}; // no force (x,y)
-                    auto force = vec2d{0.0, m * 9.81}; // gravitation (x=0, y=m*g)
-                    auto torque = 0.0;                 // no torque (z)
+                    auto force = vec2d{0.0, 0.0}; // no force (x,y)
+                    // auto force = vec2d{0.0, m * 9.81}; // gravitation (x=0, y=m*g)
+                    auto torque = 0.0; // no torque (z)
 
                     vec3d acceleration;
                     acceleration.x = force.x / m; // linear acceleratin in (x,y)
@@ -566,7 +570,7 @@ TEST_SUITE("PGA3DP: physics tests")
             double m = 1.0;
         };
 
-        auto constexpr num_points = 1;
+        auto constexpr num_points = 2;
         sim_ode sim(num_points);
 
 
@@ -738,7 +742,7 @@ TEST_SUITE("PGA3DP: physics tests")
 
 
         // time range (1 full revolution)
-        auto t_rng = discrete_range(0.0, 6.2832, 40);
+        auto t_rng = discrete_range(0.0, 6.2832, 60);
 
         sim.set_initial_values();
         sim.print_sim(t_rng.min());
@@ -756,11 +760,14 @@ TEST_SUITE("PGA3DP: physics tests")
         fmt::println("");
     }
 
-    TEST_CASE("pga2dp for 2D case (force + moment in vec2dp): linear motion")
+    TEST_CASE("pga2dp for 2D case (force + moment in vec2dp): pre-study linear motion")
     {
-        fmt::println("pga2dp for 2D case (force + moment in vec2dp): linear motion");
+        fmt::println(
+            "pga2dp for 2D case (force + moment in vec2dp): pre-study linear motion");
 
-        // pre-study: investigate inertia matrix and its inverse for single mass point
+        // pre-study: investigate inertia matrices and their inverses
+        //            result: -> not invertible for single mass point
+        //                    -> invertrible for more than one mass point
 
         auto X1 = vec2dp{0, 1, 1};  // X1 initial position
         auto X2 = vec2dp{0, -1, 1}; // X2 initial position
@@ -789,6 +796,93 @@ TEST_SUITE("PGA3DP: physics tests")
         fmt::println("det(I_tot) = {:>-7.3f}", det_I_tot);
         fmt::println("");
         fmt::println("I_tot_inv  = {:>-7.3f}", I_tot_inv);
+        fmt::println("");
+        fmt::println("I is not invertible for single mass point.");
+        fmt::println("I is invertible for several mass points.");
+        fmt::println("");
+
+        // pre-study: momentum calculation at different positions
+        //            result: -> total momentum is P = X ^ m d/dt(X) is constant
+
+        auto v = vec2dp{1, 0, 0};   // v_x = 1 m/s, v_y = 0 m/s
+        auto X11 = vec2dp{1, 1, 1}; // pos. of X1 after 1s
+        auto X12 = vec2dp{2, 1, 1}; // pos. of X1 after 2s
+
+        // auto v = vec2dp{1, 1, 0};   // v_x = 1 m/s, v_y = 1 m/s v' = |v|*sqrt(2))
+        // auto X11 = vec2dp{1, 2, 1}; // pos. of X1 after 1s
+        // auto X12 = vec2dp{2, 3, 1}; // pos. of X1 after 2s
+
+        auto P_X1 = wdg(X1, m * v);
+        auto P_X11 = wdg(X11, m * v);
+        auto P_X12 = wdg(X12, m * v);
+
+        fmt::println("v         = {:>-7.3f}", v);
+        fmt::println("X11       = {:>-7.3f}", X11);
+        fmt::println("X12       = {:>-7.3f}", X12);
+        fmt::println("P_X1      = {:>-7.3f}", P_X1);
+        fmt::println("P_X11     = {:>-7.3f}", P_X11);
+        fmt::println("P_X12     = {:>-7.3f}", P_X12);
+        fmt::println("");
+        auto I_X11 = get_point_inertia(m, X11);
+        auto I_X12 = get_point_inertia(m, X12);
+        fmt::println("I_X11     = {:>-7.3f}", I_X11);
+        fmt::println("I_X12     = {:>-7.3f}", I_X12);
+        fmt::println("");
+        fmt::println("total momentum is P = X ^ m d/dt(X) const. for linear motion.");
+        fmt::println("inertia changes in global system -> must be considered locally.");
+        fmt::println("");
+
+        // pre-study: linear motion expressed by rate of change vector in 2D
+        //            linear motion of point in x-direction
+
+        auto omega_tra = att(bulk_dual(v));
+        auto B_1s = omega_tra * 1.0;
+        auto B_2s = omega_tra * 2.0;
+        //
+        auto M_1s = get_motor(v * 1.0); // use translation ds = v * dt
+        auto M_2s = get_motor(v * 2.0); // use translation ds = v * dt
+
+        auto Q = vec2dp(0, 1, 1);
+        auto n = vec2dp(-v.y, v.x, 0) / to_val(bulk_nrm(vec2dp(-v.y, v.x, 0)));
+        auto d_1s = v * 1.0 * 0.5; // move line by 0.5 * v at 1s
+        auto d_2s = v * 2.0 * 0.5; // move line by 0.5 * v at 2s
+
+        auto B1 = wdg(Q, n);
+        auto B2 = wdg(Q + d_1s, n);
+        auto B3 = wdg(Q + d_2s, n);
+        auto M_1s_alt = get_motor_from_lines(B1, B2);
+        auto M_2s_alt = get_motor_from_lines(B1, B3);
+
+        fmt::println("X1                     = {:>-7.3f}", X1);
+        fmt::println("v                      = {:>-7.3f}", v);
+        fmt::println("omega_tra              = {:>-7.3f}", omega_tra);
+        fmt::println("B(1s) = omega_tra * 1s = {:>-7.3f}", B_1s);
+        fmt::println("B(2s) = omega_tra * 2s = {:>-7.3f}", B_2s);
+        fmt::println("M(1s) = exp(B(1s))     = {:>-7.3f}", M_1s);
+        fmt::println("M(1s)_alt              = {:>-7.3f}", M_1s_alt);
+        fmt::println("M(2s) = exp(B(2s))     = {:>-7.3f}", M_2s);
+        fmt::println("M(2s)_alt              = {:>-7.3f}", M_2s_alt);
+        fmt::println("");
+        fmt::println("gr1(rgpr(rgpr(M, v), rrev(M)))) = {:>-7.3f}", move2dp(X1, M_1s));
+        fmt::println("gr1(rgpr(rgpr(M, v), rrev(M)))) = {:>-7.3f}", move2dp(X1, M_2s));
+        fmt::println("");
+
+        CHECK(X11 == move2dp(X1, M_1s));
+        CHECK(X12 == move2dp(X1, M_2s));
+
+        // pre-study: speed defined from constant linear motion
+        //            result: -> speed must be const (position independent)
+
+        auto omega_tra_w = att(bulk_dual(v));
+
+        auto v_X1 = rcmt(omega_tra_w, X1);
+        auto v_X11 = rcmt(omega_tra_w, X11);
+        auto v_X12 = rcmt(omega_tra_w, X12);
+
+        fmt::println("v_X1  = {:>-7.3f}", v_X1);
+        fmt::println("v_X11 = {:>-7.3f}", v_X11);
+        fmt::println("v_X12 = {:>-7.3f}", v_X12);
+        fmt::println("");
     }
 
 } // TEST_SUITE("PGA3DP: physics tests")
