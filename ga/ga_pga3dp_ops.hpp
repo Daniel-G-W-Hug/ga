@@ -142,7 +142,7 @@ constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1, TriVec3dp<U> co
 ////////////////////////////////////////////////////////////////////////////////
 // 3dp motor operations (translation and rotation)
 //
-// Every motor in pga3dp is an even grade multivector MVec3dp_E (w/o scalar part).
+// Every motor in pga3dp is an even-grade multivector MVec3dp_E.
 //
 // A proper isometry in 3dp has a fixed line l around which a rotation occurs
 // with an angle phi. The line is represented by a bivector.
@@ -152,10 +152,10 @@ constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1, TriVec3dp<U> co
 //
 // In this case the motor has the form: M = l sin(phi) + e1234 cos(phi).
 //
-// Translations can be covered by a rotation around a point at infinity.
+// Translations can be covered by a rotation around a line at infinity.
 //
 // Combined rotations and translations must be created by concatenating the motion
-// operations in the sequence gpr(motor_applied_last, motor_applied_first)
+// operations in the sequence rgpr(motor_applied_last, motor_applied_first)
 ////////////////////////////////////////////////////////////////////////////////
 
 // create a motor from a fixed line of rotation and a turning angle
@@ -176,12 +176,17 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor(BiVec3dp<T> const& L, U 
                             PScalar3dp<ctype>(std::cos(half_angle)));
 }
 
-// create a translation motor from a translation vector (given as a Vec3dp).
-// Move in direction and by length of translation vector (length = its bulk_nrm)
-// ATTENTION: The translation is assumed to be a vector, i.e. with w-component == 0.
+// Create a translation motor from a translation
+// delta = vec3dp(delta_x, delta_y, delta_z, 0)
+// Move in direction and by length of translation vector (length = bulk_nrm(delta))
+// ATTENTION: The translation is assumed to be a direction, i.e. with w-component == 0.
 //            The w-component is ignored and only the x-, y- and z-components are used.
 //            Due to the application via the regressive sandwich product the vector needs
-//            to be multiplied by 0.5 before application.
+//            to be multiplied by 0.5
+//
+// The function implements a motor calculated from exp_{\veedot}(B_{tra})
+// with the bivector B_{tra} = 0.5 * bulk_dual(delta) \vee H_{3dp}
+//                           = 0.5 * att(bulk_dual(delta))
 template <typename T>
     requires(numeric_type<T>)
 constexpr MVec3dp_E<T> get_motor(Vec3dp<T> const& translation)
@@ -191,9 +196,7 @@ constexpr MVec3dp_E<T> get_motor(Vec3dp<T> const& translation)
                         PScalar3dp<T>(1.0));
 }
 
-// overload of translation motor:
-// create a translation motor from a translation vector (given as a Vector3d)
-// move in direction and by length of translation vector
+// overload of translation motor for a Vector3d:
 template <typename T>
     requires(numeric_type<T>)
 constexpr MVec3dp_E<T> get_motor(Vector3d<T> const& translation)
@@ -234,22 +237,23 @@ template <typename T, typename U>
 constexpr MVec3dp_E<std::common_type_t<T, U>>
 get_motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
 {
-    // take planes as input and return a motor R
+    // take planes as input and return a motor M
     // 1st apply reflection across plane t1, then across t2 to get a motor that rotates
     // around the intersection line of planes t1 and t2
     // or translates when t1 and t2 are parallel
     //
-    // for use of motor R either directly on object u (potentially inefficient):
-    //     auto v_moved = gr1( rgpr(rgpr(R, v), rrev(R)) );
+    // for use of motor M either directly on object u:
+    //
+    //     auto v_moved = gr1( rgpr(rgpr(M, v), rrev(M)) );
     // or
-    //     auto B_moved = gr2( rgpr(rgpr(R, B), rrev(R)) );
+    //     auto B_moved = gr2( rgpr(rgpr(M, B), rrev(M)) );
     // or
-    //     auto t_moved = gr3( rgpr(rgpr(R, t), rrev(R)) );
+    //     auto t_moved = gr3( rgpr(rgpr(M, t), rrev(M)) );
     // or
     //                                   // optimized for reduced effort
-    //     auto v_moved = move3dp(v,R);  // moves v according to the motor R
-    //     auto B_moved = move3dp(B,R);  // moves B according to the motor R
-    //     auto t_moved = move3dp(t,R);  // moves t according to the motor R
+    //     auto v_moved = move3dp(v,M);  // moves v according to the motor M
+    //     auto B_moved = move3dp(B,M);  // moves B according to the motor M
+    //     auto t_moved = move3dp(t,M);  // moves t according to the motor M
     //
 
     // line L and thus the resulting motor must be unitized to avoid surprises

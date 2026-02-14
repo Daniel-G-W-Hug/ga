@@ -516,6 +516,18 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         fmt::println("v_rot = rcmt(B_rot,P_4) = {}", rcmt(B_rot, P_4 - P_1));
         fmt::println("v_rot = rcmt(B_rot,P_5) = {}", rcmt(B_rot, P_5 - P_1));
         fmt::println("");
+        fmt::println("rgpr(B_tra, B_tra) = {}", rgpr(B_tra, B_tra));
+        fmt::println("rgpr(B_rot, B_rot) = {}", rgpr(B_rot, B_rot));
+
+        CHECK(rgpr(B_tra, B_tra) == mvec3dp_e{});      // should be zero
+                                                       // (stops expansion of exp(B_tra)
+                                                       //  after second term)
+        CHECK(gr0(rgpr(B_rot, B_rot)) == scalar3dp{}); // should be zero
+        CHECK(gr2(rgpr(B_rot, B_rot)) == bivec3dp{});  // should be zero
+        CHECK(gr4(rgpr(B_rot, B_rot)) ==
+              -pscalar3dp{to_val(bulk_nrm_sq(n))}); // should be negative
+                                                    // and nrm_sq should
+                                                    // be bulk_nrm_sq(n)
 
         fmt::println("");
     }
