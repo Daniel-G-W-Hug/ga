@@ -487,12 +487,12 @@ TEST_SUITE("PGA3DP: physics tests")
                     vec3d velocity = u[n, 1]; // velocity is stored as vector in u[n,1]
 
                     // forces and torques to change linear and angular acceleration
-                    auto force = vec2d{0.0, 0.0}; // no force (x,y)
-                    // auto force = vec2d{0.0, m * 9.81}; // gravitation (x=0, y=m*g)
-                    auto torque = 0.0; // no torque (z)
+                    // auto force = vec2d{0.0, 0.0}; // no force (x,y)
+                    auto force = vec2d{0.0, -m * 9.81}; // gravitation (x=0, y=m*g)
+                    auto torque = 0.0;                  // no torque (z)
 
                     vec3d acceleration;
-                    acceleration.x = force.x / m; // linear acceleratin in (x,y)
+                    acceleration.x = force.x / m; // linear acceleration in (x,y)
                     acceleration.y = force.y / m;
 
                     // J = m * r^2 with r being the distance from rot-axis
