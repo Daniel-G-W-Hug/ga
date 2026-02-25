@@ -9,6 +9,8 @@
 // ega3d: euclidean geometric algebra with
 //        e1*e1 = +1, e2*e2 = +1, e3*e3 = +1
 // G(3,0,0)
+//        3D Euclidean vector space
+//        can also be considered as describing spherical geometry on the unit sphere
 
 // metric signature: e1²=+1, e2²=+1, e3²=+1
 const std::vector<int> mv3d_metric_signature = {+1, +1, +1};

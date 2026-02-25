@@ -83,12 +83,17 @@ this:
 \frac{(B\phi)^2_\wedgedot}{2!} & = & \frac{1}{2!} (B \phi \wedgedot B \phi) =
 \frac{\phi^2}{2!}  (B \wedgedot B) = \frac{\phi^2}{2!}  (-\bm{1})= - \frac{\phi^2}{2!} \\
 \frac{(B\phi)^3_\wedgedot}{3!} & = & \frac{\phi^3}{3!} (B \wedgedot B \wedgedot B) =
-\frac{\phi^3}{3!} (-\bm{1} \wedgedot B) = - \frac{\phi^3}{3!}  B \\[5pt]
+\frac{\phi^3}{3!} (-\bm{1} \wedgedot B) = - \frac{\phi^3}{3!}  B \\
+\frac{(B\phi)^4_\wedgedot}{4!} & = & \frac{\phi^4}{4!} (B \wedgedot B \wedgedot B
+\wedgedot B) =
+\frac{\phi^4}{4!} (-\bm{1} \wedgedot -\bm{1}) = \frac{\phi^4}{4!} \\[5pt]
 \cdots \nonumber \\[5pt]
 \frac{(B\phi)^2_\veedot}{2!} & = & \frac{1}{2!} (B \phi \veedot B \phi) =
-\frac{\phi^2}{2!}  (B \veedot B) = \frac{\phi^2}{2!}  (-\ps)= - \frac{\phi^2}{2!} \ps \\
-\frac{(B\phi)^3_\veedot}{3!} & = & \frac{1}{3!} B \phi \veedot B \phi \veedot B \phi =
-\frac{1}{3!} \phi^3 (-\ps \veedot B) = - \frac{\phi^3}{3!} B \\[5pt]
+\frac{\phi^2}{2!} (B \veedot B) = \frac{\phi^2}{2!}  (-\ps)= - \frac{\phi^2}{2!} \ps \\
+\frac{(B\phi)^3_\veedot}{3!} & = & \frac{\phi^3}{3!} B \veedot B \veedot B  =
+\frac{\phi^3}{3!} (-\ps \veedot B) = - \frac{\phi^3}{3!} B \\
+\frac{(B\phi)^4_\veedot}{4!} & = & \frac{\phi^4}{4!} B \veedot B \veedot B \veedot B =
+\frac{\phi^4}{4!} (-\ps \veedot -\ps) = \frac{\phi^4}{4!} \ps \\[5pt]
 \cdots \nonumber 
 \end{subeqnarray}
 
@@ -142,13 +147,13 @@ For the case using the regressive geometric product it becomes:
 The last step of moving $\ps$ and $B$ after the brackets is allowed, since scalar factors,
 like the results of the trigonometric functions, commute with any object using the regular
 product. The resulting motor structurally is an even-grade multivector with a bivector and
-a pseudoscalar component for $3D$ $PGA$. \\
+a pseudoscalar of grade 4 for $3D$ $PGA$. \\
 
 In $2D$ $PGA$ we have the same expression, but the argument of the exponential to create a
 motor for rotation is not a bivector $B$, but a unitized point $P$. Here $P \veedot P =
 -\ps$ is valid, and equation~(\ref{eq:rexp_B}) becomes $\exp_\veedot(P\phi) =
 \cos(\phi)\ps + \sin(\phi) P$ instead, which leads to a motor $M$ that structurally is an
-odd-grade multivector with a vector and a pseudoscalar component. The resulting rotation
+odd-grade multivector with a vector and a pseudoscalar of grade 3. The resulting rotation
 direction of the motor depends on the chosen pseudoscalar. The pseudoscalar for $pga2dp$
 was chosen as \bv{321} in order to make signs of rotation angles (and thus turning
 directions) consistent between $2D$ and $3D$ $PGA$. \\
@@ -164,11 +169,10 @@ axis is infinitely far away. The derivation of the formula for the bivector will
 later in this chapter (see eqn.~(\ref{eq:bivector_trans_rate_v_vec})). We use $B_{tra} =
 \frac{1}{2}\rightbulkdual{\delta} \vee \rcmpl{\bv{4}} = \frac{1}{2}\rightbulkdual{\delta}
 \vee H_{3dp} = \frac{1}{2} att(\rightbulkdual{\delta})$. This yields $B_{tra} =
-\frac{1}{2}(0, 0, 0, \delta_x \bv{23}, \delta_y \bv{31}, \delta_z \bv{12})$. The resulting
-motor is $M = exp_\veedot(B_{tra}) = \ps + B_{tra} = \ps + \frac{1}{2}(0, 0, 0, \delta_x
-\bv{23}, \delta_y \bv{31}, \delta_z \bv{12})$. The motor $M$ is an even-grade multivector
-containing a pseudoscalar component, which is a quadvector in $3D$ $PGA$, and a bivector
-component.\\
+\frac{1}{2}(\delta_x \bv{23} + \delta_y \bv{31} + \delta_z \bv{12})$. The resulting motor
+is $M = exp_\veedot(B_{tra}) = \ps + B_{tra} = \ps + \frac{1}{2}(0, 0, 0, \delta_x,
+\delta_y, \delta_z)$. The motor $M$ is an even-grade multivector containing a pseudoscalar
+component, which is a quadvector in $3D$ $PGA$, and a bivector component.\\
 
 To model a translation $\delta = (\delta_x, \delta_y, 0)$ in $2D$ $PGA$ we need a special
 vector as argument of the exponential. It represents a direction to a point at infinity.
@@ -179,11 +183,11 @@ deriviation of the special vector will be done later in this section (see
 eqn.~(\ref{eq:vector_trans_rate_v_vec})). The argument of the exponential $exp_\veedot$
 for a translation is the direction vector $P = \frac{1}{2}\rightbulkdual{\delta} \vee
 \rcmpl{\bv{3}} = \frac{1}{2}\rightbulkdual{\delta} \vee H_{2dp} = \frac{1}{2}
-att(\rightbulkdual{\delta}) = \frac{1}{2}(-\delta_y,\delta_x,0)$. $P$ points in a
-direction perpendicular to the translation $\delta$ towards infinity. The main difference
-of this special point $P$ compared to the one used for the rotation above is that $P_z =
-0$. This results in $P \veedot P = 0$ which causes the expansion of the exponential to
-only contain the first two terms: $M = exp_\veedot(P) = \ps + P = \ps +
+att(\rightbulkdual{\delta}) = \frac{1}{2}(-\delta_y \bv{1} + \delta_x \bv{2})$. $P$ points
+in a direction perpendicular to the translation $\delta$ towards infinity. The main
+difference of this special point $P$ compared to the one used for the rotation above is
+that $P_z = 0$. This results in $P \veedot P = 0$ which causes the expansion of the
+exponential to only contain the first two terms: $M = exp_\veedot(P) = \ps + P = \ps +
 \frac{1}{2}(-\delta_y,\delta_x,0)$. The motor $M$ is an odd-grade multivector containing a
 pseudoscalar, which is a trivector in $2D$ $PGA$, and a vector component, i.e. it is
 structurally the same as for the rotation case in $2D$ $PGA$ above.\\
@@ -689,14 +693,30 @@ In $3D$ $PGA$ every bivector $B = B(s, \phi)$ or every bivector rate $\dot{B} = 
                =\bulk{\Omega}})
    \label{eq:rate_bivector_component_definition}
 \end{equation}
-where the weight part $\weight{\Omega}$ carries rotational information and the bulk part
-$\bulk{\Omega}$ carries translational information. \\
+where the weight part $\weight{\Omega}$ carries rotational information (direction of
+rotation and rotational speed) and the bulk part $\bulk{\Omega}$ carries translational
+information (positional information, orientaton of translation). \\
 
 In general, the weight part only contains components that do contain a factor of $\bv{4}$.
 It has \emph{directional} information on $\Omega$. If there is zero weight, the object is
 contained in the horizon ($H_{3dp}$). The bulk part only has components that do not
 contain a factor of $\bv{4}$. It has \emph{positional} information on $\Omega$. If there
 is zero bulk, the object contains the origin ($O_{3dp}$). \\
+
+We can either model a pure translation, which will only be visible in the bulk part of
+$\Omega$, with the weight part being zero in that case, or we can model a pure rotation
+around a fixed (non-ideal) line $l$. In that case the positional information of the fixed
+line of rotation becomes encoded in the bulk part of $\Omega$ and the directional
+information on the rotational speed vector $\omega$ is encoded in the weight part of
+$\Omega$.\\
+ 
+A mixture of a translation and a rotation would either be equivalent to a rotation around
+another fixed line shifted by the translational part or, in case of translation along the
+axis of rotation, a screw motion around and along that axis. It is sufficient to look at
+pure translation and pure rotation around a fixed line as separate cases. This separation
+is also important for defining the exponential function with respect to the regressive
+geometric product that converts the bivector $B$ to the respective motor $M$: $M(t) =
+exp_{\wedgedot}(B(t)) = exp_{\wedgedot}(\Omega t)$. \\
 
 The total bivector rate $\Omega$ can be split into
 \begin{equation}
@@ -707,27 +727,35 @@ where eqn.~(\ref{eq:rate_bivector_euclidean_split}) is called the ``Euclidean sp
 the bivector rate $\Omega$ because it separates the rotational and translational aspects
 of a moving object. \\
 
-For a simple rotation around an axis $\vec{\omega} = \omega$ that contains the origin
-$O_{3dp}$ and models the angular speed of rotation by the bulk norm $\bulk{\nrm{\omega}}$
-the rotational bivector rate $\Omega_{rot}$ must only contain components that contain the
-basis vectors $\bv{4x}$ (where $x=1,2,3$). That is achieved by multiplying $\omega$ from
-the left with $\bv{4}$ using the wedge product, since it only keeps the required
-components.
-\begin{equation}
-   \Omega_{rot} = \bv{4} \wedge \omega = O_{3dp} \wedge \omega
-                = (\omega_x \bv{41}, \omega_y \bv{42}, \omega_z \bv{43}, 0, 0, 0)
+A pure rotation around an axis $\vec{\omega} = \omega$ can be modelled by a fixed
+(unitized) line that is scaled by the angular speed of rotation, i.e. by the bulk norm
+$\bulk{\nrm{\omega}}$. If we have an arbitrary rotation axis we can either wedge a
+unitized point $Q = O_{3dp} + q = \bv{4} + q$ that is contained in the rotational axis
+with the rotational speed $\omega$, or create a unitized line $\hat{l}$ in the direction
+of the rotation vector $\omega$ that is later scaled with the rotationals speed such that
+the bivector $\Omega_{rot}$ becomes
+\begin{eqnarray}
+   \Omega_{rot} &=& Q \wedge \omega = \bv{4} \wedge \omega + q \wedge \omega
+                 = \hat{l}\,\bulknrm{\omega} \nonumber \\
+   \Omega_{rot} &=& (\omega_x, \omega_y, \omega_z,
+                    q_y \omega_z - q_z \omega_y ,
+                    q_z \omega_x - q_x \omega_z,
+                    q_x \omega_y - q_y \omega_x) \\
+   \Omega_{rot} &=& (l_{vx}, l_{vy}, l_{vz}, l_{mx}, l_{my}, l_{mz}) \nonumber           
    \label{eq:bivector_rot_rate_omega_vec}
-\end{equation}
-Of course, $\Omega_{rot}$ can also be expressed directly by the plane of rotation $plr$ (a
-trivector) if the magnitude of the plane encodes the angular speed. Given the vector
-$\omega$ the plane is given by $plr = \rightbulkdual{\omega}$ (the right bulk dual of
-$\omega$). Considering that the left weight dual of the plane $\leftweightdual{plr}$
-provides the normal vector of the plane including its magnitude,
+\end{eqnarray}
+Thus, $\Omega_{rot}$ directly represents the normalized (non-ideal) line of rotation,
+which is a line of fixed points not changing due to the rotation, scaled with the angular
+speed of rotation $\bulknrm{\omega}$. \\
+
+Of course, $\Omega_{rot}$ could also be expressed directly by the plane of rotation $pl$
+(a trivector) when the magnitude of the plane encodes the angular speed
+$\bulknrm{\omega}$. Considering that the left weight dual of the plane
+$\leftweightdual{pl}$ provides the normal vector of the plane including its magnitude,
 eqn.~(\ref{eq:bivector_rot_rate_omega_vec}) can be written in the equivalent form directly
-in terms of the plane of rotation $plr$
+in terms of the plane of rotation $pl$
 \begin{equation}
-   \Omega_{rot} = \bv{4} \wedge \leftweightdual{plr}
-                = O_{3dp} \wedge \leftweightdual{plr} 
+   \Omega_{rot} = Q \wedge \leftweightdual{pl}
    \label{eq:bivector_rot_rate_omega_pl_rot}
 \end{equation}
 
@@ -742,20 +770,25 @@ of the translation as
 \begin{equation}
    \Omega_{tra} = \rightbulkdual{v} \vee \rcmpl{\bv{4}} = \rightbulkdual{v} \vee H_{3dp}
                 = att(\rightbulkdual{v})
-                = (0, 0, 0, v_x \bv{23}, v_y \bv{31}, v_z \bv{12})
+                = (0, 0, 0, v_x, v_y, v_z)
    \label{eq:bivector_trans_rate_v_vec}
 \end{equation}
-To summarize the formulas for these cases combined we can write 
-\begin{eqnarray}
-   \Omega &=& \Omega_{rot} + \Omega_{tra} \nonumber \\
-          &=& \bv{4} \wedge \omega + \rightbulkdual{v} \vee \rcmpl{\bv{4}} \nonumber \\
-          &=& \bv{4} \wedge \omega - \rcmpl{\bv{4} \wedge v} \\ 
-          &=& (\omega_x \bv{41}, \omega_y \bv{42}, \omega_z \bv{43}, v_x \bv{23}, v_y
-               \bv{31}, v_z \bv{12}) \nonumber
-\end{eqnarray}
-where the last transformation uses the complement rules~(\ref{eq:intermediate_std}), the
-definition of the dual (\ref{eq:rightbulkdual}) as well as the fact that wedging a vector
-with $\bv{4}$ renders the need for the bulk operation unnecessary. \\
+
+For the case of screw motion we have the special case that the translational motion is
+directed in the same direction as the rotation axis, i.e. we have a special $\Omega_{tra}$
+\begin{equation}
+   \Omega_{tra} = att(\rightbulkdual{\omega})\frac{\delta}{\bulknrm{\omega}}
+                = (0, 0, 0,
+                   \delta\hat{\omega}_x, \delta\hat{\omega}_y, \delta\hat{\omega}_z) 
+\end{equation}
+where $\hat{\omega}$ is the bulk normalized vector $\omega$ of magnitude one then scaled
+with the translation distance $\delta$ resulting in a total $\Omega$ of
+\begin{equation}
+   \Omega = (\omega_x, \omega_y, \omega_z,
+            q_y \omega_z - q_z \omega_y + \delta\hat{\omega}_x,
+            q_z \omega_x - q_x \omega_z + \delta\hat{\omega}_y,
+            q_x \omega_y - q_y \omega_x + \delta\hat{\omega}_z) \\
+\end{equation}
 
 Using for example eqn.~(\ref{eq:rcmt_pga_world}) and the Euclidean split as defined in
 eqn.~(\ref{eq:rate_bivector_euclidean_split}) we can write
@@ -769,20 +802,15 @@ eqn.~(\ref{eq:rate_bivector_euclidean_split}) we can write
 to calculate the combined speed $\dot{x}_w$ from rotational and translational effects at a
 position $X_w$. \\
 
-For a case where the rotation is around an axis that does not include the origin
-$O_{3dp}$, but another reference point $P_{ref}$, use $X_w - P_{ref}$ as argument of the
-regressive commutator product for the rotational part instead of $X_w$. This transforms
-the reference point as new fictive origin to obtain the correct rotational speed around
-the reference point. Everything else can remain unchanged. \\
-
 \newpage
 
 In $2D$ $PGA$ the equations are very similar, but the rate of change is not a rate of
 change bivector, but is it a rate of change vector, since the rotation is not around a
 fixed axis, as in $3D$, but it is around a fixed point. The translation is characterized
-by a $2D$ vector, whereas the rotation rate can be characterized by a single scalar value.
-To show that we still get comparable equations, we will also use $\Omega = \Omega(v,
-\omega)$ for the rate of change. In $2D$ $PGA$ has its basis components
+by a $2D$ vector, whereas the rotation rate can be characterized by a single scalar value
+and a fixed point $Q$ around with the rotation occurs. To show that we still get
+comparable equations to the $3D$ case, we will also use $\Omega = \Omega(v, \omega)$ for
+the rate of change. In $2D$ $PGA$ has its basis components
 \begin{equation}
    \Omega_{2D} = (\underbrace{\bv{1}, \qquad \bv{2}}_{\text{bulk($\Omega$)}
                =  \bulk{\Omega}}, \quad
@@ -791,56 +819,56 @@ To show that we still get comparable equations, we will also use $\Omega = \Omeg
    \label{eq:rate_vector_component_definition}
 \end{equation}
 where again the weight part $\weight{\Omega}$ carries rotational information and the bulk
-part $\bulk{\Omega}$ carries translational information. \\
-
-In general, the weight part only contains components that do contain a factor of $\bv{3}$
+part $\bulk{\Omega}$ carries translational information. In general, the weight part only contains components that do contain a factor of $\bv{3}$
 (which here takes a role equivalent to $\bv{4}$ in the $3D$ case). \\
 
 The total vector rate of change $\Omega$ can be split into
 \begin{equation}
-   \Omega = \weight{\Omega} + \bulk{\Omega} = \Omega_{rot} + \Omega_{tra}
+   \Omega = \bulk{\Omega} + \weight{\Omega} = \Omega_{tra} + \Omega_{rot}
    \label{eq:rate_vector_euclidean_split}
 \end{equation}
 where eqn.~(\ref{eq:rate_vector_euclidean_split}) is called the ``Euclidean split'' of the
-vector rate of change $\Omega$ separating the rotational and translational aspects of a
+vector rate of change $\Omega$ separating the translational and rotational aspects of a
 moving object. \\
 
+We can either model a pure translation, which will only be visible in the bulk part of
+$\Omega$, with the weight part being zero in that case, or we can model a pure rotation
+around a fixed (non-ideal) point $Q$. In that case the positional information of the fixed
+point becomes encoded in the bulk part of $\Omega$ and the rotational speed $\omega$ is
+encoded in the weight part of $\Omega$. A mixture of a translation and a rotation would be
+equivalent to a rotation around another fixed point shifted by the translational part. So
+it is sufficient to look at pure translation and pure rotation around a fixed point as
+separate cases. This separation is also important for defining the exponential function
+with respect to the regressive geometric product that converts the bivector $B$ to the
+respective motor $M$: $M(t) = exp_{\wedgedot}(B(t)) = exp_{\wedgedot}(\Omega t)$. \\
+
 A simple rotation in $2D$ with an angular speed $\omega$ (a simple scalar in this case)
-around the origin $O_{2dp}$ can be modelled by multiplying $\omega$ with $\bv{3}$ using
-the wedge product. This links it to the required $\bv{3}$ component as in the $3D$ case.
+around the unitized point $Q = O_{2dp} + q = \bv{3} + q$ can be modelled by multiplying
+the point $Q$ with $\omega$ using the wedge product to generate the vector $\Omega_{rot}$.
 \begin{equation}
-   \Omega_{rot} = \bv{3} \wedge \omega = O_{2dp} \wedge \omega
-                = (0,0, \omega \bv{3})
+   \Omega_{rot} = Q \wedge \omega = \bv{3} \wedge \omega + q \wedge \omega
+                = (0, 0, 1)\,\omega  + (q_x, q_y, 0)\,\omega 
+                = (q_x, q_y, 1)\,\omega
    \label{eq:vector_rot_rate_omega}
 \end{equation}
 
 For modelling translational speed $\vec{v} = v$ in $2D$ we need a vector rate of change
-$\Omega_{tra}$ that does not contain a factor of $\bv{3}$. This is of course the
-translational speed of the point. To show this we use exactly the same equations as in the
-$3D$ case by encoding the speed of translation in the normal vector $n_v$ of a line and
-then intersecting this line with the horizon $\rcmpl{\bv{3}} = \rcmpl{O_{2dp}} = H_{2dp}$.
-The line with the corresponding attitude can be encoded by using the right bulk dual
-$\rightbulkdual{v}$ to model the line (a bivector) with the bulk norm $\bulknrm{v}$ as
-magnitude. It contains the origin $O_{2dp}$ and results in a vector rate of change
-$\Omega_{tra}$ of the translation as
+$\Omega_{tra}$ that does not contain a factor of $\bv{3}$. To show this we use exactly the
+same equations as in the $3D$ case by encoding the speed of translation in the normal
+vector $n_v$ of a line and then intersecting this line with the horizon $\rcmpl{\bv{3}} =
+\rcmpl{O_{2dp}} = H_{2dp}$. The double reflection on parallel lines that effectively
+creates the translation, necessitates the need for encoding the tanslation speed in a
+vector pointing normal to the translation direction. The line with the corresponding
+attitude can be encoded by using the right bulk dual $\rightbulkdual{v}$ to model the line
+(a bivector) with the bulk norm $\bulknrm{v}$ as magnitude. The vector rate of change
+$\Omega_{tra}$ of a pure translation is then given as
 \begin{equation}
    \Omega_{tra} = \rightbulkdual{v} \vee \rcmpl{\bv{3}} = \rightbulkdual{v} \vee H_{3dp}
                 = att(\rightbulkdual{v})
-                = (-v_y \bv{1}, v_x \bv{2}, 0)
+                = (-v_y, v_x, 0)
    \label{eq:vector_trans_rate_v_vec}
 \end{equation}
-To summarize the formulas for these cases combined we can write 
-\begin{eqnarray}
-   \Omega &=& \Omega_{rot} + \Omega_{tra} \nonumber \\
-          &=& \bv{3} \wedge \omega + \rightbulkdual{v} \vee \rcmpl{\bv{3}} \nonumber \\
-          &=& \bv{3} \wedge \omega - \rcmpl{\bv{3} \wedge v} \\
-          &=& -v_y \bv{1} + v_x \bv{2} + \omega\bv3 \nonumber
-\end{eqnarray}
-To calculate actual resulting speed from the rate of change we use
-eqn.~(\ref{eq:speed_from_rate}) again. And for a case where the rotation is around a point
-that is not the origin $O_{2dp}$, but another reference point $P_{ref}$, use $X_w -
-P_{ref}$ as argument of the regressive commutator product for the rotational part instead
-of $X_w$. This transforms the reference point as new fictive origin to obtain the correct
-rotational speed around the reference point. Everything else can remain unchanged.
+where the direction of the movement is encoded as the normal pointing towards the point at
+infinity which is the``rotation center at infinity'' of the modelled translation.
 
 \newpage

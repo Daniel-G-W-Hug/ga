@@ -13,8 +13,14 @@ namespace hd::ga::pga {
 // provides functionality that is based on pga3dp ops basics and products:
 //
 // - angle()                              -> angle operations
-// - TODO: exp()                          -> exponential function
-// - get_motor(), get_motor_from_planes() -> provide a motor
+// - exp()                                -> exponential (w.r.t. rgpr)
+// TODO: - log()                                -> logarithm (w.r.t rgpr)
+// - sqrt(M)                              -> sqrt of a motor (w.r.t. rgpr)
+// - get_motor()                          -> provide a motor (line, phi), (translation),
+//                                           or (line, phi, dist along line)
+// - get_motor_from_planes()              -> provide a motor (from two plane reflections)
+// - get_motor_from_lines()               -> provide a motor (from two lines moved into
+//                                           each other)
 // - move3dp(), move3dp_opt()             -> move object with motor
 // - project_onto(), reject_from()        -> simple projection and rejection
 // - expand()                             -> expansion: new line/plane through point/line
@@ -24,7 +30,7 @@ namespace hd::ga::pga {
 // - ortho_antiproj3dp()                  -> orthogonal antiprojection onto object
 // - reflect_on()                         -> reflections
 // - invert_on()                          -> inversions
-// - sup()                            -> point on line/plane that is nearest to origin
+// - sup()                                -> point on line/plane that is nearest to origin
 // - att()                                -> object attitude
 // - dist3dp()                            -> Euclidean distance and homogeneous magnitude
 // - is_congruent()                       -> Same up to a scalar factor (is same subspace)
@@ -140,6 +146,65 @@ constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1, TriVec3dp<U> co
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// exp() w.r.t. rgpr(), and TODO: log() w.r.t. rgpr()
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3dp_E<T> exp(BiVec3dp<T> const& B)
+{
+    T phi_sq = to_val(weight_nrm_sq(B)); // weight_nrm_sq returns a pscalar3d
+    if (phi_sq == 0.0) {
+        // pure translation
+
+        // B = att(right_bulk_dual(delta)) to move in direction of vector delta
+        // B does only contain a bulk part which encodes the translation
+        return MVec3dp_E<T>(Scalar3dp<T>(0.0), 0.5 * B, PScalar3dp<T>(1.0));
+    }
+
+    // rotation with angle phi != 0
+    T phi = std::sqrt(phi_sq); // rotation angle phi around unitized l
+    T phi_inv = 1.0 / phi;
+    T dot_lvlm = B.vx * B.mx + B.vy * B.my + B.vz * B.mz; // are Bv and Bm orthogonal?
+
+    // retrieve line l (as in case of pure rotation)
+    auto l = phi_inv * B;
+    double dist{0.0}; // default: no translation, i.e. dist = 0
+
+    if (std::abs(dot_lvlm) > eps) {
+        // case where B contains a screw motion with dist * Bv encoded in Bm.
+        // Thus we need to extract the unitized line l and the translation distance.
+
+        // We get the unitized line by projecting the momentum vector lm onto
+        // the direction vector lv and by removing the non-orthogonal part
+        dist = dot_lvlm * phi_inv; // length of projection of lm in direction of lv
+        l = l - dist * phi_inv * phi_inv * bivec3dp{0.0, 0.0, 0.0, B.vx, B.vy, B.vz};
+    }
+
+    T half_angle = 0.5 * phi;
+    T half_dist = 0.5 * dist;
+    return MVec3dp_E<T>(
+        Scalar3dp<T>(-half_dist * std::sin(half_angle)),
+        BiVec3dp<T>(l * std::sin(half_angle) -
+                    right_weight_dual(l) * half_dist * std::cos(half_angle)),
+        PScalar3dp<T>(std::cos(half_angle)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3dp_E<T> sqrt(MVec3dp_E<T> const& M)
+{
+    if (std::abs(M.c0) < eps) {
+        // simple motor, if M.c0 == 0.0 (i.e. no scalar part)
+        return unitize(M + PScalar3dp<T>(1.0));
+    }
+
+    // non-simple motor for other cases (s. Lengyel, "PGA illuminated", p. 151)
+    return (M + PScalar3dp<T>(1.0)) / std::sqrt(2.0 + 2.0 * M.c7) -
+           rgpr((M + PScalar3dp<T>(1.0)) / std::sqrt(2.0 + 2.0 * M.c7),
+                Scalar3dp<T>(M.c0 / (2.0 + 2.0 * M.c7)));
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // 3dp motor operations (translation and rotation)
 //
 // Every motor in pga3dp is an even-grade multivector MVec3dp_E.
@@ -165,6 +230,10 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor(BiVec3dp<T> const& L, U 
 {
     // line L must be unitized to avoid surprises
     auto nrm_sq = to_val(weight_nrm_sq(L));
+    if (nrm_sq < eps) {
+        throw std::invalid_argument(
+            "get_motor: Cannot use ideal lines L with weight_nrm_sq(L) == 0.0");
+    }
     auto l{L};
     if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
         l = unitize(L);
@@ -263,6 +332,33 @@ get_motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
         M = unitize(M);
     }
     return M; // based on the regressive geometric product
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor_from_lines(BiVec3dp<T> const& l1,
+                                                                   BiVec3dp<U> const& l2)
+{
+    // Return a motor that moves line l1 to line l2.
+    //
+    // Line of rotation is l_rot = rcmt(l2, rrev(l1)).
+    // The operator moving 2*phi and 2*dist is rgpr(l2, rrev(l1))
+    // Thus, sqrt(rgpr(l2, rrev(l1))) is the motor we look for.
+    // (see Lengyel, "PGA Illuminated", p. 152)
+
+    // l1 and l2 need to be unitized to avoid surprises
+    auto nrm_sq = to_val(weight_nrm_sq(l1));
+    auto lu1{l1};
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        lu1 = unitize(lu1);
+    }
+    nrm_sq = to_val(weight_nrm_sq(l2));
+    auto lu2{l2};
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        lu2 = unitize(lu2);
+    }
+
+    return sqrt(rgpr(l2, rrev(l1)));
 }
 
 template <typename T, typename U>
@@ -727,7 +823,8 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj3dp(arg1&& a, a
                   right_weight_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
     // return a unitized object, if it is not located in the horizon
-    if (weight_nrm_sq(p) != 0.0) {
+    auto nrm_sq = to_val(weight_nrm_sq(p));
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
         p = unitize(p);
     }
 
@@ -743,7 +840,8 @@ template <typename arg1, typename arg2> decltype(auto) central_proj3dp(arg1&& a,
                   right_bulk_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
     // return a unitized object, if it is not located in the horizon
-    if (weight_nrm_sq(p) != 0.0) {
+    auto nrm_sq = to_val(weight_nrm_sq(p));
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
         p = unitize(p);
     }
 

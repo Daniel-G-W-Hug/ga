@@ -1266,6 +1266,49 @@ void register_functions(sol::state& lua)
                          sol::resolve<dualnum3dp(dualnum3dp const&)>(unitize)));
 
     ////////////////////////////////////////////////////////////////////////////////
+    // PGA-specific bulk and weight operations
+    ////////////////////////////////////////////////////////////////////////////////
+
+    lua.set_function("bulk", sol::overload(
+                                 // PGA 2DP bulk operations
+                                 sol::resolve<scalar2dp(scalar2dp)>(bulk),
+                                 sol::resolve<vec2dp(vec2dp const&)>(bulk),
+                                 sol::resolve<bivec2dp(bivec2dp const&)>(bulk),
+                                 sol::resolve<pscalar2dp(pscalar2dp)>(bulk),
+                                 sol::resolve<mvec2dp_e(mvec2dp_e const&)>(bulk),
+                                 sol::resolve<mvec2dp_u(mvec2dp_u const&)>(bulk),
+                                 sol::resolve<mvec2dp(mvec2dp const&)>(bulk),
+                                 // PGA 3DP bulk operations
+                                 sol::resolve<scalar3dp(scalar3dp)>(bulk),
+                                 sol::resolve<vec3dp(vec3dp const&)>(bulk),
+                                 sol::resolve<bivec3dp(bivec3dp const&)>(bulk),
+                                 sol::resolve<trivec3dp(trivec3dp const&)>(bulk),
+                                 sol::resolve<pscalar3dp(pscalar3dp)>(bulk),
+                                 sol::resolve<mvec3dp_e(mvec3dp_e const&)>(bulk),
+                                 sol::resolve<mvec3dp_u(mvec3dp_u const&)>(bulk),
+                                 sol::resolve<mvec3dp(mvec3dp const&)>(bulk)));
+
+    lua.set_function("weight", sol::overload(
+                                   // PGA 2DP weight operations
+                                   sol::resolve<scalar2dp(scalar2dp)>(weight),
+                                   sol::resolve<vec2dp(vec2dp const&)>(weight),
+                                   sol::resolve<bivec2dp(bivec2dp const&)>(weight),
+                                   sol::resolve<pscalar2dp(pscalar2dp)>(weight),
+                                   sol::resolve<mvec2dp_e(mvec2dp_e const&)>(weight),
+                                   sol::resolve<mvec2dp_u(mvec2dp_u const&)>(weight),
+                                   sol::resolve<mvec2dp(mvec2dp const&)>(weight),
+                                   // PGA 3DP weight operations
+                                   sol::resolve<scalar3dp(scalar3dp)>(weight),
+                                   sol::resolve<vec3dp(vec3dp const&)>(weight),
+                                   sol::resolve<bivec3dp(bivec3dp const&)>(weight),
+                                   sol::resolve<trivec3dp(trivec3dp const&)>(weight),
+                                   sol::resolve<pscalar3dp(pscalar3dp)>(weight),
+                                   sol::resolve<mvec3dp_e(mvec3dp_e const&)>(weight),
+                                   sol::resolve<mvec3dp_u(mvec3dp_u const&)>(weight),
+                                   sol::resolve<mvec3dp(mvec3dp const&)>(weight)));
+
+
+    ////////////////////////////////////////////////////////////////////////////////
     // PGA-specific dual operations
     ////////////////////////////////////////////////////////////////////////////////
 

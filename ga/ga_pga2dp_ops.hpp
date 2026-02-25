@@ -13,7 +13,9 @@ namespace hd::ga::pga {
 // provides functionality that is based on pga2dp ops basics and products:
 //
 // - angle()                             -> angle operations
-// - TODO: exp()                         -> exponential function
+// - exp()                               -> exponential (w.r.t. rgpr)
+// TODO: - log()                              -> logarithm (w.r.t rgpr)
+// - sqrt(M)                             -> sqrt of a motor (w.r.t. rgpr)
 // - get_motor(), get_motor_from_lines() -> provide a motor
 // - move2dp(), move2dp_opt()            -> move object with motor
 // - project_onto(), reject_from()       -> simple projection and rejection
@@ -24,7 +26,7 @@ namespace hd::ga::pga {
 // - ortho_antiproj2dp()                 -> orthogonal antiprojection onto object
 // - reflect_on()                        -> reflections
 // - invert_on()                         -> inversions
-// - sup()                           -> point on line that is nearest to origin
+// - sup()                               -> point on line that is nearest to origin
 // - att()                               -> object attitude
 // - dist2dp()                           -> Euclidean distance and homogeneous magnitude
 // - is_congruent()                      -> Same up to a scalar factor (is same subspace)
@@ -81,6 +83,33 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// exp() w.r.t. rgpr(), and TODO: log() w.r.t. rgpr(), and sqrt(motor)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2dp_U<T> exp(Vec2dp<T> const& arg)
+{
+    auto w = weight_nrm_sq(arg);
+    if (w == pscalar2dp{0.0}) { // pure translation
+        // arg = att(bulk_dual(delta)) to move in direction of vector delta
+        return MVec2dp_U<T>(0.5 * arg, PScalar2dp<T>(1.0));
+    }
+
+    // rotation with angle != 0
+    T half_angle = 0.5 * arg.z;           // arg.z == rotation angle
+    T inv = std::sin(half_angle) / arg.z; // unitize arg and multiply by sin(half_angle)
+    return unitize(MVec2dp_U<T>(arg * inv, PScalar2dp<T>(std::cos(half_angle))));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec2dp_U<T> sqrt(MVec2dp_U<T> const& M)
+{
+    return unitize(M + PScalar2dp<T>(1.0));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // 2dp motor operations (translation and rotation)
 //
 // Every motor in pga2dp is an odd-grade multivector MVec2dp_U.
@@ -103,6 +132,10 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& P, U th
 {
     // point p must be unitized to avoid suprises
     auto nrm_sq = to_val(weight_nrm_sq(P));
+    if (nrm_sq == 0.0) {
+        throw std::invalid_argument(
+            "get_motor: Cannot use ideal points P with P.z == 0.0");
+    }
     auto Pn{P};
     if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
         Pn = unitize(P);
@@ -408,7 +441,8 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj2dp(arg1&& a, a
                   right_weight_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
     // return a unitized object, if it is not located in the horizon
-    if (weight_nrm_sq(p) != 0.0) {
+    auto nrm_sq = to_val(weight_nrm_sq(p));
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
         p = unitize(p);
     }
 
@@ -424,7 +458,8 @@ template <typename arg1, typename arg2> decltype(auto) central_proj2dp(arg1&& a,
                   right_bulk_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
     // return a unitized object, if it is not located in the horizon
-    if (weight_nrm_sq(p) != 0.0) {
+    auto nrm_sq = to_val(weight_nrm_sq(p));
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
         p = unitize(p);
     }
 
@@ -597,8 +632,8 @@ bool is_congruent(Vec2dp<T> const& a, Vec2dp<U> const& b, value_t tolerance = ep
 {
     using ctype = std::common_type_t<T, U>;
 
-    // Handle zero cases using component-wise check (bulk_nrm_sq can be zero for non-zero
-    // PGA elements)
+    // Handle zero cases using component-wise check (bulk_nrm_sq can be zero for
+    // non-zero PGA elements)
     bool a_is_zero = (std::abs(a.x) < tolerance) && (std::abs(a.y) < tolerance) &&
                      (std::abs(a.z) < tolerance);
     bool b_is_zero = (std::abs(b.x) < tolerance) && (std::abs(b.y) < tolerance) &&
@@ -646,8 +681,8 @@ bool is_congruent(BiVec2dp<T> const& a, BiVec2dp<U> const& b, value_t tolerance 
 {
     using ctype = std::common_type_t<T, U>;
 
-    // Handle zero cases using component-wise check (bulk_nrm_sq can be zero for non-zero
-    // PGA elements)
+    // Handle zero cases using component-wise check (bulk_nrm_sq can be zero for
+    // non-zero PGA elements)
     bool a_is_zero = (std::abs(a.x) < tolerance) && (std::abs(a.y) < tolerance) &&
                      (std::abs(a.z) < tolerance);
     bool b_is_zero = (std::abs(b.x) < tolerance) && (std::abs(b.y) < tolerance) &&

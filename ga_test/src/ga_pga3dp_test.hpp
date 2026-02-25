@@ -3874,7 +3874,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto I_squared = I_3dp * I_3dp;
         CHECK(abs(value_t(I_squared)) < eps);
 
-        fmt::println("   ✓ I_3dp^2 = 0 (degenerate metric property verified)");
+        fmt::println("I_3dp^2 = 0 (degenerate metric property verified)");
     }
 
     TEST_CASE("G<3,0,1>: DualNum3dp formatting tests")
@@ -4258,7 +4258,7 @@ TEST_SUITE("PGA 3DP Tests")
             }
         }
 
-        fmt::println("  ✓ Extended metric diagonal correct for PGA3DP (degenerate e4)");
+        fmt::println("Extended metric diagonal correct for PGA3DP (degenerate e4)");
     }
 
     TEST_CASE("G<3,0,1>: extended metric recursive extraction via wedge products")
@@ -4337,7 +4337,7 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(abs(g_e1234 - value_t(G[15, 15])) < eps);
 
         fmt::println(
-            "  ✓ Recursive extraction: all levels match (including null dimension e4)");
+            "Recursive extraction: all levels match (including null dimension e4)");
     }
 
     TEST_CASE("G<3,0,1>: extended metric vs dot products")
@@ -4375,8 +4375,269 @@ TEST_SUITE("PGA 3DP Tests")
         // Pseudoscalar: e1234·e1234=0 (involves null dimension e4)
         CHECK(abs(value_t(dot(e1234_3dp, e1234_3dp)) - value_t(G[15, 15])) < eps);
 
-        fmt::println(
-            "  ✓ Extended metric diagonal matches dot products (including null e4)");
+        fmt::println("Extended metric diagonal matches dot products (including null e4)");
     }
+
+    TEST_CASE("G<3,0,1>: exponential function")
+    {
+        fmt::println("G<3,0,1>: exponential function");
+
+        //////////////////////////
+        // a) pure translation
+        //////////////////////////
+        fmt::println("\npure translation:\n");
+
+        auto X0 = vec3dp{1, 0, 0, 1};
+        auto delta = vec3dp{-2, -1, 3, 0};
+        auto X = X0 + delta;
+
+        auto B = att(right_bulk_dual(delta)); // bivector representing delta
+        auto M = get_motor(delta);            // translation motor
+
+        fmt::println("X0                   = {}", X0);
+        fmt::println("delta                = {}", delta);
+        fmt::println("");
+        fmt::println("B_tra                = {}", B);
+        fmt::println("M (from get_motor()) = {}", M);
+        fmt::println("M (from exp(B))      = {}", exp(B));
+        fmt::println("");
+        fmt::println("X = M ⟇ X0 ⟇ rrev(m) = {}", move3dp(X0, M));
+        fmt::println("X (target value)     = {}", X);
+        fmt::println("");
+
+        CHECK(X == move3dp(X0, M)); // motor moves to X
+        CHECK(M == exp(B));         // bivector creates motor via exp()
+
+        //////////////////////////
+        // b) pure rotation
+        //////////////////////////
+        fmt::println("\npure rotation:\n");
+
+        auto Q = vec3dp{1, 0, 1, 1};
+        double phi = deg2rad(90);
+        auto phi_vec = phi * bulk_normalize(vec3dp{0, 1, 0, 0});
+        auto l = wdg(Q, phi_vec);
+        auto l_hat = unitize(l);
+
+        X0 = vec3dp{2, 0, 1, 1};
+        X = vec3dp{1, 0, 0, 1};
+
+        B = l_hat * phi;
+        M = get_motor(l, phi);
+
+        fmt::println("X0                   = {}", X0);
+        fmt::println("l                    = {}", l);
+        fmt::println("l_hat                = {}", l_hat);
+        fmt::println("phi                  = {}", phi);
+        fmt::println("");
+        fmt::println("B_rot                = {}", B);
+        fmt::println("M (from get_motor()) = {}", M);
+        fmt::println("M (from exp(B))      = {}", exp(B));
+        fmt::println("");
+        fmt::println("X = M ⟇ X0 ⟇ rrev(m) = {}", move3dp(X0, M));
+        fmt::println("X (target value)     = {}", X);
+        fmt::println("");
+
+        CHECK(X == move3dp(X0, M));
+        CHECK(M == exp(B)); // bivector creates motor via exp()
+
+        //////////////////////////
+        // c) screw motion (rotation + translation in direction of rotation axis)
+        //////////////////////////
+        fmt::println("\nscrew motion (rotation and translation):\n");
+
+        // rotational part with axis l
+        Q = vec3dp{1, 0, 1, 1};
+        phi = deg2rad(90);
+        auto phi_hat = bulk_normalize(vec3dp{0, 1, 0, 0});
+        l = wdg(Q, phi_vec);
+        l_hat = unitize(l);
+        auto B_rot = l_hat * phi;
+
+        // translational part with translation along l
+        double dist = 1.0;
+        delta = dist * phi_hat;
+        auto B_tra = att(right_bulk_dual(delta)); // bivector representing delta
+
+        // resulting bivector for screw motion
+        B = B_rot + B_tra;
+
+        // start and target point
+        X0 = vec3dp{2, 0, 1, 1};
+        X = vec3dp{1, 1, 0, 1};
+
+        M = get_motor(l, phi, dist);
+
+        fmt::println("X0                   = {}", X0);
+        fmt::println("l                    = {}", l);
+        fmt::println("l_hat                = {}", l_hat);
+        fmt::println("phi                  = {}", phi);
+        fmt::println("dist                 = {}", dist);
+        fmt::println("");
+        fmt::println("B_rot                = {}", B_rot);
+        fmt::println("B_tra                = {}", B_tra);
+        fmt::println("B = B_rot + B_tra    = {}", B);
+        fmt::println("M (from get_motor()) = {}", M);
+        fmt::println("M (from exp(B))      = {}", exp(B));
+        fmt::println("");
+        fmt::println("X = M ⟇ X0 ⟇ rrev(m) = {}", move3dp(X0, M));
+        fmt::println("X (target value)     = {}", X);
+        fmt::println("");
+
+        CHECK(X == move3dp(X0, M));
+        CHECK(M == exp(B)); // bivector creates motor via exp()
+    }
+
+    TEST_CASE("G<3,0,1>: sqrt(motor) function")
+    {
+        fmt::println("G<3,0,1>: sqrt(motor) function");
+
+        // how to transfer plane pl1 into plane pl2, such that pl2 = M ⟇ pl1 ⟇ rrev(M)?
+        //
+        // We know R = pl2 ⟇ pl1 represents two consequtive reflections across pl1 & pl2.
+        // So we need "half of the transformation" M = R^{1/2} = sqrt(R)
+
+        // case a) rotation as defined by consequtive mirroring across intersecting planes
+        fmt::println("\nG<3,0,1>: case a) rotation:\n");
+
+        auto pl1 =
+            unitize(wdg(vec3dp{0, 0, 0, 1}, wdg(vec3dp{0, 0, 1, 1}, vec3dp{1, 2, 0, 1})));
+        auto pl2 =
+            unitize(wdg(vec3dp{0, 0, 0, 1}, wdg(vec3dp{0, 0, 1, 1}, vec3dp{3, 2, 0, 1})));
+
+        auto M = get_motor_from_planes(pl1, pl2);
+
+        auto P0 = vec3dp{0, 7, 0, 1};
+
+        auto phi = angle(pl1, pl2);
+        auto l_fix = unitize(rwdg(pl1, pl2));
+
+        auto R = sqrt(M);
+
+        fmt::println("pl1             = {}", pl1);
+        fmt::println("pl1 ⟇ pl1       = {}", rgpr(pl1, pl1));
+        fmt::println("pl1 ⟇ rrev(l1)  = {}", rgpr(pl1, rrev(pl1)));
+        fmt::println("pl2             = {}", pl2);
+        fmt::println("pl2 ⟇ pl2       = {}", rgpr(pl2, pl2));
+        fmt::println("pl2 ⟇ rrev(pl2) = {}", rgpr(pl2, rrev(pl2)));
+        fmt::println("");
+        fmt::println("l_fix = {}, phi = {}°", l_fix, rad2deg(phi));
+        fmt::println("l_fix ⟇ l_fix = {}", rgpr(l_fix, l_fix));
+        fmt::println("");
+        fmt::println("M(pl1,pl2)  = {}", M);
+        fmt::println("M ⟇ rrev(M) = {}", rgpr(M, rrev(M)));
+        fmt::println("");
+        fmt::println("P0                    = {}", P0);
+        fmt::println("P  = M ⟇ P0 ⟇ rrev(M) = {}", move3dp(P0, M));
+        fmt::println("");
+        fmt::println("R = sqrt(M) = {}", R);
+        fmt::println("R ⟇ rrev(R) = {}", rgpr(R, rrev(R)));
+        fmt::println("");
+        fmt::println("P0                    = {}", P0);
+        fmt::println("P  = R ⟇ P0 ⟇ rrev(R) = {}", move3dp(P0, R));
+        fmt::println("");
+        fmt::println("pl1                    = {}", pl1);
+        fmt::println("att(pl1)               = {}", att(pl1));
+        fmt::println("rcmpl(pl1)             = {}", rcmpl(pl1));
+        fmt::println("right_bulk_dual(pl1)   = {}", right_bulk_dual(pl1));
+        fmt::println("right_weight_dual(pl1) = {}", right_weight_dual(pl1));
+        fmt::println("");
+        fmt::println("gpr(pl1,I_3dp)   = {}", pl1 * I_3dp);
+        fmt::println("rgpr(pl1,I_3dp)  = {}", rgpr(pl1, I_3dp));
+        fmt::println("");
+
+        // case b) translation as defined by parallel planes
+        fmt::println("\nG<3,0,1>: case b) translation:\n");
+
+        pl1 =
+            unitize(wdg(vec3dp{1, 0, 0, 1}, wdg(vec3dp{1, 0, 1, 1}, vec3dp{0, 0, 0, 1})));
+        pl2 =
+            unitize(wdg(vec3dp{1, 1, 0, 1}, wdg(vec3dp{1, 1, 1, 1}, vec3dp{0, 1, 0, 1})));
+
+        M = get_motor_from_planes(pl1, pl2);
+
+        P0 = vec3dp{0, 7, 0, 1};
+
+        R = sqrt(M);
+
+        fmt::println("pl1             = {}", pl1);
+        fmt::println("pl1 ⟇ pl1       = {}", rgpr(pl1, pl1));
+        fmt::println("pl1 ⟇ rrev(l1)  = {}", rgpr(pl1, rrev(pl1)));
+        fmt::println("pl2             = {}", pl2);
+        fmt::println("pl2 ⟇ pl2       = {}", rgpr(pl2, pl2));
+        fmt::println("pl2 ⟇ rrev(pl2) = {}", rgpr(pl2, rrev(pl2)));
+        fmt::println("");
+        fmt::println("M(pl1,pl2)  = {}", M);
+        fmt::println("M ⟇ rrev(M) = {}", rgpr(M, rrev(M)));
+        fmt::println("");
+        fmt::println("P0                    = {}", P0);
+        fmt::println("P  = M ⟇ P0 ⟇ rrev(M) = {}", move3dp(P0, M));
+        fmt::println("");
+        fmt::println("R = sqrt(M) = {}", R);
+        fmt::println("R ⟇ rrev(R) = {}", rgpr(R, rrev(R)));
+        fmt::println("");
+        fmt::println("P0                    = {}", P0);
+        fmt::println("P  = R ⟇ P0 ⟇ rrev(R) = {}", move3dp(P0, R));
+        fmt::println("");
+        fmt::println("pl1                    = {}", pl1);
+        fmt::println("att(pl1)               = {}", att(pl1));
+        fmt::println("rcmpl(pl1)             = {}", rcmpl(pl1));
+        fmt::println("right_bulk_dual(pl1)   = {}", right_bulk_dual(pl1));
+        fmt::println("right_weight_dual(pl1) = {}", right_weight_dual(pl1));
+        fmt::println("");
+        fmt::println("gpr(pl1,I_3dp)   = {}", pl1 * I_3dp);
+        fmt::println("rgpr(pl1,I_3dp)  = {}", rgpr(pl1, I_3dp));
+        fmt::println("");
+
+        // case c) combined rotation and translation as defined by transforming
+        //         one line l1 into another line l2, if l1 and l2 are not intersecting
+        fmt::println("\nG<3,0,1>: case c) combined rotation and translation:\n");
+
+        auto l1 = x_axis_3dp;
+        auto l2 = wdg(vec3dp{0, 1, 0, 1}, vec3dp{0, 1, -1, 1});
+        auto l3 = rcmt(l2, rrev(l1)); // rotation axis (shortest dist between l1, l2)
+
+        M = get_motor(l3, deg2rad(90), 1.0);
+        auto M_double = rgpr(l2, rrev(l1));
+        auto M_calc = sqrt(M_double);
+        auto M2 = get_motor_from_lines(l1, l2);
+
+        P0 = vec3dp{1, 0, 0, 1};
+        auto P1 = vec3dp{0, 1, -1, 1};
+
+        fmt::println("l1 = {}", l1);
+        fmt::println("l2 = {}", l2);
+        fmt::println("l3 = {}", l3);
+        fmt::println("");
+        fmt::println("M = {}", M);
+        fmt::println("M_double = {}", M_double);
+        fmt::println("M_calc = {}", M_calc);
+        fmt::println("M2 = {}", M2);
+
+        CHECK(l3 == y_axis_3dp);
+        CHECK(P1 == move3dp(P0, M));
+        CHECK(P1 == move3dp(P0, M2));
+
+        fmt::println("l1            = {}", l1);
+        fmt::println("l1 ⟇ l1       = {}", rgpr(l1, l1));
+        fmt::println("l1 ⟇ rrev(l1) = {}", rgpr(l1, rrev(l1)));
+        fmt::println("l2            = {}", l2);
+        fmt::println("l2 ⟇ l2       = {}", rgpr(l2, l2));
+        fmt::println("l2 ⟇ rrev(l2) = {}", rgpr(l2, rrev(l2)));
+        fmt::println("");
+        fmt::println("M(l1,l2)    = {}", M);
+        fmt::println("M ⟇ rrev(M) = {}", rgpr(M, rrev(M)));
+        fmt::println("");
+        fmt::println("P0                    = {}", P0);
+        fmt::println("P  = M ⟇ P0 ⟇ rrev(M) = {}", move3dp(P0, M));
+        fmt::println("");
+        fmt::println("M2                      = {}", M2);
+        fmt::println("M2 ⟇ rrev(M2)           = {}", rgpr(M2, rrev(M2)));
+        fmt::println("");
+        fmt::println("P0                      = {}", P0);
+        fmt::println("P  = M2 ⟇ P0 ⟇ rrev(M2) = {}", move3dp(P0, M2));
+        fmt::println("");
+    }
+
 
 } // PGA 3DP Tests

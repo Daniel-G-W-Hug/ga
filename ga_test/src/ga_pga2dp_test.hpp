@@ -3244,7 +3244,7 @@ TEST_SUITE("PGA 2DP Tests")
         auto I_squared = I_2dp * I_2dp;
         CHECK(abs(value_t(I_squared)) < eps);
 
-        fmt::println("   ✓ I_2dp^2 = 0 (degenerate metric property verified)");
+        fmt::println("I_2dp^2 = 0 (degenerate metric property verified)");
     }
 
     TEST_CASE("G<2,0,1>: DualNum2dp formatting tests")
@@ -3499,7 +3499,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(cmpl(cmpl(M_u)) == M_u);
         CHECK(cmpl(cmpl(M)) == M);
 
-        fmt::println("  ✓ complement involution: cmpl(cmpl(u)) = u");
+        fmt::println("complement involution: cmpl(cmpl(u)) = u");
         fmt::println("");
     }
 
@@ -3532,7 +3532,7 @@ TEST_SUITE("PGA 2DP Tests")
             }
         }
 
-        fmt::println("  ✓ Extended metric diagonal correct for PGA2DP (degenerate e3)");
+        fmt::println("Extended metric diagonal correct for PGA2DP (degenerate e3)");
     }
 
     TEST_CASE("G<2,0,1>: extended metric recursive extraction via wedge products")
@@ -3582,7 +3582,7 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(abs(g_e321 - value_t(G[7, 7])) < eps);
         CHECK(e321_constructed == e321_2dp);
 
-        fmt::println("  ✓ Recursive extraction: scalar → vectors → bivectors → trivector "
+        fmt::println("Recursive extraction: scalar → vectors → bivectors → trivector "
                      "all match (including null dimension)");
     }
 
@@ -3609,8 +3609,174 @@ TEST_SUITE("PGA 2DP Tests")
         // Pseudoscalar: e321·e321=0 (involves null dimension)
         CHECK(abs(value_t(dot(e321_2dp, e321_2dp)) - value_t(G[7, 7])) < eps);
 
-        fmt::println(
-            "  ✓ Extended metric diagonal matches dot products (including null e3)");
+        fmt::println("Extended metric diagonal matches dot products (including null e3)");
+    }
+
+    TEST_CASE("G<2,0,1>: exponential function")
+    {
+        fmt::println("G<2,0,1>: exponential function");
+
+        auto X0 = vec2dp{1, 0, 1};
+        auto delta = vec2dp{-2, -1, 0};
+        auto X = X0 + delta;
+
+        auto B = att(bulk_dual(delta)); // vector
+        auto M = get_motor(delta);      // translation motor
+
+        fmt::println("B_tra                = {}", B);
+        fmt::println("M (from get_motor()) = {}", M);
+        fmt::println("M (from exp(B))      = {}", exp(B));
+        fmt::println("");
+
+        CHECK(X == move2dp(X0, M)); // motor moves to X
+        CHECK(M == exp(B));         // bivector creates motor via exp()
+
+        auto P_fix = vec2dp{-2, -3, 1};
+        auto X_rot = vec2dp{-2, -3 + std::sqrt(18), 1};
+
+        B = P_fix * deg2rad(45);
+        M = get_motor(P_fix, deg2rad(45));
+
+        fmt::println("B_rot                = {}", B);
+        fmt::println("M (from get_motor()) = {}", M);
+        fmt::println("M (from exp(B))      = {}", exp(B));
+        fmt::println("");
+
+        CHECK(X_rot == move2dp(X0, M));
+        CHECK(M == exp(B)); // bivector creates motor via exp()
+
+        auto B0 = vec2dp{0, 0, deg2rad(45)};
+        auto M0 = get_motor(O_2dp, deg2rad(45));
+        fmt::println("B0 = {}, exp(B0) = {}", B0, exp(B0));
+        fmt::println("M0 = {}", M0);
+        CHECK(M0 == exp(B0));
+        CHECK(move2dp(X0, M0) == vec2dp{0.5 * std::sqrt(2.0), 0.5 * std::sqrt(2), 1});
+        CHECK(move2dp(O_2dp, M0) == O_2dp); // fixed point
+        //
+        auto B1 = vec2dp{1, 1, 1} * deg2rad(45);
+        auto M1 = get_motor(vec2dp{1, 1, 1}, deg2rad(45));
+        fmt::println("B1 = {}, exp(B1) = {}", B1, exp(B1));
+        fmt::println("M1 = {}", M1);
+        CHECK(M1 == exp(B1));
+        CHECK(move2dp(X0, M1) ==
+              vec2dp{1.0 + 0.5 * std::sqrt(2.0), 1.0 - 0.5 * std::sqrt(2), 1});
+        CHECK(move2dp(vec2dp{1, 1, 1}, M1) == vec2dp{1, 1, 1}); // fixed point
+        fmt::println("");
+
+        // now as stepwise approach with concatenated transformations
+        auto Ma = get_motor(vec2dp{-1, -1, 1});  // move from fixed point to O_2dp
+        auto Mb = get_motor(O_2dp, deg2rad(45)); // rotate around O_2dp
+        auto Mc = get_motor(vec2dp{1, 1, 1});    // move back from O_2dp to fixed point
+        auto M_res = rgpr(rgpr(Mc, Mb), Ma);
+
+        fmt::println("Ma = {}", Ma);
+        fmt::println("Mb = {}", Mb);
+        fmt::println("Mc = {}", Mc);
+        fmt::println("Mres = rgpr(rgpr(Mc, Mb), Ma) = {}", M_res);
+        fmt::println("");
+
+        auto back_and_forth = rgpr(Mc, Ma);
+        CHECK(gr1(back_and_forth) == vec2dp{});
+        CHECK(gr3(back_and_forth) == pscalar2dp{1.0});
+        CHECK(M_res == M1);
+    }
+
+    TEST_CASE("G<2,0,1>: sqrt(motor) function")
+    {
+        fmt::println("G<2,0,1>: sqrt(motor) function");
+
+        // how to transfer line l1 into line l2, such that l2 = M ⟇ l1 ⟇ rrev(M)?
+        //
+        // We know R = l2 ⟇ l1 represents two consequtive reflections across l1 and l2.
+        // So we need "half of the transformation" M = R^{1/2} = sqrt(R)
+
+        // case a) rotation as defined by consequtive mirroring across intersecting lines
+        fmt::println("\nG<2,0,1>: case a) rotation:\n");
+
+        auto l1 = unitize(wdg(vec2dp{1, 1, 1}, vec2dp{2, 4, 1}));
+        auto l2 = unitize(wdg(vec2dp{2, 1, 1}, vec2dp{4, 3, 1}));
+
+        auto M = get_motor_from_lines(l1, l2);
+
+        auto P0 = vec2dp{0, 7, 1};
+
+        auto phi = angle(l1, l2);
+        auto P_fix = unitize(rwdg(l1, l2));
+
+        auto R = sqrt(M);
+
+        fmt::println("l1            = {}", l1);
+        fmt::println("l1 ⟇ l1       = {}", rgpr(l1, l1));
+        fmt::println("l1 ⟇ rrev(l1) = {}", rgpr(l1, rrev(l1)));
+        fmt::println("l2            = {}", l2);
+        fmt::println("l2 ⟇ l2       = {}", rgpr(l2, l2));
+        fmt::println("l2 ⟇ rrev(l2) = {}", rgpr(l2, rrev(l2)));
+        fmt::println("");
+        fmt::println("P_fix = {}, phi = {}°", P_fix, rad2deg(phi));
+        fmt::println("P_fix ⟇ P_fix = {}", rgpr(P_fix, P_fix));
+        fmt::println("");
+        fmt::println("M(l1,l2)    = {}", M);
+        fmt::println("M ⟇ rrev(M) = {}", rgpr(M, rrev(M)));
+        fmt::println("");
+        fmt::println("P0                    = {}", P0);
+        fmt::println("P  = M ⟇ P0 ⟇ rrev(M) = {}", move2dp(P0, M));
+        fmt::println("");
+        fmt::println("R = sqrt(M) = {}", R);
+        fmt::println("R ⟇ rrev(R) = {}", rgpr(R, rrev(R)));
+        fmt::println("");
+        fmt::println("P0                    = {}", P0);
+        fmt::println("P  = R ⟇ P0 ⟇ rrev(R) = {}", move2dp(P0, R));
+        fmt::println("");
+        fmt::println("l1              = {}", l1);
+        fmt::println("att(l1)         = {}", att(l1));
+        fmt::println("cmpl(l1)        = {}", cmpl(l1));
+        fmt::println("bulk_dual(l1)   = {}", bulk_dual(l1));
+        fmt::println("weight_dual(l1) = {}", weight_dual(l1));
+        fmt::println("");
+        fmt::println("gpr(l1,I_2dp)   = {}", l1 * I_2dp);
+        fmt::println("rgpr(l1,I_2dp)  = {}", rgpr(l1, I_2dp));
+        fmt::println("");
+
+        // case b) translation as defined by parallel lines
+        fmt::println("\nG<2,0,1>: case b) translation:\n");
+
+        l1 = unitize(wdg(vec2dp{1, 0, 1}, vec2dp{1, 1, 1}));
+        l2 = unitize(wdg(vec2dp{3, 0, 1}, vec2dp{3, 1, 1}));
+
+        M = get_motor_from_lines(l1, l2);
+
+        P0 = vec2dp{0, 7, 1};
+
+        R = sqrt(M);
+
+        fmt::println("l1            = {}", l1);
+        fmt::println("l1 ⟇ l1       = {}", rgpr(l1, l1));
+        fmt::println("l1 ⟇ rrev(l1) = {}", rgpr(l1, rrev(l1)));
+        fmt::println("l2            = {}", l2);
+        fmt::println("l2 ⟇ l2       = {}", rgpr(l2, l2));
+        fmt::println("l2 ⟇ rrev(l2) = {}", rgpr(l2, rrev(l2)));
+        fmt::println("");
+        fmt::println("M(l1,l2)    = {}", M);
+        fmt::println("M ⟇ rrev(M) = {}", rgpr(M, rrev(M)));
+        fmt::println("");
+        fmt::println("P0                    = {}", P0);
+        fmt::println("P  = M ⟇ P0 ⟇ rrev(M) = {}", move2dp(P0, M));
+        fmt::println("");
+        fmt::println("R = sqrt(M) = {}", R);
+        fmt::println("R ⟇ rrev(R) = {}", rgpr(R, rrev(R)));
+        fmt::println("");
+        fmt::println("P0                    = {}", P0);
+        fmt::println("P  = R ⟇ P0 ⟇ rrev(R) = {}", move2dp(P0, R));
+        fmt::println("");
+        fmt::println("l1              = {}", l1);
+        fmt::println("att(l1)         = {}", att(l1));
+        fmt::println("cmpl(l1)        = {}", cmpl(l1));
+        fmt::println("bulk_dual(l1)   = {}", bulk_dual(l1));
+        fmt::println("weight_dual(l1) = {}", weight_dual(l1));
+        fmt::println("");
+        fmt::println("gpr(l1,I_2dp)   = {}", l1 * I_2dp);
+        fmt::println("rgpr(l1,I_2dp)  = {}", rgpr(l1, I_2dp));
+        fmt::println("");
     }
 
 } // PGA 2DP Tests

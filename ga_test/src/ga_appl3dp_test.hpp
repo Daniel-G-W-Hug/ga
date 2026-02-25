@@ -324,7 +324,7 @@ TEST_SUITE("PGA3DP: application tests")
         auto l1 = x_axis_3dp;
         auto l2 = wdg(vec3dp{0, 1, 0, 1}, vec3dp{0, 1, -1, 1});
 
-        auto l3 = rcmt(l1, l2);
+        auto l3 = rcmt(l2, rrev(l1));
         CHECK(l3 == y_axis_3dp);
 
         fmt::println("l1 = {}", l1);

@@ -122,6 +122,9 @@ void item_bivt2dp::reset_item_data()
             // return origin for simple bivector (moment only)
             beg_pos = mapFromScene(QPointF(cs->x.au_to_w(0.0), cs->y.au_to_w(0.0)));
             end_pos = mapFromScene(QPointF(cs->x.au_to_w(0.0), cs->y.au_to_w(0.0)));
+            min_x = max_x = 0.0; // reset bounding box to origin
+                                 // (avoids DBL_MAX sentinel in boundingRect())
+            min_y = max_y = 0.0;
             return;
         }
 

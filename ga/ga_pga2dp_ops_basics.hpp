@@ -819,7 +819,7 @@ constexpr DualNum2dp<T> geom_nrm(PScalar2dp<T> ps)
     return DualNum2dp<T>(bulk_nrm(ps), weight_nrm(ps));
 }
 
-// even grade multivector
+// even-grade multivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_E<T> const& M)
@@ -834,7 +834,7 @@ constexpr DualNum2dp<T> geom_nrm(MVec2dp_E<T> const& M)
     return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
 }
 
-// odd grade multivector
+// odd-grade multivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_U<T> const& M)
@@ -891,24 +891,24 @@ inline BiVec2dp<T> bulk_normalize(BiVec2dp<T> const& B)
     return inv * B;
 }
 
-// return an even grade multivector normalized to bulk_nrm(M) == 1.0
+// return an even-grade multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec2dp_E<T> bulk_normalize(MVec2dp_E<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "even grade multivector (2dp)");
+    hd::ga::detail::check_normalization<T>(n, "even-grade multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
 
-// return an odd grade multivector normalized to bulk_nrm(M) == 1.0
+// return an odd-grade multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec2dp_U<T> bulk_normalize(MVec2dp_U<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "odd grade multivector (2dp)");
+    hd::ga::detail::check_normalization<T>(n, "odd-grade multivector (2dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -951,7 +951,7 @@ inline BiVec2dp<T> unitize(BiVec2dp<T> const& B)
     return inv * B;
 }
 
-// return an even grade multivector unitized to weight_nrm == 1.0
+// return an even-grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec2dp_E<T> unitize(MVec2dp_E<T> const& M)
@@ -962,7 +962,7 @@ inline MVec2dp_E<T> unitize(MVec2dp_E<T> const& M)
     return inv * M;
 }
 
-// return an odd grade multivector unitized to weight_nrm == 1.0
+// return an odd-grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec2dp_U<T> unitize(MVec2dp_U<T> const& M)
