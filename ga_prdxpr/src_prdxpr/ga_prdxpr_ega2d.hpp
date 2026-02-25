@@ -9,6 +9,9 @@
 // ega2d: euclidean geometric algebra with
 //        e1*e1 = +1, e2*e2 = +1
 // G(2,0,0)
+//        2D Euclidean vector space
+//        can also be considered as describing circular geometry on the unit circle
+
 
 // metric signature: e1²=+1, e2²=+1
 const std::vector<int> mv2d_metric_signature = {+1, +1};

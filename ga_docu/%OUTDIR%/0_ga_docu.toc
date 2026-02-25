@@ -1,0 +1,15 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}GA library}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Introduction to the ga library}{4}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Basics of the mathematical approach}{9}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Modelling motion}{27}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Physics modelling}{46}{subsection.1.4}%
+\contentsline {subsubsection}{\numberline {1.4.1}Modelling force and torque}{48}{subsubsection.1.4.1}%
+\contentsline {subsubsection}{\numberline {1.4.2}Modelling linear and angular momentum}{51}{subsubsection.1.4.2}%
+\contentsline {subsection}{\numberline {1.5}Approaches with increasing expressivenes}{59}{subsection.1.5}%
+\contentsline {subsubsection}{\numberline {1.5.1}Classic approach (vector algebra)}{59}{subsubsection.1.5.1}%
+\contentsline {subsubsection}{\numberline {1.5.2}General observations for Geometric Algebra (GA)}{59}{subsubsection.1.5.2}%
+\contentsline {subsubsection}{\numberline {1.5.3}Euclidean Geometric Algebra (EGA)}{59}{subsubsection.1.5.3}%
+\contentsline {subsubsection}{\numberline {1.5.4}Projective (Euclidean) Geometric Algebra (PGA)}{60}{subsubsection.1.5.4}%
+\contentsline {subsection}{\numberline {1.6}Glossary}{61}{subsection.1.6}%
+\contentsline {subsection}{\numberline {1.7}Literature}{62}{subsection.1.7}%

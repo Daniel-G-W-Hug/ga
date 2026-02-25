@@ -85,16 +85,33 @@ int Axis::a_to_w(double scaled_value) const
 // unscaled axis to widget transformation
 int Axis::au_to_w(double unscaled_value) const
 {
+
+    if (!std::isfinite(unscaled_value)) return mo; // guard against NaN/Inf
+
     switch (ad.scal) {
-        case axis_scal::linear:
+        case axis_scal::linear: {
+            double const result = sf * (unscaled_value - ad.rng.min) + mo;
+            if (!std::isfinite(result))
+                return mo; // guard against overflow (e.g. DBL_MAX)
+            return static_cast<int>(result);
+        }
 
-            return sf * (unscaled_value - ad.rng.min) + mo;
-            break;
+        case axis_scal::logarithmic: {
+            double const result = sf * (std::log10(unscaled_value) - ad.rng.min) + mo;
+            if (!std::isfinite(result)) return mo; // guard against overflow
+            return static_cast<int>(result);
+        }
 
-        case axis_scal::logarithmic:
+            // switch (ad.scal) {
+            //     case axis_scal::linear:
 
-            return sf * (std::log10(unscaled_value) - ad.rng.min) + mo;
-            break;
+            //         return sf * (unscaled_value - ad.rng.min) + mo;
+            //         break;
+
+            //     case axis_scal::logarithmic:
+
+            //         return sf * (std::log10(unscaled_value) - ad.rng.min) + mo;
+            //         break;
 
         default:
 #if defined(_MSC_VER)

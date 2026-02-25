@@ -1044,7 +1044,7 @@ constexpr DualNum3dp<T> geom_nrm(PScalar3dp<T> ps)
     return DualNum3dp<T>(bulk_nrm(ps), weight_nrm(ps));
 }
 
-// even grade multivector
+// even-grade multivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp_E<T> const& M)
@@ -1059,7 +1059,7 @@ constexpr DualNum3dp<T> geom_nrm(MVec3dp_E<T> const& M)
     return DualNum3dp<T>(bulk_nrm(M), weight_nrm(M));
 }
 
-// odd grade multivector
+// odd-grade multivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp_U<T> const& M)
@@ -1127,24 +1127,24 @@ inline TriVec3dp<T> bulk_normalize(TriVec3dp<T> const& t)
     return inv * t;
 }
 
-// return an even grade multivector normalized to bulk_nrm(M) == 1.0
+// return an even-grade multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3dp_E<T> bulk_normalize(MVec3dp_E<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "even grade multivector (3dp)");
+    hd::ga::detail::check_normalization<T>(n, "even-grade multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
 
-// return an odd grade multivector normalized to bulk_nrm(M) == 1.0
+// return an odd-grade multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3dp_U<T> bulk_normalize(MVec3dp_U<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "odd grade multivector (3dp)");
+    hd::ga::detail::check_normalization<T>(n, "odd-grade multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
@@ -1198,24 +1198,24 @@ inline TriVec3dp<T> unitize(TriVec3dp<T> const& t)
     return inv * t;
 }
 
-// return an even grade multivector unitized to weight_nrm == 1.0
+// return an even-grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3dp_E<T> unitize(MVec3dp_E<T> const& M)
 {
     T n = T(weight_nrm(M));
-    hd::ga::detail::check_unitization<T>(n, "even grade multivector (3dp)");
+    hd::ga::detail::check_unitization<T>(n, "even-grade multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
 
-// return an odd grade multivector unitized to weight_nrm == 1.0
+// return an odd-grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3dp_U<T> unitize(MVec3dp_U<T> const& M)
 {
     T n = T(weight_nrm(M));
-    hd::ga::detail::check_unitization<T>(n, "odd grade multivector (3dp)");
+    hd::ga::detail::check_unitization<T>(n, "odd-grade multivector (3dp)");
     T inv = T(1.0) / n; // for multiplication with inverse of norm
     return inv * M;
 }
