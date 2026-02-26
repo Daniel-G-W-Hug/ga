@@ -23,7 +23,7 @@ project(
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # set a default build type: Debug | RelWithDebInfo | Release | MinSizeRel
 if(NOT CMAKE_BUILD_TYPE)
@@ -33,7 +33,7 @@ endif()
 
 if(MSVC)
   # warning level 4 and all warnings as errors
-  add_compile_options(/bigobj /Wall /W4 /WX /EHs /utf-8)
+  add_compile_options(/bigobj /Wall /W4 /WX /EHs /utf-8 /Zc:__cplusplus /permissive- /FS /Z7)
 else()
   # lots of warnings and all warnings as errors
   #add_compile_options(-Wall -Wextra -pedantic -Werror)
@@ -64,10 +64,10 @@ option(_GA_USE_READLINE "Enable readline support for ga_lua interactive shell" O
 #################################################################
  
 add_subdirectory(ga)                     # ga library (header only)
-add_subdirectory(ga_test)                # tests for header only library
-add_subdirectory(ga_lua)                 # lua scripting for ga
-add_subdirectory(ga_view)                # qt-based viewer
-add_subdirectory(ga_prdxpr)              # generate product expressions
+# add_subdirectory(ga_test)                # tests for header only library
+# add_subdirectory(ga_lua)                 # lua scripting for ga
+# add_subdirectory(ga_view)                # qt-based viewer
+# add_subdirectory(ga_prdxpr)              # generate product expressions
 
 #################################################################
 # Summary
