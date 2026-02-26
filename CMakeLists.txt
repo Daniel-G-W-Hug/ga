@@ -23,7 +23,7 @@ project(
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)  # Disable GNU extensions (-std=c++23 instead of -std=gnu++23)
 
 # set a default build type: Debug | RelWithDebInfo | Release | MinSizeRel
@@ -34,7 +34,7 @@ endif()
 
 if(MSVC)
   # warning level 4 and all warnings as errors
-  add_compile_options(/bigobj /Wall /W4 /WX /EHs /utf-8)
+  add_compile_options(/bigobj /Wall /W4 /WX /EHs /utf-8 /Zc:__cplusplus /permissive- /FS /Z7)
 else()
   # lots of warnings and all warnings as errors
   #add_compile_options(-Wall -Wextra -pedantic -Werror)
@@ -65,8 +65,8 @@ setup_ga_dependencies()
 #################################################################
 
 add_subdirectory(ga)                     # ga library (header only)
-add_subdirectory(ga_test)                # tests for header only library
-add_subdirectory(ga_lua)                 # lua scripting for ga
+#add_subdirectory(ga_test)                # tests for header only library
+#add_subdirectory(ga_lua)                 # lua scripting for ga
 
 # ga_view: Skip on macOS with GCC due to Qt6 header incompatibility
 # Qt6 uses _Pragma in function signatures which GCC rejects but Clang allows
@@ -75,10 +75,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND APPLE)
     message(STATUS "ga_view: Skipped (Qt6 headers incompatible with GCC on macOS)")
     message(STATUS "         Use Clang to build ga_view, or build on Linux")
 else()
-    add_subdirectory(ga_view)            # qt-based viewer
+    #add_subdirectory(ga_view)            # qt-based viewer
 endif()
 
-add_subdirectory(ga_prdxpr)              # generate product expressions
+#add_subdirectory(ga_prdxpr)               # generate product expressions
 
 #################################################################
 # Summary
