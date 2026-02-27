@@ -525,9 +525,9 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         CHECK(gr0(rgpr(B_rot, B_rot)) == scalar3dp{}); // should be zero
         CHECK(gr2(rgpr(B_rot, B_rot)) == bivec3dp{});  // should be zero
         CHECK(gr4(rgpr(B_rot, B_rot)) ==
-              -pscalar3dp{to_val(bulk_nrm_sq(n))}); // should be negative
-                                                    // and nrm_sq should
-                                                    // be bulk_nrm_sq(n)
+              -pscalar3dp{bulk_nrm_sq(n)}); // should be negative
+                                            // and nrm_sq should
+                                            // be bulk_nrm_sq(n)
 
         fmt::println("");
     }

@@ -46,7 +46,7 @@ inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
 
-    if ((ctype(weight_nrm_sq(v1)) != 0.0) || (ctype(weight_nrm_sq(v2) != 0.0))) {
+    if ((weight_nrm_sq(v1) != 0.0) || (weight_nrm_sq(v2) != 0.0)) {
         // the angle between points not at infinity or points not at infinity and a
         // direction towards infinity is defined as zero
         return 0.0;
@@ -90,7 +90,7 @@ template <typename T>
 constexpr MVec2dp_U<T> exp(Vec2dp<T> const& arg)
 {
     auto w = weight_nrm_sq(arg);
-    if (w == pscalar2dp{0.0}) { // pure translation
+    if (w == T(0.0)) { // pure translation
         // arg = att(bulk_dual(delta)) to move in direction of vector delta
         return MVec2dp_U<T>(0.5 * arg, PScalar2dp<T>(1.0));
     }
@@ -131,7 +131,7 @@ template <typename T, typename U>
 constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& P, U theta)
 {
     // point p must be unitized to avoid suprises
-    auto nrm_sq = to_val(weight_nrm_sq(P));
+    auto nrm_sq = weight_nrm_sq(P);
     if (nrm_sq == 0.0) {
         throw std::invalid_argument(
             "get_motor: Cannot use ideal points P with P.z == 0.0");
@@ -195,7 +195,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> c
     //     auto B_moved = move2dp(B,M);  // moves B according to the motor M
     //
     auto M = rgpr(B2, B1);
-    auto nrm_sq = to_val(weight_nrm_sq(M));
+    auto nrm_sq = weight_nrm_sq(M);
     if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
         M = unitize(M);
     }
@@ -441,7 +441,7 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj2dp(arg1&& a, a
                   right_weight_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
     // return a unitized object, if it is not located in the horizon
-    auto nrm_sq = to_val(weight_nrm_sq(p));
+    auto nrm_sq = weight_nrm_sq(p);
     if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
         p = unitize(p);
     }
@@ -458,7 +458,7 @@ template <typename arg1, typename arg2> decltype(auto) central_proj2dp(arg1&& a,
                   right_bulk_expand2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
     // return a unitized object, if it is not located in the horizon
-    auto nrm_sq = to_val(weight_nrm_sq(p));
+    auto nrm_sq = weight_nrm_sq(p);
     if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
         p = unitize(p);
     }

@@ -413,14 +413,14 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("");
         // fmt::println("s1 * inv(s1) = {}", s1 * inv(s1)); // s
         CHECK(abs(nrm(s1 * inv(s1)) - 1) < eps);
-        CHECK(abs(inv(s1) - rev(s1) / value_t(bulk_nrm_sq(s1))) < eps);
+        CHECK(abs(inv(s1) - rev(s1) / bulk_nrm_sq(s1)) < eps);
 
         // check inverses - vector
         // fmt::println("v1 * inv(v1) = {}", v1 * inv(v1)); // mv_e
         CHECK(abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
         CHECK(abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
         CHECK(abs(nrm(gr4(v1 * inv(v1))) - 0) < eps);
-        CHECK(abs(nrm(inv(v1) - rev(v1) / value_t(bulk_nrm_sq(v1)))) < eps);
+        CHECK(abs(nrm(inv(v1) - rev(v1) / bulk_nrm_sq(v1))) < eps);
 
         // check inverses - bivector
         // fmt::println("b1 * inv(b1) = {}", b1 * inv(b1)); // mv_e
@@ -1598,7 +1598,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto t = scalar3dp{st};
 
         // bulk_nrm_sq(v1) = dot(v1,v1)  for every projective vector
-        CHECK(bulk_nrm_sq(v1) == dot(v1, v1));
+        CHECK(bulk_nrm_sq(v1) == value_t(dot(v1, v1)));
 
         CHECK(v1 * v2 == dot(v1, v2) + wdg(v1, v2)); // valid for vectors only
         CHECK(v1 * v2 == (v2 >> v1) + wdg(v1, v2));  // contraction = dot for same grades

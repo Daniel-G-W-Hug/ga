@@ -529,11 +529,11 @@ constexpr MVec2dp<T> weight(MVec2dp<T> const& M)
 // return squared bulk norm of scalar
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar2dp<T> bulk_nrm_sq(Scalar2dp<T> s)
+constexpr T bulk_nrm_sq(Scalar2dp<T> s)
 {
     // ||bulk(s)||^2 = dot(s,s) = s^(T) G s = gr0(s*rev(s)) = s*s
     // using rev(s) = (-1)^[k(k-1)/2] s for a k-blade: 0-blade => rev(s) = s
-    return Scalar2dp<T>(T(s) * T(s));
+    return T(s) * T(s);
 }
 
 // return bulk norm of scalar
@@ -541,17 +541,17 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar2dp<T> bulk_nrm(Scalar2dp<T> s)
 {
-    return Scalar2dp<T>(sqrt(bulk_nrm_sq(s)));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(s)));
 }
 
 // return squared bulk norm of vector
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar2dp<T> bulk_nrm_sq(Vec2dp<T> const& v)
+constexpr T bulk_nrm_sq(Vec2dp<T> const& v)
 {
     // ||bulk(v)||^2 = dot(v,v) = v^(T) G v = gr0(v*rev(v)) = v.x * v.x + v.y * v.y
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    return Scalar2dp<T>(v.x * v.x + v.y * v.y);
+    return v.x * v.x + v.y * v.y;
 }
 
 // return bulk norm of vector
@@ -559,17 +559,17 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar2dp<T> bulk_nrm(Vec2dp<T> const& v)
 {
-    return Scalar2dp<T>(sqrt(bulk_nrm_sq(v)));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(v)));
 }
 
 // return squared bulk magnitude of bivector
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar2dp<T> bulk_nrm_sq(BiVec2dp<T> const& B)
+constexpr T bulk_nrm_sq(BiVec2dp<T> const& B)
 {
     // ||bulk(B)||^2 = dot(B,B) = B^(T) G B = gr0(B*rev(B)) = B.z * B.z
     // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
-    return Scalar2dp<T>(B.z * B.z);
+    return B.z * B.z;
 }
 
 // return magnitude of bivector
@@ -577,14 +577,14 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar2dp<T> bulk_nrm(BiVec2dp<T> const& B)
 {
-    return Scalar2dp<T>(sqrt(bulk_nrm_sq(B)));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(B)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar2dp<T> bulk_nrm_sq([[maybe_unused]] PScalar2dp<T>)
+constexpr T bulk_nrm_sq([[maybe_unused]] PScalar2dp<T>)
 {
-    return Scalar2dp<T>(0.0);
+    return T(0.0);
 }
 
 template <typename T>
@@ -596,45 +596,45 @@ constexpr Scalar2dp<T> bulk_nrm([[maybe_unused]] PScalar2dp<T>)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp_E<T> const& M)
+constexpr T bulk_nrm_sq(MVec2dp_E<T> const& M)
 {
-    return Scalar2dp<T>(bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr2(M)));
+    return bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr2(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar2dp<T> bulk_nrm(MVec2dp_E<T> const& M)
 {
-    return Scalar2dp<T>(sqrt(bulk_nrm_sq(M)));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp_U<T> const& M)
+constexpr T bulk_nrm_sq(MVec2dp_U<T> const& M)
 {
-    return Scalar2dp<T>(bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr3(M)));
+    return bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr3(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar2dp<T> bulk_nrm(MVec2dp_U<T> const& M)
 {
-    return Scalar2dp<T>(sqrt(bulk_nrm_sq(M)));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar2dp<T> bulk_nrm_sq(MVec2dp<T> const& M)
+constexpr T bulk_nrm_sq(MVec2dp<T> const& M)
 {
-    return Scalar2dp<T>(bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr2(M)) +
-                        bulk_nrm_sq(gr3(M)));
+    return bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr2(M)) +
+           bulk_nrm_sq(gr3(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar2dp<T> bulk_nrm(MVec2dp<T> const& M)
 {
-    return Scalar2dp<T>(sqrt(bulk_nrm_sq(M)));
+    return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
 
 
@@ -644,9 +644,9 @@ constexpr Scalar2dp<T> bulk_nrm(MVec2dp<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar2dp<T> weight_nrm_sq([[maybe_unused]] Scalar2dp<T>)
+constexpr T weight_nrm_sq([[maybe_unused]] Scalar2dp<T>)
 {
-    return PScalar2dp<T>(0.0);
+    return T(0.0);
 }
 
 template <typename T>
@@ -660,9 +660,9 @@ constexpr PScalar2dp<T> weight_nrm([[maybe_unused]] Scalar2dp<T>)
 // ||weight(v)||^2 = cmpl( dot(cmpl(v), cmpl(v)) ) = rdot(v,v) = v.z * v.z
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar2dp<T> weight_nrm_sq(Vec2dp<T> const& v)
+constexpr T weight_nrm_sq(Vec2dp<T> const& v)
 {
-    return PScalar2dp<T>(v.z * v.z);
+    return v.z * v.z;
 }
 
 // return weigth norm of vector
@@ -670,16 +670,16 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar2dp<T> weight_nrm(Vec2dp<T> const& v)
 {
-    return PScalar2dp<T>(sqrt(weight_nrm_sq(v)));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(v)));
 }
 
 // return squared weight norm of bivector
 // ||weight(B)||^2 = cmpl( dot(cmpl(B),cmpl(B)) ) = rdot(B, B) = B.x * B.x + B.y * B.y
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar2dp<T> weight_nrm_sq(BiVec2dp<T> const& B)
+constexpr T weight_nrm_sq(BiVec2dp<T> const& B)
 {
-    return PScalar2dp<T>(B.x * B.x + B.y * B.y);
+    return B.x * B.x + B.y * B.y;
 }
 
 // return weight norm of bivector
@@ -687,16 +687,16 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar2dp<T> weight_nrm(BiVec2dp<T> const& B)
 {
-    return PScalar2dp<T>(sqrt(T(weight_nrm_sq(B))));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(B)));
 }
 
 // return squared weight norm of pseudoscalar
 // ||weight(ps)||^2 = cmpl( dot(cmpl(ps),cmpl(ps)) ) = rdot(ps, ps) = ps * ps
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar2dp<T> weight_nrm_sq(PScalar2dp<T> ps)
+constexpr T weight_nrm_sq(PScalar2dp<T> ps)
 {
-    return PScalar2dp<T>(T(ps) * T(ps));
+    return T(ps) * T(ps);
 }
 
 // return weight norm of pseudoscalar
@@ -704,50 +704,50 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar2dp<T> weight_nrm(PScalar2dp<T> ps)
 {
-    return PScalar2dp<T>(sqrt(weight_nrm_sq(ps)));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(ps)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp_E<T> const& M)
+constexpr T weight_nrm_sq(MVec2dp_E<T> const& M)
 {
-    return PScalar2dp<T>(weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr2(M)));
+    return weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr2(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar2dp<T> weight_nrm(MVec2dp_E<T> const& M)
 {
-    return PScalar2dp<T>(sqrt(weight_nrm_sq(M)));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp_U<T> const& M)
+constexpr T weight_nrm_sq(MVec2dp_U<T> const& M)
 {
-    return PScalar2dp<T>(weight_nrm_sq(gr1(M)) + weight_nrm_sq(gr3(M)));
+    return weight_nrm_sq(gr1(M)) + weight_nrm_sq(gr3(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar2dp<T> weight_nrm(MVec2dp_U<T> const& M)
 {
-    return PScalar2dp<T>(sqrt(weight_nrm_sq(M)));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar2dp<T> weight_nrm_sq(MVec2dp<T> const& M)
+constexpr T weight_nrm_sq(MVec2dp<T> const& M)
 {
-    return PScalar2dp<T>(weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr1(M)) +
-                         weight_nrm_sq(gr2(M)) + weight_nrm_sq(gr3(M)));
+    return weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr1(M)) + weight_nrm_sq(gr2(M)) +
+           weight_nrm_sq(gr3(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar2dp<T> weight_nrm(MVec2dp<T> const& M)
 {
-    return PScalar2dp<T>(sqrt(weight_nrm_sq(M)));
+    return PScalar2dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
 
 
