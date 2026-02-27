@@ -345,19 +345,19 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("");
         // fmt::println("s1 * inv(s1) = {}", s1 * inv(s1)); // s
         CHECK(abs(nrm(s1 * inv(s1)) - 1) < eps);
-        CHECK(abs(inv(s1) - rev(s1) / value_t(bulk_nrm_sq(s1))) < eps);
+        CHECK(abs(inv(s1) - rev(s1) / bulk_nrm_sq(s1)) < eps);
 
         // check inverses - vector
         // fmt::println("v1 * inv(v1) = {}", v1 * inv(v1)); // mv_e
         CHECK(abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
         CHECK(abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
-        CHECK(abs(nrm(inv(v1) - rev(v1) / value_t(bulk_nrm_sq(v1)))) < eps);
+        CHECK(abs(nrm(inv(v1) - rev(v1) / bulk_nrm_sq(v1))) < eps);
 
         // check inverses - bivector
         // fmt::println("b1 * inv(b1) = {}", b1 * inv(b1)); // mv_e
         CHECK(abs(nrm(gr0(b1 * inv(b1))) - 1) < eps);
         CHECK(abs(nrm(gr2(b1 * inv(b1))) - 0) < eps);
-        CHECK(abs(nrm(inv(b1) - rev(b1) / value_t(bulk_nrm_sq(b1)))) < eps);
+        CHECK(abs(nrm(inv(b1) - rev(b1) / bulk_nrm_sq(b1))) < eps);
 
         // check inverses - pseudoscalar
         // due to the degenerate metric there is no inverse of the pseudoscalar
@@ -366,13 +366,13 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
         CHECK(abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
         CHECK(abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
-        CHECK(abs(nrm(inv(mve1) - rev(mve1) / value_t(bulk_nrm_sq(mve1)))) < eps);
+        CHECK(abs(nrm(inv(mve1) - rev(mve1) / bulk_nrm_sq(mve1))) < eps);
 
         // check inverses - odd grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
         CHECK(abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
         CHECK(abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
-        CHECK(abs(nrm(inv(mvu1) - rev(mvu1) / value_t(bulk_nrm_sq(mvu1)))) < eps);
+        CHECK(abs(nrm(inv(mvu1) - rev(mvu1) / bulk_nrm_sq(mvu1))) < eps);
 
         // check inverses - multivector
         // fmt::println("mv1 * inv(mv1) = {}", mv1 * inv(mv1)); // mv
@@ -1223,7 +1223,7 @@ TEST_SUITE("PGA 2DP Tests")
         auto t = scalar2dp{st};
 
         // bulk_nrm_sq(v1) = dot(v1,v1)  for every projective vector
-        CHECK(bulk_nrm_sq(v1) == dot(v1, v1));
+        CHECK(bulk_nrm_sq(v1) == value_t(dot(v1, v1)));
 
         CHECK(v1 * v2 == dot(v1, v2) + wdg(v1, v2)); // valid for vectors only
         CHECK(v1 * v2 == (v2 >> v1) + wdg(v1, v2));  // contraction = dot for same grades

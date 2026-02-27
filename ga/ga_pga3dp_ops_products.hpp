@@ -3429,7 +3429,7 @@ template <typename T>
     requires(numeric_type<T>)
 inline Scalar3dp<T> inv(Scalar3dp<T> s)
 {
-    T sq_n = T(bulk_nrm_sq(s));
+    T sq_n = bulk_nrm_sq(s);
     hd::ga::detail::check_normalization<T>(sq_n, "scalar");
     T inv = T(1.0) / sq_n;
 
@@ -3442,7 +3442,7 @@ inline Vec3dp<T> inv(Vec3dp<T> const& v)
 {
     // v^(-1) = rev(v)/|v|^2 = v/dot(v,v) = v/bulk_sq_nrm(v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    T sq_n = T(bulk_nrm_sq(v));
+    T sq_n = bulk_nrm_sq(v);
     hd::ga::detail::check_normalization<T>(sq_n, "vector");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return Vec3dp<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);

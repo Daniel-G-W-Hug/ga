@@ -697,11 +697,11 @@ constexpr MVec3dp<T> weight(MVec3dp<T> const& M)
 // return squared bulk norm of scalar
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> bulk_nrm_sq(Scalar3dp<T> s)
+constexpr T bulk_nrm_sq(Scalar3dp<T> s)
 {
     // ||bulk(s)||^2 = dot(s,s) = s^(T) G s = gr0(s*rev(s)) = s*s
     // using rev(s) = (-1)^[k(k-1)/2] s for a k-blade: 0-blade => rev(s) = s
-    return Scalar3dp<T>(T(s) * T(s));
+    return T(s) * T(s);
 }
 
 // return bulk norm of scalar
@@ -709,18 +709,18 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(Scalar3dp<T> s)
 {
-    return Scalar3dp<T>(sqrt(bulk_nrm_sq(s)));
+    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(s)));
 }
 
 // return squared bulk norm of vector
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> bulk_nrm_sq(Vec3dp<T> const& v)
+constexpr T bulk_nrm_sq(Vec3dp<T> const& v)
 {
     // ||bulk(v)||^2 = dot(v,v) = v^(T) G v = gr0(v*rev(v))
     //               = v.x * v.x + v.y * v.y + v.z * v.z
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    return Scalar3dp<T>(v.x * v.x + v.y * v.y + v.z * v.z);
+    return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
 // return bulk norm of vector
@@ -728,18 +728,18 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(Vec3dp<T> const& v)
 {
-    return Scalar3dp<T>(sqrt(bulk_nrm_sq(v)));
+    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(v)));
 }
 
 // return squared bulk magnitude of bivector
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> bulk_nrm_sq(BiVec3dp<T> const& B)
+constexpr T bulk_nrm_sq(BiVec3dp<T> const& B)
 {
     // ||bulk(B)||^2 = dot(B,B) = B^(T) G B = gr0(B*rev(B))
     //               = B.mx * B.mx + B.my * B.my + B.mz * B.mz
     // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
-    return Scalar3dp<T>(B.mx * B.mx + B.my * B.my + B.mz * B.mz);
+    return B.mx * B.mx + B.my * B.my + B.mz * B.mz;
 }
 
 // return magnitude of bivector
@@ -747,17 +747,17 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(BiVec3dp<T> const& B)
 {
-    return Scalar3dp<T>(sqrt(bulk_nrm_sq(B)));
+    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(B)));
 }
 
 // return squared bulk norm of trivector
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> bulk_nrm_sq(TriVec3dp<T> const& t)
+constexpr T bulk_nrm_sq(TriVec3dp<T> const& t)
 {
     // ||bulk(t)||^2 = dot(t,t) = t^(T) G t = gr0(t*rev(t)) = t.w * t.w
     // using rev(t) = (-1)^[k(k-1)/2] t for a k-blade: 3-blade => rev(t) = -t
-    return Scalar3dp<T>(t.w * t.w);
+    return t.w * t.w;
 }
 
 // return bulk norm of trivector
@@ -765,14 +765,14 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(TriVec3dp<T> const& t)
 {
-    return Scalar3dp<T>(sqrt(bulk_nrm_sq(t)));
+    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(t)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> bulk_nrm_sq([[maybe_unused]] PScalar3dp<T>)
+constexpr T bulk_nrm_sq([[maybe_unused]] PScalar3dp<T>)
 {
-    return Scalar3dp<T>(0.0);
+    return T(0.0);
 }
 
 template <typename T>
@@ -784,45 +784,45 @@ constexpr Scalar3dp<T> bulk_nrm([[maybe_unused]] PScalar3dp<T>)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> bulk_nrm_sq(MVec3dp_E<T> const& M)
+constexpr T bulk_nrm_sq(MVec3dp_E<T> const& M)
 {
-    return Scalar3dp<T>(bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr2(M)) + bulk_nrm_sq(gr4(M)));
+    return bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr2(M)) + bulk_nrm_sq(gr4(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(MVec3dp_E<T> const& M)
 {
-    return Scalar3dp<T>(sqrt(bulk_nrm_sq(M)));
+    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> bulk_nrm_sq(MVec3dp_U<T> const& M)
+constexpr T bulk_nrm_sq(MVec3dp_U<T> const& M)
 {
-    return Scalar3dp<T>(bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr3(M)));
+    return bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr3(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(MVec3dp_U<T> const& M)
 {
-    return Scalar3dp<T>(sqrt(bulk_nrm_sq(M)));
+    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> bulk_nrm_sq(MVec3dp<T> const& M)
+constexpr T bulk_nrm_sq(MVec3dp<T> const& M)
 {
-    return Scalar3dp<T>(bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr2(M)) +
-                        bulk_nrm_sq(gr3(M)) + bulk_nrm_sq(gr4(M)));
+    return bulk_nrm_sq(gr0(M)) + bulk_nrm_sq(gr1(M)) + bulk_nrm_sq(gr2(M)) +
+           bulk_nrm_sq(gr3(M)) + bulk_nrm_sq(gr4(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(MVec3dp<T> const& M)
 {
-    return Scalar3dp<T>(sqrt(bulk_nrm_sq(M)));
+    return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(M)));
 }
 
 
@@ -832,9 +832,9 @@ constexpr Scalar3dp<T> bulk_nrm(MVec3dp<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> weight_nrm_sq([[maybe_unused]] Scalar3dp<T>)
+constexpr T weight_nrm_sq([[maybe_unused]] Scalar3dp<T>)
 {
-    return PScalar3dp<T>(0.0);
+    return T(0.0);
 }
 
 template <typename T>
@@ -848,9 +848,9 @@ constexpr PScalar3dp<T> weight_nrm([[maybe_unused]] Scalar3dp<T>)
 // ||weight(v)||^2 = lcmpl( dot(rcmpl(v), rcmpl(v)) ) = rdot(v,v) = v.w * v.w
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> weight_nrm_sq(Vec3dp<T> const& v)
+constexpr T weight_nrm_sq(Vec3dp<T> const& v)
 {
-    return PScalar3dp<T>(v.w * v.w);
+    return v.w * v.w;
 }
 
 // return weigth norm of vector
@@ -858,7 +858,7 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(Vec3dp<T> const& v)
 {
-    return PScalar3dp<T>(sqrt(weight_nrm_sq(v)));
+    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(v)));
 }
 
 // return squared weight norm of bivector
@@ -866,9 +866,9 @@ constexpr PScalar3dp<T> weight_nrm(Vec3dp<T> const& v)
 //                 = B.vx * B.vx + B.vy * B.vy + B.vz * B.vz
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> weight_nrm_sq(BiVec3dp<T> const& B)
+constexpr T weight_nrm_sq(BiVec3dp<T> const& B)
 {
-    return PScalar3dp<T>(B.vx * B.vx + B.vy * B.vy + B.vz * B.vz);
+    return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz;
 }
 
 // return weight norm of bivector
@@ -876,7 +876,7 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(BiVec3dp<T> const& B)
 {
-    return PScalar3dp<T>(sqrt(weight_nrm_sq(B)));
+    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(B)));
 }
 
 // return squared weight norm of trivector
@@ -884,9 +884,9 @@ constexpr PScalar3dp<T> weight_nrm(BiVec3dp<T> const& B)
 //                 = t.x * t.x + t.y * t.y + t.z * t.z
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> weight_nrm_sq(TriVec3dp<T> const& t)
+constexpr T weight_nrm_sq(TriVec3dp<T> const& t)
 {
-    return PScalar3dp<T>(t.x * t.x + t.y * t.y + t.z * t.z);
+    return t.x * t.x + t.y * t.y + t.z * t.z;
 }
 
 // return weight norm of bivector
@@ -894,16 +894,16 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(TriVec3dp<T> const& t)
 {
-    return PScalar3dp<T>(sqrt(weight_nrm_sq(t)));
+    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(t)));
 }
 
 // return squared weight norm of pseudoscalar
 // ||weight(ps)||^2 = cmpl( dot(cmpl(ps),cmpl(ps)) ) = rdot(ps, ps) = ps * ps
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> weight_nrm_sq(PScalar3dp<T> ps)
+constexpr T weight_nrm_sq(PScalar3dp<T> ps)
 {
-    return PScalar3dp<T>(T(ps) * T(ps));
+    return T(ps) * T(ps);
 }
 
 // return weight norm of pseudoscalar
@@ -911,52 +911,50 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(PScalar3dp<T> ps)
 {
-    return PScalar3dp<T>(sqrt(weight_nrm_sq(ps)));
+    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(ps)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp_E<T> const& M)
+constexpr T weight_nrm_sq(MVec3dp_E<T> const& M)
 {
-    return PScalar3dp<T>(weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr2(M)) +
-                         weight_nrm_sq(gr4(M)));
+    return weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr2(M)) + weight_nrm_sq(gr4(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(MVec3dp_E<T> const& M)
 {
-    return PScalar3dp<T>(sqrt(weight_nrm_sq(M)));
+    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp_U<T> const& M)
+constexpr T weight_nrm_sq(MVec3dp_U<T> const& M)
 {
-    return PScalar3dp<T>(weight_nrm_sq(gr1(M)) + weight_nrm_sq(gr3(M)));
+    return weight_nrm_sq(gr1(M)) + weight_nrm_sq(gr3(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(MVec3dp_U<T> const& M)
 {
-    return PScalar3dp<T>(sqrt(weight_nrm_sq(M)));
+    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> weight_nrm_sq(MVec3dp<T> const& M)
+constexpr T weight_nrm_sq(MVec3dp<T> const& M)
 {
-    return PScalar3dp<T>(weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr1(M)) +
-                         weight_nrm_sq(gr2(M)) + weight_nrm_sq(gr3(M)) +
-                         weight_nrm_sq(gr4(M)));
+    return weight_nrm_sq(gr0(M)) + weight_nrm_sq(gr1(M)) + weight_nrm_sq(gr2(M)) +
+           weight_nrm_sq(gr3(M)) + weight_nrm_sq(gr4(M));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(MVec3dp<T> const& M)
 {
-    return PScalar3dp<T>(sqrt(weight_nrm_sq(M)));
+    return PScalar3dp<T>(std::sqrt(weight_nrm_sq(M)));
 }
 
 
