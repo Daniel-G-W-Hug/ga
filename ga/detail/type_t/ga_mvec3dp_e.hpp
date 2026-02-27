@@ -20,43 +20,43 @@ struct MVec8_t<T, mvec3dp_e_tag> : public MVec8_t<T, default_tag> {
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec8_t(Scalar3dp<T> s) :
+    constexpr MVec8_t(Scalar3dp<T> s) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec8_t(BiVec3dp<T> const& B) :
+    constexpr MVec8_t(BiVec3dp<T> const& B) :
         MVec8_t(T(0.0), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(0.0))
     {
     }
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec8_t(PScalar3dp<T> ps) :
+    constexpr MVec8_t(PScalar3dp<T> ps) :
         MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign the scalar and the bivector part only, assuming the pseudoscalar part as 0.0
-    MVec8_t(Scalar3dp<T> s, BiVec3dp<T> const& B) :
+    constexpr MVec8_t(Scalar3dp<T> s, BiVec3dp<T> const& B) :
         MVec8_t(T(s), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(0.0))
     {
     }
 
     // assign the bivector and the pseudoscalar part only, assuming the scalar part as 0.0
-    MVec8_t(BiVec3dp<T> const& B, PScalar3dp<T> ps) :
+    constexpr MVec8_t(BiVec3dp<T> const& B, PScalar3dp<T> ps) :
         MVec8_t(T(0.0), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(ps))
     {
     }
 
     // assign the scalar and the pseudoscalar part only, assuming the bivector part as 0.0
-    MVec8_t(Scalar3dp<T> s, PScalar3dp<T> ps) :
+    constexpr MVec8_t(Scalar3dp<T> s, PScalar3dp<T> ps) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign all three parts, the scalar, the bivector and the pseudoscalar explicitly
-    MVec8_t(Scalar3dp<T> s, BiVec3dp<T> const& B, PScalar3dp<T> ps) :
+    constexpr MVec8_t(Scalar3dp<T> s, BiVec3dp<T> const& B, PScalar3dp<T> ps) :
         MVec8_t(T(s), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(ps))
     {
     }

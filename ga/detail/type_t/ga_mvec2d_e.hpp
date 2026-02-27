@@ -34,15 +34,15 @@ struct MVec2_t<T, mvec2d_e_tag> : public MVec2_t<T, default_tag> {
     using MVec2_t<T, default_tag>::MVec2_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec2_t(Scalar2d<T> s) : MVec2_t(T(s), T(0.0)) {}
+    constexpr MVec2_t(Scalar2d<T> s) : MVec2_t(T(s), T(0.0)) {}
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec2_t(PScalar2d<T> ps) : MVec2_t(T(0.0), T(ps)) {}
+    constexpr MVec2_t(PScalar2d<T> ps) : MVec2_t(T(0.0), T(ps)) {}
 
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) directly (other grades = 0)
     // (less expensive compared to full geometric product)
-    MVec2_t(Scalar2d<T> s, PScalar2d<T> ps) : MVec2_t(T(s), T(ps)) {}
+    constexpr MVec2_t(Scalar2d<T> s, PScalar2d<T> ps) : MVec2_t(T(s), T(ps)) {}
 
     // Override compound assignment operators to return correct derived type
     // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag

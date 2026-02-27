@@ -16,6 +16,8 @@
 // include functions to be tested
 #include "ga/ga_pga.hpp"
 
+#include "ga/ga_ega.hpp" // for hd::ga::ega::cmpl() and hd::ga::ega::dot()
+
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 
@@ -4378,6 +4380,31 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("Extended metric diagonal matches dot products (including null e4)");
     }
 
+    TEST_CASE("G<3,0,1>: bivec3dp with vec3d lv, lm")
+    {
+        fmt::println("G<3,0,1>: bivec3dp with vec3d lv, lm");
+
+        auto lv_in = vec3d{1, 1, 1};
+        auto lm_in = vec3d{-1, 2, -1};
+
+        auto l = bivec3dp(lv_in, lm_in); // ctor bivev3dp from two vec3d
+
+        // get vector component as vec3d
+        auto lv = l.lv();
+        auto lm = l.lm();
+        auto lm_as_bivec = hd::ga::ega::cmpl(lm);
+
+        CHECK(lv_in == lv);
+        CHECK(lm_in == lm);
+
+        fmt::println("l           = {}", l);
+        fmt::println("lv          = {}", lv);
+        fmt::println("lm          = {}", lm);
+        fmt::println("lm as bivec = {}", lm_as_bivec);
+        fmt::println("dot(lv,lm)  = {}", hd::ga::ega::dot(lv, lm));
+        fmt::println("");
+    }
+
     TEST_CASE("G<3,0,1>: exponential function")
     {
         fmt::println("G<3,0,1>: exponential function");
@@ -4536,14 +4563,9 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("P0                    = {}", P0);
         fmt::println("P  = R ⟇ P0 ⟇ rrev(R) = {}", move3dp(P0, R));
         fmt::println("");
-        fmt::println("pl1                    = {}", pl1);
-        fmt::println("att(pl1)               = {}", att(pl1));
-        fmt::println("rcmpl(pl1)             = {}", rcmpl(pl1));
-        fmt::println("right_bulk_dual(pl1)   = {}", right_bulk_dual(pl1));
-        fmt::println("right_weight_dual(pl1) = {}", right_weight_dual(pl1));
-        fmt::println("");
-        fmt::println("gpr(pl1,I_3dp)   = {}", pl1 * I_3dp);
-        fmt::println("rgpr(pl1,I_3dp)  = {}", rgpr(pl1, I_3dp));
+        fmt::println("pl1                   = {}", pl1);
+        fmt::println("att(pl1)              = {}", att(pl1));
+        fmt::println("left_weight_dual(pl1) = {}", left_weight_dual(pl1));
         fmt::println("");
 
         // case b) translation as defined by parallel planes
@@ -4579,14 +4601,9 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("P0                    = {}", P0);
         fmt::println("P  = R ⟇ P0 ⟇ rrev(R) = {}", move3dp(P0, R));
         fmt::println("");
-        fmt::println("pl1                    = {}", pl1);
-        fmt::println("att(pl1)               = {}", att(pl1));
-        fmt::println("rcmpl(pl1)             = {}", rcmpl(pl1));
-        fmt::println("right_bulk_dual(pl1)   = {}", right_bulk_dual(pl1));
-        fmt::println("right_weight_dual(pl1) = {}", right_weight_dual(pl1));
-        fmt::println("");
-        fmt::println("gpr(pl1,I_3dp)   = {}", pl1 * I_3dp);
-        fmt::println("rgpr(pl1,I_3dp)  = {}", rgpr(pl1, I_3dp));
+        fmt::println("pl1                   = {}", pl1);
+        fmt::println("att(pl1)              = {}", att(pl1));
+        fmt::println("left_weight_dual(pl1) = {}", left_weight_dual(pl1));
         fmt::println("");
 
         // case c) combined rotation and translation as defined by transforming

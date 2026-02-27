@@ -20,43 +20,43 @@ struct MVec8_t<T, mvec4d_e_tag> : public MVec8_t<T, default_tag> {
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec8_t(Scalar4d<T> s) :
+    constexpr MVec8_t(Scalar4d<T> s) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec8_t(BiVec4d<T> const& B) :
+    constexpr MVec8_t(BiVec4d<T> const& B) :
         MVec8_t(T(0.0), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(0.0))
     {
     }
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec8_t(PScalar4d<T> ps) :
+    constexpr MVec8_t(PScalar4d<T> ps) :
         MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign the scalar and the bivector part only, assuming the pseudoscalar part as 0.0
-    MVec8_t(Scalar4d<T> s, BiVec4d<T> const& B) :
+    constexpr MVec8_t(Scalar4d<T> s, BiVec4d<T> const& B) :
         MVec8_t(T(s), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(0.0))
     {
     }
 
     // assign the bivector and the pseudoscalar part only, assuming the scalar part as 0.0
-    MVec8_t(BiVec4d<T> const& B, PScalar4d<T> ps) :
+    constexpr MVec8_t(BiVec4d<T> const& B, PScalar4d<T> ps) :
         MVec8_t(T(0.0), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(ps))
     {
     }
 
     // assign the scalar and the pseudoscalar part only, assuming the bivector part as 0.0
-    MVec8_t(Scalar4d<T> s, PScalar4d<T> ps) :
+    constexpr MVec8_t(Scalar4d<T> s, PScalar4d<T> ps) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign all three parts, the scalar, the bivector and the pseudoscalar explicitly
-    MVec8_t(Scalar4d<T> s, BiVec4d<T> const& B, PScalar4d<T> ps) :
+    constexpr MVec8_t(Scalar4d<T> s, BiVec4d<T> const& B, PScalar4d<T> ps) :
         MVec8_t(T(s), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(ps))
     {
     }

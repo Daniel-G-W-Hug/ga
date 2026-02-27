@@ -33,9 +33,9 @@ class Scalar_t {
   public:
 
     Scalar_t() = default; // default initialization
-    explicit Scalar_t(T const& val) : value(val) {}
-    explicit Scalar_t(T&& val) noexcept(std::is_nothrow_move_constructible<T>::value) :
-        value(std::move(val))
+    constexpr explicit Scalar_t(T const& val) : value(val) {}
+    constexpr explicit Scalar_t(T&& val) noexcept(
+        std::is_nothrow_move_constructible<T>::value) : value(std::move(val))
     {
     }
 
@@ -45,8 +45,8 @@ class Scalar_t {
     // allows for comparison of scalar and pscalar types, or for comparison of 2d and 3d
     // scalars, despite the comparison operator requiring same types
     // (hint: this must be suppressed with marking the operator explicit for type safety!)
-    explicit operator T&() noexcept { return value; }
-    explicit operator T const&() const noexcept { return value; }
+    constexpr explicit operator T&() noexcept { return value; }
+    constexpr explicit operator T const&() const noexcept { return value; }
 
     friend void swap(Scalar_t& lhs, Scalar_t& rhs) noexcept
     {

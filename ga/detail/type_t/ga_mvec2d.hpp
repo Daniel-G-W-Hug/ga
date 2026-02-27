@@ -21,24 +21,27 @@ struct MVec4_t<T, mvec2d_tag> : public MVec4_t<T, default_tag> {
     using MVec4_t<T, default_tag>::MVec4_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec4_t(Scalar2d<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
+    constexpr MVec4_t(Scalar2d<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
 
     // assign a vector part exclusively (other grades = 0)
-    MVec4_t(Vec2d<T> const& v) : MVec4_t(T(0.0), v.x, v.y, T(0.0)) {}
+    constexpr MVec4_t(Vec2d<T> const& v) : MVec4_t(T(0.0), v.x, v.y, T(0.0)) {}
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec4_t(PScalar2d<T> ps) : MVec4_t(T(0.0), T(0.0), T(0.0), T(ps)) {}
+    constexpr MVec4_t(PScalar2d<T> ps) : MVec4_t(T(0.0), T(0.0), T(0.0), T(ps)) {}
 
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) directly (other grades = 0)
     // (less expensive compared to full geometric product)
-    MVec4_t(Scalar2d<T> s, PScalar2d<T> ps) : MVec4_t(T(s), T(0.0), T(0.0), T(ps)) {}
+    constexpr MVec4_t(Scalar2d<T> s, PScalar2d<T> ps) :
+        MVec4_t(T(s), T(0.0), T(0.0), T(ps))
+    {
+    }
 
     // assign from a complex number, i.e. from the even subalgebra
-    MVec4_t(MVec2d_E<T> const& M) : MVec4_t(M.c0, T(0.0), T(0.0), M.c1) {}
+    constexpr MVec4_t(MVec2d_E<T> const& M) : MVec4_t(M.c0, T(0.0), T(0.0), M.c1) {}
 
     // assign a full multivector
-    MVec4_t(Scalar2d<T> s, Vec2d<T> const& v, PScalar2d<T> ps) :
+    constexpr MVec4_t(Scalar2d<T> s, Vec2d<T> const& v, PScalar2d<T> ps) :
         MVec4_t(T(s), v.x, v.y, T(ps))
     {
     }

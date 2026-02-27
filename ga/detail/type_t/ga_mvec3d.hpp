@@ -23,31 +23,31 @@ struct MVec8_t<T, mvec3d_tag> : public MVec8_t<T, default_tag> {
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec8_t(Scalar3d<T> s) :
+    constexpr MVec8_t(Scalar3d<T> s) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign a vector part exclusively (other grades = 0)
-    MVec8_t(Vec3d<T> const& v) :
+    constexpr MVec8_t(Vec3d<T> const& v) :
         MVec8_t(T(0.0), v.x, v.y, v.z, T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec8_t(BiVec3d<T> const& B) :
+    constexpr MVec8_t(BiVec3d<T> const& B) :
         MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), B.x, B.y, B.z, T(0.0))
     {
     }
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec8_t(PScalar3d<T> ps) :
+    constexpr MVec8_t(PScalar3d<T> ps) :
         MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign a scalar and a pseudoscalar part exclusively (other grades = 0)
-    MVec8_t(Scalar3d<T> s, PScalar3d<T> ps) :
+    constexpr MVec8_t(Scalar3d<T> s, PScalar3d<T> ps) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
@@ -55,31 +55,32 @@ struct MVec8_t<T, mvec3d_tag> : public MVec8_t<T, default_tag> {
     // assign a geometric product resulting from a product of two vectors
     // via dot(v1,v2) and wdg(v1,v2) or via dot(v1,v2) and cmt(v1,v2) directly
     // (other grades = 0)
-    MVec8_t(Scalar3d<T> s, BiVec3d<T> const& B) :
+    constexpr MVec8_t(Scalar3d<T> s, BiVec3d<T> const& B) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), B.x, B.y, B.z, T(0.0))
     {
     }
 
     // assign from a quaternion, i.e. from the even subalgebra
-    MVec8_t(MVec3d_E<T> const& M) :
+    constexpr MVec8_t(MVec3d_E<T> const& M) :
         MVec8_t(M.c0, T(0.0), T(0.0), T(0.0), M.c1, M.c2, M.c3, T(0.0))
     {
     }
 
     // assign a geometric product resulting from a product of a vector and a bivector
-    MVec8_t(Vec3d<T> const& v, PScalar3d<T> ps) :
+    constexpr MVec8_t(Vec3d<T> const& v, PScalar3d<T> ps) :
         MVec8_t(T(0.0), v.x, v.y, v.z, T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign from the odd subalgebra
-    MVec8_t(MVec3d_U<T> const& M) :
+    constexpr MVec8_t(MVec3d_U<T> const& M) :
         MVec8_t(T(0.0), M.c0, M.c1, M.c2, T(0.0), T(0.0), T(0.0), M.c3)
     {
     }
 
     // assign a full multivector
-    MVec8_t(Scalar3d<T> s, Vec3d<T> const& v, BiVec3d<T> const& B, PScalar3d<T> ps) :
+    constexpr MVec8_t(Scalar3d<T> s, Vec3d<T> const& v, BiVec3d<T> const& B,
+                      PScalar3d<T> ps) :
         MVec8_t(T(s), v.x, v.y, v.z, B.x, B.y, B.z, T(ps))
     {
     }

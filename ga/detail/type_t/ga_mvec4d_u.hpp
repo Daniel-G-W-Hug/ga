@@ -20,25 +20,25 @@ struct MVec8_t<T, mvec4d_u_tag> : public MVec8_t<T, default_tag> {
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
     // assign the vector part exclusively (other grades = 0)
-    MVec8_t(Vec4d<T> const& v) :
+    constexpr MVec8_t(Vec4d<T> const& v) :
         MVec8_t(v.x, v.y, v.z, v.w, T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign the trivector part exclusively (other grades = 0)
-    MVec8_t(TriVec4d<T> const& t) :
+    constexpr MVec8_t(TriVec4d<T> const& t) :
         MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), t.x, t.y, t.z, t.w)
     {
     }
 
     // assign from a vector and a trivector directly
-    MVec8_t(Vec4d<T> const& v, TriVec4d<T> const& t) :
+    constexpr MVec8_t(Vec4d<T> const& v, TriVec4d<T> const& t) :
         MVec8_t(v.x, v.y, v.z, v.w, t.x, t.y, t.z, t.w)
     {
     }
 
     // assign from the odd subalgebra directly
-    MVec8_t(MVec4d_U<T> const& M) :
+    constexpr MVec8_t(MVec4d_U<T> const& M) :
         MVec8_t(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7)
     {
     }
