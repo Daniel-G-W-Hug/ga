@@ -23,56 +23,57 @@ struct MVec8_t<T, mvec2dp_tag> : public MVec8_t<T, default_tag> {
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec8_t(Scalar2dp<T> s) :
+    constexpr MVec8_t(Scalar2dp<T> s) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign a vector part exclusively (other grades = 0)
-    MVec8_t(Vec2dp<T> const& v) :
+    constexpr MVec8_t(Vec2dp<T> const& v) :
         MVec8_t(T(0.0), v.x, v.y, v.z, T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec8_t(BiVec2dp<T> const& B) :
+    constexpr MVec8_t(BiVec2dp<T> const& B) :
         MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), B.x, B.y, B.z, T(0.0))
     {
     }
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec8_t(PScalar2dp<T> ps) :
+    constexpr MVec8_t(PScalar2dp<T> ps) :
         MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign from a scalar and a bivector
     // (other grades = 0)
-    MVec8_t(Scalar2dp<T> s, BiVec2dp<T> const& B) :
+    constexpr MVec8_t(Scalar2dp<T> s, BiVec2dp<T> const& B) :
         MVec8_t(T(s), T(0.0), T(0.0), T(0.0), B.x, B.y, B.z, T(0.0))
     {
     }
 
     // assign from the even subalgebra
-    MVec8_t(MVec2dp_E<T> const& M) :
+    constexpr MVec8_t(MVec2dp_E<T> const& M) :
         MVec8_t(M.c0, T(0.0), T(0.0), T(0.0), M.c1, M.c2, M.c3, T(0.0))
     {
     }
 
     // assign a vector and a pseudoscalar
-    MVec8_t(Vec2dp<T> const& v, PScalar2dp<T> ps) :
+    constexpr MVec8_t(Vec2dp<T> const& v, PScalar2dp<T> ps) :
         MVec8_t(T(0.0), v.x, v.y, v.z, T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
     // assign from the odd subalgebra
-    MVec8_t(MVec2dp_U<T> const& M) :
+    constexpr MVec8_t(MVec2dp_U<T> const& M) :
         MVec8_t(T(0.0), M.c0, M.c1, M.c2, T(0.0), T(0.0), T(0.0), M.c3)
     {
     }
 
     // assign a full multivector
-    MVec8_t(Scalar2dp<T> s, Vec2dp<T> const& v, BiVec2dp<T> const& B, PScalar2dp<T> ps) :
+    constexpr MVec8_t(Scalar2dp<T> s, Vec2dp<T> const& v, BiVec2dp<T> const& B,
+                      PScalar2dp<T> ps) :
         MVec8_t(T(s), v.x, v.y, v.z, B.x, B.y, B.z, T(ps))
     {
     }

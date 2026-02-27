@@ -20,19 +20,19 @@ struct MVec8_t<T, mvec3dp_u_tag> : public MVec8_t<T, default_tag> {
     using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
 
     // assign the vector part exclusively (other grades = 0)
-    MVec8_t(Vec3dp<T> const& v) :
+    constexpr MVec8_t(Vec3dp<T> const& v) :
         MVec8_t(v.x, v.y, v.z, v.w, T(0.0), T(0.0), T(0.0), T(0.0))
     {
     }
 
     // assign the trivector part exclusively (other grades = 0)
-    MVec8_t(TriVec3dp<T> const& t) :
+    constexpr MVec8_t(TriVec3dp<T> const& t) :
         MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), t.x, t.y, t.z, t.w)
     {
     }
 
     // assign from a vector and a trivector directly
-    MVec8_t(Vec3dp<T> const& v, TriVec3dp<T> const& t) :
+    constexpr MVec8_t(Vec3dp<T> const& v, TriVec3dp<T> const& t) :
         MVec8_t(v.x, v.y, v.z, v.w, t.x, t.y, t.z, t.w)
     {
     }

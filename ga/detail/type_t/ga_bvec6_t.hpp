@@ -40,8 +40,8 @@ struct BVec6_t {
     // assign the vector parts separately to the bivector
     // (both vectors must have the same tag to ensure type safety)
     template <typename VecTag>
-    BVec6_t(Vec3_t<T, VecTag> const& v, Vec3_t<T, VecTag> const& m) :
-        vx(v.x), vy(v.y), vz(v.z), mx(m.x), my(m.y), mz(m.z)
+    constexpr BVec6_t(Vec3_t<T, VecTag> const& lv, Vec3_t<T, VecTag> const& lm) :
+        vx(lv.x), vy(lv.y), vz(lv.z), mx(lm.x), my(lm.y), mz(lm.z)
     {
     }
 
@@ -49,8 +49,8 @@ struct BVec6_t {
     // (for special cases where semantically different types are combined,
     //  e.g., Line3d: direction vector + moment bivector)
     template <typename Vec1Tag, typename Vec2Tag>
-    BVec6_t(Vec3_t<T, Vec1Tag> const& v, Vec3_t<T, Vec2Tag> const& m) :
-        vx(v.x), vy(v.y), vz(v.z), mx(m.x), my(m.y), mz(m.z)
+    constexpr BVec6_t(Vec3_t<T, Vec1Tag> const& lv, Vec3_t<T, Vec2Tag> const& lm) :
+        vx(lv.x), vy(lv.y), vz(lv.z), mx(lm.x), my(lm.y), mz(lm.z)
     {
     }
 
@@ -90,6 +90,14 @@ struct BVec6_t {
     T mx{}; // as BiVec3dp<T> maps to basis bivector e2^e3 - as Line3dp<T> to mx
     T my{}; // as BiVec3dp<T> maps to basis bivector e3^e1 - as Line3dp<T> to my
     T mz{}; // as BiVec3dp<T> maps to basis bivector e1^e2 - as Line3dp<T> to mz
+
+    // with l = l(lv,lm) return lv(l) and lm(l) each as vec3d
+    //      - lm is a bivec3d, but a vec3d is sometimes more practical,
+    //        e.g. for simple use in the dot product between lv and lm to check
+    //        for proper lines satisfying the geometric constraint
+    //      - if lm is needed as bivec3d use lm_as_bivec = hd::ga::ega::cmpl(lm)
+    constexpr Vec3_t<T, vec3d_tag> lv() const { return Vec3_t<T, vec3d_tag>(vx, vy, vz); }
+    constexpr Vec3_t<T, vec3d_tag> lm() const { return Vec3_t<T, vec3d_tag>(mx, my, mz); }
 
     template <typename U>
         requires(numeric_type<U>)

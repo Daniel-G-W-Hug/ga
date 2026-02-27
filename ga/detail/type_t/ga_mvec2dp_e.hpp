@@ -33,13 +33,15 @@ struct MVec4_t<T, mvec2dp_e_tag> : public MVec4_t<T, default_tag> {
     using MVec4_t<T, default_tag>::MVec4_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec4_t(Scalar2dp<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
+    constexpr MVec4_t(Scalar2dp<T> s) : MVec4_t(T(s), T(0.0), T(0.0), T(0.0)) {}
 
     // assign a bivector part exclusively (other grades = 0)
-    MVec4_t(BiVec2dp<T> const& B) : MVec4_t(T(0.0), B.x, B.y, B.z) {}
+    constexpr MVec4_t(BiVec2dp<T> const& B) : MVec4_t(T(0.0), B.x, B.y, B.z) {}
 
     // assign scalar and bivector parts
-    MVec4_t(Scalar2dp<T> s, BiVec2dp<T> const& B) : MVec4_t(T(s), B.x, B.y, B.z) {}
+    constexpr MVec4_t(Scalar2dp<T> s, BiVec2dp<T> const& B) : MVec4_t(T(s), B.x, B.y, B.z)
+    {
+    }
 
     // Override compound assignment operators to return correct derived type
     // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag

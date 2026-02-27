@@ -24,13 +24,13 @@ struct MVec2_t<T, dual_number2dp_tag> : public MVec2_t<T, default_tag> {
     using MVec2_t<T, default_tag>::MVec2_t; // inherit base class ctors
 
     // assign a scalar part exclusively (other grades = 0)
-    MVec2_t(Scalar2dp<T> s) : MVec2_t(T(s), T(0.0)) {}
+    constexpr MVec2_t(Scalar2dp<T> s) : MVec2_t(T(s), T(0.0)) {}
 
     // assign a pseudoscalar part exclusively (other grades = 0)
-    MVec2_t(PScalar2dp<T> ps) : MVec2_t(T(0.0), T(ps)) {}
+    constexpr MVec2_t(PScalar2dp<T> ps) : MVec2_t(T(0.0), T(ps)) {}
 
     // assign from a scalar and a pseudoscalar part
-    MVec2_t(Scalar2dp<T> s, PScalar2dp<T> ps) : MVec2_t(T(s), T(ps)) {}
+    constexpr MVec2_t(Scalar2dp<T> s, PScalar2dp<T> ps) : MVec2_t(T(s), T(ps)) {}
 
     // Override compound assignment operators to return correct derived type
     // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag
