@@ -1,1 +1,2 @@
-rm *.aux *.fls *.log *.out *.gz *.fdb_latexmk *.bbl *.blg
+#!/bin/sh
+rm *.aux *.fls *.log *.out *.gz *.fdb_latexmk *.bbl *.blg *.toc
