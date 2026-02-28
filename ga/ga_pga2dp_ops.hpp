@@ -494,8 +494,16 @@ template <typename arg1, typename arg2> decltype(auto) central_proj2dp(arg1&& a,
 template <typename arg1, typename arg2>
 decltype(auto) ortho_antiproj2dp(arg1&& a, arg2&& b)
 {
-    return wdg(std::forward<arg2>(b),
-               right_weight_contract2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+    auto p = wdg(std::forward<arg2>(b),
+                 right_weight_contract2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+
+    // return a unitized object, if it is not located in the horizon
+    auto nrm_sq = weight_nrm_sq(p);
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        p = unitize(p);
+    }
+
+    return p;
 }
 
 
@@ -504,7 +512,7 @@ decltype(auto) ortho_antiproj2dp(arg1&& a, arg2&& b)
 ////////////////////////////////////////////////////////////////////////////////
 
 // reflect a vector u in an arbitrary bivector, i.e. a line
-// B must be unitized, or object will be scaled as well!
+// pre-condition: B must be unitized, or object will be scaled as well!
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& v,
@@ -515,7 +523,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& v,
 }
 
 // reflect a bivector UB in an arbitrary bivector B (both modelling lines)
-// B must be unitized, or object will be scaled as well!
+// pre-condition: B must be unitized, or object will be scaled as well!
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
@@ -533,7 +541,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
 ////////////////////////////////////////////////////////////////////////////////
 
 // (point-)reflect a point q in an arbitrary point p
-// p must be unitized, or object will be scaled as well!
+// pre-condition: p must be unitized, or object will be scaled as well!
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> invert_on(Vec2dp<T> const& q,
@@ -544,7 +552,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> invert_on(Vec2dp<T> const& q,
 }
 
 // (point-)reflect a line l in an arbitrary point p
-// p must be unitized, or object will be scaled as well!
+// pre-condition: p must be unitized, or object will be scaled as well!
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec2dp<std::common_type_t<T, U>> invert_on(BiVec2dp<T> const& l,
