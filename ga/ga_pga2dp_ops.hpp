@@ -494,32 +494,28 @@ template <typename arg1, typename arg2> decltype(auto) central_proj2dp(arg1&& a,
 template <typename arg1, typename arg2>
 decltype(auto) ortho_antiproj2dp(arg1&& a, arg2&& b)
 {
-    auto p = wdg(std::forward<arg2>(b),
-                 right_weight_contract2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
-
-    // return a unitized object, if it is not located in the horizon
-    auto nrm_sq = weight_nrm_sq(p);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
-        p = unitize(p);
-    }
-
-    return p;
+    return wdg(std::forward<arg2>(b),
+               right_weight_contract2dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // reflections
+//
+// see MacDonald, "Linear and geometric algebra", p. 129, theorem 7.10:
+// The j-blade U reflected in the k-dimensional subspace B is
+// M_B(U) = (-1)^[j*(k+1)] B ⟇ U ⟇ B^(-1) = (-1)^[j*(k+1)] B ⟇ U ⟇ rrev(B)
 ////////////////////////////////////////////////////////////////////////////////
 
 // reflect a vector u in an arbitrary bivector, i.e. a line
-// pre-condition: B must be unitized, or object will be scaled as well!
+// pre-condition: B must be unitized, or the object will be scaled as well!
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> reflect_on(Vec2dp<T> const& v,
                                                       BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(-gr1(rgpr(rgpr(B, v), B)));
+    return Vec2dp<ctype>(-gr1(rgpr(rgpr(B, v), rrev(B))));
 }
 
 // reflect a bivector UB in an arbitrary bivector B (both modelling lines)
@@ -530,7 +526,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> reflect_on(BiVec2dp<T> const& UB,
                                                         BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(gr2(rgpr(rgpr(B, UB), B)));
+    return BiVec2dp<ctype>(gr2(rgpr(rgpr(B, UB), rrev(B))));
 }
 
 
