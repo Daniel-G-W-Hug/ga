@@ -867,8 +867,16 @@ template <typename arg1, typename arg2> decltype(auto) central_proj3dp(arg1&& a,
 template <typename arg1, typename arg2>
 decltype(auto) ortho_antiproj3dp(arg1&& a, arg2&& b)
 {
-    return wdg(std::forward<arg2>(b),
-               right_weight_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+    auto p = wdg(std::forward<arg2>(b),
+                 right_weight_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+
+    // return a unitized object, if it is not located in the horizon
+    auto nrm_sq = weight_nrm_sq(p);
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        p = unitize(p);
+    }
+
+    return p;
 }
 
 
@@ -877,7 +885,7 @@ decltype(auto) ortho_antiproj3dp(arg1&& a, arg2&& b)
 ////////////////////////////////////////////////////////////////////////////////
 
 // reflect a vector u in an arbitrary trivector, i.e. a plane t
-// t must be unitized
+// pre-condition: t must be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> reflect_on(Vec3dp<T> const& v,
@@ -888,7 +896,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> reflect_on(Vec3dp<T> const& v,
 }
 
 // reflect a bivector B (a line) in an arbitrary trivector t
-// t must be unitized
+// pre-condition: t must be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec3dp<std::common_type_t<T, U>> reflect_on(BiVec3dp<T> const& B,
@@ -899,7 +907,7 @@ constexpr BiVec3dp<std::common_type_t<T, U>> reflect_on(BiVec3dp<T> const& B,
 }
 
 // reflect a trivector t1 (a plane) in an arbitrary trivector t2 (a unitized plane)
-// t2 must be unitized
+// pre-condition: t2 must be unitized
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr TriVec3dp<std::common_type_t<T, U>> reflect_on(TriVec3dp<T> const& t1,
@@ -916,7 +924,7 @@ constexpr TriVec3dp<std::common_type_t<T, U>> reflect_on(TriVec3dp<T> const& t1,
 ////////////////////////////////////////////////////////////////////////////////
 
 // (point-)reflect a point q in an arbitrary point p
-// p must be unitized, or object will be scaled as well!
+// pre-condition: p must be unitized, or object will be scaled as well!
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> invert_on(Vec3dp<T> const& q,
@@ -927,7 +935,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> invert_on(Vec3dp<T> const& q,
 }
 
 // (point-)reflect a line l in an arbitrary point p
-// p must be unitized, or object will be scaled as well!
+// pre-condition: p must be unitized, or object will be scaled as well!
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec3dp<std::common_type_t<T, U>> invert_on(BiVec3dp<T> const& l,
@@ -938,7 +946,7 @@ constexpr BiVec3dp<std::common_type_t<T, U>> invert_on(BiVec3dp<T> const& l,
 }
 
 // (point-)reflect a plane t in an arbitrary point p
-// p must be unitized, or object will be scaled as well!
+// pre-condition: p must be unitized, or object will be scaled as well!
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr TriVec3dp<std::common_type_t<T, U>> invert_on(TriVec3dp<T> const& t,
