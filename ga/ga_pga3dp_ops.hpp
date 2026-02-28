@@ -422,11 +422,23 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> move3dp(MVec3dp_E<T> const& M_orig
 {
     // pre: motor M must be unitized to avoid surprises
 
-    // moves M_orig (a motor) according to the motor R
+    // moves M_orig (a motor) according to the motor M
     // e.g. kinematic chains in robotics application with coupled joints
     // effectively "rotating the rotation direction"
     using ctype = std::common_type_t<T, U>;
     return MVec3dp_E<ctype>(rgpr(rgpr(M, M_orig), rrev(M)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> move3dp(MVec3dp<T> const& MV,
+                                                    MVec3dp_E<U> const& M)
+{
+    // pre: motor M must be unitized to avoid surprises
+
+    // rotate one multivector M with motor M
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp<ctype>(rgpr(rgpr(M, MV), rrev(M)));
 }
 
 template <typename T, typename U>
@@ -689,19 +701,6 @@ move3dp(std::vector<TriVec3dp<T>> const& tvec, MVec3dp_E<U> const& M)
             k41 * t.x + k42 * t.y + k43 * t.z + k44 * t.w));
     }
     return result;
-}
-
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3dp<std::common_type_t<T, U>> move3dp(MVec3dp<T> const& MV,
-                                                    MVec3dp_E<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // rotate one multivector M with motor R
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(rgpr(rgpr(M, MV), rrev(M)));
 }
 
 
