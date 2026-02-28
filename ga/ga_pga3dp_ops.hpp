@@ -867,16 +867,8 @@ template <typename arg1, typename arg2> decltype(auto) central_proj3dp(arg1&& a,
 template <typename arg1, typename arg2>
 decltype(auto) ortho_antiproj3dp(arg1&& a, arg2&& b)
 {
-    auto p = wdg(std::forward<arg2>(b),
-                 right_weight_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
-
-    // return a unitized object, if it is not located in the horizon
-    auto nrm_sq = weight_nrm_sq(p);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
-        p = unitize(p);
-    }
-
-    return p;
+    return wdg(std::forward<arg2>(b),
+               right_weight_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 }
 
 
@@ -892,7 +884,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> reflect_on(Vec3dp<T> const& v,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(-gr1(rgpr(rgpr(t, v), t)));
+    return Vec3dp<ctype>(gr1(rgpr(rgpr(t, v), rrev(t))));
 }
 
 // reflect a bivector B (a line) in an arbitrary trivector t
@@ -903,7 +895,7 @@ constexpr BiVec3dp<std::common_type_t<T, U>> reflect_on(BiVec3dp<T> const& B,
                                                         TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-gr2(rgpr(rgpr(t, B), t)));
+    return BiVec3dp<ctype>(-gr2(rgpr(rgpr(t, B), rrev(t))));
 }
 
 // reflect a trivector t1 (a plane) in an arbitrary trivector t2 (a unitized plane)
@@ -914,7 +906,7 @@ constexpr TriVec3dp<std::common_type_t<T, U>> reflect_on(TriVec3dp<T> const& t1,
                                                          TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(-gr3(rgpr(rgpr(t2, t1), t2)));
+    return TriVec3dp<ctype>(-gr3(rgpr(rgpr(t2, t1), rrev(t2))));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

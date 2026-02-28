@@ -748,22 +748,27 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("vr = {}", vr);
         // fmt::println("");
 
-        CHECK(unitize(reflect_on(v, t)) == vr);
+        CHECK(reflect_on(v, t) == vr);
 
         // line to reflect
         p1 = vec3dp{1, 1, 0, 1};
         p2 = vec3dp{3, 2, 0, 1};
         auto p1r = vec3dp{1, -1, 0, 1};
         auto p2r = vec3dp{3, -2, 0, 1};
-        auto l12 = unitize(wdg(p1, p2));
-        auto l12r = unitize(wdg(p1r, p2r));
+        auto l12 = wdg(p1, p2);
+        auto l12r = wdg(p1r, p2r);
+        auto lu12 = unitize(wdg(p1, p2));
+        auto lu12r = unitize(wdg(p1r, p2r));
 
         // fmt::println("");
         // fmt::println("l12 = {}, att(l12) = {}", l12, att(l12));
         // fmt::println("l12r = {}, att(l12r) = {}", l12r, att(l12r));
+        // fmt::println("lu12 = {}, att(lu12) = {}", lu12, att(lu12));
+        // fmt::println("lu12r = {}, att(lu12r) = {}", lu12r, att(lu12r));
         // fmt::println("");
 
         CHECK(reflect_on(l12, t) == l12r);
+        CHECK(reflect_on(lu12, t) == lu12r);
 
         // plane to reflect
         p3 = vec3dp{1, 1, 1, 1};
@@ -781,7 +786,7 @@ TEST_SUITE("PGA 3DP Tests")
 
         // point reflected on a plane
         vec3dp p{4, 1, 1, 1};
-        CHECK(unitize(reflect_on(p, zx_3dp)) == vec3dp{4, -1, 1, 1});
+        CHECK(reflect_on(p, zx_3dp) == vec3dp{4, -1, 1, 1});
 
         // coordinate axis reflected on perpendicular base planes yield their negatives
         CHECK(reflect_on(x_axis_3dp, yz_3dp) == -x_axis_3dp);
@@ -793,8 +798,8 @@ TEST_SUITE("PGA 3DP Tests")
         p1 = vec3dp{0, 1, 1, 1};
         p2 = vec3dp{1, 1, 1, 1};
         l12 = unitize(wdg(p1, p2)); // l12 = BiVec3dp(1, 0, 0, 0, 1, -1)
-        p1r = unitize(reflect_on(p1, zx_3dp));
-        p2r = unitize(reflect_on(p2, zx_3dp));
+        p1r = reflect_on(p1, zx_3dp);
+        p2r = reflect_on(p2, zx_3dp);
         l12r = unitize(wdg(p1r, p2r)); // l12r = BiVec3dp(1, 0, 0, 0, 1, 1)
         auto basept = unitize(rwdg(l12, yz_3dp));
         auto baseptr = unitize(rwdg(l12r, yz_3dp));
@@ -851,6 +856,27 @@ TEST_SUITE("PGA 3DP Tests")
 
         // reflect planes on planes directly
         CHECK(reflect_on(e423_3dp + e412_3dp, e412_3dp) == e423_3dp - e412_3dp);
+    }
+
+    TEST_CASE("Vec3dp: operations - reflect in plane (=trivec)")
+    {
+        fmt::println("Vec3dp: operations - reflect in plane (=trivec)");
+
+        CHECK(reflect_on(x_dir_3dp, yz_3dp) == -x_dir_3dp);
+        CHECK(reflect_on(y_dir_3dp, zx_3dp) == -y_dir_3dp);
+        CHECK(reflect_on(z_dir_3dp, xy_3dp) == -z_dir_3dp);
+
+        CHECK(reflect_on(vec3dp{1, 0, 0, 1}, yz_3dp) == vec3dp{-1, 0, 0, 1});
+        CHECK(reflect_on(vec3dp{0, 1, 0, 1}, zx_3dp) == vec3dp{0, -1, 0, 1});
+        CHECK(reflect_on(vec3dp{0, 0, 1, 1}, xy_3dp) == vec3dp{0, 0, -1, 1});
+
+        CHECK(reflect_on(x_axis_3dp, yz_3dp) == -x_axis_3dp);
+        CHECK(reflect_on(y_axis_3dp, zx_3dp) == -y_axis_3dp);
+        CHECK(reflect_on(z_axis_3dp, xy_3dp) == -z_axis_3dp);
+
+        CHECK(reflect_on(trivec3dp{1, 0, 0, 1}, yz_3dp) == trivec3dp{-1, 0, 0, 1});
+        CHECK(reflect_on(trivec3dp{0, 1, 0, 1}, zx_3dp) == trivec3dp{0, -1, 0, 1});
+        CHECK(reflect_on(trivec3dp{0, 0, 1, 1}, xy_3dp) == trivec3dp{0, 0, -1, 1});
     }
 
     TEST_CASE("Vec3dp: operations - rotations")
