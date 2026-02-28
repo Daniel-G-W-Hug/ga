@@ -306,7 +306,7 @@ template <typename T, typename U>
 constexpr MVec3dp_E<std::common_type_t<T, U>>
 get_motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
 {
-    // take planes as input and return a motor M
+    // take planes (=trivectors) as input and return a motor M
     // 1st apply reflection across plane t1, then across t2 to get a motor that rotates
     // around the intersection line of planes t1 and t2
     // or translates when t1 and t2 are parallel
@@ -319,11 +319,9 @@ get_motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
     // or
     //     auto t_moved = gr3( rgpr(rgpr(M, t), rrev(M)) );
     // or
-    //                                   // optimized for reduced effort
     //     auto v_moved = move3dp(v,M);  // moves v according to the motor M
     //     auto B_moved = move3dp(B,M);  // moves B according to the motor M
     //     auto t_moved = move3dp(t,M);  // moves t according to the motor M
-    //
 
     // planes t1 and t2 need to be unitized to avoid surprises
     auto nrm_sq = weight_nrm_sq(t1);
@@ -354,8 +352,9 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor_from_lines(BiVec3dp<T> c
     // Return a motor that moves line l1 to line l2.
     //
     // Line of rotation is l_rot = rcmt(l2, rrev(l1)).
-    // The operator moving 2*phi and 2*dist is rgpr(l2, rrev(l1))
-    // Thus, sqrt(rgpr(l2, rrev(l1))) is the motor we look for.
+    // The operator rotating by 2*phi and moving by 2*dist is rgpr(l2, rrev(l1))
+    // Thus, sqrt(rgpr(l2, rrev(l1))) is the motor we look for rotating by phi and moving
+    // by dist.
     // (see Lengyel, "PGA Illuminated", p. 152)
 
     // l1 and l2 need to be unitized to avoid surprises
@@ -370,7 +369,13 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor_from_lines(BiVec3dp<T> c
         lu2 = unitize(lu2);
     }
 
-    return sqrt(rgpr(l2, rrev(l1)));
+    // the resulting motor must be unitized to avoid surprises
+    auto M{sqrt(rgpr(l2, rrev(l1)))};
+    nrm_sq = weight_nrm_sq(M);
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        M = unitize(M);
+    }
+    return M; // based on the regressive geometric product
 }
 
 template <typename T, typename U>

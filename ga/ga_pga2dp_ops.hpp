@@ -193,9 +193,21 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> c
     // or
     //     auto v_moved = move2dp(v,M);  // moves v according to the motor M
     //     auto B_moved = move2dp(B,M);  // moves B according to the motor M
-    //
-    auto M = rgpr(B2, B1);
-    auto nrm_sq = weight_nrm_sq(M);
+
+    // lines B1 and B2 need to be unitized to avoid surprises
+    auto nrm_sq = weight_nrm_sq(B1);
+    auto Bu1{B1};
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        Bu1 = unitize(Bu1);
+    }
+    nrm_sq = weight_nrm_sq(B2);
+    auto Bu2{B2};
+    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+        Bu2 = unitize(Bu2);
+    }
+
+    auto M = rgpr(Bu2, Bu1);
+    nrm_sq = weight_nrm_sq(M);
     if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
         M = unitize(M);
     }
