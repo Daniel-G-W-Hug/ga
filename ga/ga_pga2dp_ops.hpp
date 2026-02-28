@@ -228,6 +228,46 @@ constexpr Vec2dp<std::common_type_t<T, U>> move2dp(Vec2dp<T> const& v,
 
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
+                                                     MVec2dp_U<U> const& M)
+{
+    // motor M must be unitized to avoid surprises
+
+    // moves B (a bivector representing a line) according to the motor M
+    using ctype = std::common_type_t<T, U>;
+    return BiVec2dp<ctype>(gr2(rgpr(rgpr(M, B), rrev(M))));
+}
+
+// rotate a motor (required for robotics applications using kinematic chains)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp_U<std::common_type_t<T, U>> move2dp(MVec3dp_U<T> const& M_orig,
+                                                      MVec3dp_U<U> const& M)
+{
+    // pre: motor M must be unitized to avoid surprises
+
+    // moves M_orig (a motor) according to the motor M
+    // e.g. kinematic chains in robotics application with coupled joints
+    // effectively "rotating the rotation direction"
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp_U<ctype>(rgpr(rgpr(M, M_orig), rrev(M)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> move2dp(MVec2dp<T> const& MV,
+                                                    MVec2dp_U<U> const& M)
+{
+    // pre: motor M must be unitized to avoid surprises
+
+    // rotate one multivector MV with motor M
+    // (only rotates the vector and bivector components of the 2dp multivector)
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(rgpr(rgpr(M, MV), rrev(M)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
                                                        MVec2dp_U<U> const& M)
 {
@@ -280,19 +320,6 @@ move2dp(std::vector<Vec2dp<T>> const& vec, MVec2dp_U<U> const& M)
                                           k21 * v.x + k22 * v.y + k23 * v.z, k33 * v.z));
     }
     return result;
-}
-
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
-                                                     MVec2dp_U<U> const& M)
-{
-    // motor M must be unitized to avoid surprises
-
-    // moves B (a bivector representing a line) according to the motor M
-    using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(gr2(rgpr(rgpr(M, B), rrev(M))));
 }
 
 template <typename T, typename U>
@@ -349,20 +376,6 @@ move2dp(std::vector<BiVec2dp<T>> const& bvec, MVec2dp_U<U> const& M)
                                             k31 * B.x + k32 * B.y + k33 * B.z));
     }
     return result;
-}
-
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2dp<std::common_type_t<T, U>> move2dp(MVec2dp<T> const& MV,
-                                                    MVec2dp_U<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // rotate one multivector MV with motor M
-    // (only rotates the vector and bivector components of the 2dp multivector)
-    using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(rgpr(rgpr(M, MV), rrev(M)));
 }
 
 
