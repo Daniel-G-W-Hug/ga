@@ -50,8 +50,6 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("Scalar2d: comparison");
         scalar2d s1{3.0};
         scalar2d s2{3.0};
-        scalar3d s3{3.0};
-        pscalar2d ps{3.0};
 
         // fmt::println("   s1 = {}", s1);
         // fmt::println("   s2 = {}", s2);
@@ -68,10 +66,11 @@ TEST_SUITE("EGA 2D Tests")
         Scalar_t<float, scalar2d_tag> sf{3.0f};
         CHECK(s1 == sf); // double vs float with same tag
 
-        // different tags should NOT compile (these lines would cause compilation errors):
+        // different tags must NOT compile (these lines must cause compilation errors):
+        // pscalar2d ps{3.0};
         // CHECK(s1 == ps); // scalar2d vs pscalar2d (different tags)
+        // scalar3d s3{3.0};
         // CHECK(s1 == s3); // scalar2d vs scalar3d (different tags)
-        // CHECK(s2 == s3); // scalar2d vs scalar3d (different tags)
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1336,8 +1335,6 @@ TEST_SUITE("EGA 2D Tests")
         mvec2d mv3{v1};
         mvec2d mv4 = v2;
 
-        mvec2d mv5(scalar2d(5.0));
-        mvec2d mv6(pscalar2d(6.0));
 
         // fmt::println("   v1 = {}", v1);
         // fmt::println("   v2 = {}", v2);
@@ -1346,6 +1343,8 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("   mv2 = {}", mv2);
         // fmt::println("   mv3 = {}", mv3);
         // fmt::println("   mv4 = {}", mv4);
+        // mvec2d mv5(scalar2d(5.0));
+        // mvec2d mv6(pscalar2d(6.0));
         // fmt::println("   mv5 = {}", mv5);
         // fmt::println("   mv6 = {}", mv6);
         // fmt::println("");
