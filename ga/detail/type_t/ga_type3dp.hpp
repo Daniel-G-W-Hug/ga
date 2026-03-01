@@ -73,6 +73,48 @@ constexpr size_t gr([[maybe_unused]] PScalar3dp<T>)
     return 4;
 }
 
+// return the regressive grades of the basic types: rgr(arg) = n - gr(arg)
+// with n being the dimension of the space
+// => gr(arg) + rgr(arg) = n
+//
+// (Lengyel calls that anti-grade of an object, i.e. the number of dimensions
+//  of the space NOT populated by the object)
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr size_t rgr([[maybe_unused]] Scalar3dp<T>)
+{
+    return 4; // 4 - 0
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr size_t rgr([[maybe_unused]] Vec3dp<T> const&)
+{
+    return 3; // 4 - 1
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr size_t rgr([[maybe_unused]] BiVec3dp<T> const&)
+{
+    return 2; // 2 - 2
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr size_t rgr([[maybe_unused]] TriVec3dp<T> const&)
+{
+    return 1; // 4 - 3
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr size_t rgr([[maybe_unused]] PScalar3dp<T>)
+{
+    return 0; // 4 - 4
+}
+
 // for the geometric norm as homogeneous quantity,
 // which has a scalar part (c0 component) and a pseudoscalar part (c1 component)
 template <typename T> using DualNum3dp = MVec2_t<T, dual_number3dp_tag>;
