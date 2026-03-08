@@ -5,9 +5,13 @@ The ga library is intended to make Geometric Algebra (GA) more accessible by pro
 functionality for numerical calculations required for simulation of physical systems. \\
 
 It implements functionality for two- and three-dimensional spaces with Euclidean geometry.
-Currently, it provides data types and operations to handle the algebras of Euclidean
-geometric algebra $(ega2d, ega3d)$ and projective Euclidean geometric algebra ($pga2dp,
-pga3dp$). The library efficiently handles fully populated multivectors, even and odd-grade
+Currently, it provides data types and operations to handle the algebras of two- and
+three-dimensional Euclidean space ($EGA2D$, $EGA3D$) as well as for projective two- and
+three-dimensional Euclidean space ($PGA2DP$, $PGA3DP$). The latter two are modelled in a
+three- and four-dimensional space, respectively, since both include an additional
+projective dimension. \\
+
+The library efficiently handles fully populated multivectors, even and odd-grade
 multivectors as well as their components like scalars, vectors, bivectors, trivectors, and
 pseudoscalars of the corresponding linear spaces. It also provides operations to work with
 these objects. It was designed with extensibility in mind and can be extended to provide
@@ -31,8 +35,8 @@ in your application code. For a simple usage example please have a look either a
 \path{ga/ga_test/src/ga_ega_test.cpp} or at \path{ga/ga_test/src/ga_pga_test.cpp}. \\
 
 At the heart of the library there are user defined types that model mathematical objects
-of the respective geometric algebra. They are realized using type tagging in order to
-maximize reuse and to avoid code duplication. All types are defined in
+of the respective geometric algebra. They are realized using type tagging in \Cpp in order
+to maximize reuse and to avoid code duplication. All types are defined in
 \path{ga/detail/type_t}. \\
 
 To give an example for $EGA2D$, there are type aliases defined in the file
@@ -153,7 +157,7 @@ $arg$:
     \path{rcmt(a,b)}
     \item Regressive inner product, delivering a pseudoscalar: $a \circ b$,
     \path{rdot(a,b)} (for comparison of the dot product and the regressive dot product for
-    $pga3dp$ see table \ref{tab:pga3dp_dot_products} at the end of section
+    $PGA3DP$ see table \ref{tab:pga3dp_dot_products} at the end of section
     \ref{subsection_basics})
     \item Regressive outer product: $a \vee b$, \path{rwdg(a,b)}
     \item Regressive geometric product: $a \veedot b$, \path{rgpr(a,b)}

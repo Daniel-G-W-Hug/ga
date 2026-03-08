@@ -16,7 +16,9 @@ namespace hd::ga::pga {
 // - exp()                               -> exponential (w.r.t. rgpr)
 // TODO: - log()                              -> logarithm (w.r.t rgpr)
 // - sqrt(M)                             -> sqrt of a motor (w.r.t. rgpr)
-// - get_motor(), get_motor_from_lines() -> provide a motor
+// - get_motor()                         -> provide a motor from (point, phi), or (delta),
+// - get_motor_from_lines()              -> provide a motor from (from two lines moved
+//                                                                into each other)
 // - move2dp(), move2dp_opt()            -> move object with motor
 // - project_onto(), reject_from()       -> simple projection and rejection
 // - expand()                            -> expansion: new line through point
@@ -158,19 +160,17 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& P, U th
 // with the vector P = 0.5 * bulk_dual(delta) \vee H_{2dp} = 0.5 * att(bulk_dual(delta))
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec2dp_U<T> get_motor(Vec2dp<T> const& translation)
+constexpr MVec2dp_U<T> get_motor(Vec2dp<T> const& delta)
 {
-    return MVec2dp_U<T>(0.5 * Vec2dp<T>(-translation.y, translation.x, T(0.0)),
-                        PScalar2dp<T>(1.0));
+    return MVec2dp_U<T>(0.5 * Vec2dp<T>(-delta.y, delta.x, T(0.0)), PScalar2dp<T>(1.0));
 }
 
 // overload of translation motor for a Vector2d:
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec2dp_U<T> get_motor(Vector2d<T> const& translation)
+constexpr MVec2dp_U<T> get_motor(Vector2d<T> const& delta)
 {
-    return MVec2dp_U<T>(0.5 * Vec2dp<T>(-translation.y, translation.x, T(0.0)),
-                        PScalar2dp<T>(1.0));
+    return MVec2dp_U<T>(0.5 * Vec2dp<T>(-delta.y, delta.x, T(0.0)), PScalar2dp<T>(1.0));
 }
 
 // create a (unitized) motor directly from two consequtive reflections across two
@@ -277,15 +277,19 @@ constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
     using ctype = std::common_type_t<T, U>;
     // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
 
-    ctype k11 = -M.c2 * M.c2 + M.c3 * M.c3;
-    ctype k12 = -2.0 * M.c2 * M.c3;
+    ctype h0 = M.c2 * M.c2;
+    ctype h1 = M.c3 * M.c3;
+    ctype h2 = 2.0 * M.c2 * M.c3;
+
+    ctype k11 = -h0 + h1;
+    ctype k12 = -h2;
     ctype k13 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c3);
 
-    ctype k21 = 2.0 * M.c2 * M.c3;
-    ctype k22 = -M.c2 * M.c2 + M.c3 * M.c3;
+    ctype k21 = h2;
+    ctype k22 = k11;
     ctype k23 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c2);
 
-    ctype k33 = M.c2 * M.c2 + M.c3 * M.c3;
+    ctype k33 = h0 + h1;
 
     return Vec2dp<ctype>(k11 * v.x + k12 * v.y + k13 * v.z,
                          k21 * v.x + k22 * v.y + k23 * v.z, k33 * v.z);

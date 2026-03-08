@@ -51,6 +51,24 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         fmt::println("pga3dp: speed of rotation (via bivector)");
         fmt::println("");
 
+
+        // EGA3D:
+        //        for omega = const. (a ega3d vector representing a rotational axis)
+        //
+        //        ds/dt = v = omega x r    (with x symbolizing the cross product)
+        //        dv/dt = a = omega x v
+        //
+        //        with Omega = cmpl(omega)  (a bivector)
+        //        ds/dt = v = Omega >> r = cmt(r, Omega)
+        //        dv/dt = a = Omega >> v = cmt(v, Omega)
+        //
+        // PGA3DP:
+        //        for omega = const. (a ega3dp vector representing a rotational axis)
+        //
+        //        with Omega = att(right_bulk_dual(omega)) a bivector)
+        //        ds/dt = v = Omega >> r = cmt(r, Omega)
+        //        dv/dt = a = Omega >> v = cmt(v, Omega)
+
         // rotating plane defined by point P and bivector B
 
         // defined in EGA3D
@@ -81,6 +99,9 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         r /= to_val(bulk_nrm(r)); // normalize r to get direction vector of length 1
 
         auto v1_ega = cross(omega_ega, r_ega); // speed calculated in EGA3D
+        auto Omega_ega = cmpl(omega_ega);      // express omega as bivector
+        CHECK(v1_ega == Omega_ega >> r_ega);
+        CHECK(v1_ega == cmt(r_ega, Omega_ega));
 
         auto v2 = Omega >> r;  // right contraction turns in direction of B (or Omega)
         auto a2 = Omega >> v2; // acceleration vector (not used here)
@@ -89,6 +110,14 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         auto v1 = vec3dp{v1_ega.x, v1_ega.y, v1_ega.z, 0};
 
         CHECK(v1 == v2);
+        CHECK(v2 == cmt(r, Omega));  // right contraction Omega >> r and cmt(r, Omega)
+                                     // are equivalent
+        CHECK(a2 == cmt(v2, Omega)); // right contraction Omega >> v and cmt(v, Omega)
+        // are equivalent
+
+        auto omega3dp = vec3dp{omega_ega.x, omega_ega.y, omega_ega.z, 1};
+        CHECK(Omega == att(right_bulk_dual(omega3dp)));
+        CHECK(Omega == att(rcmpl(omega3dp)));
 
         fmt::println("B = {}", B);
         fmt::println("bulk(B)   = {}, bulk_nrm(B)   = {}", bulk(B), bulk_nrm(B));
@@ -98,6 +127,9 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
         fmt::println("omega [rad/s]     = {}", omega);
         fmt::println("omega_ega         = {}", omega_ega);
         fmt::println("Omega = omega * B = {}", Omega);
+        fmt::println("    att(right_bulk_dual(omega3dp))) = {}",
+                     att(right_bulk_dual(omega3dp)));
+        fmt::println("    att(rcmpl(omega3dp)) = {}", att(rcmpl(omega3dp)));
         fmt::println("");
         fmt::println("v1_ega = omega * (omega_ega x r_ega) =  {}", v1_ega);
         fmt::println("v1     = omega * (v1_ega, 1.0)       = {},       nrm(v1) = {}", v1,
@@ -106,6 +138,8 @@ TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
                      to_val(bulk_nrm(v2)));
         fmt::println("a2 = Omega >> v2                     = {}, bulk_nrm(a2) = {}", a2,
                      to_val(bulk_nrm(a2)));
+
+        fmt::println("");
 
         fmt::println("");
     }
