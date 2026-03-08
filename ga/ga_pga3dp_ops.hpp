@@ -16,11 +16,11 @@ namespace hd::ga::pga {
 // - exp()                                -> exponential (w.r.t. rgpr)
 // TODO: - log()                                -> logarithm (w.r.t rgpr)
 // - sqrt(M)                              -> sqrt of a motor (w.r.t. rgpr)
-// - get_motor()                          -> provide a motor (line, phi), (translation),
+// - get_motor()                          -> provide a motor from (line, phi), or (delta),
 //                                           or (line, phi, dist along line)
 // - get_motor_from_planes()              -> provide a motor (from two plane reflections)
-// - get_motor_from_lines()               -> provide a motor (from two lines moved into
-//                                           each other)
+// - get_motor_from_lines()               -> provide a motor (from two lines moved
+//                                                            into each other)
 // - move3dp(), move3dp_opt()             -> move object with motor
 // - project_onto(), reject_from()        -> simple projection and rejection
 // - expand()                             -> expansion: new line/plane through point/line
@@ -258,21 +258,21 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor(BiVec3dp<T> const& L, U 
 //                           = 0.5 * att(bulk_dual(delta))
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_E<T> get_motor(Vec3dp<T> const& translation)
+constexpr MVec3dp_E<T> get_motor(Vec3dp<T> const& delta)
 {
-    return MVec3dp_E<T>(0.5 * BiVec3dp<T>(T(0.0), T(0.0), T(0.0), translation.x,
-                                          translation.y, translation.z),
-                        PScalar3dp<T>(1.0));
+    return MVec3dp_E<T>(
+        0.5 * BiVec3dp<T>(T(0.0), T(0.0), T(0.0), delta.x, delta.y, delta.z),
+        PScalar3dp<T>(1.0));
 }
 
 // overload of translation motor for a Vector3d:
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_E<T> get_motor(Vector3d<T> const& translation)
+constexpr MVec3dp_E<T> get_motor(Vector3d<T> const& delta)
 {
-    return MVec3dp_E<T>(0.5 * BiVec3dp<T>(T(0.0), T(0.0), T(0.0), translation.x,
-                                          translation.y, translation.z),
-                        PScalar3dp<T>(1.0));
+    return MVec3dp_E<T>(
+        0.5 * BiVec3dp<T>(T(0.0), T(0.0), T(0.0), delta.x, delta.y, delta.z),
+        PScalar3dp<T>(1.0));
 }
 
 // create a motor from a fixed line of rotation l, a turning angle theta, and a

@@ -20,8 +20,22 @@ message(STATUS "ga_lua: DEBUG - LUA_INCLUDE_DIR=${LUA_INCLUDE_DIR}")
 message(STATUS "ga_lua: DEBUG - LUA_LIBRARIES=${LUA_LIBRARIES}")
 
 # CRITICAL: Lua include directory must come FIRST so sol2 finds the right lua.h
-target_include_directories(${EXEC_NAME} PRIVATE ${LUA_INCLUDE_DIR})
+# sol2 uses __has_include(<lua/lua.h>) so we need the PARENT of LUA_INCLUDE_DIR
+# (e.g. /opt/homebrew/opt/lua@5.4/include) before system paths, not just the
+# leaf directory (e.g. .../include/lua). Without this, sol2 picks up the
+# system-wide Lua (5.5+) from /opt/homebrew/include/lua/lua.h.
+get_filename_component(LUA_INCLUDE_PARENT "${LUA_INCLUDE_DIR}" DIRECTORY)
+target_include_directories(${EXEC_NAME} BEFORE PRIVATE ${LUA_INCLUDE_PARENT} ${LUA_INCLUDE_DIR})
 target_link_libraries(${EXEC_NAME} PRIVATE ${LUA_LIBRARIES} ga)
+
+# sol2 3.5.0 workaround: compat-5.4.h uses `LUA_VERSION_NUM > 504` instead of
+# `>= 504`, so it never defines LUA_ERRGCMM for Lua 5.4 (where it was removed).
+# Value mirrors what compat-5.4.h would compute: LUA_ERRERR(5) + 2 = 7.
+if(LUA_VERSION_STRING VERSION_GREATER_EQUAL "5.4" AND
+   LUA_VERSION_STRING VERSION_LESS "5.5")
+    message(STATUS "ga_lua: Applying LUA_ERRGCMM=7 workaround for sol2 3.5.0 + Lua 5.4")
+    target_compile_definitions(${EXEC_NAME} PRIVATE LUA_ERRGCMM=7)
+endif()
 
 # sol2 is header-only - add AFTER Lua includes to ensure correct lua.h is found
 if(SOL2_INCLUDE_DIRS)

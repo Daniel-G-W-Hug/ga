@@ -44,7 +44,9 @@ namespace hd::ga::pga {
 // The matrix maps: [Omega.vx, Omega.vy, Omega.vz, Omega.mx, Omega.my, Omega.mz]
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T> struct Inertia3dp {
+template <typename T>
+    requires(numeric_type<T>)
+struct Inertia3dp {
     std::array<T, 36> data{}; // row-major storage (6x6 matrix)
 
     // Default constructor (zero matrix)
@@ -68,7 +70,12 @@ template <typename T> struct Inertia3dp {
         return std::mdspan<T const, std::extents<size_t, 6, 6>>{data.data()};
     }
 
-    // Apply inertia map: I[Omega] = I * Omega
+    // Apply inertia map: I[Omega]
+    // (map rate of change bivector Omega to momentum bivector in 3D)
+    // or
+    // Apply inverse inertia map: I_inv[arg]
+    // (map momentum bivector arg to bivector Omega in 3D)
+    //
     // BiVec3dp components: vx=e41, vy=e42, vz=e43, mx=e23, my=e31, mz=e12
     BiVec3dp<T> operator()(BiVec3dp<T> const& Omega) const
     {

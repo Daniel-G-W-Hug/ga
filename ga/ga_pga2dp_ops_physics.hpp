@@ -28,7 +28,7 @@ namespace hd::ga::pga {
 // Inertia2dp: Inertia matrix for 2D projective GA (3x3 matrix)
 //
 // Used for rigid body dynamics in PGA2DP. The inertia map I[Omega] maps the
-// rate of change Omega (a Vec2dp) to momentum (also a Vec2dp).
+// rate of change Omega (a Vec2dp) to the momentum (a BiVec2dp).
 //
 // From ga_docu/5_ga_physics_modelling.tex eq. 539-546:
 // I_2D = m * [  0        Xz^2      -Xy*Xz    ]
@@ -38,7 +38,9 @@ namespace hd::ga::pga {
 // where X = (Xx, Xy, Xz) is the position vector with Xz as homogeneous coord.
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T> struct Inertia2dp {
+template <typename T>
+    requires(numeric_type<T>)
+struct Inertia2dp {
     std::array<T, 9> data{}; // row-major storage (3x3 matrix)
 
     // Default constructor (zero matrix)
@@ -62,13 +64,24 @@ template <typename T> struct Inertia2dp {
         return std::mdspan<T const, std::extents<size_t, 3, 3>>{data.data()};
     }
 
-    // Apply inertia map: I[Omega] = I * Omega
-    Vec2dp<T> operator()(Vec2dp<T> const& Omega) const
+    // Apply inertia map: I[Omega]
+    // (map rate of change vector Omega to momentum bivector in 2D)
+    BiVec2dp<T> operator()(Vec2dp<T> const& Omega) const
     {
         auto I = view();
-        return Vec2dp<T>{I[0, 0] * Omega.x + I[0, 1] * Omega.y + I[0, 2] * Omega.z,
-                         I[1, 0] * Omega.x + I[1, 1] * Omega.y + I[1, 2] * Omega.z,
-                         I[2, 0] * Omega.x + I[2, 1] * Omega.y + I[2, 2] * Omega.z};
+        return BiVec2dp<T>{I[0, 0] * Omega.x + I[0, 1] * Omega.y + I[0, 2] * Omega.z,
+                           I[1, 0] * Omega.x + I[1, 1] * Omega.y + I[1, 2] * Omega.z,
+                           I[2, 0] * Omega.x + I[2, 1] * Omega.y + I[2, 2] * Omega.z};
+    }
+
+    // Apply inverse inertia map: I_inv[arg]
+    // (map momentum bivector arg to vector Omega in 2D)
+    Vec2dp<T> operator()(BiVec2dp<T> const& arg) const
+    {
+        auto I = view();
+        return Vec2dp<T>{I[0, 0] * arg.x + I[0, 1] * arg.y + I[0, 2] * arg.z,
+                         I[1, 0] * arg.x + I[1, 1] * arg.y + I[1, 2] * arg.z,
+                         I[2, 0] * arg.x + I[2, 1] * arg.y + I[2, 2] * arg.z};
     }
 };
 
@@ -76,7 +89,7 @@ template <typename T> struct Inertia2dp {
 // Create inertia matrix for a point mass at position X with mass m
 // Pre: X should be unitized (X.z = 1 for finite points)
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 Inertia2dp<T> get_point_inertia(T m, Vec2dp<T> const& X)
 {
     // Matrix from tex eq. 539-546
@@ -110,7 +123,7 @@ Inertia2dp<T> get_point_inertia(T m, Vec2dp<T> const& X)
 // Solves I * I_inv = Identity by back-substitution for each column
 // Throws std::invalid_argument if inertia matrix is singular (det = 0)
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 Inertia2dp<T> get_inertia_inverse(Inertia2dp<T> const& I)
 {
     // Check determinant before attempting inversion
@@ -162,24 +175,24 @@ Inertia2dp<T> get_inertia_inverse(Inertia2dp<T> const& I)
 ////////////////////////////////////////////////////////////////////////////////
 
 // Compute Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]
-// where F is the applied force/torque, Omega is the current rate of change,
+// where F is the applied force/torque F = wdg(Q,f), Omega is the current rate of change,
 // I is the inertia matrix, and I_inv is its inverse
 template <typename T>
-    requires(std::floating_point<T>)
-Vec2dp<T> compute_omega_dot(Inertia2dp<T> const& I_inv, Vec2dp<T> const& F,
+    requires(numeric_type<T>)
+Vec2dp<T> compute_omega_dot(Inertia2dp<T> const& I_inv, BiVec2dp<T> const& F,
                             Vec2dp<T> const& Omega, Inertia2dp<T> const& I)
 {
     // Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]
-    Vec2dp<T> I_Omega = I(Omega);
-    Vec2dp<T> rhs = F - rcmt(Omega, I_Omega);
-    return I_inv(rhs);
+    BiVec2dp<T> I_Omega = I(Omega);
+    BiVec2dp<T> rhs = F - rcmt(Omega, I_Omega);
+    return I_inv(rhs); // returns the change rate Omega
 }
 
 
 // Compute M_dot = 0.5 * M ∨ Omega (motor derivative using regressive product)
 // where M is the current motor and Omega is the rate of change
 template <typename T>
-    requires(std::floating_point<T>)
+    requires(numeric_type<T>)
 MVec2dp_U<T> compute_motor_dot(MVec2dp_U<T> const& M, Vec2dp<T> const& Omega)
 {
     // M_dot = 0.5 * M ∨ Omega (regressive geometric product)

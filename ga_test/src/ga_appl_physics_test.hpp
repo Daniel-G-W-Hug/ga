@@ -22,10 +22,10 @@ using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// PGA2DP physics tests - Inertia matrix for rigid body dynamics
+// PGA2DP physics tests preparation - Inertia matrix for rigid body dynamics
 /////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_SUITE("PGA2DP: physics tests")
+TEST_SUITE("PGA2DP: physics tests prep")
 {
 
     TEST_CASE("pga2dp: get_point_inertia - single point mass")
@@ -96,7 +96,7 @@ TEST_SUITE("PGA2DP: physics tests")
         // Apply to rate of change Omega
         Vec2dp<double> Omega{0.0, 0.0, 1.0}; // pure rotation about origin
 
-        Vec2dp<double> result = I(Omega);
+        BiVec2dp<double> result = I(Omega); // momentum bivector from map I(Omega)
 
         // Manual calculation:
         // I = m * [  0    1    0 ]     [  0    2    0 ]
@@ -154,8 +154,9 @@ TEST_SUITE("PGA2DP: physics tests")
 
         auto I_inv = get_inertia_inverse(I);
 
-        // Zero force, zero omega -> zero omega_dot
-        Vec2dp<double> F_zero{0.0, 0.0, 0.0};
+        // Zero force (a bivector F = wdg(P,f)), zero omega (a vector rate of change)
+        // -> zero omega_dot
+        BiVec2dp<double> F_zero{0.0, 0.0, 0.0};
         Vec2dp<double> Omega_zero{0.0, 0.0, 0.0};
 
         auto Omega_dot = compute_omega_dot(I_inv, F_zero, Omega_zero, I);
@@ -165,7 +166,7 @@ TEST_SUITE("PGA2DP: physics tests")
         CHECK(Omega_dot.z == doctest::Approx(0.0).epsilon(1e-10));
 
         // Non-zero force, zero omega -> non-zero omega_dot (linear response)
-        Vec2dp<double> F{0.0, 0.0, 1.0}; // torque about origin
+        BiVec2dp<double> F{0.0, 0.0, 1.0}; // torque about origin
         Omega_dot = compute_omega_dot(I_inv, F, Omega_zero, I);
 
         // Result should be I_inv(F) since rcmt(0, ...) = 0
@@ -193,14 +194,139 @@ TEST_SUITE("PGA2DP: physics tests")
         CHECK(M_dot.c3 == doctest::Approx(0.0).epsilon(1e-10));
     }
 
-} // TEST_SUITE("PGA2DP: physics tests")
+    TEST_CASE("pga2dp for 2D case (force + moment in vec2dp): pre-study linear motion")
+    {
+        fmt::println(
+            "pga2dp for 2D case (force + moment in vec2dp): pre-study linear motion");
+
+        // pre-study: investigate inertia matrices and their inverses
+        //            result: -> not invertible for single mass point
+        //                    -> invertrible for more than one mass point
+
+        auto X1 = vec2dp{0, 1, 1};  // X1 initial position
+        auto X2 = vec2dp{0, -1, 1}; // X2 initial position
+        double const m = 1.0;       // mass
+
+        inertia2dp I_tot;
+
+        auto I_X1 = get_point_inertia(m, X1);
+        I_tot += I_X1;
+
+        auto I_X2 = get_point_inertia(m, X2);
+        I_tot += I_X2;
+
+        auto det_I_X1 = hd::det(I_X1.view());
+        auto det_I_X2 = hd::det(I_X2.view());
+        auto det_I_tot = hd::det(I_tot.view());
+
+        auto I_tot_inv = get_inertia_inverse(I_tot);
+
+        fmt::println("I_X1       = {:>-7.3f}", I_X1);
+        fmt::println("I_X2       = {:>-7.3f}", I_X2);
+        fmt::println("I_tot      = {:>-7.3f}", I_tot);
+        fmt::println("");
+        fmt::println("det(I_X1)  = {:>-7.3f}", det_I_X1);
+        fmt::println("det(I_X2)  = {:>-7.3f}", det_I_X2);
+        fmt::println("det(I_tot) = {:>-7.3f}", det_I_tot);
+        fmt::println("");
+        fmt::println("I_tot_inv  = {:>-7.3f}", I_tot_inv);
+        fmt::println("");
+        fmt::println("I is not invertible for single mass point.");
+        fmt::println("I is invertible for several mass points.");
+        fmt::println("");
+
+        // pre-study: momentum calculation at different positions
+        //            result: -> total momentum is P = X ^ m d/dt(X) is constant
+
+        auto v = vec2dp{1, 0, 0};   // v_x = 1 m/s, v_y = 0 m/s
+        auto X11 = vec2dp{1, 1, 1}; // pos. of X1 after 1s
+        auto X12 = vec2dp{2, 1, 1}; // pos. of X1 after 2s
+
+        // auto v = vec2dp{1, 1, 0};   // v_x = 1 m/s, v_y = 1 m/s v' = |v|*sqrt(2))
+        // auto X11 = vec2dp{1, 2, 1}; // pos. of X1 after 1s
+        // auto X12 = vec2dp{2, 3, 1}; // pos. of X1 after 2s
+
+        auto P_X1 = wdg(X1, m * v);
+        auto P_X11 = wdg(X11, m * v);
+        auto P_X12 = wdg(X12, m * v);
+
+        fmt::println("v         = {:>-7.3f}", v);
+        fmt::println("X11       = {:>-7.3f}", X11);
+        fmt::println("X12       = {:>-7.3f}", X12);
+        fmt::println("P_X1      = {:>-7.3f}", P_X1);
+        fmt::println("P_X11     = {:>-7.3f}", P_X11);
+        fmt::println("P_X12     = {:>-7.3f}", P_X12);
+        fmt::println("");
+        auto I_X11 = get_point_inertia(m, X11);
+        auto I_X12 = get_point_inertia(m, X12);
+        fmt::println("I_X11     = {:>-7.3f}", I_X11);
+        fmt::println("I_X12     = {:>-7.3f}", I_X12);
+        fmt::println("");
+        fmt::println("total momentum is P = X ^ m d/dt(X) const. for linear motion.");
+        fmt::println("inertia changes in global system -> must be considered locally.");
+        fmt::println("");
+
+        // pre-study: linear motion expressed by rate of change vector in 2D
+        //            linear motion of point in x-direction
+
+        auto omega_tra = att(bulk_dual(v));
+        auto B_1s = omega_tra * 1.0;
+        auto B_2s = omega_tra * 2.0;
+        //
+        auto M_1s = get_motor(v * 1.0); // use translation ds = v * dt
+        auto M_2s = get_motor(v * 2.0); // use translation ds = v * dt
+
+        auto Q = vec2dp(0, 1, 1);
+        auto n = vec2dp(-v.y, v.x, 0) / to_val(bulk_nrm(vec2dp(-v.y, v.x, 0)));
+        auto d_1s = v * 1.0 * 0.5; // move line by 0.5 * v at 1s
+        auto d_2s = v * 2.0 * 0.5; // move line by 0.5 * v at 2s
+
+        auto B1 = wdg(Q, n);
+        auto B2 = wdg(Q + d_1s, n);
+        auto B3 = wdg(Q + d_2s, n);
+        auto M_1s_alt = get_motor_from_lines(B1, B2);
+        auto M_2s_alt = get_motor_from_lines(B1, B3);
+
+        fmt::println("X1                     = {:>-7.3f}", X1);
+        fmt::println("v                      = {:>-7.3f}", v);
+        fmt::println("omega_tra              = {:>-7.3f}", omega_tra);
+        fmt::println("B(1s) = omega_tra * 1s = {:>-7.3f}", B_1s);
+        fmt::println("B(2s) = omega_tra * 2s = {:>-7.3f}", B_2s);
+        fmt::println("M(1s) = exp(B(1s))     = {:>-7.3f}", M_1s);
+        fmt::println("M(1s)_alt              = {:>-7.3f}", M_1s_alt);
+        fmt::println("M(2s) = exp(B(2s))     = {:>-7.3f}", M_2s);
+        fmt::println("M(2s)_alt              = {:>-7.3f}", M_2s_alt);
+        fmt::println("");
+        fmt::println("gr1(rgpr(rgpr(M, v), rrev(M)))) = {:>-7.3f}", move2dp(X1, M_1s));
+        fmt::println("gr1(rgpr(rgpr(M, v), rrev(M)))) = {:>-7.3f}", move2dp(X1, M_2s));
+        fmt::println("");
+
+        CHECK(X11 == move2dp(X1, M_1s));
+        CHECK(X12 == move2dp(X1, M_2s));
+
+        // pre-study: speed defined from constant linear motion
+        //            result: -> speed must be const (position independent)
+
+        auto omega_tra_w = att(bulk_dual(v));
+
+        auto v_X1 = rcmt(omega_tra_w, X1);
+        auto v_X11 = rcmt(omega_tra_w, X11);
+        auto v_X12 = rcmt(omega_tra_w, X12);
+
+        fmt::println("v_X1  = {:>-7.3f}", v_X1);
+        fmt::println("v_X11 = {:>-7.3f}", v_X11);
+        fmt::println("v_X12 = {:>-7.3f}", v_X12);
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA2DP: physics tests prep")
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// PGA3DP physics tests - Inertia matrix for rigid body dynamics
+// PGA3DP physics tests preparation - Inertia matrix for rigid body dynamics
 /////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_SUITE("PGA3DP: physics tests")
+TEST_SUITE("PGA3DP: physics tests prep")
 {
 
     TEST_CASE("pga3dp: get_point_inertia - single point mass")
@@ -437,16 +563,36 @@ TEST_SUITE("PGA3DP: physics tests")
         CHECK(M_dot.c7 == doctest::Approx(0.0).epsilon(tol));
     }
 
-    TEST_CASE("ega3d for 2D case (force + moment in vec3d): linear motion")
+} // TEST_SUITE("PGA3DP: physics tests")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// PGA2DP physics implementation
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_SUITE("PGA2DP: physics tests implementation")
+{
+
+    TEST_CASE("ega3d: linear motion (multi-body system; force+moment in vec3d)")
     {
-        fmt::println("ega3d for 2D case (force + moment in vec3d): linear motion");
+        fmt::println("ega3d: linear motion (multi-body system; force+moment in vec3d)");
 
+        // hint: rigid body is simulated as n points (integrated separately)
+        //       where all see adequate forces to assure movement as rigid body
+        //
+        // TODO: Supports independent multi-body problem. Thus could be simplified to just
+        //       integrate movement of center of gravity and its orientation to solve with
+        //       minimal effort.
+        //       However, the idea here is just to get a reference solution for
+        //       comparision with pga2dp, not to get a solution with minimal effort
 
-        class sim_ode { // model 2nd order ode by a 1st order system
+        class sim_ode_rigid_ega3d { // model 2nd order ode by a 1st order system
+                                    // integrate a -> v -> s,
+                                    // i.e. from acceleration via velocity to position
 
           public:
 
-            sim_ode(size_t npts_in) :
+            sim_ode_rigid_ega3d(size_t npts_in) :
                 npts(npts_in), u_mem(npts * 2), uh_mem(2 * npts * 2), rhs_mem(npts * 2)
             {
             }
@@ -460,17 +606,18 @@ TEST_SUITE("PGA3DP: physics tests")
                 // use vec3d to encode 2d position/velocity in x- and y-component
                 // of 3d vector and angle/angular velocity in z-component of 3d vector
 
-                // Set initial state for all n points n = [0,n):
-                // u[n,0] = position
-                // u[n,1] = velocity
+                // Set initial state for all n points n = [0,n) and their components:
+                // u[n,0] = position (x  ,   y,   phi)
+                // u[n,1] = velocity (v_x, v_y, omega)
+
 
                 size_t n = 0;
-                u[n, 0] = vec3d{0, 1, 0}; // initial position;
-                u[n, 1] = vec3d{1, 0, 0}; // initial velocity;
+                u[n, 0] = vec3d{0, 1, 0}; // initial position
+                u[n, 1] = vec3d{1, 0, 0}; // initial velocity
 
                 n = 1;
-                u[n, 0] = vec3d{0, -1, 0}; // initial position;
-                u[n, 1] = vec3d{1, 0, 0};  // initial velocity;
+                u[n, 0] = vec3d{0, -1, 0}; // initial position
+                u[n, 1] = vec3d{1, 0, 0};  // initial velocity
             }
 
             void calc_rhs()
@@ -571,8 +718,7 @@ TEST_SUITE("PGA3DP: physics tests")
         };
 
         auto constexpr num_points = 2;
-        sim_ode sim(num_points);
-
+        sim_ode_rigid_ega3d sim(num_points);
 
         // time range
         auto t_rng = discrete_range(0.0, 2.0, 20);
@@ -594,16 +740,248 @@ TEST_SUITE("PGA3DP: physics tests")
     }
 
 
-    TEST_CASE("ega3d for 2D case (force + moment in vec3d): circular motion")
+    TEST_CASE("pga2dp: linear motion (rigid-body system)")
     {
-        fmt::println("ega3d for 2D case (force + moment in vec3d): circular motion");
+        fmt::println("pga2dp: linear motion (rigid-body system)");
 
 
-        class sim_ode { // model 2nd order ode by a 1st order system
+        class sim_ode_rigid_pga2dp { // model 2nd order ode for rigid body by a 1st order
+                                     // system
+
+            // actually only for the integration of the center of mass and its orientation
+            // all points constituting the rigid body will be transformed accordingly
 
           public:
 
-            sim_ode(size_t npts_in) :
+            sim_ode_rigid_pga2dp(size_t npts_in, std::vector<vec2dp> pos_in,
+                                 std::vector<value_t> m_in, vec2dp const& cm_pos_in,
+                                 vec2dp const& cm_spd_in, value_t cm_phi_in,
+                                 value_t cm_omega_in) :
+                npts(npts_in), pts(std::move(pos_in)), m(std::move(m_in)),
+                cm_pos_init_w(cm_pos_in), cm_spd_init_w(cm_spd_in),
+                cm_phi_init_w(cm_phi_in), cm_omega_init_w(cm_omega_in), u_mem(2),
+                uh_mem(2 * 2), rhs_mem(2)
+            {
+                if (npts < 2) {
+                    throw std::invalid_argument("sim_ode: rigid body simulation requires"
+                                                " at least two discrete points.");
+                }
+                if ((pts.size() != npts) || (m.size() != npts)) {
+                    throw std::invalid_argument(
+                        "sim_ode: position and mass vectors require same size.");
+                }
+
+                for (size_t n = 0; n < npts; ++n) {
+                    cg += pts[n];
+                    m_tot += m[n]; // total mass
+                }
+                cg *= (1.0 / npts); // center of gravity is now available in cg
+
+                if (bulk_nrm(cg - O_2dp) > eps) {
+                    throw std::invalid_argument(
+                        "sim_ode: center of gravity must be located at O_2dp.");
+                }
+
+                // build inertia map from discrete points
+                // maps rate of change (a vector in 2D) to the momentum bivector
+                for (size_t n = 0; n < npts; ++n) {
+                    I += get_point_inertia(m[n], pts[n]); // total inertia map
+                }
+
+                // get inverse inertia map
+                // maps a momentum bivector to the rate of change (a vector in 2D)
+                I_inv = get_inertia_inverse(I);
+            }
+
+            void set_initial_values()
+            {
+                // HINT: currently input variables for initial position NOT used;
+                //       for now assume "no initial transformation for position"
+
+                // Create mdspan view for setting initial values
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+
+                // initial transformation of "position" encoded in B-vector
+                // encoding:
+                //  B_rot=(x0_fix, y0_phi, 1) * phi0
+                //  B_tra=(-y0_trans, x0_trans, 0)
+                //  B    = B_rot + B_tra
+                //
+                //  typical starting value is "no initial transformation":
+                //  B0=(0,0,0) => M0=exp(B0)=pscalar(1) (=identity transformation at t=0)
+                //
+                u[0] = vec2dp(0.0, 0.0, 0.0);
+
+                // initial rate of change transformation of "velocity" dB(t0)/dt = Omega0
+                // encoding:
+                // rotation:    Omega0_rot = ( q.x0, q.y0, 1) * omega0
+                // translation: Omega0_tra = (-v0.y, v0.x, 0)
+                //
+                // resulting Omega0 = Omega0_rot + Omega0_tra
+
+                // case with initial translation
+                u[1] = vec2dp(-cm_spd_init_w.y, cm_spd_init_w.x, cm_omega_init_w);
+            }
+
+            void calc_rhs()
+            {
+
+                // Create mdspan views for rhs calculation
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto rhs = mdspan<vec2dp, dextents<size_t, 1>>(rhs_mem.data(), 2);
+
+
+                // get current state
+                vec2dp B = u[0];     // position transformation B is in u[0]
+                vec2dp Omega = u[1]; // velocity trafo d(B)/dt = Omega is in u[1]
+
+                // forces and torques to change linear and angular acceleration
+
+                // no force f acting the body frame at the origin (F_b = O_2dp ^ f)
+                // auto F_b = bivec2dp{0.0, 0.0, 0.0};
+
+                // gravitation acting through center of mass in in the body system
+                // with center of mass being the origin O_2dp of the body system
+                // gravitation f = (x=0, y=-m_tot*g, z=0) acting at O_2dp
+                // where the y-axis is assumed pointing upwards
+                auto F_b = wdg(O_2dp, vec2dp{0.0, -m_tot * 9.81, 0.0});
+
+                // Set right-hand side for ODE system:
+                // u[0]' = velocity trafo Omega = d(B)/dt (linear and angular)
+                // u[1]' = acceleration trafo d(Omega)/dt (linear and angular)
+                rhs[0] = Omega;
+                rhs[1] = compute_omega_dot(I_inv, F_b, Omega, I);
+            }
+
+            void calc_rkstep(double dt)
+            {
+                // Create mdspan views for RK4 integration (for all npts points)
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto uh = mdspan<vec2dp, dextents<size_t, 2>>(uh_mem.data(), 2, 2);
+                auto rhs = mdspan<vec2dp const, dextents<size_t, 1>>(rhs_mem.data(), 2);
+
+                // Perform RK4 integration (4 sub-steps)
+                for (size_t rk_step = 1; rk_step <= 4; ++rk_step) {
+                    calc_rhs();
+                    rk4_step(u, uh, rhs, dt, rk_step);
+                }
+            }
+
+            void print_sim(double t)
+            {
+                // Create mdspan view for printing
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+
+
+                fmt::println("t = {:>-7.3f}:", t);
+
+                for (size_t n = 0; n < npts; ++n) {
+
+                    // get current state (= current positional transformation bivector)
+                    vec2dp B = u[0];     // B = Omega * t + B0 (from integration)
+                    vec2dp Omega = u[1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
+
+                    // calculate current position from B via M = exp(B) ⟇ M0
+                    // and via pts(t) = M ⟇ pts(t0) ⟇ rrev(M)
+                    //
+                    auto M = exp(B);
+                    auto pt = move2dp(pts[n], M);
+                    // fmt::println(
+                    //     "    n = {}, B = {:>-7.3f}, Omega = {:>-7.3f}, M = {:>-7.3f}",
+                    //     n, B, Omega, M);
+                    fmt::println("    n = {}, pos. = {:>-7.3f}, vel. = {:>-7.3f}", n, pt,
+                                 rcmt(Omega, pt));
+                }
+            }
+
+          private:
+
+            // number of independent points to solve system for
+            size_t npts;
+
+            // positions of points in the body frame (fixed for now to get started)
+            std::vector<vec2dp> pts; // point positions (fixed for now)
+            std::vector<value_t> m;  // mass of points
+
+            // initial position and speed of center of mass relative to world system
+            vec2dp cm_pos_init_w; // initial position of center of mass (unitized)
+            vec2dp cm_spd_init_w; // initial speed of center of mass (.z == 0)
+
+            // initial angular position of cm (body vs. world frame, e12 defines pos phi)
+            value_t cm_phi_init_w;
+
+            // initial angular velocity of cm (body vs. world frame)
+            value_t cm_omega_init_w;
+
+            // RK4 integration state for point n with system order = 2
+            // => [n+0: position, n+1: velocity])
+            std::vector<vec2dp> u_mem;   // [n+0: position, n+1: velocity]
+            std::vector<vec2dp> uh_mem;  // helper for integration
+            std::vector<vec2dp> rhs_mem; // right-hand side values
+
+            // inertia map and its inverse (calculated from descrete input values)
+            // calculation is done in body frame
+            inertia2dp I;
+            inertia2dp I_inv;
+
+            value_t m_tot; // total mass (needed for force calculation, e.g. gravity)
+            vec2dp cg;     // center of gravity (in body frame == O_b)
+        };
+
+        auto constexpr num_points = 2;
+        // (initial) positions and masses of each mass point in the body frame
+        std::vector<vec2dp> pos_b = {vec2dp{0, 1, 1}, vec2dp{0, -1, 1}}; // position
+        std::vector<value_t> m = {1.0, 1.0};                             // mass
+
+        // initial position and movement of body frame vs. world frame (in world frame)
+        auto cm_pos = O_2dp;           // world and body frame coincide at t=0
+        auto cm_spd = vec2dp{1, 0, 0}; // body frame is moving with v0 vs. world frame
+
+        // initial rotation and anguar velocity of body frame vs. world frame
+        auto cm_phi = 0.0;   // no initial rotation
+        auto cm_omega = 0.0; // no initial angular velocity
+
+        sim_ode_rigid_pga2dp sim(num_points, pos_b, m, cm_pos, cm_spd, cm_phi, cm_omega);
+
+        // time range (from, to, number of steps)
+        auto t_rng = discrete_range(0.0, 2.0, 20);
+
+        sim.set_initial_values();
+        sim.print_sim(t_rng.min());
+
+        for (size_t n = 1; n <= t_rng.steps(); n++) {
+
+            // integration from t to t + dt
+            double t = t_rng.min() + n * t_rng.delta();
+            sim.calc_rkstep(t_rng.delta());
+
+            // print sim status at t+dt
+            sim.print_sim(t);
+        }
+
+        fmt::println("");
+    }
+
+
+    TEST_CASE("ega3d: circular motion (multi-body system; force+moment in vec3d)")
+    {
+        fmt::println("ega3d: circular motion (multi-body system; force+moment in vec3d)");
+
+        // hint: rigid body is simulated as n points (integrated separately)
+        //       where all see adequate forces to assure movement as rigid body
+        //
+        // TODO: Supports independent multi-body problem. Thus could be simplified to just
+        //       integrate movement of center of gravity and its orientation to solve with
+        //       minimal effort.
+        //       However, the idea here is just to get a reference solution for
+        //       comparision with pga2dp, not to get a solution with minimal effort
+
+        class sim_ode_rigid_ega3d { // model 2nd order ode by a 1st order system
+                                    // integrate a -> v -> s,
+                                    // i.e. from acceleration via velocity to position
+          public:
+
+            sim_ode_rigid_ega3d(size_t npts_in) :
                 npts(npts_in), u_mem(npts * 2), uh_mem(2 * npts * 2), rhs_mem(npts * 2)
             {
             }
@@ -617,17 +995,17 @@ TEST_SUITE("PGA3DP: physics tests")
                 // use vec3d to encode 2d position/velocity in x- and y-component
                 // of 3d vector and angle/angular velocity in z-component of 3d vector
 
-                // Set initial state for all n points n = [0,n):
-                // u[n,0] = position
-                // u[n,1] = velocity
+                // Set initial state for all n points n = [0,n) and their components:
+                // u[n,0] = position (x  ,   y,   phi)
+                // u[n,1] = velocity (v_x, v_y, omega)
 
                 size_t n = 0;
-                u[n, 0] = vec3d{0, 1, 0}; // initial position;
-                u[n, 1] = vec3d{1, 0, 0}; // initial velocity;
+                u[n, 0] = vec3d{0, 1, 0}; // initial position
+                u[n, 1] = vec3d{1, 0, 0}; // initial velocity
 
                 n = 1;
-                u[n, 0] = vec3d{0, -1, 0}; // initial position;
-                u[n, 1] = vec3d{-1, 0, 0}; // initial velocity;
+                u[n, 0] = vec3d{0, -1, 0}; // initial position
+                u[n, 1] = vec3d{-1, 0, 0}; // initial velocity
             }
 
             void calc_rhs()
@@ -646,6 +1024,9 @@ TEST_SUITE("PGA3DP: physics tests")
                     // calculate forces and torques to change linear and angular
                     // acceleration
 
+                    // HINT: this implements a multi-body solution with internal forces,
+                    //       would not be required to this extend for a rigid body system
+
                     // equilibrium force for circular motion at given v and r:
                     // F = m * a_r = m * r * omega^2 = m * r * (v / r)^2 = m * v^2 / r
                     //
@@ -663,7 +1044,7 @@ TEST_SUITE("PGA3DP: physics tests")
                     acceleration.y = force.y / m;
 
                     // J = m * r^2 with r being the distance from rot-axis
-                    auto J = m * nrm_sq(position - O_3d);
+                    auto J = m * r * r;
                     acceleration.z = torque / J; // angular part in (z)
                                                  // (only valid for const inertia J!)
 
@@ -738,8 +1119,7 @@ TEST_SUITE("PGA3DP: physics tests")
         };
 
         auto constexpr num_points = 2;
-        sim_ode sim(num_points);
-
+        sim_ode_rigid_ega3d sim(num_points);
 
         // time range (1 full revolution)
         auto t_rng = discrete_range(0.0, 6.2832, 60);
@@ -760,129 +1140,638 @@ TEST_SUITE("PGA3DP: physics tests")
         fmt::println("");
     }
 
-    TEST_CASE("pga2dp for 2D case (force + moment in vec2dp): pre-study linear motion")
+
+    TEST_CASE("pga2dp: circular motion (rigid body system)")
     {
-        fmt::println(
-            "pga2dp for 2D case (force + moment in vec2dp): pre-study linear motion");
+        fmt::println("pga2dp: circular motion (rigid body system)");
 
-        // pre-study: investigate inertia matrices and their inverses
-        //            result: -> not invertible for single mass point
-        //                    -> invertrible for more than one mass point
+        class sim_ode_rigid_pga2dp { // model 2nd order ode by a 1st order system
 
-        auto X1 = vec2dp{0, 1, 1};  // X1 initial position
-        auto X2 = vec2dp{0, -1, 1}; // X2 initial position
-        double const m = 1.0;       // mass
+            // actually only for the integration of the center of mass and its orientation
+            // all points constituting the rigid body will be transformed accordingly
 
-        inertia2dp I_tot;
+          public:
 
-        auto I_X1 = get_point_inertia(m, X1);
-        I_tot += I_X1;
+            sim_ode_rigid_pga2dp(size_t npts_in, std::vector<vec2dp> pos_in,
+                                 std::vector<value_t> m_in, vec2dp const& cm_pos_in,
+                                 vec2dp const& cm_spd_in, value_t cm_phi_in,
+                                 value_t cm_omega_in) :
+                npts(npts_in), pts(std::move(pos_in)), m(std::move(m_in)),
+                cm_pos_init_w(cm_pos_in), cm_spd_init_w(cm_spd_in),
+                cm_phi_init_w(cm_phi_in), cm_omega_init_w(cm_omega_in), u_mem(2),
+                uh_mem(2 * 2), rhs_mem(2)
+            {
+                if (npts < 2) {
+                    throw std::invalid_argument("sim_ode: rigid body simulation requires"
+                                                " at least two discrete points.");
+                }
+                if ((pts.size() != npts) || (m.size() != npts)) {
+                    throw std::invalid_argument(
+                        "sim_ode: position and mass vectors require same size.");
+                }
 
-        auto I_X2 = get_point_inertia(m, X2);
-        I_tot += I_X2;
+                fmt::println("sim_ode_rigid_pga2dp: circlular motion.");
+                fmt::println("points:");
+                for (size_t n = 0; n < npts; ++n) {
+                    fmt::println("n = {}, m = {}, pt = {:>-7.3f}", n, m[n], pts[n]);
+                }
+                fmt::println("point inertia:");
+                // build inertia map from discrete points
+                // maps rate of change (a vector in 2D) to the momentum bivector
+                for (size_t n = 0; n < npts; ++n) {
+                    auto Ip = get_point_inertia(m[n], pts[n]);
+                    fmt::println("n = {}, Ip = {:>-7.3f}", n, Ip);
+                    I += Ip;
+                }
 
-        auto det_I_X1 = hd::det(I_X1.view());
-        auto det_I_X2 = hd::det(I_X2.view());
-        auto det_I_tot = hd::det(I_tot.view());
+                // get inverse inertia map
+                // maps a momentum bivector to the rate of change (a vector in 2D)
+                I_inv = get_inertia_inverse(I);
 
-        auto I_tot_inv = get_inertia_inverse(I_tot);
+                fmt::println("system inertia:");
+                fmt::println("I     = {:>-7.3f}", I);
+                fmt::println("I_inv = {:>-7.3f}", I_inv);
+            }
 
-        fmt::println("I_X1       = {:>-7.3f}", I_X1);
-        fmt::println("I_X2       = {:>-7.3f}", I_X2);
-        fmt::println("I_tot      = {:>-7.3f}", I_tot);
-        fmt::println("");
-        fmt::println("det(I_X1)  = {:>-7.3f}", det_I_X1);
-        fmt::println("det(I_X2)  = {:>-7.3f}", det_I_X2);
-        fmt::println("det(I_tot) = {:>-7.3f}", det_I_tot);
-        fmt::println("");
-        fmt::println("I_tot_inv  = {:>-7.3f}", I_tot_inv);
-        fmt::println("");
-        fmt::println("I is not invertible for single mass point.");
-        fmt::println("I is invertible for several mass points.");
-        fmt::println("");
+            void set_initial_values()
+            {
+                // HINT: currently input variables for initial position NOT used;
+                //       for now assume "no initial transformation for position"
 
-        // pre-study: momentum calculation at different positions
-        //            result: -> total momentum is P = X ^ m d/dt(X) is constant
+                // Create mdspan view for setting initial values
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
 
-        auto v = vec2dp{1, 0, 0};   // v_x = 1 m/s, v_y = 0 m/s
-        auto X11 = vec2dp{1, 1, 1}; // pos. of X1 after 1s
-        auto X12 = vec2dp{2, 1, 1}; // pos. of X1 after 2s
 
-        // auto v = vec2dp{1, 1, 0};   // v_x = 1 m/s, v_y = 1 m/s v' = |v|*sqrt(2))
-        // auto X11 = vec2dp{1, 2, 1}; // pos. of X1 after 1s
-        // auto X12 = vec2dp{2, 3, 1}; // pos. of X1 after 2s
+                // initial transformation of "position" encoded in B-vector
+                // encoding:
+                //  B_rot=(x0_fix, y0_phi, 1) * phi0
+                //  B_tra=(-y0_trans, x0_trans, 0)
+                //  B    = B_rot + B_tra
+                //
+                //  typical starting value is "no initial transformation":
+                //  B0=(0,0,0) => M0=exp(B0)=pscalar(1) (=identity transformation at t=0)
+                //
+                u[0] = vec2dp(0.0, 0.0, 0.0);
 
-        auto P_X1 = wdg(X1, m * v);
-        auto P_X11 = wdg(X11, m * v);
-        auto P_X12 = wdg(X12, m * v);
+                // initial rate of change transformation of "velocity" dB/dt = Omega
+                // encoding:
+                // rotation: Omega_rot = (q.x0, q.y0, 1) * omega0 (Q is the
+                // fixed-point) translation: Omega_tra = (-v0.y, v0.x, 0)
+                //
+                // resulting Omega = Omega_rot + Omega_tra
 
-        fmt::println("v         = {:>-7.3f}", v);
-        fmt::println("X11       = {:>-7.3f}", X11);
-        fmt::println("X12       = {:>-7.3f}", X12);
-        fmt::println("P_X1      = {:>-7.3f}", P_X1);
-        fmt::println("P_X11     = {:>-7.3f}", P_X11);
-        fmt::println("P_X12     = {:>-7.3f}", P_X12);
-        fmt::println("");
-        auto I_X11 = get_point_inertia(m, X11);
-        auto I_X12 = get_point_inertia(m, X12);
-        fmt::println("I_X11     = {:>-7.3f}", I_X11);
-        fmt::println("I_X12     = {:>-7.3f}", I_X12);
-        fmt::println("");
-        fmt::println("total momentum is P = X ^ m d/dt(X) const. for linear motion.");
-        fmt::println("inertia changes in global system -> must be considered locally.");
-        fmt::println("");
+                // case with initial rotation
+                //
+                u[1] = wdg(O_2dp, scalar2dp(cm_omega_init_w));
+                // fmt::println("n = {}, u = {}", n, u[n, 1]);
+            }
 
-        // pre-study: linear motion expressed by rate of change vector in 2D
-        //            linear motion of point in x-direction
+            void calc_rhs()
+            {
 
-        auto omega_tra = att(bulk_dual(v));
-        auto B_1s = omega_tra * 1.0;
-        auto B_2s = omega_tra * 2.0;
-        //
-        auto M_1s = get_motor(v * 1.0); // use translation ds = v * dt
-        auto M_2s = get_motor(v * 2.0); // use translation ds = v * dt
+                // Create mdspan views for rhs calculation
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto rhs = mdspan<vec2dp, dextents<size_t, 1>>(rhs_mem.data(), 2);
 
-        auto Q = vec2dp(0, 1, 1);
-        auto n = vec2dp(-v.y, v.x, 0) / to_val(bulk_nrm(vec2dp(-v.y, v.x, 0)));
-        auto d_1s = v * 1.0 * 0.5; // move line by 0.5 * v at 1s
-        auto d_2s = v * 2.0 * 0.5; // move line by 0.5 * v at 2s
+                // get current state
+                vec2dp B = u[0];     // position transformation B is in u[n,0]
+                vec2dp Omega = u[1]; // velocity trafo d(B)/dt = Omega is in u[n,1]
 
-        auto B1 = wdg(Q, n);
-        auto B2 = wdg(Q + d_1s, n);
-        auto B3 = wdg(Q + d_2s, n);
-        auto M_1s_alt = get_motor_from_lines(B1, B2);
-        auto M_2s_alt = get_motor_from_lines(B1, B3);
+                // forces and torques to change linear and angular acceleration
 
-        fmt::println("X1                     = {:>-7.3f}", X1);
-        fmt::println("v                      = {:>-7.3f}", v);
-        fmt::println("omega_tra              = {:>-7.3f}", omega_tra);
-        fmt::println("B(1s) = omega_tra * 1s = {:>-7.3f}", B_1s);
-        fmt::println("B(2s) = omega_tra * 2s = {:>-7.3f}", B_2s);
-        fmt::println("M(1s) = exp(B(1s))     = {:>-7.3f}", M_1s);
-        fmt::println("M(1s)_alt              = {:>-7.3f}", M_1s_alt);
-        fmt::println("M(2s) = exp(B(2s))     = {:>-7.3f}", M_2s);
-        fmt::println("M(2s)_alt              = {:>-7.3f}", M_2s_alt);
-        fmt::println("");
-        fmt::println("gr1(rgpr(rgpr(M, v), rrev(M)))) = {:>-7.3f}", move2dp(X1, M_1s));
-        fmt::println("gr1(rgpr(rgpr(M, v), rrev(M)))) = {:>-7.3f}", move2dp(X1, M_2s));
-        fmt::println("");
+                // no force f acting the body frame at the origin (F_b = O_2dp ^ f)
+                // internal forces not relevant for rigid body
+                auto F_b = bivec2dp{0.0, 0.0, 0.0};
 
-        CHECK(X11 == move2dp(X1, M_1s));
-        CHECK(X12 == move2dp(X1, M_2s));
+                // gravitation acting through center of mass in in the body system
+                // with center of mass being the origin O_2dp of the body system
+                // gravitation f = (x=0, y=-m*g, z=0) acting at O_2dp
+                // where the y-axis is assumed pointing upwards
+                // auto F_b = wdg(O_2dp, vec2dp{0.0, -m[n] * 9.81, 0.0});
 
-        // pre-study: speed defined from constant linear motion
-        //            result: -> speed must be const (position independent)
+                // Set right-hand side for ODE system:
+                // u[0]' = velocity trafo Omega = d(B)/dt (linear and angular)
+                // u[1]' = acceleration trafo d(Omega)/dt (linear and angular)
+                rhs[0] = Omega;
+                rhs[1] = compute_omega_dot(I_inv, F_b, Omega, I);
+            }
 
-        auto omega_tra_w = att(bulk_dual(v));
+            void calc_rkstep(double dt)
+            {
+                // Create mdspan views for RK4 integration (for all npts points)
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto uh = mdspan<vec2dp, dextents<size_t, 2>>(uh_mem.data(), 2, 2);
+                auto rhs = mdspan<vec2dp const, dextents<size_t, 1>>(rhs_mem.data(), 2);
 
-        auto v_X1 = rcmt(omega_tra_w, X1);
-        auto v_X11 = rcmt(omega_tra_w, X11);
-        auto v_X12 = rcmt(omega_tra_w, X12);
+                // Perform RK4 integration (4 sub-steps)
+                for (size_t rk_step = 1; rk_step <= 4; ++rk_step) {
+                    calc_rhs();
+                    rk4_step(u, uh, rhs, dt, rk_step);
+                }
+            }
 
-        fmt::println("v_X1  = {:>-7.3f}", v_X1);
-        fmt::println("v_X11 = {:>-7.3f}", v_X11);
-        fmt::println("v_X12 = {:>-7.3f}", v_X12);
+            void print_sim(double t)
+            {
+                // Create mdspan view for printing
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+
+
+                fmt::println("t = {:>-7.3f}:", t);
+
+                for (size_t n = 0; n < npts; ++n) {
+
+                    // get current state (= current positional transformation bivector)
+                    vec2dp B = u[0];     // B = Omega * t + B0 (from integration)
+                    vec2dp Omega = u[1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
+
+                    // calculate current position from B via M = exp(B) ⟇ M0
+                    // and via pts(t) = M ⟇ pts(t0) ⟇ rrev(M) = move2dp(pts(t0),M)
+                    // and d(pts(t))/dt = rcmt(Omega, pts(t))
+
+                    auto M = exp(B);
+                    auto pt = move2dp(pts[n], M);
+                    // fmt::println(
+                    //     "    n = {}, B = {:>-7.3f}, Omega = {:>-7.3f}, M = {:>-7.3f}",
+                    //     n, B, Omega, M);
+                    fmt::println("    n = {}, pos. = {:>-7.3f}, vel. = {:>-7.3f}", n, pt,
+                                 rcmt(Omega, pt));
+                }
+            }
+
+          private:
+
+            // number of independent points to solve system for
+            size_t npts;
+
+            // positions of points in the body frame (fixed for now to get started)
+            std::vector<vec2dp> pts; // point positions (fixed for now)
+            std::vector<value_t> m;  // mass of points
+
+            // initial position and speed of center of mass relative to world system
+            vec2dp cm_pos_init_w; // initial position of center of mass (unitized)
+            vec2dp cm_spd_init_w; // initial speed of center of mass (.z == 0)
+
+            // initial angular position of cm (body vs. world frame, e12 defines pos phi)
+            value_t cm_phi_init_w;
+
+            // initial angular velocity of cm (body vs. world frame)
+            value_t cm_omega_init_w;
+
+            // RK4 integration state for point n with system order = 2
+            // => [n+0: position, n+1: velocity])
+            std::vector<vec2dp> u_mem;   // [n+0: position, n+1: velocity]
+            std::vector<vec2dp> uh_mem;  // helper for integration
+            std::vector<vec2dp> rhs_mem; // right-hand side values
+
+            // inertia map and its inverse (calculated from descrete input values)
+            // calculation is done in body frame
+            inertia2dp I;
+            inertia2dp I_inv;
+        };
+
+        auto constexpr num_points = 2;
+        // (initial) positions and masses of each mass point in the body frame
+        std::vector<vec2dp> pos_b = {vec2dp{0, 1, 1}, vec2dp{0, -1, 1}}; // position
+        std::vector<value_t> m = {1.0, 1.0};                             // mass
+
+        // initial position and movement of body frame vs. world frame (in world frame)
+        auto cm_pos = O_2dp;           // world and body frame coincide at t=0
+        auto cm_spd = vec2dp{0, 0, 0}; // body frame is moving with v0 vs. world frame
+
+        // initial rotation and anguar velocity of body frame vs. world frame
+        auto cm_phi = 0.0;    // no initial rotation
+        auto cm_omega = -1.0; // initial angular velocity (T = 2*pi/omega = 6.2832s)
+                              // turns clockwise, i.e. againt direction of e12
+
+        sim_ode_rigid_pga2dp sim(num_points, pos_b, m, cm_pos, cm_spd, cm_phi, cm_omega);
+
+        // time range (from, to, number of steps)
+        // time range (1 full revolution)
+        auto t_rng = discrete_range(0.0, 6.2832, 60);
+
+        sim.set_initial_values();
+        sim.print_sim(t_rng.min());
+
+        for (size_t n = 1; n <= t_rng.steps(); n++) {
+
+            // integration from t to t + dt
+            double t = t_rng.min() + n * t_rng.delta();
+            sim.calc_rkstep(t_rng.delta());
+
+            // print sim status at t+dt
+            sim.print_sim(t);
+        }
+
         fmt::println("");
     }
 
-} // TEST_SUITE("PGA3DP: physics tests")
+    // TODO: show more complex setups
+    //
+    //       - combined rotation and translation
+    //       - movement of rigid bodies with continuously distributed mass
+    //       - two-paticles systems with internal coupling forces
+    //       - coupled systems in general with more complex inertia
+
+    //////////////////////////////////////
+    // save a version for multiple points, but still symmetric,
+    // i.e. reducable to one eqn. via symmetry of the internal forces
+    // typically done via reduces masses and forces by weighting with position
+    //////////////////////////////////////
+
+    // TEST_CASE("ega3d: circular motion II (symmetric multi-body system)")
+    // {
+    //     fmt::println("ega3d: circular motion II (symmetric multi-body system)");
+
+    //     // TODO: translate to system of symmetric central forces,
+    //     //       e.g. NFCM, p. 230 (two particle system)
+    //     //
+    //     //       and then reduce again to only use center of mass and orientaion
+
+    //     class sim_ode_multibody_ega3d { // model 2nd order ode by a 1st order system
+    //                                     // integrate a -> v -> s,
+    //                                     // i.e. from acceleration via velocity to
+    //                                     position
+
+    //       public:
+
+    //         sim_ode_multibody_ega3d(size_t npts_in) :
+    //             npts(npts_in), u_mem(npts * 2), uh_mem(2 * npts * 2), rhs_mem(npts * 2)
+    //         {
+    //         }
+
+    //         void set_initial_values()
+    //         {
+
+    //             // Create mdspan view for setting initial values
+    //             auto u = mdspan<vec3d, dextents<size_t, 2>>(u_mem.data(), npts, 2);
+
+    //             // use vec3d to encode 2d position/velocity in x- and y-component
+    //             // of 3d vector and angle/angular velocity in z-component of 3d vector
+
+    //             // Set initial state for all n points n = [0,n) and their components:
+    //             // u[n,0] = position (x  ,   y,   phi)
+    //             // u[n,1] = velocity (v_x, v_y, omega)
+
+    //             size_t n = 0;
+    //             u[n, 0] = vec3d{0, 1, 0};     // initial position
+    //             u[n, 1] = vec3d{1, 0, 0.0}    // circumferentential initial velocity
+    //                       + vec3d{0, 0.1, 0}; // velocity away from cg
+    //                                           //    + vec3d{1, 0, 0}; // velocity of cg
+
+    //             n = 1;
+    //             u[n, 0] = vec3d{0, -1, 0};     // initial position
+    //             u[n, 1] = vec3d{-1, 0, 0.0}    // circumferentential initial velocity
+    //                       + vec3d{0, -0.1, 0}; // velocity away from cg
+    //                                            //   + vec3d{1, 0, 0}; // velocity of cg
+
+    //             // we ignore phi and omega, since we only have internal, central forces
+    //         }
+
+    //         void calc_rhs()
+    //         {
+
+    //             // Create mdspan views for rhs calculation
+    //             auto u = mdspan<vec3d, dextents<size_t, 2>>(u_mem.data(), npts, 2);
+    //             auto rhs = mdspan<vec3d, dextents<size_t, 2>>(rhs_mem.data(), npts, 2);
+
+
+    //             double c_sp = 46.3;     // spring constant in N/m  => F_sp = -c*(l-l0)
+    //             double l0 = 2.0 * 0.95; // initial spring length in m
+
+
+    //             // get current state
+    //             vec3d position0 = u[0, 0]; // position is stored as point in u[n,0]
+    //             vec3d velocity0 = u[0, 1]; // velocity is stored as vector in u[n,1]
+
+    //             vec3d position1 = u[1, 0];
+    //             vec3d velocity1 = u[1, 1];
+
+    //             // calculate forces and torques to change linear and angular
+    //             // acceleration
+
+    //             // HINT: this implements a multi-body solution with internal forces,
+    //             //       would not be required to this extend for a rigid body system
+
+    //             // equilibrium force for circular motion at given v and r:
+    //             // F_eq = m * a_r = m * r * omega^2 = m * r * (v / r)^2 = m * v^2 / r
+    //             // F_sp = -c_sp * (l - l0) = -c_sp *(2*r - l0)
+    //             //
+    //             // T = 2*pi/omega = 2*pi/(v/r) = 2*pi*r/v
+
+    //             // keep difference to origin for comparison with 2dp case later on
+    //             auto r_hat = position1 - position0;
+    //             auto r = nrm(r_hat);
+    //             r_hat /= r; // normalize r_hat
+
+    //             auto acceleration0 = c_sp / m * (r - l0) * r_hat;
+    //             auto acceleration1 = -c_sp / m * (r - l0) * r_hat;
+
+
+    //             // J = m * r^2 with r being the distance from rot-axis
+    //             // from dL/dt = J*omega = M = 0 (no torque) => alpha = - dJ/dt*omega/J
+    //             // with dJ/dt = dJ/dr*dr/dt = dJ/dr*v_r = 2*m*r*v_r
+    //             // alpha = -2*omega*v_r/r  (=angular acceleration)
+    //             acceleration0.z = 0.0; // angular acceleration
+    //             acceleration1.z = 0.0; // angular acceleration
+    //                                    // (implicitly covered in coupled equations)
+
+    //             // Set right-hand side for ODE system
+    //             // u[n,0]' = velocity (linear and angular)
+    //             // u[n,1]' = acceleration (linear and angular)
+    //             rhs[0, 0] = velocity0;
+    //             rhs[0, 1] = acceleration0;
+
+    //             rhs[1, 0] = velocity1;
+    //             rhs[1, 1] = acceleration1;
+    //         }
+
+    //         void calc_rkstep(double dt)
+    //         {
+    //             // Create mdspan views for RK4 integration (for all npts points)
+    //             auto u = mdspan<vec3d, dextents<size_t, 1>>(u_mem.data(), npts * 2);
+    //             auto uh = mdspan<vec3d, dextents<size_t, 2>>(uh_mem.data(), 2, npts *
+    //             2); auto rhs =
+    //                 mdspan<vec3d const, dextents<size_t, 1>>(rhs_mem.data(), npts * 2);
+
+    //             // Perform RK4 integration (4 sub-steps)
+    //             for (size_t rk_step = 1; rk_step <= 4; ++rk_step) {
+    //                 calc_rhs();
+    //                 rk4_step(u, uh, rhs, dt, rk_step);
+    //             }
+    //         }
+
+    //         void print_sim(double t)
+    //         {
+    //             // Create mdspan view for printing
+    //             auto u = mdspan<vec3d, dextents<size_t, 2>>(u_mem.data(), npts, 2);
+
+
+    //             fmt::println("t = {:>-7.3f}, dist = nrm(r1 - r0) = {}:", t,
+    //                          nrm(u[1, 0] - u[2, 0]));
+
+    //             for (size_t n = 0; n < npts; ++n) {
+
+    //                 // get current state
+    //                 vec3d position = u[n, 0];
+    //                 vec3d velocity = u[n, 1];
+
+    //                 fmt::println("    n = {}, pos. = {:>-7.3f}, vel. = {:>-7.3f}", n,
+    //                              position, velocity);
+    //             }
+    //         }
+
+    //       private:
+
+    //         // number of independent points to solve system for
+    //         size_t npts;
+
+    //         // RK4 integration state for point n with system order = 2
+    //         // => [n+0: position, n+1: velocity])
+    //         std::vector<vec3d> u_mem;   // [n+0: position, n+1: velocity]
+    //         std::vector<vec3d> uh_mem;  // helper for integration
+    //         std::vector<vec3d> rhs_mem; // right-hand side values
+
+    //         // mass (= linear inertia)
+    //         double m = 1.0;
+    //     };
+
+    //     auto constexpr num_points = 2;
+    //     sim_ode_multibody_ega3d sim(num_points);
+
+    //     // time range (1 full revolution)
+    //     auto t_rng = discrete_range(0.0, 6.2832, 60);
+
+    //     sim.set_initial_values();
+    //     sim.print_sim(t_rng.min());
+
+    //     for (size_t n = 1; n <= t_rng.steps(); n++) {
+
+    //         // integration from t to t + dt
+    //         double t = t_rng.min() + n * t_rng.delta();
+    //         sim.calc_rkstep(t_rng.delta());
+
+    //         // print sim status at t+dt
+    //         sim.print_sim(t);
+    //     }
+
+    //     fmt::println("");
+    // }
+
+    //////////////////////////////////////
+    // save a version for integrating multiple points (mainly to show u memory acces)
+    //////////////////////////////////////
+
+    // TEST_CASE("pga2dp: multi_body")
+    // {
+    //     fmt::println("pga2dp: multi_body");
+
+
+    //     class sim_ode_multi_body_pga2dp { // model 2nd order ode by a 1st order system
+
+    //       public:
+
+    //         sim_ode_multi_body_pga2dp(size_t npts_in, std::vector<vec2dp> pos_in,
+    //         std::vector<value_t> m_in,
+    //                 vec2dp const& cm_pos_in, vec2dp const& cm_spd_in, value_t
+    //                 cm_phi_in, value_t cm_omega_in) :
+    //             npts(npts_in), pts(std::move(pos_in)), m(std::move(m_in)),
+    //             cm_pos_init_w(cm_pos_in), cm_spd_init_w(cm_spd_in),
+    //             cm_phi_init_w(cm_phi_in), cm_omega_init_w(cm_omega_in), u_mem(npts *
+    //             2), uh_mem(2 * npts * 2), rhs_mem(npts * 2)
+    //         {
+    //             if (npts < 2) {
+    //                 throw std::invalid_argument("sim_ode: rigid body simulation
+    //                 requires"
+    //                                             " at least two discrete points.");
+    //             }
+    //             if ((pts.size() != npts) || (m.size() != npts)) {
+    //                 throw std::invalid_argument(
+    //                     "sim_ode: position and mass vectors require same size.");
+    //             }
+
+    //             // build inertia map from discrete points
+    //             // maps rate of change (a vector in 2D) to the momentum bivector
+    //             for (size_t n = 0; n < npts; ++n) {
+    //                 I += get_point_inertia(m[n], pts[n]);
+    //             }
+
+    //             // get inverse inertia map
+    //             // maps a momentum bivector to the rate of change (a vector in 2D)
+    //             I_inv = get_inertia_inverse(I);
+    //         }
+
+    //         void set_initial_values()
+    //         {
+
+    //             // Create mdspan view for setting initial values
+    //             auto u = mdspan<vec2dp, dextents<size_t, 2>>(u_mem.data(), npts, 2);
+
+    //             for (size_t n = 0; n < npts; ++n) {
+
+    //                 // initial transformation of "position" encoded in B-vector
+    //                 // encoding:
+    //                 // B_rot=(x0_fix, y0_phi, 1) * phi0
+    //                 // B_tra=(- y0_trans, y0_phi*phi0 + x0_trans, phi0)
+    //                 // typical starting value is "no initial transformation":
+    //                 // B0=(0,0,0) => M0=pscalar(1) (=identiy transformation at t=0)
+    //                 u[n, 0] = vec2dp(0.0, 0.0, 0.0);
+
+    //                 // initial rate of change transformation of "velocity" dB/dt =
+    //                 Omega
+    //                 // encoding:
+    //                 // rotation: Omega_rot = (qx0, qy0, 1) * omega0
+    //                 // translation: Omega_tra = (-v0.y, v0.x, 0)
+    //                 //
+    //                 // resulting Omega = Omega_rot + Omega_tra
+
+    //                 // case with initial translation
+    //                 u[n, 1] = vec2dp(-cm_spd_init_w.y, cm_spd_init_w.x,
+    //                 cm_omega_init_w);
+    //             }
+    //         }
+
+    //         void calc_rhs()
+    //         {
+
+    //             // Create mdspan views for rhs calculation
+    //             auto u = mdspan<vec2dp, dextents<size_t, 2>>(u_mem.data(), npts, 2);
+    //             auto rhs = mdspan<vec2dp, dextents<size_t, 2>>(rhs_mem.data(), npts,
+    //             2);
+
+    //             for (size_t n = 0; n < npts; ++n) {
+
+    //                 // get current state
+    //                 vec2dp B = u[n, 0];     // position transformation B is in u[n,0]
+    //                 vec2dp Omega = u[n, 1]; // velocity trafo d(B)/dt = Omega is in
+    //                 u[n,1]
+
+    //                 // forces and torques to change linear and angular acceleration
+
+    //                 // no force f acting the body frame at the origin (F_b = O_2dp ^ f)
+    //                 // auto F_b = bivec2dp{0.0, 0.0, 0.0};
+
+    //                 // gravitation acting through center of mass in in the body system
+    //                 // with center of mass being the origin O_2dp of the body system
+    //                 // gravitation f = (x=0, y=-m*g, z=0) acting at O_2dp
+    //                 // where the y-axis is assumed pointing upwards
+    //                 auto F_b = wdg(O_2dp, vec2dp{0.0, -m[n] * 9.81, 0.0});
+
+    //                 // Set right-hand side for ODE system:
+    //                 // u[n,0]' = velocity trafo Omega = d(B)/dt (linear and angular)
+    //                 // u[n,1]' = acceleration trafo d(Omega)/dt (linear and angular)
+    //                 rhs[n, 0] = Omega;
+    //                 rhs[n, 1] = compute_omega_dot(I_inv, F_b, Omega, I);
+    //             }
+    //         }
+
+    //         void calc_rkstep(double dt)
+    //         {
+    //             // Create mdspan views for RK4 integration (for all npts points)
+    //             auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), npts * 2);
+    //             auto uh = mdspan<vec2dp, dextents<size_t, 2>>(uh_mem.data(), 2, npts *
+    //             2); auto rhs =
+    //                 mdspan<vec2dp const, dextents<size_t, 1>>(rhs_mem.data(), npts *
+    //                 2);
+
+    //             // Perform RK4 integration (4 sub-steps)
+    //             for (size_t rk_step = 1; rk_step <= 4; ++rk_step) {
+    //                 calc_rhs();
+    //                 rk4_step(u, uh, rhs, dt, rk_step);
+    //             }
+    //         }
+
+    //         void print_sim(double t)
+    //         {
+    //             // Create mdspan view for printing
+    //             auto u = mdspan<vec2dp, dextents<size_t, 2>>(u_mem.data(), npts, 2);
+
+
+    //             fmt::println("t = {:>-7.3f}:", t);
+
+    //             for (size_t n = 0; n < npts; ++n) {
+
+    //                 // get current state (= current positional transformation bivector)
+    //                 vec2dp B = u[n, 0];     // B = Omega * t + B0 (from integration)
+    //                 vec2dp Omega = u[n, 1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
+
+    //                 // calculate current position from B via M = exp(B) ⟇ M0
+    //                 // and via pts(t) = M ⟇ pts(t0) ⟇ rrev(M)
+    //                 //
+    //                 auto M = exp(B);
+    //                 fmt::println(
+    //                     "    n = {}, B = {:>-7.3f}, Omega = {:>-7.3f}, M = {:>-7.3f}",
+    //                     n, B, Omega, M);
+    //                 fmt::println("    n = {}, pts(t=0) = {:>-7.3f}, pts(t) =
+    //                 {:>-7.3f}",
+    //                              n, pts[n], gr1(rgpr(rgpr(M, pts[n]), rrev(M))));
+    //                 fmt::println("");
+    //             }
+    //         }
+
+    //       private:
+
+    //         // number of independent points to solve system for
+    //         size_t npts;
+
+    //         // positions of points in the body frame (fixed for now to get started)
+    //         std::vector<vec2dp> pts; // point positions (fixed for now)
+    //         std::vector<value_t> m;  // mass of points
+
+    //         // initial position and speed of center of mass relative to world system
+    //         vec2dp cm_pos_init_w; // initial position of center of mass (unitized)
+    //         vec2dp cm_spd_init_w; // initial speed of center of mass (.z == 0)
+
+    //         // initial angular position of cm (body vs. world frame, e12 defines pos
+    //         phi) value_t cm_phi_init_w;
+
+    //         // initial angular velocity of cm (body vs. world frame)
+    //         value_t cm_omega_init_w;
+
+    //         // RK4 integration state for point n with system order = 2
+    //         // => [n+0: position, n+1: velocity])
+    //         std::vector<vec2dp> u_mem;   // [n+0: position, n+1: velocity]
+    //         std::vector<vec2dp> uh_mem;  // helper for integration
+    //         std::vector<vec2dp> rhs_mem; // right-hand side values
+
+    //         // inertia map and its inverse (calculated from descrete input values)
+    //         // calculation is done in body frame
+    //         inertia2dp I;
+    //         inertia2dp I_inv;
+    //     };
+
+    //     auto constexpr num_points = 2;
+    //     // (initial) positions and masses of each mass point in the body frame
+    //     std::vector<vec2dp> pos_b = {vec2dp{0, 1, 1}, vec2dp{0, -1, 1}}; // position
+    //     std::vector<value_t> m = {1.0, 1.0};                             // mass
+
+    //     // initial position and movement of body frame vs. world frame (in world frame)
+    //     auto cm_pos = O_2dp;           // world and body frame coincide at t=0
+    //     auto cm_spd = vec2dp{1, 0, 0}; // body frame is moving with v0 vs. world frame
+
+    //     // initial rotation and anguar velocity of body frame vs. world frame
+    //     auto cm_phi = 0.0;   // no initial rotation
+    //     auto cm_omega = 0.0; // no initial angular velocity
+
+    //     sim_ode_multi_body_pga2dp sim(num_points, pos_b, m, cm_pos, cm_spd, cm_phi,
+    //     cm_omega);
+
+    //     // time range (from, to, number of steps)
+    //     auto t_rng = discrete_range(0.0, 2.0, 20);
+
+    //     sim.set_initial_values();
+    //     sim.print_sim(t_rng.min());
+
+    //     for (size_t n = 1; n <= t_rng.steps(); n++) {
+
+    //         // integration from t to t + dt
+    //         double t = t_rng.min() + n * t_rng.delta();
+    //         sim.calc_rkstep(t_rng.delta());
+
+    //         // print sim status at t+dt
+    //         sim.print_sim(t);
+    //     }
+
+    //     fmt::println("");
+    // }
+
+} // TEST_SUITE("PGA2DP: physics tests implementation")

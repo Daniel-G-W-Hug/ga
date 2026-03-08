@@ -2,7 +2,7 @@
 \label{subsection_basics}
 
 The following is provided for Euclidean geometric algebra of two-dimensional space
-(\emph{EGA2D}) using an orthormal basis \bv{1}, \bv{2}:
+($EGA2D$) using an orthormal basis \bv{1}, \bv{2}:
 \begin{subequations}
     \begin{align}
         (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
@@ -31,7 +31,7 @@ pseudoscalar part $ps \, \bv{12} = ps \, \ps$ (basis element is $I_{2d} =
 \bv{12}$, which is sometimes written as $\ps$ to show its character as
 pseudoscalar of this space. $I_{2d}$ is a bivector in two-dimensional Euclidean space). \\
 
-For Euclidean geometric algebra of three-dimensional space (\emph{EGA3D}) using an
+For Euclidean geometric algebra of three-dimensional space ($EGA3D$) using an
 orthonormal basis \bv{1}, \bv{2}, \bv{3} there are:
 \begin{subequations}
     \begin{align}
@@ -71,9 +71,9 @@ and the pseudoscalar part $ps \, \bv{123} = ps \, \ps$ (basis element is $I_{3d}
 pseudoscalar of this space. $I_{3d}$ is a trivector in three-dimensional Euclidean space).
 \\
 
-Projective geometric algebra of two-dimensional Euclidean space (\emph{pga2dp}) is
-modelled by embedding it in a three-dimensional space. Using an orthonormal basis \bv{1},
-\bv{2}, \bv{3} there are following basis vectors:
+Projective geometric algebra of $2D$ Euclidean space ($PGA2DP$) is modelled by embedding
+it in a three-dimensional space. Using an orthonormal basis \bv{1}, \bv{2}, \bv{3} there
+are following basis vectors:
 \begin{subequations}
     \begin{align}
         (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
@@ -134,9 +134,9 @@ where the weight part encodes the two-dimensional direction vector $(l_x,l_y)$ o
 and the bulk part encodes the position of the line as distance to the origin $O_{2dp} =
 (0,0,1)$. When $l_z = 0$ the line passes through the origin. \\
 
-Projective geometric algebra of three-dimensional Euclidean space (\emph{pga3dp}) is
-modelled by embedding it in a four-dimensional space. Using an orthonormal basis \bv{1},
-\bv{2}, \bv{3}, \bv{4} there are following basis vectors:
+Projective geometric algebra of $3D$ Euclidean space ($PGA3DP$) is modelled by embedding
+it in a four-dimensional space. Using an orthonormal basis \bv{1}, \bv{2}, \bv{3}, \bv{4}
+there are following basis vectors:
 \begin{subequations}
     \begin{align}
         (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
@@ -161,7 +161,7 @@ is the scalar part $s_{3dp}$, equation (\ref{eq:vec3dp}) is the vector part $v_{
 equation (\ref{eq:bivec3dp}) is the bivector part $B_{3dp}$, equation (\ref{eq:trivec3dp})
 is the trivector part $t_{3dp}$, and equation (\ref{eq:pscalar3dp}) is the pseudoscalar
 part $ps_{3dp}$. The index $3dp$ is omitted when clear from context. The sixteen basis
-elements of $pga3d$ are: $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{4}, \bv{41}, \bv{42},
+elements of $PGA3DP$ are: $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{4}, \bv{41}, \bv{42},
 \bv{43}, \bv{23}, \bv{31}, \bv{12}, \bv{423}, \bv{431}, \bv{412}, \bv{321}, \bv{1234}\}$.
 A multivector $M$ of three-dimensional projective space ($3dp$) is defined as
 \begin{equation}
@@ -374,7 +374,7 @@ In $PGA$ the product $\metric{G} u$ defines the bulk of of an object $u$. It is 
     \bulk{u} = \metric{G} u
 \end{equation}
 The bulk only contains components that \emph{do not} contain the projective dimension
-(\bv{3} for $pga2dp$ or \bv{4} for $pga3dp$) as a factor. It contains positional
+(\bv{3} for $PGA2DP$ or \bv{4} for $PGA3DP$) as a factor. It contains positional
 information on $u$ relative to the origin. Zero bulk means that $u$ contains the origin.\\
 
 In $PGA$ the product $\rmetric{G} u$ defines the weight of of an object $u$. It is
@@ -383,7 +383,7 @@ defined as
     \weight{u} = \rmetric{G} u
 \end{equation}
 The weight selects components that \emph{do} contain the projective dimension (\bv{3} for
-$pga2dp$ or \bv{4} for $pga3dp$) as a factor. It contains directional information on $u$,
+$PGA2DP$ or \bv{4} for $PGA3DP$) as a factor. It contains directional information on $u$,
 i.e. its attitude and direction independent of its position. Zero weight means that $u$ is
 contained in the horizon, i.e. it is infinitely far away.\\
 
@@ -593,7 +593,7 @@ product is the pseudoscalar basis element $\ps = I_n$ of the respective algebra:
 \end{subeqnarray}
 
 The geometric product combines the dimensions that are present in an object
-representation, e.g. for $pga2dp$:
+representation, e.g. for $PGA2DP$:
 \begin{eqnarray}
     \label{eq:gpr_combine_what_is_there}
     \bv{1} \wedgedot \bv{1} = 1 \nonumber\\
@@ -603,7 +603,7 @@ representation, e.g. for $pga2dp$:
 
 The regressive geometric product combines the dimensions that are \lcmpl{not} present
 in an object
-representation, e.g. for $pga2dp$:
+representation, e.g. for $PGA2DP$:
 \begin{eqnarray}
     \label{eq:rgpr_combine_what_is_not_there}
     \rcmpl{\bv{1}} \veedot \rcmpl{\bv{1}} = \ps \nonumber\\
@@ -815,7 +815,7 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
                          & $\ps$
                          \\ \hline
     \end{tabular}
-    \caption{\small Dot and regressive dot products in pga3dp for every basis element.}
+    \caption{\small Dot and regressive dot products in $PGA3DP$ for every basis element.}
     \label{tab:pga3dp_dot_products}
     \end{center}
 
@@ -846,7 +846,7 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
                      & $\bm{1}$
                      \\ \hline
     \end{tabular}
-    \caption{\small Right and left complements in pga3dp for every basis element.}
+    \caption{\small Right and left complements in $PGA3DP$ for every basis element.}
     \label{tab:pga3dp_complement}
     \end{center}
 
@@ -891,7 +891,7 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
                                & $\bm{1}$
                                \\ \hline
     \end{tabular}
-    \caption{\small Right/left bulk duals and right/left weight duals in pga3dp
+    \caption{\small Right/left bulk duals and right/left weight duals in $PGA3DP$
     for every basis element (=complement applied to bulk and weight).}
     \label{tab:pga3dp_bulk_weight_duals}
     \end{center}
@@ -923,7 +923,7 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
                     & $\ps$
                         \\ \hline
     \end{tabular}
-    \caption{\small Reverse and regressive reverse in pga3dp for every basis element.}
+    \caption{\small Reverse and regressive reverse in $PGA3DP$ for every basis element.}
     \label{tab:pga3dp_rev_rrev}
     \end{center}
 \end{sidewaystable}
@@ -954,7 +954,7 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
                          & $\ps$
                          \\ \hline
     \end{tabular}
-    \caption{\small Dot and regressive dot products in pga2dp for every basis element.}
+    \caption{\small Dot and regressive dot products in $PGA2DP$ for every basis element.}
     \label{tab:pga2dp_dot_products}
     \end{center}
 
@@ -974,7 +974,7 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
                       & $\bm{1}$
                       \\ \hline
     \end{tabular}
-    \caption{\small Complements in pga2dp for every basis element.}
+    \caption{\small Complements in $PGA2DP$ for every basis element.}
     \label{tab:pga2dp_complement}
     \end{center}
 
@@ -999,7 +999,7 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
                                 & $\bm{1}$
                                 \\ \hline
     \end{tabular}
-    \caption{\small Bulk duals and weight duals in pga2dp for every basis element
+    \caption{\small Bulk duals and weight duals in $PGA2DP$ for every basis element
     (=complement applied to bulk and weight).}
     \label{tab:pga2dp_bulk_weight_duals}
     \end{center}
@@ -1025,7 +1025,7 @@ counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} f
                     & $\ps$
                     \\ \hline
     \end{tabular}
-    \caption{\small Reverse and regressive reverse in pga2dp for every basis element.}
+    \caption{\small Reverse and regressive reverse in $PGA2DP$ for every basis element.}
     \label{tab:pga2dp_rev_rrev}
     \end{center}
 \end{sidewaystable}
