@@ -227,16 +227,29 @@ constexpr Vec3d<std::common_type_t<T, U>> rotate_opt(Vec3d<T> const& v,
 {
     // rotate one vector with rotor R (optimized)
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (ega3d sandwich product)
-    ctype k11 = R.c0 * R.c0 + R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3;
-    ctype k12 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
-    ctype k13 = 2.0 * (-R.c0 * R.c2 + R.c1 * R.c3);
-    ctype k21 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
-    ctype k22 = (R.c0 * R.c0 - R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3);
-    ctype k23 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c3);
-    ctype k31 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
-    ctype k32 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c3);
-    ctype k33 = (R.c0 * R.c0 - R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3);
+    ctype const h0 = R.c0 * R.c0;
+    ctype const h1 = R.c1 * R.c1;
+    ctype const h2 = R.c2 * R.c2;
+    ctype const h3 = R.c3 * R.c3;
+    ctype const h4 = R.c0 * R.c3;
+    ctype const h5 = R.c1 * R.c2;
+    ctype const h6 = R.c0 * R.c2;
+    ctype const h7 = R.c1 * R.c3;
+    ctype const h8 = R.c0 * R.c1;
+    ctype const h9 = R.c2 * R.c3;
+
+    ctype const k11 = h0 + h1 - h2 - h3;
+    ctype const k12 = 2.0 * (h4 + h5);
+    ctype const k13 = 2.0 * (-h6 + h7);
+    ctype const k21 = 2.0 * (-h4 + h5);
+    ctype const k22 = h0 - h1 + h2 - h3;
+    ctype const k23 = 2.0 * (h8 + h9);
+    ctype const k31 = 2.0 * (h6 + h7);
+    ctype const k32 = 2.0 * (-h8 + h9);
+    ctype const k33 = h0 - h1 - h2 + h3;
+
     return Vec3d<ctype>(k11 * v.x + k12 * v.y + k13 * v.z,
                         k21 * v.x + k22 * v.y + k23 * v.z,
                         k31 * v.x + k32 * v.y + k33 * v.z);
@@ -249,16 +262,28 @@ rotate_opt(std::vector<Vec3d<T>> const& vec, MVec3d_E<U> const& R)
 {
     // rotate one vector with rotor R (optimized)
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (ega3d sandwich product)
-    ctype k11 = R.c0 * R.c0 + R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3;
-    ctype k12 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
-    ctype k13 = 2.0 * (-R.c0 * R.c2 + R.c1 * R.c3);
-    ctype k21 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
-    ctype k22 = (R.c0 * R.c0 - R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3);
-    ctype k23 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c3);
-    ctype k31 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
-    ctype k32 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c3);
-    ctype k33 = (R.c0 * R.c0 - R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3);
+    ctype const h0 = R.c0 * R.c0;
+    ctype const h1 = R.c1 * R.c1;
+    ctype const h2 = R.c2 * R.c2;
+    ctype const h3 = R.c3 * R.c3;
+    ctype const h4 = R.c0 * R.c3;
+    ctype const h5 = R.c1 * R.c2;
+    ctype const h6 = R.c0 * R.c2;
+    ctype const h7 = R.c1 * R.c3;
+    ctype const h8 = R.c0 * R.c1;
+    ctype const h9 = R.c2 * R.c3;
+
+    ctype const k11 = h0 + h1 - h2 - h3;
+    ctype const k12 = 2.0 * (h4 + h5);
+    ctype const k13 = 2.0 * (-h6 + h7);
+    ctype const k21 = 2.0 * (-h4 + h5);
+    ctype const k22 = h0 - h1 + h2 - h3;
+    ctype const k23 = 2.0 * (h8 + h9);
+    ctype const k31 = 2.0 * (h6 + h7);
+    ctype const k32 = 2.0 * (-h8 + h9);
+    ctype const k33 = h0 - h1 - h2 + h3;
 
     std::vector<Vec3d<ctype>> result;
     result.reserve(vec.size());
@@ -295,17 +320,30 @@ constexpr BiVec3d<std::common_type_t<T, U>> rotate_opt(BiVec3d<T> const& B,
 {
     // rotate one bivector B with rotor R (optimized)
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (ega3d sandwich product)
     // coefficients kij are identical to coefficients used for vector transformation
-    ctype k11 = R.c0 * R.c0 + R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3;
-    ctype k12 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
-    ctype k13 = 2.0 * (-R.c0 * R.c2 + R.c1 * R.c3);
-    ctype k21 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
-    ctype k22 = R.c0 * R.c0 - R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3;
-    ctype k23 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c3);
-    ctype k31 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
-    ctype k32 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c3);
-    ctype k33 = R.c0 * R.c0 - R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3;
+    ctype const h0 = R.c0 * R.c0;
+    ctype const h1 = R.c1 * R.c1;
+    ctype const h2 = R.c2 * R.c2;
+    ctype const h3 = R.c3 * R.c3;
+    ctype const h4 = R.c0 * R.c3;
+    ctype const h5 = R.c1 * R.c2;
+    ctype const h6 = R.c0 * R.c2;
+    ctype const h7 = R.c1 * R.c3;
+    ctype const h8 = R.c0 * R.c1;
+    ctype const h9 = R.c2 * R.c3;
+
+    ctype const k11 = h0 + h1 - h2 - h3;
+    ctype const k12 = 2.0 * (h4 + h5);
+    ctype const k13 = 2.0 * (-h6 + h7);
+    ctype const k21 = 2.0 * (-h4 + h5);
+    ctype const k22 = h0 - h1 + h2 - h3;
+    ctype const k23 = 2.0 * (h8 + h9);
+    ctype const k31 = 2.0 * (h6 + h7);
+    ctype const k32 = 2.0 * (-h8 + h9);
+    ctype const k33 = h0 - h1 - h2 + h3;
+
     return BiVec3d<ctype>(k11 * B.x + k12 * B.y + k13 * B.z,
                           k21 * B.x + k22 * B.y + k23 * B.z,
                           k31 * B.x + k32 * B.y + k33 * B.z);
@@ -318,17 +356,29 @@ rotate_opt(std::vector<BiVec3d<T>> const& bvec, MVec3d_E<U> const& R)
 {
     // rotate many bivectors bivec(B) with rotor R (optimized)
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (ega3d sandwich product)
     // coefficients kij are identical to coefficients used for vector transformation
-    ctype k11 = R.c0 * R.c0 + R.c1 * R.c1 - R.c2 * R.c2 - R.c3 * R.c3;
-    ctype k12 = 2.0 * (R.c0 * R.c3 + R.c1 * R.c2);
-    ctype k13 = 2.0 * (-R.c0 * R.c2 + R.c1 * R.c3);
-    ctype k21 = 2.0 * (-R.c0 * R.c3 + R.c1 * R.c2);
-    ctype k22 = R.c0 * R.c0 - R.c1 * R.c1 + R.c2 * R.c2 - R.c3 * R.c3;
-    ctype k23 = 2.0 * (R.c0 * R.c1 + R.c2 * R.c3);
-    ctype k31 = 2.0 * (R.c0 * R.c2 + R.c1 * R.c3);
-    ctype k32 = 2.0 * (-R.c0 * R.c1 + R.c2 * R.c3);
-    ctype k33 = R.c0 * R.c0 - R.c1 * R.c1 - R.c2 * R.c2 + R.c3 * R.c3;
+    ctype const h0 = R.c0 * R.c0;
+    ctype const h1 = R.c1 * R.c1;
+    ctype const h2 = R.c2 * R.c2;
+    ctype const h3 = R.c3 * R.c3;
+    ctype const h4 = R.c0 * R.c3;
+    ctype const h5 = R.c1 * R.c2;
+    ctype const h6 = R.c0 * R.c2;
+    ctype const h7 = R.c1 * R.c3;
+    ctype const h8 = R.c0 * R.c1;
+    ctype const h9 = R.c2 * R.c3;
+
+    ctype const k11 = h0 + h1 - h2 - h3;
+    ctype const k12 = 2.0 * (h4 + h5);
+    ctype const k13 = 2.0 * (-h6 + h7);
+    ctype const k21 = 2.0 * (-h4 + h5);
+    ctype const k22 = h0 - h1 + h2 - h3;
+    ctype const k23 = 2.0 * (h8 + h9);
+    ctype const k31 = 2.0 * (h6 + h7);
+    ctype const k32 = 2.0 * (-h8 + h9);
+    ctype const k33 = h0 - h1 - h2 + h3;
 
     std::vector<BiVec3d<ctype>> result;
     result.reserve(bvec.size());
