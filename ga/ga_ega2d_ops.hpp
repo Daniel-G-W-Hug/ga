@@ -173,11 +173,14 @@ constexpr Vec2d<std::common_type_t<T, U>> rotate_opt(Vec2d<T> const& v,
 {
     // rotate one vector v with rotor R (optimized)
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (ega2d sandwich product)
-    auto k11 = R.c0 * R.c0 - R.c1 * R.c1;
-    auto k12 = 2.0 * R.c0 * R.c1;
-    auto k21 = -2.0 * R.c0 * R.c1;
-    auto k22 = R.c0 * R.c0 - R.c1 * R.c1;
+    ctype const h0 = R.c0 * R.c0 - R.c1 * R.c1;
+    ctype const h1 = 2.0 * R.c0 * R.c1;
+    ctype const k11 = h0;
+    ctype const k12 = h1;
+    ctype const k21 = -h1;
+    ctype const k22 = h0;
     return Vec2d<ctype>(k11 * v.x + k12 * v.y, k21 * v.x + k22 * v.y);
 }
 
@@ -190,10 +193,13 @@ rotate_opt(std::vector<Vec2d<T>> const& vec, MVec2d_E<U> const& R)
     using ctype = std::common_type_t<T, U>;
     // coefficients of transformed sandwich product calculated with ga_prdxpr
     // (ega2d sandwich product)
-    auto k11 = R.c0 * R.c0 - R.c1 * R.c1;
-    auto k12 = 2.0 * R.c0 * R.c1;
-    auto k21 = -2.0 * R.c0 * R.c1;
-    auto k22 = R.c0 * R.c0 - R.c1 * R.c1;
+    ctype const h0 = R.c0 * R.c0 - R.c1 * R.c1;
+    ctype const h1 = 2.0 * R.c0 * R.c1;
+
+    ctype const k11 = h0;
+    ctype const k12 = h1;
+    ctype const k21 = -h1;
+    ctype const k22 = h0;
 
     std::vector<Vec2d<ctype>> result;
     result.reserve(vec.size());

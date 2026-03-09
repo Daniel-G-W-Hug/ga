@@ -275,21 +275,21 @@ constexpr Vec2dp<std::common_type_t<T, U>> move2dp_opt(Vec2dp<T> const& v,
 
     // move one vector v with motor M (optimized)
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
+    ctype const h0 = M.c2 * M.c2;
+    ctype const h1 = M.c3 * M.c3;
+    ctype const h2 = 2.0 * M.c2 * M.c3;
 
-    ctype h0 = M.c2 * M.c2;
-    ctype h1 = M.c3 * M.c3;
-    ctype h2 = 2.0 * M.c2 * M.c3;
+    ctype const k11 = -h0 + h1;
+    ctype const k12 = -h2;
+    ctype const k13 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c3);
 
-    ctype k11 = -h0 + h1;
-    ctype k12 = -h2;
-    ctype k13 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c3);
+    ctype const k21 = h2;
+    ctype const k22 = k11;
+    ctype const k23 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c2);
 
-    ctype k21 = h2;
-    ctype k22 = k11;
-    ctype k23 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c2);
-
-    ctype k33 = h0 + h1;
+    ctype const k33 = h0 + h1;
 
     return Vec2dp<ctype>(k11 * v.x + k12 * v.y + k13 * v.z,
                          k21 * v.x + k22 * v.y + k23 * v.z, k33 * v.z);
@@ -304,17 +304,21 @@ move2dp(std::vector<Vec2dp<T>> const& vec, MVec2dp_U<U> const& M)
 
     // move many vectors vec(v) with motor M (optimized)
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
+    ctype const h0 = M.c2 * M.c2;
+    ctype const h1 = M.c3 * M.c3;
+    ctype const h2 = 2.0 * M.c2 * M.c3;
 
-    ctype k11 = -M.c2 * M.c2 + M.c3 * M.c3;
-    ctype k12 = -2.0 * M.c2 * M.c3;
-    ctype k13 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c3);
+    ctype const k11 = -h0 + h1;
+    ctype const k12 = -h2;
+    ctype const k13 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c3);
 
-    ctype k21 = 2.0 * M.c2 * M.c3;
-    ctype k22 = -M.c2 * M.c2 + M.c3 * M.c3;
-    ctype k23 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c2);
+    ctype const k21 = h2;
+    ctype const k22 = k11;
+    ctype const k23 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c2);
 
-    ctype k33 = M.c2 * M.c2 + M.c3 * M.c3;
+    ctype const k33 = h0 + h1;
 
     std::vector<Vec2dp<ctype>> result;
     result.reserve(vec.size());
@@ -335,17 +339,20 @@ constexpr BiVec2dp<std::common_type_t<T, U>> move2dp_opt(BiVec2dp<T> const& B,
 
     // move one bivector B with motor M (optimized)
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
+    ctype const h0 = M.c2 * M.c2;
+    ctype const h1 = M.c3 * M.c3;
+    ctype const h2 = 2.0 * M.c2 * M.c3;
 
-    ctype k11 = -M.c2 * M.c2 + M.c3 * M.c3;
-    ctype k12 = -2.0 * M.c2 * M.c3;
+    ctype const k11 = -h0 + h1;
+    ctype const k12 = -h2;
+    ctype const k21 = h2;
+    ctype const k22 = k11;
 
-    ctype k21 = 2.0 * M.c2 * M.c3;
-    ctype k22 = -M.c2 * M.c2 + M.c3 * M.c3;
-
-    ctype k31 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c2);
-    ctype k32 = 2.0 * (-M.c0 * M.c2 + M.c1 * M.c3);
-    ctype k33 = M.c2 * M.c2 + M.c3 * M.c3;
+    ctype const k31 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c2);
+    ctype const k32 = 2.0 * (-M.c0 * M.c2 + M.c1 * M.c3);
+    ctype const k33 = h0 + h1;
 
     return BiVec2dp<ctype>(k11 * B.x + k12 * B.y, k21 * B.x + k22 * B.y,
                            k31 * B.x + k32 * B.y + k33 * B.z);
@@ -360,17 +367,20 @@ move2dp(std::vector<BiVec2dp<T>> const& bvec, MVec2dp_U<U> const& M)
 
     // move many bivectors bvec(B) with motor M (optimized)
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (pga2dp regressive sandwich product)
+    ctype const h0 = M.c2 * M.c2;
+    ctype const h1 = M.c3 * M.c3;
+    ctype const h2 = 2.0 * M.c2 * M.c3;
 
-    ctype k11 = -M.c2 * M.c2 + M.c3 * M.c3;
-    ctype k12 = -2.0 * M.c2 * M.c3;
+    ctype const k11 = -h0 + h1;
+    ctype const k12 = -h2;
+    ctype const k21 = h2;
+    ctype const k22 = k11;
 
-    ctype k21 = 2.0 * M.c2 * M.c3;
-    ctype k22 = -M.c2 * M.c2 + M.c3 * M.c3;
-
-    ctype k31 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c2);
-    ctype k32 = 2.0 * (-M.c0 * M.c2 + M.c1 * M.c3);
-    ctype k33 = M.c2 * M.c2 + M.c3 * M.c3;
+    ctype const k31 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c2);
+    ctype const k32 = 2.0 * (-M.c0 * M.c2 + M.c1 * M.c3);
+    ctype const k33 = h0 + h1;
 
     std::vector<BiVec2dp<ctype>> result;
     result.reserve(bvec.size());

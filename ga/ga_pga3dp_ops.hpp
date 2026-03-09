@@ -451,23 +451,32 @@ constexpr Vec3dp<std::common_type_t<T, U>> move3dp_opt(Vec3dp<T> const& v,
     // moves v (a vector representing a projective point) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
+    ctype const h0 = M.c1 * M.c1;
+    ctype const h1 = M.c2 * M.c2;
+    ctype const h2 = M.c3 * M.c3;
+    ctype const h3 = M.c7 * M.c7;
+    ctype const h4 = M.c1 * M.c2;
+    ctype const h5 = M.c3 * M.c7;
+    ctype const h6 = M.c1 * M.c3;
+    ctype const h7 = M.c2 * M.c7;
+    ctype const h8 = M.c1 * M.c7;
+    ctype const h9 = M.c2 * M.c3;
 
-    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
-    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
-
-    auto k14 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 + M.c4 * M.c7);
-    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
-    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
-    auto k24 = 2.0 * (-M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
-
-    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
-    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
-    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
-    auto k34 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 + M.c6 * M.c7);
-    auto k44 = M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
+    ctype const k11 = h0 - h1 - h2 + h3;
+    ctype const k12 = 2.0 * (h4 - h5);
+    ctype const k13 = 2.0 * (h6 + h7);
+    ctype const k14 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 + M.c4 * M.c7);
+    ctype const k21 = 2.0 * (h4 + h5);
+    ctype const k22 = -h0 + h1 - h2 + h3;
+    ctype const k23 = 2.0 * (-h8 + h9);
+    ctype const k24 = 2.0 * (-M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
+    ctype const k31 = 2.0 * (h6 - h7);
+    ctype const k32 = 2.0 * (h8 + h9);
+    ctype const k33 = -h0 - h1 + h2 + h3;
+    ctype const k34 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 + M.c6 * M.c7);
+    ctype const k44 = h0 + h1 + h2 + h3;
 
     return Vec3dp<ctype>(k11 * v.x + k12 * v.y + k13 * v.z + k14 * v.w,
                          k21 * v.x + k22 * v.y + k23 * v.z + k24 * v.w,
@@ -484,24 +493,32 @@ move3dp(std::vector<Vec3dp<T>> const& vec, MVec3dp_E<U> const& M)
     // moves v (a vector representing a projective point) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
+    ctype const h0 = M.c1 * M.c1;
+    ctype const h1 = M.c2 * M.c2;
+    ctype const h2 = M.c3 * M.c3;
+    ctype const h3 = M.c7 * M.c7;
+    ctype const h4 = M.c1 * M.c2;
+    ctype const h5 = M.c3 * M.c7;
+    ctype const h6 = M.c1 * M.c3;
+    ctype const h7 = M.c2 * M.c7;
+    ctype const h8 = M.c1 * M.c7;
+    ctype const h9 = M.c2 * M.c3;
 
-    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
-    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
-    auto k14 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 + M.c4 * M.c7);
-
-    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
-    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
-    auto k24 = 2.0 * (-M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
-
-    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
-    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
-    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
-    auto k34 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 + M.c6 * M.c7);
-
-    auto k44 = M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
+    ctype const k11 = h0 - h1 - h2 + h3;
+    ctype const k12 = 2.0 * (h4 - h5);
+    ctype const k13 = 2.0 * (h6 + h7);
+    ctype const k14 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 + M.c4 * M.c7);
+    ctype const k21 = 2.0 * (h4 + h5);
+    ctype const k22 = -h0 + h1 - h2 + h3;
+    ctype const k23 = 2.0 * (-h8 + h9);
+    ctype const k24 = 2.0 * (-M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
+    ctype const k31 = 2.0 * (h6 - h7);
+    ctype const k32 = 2.0 * (h8 + h9);
+    ctype const k33 = -h0 - h1 + h2 + h3;
+    ctype const k34 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 + M.c6 * M.c7);
+    ctype const k44 = h0 + h1 + h2 + h3;
 
     std::vector<Vec3dp<ctype>> result;
     result.reserve(vec.size());
@@ -525,47 +542,61 @@ constexpr BiVec3dp<std::common_type_t<T, U>> move3dp_opt(BiVec3dp<T> const& B,
     // moves B a bivector representing a line according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
+    ctype const h0 = M.c1 * M.c1;
+    ctype const h1 = M.c2 * M.c2;
+    ctype const h2 = M.c3 * M.c3;
+    ctype const h3 = M.c7 * M.c7;
+    ctype const h4 = M.c1 * M.c2;
+    ctype const h5 = M.c3 * M.c7;
+    ctype const h6 = M.c1 * M.c3;
+    ctype const h7 = M.c2 * M.c7;
+    ctype const h8 = M.c1 * M.c7;
+    ctype const h9 = M.c2 * M.c3;
+    ctype const h10 = M.c0 * M.c7;
+    ctype const h11 = M.c1 * M.c4;
+    ctype const h12 = M.c2 * M.c5;
+    ctype const h13 = M.c3 * M.c6;
+    ctype const h14 = M.c0 * M.c3;
+    ctype const h15 = M.c1 * M.c5;
+    ctype const h16 = M.c2 * M.c4;
+    ctype const h17 = M.c6 * M.c7;
+    ctype const h18 = M.c0 * M.c2;
+    ctype const h19 = M.c1 * M.c6;
+    ctype const h20 = M.c3 * M.c4;
+    ctype const h21 = M.c5 * M.c7;
+    ctype const h22 = M.c0 * M.c1;
+    ctype const h23 = M.c2 * M.c6;
+    ctype const h24 = M.c3 * M.c5;
+    ctype const h25 = M.c4 * M.c7;
 
-    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
-    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
+    ctype const k11 = h0 - h1 - h2 + h3;
+    ctype const k12 = 2.0 * (h4 - h5);
+    ctype const k13 = 2.0 * (h6 + h7);
+    ctype const k21 = 2.0 * (h4 + h5);
+    ctype const k22 = -h0 + h1 - h2 + h3;
+    ctype const k23 = 2.0 * (-h8 + h9);
+    ctype const k31 = 2.0 * (h6 - h7);
+    ctype const k32 = 2.0 * (h8 + h9);
+    ctype const k33 = -h0 - h1 + h2 + h3;
 
-    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
-    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
-
-    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
-    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
-    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
-
-    auto k41 = 2.0 * (M.c0 * M.c7 + M.c1 * M.c4 - M.c2 * M.c5 - M.c3 * M.c6);
-    auto k42 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 + M.c2 * M.c4 - M.c6 * M.c7);
-    auto k43 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
-    auto k44 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k45 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
-    auto k46 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
-
-    auto k51 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 + M.c2 * M.c4 + M.c6 * M.c7);
-    auto k52 = 2.0 * (M.c0 * M.c7 - M.c1 * M.c4 + M.c2 * M.c5 - M.c3 * M.c6);
-    auto k53 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 + M.c3 * M.c5 - M.c4 * M.c7);
-    auto k54 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
-    auto k55 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k56 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
-
-    auto k61 = 2.0 * (-M.c0 * M.c2 + M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
-    auto k62 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 + M.c3 * M.c5 + M.c4 * M.c7);
-    auto k63 = 2.0 * (M.c0 * M.c7 - M.c1 * M.c4 - M.c2 * M.c5 + M.c3 * M.c6);
-    auto k64 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
-    auto k65 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
-    auto k66 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
+    ctype const k41 = 2.0 * (h10 + h11 - h12 - h13);
+    ctype const k42 = 2.0 * (-h14 + h15 + h16 - h17);
+    ctype const k43 = 2.0 * (h18 + h19 + h20 + h21);
+    ctype const k51 = 2.0 * (h14 + h15 + h16 + h17);
+    ctype const k52 = 2.0 * (h10 - h11 + h12 - h13);
+    ctype const k53 = 2.0 * (-h22 + h23 + h24 - h25);
+    ctype const k61 = 2.0 * (-h18 + h19 + h20 - h21);
+    ctype const k62 = 2.0 * (h22 + h23 + h24 + h25);
+    ctype const k63 = 2.0 * (h10 - h11 - h12 + h13);
 
     return BiVec3dp<ctype>(
         k11 * B.vx + k12 * B.vy + k13 * B.vz, k21 * B.vx + k22 * B.vy + k23 * B.vz,
         k31 * B.vx + k32 * B.vy + k33 * B.vz,
-        k41 * B.vx + k42 * B.vy + k43 * B.vz + k44 * B.mx + k45 * B.my * k46 * B.mz,
-        k51 * B.vx + k52 * B.vy + k53 * B.vz + k54 * B.mx + k55 * B.my * k56 * B.mz,
-        k61 * B.vx + k62 * B.vy + k63 * B.vz + k64 * B.mx + k65 * B.my * k66 * B.mz);
+        k41 * B.vx + k42 * B.vy + k43 * B.vz + k11 * B.mx + k12 * B.my + k13 * B.mz,
+        k51 * B.vx + k52 * B.vy + k53 * B.vz + k21 * B.mx + k22 * B.my + k23 * B.mz,
+        k61 * B.vx + k62 * B.vy + k63 * B.vz + k31 * B.mx + k32 * B.my + k33 * B.mz);
 }
 
 template <typename T, typename U>
@@ -578,40 +609,54 @@ move3dp(std::vector<BiVec3dp<T>> const& bvec, MVec3dp_E<U> const& M)
     // moves B a bivector representing a line according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
+    ctype const h0 = M.c1 * M.c1;
+    ctype const h1 = M.c2 * M.c2;
+    ctype const h2 = M.c3 * M.c3;
+    ctype const h3 = M.c7 * M.c7;
+    ctype const h4 = M.c1 * M.c2;
+    ctype const h5 = M.c3 * M.c7;
+    ctype const h6 = M.c1 * M.c3;
+    ctype const h7 = M.c2 * M.c7;
+    ctype const h8 = M.c1 * M.c7;
+    ctype const h9 = M.c2 * M.c3;
+    ctype const h10 = M.c0 * M.c7;
+    ctype const h11 = M.c1 * M.c4;
+    ctype const h12 = M.c2 * M.c5;
+    ctype const h13 = M.c3 * M.c6;
+    ctype const h14 = M.c0 * M.c3;
+    ctype const h15 = M.c1 * M.c5;
+    ctype const h16 = M.c2 * M.c4;
+    ctype const h17 = M.c6 * M.c7;
+    ctype const h18 = M.c0 * M.c2;
+    ctype const h19 = M.c1 * M.c6;
+    ctype const h20 = M.c3 * M.c4;
+    ctype const h21 = M.c5 * M.c7;
+    ctype const h22 = M.c0 * M.c1;
+    ctype const h23 = M.c2 * M.c6;
+    ctype const h24 = M.c3 * M.c5;
+    ctype const h25 = M.c4 * M.c7;
 
-    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
-    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
+    ctype const k11 = h0 - h1 - h2 + h3;
+    ctype const k12 = 2.0 * (h4 - h5);
+    ctype const k13 = 2.0 * (h6 + h7);
+    ctype const k21 = 2.0 * (h4 + h5);
+    ctype const k22 = -h0 + h1 - h2 + h3;
+    ctype const k23 = 2.0 * (-h8 + h9);
+    ctype const k31 = 2.0 * (h6 - h7);
+    ctype const k32 = 2.0 * (h8 + h9);
+    ctype const k33 = -h0 - h1 + h2 + h3;
 
-    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
-    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
-
-    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
-    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
-    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
-
-    auto k41 = 2.0 * (M.c0 * M.c7 + M.c1 * M.c4 - M.c2 * M.c5 - M.c3 * M.c6);
-    auto k42 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 + M.c2 * M.c4 - M.c6 * M.c7);
-    auto k43 = 2.0 * (M.c0 * M.c2 + M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
-    auto k44 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k45 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
-    auto k46 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
-
-    auto k51 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 + M.c2 * M.c4 + M.c6 * M.c7);
-    auto k52 = 2.0 * (M.c0 * M.c7 - M.c1 * M.c4 + M.c2 * M.c5 - M.c3 * M.c6);
-    auto k53 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 + M.c3 * M.c5 - M.c4 * M.c7);
-    auto k54 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
-    auto k55 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k56 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
-
-    auto k61 = 2.0 * (-M.c0 * M.c2 + M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
-    auto k62 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 + M.c3 * M.c5 + M.c4 * M.c7);
-    auto k63 = 2.0 * (M.c0 * M.c7 - M.c1 * M.c4 - M.c2 * M.c5 + M.c3 * M.c6);
-    auto k64 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
-    auto k65 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
-    auto k66 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
+    ctype const k41 = 2.0 * (h10 + h11 - h12 - h13);
+    ctype const k42 = 2.0 * (-h14 + h15 + h16 - h17);
+    ctype const k43 = 2.0 * (h18 + h19 + h20 + h21);
+    ctype const k51 = 2.0 * (h14 + h15 + h16 + h17);
+    ctype const k52 = 2.0 * (h10 - h11 + h12 - h13);
+    ctype const k53 = 2.0 * (-h22 + h23 + h24 - h25);
+    ctype const k61 = 2.0 * (-h18 + h19 + h20 - h21);
+    ctype const k62 = 2.0 * (h22 + h23 + h24 + h25);
+    ctype const k63 = 2.0 * (h10 - h11 - h12 + h13);
 
     std::vector<BiVec3dp<ctype>> result;
     result.reserve(bvec.size());
@@ -620,9 +665,9 @@ move3dp(std::vector<BiVec3dp<T>> const& bvec, MVec3dp_E<U> const& M)
         result.emplace_back(BiVec3dp<ctype>(
             k11 * B.vx + k12 * B.vy + k13 * B.vz, k21 * B.vx + k22 * B.vy + k23 * B.vz,
             k31 * B.vx + k32 * B.vy + k33 * B.vz,
-            k41 * B.vx + k42 * B.vy + k43 * B.vz + k44 * B.mx + k45 * B.my * k46 * B.mz,
-            k51 * B.vx + k52 * B.vy + k53 * B.vz + k54 * B.mx + k55 * B.my * k56 * B.mz,
-            k61 * B.vx + k62 * B.vy + k63 * B.vz + k64 * B.mx + k65 * B.my * k66 * B.mz));
+            k41 * B.vx + k42 * B.vy + k43 * B.vz + k11 * B.mx + k12 * B.my + k13 * B.mz,
+            k51 * B.vx + k52 * B.vy + k53 * B.vz + k21 * B.mx + k22 * B.my + k23 * B.mz,
+            k61 * B.vx + k62 * B.vy + k63 * B.vz + k31 * B.mx + k32 * B.my + k33 * B.mz));
     }
     return result;
 }
@@ -638,24 +683,32 @@ constexpr TriVec3dp<std::common_type_t<T, U>> move3dp_opt(TriVec3dp<T> const& t,
     // moves t (a trivector representing a plane) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
+    ctype const h0 = M.c1 * M.c1;
+    ctype const h1 = M.c2 * M.c2;
+    ctype const h2 = M.c3 * M.c3;
+    ctype const h3 = M.c7 * M.c7;
+    ctype const h4 = M.c1 * M.c2;
+    ctype const h5 = M.c3 * M.c7;
+    ctype const h6 = M.c1 * M.c3;
+    ctype const h7 = M.c2 * M.c7;
+    ctype const h8 = M.c1 * M.c7;
+    ctype const h9 = M.c2 * M.c3;
 
-    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
-    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
-
-    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
-    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
-
-    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
-    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
-    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
-
-    auto k41 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 - M.c4 * M.c7);
-    auto k42 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
-    auto k43 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 - M.c6 * M.c7);
-    auto k44 = M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
+    ctype const k11 = h0 - h1 - h2 + h3;
+    ctype const k12 = 2.0 * (h4 - h5);
+    ctype const k13 = 2.0 * (h6 + h7);
+    ctype const k21 = 2.0 * (h4 + h5);
+    ctype const k22 = -h0 + h1 - h2 + h3;
+    ctype const k23 = 2.0 * (-h8 + h9);
+    ctype const k31 = 2.0 * (h6 - h7);
+    ctype const k32 = 2.0 * (h8 + h9);
+    ctype const k33 = -h0 - h1 + h2 + h3;
+    ctype const k41 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 - M.c4 * M.c7);
+    ctype const k42 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
+    ctype const k43 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 - M.c6 * M.c7);
+    ctype const k44 = h0 + h1 + h2 + h3;
 
     return TriVec3dp<ctype>(
         k11 * t.x + k12 * t.y + k13 * t.z, k21 * t.x + k22 * t.y + k23 * t.z,
@@ -672,24 +725,32 @@ move3dp(std::vector<TriVec3dp<T>> const& tvec, MVec3dp_E<U> const& M)
     // moves v (a vector representing a projective point) according to the motor R
     // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
+
     // coefficients calculated with ga_prdxpr (pga3dp regressive sandwich product)
+    ctype const h0 = M.c1 * M.c1;
+    ctype const h1 = M.c2 * M.c2;
+    ctype const h2 = M.c3 * M.c3;
+    ctype const h3 = M.c7 * M.c7;
+    ctype const h4 = M.c1 * M.c2;
+    ctype const h5 = M.c3 * M.c7;
+    ctype const h6 = M.c1 * M.c3;
+    ctype const h7 = M.c2 * M.c7;
+    ctype const h8 = M.c1 * M.c7;
+    ctype const h9 = M.c2 * M.c3;
 
-    auto k11 = M.c1 * M.c1 - M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k12 = 2.0 * (M.c1 * M.c2 - M.c3 * M.c7);
-    auto k13 = 2.0 * (M.c1 * M.c3 + M.c2 * M.c7);
-
-    auto k21 = 2.0 * (M.c1 * M.c2 + M.c3 * M.c7);
-    auto k22 = -M.c1 * M.c1 + M.c2 * M.c2 - M.c3 * M.c3 + M.c7 * M.c7;
-    auto k23 = 2.0 * (-M.c1 * M.c7 + M.c2 * M.c3);
-
-    auto k31 = 2.0 * (M.c1 * M.c3 - M.c2 * M.c7);
-    auto k32 = 2.0 * (M.c1 * M.c7 + M.c2 * M.c3);
-    auto k33 = -M.c1 * M.c1 - M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
-
-    auto k41 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 - M.c4 * M.c7);
-    auto k42 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
-    auto k43 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 - M.c6 * M.c7);
-    auto k44 = M.c1 * M.c1 + M.c2 * M.c2 + M.c3 * M.c3 + M.c7 * M.c7;
+    ctype const k11 = h0 - h1 - h2 + h3;
+    ctype const k12 = 2.0 * (h4 - h5);
+    ctype const k13 = 2.0 * (h6 + h7);
+    ctype const k21 = 2.0 * (h4 + h5);
+    ctype const k22 = -h0 + h1 - h2 + h3;
+    ctype const k23 = 2.0 * (-h8 + h9);
+    ctype const k31 = 2.0 * (h6 - h7);
+    ctype const k32 = 2.0 * (h8 + h9);
+    ctype const k33 = -h0 - h1 + h2 + h3;
+    ctype const k41 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 - M.c4 * M.c7);
+    ctype const k42 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
+    ctype const k43 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 - M.c6 * M.c7);
+    ctype const k44 = h0 + h1 + h2 + h3;
 
     std::vector<TriVec3dp<ctype>> result;
     result.reserve(tvec.size());
