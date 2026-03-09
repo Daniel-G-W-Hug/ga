@@ -92,7 +92,6 @@ template <typename T>
     requires(numeric_type<T>)
 Inertia2dp<T> get_point_inertia(T m, Vec2dp<T> const& X)
 {
-    // Matrix from tex eq. 539-546
     T const Xx = X.x;
     T const Xy = X.y;
     T const Xz = X.z;
@@ -114,6 +113,50 @@ Inertia2dp<T> get_point_inertia(T m, Vec2dp<T> const& X)
     v[2, 0] = -m * Xx * Xz;
     v[2, 1] = -m * Xy * Xz;
     v[2, 2] = m * (Xx * Xx + Xy * Xy);
+
+    return I;
+}
+
+
+// Create inertia matrix for a uniform flat rectangular plate centered at the origin.
+//
+// The plate has width w along e1 (x-direction) and height h along e2 (y-direction).
+// It is assumed to be centered at the origin in the body frame (Xz = 1).
+//
+// This is the exact continuous limit of accumulating point masses over the plate area.
+// Derivation: integrate get_point_inertia over the area element dA = dx dy,
+// using mean(x^2) = w^2/12, mean(y^2) = h^2/12, mean(x) = mean(y) = 0 at origin.
+//
+// Result (all off-diagonal center-of-mass terms vanish by symmetry):
+//   I = m * [  0    1         0        ]
+//           [ -1    0         0        ]
+//           [  0    0    (w^2+h^2)/12  ]
+//
+// I[0,1] =  m : total mass (Newton p = mv, Hodge-crossed e2 -> e23)
+// I[1,0] = -m : total mass (Newton p = mv, Hodge-crossed e1 -> e31, opposite sign)
+// I[2,2] = m*(w^2+h^2)/12 : moment of inertia about centroid (classical rectangle
+// formula)
+template <typename T>
+    requires(numeric_type<T>)
+Inertia2dp<T> get_plate_inertia(T m, T w, T h)
+{
+    Inertia2dp<T> I;
+    auto v = I.view();
+
+    // Row 0: [0, m, 0]
+    v[0, 0] = T{0};
+    v[0, 1] = m;
+    v[0, 2] = T{0};
+
+    // Row 1: [-m, 0, 0]
+    v[1, 0] = -m;
+    v[1, 1] = T{0};
+    v[1, 2] = T{0};
+
+    // Row 2: [0, 0, m*(w^2+h^2)/12]
+    v[2, 0] = T{0};
+    v[2, 1] = T{0};
+    v[2, 2] = m * (w * w + h * h) / T{12};
 
     return I;
 }
@@ -169,9 +212,7 @@ Inertia2dp<T> get_inertia_inverse(Inertia2dp<T> const& I)
 ////////////////////////////////////////////////////////////////////////////////
 // ODE right-hand side helpers for 2D rigid body dynamics
 //
-// From ga_docu/5_ga_physics_modelling.tex eq. 495-499:
 //   Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]
-//   M_dot     = 0.5 * M regressive_dot Omega
 ////////////////////////////////////////////////////////////////////////////////
 
 // Compute Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]
@@ -186,17 +227,6 @@ Vec2dp<T> compute_omega_dot(Inertia2dp<T> const& I_inv, BiVec2dp<T> const& F,
     BiVec2dp<T> I_Omega = I(Omega);
     BiVec2dp<T> rhs = F - rcmt(Omega, I_Omega);
     return I_inv(rhs); // returns the change rate Omega
-}
-
-
-// Compute M_dot = 0.5 * M ∨ Omega (motor derivative using regressive product)
-// where M is the current motor and Omega is the rate of change
-template <typename T>
-    requires(numeric_type<T>)
-MVec2dp_U<T> compute_motor_dot(MVec2dp_U<T> const& M, Vec2dp<T> const& Omega)
-{
-    // M_dot = 0.5 * M ∨ Omega (regressive geometric product)
-    return T{0.5} * rgpr(M, Omega);
 }
 
 #endif // HD_GA_PGA2DP_HAS_PHYSICS_OPS

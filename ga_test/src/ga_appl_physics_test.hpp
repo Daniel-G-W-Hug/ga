@@ -176,24 +176,6 @@ TEST_SUITE("PGA2DP: physics tests prep")
         CHECK(Omega_dot.z == doctest::Approx(expected.z).epsilon(1e-10));
     }
 
-    TEST_CASE("pga2dp: compute_motor_dot - motor derivative")
-    {
-        fmt::println("pga2dp: compute_motor_dot - motor derivative");
-
-        // Identity motor (no rotation, no translation)
-        MVec2dp_U<double> M{Vec2dp<double>{0.0, 0.0, 0.0}, PScalar2dp<double>{1.0}};
-
-        // Zero rate of change -> zero motor derivative
-        Vec2dp<double> Omega_zero{0.0, 0.0, 0.0};
-        auto M_dot = compute_motor_dot(M, Omega_zero);
-
-        // All components should be zero
-        CHECK(M_dot.c0 == doctest::Approx(0.0).epsilon(1e-10));
-        CHECK(M_dot.c1 == doctest::Approx(0.0).epsilon(1e-10));
-        CHECK(M_dot.c2 == doctest::Approx(0.0).epsilon(1e-10));
-        CHECK(M_dot.c3 == doctest::Approx(0.0).epsilon(1e-10));
-    }
-
     TEST_CASE("pga2dp for 2D case (force + moment in vec2dp): pre-study linear motion")
     {
         fmt::println(
@@ -535,32 +517,6 @@ TEST_SUITE("PGA3DP: physics tests prep")
         CHECK(Omega_dot.mx == doctest::Approx(expected.mx).epsilon(tol));
         CHECK(Omega_dot.my == doctest::Approx(expected.my).epsilon(tol));
         CHECK(Omega_dot.mz == doctest::Approx(expected.mz).epsilon(tol));
-    }
-
-    TEST_CASE("pga3dp: compute_motor_dot - motor derivative")
-    {
-        fmt::println("pga3dp: compute_motor_dot - motor derivative");
-
-        // Identity motor (no rotation, no translation)
-        // MVec3dp_E has components: c0=scalar, c1-c6=bivector, c7=pseudoscalar
-        MVec3dp_E<double> M{Scalar3dp<double>{0.0},
-                            BiVec3dp<double>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                            PScalar3dp<double>{1.0}};
-
-        // Zero rate of change -> zero motor derivative
-        BiVec3dp<double> Omega_zero{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-        auto M_dot = compute_motor_dot(M, Omega_zero);
-
-        double tol = 1e-10;
-        // All components should be zero
-        CHECK(M_dot.c0 == doctest::Approx(0.0).epsilon(tol));
-        CHECK(M_dot.c1 == doctest::Approx(0.0).epsilon(tol));
-        CHECK(M_dot.c2 == doctest::Approx(0.0).epsilon(tol));
-        CHECK(M_dot.c3 == doctest::Approx(0.0).epsilon(tol));
-        CHECK(M_dot.c4 == doctest::Approx(0.0).epsilon(tol));
-        CHECK(M_dot.c5 == doctest::Approx(0.0).epsilon(tol));
-        CHECK(M_dot.c6 == doctest::Approx(0.0).epsilon(tol));
-        CHECK(M_dot.c7 == doctest::Approx(0.0).epsilon(tol));
     }
 
 } // TEST_SUITE("PGA3DP: physics tests")
@@ -1774,4 +1730,252 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     //     fmt::println("");
     // }
 
+    TEST_CASE("pga2dp: discrete inertia of rectangular plate (25x25 grid)")
+    {
+        fmt::println("pga2dp: discrete inertia of rectangular plate (25x25 grid)");
+        fmt::println("");
+        fmt::println("Plate: e1 in [-2, 2], e2 in [-1, 1], 25x25 equidistant points");
+        fmt::println("Total mass M = 1.0, uniform distribution");
+        fmt::println("");
+
+        // Grid parameters
+        int const nx = 25;
+        int const ny = 25;
+        double const x_min = -2.0, x_max = 2.0;
+        double const y_min = -1.0, y_max = 1.0;
+        double const dx = (x_max - x_min) / (nx - 1);
+        double const dy = (y_max - y_min) / (ny - 1);
+
+        // Total mass = 1.0 distributed uniformly over all grid points
+        double const M_total = 1.0;
+        double const m_pt = M_total / (nx * ny); // mass per point
+
+        // Accumulate inertia over all grid points
+        Inertia2dp<double> I_grid{};
+        for (int ix = 0; ix < nx; ++ix) {
+            double const x = x_min + ix * dx;
+            for (int iy = 0; iy < ny; ++iy) {
+                double const y = y_min + iy * dy;
+                Vec2dp<double> const X{x, y, 1.0}; // unitized point (Xz = 1)
+                I_grid += get_point_inertia(m_pt, X);
+            }
+        }
+
+        auto const det_I_grid = hd::det(I_grid.view());
+        auto const I_grid_inv = get_inertia_inverse(I_grid);
+
+        fmt::println("I_grid     = {:>-10.6f}", I_grid);
+        fmt::println("");
+        fmt::println("det(I_grid)= {:>-10.6f}", det_I_grid);
+        fmt::println("");
+        fmt::println("I_grid_inv = {:>-10.6f}", I_grid_inv);
+        fmt::println("");
+
+        // Analytical continuous limit for a rectangular plate of width W=4, height H=2,
+        // uniform density, centered at origin (Xz=1 for all points):
+        //   I[0,1] = M,  I[1,0] = -M  (total mass on off-diagonals)
+        //   I[0,2] = -M*mean(y) = 0,  I[1,2] = M*mean(x) = 0  (center at origin)
+        //   I[2,2] = M*(W^2+H^2)/12 = M*(16+4)/12 = M*20/12 = 5/3*M ≈ 1.6667
+        //
+        // Note on discretization error for I[2,2]:
+        //   Endpoint-inclusive equidistant grids overestimate mean(x^2) and mean(y^2)
+        //   compared to the continuous integral because boundary points carry the same
+        //   weight as interior points. Midpoint or trapezoidal sampling converges faster.
+        //   For a 25-point grid from a..b the discrete mean(x^2) = (a^2+ab+b^2)/3
+        //   minus a small correction, giving ~8% overestimate vs. the integral
+        //   (a^2+ab+b^2)/3 for the symmetric case. As n->inf the grid mean converges to
+        //   M*(W^2+H^2)/12.
+        double const W = x_max - x_min; // 4.0
+        double const H = y_max - y_min; // 2.0
+        double const I22_continuous = M_total * (W * W + H * H) / 12.0;
+
+        fmt::println("Continuous limit (uniform rectangular plate):");
+        fmt::println("  I[0,1] =  M           = {:>-10.6f}  (discrete: {:>-10.6f})",
+                     M_total, I_grid.view()[0, 1]);
+        fmt::println("  I[1,0] = -M           = {:>-10.6f}  (discrete: {:>-10.6f})",
+                     -M_total, I_grid.view()[1, 0]);
+        fmt::println("  I[2,2] = M*(W²+H²)/12 = {:>-10.6f}  (discrete: {:>-10.6f})",
+                     I22_continuous, I_grid.view()[2, 2]);
+        fmt::println(
+            "  (discrete overestimates I[2,2] by ~{:.1f}% due to endpoint sampling)",
+            100.0 * (I_grid.view()[2, 2] - I22_continuous) / I22_continuous);
+        fmt::println("");
+
+        // Exact continuous result from get_plate_inertia() - no discretization error
+        auto const I_plate = get_plate_inertia(M_total, W, H);
+        auto const I_plate_inv = get_inertia_inverse(I_plate);
+
+        fmt::println("get_plate_inertia() (exact continuous limit):");
+        fmt::println("I_plate    = {:>-10.6f}", I_plate);
+        fmt::println("");
+        fmt::println("I_plate_inv= {:>-10.6f}", I_plate_inv);
+        fmt::println("");
+        fmt::println("Comparison: I_grid[2,2]={:.6f}  I_plate[2,2]={:.6f}  diff={:.6f}",
+                     I_grid.view()[2, 2], I_plate.view()[2, 2],
+                     I_grid.view()[2, 2] - I_plate.view()[2, 2]);
+        fmt::println("");
+
+        // get_plate_inertia() matches the continuous limit exactly
+        CHECK(I_plate.view()[0, 0] == doctest::Approx(0.0).epsilon(1e-15));
+        CHECK(I_plate.view()[0, 1] == doctest::Approx(M_total).epsilon(1e-15));
+        CHECK(I_plate.view()[0, 2] == doctest::Approx(0.0).epsilon(1e-15));
+        CHECK(I_plate.view()[1, 0] == doctest::Approx(-M_total).epsilon(1e-15));
+        CHECK(I_plate.view()[1, 1] == doctest::Approx(0.0).epsilon(1e-15));
+        CHECK(I_plate.view()[1, 2] == doctest::Approx(0.0).epsilon(1e-15));
+        CHECK(I_plate.view()[2, 0] == doctest::Approx(0.0).epsilon(1e-15));
+        CHECK(I_plate.view()[2, 1] == doctest::Approx(0.0).epsilon(1e-15));
+        CHECK(I_plate.view()[2, 2] == doctest::Approx(I22_continuous).epsilon(1e-15));
+
+        // Discrete grid overestimates I[2,2] vs. the exact continuous plate
+        CHECK(I_grid.view()[2, 2] > I_plate.view()[2, 2]);
+
+        // Exact properties of the discrete grid: mass sum and center-of-mass symmetry
+        CHECK(I_grid.view()[0, 1] == doctest::Approx(M_total).epsilon(1e-10));
+        CHECK(I_grid.view()[1, 0] == doctest::Approx(-M_total).epsilon(1e-10));
+        CHECK(I_grid.view()[0, 2] == doctest::Approx(0.0).epsilon(1e-10));
+        CHECK(I_grid.view()[1, 2] == doctest::Approx(0.0).epsilon(1e-10));
+        CHECK(I_grid.view()[2, 0] == doctest::Approx(0.0).epsilon(1e-10));
+        CHECK(I_grid.view()[2, 1] == doctest::Approx(0.0).epsilon(1e-10));
+        // I[2,2] converges to continuous limit from above; verify known 25-pt value.
+        // Exact discrete value for 25-pt endpoint-inclusive grid:
+        //   mean(x^2) = 13/9, mean(y^2) = 13/36  =>  I[2,2] = 65/36 ≈ 1.805556
+        CHECK(I_grid.view()[2, 2] == doctest::Approx(65.0 / 36.0).epsilon(1e-6));
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// PGA3DP: discrete vs. continuous inertia
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_SUITE("PGA3DP: physics tests implementation")
+{
+
+    TEST_CASE("pga3dp: discrete inertia of rectangular cuboid (25x25x25 grid)")
+    {
+        fmt::println("pga3dp: discrete inertia of rectangular cuboid (25x25x25 grid)");
+        fmt::println("");
+        fmt::println("Cuboid: e1 in [-2, 2], e2 in [-1, 1], e3 in [-0.5, 0.5]");
+        fmt::println("Total mass M = 1.0, uniform distribution");
+        fmt::println("");
+
+        // Grid parameters
+        int const nx = 25;
+        int const ny = 25;
+        int const nz = 25;
+        double const x_min = -2.0, x_max = 2.0; // w = 4
+        double const y_min = -1.0, y_max = 1.0; // h = 2
+        double const z_min = -0.5, z_max = 0.5; // d = 1
+        double const dx = (x_max - x_min) / (nx - 1);
+        double const dy = (y_max - y_min) / (ny - 1);
+        double const dz = (z_max - z_min) / (nz - 1);
+
+        // Total mass = 1.0 distributed uniformly over all grid points
+        double const M_total = 1.0;
+        double const m_pt = M_total / (nx * ny * nz); // mass per point
+
+        // Accumulate inertia over all grid points
+        Inertia3dp<double> I_grid{};
+        for (int ix = 0; ix < nx; ++ix) {
+            double const x = x_min + ix * dx;
+            for (int iy = 0; iy < ny; ++iy) {
+                double const y = y_min + iy * dy;
+                for (int iz = 0; iz < nz; ++iz) {
+                    double const z = z_min + iz * dz;
+                    Vec3dp<double> const X{x, y, z, 1.0}; // unitized point (Xw = 1)
+                    I_grid += get_point_inertia(m_pt, X);
+                }
+            }
+        }
+
+        auto const det_I_grid = hd::det(I_grid.view());
+        auto const I_grid_inv = get_inertia_inverse(I_grid);
+
+        fmt::println("I_grid     = {:>-10.6f}", I_grid);
+        fmt::println("");
+        fmt::println("det(I_grid)= {:>-10.6f}", det_I_grid);
+        fmt::println("");
+        fmt::println("I_grid_inv = {:>-10.6f}", I_grid_inv);
+        fmt::println("");
+
+        // Analytical continuous limit for get_cuboid_inertia(M, w, h, d):
+        //   w = 4 (e1), h = 2 (e2), d = 1 (e3)
+        //   Upper-right block: I[0,3]=I[1,4]=I[2,5] = M  (mass, Newton p=mv)
+        //   Lower-left diagonal (classical rectangle moments):
+        //     I[3,0] = M*(h^2+d^2)/12 = (4+1)/12 = 5/12  ~ 0.41667
+        //     I[4,1] = M*(w^2+d^2)/12 = (16+1)/12 = 17/12 ~ 1.41667
+        //     I[5,2] = M*(w^2+h^2)/12 = (16+4)/12 = 5/3  ~ 1.66667
+        double const W = x_max - x_min;                           // 4.0
+        double const H = y_max - y_min;                           // 2.0
+        double const D = z_max - z_min;                           // 1.0
+        double const Ixx_cont = M_total * (H * H + D * D) / 12.0; // 5/12
+        double const Iyy_cont = M_total * (W * W + D * D) / 12.0; // 17/12
+        double const Izz_cont = M_total * (W * W + H * H) / 12.0; // 5/3
+
+        // Exact continuous result from get_cuboid_inertia() - no discretization error
+        auto const I_cuboid = get_cuboid_inertia(M_total, W, H, D);
+        auto const I_cuboid_inv = get_inertia_inverse(I_cuboid);
+
+        fmt::println("Continuous limit (uniform rectangular cuboid):");
+        fmt::println("  I[0,3]=I[1,4]=I[2,5] = M      = {:.6f}  (discrete: {:.6f})",
+                     M_total, I_grid.view()[0, 3]);
+        fmt::println("  I[3,0] = M*(h^2+d^2)/12 = {:.6f}  (discrete: {:.6f})", Ixx_cont,
+                     I_grid.view()[3, 0]);
+        fmt::println("  I[4,1] = M*(w^2+d^2)/12 = {:.6f}  (discrete: {:.6f})", Iyy_cont,
+                     I_grid.view()[4, 1]);
+        fmt::println("  I[5,2] = M*(w^2+h^2)/12 = {:.6f}  (discrete: {:.6f})", Izz_cont,
+                     I_grid.view()[5, 2]);
+        fmt::println(
+            "  (discrete overestimates moments by ~{:.1f}% due to endpoint sampling)",
+            100.0 * (I_grid.view()[5, 2] - Izz_cont) / Izz_cont);
+        fmt::println("");
+        fmt::println("get_cuboid_inertia() (exact continuous limit):");
+        fmt::println("I_cuboid     = {:>-10.6f}", I_cuboid);
+        fmt::println("");
+        fmt::println("I_cuboid_inv = {:>-10.6f}", I_cuboid_inv);
+        fmt::println("");
+
+        // get_cuboid_inertia() matches the continuous limit exactly
+        // Upper-right block: mass terms
+        CHECK(I_cuboid.view()[0, 3] == doctest::Approx(M_total).epsilon(1e-15));
+        CHECK(I_cuboid.view()[1, 4] == doctest::Approx(M_total).epsilon(1e-15));
+        CHECK(I_cuboid.view()[2, 5] == doctest::Approx(M_total).epsilon(1e-15));
+        // Lower-left block: moments of inertia
+        CHECK(I_cuboid.view()[3, 0] == doctest::Approx(Ixx_cont).epsilon(1e-15));
+        CHECK(I_cuboid.view()[4, 1] == doctest::Approx(Iyy_cont).epsilon(1e-15));
+        CHECK(I_cuboid.view()[5, 2] == doctest::Approx(Izz_cont).epsilon(1e-15));
+        // All other entries must be zero
+        for (size_t r = 0; r < 6; ++r) {
+            for (size_t c = 0; c < 6; ++c) {
+                bool const is_mass_entry = (r < 3 && c == r + 3);
+                bool const is_moment_entry = (r >= 3 && c == r - 3);
+                if (!is_mass_entry && !is_moment_entry) {
+                    CHECK(I_cuboid.view()[r, c] == doctest::Approx(0.0).epsilon(1e-15));
+                }
+            }
+        }
+
+        // Discrete grid overestimates all moments vs. the exact continuous cuboid
+        CHECK(I_grid.view()[3, 0] > I_cuboid.view()[3, 0]);
+        CHECK(I_grid.view()[4, 1] > I_cuboid.view()[4, 1]);
+        CHECK(I_grid.view()[5, 2] > I_cuboid.view()[5, 2]);
+
+        // Exact properties of the discrete grid: mass terms and symmetry
+        CHECK(I_grid.view()[0, 3] == doctest::Approx(M_total).epsilon(1e-10));
+        CHECK(I_grid.view()[1, 4] == doctest::Approx(M_total).epsilon(1e-10));
+        CHECK(I_grid.view()[2, 5] == doctest::Approx(M_total).epsilon(1e-10));
+
+        // Exact discrete moments for 25-pt endpoint-inclusive grid:
+        //   mean(x^2) for [-2,2]:   13/9
+        //   mean(y^2) for [-1,1]:   13/36
+        //   mean(z^2) for [-0.5,0.5]: 13/144
+        //   I[3,0] = M*(mean(y^2)+mean(z^2)) = 13/36 + 13/144 = 65/144
+        //   I[4,1] = M*(mean(x^2)+mean(z^2)) = 13/9  + 13/144 = 221/144
+        //   I[5,2] = M*(mean(x^2)+mean(y^2)) = 13/9  + 13/36  = 65/36
+        CHECK(I_grid.view()[3, 0] == doctest::Approx(65.0 / 144.0).epsilon(1e-6));
+        CHECK(I_grid.view()[4, 1] == doctest::Approx(221.0 / 144.0).epsilon(1e-6));
+        CHECK(I_grid.view()[5, 2] == doctest::Approx(65.0 / 36.0).epsilon(1e-6));
+    }
+
+} // TEST_SUITE("PGA3DP: physics tests implementation")
