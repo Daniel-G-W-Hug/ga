@@ -103,7 +103,6 @@ template <typename T>
     requires(std::floating_point<T>)
 Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 {
-    // Matrix from tex eq. 604-611
     // X components: x=Xx, y=Xy, z=Xz, w=Xw (homogeneous)
     T const Xx = X.x;
     T const Xy = X.y;
@@ -165,6 +164,72 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 }
 
 
+// Create inertia matrix for a uniform rectangular cuboid centered at the origin.
+//
+// The cuboid has width w along e1, height h along e2, depth d along e3.
+// It is assumed to be centered at the origin in the body frame (Xw = 1).
+//
+// This is the exact continuous limit of accumulating point masses over the volume.
+// Derivation: integrate get_point_inertia over volume element dV = dx dy dz,
+// using mean(x^2) = w^2/12, mean(y^2) = h^2/12, mean(z^2) = d^2/12,
+// and mean(x) = mean(y) = mean(z) = 0, mean(x*y) = mean(x*z) = mean(y*z) = 0
+// (centered, independent variables).
+//
+// Result (all cross-inertia and center-of-mass terms vanish by symmetry):
+//
+//   I = m * [  0              0              0             1    0    0  ]
+//           [  0              0              0             0    1    0  ]
+//           [  0              0              0             0    0    1  ]
+//           [ (h^2+d^2)/12    0              0             0    0    0  ]
+//           [  0             (w^2+d^2)/12    0             0    0    0  ]
+//           [  0              0             (w^2+h^2)/12   0    0    0  ]
+//
+// BiVec3dp index layout: (vx=e41, vy=e42, vz=e43, mx=e23, my=e31, mz=e12)
+//   Indices 0-2 (vx,vy,vz): translational velocity / linear momentum  (ideal lines, e4*)
+//   Indices 3-5 (mx,my,mz): angular velocity / angular momentum        (real  lines,
+//   e23/e31/e12)
+//
+// Block structure of the matrix:
+//   Upper-left  [0:3, 0:3] = 0:         no translational-to-translational coupling
+//   Upper-right [0:3, 3:6] = m*Identity: angular velocity  -> linear  momentum (mass,
+//   Newton p=mv) Lower-left  [3:6, 0:3] = m*J_rot:   translational vel -> angular
+//   momentum (classical moments) Lower-right [3:6, 3:6] = 0:         no
+//   rotational-to-rotational coupling
+//
+// Where J_rot is diagonal with the classical rectangle-rule moments of inertia:
+//   I[3,0] = m*(h^2+d^2)/12  (rotation about e1-axis, depends on e2 and e3 extents)
+//   I[4,1] = m*(w^2+d^2)/12  (rotation about e2-axis, depends on e1 and e3 extents)
+//   I[5,2] = m*(w^2+h^2)/12  (rotation about e3-axis, depends on e1 and e2 extents)
+//
+// Why the coupling is "crossed" (upper-right / lower-left rather than diagonal):
+//   In PGA3DP the Hodge complement swaps ideal lines (e41,e42,e43) with real lines
+//   (e23,e31,e12). Angular velocity (e23/e31/e12, indices 3-5) couples to linear momentum
+//   (e41/e42/e43, indices 0-2) via mass m, landing in the upper-right block.
+//   Translational velocity (e41/e42/e43, indices 0-2) couples to angular momentum
+//   (e23/e31/e12, indices 3-5) via moment of inertia, landing in the lower-left block.
+//   This is the exact 3D analogue of the 2D case where mass appears off-diagonal.
+template <typename T>
+    requires(std::floating_point<T>)
+Inertia3dp<T> get_cuboid_inertia(T m, T w, T h, T d)
+{
+    Inertia3dp<T> I;
+    auto v = I.view();
+
+    // Upper-right block [0:3, 3:6]: angular velocity -> linear momentum (mass m)
+    v[0, 3] = m; // mx -> vx: angular vel about e1 -> linear momentum e41
+    v[1, 4] = m; // my -> vy: angular vel about e2 -> linear momentum e42
+    v[2, 5] = m; // mz -> vz: angular vel about e3 -> linear momentum e43
+
+    // Lower-left block [3:6, 0:3]: translational velocity -> angular momentum (moments)
+    v[3, 0] = m * (h * h + d * d) / T{12}; // vx -> mx: I_xx = m*(h^2+d^2)/12
+    v[4, 1] = m * (w * w + d * d) / T{12}; // vy -> my: I_yy = m*(w^2+d^2)/12
+    v[5, 2] = m * (w * w + h * h) / T{12}; // vz -> mz: I_zz = m*(w^2+h^2)/12
+
+    // All other entries remain zero (default-initialized)
+    return I;
+}
+
+
 // Get inverse of inertia matrix using LU decomposition
 // Solves I * I_inv = Identity by back-substitution for each column
 // Throws std::invalid_argument if inertia matrix is singular (det = 0)
@@ -215,9 +280,7 @@ Inertia3dp<T> get_inertia_inverse(Inertia3dp<T> const& I)
 ////////////////////////////////////////////////////////////////////////////////
 // ODE right-hand side helpers for 3D rigid body dynamics
 //
-// From ga_docu/5_ga_physics_modelling.tex eq. 495-499:
 //   Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]
-//   M_dot     = 0.5 * M regressive_dot Omega
 ////////////////////////////////////////////////////////////////////////////////
 
 // Compute Omega_dot = I_inv[ F - rcmt(Omega, I[Omega]) ]
@@ -232,17 +295,6 @@ BiVec3dp<T> compute_omega_dot(Inertia3dp<T> const& I_inv, BiVec3dp<T> const& F,
     BiVec3dp<T> I_Omega = I(Omega);
     BiVec3dp<T> rhs = F - rcmt(Omega, I_Omega);
     return I_inv(rhs);
-}
-
-
-// Compute M_dot = 0.5 * M ∨ Omega (motor derivative using regressive product)
-// where M is the current motor and Omega is the rate of change
-template <typename T>
-    requires(std::floating_point<T>)
-MVec3dp_E<T> compute_motor_dot(MVec3dp_E<T> const& M, BiVec3dp<T> const& Omega)
-{
-    // M_dot = 0.5 * M ∨ Omega (regressive geometric product)
-    return T{0.5} * rgpr(M, Omega);
 }
 
 #endif // HD_GA_PGA3DP_HAS_PHYSICS_OPS

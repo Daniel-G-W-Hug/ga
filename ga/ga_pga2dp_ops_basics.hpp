@@ -319,7 +319,7 @@ constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 // right complement: u ^ rcmpl(u)  = I_2dp = e3^e2^e1
 //
 // in spaces of odd dimension right and left complements are identical and thus there
-// is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
+// is only one complement operation defined lcmpl(u) = rcmpl(u) = cmpl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // comploments have different signs

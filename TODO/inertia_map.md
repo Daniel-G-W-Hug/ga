@@ -1,289 +1,195 @@
 # Inertia Map Analysis
 
-## Matrix from Document (Section 5)
+## PGA Inertia Matrix Structure — Why mass is off-diagonal
 
-The inertia tensor for rotation about point **X** = (Xₓ, Xᵧ, Xᵤ):
+### Core insight: the map crosses two dual spaces
 
-```text
-I[Ω] = m · [ Xz²       0         -Xx·Xz     ]
-           [ 0         Xz²       -Xy·Xz     ]
-           [ -Xx·Xz    -Xy·Xz    Xx² + Xy²  ]
-```
-
-## Symbolic Invertibility
-
-**Status**: ✅ Can be inverted symbolically
-
-### Determinant
-
-```text
-det(I[Ω]) = m³ · Xz² · (Xx² + Xy² + Xz²) = m³ · Xz² · |X|²
-```
-
-where `|X|² = Xx² + Xy² + Xz²` is the squared magnitude of position vector **X**.
-
-### Existence Conditions
-
-The inverse exists when `det ≠ 0`, requiring:
-
-1. **m ≠ 0** (non-zero mass)
-2. **Xz ≠ 0** (position not in xy-plane)
-3. **|X| ≠ 0** (position not at origin)
-
-### Symbolic Inverse Formula
-
-```text
-I[Ω]⁻¹ = 1/(m · Xz² · |X|²) ·
-
-    [ Xz²·(Xy² + Xz²)    Xx·Xy·Xz         Xx·Xz·|X|²  ]
-    [ Xx·Xy·Xz           Xz²·(Xx² + Xz²)  Xy·Xz·|X|²  ]
-    [ Xx·Xz·|X|²         Xy·Xz·|X|²       Xz²·|X|²    ]
-```
-
-## Singularity Analysis
-
-### Critical Singularity: Xz = 0
-
-When Xz → 0, the matrix becomes **singular**. This has physical meaning:
-
-- The inertia tensor represents rotation about point **X** = (Xₓ, Xᵧ, Xᵤ)
-- When Xz = 0, the point lies in the xy-plane
-- The tensor degenerates because the z-component constraint vanishes
-
-### Numerical Considerations
-
-**Condition Number**: Deteriorates as Xz → 0
-
-```text
-κ(I[Ω]) ≈ |X|² / Xz²    (for small Xz)
-```
-
-The matrix becomes increasingly ill-conditioned when the rotation point approaches the
-xy-plane.
-
-## Implementation Recommendations
-
-### When to Use Symbolic Inversion
-
-✅ Use symbolic formula when:
-
-- Xz is guaranteed bounded away from zero (`|Xz| > ε` for some threshold ε)
-- Modeling rotations about points with significant z-coordinate
-- Need exact algebraic expressions for further derivations
-
-### When to Use Numerical Inversion
-
-⚠️ Use numerical methods when:
-
-- Xz might approach zero (rotation points near xy-plane)
-- Need robust handling across full configuration space
-- Working with measured/noisy data where Xz uncertainty is significant
-
-### Suggested Strategy
-
-For robust implementation:
-
-```cpp
-if (std::abs(X.z) > threshold) {
-    // Use symbolic inversion (faster, exact)
-    return symbolic_inverse(m, X);
-} else {
-    // Use numerical inversion with regularization
-    return numerical_inverse_with_svd(I_matrix);
-}
-```
-
-Threshold recommendation: `threshold ≈ 0.1 · |X|` to maintain condition number κ < 100.
-
-## Geometric Interpretation
-
-This inertia tensor structure suggests:
-
-- **Parallel axis theorem** application with special z-axis treatment
-- Rotation about arbitrary point **X** decomposed into z-direction and xy-plane components
-- The block structure reflects separation of in-plane (xy) and out-of-plane (z) dynamics
-
-## Further Analysis Needed
-
-- [ ] Verify physical origin of this specific tensor form
-- [ ] Check if this relates to 2D rigid body dynamics embedded in 3D
-- [ ] Investigate whether GA formulation can eliminate the singularity
-- [ ] Compare with standard parallel axis theorem formulation
+Both the PGA2DP and PGA3DP inertia maps connect **two geometrically dual spaces**, not
+the same space like the classical inertia tensor (which maps ω → L within one vector
+space). The apparent paradox of mass appearing off-diagonal is entirely a consequence of
+the Hodge complement structure of PGA.
 
 ---
 
-## 6×6 Inertia Matrix Analysis (PGA3DP Form)
+## PGA2DP: 3×3 Inertia Map  `I[Ω]: Vec2dp → BiVec2dp`
 
-### Matrix Definition
+### Basis correspondence (Vec2dp)
 
-From section 5 of the documentation (equations 612-620):
+| Index | Vec2dp input (velocity twist Omega) | BiVec2dp output (momentum wrench L) |
+| --- | --- | --- |
+| 0 | `e1` - x-component of velocity twist | `e31` - x-directed line, x-momentum |
+| 1 | `e2` - y-component of velocity twist | `e32` - y-directed line, y-momentum |
+| 2 | `e3` - projective component, angular velocity | `e12` - ideal line, angular momentum |
 
-```text
-I[Ω] = m ·
-    [ 0              X_z·X_w       -X_y·X_w       X_w²           0              0            ]
-    [-X_z·X_w        0              X_x·X_w       0              X_w²           0            ]
-    [ X_y·X_w       -X_x·X_w        0             0              0              X_w²         ]
-    [ X_y² + X_z²   -X_x·X_y       -X_x·X_z       0             -X_z·X_w        X_y·X_w      ]
-    [-X_x·X_y        X_x² + X_z²   -X_y·X_z       X_z·X_w        0             -X_x·X_w      ]
-    [-X_x·X_z       -X_y·X_z        X_x² + X_y²  -X_y·X_w        X_x·X_w        0            ]
-```
-
-where:
-
-- `(X_x, X_y, X_z, X_w)` are homogeneous coordinates in PGA3DP
-- `X_w` is the homogeneous coordinate (0 for ideal points/directions, ≠0 for finite
-  points)
-- `m` is the mass
-
-### Invertibility Analysis
-
-**Status**: ✅ Invertible under specific conditions
-
-#### Determinant Analysis
-
-For the matrix M (without scalar m), invertibility depends on:
-
-1. **m ≠ 0** (non-zero mass - physically required)
-2. **X_w ≠ 0** (finite point, not at infinity in projective space)
-
-#### Critical Singularity: X_w = 0
-
-When `X_w = 0` (point at infinity), the matrix becomes:
+### Point mass matrix (unitized point at (Xx, Xy), Xz = 1)
 
 ```text
-M = [ 0            0           0          0    0    0  ]
-    [ 0            0           0          0    0    0  ]
-    [ 0            0           0          0    0    0  ]
-    [ X_y² + X_z² -X_x·X_y    -X_x·X_z    0    0    0  ]
-    [-X_x·X_y      X_x² + X_z² -X_y·X_z   0    0    0  ]
-    [-X_x·X_z     -X_y·X_z     X_x² + X_y² 0    0    0  ]
+I = m * [  0    1   -Xy ]     row 0 → e31 (x-momentum)
+        [ -1    0    Xx ]     row 1 → e32 (y-momentum)
+        [-Xx  -Xy    r² ]     row 2 → e12 (angular momentum),  r² = Xx² + Xy²
 ```
 
-This is **singular** (determinant = 0) due to the 3×3 zero block in upper-left and
-upper-right.
+### Why mass appears off-diagonal: the Hodge complement crossing
 
-**Physical Interpretation**: The inertia map is undefined for ideal points (directions at
-infinity) in PGA, which makes physical sense - you cannot define inertia about a
-direction, only about a position.
+The mass terms of the inertia map follow `I_mass(Ω) = −m · !Ω`, where `!` is the Hodge
+complement in PGA2DP. The complement of the translational basis elements crosses indices:
 
-### Matrix Structure
-
-The 6×6 matrix has special block structure:
-
-- **Upper-left 3×3**: Skew-symmetric block (antisymmetric)
-- **Upper-right 3×3**: Diagonal-like structure with X_w
-- **Lower-left 3×3**: Symmetric block (moment of inertia components)
-- **Lower-right 3×3**: Skew-symmetric block with X_w
-
-This structure reflects the coupling between:
-
-- Rotational components (bivector part of angular velocity)
-- Translational components (vector part related to screw motion)
-
-### Implementation Strategy
-
-#### Recommendation: **Numerical Inversion**
-
-For this 6×6 inertia matrix in physics simulation context, **numerical inversion is
-strongly recommended**.
-
-**Rationale:**
-
-1. **Matrix Size**: 6×6 symbolic inverse would produce 36 expressions, each with
-   potentially hundreds of terms - unwieldy and difficult to maintain
-
-2. **Physics Application**: Runtime calculations in rigid body dynamics naturally use
-   numerical methods
-
-3. **Computational Efficiency**: Numerical inversion of 6×6 is extremely fast with
-   optimized libraries (Eigen, LAPACK)
-
-4. **Conditioning**: For physical configurations with `X_w ≠ 0`, the matrix should be
-   reasonably well-conditioned
-
-5. **Maintainability**: Easier to extend/modify for different physics models
-
-6. **Integration**: Natural fit with physics simulation pipelines
-
-#### Suggested Implementation
-
-```cpp
-// Using Eigen library
-Eigen::Matrix<value_t, 6, 6> I_omega = /* construct from X_x, X_y, X_z, X_w, m */;
-
-// Option 1: Direct inversion (fast, for well-conditioned cases)
-Eigen::Matrix<value_t, 6, 6> I_omega_inv = I_omega.inverse();
-
-// Option 2: With condition number check (robust)
-Eigen::JacobiSVD<Eigen::Matrix<value_t, 6, 6>> svd(I_omega);
-value_t cond = svd.singularValues()(0) / svd.singularValues()(5);
-
-if (cond < condition_threshold) {
-    I_omega_inv = I_omega.inverse();
-} else {
-    // Handle ill-conditioned case (e.g., regularization or warning)
-    throw std::runtime_error("Inertia matrix is ill-conditioned");
-}
-
-// Option 3: SVD-based pseudo-inverse (most robust)
-I_omega_inv = I_omega.completeOrthogonalDecomposition().pseudoInverse();
+```text
+!e1 = e32    (x-component maps to the y-momentum line)
+!e2 = −e31   (y-component maps to the −x-momentum line)
 ```
 
-#### When to Consider Symbolic Inversion
+Applying `I_mass = −m · !`:
 
-Only consider symbolic inversion if:
+- `Ω.x` (e1, index 0) → `I_mass(e1) = −m · !e1 = −m · e32` → lands at `I[1,0] = −m`
+- `Ω.y` (e2, index 1) → `I_mass(e2) = −m · !e2 = −m · (−e31) = +m · e31` → lands at `I[0,1] = +m`
 
-- Theoretical analysis/derivation for papers
-- Need exact closed-form solutions for equations of motion
-- Formal verification of mathematical properties
-- Educational purposes (demonstrating structure)
+The Hodge complement swaps x↔y and adds a sign, which is why mass appears **off-diagonal**
+and **antisymmetric** (`+m` / `−m`).
 
-**Not recommended for**: Production physics code, runtime simulation, interactive
-applications
+`I[0,0] = I[1,1] = 0`: the complement of e1 is e32 (not e31), and of e2 is −e31 (not e32),
+so there is no self-coupling on the diagonal for the mass terms.
 
-### Numerical Stability Considerations
+**Note on kinematics**: The above is a direct consequence of the Hodge structure. The
+connection to classical Newton's law `p = mv` requires the additional kinematic fact that
+in PGA2DP the motor-generator (velocity twist Omega) for a translation with classical
+velocity `(vx, vy)` is `Omega = att(bulk_dual(v)) = (−vy, vx, 0)`, not `(vx, vy, 0)`.
+This is specific to the motor-exponential encoding (translation as two reflections on
+parallel lines) and does **not** mean that e1 generally encodes y-velocity: in any normal
+Vec2dp (position, force, acceleration), e1 is always the x-component and e2 the y-component.
+With the twisted Omega encoding, the two sign flips cancel: `I[1,0] · Omega.x = (−m)(−vy) = +m·vy`,
+recovering `p_y = m·vy`.
 
-**Condition Number Behavior**:
+### Why the moment of inertia is at (2,2)
 
-- Well-conditioned when `X_w` is bounded away from zero
-- Deteriorates as `X_w → 0` (approaching ideal points)
-- Mass scaling (`m`) factors out and doesn't affect conditioning
+`I[2,2] = m·r²` maps angular velocity (index 2, `e3`, origin point) to angular momentum
+(index 2, `e12`, ideal line). Both carry the same rotational index → this IS the
+diagonal of the rotational sub-block, recovering the classical scalar moment of inertia.
 
-**Recommended Safeguards**:
+### Cross-coupling terms I[0,2], I[1,2]
 
-```cpp
-// Check for degenerate cases before inversion
-const value_t X_w_threshold = 1e-6; // Adjust based on physical units
+`I[0,2] = -m·Xy`, `I[1,2] = m·Xx`: angular velocity of a body offset from the rotation
+axis carries linear momentum (PGA encoding of `L_linear = m·(ω × r)`). Vanish when
+center of mass is at the origin.
 
-if (std::abs(X_w) < X_w_threshold) {
-    throw std::runtime_error("Cannot compute inertia map for ideal points (X_w ≈ 0)");
-}
+### Continuous limit: uniform rectangular plate
 
-if (std::abs(m) < mass_threshold) {
-    throw std::runtime_error("Cannot compute inertia map for massless objects");
-}
+For a plate of width W (e1), height H (e2), mass M, centered at origin:
+
+```text
+I_plate = M * [  0    1         0        ]
+              [ -1    0         0        ]
+              [  0    0    (W²+H²)/12    ]
 ```
 
-### Geometric Interpretation (PGA3DP Context)
+`I[2,2] = M·(W²+H²)/12` is the standard rectangle formula.
 
-This 6×6 structure represents:
+### Discrete approximation (endpoint-inclusive n×n grid)
 
-- **Motor algebra**: Coupling rotations and translations in rigid body motion
-- **Screw theory**: Inertia properties for general screw motions (not just pure rotations)
-- **Projective geometry**: Natural handling of points at finite positions (X_w ≠ 0) vs.
-  directions at infinity (X_w = 0)
+Relative error in `I[2,2]` for an n-point endpoint-inclusive grid: **2/(n−1)**, independent
+of plate dimensions.
 
-The block structure separates:
+- n = 25:  error ≈ 8.3%  (I[2,2] = 65/36 ≈ 1.806 vs. continuous 5/3 ≈ 1.667)
+- n = 202: error < 1%
+- n → ∞:  converges from above to M·(W²+H²)/12
 
-- Pure rotational inertia effects
-- Translation-rotation coupling (Coriolis-like terms)
-- Translational inertia effects
+### PGA2DP entry summary
 
-### Further Investigation
+| Entry | Value | Physical meaning | Why there |
+| --- | --- | --- | --- |
+| `I[0,1]` | `+m` | Omega.y (e2) -> e31 (x-momentum) | Hodge: !e2=-e31, I_mass=-m*! gives +m |
+| `I[1,0]` | `-m` | Omega.x (e1) -> e32 (y-momentum) | Hodge: !e1=+e32, I_mass=-m*! gives -m |
+| `I[0,0]`, `I[1,1]` | `0` | no self-coupling | degenerate metric e3^2=0 |
+| `I[0,2]`, `I[1,2]` | `~ position` | angular vel -> linear momentum (offset) | omega x r coupling |
+| `I[2,0]`, `I[2,1]` | `~ position` | translational vel -> angular momentum | same coupling, transposed |
+| `I[2,2]` | `m*r^2` | angular vel -> angular momentum | rotational diagonal, classical m*r^2 |
 
-- [ ] Verify connection to motor algebra and screw theory formulations
-- [ ] Determine physical meaning of each 3×3 block
-- [ ] Check if there's a relationship to spatial inertia matrices in robotics
-- [ ] Investigate whether PGA formulation provides advantages over traditional 6×6 spatial
-  inertia
-- [ ] Compare numerical stability with other inertia representations
+---
+
+## PGA3DP: 6×6 Inertia Map  `I[Ω]: BiVec3dp → BiVec3dp`
+
+### Basis correspondence (BiVec3dp)
+
+| Index | BiVec3dp input (velocity twist Omega) | BiVec3dp output (momentum wrench L) |
+| --- | --- | --- |
+| 0 | `e41` (vx) - ideal line, translational velocity x | `e41` (vx) - linear momentum x |
+| 1 | `e42` (vy) - ideal line, translational velocity y | `e42` (vy) - linear momentum y |
+| 2 | `e43` (vz) - ideal line, translational velocity z | `e43` (vz) - linear momentum z |
+| 3 | `e23` (mx) - real line, angular velocity about e1 | `e23` (mx) - angular momentum about e1 |
+| 4 | `e31` (my) - real line, angular velocity about e2 | `e31` (my) - angular momentum about e2 |
+| 5 | `e12` (mz) - real line, angular velocity about e3 | `e12` (mz) - angular momentum about e3 |
+
+### Point mass matrix (unitized point at (Xx, Xy, Xz), Xw = 1)
+
+```text
+I = m *
+  row 0: [  0          Xz·Xw      -Xy·Xw       Xw²    0        0     ]
+  row 1: [ -Xz·Xw       0          Xx·Xw        0      Xw²      0     ]
+  row 2: [  Xy·Xw      -Xx·Xw       0           0      0        Xw²   ]
+  row 3: [  Xy²+Xz²   -Xx·Xy      -Xx·Xz        0     -Xz·Xw    Xy·Xw ]
+  row 4: [ -Xx·Xy       Xx²+Xz²   -Xy·Xz        Xz·Xw  0       -Xx·Xw ]
+  row 5: [ -Xx·Xz      -Xy·Xz       Xx²+Xy²    -Xy·Xw  Xx·Xw    0     ]
+```
+
+### Block structure and the Hodge crossing in 3D
+
+The 6×6 matrix splits into four 3×3 blocks:
+
+```text
+        [ vx  vy  vz ]   [ mx  my  mz ]       ← Ω input
+   vx   [             |               ]
+   vy   [    0        |    m·I₃       ]   upper-right: angular vel → linear momentum
+   vz   [             |               ]
+        [ ------------|-------------- ]
+   mx   [             |               ]
+   my   [    m·J_rot  |    0          ]   lower-left: translational vel → angular momentum
+   mz   [             |               ]
+```
+
+- **Upper-left [0:3, 0:3] = 0**: no translational-to-translational coupling
+- **Upper-right [0:3, 3:6] = m·I₃**: angular velocity (e23/e31/e12, real lines)
+  → linear momentum (e41/e42/e43, ideal lines) via mass m
+- **Lower-left [3:6, 0:3] = m·J_rot**: translational velocity (e41/e42/e43)
+  → angular momentum (e23/e31/e12) via classical moments of inertia
+- **Lower-right [3:6, 3:6] = 0**: no rotational-to-rotational coupling
+
+The Hodge complement in PGA3DP swaps ideal lines (e41,e42,e43) ↔ real lines
+(e23,e31,e12). This places mass in the upper-right block (angular→linear) and moments of
+inertia in the lower-left block (translational→angular) — the exact 3D analogue of mass
+appearing off-diagonal in the 2D case.
+
+### Continuous limit: uniform rectangular cuboid
+
+For a cuboid of width w (e1), height h (e2), depth d (e3), mass m, centered at origin,
+all cross-inertia and center-of-mass terms vanish:
+
+```text
+I_cuboid = m *
+  [  0              0              0             1    0    0  ]
+  [  0              0              0             0    1    0  ]
+  [  0              0              0             0    0    1  ]
+  [ (h²+d²)/12      0              0             0    0    0  ]
+  [  0             (w²+d²)/12      0             0    0    0  ]
+  [  0              0             (w²+h²)/12     0    0    0  ]
+```
+
+J_rot diagonal entries are the classical rectangle-rule moments of inertia:
+
+| Entry | Value | Rotation axis | Perpendicular extents |
+| --- | --- | --- | --- |
+| `I[3,0]` | `m*(h^2+d^2)/12` | e1 (x-axis) | h (e2) and d (e3) |
+| `I[4,1]` | `m*(w^2+d^2)/12` | e2 (y-axis) | w (e1) and d (e3) |
+| `I[5,2]` | `m*(w^2+h^2)/12` | e3 (z-axis) | w (e1) and h (e2) |
+
+### Unified picture across 2D and 3D
+
+In both cases, mass enters where **Hodge-dual** spaces are connected:
+
+| Dimension | Mass coupling | Direction | Reason |
+| --- | --- | --- | --- |
+| PGA2DP | `I[0,1]=+m`, `I[1,0]=-m` | translational vel <-> linear momentum | e1<->e31, e2<->e23 are complements |
+| PGA3DP | `I[0,3]=I[1,4]=I[2,5]=m` | angular vel -> linear momentum | e23<->e41, e31<->e42, e12<->e43 are complements |
+
+Moments of inertia always appear where a component maps **to its own Hodge-dual in the
+output space**, i.e., at the rotational sub-block diagonal (2D: `I[2,2]`;
+3D: `I[3,0]`, `I[4,1]`, `I[5,2]`).
