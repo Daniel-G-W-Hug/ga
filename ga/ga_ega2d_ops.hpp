@@ -75,32 +75,9 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr T angle_to_re(MVec2d_E<T> const& v)
 {
-
-    // TODO: replace by atan2 funcion
-
-    using std::numbers::pi;
-    if (v.c0 > 0.0) {
-        // quadrant I & IV
-        return std::atan(v.c1 / v.c0);
-    }
-    if (v.c0 < 0.0 && v.c1 >= 0.0) {
-        // quadrant II
-        return std::atan(v.c1 / v.c0) + pi;
-    }
-    if (v.c0 < 0.0 && v.c1 < 0.0) {
-        // quadrant III
-        return std::atan(v.c1 / v.c0) - pi;
-    }
-    if (v.c0 == 0.0) {
-        // on y-axis
-        if (v.c1 > 0.0) {
-            return pi / 2.0;
-        }
-        if (v.c1 < 0.0) {
-            return -pi / 2.0;
-        }
-    }
-    return 0.0; // zero as input => define 0 as corresponding angle
+    // atan2 handles all quadrants, axes, and zero input correctly
+    // range: -pi <= angle <= pi
+    return std::atan2(v.c1, v.c0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
