@@ -104,6 +104,35 @@ of plate dimensions.
 | `I[2,0]`, `I[2,1]` | `~ position` | translational vel -> angular momentum | same coupling, transposed |
 | `I[2,2]` | `m*r^2` | angular vel -> angular momentum | rotational diagonal, classical m*r^2 |
 
+### Mapping classical quantities to PGA2DP
+
+Integrating `get_point_inertia(dm, X)` over a rigid body gives for an arbitrary body frame
+with center of mass at `(cx = (1/m)·∫x dm, cy = (1/m)·∫y dm)`:
+
+```text
+I = [  0      m       -m*cy        ]
+    [ -m      0        m*cx        ]
+    [ -m*cx  -m*cy    J_cm+m*r^2  ]
+```
+
+where `r^2 = cx^2+cy^2` and `J_cm` is the classical scalar moment of inertia about the CoM
+J_cm = ∫(x²+y²) dm.
+
+**In the body frame (CoM at origin, cx = cy = 0):**
+
+```text
+I_body = [  0    m    0 ]
+         [ -m    0    0 ]
+         [  0    0    J ]
+```
+
+| Classical quantity | PGA2DP entry | Condition |
+| --- | --- | --- |
+| Total mass `m` | `I[0,1]=+m`, `I[1,0]=-m` | always |
+| Scalar moment of inertia `J` about CoM | `I[2,2]=J` | CoM at origin |
+| CoM offset `(cx,cy)` | `I[0,2]=-m*cy`, `I[1,2]=+m*cx` (and transposed) | general frame |
+| Parallel axis correction | `I[2,2]=J_cm+m*(cx^2+cy^2)` | general frame |
+
 ---
 
 ## PGA3DP: 6×6 Inertia Map  `I[Ω]: BiVec3dp → BiVec3dp`
@@ -158,6 +187,39 @@ The Hodge complement in PGA3DP swaps ideal lines (e41,e42,e43) ↔ real lines
 inertia in the lower-left block (translational→angular) — the exact 3D analogue of mass
 appearing off-diagonal in the 2D case.
 
+### Mapping classical quantities to PGA3DP
+
+Integrating `get_point_inertia(dm, X)` over a rigid body gives for the **body frame
+(CoM at origin)**:
+
+```text
+         [ vx    vy    vz  |  mx    my    mz  ]
+  (e41)  [  0     0     0  |   m     0     0  ]
+  (e42)  [  0     0     0  |   0     m     0  ]   upper-right = m*I3
+  (e43)  [  0     0     0  |   0     0     m  ]
+         [-----------------|------------------]
+  (e23)  [ Ixx  -Ixy  -Ixz |   0     0     0  ]
+  (e31)  [-Ixy   Iyy  -Iyz |   0     0     0  ]   lower-left = J_cm
+  (e12)  [-Ixz  -Iyz   Izz |   0     0     0  ]
+```
+
+Classical 3D inertia tensor components:
+
+```text
+I_xx = integral(y^2+z^2) dm,   I_yy = integral(x^2+z^2) dm,   I_zz = integral(x^2+y^2) dm
+I_xy = integral(x*y) dm,       I_xz = integral(x*z) dm,       I_yz = integral(y*z) dm
+```
+
+| Classical quantity | PGA3DP block | Entries |
+| --- | --- | --- |
+| Total mass `m` | upper-right diagonal (m*I3) | `I[0,3]=I[1,4]=I[2,5]=m` |
+| Diagonal moments `I_xx, I_yy, I_zz` | lower-left diagonal | `I[3,0], I[4,1], I[5,2]` |
+| Products of inertia `I_xy, I_xz, I_yz` | lower-left off-diagonal | `I[3,1]=I[4,0]=-I_xy`, `I[3,2]=I[5,0]=-I_xz`, `I[4,2]=I[5,1]=-I_yz` |
+| CoM offset (general frame) | coupling in all four 3x3 blocks | via parallel axis theorem |
+
+Note: in the **principal-axis body frame** all products of inertia vanish (`I_xy=I_xz=I_yz=0`),
+leaving only the three diagonal moments — exactly the cuboid formula below.
+
 ### Continuous limit: uniform rectangular cuboid
 
 For a cuboid of width w (e1), height h (e2), depth d (e3), mass m, centered at origin,
@@ -183,13 +245,171 @@ J_rot diagonal entries are the classical rectangle-rule moments of inertia:
 
 ### Unified picture across 2D and 3D
 
-In both cases, mass enters where **Hodge-dual** spaces are connected:
+The basis ordering differs between 2D and 3D, which shifts where mass and moments appear:
 
-| Dimension | Mass coupling | Direction | Reason |
+**PGA2DP** — Vec2dp input (indices 0,1 = translational e1,e2; index 2 = angular e3),
+BiVec2dp output (indices 0,1 = linear momentum e31,e32; index 2 = angular momentum e12):
+
+- Mass occupies the **upper-left 2×2** (translational vel → linear momentum):
+  `I[0,1]=+m`, `I[1,0]=-m` — antisymmetric due to Hodge crossing `!e1=e32`, `!e2=-e31`
+- Moments occupy the **lower-right 1×1** (angular vel → angular momentum):
+  `I[2,2]=J` — Hodge crossing `!e3=-e12` connects angular velocity e3 to angular momentum e12
+
+**PGA3DP** — BiVec3dp input (indices 0-2 = translational e41,e42,e43; indices 3-5 = angular e23,e31,e12),
+BiVec3dp output (indices 0-2 = linear momentum e41,e42,e43; indices 3-5 = angular momentum e23,e31,e12):
+
+- Mass occupies the **upper-right 3×3** (angular vel → linear momentum):
+  `I[0,3]=I[1,4]=I[2,5]=m` — Hodge crossing `!e23=e41`, `!e31=e42`, `!e12=e43`
+- Moments occupy the **lower-left 3×3** (translational vel → angular momentum):
+  `I[3,0], I[4,1], I[5,2]` — classical J_cm diagonal
+
+In both cases mass is placed by `I_mass = -m * !` (negative Hodge complement) in the
+sub-block connecting the Hodge-dual pair of velocity and momentum spaces. The different
+block positions (upper-left in 2D vs upper-right in 3D) arise from the different basis
+orderings: in 2D translational generators are at lower indices (0,1) and angular at
+index 2; in 3D translational generators (e41,e42,e43) are at lower indices (0-2) and
+angular generators (e23,e31,e12) at higher indices (3-5).
+
+### Unified mapping: classical quantities to PGA (body frame, CoM at origin)
+
+| Classical quantity | PGA2DP (3x3) | PGA3DP (6x6) |
+| --- | --- | --- |
+| Total mass `m` | upper-left 2×2: `I[0,1]=+m`, `I[1,0]=-m` | upper-right 3×3: `I[0,3]=I[1,4]=I[2,5]=m` |
+| Scalar/diagonal moments `J` / `I_xx,I_yy,I_zz` | lower-right 1×1: `I[2,2]=J` | lower-left 3×3 diagonal: `I[3,0], I[4,1], I[5,2]` |
+| Products of inertia | n/a (scalar J in 2D) | lower-left 3×3 off-diagonal: `I[3,1]=I[4,0]=-I_xy`, `I[3,2]=I[5,0]=-I_xz`, `I[4,2]=I[5,1]=-I_yz` |
+| CoM offset (general frame) | `I[0,2], I[1,2], I[2,0], I[2,1]` non-zero | all four 3×3 blocks non-zero |
+
+---
+
+## General frame (CoM not at origin)
+
+### PGA2DP: general frame with CoM at (cx, cy)
+
+The 3×3 matrix splits into a (2+1)×(2+1) block structure:
+
+```text
+          [ trans (e1,e2) | angular (e3) ]
+trans     [   0    +m     |   -m·cy      ]   upper-left: mass (invariant)
+(e31,e32) [  -m     0     |   +m·cx      ]   upper-right: angular→linear coupling
+          [---------------|-------------]
+angular   [  -m·cx -m·cy  | J_cm+m·r²   ]   lower-left: trans→angular coupling
+(e12)                                        lower-right: moment (with parallel axis)
+```
+
+- **Upper-left 2×2** `[0, m; -m, 0]`: pure antisymmetric mass block — **frame-invariant**, always the same regardless of CoM position.
+- **Upper-right 2×1** `[-m·cy; m·cx]`: angular velocity → linear momentum coupling. Zero only when CoM is at origin. Encodes `L_linear = m·(ω × r_cm)`.
+- **Lower-left 1×2** `[-m·cx, -m·cy]`: translational velocity → angular momentum coupling. Transpose of upper-right (up to sign).
+- **Lower-right 1×1** `J_cm + m·(cx²+cy²)`: classical parallel axis theorem.
+
+The CoM offset `(cx, cy)` only populates the cross-coupling blocks; the mass block is rigid.
+
+### PGA3DP: general frame with CoM at r = (cx, cy, cz)
+
+The 6×6 matrix splits into four 3×3 blocks. In the body frame the upper-left and
+lower-right are zero; in a general frame they become antisymmetric cross-product matrices:
+
+```text
+         [ vx      vy      vz    |  mx      my      mz    ]
+(e41)    [   0    +m·cz  -m·cy   |   m       0       0    ]
+(e42)    [ -m·cz    0    +m·cx   |   0       m       0    ]   upper-right = m·I₃ (invariant)
+(e43)    [ +m·cy  -m·cx    0     |   0       0       m    ]
+         [---------------------- | ----------------------- ]
+(e23)    [ I_xx  -I_xy  -I_xz   |   0    -m·cz  +m·cy   ]
+(e31)    [-I_xy   I_yy  -I_yz   | +m·cz    0    -m·cx   ]   lower-right = -upper-left
+(e12)    [-I_xz  -I_yz   I_zz   | -m·cy  +m·cx    0     ]
+```
+
+where the lower-left inertia tensor entries include the parallel axis correction:
+
+```text
+I_xx = I_xx_cm + m·(cy²+cz²)       I_xy = I_xy_cm + m·cx·cy
+I_yy = I_yy_cm + m·(cx²+cz²)       I_xz = I_xz_cm + m·cx·cz
+I_zz = I_zz_cm + m·(cx²+cy²)       I_yz = I_yz_cm + m·cy·cz
+```
+
+Block summary for the general frame:
+
+| Block | Body frame | General frame | Physical meaning |
 | --- | --- | --- | --- |
-| PGA2DP | `I[0,1]=+m`, `I[1,0]=-m` | translational vel <-> linear momentum | e1<->e31, e2<->e23 are complements |
-| PGA3DP | `I[0,3]=I[1,4]=I[2,5]=m` | angular vel -> linear momentum | e23<->e41, e31<->e42, e12<->e43 are complements |
+| Upper-left [0:3, 0:3] | `0` | `m·[r×]ᵀ` | translational vel → linear mom (CoM coupling) |
+| Upper-right [0:3, 3:6] | `m·I₃` | `m·I₃` | angular vel → linear mom (always m, invariant) |
+| Lower-left [3:6, 0:3] | `J_cm` | `J_cm + parallel axis` | translational vel → angular mom |
+| Lower-right [3:6, 3:6] | `0` | `m·[r×]` | angular vel → angular mom (CoM coupling) |
 
-Moments of inertia always appear where a component maps **to its own Hodge-dual in the
-output space**, i.e., at the rotational sub-block diagonal (2D: `I[2,2]`;
-3D: `I[3,0]`, `I[4,1]`, `I[5,2]`).
+where `[r×]` is the 3×3 antisymmetric cross-product matrix of the CoM position vector:
+
+```text
+[r×] = [  0   -cz   cy ]
+       [  cz    0  -cx ]
+       [ -cy   cx    0 ]
+```
+
+Note that **upper-left = −lower-right = lower-right^T**: the two coupling blocks are the
+same antisymmetric matrix with opposite sign. This reflects the fact that the coupling
+from translational velocity to linear momentum and from angular velocity to angular
+momentum are both driven by the same CoM offset — they are conjugate couplings.
+
+The upper-right `m·I₃` block is **frame-invariant**: it always equals `m·I₃` regardless
+of where the CoM is, because mass is a Hodge-dual coupling between ideal and real lines
+that does not depend on position.
+
+This 6×6 structure is the PGA form of the classical **spatial inertia matrix** from
+rigid body dynamics (Featherstone notation), expressed in the (translational, angular)
+velocity ordering of PGA3DP.
+
+### Considerations for comparison of classical inertia and the pga version
+
+PGA2DP — 3×3 matrix
+
+Integrating get_point_inertia(dm, X) over a body gives:
+
+I = [ 0       m        -m·cy  ]
+    [ -m      0         m·cx  ]
+    [ -m·cx  -m·cy   J_origin ]
+where cx = (1/m)·∫x dm, cy = (1/m)·∫y dm (center of mass), and J_origin = ∫(x²+y²) dm.
+
+By the parallel axis theorem: J_origin = J_cm + m·(cx²+cy²).
+
+In the body frame (CoM at origin): cx = cy = 0, so:
+
+I_body = [ 0    m    0  ]
+         [ -m   0    0  ]
+         [ 0    0    J  ]
+The mapping from classical to PGA2DP is then simply:
+
+Classical quantity PGA2DP location
+mass m I[0,1] = +m, I[1,0] = -m
+scalar moment of inertia J about CoM I[2,2] = J
+CoM offset if not at origin I[0,2] = -m·cy, I[1,2] = m·cx, and transposed; I[2,2] = J_cm + m·r²
+PGA3DP — 6×6 matrix
+
+Integrating get_point_inertia(dm, X) over a body, for a body with CoM at origin:
+
+         [ vx  vy  vz | mx  my  mz ]
+   (e41) [  0   0   0 |  m   0   0  ]   upper-right = m·I₃
+   (e42) [  0   0   0 |  0   m   0  ]
+   (e43) [  0   0   0 |  0   0   m  ]
+         [-----------+------------  ]
+   (e23) [ Ixx -Ixy -Ixz|  0   0   0  ]  lower-left = classical J_cm
+   (e31) [-Ixy  Iyy -Iyz|  0   0   0  ]
+   (e12) [-Ixz -Iyz  Izz|  0   0   0  ]
+where J_cm is the classical 3D inertia tensor about the CoM:
+
+J_cm = [ I_xx  -I_xy  -I_xz ]      with  I_xx = ∫(y²+z²) dm
+       [-I_xy   I_yy  -I_yz ]            I_yy = ∫(x²+z²) dm
+       [-I_xz  -I_yz   I_zz ]            I_zz = ∫(x²+y²) dm
+                                          I_xy = ∫xy dm,  etc.
+The mapping from classical to PGA3DP (body frame, CoM at origin):
+
+Classical quantity PGA3DP location
+mass m upper-right diagonal: I[0,3]=I[1,4]=I[2,5]=m
+diagonal moments I_xx, I_yy, I_zz I[3,0], I[4,1], I[5,2]
+products of inertia I_xy, I_xz, I_yz off-diagonal of lower-left: I[3,1]=I[4,0]=-I_xy, etc.
+CoM offset if not at origin coupling terms appear in all four 3×3 blocks
+Unified pattern across 2D and 3D:
+
+The PGA inertia matrix in the body frame (CoM at origin) always decomposes cleanly:
+
+Mass occupies the Hodge-dual block (off-diagonal 2D, upper-right 3D) — because Newton's p = m·v crosses dual spaces
+Moments of inertia occupy the same-grade block (diagonal 2D at [2,2], lower-left 3×3 in 3D) — these connect translational velocity to angular momentum
+All products of inertia (off-diagonal in J_cm) vanish in the body principal-axis frame — just as classically
