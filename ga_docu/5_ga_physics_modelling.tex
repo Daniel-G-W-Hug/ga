@@ -879,3 +879,443 @@ approaches, the classical approach and the approach directly formulated in $PGA$
 simple reference cases. \\
 
 \newpage
+
+\subsubsection{Structure of inertia and inertia maps}
+\label{subsubsection_structure_inertia_maps}
+
+The inertia map $I[\Omega]$ derived in the preceding subsections is a linear map that
+takes the velocity twist $\Omega$ of a rigid body and returns its momentum wrench $P =
+I[\Omega]$. Its matrix representation -- shown in
+eqns.~(\ref{eq:intertia_map_components_2D}) and (\ref{eq:intertia_map_components_3D}) --
+encodes mass, scalar moment of inertia, and the full classical inertia tensor in a single
+algebraic object. However, the classical quantities do not sit where standard intuition
+might suggest: mass does not appear on the diagonal, and moments of inertia do not appear
+in the block connecting forces to accelerations of the same type. \\
+
+The placement of each entry is determined by two ingredients: the choice of basis for the
+domain and codomain of the inertia map, and the complement structure of the respective
+algebra. The right complement $\rcmpl{(\cdot)}$ maps each basis element to its complement
+in the algebra. In $PGA$ the translational and rotational generators live in dual
+subspaces -- ideal lines are dual to real lines -- so the mass contribution, which couples
+velocity to momentum across dual subspaces, always lands in an off-diagonal block. The
+following paragraphs explain this structure first for $2D$, then for $3D$, and conclude
+with a unified comparison. \\
+
+\emph{$PGA2DP$: structure of the 2D inertia map.}
+In $2D$ $PGA$ the velocity twist $\Omega$ is a vector and the momentum wrench $P$ is a
+bivector, so the inertia map crosses two different grades:
+\begin{equation}
+    I_{2D}[\Omega] : \mathrm{Vec2dp} \to \mathrm{BiVec2dp}
+\end{equation}
+The basis elements and their physical roles are listed in Table~\ref{tab:basis_pga2dp}.
+
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{c|p{5.5cm}|p{5.5cm}}
+\hline
+Index & Vec2dp input (velocity twist $\Omega$) & BiVec2dp output (momentum wrench $P$) \\
+\hline
+0 & $\bv{1}$ -- translational velocity, $x$-direction & $\bv{31}$ -- $x$-momentum line \\
+1 & $\bv{2}$ -- translational velocity, $y$-direction & $\bv{32}$ -- $y$-momentum line \\
+2 & $\bv{3}$ -- projective direction, angular velocity  & $\bv{12}$ -- ideal line, angular momentum \\
+\hline
+\end{tabular}
+\caption{Basis correspondence for the $PGA2DP$ inertia map.}
+\label{tab:basis_pga2dp}
+\end{table}
+
+For a unitized point $(X_x, X_y, X_z)$ with projective coordinate $X_z = 1$ and mass $m$,
+the inertia matrix from eqn.~(\ref{eq:intertia_map_components_2D}) simplifies to
+\begin{equation}
+    I_{2D} = m
+    \begin{bmatrix}
+        0    &  1   & -X_y           \\
+        -1   &  0   &  X_x           \\
+        -X_x & -X_y & X_x^2 + X_y^2
+    \end{bmatrix}
+    \label{eq:inertia_2D_unitized}
+\end{equation}
+where rows correspond to output components ($\bv{31}$, $\bv{32}$, $\bv{12}$) and columns
+to input components ($\Omega_x$, $\Omega_y$, $\Omega_z$). \\
+
+\emph{Why mass is off-diagonal.} The mass contribution to the inertia map takes the form
+$I_\mathrm{mass}(\Omega) = -m \cdot \rcmpl{\Omega}$, where $\rcmpl{(\cdot)}$ denotes the
+complement in $PGA2DP$. The complement of the translational basis vectors crosses indices:
+\begin{equation}
+    \rcmpl{\bv{1}} = \bv{32}, \qquad \rcmpl{\bv{2}} = -\bv{31}
+    \label{eq:dual_pga2dp}
+\end{equation}
+Applying $I_\mathrm{mass} = -m \cdot \rcmpl{(\cdot)}$ gives the following contributions:
+\begin{itemize}
+    \item $\Omega_x$ (component along $\bv{1}$, column~0) maps to $-m \cdot \bv{32}$,
+    landing at output row~1 $\rightarrow$ $I[1,0] = -m$.
+    \item $\Omega_y$ (component along $\bv{2}$, column~1) maps to $-m \cdot (-\bv{31})
+    = +m \cdot \bv{31}$, landing at output row~0 $\rightarrow$ $I[0,1] = +m$.
+\end{itemize}
+The diagonal entries $I[0,0]$ and $I[1,1]$ are zero because the complement of $\bv{1}$ is
+$\bv{32}$ (not $\bv{31}$) and the complement of $\bv{2}$ is $-\bv{31}$ (not $\bv{32}$):
+there is no self-coupling. This is a direct consequence of the degenerate metric $\bv{3}^2
+= 0$. \\
+
+The resulting mass block is antisymmetric with $I[0,1] = +m$ and $I[1,0] = -m$. The sign
+structure is consistent with the kinematic encoding: the motor-generator $\Omega$ for a
+pure translation with classical velocity $(v_x, v_y)$ is encoded in $PGA2DP$ as $\Omega =
+(-v_y, v_x, 0)$. The two sign flips cancel and the classical linear momentum $p_x = mv_x$,
+$p_y = mv_y$ is correctly recovered. In any other context -- position, force, acceleration
+-- $\bv{1}$ always encodes the $x$-component and $\bv{2}$ the $y$-component. \\
+
+\emph{Moment of inertia and cross-coupling terms.} The entry $I[2,2] = m(X_x^2 + X_y^2) =
+mr^2$ maps angular velocity ($\bv{3}$, index~2) to angular momentum ($\bv{12}$, index~2),
+recovering the classical scalar moment of inertia $J = mr^2$ for a point mass at distance
+$r$ from the rotation center. The complement of $\bv{3}$ is $\rcmpl{\bv{3}} = -\bv{12}$,
+which connects the angular velocity generator directly to the angular momentum carrier;
+the sign is absorbed into the definition so that $J > 0$. The entries $I[0,2] = -mX_y$ and
+$I[1,2] = +mX_x$ couple angular velocity to linear momentum, encoding the classical
+relation $\vec{L}_\mathrm{linear} = m(\vec{\omega} \times \vec{r})$ for a body rotating at
+offset $(X_x, X_y)$ from the rotation center. These entries, together with their
+transposes $I[2,0]$ and $I[2,1]$, vanish when the point is at the origin. \\
+
+\emph{Body-frame inertia matrix.} Integrating the single-point formula over a rigid body
+with center of mass at the origin (body frame) gives:
+\begin{equation}
+    I_\mathrm{body} =
+    \begin{bmatrix}
+        0  &  m  &  0 \\
+        -m &  0  &  0 \\
+        0  &  0  &  J
+    \end{bmatrix}
+    \label{eq:inertia_2D_body}
+\end{equation}
+where $J = \int_m (x^2 + y^2)\,dm$ is the classical scalar moment of inertia about the
+center of mass. The antisymmetric mass block (upper-left $2\times2$) and the moment of
+inertia entry (lower-right $1\times1$) are cleanly separated: translational and rotational
+degrees of freedom decouple at the center of mass, exactly as in classical mechanics. \\
+
+\emph{General frame with center of mass at $(c_x, c_y)$.} When the chosen reference point
+does not coincide with the center of mass, the integrated inertia matrix is:
+\begin{equation}
+    I =
+    \begin{bmatrix}
+        0      &  m     & -m c_y                              \\
+        -m     &  0     &  m c_x                              \\
+        -m c_x & -m c_y & J_\mathrm{cm} + m(c_x^2 + c_y^2)
+    \end{bmatrix}
+    \label{eq:inertia_2D_general}
+\end{equation}
+where $J_\mathrm{cm}$ is the scalar moment of inertia about the center of mass and $r^2 =
+c_x^2 + c_y^2$ is the squared distance from the center of mass to the reference point. The
+matrix decomposes into the following sub-blocks:
+\begin{itemize}
+    \item \emph{Upper-left $2\times2$} $[0, m;\; -m, 0]$: the antisymmetric mass block.
+    It is \emph{frame-invariant} -- its values are unchanged regardless of where the
+    center of mass is located.
+    \item \emph{Upper-right $2\times1$} $[-mc_y;\; mc_x]$: angular velocity $\to$ linear
+    momentum coupling. Encodes $\vec{L}_\mathrm{linear} = m(\vec{\omega} \times
+    \vec{r}_\mathrm{cm})$. Zero only when the center of mass coincides with the reference
+    point.
+    \item \emph{Lower-left $1\times2$} $[-mc_x,\; -mc_y]$: translational velocity $\to$
+    angular momentum coupling. Transpose of the upper-right block (up to sign convention).
+    \item \emph{Lower-right $1\times1$}: $J_\mathrm{cm} + m(c_x^2 + c_y^2)$ -- the
+    classical parallel axis theorem applied to the scalar moment of inertia.
+\end{itemize}
+
+\emph{Continuous limit: uniform rectangular plate.} As a verification, integrating over a
+uniform plate of width $W$ (along $\bv{1}$), height $H$ (along $\bv{2}$), total mass $M$,
+centerd at the origin gives:
+\begin{equation}
+    I_\mathrm{plate} = M
+    \begin{bmatrix}
+        0  &  1  &  0 \\
+        -1 &  0  &  0 \\
+        0  &  0  & \dfrac{W^2 + H^2}{12}
+    \end{bmatrix}
+    \label{eq:inertia_plate}
+\end{equation}
+The entry $I[2,2] = M(W^2+H^2)/12$ is the standard formula for the moment of inertia of a
+uniform rectangle about its centroidal axis. For a discrete endpoint-inclusive grid of $n
+\times n$ equally spaced point masses, the relative error in $I[2,2]$ compared to the
+continuous value is $2/(n-1)$, independent of plate dimensions, converging from above as
+$n \to \infty$. \\
+
+Table~\ref{tab:classical_pga2dp} summarises the classical inertial quantities and their
+locations in the $PGA2DP$ inertia matrix.
+
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{p{4cm}|p{5.5cm}|p{2.8cm}}
+\hline
+Classical quantity & $PGA2DP$ entry & Condition \\
+\hline
+Total mass $m$ & $I[0,1] = +m$,\; $I[1,0] = -m$ & Always \\
+Scalar moment $J$ about CoM & $I[2,2] = J$ & CoM at origin \\
+CoM offset $(c_x, c_y)$ & $I[0,2] = -mc_y$,\; $I[1,2] = +mc_x$ (and transposed) & General
+frame \\
+Parallel axis correction & $I[2,2] = J_\mathrm{cm} + m(c_x^2 + c_y^2)$ & General frame \\
+\hline
+\end{tabular}
+\caption{Classical inertial quantities and their location in the $PGA2DP$ $3\times3$
+inertia matrix.}
+\label{tab:classical_pga2dp}
+\end{table}
+
+\emph{$PGA3DP$: structure of the 3D inertia map.}
+In $3D$ $PGA$ both the velocity twist $\Omega$ and the momentum wrench $P$ are bivectors,
+so the inertia map acts within the same grade:
+\begin{equation}
+    I_{3D}[\Omega] : \mathrm{BiVec3dp} \to \mathrm{BiVec3dp}
+\end{equation}
+The six basis bivectors split into two groups: \emph{ideal lines} ($\bv{41}$, $\bv{42}$,
+$\bv{43}$, containing the projective direction $\bv{4}$ which squares to zero) carrying
+translational information, and \emph{real lines} ($\bv{23}$, $\bv{31}$, $\bv{12}$) of the
+Euclidean subspace carrying rotational information. Their physical roles are listed in
+Table~\ref{tab:basis_pga3dp}.
+
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{c|p{5.7cm}|p{5.7cm}}
+\hline
+Index & BiVec3dp input (velocity twist $\Omega$) & BiVec3dp output (momentum wrench $P$)
+\\
+\hline
+0 & $\bv{41}$ -- ideal line, translational velocity $x$ & $\bv{41}$ -- linear momentum $x$
+\\
+1 & $\bv{42}$ -- ideal line, translational velocity $y$ & $\bv{42}$ -- linear momentum $y$
+\\
+2 & $\bv{43}$ -- ideal line, translational velocity $z$ & $\bv{43}$ -- linear momentum $z$
+\\
+3 & $\bv{23}$ -- real line, angular velocity about $\bv{1}$ & $\bv{23}$ -- angular
+momentum about $\bv{1}$ \\
+4 & $\bv{31}$ -- real line, angular velocity about $\bv{2}$ & $\bv{31}$ -- angular
+momentum about $\bv{2}$ \\
+5 & $\bv{12}$ -- real line, angular velocity about $\bv{3}$ & $\bv{12}$ -- angular
+momentum about $\bv{3}$ \\
+\hline
+\end{tabular}
+\caption{Basis correspondence for the $PGA3DP$ inertia map.}
+\label{tab:basis_pga3dp}
+\end{table}
+
+The $6\times6$ inertia matrix from eqn.~(\ref{eq:intertia_map_components_3D}) for a
+unitized point with $X_w = 1$ is:
+\begin{align}
+    I_{3D} = m
+    \begin{bmatrix}
+      0              &  X_z           & -X_y           & 1    &  0   &  0   \\
+      -X_z           &  0             &  X_x           & 0    &  1   &  0   \\
+       X_y           & -X_x           &  0             & 0    &  0   &  1   \\
+       X_y^2 + X_z^2 & -X_x X_y       & -X_x X_z       & 0    & -X_z &  X_y \\
+      -X_x X_y       &  X_x^2 + X_z^2 & -X_y X_z       & X_z  &  0   & -X_x \\
+      -X_x X_z       & -X_y X_z       &  X_x^2 + X_y^2 & -X_y &  X_x &  0
+    \end{bmatrix}
+    \label{eq:inertia_3D_unitized}
+\end{align}
+where columns correspond to ($\Omega_{vx}$, $\Omega_{vy}$, $\Omega_{vz}$, $\Omega_{mx}$,
+$\Omega_{my}$, $\Omega_{mz}$) and rows to the same ordering for $P$. \\
+
+\emph{Block structure and the complement in 3D.} The $6\times6$ matrix decomposes into
+four $3\times3$ blocks with distinct physical roles:
+\begin{itemize}
+    \item \emph{Upper-left [0:3, 0:3]}: translational velocity $\to$ linear momentum. For
+    a point at the origin this block is zero. For a point displaced to $(X_x, X_y, X_z)$
+    it becomes the antisymmetric cross-product matrix $[X\times]$, encoding the linear
+    momentum contribution due to the off-axis position.
+    \item \emph{Upper-right [0:3, 3:6]}: angular velocity $\to$ linear momentum. For a
+    unitized point ($X_w = 1$) this block equals $m\,\mathbf{I}_3$ (mass times the
+    $3\times3$ identity). This is the $3D$ analogue of the off-diagonal mass entries in
+    the $2D$ case.
+    \item \emph{Lower-left [3:6, 0:3]}: translational velocity $\to$ angular momentum.
+    This block carries the classical moments and products of inertia.
+    \item \emph{Lower-right [3:6, 3:6]}: angular velocity $\to$ angular momentum. Zero for
+    a point at the origin; becomes antisymmetric for a displaced center of mass.
+\end{itemize}
+
+The placement of mass in the upper-right block follows from the complement in $PGA3DP$,
+which maps real lines to ideal lines:
+\begin{equation}
+    \rcmpl{\bv{23}} = \bv{41}, \quad \rcmpl{\bv{31}} = \bv{42}, \quad
+    \rcmpl{\bv{12}} = \bv{43}
+    \label{eq:dual_pga3dp}
+\end{equation}
+Applying $I_\mathrm{mass} = -m \cdot \rcmpl{(\cdot)}$ maps each angular velocity component
+to the corresponding linear momentum component, placing $m$ on the diagonal of the
+upper-right block: $I[0,3] = I[1,4] = I[2,5] = m$. The diagonal entries of the upper-left
+and lower-right blocks are zero by the same degenerate-metric argument as in $2D$. \\
+
+\emph{Body-frame inertia matrix.} Integrating the single-point formula over a rigid body
+with center of mass at the origin gives:
+\begin{equation}
+    I_\mathrm{body} =
+    \begin{bmatrix}
+        0       & 0       & 0       &  m   & 0    & 0    \\
+        0       & 0       & 0       &  0   & m    & 0    \\
+        0       & 0       & 0       &  0   & 0    & m    \\
+        I_{xx}  & -I_{xy} & -I_{xz} &  0   & 0    & 0    \\
+        -I_{xy} &  I_{yy} & -I_{yz} &  0   & 0    & 0    \\
+        -I_{xz} & -I_{yz} &  I_{zz} &  0   & 0    & 0
+    \end{bmatrix}
+    \label{eq:inertia_3D_body}
+\end{equation}
+written in block form as $I_\mathrm{body} = [\mathbf{0},\; m\mathbf{I}_3;\;
+\mathbf{J}_{cm},\; \mathbf{0}]$, where $\mathbf{J}_{cm}$ is the classical $3\times3$
+inertia tensor about the center of mass:
+\begin{equation}
+    \mathbf{J}_{cm} =
+    \begin{bmatrix}
+        I_{xx}  & -I_{xy} & -I_{xz} \\
+        -I_{xy} &  I_{yy} & -I_{yz} \\
+        -I_{xz} & -I_{yz} &  I_{zz}
+    \end{bmatrix}
+    \label{eq:classical_inertia_tensor}
+\end{equation}
+with the classical integrals for the diagonal moments $I_{xx} = \int_m (y^2+z^2)\,dm$,
+$I_{yy} = \int_m (x^2+z^2)\,dm$, $I_{zz} = \int_m (x^2+y^2)\,dm$ and the off-diagonal
+products of inertia $I_{xy} = \int_m xy\,dm$, $I_{xz} = \int_m xz\,dm$, $I_{yz} = \int_m
+yz\,dm$. Translational and rotational degrees of freedom decouple at the center of mass:
+the diagonal blocks are zero and all physical content sits in the off-diagonal blocks. \\
+
+\emph{General frame with center of mass at $\vec{r}_{cm} = (c_x, c_y, c_z)$.} In a general
+frame all four $3\times3$ blocks are non-zero:
+\begin{equation}
+    I =
+    \begin{bmatrix}
+        0       &  m c_z   & -m c_y   &  m   &  0     &  0     \\
+        -m c_z  &  0       &  m c_x   &  0   &  m     &  0     \\
+         m c_y  & -m c_x   &  0       &  0   &  0     &  m     \\
+        I_{xx}  & -I_{xy}  & -I_{xz}  &  0   & -m c_z &  m c_y \\
+        -I_{xy} &  I_{yy}  & -I_{yz}  &  m c_z &  0   & -m c_x \\
+        -I_{xz} & -I_{yz}  &  I_{zz}  & -m c_y &  m c_x &  0
+    \end{bmatrix}
+    \label{eq:inertia_3D_general}
+\end{equation}
+where the lower-left inertia tensor entries include the classical parallel axis
+corrections:
+\begin{align}
+    I_{xx} &= I_{xx,cm} + m(c_y^2 + c_z^2), \quad &I_{xy} &= I_{xy,cm} + m c_x c_y \nonumber \\
+    I_{yy} &= I_{yy,cm} + m(c_x^2 + c_z^2), \quad &I_{xz} &= I_{xz,cm} + m c_x c_z \label{eq:parallel_axis_3D} \\
+    I_{zz} &= I_{zz,cm} + m(c_x^2 + c_y^2), \quad &I_{yz} &= I_{yz,cm} + m c_y c_z \nonumber
+\end{align}
+Two structural features carry over from the $2D$ case:
+\begin{itemize}
+    \item \emph{The upper-right block $m\,\mathbf{I}_3$ is frame-invariant.} It remains
+    equal to $m\,\mathbf{I}_3$ regardless of the center-of-mass position. Mass is a dual
+    coupling between ideal and real lines that does not depend on position. This is the
+    $3D$ counterpart of the invariant antisymmetric mass block in $2D$.
+    \item \emph{The upper-left and lower-right blocks are conjugate antisymmetric
+    matrices.} Upper-left~$= m[\vec{r}_{cm}\times]^\top$ and lower-right~$=
+    m[\vec{r}_{cm}\times]$, where $[\vec{r}_{cm}\times]$ is the $3\times3$ antisymmetric
+    cross-product matrix of the center-of-mass position vector. Both blocks are driven by
+    the same offset $\vec{r}_{cm}$, reflecting that the translational-to-translational and
+    angular-to-angular couplings induced by the offset are conjugate couplings.
+\end{itemize}
+
+This $6\times6$ structure is the $PGA$ form of the classical spatial inertia matrix from
+rigid body dynamics~\cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023}, expressed in
+the (translational, angular) velocity ordering of $PGA3DP$. \\
+
+\emph{Continuous limit: uniform rectangular cuboid.} For a uniform cuboid of width $w$
+(along $\bv{1}$), height $h$ (along $\bv{2}$), depth $d$ (along $\bv{3}$), total mass $m$,
+centerd at the origin, all cross-inertia and center-of-mass coupling terms vanish:
+\begin{equation}
+    I_\mathrm{cuboid} = m
+    \begin{bmatrix}
+        0 & 0 & 0 & 1 & 0 & 0 \\[4pt]
+        0 & 0 & 0 & 0 & 1 & 0 \\[4pt]
+        0 & 0 & 0 & 0 & 0 & 1 \\[4pt]
+        \dfrac{h^2+d^2}{12} & 0 & 0 & 0 & 0 & 0 \\[10pt]
+        0 & \dfrac{w^2+d^2}{12} & 0 & 0 & 0 & 0 \\[10pt]
+        0 & 0 & \dfrac{w^2+h^2}{12} & 0 & 0 & 0
+    \end{bmatrix}
+    \label{eq:inertia_cuboid}
+\end{equation}
+The three diagonal entries of the lower-left block are the classical rectangular moments
+of inertia: $I[3,0] = m(h^2+d^2)/12$ about the $x$-axis, $I[4,1] = m(w^2+d^2)/12$ about
+the $y$-axis, and $I[5,2] = m(w^2+h^2)/12$ about the $z$-axis -- each determined by the
+two extents of the body perpendicular to the respective rotation axis, as in the classical
+formula. \\
+
+Table~\ref{tab:classical_pga3dp} gives the correspondence between classical inertial
+quantities and their location in the $PGA3DP$ inertia matrix.
+
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{p{3.1cm}|p{4.6cm}|p{4.7cm}}
+\hline
+Classical quantity & $PGA3DP$ block & Entries (body frame, CoM at origin) \\
+\hline
+Total mass $m$ & Upper-right diagonal ($m\mathbf{I}_3$) & $I[0,3]=I[1,4]=I[2,5]=m$ \\
+Diagonal moments $I_{xx}, I_{yy}, I_{zz}$ & Lower-left diagonal & $I[3,0],\; I[4,1],\;
+I[5,2]$ \\
+Products of inertia $I_{xy}, I_{xz}, I_{yz}$ & Lower-left off-diagonal &
+$I[3,1]=I[4,0]=-I_{xy}$, etc. \\
+CoM offset (general frame) & All four $3\times3$ blocks & via parallel axis theorem \\
+\hline
+\end{tabular}
+\caption{Classical inertial quantities and their location in the $PGA3DP$ $6\times6$
+inertia matrix (body frame, center of mass at origin).}
+\label{tab:classical_pga3dp}
+\end{table}
+
+\emph{Unified view: 2D and 3D.}
+In both $PGA2DP$ and $PGA3DP$ the mass contribution to the inertia map takes the same
+algebraic form:
+\begin{equation}
+    I_\mathrm{mass}(\Omega) = -m \cdot \rcmpl{\Omega}
+    \label{eq:inertia_mass_dual}
+\end{equation}
+The complement maps each velocity generator to its momentum carrier in the dual subspace,
+placing mass in the off-diagonal block that connects dual velocity and momentum spaces.
+The location of that block in the matrix depends on the basis ordering. \\
+
+In $PGA2DP$ the translational generators ($\bv{1}$, $\bv{2}$, indices 0--1) sit at lower
+indices and the rotational generator ($\bv{3}$, index~2) sits at the highest index. The
+complement maps translational inputs to translational outputs while crossing $x$ and $y$,
+placing mass in the \emph{upper-left $2\times2$} sub-block (translational velocity $\to$
+linear momentum). \\
+
+In $PGA3DP$ the translational generators ($\bv{41}$, $\bv{42}$, $\bv{43}$, indices 0--2)
+are ideal lines at lower indices, while the rotational generators ($\bv{23}$, $\bv{31}$,
+$\bv{12}$, indices 3--5) are real lines at higher indices. The complement maps real-line
+inputs (angular velocity) to ideal-line outputs (linear momentum), placing mass in the
+\emph{upper-right $3\times3$} sub-block (angular velocity $\to$ linear momentum). \\
+
+Table~\ref{tab:unified_pga} gives the side-by-side comparison for the body frame (center
+of mass at origin).
+
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{p{3.1cm}|p{4.1cm}|p{5.1cm}}
+\hline
+Classical quantity & $PGA2DP$ ($3\times3$) & $PGA3DP$ ($6\times6$) \\
+\hline
+Total mass $m$ &
+    Upper-left $2\times2$: $I[0,1]=+m$, $I[1,0]=-m$ &
+    Upper-right $3\times3$ diag.: $I[0,3]=I[1,4]=I[2,5]=m$ \\
+Scalar/diagonal moments &
+    Lower-right $1\times1$: $I[2,2]=J$ &
+    Lower-left $3\times3$ diag.: $I[3,0], I[4,1], I[5,2]$ \\
+Products of inertia &
+    n/a (scalar $J$ in $2D$) &
+    Lower-left $3\times3$ off-diagonal \\
+CoM coupling &
+    $I[0,2], I[1,2]$ and transposed &
+    All four $3\times3$ blocks non-zero \\
+Parallel axis &
+    $I[2,2] = J_\mathrm{cm} + mr^2$ &
+    Lower-left $3\times3$ (3D formula) \\
+\hline
+\end{tabular}
+\caption{Unified mapping of classical inertial quantities to the $PGA$ inertia matrix
+(body frame, center of mass at origin).}
+\label{tab:unified_pga}
+\end{table}
+
+The frame-invariance of the mass block and the decoupling at the center of mass are common
+to both dimensions. In the body frame with the origin at the center of mass -- the natural
+choice for integrating eqn.~(\ref{eq:ode_system_body_frame}) -- the coupling blocks
+vanish, the mass block takes its simplest form, and the moment block reduces to $J$ (in
+$2D$) or $\mathbf{J}_{cm}$ (in $3D$) without any parallel axis corrections. This matches
+the classical result that Newton's and Euler's equations decouple at the center of mass,
+and it is the reason the body frame with the center of mass at the origin is used as the
+preferred reference frame throughout this section. \\
+
+\newpage

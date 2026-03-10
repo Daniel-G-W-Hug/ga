@@ -206,8 +206,8 @@ Integrating `get_point_inertia(dm, X)` over a rigid body gives for the **body fr
 Classical 3D inertia tensor components:
 
 ```text
-I_xx = integral(y^2+z^2) dm,   I_yy = integral(x^2+z^2) dm,   I_zz = integral(x^2+y^2) dm
-I_xy = integral(x*y) dm,       I_xz = integral(x*z) dm,       I_yz = integral(y*z) dm
+I_xx = ∫(y²+z²) dm,   I_yy = ∫(x²+z²) dm,   I_zz = ∫(x²+y²) dm
+I_xy = ∫xy dm,        I_xz = ∫xz dm,        I_yz = ∫yz dm
 ```
 
 | Classical quantity | PGA3DP block | Entries |
@@ -359,7 +359,7 @@ velocity ordering of PGA3DP.
 
 ### Considerations for comparison of classical inertia and the pga version
 
-PGA2DP — 3×3 matrix
+## PGA2DP — 3×3 matrix
 
 Integrating get_point_inertia(dm, X) over a body gives:
 
@@ -380,8 +380,10 @@ The mapping from classical to PGA2DP is then simply:
 Classical quantity PGA2DP location
 mass m I[0,1] = +m, I[1,0] = -m
 scalar moment of inertia J about CoM I[2,2] = J
-CoM offset if not at origin I[0,2] = -m·cy, I[1,2] = m·cx, and transposed; I[2,2] = J_cm + m·r²
-PGA3DP — 6×6 matrix
+CoM offset if not at origin I[0,2] = -m·cy, I[1,2] = m·cx, and transposed; I[2,2] = J_cm +
+m·r²
+
+## PGA3DP — 6×6 matrix
 
 Integrating get_point_inertia(dm, X) over a body, for a body with CoM at origin:
 
@@ -410,6 +412,8 @@ Unified pattern across 2D and 3D:
 
 The PGA inertia matrix in the body frame (CoM at origin) always decomposes cleanly:
 
-Mass occupies the Hodge-dual block (off-diagonal 2D, upper-right 3D) — because Newton's p = m·v crosses dual spaces
-Moments of inertia occupy the same-grade block (diagonal 2D at [2,2], lower-left 3×3 in 3D) — these connect translational velocity to angular momentum
-All products of inertia (off-diagonal in J_cm) vanish in the body principal-axis frame — just as classically
+Mass occupies the Hodge-dual block (off-diagonal 2D, upper-right 3D) — because Newton's p
+= m·v crosses dual spaces Moments of inertia occupy the same-grade block (diagonal 2D at
+[2,2], lower-left 3×3 in 3D) — these connect translational velocity to angular momentum
+All products of inertia (off-diagonal in J_cm) vanish in the body principal-axis frame —
+just as classically
