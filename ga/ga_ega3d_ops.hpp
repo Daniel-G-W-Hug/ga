@@ -15,7 +15,8 @@ namespace hd::ga::ega {
 // provides ega3d functionality that is based on ega3d ops basics and products:
 //
 // - angle()                        -> angle operations
-// - exp()                          -> exponential function
+// - exp(bivec) -> rotor            -> exponential function (w.r.t. gpr)
+// - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
 // - get_rotor()                    -> provide a rotor
 // - rotate(), rotate_opt()         -> rotate object with rotor (sandwich + optimized)
 // - project_onto(), reject_from()  -> projection and rejection
@@ -136,6 +137,59 @@ inline std::common_type_t<T, U> angle(BiVec3d<T> const& B, Vec3d<U> const& v)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// 3d exponential function w.r.t. the geometric product
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3d_E<T> exp(BiVec3d<T> const& B)
+{
+    // exp(B) = cos(phi) + sin(phi) B/nrm(B) = cos(phi) + sin(phi) B_hat
+    // with
+    // B = phi * B_hat, where B_hat = B/B_nrm and B_hat^2 = -1
+    // (B_hat is the bivector representing a plane, a 2D subspace of 3D space)
+    //
+    // ATTENTION: B = -phi * B_hat = phi * (-B_hat) are equivalent and indistinguishable
+
+    T const B_nrm = nrm(B);
+    if (B_nrm <= detail::safe_epsilon<T>()) {
+        return MVec3d_E<T>(Scalar3d<T>(1.0),
+                           BiVec3d<T>(0.0, 0.0, 0.0)); // return identity transformation
+    }
+    auto B_hat{B / B_nrm};
+
+    auto angle = B_nrm;
+    return MVec3d_E<T>(Scalar3d<T>(std::cos(angle)), B_hat * std::sin(angle));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// sqrt(motor) w.r.t. geometric product
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec3d_E<T> sqrt(MVec3d_E<T> const& R)
+{
+    auto nrmsq = nrm_sq(R);
+    auto M{R};
+    if (nrmsq != 1.0) {
+        M = normalize(M); // motor must be normalized!
+    }
+    if (M.c0 == -1.0 && M.c1 == 0.0 && M.c2 == 0.0 && M.c3 == 0.0) { // rotation by 2*pi
+        M.c0 = 1.0; // replace by identity transformation
+    }
+
+    // when M is a unit rotor, i.e. |M|=1, we have
+    // M      = exp(-phi*e12_2d) = cos(phi) - e12_2d*sin(phi)
+    // 1 + M  = (1+cos(phi)) - e12_2d * sin(phi)
+    // Imagine this as adding two unit vectors. The sum points at direction -phi/2.
+    // The normalization gives us the rotation with half the angle.
+    // normalize(1 + M) = cos(phi/2) - e12_2d*sin(phi/2) = exp(-phi/2*e12_2d) = sqrt(M)
+
+    return normalize(Scalar3d<T>(1.0) + M);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // 3d rotation operations
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -163,11 +217,18 @@ inline std::common_type_t<T, U> angle(BiVec3d<T> const& B, Vec3d<U> const& v)
 //////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& I, U theta)
+constexpr MVec3d_E<std::common_type_t<T, U>> exp(BiVec3d<T> const& B, U theta)
 {
     using ctype = std::common_type_t<T, U>;
+    if ((nrm(B) <= detail::safe_epsilon<T>()) ||
+        (std::abs(theta) <= detail::safe_epsilon<T>())) {
+        return MVec3d_E<T>(Scalar3d<T>(1.0),
+                           BiVec3d<T>(0.0, 0.0, 0.0)); // return identity transformation
+    }
+
+    // B must be normalized or otherwise it will not only be scaled with angle theta
     return MVec3d_E<ctype>(Scalar3d<ctype>(std::cos(theta)),
-                           normalize(I) * std::sin(theta));
+                           normalize(B) * std::sin(theta));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

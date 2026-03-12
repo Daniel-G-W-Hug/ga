@@ -255,7 +255,15 @@ template <typename T, typename Tag>
 inline Vec3_t<T, Tag> normalize(Vec3_t<T, Tag> const& v)
 {
     T m = nrm(v);
-    detail::check_normalization<T>(m, "vector");
+    if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
+                                 hd::ga::Vec3_t<T, hd::ga::vec3d_tag>>) {
+        detail::check_normalization<T>(m, "vector");
+    }
+    else if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
+                                      hd::ga::Vec3_t<T, hd::ga::bivec3d_tag>>) {
+        detail::check_normalization<T>(m, "bivector");
+    }
+
     T inv = T(1.0) / m; // for multiplication with inverse of norm
     return Vec3_t<T, Tag>(v.x * inv, v.y * inv, v.z * inv);
 }
