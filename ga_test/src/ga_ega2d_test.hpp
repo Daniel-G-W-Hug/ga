@@ -1457,7 +1457,7 @@ TEST_SUITE("EGA 2D Tests")
         auto angle_uv = angle(u, v);
 
         auto uv = u * v; // complex number with real part and bivector part
-        auto v2 = exp(I_2d, angle_uv);
+        auto v2 = rotate(u, exp(-0.5 * angle_uv * I_2d));
         auto re = gr0(uv);
         auto im = gr2(uv);
         auto r = sqrt(value_t(re * re + im * im));
@@ -1475,8 +1475,6 @@ TEST_SUITE("EGA 2D Tests")
 
         mvec2d_e j = b * c;
         auto k = I_2d;
-        mvec2d_e l = exp(I_2d, pi / 2);
-        mvec2d_e m = I_2d_mv_e;
         mvec2d n = I_2d_mv;
         // fmt::println("   Multivector form of complex numbers:");
         // fmt::println("   u                     = {}", u);
@@ -1494,7 +1492,7 @@ TEST_SUITE("EGA 2D Tests")
         // // ATTENTION: if you don't declare it as such, the normal exponential
         // function
         // //            will be called, resulting in a scalar result!
-        // fmt::println("   v2=exp(angle_uv) = {}", v2);
+        // fmt::println("   v2=exp(angle_uv*I_2d) = {}", v2);
         // fmt::println("");
         // fmt::println("   a         = {}", a);
         // fmt::println("   b         = {}", b);
@@ -1513,8 +1511,6 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("   j = b * c     = {}", j);
         // fmt::println("");
         // fmt::println("   k = I_2d                         = {}", k);
-        // fmt::println("   l = exp(pscalar2d(pi/2)) = {:.3f}", l);
-        // fmt::println("   m = I_2d_mv_e                      = {}", m);
         // fmt::println("   n = I_2d_mv                        = {}", n);
 
         CHECK(abs(r - 0.5 * std::sqrt(2.0)) < eps);
@@ -1527,11 +1523,10 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(hs == mvec2d_e(-1.0, 0.0));
         CHECK(j == b * c);
         CHECK(k == I_2d);
-        CHECK(v.x == v2.c0);
-        CHECK(v.y == v2.c1);
+        CHECK(v.x == v2.x);
+        CHECK(v.y == v2.y);
         CHECK(b * h ==
               h * b); // the 2d pseudoscalar commutes commutes with complex numbers
-        CHECK(l == m);
         CHECK(n == I_2d_mv);
         CHECK(rev(b + c) == rev(b) + rev(c));
         CHECK(rev(b * c) == rev(b) * rev(c));
@@ -1559,9 +1554,9 @@ TEST_SUITE("EGA 2D Tests")
 
         CHECK(vec2d{1.0, 0.0} * vec2d{1.1, 1.1} ==
               rev(vec2d{1.1, 1.1} * vec2d{1.0, 0.0}));
-        CHECK(exp(I_2d, pi / 4) == rev(exp(I_2d, -pi / 4)));
-        CHECK(exp(I_2d, -angle_uv) * u == u * exp(I_2d, angle_uv)); // 2d rotation direct
-        CHECK(exp(I_2d, -angle_uv) * u == v);
+        CHECK(exp(I_2d * pi / 4.0) == rev(exp(I_2d * (-pi / 4.0))));
+        CHECK(exp(I_2d * (-angle_uv)) * u ==
+              u * exp(I_2d * angle_uv)); // 2d rotation direct
         CHECK(rotate(u, get_rotor(I_2d, angle_uv)) ==
               v); // 2d rotation with double product
                   // completely as in the 3d case
@@ -2415,7 +2410,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(right_dual(left_dual(M_e)) == M_e);
         CHECK(right_dual(left_dual(M)) == M);
 
-        fmt::println("  ✓ left_dual(right_dual(u)) = right_dual(left_dual(u)) = u");
+        fmt::println("left_dual(right_dual(u)) = right_dual(left_dual(u)) = u");
     }
 
     TEST_CASE("G<2,0,0>: complement-dual relationship")
@@ -2443,7 +2438,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(right_dual(M_e) == rcmpl(M_e));
         CHECK(right_dual(M) == rcmpl(M));
 
-        fmt::println("  ✓ dual = complement for Euclidean algebras with identity metric");
+        fmt::println("dual = complement for Euclidean algebras with identity metric");
     }
 
     TEST_CASE("G<2,0,0>: left-right complement composition")
@@ -2470,7 +2465,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(rcmpl(lcmpl(M_e)) == M_e);
         CHECK(rcmpl(lcmpl(M)) == M);
 
-        fmt::println("  ✓ lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u for even-dimensional");
+        fmt::println("lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u for even-dimensional");
     }
 
     TEST_CASE("G<2,0,0>: extended metric matrix validation")
@@ -2496,7 +2491,7 @@ TEST_SUITE("EGA 2D Tests")
             }
         }
 
-        fmt::println("  ✓ Extended metric matrix is identity (all diagonal = 1, "
+        fmt::println("Extended metric matrix is identity (all diagonal = 1, "
                      "off-diagonal = 0)");
     }
 
@@ -2524,7 +2519,7 @@ TEST_SUITE("EGA 2D Tests")
         // Verify the constructed bivector matches the canonical one
         CHECK(e12_constructed == e12_2d);
 
-        fmt::println("  ✓ Recursive extraction: scalar → vectors → bivectors all match");
+        fmt::println("Recursive extraction: scalar → vectors → bivectors all match");
     }
 
     TEST_CASE("G<2,0,0>: extended metric vs dot products")
@@ -2545,7 +2540,144 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(abs(value_t(dot(e12_2d, e12_2d)) - value_t(G[3, 3])) < eps);
 
         fmt::println(
-            "  ✓ Extended metric diagonal matches dot products for all basis elements");
+            "Extended metric diagonal matches dot products for all basis elements");
+    }
+
+    TEST_CASE("G<2,0,0>: exponential function R = exp(bivec)")
+    {
+        fmt::println("G<2,0,0>: exponential function R = exp(bivec)");
+
+        // defining a complex number in all three forms as multivector
+        auto u = vec2d{1.0, 0.0};
+        auto v = vec2d(std::cos(pi / 6.0), std::sin(pi / 6.0)); // unit vec +30°
+        auto r = nrm(u) * nrm(v);
+
+        auto angle_uv = angle(u, v);
+        auto B = -0.5 * angle_uv * e12_2d;
+
+        auto angle_vu = angle(v, u);
+
+        auto uv = u * v; // rotor: 1st reflect on v and then on u (u after v)
+        auto vu = v * u; // rotor: 1st reflect on u and then on v (v after u)
+
+        auto R = get_rotor(e12_2d, deg2rad(30));
+        auto R2 = exp(B);
+        auto R3 = sqrt(vu);
+
+        auto v2 = rotate(u, R);
+        auto v3 = R2 * u * rev(R2);
+        auto v4 = R3 * u * rev(R3);
+
+        fmt::println("u                  = {}", u);
+        fmt::println("v                  = {}", v);
+        fmt::println("u*v                = {}", uv);
+        fmt::println("v*u                = {}", vu);
+        fmt::println("(u,v) = {}, (u,v)° = {}", angle_uv, rad2deg(angle_uv));
+        fmt::println("(v,u) = {}, (v,u)° = {}", angle_vu, rad2deg(angle_vu));
+        fmt::println("");
+        fmt::println("B = -0.5*(u,v)*e12 = {}", B);
+        fmt::println("R = {}, R*rev(R)   = {}", R, R * rev(R));
+        fmt::println("R2 = exp(B)        = {}", R2);
+        fmt::println("R3 = sqrt(v*u)     = {}", R3);
+        fmt::println("");
+        fmt::println("v2 (by rotor R)    = {}", v2);
+        fmt::println("v3 (by rotor R2)   = {}", v3);
+        fmt::println("v4 (by rotor R3)   = {}", v4);
+
+        CHECK(r == 1.0);
+        CHECK(v == v2); // +30° rotation confirmed
+        CHECK(v == v3); // +30° rotation confirmed
+        CHECK(v == v4); // +30° rotation confirmed
+
+        // we have a rotor R
+        CHECK(gr0(R * rev(R)) == 1.0);
+        CHECK(std::abs(to_val(gr2(R * rev(R)))) <= eps);
+
+        // we have a rotor R2
+        CHECK(gr0(R2 * rev(R2)) == 1.0);
+        CHECK(std::abs(to_val(gr2(R2 * rev(R2)))) <= eps);
+
+        // we have a rotor R3
+        CHECK(gr0(R3 * rev(R3)) == 1.0);
+        CHECK(std::abs(to_val(gr2(R3 * rev(R3)))) <= eps);
+
+        CHECK(uv == r * exp(I_2d * angle_uv));
+        CHECK(vu == r * exp(-I_2d * angle_uv));
+
+        // only valid in 2D: express rotation by exp(bivector angle) directly,
+        // not by sandwich product with half_angle formulas
+        CHECK(v == u * exp(angle_uv * I_2d));
+        CHECK(v == exp(-angle_uv * I_2d) * u);
+
+        CHECK(u == v * exp(-angle_uv * I_2d));
+        CHECK(u == exp(angle_uv * I_2d) * v);
+
+        fmt::println("");
+    }
+
+    TEST_CASE("G<2,0,0>: exponential function R = exp(bivec) for 24 angles")
+    {
+        fmt::println("G<2,0,0>: exponential function R = exp(bivec) for 24 angles");
+
+        // test exp() for 24 uniformly distributed angles in [-pi, pi)
+        int const n_angles = 24;
+        for (int k = 0; k < n_angles; ++k) {
+
+            value_t const phi = -pi + k * (2.0 * pi / n_angles); // step: pi/12 = 15°
+            auto const B = -0.5 * phi * e12_2d;
+
+            auto const R = exp(B);
+            auto const R_ref = get_rotor(e12_2d, phi);
+
+            // exp(B) must be a valid rotor: R * rev(R) == 1 (scalar), 0 (bivector)
+            CHECK(std::abs(to_val(gr0(R * rev(R))) - 1.0) <= eps);
+            CHECK(std::abs(to_val(gr2(R * rev(R)))) <= eps);
+
+            // exp(phi * e12_2d) must match get_rotor(e12_2d, phi) component-wise
+            CHECK(std::abs(to_val(gr0(R) - gr0(R_ref))) <= eps);
+            CHECK(std::abs(to_val(gr2(R) - gr2(R_ref))) <= eps);
+
+            // rotating e1 by R must give (cos(phi), sin(phi))
+            auto const v_rot = rotate(vec2d{1.0, 0.0}, R);
+            CHECK(std::abs(v_rot.x - std::cos(phi)) <= eps);
+            CHECK(std::abs(v_rot.y - std::sin(phi)) <= eps);
+        }
+
+        fmt::println("");
+    }
+
+    TEST_CASE("G<2,0,0>: square root function S = sqrt(rotor) for 24 angles")
+    {
+        fmt::println("G<2,0,0>: square root function S = sqrt(rotor) for 24 angles");
+
+        // test sqrt() for 24 uniformly distributed angles in [-pi, pi)
+        // R = get_rotor(e12_2d, phi) = exp(-phi/2 * e12_2d) encodes rotation by phi.
+        // sqrt() uses normalize(1 + M), which halves the half-angle:
+        //   sqrt(R) = exp(-phi/4 * e12_2d) = get_rotor(e12_2d, phi/2)
+        // => sqrt(R) encodes rotation by phi/2.
+        int const n_angles = 24;
+        for (int k = 0; k < n_angles; ++k) {
+
+            value_t const phi = -pi + k * (2.0 * pi / n_angles); // step: pi/12 = 15°
+            auto const R = get_rotor(e12_2d, phi);               // exp(-phi/2 * e12_2d)
+            auto const S = sqrt(R);
+            auto const S_ref = get_rotor(e12_2d, phi / 2.0); // exp(-phi/4 * e12_2d)
+
+            // sqrt(R) must be a valid rotor: S * rev(S) == 1 (scalar), 0 (bivector)
+            CHECK(std::abs(to_val(gr0(S * rev(S))) - 1.0) <= eps);
+            CHECK(std::abs(to_val(gr2(S * rev(S)))) <= eps);
+
+            // sqrt(exp(-phi/2 * e12_2d)) must equal exp(-phi/4 * e12_2d) component-wise
+            CHECK(std::abs(to_val(gr0(S)) - to_val(gr0(S_ref))) <= eps);
+            CHECK(std::abs(to_val(gr2(S)) - to_val(gr2(S_ref))) <= eps);
+
+            // rotating e1 by S = exp(-phi/4 * e12_2d) must give (cos(phi/2), sin(phi/2))
+            auto const v_rot = rotate(vec2d{1.0, 0.0}, S);
+            CHECK(std::abs(v_rot.x - std::cos(phi / 2.0)) <= eps);
+            CHECK(std::abs(v_rot.y - std::sin(phi / 2.0)) <= eps);
+        }
+
+        fmt::println("");
     }
 
 } // EGA 2D Tests

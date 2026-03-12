@@ -2045,15 +2045,15 @@ TEST_SUITE("EGA 3D Tests")
         auto angle_uv = angle(u, v);
         auto B = wdg(u, v); // normalized bivector describing the plane spanned by u and v
 
-        auto my_exp = exp(-B, angle_uv);
+        auto my_exp = exp(-B * angle_uv);
         auto my_rot = get_rotor(B, 2.0 * angle_uv);
 
         // definition of rotor used here: B = u^v
         // => B determines the meaning of the positive sign of the rotation
         //
         auto R_m =
-            mvec3d(exp(-B, angle_uv)); // Rotor formed by u and v (normalized bivector)
-        auto Rr_m = mvec3d(rev(R_m));  // and its reverse
+            mvec3d(exp(-B * angle_uv)); // Rotor formed by u and v (normalized bivector)
+        auto Rr_m = mvec3d(rev(R_m));   // and its reverse
 
         auto c = vec3d{1.0, 1.0, 1.0};
         auto c_m = mvec3d{c};
@@ -2061,8 +2061,8 @@ TEST_SUITE("EGA 3D Tests")
         auto c_tmp_m = R_m * c_m;
         auto c_rot_m = c_tmp_m * Rr_m;
 
-        auto R = exp(-B, angle_uv); // Rotor formed by u and v (normalized bivector)
-        auto Rr = rev(R);           // and its reverse
+        auto R = exp(-B * angle_uv); // Rotor formed by u and v (normalized bivector)
+        auto Rr = rev(R);            // and its reverse
 
         auto c_tmp_l = R * c;
         auto c_rot_u_l = c_tmp_l * Rr;
@@ -2147,7 +2147,7 @@ TEST_SUITE("EGA 3D Tests")
               rotate_opt(Bv, get_rotor(e31_3d, pi / 3)));
 
         // just to silence unused variable warnings
-        CHECK(my_exp == exp(-B, angle_uv));
+        CHECK(my_exp == exp(-B * angle_uv));
         CHECK(my_rot == get_rotor(B, 2.0 * angle_uv));
         CHECK(c_rot_r == gr1(c_rot_u_r));
         CHECK(angle_c_c_rot == angle(c, c_rot_l));
@@ -3028,6 +3028,139 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(abs(value_t(dot(I_3d, I_3d)) - value_t(G[7, 7])) < eps);
 
         fmt::println("  ✓ Dot products match extended metric diagonal");
+    }
+
+    TEST_CASE("G<3,0,0>: exponential function R = exp(bivec)")
+    {
+        fmt::println("G<3,0,0>: exponential function R = exp(bivec)");
+
+        // rotation by 30° in the e12 plane (e1^e2)
+        auto u = vec3d{1.0, 0.0, 0.0};
+        auto v = vec3d(std::cos(pi / 6.0), std::sin(pi / 6.0), 0.0); // unit vec +30°
+        auto r = nrm(u) * nrm(v);
+
+        auto angle_uv = angle(u, v);
+        auto angle_vu = angle(v, u);
+        auto B = -0.5 * angle_uv * e12_3d; // B = -(phi/2)*e12_3d for rotation by phi
+
+        auto uv = u * v;
+        auto vu = v * u;
+
+        auto R = get_rotor(e12_3d, deg2rad(30));
+        auto R2 = exp(B);
+        auto R3 = sqrt(vu);
+
+        auto v2 = rotate(u, R);
+        auto v3 = rotate(u, R2);
+        auto v4 = rotate(u, R3);
+
+        fmt::println("u                  = {}", u);
+        fmt::println("v                  = {}", v);
+        fmt::println("u*v                = {}", uv);
+        fmt::println("v*u                = {}", vu);
+        fmt::println("(u,v) = {}, (u,v)° = {}", angle_uv, rad2deg(angle_uv));
+        fmt::println("(v,u) = {}, (v,u)° = {}", angle_vu, rad2deg(angle_vu));
+        fmt::println("");
+        fmt::println("B = -0.5*(u,v)*e12 = {}", B);
+        fmt::println("R = {}, R*rev(R)   = {}", R, R * rev(R));
+        fmt::println("R2 = exp(B)        = {}", R2);
+        fmt::println("R3 = sqrt(v*u)     = {}", R3);
+        fmt::println("");
+        fmt::println("v2 (by rotor R)    = {}", v2);
+        fmt::println("v3 (by rotor R2)   = {}", v3);
+        fmt::println("v4 (by rotor R3)   = {}", v4);
+
+        CHECK(r == 1.0);
+        CHECK(v == v2); // +30° rotation confirmed
+        CHECK(v == v3); // +30° rotation confirmed
+        CHECK(v == v4); // +30° rotation confirmed
+
+        // we have a rotor R
+        CHECK(gr0(R * rev(R)) == 1.0);
+        CHECK(nrm(gr2(R * rev(R))) <= eps);
+
+        // we have a rotor R2
+        CHECK(gr0(R2 * rev(R2)) == 1.0);
+        CHECK(nrm(gr2(R2 * rev(R2))) <= eps);
+
+        // we have a rotor R3
+        CHECK(gr0(R3 * rev(R3)) == 1.0);
+        CHECK(nrm(gr2(R3 * rev(R3))) <= eps);
+
+        CHECK(v == rotate(u, sqrt(vu)));
+        CHECK(u == rotate(v, sqrt(uv)));
+
+        fmt::println("");
+    }
+
+    TEST_CASE("G<3,0,0>: exponential function R = exp(bivec) for 24 angles")
+    {
+        fmt::println("G<3,0,0>: exponential function R = exp(bivec) for 24 angles");
+
+        // test exp() for 24 uniformly distributed angles in [-pi, pi)
+        // rotation plane: e12_3d (e1^e2), reference vector: e1_3d
+        int const n_angles = 24;
+        for (int k = 0; k < n_angles; ++k) {
+
+            value_t const phi = -pi + k * (2.0 * pi / n_angles); // step: pi/12 = 15°
+            auto const B =
+                -(phi / 2.0) * e12_3d; // B = -(phi/2)*e12_3d for rotation by phi
+
+            auto const R = exp(B);
+            auto const R_ref = get_rotor(e12_3d, phi);
+
+            // exp(B) must be a valid rotor: R * rev(R) == 1 (scalar), 0 (bivector)
+            CHECK(std::abs(to_val(gr0(R * rev(R))) - 1.0) <= eps);
+            CHECK(nrm(gr2(R * rev(R))) <= eps);
+
+            // exp(-(phi/2) * e12_3d) must match get_rotor(e12_3d, phi) component-wise
+            CHECK(std::abs(to_val(gr0(R)) - to_val(gr0(R_ref))) <= eps);
+            CHECK(nrm(gr2(R) - gr2(R_ref)) <= eps);
+
+            // rotating e1 by R must give (cos(phi), sin(phi), 0)
+            auto const v_rot = rotate(e1_3d, R);
+            CHECK(std::abs(v_rot.x - std::cos(phi)) <= eps);
+            CHECK(std::abs(v_rot.y - std::sin(phi)) <= eps);
+            CHECK(std::abs(v_rot.z) <= eps);
+        }
+
+        fmt::println("");
+    }
+
+    TEST_CASE("G<3,0,0>: square root function S = sqrt(rotor) for 24 angles")
+    {
+        fmt::println("G<3,0,0>: square root function S = sqrt(rotor) for 24 angles");
+
+        // test sqrt() for 24 uniformly distributed angles in [-pi, pi)
+        // R = get_rotor(e12_3d, phi) = exp(-phi/2 * e12_3d) encodes rotation by phi.
+        // sqrt() uses normalize(1 + M), which halves the half-angle:
+        //   sqrt(R) = exp(-phi/4 * e12_3d) = get_rotor(e12_3d, phi/2)
+        // => sqrt(R) encodes rotation by phi/2.
+        int const n_angles = 24;
+        for (int k = 0; k < n_angles; ++k) {
+
+            value_t const phi = -pi + k * (2.0 * pi / n_angles); // step: pi/12 = 15°
+            auto const R = get_rotor(e12_3d, phi);               // exp(-phi/2 * e12_3d)
+            auto const S = sqrt(R);
+            auto const S_ref = get_rotor(e12_3d, phi / 2.0); // exp(-phi/4 * e12_3d)
+
+            // sqrt(R) must be a valid rotor: S * rev(S) == 1 (scalar), 0 (bivector)
+            CHECK(std::abs(to_val(gr0(S * rev(S))) - 1.0) <= eps);
+            CHECK(nrm(gr2(S * rev(S))) <= eps);
+
+            // sqrt(exp(-phi/2 * e12_3d)) must equal exp(-phi/4 * e12_3d) component-wise
+            CHECK(std::abs(to_val(gr0(S)) - to_val(gr0(S_ref))) <= eps);
+            CHECK(nrm(gr2(S) - gr2(S_ref)) <= eps);
+
+            // rotating e1 by S = exp(-phi/4 * e12_3d) must give (cos(phi/2), sin(phi/2),
+            // 0)
+            auto const v_rot = rotate(e1_3d, S);
+            CHECK(std::abs(v_rot.x - std::cos(phi / 2.0)) <= eps);
+            CHECK(std::abs(v_rot.y - std::sin(phi / 2.0)) <= eps);
+            CHECK(std::abs(v_rot.z) <= eps);
+        }
+
+        fmt::println("");
     }
 
 } // EGA 3D Tests

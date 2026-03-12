@@ -14,8 +14,8 @@ namespace hd::ga::pga {
 //
 // - angle()                             -> angle operations
 // - exp()                               -> exponential (w.r.t. rgpr)
-// TODO: - log()                              -> logarithm (w.r.t rgpr)
 // - sqrt(M)                             -> sqrt of a motor (w.r.t. rgpr)
+// TODO: - log()                              -> logarithm (w.r.t rgpr)
 // - get_motor()                         -> provide a motor from (point, phi), or (delta),
 // - get_motor_from_lines()              -> provide a motor from (from two lines moved
 //                                                                into each other)
@@ -85,7 +85,7 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// exp() w.r.t. rgpr(), and TODO: log() w.r.t. rgpr(), and sqrt(motor)
+// exp(motor) and sqrt(motor), w.r.t. rgpr()           TODO: log() w.r.t. rgpr()
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)
