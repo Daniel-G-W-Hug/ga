@@ -437,13 +437,13 @@ determine whether a bivector is a blade in $3D$ $PGA$. \\
 Using discrete points $X_{w,i}$ of the world frame indexed by $i$ that can be moved by a
 motor $M(t) = exp_\veedot[\frac{1}{2}B_w(t)] \veedot M_0$ in the world frame as by
 eqn.~(\ref{eq:pga_sandwich_tranformation}) $X_{w,i} = M \veedot X_{0,i} \veedot \rrev{M}$
-results in a local speed of $\dot{X}_{w,i} = rcmt(\Omega_w,X_{w,i})$ as shown in
+results in a local speed of $\dot{X}_{w,i} = \mathrm{rcmt}(\Omega_w,X_{w,i})$ as shown in
 eqn.~(\ref{eq:rcmt_pga_world}). Therefore, we can write the total momentum $P_{w}$ in the
 world frame as
 \begin{eqnarray}
     P_{w} &=& \sum_i{P_i} \nonumber \\
           &=& \sum_i X_i \wedge m_i \dot{X}_i \nonumber \\
-          &=& \sum_i X_i \wedge m_i \; rcmt(\Omega_w,X_i) \nonumber \\
+          &=& \sum_i X_i \wedge m_i \; \mathrm{rcmt}(\Omega_w,X_i) \nonumber \\
     P_{w} &\equiv& I_w[\Omega_w]
                 \label{eq:intertia_map_world_frame}
 \end{eqnarray}
@@ -476,9 +476,8 @@ since in the world frame the inertia $I_w[\Omega_w]$ map will change over time d
 moving points as well as due to the rate of change $\Omega_w$. Therefore, it is reasonable
 to calculate the inertia map in the body frame, since it is constant in that frame, if the
 body frame is chosen to be fixed to the modelled rigid object. This avoids the effort to
-calculate the time derivative of the inertia map (the first term on the right-hand side
-above) that would be required, if the calculation would be performed in the world frame.
-\\
+additionally calculate the time derivative of the inertia map (the first term on the
+right-hand side above). \\
 
 If we want to express the physical problem in the body frame, we have to transform the
 components of eqn.~(\ref{eq:intertia_map_world_frame}) accordingly. Using
@@ -541,17 +540,17 @@ eqn.~(\ref{eq:rcmt_pga_world}) in the body frame, which is not only valid for an
 for any object moved by a motor $M$, we get
 \begin{equation}
     \frac{d}{dt} P_b = \frac{d}{dt} I_b[\Omega_b] =
-    rcmt(\Omega_b,I_b[\Omega_b]) + I_b[\dot{\Omega}_b]
+    \mathrm{rcmt}(\Omega_b,I_b[\Omega_b]) + I_b[\dot{\Omega}_b]
 \end{equation}
 where the last term arises since $\Omega_b$ is also time-dependent. Solving
 eqn.~(\ref{eq:Newton_Euler_law}), but in the body frame, we get
 \begin{equation}
-    F_b = \dot{P}_b = rcmt(\Omega_b,I_b[\Omega_b]) + I_b[\dot{\Omega}_b]
+    F_b = \dot{P}_b = \mathrm{rcmt}(\Omega_b,I_b[\Omega_b]) + I_b[\dot{\Omega}_b]
 \end{equation}
 resolving this for $\dot{\Omega}_b$ we get
 \begin{eqnarray}
-    I_b[\dot{\Omega}_b] &=& F_{b} - rcmt(\Omega_b,I_b[\Omega_b]) \\[5pt]
-    \dot{\Omega}_b &=& I_b^{-1}\left[ F_{b} - rcmt(\Omega_b,I_b[\Omega_b]) \right]
+    I_b[\dot{\Omega}_b] &=& F_{b} - \mathrm{rcmt}(\Omega_b,I_b[\Omega_b]) \\[5pt]
+    \dot{\Omega}_b &=& I_b^{-1}\left[ F_{b} - \mathrm{rcmt}(\Omega_b,I_b[\Omega_b]) \right]
 \end{eqnarray}
 
 Together with the ansatz in the body system eqn.~(\ref{eq:motor_pga_body_frame}) that can
@@ -563,7 +562,7 @@ be used to calculate M(t) when we know $\Omega_b$ at a given time $t$ from
 and the rate of change in the body frame according to
 eqn.~(\ref{eq:motor_rate_body_frame_pga}) we get
 \begin{equation}
-    \dot{\Omega}_b = I_b^{-1}\left[ F_{b} - rcmt(\Omega_b,I_b[\Omega_b]) \right] 
+    \dot{\Omega}_b = I_b^{-1}\left[ F_{b} - \mathrm{rcmt}(\Omega_b,I_b[\Omega_b]) \right] 
     \label{eq:ode_system_body_frame}
 \end{equation}
 as an ODE that can be solved as initial value problem. Due to $\dot{\Omega}_b =
@@ -574,8 +573,8 @@ integrate from $\ddot{B}_b$ in order to calculate $\dot{B_b} = \Omega_b$ and $B_
 we require initial values for $\Omega_b$ and $B_b$. The actual positions of the points of
 the rigid body can then be computed from eqn.~(\ref{eq:pga_sandwich_tranformation})
 $X_w(t) = M(t) \veedot X_0 \veedot \rrev{M}(t)$. The speed of the points can be calculated
-either from eqn.~(\ref{eq:rcmt_pga_world}) $\dot{X}_w = rcmt(\Omega_w,X_w)$ or
-eqn.~(\ref{eq:rcmt_pga_world_incl_X0_of_t}) $\dot{X}_w = rcmt(\Omega_w,X_w)+
+either from eqn.~(\ref{eq:rcmt_pga_world}) $\dot{X}_w = \mathrm{rcmt}(\Omega_w,X_w)$ or
+eqn.~(\ref{eq:rcmt_pga_world_incl_X0_of_t}) $\dot{X}_w = \mathrm{rcmt}(\Omega_w,X_w)+
 (\dot{X_b})_w$ -- which one is applicable depends on whether the rigid body is fixed in
 the body frame or moves in the body frame. The expressions in the world frame can of
 course be expressed in the body frame as well using eqn.~(\ref{eq:body_to_world_pga})
@@ -587,7 +586,7 @@ right-hand side of the ODE system given in equations~(\ref{eq:ode_system_body_fr
 start with the $2D$ case where the rate of change $\Omega_b$ is a vector, as shown at the
 end of subsection \ref{subsection_modelling_motion}. We assume discrete points $X_i$ and
 use the wedge product $X \wedge Y$ and the regressive commutator product term $m \;
-rcmt(\Omega_b,X)$ to express the total momentum $P$ written in component form:
+\mathrm{rcmt}(\Omega_b,X)$ to express the total momentum $P$ written in component form:
 \begin{subeqnarray}
     X \wedge Y & = &
     \begin{pmatrix}
@@ -602,7 +601,7 @@ rcmt(\Omega_b,X)$ to express the total momentum $P$ written in component form:
          X_z Y_x - X_x Y_z \\ X_z Y_y - X_y Y_z \\ X_x Y_y - X_y Y_x
     \end{pmatrix}
     \slabel{eq:wedge_X_Y_2D} \\[10 pt]
-    m \; rcmt(\Omega_b,X) & = & m
+    m \; \mathrm{rcmt}(\Omega_b,X) & = & m
     \begin{pmatrix}
          \Omega_y X_z - \Omega_z X_y \\ \Omega_z X_x - \Omega_x X_z \\ 0
     \end{pmatrix} 
@@ -611,7 +610,7 @@ rcmt(\Omega_b,X)$ to express the total momentum $P$ written in component form:
 Now the inertia map for a point $X$ with mass $m$ and rate of change $\Omega$ can be
 expressed in the $2D$ case as
 \begin{eqnarray}
-    I_{2D}[\Omega] &=& X \wedge m \; rcmt(\Omega,X) \nonumber \\[10pt]
+    I_{2D}[\Omega] &=& X \wedge m \; \mathrm{rcmt}(\Omega,X) \nonumber \\[10pt]
     &=& m 
     \begin{pmatrix}
         X_z (\Omega_y X_z - \Omega_z X_y) \\
@@ -661,7 +660,7 @@ component expressions are generated from the corresponding product tables in
          X_x Y_y - X_y Y_x
     \end{pmatrix}
     \slabel{eq:wedge_X_Y_3D} \\[10 pt]
-    m \; rcmt(\Omega_b,X) & = & m
+    m \; \mathrm{rcmt}(\Omega_b,X) & = & m
     \begin{pmatrix}
          \Omega_{vy} X_z - \Omega_{vz} X_y + \Omega_{mx} X_w \\
          \Omega_{vz} X_x - \Omega_{vx} X_z + \Omega_{my} X_w \\
@@ -673,7 +672,7 @@ component expressions are generated from the corresponding product tables in
 Now the intertia map for a point $X$ with mass $m$ and rate of change $\Omega$ can be
 expressed in the $3D$ case as
 \begin{align}
-    &I_{3D}[\Omega] = X \wedge m \; rcmt(\Omega,X) = \nonumber \\[10pt]
+    &I_{3D}[\Omega] = X \wedge m \; \mathrm{rcmt}(\Omega,X) = \nonumber \\[10pt]
     &m 
     \begin{pmatrix}
         X_w (\Omega_{vy} X_z - \Omega_{vz} X_y + \Omega_{mx} X_w) \\
@@ -816,7 +815,7 @@ $\vec{y}$:
 \end{subeqnarray}
 If we would have to integrate for more than one point, we could easily add an additional
 index at the beginning to extent the system accordingly. However, for now we only focus on
-integrating the system for one point (our center of mass) at which we wand to know
+integrating the system for one point (our center of mass) at which we want to know
 position, speed as well as angular orientation and angular speed as function of time. The
 substitution above transforms the system in
 eqn.~(\ref{eq:classical_sys_Newton_Euler_2nd_order}) into a system of $1^{st}$ order as
@@ -836,7 +835,7 @@ get the positions and velocities as function of time.\\
 
 The approach described above can be used to solve the resulting $PGA$
 equation~(\ref{eq:ode_system_body_frame}) $\ddot{B}_b = I_b^{-1}\left[ F_{b} -
-rcmt(\Omega_b,I_b[\Omega_b]) \right]$. The overall approach is identical, just with a
+\mathrm{rcmt}(\Omega_b,I_b[\Omega_b]) \right]$. The overall approach is identical, just with a
 slightly different right-hand side adjusted to the $PGA$ formulation. However, this
 equation does not directly contain the degrees of freedom we are interested in, like $X$,
 $\dot{X}$, and $\ddot{X}$. Instead, we first have to solve the system for the

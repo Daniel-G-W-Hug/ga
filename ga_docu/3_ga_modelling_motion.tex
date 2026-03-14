@@ -167,12 +167,12 @@ distance $\frac{1}{2}\bulknrm{\delta}$ relative to each other. They intersect in
 infinity that is used as ``rotation axis''. This however yields a translation, since the
 axis is infinitely far away. The derivation of the formula for the bivector will be done
 later in this chapter (see eqn.~(\ref{eq:bivector_trans_rate_v_vec})). We use $B_{tra} =
-\frac{1}{2}\rightbulkdual{\delta} \vee \rcmpl{\bv{4}} = \frac{1}{2}\rightbulkdual{\delta}
-\vee H_{3dp} = \frac{1}{2} att(\rightbulkdual{\delta})$. This yields $B_{tra} =
-\frac{1}{2}(\delta_x \bv{23} + \delta_y \bv{31} + \delta_z \bv{12})$. The resulting motor
-is $M = exp_\veedot(B_{tra}) = \ps + B_{tra} = \ps + \frac{1}{2}(0, 0, 0, \delta_x,
-\delta_y, \delta_z)$. The motor $M$ is an even-grade multivector containing a pseudoscalar
-component, which is a quadvector in $3D$ $PGA$, and a bivector component.\\
+\rightbulkdual{\delta} \vee \rcmpl{\bv{4}} = \rightbulkdual{\delta} \vee H_{3dp} =
+att(\rightbulkdual{\delta})$. This yields $B_{tra} = (\delta_x \bv{23} + \delta_y \bv{31}
++ \delta_z \bv{12})$. The resulting motor is $M = exp_\veedot(B_{tra}) = \ps +
+\frac{1}{2}B_{tra} = \ps + \frac{1}{2}(0, 0, 0, \delta_x, \delta_y, \delta_z)$. The motor
+$M$ is an even-grade multivector containing a pseudoscalar component, which is a
+quadvector in $3D$ $PGA$, and a bivector component.\\
 
 To model a translation $\delta = (\delta_x, \delta_y, 0)$ in $2D$ $PGA$ we need a special
 vector as argument of the exponential. It represents a direction to a point at infinity.
@@ -181,16 +181,16 @@ it is resulting from two consequtive reflections across parallel lines perpendic
 $\delta$ with the distance $\frac{1}{2}\bulknrm{\delta}$ relative to each other). The
 deriviation of the special vector will be done later in this section (see
 eqn.~(\ref{eq:vector_trans_rate_v_vec})). The argument of the exponential $exp_\veedot$
-for a translation is the direction vector $P = \frac{1}{2}\rightbulkdual{\delta} \vee
-\rcmpl{\bv{3}} = \frac{1}{2}\rightbulkdual{\delta} \vee H_{2dp} = \frac{1}{2}
-att(\rightbulkdual{\delta}) = \frac{1}{2}(-\delta_y \bv{1} + \delta_x \bv{2})$. $P$ points
-in a direction perpendicular to the translation $\delta$ towards infinity. The main
-difference of this special point $P$ compared to the one used for the rotation above is
-that $P_z = 0$. This results in $P \veedot P = 0$ which causes the expansion of the
-exponential to only contain the first two terms: $M = exp_\veedot(P) = \ps + P = \ps +
-\frac{1}{2}(-\delta_y,\delta_x,0)$. The motor $M$ is an odd-grade multivector containing a
-pseudoscalar, which is a trivector in $2D$ $PGA$, and a vector component, i.e. it is
-structurally the same as for the rotation case in $2D$ $PGA$ above.\\
+for a translation is the direction vector $P = \rightbulkdual{\delta} \vee \rcmpl{\bv{3}}
+= \rightbulkdual{\delta} \vee H_{2dp} = att(\rightbulkdual{\delta}) = (-\delta_y \bv{1} +
+\delta_x \bv{2})$. $P$ points in a direction perpendicular to the translation $\delta$
+towards infinity. The main difference of this special point $P$ compared to the one used
+for the rotation above is that $P_z = 0$. This results in $P \veedot P = 0$ which causes
+the expansion of the exponential to only contain the first two terms: $M = exp_\veedot(P)
+= \ps + \frac{1}{2}P = \ps + \frac{1}{2}(-\delta_y,\delta_x,0)$. The motor $M$ is an
+odd-grade multivector containing a pseudoscalar, which is a trivector in $2D$ $PGA$, and a
+vector component, i.e. it is structurally the same as for the rotation case in $2D$ $PGA$
+above.\\
 
 Eqn. (\ref{eq:exp_B}) allows us to model rotations in $EGA$, where the bivector $B$ is the
 complement of the axis of rotation and $\theta = -2\phi$ is the angle of the rotation
@@ -631,10 +631,10 @@ $\frac{1}{2}\Omega_w (t) = \dot{M} \veedot \rrev{M}$, resulting in
               (\frac{1}{2}\Omega_w(t)) \nonumber \\
               &=& \frac{1}{2}\left( \Omega_w \veedot X_w - X_w \veedot \Omega_w\right)
               \nonumber \\[10pt]
-   \dot{X}_w  &=&  rcmt(\Omega_w,X_w) = -rcmt(X_w,\Omega_w)
+   \dot{X}_w  &=&  \mathrm{rcmt}(\Omega_w,X_w) = -\mathrm{rcmt}(X_w,\Omega_w)
    \slabel{eq:rcmt_pga_world} 
 \end{eqnarray}
-with $rcmt(\Omega_w, X_w)$ as the regressive commutator product between $\Omega_w$ and
+with $\mathrm{rcmt}(\Omega_w, X_w)$ as the regressive commutator product between $\Omega_w$ and
 $X_w$. The resulting minus sign in eqn.~(\ref{eq:rcmt_pga_world}) compared to
 eqn.~(\ref{eq:cmt_ega_world}) is the only difference between $PGA$ and $EGA$. This is
 caused by the different ansatz for the motors comparing equations (\ref{eq:rotor_ega}) and
@@ -669,9 +669,9 @@ term to the derivative in eqn.~(\ref{eq:rcmt_pga_world}) as follows:
    \dot{X}(t) &=& \frac{d}{dt}(M \veedot X_b \veedot \rrev{M}) \nonumber \\
               &=& \dot{M} \veedot X_b \veedot \rrev{M} + M \veedot X_b \veedot
                   \dot{\rrev{M}} + M \veedot \dot{X_b} \veedot \rrev{M} \nonumber \\
-              &=& -rcmt(M\veedot X_b \veedot\rrev{M},\Omega_w) + M \veedot \dot{X_b}
+              &=& -\mathrm{rcmt}(M\veedot X_b \veedot\rrev{M},\Omega_w) + M \veedot \dot{X_b}
                   \veedot \rrev{M} \nonumber \\[10 pt]
-   \dot{X}_w  &=& -rcmt(X_w,\Omega_w) + (\dot{X_b})_w = rcmt(\Omega_w,X_w)+ (\dot{X_b})_w
+   \dot{X}_w  &=& -\mathrm{rcmt}(X_w,\Omega_w) + (\dot{X_b})_w = \mathrm{rcmt}(\Omega_w,X_w)+ (\dot{X_b})_w
    \slabel{eq:rcmt_pga_world_incl_X0_of_t}
 \end{eqnarray}
 Eqn.~(\ref{eq:rcmt_pga_world_incl_X0_of_t}) is to be considered in the world frame.
@@ -814,9 +814,9 @@ a motor that transforms points accordingly. \\
 Using for example eqn.~(\ref{eq:rcmt_pga_world}) and the Euclidean split as defined in
 eqn.~(\ref{eq:rate_bivector_euclidean_split}) we can write
 \begin{subeqnarray}
-   \dot{X}_w &=& rcmt(\Omega_w,X_w) \;\; = \;\; \dot{x}_w \nonumber \\
-             &=& rcmt(\Omega_{rot} + \Omega_{tra},X_w) \nonumber \\
-   \dot{x}_w &=& rcmt(\Omega_{rot},X_w) + rcmt(\Omega_{tra},X_w) \\
+   \dot{X}_w &=& \mathrm{rcmt}(\Omega_w,X_w) \;\; = \;\; \dot{x}_w \nonumber \\
+             &=& \mathrm{rcmt}(\Omega_{rot} + \Omega_{tra},X_w) \nonumber \\
+   \dot{x}_w &=& \mathrm{rcmt}(\Omega_{rot},X_w) + \mathrm{rcmt}(\Omega_{tra},X_w) \\
    \dot{x}_w &=& v_{rot} + v_{tra}  
    \label{eq:speed_from_rate}
 \end{subeqnarray}
