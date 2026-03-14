@@ -157,8 +157,8 @@ constexpr MVec3d_E<T> exp(BiVec3d<T> const& B)
     }
     auto B_hat{B / B_nrm};
 
-    auto angle = B_nrm;
-    return MVec3d_E<T>(Scalar3d<T>(std::cos(angle)), B_hat * std::sin(angle));
+    auto phi = B_nrm;
+    return MVec3d_E<T>(Scalar3d<T>(std::cos(phi)), B_hat * std::sin(phi));
 }
 
 

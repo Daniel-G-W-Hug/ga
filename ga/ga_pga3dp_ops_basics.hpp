@@ -1099,8 +1099,8 @@ inline Vec3dp<T> bulk_normalize(Vec3dp<T> const& v)
 {
     T n = to_val(bulk_nrm(v));
     hd::ga::detail::check_normalization<T>(std::abs(n), "vector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * v;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * v;
 }
 
 // return a bivector normalized to bulk_nrm(B) == 1.0
@@ -1110,8 +1110,8 @@ inline BiVec3dp<T> bulk_normalize(BiVec3dp<T> const& B)
 {
     T n = to_val(bulk_nrm(B));
     hd::ga::detail::check_normalization<T>(n, "bivector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * B;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * B;
 }
 
 // return a trivector normalized to bulk_nrm(t) == 1.0
@@ -1121,8 +1121,8 @@ inline TriVec3dp<T> bulk_normalize(TriVec3dp<T> const& t)
 {
     T n = to_val(bulk_nrm(t));
     hd::ga::detail::check_normalization<T>(n, "trivector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * t;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * t;
 }
 
 // return an even-grade multivector normalized to bulk_nrm(M) == 1.0
@@ -1132,8 +1132,8 @@ inline MVec3dp_E<T> bulk_normalize(MVec3dp_E<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
     hd::ga::detail::check_normalization<T>(n, "even-grade multivector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
 // return an odd-grade multivector normalized to bulk_nrm(M) == 1.0
@@ -1143,8 +1143,8 @@ inline MVec3dp_U<T> bulk_normalize(MVec3dp_U<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
     hd::ga::detail::check_normalization<T>(n, "odd-grade multivector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
 // return a multivector normalized to bulk_nrm(M) == 1.0
@@ -1154,8 +1154,8 @@ inline MVec3dp<T> bulk_normalize(MVec3dp<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
     hd::ga::detail::check_normalization<T>(n, "multivector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
 
@@ -1170,8 +1170,8 @@ inline Vec3dp<T> unitize(Vec3dp<T> const& v)
 {
     T n = v.w; // v.w == sign(v.w)*weight_nrm(v);
     hd::ga::detail::check_unitization<T>(std::abs(n), "vector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return Vec3dp<T>(v.x * inv, v.y * inv, v.z * inv, T(1.0));
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return Vec3dp<T>(v.x * scale, v.y * scale, v.z * scale, T(1.0));
 }
 
 // return a bivector unitized to weight_nrm == 1.0
@@ -1181,8 +1181,8 @@ inline BiVec3dp<T> unitize(BiVec3dp<T> const& B)
 {
     T n = T(weight_nrm(B));
     hd::ga::detail::check_unitization<T>(n, "bivector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * B;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * B;
 }
 
 // return a trivector unitized to weight_nrm == 1.0
@@ -1192,8 +1192,8 @@ inline TriVec3dp<T> unitize(TriVec3dp<T> const& t)
 {
     T n = T(weight_nrm(t));
     hd::ga::detail::check_unitization<T>(n, "trivector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * t;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * t;
 }
 
 // return an even-grade multivector unitized to weight_nrm == 1.0
@@ -1203,8 +1203,8 @@ inline MVec3dp_E<T> unitize(MVec3dp_E<T> const& M)
 {
     T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "even-grade multivector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
 // return an odd-grade multivector unitized to weight_nrm == 1.0
@@ -1214,8 +1214,8 @@ inline MVec3dp_U<T> unitize(MVec3dp_U<T> const& M)
 {
     T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "odd-grade multivector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
 // return a multivector unitized to weight_nrm == 1.0
@@ -1225,8 +1225,8 @@ inline MVec3dp<T> unitize(MVec3dp<T> const& M)
 {
     T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "multivector (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
 template <typename T>
@@ -1234,8 +1234,8 @@ template <typename T>
 inline Point3dp<T> unitize(Point3dp<T> const& p)
 {
     hd::ga::detail::check_unitization<T>(std::abs(p.w), "Point3dp");
-    T inv = T(1.0) / p.w;
-    return Point3dp<T>(p.x * inv, p.y * inv, p.z * inv, 1.0);
+    T scale = T(1.0) / p.w;
+    return Point3dp<T>(p.x * scale, p.y * scale, p.z * scale, T(1.0));
 }
 
 template <typename T>
@@ -1246,9 +1246,9 @@ inline Line3d<T> unitize(Line3d<T> const& l)
     // sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
     T wn = T(weight_nrm(l));
     hd::ga::detail::check_unitization<T>(wn, "Line3d");
-    T inv = T(1.0) / wn;
-    return Line3d<T>(l.vx * inv, l.vy * inv, l.vz * inv, l.mx * inv, l.my * inv,
-                     l.mz * inv);
+    T scale = T(1.0) / wn;
+    return Line3d<T>(l.vx * scale, l.vy * scale, l.vz * scale, l.mx * scale, l.my * scale,
+                     l.mz * scale);
 }
 
 template <typename T>
@@ -1257,8 +1257,8 @@ inline Plane3d<T> unitize(Plane3d<T> const& p)
 {
     T wn = T(weight_nrm(p));
     hd::ga::detail::check_unitization<T>(wn, "Plane3d");
-    T inv = T(1.0) / wn;
-    return Plane3d<T>(p.x * inv, p.y * inv, p.z * inv, p.w * inv);
+    T scale = T(1.0) / wn;
+    return Plane3d<T>(p.x * scale, p.y * scale, p.z * scale, p.w * scale);
 }
 
 // return a DualNum3dp unitized to weight_nrm == 1.0
@@ -1270,8 +1270,8 @@ inline DualNum3dp<T> unitize(DualNum3dp<T> const& D)
 {
     T n = D.c1; // the pseudoscalar part is the weight_nrm part
     hd::ga::detail::check_unitization<T>(std::abs(n), "dual number (3dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * D;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * D;
 }
 
 

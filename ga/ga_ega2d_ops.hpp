@@ -94,8 +94,8 @@ constexpr MVec2d_E<T> exp(PScalar2d<T> B)
     // B = phi * e12 and e12^2 = -1
     // (e12 is the basis bivector representing the 2D plane)
 
-    auto angle = sign(B) * nrm(B);
-    return MVec2d_E<T>(Scalar2d<T>(std::cos(angle)), PScalar2d<T>(std::sin(angle)));
+    auto phi = sign(B) * nrm(B);
+    return MVec2d_E<T>(Scalar2d<T>(std::cos(phi)), PScalar2d<T>(std::sin(phi)));
 }
 
 

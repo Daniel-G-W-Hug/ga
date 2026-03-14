@@ -229,13 +229,13 @@ template <typename T, typename U>
 constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor(BiVec3dp<T> const& L, U theta)
 {
     // line L must be unitized to avoid surprises
-    auto nrm_sq = weight_nrm_sq(L);
-    if (nrm_sq < eps) {
+    auto L_weight_nrm_sq = weight_nrm_sq(L);
+    if (L_weight_nrm_sq < eps) {
         throw std::invalid_argument(
             "get_motor: Cannot use ideal lines L with weight_nrm_sq(L) == 0.0");
     }
     auto l{L};
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    if ((L_weight_nrm_sq > eps) && (L_weight_nrm_sq != 1.0)) {
         l = unitize(L);
     }
 
@@ -285,9 +285,9 @@ constexpr MVec3dp_E<std::common_type_t<T, U, V>> get_motor(BiVec3dp<T> const& L,
                                                            V dist)
 {
     // line L must be unitized to avoid surprises
-    auto nrm_sq = weight_nrm_sq(L);
+    auto L_weight_nrm_sq = weight_nrm_sq(L);
     auto l{L};
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    if ((L_weight_nrm_sq > eps) && (L_weight_nrm_sq != 1.0)) {
         l = unitize(L);
     }
 
@@ -324,21 +324,21 @@ get_motor_from_planes(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
     //     auto t_moved = move3dp(t,M);  // moves t according to the motor M
 
     // planes t1 and t2 need to be unitized to avoid surprises
-    auto nrm_sq = weight_nrm_sq(t1);
+    auto w_nrm_sq = weight_nrm_sq(t1);
     auto tu1{t1};
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         tu1 = unitize(tu1);
     }
-    nrm_sq = weight_nrm_sq(t2);
+    w_nrm_sq = weight_nrm_sq(t2);
     auto tu2{t2};
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         tu2 = unitize(tu2);
     }
 
     // the resulting motor must be unitized to avoid surprises
     auto M{rgpr(tu2, tu1)};
-    nrm_sq = weight_nrm_sq(M);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    w_nrm_sq = weight_nrm_sq(M);
+    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         M = unitize(M);
     }
     return M; // based on the regressive geometric product
@@ -358,21 +358,21 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> get_motor_from_lines(BiVec3dp<T> c
     // (see Lengyel, "PGA Illuminated", p. 152)
 
     // l1 and l2 need to be unitized to avoid surprises
-    auto nrm_sq = weight_nrm_sq(l1);
+    auto w_nrm_sq = weight_nrm_sq(l1);
     auto lu1{l1};
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         lu1 = unitize(lu1);
     }
-    nrm_sq = weight_nrm_sq(l2);
+    w_nrm_sq = weight_nrm_sq(l2);
     auto lu2{l2};
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         lu2 = unitize(lu2);
     }
 
     // the resulting motor must be unitized to avoid surprises
     auto M{sqrt(rgpr(l2, rrev(l1)))};
-    nrm_sq = weight_nrm_sq(M);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    w_nrm_sq = weight_nrm_sq(M);
+    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         M = unitize(M);
     }
     return M; // based on the regressive geometric product
