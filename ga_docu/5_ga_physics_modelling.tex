@@ -294,7 +294,7 @@ Things to remember:
 
 % The geometrical situation is depicted in figure XXX for a two-dimensional case.
 
-\newpage
+%\newpage
 
 \subsubsection{Modelling linear and angular momentum}
 \label{subsubsection_modelling_momentum}
@@ -508,9 +508,8 @@ time dependent function in the body frame
     \dot{P}_b = I_b[\dot{\Omega}_b]
     \label{eq:momentum_derivative_body_frame}
 \end{equation}
-otherwise the term $\dot{I}_b[\Omega_b]$
-would have to be covered as well, as in eqn.~(\ref{eq:momentum_derivative_world_frame})
-above. \\
+otherwise the term $\dot{I}_b[\Omega_b]$ would have to be covered as well, as in
+eqn.~(\ref{eq:momentum_derivative_world_frame}). \\
 
 The mapping to the classical intertia can be done when splitting $\Omega_b$ relative to
 the centroid of the body with a projective point split on $\Omega_b$ and on
@@ -636,7 +635,9 @@ the rate of change and the resulting total interia map can be inverted either sy
 or numerically to get its inverse $I_{2D}^{-1}$ as needed to set up the right-hand side of
 the system in eqn.~(\ref{eq:ode_system_body_frame}). The inertia map in $2D$ maps the rate
 of change vector to the momentum bivector. The inverse inertia map than maps from a
-momentum bivector to the corresponding rate of change vector. \\
+momentum bivector to the rate of change vector. \\
+
+\newpage
 
 Now let's do the same for the $3D$ case, where the rate of change is a bivector. The
 component expressions are generated from the corresponding product tables in
@@ -711,8 +712,7 @@ As shown in \cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023} the inertia m
 additive. That means that inertia maps of parts of a body consisting of several parts that
 move with the same bivector rate can be added to get the total inertia. \\
 
-\newpage
-
+%\newpage
 
 \subsubsection{Solving the Newton/Euler equations numerically}
 \label{subsubsection_solving_newton-euler_numerically}
@@ -737,11 +737,15 @@ body which spins with the angular speed $\nrm{\vec{\omega}}$ around the momentar
 axis defined by $\vec{\omega}$  as a result. \\
 
 Due to the same structure the equations can be written as one system of equations that can
-be solved in parallel (as uncoupled equations). In the $2D$ case the translational part
+be solved as uncoupled equations (e.g. covering cases with either translation or rotation
+exclusively within the identical structure). In the $2D$ case the translational part
 requires two degrees of freedom (DoF) and the rotational part needs one DoF resulting in a
 total of three DoF. It can be written compactly as a system introducing the inertia matrix
 $I$ as a linear function that maps the acceleratory degrees of freedom to the
-corresponding external force and torque components:
+corresponding external force and torque components\footnote{Please be aware, that this
+does not actually couple the equations! We just solve two independent equations
+conveniently in parallel to show the principle here. If the movement is actually coupled,
+there will be coupling terms to model physical requirements that will be shown later on.}:
 \begin{equation}
     \underbrace{
     \begin{bmatrix}
@@ -762,7 +766,7 @@ corresponding external force and torque components:
         {M} 
     \end{pmatrix} 
 \end{equation}
-Solving this system requires to isolate the accelerations by multiplying the system from
+Solving such a system requires to isolate the accelerations by multiplying the system from
 the left with the inverse of the inertia map $I^{-1}$ resulting in
 \begin{equation}
     \begin{pmatrix}
@@ -816,8 +820,8 @@ $\vec{y}$:
 If we would have to integrate for more than one point, we could easily add an additional
 index at the beginning to extent the system accordingly. However, for now we only focus on
 integrating the system for one point (our center of mass) at which we want to know
-position, speed as well as angular orientation and angular speed as function of time. The
-substitution above transforms the system in
+position and speed as well as angular orientation and angular speed as function of time.
+The substitution above transforms the system in
 eqn.~(\ref{eq:classical_sys_Newton_Euler_2nd_order}) into a system of $1^{st}$ order as
 follows:
 \begin{subeqnarray}
@@ -833,23 +837,325 @@ direct integration, using e.g. a Runge-Kutta-Scheme of $4^{th}$ order accuracy f
 time integration, and using the initial conditions defined above. As a result we directly
 get the positions and velocities as function of time.\\
 
-The approach described above can be used to solve the resulting $PGA$
-equation~(\ref{eq:ode_system_body_frame}) $\ddot{B}_b = I_b^{-1}\left[ F_{b} -
-\mathrm{rcmt}(\Omega_b,I_b[\Omega_b]) \right]$. The overall approach is identical, just with a
-slightly different right-hand side adjusted to the $PGA$ formulation. However, this
-equation does not directly contain the degrees of freedom we are interested in, like $X$,
-$\dot{X}$, and $\ddot{X}$. Instead, we first have to solve the system for the
-corresponding (bi)vectors\footnote{$2D$ case: vectors, $3D$ case: bivectors} $B(t)$,
-$\dot{B} = \Omega(t)$, and $\ddot{B} = \dot{\Omega}(t)$. For the time integration we apply
-suitable initial conditions, and then, as a follow-up step, we calculate the actual points
-and their velocities from the defining equations (e.g. based on
-equations~(\ref{eq:rexp_pga_motor}) and (\ref{eq:pga_sandwich_tranformation})) that link
-the motion bivectors with the positions and speeds we are actually interested in to solve
-the given physical task.\\
+\emph{Transition to the body frame: the coupled classical equations.}
+The derivation above works in the inertial (lab) frame, where Newton's and Euler's
+equations are genuinely uncoupled. However, for a non-spherical rigid body the inertia
+tensor $\mathbf{I} = \mathbf{I}(t)$ rotates with the body and is therefore time-varying.
+Switching to a frame fixed to the body keeps $\mathbf{I} = \mathbf{I}_b$ constant -- at
+the cost of introducing coupling terms between translation and rotation that arise from
+the rotation of the frame itself. This body-frame formulation is the standard choice for
+rigid-body simulation and is also the natural setting for the $PGA$ formulation. The key
+differences are summarised in Table~\ref{tab:inertial_vs_body}.
 
-To make these remarks more concrete let's look into the $2D$ case, specifically into the
-formulation of the initial conditions. The position and rate of change vectors in the
-\emph{body frame} are defined as
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{p{3cm}|p{4cm}|p{4cm}}
+\hline
+ & Inertial frame & Body-fixed frame \\
+\hline
+Inertia tensor $\mathbf{I}$ & Time-varying $\mathbf{I}(t)$ & $\mathbf{I}_b$ constant \\
+Coupling terms & None & $\vec{\omega}\times\vec{v}$ and
+$\vec{\omega}\times\mathbf{I}_b\vec{\omega}$ \\
+Practical for non-spherical bodies & Expensive & Standard choice \\
+\hline
+\end{tabular}
+\caption{Inertial frame vs.\ body-fixed frame: key differences for rigid-body integration.}
+\label{tab:inertial_vs_body}
+\end{table}
+
+In the body frame, the translational and rotational equations of motion become (now
+actually coupled, descibing translational and rotational motion at the same time):
+\begin{align}
+    m\left(\dot{\vec{v}} + \vec{\omega}\times\vec{v}\right) &= \vec{F}^b
+    \label{eq:newton_body_frame} \\
+    \mathbf{I}_b\dot{\vec{\omega}}
+    + \vec{\omega}\times\left(\mathbf{I}_b\vec{\omega}\right) &= \vec{\tau}^b
+    \label{eq:euler_body_frame}
+\end{align}
+where $\vec{v}$ and $\vec{\omega}$ are the translational and angular velocity expressed in
+the body frame, $\mathbf{I}_b$ is the (constant) inertia tensor in the body frame, and
+$\vec{F}^b$, $\vec{\tau}^b$ are the external force and torque expressed in the body frame.
+Solving for the derivatives gives the state-space form (linear and angular accelerations
+isolated):
+\begin{align}
+    \dot{\vec{v}} &= \frac{\vec{F}^b}{m} - \vec{\omega}\times\vec{v}
+    \label{eq:newton_body_frame_ss} \\
+    \dot{\vec{\omega}} &= \mathbf{I}_b^{-1}\!\left(\vec{\tau}^b
+    - \vec{\omega}\times\mathbf{I}_b\vec{\omega}\right)
+    \label{eq:euler_body_frame_ss}
+\end{align}
+
+\emph{The $2D$ case.}
+In $2D$ only $\omega_z = \omega$ survives, and the gyroscopic term
+$\vec{\omega}\times\mathbf{I}_b\vec{\omega}$ vanishes entirely because there is only one
+rotation axis. The rotational equation reduces to the trivially simple $\dot{\omega} =
+\tau^b / J$. The full $2D$ (coupled) system in component-wise matrix form is:
+\begin{equation}
+    \begin{pmatrix} \dot{v}_x \\ \dot{v}_y \\ \dot{\omega} \end{pmatrix}
+    =
+    \underbrace{
+    \begin{pmatrix} 0 & +\omega & 0 \\ -\omega & 0 & 0 \\ 0 & 0 & 0 \end{pmatrix}
+    }_{A(\omega)}
+    \begin{pmatrix} v_x \\ v_y \\ \omega \end{pmatrix}
+    +
+    \begin{pmatrix} F_x^b/m \\ F_y^b/m \\ \tau^b/J \end{pmatrix}
+    \label{eq:newton_euler_2d_body_matrix}
+\end{equation}
+Comparing with the uncoupled system derived above, the only difference is the $\pm\omega$
+entries coupling $v_x$ and $v_y$ -- as direct consequence of working in a rotating
+frame.\\
+
+\emph{The $3D$ case.}
+In $3D$ both coupling terms are present. For \emph{principal body axes} (diagonal
+inertia tensor $\mathbf{I} = \mathrm{diag}(I_x, I_y, I_z)$), the full state-space
+system $\dot{\vec{u}} = A(\vec{\omega})\,\vec{u} + \vec{b}$ written out with all
+component equations is:
+\begin{align}
+    \begin{pmatrix} \dot{v}_x \\ \dot{v}_y \\ \dot{v}_z \\[2pt] \dot{\omega}_x \\
+        \dot{\omega}_y \\ \dot{\omega}_z
+    \end{pmatrix}
+    &= \left(\begin{array}{ccc|ccc}
+         0        & +\omega_z & -\omega_y & 0 & 0 & 0 \\[4pt]
+        -\omega_z &  0        & +\omega_x & 0 & 0 & 0 \\[4pt]
+        +\omega_y & -\omega_x &  0        & 0 & 0 & 0 \\
+        \noalign{\vskip6pt}
+        \hline\\[-8pt]
+        0 & 0 & 0 &                     0 & +\dfrac{I_y}{I_x}\omega_z &
+        -\dfrac{I_z}{I_x}\omega_y \\[10pt]
+        0 & 0 & 0 & -\dfrac{I_x}{I_y}\omega_z &                     0 &
+        +\dfrac{I_z}{I_y}\omega_x \\[10pt]
+        0 & 0 & 0 & +\dfrac{I_x}{I_z}\omega_y & -\dfrac{I_y}{I_z}\omega_x &                     0
+    \end{array}\right)
+    \begin{pmatrix}
+        v_x \\ v_y \\ v_z \\[2pt] \omega_x \\ \omega_y \\ \omega_z
+    \end{pmatrix} 
+    +
+    \begin{pmatrix}
+        F_x^b/m \\ F_y^b/m \\ F_z^b/m \\[2pt] \tau_x^b/I_x \\ \tau_y^b/I_y \\ \tau_z^b/I_z
+    \end{pmatrix}
+    \label{eq:newton_euler_3d_full}
+\end{align}
+The zeros in the off-diagonal $3\times3$ blocks show immediately that translational
+velocity components $\vec{v}$ and angular velocity components $\vec{\omega}$ do not appear
+directly in each other's rows -- they are coupled only through the coefficients $\omega_k$
+that appear in the top-left block.\\
+
+\emph{Block structure of $A(\vec{\omega})$.}
+The same matrix has the compact block form
+\begin{equation}
+    A(\vec{\omega}) =
+    \begin{pmatrix}
+        \underbrace{-[\vec{\omega}]_\times}_{\text{frame rotation}} &
+        \mathbf{0} \\[4pt]
+        \mathbf{0} &
+        \underbrace{
+            -\mathbf{I}_b^{-1}[\vec{\omega}]_\times\,\mathbf{I}_b
+        }_{\text{gyroscopic}}
+    \end{pmatrix}
+    \label{eq:coupling_matrix_3d}
+\end{equation}
+where $[\vec{\omega}]_\times$ is the $3\times3$ antisymmetric cross-product matrix of
+$\vec{\omega}$. The role of each block is summarised in Table~\ref{tab:block_structure}.
+
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{p{5.8cm}|p{6.9cm}}
+\hline
+Block & Meaning \\
+\hline
+Top-left $-[\vec{\omega}]_\times$ &
+$v_x, v_y, v_z$ couple to each other -- rotating framevdrags translational velocity
+\\[4pt]
+Bottom-right $-\mathbf{I}_b^{-1}[\vec{\omega}]_\times\mathbf{I}_b$ &
+$\omega_x, \omega_y, \omega_z$ couple to each other -- gyroscopic/Euler torque
+\\[4pt]
+Off-diagonal $\mathbf{0}$ &
+No direct $v_i \leftrightarrow \omega_j$ coupling in the state
+\\
+\hline
+\end{tabular}
+\caption{Block structure of the coupling matrix $A(\vec{\omega})$ and the physical
+meaning of each block.}
+\label{tab:block_structure}
+\end{table}
+
+Several structural properties of this system are worth noting:
+\begin{itemize}
+    \item The two subsystems ($\vec{v}$ and $\vec{\omega}$) \emph{do not appear in each
+    other's state slots} -- the off-diagonal blocks are zero.
+    \item The coupling is \emph{parametric}: $\vec{\omega}$ appears as coefficients in
+    the translational block, not as additional state variables.
+    \item $\vec{\omega}$ drives $\vec{v}$ indirectly via the rotating frame; $\vec{v}$
+    does \emph{not} influence $\dot{\vec{\omega}}$.
+    \item The system is \emph{nonlinear} because $A(\vec{\omega})$ itself depends on the
+    state $\vec{\omega}$.
+    \item Since $\vec{\omega}$ must be known to evaluate $A(\vec{\omega})$, both
+    subsystems must be integrated together with a shared $\vec{\omega}$ at each
+    timestep -- they cannot be decoupled.
+\end{itemize}
+
+Reading row by row from $\dot{\vec{u}} = A(\vec{\omega})\vec{u} + \vec{b}$ yields the
+six coupled first-order ODEs that are directly implementable in code:
+\begin{subeqnarray}
+    \dot{v}_x     &=& +\omega_z v_y - \omega_y v_z + F_x^b/m \\
+    \dot{v}_y     &=& -\omega_z v_x + \omega_x v_z + F_y^b/m \\
+    \dot{v}_z     &=& +\omega_y v_x - \omega_x v_y + F_z^b/m \\[4pt]
+    \dot{\omega}_x &=& \frac{I_y - I_z}{I_x}\,\omega_y \omega_z + \tau_x^b/I_x \\
+    \dot{\omega}_y &=& \frac{I_z - I_x}{I_y}\,\omega_z \omega_x + \tau_y^b/I_y \\
+    \dot{\omega}_z &=& \frac{I_x - I_y}{I_z}\,\omega_x \omega_y + \tau_z^b/I_z
+    \label{eq:newton_euler_3d_components}
+\end{subeqnarray}
+The last three equations (rotational) are the classical Euler equations for a rigid
+body with applied torque. Each contains a nonlinear product of two angular velocity
+components -- the $\omega_i \omega_j$ terms are the gyroscopic contribution encoded in
+the bottom-right block of $A(\vec{\omega})$. The first three equations (translational)
+each couple two velocity components via $\omega_k$, mirroring the $2D$ case but
+extended to all three axes.\\
+
+\emph{Integrating orientation.}
+To recover positions and orientations in the inertial frame, the orientation must be
+evolved alongside the dynamics. With a rotation matrix $\mathbf{R}$ and position
+$\vec{r}$, the kinematic equations are:
+\begin{equation}
+    \dot{\vec{r}} = \mathbf{R}\,\vec{v}, \qquad
+    \dot{\mathbf{R}} = \mathbf{R}\,[\vec{\omega}]_\times
+    \label{eq:kinematics_body_frame}
+\end{equation}
+In practice, quaternions $\mathbf{q}$ are strongly recommended over rotation matrices
+or Euler angles to avoid gimbal lock:
+\begin{equation}
+    \dot{\mathbf{q}} = \tfrac{1}{2}\,\mathbf{q} \otimes \vec{\omega}
+    \label{eq:quaternion_kinematics}
+\end{equation}
+with the constraint $|\mathbf{q}| = 1$ enforced by periodic renormalisation.\\
+
+\emph{Complete classical state vectors.}
+The full state vector required for numerical integration -- including position,
+orientation, and velocity degrees of freedom -- is summarised in
+Tables~\ref{tab:state_2d_classical} and \ref{tab:state_3d_classical}.
+
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{p{3.5cm}|c|p{7.5cm}}
+\hline
+State & DoF & Equation \\
+\hline
+$x,\, y$ (inertial pos.) & 2 & $\dot{\vec{r}} = \mathbf{R}(\theta)\,\vec{v}$ \\
+$\theta$ (orientation) & 1 & $\dot{\theta} = \omega$ \\
+$v_x,\, v_y$ (body vel.) & 2 & $\dot{v}_x = +\omega v_y + F_x^b/m$,\;\; $\dot{v}_y = -\omega v_x + F_y^b/m$ \\
+$\omega$ (angular vel.) & 1 & $\dot{\omega} = \tau^b/J$ \\
+\hline
+Total & 6 & \multicolumn{1}{l}{coupled first-order ODEs} \\
+\hline
+\end{tabular}
+\caption{Complete classical state vector for $2D$ rigid-body integration in the body frame.}
+\label{tab:state_2d_classical}
+\end{table}
+
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{p{3.5cm}|c|p{7.5cm}}
+\hline
+State & DoF & Equation \\
+\hline
+$\vec{r}$ (inertial pos.) & 3 &
+$\dot{\vec{r}} = \mathbf{R}\,\vec{v}$ \\
+$\mathbf{q}$ (quaternion) & 4 &
+$\dot{\mathbf{q}} = \frac{1}{2}\,\mathbf{q}\otimes\vec{\omega}$ \\
+$\vec{v}$ (body vel.) & 3 &
+$\dot{\vec{v}} = \vec{F}^b/m - \vec{\omega}\times\vec{v}$ \\
+$\vec{\omega}$ (body ang.\ vel.) & 3 &
+$\dot{\vec{\omega}} = \mathbf{I}_b^{-1}\!\left(\vec{\tau}^b
+ - \vec{\omega}\times\mathbf{I}_b\vec{\omega}\right)$ \\
+\hline
+Total & 13 & \multicolumn{1}{l}{coupled first-order ODEs (with $|\mathbf{q}|=1$)} \\
+\hline
+\end{tabular}
+\caption{Complete classical state vector for $3D$ rigid-body integration in the body
+frame.}
+\label{tab:state_3d_classical}
+\end{table}
+
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{p{4.5cm}|p{3.95cm}|p{3.95cm}}
+\hline
+Property & $2D$ &
+$3D$ \\
+\hline
+State size & 6 & 13 (with quaternion) \\
+Gyroscopic term $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$ &
+\textbf{Zero} & Present, nonlinear \\
+Rotational dof & 1 ($\omega$ scalar, decoupled) &
+3 ($\omega_x, \omega_y, \omega_z$ coupled) \\
+Orientation representation & Scalar angle $\theta$ &
+Quaternion $\mathbf{q}$ (4 states) \\
+\hline
+\end{tabular}
+\caption{Comparison of $2D$ and $3D$ classical body-frame integration.}
+\label{tab:2d_3d_classical}
+\end{table}
+
+\newpage
+
+\emph{Switching to $PGA$: what changes, what unifies.}
+We can now compare the complete classical body-frame system with the $PGA$ formulation.
+The $PGA$ equation of motion~(\ref{eq:ode_system_body_frame})
+\begin{equation*}
+    \dot{\Omega}_b = I_b^{-1}\!\left[ F_b - \mathrm{rcmt}(\Omega_b, I_b[\Omega_b]) \right]
+\end{equation*}
+looks like a single compact expression, but it encodes the same physics as both
+eqns.~(\ref{eq:newton_body_frame_ss}) and (\ref{eq:euler_body_frame_ss}) together.
+Table~\ref{tab:classical_vs_pga} show the full correspondence.
+
+\begin{table}[h!]
+\centering\small
+\begin{tabular}{p{6.0cm}|p{6.5cm}}
+\hline
+Classical body frame &
+$PGA$ equivalent \\
+\hline
+Two separate equations: Newton + Euler &
+One unified equation for $\dot{\Omega}_b$ \\
+Coupling term $\vec{\omega}\times\vec{v}$ &
+Encoded in $\mathrm{rcmt}(\Omega_b, I_b[\Omega_b])$ \\
+Gyroscopic term $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$ &
+Also encoded in $\mathrm{rcmt}(\Omega_b, I_b[\Omega_b])$ \\
+Inertia tensor $\mathbf{I}_b$ ($3\times3$ or $6\times6$ matrix) &
+Inertia map $I_b[\cdot]$ (linear operator on bivectors) \\
+Quaternion evolution $\dot{\mathbf{q}} = \frac{1}{2}\mathbf{q}\otimes\vec{\omega}$ &
+Motor $M = \exp_\veedot[B_b]$ -- orientation implicit in $B_b$ \\
+State: $(\vec{r},\, \mathbf{q},\, \vec{v},\, \vec{\omega})$ &
+State: $(B_b,\, \Omega_b)$ -- bivector pair \\
+Inertial-frame position from $\dot{\vec{r}} = \mathbf{R}\vec{v}$ &
+Inertial-frame points updated via sandwich product
+$X(t) = M \veedot X_b(t) \veedot \rrev{M} $ \\
+\hline
+\end{tabular}
+\caption{Classical body-frame vs.\ $PGA$ formulation: explicit correspondence.}
+\label{tab:classical_vs_pga}
+\end{table}
+
+The key unification: where the classical formulation requires two separate differential
+equations (one for $\dot{\vec{v}}$ (3 DoF), one for $\dot{\vec{\omega}}$ (3 DoF)) plus a
+separate orientation update (quaternion or rotation matrix), the $PGA$ ODE handles the
+first two in a single equation over the bivector $\dot{\Omega}_b$ (6 DoF), and by a
+separate update of the position using a motor directly derived from $\Omega_b$. The
+$\mathrm{rcmt}$ term plays the combined role of both coupling terms of the classical
+approach ($\vec{\omega}\times\vec{v}$ and $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$) in
+one operation.
+
+As just described, the $PGA$ equation~(\ref{eq:ode_system_body_frame}) does not directly
+contain the degrees of freedom we are ultimately interested in, like $X$, $\dot{X}$, and
+$\ddot{X}$. Instead, we first solve the system for the corresponding
+(bi)vectors\footnote{$2D$ case: vectors; $3D$ case: bivectors} $B(t)$, $\dot{B} =
+\Omega(t)$, and $\ddot{B} = \dot{\Omega}(t)$, and then recover the actual points and their
+velocities in a follow-up step from the motor equations~(\ref{eq:rexp_pga_motor}) and
+(\ref{eq:pga_sandwich_tranformation}).\\
+
+\emph{$PGA$ state and initial conditions ($2D$ case).}
+To make these remarks concrete let's look into the $2D$ case. The position and rate of
+change vectors in the \emph{body frame} are defined as
 \begin{equation}
     B_b = \begin{pmatrix}
         s_x \\ s_y \\ \phi
@@ -861,23 +1167,29 @@ formulation of the initial conditions. The position and rate of change vectors i
     ,\quad
      \dot{\Omega}_b = \begin{pmatrix}
         a_x \\ a_y \\ \alpha
-    \end{pmatrix}    
+    \end{pmatrix}
 \end{equation}
-The vector containing all degrees of freedom in the system transformed to $1^{st}$ order
-is then $u = (s_x, v_x, s_y, v_y, \phi, \omega)$. Suitable initial conditions for speed
-and angular speed can then be directly derived from equations
-(\ref{eq:vector_rot_rate_omega}) and (\ref{eq:vector_trans_rate_v_vec}) as starting values
-for the integration. The intial value for the position $B_b(t=0)$ is typically set to
-$B_{b,t=0} = (0, 0, 0)$ since it reflects the most suitable initial value for $B_b(t) =
-\Omega_b(t) t + B_{b,t=0}$. This choice yields the identity transformation for $t=0$ as
-$M(t=0) = exp_\veedot[B_b(t=0)] = \ps$. \\
+Comparing with Table~\ref{tab:state_2d_classical}, the $PGA$ state $(B_{b,x},
+\Omega_{b,x}, B_{b,y}, \Omega_{b,y}, B_{b,\phi}, \Omega_{b,\omega})$ corresponds directly
+to the classical state $(x,v_x,y, v_y,\theta, \omega)$ for the dynamic degrees of freedom.
+The inertial-frame positions of the center of mass (the origin of the body frame) and its
+orientation are recovered via the motor instead of via a separate kinematic integration.
+The full state vector transformed to $1^{st}$ order is $u(B_b,\Omega_b) = (s_x, v_x, s_y,
+v_y, \phi, \omega)$. Suitable initial conditions for speed and angular speed can be
+directly derived from equations~(\ref{eq:vector_rot_rate_omega}) and
+(\ref{eq:vector_trans_rate_v_vec}). \\
 
-Basic examples for translational and rotational motion based on the Newton-Euler equations
-are implemented as tests in \path{ga_test/src/ga_appl_physics_test.hpp} in both
-approaches, the classical approach and the approach directly formulated in $PGA$ for
+The initial value for the position is typically set to $B_b(t=0) = (0, 0, 0)$, which
+yields the identity transformation at $t=0$ as $M(t=0) = \exp_\veedot[B_b(t=0)] = \ps$.
+This corresponds to the classical choice $\mathbf{q}(t=0) = (1, 0, 0, 0)$ and
+$\vec{r}(t=0) = \vec{0}$ for the quaternion and position initial conditions.\\
+
+Basic examples for translational and rotational motion are implemented as tests in
+\path{ga_test/src/ga_appl_physics_test.hpp} based on the Newton-Euler equations in both
+approaches, the classical approach and the approach directly formulated in $PGA$, for
 simple reference cases. \\
 
-\newpage
+%\newpage
 
 \subsubsection{Structure of inertia and inertia maps}
 \label{subsubsection_structure_inertia_maps}
@@ -910,13 +1222,13 @@ The basis elements and their physical roles are listed in Table~\ref{tab:basis_p
 
 \begin{table}[h!]
 \centering\small
-\begin{tabular}{c|p{5.5cm}|p{5.5cm}}
+\begin{tabular}{c|p{5.2cm}|p{5.2cm}}
 \hline
 Index & Vec2dp input (velocity twist $\Omega$) & BiVec2dp output (momentum wrench $P$) \\
 \hline
-0 & $\bv{1}$ -- translational velocity, $x$-direction & $\bv{31}$ -- $x$-momentum line \\
-1 & $\bv{2}$ -- translational velocity, $y$-direction & $\bv{32}$ -- $y$-momentum line \\
-2 & $\bv{3}$ -- projective direction, angular velocity  & $\bv{12}$ -- ideal line, angular momentum \\
+0 & $\bv{1}$ -- $x$-velocity & $\bv{31}$ -- $x$-momentum \\
+1 & $\bv{2}$ -- $y$-velocity & $\bv{32}$ -- $y$-momentum \\
+2 & $\bv{3}$ -- angular velocity  & $\bv{12}$ -- angular momentum \\
 \hline
 \end{tabular}
 \caption{Basis correspondence for the $PGA2DP$ inertia map.}
@@ -1073,21 +1385,26 @@ Table~\ref{tab:basis_pga3dp}.
 \centering\small
 \begin{tabular}{c|p{5.7cm}|p{5.7cm}}
 \hline
-Index & BiVec3dp input (velocity twist $\Omega$) & BiVec3dp output (momentum wrench $P$)
-\\
+Idx & BiVec3dp input (velocity twist $\Omega$) & BiVec3dp output (momentum wrench $P$) \\
 \hline
-0 & $\bv{41}$ -- ideal line, translational velocity $x$ & $\bv{41}$ -- linear momentum $x$
+0 & $\bv{41}$ -- ideal line, $x$-velocity &
+$\bv{41}$ -- linear momentum $x$
 \\
-1 & $\bv{42}$ -- ideal line, translational velocity $y$ & $\bv{42}$ -- linear momentum $y$
+1 & $\bv{42}$ -- ideal line, $y$-velocity &
+$\bv{42}$ -- linear momentum $y$
 \\
-2 & $\bv{43}$ -- ideal line, translational velocity $z$ & $\bv{43}$ -- linear momentum $z$
+2 & $\bv{43}$ -- ideal line, $z$-velocity &
+$\bv{43}$ -- linear momentum $z$
 \\
-3 & $\bv{23}$ -- real line, angular velocity about $\bv{1}$ & $\bv{23}$ -- angular
-momentum about $\bv{1}$ \\
-4 & $\bv{31}$ -- real line, angular velocity about $\bv{2}$ & $\bv{31}$ -- angular
-momentum about $\bv{2}$ \\
-5 & $\bv{12}$ -- real line, angular velocity about $\bv{3}$ & $\bv{12}$ -- angular
-momentum about $\bv{3}$ \\
+3 & $\bv{23}$ -- real line, angular velocity about $\bv{1}$ &
+$\bv{23}$ -- angular momentum about $\bv{1}$
+\\
+4 & $\bv{31}$ -- real line, angular velocity about $\bv{2}$ &
+$\bv{31}$ -- angular momentum about $\bv{2}$
+\\
+5 & $\bv{12}$ -- real line, angular velocity about $\bv{3}$ &
+$\bv{12}$ -- angular momentum about $\bv{3}$
+\\
 \hline
 \end{tabular}
 \caption{Basis correspondence for the $PGA3DP$ inertia map.}
@@ -1189,9 +1506,12 @@ frame all four $3\times3$ blocks are non-zero:
 where the lower-left inertia tensor entries include the classical parallel axis
 corrections:
 \begin{align}
-    I_{xx} &= I_{xx,cm} + m(c_y^2 + c_z^2), \quad &I_{xy} &= I_{xy,cm} + m c_x c_y \nonumber \\
-    I_{yy} &= I_{yy,cm} + m(c_x^2 + c_z^2), \quad &I_{xz} &= I_{xz,cm} + m c_x c_z \label{eq:parallel_axis_3D} \\
-    I_{zz} &= I_{zz,cm} + m(c_x^2 + c_y^2), \quad &I_{yz} &= I_{yz,cm} + m c_y c_z \nonumber
+    I_{xx} &= I_{xx,cm} + m(c_y^2 + c_z^2), \quad &I_{xy} &
+    = I_{xy,cm} + m c_x c_y \nonumber \\
+    I_{yy} &= I_{yy,cm} + m(c_x^2 + c_z^2), \quad &I_{xz} &
+    = I_{xz,cm} + m c_x c_z \label{eq:parallel_axis_3D} \\
+    I_{zz} &= I_{zz,cm} + m(c_x^2 + c_y^2), \quad &I_{yz} &
+    = I_{yz,cm} + m c_y c_z \nonumber
 \end{align}
 Two structural features carry over from the $2D$ case:
 \begin{itemize}
@@ -1315,6 +1635,12 @@ vanish, the mass block takes its simplest form, and the moment block reduces to 
 $2D$) or $\mathbf{J}_{cm}$ (in $3D$) without any parallel axis corrections. This matches
 the classical result that Newton's and Euler's equations decouple at the center of mass,
 and it is the reason the body frame with the center of mass at the origin is used as the
-preferred reference frame throughout this section. \\
+preferred reference frame throughout this section. Note, however, that while the inertia
+map $I_\mathrm{body}$ is block-diagonal at the center of mass -- translational and
+rotational blocks decoupling in the inertia matrix itself -- the equations of motion
+retain dynamical coupling through the $\mathrm{rcmt}(\Omega_b, I_b[\Omega_b])$ term.
+This is the $PGA$ counterpart of the classical coupling terms $\vec{\omega}\times\vec{v}$
+and $\vec{\omega}\times\mathbf{I}\vec{\omega}$ discussed in the preceding section, and it
+arises from the rotation of the body frame, not from the inertia structure. \\
 
 \newpage
