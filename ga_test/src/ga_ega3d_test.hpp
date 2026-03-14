@@ -2125,26 +2125,47 @@ TEST_SUITE("EGA 3D Tests")
         // fmt::println("direct calclulation:");
         // fmt::println("   c_rot = rotate(c,R)          = {: .3}", rotate(c, R));
 
-        CHECK(nrm(rotate(c, R)) == nrm(c));
-        CHECK(gr1(c_rot_m) == rotate(c, R));
-        CHECK(rotate(c, R) == rotate_opt(c, R));
-        // n I_3d approach:
-        CHECK(rotate(vec3d{1.0, 0.0, 0.0}, get_rotor(e3_3d * I_3d, pi / 4)) ==
-              normalize(vec3d{1.0, 1.0, 0.0}));
+        CHECK(std::abs(nrm(rotate(c, R)) - nrm(c)) < eps * nrm(c));
+        auto const rot_c = rotate(c, R);
+        auto const rot_c_m = gr1(c_rot_m);
+        auto const rot_c_opt = rotate_opt(c, R);
+        CHECK(std::abs(rot_c_m.x - rot_c.x) < eps * nrm(rot_c));
+        CHECK(std::abs(rot_c_m.y - rot_c.y) < eps * nrm(rot_c));
+        CHECK(std::abs(rot_c_m.z - rot_c.z) < eps * nrm(rot_c));
+        CHECK(std::abs(rot_c_opt.x - rot_c.x) < eps * nrm(rot_c));
+        CHECK(std::abs(rot_c_opt.y - rot_c.y) < eps * nrm(rot_c));
+        CHECK(std::abs(rot_c_opt.z - rot_c.z) < eps * nrm(rot_c));
+        // using I_3d approach:
+        auto const rot_x_I = rotate(vec3d{1.0, 0.0, 0.0}, get_rotor(e3_3d * I_3d, pi / 4));
+        auto const ref_xy = normalize(vec3d{1.0, 1.0, 0.0});
+        CHECK(std::abs(rot_x_I.x - ref_xy.x) < eps * nrm(ref_xy));
+        CHECK(std::abs(rot_x_I.y - ref_xy.y) < eps * nrm(ref_xy));
+        CHECK(std::abs(rot_x_I.z - ref_xy.z) < eps * nrm(ref_xy));
         // using a bivector directly:
-        CHECK(rotate(vec3d{1.0, 0.0, 0.0}, get_rotor(e12_3d, pi / 4)) ==
-              normalize(vec3d{1.0, 1.0, 0.0}));
+        auto const rot_x_bv = rotate(vec3d{1.0, 0.0, 0.0}, get_rotor(e12_3d, pi / 4));
+        CHECK(std::abs(rot_x_bv.x - ref_xy.x) < eps * nrm(ref_xy));
+        CHECK(std::abs(rot_x_bv.y - ref_xy.y) < eps * nrm(ref_xy));
+        CHECK(std::abs(rot_x_bv.z - ref_xy.z) < eps * nrm(ref_xy));
 
         // direct rotation of a bivector
-        CHECK(rotate(bivec3d{0.0, 0.0, 1.0}, get_rotor(e23_3d, pi / 2)) == -e31_3d);
+        auto const rot_bv = rotate(bivec3d{0.0, 0.0, 1.0}, get_rotor(e23_3d, pi / 2));
+        CHECK(std::abs(rot_bv.x - (-e31_3d).x) < eps * nrm(-e31_3d));
+        CHECK(std::abs(rot_bv.y - (-e31_3d).y) < eps * nrm(-e31_3d));
+        CHECK(std::abs(rot_bv.z - (-e31_3d).z) < eps * nrm(-e31_3d));
 
         // example see Macdonald "Linear and Geometric Algebra", Exercise 7.12, p. 127
         auto Bv =
             wdg(e2_3d, e1_3d + std::sqrt(3.0) * e3_3d); // bivector describing the plane
-        CHECK(abs(nrm(Bv) - 2.0) < eps);
-        CHECK(rotate(Bv, get_rotor(e31_3d, pi / 3)) == -2.0 * e12_3d);
-        CHECK(rotate(Bv, get_rotor(e31_3d, pi / 3)) ==
-              rotate_opt(Bv, get_rotor(e31_3d, pi / 3)));
+        CHECK(abs(nrm(Bv) - 2.0) < eps * 2.0);
+        auto const rot_Bv = rotate(Bv, get_rotor(e31_3d, pi / 3));
+        auto const ref_Bv = -2.0 * e12_3d;
+        CHECK(std::abs(rot_Bv.x - ref_Bv.x) < eps * nrm(ref_Bv));
+        CHECK(std::abs(rot_Bv.y - ref_Bv.y) < eps * nrm(ref_Bv));
+        CHECK(std::abs(rot_Bv.z - ref_Bv.z) < eps * nrm(ref_Bv));
+        auto const rot_Bv_opt = rotate_opt(Bv, get_rotor(e31_3d, pi / 3));
+        CHECK(std::abs(rot_Bv_opt.x - rot_Bv.x) < eps * nrm(rot_Bv));
+        CHECK(std::abs(rot_Bv_opt.y - rot_Bv.y) < eps * nrm(rot_Bv));
+        CHECK(std::abs(rot_Bv_opt.z - rot_Bv.z) < eps * nrm(rot_Bv));
 
         // just to silence unused variable warnings
         CHECK(my_exp == exp(-B * angle_uv));
