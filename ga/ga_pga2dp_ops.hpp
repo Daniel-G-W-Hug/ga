@@ -98,9 +98,9 @@ constexpr MVec2dp_U<T> exp(Vec2dp<T> const& arg)
     }
 
     // rotation with angle != 0
-    T half_angle = 0.5 * arg.z;           // arg.z == rotation angle
-    T inv = std::sin(half_angle) / arg.z; // unitize arg and multiply by sin(half_angle)
-    return unitize(MVec2dp_U<T>(arg * inv, PScalar2dp<T>(std::cos(half_angle))));
+    T half_angle = 0.5 * arg.z;             // arg.z == rotation angle
+    T scale = std::sin(half_angle) / arg.z; // unitize arg and multiply by sin(half_angle)
+    return unitize(MVec2dp_U<T>(arg * scale, PScalar2dp<T>(std::cos(half_angle))));
 }
 
 template <typename T>
@@ -133,13 +133,13 @@ template <typename T, typename U>
 constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor(Vec2dp<T> const& P, U theta)
 {
     // point p must be unitized to avoid suprises
-    auto nrm_sq = weight_nrm_sq(P);
-    if (nrm_sq == 0.0) {
+    auto P_weight_nrm_sq = weight_nrm_sq(P);
+    if (P_weight_nrm_sq == 0.0) {
         throw std::invalid_argument(
             "get_motor: Cannot use ideal points P with P.z == 0.0");
     }
     auto Pn{P};
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    if ((P_weight_nrm_sq > eps) && (P_weight_nrm_sq != 1.0)) {
         Pn = unitize(P);
     }
 
@@ -195,20 +195,20 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> get_motor_from_lines(BiVec2dp<T> c
     //     auto B_moved = move2dp(B,M);  // moves B according to the motor M
 
     // lines B1 and B2 need to be unitized to avoid surprises
-    auto nrm_sq = weight_nrm_sq(B1);
+    auto w_nrm_sq = weight_nrm_sq(B1);
     auto Bu1{B1};
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         Bu1 = unitize(Bu1);
     }
-    nrm_sq = weight_nrm_sq(B2);
+    w_nrm_sq = weight_nrm_sq(B2);
     auto Bu2{B2};
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         Bu2 = unitize(Bu2);
     }
 
     auto M = rgpr(Bu2, Bu1);
-    nrm_sq = weight_nrm_sq(M);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
+    w_nrm_sq = weight_nrm_sq(M);
+    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
         M = unitize(M);
     }
     return M; // based on the regressive geometric product
