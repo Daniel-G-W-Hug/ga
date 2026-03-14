@@ -270,9 +270,10 @@ and independent of the dimension of the space modelled in the algebra. In spaces
 dimension, where we only have one complement, applying the complement twice of course
 returns the original object as well. \\
 
-Applying the same complement complement operation several times does not ensure that you
-get back the original object. The result is dependent on the grade of the basis vector and
-the dimension $n$ of the space. When applying the same complement twice we get
+However, applying the same complement complement operation several times in spaces of even
+dimension does not ensure that you get back the original object. The result is dependent
+on the grade of the basis vector and the dimension $n$ of the space. When applying the
+same complement twice we get
 \begin{equation}
     \rcmpl{\rcmpl{u}} = \lcmpl{\lcmpl{u}} = (-1)^{gr(u)(n-gr(u))} u
 \end{equation}
@@ -697,8 +698,8 @@ corresponding formula for the regressive geometric product for the case of a reg
 product between a vector $v$ and a bivector $B$:
 \begin{subequations}
     \begin{align}
-    v \veedot B & = -\leftweightdual{B} \wedge v + rcmt(v,B) \\
-    B \veedot v & = -v \wedge \rightweightdual{B}  + rcmt(B,v)
+    v \veedot B & = -\leftweightdual{B} \wedge v + \mathrm{rcmt}(v,B) \\
+    B \veedot v & = -v \wedge \rightweightdual{B}  + \mathrm{rcmt}(B,v)
     \end{align}
 \end{subequations}
 It is obviously not the result one would get from creating the regressive versions
