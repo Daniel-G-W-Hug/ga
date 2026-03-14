@@ -568,8 +568,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
 
                 size_t n = 0;
-                u[n, 0] = vec3d{0, 1, 0}; // initial position
-                u[n, 1] = vec3d{1, 0, 0}; // initial velocity
+                u[n, 0] = vec3d{0, 1, 0}; // initial position (x,   y,   phi)
+                u[n, 1] = vec3d{1, 0, 0}; // initial velocity (v_x, v_y, omega)
 
                 n = 1;
                 u[n, 0] = vec3d{0, -1, 0}; // initial position
@@ -595,8 +595,10 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                     auto torque = 0.0;                  // no torque (z)
 
                     vec3d acceleration;
-                    acceleration.x = force.x / m; // linear acceleration in (x,y)
-                    acceleration.y = force.y / m;
+                    acceleration.x = velocity.z * velocity.y;  // coupling (v_y, omega)
+                    acceleration.x += force.x / m;             // impact of force_x
+                    acceleration.y = -velocity.z * velocity.x; // coupling (v_x, omega)
+                    acceleration.y += force.y / m;             // impact of force_y
 
                     // J = m * r^2 with r being the distance from rot-axis
                     auto J = m * nrm_sq(position - O_3d);
@@ -956,8 +958,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 // u[n,1] = velocity (v_x, v_y, omega)
 
                 size_t n = 0;
-                u[n, 0] = vec3d{0, 1, 0}; // initial position
-                u[n, 1] = vec3d{1, 0, 0}; // initial velocity
+                u[n, 0] = vec3d{0, 1, 0}; // initial position (x,   y,   phi)
+                u[n, 1] = vec3d{1, 0, 0}; // initial velocity (v_x, v_y, omega)
 
                 n = 1;
                 u[n, 0] = vec3d{0, -1, 0}; // initial position
@@ -996,8 +998,10 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                     // rhs of equation d2/dt^2(x) = a = F/m (linear)
                     // rhs of equation d2/dt^2(phi) = d/dt(omega) = M/J (angular)
                     vec3d acceleration;
-                    acceleration.x = force.x / m; // linear part in (x,y)
-                    acceleration.y = force.y / m;
+                    acceleration.x = velocity.z * velocity.y;  // coupling (v_y, omega)
+                    acceleration.x += force.x / m;             // impact of force_x
+                    acceleration.y = -velocity.z * velocity.x; // coupling (v_x, omega)
+                    acceleration.y += force.y / m;             // impact of force_y
 
                     // J = m * r^2 with r being the distance from rot-axis
                     auto J = m * r * r;
