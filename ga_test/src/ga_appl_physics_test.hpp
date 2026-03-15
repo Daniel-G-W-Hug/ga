@@ -1325,6 +1325,246 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+
+    TEST_CASE("pga2dp: combined motion (rigid 1-body system)")
+    {
+        fmt::println("pga2dp: combined motion (rigid 1-body system)");
+
+        class sim_ode_plate_pga2dp { // model 2nd order ode by a 1st order system
+
+
+          public:
+
+            sim_ode_plate_pga2dp(value_t m_in, value_t w_in, value_t h_in,
+                                 vec2dp const& cm_pos_in, vec2dp const& cm_spd_in,
+                                 value_t cm_phi_in, value_t cm_omega_in) :
+                m(m_in), width(w_in), height(h_in), cm_pos_init_w(cm_pos_in),
+                cm_spd_init_w(cm_spd_in), cm_phi_init_w(cm_phi_in),
+                cm_omega_init_w(cm_omega_in), u_mem(2), uh_mem(2 * 2), rhs_mem(2)
+            {
+
+                fmt::println("sim_ode_plate_pga2dp: combined motion.");
+                fmt::println("points:");
+                fmt::println("inertia of plate in body system:");
+                I = get_plate_inertia(m, width, height);
+
+                // get inverse inertia map
+                // maps a momentum bivector to the rate of change (a vector in 2D)
+                I_inv = get_inertia_inverse(I);
+
+                fmt::println("system inertia:");
+                fmt::println("I     = {:>-7.3f}", I);
+                fmt::println("I_inv = {:>-7.3f}", I_inv);
+            }
+
+            void set_initial_values()
+            {
+                // HINT: currently input variables for initial position NOT used;
+                //       for now assume "no initial transformation for position"
+
+                // Create mdspan view for setting initial values
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+
+
+                // initial transformation of "position" encoded in B0-vector
+                // encoding:
+                //  B_rot=(x0_fix, y0_fix, 1) * phi0
+                //  B_tra=(-y0_trans, x0_trans, 0)
+                //  B    = B_rot + B_tra
+                //
+
+                // set initial transformation M0 vom B0 (body relative to world frame)
+                vec2dp B0 = vec2dp(0.0, 0.0, cm_phi_init_w) +
+                            vec2dp(-cm_pos_init_w.y, cm_pos_init_w.x, 0.0);
+                M0 = exp(B0);
+
+                u[0] = B0;
+
+                // initial rate of change transformation of "velocity" dB/dt = Omega
+                // encoding:
+                // rotation: Omega_rot = (q.x0, q.y0, 1) * omega0 (Q is the
+                // fixed-point) translation: Omega_tra = (-v0.y, v0.x, 0)
+                //
+                // resulting Omega = Omega_rot + Omega_tra
+
+                // case with initial angular speed and initial speed of translation
+                u[1] = vec2dp(0.0, 0.0, cm_omega_init_w) +
+                       vec2dp(-cm_spd_init_w.y, cm_spd_init_w.x, 0.0);
+            }
+
+            void calc_rhs()
+            {
+
+                // Create mdspan views for rhs calculation
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto rhs = mdspan<vec2dp, dextents<size_t, 1>>(rhs_mem.data(), 2);
+
+                // get current state
+                vec2dp const B = u[0];     // position transformation B is in u[0]
+                vec2dp const Omega = u[1]; // velocity trafo d(B)/dt = Omega is in u[1]
+
+                // get the current motor from the bivector
+                // auto const M = rgpr(M0, exp(B));
+                auto const M = exp(B);
+
+                // force at fixed point acts in e2 direction at O_2dp (world frame)
+                auto const F_up_w = wdg(O_2dp, vec2dp(0.0, m * 9.81, 0.0));
+
+                // gravity acts globally in -e2 direction at cm (world frame)
+                auto const cm_w = move2dp(O_2dp, M); // body to world
+
+                // fmt::println("cm_w = {}", cm_w);
+
+                auto const F_dn_w = wdg(cm_w, vec2dp(0.0, -m * 9.81, 0.0));
+
+                auto const F_b = move2dp(F_up_w + F_dn_w, rrev(M)); // world to body
+
+                // fmt::println("F_up_w = {}", F_up_w);
+                // fmt::println("F_dn_w = {}", F_dn_w);
+                // fmt::println("F_b = {}", F_b);
+
+                // Set right-hand side for ODE system:
+                // u[0]' = velocity trafo Omega = d(B)/dt (linear and angular)
+                // u[1]' = acceleration trafo d(Omega)/dt (linear and angular)
+                rhs[0] = Omega;
+                rhs[1] = compute_omega_dot(I_inv, F_b, Omega, I);
+            }
+
+            void calc_rkstep(double dt)
+            {
+                // Create mdspan views for RK4 integration (for all npts points)
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto uh = mdspan<vec2dp, dextents<size_t, 2>>(uh_mem.data(), 2, 2);
+                auto rhs = mdspan<vec2dp const, dextents<size_t, 1>>(rhs_mem.data(), 2);
+
+                // Perform RK4 integration (4 sub-steps)
+                for (size_t rk_step = 1; rk_step <= 4; ++rk_step) {
+                    calc_rhs();
+                    rk4_step(u, uh, rhs, dt, rk_step);
+                }
+            }
+
+            void print_sim(double t)
+            {
+                // Create mdspan view for printing
+                auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
+
+
+                fmt::println("t = {:>-7.3f}:", t);
+
+                // get current state (= current positional transformation bivector)
+
+                vec2dp B = u[0];     // B = Omega * t (from integration)
+                vec2dp Omega = u[1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
+
+                // calculate current position from B via M = M0 ⟇ exp(B)
+                // and via cm_w(t) = M ⟇ cm_w(t0) ⟇ rrev(M) = move2dp(pts(t0),M)
+                // and d(pts(t))/dt = rcmt(Omega, pts(t))
+
+                // auto M = rgpr(M0, exp(B));
+                auto M = exp(B);
+
+                // cm (as seen from body frame)
+                auto cm_b = O_2dp;
+                auto spd_cm_b = rcmt(Omega, O_2dp);
+                auto phi_b = B.z;
+                auto omega_b = Omega.z;
+
+                // O_w (as seen from body frame)
+                auto Ow_b = move2dp(O_2dp, rev(M));
+                auto spd_Ow_b = rcmt(Omega, Ow_b);
+
+                // cm_w(t) (as seen from world frame)
+                auto B_w = move2dp(B, M);
+                // auto cm_w0 = move2dp(O_2dp, M0); // cm_w(t=0)
+                auto cm_w0 = cm_pos_init_w;    // cm_w(t=0)
+                auto cm_w = move2dp(cm_w0, M); // move cm_w(t=0) into world frame
+                auto Omega_w = move2dp(Omega, M);
+                auto spd_cm_w = rcmt(Omega_w, cm_w); // calculate speed of cm
+                auto phi_w = B_w.z;
+                auto omega_w = Omega_w.z;
+
+                // O_w (as seen from world frame)
+                auto Ow_w = O_2dp;
+                auto spd_Ow_w = rcmt(Omega_w, O_2dp);
+
+
+                // fmt::println("    B = {:>-7.3f}, B_w = {:>-7.3f}, Omega = {:>-7.3f}, "
+                //              "Omega_w = {:>-7.3f}, M = {:>-7.3f}, M = {:>-7.3f}",
+                //              B, B_w, Omega, Omega_w, M, M0);
+                fmt::println(
+                    "    cm_w = {:>-6.3f}, spd_cm_w = {:>-6.3f}, B_w = {:>-6.3f}, "
+                    "phi_b = {:>-6.3f}, phi_w = {:>-6.3f}, B = {:>-6.3f}",
+                    cm_w, spd_cm_w, B_w, phi_b, phi_w, B);
+            }
+
+          private:
+
+
+            value_t m;      // mass of plate
+            value_t width;  // width of plate (e1-direction in body frame), sym. to O_b
+            value_t height; // height of plate (e2-direction in body frame), sym. to O_b
+
+            // initial position and speed of center of mass relative to world system
+            vec2dp cm_pos_init_w; // initial position of center of mass (unitized)
+            vec2dp cm_spd_init_w; // initial speed of center of mass (.z == 0)
+
+            // initial angular position of cm (body vs. world frame, e12 defines pos phi)
+            value_t cm_phi_init_w;
+
+            // initial angular velocity of cm (body vs. world frame)
+            value_t cm_omega_init_w;
+
+            mvec2dp_u M0; // defines intial transformation at t=0 of postion and speed of
+                          // body frame relative to world frame
+
+            // RK4 integration state for point n with system order = 2
+            // => [n+0: position, n+1: velocity])
+            std::vector<vec2dp> u_mem;   // [n+0: position, n+1: velocity]
+            std::vector<vec2dp> uh_mem;  // helper for integration
+            std::vector<vec2dp> rhs_mem; // right-hand side values
+
+            // inertia map and its inverse (calculated from descrete input values)
+            // calculation is done in body frame
+            inertia2dp I;
+            inertia2dp I_inv;
+        };
+
+        value_t m = 1.0; // mass
+        value_t w = 2.0; // width
+        value_t h = 2.0; // height
+
+        // initial position and movement of body frame vs. world frame (in world frame)
+        auto cm_pos = vec2dp{-1, -1, 1}; // world and body frame coincide at t=0
+        auto cm_spd = vec2dp{0, 0, 0};   // body frame is moving with v0 vs. world frame
+
+        // initial rotation and anguar velocity of body frame vs. world frame
+        auto cm_phi = 0.0;   // no initial rotation
+        auto cm_omega = 0.0; // initial angular velocity
+
+        sim_ode_plate_pga2dp sim(m, w, h, cm_pos, cm_spd, cm_phi, cm_omega);
+
+        // time range (from, to, number of steps)
+        // time range (1 full revolution)
+        auto t_rng = discrete_range(0.0, 2.0, 60);
+
+        sim.set_initial_values();
+        sim.print_sim(t_rng.min());
+
+        for (size_t n = 1; n <= t_rng.steps(); n++) {
+
+            // integration from t to t + dt
+            double t = t_rng.min() + n * t_rng.delta();
+            sim.calc_rkstep(t_rng.delta());
+
+            // print sim status at t+dt
+            sim.print_sim(t);
+        }
+
+        fmt::println("");
+    }
+
+
     // TODO: show more complex setups
     //
     //       - combined rotation and translation
