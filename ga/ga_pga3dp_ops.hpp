@@ -158,7 +158,7 @@ constexpr MVec3dp_E<T> exp(BiVec3dp<T> const& B)
 
         // B = att(right_bulk_dual(delta)) to move in direction of vector delta
         // B does only contain a bulk part which encodes the translation
-        return MVec3dp_E<T>(Scalar3dp<T>(0.0), 0.5 * B, PScalar3dp<T>(1.0));
+        return MVec3dp_E<T>(Scalar3dp<T>(0.0), B, PScalar3dp<T>(1.0));
     }
 
     // rotation with angle phi != 0
@@ -180,13 +180,10 @@ constexpr MVec3dp_E<T> exp(BiVec3dp<T> const& B)
         l = l - dist * phi_inv * phi_inv * bivec3dp{0.0, 0.0, 0.0, B.vx, B.vy, B.vz};
     }
 
-    T half_angle = 0.5 * phi;
-    T half_dist = 0.5 * dist;
     return MVec3dp_E<T>(
-        Scalar3dp<T>(-half_dist * std::sin(half_angle)),
-        BiVec3dp<T>(l * std::sin(half_angle) -
-                    right_weight_dual(l) * half_dist * std::cos(half_angle)),
-        PScalar3dp<T>(std::cos(half_angle)));
+        Scalar3dp<T>(-dist * std::sin(phi)),
+        BiVec3dp<T>(l * std::sin(phi) - right_weight_dual(l) * dist * std::cos(phi)),
+        PScalar3dp<T>(std::cos(phi)));
 }
 
 template <typename T>

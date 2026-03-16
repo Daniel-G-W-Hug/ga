@@ -174,6 +174,23 @@ struct aode_spring2d {
     spring_params params; // physical parameters
 };
 
+// Physical parameters for rigid plate pendulum (PGA2D)
+struct plate_params {
+    double m = 1.0;          // mass [kg]
+    double w = 2.0;          // width [m] (e1 direction in body frame)
+    double h = 2.0;          // height [m] (e2 direction in body frame)
+    double g = 9.81;         // gravitational acceleration [m/s²]
+    double c = 0.0;          // angular damping coefficient [Nms/rad]
+    double phi_init   = 0.0; // initial tilt angle [rad] (rotation about pivot)
+    double omega_init = 0.0; // initial angular velocity [rad/s]
+};
+
+// active plate pendulum: rigid plate fixed at top-right corner (pivot = active_pt2d)
+struct aode_plate_pga2dp {
+    size_t       fixation_idx; // index to active_pt2d (pivot = top-right corner)
+    plate_params params;
+};
+
 // ----------------------------------------------------------------------------
 // convenience alias to make pt2d and ln2d look similar
 // convenience alias to make pt2dp and ln2dp look similar
@@ -233,6 +250,9 @@ class Coordsys_model {
     // add active ODE spring-mass system
     [[maybe_unused]] size_t add_aode(aode_spring2d const& aode_in);
 
+    // add active plate pendulum ODE system
+    [[maybe_unused]] size_t add_aode_plate(aode_plate_pga2dp const& aode_plate_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -287,6 +307,9 @@ class Coordsys_model {
 
     // data for active ODE spring-mass systems using active points
     std::vector<aode_spring2d> aode;
+
+    // data for active plate pendulum ODE systems
+    std::vector<aode_plate_pga2dp> aode_plate;
 
     // model label, e.g. time stamp description of current Coordsys_model
     std::string m_label{};

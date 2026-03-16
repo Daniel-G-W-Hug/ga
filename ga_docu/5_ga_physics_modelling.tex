@@ -435,7 +435,7 @@ equal to a zero multiple of the pseudoscalar \bv{1234}. This test can always be 
 determine whether a bivector is a blade in $3D$ $PGA$. \\
 
 Using discrete points $X_{w,i}$ of the world frame indexed by $i$ that can be moved by a
-motor $M(t) = exp_\veedot[\frac{1}{2}B_w(t)] \veedot M_0$ in the world frame as by
+motor $M(t) = exp_\veedot[\frac{1}{2} B_w(t)] \veedot M_0$ in the world frame as by
 eqn.~(\ref{eq:pga_sandwich_tranformation}) $X_{w,i} = M \veedot X_{0,i} \veedot \rrev{M}$
 results in a local speed of $\dot{X}_{w,i} = \mathrm{rcmt}(\Omega_w,X_{w,i})$ as shown in
 eqn.~(\ref{eq:rcmt_pga_world}). Therefore, we can write the total momentum $P_{w}$ in the
@@ -555,8 +555,8 @@ resolving this for $\dot{\Omega}_b$ we get
 Together with the ansatz in the body system eqn.~(\ref{eq:motor_pga_body_frame}) that can
 be used to calculate M(t) when we know $\Omega_b$ at a given time $t$ from
 \begin{equation*}
-   M(t) = M_0 \veedot exp_\veedot(\frac{1}{2}B_b(t))
-        = M_0 \veedot exp_\veedot(\frac{1}{2}\Omega_b t) 
+   M(t) = M_0 \veedot exp_\veedot(\frac{1}{2} B_b(t))
+        = M_0 \veedot exp_\veedot(\frac{1}{2} \Omega_b t) 
 \end{equation*}
 and the rate of change in the body frame according to
 eqn.~(\ref{eq:motor_rate_body_frame_pga}) we get
@@ -1124,7 +1124,7 @@ Also encoded in $\mathrm{rcmt}(\Omega_b, I_b[\Omega_b])$ \\
 Inertia tensor $\mathbf{I}_b$ ($3\times3$ or $6\times6$ matrix) &
 Inertia map $I_b[\cdot]$ (linear operator on bivectors) \\
 Quaternion evolution $\dot{\mathbf{q}} = \frac{1}{2}\mathbf{q}\otimes\vec{\omega}$ &
-Motor $M = \exp_\veedot[B_b]$ -- orientation implicit in $B_b$ \\
+Motor $M = \exp_\veedot[\frac{1}{2} B_b]$ -- orientation implicit in $B_b$ \\
 State: $(\vec{r},\, \mathbf{q},\, \vec{v},\, \vec{\omega})$ &
 State: $(B_b,\, \Omega_b)$ -- bivector pair \\
 Inertial-frame position from $\dot{\vec{r}} = \mathbf{R}\vec{v}$ &
@@ -1180,9 +1180,9 @@ directly derived from equations~(\ref{eq:vector_rot_rate_omega}) and
 (\ref{eq:vector_trans_rate_v_vec}). \\
 
 The initial value for the position is typically set to $B_b(t=0) = (0, 0, 0)$, which
-yields the identity transformation at $t=0$ as $M(t=0) = \exp_\veedot[B_b(t=0)] = \ps$.
-This corresponds to the classical choice $\mathbf{q}(t=0) = (1, 0, 0, 0)$ and
-$\vec{r}(t=0) = \vec{0}$ for the quaternion and position initial conditions.\\
+yields the identity transformation at $t=0$ as $M(t=0) = \exp_\veedot[\frac{1}{2}
+B_b(t=0)] = \ps$. This corresponds to the classical choice $\mathbf{q}(t=0) = (1, 0, 0,
+0)$ and $\vec{r}(t=0) = \vec{0}$ for the quaternion and position initial conditions.\\
 
 Basic examples for translational and rotational motion are implemented as tests in
 \path{ga_test/src/ga_appl_physics_test.hpp} based on the Newton-Euler equations in both
@@ -1209,7 +1209,7 @@ algebra. The right complement $\rcmpl{(\cdot)}$ maps each basis element to its c
 in the algebra. In $PGA$ the translational and rotational generators live in dual
 subspaces -- ideal lines are dual to real lines -- so the mass contribution, which couples
 velocity to momentum across dual subspaces, always lands in an off-diagonal block. The
-following paragraphs explain this structure first for $2D$, then for $3D$, and conclude
+following paragraphs explain this structure first for $2D$, then for $3D$, and concludes
 with a unified comparison. \\
 
 \emph{$PGA2DP$: structure of the 2D inertia map.}
@@ -1640,7 +1640,7 @@ map $I_\mathrm{body}$ is block-diagonal at the center of mass -- translational a
 rotational blocks decoupling in the inertia matrix itself -- the equations of motion
 retain dynamical coupling through the $\mathrm{rcmt}(\Omega_b, I_b[\Omega_b])$ term.
 This is the $PGA$ counterpart of the classical coupling terms $\vec{\omega}\times\vec{v}$
-and $\vec{\omega}\times\mathbf{I}\vec{\omega}$ discussed in the preceding section, and it
+and $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$ discussed in the preceding section, and it
 arises from the rotation of the body frame, not from the inertia structure. \\
 
 \newpage

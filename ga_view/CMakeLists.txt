@@ -51,7 +51,8 @@ set(SOURCES src/main.cpp
             src/item_bivt2dp.cpp
             src/active_reflectionp.cpp
             src/active_kinematics2dp.cpp
-            src/active_ode.cpp)
+            src/active_ode.cpp
+            src/active_ode_plate.cpp)
 
 add_executable(${EXEC_NAME} ${SOURCES} )
 

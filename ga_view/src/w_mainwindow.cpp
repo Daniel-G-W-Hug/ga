@@ -17,6 +17,7 @@ using namespace hd::ga::pga;
 #include "active_bivt2dp.hpp"
 #include "active_kinematics2dp.hpp"
 #include "active_ode.hpp"
+#include "active_ode_plate.hpp"
 #include "active_projection.hpp"
 #include "active_pt2d.hpp"
 #include "active_reflection.hpp"
@@ -837,6 +838,35 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
+        // Rigid flat plate pendulum using PGA2D formulation
+        // Plate is fixed at its top-right corner (pivot = user-draggable active point)
+        // Gravity creates a torque that drives pendulum-like oscillation
+        plate_params params;
+        // params.m         = 1.0;  // mass [kg]
+        // params.w         = 2.0;  // width [m]
+        // params.h         = 2.0;  // height [m]
+        // params.g         = 9.81; // gravity [m/s²]
+        // params.c         = 0.0;  // angular damping (set > 0 to add dissipation)
+        // params.phi_init   = 0.0; // initial tilt angle [rad]
+        // params.omega_init = 0.0; // initial angular velocity [rad/s]
+
+        // Pivot point (user-draggable, top-right corner of plate)
+        size_t pivot_id = cm.add_apt(pt2d{0.0, 0.0});
+
+        aode_plate_pga2dp plate_system;
+        plate_system.fixation_idx = pivot_id;
+        plate_system.params       = params;
+
+        cm.add_aode_plate(plate_system);
+
+        cm.set_label("plate pendulum (PGA2D): drag pivot, R=reset, Space=pause");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
         size_t p0_id = cm.add_apt(pt2d{0, 2.5});
         size_t p1_id = cm.add_apt(pt2d{2.5, 0});
 
@@ -1257,6 +1287,20 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, ode_system,
                          &active_ode::togglePause);
         scene->addItem(ode_system);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // active plate pendulum ODE systems (PGA2D rigid body dynamics)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->aode_plate.size(); ++idx) {
+        active_ode_plate* plate_system = new active_ode_plate(
+            cs, wcs, apt2d_map[cm->aode_plate[idx].fixation_idx],
+            cm->aode_plate[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, plate_system,
+                         &active_ode_plate::resetSimulation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, plate_system,
+                         &active_ode_plate::togglePause);
+        scene->addItem(plate_system);
     }
 
     // Set focus to wcs widget so that key presses are received immediately

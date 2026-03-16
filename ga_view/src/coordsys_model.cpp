@@ -152,6 +152,13 @@
     return aode.size() - 1;
 }
 
+[[maybe_unused]] size_t Coordsys_model::add_aode_plate(aode_plate_pga2dp const& aode_plate_in)
+{
+    aode_plate.push_back(aode_plate_in);
+
+    return aode_plate.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -181,6 +188,7 @@ void Coordsys_model::clear()
     areflp.clear();
     akinemp.clear();
     aode.clear();
+    aode_plate.clear();
 
     m_label.clear();
 }
