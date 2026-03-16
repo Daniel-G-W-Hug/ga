@@ -3623,13 +3623,13 @@ TEST_SUITE("PGA 2DP Tests")
         auto B = att(bulk_dual(delta)); // vector
         auto M = get_motor(delta);      // translation motor
 
-        fmt::println("B_tra                = {}", B);
-        fmt::println("M (from get_motor()) = {}", M);
-        fmt::println("M (from exp(B))      = {}", exp(B));
+        fmt::println("B_tra                 = {}", B);
+        fmt::println("M (from get_motor())  = {}", M);
+        fmt::println("M (from exp(0.5 * B)) = {}", exp(0.5 * B));
         fmt::println("");
 
         CHECK(X == move2dp(X0, M)); // motor moves to X
-        CHECK(M == exp(B));         // bivector creates motor via exp()
+        CHECK(M == exp(0.5 * B));   // bivector creates motor via exp()
 
         auto P_fix = vec2dp{-2, -3, 1};
         auto X_rot = vec2dp{-2, -3 + std::sqrt(18), 1};
@@ -3637,27 +3637,27 @@ TEST_SUITE("PGA 2DP Tests")
         B = P_fix * deg2rad(45);
         M = get_motor(P_fix, deg2rad(45));
 
-        fmt::println("B_rot                = {}", B);
-        fmt::println("M (from get_motor()) = {}", M);
-        fmt::println("M (from exp(B))      = {}", exp(B));
+        fmt::println("B_rot                 = {}", B);
+        fmt::println("M (from get_motor())  = {}", M);
+        fmt::println("M (from exp(0.5 * B)) = {}", exp(0.5 * B));
         fmt::println("");
 
         CHECK(X_rot == move2dp(X0, M));
-        CHECK(M == exp(B)); // bivector creates motor via exp()
+        CHECK(M == exp(0.5 * B)); // bivector creates motor via exp()
 
         auto B0 = vec2dp{0, 0, deg2rad(45)};
         auto M0 = get_motor(O_2dp, deg2rad(45));
-        fmt::println("B0 = {}, exp(B0) = {}", B0, exp(B0));
+        fmt::println("B0 = {}, exp(0.5 * B0) = {}", B0, exp(0.5 * B0));
         fmt::println("M0 = {}", M0);
-        CHECK(M0 == exp(B0));
+        CHECK(M0 == exp(0.5 * B0));
         CHECK(move2dp(X0, M0) == vec2dp{0.5 * std::sqrt(2.0), 0.5 * std::sqrt(2), 1});
         CHECK(move2dp(O_2dp, M0) == O_2dp); // fixed point
         //
         auto B1 = vec2dp{1, 1, 1} * deg2rad(45);
         auto M1 = get_motor(vec2dp{1, 1, 1}, deg2rad(45));
-        fmt::println("B1 = {}, exp(B1) = {}", B1, exp(B1));
+        fmt::println("B1 = {}, exp(0.5 * B1) = {}", B1, exp(0.5 * B1));
         fmt::println("M1 = {}", M1);
-        CHECK(M1 == exp(B1));
+        CHECK(M1 == exp(0.5 * B1));
         CHECK(move2dp(X0, M1) ==
               vec2dp{1.0 + 0.5 * std::sqrt(2.0), 1.0 - 0.5 * std::sqrt(2), 1});
         CHECK(move2dp(vec2dp{1, 1, 1}, M1) == vec2dp{1, 1, 1}); // fixed point

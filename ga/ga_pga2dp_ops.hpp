@@ -94,13 +94,13 @@ constexpr MVec2dp_U<T> exp(Vec2dp<T> const& arg)
     auto w = weight_nrm_sq(arg);
     if (w == T(0.0)) { // pure translation
         // arg = att(bulk_dual(delta)) to move in direction of vector delta
-        return MVec2dp_U<T>(0.5 * arg, PScalar2dp<T>(1.0));
+        return MVec2dp_U<T>(arg, PScalar2dp<T>(1.0));
     }
 
     // rotation with angle != 0
-    T half_angle = 0.5 * arg.z;             // arg.z == rotation angle
-    T scale = std::sin(half_angle) / arg.z; // unitize arg and multiply by sin(half_angle)
-    return unitize(MVec2dp_U<T>(arg * scale, PScalar2dp<T>(std::cos(half_angle))));
+    T phi = arg.z;                   // arg.z == rotation angle
+    T scale = std::sin(phi) / arg.z; // unitize arg and multiply by sin(phi)
+    return unitize(MVec2dp_U<T>(arg * scale, PScalar2dp<T>(std::cos(phi))));
 }
 
 template <typename T>

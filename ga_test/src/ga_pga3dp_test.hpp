@@ -4452,14 +4452,14 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
         fmt::println("B_tra                = {}", B);
         fmt::println("M (from get_motor()) = {}", M);
-        fmt::println("M (from exp(B))      = {}", exp(B));
+        fmt::println("M (from exp(0.5 * B)) = {}", exp(0.5 * B));
         fmt::println("");
         fmt::println("X = M ⟇ X0 ⟇ rrev(m) = {}", move3dp(X0, M));
         fmt::println("X (target value)     = {}", X);
         fmt::println("");
 
         CHECK(X == move3dp(X0, M)); // motor moves to X
-        CHECK(M == exp(B));         // bivector creates motor via exp()
+        CHECK(M == exp(0.5 * B));   // bivector creates motor via exp()
 
         //////////////////////////
         // b) pure rotation
@@ -4478,21 +4478,21 @@ TEST_SUITE("PGA 3DP Tests")
         B = l_hat * phi;
         M = get_motor(l, phi);
 
-        fmt::println("X0                   = {}", X0);
-        fmt::println("l                    = {}", l);
-        fmt::println("l_hat                = {}", l_hat);
-        fmt::println("phi                  = {}", phi);
+        fmt::println("X0                    = {}", X0);
+        fmt::println("l                     = {}", l);
+        fmt::println("l_hat                 = {}", l_hat);
+        fmt::println("phi                   = {}", phi);
         fmt::println("");
-        fmt::println("B_rot                = {}", B);
-        fmt::println("M (from get_motor()) = {}", M);
-        fmt::println("M (from exp(B))      = {}", exp(B));
+        fmt::println("B_rot                 = {}", B);
+        fmt::println("M (from get_motor())  = {}", M);
+        fmt::println("M (from exp(0.5 * B)) = {}", exp(0.5 * B));
         fmt::println("");
-        fmt::println("X = M ⟇ X0 ⟇ rrev(m) = {}", move3dp(X0, M));
-        fmt::println("X (target value)     = {}", X);
+        fmt::println("X = M ⟇ X0 ⟇ rrev(m)  = {}", move3dp(X0, M));
+        fmt::println("X (target value)      = {}", X);
         fmt::println("");
 
         CHECK(X == move3dp(X0, M));
-        CHECK(M == exp(B)); // bivector creates motor via exp()
+        CHECK(M == exp(0.5 * B)); // bivector creates motor via exp()
 
         //////////////////////////
         // c) screw motion (rotation + translation in direction of rotation axis)
@@ -4521,24 +4521,24 @@ TEST_SUITE("PGA 3DP Tests")
 
         M = get_motor(l, phi, dist);
 
-        fmt::println("X0                   = {}", X0);
-        fmt::println("l                    = {}", l);
-        fmt::println("l_hat                = {}", l_hat);
-        fmt::println("phi                  = {}", phi);
-        fmt::println("dist                 = {}", dist);
+        fmt::println("X0                    = {}", X0);
+        fmt::println("l                     = {}", l);
+        fmt::println("l_hat                 = {}", l_hat);
+        fmt::println("phi                   = {}", phi);
+        fmt::println("dist                  = {}", dist);
         fmt::println("");
-        fmt::println("B_rot                = {}", B_rot);
-        fmt::println("B_tra                = {}", B_tra);
-        fmt::println("B = B_rot + B_tra    = {}", B);
-        fmt::println("M (from get_motor()) = {}", M);
-        fmt::println("M (from exp(B))      = {}", exp(B));
+        fmt::println("B_rot                 = {}", B_rot);
+        fmt::println("B_tra                 = {}", B_tra);
+        fmt::println("B = B_rot + B_tra     = {}", B);
+        fmt::println("M (from get_motor())  = {}", M);
+        fmt::println("M (from exp(0.5 * B)) = {}", exp(0.5 * B));
         fmt::println("");
-        fmt::println("X = M ⟇ X0 ⟇ rrev(m) = {}", move3dp(X0, M));
-        fmt::println("X (target value)     = {}", X);
+        fmt::println("X = M ⟇ X0 ⟇ rrev(m)  = {}", move3dp(X0, M));
+        fmt::println("X (target value)      = {}", X);
         fmt::println("");
 
         CHECK(X == move3dp(X0, M));
-        CHECK(M == exp(B)); // bivector creates motor via exp()
+        CHECK(M == exp(0.5 * B)); // bivector creates motor via exp()
     }
 
     TEST_CASE("G<3,0,1>: sqrt(motor) function")

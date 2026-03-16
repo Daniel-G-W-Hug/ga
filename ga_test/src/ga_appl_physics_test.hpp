@@ -269,15 +269,15 @@ TEST_SUITE("PGA2DP: physics tests prep")
         auto M_1s_alt = get_motor_from_lines(B1, B2);
         auto M_2s_alt = get_motor_from_lines(B1, B3);
 
-        fmt::println("X1                     = {:>-7.3f}", X1);
-        fmt::println("v                      = {:>-7.3f}", v);
-        fmt::println("omega_tra              = {:>-7.3f}", omega_tra);
-        fmt::println("B(1s) = omega_tra * 1s = {:>-7.3f}", B_1s);
-        fmt::println("B(2s) = omega_tra * 2s = {:>-7.3f}", B_2s);
-        fmt::println("M(1s) = exp(B(1s))     = {:>-7.3f}", M_1s);
-        fmt::println("M(1s)_alt              = {:>-7.3f}", M_1s_alt);
-        fmt::println("M(2s) = exp(B(2s))     = {:>-7.3f}", M_2s);
-        fmt::println("M(2s)_alt              = {:>-7.3f}", M_2s_alt);
+        fmt::println("X1                      = {:>-7.3f}", X1);
+        fmt::println("v                       = {:>-7.3f}", v);
+        fmt::println("omega_tra               = {:>-7.3f}", omega_tra);
+        fmt::println("B(1s) = omega_tra * 1s  = {:>-7.3f}", B_1s);
+        fmt::println("B(2s) = omega_tra * 2s  = {:>-7.3f}", B_2s);
+        fmt::println("M(1s) = exp(0.5 * B_1s) = {:>-7.3f}", M_1s);
+        fmt::println("M(1s)_alt               = {:>-7.3f}", M_1s_alt);
+        fmt::println("M(2s) = exp(0.5 * B_2s) = {:>-7.3f}", M_2s);
+        fmt::println("M(2s)_alt               = {:>-7.3f}", M_2s_alt);
         fmt::println("");
         fmt::println("gr1(rgpr(rgpr(M, v), rrev(M)))) = {:>-7.3f}", move2dp(X1, M_1s));
         fmt::println("gr1(rgpr(rgpr(M, v), rrev(M)))) = {:>-7.3f}", move2dp(X1, M_2s));
@@ -285,6 +285,8 @@ TEST_SUITE("PGA2DP: physics tests prep")
 
         CHECK(X11 == move2dp(X1, M_1s));
         CHECK(X12 == move2dp(X1, M_2s));
+        CHECK(M_1s == exp(0.5 * B_1s));
+        CHECK(M_2s == exp(0.5 * B_2s));
 
         // pre-study: speed defined from constant linear motion
         //            result: -> speed must be const (position independent)
@@ -716,9 +718,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                                  vec2dp const& cm_spd_in, value_t cm_phi_in,
                                  value_t cm_omega_in) :
                 npts(npts_in), pts(std::move(pos_in)), m(std::move(m_in)),
-                cm_pos_init_w(cm_pos_in), cm_spd_init_w(cm_spd_in),
-                cm_phi_init_w(cm_phi_in), cm_omega_init_w(cm_omega_in), u_mem(2),
-                uh_mem(2 * 2), rhs_mem(2)
+                cm_w_pos0(cm_pos_in), cm_w_spd0(cm_spd_in), cm_w_phi0(cm_phi_in),
+                cm_w_omega0(cm_omega_in), u_mem(2), uh_mem(2 * 2), rhs_mem(2)
             {
                 if (npts < 2) {
                     throw std::invalid_argument("sim_ode: rigid body simulation requires"
@@ -766,7 +767,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //  B    = B_rot + B_tra
                 //
                 //  typical starting value is "no initial transformation":
-                //  B0=(0,0,0) => M0=exp(B0)=pscalar(1) (=identity transformation at t=0)
+                //  B0=(0,0,0) => M0 = exp(0.5 * B0) = pscalar2dp(1)
+                //                (=identity transformation at t=0)
                 //
                 u[0] = vec2dp(0.0, 0.0, 0.0);
 
@@ -778,7 +780,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 // resulting Omega0 = Omega0_rot + Omega0_tra
 
                 // case with initial translation
-                u[1] = vec2dp(-cm_spd_init_w.y, cm_spd_init_w.x, cm_omega_init_w);
+                u[1] = vec2dp(-cm_w_spd0.y, cm_w_spd0.x, cm_w_omega0);
             }
 
             void calc_rhs()
@@ -839,10 +841,10 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                     vec2dp B = u[0];     // B = Omega * t + B0 (from integration)
                     vec2dp Omega = u[1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
 
-                    // calculate current position from B via M = exp(B) ⟇ M0
+                    // calculate current position from B via M = 0.5 * B) ⟇ M0
                     // and via pts(t) = M ⟇ pts(t0) ⟇ rrev(M)
                     //
-                    auto M = exp(B);
+                    auto M = exp(0.5 * B);
                     auto pt = move2dp(pts[n], M);
                     // fmt::println(
                     //     "    n = {}, B = {:>-7.3f}, Omega = {:>-7.3f}, M = {:>-7.3f}",
@@ -862,14 +864,14 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             std::vector<value_t> m;  // mass of points
 
             // initial position and speed of center of mass relative to world system
-            vec2dp cm_pos_init_w; // initial position of center of mass (unitized)
-            vec2dp cm_spd_init_w; // initial speed of center of mass (.z == 0)
+            vec2dp cm_w_pos0; // initial position of center of mass (unitized)
+            vec2dp cm_w_spd0; // initial speed of center of mass (.z == 0)
 
             // initial angular position of cm (body vs. world frame, e12 defines pos phi)
-            value_t cm_phi_init_w;
+            value_t cm_w_phi0;
 
             // initial angular velocity of cm (body vs. world frame)
-            value_t cm_omega_init_w;
+            value_t cm_w_omega0;
 
             // RK4 integration state for point n with system order = 2
             // => [n+0: position, n+1: velocity])
@@ -1117,9 +1119,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                                  vec2dp const& cm_spd_in, value_t cm_phi_in,
                                  value_t cm_omega_in) :
                 npts(npts_in), pts(std::move(pos_in)), m(std::move(m_in)),
-                cm_pos_init_w(cm_pos_in), cm_spd_init_w(cm_spd_in),
-                cm_phi_init_w(cm_phi_in), cm_omega_init_w(cm_omega_in), u_mem(2),
-                uh_mem(2 * 2), rhs_mem(2)
+                cm_w_pos0(cm_pos_in), cm_w_spd0(cm_spd_in), cm_w_phi0(cm_phi_in),
+                cm_w_omega0(cm_omega_in), u_mem(2), uh_mem(2 * 2), rhs_mem(2)
             {
                 if (npts < 2) {
                     throw std::invalid_argument("sim_ode: rigid body simulation requires"
@@ -1169,7 +1170,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //  B    = B_rot + B_tra
                 //
                 //  typical starting value is "no initial transformation":
-                //  B0=(0,0,0) => M0=exp(B0)=pscalar(1) (=identity transformation at t=0)
+                //  B0=(0,0,0) => M0=0.5 * B0) = pscalar(1)
+                //                (=identity transformation at t=0)
                 //
                 u[0] = vec2dp(0.0, 0.0, 0.0);
 
@@ -1182,7 +1184,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
                 // case with initial rotation
                 //
-                u[1] = wdg(O_2dp, scalar2dp(cm_omega_init_w));
+                u[1] = wdg(O_2dp, scalar2dp(cm_w_omega0));
                 // fmt::println("n = {}, u = {}", n, u[n, 1]);
             }
 
@@ -1244,11 +1246,11 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                     vec2dp B = u[0];     // B = Omega * t + B0 (from integration)
                     vec2dp Omega = u[1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
 
-                    // calculate current position from B via M = exp(B) ⟇ M0
+                    // calculate current position from B via M = exp(0.5 * B) ⟇ M0
                     // and via pts(t) = M ⟇ pts(t0) ⟇ rrev(M) = move2dp(pts(t0),M)
                     // and d(pts(t))/dt = rcmt(Omega, pts(t))
 
-                    auto M = exp(B);
+                    auto M = exp(0.5 * B);
                     auto pt = move2dp(pts[n], M);
                     // fmt::println(
                     //     "    n = {}, B = {:>-7.3f}, Omega = {:>-7.3f}, M = {:>-7.3f}",
@@ -1268,14 +1270,14 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             std::vector<value_t> m;  // mass of points
 
             // initial position and speed of center of mass relative to world system
-            vec2dp cm_pos_init_w; // initial position of center of mass (unitized)
-            vec2dp cm_spd_init_w; // initial speed of center of mass (.z == 0)
+            vec2dp cm_w_pos0; // initial position of center of mass (unitized)
+            vec2dp cm_w_spd0; // initial speed of center of mass (.z == 0)
 
             // initial angular position of cm (body vs. world frame, e12 defines pos phi)
-            value_t cm_phi_init_w;
+            value_t cm_w_phi0;
 
             // initial angular velocity of cm (body vs. world frame)
-            value_t cm_omega_init_w;
+            value_t cm_w_omega0;
 
             // RK4 integration state for point n with system order = 2
             // => [n+0: position, n+1: velocity])
@@ -1338,9 +1340,9 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             sim_ode_plate_pga2dp(value_t m_in, value_t w_in, value_t h_in,
                                  vec2dp const& cm_pos_in, vec2dp const& cm_spd_in,
                                  value_t cm_phi_in, value_t cm_omega_in) :
-                m(m_in), width(w_in), height(h_in), cm_pos_init_w(cm_pos_in),
-                cm_spd_init_w(cm_spd_in), cm_phi_init_w(cm_phi_in),
-                cm_omega_init_w(cm_omega_in), u_mem(2), uh_mem(2 * 2), rhs_mem(2)
+                m(m_in), width(w_in), height(h_in), cm_w_pos0(cm_pos_in),
+                cm_w_spd0(cm_spd_in), cm_w_phi0(cm_phi_in), cm_w_omega0(cm_omega_in),
+                u_mem(2), uh_mem(2 * 2), rhs_mem(2)
             {
 
                 fmt::println("sim_ode_plate_pga2dp: combined motion.");
@@ -1374,11 +1376,12 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //
 
                 // set initial transformation M0 vom B0 (body relative to world frame)
-                vec2dp B0 = vec2dp(0.0, 0.0, cm_phi_init_w) +
-                            vec2dp(-cm_pos_init_w.y, cm_pos_init_w.x, 0.0);
-                M0 = exp(B0);
+                vec2dp B0 =
+                    vec2dp(0.0, 0.0, cm_w_phi0) + vec2dp(-cm_w_pos0.y, cm_w_pos0.x, 0.0);
+                M0 = exp(0.5 * B0);
 
-                u[0] = B0;
+                u[0] = vec2dp(0.0, 0.0, 0.0); // we start with no additional trafo
+                // u[0] = B0;
 
                 // initial rate of change transformation of "velocity" dB/dt = Omega
                 // encoding:
@@ -1388,8 +1391,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 // resulting Omega = Omega_rot + Omega_tra
 
                 // case with initial angular speed and initial speed of translation
-                u[1] = vec2dp(0.0, 0.0, cm_omega_init_w) +
-                       vec2dp(-cm_spd_init_w.y, cm_spd_init_w.x, 0.0);
+                u[1] = vec2dp(0.0, 0.0, cm_w_omega0) +
+                       vec2dp(-cm_w_spd0.y, cm_w_spd0.x, 0.0);
             }
 
             void calc_rhs()
@@ -1403,15 +1406,16 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 vec2dp const B = u[0];     // position transformation B is in u[0]
                 vec2dp const Omega = u[1]; // velocity trafo d(B)/dt = Omega is in u[1]
 
-                // get the current motor from the bivector
-                // auto const M = rgpr(M0, exp(B));
-                auto const M = exp(B);
+                // get the current motor from the bivector (including the initial trafo)
+                // auto const M = rgpr(M0, exp(0.5 * B));
+                auto const M = exp(0.5 * B);
 
                 // force at fixed point acts in e2 direction at O_2dp (world frame)
                 auto const F_up_w = wdg(O_2dp, vec2dp(0.0, m * 9.81, 0.0));
 
                 // gravity acts globally in -e2 direction at cm (world frame)
-                auto const cm_w = move2dp(O_2dp, M); // body to world
+                // auto const cm_w = move2dp(O_2dp, rrev(M)); // body to world
+                auto const cm_w = move2dp(cm_w_pos0, M); // move pos0 to current pos
 
                 // fmt::println("cm_w = {}", cm_w);
 
@@ -1457,45 +1461,47 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 vec2dp B = u[0];     // B = Omega * t (from integration)
                 vec2dp Omega = u[1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
 
-                // calculate current position from B via M = M0 ⟇ exp(B)
+                // calculate current position from B via M = M0 ⟇ exp(0.5 * B)
                 // and via cm_w(t) = M ⟇ cm_w(t0) ⟇ rrev(M) = move2dp(pts(t0),M)
                 // and d(pts(t))/dt = rcmt(Omega, pts(t))
 
-                // auto M = rgpr(M0, exp(B));
-                auto M = exp(B);
+                // auto M = rgpr(M0, exp(0.5 * B));
+                auto M = exp(0.5 * B);
+                // auto M = exp(0.5 * Omega * t);
 
                 // cm (as seen from body frame)
-                auto cm_b = O_2dp;
-                auto spd_cm_b = rcmt(Omega, O_2dp);
+                // auto cm_b = O_2dp;
+                // auto spd_cm_b = rcmt(Omega, O_2dp);
                 auto phi_b = B.z;
-                auto omega_b = Omega.z;
+                // auto omega_b = Omega.z;
 
                 // O_w (as seen from body frame)
-                auto Ow_b = move2dp(O_2dp, rev(M));
-                auto spd_Ow_b = rcmt(Omega, Ow_b);
+                // auto Ow_b = move2dp(O_2dp, rev(M));
+                // auto spd_Ow_b = rcmt(Omega, Ow_b);
 
                 // cm_w(t) (as seen from world frame)
                 auto B_w = move2dp(B, M);
-                // auto cm_w0 = move2dp(O_2dp, M0); // cm_w(t=0)
-                auto cm_w0 = cm_pos_init_w;    // cm_w(t=0)
-                auto cm_w = move2dp(cm_w0, M); // move cm_w(t=0) into world frame
+                auto cm_w = move2dp(cm_w_pos0, M); // move pos0 to current pos
                 auto Omega_w = move2dp(Omega, M);
                 auto spd_cm_w = rcmt(Omega_w, cm_w); // calculate speed of cm
                 auto phi_w = B_w.z;
-                auto omega_w = Omega_w.z;
+                // auto omega_w = Omega_w.z;
 
                 // O_w (as seen from world frame)
-                auto Ow_w = O_2dp;
-                auto spd_Ow_w = rcmt(Omega_w, O_2dp);
+                // auto Ow_w = O_2dp;
+                // auto spd_Ow_w = rcmt(Omega_w, O_2dp);
 
 
                 // fmt::println("    B = {:>-7.3f}, B_w = {:>-7.3f}, Omega = {:>-7.3f}, "
                 //              "Omega_w = {:>-7.3f}, M = {:>-7.3f}, M = {:>-7.3f}",
                 //              B, B_w, Omega, Omega_w, M, M0);
-                fmt::println(
-                    "    cm_w = {:>-6.3f}, spd_cm_w = {:>-6.3f}, B_w = {:>-6.3f}, "
-                    "phi_b = {:>-6.3f}, phi_w = {:>-6.3f}, B = {:>-6.3f}",
-                    cm_w, spd_cm_w, B_w, phi_b, phi_w, B);
+                // fmt::println(
+                //     "    cm_w = {:>-6.3f}, spd_cm_w = {:>-6.3f}, B_w = {:>-6.3f}, "
+                //     "phi_b = {:>-6.3f}, phi_w = {:>-6.3f}, B = {:>-6.3f}",
+                //     cm_w, spd_cm_w, B_w, phi_b, phi_w, B);
+                fmt::println("    cm_w = {:>-6.3f}, phi_b = {:>-6.3f}, B_w = {:>-6.3f}, "
+                             "B = {:>-6.3f}",
+                             cm_w, phi_b, B_w, B);
             }
 
           private:
@@ -1506,14 +1512,14 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             value_t height; // height of plate (e2-direction in body frame), sym. to O_b
 
             // initial position and speed of center of mass relative to world system
-            vec2dp cm_pos_init_w; // initial position of center of mass (unitized)
-            vec2dp cm_spd_init_w; // initial speed of center of mass (.z == 0)
+            vec2dp cm_w_pos0; // initial position of center of mass (unitized)
+            vec2dp cm_w_spd0; // initial speed of center of mass (.z == 0)
 
             // initial angular position of cm (body vs. world frame, e12 defines pos phi)
-            value_t cm_phi_init_w;
+            value_t cm_w_phi0;
 
             // initial angular velocity of cm (body vs. world frame)
-            value_t cm_omega_init_w;
+            value_t cm_w_omega0;
 
             mvec2dp_u M0; // defines intial transformation at t=0 of postion and speed of
                           // body frame relative to world frame
@@ -1775,8 +1781,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     //                 vec2dp const& cm_pos_in, vec2dp const& cm_spd_in, value_t
     //                 cm_phi_in, value_t cm_omega_in) :
     //             npts(npts_in), pts(std::move(pos_in)), m(std::move(m_in)),
-    //             cm_pos_init_w(cm_pos_in), cm_spd_init_w(cm_spd_in),
-    //             cm_phi_init_w(cm_phi_in), cm_omega_init_w(cm_omega_in), u_mem(npts *
+    //             cm_w_pos0(cm_pos_in), cm_w_spd0(cm_spd_in),
+    //             cm_w_phi0(cm_phi_in), cm_w_omega0(cm_omega_in), u_mem(npts *
     //             2), uh_mem(2 * npts * 2), rhs_mem(npts * 2)
     //         {
     //             if (npts < 2) {
@@ -1813,7 +1819,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     //                 // B_rot=(x0_fix, y0_phi, 1) * phi0
     //                 // B_tra=(- y0_trans, y0_phi*phi0 + x0_trans, phi0)
     //                 // typical starting value is "no initial transformation":
-    //                 // B0=(0,0,0) => M0=pscalar(1) (=identiy transformation at t=0)
+    //                 // B0=(0,0,0) => M0 = pscalar2dp(1)
+    //                 //               (=identiy transformation at t=0)
     //                 u[n, 0] = vec2dp(0.0, 0.0, 0.0);
 
     //                 // initial rate of change transformation of "velocity" dB/dt =
@@ -1825,8 +1832,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     //                 // resulting Omega = Omega_rot + Omega_tra
 
     //                 // case with initial translation
-    //                 u[n, 1] = vec2dp(-cm_spd_init_w.y, cm_spd_init_w.x,
-    //                 cm_omega_init_w);
+    //                 u[n, 1] = vec2dp(-cm_w_spd0.y, cm_w_spd0.x,
+    //                 cm_w_omega0);
     //             }
     //         }
 
@@ -1894,10 +1901,10 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     //                 vec2dp B = u[n, 0];     // B = Omega * t + B0 (from integration)
     //                 vec2dp Omega = u[n, 1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
 
-    //                 // calculate current position from B via M = exp(B) ⟇ M0
+    //                 // calculate current position from B via M = exp(0.5 * B) ⟇ M0
     //                 // and via pts(t) = M ⟇ pts(t0) ⟇ rrev(M)
     //                 //
-    //                 auto M = exp(B);
+    //                 auto M = exp(0.5 * B);
     //                 fmt::println(
     //                     "    n = {}, B = {:>-7.3f}, Omega = {:>-7.3f}, M = {:>-7.3f}",
     //                     n, B, Omega, M);
@@ -1918,14 +1925,14 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     //         std::vector<value_t> m;  // mass of points
 
     //         // initial position and speed of center of mass relative to world system
-    //         vec2dp cm_pos_init_w; // initial position of center of mass (unitized)
-    //         vec2dp cm_spd_init_w; // initial speed of center of mass (.z == 0)
+    //         vec2dp cm_w_pos0; // initial position of center of mass (unitized)
+    //         vec2dp cm_w_spd0; // initial speed of center of mass (.z == 0)
 
     //         // initial angular position of cm (body vs. world frame, e12 defines pos
-    //         phi) value_t cm_phi_init_w;
+    //         phi) value_t cm_w_phi0;
 
     //         // initial angular velocity of cm (body vs. world frame)
-    //         value_t cm_omega_init_w;
+    //         value_t cm_w_omega0;
 
     //         // RK4 integration state for point n with system order = 2
     //         // => [n+0: position, n+1: velocity])
