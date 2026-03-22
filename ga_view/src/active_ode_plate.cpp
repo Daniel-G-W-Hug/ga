@@ -159,11 +159,12 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
     vec2dp const e2_w = move2dp(m_e2_b, M);
 
     // Transform plate corners to world frame → screen
-    // Corners are stored as body-frame offsets from cm; rotate only (z=0 direction vectors)
+    // Corners are stored as body-frame offsets from cm; rotate only (z=0 direction
+    // vectors)
     std::array<QPointF, NUM_CORNERS> corners_screen;
     for (size_t i = 0; i < NUM_CORNERS; ++i) {
         vec2dp const offset_b{m_corners_b[i].x, m_corners_b[i].y, 0.0}; // direction (z=0)
-        vec2dp const offset_w = move2dp(offset_b, M);                     // rotate only
+        vec2dp const offset_w = move2dp(offset_b, M);                   // rotate only
         vec2dp const corner_w{cm_w.x + offset_w.x, cm_w.y + offset_w.y, 1.0};
         corners_screen[i] = toScreen(corner_w);
     }
@@ -180,16 +181,16 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
         }
     }
 
-    // 2. Draw e2 orientation markers along trajectory (every ORIENT_STEP points)
-    constexpr size_t ORIENT_STEP = 10;
-    constexpr double ORIENT_LEN = 0.08; // model coordinate units
-    qp->setPen(QPen(QColor(80, 80, 180, 160), 1, Qt::SolidLine));
-    for (size_t i = 0; i < m_trajectory.size(); i += ORIENT_STEP) {
-        TrajPoint const& tp = m_trajectory[i];
-        vec2dp const tip_w{tp.cm_w.x + tp.e2_w.x * ORIENT_LEN,
-                           tp.cm_w.y + tp.e2_w.y * ORIENT_LEN, 1.0};
-        qp->drawLine(toScreen(tp.cm_w), toScreen(tip_w));
-    }
+    // // 2. Draw e2 orientation markers along trajectory (every ORIENT_STEP points)
+    // constexpr size_t ORIENT_STEP = 10;
+    // constexpr double ORIENT_LEN = 0.08; // model coordinate units
+    // qp->setPen(QPen(QColor(80, 80, 180, 160), 1, Qt::SolidLine));
+    // for (size_t i = 0; i < m_trajectory.size(); i += ORIENT_STEP) {
+    //     TrajPoint const& tp = m_trajectory[i];
+    //     vec2dp const tip_w{tp.cm_w.x + tp.e2_w.x * ORIENT_LEN,
+    //                        tp.cm_w.y + tp.e2_w.y * ORIENT_LEN, 1.0};
+    //     qp->drawLine(toScreen(tp.cm_w), toScreen(tip_w));
+    // }
 
     // 3. Draw semi-transparent filled plate polygon
     QPolygonF plate_poly;

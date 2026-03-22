@@ -170,17 +170,9 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_vt(vt2d{p0, p2});
         cm.add_vt(vt2d{p1, p2});
 
-        cm.set_label("vector model 1");
-
-        vm.push_back(cm);
-    }
-
-    {
-        Coordsys_model cm;
-
-        pt2d p0(0, 0);
-        pt2d p1(1, 1);
-        pt2d p2(2, 1);
+        p0 = pt2d(0, 0);
+        p1 = pt2d(1, 1);
+        p2 = pt2d(2, 1);
 
         cm.add_pt(p0);
         cm.add_pt(p1);
@@ -192,41 +184,28 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_vt(v2);
         cm.add_vt(v3);
 
-        cm.set_label("vector model 2");
-
-        vm.push_back(cm);
-    }
-
-    {
-        Coordsys_model cm;
-
-        size_t p0_id = cm.add_apt(pt2d{0, 1});
-        size_t p1a_id = cm.add_apt(pt2d{-1.5, 1});
-        size_t p1b_id = cm.add_apt(pt2d{-1.5, 1});
-        size_t p2_id = cm.add_apt(pt2d{0, 2});
+        // independent vecs
+        size_t p0_id = cm.add_apt(pt2d{-1, -1});
+        size_t p1a_id = cm.add_apt(pt2d{-2.5, -1});
+        size_t p1b_id = cm.add_apt(pt2d{-2.5, -1});
+        size_t p2_id = cm.add_apt(pt2d{-1, -2});
 
         cm.add_avt(avt2d{p0_id, p1a_id});
         cm.add_avt(avt2d{p1b_id, p2_id});
 
-        cm.set_label("avts with separate apts");
+        // coupled vecs
+        p0_id = cm.add_apt(pt2d{1, -1});
+        p1a_id = cm.add_apt(pt2d{2.5, -1});
+        p2_id = cm.add_apt(pt2d{1, -2});
+
+        cm.add_avt(avt2d{p0_id, p1a_id});
+        cm.add_avt(avt2d{p1a_id, p2_id});
+
+        cm.set_label("vector model");
 
         vm.push_back(cm);
     }
 
-    {
-        Coordsys_model cm;
-
-        size_t p0_id = cm.add_apt(pt2d{0, 1});
-        size_t p1_id = cm.add_apt(pt2d{3, 1});
-        size_t p2_id = cm.add_apt(pt2d{0, 2});
-
-        cm.add_avt(avt2d{p0_id, p1_id});
-        cm.add_avt(avt2d{p1_id, p2_id});
-
-        cm.set_label("avts with common apt");
-
-        vm.push_back(cm);
-    }
 
     {
         Coordsys_model cm;
@@ -759,114 +738,6 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
     {
         Coordsys_model cm;
 
-        akinematic2dp pt_chain;
-        size_t p0_id = cm.add_apt(pt2d{-3.5, 0.5});
-        pt_chain.apt.push_back(p0_id);
-        size_t p1_id = cm.add_apt(pt2d{-3.0, 0.5});
-        pt_chain.apt.push_back(p1_id);
-        size_t p2_id = cm.add_apt(pt2d{-2.5, 0.5});
-        pt_chain.apt.push_back(p2_id);
-        size_t p3_id = cm.add_apt(pt2d{-2.0, 0.5});
-        pt_chain.apt.push_back(p3_id);
-        size_t p4_id = cm.add_apt(pt2d{-1.5, 0.5});
-        pt_chain.apt.push_back(p4_id);
-        size_t p5_id = cm.add_apt(pt2d{-1.0, 0.5});
-        pt_chain.apt.push_back(p5_id);
-        size_t p6_id = cm.add_apt(pt2d{-0.5, 0.5});
-        pt_chain.apt.push_back(p6_id);
-        size_t p7_id = cm.add_apt(pt2d{0, 0.5});
-        pt_chain.apt.push_back(p7_id);
-        size_t p8_id = cm.add_apt(pt2d{0.5, 0.5});
-        pt_chain.apt.push_back(p8_id);
-        size_t p9_id = cm.add_apt(pt2d{1.0, 0.5});
-        pt_chain.apt.push_back(p9_id);
-        size_t p10_id = cm.add_apt(pt2d{1.5, 0.5});
-        pt_chain.apt.push_back(p10_id);
-        size_t p11_id = cm.add_apt(pt2d{2.0, 0.5});
-        pt_chain.apt.push_back(p11_id);
-        size_t p12_id = cm.add_apt(pt2d{2.5, 0.5});
-        pt_chain.apt.push_back(p12_id);
-        size_t p13_id = cm.add_apt(pt2d{3.0, 0.5});
-        pt_chain.apt.push_back(p13_id);
-        size_t p14_id = cm.add_apt(pt2d{3.5, 0.5});
-        pt_chain.apt.push_back(p14_id);
-
-        cm.add_akinem(pt_chain);
-
-        akinematic2dp pt_chain2;
-        size_t p20_id = cm.add_apt(pt2d{-3.5, 2.5});
-        pt_chain2.apt.push_back(p20_id);
-        size_t p21_id = cm.add_apt(pt2d{-3.0, 2.5});
-        pt_chain2.apt.push_back(p21_id);
-        size_t p22_id = cm.add_apt(pt2d{-2.5, 2.5});
-        pt_chain2.apt.push_back(p22_id);
-        size_t p23_id = cm.add_apt(pt2d{-2.0, 2.5});
-        pt_chain2.apt.push_back(p23_id);
-
-        cm.add_akinem(pt_chain2);
-
-        cm.set_label("active kinematics");
-
-        vm.push_back(cm);
-    }
-
-    {
-        Coordsys_model cm;
-
-        // Create spring-mass ODE system
-        spring_params params; // Use default values:
-                              // m=2.0, c=0.01, k=40.0, g=9.81, l0=0.1, g=9.81
-        // params.c = 1.0;
-        // params.l0 = 0.0;
-        // params.m = 5.0;
-
-        // Fixation point (user-controllable)
-        size_t fix_id = cm.add_apt(pt2d{0.0, 0.0});
-
-        // Create ODE system (mass point is drawn internally, not an active point)
-        aode_spring2d spring_system;
-        spring_system.fixation_idx = fix_id;
-        spring_system.params = params;
-
-        cm.add_aode(spring_system);
-
-        cm.set_label("spring-mass ODE system (drag fixation, R=reset, Space=pause)");
-
-        vm.push_back(cm);
-    }
-
-    {
-        Coordsys_model cm;
-
-        // Rigid flat plate pendulum using PGA2D formulation
-        // Plate is fixed at its top-right corner (pivot = user-draggable active point)
-        // Gravity creates a torque that drives pendulum-like oscillation
-        plate_params params;
-        // params.m         = 1.0;  // mass [kg]
-        // params.w         = 2.0;  // width [m]
-        // params.h         = 2.0;  // height [m]
-        // params.g         = 9.81; // gravity [m/s²]
-        // params.c         = 0.0;  // angular damping (set > 0 to add dissipation)
-        // params.phi_init   = 0.0; // initial tilt angle [rad]
-        // params.omega_init = 0.0; // initial angular velocity [rad/s]
-
-        // Pivot point (user-draggable, top-right corner of plate)
-        size_t pivot_id = cm.add_apt(pt2d{0.0, 0.0});
-
-        aode_plate_pga2dp plate_system;
-        plate_system.fixation_idx = pivot_id;
-        plate_system.params       = params;
-
-        cm.add_aode_plate(plate_system);
-
-        cm.set_label("plate pendulum (PGA2D): drag pivot, R=reset, Space=pause");
-
-        vm.push_back(cm);
-    }
-
-    {
-        Coordsys_model cm;
-
         size_t p0_id = cm.add_apt(pt2d{0, 2.5});
         size_t p1_id = cm.add_apt(pt2d{2.5, 0});
 
@@ -1090,6 +961,114 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         vm.push_back(cm);
     }
 
+    {
+        Coordsys_model cm;
+
+        akinematic2dp pt_chain;
+        size_t p0_id = cm.add_apt(pt2d{-3.5, 0.5});
+        pt_chain.apt.push_back(p0_id);
+        size_t p1_id = cm.add_apt(pt2d{-3.0, 0.5});
+        pt_chain.apt.push_back(p1_id);
+        size_t p2_id = cm.add_apt(pt2d{-2.5, 0.5});
+        pt_chain.apt.push_back(p2_id);
+        size_t p3_id = cm.add_apt(pt2d{-2.0, 0.5});
+        pt_chain.apt.push_back(p3_id);
+        size_t p4_id = cm.add_apt(pt2d{-1.5, 0.5});
+        pt_chain.apt.push_back(p4_id);
+        size_t p5_id = cm.add_apt(pt2d{-1.0, 0.5});
+        pt_chain.apt.push_back(p5_id);
+        size_t p6_id = cm.add_apt(pt2d{-0.5, 0.5});
+        pt_chain.apt.push_back(p6_id);
+        size_t p7_id = cm.add_apt(pt2d{0, 0.5});
+        pt_chain.apt.push_back(p7_id);
+        size_t p8_id = cm.add_apt(pt2d{0.5, 0.5});
+        pt_chain.apt.push_back(p8_id);
+        size_t p9_id = cm.add_apt(pt2d{1.0, 0.5});
+        pt_chain.apt.push_back(p9_id);
+        size_t p10_id = cm.add_apt(pt2d{1.5, 0.5});
+        pt_chain.apt.push_back(p10_id);
+        size_t p11_id = cm.add_apt(pt2d{2.0, 0.5});
+        pt_chain.apt.push_back(p11_id);
+        size_t p12_id = cm.add_apt(pt2d{2.5, 0.5});
+        pt_chain.apt.push_back(p12_id);
+        size_t p13_id = cm.add_apt(pt2d{3.0, 0.5});
+        pt_chain.apt.push_back(p13_id);
+        size_t p14_id = cm.add_apt(pt2d{3.5, 0.5});
+        pt_chain.apt.push_back(p14_id);
+
+        cm.add_akinem(pt_chain);
+
+        akinematic2dp pt_chain2;
+        size_t p20_id = cm.add_apt(pt2d{-3.5, 2.5});
+        pt_chain2.apt.push_back(p20_id);
+        size_t p21_id = cm.add_apt(pt2d{-3.0, 2.5});
+        pt_chain2.apt.push_back(p21_id);
+        size_t p22_id = cm.add_apt(pt2d{-2.5, 2.5});
+        pt_chain2.apt.push_back(p22_id);
+        size_t p23_id = cm.add_apt(pt2d{-2.0, 2.5});
+        pt_chain2.apt.push_back(p23_id);
+
+        cm.add_akinem(pt_chain2);
+
+        cm.set_label("active kinematics");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        // Create spring-mass ODE system
+        spring_params params; // Use default values:
+                              // m=2.0, c=0.01, k=40.0, g=9.81, l0=0.1, g=9.81
+        // params.c = 1.0;
+        // params.l0 = 0.0;
+        // params.m = 5.0;
+
+        // Fixation point (user-controllable)
+        size_t fix_id = cm.add_apt(pt2d{0.0, 0.0});
+
+        // Create ODE system (mass point is drawn internally, not an active point)
+        aode_spring2d spring_system;
+        spring_system.fixation_idx = fix_id;
+        spring_system.params = params;
+
+        cm.add_aode(spring_system);
+
+        cm.set_label("spring-mass ODE system (drag fixation, R=reset, Space=pause)");
+
+        vm.push_back(cm);
+    }
+
+    {
+        Coordsys_model cm;
+
+        // Rigid flat plate pendulum using PGA2D formulation
+        // Plate is fixed at its top-right corner (pivot = user-draggable active point)
+        // Gravity creates a torque that drives pendulum-like oscillation
+        plate_params params;
+        // params.m = 10.0; // mass [kg]
+        // params.w = 4.0; // width [m]
+        // params.h         = 2.0;  // height [m]
+        // params.g         = 9.81; // gravity [m/s²]
+        // params.c         = 0.0;  // angular damping (set > 0 to add dissipation)
+        // params.phi_init   = 0.0; // initial tilt angle [rad]
+        // params.omega_init = 0.0; // initial angular velocity [rad/s]
+
+        // Pivot point (user-draggable, top-right corner of plate)
+        size_t pivot_id = cm.add_apt(pt2d{0.0, 0.0});
+
+        aode_plate_pga2dp plate_system;
+        plate_system.fixation_idx = pivot_id;
+        plate_system.params = params;
+
+        cm.add_aode_plate(plate_system);
+
+        cm.set_label("plate pendulum (PGA2D): drag pivot, R=reset, Space=pause");
+
+        vm.push_back(cm);
+    }
+
     return vm;
 }
 
@@ -1293,9 +1272,9 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
     // active plate pendulum ODE systems (PGA2D rigid body dynamics)
     ///////////////////////////////////////////////////////////////////////////
     for (size_t idx = 0; idx < cm->aode_plate.size(); ++idx) {
-        active_ode_plate* plate_system = new active_ode_plate(
-            cs, wcs, apt2d_map[cm->aode_plate[idx].fixation_idx],
-            cm->aode_plate[idx].params);
+        active_ode_plate* plate_system =
+            new active_ode_plate(cs, wcs, apt2d_map[cm->aode_plate[idx].fixation_idx],
+                                 cm->aode_plate[idx].params);
         QObject::connect(wcs, &w_Coordsys::resetRequested, plate_system,
                          &active_ode_plate::resetSimulation);
         QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, plate_system,

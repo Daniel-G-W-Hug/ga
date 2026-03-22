@@ -26,7 +26,7 @@ using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 // Euclidean geometric algebra of three-dimensional space: ega3d, pga3dp comparison
 /////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_SUITE("pga3dp: ega3d pga3dp comparison tests")
+TEST_SUITE("PGA3DP: comparison tests")
 {
 
     TEST_CASE("MVec3dp: rotated motors (for robotics applications)")
