@@ -9,6 +9,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QPainter>
+#include <QPoint>
+#include <QRect>
 #include <QWidget>
 
 class w_Coordsys : public QGraphicsView {
@@ -77,4 +79,10 @@ class w_Coordsys : public QGraphicsView {
     rotate_pt_mode m_rotate_pt_mode{rotate_pt_mode::rotate_none}; // no point rotation
     int m_nx_leftPress{0}; // x-position of leftButtonPress-Event
     int m_ny_leftPress{0}; // y-position of leftButtonPress-Event
+
+    bool m_legend_dragging{false};  // legend box is being dragged by mouse
+    QPoint m_legend_drag_offset{};  // offset from legend's lower-right anchor to mouse
+                                    // at the start of a drag operation
+
+    QRect legendRect() const; // legend box in viewport pixel coordinates
 };

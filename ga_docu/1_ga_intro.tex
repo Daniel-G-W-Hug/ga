@@ -11,7 +11,7 @@ three-dimensional Euclidean space ($PGA2DP$, $PGA3DP$). The latter two are model
 three- and four-dimensional space, respectively, since both include an additional
 projective dimension. \\
 
-The library efficiently handles fully populated multivectors, even and odd-grade
+The library efficiently handles fully populated multivectors, even- and odd-grade
 multivectors as well as their components like scalars, vectors, bivectors, trivectors, and
 pseudoscalars of the corresponding linear spaces. It also provides operations to work with
 these objects. It was designed with extensibility in mind and can be extended to provide
@@ -41,7 +41,7 @@ to maximize reuse and to avoid code duplication. All types are defined in
 
 To give an example for $EGA2D$, there are type aliases defined in the file
 \path{ga/detail/type_t/type2d.hpp} which provide types for scalars, vectors,
-pseudoscalars, even grade multivectors and full multivectors with the corresponding number
+pseudoscalars, even-grade multivectors and full multivectors with the corresponding number
 of components. We have to distinguish between scalars and pseudoscalars at type level in
 order to allow for complement operations (defined later on) that can distinguish those
 types for each algebra. Following types are provided:
@@ -77,10 +77,10 @@ mvec2d_e}, and \path{mvec2d} are used for the application. \\
 All algebras follow the same pattern. Just to give a second example for $PGA3DP$ following
 user types are defined: \path{scalar3dp, vec3dp, bivec3dp, trivec3dp, pscalar3dp,
 mvec3dp_e, mvec3dp_u,} and \path{mvec3dp}, where we additionally have defined types for
-bivectors, trivectors and uneven grade multivectors, as required to implement the algebra.
+bivectors, trivectors and uneven-grade multivectors, as required to implement the algebra.
 \\
 
-To work with the user defined algebraic objects geometric algebra operations using these
+To work with the user defined algebraic objects, geometric algebra operations using these
 types are defined in the ga library. You will find all operations that are required to
 work with linear vector spaces and operations specific to geometric algebra.
 \\
@@ -120,14 +120,14 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
     marked with underbar and overbar, see next section}. The regressive wedge product
     creates an intersection of the (sub-)spaces used by their arguments, thus effectively
     creating a meet-operation between the involved spaces.
-    \item Sandwich products ($R \wedgedot u \wedgedot \rev{R}$ for $EGA$, $M \veedot
-    u \veedot \rrev{M}$ for $PGA$) are used to implement orthogonal transformations of
+    \item Sandwich products ($R \wedgedot u \wedgedot \rev{R}$ for $EGA$, $M \veedot u
+    \veedot \rrev{M}$ for $PGA$) are used to implement orthogonal transformations of
     geometric objects. They realize rotations for $EGA$ and general motions including
-    rotation and translation for $PGA$ by concatenating two consecutive reflections, used
-    as primitives to realize the resulting transformations. This can be achieved
-    algebraically by multiplying the object symmetrically from the left- and right-hand
-    side with the appropriate unitized objects, we either call rotors $R$ in $EGA$ or
-    motors $M$ in $PGA$.
+    rotation and translation for $PGA$ by concatenating two consecutive reflections to
+    implement the resulting transformations. This can be achieved algebraically by
+    multiplying the object symmetrically from the left- and right-hand side with the
+    appropriate unitized objects, we either call rotors $R$ in $EGA$ or motors $M$ in
+    $PGA$.
 \end{itemize}
 
 Following bi-argument operations $\emph{op}(a,b) = a \; op \; b$ and their regressive
@@ -184,31 +184,31 @@ $arg$:
 \end{itemize}
 where the items from the left contraction downwards are all considered interior products.
 They operate directly on the subspaces occupied by the objects. The product operation is
-performed after applying a dualization operation to one operand. \\
+performed \emph{after} applying a dualization operation to one operand. \\
 
 The product tables for all products are generated in \path{ga/ga_prdxpr}, and coefficient
 expressions for specific argument types like scalars, vector, bivectors, etc. can be
 generated based on those product tables using configuration options of
 \path{ga/ga_prdxpr}. \\
 
-$PGA$ explicitly means Projective Geometric Algebra in the context of the ga library.
-There is also an alternative approach called Plane-based Geometric Algebra (also
-abbreviated $PGA$) that is based on a space that is dual to the space modelled and used
-here. The alternative approach was introduced by~\cite{Gunn_PGA:2020} and further promoted
-for applications in projective geometry by~\cite{Plane-based_PGA_Dorst-DeKennik:2022}.
-That model uses dual representations of objects represented in the algebra (it uses
-$G^*(3,0,1)$, a space dual to $G(3,0,1)$). Planes are used instead of vectors to model
-everything, e.g. a point is modelled by three planes intersecting in a point. Both
-representations are mathematically equivalent, i.e. they are dual to each other. They are
-linked by the definition of complements and the interconnection between geometric and
-regressive geometric product, as defined above: $a \veedot b \equiv \lcmpl{\rcmpl{a}
-\wedgedot \rcmpl{b}}$. In the plane-based approach the geometric product is used to
-operate on complements and duals, which are defined as the primary objects used for the
-approach, while the approach introduced by Lengyel in~\cite{Lengyel_pga-illuminated:2024}
-favors the use of points, vectors, bivectors and planes plus the explicit use of
-regressive products and complements as well as duals for applying geometric operations to
-these objects. The latter approach unifies the use of the wedge product for join
-operations and of the regressive wedge product for meet operations for application in
-$EGA$ and $PGA$. For the ga library we use $G(3,0,1)$.\\
+$PGA$ explicitly means \emph{Projective Geometric Algebra} in the context of the ga
+library. There is also an alternative approach called \emph{Plane-based Geometric Algebra}
+(also abbreviated $PGA$) that is based on a space that is dual to the space modelled and
+used here. The alternative approach was introduced by~\cite{Gunn_PGA:2020} and further
+promoted for applications in projective geometry
+by~\cite{Plane-based_PGA_Dorst-DeKennik:2022}. That model uses dual representations of
+objects represented in the algebra (it uses $G^*(3,0,1)$, a space dual to $G(3,0,1)$).
+Planes are used instead of vectors to model everything, e.g. a point is modelled by three
+planes intersecting in a point. Both representations are mathematically equivalent, i.e.
+they are dual to each other. They are linked by the definition of complements and the
+interconnection between geometric and regressive geometric product, as defined above: $a
+\veedot b \equiv \lcmpl{\rcmpl{a} \wedgedot \rcmpl{b}}$. In the plane-based approach the
+geometric product is used to operate on complements and duals, which are defined as the
+primary objects used for the approach, while the approach introduced by Lengyel
+in~\cite{Lengyel_pga-illuminated:2024} favors the use of points, vectors, bivectors and
+planes plus the explicit use of regressive products and complements as well as duals for
+applying geometric operations to these objects. The latter approach unifies the use of the
+wedge product for join operations and of the regressive wedge product for meet operations
+for application in $EGA$ and $PGA$. For the ga library we use $G(3,0,1)$.\\
 
 \newpage

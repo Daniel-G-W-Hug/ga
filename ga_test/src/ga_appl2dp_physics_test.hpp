@@ -1225,6 +1225,268 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     }
 
 
+    ///////////////////////////////////////////////////////////////////////
+    // Kinematic frame-transformation test cases
+    //
+    // Purpose: demonstrate and verify the body-frame / world-frame
+    // transformation framework using purely kinematic setups (constant
+    // velocity fields, no forces, no ODE integration).
+    //
+    // Notation (PGA2DP):
+    //   B_b   - accumulated position generator in body frame (integrated)
+    //   B_w   - accumulated position generator in world frame (integrated)
+    //   Omega_b - velocity generator in body frame (constant here)
+    //   Omega_w - velocity generator in world frame (= move2dp(Omega_b, M))
+    //   M0    - initial motor: maps body frame to world frame at t=0
+    //   M(t)  - current motor: M0 ⟇ exp(½ B_b(t))  [body-frame formulation]
+    //   P_b   - a fixed point in the body frame
+    //   P_w   - P_b expressed in world frame: move2dp(P_b, M)
+    //
+    // Key identity that reveals the bug in the original code:
+    //   move2dp(B, exp(½B)) == B   always (B commutes with its own exponential)
+    //   => B_w differs from B_b only when M0 != ps (non-trivial initial state)
+    //
+    // Extensibility: body-frame velocity vectors v_b = vec2dp{vx, vy, 0} (z=0)
+    //   transform to world via the same sandwich:  v_w = move2dp(v_b, M)
+    ///////////////////////////////////////////////////////////////////////
+
+    // Helper: print one time-step for kinematic cases
+    auto print_kine_step = [](double t, mvec2dp_u const& M0, vec2dp const& B_b,
+                              vec2dp const& B_w, mvec2dp_u const& M, vec2dp const& P_b,
+                              vec2dp const& P_w, vec2dp const& Q_b,
+                              vec2dp const& Q_w_check) {
+        fmt::println("  t={:>6.3f}: B_b=({:>7.3f},{:>7.3f},{:>7.3f})"
+                     " B_w=({:>7.3f},{:>7.3f},{:>7.3f})"
+                     " P_b->P_w=({:>7.3f},{:>7.3f})->({:>7.3f},{:>7.3f})"
+                     " Q_w_check=({:>7.3f},{:>7.3f})",
+                     t, B_b.x, B_b.y, B_b.z, B_w.x, B_w.y, B_w.z, P_b.x, P_b.y, P_w.x,
+                     P_w.y, Q_w_check.x, Q_w_check.y);
+    };
+
+    TEST_CASE("pga2dp: kinematics - pure translation")
+    {
+        fmt::println("pga2dp: kinematics - pure translation");
+        fmt::println("  Body moves with velocity v=(+1,0) in world frame.");
+        fmt::println("  Omega_b = (-vy, vx, 0) = (0, 1, 0)  [translation encoding]");
+
+        // body-frame reference point (e.g. body origin at body-frame (0,0,1))
+        vec2dp const P_b{0.0, 0.0, 1.0}; // body origin
+        // body-frame "pivot" anchor (z=0 means ideal point / pure direction)
+        vec2dp const Q_b{0.0, 0.0, 0.0}; // unused for translation; use O_b
+
+        // constant velocity generator in body frame:
+        // translation in +x: encoding = (-vy, vx, 0) with vx=1, vy=0
+        vec2dp const Omega_b{0.0, 1.0, 0.0};
+
+        double const T = 3.0;
+        double const dt = T / 4.0;
+        int const N = 4;
+
+        fmt::println("  --- Case A: M0 = identity (body starts at world origin) ---");
+        {
+            mvec2dp_u const M0 = exp(0.5 * vec2dp{0.0, 0.0, 0.0}); // ps (identity)
+            vec2dp B_b{0.0, 0.0, 0.0};
+            vec2dp B_w{0.0, 0.0, 0.0};
+
+            for (int i = 0; i <= N; ++i) {
+                double const t = i * dt;
+                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                vec2dp const Omega_w = move2dp(Omega_b, M);
+                vec2dp const P_w = move2dp(P_b, M);
+                // Q_w_check: body origin in world (should equal P_w here)
+                vec2dp const Q_w = move2dp(P_b, M);
+                print_kine_step(t, M0, B_b, B_w, M, P_b, P_w, Q_b, Q_w);
+
+                if (i < N) {
+                    B_b = B_b + Omega_b * dt;
+                    B_w = B_w + Omega_w * dt;
+                }
+            }
+        }
+
+        fmt::println("  --- Case B: M0 = translation to (2,1) (body starts offset) ---");
+        {
+            // M0: pure translation motor placing body origin at world (2, 1)
+            // Translation encoding: P_tra = (-ty, tx, 0) = (-1, 2, 0)
+            vec2dp const cm0{2.0, 1.0, 1.0};
+            mvec2dp_u const M0 = exp(0.5 * vec2dp{-cm0.y, cm0.x, 0.0});
+            vec2dp B_b{0.0, 0.0, 0.0};
+            vec2dp B_w{0.0, 0.0, 0.0};
+
+            for (int i = 0; i <= N; ++i) {
+                double const t = i * dt;
+                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                vec2dp const Omega_w = move2dp(Omega_b, M);
+                vec2dp const P_w = move2dp(P_b, M);
+                vec2dp const Q_w = P_w; // body origin in world
+                print_kine_step(t, M0, B_b, B_w, M, P_b, P_w, Q_b, Q_w);
+
+                if (i < N) {
+                    B_b = B_b + Omega_b * dt;
+                    B_w = B_w + Omega_w * dt;
+                }
+            }
+        }
+        fmt::println(
+            "  Note: B_w == B_b always for pure translation (regardless of M0).");
+        fmt::println(
+            "        Translation velocity (z=0) is a direction vector: invariant under");
+        fmt::println(
+            "        any motor, so Omega_w == Omega_b and B_w accumulates identically.");
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: kinematics - pure rotation")
+    {
+        fmt::println("pga2dp: kinematics - pure rotation");
+        fmt::println(
+            "  Body rotates at omega=1 rad/s about body-frame pivot Q_b=(1,0,1).");
+
+        // body-frame pivot (e.g. the TR corner of a plate at (1,0) from body origin)
+        vec2dp const Q_b{1.0, 0.0, 1.0};
+        // a different body-frame reference point to track
+        vec2dp const P_b{-1.0, 0.5, 1.0};
+
+        double const omega = 1.0; // rad/s
+        // constant velocity generator in body frame: rotation about Q_b
+        vec2dp const Omega_b = omega * Q_b;
+
+        double const T = 2.0 * M_PI; // one full revolution
+        double const dt = T / 8.0;
+        int const N = 8;
+
+        fmt::println("  --- Case A: M0 = identity (Q_b is at world origin) ---");
+        {
+            mvec2dp_u const M0 = exp(0.5 * vec2dp{0.0, 0.0, 0.0});
+            vec2dp B_b{0.0, 0.0, 0.0};
+            vec2dp B_w{0.0, 0.0, 0.0};
+            // pivot world position (should stay fixed)
+            vec2dp const Q_world_expected = move2dp(Q_b, M0);
+
+            for (int i = 0; i <= N; ++i) {
+                double const t = i * dt;
+                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                vec2dp const Omega_w = move2dp(Omega_b, M);
+                vec2dp const P_w = move2dp(P_b, M);
+                vec2dp const Q_w_chk = move2dp(Q_b, M); // pivot must stay fixed
+                print_kine_step(t, M0, B_b, B_w, M, P_b, P_w, Q_b, Q_w_chk);
+
+                if (i < N) {
+                    B_b = B_b + Omega_b * dt;
+                    B_w = B_w + Omega_w * dt;
+                }
+            }
+        }
+
+        fmt::println("  --- Case B: M0 = translation placing Q_b at world (2,1) ---");
+        {
+            // We want Q_b to be at world position (2, 1).
+            // M0 is a pure translation by (2-Q_b.x, 1-Q_b.y) = (1, 1).
+            // Translation encoding: P_tra = (-ty, tx, 0) = (-1, 1, 0)
+            vec2dp const Q_world{2.0, 1.0, 1.0};
+            vec2dp const trans{Q_world.x - Q_b.x, Q_world.y - Q_b.y, 1.0};
+            mvec2dp_u const M0 = exp(0.5 * vec2dp{-trans.y, trans.x, 0.0});
+            vec2dp B_b{0.0, 0.0, 0.0};
+            vec2dp B_w{0.0, 0.0, 0.0};
+
+            for (int i = 0; i <= N; ++i) {
+                double const t = i * dt;
+                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                vec2dp const Omega_w = move2dp(Omega_b, M);
+                vec2dp const P_w = move2dp(P_b, M);
+                vec2dp const Q_w_chk = move2dp(Q_b, M); // pivot must stay at (2,1)
+                print_kine_step(t, M0, B_b, B_w, M, P_b, P_w, Q_b, Q_w_chk);
+
+                if (i < N) {
+                    B_b = B_b + Omega_b * dt;
+                    B_w = B_w + Omega_w * dt;
+                }
+            }
+        }
+        fmt::println("  Note: Q_w_check should remain constant (pivot is fixed).");
+        fmt::println(
+            "        B_w != B_b when M0 != identity: world-frame encoding differs.");
+        fmt::println(
+            "        B_b.z == B_w.z always: rotation angle is frame-independent in 2D.");
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: kinematics - combined translation and rotation")
+    {
+        fmt::println("pga2dp: kinematics - combined translation and rotation");
+        fmt::println(
+            "  Body rotates about Q_b=(1,0.5,1) and simultaneously translates (+x).");
+
+        vec2dp const Q_b{1.0, 0.5, 1.0};  // body-frame pivot
+        vec2dp const P_b{-1.0, 0.0, 1.0}; // body-frame reference point
+
+        double const omega = 1.0; // rad/s
+        // combined: rotation about Q_b + translation in +x
+        // translation encoding: (-vy, vx, 0) = (0, 0.5, 0) for vx=0.5, vy=0
+        vec2dp const Omega_b = omega * Q_b + vec2dp{0.0, 0.5, 0.0};
+
+        double const T = 4.0;
+        double const dt = T / 8.0;
+        int const N = 8;
+
+        fmt::println("  --- Case A: M0 = identity ---");
+        {
+            mvec2dp_u const M0 = exp(0.5 * vec2dp{0.0, 0.0, 0.0});
+            vec2dp B_b{0.0, 0.0, 0.0};
+            vec2dp B_w{0.0, 0.0, 0.0};
+
+            for (int i = 0; i <= N; ++i) {
+                double const t = i * dt;
+                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                vec2dp const Omega_w = move2dp(Omega_b, M);
+                vec2dp const P_w = move2dp(P_b, M);
+                vec2dp const Q_w_chk = move2dp(Q_b, M);
+                print_kine_step(t, M0, B_b, B_w, M, P_b, P_w, Q_b, Q_w_chk);
+
+                if (i < N) {
+                    B_b = B_b + Omega_b * dt;
+                    B_w = B_w + Omega_w * dt;
+                }
+            }
+        }
+
+        fmt::println("  --- Case B: M0 = translation to (3,2), initial rotation "
+                     "phi0=pi/4 in B_b ---");
+        {
+            // M0 encodes the REST position (phi=0) of the body in world frame.
+            // The initial rotation phi0 is encoded in B_b(0) = phi0 * Q_b.
+            // By the conjugation identity: M0_tra ⟇ exp(½ phi0 Q_b)
+            //   == (rotation by phi0 about Q_world) ⟇ M0_tra
+            // so this correctly places the plate at the phi0-rotated rest position.
+            vec2dp const cm0{3.0, 2.0, 1.0}; // rest cm world position (phi=0)
+            mvec2dp_u const M0 =
+                exp(0.5 * vec2dp{-cm0.y, cm0.x, 0.0}); // pure translation
+
+            double const phi0 = M_PI / 4.0;
+            vec2dp B_b = phi0 * Q_b; // initial B_b: phi0 rotation about body-frame Q_b
+            vec2dp B_w{0.0, 0.0, 0.0};
+
+            for (int i = 0; i <= N; ++i) {
+                double const t = i * dt;
+                mvec2dp_u const M = rgpr(M0, exp(0.5 * B_b));
+                vec2dp const Omega_w = move2dp(Omega_b, M);
+                vec2dp const P_w = move2dp(P_b, M);
+                vec2dp const Q_w_chk = move2dp(Q_b, M);
+                print_kine_step(t, M0, B_b, B_w, M, P_b, P_w, Q_b, Q_w_chk);
+
+                if (i < N) {
+                    B_b = B_b + Omega_b * dt;
+                    B_w = B_w + Omega_w * dt;
+                }
+            }
+        }
+        fmt::println(
+            "  Note: Omega_b is constant; Omega_w varies (body frame rotates in world).");
+        fmt::println(
+            "        B_w and B_b accumulate differently because Omega_w(t) != Omega_b.");
+        fmt::println("");
+    }
+
     TEST_CASE("pga2dp: combined motion (rigid 1-body system)")
     {
         fmt::println("pga2dp: combined motion (rigid 1-body system)");
@@ -1243,54 +1505,55 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             {
 
                 fmt::println("sim_ode_plate_pga2dp: combined motion.");
-                fmt::println("points:");
-                fmt::println("inertia of plate in body system:");
-                I = get_plate_inertia(m, width, height);
 
-                // get inverse inertia map
-                // maps a momentum bivector to the rate of change (a vector in 2D)
+                // Body frame origin = CENTER OF MASS (plate is symmetric about cm).
+                // Pivot = TR corner Q_b = (hw, hh, 1) in body frame.
+                // get_plate_inertia(m, w, h, Q_b) applies the parallel-axis correction
+                // (Steiner) so I is directly about Q_b — no manual scaling needed in
+                // calc_rhs. And the total kinetic energy is K_rot
+                value_t const hw = width / 2.0;
+                value_t const hh = height / 2.0;
+                vec2dp const Q_b{hw, hh, 1.0};
+                fmt::println(
+                    "inertia of plate in body system (about pivot Q_b = TR corner):");
+                I = get_plate_inertia(m, width, height, Q_b);
+                // I = get_plate_inertia(m, width, height);
+
+                // get inverse inertia map (maps momentum bivector to velocity vector)
                 I_inv = get_inertia_inverse(I);
 
-                fmt::println("system inertia:");
+                fmt::println("system inertia (about pivot Q_b):");
                 fmt::println("I     = {:>-7.3f}", I);
                 fmt::println("I_inv = {:>-7.3f}", I_inv);
             }
 
             void set_initial_values()
             {
-                // HINT: currently input variables for initial position NOT used;
-                //       for now assume "no initial transformation for position"
-
                 // Create mdspan view for setting initial values
                 auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), 2);
 
+                value_t const hw = width / 2.0;
+                value_t const hh = height / 2.0;
 
-                // initial transformation of "position" encoded in B0-vector
-                // encoding:
-                //  B_rot=(x0_fix, y0_fix, 1) * phi0
-                //  B_tra=(-y0_trans, x0_trans, 0)
-                //  B    = B_rot + B_tra
-                //
+                // Body origin = CM. Pivot = TR corner = Q_b = (hw, hh, 1) in body frame.
+                // M0: pure translation placing body origin (= cm) at cm_w_pos0.
+                // Encoding: translation by (tx, ty) -> motor exp(0.5*(-ty, tx, 0))
+                M0 = exp(0.5 * vec2dp{-cm_w_pos0.y, cm_w_pos0.x, 0.0});
 
-                // set initial transformation M0 vom B0 (body relative to world frame)
-                // this has the character of a world frame transformation B0_w
-                // vec2dp B0 =
-                //     vec2dp(0.0, 0.0, cm_w_phi0) + vec2dp(-cm_w_pos0.y, cm_w_pos0.x,
-                //     0.0);
-                // M0 = exp(0.5 * B0);
+                // pivot_w: world position of body-frame pivot Q_b via M0 (stays fixed)
+                vec2dp const Q_b{hw, hh, 1.0};
+                pivot_w = move2dp(Q_b, M0);
+                fmt::println("pivot_w = {:>-7.3f}  (world position of pivot Q_b via M0)",
+                             pivot_w);
 
-                u[0] = vec2dp(0.0, 0.0, 0.0); // we start with no additional trafo
+                // B_b(0): initial rotation by phi0 about body-frame pivot Q_b.
+                // move2dp(Q_b, exp(½*phi*Q_b)) = Q_b for all phi (pivot invariant).
+                u[0] = cm_w_phi0 * Q_b;
 
-                // initial rate of change transformation of "velocity" dB/dt = Omega
-                // encoding:
-                // rotation: Omega_rot = (q.x0, q.y0, 1) * omega0 (Q is the
-                // fixed-point) translation: Omega_tra = (-v0.y, v0.x, 0)
-                //
-                // resulting Omega = Omega_rot + Omega_tra
-
-                // case with initial angular speed and initial speed of translation
-                u[1] = vec2dp(0.0, 0.0, cm_w_omega0) +
-                       vec2dp(-cm_w_spd0.y, cm_w_spd0.x, 0.0);
+                // Omega_b(0): initial angular velocity about pivot Q_b.
+                // For a pivot-constrained body, translational velocity of cm is
+                // determined by omega (not independent): Omega_b = omega * Q_b.
+                u[1] = cm_w_omega0 * Q_b;
             }
 
             void calc_rhs()
@@ -1304,31 +1567,46 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 vec2dp const B = u[0];     // position transformation B is in u[0]
                 vec2dp const Omega = u[1]; // velocity trafo d(B)/dt = Omega is in u[1]
 
-                // get the current motor from the bivector (including the initial trafo)
-                // auto const M = rgpr(M0, exp(0.5 * B));
-                auto const M = exp(0.5 * B);
+                // current motor: M(t) = M0 ⟇ exp(½ B_b(t))  [body-frame formulation]
+                auto const M = rgpr(M0, exp(0.5 * B));
 
-                // force at fixed point acts in e2 direction at O_2dp (world frame)
-                auto const F_up_w = wdg(O_2dp, vec2dp(0.0, m * 9.81, 0.0));
+                // cm world position: body origin = cm = (0,0,1) in body frame
+                vec2dp const O_b{0.0, 0.0, 1.0};
+                auto const cm_w = move2dp(O_b, M);
 
-                // gravity acts globally in -e2 direction at cm (world frame)
-                auto const cm_w = move2dp(cm_w_pos0, M); // move pos0 to current pos
+                // fmt::println("    cm_w = {:>-7.3f}, pivot_w = {:>-7.3f}", cm_w,
+                // pivot_w);
 
-                // fmt::println("cm_w = {}", cm_w);
+                auto const g = vec2dp{0.0, -9.81, 0.0}; // 9.81 m/s^2 in neg. y-direction
 
-                auto const F_dn_w = wdg(cm_w, vec2dp(0.0, -m * 9.81, 0.0));
+                // x-direction: Force couple in world frame with
+                //              x-component resulting from splitting y-acceleration
+                //              into centrifugal acceleration a_cf = r * omega^2 and
+                auto const omega = Omega.z; // angular speed in z-component
+                auto const a_cf = (cm_w - pivot_w) * omega * omega; // centrifugal accel.
+                auto const f_cm = m * (a_cf + g);                   // total force at cm
 
-                auto const F_b = move2dp(F_up_w + F_dn_w, rrev(M)); // world to body
+                // fmt::println("    a_cf = {:>-7.3f}, f_cm = {:>-7.3f}", a_cf, f_cm);
 
-                // fmt::println("F_up_w = {}", F_up_w);
-                // fmt::println("F_dn_w = {}", F_dn_w);
-                // fmt::println("F_b = {}", F_b);
+                auto const F_cm = wdg(cm_w, f_cm);
+                auto const F_piv = wdg(pivot_w, -f_cm);
+                auto const F_b = move2dp(F_cm + F_piv, rrev(M)); // res. in body frame
 
-                // Set right-hand side for ODE system:
-                // u[0]' = velocity trafo Omega = d(B)/dt (linear and angular)
-                // u[1]' = acceleration trafo d(Omega)/dt (linear and angular)
-                rhs[0] = Omega;
-                rhs[1] = compute_omega_dot(I_inv, F_b, Omega, I);
+                // fmt::println("    F_b = {:>-7.3f}", F_b);
+
+                // Enforce pivot constraint explicitly: extract scalar alpha from
+                // dOmega.z and project back onto Q_b so that Omega_b = omega*Q_b
+                // is preserved exactly, preventing numerical drift of off-constraint
+                // components (e31/e32) during RK4 integration.
+                // In principle correct without projection: rhs[1] = compute_omega_dot(I_inv, F_b, Omega, I);
+                value_t const hw_r = width / 2.0;
+                value_t const hh_r = height / 2.0;
+                vec2dp const Q_b_r{hw_r, hh_r, 1.0};
+                auto const dOmega = compute_omega_dot(I_inv, F_b, Omega, I);
+                value_t const alpha = dOmega.z; // = tau / I_pivot[2,2]
+
+                rhs[0] = Omega;         // dB_b/dt = Omega_b  (= omega * Q_b)
+                rhs[1] = alpha * Q_b_r; // dOmega_b/dt = alpha * Q_b  (pivot constraint)
             }
 
             void calc_rkstep(double dt)
@@ -1355,51 +1633,45 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
                 // get current state (= current positional transformation bivector)
 
-                vec2dp B = u[0];     // B = Omega * t (from integration)
-                vec2dp Omega = u[1]; // dB/dt = Omega = dB^2/dt^2 * t + Omega0
+                vec2dp const B = u[0]; // B_b = phi * Q_b (accumulated rotation)
 
-                // calculate current position from B via M = M0 ⟇ exp(0.5 * B)
-                // and via cm_w(t) = M ⟇ cm_w(t0) ⟇ rrev(M) = move2dp(pts(t0),M)
-                // and d(pts(t))/dt = rcmt(Omega, pts(t))
+                // current motor: M(t) = M0 ⟇ exp(½ B_b(t))  [body-frame formulation]
+                auto const M = rgpr(M0, exp(0.5 * B));
 
-                // auto M = rgpr(M0, exp(0.5 * B));
-                auto M = exp(0.5 * B);
-                // auto M = exp(0.5 * Omega * t);
+                // B_b = phi * Q_b, so B.z = phi (rotation angle about Q_b)
+                value_t const phi_b = B.z;
 
-                // cm (as seen from body frame)
-                // auto cm_b = O_2dp;
-                // auto spd_cm_b = rcmt(Omega, O_2dp);
-                auto phi_b = B.z;
-                // auto omega_b = Omega.z;
+                // cm world position: body origin = cm = (0,0,1) in body frame
+                vec2dp const O_b{0.0, 0.0, 1.0};
+                auto const cm_w = move2dp(O_b, M);
 
-                // O_w (as seen from body frame)
-                // auto Ow_b = move2dp(O_2dp, rev(M));
-                // auto spd_Ow_b = rcmt(Omega, Ow_b);
+                // B_w: B_b expressed in world frame via M0 (not full M).
+                // For pure couple torque, move2dp(B,M) = B (commutator identity).
+                // move2dp(B, M0) gives the world-frame encoding when M0 != ps.
+                auto const B_w = move2dp(B, M0);
+                value_t const phi_w = B_w.z; // rotation angle is frame-invariant
 
-                // cm_w(t) (as seen from world frame)
-                auto B_w = move2dp(B, M);
-                auto cm_w = move2dp(cm_w_pos0, M); // move pos0 to current pos
-                auto Omega_w = move2dp(Omega, M);
-                auto spd_cm_w = rcmt(Omega_w, cm_w); // calculate speed of cm
-                auto phi_w = B_w.z;
-                // auto omega_w = Omega_w.z;
-
-                // O_w (as seen from world frame)
-                // auto Ow_w = O_2dp;
-                // auto spd_Ow_w = rcmt(Omega_w, O_2dp);
-
-
-                // fmt::println("    B = {:>-7.3f}, B_w = {:>-7.3f}, Omega = {:>-7.3f}, "
-                //              "Omega_w = {:>-7.3f}, M = {:>-7.3f}, M = {:>-7.3f}",
-                //              B, B_w, Omega, Omega_w, M, M0);
-                // fmt::println(
-                //     "    cm_w = {:>-6.3f}, spd_cm_w = {:>-6.3f}, B_w = {:>-6.3f}, "
-                //     "phi_b = {:>-6.3f}, phi_w = {:>-6.3f}, B = {:>-6.3f}",
-                //     cm_w, spd_cm_w, B_w, phi_b, phi_w, B);
-                fmt::println("    cm_w = {:>-6.3f}, phi_b = {:>-6.3f}, B_w = {:>-6.3f}, "
-                             "B = {:>-6.3f}",
-                             cm_w, phi_b, B_w, B);
+                fmt::println("    cm_w = {:>-6.3f}, phi_b = {:>-6.3f}, phi_w = {:>-6.3f},"
+                             " B_w = {:>-6.3f}, B = {:>-6.3f}",
+                             cm_w, phi_b, phi_w, B_w, B);
             }
+
+            // Accessors for validation checks
+            vec2dp get_cm_world() const
+            {
+                auto u = mdspan<vec2dp const, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto const M = rgpr(M0, exp(0.5 * u[0]));
+                return move2dp(vec2dp{0.0, 0.0, 1.0}, M);
+            }
+
+            value_t get_omega() const
+            {
+                // Omega = omega * Q_b,  Q_b.z = 1  =>  omega = Omega.z
+                auto u = mdspan<vec2dp const, dextents<size_t, 1>>(u_mem.data(), 2);
+                return u[1].z;
+            }
+
+            value_t get_I_zz_pivot() const { return I.view()[2, 2]; }
 
           private:
 
@@ -1418,8 +1690,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             // initial angular velocity of cm (body vs. world frame)
             value_t cm_w_omega0;
 
-            mvec2dp_u M0; // defines intial transformation at t=0 of postion and speed of
-                          // body frame relative to world frame
+            mvec2dp_u M0;   // initial motor: maps body frame to world at t=0
+            vec2dp pivot_w; // world position of body-frame TR corner (fixed pivot)
 
             // RK4 integration state for point n with system order = 2
             // => [n+0: position, n+1: velocity])
@@ -1427,8 +1699,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             std::vector<vec2dp> uh_mem;  // helper for integration
             std::vector<vec2dp> rhs_mem; // right-hand side values
 
-            // inertia map and its inverse (calculated from descrete input values)
-            // calculation is done in body frame
+            // inertia map about pivot Q_b (parallel-axis corrected via get_plate_inertia)
             inertia2dp I;
             inertia2dp I_inv;
         };
@@ -1454,6 +1725,21 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         sim.set_initial_values();
         sim.print_sim(t_rng.min());
 
+        // --- Static validation: inertia analytical check -----------------------
+        // I[2,2] = m*(w^2+h^2)/12 + m*(hw^2+hh^2)
+        //        = 1*(4+4)/12 + 1*(1+1) = 2/3 + 2 = 8/3
+        value_t const hw = w / 2.0;
+        value_t const hh = h / 2.0;
+        CHECK(sim.get_I_zz_pivot() == doctest::Approx(8.0 / 3.0));
+
+        // --- Dynamic validation setup ------------------------------------------
+        // Initial energy: KE=0, PE = m*g*cm_w.y = 9.81*(-1) = -9.81 J
+        value_t const g = 9.81;
+        value_t const E_0 = m * g * cm_pos.y; // = -9.81 J
+
+        // Pivot at world origin (0,0) => pivot distance^2 = hw^2 + hh^2 = 2.0
+        value_t const pivot_dist_sq = hw * hw + hh * hh; // = 2.0
+
         for (size_t n = 1; n <= t_rng.steps(); n++) {
 
             // integration from t to t + dt
@@ -1462,6 +1748,20 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
             // print sim status at t+dt
             sim.print_sim(t);
+
+            vec2dp const cm_w = sim.get_cm_world();
+            value_t const omega = sim.get_omega();
+
+            // Energy conservation: T + V = E_0.
+            // T = 0.5 * I_pivot * omega^2 (rotation about fixed pivot, parallel-axis I)
+            // V = m * g * cm_w.y  (gravitational PE, y=0 datum)
+            value_t const T_kin = 0.5 * sim.get_I_zz_pivot() * omega * omega;
+            value_t const V_pot = m * g * cm_w.y;
+            CHECK((T_kin + V_pot) == doctest::Approx(E_0).epsilon(1e-3));
+
+            // Pivot constraint: distance from pivot (0,0) to cm = sqrt(hw^2+hh^2)
+            value_t const r_sq = cm_w.x * cm_w.x + cm_w.y * cm_w.y;
+            CHECK(r_sq == doctest::Approx(pivot_dist_sq).epsilon(1e-3));
         }
 
         fmt::println("");

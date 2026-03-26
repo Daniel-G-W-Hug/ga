@@ -25,8 +25,10 @@
 
 // active_ode_plate models a rigid flat plate acting as a pendulum fixed at its
 // top-right corner (the pivot point, user-draggable).
-// - PGA2D formulation: motor M = exp(0.5*B), ODE state = (B, Omega), both vec2dp
-// - cm world position: move2dp(m_cm_pos0, M) where m_cm_pos0 is the initial cm position
+// - PGA2D body-frame formulation: M(t) = M0 ⟇ exp(½ B_b(t)), ODE state = (B_b, Omega_b)
+// - M0: pure translation motor placing body origin (= cm) at initial world position
+// - cm world position: move2dp(O_b, M) where O_b = (0,0,1) is the body origin
+// - Pivot Q_b = TR corner = (hw, hh, 1) in body frame; m_pivot_w is its world image via M0
 // - Forces: reaction at pivot (+mg upward) + gravity at cm (-mg downward) = pure torque
 // - Visualizes: semi-transparent plate polygon, body-frame axes e1/e2, cm trajectory
 //   with e2 orientation markers, force vectors at cm and pivot
@@ -65,12 +67,13 @@ class active_ode_plate : public QObject, public QGraphicsItem {
     active_pt2d* m_pivot_pt;
     plate_params m_params;
 
-    // Inertia in body frame (computed once from m, w, h)
+    // Inertia in body frame about pivot Q_b (parallel-axis corrected via get_plate_inertia)
     inertia2dp I;
     inertia2dp I_inv;
 
     // Initial conditions (stored for reset)
-    vec2dp m_cm_pos0;        // initial cm world position: cm_w(t) = move2dp(m_cm_pos0, M)
+    mvec2dp_u m_M0;          // translation motor: body origin (= cm) to initial world pos
+    vec2dp m_pivot_w;        // world position of pivot Q_b = TR corner (updated on drag)
     double m_time{0.0};      // simulation elapsed time [s]
     pt2d m_initial_pivot;
 
@@ -95,6 +98,10 @@ class active_ode_plate : public QObject, public QGraphicsItem {
     };
     std::deque<TrajPoint> m_trajectory;
     static constexpr size_t MAX_TRAJ_PTS = 500;
+
+    // Cached forces and torque for visualization (updated in calculateRHS)
+    vec2dp m_f_cf_w{0.0, 0.0, 0.0}; // centrifugal force at cm in world frame (z=0)
+    double m_torque_b{0.0};          // e12-component of F_b in body frame [N·m]
 
     // Timer for continuous integration (~60 Hz)
     QTimer* m_timer;

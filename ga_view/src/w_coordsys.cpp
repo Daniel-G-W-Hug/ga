@@ -5,9 +5,13 @@
 #include "coordsys_model.hpp"
 
 #include <QCursor>
+#include <QFont>
+#include <QFontMetrics>
 #include <QPainter>
 #include <QPalette>
 #include <QPen>
+#include <QPoint>
+#include <QRect>
 #include <QString>
 #include <QWheelEvent>
 
@@ -72,6 +76,55 @@ void w_Coordsys::paintEvent(QPaintEvent* event)
 }
 
 
+// Returns the legend box in viewport pixel coordinates (empty QRect if no legend).
+// The anchor is the top-left corner of the box; x_pct / y_pct measure the
+// distance from the left / top edge of the drawing area.
+// Heights account for word-wrapped text.
+QRect w_Coordsys::legendRect() const
+{
+    if (!cm || !cm->legend.has_value()) return QRect{};
+
+    diagram_legend const& leg = *cm->legend;
+
+    int const area_w  = cs->x.nmax() - cs->x.nmin();
+    int const area_h  = cs->y.nmin() - cs->y.nmax(); // nmin > nmax (y-axis inverted)
+    int const box_w   = static_cast<int>(leg.size_pct * area_w);
+    int const padding = 8;
+    int const inner_w = box_w - 2 * padding;    // available text width
+
+    QFontMetrics const fm_h{QFont("Helvetica", 14, QFont::Bold)};
+    QFontMetrics const fm_t{QFont("Helvetica", 12, QFont::Normal)};
+    int const key_col_w = box_w / 4;
+    int const desc_w    = inner_w - key_col_w;
+
+    // Heading height respects word-wrap within inner_w
+    int const heading_h = fm_h.boundingRect(0, 0, inner_w, 0,
+                              Qt::TextWordWrap | Qt::AlignLeft,
+                              QString::fromStdString(leg.heading)).height();
+    int box_h = 2 * padding + heading_h + 6;
+
+    if (!leg.entries.empty()) {
+        box_h += 9;                          // separator
+        box_h += fm_t.height() + 4;         // column header row
+        for (key_legend_entry const& entry : leg.entries) {
+            int const key_h  = fm_t.boundingRect(0, 0, key_col_w, 0,
+                                   Qt::TextWordWrap | Qt::AlignLeft,
+                                   QString::fromStdString(entry.key)).height();
+            int const desc_h = fm_t.boundingRect(0, 0, desc_w, 0,
+                                   Qt::TextWordWrap | Qt::AlignLeft,
+                                   QString::fromStdString(entry.description)).height();
+            box_h += std::max({fm_t.height(), key_h, desc_h}) + 4;
+        }
+    }
+
+    // Anchor: top-left corner of the legend box
+    int const nx_topleft = cs->x.nmin() + static_cast<int>(leg.x_pct * area_w);
+    int const ny_topleft = cs->y.nmax() + static_cast<int>(leg.y_pct * area_h);
+
+    return QRect{nx_topleft, ny_topleft, box_w, box_h};
+}
+
+
 void w_Coordsys::drawBackground(QPainter* qp, const QRectF& rect)
 {
     Q_UNUSED(rect);
@@ -116,6 +169,82 @@ void w_Coordsys::drawForeground(QPainter* qp, const QRectF& rect)
                 break;
         }
         qp->restore();
+    }
+
+    // Draw legend overlay (always on top, fixed in viewport, independent of zoom/pan)
+    if (cm && cm->legend.has_value()) {
+        QRect const box = legendRect();
+        if (box.isValid()) {
+            diagram_legend const& leg = *cm->legend;
+
+            qp->save();
+
+            // Semi-transparent rounded background
+            qp->setBrush(QColor(248, 248, 248, 210));
+            qp->setPen(QPen(QColor(Qt::darkGray), 1, Qt::SolidLine));
+            qp->drawRoundedRect(box, 4, 4);
+
+            int const padding = 8;
+            int const inner_w = box.width() - 2 * padding;
+            int       x       = box.left() + padding;
+            int       y       = box.top()  + padding;
+
+            // Heading: Helvetica 14 Bold (matches axis label style), word-wrapped
+            qp->setFont(QFont("Helvetica", 14, QFont::Bold));
+            QFontMetrics const fm_h{qp->font()};
+            qp->setPen(Qt::black);
+            QString const heading_str = QString::fromStdString(leg.heading);
+            int const heading_h = fm_h.boundingRect(0, 0, inner_w, 0,
+                                      Qt::TextWordWrap | Qt::AlignLeft,
+                                      heading_str).height();
+            qp->drawText(QRect(x, y, inner_w, heading_h),
+                         Qt::TextWordWrap | Qt::AlignLeft,
+                         heading_str);
+            y += heading_h + 6;
+
+            if (!leg.entries.empty()) {
+                // Horizontal separator
+                qp->setPen(QPen(Qt::gray, 1, Qt::SolidLine));
+                qp->drawLine(box.left() + 4, y + 4, box.right() - 4, y + 4);
+                y += 9;
+
+                qp->setFont(QFont("Helvetica", 12, QFont::Normal));
+                QFontMetrics const fm_t{qp->font()};
+                int const key_col_w = box.width() / 4; // "Key" column: ~25% of box
+                int const desc_w    = inner_w - key_col_w;
+
+                // Column headers (italic)
+                qp->setFont(QFont("Helvetica", 12, QFont::Normal, true /*italic*/));
+                qp->setPen(Qt::darkGray);
+                qp->drawText(x,             y + fm_t.ascent(), "Key");
+                qp->drawText(x + key_col_w, y + fm_t.ascent(), "Function");
+                y += fm_t.height() + 4;
+
+                // Entry rows — description wraps if wider than its column
+                qp->setFont(QFont("Helvetica", 12, QFont::Normal));
+                qp->setPen(Qt::black);
+                for (key_legend_entry const& entry : leg.entries) {
+                    QString const key_str  = QString::fromStdString(entry.key);
+                    QString const desc_str = QString::fromStdString(entry.description);
+                    int const key_h  = fm_t.boundingRect(0, 0, key_col_w, 0,
+                                           Qt::TextWordWrap | Qt::AlignLeft,
+                                           key_str).height();
+                    int const desc_h = fm_t.boundingRect(0, 0, desc_w, 0,
+                                           Qt::TextWordWrap | Qt::AlignLeft,
+                                           desc_str).height();
+                    int const row_h = std::max({fm_t.height(), key_h, desc_h}) + 4;
+                    qp->drawText(QRect(x,             y, key_col_w, key_h),
+                                 Qt::TextWordWrap | Qt::AlignLeft,
+                                 key_str);
+                    qp->drawText(QRect(x + key_col_w, y, desc_w,    desc_h),
+                                 Qt::TextWordWrap | Qt::AlignLeft,
+                                 desc_str);
+                    y += row_h;
+                }
+            }
+
+            qp->restore();
+        }
     }
 }
 
@@ -230,6 +359,19 @@ void w_Coordsys::keyReleaseEvent(QKeyEvent* event)
 
 void w_Coordsys::mousePressEvent(QMouseEvent* event)
 {
+    // Legend drag: takes priority over zoom/pan; check before hot-area logic
+    if (event->button() == Qt::LeftButton && cm && cm->legend.has_value()) {
+        QRect const lbox = legendRect();
+        if (lbox.isValid() && lbox.contains(event->pos())) {
+            m_legend_dragging    = true;
+            // Store offset from legend's top-left anchor to the click position
+            m_legend_drag_offset = QPoint(event->pos().x() - lbox.left(),
+                                          event->pos().y() - lbox.top());
+            setCursor(QCursor(Qt::SizeAllCursor));
+            update();
+            return; // do not start a zoom rectangle
+        }
+    }
 
     // accept mouse presses only in hot area
     if (m_hot) {
@@ -268,6 +410,13 @@ void w_Coordsys::mousePressEvent(QMouseEvent* event)
 
 void w_Coordsys::mouseReleaseEvent(QMouseEvent* event)
 {
+    // Release legend drag
+    if (event->button() == Qt::LeftButton && m_legend_dragging) {
+        m_legend_dragging = false;
+        setCursor(m_hot ? QCursor(Qt::CrossCursor) : QCursor());
+        update();
+        return;
+    }
 
     // end of zoom event triggered by release of left mouse button
     if (event->button() == Qt::LeftButton && m_leftButton) {
@@ -352,6 +501,25 @@ void w_Coordsys::mouseReleaseEvent(QMouseEvent* event)
 
 void w_Coordsys::mouseMoveEvent(QMouseEvent* event)
 {
+    // Handle legend drag first; bypasses all normal pan/zoom processing
+    if (m_legend_dragging && cm && cm->legend.has_value()) {
+        int const nx          = event->pos().x();
+        int const ny          = event->pos().y();
+        int const nx_topleft  = nx - m_legend_drag_offset.x();
+        int const ny_topleft  = ny - m_legend_drag_offset.y();
+        int const area_w      = cs->x.nmax() - cs->x.nmin();
+        int const area_h      = cs->y.nmin() - cs->y.nmax();
+        if (area_w > 0 && area_h > 0) {
+            cm->legend->x_pct = std::clamp(
+                static_cast<double>(nx_topleft - cs->x.nmin()) / area_w, 0.0, 0.98);
+            cm->legend->y_pct = std::clamp(
+                static_cast<double>(ny_topleft - cs->y.nmax()) / area_h, 0.0, 0.98);
+        }
+        m_nx = nx;
+        m_ny = ny;
+        scene->update(); // triggers drawForeground repaint (same as zoom-rect update)
+        return;
+    }
 
     // current mouse position in widget
     int nx = event->pos().x();
@@ -410,6 +578,14 @@ void w_Coordsys::mouseMoveEvent(QMouseEvent* event)
         // switch back to default cursor outside of hot area
         if (!m_hot) {
             setCursor(QCursor());
+        }
+
+        // Override cursor when hovering over the legend box (signals it is draggable)
+        if (cm && cm->legend.has_value()) {
+            QRect const lbox = legendRect();
+            if (lbox.isValid() && lbox.contains(QPoint(nx, ny))) {
+                setCursor(QCursor(Qt::SizeAllCursor));
+            }
         }
 
         // pan (only in hot area)
