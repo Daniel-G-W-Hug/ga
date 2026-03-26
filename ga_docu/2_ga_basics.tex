@@ -109,7 +109,7 @@ eight basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{31}, \bv{32}, \b
 \end{equation}
 where equation (\ref{eq:mvec2dp}) contains four parts: the scalar component $s \, \bm{1}$
 (basis element is the scalar \textbf{1}), the vector part $v$ (basis elements \bv{1},
-\bv{2} and \bv{3}), the bivector part $B$ (basis elements \bv{23}, \bv{31} and \bv{12})
+\bv{2} and \bv{3}), the bivector part $B$ (basis elements \bv{31}, \bv{32} and \bv{12})
 and the pseudoscalar part $ps \, \bv{321} = ps \, \ps$ (basis element is
 $I_{2dp} = \bv{321}$, which is sometimes written as $\ps$ to show its character
 as pseudoscalar of this space. It is a trivector in two-dimensional Euclidean projective
@@ -630,8 +630,7 @@ where $\wedgedot$ stands for the geometric product within the grade projection o
 \grprj{}{k} for grade $k$. \\
 \\
 
-Using the various usually used notations in literature the contraction is explicitly
-defined as
+Using the various used notations in literature, the contraction is defined as
 \begin{subequations}
     \begin{align}
     A \lcontr B & = A \ll B = A_{\star} \vee B
@@ -779,14 +778,16 @@ which in turn can be expressed in terms of the wedge product exclusively as:
 \end{equation}
 Equations~(\ref{eq:twdg_wdg}) and (\ref{eq:rtwdg_wdg}) are used for calculation of the
 product tables of the (regressive) transwedge products of order $k$ and the resulting
-(regressive) geometric products in \path{ga/ga_prdxpr}. The transwedge product is very
-useful to show that the geometric product can be derived from primitives of Grassmann
-algebra. When (regressive) transwedge product expressions are calculated, it can be shown
-that each transwedge product and the resulting coefficient expressions are equivalent to
-specific combinations of wedge-, commutator-, dot-products, and their regressive
-counterparts. This was done in \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} for the
-(regressive) transwedge product of order $k=1$ and as well in
-\path{ga/src_prdxpr/ga_pga3dp_ops_products.hpp} to show the equivalence. \\
+(regressive) geometric products in \path{ga/ga_prdxpr}. \\
+
+The transwedge product is very useful to show that the geometric product can be derived
+from primitives of Grassmann algebra. When (regressive) transwedge product expressions are
+calculated, it can be shown that each transwedge product and the resulting coefficient
+expressions are equivalent to specific combinations of wedge-, commutator-, dot-products,
+and their regressive counterparts. This was done in
+\path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} for the (regressive) transwedge product of
+order $k=1$ and as well in \path{ga/src_prdxpr/ga_pga3dp_ops_products.hpp} to show the
+equivalence. \\
 
 \begin{sidewaystable}
     \begin{center}

@@ -1108,7 +1108,7 @@ looks like a single compact expression, but it encodes the same physics as both
 eqns.~(\ref{eq:newton_body_frame_ss}) and (\ref{eq:euler_body_frame_ss}) together.
 Table~\ref{tab:classical_vs_pga} show the full correspondence.
 
-\begin{table}[h!]
+\begin{table}[!ht]
 \centering\small
 \begin{tabular}{p{6.0cm}|p{6.5cm}}
 \hline
@@ -1189,6 +1189,131 @@ Basic examples for translational and rotational motion are implemented as tests 
 approaches, the classical approach and the approach directly formulated in $PGA$, for
 simple reference cases. \\
 
+\emph{Constrained motion: rotation about a fixed pivot.}
+The body-frame $PGA$ formulation extends naturally to constrained motion. A common case
+in $2D$ is a rigid body whose rotation is constrained so that a specific body-frame point
+$Q_b$ (the pivot) remains fixed in the world -- for example a plate pendulum fixed at one
+of its corners. Two questions are independently in play:
+\begin{enumerate}
+    \item \emph{In which frame are the equations expressed?} (body frame vs.\ world frame)
+    \item \emph{About which axis does the body actually rotate?} (center of mass vs.\ pivot)
+\end{enumerate}
+The standard Euler equation $\dot{\Omega}_b = I_{cm}^{-1}[F_b -
+\mathrm{rcmt}(\Omega_b, I_{cm}[\Omega_b])]$ describes a \emph{free} rigid body rotating
+about its own center of mass. When the pivot is fixed, the center of mass follows a
+circular arc of radius $r$ around the pivot; the constraint reaction provides centripetal
+acceleration, effectively increasing the inertia the applied torque must overcome. The
+Steiner (parallel axis) theorem gives the corrected scalar moment in $2D$:
+\begin{equation}
+    I_\text{pivot}[2,2] \;=\; I_{cm}[2,2] + m r^2
+    \label{eq:steiner_2d}
+\end{equation}
+so the angular acceleration about the fixed pivot is $\alpha = \tau_\text{eff} /
+I_\text{pivot}[2,2]$, \emph{not} $\tau_\text{eff}/I_{cm}[2,2]$. This is a correction for
+the physical rotation axis, not for the choice of frame -- it is required regardless of
+whether the equations are expressed in the body frame or the world frame. \\
+
+In the $PGA$ implementation the scalar Steiner correction is built into the inertia
+constructor via an optional pivot parameter:
+\begin{itemize}
+    \item \emph{$2D$ -- pivot is a point} $Q_b$ (grade~1, \texttt{Vec2dp}): \\
+    \texttt{get\_plate\_inertia(m, w, h, Q\_b)} updates only $I[2,2]$ by adding
+    $m\,r^2$ where $r^2 = Q_{b,x}^2 + Q_{b,y}^2$ is the squared distance from the
+    body origin to $Q_b$. All other entries (including off-diagonal coupling terms)
+    remain equal to $I_\text{body}$. The default $Q_b = (0,0,1)$ (body origin) gives
+    $I_\text{body}$ with no correction.
+    \item \emph{$3D$ -- pivot is a line} $L_\text{pivot}$ (grade~2, \texttt{BiVec3dp}): \\
+    \texttt{get\_cuboid\_inertia(m, w, h, d, L\_pivot)} computes the foot of the
+    perpendicular $P_\text{foot} = (P_x, P_y, P_z)$ from the body origin to
+    $L_\text{pivot}$ and updates only the diagonal entries of the lower-left block:
+    $I[3,0] \mathrel{+}= m(P_y^2+P_z^2)$, $I[4,1] \mathrel{+}= m(P_x^2+P_z^2)$,
+    $I[5,2] \mathrel{+}= m(P_x^2+P_y^2)$. Off-diagonal products of inertia are not
+    added. The default $L_\text{pivot} = 0$ (pivot through origin) gives no correction.
+    The grade of the pivot entity -- point in $2D$, line in $3D$ -- matches the grade of
+    the velocity generator $\Omega$ (see Tables~\ref{tab:basis_pga2dp}
+    and~\ref{tab:basis_pga3dp}).
+\end{itemize}
+
+\emph{Why off-diagonal coupling terms must be omitted.}
+The general-frame formula~(\ref{eq:inertia_2D_general}) describes the inertia of a body
+whose center of mass is at position $(c_x, c_y)$ from the chosen reference point.  For the
+constrained pendulum the body frame \emph{always} has the cm at the origin, so this
+formula does not apply directly.  Adding the full off-diagonal terms via
+\texttt{get\_point\_inertia}$(m, Q_b)$ introduces coupling that causes
+$I_\text{pivot}[\omega Q_b] = (0,0,J_{cm}\,\omega)$ instead of \\
+$(0,0,I_\text{pivot,zz}\,\omega)$: the Steiner term $mr^2$ is silently cancelled, and the
+inertia matrix inverse yields $\alpha = \tau/J_{cm}$ rather than $\tau/I_\text{pivot,zz}$
+-- an error of factor $I_\text{pivot,zz}/J_{cm}$ (about $4$ for a square plate at its
+corner). The scalar-only correction avoids this cancellation. \\
+
+After computing $\dot{\Omega}_b = I_\text{pivot}^{-1}[F_b - \mathrm{rcmt}(\Omega_b,
+I_\text{pivot}[\Omega_b])]$ a constraint projection is still required to prevent numerical
+drift of off-constraint components during RK4 integration.
+In $2D$ the body-frame state is encoded as $B_b = \varphi \cdot Q_b$
+and $\Omega_b = \omega \cdot Q_b$; since $Q_b.z = 1$ the scalar angular acceleration is
+\begin{equation}
+    \alpha = (\dot{\Omega}_b)_z, \qquad \dot{\Omega}_b = \alpha \cdot Q_b
+    \label{eq:constraint_projection_2d}
+\end{equation}
+In $3D$ the analogous projection onto the normalized pivot line gives $\alpha =
+\dot{\Omega}_b \cdot \hat{L}_\text{pivot}$. \\
+
+The body-frame encoding $B_b = \varphi \cdot Q_b$ carries a key geometric property: the
+world image of $Q_b$ is stationary for all $\varphi$. From the body-frame motor
+formula~(\ref{eq:motor_pga_body_frame}), $M(t) = M_0 \veedot \exp_\veedot(\frac{1}{2}
+B_b(t))$, and the fact that any finite point is invariant under rotation about itself:
+\begin{equation}
+    M_0 \veedot \exp_\veedot\!\bigl(\tfrac{1}{2}\,\varphi \cdot Q_b\bigr)
+    \veedot Q_b \veedot
+    \rrev{\!\bigl(M_0 \veedot \exp_\veedot\!\bigl(\tfrac{1}{2}\varphi Q_b\bigr)\bigr)}
+    \;=\; M_0 \veedot Q_b \veedot \rrev{M_0} \;=\; Q_{b,\text{world}} = \text{const}
+    \label{eq:pivot_invariance}
+\end{equation}
+No explicit constraint enforcement is required for the \emph{position} of the pivot -- it
+is preserved exactly for all $\varphi$ by the motor algebra. Only the velocity direction
+(eqn.~(\ref{eq:constraint_projection_2d})) must be enforced at each integration step. \\
+
+\emph{When the pivot is not fixed: multi-DOF systems.}
+If the pivot itself can move -- for example when the corner of the plate hangs from a
+thread of length $l$ attached to a fixed anchor $A$ -- the system acquires an additional
+degree of freedom. Instead of $Q_b$ having zero velocity, $Q_b$ is constrained to a
+circle of radius $l$ around $A$. The single-DOF formulation with $I_\text{pivot}$ does
+not extend to this case. \\
+
+The natural $PGA$ formulation decomposes the total motor into a chain:
+\begin{equation}
+    M(\varphi_1, \varphi_2) \;=\; M_\text{thread}(\varphi_1) \veedot
+    \exp_\veedot\!\bigl(\tfrac{1}{2}\,\varphi_2 \cdot Q_b\bigr)
+    \label{eq:motor_multibody_2dof}
+\end{equation}
+where $M_\text{thread}(\varphi_1)$ encodes the swing of $Q_b$ about anchor $A$ and
+$\exp_\veedot(\frac{1}{2}\varphi_2 Q_b)$ is the plate's own rotation about $Q_b$.
+The ODE state becomes $(\varphi_1, \omega_1, \varphi_2, \omega_2)$ -- two coupled
+second-order equations. The thread tension must be computed explicitly from the centripetal
+constraint and enters as a coupling force. \\
+
+For any $2D$ rigid body in multi-DOF planar motion an instantaneous center of rotation
+(ICR) exists at each moment. In $PGA2DP$ the world-frame velocity bivector
+$\Omega_\text{world}$ is the ICR as an unnormalized point. For the thread-plate compound
+pendulum
+\begin{equation}
+    \Omega_\text{world} \;=\; \omega_1 \cdot A + \omega_2 \cdot Q_{b,\text{world}}
+    \label{eq:icr_2dof}
+\end{equation}
+where $A$ is the fixed anchor and $Q_{b,\text{world}} = M_\text{thread} \veedot Q_b
+\veedot \rrev{M_\text{thread}}$ is the current world position of the pivot. The
+normalized ICR is the angular-velocity-weighted average of the two rotation centers.
+Computing the ICR requires knowing $\omega_1$ and $\omega_2$ separately -- it is a
+kinematic consequence of the dynamics and cannot substitute for the full $2$-DOF
+formulation. In $PGA3DP$ the same relation holds with the ICR replaced by an
+instantaneous rotation \emph{axis} (a \texttt{BiVec3dp} line). \\
+
+The plate's inertia map $I_\text{pivot}$ (parallel-axis corrected about $Q_b$) remains
+constant in the plate's body frame and is reusable in the plate's rotational equation
+regardless of the number of DOF. The motor composition structure of
+eqn.~(\ref{eq:motor_multibody_2dof}) scales to $3D$ and to chains of additional bodies,
+making $PGA$ the natural language for this class of multi-body problem. \\
+
 %\newpage
 
 \subsubsection{Structure of inertia and inertia maps}
@@ -1220,7 +1345,7 @@ bivector, so the inertia map crosses two different grades:
 \end{equation}
 The basis elements and their physical roles are listed in Table~\ref{tab:basis_pga2dp}.
 
-\begin{table}[h!]
+\begin{table}[!ht]
 \centering\small
 \begin{tabular}{c|p{5.2cm}|p{5.2cm}}
 \hline
@@ -1642,5 +1767,40 @@ retain dynamical coupling through the $\mathrm{rcmt}(\Omega_b, I_b[\Omega_b])$ t
 This is the $PGA$ counterpart of the classical coupling terms $\vec{\omega}\times\vec{v}$
 and $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$ discussed in the preceding section, and it
 arises from the rotation of the body frame, not from the inertia structure. \\
+
+\emph{Pivot-corrected inertia: using the pivot as reference point.}
+The general-frame formulae derived above -- eqn.~(\ref{eq:inertia_2D_general}) in $2D$
+and eqn.~(\ref{eq:inertia_3D_general}) in $3D$ -- apply directly when the reference point
+is chosen to coincide with the pivot rather than the center of mass. In that case the
+center-of-mass offset vector $(c_x, c_y)$ resp.\ $\vec{r}_{cm}$ points from the pivot to
+the center of mass, and the inertia map automatically incorporates the full Steiner
+correction: $I[2,2] = J_{cm} + mr^2$ in $2D$ (eqn.~(\ref{eq:steiner_2d})) and the
+complete tensor update of eqn.~(\ref{eq:parallel_axis_3D}) in $3D$. \\
+
+In $2D$ the pivot is a point $Q_b$ (grade~1), so the displacement to the center of mass
+is directly available. In $3D$ the pivot is a line $L_\text{pivot}$ (grade~2,
+\texttt{BiVec3dp}) with direction components $\mathbf{v} = (L_{vx}, L_{vy}, L_{vz})$ and
+moment components $\mathbf{n} = (L_{mx}, L_{my}, L_{mz})$. The point on $L_\text{pivot}$
+closest to the body origin -- the foot of the perpendicular -- serves as the reference
+for the Steiner correction:
+\begin{equation}
+    \mathbf{P}_\text{foot} \;=\; \frac{\mathbf{n} \times \mathbf{v}}{\|\mathbf{n}\|^2},
+    \qquad \text{where } \mathbf{v} = \mathbf{p} \times \mathbf{n}
+    \label{eq:foot_of_perpendicular}
+\end{equation}
+When $\mathbf{v} = 0$ (zero ideal part) the line passes through the origin and no
+correction is applied. Both cases are handled uniformly via the optional pivot parameter
+of \texttt{get\_plate\_inertia(m, w, h, Q\_b)} ($2D$) and \\
+\texttt{get\_cuboid\_inertia(m, w, h, d, L\_pivot)} ($3D$), which default to $I_\text{body}$
+when no pivot is given. \\
+
+The grade of the pivot entity -- point (grade~1) in $2D$ matching the velocity vector in
+Table~\ref{tab:basis_pga2dp}, and line (grade~2) in $3D$ matching the velocity bivector
+in Table~\ref{tab:basis_pga3dp} -- is a direct consequence of the grade structure of the
+respective algebra: the constraint $\Omega_b \propto$ pivot is grade-consistent in both
+cases. The dynamic consequences of working with $I_\text{pivot}$ instead of $I_\text{body}$
+-- in particular the constraint projection and the pivot invariance identity -- are
+discussed in the context of constrained motion in
+section~\ref{subsubsection_solving_newton-euler_numerically}. \\
 
 \newpage

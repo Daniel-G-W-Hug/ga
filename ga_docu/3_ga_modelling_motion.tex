@@ -27,7 +27,7 @@ B(t)        & = B \qquad \qquad \qquad  \quad \! \text{(bivector)} \\
                 \text{(rate of change of bivector speed)}
 \end{align*}
 
-In order to model motion in $PGA$ we need to work with the exponential function and apply
+In order to model motion in $PGA$ we need to work with the exponential function applying
 it in the context of the geometric product (symbol ``$\wedgedot$'') and the regressive
 geometric product (symbol ``$\veedot$'').
 % Exponential function
@@ -52,8 +52,8 @@ geometric product (symbol ``$\veedot$'').
 \label{eq:sin_taylor}
 \end{align}
 
-If we substitute $x = i \phi$ with $i$ as the imaginary unit that squares to -1, we get
-Euler's formula:
+If we substitute $x = i \phi$ with $i$ as the imaginary unit ($i^2 = -1$), we get Euler's
+formula:
 % Exponential function with x = i*phi
 \begin{align}
 \exp(i\phi) &= \sum_{n=0}^{\infty} \frac{(i\phi)^n}{n!} \nonumber \\ 
@@ -97,7 +97,8 @@ this:
 \cdots \nonumber 
 \end{subeqnarray}
 
-Thus, the result of exponentiating a bivector $B$ is:
+Thus, the result of exponentiating a bivector $B$ with respect to the geometric product is
+(for $EGA$):
 % Geometric Product Version
 \begin{align}
 \exp_\wedgedot(B\phi) &= \sum_{n=0}^{\infty} \frac{(B\phi)^n_\wedgedot}{n!} \nonumber \\ 
@@ -114,12 +115,12 @@ Thus, the result of exponentiating a bivector $B$ is:
 \exp_\wedgedot(B\phi) &= \cos(\phi) + \sin(\phi) B
 \label{eq:exp_B}
 \end{align}
-The last step of moving B after the brackets is allowed, since scalar factors commute with
-any object using the regular product. The result structurally is an even-grade multivector
-with a scalar and a bivector component. We get the correct sign and angle of rotation if
-we replace $\phi$ by $-\frac{1}{2}\phi$, which was not considered above to keep the
-formulas as simple as possible. The substitution yields the final form of a rotor $R$ in
-$EGA$ with $B$ as unitized bivector and $\phi$ the rotation angle:
+The last step of moving $B$ after the brackets is allowed, since scalar factors commute
+with any object using the regular product. The result structurally is an even-grade
+multivector with a scalar and a bivector component. We get the correct sign and angle of
+rotation if we replace $\phi$ by $-\frac{1}{2}\phi$, which was not considered above to
+keep the formulas as simple as possible. The substitution yields the final form of a rotor
+$R$ in $EGA$ with $B$ as unitized bivector and $\phi$ the rotation angle:
 \begin{align}
     R = \exp_\wedgedot(-\frac{\phi}{2}B)
       &= \cos(-\frac{\phi}{2}) + \sin(-\frac{\phi}{2}) B \nonumber \\
@@ -127,7 +128,7 @@ $EGA$ with $B$ as unitized bivector and $\phi$ the rotation angle:
     \label{eq:rotor_ega}
 \end{align}
 
-For the case using the regressive geometric product it becomes:
+For the case using the regressive geometric product it becomes (for $PGA$):
 % Regressive Geometric Product Version
 \begin{align}
 \exp_\veedot(B\phi) &= \sum_{n=0}^{\infty} \frac{(B\phi)^n_\veedot}{n!} \nonumber \\ 
@@ -149,6 +150,15 @@ like the results of the trigonometric functions, commute with any object using t
 product. The resulting motor structurally is an even-grade multivector with a bivector and
 a pseudoscalar of grade 4 for $3D$ $PGA$. \\
 
+To create a rotor that generates a rotation of angle $\phi$ we use
+\begin{equation}
+   M = exp_\veedot{\left( \frac{\phi}{2} B  \right)}
+\end{equation}
+where the factor $\frac{1}{2}$ is needed to create a resulting angle $\phi$ through the
+double sided sandwich product. Typically, in applications the angle $\phi$ is directly
+contained as a scalar factor in the bivector $B$ while the factor $\frac{1}{2}$ is kept
+explicit. \\
+
 In $2D$ $PGA$ we have the same expression, but the argument of the exponential to create a
 motor for rotation is not a bivector $B$, but a unitized point $P$. Here $P \veedot P =
 -\ps$ is valid, and equation~(\ref{eq:rexp_B}) becomes $\exp_\veedot(P\phi) =
@@ -156,7 +166,11 @@ motor for rotation is not a bivector $B$, but a unitized point $P$. Here $P \vee
 odd-grade multivector with a vector and a pseudoscalar of grade 3. The resulting rotation
 direction of the motor depends on the chosen pseudoscalar. The pseudoscalar for $PGA2DP$
 was chosen as \bv{321} in order to make signs of rotation angles (and thus turning
-directions) consistent between $2D$ and $3D$ $PGA$. \\
+directions) consistent between $2D$ and $3D$ $PGA$. For the actual motor we get
+\begin{equation}
+      M = exp_\veedot{\left( \frac{\phi}{2} P  \right)}
+\end{equation}
+in this case. \\
 
 To model a translation $\delta = (\delta_x, \delta_y, \delta_z, 0)$ in $3D$ $PGA$ we use a
 special bivector $B=B_{tra}$ that does not square to $-\ps$, but instead squares to zero.
@@ -169,7 +183,7 @@ axis is infinitely far away. The derivation of the formula for the bivector will
 later in this chapter (see eqn.~(\ref{eq:bivector_trans_rate_v_vec})). We use $B_{tra} =
 \rightbulkdual{\delta} \vee \rcmpl{\bv{4}} = \rightbulkdual{\delta} \vee H_{3dp} =
 att(\rightbulkdual{\delta})$. This yields $B_{tra} = (\delta_x \bv{23} + \delta_y \bv{31}
-+ \delta_z \bv{12})$. The resulting motor is $M = exp_\veedot(B_{tra}) = \ps +
++ \delta_z \bv{12})$. The resulting motor is $M = exp_\veedot(\frac{1}{2} B_{tra}) = \ps +
 \frac{1}{2}B_{tra} = \ps + \frac{1}{2}(0, 0, 0, \delta_x, \delta_y, \delta_z)$. The motor
 $M$ is an even-grade multivector containing a pseudoscalar component, which is a
 quadvector in $3D$ $PGA$, and a bivector component.\\
@@ -186,11 +200,11 @@ for a translation is the direction vector $P = \rightbulkdual{\delta} \vee \rcmp
 \delta_x \bv{2})$. $P$ points in a direction perpendicular to the translation $\delta$
 towards infinity. The main difference of this special point $P$ compared to the one used
 for the rotation above is that $P_z = 0$. This results in $P \veedot P = 0$ which causes
-the expansion of the exponential to only contain the first two terms: $M = exp_\veedot(P)
-= \ps + \frac{1}{2}P = \ps + \frac{1}{2}(-\delta_y,\delta_x,0)$. The motor $M$ is an
-odd-grade multivector containing a pseudoscalar, which is a trivector in $2D$ $PGA$, and a
-vector component, i.e. it is structurally the same as for the rotation case in $2D$ $PGA$
-above.\\
+the expansion of the exponential to only contain the first two terms: $M =
+exp_\veedot(\frac{1}{2} P) = \ps + \frac{1}{2}P = \ps +
+\frac{1}{2}(-\delta_y,\delta_x,0)$. The motor $M$ is an odd-grade multivector containing a
+pseudoscalar, which is a trivector in $2D$ $PGA$, and a vector component, i.e. it is
+structurally the same as for the rotation case in $2D$ $PGA$ above.\\
 
 Eqn. (\ref{eq:exp_B}) allows us to model rotations in $EGA$, where the bivector $B$ is the
 complement of the axis of rotation and $\theta = -2\phi$ is the angle of the rotation
@@ -206,38 +220,55 @@ If we want to model combined translations and rotations in $PGA$, we need to loo
 another extension of the exponential function. We follow the approach defined by
 \cite{Lengyel_pga-illuminated:2024} in chapter 3.2 and 3.6.2, where it is shown that a
 general motor in $PGA$ can be expressed as a screw motion, i.e. a rotation around a
-unitized line $l$ by an angle $\phi$ and a translation along $l$ by a displacement
+unitized line $\bm{l}$ by an angle $\phi$ and a translation along $\bm{l}$ by a displacement
 $\delta$ as
 \begin{eqnarray}
-    M = \exp_\veedot\left[(\frac{\delta}{2} \bm{1} + \frac{\phi}{2}\ps) \veedot l \right]=
+    M = \exp_\veedot\left[(\frac{\delta}{2} \bm{1} + \frac{\phi}{2}\ps) \veedot \bm{l}
+    \right]=
     \cos_\veedot(\frac{\delta}{2} \bm{1} + \frac{\phi}{2} \ps) +
     \sin_\veedot(\frac{\delta}{2} \bm{1} + \frac{\phi}{2} \ps) \veedot \bm{l} \nonumber \\
     = -\frac{\delta}{2} \bm{1} \sin(\frac{\phi}{2}) + \ps\cos(\frac{\phi}{2}) + \left(
      \frac{\delta}{2} \bm{1} \cos(\frac{\phi}{2}) + \ps\sin(\frac{\phi}{2}) \right)
      \veedot \bm{l} \nonumber \\
-  M = -\frac{\delta}{2}\bm{1}\sin(\frac{\phi}{2}) -
-      \rightweightdual{\bm{l}}\frac{\delta}{2} \cos(\frac{\phi}{2}) +
+  M = -\frac{\delta}{2}\bm{1}\sin(\frac{\phi}{2}) - \frac{\delta}{2}
+      \rightweightdual{\bm{l}}\cos(\frac{\phi}{2}) +
       \bm{l}\sin(\frac{\phi}{2}) + \ps\cos(\frac{\phi}{2}) 
 \label{eq:rexp_pga_motor}
 \end{eqnarray}
 where $M$ structurally is an even grade multivector with scalar, bivector and pseudoscalar
-parts in $3D$ $PGA$. The argument in the exponential function again results in a bivector.
-This can be derived from inspecting the product table for the regressive geometric
-product. However, this time we only have a common factor of $\frac{1}{2}$, and not
-$-\frac{1}{2}$ as in $EGA$. This will impact a sign for the transformation in the
-regressive case for $PGA$ compared to the corresponding transformations in $EGA$.  The
-resulting transformation is then obtained from
+parts in $3D$ $PGA$. \\
+
+For pure rotational motion with $\delta = 0$ and $\phi \ne 0$ we get
+\begin{eqnarray}
+  M_{rot} = \bm{l}\sin(\frac{\phi}{2}) + \ps\cos(\frac{\phi}{2}) 
+\label{eq:rexp_pga_motor_rotation}
+\end{eqnarray}
+while for pure translational motion with $\delta \ne 0$ and $\phi = 0$ we get
+\begin{eqnarray}
+  M_{tra} = -\frac{\delta}{2}\rightweightdual{\bm{l}} + \ps 
+\label{eq:rexp_pga_motor_translation}
+\end{eqnarray}
+
+
+The argument in the exponential function in eqn.~(\ref{eq:rexp_pga_motor}) for all cases
+results in a bivector. This can be derived from inspecting the product table for the
+regressive geometric product. However, this time we only have a common factor of
+$\frac{1}{2}$, and not $-\frac{1}{2}$ as in $EGA$ as required argument of the exponential
+function. This will impact a sign for the transformation in the regressive case for $PGA$
+compared to the corresponding transformations in $EGA$.  The resulting transformation is
+then obtained from
 \begin{equation}
     X = M \veedot X_0 \veedot \rrev{M} \quad (\text{for $PGA$})
     \label{eq:pga_sandwich_tranformation}
 \end{equation} 
 
-We can think of the screw motion in $3D$ $PGA$ as a combination of a rotation by an angle
-$\phi$ around the unitized line $l$ and by a translation from a displacement $\delta$
-along that same line $l$. The latter part results from a rotation around a line at
-infinity given by $\rightweightdual{l}$. Thus the bivector representing the line $l$ can
-always be split into the parts creating the rotation (movement around that line) and the
-parts creating the translation (movement along that line).\\
+We can think of the screw motion used to model motion in $3D$ $PGA$ as a combination of a
+rotation by an angle $\phi$ around the unitized line $\bm{l}$ and by a translation from a
+displacement $\delta$ along that same line $\bm{l}$. The latter part results from a
+rotation around a line at infinity given by $\rightweightdual{\bm{l}}$. Thus the bivector
+representing the line $\bm{l}$ can always be split into the parts creating the rotation
+(movement around that line) and the parts creating the translation (movement along that
+line).\\
 
 \newpage
 
@@ -517,9 +548,9 @@ However, we still have to take additional aspects into account: \\
 
 First, Lengyel has shown that a motor in $3D$ $PGA$ can be created from the exponential in
 eqn.~(\ref{eq:rexp_pga_motor}) as $M = \exp_\veedot\left[(\frac{\delta}{2} \bm{1} +
-\frac{\phi}{2}\ps) \veedot l \right]$ where it is easy to show that the regressive
-geometric product of the line $l$, a bivector, with the scalar part yields a bivector and
-the same is true for the regressive geometric product between the pseudoscalar and the
+\frac{\phi}{2}\ps) \veedot \bm{l} \right]$ where it is easy to show that the regressive
+geometric product of the line $\bm{l}$, a bivector, with the scalar part yields a bivector
+and the same is true for the regressive geometric product between the pseudoscalar and the
 line. Thus, it is sufficient to consider the exponential function of a bivector argument
 for the derivation for $3D$ $PGA$. The resulting motor $M$ will be an even-grade
 multivector in this case. \\
@@ -711,7 +742,7 @@ is zero bulk, the object contains the origin ($O_{3dp}$). \\
 
 We can either model a pure translation, which will only be visible in the bulk part of
 $\Omega$, with the weight part being zero in that case, or we can model a pure rotation
-around a fixed (non-ideal) line $l$. In that case the positional information of the fixed
+around a fixed (non-ideal) line $\bm{l}$. In that case the positional information of the fixed
 line of rotation becomes encoded in the bulk part of $\Omega$ and the directional
 information on the rotational speed vector $\omega$ is encoded in the weight part of
 $\Omega$.\\

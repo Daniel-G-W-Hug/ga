@@ -55,6 +55,15 @@ struct Inertia2dp {
         return *this;
     }
 
+    // Subtract inertia contribution
+    constexpr Inertia2dp& operator-=(Inertia2dp const& other)
+    {
+        for (size_t i = 0; i < 9; ++i) {
+            data[i] -= other.data[i];
+        }
+        return *this;
+    }
+
     // mdspan accessor for 2D indexing (mutable)
     auto view() { return std::mdspan<T, std::extents<size_t, 3, 3>>{data.data()}; }
 
@@ -127,18 +136,26 @@ Inertia2dp<T> get_point_inertia(T m, Vec2dp<T> const& X)
 // Derivation: integrate get_point_inertia over the area element dA = dx dy,
 // using mean(x^2) = w^2/12, mean(y^2) = h^2/12, mean(x) = mean(y) = 0 at origin.
 //
-// Result (all off-diagonal center-of-mass terms vanish by symmetry):
-//   I = m * [  0    1         0        ]
-//           [ -1    0         0        ]
-//           [  0    0    (w^2+h^2)/12  ]
+// Base result about cm / body origin O_b = (0,0,1):
+//   I_cm = m * [  0    1         0        ]
+//              [ -1    0         0        ]
+//              [  0    0    (w^2+h^2)/12  ]
 //
 // I[0,1] =  m : total mass (Newton p = mv, Hodge-crossed e2 -> e23)
 // I[1,0] = -m : total mass (Newton p = mv, Hodge-crossed e1 -> e31, opposite sign)
-// I[2,2] = m*(w^2+h^2)/12 : moment of inertia about centroid (classical rectangle
-// formula)
+// I[2,2] = m*(w^2+h^2)/12 : moment of inertia about centroid (classical rectangle formula)
+//
+// Optional P_pivot parameter (default = body origin = cm):
+// When P_pivot != O_b, the scalar parallel-axis (Steiner) correction is applied:
+//   I_pivot[2,2] = J_cm + m*(Px² + Py²)
+// All other entries remain equal to I_cm (the upper-left 2×2 mass block and the
+// zero off-diagonal coupling terms are unchanged). This is the correct form for a
+// body constrained to rotate about a fixed pivot Q_b in 2D: the coupled Euler ODE
+// compute_omega_dot then yields α = τ_pivot / I_pivot[2,2] exactly.
 template <typename T>
     requires(numeric_type<T>)
-Inertia2dp<T> get_plate_inertia(T m, T w, T h)
+Inertia2dp<T> get_plate_inertia(T m, T w, T h,
+                                Vec2dp<T> const& P_pivot = Vec2dp<T>{T{0}, T{0}, T{1}})
 {
     Inertia2dp<T> I;
     auto v = I.view();
@@ -157,6 +174,19 @@ Inertia2dp<T> get_plate_inertia(T m, T w, T h)
     v[2, 0] = T{0};
     v[2, 1] = T{0};
     v[2, 2] = m * (w * w + h * h) / T{12};
+
+    // Apply parallel-axis (Steiner) correction if pivot differs from body origin (cm).
+    // For a body constrained to rotate about a fixed pivot Q_b (body frame),
+    // only the scalar moment I[2,2] gains the Steiner term m*r²:
+    //   I[2,2] = J_cm + m*(Px² + Py²)
+    // The off-diagonal coupling terms (I[0,2], I[1,2] etc.) must NOT be added here.
+    // Adding them via get_point_inertia(m, P_pivot) would make I[Omega] = (0,0,J_cm*ω)
+    // instead of (0,0,I_pivot_zz*ω), causing I_inv[2,2] = 1/J_cm instead of
+    // 1/I_pivot_zz — a factor of ~4 error in angular acceleration for a square plate.
+    Vec2dp<T> const O_b{T{0}, T{0}, T{1}};
+    if (P_pivot.x != O_b.x || P_pivot.y != O_b.y) {
+        v[2, 2] += m * (P_pivot.x * P_pivot.x + P_pivot.y * P_pivot.y);
+    }
 
     return I;
 }

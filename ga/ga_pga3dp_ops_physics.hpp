@@ -61,6 +61,15 @@ struct Inertia3dp {
         return *this;
     }
 
+    // Subtract inertia contribution
+    constexpr Inertia3dp& operator-=(Inertia3dp const& other)
+    {
+        for (size_t i = 0; i < 36; ++i) {
+            data[i] -= other.data[i];
+        }
+        return *this;
+    }
+
     // mdspan accessor for 2D indexing (mutable)
     auto view() { return std::mdspan<T, std::extents<size_t, 6, 6>>{data.data()}; }
 
@@ -175,26 +184,24 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 // and mean(x) = mean(y) = mean(z) = 0, mean(x*y) = mean(x*z) = mean(y*z) = 0
 // (centered, independent variables).
 //
-// Result (all cross-inertia and center-of-mass terms vanish by symmetry):
+// Base result about cm / body origin O_b = (0,0,0,1):
 //
-//   I = m * [  0              0              0             1    0    0  ]
-//           [  0              0              0             0    1    0  ]
-//           [  0              0              0             0    0    1  ]
-//           [ (h^2+d^2)/12    0              0             0    0    0  ]
-//           [  0             (w^2+d^2)/12    0             0    0    0  ]
-//           [  0              0             (w^2+h^2)/12   0    0    0  ]
+//   I_cm = m * [  0              0              0             1    0    0  ]
+//              [  0              0              0             0    1    0  ]
+//              [  0              0              0             0    0    1  ]
+//              [ (h^2+d^2)/12    0              0             0    0    0  ]
+//              [  0             (w^2+d^2)/12    0             0    0    0  ]
+//              [  0              0             (w^2+h^2)/12   0    0    0  ]
 //
 // BiVec3dp index layout: (vx=e41, vy=e42, vz=e43, mx=e23, my=e31, mz=e12)
 //   Indices 0-2 (vx,vy,vz): translational velocity / linear momentum  (ideal lines, e4*)
-//   Indices 3-5 (mx,my,mz): angular velocity / angular momentum        (real  lines,
-//   e23/e31/e12)
+//   Indices 3-5 (mx,my,mz): angular velocity / angular momentum        (real lines, e23/e31/e12)
 //
-// Block structure of the matrix:
-//   Upper-left  [0:3, 0:3] = 0:         no translational-to-translational coupling
-//   Upper-right [0:3, 3:6] = m*Identity: angular velocity  -> linear  momentum (mass,
-//   Newton p=mv) Lower-left  [3:6, 0:3] = m*J_rot:   translational vel -> angular
-//   momentum (classical moments) Lower-right [3:6, 3:6] = 0:         no
-//   rotational-to-rotational coupling
+// Block structure of the base matrix:
+//   Upper-left  [0:3, 0:3] = 0:          no translational-to-translational coupling
+//   Upper-right [0:3, 3:6] = m*Identity: angular velocity -> linear momentum (mass, Newton p=mv)
+//   Lower-left  [3:6, 0:3] = m*J_rot:   translational vel -> angular momentum (classical moments)
+//   Lower-right [3:6, 3:6] = 0:          no rotational-to-rotational coupling
 //
 // Where J_rot is diagonal with the classical rectangle-rule moments of inertia:
 //   I[3,0] = m*(h^2+d^2)/12  (rotation about e1-axis, depends on e2 and e3 extents)
@@ -208,9 +215,27 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 //   Translational velocity (e41/e42/e43, indices 0-2) couples to angular momentum
 //   (e23/e31/e12, indices 3-5) via moment of inertia, landing in the lower-left block.
 //   This is the exact 3D analogue of the 2D case where mass appears off-diagonal.
+//
+// Optional L_pivot parameter (default = zero bivector = no correction):
+// When L_pivot represents a line offset from the body origin, the scalar
+// parallel-axis (Steiner) corrections are applied to the lower-left block only:
+//   I[3,0] += m*(Py²+Pz²)   (moment about x-axis through origin)
+//   I[4,1] += m*(Px²+Pz²)   (moment about y-axis through origin)
+//   I[5,2] += m*(Px²+Py²)   (moment about z-axis through origin)
+// where P_foot is the foot of the perpendicular from the body origin O_b to L_pivot:
+//   n   = (L_pivot.vx, L_pivot.vy, L_pivot.vz)   (line direction, ideal part)
+//   mom = (L_pivot.mx, L_pivot.my, L_pivot.mz)   (Plücker moment = p × n)
+//   P_foot = (n × mom) / |n|²                    (closest point on L_pivot to O_b)
+// Off-diagonal coupling terms (products of inertia, cross-blocks) must NOT be
+// added here. Adding them via get_point_inertia(m, P_foot) would cancel the
+// Steiner correction in I_inv (same mechanism as in the 2D case), causing
+// alpha = τ/J_cm instead of τ/I_pivot (wrong by factor ~4 for a square plate).
+// When L_pivot passes through the body origin (ideal part = 0), no correction.
+// Pre: if ideal part != 0 then |n|^2 > 0 (L_pivot must be non-degenerate).
 template <typename T>
     requires(std::floating_point<T>)
-Inertia3dp<T> get_cuboid_inertia(T m, T w, T h, T d)
+Inertia3dp<T> get_cuboid_inertia(T m, T w, T h, T d,
+                                  BiVec3dp<T> const& L_pivot = BiVec3dp<T>{})
 {
     Inertia3dp<T> I;
     auto v = I.view();
@@ -225,7 +250,26 @@ Inertia3dp<T> get_cuboid_inertia(T m, T w, T h, T d)
     v[4, 1] = m * (w * w + d * d) / T{12}; // vy -> my: I_yy = m*(w^2+d^2)/12
     v[5, 2] = m * (w * w + h * h) / T{12}; // vz -> mz: I_zz = m*(w^2+h^2)/12
 
-    // All other entries remain zero (default-initialized)
+    // Apply scalar parallel-axis (Steiner) corrections if pivot line is offset
+    // from the body origin. A line through the origin has zero ideal part.
+    T const v_sq = L_pivot.vx * L_pivot.vx + L_pivot.vy * L_pivot.vy
+                   + L_pivot.vz * L_pivot.vz;
+    if (v_sq != T{0}) {
+        // Foot of perpendicular from O_b to L_pivot: P_foot = (n × m_moment) / |n|²
+        // where n = (vx,vy,vz) is the line direction (ideal part)
+        // and m_moment = (mx,my,mz) is the Plücker moment (real part)
+        T const inv_v_sq = T{1} / v_sq;
+        T const Px = (L_pivot.vy * L_pivot.mz - L_pivot.vz * L_pivot.my) * inv_v_sq;
+        T const Py = (L_pivot.vz * L_pivot.mx - L_pivot.vx * L_pivot.mz) * inv_v_sq;
+        T const Pz = (L_pivot.vx * L_pivot.my - L_pivot.vy * L_pivot.mx) * inv_v_sq;
+        // Update only the diagonal lower-left block (scalar moments of inertia).
+        // Do NOT add off-diagonal coupling terms — they would cancel the Steiner
+        // correction in I_inv, giving alpha = τ/J_cm instead of τ/I_pivot.
+        v[3, 0] += m * (Py * Py + Pz * Pz); // I_xx += m*(Py²+Pz²)
+        v[4, 1] += m * (Px * Px + Pz * Pz); // I_yy += m*(Px²+Pz²)
+        v[5, 2] += m * (Px * Px + Py * Py); // I_zz += m*(Px²+Py²) = m*r²
+    }
+
     return I;
 }
 

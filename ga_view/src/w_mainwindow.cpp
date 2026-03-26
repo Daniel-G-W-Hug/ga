@@ -203,6 +203,18 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.set_label("vector model");
 
+        diagram_legend leg;
+        leg.heading = "Drag active points to modify vectors.";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
+
         vm.push_back(cm);
     }
 
@@ -218,6 +230,18 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.set_label("active projection");
 
+        diagram_legend leg;
+        leg.heading = "Drag active points to modify vectors, projection and rejection.";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
+
         vm.push_back(cm);
     }
 
@@ -229,7 +253,22 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_abivt(abivt2d{p1_id, p2_id});
 
-        cm.set_label("active bivec - visualized geometric product");
+        cm.set_label("visualized geometric product");
+
+        diagram_legend leg;
+        leg.heading = "Key bindings (hover on vectors to activate)";
+        leg.entries = {{"U", "rotate vector u"},
+                       {"V", "rotate vector v"},
+                       {"B", "rotate both u and v"}};
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -264,6 +303,18 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_ln(l1, lm);
 
+        diagram_legend leg;
+        leg.heading = "Red square shows P(2,1,2) after unitization.\nYields P'(1,0.5,1).";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
+
         cm.set_label("proj. 1 - points");
 
         vm.push_back(cm);
@@ -278,7 +329,19 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
             cm.add_bivtp(b);
         }
 
-        cm.set_label("proj. - lines through orgin");
+        cm.set_label("proj. 2 - lines through orgin");
+
+        diagram_legend leg;
+        leg.heading = "Lines through origin: \nbivt2dp b(cos(phi), sin(phi), 0.0)";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -292,7 +355,20 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
             cm.add_bivtp(b);
         }
 
-        cm.set_label("proj. - lines tangent to circle r = 1.5");
+        cm.set_label("proj. 3 - lines tangent to circle r = 1.5");
+
+        diagram_legend leg;
+        leg.heading =
+            "Lines with const. distance to origin: \nbivt2dp b(cos(phi), sin(phi), 1.5)";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -308,7 +384,19 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // fmt::println("p = {}", p);
         // fmt::println("q = {}", q);
 
-        cm.set_label("abivt2dp - join line p ^ q");
+        cm.set_label("proj. 4 - join line p ^ q");
+
+        diagram_legend leg;
+        leg.heading = "Move active points to drag join line from resulting bivector.";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -355,8 +443,12 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_pt(p1f);
         cm.add_pt(p2f);
-        cm.add_vt(v1);
-        cm.add_vt(v2);
+
+        vt2d_mark vec_mark;
+        vec_mark.display_name = fmt::format("f1 = {:.2f}", f1);
+        cm.add_vt(v1, vec_mark);
+        vec_mark.display_name = fmt::format("f2 = {:.2f}", f2);
+        cm.add_vt(v2, vec_mark);
 
         bivt2dp_mark force_mark;
 
@@ -378,11 +470,26 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_pt(pfres);
 
         vt2d vres(p_intsec, pfres);
-        cm.add_vt(vres);
+        vec_mark.display_name = fmt::format("fres = {:.2f}", fres);
+        cm.add_vt(vres, vec_mark);
 
-        cm.add_bivtp(fres, force_mark);
+        cm.add_bivtp(fres);
 
-        cm.set_label("proj. - adding force lines (inclined)");
+        cm.set_label("proj. 5 - adding force lines (inclined)");
+
+        diagram_legend leg;
+        leg.heading =
+            "Adding force lines (bivectors). \nResult is a force line that contains "
+            "resulting line of action, force and moment w.r.t. to origin.";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -459,7 +566,21 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         force_mark.display_name = fmt::format("bivec_res = {:.2f}", fres);
         cm.add_bivtp(fres, force_mark);
 
-        cm.set_label("proj. - adding force lines (parallel)");
+        cm.set_label("proj. 6 - adding force lines (parallel)");
+
+        diagram_legend leg;
+        leg.heading =
+            "Adding force lines (bivectors). \nResult is a force line that contains "
+            "resulting line of action, force and moment w.r.t. to origin.";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -533,7 +654,21 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         force_mark.display_name = fmt::format("bivec_res = {:.2f}", fres);
         cm.add_bivtp(fres, force_mark);
 
-        cm.set_label("proj. - adding force lines (anti-parallel)");
+        cm.set_label("proj. 7 - adding force lines (anti-parallel)");
+
+        diagram_legend leg;
+        leg.heading =
+            "Adding force lines (bivectors). \nResult is a force line that contains "
+            "resulting line of action, force and moment w.r.t. to origin.";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -630,7 +765,19 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         //              wdg(vec3dp{0, 0, 0, 1}, vec3dp{0, 0, 1, 1}),
         //              att(wdg(vec3dp{0, 0, 0, 1}, vec3dp{0, 0, 1, 1})));
 
-        cm.set_label("proj. - various reflections");
+        cm.set_label("proj. 8 - various reflections");
+
+        diagram_legend leg;
+        leg.heading = "Various reflections on x-axis and y-axis.";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -681,7 +828,25 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_bivtp(x_axis_2dp, bvm);
         cm.add_bivtp(y_axis_2dp, bvm);
 
-        cm.set_label("proj. - products, refl./ortho. proj.");
+        cm.set_label("proj. 9 - products, reflection, orthogonal proj.");
+
+        diagram_legend leg;
+        leg.heading =
+            "Reference line l and reference point p (both red) in various operations:";
+        leg.entries = {{"gray:", "projection perpendiclar to l through p"},
+                       {"dark blue:", "orthogonal antiprojection of l onto p (i.e. "
+                                      "line parallel to l through p)"},
+                       {"dark red line:", "(point-)reflect line l on point p"},
+                       {"dark red point:", "reflect point p on l"}};
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -715,13 +880,14 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         auto dir_cproj = right_bulk_contract2dp(l, p); // direction of line
         auto bv_cproj = wdg(p, dir_cproj);             // line through p in direction
         auto p_cproj = rwdg(l, bv_cproj);
-        ptm.pen = QPen(Qt::cyan, 2, Qt::SolidLine);
-        bvm.pen = QPen(Qt::cyan, 1, Qt::SolidLine);
+        ptm.pen = QPen(Qt::blue, 2, Qt::SolidLine);
+        bvm.pen = QPen(Qt::blue, 1, Qt::SolidLine);
         cm.add_pt(p_cproj, ptm);
         cm.add_bivtp(bv_cproj, bvm);
 
+        // orthogonal projection through blue point onto cyan line
         auto lp = right_weight_expand2dp(p_cproj, bv_central);
-        bvm.pen = QPen(Qt::gray, 1, Qt::SolidLine);
+        bvm.pen = QPen(Qt::green, 1, Qt::SolidLine);
         cm.add_bivtp(lp, bvm);
 
 
@@ -730,7 +896,25 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_bivtp(x_axis_2dp, bvm);
         cm.add_bivtp(y_axis_2dp, bvm);
 
-        cm.set_label("proj. - products, central proj.");
+        cm.set_label("proj. 10 - products, central projections");
+
+        diagram_legend leg;
+        leg.heading =
+            "Reference line l and reference point p (both red) in various operations:";
+        leg.entries = {
+            {"cyan:", "central projection through p towards origin"},
+            {"blue:", "central antiprojection of line onto p (i.e. line "
+                      "'projectively parallel' to l through p)"},
+            {"green:", "orthogonal projection through blue point onto cyan line"}};
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -743,9 +927,21 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_arefl(arefl2d{p0_id, p1_id});
 
-        cm.set_label("active reflection ega; "
-                     "move points indiviually or both lines "
-                     "(sensitive area between arrow and point)");
+        cm.set_label("Rotations from reflections (EGA)");
+
+        diagram_legend leg;
+        leg.heading = "EGA: Two consequtive reflections yield a rotation. \nEither move "
+                      "active points or active line segments between vector tip and "
+                      "points (green on hover) by dragging.";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -759,9 +955,24 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_areflp(arefl2dp{p0_id, p1_id, p0_id, p2_id});
 
-        cm.set_label("active reflection pga w/ common point; "
-                     "(sensitive area on lines + "
-                     "A: move 1st line, B: move 2nd line, D: rotate both)");
+        cm.set_label("Rotations from reflections (PGA)");
+
+        diagram_legend leg;
+        leg.heading = "PGA: Two consequtive reflections yield a rotation.\nCommon "
+                      "intersection point.\nEither move active points or active lines "
+                      "(green on hover) by dragging.";
+        leg.entries = {{"A:", "move 1st line"},
+                       {"S:", "move 2nd line"},
+                       {"D:", "rotate both lines"}};
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -776,9 +987,24 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_areflp(arefl2dp{p0_id, p1_id, p2_id, p3_id});
 
-        cm.set_label("active reflection pga w/ separate points; "
-                     "(sensitive area on lines + "
-                     "A: move 1st line, B: move 2nd line, D: rotate both)");
+        cm.set_label("Rotations from reflections (PGA)");
+
+        diagram_legend leg;
+        leg.heading = "PGA: Two consequtive reflections yield a rotation.\nIndependent "
+                      "points.\nEither move active points or active lines (green on "
+                      "hover) by dragging.";
+        leg.entries = {{"A:", "move 1st line"},
+                       {"S:", "move 2nd line"},
+                       {"D:", "rotate both lines\(only for intersecting lines)"}};
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -955,8 +1181,22 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_ln(cln_t0t, l);
         cm.add_ln(cln_t0tr, l);
 
-        cm.set_label("sequence matters: rotate 1st (not origin) + 2nd translate and vice "
-                     "versa (dashed)");
+        cm.set_label("Sequence of rotation & translation matters");
+
+        diagram_legend leg;
+        leg.heading = "Sequence of rotation and translation matters:";
+        leg.entries = {{"blue lines:", "rotate 1st, then translate"},
+                       {"red lines:", "translate 1st, then rotate"}};
+        leg.x_pct = 0.68;
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -1010,7 +1250,20 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_akinem(pt_chain2);
 
-        cm.set_label("active kinematics");
+        cm.set_label("Active kinematics");
+
+        diagram_legend leg;
+        leg.heading = "Active kinematic chains. Drag free end point by mouse.";
+        leg.x_pct = 0.68;
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -1035,7 +1288,22 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_aode(spring_system);
 
-        cm.set_label("spring-mass ODE system (drag fixation, R=reset, Space=pause)");
+        cm.set_label("Spring-mass ODE system");
+
+        diagram_legend leg;
+        leg.heading = "Spring-mass system (2nd order ODE).\nDrag the fixation point to "
+                      "initiate/change movement.";
+        leg.entries = {{"SPACE:", "stop/re-start integration"},
+                       {"R:", "reset simulation"}};
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }
@@ -1064,7 +1332,22 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_aode_plate(plate_system);
 
-        cm.set_label("plate pendulum (PGA2D): drag pivot, R=reset, Space=pause");
+        cm.set_label("Plate pendulum (PGA2D)");
+
+        diagram_legend leg;
+        leg.heading =
+            "Plate pendulum (PGA2D) (2nd order ODE).\nDrag the fixation point to "
+            "initiate/change movement.";
+        leg.entries = {{"SPACE:", "stop/re-start integration"},
+                       {"R:", "reset simulation"},
+                       {"-----", "----------"},
+                       {"dark red:", "gravity at cm (static)"},
+                       {"green:", "static reaction at pivot"},
+                       {"orange:", "centrifugal force at cm (dynamic)"},
+                       {"blue:", "centrifugal reaction at pivot (dynamic)"},
+                       {"teal/orange:", "torque moment (circle area = |torque|)"}};
+        leg.size_pct = 0.48; // wider box to fit force-colour descriptions
+        cm.set_legend(leg);
 
         vm.push_back(cm);
     }

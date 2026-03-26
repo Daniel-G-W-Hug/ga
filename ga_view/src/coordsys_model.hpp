@@ -7,6 +7,8 @@
 #include <QPen>
 
 #include <cassert> // attribute [[maybe_unused]]
+#include <optional>
+#include <string>
 #include <vector>
 
 #include "fmt/format.h"
@@ -191,6 +193,27 @@ struct aode_plate_pga2dp {
     plate_params params;
 };
 
+// One row in the key-binding table of a legend
+struct key_legend_entry {
+    std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
+    std::string description; // label shown in "Function" column
+};
+
+// Legend box overlaid on the diagram at a fixed viewport position.
+// The anchor is the top-left corner of the box.
+// x_pct / y_pct are the distances from the left / top edge of the
+// drawing area (inside the axes) expressed as a fraction of the area
+// width / height. size_pct is the box width as a fraction of area width.
+// Text that exceeds the available column width wraps automatically.
+struct diagram_legend {
+    std::string heading{};                     // bold title row (always shown)
+    std::vector<key_legend_entry> entries{};   // optional key-binding rows
+
+    double x_pct{0.02};    // left margin of anchor as fraction of area width
+    double y_pct{0.02};    // top  margin of anchor as fraction of area height
+    double size_pct{0.30}; // box width as fraction of area width
+};
+
 // ----------------------------------------------------------------------------
 // convenience alias to make pt2d and ln2d look similar
 // convenience alias to make pt2dp and ln2dp look similar
@@ -256,6 +279,8 @@ class Coordsys_model {
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
+    void set_legend(diagram_legend leg) { legend = std::move(leg); };
+
     // reset model to empty state, e.g. for reuse in new model
     void clear();
 
@@ -310,6 +335,9 @@ class Coordsys_model {
 
     // data for active plate pendulum ODE systems
     std::vector<aode_plate_pga2dp> aode_plate;
+
+    // optional legend overlay (key bindings or plain heading)
+    std::optional<diagram_legend> legend{};
 
     // model label, e.g. time stamp description of current Coordsys_model
     std::string m_label{};

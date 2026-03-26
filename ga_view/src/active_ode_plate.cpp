@@ -23,32 +23,34 @@ active_ode_plate::active_ode_plate(Coordsys* cs, w_Coordsys* wcs, active_pt2d* p
              QGraphicsItem::ItemSendsScenePositionChanges);
     setAcceptHoverEvents(false);
 
-    // Compute inertia matrix in body frame from plate geometry
-    I = get_plate_inertia(m_params.m, m_params.w, m_params.h);
-    I_inv = get_inertia_inverse(I);
-
     // Body-frame corners (plate symmetric about cm = body origin O_b)
     double const hw = m_params.w / 2.0;
     double const hh = m_params.h / 2.0;
     m_corners_b[0] = vec2dp{-hw, -hh, 1.0}; // bottom-left
     m_corners_b[1] = vec2dp{hw, -hh, 1.0};  // bottom-right
-    m_corners_b[2] = vec2dp{hw, hh, 1.0};   // top-right = pivot corner
+    m_corners_b[2] = vec2dp{hw, hh, 1.0};   // top-right = pivot corner Q_b
     m_corners_b[3] = vec2dp{-hw, hh, 1.0};  // top-left
+
+    // Pivot Q_b = TR corner in body frame; inertia about Q_b via parallel-axis correction
+    vec2dp const Q_b{hw, hh, 1.0};
+    I = get_plate_inertia(m_params.m, m_params.w, m_params.h, Q_b);
+    I_inv = get_inertia_inverse(I);
 
     // Store initial pivot position for reset
     pt2d const fix_pt = pivot_pt->scenePos();
     m_initial_pivot = fix_pt;
 
-    // Initial cm world position (rest position: pivot is TR corner)
-    m_cm_pos0 = vec2dp{fix_pt.x - hw, fix_pt.y - hh, 1.0};
+    // M0: pure translation placing body origin (= cm) at initial world cm position
+    // cm_pos0 = pivot_world - (hw, hh) offset
+    vec2dp const cm_pos0{fix_pt.x - hw, fix_pt.y - hh, 1.0};
+    m_M0 = exp(0.5 * vec2dp{-cm_pos0.y, cm_pos0.x, 0.0});
 
-    // Initial B encodes rotation by phi_init about pivot: B = phi*(px*e23 + py*e31 + e12)
-    // For phi_init=0 this is zero (identity motor), plate starts in rest position.
-    u_mem[0] = vec2dp{fix_pt.x * m_params.phi_init, fix_pt.y * m_params.phi_init,
-                      m_params.phi_init};
-    // Initial angular velocity: Omega = omega_init*(px*e23 + py*e31 + e12)
-    u_mem[1] = vec2dp{fix_pt.x * m_params.omega_init, fix_pt.y * m_params.omega_init,
-                      m_params.omega_init};
+    // World position of pivot Q_b via M0 (stays fixed during simulation)
+    m_pivot_w = move2dp(Q_b, m_M0);
+
+    // Initial body-frame state: B_b = phi_init * Q_b, Omega_b = omega_init * Q_b
+    u_mem[0] = m_params.phi_init * Q_b;
+    u_mem[1] = m_params.omega_init * Q_b;
 
     // Connect signals
     connect(pivot_pt, &active_pt2d::pointMoved, this, &active_ode_plate::pivotMoved);
@@ -70,43 +72,57 @@ void active_ode_plate::calculateRHS()
     auto u = mdspan<vec2dp, dextents<size_t, 1>>(u_mem.data(), SYS_SIZE);
     auto rhs = mdspan<vec2dp, dextents<size_t, 1>>(rhs_mem.data(), SYS_SIZE);
 
-    vec2dp const B = u[0];
-    vec2dp const Omega = u[1];
+    vec2dp const B = u[0];     // B_b = phi * Q_b  (body-frame rotation bivector)
+    vec2dp const Omega = u[1]; // Omega_b = omega * Q_b  (body-frame angular velocity)
 
-    // Motor from current bivector B (half-angle convention)
-    auto const M = exp(0.5 * B);
+    // Current motor: M(t) = M0 ⟇ exp(½ B_b(t))  [body-frame formulation]
+    auto const M = rgpr(m_M0, exp(0.5 * B));
 
-    // cm position in world frame: apply motor to initial cm position
-    vec2dp const cm_w = move2dp(m_cm_pos0, M);
+    // cm world position: body origin O_b = (0,0,1) mapped to world via M
+    vec2dp const O_b{0.0, 0.0, 1.0};
+    auto const cm_w = move2dp(O_b, M);
 
-    // Pivot position in world frame (user-draggable, updated every step)
-    pt2d const fix_pt = m_pivot_pt->scenePos();
-    vec2dp const pivot_w{fix_pt.x, fix_pt.y, 1.0};
+    // Force at cm: gravity + centrifugal (pivot reaction = -f_cm)
+    vec2dp const g_vec{0.0, -m_params.g, 0.0};
+    value_t const omega_val = Omega.z;
+    auto const a_cf = (cm_w - m_pivot_w) * (omega_val * omega_val);
+    auto const f_cm = value_t(m_params.m) * (a_cf + g_vec);
 
-    // Forces in world frame as PGA2D bivectors: F = wdg(application_point, force_vector)
-    // Reaction at pivot: +mg upward (constraint force balancing gravity for net-zero
-    // translation)
-    auto const F_up_w = wdg(pivot_w, vec2dp(0.0, m_params.m * m_params.g, 0.0));
-    // Gravity at cm: -mg downward
-    auto const F_dn_w = wdg(cm_w, vec2dp(0.0, -m_params.m * m_params.g, 0.0));
+    // Cache centrifugal component for visualization (static gravity always = (0,-mg,0))
+    m_f_cf_w = value_t(m_params.m) * a_cf;
 
-    // Transform total force bivector from world to body frame using reverse motor
-    auto const F_b = move2dp(F_up_w + F_dn_w, rrev(M));
+    // Force couple: f_cm at cm, -f_cm at pivot (equal and opposite → pure torque)
+    auto const F_cm_w = wdg(cm_w, f_cm);
+    auto const F_piv_w = wdg(m_pivot_w, -f_cm);
+    auto const F_b = move2dp(F_cm_w + F_piv_w, rrev(M));
 
-    // Angular damping torque in body frame (e12 component opposes angular velocity)
+    // Cache net torque (e12-component of body-frame force bivector) for visualization
+    m_torque_b = F_b.z;
+
+    // Angular damping torque in body frame (opposes angular velocity)
     BiVec2dp<value_t> const F_damping_b{0.0, 0.0, -m_params.c * Omega.z};
 
-    // ODE right-hand side:
-    //   dB/dt     = Omega
-    //   dOmega/dt = I_inv[ F - rcmt(Omega, I[Omega]) ]
-    rhs[0] = Omega;
-    rhs[1] = compute_omega_dot(I_inv, F_b + F_damping_b, Omega, I);
+    // Enforce pivot constraint explicitly: extract scalar alpha from dOmega.z and
+    // project back onto Q_b so that Omega_b = omega*Q_b is preserved exactly,
+    // preventing numerical drift of off-constraint components (e31/e32) during
+    // long-running RK4 integration.
+    // In principle correct without projection: rhs[1] = compute_omega_dot(I_inv, F_b +
+    // F_damping_b, Omega, I);
+    double const hw = m_params.w / 2.0;
+    double const hh = m_params.h / 2.0;
+    vec2dp const Q_b{hw, hh, 1.0};
+    auto const dOmega = compute_omega_dot(I_inv, F_b + F_damping_b, Omega, I);
+    double const alpha = dOmega.z; // = tau_eff / I_pivot[2,2]
+
+    rhs[0] = Omega;       // dB_b/dt = Omega_b
+    rhs[1] = alpha * Q_b; // dOmega_b/dt = alpha * Q_b  (pivot constraint)
 }
 
 void active_ode_plate::updateState()
 {
-    auto const M = exp(0.5 * u_mem[0]);
-    vec2dp const cm_w = move2dp(m_cm_pos0, M);
+    auto const M = rgpr(m_M0, exp(0.5 * u_mem[0]));
+    vec2dp const O_b{0.0, 0.0, 1.0};
+    vec2dp const cm_w = move2dp(O_b, M);
     vec2dp const e2_w = move2dp(m_e2_b, M); // e2 body direction in world frame
 
     m_trajectory.push_back({cm_w, e2_w});
@@ -151,8 +167,9 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
     qp->save();
 
     // Compute current motor and world-frame quantities
-    auto const M = exp(0.5 * u_mem[0]);
-    vec2dp const cm_w = move2dp(m_cm_pos0, M);
+    auto const M = rgpr(m_M0, exp(0.5 * u_mem[0]));
+    vec2dp const O_b{0.0, 0.0, 1.0};
+    vec2dp const cm_w = move2dp(O_b, M);
 
     // e1/e2 body-frame directions in world frame (direction vecs, z=0 → not translated)
     vec2dp const e1_w = move2dp(m_e1_b, M);
@@ -226,29 +243,109 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
                  cm_screen + QPointF(0.0, CM_MARK_PX));
 
     // 6. Draw pivot marker (white-filled circle)
-    pt2d const fix_pt = m_pivot_pt->scenePos();
-    QPointF const pivot_screen = toScreen(vec2dp{fix_pt.x, fix_pt.y, 1.0});
+    QPointF const pivot_screen = toScreen(m_pivot_w);
     constexpr double PIVOT_RADIUS_PX = 5.0;
     qp->setPen(QPen(Qt::black, 2));
     qp->setBrush(QBrush(Qt::white));
     qp->drawEllipse(pivot_screen, PIVOT_RADIUS_PX, PIVOT_RADIUS_PX);
 
-    // 7. Draw force vectors (scaled for visibility)
-    constexpr double FORCE_SCALE = 0.02; // model units per Newton
+    // 7. Draw forces at cm and pivot: static (gravity/reaction) and dynamic (centrifugal)
+    constexpr double FORCE_SCALE = 0.06; // model units per Newton
+    qp->setBrush(Qt::NoBrush);
+
+    QColor const col_grav{180, 0, 0};       // dark red:    gravity at cm (static)
+    QColor const col_react{0, 140, 60};     // forest green: static reaction at pivot
+    QColor const col_cf{230, 115, 0};       // orange:      centrifugal at cm (dynamic)
+    QColor const col_cf_react{60, 60, 200}; // medium blue: centrifugal reaction at pivot
+
     double const mg = m_params.m * m_params.g;
 
-    // Gravity at cm: red arrow pointing downward (-y model direction)
-    vec2dp const grav_tip_w{cm_w.x, cm_w.y - mg * FORCE_SCALE, 1.0};
-    qp->setPen(QPen(Qt::red, 1, Qt::SolidLine));
-    qp->setBrush(Qt::NoBrush);
-    qp->drawPath(arrowLine(cm_screen, toScreen(grav_tip_w)));
-    qp->drawPath(arrowHead(cm_screen, toScreen(grav_tip_w)));
+    // Static: gravity downward at cm
+    {
+        vec2dp const tip{cm_w.x, cm_w.y - mg * FORCE_SCALE, 1.0};
+        qp->setPen(QPen(col_grav, 2, Qt::SolidLine));
+        qp->drawPath(arrowLine(cm_screen, toScreen(tip)));
+        qp->drawPath(arrowHead(cm_screen, toScreen(tip)));
+    }
+    // Static: reaction upward at pivot
+    {
+        vec2dp const tip{m_pivot_w.x, m_pivot_w.y + mg * FORCE_SCALE, 1.0};
+        qp->setPen(QPen(col_react, 2, Qt::SolidLine));
+        qp->drawPath(arrowLine(pivot_screen, toScreen(tip)));
+        qp->drawPath(arrowHead(pivot_screen, toScreen(tip)));
+    }
 
-    // Reaction at pivot: dark green arrow pointing upward (+y model direction)
-    vec2dp const react_tip_w{fix_pt.x, fix_pt.y + mg * FORCE_SCALE, 1.0};
-    qp->setPen(QPen(Qt::darkGreen, 1, Qt::SolidLine));
-    qp->drawPath(arrowLine(pivot_screen, toScreen(react_tip_w)));
-    qp->drawPath(arrowHead(pivot_screen, toScreen(react_tip_w)));
+    // Dynamic: centrifugal force at cm — threshold in screen pixels to avoid
+    // atan2 instability when the tip is within numerical noise of the base.
+    {
+        QPointF const cf_tip = toScreen(vec2dp{cm_w.x + m_f_cf_w.x * FORCE_SCALE,
+                                               cm_w.y + m_f_cf_w.y * FORCE_SCALE, 1.0});
+        QPointF const d = cf_tip - cm_screen;
+        if (d.x() * d.x() + d.y() * d.y() >= ARROWSIZE * ARROWSIZE) {
+            qp->setPen(QPen(col_cf, 2, Qt::SolidLine));
+            qp->drawPath(arrowLine(cm_screen, cf_tip));
+            qp->drawPath(arrowHead(cm_screen, cf_tip));
+        }
+    }
+    // Dynamic: centrifugal reaction at pivot (equal and opposite)
+    {
+        QPointF const cfr_tip =
+            toScreen(vec2dp{m_pivot_w.x - m_f_cf_w.x * FORCE_SCALE,
+                            m_pivot_w.y - m_f_cf_w.y * FORCE_SCALE, 1.0});
+        QPointF const d = cfr_tip - pivot_screen;
+        if (d.x() * d.x() + d.y() * d.y() >= ARROWSIZE * ARROWSIZE) {
+            qp->setPen(QPen(col_cf_react, 2, Qt::SolidLine));
+            qp->drawPath(arrowLine(pivot_screen, cfr_tip));
+            qp->drawPath(arrowHead(pivot_screen, cfr_tip));
+        }
+    }
+
+    // 7b. Torque visualization: semi-transparent circle around pivot, area ∝ |torque|,
+    //     four tangential arrows at 3/6/9/12 o'clock indicating rotation direction.
+    if (std::abs(m_torque_b) > 1e-4) {
+        constexpr double TORQUE_AREA_SCALE = 0.05; // circle area per N·m [model units²]
+        double const r_model =
+            std::sqrt(std::abs(m_torque_b) * TORQUE_AREA_SCALE / std::acos(-1.0));
+        double const r_px =
+            std::abs(cs->x.au_to_w(m_pivot_w.x + r_model) - cs->x.au_to_w(m_pivot_w.x));
+
+        // Color: teal for CCW (positive torque), orange for CW (negative torque)
+        QColor const torque_color =
+            (m_torque_b >= 0.0) ? QColor(0, 170, 130) : QColor(210, 90, 0);
+        QColor torque_fill = torque_color;
+        torque_fill.setAlpha(35);
+
+        qp->setPen(QPen(torque_color, 1.5, Qt::SolidLine));
+        qp->setBrush(QBrush(torque_fill));
+        qp->drawEllipse(pivot_screen, r_px, r_px);
+
+        // Four tangential arrows: position offsets and CCW tangent directions
+        // [dx, dy, tx_ccw, ty_ccw]: offset from pivot, tangent direction for CCW
+        struct ClockArrow {
+            double dx, dy, tx, ty;
+        };
+        std::array<ClockArrow, 4> const clocks = {{
+            {r_model, 0.0, 0.0, 1.0},   // 3 o'clock:  right, CCW tangent = up
+            {0.0, r_model, -1.0, 0.0},  // 12 o'clock: top,   CCW tangent = left
+            {-r_model, 0.0, 0.0, -1.0}, // 9 o'clock:  left,  CCW tangent = down
+            {0.0, -r_model, 1.0, 0.0},  // 6 o'clock:  bottom,CCW tangent = right
+        }};
+        double const sgn = (m_torque_b >= 0.0) ? 1.0 : -1.0;
+        double const arrow_half = 0.25 * r_model;
+        qp->setPen(QPen(torque_color, 2, Qt::SolidLine));
+        qp->setBrush(Qt::NoBrush);
+        for (ClockArrow const& c : clocks) {
+            double const px = m_pivot_w.x + c.dx;
+            double const py = m_pivot_w.y + c.dy;
+            double const tx = sgn * c.tx;
+            double const ty = sgn * c.ty;
+            QPointF const arw_start =
+                toScreen(vec2dp{px - tx * arrow_half, py - ty * arrow_half, 1.0});
+            QPointF const arw_end =
+                toScreen(vec2dp{px + tx * arrow_half, py + ty * arrow_half, 1.0});
+            qp->drawPath(arrowHead(arw_start, arw_end));
+        }
+    }
 
     // 8. Draw simulation time near pivot
     qp->setPen(QPen(Qt::darkBlue, 1));
@@ -263,14 +360,14 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
 
 QRectF active_ode_plate::boundingRect() const
 {
-    auto const M = exp(0.5 * u_mem[0]);
-    vec2dp const cm_w = move2dp(m_cm_pos0, M);
-    pt2d const fix_pt = m_pivot_pt->scenePos();
+    auto const M = rgpr(m_M0, exp(0.5 * u_mem[0]));
+    vec2dp const O_b{0.0, 0.0, 1.0};
+    vec2dp const cm_w = move2dp(O_b, M);
 
-    double min_x = std::min(cm_w.x, fix_pt.x);
-    double max_x = std::max(cm_w.x, fix_pt.x);
-    double min_y = std::min(cm_w.y, fix_pt.y);
-    double max_y = std::max(cm_w.y, fix_pt.y);
+    double min_x = std::min(cm_w.x, m_pivot_w.x);
+    double max_x = std::max(cm_w.x, m_pivot_w.x);
+    double min_y = std::min(cm_w.y, m_pivot_w.y);
+    double max_y = std::max(cm_w.y, m_pivot_w.y);
 
     // Include all plate corners
     for (size_t i = 0; i < NUM_CORNERS; ++i) {
@@ -316,25 +413,29 @@ void active_ode_plate::pivotMoved()
     // the next integration step starts.
     m_timer->stop();
 
-    // The world-frame bivectors B and Omega both encode the pivot coordinates:
-    //   B     = theta * (px*e23 + py*e31 + e12)  — rotation by theta about (px,py)
-    //   Omega = omega * (px*e23 + py*e31 + e12)  — rotation rate omega about (px,py)
-    // When the pivot moves, only the scalar parts (B.z = theta, Omega.z = omega)
-    // are pivot-independent and must be preserved; the x/y components must be
-    // re-expressed for the new pivot coordinates.
-    double const theta = u_mem[0].z; // accumulated rotation angle [rad]
-    double const omega = u_mem[1].z; // angular velocity [rad/s]
+    // Preserve accumulated rotation angle and angular velocity (body-frame scalars).
+    // B_b = phi * Q_b and Omega_b = omega * Q_b: Q_b is constant in the body frame,
+    // so only the scalar multiples change — and they don't change here (pivot move
+    // only relocates the body in the world, not its current rotation state).
+    double const theta = u_mem[0].z; // current rotation angle [rad]  (B_b.z = phi)
+    double const omega = u_mem[1].z; // current angular velocity [rad/s]
 
     pt2d const fix_pt = m_pivot_pt->scenePos();
     double const hw = m_params.w / 2.0;
     double const hh = m_params.h / 2.0;
 
-    // New cm rest-position: pivot is the TR corner when motor = identity
-    m_cm_pos0 = vec2dp{fix_pt.x - hw, fix_pt.y - hh, 1.0};
+    // Recompute M0 for the new pivot position:
+    // cm rest position = pivot - (hw, hh) body-frame offset
+    vec2dp const cm_pos0_new{fix_pt.x - hw, fix_pt.y - hh, 1.0};
+    m_M0 = exp(0.5 * vec2dp{-cm_pos0_new.y, cm_pos0_new.x, 0.0});
 
-    // Re-express B and Omega as rotation about the new pivot
-    u_mem[0] = vec2dp{fix_pt.x * theta, fix_pt.y * theta, theta};
-    u_mem[1] = vec2dp{fix_pt.x * omega, fix_pt.y * omega, omega};
+    // Update stored world pivot (= move2dp(Q_b, m_M0) = (fix_pt.x, fix_pt.y, 1))
+    vec2dp const Q_b{hw, hh, 1.0};
+    m_pivot_w = move2dp(Q_b, m_M0);
+
+    // Body-frame state unchanged in form: B_b ∝ Q_b, Omega_b ∝ Q_b
+    u_mem[0] = theta * Q_b;
+    u_mem[1] = omega * Q_b;
 
     // Refresh RHS so the first integration sub-step and paint() use consistent values
     calculateRHS();
@@ -349,16 +450,20 @@ void active_ode_plate::resetSimulation()
     // Restore pivot to initial position
     m_pivot_pt->setScenePos(m_initial_pivot);
 
-    // Recompute initial cm world position from original pivot
     double const hw = m_params.w / 2.0;
     double const hh = m_params.h / 2.0;
-    m_cm_pos0 = vec2dp{m_initial_pivot.x - hw, m_initial_pivot.y - hh, 1.0};
 
-    // Reset integration state (B=phi_init rotation bivector, Omega from omega_init)
-    u_mem[0] = vec2dp{m_initial_pivot.x * m_params.phi_init,
-                      m_initial_pivot.y * m_params.phi_init, m_params.phi_init};
-    u_mem[1] = vec2dp{m_initial_pivot.x * m_params.omega_init,
-                      m_initial_pivot.y * m_params.omega_init, m_params.omega_init};
+    // Recompute M0 from initial pivot position
+    vec2dp const cm_pos0_reset{m_initial_pivot.x - hw, m_initial_pivot.y - hh, 1.0};
+    m_M0 = exp(0.5 * vec2dp{-cm_pos0_reset.y, cm_pos0_reset.x, 0.0});
+
+    // Restore world pivot
+    vec2dp const Q_b{hw, hh, 1.0};
+    m_pivot_w = move2dp(Q_b, m_M0);
+
+    // Reset body-frame integration state
+    u_mem[0] = m_params.phi_init * Q_b;
+    u_mem[1] = m_params.omega_init * Q_b;
 
     // Reset time and trajectory
     m_time = 0.0;

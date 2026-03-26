@@ -367,3 +367,276 @@ TEST_SUITE("PGA3DP: physics tests prep")
     }
 
 } // TEST_SUITE("PGA3DP: physics tests prep")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// PGA3DP physics tests application - 3D cuboid pendulum
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_SUITE("PGA3DP: physics tests application")
+{
+
+    TEST_CASE("pga3dp: ODE cuboid pendulum (pivot edge at TR corner)")
+    {
+        fmt::println("pga3dp: ODE cuboid pendulum (pivot edge at TR corner)");
+
+        class sim_ode_cuboid_pga3dp { // model 2nd order ode by a 1st order system
+
+            // Models a rigid cuboid acting as a 3D pendulum fixed at its
+            // top-right z-edge (the pivot line L_b).
+            //
+            // PGA3DP body-frame formulation: M(t) = M0 ⟇ exp(½ B_b(t))
+            // - M0: pure translation motor placing body origin (= cm) at initial world pos
+            //       M0 = exp(0.5 * bivec3dp{0,0,0,cx,cy,cz})
+            //       (translation uses the bulk/e23,e31,e12 components, not e41,e42,e43)
+            // - B_b = phi * L_b: rotation bivector, phi = rotation angle about L_b
+            // - Pivot line L_b = wdg(P_z0, P_z1) = bivec3dp{0, 0, 1, hh, -hw, 0}
+            //   where P_z0 = (hw,hh,0,1), P_z1 = (hw,hh,1,1) in body frame
+            //   => direction vz = +1 (along e3/z axis), moment = (hh, -hw, 0)
+            // - Constraint projection: alpha = dOmega.vz  (since L_b.vz = 1)
+            // - Pivot invariance: move3dp(L_b, exp(½ phi * L_b)) = L_b for all phi
+            //
+            // get_cuboid_inertia(m,w,h,d,L_pivot) applies the scalar parallel-axis
+            // (Steiner) correction: only I[3,0], I[4,1], I[5,2] are updated by
+            // m*(Py²+Pz²), m*(Px²+Pz²), m*(Px²+Py²) respectively, where P_foot is
+            // the foot of perpendicular from the body origin to L_pivot.
+
+          public:
+
+            sim_ode_cuboid_pga3dp(value_t m_in, value_t w_in, value_t h_in, value_t d_in,
+                                  vec3dp const& cm_pos_in,
+                                  value_t cm_phi_in, value_t cm_omega_in) :
+                m(m_in), width(w_in), height(h_in), depth(d_in), cm_w_pos0(cm_pos_in),
+                cm_w_phi0(cm_phi_in), cm_w_omega0(cm_omega_in),
+                u_mem(2), uh_mem(2 * 2), rhs_mem(2)
+            {
+                fmt::println("sim_ode_cuboid_pga3dp: 3D pendulum (pivot = z-edge at TR).");
+
+                // Body frame origin = CENTER OF MASS (cuboid symmetric about cm).
+                // Pivot = z-edge through TR corner at (hw, hh, *) in body frame.
+                // L_b = wdg(P_z0, P_z1) with P_z0=(hw,hh,0,1) and P_z1=(hw,hh,1,1)
+                //      = bivec3dp{0, 0, 1, hh, -hw, 0}  (L_b.vz = 1, unit direction)
+                value_t const hw = width / 2.0;
+                value_t const hh = height / 2.0;
+                bivec3dp const L_b{0.0, 0.0, 1.0, hh, -hw, 0.0};
+                fmt::println("pivot line L_b (body frame, z-edge at TR corner):");
+                fmt::println("  L_b = {:>-7.3f}", L_b);
+
+                // get_cuboid_inertia with parallel-axis correction about L_b.
+                fmt::println("inertia of cuboid in body frame (about pivot L_b):");
+                I = get_cuboid_inertia(m, width, height, depth, L_b);
+                I_inv = get_inertia_inverse(I);
+                fmt::println("I     = {:>-7.3f}", I);
+                fmt::println("I_inv = {:>-7.3f}", I_inv);
+            }
+
+            void set_initial_values()
+            {
+                auto u = mdspan<bivec3dp, dextents<size_t, 1>>(u_mem.data(), 2);
+
+                value_t const hw = width / 2.0;
+                value_t const hh = height / 2.0;
+
+                // Body origin = CM. Pivot = z-edge at (hw, hh, *) in body frame.
+                // M0: pure translation placing cm at cm_w_pos0.
+                // In PGA3DP, translate by (cx,cy,cz): motor = exp(0.5 * bivec3dp{0,0,0,cx,cy,cz})
+                // Translation is encoded in the bulk (e23,e31,e12) components,
+                // not the weight (e41,e42,e43) components.
+                M0 = exp(0.5 * bivec3dp{0.0, 0.0, 0.0,
+                                        cm_w_pos0.x, cm_w_pos0.y, cm_w_pos0.z});
+
+                // pivot_pt_w: world position of representative pivot point (hw,hh,0,1)
+                // in body frame, mapped via M0.  Stays fixed during rotation since
+                // move3dp(P_on_L_b, M0 ⟇ exp(½ phi * L_b)) = M0-image of P_on_L_b.
+                pivot_pt_w = move3dp(vec3dp{hw, hh, 0.0, 1.0}, M0);
+                fmt::println("pivot_pt_w = {:>-7.3f}  (world position of (hw,hh,0) via M0)",
+                             pivot_pt_w);
+
+                // B_b(0): initial rotation by phi0 about body-frame pivot line L_b.
+                bivec3dp const L_b{0.0, 0.0, 1.0, hh, -hw, 0.0};
+                u[0] = cm_w_phi0 * L_b;
+
+                // Omega_b(0): initial angular velocity about pivot line L_b.
+                u[1] = cm_w_omega0 * L_b;
+            }
+
+            void calc_rhs()
+            {
+                auto u   = mdspan<bivec3dp, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto rhs = mdspan<bivec3dp, dextents<size_t, 1>>(rhs_mem.data(), 2);
+
+                bivec3dp const B     = u[0]; // position bivector B_b = phi * L_b
+                bivec3dp const Omega = u[1]; // velocity bivector Omega_b = omega * L_b
+
+                // Current motor: M(t) = M0 ⟇ exp(½ B_b(t))  [body-frame formulation]
+                auto const M = rgpr(M0, exp(0.5 * B));
+
+                // CM world position: body origin = (0,0,0,1) in body frame
+                vec3dp const O_b{0.0, 0.0, 0.0, 1.0};
+                auto const cm_w = move3dp(O_b, M);
+
+                // Force couple in world frame (net force = 0, only torque):
+                // - Gravity at cm (downward -y):       F_dn = wdg(cm_w, (0,-mg,0,0))
+                // - Reaction at pivot (upward +y):     F_up = wdg(pivot_pt_w, (0,+mg,0,0))
+                // Using a single representative pivot POINT (z=0 on pivot edge) here.
+                // The torque from the reaction force about L_b vanishes by definition.
+                auto const F_dn_w = wdg(cm_w,       vec3dp{0.0, -m * 9.81, 0.0, 0.0});
+                auto const F_up_w = wdg(pivot_pt_w, vec3dp{0.0,  m * 9.81, 0.0, 0.0});
+                auto const F_b = move3dp(F_dn_w + F_up_w, rrev(M)); // to body frame
+
+                // Constrained rotation about pivot line L_b = {0,0,1, hh,-hw,0}.
+                // I is about pivot L_b (parallel-axis corrected in ctor).
+                // compute_omega_dot gives the unconstrained angular acceleration dOmega.
+                // Maintain constraint B_b ∝ L_b: project dOmega onto L_b direction.
+                // Since L_b.vz = 1, the scalar rotation rate is alpha = dOmega.vz.
+                value_t const hw = width / 2.0;
+                value_t const hh = height / 2.0;
+                bivec3dp const L_b{0.0, 0.0, 1.0, hh, -hw, 0.0};
+                auto const dOmega = compute_omega_dot(I_inv, F_b, Omega, I);
+                value_t const alpha = dOmega.vz; // L_b.vz = 1
+
+                rhs[0] = Omega;       // dB_b/dt = Omega_b  (= omega * L_b)
+                rhs[1] = alpha * L_b; // dOmega_b/dt = alpha * L_b (pivot constraint)
+            }
+
+            void calc_rkstep(double dt)
+            {
+                auto u   = mdspan<bivec3dp, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto uh  = mdspan<bivec3dp, dextents<size_t, 2>>(uh_mem.data(), 2, 2);
+                auto rhs = mdspan<bivec3dp const, dextents<size_t, 1>>(rhs_mem.data(), 2);
+
+                for (size_t rk_step = 1; rk_step <= 4; ++rk_step) {
+                    calc_rhs();
+                    rk4_step(u, uh, rhs, dt, rk_step);
+                }
+            }
+
+            void print_sim(double t)
+            {
+                auto u = mdspan<bivec3dp, dextents<size_t, 1>>(u_mem.data(), 2);
+
+                fmt::println("t = {:>-7.3f}:", t);
+
+                bivec3dp const B = u[0]; // B_b = phi * L_b
+
+                // Current motor: M(t) = M0 ⟇ exp(½ B_b(t))
+                auto const M = rgpr(M0, exp(0.5 * B));
+
+                // phi = B.vz  (since B_b = phi * L_b and L_b.vz = 1)
+                value_t const phi_b = B.vz;
+
+                // CM world position
+                vec3dp const O_b{0.0, 0.0, 0.0, 1.0};
+                auto const cm_w = move3dp(O_b, M);
+
+                fmt::println("    cm_w = {:>-6.3f}, phi_b = {:>-6.3f}, B = {:>-6.3f}",
+                             cm_w, phi_b, B);
+            }
+
+            // Accessors for validation checks
+            vec3dp get_cm_world() const
+            {
+                auto u = mdspan<bivec3dp const, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto const M = rgpr(M0, exp(0.5 * u[0]));
+                return move3dp(vec3dp{0.0, 0.0, 0.0, 1.0}, M);
+            }
+
+            value_t get_omega() const
+            {
+                // Omega_b = omega * L_b, L_b.vz = 1  =>  omega = Omega_b.vz
+                auto u = mdspan<bivec3dp const, dextents<size_t, 1>>(u_mem.data(), 2);
+                return u[1].vz;
+            }
+
+            value_t get_I_zz_pivot() const { return I.view()[5, 2]; }
+
+          private:
+
+            value_t m;      // mass of cuboid [kg]
+            value_t width;  // extent in e1/x direction in body frame [m]
+            value_t height; // extent in e2/y direction in body frame [m]
+            value_t depth;  // extent in e3/z direction in body frame [m]
+
+            vec3dp cm_w_pos0;    // initial world position of cm
+            value_t cm_w_phi0;   // initial rotation angle about pivot line
+            value_t cm_w_omega0; // initial angular velocity about pivot line
+
+            mvec3dp_e M0;        // translation motor: cm to initial world position
+            vec3dp pivot_pt_w;   // world pos of body-frame pivot representative point
+
+            // RK4 state: u[0] = B_b (position bivector), u[1] = Omega_b (velocity)
+            std::vector<bivec3dp> u_mem;   // [B, Omega]
+            std::vector<bivec3dp> uh_mem;  // RK4 helper (2 * SYS_SIZE entries)
+            std::vector<bivec3dp> rhs_mem; // right-hand side [dB/dt, dOmega/dt]
+
+            // Inertia map about pivot L_b (parallel-axis corrected via get_cuboid_inertia)
+            inertia3dp I;
+            inertia3dp I_inv;
+        };
+
+        value_t m = 1.0; // mass [kg]
+        value_t w = 2.0; // width  [m] (e1/x in body frame)
+        value_t h = 2.0; // height [m] (e2/y in body frame)
+        value_t d = 1.0; // depth  [m] (e3/z in body frame)
+
+        // Initial position: cm at (-1,-1,0) so pivot edge (at body (1,1,*)) is at
+        // world origin (0,0,*). No initial rotation or angular velocity.
+        auto cm_pos   = vec3dp{-1.0, -1.0, 0.0, 1.0};
+        auto cm_phi   = 0.0; // no initial rotation
+        auto cm_omega = 0.0; // no initial angular velocity
+
+        sim_ode_cuboid_pga3dp sim(m, w, h, d, cm_pos, cm_phi, cm_omega);
+
+        // time range: 0..2 s, 60 steps (analogous to 2D plate pendulum test)
+        auto t_rng = discrete_range(0.0, 2.0, 60);
+
+        sim.set_initial_values();
+        sim.print_sim(t_rng.min());
+
+        // --- Static validation: inertia analytical check -----------------------
+        // I[5,2] = moment of inertia about z-axis (pivot line direction) at pivot.
+        // Analytically (Steiner): I_cm_zz + m*(hw^2+hh^2)
+        //   = m*(w^2+h^2)/12 + m*(hw^2+hh^2)
+        //   = 1*(4+4)/12 + 1*(1+1) = 2/3 + 2 = 8/3
+        value_t const hw = w / 2.0;
+        value_t const hh = h / 2.0;
+        CHECK(sim.get_I_zz_pivot() == doctest::Approx(8.0 / 3.0));
+
+        // Cross-check: 3D cuboid I[5,2] matches 2D plate I[2,2] with same w,h,pivot.
+        // (The z-extent d=1 does not enter the in-plane moment of inertia.)
+        auto const I_2d = get_plate_inertia(m, w, h, vec2dp{hw, hh, 1.0});
+        CHECK(I_2d.view()[2, 2] == doctest::Approx(sim.get_I_zz_pivot()));
+
+        // --- Dynamic validation setup ------------------------------------------
+        // Initial mechanical energy (t=0): kinetic=0, potential = m*g*cm_w.y
+        value_t const g = 9.81;
+        value_t const E_0 = m * g * cm_pos.y; // = -9.81 J (cm starts at y=-1)
+
+        // Pivot is at world origin (0,0,0) => pivot distance squared = hw^2+hh^2 = 2.0
+        value_t const pivot_dist_sq = hw * hw + hh * hh; // = 2.0
+
+        for (size_t n = 1; n <= t_rng.steps(); n++) {
+            double t = t_rng.min() + n * t_rng.delta();
+            sim.calc_rkstep(t_rng.delta());
+            sim.print_sim(t);
+
+            vec3dp const cm_w = sim.get_cm_world();
+            value_t const omega = sim.get_omega();
+
+            // Energy conservation: T + V = E_0  (RK4 drift tolerance)
+            value_t const T_kin = 0.5 * sim.get_I_zz_pivot() * omega * omega;
+            value_t const V_pot = m * g * cm_w.y;
+            CHECK((T_kin + V_pot) == doctest::Approx(E_0).epsilon(1e-3));
+
+            // Pivot constraint: |cm_w|_xy^2 = hw^2 + hh^2 = 2.0
+            value_t const r_sq = cm_w.x * cm_w.x + cm_w.y * cm_w.y;
+            CHECK(r_sq == doctest::Approx(pivot_dist_sq).epsilon(1e-3));
+
+            // Planar motion: z-component of cm stays zero
+            CHECK(cm_w.z == doctest::Approx(0.0).epsilon(1e-10));
+        }
+
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: physics tests application")

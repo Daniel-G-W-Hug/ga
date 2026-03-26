@@ -40,6 +40,11 @@ target_link_libraries(${EXEC_NAME1} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME2} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME3} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME4} PRIVATE doctest::doctest ga)
+
+# Suppress -Wc2y-extensions triggered by __COUNTER__ in doctest macros (third-party header)
+foreach(target ${EXEC_NAME1} ${EXEC_NAME2} ${EXEC_NAME3} ${EXEC_NAME4})
+    target_compile_options(${target} PRIVATE $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
+endforeach()
 # target_link_libraries(${EXEC_NAME5} PRIVATE doctest::doctest ga)  # Commented out - STA not yet implemented
 
 # Helper function to link fmt to a target

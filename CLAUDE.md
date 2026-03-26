@@ -97,6 +97,25 @@ This is a header-only geometric algebra library (`ga/`) with accompanying module
 - **ga_lua/**: Lua scripting interface for GA operations
 - **ga_prdxpr/**: Code generator for GA product expressions (EGA2D, EGA3D, PGA2DP, PGA3DP)
 
+### Notation Conventions
+
+When writing documentation, comments, or mathematical expressions for this codebase, use the following notation:
+
+| Symbol | Unicode | LaTeX | Meaning |
+| --- | --- | --- | --- |
+| ⟑ | U+27D1 | (direct Unicode) | Geometric product |
+| ⟇ | U+27C7 | (direct Unicode) | Regressive geometric product |
+| $\tilde{M}$ | — | `\tilde{}` | Reverse of M (`rev(M)` in code) |
+| $\utilde{M}$ | — | `\utilde{}` / `\undertilde{}` | Regressive reverse of M (`rrev(M)` in code) |
+
+**Notes:**
+
+- **Markdown files** (`.md`): use `\utilde{}` — works natively in KaTeX (Markdown previewers) without a package import
+- **LaTeX documentation** (`ga_docu`): use `\undertilde{}` from the `accents` package (`\usepackage{accents}`)
+- For unit motors, `rev(M)` and `rrev(M)` coincide as group inverses, but the symbols and function names are kept distinct throughout this codebase
+- Motor composition uses ⟇: `M₁ ⟇ M₂` corresponds to `rgpr(M1, M2)` in code
+- The sandwich product for rigid motion uses $\utilde{M}$: $M ⟑ X ⟑ \utilde{M}$ corresponds to `move2dp(X, M)` / `move3dp(X, M)` in code
+
 ### Library Usage Patterns
 
 The library provides two main entry points:
@@ -453,7 +472,7 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 
 **PGA2DP - G(2,0,1)**: Projective 2D
 
-- Basis: `{1, e1, e2, e3, e23, e31, e12, e321}`
+- Basis: `{1, e1, e2, e3, e31, e32, e12, e321}`
 - Metric: `{+1, +1, 0}`
 - Extended Metric: `{1, 1, 1, 0, 0, 0, 1, 0}`
 

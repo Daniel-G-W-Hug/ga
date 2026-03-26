@@ -71,7 +71,7 @@ struct algebra {
         // pga2dp:  algebra<2,0,1>
         if constexpr (dim_space() == 3 && (p() == 2 && n() == 0 && z() == 1)) {
             return {"    1", "   e1", "   e2", "   e3",
-                    "  e23", "  e31", "  e12", " e321"};
+                    "  e31", "  e32", "  e12", " e321"};
         }
         //
         // pga3dp:  algebra<3,0,1>
