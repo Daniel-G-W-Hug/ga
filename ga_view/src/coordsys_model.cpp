@@ -159,6 +159,13 @@
     return aode_plate.size() - 1;
 }
 
+[[maybe_unused]] size_t Coordsys_model::add_aframe_trafo(aframe_trafo const& aft_in)
+{
+    aft.push_back(aft_in);
+
+    return aft.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -189,6 +196,7 @@ void Coordsys_model::clear()
     akinemp.clear();
     aode.clear();
     aode_plate.clear();
+    aft.clear();
 
     m_label.clear();
 }

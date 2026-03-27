@@ -351,3 +351,104 @@ to those cases without reformulation.
 `Vec2dp` (grade 1) and the pivot $Q_b$ is a point (grade 1); in PGA3DP the velocity is a
 `BiVec3dp` (grade 2) and the pivot $L_b$ is a line (grade 2). The constraint
 $\Omega_b \propto \text{pivot}$ is grade-consistent in both cases.
+
+---
+
+## Addendum: Lie Algebra vs. Lie Group — Independent Generators, Coupled Finite Displacements
+
+### The Two Levels
+
+The motion generator $\boldsymbol{\Omega}_b$ lives in the **Lie algebra** $\mathfrak{se}(2)$
+(2D) or $\mathfrak{se}(3)$ (3D) — the tangent space to the identity of the motor group.
+The motor $M$ itself lives in the **Lie group** $SE(2)$ or $SE(3)$. These two levels have
+fundamentally different structure.
+
+### PGA2DP: Independent at Velocity Level
+
+The Lie algebra $\mathfrak{se}(2)$ is three-dimensional with basis generators:
+
+| Generator | `vec2dp` encoding | Effect |
+|---|---|---|
+| Translation in $x$ | `{0, 1, 0}` | body drifts in $+x$ |
+| Translation in $y$ | `{-1, 0, 0}` | body drifts in $+y$ |
+| Rotation about origin | `{0, 0, 1}` | body spins about world origin |
+
+A general instantaneous velocity $\boldsymbol{\Omega}_b = \{-v_y,\; v_x,\; \omega\}$
+means **simultaneously**: translate at $(v_x, v_y)$ **and** rotate at $\omega$ — with
+**no coupling** between the three components. Integrating velocity over an infinitesimal
+step $dt$ gives:
+
+$$B_b \leftarrow B_b + \boldsymbol{\Omega}_b \cdot dt$$
+
+All three components of $B_b$ accumulate independently.
+
+### The Coupling Enters Through the Exponential Map (Chasles' Theorem, 2D)
+
+When computing a **finite** displacement via $M = \exp(\tfrac{1}{2} B_b)$, the structure
+of the 2D plane imposes a hard constraint:
+
+> **Chasles' theorem (2D):** Any rigid body displacement in 2D is either a pure
+> rotation about some center, or a pure translation. There is no screw motion.
+
+Consequently, for any $B_b$ with $B_b.z \neq 0$, the motor $\exp(\tfrac{1}{2} B_b)$
+is **always a pure rotation** — the translational components merely determine the
+rotation center:
+
+$$\text{pivot} = \left(\frac{B_b.x}{B_b.z},\; \frac{B_b.y}{B_b.z}\right)$$
+
+The "translation" encoded in $B_b.x$ and $B_b.y$ does not produce an independent
+translational displacement; it shifts the rotation center away from the world origin.
+
+**At the velocity (Lie algebra) level the components are independent.
+At the displacement (Lie group) level they are not.**
+
+### PGA3DP: True Screw Motion
+
+In 3D, the Lie algebra $\mathfrak{se}(3)$ is six-dimensional: three for rotation axis
+direction, three for translation velocity. The Chasles theorem for 3D states:
+
+> Any rigid body displacement in 3D is a **screw motion**: rotation about an axis
+> combined with a translation **along** that same axis (helical motion).
+
+Exponentiating a combined 3D generator therefore yields a genuine screw — rotation and
+translation are simultaneously present in the finite displacement. The rotation axis
+direction and the translational pitch are independently adjustable because there exists a
+direction (along the axis) that is geometrically orthogonal to the plane of rotation.
+
+In 2D no such direction exists (the axis is perpendicular to the entire plane), so
+simultaneous rotation and translation always collapse to rotation about a different center.
+
+### Summary: 2D vs. 3D Behaviour of the Exponential Map
+
+| | PGA2DP | PGA3DP |
+|---|---|---|
+| Lie algebra dimension | 3 | 6 |
+| Velocity components | $(-v_y, v_x, \omega)$ — independent | $(v_x,v_y,v_z,\omega_x,\omega_y,\omega_z)$ — independent |
+| $\exp(B)$ with rotation+translation | Pure rotation about shifted center | Screw motion (rotation + translation along axis) |
+| Finite pivot / screw axis | Point $(B.x/B.z,\; B.y/B.z)$ | Line (Plücker coordinates of screw axis) |
+| "Translation" in combined $B$ | Shifts rotation center | Contributes independent pitch along axis |
+
+### Practical Consequence for the Accumulated Generator $B_b$
+
+The displayed $B_b$ (and $B_w$) are accumulated Lie algebra elements — their components
+are additive and independent **as generators**. The pivot decoded from $B_b$ as
+$(B_b.x/B_b.z,\; B_b.y/B_b.z)$ is meaningful as the instantaneous rotation center of
+the **finite** displacement $\exp(\tfrac{1}{2} B_b)$, not of the instantaneous velocity
+$\boldsymbol{\Omega}_b$.
+
+When $B_b = B_{b,0} + t \cdot \boldsymbol{\Omega}_b$ (uniform motion from initial
+condition $B_{b,0}$):
+
+- If $B_{b,0} = \mathbf{0}$: the decoded pivot equals the body-frame pivot of
+  $\boldsymbol{\Omega}_b$ for all $t$, i.e. $(B_b.x/B_b.z, B_b.y/B_b.z) =
+  (\Omega_b.x/\Omega_b.z, \Omega_b.y/\Omega_b.z) = Q_b$ — constant and
+  geometrically meaningful.
+
+- If $B_{b,0} \neq \mathbf{0}$ with $B_{b,0}.z = 0$ (a translational initial offset):
+  the decoded pivot starts at infinity (pure translation at $t=0$) and converges
+  asymptotically to $Q_b$ as $t \to \infty$. This makes the decoded pivot hard to
+  interpret and should be avoided in visualizations intended to explain the encoding.
+
+**Design rule for kinematic visualizations:** use $B_{b,0} = \mathbf{0}$ (body starts
+at the $M_0$ reference pose) so that the accumulated generator retains a clean geometric
+meaning throughout the animation.

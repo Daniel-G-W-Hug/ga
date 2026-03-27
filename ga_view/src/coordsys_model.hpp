@@ -193,6 +193,61 @@ struct aode_plate_pga2dp {
     plate_params params;
 };
 
+// Kinematic case selector for body-frame / world-frame transformation demo
+enum class kin_case_t { Translation, Rotation, Combined };
+
+// Parameters for the body-frame / world-frame transformation visualization.
+// One item per sub-scene (M0=identity upper half, M0 != identity lower half).
+struct frame_trafo_params {
+    kin_case_t kin_case{kin_case_t::Translation};
+    bool       m0_is_identity{true}; // informational only (for legend text)
+
+    // M0: initial motor mapping body frame to world frame at t=0.
+    // Identity: exp(0.5 * vec2dp{0,0,0}) = ps.
+    // Translation to (tx,ty): exp(0.5 * vec2dp{-ty, tx, 0}).
+    mvec2dp_u M0;
+
+    // Initial B_b accumulator at t=0 (pre-positions body; B_w always starts at 0).
+    // Translation to (tx,ty) from body-frame origin: vec2dp{-ty, tx, 0}.
+    vec2dp B_b_init{0.0, 0.0, 0.0};
+
+    // Constant velocity generator in body frame (Omega_b).
+    // Translation vx=1, vy=0: vec2dp{0, 1, 0}.
+    // Rotation omega about Q_b: omega * Q_b.
+    vec2dp Omega_b{0.0, 0.0, 0.0};
+
+    // Animation duration [s] — animation loops at end.
+    double duration{6.0};
+
+    // World frame W marker position in world coordinates (fixed reference axes).
+    double wx{0.0}, wy{0.0};
+
+    // If false, skip drawing the W marker and axes (use for sub-scenes sharing
+    // one world frame — only the first sub-scene should draw it).
+    bool draw_world_frame{true};
+    bool draw_gen_vectors{false}; // Ω_b / Ω_w overlay arrows (off by default)
+
+    // Text overlay anchor y-coordinate in world coordinates.
+    // If left at the sentinel value (−999.0) the overlay defaults to wy + 0.25.
+    double text_wy{-999.0};
+
+    // World-frame-drive mode: M(t) = T(O(t)) ⟇ R(cm_omega*t)
+    // where O(t) = (cm_ox + cm_vx*t, cm_oy + cm_vy*t).
+    // When true, Omega_b is ignored for M(t); B_b/B_w are Euler-integrated
+    // observations from the time-varying body/world generators.
+    bool   world_frame_drive{false};
+    double cm_ox{0.0};    // initial CM x (world frame)
+    double cm_oy{0.0};    // initial CM y (world frame)
+    double cm_vx{0.0};    // CM velocity x (world frame)
+    double cm_vy{0.0};    // CM velocity y (world frame)
+    double cm_omega{0.0}; // spin rate about CM (rad/s, CCW positive)
+};
+
+// Active item: body-frame / world-frame transformation demo (no active points)
+struct aframe_trafo {
+    frame_trafo_params params;
+};
+
 // One row in the key-binding table of a legend
 struct key_legend_entry {
     std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
@@ -276,6 +331,9 @@ class Coordsys_model {
     // add active plate pendulum ODE system
     [[maybe_unused]] size_t add_aode_plate(aode_plate_pga2dp const& aode_plate_in);
 
+    // add body-frame / world-frame transformation demo item
+    [[maybe_unused]] size_t add_aframe_trafo(aframe_trafo const& aft_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -335,6 +393,9 @@ class Coordsys_model {
 
     // data for active plate pendulum ODE systems
     std::vector<aode_plate_pga2dp> aode_plate;
+
+    // data for body-frame / world-frame transformation demo items
+    std::vector<aframe_trafo> aft;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};

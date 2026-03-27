@@ -15,6 +15,7 @@ using namespace hd::ga::pga;
 
 #include "active_bivt2d.hpp"
 #include "active_bivt2dp.hpp"
+#include "active_frame_trafo.hpp"
 #include "active_kinematics2dp.hpp"
 #include "active_ode.hpp"
 #include "active_ode_plate.hpp"
@@ -995,7 +996,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
                       "hover) by dragging.";
         leg.entries = {{"A:", "move 1st line"},
                        {"S:", "move 2nd line"},
-                       {"D:", "rotate both lines\(only for intersecting lines)"}};
+                       {"D:", "rotate both lines\n(only for intersecting lines)"}};
         // Defaults (no need to set explicitly, shown here for reference):
         //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
         //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
@@ -1565,10 +1566,359 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(plate_system);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // body-frame / world-frame transformation demo items (PGA2D kinematics)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->aft.size(); ++idx) {
+        active_frame_trafo* ft = new active_frame_trafo(cs, wcs, cm->aft[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, ft,
+                         &active_frame_trafo::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, ft,
+                         &active_frame_trafo::togglePause);
+        scene->addItem(ft);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
 
+
+// ---------------------------------------------------------------------------
+// Body-frame / world-frame transformation scenes (3 kinematic cases)
+// ---------------------------------------------------------------------------
+//
+// Each Coordsys_model holds two active_frame_trafo items that animate in
+// parallel: the UPPER item uses M0 = identity, the LOWER item uses M0 ≠ id.
+// The user can observe B_b, B_w, and M simultaneously for both sub-cases.
+//
+// PGA2D encoding conventions used here:
+//   Translation to (tx, ty):  B = vec2dp{-ty, tx, 0}
+//   Motor:                    M = exp(0.5 * B)
+//   Velocity generator:       Omega_b = (-vy, vx, 0) for translation vx,vy
+//                             Omega_b = omega * Q_b   for rotation about Q_b
+// ---------------------------------------------------------------------------
+
+std::vector<Coordsys_model> get_frame_trafo_scenes()
+{
+    std::vector<Coordsys_model> vm;
+
+    // Identity motor (reused as M0 for all "M0=id" items)
+    mvec2dp_u const M0_id = exp(0.5 * vec2dp{0.0, 0.0, 0.0});
+
+    // Helper lambda: motor for pure translation to world position (tx, ty)
+    auto make_M0_trans = [](double tx, double ty) -> mvec2dp_u {
+        return exp(0.5 * vec2dp{-ty, tx, 0.0});
+    };
+
+    // -----------------------------------------------------------------------
+    // Scene 1: Pure translation
+    //   Omega_b = (0, 1, 0)  =>  vx = 1 unit/s, vy = 0
+    //   6 s animation: body slides 6 units in +x direction.
+    //   Key insight: B_w = B_b always for translation, regardless of M0.
+    // -----------------------------------------------------------------------
+    {
+        Coordsys_model cm;
+
+        // Upper half – M0 = identity; W frame at world origin (shared reference).
+        // Body slides through y=0: at t=3 s it passes exactly through the W origin,
+        // making M0=id self-evident. B_b_init=(0,-3,0) → body starts at (-3, 0).
+        {
+            frame_trafo_params p;
+            p.kin_case = kin_case_t::Translation;
+            p.m0_is_identity = true;
+            p.M0 = M0_id;
+            p.B_b_init = vec2dp{0.0, -3.0, 0.0}; // body starts at (-3, 0)
+            p.Omega_b = vec2dp{0.0, 1.0, 0.0};   // vx = 1 unit/s
+            p.duration = 6.0;
+            p.wx = 0.0;
+            p.wy = 0.0; // W marker at world origin
+            p.draw_world_frame = true;
+            p.text_wy = 1.10; // text 1.1 unit above animation lane (y=0)
+            cm.add_aframe_trafo({p});
+        }
+
+        // Lower half – M0 = translation to (0, −2); body slides through y=−2.
+        // At t=3 s body passes through the orange M₀·O home marker at (0,−2),
+        // making the M0 offset immediately visible against the upper lane.
+        {
+            frame_trafo_params p;
+            p.kin_case = kin_case_t::Translation;
+            p.m0_is_identity = false;
+            p.M0 = make_M0_trans(0.0, -2.0);     // body home at (0,-2)
+            p.B_b_init = vec2dp{0.0, -3.0, 0.0}; // body starts at (-3,-2)
+            p.Omega_b = vec2dp{0.0, 1.0, 0.0};   // vx = 1 unit/s
+            p.duration = 6.0;
+            p.wx = 0.0;
+            p.wy = -2.0;
+            p.draw_world_frame = false; // share the single W at origin
+            p.text_wy = -0.9;           // 1.1 unit above lower animation lane (y=-2)
+            cm.add_aframe_trafo({p});
+        }
+
+        cm.set_label("Frame transformation: pure translation");
+
+        diagram_legend leg;
+        leg.heading = "PGA2D: body-frame / world-frame  (pure translation)";
+        leg.entries = {{"SPACE:", "pause / resume animation"},
+                       {"R:", "reset animation to t=0"},
+                       {"─────", "──────────────────────"},
+                       {"red/grn (solid):", "world frame W (fixed)"},
+                       {"drk-red/grn (dash):", "body frame B (animated)"},
+                       {"orange (dot):", "M\u2080\u00B7O \u2014 body home at B_b=0"},
+                       {"blue:", "B_b  \u2014 body-frame generator"},
+                       {"magenta:", "B_w  \u2014 world-frame generator"},
+                       {"─────", "──────────────────────"},
+                       {"Key insight:", "B_w = B_b for pure translation"},
+                       {"", "translation velocity is frame-indep."}};
+        leg.size_pct = 0.36;
+        leg.x_pct = 0.62; // upper-right corner (1.0 - size_pct - 0.02)
+        leg.y_pct = 0.02;
+        cm.set_legend(leg);
+
+        vm.push_back(cm);
+    }
+
+    // -----------------------------------------------------------------------
+    // Scene 2: Pure rotation
+    //   Q_b = (0.8, 0, 1)  (pivot in body frame, distance 0.8 from body origin)
+    //   omega = pi rad/s  =>  3 full rotations in 6 s
+    //   Omega_b = omega * Q_b = (0.8*pi, 0, pi)
+    //   Key insight: B_b.z = B_w.z always (rotation angle is frame-independent);
+    //                B_b.xy ≠ B_w.xy when M0 ≠ id (pivot encodes differently).
+    // -----------------------------------------------------------------------
+    {
+        Coordsys_model cm;
+
+        double const omega = M_PI;          // rad/s
+        vec2dp const Q_b{0.8, 0.0, 1.0};    // pivot in body frame
+        vec2dp const Omega_b = omega * Q_b; // = (0.8π, 0, π)
+
+        // Upper half – M0 = identity, body at (0,0), pivot world at (0.8, 0)
+        {
+            frame_trafo_params p;
+            p.kin_case = kin_case_t::Rotation;
+            p.m0_is_identity = true;
+            p.M0 = M0_id;
+            p.B_b_init = vec2dp{0.0, 0.0, 0.0}; // body at world origin
+            p.Omega_b = Omega_b;
+            p.duration = 6.0;
+            p.wx = 0.0;
+            p.wy = 0.0; // W at world origin
+            p.draw_world_frame = true;
+            p.text_wy = 1.10;
+            cm.add_aframe_trafo({p});
+        }
+
+        // Lower half – M0 = translation to (0, -2), pivot world at (0.8, -2)
+        // Consistent with Scene 1: lower lane 2 units below upper.
+        {
+            frame_trafo_params p;
+            p.kin_case = kin_case_t::Rotation;
+            p.m0_is_identity = false;
+            p.M0 = make_M0_trans(0.0, -2.0);
+            p.B_b_init = vec2dp{0.0, 0.0, 0.0}; // body at M0 = (0,-2)
+            p.Omega_b = Omega_b;
+            p.duration = 6.0;
+            p.wx = 0.0;
+            p.wy = -2.0;
+            p.draw_world_frame = false; // share single W at world origin
+            p.text_wy = -0.90;
+            cm.add_aframe_trafo({p});
+        }
+
+        cm.set_label("Frame transformation: pure rotation");
+
+        diagram_legend leg;
+        leg.heading = "PGA2D: body-frame / world-frame  (pure rotation)";
+        leg.entries = {{"SPACE:", "pause / resume animation"},
+                       {"R:", "reset animation to t=0"},
+                       {"─────", "──────────────────────"},
+                       {"red/grn (solid):", "world frame W (fixed)"},
+                       {"drk-red/grn (dash):", "body frame B (animated)"},
+                       {"orange (dot):", "M\u2080\u00B7O \u2014 body home at B_b=0"},
+                       {"blue:", "B_b  \u2014 body-frame generator"},
+                       {"magenta:", "B_w  \u2014 world-frame generator"},
+                       {"─────", "──────────────────────"},
+                       {"Key insight:", "B_b.z = B_w.z always"},
+                       {"", "(rotation angle: frame-indep.)"},
+                       {"", "B_b.xy \u2260 B_w.xy when M0\u2260id"},
+                       {"", "(pivot encodes differently)"}};
+        leg.size_pct = 0.36;
+        leg.x_pct = 0.62;
+        leg.y_pct = 0.02;
+        cm.set_legend(leg);
+
+        vm.push_back(cm);
+    }
+
+    // -----------------------------------------------------------------------
+    // Scene 3: Same Omega_b as Scene 2 (pure rotation, Q_b, omega).
+    // Upper: M0 = identity  (reference — identical to Scene 2 upper).
+    // Lower: M0 = translation(0,-2) composed with rotation(π/4).
+    //   → body home at (0,-2), body frame oriented at 45° to world frame.
+    //
+    // This isolates the effect of a *combined* M0 on the world-frame generator:
+    //   Scene 2 lower: M0 = translation only  → pivot_w shifted but not rotated
+    //   Scene 3 lower: M0 = trans + rot       → pivot_w rotated AND shifted
+    //                                            ⇒ all B_w components differ from B_b
+    // -----------------------------------------------------------------------
+    {
+        Coordsys_model cm;
+
+        // Same dynamics as Scene 2 — only M0 differs
+        double const omega = M_PI;
+        vec2dp const Q_b{0.8, 0.0, 1.0};
+        vec2dp const Omega_b = omega * Q_b;
+
+        auto make_M0_rot = [](double phi) -> mvec2dp_u {
+            return exp(0.5 * vec2dp{0.0, 0.0, phi});
+        };
+
+        // Upper half – M0 = identity (reference)
+        {
+            frame_trafo_params p;
+            p.kin_case = kin_case_t::Combined;
+            p.m0_is_identity = true;
+            p.M0 = M0_id;
+            p.B_b_init = vec2dp{0.0, 0.0, 0.0};
+            p.Omega_b = Omega_b;
+            p.duration = 6.0;
+            p.wx = 0.0;
+            p.wy = 0.0;
+            p.draw_world_frame = true;
+            p.text_wy = 1.10;
+            cm.add_aframe_trafo({p});
+        }
+
+        // Lower half – M0 = translation(0,-2) ⟇ rotation(π/4)
+        //   body home at (0,-2), body frame at 45° to world frame
+        {
+            frame_trafo_params p;
+            p.kin_case = kin_case_t::Combined;
+            p.m0_is_identity = false;
+            p.M0 = rgpr(make_M0_trans(0.0, -2.0), make_M0_rot(M_PI / 4.0));
+            p.B_b_init = vec2dp{0.0, 0.0, 0.0};
+            p.Omega_b = Omega_b;
+            p.duration = 6.0;
+            p.wx = 0.0;
+            p.wy = -2.0;
+            p.draw_world_frame = false;
+            p.text_wy = -0.90;
+            cm.add_aframe_trafo({p});
+        }
+
+        cm.set_label("Frame transformation: M0 = translation + rotation");
+
+        diagram_legend leg;
+        leg.heading = "PGA2D: body-frame / world-frame  (M0 combined)";
+        leg.entries = {{"SPACE:", "pause / resume animation"},
+                       {"R:", "reset animation to t=0"},
+                       {"─────", "──────────────────────"},
+                       {"red/grn (solid):", "world frame W (fixed)"},
+                       {"drk-red/grn (dash):", "body frame B (animated)"},
+                       {"orange (dot):", "M\u2080\u00B7O \u2014 body home at B_b=0"},
+                       {"blue:", "B_b  \u2014 body-frame generator"},
+                       {"magenta:", "B_w  \u2014 world-frame generator"},
+                       {"─────", "──────────────────────"},
+                       {"Key insight:", "M\u2080 encodes rot+trans:"},
+                       {"", "pivot_w = R(\u03C6\u2080)\u00B7Q_b + t\u2080"},
+                       {"", "\u21d2 pivot_b \u2260 pivot_w (rotated+shifted)"}};
+        leg.size_pct = 0.36;
+        leg.x_pct = 0.62;
+        leg.y_pct = 0.02;
+        cm.set_legend(leg);
+
+        vm.push_back(cm);
+    }
+
+    // -----------------------------------------------------------------------
+    // Scene 4: World-frame-driven motion — straight-line CM + spin
+    //   Upper: pure translation  (-3, +1.5) → (+3, +1.5), vx=1, vy=0
+    //   Lower: same translation  (-3, -1.5) → (+3, -1.5) + 2 full rotations
+    //          M(t) = T(O(t)) ⟇ R(ω·t)  — analytical, exact straight-line path
+    //
+    //   Both M0=id.  W marker at world origin (between the two tracks).
+    //   Key insight: with constant Omega_w (not Omega_b), the CM moves in a
+    //                straight line; body-frame velocity Omega_b(t) varies in time.
+    // -----------------------------------------------------------------------
+    {
+        Coordsys_model cm;
+
+        double const vx_wf = 1.0;               // CM velocity x (world)
+        double const vy_wf = 0.0;               // CM velocity y (world)
+        double const omega4 = 4.0 * M_PI / 6.0; // 2 full rotations in 6 s
+
+        // Upper half – pure horizontal translation at y = +1.5
+        {
+            frame_trafo_params p;
+            p.kin_case = kin_case_t::Translation;
+            p.m0_is_identity = false;
+            p.M0 = make_M0_trans(-3.0, 1.0);
+            // B_b_init: body starts at (-3, +1)  →  tx=-3, ty=1  →  B={-1,-3,0}
+            p.B_b_init = vec2dp{0.0, 0.0, 0.0};
+            p.Omega_b = vec2dp{0.0, 1.0, 0.0}; // vx=1, vy=0
+            p.duration = 6.0;
+            p.wx = 0.0;
+            p.wy = 0.0; // W marker at world origin
+            p.draw_world_frame = true;
+            p.cm_ox = -3.0;
+            p.cm_oy = -1.5;
+            p.text_wy = 2.30; // top-left text area
+            cm.add_aframe_trafo({p});
+        }
+
+        // Lower half – translation + 2 full spins at y = −1.5, world-frame driven
+        {
+            frame_trafo_params p;
+            p.kin_case = kin_case_t::Combined;
+            p.m0_is_identity = true;
+            p.M0 = M0_id;
+            // B_b_init initial display value: matches body at (-3, -1.5)
+            p.B_b_init = vec2dp{1.5, -3.0, 0.0};
+            p.Omega_b = vec2dp{0.0, 0.0, 0.0}; // unused when world_frame_drive
+            p.duration = 6.0;
+            p.wx = 0.0;
+            p.wy = 0.0;
+            p.draw_world_frame = false;
+            p.world_frame_drive = true;
+            p.cm_ox = -3.0;
+            p.cm_oy = -1.5;
+            p.cm_vx = vx_wf;
+            p.cm_vy = vy_wf;
+            p.cm_omega = omega4;
+            p.text_wy = 0.50; // between tracks, text extends downward
+            cm.add_aframe_trafo({p});
+        }
+
+        cm.set_label("Frame transformation: world-frame driven (screw)");
+
+        diagram_legend leg;
+        leg.heading = "PGA2D: world-frame driven  (straight path + spin)";
+        leg.entries = {{"SPACE:", "pause / resume animation"},
+                       {"R:", "reset animation to t=0"},
+                       {"─────", "──────────────────────"},
+                       {"upper:", "pure translation  (Omega_b = const)"},
+                       {"lower:", "translation + 2 spins"},
+                       {"", "M(t)=T(O(t))\u27C7R(\u03C9t),  exact straight path"},
+                       {"─────", "──────────────────────"},
+                       {"red/grn (solid):", "world frame W (fixed)"},
+                       {"drk-red/grn (dash):", "body frame B (animated)"},
+                       {"orange (dot):", "home position at t=0"},
+                       {"blue:", "B_b  \u2014 body-frame generator"},
+                       {"magenta:", "B_w  \u2014 world-frame generator"},
+                       {"─────", "──────────────────────"},
+                       {"Key insight:", "const Omega_w \u21d2 straight CM path;"},
+                       {"", "Omega_b(t) varies with body angle"}};
+        leg.size_pct = 0.40;
+        leg.x_pct = 0.59;
+        leg.y_pct = 0.02;
+        cm.set_legend(leg);
+
+        vm.push_back(cm);
+    }
+
+    return vm;
+}
 
 Coordsys* get_initial_cs()
 {
@@ -1596,6 +1946,13 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
 {
     models = get_model_with_lots_of_stuff();
     // models = get_moving_line();
+
+    // Append body-frame / world-frame transformation scenes
+    {
+        auto ft_scenes = get_frame_trafo_scenes();
+        for (auto& s : ft_scenes)
+            models.push_back(std::move(s));
+    }
     for (size_t i = 0; i < models.size(); ++i) {
         vm.push_back(&models[i]);
         // fmt::println("Model: {}, Label: {}", i, vm[i]->label());
@@ -1669,7 +2026,7 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
     emit wcs->scalingChanged(cs->x.scaling(), cs->y.scaling());
 
     // update status bar with maximum model number
-    emit updateMaximumModel(int(vm.size() - 1));
+    emit updateMaximumModel(vm.size() - 1);
 
     // start with the first model
     changeModel(size_t(0));

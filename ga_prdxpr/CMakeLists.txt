@@ -139,6 +139,9 @@ target_compile_definitions(${EXEC2_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MD
 target_compile_definitions(${EXEC3_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_CXX_STANDARD=23)
 target_compile_definitions(${EXEC4_NAME} PUBLIC MDSPAN_USE_BRACKET_OPERATOR=1 MDSPAN_CXX_STANDARD=23)
 
+# Suppress -Wc2y-extensions triggered by __COUNTER__ in doctest macros (third-party header)
+target_compile_options(${EXEC3_NAME} PRIVATE $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
+
 # Compiler-specific options
 if(MSVC)
     target_compile_options(${EXEC_NAME} PRIVATE /bigobj)
