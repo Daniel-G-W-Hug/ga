@@ -991,6 +991,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(abs(v.c6) < eps);
         CHECK(abs(v.c7) < eps);
     }
+
     TEST_CASE("MVec3d: with curly braced intializer")
     {
         fmt::println("MVec3d: with curly braced intializer");
@@ -1822,7 +1823,6 @@ TEST_SUITE("EGA 3D Tests")
         // fmt::println("");
     }
 
-
     TEST_CASE("MVec3d: geometric product tests - equivalence tests")
     {
         fmt::println("MVec3d: geometric product tests - equivalence tests");
@@ -2136,7 +2136,8 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(std::abs(rot_c_opt.y - rot_c.y) < eps * nrm(rot_c));
         CHECK(std::abs(rot_c_opt.z - rot_c.z) < eps * nrm(rot_c));
         // using I_3d approach:
-        auto const rot_x_I = rotate(vec3d{1.0, 0.0, 0.0}, get_rotor(e3_3d * I_3d, pi / 4));
+        auto const rot_x_I =
+            rotate(vec3d{1.0, 0.0, 0.0}, get_rotor(e3_3d * I_3d, pi / 4));
         auto const ref_xy = normalize(vec3d{1.0, 1.0, 0.0});
         CHECK(std::abs(rot_x_I.x - ref_xy.x) < eps * nrm(ref_xy));
         CHECK(std::abs(rot_x_I.y - ref_xy.y) < eps * nrm(ref_xy));
@@ -2880,7 +2881,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(dual(dual(M_e)) == M_e);
         CHECK(dual(dual(M)) == M);
 
-        fmt::println("  ✓ dual involution: dual(dual(u)) = +u for odd-dimensional");
+        fmt::println("dual involution: dual(dual(u)) = +u for odd-dimensional");
     }
 
     TEST_CASE("G<3,0,0>: complement involution properties")
@@ -2903,7 +2904,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(cmpl(cmpl(M_e)) == M_e);
         CHECK(cmpl(cmpl(M)) == M);
 
-        fmt::println("  ✓ complement involution: cmpl(cmpl(u)) = +u for odd-dimensional");
+        fmt::println("complement involution: cmpl(cmpl(u)) = +u for odd-dimensional");
     }
 
     TEST_CASE("G<3,0,0>: complement-dual relationship")
@@ -2927,7 +2928,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(dual(M_e) == cmpl(M_e));
         CHECK(dual(M) == cmpl(M));
 
-        fmt::println("  ✓ dual = complement for Euclidean algebras with identity metric");
+        fmt::println("dual = complement for Euclidean algebras with identity metric");
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -2977,9 +2978,8 @@ TEST_SUITE("EGA 3D Tests")
             }
         }
 
-        fmt::println("  ✓ All extended metric values correct for EGA3D");
-        fmt::println(
-            "  ✓ Conforming property: G(eᵢ ∧ eⱼ) = G(eᵢ) · G(eⱼ) = (+1)·(+1) = +1");
+        fmt::println("All extended metric values correct for EGA3D");
+        fmt::println("Conforming property: G(eᵢ ∧ eⱼ) = G(eᵢ) · G(eⱼ) = (+1)·(+1) = +1");
     }
 
     TEST_CASE("G<3,0,0>: extended metric recursive extraction via wedge products")
@@ -3024,7 +3024,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(abs(g_e123 - value_t(G[7, 7])) < eps);
         CHECK(e123_constructed == I_3d);
 
-        fmt::println("  ✓ Recursive extraction: scalar → vectors → bivectors → trivector "
+        fmt::println("Recursive extraction: scalar → vectors → bivectors → trivector "
                      "all match");
     }
 
@@ -3048,7 +3048,7 @@ TEST_SUITE("EGA 3D Tests")
         // Pseudoscalar
         CHECK(abs(value_t(dot(I_3d, I_3d)) - value_t(G[7, 7])) < eps);
 
-        fmt::println("  ✓ Dot products match extended metric diagonal");
+        fmt::println("Dot products match extended metric diagonal");
     }
 
     TEST_CASE("G<3,0,0>: exponential function R = exp(bivec)")

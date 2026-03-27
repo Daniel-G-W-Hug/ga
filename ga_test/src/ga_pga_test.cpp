@@ -1,6 +1,13 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+// WORKAROUND: doctest falls back to __LINE__ for Clang >= 22, causing symbol
+// collisions when multiple test headers share the same line number for TEST_CASE.
+// Remove this define once doctest fixes the DOCTEST_CLANG >= 22 branch in:
+//   /opt/homebrew/include/doctest/doctest.h, lines ~556-564
+// Verify by checking: if (DOCTEST_CLANG >= DOCTEST_COMPILER(22,0,0)) is gone or
+// uses __COUNTER__ again. Track at: https://github.com/doctest/doctest/issues
+#define DOCTEST_COUNTER __COUNTER__
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
 

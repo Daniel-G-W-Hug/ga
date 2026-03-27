@@ -109,3 +109,31 @@
            comparison; renamed support() to sup(); added LICENSE file; prepared ideas
            for direct C++ codegen by ga_prdxpr; adapted ga_view for active bivectors
            after basis change
+- 2026/02: introduced initial physics infrastructure for PGA: inertia map, inertia inverse,
+           Runge-Kutta integration (rk_integration) with EGA3D reference test cases;
+           added exp() and sqrt() for PGA with documentation and tests for the translation
+           case; added get_motor_from_lines() for PGA 3D; added rgr() (right geometric
+           reverse product) for PGA; refined PGA motor unitization; corrected reflection
+           formulas for PGA; bulk_nrm_sq() and weight_nrm_sq() now return plain scalar
+           values; added constexpr constructors and lv()/lm() helpers to bivec3dp;
+           reordered movexdp() and added support for moving a motor in pga2dp;
+           added bulk() and weight() to ga_lua for PGA; updated pga2dp output to new basis
+           vectors; silenced unused-variable compiler warnings
+- 2026/03: added exp() and sqrt() with corresponding tests for EGA; reworked and verified
+           optimized implementations of rotate(), move2dp() and move3dp(); extended physics
+           modelling with inertia for continuous mass distributions (flat plate 2D, cuboid
+           3D) including documentation; extended coupled Newton-Euler equations and
+           constrained motion documentation; implemented physics simulation for rigid body
+           case with verification tests; added coupling between GA dynamics and classical
+           dynamics equations in test cases; added combined rigid motion (translation and
+           rotation) for a plate in 2D; implemented ODE-based plate simulation
+           (active_plate_ode) in ga_view; added kinematics tests for 2D case; implemented
+           pga3dp physics test for cuboid; added active frame transformation visualization
+           to ga_view demonstrating body-frame (B_b) and world-frame (B_w) motion;
+           added diagram_legend to ga_view; introduced separate executables for 2dp and 3dp
+           application test cases; reordered ga_view test cases for better narrative flow;
+           corrected ga_algebra.hpp for pga2dp basis vector change; removed shadowing
+           warnings identified by cppcheck static analysis; switched selected tests from
+           absolute to relative accuracy; added VTK 3D visualization architecture analysis
+           and prep work; added GitHub repository setup guide for branch protection and
+           coworker workflow
