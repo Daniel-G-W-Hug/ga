@@ -52,7 +52,9 @@ set(SOURCES src/main.cpp
             src/active_reflectionp.cpp
             src/active_kinematics2dp.cpp
             src/active_ode.cpp
-            src/active_ode_plate.cpp)
+            src/active_ode_plate.cpp
+            src/active_frame_trafo.cpp
+            src/ga_view.qrc)
 
 add_executable(${EXEC_NAME} ${SOURCES} )
 

@@ -689,7 +689,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
 
                 // get current state
-                vec2dp B = u[0];     // position transformation B is in u[0]
+                [[maybe_unused]] vec2dp B = u[0]; // position transformation B is in u[0]
                 vec2dp Omega = u[1]; // velocity trafo d(B)/dt = Omega is in u[1]
 
                 // forces and torques to change linear and angular acceleration
@@ -765,7 +765,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             vec2dp cm_w_spd0; // initial speed of center of mass (.z == 0)
 
             // initial angular position of cm (body vs. world frame, e12 defines pos phi)
-            value_t cm_w_phi0;
+            [[maybe_unused]] value_t cm_w_phi0;
 
             // initial angular velocity of cm (body vs. world frame)
             value_t cm_w_omega0;
@@ -1093,7 +1093,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 auto rhs = mdspan<vec2dp, dextents<size_t, 1>>(rhs_mem.data(), 2);
 
                 // get current state
-                vec2dp B = u[0];     // position transformation B is in u[n,0]
+                [[maybe_unused]] vec2dp B = u[0]; // position transformation B is in u[n,0]
                 vec2dp Omega = u[1]; // velocity trafo d(B)/dt = Omega is in u[n,1]
 
                 // forces and torques to change linear and angular acceleration
@@ -1171,7 +1171,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             vec2dp cm_w_spd0; // initial speed of center of mass (.z == 0)
 
             // initial angular position of cm (body vs. world frame, e12 defines pos phi)
-            value_t cm_w_phi0;
+            [[maybe_unused]] value_t cm_w_phi0;
 
             // initial angular velocity of cm (body vs. world frame)
             value_t cm_w_omega0;
@@ -1251,9 +1251,9 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     ///////////////////////////////////////////////////////////////////////
 
     // Helper: print one time-step for kinematic cases
-    auto print_kine_step = [](double t, mvec2dp_u const& M0, vec2dp const& B_b,
-                              vec2dp const& B_w, mvec2dp_u const& M, vec2dp const& P_b,
-                              vec2dp const& P_w, vec2dp const& Q_b,
+    auto print_kine_step = [](double t, mvec2dp_u const& /*M0*/, vec2dp const& B_b,
+                              vec2dp const& B_w, mvec2dp_u const& /*M*/, vec2dp const& P_b,
+                              vec2dp const& P_w, vec2dp const& /*Q_b*/,
                               vec2dp const& Q_w_check) {
         fmt::println("  t={:>6.3f}: B_b=({:>7.3f},{:>7.3f},{:>7.3f})"
                      " B_w=({:>7.3f},{:>7.3f},{:>7.3f})"
@@ -1361,7 +1361,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             vec2dp B_b{0.0, 0.0, 0.0};
             vec2dp B_w{0.0, 0.0, 0.0};
             // pivot world position (should stay fixed)
-            vec2dp const Q_world_expected = move2dp(Q_b, M0);
+            [[maybe_unused]] vec2dp const Q_world_expected = move2dp(Q_b, M0);
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
@@ -1464,7 +1464,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
             double const phi0 = M_PI / 4.0;
             vec2dp B_b = phi0 * Q_b; // initial B_b: phi0 rotation about body-frame Q_b
-            vec2dp B_w{0.0, 0.0, 0.0};
+            vec2dp B_w = phi0 * Q_b; // B_w starts equal to B_b (same reference pose)
 
             for (int i = 0; i <= N; ++i) {
                 double const t = i * dt;
