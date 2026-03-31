@@ -198,18 +198,7 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
         }
     }
 
-    // // 2. Draw e2 orientation markers along trajectory (every ORIENT_STEP points)
-    // constexpr size_t ORIENT_STEP = 10;
-    // constexpr double ORIENT_LEN = 0.08; // model coordinate units
-    // qp->setPen(QPen(QColor(80, 80, 180, 160), 1, Qt::SolidLine));
-    // for (size_t i = 0; i < m_trajectory.size(); i += ORIENT_STEP) {
-    //     TrajPoint const& tp = m_trajectory[i];
-    //     vec2dp const tip_w{tp.cm_w.x + tp.e2_w.x * ORIENT_LEN,
-    //                        tp.cm_w.y + tp.e2_w.y * ORIENT_LEN, 1.0};
-    //     qp->drawLine(toScreen(tp.cm_w), toScreen(tip_w));
-    // }
-
-    // 3. Draw semi-transparent filled plate polygon
+    // 2. Draw semi-transparent filled plate polygon
     QPolygonF plate_poly;
     for (QPointF const& p : corners_screen) {
         plate_poly << p;
@@ -218,7 +207,7 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
     qp->setBrush(QBrush(QColor(70, 130, 180, 80))); // steel blue, semi-transparent
     qp->drawPolygon(plate_poly);
 
-    // 4. Draw body-frame axes at cm
+    // 3. Draw body-frame axes at cm
     double const axis_len = std::min(m_params.w, m_params.h) * 0.35;
 
     // e1 axis: red arrow
@@ -234,7 +223,7 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
     qp->drawPath(arrowLine(cm_screen, toScreen(e2_tip_w)));
     qp->drawPath(arrowHead(cm_screen, toScreen(e2_tip_w)));
 
-    // 5. Draw cm marker (black cross)
+    // 4. Draw cm marker (black cross)
     constexpr double CM_MARK_PX = 5.0;
     qp->setPen(QPen(Qt::black, 2));
     qp->drawLine(cm_screen + QPointF(-CM_MARK_PX, 0.0),
@@ -242,21 +231,21 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
     qp->drawLine(cm_screen + QPointF(0.0, -CM_MARK_PX),
                  cm_screen + QPointF(0.0, CM_MARK_PX));
 
-    // 6. Draw pivot marker (white-filled circle)
+    // 5. Draw pivot marker (white-filled circle)
     QPointF const pivot_screen = toScreen(m_pivot_w);
     constexpr double PIVOT_RADIUS_PX = 5.0;
     qp->setPen(QPen(Qt::black, 2));
     qp->setBrush(QBrush(Qt::white));
     qp->drawEllipse(pivot_screen, PIVOT_RADIUS_PX, PIVOT_RADIUS_PX);
 
-    // 7. Draw forces at cm and pivot: static (gravity/reaction) and dynamic (centrifugal)
+    // 6. Draw forces at cm and pivot: static (gravity/reaction) and dynamic (centrifugal)
     constexpr double FORCE_SCALE = 0.06; // model units per Newton
     qp->setBrush(Qt::NoBrush);
 
-    QColor const col_grav{180, 0, 0};       // dark red:    gravity at cm (static)
-    QColor const col_react{0, 140, 60};     // forest green: static reaction at pivot
-    QColor const col_cf{230, 115, 0};       // orange:      centrifugal at cm (dynamic)
-    QColor const col_cf_react{60, 60, 200}; // medium blue: centrifugal reaction at pivot
+    QColor const col_grav{230, 115, 0};     // orange:   gravity at cm (static)
+    QColor const col_react{230, 115, 0};    // orange:   static reaction at pivot
+    QColor const col_cf{230, 115, 0};       // orange:   centrifugal at cm (dynamic)
+    QColor const col_cf_react{230, 115, 0}; // orange:   centrifugal reaction at pivot
 
     double const mg = m_params.m * m_params.g;
 
@@ -300,7 +289,7 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
         }
     }
 
-    // 7b. Torque visualization: semi-transparent circle around pivot, area ∝ |torque|,
+    // 6b. Torque visualization: semi-transparent circle around pivot, area ∝ |torque|,
     //     four tangential arrows at 3/6/9/12 o'clock indicating rotation direction.
     if (std::abs(m_torque_b) > 1e-4) {
         constexpr double TORQUE_AREA_SCALE = 0.05; // circle area per N·m [model units²]
@@ -310,8 +299,8 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
             std::abs(cs->x.au_to_w(m_pivot_w.x + r_model) - cs->x.au_to_w(m_pivot_w.x));
 
         // Color: teal for CCW (positive torque), orange for CW (negative torque)
-        QColor const torque_color =
-            (m_torque_b >= 0.0) ? QColor(0, 170, 130) : QColor(210, 90, 0);
+        QColor const torque_color = QColor(230, 115, 0);
+        // (m_torque_b >= 0.0) ? QColor(0, 170, 130) : QColor(210, 90, 0);
         QColor torque_fill = torque_color;
         torque_fill.setAlpha(35);
 
@@ -340,14 +329,14 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
             double const tx = sgn * c.tx;
             double const ty = sgn * c.ty;
             QPointF const arw_start =
-                toScreen(vec2dp{px - tx * arrow_half, py - ty * arrow_half, 1.0});
+                toScreen(vec2dp{px - tx * 2.0 * arrow_half, py - ty * 2.0 * arrow_half, 1.0});
             QPointF const arw_end =
-                toScreen(vec2dp{px + tx * arrow_half, py + ty * arrow_half, 1.0});
+                toScreen(vec2dp{px, py, 1.0});
             qp->drawPath(arrowHead(arw_start, arw_end));
         }
     }
 
-    // 8. Draw simulation time near pivot
+    // 7. Draw simulation time near pivot
     qp->setPen(QPen(Qt::darkBlue, 1));
     QFont mono_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     mono_font.setPointSize(9);
@@ -468,6 +457,10 @@ void active_ode_plate::resetSimulation()
     // Reset time and trajectory
     m_time = 0.0;
     m_trajectory.clear();
+
+    // Recompute RHS so cached visualization values (centrifugal force, torque)
+    // reflect the reset initial state rather than the last paused state.
+    calculateRHS();
 
     update();
 }

@@ -1,5 +1,8 @@
 \subsection{Basics of the mathematical approach}
-\label{subsection_basics}
+\label{subsection:basics}
+
+\subsubsection{Basis vectors for each modelled algebra}
+\label{subsection:basis_vectors_each_algebra}
 
 The following is provided for Euclidean geometric algebra of two-dimensional space
 ($EGA2D$) using an orthormal basis \bv{1}, \bv{2}:
@@ -219,7 +222,13 @@ respective algebra. For most applications it is sufficient to use a blade or $k$
 exclusively, which represents one grade of the multivector, e.g. a vector or a bivector.
 This reduces the effort in terms of memory and computational requirements significantly --
 typically reduced to a level that is required anyway to solve the underlying application
-problem. \\
+problem.
+
+
+\newpage
+
+\subsubsection{The complement}
+\label{subsection:complement}
 
 The complement operation used in the library is defined
 in~\cite{Lengyel_pga-illuminated:2024}. It is uniquely determined with respect to the
@@ -311,8 +320,8 @@ complements of~(\ref{eq:rwdg_std}) and~(\ref{eq:rwdg_alt}) we end up with
     \slabel{eq:intermediate_alt}
 \end{subeqnarray}
 Substituting $a = \lcmpl{u}$ and $b = \lcmpl{v}$ into~(\ref{eq:intermediate_std}) and $a =
-\rcmpl{u}$ and $b = \rcmpl{v}$ into~(\ref{eq:intermediate_alt}) and exchanging the left and
-right hand sides of the equations we end up with
+\rcmpl{u}$ and $b = \rcmpl{v}$ into~(\ref{eq:intermediate_alt}) and exchanging the left
+and right hand sides of the equations we end up with
 \begin{subeqnarray}
     % use \label for full label
     % use \slabel for sublabel
@@ -328,7 +337,13 @@ geometric algebra $PGA$. This is the main advantage compared to the usual proded
 dualization by multiplying the object with the pseudoscalar (or its inverse) using the
 geometric product, since the latter breaks down for spaces with degenerate metrics. For an
 overview on all complements in $PGA$ see tables \ref{tab:pga3dp_complement} and
-\ref{tab:pga2dp_complement} at the end of this section. \\
+\ref{tab:pga2dp_complement} at the end of this section.
+
+
+\newpage
+
+\subsubsection{The metric}
+\label{subsection:metric}
 
 The metric is defined by the dot product of the basis vectors as
 \begin{equation}
@@ -405,7 +420,13 @@ distinct parts, defined here as a dual number in the corresponding algebra. When
 unitization to geometric objects we devide the object in such a way that the magnitude of
 the weight norm becomes a value of one. Both, bulk and weight norms, have a positive
 argument under the square root due to the definition of the inner product and the
-regressive inner product.\\
+regressive inner product.
+
+
+\newpage
+
+\subsubsection{The dual}
+\label{subsection:dual}
 
 Using the metric and the right complement, the right bulk dual \rightbulkdual{A} is
 defined as
@@ -557,11 +578,10 @@ intersection of the plane with the horizon $H_{3dp} =\rcmpl{\bv{4}}$. It yields 
 $att(pl) = t_x \bv{23} + t_y \bv{31} + t_z \bv{12}$.\\
 
 The definition of a plane as given in eqn.~(\ref{eq:plane_def_pga3dp}) implies that the
-normal direction $n$ of the plane $pl$ can always simply be recovered from its trivector
-definition by applying the left weight dual to the plane, such that $n =
-\leftweightdual{pl}$. The left weight dual operation was introduced in
-eqn.~(\ref{eq:leftweightdual}). It can also be found in table
-\ref{tab:pga3dp_bulk_weight_duals}. \\
+normal direction $n$ of the plane $pl$ can be recovered from its trivector definition by
+applying the left weight dual to the plane, such that $n = \leftweightdual{pl}$. The left
+weight dual operation was introduced in eqn.~(\ref{eq:leftweightdual}). It can also be
+found in table \ref{tab:pga3dp_bulk_weight_duals}. \\
 
 The reverse is also true, i.e. if the plane normal $n$ is known, the trivector
 representing the plane can be directly found by applying the right bulk dual operation to
@@ -573,9 +593,15 @@ could now be given as coefficient $t_w$ to the bulk component \bv{312} in case t
 needs to be shifted parallel. \\
 
 As demonstrated, this enables quite a number of relevant geometric operations by applying
-rather simple operations to the modelled objects in $3D$ $PGA$. \\
+rather simple operations to the modelled objects in $3D$ $PGA$.
 
-Now let's move on in more detail to the geometric product. The multiplicative identity of
+
+\newpage
+
+\subsubsection{Geometric products}
+\label{subsection:geometric_products}
+
+Now let's move on in more detail to the geometric products. The multiplicative identity of
 the geometric product and the wedge product is the scalar basis element $\bm{1}$:
 \begin{subeqnarray}
     \bm{1} \wedgedot a = a \wedgedot \bm{1} = a
@@ -630,7 +656,7 @@ where $\wedgedot$ stands for the geometric product within the grade projection o
 \grprj{}{k} for grade $k$. \\
 \\
 
-Using the various used notations in literature, the contraction is defined as
+Using the various notations used in literature, the contraction is defined as
 \begin{subequations}
     \begin{align}
     A \lcontr B & = A \ll B = A_{\star} \vee B
@@ -719,7 +745,11 @@ write specifically for two vectors $a$ and $b$:
     a \wedgedot b =  a \cdot b + a \wedge b
 \end{equation}
 
+
 \newpage
+
+\subsubsection{Transwedge products}
+\label{subsection:transwedge_products}
 
 \cite{Lengyel_transwedge_product:2025} has shown that the geometric product can be derived
 by using operations from Grassmann algebra exclusively. These are the wedge product, the
