@@ -1316,12 +1316,12 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         // Plate is fixed at its top-right corner (pivot = user-draggable active point)
         // Gravity creates a torque that drives pendulum-like oscillation
         plate_params params;
-        // params.m = 10.0; // mass [kg]
-        // params.w = 4.0; // width [m]
-        // params.h         = 2.0;  // height [m]
-        // params.g         = 9.81; // gravity [m/s²]
-        // params.c         = 0.0;  // angular damping (set > 0 to add dissipation)
-        // params.phi_init   = 0.0; // initial tilt angle [rad]
+        // params.m = 10.0;         // mass [kg]
+        // params.w = 2.0;          // width [m]
+        // params.h = 2.0;          // height [m]
+        // params.g = 9.81;         // gravity [m/s²]
+        // params.c = 0.0;          // angular damping (set > 0 to add dissipation)
+        // params.phi_init = 0.0;   // initial tilt angle [rad]
         // params.omega_init = 0.0; // initial angular velocity [rad/s]
 
         // Pivot point (user-draggable, top-right corner of plate)
@@ -1342,11 +1342,11 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         leg.entries = {{"SPACE:", "stop/re-start integration"},
                        {"R:", "reset simulation"},
                        {"-----", "----------"},
-                       {"dark red:", "gravity at cm (static)"},
-                       {"green:", "static reaction at pivot"},
+                       {"orange:", "gravity at cm (static)"},
+                       {"orange:", "static reaction at pivot"},
                        {"orange:", "centrifugal force at cm (dynamic)"},
-                       {"blue:", "centrifugal reaction at pivot (dynamic)"},
-                       {"teal/orange:", "torque moment (circle area = |torque|)"}};
+                       {"orange:", "centrifugal reaction at pivot (dynamic)"},
+                       {"orange:", "torque moment (circle area = |torque|)"}};
         leg.size_pct = 0.48; // wider box to fit force-colour descriptions
         cm.set_legend(leg);
 
