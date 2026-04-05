@@ -12,9 +12,9 @@ algebraic operations on those subspaces or between them. \\
 
 Euclidean geometric algebra ($EGA$) is limited to objects that contain the origin. Thus,
 it can be used to directly model vectors (i.e. directions), lines, and planes through the
-orgin. In addition, it can model complex numbers, quaternions and thus rotations in $2D$
+origin. In addition, it can model complex numbers, quaternions and thus rotations in $2D$
 and $3D$ well. To realize them, it uses sandwich products based on the geometric product
-for calculating the transformation resulting from two consequtive reflections either
+for calculating the transformation resulting from two consecutive reflections either
 across lines ($2D$ case) or across planes ($3D$ case). The resulting transformations are
 rotations. The advantage of using geometric algebra to model those rotations is the
 intuitive modelling, due to geometric meaning of the objects and the fact that the
@@ -31,10 +31,10 @@ rich source of applications of geometric algebra for many application areas of
 mechanics.\\
 
 Projective geometric algebra ($PGA$) is indeed capable to model objects that do not
-necessarily contain the origin. Thus it can be used to directly model points, directions,
+necessarily contain the origin. Thus, it can be used to directly model points, directions,
 lines, and planes that may or may not contain the origin. In contrast to $EGA$,
 translations can additionally be implemented in $PGA$ directly as orthogonal
-transformation using a sandwich product. The operation is realized by two consequtive
+transformation using a sandwich product. The operation is realized by two consecutive
 reflections across parallel lines ($2D$) or planes ($3D$). It is based on the regressive
 form of the geometric product. The reason for this deviation from $EGA$, which uses the
 geometric product for that purpose, is that the Euclidean isometries (rotation,
@@ -44,7 +44,7 @@ see~\cite{Lengyel_pga-illuminated:2024}). The use of the regressive geometric pr
 these objects is equivalent to first transforming the object into dual space by applying
 the complement operation, then using the geometric product in that space for the intended
 transformation and finally transforming the resulting transformed object back into the
-original space, by applying the inverse complement operation. Thus the sandwich product
+original space, by applying the inverse complement operation. Thus, the sandwich product
 transformation formulas in $PGA$ only differ from the formulas used in $EGA$ by using the
 regressive geometric product instead of the geometric product, but are otherwise the same.
 \\
@@ -77,7 +77,7 @@ latter approach and explains the background in more detail compared to the short
 indications given here. \\
 
 Objects modelled in a projective space can be multiplied by a scalar value without
-changing the \emph{geometric} meaninig of the object in the modelled Euclidean space, i.e.
+changing the \emph{geometric} meaning of the object in the modelled Euclidean space, i.e.
 its interpretation after the projection. Equality of modelled geometric objects is thus
 often only defined up to a scalar factor. This kind of equality up to a scalar factor is
 defined as congruence (see e.g. \cite{Browne_Grassmann-Algebra_Vol1:2012}). Therefore, it
@@ -87,8 +87,8 @@ false interpretations. For example, a heavy point can be modelled by multiplying
 with $m$ must happen after unitization in order to keep the scalar factor $m$ in the
 calculation. Other geometric objects need to be unitized in order to focus on the intended
 geometric operation and avoid additional scaling, i.e. the rotation operators. They must
-be unitized before use as well. Thus it is advisable to think through the geometric
-operations and their physical interpretation well to avoid suprises and to be consistent.
+be unitized before use as well. Thus, it is advisable to think through the geometric
+operations and their physical interpretation well to avoid surprises and to be consistent.
 
 
 \newpage
@@ -103,7 +103,7 @@ vectors of adequate magnitude and direction to represent the force. However, the
 physically very meaningful ``line of action'', which determines which torque is created by
 the force, is not modelled mathematically in the classical approach at all. It rather
 needs to be derived from the description of the context in order to know where the force
-is actually acting. Thus force and torqure are not directly interlinked in the classical
+is actually acting. Thus, force and torque are not directly interlinked in the classical
 description, but must be modelled as separate physical effects.\\
 
 This changes in $PGA$. Any force can be directly modelled by its line of action, which
@@ -125,7 +125,7 @@ torque caused by the force either at the origin or at any point in space. \\
 But first, let's have a closer look how this is accomplished. We can separate $F$ into its
 components. Each unitized projective point $Q$ is the sum of the origin $O$ and a vector
 $q$ parallel to the projective plane (in $2D$) or projective space (in $3D$) pointing from
-$O$ to $Q$, such that $Q = O + q$ (``projective point split''). Thus $F$ can be split into
+$O$ to $Q$, such that $Q = O + q$ (``projective point split''). Thus, $F$ can be split into
 two bivector components
 \begin{equation}
     F = Q \wedge f = (O + q) \wedge f =
@@ -222,7 +222,7 @@ brackets for reference again):
     \slabel{eq:pga3dp_force_line_torque_component}
 \end{subeqnarray}
 
-The first three bivector components modell the force while the last three components model
+The first three bivector components model the force while the last three components model
 the torque. The force vector $f$ itself can be retrieved from $F$ by using the attitude
 function $att()$:
 \begin{equation}
@@ -252,7 +252,7 @@ $M_F(R)$ at the position $R$ as
 \end{subeqnarray}
 where equation~(\ref{eq:action_line_moment_simple}) is the formula with the least
 computational effort using a known point $Q$ on $F$, while
-equation~(\ref{eq:action_line_moment_projection}) uses the othogonal projection of $R$
+equation~(\ref{eq:action_line_moment_projection}) uses the orthogonal projection of $R$
 onto $F$ to calculate the perpendicular distance vector $d_\perp$. \\
 
 The resulting total force and torque acting on an object are given by:
@@ -265,7 +265,7 @@ This resulting sum will be used later for connecting kinematics and dynamics. \\
 Things to remember:
 \begin{itemize}
     \item Neither a vector nor a bivector are located anywhere. They can be moved around
-    freely. A line however represents a bound vector that is bound by its line. Thus the
+    freely. A line however represents a bound vector that is bound by its line. Thus, the
     vector can only be moved along its line of action without changing the geometric and
     physical meaning (see~\cite{Browne_Grassmann-Algebra_Vol1:2012}, p. 169).
     \item A free torque is modelled by a bivector with force components being zero, i.e.
@@ -325,8 +325,8 @@ This results in
 $P$ defines an instantaneous momentum line where the weight part $\weight{P}$ of the
 bivector $P$ encodes the linear momentum and the bulk part $\bulk{P}$ encodes the angular
 momentum with respect to the origin.\footnote{The ``projective point split'' works in this
-way, since the origin is a destinguishable point. This is in contrast to $EGA$ or the
-classical approach where the orgin is a null-vector, which has no lasting effect if it is
+way, since the origin is a distinguishable point. This is in contrast to $EGA$ or the
+classical approach where the origin is a null-vector, which has no lasting effect if it is
 added to another point. This is one reason why $PGA$ can combine linear and angular
 aspects as separate physical effects in a single algebraic object. The other is that the
 required 6 degrees of freedom can be encoded in a bivector.} \\
@@ -380,7 +380,7 @@ case. We are going to demonstrate that the described physics does not depend on 
 origin and not on the resulting coordinates used for its description. \\
 
 \emph{First approach}: Use a transformation of the standpoint from which we describe the
-physical situation without actually moving the coordinate system (we still want use the
+physical situation without actually moving the coordinate system (we still want to use the
 chosen coordinate system to describe the vectors and bivectors used): We go to a virtual
 origin $O' = Y$, but describe the situation in the same coordinate system. This results in
 describing the origin as $O = Y - y$ as seen from $Y$. Inserting that definition into
@@ -443,7 +443,7 @@ world frame as
 \end{eqnarray}
 where eqn.~(\ref{eq:intertia_map_world_frame}) is a linear function of $\Omega_w$ that
 maps the bivector rate in the world frame $\Omega_w$ to the total momentum $P_w$. It is a
-function that takes a bivector as an argument and returns a bivector (the ``intertia map''
+function that takes a bivector as an argument and returns a bivector (the ``inertia map''
 $I_w$). It describes the influence of the mass distribution of the points on the movement
 via the combined Newton/Euler law
 \begin{equation}
@@ -511,7 +511,7 @@ the centroid of the body with a projective point split on $\Omega_b$ and on
 $I_b[\Omega_b]$ as shown by \cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023} on page
 25f and adjusted to our approach using regressive geometric products. \\
 
-Now we introduce some typically used reference points to describe kinemetics via the
+Now we introduce some typically used reference points to describe kinematics via the
 bivector rate of change $\Omega$ and dynamics via the total momentum $P$:
 \begin{itemize}
     \item \emph{Fixed body refence point} $O_b$ used as origin of the body frame. When the
@@ -564,7 +564,7 @@ as an ODE that can be solved as initial value problem. Due to $\dot{\Omega}_b =
 \ddot{B}_b$ it actually is a $2^{nd}$ order ODE (like the classical Newton/Euler equations
 that can be integrated directly from the instantaneous acceleration and the angular
 acceleration, respectively, in order to calculate speed and position). Here we rather
-integrate from $\ddot{B}_b$ in order to calculate $\dot{B_b} = \Omega_b$ and $B_b$. Thus
+integrate from $\ddot{B}_b$ in order to calculate $\dot{B_b} = \Omega_b$ and $B_b$. Thus,
 we require initial values for $\Omega_b$ and $B_b$. The actual positions of the points of
 the rigid body can then be computed from eqn.~(\ref{eq:pga_sandwich_tranformation})
 $X_w(t) = M(t) \veedot X_0 \veedot \rrev{M}(t)$. The speed of the points can be calculated
@@ -576,7 +576,7 @@ course be expressed in the body frame as well using eqn.~(\ref{eq:body_to_world_
 $\Omega_w = M \veedot \Omega_b \veedot \rrev{M}$ and $X_w = M \veedot X_b \veedot
 \rrev{M}$.\\
 
-For that purpose we need the inertia map $I_b[\Omega_b]$ and its inverse to set up the
+For that purpose we need the inertia map $I_b[\Omega_b]$, and it's inverse to set up the
 right-hand side of the ODE system given in equations~(\ref{eq:ode_system_body_frame}). We
 start with the $2D$ case where the rate of change $\Omega_b$ is a vector, as shown at the
 end of subsection \ref{subsection_modelling_motion}. We assume discrete points $X_i$ and
@@ -627,7 +627,7 @@ where eqn.~(\ref{eq:intertia_map_components_2D}) is linear in $\Omega$ as expect
 course, the total inertia map needs to be summed for the contributions from each point,
 i.e. $I_{total} = \sum_i{I_i}$. Since all points of the rigid body see the same rate of
 change the total inertia map can be summed for all mass point contributions independent of
-the rate of change and the resulting total interia map can be inverted either symbolically
+the rate of change and the resulting total inertia map can be inverted either symbolically
 or numerically to get its inverse $I_{2D}^{-1}$ as needed to set up the right-hand side of
 the system in eqn.~(\ref{eq:ode_system_body_frame}). The inertia map in $2D$ maps the rate
 of change vector to the momentum bivector. The inverse inertia map than maps from a
@@ -666,7 +666,7 @@ component expressions are generated from the corresponding product tables in
     \end{pmatrix} 
 \end{subeqnarray}
  
-Now the intertia map for a point $X$ with mass $m$ and rate of change $\Omega$ can be
+Now the inertia map for a point $X$ with mass $m$ and rate of change $\Omega$ can be
 expressed in the $3D$ case as
 \begin{align}
     &I_{3D}[\Omega] = X \wedge m \; \mathrm{rcmt}(\Omega,X) = \nonumber \\[10pt]
@@ -698,7 +698,7 @@ expressed in the $3D$ case as
 \end{align}
 where eqn.~(\ref{eq:intertia_map_components_3D}) is linear in $\Omega$ as expected. Again,
 the total inertia map needs to be summed for the contributions from each point, i.e.
-$I_{total} = \sum_i{I_i}$. The resulting total interia map can be inverted numerically to
+$I_{total} = \sum_i{I_i}$. The resulting total inertia map can be inverted numerically to
 get its inverse $I_{3D}^{-1}$ as needed to set up the right-hand side of the system in
 eqn.~(\ref{eq:ode_system_body_frame}). The inertia map in $3D$ maps the rate of change
 bivector to the momentum bivector. The inverse inertia map than maps from a momentum
@@ -738,7 +738,7 @@ system of equations that can be solved as uncoupled equations (e.g. covering cas
 either translation or rotation exclusively within the identical structure). In the $2D$
 case the translational part requires two degrees of freedom (DoF) and the rotational part
 needs one DoF resulting in a total of three DoF. It can be written compactly as a system
-introducing the inertia matrix $I$ as a linear function that maps the acceleratory degrees
+introducing the inertia matrix $I$ as a linear function that maps the acceleration degrees
 of freedom to the corresponding external force and torque components\footnote{Be aware,
 that this does not actually couple the equations! We just solve two independent equations
 conveniently in parallel to show the principle here. If the movement is actually coupled,
@@ -795,7 +795,7 @@ the initial orientation $\phi(t=0) = \phi_0$ and the initial angular speed $\ome
 scalar values, while in the $3D$ case they also become vectors each representing three
 degrees of freedom.\\
 
-To integrate the equations the system of $2^{nd}$ order must be transfered into a system
+To integrate the equations the system of $2^{nd}$ order must be transferred into a system
 of $1^{st}$ order. We have a $2^{nd}$ order ODE for $y(t)$ with $\ddot{y} =
 \frac{d^2}{dt^2}(y)$ of the general form
 \begin{equation}
@@ -814,8 +814,8 @@ $\vec{y}$:
     \dot{y}_{n,0} &=& y_{n,1} \\
     \dot{y}_{n,1} &=& f(y_{n,1}, y_{n,0}, t)
 \end{subeqnarray}
-If we would have to integrate for more than one point, we could easily add an additional
-index at the beginning to extent the system accordingly. However, for now we only focus on
+If we would have to integrate for more than one point, we could easily add an index
+at the beginning to extend the system accordingly. However, for now we only focus on
 integrating the system at one point (the center of mass) at which we want to know position
 and speed as well as angular orientation and angular speed as function of time. The
 substitution above transforms the system in
@@ -1302,7 +1302,7 @@ might suggest: mass does not appear on the diagonal, and moments of inertia do n
 in the block connecting forces to accelerations of the same type. \\
 
 The placement of each entry is determined by two ingredients: the choice of basis for the
-domain and codomain of the inertia map, and the complement structure of the respective
+input and output of the inertia map, and the complement structure of the respective
 algebra. The right complement $\rcmpl{(\cdot)}$ maps each basis element to its complement
 in the algebra. In $PGA$ the translational and rotational generators live in dual
 subspaces -- ideal lines are dual to real lines -- so the mass contribution, which couples
@@ -1430,7 +1430,7 @@ matrix decomposes into the following sub-blocks:
 \end{itemize}
 
 \emph{Uniform rectangular plate.} As a verification, integrating over a uniform plate of
-width $W$ (along $\bv{1}$), height $H$ (along $\bv{2}$), total mass $M$, centerd at the
+width $W$ (along $\bv{1}$), height $H$ (along $\bv{2}$), total mass $M$, centered at the
 origin gives:
 \begin{equation}
     I_\mathrm{plate} = M
@@ -1442,12 +1442,12 @@ origin gives:
     \label{eq:inertia_plate}
 \end{equation}
 The entry $I[2,2] = M(W^2+H^2)/12$ is the standard formula for the moment of inertia of a
-uniform rectangle about its centroidal axis. For a discrete endpoint-inclusive grid of $n
+uniform rectangle about its centroid axis. For a discrete endpoint-inclusive grid of $n
 \times n$ equally spaced point masses, the relative error in $I[2,2]$ compared to the
 continuous value is $2/(n-1)$, independent of plate dimensions, converging from above as
 $n \to \infty$. \\
 
-Table~\ref{tab:classical_pga2dp} summarises the classical inertial quantities and their
+Table~\ref{tab:classical_pga2dp} summarizes the classical inertial quantities and their
 locations in the $2D$ $PGA$ inertia matrix.
 
 \begin{table}[h!]
@@ -1631,7 +1631,7 @@ rigid body dynamics~\cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023}, expr
 the (translational, angular) velocity ordering of $3D$ $PGA$. \\
 
 \emph{Uniform rectangular cuboid.} For a uniform cuboid of width $w$ (along $\bv{1}$),
-height $h$ (along $\bv{2}$), depth $d$ (along $\bv{3}$), total mass $m$, centerd at the
+height $h$ (along $\bv{2}$), depth $d$ (along $\bv{3}$), total mass $m$, centered at the
 origin, all cross-inertia and center-of-mass coupling terms vanish:
 \begin{equation}
     I_\mathrm{cuboid} = m

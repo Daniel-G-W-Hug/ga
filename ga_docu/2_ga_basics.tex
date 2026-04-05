@@ -5,7 +5,7 @@
 \label{subsection:basis_vectors_each_algebra}
 
 The following is provided for Euclidean geometric algebra of two-dimensional space
-($EGA2D$) using an orthormal basis \bv{1}, \bv{2}:
+($EGA2D$) using an orthonormal basis \bv{1}, \bv{2}:
 \begin{subequations}
     \begin{align}
         (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
@@ -159,7 +159,7 @@ there are following basis vectors:
 \end{subequations}
 Now we have a basis vector~\bv{4} that squares to zero. The bivector has six components,
 and there is a trivector $t$. The pseudoscalar \bv{1234} is a quadvector that squares to
-$0$, because of it's component \bv{4} contained as a factor. Equation (\ref{eq:scalar3dp})
+$0$, because of its component \bv{4} contained as a factor. Equation (\ref{eq:scalar3dp})
 is the scalar part $s_{3dp}$, equation (\ref{eq:vec3dp}) is the vector part $v_{3dp}$,
 equation (\ref{eq:bivec3dp}) is the bivector part $B_{3dp}$, equation (\ref{eq:trivec3dp})
 is the trivector part $t_{3dp}$, and equation (\ref{eq:pscalar3dp}) is the pseudoscalar
@@ -226,9 +226,9 @@ understand that relation in oder to see what is possible using the algebra effec
 model physical phenomena. \\
 
 Geometric algebra seems complex and a little overwhelming at first. Especially so, when
-new objects beyond vectors and several specific products are introduced for the first
-time. Expressions tend to quickly become large for fully occupied multivectors. However,
-it is important to note that it is seldomly required to use full multivectors in the
+new objects beyond vectors and several specific products are introduced.
+Expressions tend to quickly become large for fully occupied multivectors. However,
+it is important to note that it is rarely required to use full multivectors in the
 respective algebra. For most applications it is sufficient to use a blade or $k$-vector
 exclusively, which represents only one grade of the multivector, e.g. a vector or a
 bivector, which can be represented with very few coefficients. This reduces the effort in
@@ -244,7 +244,7 @@ level that is required anyway to solve the underlying geometrical question at ha
 The complement operation used in the library is defined
 in~\cite{Lengyel_pga-illuminated:2024}. It is uniquely determined with respect to the
 outer product (\emph{not} with respect to the geometric product, as commonly used for
-dualization by many autors working with GA). This is ensures consistent signs of
+dualization by many authors working with GA). This ensures consistent signs of
 expressions, operators, complements and duals. The left complement $\lcmpl{u}$ and the
 right complement $\rcmpl{u}$ are defined as
 \begin{subeqnarray}
@@ -290,10 +290,10 @@ and independent of the dimension of the space modelled in the algebra. In spaces
 dimension, where we only have one complement, applying the complement twice of course
 returns the original object as well. \\
 
-However, applying the same complement complement operation several times in spaces of even
-dimension does not ensure that you get back the original object. The result is dependent
-on the grade of the basis vector and the dimension $n$ of the space. When applying the
-same complement twice we get
+However, applying the same complement operation several times in spaces of even dimension
+does not ensure that you get back the original object. The result is dependent on the
+grade of the basis vector and the dimension $n$ of the space. When applying the same
+complement twice we get
 \begin{equation}
     \rcmpl{\rcmpl{u}} = \lcmpl{\lcmpl{u}} = (-1)^{gr(u)(n-gr(u))} u
 \end{equation}
@@ -426,7 +426,7 @@ This split is also relevant for the corresponding norms
 \begin{equation}
     \nrm{u} = \bulknrm{u} + \weightnrm{u} = \sqrt{A \cdot A} + \sqrt{A \circ A}
 \end{equation}
-where the left hand side is called the \emph{geometric norm} and the right hand side
+where the left hand side is called the \emph{geometric norm} and the right-hand side
 consists of the sums of the \emph{bulk} and \emph{weight norms}. The \emph{bulk norm}
 returns a scalar value of the corresponding algebra, whereas the \emph{weight norm}
 provides a pseudoscalar value of the respective algebra. The dot product (symbol
@@ -485,7 +485,7 @@ left and right operations. \\
 
 The Hodge star (symbolized by a filled star $\star$) is used as dualization operator in
 both cases. The lower or upper position symbolizes the left and right application. The
-difference between the hodge dual and the complement is in both cases that multiplying the
+difference between the Hodge dual and the complement is in both cases that multiplying the
 multivector with the extended metric happens \emph{before} taking the corresponding
 complement. However, this does not lead to different results in spaces where the metric is
 the identity matrix. It only yields different results in spaces with a more involved
@@ -509,7 +509,7 @@ for an arbitrary multivector $A$. The left weight dual \leftweightdual{A} is def
 \end{equation}
 using the left complement on the weight part of $A$.\\
 
-Relations to the (regressive) geometric product product are given by
+Relations to the (regressive) geometric product are given by
 \begin{subeqnarray}
     \rightbulkdual{A} & = &  \rev{A} \wedgedot I_n = \rev{A} \wedgedot
     \ps \slabel{eq:hodge_right} \\
@@ -685,7 +685,7 @@ The inner product between multivectors $A$ and $B$ is defined as
     \label{eg:inner_product_metric}
 \end{equation}
 with $\metric{G}$ as the extended metric and using standard matrix multiplication on the
-right hand side. It satisfies the identity
+right-hand side. It satisfies the identity
 \begin{equation}
     A \cdot B  = \grprj{A \wedgedot \tilde{B}}{0} = \grprj{ B \wedgedot \tilde{A} }{0}
     \label{eq:inner_product_link_to_gpr}
@@ -753,7 +753,7 @@ or sometimes by exclusively using the operations of the exterior algebra (wedge 
 \end{subequations}
 as an alternative. Each one is equivalent. \\
 
-Be carefull, when using the equivalent formulas like the right-hand side of
+Be careful, when using the equivalent formulas like the right-hand side of
 equations~(\ref{eq:gpr_Bsh_exterior}) when deriving regressive products. Resulting
 formulas may not be valid! The equivalent formulas for the regressive products must be
 derived directly from the regressive product table. To give one example, here is the
@@ -812,7 +812,7 @@ these expressions the geometric product can be formed by
 \end{equation}
 
 For $k=0$ this yields the outer product (wedge product). For higher values of $k$ other
-products are generated which sum up to the full geometric product. Thus the transwedge
+products are generated which sum up to the full geometric product. Thus, the transwedge
 products helps to decompose the geometric product. The most interesting for applications
 are the wedge product resulting for $k=0$ and the transwedge product of order $k=1$. \\
 
