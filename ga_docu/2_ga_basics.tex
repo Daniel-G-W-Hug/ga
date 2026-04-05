@@ -217,12 +217,23 @@ where the first three components represent the normal vector of the plane $n = (
 t_z)$ and the fourth component $t_w$ corresponds to the signed distance to the origin
 $O_{3dp} = (0,0,0,1)$. \\
 
-It is important to note that it is seldomly required to use a full multivector in the
+Many more examples of how geometric objects are modelled in projective geometric algebra
+and which operations can be used to manipulated them can by found in Lengyel's book
+\cite{Lengyel_pga-illuminated:2024}. Browne explains very well how Grassmann algebra and
+projective geometry and geometric algebra are related in
+\cite{Browne_Grassmann-Algebra_Vol1:2012}, p. 216ff. It is helpful to fully grasp and
+understand that relation in oder to see what is possible using the algebra effectively to
+model physical phenomena. \\
+
+Geometric algebra seems complex and a little overwhelming at first. Especially so, when
+new objects beyond vectors and several specific products are introduced for the first
+time. Expressions tend to quickly become large for fully occupied multivectors. However,
+it is important to note that it is seldomly required to use full multivectors in the
 respective algebra. For most applications it is sufficient to use a blade or $k$-vector
-exclusively, which represents one grade of the multivector, e.g. a vector or a bivector.
-This reduces the effort in terms of memory and computational requirements significantly --
-typically reduced to a level that is required anyway to solve the underlying application
-problem.
+exclusively, which represents only one grade of the multivector, e.g. a vector or a
+bivector, which can be represented with very few coefficients. This reduces the effort in
+terms of memory and computational requirements significantly -- typically reduced to a
+level that is required anyway to solve the underlying geometrical question at hand.
 
 
 \newpage
@@ -336,8 +347,8 @@ cases with non-degenerate as well as for cases with degenerate metric, like in p
 geometric algebra $PGA$. This is the main advantage compared to the usual prodedure of
 dualization by multiplying the object with the pseudoscalar (or its inverse) using the
 geometric product, since the latter breaks down for spaces with degenerate metrics. For an
-overview on all complements in $PGA$ see tables \ref{tab:pga3dp_complement} and
-\ref{tab:pga2dp_complement} at the end of this section.
+overview on all complements in $PGA$ see tables \ref{tab:pga2dp_complement} and
+\ref{tab:pga3dp_complement} at the end of this section.
 
 
 \newpage
@@ -385,42 +396,50 @@ For $\rmetric{G}$ there is the relation
 \end{equation}
 that is complementary to equation (\ref{eq:exomorphism}). \\
 
-In $PGA$ the product $\metric{G} u$ defines the bulk of of an object $u$. It is defined as
+In projective geometric algebra the product $\metric{G} u$ defines the \emph{bulk} of of
+an object $u$. It is defined as
 \begin{equation}
     \bulk{u} = \metric{G} u
 \end{equation}
 The bulk only contains components that \emph{do not} contain the projective dimension
-(\bv{3} for $PGA2DP$ or \bv{4} for $PGA3DP$) as a factor. It contains positional
-information on $u$ relative to the origin. Zero bulk means that $u$ contains the origin.\\
+(\bv{3} for $2D$ $PGA$ or \bv{4} for $3D$ $PGA$) as a factor. The \emph{bulk $\bulk{u}$
+contains positional information} on $u$ relative to the origin. Zero bulk ($\bulk{u} = 0$)
+means that $u$ contains the origin.\\
 
-In $PGA$ the product $\rmetric{G} u$ defines the weight of of an object $u$. It is
-defined as
+The product $\rmetric{G} u$ defines the \emph{weight} of an object $u$. It is defined as
 \begin{equation}
     \weight{u} = \rmetric{G} u
 \end{equation}
-The weight selects components that \emph{do} contain the projective dimension (\bv{3} for
-$PGA2DP$ or \bv{4} for $PGA3DP$) as a factor. It contains directional information on $u$,
-i.e. its attitude and direction independent of its position. Zero weight means that $u$ is
-contained in the horizon, i.e. it is infinitely far away.\\
+The weight selects components that \emph{do} indeed contain the projective dimension
+(\bv{3} for $2D$ $PGA$ or \bv{4} for $3D$ $PGA$) as a factor. The \emph{weight
+$\weight{u}$ contains directional information} on $u$, i.e. its attitude and direction
+independent of its position. Zero weight ($\weight{u} = 0$) means that $u$ is contained in
+the horizon, i.e. it is infinitely far away.\\
 
 This effective split for each object into bulk and weight in projective algebras can be
 written as
 \begin{equation}
     u = \bulk{u} + \weight{u}
 \end{equation}
+
 This split is also relevant for the corresponding norms
 \begin{equation}
     \nrm{u} = \bulknrm{u} + \weightnrm{u} = \sqrt{A \cdot A} + \sqrt{A \circ A}
 \end{equation}
-where the left hand side is called the geometric norm and the right hand side consists of
-the sums of the bulk and weight norms. The bulk norm returns a scalar value of the
-corresponding algebra, whereas the weight norm provides a pseudoscalar value of the
-respective algebra. Consequently, the geometric norm is an object consisting of two
-distinct parts, defined here as a dual number in the corresponding algebra. When we apply
-unitization to geometric objects we devide the object in such a way that the magnitude of
-the weight norm becomes a value of one. Both, bulk and weight norms, have a positive
-argument under the square root due to the definition of the inner product and the
-regressive inner product.
+where the left hand side is called the \emph{geometric norm} and the right hand side
+consists of the sums of the \emph{bulk} and \emph{weight norms}. The \emph{bulk norm}
+returns a scalar value of the corresponding algebra, whereas the \emph{weight norm}
+provides a pseudoscalar value of the respective algebra. The dot product (symbol
+'$\cdot$') and its regressive counterpart (symbol '$\circ$') are defined in
+tables~\ref{tab:pga2dp_dot_products} and \ref{tab:pga3dp_dot_products} in subsection
+\ref{subsection:tables_of_products}. \\
+
+Consequently, the geometric norm is an object consisting of two distinct parts, a scalar
+and a pseudoscalar of the respective algebra, defined here as a \emph{dual number} in the
+corresponding algebra. When we apply \emph{unitization} to geometric objects we devide the
+object in such a way that the magnitude of the weight norm becomes a value of one. Both,
+bulk and weight norms, have a positive argument under the square root due to the
+definitions of the inner product and the regressive inner product.
 
 
 \newpage
@@ -428,8 +447,23 @@ regressive inner product.
 \subsubsection{The dual}
 \label{subsection:dual}
 
-Using the metric and the right complement, the right bulk dual \rightbulkdual{A} is
+In $EGA$ the dual operation (marked by a filled star \rightbulkdual{}) is identical with
+the complement (reason: the Euclidean metric is the identity matrix; this changes for
+$PGA$ as shown below). Therefore, in $2D$ $EGA$ for the left and right dual operations are
 defined as
+\begin{eqnarray}
+    \rightbulkdual{u} &=& \rcmpl{u} \qquad \textit{(right dual)}\\
+    \leftbulkdual{u}  &=& \lcmpl{u}  \qquad \textit{(left dual)}
+\end{eqnarray}
+while in $3D$ $EGA$, an odd-dimensional algebra, where no distinction between left and
+right operations exists, we get
+\begin{equation}
+    \rightbulkdual{u} = \rcmpl{u} \qquad \textit{(dual)}
+\end{equation}
+where the overbar in $\rcmpl{u}$ is the unique complement operation. \\
+
+Now for $PGA$: Using the metric and the right complement, the \emph{(right) bulk dual}
+\rightbulkdual{A} is defined as
 \begin{equation}
     \rightbulkdual{A} = \rcmpl{\metric{G}A} = \rcmpl{\bulk{A}}
     \label{eq:rightbulkdual}
@@ -439,12 +473,16 @@ a matrix-vector-product between them. \rightbulkdual{A} is also called the Hodge
 multiplication with the metric happens before the application of the complement
 operation.\\
 
-There is also a corresponding left bulk dual $\leftbulkdual{A}$ operation using the metric
-and the left complement. It is defined as
+There is also a corresponding \emph{(left) bulk dual} $\leftbulkdual{A}$ operation using
+the metric and the left complement. It is defined as
 \begin{equation}
     \leftbulkdual{A} = \lcmpl{\metric{G}A} = \lcmpl{\bulk{A}}
     \label{eq:leftbulkdual}
 \end{equation}
+Where the left and right operations only differ for $3D$ $PGA$, while for $2D$ $PGA$, a
+three-dimensional and thus an odd-dimensional algebra, there is no difference between the
+left and right operations. \\
+
 The Hodge star (symbolized by a filled star $\star$) is used as dualization operator in
 both cases. The lower or upper position symbolizes the left and right application. The
 difference between the hodge dual and the complement is in both cases that multiplying the
@@ -505,9 +543,9 @@ where $s$ is a scalar. The reverse and regressive reverse are their own inverses
 applying the same reverse twice returns the original object. \\
 
 For an overview on all bulk and weight duals in $PGA$ see tables
-\ref{tab:pga3dp_bulk_weight_duals} and \ref{tab:pga2dp_bulk_weight_duals} at the end of
-this section. The reverses can be found in tables~\ref{tab:pga3dp_rev_rrev} and
-\ref{tab:pga2dp_rev_rrev} at the end of the section as well.\\
+\ref{tab:pga2dp_bulk_weight_duals} and \ref{tab:pga3dp_bulk_weight_duals} at the end of
+this section. The reverses can be found in tables~\ref{tab:pga2dp_rev_rrev} and
+\ref{tab:pga3dp_rev_rrev} at the end of the section as well.\\
 
 Following identities link the expansions and contractions and thus the outer and inner
 products: 
@@ -753,9 +791,9 @@ write specifically for two vectors $a$ and $b$:
 
 \cite{Lengyel_transwedge_product:2025} has shown that the geometric product can be derived
 by using operations from Grassmann algebra exclusively. These are the wedge product, the
-complement and the duality operations. This demonstrates that the geometric product is not
-a fundamental operation in its own right, but can be derived from more fundamental basic
-operations. \\
+complement and the duality operations. \emph{This demonstrates that the geometric product
+is not a fundamental operation in its own right, but can be derived from more fundamental
+operations defined in Grassmann algebra.} \\
 
 For that purpose Lengyel introduced the transwedge product of order $k$ by following
 definition:
@@ -813,11 +851,145 @@ product tables of the (regressive) transwedge products of order $k$ and the resu
 The transwedge product is very useful to show that the geometric product can be derived
 from primitives of Grassmann algebra. When (regressive) transwedge product expressions are
 calculated, it can be shown that each transwedge product and the resulting coefficient
-expressions are equivalent to specific combinations of wedge-, commutator-, dot-products,
+expressions are equivalent to specific combinations of wedge, commutator or dot products,
 and their regressive counterparts. This was done in
 \path{ga/src_prdxpr/ga_pga2dp_ops_products.hpp} for the (regressive) transwedge product of
 order $k=1$ and as well in \path{ga/src_prdxpr/ga_pga3dp_ops_products.hpp} to show the
-equivalence. \\
+equivalence.
+
+\newpage
+
+\subsubsection{Dot products, complements, duals, and reverses in \textit{PGA}}
+\label{subsection:tables_of_products}
+
+% Problem: \begin{table}...\end{table} is a float environment. LaTeX floats cannot be
+% placed inside boxes — including \rotatebox{90}{...} with a minipage. This causes an
+% error because LaTeX tries to defer float placement but has no valid location inside a
+% box.
+%
+% Fix: Removed \begin{table} / \end{table} (commented them out to preserve intent)
+% Replaced all four \caption{...} calls with \captionof{table}{...} Why \captionof works:
+% It generates a caption with the correct counter and formatting for a table, but without
+% requiring a table float environment. The caption package (already loaded in your
+% preamble via \usepackage{caption}) provides this command — no new package needed.
+%
+% The \label commands after each \captionof remain unchanged and will still work correctly
+% for \ref cross-references.
+
+\rotatebox{90}{%
+\begin{minipage}{0.9\textheight}
+\centering % a single '\centering' directive suffices
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% pga2dp from here on
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \begin{sidewaystable}
+% \begin{table}
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$             & $\bm{1}$
+                         & $\bv{1}$       & $\bv{2}$      & $\bv{3}$
+                         & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
+                         & $\ps$
+                         \\ \hline
+    $\bm{u}\cdot\bm{u}$  & $\bm{1}$
+                         & $\bm{1}$       & $\bm{1}$      & $0$
+                         & $0$            & $0$           & $\bm{1}$
+                         & $0$
+                         \\ \hline
+    $\bm{u}\circ\bm{u}$  & $0$
+                         & $0$            & $0$           & $\ps$
+                         & $\ps$          & $\ps$         & $0$
+                         & $\ps$
+                         \\ \hline
+    \end{tabular}
+    \captionof{table}{\small Dot and regressive dot products in $PGA2DP$ for every basis element.}
+    \label{tab:pga2dp_dot_products}
+    \end{center}
+
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$          & $\bm{1}$
+                      & $\bv{1}$      & $\bv{2}$      & $\bv{3}$
+                      & $\bv{31}$     & $\bv{32}$     & $\bv{12}$
+                      & $\ps$
+                      \\ \hline
+    $\rcmpl{\bm{u}}$  & $\ps$
+                      & $\bv{32}$     & $-\bv{31}$    & $-\bv{12}$
+                      & $-\bv{2}$     & $ \bv{1} $    & $-\bv{3}$
+                      & $\bm{1}$
+                      \\ \hline
+    \end{tabular}
+    \captionof{table}{\small Complements in $PGA2DP$ for every basis element.}
+    \label{tab:pga2dp_complement}
+    \end{center}
+
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$                    & $\bm{1}$
+                                & $\bv{1}$      & $\bv{2}$     & $\bv{3}$
+                                & $\bv{31}$     & $\bv{32}$    & $\bv{12}$
+                                & $\ps$
+                                \\ \hline
+    $\rightbulkdual{\bm{u}}$    & $\ps$
+                                & $\bv{32}$     & $-\bv{31}$   & $0$
+                                & $0$           & $0$          & $-\bv{3}$
+                                & $0$
+                                \\ \hline
+    $\rightweightdual{\bm{u}}$  & $0$
+                                & $0$           & $0$          & $-\bv{12}$
+                                & $-\bv{2}$     & $\bv{1}$     & $0$
+                                & $\bm{1}$
+                                \\ \hline
+    \end{tabular}
+    \captionof{table}{\small Bulk duals and weight duals for every basis element (=complement
+    applied to bulk and weight).}
+    \label{tab:pga2dp_bulk_weight_duals}
+    \end{center}
+
+    \begin{center}
+    %\scriptsize
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$
+                    & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
+                    & $\ps$
+                    \\ \hline
+    $\rev{\bm{u}}$  & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$
+                    & $-\bv{31}$     & $-\bv{32}$    & $-\bv{12}$
+                    & $-\ps$
+                    \\ \hline
+    $\rrev{\bm{u}}$ & $-\bm{1}$
+                    & $-\bv{1}$      & $-\bv{2}$     & $-\bv{3}$
+                    & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
+                    & $\ps$
+                    \\ \hline
+    \end{tabular}
+    \captionof{table}{\small Reverse and regressive reverse in $PGA2DP$ for every basis element.}
+    \label{tab:pga2dp_rev_rrev}
+    \end{center}
+% \end{sidewaystable}
+% \end{table}
+
+\end{minipage}
+} % end of scope of '\rotatebox' directive
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% pga3dp from here on
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{sidewaystable}
     \begin{center}
@@ -957,108 +1129,6 @@ equivalence. \\
     \end{tabular}
     \caption{\small Reverse and regressive reverse in $PGA3DP$ for every basis element.}
     \label{tab:pga3dp_rev_rrev}
-    \end{center}
-\end{sidewaystable}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% pga2dp from here on
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{sidewaystable}
-    \begin{center}
-    %\scriptsize
-    \begin{tabular}{*{17}{|c}|}
-    \hline
-    \rowcolor{blue!20}
-    $\bm{u}$             & $\bm{1}$
-                         & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
-                         & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
-                         & $\ps$
-                         \\ \hline
-    $\bm{u}\cdot\bm{u}$  & $\bm{1}$        
-                         & $\bm{1}$       & $\bm{1}$      & $0$           
-                         & $0$            & $0$           & $\bm{1}$
-                         & $0$
-                         \\ \hline
-    $\bm{u}\circ\bm{u}$  & $0$        
-                         & $0$            & $0$           & $\ps$
-                         & $\ps$          & $\ps$         & $0$
-                         & $\ps$
-                         \\ \hline
-    \end{tabular}
-    \caption{\small Dot and regressive dot products in $PGA2DP$ for every basis element.}
-    \label{tab:pga2dp_dot_products}
-    \end{center}
-
-    \begin{center}
-    %\scriptsize
-    \begin{tabular}{*{17}{|c}|}
-    \hline
-    \rowcolor{blue!20}
-    $\bm{u}$          & $\bm{1}$
-                      & $\bv{1}$      & $\bv{2}$      & $\bv{3}$     
-                      & $\bv{31}$     & $\bv{32}$     & $\bv{12}$
-                      & $\ps$
-                      \\ \hline
-    $\rcmpl{\bm{u}}$  & $\ps$        
-                      & $\bv{32}$     & $-\bv{31}$    & $-\bv{12}$
-                      & $-\bv{2}$     & $ \bv{1} $    & $-\bv{3}$
-                      & $\bm{1}$
-                      \\ \hline
-    \end{tabular}
-    \caption{\small Complements in $PGA2DP$ for every basis element.}
-    \label{tab:pga2dp_complement}
-    \end{center}
-
-    \begin{center}
-    %\scriptsize
-    \begin{tabular}{*{17}{|c}|}
-    \hline
-    \rowcolor{blue!20}
-    $\bm{u}$                    & $\bm{1}$
-                                & $\bv{1}$      & $\bv{2}$     & $\bv{3}$     
-                                & $\bv{31}$     & $\bv{32}$    & $\bv{12}$
-                                & $\ps$
-                                \\ \hline
-    $\rightbulkdual{\bm{u}}$    & $\ps$        
-                                & $\bv{32}$     & $-\bv{31}$   & $0$           
-                                & $0$           & $0$          & $-\bv{3}$
-                                & $0$
-                                \\ \hline
-    $\rightweightdual{\bm{u}}$  & $0$        
-                                & $0$           & $0$          & $-\bv{12}$
-                                & $-\bv{2}$     & $\bv{1}$     & $0$
-                                & $\bm{1}$
-                                \\ \hline
-    \end{tabular}
-    \caption{\small Bulk duals and weight duals in $PGA2DP$ for every basis element
-    (=complement applied to bulk and weight).}
-    \label{tab:pga2dp_bulk_weight_duals}
-    \end{center}
-
-    \begin{center}
-    %\scriptsize
-    \begin{tabular}{*{17}{|c}|}
-    \hline
-    \rowcolor{blue!20}
-    $\bm{u}$        & $\bm{1}$
-                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
-                    & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
-                    & $\ps$
-                    \\ \hline
-    $\rev{\bm{u}}$  & $\bm{1}$
-                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     
-                    & $-\bv{31}$     & $-\bv{32}$    & $-\bv{12}$
-                    & $-\ps$
-                    \\ \hline
-    $\rrev{\bm{u}}$ & $-\bm{1}$
-                    & $-\bv{1}$      & $-\bv{2}$     & $-\bv{3}$     
-                    & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
-                    & $\ps$
-                    \\ \hline
-    \end{tabular}
-    \caption{\small Reverse and regressive reverse in $PGA2DP$ for every basis element.}
-    \label{tab:pga2dp_rev_rrev}
     \end{center}
 \end{sidewaystable}
 

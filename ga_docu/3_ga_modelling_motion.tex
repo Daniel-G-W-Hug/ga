@@ -777,8 +777,9 @@ with the rotational speed $\omega$, or create a unitized line $\hat{\omega}$ in 
 direction of the rotation vector $\omega$ that is later scaled with the rotational speed
 such that the bivector $\Omega_{rot}$ becomes
 \begin{eqnarray}
-   \Omega_{rot} &=& Q \wedge \omega = \bv{4} \wedge \omega + q \wedge \omega
-                 = \hat{\omega}\,\bulknrm{\omega} \nonumber \\
+   \Omega_{rot} &=& Q \wedge \omega = (O_{3dp} + q) \wedge \omega \nonumber \\
+                &=& \bv{4} \wedge \omega + q \wedge \omega \nonumber \\
+                &=& \bulknrm{\omega}(\bv{4} \wedge \hat{\omega} + q \wedge \hat{\omega}) \nonumber \\ 
    \Omega_{rot} &=&
    \bulknrm{\omega}
    \begin{pmatrix}
@@ -793,7 +794,7 @@ such that the bivector $\Omega_{rot}$ becomes
 \end{eqnarray}
 where $\hat{\omega}$ is the bulk normalized rotation vector
 $\hat{\omega}=\omega/\bulknrm{\omega}$. Thus, $\Omega_{rot}$ directly represents the
-normalized (non-ideal) line of rotation. It is a line of fixed points not changing due to
+normalized (non-ideal) axis of rotation. It is a line of fixed points not changing due to
 the rotation, scaled with the angular speed of rotation $\bulknrm{\omega}$. \\
 
 Of course, $\Omega_{rot}$ could also be expressed directly by the plane of rotation $pl$
@@ -838,9 +839,18 @@ vector is scaled with the translation distance $\delta$ resulting in $\Omega_{sc
       \hat{\omega}_x \\
       \hat{\omega}_y \\
       \hat{\omega}_z \\
-      q_y \hat{\omega}_z - q_z \hat{\omega}_y + \delta\hat{\omega}_x\\
-      q_z \hat{\omega}_x - q_x \hat{\omega}_z + \delta\hat{\omega}_y\\
-      q_x \hat{\omega}_y - q_y \hat{\omega}_x + \delta\hat{\omega}_z
+      q_y \hat{\omega}_z - q_z \hat{\omega}_y\\
+      q_z \hat{\omega}_x - q_x \hat{\omega}_z\\
+      q_x \hat{\omega}_y - q_y \hat{\omega}_x
+   \end{pmatrix}
+   + \delta
+   \begin{pmatrix}
+      0 \\
+      0 \\
+      0 \\
+      \hat{\omega}_x\\
+      \hat{\omega}_y\\
+      \hat{\omega}_z
    \end{pmatrix}
 \end{equation}
 The components of $\Omega_{rot}$, $\Omega_{tra}$ and $\Omega_{screw}$ are relevant for the
@@ -926,13 +936,28 @@ point becomes encoded in the bulk part of $\Omega$ and the rotational speed $\om
 encoded in the weight part of $\Omega$. A mixture of a translation and a rotation would be
 equivalent to a rotation around another fixed point shifted by the translational part. So
 it is sufficient to look at pure translation and pure rotation around a fixed point as
-separate cases. \\
+separate cases.
+\begin{equation}
+   \Omega_{2D} = \Omega_{rot} + \Omega_{tra} =
+   \omega
+   \begin{pmatrix}
+      q_x \\
+      q_y \\
+      1
+   \end{pmatrix}
+   +
+   \begin{pmatrix}
+      -v_y \\
+      v_x \\
+      0
+   \end{pmatrix}
+\end{equation}
 
 This separation is also important for defining the exponential function with respect to
 the regressive geometric product that converts the bivector $B$ to the respective motor
-$M$: $M(t) = \exp_{\veedot}(\frac{1}{2} B(t)) = \_{\veedot}(\frac{1}{2} \Omega t)$
-that enables us to actually transform points according to the vector rates of change as
-defined above.
+$M$: $M(t) = \exp_{\veedot}(\frac{1}{2} B(t)) = \exp_{\veedot}(\frac{1}{2} \Omega t)$ that
+enables us to actually transform points according to the vector rates of change as defined
+above.
 
 
 \newpage

@@ -157,6 +157,18 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.set_label("initial model");
 
+        diagram_legend leg;
+        leg.heading = "Showing visualization options.";
+        // Defaults (no need to set explicitly, shown here for reference):
+        //   leg.x_pct    = 0.02;  // 2 % from left edge of drawing area
+        //   leg.y_pct    = 0.02;  // 2 % from top  edge of drawing area
+        //   leg.size_pct = 0.30;  // box width = 30 % of drawing area width
+        // Example overrides to move / resize the legend:
+        //   leg.x_pct    = 0.75;  // near right edge
+        //   leg.y_pct    = 0.80;  // near bottom edge
+        //   leg.size_pct = 0.20;  // narrower box (20 %)
+        cm.set_legend(leg);
+
         vm.push_back(cm);
     }
 
@@ -304,6 +316,8 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 
         cm.add_ln(l1, lm);
 
+        cm.set_label("proj. 1 - points");
+
         diagram_legend leg;
         leg.heading = "Red square shows P(2,1,2) after unitization.\nYields P'(1,0.5,1).";
         // Defaults (no need to set explicitly, shown here for reference):
@@ -315,8 +329,6 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         //   leg.y_pct    = 0.80;  // near bottom edge
         //   leg.size_pct = 0.20;  // narrower box (20 %)
         cm.set_legend(leg);
-
-        cm.set_label("proj. 1 - points");
 
         vm.push_back(cm);
     }

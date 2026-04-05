@@ -62,4 +62,87 @@
     rotations and translations.
 \end{itemize}
 
+
+\subsubsection{Comparison of approaches in different algebras}
+
+% Three-column layout: Application (spanning) | Tag | Description
+% Adjust \cwApp and \cwTag; description fills the rest.
+\newlength{\cwApp}\setlength{\cwApp}{0.185\textwidth}
+\newlength{\cwTag}\setlength{\cwTag}{0.06\textwidth}
+\newlength{\cwDesc}\setlength{\cwDesc}{\dimexpr\textwidth - \cwApp - \cwTag
+                                       - 4\arrayrulewidth - 6\tabcolsep\relax}
+
+\begin{table}[H]
+{\setlength{\extrarowheight}{2pt}\renewcommand{\arraystretch}{1.15}%
+% \extrarowheight: absolute extra space added above each row (before top rule);
+% \arraystretch:   scales the row strut height (1.15 ≈ +15%, adds ~1.5pt below content).
+% Together: ~2pt top padding, ~1.5pt bottom padding per row.
+\begin{tabular}{|p{\cwApp}|p{\cwTag}|p{\cwDesc}|}
+    \hline
+    \textbf{Application} & & \textbf{Description} \\
+    \hline \hline
+    \multirow{3}{\cwApp}{Create line $\bm{l}$ from points \newline
+    $P$, $Q$} & VA  & $P=(p_x,p_y,p_z)$ \newline
+    $\bm{l}\colon \vec{x}(t) = (Q-P) \cdot t + P$ \\
+    \cline{2-3}
+    & EGA & $P=(p_x,p_y,p_z)$, a vector represents a $1D$ subspace\newline
+    $\bm{l}\colon x(t)=P \cdot t$ (explicit, line through origin and $P$)\newline
+    $\bm{l}\colon x(t)=(Q-P) \cdot t + P$\newline
+    (explicit, line in direction $Q-P$ through $P$)\newline
+    $\bm{l}\colon(x-P) \wedge (Q-P) = 0$ \newline
+    (implicit, line in direction $Q-P$ through $P$)\\
+    \cline{2-3}
+    & PGA & $P=(p_x,p_y,p_z,1)$ \newline
+    $\bm{l} = P \wedge Q$ (line through points $P$ and $Q$, bivector)\\
+    \hline \hline
+    \multirow{3}{\cwApp}{Create plane $\bm{T}$ from points $P$, $Q$, $R$}
+    & VA  & $\vec{u} = Q - P$, $\vec{v} = R - P$ \newline
+            $\bm{T}\colon x(s,t) = \vec{u} \cdot s + \vec{v} \cdot t + P$ \\
+    \cline{2-3}
+    & EGA & $u = Q - P$, $v = R - P$, $B = u \wedge v$ \newline
+    $\bm{T} = P \wedge Q$ (plane through $O$, $P$, $Q$; bivector) \newline
+    $\bm{T}\colon (x-P) \wedge B = 0$ (plane through $P$, $Q$, $R$; bivector)\\
+    \cline{2-3}
+    & PGA & $\bm{T} = P \wedge Q \wedge R$ (plane through $P$, $Q$, $R$, trivector) \\
+    \hline \hline
+    \multirow{3}{\cwApp}{Intersect two lines $\bm{l_1}$, $\bm{l_2}$}
+    & VA  & $\bm{l_1}\colon \vec{x}(s) = \vec{u} \cdot s + P$,
+    $\bm{l_2}\colon \vec{y}(t) = \vec{v} \cdot t + Q$, \newline
+    solve system in $2D$ for $s_i$ and $t_i$: $\vec{u} \cdot s + P = \vec{v} \cdot t + Q$
+    \newline
+    intersection point $I = \vec{x}(s_i) = \vec{y}(t_i)$\\
+    \cline{2-3}
+    & EGA & see VA\\
+    \cline{2-3}
+    & PGA & Intersect arbitrary lines $l_1$, $l_2$ in a common plane\newline
+    intersection point $I$: $I = l_1 \vee l_2$ (projective point)\\
+    \hline \hline
+    \multirow{3}{\cwApp}{Intersect two planes $\bm{T_1}$, $\bm{T_2}$}
+    & VA  & $x(s,t) = \vec{u} \cdot s + \vec{v} \cdot t + P$,
+    $y(m,n) = \vec{m} \cdot p + \vec{n} \cdot q + Q$\newline
+    solve system in $3D$: $\vec{u} \cdot s + \vec{v} \cdot t + P =
+    \vec{m} \cdot p + \vec{n} \cdot q + Q$\\
+    \cline{2-3}
+    & EGA & see VA\\
+    \cline{2-3}
+    & PGA & Intersect arbitrary planes $T_1$, $T_2$\newline
+    intersection line $I$: $I = T_1 \vee T_2$ (projective line, bivector)\\
+    % \hline \hline
+    % \multirow{3}{\cwApp}{...}
+    % & VA  & ... \\
+    % \cline{2-3}
+    % & EGA & ... \\
+    % \cline{2-3}
+    % & PGA & ... \\
+    \hline
+\end{tabular}}% end \extrarowheight + \arraystretch group
+\caption{Comparison of common geometric construction tasks across three approaches.
+         \textbf{VA} = Vector Algebra (classical approach using vectors and parametric
+         equations); \textbf{EGA} = Euclidean Geometric Algebra; \textbf{PGA} =
+         Projective (Euclidean) Geometric Algebra.}
+\end{table}
+
+$PGA$ does not require to solve systems of equations for simple geometrical tasks. They
+can be solved rather easily by using the suitable product.
+
 \newpage
