@@ -544,7 +544,8 @@ eqn.~(\ref{eq:Newton_Euler_law}), but in the body frame, we get
 resolving this for $\dot{\Omega}_b$ we get
 \begin{eqnarray}
     I_b[\dot{\Omega}_b] &=& F_{b} - \mathrm{rcmt}(\Omega_b,I_b[\Omega_b]) \\[5pt]
-    \dot{\Omega}_b &=& I_b^{-1}\left[ F_{b} - \mathrm{rcmt}(\Omega_b,I_b[\Omega_b]) \right]
+    \dot{\Omega}_b &=& I_b^{-1}\left[ F_{b} - \mathrm{rcmt}(\Omega_b,I_b[\Omega_b])
+    \right]
 \end{eqnarray}
 
 Together with the ansatz in the body system eqn.~(\ref{eq:motor_pga_body_frame}) that can
@@ -833,45 +834,37 @@ direct integration, using e.g. a Runge-Kutta-Scheme of $4^{th}$ order accuracy f
 time integration, and using the initial conditions defined above. As a result, we directly
 get the positions and velocities as function of time.\\
 
-% \emph{Transition to the body frame and the coupled classical equations.}
-% The derivation above works in the inertial (lab) frame, where Newton's and Euler's
-% equations are genuinely uncoupled for a body either moving with pure translational motion
-% or rotating freely around a stable rotation axis. However, for a non-sperical rigid body
-% the inertia tensor $\mathbf{I} = \mathbf{I}(t)$ is more complex and generally time-varying
-% when the body is rotating around a non-stable momentary rotation axis. Switching to a
-% frame fixed to the body keeps $\mathbf{I} = \mathbf{I}_b$ constant -- at the cost of
-% introducing coupling terms between translation and rotation that arise from the rotation
-% of the frame itself. This body-frame formulation is the standard choice for rigid-body
+% \emph{Transition to the body frame and the coupled classical equations.} The derivation
+% above works in the inertial (lab) frame, where Newton's and Euler's equations are
+% genuinely uncoupled for a body either moving with pure translational motion or rotating
+% freely around a stable rotation axis. However, for a non-sperical rigid body the inertia
+% tensor $\mathbf{I} = \mathbf{I}(t)$ is more complex and generally time-varying when the
+% body is rotating around a non-stable momentary rotation axis. Switching to a frame fixed
+% to the body keeps $\mathbf{I} = \mathbf{I}_b$ constant -- at the cost of introducing
+% coupling terms between translation and rotation that arise from the rotation of the
+% frame itself. This body-frame formulation is the standard choice for rigid-body
 % simulation. The key differences are summarised in Table~\ref{tab:inertial_vs_body}.
 
-% \begin{table}[h!]
-% \centering\small
-% \begin{tabular}{p{3cm}|p{4cm}|p{4cm}}
-% \hline
-%  & Inertial frame & Body-fixed frame \\
-% \hline
-% Inertia tensor $\mathbf{I}$ & Time-varying $\mathbf{I}(t)$ & $\mathbf{I}_b$ constant \\
+% \begin{table}[h!] \centering\small \begin{tabular}{p{3cm}|p{4cm}|p{4cm}} \hline &
+% Inertial frame & Body-fixed frame \\
+% \hline Inertia tensor $\mathbf{I}$ & Time-varying $\mathbf{I}(t)$ & $\mathbf{I}_b$
+% constant \\
 % Coupling terms & None & $\vec{\omega}\times\vec{v}$ and
 % $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$ \\
 % Practical for non-spherical bodies & Expensive & Standard choice \\
-% \hline
-% \end{tabular}
-% \caption{Inertial frame vs.\ body-fixed frame: key differences for rigid-body integration.}
-% \label{tab:inertial_vs_body}
-% \end{table}
+% \hline \end{tabular} \caption{Inertial frame vs.\ body-fixed frame: key differences for
+% rigid-body integration.} \label{tab:inertial_vs_body} \end{table}
 
 % In the body frame, the translational and rotational equations of motion become (now
 % actually coupled, descibing translational and rotational motion at the same time):
-% \begin{align}
-%     m\left(\dot{\vec{v}} + \vec{\omega}\times\vec{v}\right) &= \vec{F}^b
-%     \label{eq:newton_body_frame} \\
-%     \mathbf{I}_b\dot{\vec{\omega}}
-%     + \vec{\omega}\times\left(\mathbf{I}_b\vec{\omega}\right) &= \vec{\tau}^b
-%     \label{eq:euler_body_frame}
-% \end{align}
-% where $\vec{v}$ and $\vec{\omega}$ are the translational and angular velocity expressed in
-% the body frame, $\mathbf{I}_b$ is the (constant) inertia tensor in the body frame, and
-% $\vec{F}^b$, $\vec{\tau}^b$ are the external force and torque expressed in the body frame.
+% \begin{align} m\left(\dot{\vec{v}} + \vec{\omega}\times\vec{v}\right) &= \vec{F}^b
+% \label{eq:newton_body_frame} \\
+%     \mathbf{I}_b\dot{\vec{\omega}} +
+%     \vec{\omega}\times\left(\mathbf{I}_b\vec{\omega}\right) &= \vec{\tau}^b
+%     \label{eq:euler_body_frame} \end{align} where $\vec{v}$ and $\vec{\omega}$ are the
+%     translational and angular velocity expressed in the body frame, $\mathbf{I}_b$ is
+%     the (constant) inertia tensor in the body frame, and $\vec{F}^b$, $\vec{\tau}^b$ are
+%     the external force and torque expressed in the body frame.
 % \\
 
 % Alternative formulation:
@@ -914,13 +907,11 @@ get the positions and velocities as function of time.\\
 % \end{align}
 
 
-% \emph{The $2D$ case.}
-% In $2D$ only $\omega_z = \omega$ survives, and the gyroscopic term
+% \emph{The $2D$ case.} In $2D$ only $\omega_z = \omega$ survives, and the gyroscopic term
 % $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$ vanishes entirely because there is only one
 % rotation axis. The rotational equation reduces to the trivially simple $\dot{\omega} =
 % \tau^b / J$. The full $2D$ (coupled) system in component-wise matrix form is:
-% \begin{equation}
-%     \begin{pmatrix} \dot{v}_x \\ \dot{v}_y \\ \dot{\omega} \end{pmatrix}
+% \begin{equation} \begin{pmatrix} \dot{v}_x \\ \dot{v}_y \\ \dot{\omega} \end{pmatrix}
 %     =
 %     \underbrace{
 %     \begin{pmatrix} 0 & +\omega & 0 \\ -\omega & 0 & 0 \\ 0 & 0 & 0 \end{pmatrix}
@@ -929,45 +920,33 @@ get the positions and velocities as function of time.\\
 %     +
 %     \begin{pmatrix} F_x^b/m \\ F_y^b/m \\ \tau^b/J \end{pmatrix}
 %     \label{eq:newton_euler_2d_body_matrix}
-% \end{equation}
-% Comparing with the uncoupled system derived above, the only difference is the $\pm\omega$
-% entries coupling $v_x$ and $v_y$ -- as direct consequence of working in a rotating
-% frame.\\
+% \end{equation} Comparing with the uncoupled system derived above, the only difference is
+% the $\pm\omega$ entries coupling $v_x$ and $v_y$ -- as direct consequence of working in
+% a rotating frame.\\
 
-% \emph{The $3D$ case.}
-% In $3D$ both coupling terms are present. For \emph{principal body axes} (diagonal
-% inertia tensor $\mathbf{I} = \mathrm{diag}(I_x, I_y, I_z)$), the full state-space
-% system $\dot{\vec{u}} = A(\vec{\omega})\,\vec{u} + \vec{b}$ written out with all
-% component equations is:
-% \begin{align}
-%     \begin{pmatrix} \dot{v}_x \\ \dot{v}_y \\ \dot{v}_z \\[2pt] \dot{\omega}_x \\
-%         \dot{\omega}_y \\ \dot{\omega}_z
-%     \end{pmatrix}
-%     &= \left(\begin{array}{ccc|ccc}
-%          0        & +\omega_z & -\omega_y & 0 & 0 & 0 \\[4pt]
-%         -\omega_z &  0        & +\omega_x & 0 & 0 & 0 \\[4pt]
-%         +\omega_y & -\omega_x &  0        & 0 & 0 & 0 \\
-%         \noalign{\vskip6pt}
-%         \hline\\[-8pt]
-%         0 & 0 & 0 &                     0 & +\dfrac{I_y}{I_x}\omega_z &
-%         -\dfrac{I_z}{I_x}\omega_y \\[10pt]
-%         0 & 0 & 0 & -\dfrac{I_x}{I_y}\omega_z &                     0 &
-%         +\dfrac{I_z}{I_y}\omega_x \\[10pt]
-%         0 & 0 & 0 & +\dfrac{I_x}{I_z}\omega_y & -\dfrac{I_y}{I_z}\omega_x &                     0
-%     \end{array}\right)
-%     \begin{pmatrix}
-%         v_x \\ v_y \\ v_z \\[2pt] \omega_x \\ \omega_y \\ \omega_z
-%     \end{pmatrix} 
+% \emph{The $3D$ case.} In $3D$ both coupling terms are present. For \emph{principal body
+% axes} (diagonal inertia tensor $\mathbf{I} = \mathrm{diag}(I_x, I_y, I_z)$), the full
+% state-space system $\dot{\vec{u}} = A(\vec{\omega})\,\vec{u} + \vec{b}$ written out with
+% all component equations is: \begin{align} \begin{pmatrix} \dot{v}_x \\ \dot{v}_y \\
+% \dot{v}_z \\[2pt] \dot{\omega}_x \\
+%         \dot{\omega}_y \\ \dot{\omega}_z \end{pmatrix} &= \left(\begin{array}{ccc|ccc} 0
+%     & +\omega_z & -\omega_y & 0 & 0 & 0 \\[4pt] -\omega_z &  0        & +\omega_x & 0 &
+%     0 & 0 \\[4pt] +\omega_y & -\omega_x &  0        & 0 & 0 & 0 \\
+%         \noalign{\vskip6pt} \hline\\[-8pt] 0 & 0 & 0 &                     0 &
+%         +\dfrac{I_y}{I_x}\omega_z & -\dfrac{I_z}{I_x}\omega_y \\[10pt] 0 & 0 & 0 &
+%         -\dfrac{I_x}{I_y}\omega_z &                     0 & +\dfrac{I_z}{I_y}\omega_x
+%         \\[10pt] 0 & 0 & 0 & +\dfrac{I_x}{I_z}\omega_y & -\dfrac{I_y}{I_z}\omega_x &
+%         0 \end{array}\right) \begin{pmatrix} v_x \\ v_y \\ v_z \\[2pt] \omega_x \\
+%         \omega_y \\ \omega_z \end{pmatrix} 
 %     +
 %     \begin{pmatrix}
 %         F_x^b/m \\ F_y^b/m \\ F_z^b/m \\[2pt] \tau_x^b/I_x \\ \tau_y^b/I_y \\ \tau_z^b/I_z
 %     \end{pmatrix}
 %     \label{eq:newton_euler_3d_full}
-% \end{align}
-% The zeros in the off-diagonal $3\times3$ blocks show immediately that translational
-% velocity components $\vec{v}$ and angular velocity components $\vec{\omega}$ do not appear
-% directly in each other's rows -- they are coupled only through the coefficients $\omega_k$
-% that appear in the top-left block.\\
+% \end{align} The zeros in the off-diagonal $3\times3$ blocks show immediately that
+% translational velocity components $\vec{v}$ and angular velocity components
+% $\vec{\omega}$ do not appear directly in each other's rows -- they are coupled only
+% through the coefficients $\omega_k$ that appear in the top-left block.\\
 
 % \emph{Block structure of $A(\vec{\omega})$.}
 % The same matrix has the compact block form
@@ -1063,24 +1042,16 @@ get the positions and velocities as function of time.\\
 % orientation, and velocity degrees of freedom -- is summarised in
 % Tables~\ref{tab:state_2d_classical} and \ref{tab:state_3d_classical}.
 
-% \begin{table}[h!]
-% \centering\small
-% \begin{tabular}{p{3.5cm}|c|p{7.5cm}}
-% \hline
-% State & DoF & Equation \\
-% \hline
-% $x,\, y$ (inertial pos.) & 2 & $\dot{\vec{r}} = \mathbf{R}(\theta)\,\vec{v}$ \\
+% \begin{table}[h!] \centering\small \begin{tabular}{p{3.5cm}|c|p{7.5cm}} \hline State &
+% DoF & Equation \\
+% \hline $x,\, y$ (inertial pos.) & 2 & $\dot{\vec{r}} = \mathbf{R}(\theta)\,\vec{v}$ \\
 % $\theta$ (orientation) & 1 & $\dot{\theta} = \omega$ \\
-% $v_x,\, v_y$ (body vel.) & 2 &
-% $\dot{v}_x = +\omega v_y + F_x^b/m$,\;\; $\dot{v}_y = -\omega v_x + F_y^b/m$ \\
+% $v_x,\, v_y$ (body vel.) & 2 & $\dot{v}_x = +\omega v_y + F_x^b/m$,\;\; $\dot{v}_y =
+% -\omega v_x + F_y^b/m$ \\
 % $\omega$ (angular vel.) & 1 & $\dot{\omega} = \tau^b/J$ \\
-% \hline
-% Total & 6 & \multicolumn{1}{l}{coupled first-order ODEs} \\
-% \hline
-% \end{tabular}
-% \caption{Complete classical state vector for $2D$ rigid-body integration in the body frame.}
-% \label{tab:state_2d_classical}
-% \end{table}
+% \hline Total & 6 & \multicolumn{1}{l}{coupled first-order ODEs} \\
+% \hline \end{tabular} \caption{Complete classical state vector for $2D$ rigid-body
+% integration in the body frame.} \label{tab:state_2d_classical} \end{table}
 
 % \begin{table}[h!]
 % \centering\small
@@ -1128,12 +1099,10 @@ get the positions and velocities as function of time.\\
 
 % \newpage
 
-% \emph{Switching to $PGA$: what changes, what unifies.}
-% We can now compare the complete classical body-frame system with the $PGA$ formulation.
-% The $PGA$ equation of motion~(\ref{eq:ode_system_body_frame})
-% \begin{equation*}
-%     \dot{\Omega}_b = I_b^{-1}\!\left[ F_b - \mathrm{rcmt}(\Omega_b, I_b[\Omega_b]) \right]
-% \end{equation*}
+% \emph{Switching to $PGA$: what changes, what unifies.} We can now compare the complete
+% classical body-frame system with the $PGA$ formulation. The $PGA$ equation of
+% motion~(\ref{eq:ode_system_body_frame}) \begin{equation*} \dot{\Omega}_b =
+% I_b^{-1}\!\left[ F_b - \mathrm{rcmt}(\Omega_b, I_b[\Omega_b]) \right] \end{equation*}
 % looks like a single compact expression, but it encodes the same physics as both
 % eqns.~(\ref{eq:newton_body_frame_ss}) and (\ref{eq:euler_body_frame_ss}) together.
 % Table~\ref{tab:classical_vs_pga} show the full correspondence.
@@ -1172,42 +1141,31 @@ get the positions and velocities as function of time.\\
 % first two in a single equation over the bivector $\dot{\Omega}_b$ (6 DoF), and by a
 % separate update of the position using a motor directly derived from $\Omega_b$. The
 % $\mathrm{rcmt}$ term plays the combined role of both coupling terms of the classical
-% approach ($\vec{\omega}\times\vec{v}$ and $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$) in
-% one operation.
+% approach ($\vec{\omega}\times\vec{v}$ and $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$)
+% in one operation.
 
 % As just described, the $PGA$ equation~(\ref{eq:ode_system_body_frame}) does not directly
 % contain the degrees of freedom we are ultimately interested in, like $X$, $\dot{X}$, and
 % $\ddot{X}$. Instead, we first solve the system for the corresponding
 % (bi)vectors\footnote{$2D$ case: vectors; $3D$ case: bivectors} $B(t)$, $\dot{B} =
-% \Omega(t)$, and $\ddot{B} = \dot{\Omega}(t)$, and then recover the actual points and their
-% velocities in a follow-up step from the motor equations~(\ref{eq:rexp_pga_motor}) and
-% (\ref{eq:pga_sandwich_tranformation}).\\
+% \Omega(t)$, and $\ddot{B} = \dot{\Omega}(t)$, and then recover the actual points and
+% their velocities in a follow-up step from the motor equations~(\ref{eq:rexp_pga_motor})
+% and (\ref{eq:pga_sandwich_tranformation}).\\
 
-% \emph{$PGA$ state and initial conditions ($2D$ case).}
-% To make these remarks concrete let's look into the $2D$ case. The position and rate of
-% change vectors in the \emph{body frame} are defined as
-% \begin{equation}
-%     B_b = \begin{pmatrix}
-%         s_x \\ s_y \\ \phi
-%     \end{pmatrix}
-%     ,\quad
-%      \dot{B}_b = \Omega_b = \begin{pmatrix}
-%         v_x \\ v_y \\ \omega
-%     \end{pmatrix}
-%     ,\quad
-%      \dot{\Omega}_b = \begin{pmatrix}
-%         a_x \\ a_y \\ \alpha
-%     \end{pmatrix}
-% \end{equation}
-% Comparing with Table~\ref{tab:state_2d_classical}, the $PGA$ state $(B_{b,x},
-% \Omega_{b,x}, B_{b,y}, \Omega_{b,y}, B_{b,\phi}, \Omega_{b,\omega})$ corresponds directly
-% to the classical state $(x,v_x,y, v_y,\theta, \omega)$ for the dynamic degrees of freedom.
-% The inertial-frame positions of the center of mass (the origin of the body frame) and its
-% orientation are recovered via the motor instead of via a separate kinematic integration.
-% The full state vector transformed to $1^{st}$ order is $u(B_b,\Omega_b) = (s_x, v_x, s_y,
-% v_y, \phi, \omega)$. Suitable initial conditions for speed and angular speed can be
-% directly derived from equations~(\ref{eq:vector_rot_rate_omega}) and
-% (\ref{eq:vector_trans_rate_v_vec}). \\
+% \emph{$PGA$ state and initial conditions ($2D$ case).} To make these remarks concrete
+% let's look into the $2D$ case. The position and rate of change vectors in the \emph{body
+% frame} are defined as \begin{equation} B_b = \begin{pmatrix} s_x \\ s_y \\ \phi
+% \end{pmatrix} ,\quad \dot{B}_b = \Omega_b = \begin{pmatrix} v_x \\ v_y \\ \omega
+% \end{pmatrix} ,\quad \dot{\Omega}_b = \begin{pmatrix} a_x \\ a_y \\ \alpha \end{pmatrix}
+% \end{equation} Comparing with Table~\ref{tab:state_2d_classical}, the $PGA$ state
+% $(B_{b,x}, \Omega_{b,x}, B_{b,y}, \Omega_{b,y}, B_{b,\phi}, \Omega_{b,\omega})$
+% corresponds directly to the classical state $(x,v_x,y, v_y,\theta, \omega)$ for the
+% dynamic degrees of freedom. The inertial-frame positions of the center of mass (the
+% origin of the body frame) and its orientation are recovered via the motor instead of via
+% a separate kinematic integration. The full state vector transformed to $1^{st}$ order is
+% $u(B_b,\Omega_b) = (s_x, v_x, s_y, v_y, \phi, \omega)$. Suitable initial conditions for
+% speed and angular speed can be directly derived from
+% equations~(\ref{eq:vector_rot_rate_omega}) and (\ref{eq:vector_trans_rate_v_vec}). \\
 
 % The initial value for the position is typically set to $B_b(t=0) = (0, 0, 0)$, which
 % yields the identity transformation at $t=0$ as $M(t=0) = \exp_\veedot[\frac{1}{2}
@@ -1302,33 +1260,26 @@ is preserved exactly for all $\varphi$ by the motor algebra. Only the velocity d
 % circle of radius $l$ around $A$. The single-DOF formulation with $I_\text{pivot}$ does
 % not extend to this case. \\
 
-% The natural $PGA$ formulation decomposes the total motor into a chain:
-% \begin{equation}
-%     M(\varphi_1, \varphi_2) \;=\; M_\text{thread}(\varphi_1) \veedot
-%     \exp_\veedot\!\bigl(\tfrac{1}{2}\,\varphi_2 \cdot Q_b\bigr)
-%     \label{eq:motor_multibody_2dof}
-% \end{equation}
-% where $M_\text{thread}(\varphi_1)$ encodes the swing of $Q_b$ about anchor $A$ and
-% $\exp_\veedot(\frac{1}{2}\varphi_2 Q_b)$ is the plate's own rotation about $Q_b$. The ODE
-% state becomes $(\varphi_1, \omega_1, \varphi_2, \omega_2)$ -- two coupled second-order
-% equations. The thread tension must be computed explicitly from the centripetal constraint
-% and enters as a coupling force. \\
+% The natural $PGA$ formulation decomposes the total motor into a chain: \begin{equation}
+% M(\varphi_1, \varphi_2) \;=\; M_\text{thread}(\varphi_1) \veedot
+% \exp_\veedot\!\bigl(\tfrac{1}{2}\,\varphi_2 \cdot Q_b\bigr)
+% \label{eq:motor_multibody_2dof} \end{equation} where $M_\text{thread}(\varphi_1)$
+% encodes the swing of $Q_b$ about anchor $A$ and $\exp_\veedot(\frac{1}{2}\varphi_2 Q_b)$
+% is the plate's own rotation about $Q_b$. The ODE state becomes $(\varphi_1, \omega_1,
+% \varphi_2, \omega_2)$ -- two coupled second-order equations. The thread tension must be
+% computed explicitly from the centripetal constraint and enters as a coupling force. \\
 
 % For any $2D$ rigid body in multi-DOF planar motion an instantaneous center of rotation
-% (ICR) exists at each moment. In $PGA2DP$ the world-frame velocity bivector
+% (ICR) exists at each moment. In $2D$ $PGA$ the world-frame velocity bivector
 % $\Omega_\text{world}$ is the ICR as an unnormalized point. For the thread-plate compound
-% pendulum
-% \begin{equation}
-%     \Omega_\text{world} \;=\; \omega_1 \cdot A + \omega_2 \cdot Q_{b,\text{world}}
-%     \label{eq:icr_2dof}
-% \end{equation}
-% where $A$ is the fixed anchor and $Q_{b,\text{world}} = M_\text{thread} \veedot Q_b
-% \veedot \rrev{M_\text{thread}}$ is the current world position of the pivot. The normalized
-% ICR is the angular-velocity-weighted average of the two rotation centers. Computing the
-% ICR requires knowing $\omega_1$ and $\omega_2$ separately -- it is a kinematic consequence
-% of the dynamics and cannot substitute for the full $2$-DOF formulation. In $PGA3DP$ the
-% same relation holds with the ICR replaced by an instantaneous rotation \emph{axis} (a
-% \texttt{BiVec3dp} line). \\
+% pendulum \begin{equation} \Omega_\text{world} \;=\; \omega_1 \cdot A + \omega_2 \cdot
+% Q_{b,\text{world}} \label{eq:icr_2dof} \end{equation} where $A$ is the fixed anchor and
+% $Q_{b,\text{world}} = M_\text{thread} \veedot Q_b \veedot \rrev{M_\text{thread}}$ is the
+% current world position of the pivot. The normalized ICR is the angular-velocity-weighted
+% average of the two rotation centers. Computing the ICR requires knowing $\omega_1$ and
+% $\omega_2$ separately -- it is a kinematic consequence of the dynamics and cannot
+% substitute for the full $2$-DOF formulation. In $3D$ $PGA$ the same relation holds with
+% the ICR replaced by an instantaneous rotation \emph{axis} (a \texttt{BiVec3dp} line). \\
 
 % The plate's inertia map $I_\text{pivot}$ (parallel-axis corrected about $Q_b$) remains
 % constant in the plate's body frame and is reusable in the plate's rotational equation
@@ -1378,7 +1329,7 @@ Index & Vec2dp input (velocity twist $\Omega$) & BiVec2dp output (momentum wrenc
 2 & $\bv{3}$ -- angular velocity  & $\bv{12}$ -- angular momentum \\
 \hline
 \end{tabular}
-\caption{Basis correspondence for the $PGA2DP$ inertia map.}
+\caption{Basis correspondence for the $2D$ $PGA$ inertia map.}
 \label{tab:basis_pga2dp}
 \end{table}
 
@@ -1417,10 +1368,11 @@ there is no self-coupling. This is a direct consequence of the degenerate metric
 
 The resulting mass block is antisymmetric with $I[0,1] = +m$ and $I[1,0] = -m$. The sign
 structure is consistent with the kinematic encoding: the motor-generator $\Omega$ for a
-pure translation with classical velocity $(v_x, v_y)$ is encoded in $PGA2DP$ as $\Omega =
-(-v_y, v_x, 0)$. The two sign flips cancel and the classical linear momentum $p_x = mv_x$,
-$p_y = mv_y$ is correctly recovered. In any other context -- position, force, acceleration
--- $\bv{1}$ always encodes the $x$-component and $\bv{2}$ the $y$-component. \\
+pure translation with classical velocity $(v_x, v_y)$ is encoded in $2D$ $PGA$ as $\Omega
+= (-v_y, v_x, 0)$. The two sign flips cancel and the classical linear momentum $p_x =
+mv_x$, $p_y = mv_y$ is correctly recovered. In any other context -- position, force,
+acceleration -- $\bv{1}$ always encodes the $x$-component and $\bv{2}$ the $y$-component.
+\\
 
 \emph{Moment of inertia and cross-coupling terms.} The entry $I[2,2] = m(X_x^2 + X_y^2) =
 mr^2$ maps angular velocity ($\bv{3}$, index~2) to angular momentum ($\bv{12}$, index~2),
@@ -1496,13 +1448,13 @@ continuous value is $2/(n-1)$, independent of plate dimensions, converging from 
 $n \to \infty$. \\
 
 Table~\ref{tab:classical_pga2dp} summarises the classical inertial quantities and their
-locations in the $PGA2DP$ inertia matrix.
+locations in the $2D$ $PGA$ inertia matrix.
 
 \begin{table}[h!]
 \centering\small
 \begin{tabular}{p{4cm}|p{5.5cm}|p{2.8cm}}
 \hline
-Classical quantity & $PGA2DP$ entry & Condition \\
+Classical quantity & $2D$ $PGA$ entry & Condition \\
 \hline
 Total mass $m$ & $I[0,1] = +m$,\; $I[1,0] = -m$ & Always \\
 Scalar moment $J$ about CoM & $I[2,2] = J$ & CoM at origin \\
@@ -1511,12 +1463,12 @@ frame \\
 Parallel axis correction & $I[2,2] = J_\mathrm{cm} + m(c_x^2 + c_y^2)$ & General frame \\
 \hline
 \end{tabular}
-\caption{Classical inertial quantities and their location in the $PGA2DP$ $3\times3$
+\caption{Classical inertial quantities and their location in the $2D$ $PGA$ $3\times3$
 inertia matrix.}
 \label{tab:classical_pga2dp}
 \end{table}
 
-\emph{$PGA3DP$: structure of the 3D inertia map.}
+\emph{$3D$ $PGA$: structure of the 3D inertia map.}
 In $3D$ $PGA$ both the velocity twist $\Omega$ and the momentum wrench $P$ are bivectors,
 so the inertia map acts within the same grade:
 \begin{equation}
@@ -1554,7 +1506,7 @@ $\bv{12}$ -- angular momentum about $\bv{3}$
 \\
 \hline
 \end{tabular}
-\caption{Basis correspondence for the $PGA3DP$ inertia map.}
+\caption{Basis correspondence for the $3D$ $PGA$ inertia map.}
 \label{tab:basis_pga3dp}
 \end{table}
 
@@ -1592,7 +1544,7 @@ four $3\times3$ blocks with distinct physical roles:
     a point at the origin; becomes antisymmetric for a displaced center of mass.
 \end{itemize}
 
-The placement of mass in the upper-right block follows from the complement in $PGA3DP$,
+The placement of mass in the upper-right block follows from the complement in $3D$ $PGA$,
 which maps real lines to ideal lines:
 \begin{equation}
     \rcmpl{\bv{23}} = \bv{41}, \quad \rcmpl{\bv{31}} = \bv{42}, \quad
@@ -1676,11 +1628,11 @@ Two structural features carry over from the $2D$ case:
 
 This $6\times6$ structure is the $PGA$ form of the classical spatial inertia matrix from
 rigid body dynamics~\cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023}, expressed in
-the (translational, angular) velocity ordering of $PGA3DP$. \\
+the (translational, angular) velocity ordering of $3D$ $PGA$. \\
 
-\emph{Continuous limit: uniform rectangular cuboid.} For a uniform cuboid of width $w$
-(along $\bv{1}$), height $h$ (along $\bv{2}$), depth $d$ (along $\bv{3}$), total mass $m$,
-centerd at the origin, all cross-inertia and center-of-mass coupling terms vanish:
+\emph{Uniform rectangular cuboid.} For a uniform cuboid of width $w$ (along $\bv{1}$),
+height $h$ (along $\bv{2}$), depth $d$ (along $\bv{3}$), total mass $m$, centerd at the
+origin, all cross-inertia and center-of-mass coupling terms vanish:
 \begin{equation}
     I_\mathrm{cuboid} = m
     \begin{bmatrix}
@@ -1700,13 +1652,13 @@ two extents of the body perpendicular to the respective rotation axis, as in the
 formula. \\
 
 Table~\ref{tab:classical_pga3dp} gives the correspondence between classical inertial
-quantities and their location in the $PGA3DP$ inertia matrix.
+quantities and their location in the $3D$ $PGA$ inertia matrix.
 
 \begin{table}[h!]
 \centering\small
 \begin{tabular}{p{3.1cm}|p{4.6cm}|p{4.7cm}}
 \hline
-Classical quantity & $PGA3DP$ block & Entries (body frame, CoM at origin) \\
+Classical quantity & $3D$ $PGA$ block & Entries (body frame, CoM at origin) \\
 \hline
 Total mass $m$ & Upper-right diagonal ($m\mathbf{I}_3$) & $I[0,3]=I[1,4]=I[2,5]=m$ \\
 Diagonal moments $I_{xx}, I_{yy}, I_{zz}$ & Lower-left diagonal & $I[3,0],\; I[4,1],\;
@@ -1716,13 +1668,13 @@ $I[3,1]=I[4,0]=-I_{xy}$, etc. \\
 CoM offset (general frame) & All four $3\times3$ blocks & via parallel axis theorem \\
 \hline
 \end{tabular}
-\caption{Classical inertial quantities and their location in the $PGA3DP$ $6\times6$
+\caption{Classical inertial quantities and their location in the $3D$ $PGA$ $6\times6$
 inertia matrix (body frame, center of mass at origin).}
 \label{tab:classical_pga3dp}
 \end{table}
 
 \emph{Unified view: 2D and 3D.}
-In both $PGA2DP$ and $PGA3DP$ the mass contribution to the inertia map takes the same
+In both $2D$ $PGA$ and $3D$ $PGA$ the mass contribution to the inertia map takes the same
 algebraic form:
 \begin{equation}
     I_\mathrm{mass}(\Omega) = -m \cdot \rcmpl{\Omega}
@@ -1732,13 +1684,13 @@ The complement maps each velocity generator to its momentum carrier in the dual 
 placing mass in the off-diagonal block that connects dual velocity and momentum spaces.
 The location of that block in the matrix depends on the basis ordering. \\
 
-In $PGA2DP$ the translational generators ($\bv{1}$, $\bv{2}$, indices 0--1) sit at lower
+In $2D$ $PGA$ the translational generators ($\bv{1}$, $\bv{2}$, indices 0--1) sit at lower
 indices and the rotational generator ($\bv{3}$, index~2) sits at the highest index. The
 complement maps translational inputs to translational outputs while crossing $x$ and $y$,
 placing mass in the \emph{upper-left $2\times2$} sub-block (translational velocity $\to$
 linear momentum). \\
 
-In $PGA3DP$ the translational generators ($\bv{41}$, $\bv{42}$, $\bv{43}$, indices 0--2)
+In $3D$ $PGA$ the translational generators ($\bv{41}$, $\bv{42}$, $\bv{43}$, indices 0--2)
 are ideal lines at lower indices, while the rotational generators ($\bv{23}$, $\bv{31}$,
 $\bv{12}$, indices 3--5) are real lines at higher indices. The complement maps real-line
 inputs (angular velocity) to ideal-line outputs (linear momentum), placing mass in the
@@ -1751,7 +1703,7 @@ of mass at origin).
 \centering\small
 \begin{tabular}{p{3.1cm}|p{4.1cm}|p{5.1cm}}
 \hline
-Classical quantity & $PGA2DP$ ($3\times3$) & $PGA3DP$ ($6\times6$) \\
+Classical quantity & $2D$ $PGA$ ($3\times3$) & $3D$ $PGA$ ($6\times6$) \\
 \hline
 Total mass $m$ &
     Upper-left $2\times2$: $I[0,1]=+m$, $I[1,0]=-m$ &
@@ -1787,42 +1739,16 @@ map $I_\mathrm{body}$ is block-diagonal at the center of mass -- translational a
 rotational blocks decoupling in the inertia matrix itself -- the equations of motion
 retain dynamical coupling through the $\mathrm{rcmt}(\Omega_b, I_b[\Omega_b])$ term. This
 is the $PGA$ counterpart of the classical coupling terms $\vec{\omega}\times\vec{v}$ and
-$\vec{\omega}\times\mathbf{I}_b\vec{\omega}$ discussed in the preceding section, and it
-arises from the rotation of the body frame, not from the inertia structure. \\
+$\vec{\omega}\times\mathbf{I}_b\vec{\omega}$, and it arises from the rotation of the body
+frame, not from the inertia structure. \\
 
 \emph{Pivot-corrected inertia: using the pivot as reference point.}
-The general-frame formulae derived above -- eqn.~(\ref{eq:inertia_2D_general}) in $2D$
-and eqn.~(\ref{eq:inertia_3D_general}) in $3D$ -- apply directly when the reference point
-is chosen to coincide with the pivot rather than the center of mass. In that case the
+The general-frame formulae derived above -- eqn.~(\ref{eq:inertia_2D_general}) in $2D$ and
+eqn.~(\ref{eq:inertia_3D_general}) in $3D$ -- apply directly when the reference point is
+chosen to coincide with the pivot rather than the center of mass. In that case the
 center-of-mass offset vector $(c_x, c_y)$ resp.\ $\vec{r}_{cm}$ points from the pivot to
 the center of mass, and the inertia map automatically incorporates the full Steiner
-correction: $I[2,2] = J_{cm} + mr^2$ in $2D$ (eqn.~(\ref{eq:steiner_2d})) and the
-complete tensor update of eqn.~(\ref{eq:parallel_axis_3D}) in $3D$. \\
-
-In $2D$ the pivot is a point $Q_b$ (grade~1), so the displacement to the center of mass
-is directly available. In $3D$ the pivot is a line $L_\text{pivot}$ (grade~2,
-\texttt{BiVec3dp}) with direction components $\mathbf{v} = (L_{vx}, L_{vy}, L_{vz})$ and
-moment components $\mathbf{n} = (L_{mx}, L_{my}, L_{mz})$. The point on $L_\text{pivot}$
-closest to the body origin -- the foot of the perpendicular -- serves as the reference
-for the Steiner correction:
-\begin{equation}
-    \mathbf{P}_\text{foot} \;=\; \frac{\mathbf{n} \times \mathbf{v}}{\|\mathbf{n}\|^2},
-    \qquad \text{where } \mathbf{v} = \mathbf{p} \times \mathbf{n}
-    \label{eq:foot_of_perpendicular}
-\end{equation}
-When $\mathbf{v} = 0$ (zero ideal part) the line passes through the origin and no
-correction is applied. Both cases are handled uniformly via the optional pivot parameter
-of \texttt{get\_plate\_inertia(m, w, h, Q\_b)} ($2D$) and \\
-\texttt{get\_cuboid\_inertia(m, w, h, d, L\_pivot)} ($3D$), which default to
-$I_\text{body}$ when no pivot is given. \\
-
-The grade of the pivot entity -- point (grade~1) in $2D$ matching the velocity vector in
-Table~\ref{tab:basis_pga2dp}, and line (grade~2) in $3D$ matching the velocity bivector in
-Table~\ref{tab:basis_pga3dp} -- is a direct consequence of the grade structure of the
-respective algebra: the constraint $\Omega_b \propto$ pivot is grade-consistent in both
-cases. The dynamic consequences of working with $I_\text{pivot}$ instead of
-$I_\text{body}$ -- in particular the constraint projection and the pivot invariance
-identity -- are discussed in the context of constrained motion in
-section~\ref{subsubsection:solving_newton-euler_numerically}. \\
+correction: $I[2,2] = J_{cm} + mr^2$ in $2D$ (eqn.~(\ref{eq:steiner_2d})) and the complete
+tensor update of eqn.~(\ref{eq:parallel_axis_3D}) in $3D$.
 
 \newpage
