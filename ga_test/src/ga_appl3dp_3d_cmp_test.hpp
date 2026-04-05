@@ -619,4 +619,56 @@ TEST_SUITE("PGA3DP: comparison tests")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: rotating duck - VA, EGA, PGA")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: rotating duck - VA, EGA, PGA");
+
+        // two coordinated systems in relative rotation to each other with
+        // a duck moving in the rotating system
+
+        double omega_s = 0.4; // rad/s
+        double alpha_s = 0.1; // rad/s^2
+
+        vec3d v_cm = vec3d{0, 0, 0};
+        vec3d a_cm = vec3d{0, 0, 0};
+
+        double v_b_s = 0.2; // m/s (speed of duck in rotating system)
+        double a_b_s = 0.1; // m/s^2 (acceleration of duck in rotating system)
+        double r_b_s = 1.0; // m (position of duck)
+
+        fmt::println("  1st: rotating duck in VA");
+
+        auto omega_v = omega_s * e3_3d;
+        auto alpha_v = alpha_s * e3_3d;
+
+        auto v_b_v = v_b_s * e1_3d;
+        auto a_b_v = a_b_s * e1_3d;
+        auto r_b_v = r_b_s * e1_3d;
+
+        auto v_duck_va = v_cm + cross(omega_v, r_b_v) + v_b_v;
+        auto a_duck_va = a_cm + cross(alpha_v, r_b_v) +
+                         cross(omega_v, cross(omega_v, r_b_v)) +
+                         2.0 * cross(omega_v, v_b_v) + a_b_v;
+
+        fmt::println("       v_duck_va = {}", v_duck_va);
+        fmt::println("       a_duck_va = {}", a_duck_va);
+        fmt::println("       a_cm  = {}", a_cm);
+        fmt::println("       a_t   = {}", cross(alpha_v, r_b_v));
+        fmt::println("       a_n   = {}", cross(omega_v, cross(omega_v, r_b_v)));
+        fmt::println("       a_cor = {}", 2.0 * cross(omega_v, v_b_v));
+        fmt::println("       a_rel = {}", a_b_v);
+
+
+        fmt::println("  2nd: rotating duck in EGA");
+
+        auto omega_B = dual(omega_v);
+        auto alpha_B = dual(alpha_v);
+
+        fmt::println("  3rd: rotating duck in PGA");
+
+
+        fmt::println("");
+    }
+
 } // EGA3D PGA3DP Comparison Tests

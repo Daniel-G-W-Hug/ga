@@ -1109,7 +1109,7 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> cmt(PScalar2d<T> ps, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(ctype(ps) * v.y, -ctype(ps) * v.x);
+    return ctype(ps) * Vec2d<ctype>(v.y, -v.x);
 }
 
 // cmt(v,B) = -cmt(B,v)
@@ -1119,7 +1119,7 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> cmt(Vec2d<T> const& v, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-v.y * ctype(ps), v.x * ctype(ps));
+    return Vec2d<ctype>(-v.y, v.x) * ctype(ps);
 }
 
 template <typename T, typename U>
