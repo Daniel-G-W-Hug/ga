@@ -15,7 +15,7 @@ while for rotational motion we typically use:
 \ddot{\phi}(t) & = \dot{\omega}(t) =\ddot{\phi} = \dot{\omega}
 \end{align*}
 Especially in $PGA$, we will be able to combine the translational and rotational aspects
-in one physical variable. Thus we will use a convention of using capital letters for
+in one physical variable. Thus, we will use a convention of using capital letters for
 physical quantities to distinguish them from the classical convention, especially so for
 bivectors and even-grade multivectors that do not occur in classical descriptions. We will
 use in $PGA$:
@@ -176,7 +176,7 @@ To model a translation $\delta = (\delta_x, \delta_y, \delta_z, 0)$ in $3D$ $PGA
 special bivector $B=B_{tra}$ that does not square to $-\ps$, but instead squares to zero.
 That makes sure that the expansion of the Taylor series of the exponential function
 $\exp_{\veedot}(B_{tra})$ only contains the first two terms. The bivector is resulting
-from two consequtive reflections across parallel planes perpendicular to $\delta$ with the
+from two consecutive reflections across parallel planes perpendicular to $\delta$ with the
 distance $\frac{1}{2}\bulknrm{\delta}$ relative to each other. They intersect in a line at
 infinity that is used as ``rotation axis''. This however yields a translation, since the
 axis is infinitely far away. The derivation of the formula for the bivector will be done
@@ -191,9 +191,9 @@ quadvector in $3D$ $PGA$, and a bivector component.\\
 To model a translation $\delta = (\delta_x, \delta_y, 0)$ in $2D$ $PGA$ we need a special
 vector as argument of the exponential. It represents a direction to a point at infinity.
 The ``rotation'' around that infinitely far away point generates a translation (actually
-it is resulting from two consequtive reflections across parallel lines perpendicular to
+it is resulting from two consecutive reflections across parallel lines perpendicular to
 $\delta$ with the distance $\frac{1}{2}\bulknrm{\delta}$ relative to each other). The
-deriviation of the special vector will be done later in this section (see
+derivation of the special vector will be done later in this section (see
 eqn.~(\ref{eq:vector_trans_rate_v_vec})). The argument of the exponential $\exp_\veedot$
 for a translation is the direction vector $P = \rightbulkdual{\delta} \vee \rcmpl{\bv{3}}
 = \rightbulkdual{\delta} \vee H_{2dp} = att(\rightbulkdual{\delta}) = (-\delta_y \bv{1} +
@@ -206,7 +206,7 @@ the expansion of the exponential to only contain the first two terms: $M =
 pseudoscalar, which is a trivector in $2D$ $PGA$, and a vector component, i.e. it is
 structurally the same as for the rotation case in $2D$ $PGA$ above.\\
 
-Eqn. (\ref{eq:exp_B}) allows us to model rotations in $EGA$, where the bivector $B$ is the
+Eqn.~(\ref{eq:exp_B}) allows us to model rotations in $EGA$, where the bivector $B$ is the
 complement of the axis of rotation and $\theta = -2\phi$ is the angle of the rotation
 around that axis. If we directly want to specify the angle of rotation $\theta$ we need to
 substitute $\phi$ by $-\frac{\phi}{2}$ in eqn. (\ref{eq:exp_B}). The rotated object $X$
@@ -265,7 +265,7 @@ then obtained from
 We can think of the screw motion used to model motion in $3D$ $PGA$ as a combination of a
 rotation by an angle $\phi$ around the unitized line $\bm{l}$ and by a translation from a
 displacement $\delta$ along that same line $\bm{l}$. The latter part results from a
-rotation around a line at infinity given by $\rightweightdual{\bm{l}}$. Thus the bivector
+rotation around a line at infinity given by $\rightweightdual{\bm{l}}$. Thus, the bivector
 representing the line $\bm{l}$ can always be split into the parts creating the rotation
 (movement around that line) and the parts creating the translation (movement along that
 line).\\
@@ -307,7 +307,7 @@ $\dot{\rev{M}}$. \\
 In order to model rigid body mechanics we consider two coordinate frames:
 \begin{itemize}
    \item A \emph{world frame} (index $w$) that is normally chosen to be an inertial frame.
-   \item A \emph{body frame} (index $b$) that is attached to a rigid body. Typically at
+   \item A \emph{body frame} (index $b$) that is attached to a rigid body. Typically, at
    its center of gravity, but this is not strictly required. Rigid body's internal forces
    are in equilibrium and thus need not be considered explicitly. It is sufficient to
    describe the translational motion of the body's center of gravity and its rotational
@@ -315,13 +315,13 @@ In order to model rigid body mechanics we consider two coordinate frames:
    relative to the world frame then fully covers rigid body motion (kinematics and
    dynamics), which depends on distribution of the mass of the body as well as on external
    forces and moments acting on the body.
-   \item To describe the motion we use a time dependend motor $M=M(t)$. At time $t=0$ we
+   \item To describe the motion we use a time dependent motor $M=M(t)$. At time $t=0$ we
    call it $M_0 = M(t=0)$. $M_0$ brings an element $X$ of the body to its position $X_0$
    at time $t=0$.
 \end{itemize}
 
 \textbf{\emph{World frame}}: From eqn.~(\ref{eq:rotor_ega}) we know the form of a general
-rotor in $EGA$ and use the ansatz for a time dependent rotor $M(t)$ after the the object
+rotor in $EGA$ and use the ansatz for a time dependent rotor $M(t)$ after the object
 $X$ was brought into its initial position by $M_0$ as $X_0 = M_0 \wedgedot X \wedgedot
 \rev{M}_0$. If there is no difference between world and body frames at $t=0$ then $M_0=1$:
 \begin{equation}
@@ -342,7 +342,8 @@ rate of change in the \emph{world frame}, we get
    \dot{M} = -\frac{1}{2} \Omega_w \wedgedot M 
    \label{eq:motor_rate_world_frame}   
 \end{equation}
-By multiplying this from the right with ``$\wedgedot\;\rev{M}$'' this can transformed to
+By multiplying this from the right with ``$\wedgedot\;\rev{M}$'' this can be transformed
+to
 \begin{equation}
    \Omega_w = -2 \dot{M} \wedgedot \rev{M}
    \label{eq:bivector_rate_world_frame}
@@ -534,7 +535,7 @@ $X(t)$ for the approach of $PGA$ used here: We will use the regressive geometric
 and $\ps$ as its neutral element. The derivation is then completely analogous to the $EGA$
 case with the given substitutions. \\
 
-$M$ as a motor in $PGA$ is an orthonomal transformation and satisfies
+$M$ as a motor in $PGA$ is an orthonormal transformation and satisfies
 \begin{equation}
 M \veedot \rrev{M} = \rrev{M} \veedot M = \ps
 \label{eq:motor_relation_rgpr_neutral_element}
@@ -571,7 +572,7 @@ a vector or a bivector as argument), we only do the derivation for the $3D$ case
 then will interpret the results for the $2D$ case separately afterwards. \\
 
 \textbf{\emph{World frame}}: From eqn.~(\ref{eq:rexp_pga_motor}) we know the form of a
-general motor in $PGA$ and use the ansatz for a time dependent motor $M(t)$ after the the
+general motor in $PGA$ and use the ansatz for a time dependent motor $M(t)$ after the
 object $X$ was brought into its initial position by $M_0$ as $X_0 = M \veedot X \veedot
 \rrev{M}$. If there is no difference between world and body frames at $t=0$ then
 $M_0=\ps$:
@@ -593,7 +594,7 @@ the bivector rate of change in the \emph{world frame}, we get
    \dot{M} = \frac{1}{2} \Omega_w \veedot M 
    \label{eq:motor_rate_world_frame_pga}   
 \end{equation}
-By multiplying this from the right with ``$\veedot\;\rrev{M}$'' this can transformed to
+By multiplying this from the right with ``$\veedot\;\rrev{M}$'' this can be transformed to
 \begin{equation}
    \Omega_w = 2 \dot{M} \veedot \rrev{M}
    \label{eq:bivector_rate_world_frame_pga}
@@ -915,7 +916,7 @@ $\Omega_{tra}$ that does not contain a factor of $\bv{3}$. To show this we use e
 same equations as in the $3D$ case by encoding the speed of translation in the normal
 vector $n_v$ of a line and then intersecting this line with the horizon $\rcmpl{\bv{3}} =
 \rcmpl{O_{2dp}} = H_{2dp}$. The double reflection on parallel lines that effectively
-creates the translation, necessitates the need for encoding the tanslation speed in a
+creates the translation, necessitates the need for encoding the translation speed in a
 vector pointing normal to the translation direction. The line with the corresponding
 attitude can be encoded by using the right bulk dual $\rightbulkdual{v}$ to model the line
 (a bivector) with the bulk norm $\bulknrm{v}$ as magnitude. The vector rate of change

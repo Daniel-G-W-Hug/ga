@@ -108,7 +108,7 @@ corresponding algebra. The generated coefficient expressions are used in the sou
 to implement dot products, wedge products, commutator products, contractions, expansions,
 geometric products or their regressive counterparts, as well as sandwich products
 describing rotors and motors of the corresponding algebra. If certain products are
-required for your applicaton, but not yet implemented in the ga library, they can be
+required for your application, but not yet implemented in the ga library, they can be
 easily generated within \path{ga/ga_prdxpr/src_prdxpr} as needed and added with minimal
 effort. \\
 
@@ -130,7 +130,7 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
     \item The outer product ($a \wedge b$) is a grade-increasing operation adding the
     grades of its arguments. It extends the space that is taken by one object by the space
     that is taken by another object (e.g. two linear independent vectors, representing a
-    linear sub-space each, span a plane that is defined by the additive combination of
+    linear subspace each, span a plane that is defined by the additive combination of
     those sub-spaces). The outer product (also called the wedge product) connects
     subspaces represented by their operands and creates new subspaces defined by the span
     of its subspaces of the operands. It establishes a join-operation between the involved
@@ -143,15 +143,15 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
     \item The geometric product ($a \wedgedot b$) is the combination of both types of
     products in one expression. They can result in multivectors consisting of parts with
     different grades as result of the operation. The main advantage of the geometric
-    product is its invertibility under certain circumstances.
+    product is that it is invertible under certain circumstances.
 
     \item Regressive products ($a \circ b \equiv \lcmpl{\rcmpl{a} \cdot \rcmpl{b}}$, $a
     \vee b \equiv \lcmpl{\rcmpl{a} \wedge \rcmpl{b}}$, $\mathrm{rcmt}(a,b) \equiv
     \lcmpl{\mathrm{cmt}(\rcmpl{a},\rcmpl{b})}$, $a \veedot b \equiv \lcmpl{\rcmpl{a}
     \wedgedot \rcmpl{b}}$) use complement operations on their arguments before and after
-    applying the operation\footnote{for definition of the left and right complement
-    operations marked with underbar and overbar, see next section}. The regressive wedge
-    product finds commom lower-dimensional subspaces, i.e. it effectively finds the
+    applying the operation\footnote{For definition of the left and right complement
+    operations marked with under-line and over-line, see next section.}. The regressive
+    wedge product finds common lower-dimensional subspaces, i.e. it effectively finds the
     intersection of the sub-spaces represented by its arguments, thus effectively creating
     a meet-operation between the involved spaces. It can be used to find the intersection
     of sub-spaces, like the intersection point between a line and a plane, as a very
@@ -161,8 +161,8 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
     \veedot \rrev{M}$ for $PGA$) are used to implement orthogonal transformations of
     geometric objects $u$. They realize rotations for $EGA$ and general motions including
     rotation and translation for $PGA$ by concatenating two consecutive reflections to
-    implement the resulting orthogonal transformations. In $2D$ the consequtive
-    reflections are across lines, while in $3D$ the consequtive reflections are across
+    implement the resulting orthogonal transformations. In $2D$ the consecutive
+    reflections are across lines, while in $3D$ the consecutive reflections are across
     planes. This can be achieved algebraically by multiplying the object symmetrically
     from the left- and right-hand side with the appropriate (typically unitized) objects,
     we either call rotors $R$ in $EGA$ or motors $M$ in $PGA$.
@@ -243,7 +243,7 @@ arguments for the product operation. \\
 
 The product tables for all products are generated in \path{ga/ga_prdxpr}. They can be
 derived directly from simple rules that define the products between basis vectors. The
-rules are generated for the geometric prodcut, the outer (or wedge) product, the dot
+rules are generated for the geometric product, the outer (or wedge) product, the dot
 product, the complements and duals of the respective algebra. All resulting product
 expressions can be calculated from those few basic rules. Coefficient expressions for
 specific argument types like scalars, vector, bivectors, etc. can be generated based on
