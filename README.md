@@ -173,7 +173,7 @@ cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega3d --products=wdg,dot && cd ../..
 - **ega3d**: Euclidean Geometric Algebra 3D
 - **pga2dp**: Projective Geometric Algebra 2D
 - **pga3dp**: Projective Geometric Algebra 3D
-- **sta4d**: Space-Time Algebra 4D
+<!-- - **sta4d**: Space-Time Algebra 4D -->
 
 ### Common Product Types
 
@@ -187,6 +187,8 @@ cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega3d --products=wdg,dot && cd ../..
 - `rexpand` - Right expansion
 - `rgpr` - Regressive geometric product
 - `rwdg` - Regressive wedge product
+- `rdot` - Regressive inner (dot) product
+- `rcmt` - Regressive commutator product
 - `sandwich_gpr` - Sandwich product (geometric)
 - `sandwich_rgpr` - Sandwich product (regressive)
 

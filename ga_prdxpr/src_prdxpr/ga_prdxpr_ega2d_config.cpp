@@ -165,6 +165,7 @@ ProductConfig get_ega2d_gpr_config()
                       {"vec * mv -> mv", "svps", "B", "vec", "mv"},
                       {"mv * s -> mv", "A", "svps", "mv", "s"},
                       {"s * mv -> mv", "svps", "B", "s", "mv"},
+                      //
                       {"mv_e * mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
                       {"mv_e * ps -> mv_e", "A_even", "svps", "mv_e", "ps"},
                       {"ps * mv_e -> mv_e", "svps", "B_even", "ps", "mv_e"},
@@ -172,14 +173,17 @@ ProductConfig get_ega2d_gpr_config()
                       {"vec * mv_e -> vec", "svps", "B_even", "vec", "mv_e"},
                       {"mv_e * s -> mv_e", "A_even", "svps", "mv_e", "s"},
                       {"s * mv_e -> mv_e", "svps", "B_even", "s", "mv_e"},
+                      //
                       {"ps * ps -> s", "svps1", "svps2", "ps", "ps"},
                       {"ps * vec -> vec", "svps", "svps", "ps", "vec"},
                       {"vec * ps -> vec", "svps", "svps", "vec", "ps"},
                       {"ps * s -> ps", "svps", "svps", "ps", "s"},
                       {"s * ps -> ps", "svps", "svps", "s", "ps"},
+                      //
                       {"vec * vec -> mv_e", "svps1", "svps2", "vec", "vec"},
                       {"vec * s -> vec", "svps", "svps", "vec", "s"},
                       {"s * vec -> vec", "svps", "svps", "s", "vec"},
+                      //
                       {"s * s -> s", "svps1", "svps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -248,6 +252,7 @@ ProductConfig get_ega2d_wdg_config()
                       {"vec ^ mv -> mv", "svps", "M", "vec", "mv"},
                       {"mv ^ s -> mv", "M", "svps", "mv", "s"},
                       {"s ^ mv -> mv", "svps", "M", "s", "mv"},
+                      //
                       {"mv_e ^ mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
                       {"mv_e ^ ps -> ps", "M_even", "svps", "mv_e", "ps"},
                       {"ps ^ mv_e -> ps", "svps", "M_even", "ps", "mv_e"},
@@ -255,14 +260,17 @@ ProductConfig get_ega2d_wdg_config()
                       {"vec ^ mv_e -> vec", "svps", "M_even", "vec", "mv_e"},
                       {"mv_e ^ s -> mv_e", "M_even", "svps", "mv_e", "s"},
                       {"s ^ mv_e -> mv_e", "svps", "M_even", "s", "mv_e"},
+                      //
                       {"ps ^ ps -> 0", "svps1", "svps2", "ps", "ps"},
                       {"ps ^ vec -> 0", "svps", "svps", "ps", "vec"},
                       {"vec ^ ps -> 0", "svps", "svps", "vec", "ps"},
                       {"ps ^ s -> ps", "svps", "svps", "ps", "s"},
                       {"s ^ ps -> ps", "svps", "svps", "s", "ps"},
+                      //
                       {"vec ^ vec -> ps", "svps1", "svps2", "vec", "vec"},
                       {"vec ^ s -> vec", "svps", "svps", "vec", "s"},
                       {"s ^ vec -> vec", "svps", "svps", "s", "vec"},
+                      //
                       {"s ^ s -> s", "svps1", "svps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -315,6 +323,7 @@ ProductConfig get_ega2d_lcontract_config()
                       {"vec << mv -> mv", "svps", "M", "vec", "mv"},
                       {"mv << s -> s", "M", "svps", "mv", "s"},
                       {"s << mv -> mv", "svps", "M", "s", "mv"},
+                      //
                       {"mv_e << mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
                       {"mv_e << ps -> mv_e", "M_even", "svps", "mv_e", "ps"},
                       {"ps << mv_e -> s", "svps", "M_even", "ps", "mv_e"},
@@ -322,14 +331,17 @@ ProductConfig get_ega2d_lcontract_config()
                       {"vec << mv_e -> vec", "svps", "M_even", "vec", "mv_e"},
                       {"mv_e << s -> s", "M_even", "svps", "mv_e", "s"},
                       {"s << mv_e -> mv_e", "svps", "M_even", "s", "mv_e"},
+                      //
                       {"ps << ps -> s", "svps1", "svps2", "ps", "ps"},
                       {"ps << vec -> 0", "svps", "svps", "ps", "vec"},
                       {"vec << ps -> vec", "svps", "svps", "vec", "ps"},
                       {"ps << s -> 0", "svps", "svps", "ps", "s"},
                       {"s << ps -> ps", "svps", "svps", "s", "ps"},
+                      //
                       {"vec << vec -> s", "svps1", "svps2", "vec", "vec"},
                       {"vec << s -> 0", "svps", "svps", "vec", "s"},
                       {"s << vec -> vec", "svps", "svps", "s", "vec"},
+                      //
                       {"s << s -> s", "svps1", "svps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -352,6 +364,7 @@ ProductConfig get_ega2d_rcontract_config()
                       {"vec >> mv -> mv", "svps", "M", "vec", "mv"},
                       {"mv >> s -> mv", "M", "svps", "mv", "s"},
                       {"s >> mv -> s", "svps", "M", "s", "mv"},
+                      //
                       {"mv_e >> mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
                       {"mv_e >> ps -> s", "M_even", "svps", "mv_e", "ps"},
                       {"ps >> mv_e -> mv_e", "svps", "M_even", "ps", "mv_e"},
@@ -359,14 +372,17 @@ ProductConfig get_ega2d_rcontract_config()
                       {"vec >> mv_e -> vec", "svps", "M_even", "vec", "mv_e"},
                       {"mv_e >> s -> mv_e", "M_even", "svps", "mv_e", "s"},
                       {"s >> mv_e -> s", "svps", "M_even", "s", "mv_e"},
+                      //
                       {"ps >> ps -> s", "svps1", "svps2", "ps", "ps"},
                       {"ps >> vec -> vec", "svps", "svps", "ps", "vec"},
                       {"vec >> ps -> 0", "svps", "svps", "vec", "ps"},
                       {"ps >> s -> ps", "svps", "svps", "ps", "s"},
                       {"s >> ps -> 0", "svps", "svps", "s", "ps"},
+                      //
                       {"vec >> vec -> s", "svps1", "svps2", "vec", "vec"},
                       {"vec >> s -> vec", "svps", "svps", "vec", "s"},
                       {"s >> vec -> 0", "svps", "svps", "s", "vec"},
+                      //
                       {"s >> s -> s", "svps1", "svps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
@@ -468,14 +484,17 @@ ProductConfig get_ega2d_rwdg_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {{"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      //
                       {"rwdg(ps,ps) -> ps", "svps1", "svps2", "ps", "ps"},
                       {"rwdg(ps,vec) -> vec", "svps", "svps", "ps", "vec"},
                       {"rwdg(vec,ps) -> vec", "svps", "svps", "vec", "ps"},
                       {"rwdg(ps,s) -> s", "svps", "svps", "ps", "s"},
                       {"rwdg(s,ps) -> s", "svps", "svps", "s", "ps"},
+                      //
                       {"rwdg(vec,vec) -> s", "svps1", "svps2", "vec", "vec"},
                       {"rwdg(vec,s) -> 0", "svps", "svps", "vec", "s"},
                       {"rwdg(s,vec) -> 0", "svps", "svps", "s", "vec"},
+                      //
                       {"rwdg(s,s) -> 0", "svps1", "svps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,

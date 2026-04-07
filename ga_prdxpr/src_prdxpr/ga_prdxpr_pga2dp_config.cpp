@@ -182,8 +182,10 @@ ProductConfig get_pga2dp_gpr_config()
                       {"mv_e * mv -> mv", "A_even", "B", "mv_e", "mv"},
                       {"mv * mv_u -> mv", "A", "B_odd", "mv", "mv_u"},
                       {"mv_u * mv -> mv", "A_odd", "B", "mv_u", "mv"},
-                      {"mv * ps -> mv", "A", "svBps", "mv", "ps"},
-                      {"ps * mv -> mv", "svBps", "B", "ps", "mv"},
+                      {"mv * ps -> mv", "M", "svBps", "mv", "ps"},
+                      {"ps * mv -> mv", "svBps", "M", "ps", "mv"},
+                      {"mv * s -> mv", "M", "svBps", "mv", "s"},
+                      {"s * mv -> mv", "svBps", "M", "s", "mv"},
                       //
                       {"mv_e * mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
                       {"mv_u * mv_u -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
@@ -484,6 +486,10 @@ ProductConfig get_pga2dp_rgpr_config()
             .cases = {{"rgpr(mv,mv) -> mv", "A", "B", "mv", "mv"},
                       {"rgpr(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
                       {"rgpr(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
+                      {"rgpr(mv,ps) -> mv", "M", "svBps", "mv", "ps"},
+                      {"rgpr(ps,mv) -> mv", "svBps", "M", "ps", "mv"},
+                      {"rgpr(mv,s) -> mv", "M", "svBps", "mv", "s"},
+                      {"rgpr(s,mv) -> mv", "svBps", "M", "s", "mv"},
                       //
                       {"rgpr(mv_e,mv_e) -> mv_u", "A_even", "B_even", "mv_e", "mv_e"},
                       {"rgpr(mv_u,mv_u) -> mv_u", "A_odd", "B_odd", "mv_u", "mv_u"},

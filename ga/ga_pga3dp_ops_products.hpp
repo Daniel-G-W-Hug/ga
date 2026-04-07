@@ -2169,30 +2169,71 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& A,
                           c15);
 }
 
-
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& A,
+constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& M,
                                                       PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), ctype(0.0), A.c14, A.c8,
-                          A.c9, A.c10, ctype(0.0), ctype(0.0), ctype(0.0), A.c1, A.c2,
-                          A.c3, ctype(0.0), A.c0) *
-           ctype(ps);
+    ctype const c0 = ctype(0.0);
+    ctype const c1 = ctype(0.0);
+    ctype const c2 = ctype(0.0);
+    ctype const c3 = ctype(0.0);
+    ctype const c4 = M.c14 * ctype(ps);
+    ctype const c5 = M.c8 * ctype(ps);
+    ctype const c6 = M.c9 * ctype(ps);
+    ctype const c7 = M.c10 * ctype(ps);
+    ctype const c8 = ctype(0.0);
+    ctype const c9 = ctype(0.0);
+    ctype const c10 = ctype(0.0);
+    ctype const c11 = M.c1 * ctype(ps);
+    ctype const c12 = M.c2 * ctype(ps);
+    ctype const c13 = M.c3 * ctype(ps);
+    ctype const c14 = ctype(0.0);
+    ctype const c15 = M.c0 * ctype(ps);
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
 }
 
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
-                                                      MVec3dp<U> const& B)
+                                                      MVec3dp<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * MVec3dp<ctype>(ctype(0.0), ctype(0.0), ctype(0.0), ctype(0.0),
-                                      -B.c14, B.c8, B.c9, B.c10, ctype(0.0), ctype(0.0),
-                                      ctype(0.0), -B.c1, -B.c2, -B.c3, ctype(0.0), B.c0);
+    ctype const c0 = ctype(0.0);
+    ctype const c1 = ctype(0.0);
+    ctype const c2 = ctype(0.0);
+    ctype const c3 = ctype(0.0);
+    ctype const c4 = -ctype(ps) * M.c14;
+    ctype const c5 = ctype(ps) * M.c8;
+    ctype const c6 = ctype(ps) * M.c9;
+    ctype const c7 = ctype(ps) * M.c10;
+    ctype const c8 = ctype(0.0);
+    ctype const c9 = ctype(0.0);
+    ctype const c10 = ctype(0.0);
+    ctype const c11 = -ctype(ps) * M.c1;
+    ctype const c12 = -ctype(ps) * M.c2;
+    ctype const c13 = -ctype(ps) * M.c3;
+    ctype const c14 = ctype(0.0);
+    ctype const c15 = ctype(ps) * M.c0;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
 }
 
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& M, Scalar3dp<U> s)
+{
+    return M * ctype(s);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> operator*(Scalar3dp<T> s, MVec3dp<U> const& M)
+{
+    return ctype(s) * M;
+}
 
 // geometric product A * B for two multivectors from the even subalgebra (3d case)
 // even grade multivector * even grade multivector = even grade multivector
@@ -2785,54 +2826,54 @@ constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& A, MVec3dp<U>
     // => due to the degenerate algebra some terms are not present in G<3,0,1>
     // compared to G<4,0,0>
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c15 + A.c1 * B.c11 + A.c2 * B.c12 + A.c3 * B.c13 + A.c4 * B.c14 -
-               A.c5 * B.c8 - A.c6 * B.c9 - A.c7 * B.c10 - A.c8 * B.c5 - A.c9 * B.c6 -
-               A.c10 * B.c7 - A.c11 * B.c1 - A.c12 * B.c2 - A.c13 * B.c3 - A.c14 * B.c4 +
-               A.c15 * B.c0;
-    ctype c1 = A.c0 * B.c11 + A.c1 * B.c15 + A.c2 * B.c7 - A.c3 * B.c6 - A.c4 * B.c8 +
-               A.c5 * B.c14 + A.c6 * B.c3 - A.c7 * B.c2 + A.c8 * B.c4 + A.c9 * B.c13 -
-               A.c10 * B.c12 - A.c11 * B.c0 - A.c12 * B.c10 + A.c13 * B.c9 +
-               A.c14 * B.c5 + A.c15 * B.c1;
-    ctype c2 = A.c0 * B.c12 - A.c1 * B.c7 + A.c2 * B.c15 + A.c3 * B.c5 - A.c4 * B.c9 -
-               A.c5 * B.c3 + A.c6 * B.c14 + A.c7 * B.c1 - A.c8 * B.c13 + A.c9 * B.c4 +
-               A.c10 * B.c11 + A.c11 * B.c10 - A.c12 * B.c0 - A.c13 * B.c8 +
-               A.c14 * B.c6 + A.c15 * B.c2;
-    ctype c3 = A.c0 * B.c13 + A.c1 * B.c6 - A.c2 * B.c5 + A.c3 * B.c15 - A.c4 * B.c10 +
-               A.c5 * B.c2 - A.c6 * B.c1 + A.c7 * B.c14 + A.c8 * B.c12 - A.c9 * B.c11 +
-               A.c10 * B.c4 - A.c11 * B.c9 + A.c12 * B.c8 - A.c13 * B.c0 + A.c14 * B.c7 +
-               A.c15 * B.c3;
-    ctype c4 = A.c4 * B.c15 - A.c5 * B.c11 - A.c6 * B.c12 - A.c7 * B.c13 - A.c11 * B.c5 -
-               A.c12 * B.c6 - A.c13 * B.c7 + A.c15 * B.c4;
-    ctype c5 = -A.c4 * B.c11 + A.c5 * B.c15 + A.c6 * B.c7 - A.c7 * B.c6 - A.c11 * B.c4 -
-               A.c12 * B.c13 + A.c13 * B.c12 + A.c15 * B.c5;
-    ctype c6 = -A.c4 * B.c12 - A.c5 * B.c7 + A.c6 * B.c15 + A.c7 * B.c5 + A.c11 * B.c13 -
-               A.c12 * B.c4 - A.c13 * B.c11 + A.c15 * B.c6;
-    ctype c7 = -A.c4 * B.c13 + A.c5 * B.c6 - A.c6 * B.c5 + A.c7 * B.c15 - A.c11 * B.c12 +
-               A.c12 * B.c11 - A.c13 * B.c4 + A.c15 * B.c7;
-    ctype c8 = A.c0 * B.c5 - A.c1 * B.c4 - A.c2 * B.c13 + A.c3 * B.c12 + A.c4 * B.c1 +
-               A.c5 * B.c0 + A.c6 * B.c10 - A.c7 * B.c9 + A.c8 * B.c15 + A.c9 * B.c7 -
-               A.c10 * B.c6 + A.c11 * B.c14 + A.c12 * B.c3 - A.c13 * B.c2 -
-               A.c14 * B.c11 + A.c15 * B.c8;
-    ctype c9 = A.c0 * B.c6 + A.c1 * B.c13 - A.c2 * B.c4 - A.c3 * B.c11 + A.c4 * B.c2 -
-               A.c5 * B.c10 + A.c6 * B.c0 + A.c7 * B.c8 - A.c8 * B.c7 + A.c9 * B.c15 +
-               A.c10 * B.c5 - A.c11 * B.c3 + A.c12 * B.c14 + A.c13 * B.c1 -
-               A.c14 * B.c12 + A.c15 * B.c9;
-    ctype c10 = A.c0 * B.c7 - A.c1 * B.c12 + A.c2 * B.c11 - A.c3 * B.c4 + A.c4 * B.c3 +
-                A.c5 * B.c9 - A.c6 * B.c8 + A.c7 * B.c0 + A.c8 * B.c6 - A.c9 * B.c5 +
-                A.c10 * B.c15 + A.c11 * B.c2 - A.c12 * B.c1 + A.c13 * B.c14 -
-                A.c14 * B.c13 + A.c15 * B.c10;
-    ctype c11 = A.c4 * B.c5 + A.c5 * B.c4 + A.c6 * B.c13 - A.c7 * B.c12 + A.c11 * B.c15 +
-                A.c12 * B.c7 - A.c13 * B.c6 + A.c15 * B.c11;
-    ctype c12 = A.c4 * B.c6 - A.c5 * B.c13 + A.c6 * B.c4 + A.c7 * B.c11 - A.c11 * B.c7 +
-                A.c12 * B.c15 + A.c13 * B.c5 + A.c15 * B.c12;
-    ctype c13 = A.c4 * B.c7 + A.c5 * B.c12 - A.c6 * B.c11 + A.c7 * B.c4 + A.c11 * B.c6 -
-                A.c12 * B.c5 + A.c13 * B.c15 + A.c15 * B.c13;
-    ctype c14 = A.c0 * B.c4 - A.c1 * B.c5 - A.c2 * B.c6 - A.c3 * B.c7 - A.c4 * B.c0 -
-                A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 - A.c8 * B.c11 - A.c9 * B.c12 -
-                A.c10 * B.c13 + A.c11 * B.c8 + A.c12 * B.c9 + A.c13 * B.c10 +
-                A.c14 * B.c15 + A.c15 * B.c14;
-    ctype c15 = -A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7 + A.c11 * B.c11 +
-                A.c12 * B.c12 + A.c13 * B.c13 + A.c15 * B.c15;
+    ctype const c0 = A.c0 * B.c15 + A.c1 * B.c11 + A.c2 * B.c12 + A.c3 * B.c13 +
+                     A.c4 * B.c14 - A.c5 * B.c8 - A.c6 * B.c9 - A.c7 * B.c10 -
+                     A.c8 * B.c5 - A.c9 * B.c6 - A.c10 * B.c7 - A.c11 * B.c1 -
+                     A.c12 * B.c2 - A.c13 * B.c3 - A.c14 * B.c4 + A.c15 * B.c0;
+    ctype const c1 = A.c0 * B.c11 + A.c1 * B.c15 + A.c2 * B.c7 - A.c3 * B.c6 -
+                     A.c4 * B.c8 + A.c5 * B.c14 + A.c6 * B.c3 - A.c7 * B.c2 +
+                     A.c8 * B.c4 + A.c9 * B.c13 - A.c10 * B.c12 - A.c11 * B.c0 -
+                     A.c12 * B.c10 + A.c13 * B.c9 + A.c14 * B.c5 + A.c15 * B.c1;
+    ctype const c2 = A.c0 * B.c12 - A.c1 * B.c7 + A.c2 * B.c15 + A.c3 * B.c5 -
+                     A.c4 * B.c9 - A.c5 * B.c3 + A.c6 * B.c14 + A.c7 * B.c1 -
+                     A.c8 * B.c13 + A.c9 * B.c4 + A.c10 * B.c11 + A.c11 * B.c10 -
+                     A.c12 * B.c0 - A.c13 * B.c8 + A.c14 * B.c6 + A.c15 * B.c2;
+    ctype const c3 = A.c0 * B.c13 + A.c1 * B.c6 - A.c2 * B.c5 + A.c3 * B.c15 -
+                     A.c4 * B.c10 + A.c5 * B.c2 - A.c6 * B.c1 + A.c7 * B.c14 +
+                     A.c8 * B.c12 - A.c9 * B.c11 + A.c10 * B.c4 - A.c11 * B.c9 +
+                     A.c12 * B.c8 - A.c13 * B.c0 + A.c14 * B.c7 + A.c15 * B.c3;
+    ctype const c4 = A.c4 * B.c15 - A.c5 * B.c11 - A.c6 * B.c12 - A.c7 * B.c13 -
+                     A.c11 * B.c5 - A.c12 * B.c6 - A.c13 * B.c7 + A.c15 * B.c4;
+    ctype const c5 = -A.c4 * B.c11 + A.c5 * B.c15 + A.c6 * B.c7 - A.c7 * B.c6 -
+                     A.c11 * B.c4 - A.c12 * B.c13 + A.c13 * B.c12 + A.c15 * B.c5;
+    ctype const c6 = -A.c4 * B.c12 - A.c5 * B.c7 + A.c6 * B.c15 + A.c7 * B.c5 +
+                     A.c11 * B.c13 - A.c12 * B.c4 - A.c13 * B.c11 + A.c15 * B.c6;
+    ctype const c7 = -A.c4 * B.c13 + A.c5 * B.c6 - A.c6 * B.c5 + A.c7 * B.c15 -
+                     A.c11 * B.c12 + A.c12 * B.c11 - A.c13 * B.c4 + A.c15 * B.c7;
+    ctype const c8 = A.c0 * B.c5 - A.c1 * B.c4 - A.c2 * B.c13 + A.c3 * B.c12 +
+                     A.c4 * B.c1 + A.c5 * B.c0 + A.c6 * B.c10 - A.c7 * B.c9 +
+                     A.c8 * B.c15 + A.c9 * B.c7 - A.c10 * B.c6 + A.c11 * B.c14 +
+                     A.c12 * B.c3 - A.c13 * B.c2 - A.c14 * B.c11 + A.c15 * B.c8;
+    ctype const c9 = A.c0 * B.c6 + A.c1 * B.c13 - A.c2 * B.c4 - A.c3 * B.c11 +
+                     A.c4 * B.c2 - A.c5 * B.c10 + A.c6 * B.c0 + A.c7 * B.c8 -
+                     A.c8 * B.c7 + A.c9 * B.c15 + A.c10 * B.c5 - A.c11 * B.c3 +
+                     A.c12 * B.c14 + A.c13 * B.c1 - A.c14 * B.c12 + A.c15 * B.c9;
+    ctype const c10 = A.c0 * B.c7 - A.c1 * B.c12 + A.c2 * B.c11 - A.c3 * B.c4 +
+                      A.c4 * B.c3 + A.c5 * B.c9 - A.c6 * B.c8 + A.c7 * B.c0 +
+                      A.c8 * B.c6 - A.c9 * B.c5 + A.c10 * B.c15 + A.c11 * B.c2 -
+                      A.c12 * B.c1 + A.c13 * B.c14 - A.c14 * B.c13 + A.c15 * B.c10;
+    ctype const c11 = A.c4 * B.c5 + A.c5 * B.c4 + A.c6 * B.c13 - A.c7 * B.c12 +
+                      A.c11 * B.c15 + A.c12 * B.c7 - A.c13 * B.c6 + A.c15 * B.c11;
+    ctype const c12 = A.c4 * B.c6 - A.c5 * B.c13 + A.c6 * B.c4 + A.c7 * B.c11 -
+                      A.c11 * B.c7 + A.c12 * B.c15 + A.c13 * B.c5 + A.c15 * B.c12;
+    ctype const c13 = A.c4 * B.c7 + A.c5 * B.c12 - A.c6 * B.c11 + A.c7 * B.c4 +
+                      A.c11 * B.c6 - A.c12 * B.c5 + A.c13 * B.c15 + A.c15 * B.c13;
+    ctype const c14 = A.c0 * B.c4 - A.c1 * B.c5 - A.c2 * B.c6 - A.c3 * B.c7 -
+                      A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 -
+                      A.c8 * B.c11 - A.c9 * B.c12 - A.c10 * B.c13 + A.c11 * B.c8 +
+                      A.c12 * B.c9 + A.c13 * B.c10 + A.c14 * B.c15 + A.c15 * B.c14;
+    ctype const c15 = -A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7 +
+                      A.c11 * B.c11 + A.c12 * B.c12 + A.c13 * B.c13 + A.c15 * B.c15;
     return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
                           c15);
 }
@@ -2846,30 +2887,30 @@ constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& A,
     // => due to the degenerate algebra some terms are not present in G<3,0,1>
     // compared to G<4,0,0>
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c7 - A.c5 * B.c4 - A.c6 * B.c5 - A.c7 * B.c6 - A.c8 * B.c1 -
-               A.c9 * B.c2 - A.c10 * B.c3 + A.c15 * B.c0;
-    ctype c1 = A.c1 * B.c7 + A.c2 * B.c3 - A.c3 * B.c2 - A.c4 * B.c4 - A.c11 * B.c0 -
-               A.c12 * B.c6 + A.c13 * B.c5 + A.c14 * B.c1;
-    ctype c2 = -A.c1 * B.c3 + A.c2 * B.c7 + A.c3 * B.c1 - A.c4 * B.c5 + A.c11 * B.c6 -
-               A.c12 * B.c0 - A.c13 * B.c4 + A.c14 * B.c2;
-    ctype c3 = A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c7 - A.c4 * B.c6 - A.c11 * B.c5 +
-               A.c12 * B.c4 - A.c13 * B.c0 + A.c14 * B.c3;
-    ctype c4 = A.c4 * B.c7 - A.c11 * B.c1 - A.c12 * B.c2 - A.c13 * B.c3;
-    ctype c5 = A.c5 * B.c7 + A.c6 * B.c3 - A.c7 * B.c2 + A.c15 * B.c1;
-    ctype c6 = -A.c5 * B.c3 + A.c6 * B.c7 + A.c7 * B.c1 + A.c15 * B.c2;
-    ctype c7 = A.c5 * B.c2 - A.c6 * B.c1 + A.c7 * B.c7 + A.c15 * B.c3;
-    ctype c8 = A.c0 * B.c1 + A.c5 * B.c0 + A.c6 * B.c6 - A.c7 * B.c5 + A.c8 * B.c7 +
-               A.c9 * B.c3 - A.c10 * B.c2 + A.c15 * B.c4;
-    ctype c9 = A.c0 * B.c2 - A.c5 * B.c6 + A.c6 * B.c0 + A.c7 * B.c4 - A.c8 * B.c3 +
-               A.c9 * B.c7 + A.c10 * B.c1 + A.c15 * B.c5;
-    ctype c10 = A.c0 * B.c3 + A.c5 * B.c5 - A.c6 * B.c4 + A.c7 * B.c0 + A.c8 * B.c2 -
-                A.c9 * B.c1 + A.c10 * B.c7 + A.c15 * B.c6;
-    ctype c11 = A.c4 * B.c1 + A.c11 * B.c7 + A.c12 * B.c3 - A.c13 * B.c2;
-    ctype c12 = A.c4 * B.c2 - A.c11 * B.c3 + A.c12 * B.c7 + A.c13 * B.c1;
-    ctype c13 = A.c4 * B.c3 + A.c11 * B.c2 - A.c12 * B.c1 + A.c13 * B.c7;
-    ctype c14 = -A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 - A.c4 * B.c0 + A.c11 * B.c4 +
-                A.c12 * B.c5 + A.c13 * B.c6 + A.c14 * B.c7;
-    ctype c15 = -A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 + A.c15 * B.c7;
+    ctype const c0 = A.c0 * B.c7 - A.c5 * B.c4 - A.c6 * B.c5 - A.c7 * B.c6 - A.c8 * B.c1 -
+                     A.c9 * B.c2 - A.c10 * B.c3 + A.c15 * B.c0;
+    ctype const c1 = A.c1 * B.c7 + A.c2 * B.c3 - A.c3 * B.c2 - A.c4 * B.c4 -
+                     A.c11 * B.c0 - A.c12 * B.c6 + A.c13 * B.c5 + A.c14 * B.c1;
+    ctype const c2 = -A.c1 * B.c3 + A.c2 * B.c7 + A.c3 * B.c1 - A.c4 * B.c5 +
+                     A.c11 * B.c6 - A.c12 * B.c0 - A.c13 * B.c4 + A.c14 * B.c2;
+    ctype const c3 = A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c7 - A.c4 * B.c6 -
+                     A.c11 * B.c5 + A.c12 * B.c4 - A.c13 * B.c0 + A.c14 * B.c3;
+    ctype const c4 = A.c4 * B.c7 - A.c11 * B.c1 - A.c12 * B.c2 - A.c13 * B.c3;
+    ctype const c5 = A.c5 * B.c7 + A.c6 * B.c3 - A.c7 * B.c2 + A.c15 * B.c1;
+    ctype const c6 = -A.c5 * B.c3 + A.c6 * B.c7 + A.c7 * B.c1 + A.c15 * B.c2;
+    ctype const c7 = A.c5 * B.c2 - A.c6 * B.c1 + A.c7 * B.c7 + A.c15 * B.c3;
+    ctype const c8 = A.c0 * B.c1 + A.c5 * B.c0 + A.c6 * B.c6 - A.c7 * B.c5 + A.c8 * B.c7 +
+                     A.c9 * B.c3 - A.c10 * B.c2 + A.c15 * B.c4;
+    ctype const c9 = A.c0 * B.c2 - A.c5 * B.c6 + A.c6 * B.c0 + A.c7 * B.c4 - A.c8 * B.c3 +
+                     A.c9 * B.c7 + A.c10 * B.c1 + A.c15 * B.c5;
+    ctype const c10 = A.c0 * B.c3 + A.c5 * B.c5 - A.c6 * B.c4 + A.c7 * B.c0 +
+                      A.c8 * B.c2 - A.c9 * B.c1 + A.c10 * B.c7 + A.c15 * B.c6;
+    ctype const c11 = A.c4 * B.c1 + A.c11 * B.c7 + A.c12 * B.c3 - A.c13 * B.c2;
+    ctype const c12 = A.c4 * B.c2 - A.c11 * B.c3 + A.c12 * B.c7 + A.c13 * B.c1;
+    ctype const c13 = A.c4 * B.c3 + A.c11 * B.c2 - A.c12 * B.c1 + A.c13 * B.c7;
+    ctype const c14 = -A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 - A.c4 * B.c0 +
+                      A.c11 * B.c4 + A.c12 * B.c5 + A.c13 * B.c6 + A.c14 * B.c7;
+    ctype const c15 = -A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 + A.c15 * B.c7;
     return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
                           c15);
 }
@@ -2883,30 +2924,94 @@ constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& A,
     // => due to the degenerate algebra some terms are not present in G<3,0,1>
     // compared to G<4,0,0>
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c15 - A.c1 * B.c8 - A.c2 * B.c9 - A.c3 * B.c10 - A.c4 * B.c5 -
-               A.c5 * B.c6 - A.c6 * B.c7 + A.c7 * B.c0;
-    ctype c1 = A.c0 * B.c11 + A.c1 * B.c14 + A.c2 * B.c3 - A.c3 * B.c2 + A.c4 * B.c4 +
-               A.c5 * B.c13 - A.c6 * B.c12 + A.c7 * B.c1;
-    ctype c2 = A.c0 * B.c12 - A.c1 * B.c3 + A.c2 * B.c14 + A.c3 * B.c1 - A.c4 * B.c13 +
-               A.c5 * B.c4 + A.c6 * B.c11 + A.c7 * B.c2;
-    ctype c3 = A.c0 * B.c13 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c14 + A.c4 * B.c12 -
-               A.c5 * B.c11 + A.c6 * B.c4 + A.c7 * B.c3;
-    ctype c4 = -A.c1 * B.c11 - A.c2 * B.c12 - A.c3 * B.c13 + A.c7 * B.c4;
-    ctype c5 = A.c1 * B.c15 + A.c2 * B.c7 - A.c3 * B.c6 + A.c7 * B.c5;
-    ctype c6 = -A.c1 * B.c7 + A.c2 * B.c15 + A.c3 * B.c5 + A.c7 * B.c6;
-    ctype c7 = A.c1 * B.c6 - A.c2 * B.c5 + A.c3 * B.c15 + A.c7 * B.c7;
-    ctype c8 = A.c0 * B.c5 + A.c1 * B.c0 + A.c2 * B.c10 - A.c3 * B.c9 + A.c4 * B.c15 +
-               A.c5 * B.c7 - A.c6 * B.c6 + A.c7 * B.c8;
-    ctype c9 = A.c0 * B.c6 - A.c1 * B.c10 + A.c2 * B.c0 + A.c3 * B.c8 - A.c4 * B.c7 +
-               A.c5 * B.c15 + A.c6 * B.c5 + A.c7 * B.c9;
-    ctype c10 = A.c0 * B.c7 + A.c1 * B.c9 - A.c2 * B.c8 + A.c3 * B.c0 + A.c4 * B.c6 -
-                A.c5 * B.c5 + A.c6 * B.c15 + A.c7 * B.c10;
-    ctype c11 = A.c1 * B.c4 + A.c2 * B.c13 - A.c3 * B.c12 + A.c7 * B.c11;
-    ctype c12 = -A.c1 * B.c13 + A.c2 * B.c4 + A.c3 * B.c11 + A.c7 * B.c12;
-    ctype c13 = A.c1 * B.c12 - A.c2 * B.c11 + A.c3 * B.c4 + A.c7 * B.c13;
-    ctype c14 = A.c0 * B.c4 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 - A.c4 * B.c11 -
-                A.c5 * B.c12 - A.c6 * B.c13 + A.c7 * B.c14;
-    ctype c15 = -A.c1 * B.c5 - A.c2 * B.c6 - A.c3 * B.c7 + A.c7 * B.c15;
+    ctype const c0 = A.c0 * B.c15 - A.c1 * B.c8 - A.c2 * B.c9 - A.c3 * B.c10 -
+                     A.c4 * B.c5 - A.c5 * B.c6 - A.c6 * B.c7 + A.c7 * B.c0;
+    ctype const c1 = A.c0 * B.c11 + A.c1 * B.c14 + A.c2 * B.c3 - A.c3 * B.c2 +
+                     A.c4 * B.c4 + A.c5 * B.c13 - A.c6 * B.c12 + A.c7 * B.c1;
+    ctype const c2 = A.c0 * B.c12 - A.c1 * B.c3 + A.c2 * B.c14 + A.c3 * B.c1 -
+                     A.c4 * B.c13 + A.c5 * B.c4 + A.c6 * B.c11 + A.c7 * B.c2;
+    ctype const c3 = A.c0 * B.c13 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c14 +
+                     A.c4 * B.c12 - A.c5 * B.c11 + A.c6 * B.c4 + A.c7 * B.c3;
+    ctype const c4 = -A.c1 * B.c11 - A.c2 * B.c12 - A.c3 * B.c13 + A.c7 * B.c4;
+    ctype const c5 = A.c1 * B.c15 + A.c2 * B.c7 - A.c3 * B.c6 + A.c7 * B.c5;
+    ctype const c6 = -A.c1 * B.c7 + A.c2 * B.c15 + A.c3 * B.c5 + A.c7 * B.c6;
+    ctype const c7 = A.c1 * B.c6 - A.c2 * B.c5 + A.c3 * B.c15 + A.c7 * B.c7;
+    ctype const c8 = A.c0 * B.c5 + A.c1 * B.c0 + A.c2 * B.c10 - A.c3 * B.c9 +
+                     A.c4 * B.c15 + A.c5 * B.c7 - A.c6 * B.c6 + A.c7 * B.c8;
+    ctype const c9 = A.c0 * B.c6 - A.c1 * B.c10 + A.c2 * B.c0 + A.c3 * B.c8 -
+                     A.c4 * B.c7 + A.c5 * B.c15 + A.c6 * B.c5 + A.c7 * B.c9;
+    ctype const c10 = A.c0 * B.c7 + A.c1 * B.c9 - A.c2 * B.c8 + A.c3 * B.c0 +
+                      A.c4 * B.c6 - A.c5 * B.c5 + A.c6 * B.c15 + A.c7 * B.c10;
+    ctype const c11 = A.c1 * B.c4 + A.c2 * B.c13 - A.c3 * B.c12 + A.c7 * B.c11;
+    ctype const c12 = -A.c1 * B.c13 + A.c2 * B.c4 + A.c3 * B.c11 + A.c7 * B.c12;
+    ctype const c13 = A.c1 * B.c12 - A.c2 * B.c11 + A.c3 * B.c4 + A.c7 * B.c13;
+    ctype const c14 = A.c0 * B.c4 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 -
+                      A.c4 * B.c11 - A.c5 * B.c12 - A.c6 * B.c13 + A.c7 * B.c14;
+    ctype const c15 = -A.c1 * B.c5 - A.c2 * B.c6 - A.c3 * B.c7 + A.c7 * B.c15;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& M, PScalar3dp<U> ps)
+{
+    return M * ctype(ps);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> rgpr(PScalar3dp<T> ps, MVec3dp<U> const& M)
+{
+    return ctype(ps) * M;
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& M, Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c15 * ctype(s);
+    ctype const c1 = -M.c11 * ctype(s);
+    ctype const c2 = -M.c12 * ctype(s);
+    ctype const c3 = -M.c13 * ctype(s);
+    ctype const c4 = ctype(0.0);
+    ctype const c5 = ctype(0.0);
+    ctype const c6 = ctype(0.0);
+    ctype const c7 = ctype(0.0);
+    ctype const c8 = M.c5 * ctype(s);
+    ctype const c9 = M.c6 * ctype(s);
+    ctype const c10 = M.c7 * ctype(s);
+    ctype const c11 = ctype(0.0);
+    ctype const c12 = ctype(0.0);
+    ctype const c13 = ctype(0.0);
+    ctype const c14 = -M.c4 * ctype(s);
+    ctype const c15 = ctype(0.0);
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> rgpr(Scalar3dp<T> s, MVec3dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * M.c15;
+    ctype const c1 = ctype(s) * M.c11;
+    ctype const c2 = ctype(s) * M.c12;
+    ctype const c3 = ctype(s) * M.c13;
+    ctype const c4 = ctype(0.0);
+    ctype const c5 = ctype(0.0);
+    ctype const c6 = ctype(0.0);
+    ctype const c7 = ctype(0.0);
+    ctype const c8 = ctype(s) * M.c5;
+    ctype const c9 = ctype(s) * M.c6;
+    ctype const c10 = ctype(s) * M.c7;
+    ctype const c11 = ctype(0.0);
+    ctype const c12 = ctype(0.0);
+    ctype const c13 = ctype(0.0);
+    ctype const c14 = ctype(s) * M.c4;
+    ctype const c15 = ctype(0.0);
     return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
                           c15);
 }
