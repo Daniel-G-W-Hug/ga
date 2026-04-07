@@ -55,7 +55,7 @@ vector part $v_{3d}$, equation (\ref{eq:bivec3d}) is the bivector part $B_{3d}$,
 equation (\ref{eq:pscalar3d}) is the pseudoscalar part $ps_{3d}$. The index $3d$ is
 omitted when clear from context. Compared to the $2d$-case it is obvious, that all parts
 depend on context, specifically on the dimensionality of the modelled space, and thus need
-to be defined and treated accordingly.\footnote{\emph{hint}: Since \Cpp is a statically
+to be defined and treated accordingly.\footnote{\emph{Hint}: Since \Cpp is a statically
 typed language, those types need to be well-defined and distinguishable from each other.
 This is especially important for the different scalar and pseudoscalar types. The ga
 library uses type tagging extensively for that purpose.} The basis elements are $\{\bm{1},
@@ -93,7 +93,7 @@ are following basis vectors:
 \end{subequations}
 The most obvious difference is the basis vector~\bv{3} that squares to zero and the
 pseudoscalar of that space that is chosen to be \bv{321}. The trivector \bv{321} squares
-to $0$, because of it's component \bv{3} contained as a factor. Equation
+to $0$, because of its component \bv{3} contained as a factor. Equation
 (\ref{eq:scalar2dp}) is the scalar part $s_{2dp}$, equation (\ref{eq:vec2dp}) is the
 vector part $v_{2dp}$, equation (\ref{eq:bivec2dp}) is the bivector part
 $B_{2dp}$\footnote{Here we deviate from Lengyel's approach chosen in
@@ -218,11 +218,11 @@ t_z)$ and the fourth component $t_w$ corresponds to the signed distance to the o
 $O_{3dp} = (0,0,0,1)$. \\
 
 Many more examples of how geometric objects are modelled in projective geometric algebra
-and which operations can be used to manipulated them can by found in Lengyel's book
+and which operations can be used to manipulated them can be found in Lengyel's book
 \cite{Lengyel_pga-illuminated:2024}. Browne explains very well how Grassmann algebra and
 projective geometry and geometric algebra are related in
 \cite{Browne_Grassmann-Algebra_Vol1:2012}, p. 216ff. It is helpful to fully grasp and
-understand that relation in oder to see what is possible using the algebra effectively to
+understand that relation in order to see what is possible using the algebra effectively to
 model physical phenomena. \\
 
 Geometric algebra seems complex and a little overwhelming at first. Especially so, when
@@ -254,14 +254,14 @@ right complement $\rcmpl{u}$ are defined as
     u \wedge \rcmpl{u}  & = & I_n \slabel{eq:rcmpl_def}
     \label{eq:cmpl_def}
 \end{subeqnarray}
-with $I_n  = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n}$ as the pseudoscalar of the
+with $I_n  = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n}$ as the pseudoscalar for an
 $n$-dimensional algebra, and the wedge symbol $(\wedge)$ as the operator symbol of the
 outer product. The effect of the complement is to turn basis elements not contained in the
 object $u$ into the constituting basis elements of the complement of the object
 $\lcmpl{u}$ or $\rcmpl{u}$. Connecting the object and its complement with the wedge
 products creates an object that fills the available space in the sense of requiring all
 basis elements of the space to represent it. The full space itself is represented by the
-pseudoscalar of that space, since the pseudoscalar $I_n$ is formed by the product of all
+pseudoscalar, since the pseudoscalar $I_n$ is formed by the product of all
 $n$ basis vectors of the space. An implication of the definition is that the complement
 ($\lcmpl{u}$ or $\rcmpl{u}$) is orthogonal to $u$, since we exclusively use orthogonal
 basis vectors to model our space. \\
@@ -301,7 +301,7 @@ i.e. this involves grade-dependent sign changes. So it is favorable to use left 
 complements as inverses to each other. \\
 
 Based on the given complement definition it is possible to define regressive products
-using rules analog to deMorgan's rules in Boolean algebra as follows (definitions can be
+using rules analog to de Morgan's rules in Boolean algebra as follows (definitions can be
 found in~\cite{Lengyel_pga-illuminated:2024} and in
 \cite{Browne_Grassmann-Algebra_Vol1:2012}):
 \begin{subeqnarray}
@@ -331,8 +331,8 @@ complements of~(\ref{eq:rwdg_std}) and~(\ref{eq:rwdg_alt}) we end up with
     \slabel{eq:intermediate_alt}
 \end{subeqnarray}
 Substituting $a = \lcmpl{u}$ and $b = \lcmpl{v}$ into~(\ref{eq:intermediate_std}) and $a =
-\rcmpl{u}$ and $b = \rcmpl{v}$ into~(\ref{eq:intermediate_alt}) and exchanging the left
-and right hand sides of the equations we end up with
+\rcmpl{u}$ and $b = \rcmpl{v}$ into~(\ref{eq:intermediate_alt}) and exchanging the left-
+and right-hand sides of the equations we end up with
 \begin{subeqnarray}
     % use \label for full label
     % use \slabel for sublabel
@@ -344,7 +344,7 @@ other. \\
 
 The complement operation is used to define a unique dualization operation that works for
 cases with non-degenerate as well as for cases with degenerate metric, like in projective
-geometric algebra $PGA$. This is the main advantage compared to the usual prodedure of
+geometric algebra $PGA$. This is the main advantage compared to the usual procedure of
 dualization by multiplying the object with the pseudoscalar (or its inverse) using the
 geometric product, since the latter breaks down for spaces with degenerate metrics. For an
 overview on all complements in $PGA$ see tables \ref{tab:pga2dp_complement} and
@@ -396,7 +396,7 @@ For $\rmetric{G}$ there is the relation
 \end{equation}
 that is complementary to equation (\ref{eq:exomorphism}). \\
 
-In projective geometric algebra the product $\metric{G} u$ defines the \emph{bulk} of of
+In projective geometric algebra the product $\metric{G} u$ defines the \emph{bulk} of
 an object $u$. It is defined as
 \begin{equation}
     \bulk{u} = \metric{G} u
@@ -426,7 +426,7 @@ This split is also relevant for the corresponding norms
 \begin{equation}
     \nrm{u} = \bulknrm{u} + \weightnrm{u} = \sqrt{A \cdot A} + \sqrt{A \circ A}
 \end{equation}
-where the left hand side is called the \emph{geometric norm} and the right-hand side
+where the left-hand side is called the \emph{geometric norm} and the right-hand side
 consists of the sums of the \emph{bulk} and \emph{weight norms}. The \emph{bulk norm}
 returns a scalar value of the corresponding algebra, whereas the \emph{weight norm}
 provides a pseudoscalar value of the respective algebra. The dot product (symbol
@@ -436,7 +436,7 @@ tables~\ref{tab:pga2dp_dot_products} and \ref{tab:pga3dp_dot_products} in subsec
 
 Consequently, the geometric norm is an object consisting of two distinct parts, a scalar
 and a pseudoscalar of the respective algebra, defined here as a \emph{dual number} in the
-corresponding algebra. When we apply \emph{unitization} to geometric objects we devide the
+corresponding algebra. When we apply \emph{unitization} to geometric objects we divide the
 object in such a way that the magnitude of the weight norm becomes a value of one. Both,
 bulk and weight norms, have a positive argument under the square root due to the
 definitions of the inner product and the regressive inner product.
@@ -676,7 +676,7 @@ representation, e.g. for $PGA2DP$:
     \rcmpl{\bv{3}} \veedot \rcmpl{\bv{3}} = 0 \nonumber
 \end{eqnarray}
 where eqs.~(\ref{eq:rgpr_combine_what_is_not_there}) can be shown to be equivalent to
-eqs.~(\ref{eq:gpr_combine_what_is_there}) by taking the left complement of both sides and
+eqns.~(\ref{eq:gpr_combine_what_is_there}) by taking the left complement of both sides and
 applying the complement definition~(\ref{eq:rwdg_std}) to it. \\
 
 The inner product between multivectors $A$ and $B$ is defined as

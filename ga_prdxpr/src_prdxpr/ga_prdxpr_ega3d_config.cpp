@@ -190,6 +190,7 @@ ProductConfig get_ega3d_gpr_config()
                       {"vec * mv -> mv", "svBps", "M", "vec", "mv"},
                       {"mv * s -> mv", "M", "svBps", "mv", "s"},
                       {"s * mv -> mv", "svBps", "M", "s", "mv"},
+                      //
                       {"mv_e * mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
                       {"mv_u * mv_u -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
                       {"mv_e * mv_u -> mv_u", "A_even", "B_odd", "mv_e", "mv_u"},
@@ -210,6 +211,7 @@ ProductConfig get_ega3d_gpr_config()
                       {"s * mv_e -> mv_e", "svBps", "M_even", "s", "mv_e"},
                       {"mv_u * s -> mv_u", "M_odd", "svBps", "mv_u", "s"},
                       {"s * mv_u -> mv_u", "svBps", "M_odd", "s", "mv_u"},
+                      //
                       {"ps * ps -> s", "svBps1", "svBps2", "ps", "ps"},
                       {"ps * bivec -> vec", "svBps", "svBps", "ps", "bivec"},
                       {"bivec * ps -> vec", "svBps", "svBps", "bivec", "ps"},
@@ -217,14 +219,17 @@ ProductConfig get_ega3d_gpr_config()
                       {"vec * ps -> bivec", "svBps", "svBps", "vec", "ps"},
                       {"ps * s -> ps", "svBps", "svBps", "ps", "s"},
                       {"s * ps -> ps", "svBps", "svBps", "s", "ps"},
+                      //
                       {"bivec * bivec -> mv_e", "svBps1", "svBps2", "bivec", "bivec"},
                       {"bivec * vec -> mv_u", "svBps", "svBps", "bivec", "vec"},
                       {"vec * bivec -> mv_u", "svBps", "svBps", "vec", "bivec"},
                       {"bivec * s -> bivec", "svBps", "svBps", "bivec", "s"},
                       {"s * bivec -> bivec", "svBps", "svBps", "s", "bivec"},
+                      //
                       {"vec * vec -> mv_e", "svBps1", "svBps2", "vec", "vec"},
                       {"vec * s -> vec", "svBps", "svBps", "vec", "s"},
                       {"s * vec -> vec", "svBps", "svBps", "s", "vec"},
+                      //
                       {"s * s -> s", "svBps1", "svBps2", "s", "s"}}};
 }
 
@@ -293,6 +298,7 @@ ProductConfig get_ega3d_wdg_config()
                       {"vec ^ mv -> mv", "svBps", "M", "vec", "mv"},
                       {"mv ^ s -> mv", "M", "svBps", "mv", "s"},
                       {"s ^ mv -> mv", "svBps", "M", "s", "mv"},
+                      //
                       {"ps ^ ps -> 0", "svBps1", "svBps2", "ps", "ps"},
                       {"ps ^ bivec -> 0", "svBps", "svBps", "ps", "bivec"},
                       {"bivec ^ ps -> 0", "svBps", "svBps", "bivec", "ps"},
@@ -300,14 +306,17 @@ ProductConfig get_ega3d_wdg_config()
                       {"vec ^ ps -> 0", "svBps", "svBps", "vec", "ps"},
                       {"ps ^ s -> ps", "svBps", "svBps", "ps", "s"},
                       {"s ^ ps -> ps", "svBps", "svBps", "s", "ps"},
+                      //
                       {"bivec ^ bivec -> 0", "svBps1", "svBps2", "bivec", "bivec"},
                       {"bivec ^ vec -> ps", "svBps", "svBps", "bivec", "vec"},
                       {"vec ^ bivec -> ps", "svBps", "svBps", "vec", "bivec"},
                       {"bivec ^ s -> bivec", "svBps", "svBps", "bivec", "s"},
                       {"s ^ bivec -> bivec", "svBps", "svBps", "s", "bivec"},
+                      //
                       {"vec ^ vec -> bivec", "svBps1", "svBps2", "vec", "vec"},
                       {"vec ^ s -> vec", "svBps", "svBps", "vec", "s"},
                       {"s ^ vec -> vec", "svBps", "svBps", "s", "vec"},
+                      //
                       {"s ^ s -> s", "svBps1", "svBps2", "s", "s"}}};
 }
 
@@ -336,8 +345,10 @@ ProductConfig get_ega3d_lcontract_config()
                       {"bivec << mv -> mv", "svBps", "M", "bivec", "mv"},
                       {"vec << mv -> mv", "svBps", "M", "vec", "mv"},
                       {"s << mv -> mv", "svBps", "M", "s", "mv"},
+                      //
                       {"s << mv_e -> mv_e", "svBps", "M_even", "s", "mv_e"},
                       {"s << mv_u -> mv_u", "svBps", "M_odd", "s", "mv_u"},
+                      //
                       {"ps << ps -> s", "svBps1", "svBps2", "ps", "ps"},
                       {"ps << bivec -> 0", "svBps", "svBps", "ps", "bivec"},
                       {"bivec << ps -> vec", "svBps", "svBps", "bivec", "ps"},
@@ -345,14 +356,17 @@ ProductConfig get_ega3d_lcontract_config()
                       {"vec << ps -> bivec", "svBps", "svBps", "vec", "ps"},
                       {"ps << s -> 0", "svBps", "svBps", "ps", "s"},
                       {"s << ps -> ps", "svBps", "svBps", "s", "ps"},
+                      //
                       {"bivec << bivec -> s", "svBps1", "svBps2", "bivec", "bivec"},
                       {"bivec << vec -> 0", "svBps", "svBps", "bivec", "vec"},
                       {"vec << bivec -> vec", "svBps", "svBps", "vec", "bivec"},
                       {"bivec << s -> 0", "svBps", "svBps", "bivec", "s"},
                       {"s << bivec -> bivec", "svBps", "svBps", "s", "bivec"},
+                      //
                       {"vec << vec -> s", "svBps1", "svBps2", "vec", "vec"},
                       {"vec << s -> 0", "svBps", "svBps", "vec", "s"},
                       {"s << vec -> vec", "svBps", "svBps", "s", "vec"},
+                      //
                       {"s << s -> s", "svBps1", "svBps2", "s", "s"}}};
 }
 
@@ -367,8 +381,10 @@ ProductConfig get_ega3d_rcontract_config()
                       {"mv >> bivec -> mv", "M", "svBps", "mv", "bivec"},
                       {"mv >> vec -> mv", "M", "svBps", "mv", "vec"},
                       {"mv >> s -> mv", "M", "svBps", "mv", "s"},
+                      //
                       {"mv_e >> s -> mv_e", "M_even", "svBps", "mv_e", "s"},
                       {"mv_u >> s -> mv_u", "M_odd", "svBps", "mv_u", "s"},
+                      //
                       {"ps >> ps -> s", "svBps1", "svBps2", "ps", "ps"},
                       {"ps >> bivec -> vec", "svBps", "svBps", "ps", "bivec"},
                       {"bivec >> ps -> 0", "svBps", "svBps", "bivec", "ps"},
@@ -376,14 +392,17 @@ ProductConfig get_ega3d_rcontract_config()
                       {"vec >> ps -> 0", "svBps", "svBps", "vec", "ps"},
                       {"ps >> s -> ps", "svBps", "svBps", "ps", "s"},
                       {"s >> ps -> 0", "svBps", "svBps", "s", "ps"},
+                      //
                       {"bivec >> bivec -> s", "svBps1", "svBps2", "bivec", "bivec"},
                       {"bivec >> vec -> vec", "svBps", "svBps", "bivec", "vec"},
                       {"vec >> bivec -> 0", "svBps", "svBps", "vec", "bivec"},
                       {"bivec >> s -> bivec", "svBps", "svBps", "bivec", "s"},
                       {"s >> bivec -> 0", "svBps", "svBps", "s", "bivec"},
+                      //
                       {"vec >> vec -> s", "svBps1", "svBps2", "vec", "vec"},
                       {"vec >> s -> vec", "svBps", "svBps", "vec", "s"},
                       {"s >> vec -> 0", "svBps", "svBps", "s", "vec"},
+                      //
                       {"s >> s -> s", "svBps1", "svBps2", "s", "s"}}};
 }
 
@@ -482,6 +501,7 @@ ProductConfig get_ega3d_rwdg_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {{"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      //
                       {"rwdg(ps,ps) -> ps", "svBps1", "svBps2", "ps", "ps"},
                       {"rwdg(ps,bivec) -> bivec", "svBps", "svBps", "ps", "bivec"},
                       {"rwdg(bivec,ps) -> bivec", "svBps", "svBps", "bivec", "ps"},
@@ -489,14 +509,17 @@ ProductConfig get_ega3d_rwdg_config()
                       {"rwdg(vec,ps) -> vec", "svBps", "svBps", "vec", "ps"},
                       {"rwdg(ps,s) -> s", "svBps", "svBps", "ps", "s"},
                       {"rwdg(s,ps) -> s", "svBps", "svBps", "s", "ps"},
+                      //
                       {"rwdg(bivec,bivec) -> vec", "svBps1", "svBps2", "bivec", "bivec"},
                       {"rwdg(bivec,vec) -> s", "svBps", "svBps", "bivec", "vec"},
                       {"rwdg(vec,bivec) -> s", "svBps", "svBps", "vec", "bivec"},
                       {"rwdg(bivec,s) -> 0", "svBps", "svBps", "bivec", "s"},
                       {"rwdg(s,bivec) -> 0", "svBps", "svBps", "s", "bivec"},
+                      //
                       {"rwdg(vec,vec) -> 0", "svBps1", "svBps2", "vec", "vec"},
                       {"rwdg(vec,s) -> 0", "svBps", "svBps", "vec", "s"},
                       {"rwdg(s,vec) -> 0", "svBps", "svBps", "s", "vec"},
+                      //
                       {"rwdg(s,s) -> 0", "svBps1", "svBps2", "s", "s"}}};
 }
 

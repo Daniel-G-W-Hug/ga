@@ -439,9 +439,9 @@ world frame as
           &=& \sum_i X_i \wedge m_i \dot{X}_i \nonumber \\
           &=& \sum_i X_i \wedge m_i \; \mathrm{rcmt}(\Omega_w,X_i) \nonumber \\
     P_{w} &\equiv& I_w[\Omega_w]
-                \label{eq:intertia_map_world_frame}
+                \label{eq:inertia_map_world_frame}
 \end{eqnarray}
-where eqn.~(\ref{eq:intertia_map_world_frame}) is a linear function of $\Omega_w$ that
+where eqn.~(\ref{eq:inertia_map_world_frame}) is a linear function of $\Omega_w$ that
 maps the bivector rate in the world frame $\Omega_w$ to the total momentum $P_w$. It is a
 function that takes a bivector as an argument and returns a bivector (the ``inertia map''
 $I_w$). It describes the influence of the mass distribution of the points on the movement
@@ -475,7 +475,7 @@ additionally calculate the time derivative of the inertia map (the first term on
 right-hand side above). \\
 
 If we want to express the physical problem in the body frame, we have to transform the
-components of eqn.~(\ref{eq:intertia_map_world_frame}) accordingly. Using
+components of eqn.~(\ref{eq:inertia_map_world_frame}) accordingly. Using
 eqn.~(\ref{eq:world_to_body_pga}), i.e. $I_b = \rrev{M} \veedot I_w \veedot M$ and
 eqn.~(\ref{eq:body_to_world_pga}) $\Omega_w  = M \veedot \Omega_b \veedot \rrev{M}$ then
 results in
@@ -489,7 +489,7 @@ which finally results in an expression for the inertia map
 \begin{equation}
     P_b = I_b[\Omega_b] \equiv \rrev{M} \veedot I_w[ M \veedot \Omega_b \veedot \rrev{M} ]
     \veedot M
-    \label{eq:intertia_map_body_frame}
+    \label{eq:inertia_map_body_frame}
 \end{equation}
 
 The same transformation must be applied to $F_w$ for the right-hand side of the
@@ -506,7 +506,7 @@ time dependent function in the body frame
 otherwise $\dot{I}_b[\Omega_b]$ would have to be covered, as in
 eqn.~(\ref{eq:momentum_derivative_world_frame}) in the world frame. \\
 
-The mapping to the classical intertia can be done when splitting $\Omega_b$ relative to
+The mapping to the classical inertia can be done when splitting $\Omega_b$ relative to
 the centroid of the body with a projective point split on $\Omega_b$ and on
 $I_b[\Omega_b]$ as shown by \cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023} on page
 25f and adjusted to our approach using regressive geometric products. \\
@@ -621,9 +621,9 @@ expressed in the $2D$ case as
     \begin{bmatrix}
         \Omega_x \\ \Omega_y \\ \Omega_z
     \end{bmatrix}
-    \label{eq:intertia_map_components_2D}      
+    \label{eq:inertia_map_components_2D}      
 \end{eqnarray}
-where eqn.~(\ref{eq:intertia_map_components_2D}) is linear in $\Omega$ as expected. Of
+where eqn.~(\ref{eq:inertia_map_components_2D}) is linear in $\Omega$ as expected. Of
 course, the total inertia map needs to be summed for the contributions from each point,
 i.e. $I_{total} = \sum_i{I_i}$. Since all points of the rigid body see the same rate of
 change the total inertia map can be summed for all mass point contributions independent of
@@ -694,9 +694,9 @@ expressed in the $3D$ case as
         \Omega_{vx} \\ \Omega_{vy} \\ \Omega_{vz} \\
         \Omega_{mx} \\ \Omega_{my} \\ \Omega_{mz}
     \end{bmatrix} 
-    \label{eq:intertia_map_components_3D}   
+    \label{eq:inertia_map_components_3D}   
 \end{align}
-where eqn.~(\ref{eq:intertia_map_components_3D}) is linear in $\Omega$ as expected. Again,
+where eqn.~(\ref{eq:inertia_map_components_3D}) is linear in $\Omega$ as expected. Again,
 the total inertia map needs to be summed for the contributions from each point, i.e.
 $I_{total} = \sum_i{I_i}$. The resulting total inertia map can be inverted numerically to
 get its inverse $I_{3D}^{-1}$ as needed to set up the right-hand side of the system in
@@ -1295,7 +1295,7 @@ is preserved exactly for all $\varphi$ by the motor algebra. Only the velocity d
 The inertia map $I[\Omega]$ derived in the preceding subsections is a linear map that
 takes the velocity twist $\Omega$ of a rigid body and returns its momentum wrench $P =
 I[\Omega]$. Its matrix representation -- shown in
-eqns.~(\ref{eq:intertia_map_components_2D}) and (\ref{eq:intertia_map_components_3D}) --
+eqns.~(\ref{eq:inertia_map_components_2D}) and (\ref{eq:inertia_map_components_3D}) --
 encodes mass, scalar moment of inertia, and the full classical inertia tensor in a single
 algebraic object. However, the classical quantities do not sit where standard intuition
 might suggest: mass does not appear on the diagonal, and moments of inertia do not appear
@@ -1334,7 +1334,7 @@ Index & Vec2dp input (velocity twist $\Omega$) & BiVec2dp output (momentum wrenc
 \end{table}
 
 For a unitized point $(X_x, X_y, X_z)$ with projective coordinate $X_z = 1$ and mass $m$,
-the inertia matrix from eqn.~(\ref{eq:intertia_map_components_2D}) simplifies to
+the inertia matrix from eqn.~(\ref{eq:inertia_map_components_2D}) simplifies to
 \begin{equation}
     I_{2D} = m
     \begin{bmatrix}
@@ -1510,7 +1510,7 @@ $\bv{12}$ -- angular momentum about $\bv{3}$
 \label{tab:basis_pga3dp}
 \end{table}
 
-The $6\times6$ inertia matrix from eqn.~(\ref{eq:intertia_map_components_3D}) for a
+The $6\times6$ inertia matrix from eqn.~(\ref{eq:inertia_map_components_3D}) for a
 unitized point with $X_w = 1$ is:
 \begin{align}
     I_{3D} = m
