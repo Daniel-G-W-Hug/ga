@@ -1,7 +1,7 @@
 \subsection{Approaches with increasing expressiveness}
 \label{subsection_comparison_of_approaches}
 
-\subsubsection{Classic approach (vector algebra)}
+\subsubsection{Classic approach vector algebra ($V\!A$)}
 
 \begin{itemize}
     \item Use of scalars and vectors, exclusively
@@ -12,7 +12,7 @@
     higher-dimensional spaces.}
 \end{itemize}
 
-\subsubsection{General observations for Geometric Algebra (GA)}
+\subsubsection{General observations for Geometric Algebra ($GA$)}
 
 \begin{itemize}
     \item The GA approach is coordinate-free!
@@ -23,17 +23,17 @@
     \item Only the geometric product taking both parts into account is invertible.
 \end{itemize}
 
-\subsubsection{Euclidean geometric algebra}
+\subsubsection{Euclidean geometric algebra ($EGA$)}
 
 \begin{itemize}
     \item Use of scalars, vectors, bivectors, ..., pseudoscalars (higher grade objects up
     to order $n$ depend on the dimension $n$ of the modelled space).
     \item Use of the outer product (wedge product) between vectors, which defines the
-    space spanned by both vectors (can be defined in any dimension, used as join
+    space spanned by both vectors (can be defined in any dimension, applied as join
     operation).
     \item Use of the regressive outer product (regressive wedge product) which defines the
     space shared by both objects (represents the intersection of the spaces used by the
-    objects, used as meet operation).
+    objects, applied as meet operation).
     \item Modelled objects cover scalars, directions, planes (in $3D$) and the whole space
     directly.
     \item All objects modelled in the algebra contain the (non-distinguishable) origin
@@ -45,7 +45,7 @@
     rotation.
 \end{itemize}
 
-\subsubsection{Projective (Euclidean) geometric algebra}
+\subsubsection{Projective (Euclidean) geometric algebra ($PGA$)}
 
 \begin{itemize}
     \item Like $EGA$, but in addition having a distinguishable origin encoded in an
@@ -71,7 +71,6 @@
 \newlength{\cwTag}\setlength{\cwTag}{0.06\textwidth}
 \newlength{\cwDesc}\setlength{\cwDesc}{\dimexpr\textwidth - \cwApp - \cwTag
                                        - 4\arrayrulewidth - 6\tabcolsep\relax}
-
 \begin{table}[H]
 {\setlength{\extrarowheight}{2pt}\renewcommand{\arraystretch}{1.15}%
 % \extrarowheight: absolute extra space added above each row (before top rule);
@@ -82,8 +81,9 @@
     \textbf{Application} & & \textbf{Description} \\
     \hline \hline
     \multirow{3}{\cwApp}{Create line $\bm{l}$ from points \newline
-    $P$, $Q$} & VA  & $P=(p_x,p_y,p_z)$ \newline
-    $\bm{l}\colon \vec{x}(t) = (Q-P) \cdot t + P$ \\
+    $P$, $Q$} & VA  & $P=(p_x,p_y,p_z)$
+    $\bm{l}\colon \vec{x}(t) = (Q-P) \cdot t + P$ (explicit),
+    $ax+by=c$ (implict) \\
     \cline{2-3}
     & EGA & $P=(p_x,p_y,p_z)$, a vector represents a $1D$ subspace\newline
     $\bm{l}\colon x(t)=P \cdot t$ (explicit, line through origin and $P$)\newline
@@ -112,7 +112,7 @@
     \newline
     intersection point $I = \vec{x}(s_i) = \vec{y}(t_i)$\\
     \cline{2-3}
-    & EGA & see VA\\
+    & EGA & see VA, \# of solutions: 1, none or infinitely many\\
     \cline{2-3}
     & PGA & Intersect arbitrary lines $l_1$, $l_2$ in a common plane\newline
     intersection point $I$: $I = l_1 \vee l_2$ (projective point)\\
@@ -142,7 +142,14 @@
          Projective (Euclidean) Geometric Algebra.}
 \end{table}
 
-$PGA$ does not require solving systems of equations for simple geometrical tasks. They
-can be solved rather easily by using the suitable product.
+$PGA$ can define geometric primitives like lines or planes directly from points. It does
+not require solving systems of equations for simple geometrical tasks, like the
+intersection of geometric objects. They can be solved easily by using a suitable product
+expression. Another key advantage is that the intersections, e.g. of two lines or a line
+and a plane always have a solution in projective geometric algebra. There is no need to
+distinguish different cases, as required in $V\!A$ or $EGA$, where one might get either
+none, one or infinitely many solutions depending on the specific geometric case. The
+intersection point might be at infinity, but in projective algebra it is always
+well-defined.
 
 \newpage

@@ -1,4 +1,4 @@
-\subsection{Modelling physics}
+\subsection{Modelling physics in $PGA$}
 \label{subsection:modelling_physics}
 
 The key idea is to represent physical entities using objects represented in the underlying
@@ -244,7 +244,7 @@ alternatively by projecting $R$ onto $F$ and using the perpendicular distance ve
 $d_\perp$ from $R$ towards the line $F$ in order to calculate the resulting free torque
 $M_F(R)$ at the position $R$ as
 \begin{subeqnarray}
-    M_F(R) & = &  \bulk{\left[ (Q-R) \wedge f \right]} = \bulk{\left[ (Q-R) \wedge att(F)
+    M_F(R) & = &  \bulk{\left[ (Q-R) \wedge f \right]} = \bulk{\left[(Q-R) \wedge att(F)
              \right]} \slabel{eq:action_line_moment_simple} \\
     M_F(R) & = & \bulk{\left[ d_\perp \wedge f \right]} = \bulk{\left[ (F \vee (R \wedge
              \rightweightdual{F}) - R) \wedge att(F) \right]}
@@ -366,7 +366,7 @@ The equations (\ref{eq:linear_momentum_from_attitude}) and
 angular effects as in the classical approach. However, these aspects need not be separated
 at all and can be calculated together in $PGA$.\\
 
-Using eqn.~(\ref{momentum_definition}) and the definition $X=O + x$ with $X$ as a unitized
+Using eqn.~(\ref{momentum_definition}) and the definition $X=O + x$ with $X$ as unitized
 projective point, $O$ as the chosen origin and $x$ as the direction vector pointing from
 $O$ to $X$ we can write
 \begin{equation}
@@ -514,15 +514,15 @@ $I_b[\Omega_b]$ as shown by \cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:202
 Now we introduce some typically used reference points to describe kinematics via the
 bivector rate of change $\Omega$ and dynamics via the total momentum $P$:
 \begin{itemize}
-    \item \emph{Fixed body refence point} $O_b$ used as origin of the body frame. When the
-    body is moved by the motor $M$ it will move in the world frame to $O_{b,w} = M \veedot
-    O_b \veedot \rrev{M}$.
+    \item \emph{Fixed body reference point} $O_b$ used as origin of the body frame. When
+    the body is moved by the motor $M$ it will move in the world frame to $O_{b,w} = M
+    \veedot O_b \veedot \rrev{M}$.
     \item \emph{Relative locations $r_i$ versus $O_b$} are positions in the body frame.
     Their projective counterpart in the body frame is $R_i = O_b + r_i$. When transformed
     to the world frame we get $X_i$ in the world frame by the usual transformation $X_i =
     M \veedot R_i \veedot \rrev{M} = M \veedot (O_b + r_i) \veedot \rrev{M}$.
     \item \emph{Center of mass} in the body frame is chosen to be located at $O_b$, such
-    that $\sum_i{m_i r_i} = \vec{0}$. Thus the origin of the body frame is located at the
+    that $\sum_i{m_i r_i} = \vec{0}$. Thus, the origin of the body frame is located at the
     center of mass. The center of mass in the world frame $C_w$ then is $C_w \equiv
     \sum_i{m_i X_i} / \sum_i{m_i} = \sum_i{m_i (M \veedot (O_b + r_i) \veedot \rrev{M})} /
     \sum_i{m_i} = M \veedot O_b \veedot \rrev{M}$.
@@ -596,7 +596,7 @@ use the wedge product $X \wedge Y$ and the regressive commutator product term $m
          X_z Y_x - X_x Y_z \\ X_z Y_y - X_y Y_z \\ X_x Y_y - X_y Y_x
     \end{pmatrix}
     \slabel{eq:wedge_X_Y_2D} \\[10 pt]
-    m \; \mathrm{rcmt}(\Omega_b,X) & = & m
+    m \; \mathrm{rcmt}(\Omega_b, X) & = & m
     \begin{pmatrix}
          \Omega_y X_z - \Omega_z X_y \\ \Omega_z X_x - \Omega_x X_z \\ 0
     \end{pmatrix} 
@@ -814,7 +814,7 @@ $\vec{y}$:
     \dot{y}_{n,0} &=& y_{n,1} \\
     \dot{y}_{n,1} &=& f(y_{n,1}, y_{n,0}, t)
 \end{subeqnarray}
-If we would have to integrate for more than one point, we could easily add an index
+If we would have to integrate for more than one point, one could easily add an index
 at the beginning to extend the system accordingly. However, for now we only focus on
 integrating the system at one point (the center of mass) at which we want to know position
 and speed as well as angular orientation and angular speed as function of time. The
@@ -1236,19 +1236,19 @@ and $\Omega_b = \omega \cdot Q_b$; since $Q_b.z = 1$ the scalar angular accelera
     \label{eq:constraint_projection_2d}
 \end{equation}
 In $3D$ the analogous projection onto the normalized pivot line gives $\alpha =
-\dot{\Omega}_b \cdot \hat{L}_\text{pivot}$. \\
-
-The body-frame encoding $B_b = \varphi \cdot Q_b$ carries a key geometric property: the
-world image of $Q_b$ is stationary for all $\varphi$. From the body-frame motor
-formula~(\ref{eq:motor_pga_body_frame}), $M(t) = M_0 \veedot \exp_\veedot(\frac{1}{2}
-B_b(t))$, and the fact that any finite point is invariant under rotation about itself:
-\begin{equation}
-    M_0 \veedot \exp_\veedot\!\bigl(\tfrac{1}{2}\,\varphi \cdot Q_b\bigr)
-    \veedot Q_b \veedot
-    \rrev{\!\bigl(M_0 \veedot \exp_\veedot\!\bigl(\tfrac{1}{2}\varphi Q_b\bigr)\bigr)}
-    \;=\; M_0 \veedot Q_b \veedot \rrev{M_0} \;=\; Q_{b,\text{world}} = \text{const}
-    \label{eq:pivot_invariance}
-\end{equation}
+\dot{\Omega}_b \cdot \hat{L}_\text{pivot}$. The body-frame encoding $B_b = \varphi \cdot
+Q_b$ carries a key geometric property: the world image of $Q_b$ is stationary for all
+$\varphi$.
+% From the body-frame motor
+% formula~(\ref{eq:motor_pga_body_frame}), $M(t) = M_0 \veedot \exp_\veedot(\frac{1}{2}
+% B_b(t))$, and the fact that any finite point is invariant under rotation about itself:
+% \begin{equation}
+%     M_0 \veedot \exp_\veedot\!\bigl(\tfrac{1}{2}\,\varphi \cdot Q_b\bigr)
+%     \veedot Q_b \veedot
+%     \textrm{rrev}{\!\bigl(M_0 \veedot \exp_\veedot\!\bigl(\tfrac{1}{2}\varphi Q_b\bigr)\bigr)}
+%     \;=\; M_0 \veedot Q_b \veedot \rrev{M_0} \;=\; Q_{b,\text{world}} = \text{const}
+%     \label{eq:pivot_invariance}
+% \end{equation}
 No explicit constraint enforcement is required for the \emph{position} of the pivot -- it
 is preserved exactly for all $\varphi$ by the motor algebra. Only the velocity direction
 (eqn.~(\ref{eq:constraint_projection_2d})) must be enforced at each integration step. \\
@@ -1751,4 +1751,176 @@ the center of mass, and the inertia map automatically incorporates the full Stei
 correction: $I[2,2] = J_{cm} + mr^2$ in $2D$ (eqn.~(\ref{eq:steiner_2d})) and the complete
 tensor update of eqn.~(\ref{eq:parallel_axis_3D}) in $3D$.
 
+\newpage
+
+\subsubsection{Moving coordinate systems}
+\label{subsubsection:moving_coordinate_systems}
+
+\begin{figure}[H]
+    \includegraphics[width=7cm]{moving_frame.png}
+    \centering
+    \caption{Moving frame: World or reference frame \{$X,Y$\} (only $2D$ shown as
+    examples, extends naturally to $3D$). Body frame \{$X_b, Y_b$\}. Point $A$ might move
+    with $v_A$ and accelerate with $a_A$ (not shown). Body frame turns with rotational
+    speed $\omega$ and rotational acceleration $\alpha$ relative to the world frame.}
+    \label{fig:moving_frame}
+\end{figure}
+
+When modelling motion in moving coordinate systems we look into relative motion.
+Typically, we use a world frame as reference frame and a body frame as frame moving
+relative to the world frame, as shown in fig.~\ref{fig:moving_frame}. $x_A$ and $x_B$ are
+absolute positions in the world frame. \\
+
+Most of the time $x_A$ is a reference position (e.g. the center of mass of a rigid
+body)\footnote{The reference position $x_A$ can be any arbitrary point of the rigid body.
+However, it is often convenient to choose $x_A$ to be located at the center of mass.}, and
+we are interested in the movement of $x_B$ relative to $x_A$. The relative position of $B$
+with respect to $A$ is shown as $r_{B/A}$. If A is the center of mass of the rigid body
+then $r$ are local (relative) coordinates of the points of the body in the body frame. So
+we define
+\begin{subeqnarray}
+    r        &=& x_B - x_A \quad \textit{(relative position)} \slabel{eq:rel_pos}\\
+    \dot{r}  &=& v_B - v_A \quad \textit{(relative velocity)} \slabel{eq:rel_spd}\\  
+    \ddot{r} &=& a_B - a_A \quad \textit{(relative acceleration)} \slabel{eq:rel_acl}
+\end{subeqnarray}
+as relative position, speed and acceleration. \\
+
+The relative position in a $3D$ frame is defined with $(x,y,z)$ as local or relative
+coordinates
+\begin{equation}
+    r = x \bv{1} + y \bv{2} + z \bv{3}
+\end{equation}
+The total change of the relative position has following components
+\begin{equation}
+    \dot{r} = \dfdt{r}{t} = \underbrace{\dot{x} \bv{1} + \dot{y} \bv{2} + \dot{z} \bv{3}}
+              _{\textrm{changing speed}: \; \dfdt{r}{t} \;=\; v}
+            + \underbrace{x \dfdt{\bv{1}}{t} + y \dfdt{\bv{2}}{t} + z \dfdt{\bv{3}}{t}}
+              _{\textrm{changing frame}: \; \dfdt{r}{t} \;=\; \omega \times r}
+\end{equation}
+leading to the relative speed $\dot{r}$
+\begin{equation}
+    \dot{r} = \omega \times r_{B/A} + v_{B/A}
+    \label{eq:rel_spd_two_terms}
+\end{equation}
+which can be transformed using eqn.~(\ref{eq:rel_spd}) resulting to the total speed at
+position $B$ as
+\begin{equation}
+    v_B = v_A + \omega \times r_{B/A} + v_{B/A} 
+\end{equation}
+We can get the relative acceleration from deriving eqn.~(\ref{eq:rel_spd_two_terms}) again
+with respect to $t$
+\begin{equation}
+    \ddot{r} = \dot{\omega} \times r_{B/A} + \omega \times \dot{r}_{B/A} + \dot{v}_{B/A}
+    \label{eq:rel_acl_three_terms}
+\end{equation}
+Using eqn.~(\ref{eq:rel_spd_two_terms}) directly for $\dot{r}_{B/A}$ and for
+$\dot{v}_{B/A} = \omega \times v_{B/A} + a_{B/A}$ this yields
+\begin{equation}
+    \ddot{r} = \dot{\omega} \times r_{B/A} + \omega \times \omega \times r_{B/A}
+             + \omega \times v_{B/A} + \omega \times v_{B/A} + a_{B/A}
+    \label{eq:rel_acl_five_terms}
+\end{equation}
+when reordered for terms depending on position, relative speed and relative acceleration,
+we get
+\begin{equation}
+    \ddot{r} = \underbrace{\omega \times \omega \times r_{B/A}}_
+                          {\textrm{centripetal accel.}
+                          \;=\; -|\omega|^2 \; r_{B/A}}
+             + \underbrace{2 \omega \times v_{B/A}}_
+                          {\textrm{Corriolis acceleration}}
+             + \underbrace{\dot{\omega} \times r_{B/A}}_
+                          {\textrm{frame acceleration}}
+             + \underbrace{a_{B/A}}_
+                          {\textrm{particle accel.}}
+    \label{eq:rel_acl_four_terms}
+\end{equation}
+Using eqn.~(\ref{eq:rel_acl}) this results in the total acceleration at position $B$ as
+\begin{equation}
+    a_B = a_A + \omega \times \omega \times r_{B/A}
+              + 2 \omega \times v_{B/A}
+              + \dot{\omega} \times r_{B/A} + a_{B/A}
+\end{equation}
+
+Now we can translate the various velocity and acceleration terms that describe physics
+using expressions in the geometric algebra language, separately for $EGA$ and $PGA$. To
+get there, we mainly replace the cross-product expressions by bivectors in $EGA$ and
+trivectors in $PGA$. They are duals of the momentary rotation axis. This directly applies
+to $2D$ in that form.\footnote{The $2D$ application is done in classical vector algebra by
+using the $z$-component of the $3D$ cross-product as replacement, even if the
+cross-product is not defined for $2D$. In the classical approach we temporarily have to
+include the third dimension and use the relevant $z$-component exclusively. However, this
+temporary inclusion of an additional dimension is not required in geometric algebra, since
+a rotation only requires two dimensions for its representation in geometric algebra.}
+
+% Three-column layout: Application (spanning) | Tag | Description
+% Adjust \cwAppPhys and \cwTagPhys; description fills the rest.
+\newlength{\cwAppPhys}\setlength{\cwAppPhys}{0.185\textwidth}
+\newlength{\cwTagPhys}\setlength{\cwTagPhys}{0.06\textwidth}
+\newlength{\cwDescPhys}\setlength{\cwDescPhys}{\dimexpr\textwidth - \cwAppPhys - \cwTagPhys
+                                       - 4\arrayrulewidth - 6\tabcolsep\relax}
+\begin{table}[H]
+{\setlength{\extrarowheight}{2pt}\renewcommand{\arraystretch}{1.15}%
+% \extrarowheight: absolute extra space added above each row (before top rule);
+% \arraystretch:   scales the row strut height (1.15 ≈ +15%, adds ~1.5pt below content).
+% Together: ~2pt top padding, ~1.5pt bottom padding per row.
+\begin{tabular}{|p{\cwAppPhys}|p{\cwTagPhys}|p{\cwDescPhys}|}
+    \hline
+    \textbf{Term} & & \textbf{Description} \\
+    \hline \hline
+    \multirow{3}{\cwAppPhys}{Definition of vectors $v$ and points $P$}
+    & VA  & $v=(v_x, v_y, v_z)$, $P=(p_x, p_y, p_z)$ \\
+    \cline{2-3}
+    & EGA & $v=(v_x, v_y, v_z)$, $P=(p_x, p_y, p_z)$ \\
+    \cline{2-3}
+    & PGA & $v=(v_x, v_y, v_z, 0)$, $P=(p_x, p_y, p_z, 1)$ \\
+    \hline \hline
+    \multirow{3}{\cwAppPhys}{Definition of rotation}
+    & VA  & rotation axis vector $\omega = (\omega_x,\omega_y,\omega_z)$\newline
+    (a direction, axis always contains origin)\\
+    \cline{2-3}
+    & EGA & rotation bivector $\Omega_{EGA} = \rightbulkdual{\omega} =
+    (\Omega_x,\Omega_y,\Omega_z)$\newline
+    (bivector dual to direction vector $\omega$ -- defines the plane of rotation, which
+    always contains the origin)\\
+    \cline{2-3}
+    & PGA & rotation direction $\omega = (\omega_x,\omega_y,\omega_z, 0)$ \newline
+    reference point on rotation axis $Q = (q_x,q_y,q_z, 1)$
+    rotation bivector $\Omega_{PGA} = Q \wedge \omega $ - a line, where
+    \newline
+    $\Omega_{PGA} = (\Omega_{vx},\Omega_{vy},\Omega_{vz}, \Omega_{mx},\Omega_{my},\Omega_{mz})$
+    \newline
+    (a rotation axis modelled by a bivector, with arbitrary orientation \emph{and}
+    location; can also be created from any unitized line that is scaled with |$\omega$|)\\
+    \hline \hline
+    \multirow{3}{\cwAppPhys}{Speed of rotation at $r$ or $R$\newline}
+    & VA  & evaluation of velocity at $r = (r_x,r_y,r_z)$
+    ($r$ is vector perpendicular to axis; points to evaluation point)\newline
+    $v = \omega \times r$  \\
+    \cline{2-3}
+    & EGA & evaluation of velocity at $r = (r_x,r_y,r_z)$
+    (see VA)\newline
+    $v = cmt(r, \Omega_{EGA}) = \Omega_{EGA} \gg r$ \\
+    \cline{2-3}
+    & PGA & evaluation of velocity at $R = (r_x,r_y,r_z, 1)$\newline
+    $v = rcmt(\Omega_{PGA}, R)$  \\
+    % \hline \hline
+    % \multirow{3}{\cwAppPhys}{...}
+    % & VA  & ... \\
+    % \cline{2-3}
+    % & EGA & ... \\
+    % \cline{2-3}
+    % & PGA & ... \\
+    \hline
+\end{tabular}}% end \extrarowheight + \arraystretch group
+\caption{Description of rotation and rotation speed evaluation across three approaches.
+         \textbf{VA} = Vector Algebra (classical approach using vectors); \textbf{EGA} =
+         Euclidean Geometric Algebra; \textbf{PGA} = Projective (Euclidean) Geometric
+         Algebra.}
+\end{table}
+
+%%% TODO: centripetal, Corriolis, frame acceleration, partical acceleration in EGA & PGA
+%%%       (incl. tests for comparing accelerations for one example)
+
+
+% eqn.~(\ref{})
 \newpage

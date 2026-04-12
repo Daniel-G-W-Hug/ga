@@ -709,33 +709,59 @@ TEST_SUITE("PGA 3DP Tests")
     {
         fmt::println("Vec3dp: operations - project / reject / reflect");
 
-        vec3dp v1{5, 1, 0, 0};
-        vec3dp v2{2, 2, 0, 0};
+        vec3dp v1{5, 1, 1, 0};
+        vec3dp v2{2, 2, 1, 0};
 
-        // points
-        vec3dp p1{5, 1, 0, 1};
-        vec3dp p2{2, 2, 0, 1};
 
         // vectors (=directions) projected and rejected
         vec3dp v3{project_onto(v1, v2)};
         vec3dp v4{reject_from(v1, v2)};
-        vec3dp v5{v3 + v4};
-        CHECK(v3 + v4 == v5);
-        CHECK(v5 == v1);
+        CHECK(v3 + v4 == v1);
+        CHECK(dot(v3, v4) == 0);
 
-        // points projected and rejected
-        // line
-        bivec3dp B{e31_3dp};
+        fmt::println("v1  = {: .4f}, bulk_nrm(v1) = {: .4f}", v1, bulk_nrm(v1));
+        fmt::println("v2  = {: .4f}, bulk_nrm(v2) = {: .4f}", v2, bulk_nrm(v2));
+        fmt::println("");
+        fmt::println("v3 = project_onto(v1, v2) = {: .4f}, bulk_nrm(v3) = {: .4f}", v3,
+                     bulk_nrm(v3));
+        fmt::println("v4 = reject_from(v1, v2)  = {: .4f}, bulk_nrm(v4) = {: .4f}", v4,
+                     bulk_nrm(v4));
+        fmt::println("v3 + v4              = {: .4f}, bulk_nrm(v3 + v4) = {: .4f}",
+                     v3 + v4, bulk_nrm(v3 + v4));
+        fmt::println("");
+
+        // points
+        vec3dp p1{5, 1, 1, 1};
+        vec3dp p2{2, 2, 1, 1};
+
+        // points projected onto and rejected from line
+        bivec3dp B{e41_3dp};
 
         vec3dp p3{project_onto(p1, B)};
-        vec3dp v6{reject_from(p1, B)};
-        vec3dp p8{p3 + v6};
-        CHECK(p3 + v6 == p8);
-        CHECK(p8 == p1);
+        vec3dp p3v{project_onto(v1, B)};
+        vec3dp v5{reject_from(p1, B)};
+        CHECK(p1 == p3 + v5);
+        CHECK(dot(p3, v5) == 0);
 
+        fmt::println("p3 = project_onto(p1,B) = {: .4f}, bulk_nrm(p3)  = {: .4f}", p3,
+                     bulk_nrm(p3));
+        fmt::println("v5 = reject_from(p1,B)  = {: .4f}, bulk_nrm(p3)  = {: .4f}", v5,
+                     bulk_nrm(v5));
+        fmt::println("p3v  = {: .4f}, bulk_nrm(p3v) = {: .4f}", p3v, bulk_nrm(p3v));
+        fmt::println("");
+
+        // project a line on a plane
+        auto l = unitize(wdg(vec3dp{1, 1, 1, 1}, vec3dp{1, -2, 3, 1}));
 
         // plane
         trivec3dp t{e431_3dp};
+
+        auto lp = project_onto(l, t);
+        fmt::println("l  = {: .4f}", l);
+        fmt::println("t  = {: .4f}", t);
+        fmt::println("lp = {: .4f}", lp);
+        fmt::println("");
+
 
         // point to reflect
         auto v = vec3dp{1, 3, 1, 1};
@@ -4539,6 +4565,56 @@ TEST_SUITE("PGA 3DP Tests")
 
         CHECK(X == move3dp(X0, M));
         CHECK(M == exp(0.5 * B)); // bivector creates motor via exp()
+
+
+        fmt::println("exp check:");
+        fmt::println("");
+        fmt::println("e41_3dp * pi = {}, bulk_nrm_sq = {}, weight_nrm_sq = {}",
+                     e41_3dp * pi, bulk_nrm_sq(e41_3dp * pi),
+                     weight_nrm_sq(e41_3dp * pi));
+        fmt::println("e42_3dp * pi = {}, bulk_nrm_sq = {}, weight_nrm_sq = {}",
+                     e42_3dp * pi, bulk_nrm_sq(e42_3dp * pi),
+                     weight_nrm_sq(e42_3dp * pi));
+        fmt::println("e43_3dp * pi = {}, bulk_nrm_sq = {}, weight_nrm_sq = {}",
+                     e43_3dp * pi, bulk_nrm_sq(e43_3dp * pi),
+                     weight_nrm_sq(e43_3dp * pi));
+        fmt::println("e23_3dp * pi = {}, bulk_nrm_sq = {}, weight_nrm_sq = {}",
+                     e23_3dp * pi, bulk_nrm_sq(e23_3dp * pi),
+                     weight_nrm_sq(e23_3dp * pi));
+        fmt::println("e31_3dp * pi = {}, bulk_nrm_sq = {}, weight_nrm_sq = {}",
+                     e31_3dp * pi, bulk_nrm_sq(e31_3dp * pi),
+                     weight_nrm_sq(e31_3dp * pi));
+        fmt::println("e12_3dp * pi = {}, bulk_nrm_sq = {}, weight_nrm_sq = {}",
+                     e12_3dp * pi, bulk_nrm_sq(e12_3dp * pi),
+                     weight_nrm_sq(e12_3dp * pi));
+        fmt::println("");
+        fmt::println("The weight carries rotational information. "
+                     "The bivector squares to -1 w.r.t. rgpr().");
+        fmt::println("rgpr(e41_3dp,e41_3dp) = {}", rgpr(e41_3dp, e41_3dp));
+        fmt::println("rgpr(e42_3dp,e42_3dp) = {}", rgpr(e42_3dp, e42_3dp));
+        fmt::println("rgpr(e43_3dp,e43_3dp) = {}", rgpr(e43_3dp, e43_3dp));
+        fmt::println("exp(e41_3dp * pi) = {}", exp(e41_3dp * pi));
+        fmt::println("exp(e42_3dp * pi) = {}", exp(e42_3dp * pi));
+        fmt::println("exp(e43_3dp * pi) = {}", exp(e43_3dp * pi));
+        fmt::println("");
+
+        CHECK(exp(e41_3dp * pi) == mvec3dp_e{pscalar3dp{-1}});
+        CHECK(exp(e42_3dp * pi) == mvec3dp_e{pscalar3dp{-1}});
+        CHECK(exp(e43_3dp * pi) == mvec3dp_e{pscalar3dp{-1}});
+
+        fmt::println("The bulk carries translational information. "
+                     "The bivector squares to 0 w.r.t. rgpr().");
+        fmt::println("rgpr(e23_3dp,e23_3dp) = {}", rgpr(e23_3dp, e23_3dp));
+        fmt::println("rgpr(e31_3dp,e31_3dp) = {}", rgpr(e31_3dp, e31_3dp));
+        fmt::println("rgpr(e12_3dp,e12_3dp) = {}", rgpr(e12_3dp, e12_3dp));
+        fmt::println("exp(e23_3dp * pi) = {}", exp(e23_3dp * pi));
+        fmt::println("exp(e31_3dp * pi) = {}", exp(e31_3dp * pi));
+        fmt::println("exp(e12_3dp * pi) = {}", exp(e12_3dp * pi));
+        fmt::println("");
+
+        CHECK(exp(e23_3dp * pi) == mvec3dp_e{scalar3dp{0}, e23_3dp * pi, pscalar3dp{1}});
+        CHECK(exp(e31_3dp * pi) == mvec3dp_e{scalar3dp{0}, e31_3dp * pi, pscalar3dp{1}});
+        CHECK(exp(e12_3dp * pi) == mvec3dp_e{scalar3dp{0}, e12_3dp * pi, pscalar3dp{1}});
     }
 
     TEST_CASE("G<3,0,1>: sqrt(motor) function")

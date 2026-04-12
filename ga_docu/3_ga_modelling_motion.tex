@@ -273,7 +273,7 @@ line).\\
 
 \newpage
 
-\subsubsection{Motion in EGA}
+\subsubsection{Motion in $EGA$}
 \label{subsection:motion_EGA}
 
 In order to dive deeper into modelling of motions we first start with the $EGA$ case. It
@@ -286,7 +286,7 @@ derivations: \\
 
 For $EGA$ the rotor will now be written as $M$ instead of $R$ to make it easy to compare
 to our $PGA$-derivations using motors $M$ later on. $M$ as a rotor in $EGA$ is an
-orthonomal transformation and thus satisfies
+orthonormal transformation and thus satisfies
 \begin{equation}
 M \wedgedot \rev{M} = \rev{M} \wedgedot M = 1
 \label{eq:motor_relation_gpr_neutral_element}
@@ -356,7 +356,7 @@ eqn.~(\ref{eq:rotor_ega_world_frame}) becomes
    M(t) = M_0 \wedgedot \exp_\wedgedot(-\frac{1}{2}B_b(t))
    \label{eq:rotor_ega_body_frame}
 \end{equation}
-which in turn restults in
+which in turn results in
 \begin{equation}
    \dot{M}(t) = -\frac{1}{2} M_0 \wedgedot
                 \exp_\wedgedot (-\frac{1}{2}B_b(t)) \wedgedot \dot{B_b}(t) 
@@ -456,7 +456,7 @@ However, we can also do our derivations in a completely equivalent way using the
 corresponding bivector rates and rotors of the \emph{body frame}. \\
 
 Now we derive the rate of change of a point $X(t)$ in the \emph{body frame}, again
-assuming that $X(t=0) = X_0 = const.$. We can write
+assuming that $X(t=0) = X_0 = const.$ We can write
 \begin{eqnarray*}
    \dot{X}(t) &=& \dot{M} \wedgedot X_0 \wedgedot \rev{M} + M \wedgedot X_0 \wedgedot
                   \dot{\rev{M}} \\
@@ -515,13 +515,13 @@ replacing $Omega_w$ by $Omega_b$. \\
 In $EGA$ rotation as a Euclidean isometry can be described with sandwich products based on
 the geometric product. The corresponding sandwich product is available in the library
 either by using the geometric product and the grade operator to extract the grade of the
-results directly, or by using the \path{rotate(X,R)} function which takes the object $X$
+results directly, or by using the function \path{rotate(X, R)} which takes the object $X$
 and the rotor $R$ as arguments and returns the rotated object.\\
 
 
 \newpage
 
-\subsubsection{Motion in PGA}
+\subsubsection{Motion in $PGA$}
 \label{subsection:motion_PGA}
 
 Now we are looking into $PGA$. Lengyel has shown in \cite{Lengyel_pga-illuminated:2024}
@@ -607,7 +607,7 @@ eqn.~(\ref{eq:motor_pga_world_frame}) becomes
    M(t) = M_0 \veedot  \exp_\veedot(\frac{1}{2}B_b(t))
    \label{eq:motor_pga_body_frame}
 \end{equation}
-which in turn restults in
+which in turn results in
 \begin{equation}
    \dot{M}_b(t) = \frac{1}{2} M_0 \veedot
                   \exp_\veedot (\frac{1}{2}B_b(t)) \veedot \dot{B_b}(t) 
@@ -712,12 +712,12 @@ Eqn.~(\ref{eq:rcmt_pga_world_incl_X0_of_t}) is to be considered in the world fra
 However, we can also do our derivations in a completely equivalent way using the
 corresponding bivector rates and rotors of the \emph{body frame}. \\
 
-The derivation in the \emph{body frame} does not bring new insights so we don't reproduce
+The derivation in the \emph{body frame} does not bring new insights, so we don't reproduce
 that here for $PGA$ again. \\
 
 \newpage
 
-\subsubsection{Motor generators in PGA}
+\subsubsection{Motor generators in $PGA$}
 \label{subsection:motor_generators_PGA}
 
 The final step before we move on to modelling physics is to show how points are moved in
@@ -736,21 +736,20 @@ In $3D$ $PGA$ every bivector $B = B(s, \phi)$ or every bivector rate $\dot{B} = 
    =\bulk{\Omega}}
    \label{eq:rate_bivector_component_definition}
 \end{equation}
-where the weight part $\weight{\Omega}$ carries rotational information (direction of
-rotation and rotational speed) and the bulk part $\bulk{\Omega}$ carries translational
-information (positional information, orientaton of translation). \\
+where the \emph{weight $\weight{\Omega}$ carries rotational information} and the
+\emph{bulk $\bulk{\Omega}$ carries translational information}. \\
 
-In general, the weight part only contains components that do contain a factor of $\bv{4}$.
-It has \emph{directional} information on $\Omega$. If there is zero weight, the object is
-contained in the horizon ($H_{3dp}$). The bulk part only has components that do not
-contain a factor of $\bv{4}$. It has \emph{positional} information on $\Omega$. If there
-is zero bulk, the object contains the origin ($O_{3dp}$). \\
+In general, the weight only contains components that \emph{do} contain a factor of
+$\bv{4}$. It has \emph{directional} information on $\Omega$. If there is zero weight, the
+object is contained in the horizon ($H_{3dp}$). The bulk only has components that \emph{do
+not} contain a factor of $\bv{4}$. It has \emph{positional} information on $\Omega$. If
+there is zero bulk, the object contains the origin ($O_{3dp}$). \\
 
 We can either model a pure translation, which will only be visible in the bulk part of
 $\Omega$, with the weight part being zero in that case, or we can model a pure rotation
 around a fixed (non-ideal) line $\bm{l}$. In that case the positional information of the
 fixed line of rotation becomes encoded in the bulk part of $\Omega$ and the directional
-information on the rotational speed vector $\omega$ is encoded in the weight part of
+information on the rotation speed vector $\omega$ is encoded in the weight part of
 $\Omega$.\\
  
 A mixture of a translation and a rotation would either be equivalent to a rotation around
@@ -862,9 +861,9 @@ a motor that transforms points accordingly. \\
 Using for example eqn.~(\ref{eq:rcmt_pga_world}) and the Euclidean split as defined in
 eqn.~(\ref{eq:rate_bivector_euclidean_split}) we can write
 \begin{subeqnarray}
-   \dot{X}_w &=& \mathrm{rcmt}(\Omega_w,X_w) \;\; = \;\; \dot{x}_w \nonumber \\
-             &=& \mathrm{rcmt}(\Omega_{rot} + \Omega_{tra},X_w) \nonumber \\
-   \dot{x}_w &=& \mathrm{rcmt}(\Omega_{rot},X_w) + \mathrm{rcmt}(\Omega_{tra},X_w) \\
+   \dot{X}_w &=& \mathrm{rcmt}(\Omega_w, X_w) \;\; = \;\; \dot{x}_w \nonumber \\
+             &=& \mathrm{rcmt}(\Omega_{rot} + \Omega_{tra}, X_w) \nonumber \\
+   \dot{x}_w &=& \mathrm{rcmt}(\Omega_{rot}, X_w) + \mathrm{rcmt}(\Omega_{tra}, X_w) \\
    \dot{x}_w &=& v_{rot} + v_{tra}  
    \label{eq:speed_from_rate}
 \end{subeqnarray}
@@ -888,10 +887,11 @@ the rate of change. In $2D$ $PGA$ has its basis components
                = \weight{\Omega}}
    \label{eq:rate_vector_component_definition}
 \end{equation}
-where the weight part $\weight{\Omega}$ carries rotational information and the bulk part
-$\bulk{\Omega}$ carries translational information. In general, the weight part only
-contains components that do contain a factor of $\bv{3}$ (which here takes a role
-equivalent to $\bv{4}$ in the $3D$ case). \\
+where the \emph{weight $\weight{\Omega}$ carries rotational information} and the
+\emph{bulk $\bulk{\Omega}$ carries translational information}. In general, the weight only
+contains components that \emph{do} contain a factor of $\bv{3}$ (which here takes a role
+equivalent to $\bv{4}$ in the $3D$ case). The bulk only has components that \emph{do not}
+contain a factor of $\bv{3}$.\\
 
 The total vector rate of change $\Omega$ can be split into
 \begin{equation}

@@ -601,7 +601,6 @@ TEST_SUITE("EGA 3D Tests")
         // fmt::println("");
         // fmt::println("v1  = {: .4f}, nrm(v1) = {: .4f}", v1, nrm(v1));
         // fmt::println("v2  = {: .4f}, nrm(v2) = {: .4f}", v2, nrm(v2));
-        // fmt::println("v2u = {: .4f}, nrm(v2) = {: .4f}", v2u, nrm(v2u));
         // fmt::println("");
         // fmt::println("v3 = project_onto(v1, v2) = {: .4f}, nrm(v3) = {: .4f}", v3,
         //              nrm(v3));
@@ -635,6 +634,7 @@ TEST_SUITE("EGA 3D Tests")
 
         CHECK(v3 + v4 == v5);
         CHECK(v5 == v1);
+        CHECK(dot(v3, v4) == 0);
 
         // just to suppress unused variable warnings
         CHECK(b == e2_3d);
@@ -3111,6 +3111,8 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(v == rotate(u, sqrt(vu)));
         CHECK(u == rotate(v, sqrt(uv)));
 
+        CHECK(exp(e12_3d * pi) == mvec3d_e{scalar3d{-1.0}});
+
         fmt::println("");
     }
 
@@ -3182,6 +3184,48 @@ TEST_SUITE("EGA 3D Tests")
         }
 
         fmt::println("");
+    }
+
+    TEST_CASE("MVec3d: geometric product replacements")
+    {
+        fmt::println("MVec3d: geometric product replacements");
+
+        auto s = scalar3d(5.0);
+        auto v = vec3d{1.0, 2.0, 1.0};
+        auto B = bivec3d{-1.0, 2.0, 1.0};
+        auto ps = pscalar3d(-5.0);
+
+        auto s1 = scalar3d(-3.0);
+        auto v1 = vec3d{-3.0, -1.5, 2.0};
+        auto B1 = bivec3d{-3.0, -1.5, 2.0};
+        auto ps1 = pscalar3d(2.0);
+
+        auto mv0 = mvec3d{scalar3d{}, v, B, ps}; // contains no scalar part
+        auto mv1 = mvec3d{s, v, B, ps};          // contains a scalar part
+
+        fmt::println("   mv0  = {}", mv0);
+        fmt::println("   mv1  = {}", mv1);
+
+        // all following tests must only work for vector multivector combinations
+        //
+        // check: v * mv == (mv >> v) + wdg(v, mv)
+        // check: mv * v == (v << mv) + wdg(mv, v)
+        //
+        REQUIRE_FALSE(ps1 * mv0 == (mv0 >> ps1) + wdg(ps1, mv0));
+        REQUIRE_FALSE(ps1 * mv1 == (mv1 >> ps1) + wdg(ps1, mv1));
+        //
+        REQUIRE_FALSE(B1 * mv0 == (mv0 >> B1) + wdg(B1, mv0));
+        REQUIRE_FALSE(B1 * mv1 == (mv1 >> B1) + wdg(B1, mv1));
+        //
+        CHECK(v1 * mv0 == (mv0 >> v1) + wdg(v1, mv0));
+        CHECK(v1 * mv1 == (mv1 >> v1) + wdg(v1, mv1));
+        //
+        REQUIRE_FALSE(s1 * mv0 == (mv0 >> s1) + wdg(s1, mv0));
+        REQUIRE_FALSE(s1 * mv1 == (mv1 >> s1) + wdg(s1, mv1));
+        //
+        // now with reversed arguments (only for vectors)
+        CHECK(mv0 * v1 == (v1 << mv0) + wdg(mv0, v1));
+        CHECK(mv1 * v1 == (v1 << mv1) + wdg(mv1, v1));
     }
 
 } // EGA 3D Tests

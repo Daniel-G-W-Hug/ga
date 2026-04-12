@@ -292,6 +292,8 @@ ProductConfig get_ega3d_wdg_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             .cases = {{"mv ^ mv -> mv", "A", "B", "mv", "mv"},
+                      {"mv ^ ps -> mv", "M", "svBps", "mv", "ps"},
+                      {"ps ^ mv -> mv", "svBps", "M", "ps", "mv"},
                       {"mv ^ bivec -> mv", "M", "svBps", "mv", "bivec"},
                       {"bivec ^ mv -> mv", "svBps", "M", "bivec", "mv"},
                       {"mv ^ vec -> mv", "M", "svBps", "mv", "vec"},
@@ -342,6 +344,7 @@ ProductConfig get_ega3d_lcontract_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             .cases = {{"mv << mv -> mv", "A", "B", "mv", "mv"},
+                      {"ps << mv -> mv", "svBps", "M", "ps", "mv"},
                       {"bivec << mv -> mv", "svBps", "M", "bivec", "mv"},
                       {"vec << mv -> mv", "svBps", "M", "vec", "mv"},
                       {"s << mv -> mv", "svBps", "M", "s", "mv"},
@@ -378,6 +381,7 @@ ProductConfig get_ega3d_rcontract_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             .cases = {{"mv >> mv -> mv", "A", "B", "mv", "mv"},
+                      {"mv >> ps -> mv", "M", "svBps", "mv", "ps"},
                       {"mv >> bivec -> mv", "M", "svBps", "mv", "bivec"},
                       {"mv >> vec -> mv", "M", "svBps", "mv", "vec"},
                       {"mv >> s -> mv", "M", "svBps", "mv", "s"},

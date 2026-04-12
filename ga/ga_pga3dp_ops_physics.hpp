@@ -195,13 +195,15 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 //
 // BiVec3dp index layout: (vx=e41, vy=e42, vz=e43, mx=e23, my=e31, mz=e12)
 //   Indices 0-2 (vx,vy,vz): translational velocity / linear momentum  (ideal lines, e4*)
-//   Indices 3-5 (mx,my,mz): angular velocity / angular momentum        (real lines, e23/e31/e12)
+//   Indices 3-5 (mx,my,mz): angular velocity / angular momentum        (real lines,
+//   e23/e31/e12)
 //
 // Block structure of the base matrix:
 //   Upper-left  [0:3, 0:3] = 0:          no translational-to-translational coupling
-//   Upper-right [0:3, 3:6] = m*Identity: angular velocity -> linear momentum (mass, Newton p=mv)
-//   Lower-left  [3:6, 0:3] = m*J_rot:   translational vel -> angular momentum (classical moments)
-//   Lower-right [3:6, 3:6] = 0:          no rotational-to-rotational coupling
+//   Upper-right [0:3, 3:6] = m*Identity: angular velocity -> linear momentum (mass,
+//   Newton p=mv) Lower-left  [3:6, 0:3] = m*J_rot:   translational vel -> angular
+//   momentum (classical moments) Lower-right [3:6, 3:6] = 0:          no
+//   rotational-to-rotational coupling
 //
 // Where J_rot is diagonal with the classical rectangle-rule moments of inertia:
 //   I[3,0] = m*(h^2+d^2)/12  (rotation about e1-axis, depends on e2 and e3 extents)
@@ -235,7 +237,7 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 template <typename T>
     requires(std::floating_point<T>)
 Inertia3dp<T> get_cuboid_inertia(T m, T w, T h, T d,
-                                  BiVec3dp<T> const& L_pivot = BiVec3dp<T>{})
+                                 BiVec3dp<T> const& L_pivot = BiVec3dp<T>{})
 {
     Inertia3dp<T> I;
     auto v = I.view();
@@ -252,8 +254,8 @@ Inertia3dp<T> get_cuboid_inertia(T m, T w, T h, T d,
 
     // Apply scalar parallel-axis (Steiner) corrections if pivot line is offset
     // from the body origin. A line through the origin has zero ideal part.
-    T const v_sq = L_pivot.vx * L_pivot.vx + L_pivot.vy * L_pivot.vy
-                   + L_pivot.vz * L_pivot.vz;
+    T const v_sq =
+        L_pivot.vx * L_pivot.vx + L_pivot.vy * L_pivot.vy + L_pivot.vz * L_pivot.vz;
     if (v_sq != T{0}) {
         // Foot of perpendicular from O_b to L_pivot: P_foot = (n × m_moment) / |n|²
         // where n = (vx,vy,vz) is the line direction (ideal part)

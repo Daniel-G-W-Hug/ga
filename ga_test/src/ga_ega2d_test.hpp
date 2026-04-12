@@ -2612,6 +2612,8 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(u == v * exp(-angle_uv * I_2d));
         CHECK(u == exp(angle_uv * I_2d) * v);
 
+        CHECK(exp(e12_2d * pi) == mvec2d_e{scalar2d{-1.0}});
+
         fmt::println("");
     }
 

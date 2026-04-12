@@ -29,8 +29,8 @@ struct Vec3_t {
     // v = x * e1 + y * e2 + z * e3
     //
     // and for each bivector bv:
-    // bv = yz * e2^e3 + zx * e3^e1 + xy * e1^e2
-    //    =  x * e2^e3 +  y * e3^e1 +  z * e1^e2
+    // b = yz * e2^e3 + zx * e3^e1 + xy * e1^e2
+    //   =  x * e2^e3 +  y * e3^e1 +  z * e1^e2
     // (same names like in vector (x, y, z), but semantic as one line above (yz, zx, xy)
 
     // this is a mapping of the components
