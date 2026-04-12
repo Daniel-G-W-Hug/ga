@@ -89,15 +89,49 @@ template <typename T, typename U>
 constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& A, MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0;
-    ctype c1 = A.c0 * B.c1 + A.c1 * B.c0;
-    ctype c2 = A.c0 * B.c2 + A.c2 * B.c0;
-    ctype c3 = A.c0 * B.c3 + A.c3 * B.c0;
-    ctype c4 = A.c0 * B.c4 + A.c4 * B.c0 + A.c2 * B.c3 - A.c3 * B.c2;
-    ctype c5 = A.c0 * B.c5 + A.c5 * B.c0 + A.c3 * B.c1 - A.c1 * B.c3;
-    ctype c6 = A.c0 * B.c6 + A.c6 * B.c0 + A.c1 * B.c2 - A.c2 * B.c1;
-    ctype c7 = A.c0 * B.c7 + A.c7 * B.c0 + A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 +
-               A.c4 * B.c1 + A.c5 * B.c2 + A.c6 * B.c3;
+    ctype const c0 = A.c0 * B.c0;
+    ctype const c1 = A.c0 * B.c1 + A.c1 * B.c0;
+    ctype const c2 = A.c0 * B.c2 + A.c2 * B.c0;
+    ctype const c3 = A.c0 * B.c3 + A.c3 * B.c0;
+    ctype const c4 = A.c0 * B.c4 + A.c4 * B.c0 + A.c2 * B.c3 - A.c3 * B.c2;
+    ctype const c5 = A.c0 * B.c5 + A.c5 * B.c0 + A.c3 * B.c1 - A.c1 * B.c3;
+    ctype const c6 = A.c0 * B.c6 + A.c6 * B.c0 + A.c1 * B.c2 - A.c2 * B.c1;
+    ctype const c7 = A.c0 * B.c7 + A.c7 * B.c0 + A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 +
+                     A.c4 * B.c1 + A.c5 * B.c2 + A.c6 * B.c3;
+    return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
+}
+
+// wedge product between a multivector M and a pseudoscalar ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& M, PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(0.0);
+    ctype const c1 = ctype(0.0);
+    ctype const c2 = ctype(0.0);
+    ctype const c3 = ctype(0.0);
+    ctype const c4 = ctype(0.0);
+    ctype const c5 = ctype(0.0);
+    ctype const c6 = ctype(0.0);
+    ctype const c7 = M.c0 * ctype(ps);
+    return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
+}
+
+// wedge product between a pseudoscalar ps and a multivector M
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> wdg(PScalar3d<T> ps, MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(0.0);
+    ctype const c1 = ctype(0.0);
+    ctype const c2 = ctype(0.0);
+    ctype const c3 = ctype(0.0);
+    ctype const c4 = ctype(0.0);
+    ctype const c5 = ctype(0.0);
+    ctype const c6 = ctype(0.0);
+    ctype const c7 = ctype(ps) * M.c0;
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -107,14 +141,14 @@ template <typename T, typename U>
 constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& M, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = 0.0;
-    ctype c1 = 0.0;
-    ctype c2 = 0.0;
-    ctype c3 = 0.0;
-    ctype c4 = M.c0 * B.x;
-    ctype c5 = M.c0 * B.y;
-    ctype c6 = M.c0 * B.z;
-    ctype c7 = M.c1 * B.x + M.c2 * B.y + M.c3 * B.z;
+    ctype const c0 = ctype(0.0);
+    ctype const c1 = ctype(0.0);
+    ctype const c2 = ctype(0.0);
+    ctype const c3 = ctype(0.0);
+    ctype const c4 = M.c0 * B.x;
+    ctype const c5 = M.c0 * B.y;
+    ctype const c6 = M.c0 * B.z;
+    ctype const c7 = M.c1 * B.x + M.c2 * B.y + M.c3 * B.z;
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -124,14 +158,14 @@ template <typename T, typename U>
 constexpr MVec3d<std::common_type_t<T, U>> wdg(BiVec3d<T> const& B, MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = 0;
-    ctype c1 = 0;
-    ctype c2 = 0;
-    ctype c3 = 0;
-    ctype c4 = B.x * M.c0;
-    ctype c5 = B.y * M.c0;
-    ctype c6 = B.z * M.c0;
-    ctype c7 = B.x * M.c1 + B.y * M.c2 + B.z * M.c3;
+    ctype const c0 = ctype(0.0);
+    ctype const c1 = ctype(0.0);
+    ctype const c2 = ctype(0.0);
+    ctype const c3 = ctype(0.0);
+    ctype const c4 = B.x * M.c0;
+    ctype const c5 = B.y * M.c0;
+    ctype const c6 = B.z * M.c0;
+    ctype const c7 = B.x * M.c1 + B.y * M.c2 + B.z * M.c3;
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -141,14 +175,14 @@ template <typename T, typename U>
 constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& M, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = 0.0;
-    ctype c1 = M.c0 * v.x;
-    ctype c2 = M.c0 * v.y;
-    ctype c3 = M.c0 * v.z;
-    ctype c4 = M.c2 * v.z - M.c3 * v.y;
-    ctype c5 = -M.c1 * v.z + M.c3 * v.x;
-    ctype c6 = M.c1 * v.y - M.c2 * v.x;
-    ctype c7 = M.c4 * v.x + M.c5 * v.y + M.c6 * v.z;
+    ctype const c0 = ctype(0.0);
+    ctype const c1 = M.c0 * v.x;
+    ctype const c2 = M.c0 * v.y;
+    ctype const c3 = M.c0 * v.z;
+    ctype const c4 = M.c2 * v.z - M.c3 * v.y;
+    ctype const c5 = -M.c1 * v.z + M.c3 * v.x;
+    ctype const c6 = M.c1 * v.y - M.c2 * v.x;
+    ctype const c7 = M.c4 * v.x + M.c5 * v.y + M.c6 * v.z;
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -158,14 +192,14 @@ template <typename T, typename U>
 constexpr MVec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v, MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = 0;
-    ctype c1 = v.x * M.c0;
-    ctype c2 = v.y * M.c0;
-    ctype c3 = v.z * M.c0;
-    ctype c4 = v.y * M.c3 - v.z * M.c2;
-    ctype c5 = -v.x * M.c3 + v.z * M.c1;
-    ctype c6 = v.x * M.c2 - v.y * M.c1;
-    ctype c7 = v.x * M.c4 + v.y * M.c5 + v.z * M.c6;
+    ctype const c0 = 0;
+    ctype const c1 = v.x * M.c0;
+    ctype const c2 = v.y * M.c0;
+    ctype const c3 = v.z * M.c0;
+    ctype const c4 = v.y * M.c3 - v.z * M.c2;
+    ctype const c5 = -v.x * M.c3 + v.z * M.c1;
+    ctype const c6 = v.x * M.c2 - v.y * M.c1;
+    ctype const c7 = v.x * M.c4 + v.y * M.c5 + v.z * M.c6;
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -689,15 +723,32 @@ constexpr MVec3d<std::common_type_t<T, U>> operator<<(MVec3d<T> const& A,
                                                       MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c4 * B.c4 +
-               A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7;
-    ctype c1 = A.c0 * B.c1 + A.c2 * B.c6 - A.c3 * B.c5 + A.c4 * B.c7;
-    ctype c2 = A.c0 * B.c2 - A.c1 * B.c6 + A.c3 * B.c4 + A.c5 * B.c7;
-    ctype c3 = A.c0 * B.c3 + A.c1 * B.c5 - A.c2 * B.c4 + A.c6 * B.c7;
-    ctype c4 = A.c0 * B.c4 + A.c1 * B.c7;
-    ctype c5 = A.c0 * B.c5 + A.c2 * B.c7;
-    ctype c6 = A.c0 * B.c6 + A.c3 * B.c7;
-    ctype c7 = A.c0 * B.c7;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c4 * B.c4 +
+                     A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7;
+    ctype const c1 = A.c0 * B.c1 + A.c2 * B.c6 - A.c3 * B.c5 + A.c4 * B.c7;
+    ctype const c2 = A.c0 * B.c2 - A.c1 * B.c6 + A.c3 * B.c4 + A.c5 * B.c7;
+    ctype const c3 = A.c0 * B.c3 + A.c1 * B.c5 - A.c2 * B.c4 + A.c6 * B.c7;
+    ctype const c4 = A.c0 * B.c4 + A.c1 * B.c7;
+    ctype const c5 = A.c0 * B.c5 + A.c2 * B.c7;
+    ctype const c6 = A.c0 * B.c6 + A.c3 * B.c7;
+    ctype const c7 = A.c0 * B.c7;
+    return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
+}
+
+// left contraction (ps << M) of a pseudoscalar ps onto a multivector M
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator<<(PScalar3d<T> ps, MVec3d<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * M.c7;
+    ctype const c1 = ctype(0.0);
+    ctype const c2 = ctype(0.0);
+    ctype const c3 = ctype(0.0);
+    ctype const c4 = ctype(0.0);
+    ctype const c5 = ctype(0.0);
+    ctype const c6 = ctype(0.0);
+    ctype const c7 = ctype(0.0);
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -708,14 +759,14 @@ constexpr MVec3d<std::common_type_t<T, U>> operator<<(BiVec3d<T> const& B,
                                                       MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = B.x * M.c4 + B.y * M.c5 + B.z * M.c6;
-    ctype c1 = B.x * M.c7;
-    ctype c2 = B.y * M.c7;
-    ctype c3 = B.z * M.c7;
-    ctype c4 = 0.0;
-    ctype c5 = 0.0;
-    ctype c6 = 0.0;
-    ctype c7 = 0.0;
+    ctype const c0 = B.x * M.c4 + B.y * M.c5 + B.z * M.c6;
+    ctype const c1 = B.x * M.c7;
+    ctype const c2 = B.y * M.c7;
+    ctype const c3 = B.z * M.c7;
+    ctype const c4 = ctype(0.0);
+    ctype const c5 = ctype(0.0);
+    ctype const c6 = ctype(0.0);
+    ctype const c7 = ctype(0.0);
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -726,14 +777,14 @@ constexpr MVec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
                                                       MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = v.x * M.c1 + v.y * M.c2 + v.z * M.c3;
-    ctype c1 = v.y * M.c6 - v.z * M.c5;
-    ctype c2 = -v.x * M.c6 + v.z * M.c4;
-    ctype c3 = v.x * M.c5 - v.y * M.c4;
-    ctype c4 = v.x * M.c7;
-    ctype c5 = v.y * M.c7;
-    ctype c6 = v.z * M.c7;
-    ctype c7 = 0;
+    ctype const c0 = v.x * M.c1 + v.y * M.c2 + v.z * M.c3;
+    ctype const c1 = v.y * M.c6 - v.z * M.c5;
+    ctype const c2 = -v.x * M.c6 + v.z * M.c4;
+    ctype const c3 = v.x * M.c5 - v.y * M.c4;
+    ctype const c4 = v.x * M.c7;
+    ctype const c5 = v.y * M.c7;
+    ctype const c6 = v.z * M.c7;
+    ctype const c7 = 0;
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -950,34 +1001,50 @@ constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& A,
                                                       MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c4 * B.c4 +
-               A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7;
-    ctype c1 = A.c1 * B.c0 + A.c5 * B.c3 - A.c6 * B.c2 + A.c7 * B.c4;
-    ctype c2 = A.c2 * B.c0 - A.c4 * B.c3 + A.c6 * B.c1 + A.c7 * B.c5;
-    ctype c3 = A.c3 * B.c0 + A.c4 * B.c2 - A.c5 * B.c1 + A.c7 * B.c6;
-    ctype c4 = A.c4 * B.c0 + A.c7 * B.c1;
-    ctype c5 = A.c5 * B.c0 + A.c7 * B.c2;
-    ctype c6 = A.c6 * B.c0 + A.c7 * B.c3;
-    ctype c7 = A.c7 * B.c0;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c4 * B.c4 +
+                     A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7;
+    ctype const c1 = A.c1 * B.c0 + A.c5 * B.c3 - A.c6 * B.c2 + A.c7 * B.c4;
+    ctype const c2 = A.c2 * B.c0 - A.c4 * B.c3 + A.c6 * B.c1 + A.c7 * B.c5;
+    ctype const c3 = A.c3 * B.c0 + A.c4 * B.c2 - A.c5 * B.c1 + A.c7 * B.c6;
+    ctype const c4 = A.c4 * B.c0 + A.c7 * B.c1;
+    ctype const c5 = A.c5 * B.c0 + A.c7 * B.c2;
+    ctype const c6 = A.c6 * B.c0 + A.c7 * B.c3;
+    ctype const c7 = A.c7 * B.c0;
+    return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
+}
+
+// right contraction (M >> ps) of a multivector M contracted by a pseudoscalar ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M, PScalar3d<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c7 * ctype(ps);
+    ctype const c1 = ctype(0.0);
+    ctype const c2 = ctype(0.0);
+    ctype const c3 = ctype(0.0);
+    ctype const c4 = ctype(0.0);
+    ctype const c5 = ctype(0.0);
+    ctype const c6 = ctype(0.0);
+    ctype const c7 = ctype(0.0);
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
 // right contraction (M >> B) of a multivector M contracted by a bivector B
-// right contraction (A >> B) extended to a full multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M,
                                                       BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = M.c4 * B.x + M.c5 * B.y + M.c6 * B.z;
-    ctype c1 = M.c7 * B.x;
-    ctype c2 = M.c7 * B.y;
-    ctype c3 = M.c7 * B.z;
-    ctype c4 = 0.0;
-    ctype c5 = 0.0;
-    ctype c6 = 0.0;
-    ctype c7 = 0.0;
+    ctype const c0 = M.c4 * B.x + M.c5 * B.y + M.c6 * B.z;
+    ctype const c1 = M.c7 * B.x;
+    ctype const c2 = M.c7 * B.y;
+    ctype const c3 = M.c7 * B.z;
+    ctype const c4 = ctype(0.0);
+    ctype const c5 = ctype(0.0);
+    ctype const c6 = ctype(0.0);
+    ctype const c7 = ctype(0.0);
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
@@ -988,14 +1055,14 @@ constexpr MVec3d<std::common_type_t<T, U>> operator>>(MVec3d<T> const& M,
                                                       Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = M.c1 * v.x + M.c2 * v.y + M.c3 * v.z;
-    ctype c1 = M.c5 * v.z - M.c6 * v.y;
-    ctype c2 = -M.c4 * v.z + M.c6 * v.x;
-    ctype c3 = M.c4 * v.y - M.c5 * v.x;
-    ctype c4 = M.c7 * v.x;
-    ctype c5 = M.c7 * v.y;
-    ctype c6 = M.c7 * v.z;
-    ctype c7 = 0.0;
+    ctype const c0 = M.c1 * v.x + M.c2 * v.y + M.c3 * v.z;
+    ctype const c1 = M.c5 * v.z - M.c6 * v.y;
+    ctype const c2 = -M.c4 * v.z + M.c6 * v.x;
+    ctype const c3 = M.c4 * v.y - M.c5 * v.x;
+    ctype const c4 = M.c7 * v.x;
+    ctype const c5 = M.c7 * v.y;
+    ctype const c6 = M.c7 * v.z;
+    ctype const c7 = ctype(0.0);
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 

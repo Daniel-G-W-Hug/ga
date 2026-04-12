@@ -29,10 +29,10 @@ struct Vec4_t {
     // v = x * e1 + y * e2 + z * e3 + w * e4
     //
     // and for each trivector tv:
-    // tv = wyz * e4^e2^e3 + wzx * e4^e3^e1 + wxy * e4^e1^e2 + zyx * e3^e2^e1
-    //    =  x  * e4^e2^e3 +  y  * e4^e3^e1 +  z  * e4^e1^e2 +  w  * e^4
+    // t = wyz * e4^e2^e3 + wzx * e4^e3^e1 + wxy * e4^e1^e2 + zyx * e3^e2^e1
+    //   = t_x * e4^e2^e3 + t_y * e4^e3^e1 + t_z * e4^e1^e2 + t_w * e3^e2^e1
     // (same names like in vector (x, y, z, w),
-    //  but semantic as one line above (wyz, wzx, wxy, zyx)
+    //  but semantic as above (wyz, wzx, wxy, zyx)
 
     // this is a mapping of the components
     // such that vector components x, y, z and w correspond to the

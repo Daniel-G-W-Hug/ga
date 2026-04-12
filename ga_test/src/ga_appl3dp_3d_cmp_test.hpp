@@ -671,4 +671,32 @@ TEST_SUITE("PGA3DP: comparison tests")
         fmt::println("");
     }
 
+    TEST_CASE("VA - ega3d - pga3dp: rotational speed")
+    {
+        fmt::println("");
+        fmt::println("VA - ega3d - pga3dp: rotational speed");
+
+        auto omega3d = vec3d{0, 0, 2 * pi};
+        auto r3d = vec3d{2, 0, 0};
+        auto Omega3d = dual(omega3d);
+
+        auto omega3dp = vec3dp{0, 0, 2 * pi, 0};
+        auto Q = O_3dp;
+        // auto Q = vec3dp{1, -1, 0, 1};
+        auto R3dp = vec3dp{2, 0, 0, 1};
+        auto Omega3dp = wdg(Q, omega3dp);
+
+        fmt::println("VA:  omega3d = {}", omega3d);
+        fmt::println("VA:  v = omega3d x r3d = {}", cross(omega3d, r3d));
+        fmt::println("");
+        fmt::println("EGA: Omega3d = {}", Omega3d);
+        fmt::println("EGA: v = Omega3d >> r3d = {}", Omega3d >> r3d);
+        fmt::println("EGA: v = cmt(r3d,Omega3d) = {}", cmt(r3d, Omega3d));
+        fmt::println("");
+        fmt::println("PGA: Omega3dp = {}", Omega3dp);
+        fmt::println("PGA: v = rcmt(Omega3dp, R3dp) = {}", rcmt(Omega3dp, R3dp));
+
+        fmt::println("");
+    }
+
 } // EGA3D PGA3DP Comparison Tests

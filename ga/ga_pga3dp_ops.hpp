@@ -146,13 +146,13 @@ constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1, TriVec3dp<U> co
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// exp() w.r.t. rgpr(), and TODO: log() w.r.t. rgpr()
+// exp() with respect to the regressive geometric product rgpr()
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)
 constexpr MVec3dp_E<T> exp(BiVec3dp<T> const& B)
 {
-    T phi_sq = weight_nrm_sq(B);
+    T phi_sq = weight_nrm_sq(B); // rotation angle^2
     if (phi_sq == 0.0) {
         // pure translation
 
@@ -161,7 +161,7 @@ constexpr MVec3dp_E<T> exp(BiVec3dp<T> const& B)
         return MVec3dp_E<T>(Scalar3dp<T>(0.0), B, PScalar3dp<T>(1.0));
     }
 
-    // rotation with angle phi != 0
+    // rotation with phi != 0
     T phi = std::sqrt(phi_sq); // rotation angle phi around unitized l
     T phi_inv = 1.0 / phi;
     T dot_lvlm = B.vx * B.mx + B.vy * B.my + B.vz * B.mz; // are Bv and Bm orthogonal?
@@ -766,9 +766,6 @@ move3dp(std::vector<TriVec3dp<T>> const& tvec, MVec3dp_E<U> const& M)
 // projections, rejections
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO: check whether the vector-vector formulas make sense at all, since they model
-//       the representational space an not the modelled subspace
-
 // projection of a vector v1 onto vector v2
 // returns component of v1 parallel to v2
 template <typename T, typename U>
@@ -777,7 +774,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v1,
                                                         Vec3dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(dot(v1, v2)) * inv(v2);
+    return ctype(dot(v1, v2)) * inv(v2); // works directly in representational space
 }
 
 // rejection of vector v1 from a vector v2
@@ -795,7 +792,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v1,
 }
 
 
-// projection of a vector v onto a bivector B (a line)
+// orthogonal projection of a vector v onto a bivector B (a line)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
@@ -806,6 +803,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
 }
 
 // rejection of vector v from a bivector B (a line)
+// rejection = v - project_onto(v, B)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
@@ -816,7 +814,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
 }
 
 
-// projection of a vector v onto a trivector t (a plane)
+// orthogonal projection of a vector v onto a trivector t (a plane)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
@@ -826,8 +824,8 @@ constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
     return Vec3dp<ctype>(rwdg(t, wdg(v, right_weight_dual(t)))); // ortho_proj3dp
 }
 
-// rejection of vector v from a bivector B (a line)
-// u_perp = gr1(wdg(v1,v2) * inv(v2))
+// rejection of vector v from a trivector t (a plane)
+// rejection = v - project_onto(v, t)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
@@ -837,8 +835,17 @@ constexpr Vec3dp<std::common_type_t<T, U>> reject_from(Vec3dp<T> const& v,
     return Vec3dp<ctype>(v - project_onto(v, t));
 }
 
+// orthogonal projection of a line l (a bivector) onto a plane t (a trivector)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec3dp<std::common_type_t<T, U>> project_onto(BiVec3dp<T> const& B,
+                                                          TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec3dp<ctype>(rwdg(t, wdg(B, right_weight_dual(t)))); // ortho_proj3dp
+}
 
-// expand to a new line with goes through point p and is perpendicular to the plane
+// expand to a new line which goes through point p and is perpendicular to the plane
 // => returns a line (aka a bivector)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)

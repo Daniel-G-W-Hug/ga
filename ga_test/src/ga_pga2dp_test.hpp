@@ -3679,6 +3679,9 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(gr1(back_and_forth) == vec2dp{});
         CHECK(gr3(back_and_forth) == pscalar2dp{1.0});
         CHECK(M_res == M1);
+
+        CHECK(rgpr(vec2dp{0, 0, 1}, vec2dp{0, 0, 1}) == mvec2dp_u{pscalar2dp{-1}});
+        CHECK(exp(vec2dp{0, 0, 1} * pi) == mvec2dp_u{pscalar2dp{-1}});
     }
 
     TEST_CASE("G<2,0,1>: sqrt(motor) function")

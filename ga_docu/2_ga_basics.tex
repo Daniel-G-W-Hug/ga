@@ -460,7 +460,7 @@ right operations exists, we get
 \begin{equation}
     \rightbulkdual{u} = \rcmpl{u} \qquad \textit{(dual)}
 \end{equation}
-where the overbar in $\rcmpl{u}$ is the unique complement operation. \\
+where the overline in $\rcmpl{u}$ is the unique complement operation. \\
 
 Now for $PGA$: Using the metric and the right complement, the \emph{(right) bulk dual}
 \rightbulkdual{A} is defined as
@@ -675,7 +675,7 @@ representation, e.g. for $PGA2DP$:
     \rcmpl{\bv{2}} \veedot \rcmpl{\bv{2}} = \ps \\
     \rcmpl{\bv{3}} \veedot \rcmpl{\bv{3}} = 0 \nonumber
 \end{eqnarray}
-where eqs.~(\ref{eq:rgpr_combine_what_is_not_there}) can be shown to be equivalent to
+where eqns.~(\ref{eq:rgpr_combine_what_is_not_there}) can be shown to be equivalent to
 eqns.~(\ref{eq:gpr_combine_what_is_there}) by taking the left complement of both sides and
 applying the complement definition~(\ref{eq:rwdg_std}) to it. \\
 
@@ -697,9 +697,9 @@ where $\wedgedot$ stands for the geometric product within the grade projection o
 Using the various notations used in literature, the contraction is defined as
 \begin{subequations}
     \begin{align}
-    A \lcontr B & = A \ll B = A_{\star} \vee B
+    A \lcontr B & = A \ll B = A_{\star} \vee B \quad \textrm{(left contracton)}
     \label{eq:lcontr} \\
-    B \rcontr A & = B \gg A = B \vee A^{\star}
+    B \rcontr A & = B \gg A = B \vee A^{\star} \quad \textrm{(right contracton)}
     \label{eq:rcontr}
     \end{align}
 \end{subequations}
@@ -731,7 +731,9 @@ and exterior products, i.e. the right contraction ``$\rcontr$'', the left contra
     \end{align}
 \end{subequations}
 or sometimes expressed using the right shift ``$\gg$'' or left shift ``$\ll$'' operators
-for the contractions (as implemented in the ga library)
+for the contractions (as implemented in the ga library\footnote{Due to low \Cpp operator
+precedence, always make sure to put operator expressions using the shift operators in
+parentheses! Otherwise, you might get unexpected results.})
 \begin{subequations}
     \begin{align}
     v \wedgedot B & = B \gg v + v \wedge B
@@ -766,22 +768,44 @@ product between a vector $v$ and a bivector $B$:
     \end{align}
 \end{subequations}
 It is obviously not the result one would get from creating the regressive versions
-directly from the right-hand side of equations~(\ref{eq:gpr_Bsh_exterior}). The reason is
-that the specific pre-conditions for the validity of the equivalence between the geometric
-product and the corresponding right-hand sides may change when taking the complements. \\
+directly from the right-hand side of equations~(\ref{eq:gpr_Bsh_exterior}). The
+pre-conditions for the validity of the equivalence between the geometric product and the
+corresponding right-hand sides might change when taking the complements. \\
 
+For arguments of equal grade the contractions reduce to the dot product, so that one can
+write specifically for two vectors $u$ and $v$:
+\begin{equation}
+    u \wedgedot v =  v \gg u + u \wedge v =  u \cdot v + u \wedge v 
+\end{equation}
 
 Every vector $v$ can be decomposed into parts $v_{\parall}$ parallel to a $k$-blade $B$
 and $v_{\perp}$ perpendicular to $B$, such that $v = v_{\parall} + v_{\perp}$. For
 equation {(\ref{eq:gpr_Bshrc})}: $B \gg v$ is a $(k-1)$-blade. If $v_{\parall} \neq 0$
 then $B \gg v$ represents a subspace of $B$. $v \wedge B$ is a $(k+1)$-blade. If
-$v_{\perp} \neq 0$ then $v \wedge B$ represents $span(v,B)$.
+$v_{\perp} \neq 0$ then $v \wedge B$ represents $span(v,B)$. \\
 
-For arguments of equal grade the contractions reduce to the dot product, so that one can
-write specifically for two vectors $a$ and $b$:
+So we get for two vectors $u$ and $v$, and a bivector $B$, representing a plane in $3D$
+$EGA$:
+\begin{subeqnarray}
+    v &=& v_{\parall} + v_{\perp} \\[8pt]
+    (v \wedgedot u) \wedgedot u^{-1} &=&
+    \underbrace{(v \cdot u) \wedgedot u^{-1}}_{v_{\parall} = \mathrm{project\_onto(v, u)}}
+    +
+    \underbrace{(v \wedge u)\wedgedot u^{-1}}_{v_{\perp} = \mathrm{reject\_from(v, u)}} \\
+    (v \wedgedot B) \wedgedot B^{-1} &=&
+    \underbrace{(B \gg v) \wedgedot B^{-1}}_{v_{\parall} = \mathrm{project\_onto(v, B)}}
+    +
+    \underbrace{(v \wedge B)\wedgedot B^{-1}}_{v_{\perp} = \mathrm{reject\_from(v, B)}}
+\end{subeqnarray}
+While for $3D$ $PGA$ we derive the projection and rejection directly from the orthogonal
+projection as defined by \cite{Lengyel_pga-illuminated:2024}, p. 99f.:
 \begin{equation}
-    a \wedgedot b =  a \cdot b + a \wedge b
+    \mathrm{project\_onto(a,b)} =\mathrm{ortho\_proj3dp(a,b)}
+    = b \vee (a \wedge \rightweightdual{b})
 \end{equation}
+where $a$ could be a point and $b$ could either be a line (a bivector) or plane (a
+trivector), or $a$ could be a line and $b$ a plane. The rejection is then calculated as
+$\mathrm{reject\_from}(a,b) = b - \mathrm{project\_onto}(a,b)$. 
 
 
 \newpage
@@ -828,7 +852,7 @@ transformed to the equivalent expression
 \end{equation}
 expressing it by using the wedge product exclusively. \\
 
-Since every product can by assigned a corresponding regressive product in analogy to
+Since every product can be assigned a corresponding regressive product in analogy to
 definition~(\ref{eq:rwdg_std}) or~(\ref{eq:rwdg_alt}), the transwedge
 product~(\ref{eq:twdg_orig}) also has a regressive form:
 \begin{equation}
@@ -1134,5 +1158,23 @@ equivalence.
     \label{tab:pga3dp_rev_rrev}
     \end{center}
 \end{sidewaystable}
+
+\newpage
+
+\subsubsection{Solving basic geometric tasks in \textit{PGA}}
+\label{subsection:geometric_tasks_pga}
+
+To demonstrate the benefit of using the $PGA$ approach vs. the classical vector algebra
+approach let us look into very basic recurring geometric tasks that would partially
+involve solving system of equations in the classical approach. They come as simple product
+expressions in $PGA$.
+\begin{figure}[H]
+    \includegraphics[width=0.8\textwidth]{pga_basic_tasks_lengyel.png}
+    \centering
+    \caption{Basic tasks addressed with $PGA$ by using product expressions without need to
+    solve equations. (Source: \url{https://terathon.com/blog/transwedge-product.html},
+    Eric Lengyel, 2025.)}
+    \label{fig:pga_basic_tasks}
+\end{figure}
 
 \newpage

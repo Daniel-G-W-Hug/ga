@@ -51,8 +51,8 @@ in your application code. For a simple usage example please have a look either a
 \label{subsection:data_types}
 
 At the heart of the library there are user defined types that model mathematical objects
-of the respective geometric algebra. They are realized using type tagging in \Cpp in order
-to maximize reuse and to avoid code duplication. All types are defined in
+of the respective geometric algebra. They are realized using type tagging in \Cpp to
+maximize reuse and to avoid code duplication. All types are defined in
 \path{ga/detail/type_t}. \\
 
 To give an example for $EGA2D$, there are type aliases defined in the file
@@ -84,7 +84,7 @@ using pscalar2d = PScalar2d<value_t>;
 using mvec2d_e = MVec2d_E<value_t>;
 using mvec2d = MVec2d<value_t>;
 \end{verbatim}
-where \path{value_t} is defined for the whole library in \path{ga/value_t.hpp}. Thus the
+where \path{value_t} is defined for the whole library in \path{ga/value_t.hpp}. Thus, the
 user can simply select \path{value_t = double} (set as default value) or \path{float} for
 the library and the user application at one location. There is no need to use template
 parameters at all, if the user-defined types like \path{scalar2d, vec2d, pscalar2d,
@@ -168,18 +168,18 @@ As mentioned before, we distinguish inner, interior, outer and geometric product
     we either call rotors $R$ in $EGA$ or motors $M$ in $PGA$.
 \end{itemize}
 
-Following bi-argument operations \path{op(a,b)} $ =a \; \mathrm{op} \; b$ and their
-regressive variants \path{rop(a,b)} $ = \lcmpl{\rcmpl{a} \; \mathrm{op} \; \rcmpl{b}}$ are
-implemented (with \path{op(a,b)} or \path{rop(a,b)} as the name of the implemented
+Following bi-argument operations \path{op(a, b)} $ =a \; \mathrm{op} \; b$ and their
+regressive variants \path{rop(a, b)} $ = \lcmpl{\rcmpl{a} \; \mathrm{op} \; \rcmpl{b}}$ are
+implemented (with \path{op(a, b)} or \path{rop(a, b)} as the name of the implemented
 function). Using \path{A} vs. \path{a} implies \path{gr(A)} $\ge$ \path{gr(a)}, where
 \path{gr(arg)} returns the grade of the argument \path{arg}:
 \begin{itemize}
-    \item Inner product, delivering a scalar: $a \cdot b$, \path{dot(a,b)}
+    \item Inner product, delivering a scalar: $a \cdot b$, \path{dot(a, b)}
     
     \item Outer product (wedge product) of a $j$- and a $k$-vector, delivering a
-    $j+k$-vector in $span(a,b)$: $a \wedge b$, \path{wdg(a,b)}
+    $j+k$-vector in $span(a,b)$: $a \wedge b$, \path{wdg(a, b)}
     
-    \item Geometric product:  $a \wedgedot b$, \path{operator*(a,b)}
+    \item Geometric product:  $a \wedgedot b$, \path{operator*(a, b)}
     \begin{itemize}
         \item For vectors $a$ and $b$:  $a \wedgedot b = a \cdot b + a \wedge b$
         \item For a vector $a$ and a multivector $B$:
@@ -189,50 +189,50 @@ function). Using \path{A} vs. \path{a} implies \path{gr(A)} $\ge$ \path{gr(a)}, 
     \end{itemize}
 
     \item Commutator product (the asymmetric part of the geometric product):
-    $\mathrm{cmt(a,b)} \equiv \frac{1}{2}(a \wedgedot b - b \wedgedot a)$, \path{cmt(a,b)}
+    $\mathrm{cmt(a, b)} \equiv \frac{1}{2}(a \wedgedot b - b \wedgedot a)$, \path{cmt(a,
+    b)}
     
     \item Regressive commutator product (the asymmetric part of the regressive geometric
     product): \\
-    $\mathrm{rcmt}(a,b) \equiv \frac{1}{2}(\lcmpl{\rcmpl{a} \wedgedot \rcmpl{b} -
+    $\mathrm{rcmt}(a, b) \equiv \frac{1}{2}(\lcmpl{\rcmpl{a} \wedgedot \rcmpl{b} -
     \rcmpl{b} \wedgedot \rcmpl{a}}) = \frac{1}{2}(a \veedot b - b \veedot a)$,
-    \path{rcmt}(a,b)
+    \path{rcmt}(a, b)
     
-    \item Regressive inner product, delivering a pseudoscalar: $a \circ b$,
-    \path{rdot(a,b)} (for comparison of the dot product and the regressive dot product for
-    $PGA3DP$ see table \ref{tab:pga3dp_dot_products} at the end of section
-    \ref{subsection:basics})
+    \item Regressive inner product, delivering a pseudoscalar: $a \circ b$, \path{rdot(a,
+    b)} (for comparison of the dot product and the regressive dot product for $PGA3DP$ see
+    table \ref{tab:pga3dp_dot_products} at the end of section \ref{subsection:basics})
     
     \item Regressive outer product (regressive wedge product): $a \vee b$,
-    \path{rwdg(a,b)}
+    \path{rwdg(a, b)}
     
-    \item Regressive geometric product: $a \veedot b$, \path{rgpr(a,b)}, exclusively for
+    \item Regressive geometric product: $a \veedot b$, \path{rgpr(a, b)}, exclusively for
     $PGA$ 
     
     \item Left (bulk) contraction: $a \lcontr B = a \ll B = \leftbulkdual{a} \vee B $,
-    \path{operator<<(a,B)}, which implements \path{left_bulk_contract(a,B)}, exclusively
+    \path{operator<<(a, B)}, which implements \path{left_bulk_contract(a, B)}, exclusively
     for $PGA$
     
     \item Right (bulk) contraction: $B \rcontr a = B \gg a = B \vee \rightbulkdual{a} $,
-    \path{operator>>(B,a)}, which implements \path{right_bulk_contract(B,a)}, exclusively
-    for $PGA$
+    \path{operator>>(B, a)}, which implements \path{right_bulk_contract(B, a)},
+    exclusively for $PGA$
 
     \item Left weight contraction: $\leftweightdual{a} \vee B $,
-    \path{left_weight_contract(a,B)} 
+    \path{left_weight_contract(a, B)} 
     
     \item Right weight contraction: $B \vee \rightweightdual{a} $,
-    \path{right_weight_contract(B,a)} 
+    \path{right_weight_contract(B, a)} 
 
     \item Left bulk expansion: $\leftbulkdual{A} \wedge b $,
-    \path{left_bulk_expand(A,b)} 
+    \path{left_bulk_expand(A, b)} 
     
     \item Right bulk expansion: $a \wedge \rightbulkdual{B} $,
-    \path{right_bulk_expand(a,B)} 
+    \path{right_bulk_expand(a, B)} 
 
     \item Left weight expansion: $\leftweightdual{A} \wedge b $,
-    \path{left_weight_expand(A,b)} 
+    \path{left_weight_expand(A, b)} 
     
     \item Right bulk expansion: $a \wedge \rightweightdual{B} $,
-    \path{right_weight_expand(a,B)} 
+    \path{right_weight_expand(a, B)} 
 \end{itemize}
 where the items from the left contraction downwards are all considered interior products.
 The product operation is performed \emph{after} applying a dualization operation to one
@@ -271,7 +271,7 @@ regressive wedge product for meet operations for application in $EGA$ and $PGA$.
 
 \cite{Lengyel_poor-foundations_GA:2024} points out mathematical inconsistencies in
 applications of geometric algebra as used in the past quite often by different authors.
-Further hints on mathematical inconsistencies in typical GA approaches can be found as
+Further, hints on mathematical inconsistencies in typical GA approaches can be found as
 well in \cite{Kritchevsky_case_against_GA:2024}. The goal of this work is to be as
 consistent and mathematically rigorous as possible implementing GA functionality, and at
 the same time providing an intuitively applicable framework for modelling physics and

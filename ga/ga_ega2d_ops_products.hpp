@@ -82,10 +82,10 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& A, MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0;
-    ctype c1 = A.c0 * B.c1 + A.c1 * B.c0;
-    ctype c2 = A.c0 * B.c2 + A.c2 * B.c0;
-    ctype c3 = A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c0;
+    ctype const c0 = A.c0 * B.c0;
+    ctype const c1 = A.c0 * B.c1 + A.c1 * B.c0;
+    ctype const c2 = A.c0 * B.c2 + A.c2 * B.c0;
+    ctype const c3 = A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -95,10 +95,10 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& A, MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0;
-    ctype c1 = A.c1 * B.c0;
-    ctype c2 = A.c2 * B.c0;
-    ctype c3 = A.c0 * B.c1 + A.c3 * B.c0;
+    ctype const c0 = A.c0 * B.c0;
+    ctype const c1 = A.c1 * B.c0;
+    ctype const c2 = A.c2 * B.c0;
+    ctype const c3 = A.c0 * B.c1 + A.c3 * B.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -108,10 +108,10 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& A, MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0;
-    ctype c1 = A.c0 * B.c1;
-    ctype c2 = A.c0 * B.c2;
-    ctype c3 = A.c0 * B.c3 + A.c1 * B.c0;
+    ctype const c0 = A.c0 * B.c0;
+    ctype const c1 = A.c0 * B.c1;
+    ctype const c2 = A.c0 * B.c2;
+    ctype const c3 = A.c0 * B.c3 + A.c1 * B.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -139,10 +139,10 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& M, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = 0.0;
-    ctype c1 = M.c0 * v.x;
-    ctype c2 = M.c0 * v.y;
-    ctype c3 = M.c1 * v.y - M.c2 * v.x;
+    ctype const c0 = 0.0;
+    ctype const c1 = M.c0 * v.x;
+    ctype const c2 = M.c0 * v.y;
+    ctype const c3 = M.c1 * v.y - M.c2 * v.x;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -152,10 +152,10 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v, MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = 0.0;
-    ctype c1 = v.x * M.c0;
-    ctype c2 = v.y * M.c0;
-    ctype c3 = v.x * M.c2 - v.y * M.c1;
+    ctype const c0 = 0.0;
+    ctype const c1 = v.x * M.c0;
+    ctype const c2 = v.y * M.c0;
+    ctype const c3 = v.x * M.c2 - v.y * M.c1;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -184,8 +184,8 @@ constexpr MVec2d_E<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& A,
                                                  MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0;
-    ctype c1 = A.c0 * B.c1 + A.c1 * B.c0;
+    ctype const c0 = A.c0 * B.c0;
+    ctype const c1 = A.c0 * B.c1 + A.c1 * B.c0;
     return MVec2d_E<ctype>(c0, c1);
 }
 
@@ -352,10 +352,10 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> rwdg(MVec2d<T> const& A, MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c0;
-    ctype c1 = A.c1 * B.c3 + A.c3 * B.c1;
-    ctype c2 = A.c2 * B.c3 + A.c3 * B.c2;
-    ctype c3 = A.c3 * B.c3;
+    ctype const c0 = A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c0;
+    ctype const c1 = A.c1 * B.c3 + A.c3 * B.c1;
+    ctype const c2 = A.c2 * B.c3 + A.c3 * B.c2;
+    ctype const c3 = A.c3 * B.c3;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -536,10 +536,10 @@ constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& A,
                                                       MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3;
-    ctype c1 = A.c0 * B.c1 + A.c2 * B.c3;
-    ctype c2 = A.c0 * B.c2 - A.c1 * B.c3;
-    ctype c3 = A.c0 * B.c3;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3;
+    ctype const c1 = A.c0 * B.c1 + A.c2 * B.c3;
+    ctype const c2 = A.c0 * B.c2 - A.c1 * B.c3;
+    ctype const c3 = A.c0 * B.c3;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -550,10 +550,10 @@ constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& A,
                                                       MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c3 * B.c1;
-    ctype c1 = A.c2 * B.c1;
-    ctype c2 = -A.c1 * B.c1;
-    ctype c3 = A.c0 * B.c1;
+    ctype const c0 = A.c0 * B.c0 + A.c3 * B.c1;
+    ctype const c1 = A.c2 * B.c1;
+    ctype const c2 = -A.c1 * B.c1;
+    ctype const c3 = A.c0 * B.c1;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -564,10 +564,10 @@ constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
                                                       MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c3;
-    ctype c1 = A.c0 * B.c1;
-    ctype c2 = A.c0 * B.c2;
-    ctype c3 = A.c0 * B.c3;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c3;
+    ctype const c1 = A.c0 * B.c1;
+    ctype const c2 = A.c0 * B.c2;
+    ctype const c3 = A.c0 * B.c3;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -577,10 +577,10 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<U> const& M, PScalar2d<T> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = M.c3 * ps;
-    ctype c1 = M.c2 * ps;
-    ctype c2 = -M.c1 * ps;
-    ctype c3 = M.c0 * ps;
+    ctype const c0 = M.c3 * ps;
+    ctype const c1 = M.c2 * ps;
+    ctype const c2 = -M.c1 * ps;
+    ctype const c3 = M.c0 * ps;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -601,10 +601,10 @@ constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& M,
                                                       Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = M.c1 * v.x + M.c2 * v.y;
-    ctype c1 = M.c0 * v.x;
-    ctype c2 = M.c0 * v.y;
-    ctype c3 = 0.0;
+    ctype const c0 = M.c1 * v.x + M.c2 * v.y;
+    ctype const c1 = M.c0 * v.x;
+    ctype const c2 = M.c0 * v.y;
+    ctype const c3 = 0.0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -615,10 +615,10 @@ constexpr MVec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
                                                       MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = v.x * M.c1 + v.y * M.c2;
-    ctype c1 = v.y * M.c3;
-    ctype c2 = -v.x * M.c3;
-    ctype c3 = 0.0;
+    ctype const c0 = v.x * M.c1 + v.y * M.c2;
+    ctype const c1 = v.y * M.c3;
+    ctype const c2 = -v.x * M.c3;
+    ctype const c3 = 0.0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -648,8 +648,8 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
                                                         MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1;
-    ctype c1 = A.c0 * B.c1;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1;
+    ctype const c1 = A.c0 * B.c1;
     return MVec2d_E<ctype>(c0, c1);
 }
 
@@ -660,8 +660,8 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& M,
                                                         PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = M.c1 * ps;
-    ctype c1 = M.c0 * ps;
+    ctype const c0 = M.c1 * ps;
+    ctype const c1 = M.c0 * ps;
     return MVec2d_E<ctype>(c0, c1);
 }
 
@@ -822,10 +822,10 @@ template <typename T, typename U>
 constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3;
-    ctype c1 = A.c1 * B.c0 - A.c3 * B.c2;
-    ctype c2 = A.c2 * B.c0 + A.c3 * B.c1;
-    ctype c3 = A.c3 * B.c0;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3;
+    ctype const c1 = A.c1 * B.c0 - A.c3 * B.c2;
+    ctype const c2 = A.c2 * B.c0 + A.c3 * B.c1;
+    ctype const c3 = A.c3 * B.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -835,10 +835,10 @@ template <typename T, typename U>
 constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c3 * B.c1;
-    ctype c1 = A.c1 * B.c0;
-    ctype c2 = A.c2 * B.c0;
-    ctype c3 = A.c3 * B.c0;
+    ctype const c0 = A.c0 * B.c0 + A.c3 * B.c1;
+    ctype const c1 = A.c1 * B.c0;
+    ctype const c2 = A.c2 * B.c0;
+    ctype const c3 = A.c3 * B.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -848,10 +848,10 @@ template <typename T, typename U>
 constexpr MVec2d<T> operator>>(MVec2d_E<T> const& A, MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c3;
-    ctype c1 = -A.c1 * B.c2;
-    ctype c2 = A.c1 * B.c1;
-    ctype c3 = A.c1 * B.c0;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c3;
+    ctype const c1 = -A.c1 * B.c2;
+    ctype const c2 = A.c1 * B.c1;
+    ctype const c3 = A.c1 * B.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 // right contraction (M >> ps) of a multivector M by a pseudoscalar ps
@@ -870,10 +870,10 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps, MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = ps * M.c3;
-    ctype c1 = -ps * M.c2;
-    ctype c2 = ps * M.c1;
-    ctype c3 = ps * M.c0;
+    ctype const c0 = ps * M.c3;
+    ctype const c1 = -ps * M.c2;
+    ctype const c2 = ps * M.c1;
+    ctype const c3 = ps * M.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -883,10 +883,10 @@ template <typename T, typename U>
 constexpr MVec2d<T> operator>>(MVec2d<T> const& M, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = M.c1 * v.x + M.c2 * v.y;
-    ctype c1 = -M.c3 * v.y;
-    ctype c2 = M.c3 * v.x;
-    ctype c3 = 0.0;
+    ctype const c0 = M.c1 * v.x + M.c2 * v.y;
+    ctype const c1 = -M.c3 * v.y;
+    ctype const c2 = M.c3 * v.x;
+    ctype const c3 = 0.0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -896,10 +896,10 @@ template <typename T, typename U>
 constexpr MVec2d<T> operator>>(Vec2d<T> const& v, MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = v.x * M.c1 + v.y * M.c2;
-    ctype c1 = v.x * M.c0;
-    ctype c2 = v.y * M.c0;
-    ctype c3 = 0.0;
+    ctype const c0 = v.x * M.c1 + v.y * M.c2;
+    ctype const c1 = v.x * M.c0;
+    ctype const c2 = v.y * M.c0;
+    ctype const c3 = 0.0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -928,8 +928,8 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& A,
                                                         MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1;
-    ctype c1 = A.c1 * B.c0;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1;
+    ctype const c1 = A.c1 * B.c0;
     return MVec2d_E<ctype>(c0, c1);
 }
 
@@ -950,8 +950,8 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps,
                                                         MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype c0 = ps * M.c1;
-    ctype c1 = ps * M.c0;
+    ctype const c0 = ps * M.c1;
+    ctype const c1 = ps * M.c0;
     return MVec2d_E<ctype>(c0, c1);
 }
 
@@ -1148,10 +1148,10 @@ constexpr MVec2d<std::common_type_t<T, U>> operator*(MVec2d<T> const& A,
 {
     using ctype = std::common_type_t<T, U>;
     // geometric product A * B of two fully populated multivectors
-    ctype c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3;
-    ctype c1 = A.c0 * B.c1 + A.c1 * B.c0 - A.c2 * B.c3 + A.c3 * B.c2;
-    ctype c2 = A.c0 * B.c2 + A.c1 * B.c3 + A.c2 * B.c0 - A.c3 * B.c1;
-    ctype c3 = A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c0;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c3 * B.c3;
+    ctype const c1 = A.c0 * B.c1 + A.c1 * B.c0 - A.c2 * B.c3 + A.c3 * B.c2;
+    ctype const c2 = A.c0 * B.c2 + A.c1 * B.c3 + A.c2 * B.c0 - A.c3 * B.c1;
+    ctype const c3 = A.c0 * B.c3 + A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 

@@ -85,14 +85,16 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// exp(motor) and sqrt(motor), w.r.t. rgpr()           TODO: log() w.r.t. rgpr()
+// exp(motor) and sqrt(motor) with respect to the regressive geometric product rgpr()
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T>
     requires(numeric_type<T>)
 constexpr MVec2dp_U<T> exp(Vec2dp<T> const& arg)
 {
-    auto w = weight_nrm_sq(arg);
-    if (w == T(0.0)) { // pure translation
+    auto w_sq = weight_nrm_sq(arg); // rotation angle^2
+    if (w_sq == T(0.0)) {
+        // pure translation
+
         // arg = att(bulk_dual(delta)) to move in direction of vector delta
         return MVec2dp_U<T>(arg, PScalar2dp<T>(1.0));
     }

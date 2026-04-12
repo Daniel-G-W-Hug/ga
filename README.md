@@ -2,9 +2,9 @@
 
 - ga: header-only library for geometric algebra in 2d and 3d
 - ga_test: tests for ga header only library
-- ga_lua: lua scripting based on ga
-- ga_view: qt-based visualisation of 2d ga objects and operations
-- ga_prdexp: generate product expressions to be used in implementation
+- ga_lua: lua scripting based on the ga library
+- ga_view: qt-based visualization of 2d ga objects and operations
+- ga_prdxpr: generate product expressions to be used in implementation
 
 ## Dependencies
 
@@ -14,7 +14,7 @@
 - ga_view: fmt, qt6
 - ga_prdxpr: fmt
 
-## Installing dependencies on MacOS
+## Installing dependencies on macOS
 
 ```bash
     brew install fmt         // always required
