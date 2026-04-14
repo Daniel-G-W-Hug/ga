@@ -1826,7 +1826,7 @@ we get
     \ddot{r} = \underbrace{\omega \times \omega \times r_{B/A}}_
                           {\textrm{centripetal accel.}
                           \;=\; -|\omega|^2 \; r_{B/A}}
-             + \underbrace{2 \omega \times v_{B/A}}_
+             + \underbrace{2\; \omega \times v_{B/A}}_
                           {\textrm{Corriolis acceleration}}
              + \underbrace{\dot{\omega} \times r_{B/A}}_
                           {\textrm{frame acceleration}}
@@ -1837,7 +1837,7 @@ we get
 Using eqn.~(\ref{eq:rel_acl}) this results in the total acceleration at position $B$ as
 \begin{equation}
     a_B = a_A + \omega \times \omega \times r_{B/A}
-              + 2 \omega \times v_{B/A}
+              + 2\; \omega \times v_{B/A}
               + \dot{\omega} \times r_{B/A} + a_{B/A}
 \end{equation}
 
@@ -1854,7 +1854,7 @@ a rotation only requires two dimensions for its representation in geometric alge
 
 % Three-column layout: Application (spanning) | Tag | Description
 % Adjust \cwAppPhys and \cwTagPhys; description fills the rest.
-\newlength{\cwAppPhys}\setlength{\cwAppPhys}{0.185\textwidth}
+\newlength{\cwAppPhys}\setlength{\cwAppPhys}{0.15\textwidth}
 \newlength{\cwTagPhys}\setlength{\cwTagPhys}{0.06\textwidth}
 \newlength{\cwDescPhys}\setlength{\cwDescPhys}{\dimexpr\textwidth - \cwAppPhys - \cwTagPhys
                                        - 4\arrayrulewidth - 6\tabcolsep\relax}
@@ -1878,16 +1878,16 @@ a rotation only requires two dimensions for its representation in geometric alge
     & VA  & rotation axis vector $\omega = (\omega_x,\omega_y,\omega_z)$\newline
     (a direction, axis always contains origin)\\
     \cline{2-3}
-    & EGA & rotation bivector $\Omega_{EGA} = \rightbulkdual{\omega} =
+    & EGA & rotation bivector $\Omega_{E} = \rightbulkdual{\omega} =
     (\Omega_x,\Omega_y,\Omega_z)$\newline
     (bivector dual to direction vector $\omega$ -- defines the plane of rotation, which
     always contains the origin)\\
     \cline{2-3}
     & PGA & rotation direction $\omega = (\omega_x,\omega_y,\omega_z, 0)$ \newline
     reference point on rotation axis $Q = (q_x,q_y,q_z, 1)$
-    rotation bivector $\Omega_{PGA} = Q \wedge \omega $ - a line, where
+    rotation bivector $\Omega_{P} = Q \wedge \omega $ - a line, where
     \newline
-    $\Omega_{PGA} = (\Omega_{vx},\Omega_{vy},\Omega_{vz}, \Omega_{mx},\Omega_{my},\Omega_{mz})$
+    $\Omega_{P} = (\Omega_{vx},\Omega_{vy},\Omega_{vz}, \Omega_{mx},\Omega_{my},\Omega_{mz})$
     \newline
     (a rotation axis modelled by a bivector, with arbitrary orientation \emph{and}
     location; can also be created from any unitized line that is scaled with |$\omega$|)\\
@@ -1899,10 +1899,35 @@ a rotation only requires two dimensions for its representation in geometric alge
     \cline{2-3}
     & EGA & evaluation of velocity at $r = (r_x,r_y,r_z)$
     (see VA)\newline
-    $v = cmt(r, \Omega_{EGA}) = \Omega_{EGA} \gg r$ \\
+    $v = \textrm{cmt}(r, \Omega_{E}) = \Omega_{E} \gg r$ \\
     \cline{2-3}
     & PGA & evaluation of velocity at $R = (r_x,r_y,r_z, 1)$\newline
-    $v = rcmt(\Omega_{PGA}, R)$  \\
+    $v = \textrm{rcmt}(\Omega_{P}, R)$  \\
+    \hline \hline
+    \multirow{3}{\cwAppPhys}{Centripetal acceleration}
+    & VA  & $a_{cp} = \omega \times \omega \times r_{B/A}$ \\
+    \cline{2-3}
+    & EGA & $a_{cp} = \textrm{cmt}(\textrm{cmt}(r_{B/A}, \Omega_{E}), \Omega_{E})
+     = \Omega_{E} \gg (\Omega_{E} \gg r_{B/A})$ \\
+    \cline{2-3}
+    & PGA & $a_{cp} = \textrm{rcmt}(\Omega_{P}, \textrm{rcmt}(\Omega_{P},r_{B/A}))$
+    \\
+    \hline \hline
+    \multirow{3}{\cwAppPhys}{Corriolis acceleration}
+    & VA  & $a_{co} = 2\; \omega \times v_{B/A}$ \\
+    \cline{2-3}
+    & EGA & $a_{co} = 2\; \textrm{cmt}(v_{B/A}, \Omega_{E})
+     = 2 (\Omega_{E} \gg v_{B/A})$ \\
+    \cline{2-3}
+    & PGA & $a_{co} = 2\; \textrm{rcmt}(\Omega_{P},v_{B/A})$ \\
+    \hline \hline
+    \multirow{3}{\cwAppPhys}{Frame rotational acceleration}
+    & VA  & $a_{frame \; rotation} = \dot{\omega} \times r_{B/A}$ \\
+    \cline{2-3}
+    & EGA & $a_{frame \; rotation} = \textrm{cmt}(r_{B/A}, \dot{\Omega}_{E})
+     = (\dot{\Omega}_{E} \gg r_{B/A})$ \\
+    \cline{2-3}
+    & PGA & $a_{frame \; rotation} = \textrm{rcmt}(\dot{\Omega}_{P},r_{B/A})$ \\
     % \hline \hline
     % \multirow{3}{\cwAppPhys}{...}
     % & VA  & ... \\
@@ -1912,15 +1937,10 @@ a rotation only requires two dimensions for its representation in geometric alge
     % & PGA & ... \\
     \hline
 \end{tabular}}% end \extrarowheight + \arraystretch group
-\caption{Description of rotation and rotation speed evaluation across three approaches.
-         \textbf{VA} = Vector Algebra (classical approach using vectors); \textbf{EGA} =
-         Euclidean Geometric Algebra; \textbf{PGA} = Projective (Euclidean) Geometric
-         Algebra.}
+\caption{Description of rotation and rotation speed evaluation for \textbf{VA} = Vector
+         Algebra (classical approach using vectors); \textbf{EGA} = Euclidean Geometric
+         Algebra; \textbf{PGA} = Projective (Euclidean) Geometric Algebra.}
 \end{table}
-
-%%% TODO: centripetal, Corriolis, frame acceleration, partical acceleration in EGA & PGA
-%%%       (incl. tests for comparing accelerations for one example)
-
 
 % eqn.~(\ref{})
 \newpage

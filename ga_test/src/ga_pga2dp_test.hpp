@@ -3781,3 +3781,6 @@ TEST_SUITE("PGA 2DP Tests")
     }
 
 } // PGA 2DP Tests
+
+// | ⟑ | U+27D1 | (direct Unicode) | Geometric product |
+// | ⟇ | U+27C7 | (direct Unicode) | Regressive geometric product |
