@@ -4758,5 +4758,38 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
     }
 
+    TEST_CASE("Vec3dp: operations - inverses II")
+    {
+        fmt::println("Vec3dp: operations - inverses II");
+
+        vec3dp v0{2, 1, 2, 0};
+        vec3dp v1{2, 1, 2, 1};
+        vec3dp v2{2, 1, 2, 2};
+
+        fmt::println("v0 = {}, inv(v0) = {}, , rinv(v0) = n.a.", v0, inv(v0));
+        fmt::println("v1 = {}, inv(v1) = {}, , rinv(v1) = v1 / (-v1.w * v1.w) = {}", v1,
+                     inv(v1), v1 / (-v1.w * v1.w));
+        fmt::println("v2 = {}, inv(v2) = {}, , rinv(v2) = v2 / (-v2.w * v2.w) = {}", v2,
+                     inv(v2), v2 / (-v2.w * v2.w));
+        fmt::println("");
+        fmt::println("dot(v0,v0) = {}, rdot(v0,v0) = {}", dot(v0, v0), rdot(v0, v0));
+        fmt::println("dot(v1,v1) = {}, rdot(v1,v1) = {}", dot(v1, v1), rdot(v1, v1));
+        fmt::println("dot(v2,v2) = {}, rdot(v2,v2) = {}", dot(v2, v2), rdot(v2, v2));
+        fmt::println("");
+        fmt::println("v0 ⟑ v0 = {}, v0 ⟑ inv(v0) = {}", v0 * v0, v0 * inv(v0));
+        fmt::println("v1 ⟑ v1 = {}, v1 ⟑ inv(v1) = {}", v1 * v1, v1 * inv(v1));
+        fmt::println("v2 ⟑ v2 = {}, v2 ⟑ inv(v2) = {}", v2 * v2, v2 * inv(v2));
+        fmt::println("");
+        fmt::println("v0 ⟇ v0 = {}, v0 ⟇ rinv(v0) = n.a.", rgpr(v0, v0));
+        fmt::println("v1 ⟇ v1 = {}, v1 ⟇ rinv(v1) = {}", rgpr(v1, v1),
+                     rgpr(v1, v1 / (-v1.w * v1.w)));
+        fmt::println("v2 ⟇ v2 = {}, v2 ⟇ rinv(v2) = {}", rgpr(v2, v2),
+                     rgpr(v2, v2 / (-v2.w * v2.w)));
+        fmt::println("");
+    }
+
 
 } // PGA 3DP Tests
+
+// | ⟑ | U+27D1 | (direct Unicode) | Geometric product |
+// | ⟇ | U+27C7 | (direct Unicode) | Regressive geometric product |
