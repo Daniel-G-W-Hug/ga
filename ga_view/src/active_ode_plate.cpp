@@ -289,6 +289,61 @@ void active_ode_plate::paint(QPainter* qp, QStyleOptionGraphicsItem const* optio
         }
     }
 
+    // 6c. Resultant (sum) forces at cm and pivot: grey arrow + dashed parallelogram lines
+    {
+        QColor const col_sum{128, 128, 128}; // grey for resultant
+
+        // Tips of the individual force arrows (recomputed for parallelogram construction)
+        QPointF const grav_tip_cm =
+            toScreen(vec2dp{cm_w.x, cm_w.y - mg * FORCE_SCALE, 1.0});
+        QPointF const cf_tip_cm =
+            toScreen(vec2dp{cm_w.x + m_f_cf_w.x * FORCE_SCALE,
+                            cm_w.y + m_f_cf_w.y * FORCE_SCALE, 1.0});
+        QPointF const sum_tip_cm =
+            toScreen(vec2dp{cm_w.x + m_f_cf_w.x * FORCE_SCALE,
+                            cm_w.y + (m_f_cf_w.y - mg) * FORCE_SCALE, 1.0});
+
+        // Resultant arrow at cm
+        {
+            QPointF const d_sum = sum_tip_cm - cm_screen;
+            if (d_sum.x() * d_sum.x() + d_sum.y() * d_sum.y() >= ARROWSIZE * ARROWSIZE) {
+                qp->setPen(QPen(col_sum, 2, Qt::SolidLine));
+                qp->drawPath(arrowLine(cm_screen, sum_tip_cm));
+                qp->drawPath(arrowHead(cm_screen, sum_tip_cm));
+            }
+        }
+        // Dashed parallelogram completion lines at cm (always drawn)
+        qp->setPen(QPen(col_sum, 1, Qt::DashLine));
+        qp->setBrush(Qt::NoBrush);
+        qp->drawLine(grav_tip_cm, sum_tip_cm);
+        qp->drawLine(cf_tip_cm, sum_tip_cm);
+
+        // Tips of the individual force arrows at pivot
+        QPointF const react_tip_piv =
+            toScreen(vec2dp{m_pivot_w.x, m_pivot_w.y + mg * FORCE_SCALE, 1.0});
+        QPointF const cfr_tip_piv =
+            toScreen(vec2dp{m_pivot_w.x - m_f_cf_w.x * FORCE_SCALE,
+                            m_pivot_w.y - m_f_cf_w.y * FORCE_SCALE, 1.0});
+        QPointF const sum_tip_piv =
+            toScreen(vec2dp{m_pivot_w.x - m_f_cf_w.x * FORCE_SCALE,
+                            m_pivot_w.y + (mg - m_f_cf_w.y) * FORCE_SCALE, 1.0});
+
+        // Resultant arrow at pivot
+        {
+            QPointF const d_sum = sum_tip_piv - pivot_screen;
+            if (d_sum.x() * d_sum.x() + d_sum.y() * d_sum.y() >= ARROWSIZE * ARROWSIZE) {
+                qp->setPen(QPen(col_sum, 2, Qt::SolidLine));
+                qp->drawPath(arrowLine(pivot_screen, sum_tip_piv));
+                qp->drawPath(arrowHead(pivot_screen, sum_tip_piv));
+            }
+        }
+        // Dashed parallelogram completion lines at pivot (always drawn)
+        qp->setPen(QPen(col_sum, 1, Qt::DashLine));
+        qp->setBrush(Qt::NoBrush);
+        qp->drawLine(react_tip_piv, sum_tip_piv);
+        qp->drawLine(cfr_tip_piv, sum_tip_piv);
+    }
+
     // 6b. Torque visualization: semi-transparent circle around pivot, area ∝ |torque|,
     //     four tangential arrows at 3/6/9/12 o'clock indicating rotation direction.
     if (std::abs(m_torque_b) > 1e-4) {
