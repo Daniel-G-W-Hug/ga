@@ -44,17 +44,17 @@ extern const prd_rules gpr_pga3dp_rules; // Geometric product: a * b
 extern const prd_rules wdg_pga3dp_rules; // Wedge product: a ^ b
 extern const prd_rules dot_pga3dp_rules; // Dot product: a · b
 
-// complement in 3dp: lcmpl(rcmpl(u)) = u
-// lcmpl:  lcmpl(u) ^ u        = e1234
-// rcmpl:  u        ^ rcmpl(u) = e1234
+// complement in 3dp: l_cmpl(r_cmpl(u)) = u
+// lcmpl:  l_cmpl(u) ^ u        = e1234
+// rcmpl:  u        ^ r_cmpl(u) = e1234
 extern const prd_rules lcmpl_pga3dp_rules;
 extern const prd_rules rcmpl_pga3dp_rules;
 
 // dual rules: generated automatically from complement rules + extended metric
 // PGA3DP (even-dimensional) has left_bulk_dual, right_bulk_dual, left_weight_dual,
-// right_weight_dual left_bulk_dual(u) = left_complement(G × u) where G is the extended
-// metric matrix right_bulk_dual(u) = right_complement(G × u) left_weight_dual(u) =
-// left_complement(G × left_complement(u)) uses the regressive metric right_weight_dual(u)
+// right_weight_dual l_bulk_dual(u) = left_complement(G × u) where G is the extended
+// metric matrix r_bulk_dual(u) = right_complement(G × u) l_weight_dual(u) =
+// left_complement(G × left_complement(u)) uses the regressive metric r_weight_dual(u)
 // = right_complement(G × right_complement(u)) uses the regressive metric Note:
 // right_bulk_dual is equivalent to the Hodge dual for PGA3DP
 extern const prd_rules left_bulk_dual_pga3dp_rules;

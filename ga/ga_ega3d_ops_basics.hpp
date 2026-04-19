@@ -11,11 +11,17 @@ namespace hd::ga::ega {
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides ega3d basic operations:
 //
-// - gr_inv()                     -> grade inversion
-// - rev()                        -> reversion
-// - conj()                       -> conjugation
-// - cmpl()                       -> complement
-// - dual()                       -> dual
+// - gr_inv()                      -> grade inversion
+// - rev()                         -> reversion
+// - conj()                        -> conjugation
+//
+// - cmpl()                        -> complement
+//
+// - nrm_sq(), nrm()               -> norm
+//
+// - normalize()                   -> normalization (nrm scaled to 1.0)
+//
+// - dual()                        -> dual
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -83,6 +89,7 @@ constexpr MVec3d<T> gr_inv(MVec3d<T> const& M)
     return MVec3d<T>(gr_inv(gr0(M)), gr_inv(gr1(M)), gr_inv(gr2(M)), gr_inv(gr3(M)));
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // reversion operation: reverses the factors in a blade
 // rev(A_r) = (-1)^(r*(r-1)/2) A_r
@@ -149,6 +156,7 @@ constexpr MVec3d<T> rev(MVec3d<T> const& M)
     // grade 3: sign change
     return MVec3d<T>(rev(gr0(M)), rev(gr1(M)), rev(gr2(M)), rev(gr3(M)));
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Clifford conjugation:
@@ -231,11 +239,11 @@ constexpr MVec3d<T> conj(MVec3d<T> const& M)
 // which are in the k-blade u with the basis vectors which are NOT contained in the
 // k-blade u and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  lcmpl(u) ^ u  = I_3d = e1^e2^e3  =>  lcmpl(u) = I_3d * rev(u)
-// right complement: u ^ rcmpl(u)  = I_3d = e1^e2^e3  =>  rcmpl(u) = rev(v) * I_3d
+// left complement:  l_cmpl(u) ^ u  = I_3d = e1^e2^e3  =>  l_cmpl(u) = I_3d * rev(u)
+// right complement: u ^ r_cmpl(u)  = I_3d = e1^e2^e3  =>  r_cmpl(u) = rev(v) * I_3d
 //
 // in spaces of odd dimension right and left complements are identical and thus there
-// is only one complement operation defined lcmpl(u) == rcmpl(u) == cmpl(u)
+// is only one complement operation defined l_cmpl(u) == r_cmpl(u) == cmpl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // complements have different signs
@@ -312,6 +320,189 @@ constexpr MVec3d<T> cmpl(MVec3d<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// nrm_sq(), nrm()
+//
+// nrm_sq(M)    -> return squared norm
+// nrm(M)       -> return norm (Euclidean)
+//
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm_sq(Scalar3d<T> s)
+{
+    return T(s) * T(s);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm(Scalar3d<T> s)
+{
+    return std::sqrt(nrm_sq(s));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm_sq(Vec3d<T> const& v)
+{
+    return v.x * v.x + v.y * v.y + v.z * v.z;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm(Vec3d<T> const& v)
+{
+    return std::sqrt(nrm_sq(v));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm_sq(BiVec3d<T> const& B)
+{
+    return B.x * B.x + B.y * B.y + B.z * B.z;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm(BiVec3d<T> const& B)
+{
+    return std::sqrt(nrm_sq(B));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm_sq(PScalar3d<T> ps)
+{
+    return T(ps) * T(ps);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm(PScalar3d<T> ps)
+{
+    return std::sqrt(nrm_sq(ps));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm_sq(MVec3d_E<T> const& M)
+{
+    return nrm_sq(gr0(M)) + nrm_sq(gr2(M));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm(MVec3d_E<T> const& M)
+{
+    return std::sqrt(nrm_sq(M));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm_sq(MVec3d_U<T> const& M)
+{
+    return nrm_sq(gr1(M)) + nrm_sq(gr3(M));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm(MVec3d_U<T> const& M)
+{
+    return std::sqrt(nrm_sq(M));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm_sq(MVec3d<T> const& M)
+{
+    return nrm_sq(gr0(M)) + nrm_sq(gr1(M)) + nrm_sq(gr2(M)) + nrm_sq(gr3(M));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T nrm(MVec3d<T> const& M)
+{
+    return std::sqrt(nrm_sq(M));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// normalization operations:
+// return an object normalized to nrm(u) == 1.0
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Scalar3d<T> normalize(Scalar3d<T> s)
+{
+    T m = nrm(s);
+    hd::ga::detail::check_normalization<T>(m, "scalar (3d)");
+    T inv = T(1.0) / m;
+    return Scalar3d<T>(inv * T(s));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3d<T> normalize(Vec3d<T> const& v)
+{
+    T m = nrm(v);
+    hd::ga::detail::check_normalization<T>(m, "vector (3d)");
+    T inv = T(1.0) / m;
+    return inv * v;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec3d<T> normalize(BiVec3d<T> const& B)
+{
+    T m = nrm(B);
+    hd::ga::detail::check_normalization<T>(m, "bivector (3d)");
+    T inv = T(1.0) / m;
+    return inv * B;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline PScalar3d<T> normalize(PScalar3d<T> ps)
+{
+    T m = nrm(ps);
+    hd::ga::detail::check_normalization<T>(m, "pseudoscalar (3d)");
+    T inv = T(1.0) / m;
+    return PScalar3d<T>(inv * T(ps));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3d_E<T> normalize(MVec3d_E<T> const& M)
+{
+    T m = nrm(M);
+    hd::ga::detail::check_normalization<T>(m, "even-grade multivector (3d)");
+    T inv = T(1.0) / m;
+    return inv * M;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3d_U<T> normalize(MVec3d_U<T> const& M)
+{
+    T m = nrm(M);
+    hd::ga::detail::check_normalization<T>(m, "odd-grade multivector (3d)");
+    T inv = T(1.0) / m;
+    return inv * M;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3d<T> normalize(MVec3d<T> const& M)
+{
+    T m = nrm(M);
+    hd::ga::detail::check_normalization<T>(m, "multivector (3d)");
+    T inv = T(1.0) / m;
+    return inv * M;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // duality (as defined in Lengyel, "PGA illuminated")
 // the outer product.
 //
@@ -322,15 +513,15 @@ constexpr MVec3d<T> cmpl(MVec3d<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 //
 // if M represents the subspace B as subspace of R^2 then
-// left_dual(M) and right_dual(M) represent a subspace orthorgonal to B
+// l_dual(M) and r_dual(M) represent a subspace orthorgonal to B
 //
-// right_dual(A) = rcmpl(A) in spaces of even dimension
-// left_dual(A)  = lcmpl(A) in spaces of even dimension
+// r_dual(A) = r_cmpl(A) in spaces of even dimension
+// l_dual(A) = l_cmpl(A) in spaces of even dimension
 //
-// right_dual(A) = left_dual(A) = cmpl(A) in spaces of odd dimension
+// r_dual(A) = l_dual(A) = cmpl(A) in spaces of odd dimension
 //
-// the right dual satisfies right_dual(A) = rev(A) * I_n
-// the left dual satisfies   left_dual(A) = I_n * rev(A)
+// the right dual satisfies r_dual(A) = rev(A) * I_n
+// the left dual satisfies  l_dual(A) = I_n * rev(A)
 //
 // -> derived from the defining equation of the left and right complements
 ////////////////////////////////////////////////////////////////////////////////

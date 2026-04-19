@@ -129,6 +129,7 @@ struct Vec4_t {
     }
 };
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Vec4_t<T> core operations
 ////////////////////////////////////////////////////////////////////////////////
@@ -186,7 +187,6 @@ constexpr Vec4_t<std::common_type_t<T, U>, Tag> operator-(Vec4_t<T, Tag> const& 
                                                  v1.w - v2.w);
 }
 
-
 // multiply a vector with a scalar (in both constellations)
 template <typename T, typename U, typename Tag>
     requires(numeric_type<T> && numeric_type<U>)
@@ -211,56 +211,6 @@ inline Vec4_t<std::common_type_t<T, U>, Tag> operator/(Vec4_t<T, Tag> const& v, 
     using ctype = std::common_type_t<T, U>;
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return Vec4_t<ctype, Tag>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
-}
-
-// magnitude of the k-vector (in representational space)
-//
-// magnitude is always defined in the representational space, i.e. without
-// covering the target metric of the representation
-//
-// -> in ega magnitude (magn) and norm (nrm) are identical
-//
-// -> in pga magnitude is defined as norm for the representational space
-//    assuming the corresponding identity matrix as metric for that space:
-//
-//    G<3,0,0> as representational space for modelling 2d Euclidean space using G<2,0,1>
-//             representational space:        e1^2=+1, e2^2=+1, e3^2=+1
-//             modelled 2d Euclidean space:   e1^2=+1, e2^2=+1, e3^2= 0
-//
-//    G<4,0,0> as representational space for modelling 3d Euclidean space using G<3,0,1>
-//             representational space:        e1^2=+1, e2^2=+1, e3^2=+1, e4^2=+1
-//             modelled 3d Euclidean space:   e1^2=+1, e2^2=+1, e3^2=+1, e4^2= 0
-//
-//    norm is always defined for the modelled space incl. the target metric,
-//    by using the exomorphisim matrix G as defined by Lengyel in the book
-//    "Projective geometric algebra illuminated"
-//
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm_sq(Vec4_t<T, Tag> const& v)
-{
-    // implements the scalar product as defined by the geometric product *
-    // for the vector and trivector case in 4d and for the modeling space in 3dp:
-    // |v|^2 = gr0( v*v)
-    return v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w;
-}
-
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm(Vec4_t<T, Tag> const& v)
-{
-    return sqrt(nrm_sq(v));
-}
-
-// return a vector v normalized to nrm(v) == 1.0
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-inline Vec4_t<T, Tag> normalize(Vec4_t<T, Tag> const& v)
-{
-    T m = nrm(v);
-    detail::check_normalization<T>(m, "vector");
-    T inv = T(1.0) / m; // for multiplication with inverse of norm
-    return Vec4_t<T, Tag>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

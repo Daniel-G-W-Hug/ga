@@ -25,7 +25,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **File Path Rules for Code:**
 
-- When reading source files from executables: `../[module]/src/filename` (relative to build dir)
+- When reading source files from executables: `../[module]/src/filename` (relative to
+  build directory)
 - NEVER guess paths - use these established patterns
 - All executables run from `/Users/hud3bh/prg/cpp/pj/ga/build/` directory
 
@@ -50,7 +51,7 @@ cd .. && rm -rf build && mkdir build && cd build && cmake ..
 
 - ALL build artifacts must be generated in `build/` directory only
 - NEVER run cmake directly in source directories (ga_lua/, ga_test/, etc.)
-- NEVER run make/ninja commands outside of `build/` directory
+- NEVER run make/ninja commands outside `build/` directory
 - Build directory structure: `build/ga_lua/`, `build/ga_test/`, `build/ga_view/`, etc.
 - Always run builds from the project root's `build/` directory
 
@@ -110,7 +111,7 @@ When writing documentation, comments, or mathematical expressions for this codeb
 
 **Notes:**
 
-- **Markdown files** (`.md`): use `\utilde{}` — works natively in KaTeX (Markdown previewers) without a package import
+- **Markdown files** (`.md`): use `\utilde{}` — works natively in LaTeX (Markdown previewers) without a package import
 - **LaTeX documentation** (`ga_docu`): use `\undertilde{}` from the `accents` package (`\usepackage{accents}`)
 - For unit motors, `rev(M)` and `rrev(M)` coincide as group inverses, but the symbols and function names are kept distinct throughout this codebase
 - Motor composition uses ⟇: `M₁ ⟇ M₂` corresponds to `rgpr(M1, M2)` in code
@@ -141,13 +142,13 @@ Critical usage requirements:
   `Vec2d<T> const&` for unmodifiable arguments
 - **CRITICAL**: ALWAYS use "east const" convention (see dedicated section below)
 
-### East Const Convention (MANDATORY)
+### East const convention (MANDATORY)
 
 **This codebase uses "east const" (const on the right) convention throughout.**
 
 When writing or modifying ANY C++ code in this repository, you MUST follow these rules:
 
-**✅ CORRECT (East Const):**
+**✅ CORRECT (East const):**
 
 ```cpp
 // Function parameters - references
@@ -171,7 +172,7 @@ std::string const& getName() const;
 std::vector<int> const getValues();
 ```
 
-**❌ INCORRECT (West Const - DO NOT USE):**
+**❌ INCORRECT (West const - DO NOT USE):**
 
 ```cpp
 // DO NOT write any of these patterns:
@@ -204,7 +205,7 @@ const size_t n                   // Wrong! Use: size_t const n
    std::vector<int>::const_iterator it;  // OK - STL convention
    ```
 
-**WHY East Const?**
+**WHY East const?**
 
 - **Consistency**: Type qualifiers read left-to-right: `int const*` = "pointer to const int"
 - **Clarity**: `T const&` clearly shows "const reference to T"
@@ -308,7 +309,7 @@ The `ga_prdxpr/` directory contains a sophisticated **code generator** that prod
 **Complement Transformations for regressive products:**
 
 - for odd dimensinal algebras ega3d, pga2dp: `cmpl(operation(cmpl(A), cmpl(B)))`
-- for even dimensinal algebras ega2d, pga3dp: `lcmpl(operation(rcmpl(A), rcmpl(B)))`
+- for even dimensinal algebras ega2d, pga3dp: `l_cmpl(operation(r_cmpl(A), r_cmpl(B)))`
 
 **Coefficient Usage Patterns:**
 
@@ -485,7 +486,7 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 **STA4D - G(1,3,0)**: Space-Time Algebra
 
 - Basis: `{1, g0, g1, g2, g3, g01, g02, g03, g23, g31, g12, g023, g031, g012, g123, g0123}`
-- Metric: `{+1, -1, -1, -1}` (timelike g0, spacelike g1,g2,g3)
+- Metric: `{+1, -1, -1, -1}` (time-like g0, space-like g1,g2,g3)
 - Extended Metric: Special mixed signature rules
 
 ### Extended Metric Calculation Rules

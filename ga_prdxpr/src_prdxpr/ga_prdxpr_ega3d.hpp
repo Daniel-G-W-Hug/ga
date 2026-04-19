@@ -41,7 +41,7 @@ extern const prd_rules wdg_ega3d_rules; // Wedge product: a ^ b
 extern const prd_rules dot_ega3d_rules; // Dot product: a · b
 
 // complement in 3d: cmpl(cmpl(u)) = u
-// lcmpl(u) ^ u = u ^ rcmpl(u) = cmpl(u) ^ u = u ^ cmpl(u) = e123
+// l_cmpl(u) ^ u = u ^ r_cmpl(u) = cmpl(u) ^ u = u ^ cmpl(u) = e123
 extern const prd_rules cmpl_ega3d_rules;
 
 // dual rules: generated automatically from complement rules + extended metric

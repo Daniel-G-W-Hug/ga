@@ -687,7 +687,7 @@ prd_rules generate_complement_from_wedge_table(AlgebraConfig const& config,
         }
         else {
             if (is_left_complement) {
-                // Left complement: lcmpl(u) ^ u = I_n
+                // Left complement: l_cmpl(u) ^ u = I_n
                 // Search column i for pseudoscalar
                 for (size_t row = 0; row < basis_size; ++row) {
                     if (row < wedge_table.size() && i < wedge_table[row].size()) {
@@ -708,7 +708,7 @@ prd_rules generate_complement_from_wedge_table(AlgebraConfig const& config,
                 }
             }
             else {
-                // Right complement: u ^ rcmpl(u) = I_n
+                // Right complement: u ^ r_cmpl(u) = I_n
                 // Search row i for pseudoscalar
                 if (i < wedge_table.size()) {
                     for (size_t col = 0; col < basis_size && col < wedge_table[i].size();
@@ -763,23 +763,23 @@ prd_rules generate_complement_rules(AlgebraConfig const& config,
 // Dual Rule Generation Implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-// Generate left dual rules: left_dual(u) = left_complement(G × u)
+// Generate left dual rules: l_dual(u) = left_complement(G × u)
 // where G is the extended metric matrix and × is matrix-vector multiplication
 prd_rules generate_left_dual_rules(AlgebraConfig const& config,
                                    prd_rules const& left_complement_rules)
 {
     // Delegate to systematic matrix-vector multiplication approach
-    // left_dual(basis[i]) = Σⱼ G[i,j] · left_complement(basis[j])
+    // l_dual(basis[i]) = Σⱼ G[i,j] · left_complement(basis[j])
     auto G_data = calculate_extended_metric_matrix_full(config);
     return calculate_dual_rules(config, G_data, left_complement_rules);
 }
 
-// Generate right dual rules: right_dual(u) = right_complement(G × u)
+// Generate right dual rules: r_dual(u) = right_complement(G × u)
 prd_rules generate_right_dual_rules(AlgebraConfig const& config,
                                     prd_rules const& right_complement_rules)
 {
     // Delegate to systematic matrix-vector multiplication approach
-    // right_dual(basis[i]) = Σⱼ G[i,j] · right_complement(basis[j])
+    // r_dual(basis[i]) = Σⱼ G[i,j] · right_complement(basis[j])
     auto G_data = calculate_extended_metric_matrix_full(config);
     return calculate_dual_rules(config, G_data, right_complement_rules);
 }
@@ -905,16 +905,16 @@ prd_rules generate_right_bulk_dual_rules(AlgebraConfig const& config,
 }
 
 // Generate left_weight_dual rules for even-dimensional PGA
-// left_weight_dual(u) = left_complement(Ḡ × u) where Ḡ = regressive metric
+// l_weight_dual(u) = left_complement(Ḡ × u) where Ḡ = regressive metric
 // Regressive metric: Ḡ × u = left_complement(G × left_complement(u))
-// Therefore: left_weight_dual(u) = left_complement(left_complement(G ×
+// Therefore: l_weight_dual(u) = left_complement(left_complement(G ×
 // left_complement(u)))
 //                                  = G × left_complement(u) (using left_complement
 //                                  involution)
 prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
                                           prd_rules const& left_complement_rules)
 {
-    // For even-dimensional PGA: left_weight_dual(u) = G × left_complement(u)
+    // For even-dimensional PGA: l_weight_dual(u) = G × left_complement(u)
     mvec_coeff const& basis = config.multivector_basis;
     size_t const n = basis.size();
     auto G_data = calculate_extended_metric_matrix(config);
@@ -989,16 +989,16 @@ prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
 }
 
 // Generate right_weight_dual rules for even-dimensional PGA
-// right_weight_dual(u) = right_complement(Ḡ × u) where Ḡ = regressive metric
+// r_weight_dual(u) = right_complement(Ḡ × u) where Ḡ = regressive metric
 // Regressive metric: Ḡ × u = left_complement(G × right_complement(u))
-// Therefore: right_weight_dual(u) = right_complement(left_complement(G ×
+// Therefore: r_weight_dual(u) = right_complement(left_complement(G ×
 // right_complement(u)))
 //                                  = G × right_complement(u) (using complement
 //                                  involution)
 prd_rules generate_right_weight_dual_rules(AlgebraConfig const& config,
                                            prd_rules const& right_complement_rules)
 {
-    // For even-dimensional PGA: right_weight_dual(u) = G × right_complement(u)
+    // For even-dimensional PGA: r_weight_dual(u) = G × right_complement(u)
     mvec_coeff const& basis = config.multivector_basis;
     size_t const n = basis.size();
     auto G_data = calculate_extended_metric_matrix(config);

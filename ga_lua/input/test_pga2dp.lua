@@ -54,10 +54,12 @@ print("\n3. Testing vec2dp geometric operations:")
 print("--------------------------------------")
 
 print("dot(v1, v2):", dot(v1, v2), "dot product")
-print("nrm_sq(v2): ", nrm_sq(v2), "squared norm")
-print("nrm(v2): ", nrm(v2), "norm")
+print("bulk_nrm_sq(v2): ", bulk_nrm_sq(v2), "squared bulk norm")
+print("bulk_nrm(v2): ", bulk_nrm(v2), "bulk norm")
+print("weight_nrm(v2): ", weight_nrm(v2), "weight norm")
+print("geom_nrm(v2): ", geom_nrm(v2), "geometric norm")
 
-print("wdg(v1,v2):", wdg(v1, v2), "wedge product creates line")
+print("wdg(v1,v2):", wdg(v1, v2), "the wedge product creates a line")
 
 -- Test unitization (PGA specific)
 print("\n4. Testing unitization (PGA specific):")
@@ -84,8 +86,12 @@ print("line:", line, "line ax + by + c = 0")
 print("unitize(line) =", unitize(line))
 
 -- Test bivector norms
-print("nrm_sq(line): ", nrm_sq(line), "squared norm")
-print("nrm(line): ", nrm(line), "norm")
+print("bulk_nrm_sq(line): ", bulk_nrm_sq(line), "squared bulk norm")
+print("bulk_nrm(line): ", bulk_nrm(line), "bulk norm")
+print("weight_nrm_sq(line): ", weight_nrm_sq(line), "squared weight norm")
+print("weight_nrm(line): ", weight_nrm(line), "weight norm")
+print("geom_nrm_sq(line): ", geom_nrm_sq(line), "squared geometric norm")
+print("geom_nrm(line): ", geom_nrm(line), "geometric norm")
 
 -- Test pscalar2dp
 print("\n6. Testing pscalar2dp:")
@@ -128,10 +134,6 @@ local dn6 = dn1 - s_dn
 print("dn1 - scalar =", dn6)
 local dn7 = dn1 - ps_dn
 print("dn1 - pseudoscalar =", dn7)
-
--- Test dual number properties
-print("nrm_sq(dn2) =", nrm_sq(dn2), "(squared norm)")
-print("nrm(dn2) =", nrm(dn2), "(norm)")
 
 -- Test PGA constants
 print("\n8. Testing PGA 2DP constants:")

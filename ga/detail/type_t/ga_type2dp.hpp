@@ -35,6 +35,10 @@ template <typename T> using MVec2dp_E = MVec4_t<T, mvec2dp_e_tag>;
 template <typename T> using MVec2dp_U = MVec4_t<T, mvec2dp_u_tag>;
 template <typename T> using MVec2dp = MVec8_t<T, mvec2dp_tag>;
 
+// for the geometric norm as homogeneous quantity,
+// which has a scalar part (c0 component) and a pseudoscalar part (c1 component)
+template <typename T> using DualNum2dp = MVec2_t<T, dual_number2dp_tag>;
+
 // return the grades of the basic types
 
 template <typename T>
@@ -99,11 +103,6 @@ constexpr size_t rgr([[maybe_unused]] PScalar2dp<T>)
 {
     return 0; // 3 - 3
 }
-
-
-// for the geometric norm as homogeneous quantity,
-// which has a scalar part (c0 component) and a pseudoscalar part (c1 component)
-template <typename T> using DualNum2dp = MVec2_t<T, dual_number2dp_tag>;
 
 
 // Vec2dp: represents as direction when z=0.0 (a point at infinity in that direction)

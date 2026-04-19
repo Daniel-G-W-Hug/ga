@@ -257,7 +257,7 @@ auto const e321_3dp = TriVec3dp<value_t>{0.0, 0.0, 0.0, 1.0};
 auto const yz_3dp = e423_3dp; // yz- or 23-plane (bound bivector: origin ^ e23 = e4 ^ e23)
 auto const zx_3dp = e431_3dp; // zx- or 31-plane (bound bivector: origin ^ e31 = e4 ^ e31)
 auto const xy_3dp = e412_3dp; // xy- or 12-plane (bound bivector: origin ^ e12 = e4 ^ e12)
-auto const H_3dp = e321_3dp;  // horizon == plane at infinity == rcmpl(origin)
+auto const H_3dp = e321_3dp;  // horizon == plane at infinity == r_cmpl(origin)
 
 auto const e423_3dp_mv = MVec3dp<value_t>{e423_3dp}; // e423_3dp as multivector
 auto const e431_3dp_mv = MVec3dp<value_t>{e431_3dp}; // e431_3dp as multivector

@@ -38,7 +38,7 @@ TEST_SUITE("PGA3DP: application tests")
 
         // compute the unitized plane and its normal:
         auto p_ref = unitize(wdg(wdg(A, B), C)); // plane equation
-        auto p_n = left_weight_dual(p_ref);      // normal of plane
+        auto p_n = l_weight_dual(p_ref);         // normal of plane
 
         fmt::println("A = {}", A);
         fmt::println("B = {}", B);
@@ -73,7 +73,7 @@ TEST_SUITE("PGA3DP: application tests")
             // 1st step: line through T in direction of z_n
             auto l_h = unitize(wdg(z_n, T));
             // 2nd step: plane containing T, perpendicular to l
-            auto p_tool = unitize(wdg(T, right_weight_dual(l_h)));
+            auto p_tool = unitize(wdg(T, r_weight_dual(l_h)));
             fmt::println("           p_tool      = {:>-8.5f}", p_tool);
 
             // both planes intersect in a line l
@@ -103,7 +103,7 @@ TEST_SUITE("PGA3DP: application tests")
                  double rs_in, vec3dp const& u_in, vec3dp const& v_in) :
                 cp(cp_in), r(d_in / 2.0), r_min(r_min_in), r_max(r_max_in), rs(rs_in),
                 u(u_in), v(v_in), B_uv(wdg(u, v)), pl(wdg(cp, B_uv)),
-                pl_normal(left_weight_dual(pl))
+                pl_normal(l_weight_dual(pl))
             {
                 if (cp.w != 1.0)
                     throw std::runtime_error("disc: cp must be a point (w=1).");
@@ -355,11 +355,11 @@ TEST_SUITE("PGA3DP: application tests")
         auto v2dp = vec2dp{1, 2, 0};    // translation vector 2d
         auto v3dp = vec3dp{1, 2, 3, 0}; // translation vector 3d
 
-        auto omega_tra_2dp = att(bulk_dual(v2dp));       // rate of change is a vec (2D)
-        auto omega_tra_3dp = att(right_bulk_dual(v3dp)); // rate of change is a bivec (3D)
+        auto omega_tra_2dp = att(bulk_dual(v2dp));   // rate of change is a vec (2D)
+        auto omega_tra_3dp = att(r_bulk_dual(v3dp)); // rate of change is a bivec (3D)
 
-        CHECK(omega_tra_2dp == -cmpl(wdg(e3_2dp, v2dp)));  // -cmpl(bivec)  = vec
-        CHECK(omega_tra_3dp == -rcmpl(wdg(e4_3dp, v3dp))); // -rcmpl(bivec) = bivec
+        CHECK(omega_tra_2dp == -cmpl(wdg(e3_2dp, v2dp)));   // -cmpl(bivec)  = vec
+        CHECK(omega_tra_3dp == -r_cmpl(wdg(e4_3dp, v3dp))); // -r_cmpl(bivec) = bivec
 
         fmt::println("v2dp          = {}", v2dp);
         fmt::println("v3dp          = {}", v3dp);
@@ -378,14 +378,14 @@ TEST_SUITE("PGA3DP: application tests")
         auto omega_rot_3dp = wdg(e4_3dp, omeg3dp); // rate of change is a bivec (3D)
 
         CHECK(omega_rot_2dp == wdg(e3_2dp, weight_dual(bulk_dual(omeg2dp))));
-        CHECK(omega_rot_3dp == wdg(e4_3dp, left_weight_dual(right_bulk_dual(omeg3dp))));
+        CHECK(omega_rot_3dp == wdg(e4_3dp, l_weight_dual(r_bulk_dual(omeg3dp))));
 
         fmt::println("omeg2dp       = {}", omeg2dp);
         fmt::println("omeg3dp       = {}", omeg3dp);
         fmt::println("omega_rot_2dp = {}", omega_rot_2dp);
         // fmt::println("plr_2dp       = {}", bulk_dual(omeg2dp));
         fmt::println("omega_rot_3dp = {}", omega_rot_3dp);
-        // fmt::println("plr_3dp       = {}", right_bulk_dual(omeg3dp));
+        // fmt::println("plr_3dp       = {}", r_bulk_dual(omeg3dp));
         fmt::println("");
 
         fmt::println("pga: bivector rate of change - checking translational speed.");

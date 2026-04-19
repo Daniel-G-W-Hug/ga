@@ -42,7 +42,7 @@ extern const prd_rules wdg_pga2dp_rules; // Wedge product: a ^ b
 extern const prd_rules dot_pga2dp_rules; // Dot product: a · b
 
 // complement in 2dp: cmpl(cmpl(u)) = u
-// lcmpl(u) ^ u = u ^ rcmpl(u) = cmpl(u) ^ u = u ^ cmpl(u) = e321
+// l_cmpl(u) ^ u = u ^ r_cmpl(u) = cmpl(u) ^ u = u ^ cmpl(u) = e321
 extern const prd_rules cmpl_pga2dp_rules;
 
 // dual rules: generated automatically from complement rules + extended metric

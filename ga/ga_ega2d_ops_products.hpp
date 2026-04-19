@@ -340,8 +340,8 @@ constexpr Scalar2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s1, Scalar2d<U> s2)
 // (i.e. this definition is does NOT connect directly to the geometric product, but to the
 // outer product, exclusively)
 //
-// rwdg(ul, ur) = lcmpl(wdg(rcmpl(ul),rcmpl(ur))) = lcmpl(rcmpl(ul)^rcmpl(ur))
-//              = rcmpl(wdg(lcmpl(ul),lcmpl(ur))) = rcmpl(lcmpl(ul)^lcmpl(ur))
+// rwdg(ul, ur) = l_cmpl(wdg(r_cmpl(ul),r_cmpl(ur))) = l_cmpl(r_cmpl(ul)^r_cmpl(ur))
+//              = r_cmpl(wdg(l_cmpl(ul),l_cmpl(ur))) = r_cmpl(l_cmpl(ul)^l_cmpl(ur))
 //
 ////////////////////////////////////////////////////////////////////////////////
 

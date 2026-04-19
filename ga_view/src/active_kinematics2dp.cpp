@@ -1,8 +1,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "active_kinematics2dp.hpp"
 #include "active_common.hpp"
+#include "active_kinematics2dp.hpp"
 
 #include <algorithm> // std::min, std::max
 
@@ -158,7 +158,7 @@ void active_kinematics2dp::solve_kinematic_chain()
     for (size_t i = last_elem - 1; i > base_elem; --i) {
 
         // move against current direction between elements
-        auto direction = -normalize(pts[i + 1] - pts[i]) * segment_length;
+        auto direction = -bulk_normalize(pts[i + 1] - pts[i]) * segment_length;
         pts[i] = move2dp(pts[i + 1], get_motor(direction));
         // fmt::println("backwards: pts[{}] = {}", i, pts[i]);
     }
@@ -167,7 +167,7 @@ void active_kinematics2dp::solve_kinematic_chain()
     for (size_t i = base_elem + 1; i < target; ++i) {
 
         // move in current direction between elements
-        auto direction = normalize(pts[i] - pts[i - 1]) * segment_length;
+        auto direction = bulk_normalize(pts[i] - pts[i - 1]) * segment_length;
         pts[i] = move2dp(pts[i - 1], get_motor(direction));
         // fmt::println("forwards: pts[{}] = {}", i, pts[i]);
     }

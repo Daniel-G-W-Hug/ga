@@ -73,8 +73,8 @@ TEST_SUITE("STA 3D Tests")
     {
         fmt::println("G<1,3,0>: dual composition properties");
 
-        // For STA4D (even-dimensional): left_dual(right_dual(u)) =
-        // right_dual(left_dual(u)) = u This follows from
+        // For STA4D (even-dimensional): l_dual(r_dual(u)) =
+        // r_dual(l_dual(u)) = u This follows from
         // left_complement(right_complement(u)) = u
 
         scalar4ds s{3.0};
@@ -88,32 +88,32 @@ TEST_SUITE("STA 3D Tests")
                   bivec4ds{6.0, 7.0, 8.0, 9.0, 10.0, 11.0},
                   trivec4ds{12.0, 13.0, 14.0, 15.0}, pscalar4ds{16.0}};
 
-        // left_dual(right_dual(u)) = u
-        CHECK(left_dual(right_dual(s)) == s);
-        CHECK(left_dual(right_dual(v)) == v);
-        CHECK(left_dual(right_dual(B)) == B);
-        CHECK(left_dual(right_dual(T)) == T);
-        CHECK(left_dual(right_dual(ps)) == ps);
-        CHECK(left_dual(right_dual(M_e)) == M_e);
-        CHECK(left_dual(right_dual(M)) == M);
+        // l_dual(r_dual(u)) = u
+        CHECK(l_dual(r_dual(s)) == s);
+        CHECK(l_dual(r_dual(v)) == v);
+        CHECK(l_dual(r_dual(B)) == B);
+        CHECK(l_dual(r_dual(T)) == T);
+        CHECK(l_dual(r_dual(ps)) == ps);
+        CHECK(l_dual(r_dual(M_e)) == M_e);
+        CHECK(l_dual(r_dual(M)) == M);
 
-        // right_dual(left_dual(u)) = u
-        CHECK(right_dual(left_dual(s)) == s);
-        CHECK(right_dual(left_dual(v)) == v);
-        CHECK(right_dual(left_dual(B)) == B);
-        CHECK(right_dual(left_dual(T)) == T);
-        CHECK(right_dual(left_dual(ps)) == ps);
-        CHECK(right_dual(left_dual(M_e)) == M_e);
-        CHECK(right_dual(left_dual(M)) == M);
+        // r_dual(l_dual(u)) = u
+        CHECK(r_dual(l_dual(s)) == s);
+        CHECK(r_dual(l_dual(v)) == v);
+        CHECK(r_dual(l_dual(B)) == B);
+        CHECK(r_dual(l_dual(T)) == T);
+        CHECK(r_dual(l_dual(ps)) == ps);
+        CHECK(r_dual(l_dual(M_e)) == M_e);
+        CHECK(r_dual(l_dual(M)) == M);
 
-        fmt::println("  ✓ left_dual(right_dual(u)) = right_dual(left_dual(u)) = u");
+        fmt::println("l_dual(r_dual(u)) = r_dual(l_dual(u)) = u");
     }
 
     TEST_CASE("G<1,3,0>: left-right complement composition")
     {
         fmt::println("G<1,3,0>: left-right complement composition");
 
-        // For even-dimensional algebras: lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u
+        // For even-dimensional algebras: l_cmpl(r_cmpl(u)) = r_cmpl(l_cmpl(u)) = u
         scalar4ds s{3.0};
         vec4ds v{2.0, 5.0, 7.0, 9.0};
         bivec4ds B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
@@ -125,24 +125,24 @@ TEST_SUITE("STA 3D Tests")
                   bivec4ds{6.0, 7.0, 8.0, 9.0, 10.0, 11.0},
                   trivec4ds{12.0, 13.0, 14.0, 15.0}, pscalar4ds{16.0}};
 
-        CHECK(lcmpl(rcmpl(s)) == s);
-        CHECK(lcmpl(rcmpl(v)) == v);
-        CHECK(lcmpl(rcmpl(B)) == B);
-        CHECK(lcmpl(rcmpl(T)) == T);
-        CHECK(lcmpl(rcmpl(ps)) == ps);
-        CHECK(lcmpl(rcmpl(M_e)) == M_e);
-        CHECK(lcmpl(rcmpl(M)) == M);
+        CHECK(l_cmpl(r_cmpl(s)) == s);
+        CHECK(l_cmpl(r_cmpl(v)) == v);
+        CHECK(l_cmpl(r_cmpl(B)) == B);
+        CHECK(l_cmpl(r_cmpl(T)) == T);
+        CHECK(l_cmpl(r_cmpl(ps)) == ps);
+        CHECK(l_cmpl(r_cmpl(M_e)) == M_e);
+        CHECK(l_cmpl(r_cmpl(M)) == M);
 
-        // Also test rcmpl(lcmpl(u)) = u
-        CHECK(rcmpl(lcmpl(s)) == s);
-        CHECK(rcmpl(lcmpl(v)) == v);
-        CHECK(rcmpl(lcmpl(B)) == B);
-        CHECK(rcmpl(lcmpl(T)) == T);
-        CHECK(rcmpl(lcmpl(ps)) == ps);
-        CHECK(rcmpl(lcmpl(M_e)) == M_e);
-        CHECK(rcmpl(lcmpl(M)) == M);
+        // Also test r_cmpl(l_cmpl(u)) = u
+        CHECK(r_cmpl(l_cmpl(s)) == s);
+        CHECK(r_cmpl(l_cmpl(v)) == v);
+        CHECK(r_cmpl(l_cmpl(B)) == B);
+        CHECK(r_cmpl(l_cmpl(T)) == T);
+        CHECK(r_cmpl(l_cmpl(ps)) == ps);
+        CHECK(r_cmpl(l_cmpl(M_e)) == M_e);
+        CHECK(r_cmpl(l_cmpl(M)) == M);
 
-        fmt::println("  ✓ lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u for even-dimensional");
+        fmt::println("l_cmpl(r_cmpl(u)) = r_cmpl(l_cmpl(u)) = u for even-dimensional");
     }
 
 } // STA 3D Tests

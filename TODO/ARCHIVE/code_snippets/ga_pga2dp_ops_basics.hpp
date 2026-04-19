@@ -315,8 +315,8 @@ constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 // the basis vectors which are NOT contained in the k-blade u
 // and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  lcmpl(u) ^ u  = I_2dp = e1^e2^e3
-// right complement: u ^ rcmpl(u)  = I_2dp = e1^e2^e3
+// left complement:  l_cmpl(u) ^ u  = I_2dp = e1^e2^e3
+// right complement: u ^ r_cmpl(u)  = I_2dp = e1^e2^e3
 //
 // in spaces of odd dimension right and left complements are identical and thus there
 // is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
@@ -460,7 +460,7 @@ constexpr MVec2dp<T> bulk(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight: u_weight = lcmpl( G rcmpl(u) ) = rG u
+// weight: u_weight = l_cmpl( G r_cmpl(u) ) = rG u
 //         (with G as the metric and rG as the anti-metric as given by Lengyel)
 ////////////////////////////////////////////////////////////////////////////////
 // By the multiplication with the metric G (which is degenerate in this case)

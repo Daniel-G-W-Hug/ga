@@ -16,6 +16,8 @@
 // include functions to be tested
 #include "ga/ga_pga.hpp"
 
+#include "ga/ga_ega.hpp" // e.g. for nrm_sq(vec2d)
+
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::pga; // use specific operations of PGA (Projective GA)
 
@@ -122,7 +124,7 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("       fmt: vp1 = {:e}", fmt::join(vp1, ", "));
         fmt::println("");
 
-        CHECK(nrm_sq(pf - pd) < eps);
+        CHECK(geom_nrm_sq(pf - pd) < eps);
     }
 
     TEST_CASE("Vec2dp: comparison float")
@@ -141,11 +143,11 @@ TEST_SUITE("PGA 2DP Tests")
 
         // fmt::println("    fmt: eps = {}", std::numeric_limits<float>::epsilon());
 
-        CHECK(v1f == v4f);           // comparison (equality)
-        CHECK(v1f != v2f);           // comparison (inequality)
-        CHECK(nrm(v1f) < nrm(v2f));  // comparison (less than)
-        CHECK(nrm(v2f) >= nrm(v1f)); // comparison (greater than or equal)
-        CHECK(v3f == v1f);           // comparison (eqality)
+        CHECK(v1f == v4f);                     // comparison (equality)
+        CHECK(v1f != v2f);                     // comparison (inequality)
+        CHECK(bulk_nrm(v1f) < bulk_nrm(v2f));  // comparison (less than)
+        CHECK(bulk_nrm(v2f) >= bulk_nrm(v1f)); // comparison (greater than or equal)
+        CHECK(v3f == v1f);                     // comparison (eqality)
     }
 
     TEST_CASE("Vec2dp: comparison double")
@@ -164,11 +166,11 @@ TEST_SUITE("PGA 2DP Tests")
 
         // fmt::println("    fmt: eps = {}", std::numeric_limits<double>::epsilon());
 
-        CHECK(v1d == v4d);           // comparison (equality)
-        CHECK(v1d != v2d);           // comparison (inequality)
-        CHECK(nrm(v1d) < nrm(v2d));  // comparison norm
-        CHECK(nrm(v2d) >= nrm(v1d)); // comparison norm
-        CHECK(v3d == v1d);           // comparison (eqality)
+        CHECK(v1d == v4d);                     // comparison (equality)
+        CHECK(v1d != v2d);                     // comparison (inequality)
+        CHECK(bulk_nrm(v1d) < bulk_nrm(v2d));  // comparison norm
+        CHECK(bulk_nrm(v2d) >= bulk_nrm(v1d)); // comparison norm
+        CHECK(v3d == v1d);                     // comparison (eqality)
     }
 
     TEST_CASE("Vec2dp: vector space and linearity tests")
@@ -310,7 +312,7 @@ TEST_SUITE("PGA 2DP Tests")
         scalar2dp s1{3.2};
 
         vec2dp v1{2.0, 1.0, 2.0};
-        vec2dp v2{normalize(v1)};
+        vec2dp v2{bulk_normalize(v1)};
 
         vec2dp v3{2.0, 6.0, -4.0};
         vec2dp v4{inv(v3)};
@@ -335,53 +337,53 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("0.5*(v3m*v4m + v4m*v3m) = {}", 0.5 * (v3m * v4m + v4m * v3m));
         // fmt::println("0.5*(v3m*v4m - v4m*v3m) = {}", 0.5 * (v3m * v4m - v4m * v3m));
 
-        CHECK(abs(nrm_sq(v1) - 9.0) < eps);
+        CHECK(abs(geom_nrm_sq(v1) - 9.0) < eps);
         CHECK(abs(bulk_nrm_sq(v1) - 5.0) < eps);
-        CHECK(abs(nrm_sq(v2) - 1.0) < eps);
+        CHECK(abs(bulk_nrm_sq(v2) - 1.0) < eps);
         CHECK(abs(bulk_nrm_sq(v3) - 40.0) < eps);
         CHECK(abs(dot(v4, v3) - 1.0) < eps);
 
         // check inverses - scalar
         // fmt::println("");
         // fmt::println("s1 * inv(s1) = {}", s1 * inv(s1)); // s
-        CHECK(abs(nrm(s1 * inv(s1)) - 1) < eps);
+        CHECK(abs(bulk_nrm(s1 * inv(s1)) - 1) < eps);
         CHECK(abs(inv(s1) - rev(s1) / bulk_nrm_sq(s1)) < eps);
 
         // check inverses - vector
         // fmt::println("v1 * inv(v1) = {}", v1 * inv(v1)); // mv_e
-        CHECK(abs(nrm(gr0(v1 * inv(v1))) - 1) < eps);
-        CHECK(abs(nrm(gr2(v1 * inv(v1))) - 0) < eps);
-        CHECK(abs(nrm(inv(v1) - rev(v1) / bulk_nrm_sq(v1))) < eps);
+        CHECK(abs(bulk_nrm(gr0(v1 * inv(v1))) - 1) < eps);
+        CHECK(abs(bulk_nrm(gr2(v1 * inv(v1))) - 0) < eps);
+        CHECK(abs(bulk_nrm(inv(v1) - rev(v1) / bulk_nrm_sq(v1))) < eps);
 
         // check inverses - bivector
         // fmt::println("b1 * inv(b1) = {}", b1 * inv(b1)); // mv_e
-        CHECK(abs(nrm(gr0(b1 * inv(b1))) - 1) < eps);
-        CHECK(abs(nrm(gr2(b1 * inv(b1))) - 0) < eps);
-        CHECK(abs(nrm(inv(b1) - rev(b1) / bulk_nrm_sq(b1))) < eps);
+        CHECK(abs(bulk_nrm(gr0(b1 * inv(b1))) - 1) < eps);
+        CHECK(abs(bulk_nrm(gr2(b1 * inv(b1))) - 0) < eps);
+        CHECK(abs(bulk_nrm(inv(b1) - rev(b1) / bulk_nrm_sq(b1))) < eps);
 
         // check inverses - pseudoscalar
         // due to the degenerate metric there is no inverse of the pseudoscalar
 
         // check inverses - even grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
-        CHECK(abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
-        CHECK(abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
-        CHECK(abs(nrm(inv(mve1) - rev(mve1) / bulk_nrm_sq(mve1))) < eps);
+        CHECK(abs(bulk_nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
+        CHECK(abs(bulk_nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
+        CHECK(abs(bulk_nrm(inv(mve1) - rev(mve1) / bulk_nrm_sq(mve1))) < eps);
 
         // check inverses - odd grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
-        CHECK(abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
-        CHECK(abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
-        CHECK(abs(nrm(inv(mvu1) - rev(mvu1) / bulk_nrm_sq(mvu1))) < eps);
+        CHECK(abs(bulk_nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
+        CHECK(abs(bulk_nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
+        CHECK(abs(bulk_nrm(inv(mvu1) - rev(mvu1) / bulk_nrm_sq(mvu1))) < eps);
 
         // check inverses - multivector
         // fmt::println("mv1 * inv(mv1) = {}", mv1 * inv(mv1)); // mv
-        CHECK(abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
-        CHECK(abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(abs(nrm(gr3(mv1 * inv(mv1))) - 0) < eps);
-        CHECK(abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
-                                                        // are equal
+        CHECK(abs(bulk_nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
+        CHECK(abs(bulk_nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(bulk_nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(bulk_nrm(gr3(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(bulk_nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
+                                                             // are equal
         // fmt::println("");
     }
 
@@ -455,13 +457,13 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("Vec2dp: operations - angle I");
 
         vec2dp v1{1.0, 0.0, 0.0};
-        vec2dp v2{normalize(vec2dp(1.0, 1.0, 0.0))};
+        vec2dp v2{bulk_normalize(vec2dp(1.0, 1.0, 0.0))};
         vec2dp v3{0.0, 1.0, 0.0};
-        vec2dp v4{normalize(vec2dp(-1.0, 1.0, 0.0))};
+        vec2dp v4{bulk_normalize(vec2dp(-1.0, 1.0, 0.0))};
         vec2dp v5{-1.0, 0.0, 0.0};
-        vec2dp v6{normalize(vec2dp(-1.0, -1.0, 0.0))};
+        vec2dp v6{bulk_normalize(vec2dp(-1.0, -1.0, 0.0))};
         vec2dp v7{0.0, -1.0, 0.0};
-        vec2dp v8{normalize(vec2dp(1.0, -1.0, 0.0))};
+        vec2dp v8{bulk_normalize(vec2dp(1.0, -1.0, 0.0))};
 
         // fmt::println("v1 = {: .4f}, nrm(v1) = {:.8f}, "
         //              "angle(v1,v1) = {:.8f}, {:.8f}",
@@ -495,9 +497,9 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(abs(angle(v1, v5) - pi) < eps);
 
         // just to suppress unused variable warnings
-        CHECK(v6 == normalize(vec2dp(-1.0, -1.0, 0.0)));
-        CHECK(v7 == normalize(vec2dp(0.0, -1.0, 0.0)));
-        CHECK(v8 == normalize(vec2dp(1.0, -1.0, 0.0)));
+        CHECK(v6 == bulk_normalize(vec2dp(-1.0, -1.0, 0.0)));
+        CHECK(v7 == bulk_normalize(vec2dp(0.0, -1.0, 0.0)));
+        CHECK(v8 == bulk_normalize(vec2dp(1.0, -1.0, 0.0)));
     }
 
     TEST_CASE("Vec2dp: operations - angle II")
@@ -546,7 +548,7 @@ TEST_SUITE("PGA 2DP Tests")
         for (auto const& [phi, c] : v2) {
             CHECK(abs(phi - angle(e2_2dp, c)) < eps);
         }
-        auto ref_vec = normalize(e1_2dp + e2_2dp);
+        auto ref_vec = bulk_normalize(e1_2dp + e2_2dp);
         for (auto const& [phi, c] : v3) {
             CHECK(abs(phi - angle(ref_vec, c)) < eps);
         }
@@ -580,13 +582,13 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("Vec2dp: operations - wedge");
 
         vec2dp v1{1.0, 0.0, 0.0};
-        vec2dp v2{normalize(vec2dp(1.0, 1.0, 0.0))};
+        vec2dp v2{bulk_normalize(vec2dp(1.0, 1.0, 0.0))};
         vec2dp v3{0.0, 1.0, 0.0};
-        vec2dp v4{normalize(vec2dp(-1.0, 1.0, 0.0))};
+        vec2dp v4{bulk_normalize(vec2dp(-1.0, 1.0, 0.0))};
         vec2dp v5{-1.0, 0.0, 0.0};
-        vec2dp v6{normalize(vec2dp(-1.0, -1.0, 0.0))};
+        vec2dp v6{bulk_normalize(vec2dp(-1.0, -1.0, 0.0))};
         vec2dp v7{0.0, -1.0, 0.0};
-        vec2dp v8{normalize(vec2dp(1.0, -1.0, 0.0))};
+        vec2dp v8{bulk_normalize(vec2dp(1.0, -1.0, 0.0))};
 
         double sd = 2.3;
         double st = -5.1;
@@ -1137,7 +1139,7 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("    fmt: vp1 = {:e}", fmt::join(vp1, ", "));
         fmt::println("");
 
-        CHECK(nrm_sq(pf - pd) < eps);
+        CHECK(geom_nrm_sq(pf - pd) < eps);
     }
 
     TEST_CASE("MVec2dp: vector space and linearity tests")
@@ -2333,10 +2335,20 @@ TEST_SUITE("PGA 2DP Tests")
         auto B2 = bivec2dp{5.0, 10.0, 15.0};
         auto ps2 = pscalar2dp{-1.5};
 
-        CHECK(wdg(s, cmpl(s)) == nrm_sq(s) * I_2dp);
-        CHECK(wdg(v, cmpl(v)) == nrm_sq(v) * I_2dp);
-        CHECK(wdg(B, cmpl(B)) == nrm_sq(B) * I_2dp);
-        CHECK(wdg(ps, cmpl(ps)) == nrm_sq(ps) * I_2dp);
+        // following tests are only valid for blades, not for mulitvectors
+        CHECK(wdg(s, cmpl(s)) == geom_nrm_sq(s) * I_2dp);
+        CHECK(wdg(v, cmpl(v)) == geom_nrm_sq(v) * I_2dp);
+        CHECK(wdg(B, cmpl(B)) == geom_nrm_sq(B) * I_2dp);
+        CHECK(wdg(ps, cmpl(ps)) == geom_nrm_sq(ps) * I_2dp);
+        //
+        CHECK(wdg(s, cmpl(s)) / geom_nrm_sq(s) == I_2dp);
+        CHECK(wdg(cmpl(s), s) / geom_nrm_sq(s) == I_2dp);
+        CHECK(wdg(v, cmpl(v)) / geom_nrm_sq(v) == I_2dp);
+        CHECK(wdg(cmpl(v), v) / geom_nrm_sq(v) == I_2dp);
+        CHECK(wdg(B, cmpl(B)) / geom_nrm_sq(B) == I_2dp);
+        CHECK(wdg(cmpl(B), B) / geom_nrm_sq(B) == I_2dp);
+        CHECK(wdg(ps, cmpl(ps)) / geom_nrm_sq(ps) == I_2dp);
+        CHECK(wdg(cmpl(ps), ps) / geom_nrm_sq(ps) == I_2dp);
 
         // complement properties
         CHECK(cmpl(cmpl(s)) == s);
@@ -2358,15 +2370,6 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(cmpl(cmpl(mv)) == mv);
         CHECK(cmpl(cmpl(mv_e)) == mv_e);
         CHECK(cmpl(cmpl(mv_u)) == mv_u);
-        //
-        CHECK(wdg(s, cmpl(s)) / nrm_sq(s) == I_2dp);
-        CHECK(wdg(cmpl(s), s) / nrm_sq(s) == I_2dp);
-        CHECK(wdg(v, cmpl(v)) / nrm_sq(v) == I_2dp);
-        CHECK(wdg(cmpl(v), v) / nrm_sq(v) == I_2dp);
-        CHECK(wdg(B, cmpl(B)) / nrm_sq(B) == I_2dp);
-        CHECK(wdg(cmpl(B), B) / nrm_sq(B) == I_2dp);
-        CHECK(wdg(ps, cmpl(ps)) / nrm_sq(ps) == I_2dp);
-        CHECK(wdg(cmpl(ps), ps) / nrm_sq(ps) == I_2dp);
 
         // linearity of the complement operation
         double a = 2.0;
@@ -2424,7 +2427,7 @@ TEST_SUITE("PGA 2DP Tests")
 
         // fmt::println("vector = {}", vector);
 
-        CHECK(nrm_sq(vector) == 5.0);
+        CHECK(hd::ga::ega::nrm_sq(vector) == 5.0);
 
         //
         // fmt::println("p1 = {}", p1);
@@ -2499,7 +2502,7 @@ TEST_SUITE("PGA 2DP Tests")
             rwdg(l4, l5); // should intersect at infinity, i.e. att(int_sec) == 0.0
         fmt::println("   att(l4) = {}", att(l4));
         fmt::println("   att(l5) = {}", att(l5));
-        fmt::println("   normalize(int_sec(l4,l5)) = {}", normalize(int_sec));
+        fmt::println("   bulk_normalize(int_sec(l4,l5)) = {}", bulk_normalize(int_sec));
         CHECK(att(int_sec) == 0.0);
 
         fmt::println("   att(l1) = {}", att(l1));
@@ -2618,9 +2621,9 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("   cmt(b1, b2)  = {}", cmt(b1, b2));
         // fmt::println("   dot(b1,b2)   = {}", dot(b1, b2));
         // fmt::println("");
-        CHECK(wdg(b1, b2) == nrm_sq(b1 * b2 - cmt(b1, b2) + dot(b1, b2)));
-        CHECK(wdg(v1, ps1) == nrm_sq(0.5 * (v1 * ps1 + rev(ps1) * v1)));
-        CHECK(wdg(ps1, v1) == nrm_sq(0.5 * (ps1 * v1 + v1 * rev(ps1))));
+        CHECK(wdg(b1, b2) == bulk_nrm_sq(b1 * b2 - cmt(b1, b2) + dot(b1, b2)));
+        CHECK(wdg(v1, ps1) == bulk_nrm_sq(0.5 * (v1 * ps1 + rev(ps1) * v1)));
+        CHECK(wdg(ps1, v1) == bulk_nrm_sq(0.5 * (ps1 * v1 + v1 * rev(ps1))));
 
 
         CHECK(rwdg(v1, bulk_dual(wdg(v2, v3))) ==
@@ -2709,15 +2712,15 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("");
 
         // x^B = 0 for every point x in B
-        CHECK(nrm_sq(wdg(v_in_B, B)) < eps);
+        CHECK(geom_nrm_sq(wdg(v_in_B, B)) < eps);
 
         // v_perp_B should be proportional to the normal vector n of B
         // n = att(B)
         // thus, wdg(v_perp_B, att(B)) == 0 is required
-        CHECK(nrm_sq(wdg(v_perp_B, att(B))) < eps);
+        CHECK(geom_nrm_sq(wdg(v_perp_B, att(B))) < eps);
 
         // v_in_B and v_perp_B should be perpendicular to each other
-        CHECK(nrm_sq(dot(v_in_B, v_perp_B)) < eps);
+        CHECK(bulk_nrm_sq(dot(v_in_B, v_perp_B)) < eps);
 
         // v should be the sum of v_in_B and v_perp_B
         CHECK(v == v_in_B + v_perp_B);
@@ -2743,16 +2746,16 @@ TEST_SUITE("PGA 2DP Tests")
         // => magnitude has to be covered separately for non-normalized elements
 
         // left complements = complements in spaces of odd dimension
-        CHECK(wdg(cmpl(s1), s1) / nrm_sq(s1) == I_2dp);
-        CHECK(wdg(cmpl(v1), v1) / nrm_sq(v1) == I_2dp);
-        CHECK(wdg(cmpl(b1), b1) / nrm_sq(b1) == I_2dp);
-        CHECK(wdg(cmpl(ps1), ps1) / nrm_sq(ps1) == I_2dp);
+        CHECK(wdg(cmpl(s1), s1) / geom_nrm_sq(s1) == I_2dp);
+        CHECK(wdg(cmpl(v1), v1) / geom_nrm_sq(v1) == I_2dp);
+        CHECK(wdg(cmpl(b1), b1) / geom_nrm_sq(b1) == I_2dp);
+        CHECK(wdg(cmpl(ps1), ps1) / geom_nrm_sq(ps1) == I_2dp);
 
         // right complements = complements in spaces of odd dimension
-        CHECK(wdg(s1, cmpl(s1)) / nrm_sq(s1) == I_2dp);
-        CHECK(wdg(v1, cmpl(v1)) / nrm_sq(v1) == I_2dp);
-        CHECK(wdg(b1, cmpl(b1)) / nrm_sq(b1) == I_2dp);
-        CHECK(wdg(ps1, cmpl(ps1)) / nrm_sq(ps1) == I_2dp);
+        CHECK(wdg(s1, cmpl(s1)) / geom_nrm_sq(s1) == I_2dp);
+        CHECK(wdg(v1, cmpl(v1)) / geom_nrm_sq(v1) == I_2dp);
+        CHECK(wdg(b1, cmpl(b1)) / geom_nrm_sq(b1) == I_2dp);
+        CHECK(wdg(ps1, cmpl(ps1)) / geom_nrm_sq(ps1) == I_2dp);
 
         // correspondence of complements with geometric products:
         // bulk_duals differ from complements in pga2dp (influence of degenerate metric)

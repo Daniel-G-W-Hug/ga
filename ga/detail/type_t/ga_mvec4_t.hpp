@@ -194,33 +194,6 @@ inline MVec4_t<std::common_type_t<T, U>, Tag> operator/(MVec4_t<T, Tag> const& v
     return MVec4_t<ctype, Tag>(v.c0 * inv, v.c1 * inv, v.c2 * inv, v.c3 * inv);
 }
 
-// magnitude of a k-vector (in representational space)
-// |Z|^2 = Z rev(Z) = c0^2 + c1^2 + c2^2 + c3^2
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm_sq(MVec4_t<T, Tag> const& v)
-{
-    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3;
-}
-
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm(MVec4_t<T, Tag> const& v)
-{
-    return sqrt(nrm_sq(v));
-}
-
-// return a multivector M normalized to nrm(M) == 1.0
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-inline MVec4_t<T, Tag> normalize(MVec4_t<T, Tag> const& M)
-{
-    T m = nrm(M);
-    detail::check_normalization<T>(m, "multivector");
-    T inv = T(1.0) / m; // for multiplication with inverse of norm
-    return MVec4_t<T, Tag>(M.c0 * inv, M.c1 * inv, M.c2 * inv, M.c3 * inv);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // MVec4_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////
