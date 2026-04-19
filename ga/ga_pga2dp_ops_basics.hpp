@@ -20,13 +20,14 @@ namespace hd::ga::pga {
 // - rev()                         -> reversion
 // - rrev()                        -> regressive reversion
 // - conj()                        -> conjugation
+//
 // - cmpl()                        -> complement
-// - bulk_dual(), weight_dual()    -> bulk dual and weight dual
 //
 // - bulk(), weight()              -> return bulk and weight parts of objects
 // - bulk_nrm_sq(), bulk_nrm()     -> return bulk norm
 // - weight_nrm_sq(), weight_nrm() -> return weight norm
 // - geom_nrm_sq(), geom_nrm()     -> return geometric norm
+//
 // - bulk_normalize()              -> return normalized object (bulk_nrm scaled to 1.0)
 // - unitize()                     -> return unitized object (weight_nrm scaled to 1.0)
 //

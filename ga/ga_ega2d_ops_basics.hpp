@@ -14,7 +14,9 @@ namespace hd::ga::ega {
 // - gr_inv()                     -> grade inversion
 // - rev()                        -> reversion
 // - conj()                       -> conjugation
+//
 // - lcmpl(), rcmpl()             -> left and right complements
+//
 // - left_dual(), right_dual()    -> left and right duals
 //
 /////////////////////////////////////////////////////////////////////////////////////////
