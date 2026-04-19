@@ -65,7 +65,7 @@ TEST_SUITE("PGA3DP: comparison tests")
         // PGA3DP:
         //        for omega = const. (a ega3dp vector representing a rotational axis)
         //
-        //        with Omega = att(right_bulk_dual(omega)) a bivector)
+        //        with Omega = att(r_bulk_dual(omega)) a bivector)
         //        ds/dt = v = Omega >> r = cmt(r, Omega)
         //        dv/dt = a = Omega >> v = cmt(v, Omega)
 
@@ -116,8 +116,8 @@ TEST_SUITE("PGA3DP: comparison tests")
         // are equivalent
 
         auto omega3dp = vec3dp{omega_ega.x, omega_ega.y, omega_ega.z, 1};
-        CHECK(Omega == att(right_bulk_dual(omega3dp)));
-        CHECK(Omega == att(rcmpl(omega3dp)));
+        CHECK(Omega == att(r_bulk_dual(omega3dp)));
+        CHECK(Omega == att(r_cmpl(omega3dp)));
 
         fmt::println("B = {}", B);
         fmt::println("bulk(B)   = {}, bulk_nrm(B)   = {}", bulk(B), bulk_nrm(B));
@@ -127,13 +127,12 @@ TEST_SUITE("PGA3DP: comparison tests")
         fmt::println("omega [rad/s]     = {}", omega);
         fmt::println("omega_ega         = {}", omega_ega);
         fmt::println("Omega = omega * B = {}", Omega);
-        fmt::println("    att(right_bulk_dual(omega3dp))) = {}",
-                     att(right_bulk_dual(omega3dp)));
-        fmt::println("    att(rcmpl(omega3dp)) = {}", att(rcmpl(omega3dp)));
+        fmt::println("    att(r_bulk_dual(omega3dp))) = {}", att(r_bulk_dual(omega3dp)));
+        fmt::println("    att(r_cmpl(omega3dp)) = {}", att(r_cmpl(omega3dp)));
         fmt::println("");
-        fmt::println("v1_ega = omega * (omega_ega x r_ega) =  {}", v1_ega);
-        fmt::println("v1     = omega * (v1_ega, 1.0)       = {},       nrm(v1) = {}", v1,
-                     nrm(v1));
+        fmt::println("v1_ega = omega * (omega_ega x r_ega) = {}", v1_ega);
+        fmt::println("v1     = omega * (v1_ega, 1.0)       = {}, bulk_nrm(v1) = {}", v1,
+                     to_val(bulk_nrm(v1)));
         fmt::println("v2 = Omega >> r                      = {}, bulk_nrm(v2) = {}", v2,
                      to_val(bulk_nrm(v2)));
         fmt::println("a2 = Omega >> v2                     = {}, bulk_nrm(a2) = {}", a2,
@@ -451,18 +450,18 @@ TEST_SUITE("PGA3DP: comparison tests")
         //   B_rot contains this info after the wedge product with e4
         //
         //   B_rot = e4 ^ rot_axis_vec = O_3dp ^ rot_axis_vec
-        //                             = O_3dp ^ left_weight_dual(plane of rotation plr)
-        //                             = lcmpl(rwdg(H_3dp, right_bulk_dual(plr)))
+        //                             = O_3dp ^ l_weight_dual(plane of rotation plr)
+        //                             = l_cmpl(rwdg(H_3dp, r_bulk_dual(plr)))
         //
-        auto n = vec3dp{1, 1, 1, 0};   // only components e1, e2, e3 relevant
-        auto plr = right_bulk_dual(n); // plane with normal n, containing origin
+        auto n = vec3dp{1, 1, 1, 0}; // only components e1, e2, e3 relevant
+        auto plr = r_bulk_dual(n);   // plane with normal n, containing origin
         //
         auto B_rot = wdg(O_3dp, n); // calc from normal (only keeps e4x components)
                                     // only keeps e41, e42 and e43, since e4 ^ e4 == 0
         auto B_rot2 = wdg(O_3dp,
-                          left_weight_dual(plr)); // calc from plane directly
-        auto B_rot3 = lcmpl(rwdg(H_3dp, rcmpl(n)));
-        auto B_rot4 = lcmpl(rwdg(H_3dp, weight(plr)));
+                          l_weight_dual(plr)); // calc from plane directly
+        auto B_rot3 = l_cmpl(rwdg(H_3dp, r_cmpl(n)));
+        auto B_rot4 = l_cmpl(rwdg(H_3dp, weight(plr)));
 
         fmt::println("n        -> normal vector = {}", n);
         fmt::println("plr      -> rot. plane    = {}", plr);
@@ -480,19 +479,18 @@ TEST_SUITE("PGA3DP: comparison tests")
         // - positional information of B is contained in its bulk
         // - zero bulk means that B contains the origin
         //
-        //   B_tra = att(right_bulk_dual(v)) = att(plane with normal v)
+        //   B_tra = att(r_bulk_dual(v)) = att(plane with normal v)
         //
         auto const v = vec3dp{1, 2, 3, 0};
-        auto B_tra = att(right_bulk_dual(v));
+        auto B_tra = att(r_bulk_dual(v));
         // creates a plane that has a normal v (a trivec)
         // att(plane) is a bivector with respective orientation
 
-        fmt::println("v                              = {}", v);
-        fmt::println("right_bulk_dual(v)             = {}", right_bulk_dual(v));
-        fmt::println("att(right_bulk_dual(v))        = {}", att(right_bulk_dual(v)));
-        fmt::println("rwdg(right_bulk_dual(v),H_3dp) = {}",
-                     rwdg(right_bulk_dual(v), H_3dp));
-        fmt::println("B_tra                          = {}", B_tra);
+        fmt::println("v                          = {}", v);
+        fmt::println("r_bulk_dual(v)             = {}", r_bulk_dual(v));
+        fmt::println("att(r_bulk_dual(v))        = {}", att(r_bulk_dual(v)));
+        fmt::println("rwdg(r_bulk_dual(v),H_3dp) = {}", rwdg(r_bulk_dual(v), H_3dp));
+        fmt::println("B_tra                      = {}", B_tra);
         fmt::println("");
 
         // split a bivector rate into the parts carrying info on rotation and translation
@@ -503,10 +501,10 @@ TEST_SUITE("PGA3DP: comparison tests")
         fmt::println("");
 
         auto const B_tot = B_rot + B_tra;
-        auto const B_tot_alt = wdg(O_3dp, n) - rcmpl(wdg(O_3dp, v));
+        auto const B_tot_alt = wdg(O_3dp, n) - r_cmpl(wdg(O_3dp, v));
 
         fmt::println("B_tot = B_rot + B_tra                           = {}", B_tot);
-        fmt::println("B_tot_alt = wdg(O_3dp, n) - rcmpl(wdg(O_3dp, v) = {}", B_tot_alt);
+        fmt::println("B_tot_alt = wdg(O_3dp, n) - r_cmpl(wdg(O_3dp, v) = {}", B_tot_alt);
         fmt::println("");
 
         fmt::println("Derivatives at P_i (must be normlized points with p.w == 1):");
@@ -660,10 +658,11 @@ TEST_SUITE("PGA3DP: comparison tests")
         fmt::println("       a_rel = {}", a_b_v);
 
 
+        // TODO: rotating duck in EGA and PGA
         fmt::println("  2nd: rotating duck in EGA");
 
-        auto omega_B = dual(omega_v);
-        auto alpha_B = dual(alpha_v);
+        // auto omega_B = dual(omega_v);
+        // auto alpha_B = dual(alpha_v);
 
         fmt::println("  3rd: rotating duck in PGA");
 

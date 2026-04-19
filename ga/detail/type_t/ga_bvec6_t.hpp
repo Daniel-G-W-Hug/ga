@@ -244,55 +244,6 @@ inline BVec6_t<std::common_type_t<T, U>, Tag> operator/(BVec6_t<T, Tag> const& B
                                B.mz * inv);
 }
 
-// magnitude of the k-vector (in representational space)
-//
-// magnitude is always defined in the representational space, i.e. without
-// covering the target metric of the representation
-//
-// -> in ega magnitude (magn) and norm (nrm) are identical
-//
-// -> in pga magnitude is defined as norm for the representational space
-//    assuming the corresponding identity matrix as metric for that space:
-//
-//    G<3,0,0> as representational space for modelling 2d Euclidean space using G<2,0,1>
-//             representational space:        e1^2=+1, e2^2=+1, e3^2=+1
-//             modelled 2d Euclidean space:   e1^2=+1, e2^2=+1, e3^2= 0
-//
-//    G<4,0,0> as representational space for modelling 3d Euclidean space using G<3,0,1>
-//             representational space:        e1^2=+1, e2^2=+1, e3^2=+1, e4^2=+1
-//             modelled 3d Euclidean space:   e1^2=+1, e2^2=+1, e3^2=+1, e4^2= 0
-//
-//    norm is always defined for the modelled space incl. the target metric,
-//    by using the exomorphisim matrix G as defined by Lengyel in the book
-//    "Projective geometric algebra illuminated"
-//
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm_sq(BVec6_t<T, Tag> const& B)
-{
-    return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz + B.mx * B.mx + B.my * B.my +
-           B.mz * B.mz;
-}
-
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm(BVec6_t<T, Tag> const& B)
-{
-    return sqrt(nrm_sq(B));
-}
-
-// return a bivector B normalized to nrm(B) == 1.0
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-inline BVec6_t<T, Tag> normalize(BVec6_t<T, Tag> const& B)
-{
-    T m = nrm(B);
-    detail::check_normalization<T>(m, "bivector");
-    T inv = T(1.0) / m; // for multiplication with inverse of norm
-    return BVec6_t<T, Tag>(B.vx * inv, B.vy * inv, B.vz * inv, B.mx * inv, B.my * inv,
-                           B.mz * inv);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // BVec6_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////

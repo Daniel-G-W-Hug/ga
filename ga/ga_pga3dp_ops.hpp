@@ -156,7 +156,7 @@ constexpr MVec3dp_E<T> exp(BiVec3dp<T> const& B)
     if (phi_sq == 0.0) {
         // pure translation
 
-        // B = att(right_bulk_dual(delta)) to move in direction of vector delta
+        // B = att(r_bulk_dual(delta)) to move in direction of vector delta
         // B does only contain a bulk part which encodes the translation
         return MVec3dp_E<T>(Scalar3dp<T>(0.0), B, PScalar3dp<T>(1.0));
     }
@@ -182,7 +182,7 @@ constexpr MVec3dp_E<T> exp(BiVec3dp<T> const& B)
 
     return MVec3dp_E<T>(
         Scalar3dp<T>(-dist * std::sin(phi)),
-        BiVec3dp<T>(l * std::sin(phi) - right_weight_dual(l) * dist * std::cos(phi)),
+        BiVec3dp<T>(l * std::sin(phi) - r_weight_dual(l) * dist * std::cos(phi)),
         PScalar3dp<T>(std::cos(phi)));
 }
 
@@ -294,7 +294,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U, V>> get_motor(BiVec3dp<T> const& L,
     return MVec3dp_E<ctype>(
         Scalar3dp<ctype>(-half_dist * std::sin(half_angle)),
         BiVec3dp<ctype>(l * std::sin(half_angle) -
-                        right_weight_dual(l) * half_dist * std::cos(half_angle)),
+                        r_weight_dual(l) * half_dist * std::cos(half_angle)),
         PScalar3dp<ctype>(std::cos(half_angle)));
 }
 
@@ -799,7 +799,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
                                                         BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(rwdg(B, wdg(v, right_weight_dual(B)))); // ortho_proj3dp
+    return Vec3dp<ctype>(rwdg(B, wdg(v, r_weight_dual(B)))); // ortho_proj3dp
 }
 
 // rejection of vector v from a bivector B (a line)
@@ -821,7 +821,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> project_onto(Vec3dp<T> const& v,
                                                         TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(rwdg(t, wdg(v, right_weight_dual(t)))); // ortho_proj3dp
+    return Vec3dp<ctype>(rwdg(t, wdg(v, r_weight_dual(t)))); // ortho_proj3dp
 }
 
 // rejection of vector v from a trivector t (a plane)
@@ -842,7 +842,7 @@ constexpr BiVec3dp<std::common_type_t<T, U>> project_onto(BiVec3dp<T> const& B,
                                                           TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(rwdg(t, wdg(B, right_weight_dual(t)))); // ortho_proj3dp
+    return BiVec3dp<ctype>(rwdg(t, wdg(B, r_weight_dual(t)))); // ortho_proj3dp
 }
 
 // expand to a new line which goes through point p and is perpendicular to the plane
@@ -1040,7 +1040,7 @@ Vec3dp<T> sup(TriVec3dp<T> const& t)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// attitude operations: att = rwdg( u, rcmpl(e4_3dp) ) = rwdg(u, H_3dp)
+// attitude operations: att = rwdg( u, r_cmpl(e4_3dp) ) = rwdg(u, H_3dp)
 //
 // (the attitude is the intersection of the object with the horizon)
 // the result of att(object_with_grade_k) is an object with grade k-1

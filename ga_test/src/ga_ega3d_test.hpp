@@ -2201,7 +2201,7 @@ TEST_SUITE("EGA 3D Tests")
         ////////////////////////////////////////////////////////////////////////////////
         //
         // dual(A) = cmpl(A) in spaces of odd dimension
-        //         = rcmpl(A) in spaces of even dimension
+        //         = r_cmpl(A) in spaces of even dimension
         //
 
         auto vm_dual_manual = rev(vm) * I_3d_mv;

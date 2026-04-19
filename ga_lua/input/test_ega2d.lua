@@ -241,25 +241,25 @@ print("\n11. Testing dual operations:")
 print("---------------------------")
 
 print("I_2d*mvec2d.new(2,-3,5,7)", I_2d * mvec2d.new(2, -3, 5, 7))
-print("right_dual(mvec2d.new(2,-3,5,7))", right_dual(mvec2d.new(2, -3, 5, 7)))
+print("r_dual(mvec2d.new(2,-3,5,7))", r_dual(mvec2d.new(2, -3, 5, 7)))
 
 print("I_2d*mvec2d_e.new(2,7)", I_2d * mvec2d_e.new(2, 7))
-print("right_dual(mvec2d_e.new(2,7))", right_dual(mvec2d_e.new(2, 7)))
+print("r_dual(mvec2d_e.new(2,7))", r_dual(mvec2d_e.new(2, 7)))
 
 print("I_2d*vec2d.new(2,7)", I_2d * vec2d.new(2, 7))
-print("right_dual(vec2d.new(2,7))", right_dual(vec2d.new(2, 7)))
+print("r_dual(vec2d.new(2,7))", r_dual(vec2d.new(2, 7)))
 
-print("right_dual(scalar2d.new(5))", right_dual(scalar2d.new(5)))
-print("right_dual(pscalar2d.new(3))", right_dual(pscalar2d.new(3)))
+print("r_dual(scalar2d.new(5))", r_dual(scalar2d.new(5)))
+print("r_dual(pscalar2d.new(3))", r_dual(pscalar2d.new(3)))
 
 -- Test complement operations
 print("\n12. Testing complement operations:")
 print("---------------------------------")
 
-print("rcmpl(scalar2d.new(5))", rcmpl(scalar2d.new(5)))
-print("lcmpl(scalar2d.new(5))", lcmpl(scalar2d.new(5)))
-print("rcmpl(vec2d.new(3,4))", rcmpl(vec2d.new(3, 4)))
-print("lcmpl(vec2d.new(3,4))", lcmpl(vec2d.new(3, 4)))
+print("r_cmpl(scalar2d.new(5))", r_cmpl(scalar2d.new(5)))
+print("l_cmpl(scalar2d.new(5))", l_cmpl(scalar2d.new(5)))
+print("r_cmpl(vec2d.new(3,4))", r_cmpl(vec2d.new(3, 4)))
+print("l_cmpl(vec2d.new(3,4))", l_cmpl(vec2d.new(3, 4)))
 
 -- Test 2D rotations
 print("\n13. Testing 2D rotations:")

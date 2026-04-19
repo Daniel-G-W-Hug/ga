@@ -491,10 +491,11 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
-            // lcmpl(wdg(a,rcmpl(a)))
+            // Lambda for calculating left-hand side: rwdg(l_cmpl(c),a) =
+            // l_cmpl(wdg(a,r_cmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_rcmpl = coeff; // rcmpl(lcmpl(coeff)) is identity transformation
+                auto lhs_rcmpl =
+                    coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
                 auto rhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
@@ -504,8 +505,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 return lhs_tab[index];
             };
 
-            // Lambda for calculating right-hand side: rwdg(b, right_dual(c)) =
-            // lcmpl(wdg(rcmpl(b),rcmpl(right_dual(c)))
+            // Lambda for calculating right-hand side: rwdg(b, r_dual(c)) =
+            // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
                 auto rhs_rcmpl = apply_rules_to_mv(
@@ -544,10 +545,11 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
-            // lcmpl(wdg(a,rcmpl(a)))
+            // Lambda for calculating left-hand side: rwdg(l_cmpl(c),a) =
+            // l_cmpl(wdg(a,r_cmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_rcmpl = coeff; // rcmpl(lcmpl(coeff)) is identity transformation
+                auto lhs_rcmpl =
+                    coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
                 auto rhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
@@ -557,8 +559,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 return lhs_tab[index];
             };
 
-            // Lambda for calculating right-hand side: rwdg(b, right_dual(c)) =
-            // lcmpl(wdg(rcmpl(b),rcmpl(right_dual(c)))
+            // Lambda for calculating right-hand side: rwdg(b, r_dual(c)) =
+            // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
                 auto rhs_rcmpl = apply_rules_to_mv(
@@ -606,9 +608,9 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         else if (product_name == "dot (alternative)") {
             // Inner product (=dot product) - defined by outer product
             // (see Grassmann Algebra, John Browne, p. 35, p. 373)
-            // remember: A ^ rcmpl(A) = I_2d
-            // inner product = rwdg(A,rcmpl(A))
-            //               = lcmpl( wdg( rcmpl(A), rcmpl( rcmpl(A) ) ) )
+            // remember: A ^ r_cmpl(A) = I_2d
+            // inner product = rwdg(A,r_cmpl(A))
+            //               = l_cmpl( wdg( r_cmpl(A), r_cmpl( r_cmpl(A) ) ) )
             // => only valid, if both operands are of the same grade, i.e. only the
             // main diagonal is valid
 
@@ -629,9 +631,9 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "lcontract") {
-            // A << B = rwdg(lcmpl(A), B)
-            //        = lcmpl( wdg( rcmpl(lcmpl(A)), rcmpl(B) ) )
-            //        = lcmpl( wdg(             A,   rcmpl(B) ) )
+            // A << B = rwdg(l_cmpl(A), B)
+            //        = l_cmpl( wdg( r_cmpl(l_cmpl(A)), r_cmpl(B) ) )
+            //        = l_cmpl( wdg(               A,   r_cmpl(B) ) )
             //
             // auto lhs = apply_rules_to_mv(apply_rules_to_mv(mv2d_basis,
             // lcmpl_ega2d_rules), rcmpl_ega2d_rules);
@@ -643,8 +645,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rcontract") {
-            // A >> B = rwdg(A,rcmpl(B))
-            //        = lcmpl( wdg( rcmpl(A),rcmpl(rcmpl(B)) )  )
+            // A >> B = rwdg(A,r_cmpl(B))
+            //        = l_cmpl( wdg( r_cmpl(A),r_cmpl(r_cmpl(B)) )  )
             auto lhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
             auto rhs = apply_rules_to_mv(apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules),
                                          rcmpl_ega2d_rules);
@@ -654,7 +656,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "lexpand") {
-            // Left expansion: lexpand(A,B) = wdg(lcmpl(A), B)
+            // Left expansion: lexpand(A,B) = wdg(l_cmpl(A), B)
             auto lhs = apply_rules_to_mv(mv2d_basis, lcmpl_ega2d_rules);
             auto rhs = mv2d_basis;
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
@@ -662,7 +664,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rexpand") {
-            // Right expansion: rexpand(A,B) = wdg(A, rcmpl(B))
+            // Right expansion: rexpand(A,B) = wdg(A, r_cmpl(B))
             auto lhs = mv2d_basis;
             auto rhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
@@ -670,7 +672,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rgpr") {
-            // Regressive geometric: rgpr(A,B) = lcmpl(gpr(rcmpl(A), rcmpl(B)))
+            // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
@@ -689,7 +691,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            dual). Shows that geometric product is not more fundamental,
             //            since it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: lcmpl(wdg(c,a))
+            // Lambda for calculating left-hand side: l_cmpl(wdg(c,a))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = coeff;
                 auto rhs_arg = mv2d_basis;
@@ -702,7 +704,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             };
 
             // Lambda for calculating right-hand side:
-            // lcmpl(wdg(b,rcmpl(right_dual(c))))
+            // l_cmpl(wdg(b,r_cmpl(r_dual(c))))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = mv2d_basis;
                 auto rhs_arg = apply_rules_to_mv(
@@ -743,7 +745,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            dual). Shows that geometric product is not more fundamental,
             //            since it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: lcmpl(wdg(c,a))
+            // Lambda for calculating left-hand side: l_cmpl(wdg(c,a))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = coeff;
                 auto rhs_arg = mv2d_basis;
@@ -756,7 +758,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             };
 
             // Lambda for calculating right-hand side:
-            // lcmpl(wdg(b,rcmpl(right_dual(c))))
+            // l_cmpl(wdg(b,r_cmpl(r_dual(c))))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = mv2d_basis;
                 auto rhs_arg = apply_rules_to_mv(
@@ -785,7 +787,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // Commutator product: cmt(A,B) = asym(gpr(A,B))
             // Regressive commutator product:
             //                    rcmt(A,B) = asym(rgpr(A,B))
-            //                    rcmt(A,B) = asym(lcmpl(gpr(rcmpl(A),rcmpl(B))))
+            //                    rcmt(A,B) = asym(l_cmpl(gpr(r_cmpl(A),r_cmpl(B))))
             auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
@@ -795,7 +797,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rwdg") {
-            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
+            // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
@@ -804,7 +806,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rdot") {
-            // Regressive inner: rdot(A,B) = lcmpl(dot(rcmpl(A), rcmpl(B)))
+            // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
@@ -838,8 +840,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
-            // lcmpl(wdg(a,rcmpl(a)))
+            // Lambda for calculating left-hand side: rwdg(cmpl(c),a) =
+            // cmpl(wdg(a,cmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_cmpl = coeff; // cmpl(cmpl(coeff)) is identity transformation
                 auto rhs_cmpl = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
@@ -889,8 +891,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
-            // lcmpl(wdg(a,rcmpl(a)))
+            // Lambda for calculating left-hand side: rwdg(cmpl(c),a) =
+            // cmpl(wdg(a,cmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_cmpl = coeff; // cmpl(cmpl(coeff)) is identity transformation
                 auto rhs_cmpl = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
@@ -948,7 +950,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "lcontract") {
-            // Left contraction: A << B = rwdg(lcmpl(A), B)
+            // Left contraction: A << B = rwdg(l_cmpl(A), B)
             // For EGA3D: lcmpl = cmpl
             //                          = cmpl( wdg( cmpl(cmpl(A)), cmpl(B) ) )
             auto lhs = apply_rules_to_mv(apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules),
@@ -960,7 +962,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rcontract") {
-            // Right contraction: A >> B = rwdg(A, rcmpl(B)))
+            // Right contraction: A >> B = rwdg(A, r_cmpl(B)))
             // For EGA3D: lcmpl = rcmpl = cmpl
             //                           = cmpl( wdg( cmpl(A),cmpl(cmpl(B)) )  )
             auto lhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
@@ -972,7 +974,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "lexpand") {
-            // Left expansion: lexpand(A,B) = wdg(lcmpl(A), B)
+            // Left expansion: lexpand(A,B) = wdg(l_cmpl(A), B)
             // For EGA3D: lcmpl = cmpl
             auto lhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
             auto rhs = mv3d_basis;
@@ -981,7 +983,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rexpand") {
-            // Right expansion: rexpand(A,B) = wdg(A, rcmpl(B))
+            // Right expansion: rexpand(A,B) = wdg(A, r_cmpl(B))
             // For EGA3D: rcmpl = cmpl
             auto lhs = mv3d_basis;
             auto rhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
@@ -990,7 +992,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rgpr") {
-            // Regressive geometric: rgpr(A,B) = lcmpl(gpr(rcmpl(A), rcmpl(B)))
+            // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)))
             //                                 =  cmpl(gpr( cmpl(A),  cmpl(B))) in ega3d
             auto basis_cmpl_func = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
@@ -1117,8 +1119,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rwdg") {
-            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
-            //                             =  cmpl(wdg( cmpl(A),  cmpl(B))) in ega3d
+            // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
+            //                             =   cmpl(wdg(  cmpl(A),   cmpl(B))) in ega3d
             auto basis_cmpl_func = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
@@ -1127,8 +1129,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rdot") {
-            // Regressive inner: rdot(A,B) = lcmpl(dot(rcmpl(A), rcmpl(B)))
-            //                             =  cmpl(dot( cmpl(A),  cmpl(B))) in ega3d
+            // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
+            //                             =   cmpl(dot(  cmpl(A),   cmpl(B))) in ega3d
             auto basis_cmpl_func = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
@@ -1162,8 +1164,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
-            // lcmpl(wdg(a,rcmpl(a)))
+            // Lambda for calculating left-hand side: rwdg(cmpl(c),a) =
+            // cmpl(wdg(a,cmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_cmpl = coeff; // cmpl(cmpl(coeff)) is identity transformation
                 auto rhs_cmpl = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
@@ -1215,8 +1217,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
-            // lcmpl(wdg(a,rcmpl(a)))
+            // Lambda for calculating left-hand side: rwdg(cmpl(c),a) =
+            // cmpl(wdg(a,cmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_cmpl = coeff; // cmpl(cmpl(coeff)) is identity transformation
                 auto rhs_cmpl = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
@@ -1527,10 +1529,11 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
-            // lcmpl(wdg(a,rcmpl(a)))
+            // Lambda for calculating left-hand side: rwdg(l_cmpl(c),a) =
+            // l_cmpl(wdg(a,r_cmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_rcmpl = coeff; // rcmpl(lcmpl(coeff)) is identity transformation
+                auto lhs_rcmpl =
+                    coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
                 auto rhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
@@ -1540,8 +1543,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 return lhs_tab[index];
             };
 
-            // Lambda for calculating right-hand side: rwdg(b, right_bulk_dual(c)) =
-            // lcmpl(wdg(rcmpl(b),rcmpl(right_bulk_dual(c)))
+            // Lambda for calculating right-hand side: rwdg(b, r_bulk_dual(c)) =
+            // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_bulk_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
                 auto rhs_rcmpl = apply_rules_to_mv(
@@ -1581,10 +1584,11 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            Shows that geometric product is not more fundamental, since
             //            it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: rwdg(lcmpl(c),a) =
-            // lcmpl(wdg(a,rcmpl(a)))
+            // Lambda for calculating left-hand side: rwdg(l_cmpl(c),a) =
+            // l_cmpl(wdg(a,r_cmpl(a)))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_rcmpl = coeff; // rcmpl(lcmpl(coeff)) is identity transformation
+                auto lhs_rcmpl =
+                    coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
                 auto rhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
@@ -1594,8 +1598,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 return lhs_tab[index];
             };
 
-            // Lambda for calculating right-hand side: rwdg(b, right_bulk_dual(c)) =
-            // lcmpl(wdg(rcmpl(b),rcmpl(right_bulk_dual(c)))
+            // Lambda for calculating right-hand side: rwdg(b, r_bulk_dual(c)) =
+            // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_bulk_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
                 auto rhs_rcmpl = apply_rules_to_mv(
@@ -1646,7 +1650,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "left_bulk_contract") {
             // Left bulk contraction: left_bulk_contract(A,B) =
-            // lcmpl(wdg(rcmpl(left_bulk_dual(A)), rcmpl(B)))
+            // l_cmpl(wdg(r_cmpl(l_bulk_dual(A)), r_cmpl(B)))
             auto lhs = apply_rules_to_mv(
                 apply_rules_to_mv(mv3dp_basis, left_bulk_dual_pga3dp_rules),
                 rcmpl_pga3dp_rules);
@@ -1658,8 +1662,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "right_bulk_contract") {
             // Right bulk contraction:
-            // right_bulk_contract(A,B) = lcmpl(wdg(rcmpl(A),
-            // rcmpl(right_bulk_dual(B))))
+            // right_bulk_contract(A,B) = l_cmpl(wdg(r_cmpl(A),
+            // r_cmpl(r_bulk_dual(B))))
             auto lhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto rhs = apply_rules_to_mv(
                 apply_rules_to_mv(mv3dp_basis, right_bulk_dual_pga3dp_rules),
@@ -1671,7 +1675,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "left_weight_contract") {
             // Left weight contraction: left_weight_contract(A,B) =
-            // lcmpl(wdg(rcmpl(left_weight_dual(A)), rcmpl(B)))
+            // l_cmpl(wdg(r_cmpl(l_weight_dual(A)), r_cmpl(B)))
             auto lhs = apply_rules_to_mv(
                 apply_rules_to_mv(mv3dp_basis, left_weight_dual_pga3dp_rules),
                 rcmpl_pga3dp_rules);
@@ -1683,7 +1687,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "right_weight_contract") {
             // Right weight contraction: right_weight_contract(A,B) =
-            // lcmpl(wdg(rcmpl(A), rcmpl(right_weight_dual(B))))
+            // l_cmpl(wdg(r_cmpl(A), r_cmpl(r_weight_dual(B))))
             auto lhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto rhs = apply_rules_to_mv(
                 apply_rules_to_mv(mv3dp_basis, right_weight_dual_pga3dp_rules),
@@ -1694,7 +1698,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "left_bulk_expand") {
-            // Left bulk expansion: left_bulk_expand(A,B) = wdg(left_bulk_dual(A), B)
+            // Left bulk expansion: left_bulk_expand(A,B) = wdg(l_bulk_dual(A), B)
             auto lhs = apply_rules_to_mv(mv3dp_basis, left_bulk_dual_pga3dp_rules);
             auto rhs = mv3dp_basis;
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
@@ -1703,7 +1707,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "right_bulk_expand") {
             // Right bulk expansion: right_bulk_expand(A,B) = wdg(A,
-            // right_bulk_dual(B))
+            // r_bulk_dual(B))
             auto lhs = mv3dp_basis;
             auto rhs = apply_rules_to_mv(mv3dp_basis, right_bulk_dual_pga3dp_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
@@ -1712,7 +1716,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "left_weight_expand") {
             // Left weight expansion:
-            // left_weight_expand(A,B) = wdg(left_weight_dual(A), B)
+            // left_weight_expand(A,B) = wdg(l_weight_dual(A), B)
             auto lhs = apply_rules_to_mv(mv3dp_basis, left_weight_dual_pga3dp_rules);
             auto rhs = mv3dp_basis;
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
@@ -1721,7 +1725,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "right_weight_expand") {
             // Right weight expansion: right_weight_expand(A,B) = wdg(A,
-            // right_weight_dual(B))
+            // r_weight_dual(B))
             auto lhs = mv3dp_basis;
             auto rhs = apply_rules_to_mv(mv3dp_basis, right_weight_dual_pga3dp_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
@@ -1729,7 +1733,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rgpr") {
-            // Regressive geometric: rgpr(A,B) = lcmpl(gpr(rcmpl(A), rcmpl(B)))
+            // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
@@ -1748,7 +1752,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            dual). Shows that geometric product is not more fundamental,
             //            since it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: lcmpl(wdg(c,a))
+            // Lambda for calculating left-hand side: l_cmpl(wdg(c,a))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = coeff;
                 auto rhs_arg = mv3dp_basis;
@@ -1761,7 +1765,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             };
 
             // Lambda for calculating right-hand side:
-            // lcmpl(wdg(b,rcmpl(right_bulk_dual(c))))
+            // l_cmpl(wdg(b,r_cmpl(r_bulk_dual(c))))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = mv3dp_basis;
                 auto rhs_arg = apply_rules_to_mv(
@@ -1803,7 +1807,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             //            dual). Shows that geometric product is not more fundamental,
             //            since it can be derived from other primitives.
 
-            // Lambda for calculating left-hand side: lcmpl(wdg(c,a))
+            // Lambda for calculating left-hand side: l_cmpl(wdg(c,a))
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = coeff;
                 auto rhs_arg = mv3dp_basis;
@@ -1816,7 +1820,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             };
 
             // Lambda for calculating right-hand side:
-            // lcmpl(wdg(b,rcmpl(right_bulk_dual(c))))
+            // l_cmpl(wdg(b,r_cmpl(r_bulk_dual(c))))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = mv3dp_basis;
                 auto rhs_arg = apply_rules_to_mv(
@@ -1848,7 +1852,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // Commutator product: cmt(A,B) = asym(gpr(A,B))
             // Regressive commutator product:
             //                    rcmt(A,B) = asym(rgpr(A,B))
-            //                    rcmt(A,B) = asym(lcmpl(gpr(rcmpl(A),rcmpl(B))))
+            //                    rcmt(A,B) = asym(l_cmpl(gpr(r_cmpl(A),r_cmpl(B))))
             auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
@@ -1858,7 +1862,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rwdg") {
-            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
+            // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
@@ -1867,7 +1871,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rdot") {
-            // Regressive inner: rdot(A,B) = lcmpl(dot(rcmpl(A), rcmpl(B)))
+            // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
@@ -1917,7 +1921,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "left_contract") {
             // Left contraction: left_contract(A,B) =
-            // lcmpl(wdg(rcmpl(left_dual(A)), rcmpl(B)))
+            // l_cmpl(wdg(r_cmpl(l_dual(A)), r_cmpl(B)))
             auto lhs =
                 apply_rules_to_mv(apply_rules_to_mv(mvsta4d_basis, left_dual_sta4d_rules),
                                   rcmpl_sta4d_rules);
@@ -1929,8 +1933,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
 
         else if (product_name == "right_contract") {
             // Right contraction:
-            // right_contract(A,B) = lcmpl(wdg(rcmpl(A),
-            // rcmpl(right_dual(B))))
+            // right_contract(A,B) = l_cmpl(wdg(r_cmpl(A),
+            // r_cmpl(r_dual(B))))
             auto lhs = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
             auto rhs = apply_rules_to_mv(
                 apply_rules_to_mv(mvsta4d_basis, right_dual_sta4d_rules),
@@ -1941,7 +1945,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "left_expand") {
-            // Left expansion: left_expand(A,B) = wdg(left_dual(A), B)
+            // Left expansion: left_expand(A,B) = wdg(l_dual(A), B)
             auto lhs = apply_rules_to_mv(mvsta4d_basis, left_dual_sta4d_rules);
             auto rhs = mvsta4d_basis;
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
@@ -1949,7 +1953,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "right_expand") {
-            // Right expansion: right_expand(A,B) = wdg(A, right_dual(B))
+            // Right expansion: right_expand(A,B) = wdg(A, r_dual(B))
             auto lhs = mvsta4d_basis;
             auto rhs = apply_rules_to_mv(mvsta4d_basis, right_dual_sta4d_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
@@ -1957,7 +1961,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rgpr") {
-            // Regressive geometric: rgpr(A,B) = lcmpl(gpr(rcmpl(A), rcmpl(B)))
+            // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
@@ -1969,7 +1973,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // Commutator product: cmt(A,B) = asym(gpr(A,B))
             // Regressive commutator product:
             //                    rcmt(A,B) = asym(rgpr(A,B))
-            //                    rcmt(A,B) = asym(lcmpl(gpr(rcmpl(A),rcmpl(B))))
+            //                    rcmt(A,B) = asym(l_cmpl(gpr(r_cmpl(A),r_cmpl(B))))
             auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
@@ -1979,7 +1983,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rwdg") {
-            // Regressive wedge: rwdg(A,B) = lcmpl(wdg(rcmpl(A), rcmpl(B)))
+            // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
@@ -1988,7 +1992,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
         else if (product_name == "rdot") {
-            // Regressive inner: rdot(A,B) = lcmpl(dot(rcmpl(A), rcmpl(B)))
+            // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
             auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),

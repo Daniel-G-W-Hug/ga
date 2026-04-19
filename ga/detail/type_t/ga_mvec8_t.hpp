@@ -232,36 +232,6 @@ inline MVec8_t<std::common_type_t<T, U>, Tag> operator/(MVec8_t<T, Tag> const& v
                                v.c5 * inv, v.c6 * inv, v.c7 * inv);
 }
 
-// magnitude of a k-vector (in representational space)
-// |M|^2 = M rev(M) = (M.c0)^2 + (M.c1)^2 + (M.c2)^2 + (M.c3)^3
-//                  + (M.c4)^2 + (M.c5)^2 + (M.c6)^2 + (M.c7)^3
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm_sq(MVec8_t<T, Tag> const& v)
-{
-    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3 + v.c4 * v.c4 +
-           v.c5 * v.c5 + v.c6 * v.c6 + v.c7 * v.c7;
-}
-
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm(MVec8_t<T, Tag> const& v)
-{
-    return sqrt(nrm_sq(v));
-}
-
-// return a multivector M normalized to nrm(M) == 1.0
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-inline MVec8_t<T, Tag> normalize(MVec8_t<T, Tag> const& M)
-{
-    T m = nrm(M);
-    detail::check_normalization<T>(m, "multivector");
-    T inv = T(1.0) / m; // for multiplication with inverse of norm
-    return MVec8_t<T, Tag>(M.c0 * inv, M.c1 * inv, M.c2 * inv, M.c3 * inv, M.c4 * inv,
-                           M.c5 * inv, M.c6 * inv, M.c7 * inv);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // MVec8_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////

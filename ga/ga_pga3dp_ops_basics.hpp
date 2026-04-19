@@ -21,7 +21,7 @@ namespace hd::ga::pga {
 // - rrev()                        -> regressive reversion
 // - conj()                        -> conjugation
 //
-// - lcmpl(), rcmpl()              -> left and right complement
+// - l_cmpl(), r_cmpl()            -> left and right complement
 //
 // - bulk(), weight()              -> return bulk and weight parts of objects
 // - bulk_nrm_sq(), bulk_nrm()     -> return bulk norm
@@ -31,10 +31,10 @@ namespace hd::ga::pga {
 // - bulk_normalize()              -> return normalized object (bulk_nrm scaled to 1.0)
 // - unitize()                     -> return unitized object (weight_nrm scaled to 1.0)
 //
-// - right_bulk_dual()             -> return right bulk dual
-// - right_weight_dual()           -> return right weight dual
-// - left_bulk_dual()              -> return right bulk dual
-// - left_weight_dual()            -> return right weight dual
+// - r_bulk_dual()                 -> return right bulk dual
+// - r_weight_dual()               -> return right weight dual
+// - l_bulk_dual()                 -> return right bulk dual
+// - l_weight_dual()               -> return right weight dual
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -191,7 +191,7 @@ constexpr MVec3dp<T> rev(MVec3dp<T> const& M)
 
 ////////////////////////////////////////////////////////////////////////////////
 // regressive reversion operation: reverse of complement + backtrafo
-// rrev(A_r) = lcmpl((-1)^(r*(r-1)/2) rcmpl(A_r)) = (-1)^((n-r)*((n-r)-1)/2) A_r
+// rrev(A_r) = l_cmpl((-1)^(r*(r-1)/2) r_cmpl(A_r)) = (-1)^((n-r)*((n-r)-1)/2) A_r
 // pattern for n=4, r = 0, 1, 2, 3, ...: + - - + + - - ...
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -356,8 +356,8 @@ constexpr MVec3dp<T> conj(MVec3dp<T> const& M)
 // the basis vectors which are NOT contained in the k-blade u
 // and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  lcmpl(u) ^ u  = I_3dp = e1^e2^e3^e4
-// right complement: u ^ rcmpl(u)  = I_3dp = e1^e2^e3^e4
+// left complement:  l_cmpl(u) ^ u  = I_3dp = e1^e2^e3^e4
+// right complement: u ^ r_cmpl(u)  = I_3dp = e1^e2^e3^e4
 //
 // in spaces of odd dimension right and left complements are identical and thus there
 // is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
@@ -367,187 +367,190 @@ constexpr MVec3dp<T> conj(MVec3dp<T> const& M)
 //
 // complement operation with e1^e2^e3^e4 as the pseudoscalar
 
+////////////////////////////////////////////////////////////////////////////////
 // right complements
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> rcmpl(Scalar3dp<T> s)
+constexpr PScalar3dp<T> r_cmpl(Scalar3dp<T> s)
 {
-    // u ^ rcmpl(u) = e1^e2^e3^e4
+    // u ^ r_cmpl(u) = e1^e2^e3^e4
     // u = 1:
-    //     1 ^ rcmpl(u) = e1^e2^e3^e4 => rcmpl(u) = s e1^e2^e3^e4
+    //     1 ^ r_cmpl(u) = e1^e2^e3^e4 => r_cmpl(u) = s e1^e2^e3^e4
     return PScalar3dp<T>(T(s));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr TriVec3dp<T> rcmpl(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> r_cmpl(Vec3dp<T> const& v)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
-    //     u ^ rcmpl(u) = e1^e2^e3^e4 =>
-    //     u = e1 => rcmpl(u) = e423
-    //     u = e2 => rcmpl(u) = e431
-    //     u = e3 => rcmpl(u) = e412
-    //     u = e4 => rcmpl(u) = e321
+    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
+    //     u = e1 => r_cmpl(u) = e423
+    //     u = e2 => r_cmpl(u) = e431
+    //     u = e3 => r_cmpl(u) = e412
+    //     u = e4 => r_cmpl(u) = e321
     return TriVec3dp<T>(v.x, v.y, v.z, v.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3dp<T> rcmpl(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> r_cmpl(BiVec3dp<T> const& B)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
-    //     u ^ rcmpl(u) = e1^e2^e3^e4 =>
-    //     u = e41 => rcmpl(u) = -e23
-    //     u = e42 => rcmpl(u) = -e31
-    //     u = e43 => rcmpl(u) = -e12
-    //     u = e23 => rcmpl(u) = -e41
-    //     u = e31 => rcmpl(u) = -e42
-    //     u = e12 => rcmpl(u) = -e43
+    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
+    //     u = e41 => r_cmpl(u) = -e23
+    //     u = e42 => r_cmpl(u) = -e31
+    //     u = e43 => r_cmpl(u) = -e12
+    //     u = e23 => r_cmpl(u) = -e41
+    //     u = e31 => r_cmpl(u) = -e42
+    //     u = e12 => r_cmpl(u) = -e43
     return BiVec3dp<T>(-B.mx, -B.my, -B.mz, -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3dp<T> rcmpl(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> r_cmpl(TriVec3dp<T> const& t)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
-    //     u ^ rcmpl(u) = e1^e2^e3^e4 =>
-    //     u = e423 => rcmpl(u) = -e1
-    //     u = e431 => rcmpl(u) = -e2
-    //     u = e412 => rcmpl(u) = -e3
-    //     u = e321 => rcmpl(u) = -e4
+    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
+    //     u = e423 => r_cmpl(u) = -e1
+    //     u = e431 => r_cmpl(u) = -e2
+    //     u = e412 => r_cmpl(u) = -e3
+    //     u = e321 => r_cmpl(u) = -e4
     return Vec3dp<T>(-t.x, -t.y, -t.z, -t.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> rcmpl(PScalar3dp<T> ps)
+constexpr Scalar3dp<T> r_cmpl(PScalar3dp<T> ps)
 {
     // u ^ r_compl(u) = e1^e2^e3^e4
     // u = e1^e2^e3^e4:
-    //     e1^e2^e3^e4 ^ rcmpl(u) = e1^e2^e3^e4 => rcmpl(u) = ps 1
+    //     e1^e2^e3^e4 ^ r_cmpl(u) = e1^e2^e3^e4 => r_cmpl(u) = ps 1
     return Scalar3dp<T>(T(ps));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_U<T> rcmpl(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> r_cmpl(MVec3dp_U<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp_U<T>(rcmpl(gr3(M)), rcmpl(gr1(M)));
+    return MVec3dp_U<T>(r_cmpl(gr3(M)), r_cmpl(gr1(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_E<T> rcmpl(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> r_cmpl(MVec3dp_E<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp_E<T>(rcmpl(gr4(M)), rcmpl(gr2(M)), rcmpl(gr0(M)));
+    return MVec3dp_E<T>(r_cmpl(gr4(M)), r_cmpl(gr2(M)), r_cmpl(gr0(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp<T> rcmpl(MVec3dp<T> const& M)
+constexpr MVec3dp<T> r_cmpl(MVec3dp<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp<T>(rcmpl(gr4(M)), rcmpl(gr3(M)), rcmpl(gr2(M)), rcmpl(gr1(M)),
-                      rcmpl(gr0(M)));
+    return MVec3dp<T>(r_cmpl(gr4(M)), r_cmpl(gr3(M)), r_cmpl(gr2(M)), r_cmpl(gr1(M)),
+                      r_cmpl(gr0(M)));
 }
 
-
+////////////////////////////////////////////////////////////////////////////////
 // left complements
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> lcmpl(Scalar3dp<T> s)
+constexpr PScalar3dp<T> l_cmpl(Scalar3dp<T> s)
 {
-    // lcmpl(u) ^ u = e1^e2^e3^e4
+    // l_cmpl(u) ^ u = e1^e2^e3^e4
     // u = 1:
-    //     lcmpl(u) ^ 1 = e1^e2^e3^e4 => lcmpl(u) = s e1^e2^e3^e4
+    //     l_cmpl(u) ^ 1 = e1^e2^e3^e4 => l_cmpl(u) = s e1^e2^e3^e4
     return PScalar3dp<T>(T(s));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr TriVec3dp<T> lcmpl(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> l_cmpl(Vec3dp<T> const& v)
 {
-    // lcmpl(u) ^ u = e1^e2^e3^e4
+    // l_cmpl(u) ^ u = e1^e2^e3^e4
     // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
-    //     lcmpl(u) ^ u = e1^e2^e3^e4 =>
-    //     u = e1 => lcmpl(u) = -e423
-    //     u = e2 => lcmpl(u) = -e431
-    //     u = e3 => lcmpl(u) = -e412
-    //     u = e4 => lcmpl(u) = -e321
+    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
+    //     u = e1 => l_cmpl(u) = -e423
+    //     u = e2 => l_cmpl(u) = -e431
+    //     u = e3 => l_cmpl(u) = -e412
+    //     u = e4 => l_cmpl(u) = -e321
     return TriVec3dp<T>(-v.x, -v.y, -v.z, -v.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3dp<T> lcmpl(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> l_cmpl(BiVec3dp<T> const& B)
 {
-    // lcmpl(u) ^ u = e1^e2^e3^e4
+    // l_cmpl(u) ^ u = e1^e2^e3^e4
     // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
-    //     lcmpl(u) ^ u = e1^e2^e3^e4 =>
-    //     u = e41 => lcmpl(u) = -e23
-    //     u = e42 => lcmpl(u) = -e31
-    //     u = e43 => lcmpl(u) = -e12
-    //     u = e23 => lcmpl(u) = -e41
-    //     u = e31 => lcmpl(u) = -e42
-    //     u = e12 => lcmpl(u) = -e43
+    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
+    //     u = e41 => l_cmpl(u) = -e23
+    //     u = e42 => l_cmpl(u) = -e31
+    //     u = e43 => l_cmpl(u) = -e12
+    //     u = e23 => l_cmpl(u) = -e41
+    //     u = e31 => l_cmpl(u) = -e42
+    //     u = e12 => l_cmpl(u) = -e43
     return BiVec3dp<T>(-B.mx, -B.my, -B.mz, -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3dp<T> lcmpl(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> l_cmpl(TriVec3dp<T> const& t)
 {
-    // lcmpl(u) ^ u = e1^e2^e3^e4
+    // l_cmpl(u) ^ u = e1^e2^e3^e4
     // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
-    //     lcmpl(u) ^ u = e1^e2^e3^e4 =>
-    //     u = e423 => lcmpl(u) = e1
-    //     u = e431 => lcmpl(u) = e2
-    //     u = e412 => lcmpl(u) = e3
-    //     u = e321 => lcmpl(u) = e4
+    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
+    //     u = e423 => l_cmpl(u) = e1
+    //     u = e431 => l_cmpl(u) = e2
+    //     u = e412 => l_cmpl(u) = e3
+    //     u = e321 => l_cmpl(u) = e4
     return Vec3dp<T>(t.x, t.y, t.z, t.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> lcmpl(PScalar3dp<T> ps)
+constexpr Scalar3dp<T> l_cmpl(PScalar3dp<T> ps)
 {
-    // lcmpl(u) ^ u = e1^e2^e3^e4
+    // l_cmpl(u) ^ u = e1^e2^e3^e4
     // u = e1^e2^e3^e4:
-    //     lcmpl(u) ^ e1^e2^e3^e4 = e1^e2^e3^e4 => lcmpl(u) = ps 1
+    //     l_cmpl(u) ^ e1^e2^e3^e4 = e1^e2^e3^e4 => l_cmpl(u) = ps 1
     return Scalar3dp<T>(T(ps));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_U<T> lcmpl(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> l_cmpl(MVec3dp_U<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp_U<T>(lcmpl(gr3(M)), lcmpl(gr1(M)));
+    return MVec3dp_U<T>(l_cmpl(gr3(M)), l_cmpl(gr1(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_E<T> lcmpl(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> l_cmpl(MVec3dp_E<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp_E<T>(lcmpl(gr4(M)), lcmpl(gr2(M)), lcmpl(gr0(M)));
+    return MVec3dp_E<T>(l_cmpl(gr4(M)), l_cmpl(gr2(M)), l_cmpl(gr0(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp<T> lcmpl(MVec3dp<T> const& M)
+constexpr MVec3dp<T> l_cmpl(MVec3dp<T> const& M)
 {
     // use the component complements directly
-    return MVec3dp<T>(lcmpl(gr4(M)), lcmpl(gr3(M)), lcmpl(gr2(M)), lcmpl(gr1(M)),
-                      lcmpl(gr0(M)));
+    return MVec3dp<T>(l_cmpl(gr4(M)), l_cmpl(gr3(M)), l_cmpl(gr2(M)), l_cmpl(gr1(M)),
+                      l_cmpl(gr0(M)));
 }
 
 
@@ -622,7 +625,7 @@ constexpr MVec3dp<T> bulk(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight: u_weight = lcmpl( G rcmpl(u) ) = rG u
+// weight: u_weight = l_cmpl( G r_cmpl(u) ) = rG u
 //         (with G as the metric and rG as the anti-metric as given by Lengyel)
 ////////////////////////////////////////////////////////////////////////////////
 // By the multiplication with the metric G (which is degenerate in this case)
@@ -631,7 +634,7 @@ constexpr MVec3dp<T> bulk(MVec3dp<T> const& M)
 // => weight():
 //    - does contain a factor of e4 (the basis component with e4*e4 = 0)
 //    - contains directional information about u
-//    - zero weight means that u is contained in the horizon = rcmpl(e4) = e321_3dp
+//    - zero weight means that u is contained in the horizon = r_cmpl(e4) = e321_3dp
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -693,20 +696,16 @@ constexpr MVec3dp<T> weight(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// bulk norm
+// bulk_nrm(u): return the bulk norm of u (a scalar value)
 ////////////////////////////////////////////////////////////////////////////////
 
-// return squared bulk norm of scalar
 template <typename T>
     requires(numeric_type<T>)
 constexpr T bulk_nrm_sq(Scalar3dp<T> s)
 {
-    // ||bulk(s)||^2 = dot(s,s) = s^(T) G s = gr0(s*rev(s)) = s*s
-    // using rev(s) = (-1)^[k(k-1)/2] s for a k-blade: 0-blade => rev(s) = s
     return T(s) * T(s);
 }
 
-// return bulk norm of scalar
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(Scalar3dp<T> s)
@@ -714,18 +713,13 @@ constexpr Scalar3dp<T> bulk_nrm(Scalar3dp<T> s)
     return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(s)));
 }
 
-// return squared bulk norm of vector
 template <typename T>
     requires(numeric_type<T>)
 constexpr T bulk_nrm_sq(Vec3dp<T> const& v)
 {
-    // ||bulk(v)||^2 = dot(v,v) = v^(T) G v = gr0(v*rev(v))
-    //               = v.x * v.x + v.y * v.y + v.z * v.z
-    // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
     return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
-// return bulk norm of vector
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(Vec3dp<T> const& v)
@@ -733,18 +727,13 @@ constexpr Scalar3dp<T> bulk_nrm(Vec3dp<T> const& v)
     return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(v)));
 }
 
-// return squared bulk magnitude of bivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr T bulk_nrm_sq(BiVec3dp<T> const& B)
 {
-    // ||bulk(B)||^2 = dot(B,B) = B^(T) G B = gr0(B*rev(B))
-    //               = B.mx * B.mx + B.my * B.my + B.mz * B.mz
-    // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
     return B.mx * B.mx + B.my * B.my + B.mz * B.mz;
 }
 
-// return magnitude of bivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(BiVec3dp<T> const& B)
@@ -752,17 +741,13 @@ constexpr Scalar3dp<T> bulk_nrm(BiVec3dp<T> const& B)
     return Scalar3dp<T>(std::sqrt(bulk_nrm_sq(B)));
 }
 
-// return squared bulk norm of trivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr T bulk_nrm_sq(TriVec3dp<T> const& t)
 {
-    // ||bulk(t)||^2 = dot(t,t) = t^(T) G t = gr0(t*rev(t)) = t.w * t.w
-    // using rev(t) = (-1)^[k(k-1)/2] t for a k-blade: 3-blade => rev(t) = -t
     return t.w * t.w;
 }
 
-// return bulk norm of trivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar3dp<T> bulk_nrm(TriVec3dp<T> const& t)
@@ -829,7 +814,7 @@ constexpr Scalar3dp<T> bulk_nrm(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight norm
+// weight_nrm(u): return the weight norm of u (a pseudoscalar value)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -846,8 +831,6 @@ constexpr PScalar3dp<T> weight_nrm([[maybe_unused]] Scalar3dp<T>)
     return PScalar3dp<T>(0.0);
 }
 
-// return squared weight norm of vector
-// ||weight(v)||^2 = lcmpl( dot(rcmpl(v), rcmpl(v)) ) = rdot(v,v) = v.w * v.w
 template <typename T>
     requires(numeric_type<T>)
 constexpr T weight_nrm_sq(Vec3dp<T> const& v)
@@ -855,7 +838,6 @@ constexpr T weight_nrm_sq(Vec3dp<T> const& v)
     return v.w * v.w;
 }
 
-// return weigth norm of vector
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(Vec3dp<T> const& v)
@@ -863,9 +845,6 @@ constexpr PScalar3dp<T> weight_nrm(Vec3dp<T> const& v)
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(v)));
 }
 
-// return squared weight norm of bivector
-// ||weight(B)||^2 = lcmpl( dot(rcmpl(B),cmpl(B)) ) = rdot(B, B)
-//                 = B.vx * B.vx + B.vy * B.vy + B.vz * B.vz
 template <typename T>
     requires(numeric_type<T>)
 constexpr T weight_nrm_sq(BiVec3dp<T> const& B)
@@ -873,7 +852,6 @@ constexpr T weight_nrm_sq(BiVec3dp<T> const& B)
     return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz;
 }
 
-// return weight norm of bivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(BiVec3dp<T> const& B)
@@ -881,9 +859,6 @@ constexpr PScalar3dp<T> weight_nrm(BiVec3dp<T> const& B)
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(B)));
 }
 
-// return squared weight norm of trivector
-// ||weight(t)||^2 = lcmpl( dot(rcmpl(t),cmpl(t)) ) = rdot(t, t)
-//                 = t.x * t.x + t.y * t.y + t.z * t.z
 template <typename T>
     requires(numeric_type<T>)
 constexpr T weight_nrm_sq(TriVec3dp<T> const& t)
@@ -891,7 +866,6 @@ constexpr T weight_nrm_sq(TriVec3dp<T> const& t)
     return t.x * t.x + t.y * t.y + t.z * t.z;
 }
 
-// return weight norm of bivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(TriVec3dp<T> const& t)
@@ -899,8 +873,6 @@ constexpr PScalar3dp<T> weight_nrm(TriVec3dp<T> const& t)
     return PScalar3dp<T>(std::sqrt(weight_nrm_sq(t)));
 }
 
-// return squared weight norm of pseudoscalar
-// ||weight(ps)||^2 = cmpl( dot(cmpl(ps),cmpl(ps)) ) = rdot(ps, ps) = ps * ps
 template <typename T>
     requires(numeric_type<T>)
 constexpr T weight_nrm_sq(PScalar3dp<T> ps)
@@ -908,7 +880,6 @@ constexpr T weight_nrm_sq(PScalar3dp<T> ps)
     return T(ps) * T(ps);
 }
 
-// return weight norm of pseudoscalar
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> weight_nrm(PScalar3dp<T> ps)
@@ -970,9 +941,9 @@ constexpr PScalar3dp<T> weight_nrm(MVec3dp<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum3dp<T> geom_nrm_sq(Scalar3dp<T> s)
+constexpr T geom_nrm_sq(Scalar3dp<T> s)
 {
-    return DualNum3dp<T>(bulk_nrm_sq(s), weight_nrm_sq(s));
+    return bulk_nrm_sq(s) + weight_nrm_sq(s);
 }
 
 template <typename T>
@@ -985,9 +956,9 @@ constexpr DualNum3dp<T> geom_nrm(Scalar3dp<T> s)
 // provide the distance of the point from the origin
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum3dp<T> geom_nrm_sq(Vec3dp<T> const& v)
+constexpr T geom_nrm_sq(Vec3dp<T> const& v)
 {
-    return DualNum3dp<T>(bulk_nrm_sq(v), weight_nrm_sq(v));
+    return bulk_nrm_sq(v) + weight_nrm_sq(v);
 }
 
 // return geometric norm of vector
@@ -1001,9 +972,9 @@ constexpr DualNum3dp<T> geom_nrm(Vec3dp<T> const& v)
 // provide the perpendicular distance of the line to the origin
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum3dp<T> geom_nrm_sq(BiVec3dp<T> const& B)
+constexpr T geom_nrm_sq(BiVec3dp<T> const& B)
 {
-    return DualNum3dp<T>(bulk_nrm_sq(B), weight_nrm_sq(B));
+    return bulk_nrm_sq(B) + weight_nrm_sq(B);
 }
 
 // return geometric norm of bivector
@@ -1017,9 +988,9 @@ constexpr DualNum3dp<T> geom_nrm(BiVec3dp<T> const& B)
 // provide the perpendicular distance of the plane to the origin
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum3dp<T> geom_nrm_sq(TriVec3dp<T> const& t)
+constexpr T geom_nrm_sq(TriVec3dp<T> const& t)
 {
-    return DualNum3dp<T>(bulk_nrm_sq(t), weight_nrm_sq(t));
+    return bulk_nrm_sq(t) + weight_nrm_sq(t);
 }
 
 // return geometric norm of vector
@@ -1032,9 +1003,9 @@ constexpr DualNum3dp<T> geom_nrm(TriVec3dp<T> const& t)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum3dp<T> geom_nrm_sq(PScalar3dp<T> ps)
+constexpr T geom_nrm_sq(PScalar3dp<T> ps)
 {
-    return DualNum3dp<T>(bulk_nrm_sq(ps), weight_nrm_sq(ps));
+    return bulk_nrm_sq(ps) + weight_nrm_sq(ps);
 }
 
 template <typename T>
@@ -1047,9 +1018,9 @@ constexpr DualNum3dp<T> geom_nrm(PScalar3dp<T> ps)
 // even-grade multivector
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp_E<T> const& M)
+constexpr T geom_nrm_sq(MVec3dp_E<T> const& M)
 {
-    return DualNum3dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
+    return bulk_nrm_sq(M) + weight_nrm_sq(M);
 }
 
 template <typename T>
@@ -1062,9 +1033,9 @@ constexpr DualNum3dp<T> geom_nrm(MVec3dp_E<T> const& M)
 // odd-grade multivector
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp_U<T> const& M)
+constexpr T geom_nrm_sq(MVec3dp_U<T> const& M)
 {
-    return DualNum3dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
+    return bulk_nrm_sq(M) + weight_nrm_sq(M);
 }
 
 template <typename T>
@@ -1077,9 +1048,9 @@ constexpr DualNum3dp<T> geom_nrm(MVec3dp_U<T> const& M)
 // multivector
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum3dp<T> geom_nrm_sq(MVec3dp<T> const& M)
+constexpr T geom_nrm_sq(MVec3dp<T> const& M)
 {
-    return DualNum3dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
+    return bulk_nrm_sq(M) + weight_nrm_sq(M);
 }
 
 template <typename T>
@@ -1091,10 +1062,20 @@ constexpr DualNum3dp<T> geom_nrm(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// bulk normalization operations
+// bulk normalization operations:
+// return an object normalized to bulk_nrm(u) == 1.0
 ////////////////////////////////////////////////////////////////////////////////
 
-// return a vector normalized to bulk_nrm(v) == 1.0
+template <typename T>
+    requires(numeric_type<T>)
+inline Scalar3dp<T> bulk_normalize(Scalar3dp<T> s)
+{
+    T m = to_val(bulk_nrm(s));
+    hd::ga::detail::check_normalization<T>(m, "scalar (3dp)");
+    T scale = T(1.0) / m;
+    return Scalar3dp<T>(scale * T(s));
+}
+
 template <typename T>
     requires(numeric_type<T>)
 inline Vec3dp<T> bulk_normalize(Vec3dp<T> const& v)
@@ -1105,7 +1086,6 @@ inline Vec3dp<T> bulk_normalize(Vec3dp<T> const& v)
     return scale * v;
 }
 
-// return a bivector normalized to bulk_nrm(B) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline BiVec3dp<T> bulk_normalize(BiVec3dp<T> const& B)
@@ -1116,7 +1096,6 @@ inline BiVec3dp<T> bulk_normalize(BiVec3dp<T> const& B)
     return scale * B;
 }
 
-// return a trivector normalized to bulk_nrm(t) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline TriVec3dp<T> bulk_normalize(TriVec3dp<T> const& t)
@@ -1127,7 +1106,6 @@ inline TriVec3dp<T> bulk_normalize(TriVec3dp<T> const& t)
     return scale * t;
 }
 
-// return an even-grade multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3dp_E<T> bulk_normalize(MVec3dp_E<T> const& M)
@@ -1138,7 +1116,6 @@ inline MVec3dp_E<T> bulk_normalize(MVec3dp_E<T> const& M)
     return scale * M;
 }
 
-// return an odd-grade multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3dp_U<T> bulk_normalize(MVec3dp_U<T> const& M)
@@ -1149,7 +1126,6 @@ inline MVec3dp_U<T> bulk_normalize(MVec3dp_U<T> const& M)
     return scale * M;
 }
 
-// return a multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3dp<T> bulk_normalize(MVec3dp<T> const& M)
@@ -1162,21 +1138,20 @@ inline MVec3dp<T> bulk_normalize(MVec3dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// unitization operations
+// unitization operations:
+// return an object normalized to weight_nrm(u) == 1.0
 ////////////////////////////////////////////////////////////////////////////////
 
-// return a vector unitized to v.w == 1.0  (implies weight_nrm(v) = 1.0)
 template <typename T>
     requires(numeric_type<T>)
 inline Vec3dp<T> unitize(Vec3dp<T> const& v)
 {
-    T n = v.w; // v.w == sign(v.w)*weight_nrm(v);
+    T n = v.w; // v.w == sign(v.w) * weight_nrm(v)
     hd::ga::detail::check_unitization<T>(std::abs(n), "vector (3dp)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return Vec3dp<T>(v.x * scale, v.y * scale, v.z * scale, T(1.0));
 }
 
-// return a bivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline BiVec3dp<T> unitize(BiVec3dp<T> const& B)
@@ -1187,7 +1162,6 @@ inline BiVec3dp<T> unitize(BiVec3dp<T> const& B)
     return scale * B;
 }
 
-// return a trivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline TriVec3dp<T> unitize(TriVec3dp<T> const& t)
@@ -1198,7 +1172,16 @@ inline TriVec3dp<T> unitize(TriVec3dp<T> const& t)
     return scale * t;
 }
 
-// return an even-grade multivector unitized to weight_nrm == 1.0
+template <typename T>
+    requires(numeric_type<T>)
+inline PScalar3dp<T> unitize(PScalar3dp<T> ps)
+{
+    T n = T(weight_nrm(ps));
+    hd::ga::detail::check_unitization<T>(n, "pseudoscalar (3dp)");
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return PScalar3dp<T>(scale * T(ps));
+}
+
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3dp_E<T> unitize(MVec3dp_E<T> const& M)
@@ -1209,7 +1192,6 @@ inline MVec3dp_E<T> unitize(MVec3dp_E<T> const& M)
     return scale * M;
 }
 
-// return an odd-grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3dp_U<T> unitize(MVec3dp_U<T> const& M)
@@ -1220,7 +1202,6 @@ inline MVec3dp_U<T> unitize(MVec3dp_U<T> const& M)
     return scale * M;
 }
 
-// return a multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3dp<T> unitize(MVec3dp<T> const& M)
@@ -1244,7 +1225,7 @@ template <typename T>
     requires(numeric_type<T>)
 inline Line3d<T> unitize(Line3d<T> const& l)
 {
-    // unitization for a 3d bivector means a normalized direction vector
+    // unitization for a 3dp bivector means a normalized direction vector
     // sqrt((l.vx)^2 + (l.vy)^2 + (l.vz)^2) = 1
     T wn = T(weight_nrm(l));
     hd::ga::detail::check_unitization<T>(wn, "Line3d");
@@ -1263,9 +1244,6 @@ inline Plane3d<T> unitize(Plane3d<T> const& p)
     return Plane3d<T>(p.x * scale, p.y * scale, p.z * scale, p.w * scale);
 }
 
-// return a DualNum3dp unitized to weight_nrm == 1.0
-// => if the dual number represents a homogeneous norm,
-//    the scalar part represents the geometric norm the after unitization
 template <typename T>
     requires(numeric_type<T>)
 inline DualNum3dp<T> unitize(DualNum3dp<T> const& D)
@@ -1278,7 +1256,7 @@ inline DualNum3dp<T> unitize(DualNum3dp<T> const& D)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// right_bulk_dual(A) = rcmpl(bulk(A)) = rcmpl( metric * A )
+// r_bulk_dual(A) = r_cmpl(bulk(A)) = r_cmpl( metric * A )
 //
 // -> right complement operation applied to the bulk
 //
@@ -1296,66 +1274,64 @@ inline DualNum3dp<T> unitize(DualNum3dp<T> const& D)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> right_bulk_dual(Scalar3dp<T> s)
+constexpr PScalar3dp<T> r_bulk_dual(Scalar3dp<T> s)
 {
     return PScalar3dp<T>(T(s));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr TriVec3dp<T> right_bulk_dual(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> r_bulk_dual(Vec3dp<T> const& v)
 {
     return TriVec3dp<T>(v.x, v.y, v.z, T(0.0));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3dp<T> right_bulk_dual(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> r_bulk_dual(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(-B.mx, -B.my, -B.mz, T(0.0), T(0.0), T(0.0));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3dp<T> right_bulk_dual(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> r_bulk_dual(TriVec3dp<T> const& t)
 {
     return Vec3dp<T>(T(0.0), T(0.0), T(0.0), -t.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> right_bulk_dual([[maybe_unused]] PScalar3dp<T>)
+constexpr Scalar3dp<T> r_bulk_dual([[maybe_unused]] PScalar3dp<T>)
 {
     return Scalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_E<T> right_bulk_dual(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> r_bulk_dual(MVec3dp_E<T> const& M)
 {
-    return MVec3dp_E<T>(right_bulk_dual(gr4(M)), right_bulk_dual(gr2(M)),
-                        right_bulk_dual(gr0(M)));
+    return MVec3dp_E<T>(r_bulk_dual(gr4(M)), r_bulk_dual(gr2(M)), r_bulk_dual(gr0(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_U<T> right_bulk_dual(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> r_bulk_dual(MVec3dp_U<T> const& M)
 {
-    return MVec3dp_U<T>(right_bulk_dual(gr3(M)), right_bulk_dual(gr1(M)));
+    return MVec3dp_U<T>(r_bulk_dual(gr3(M)), r_bulk_dual(gr1(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp<T> right_bulk_dual(MVec3dp<T> const& M)
+constexpr MVec3dp<T> r_bulk_dual(MVec3dp<T> const& M)
 {
-    return MVec3dp<T>(right_bulk_dual(gr4(M)), right_bulk_dual(gr3(M)),
-                      right_bulk_dual(gr2(M)), right_bulk_dual(gr1(M)),
-                      right_bulk_dual(gr0(M)));
+    return MVec3dp<T>(r_bulk_dual(gr4(M)), r_bulk_dual(gr3(M)), r_bulk_dual(gr2(M)),
+                      r_bulk_dual(gr1(M)), r_bulk_dual(gr0(M)));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// right_weight_dual(A) = rcmpl(weight(A)) = rcmpl( regressive_metric * A )
+// r_weight_dual(A) = r_cmpl(weight(A)) = r_cmpl( regressive_metric * A )
 //
 // -> right complement operation applied to the weight
 //
@@ -1372,66 +1348,65 @@ constexpr MVec3dp<T> right_bulk_dual(MVec3dp<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> right_weight_dual([[maybe_unused]] Scalar3dp<T>)
+constexpr PScalar3dp<T> r_weight_dual([[maybe_unused]] Scalar3dp<T>)
 {
     return PScalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr TriVec3dp<T> right_weight_dual(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> r_weight_dual(Vec3dp<T> const& v)
 {
     return TriVec3dp<T>(T(0.0), T(0.0), T(0.0), v.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3dp<T> right_weight_dual(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> r_weight_dual(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3dp<T> right_weight_dual(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> r_weight_dual(TriVec3dp<T> const& t)
 {
     return Vec3dp<T>(-t.x, -t.y, -t.z, T(0.0));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> right_weight_dual(PScalar3dp<T> ps)
+constexpr Scalar3dp<T> r_weight_dual(PScalar3dp<T> ps)
 {
     return Scalar3dp<T>(T(ps));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_E<T> right_weight_dual(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> r_weight_dual(MVec3dp_E<T> const& M)
 {
-    return MVec3dp_E<T>(right_weight_dual(gr4(M)), right_weight_dual(gr2(M)),
-                        right_weight_dual(gr0(M)));
+    return MVec3dp_E<T>(r_weight_dual(gr4(M)), r_weight_dual(gr2(M)),
+                        r_weight_dual(gr0(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_U<T> right_weight_dual(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> r_weight_dual(MVec3dp_U<T> const& M)
 {
-    return MVec3dp_U<T>(right_weight_dual(gr3(M)), right_weight_dual(gr1(M)));
+    return MVec3dp_U<T>(r_weight_dual(gr3(M)), r_weight_dual(gr1(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp<T> right_weight_dual(MVec3dp<T> const& M)
+constexpr MVec3dp<T> r_weight_dual(MVec3dp<T> const& M)
 {
-    return MVec3dp<T>(right_weight_dual(gr4(M)), right_weight_dual(gr3(M)),
-                      right_weight_dual(gr2(M)), right_weight_dual(gr1(M)),
-                      right_weight_dual(gr0(M)));
+    return MVec3dp<T>(r_weight_dual(gr4(M)), r_weight_dual(gr3(M)), r_weight_dual(gr2(M)),
+                      r_weight_dual(gr1(M)), r_weight_dual(gr0(M)));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// left_bulk_dual(A) = lcmpl(bulk(A)) = lcmpl( metric * A )
+// l_bulk_dual(A) = l_cmpl(bulk(A)) = l_cmpl( metric * A )
 //
 // -> left complement operation applied to the bulk
 //
@@ -1448,66 +1423,64 @@ constexpr MVec3dp<T> right_weight_dual(MVec3dp<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> left_bulk_dual(Scalar3dp<T> s)
+constexpr PScalar3dp<T> l_bulk_dual(Scalar3dp<T> s)
 {
     return PScalar3dp<T>(T(s));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr TriVec3dp<T> left_bulk_dual(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> l_bulk_dual(Vec3dp<T> const& v)
 {
     return TriVec3dp<T>(-v.x, -v.y, -v.z, T(0.0));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3dp<T> left_bulk_dual(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> l_bulk_dual(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(-B.mx, -B.my, -B.mz, T(0.0), T(0.0), T(0.0));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3dp<T> left_bulk_dual(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> l_bulk_dual(TriVec3dp<T> const& t)
 {
     return Vec3dp<T>(T(0.0), T(0.0), T(0.0), t.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> left_bulk_dual([[maybe_unused]] PScalar3dp<T>)
+constexpr Scalar3dp<T> l_bulk_dual([[maybe_unused]] PScalar3dp<T>)
 {
     return Scalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_E<T> left_bulk_dual(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> l_bulk_dual(MVec3dp_E<T> const& M)
 {
-    return MVec3dp_E<T>(left_bulk_dual(gr4(M)), left_bulk_dual(gr2(M)),
-                        left_bulk_dual(gr0(M)));
+    return MVec3dp_E<T>(l_bulk_dual(gr4(M)), l_bulk_dual(gr2(M)), l_bulk_dual(gr0(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_U<T> left_bulk_dual(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> l_bulk_dual(MVec3dp_U<T> const& M)
 {
-    return MVec3dp_U<T>(left_bulk_dual(gr3(M)), left_bulk_dual(gr1(M)));
+    return MVec3dp_U<T>(l_bulk_dual(gr3(M)), l_bulk_dual(gr1(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp<T> left_bulk_dual(MVec3dp<T> const& M)
+constexpr MVec3dp<T> l_bulk_dual(MVec3dp<T> const& M)
 {
-    return MVec3dp<T>(left_bulk_dual(gr4(M)), left_bulk_dual(gr3(M)),
-                      left_bulk_dual(gr2(M)), left_bulk_dual(gr1(M)),
-                      left_bulk_dual(gr0(M)));
+    return MVec3dp<T>(l_bulk_dual(gr4(M)), l_bulk_dual(gr3(M)), l_bulk_dual(gr2(M)),
+                      l_bulk_dual(gr1(M)), l_bulk_dual(gr0(M)));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// left_weight_dual(A) = = lcmpl(weight(A)) = lcmpl( regressive_metric * A )
+// l_weight_dual(A) = = l_cmpl(weight(A)) = l_cmpl( regressive_metric * A )
 //
 // -> left complement operation applied to the weight
 //
@@ -1524,61 +1497,60 @@ constexpr MVec3dp<T> left_bulk_dual(MVec3dp<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr PScalar3dp<T> left_weight_dual([[maybe_unused]] Scalar3dp<T>)
+constexpr PScalar3dp<T> l_weight_dual([[maybe_unused]] Scalar3dp<T>)
 {
     return PScalar3dp<T>(0.0);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr TriVec3dp<T> left_weight_dual(Vec3dp<T> const& v)
+constexpr TriVec3dp<T> l_weight_dual(Vec3dp<T> const& v)
 {
     return TriVec3dp<T>(T(0.0), T(0.0), T(0.0), -v.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr BiVec3dp<T> left_weight_dual(BiVec3dp<T> const& B)
+constexpr BiVec3dp<T> l_weight_dual(BiVec3dp<T> const& B)
 {
     return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Vec3dp<T> left_weight_dual(TriVec3dp<T> const& t)
+constexpr Vec3dp<T> l_weight_dual(TriVec3dp<T> const& t)
 {
     return Vec3dp<T>(t.x, t.y, t.z, T(0.0));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar3dp<T> left_weight_dual(PScalar3dp<T> ps)
+constexpr Scalar3dp<T> l_weight_dual(PScalar3dp<T> ps)
 {
     return Scalar3dp<T>(T(ps));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_E<T> left_weight_dual(MVec3dp_E<T> const& M)
+constexpr MVec3dp_E<T> l_weight_dual(MVec3dp_E<T> const& M)
 {
-    return MVec3dp_E<T>(left_weight_dual(gr4(M)), left_weight_dual(gr2(M)),
-                        left_weight_dual(gr0(M)));
+    return MVec3dp_E<T>(l_weight_dual(gr4(M)), l_weight_dual(gr2(M)),
+                        l_weight_dual(gr0(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp_U<T> left_weight_dual(MVec3dp_U<T> const& M)
+constexpr MVec3dp_U<T> l_weight_dual(MVec3dp_U<T> const& M)
 {
-    return MVec3dp_U<T>(left_weight_dual(gr3(M)), left_weight_dual(gr1(M)));
+    return MVec3dp_U<T>(l_weight_dual(gr3(M)), l_weight_dual(gr1(M)));
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr MVec3dp<T> left_weight_dual(MVec3dp<T> const& M)
+constexpr MVec3dp<T> l_weight_dual(MVec3dp<T> const& M)
 {
-    return MVec3dp<T>(left_weight_dual(gr4(M)), left_weight_dual(gr3(M)),
-                      left_weight_dual(gr2(M)), left_weight_dual(gr1(M)),
-                      left_weight_dual(gr0(M)));
+    return MVec3dp<T>(l_weight_dual(gr4(M)), l_weight_dual(gr3(M)), l_weight_dual(gr2(M)),
+                      l_weight_dual(gr1(M)), l_weight_dual(gr0(M)));
 }
 
 } // namespace hd::ga::pga

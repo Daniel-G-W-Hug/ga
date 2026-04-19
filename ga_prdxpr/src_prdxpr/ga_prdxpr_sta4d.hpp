@@ -48,9 +48,9 @@ extern const prd_rules gpr_sta4d_rules; // Geometric product: a * b
 extern const prd_rules wdg_sta4d_rules; // Wedge product: a ^ b
 extern const prd_rules dot_sta4d_rules; // Dot product: a · b
 
-// complement in sta4d: lcmpl(rcmpl(u)) = u
-// lcmpl:  lcmpl(u) ^ u        = g0123
-// rcmpl:  u        ^ rcmpl(u) = g0123
+// complement in sta4d: l_cmpl(r_cmpl(u)) = u
+// lcmpl:  l_cmpl(u) ^ u         = g0123
+// rcmpl:  u         ^ r_cmpl(u) = g0123
 extern const prd_rules lcmpl_sta4d_rules;
 extern const prd_rules rcmpl_sta4d_rules;
 

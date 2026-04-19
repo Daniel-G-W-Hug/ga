@@ -39,9 +39,9 @@ extern const prd_rules gpr_ega2d_rules; // Geometric product: a * b
 extern const prd_rules wdg_ega2d_rules; // Wedge product: a ^ b
 extern const prd_rules dot_ega2d_rules; // Dot product: a · b
 
-// complement in 2d: lcmpl(rcmpl(u)) = u
-// lcmpl:  lcmpl(u) ^ u = e12
-// rcmpl:  u ^ rcmpl(u) = e12
+// complement in 2d: l_cmpl(r_cmpl(u)) = u
+// lcmpl:  l_cmpl(u) ^ u = e12
+// rcmpl:  u ^ r_cmpl(u) = e12
 extern const prd_rules lcmpl_ega2d_rules;
 extern const prd_rules rcmpl_ega2d_rules;
 

@@ -338,33 +338,6 @@ inline Scalar_t<std::common_type_t<T, U>, Tag> operator/(Scalar_t<T, Tag> s1, U 
     return Scalar_t<ctype, Tag>(ctype(s1) * inv);
 }
 
-// magnitude squared
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm_sq(Scalar_t<T, Tag> s)
-{
-    return T(s) * T(s);
-}
-
-// magnitude
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm(Scalar_t<T, Tag> s)
-{
-    return sqrt(nrm_sq(s));
-}
-
-// return a scalar normalized to nrm(s) == 1.0
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-inline Scalar_t<T, Tag> normalize(Scalar_t<T, Tag> s)
-{
-    T m = nrm(s);
-    detail::check_normalization<T>(m, "scalar or pseudoscalar");
-    T inv = T(1.0) / m; // for multiplication with inverse of norm
-    return Scalar_t<T, Tag>(T(s) * inv);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Scalar_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////

@@ -209,30 +209,30 @@ function). Using \path{A} vs. \path{a} implies \path{gr(A)} $\ge$ \path{gr(a)}, 
     $PGA$ 
     
     \item Left (bulk) contraction: $a \lcontr B = a \ll B = \leftbulkdual{a} \vee B $,
-    \path{operator<<(a, B)}, which implements \path{left_bulk_contract(a, B)}, exclusively
+    \path{operator<<(a, B)}, which implements \path{l_bulk_contract(a, B)}, exclusively
     for $PGA$
     
     \item Right (bulk) contraction: $B \rcontr a = B \gg a = B \vee \rightbulkdual{a} $,
-    \path{operator>>(B, a)}, which implements \path{right_bulk_contract(B, a)},
+    \path{operator>>(B, a)}, which implements \path{r_bulk_contract(B, a)},
     exclusively for $PGA$
 
     \item Left weight contraction: $\leftweightdual{a} \vee B $,
-    \path{left_weight_contract(a, B)} 
+    \path{l_weight_contract(a, B)} 
     
     \item Right weight contraction: $B \vee \rightweightdual{a} $,
-    \path{right_weight_contract(B, a)} 
+    \path{r_weight_contract(B, a)} 
 
     \item Left bulk expansion: $\leftbulkdual{A} \wedge b $,
-    \path{left_bulk_expand(A, b)} 
+    \path{l_bulk_expand(A, b)} 
     
     \item Right bulk expansion: $a \wedge \rightbulkdual{B} $,
-    \path{right_bulk_expand(a, B)} 
+    \path{r_bulk_expand(a, B)} 
 
     \item Left weight expansion: $\leftweightdual{A} \wedge b $,
-    \path{left_weight_expand(A, b)} 
+    \path{l_weight_expand(A, b)} 
     
     \item Right bulk expansion: $a \wedge \rightweightdual{B} $,
-    \path{right_weight_expand(a, B)} 
+    \path{r_weight_expand(a, B)} 
 \end{itemize}
 where the items from the left contraction downwards are all considered interior products.
 The product operation is performed \emph{after} applying a dualization operation to one

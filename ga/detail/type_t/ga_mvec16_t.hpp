@@ -312,38 +312,6 @@ inline MVec16_t<std::common_type_t<T, U>, Tag> operator/(MVec16_t<T, Tag> const&
                                 v.c12 * inv, v.c13 * inv, v.c14 * inv, v.c15 * inv);
 }
 
-// magnitude of the sum of a k-vector (in representational space)
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm_sq(MVec16_t<T, Tag> const& v)
-{
-    return v.c0 * v.c0 + v.c1 * v.c1 + v.c2 * v.c2 + v.c3 * v.c3 + v.c4 * v.c4 +
-           v.c5 * v.c5 + v.c6 * v.c6 + v.c7 * v.c7 + v.c8 * v.c8 + v.c9 * v.c9 +
-           v.c10 * v.c10 + v.c11 * v.c11 + v.c12 * v.c12 + v.c13 * v.c13 + v.c14 * v.c14 +
-           v.c15 * v.c15;
-}
-
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm(MVec16_t<T, Tag> const& v)
-{
-    return sqrt(nrm_sq(v));
-}
-
-// return a multivector M normalized to nrm(M) == 1.0
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-inline MVec16_t<T, Tag> normalize(MVec16_t<T, Tag> const& M)
-{
-    T m = nrm(M);
-    detail::check_normalization<T>(m, "multivector");
-    T inv = T(1.0) / m; // for multiplication with inverse of norm
-    return MVec16_t<T, Tag>(M.c0 * inv, M.c1 * inv, M.c2 * inv, M.c3 * inv, M.c4 * inv,
-                            M.c5 * inv, M.c6 * inv, M.c7 * inv, M.c8 * inv, M.c9 * inv,
-                            M.c10 * inv, M.c11 * inv, M.c12 * inv, M.c13 * inv,
-                            M.c14 * inv, M.c15 * inv);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // MVec16_t<T, Tag> printing support via iostream
 ////////////////////////////////////////////////////////////////////////////////

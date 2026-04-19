@@ -186,24 +186,26 @@ TEST_SUITE("PGA2DP: comparison tests")
             fmt::println("v << uv = {}", v << uv);
             fmt::println("");
 
-            CHECK(rwdg(left_dual(u), uv) == u << uv); // left contractions
-            CHECK(rwdg(left_dual(v), uv) == v << uv);
-            CHECK(rwdg(uv, right_dual(u)) == uv >> u); // right contractions
-            CHECK(rwdg(uv, right_dual(v)) == uv >> v);
+            CHECK(rwdg(l_dual(u), uv) == u << uv); // left contractions
+            CHECK(rwdg(l_dual(v), uv) == v << uv);
+            CHECK(rwdg(uv, r_dual(u)) == uv >> u); // right contractions
+            CHECK(rwdg(uv, r_dual(v)) == uv >> v);
 
             auto up = vec2dp{1, 0, 0};
             auto vp = vec2dp{0, 1, 0};
             auto uvp = wdg(up, vp);
 
-            fmt::println("up  = {}, nrm(up)  = {}", up, nrm(up));
-            fmt::println("vp  = {}, nrm(vp)  = {}", vp, nrm(vp));
-            fmt::println("uvp = {}, nrm(uvp) = {}", uvp, nrm(uvp));
+            fmt::println("up  = {}, bulk_nrm(up)  = {}", up, bulk_nrm(up));
+            fmt::println("vp  = {}, bulk_nrm(vp)  = {}", vp, bulk_nrm(vp));
+            fmt::println("uvp = {}, bulk_nrm(uvp) = {}", uvp, bulk_nrm(uvp));
             fmt::println("");
             fmt::println("uvp >> up = {}", uvp >> up);
             fmt::println("uvp >> vp = {}", uvp >> vp);
             fmt::println("up << uvp = {}", up << uvp);
             fmt::println("vp << uvp = {}", vp << uvp);
             fmt::println("");
+
+            CHECK(nrm(uv) == bulk_nrm(uvp));
 
             CHECK(rwdg(bulk_dual(up), uvp) == up << uvp);
             CHECK(rwdg(bulk_dual(vp), uvp) == vp << uvp);

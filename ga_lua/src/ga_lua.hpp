@@ -1157,26 +1157,7 @@ void register_functions(sol::state& lua)
                          sol::resolve<value_t(pscalar3d)>(nrm_sq),
                          sol::resolve<value_t(mvec3d_e const&)>(nrm_sq),
                          sol::resolve<value_t(mvec3d_u const&)>(nrm_sq),
-                         sol::resolve<value_t(mvec3d const&)>(nrm_sq),
-                         // PGA 2DP types
-                         sol::resolve<value_t(scalar2dp)>(nrm_sq),
-                         sol::resolve<value_t(vec2dp const&)>(nrm_sq),
-                         sol::resolve<value_t(bivec2dp const&)>(nrm_sq),
-                         sol::resolve<value_t(pscalar2dp)>(nrm_sq),
-                         sol::resolve<value_t(mvec2dp_e const&)>(nrm_sq),
-                         sol::resolve<value_t(mvec2dp_u const&)>(nrm_sq),
-                         sol::resolve<value_t(mvec2dp const&)>(nrm_sq),
-                         sol::resolve<value_t(dualnum2dp const&)>(nrm_sq),
-                         // PGA 3DP types
-                         sol::resolve<value_t(scalar3dp)>(nrm_sq),
-                         sol::resolve<value_t(vec3dp const&)>(nrm_sq),
-                         sol::resolve<value_t(bivec3dp const&)>(nrm_sq),
-                         sol::resolve<value_t(trivec3dp const&)>(nrm_sq),
-                         sol::resolve<value_t(pscalar3dp)>(nrm_sq),
-                         sol::resolve<value_t(mvec3dp_e const&)>(nrm_sq),
-                         sol::resolve<value_t(mvec3dp_u const&)>(nrm_sq),
-                         sol::resolve<value_t(mvec3dp const&)>(nrm_sq),
-                         sol::resolve<value_t(dualnum3dp const&)>(nrm_sq)));
+                         sol::resolve<value_t(mvec3d const&)>(nrm_sq)));
 
     lua.set_function("nrm", sol::overload( // EGA 2D types
                                 sol::resolve<value_t(scalar2d)>(nrm),
@@ -1191,26 +1172,146 @@ void register_functions(sol::state& lua)
                                 sol::resolve<value_t(pscalar3d)>(nrm),
                                 sol::resolve<value_t(mvec3d_e const&)>(nrm),
                                 sol::resolve<value_t(mvec3d_u const&)>(nrm),
-                                sol::resolve<value_t(mvec3d const&)>(nrm),
-                                // PGA 2DP types
-                                sol::resolve<value_t(scalar2dp)>(nrm),
-                                sol::resolve<value_t(vec2dp const&)>(nrm),
-                                sol::resolve<value_t(bivec2dp const&)>(nrm),
-                                sol::resolve<value_t(pscalar2dp)>(nrm),
-                                sol::resolve<value_t(mvec2dp_e const&)>(nrm),
-                                sol::resolve<value_t(mvec2dp_u const&)>(nrm),
-                                sol::resolve<value_t(mvec2dp const&)>(nrm),
-                                sol::resolve<value_t(dualnum2dp const&)>(nrm),
-                                // PGA 3DP types
-                                sol::resolve<value_t(scalar3dp)>(nrm),
-                                sol::resolve<value_t(vec3dp const&)>(nrm),
-                                sol::resolve<value_t(bivec3dp const&)>(nrm),
-                                sol::resolve<value_t(trivec3dp const&)>(nrm),
-                                sol::resolve<value_t(pscalar3dp)>(nrm),
-                                sol::resolve<value_t(mvec3dp_e const&)>(nrm),
-                                sol::resolve<value_t(mvec3dp_u const&)>(nrm),
-                                sol::resolve<value_t(mvec3dp const&)>(nrm),
-                                sol::resolve<value_t(dualnum3dp const&)>(nrm)));
+                                sol::resolve<value_t(mvec3d const&)>(nrm)));
+
+    lua.set_function("bulk_nrm_sq",
+                     sol::overload(
+                         // PGA 2DP types: use bulk_nrm_sq()
+                         sol::resolve<value_t(scalar2dp)>(bulk_nrm_sq),
+                         sol::resolve<value_t(vec2dp const&)>(bulk_nrm_sq),
+                         sol::resolve<value_t(bivec2dp const&)>(bulk_nrm_sq),
+                         sol::resolve<value_t(pscalar2dp)>(bulk_nrm_sq),
+                         sol::resolve<value_t(mvec2dp_e const&)>(bulk_nrm_sq),
+                         sol::resolve<value_t(mvec2dp_u const&)>(bulk_nrm_sq),
+                         sol::resolve<value_t(mvec2dp const&)>(bulk_nrm_sq),
+                         // sol::resolve<value_t(dualnum2dp const&)>(bulk_nrm_sq),
+                         // PGA 3DP types: use bulk_nrm_sq()
+                         sol::resolve<value_t(scalar3dp)>(bulk_nrm_sq),
+                         sol::resolve<value_t(vec3dp const&)>(bulk_nrm_sq),
+                         sol::resolve<value_t(bivec3dp const&)>(bulk_nrm_sq),
+                         sol::resolve<value_t(trivec3dp const&)>(bulk_nrm_sq),
+                         sol::resolve<value_t(pscalar3dp)>(bulk_nrm_sq),
+                         sol::resolve<value_t(mvec3dp_e const&)>(bulk_nrm_sq),
+                         sol::resolve<value_t(mvec3dp_u const&)>(bulk_nrm_sq),
+                         sol::resolve<value_t(mvec3dp const&)>(bulk_nrm_sq)
+                         // , sol::resolve<value_t(dualnum3dp const&)>(bulk_nrm_sq)
+                         ));
+
+    lua.set_function("weight_nrm_sq",
+                     sol::overload(
+                         // PGA 2DP types: use weight_nrm_sq()
+                         sol::resolve<value_t(scalar2dp)>(weight_nrm_sq),
+                         sol::resolve<value_t(vec2dp const&)>(weight_nrm_sq),
+                         sol::resolve<value_t(bivec2dp const&)>(weight_nrm_sq),
+                         sol::resolve<value_t(pscalar2dp)>(weight_nrm_sq),
+                         sol::resolve<value_t(mvec2dp_e const&)>(weight_nrm_sq),
+                         sol::resolve<value_t(mvec2dp_u const&)>(weight_nrm_sq),
+                         sol::resolve<value_t(mvec2dp const&)>(weight_nrm_sq),
+                         // sol::resolve<value_t(dualnum2dp const&)>(weight_nrm_sq),
+                         // PGA 3DP types: use weight_nrm_sq()
+                         sol::resolve<value_t(scalar3dp)>(weight_nrm_sq),
+                         sol::resolve<value_t(vec3dp const&)>(weight_nrm_sq),
+                         sol::resolve<value_t(bivec3dp const&)>(weight_nrm_sq),
+                         sol::resolve<value_t(trivec3dp const&)>(weight_nrm_sq),
+                         sol::resolve<value_t(pscalar3dp)>(weight_nrm_sq),
+                         sol::resolve<value_t(mvec3dp_e const&)>(weight_nrm_sq),
+                         sol::resolve<value_t(mvec3dp_u const&)>(weight_nrm_sq),
+                         sol::resolve<value_t(mvec3dp const&)>(weight_nrm_sq)
+                         // , sol::resolve<value_t(dualnum3dp const&)>(weight_nrm_sq)
+                         ));
+
+    lua.set_function("geom_nrm_sq",
+                     sol::overload(
+                         // PGA 2DP types: use geom_nrm_sq()
+                         sol::resolve<value_t(scalar2dp)>(geom_nrm_sq),
+                         sol::resolve<value_t(vec2dp const&)>(geom_nrm_sq),
+                         sol::resolve<value_t(bivec2dp const&)>(geom_nrm_sq),
+                         sol::resolve<value_t(pscalar2dp)>(geom_nrm_sq),
+                         sol::resolve<value_t(mvec2dp_e const&)>(geom_nrm_sq),
+                         sol::resolve<value_t(mvec2dp_u const&)>(geom_nrm_sq),
+                         sol::resolve<value_t(mvec2dp const&)>(geom_nrm_sq),
+                         // sol::resolve<value_t(dualnum2dp const&)>(geom_nrm_sq),
+                         // PGA 3DP types: use geom_nrm_sq()
+                         sol::resolve<value_t(scalar3dp)>(geom_nrm_sq),
+                         sol::resolve<value_t(vec3dp const&)>(geom_nrm_sq),
+                         sol::resolve<value_t(bivec3dp const&)>(geom_nrm_sq),
+                         sol::resolve<value_t(trivec3dp const&)>(geom_nrm_sq),
+                         sol::resolve<value_t(pscalar3dp)>(geom_nrm_sq),
+                         sol::resolve<value_t(mvec3dp_e const&)>(geom_nrm_sq),
+                         sol::resolve<value_t(mvec3dp_u const&)>(geom_nrm_sq),
+                         sol::resolve<value_t(mvec3dp const&)>(geom_nrm_sq)
+                         // , sol::resolve<value_t(dualnum3dp const&)>(geom_nrm_sq)
+                         ));
+
+
+    lua.set_function("bulk_nrm",
+                     sol::overload(
+                         // PGA 2DP types: use bulk_nrm()
+                         sol::resolve<scalar2dp(scalar2dp)>(bulk_nrm),
+                         sol::resolve<scalar2dp(vec2dp const&)>(bulk_nrm),
+                         sol::resolve<scalar2dp(bivec2dp const&)>(bulk_nrm),
+                         sol::resolve<scalar2dp(pscalar2dp)>(bulk_nrm),
+                         sol::resolve<scalar2dp(mvec2dp_e const&)>(bulk_nrm),
+                         sol::resolve<scalar2dp(mvec2dp_u const&)>(bulk_nrm),
+                         sol::resolve<scalar2dp(mvec2dp const&)>(bulk_nrm),
+                         // sol::resolve<scalar2dp(dualnum2dp const&)>(bulk_nrm),
+                         // PGA 3DP types: use bulk_nrm()
+                         sol::resolve<scalar3dp(scalar3dp)>(bulk_nrm),
+                         sol::resolve<scalar3dp(vec3dp const&)>(bulk_nrm),
+                         sol::resolve<scalar3dp(bivec3dp const&)>(bulk_nrm),
+                         sol::resolve<scalar3dp(trivec3dp const&)>(bulk_nrm),
+                         sol::resolve<scalar3dp(pscalar3dp)>(bulk_nrm),
+                         sol::resolve<scalar3dp(mvec3dp_e const&)>(bulk_nrm),
+                         sol::resolve<scalar3dp(mvec3dp_u const&)>(bulk_nrm),
+                         sol::resolve<scalar3dp(mvec3dp const&)>(bulk_nrm)
+                         // , sol::resolve<scalar3dp(dualnum3dp const&)>(bulk_nrm)
+                         ));
+
+    lua.set_function("weight_nrm",
+                     sol::overload(
+                         // PGA 2DP types: use weight_nrm()
+                         sol::resolve<pscalar2dp(scalar2dp)>(weight_nrm),
+                         sol::resolve<pscalar2dp(vec2dp const&)>(weight_nrm),
+                         sol::resolve<pscalar2dp(bivec2dp const&)>(weight_nrm),
+                         sol::resolve<pscalar2dp(pscalar2dp)>(weight_nrm),
+                         sol::resolve<pscalar2dp(mvec2dp_e const&)>(weight_nrm),
+                         sol::resolve<pscalar2dp(mvec2dp_u const&)>(weight_nrm),
+                         sol::resolve<pscalar2dp(mvec2dp const&)>(weight_nrm),
+                         //  sol::resolve<pscalar2dp(dualnum2dp const&)>(weight_nrm),
+                         // PGA 3DP types: use weight_nrm()
+                         sol::resolve<pscalar3dp(scalar3dp)>(weight_nrm),
+                         sol::resolve<pscalar3dp(vec3dp const&)>(weight_nrm),
+                         sol::resolve<pscalar3dp(bivec3dp const&)>(weight_nrm),
+                         sol::resolve<pscalar3dp(trivec3dp const&)>(weight_nrm),
+                         sol::resolve<pscalar3dp(pscalar3dp)>(weight_nrm),
+                         sol::resolve<pscalar3dp(mvec3dp_e const&)>(weight_nrm),
+                         sol::resolve<pscalar3dp(mvec3dp_u const&)>(weight_nrm),
+                         sol::resolve<pscalar3dp(mvec3dp const&)>(weight_nrm)
+                         // , sol::resolve<pscalar3dp(dualnum3dp const&)>(weight_nrm)
+                         ));
+
+    lua.set_function("geom_nrm",
+                     sol::overload(
+                         // PGA 2DP types: use geom_nrm()
+                         sol::resolve<dualnum2dp(scalar2dp)>(geom_nrm),
+                         sol::resolve<dualnum2dp(vec2dp const&)>(geom_nrm),
+                         sol::resolve<dualnum2dp(bivec2dp const&)>(geom_nrm),
+                         sol::resolve<dualnum2dp(pscalar2dp)>(geom_nrm),
+                         sol::resolve<dualnum2dp(mvec2dp_e const&)>(geom_nrm),
+                         sol::resolve<dualnum2dp(mvec2dp_u const&)>(geom_nrm),
+                         sol::resolve<dualnum2dp(mvec2dp const&)>(geom_nrm),
+                         //  sol::resolve<dualnum2dp(dualnum2dp const&)>(geom_nrm),
+                         // PGA 3DP types: use geom_nrm()
+                         sol::resolve<dualnum3dp(scalar3dp)>(geom_nrm),
+                         sol::resolve<dualnum3dp(vec3dp const&)>(geom_nrm),
+                         sol::resolve<dualnum3dp(bivec3dp const&)>(geom_nrm),
+                         sol::resolve<dualnum3dp(trivec3dp const&)>(geom_nrm),
+                         sol::resolve<dualnum3dp(pscalar3dp)>(geom_nrm),
+                         sol::resolve<dualnum3dp(mvec3dp_e const&)>(geom_nrm),
+                         sol::resolve<dualnum3dp(mvec3dp_u const&)>(geom_nrm),
+                         sol::resolve<dualnum3dp(mvec3dp const&)>(geom_nrm)
+                         // , sol::resolve<dualnum3dp(dualnum3dp const&)>(geom_nrm)
+                         ));
 
     // normalization in EGA
     lua.set_function("normalize", sol::overload(
@@ -1228,25 +1329,31 @@ void register_functions(sol::state& lua)
     lua.set_function("bulk_normalize",
                      sol::overload(
                          // PGA 2DP types
+                         sol::resolve<scalar2dp(scalar2dp)>(bulk_normalize),
                          sol::resolve<vec2dp(vec2dp const&)>(bulk_normalize),
                          sol::resolve<bivec2dp(bivec2dp const&)>(bulk_normalize),
+                         //  sol::resolve<pscalar2dp(pscalar2dp)>(bulk_normalize),
                          sol::resolve<mvec2dp_e(mvec2dp_e const&)>(bulk_normalize),
                          sol::resolve<mvec2dp_u(mvec2dp_u const&)>(bulk_normalize),
                          sol::resolve<mvec2dp(mvec2dp const&)>(bulk_normalize),
                          // PGA 3DP types
+                         sol::resolve<scalar3dp(scalar3dp)>(bulk_normalize),
                          sol::resolve<vec3dp(vec3dp const&)>(bulk_normalize),
                          sol::resolve<bivec3dp(bivec3dp const&)>(bulk_normalize),
                          sol::resolve<trivec3dp(trivec3dp const&)>(bulk_normalize),
+                         //  sol::resolve<pscalar3dp(pscalar3dp)>(bulk_normalize),
                          sol::resolve<mvec3dp_e(mvec3dp_e const&)>(bulk_normalize),
                          sol::resolve<mvec3dp_u(mvec3dp_u const&)>(bulk_normalize),
                          sol::resolve<mvec3dp(mvec3dp const&)>(bulk_normalize)));
 
     // PGA unitize functions (analogue to EGA normalize, but for weight == 1.0)
+    // = weight_normalize()
     lua.set_function("unitize",
                      sol::overload(
                          // PGA 2DP types
                          sol::resolve<vec2dp(vec2dp const&)>(unitize),
                          sol::resolve<bivec2dp(bivec2dp const&)>(unitize),
+                         sol::resolve<pscalar2dp(pscalar2dp)>(unitize),
                          sol::resolve<mvec2dp_e(mvec2dp_e const&)>(unitize),
                          sol::resolve<mvec2dp_u(mvec2dp_u const&)>(unitize),
                          sol::resolve<mvec2dp(mvec2dp const&)>(unitize),
@@ -1257,6 +1364,7 @@ void register_functions(sol::state& lua)
                          sol::resolve<vec3dp(vec3dp const&)>(unitize),
                          sol::resolve<bivec3dp(bivec3dp const&)>(unitize),
                          sol::resolve<trivec3dp(trivec3dp const&)>(unitize),
+                         sol::resolve<pscalar3dp(pscalar3dp)>(unitize),
                          sol::resolve<mvec3dp_e(mvec3dp_e const&)>(unitize),
                          sol::resolve<mvec3dp_u(mvec3dp_u const&)>(unitize),
                          sol::resolve<mvec3dp(mvec3dp const&)>(unitize),
@@ -1328,41 +1436,41 @@ void register_functions(sol::state& lua)
                          sol::resolve<scalar2dp(pscalar2dp)>(weight_dual)));
 
 
-    lua.set_function("right_bulk_dual",
+    lua.set_function("r_bulk_dual",
                      sol::overload(
                          // PGA 3DP bulk_dual operations
-                         sol::resolve<pscalar3dp(scalar3dp)>(right_bulk_dual),
-                         sol::resolve<trivec3dp(vec3dp const&)>(right_bulk_dual),
-                         sol::resolve<bivec3dp(bivec3dp const&)>(right_bulk_dual),
-                         sol::resolve<vec3dp(trivec3dp const&)>(right_bulk_dual),
-                         sol::resolve<scalar3dp(pscalar3dp)>(right_bulk_dual)));
+                         sol::resolve<pscalar3dp(scalar3dp)>(r_bulk_dual),
+                         sol::resolve<trivec3dp(vec3dp const&)>(r_bulk_dual),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(r_bulk_dual),
+                         sol::resolve<vec3dp(trivec3dp const&)>(r_bulk_dual),
+                         sol::resolve<scalar3dp(pscalar3dp)>(r_bulk_dual)));
 
-    lua.set_function("right_weight_dual",
+    lua.set_function("r_weight_dual",
                      sol::overload(
                          // PGA 3DP weight_dual operations
-                         sol::resolve<pscalar3dp(scalar3dp)>(right_weight_dual),
-                         sol::resolve<trivec3dp(vec3dp const&)>(right_weight_dual),
-                         sol::resolve<bivec3dp(bivec3dp const&)>(right_weight_dual),
-                         sol::resolve<vec3dp(trivec3dp const&)>(right_weight_dual),
-                         sol::resolve<scalar3dp(pscalar3dp)>(right_weight_dual)));
+                         sol::resolve<pscalar3dp(scalar3dp)>(r_weight_dual),
+                         sol::resolve<trivec3dp(vec3dp const&)>(r_weight_dual),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(r_weight_dual),
+                         sol::resolve<vec3dp(trivec3dp const&)>(r_weight_dual),
+                         sol::resolve<scalar3dp(pscalar3dp)>(r_weight_dual)));
 
-    lua.set_function("left_bulk_dual",
+    lua.set_function("l_bulk_dual",
                      sol::overload(
                          // PGA 3DP bulk_dual operations
-                         sol::resolve<pscalar3dp(scalar3dp)>(left_bulk_dual),
-                         sol::resolve<trivec3dp(vec3dp const&)>(left_bulk_dual),
-                         sol::resolve<bivec3dp(bivec3dp const&)>(left_bulk_dual),
-                         sol::resolve<vec3dp(trivec3dp const&)>(left_bulk_dual),
-                         sol::resolve<scalar3dp(pscalar3dp)>(left_bulk_dual)));
+                         sol::resolve<pscalar3dp(scalar3dp)>(l_bulk_dual),
+                         sol::resolve<trivec3dp(vec3dp const&)>(l_bulk_dual),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(l_bulk_dual),
+                         sol::resolve<vec3dp(trivec3dp const&)>(l_bulk_dual),
+                         sol::resolve<scalar3dp(pscalar3dp)>(l_bulk_dual)));
 
-    lua.set_function("left_weight_dual",
+    lua.set_function("l_weight_dual",
                      sol::overload(
                          // PGA 3DP weight_dual operations
-                         sol::resolve<pscalar3dp(scalar3dp)>(left_weight_dual),
-                         sol::resolve<trivec3dp(vec3dp const&)>(left_weight_dual),
-                         sol::resolve<bivec3dp(bivec3dp const&)>(left_weight_dual),
-                         sol::resolve<vec3dp(trivec3dp const&)>(left_weight_dual),
-                         sol::resolve<scalar3dp(pscalar3dp)>(left_weight_dual)));
+                         sol::resolve<pscalar3dp(scalar3dp)>(l_weight_dual),
+                         sol::resolve<trivec3dp(vec3dp const&)>(l_weight_dual),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(l_weight_dual),
+                         sol::resolve<vec3dp(trivec3dp const&)>(l_weight_dual),
+                         sol::resolve<scalar3dp(pscalar3dp)>(l_weight_dual)));
 
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -1925,57 +2033,57 @@ void register_functions(sol::state& lua)
                                            sol::resolve<mvec3d_e(mvec3d_u const&)>(dual),
                                            sol::resolve<mvec3d(mvec3d const&)>(dual)));
 
-    lua.set_function("left_dual",
-                     sol::overload(sol::resolve<scalar2d(pscalar2d)>(left_dual),
-                                   sol::resolve<vec2d(vec2d const&)>(left_dual),
-                                   sol::resolve<pscalar2d(scalar2d)>(left_dual),
-                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(left_dual),
-                                   sol::resolve<mvec2d(mvec2d const&)>(left_dual)));
+    lua.set_function("l_dual",
+                     sol::overload(sol::resolve<scalar2d(pscalar2d)>(l_dual),
+                                   sol::resolve<vec2d(vec2d const&)>(l_dual),
+                                   sol::resolve<pscalar2d(scalar2d)>(l_dual),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(l_dual),
+                                   sol::resolve<mvec2d(mvec2d const&)>(l_dual)));
 
-    lua.set_function("right_dual",
-                     sol::overload(sol::resolve<scalar2d(pscalar2d)>(right_dual),
-                                   sol::resolve<vec2d(vec2d const&)>(right_dual),
-                                   sol::resolve<pscalar2d(scalar2d)>(right_dual),
-                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(right_dual),
-                                   sol::resolve<mvec2d(mvec2d const&)>(right_dual)));
+    lua.set_function("r_dual",
+                     sol::overload(sol::resolve<scalar2d(pscalar2d)>(r_dual),
+                                   sol::resolve<vec2d(vec2d const&)>(r_dual),
+                                   sol::resolve<pscalar2d(scalar2d)>(r_dual),
+                                   sol::resolve<mvec2d_e(mvec2d_e const&)>(r_dual),
+                                   sol::resolve<mvec2d(mvec2d const&)>(r_dual)));
 
     ////////////////////////////////////////////////////////////////////////////////
     // complement operations
     ////////////////////////////////////////////////////////////////////////////////
 
-    lua.set_function("rcmpl",
-                     sol::overload( // EGA 2D rcmpl functions
-                         sol::resolve<pscalar2d(scalar2d)>(rcmpl),
-                         sol::resolve<vec2d(vec2d const&)>(rcmpl),
-                         sol::resolve<scalar2d(pscalar2d)>(rcmpl),
-                         sol::resolve<mvec2d_e(mvec2d_e const&)>(rcmpl),
-                         sol::resolve<mvec2d(mvec2d const&)>(rcmpl),
-                         // PGA 3DP rcmpl functions (8 total)
-                         sol::resolve<pscalar3dp(scalar3dp)>(rcmpl),
-                         sol::resolve<trivec3dp(vec3dp const&)>(rcmpl),
-                         sol::resolve<bivec3dp(bivec3dp const&)>(rcmpl),
-                         sol::resolve<vec3dp(trivec3dp const&)>(rcmpl),
-                         sol::resolve<scalar3dp(pscalar3dp)>(rcmpl),
-                         sol::resolve<mvec3dp_u(mvec3dp_u const&)>(rcmpl),
-                         sol::resolve<mvec3dp_e(mvec3dp_e const&)>(rcmpl),
-                         sol::resolve<mvec3dp(mvec3dp const&)>(rcmpl)));
+    lua.set_function("r_cmpl",
+                     sol::overload( // EGA 2D r_cmpl functions
+                         sol::resolve<pscalar2d(scalar2d)>(r_cmpl),
+                         sol::resolve<vec2d(vec2d const&)>(r_cmpl),
+                         sol::resolve<scalar2d(pscalar2d)>(r_cmpl),
+                         sol::resolve<mvec2d_e(mvec2d_e const&)>(r_cmpl),
+                         sol::resolve<mvec2d(mvec2d const&)>(r_cmpl),
+                         // PGA 3DP r_cmpl functions (8 total)
+                         sol::resolve<pscalar3dp(scalar3dp)>(r_cmpl),
+                         sol::resolve<trivec3dp(vec3dp const&)>(r_cmpl),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(r_cmpl),
+                         sol::resolve<vec3dp(trivec3dp const&)>(r_cmpl),
+                         sol::resolve<scalar3dp(pscalar3dp)>(r_cmpl),
+                         sol::resolve<mvec3dp_u(mvec3dp_u const&)>(r_cmpl),
+                         sol::resolve<mvec3dp_e(mvec3dp_e const&)>(r_cmpl),
+                         sol::resolve<mvec3dp(mvec3dp const&)>(r_cmpl)));
 
-    lua.set_function("lcmpl",
-                     sol::overload( // EGA 2D lcmpl functions
-                         sol::resolve<pscalar2d(scalar2d)>(lcmpl),
-                         sol::resolve<vec2d(vec2d const&)>(lcmpl),
-                         sol::resolve<scalar2d(pscalar2d)>(lcmpl),
-                         sol::resolve<mvec2d_e(mvec2d_e const&)>(lcmpl),
-                         sol::resolve<mvec2d(mvec2d const&)>(lcmpl),
-                         // PGA 3DP lcmpl functions (8 total)
-                         sol::resolve<pscalar3dp(scalar3dp)>(lcmpl),
-                         sol::resolve<trivec3dp(vec3dp const&)>(lcmpl),
-                         sol::resolve<bivec3dp(bivec3dp const&)>(lcmpl),
-                         sol::resolve<vec3dp(trivec3dp const&)>(lcmpl),
-                         sol::resolve<scalar3dp(pscalar3dp)>(lcmpl),
-                         sol::resolve<mvec3dp_u(mvec3dp_u const&)>(lcmpl),
-                         sol::resolve<mvec3dp_e(mvec3dp_e const&)>(lcmpl),
-                         sol::resolve<mvec3dp(mvec3dp const&)>(lcmpl)));
+    lua.set_function("l_cmpl",
+                     sol::overload( // EGA 2D l_cmpl functions
+                         sol::resolve<pscalar2d(scalar2d)>(l_cmpl),
+                         sol::resolve<vec2d(vec2d const&)>(l_cmpl),
+                         sol::resolve<scalar2d(pscalar2d)>(l_cmpl),
+                         sol::resolve<mvec2d_e(mvec2d_e const&)>(l_cmpl),
+                         sol::resolve<mvec2d(mvec2d const&)>(l_cmpl),
+                         // PGA 3DP l_cmpl functions (8 total)
+                         sol::resolve<pscalar3dp(scalar3dp)>(l_cmpl),
+                         sol::resolve<trivec3dp(vec3dp const&)>(l_cmpl),
+                         sol::resolve<bivec3dp(bivec3dp const&)>(l_cmpl),
+                         sol::resolve<vec3dp(trivec3dp const&)>(l_cmpl),
+                         sol::resolve<scalar3dp(pscalar3dp)>(l_cmpl),
+                         sol::resolve<mvec3dp_u(mvec3dp_u const&)>(l_cmpl),
+                         sol::resolve<mvec3dp_e(mvec3dp_e const&)>(l_cmpl),
+                         sol::resolve<mvec3dp(mvec3dp const&)>(l_cmpl)));
 
     lua.set_function("cmpl", sol::overload( // EGA 3D cmpl functions
                                  sol::resolve<pscalar3d(scalar3d)>(cmpl),
@@ -2305,9 +2413,12 @@ void register_functions(sol::state& lua)
                     sol::resolve<scalar3dp(scalar3dp, scalar3dp)>(rgpr)));
 
     // Note:
-    // - Geometric product is only available as operator*, not as gpr() function
-    // - Left/right contractions are only available as operator<< and operator>>
-    // - Many operations have both function and operator forms available
+    // - Geometric product is only available as operator*, not as
+    // gpr() function
+    // - Left/right contractions are only available as operator<<
+    // and operator>>
+    // - Many operations have both function and operator forms
+    // available
 }
 
 ////////////////////////////////////////////////////////////////////////////////

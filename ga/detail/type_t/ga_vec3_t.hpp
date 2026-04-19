@@ -174,7 +174,6 @@ constexpr Vec3_t<std::common_type_t<T, U>, Tag> operator-(Vec3_t<T, Tag> const& 
     return Vec3_t<std::common_type_t<T, U>, Tag>(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 }
 
-
 // multiply a vector with a scalar (in both constellations)
 template <typename T, typename U, typename Tag>
     requires(numeric_type<T> && numeric_type<U>)
@@ -199,73 +198,6 @@ inline Vec3_t<std::common_type_t<T, U>, Tag> operator/(Vec3_t<T, Tag> const& v, 
     using ctype = std::common_type_t<T, U>;
     ctype inv = ctype(1.0) / s; // for multiplicaton with inverse value
     return Vec3_t<ctype, Tag>(v.x * inv, v.y * inv, v.z * inv);
-}
-
-// magnitude of the k-vector (in representational space)
-//
-// magnitude is always defined in the representational space, i.e. without
-// covering the target metric of the representation
-//
-// -> in ega magnitude (magn) and norm (nrm) are identical
-//
-// -> in pga magnitude is defined as norm for the representational space
-//    assuming the corresponding identity matrix as metric for that space:
-//
-//    G<3,0,0> as representational space for modelling 2d Euclidean space using G<2,0,1>
-//             representational space:        e1^2=+1, e2^2=+1, e3^2=+1
-//             modelled 2d Euclidean space:   e1^2=+1, e2^2=+1, e3^2= 0
-//
-//    G<4,0,0> as representational space for modelling 3d Euclidean space using G<3,0,1>
-//             representational space:        e1^2=+1, e2^2=+1, e3^2=+1, e4^2=+1
-//             modelled 3d Euclidean space:   e1^2=+1, e2^2=+1, e3^2=+1, e4^2= 0
-//
-//    norm is always defined for the modelled space incl. the target metric,
-//    by using the exomorphisim matrix G as defined by Lengyel in the book
-//    "Projective geometric algebra illuminated"
-//
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm_sq(Vec3_t<T, Tag> const& v)
-{
-    // implements the scalar product as defined by the geometric product *
-    //
-    // vector case:
-    // |v|^2 = gr0( v*v ) = gr0( dot(v,v) + wdg(v,v) ) = dot(v,v)
-    //       = v.x^2 dot(e1,e1) + v.y^2 dot(e2,e2) + v.z^2 dot(e2,e2)
-    //       = v.x^2 + v.y^2 + v.z^2
-    //
-    // bivector case (Vec3_t is used for bivector components in 3D):
-    // |B|^2 = gr0( B*rev(B)) = -gr0( B*B ) = -dot(B,B)
-    //       = -(B.x^2 dot(e23,e23) + B.y^2 dot(e31,e31) + B.z^2 dot(e12,e12))
-    //       = B.x^2 + B.y^2 + B.z^2
-    //
-    return v.x * v.x + v.y * v.y + v.z * v.z;
-}
-
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-constexpr T nrm(Vec3_t<T, Tag> const& v)
-{
-    return sqrt(nrm_sq(v));
-}
-
-// return a vector v normalized to nrm(v) == 1.0
-template <typename T, typename Tag>
-    requires(numeric_type<T>)
-inline Vec3_t<T, Tag> normalize(Vec3_t<T, Tag> const& v)
-{
-    T m = nrm(v);
-    if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
-                                 hd::ga::Vec3_t<T, hd::ga::vec3d_tag>>) {
-        detail::check_normalization<T>(m, "vector");
-    }
-    else if constexpr (std::is_same_v<hd::ga::Vec3_t<T, Tag>,
-                                      hd::ga::Vec3_t<T, hd::ga::bivec3d_tag>>) {
-        detail::check_normalization<T>(m, "bivector");
-    }
-
-    T inv = T(1.0) / m; // for multiplication with inverse of norm
-    return Vec3_t<T, Tag>(v.x * inv, v.y * inv, v.z * inv);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

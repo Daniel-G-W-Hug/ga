@@ -246,12 +246,14 @@ in~\cite{Lengyel_pga-illuminated:2024}. It is uniquely determined with respect t
 outer product (\emph{not} with respect to the geometric product, as commonly used for
 dualization by many authors working with GA). This ensures consistent signs of
 expressions, operators, complements and duals. The left complement $\lcmpl{u}$ and the
-right complement $\rcmpl{u}$ are defined as
+right complement $\rcmpl{u}$ are defined for a blade $u$ as
 \begin{subeqnarray}
     % use \label for full label
     % use \slabel for sublabel
-    \lcmpl{u} \wedge u & = & I_n \slabel{eq:lcmpl_def} \\
-    u \wedge \rcmpl{u}  & = & I_n \slabel{eq:rcmpl_def}
+    \lcmpl{u} \wedge u & = & I_n \qquad \textrm{(\path{l_cmpl(u)})}
+    \slabel{eq:lcmpl_def} \\
+    u \wedge \rcmpl{u}  & = & I_n \qquad \textrm{(\path{r_cmpl(u)})}
+    \slabel{eq:rcmpl_def}
     \label{eq:cmpl_def}
 \end{subeqnarray}
 with $I_n  = \bv{1} \wedge \bv{2} \wedge \ldots \wedge \bv{n}$ as the pseudoscalar for an
@@ -261,10 +263,10 @@ object $u$ into the constituting basis elements of the complement of the object
 $\lcmpl{u}$ or $\rcmpl{u}$. Connecting the object and its complement with the wedge
 products creates an object that fills the available space in the sense of requiring all
 basis elements of the space to represent it. The full space itself is represented by the
-pseudoscalar, since the pseudoscalar $I_n$ is formed by the product of all
-$n$ basis vectors of the space. An implication of the definition is that the complement
-($\lcmpl{u}$ or $\rcmpl{u}$) is orthogonal to $u$, since we exclusively use orthogonal
-basis vectors to model our space. \\
+pseudoscalar, since the pseudoscalar $I_n$ is formed by the product of all $n$ basis
+vectors of the space. An implication of the definition is that the complement ($\lcmpl{u}$
+or $\rcmpl{u}$) is orthogonal to $u$, since we exclusively use orthogonal basis vectors to
+model our space. \\
 
 The complement is defined as given above in equations~(\ref{eq:cmpl_def}) for any basis
 element. It is extended to full multivectors $A$ and $B$ by linearity as
@@ -399,7 +401,7 @@ that is complementary to equation (\ref{eq:exomorphism}). \\
 In projective geometric algebra the product $\metric{G} u$ defines the \emph{bulk} of
 an object $u$. It is defined as
 \begin{equation}
-    \bulk{u} = \metric{G} u
+    \bulk{u} = \metric{G} u \qquad \textrm{(\path{bulk(u)})}
 \end{equation}
 The bulk only contains components that \emph{do not} contain the projective dimension
 (\bv{3} for $2D$ $PGA$ or \bv{4} for $3D$ $PGA$) as a factor. The \emph{bulk $\bulk{u}$
@@ -408,7 +410,7 @@ means that $u$ contains the origin.\\
 
 The product $\rmetric{G} u$ defines the \emph{weight} of an object $u$. It is defined as
 \begin{equation}
-    \weight{u} = \rmetric{G} u
+    \weight{u} = \rmetric{G} u \qquad \textrm{(\path{weight(u)})}
 \end{equation}
 The weight selects components that \emph{do} indeed contain the projective dimension
 (\bv{3} for $2D$ $PGA$ or \bv{4} for $3D$ $PGA$) as a factor. The \emph{weight
@@ -452,13 +454,13 @@ the complement (reason: the Euclidean metric is the identity matrix; this change
 $PGA$ as shown below). Therefore, in $2D$ $EGA$ for the left and right dual operations are
 defined as
 \begin{eqnarray}
-    \rightbulkdual{u} &=& \rcmpl{u} \qquad \textit{(right dual)}\\
-    \leftbulkdual{u}  &=& \lcmpl{u}  \qquad \textit{(left dual)}
+    \rightbulkdual{u} &=& \rcmpl{u} \qquad \textrm{(right dual: \path{r_dual(u)})}\\
+    \leftbulkdual{u}  &=& \lcmpl{u}  \qquad \textrm{(left dual: \path{l_dual(u)})}
 \end{eqnarray}
 while in $3D$ $EGA$, an odd-dimensional algebra, where no distinction between left and
 right operations exists, we get
 \begin{equation}
-    \rightbulkdual{u} = \rcmpl{u} \qquad \textit{(dual)}
+    \rightbulkdual{u} = \rcmpl{u} \qquad \textrm{(dual: \path{dual(u)})}
 \end{equation}
 where the overline in $\rcmpl{u}$ is the unique complement operation. \\
 
@@ -466,6 +468,7 @@ Now for $PGA$: Using the metric and the right complement, the \emph{(right) bulk
 \rightbulkdual{A} is defined as
 \begin{equation}
     \rightbulkdual{A} = \rcmpl{\metric{G}A} = \rcmpl{\bulk{A}}
+    \qquad \textrm{(\path{r_bulk_dual(u)})}
     \label{eq:rightbulkdual}
 \end{equation}
 where $A$ is an arbitrary multivector, $\metric{G}$ the extended metric and $\metric{G}A$
@@ -477,6 +480,7 @@ There is also a corresponding \emph{(left) bulk dual} $\leftbulkdual{A}$ operati
 the metric and the left complement. It is defined as
 \begin{equation}
     \leftbulkdual{A} = \lcmpl{\metric{G}A} = \lcmpl{\bulk{A}}
+    \qquad \textrm{(\path{l_bulk_dual(u)})}
     \label{eq:leftbulkdual}
 \end{equation}
 Where the left and right operations only differ for $3D$ $PGA$, while for $2D$ $PGA$, a
@@ -566,18 +570,18 @@ products:
 The influence of the metric for the dualization operation can be seen in its effect for
 the different algebras which also depends on the dimension of the modelled space:
 \begin{itemize}
-\item $EGA2D$: $\;\:A_{\star} = \text{\path{left_dual(A)}}$, $A^{\star} =
-\text{\path{right_dual(A)}}$
+\item $EGA2D$: $\;\:A_{\star} = \text{\path{l_dual(A)}}$, $A^{\star} =
+\text{\path{r_dual(A)}}$
 \item $EGA3D$: $\;\:A_{\star} = \text{\path{dual(A)}}$, $A^{\star} =
 \text{\path{dual(A)}}$
 \item $PGA2DP$: $A_{\star} = \text{\path{bulk_dual(A)}}$, $A^{\star} =
 \text{\path{bulk_dual(A)}}$ 
 \item $PGA2DP$: $A_{\smallstar} = \text{\path{weight_dual(A)}}$, $A^{\smallstar} =
 \text{\path{weight_dual(A)}}$
-\item $PGA3DP$: $A_{\star} = \text{\path{left_bulk_dual(A)}}$, $A^{\star} =
-\text{\path{right_bulk_dual(A)}}$
-\item $PGA3DP$: $A_{\smallstar} = \text{\path{left_weight_dual(A)}}$, $A^{\smallstar} =
-\text{\path{right_weight_dual(A)}}$
+\item $PGA3DP$: $A_{\star} = \text{\path{l_bulk_dual(A)}}$, $A^{\star} =
+\text{\path{r_bulk_dual(A)}}$
+\item $PGA3DP$: $A_{\smallstar} = \text{\path{l_weight_dual(A)}}$, $A^{\smallstar} =
+\text{\path{r_weight_dual(A)}}$
 \end{itemize}
 In even-dimensional spaces ($EGA2D$, $PGA3DP$) we have to distinguish left and right
 operations, while in odd-dimensional spaces ($EGA3D$, $PGA2DP$) we don't, since they

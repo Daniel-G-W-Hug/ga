@@ -316,11 +316,11 @@ constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 // the basis vectors which are NOT contained in the k-blade u
 // and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  lcmpl(u) ^ u  = I_2dp = e3^e2^e1
-// right complement: u ^ rcmpl(u)  = I_2dp = e3^e2^e1
+// left complement:  l_cmpl(u) ^ u  = I_2dp = e3^e2^e1
+// right complement: u ^ r_cmpl(u)  = I_2dp = e3^e2^e1
 //
 // in spaces of odd dimension right and left complements are identical and thus there
-// is only one complement operation defined lcmpl(u) = rcmpl(u) = cmpl(u)
+// is only one complement operation defined l_cmpl(u) = r_cmpl(u) = cmpl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // comploments have different signs
@@ -461,7 +461,7 @@ constexpr MVec2dp<T> bulk(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight: u_weight = lcmpl( G rcmpl(u) ) = rG u
+// weight: u_weight = l_cmpl( G r_cmpl(u) ) = rG u
 //         (with G as the metric and rG as the anti-metric as given by Lengyel)
 ////////////////////////////////////////////////////////////////////////////////
 // By the multiplication with the metric G (which is degenerate in this case)
@@ -524,20 +524,16 @@ constexpr MVec2dp<T> weight(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// bulk norm
+// bulk_nrm(u): return the bulk norm of u (a scalar value)
 ////////////////////////////////////////////////////////////////////////////////
 
-// return squared bulk norm of scalar
 template <typename T>
     requires(numeric_type<T>)
 constexpr T bulk_nrm_sq(Scalar2dp<T> s)
 {
-    // ||bulk(s)||^2 = dot(s,s) = s^(T) G s = gr0(s*rev(s)) = s*s
-    // using rev(s) = (-1)^[k(k-1)/2] s for a k-blade: 0-blade => rev(s) = s
     return T(s) * T(s);
 }
 
-// return bulk norm of scalar
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar2dp<T> bulk_nrm(Scalar2dp<T> s)
@@ -545,17 +541,13 @@ constexpr Scalar2dp<T> bulk_nrm(Scalar2dp<T> s)
     return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(s)));
 }
 
-// return squared bulk norm of vector
 template <typename T>
     requires(numeric_type<T>)
 constexpr T bulk_nrm_sq(Vec2dp<T> const& v)
 {
-    // ||bulk(v)||^2 = dot(v,v) = v^(T) G v = gr0(v*rev(v)) = v.x * v.x + v.y * v.y
-    // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
     return v.x * v.x + v.y * v.y;
 }
 
-// return bulk norm of vector
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar2dp<T> bulk_nrm(Vec2dp<T> const& v)
@@ -563,17 +555,13 @@ constexpr Scalar2dp<T> bulk_nrm(Vec2dp<T> const& v)
     return Scalar2dp<T>(std::sqrt(bulk_nrm_sq(v)));
 }
 
-// return squared bulk magnitude of bivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr T bulk_nrm_sq(BiVec2dp<T> const& B)
 {
-    // ||bulk(B)||^2 = dot(B,B) = B^(T) G B = gr0(B*rev(B)) = B.z * B.z
-    // using rev(B) = (-1)^[k(k-1)/2] B for a k-blade: 2-blade => rev(B) = -B
     return B.z * B.z;
 }
 
-// return magnitude of bivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar2dp<T> bulk_nrm(BiVec2dp<T> const& B)
@@ -640,7 +628,7 @@ constexpr Scalar2dp<T> bulk_nrm(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// weight norm
+// weight_nrm(u): return the weight norm of u (a pseudoscalar value)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -657,8 +645,6 @@ constexpr PScalar2dp<T> weight_nrm([[maybe_unused]] Scalar2dp<T>)
     return PScalar2dp<T>(0.0);
 }
 
-// return squared weight norm of vector
-// ||weight(v)||^2 = cmpl( dot(cmpl(v), cmpl(v)) ) = rdot(v,v) = v.z * v.z
 template <typename T>
     requires(numeric_type<T>)
 constexpr T weight_nrm_sq(Vec2dp<T> const& v)
@@ -666,7 +652,6 @@ constexpr T weight_nrm_sq(Vec2dp<T> const& v)
     return v.z * v.z;
 }
 
-// return weigth norm of vector
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar2dp<T> weight_nrm(Vec2dp<T> const& v)
@@ -674,8 +659,6 @@ constexpr PScalar2dp<T> weight_nrm(Vec2dp<T> const& v)
     return PScalar2dp<T>(std::sqrt(weight_nrm_sq(v)));
 }
 
-// return squared weight norm of bivector
-// ||weight(B)||^2 = cmpl( dot(cmpl(B),cmpl(B)) ) = rdot(B, B) = B.x * B.x + B.y * B.y
 template <typename T>
     requires(numeric_type<T>)
 constexpr T weight_nrm_sq(BiVec2dp<T> const& B)
@@ -683,7 +666,6 @@ constexpr T weight_nrm_sq(BiVec2dp<T> const& B)
     return B.x * B.x + B.y * B.y;
 }
 
-// return weight norm of bivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar2dp<T> weight_nrm(BiVec2dp<T> const& B)
@@ -691,8 +673,6 @@ constexpr PScalar2dp<T> weight_nrm(BiVec2dp<T> const& B)
     return PScalar2dp<T>(std::sqrt(weight_nrm_sq(B)));
 }
 
-// return squared weight norm of pseudoscalar
-// ||weight(ps)||^2 = cmpl( dot(cmpl(ps),cmpl(ps)) ) = rdot(ps, ps) = ps * ps
 template <typename T>
     requires(numeric_type<T>)
 constexpr T weight_nrm_sq(PScalar2dp<T> ps)
@@ -700,7 +680,6 @@ constexpr T weight_nrm_sq(PScalar2dp<T> ps)
     return T(ps) * T(ps);
 }
 
-// return weight norm of pseudoscalar
 template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar2dp<T> weight_nrm(PScalar2dp<T> ps)
@@ -762,9 +741,9 @@ constexpr PScalar2dp<T> weight_nrm(MVec2dp<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum2dp<T> geom_nrm_sq(Scalar2dp<T> s)
+constexpr T geom_nrm_sq(Scalar2dp<T> s)
 {
-    return DualNum2dp<T>(bulk_nrm_sq(s), weight_nrm_sq(s));
+    return bulk_nrm_sq(s) + weight_nrm_sq(s);
 }
 
 template <typename T>
@@ -777,12 +756,11 @@ constexpr DualNum2dp<T> geom_nrm(Scalar2dp<T> s)
 // provide the distance of the point from the origin
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum2dp<T> geom_nrm_sq(Vec2dp<T> const& v)
+constexpr T geom_nrm_sq(Vec2dp<T> const& v)
 {
-    return DualNum2dp<T>(bulk_nrm_sq(v), weight_nrm_sq(v));
+    return bulk_nrm_sq(v) + weight_nrm_sq(v);
 }
 
-// return geometric norm of vector
 template <typename T>
     requires(numeric_type<T>)
 constexpr DualNum2dp<T> geom_nrm(Vec2dp<T> const& v)
@@ -793,12 +771,11 @@ constexpr DualNum2dp<T> geom_nrm(Vec2dp<T> const& v)
 // provide the perpendicular distance of the line to the origin
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum2dp<T> geom_nrm_sq(BiVec2dp<T> const& B)
+constexpr T geom_nrm_sq(BiVec2dp<T> const& B)
 {
-    return DualNum2dp<T>(bulk_nrm_sq(B), weight_nrm_sq(B));
+    return bulk_nrm_sq(B) + weight_nrm_sq(B);
 }
 
-// return geometric norm of bivector
 template <typename T>
     requires(numeric_type<T>)
 constexpr DualNum2dp<T> geom_nrm(BiVec2dp<T> const& B)
@@ -808,9 +785,9 @@ constexpr DualNum2dp<T> geom_nrm(BiVec2dp<T> const& B)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum2dp<T> geom_nrm_sq(PScalar2dp<T> ps)
+constexpr T geom_nrm_sq(PScalar2dp<T> ps)
 {
-    return DualNum2dp<T>(bulk_nrm_sq(ps), weight_nrm_sq(ps));
+    return bulk_nrm_sq(ps) + weight_nrm_sq(ps);
 }
 
 template <typename T>
@@ -820,12 +797,11 @@ constexpr DualNum2dp<T> geom_nrm(PScalar2dp<T> ps)
     return DualNum2dp<T>(bulk_nrm(ps), weight_nrm(ps));
 }
 
-// even-grade multivector
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_E<T> const& M)
+constexpr T geom_nrm_sq(MVec2dp_E<T> const& M)
 {
-    return DualNum2dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
+    return bulk_nrm_sq(M) + weight_nrm_sq(M);
 }
 
 template <typename T>
@@ -835,12 +811,11 @@ constexpr DualNum2dp<T> geom_nrm(MVec2dp_E<T> const& M)
     return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
 }
 
-// odd-grade multivector
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp_U<T> const& M)
+constexpr T geom_nrm_sq(MVec2dp_U<T> const& M)
 {
-    return DualNum2dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
+    return bulk_nrm_sq(M) + weight_nrm_sq(M);
 }
 
 template <typename T>
@@ -850,12 +825,11 @@ constexpr DualNum2dp<T> geom_nrm(MVec2dp_U<T> const& M)
     return DualNum2dp<T>(bulk_nrm(M), weight_nrm(M));
 }
 
-// multivector
 template <typename T>
     requires(numeric_type<T>)
-constexpr DualNum2dp<T> geom_nrm_sq(MVec2dp<T> const& M)
+constexpr T geom_nrm_sq(MVec2dp<T> const& M)
 {
-    return DualNum2dp<T>(bulk_nrm_sq(M), weight_nrm_sq(M));
+    return bulk_nrm_sq(M) + weight_nrm_sq(M);
 }
 
 template <typename T>
@@ -867,122 +841,134 @@ constexpr DualNum2dp<T> geom_nrm(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// bulk normalization operations
+// bulk normalization operations:
+// return an object normalized to bulk_nrm(u) == 1.0
 ////////////////////////////////////////////////////////////////////////////////
 
-// return a vector normalized to bulk_nrm(v) == 1.0
+template <typename T>
+    requires(numeric_type<T>)
+inline Scalar2dp<T> bulk_normalize(Scalar2dp<T> s)
+{
+    T m = to_val(bulk_nrm(s));
+    hd::ga::detail::check_normalization<T>(m, "scalar (2dp)");
+    T scale = T(1.0) / m;
+    return Scalar2dp<T>(scale * T(s));
+}
+
 template <typename T>
     requires(numeric_type<T>)
 inline Vec2dp<T> bulk_normalize(Vec2dp<T> const& v)
 {
     T n = to_val(bulk_nrm(v));
     hd::ga::detail::check_normalization<T>(std::abs(n), "vector (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * v;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * v;
 }
 
-// return a bivector normalized to bulk_nrm(B) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline BiVec2dp<T> bulk_normalize(BiVec2dp<T> const& B)
 {
     T n = to_val(bulk_nrm(B));
     hd::ga::detail::check_normalization<T>(n, "bivector (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * B;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * B;
 }
 
-// return an even-grade multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec2dp_E<T> bulk_normalize(MVec2dp_E<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
     hd::ga::detail::check_normalization<T>(n, "even-grade multivector (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
-// return an odd-grade multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec2dp_U<T> bulk_normalize(MVec2dp_U<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
     hd::ga::detail::check_normalization<T>(n, "odd-grade multivector (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
-// return a multivector normalized to bulk_nrm(M) == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec2dp<T> bulk_normalize(MVec2dp<T> const& M)
 {
     T n = to_val(bulk_nrm(M));
     hd::ga::detail::check_normalization<T>(n, "multivector (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// unitization operations
+// unitization operations:
+// return an object normalized to weight_nrm(u) == 1.0
 ////////////////////////////////////////////////////////////////////////////////
 
-// return a vector unitized to v.z == 1.0  (implies weight_nrm(v) = 1.0)
 template <typename T>
     requires(numeric_type<T>)
 inline Vec2dp<T> unitize(Vec2dp<T> const& v)
 {
-    T n = v.z;
+    T n = v.z; // v.z == sign(v.z) * weight_nrm(v)
     hd::ga::detail::check_unitization<T>(std::abs(n), "vector (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return Vec2dp<T>(v.x * inv, v.y * inv, T(1.0));
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return Vec2dp<T>(v.x * scale, v.y * scale, T(1.0));
 }
 
-// return a bivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline BiVec2dp<T> unitize(BiVec2dp<T> const& B)
 {
     T n = T(weight_nrm(B));
     hd::ga::detail::check_unitization<T>(n, "bivector (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * B;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * B;
 }
 
-// return an even-grade multivector unitized to weight_nrm == 1.0
+template <typename T>
+    requires(numeric_type<T>)
+inline PScalar2dp<T> unitize(PScalar2dp<T> ps)
+{
+    T n = T(weight_nrm(ps));
+    hd::ga::detail::check_unitization<T>(n, "pseudoscalar (2dp)");
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return PScalar2dp<T>(scale * T(ps));
+}
+
 template <typename T>
     requires(numeric_type<T>)
 inline MVec2dp_E<T> unitize(MVec2dp_E<T> const& M)
 {
     T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "even-grade multivector (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
-// return an odd-grade multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec2dp_U<T> unitize(MVec2dp_U<T> const& M)
 {
     T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "odd-grade multivector (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
-// return a multivector unitized to weight_nrm == 1.0
 template <typename T>
     requires(numeric_type<T>)
 inline MVec2dp<T> unitize(MVec2dp<T> const& M)
 {
     T n = T(weight_nrm(M));
     hd::ga::detail::check_unitization<T>(n, "multivector (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * M;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * M;
 }
 
 template <typename T>
@@ -990,33 +976,30 @@ template <typename T>
 inline Point2dp<T> unitize(Point2dp<T> const& p)
 {
     hd::ga::detail::check_unitization<T>(std::abs(p.z), "Point2dp");
-    T inv = T(1.0) / p.z;
-    return Point2dp<T>(p.x * inv, p.y * inv, T(1.0));
+    T scale = T(1.0) / p.z;
+    return Point2dp<T>(p.x * scale, p.y * scale, T(1.0));
 }
 
 template <typename T>
     requires(numeric_type<T>)
 inline Line2d<T> unitize(Line2d<T> const& l)
 {
-    // unitization for a 2d bivector means sqrt(x^2 + y^2) = 1
+    // unitization for a 2dp bivector means sqrt(x^2 + y^2) = 1
     // i.e. unitization of the direction vector of the line
     T wn = T(weight_nrm(l));
     hd::ga::detail::check_unitization<T>(wn, "Line2d");
-    T inv = T(1.0) / wn;
-    return Line2d<T>(l.x * inv, l.y * inv, l.z * inv);
+    T scale = T(1.0) / wn;
+    return Line2d<T>(l.x * scale, l.y * scale, l.z * scale);
 }
 
-// return a DualNum2dp unitized to weight_nrm == 1.0
-// => if the dual number represents a homogeneous norm,
-//    the scalar part represents the geometric norm the after unitization
 template <typename T>
     requires(numeric_type<T>)
 inline DualNum2dp<T> unitize(DualNum2dp<T> const& D)
 {
     T n = D.c1; // the pseudoscalar part is the weight_nrm part
     hd::ga::detail::check_unitization<T>(std::abs(n), "dual number (2dp)");
-    T inv = T(1.0) / n; // for multiplication with inverse of norm
-    return inv * D;
+    T scale = T(1.0) / n; // for multiplication with inverse of norm
+    return scale * D;
 }
 
 

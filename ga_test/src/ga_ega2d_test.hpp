@@ -588,15 +588,15 @@ TEST_SUITE("EGA 2D Tests")
 
         // point reflected on a hyperplane that the vector is a normal to
         // the hyperplane can be created by taking the dual (or the rcmpl) of the normal
-        CHECK(reflect_on(p, right_dual(x_dir_2d)) == vec2d{4, -1});
+        CHECK(reflect_on(p, r_dual(x_dir_2d)) == vec2d{4, -1});
 
         // coordinate axis reflected on perpendicular axis yield their negatives
-        CHECK(reflect_on(y_dir_2d, right_dual(x_dir_2d)) == -y_dir_2d);
-        CHECK(reflect_on(x_dir_2d, right_dual(y_dir_2d)) == -x_dir_2d);
+        CHECK(reflect_on(y_dir_2d, r_dual(x_dir_2d)) == -y_dir_2d);
+        CHECK(reflect_on(x_dir_2d, r_dual(y_dir_2d)) == -x_dir_2d);
 
         // coordinate axis reflected on itself remains itself (identity)
-        CHECK(reflect_on(x_dir_2d, right_dual(x_dir_2d)) == x_dir_2d);
-        CHECK(reflect_on(y_dir_2d, right_dual(y_dir_2d)) == y_dir_2d);
+        CHECK(reflect_on(x_dir_2d, r_dual(x_dir_2d)) == x_dir_2d);
+        CHECK(reflect_on(y_dir_2d, r_dual(y_dir_2d)) == y_dir_2d);
     }
 
     TEST_CASE("Vec2d: operations - rotations")
@@ -1175,7 +1175,7 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("");
         // fmt::println("scalar case: ");
         CHECK(u * s == gr1((s >> u) + wdg(u, s)));
-        CHECK(u * s == gr1(rwdg(s, right_dual(u)) + wdg(u, s)));
+        CHECK(u * s == gr1(rwdg(s, r_dual(u)) + wdg(u, s)));
 
         // fmt::println("");
         // fmt::println("u * s = {}", u * s);
@@ -1185,17 +1185,17 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("(s >> u) + wdg(u, s) = {}", (s >> u) + wdg(u, s));
         // fmt::println("gr1((s >> u) + wdg(u, s)) = {}", gr1((s >> u) + wdg(u, s)));
         // fmt::println("");
-        // fmt::println("right_dual(u) = {}", right_dual(u));
-        // fmt::println("rwdg(s,right_dual(u))= {}", rwdg(s, right_dual(u)));
+        // fmt::println("r_dual(u) = {}", r_dual(u));
+        // fmt::println("rwdg(s,r_dual(u))= {}", rwdg(s, r_dual(u)));
         // fmt::println("wdg(u, s) = {}", wdg(u, s));
-        // fmt::println("rwdg(s,right_dual(u)) + wdg(u, s) = {}",
-        //              rwdg(s, right_dual(u)) + wdg(u, s));
-        // fmt::println("gr1(rwdg(s,right_dual(u)) + wdg(u, s)) = {}",
-        //              gr1(rwdg(s, right_dual(u)) + wdg(u, s)));
+        // fmt::println("rwdg(s,r_dual(u)) + wdg(u, s) = {}",
+        //              rwdg(s, r_dual(u)) + wdg(u, s));
+        // fmt::println("gr1(rwdg(s,r_dual(u)) + wdg(u, s)) = {}",
+        //              gr1(rwdg(s, r_dual(u)) + wdg(u, s)));
         // fmt::println("");
 
         CHECK(s * u == gr1((u << s) + wdg(s, u)));
-        CHECK(s * u == gr1(rwdg(left_dual(u), s) + wdg(s, u)));
+        CHECK(s * u == gr1(rwdg(l_dual(u), s) + wdg(s, u)));
 
         // fmt::println("");
         // fmt::println("s * u = {}", s * u);
@@ -1205,19 +1205,19 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("(u << s) + wdg(s, u) = {}", (u << s) + wdg(s, u));
         // fmt::println("gr1((u << s) + wdg(s, u)) = {}", gr1((u << s) + wdg(s, u)));
         // fmt::println("");
-        // fmt::println("left_dual(u) = {}", left_dual(u));
-        // fmt::println("rwdg(left_dual(u), s)= {}", rwdg(left_dual(u), s));
+        // fmt::println("l_dual(u) = {}", l_dual(u));
+        // fmt::println("rwdg(l_dual(u), s)= {}", rwdg(l_dual(u), s));
         // fmt::println("wdg(s, u) = {}", wdg(s, u));
-        // fmt::println("rwdg(left_dual(u), s) + wdg(s, u) = {}",
-        //              rwdg(left_dual(u), s) + wdg(s, u));
-        // fmt::println("gr1(rwdg(left_dual(u), s) + wdg(s, u)) = {}",
-        //              gr1(rwdg(left_dual(u), s) + wdg(s, u)));
+        // fmt::println("rwdg(l_dual(u), s) + wdg(s, u) = {}",
+        //              rwdg(l_dual(u), s) + wdg(s, u));
+        // fmt::println("gr1(rwdg(l_dual(u), s) + wdg(s, u)) = {}",
+        //              gr1(rwdg(l_dual(u), s) + wdg(s, u)));
         // fmt::println("");
 
         // fmt::println("");
         // fmt::println("vector case: ");
         CHECK(u * v == (v >> u) + wdg(u, v));
-        CHECK(u * v == rwdg(v, right_dual(u)) + wdg(u, v));
+        CHECK(u * v == rwdg(v, r_dual(u)) + wdg(u, v));
 
         // fmt::println("");
         // fmt::println("u * v = {}", u * v);
@@ -1226,15 +1226,15 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("wdg(u, v) = {}", wdg(u, v));
         // fmt::println("(v >> u) + wdg(u, v) = {}", (v >> u) + wdg(u, v));
         // fmt::println("");
-        // fmt::println("right_dual(u) = {}", right_dual(u));
-        // fmt::println("rwdg(v,right_dual(u))= {}", rwdg(v, right_dual(u)));
+        // fmt::println("r_dual(u) = {}", r_dual(u));
+        // fmt::println("rwdg(v,r_dual(u))= {}", rwdg(v, r_dual(u)));
         // fmt::println("wdg(u, v) = {}", wdg(u, v));
-        // fmt::println("rwdg(v,right_dual(u)) + wdg(u, v) = {}",
-        //              rwdg(v, right_dual(u)) + wdg(u, v));
+        // fmt::println("rwdg(v,r_dual(u)) + wdg(u, v) = {}",
+        //              rwdg(v, r_dual(u)) + wdg(u, v));
         // fmt::println("");
 
         CHECK(v * u == (u << v) + wdg(v, u));
-        CHECK(v * u == rwdg(left_dual(u), v) + wdg(v, u));
+        CHECK(v * u == rwdg(l_dual(u), v) + wdg(v, u));
 
         // fmt::println("");
         // fmt::println("v * u = {}", v * u);
@@ -1243,17 +1243,17 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("wdg(v, u) = {}", wdg(v, u));
         // fmt::println("(u << v) + wdg(v, u) = {}", (u << v) + wdg(v, u));
         // fmt::println("");
-        // fmt::println("left_dual(u) = {}", left_dual(u));
-        // fmt::println("rwdg(left_dual(u), v)= {}", rwdg(left_dual(u), v));
+        // fmt::println("l_dual(u) = {}", l_dual(u));
+        // fmt::println("rwdg(l_dual(u), v)= {}", rwdg(l_dual(u), v));
         // fmt::println("wdg(v, u) = {}", wdg(v, u));
-        // fmt::println("rwdg(left_dual(u), v) + wdg(v, u) = {}",
-        //              rwdg(left_dual(u), v) + wdg(v, u));
+        // fmt::println("rwdg(l_dual(u), v) + wdg(v, u) = {}",
+        //              rwdg(l_dual(u), v) + wdg(v, u));
         // fmt::println("");
 
         // fmt::println("");
         // fmt::println("pscalar case: ");
         CHECK(u * ps == gr1((ps >> u) + wdg(u, ps)));
-        CHECK(u * ps == gr1(rwdg(ps, right_dual(u)) + wdg(u, ps)));
+        CHECK(u * ps == gr1(rwdg(ps, r_dual(u)) + wdg(u, ps)));
 
         // fmt::println("");
         // fmt::println("u * ps = {}", u * ps);
@@ -1263,17 +1263,17 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("(ps >> u) + wdg(u, ps) = {}", (ps >> u) + wdg(u, ps));
         // fmt::println("gr1((ps >> u) + wdg(u, ps)) = {}", gr1((ps >> u) + wdg(u, ps)));
         // fmt::println("");
-        // fmt::println("right_dual(u) = {}", right_dual(u));
-        // fmt::println("rwdg(ps,right_dual(u))= {}", rwdg(ps, right_dual(u)));
+        // fmt::println("r_dual(u) = {}", r_dual(u));
+        // fmt::println("rwdg(ps,r_dual(u))= {}", rwdg(ps, r_dual(u)));
         // fmt::println("wdg(u, ps) = {}", wdg(u, ps));
-        // fmt::println("rwdg(ps,right_dual(u)) + wdg(u, ps) = {}",
-        //              rwdg(ps, right_dual(u)) + wdg(u, ps));
-        // fmt::println("gr1(rwdg(ps,right_dual(u)) + wdg(u, ps)) = {}",
-        //              gr1(rwdg(ps, right_dual(u)) + wdg(u, ps)));
+        // fmt::println("rwdg(ps,r_dual(u)) + wdg(u, ps) = {}",
+        //              rwdg(ps, r_dual(u)) + wdg(u, ps));
+        // fmt::println("gr1(rwdg(ps,r_dual(u)) + wdg(u, ps)) = {}",
+        //              gr1(rwdg(ps, r_dual(u)) + wdg(u, ps)));
         // fmt::println("");
 
         CHECK(ps * u == gr1((u << ps) + wdg(ps, u)));
-        CHECK(ps * u == gr1(rwdg(left_dual(u), ps) + wdg(ps, u)));
+        CHECK(ps * u == gr1(rwdg(l_dual(u), ps) + wdg(ps, u)));
 
         // fmt::println("");
         // fmt::println("ps * u = {}", ps * u);
@@ -1283,13 +1283,13 @@ TEST_SUITE("EGA 2D Tests")
         // fmt::println("(u << ps) + wdg(ps, u) = {}", (u << ps) + wdg(ps, u));
         // fmt::println("gr1((u << ps) + wdg(ps, u)) = {}", gr1((u << ps) + wdg(ps, u)));
         // fmt::println("");
-        // fmt::println("left_dual(u) = {}", left_dual(u));
-        // fmt::println("rwdg(left_dual(u), ps)= {}", rwdg(left_dual(u), ps));
+        // fmt::println("l_dual(u) = {}", l_dual(u));
+        // fmt::println("rwdg(l_dual(u), ps)= {}", rwdg(l_dual(u), ps));
         // fmt::println("wdg(ps, u) = {}", wdg(ps, u));
-        // fmt::println("rwdg(left_dual(u), ps) + wdg(ps, u) = {}",
-        //              rwdg(left_dual(u), ps) + wdg(ps, u));
-        // fmt::println("gr1(rwdg(left_dual(u), ps) + wdg(ps, u)) = {}",
-        //              gr1(rwdg(left_dual(u), ps) + wdg(ps, u)));
+        // fmt::println("rwdg(l_dual(u), ps) + wdg(ps, u) = {}",
+        //              rwdg(l_dual(u), ps) + wdg(ps, u));
+        // fmt::println("gr1(rwdg(l_dual(u), ps) + wdg(ps, u)) = {}",
+        //              gr1(rwdg(l_dual(u), ps) + wdg(ps, u)));
         // fmt::println("");
 
         // fmt::println("");
@@ -1666,20 +1666,20 @@ TEST_SUITE("EGA 2D Tests")
         ////////////////////////////////////////////////////////////////////////////////
         //
         // dual(A) = cmpl(A) in spaces of odd dimension
-        //         = rcmpl(A) in spaces of even dimension
+        //         = r_cmpl(A) in spaces of even dimension
         //
 
         auto vm_dual_manual = rev(vm) * I_2d_mv;
-        auto vm_dual = right_dual(vm);
+        auto vm_dual = r_dual(vm);
 
         auto vm_dual_even_manual = rev(vm_even) * I_2d_mv;
-        auto vm_dual_even = right_dual(vm_even);
+        auto vm_dual_even = r_dual(vm_even);
 
         auto vm_dual_manual_E = rev(vm_E) * I_2d_mv_e;
-        auto vm_dual_E = right_dual(vm_E);
+        auto vm_dual_E = r_dual(vm_E);
 
         auto v_dual_manual = rev(v) * I_2d;
-        auto v_dual = right_dual(v);
+        auto v_dual = r_dual(v);
 
         // fmt::println("   I_2d               = {}", I_2d);
         // fmt::println("   I_2d_mv              = {}", I_2d_mv);
@@ -1705,9 +1705,9 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(vm_dual_even == vm_dual_even_manual);
         CHECK(vm_dual_E == vm_dual_manual_E);
         CHECK(v_dual == v_dual_manual);
-        CHECK(right_dual(scalar2d(5)) == pscalar2d(5));
-        CHECK(right_dual(pscalar2d(5)) == scalar2d(5));
-        CHECK(right_dual(I_2d) == 1);
+        CHECK(r_dual(scalar2d(5)) == pscalar2d(5));
+        CHECK(r_dual(pscalar2d(5)) == scalar2d(5));
+        CHECK(r_dual(I_2d) == 1);
 
         // dual properties (A. Macdonald, p. 110):
         //
@@ -1719,10 +1719,10 @@ TEST_SUITE("EGA 2D Tests")
         // f) if A is a j-vector then dual(A) is an (n-j)-vector
         //    (remember: a j-vector is a sum of j-blades, which are outer products)
 
-        CHECK(right_dual(3.0 * vm) == 3.0 * right_dual(vm));
-        CHECK(right_dual(vm + vm2) == right_dual(vm) + right_dual(vm2));
-        CHECK(right_dual(I_2d) == 1);
-        CHECK(right_dual(v) == (vec2d(-v.y, v.x))); // = rcmpl(v)
+        CHECK(r_dual(3.0 * vm) == 3.0 * r_dual(vm));
+        CHECK(r_dual(vm + vm2) == r_dual(vm) + r_dual(vm2));
+        CHECK(r_dual(I_2d) == 1);
+        CHECK(r_dual(v) == (vec2d(-v.y, v.x))); // = r_cmpl(v)
 
         // inner and outer products are in G^n are dual (A. Macdonald, p. 111):
         //
@@ -1733,18 +1733,18 @@ TEST_SUITE("EGA 2D Tests")
 
         // fmt::println("   a                 = {}", a);
         // fmt::println("   b                 = {}", b);
-        // fmt::println("   dual(b)           = {}", right_dual(b));
+        // fmt::println("   dual(b)           = {}", r_dual(b));
         // fmt::println("   dot(a, b)         = {}", dot(a, b));
         // fmt::println("   wdg(a, b)         = {}", wdg(a, b));
         // fmt::println("");
-        // fmt::println("   dual(dot(a, b))   = {}", right_dual(dot(a, b)));
-        // fmt::println("   wdg(a, dual(b))   = {}", wdg(a, right_dual(b)));
+        // fmt::println("   dual(dot(a, b))   = {}", r_dual(dot(a, b)));
+        // fmt::println("   wdg(a, dual(b))   = {}", wdg(a, r_dual(b)));
         // fmt::println("");
-        // fmt::println("   dual(wdg(a, b))   = {}", right_dual(wdg(a, b)));
-        // fmt::println("   dot(a, dual(b))   = {}", dot(a, right_dual(b)));
+        // fmt::println("   dual(wdg(a, b))   = {}", r_dual(wdg(a, b)));
+        // fmt::println("   dot(a, dual(b))   = {}", dot(a, r_dual(b)));
 
-        CHECK(right_dual(scalar2d(dot(a, b))) == wdg(a, right_dual(b)));
-        CHECK(wdg(a, right_dual(b)) == dot(a, b) * I_2d);
+        CHECK(r_dual(scalar2d(dot(a, b))) == wdg(a, r_dual(b)));
+        CHECK(wdg(a, r_dual(b)) == dot(a, b) * I_2d);
     }
 
     TEST_CASE("MVec2d: product tests")
@@ -1905,7 +1905,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(wdg(mv2, V1) == 0.5 * (mv2 * V1 + V1 * gr_inv(mv2)));
 
         // cross-check direct implementation of rwdg by comparing with wdg
-        CHECK(rwdg(mv1, mv2) == lcmpl(wdg(rcmpl(mv1), rcmpl(mv2))));
+        CHECK(rwdg(mv1, mv2) == l_cmpl(wdg(r_cmpl(mv1), r_cmpl(mv2))));
 
         // commutator and contraction are equal for a specific case with bivectors
         CHECK(cmt(v1, ps1) == (ps1 >> v1));
@@ -1940,11 +1940,11 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(nrm_sq(wdg(v_in_u, u)) < eps);
 
         // v_perp_u should be proportional to the normal vector n of u
-        // n = right_dual(u) or n = cmpl(u)
+        // n = r_dual(u) or n = cmpl(u)
         // thus, wdg(v_perp_B, n) == 0 is required
-        CHECK(nrm_sq(wdg(v_perp_u, right_dual(u))) < eps);
-        CHECK(nrm_sq(wdg(v_perp_u, rcmpl(u))) < eps);
-        CHECK(nrm_sq(wdg(lcmpl(u), v_perp_u)) < eps);
+        CHECK(nrm_sq(wdg(v_perp_u, r_dual(u))) < eps);
+        CHECK(nrm_sq(wdg(v_perp_u, r_cmpl(u))) < eps);
+        CHECK(nrm_sq(wdg(l_cmpl(u), v_perp_u)) < eps);
 
         // v_in_B and v_perp_B should be perpendicular to each other
         CHECK(nrm_sq(dot(v_in_u, v_perp_u)) < eps);
@@ -1962,18 +1962,18 @@ TEST_SUITE("EGA 2D Tests")
         //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
         //              s, e1, e2, ps);
         // fmt::println("");
-        // fmt::println("   rcmpl(u):  rcmpl(s), rcmpl(e1), rcmpl(e2), rcmpl(ps) \n"
+        // fmt::println("   r_cmpl(u):  r_cmpl(s), r_cmpl(e1), r_cmpl(e2), r_cmpl(ps) \n"
         //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
-        //              rcmpl(s), rcmpl(e1), rcmpl(e2), rcmpl(ps));
+        //              r_cmpl(s), r_cmpl(e1), r_cmpl(e2), r_cmpl(ps));
         // fmt::println("");
         // fmt::println(
         //     "   rev(u)*I_2d:  rev(s)*I_2d, rev(e1)*I_2d, rev(e2)*I_2d, rev(ps)*I_2d \n"
         //     "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
         //     rev(s) * I_2d, rev(e1) * I_2d, rev(e2) * I_2d, rev(ps) * I_2d);
         // fmt::println("");
-        // fmt::println("   lcmpl(u):  lcmpl(s), lcmpl(e1), lcmpl(e2), lcmpl(ps) \n"
+        // fmt::println("   l_cmpl(u):  l_cmpl(s), l_cmpl(e1), l_cmpl(e2), l_cmpl(ps) \n"
         //              "   = {:.3f}: {:.3f}, {:.3f}, {:.3f}",
-        //              lcmpl(s), lcmpl(e1), lcmpl(e2), lcmpl(ps));
+        //              l_cmpl(s), l_cmpl(e1), l_cmpl(e2), l_cmpl(ps));
         // fmt::println("");
         // fmt::println(
         //     "   I_2d*rev(u):  I_2d*rev(s), I_2d*rev(e1), I_2d*rev(e2), I_2d*rev(ps) \n"
@@ -1981,49 +1981,49 @@ TEST_SUITE("EGA 2D Tests")
         //     I_2d * rev(s), I_2d * rev(e1), I_2d * rev(e2), I_2d * rev(ps));
         // fmt::println("");
 
-        CHECK(rcmpl(scalar2d(1.0)) == I_2d);
-        CHECK(rcmpl(scalar2d(1.0)) == rev(scalar2d(1.0)) * I_2d);
-        CHECK(lcmpl(scalar2d(1.0)) == I_2d);
-        CHECK(lcmpl(scalar2d(1.0)) == I_2d * rev(scalar2d(1.0)));
-        CHECK(rcmpl(e1_2d) == e2_2d);
-        CHECK(rcmpl(e1_2d) == rev(e1_2d) * I_2d);
-        CHECK(lcmpl(e1_2d) == -e2_2d);
-        CHECK(lcmpl(e1_2d) == I_2d * rev(e1_2d));
-        CHECK(rcmpl(e2_2d) == -e1_2d);
-        CHECK(rcmpl(e2_2d) == rev(e2_2d) * I_2d);
-        CHECK(lcmpl(e2_2d) == e1_2d);
-        CHECK(lcmpl(e2_2d) == I_2d * rev(e2_2d));
-        CHECK(rcmpl(I_2d) == scalar2d(1.0));
-        CHECK(rcmpl(I_2d) == rev(I_2d) * I_2d);
-        CHECK(lcmpl(I_2d) == scalar2d(1.0));
-        CHECK(lcmpl(I_2d) == I_2d * rev(I_2d));
+        CHECK(r_cmpl(scalar2d(1.0)) == I_2d);
+        CHECK(r_cmpl(scalar2d(1.0)) == rev(scalar2d(1.0)) * I_2d);
+        CHECK(l_cmpl(scalar2d(1.0)) == I_2d);
+        CHECK(l_cmpl(scalar2d(1.0)) == I_2d * rev(scalar2d(1.0)));
+        CHECK(r_cmpl(e1_2d) == e2_2d);
+        CHECK(r_cmpl(e1_2d) == rev(e1_2d) * I_2d);
+        CHECK(l_cmpl(e1_2d) == -e2_2d);
+        CHECK(l_cmpl(e1_2d) == I_2d * rev(e1_2d));
+        CHECK(r_cmpl(e2_2d) == -e1_2d);
+        CHECK(r_cmpl(e2_2d) == rev(e2_2d) * I_2d);
+        CHECK(l_cmpl(e2_2d) == e1_2d);
+        CHECK(l_cmpl(e2_2d) == I_2d * rev(e2_2d));
+        CHECK(r_cmpl(I_2d) == scalar2d(1.0));
+        CHECK(r_cmpl(I_2d) == rev(I_2d) * I_2d);
+        CHECK(l_cmpl(I_2d) == scalar2d(1.0));
+        CHECK(l_cmpl(I_2d) == I_2d * rev(I_2d));
         //
-        CHECK(lcmpl(rcmpl(mv1)) == mv1);
-        CHECK(lcmpl(rcmpl(mvec2d_e(s1, ps1))) == mvec2d_e(s1, ps1));
+        CHECK(l_cmpl(r_cmpl(mv1)) == mv1);
+        CHECK(l_cmpl(r_cmpl(mvec2d_e(s1, ps1))) == mvec2d_e(s1, ps1));
 
         // complements are defined for basis elements only
         // => magnitude has to be covered separately for non-normalized elements
 
         // left complements
-        CHECK(wdg(lcmpl(s1), s1) / nrm_sq(s1) == I_2d);
-        CHECK(wdg(lcmpl(v1), v1) / nrm_sq(v1) == I_2d);
-        CHECK(wdg(lcmpl(ps1), ps1) / nrm_sq(ps1) == I_2d);
+        CHECK(wdg(l_cmpl(s1), s1) / nrm_sq(s1) == I_2d);
+        CHECK(wdg(l_cmpl(v1), v1) / nrm_sq(v1) == I_2d);
+        CHECK(wdg(l_cmpl(ps1), ps1) / nrm_sq(ps1) == I_2d);
 
         // right complements
-        CHECK(wdg(s1, rcmpl(s1)) / nrm_sq(s1) == I_2d);
-        CHECK(wdg(v1, rcmpl(v1)) / nrm_sq(v1) == I_2d);
-        CHECK(wdg(ps1, rcmpl(ps1)) / nrm_sq(ps1) == I_2d);
+        CHECK(wdg(s1, r_cmpl(s1)) / nrm_sq(s1) == I_2d);
+        CHECK(wdg(v1, r_cmpl(v1)) / nrm_sq(v1) == I_2d);
+        CHECK(wdg(ps1, r_cmpl(ps1)) / nrm_sq(ps1) == I_2d);
 
         // correspondence of complements with geometric products:
         // left and right duals correspond to left and right complements in ega2d
         // (non-degenerate metric = identity in ega2d)
-        CHECK((I_2d * rev(s1)) == left_dual(s1));
-        CHECK((I_2d * rev(v1)) == left_dual(v1));
-        CHECK((I_2d * rev(ps1)) == left_dual(ps1));
+        CHECK((I_2d * rev(s1)) == l_dual(s1));
+        CHECK((I_2d * rev(v1)) == l_dual(v1));
+        CHECK((I_2d * rev(ps1)) == l_dual(ps1));
 
-        CHECK((rev(s1) * I_2d) == right_dual(s1));
-        CHECK((rev(v1) * I_2d) == right_dual(v1));
-        CHECK((rev(ps1) * I_2d) == right_dual(ps1));
+        CHECK((rev(s1) * I_2d) == r_dual(s1));
+        CHECK((rev(v1) * I_2d) == r_dual(v1));
+        CHECK((rev(ps1) * I_2d) == r_dual(ps1));
     }
 
     TEST_CASE("EGA2D: congruence tests")
@@ -2079,7 +2079,7 @@ TEST_SUITE("EGA 2D Tests")
         pscalar2d ps{4.0};
 
         // template:
-        // tr_wdg(k,a,b) = wdg(rwdg(lcmpl(c),a),rwdg(b,right_dual(c)))
+        // tr_wdg(k,a,b) = wdg(rwdg(l_cmpl(c),a),rwdg(b,r_dual(c)))
         // with c from B_k = {{1},{e1,e2},{e12}} for ega2d
 
         // c = e12, a = e12
@@ -2088,44 +2088,44 @@ TEST_SUITE("EGA 2D Tests")
             auto b = s;
             auto c = e12_2d;
 
-            CHECK(wdg(rwdg(lcmpl(c), a), rwdg(b, right_dual(c))) == 0.0);
+            CHECK(wdg(rwdg(l_cmpl(c), a), rwdg(b, r_dual(c))) == 0.0);
         }
         {
             auto a = e12_2d;
             auto b = v;
             auto c = e12_2d;
 
-            CHECK(wdg(rwdg(lcmpl(c), a), rwdg(b, right_dual(c))) == 0.0);
+            CHECK(wdg(rwdg(l_cmpl(c), a), rwdg(b, r_dual(c))) == 0.0);
         }
         {
             auto a = e12_2d;
             auto b = ps;
             auto c = e12_2d;
 
-            CHECK(value_t(wdg(rwdg(lcmpl(c), a), rwdg(b, right_dual(c)))) == value_t(b));
+            CHECK(value_t(wdg(rwdg(l_cmpl(c), a), rwdg(b, r_dual(c)))) == value_t(b));
         }
 
         // component extraction by using the left complement (e.g. for twdg)
 
-        // transwedge for k = 0: wdg( rwdg(lcmpl(c),a), rwdg(b,right_dual(c)) )
+        // transwedge for k = 0: wdg( rwdg(l_cmpl(c),a), rwdg(b,r_dual(c)) )
         // scalar c = s
-        CHECK(rwdg(lcmpl(e1_2d), s) == 0.0); // zero (left contraction)
-        CHECK(rwdg(lcmpl(e2_2d), s) == 0.0); // zero (left contraction)
+        CHECK(rwdg(l_cmpl(e1_2d), s) == 0.0); // zero (left contraction)
+        CHECK(rwdg(l_cmpl(e2_2d), s) == 0.0); // zero (left contraction)
 
-        CHECK(rwdg(s, rcmpl(e1_2d)) == 0.0); // zero (right contraction)
-        CHECK(rwdg(s, rcmpl(e2_2d)) == 0.0); // zero (right contraction)
+        CHECK(rwdg(s, r_cmpl(e1_2d)) == 0.0); // zero (right contraction)
+        CHECK(rwdg(s, r_cmpl(e2_2d)) == 0.0); // zero (right contraction)
 
-        CHECK(rwdg(lcmpl(e1_2d), v) == 1.0); // extract v.x - remove e1 (left contr.)
-        CHECK(rwdg(lcmpl(e2_2d), v) == 2.0); // extract v.y - remove e2 (left contr.)
+        CHECK(rwdg(l_cmpl(e1_2d), v) == 1.0); // extract v.x - remove e1 (left contr.)
+        CHECK(rwdg(l_cmpl(e2_2d), v) == 2.0); // extract v.y - remove e2 (left contr.)
 
-        CHECK(rwdg(v, rcmpl(e1_2d)) == 1.0); // extract v.x - remove e1 (right contr.)
-        CHECK(rwdg(v, rcmpl(e2_2d)) == 2.0); // extract v.y - remove e2 (right contr.)
+        CHECK(rwdg(v, r_cmpl(e1_2d)) == 1.0); // extract v.x - remove e1 (right contr.)
+        CHECK(rwdg(v, r_cmpl(e2_2d)) == 2.0); // extract v.y - remove e2 (right contr.)
 
-        CHECK(rwdg(lcmpl(e1_2d), ps) == -4.0 * e2_2d); // remove e1 (left contr.)
-        CHECK(rwdg(lcmpl(e2_2d), ps) == 4.0 * e1_2d);  // remove e2 (left contr.)
+        CHECK(rwdg(l_cmpl(e1_2d), ps) == -4.0 * e2_2d); // remove e1 (left contr.)
+        CHECK(rwdg(l_cmpl(e2_2d), ps) == 4.0 * e1_2d);  // remove e2 (left contr.)
 
-        CHECK(rwdg(ps, rcmpl(e1_2d)) == 4.0 * e2_2d);  // remove e1 (right contr.)
-        CHECK(rwdg(ps, rcmpl(e2_2d)) == -4.0 * e1_2d); // remove e2 (right contr.)
+        CHECK(rwdg(ps, r_cmpl(e1_2d)) == 4.0 * e2_2d);  // remove e1 (right contr.)
+        CHECK(rwdg(ps, r_cmpl(e2_2d)) == -4.0 * e1_2d); // remove e2 (right contr.)
 
 
         CHECK(rwdg(scalar2d(1), I_2d) == 1); // identity for pseudoscalar
@@ -2320,7 +2320,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(twdg1(ps, v) == (v << ps));
         CHECK(twdg1(ps, v) == -(ps >> v));
         CHECK(twdg1(ps, v) ==
-              -rwdg(ps, right_dual(v))); // contraction expressed as rwdg prod.
+              -rwdg(ps, r_dual(v))); // contraction expressed as rwdg prod.
 
         CHECK(twdg1(ps, v) == -twdg1(v, ps));
 
@@ -2328,7 +2328,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(twdg1(v, ps) == (ps >> v));
         CHECK(twdg1(v, ps) == -(v << ps));
         CHECK(twdg1(v, ps) ==
-              -rwdg(left_dual(v), ps)); // contraction expressed as rwdg prod.
+              -rwdg(l_dual(v), ps)); // contraction expressed as rwdg prod.
 
         CHECK(twdg1(v, v2) == dot(v, v2));
         CHECK(twdg1(v, v2) == dot(v2, v));
@@ -2337,9 +2337,9 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(rtwdg1(v, v2) == pscalar2d(value_t(dot(v, v2))));
         CHECK(rtwdg1(v, v2) == pscalar2d(value_t(dot(v2, v))));
 
-        CHECK(rtwdg1(v, s) == wdg(s, right_dual(v))); // expansion expressed as wdg prod.
-        CHECK(rtwdg1(s, v) == -rtwdg1(v, s));         // vector and scalar anticommute!
-        CHECK(rtwdg1(s, v) == wdg(left_dual(v), s));  // expansion expressed as wdg prod.
+        CHECK(rtwdg1(v, s) == wdg(s, r_dual(v))); // expansion expressed as wdg prod.
+        CHECK(rtwdg1(s, v) == -rtwdg1(v, s));     // vector and scalar anticommute!
+        CHECK(rtwdg1(s, v) == wdg(l_dual(v), s)); // expansion expressed as wdg prod.
     }
 
     TEST_CASE("G<2,0,0>: wegde and gpr inverse combined")
@@ -2386,8 +2386,8 @@ TEST_SUITE("EGA 2D Tests")
     {
         fmt::println("G<2,0,0>: dual composition properties");
 
-        // For even-dimensional algebras: left_dual(right_dual(u)) =
-        // right_dual(left_dual(u)) = u This follows from
+        // For even-dimensional algebras: l_dual(r_dual(u)) =
+        // r_dual(l_dual(u)) = u This follows from
         // left_complement(right_complement(u)) = u
 
         scalar2d s{3.0};
@@ -2396,21 +2396,21 @@ TEST_SUITE("EGA 2D Tests")
         mvec2d_e M_e{scalar2d{1.0}, pscalar2d{2.0}};
         mvec2d M{scalar2d{1.0}, vec2d{2.0, 3.0}, pscalar2d{4.0}};
 
-        // left_dual(right_dual(u)) = u
-        CHECK(left_dual(right_dual(s)) == s);
-        CHECK(left_dual(right_dual(v)) == v);
-        CHECK(left_dual(right_dual(ps)) == ps);
-        CHECK(left_dual(right_dual(M_e)) == M_e);
-        CHECK(left_dual(right_dual(M)) == M);
+        // l_dual(r_dual(u)) = u
+        CHECK(l_dual(r_dual(s)) == s);
+        CHECK(l_dual(r_dual(v)) == v);
+        CHECK(l_dual(r_dual(ps)) == ps);
+        CHECK(l_dual(r_dual(M_e)) == M_e);
+        CHECK(l_dual(r_dual(M)) == M);
 
-        // right_dual(left_dual(u)) = u
-        CHECK(right_dual(left_dual(s)) == s);
-        CHECK(right_dual(left_dual(v)) == v);
-        CHECK(right_dual(left_dual(ps)) == ps);
-        CHECK(right_dual(left_dual(M_e)) == M_e);
-        CHECK(right_dual(left_dual(M)) == M);
+        // r_dual(l_dual(u)) = u
+        CHECK(r_dual(l_dual(s)) == s);
+        CHECK(r_dual(l_dual(v)) == v);
+        CHECK(r_dual(l_dual(ps)) == ps);
+        CHECK(r_dual(l_dual(M_e)) == M_e);
+        CHECK(r_dual(l_dual(M)) == M);
 
-        fmt::println("left_dual(right_dual(u)) = right_dual(left_dual(u)) = u");
+        fmt::println("l_dual(r_dual(u)) = r_dual(l_dual(u)) = u");
     }
 
     TEST_CASE("G<2,0,0>: complement-dual relationship")
@@ -2425,18 +2425,18 @@ TEST_SUITE("EGA 2D Tests")
         mvec2d M{scalar2d{1.0}, vec2d{2.0, 3.0}, pscalar2d{4.0}};
 
         // left_dual = left_complement (identity metric)
-        CHECK(left_dual(s) == lcmpl(s));
-        CHECK(left_dual(v) == lcmpl(v));
-        CHECK(left_dual(ps) == lcmpl(ps));
-        CHECK(left_dual(M_e) == lcmpl(M_e));
-        CHECK(left_dual(M) == lcmpl(M));
+        CHECK(l_dual(s) == l_cmpl(s));
+        CHECK(l_dual(v) == l_cmpl(v));
+        CHECK(l_dual(ps) == l_cmpl(ps));
+        CHECK(l_dual(M_e) == l_cmpl(M_e));
+        CHECK(l_dual(M) == l_cmpl(M));
 
         // right_dual = right_complement (identity metric)
-        CHECK(right_dual(s) == rcmpl(s));
-        CHECK(right_dual(v) == rcmpl(v));
-        CHECK(right_dual(ps) == rcmpl(ps));
-        CHECK(right_dual(M_e) == rcmpl(M_e));
-        CHECK(right_dual(M) == rcmpl(M));
+        CHECK(r_dual(s) == r_cmpl(s));
+        CHECK(r_dual(v) == r_cmpl(v));
+        CHECK(r_dual(ps) == r_cmpl(ps));
+        CHECK(r_dual(M_e) == r_cmpl(M_e));
+        CHECK(r_dual(M) == r_cmpl(M));
 
         fmt::println("dual = complement for Euclidean algebras with identity metric");
     }
@@ -2445,27 +2445,27 @@ TEST_SUITE("EGA 2D Tests")
     {
         fmt::println("G<2,0,0>: left-right complement composition");
 
-        // For even-dimensional algebras: lcmpl(rcmpl(u)) = u
+        // For even-dimensional algebras: l_cmpl(r_cmpl(u)) = u
         scalar2d s{3.0};
         vec2d v{2.0, 5.0};
         pscalar2d ps{7.0};
         mvec2d_e M_e{scalar2d{1.0}, pscalar2d{2.0}};
         mvec2d M{scalar2d{1.0}, vec2d{2.0, 3.0}, pscalar2d{4.0}};
 
-        CHECK(lcmpl(rcmpl(s)) == s);
-        CHECK(lcmpl(rcmpl(v)) == v);
-        CHECK(lcmpl(rcmpl(ps)) == ps);
-        CHECK(lcmpl(rcmpl(M_e)) == M_e);
-        CHECK(lcmpl(rcmpl(M)) == M);
+        CHECK(l_cmpl(r_cmpl(s)) == s);
+        CHECK(l_cmpl(r_cmpl(v)) == v);
+        CHECK(l_cmpl(r_cmpl(ps)) == ps);
+        CHECK(l_cmpl(r_cmpl(M_e)) == M_e);
+        CHECK(l_cmpl(r_cmpl(M)) == M);
 
-        // Also test rcmpl(lcmpl(u)) = u
-        CHECK(rcmpl(lcmpl(s)) == s);
-        CHECK(rcmpl(lcmpl(v)) == v);
-        CHECK(rcmpl(lcmpl(ps)) == ps);
-        CHECK(rcmpl(lcmpl(M_e)) == M_e);
-        CHECK(rcmpl(lcmpl(M)) == M);
+        // Also test r_cmpl(l_cmpl(u)) = u
+        CHECK(r_cmpl(l_cmpl(s)) == s);
+        CHECK(r_cmpl(l_cmpl(v)) == v);
+        CHECK(r_cmpl(l_cmpl(ps)) == ps);
+        CHECK(r_cmpl(l_cmpl(M_e)) == M_e);
+        CHECK(r_cmpl(l_cmpl(M)) == M);
 
-        fmt::println("lcmpl(rcmpl(u)) = rcmpl(lcmpl(u)) = u for even-dimensional");
+        fmt::println("l_cmpl(r_cmpl(u)) = r_cmpl(l_cmpl(u)) = u for even-dimensional");
     }
 
     TEST_CASE("G<2,0,0>: extended metric matrix validation")

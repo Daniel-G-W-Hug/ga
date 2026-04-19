@@ -801,13 +801,13 @@ of $1^{st}$ order. We have a $2^{nd}$ order ODE for $y(t)$ with $\ddot{y} =
 \end{equation}
 The vector $y$ has components that we index with $n$. We use an additional index to
 distinguish between the position (index 0) and the speed (index 1) of the respective DoF.
-We use the substitution
+With the substitution
 \begin{subeqnarray}
     y_{n,0} &=& y_n \qquad \rightarrow \textit{position} \\
     y_{n,1} &=& \dot{y}_n \qquad \rightarrow \textit{speed}
 \end{subeqnarray}
-resulting in the following system of $1^{st}$ order for each component $n$ of the vector
-$\vec{y}$:
+this results in the following system of $1^{st}$ order for each component $n$ of the
+vector $\vec{y}$:
 \begin{subeqnarray}
     \dot{y}_{n,0} &=& y_{n,1} \\
     \dot{y}_{n,1} &=& f(y_{n,1}, y_{n,0}, t)
@@ -1788,7 +1788,7 @@ coordinates
 \begin{equation}
     r = x \bv{1} + y \bv{2} + z \bv{3}
 \end{equation}
-The total change of the relative position has following components
+The total change of the relative position has the following components
 \begin{equation}
     \dot{r} = \dfdt{r}{t} = \underbrace{\dot{x} \bv{1} + \dot{y} \bv{2} + \dot{z} \bv{3}}
               _{\textrm{changing speed}: \; \dfdt{r}{t} \;=\; v}
@@ -1825,7 +1825,7 @@ we get
                           {\textrm{centripetal accel.}
                           \;=\; -|\omega|^2 \; r_{B/A}}
              + \underbrace{2\; \omega \times v_{B/A}}_
-                          {\textrm{Corriolis acceleration}}
+                          {\textrm{Coriolis acceleration}}
              + \underbrace{\dot{\omega} \times r_{B/A}}_
                           {\textrm{frame acceleration}}
              + \underbrace{a_{B/A}}_
@@ -1911,7 +1911,7 @@ a rotation only requires two dimensions for its representation in geometric alge
     & PGA & $a_{cp} = \textrm{rcmt}(\Omega_{P}, \textrm{rcmt}(\Omega_{P},r_{B/A}))$
     \\
     \hline \hline
-    \multirow{3}{\cwAppPhys}{Corriolis acceleration}
+    \multirow{3}{\cwAppPhys}{Coriolis acceleration}
     & VA  & $a_{co} = 2\; \omega \times v_{B/A}$ \\
     \cline{2-3}
     & EGA & $a_{co} = 2\; \textrm{cmt}(v_{B/A}, \Omega_{E})
