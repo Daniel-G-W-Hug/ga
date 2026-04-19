@@ -15,5 +15,4 @@
     **These three include files are already included automatically by ga/ga_ega.hpp or
     ga/ga_pga.hpp respectively, and thus must not be included by the user again.**
 
-    All other include files that are not intended for direct use by the user of the
-    ga library.
+    All other include files are not intended for direct use by the user of the ga library.
