@@ -25,18 +25,18 @@ namespace hd::ga::pga {
 // - rgpr()                  -> regressive geometric product
 // - inv()                   -> inversion operation (w.r.t. geometric product)
 //
-// - left_bulk_contract2dp()    -> left bulk contraction
-// - left_weight_contract2dp()  -> left weight contraction
-// - right_bulk_contract2dp()   -> right bulk contraction
-// - right_weight_contract2dp() -> right weight contraction
+// - l_bulk_contract2dp()    -> left bulk contraction
+// - l_weight_contract2dp()  -> left weight contraction
+// - r_bulk_contract2dp()    -> right bulk contraction
+// - r_weight_contract2dp()  -> right weight contraction
 //
 // Bulk expansions are the regressive versions of the corresponding weight contractions.
 // Weight expansions are the regressive versions of the corresponding bulk contractions.
 //
-// - left_bulk_expand2dp()      -> left bulk expansion
-// - left_weight_expand2dp()    -> left weight expansion
-// - right_bulk_expand2dp()     -> right bulk expansion
-// - right_weight_expand2dp()   -> right weight expansion
+// - l_bulk_expand2dp()      -> left bulk expansion
+// - l_weight_expand2dp()    -> left weight expansion
+// - r_bulk_expand2dp()      -> right bulk expansion
+// - r_weight_expand2dp()    -> right weight expansion
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -746,7 +746,7 @@ constexpr PScalar2dp<std::common_type_t<T, U>> rtwdg1(BiVec2dp<T> const& B1,
     return PScalar2dp<ctype>(B1.x * B2.x + B1.y * B2.y);
 }
 
-// rtwdg1(bivec,vec) = bivec -> identical to right_weight_expand2dp(vec,bivec)
+// rtwdg1(bivec,vec) = bivec -> identical to r_weight_expand2dp(vec,bivec)
 //                           ->            = vec ^ weight_dual(bivec)
 //                           ->            = rcmt(bivec,vec)
 template <typename T, typename U>
@@ -758,7 +758,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> rtwdg1(BiVec2dp<T> const& B,
     return BiVec2dp<ctype>(B.y * v.z, -B.x * v.z, -B.x * v.x - B.y * v.y);
 }
 
-// rtwdg1(vec,bivec) = bivec -> identical to left_weight_expand2dp(bivec,vec)
+// rtwdg1(vec,bivec) = bivec -> identical to l_weight_expand2dp(bivec,vec)
 //                           ->            = weight_dual(bivec) ^ vec
 //                           ->            = rcmt(vec,bivec)
 template <typename T, typename U>
@@ -770,7 +770,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> rtwdg1(Vec2dp<T> const& v,
     return BiVec2dp<ctype>(-v.z * B.y, v.z * B.x, v.x * B.x + v.y * B.y);
 }
 
-// rtwdg1(bivec,s) = vec -> identical to right_weight_expand2dp(s,bivec)
+// rtwdg1(bivec,s) = vec -> identical to r_weight_expand2dp(s,bivec)
 //                           ->        = s ^ weight_dual(bivec)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
@@ -780,7 +780,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> rtwdg1(BiVec2dp<T> const& B, Scalar2d
     return Vec2dp<ctype>(B.y * ctype(s), -B.x * ctype(s), ctype(0.0));
 }
 
-// rtwdg1(s,bivec) -> identical to left_weight_expand2dp(bivec,s)
+// rtwdg1(s,bivec) -> identical to l_weight_expand2dp(bivec,s)
 //                           ->  = weight_dual(bivec) ^ s
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
@@ -809,7 +809,7 @@ constexpr Vec2dp<std::common_type_t<T, U>> rtwdg1(Vec2dp<T> const& v1,
 //
 // Implements the left bulk contraction as per "PGA Illuminated", E. Lengyel:
 //
-// operator<<(a,b) = left_bulk_contract(a,b) = rwdg( bulk_dual(a), b )
+// operator<<(a,b) = l_bulk_contract(a,b) = rwdg( bulk_dual(a), b )
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1013,7 +1013,7 @@ constexpr Scalar2dp<std::common_type_t<T, U>> operator<<(Scalar2dp<T> s1, Scalar
 //
 // Implements the right bulk contraction as per "PGA Illuminated", E. Lengyel:
 //
-// operator>>(a,b) = right_bulk_contract(a,b) = rwdg( a, bulk_dual(b) )
+// operator>>(a,b) = r_bulk_contract(a,b) = rwdg( a, bulk_dual(b) )
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2388,11 +2388,11 @@ inline MVec2dp<T> inv(MVec2dp<T> const& M)
 //
 // REQUIRES: the dualized operand must be of smaller grade, or the result is zero
 //
-// left_bulk_contract2dp(a,b) = rwdg(bulk_dual(a), b)
-// left_weight_contract2dp(a,b) = rwdg(weight_dual(a), b)
+// l_bulk_contract2dp(a,b) = rwdg(bulk_dual(a), b)
+// l_weight_contract2dp(a,b) = rwdg(weight_dual(a), b)
 //
-// right_bulk_contract2dp(a,b) = rwdg(a, bulk_dual(b))
-// right_weight_contract2dp(a,b) = rwdg(a, weight_dual(b))
+// r_bulk_contract2dp(a,b) = rwdg(a, bulk_dual(b))
+// r_weight_contract2dp(a,b) = rwdg(a, weight_dual(b))
 //
 // The contraction subracts the grades of the operands.
 //
@@ -2401,34 +2401,34 @@ inline MVec2dp<T> inv(MVec2dp<T> const& M)
 // When the metric is degenerate they produce different results.
 //
 // In general a contraction throws away parts that are perpendicular to each other.
-// The result of right_bulk_contract(B,v) lies in B and is perpendicular to v.
+// The result of r_bulk_contract(B,v) lies in B and is perpendicular to v.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // REQUIRES: the dualized operand must be of smaller grade, or the result is zero
 
 template <typename arg1, typename arg2>
-decltype(auto) left_bulk_contract2dp(arg1&& a, arg2&& b)
+decltype(auto) l_bulk_contract2dp(arg1&& a, arg2&& b)
 {
     // return rwdg(bulk_dual(a), b);
     return rwdg(bulk_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) left_weight_contract2dp(arg1&& a, arg2&& b)
+decltype(auto) l_weight_contract2dp(arg1&& a, arg2&& b)
 {
     // return rwdg(weight_dual(a), b);
     return rwdg(weight_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) right_bulk_contract2dp(arg1&& a, arg2&& b)
+decltype(auto) r_bulk_contract2dp(arg1&& a, arg2&& b)
 {
     // return rwdg(a, bulk_dual(b));
     return rwdg(std::forward<arg1>(a), bulk_dual(std::forward<arg2>(b)));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) right_weight_contract2dp(arg1&& a, arg2&& b)
+decltype(auto) r_weight_contract2dp(arg1&& a, arg2&& b)
 {
     // return rwdg(a, weight_dual(b));
     return rwdg(std::forward<arg1>(a), weight_dual(std::forward<arg2>(b)));
@@ -2440,13 +2440,15 @@ decltype(auto) right_weight_contract2dp(arg1&& a, arg2&& b)
 //
 // REQUIRES: the dualized operand must be of larger grade, or the result is zero
 //
-// left_bulk_expand2dp(a,b) = wdg(bulk_dual(a), b)       (dual to
-// left_weight_contract) left_weight_expand2dp(a,b) = wdg(weight_dual(a), b)   (dual
-// to left_bulk_contract)
+// l_bulk_expand2dp(a,b) = wdg(bulk_dual(a), b)
+// (dual to l_weight_contract)
+// l_weight_expand2dp(a,b) = wdg(weight_dual(a), b)
+// (dual to l_bulk_contract)
 //
-// right_bulk_expand2dp(a,b) = wdg(a, bulk_dual(b))       (dual to
-// right_weight_contract) right_weight_expand2dp(a,b) = wdg(a, weight_dual(b))   (dual
-// to right_bulk_contract)
+// r_bulk_expand2dp(a,b) = wdg(a, bulk_dual(b))
+// (dual to r_weight_contract)
+// r_weight_expand2dp(a,b) = wdg(a, weight_dual(b))
+// (dual to r_bulk_contract)
 //
 // The expansion subtracts the antigrades of the objects.
 //
@@ -2462,28 +2464,28 @@ decltype(auto) right_weight_contract2dp(arg1&& a, arg2&& b)
 // REQUIRES: the dualized operand must be of larger grade, or the result is zero
 
 template <typename arg1, typename arg2>
-decltype(auto) left_bulk_expand2dp(arg1&& a, arg2&& b)
+decltype(auto) l_bulk_expand2dp(arg1&& a, arg2&& b)
 {
     // return wdg(bulk_dual(a), b);
     return wdg(bulk_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) left_weight_expand2dp(arg1&& a, arg2&& b)
+decltype(auto) l_weight_expand2dp(arg1&& a, arg2&& b)
 {
     // return wdg(weight_dual(a), b);
     return wdg(weight_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) right_bulk_expand2dp(arg1&& a, arg2&& b)
+decltype(auto) r_bulk_expand2dp(arg1&& a, arg2&& b)
 {
     // return wdg(a, bulk_dual(b));
     return wdg(std::forward<arg1>(a), bulk_dual(std::forward<arg2>(b)));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) right_weight_expand2dp(arg1&& a, arg2&& b)
+decltype(auto) r_weight_expand2dp(arg1&& a, arg2&& b)
 {
     // return wdg(a, weight_dual(b));
     return wdg(std::forward<arg1>(a), weight_dual(std::forward<arg2>(b)));

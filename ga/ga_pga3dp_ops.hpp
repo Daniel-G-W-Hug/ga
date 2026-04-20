@@ -71,7 +71,7 @@ template <typename T, typename U>
 constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B1, BiVec3dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(right_weight_contract3dp(B1, B2));
+    ctype contr = ctype(r_weight_contract3dp(B1, B2));
     // hint: weight_nrm returns pscalar! ctype() required around each single result,
     // otherwise geometric product which evaluates to zero
     ctype nrm_prod = ctype(weight_nrm(B1) * ctype(weight_nrm(B2)));
@@ -91,7 +91,7 @@ template <typename T, typename U>
 constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t, BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(bulk_nrm(right_weight_contract3dp(t, B)));
+    ctype contr = ctype(bulk_nrm(r_weight_contract3dp(t, B)));
     // hint: weight_nrm returns pscalar! ctype() required around each single result,
     // otherwise geometric product which evaluates to zero
     ctype nrm_prod = ctype(weight_nrm(t)) * ctype(weight_nrm(B));
@@ -111,7 +111,7 @@ template <typename T, typename U>
 constexpr std::common_type_t<T, U> angle(BiVec3dp<T> const& B, TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(bulk_nrm(right_weight_contract3dp(t, B)));
+    ctype contr = ctype(bulk_nrm(r_weight_contract3dp(t, B)));
     // hint: weight_nrm returns pscalar! ctype() required around each single result,
     // otherwise geometric product which evaluates to zero
     ctype nrm_prod = ctype(weight_nrm(t)) * ctype(weight_nrm(B));
@@ -131,7 +131,7 @@ template <typename T, typename U>
 constexpr std::common_type_t<T, U> angle(TriVec3dp<T> const& t1, TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(right_weight_contract3dp(t1, t2));
+    ctype contr = ctype(r_weight_contract3dp(t1, t2));
     // hint: weight_nrm returns pscalar! ctype() required around each single result,
     // otherwise geometric product which evaluates to zero
     ctype nrm_prod = ctype(weight_nrm(t1)) * ctype(weight_nrm(t2));
@@ -879,17 +879,17 @@ constexpr Plane3d<std::common_type_t<T, U>> expand(Line3d<T> const& line,
 ////////////////////////////////////////////////////////////////////////////////
 // Projections for 3dp: (HINT: unitize after projection, if not at infinity)
 //
-// ortho_proj3dp(a, b)     = rwdg(b, right_weight_expand3dp(a, b) )
+// ortho_proj3dp(a, b)     = rwdg(b, r_weight_expand3dp(a, b) )
 // (a projected orthogonally onto b, effectively creating a new a' contained in b)
 // REQUIRES: gr(a) < gr(b)
 //
 //
-// central_proj3dp(a, b)   = rwdg(b, right_bulk_expand3dp(a, b) )
+// central_proj3dp(a, b)   = rwdg(b, r_bulk_expand3dp(a, b) )
 // (a projected centrally towards origin onto b, effectively creating a new a'
 // contained in b)
 // REQUIRES: gr(a) < gr(b)
 //
-// ortho_antiproj3dp(a, b) = wdg(b, right_weight_contract3dp(a, b) )
+// ortho_antiproj3dp(a, b) = wdg(b, r_weight_contract3dp(a, b) )
 // (a projected orthogonally onto b, effectively creating a new a' containing b)
 // REQUIRES: gr(a) > gr(b)
 //
@@ -901,7 +901,7 @@ template <typename arg1, typename arg2> decltype(auto) ortho_proj3dp(arg1&& a, a
 
     // project the smaller grade object onto to larger grade object
     auto p = rwdg(std::forward<arg2>(b),
-                  right_weight_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+                  r_weight_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
     // return a unitized object, if it is not located in the horizon
     auto nrm_sq = weight_nrm_sq(p);
@@ -918,7 +918,7 @@ template <typename arg1, typename arg2> decltype(auto) central_proj3dp(arg1&& a,
 
     // project the smaller grade object onto to larger grade object
     auto p = rwdg(std::forward<arg2>(b),
-                  right_bulk_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+                  r_bulk_expand3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 
     // return a unitized object, if it is not located in the horizon
     auto nrm_sq = weight_nrm_sq(p);
@@ -933,7 +933,7 @@ template <typename arg1, typename arg2>
 decltype(auto) ortho_antiproj3dp(arg1&& a, arg2&& b)
 {
     return wdg(std::forward<arg2>(b),
-               right_weight_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
+               r_weight_contract3dp(std::forward<arg1>(a), std::forward<arg2>(b)));
 }
 
 

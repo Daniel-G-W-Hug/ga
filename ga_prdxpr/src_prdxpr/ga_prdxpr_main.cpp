@@ -88,9 +88,9 @@ int main(int argc, char const* argv[])
                 get_ega2d_wdg_config(),         get_ega2d_dot_config(),
                 get_ega2d_dot_alt_config(),
 
-                get_ega2d_lcontract_config(),   get_ega2d_rcontract_config(),
+                get_ega2d_l_contract_config(),  get_ega2d_r_contract_config(),
 
-                get_ega2d_lexpand_config(),     get_ega2d_rexpand_config(),
+                get_ega2d_l_expand_config(),    get_ega2d_r_expand_config(),
 
                 get_ega2d_rgpr_config(),        get_ega2d_rgpr_alt_config(),
                 get_ega2d_rtwdg1_config(),      get_ega2d_rcmt_config(),
@@ -111,9 +111,9 @@ int main(int argc, char const* argv[])
                 get_ega3d_twdg1_config(),       get_ega3d_cmt_config(),
                 get_ega3d_wdg_config(),         get_ega3d_dot_config(),
 
-                get_ega3d_lcontract_config(),   get_ega3d_rcontract_config(),
+                get_ega3d_l_contract_config(),  get_ega3d_r_contract_config(),
 
-                get_ega3d_lexpand_config(),     get_ega3d_rexpand_config(),
+                get_ega3d_l_expand_config(),    get_ega3d_r_expand_config(),
 
                 get_ega3d_rgpr_config(),        get_ega3d_rgpr_alt_config(),
                 get_ega3d_rtwdg1_config(),      get_ega3d_rcmt_config(),
@@ -137,17 +137,17 @@ int main(int argc, char const* argv[])
                 get_pga2dp_wdg_config(),
                 get_pga2dp_dot_config(),
 
-                get_pga2dp_left_bulk_contract_config(),
-                get_pga2dp_right_bulk_contract_config(),
+                get_pga2dp_l_bulk_contract_config(),
+                get_pga2dp_r_bulk_contract_config(),
 
-                get_pga2dp_left_weight_contract_config(),
-                get_pga2dp_right_weight_contract_config(),
+                get_pga2dp_l_weight_contract_config(),
+                get_pga2dp_r_weight_contract_config(),
 
-                get_pga2dp_left_bulk_expand_config(),
-                get_pga2dp_right_bulk_expand_config(),
+                get_pga2dp_l_bulk_expand_config(),
+                get_pga2dp_r_bulk_expand_config(),
 
-                get_pga2dp_left_weight_expand_config(),
-                get_pga2dp_right_weight_expand_config(),
+                get_pga2dp_l_weight_expand_config(),
+                get_pga2dp_r_weight_expand_config(),
 
                 get_pga2dp_rgpr_config(),
                 get_pga2dp_rgpr_alt_config(),
@@ -174,17 +174,17 @@ int main(int argc, char const* argv[])
                 get_pga3dp_wdg_config(),
                 get_pga3dp_dot_config(),
 
-                get_pga3dp_left_bulk_contract_config(),
-                get_pga3dp_right_bulk_contract_config(),
+                get_pga3dp_l_bulk_contract_config(),
+                get_pga3dp_r_bulk_contract_config(),
 
-                get_pga3dp_left_weight_contract_config(),
-                get_pga3dp_right_weight_contract_config(),
+                get_pga3dp_l_weight_contract_config(),
+                get_pga3dp_r_weight_contract_config(),
 
-                get_pga3dp_left_bulk_expand_config(),
-                get_pga3dp_right_bulk_expand_config(),
+                get_pga3dp_l_bulk_expand_config(),
+                get_pga3dp_r_bulk_expand_config(),
 
-                get_pga3dp_left_weight_expand_config(),
-                get_pga3dp_right_weight_expand_config(),
+                get_pga3dp_l_weight_expand_config(),
+                get_pga3dp_r_weight_expand_config(),
 
                 get_pga3dp_rgpr_config(),
                 get_pga3dp_rgpr_alt_config(),
@@ -204,15 +204,15 @@ int main(int argc, char const* argv[])
             (options.should_show_coeffs() || options.should_show_tables())) {
             auto sta4d_algebra = create_sta4d_algebra_data();
             std::vector<ProductConfig> sta4d_configs = {
-                get_sta4d_gpr_config(),           get_sta4d_cmt_config(),
-                get_sta4d_wdg_config(),           get_sta4d_dot_config(),
+                get_sta4d_gpr_config(),         get_sta4d_cmt_config(),
+                get_sta4d_wdg_config(),         get_sta4d_dot_config(),
 
-                get_sta4d_left_contract_config(), get_sta4d_right_contract_config(),
+                get_sta4d_l_contract_config(),  get_sta4d_r_contract_config(),
 
-                get_sta4d_left_expand_config(),   get_sta4d_right_expand_config(),
+                get_sta4d_l_expand_config(),    get_sta4d_r_expand_config(),
 
-                get_sta4d_rgpr_config(),          get_sta4d_rcmt_config(),
-                get_sta4d_rwdg_config(),          get_sta4d_rdot_config(),
+                get_sta4d_rgpr_config(),        get_sta4d_rcmt_config(),
+                get_sta4d_rwdg_config(),        get_sta4d_rdot_config(),
 
                 get_sta4d_sandwich_gpr_config()};
 

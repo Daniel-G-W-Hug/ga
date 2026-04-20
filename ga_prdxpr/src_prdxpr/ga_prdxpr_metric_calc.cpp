@@ -288,8 +288,8 @@ std::pair<int, int> parse_signed_basis_element(std::string const& signed_element
     return {basis_index, sign};
 }
 
-std::vector<int> build_complement_matrix(mvec_coeff const& basis,
-                                         prd_rules const& complement_rules)
+std::vector<int> build_cmpl_matrix(mvec_coeff const& basis,
+                                   prd_rules const& complement_rules)
 {
     size_t const n = basis.size();
 
@@ -394,7 +394,7 @@ calculate_regressive_extended_metric_matrix_full(AlgebraConfig const& config,
     auto G_data = calculate_extended_metric_matrix_full(config);
 
     // Step 2: Build complement transformation matrix C
-    auto C_data = build_complement_matrix(basis, complement_rules);
+    auto C_data = build_cmpl_matrix(basis, complement_rules);
 
     // Step 3: Compute regressive metric Ḡ = C · G · C^T
     auto G_reg_data = matrix_triple_product(C_data, G_data, n);

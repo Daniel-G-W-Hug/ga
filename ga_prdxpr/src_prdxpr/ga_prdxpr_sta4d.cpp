@@ -31,9 +31,9 @@ const prd_rules dot_sta4d_rules = sta4d_generated_rules.dot_product;
 
 // Stage 3: Initialize complement rules (depend on wedge rules, but those are already
 // generated)
-const prd_rules lcmpl_sta4d_rules = sta4d_generated_rules.left_complement;
-const prd_rules rcmpl_sta4d_rules = sta4d_generated_rules.right_complement;
+const prd_rules l_cmpl_sta4d_rules = sta4d_generated_rules.l_cmpl;
+const prd_rules r_cmpl_sta4d_rules = sta4d_generated_rules.r_cmpl;
 
 // Stage 4: Initialize dual rules (generated from complement rules + extended metric)
-const prd_rules left_dual_sta4d_rules = sta4d_generated_rules.left_dual;
-const prd_rules right_dual_sta4d_rules = sta4d_generated_rules.right_dual;
+const prd_rules l_dual_sta4d_rules = sta4d_generated_rules.l_dual;
+const prd_rules r_dual_sta4d_rules = sta4d_generated_rules.r_dual;

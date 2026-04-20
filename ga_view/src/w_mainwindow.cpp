@@ -812,17 +812,17 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_bivtp(l, bvm);
 
         // projection perpendiclar to line through p
-        auto bv_perp = right_weight_expand2dp(p, l); // line perpendicular to l through p
-        auto p_perp = rwdg(l, bv_perp);              // intersection point bv_perp and l
+        auto bv_perp = r_weight_expand2dp(p, l); // line perpendicular to l through p
+        auto p_perp = rwdg(l, bv_perp);          // intersection point bv_perp and l
         ptm.pen = QPen(Qt::gray, 2, Qt::SolidLine);
         bvm.pen = ptm.pen;
         cm.add_pt(p_perp, ptm);
         cm.add_bivtp(bv_perp, bvm);
 
         // orthogonal antiprojection of line onto p (i.e. line parallel to l through p)
-        auto dir_antiproj = right_weight_contract2dp(l, p); // direction of line
-                                                            // (=same attidude as l)
-        auto bv_antiproj = wdg(p, dir_antiproj);            // line through p in direction
+        auto dir_antiproj = r_weight_contract2dp(l, p); // direction of line
+                                                        // (=same attidude as l)
+        auto bv_antiproj = wdg(p, dir_antiproj);        // line through p in direction
         bvm.pen = QPen(Qt::darkBlue, 2, Qt::SolidLine);
         cm.add_bivtp(bv_antiproj, bvm);
 
@@ -882,16 +882,16 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_bivtp(l, bvm);
 
         // central projection through p towards origin
-        auto bv_central = right_bulk_expand2dp(p, l); // proj. line
-        auto p_central = rwdg(l, bv_central);         // central proj. point
+        auto bv_central = r_bulk_expand2dp(p, l); // proj. line
+        auto p_central = rwdg(l, bv_central);     // central proj. point
         ptm.pen = QPen(Qt::cyan, 2, Qt::SolidLine);
         bvm.pen = QPen(Qt::cyan, 1, Qt::SolidLine);
         cm.add_pt(p_central, ptm);
         cm.add_bivtp(bv_central, bvm);
 
         // central antiprojection of line onto p (i.e. line parallel to l through p)
-        auto dir_cproj = right_bulk_contract2dp(l, p); // direction of line
-        auto bv_cproj = wdg(p, dir_cproj);             // line through p in direction
+        auto dir_cproj = r_bulk_contract2dp(l, p); // direction of line
+        auto bv_cproj = wdg(p, dir_cproj);         // line through p in direction
         auto p_cproj = rwdg(l, bv_cproj);
         ptm.pen = QPen(Qt::blue, 2, Qt::SolidLine);
         bvm.pen = QPen(Qt::blue, 1, Qt::SolidLine);
@@ -899,7 +899,7 @@ std::vector<Coordsys_model> get_model_with_lots_of_stuff()
         cm.add_bivtp(bv_cproj, bvm);
 
         // orthogonal projection through blue point onto cyan line
-        auto lp = right_weight_expand2dp(p_cproj, bv_central);
+        auto lp = r_weight_expand2dp(p_cproj, bv_central);
         bvm.pen = QPen(Qt::green, 1, Qt::SolidLine);
         cm.add_bivtp(lp, bvm);
 

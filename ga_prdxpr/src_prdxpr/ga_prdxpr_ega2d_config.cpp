@@ -27,7 +27,7 @@
  *
  * COMPLEMENT RULE GENERATION:
  * The complement rules are now AUTOMATICALLY GENERATED using mathematical algorithms:
- * - Even algebras (EGA2D, PGA3DP): Generate left_complement and right_complement
+ * - Even algebras (EGA2D, PGA3DP): Generate l_cmpl and r_cmpl
  * - Odd algebras (EGA3D, PGA2DP): Generate single complement
  * - Algorithm: Search wedge product table for pseudoscalar relationships
  * - Result: Mathematically verified complement rules with zero transcription errors
@@ -307,9 +307,9 @@ ProductConfig get_ega2d_dot_alt_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_ega2d_lcontract_config()
+ProductConfig get_ega2d_l_contract_config()
 {
-    return {.product_name = "lcontract",
+    return {.product_name = "l_contract",
             .description = "ega2d left contraction",
             .display_name = "left contraction",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
@@ -348,9 +348,9 @@ ProductConfig get_ega2d_lcontract_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_ega2d_rcontract_config()
+ProductConfig get_ega2d_r_contract_config()
 {
-    return {.product_name = "rcontract",
+    return {.product_name = "r_contract",
             .description = "ega2d right contraction",
             .display_name = "right contraction",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
@@ -389,9 +389,9 @@ ProductConfig get_ega2d_rcontract_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_ega2d_lexpand_config()
+ProductConfig get_ega2d_l_expand_config()
 {
-    return {.product_name = "lexpand",
+    return {.product_name = "l_expand",
             .description = "ega2d left expansion",
             .display_name = "left expansion",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
@@ -402,9 +402,9 @@ ProductConfig get_ega2d_lexpand_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_ega2d_rexpand_config()
+ProductConfig get_ega2d_r_expand_config()
 {
-    return {.product_name = "rexpand",
+    return {.product_name = "r_expand",
             .description = "ega2d right expansion",
             .display_name = "right expansion",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",

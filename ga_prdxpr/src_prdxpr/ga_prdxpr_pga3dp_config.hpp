@@ -22,18 +22,18 @@ ProductConfig get_pga3dp_cmt_config();     // commutator product
 ProductConfig get_pga3dp_wdg_config();     // wedge product
 ProductConfig get_pga3dp_dot_config();     // inner product
 
-ProductConfig get_pga3dp_left_bulk_contract_config();    // left bulk contraction
-ProductConfig get_pga3dp_right_bulk_contract_config();   // right bulk contraction
-ProductConfig get_pga3dp_left_weight_contract_config();  // left weight contraction
-ProductConfig get_pga3dp_right_weight_contract_config(); // right weight contraction
+ProductConfig get_pga3dp_l_bulk_contract_config();   // left bulk contraction
+ProductConfig get_pga3dp_r_bulk_contract_config();   // right bulk contraction
+ProductConfig get_pga3dp_l_weight_contract_config(); // left weight contraction
+ProductConfig get_pga3dp_r_weight_contract_config(); // right weight contraction
 
 // Bulk expansions are the regressive versions of the corresponding weight contractions.
 // Weight expansions are the regressive versions of the corresponding bulk contractions.
 //
-ProductConfig get_pga3dp_left_bulk_expand_config();    // left bulk expansion
-ProductConfig get_pga3dp_right_bulk_expand_config();   // right bulk expansion
-ProductConfig get_pga3dp_left_weight_expand_config();  // left weight expansion
-ProductConfig get_pga3dp_right_weight_expand_config(); // right weight expansion
+ProductConfig get_pga3dp_l_bulk_expand_config();   // left bulk expansion
+ProductConfig get_pga3dp_r_bulk_expand_config();   // right bulk expansion
+ProductConfig get_pga3dp_l_weight_expand_config(); // left weight expansion
+ProductConfig get_pga3dp_r_weight_expand_config(); // right weight expansion
 
 ProductConfig get_pga3dp_rgpr_config();     // regressive geometric product
 ProductConfig get_pga3dp_rgpr_alt_config(); // regressive geometric product (alt. def.)

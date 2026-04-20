@@ -22,11 +22,11 @@ ProductConfig get_ega3d_cmt_config();     // commutator product
 ProductConfig get_ega3d_wdg_config();     // wedge product
 ProductConfig get_ega3d_dot_config();     // inner product
 
-ProductConfig get_ega3d_lcontract_config(); // left contraction
-ProductConfig get_ega3d_rcontract_config(); // right contraction
+ProductConfig get_ega3d_l_contract_config(); // left contraction
+ProductConfig get_ega3d_r_contract_config(); // right contraction
 
-ProductConfig get_ega3d_lexpand_config(); // left expansion
-ProductConfig get_ega3d_rexpand_config(); // right expansion
+ProductConfig get_ega3d_l_expand_config(); // left expansion
+ProductConfig get_ega3d_r_expand_config(); // right expansion
 
 ProductConfig get_ega3d_rgpr_config();     // regressive geometric product
 ProductConfig get_ega3d_rgpr_alt_config(); // regressive geometric product (alt. def.)

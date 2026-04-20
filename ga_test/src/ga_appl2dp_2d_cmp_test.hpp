@@ -209,12 +209,12 @@ TEST_SUITE("PGA2DP: comparison tests")
 
             CHECK(rwdg(bulk_dual(up), uvp) == up << uvp);
             CHECK(rwdg(bulk_dual(vp), uvp) == vp << uvp);
-            CHECK(rwdg(bulk_dual(up), uvp) == left_bulk_contract2dp(up, uvp));
-            CHECK(rwdg(bulk_dual(vp), uvp) == left_bulk_contract2dp(vp, uvp));
+            CHECK(rwdg(bulk_dual(up), uvp) == l_bulk_contract2dp(up, uvp));
+            CHECK(rwdg(bulk_dual(vp), uvp) == l_bulk_contract2dp(vp, uvp));
             CHECK(rwdg(uvp, bulk_dual(up)) == uvp >> up);
             CHECK(rwdg(uvp, bulk_dual(vp)) == uvp >> vp);
-            CHECK(rwdg(uvp, bulk_dual(up)) == right_bulk_contract2dp(uvp, up));
-            CHECK(rwdg(uvp, bulk_dual(vp)) == right_bulk_contract2dp(uvp, vp));
+            CHECK(rwdg(uvp, bulk_dual(up)) == r_bulk_contract2dp(uvp, up));
+            CHECK(rwdg(uvp, bulk_dual(vp)) == r_bulk_contract2dp(uvp, vp));
         }
     }
 

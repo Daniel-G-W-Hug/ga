@@ -1,6 +1,6 @@
 result:
-        rgpr(a,B) = - a_{\smallstar} ^ B + rcmt(a,B) = -left_weight_expand3dp(B,a)  + rcmt(a,B)
-        rgpr(B,a) = - B ^ a^{\smallstar} + rcmt(B,a) = -right_weight_expand3dp(a,B) + rcmt(B,a)
+        rgpr(a,B) = - a_{\smallstar} ^ B + rcmt(a,B) = -l_weight_expand3dp(B,a)  + rcmt(a,B)
+        rgpr(B,a) = - B ^ a^{\smallstar} + rcmt(B,a) = -r_weight_expand3dp(a,B) + rcmt(B,a)
 
 ---------------------------------------------------------------------------
 

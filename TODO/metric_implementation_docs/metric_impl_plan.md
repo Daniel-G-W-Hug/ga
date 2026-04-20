@@ -185,7 +185,7 @@ Where **C** is the complement transformation matrix.
 2.1. **Add helper functions** (20 min)
 
 - `format_signed_element(coeff, elem)` - Format "coeff × elem" with proper signs
-- `apply_complement(signed_elem, complement_rules)` - Apply complement with sign handling
+- `apply_cmpl(signed_elem, complement_rules)` - Apply complement with sign handling
 - `parse_signed_basis_element(signed_elem, basis)` - Parse element and extract sign
 
 2.2. **Update dual generation functions** (40 min)
@@ -244,7 +244,7 @@ for (size_t j = 0; j < n; ++j) {
 
 3.2. **Build complement transformation matrix** (45 min)
 
-- Function: `build_complement_matrix(config, complement_rules)`
+- Function: `build_cmpl_matrix(config, complement_rules)`
 - Create n×n matrix C where `C[i,j]` = coefficient of `basis[j]` in `complement(basis[i])`
 - Parse complement rules to extract basis element and sign
 - For orthogonal bases: C is permutation matrix with ±1 entries

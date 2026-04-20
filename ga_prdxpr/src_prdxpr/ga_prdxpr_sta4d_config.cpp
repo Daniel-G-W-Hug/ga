@@ -28,7 +28,7 @@
  *
  * COMPLEMENT RULE GENERATION:
  * The complement rules are now AUTOMATICALLY GENERATED using mathematical algorithms:
- * - Even algebras (EGA2D, PGA3DP): Generate left_complement and right_complement
+ * - Even algebras (EGA2D, PGA3DP): Generate l_cmpl and r_cmpl
  * - Odd algebras (EGA3D, PGA2DP): Generate single complement
  * - Algorithm: Search wedge product table for pseudoscalar relationships
  * - Result: Mathematically verified complement rules with zero transcription errors
@@ -228,9 +228,9 @@ ProductConfig get_sta4d_dot_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_left_contract_config()
+ProductConfig get_sta4d_l_contract_config()
 {
-    return {.product_name = "left_contract",
+    return {.product_name = "l_contract",
             .description = "sta4d left contraction",
             .display_name = "left contraction",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
@@ -241,9 +241,9 @@ ProductConfig get_sta4d_left_contract_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_right_contract_config()
+ProductConfig get_sta4d_r_contract_config()
 {
-    return {.product_name = "right_contract",
+    return {.product_name = "r_contract",
             .description = "sta4d right contraction",
             .display_name = "right contraction",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
@@ -254,9 +254,9 @@ ProductConfig get_sta4d_right_contract_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_left_expand_config()
+ProductConfig get_sta4d_l_expand_config()
 {
-    return {.product_name = "left_expand",
+    return {.product_name = "l_expand",
             .description = "sta4d left expansion",
             .display_name = "left expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
@@ -267,9 +267,9 @@ ProductConfig get_sta4d_left_expand_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_right_expand_config()
+ProductConfig get_sta4d_r_expand_config()
 {
-    return {.product_name = "right_expand",
+    return {.product_name = "r_expand",
             .description = "sta4d right expansion",
             .display_name = "right expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",

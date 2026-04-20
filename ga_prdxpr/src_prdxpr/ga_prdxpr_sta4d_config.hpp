@@ -20,12 +20,12 @@ ProductConfig get_sta4d_cmt_config(); // commutator product
 ProductConfig get_sta4d_wdg_config(); // wedge product
 ProductConfig get_sta4d_dot_config(); // inner product
 
-ProductConfig get_sta4d_left_contract_config();  // left contraction
-ProductConfig get_sta4d_right_contract_config(); // right contraction
+ProductConfig get_sta4d_l_contract_config(); // left contraction
+ProductConfig get_sta4d_r_contract_config(); // right contraction
 
 // Expansions are the regressive versions of the corresponding contractions.
-ProductConfig get_sta4d_left_expand_config();  // left expansion
-ProductConfig get_sta4d_right_expand_config(); // right expansion
+ProductConfig get_sta4d_l_expand_config(); // left expansion
+ProductConfig get_sta4d_r_expand_config(); // right expansion
 
 ProductConfig get_sta4d_rgpr_config(); // regressive geometric product
 ProductConfig get_sta4d_rcmt_config(); // regressive commutator product

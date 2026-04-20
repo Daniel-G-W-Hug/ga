@@ -25,18 +25,18 @@ namespace hd::ga::pga {
 // - rgpr()                  -> regressive geometric product
 // - inv()                   -> inversion operation (w.r.t. geometric product)
 //
-// - left_bulk_contract3dp()    -> left bulk contraction
-// - left_weight_contract3dp()  -> left weight contraction
-// - right_bulk_contract3dp()   -> right bulk contraction
-// - right_weight_contract3dp() -> right weight contraction
+// - l_bulk_contract3dp()    -> left bulk contraction
+// - l_weight_contract3dp()  -> left weight contraction
+// - r_bulk_contract3dp()    -> right bulk contraction
+// - r_weight_contract3dp()  -> right weight contraction
 //
 // Bulk expansions are the regressive versions of the corresponding weight contractions.
 // Weight expansions are the regressive versions of the corresponding bulk contractions.
 //
-// - left_bulk_expand3dp()      -> left bulk expansion
-// - left_weight_expand3dp()    -> left weight expansion
-// - right_bulk_expand3dp()     -> right bulk expansion
-// - right_weight_expand3dp()   -> right weight expansion
+// - l_bulk_expand3dp()      -> left bulk expansion
+// - l_weight_expand3dp()    -> left weight expansion
+// - r_bulk_expand3dp()      -> right bulk expansion
+// - r_weight_expand3dp()    -> right weight expansion
 //
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1098,7 +1098,7 @@ constexpr TriVec3dp<std::common_type_t<T, U>> rtwdg1(BiVec3dp<T> const& B,
                             -B.mx * t.x - B.my * t.y - B.mz * t.z);
 }
 
-// rtwdg1(trivec,vec) = bivec -> identical to right_weight_expand3dp(vec,trivec)
+// rtwdg1(trivec,vec) = bivec -> identical to r_weight_expand3dp(vec,trivec)
 //                            ->            = vec ^ r_weight_dual(trivec)
 //                            ->            = l_weight_dual(trivec) ^ vec
 template <typename T, typename U>
@@ -1111,7 +1111,7 @@ constexpr BiVec3dp<std::common_type_t<T, U>> rtwdg1(TriVec3dp<T> const& t,
                            -t.x * v.z + t.z * v.x, t.x * v.y - t.y * v.x);
 }
 
-// rtwdg1(vec,trivec) = bivec -> identical to left_weight_expand3dp(trivec,vec)
+// rtwdg1(vec,trivec) = bivec -> identical to l_weight_expand3dp(trivec,vec)
 //                            ->            = l_weight_dual(trivec) ^ vec
 //                            ->            = vec ^ r_weight_dual(trivec)
 template <typename T, typename U>
@@ -1124,8 +1124,8 @@ constexpr BiVec3dp<std::common_type_t<T, U>> rtwdg1(Vec3dp<T> const& v,
                            v.x * t.z - v.z * t.x, -v.x * t.y + v.y * t.x);
 }
 
-// rtwdg1(trivec,s) = vec -> identical to right_weight_expand3dp(s,trivec)
-//                              ->        = s ^ r_weight_dual(trivec)
+// rtwdg1(trivec,s) = vec -> identical to r_weight_expand3dp(s,trivec)
+//                        ->        = s ^ r_weight_dual(trivec)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> rtwdg1(TriVec3dp<T> const& t, Scalar3dp<U> s)
@@ -1134,8 +1134,8 @@ constexpr Vec3dp<std::common_type_t<T, U>> rtwdg1(TriVec3dp<T> const& t, Scalar3
     return Vec3dp<ctype>(-t.x, -t.y, -t.z, ctype(0.0)) * ctype(s);
 }
 
-// rtwdg1(s,trivec) -> identical to left_weight_expand3dp(trivec,s)
-//                            ->  = l_weight_dual(trivec) ^ s
+// rtwdg1(s,trivec) -> identical to l_weight_expand3dp(trivec,s)
+//                  ->  = l_weight_dual(trivec) ^ s
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3dp<std::common_type_t<T, U>> rtwdg1(Scalar3dp<T> s, TriVec3dp<U> const& t)
@@ -1191,7 +1191,7 @@ constexpr Vec3dp<std::common_type_t<T, U>> rtwdg1(Vec3dp<T> const& v,
 //
 // Implements the left bulk contraction as per "PGA Illuminated", E. Lengyel:
 //
-// operator<<(a,b) = left_bulk_contract(a,b) = rwdg( l_bulk_dual(a), b )
+// operator<<(a,b) = l_bulk_contract(a,b) = rwdg( l_bulk_dual(a), b )
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1456,7 +1456,7 @@ constexpr Scalar3dp<std::common_type_t<T, U>> operator<<(Scalar3dp<T> s1, Scalar
 //
 // Implements the right bulk contraction as per "PGA Illuminated", E. Lengyel:
 //
-// operator>>(a,b) = right_bulk_contract(a,b) = rwdg( a, r_bulk_dual(b) )
+// operator>>(a,b) = r_bulk_contract(a,b) = rwdg( a, r_bulk_dual(b) )
 //
 ////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U>
@@ -3648,11 +3648,11 @@ inline MVec3dp<T> inv(MVec3dp<T> const& M)
 //
 // REQUIRES: the dualized operand must be of smaller grade, or the result is zero
 //
-// left_bulk_contract3dp(a,b) = rwdg(l_bulk_dual(a), b)
-// left_weight_contract3dp(a,b) = rwdg(l_weight_dual(a), b)
+// l_bulk_contract3dp(a,b) = rwdg(l_bulk_dual(a), b)
+// l_weight_contract3dp(a,b) = rwdg(l_weight_dual(a), b)
 //
-// right_bulk_contract3dp(a,b) = rwdg(a, r_bulk_dual(b))
-// right_weight_contract3dp(a,b) = rwdg(a, r_weight_dual(b))
+// r_bulk_contract3dp(a,b) = rwdg(a, r_bulk_dual(b))
+// r_weight_contract3dp(a,b) = rwdg(a, r_weight_dual(b))
 //
 // The contraction subracts the grades of the operands.
 //
@@ -3661,34 +3661,34 @@ inline MVec3dp<T> inv(MVec3dp<T> const& M)
 // When the metric is degenerate they produce different results.
 //
 // In general a contraction throws away parts that are perpendicular to each other.
-// The result of right_bulk_contract(B,v) lies in B and is perpendicular to v.
+// The result of r_bulk_contract(B,v) lies in B and is perpendicular to v.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // REQUIRES: the dualized operand must be of smaller grade, or the result is zero
 
 template <typename arg1, typename arg2>
-decltype(auto) left_bulk_contract3dp(arg1&& a, arg2&& b)
+decltype(auto) l_bulk_contract3dp(arg1&& a, arg2&& b)
 {
     // return rwdg(l_bulk_dual(a), b);
     return rwdg(l_bulk_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) left_weight_contract3dp(arg1&& a, arg2&& b)
+decltype(auto) l_weight_contract3dp(arg1&& a, arg2&& b)
 {
     // return rwdg(l_weight_dual(a), b);
     return rwdg(l_weight_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) right_bulk_contract3dp(arg1&& a, arg2&& b)
+decltype(auto) r_bulk_contract3dp(arg1&& a, arg2&& b)
 {
     // return rwdg(a, r_bulk_dual(b));
     return rwdg(std::forward<arg1>(a), r_bulk_dual(std::forward<arg2>(b)));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) right_weight_contract3dp(arg1&& a, arg2&& b)
+decltype(auto) r_weight_contract3dp(arg1&& a, arg2&& b)
 {
     // return rwdg(a, r_weight_dual(b));
     return rwdg(std::forward<arg1>(a), r_weight_dual(std::forward<arg2>(b)));
@@ -3700,11 +3700,11 @@ decltype(auto) right_weight_contract3dp(arg1&& a, arg2&& b)
 //
 // REQUIRES: the dualized operand must be of larger grade, or the result is zero
 //
-// left_bulk_expand3dp(a,b)   = wdg(l_bulk_dual(a),b)   (dual to left_weight_contract)
-// left_weight_expand3dp(a,b) = wdg(l_weight_dual(a),b) (dual to left_bulk_contract)
+// l_bulk_expand3dp(a,b)   = wdg(l_bulk_dual(a),b)   (dual to l_weight_contract)
+// l_weight_expand3dp(a,b) = wdg(l_weight_dual(a),b) (dual to l_bulk_contract)
 //
-// right_bulk_expand3dp(a,b)   = wdg(a,r_bulk_dual(b)) (dual to right_weight_contract)
-// right_weight_expand3dp(a,b) = wdg(a,r_weight_dual(b)) (dual to right_bulk_contract)
+// r_bulk_expand3dp(a,b)   = wdg(a,r_bulk_dual(b))   (dual to r_weight_contract)
+// r_weight_expand3dp(a,b) = wdg(a,r_weight_dual(b)) (dual to r_bulk_contract)
 //
 // The expansion subtracts the antigrades of the objects.
 //
@@ -3720,28 +3720,28 @@ decltype(auto) right_weight_contract3dp(arg1&& a, arg2&& b)
 // REQUIRES: the dualized operand must be of larger grade, or the result is zero
 
 template <typename arg1, typename arg2>
-decltype(auto) left_bulk_expand3dp(arg1&& a, arg2&& b)
+decltype(auto) l_bulk_expand3dp(arg1&& a, arg2&& b)
 {
     // return wdg(l_bulk_dual(a), b);
     return wdg(l_bulk_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) left_weight_expand3dp(arg1&& a, arg2&& b)
+decltype(auto) l_weight_expand3dp(arg1&& a, arg2&& b)
 {
     // return wdg(l_weight_dual(a), b);
     return wdg(l_weight_dual(std::forward<arg1>(a)), std::forward<arg2>(b));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) right_bulk_expand3dp(arg1&& a, arg2&& b)
+decltype(auto) r_bulk_expand3dp(arg1&& a, arg2&& b)
 {
     // return wdg(a, r_bulk_dual(b));
     return wdg(std::forward<arg1>(a), r_bulk_dual(std::forward<arg2>(b)));
 }
 
 template <typename arg1, typename arg2>
-decltype(auto) right_weight_expand3dp(arg1&& a, arg2&& b)
+decltype(auto) r_weight_expand3dp(arg1&& a, arg2&& b)
 {
     // return wdg(a, r_weight_dual(b));
     return wdg(std::forward<arg1>(a), r_weight_dual(std::forward<arg2>(b)));

@@ -1257,7 +1257,7 @@ The metric system in `ga_prdxpr` consists of three main components:
 
 **Matrix operations**:
 
-- `build_complement_matrix()`: Lines 291-320 - Build C from complement rules
+- `build_cmpl_matrix()`: Lines 291-320 - Build C from complement rules
 - `matrix_multiply()`: Lines 322-347 - Standard matrix multiplication
 - `matrix_transpose()`: Lines 349-367 - Matrix transpose
 - `matrix_triple_product()`: Lines 369-384 - Compute C·G·C^T
@@ -1461,18 +1461,18 @@ struct ProductRules {
     prd_rules geometric_product;
     prd_rules wedge_product;
     prd_rules dot_product;
-    prd_rules right_complement;
-    prd_rules left_complement;
+    prd_rules r_cmpl;
+    prd_rules l_cmpl;
     prd_rules complement;
-    prd_rules right_dual;          // Uses G
-    prd_rules left_dual;           // Uses G
-    prd_rules dual;                // Uses G
-    prd_rules bulk_dual;           // PGA: Uses G
-    prd_rules weight_dual;         // PGA: Uses Ḡ
-    prd_rules left_bulk_dual;      // PGA even: Uses G
-    prd_rules right_bulk_dual;     // PGA even: Uses G
-    prd_rules left_weight_dual;    // PGA even: Uses Ḡ
-    prd_rules right_weight_dual;   // PGA even: Uses Ḡ
+    prd_rules r_dual;          // Uses G
+    prd_rules l_dual;          // Uses G
+    prd_rules dual;            // Uses G
+    prd_rules bulk_dual;       // PGA: Uses G
+    prd_rules weight_dual;     // PGA: Uses Ḡ
+    prd_rules l_bulk_dual;     // PGA even: Uses G
+    prd_rules r_bulk_dual;     // PGA even: Uses G
+    prd_rules l_weight_dual;   // PGA even: Uses Ḡ
+    prd_rules r_weight_dual;   // PGA even: Uses Ḡ
 };
 ```
 

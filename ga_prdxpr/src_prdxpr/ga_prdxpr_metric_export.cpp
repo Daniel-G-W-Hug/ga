@@ -241,7 +241,7 @@ void print_metrics_for_algebra(AlgebraConfig const& config)
     if (is_pga) {
         // Generate complement rules for regressive metric calculation
         auto wedge_rules = generate_wedge_product_rules(config);
-        auto complement_rules = generate_complement_rules(config, wedge_rules);
+        auto complement_rules = generate_cmpl_rules(config, wedge_rules);
 
         // Calculate regressive metric
         auto G_reg_data =

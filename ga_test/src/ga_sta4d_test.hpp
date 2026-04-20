@@ -75,7 +75,7 @@ TEST_SUITE("STA 3D Tests")
 
         // For STA4D (even-dimensional): l_dual(r_dual(u)) =
         // r_dual(l_dual(u)) = u This follows from
-        // left_complement(right_complement(u)) = u
+        // l_cmpl(r_cmpl(u)) = u
 
         scalar4ds s{3.0};
         vec4ds v{2.0, 5.0, 7.0, 9.0};

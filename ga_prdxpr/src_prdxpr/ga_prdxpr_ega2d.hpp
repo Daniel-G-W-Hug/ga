@@ -42,14 +42,14 @@ extern const prd_rules dot_ega2d_rules; // Dot product: a · b
 // complement in 2d: l_cmpl(r_cmpl(u)) = u
 // lcmpl:  l_cmpl(u) ^ u = e12
 // rcmpl:  u ^ r_cmpl(u) = e12
-extern const prd_rules lcmpl_ega2d_rules;
-extern const prd_rules rcmpl_ega2d_rules;
+extern const prd_rules l_cmpl_ega2d_rules;
+extern const prd_rules r_cmpl_ega2d_rules;
 
 // dual rules: generated automatically from complement rules + extended metric
 // dual(u) = complement(G × u) where G is the extended metric matrix
 // In EGA2D, the metric is the identity matrix, so dual = complement
-extern const prd_rules left_dual_ega2d_rules;
-extern const prd_rules right_dual_ega2d_rules;
+extern const prd_rules l_dual_ega2d_rules;
+extern const prd_rules r_dual_ega2d_rules;
 
 // coefficients needed to create a multivector = [coeff]^T [mv2d_basis]
 const mvec_coeff mv2d_coeff_A = {"A.c0", "A.c1", "A.c2", "A.c3"};
