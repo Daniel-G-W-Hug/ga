@@ -28,7 +28,7 @@
  *
  * COMPLEMENT RULE GENERATION:
  * The complement rules are now AUTOMATICALLY GENERATED using mathematical algorithms:
- * - Even algebras (EGA2D, PGA3DP): Generate left_complement and right_complement
+ * - Even algebras (EGA2D, PGA3DP): Generate l_cmpl and r_cmpl
  * - Odd algebras (EGA3D, PGA2DP): Generate single complement
  * - Algorithm: Search wedge product table for pseudoscalar relationships
  * - Result: Mathematically verified complement rules with zero transcription errors
@@ -336,9 +336,9 @@ ProductConfig get_ega3d_dot_config()
                       {"dot(s,s) -> s", "svBps1", "svBps2", "s", "s"}}};
 }
 
-ProductConfig get_ega3d_lcontract_config()
+ProductConfig get_ega3d_l_contract_config()
 {
-    return {.product_name = "lcontract",
+    return {.product_name = "l_contract",
             .description = "ega3d left contraction",
             .display_name = "left contraction",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
@@ -373,9 +373,9 @@ ProductConfig get_ega3d_lcontract_config()
                       {"s << s -> s", "svBps1", "svBps2", "s", "s"}}};
 }
 
-ProductConfig get_ega3d_rcontract_config()
+ProductConfig get_ega3d_r_contract_config()
 {
-    return {.product_name = "rcontract",
+    return {.product_name = "r_contract",
             .description = "ega3d right contraction",
             .display_name = "right contraction",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
@@ -410,9 +410,9 @@ ProductConfig get_ega3d_rcontract_config()
                       {"s >> s -> s", "svBps1", "svBps2", "s", "s"}}};
 }
 
-ProductConfig get_ega3d_lexpand_config()
+ProductConfig get_ega3d_l_expand_config()
 {
-    return {.product_name = "lexpand",
+    return {.product_name = "l_expand",
             .description = "ega3d left expansion",
             .display_name = "left expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
@@ -422,9 +422,9 @@ ProductConfig get_ega3d_lexpand_config()
                       {"lexpand(vec,vec) -> ps", "svBps1", "svBps1", "vec", "vec"}}};
 }
 
-ProductConfig get_ega3d_rexpand_config()
+ProductConfig get_ega3d_r_expand_config()
 {
-    return {.product_name = "rexpand",
+    return {.product_name = "r_expand",
             .description = "ega3d right expansion",
             .display_name = "right expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",

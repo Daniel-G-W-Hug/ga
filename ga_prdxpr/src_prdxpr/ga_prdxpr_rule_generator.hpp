@@ -107,14 +107,14 @@ struct ProductRules {
     prd_rules wedge_product;
     prd_rules dot_product;
     // Complement rules - generated based on algebra dimensionality
-    prd_rules right_complement; // For even algebras (EGA2D, PGA3DP)
-    prd_rules left_complement;  // For even algebras (EGA2D, PGA3DP)
-    prd_rules complement;       // For odd algebras (EGA3D, PGA2DP)
+    prd_rules r_cmpl;     // For even algebras (EGA2D, PGA3DP)
+    prd_rules l_cmpl;     // For even algebras (EGA2D, PGA3DP)
+    prd_rules complement; // For odd algebras (EGA3D, PGA2DP)
 
     // Dual rules - generated from complement rules + extended metric
-    prd_rules right_dual; // For even Euclidean/Minkowski algebras (EGA2D, STA4D)
-    prd_rules left_dual;  // For even Euclidean/Minkowski algebras (EGA2D, STA4D)
-    prd_rules dual;       // For odd Euclidean algebras (EGA3D)
+    prd_rules r_dual; // For even Euclidean/Minkowski algebras (EGA2D, STA4D)
+    prd_rules l_dual; // For even Euclidean/Minkowski algebras (EGA2D, STA4D)
+    prd_rules dual;   // For odd Euclidean algebras (EGA3D)
 
     // PGA-specific dual rules (for projective algebras with degenerate dimensions)
     // Odd-dimensional PGA (PGA2DP): single bulk_dual and weight_dual
@@ -122,10 +122,10 @@ struct ProductRules {
     prd_rules weight_dual; // For PGA2DP (odd-dimensional)
 
     // Even-dimensional PGA (PGA3DP): left/right bulk_dual and weight_dual
-    prd_rules left_bulk_dual;    // For PGA3DP (even-dimensional)
-    prd_rules right_bulk_dual;   // For PGA3DP (even-dimensional)
-    prd_rules left_weight_dual;  // For PGA3DP (even-dimensional)
-    prd_rules right_weight_dual; // For PGA3DP (even-dimensional)
+    prd_rules l_bulk_dual;   // For PGA3DP (even-dimensional)
+    prd_rules r_bulk_dual;   // For PGA3DP (even-dimensional)
+    prd_rules l_weight_dual; // For PGA3DP (even-dimensional)
+    prd_rules r_weight_dual; // For PGA3DP (even-dimensional)
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -171,16 +171,15 @@ std::pair<std::string, int> multiply_basis_elements_dot(std::string const& a,
                                                         AlgebraConfig const& config);
 prd_rules generate_wedge_product_rules(AlgebraConfig const& config);
 prd_rules generate_dot_product_rules(AlgebraConfig const& config);
-prd_rules generate_right_complement_rules(AlgebraConfig const& config,
-                                          prd_rules const& wedge_rules);
-prd_rules generate_left_complement_rules(AlgebraConfig const& config,
-                                         prd_rules const& wedge_rules);
-prd_rules generate_complement_rules(AlgebraConfig const& config,
-                                    prd_rules const& wedge_rules);
-prd_rules generate_left_dual_rules(AlgebraConfig const& config,
-                                   prd_rules const& left_complement_rules);
-prd_rules generate_right_dual_rules(AlgebraConfig const& config,
-                                    prd_rules const& right_complement_rules);
+prd_rules generate_r_cmpl_rules(AlgebraConfig const& config,
+                                prd_rules const& wedge_rules);
+prd_rules generate_l_cmpl_rules(AlgebraConfig const& config,
+                                prd_rules const& wedge_rules);
+prd_rules generate_cmpl_rules(AlgebraConfig const& config, prd_rules const& wedge_rules);
+prd_rules generate_l_dual_rules(AlgebraConfig const& config,
+                                prd_rules const& l_cmpl_rules);
+prd_rules generate_r_dual_rules(AlgebraConfig const& config,
+                                prd_rules const& r_cmpl_rules);
 prd_rules generate_dual_rules(AlgebraConfig const& config,
                               prd_rules const& complement_rules);
 
@@ -189,14 +188,14 @@ prd_rules generate_bulk_dual_rules(AlgebraConfig const& config,
                                    prd_rules const& complement_rules);
 prd_rules generate_weight_dual_rules(AlgebraConfig const& config,
                                      prd_rules const& complement_rules);
-prd_rules generate_left_bulk_dual_rules(AlgebraConfig const& config,
-                                        prd_rules const& left_complement_rules);
-prd_rules generate_right_bulk_dual_rules(AlgebraConfig const& config,
-                                         prd_rules const& right_complement_rules);
-prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
-                                          prd_rules const& left_complement_rules);
-prd_rules generate_right_weight_dual_rules(AlgebraConfig const& config,
-                                           prd_rules const& right_complement_rules);
+prd_rules generate_l_bulk_dual_rules(AlgebraConfig const& config,
+                                     prd_rules const& l_cmpl_rules);
+prd_rules generate_r_bulk_dual_rules(AlgebraConfig const& config,
+                                     prd_rules const& r_cmpl_rules);
+prd_rules generate_l_weight_dual_rules(AlgebraConfig const& config,
+                                       prd_rules const& l_cmpl_rules);
+prd_rules generate_r_weight_dual_rules(AlgebraConfig const& config,
+                                       prd_rules const& r_cmpl_rules);
 
 ProductRules generate_algebra_rules(AlgebraConfig const& config);
 

@@ -648,9 +648,8 @@ prd_rules generate_dot_product_rules(AlgebraConfig const& config)
 // Generate complement rules from wedge product table
 // Algorithm: For complement relationship u ^ cmpl(u) = I_n (right complement)
 //            or cmpl(u) ^ u = I_n (left complement)
-prd_rules generate_complement_from_wedge_table(AlgebraConfig const& config,
-                                               prd_rules const& wedge_rules,
-                                               bool is_left_complement)
+prd_rules generate_cmpl_from_wedge_table(AlgebraConfig const& config,
+                                         prd_rules const& wedge_rules, bool is_l_cmpl)
 {
     prd_rules complement_rules;
 
@@ -673,20 +672,20 @@ prd_rules generate_complement_from_wedge_table(AlgebraConfig const& config,
     // For each basis element, find its complement using table lookup
     for (size_t i = 0; i < basis_size; ++i) {
         const std::string& basis_element = config.multivector_basis[i];
-        bool found_complement = false;
+        bool found_cmpl = false;
 
         // Special case: scalar complement is always the pseudoscalar
         if (basis_element == config.scalar_name) {
             complement_rules[basis_element] = pseudoscalar;
-            found_complement = true;
+            found_cmpl = true;
         }
         // Special case: pseudoscalar complement is always the scalar
         else if (basis_element == pseudoscalar) {
             complement_rules[basis_element] = config.scalar_name;
-            found_complement = true;
+            found_cmpl = true;
         }
         else {
-            if (is_left_complement) {
+            if (is_l_cmpl) {
                 // Left complement: l_cmpl(u) ^ u = I_n
                 // Search column i for pseudoscalar
                 for (size_t row = 0; row < basis_size; ++row) {
@@ -695,13 +694,13 @@ prd_rules generate_complement_from_wedge_table(AlgebraConfig const& config,
                         if (table_entry == pseudoscalar) {
                             complement_rules[basis_element] =
                                 config.multivector_basis[row];
-                            found_complement = true;
+                            found_cmpl = true;
                             break;
                         }
                         else if (table_entry == "-" + pseudoscalar) {
                             complement_rules[basis_element] =
                                 "-" + config.multivector_basis[row];
-                            found_complement = true;
+                            found_cmpl = true;
                             break;
                         }
                     }
@@ -717,13 +716,13 @@ prd_rules generate_complement_from_wedge_table(AlgebraConfig const& config,
                         if (table_entry == pseudoscalar) {
                             complement_rules[basis_element] =
                                 config.multivector_basis[col];
-                            found_complement = true;
+                            found_cmpl = true;
                             break;
                         }
                         else if (table_entry == "-" + pseudoscalar) {
                             complement_rules[basis_element] =
                                 "-" + config.multivector_basis[col];
-                            found_complement = true;
+                            found_cmpl = true;
                             break;
                         }
                     }
@@ -731,7 +730,7 @@ prd_rules generate_complement_from_wedge_table(AlgebraConfig const& config,
             }
         }
 
-        if (!found_complement) {
+        if (!found_cmpl) {
             throw std::runtime_error("Could not find complement for basis element: " +
                                      basis_element);
         }
@@ -740,48 +739,45 @@ prd_rules generate_complement_from_wedge_table(AlgebraConfig const& config,
     return complement_rules;
 }
 
-prd_rules generate_right_complement_rules(AlgebraConfig const& config,
-                                          prd_rules const& wedge_rules)
+prd_rules generate_r_cmpl_rules(AlgebraConfig const& config, prd_rules const& wedge_rules)
 {
-    return generate_complement_from_wedge_table(config, wedge_rules, false);
+    return generate_cmpl_from_wedge_table(config, wedge_rules, false);
 }
 
-prd_rules generate_left_complement_rules(AlgebraConfig const& config,
-                                         prd_rules const& wedge_rules)
+prd_rules generate_l_cmpl_rules(AlgebraConfig const& config, prd_rules const& wedge_rules)
 {
-    return generate_complement_from_wedge_table(config, wedge_rules, true);
+    return generate_cmpl_from_wedge_table(config, wedge_rules, true);
 }
 
-prd_rules generate_complement_rules(AlgebraConfig const& config,
-                                    prd_rules const& wedge_rules)
+prd_rules generate_cmpl_rules(AlgebraConfig const& config, prd_rules const& wedge_rules)
 {
     // For odd algebras, left and right complements are the same
-    return generate_complement_from_wedge_table(config, wedge_rules, false);
+    return generate_cmpl_from_wedge_table(config, wedge_rules, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dual Rule Generation Implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-// Generate left dual rules: l_dual(u) = left_complement(G × u)
+// Generate left dual rules: l_dual(u) = l_cmpl(G × u)
 // where G is the extended metric matrix and × is matrix-vector multiplication
-prd_rules generate_left_dual_rules(AlgebraConfig const& config,
-                                   prd_rules const& left_complement_rules)
+prd_rules generate_l_dual_rules(AlgebraConfig const& config,
+                                prd_rules const& l_cmpl_rules)
 {
     // Delegate to systematic matrix-vector multiplication approach
-    // l_dual(basis[i]) = Σⱼ G[i,j] · left_complement(basis[j])
+    // l_dual(basis[i]) = Σⱼ G[i,j] · l_cmpl(basis[j])
     auto G_data = calculate_extended_metric_matrix_full(config);
-    return calculate_dual_rules(config, G_data, left_complement_rules);
+    return calculate_dual_rules(config, G_data, l_cmpl_rules);
 }
 
-// Generate right dual rules: r_dual(u) = right_complement(G × u)
-prd_rules generate_right_dual_rules(AlgebraConfig const& config,
-                                    prd_rules const& right_complement_rules)
+// Generate right dual rules: r_dual(u) = r_cmpl(G × u)
+prd_rules generate_r_dual_rules(AlgebraConfig const& config,
+                                prd_rules const& r_cmpl_rules)
 {
     // Delegate to systematic matrix-vector multiplication approach
-    // r_dual(basis[i]) = Σⱼ G[i,j] · right_complement(basis[j])
+    // r_dual(basis[i]) = Σⱼ G[i,j] · r_cmpl(basis[j])
     auto G_data = calculate_extended_metric_matrix_full(config);
-    return calculate_dual_rules(config, G_data, right_complement_rules);
+    return calculate_dual_rules(config, G_data, r_cmpl_rules);
 }
 
 // Generate dual rules for odd-dimensional algebras: dual(u) = complement(G × u)
@@ -890,186 +886,184 @@ prd_rules generate_weight_dual_rules(AlgebraConfig const& config,
     return weight_dual_rules;
 }
 
-// Generate left_bulk_dual rules for even-dimensional PGA
-prd_rules generate_left_bulk_dual_rules(AlgebraConfig const& config,
-                                        prd_rules const& left_complement_rules)
+// Generate l_bulk_dual rules for even-dimensional PGA
+prd_rules generate_l_bulk_dual_rules(AlgebraConfig const& config,
+                                     prd_rules const& l_cmpl_rules)
 {
-    return generate_left_dual_rules(config, left_complement_rules);
+    return generate_l_dual_rules(config, l_cmpl_rules);
 }
 
-// Generate right_bulk_dual rules for even-dimensional PGA
-prd_rules generate_right_bulk_dual_rules(AlgebraConfig const& config,
-                                         prd_rules const& right_complement_rules)
+// Generate r_bulk_dual rules for even-dimensional PGA
+prd_rules generate_r_bulk_dual_rules(AlgebraConfig const& config,
+                                     prd_rules const& r_cmpl_rules)
 {
-    return generate_right_dual_rules(config, right_complement_rules);
+    return generate_r_dual_rules(config, r_cmpl_rules);
 }
 
-// Generate left_weight_dual rules for even-dimensional PGA
-// l_weight_dual(u) = left_complement(Ḡ × u) where Ḡ = regressive metric
-// Regressive metric: Ḡ × u = left_complement(G × left_complement(u))
-// Therefore: l_weight_dual(u) = left_complement(left_complement(G ×
-// left_complement(u)))
-//                                  = G × left_complement(u) (using left_complement
+// Generate l_weight_dual rules for even-dimensional PGA
+// l_weight_dual(u) = l_cmpl(Ḡ × u) where Ḡ = regressive metric
+// Regressive metric: Ḡ × u = l_cmpl(G × l_cmpl(u))
+// Therefore: l_weight_dual(u) = l_cmpl(l_cmpl(G ×
+// l_cmpl(u)))
+//                                  = G × l_cmpl(u) (using l_cmpl
 //                                  involution)
-prd_rules generate_left_weight_dual_rules(AlgebraConfig const& config,
-                                          prd_rules const& left_complement_rules)
+prd_rules generate_l_weight_dual_rules(AlgebraConfig const& config,
+                                       prd_rules const& l_cmpl_rules)
 {
-    // For even-dimensional PGA: l_weight_dual(u) = G × left_complement(u)
+    // For even-dimensional PGA: l_weight_dual(u) = G × l_cmpl(u)
     mvec_coeff const& basis = config.multivector_basis;
     size_t const n = basis.size();
     auto G_data = calculate_extended_metric_matrix(config);
     std::mdspan G{G_data.data(), n, n};
 
-    prd_rules left_weight_dual_rules;
+    prd_rules l_weight_dual_rules;
 
     // For each basis element
     for (size_t i = 0; i < n; ++i) {
         const std::string& basis_element = basis[i];
 
-        // Step 1: Apply left_complement to input basis element
-        auto it_lcmpl = left_complement_rules.find(basis_element);
-        if (it_lcmpl == left_complement_rules.end()) {
-            left_weight_dual_rules[basis_element] = zero_str();
+        // Step 1: Apply l_cmpl to input basis element
+        auto it_lcmpl = l_cmpl_rules.find(basis_element);
+        if (it_lcmpl == l_cmpl_rules.end()) {
+            l_weight_dual_rules[basis_element] = zero_str();
             continue;
         }
-        std::string lcmpl_u = it_lcmpl->second;
+        std::string l_cmpl_u = it_lcmpl->second;
 
-        if (lcmpl_u == zero_str()) {
-            left_weight_dual_rules[basis_element] = zero_str();
+        if (l_cmpl_u == zero_str()) {
+            l_weight_dual_rules[basis_element] = zero_str();
             continue;
         }
 
-        // Step 2: Find the index of left_complement(u) in the basis (strip sign if
+        // Step 2: Find the index of l_cmpl(u) in the basis (strip sign if
         // present)
-        bool lcmpl_has_minus = (lcmpl_u.find(minus_str()) == 0);
-        std::string lcmpl_u_unsigned = lcmpl_has_minus ? lcmpl_u.substr(1) : lcmpl_u;
+        bool l_cmpl_has_minus = (l_cmpl_u.find(minus_str()) == 0);
+        std::string l_cmpl_u_unsigned = l_cmpl_has_minus ? l_cmpl_u.substr(1) : l_cmpl_u;
 
-        size_t lcmpl_index = n; // invalid index
+        size_t l_cmpl_index = n; // invalid index
         for (size_t j = 0; j < n; ++j) {
-            if (basis[j] == lcmpl_u_unsigned) {
-                lcmpl_index = j;
+            if (basis[j] == l_cmpl_u_unsigned) {
+                l_cmpl_index = j;
                 break;
             }
         }
 
-        if (lcmpl_index >= n) {
-            left_weight_dual_rules[basis_element] = zero_str();
+        if (l_cmpl_index >= n) {
+            l_weight_dual_rules[basis_element] = zero_str();
             continue;
         }
 
-        // Step 3: Multiply by extended metric G[left_complement_index,
-        // left_complement_index] Result is G × left_complement(u)
-        int metric_value = G[lcmpl_index, lcmpl_index];
+        // Step 3: Multiply by extended metric G[l_cmpl_index,
+        // l_cmpl_index] Result is G × l_cmpl(u)
+        int metric_value = G[l_cmpl_index, l_cmpl_index];
 
         if (metric_value == 1) {
-            // metric × left_complement = left_complement (preserve sign)
-            left_weight_dual_rules[basis_element] = lcmpl_u;
+            // metric × l_cmpl = l_cmpl (preserve sign)
+            l_weight_dual_rules[basis_element] = l_cmpl_u;
         }
         else if (metric_value == -1) {
-            // metric × left_complement = -left_complement (flip sign)
-            if (lcmpl_has_minus) {
-                left_weight_dual_rules[basis_element] = lcmpl_u_unsigned; // remove minus
+            // metric × l_cmpl = -l_cmpl (flip sign)
+            if (l_cmpl_has_minus) {
+                l_weight_dual_rules[basis_element] = l_cmpl_u_unsigned; // remove minus
             }
             else {
-                left_weight_dual_rules[basis_element] =
-                    minus_str() + lcmpl_u; // add minus
+                l_weight_dual_rules[basis_element] = minus_str() + l_cmpl_u; // add minus
             }
         }
         else if (metric_value == 0) {
-            left_weight_dual_rules[basis_element] = zero_str();
+            l_weight_dual_rules[basis_element] = zero_str();
         }
         else {
-            // General case: metric_value × left_complement
-            left_weight_dual_rules[basis_element] =
-                std::to_string(metric_value) + mul_str() + lcmpl_u;
+            // General case: metric_value × l_cmpl
+            l_weight_dual_rules[basis_element] =
+                std::to_string(metric_value) + mul_str() + l_cmpl_u;
         }
     }
 
-    return left_weight_dual_rules;
+    return l_weight_dual_rules;
 }
 
-// Generate right_weight_dual rules for even-dimensional PGA
-// r_weight_dual(u) = right_complement(Ḡ × u) where Ḡ = regressive metric
-// Regressive metric: Ḡ × u = left_complement(G × right_complement(u))
-// Therefore: r_weight_dual(u) = right_complement(left_complement(G ×
-// right_complement(u)))
-//                                  = G × right_complement(u) (using complement
+// Generate r_weight_dual rules for even-dimensional PGA
+// r_weight_dual(u) = r_cmpl(Ḡ × u) where Ḡ = regressive metric
+// Regressive metric: Ḡ × u = l_cmpl(G × r_cmpl(u))
+// Therefore: r_weight_dual(u) = r_cmpl(l_cmpl(G ×
+// r_cmpl(u)))
+//                                  = G × r_cmpl(u) (using complement
 //                                  involution)
-prd_rules generate_right_weight_dual_rules(AlgebraConfig const& config,
-                                           prd_rules const& right_complement_rules)
+prd_rules generate_r_weight_dual_rules(AlgebraConfig const& config,
+                                       prd_rules const& r_cmpl_rules)
 {
-    // For even-dimensional PGA: r_weight_dual(u) = G × right_complement(u)
+    // For even-dimensional PGA: r_weight_dual(u) = G × r_cmpl(u)
     mvec_coeff const& basis = config.multivector_basis;
     size_t const n = basis.size();
     auto G_data = calculate_extended_metric_matrix(config);
     std::mdspan G{G_data.data(), n, n};
 
-    prd_rules right_weight_dual_rules;
+    prd_rules r_weight_dual_rules;
 
     // For each basis element
     for (size_t i = 0; i < n; ++i) {
         const std::string& basis_element = basis[i];
 
-        // Step 1: Apply right_complement to input basis element
-        auto it_rcmpl = right_complement_rules.find(basis_element);
-        if (it_rcmpl == right_complement_rules.end()) {
-            right_weight_dual_rules[basis_element] = zero_str();
+        // Step 1: Apply r_cmpl to input basis element
+        auto it_rcmpl = r_cmpl_rules.find(basis_element);
+        if (it_rcmpl == r_cmpl_rules.end()) {
+            r_weight_dual_rules[basis_element] = zero_str();
             continue;
         }
-        std::string rcmpl_u = it_rcmpl->second;
+        std::string r_cmpl_u = it_rcmpl->second;
 
-        if (rcmpl_u == zero_str()) {
-            right_weight_dual_rules[basis_element] = zero_str();
+        if (r_cmpl_u == zero_str()) {
+            r_weight_dual_rules[basis_element] = zero_str();
             continue;
         }
 
-        // Step 2: Find the index of right_complement(u) in the basis (strip sign if
+        // Step 2: Find the index of r_cmpl(u) in the basis (strip sign if
         // present)
-        bool rcmpl_has_minus = (rcmpl_u.find(minus_str()) == 0);
-        std::string rcmpl_u_unsigned = rcmpl_has_minus ? rcmpl_u.substr(1) : rcmpl_u;
+        bool r_cmpl_has_minus = (r_cmpl_u.find(minus_str()) == 0);
+        std::string r_cmpl_u_unsigned = r_cmpl_has_minus ? r_cmpl_u.substr(1) : r_cmpl_u;
 
-        size_t rcmpl_index = n; // invalid index
+        size_t r_cmpl_index = n; // invalid index
         for (size_t j = 0; j < n; ++j) {
-            if (basis[j] == rcmpl_u_unsigned) {
-                rcmpl_index = j;
+            if (basis[j] == r_cmpl_u_unsigned) {
+                r_cmpl_index = j;
                 break;
             }
         }
 
-        if (rcmpl_index >= n) {
-            right_weight_dual_rules[basis_element] = zero_str();
+        if (r_cmpl_index >= n) {
+            r_weight_dual_rules[basis_element] = zero_str();
             continue;
         }
 
-        // Step 3: Multiply by extended metric G[right_complement_index,
-        // right_complement_index] Result is G × right_complement(u)
-        int metric_value = G[rcmpl_index, rcmpl_index];
+        // Step 3: Multiply by extended metric G[r_cmpl_index,
+        // r_cmpl_index] Result is G × r_cmpl(u)
+        int metric_value = G[r_cmpl_index, r_cmpl_index];
 
         if (metric_value == 1) {
-            // metric × right_complement = right_complement (preserve sign)
-            right_weight_dual_rules[basis_element] = rcmpl_u;
+            // metric × r_cmpl = r_cmpl (preserve sign)
+            r_weight_dual_rules[basis_element] = r_cmpl_u;
         }
         else if (metric_value == -1) {
-            // metric × right_complement = -right_complement (flip sign)
-            if (rcmpl_has_minus) {
-                right_weight_dual_rules[basis_element] = rcmpl_u_unsigned; // remove minus
+            // metric × r_cmpl = -r_cmpl (flip sign)
+            if (r_cmpl_has_minus) {
+                r_weight_dual_rules[basis_element] = r_cmpl_u_unsigned; // remove minus
             }
             else {
-                right_weight_dual_rules[basis_element] =
-                    minus_str() + rcmpl_u; // add minus
+                r_weight_dual_rules[basis_element] = minus_str() + r_cmpl_u; // add minus
             }
         }
         else if (metric_value == 0) {
-            right_weight_dual_rules[basis_element] = zero_str();
+            r_weight_dual_rules[basis_element] = zero_str();
         }
         else {
-            // General case: metric_value × right_complement
-            right_weight_dual_rules[basis_element] =
-                std::to_string(metric_value) + mul_str() + rcmpl_u;
+            // General case: metric_value × r_cmpl
+            r_weight_dual_rules[basis_element] =
+                std::to_string(metric_value) + mul_str() + r_cmpl_u;
         }
     }
 
-    return right_weight_dual_rules;
+    return r_weight_dual_rules;
 }
 
 ProductRules generate_algebra_rules(AlgebraConfig const& config)
@@ -1104,33 +1098,26 @@ ProductRules generate_algebra_rules(AlgebraConfig const& config)
 
     if (is_even_dimensional) {
         // Generate both left and right complements for even algebras
-        result.left_complement =
-            generate_left_complement_rules(config, result.wedge_product);
-        result.right_complement =
-            generate_right_complement_rules(config, result.wedge_product);
+        result.l_cmpl = generate_l_cmpl_rules(config, result.wedge_product);
+        result.r_cmpl = generate_r_cmpl_rules(config, result.wedge_product);
 
         // Generate left and right dual rules from complements (only for non-PGA)
         if (!is_pga) {
-            result.left_dual = generate_left_dual_rules(config, result.left_complement);
-            result.right_dual =
-                generate_right_dual_rules(config, result.right_complement);
+            result.l_dual = generate_l_dual_rules(config, result.l_cmpl);
+            result.r_dual = generate_r_dual_rules(config, result.r_cmpl);
         }
 
         // For even-dimensional PGA, generate bulk and weight duals
         if (is_pga) {
-            result.left_bulk_dual =
-                generate_left_bulk_dual_rules(config, result.left_complement);
-            result.right_bulk_dual =
-                generate_right_bulk_dual_rules(config, result.right_complement);
-            result.left_weight_dual =
-                generate_left_weight_dual_rules(config, result.left_complement);
-            result.right_weight_dual =
-                generate_right_weight_dual_rules(config, result.right_complement);
+            result.l_bulk_dual = generate_l_bulk_dual_rules(config, result.l_cmpl);
+            result.r_bulk_dual = generate_r_bulk_dual_rules(config, result.r_cmpl);
+            result.l_weight_dual = generate_l_weight_dual_rules(config, result.l_cmpl);
+            result.r_weight_dual = generate_r_weight_dual_rules(config, result.r_cmpl);
         }
     }
     else {
         // Generate single complement for odd algebras
-        result.complement = generate_complement_rules(config, result.wedge_product);
+        result.complement = generate_cmpl_rules(config, result.wedge_product);
 
         // Generate dual rules from complement (only for non-PGA)
         if (!is_pga) {

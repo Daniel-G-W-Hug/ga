@@ -30,12 +30,12 @@ const prd_rules dot_pga3dp_rules = pga3dp_generated_rules.dot_product;
 
 // Stage 3: Initialize complement rules (depend on wedge rules, but those are already
 // generated)
-const prd_rules lcmpl_pga3dp_rules = pga3dp_generated_rules.left_complement;
-const prd_rules rcmpl_pga3dp_rules = pga3dp_generated_rules.right_complement;
+const prd_rules l_cmpl_pga3dp_rules = pga3dp_generated_rules.l_cmpl;
+const prd_rules r_cmpl_pga3dp_rules = pga3dp_generated_rules.r_cmpl;
 
 // Stage 4: Initialize dual rules (generated from complement rules + extended metric)
-// PGA3DP has left_bulk_dual, right_bulk_dual, left_weight_dual, right_weight_dual
-const prd_rules left_bulk_dual_pga3dp_rules = pga3dp_generated_rules.left_bulk_dual;
-const prd_rules right_bulk_dual_pga3dp_rules = pga3dp_generated_rules.right_bulk_dual;
-const prd_rules left_weight_dual_pga3dp_rules = pga3dp_generated_rules.left_weight_dual;
-const prd_rules right_weight_dual_pga3dp_rules = pga3dp_generated_rules.right_weight_dual;
+// PGA3DP has l_bulk_dual, r_bulk_dual, l_weight_dual, r_weight_dual
+const prd_rules l_bulk_dual_pga3dp_rules = pga3dp_generated_rules.l_bulk_dual;
+const prd_rules r_bulk_dual_pga3dp_rules = pga3dp_generated_rules.r_bulk_dual;
+const prd_rules l_weight_dual_pga3dp_rules = pga3dp_generated_rules.l_weight_dual;
+const prd_rules r_weight_dual_pga3dp_rules = pga3dp_generated_rules.r_weight_dual;

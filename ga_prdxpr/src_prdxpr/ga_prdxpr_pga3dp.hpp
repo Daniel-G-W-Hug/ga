@@ -47,20 +47,20 @@ extern const prd_rules dot_pga3dp_rules; // Dot product: a · b
 // complement in 3dp: l_cmpl(r_cmpl(u)) = u
 // lcmpl:  l_cmpl(u) ^ u        = e1234
 // rcmpl:  u        ^ r_cmpl(u) = e1234
-extern const prd_rules lcmpl_pga3dp_rules;
-extern const prd_rules rcmpl_pga3dp_rules;
+extern const prd_rules l_cmpl_pga3dp_rules;
+extern const prd_rules r_cmpl_pga3dp_rules;
 
 // dual rules: generated automatically from complement rules + extended metric
-// PGA3DP (even-dimensional) has left_bulk_dual, right_bulk_dual, left_weight_dual,
-// right_weight_dual l_bulk_dual(u) = left_complement(G × u) where G is the extended
-// metric matrix r_bulk_dual(u) = right_complement(G × u) l_weight_dual(u) =
-// left_complement(G × left_complement(u)) uses the regressive metric r_weight_dual(u)
-// = right_complement(G × right_complement(u)) uses the regressive metric Note:
-// right_bulk_dual is equivalent to the Hodge dual for PGA3DP
-extern const prd_rules left_bulk_dual_pga3dp_rules;
-extern const prd_rules right_bulk_dual_pga3dp_rules;
-extern const prd_rules left_weight_dual_pga3dp_rules;
-extern const prd_rules right_weight_dual_pga3dp_rules;
+// PGA3DP (even-dimensional) has l_bulk_dual, r_bulk_dual, l_weight_dual,
+// r_weight_dual l_bulk_dual(u) = l_cmpl(G × u) where G is the extended
+// metric matrix r_bulk_dual(u) = r_cmpl(G × u) l_weight_dual(u) =
+// l_cmpl(G × l_cmpl(u)) uses the regressive metric r_weight_dual(u)
+// = r_cmpl(G × r_cmpl(u)) uses the regressive metric Note:
+// r_bulk_dual is equivalent to the Hodge dual for PGA3DP
+extern const prd_rules l_bulk_dual_pga3dp_rules;
+extern const prd_rules r_bulk_dual_pga3dp_rules;
+extern const prd_rules l_weight_dual_pga3dp_rules;
+extern const prd_rules r_weight_dual_pga3dp_rules;
 
 // coefficients needed to create a multivector = [coeff]^T [mv3dp_basis]
 const mvec_coeff mv3dp_coeff_A = {"A.c0",  "A.c1",  "A.c2",  "A.c3", "A.c4",  "A.c5",

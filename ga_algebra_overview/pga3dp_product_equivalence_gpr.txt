@@ -36,7 +36,7 @@ transwedge (k=2) vec * bivec:
 0,     0,     0,     0,     0,     0,
 
 
--left_bulk_contraction(vec,bivec) = right_bulk_contraction(bivec,vec)
+-l_bulk_contraction(vec,bivec) = r_bulk_contraction(bivec,vec)
   -e4,     0,     0,     0,    -e3,     e2,
    0,    -e4,     0,    e3,      0,    -e1,
    0,     0,    -e4,   -e2,     e1,      0,
@@ -86,7 +86,7 @@ transwedge (k=2) bivec * vec:
  0,     0,     0,     0,
 
 
--right_bulk_contraction(bivec,vec) = left_bulk_contraction(vec,bivec)
+-r_bulk_contraction(bivec,vec) = l_bulk_contraction(vec,bivec)
  e4,     0,     0,     0,
   0,    e4,     0,     0,
   0,     0,    e4,     0,

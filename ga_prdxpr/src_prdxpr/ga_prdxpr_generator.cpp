@@ -65,8 +65,8 @@ template <typename GetLhsFunc, typename GetRhsFunc>
 std::pair<prd_table, std::vector<prd_table>>
 calculate_regressive_transwedge_geometric_product(
     mvec_coeff const& basis, std::vector<mvec_coeff> const& basis_kvec,
-    prd_rules const& wedge_rules, prd_rules const& rcmpl_rules, GetLhsFunc const& get_lhs,
-    GetRhsFunc const& get_rhs)
+    prd_rules const& wedge_rules, prd_rules const& r_cmpl_rules,
+    GetLhsFunc const& get_lhs, GetRhsFunc const& get_rhs)
 {
     std::vector<prd_table> tab; // result tables for each index
     prd_table tab_res = init_zero_product_table(basis.size());
@@ -87,7 +87,7 @@ calculate_regressive_transwedge_geometric_product(
             tab.emplace_back(apply_rules_to_tab(
                 apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                    wedge_rules),
-                rcmpl_rules));
+                r_cmpl_rules));
 
             if ((k * (k - 1) / 2) % 2 != 0) {
                 // negate tab for odd values of k*(k-1)/2
@@ -496,26 +496,26 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_rcmpl =
                     coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
-                auto rhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+                auto rhs_rcmpl = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
                     wdg_ega2d_rules);
                 auto lhs_tab =
-                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
                 return lhs_tab[index];
             };
 
             // Lambda for calculating right-hand side: rwdg(b, r_dual(c)) =
             // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+                auto lhs_rcmpl = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
                 auto rhs_rcmpl = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, right_dual_ega2d_rules), rcmpl_ega2d_rules);
+                    apply_rules_to_mv(coeff, r_dual_ega2d_rules), r_cmpl_ega2d_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
                     wdg_ega2d_rules);
                 auto rhs_tab =
-                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
                 mvec_coeff rhs = rhs_tab[index];
                 for (size_t i = 0; i < coeff.size(); ++i) {
                     rhs[i] = rhs_tab[i][index];
@@ -550,26 +550,26 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_rcmpl =
                     coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
-                auto rhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+                auto rhs_rcmpl = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
                     wdg_ega2d_rules);
                 auto lhs_tab =
-                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
                 return lhs_tab[index];
             };
 
             // Lambda for calculating right-hand side: rwdg(b, r_dual(c)) =
             // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_rcmpl = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+                auto lhs_rcmpl = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
                 auto rhs_rcmpl = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, right_dual_ega2d_rules), rcmpl_ega2d_rules);
+                    apply_rules_to_mv(coeff, r_dual_ega2d_rules), r_cmpl_ega2d_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
                     wdg_ega2d_rules);
                 auto rhs_tab =
-                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
                 mvec_coeff rhs = rhs_tab[index];
                 for (size_t i = 0; i < coeff.size(); ++i) {
                     rhs[i] = rhs_tab[i][index];
@@ -614,8 +614,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // => only valid, if both operands are of the same grade, i.e. only the
             // main diagonal is valid
 
-            auto cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
-            auto dbl_cmpl_func = apply_rules_to_mv(cmpl_func, rcmpl_ega2d_rules);
+            auto cmpl_func = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
+            auto dbl_cmpl_func = apply_rules_to_mv(cmpl_func, r_cmpl_ega2d_rules);
             // fmt::println("");
             // fmt::println("mv2d_basis = {}", mv2d_basis);
             // fmt::println("cmpl_func = {}", cmpl_func);
@@ -627,57 +627,57 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             auto basis_tab_with_rules = apply_rules_to_tab(tmp_tab, wdg_ega2d_rules);
             // fmt::println("basis_tab_with_rules = {}", basis_tab_with_rules);
             // fmt::println("");
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
         }
 
-        else if (product_name == "lcontract") {
+        else if (product_name == "l_contract") {
             // A << B = rwdg(l_cmpl(A), B)
             //        = l_cmpl( wdg( r_cmpl(l_cmpl(A)), r_cmpl(B) ) )
             //        = l_cmpl( wdg(               A,   r_cmpl(B) ) )
             //
             // auto lhs = apply_rules_to_mv(apply_rules_to_mv(mv2d_basis,
-            // lcmpl_ega2d_rules), rcmpl_ega2d_rules);
+            // l_cmpl_ega2d_rules), r_cmpl_ega2d_rules);
             auto lhs = mv2d_basis;
-            auto rhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            auto rhs = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega2d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
         }
 
-        else if (product_name == "rcontract") {
+        else if (product_name == "r_contract") {
             // A >> B = rwdg(A,r_cmpl(B))
             //        = l_cmpl( wdg( r_cmpl(A),r_cmpl(r_cmpl(B)) )  )
-            auto lhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
-            auto rhs = apply_rules_to_mv(apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules),
-                                         rcmpl_ega2d_rules);
+            auto lhs = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
+            auto rhs = apply_rules_to_mv(
+                apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules), r_cmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_ega2d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
         }
 
-        else if (product_name == "lexpand") {
-            // Left expansion: lexpand(A,B) = wdg(l_cmpl(A), B)
-            auto lhs = apply_rules_to_mv(mv2d_basis, lcmpl_ega2d_rules);
+        else if (product_name == "l_expand") {
+            // Left expansion: l_expand(A,B) = wdg(l_cmpl(A), B)
+            auto lhs = apply_rules_to_mv(mv2d_basis, l_cmpl_ega2d_rules);
             auto rhs = mv2d_basis;
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                       wdg_ega2d_rules);
         }
 
-        else if (product_name == "rexpand") {
-            // Right expansion: rexpand(A,B) = wdg(A, r_cmpl(B))
+        else if (product_name == "r_expand") {
+            // Right expansion: r_expand(A,B) = wdg(A, r_cmpl(B))
             auto lhs = mv2d_basis;
-            auto rhs = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            auto rhs = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                       wdg_ega2d_rules);
         }
 
         else if (product_name == "rgpr") {
             // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 gpr_ega2d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
         }
 
         else if (product_name == "rgpr (alternative)") {
@@ -699,7 +699,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                     apply_rules_to_tab(
                         mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
                         wdg_ega2d_rules),
-                    lcmpl_ega2d_rules);
+                    l_cmpl_ega2d_rules);
                 return lhs_tab[index];
             };
 
@@ -708,12 +708,12 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = mv2d_basis;
                 auto rhs_arg = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, right_dual_ega2d_rules), rcmpl_ega2d_rules);
+                    apply_rules_to_mv(coeff, r_dual_ega2d_rules), r_cmpl_ega2d_rules);
                 auto rhs_tab = apply_rules_to_tab(
                     apply_rules_to_tab(
                         mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
                         wdg_ega2d_rules),
-                    lcmpl_ega2d_rules);
+                    l_cmpl_ega2d_rules);
                 mvec_coeff rhs = rhs_tab[index];
                 for (size_t i = 0; i < coeff.size(); ++i) {
                     rhs[i] = rhs_tab[i][index];
@@ -722,7 +722,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             };
 
             auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
-                mv2d_basis, mv2d_basis_kvec, wdg_ega2d_rules, rcmpl_ega2d_rules, get_lhs,
+                mv2d_basis, mv2d_basis_kvec, wdg_ega2d_rules, r_cmpl_ega2d_rules, get_lhs,
                 get_rhs);
 
             // now print the resulting product table for each order k
@@ -753,7 +753,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                     apply_rules_to_tab(
                         mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
                         wdg_ega2d_rules),
-                    lcmpl_ega2d_rules);
+                    l_cmpl_ega2d_rules);
                 return lhs_tab[index];
             };
 
@@ -762,12 +762,12 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = mv2d_basis;
                 auto rhs_arg = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, right_dual_ega2d_rules), rcmpl_ega2d_rules);
+                    apply_rules_to_mv(coeff, r_dual_ega2d_rules), r_cmpl_ega2d_rules);
                 auto rhs_tab = apply_rules_to_tab(
                     apply_rules_to_tab(
                         mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
                         wdg_ega2d_rules),
-                    lcmpl_ega2d_rules);
+                    l_cmpl_ega2d_rules);
                 mvec_coeff rhs = rhs_tab[index];
                 for (size_t i = 0; i < coeff.size(); ++i) {
                     rhs[i] = rhs_tab[i][index];
@@ -776,7 +776,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             };
 
             auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
-                mv2d_basis, mv2d_basis_kvec, wdg_ega2d_rules, rcmpl_ega2d_rules, get_lhs,
+                mv2d_basis, mv2d_basis_kvec, wdg_ega2d_rules, r_cmpl_ega2d_rules, get_lhs,
                 get_rhs);
 
             tab_res = add_prd_tab(tab[1], tab[2]);
@@ -788,30 +788,30 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // Regressive commutator product:
             //                    rcmt(A,B) = asym(rgpr(A,B))
             //                    rcmt(A,B) = asym(l_cmpl(gpr(r_cmpl(A),r_cmpl(B))))
-            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 gpr_ega2d_rules);
-            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
             return get_prd_tab_asym(full_tab);
         }
 
         else if (product_name == "rwdg") {
             // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
                 wdg_ega2d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
         }
 
         else if (product_name == "rdot") {
             // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, rcmpl_ega2d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv2d_basis, r_cmpl_ega2d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 dot_ega2d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_ega2d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_ega2d_rules);
         }
 
         else if (product_name == "sandwich_gpr") {
@@ -949,7 +949,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 dot_ega3d_rules);
         }
 
-        else if (product_name == "lcontract") {
+        else if (product_name == "l_contract") {
             // Left contraction: A << B = rwdg(l_cmpl(A), B)
             // For EGA3D: lcmpl = cmpl
             //                          = cmpl( wdg( cmpl(cmpl(A)), cmpl(B) ) )
@@ -961,7 +961,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
         }
 
-        else if (product_name == "rcontract") {
+        else if (product_name == "r_contract") {
             // Right contraction: A >> B = rwdg(A, r_cmpl(B)))
             // For EGA3D: lcmpl = rcmpl = cmpl
             //                           = cmpl( wdg( cmpl(A),cmpl(cmpl(B)) )  )
@@ -973,8 +973,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_ega3d_rules);
         }
 
-        else if (product_name == "lexpand") {
-            // Left expansion: lexpand(A,B) = wdg(l_cmpl(A), B)
+        else if (product_name == "l_expand") {
+            // Left expansion: l_expand(A,B) = wdg(l_cmpl(A), B)
             // For EGA3D: lcmpl = cmpl
             auto lhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
             auto rhs = mv3d_basis;
@@ -982,8 +982,8 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                                       wdg_ega3d_rules);
         }
 
-        else if (product_name == "rexpand") {
-            // Right expansion: rexpand(A,B) = wdg(A, r_cmpl(B))
+        else if (product_name == "r_expand") {
+            // Right expansion: r_expand(A,B) = wdg(A, r_cmpl(B))
             // For EGA3D: rcmpl = cmpl
             auto lhs = mv3d_basis;
             auto rhs = apply_rules_to_mv(mv3d_basis, cmpl_ega3d_rules);
@@ -1278,7 +1278,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 dot_pga2dp_rules);
         }
 
-        else if (product_name == "left_bulk_contract") {
+        else if (product_name == "l_bulk_contract") {
             // Left bulk contraction: A << B = cmpl(wdg(cmpl(bulk_dual(A)), cmpl(B)))
             auto lhs =
                 apply_rules_to_mv(apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules),
@@ -1289,7 +1289,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
         }
 
-        else if (product_name == "right_bulk_contract") {
+        else if (product_name == "r_bulk_contract") {
             // Right bulk contraction: A >> B = cmpl(wdg(cmpl(A), cmpl(bulk_dual(B))))
             auto lhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
             auto rhs =
@@ -1301,7 +1301,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
 
 
-        else if (product_name == "left_weight_contract") {
+        else if (product_name == "l_weight_contract") {
             // Left weight contraction: A << B = cmpl(wdg(cmpl(weight_dual(A)),
             // cmpl(B)))
             auto lhs = apply_rules_to_mv(
@@ -1313,7 +1313,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
         }
 
-        else if (product_name == "right_weight_contract") {
+        else if (product_name == "r_weight_contract") {
             // Right weight contraction: A >> B = cmpl(wdg(cmpl(A),
             // cmpl(weight_dual(B))))
             auto lhs = apply_rules_to_mv(mv2dp_basis, cmpl_pga2dp_rules);
@@ -1325,7 +1325,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             return apply_rules_to_tab(basis_tab_with_rules, cmpl_pga2dp_rules);
         }
 
-        else if (product_name == "left_bulk_expand") {
+        else if (product_name == "l_bulk_expand") {
             // Left bulk expansion: A <> B = wdg(bulk_dual(A), B)
             auto lhs = apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules);
             auto rhs = mv2dp_basis;
@@ -1333,7 +1333,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                                       wdg_pga2dp_rules);
         }
 
-        else if (product_name == "right_bulk_expand") {
+        else if (product_name == "r_bulk_expand") {
             // Right bulk expansion: A >< B = wdg(A, bulk_dual(B))
             auto lhs = mv2dp_basis;
             auto rhs = apply_rules_to_mv(mv2dp_basis, bulk_dual_pga2dp_rules);
@@ -1341,7 +1341,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                                       wdg_pga2dp_rules);
         }
 
-        else if (product_name == "left_weight_expand") {
+        else if (product_name == "l_weight_expand") {
             // Left weight expansion: A <> B = wdg(weight_dual(A), B)
             auto lhs = apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules);
             auto rhs = mv2dp_basis;
@@ -1349,7 +1349,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                                       wdg_pga2dp_rules);
         }
 
-        else if (product_name == "right_weight_expand") {
+        else if (product_name == "r_weight_expand") {
             // Right weight expansion: A >< B = wdg(A, weight_dual(B))
             auto lhs = mv2dp_basis;
             auto rhs = apply_rules_to_mv(mv2dp_basis, weight_dual_pga2dp_rules);
@@ -1534,27 +1534,27 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_rcmpl =
                     coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
-                auto rhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+                auto rhs_rcmpl = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
                     wdg_pga3dp_rules);
                 auto lhs_tab =
-                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
                 return lhs_tab[index];
             };
 
             // Lambda for calculating right-hand side: rwdg(b, r_bulk_dual(c)) =
             // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_bulk_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
-                auto rhs_rcmpl = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, right_bulk_dual_pga3dp_rules),
-                    rcmpl_pga3dp_rules);
+                auto lhs_rcmpl = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
+                auto rhs_rcmpl =
+                    apply_rules_to_mv(apply_rules_to_mv(coeff, r_bulk_dual_pga3dp_rules),
+                                      r_cmpl_pga3dp_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
                     wdg_pga3dp_rules);
                 auto rhs_tab =
-                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
                 mvec_coeff rhs = rhs_tab[index];
                 for (size_t i = 0; i < coeff.size(); ++i) {
                     rhs[i] = rhs_tab[i][index];
@@ -1589,27 +1589,27 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             auto get_lhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_rcmpl =
                     coeff; // r_cmpl(l_cmpl(coeff)) is identity transformation
-                auto rhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+                auto rhs_rcmpl = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
                     wdg_pga3dp_rules);
                 auto lhs_tab =
-                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
                 return lhs_tab[index];
             };
 
             // Lambda for calculating right-hand side: rwdg(b, r_bulk_dual(c)) =
             // l_cmpl(wdg(r_cmpl(b),r_cmpl(r_bulk_dual(c)))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
-                auto lhs_rcmpl = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
-                auto rhs_rcmpl = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, right_bulk_dual_pga3dp_rules),
-                    rcmpl_pga3dp_rules);
+                auto lhs_rcmpl = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
+                auto rhs_rcmpl =
+                    apply_rules_to_mv(apply_rules_to_mv(coeff, r_bulk_dual_pga3dp_rules),
+                                      r_cmpl_pga3dp_rules);
                 auto basis_tab_with_rules = apply_rules_to_tab(
                     mv_coeff_to_coeff_prd_tab(lhs_rcmpl, rhs_rcmpl, wdg_str()),
                     wdg_pga3dp_rules);
                 auto rhs_tab =
-                    apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+                    apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
                 mvec_coeff rhs = rhs_tab[index];
                 for (size_t i = 0; i < coeff.size(); ++i) {
                     rhs[i] = rhs_tab[i][index];
@@ -1648,97 +1648,97 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 dot_pga3dp_rules);
         }
 
-        else if (product_name == "left_bulk_contract") {
-            // Left bulk contraction: left_bulk_contract(A,B) =
+        else if (product_name == "l_bulk_contract") {
+            // Left bulk contraction: l_bulk_contract(A,B) =
             // l_cmpl(wdg(r_cmpl(l_bulk_dual(A)), r_cmpl(B)))
             auto lhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv3dp_basis, left_bulk_dual_pga3dp_rules),
-                rcmpl_pga3dp_rules);
-            auto rhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+                apply_rules_to_mv(mv3dp_basis, l_bulk_dual_pga3dp_rules),
+                r_cmpl_pga3dp_rules);
+            auto rhs = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
         }
 
-        else if (product_name == "right_bulk_contract") {
+        else if (product_name == "r_bulk_contract") {
             // Right bulk contraction:
-            // right_bulk_contract(A,B) = l_cmpl(wdg(r_cmpl(A),
+            // r_bulk_contract(A,B) = l_cmpl(wdg(r_cmpl(A),
             // r_cmpl(r_bulk_dual(B))))
-            auto lhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto lhs = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
             auto rhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv3dp_basis, right_bulk_dual_pga3dp_rules),
-                rcmpl_pga3dp_rules);
+                apply_rules_to_mv(mv3dp_basis, r_bulk_dual_pga3dp_rules),
+                r_cmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
         }
 
-        else if (product_name == "left_weight_contract") {
-            // Left weight contraction: left_weight_contract(A,B) =
+        else if (product_name == "l_weight_contract") {
+            // Left weight contraction: l_weight_contract(A,B) =
             // l_cmpl(wdg(r_cmpl(l_weight_dual(A)), r_cmpl(B)))
             auto lhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv3dp_basis, left_weight_dual_pga3dp_rules),
-                rcmpl_pga3dp_rules);
-            auto rhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+                apply_rules_to_mv(mv3dp_basis, l_weight_dual_pga3dp_rules),
+                r_cmpl_pga3dp_rules);
+            auto rhs = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
         }
 
-        else if (product_name == "right_weight_contract") {
-            // Right weight contraction: right_weight_contract(A,B) =
+        else if (product_name == "r_weight_contract") {
+            // Right weight contraction: r_weight_contract(A,B) =
             // l_cmpl(wdg(r_cmpl(A), r_cmpl(r_weight_dual(B))))
-            auto lhs = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto lhs = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
             auto rhs = apply_rules_to_mv(
-                apply_rules_to_mv(mv3dp_basis, right_weight_dual_pga3dp_rules),
-                rcmpl_pga3dp_rules);
+                apply_rules_to_mv(mv3dp_basis, r_weight_dual_pga3dp_rules),
+                r_cmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_pga3dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
         }
 
-        else if (product_name == "left_bulk_expand") {
-            // Left bulk expansion: left_bulk_expand(A,B) = wdg(l_bulk_dual(A), B)
-            auto lhs = apply_rules_to_mv(mv3dp_basis, left_bulk_dual_pga3dp_rules);
+        else if (product_name == "l_bulk_expand") {
+            // Left bulk expansion: l_bulk_expand(A,B) = wdg(l_bulk_dual(A), B)
+            auto lhs = apply_rules_to_mv(mv3dp_basis, l_bulk_dual_pga3dp_rules);
             auto rhs = mv3dp_basis;
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                       wdg_pga3dp_rules);
         }
 
-        else if (product_name == "right_bulk_expand") {
-            // Right bulk expansion: right_bulk_expand(A,B) = wdg(A,
+        else if (product_name == "r_bulk_expand") {
+            // Right bulk expansion: r_bulk_expand(A,B) = wdg(A,
             // r_bulk_dual(B))
             auto lhs = mv3dp_basis;
-            auto rhs = apply_rules_to_mv(mv3dp_basis, right_bulk_dual_pga3dp_rules);
+            auto rhs = apply_rules_to_mv(mv3dp_basis, r_bulk_dual_pga3dp_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                       wdg_pga3dp_rules);
         }
 
-        else if (product_name == "left_weight_expand") {
+        else if (product_name == "l_weight_expand") {
             // Left weight expansion:
-            // left_weight_expand(A,B) = wdg(l_weight_dual(A), B)
-            auto lhs = apply_rules_to_mv(mv3dp_basis, left_weight_dual_pga3dp_rules);
+            // l_weight_expand(A,B) = wdg(l_weight_dual(A), B)
+            auto lhs = apply_rules_to_mv(mv3dp_basis, l_weight_dual_pga3dp_rules);
             auto rhs = mv3dp_basis;
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                       wdg_pga3dp_rules);
         }
 
-        else if (product_name == "right_weight_expand") {
-            // Right weight expansion: right_weight_expand(A,B) = wdg(A,
+        else if (product_name == "r_weight_expand") {
+            // Right weight expansion: r_weight_expand(A,B) = wdg(A,
             // r_weight_dual(B))
             auto lhs = mv3dp_basis;
-            auto rhs = apply_rules_to_mv(mv3dp_basis, right_weight_dual_pga3dp_rules);
+            auto rhs = apply_rules_to_mv(mv3dp_basis, r_weight_dual_pga3dp_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                       wdg_pga3dp_rules);
         }
 
         else if (product_name == "rgpr") {
             // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 gpr_pga3dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
         }
 
         else if (product_name == "rgpr (alternative)") {
@@ -1760,7 +1760,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                     apply_rules_to_tab(
                         mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
                         wdg_pga3dp_rules),
-                    lcmpl_pga3dp_rules);
+                    l_cmpl_pga3dp_rules);
                 return lhs_tab[index];
             };
 
@@ -1768,14 +1768,14 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // l_cmpl(wdg(b,r_cmpl(r_bulk_dual(c))))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = mv3dp_basis;
-                auto rhs_arg = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, right_bulk_dual_pga3dp_rules),
-                    rcmpl_pga3dp_rules);
+                auto rhs_arg =
+                    apply_rules_to_mv(apply_rules_to_mv(coeff, r_bulk_dual_pga3dp_rules),
+                                      r_cmpl_pga3dp_rules);
                 auto rhs_tab = apply_rules_to_tab(
                     apply_rules_to_tab(
                         mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
                         wdg_pga3dp_rules),
-                    lcmpl_pga3dp_rules);
+                    l_cmpl_pga3dp_rules);
                 mvec_coeff rhs = rhs_tab[index];
                 for (size_t i = 0; i < coeff.size(); ++i) {
                     rhs[i] = rhs_tab[i][index];
@@ -1784,7 +1784,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             };
 
             auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
-                mv3dp_basis, mv3dp_basis_kvec, wdg_pga3dp_rules, rcmpl_pga3dp_rules,
+                mv3dp_basis, mv3dp_basis_kvec, wdg_pga3dp_rules, r_cmpl_pga3dp_rules,
                 get_lhs, get_rhs);
 
             // now print the resulting product table for each order k
@@ -1815,7 +1815,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                     apply_rules_to_tab(
                         mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
                         wdg_pga3dp_rules),
-                    lcmpl_pga3dp_rules);
+                    l_cmpl_pga3dp_rules);
                 return lhs_tab[index];
             };
 
@@ -1823,14 +1823,14 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // l_cmpl(wdg(b,r_cmpl(r_bulk_dual(c))))
             auto get_rhs = [&](mvec_coeff const& coeff, size_t index) {
                 auto lhs_arg = mv3dp_basis;
-                auto rhs_arg = apply_rules_to_mv(
-                    apply_rules_to_mv(coeff, right_bulk_dual_pga3dp_rules),
-                    rcmpl_pga3dp_rules);
+                auto rhs_arg =
+                    apply_rules_to_mv(apply_rules_to_mv(coeff, r_bulk_dual_pga3dp_rules),
+                                      r_cmpl_pga3dp_rules);
                 auto rhs_tab = apply_rules_to_tab(
                     apply_rules_to_tab(
                         mv_coeff_to_coeff_prd_tab(lhs_arg, rhs_arg, wdg_str()),
                         wdg_pga3dp_rules),
-                    lcmpl_pga3dp_rules);
+                    l_cmpl_pga3dp_rules);
                 mvec_coeff rhs = rhs_tab[index];
                 for (size_t i = 0; i < coeff.size(); ++i) {
                     rhs[i] = rhs_tab[i][index];
@@ -1839,7 +1839,7 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             };
 
             auto [tab_res, tab] = calculate_regressive_transwedge_geometric_product(
-                mv3dp_basis, mv3dp_basis_kvec, wdg_pga3dp_rules, rcmpl_pga3dp_rules,
+                mv3dp_basis, mv3dp_basis_kvec, wdg_pga3dp_rules, r_cmpl_pga3dp_rules,
                 get_lhs, get_rhs);
 
             tab_res = add_prd_tab(tab[1], tab[2]);
@@ -1853,39 +1853,39 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // Regressive commutator product:
             //                    rcmt(A,B) = asym(rgpr(A,B))
             //                    rcmt(A,B) = asym(l_cmpl(gpr(r_cmpl(A),r_cmpl(B))))
-            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 gpr_pga3dp_rules);
-            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
             return get_prd_tab_asym(full_tab);
         }
 
         else if (product_name == "rwdg") {
             // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
                 wdg_pga3dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
         }
 
         else if (product_name == "rdot") {
             // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 dot_pga3dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
         }
 
         else if (product_name == "sandwich_rgpr") {
             // Regressive sandwich product basis table - same as rgpr for PGA3DP
-            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, rcmpl_pga3dp_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mv3dp_basis, r_cmpl_pga3dp_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 gpr_pga3dp_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_pga3dp_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_pga3dp_rules);
         }
     }
 
@@ -1919,54 +1919,52 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
                 dot_sta4d_rules);
         }
 
-        else if (product_name == "left_contract") {
-            // Left contraction: left_contract(A,B) =
+        else if (product_name == "l_contract") {
+            // Left contraction: l_contract(A,B) =
             // l_cmpl(wdg(r_cmpl(l_dual(A)), r_cmpl(B)))
-            auto lhs =
-                apply_rules_to_mv(apply_rules_to_mv(mvsta4d_basis, left_dual_sta4d_rules),
-                                  rcmpl_sta4d_rules);
-            auto rhs = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
+            auto lhs = apply_rules_to_mv(
+                apply_rules_to_mv(mvsta4d_basis, l_dual_sta4d_rules), r_cmpl_sta4d_rules);
+            auto rhs = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_sta4d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_sta4d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
         }
 
-        else if (product_name == "right_contract") {
+        else if (product_name == "r_contract") {
             // Right contraction:
-            // right_contract(A,B) = l_cmpl(wdg(r_cmpl(A),
+            // r_contract(A,B) = l_cmpl(wdg(r_cmpl(A),
             // r_cmpl(r_dual(B))))
-            auto lhs = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
+            auto lhs = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
             auto rhs = apply_rules_to_mv(
-                apply_rules_to_mv(mvsta4d_basis, right_dual_sta4d_rules),
-                rcmpl_sta4d_rules);
+                apply_rules_to_mv(mvsta4d_basis, r_dual_sta4d_rules), r_cmpl_sta4d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_sta4d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_sta4d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
         }
 
-        else if (product_name == "left_expand") {
-            // Left expansion: left_expand(A,B) = wdg(l_dual(A), B)
-            auto lhs = apply_rules_to_mv(mvsta4d_basis, left_dual_sta4d_rules);
+        else if (product_name == "l_expand") {
+            // Left expansion: l_expand(A,B) = wdg(l_dual(A), B)
+            auto lhs = apply_rules_to_mv(mvsta4d_basis, l_dual_sta4d_rules);
             auto rhs = mvsta4d_basis;
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                       wdg_sta4d_rules);
         }
 
-        else if (product_name == "right_expand") {
-            // Right expansion: right_expand(A,B) = wdg(A, r_dual(B))
+        else if (product_name == "r_expand") {
+            // Right expansion: r_expand(A,B) = wdg(A, r_dual(B))
             auto lhs = mvsta4d_basis;
-            auto rhs = apply_rules_to_mv(mvsta4d_basis, right_dual_sta4d_rules);
+            auto rhs = apply_rules_to_mv(mvsta4d_basis, r_dual_sta4d_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
                                       wdg_sta4d_rules);
         }
 
         else if (product_name == "rgpr") {
             // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 gpr_sta4d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_sta4d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
         }
 
         else if (product_name == "rcmt") {
@@ -1974,30 +1972,30 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // Regressive commutator product:
             //                    rcmt(A,B) = asym(rgpr(A,B))
             //                    rcmt(A,B) = asym(l_cmpl(gpr(r_cmpl(A),r_cmpl(B))))
-            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 gpr_sta4d_rules);
-            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, lcmpl_sta4d_rules);
+            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
             return get_prd_tab_asym(full_tab);
         }
 
         else if (product_name == "rwdg") {
             // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
                 wdg_sta4d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_sta4d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
         }
 
         else if (product_name == "rdot") {
             // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, rcmpl_sta4d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
                 dot_sta4d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, lcmpl_sta4d_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
         }
 
         else if (product_name == "sandwich_gpr") {

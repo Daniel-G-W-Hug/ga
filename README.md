@@ -131,7 +131,7 @@ cd build/ga_prdxpr && ./ga_prdxpr && cd ../..                # Generate everythi
 
 - `--products=NAMES` or `--p=NAMES`: Generate only specified products (comma-separated)
   - Example: `--products=gpr,wdg,dot`
-  - Common products: `gpr`, `wdg`, `dot`, `cmt`, `lcontract`, `rcontract`, `sandwich_gpr`
+  - Common products: `gpr`, `wdg`, `dot`, `cmt`, `l_contract`, `r_contract`, `sandwich_gpr`
   - Special keywords: `all` (all products), `none` (no products)
 
 - `--output=TYPES` or `--o=TYPES`: Show only specified output types (comma-separated)
@@ -177,24 +177,24 @@ cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega3d --products=wdg,dot && cd ../..
 
 ### Common Product Types
 
-- `gpr` - Geometric product
+- `gpr` - Geometric product (also available as `operator*()` in the library)
 - `wdg` - Wedge (outer) product
 - `dot` - Inner (dot) product
 - `cmt` - Commutator product
-- `lcontract` - Left contraction
-- `rcontract` - Right contraction
-- `lexpand` - Left expansion
-- `rexpand` - Right expansion
+- `l_contract` - Left contraction (implemented as `operator<<()` in the library)
+- `r_contract` - Right contraction (implemented as `operator>>()` in the library)
+- `l_expand` - Left expansion (EGA only; PGA uses `l_bulk_expand2dp()`/`l_weight_expand2dp()` etc.)
+- `r_expand` - Right expansion (EGA only; PGA uses `r_bulk_expand2dp()`/`r_weight_expand2dp()` etc.)
 - `rgpr` - Regressive geometric product
 - `rwdg` - Regressive wedge product
 - `rdot` - Regressive inner (dot) product
 - `rcmt` - Regressive commutator product
-- `sandwich_gpr` - Sandwich product (geometric)
-- `sandwich_rgpr` - Sandwich product (regressive)
+- `sandwich_gpr` - Geometric sandwich product → implemented as `rotate()` / `rotate_opt()` in EGA
+- `sandwich_rgpr` - Regressive sandwich product → implemented as `move2dp()` / `move3dp()` in PGA
 
 **Note**: PGA algebras have additional products for bulk/weight operations
-(`left_bulk_contract`, `right_weight_expand`, etc.). Use `--algebra=pga2dp` or
-`--algebra=pga3dp` to see all products for those algebras.
+(`l_bulk_contract2dp()`, `r_weight_expand3dp()`, etc.). Use `--list` or
+`--algebra=pga2dp` / `--algebra=pga3dp` to see all available products.
 
 ### Default Behavior
 

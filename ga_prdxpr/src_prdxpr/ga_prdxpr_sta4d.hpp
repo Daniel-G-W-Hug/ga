@@ -51,15 +51,15 @@ extern const prd_rules dot_sta4d_rules; // Dot product: a · b
 // complement in sta4d: l_cmpl(r_cmpl(u)) = u
 // lcmpl:  l_cmpl(u) ^ u         = g0123
 // rcmpl:  u         ^ r_cmpl(u) = g0123
-extern const prd_rules lcmpl_sta4d_rules;
-extern const prd_rules rcmpl_sta4d_rules;
+extern const prd_rules l_cmpl_sta4d_rules;
+extern const prd_rules r_cmpl_sta4d_rules;
 
 // dual rules: generated automatically from complement rules + extended metric
 // dual(u) = complement(G × u) where G is the extended metric matrix
-// left_dual and right_dual are derived from left_complement and right_complement
-// respectively Note: right_dual is equivalent to the Hodge dual for STA4D
-extern const prd_rules left_dual_sta4d_rules;
-extern const prd_rules right_dual_sta4d_rules;
+// l_dual and r_dual are derived from l_cmpl and r_cmpl
+// respectively Note: r_dual is equivalent to the Hodge dual for STA4D
+extern const prd_rules l_dual_sta4d_rules;
+extern const prd_rules r_dual_sta4d_rules;
 
 // coefficients needed to create a multivector = [coeff]^T [mvsta4d_basis]
 const mvec_coeff mvsta4d_coeff_A = {"A.c0",  "A.c1",  "A.c2",  "A.c3", "A.c4",  "A.c5",

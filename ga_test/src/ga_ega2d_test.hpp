@@ -2388,7 +2388,7 @@ TEST_SUITE("EGA 2D Tests")
 
         // For even-dimensional algebras: l_dual(r_dual(u)) =
         // r_dual(l_dual(u)) = u This follows from
-        // left_complement(right_complement(u)) = u
+        // l_cmpl(r_cmpl(u)) = u
 
         scalar2d s{3.0};
         vec2d v{2.0, 5.0};
@@ -2424,14 +2424,14 @@ TEST_SUITE("EGA 2D Tests")
         mvec2d_e M_e{scalar2d{1.0}, pscalar2d{2.0}};
         mvec2d M{scalar2d{1.0}, vec2d{2.0, 3.0}, pscalar2d{4.0}};
 
-        // left_dual = left_complement (identity metric)
+        // l_dual = l_cmpl (identity metric)
         CHECK(l_dual(s) == l_cmpl(s));
         CHECK(l_dual(v) == l_cmpl(v));
         CHECK(l_dual(ps) == l_cmpl(ps));
         CHECK(l_dual(M_e) == l_cmpl(M_e));
         CHECK(l_dual(M) == l_cmpl(M));
 
-        // right_dual = right_complement (identity metric)
+        // r_dual = r_cmpl (identity metric)
         CHECK(r_dual(s) == r_cmpl(s));
         CHECK(r_dual(v) == r_cmpl(v));
         CHECK(r_dual(ps) == r_cmpl(ps));

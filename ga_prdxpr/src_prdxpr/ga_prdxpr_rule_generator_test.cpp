@@ -39,9 +39,8 @@ void print_all_rules(const prd_rules& rules, const std::string& title,
 }
 
 // Print complement rules in grade order (scalars, vectors, bivectors, etc.)
-void print_complement_rules(const prd_rules& rules, const std::string& title,
-                            const mvec_coeff& basis_order,
-                            const std::string& algebra_name = "")
+void print_cmpl_rules(const prd_rules& rules, const std::string& title,
+                      const mvec_coeff& basis_order, const std::string& algebra_name = "")
 {
     if (!algebra_name.empty()) {
         fmt::println("\n{} {}", algebra_name, title);
@@ -265,62 +264,61 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
 
     if (is_even_dimensional) {
         // Even-dimensional algebras have left and right complements
-        print_complement_rules(generated_rules.left_complement, "left complement rules",
-                               generated_rules.basis, algebra_name);
-        print_complement_rules(generated_rules.right_complement, "right complement rules",
-                               generated_rules.basis, algebra_name);
+        print_cmpl_rules(generated_rules.l_cmpl, "left complement rules",
+                         generated_rules.basis, algebra_name);
+        print_cmpl_rules(generated_rules.r_cmpl, "right complement rules",
+                         generated_rules.basis, algebra_name);
 
         // Print dual rules (only for non-PGA algebras)
         if (is_pga) {
             // For even-dimensional PGA, only print bulk and weight duals
-            print_complement_rules(generated_rules.left_bulk_dual, "left bulk dual rules",
-                                   generated_rules.basis, algebra_name);
-            print_complement_rules(generated_rules.right_bulk_dual,
-                                   "right bulk dual rules", generated_rules.basis,
-                                   algebra_name);
-            print_complement_rules(generated_rules.left_weight_dual,
-                                   "left weight dual rules", generated_rules.basis,
-                                   algebra_name);
-            print_complement_rules(generated_rules.right_weight_dual,
-                                   "right weight dual rules", generated_rules.basis,
-                                   algebra_name);
+            print_cmpl_rules(generated_rules.l_bulk_dual, "left bulk dual rules",
+                             generated_rules.basis, algebra_name);
+            print_cmpl_rules(generated_rules.r_bulk_dual, "right bulk dual rules",
+                             generated_rules.basis, algebra_name);
+            print_cmpl_rules(generated_rules.l_weight_dual, "left weight dual rules",
+                             generated_rules.basis, algebra_name);
+            print_cmpl_rules(generated_rules.r_weight_dual, "right weight dual rules",
+                             generated_rules.basis, algebra_name);
         }
         else {
             // For non-PGA even-dimensional algebras (EGA, STA), print standard duals
-            print_complement_rules(generated_rules.left_dual, "left dual rules",
-                                   generated_rules.basis, algebra_name);
-            print_complement_rules(generated_rules.right_dual, "right dual rules",
-                                   generated_rules.basis, algebra_name);
+            print_cmpl_rules(generated_rules.l_dual, "left dual rules",
+                             generated_rules.basis, algebra_name);
+            print_cmpl_rules(generated_rules.r_dual, "right dual rules",
+                             generated_rules.basis, algebra_name);
         }
     }
     else {
         // Odd-dimensional algebras have a single complement
-        print_complement_rules(generated_rules.complement, "complement rules",
-                               generated_rules.basis, algebra_name);
+        print_cmpl_rules(generated_rules.complement, "complement rules",
+                         generated_rules.basis, algebra_name);
 
         // Print dual rules (only for non-PGA algebras)
         if (is_pga) {
             // For odd-dimensional PGA, only print bulk and weight duals
-            print_complement_rules(generated_rules.bulk_dual, "bulk dual rules",
-                                   generated_rules.basis, algebra_name);
-            print_complement_rules(generated_rules.weight_dual, "weight dual rules",
-                                   generated_rules.basis, algebra_name);
+            print_cmpl_rules(generated_rules.bulk_dual, "bulk dual rules",
+                             generated_rules.basis, algebra_name);
+            print_cmpl_rules(generated_rules.weight_dual, "weight dual rules",
+                             generated_rules.basis, algebra_name);
         }
         else {
             // For non-PGA odd-dimensional algebras (EGA), print standard dual
-            print_complement_rules(generated_rules.dual, "dual rules",
-                                   generated_rules.basis, algebra_name);
+            print_cmpl_rules(generated_rules.dual, "dual rules", generated_rules.basis,
+                             algebra_name);
         }
     }
 }
 
 // Function to test a specific algebra with complement validation
-bool test_algebra_with_complements(
-    const AlgebraConfig& config, const std::string& algebra_name,
-    const mvec_coeff& reference_basis, const prd_rules& reference_gpr,
-    const prd_rules& reference_wdg, const prd_rules& reference_dot,
-    const prd_rules* reference_lcmpl = nullptr,
-    const prd_rules* reference_rcmpl = nullptr, const prd_rules* reference_cmpl = nullptr)
+bool test_algebra_with_cmpls(const AlgebraConfig& config, const std::string& algebra_name,
+                             const mvec_coeff& reference_basis,
+                             const prd_rules& reference_gpr,
+                             const prd_rules& reference_wdg,
+                             const prd_rules& reference_dot,
+                             const prd_rules* reference_lcmpl = nullptr,
+                             const prd_rules* reference_rcmpl = nullptr,
+                             const prd_rules* reference_cmpl = nullptr)
 {
     std::string separator(80, '=');
     fmt::println("\n{}", separator);
@@ -491,15 +489,15 @@ bool test_algebra_with_complements(
         compare_all_rules(generated_rules.dot_product, reference_dot, "dot product");
 
     // validate complements if provided
-    bool lcmpl_perfect = true, rcmpl_perfect = true, cmpl_perfect = true;
+    bool l_cmpl_perfect = true, r_cmpl_perfect = true, cmpl_perfect = true;
 
     if (reference_lcmpl) {
-        lcmpl_perfect = compare_all_rules(generated_rules.left_complement,
-                                          *reference_lcmpl, "left complement");
+        l_cmpl_perfect = compare_all_rules(generated_rules.l_cmpl, *reference_lcmpl,
+                                           "left complement");
     }
     if (reference_rcmpl) {
-        rcmpl_perfect = compare_all_rules(generated_rules.right_complement,
-                                          *reference_rcmpl, "right complement");
+        r_cmpl_perfect = compare_all_rules(generated_rules.r_cmpl, *reference_rcmpl,
+                                           "right complement");
     }
     if (reference_cmpl) {
         cmpl_perfect =
@@ -517,18 +515,18 @@ bool test_algebra_with_complements(
 
     if (reference_lcmpl) {
         fmt::println("left complement:      {}",
-                     lcmpl_perfect ? "✓ PERFECT" : "✗ FAILED");
+                     l_cmpl_perfect ? "✓ PERFECT" : "✗ FAILED");
     }
     if (reference_rcmpl) {
         fmt::println("right complement:     {}",
-                     rcmpl_perfect ? "✓ PERFECT" : "✗ FAILED");
+                     r_cmpl_perfect ? "✓ PERFECT" : "✗ FAILED");
     }
     if (reference_cmpl) {
         fmt::println("complement:           {}", cmpl_perfect ? "✓ PERFECT" : "✗ FAILED");
     }
 
     bool overall_success = basis_match && gpr_perfect && wdg_perfect && dot_perfect &&
-                           lcmpl_perfect && rcmpl_perfect && cmpl_perfect;
+                           l_cmpl_perfect && r_cmpl_perfect && cmpl_perfect;
     fmt::println("\nOVERALL RESULT: {}",
                  overall_success ? "✓ 100% PERFECT MATCH" : "✗ DIFFERENCES FOUND");
 
@@ -699,9 +697,9 @@ int main(int argc, char* argv[])
             .basis_prefix = ega2d_prefix}; // Use extracted and validated prefix
 
         if (test_consistency) {
-            bool ega2d_success = test_algebra_with_complements(
+            bool ega2d_success = test_algebra_with_cmpls(
                 ega2d_config, "ega2d", mv2d_basis, gpr_ega2d_rules, wdg_ega2d_rules,
-                dot_ega2d_rules, &lcmpl_ega2d_rules, &rcmpl_ega2d_rules);
+                dot_ega2d_rules, &l_cmpl_ega2d_rules, &r_cmpl_ega2d_rules);
             test_results.push_back(ega2d_success);
         }
         else {
@@ -721,7 +719,7 @@ int main(int argc, char* argv[])
             .basis_prefix = ega3d_prefix}; // Use extracted and validated prefix
 
         if (test_consistency) {
-            bool ega3d_success = test_algebra_with_complements(
+            bool ega3d_success = test_algebra_with_cmpls(
                 ega3d_config, "ega3d", mv3d_basis, gpr_ega3d_rules, wdg_ega3d_rules,
                 dot_ega3d_rules, nullptr, nullptr, &cmpl_ega3d_rules);
             test_results.push_back(ega3d_success);
@@ -744,7 +742,7 @@ int main(int argc, char* argv[])
             .basis_prefix = pga2dp_prefix}; // Use extracted and validated prefix
 
         if (test_consistency) {
-            bool pga2dp_success = test_algebra_with_complements(
+            bool pga2dp_success = test_algebra_with_cmpls(
                 pga2dp_config, "pga2dp", mv2dp_basis, gpr_pga2dp_rules, wdg_pga2dp_rules,
                 dot_pga2dp_rules, nullptr, nullptr, &cmpl_pga2dp_rules);
             test_results.push_back(pga2dp_success);
@@ -767,9 +765,9 @@ int main(int argc, char* argv[])
             .basis_prefix = pga3dp_prefix}; // Use extracted and validated prefix
 
         if (test_consistency) {
-            bool pga3dp_success = test_algebra_with_complements(
+            bool pga3dp_success = test_algebra_with_cmpls(
                 pga3dp_config, "pga3dp", mv3dp_basis, gpr_pga3dp_rules, wdg_pga3dp_rules,
-                dot_pga3dp_rules, &lcmpl_pga3dp_rules, &rcmpl_pga3dp_rules);
+                dot_pga3dp_rules, &l_cmpl_pga3dp_rules, &r_cmpl_pga3dp_rules);
             test_results.push_back(pga3dp_success);
         }
         else {

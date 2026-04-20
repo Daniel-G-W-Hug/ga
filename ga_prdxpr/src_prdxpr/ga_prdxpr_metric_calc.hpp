@@ -94,8 +94,8 @@ std::pair<int, int> parse_signed_basis_element(std::string const& signed_element
 // C[i,j] = coefficient of basis[j] in complement(basis[i])
 // For orthogonal bases, C is a permutation matrix with ±1 entries
 // Returns: n×n matrix in flattened row-major storage
-std::vector<int> build_complement_matrix(mvec_coeff const& basis,
-                                         prd_rules const& complement_rules);
+std::vector<int> build_cmpl_matrix(mvec_coeff const& basis,
+                                   prd_rules const& complement_rules);
 
 // Compute matrix multiplication: R = A · B
 // All matrices in flattened row-major storage

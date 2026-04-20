@@ -253,7 +253,7 @@ TEST_SUITE("PGA3DP: application tests")
 
                     // orthogonal projection of current position onto wafer plane
                     auto cur_proj_pos =
-                        rwdg(wafer.pl, right_weight_expand3dp(cur_pos, wafer.pl));
+                        rwdg(wafer.pl, r_weight_expand3dp(cur_pos, wafer.pl));
                     // fmt::println("cur_proj_pos = {:>-8.5f}", cur_proj_pos);
 
                     // if cur_proj_pos is within the wafer, potentially add to area and
