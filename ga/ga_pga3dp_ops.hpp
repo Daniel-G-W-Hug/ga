@@ -852,7 +852,7 @@ template <typename T, typename U>
 constexpr Line3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
                                                   Plane3d<U> const& plane)
 {
-    return weight_expansion(point3dp{point}, plane);
+    return r_weight_expand3dp(point3dp{point}, plane);
 }
 
 // expand to a new plane with contains the point p and is orthogonal to the line
@@ -862,7 +862,7 @@ template <typename T, typename U>
 constexpr Plane3d<std::common_type_t<T, U>> expand(Point3d<T> const& point,
                                                    Line3d<U> const& line)
 {
-    return weight_expansion(point3dp{point}, line);
+    return r_weight_expand3dp(point3dp{point}, line);
 }
 
 // expand to a new plane which contains the line and is perpendicular to the plane
@@ -872,7 +872,7 @@ template <typename T, typename U>
 constexpr Plane3d<std::common_type_t<T, U>> expand(Line3d<T> const& line,
                                                    Plane3d<U> const& plane)
 {
-    return weight_expansion(line, plane);
+    return r_weight_expand3dp(line, plane);
 }
 
 

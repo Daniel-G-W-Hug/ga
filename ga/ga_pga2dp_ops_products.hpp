@@ -1474,6 +1474,7 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp<T> const& M, Scalar2dp<U> s)
 {
+    using ctype = std::common_type_t<T, U>;
     return M * ctype(s);
 }
 
@@ -1481,6 +1482,7 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> s, MVec2dp<U> const& M)
 {
+    using ctype = std::common_type_t<T, U>;
     return ctype(s) * M;
 }
 
@@ -1943,6 +1945,7 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> rgpr(MVec2dp<T> const& M, PScalar2dp<U> ps)
 {
+    using ctype = std::common_type_t<T, U>;
     return M * ctype(ps);
 }
 
@@ -1950,6 +1953,7 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> rgpr(PScalar2dp<T> ps, MVec2dp<U> const& M)
 {
+    using ctype = std::common_type_t<T, U>;
     return ctype(ps) * M;
 }
 

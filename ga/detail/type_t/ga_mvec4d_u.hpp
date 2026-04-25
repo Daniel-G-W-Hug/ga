@@ -139,7 +139,7 @@ constexpr TriVec4d<T> gr3(MVec4d_U<T> const& M)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_U<std::common_type_t<T, U>> operator+(Vec4d<T> const& v,
-                                                       TriVec4d<T> const& t)
+                                                       TriVec4d<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec4d_U<ctype>(v, t);
@@ -163,7 +163,7 @@ constexpr MVec4d_U<std::common_type_t<T, U>> operator+(TriVec4d<T> const& t,
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_U<std::common_type_t<T, U>> operator-(Vec4d<T> const& v,
-                                                       TriVec4d<T> const& t)
+                                                       TriVec4d<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec4d_U<ctype>(v, -t);

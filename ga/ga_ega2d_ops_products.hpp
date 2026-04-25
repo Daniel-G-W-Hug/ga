@@ -574,13 +574,13 @@ constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& A,
 // left contraction (M << ps) of mulivector A onto pseudoscalar ps
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<U> const& M, PScalar2d<T> ps)
+constexpr MVec2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& M, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = M.c3 * ps;
-    ctype const c1 = M.c2 * ps;
-    ctype const c2 = -M.c1 * ps;
-    ctype const c3 = M.c0 * ps;
+    ctype const c0 = M.c3 * ctype(ps);
+    ctype const c1 = M.c2 * ctype(ps);
+    ctype const c2 = -M.c1 * ctype(ps);
+    ctype const c3 = M.c0 * ctype(ps);
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -591,7 +591,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator<<(PScalar2d<T> ps,
                                                         MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(ps * M.c3);
+    return Scalar2d<ctype>(ctype(ps) * M.c3);
 }
 
 // left contraction (M << v) of multivector M onto vector v
@@ -628,7 +628,7 @@ template <typename T, typename U>
 constexpr Scalar2d<std::common_type_t<T, U>> operator<<(MVec2d<T> const& M, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(M.c0 * s);
+    return Scalar2d<ctype>(M.c0 * ctype(s));
 }
 
 // left contraction (s << M) of scalar s onto multivector M
@@ -660,8 +660,8 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& M,
                                                         PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = M.c1 * ps;
-    ctype const c1 = M.c0 * ps;
+    ctype const c0 = M.c1 * ctype(ps);
+    ctype const c1 = M.c0 * ctype(ps);
     return MVec2d_E<ctype>(c0, c1);
 }
 
@@ -672,7 +672,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator<<(PScalar2d<T> ps,
                                                         MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(ps * M.c1);
+    return Scalar2d<ctype>(ctype(ps) * M.c1);
 }
 
 // left contraction (M << v) - "M contracted onto v"
@@ -688,8 +688,8 @@ constexpr Vec2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& M,
 // left contraction (v << M) - "v contracted onto M"
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
-                                                        MVec2d_E<U> const& M)
+constexpr Vec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
+                                                     MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(v.y * M.c1, -v.x * M.c1);
@@ -702,7 +702,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& M,
                                                         Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(M.c0 * s);
+    return Scalar2d<ctype>(M.c0 * ctype(s));
 }
 
 // left contraction (s << M) of a scalar s with an even grade mulivector M
@@ -723,7 +723,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator<<(PScalar2d<T> ps1,
                                                         PScalar2d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(ps1 * ps2);
+    return Scalar2d<ctype>(-ctype(ps1) * ctype(ps2));
 }
 
 // left contraction -  pseudoscalar contracted onto vector
@@ -861,7 +861,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& M,
                                                         PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(M.c3 * ps);
+    return Scalar2d<ctype>(M.c3 * ctype(ps));
 }
 
 // right contraction (ps >> M) of a pseudoscalar ps by a multivector M
@@ -870,10 +870,10 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps, MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = ps * M.c3;
-    ctype const c1 = -ps * M.c2;
-    ctype const c2 = ps * M.c1;
-    ctype const c3 = ps * M.c0;
+    ctype const c0 = ctype(ps) * M.c3;
+    ctype const c1 = -ctype(ps) * M.c2;
+    ctype const c2 = ctype(ps) * M.c1;
+    ctype const c3 = ctype(ps) * M.c0;
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
@@ -918,7 +918,7 @@ template <typename T, typename U>
 constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Scalar2d<T> s, MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(s * M.c0);
+    return Scalar2d<ctype>(ctype(s) * M.c0);
 }
 
 // right contraction (A >> B) of an even grade multivector A by even grade multivector B
@@ -940,7 +940,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& M,
                                                         PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(M.c1 * ps);
+    return Scalar2d<ctype>(M.c1 * ctype(ps));
 }
 
 // right contraction (ps >> M) of pseudoscalar ps by even grade multivector M
@@ -950,8 +950,8 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps,
                                                         MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = ps * M.c1;
-    ctype const c1 = ps * M.c0;
+    ctype const c0 = ctype(ps) * M.c1;
+    ctype const c1 = ctype(ps) * M.c0;
     return MVec2d_E<ctype>(c0, c1);
 }
 
@@ -968,8 +968,8 @@ constexpr Vec2d<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& M,
 // left contraction (v >> M) - "v contracted by M"
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v,
-                                                        MVec2d_E<U> const& M)
+constexpr Vec2d<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v,
+                                                     MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     return Vec2d<ctype>(v.x * M.c0, v.y * M.c0);
@@ -992,7 +992,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Scalar2d<T> s,
                                                         MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(s * M.c0);
+    return Scalar2d<ctype>(ctype(s) * M.c0);
 }
 
 // right contraction - pseudoscalar s1 contracted by pseudoscalar s2

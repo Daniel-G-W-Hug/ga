@@ -157,8 +157,8 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(MVec3dp_U<T> const& M,
                                                         TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4 + t.c0, M.c5 + t.c1, M.c6 + t.c2,
-                            M.c7 + t.c3);
+    return MVec3dp_U<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4 + t.x, M.c5 + t.y, M.c6 + t.z,
+                            M.c7 + t.w);
 }
 
 // trivector + odd grade multivector => odd grade multivector
@@ -168,8 +168,8 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator+(TriVec3dp<T> const& t,
                                                         MVec3dp_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4 + t.c0, M.c5 + t.c1, M.c6 + t.c2,
-                            M.c7 + t.c3);
+    return MVec3dp_U<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4 + t.x, M.c5 + t.y, M.c6 + t.z,
+                            M.c7 + t.w);
 }
 
 // odd grade multivector + vector => odd grade multivector
@@ -225,8 +225,8 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(MVec3dp_U<T> const& M,
                                                         TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4 - t.c0, M.c5 - t.c1, M.c6 - t.c2,
-                            M.c7 - t.c3);
+    return MVec3dp_U<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4 - t.x, M.c5 - t.y, M.c6 - t.z,
+                            M.c7 - t.w);
 }
 
 // trivector - odd grade multivector => odd grade multivector
@@ -236,8 +236,8 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator-(TriVec3dp<T> const& t,
                                                         MVec3dp_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(-M.c0, -M.c1, -M.c2, -M.c3, -M.c4 + t.c0, -M.c5 + t.c1,
-                            -M.c6 + t.c2, -M.c7 + t.c3);
+    return MVec3dp_U<ctype>(-M.c0, -M.c1, -M.c2, -M.c3, -M.c4 + t.x, -M.c5 + t.y,
+                            -M.c6 + t.z, -M.c7 + t.w);
 }
 
 // odd grade multivector - vector => odd grade multivector
