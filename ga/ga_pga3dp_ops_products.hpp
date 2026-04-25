@@ -749,7 +749,7 @@ template <typename T, typename U>
 constexpr Scalar3dp<std::common_type_t<T, U>> rwdg(PScalar3dp<T> ps, Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * s;
+    return Scalar3dp<ctype>(ctype(ps) * ctype(s));
 }
 
 template <typename T, typename U>
@@ -757,7 +757,7 @@ template <typename T, typename U>
 constexpr Scalar3dp<std::common_type_t<T, U>> rwdg(Scalar3dp<T> s, PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return s * ctype(ps);
+    return Scalar3dp<ctype>(ctype(s) * ctype(ps));
 }
 
 template <typename T, typename U>
@@ -2226,6 +2226,7 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator*(MVec3dp<T> const& M, Scalar3dp<U> s)
 {
+    using ctype = std::common_type_t<T, U>;
     return M * ctype(s);
 }
 
@@ -2233,6 +2234,7 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> operator*(Scalar3dp<T> s, MVec3dp<U> const& M)
 {
+    using ctype = std::common_type_t<T, U>;
     return ctype(s) * M;
 }
 
@@ -2957,6 +2959,7 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& M, PScalar3dp<U> ps)
 {
+    using ctype = std::common_type_t<T, U>;
     return M * ctype(ps);
 }
 
@@ -2964,6 +2967,7 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> rgpr(PScalar3dp<T> ps, MVec3dp<U> const& M)
 {
+    using ctype = std::common_type_t<T, U>;
     return ctype(ps) * M;
 }
 
@@ -3239,6 +3243,36 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v,
 
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(MVec3dp_U<T> const& M,
+                                                   Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(
+        Scalar3dp<ctype>(-M.c4 * v.x - M.c5 * v.y - M.c6 * v.z - M.c7 * v.w),
+        BiVec3dp<ctype>(-M.c4 * v.w, -M.c5 * v.w, -M.c6 * v.w,
+                        -M.c0 * v.w + M.c3 * v.x + M.c5 * v.z - M.c6 * v.y,
+                        -M.c1 * v.w + M.c3 * v.y - M.c4 * v.z + M.c6 * v.x,
+                        -M.c2 * v.w + M.c3 * v.z + M.c4 * v.y - M.c5 * v.x),
+        PScalar3dp<ctype>(-M.c3 * v.w));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v,
+                                                   MVec3dp_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec3dp_E<ctype>(
+        Scalar3dp<ctype>(v.x * M.c4 + v.y * M.c5 + v.z * M.c6 + v.w * M.c7),
+        BiVec3dp<ctype>(-v.w * M.c4, -v.w * M.c5, -v.w * M.c6,
+                        -v.x * M.c3 - v.y * M.c6 + v.z * M.c5 + v.w * M.c0,
+                        v.x * M.c6 - v.y * M.c3 - v.z * M.c4 + v.w * M.c1,
+                        -v.x * M.c5 + v.y * M.c4 - v.z * M.c3 + v.w * M.c2),
+        PScalar3dp<ctype>(-v.w * M.c3));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& M, Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
@@ -3341,7 +3375,7 @@ template <typename T, typename U>
 constexpr Scalar3dp<std::common_type_t<T, U>> rgpr(PScalar3dp<T> ps, Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * s;
+    return Scalar3dp<ctype>(ctype(ps) * ctype(s));
 }
 
 template <typename T, typename U>
@@ -3349,7 +3383,7 @@ template <typename T, typename U>
 constexpr Scalar3dp<std::common_type_t<T, U>> rgpr(Scalar3dp<T> s, PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return s * ctype(ps);
+    return Scalar3dp<ctype>(ctype(s) * ctype(ps));
 }
 
 // rgpr(t1,t2 = rcmt(t1, t2) + rdot(t1, t2)

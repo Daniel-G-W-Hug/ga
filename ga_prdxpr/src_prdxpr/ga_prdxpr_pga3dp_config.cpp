@@ -599,6 +599,8 @@ ProductConfig get_pga3dp_rgpr_config()
                   {"rgpr(bivec,mv_u) -> mv_u", "svBtps", "M_odd", "bivec", "mv_u"},
                   {"rgpr(mv_e,vec) -> mv_u", "M_even", "svBtps", "mv_e", "vec"},
                   {"rgpr(vec,mv_e) -> mv_u", "svBtps", "M_even", "vec", "mv_e"},
+                  {"rgpr(mv_u,vec) -> mv_e", "M_odd", "svBtps", "mv_u", "vec"},
+                  {"rgpr(vec,mv_u) -> mv_e", "svBtps", "M_odd", "vec", "mv_u"},
                   {"rgpr(mv_e,s) -> mv_e", "M_even", "svBtps", "mv_e", "s"},
                   {"rgpr(s,mv_e) -> mv_e", "svBtps", "M_even", "s", "mv_e"},
                   {"rgpr(mv_u,s) -> mv_u", "M_odd", "svBtps", "mv_u", "s"},

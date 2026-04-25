@@ -201,23 +201,8 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
     return MVec3dp_E<ctype>(B, ps);
 }
 
-// pseudoscalar + scalar => even grade multivector (in 3dp imply a zero bivector)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps, Scalar3dp<U> s)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(s, ps);
-}
-
-// scalar + pseudoscalar => even grade multivector
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(Scalar3dp<T> s, PScalar3dp<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(s, ps);
-}
+// (pseudoscalar + scalar) and (scalar + pseudoscalar) intentionally NOT
+// defined here — see ga_dualnum3dp.hpp for the canonical DualNum3dp result.
 
 // scalar + even grade mulivector => even grade multivector
 template <typename T, typename U>
@@ -326,23 +311,8 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
     return MVec3dp_E<ctype>(B, -ps);
 }
 
-// pseudoscalar - scalar => even grade multivector (in 3dp imply a zero bivector)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps, Scalar3dp<U> s)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(-s, ps);
-}
-
-// scalar - pseudoscalar => even grade multivector
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s, PScalar3dp<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(s, -ps);
-}
+// (pseudoscalar - scalar) and (scalar - pseudoscalar) intentionally NOT
+// defined here — see ga_dualnum3dp.hpp for the canonical DualNum3dp result.
 
 // scalar - even grade mulivector => even grade multivector
 template <typename T, typename U>

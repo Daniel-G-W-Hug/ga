@@ -243,8 +243,8 @@ constexpr BiVec2dp<std::common_type_t<T, U>> move2dp(BiVec2dp<T> const& B,
 // rotate a motor (required for robotics applications using kinematic chains)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2dp_U<std::common_type_t<T, U>> move2dp(MVec3dp_U<T> const& M_orig,
-                                                      MVec3dp_U<U> const& M)
+constexpr MVec2dp_U<std::common_type_t<T, U>> move2dp(MVec2dp_U<T> const& M_orig,
+                                                      MVec2dp_U<U> const& M)
 {
     // pre: motor M must be unitized to avoid surprises
 

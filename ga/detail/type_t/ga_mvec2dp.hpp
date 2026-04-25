@@ -206,23 +206,8 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator+(Vec2dp<T> const& v, Scalar
     return MVec2dp<ctype>(s, v, BiVec2dp<ctype>{}, PScalar2dp<ctype>{});
 }
 
-// scalar + pseudoscalar
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2dp<std::common_type_t<T, U>> operator+(Scalar2dp<T> s, PScalar2dp<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(s, Vec2dp<ctype>{}, BiVec2dp<ctype>{}, ps);
-}
-
-// pseudoscalar + scalar
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2dp<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps, Scalar2dp<U> s)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(s, Vec2dp<ctype>{}, BiVec2dp<ctype>{}, ps);
-}
+// (scalar + pseudoscalar) and (pseudoscalar + scalar) intentionally NOT
+// defined here — see ga_dualnum2dp.hpp for the canonical DualNum2dp result.
 
 // vector + bivector
 template <typename T, typename U>
@@ -327,23 +312,8 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator-(Vec2dp<T> const& v, Scalar
     return MVec2dp<ctype>(-s, v, BiVec2dp<ctype>{}, PScalar2dp<ctype>{});
 }
 
-// scalar - pseudoscalar
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2dp<std::common_type_t<T, U>> operator-(Scalar2dp<T> s, PScalar2dp<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(s, Vec2dp<ctype>{}, BiVec2dp<ctype>{}, -ps);
-}
-
-// pseudoscalar - scalar
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2dp<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps, Scalar2dp<U> s)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec2dp<ctype>(-s, Vec2dp<ctype>{}, BiVec2dp<ctype>{}, ps);
-}
+// (scalar - pseudoscalar) and (pseudoscalar - scalar) intentionally NOT
+// defined here — see ga_dualnum2dp.hpp for the canonical DualNum2dp result.
 
 // vector - bivector
 template <typename T, typename U>

@@ -221,4 +221,238 @@ constexpr DualNum2dp<std::common_type_t<T, U>> operator-(DualNum2dp<T> const& M,
     return DualNum2dp<ctype>(M.c0, M.c1 - U(ps));
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// arithmetic between DualNum2dp and the richer multivector types
+//
+// In 2dp the dual number occupies grades 0+3, which is split between the
+// even subalgebra (grade 0) and the odd subalgebra (grade 3). Therefore any
+// combination with vec, bivec, mvec_e, mvec_u, or mvec produces the full
+// MVec2dp (no pure even/odd subalgebra fits).
+////////////////////////////////////////////////////////////////////////////////
+
+// dual number + vector  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator+(DualNum2dp<T> const& M,
+                                                      Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0), v, BiVec2dp<ctype>{},
+                          PScalar2dp<ctype>(M.c1));
+}
+
+// vector + dual number  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator+(Vec2dp<T> const& v,
+                                                      DualNum2dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0), v, BiVec2dp<ctype>{},
+                          PScalar2dp<ctype>(M.c1));
+}
+
+// dual number + bivector  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator+(DualNum2dp<T> const& M,
+                                                      BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0), Vec2dp<ctype>{}, B,
+                          PScalar2dp<ctype>(M.c1));
+}
+
+// bivector + dual number  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator+(BiVec2dp<T> const& B,
+                                                      DualNum2dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0), Vec2dp<ctype>{}, B,
+                          PScalar2dp<ctype>(M.c1));
+}
+
+// dual number + even multivector  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator+(DualNum2dp<T> const& M,
+                                                      MVec2dp_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0 + E.c0), Vec2dp<ctype>{},
+                          BiVec2dp<ctype>(E.c1, E.c2, E.c3),
+                          PScalar2dp<ctype>(M.c1));
+}
+
+// even multivector + dual number  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator+(MVec2dp_E<T> const& E,
+                                                      DualNum2dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(E.c0 + M.c0), Vec2dp<ctype>{},
+                          BiVec2dp<ctype>(E.c1, E.c2, E.c3),
+                          PScalar2dp<ctype>(M.c1));
+}
+
+// dual number + odd multivector  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator+(DualNum2dp<T> const& M,
+                                                      MVec2dp_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0), Vec2dp<ctype>(O.c0, O.c1, O.c2),
+                          BiVec2dp<ctype>{}, PScalar2dp<ctype>(M.c1 + O.c3));
+}
+
+// odd multivector + dual number  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator+(MVec2dp_U<T> const& O,
+                                                      DualNum2dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0), Vec2dp<ctype>(O.c0, O.c1, O.c2),
+                          BiVec2dp<ctype>{}, PScalar2dp<ctype>(O.c3 + M.c1));
+}
+
+// dual number + multivector  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator+(DualNum2dp<T> const& M,
+                                                      MVec2dp<U> const& A)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(A.c0 + M.c0, A.c1, A.c2, A.c3,
+                          A.c4, A.c5, A.c6, A.c7 + M.c1);
+}
+
+// multivector + dual number  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator+(MVec2dp<T> const& A,
+                                                      DualNum2dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(A.c0 + M.c0, A.c1, A.c2, A.c3,
+                          A.c4, A.c5, A.c6, A.c7 + M.c1);
+}
+
+// dual number - vector  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator-(DualNum2dp<T> const& M,
+                                                      Vec2dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0), -v, BiVec2dp<ctype>{},
+                          PScalar2dp<ctype>(M.c1));
+}
+
+// vector - dual number  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator-(Vec2dp<T> const& v,
+                                                      DualNum2dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(-M.c0), v, BiVec2dp<ctype>{},
+                          PScalar2dp<ctype>(-M.c1));
+}
+
+// dual number - bivector  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator-(DualNum2dp<T> const& M,
+                                                      BiVec2dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0), Vec2dp<ctype>{}, -B,
+                          PScalar2dp<ctype>(M.c1));
+}
+
+// bivector - dual number  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator-(BiVec2dp<T> const& B,
+                                                      DualNum2dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(-M.c0), Vec2dp<ctype>{}, B,
+                          PScalar2dp<ctype>(-M.c1));
+}
+
+// dual number - even multivector  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator-(DualNum2dp<T> const& M,
+                                                      MVec2dp_E<U> const& E)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0 - E.c0), Vec2dp<ctype>{},
+                          BiVec2dp<ctype>(-E.c1, -E.c2, -E.c3),
+                          PScalar2dp<ctype>(M.c1));
+}
+
+// even multivector - dual number  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator-(MVec2dp_E<T> const& E,
+                                                      DualNum2dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(E.c0 - M.c0), Vec2dp<ctype>{},
+                          BiVec2dp<ctype>(E.c1, E.c2, E.c3),
+                          PScalar2dp<ctype>(-M.c1));
+}
+
+// dual number - odd multivector  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator-(DualNum2dp<T> const& M,
+                                                      MVec2dp_U<U> const& O)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(M.c0), Vec2dp<ctype>(-O.c0, -O.c1, -O.c2),
+                          BiVec2dp<ctype>{}, PScalar2dp<ctype>(M.c1 - O.c3));
+}
+
+// odd multivector - dual number  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator-(MVec2dp_U<T> const& O,
+                                                      DualNum2dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(Scalar2dp<ctype>(-M.c0), Vec2dp<ctype>(O.c0, O.c1, O.c2),
+                          BiVec2dp<ctype>{}, PScalar2dp<ctype>(O.c3 - M.c1));
+}
+
+// dual number - multivector  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator-(DualNum2dp<T> const& M,
+                                                      MVec2dp<U> const& A)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(M.c0 - A.c0, -A.c1, -A.c2, -A.c3,
+                          -A.c4, -A.c5, -A.c6, M.c1 - A.c7);
+}
+
+// multivector - dual number  =>  full multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec2dp<std::common_type_t<T, U>> operator-(MVec2dp<T> const& A,
+                                                      DualNum2dp<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec2dp<ctype>(A.c0 - M.c0, A.c1, A.c2, A.c3,
+                          A.c4, A.c5, A.c6, A.c7 - M.c1);
+}
+
 } // namespace hd::ga

@@ -288,23 +288,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator+(TriVec3dp<T> const& t,
     return MVec3dp<ctype>(s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t, PScalar3dp<ctype>{});
 }
 
-// scalar + pseudoscalar
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3dp<std::common_type_t<T, U>> operator+(Scalar3dp<T> s, PScalar3dp<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, TriVec3dp<ctype>{}, ps);
-}
-
-// pseudoscalar + scalar
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3dp<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps, Scalar3dp<U> s)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, TriVec3dp<ctype>{}, ps);
-}
+// (scalar + pseudoscalar) and (pseudoscalar + scalar) intentionally NOT
+// defined here — see ga_dualnum3dp.hpp for the canonical DualNum3dp result.
 
 // vector + bivector
 template <typename T, typename U>
@@ -484,23 +469,8 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator-(TriVec3dp<T> const& t,
     return MVec3dp<ctype>(-s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, t, PScalar3dp<ctype>{});
 }
 
-// scalar - pseudoscalar
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3dp<std::common_type_t<T, U>> operator-(Scalar3dp<T> s, PScalar3dp<U> ps)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, TriVec3dp<ctype>{}, -ps);
-}
-
-// pseudoscalar - scalar
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3dp<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps, Scalar3dp<U> s)
-{
-    using ctype = std::common_type_t<T, U>;
-    return MVec3dp<ctype>(-s, Vec3dp<ctype>{}, BiVec3dp<ctype>{}, TriVec3dp<ctype>{}, ps);
-}
+// (scalar - pseudoscalar) and (pseudoscalar - scalar) intentionally NOT
+// defined here — see ga_dualnum3dp.hpp for the canonical DualNum3dp result.
 
 // vector - bivector
 template <typename T, typename U>
