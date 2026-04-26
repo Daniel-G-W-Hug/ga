@@ -21,27 +21,23 @@ function(setup_vcpkg_dependencies)
         message(FATAL_ERROR "doctest not found via vcpkg - run: vcpkg install doctest")
     endif()
 
-    # sol2 is header-only from vcpkg
-    # First try the vcpkg-recommended detection method
-    find_path(SOL2_INCLUDE_DIRS "sol/abort.hpp"
-        PATHS ${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include
-        NO_DEFAULT_PATH)
+    # sol2 is header-only from vcpkg.
+    # Search order: manifest-mode build dir, then global vcpkg install, then vcpkg
+    # toolchain injected paths (no NO_DEFAULT_PATH on the last attempt so the
+    # toolchain's CMAKE_PREFIX_PATH injection also covers it).
+    set(_sol2_search_paths
+        "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include"
+        "C:/vcpkg/installed/x64-windows/include"
+        "C:/vcpkg/installed/x64-windows-static/include"
+    )
+    find_path(SOL2_INCLUDE_DIRS "sol/sol.hpp"
+        PATHS ${_sol2_search_paths})
     if(SOL2_INCLUDE_DIRS)
         message(STATUS "✓ Found vcpkg sol2 headers at: ${SOL2_INCLUDE_DIRS}")
         set(GA_HAS_SOL2 TRUE PARENT_SCOPE)
         set(SOL2_INCLUDE_DIRS ${SOL2_INCLUDE_DIRS} PARENT_SCOPE)
     else()
-        # Fallback: try the old detection method for sol/sol.hpp
-        find_path(SOL2_INCLUDE_DIRS "sol/sol.hpp"
-            PATHS ${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include
-            NO_DEFAULT_PATH)
-        if(SOL2_INCLUDE_DIRS)
-            message(STATUS "✓ Found vcpkg sol2 headers (fallback) at: ${SOL2_INCLUDE_DIRS}")
-            set(GA_HAS_SOL2 TRUE PARENT_SCOPE)
-            set(SOL2_INCLUDE_DIRS ${SOL2_INCLUDE_DIRS} PARENT_SCOPE)
-        else()
-            message(FATAL_ERROR "sol2 not found via vcpkg - run: vcpkg install sol2")
-        endif()
+        message(FATAL_ERROR "sol2 not found via vcpkg - run: vcpkg install sol2")
     endif()
 
     # Use ONLY system-installed Lua with static linking - no vcpkg conflicts
@@ -81,6 +77,7 @@ function(setup_vcpkg_dependencies)
     if(EXISTS "${CMAKE_SOURCE_DIR}/../../include/hd")
         message(STATUS "✓ Found local hd utility library at: ${CMAKE_SOURCE_DIR}/../../include/hd")
         set(GA_HAS_HD_UTILS TRUE PARENT_SCOPE)
+        set(GA_HAS_HD_UTILS TRUE CACHE INTERNAL "")
     else()
         message(WARNING "hd utility library not found at expected location: ${CMAKE_SOURCE_DIR}/../../include/hd")
         message(STATUS "  PGA physics operations (inertia, rigid body dynamics) will not be available")

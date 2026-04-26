@@ -604,8 +604,8 @@ TEST_SUITE("PGA3DP: physics tests application")
 
         // Cross-check: 3D cuboid I[5,2] matches 2D plate I[2,2] with same w,h,pivot.
         // (The z-extent d=1 does not enter the in-plane moment of inertia.)
-        auto const I_2d = get_plate_inertia(m, w, h, vec2dp{hw, hh, 1.0});
-        CHECK(I_2d.view()[2, 2] == doctest::Approx(sim.get_I_zz_pivot()));
+        auto const I_plate = get_plate_inertia(m, w, h, vec2dp{hw, hh, 1.0});
+        CHECK(I_plate.view()[2, 2] == doctest::Approx(sim.get_I_zz_pivot()));
 
         // --- Dynamic validation setup ------------------------------------------
         // Initial mechanical energy (t=0): kinetic=0, potential = m*g*cm_w.y

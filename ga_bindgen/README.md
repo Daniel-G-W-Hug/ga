@@ -12,10 +12,12 @@ This project keeps the binding generator and the wrapper in separate venvs. They
 
 | Venv path | Used for | Dependencies |
 | --- | --- | --- |
-| `build/spike_libclang/.venv` | **Regenerating bindings via `ga_bindgen`** (this tool). Only contributors touching `ga/*.hpp` or this generator need it. | `libclang`, `jinja2`, `nanobind` |
+| `build/spike_libclang/.venv` | **Regenerating bindings via `ga_bindgen`** (this tool). Only contributors touching `ga/*.hpp` or this generator need it. | `libclang` |
 | `ga_py/.venv` | **Running the wrapper and its tests.** Everyday development of `ga_py/`. | `pytest`, `hypothesis`, `numpy` |
 
 If you run `python ga_bindgen/src/scan.py` from the wrong venv, libclang won't be importable. If you run `pytest ga_py/tests/` from the wrong venv, `pytest` won't be on PATH (or `hypothesis` will be missing).
+
+**macOS / Linux:**
 
 ```bash
 # For regenerating bindings (this tool):
@@ -25,9 +27,18 @@ source build/spike_libclang/.venv/bin/activate
 source ga_py/.venv/bin/activate
 ```
 
+**Windows** (`Scripts\` instead of `bin/`):
+
+```bat
+build\spike_libclang\.venv\Scripts\activate
+
+rem separate session for wrapper tests:
+ga_py\.venv\Scripts\activate
+```
+
 ## Components
 
-```
+```text
 ga_bindgen/
 ├── src/
 │   ├── clang_setup.py     # find_libclang() + compile flags
@@ -55,8 +66,37 @@ Both scripts take `--help`.
 ## Dependencies
 
 - Python 3.10+
-- `libclang` Python package (probes for system/homebrew libclang at runtime; pip-bundled libclang's resource dir is broken on macOS)
-- `nanobind` (only needed by the generated code at compile time, not by ga_bindgen itself)
+- `libclang` Python package — wraps the native libclang shared library. Install with `pip install libclang`. The pip package ships the shared library on Linux and Windows; on macOS the bundled resource dir is broken, so a system/Homebrew LLVM is required (see below).
+- `nanobind` — only needed at C++ compile time for the generated bindings, not by ga_bindgen itself.
+
+### Platform notes
+
+**macOS:** Install LLVM via Homebrew so `clang_setup.py` can find a complete resource dir:
+
+```bash
+brew install llvm
+pip install libclang
+```
+
+**Linux:**
+
+```bash
+apt install libclang-dev   # or the distro equivalent
+pip install libclang
+```
+
+**Windows:** Install [LLVM](https://releases.llvm.org/download.html) (the pre-built Windows installer); `clang_setup.py` probes `C:\Program Files\LLVM\lib\libclang.dll` automatically. Then:
+
+```bat
+pip install libclang
+```
+
+Create the venv and install:
+
+```bat
+python -m venv build\spike_libclang\.venv
+build\spike_libclang\.venv\Scripts\pip install libclang
+```
 
 ## Design notes
 

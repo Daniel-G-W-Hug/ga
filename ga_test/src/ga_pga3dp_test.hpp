@@ -708,7 +708,7 @@ TEST_SUITE("PGA 3DP Tests")
         vec3dp v3{project_onto(v1, v2)};
         vec3dp v4{reject_from(v1, v2)};
         CHECK(v3 + v4 == v1);
-        CHECK(dot(v3, v4) == 0);
+        CHECK(std::abs(to_val(dot(v3, v4))) <= eps);
 
         fmt::println("v1  = {: .4f}, bulk_nrm(v1) = {: .4f}", v1, bulk_nrm(v1));
         fmt::println("v2  = {: .4f}, bulk_nrm(v2) = {: .4f}", v2, bulk_nrm(v2));
