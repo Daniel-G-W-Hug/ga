@@ -100,3 +100,61 @@ endif()
 # Install so the module sits next to the package when packaged with wheels.
 install(TARGETS _ga_py LIBRARY DESTINATION ga_py)
 install(DIRECTORY python/ga_py DESTINATION .)
+
+# ----------------------------------------------------------------------------
+# Top-level convenience targets for the Python wrapper pipeline.
+#
+# The full workflow has four phases:
+#   1. scan  ga/*.hpp   -> ga_bindgen/manifest.json     (ga_bindgen/src/scan.py)
+#   2. emit  manifest   -> ga_py/src/generated/*.cpp    (ga_bindgen/src/emit_nanobind.py)
+#   3. compile          -> _ga_py.{so,pyd}              (target: _ga_py)
+#   4. refresh JSON     -> ga_py/tests/data/*.json      (target: regenerate_python_test_data)
+#
+# Phases 3 and 4 already have CMake targets. The targets below add phases 1+2
+# and an umbrella that surfaces the pipeline in IDEs (VS Code's CMake Tools
+# target picker, etc.). Generation is intentionally NOT a build-time
+# dependency of _ga_py --- per ga_bindgen/README.md, regen is an explicit
+# step, and generated files are committed to git so PR diffs show the API
+# surface change.
+# ----------------------------------------------------------------------------
+
+# Pick the Python interpreter for ga_bindgen. Prefer the documented bindgen
+# venv (build/spike_libclang/.venv, has libclang); fall back to the wrapper
+# venv / system Python found by find_package(Python). Detection is recomputed
+# every configure so creating the venv after the fact takes effect on reconfig.
+set(_GA_BINDGEN_PYTHON "${Python_EXECUTABLE}")
+if(EXISTS "${CMAKE_BINARY_DIR}/spike_libclang/.venv/bin/python")
+    set(_GA_BINDGEN_PYTHON "${CMAKE_BINARY_DIR}/spike_libclang/.venv/bin/python")
+    message(STATUS "ga_py: bindgen target will use ${_GA_BINDGEN_PYTHON}")
+elseif(EXISTS "${CMAKE_BINARY_DIR}/spike_libclang/.venv/Scripts/python.exe")
+    set(_GA_BINDGEN_PYTHON "${CMAKE_BINARY_DIR}/spike_libclang/.venv/Scripts/python.exe")
+    message(STATUS "ga_py: bindgen target will use ${_GA_BINDGEN_PYTHON}")
+else()
+    message(STATUS
+        "ga_py: bindgen target will use ${_GA_BINDGEN_PYTHON} "
+        "(install libclang there, or create build/spike_libclang/.venv "
+        "per ga_bindgen/README.md)")
+endif()
+
+set(_GA_BINDGEN_DIR "${GA_PROJECT_ROOT}/ga_bindgen/src")
+
+# Phase 1+2: scan headers, then emit nanobind glue. Runs from project root so
+# the scripts' default --out paths land in the source tree (where they belong;
+# the generated files are committed).
+add_custom_target(regenerate_python_bindings
+    COMMAND "${_GA_BINDGEN_PYTHON}" "${_GA_BINDGEN_DIR}/scan.py"
+    COMMAND "${_GA_BINDGEN_PYTHON}" "${_GA_BINDGEN_DIR}/emit_nanobind.py" --all
+    WORKING_DIRECTORY "${GA_PROJECT_ROOT}"
+    COMMENT "Regenerating Python bindings (ga_bindgen scan + emit)"
+    VERBATIM
+)
+
+# Umbrella: build the wrapper and refresh the cross-check JSON. Does NOT depend
+# on regenerate_python_bindings --- run that explicitly when headers change,
+# then reconfigure CMake so any new bindings_*.cpp files are picked up.
+# regenerate_python_test_data is defined in ga_test/CMakeLists.txt and only
+# exists when _GA_BUILD_PYTHON=ON (which we are inside).
+add_custom_target(ga_py_all
+    COMMENT "Building ga_py wrapper and refreshing cross-check JSON"
+)
+add_dependencies(ga_py_all _ga_py regenerate_python_test_data)
