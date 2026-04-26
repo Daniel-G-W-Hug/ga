@@ -37,6 +37,11 @@ void register_functions_top(nb::module_& m) {
     m.def("gr", [](bivec3dp const& a0) { return gr(a0); });
     m.def("gr", [](trivec3dp const& a0) { return gr(a0); });
     m.def("gr", [](pscalar3dp const& a0) { return gr(a0); });
+    m.def("gr", [](scalar4d const& a0) { return gr(a0); });
+    m.def("gr", [](vec4d const& a0) { return gr(a0); });
+    m.def("gr", [](bivec4d const& a0) { return gr(a0); });
+    m.def("gr", [](trivec4d const& a0) { return gr(a0); });
+    m.def("gr", [](pscalar4d const& a0) { return gr(a0); });
     m.def("rad2deg", [](double a0) { return rad2deg(a0); });
     m.def("radps2Hz", [](double a0) { return radps2Hz(a0); });
     m.def("radps2rpm", [](double a0) { return radps2rpm(a0); });

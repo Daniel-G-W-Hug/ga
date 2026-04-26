@@ -6,6 +6,25 @@ Status: **end-to-end pipeline proof** — currently emits bindings only for `vec
 
 See `TODO/considerations_python_wrapper.md` for the full design context.
 
+## Two virtual environments — don't mix them
+
+This project keeps the binding generator and the wrapper in separate venvs. They serve different roles, have different dependencies, and must not be conflated:
+
+| Venv path | Used for | Dependencies |
+| --- | --- | --- |
+| `build/spike_libclang/.venv` | **Regenerating bindings via `ga_bindgen`** (this tool). Only contributors touching `ga/*.hpp` or this generator need it. | `libclang`, `jinja2`, `nanobind` |
+| `ga_py/.venv` | **Running the wrapper and its tests.** Everyday development of `ga_py/`. | `pytest`, `hypothesis`, `numpy` |
+
+If you run `python ga_bindgen/src/scan.py` from the wrong venv, libclang won't be importable. If you run `pytest ga_py/tests/` from the wrong venv, `pytest` won't be on PATH (or `hypothesis` will be missing).
+
+```bash
+# For regenerating bindings (this tool):
+source build/spike_libclang/.venv/bin/activate
+
+# For wrapper development / running tests (separate session):
+source ga_py/.venv/bin/activate
+```
+
 ## Components
 
 ```

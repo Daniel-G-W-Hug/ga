@@ -22,6 +22,7 @@ void bind_vec3dp(nb::module_& m) {
     nb::class_<vec3dp>(m, "vec3dp")
         .def(nb::init<>())
         .def(nb::init<double, double, double, double>())
+        .def(nb::init<vec3d const&, double>())
         .def_rw("x", &vec3dp::x)
         .def_rw("y", &vec3dp::y)
         .def_rw("z", &vec3dp::z)

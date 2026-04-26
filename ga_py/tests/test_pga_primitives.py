@@ -126,3 +126,47 @@ def test_repr_uses_derived_class_name():
 def test_str_via_inherited_fmt_formatter():
     p = ga_py.pga.point2d(1.0, 2.0)
     assert str(p)  # any non-empty string from the inherited fmt formatter
+
+
+# --- Converting constructors (homogeneous extension) -----------------------
+# Bound via the CONVERTING_CTORS registry in ga_bindgen/src/emit_nanobind.py;
+# the C++ side is a constrained `requires(...)` ctor template in
+# ga/detail/type_t/ga_vec3_t.hpp and ga_vec4_t.hpp.
+
+def test_vec2dp_from_vec2d_plus_z():
+    """vec2dp(vec2d(x,y), z) == vec2dp(x, y, z)"""
+    v2 = ga_py.ega.vec2d(3.0, 4.0)
+    p = ga_py.pga.vec2dp(v2, 7.0)
+    assert (p.x, p.y, p.z) == (3.0, 4.0, 7.0)
+
+
+def test_vec2dp_from_vec2d_homogeneous_default():
+    """The natural use: lift a 2D Euclidean point into PGA2dp with weight 1."""
+    v2 = ga_py.ega.vec2d(2.0, -1.5)
+    p = ga_py.pga.vec2dp(v2, 1.0)
+    # Point at infinity / direction would have z=0; finite point has z=1.
+    assert ga_py.pga.weight_nrm_sq(p) == 1.0
+
+
+def test_vec3dp_from_vec3d_plus_w():
+    """vec3dp(vec3d(x,y,z), w) == vec3dp(x, y, z, w)"""
+    v3 = ga_py.ega.vec3d(5.0, 6.0, 7.0)
+    p = ga_py.pga.vec3dp(v3, 1.0)
+    assert (p.x, p.y, p.z, p.w) == (5.0, 6.0, 7.0, 1.0)
+
+
+def test_vec3dp_from_vec3d_homogeneous_default():
+    v3 = ga_py.ega.vec3d(0.5, -2.0, 3.0)
+    p = ga_py.pga.vec3dp(v3, 1.0)
+    assert ga_py.pga.weight_nrm_sq(p) == 1.0
+
+
+def test_converting_ctor_preserves_field_order():
+    """Round-trip: extract Euclidean part, reconstruct, verify equal."""
+    v2 = ga_py.ega.vec2d(1.25, -2.5)
+    p2 = ga_py.pga.vec2dp(v2, 1.0)
+    assert ga_py.ega.vec2d(p2.x, p2.y) == v2
+
+    v3 = ga_py.ega.vec3d(1.25, -2.5, 3.75)
+    p3 = ga_py.pga.vec3dp(v3, 1.0)
+    assert ga_py.ega.vec3d(p3.x, p3.y, p3.z) == v3

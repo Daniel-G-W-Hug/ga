@@ -70,5 +70,6 @@ void bind_mvec4d(nb::module_& m) {
         .def("gr1", [](const mvec4d& M) { return gr1(M); })
         .def("gr2", [](const mvec4d& M) { return gr2(M); })
         .def("gr3", [](const mvec4d& M) { return gr3(M); })
+        .def("gr4", [](const mvec4d& M) { return gr4(M); })
         ;
 }

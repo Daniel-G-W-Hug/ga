@@ -4,6 +4,7 @@ set(EXEC_NAME1 ga_ega_test)
 set(EXEC_NAME2 ga_pga_test)
 set(EXEC_NAME3 ga_appl2dp_test)
 set(EXEC_NAME4 ga_appl3dp_test)
+set(EXPORT_NAME ga_export_python_cases)
 # set(EXEC_NAME5 ga_sta_test)  # Commented out - STA not yet implemented
 
 set(EGA_FILES
@@ -68,3 +69,39 @@ link_fmt_to_target(${EXEC_NAME2})
 link_fmt_to_target(${EXEC_NAME3})
 link_fmt_to_target(${EXEC_NAME4})
 # link_fmt_to_target(${EXEC_NAME5})  # Commented out - STA not yet implemented
+
+# ----------------------------------------------------------------------------
+# Cross-check JSON exporter for the Python wrapper.
+#
+# Builds a small executable that walks a representative set of GA operations,
+# captures (op, inputs, expected output) tuples, and emits them as JSON to
+# ga_py/tests/data/ga_test_cases.json. The Python test suite consumes that
+# file to verify the wrapper produces bit-identical results to C++.
+#
+# Only built when the Python wrapper is enabled (-D_GA_BUILD_PYTHON=ON);
+# otherwise the executable would be useless. The companion convenience target
+# `regenerate_python_test_data` builds AND runs the exporter, refreshing the
+# committed JSON snapshot.
+#
+# This target does NOT depend on doctest --- it's a standalone program that
+# uses only ga + fmt.
+# ----------------------------------------------------------------------------
+if(_GA_BUILD_PYTHON)
+    add_executable(${EXPORT_NAME} src/export_python_cases.cpp)
+    target_include_directories(${EXPORT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(${EXPORT_NAME} PRIVATE ga)
+    target_compile_options(${EXPORT_NAME} PRIVATE
+        $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
+    link_fmt_to_target(${EXPORT_NAME})
+
+    # Convenience: refresh the committed JSON snapshot in one step.
+    set(_GA_PY_CASES_JSON
+        "${CMAKE_SOURCE_DIR}/ga_py/tests/data/ga_test_cases.json")
+    add_custom_target(regenerate_python_test_data
+        COMMAND ${EXPORT_NAME} "${_GA_PY_CASES_JSON}"
+        DEPENDS ${EXPORT_NAME}
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        COMMENT "Regenerating Python cross-check cases at ${_GA_PY_CASES_JSON}"
+        VERBATIM
+    )
+endif()

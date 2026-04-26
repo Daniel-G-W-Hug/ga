@@ -73,5 +73,6 @@ void bind_mvec3dp_e(nb::module_& m) {
         .def("__xor__", [](mvec3dp_e const& a, mvec3dp_e const& b) { return wdg(a, b); }, nb::is_operator())
         .def("gr0", [](const mvec3dp_e& M) { return gr0(M); })
         .def("gr2", [](const mvec3dp_e& M) { return gr2(M); })
+        .def("gr4", [](const mvec3dp_e& M) { return gr4(M); })
         ;
 }
