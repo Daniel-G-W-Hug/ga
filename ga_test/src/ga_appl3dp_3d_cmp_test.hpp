@@ -621,6 +621,7 @@ TEST_SUITE("PGA3DP: comparison tests")
     {
         fmt::println("");
         fmt::println("pga3dp: rotating duck - VA, EGA, PGA");
+        fmt::println("");
 
         // two coordinated systems in relative rotation to each other with
         // a duck moving in the rotating system
@@ -636,6 +637,7 @@ TEST_SUITE("PGA3DP: comparison tests")
         double r_b_s = 1.0; // m (position of duck)
 
         fmt::println("  1st: rotating duck in VA");
+        fmt::println("");
 
         auto omega_v = omega_s * e3_3d;
         auto alpha_v = alpha_s * e3_3d;
@@ -649,23 +651,65 @@ TEST_SUITE("PGA3DP: comparison tests")
                          cross(omega_v, cross(omega_v, r_b_v)) +
                          2.0 * cross(omega_v, v_b_v) + a_b_v;
 
-        fmt::println("       v_duck_va = {}", v_duck_va);
-        fmt::println("       a_duck_va = {}", a_duck_va);
-        fmt::println("       a_cm  = {}", a_cm);
-        fmt::println("       a_t   = {}", cross(alpha_v, r_b_v));
-        fmt::println("       a_n   = {}", cross(omega_v, cross(omega_v, r_b_v)));
-        fmt::println("       a_cor = {}", 2.0 * cross(omega_v, v_b_v));
-        fmt::println("       a_rel = {}", a_b_v);
+        fmt::println("VA:   v_duck_va = {}", v_duck_va);
+        fmt::println("VA:   a_duck_va = {}", a_duck_va);
+        fmt::println("VA:   a_cm  = {}", a_cm);
+        fmt::println("VA:   a_t   = {}", cross(alpha_v, r_b_v));
+        fmt::println("VA:   a_n   = {}", cross(omega_v, cross(omega_v, r_b_v)));
+        fmt::println("VA:   a_cor = {}", 2.0 * cross(omega_v, v_b_v));
+        fmt::println("VA:   a_rel = {}", a_b_v);
 
 
-        // TODO: rotating duck in EGA and PGA
+        fmt::println("");
         fmt::println("  2nd: rotating duck in EGA");
+        fmt::println("");
 
-        // auto omega_B = dual(omega_v);
-        // auto alpha_B = dual(alpha_v);
+        auto omega_B = dual(omega_v);
+        auto alpha_B = dual(alpha_v);
 
+        auto v_duck_ega = v_cm + cmt(r_b_v, omega_B) + v_b_v;
+        auto a_duck_ega = a_cm + cmt(r_b_v, alpha_B) + cmt(cmt(r_b_v, omega_B), omega_B) +
+                          2.0 * cmt(v_b_v, omega_B) + a_b_v;
+
+        fmt::println("EGA:  v_duck_ega = {}", v_duck_ega);
+        fmt::println("EGA:  a_duck_ega = {}", a_duck_ega);
+        fmt::println("EGA:  a_cm  = {}", a_cm);
+        fmt::println("EGA:  a_t   = {}", cmt(r_b_v, alpha_B));
+        fmt::println("EGA:  a_n   = {}", cmt(cmt(r_b_v, omega_B), omega_B));
+        fmt::println("EGA:  a_cor = {}", 2.0 * cmt(v_b_v, omega_B));
+        fmt::println("EGA:  a_rel = {}", a_b_v);
+
+        fmt::println("");
         fmt::println("  3rd: rotating duck in PGA");
+        fmt::println("");
 
+        // vec3dp v_cm_pga = vec3dp{0, 0, 0, 0};
+        // vec3dp a_cm_pga = vec3dp{0, 0, 0, 0};
+        vec3dp v_cm_pga = vec3dp(v_cm, 0);
+        vec3dp a_cm_pga = vec3dp(a_cm, 0);
+
+        auto omega_v_pga = omega_s * e3_3dp;
+        auto alpha_v_pga = alpha_s * e3_3dp;
+
+        auto v_b_v_pga = v_b_s * e1_3dp;
+        auto a_b_v_pga = a_b_s * e1_3dp;
+        auto r_b_v_pga = r_b_s * e1_3dp;
+
+        auto omega_B_pga = wdg(O_3dp, omega_v_pga);
+        auto alpha_B_pga = wdg(O_3dp, alpha_v_pga);
+
+        auto v_duck_pga = v_cm_pga + rcmt(omega_B_pga, r_b_v_pga) + v_b_v_pga;
+        auto a_duck_pga = a_cm_pga + rcmt(alpha_B_pga, r_b_v_pga) +
+                          rcmt(omega_B_pga, rcmt(omega_B_pga, r_b_v_pga)) +
+                          2.0 * rcmt(omega_B_pga, v_b_v_pga) + a_b_v_pga;
+
+        fmt::println("PGA:  v_duck_pga = {}", v_duck_pga);
+        fmt::println("PGA:  a_duck_pga = {}", a_duck_pga);
+        fmt::println("PGA:  a_cm  = {}", a_cm_pga);
+        fmt::println("PGA:  a_t   = {}", rcmt(alpha_B_pga, r_b_v_pga));
+        fmt::println("PGA:  a_n   = {}", rcmt(omega_B_pga, rcmt(omega_B_pga, r_b_v_pga)));
+        fmt::println("PGA:  a_cor = {}", 2.0 * rcmt(omega_B_pga, v_b_v_pga));
+        fmt::println("PGA:  a_rel = {}", a_b_v_pga);
 
         fmt::println("");
     }

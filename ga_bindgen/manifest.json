@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-04-25T16:51:28+00:00",
+  "generated_at": "2026-04-26T18:22:50+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp"
@@ -5104,7 +5104,16 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 65
+          "source_line": 67
+        },
+        {
+          "return_type": "void",
+          "param_types": [
+            "const Vec2_t<U, Tag2> &",
+            "T"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
+          "source_line": 75
         },
         {
           "return_type": "void",
@@ -5112,7 +5121,16 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 65
+          "source_line": 67
+        },
+        {
+          "return_type": "void",
+          "param_types": [
+            "const Vec2_t<U, Tag2> &",
+            "T"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
+          "source_line": 75
         }
       ]
     },
@@ -5126,7 +5144,16 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 68
+          "source_line": 70
+        },
+        {
+          "return_type": "void",
+          "param_types": [
+            "const Vec3_t<U, Tag2> &",
+            "T"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
+          "source_line": 78
         },
         {
           "return_type": "void",
@@ -5134,7 +5161,16 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 68
+          "source_line": 70
+        },
+        {
+          "return_type": "void",
+          "param_types": [
+            "const Vec3_t<U, Tag2> &",
+            "T"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
+          "source_line": 78
         }
       ]
     },
@@ -6751,7 +6787,7 @@
             "Vec3_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 69
+          "source_line": 79
         },
         {
           "return_type": "void",
@@ -6778,7 +6814,7 @@
             "Vec4_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 72
+          "source_line": 82
         },
         {
           "return_type": "void",
@@ -6832,7 +6868,7 @@
             "Vec3_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 69
+          "source_line": 79
         },
         {
           "return_type": "void",
@@ -6859,7 +6895,7 @@
             "Vec4_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 72
+          "source_line": 82
         },
         {
           "return_type": "void",
@@ -22196,7 +22232,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 146
+          "source_line": 156
         },
         {
           "return_type": "bool",
@@ -22223,7 +22259,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 157
+          "source_line": 167
         },
         {
           "return_type": "bool",
@@ -22294,7 +22330,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 146
+          "source_line": 156
         },
         {
           "return_type": "bool",
@@ -22321,7 +22357,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 157
+          "source_line": 167
         },
         {
           "return_type": "bool",
@@ -22417,7 +22453,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 180
+          "source_line": 190
         },
         {
           "return_type": "Vec3_t<std::common_type_t<T, U>, Tag>",
@@ -22426,7 +22462,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 187
+          "source_line": 197
         },
         {
           "return_type": "MVec8_t<std::common_type_t<T, U>, Tag>",
@@ -22471,7 +22507,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 193
+          "source_line": 203
         },
         {
           "return_type": "Vec4_t<std::common_type_t<T, U>, Tag>",
@@ -22480,7 +22516,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 200
+          "source_line": 210
         },
         {
           "return_type": "MVec16_t<std::common_type_t<T, U>, Tag>",
@@ -22579,7 +22615,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 180
+          "source_line": 190
         },
         {
           "return_type": "Vec3_t<std::common_type_t<T, U>, Tag>",
@@ -22588,7 +22624,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 187
+          "source_line": 197
         },
         {
           "return_type": "MVec8_t<std::common_type_t<T, U>, Tag>",
@@ -22633,7 +22669,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 193
+          "source_line": 203
         },
         {
           "return_type": "Vec4_t<std::common_type_t<T, U>, Tag>",
@@ -22642,7 +22678,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 200
+          "source_line": 210
         },
         {
           "return_type": "MVec16_t<std::common_type_t<T, U>, Tag>",
@@ -22706,7 +22742,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 103
+          "source_line": 113
         },
         {
           "return_type": "MVec8_t<T, Tag> &",
@@ -22730,7 +22766,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 110
+          "source_line": 120
         },
         {
           "return_type": "MVec16_t<T, Tag> &",
@@ -22906,7 +22942,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 103
+          "source_line": 113
         },
         {
           "return_type": "MVec8_t<T, Tag> &",
@@ -22930,7 +22966,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 110
+          "source_line": 120
         },
         {
           "return_type": "MVec16_t<T, Tag> &",
@@ -23134,7 +23170,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 162
+          "source_line": 172
         },
         {
           "return_type": "MVec8_t<std::common_type_t<T, U>, Tag>",
@@ -23161,7 +23197,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 173
+          "source_line": 183
         },
         {
           "return_type": "MVec16_t<std::common_type_t<T, U>, Tag>",
@@ -24402,7 +24438,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 162
+          "source_line": 172
         },
         {
           "return_type": "MVec8_t<std::common_type_t<T, U>, Tag>",
@@ -24429,7 +24465,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 173
+          "source_line": 183
         },
         {
           "return_type": "MVec16_t<std::common_type_t<T, U>, Tag>",
@@ -25654,7 +25690,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 83
+          "source_line": 93
         },
         {
           "return_type": "MVec8_t<T, Tag> &",
@@ -25678,7 +25714,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 88
+          "source_line": 98
         },
         {
           "return_type": "MVec16_t<T, Tag> &",
@@ -25854,7 +25890,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 83
+          "source_line": 93
         },
         {
           "return_type": "MVec8_t<T, Tag> &",
@@ -25878,7 +25914,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 88
+          "source_line": 98
         },
         {
           "return_type": "MVec16_t<T, Tag> &",
@@ -26113,7 +26149,7 @@
             "const Vec3_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 154
+          "source_line": 164
         },
         {
           "return_type": "Vec3_t<std::common_type_t<T, U>, Tag>",
@@ -26122,7 +26158,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 171
+          "source_line": 181
         },
         {
           "return_type": "MVec8_t<T, Tag>",
@@ -26164,7 +26200,7 @@
             "const Vec4_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 165
+          "source_line": 175
         },
         {
           "return_type": "Vec4_t<std::common_type_t<T, U>, Tag>",
@@ -26173,7 +26209,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 183
+          "source_line": 193
         },
         {
           "return_type": "MVec16_t<T, Tag>",
@@ -27453,7 +27489,7 @@
             "const Vec3_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 154
+          "source_line": 164
         },
         {
           "return_type": "Vec3_t<std::common_type_t<T, U>, Tag>",
@@ -27462,7 +27498,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 171
+          "source_line": 181
         },
         {
           "return_type": "MVec8_t<T, Tag>",
@@ -27504,7 +27540,7 @@
             "const Vec4_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 165
+          "source_line": 175
         },
         {
           "return_type": "Vec4_t<std::common_type_t<T, U>, Tag>",
@@ -27513,7 +27549,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 183
+          "source_line": 193
         },
         {
           "return_type": "MVec16_t<T, Tag>",
@@ -28746,7 +28782,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 93
+          "source_line": 103
         },
         {
           "return_type": "MVec8_t<T, Tag> &",
@@ -28770,7 +28806,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 99
+          "source_line": 109
         },
         {
           "return_type": "MVec16_t<T, Tag> &",
@@ -28946,7 +28982,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 93
+          "source_line": 103
         },
         {
           "return_type": "MVec8_t<T, Tag> &",
@@ -28970,7 +29006,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 99
+          "source_line": 109
         },
         {
           "return_type": "MVec16_t<T, Tag> &",
@@ -29157,7 +29193,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 195
+          "source_line": 205
         },
         {
           "return_type": "MVec8_t<std::common_type_t<T, U>, Tag>",
@@ -29184,7 +29220,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 208
+          "source_line": 218
         },
         {
           "return_type": "MVec16_t<std::common_type_t<T, U>, Tag>",
@@ -29238,7 +29274,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 195
+          "source_line": 205
         },
         {
           "return_type": "MVec8_t<std::common_type_t<T, U>, Tag>",
@@ -29265,7 +29301,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 208
+          "source_line": 218
         },
         {
           "return_type": "MVec16_t<std::common_type_t<T, U>, Tag>",
@@ -29320,7 +29356,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 113
+          "source_line": 123
         },
         {
           "return_type": "MVec8_t<T, Tag> &",
@@ -29344,7 +29380,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 121
+          "source_line": 131
         },
         {
           "return_type": "MVec16_t<T, Tag> &",
@@ -29520,7 +29556,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 113
+          "source_line": 123
         },
         {
           "return_type": "MVec8_t<T, Tag> &",
@@ -29544,7 +29580,7 @@
             "U"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 121
+          "source_line": 131
         },
         {
           "return_type": "MVec16_t<T, Tag> &",
@@ -29789,7 +29825,7 @@
             "const Vec3_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 208
+          "source_line": 218
         },
         {
           "return_type": "std::ostream &",
@@ -29816,7 +29852,7 @@
             "const Vec4_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 221
+          "source_line": 231
         },
         {
           "return_type": "std::ostream &",
@@ -29870,7 +29906,7 @@
             "const Vec3_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 208
+          "source_line": 218
         },
         {
           "return_type": "std::ostream &",
@@ -29897,7 +29933,7 @@
             "const Vec4_t<T, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 221
+          "source_line": 231
         },
         {
           "return_type": "std::ostream &",
@@ -30032,7 +30068,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 130
+          "source_line": 140
         },
         {
           "return_type": "bool",
@@ -30059,7 +30095,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 140
+          "source_line": 150
         },
         {
           "return_type": "bool",
@@ -30130,7 +30166,7 @@
             "const Vec3_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec3_t.hpp",
-          "source_line": 130
+          "source_line": 140
         },
         {
           "return_type": "bool",
@@ -30157,7 +30193,7 @@
             "const Vec4_t<U, Tag> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/type_t/ga_vec4_t.hpp",
-          "source_line": 140
+          "source_line": 150
         },
         {
           "return_type": "bool",

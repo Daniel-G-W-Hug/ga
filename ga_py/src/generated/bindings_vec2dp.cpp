@@ -22,6 +22,7 @@ void bind_vec2dp(nb::module_& m) {
     nb::class_<vec2dp>(m, "vec2dp")
         .def(nb::init<>())
         .def(nb::init<double, double, double>())
+        .def(nb::init<vec2d const&, double>())
         .def_rw("x", &vec2dp::x)
         .def_rw("y", &vec2dp::y)
         .def_rw("z", &vec2dp::z)

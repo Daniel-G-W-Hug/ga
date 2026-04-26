@@ -62,5 +62,6 @@ void bind_dualnum3dp(nb::module_& m) {
         .def("__sub__", [](dualnum3dp const& a, mvec3dp_u const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](dualnum3dp const& a, mvec3dp const& b) { return a - b; }, nb::is_operator())
         .def("gr0", [](const dualnum3dp& M) { return gr0(M); })
+        .def("gr4", [](const dualnum3dp& M) { return gr4(M); })
         ;
 }

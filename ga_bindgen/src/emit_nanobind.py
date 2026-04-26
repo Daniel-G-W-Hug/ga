@@ -15,6 +15,7 @@ Usage:  python3 ga_bindgen/src/emit_nanobind.py --all
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -74,22 +75,37 @@ def base_template_name(p: str) -> str:
     return s.rsplit("::", 1)[-1]
 
 
+_TAG_RE = re.compile(r"\b([a-z][a-z0-9_]*_tag)\b")
+
+
 def build_type_name_map(types: list[TypeAlias]) -> dict[str, str]:
     """Map intermediate template alias names ('Vec3d', 'Scalar3d', 'MVec3d_E')
     to the user typedef name we bind ('vec3d', 'scalar3d', 'mvec3d_e').
 
     Derived from `t.underlying`, e.g. `vec3d` has underlying `Vec3d<value_t>`,
     so the entry is `Vec3d -> vec3d`.
+
+    Additionally registers an entry keyed by the **discriminating tag** parsed
+    out of `t.canonical_underlying` (e.g. `bivec2dp_tag -> bivec2dp`). This
+    lets the resolver recover the typedef when libclang reports the underlying
+    class template form rather than the user typedef --- which happens for
+    `auto const`-deduced constants whose initializer goes through an
+    operator (e.g. `auto const H_2dp = -e12_2dp;` resolves to
+    `Vec3_t<double, bivec2dp_tag>`, not `BiVec2dp<value_t>`).
     """
     m: dict[str, str] = {}
     for t in types:
-        # Skip uppercase template aliases — only lowercase user types should
+        # Skip uppercase template aliases --- only lowercase user types should
         # appear as the canonical bound name.
         if t.name[:1].isupper():
             continue
         head = t.underlying.split("<", 1)[0].strip().rsplit("::", 1)[-1]
         if head:
             m.setdefault(head, t.name)
+        # Also key by the unique tag parsed out of the canonical form.
+        tag_match = _TAG_RE.search(t.canonical_underlying or "")
+        if tag_match:
+            m.setdefault(tag_match.group(1), t.name)
     return m
 
 
@@ -158,6 +174,13 @@ def resolve_param_to_user_type(p: str, type_map: dict[str, str]) -> str | None:
         return "int"
     if base in _NATIVE_NAMES:
         return base
+
+    # Fallback: when libclang gives us the underlying class template form
+    # (e.g. `Vec3_t<double, hd::ga::bivec2dp_tag>` instead of `BiVec2dp<...>`),
+    # the discriminating tag still uniquely identifies the typedef.
+    tag_match = _TAG_RE.search(p)
+    if tag_match and tag_match.group(1) in type_map:
+        return type_map[tag_match.group(1)]
 
     # Recognise STL containers of bindable element types.
     container, element = _strip_outer_template(p)
@@ -282,8 +305,41 @@ def render_op_def(cls: str, dunder: str, rhs: str,
 # Python code can match the C++ idiom; it ALSO has `__xor__` for users who
 # prefer operator syntax (per the operator-mapping decision in §9 of the
 # considerations doc).
+_GRADE_EXTRACTOR_RE = re.compile(r"^gr\d+$")  # gr0, gr1, ..., grN
+
+
+# Hand-curated converting constructors that the scanner cannot pick up.
+#
+# libclang reports constrained constructor templates (those with a `requires`
+# clause) as `CursorKind.FUNCTION_TEMPLATE`, not `CursorKind.CONSTRUCTOR`, so
+# the scanner skips them. Extracting the requires clause (e.g. `requires
+# std::is_same_v<Tag, vec2dp_tag> && std::is_same_v<Tag2, vec2d_tag>`) to
+# decide which (target, source) pair is valid would require walking the
+# requires-AST. For the small fixed set of conversions in this library it is
+# simpler to register them explicitly.
+#
+# Format: target_typedef -> list of (init_arg_python_type, ...) tuples.
+# Each entry produces an extra `nb::init<arg0 const&, arg1, ...>()` line on
+# the target type.
+#
+# When adding a new entry, also add the matching converting constructor in
+# the corresponding ga/detail/type_t/ga_*_t.hpp header --- the C++ template
+# instantiation is what makes the Python binding compile.
+CONVERTING_CTORS: dict[str, list[tuple[str, ...]]] = {
+    # vec2dp(vec2d, T) --- homogeneous extension of a 2D Euclidean point
+    # (Vec3_t<vec2dp_tag>(Vec2_t<vec2d_tag>, T) in C++).
+    "vec2dp": [("vec2d", "double")],
+    # vec3dp(vec3d, T) --- homogeneous extension of a 3D Euclidean point
+    # (Vec4_t<vec3dp_tag>(Vec3_t<vec3d_tag>, T) in C++).
+    "vec3dp": [("vec3d", "double")],
+}
+
+
 SKIP_FREE_FN_NAMES = {
-    "gr0", "gr1", "gr2", "gr3",  # bound as instance methods on multivectors
+    # gr<N> per-grade extractors are bound as instance methods on multivectors
+    # (see collect_grade_extractors); skipped here via _GRADE_EXTRACTOR_RE in
+    # collect_free_functions, so this constant set need not enumerate them.
+    #
     # Generic predicates restricted to integral types via `requires(std::is_integral_v<T>)`:
     # the resolver would emit them with `double` args which fail the constraint.
     # Python has `n % 2 == 0` natively, so no need to bind these.
@@ -317,6 +373,10 @@ def collect_free_functions(manifest: Manifest,
         if grp.name.startswith("operator"):
             continue
         if grp.name in SKIP_FREE_FN_NAMES:
+            continue
+        if _GRADE_EXTRACTOR_RE.match(grp.name):
+            # gr0/gr1/.../grN are emitted as multivector instance methods
+            # by collect_grade_extractors, never as free functions.
             continue
         # Filter cursor false-positives that come from libclang reporting
         # class-template constructor-like declarations as function names
@@ -458,9 +518,8 @@ def collect_grade_extractors(manifest: Manifest,
                           ('gr2','bivec3d'), ('gr3','pscalar3d')]
     """
     out: dict[str, dict[str, str]] = {}
-    GR_NAMES = {"gr0", "gr1", "gr2", "gr3"}
     for grp in manifest.functions:
-        if grp.name not in GR_NAMES:
+        if not _GRADE_EXTRACTOR_RE.match(grp.name):
             continue
         for ov in grp.overloads:
             if len(ov.param_types) != 1:
@@ -801,6 +860,15 @@ def emit_type_binding(t: TypeAlias,
         emitted_mixed_signatures.add(sig_key)
         ctor_lines.append(f"        .def(nb::init<{', '.join(resolved)}>())")
 
+    # Hand-curated converting constructors (see CONVERTING_CTORS docstring).
+    for sig in CONVERTING_CTORS.get(t.name, []):
+        # First arg is taken by const& reference; remaining args by value.
+        # All current conversions match this shape; widen this if other
+        # patterns ever appear.
+        first, *rest = sig
+        init_args = [f"{first} const&", *rest]
+        ctor_lines.append(f"        .def(nb::init<{', '.join(init_args)}>())")
+
     repr_args = ", ".join("{}" for _ in t.fields)
     repr_field_refs = ", ".join(f"v.{f.name}" for f in t.fields)
     repr_lambda = (
@@ -957,10 +1025,12 @@ def main() -> int:
     mode.add_argument("--all", action="store_true",
                       help="Emit every eligible type + register_all.cpp + bindings_list.cmake")
     ap.add_argument("--functions-from", default="",
-                    help="Comma-separated source-file basenames; only emit "
-                         "free functions whose overloads are declared in one "
-                         "of those files. Empty (default) means no functions "
-                         "are emitted, matching the pre-incremental state.")
+                    help="Comma-separated source-file basenames; restrict "
+                         "free-function emission to overloads declared in "
+                         "those files. Empty (default) with --all means "
+                         "emit every bindable free function. Provided as an "
+                         "escape hatch for incremental enablement during "
+                         "binding development.")
     args = ap.parse_args()
 
     manifest = Manifest.from_json(Path(args.manifest).read_text())
@@ -1006,15 +1076,13 @@ def main() -> int:
             )
             type_to_sub[t.name] = submodule_for(t)
 
-        # Free function emission is gated by --functions-from. Empty filter
-        # means we emit only the placeholder register_functions_{ega,pga,top}
-        # bodies (no .def() calls), so the linker stays happy regardless of
-        # whether free functions have been incrementally enabled yet.
+        # Free function emission: with --all and no --functions-from, emit
+        # every bindable free function (the obvious meaning of "all"). With
+        # --functions-from, restrict to overloads declared in those files
+        # (kept for incremental enablement during binding development).
         file_filter: set[str] | None = None
         if args.functions_from:
             file_filter = {x.strip() for x in args.functions_from.split(",") if x.strip()}
-        else:
-            file_filter = set()  # empty set → no functions match
 
         free_fns = collect_free_functions(manifest, type_map, file_filter)
         for submod in ("ega", "pga", "top"):
@@ -1037,8 +1105,10 @@ def main() -> int:
 
         # Print free-function summary
         n_total = sum(len(ovs) for sm in free_fns.values() for ovs in sm.values())
-        print(f"\nFree-function emission ({n_total} overloads from "
-              f"{len(file_filter) if file_filter else 0} source files):")
+        filter_desc = (f"{len(file_filter)} source files (--functions-from)"
+                       if file_filter is not None
+                       else "all source files")
+        print(f"\nFree-function emission ({n_total} overloads from {filter_desc}):")
         for submod in ("ega", "pga", "top"):
             fns = free_fns.get(submod, {})
             n_ovs = sum(len(ovs) for ovs in fns.values())

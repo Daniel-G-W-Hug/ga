@@ -19,6 +19,7 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 
 void register_constants_pga(nb::module_& m) {
+    m.attr("H_2dp") = nb::cast(hd::ga::pga::H_2dp);
     m.attr("H_3dp") = nb::cast(hd::ga::pga::H_3dp);
     m.attr("I_2dp") = nb::cast(hd::ga::pga::I_2dp);
     m.attr("I_2dp_mv") = nb::cast(hd::ga::pga::I_2dp_mv);

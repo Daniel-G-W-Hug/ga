@@ -14,6 +14,8 @@
 #include "../ga_error_handling.hpp"
 #include "ga_type_tags.hpp"
 
+#include "ga_vec3_t.hpp" // for ctor for initialization from non-projective type
+
 namespace hd::ga {
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -66,6 +68,14 @@ struct Vec4_t {
     template <typename U>
         requires(numeric_type<U>)
     constexpr Vec4_t(Vec4_t<U, Tag> const& v) : x(v.x), y(v.y), z(v.z), w(v.w)
+    {
+    }
+
+    // construct from non-projective type, e.g. vec3dp from vec3d + fourth component
+    template <typename U, typename Tag2>
+        requires(numeric_type<U> && (std::is_same_v<Tag, hd::ga::vec3dp_tag> &&
+                                     std::is_same_v<Tag2, hd::ga::vec3d_tag>))
+    constexpr Vec4_t(Vec3_t<U, Tag2> const& v, T w_in) : x(v.x), y(v.y), z(v.z), w(w_in)
     {
     }
 

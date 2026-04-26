@@ -1,8 +1,8 @@
 # Python Wrapper (`ga_py/`) — Considerations & Plan
 
-**Status:** design document. Not yet implemented.
-**Prerequisite:** header scanner + binding generator (see `ga_bindgen/` section).
-**Author context:** result of interactive design discussion, intended for further refinement and as implementation guidance.
+**Status (as of 2026-04-26):** v1 is implemented. All 46 user types are bound, all five testing tiers are in place, and the suite (411 tests) passes against the C++ reference library in ~1.5 s.
+
+This document keeps the original design rationale (sections 1–10b) plus a short index of what is **still open** for future work — see [§11](#11-outstanding-work). The detailed deferred-bindings analysis is in [§12](#12-future-work--deferred-bindings) (currently just `rk4_step`).
 
 ---
 
@@ -55,39 +55,45 @@ Secondary concerns (scientific computing, teaching) are acknowledged but not dri
 
 ## 4. Architecture overview
 
-```
-ga/                       (unchanged — header-only C++23 library, source of truth)
-ga_bindgen/               (NEW — scanner + binding generator, Python tool)
-ga_py/                    (NEW — the Python module; most .cpp files generated)
-    CMakeLists.txt
-    pyproject.toml        (scikit-build-core)
+Actual layout as implemented (some originally-planned items deferred — see [§11](#11-outstanding-work)):
+
+```text
+ga/                       (header-only C++23 library, source of truth)
+ga_bindgen/               (scanner + binding generator, Python tool)
     src/
-        module.cpp         (hand-written entrypoint: NB_MODULE + dispatch)
-        generated/
-            bindings_ega.cpp       (generated from ga/ga_ega*.hpp)
-            bindings_pga.cpp       (generated from ga/ga_pga*.hpp)
-            bindings_common.cpp    (generated: value_t, usr_consts, utilities)
-    stubs/
-        ga_py/__init__.pyi         (generated)
-        ga_py/ega.pyi              (generated)
-        ga_py/pga.pyi              (generated)
-    examples/
-        ega_basics.py
-        pga_basics.py
-    tests/
-        test_equivalence.py    (cross-check vs C++ reference cases)
-        test_identities.py     (hypothesis property tests)
-        test_smoke.py
+        scan.py           libclang → manifest.json
+        emit_nanobind.py  manifest.json → ga_py/src/generated/*.cpp
+        clang_setup.py    libclang probe (homebrew vs pip-bundled)
+        model.py          dataclasses for the manifest schema
+    manifest.json         committed snapshot of last-known API
+ga_py/
+    CMakeLists.txt        nanobind + ga/ include
+    src/
+        module.cpp        hand-written NB_MODULE entrypoint
+        generated/        produced by ga_bindgen — do not edit
+            bindings_<type>.cpp        one per bound user type (46 today)
+            bindings_constants_*.cpp   per submodule
+            bindings_functions_*.cpp   per submodule
+            register_all.cpp
+            bindings_list.cmake
+    python/ga_py/__init__.py   re-exports submodules
+    tests/                pytest, see §7
+        data/ga_test_cases.json   T5 cross-check snapshot
+
+    [DEFERRED] pyproject.toml (scikit-build-core)  — see §11
+    [DEFERRED] stubs/ (.pyi files)                 — see §11
+    [DEFERRED] examples/                           — see §11
 ```
 
 ### Dependency chain
 
-```
+```text
 ga/*.hpp  ──(libclang parse)──►  ga_bindgen/manifest.json
                                         │
                                         ├──(emit)──►  ga_py/src/generated/*.cpp
-                                        ├──(emit)──►  ga_py/stubs/*.pyi
-                                        └──(audit)──►  reports vs ga_lua.hpp
+                                        │
+                                        ├──(emit)──►  ga_py/stubs/*.pyi    [DEFERRED]
+                                        └──(audit)──►  ga_lua coverage      [DEFERRED]
 ```
 
 ---
@@ -102,301 +108,95 @@ If `ga_prdxpr` later grows into full C++ class generation (Project A from the de
 
 ### 5.2 Role
 
-1. Parse `ga/*.hpp` with libclang, enumerating: class templates, free functions, operators, their signatures, template parameters, namespaces.
-2. Produce an **API manifest** (`manifest.json`) — a canonical snapshot of every binding-relevant symbol.
+Implemented:
+
+1. Parse `ga/*.hpp` with libclang, enumerating class templates, free functions, operators, their signatures, template parameters, namespaces.
+2. Produce an API manifest (`manifest.json`) — a canonical snapshot of every binding-relevant symbol.
 3. Emit nanobind binding source (`bindings_*.cpp`) from the manifest.
-4. Emit type stub files (`*.pyi`) from the manifest.
-5. Produce a **delta report** against the previous manifest — "new since last run," "removed since last run," "changed signature."
-6. **Bonus:** audit `ga_lua/src/ga_lua.hpp` against the manifest and produce a coverage report — what's in `ga/` but not bound in Lua. (This is the completeness check the user asked for; same tool, double use.)
 
-### 5.3 Structure (sketch)
+Deferred (see [§11](#11-outstanding-work)):
 
-```
+1. Emit type stub files (`*.pyi`) from the manifest.
+2. Produce a delta report against the previous manifest — "new since last run", "removed since last run", "changed signature".
+3. Audit `ga_lua/src/ga_lua.hpp` against the manifest. (The 2026-04 spike confirmed gaps via crude string search; a per-overload audit is the next step.)
+
+### 5.3 Structure
+
+```text
 ga_bindgen/
     README.md
-    pyproject.toml         (Python tool, not a wheel)
     src/
-        scan.py            (libclang → manifest.json)
-        emit_nanobind.py   (manifest.json → ga_py/src/generated/)
-        emit_stubs.py      (manifest.json → ga_py/stubs/)
-        audit_lua.py       (manifest.json + ga_lua.hpp → coverage report)
-        model.py           (dataclasses: Type, Function, Overload, etc.)
-        templates/         (jinja2 templates for emitted code)
-    manifest.json          (committed — last-known API snapshot)
-    reports/
-        delta_YYYY-MM-DD.md
-        lua_coverage_YYYY-MM-DD.md
+        scan.py            libclang → manifest.json
+        emit_nanobind.py   manifest.json → ga_py/src/generated/
+        clang_setup.py     find_libclang() + compile flags
+        model.py           dataclasses: TypeAlias, Constructor, Function, Overload, ...
+    manifest.json          committed — last-known API snapshot
+
+    [DEFERRED] emit_stubs.py
+    [DEFERRED] audit_lua.py
+    [DEFERRED] reports/
 ```
 
 ### 5.4 Dependencies
 
 - Python 3.10+
-- `libclang` Python bindings (`clang` on PyPI, or system libclang via `clang.cindex`)
-- `jinja2` for templates (optional — could use f-strings)
-- No runtime dependencies in the generated code beyond nanobind + the ga/ headers
+- `libclang` Python bindings (`clang` on PyPI, plus a system/homebrew libclang the runtime probes for via `clang_setup.find_libclang()`)
+- f-strings used directly (no jinja2 templates needed in practice)
+- No runtime dependencies in the generated code beyond nanobind + the `ga/` headers
 
 ### 5.5 Regeneration workflow
 
 ```bash
-cd build
-cmake --build . --target regenerate_py_bindings
-# Runs: python ga_bindgen/src/scan.py  → manifest.json
-#       python ga_bindgen/src/emit_nanobind.py
-#       python ga_bindgen/src/emit_stubs.py
-# Diff appears in: ga_py/src/generated/*.cpp, ga_py/stubs/*.pyi, ga_bindgen/manifest.json
-# Contributor reviews diff, commits alongside their C++ change
+# 1) Re-scan headers (only when ga/*.hpp changed)
+python3 ga_bindgen/src/scan.py
+
+# 2) Re-emit bindings
+python3 ga_bindgen/src/emit_nanobind.py --all
+
+# 3) Recompile the Python module
+cmake --build build/ga_py
 ```
 
 **Generated files are committed to git.** This means:
+
 - PR reviewers see exactly what new Python surface a C++ change created.
 - End users building `ga_py/` don't need libclang installed.
 - CI doesn't need libclang on the wheel-building runners.
 
 ---
 
-## 6. Handling ga_lua completeness (side benefit)
+## 6. Handling ga_lua completeness (side benefit) — DEFERRED
 
-`ga_lua/src/ga_lua.hpp` was hand-maintained and is known incomplete. Rather than mine it for the Python manifest (which would propagate its gaps), we invert the relationship:
+`ga_lua/src/ga_lua.hpp` is hand-maintained and known incomplete. The plan is to invert the relationship — let `ga_bindgen` produce the authoritative manifest and audit Lua against it.
 
-- `ga_bindgen` parses C++ headers → authoritative manifest.
-- `ga_bindgen/audit_lua.py` compares manifest against ga_lua.hpp.
-- Produces `reports/lua_coverage_*.md` listing symbols present in `ga/` but missing in ga_lua.
-- This becomes the to-do list for retrofitting Lua completeness (if desired).
-
-No code changes to `ga_lua/` required as part of this project — the audit is read-only.
+Status: a 2026-04 string-search spike confirmed gaps (`rk4_step`, `rk4_get_time`, `Hz2radps`, `radps2Hz`, `rpm2radps`, `radps2rpm`, `*_metric_view` helpers). A per-overload `audit_lua.py` driven by the manifest is the next step (see [§11](#11-outstanding-work)). The Python wrapper does not depend on it.
 
 ---
 
 ## 7. Testing strategy
 
-### 7.1 What we don't do
+### 7.1 Principles
 
-- Re-run the full `ga_test/` suite in Python. That's duplication for no gain.
+- Re-running the full `ga_test/` suite in Python is duplication for no gain. Instead, sample representatively, randomize exhaustively (`hypothesis`), and cross-check actively against the C++ reference output.
+- Internal `hd::ga::detail::*` helpers are not tested (correctly excluded per §10b).
+- The binding generator itself (`ga_bindgen`) is not tested as part of this suite; it is a separate tool with its own concerns.
 
-### 7.2 What we do
+### 7.2 Implemented tiers — 411 tests, ~1.5 s total
 
-**Tier 1 — Cross-check equivalence (primary)**
-- Export a curated set of (input, expected output) pairs from `ga_test/` as JSON.
-- Python test harness loads JSON, performs the same operation via `ga_py`, asserts numerical equality within tolerance.
-- Catches: binding dispatch errors, sign flips, wrong overload selection, type coercion bugs.
+| Tier | Goal | Tests | File |
+| --- | --- | --- | --- |
+| Smoke (T0 baseline) | Each bound type constructs / prints / compares / dispatches operators | 114 | `test_vec3d.py`, `test_coverage.py`, `test_scalars.py`, `test_multivectors.py`, `test_pga_primitives.py` |
+| T1 Constants | Every bound constant has the value declared in `ga_usr_consts.hpp` (107 + alias relations + drift detection) | 144 | `test_constants.py` |
+| T2 Grade lookup | `gr()` per graded type, `rgr()` per PGA graded type | 30 | `test_grade_lookup.py` |
+| T3 EGA identities | Algebraic invariants randomized via `hypothesis` (dot symmetry/linearity, wedge anti-symmetry, gpr split, inv, rev involution, rotor unitarity) | 15 | `test_identities_ega.py` |
+| T4 PGA identities | Bulk/weight decomposition, complement involution, unitize, motor sandwich, distance, join/meet | 20 | `test_identities_pga.py` |
+| T5 Cross-check | Replays a JSON snapshot of (op, args, expected) tuples emitted by `ga_test/src/export_python_cases.cpp` and verifies bit-for-bit (within tolerance) equivalence with C++ | 83 | `test_cross_check.py`, `data/ga_test_cases.json` |
 
-**Tier 2 — Property-based testing (`hypothesis`)**
-- Algebraic identities that must hold for arbitrary inputs, e.g.:
-  - `(a·b)² + (a∧b)² ≈ |a⟑b|²` for vectors
-  - `a ⟑ rev(a) / nrm_sq(a) ≈ 1` for non-null multivectors
-  - `l_cmpl(r_cmpl(a)) ≈ a` (complement involution in appropriate algebras)
-  - Motor sandwich preserves norms in PGA
-- Hypothesis generates random inputs within specified domains; failures surface minimal counterexamples.
+`conftest.py` carries the relative-tolerance helpers (`approx_eq`, `EPS_TIGHT`, `EPS_DEFAULT`, `EPS_LOOSE`) and the `components()` extractor used by T1 and T5.
 
-**Tier 3 — Smoke tests**
-- Every bound type: can be constructed, printed, equality-tested, combined with basic operators.
-- Runs fast; first line of defense against binding regressions.
+### 7.3 Deferred
 
-**Tier 4 — Stub validation**
-- `mypy --strict` passes on the example scripts.
-- Protects the IDE/type-check experience.
-
-### 7.3 Implementation plan for testing (proposal for a new session)
-
-Status as of writing: 114 smoke / coverage / scalar / multivector / pga-primitive tests in `ga_py/tests/` already pass. They confirm bindings load, types construct, fields access, basic operators dispatch correctly. **Tier 3 (smoke) is essentially done.** What follows is the proposed plan for Tiers 1–2 and 4, in priority order.
-
-#### Test file layout (create / extend in `ga_py/tests/`)
-
-```
-ga_py/tests/
-├── conftest.py                 # NEW: shared fixtures, EPS, common imports
-├── test_vec3d.py               # existing (13)
-├── test_coverage.py            # existing (35)
-├── test_scalars.py             # existing (32 — incl. comparison ops)
-├── test_multivectors.py        # existing (12)
-├── test_pga_primitives.py      # existing (22)
-│
-├── test_identities_ega.py      # NEW: Tier-2 algebraic identities for EGA
-├── test_identities_pga.py      # NEW: Tier-2 algebraic identities for PGA
-├── test_cross_check.py         # NEW: Tier-1, loads ga_test reference cases
-├── data/                       # NEW
-│   └── ga_test_cases.json      # NEW: exported reference cases from ga_test
-├── test_constants.py           # NEW: verify the 107 constants have known values
-└── test_grade_lookup.py        # NEW: verify gr() / rgr() give correct grades
-```
-
-The first session in the new context should run the existing 114 tests as the starting baseline, then add tests in the priority order below.
-
-#### Priority order — small, valuable steps first
-
-**Step T1 — Constants verification (~30 min)**
-File: `test_constants.py`. Cheap, high-value: verifies all 107 bound constants have the values the C++ source declares.
-
-```python
-def test_basis_2d_identity():
-    assert ga_py.ega.e1_2d.x == 1.0 and ga_py.ega.e1_2d.y == 0.0
-    assert (ga_py.ega.e1_2d ^ ga_py.ega.e2_2d) == ga_py.ega.I_2d
-
-def test_basis_3d_orthonormality():
-    for i, ei in enumerate([ga_py.ega.e1_3d, ga_py.ega.e2_3d, ga_py.ega.e3_3d]):
-        for j, ej in enumerate([ga_py.ega.e1_3d, ga_py.ega.e2_3d, ga_py.ega.e3_3d]):
-            assert float(ga_py.ega.dot(ei, ej)) == (1.0 if i == j else 0.0)
-    # e1 × e2 = e3
-    assert ga_py.ega.cross(ga_py.ega.e1_3d, ga_py.ega.e2_3d) == ga_py.ega.e3_3d
-```
-
-Catches: any silent corruption in the constants emission, regression in operator dispatch on basis values.
-
-**Step T2 — Grade lookup verification (~15 min)**
-File: `test_grade_lookup.py`. Tiny but completes the type-safety story.
-
-```python
-@pytest.mark.parametrize("typed_obj,expected_grade", [
-    (ga_py.ega.scalar2d(1.0),    0),  (ga_py.ega.vec2d(1,2),       1),
-    (ga_py.ega.pscalar2d(1.0),   2),
-    (ga_py.ega.scalar3d(1.0),    0),  (ga_py.ega.vec3d(1,2,3),     1),
-    (ga_py.ega.bivec3d(1,2,3),   2),  (ga_py.ega.pscalar3d(1.0),   3),
-    (ga_py.pga.scalar3dp(1.0),   0),  (ga_py.pga.trivec3dp(1,2,3,4), 3),
-    (ga_py.pga.pscalar3dp(1.0),  4),
-])
-def test_gr_returns_correct_grade(typed_obj, expected_grade):
-    assert ga_py.gr(typed_obj) == expected_grade
-```
-
-**Step T3 — EGA algebraic identities via hypothesis (~half day)**
-File: `test_identities_ega.py`. Add `pip install hypothesis` to the venv. Write strategy generators for `vec3d`, `bivec3d`, `mvec3d`, then test identities that must hold for any input.
-
-Concrete identity examples:
-
-```python
-from hypothesis import given, strategies as st
-finite = st.floats(min_value=-100, max_value=100, allow_nan=False, allow_infinity=False)
-
-@st.composite
-def vec3d_st(draw):
-    return ga_py.ega.vec3d(draw(finite), draw(finite), draw(finite))
-
-@given(vec3d_st(), vec3d_st())
-def test_dot_wedge_split(a, b):
-    """For Euclidean vectors: |dot(a,b)|² + |wdg(a,b)|² == |a|²·|b|²"""
-    dot_sq = float(ga_py.ega.dot(a, b)) ** 2
-    wedge_sq = float(ga_py.ega.nrm_sq(ga_py.ega.wdg(a, b)))
-    expected = float(ga_py.ega.nrm_sq(a)) * float(ga_py.ega.nrm_sq(b))
-    assert abs(dot_sq + wedge_sq - expected) < 1e-9 * max(abs(expected), 1.0)
-
-@given(vec3d_st())
-def test_double_complement_is_identity(a):
-    """l_cmpl(r_cmpl(a)) == a in EGA — wait, EGA3D uses single cmpl. Adjust per-algebra."""
-    # in 3D EGA: cmpl(cmpl(a)) is sign-dependent on grade
-    pass
-
-@given(vec3d_st(), vec3d_st(), vec3d_st())
-def test_wdg_associative(a, b, c):
-    """Wedge product is associative: (a^b)^c == a^(b^c)"""
-    lhs = ga_py.ega.wdg(ga_py.ega.wdg(a, b), c)
-    # mvec3d_e wedge with vec3d returns mvec3d_? — check shape; this may need API tweak
-    pass
-```
-
-Identity inventory to start with (each one becomes a test):
-
-- `(a·b)² + (a∧b)² == |a|²·|b|²` for vec×vec
-- `a · b == b · a` (dot symmetry)
-- `a ∧ b == −(b ∧ a)` (wedge anti-symmetry)
-- `gpr(a, a) == |a|²` for vectors (`a²` = scalar = squared magnitude)
-- `inv(a) ⟑ a == 1` for non-null
-- `rev(rev(a)) == a` for any grade
-- `rotate(a, R) preserves nrm_sq(a)` when R is a unit rotor
-- `(R ⟑ R^~) == 1` for unit rotors
-
-**Step T4 — PGA algebraic identities (~half day)**
-File: `test_identities_pga.py`. Same pattern for PGA-specific operations:
-
-- `unitize(unitize(a)) == unitize(a)`  (idempotent)
-- `bulk(a) + weight(a) == a`  (bulk + weight decomposition)
-- `geom_nrm(unitize(a)).c1 == 1.0`  (unitized objects have weight 1)
-- Motor identity: `M ⟇ M~ == 1` for unit motors
-- Sandwich preserves grade: `move(point, M)` returns a `point*dp`, not a different grade
-- `meet(join(p1, p2), p3) == p3`-on-line check (incidence)
-- `dist(p, p) ≈ 0` (same point has zero distance)
-- `cmpl(cmpl(a)) == ±a` (with sign depending on algebra dimension)
-
-**Step T5 — Cross-check harness (~1–2 days)**
-File: `test_cross_check.py`. Most expensive step, highest confidence.
-
-Approach:
-
-1. Add a small **harness in `ga_test/`** that emits a JSON file of selected (operation, inputs, expected output) tuples. Use existing test cases verbatim. CMake target `make export_python_test_cases`.
-2. JSON schema:
-
-   ```json
-   {
-     "version": 1,
-     "cases": [
-       { "id": "ega3d_dot_basic_001",
-         "op": "dot",
-         "submodule": "ega",
-         "args": [
-           {"type": "vec3d", "fields": [1.0, 2.0, 3.0]},
-           {"type": "vec3d", "fields": [4.0, 5.0, 6.0]}
-         ],
-         "expected": {"type": "scalar3d", "fields": [32.0]},
-         "tolerance": 1e-12
-       }
-     ]
-   }
-   ```
-
-3. `test_cross_check.py` loads JSON, reconstructs Python objects via the type registry, calls the bound function, compares with `is_congruent`-style relative tolerance.
-
-Picking cases: target one case per (algebra, op, type-pair) combination — that's a few hundred entries, not exhaustive but representative. Coverage of every overload is unrealistic; coverage of every dispatch path is.
-
-**Step T6 — Stub validation (deferred until `.pyi` files exist)**
-File: `tests/test_stubs_mypy.py`. After `ga_bindgen` gains stub emission (item 6 in §12 of this doc):
-
-```python
-def test_mypy_strict_passes_on_examples():
-    result = subprocess.run(
-        ["mypy", "--strict", "ga_py/examples/"],
-        capture_output=True, text=True
-    )
-    assert result.returncode == 0, result.stdout
-```
-
-#### Success criterion
-
-When all of T1–T5 pass, the Python wrapper has:
-
-- 114 smoke tests covering construction / printing / dispatch (existing)
-- ~50 constant verification tests (T1)
-- ~20 grade lookup tests (T2)
-- ~30 EGA algebraic identities × hypothesis (T3) — each with arbitrary input shrinkage
-- ~30 PGA algebraic identities × hypothesis (T4)
-- ~200 cross-check cases against C++ reference output (T5)
-
-Total: roughly 400 tests + property-based fuzzing across both algebras. That's the threshold for confident "the bindings produce identical results to the C++ library."
-
-#### What we deliberately don't do
-
-- Re-run the entire `ga_test/` suite in Python. Each `ga_test` case is a sample; we want **representative** samples plus **property-based** invariants, which is much more efficient than 1:1 reproduction.
-- Test internal `hd::ga::detail::*` helpers (correctly excluded per §10b).
-- Test the binding generator itself (`ga_bindgen` is a separate tool with its own concerns).
-
-#### Tools to install in the venv before starting
-
-```bash
-pip install pytest hypothesis numpy
-# (numpy will become useful when the Tier 1 buffer-protocol work
-# from §3 is implemented; the tests can already use it for fixture
-# data even if the wrapper doesn't expose buffers yet.)
-```
-
-#### Open questions (for the new session)
-
-1. **Tolerance policy.** Single relative tolerance everywhere, or per-operation? The C++ side uses `is_congruent` with ~1e-9 to 1e-12 depending on op. Python tests should mirror that. Likely answer: introduce a `pytest` fixture that returns the right epsilon for the algebra/op being tested.
-
-2. **Whether to also bind / test the `move*_opt` family** beyond `move*dp`. They're already bound but I haven't smoke-checked them; should the cross-check cases include the optimized variants?
-
-3. **Hypothesis strategy for non-degenerate inputs.** For `inv(a)`, we need `nrm_sq(a)` not too close to zero. For motors, we need the rotation axis non-ideal. Need bespoke `@st.composite` strategies that filter via `hypothesis.assume(...)`.
-
-4. **Where the JSON export from `ga_test/` lives.** Inside `ga_test/` (so it's regenerated alongside the C++ tests), or in `ga_py/tests/data/` (committed snapshot)? Recommend: emit during `ga_test` build, commit the snapshot in `ga_py/tests/data/`.
-
-5. **Should the cross-check harness also run on the actual `ga_test/` doctest cases by parsing them?** Probably not — explicit JSON is cleaner and decouples the two test harnesses.
+- **T6 — `mypy --strict` on the example scripts.** Held until `ga_bindgen` emits `.pyi` stubs (see [§11](#11-outstanding-work)). The test file itself (`test_stubs_mypy.py`) is one subprocess call; the precondition is the stubs.
 
 ---
 
@@ -483,74 +283,117 @@ Whenever new helpers land in `hd::ga::detail`, this table should be reviewed. Th
 
 ---
 
-## 11. Packaging
+## 11. Outstanding work
 
-### 11.1 Build system
+This section enumerates everything still open. Implemented work has been culled from the rest of the document; the items below are what remains.
 
-- `scikit-build-core` as the Python build backend.
-- `pyproject.toml` declares dependencies: `nanobind` (build-only), `numpy` (runtime, for buffer protocol interop).
-- CMake integration reuses the existing CMake infrastructure; `ga_py/CMakeLists.txt` references `ga/` as include directory.
-- nanobind is header-only and vendored via pip install; fmt is header-only; ga/ is header-only. **No vcpkg/brew dependencies on the wheel-building side** → simple CI.
+### 11.1 Packaging (not started)
 
-### 11.2 CI / wheel matrix (v1)
+The wrapper is currently built via direct CMake (see `ga_py/README.md`). For end-user distribution as wheels:
 
-Python 3.10 × {macOS (Intel + ARM), Linux (x86_64), Windows (x86_64)} = 4 wheels. `cibuildwheel` on GitHub Actions is standard for this. Source distribution (sdist) also published for users who want to build themselves.
+- Add `pyproject.toml` with `scikit-build-core` as the build backend; declare `nanobind` (build-only) and `numpy` (runtime, for buffer protocol) as dependencies.
+- Set up `cibuildwheel` on GitHub Actions for Python 3.10 × {macOS Intel + ARM, Linux x86_64, Windows x86_64} = 4 wheels.
+- Publish source distribution (sdist) too.
+- Additional Python versions (3.11/3.12/3.13) extend the cibuildwheel matrix without design changes.
+- nanobind, fmt, and `ga/` are all header-only — no vcpkg/brew dependencies on the wheel-building side, so CI stays simple.
 
-Additional Python versions (3.11/3.12/3.13) added post-v1 by extending the cibuildwheel version list — no design changes needed.
+### 11.2 Stub generation `.pyi` (not started)
 
----
+`ga_bindgen/src/emit_stubs.py` does not yet exist. Once added:
 
-## 12. Open questions
+- Drives the IDE/type-check experience for users.
+- Unblocks T6 (mypy --strict on the example scripts) — see [§7.3](#73-deferred).
 
-Items that are **not yet decided** and need further thought or a spike to resolve:
+### 11.3 numpy buffer protocol — Tier 1 (not started)
 
-1. **Manifest JSON schema.** Custom schema (simplest) vs. reuse of an existing tool's format (e.g., cppyy, castxml). Recommendation: custom, kept small. Decide during Spike.
-2. **Template-instantiation freeze.** The C++ types are templates on `value_t`. The manifest must record that bindings only instantiate `T = double`. Implementation detail — handle in `emit_nanobind.py` by emitting only the `double` instantiation.
-3. **One bindings.cpp per algebra vs. all-in-one.** Compile-time cost vs. link complexity. Start per-algebra; revisit if it matters.
-4. **Documentation site.** Sphinx + autodoc — now or later? Lean *later*; docstrings are deferred, so autodoc would have nothing to render.
-5. **How to verify numerical equivalence in cross-check tests.** Bit-exact vs. tolerance-based. Expect small differences from FP ordering in rare cases; use tolerance like the existing `is_congruent` tests.
-6. **What belongs in `module.cpp` (hand-written) vs. generated.** Entrypoint and exception translator are hand-written. Beyond that, everything generated. Revisit if generation runs into awkward corners.
-7. **Regression protection for manifest drift.** If someone edits generated files by hand, regeneration overwrites them. Mitigation: generated files carry a clear "DO NOT EDIT — regenerate via ga_bindgen" header.
+Per the §3 decision, each bound user type should expose `__array__` / the buffer protocol so numpy arrays of GA elements can be constructed cheaply. Tier 2 (vectorized array-of-multivector ops) remains deferred indefinitely.
 
----
+### 11.4 `audit_lua.py` (spike done, full version pending)
 
-## 13. Effort estimate (rough)
+The 2026-04 string-search spike confirmed Lua-wrapper gaps; a per-overload audit driven by the manifest is the next step. Output target: `ga_bindgen/reports/lua_coverage_*.md`.
 
-| Phase | Effort |
-| --- | --- |
-| Spike: libclang parse of `ga/ga_ega.hpp` → dump functions/types → sanity check | 1–2 days |
-| `ga_bindgen` full scanner + manifest | 3–5 days |
-| `ga_bindgen` emit nanobind bindings (for a single algebra first) | 3–5 days |
-| `ga_bindgen` emit stub files | 1–2 days |
-| `ga_bindgen` Lua coverage audit report | 1 day |
-| `ga_py/` build scaffolding (CMake + pyproject + scikit-build-core) | 2–3 days |
-| CI setup: cibuildwheel × 3 platforms | 2–3 days |
-| Test suite (cross-check + hypothesis + smoke) | 3–5 days |
-| Example scripts + minimal docs | 1–2 days |
-| Iteration / bug fixing / platform-specific fixes | buffer: 3–5 days |
+### 11.5 `rk4_step` deferral cleanup
 
-**Total first delivery:** ~4–6 focused weeks, depending on libclang-parsing surprises and platform-specific wheel issues.
+`rk4_get_time` is bound but useless without `rk4_step` (which cannot be auto-bound today — see [§12](#12-future-work--deferred-bindings)). The decided path is **defer permanently** and add a `scipy.integrate.solve_ivp` recipe to `ga_py/README.md`.
 
----
+Action items:
 
-## 14. Plan — concrete next steps
+- [ ] Add `rk4_get_time` to `SKIP_FREE_FN_NAMES` in `ga_bindgen/src/emit_nanobind.py` (or remove the binding via a more targeted filter).
+- [ ] Regenerate bindings, verify the function is gone.
+- [ ] Add a README section "Integrating GA-valued ODEs in Python" with a `solve_ivp` example using a `vec3d`-valued state vector.
 
-1. **Document this design** (this file) — **done.**
-2. **Spike — libclang viability.** — **done, 2026-04-24.** Results in `build/spike_libclang/SPIKE_RESULTS.md`.
-   - Clean parse of `ga/ga_ega.hpp` and `ga/ga_pga.hpp` (zero errors).
-   - Enumerated 21 class templates, 39 user typedefs, 154 unique non-operator function names (1137 overloads), 21 unique operators (774 overloads).
-   - All user types (`vec3d`, `bivec2dp`, `mvec3dp_u`, …) resolved to their `*_t<value_t>` instantiations.
-   - Artifact: `build/spike_libclang/manifest_spike.json` — raw dump, reusable as seed for the real manifest schema.
-   - **Key pitfall logged:** pip-bundled `libclang` package has no resource dir — must point `clang.cindex` at homebrew/system libclang and pass `-isystem` for libc++ and SDK paths explicitly. Real generator needs a `find_libclang()` probe step.
-3. **Spike — audit ga_lua.hpp** — **done, crude version.** Confirmed genuine gaps in Lua wrapper: `rk4_step`, `rk4_get_time`, `Hz2radps`, `radps2Hz`, `rpm2radps`, `radps2rpm`, `*_metric_view` helpers. Crude string-search under-reports presence for ops bound via `sol::meta_function::*`; a per-overload audit is a small extension.
-4. **Next — promote spike to `ga_bindgen/`.** Move `spike.py` to `ga_bindgen/src/scan.py`, define manifest schema formally, add `emit_nanobind.py` that emits bindings for one type end-to-end (e.g., `vec3d`). Build a tiny `ga_py/` stub compiling that single binding and importable in Python. This confirms the full pipeline end-to-end before scaling to all 39 types.
-5. **Then — scale.** Generate for all types in EGA → then PGA → stubs → tests → packaging.
+### 11.6 Demo / teaching scripts (deferred per §3)
 
-Immediate next step (4) is ~1–2 days. Total project remains ~4–6 weeks per §13.
+`ga_py/examples/ega_basics.py`, `ga_py/examples/pga_basics.py`, etc. — minimal scripts demonstrating the `import ga_py` workflow.
+
+### 11.7 Documentation site
+
+Sphinx + autodoc was deliberately deferred until docstrings exist (also deferred per §3). When picked up, the natural ordering is: docstrings → autodoc → Sphinx site.
+
+### 11.8 Float `value_t` support
+
+Currently locked to `double`. Float (and possibly `long double`) support would require a build-flag-driven manifest instantiation, doubling the binding surface. Revisit if user demand justifies it.
+
+### 11.9 Manifest delta report
+
+`ga_bindgen` does not currently produce `reports/delta_YYYY-MM-DD.md`. Useful for PR reviewers to see "new since last run", "removed since last run", "changed signature" diffs. Low priority — `git diff` on `manifest.json` mostly serves the same purpose.
 
 ---
 
-## 15. Appendix — example of generated nanobind code (sketch)
+## 12. Future work — deferred bindings
+
+Items deliberately not bound in v1, with the reasoning preserved here so the next maintainer doesn't re-litigate the decision (or re-discover the obstacle from scratch).
+
+### 12.1 `rk4_step` (Runge–Kutta 4th-order time integrator)
+
+**Status:** the C++ free function `hd::ga::rk4_step<VecType>(...)` (declared in `ga/ga_usr_utilities.hpp`) is **not bound** in `ga_py`. The companion helper `rk4_get_time` *is* bound but is useless on its own (it just returns the time at sub-step 0/1/2/3 — meaningful only when paired with the integrator).
+
+**Why it can't be auto-bound today.** Three obstacles, in increasing order of difficulty:
+
+1. **`std::mdspan` has no nanobind type-caster.** All three array arguments (`u`, `uh`, `rhs`) are `std::mdspan<VecType, std::dextents<size_t, N>>`. nanobind ships casters for `std::vector`, `std::array`, numpy arrays via the buffer protocol, etc., but not for C++23 `std::mdspan` (it's brand new and a non-owning view that the binding layer would have to materialise over caller-supplied storage). The bindgen sees the parameter, fails `resolve_param_to_user_type`, and silently skips the function.
+2. **Mutates its arguments instead of returning a value.** `u` and `uh` are written through their mdspans — that's idiomatic for tight numerical loops but doesn't fit the Python convention of returning new state from a function call.
+3. **Templated on `VecType`.** Each GA vector type (`vec2d`, `vec3d`, `vec2dp`, `vec3dp`, …) gives a different concrete instantiation that has to be enumerated and bound separately. This is the *least* hard of the three (the same machinery already handles `gpr<T>`, `wdg<T>`, etc.).
+
+**Do we even need to bind it?** Probably not. Python users who need to integrate ODEs over GA-valued state already have superior tools:
+
+- **`scipy.integrate.solve_ivp`** — the modern unified ODE solver (scipy ≥ 1.0). Default method is `RK45` (Dormand–Prince adaptive 5th order with embedded 4th-order error estimator). Other built-in methods: `RK23`, `DOP853`, `Radau`, `BDF`, `LSODA`. Adaptive step size, dense output, event detection — all features `rk4_step` does not have.
+- **`scipy.integrate.RK45`** as a class (lower-level access if you want to drive sub-stepping yourself).
+- **Fixed-step RK4** — if a user really wants a non-adaptive RK4 specifically, it is a 6-line numpy function; no library needed.
+- **`numba` / `jax`** — JIT-compiled integrators if performance matters more than scipy can deliver.
+
+The natural Python workflow is:
+
+1. Convert GA-valued state to a flat numpy array (each `vec3d` becomes 3 doubles, etc.).
+2. Wrap the GA-valued `rhs(t, u)` in a closure that unpacks/repacks numpy ↔ GA objects via the bound types.
+3. Call `solve_ivp(rhs, t_span, u0, method="RK45")`.
+4. Reconstruct GA objects from the result.
+
+The packing/unpacking is per-component and can be batched once we add the Tier-1 numpy buffer-protocol work mentioned in §3 (where each GA type exposes `__array__` / buffer protocol). At that point the integration loop is essentially zero-overhead from the GA wrapper's side.
+
+**Recommendation.** Three coherent options, in order of preference:
+
+1. **Defer permanently and document.** Remove `rk4_get_time` from the bindings (it's useless without `rk4_step`), and add a recipe to `ga_py/README.md` showing how to use `scipy.integrate.solve_ivp` on a GA-valued ODE. This is the cheapest *and* gives Python users the better tool. Cost: ~1 hour (delete + add `SKIP_FREE_FN_NAMES` entry + write README example).
+2. **Provide a thin `std::vector<VecType>` overload in C++** so the bindgen picks it up automatically:
+
+   ```cpp
+   template <typename VecType>
+   inline std::vector<VecType> rk4_step(
+       std::vector<VecType> const& u,
+       std::vector<VecType> & uh_buf,
+       std::vector<VecType> const& rhs,
+       value_t dt, size_t rk_step);
+   ```
+
+   `<nanobind/stl/vector.h>` is already included; bindgen would emit per-`VecType` overloads automatically. Cost: ~10 lines of C++ wrapper. Downside: per-call heap allocation, slower than scipy in hot loops, slower than option 3 in any loop.
+3. **Hand-write a numpy-buffer-protocol binding** in `ga_py/src/module.cpp` (the only hand-written file). Accept `nb::ndarray<vec3d, nb::ndim<1>>`, build an `std::mdspan` over `arr.data()` and `arr.shape(0)`, call the existing `rk4_step` directly. Zero-copy, real performance. Downside: hand-written code that will diverge from C++ over time; has to be repeated per `VecType`; introduces the *first* hand-written binding in the project.
+
+Given that scipy already provides better integrators, **option 1 is the recommended path.** Keep the C++ implementation (it's still useful for native C++ users and for the `ga_view`/`ga_lua` consumers), but stop exposing the orphaned `rk4_get_time` in Python and point users to scipy.
+
+Action items for this option are tracked under [§11.5](#115-rk4_step-deferral-cleanup). If demand later justifies a native binding, prefer option 3 over option 2 (zero-copy beats heap-thrashing for this kind of inner loop).
+
+---
+
+## 13. Appendix — example of generated nanobind code (sketch)
 
 For a single type `vec3d` with three operators, the generator would emit roughly:
 

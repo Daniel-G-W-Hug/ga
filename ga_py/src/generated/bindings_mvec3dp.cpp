@@ -90,5 +90,6 @@ void bind_mvec3dp(nb::module_& m) {
         .def("gr1", [](const mvec3dp& M) { return gr1(M); })
         .def("gr2", [](const mvec3dp& M) { return gr2(M); })
         .def("gr3", [](const mvec3dp& M) { return gr3(M); })
+        .def("gr4", [](const mvec3dp& M) { return gr4(M); })
         ;
 }
