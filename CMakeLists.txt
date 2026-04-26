@@ -57,9 +57,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 option(_GA_USE_READLINE "Enable readline support for ga_lua interactive shell" ON)
 
 # Optional Python wrapper (nanobind module + cross-check exporter).
-# Off by default: requires Python 3.10+ and nanobind installed in the
+# requires Python 3.10+ and nanobind installed in the
 # Python environment that CMake's find_package(Python) discovers.
-option(_GA_BUILD_PYTHON "Build the ga_py Python wrapper and its test-data exporter" OFF)
+option(_GA_BUILD_PYTHON "Build the ga_py Python wrapper and its test-data exporter" ON)
 
 # Include and setup dependencies
 include(dependencies)
