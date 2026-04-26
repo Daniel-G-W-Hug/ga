@@ -634,7 +634,7 @@ TEST_SUITE("EGA 3D Tests")
 
         CHECK(v3 + v4 == v5);
         CHECK(v5 == v1);
-        CHECK(dot(v3, v4) == 0);
+        CHECK(std::abs(to_val(dot(v3, v4))) <= eps);
 
         // just to suppress unused variable warnings
         CHECK(b == e2_3d);

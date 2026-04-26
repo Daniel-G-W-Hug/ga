@@ -432,11 +432,11 @@ QRectF active_ode_plate::boundingRect() const
         max_y = std::max(max_y, tp.cm_w.y);
     }
 
-    constexpr double MARGIN = 1.0;
-    min_x -= MARGIN;
-    max_x += MARGIN;
-    min_y -= MARGIN;
-    max_y += MARGIN;
+    constexpr double BOUND_MARGIN = 1.0;
+    min_x -= BOUND_MARGIN;
+    max_x += BOUND_MARGIN;
+    min_y -= BOUND_MARGIN;
+    max_y += BOUND_MARGIN;
 
     return QRectF(QPointF(cs->x.au_to_w(min_x), cs->y.au_to_w(max_y)),
                   QPointF(cs->x.au_to_w(max_x), cs->y.au_to_w(min_y)));

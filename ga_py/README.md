@@ -47,7 +47,7 @@ A common worry about Python wrappers is that the math will be re-implemented in 
 
 When Python evaluates `v1 + v2`:
 
-```
+```text
 Python:  v1 + v2
             │
             ▼  nanobind dispatch — type check + unwrap (one C call, ~few hundred ns)
@@ -206,6 +206,62 @@ build/ga_test/ga_export_python_cases ga_py/tests/data/ga_test_cases.json
 After regenerating, run `pytest ga_py/tests/test_cross_check.py` to verify the wrapper still matches.
 
 ## Building
+
+### Windows prerequisites
+
+- Python 3.10+ (e.g. from python.org; available on PATH as `python`)
+- `pip install nanobind` — needed at cmake configure time
+- `pip install pytest hypothesis numpy` — only for running the test suite
+- [vcpkg](https://github.com/microsoft/vcpkg) installed at `C:/vcpkg/` with `fmt`, `doctest`, and `sol2`:
+
+  ```bat
+  vcpkg install fmt doctest sol2
+
+- MSVC / Visual Studio 2022
+- CMake 3.28+
+
+There is no `pip install .` / wheel workflow yet; the compiled `.pyd` lives inside
+`build/` and `PYTHONPATH` must be set manually (see below).
+
+### Windows build
+
+```bat
+cd C:\path\to\ga
+mkdir build && cd build
+cmake .. -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -D_GA_BUILD_PYTHON=ON
+cmake --build . --target _ga_py --config Debug
+```
+
+The extension lands at `build\ga_py\Debug\_ga_py.cp3xx-win_amd64.pyd`.
+
+### Windows usage
+
+`PYTHONPATH` must cover both the directory containing `_ga_py.pyd` and the
+`ga_py/python` directory that holds the pure-Python `ga_py/` package:
+
+```bat
+rem Command Prompt
+set PYTHONPATH=build\ga_py\Debug;ga_py\python
+python
+```
+
+```powershell
+# PowerShell
+$env:PYTHONPATH = "build\ga_py\Debug;ga_py\python"
+python
+```
+
+```python
+import ga_py
+v = ga_py.ega.vec3d(1.0, 2.0, 3.0)
+```
+
+### Windows tests
+
+```bat
+set PYTHONPATH=build\ga_py\Debug;ga_py\python
+python -m pytest ga_py\tests\
+```
 
 ### Recommended: top-level integrated build
 

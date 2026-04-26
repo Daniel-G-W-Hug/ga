@@ -1351,7 +1351,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         // constant velocity generator in body frame: rotation about Q_b
         vec2dp const Omega_b = omega * Q_b;
 
-        double const T = 2.0 * M_PI; // one full revolution
+        double const T = 2.0 * pi; // one full revolution
         double const dt = T / 8.0;
         int const N = 8;
 
@@ -1462,7 +1462,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             mvec2dp_u const M0 =
                 exp(0.5 * vec2dp{-cm0.y, cm0.x, 0.0}); // pure translation
 
-            double const phi0 = M_PI / 4.0;
+            double const phi0 = pi / 4.0;
             vec2dp B_b = phi0 * Q_b; // initial B_b: phi0 rotation about body-frame Q_b
             vec2dp B_w = phi0 * Q_b; // B_w starts equal to B_b (same reference pose)
 
