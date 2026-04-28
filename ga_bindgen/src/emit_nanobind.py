@@ -205,9 +205,8 @@ CPP_OP_TO_DUNDER = {
     "operator>>": "__rshift__",
 }
 
-# C++ free-function names that map to Python operator dunders, per the
-# operator-mapping decision in TODO/considerations_python_wrapper.md §9
-# (e.g. wedge `wdg` is exposed as Python `^`, mirroring ga_lua's choice).
+# C++ free-function names that map to Python operator dunders.
+# wedge `wdg` is exposed as Python `^`, mirroring ga_lua's choice.
 FUNCTION_TO_DUNDER = {
     "wdg": "__xor__",
 }

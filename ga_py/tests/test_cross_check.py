@@ -15,8 +15,6 @@ Workflow:
   3. Run pytest:           pytest ga_py/tests/test_cross_check.py
 The JSON snapshot is committed to git, so step 2 is only needed when the
 case set is updated (new ops, new types, new representative inputs).
-
-Plan reference: TODO/considerations_python_wrapper.md sec. 7.3, step T5.
 """
 
 from __future__ import annotations
