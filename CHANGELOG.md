@@ -137,3 +137,23 @@
            absolute to relative accuracy; added VTK 3D visualization architecture analysis
            and prep work; added GitHub repository setup guide for branch protection and
            coworker workflow
+- 2026/04: implemented an initial complete Python wrapper for the ga library in two
+           pieces: ga_bindgen (a libclang-based scanner that produces a manifest of the
+           public C++ API) and ga_py (a nanobind extension generated from the manifest,
+           exposing the full ga/ surface as ga_py.ega and ga_py.pga submodules); ported
+           the Python wrapper to Windows; added vec3dp/vec2dp constructors from
+           vec3d/vec2d; completed testing for physics modelling of rotations in moving
+           systems; resolved bugs in several templated product expressions that surfaced
+           during the wrapper work; established a Python test suite with 411 tests
+           covering constants, grade lookup, EGA/PGA algebraic identities (randomized via
+           hypothesis), and a JSON cross-check against the C++ reference output to ensure
+           C++ and Python give the same results; renamed left_/right_ to l_/r_
+           consistently across complements and duals for a uniform naming pattern; moved
+           norms out of the fundamental type definitions into the algebras themselves;
+           added regressive multivector products with ps and s for PGA; completed
+           documentation on rotational accelerations; added active_ode_plate vector
+           addition in ga_view; restructured ga_py / ga_bindgen documentation for
+           first-time users (six-section ga_py/README with quick-start, demo script at
+           ga_py/demo/hello_ga.py, retired TODO/considerations_python_wrapper.md with
+           content folded into the READMEs); various documentation improvements and a
+           spellchecking pass
