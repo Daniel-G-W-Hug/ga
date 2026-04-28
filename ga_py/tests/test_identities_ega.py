@@ -9,7 +9,6 @@ inputs; here we randomize the inputs via hypothesis so the same
 algebraic invariants get hit on hundreds of cases per run.
 
 Reference: ga_test/src/ga_ega3d_test.hpp.
-Plan reference: TODO/considerations_python_wrapper.md sec. 7.3, step T3.
 
 Tolerance policy: relative tolerance via conftest.approx_eq, with
 a slightly looser default for chains that involve wedge + inverse +

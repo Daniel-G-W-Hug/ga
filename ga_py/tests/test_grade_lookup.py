@@ -12,8 +12,6 @@ By design, neither is defined for every type:
     PGA-specific concept (degenerate metric).
 
 This file tests only the cases where each function is defined.
-
-Plan reference: TODO/considerations_python_wrapper.md sec. 7.3, step T2.
 """
 
 from __future__ import annotations

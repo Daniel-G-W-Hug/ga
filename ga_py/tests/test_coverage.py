@@ -2,8 +2,8 @@
 
 These are light tests: confirm each type is exposed under the right submodule,
 can be constructed with N doubles, prints cleanly, and supports the basic
-operator set. Heavier numerical / identity tests come with the cross-check
-harness described in TODO/considerations_python_wrapper.md.
+operator set. Heavier numerical / identity tests live in test_identities_*.py
+and test_cross_check.py.
 """
 from __future__ import annotations
 

@@ -7,7 +7,6 @@ foundational invariants known to hold in C++ and verify the bindings
 yield the same answer on randomized inputs.
 
 Reference: ga_test/src/ga_pga3dp_test.hpp.
-Plan reference: TODO/considerations_python_wrapper.md sec. 7.3, step T4.
 
 PGA-specific gotchas:
   * "Ideal" elements (points/lines/planes at infinity) have weight_nrm == 0.

@@ -6,7 +6,6 @@ bound constants and verifies their components, plus the alias and cross-
 relation invariants spelled out in the C++ source.
 
 Source of truth: ga/ga_usr_consts.hpp.
-Plan reference: TODO/considerations_python_wrapper.md sec. 7.3, step T1.
 """
 
 from __future__ import annotations

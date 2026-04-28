@@ -1,40 +1,8 @@
 # ga_bindgen — Binding Generator for `ga/`
 
+> **For contributors regenerating Python bindings.** End users only need [`ga_py/README.md`](../ga_py/README.md) — generated bindings are committed to git, so building or using `ga_py` does not require this tool.
+
 Tool that scans the C++ headers in `ga/` with libclang and emits Python (nanobind) bindings for `ga_py/`. Single source of truth: the C++ headers themselves.
-
-Status: **end-to-end pipeline proof** — currently emits bindings only for `vec3d` to validate the full scanner → emitter → CMake → Python import flow. Expanding to all 39 user types is mechanical from here.
-
-See `TODO/considerations_python_wrapper.md` for the full design context.
-
-## Two virtual environments — don't mix them
-
-This project keeps the binding generator and the wrapper in separate venvs. They serve different roles, have different dependencies, and must not be conflated:
-
-| Venv path | Used for | Dependencies |
-| --- | --- | --- |
-| `build/spike_libclang/.venv` | **Regenerating bindings via `ga_bindgen`** (this tool). Only contributors touching `ga/*.hpp` or this generator need it. | `libclang` |
-| `ga_py/.venv` | **Running the wrapper and its tests.** Everyday development of `ga_py/`. | `pytest`, `hypothesis`, `numpy` |
-
-If you run `python ga_bindgen/src/scan.py` from the wrong venv, libclang won't be importable. If you run `pytest ga_py/tests/` from the wrong venv, `pytest` won't be on PATH (or `hypothesis` will be missing).
-
-**macOS / Linux:**
-
-```bash
-# For regenerating bindings (this tool):
-source build/spike_libclang/.venv/bin/activate
-
-# For wrapper development / running tests (separate session):
-source ga_py/.venv/bin/activate
-```
-
-**Windows** (`Scripts\` instead of `bin/`):
-
-```bat
-build\spike_libclang\.venv\Scripts\activate
-
-rem separate session for wrapper tests:
-ga_py\.venv\Scripts\activate
-```
 
 ## Components
 
@@ -45,20 +13,25 @@ ga_bindgen/
 │   ├── model.py           # manifest dataclasses (schema_version=1)
 │   ├── scan.py            # ga/*.hpp → manifest.json
 │   └── emit_nanobind.py   # manifest.json → ga_py/src/generated/*.cpp
-├── manifest.json          # last-known API snapshot (committed once stable)
+├── manifest.json          # last-known API snapshot (committed)
 └── README.md
 ```
 
 ## Usage
 
-Run from the project root with a venv that has `libclang` and `nanobind` installed:
+The generator runs in its own venv (`build/spike_libclang/.venv`) — separate from the wrapper venv. See [`ga_py/README.md §5.1`](../ga_py/README.md#51-the-two-virtual-environments--dont-mix-them) for the rationale and side-by-side activation commands.
 
 ```bash
+source build/spike_libclang/.venv/bin/activate
+
 # Step 1 — scan headers, write manifest
 python3 ga_bindgen/src/scan.py
 
 # Step 2 — emit nanobind glue from manifest
 python3 ga_bindgen/src/emit_nanobind.py
+
+# Step 3 — recompile (back in the wrapper venv or directly)
+cmake --build build
 ```
 
 Both scripts take `--help`.
@@ -67,7 +40,7 @@ Both scripts take `--help`.
 
 - Python 3.10+
 - `libclang` Python package — wraps the native libclang shared library. Install with `pip install libclang`. The pip package ships the shared library on Linux and Windows; on macOS the bundled resource dir is broken, so a system/Homebrew LLVM is required (see below).
-- `nanobind` — only needed at C++ compile time for the generated bindings, not by ga_bindgen itself.
+- `nanobind` — only needed at C++ compile time for the generated bindings, not by `ga_bindgen` itself.
 
 ### Platform notes
 
@@ -85,13 +58,7 @@ apt install libclang-dev   # or the distro equivalent
 pip install libclang
 ```
 
-**Windows:** Install [LLVM](https://releases.llvm.org/download.html) (the pre-built Windows installer); `clang_setup.py` probes `C:\Program Files\LLVM\lib\libclang.dll` automatically. Then:
-
-```bat
-pip install libclang
-```
-
-Create the venv and install:
+**Windows:** Install [LLVM](https://releases.llvm.org/download.html) (the pre-built Windows installer); `clang_setup.py` probes `C:\Program Files\LLVM\lib\libclang.dll` automatically. Then create the venv:
 
 ```bat
 python -m venv build\spike_libclang\.venv
@@ -101,5 +68,23 @@ build\spike_libclang\.venv\Scripts\pip install libclang
 ## Design notes
 
 - **Generated files committed to git**: regeneration is an explicit step run by contributors, not an implicit build dependency. PR diffs show exactly what new Python surface a C++ change created.
-- **Filter:** only symbols declared inside `ga/` are collected; system headers, `fmt`, etc. are excluded.
+- **Filter:** only symbols declared inside `ga/` are collected; system headers, `fmt`, etc. are excluded. The allow-list in `scan.py` is `{"hd::ga", "hd::ga::ega", "hd::ga::pga"}` — `hd::ga::detail` is excluded by design (see [`ga_py/README.md §6.8`](../ga_py/README.md#68-excluded-namespace-hdgadetail)).
 - **Value type frozen at `value_t = double`** in v1.
+
+## Open items / future work
+
+These are tooling features that have not landed yet. Wrapper-side open work lives in [`ga_py/README.md §6`](../ga_py/README.md#6-open-items--future-work).
+
+### `audit_lua.py` — per-overload Lua coverage audit
+
+`ga_lua/src/ga_lua.hpp` is hand-maintained and known incomplete. The plan is to invert the relationship — let `ga_bindgen` produce the authoritative manifest and audit Lua against it.
+
+A 2026-04 string-search spike confirmed gaps (`rk4_step`, `rk4_get_time`, `Hz2radps`, `radps2Hz`, `rpm2radps`, `radps2rpm`, `*_metric_view` helpers). A per-overload audit driven by the manifest is the next step, with output landing in `ga_bindgen/reports/lua_coverage_*.md`. The Python wrapper does not depend on it.
+
+### Stub generation `emit_stubs.py`
+
+Emit `.pyi` files alongside the `bindings_*.cpp` so IDEs and `mypy --strict` can see the Python surface. See [`ga_py/README.md §6.2`](../ga_py/README.md#62-stub-generation-pyi-and-mypy) for the user-visible motivation.
+
+### Manifest delta report
+
+A `reports/delta_YYYY-MM-DD.md` showing "new since last run", "removed since last run", "changed signature" diffs would help PR reviewers. Low priority — `git diff` on `manifest.json` mostly serves the same purpose.
