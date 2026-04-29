@@ -4,34 +4,18 @@
 // Licensed under the terms specified in LICENSE.txt file.
 
 #include <cmath>     // std::cos, std::sin
+#include <mdspan>    // std::mdspan, std::dextents (used by rk4_step)
 #include <numbers>   // math constants like pi
 #include <stdexcept> // std::invalid_argument
 
 #include "detail/type_t/ga_scalar_t.hpp"
 #include "ga_value_t.hpp"
 
-////////////////////////////////////////////////////////////////////////////////
-// mdspan selection logic for RK4 integration
-// (selects between C++23 std::mdspan and Kokkos fallback)
-////////////////////////////////////////////////////////////////////////////////
-#if defined(HD_GA_USE_KOKKOS_MDSPAN)
-// User explicitly requested Kokkos mdspan
-#include "mdspan/mdspan.hpp"
-#define HD_GA_MDSPAN_NS Kokkos
-#elif defined(HD_GA_USE_STD_MDSPAN) ||                                                   \
-    (defined(__cpp_lib_mdspan) && __cpp_lib_mdspan >= 202207L)
-// Use C++23 standard mdspan (explicitly requested or auto-detected)
-#include <mdspan>
-#define HD_GA_MDSPAN_NS std
-#else
-// Fallback to Kokkos mdspan for older compilers
-#include "mdspan/mdspan.hpp"
-#define HD_GA_MDSPAN_NS Kokkos
-#endif
-
-// Make mdspan types available
-using HD_GA_MDSPAN_NS::dextents;
-using HD_GA_MDSPAN_NS::mdspan;
+// Bring std::mdspan / std::dextents into the global namespace so that
+// existing call sites (`mdspan<...> u(...)`) keep compiling unchanged
+// after the Kokkos-fallback shim was removed.
+using std::dextents;
+using std::mdspan;
 
 namespace hd::ga {
 
@@ -178,9 +162,9 @@ inline value_t rk4_get_time(value_t ti, value_t dt, size_t rk_step)
 //   rk_step - RK sub-step (1, 2, 3, or 4)
 template <typename VecType>
 void rk4_step(
-    HD_GA_MDSPAN_NS::mdspan<VecType, HD_GA_MDSPAN_NS::dextents<size_t, 1>> u,
-    HD_GA_MDSPAN_NS::mdspan<VecType, HD_GA_MDSPAN_NS::dextents<size_t, 2>> uh,
-    HD_GA_MDSPAN_NS::mdspan<VecType const, HD_GA_MDSPAN_NS::dextents<size_t, 1>> rhs,
+    std::mdspan<VecType, std::dextents<size_t, 1>> u,
+    std::mdspan<VecType, std::dextents<size_t, 2>> uh,
+    std::mdspan<VecType const, std::dextents<size_t, 1>> rhs,
     value_t const dt, size_t rk_step)
 {
 

@@ -5,21 +5,19 @@
 
 #include "ga_fmt_core.hpp"
 
-// Include physics headers to get the HD_GA_PGA*_HAS_PHYSICS_OPS macros
-// These headers are already included before ga_fmt_support.hpp in ga_pga.hpp
+// Pull in the physics inertia types so their fmt::formatter specialisations
+// below are available wherever ga_pga.hpp is included.
 #include "../../ga_pga2dp_ops_physics.hpp"
 #include "../../ga_pga3dp_ops_physics.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Formatting support for PGA Physics types (Inertia matrices)
-// These formatters are conditionally compiled based on availability of hd_solver.hpp
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inertia2dp<T> - 3x3 inertia matrix for 2D projective GA
 ////////////////////////////////////////////////////////////////////////////////
-#if HD_GA_PGA2DP_HAS_PHYSICS_OPS
 
 template <typename T>
 struct fmt::formatter<hd::ga::pga::Inertia2dp<T>> : fmt::nested_formatter<T> {
@@ -56,13 +54,10 @@ struct fmt::formatter<hd::ga::pga::Inertia2dp<T>> : fmt::nested_formatter<T> {
     }
 };
 
-#endif // HD_GA_PGA2DP_HAS_PHYSICS_OPS
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inertia3dp<T> - 6x6 inertia matrix for 3D projective GA
 ////////////////////////////////////////////////////////////////////////////////
-#if HD_GA_PGA3DP_HAS_PHYSICS_OPS
 
 template <typename T>
 struct fmt::formatter<hd::ga::pga::Inertia3dp<T>> : fmt::nested_formatter<T> {
@@ -98,5 +93,3 @@ struct fmt::formatter<hd::ga::pga::Inertia3dp<T>> : fmt::nested_formatter<T> {
         return fmt::format_to(out, ")");
     }
 };
-
-#endif // HD_GA_PGA3DP_HAS_PHYSICS_OPS
