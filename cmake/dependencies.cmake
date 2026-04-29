@@ -26,19 +26,6 @@ function(setup_ga_dependencies)
     # Otherwise use traditional dependency management
     message(STATUS "Setting up GA dependencies...")
 
-    # Check for local hd utility library (project-specific dependency)
-    # Required for: ga_pga2dp_ops_physics.hpp, ga_pga3dp_ops_physics.hpp (LU solver)
-    #               ga_view ODE integration (rk4_integration.hpp)
-    if(EXISTS "${CMAKE_SOURCE_DIR}/../../include/hd")
-        message(STATUS "✓ Found local hd utility library at: ${CMAKE_SOURCE_DIR}/../../include/hd")
-        set(GA_HAS_HD_UTILS TRUE PARENT_SCOPE)
-    else()
-        message(WARNING "hd utility library not found at expected location: ${CMAKE_SOURCE_DIR}/../../include/hd")
-        message(STATUS "  PGA physics operations (inertia, rigid body dynamics) will not be available")
-        message(STATUS "  ga_view ODE functionality will not work properly")
-        set(GA_HAS_HD_UTILS FALSE PARENT_SCOPE)
-    endif()
-
     # Find flexible dependencies using three-tier logic
     find_fmt_tiered()
     find_doctest_tiered()

@@ -3,15 +3,7 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-// Physics operations require hd_solver.hpp from the hd utility library.
-// If not available, this header provides no functionality.
-#if __has_include("hd/hd_solver.hpp")
-#define HD_GA_PGA2DP_HAS_PHYSICS_OPS 1
-#include "hd/hd_determinant.hpp" // includes hd_solver.hpp
-#else
-#define HD_GA_PGA2DP_HAS_PHYSICS_OPS 0
-#endif
-
+#include "detail/ga_solver.hpp" // hd::ga::lu_decomp / lu_backsubs / det
 #include "ga_pga2dp_ops.hpp"
 #include "ga_value_t.hpp" // for value_t used in convenience type alias
 
@@ -21,8 +13,6 @@
 
 
 namespace hd::ga::pga {
-
-#if HD_GA_PGA2DP_HAS_PHYSICS_OPS
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inertia2dp: Inertia matrix for 2D projective GA (3x3 matrix)
@@ -200,7 +190,7 @@ template <typename T>
 Inertia2dp<T> get_inertia_inverse(Inertia2dp<T> const& I)
 {
     // Check determinant before attempting inversion
-    T const d = hd::det(I.view());
+    T const d = hd::ga::det(I.view());
     if (d == T{0}) {
         throw std::invalid_argument(
             "get_inertia_inverse: singular inertia matrix (determinant is zero)");
@@ -216,7 +206,7 @@ Inertia2dp<T> get_inertia_inverse(Inertia2dp<T> const& I)
     auto A = std::mdspan<double, std::dextents<size_t, 2>>{A_data.data(), 3, 3};
     auto perm_view = std::mdspan<int, std::dextents<size_t, 1>>{perm.data(), 3};
 
-    hd::lu_decomp(A, perm_view);
+    hd::ga::lu_decomp(A, perm_view);
 
     // Solve for each column of identity matrix to get inverse
     Inertia2dp<T> I_inv;
@@ -228,7 +218,7 @@ Inertia2dp<T> get_inertia_inverse(Inertia2dp<T> const& I)
         std::array<double, 3> e = {0.0, 0.0, 0.0};
         e[col] = 1.0;
         auto e_view = std::mdspan<double, std::dextents<size_t, 1>>{e.data(), 3};
-        hd::lu_backsubs(A_const, perm_const, e_view);
+        hd::ga::lu_backsubs(A_const, perm_const, e_view);
 
         // Store column in row-major format
         for (size_t row = 0; row < 3; ++row) {
@@ -259,8 +249,6 @@ Vec2dp<T> compute_omega_dot(Inertia2dp<T> const& I_inv, BiVec2dp<T> const& F,
     return I_inv(rhs); // returns the change rate Omega
 }
 
-#endif // HD_GA_PGA2DP_HAS_PHYSICS_OPS
-
 } // namespace hd::ga::pga
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -268,8 +256,6 @@ Vec2dp<T> compute_omega_dot(Inertia2dp<T> const& I_inv, BiVec2dp<T> const& F,
 /////////////////////////////////////////////////////////////////////////////////////////
 namespace hd::ga {
 
-#if HD_GA_PGA2DP_HAS_PHYSICS_OPS
 using inertia2dp = pga::Inertia2dp<value_t>; // 3x3 inertia matrix for 2D rigid body
-#endif
 
 } // namespace hd::ga

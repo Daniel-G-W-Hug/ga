@@ -14,7 +14,7 @@
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
 
-#include "hd/hd_determinant.hpp"
+// hd::ga::det / lu_decomp / lu_backsubs come transitively via ga_pga.hpp.
 
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
@@ -197,9 +197,9 @@ TEST_SUITE("PGA2DP: physics tests prep")
         auto I_X2 = get_point_inertia(m, X2);
         I_tot += I_X2;
 
-        auto det_I_X1 = hd::det(I_X1.view());
-        auto det_I_X2 = hd::det(I_X2.view());
-        auto det_I_tot = hd::det(I_tot.view());
+        auto det_I_X1 = hd::ga::det(I_X1.view());
+        auto det_I_X2 = hd::ga::det(I_X2.view());
+        auto det_I_tot = hd::ga::det(I_tot.view());
 
         auto I_tot_inv = get_inertia_inverse(I_tot);
 
@@ -338,7 +338,7 @@ TEST_SUITE("PGA2DP: physics tests prep")
             }
         }
 
-        auto const det_I_grid = hd::det(I_grid.view());
+        auto const det_I_grid = hd::ga::det(I_grid.view());
         auto const I_grid_inv = get_inertia_inverse(I_grid);
 
         fmt::println("I_grid     = {:>-10.6f}", I_grid);

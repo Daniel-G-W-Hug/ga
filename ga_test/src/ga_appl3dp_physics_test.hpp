@@ -14,7 +14,7 @@
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
 
-#include "hd/hd_determinant.hpp"
+// hd::ga::det / lu_decomp / lu_backsubs come transitively via ga_pga.hpp.
 
 using namespace hd::ga;      // use ga types, constants, etc.
 using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
@@ -277,7 +277,7 @@ TEST_SUITE("PGA3DP: physics tests prep")
             }
         }
 
-        auto const det_I_grid = hd::det(I_grid.view());
+        auto const det_I_grid = hd::ga::det(I_grid.view());
         auto const I_grid_inv = get_inertia_inverse(I_grid);
 
         fmt::println("I_grid     = {:>-10.6f}", I_grid);
