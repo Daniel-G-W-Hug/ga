@@ -5,9 +5,12 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
 #include <fmt/format.h>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "ga/ga_ega.hpp"
@@ -31,5 +34,15 @@ void bind_line2d(nb::module_& m) {
         .def("__str__", [](const line2d& v) {
             return fmt::format("{}", static_cast<const bivec2dp&>(v));
         })
+        .def("__format__",
+            [](const line2d& v, std::string_view spec) {
+                try {
+                    if (spec.empty()) return fmt::format("{}", static_cast<const bivec2dp&>(v));
+                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
+                                       static_cast<const bivec2dp&>(v));
+                } catch (fmt::format_error const& e) {
+                    throw std::invalid_argument(e.what());
+                }
+            }, nb::arg("format_spec"))
         ;
 }

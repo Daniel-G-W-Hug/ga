@@ -36,9 +36,12 @@ GENERATED_HEADER = """\
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
 #include <fmt/format.h>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "ga/ga_ega.hpp"
@@ -590,6 +593,45 @@ def submodule_for(t: TypeAlias) -> str:
     return "ega"
 
 
+def emit_format_lambda(cls: str, *, param: str = "v",
+                       cast_to_base: str | None = None) -> str:
+    """Emit a `__format__` lambda that pipes Python f-string format specs into
+    `fmt::format`. Empty spec uses the default format (matches `__str__`);
+    non-empty spec is wrapped in `{:<spec>}` and dispatched through fmt's
+    runtime parser. Bad specs raise `ValueError` (via `std::invalid_argument`,
+    which nanobind translates to `PyExc_ValueError`) — matching Python's
+    builtin convention for malformed format strings.
+
+    The fmt grammar mirrors Python's PEP 3101 mini-language for the
+    sign/width/precision/type cases that matter in practice (`f e g d x o b`,
+    width, `.precision`, `+`/`-`/space, `<`/`>`/`^` align). Three Python-only
+    features have no fmt equivalent: `,`/`_` thousands separators, the `%`
+    percentage type, and full-string width (specs apply per-component for
+    compound GA types). See `ga_py/README.md` for the user-facing details.
+
+    `param` is the lambda parameter name (matches the surrounding emitter's
+    convention — `v` for vector-shaped types, `s` for scalar-shaped types).
+
+    `cast_to_base` is set when the bound C++ type does not have a
+    `fmt::formatter` of its own and must be rendered through its base's
+    formatter (the inherited-binding case).
+    """
+    target = (f"static_cast<const {cast_to_base}&>({param})"
+              if cast_to_base else param)
+    return (
+        f'        .def("__format__",\n'
+        f'            [](const {cls}& {param}, std::string_view spec) {{\n'
+        f"                try {{\n"
+        f'                    if (spec.empty()) return fmt::format("{{}}", {target});\n'
+        f'                    return fmt::format(fmt::runtime("{{:" + std::string(spec) + "}}"),\n'
+        f"                                       {target});\n"
+        f"                }} catch (fmt::format_error const& e) {{\n"
+        f"                    throw std::invalid_argument(e.what());\n"
+        f"                }}\n"
+        f'            }}, nb::arg("format_spec"))'
+    )
+
+
 def emit_inherited_binding(t: TypeAlias,
                            base_t: TypeAlias,
                            type_map: dict[str, str],
@@ -673,12 +715,13 @@ def emit_inherited_binding(t: TypeAlias,
         f'            return fmt::format("{{}}", static_cast<const {base}&>(v));\n'
         f"        }})"
     )
+    format_lambda = emit_format_lambda(cls, cast_to_base=base)
 
     binop_lines: list[str] = []
     for dunder, rhs, _ret, callable_text, kind in (binary_ops or []):
         binop_lines.append(render_op_def(cls, dunder, rhs, callable_text, kind))
 
-    body = "\n".join(ctor_lines + [repr_lambda, str_lambda] + binop_lines)
+    body = "\n".join(ctor_lines + [repr_lambda, str_lambda, format_lambda] + binop_lines)
     return (
         f"void bind_{cls}(nb::module_& m) {{\n"
         f'    nb::class_<{cls}, {base}>(m, "{cls}")\n'
@@ -730,6 +773,7 @@ def emit_scalar_binding(t: TypeAlias,
         f'            return fmt::format("{{}}", s);\n'
         f"        }})"
     )
+    format_lambda = emit_format_lambda(cls, param="s")
 
     # Conservative operator set for Scalar_t<T, Tag>:
     #   - same-type + and - (defined for both scalar and pscalar)
@@ -786,7 +830,8 @@ def emit_scalar_binding(t: TypeAlias,
         binop_lines.append(render_op_def(cls, dunder, rhs, callable_text, kind))
 
     body = "\n".join(
-        ctor_lines + [value_prop, float_method, repr_lambda, str_lambda]
+        ctor_lines
+        + [value_prop, float_method, repr_lambda, str_lambda, format_lambda]
         + op_lines + binop_lines
     )
     return (
@@ -880,6 +925,7 @@ def emit_type_binding(t: TypeAlias,
         f'            return fmt::format("{{}}", v);\n'
         f"        }})"
     )
+    format_lambda = emit_format_lambda(cls)
 
     # Operators kept on `nb::self`:
     #   - unary minus
@@ -923,7 +969,8 @@ def emit_type_binding(t: TypeAlias,
             f'        .def("{method_name}", [](const {cls}& M) {{ return {method_name}(M); }})'
         )
 
-    body = "\n".join(ctor_lines + field_lines + [repr_lambda, str_lambda]
+    body = "\n".join(ctor_lines + field_lines
+                     + [repr_lambda, str_lambda, format_lambda]
                      + op_lines + binop_lines + grade_lines)
     return (
         f"void bind_{cls}(nb::module_& m) {{\n"

@@ -5,9 +5,12 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
 #include <fmt/format.h>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "ga/ga_ega.hpp"
@@ -29,6 +32,16 @@ void bind_point3d(nb::module_& m) {
         .def("__str__", [](const point3d& v) {
             return fmt::format("{}", static_cast<const vec3d&>(v));
         })
+        .def("__format__",
+            [](const point3d& v, std::string_view spec) {
+                try {
+                    if (spec.empty()) return fmt::format("{}", static_cast<const vec3d&>(v));
+                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
+                                       static_cast<const vec3d&>(v));
+                } catch (fmt::format_error const& e) {
+                    throw std::invalid_argument(e.what());
+                }
+            }, nb::arg("format_spec"))
         .def("__xor__", [](point3d const& a, line3d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](point3d const& a, point3d const& b) { return wdg(a, b); }, nb::is_operator())
         ;
