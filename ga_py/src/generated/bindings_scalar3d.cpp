@@ -5,9 +5,12 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
 #include <fmt/format.h>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "ga/ga_ega.hpp"
@@ -32,6 +35,16 @@ void bind_scalar3d(nb::module_& m) {
         .def("__str__", [](const scalar3d& s) {
             return fmt::format("{}", s);
         })
+        .def("__format__",
+            [](const scalar3d& s, std::string_view spec) {
+                try {
+                    if (spec.empty()) return fmt::format("{}", s);
+                    return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
+                                       s);
+                } catch (fmt::format_error const& e) {
+                    throw std::invalid_argument(e.what());
+                }
+            }, nb::arg("format_spec"))
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)
