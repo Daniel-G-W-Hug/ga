@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this
+repository.
 
 ## Project Paths and Build System
 
@@ -8,9 +9,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Project Root**: `/Users/hud3bh/prg/cpp/pj/ga/` (absolute path)
 - **Build Directory**: `/Users/hud3bh/prg/cpp/pj/ga/build/` (absolute path)
-- **Working Directory**: Always work from the build directory when running executables or when creating temporary files
-- **Source Files**: Always in `/Users/hud3bh/prg/cpp/pj/ga/[module]/src/` or `/Users/hud3bh/prg/cpp/pj/ga/ga_prdxpr/src_trafo/`
-- **File Organization**: Keep all temporary/debug files in the build directory (`build/`) rather than the source tree to maintain clean project organization.
+- **Working Directory**: Always work from the build directory when running executables or
+  when creating temporary files
+- **Source Files**: Always in `/Users/hud3bh/prg/cpp/pj/ga/[module]/src/` or
+  `/Users/hud3bh/prg/cpp/pj/ga/ga_prdxpr/src_trafo/`
+- **File Organization**: Keep all temporary/debug files in the build directory (`build/`)
+  rather than the source tree to maintain clean project organization.
 
 **Build Directory Structure:**
 
@@ -64,7 +68,8 @@ cd .. && rm -rf build && mkdir build && cd build && cmake ..
 5. Build: `cmake --build .`
 6. Run executables: `cd ga_lua && ./ga_lua && cd ..`, `cd ga_test && ./ga_ega_test &&
    cd..`, etc.
-7. For refactoring with reference output data always match reference output 100% character-identical
+7. For refactoring with reference output data always match reference output 100%
+   character-identical
 
 ## Running Tests
 
@@ -86,13 +91,15 @@ cd ga_view && ./ga_view && cd ..                  # Qt6 visualization tool
 cd ga_prdxpr && ./ga_prdxpr --help && cd ..       # Code generator - see README.md for details
 ```
 
-**Note:** For complete `ga_prdxpr` usage documentation, see the [README.md](README.md#ga-product-expression-generator-ga_prdxpr) file.
+**Note:** For complete `ga_prdxpr` usage documentation, see the
+[README.md](README.md#ga-product-expression-generator-ga_prdxpr) file.
 
 ## Project Architecture
 
 This is a header-only geometric algebra library (`ga/`) with accompanying modules:
 
-- **ga/**: Core header-only GA library supporting both Euclidean (EGA) and Projective (PGA) geometric algebra
+- **ga/**: Core header-only GA library supporting both Euclidean (EGA) and Projective
+  (PGA) geometric algebra
 - **ga_test/**: Test suite using doctest framework
 - **ga_view/**: Qt6-based 2D visualization tool for GA objects and operations
 - **ga_lua/**: Lua scripting interface for GA operations
@@ -100,22 +107,27 @@ This is a header-only geometric algebra library (`ga/`) with accompanying module
 
 ### Notation Conventions
 
-When writing documentation, comments, or mathematical expressions for this codebase, use the following notation:
+When writing documentation, comments, or mathematical expressions for this codebase, use
+the following notation:
 
-| Symbol | Unicode | LaTeX | Meaning |
-| --- | --- | --- | --- |
-| ⟑ | U+27D1 | (direct Unicode) | Geometric product |
-| ⟇ | U+27C7 | (direct Unicode) | Regressive geometric product |
-| $\tilde{M}$ | — | `\tilde{}` | Reverse of M (`rev(M)` in code) |
-| $\utilde{M}$ | — | `\utilde{}` / `\undertilde{}` | Regressive reverse of M (`rrev(M)` in code) |
+| Symbol       | Unicode | LaTeX                         | Meaning                                     |
+| ------------ | ------- | ----------------------------- | ------------------------------------------- |
+| ⟑            | U+27D1  | (direct Unicode)              | Geometric product                           |
+| ⟇            | U+27C7  | (direct Unicode)              | Regressive geometric product                |
+| $\tilde{M}$  | —       | `\tilde{}`                    | Reverse of M (`rev(M)` in code)             |
+| $\utilde{M}$ | —       | `\utilde{}` / `\undertilde{}` | Regressive reverse of M (`rrev(M)` in code) |
 
 **Notes:**
 
-- **Markdown files** (`.md`): use `\utilde{}` — works natively in LaTeX (Markdown previewers) without a package import
-- **LaTeX documentation** (`ga_docu`): use `\undertilde{}` from the `accents` package (`\usepackage{accents}`)
-- For unit motors, `rev(M)` and `rrev(M)` coincide as group inverses, but the symbols and function names are kept distinct throughout this codebase
+- **Markdown files** (`.md`): use `\utilde{}` — works natively in LaTeX (Markdown
+  previewers) without a package import
+- **LaTeX documentation** (`ga_docu`): use `\undertilde{}` from the `accents` package
+  (`\usepackage{accents}`)
+- For unit motors, `rev(M)` and `rrev(M)` coincide as group inverses, but the symbols and
+  function names are kept distinct throughout this codebase
 - Motor composition uses ⟇: `M₁ ⟇ M₂` corresponds to `rgpr(M1, M2)` in code
-- The sandwich product for rigid motion uses $\utilde{M}$: $M ⟑ X ⟑ \utilde{M}$ corresponds to `move2dp(X, M)` / `move3dp(X, M)` in code
+- The sandwich product for rigid motion uses $\utilde{M}$: $M ⟑ X ⟑ \utilde{M}$
+  corresponds to `move2dp(X, M)` / `move3dp(X, M)` in code
 
 ### Library Usage Patterns
 
@@ -128,18 +140,20 @@ Critical usage requirements:
 
 1. All GA code must be wrapped in try-catch blocks to handle exceptions
 2. Use namespace `hd::ga` and either `hd::ga::ega` or `hd::ga::pga`
-3. **Always enclose left/right contractions (`<<` and `>>` operators) in parentheses due to operator precedence**
+3. **Always enclose left/right contractions (`<<` and `>>` operators) in parentheses due
+   to operator precedence**
 4. The base scalar type (float/double) is configured globally in `ga/ga_value_t.hpp`
 
 ### Type System Architecture
 
 - Template types: `Scalar2d<T>`, `Vec2d<T>`, `BiVec2d<T>`, `MVec2d_E<T>`, etc.
-- User convenience types: `scalar2d`, `vec2d`, `bivec2d`, `mvec2d`, etc. (based on `value_t`)
+- User convenience types: `scalar2d`, `vec2d`, `bivec2d`, `mvec2d`, etc. (based on
+  `value_t`)
 - Multivector types differentiate between even (`_E`), odd (`_U`), and full (`MVec`)
   multivectors
 - Function call arguments for scalar and pscalar use `Scalar2d<T> a`, etc. directly
-  instead of `Scalar2d<T> const& a` (cheap to copy), while for vector and bivector, etc. use
-  `Vec2d<T> const&` for unmodifiable arguments
+  instead of `Scalar2d<T> const& a` (cheap to copy), while for vector and bivector, etc.
+  use `Vec2d<T> const&` for unmodifiable arguments
 - **CRITICAL**: ALWAYS use "east const" convention (see dedicated section below)
 
 ### East const convention (MANDATORY)
@@ -207,10 +221,12 @@ const size_t n                   // Wrong! Use: size_t const n
 
 **WHY East const?**
 
-- **Consistency**: Type qualifiers read left-to-right: `int const*` = "pointer to const int"
+- **Consistency**: Type qualifiers read left-to-right: `int const*` = "pointer to const
+  int"
 - **Clarity**: `T const&` clearly shows "const reference to T"
 - **No Ambiguity**: With templates, `T const` works uniformly regardless of what T is
-- **This Project's Standard**: All existing code in ga/ and ga_prdxpr/ follows this convention
+- **This Project's Standard**: All existing code in ga/ and ga_prdxpr/ follows this
+  convention
 
 **IMPORTANT FOR CODE GENERATION:**
 
@@ -221,7 +237,8 @@ When you generate new C++ code (functions, classes, templates), you MUST:
 - Use east const for ALL local const variables: `auto const`, `size_t const`, etc.
 - Use east const for ALL return types: `std::string const&`, `Type const`, etc.
 
-**This is NOT optional** - all code must follow this convention for consistency with the existing codebase.
+**This is NOT optional** - all code must follow this convention for consistency with the
+existing codebase.
 
 ### Dependencies
 
@@ -235,7 +252,9 @@ Install on macOS: `brew install fmt doctest qt6 lua readline`
 
 **Critical Windows Build Requirements:**
 
-The Windows build uses a hybrid approach: vcpkg for most dependencies + direct system Lua static linking. This avoids ABI compatibility issues between MSVC and different Lua implementations.
+The Windows build uses a hybrid approach: vcpkg for most dependencies + direct system Lua
+static linking. This avoids ABI compatibility issues between MSVC and different Lua
+implementations.
 
 **Build Command Sequence:**
 
@@ -257,8 +276,10 @@ cmake --build . --target ga_lua --config Debug
 
 **Troubleshooting Windows Build Issues:**
 
-1. **CMake Variable Issues**: Check `ga_lua: DEBUG - LUA_INCLUDE_DIR=` and `LUA_LIBRARIES=` are populated
-2. **Include Order Problems**: Lua headers MUST come before sol2 in `target_include_directories`
+1. **CMake Variable Issues**: Check `ga_lua: DEBUG - LUA_INCLUDE_DIR=` and
+   `LUA_LIBRARIES=` are populated
+2. **Include Order Problems**: Lua headers MUST come before sol2 in
+   `target_include_directories`
 3. **Static Linking Verification**: Should link to `lua54.lib`, NOT `lua54.dll`
 4. **vcpkg Integration**: Ensure `CMAKE_TOOLCHAIN_FILE` points to vcpkg toolchain
 
@@ -276,7 +297,8 @@ cmake --build . --target ga_lua --config Debug
 
 ### Development Notes
 
-- Compiler definitions: `-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO` (extended testing), `-D_HD_GA_HAVE_READLINE`(readline support)
+- Compiler definitions: `-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO` (extended testing),
+  `-D_HD_GA_HAVE_READLINE`(readline support)
 - The library supports switching between debug/release builds via CMAKE_BUILD_TYPE
 - MSVC uses `/bigobj` flag due to template instantiation complexity
 - Additional compiler definitions start with `_HD_GA_` in order to be consistent
@@ -285,7 +307,9 @@ cmake --build . --target ga_lua --config Debug
 
 ## GA Product Expression Generator (ga_prdxpr/)
 
-The `ga_prdxpr/` directory contains a sophisticated **code generator** that produces optimized C++ expressions for geometric algebra operations. It supports four complete algebras: EGA2D, EGA3D, PGA2DP, and PGA3DP.
+The `ga_prdxpr/` directory contains a sophisticated **code generator** that produces
+optimized C++ expressions for geometric algebra operations. It supports four complete
+algebras: EGA2D, EGA3D, PGA2DP, and PGA3DP.
 
 ### Key Components
 
@@ -294,8 +318,10 @@ The `ga_prdxpr/` directory contains a sophisticated **code generator** that prod
 - `ga_prdxpr_*.hpp`: User defined information on algebra, rules and coefficients
 - `ga_prdxpr_*_config.cpp`: Algebra-specific configurations defining basis, coefficients,
   and product rules to be used for product generation
-- **AlgebraConfig**: Complete algebra specification (basis elements, complement rules, etc.)
-- **ProductDefinition**: Configures product types (geometric, wedge, contraction, sandwich, etc.)
+- **AlgebraConfig**: Complete algebra specification (basis elements, complement rules,
+  etc.)
+- **ProductDefinition**: Configures product types (geometric, wedge, contraction,
+  sandwich, etc.)
 - **ProductCase**: Individual expression cases with specific coefficient combinations
 
 **Generation Engine:**
@@ -324,7 +350,8 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 
 **Sandwich Products (Two-Step Pattern):**
 
-1. `rotor/motor * object → intermediate_result` (with parentheses via `brace_switch::use_braces`)
+1. `rotor/motor * object → intermediate_result` (with parentheses via
+   `brace_switch::use_braces`)
 2. `intermediate_result * rev/rrev(rotor/motor) → final_result`
 
 ### Algebra-Specific Behaviors
@@ -349,8 +376,10 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 
 ### Common Pitfalls
 
-1. **Coefficient Mismatches**: Each ProductType needs algebra-specific coefficient analysis
-2. **Operator Precedence**: Always parenthesize left/right contractions (`<<`, `>>`) in GA expressions
+1. **Coefficient Mismatches**: Each ProductType needs algebra-specific coefficient
+   analysis
+2. **Operator Precedence**: Always parenthesize left/right contractions (`<<`, `>>`) in GA
+   expressions
 3. **Output Format**: Case descriptions must match mathematical reality exactly
 
 ### Key Files for Modifications in ga_prdxpr subfolder
@@ -359,11 +388,15 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 - `ga_prdxpr_*_config.cpp`: Algebra-specific configurations and coefficient definitions
 - `ga_prdxpr_*.cpp`: Legacy reference implementations (don't modify, use for verification)
 
-**Important**: The ga_prdxpr system is a **complete, production-ready geometric algebra code generator** that produces mathematically accurate, optimized C++ expressions for all supported algebras.
+**Important**: The ga_prdxpr system is a **complete, production-ready geometric algebra
+code generator** that produces mathematically accurate, optimized C++ expressions for all
+supported algebras.
 
 ### Static Initialization Order Safety in ga_prdxpr
 
-**Critical Lesson**: ga_prdxpr experienced static initialization order fiasco (segmentation faults) during complement rule generation implementation. Key safety principles learned:
+**Critical Lesson**: ga_prdxpr experienced static initialization order fiasco
+(segmentation faults) during complement rule generation implementation. Key safety
+principles learned:
 
 **Root Causes of Static Initialization Issues:**
 
@@ -373,7 +406,8 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 
 **Required Safety Patterns:**
 
-1. **Inline Functions for Constants**: Convert all static string constants to inline functions:
+1. **Inline Functions for Constants**: Convert all static string constants to inline
+   functions:
 
    ```cpp
    // UNSAFE: Static variables
@@ -383,7 +417,8 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
    inline const std::string& one_str() { static const std::string s{"1"s}; return s; }
    ```
 
-2. **Staged Initialization**: Generate all rules in single pass, then assign to const variables:
+2. **Staged Initialization**: Generate all rules in single pass, then assign to const
+   variables:
 
    ```cpp
    // Stage 1: Generate all rules together (no dependencies)
@@ -394,7 +429,8 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
    const prd_rules complement_rules = generated_rules.complement;
    ```
 
-3. **Explicit Values for Cross-Referenced Rules**: Never reference extern variables in const initializations:
+3. **Explicit Values for Cross-Referenced Rules**: Never reference extern variables in
+   const initializations:
 
    ```cpp
    // UNSAFE: References extern before initialization
@@ -405,27 +441,35 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
    const prd_rules dual_rules = {{"1", "e123"}, {"e1", "e23"}, ...};
    ```
 
-**Future Dual Rule Implementation**: When adding dual rules, maintain these safety patterns to avoid recreating static initialization order issues.
+**Future Dual Rule Implementation**: When adding dual rules, maintain these safety
+patterns to avoid recreating static initialization order issues.
 
 ## Congruence Testing in Geometric Algebra
 
-**Key Mathematical Insight**: Elements are congruent if they represent the same geometric subspace up to scalar multiplication, **regardless of sign or magnitude**. The congruence test varies by grade:
+**Key Mathematical Insight**: Elements are congruent if they represent the same geometric
+subspace up to scalar multiplication, **regardless of sign or magnitude**. The congruence
+test varies by grade:
 
 **Congruence Rules by Grade:**
 
 - **Grade 0 (Scalars)**: All non-zero scalars represent the same 0-dimensional subspace
 - **Grade 1 (Vectors)**: Congruent if same subspace, e.g. parallel/antiparallel
 - **Grade 2+ (Bivectors, etc.)**: Congruent if same subspace, e.g. parallel/antiparallel
-- **Grade n (Pseudoscalars)**: All non-zero pseudoscalars represent the same n-dimensional subspace
+- **Grade n (Pseudoscalars)**: All non-zero pseudoscalars represent the same n-dimensional
+  subspace
 
-**Implementation Pattern**: Use type-specific function overloads with `requires` clauses instead of generic templates, since wedge products between same-grade high-order elements are often undefined (e.g., `wdg(BiVec3d, BiVec3d)` → grade 4, invalid in 3D).
+**Implementation Pattern**: Use type-specific function overloads with `requires` clauses
+instead of generic templates, since wedge products between same-grade high-order elements
+are often undefined (e.g., `wdg(BiVec3d, BiVec3d)` → grade 4, invalid in 3D).
 
-**Critical**: This logic applies to all algebras (EGA2D, EGA3D, PGA2DP, PGA3DP) but must account for algebra-specific grade structures and available operations.
+**Critical**: This logic applies to all algebras (EGA2D, EGA3D, PGA2DP, PGA3DP) but must
+account for algebra-specific grade structures and available operations.
 
 - **EGA2D**: `is_congruent()` for `Scalar2d`, `Vec2d`, `PScalar2d`
 - **EGA3D**: `is_congruent()` for `Scalar3d`, `Vec3d`, `BiVec3d`, `PScalar3d`
 - **PGA2DP**: `is_congruent()` for `Scalar2dp`, `Vec2dp`, `BiVec2dp`, `PScalar2dp`
-- **PGA3DP**: `is_congruent()` for `Scalar3dp`, `Vec3dp`, `BiVec3dp`, `TriVec3dp`, `PScalar3dp`
+- **PGA3DP**: `is_congruent()` for `Scalar3dp`, `Vec3dp`, `BiVec3dp`, `TriVec3dp`,
+  `PScalar3dp`
 
 **Unified Algorithm**:
 
@@ -442,7 +486,8 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 
 - **G(p,q,r)** notation: p positive, q negative, r null (degenerate) basis vectors
 - **Basis Elements**: Ordered combinations like `e1`, `e12`, `e123` with canonical ordering
-- **Grade Structure**: scalar (grade 0), vectors (grade 1), bivectors (grade 2), trivectors (grade 3), etc.
+- **Grade Structure**: scalar (grade 0), vectors (grade 1), bivectors (grade 2),
+  trivectors (grade 3), etc.
 - **Metric Signature**: Defines how basis vectors square (e.g., e1² = +1, e2² = -1, e3² = 0)
 
 **Product Operations:**
@@ -522,13 +567,17 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 3. **Canonical Forms**: Use user-provided basis ordering to avoid ambiguity
 4. **Mixed Signatures**: Require algebra-specific extended metric rules
 
-**Validation Success**: The automatic generation system produces character-identical results for all five tested algebras (EGA2D, EGA3D, PGA2DP, PGA3DP, STA4D) across geometric, wedge, and dot products.
+**Validation Success**: The automatic generation system produces character-identical
+results for all five tested algebras (EGA2D, EGA3D, PGA2DP, PGA3DP, STA4D) across
+geometric, wedge, and dot products.
 
 ## Congruence Implementation and Numerical Precision
 
 ### Congruence Testing for Geometric Algebra Elements
 
-The library implements unified congruence testing using the `is_congruent*()` functions to determine when two GA elements represent the same subspace (i.e., are scalar multiples of each other).
+The library implements unified congruence testing using the `is_congruent*()` functions to
+determine when two GA elements represent the same subspace (i.e., are scalar multiples of
+each other).
 
 **Implementation Pattern (Unified A = k*B Approach):**
 
@@ -543,8 +592,10 @@ bool is_congruent(const T& a, const U& b, value_t tolerance = eps)
 
 **Type-Specific Logic:**
 
-- **Scalars/Pseudoscalars**: All non-zero elements of same grade are congruent (represent same-dimensional subspace)
-- **Vectors/Bivectors/Trivectors**: Use component-wise proportionality testing with `A = k*B` relationship
+- **Scalars/Pseudoscalars**: All non-zero elements of same grade are congruent (represent
+  same-dimensional subspace)
+- **Vectors/Bivectors/Trivectors**: Use component-wise proportionality testing with `A =
+  k*B` relationship
 
 ### Critical Numerical Precision Lessons
 
@@ -565,7 +616,10 @@ value_t rel_tol = tolerance * std::max({std::abs(a.x), std::abs(a.y), ..., value
 return (std::abs(a.x - k * b.x) < rel_tol);
 ```
 
-**Key Insight**: When working with GA operations that involve multiple floating-point calculations (wedge products, divisions, etc.), accumulated numerical errors can exceed extremely tight absolute tolerances. Relative tolerance provides better numerical stability while maintaining mathematical correctness.
+**Key Insight**: When working with GA operations that involve multiple floating-point
+calculations (wedge products, divisions, etc.), accumulated numerical errors can exceed
+extremely tight absolute tolerances. Relative tolerance provides better numerical
+stability while maintaining mathematical correctness.
 
 **Applied Consistently Across All Algebras:**
 

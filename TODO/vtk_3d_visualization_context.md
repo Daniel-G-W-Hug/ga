@@ -32,14 +32,14 @@
 
 ### Alternatives Considered
 
-| Toolkit | C++ | Python | VR | Verdict |
-| --- | --- | --- | --- | --- |
-| **VTK** | First-class | First-class (PyVista) | OpenXR (Windows) | **Selected** |
-| Unreal Engine | Native | Plugin only | Excellent | Overkill, heavy build system |
-| Open3D | Yes | Yes | None | No VR support |
-| Godot | Via GDExtension | Community bindings | OpenXR | C++ boundary layer awkward |
-| WebXR (Three.js) | Via Emscripten/WASM | Via JS | Most portable | Paradigm shift from Qt/C++ |
-| OpenSceneGraph | Yes | PyOSG (unmaintained) | Limited | Aging |
+| Toolkit          | C++                 | Python                | VR               | Verdict                      |
+| ---------------- | ------------------- | --------------------- | ---------------- | ---------------------------- |
+| **VTK**          | First-class         | First-class (PyVista) | OpenXR (Windows) | **Selected**                 |
+| Unreal Engine    | Native              | Plugin only           | Excellent        | Overkill, heavy build system |
+| Open3D           | Yes                 | Yes                   | None             | No VR support                |
+| Godot            | Via GDExtension     | Community bindings    | OpenXR           | C++ boundary layer awkward   |
+| WebXR (Three.js) | Via Emscripten/WASM | Via JS                | Most portable    | Paradigm shift from Qt/C++   |
+| OpenSceneGraph   | Yes                 | PyOSG (unmaintained)  | Limited          | Aging                        |
 
 ### Python Wrapper: Build First or After?
 
@@ -488,13 +488,13 @@ cmake -DVTK_MODULE_ENABLE_VTK_RenderingOpenXR=YES \
 
 **macOS VR support is fundamentally fragmented from Windows:**
 
-| Scenario | Status |
-| --- | --- |
-| Windows + Pimax via SteamVR/OpenXR | Works with VTK OpenXR |
-| macOS + Apple Vision Pro | Requires visionOS/RealityKit — separate stack, no VTK path |
-| macOS + Meta Quest (standalone browser) | WebXR only — different architecture |
-| macOS + SteamVR | Not available (Valve dropped macOS support in 2020) |
-| macOS + OpenXR runtime | No mainstream consumer runtime available |
+| Scenario                                | Status                                                     |
+| --------------------------------------- | ---------------------------------------------------------- |
+| Windows + Pimax via SteamVR/OpenXR      | Works with VTK OpenXR                                      |
+| macOS + Apple Vision Pro                | Requires visionOS/RealityKit — separate stack, no VTK path |
+| macOS + Meta Quest (standalone browser) | WebXR only — different architecture                        |
+| macOS + SteamVR                         | Not available (Valve dropped macOS support in 2020)        |
+| macOS + OpenXR runtime                  | No mainstream consumer runtime available                   |
 
 **Recommendation**: Implement screen-based 3D and Windows VR first. Treat macOS VR as a
 separate future concern once the target headset is confirmed. No single toolkit eliminates
@@ -579,15 +579,15 @@ they run a Python script, no separate application needed.
 VTK has a full widget system mapping directly to the draggable interactive points in
 `ga_view`. These are `vtkInteractiveWidget` subclasses:
 
-| Widget | Purpose |
-| --- | --- |
-| `vtkHandleWidget` | Draggable 3D point — direct equivalent of ga_view interactive points |
-| `vtkSphereWidget2` | Draggable sphere with position callback |
-| `vtkLineWidget2` | Interactive line between two handle points |
-| `vtkPlaneWidget` | Interactive plane (drag corners/normal) |
-| `vtkSliderWidget` | On-screen slider for scalar parameters |
-| `vtkOrientationMarkerWidget` | Always-visible axes in viewport corner |
-| `vtkBoxWidget2` | Interactive bounding box |
+| Widget                       | Purpose                                                              |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `vtkHandleWidget`            | Draggable 3D point — direct equivalent of ga_view interactive points |
+| `vtkSphereWidget2`           | Draggable sphere with position callback                              |
+| `vtkLineWidget2`             | Interactive line between two handle points                           |
+| `vtkPlaneWidget`             | Interactive plane (drag corners/normal)                              |
+| `vtkSliderWidget`            | On-screen slider for scalar parameters                               |
+| `vtkOrientationMarkerWidget` | Always-visible axes in viewport corner                               |
+| `vtkBoxWidget2`              | Interactive bounding box                                             |
 
 Each widget fires an `InteractionEvent` connected to a callback — update GA computation
 there and call `Render()`.
@@ -723,29 +723,29 @@ ga_view/src/
 
 **Passive primitives** (drawn, not interactive):
 
-| 2D Type | Description |
-| --- | --- |
-| `pt2d` | Euclidean 2D point |
-| `pt2dp` | Projective 2D point |
-| `ln2d` | Polyline (vector of `pt2d`) |
-| `cln2dp` | Projective polyline (vector of `pt2dp`) |
-| `vt2d` | Vector (beg→end with arrowhead) |
+| 2D Type   | Description                             |
+| --------- | --------------------------------------- |
+| `pt2d`    | Euclidean 2D point                      |
+| `pt2dp`   | Projective 2D point                     |
+| `ln2d`    | Polyline (vector of `pt2d`)             |
+| `cln2dp`  | Projective polyline (vector of `pt2dp`) |
+| `vt2d`    | Vector (beg→end with arrowhead)         |
 | `bivt2dp` | Projective bivector (= a line in PGA2D) |
 
 **Active primitives** (index-based, interactive — driven by draggable `apt` points):
 
-| 2D Type | Description |
-| --- | --- |
-| `apt` | Active point (draggable handle) |
-| `avt2d` | Active vector (two apt indices) |
-| `abivt2d` | Active bivector (two apt indices) |
-| `aproj2d` | Active projection (three apt indices) |
-| `arefl2d` | Active reflection (two apt indices) |
-| `abivt2dp` | Active projective bivector (two apt indices) |
-| `arefl2dp` | Active projective reflection (four apt indices) |
-| `akinematic2dp` | Active kinematic chain (N apt indices) |
-| `aode_spring2d` | ODE spring-mass on active fixation point |
-| `aode_plate_pga2dp` | ODE rigid plate pendulum on active pivot point |
+| 2D Type             | Description                                     |
+| ------------------- | ----------------------------------------------- |
+| `apt`               | Active point (draggable handle)                 |
+| `avt2d`             | Active vector (two apt indices)                 |
+| `abivt2d`           | Active bivector (two apt indices)               |
+| `aproj2d`           | Active projection (three apt indices)           |
+| `arefl2d`           | Active reflection (two apt indices)             |
+| `abivt2dp`          | Active projective bivector (two apt indices)    |
+| `arefl2dp`          | Active projective reflection (four apt indices) |
+| `akinematic2dp`     | Active kinematic chain (N apt indices)          |
+| `aode_spring2d`     | ODE spring-mass on active fixation point        |
+| `aode_plate_pga2dp` | ODE rigid plate pendulum on active pivot point  |
 
 **Key architectural pattern:** Active items hold indices into the `apt` vector, not geometry.
 `w_Coordsys` finds the nearest `apt` on mouse-press and drags it. All dependent items recompute
@@ -754,20 +754,20 @@ widget callbacks.
 
 ### 2D → 3D Primitive Mapping
 
-| 2D (ga_view) | 3D (VTK) | Notes |
-| --- | --- | --- |
-| `Coordsys` (axes, grid, ticks) | `vtkAxesActor` + `vtkOrientationMarkerWidget` | |
-| `pt2d` / `pt2dp` | `vtkSphereSource` + `vtkActor` | Small sphere |
-| `ln2d` (polyline) | `vtkPolyData` + `vtkActor` | |
-| `vt2d` (arrow) | `vtkArrowSource` + `vtkTransform` + `vtkActor` | Scale+orient beg→end |
-| `bivt2dp` (projective line) | `vtkPlaneSource` + `vtkActor` | Semi-transparent plane |
-| `apt` (draggable point) | `vtkHandleWidget` + `vtkPointHandleRepresentation3D` | |
-| Active vector | Recomputed `vtkArrowSource` from two handle positions | Same index pattern |
-| Active bivector | Recomputed `vtkPlaneSource` from handle positions | |
-| Active reflection | Recomputed actor from handle positions | |
-| Kinematic chain | Chain of `vtkArrowSource` actors from N handles | |
-| ODE simulation | Qt timer + state update → actor position/orientation | |
-| Model switcher (slider) | Keep Qt slider → hide/show actor sets per model | |
+| 2D (ga_view)                   | 3D (VTK)                                              | Notes                  |
+| ------------------------------ | ----------------------------------------------------- | ---------------------- |
+| `Coordsys` (axes, grid, ticks) | `vtkAxesActor` + `vtkOrientationMarkerWidget`         |                        |
+| `pt2d` / `pt2dp`               | `vtkSphereSource` + `vtkActor`                        | Small sphere           |
+| `ln2d` (polyline)              | `vtkPolyData` + `vtkActor`                            |                        |
+| `vt2d` (arrow)                 | `vtkArrowSource` + `vtkTransform` + `vtkActor`        | Scale+orient beg→end   |
+| `bivt2dp` (projective line)    | `vtkPlaneSource` + `vtkActor`                         | Semi-transparent plane |
+| `apt` (draggable point)        | `vtkHandleWidget` + `vtkPointHandleRepresentation3D`  |                        |
+| Active vector                  | Recomputed `vtkArrowSource` from two handle positions | Same index pattern     |
+| Active bivector                | Recomputed `vtkPlaneSource` from handle positions     |                        |
+| Active reflection              | Recomputed actor from handle positions                |                        |
+| Kinematic chain                | Chain of `vtkArrowSource` actors from N handles       |                        |
+| ODE simulation                 | Qt timer + state update → actor position/orientation  |                        |
+| Model switcher (slider)        | Keep Qt slider → hide/show actor sets per model       |                        |
 
 ### Coordsys_model → 3D Scene Mapping
 
@@ -900,11 +900,11 @@ Both `ga_view` and `ga_view3d` include `ga_view_types.hpp` — the shared, Qt-fr
 
 VTK is not yet in `vcpkg.json`. Options on Windows:
 
-| Option | Effort | Notes |
-| --- | --- | --- |
-| vcpkg `vtk` package | Medium | Large build (~30 min); needs Qt+OpenXR feature flags |
-| Pre-built binary from vtk.org | Low | Fastest start; set `VTK_DIR` in CMake |
-| System install (like Qt6/Lua pattern) | Low | Add detection to `cmake/vcpkg_dependencies.cmake` |
+| Option                                | Effort | Notes                                                |
+| ------------------------------------- | ------ | ---------------------------------------------------- |
+| vcpkg `vtk` package                   | Medium | Large build (~30 min); needs Qt+OpenXR feature flags |
+| Pre-built binary from vtk.org         | Low    | Fastest start; set `VTK_DIR` in CMake                |
+| System install (like Qt6/Lua pattern) | Low    | Add detection to `cmake/vcpkg_dependencies.cmake`    |
 
 **Recommended**: Pre-built VTK binary for initial development, using same system-install
 detection pattern as Lua in `cmake/vcpkg_dependencies.cmake`.
@@ -963,8 +963,8 @@ When the user continues this conversation:
    3D
 6. Animations use a **Qt timer** calling `Render()` each frame
 7. The toolkit decision is settled: **VTK**. Do not re-open this unless explicitly asked.
-8. The `ga_view` architecture has been fully analysed — see "ga_view Architecture Reference"
-   section above. The 2D→3D primitive mapping is documented there.
+8. The `ga_view` architecture has been fully analysed — see "ga_view Architecture
+   Reference" section above. The 2D→3D primitive mapping is documented there.
 9. Preparatory work is documented — see "Preparatory Work Before Starting" section above.
    First task: decide VTK install method and validate it builds with Qt6+MSVC.
 
