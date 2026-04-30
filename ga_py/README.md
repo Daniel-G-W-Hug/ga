@@ -134,13 +134,25 @@ the foundational identity `v1 * v2 = dot(v1, v2) + wdg(v1, v2)`. Run it from the
 root:
 
 ```bash
-# cwd: project root
+# macOS / Linux — cwd: project root
 PYTHONPATH="$PWD/build/ga_py:$PWD/ga_py/python" \
     ga_py/.venv/bin/python ga_py/demo/hello_ga.py
 ```
 
-(If you've already exported `PYTHONPATH` per §3.3, the leading `PYTHONPATH=…` is
-redundant.)
+```bat
+rem Windows Command Prompt — cwd: project root
+set PYTHONPATH=%CD%\build\ga_py\Debug;%CD%\ga_py\python
+ga_py\.venv\Scripts\python.exe ga_py\demo\hello_ga.py
+```
+
+```powershell
+# Windows PowerShell — cwd: project root
+$env:PYTHONPATH = "$PWD\build\ga_py\Debug;$PWD\ga_py\python"
+ga_py\.venv\Scripts\python.exe ga_py\demo\hello_ga.py
+```
+
+(If you've already exported `PYTHONPATH` per §3.3, the leading `PYTHONPATH=…` /
+`set PYTHONPATH=…` / `$env:PYTHONPATH=…` line is redundant.)
 
 Expected output:
 
@@ -160,8 +172,20 @@ install is good.
 ### 3.5 Verify with the test suite
 
 ```bash
-# cwd: project root
+# macOS / Linux — cwd: project root
 PYTHONPATH="build/ga_py:ga_py/python" ga_py/.venv/bin/pytest ga_py/tests/
+```
+
+```bat
+rem Windows Command Prompt — cwd: project root
+set PYTHONPATH=%CD%\build\ga_py\Debug;%CD%\ga_py\python
+ga_py\.venv\Scripts\pytest ga_py\tests\
+```
+
+```powershell
+# Windows PowerShell — cwd: project root
+$env:PYTHONPATH = "$PWD\build\ga_py\Debug;$PWD\ga_py\python"
+ga_py\.venv\Scripts\pytest ga_py\tests\
 ```
 
 411 tests, ~1.5 s. They cover constants, grade lookup, EGA/PGA algebraic identities (via
@@ -448,7 +472,8 @@ deferred.
 
 Two places — both unrelated to whether the math itself is "compiled":
 
-1. **Per-call dispatch overhead.** Each Python → C++ crossing costs a few hundred ns. For
+1. **Per-call dispatch overhead.** Each Python → C++ crossing costs ~89–94 ns in Release
+   (measured on both macOS arm64 and Windows x86-64 — essentially identical). For
    million-call inner loops on tiny types (e.g., adding millions of `vec3d`s in a Python
    `for` loop), this dominates. The Tier 1 numpy buffer protocol
    ([§6.3](#63-numpy-buffer-protocol--tier-1)) does *not* eliminate this — it just gives
@@ -565,21 +590,34 @@ np.stack([np.array(v) for v in vs])      # (N, 3) batch
 
 It is **not a speed win for tight inner loops on small types.** The buffer-protocol
 fixed cost (ndarray construction + Python/C++ boundary crossing) is on the order of
-0.3 µs in Release, 0.7 µs in Debug — which exceeds the cost of three Python attribute
-reads on a vec3d. The crossover is around 8 components. See
-[`ga_py/benchmark/`](benchmark/) for reproducible numbers on macOS / arm64
-(Python 3.14, NumPy 2.4):
+0.4 µs in Release, 0.7 µs in Debug — which exceeds the cost of three Python attribute
+reads on a vec3d. See [`ga_py/benchmark/`](benchmark/) for reproducible numbers.
+
+**macOS / arm64 / Apple M-series** (Python 3.14, NumPy 2.4):
 
 | operation (N=10 000) | OLD attribute access | NEW buffer protocol | mode |
 | --- | ---: | ---: | --- |
-| vec3d single `np.array(v)` | 0.38 µs / 0.50 µs | 0.71 µs / 1.21 µs | Rel / Dbg |
-| vec3d list → (N, 3) array | 3.4 / 4.3 ms | 9.5 / 13.6 ms | Rel / Dbg |
-| mvec3d (8) list → (N, 8) array | 4.9 / 7.2 ms | 9.2 / 13.6 ms | Rel / Dbg |
-| mvec4d (16) list → (N, 16) array | 8.5 / 13.1 ms | 9.2 / 13.3 ms | Rel / Dbg |
-| mvec4d (16) array → list-of-T | **3.5** / 12.3 ms | **3.1** / 13.3 ms | Rel / Dbg |
+| vec3d single `np.array(v)` | 0.38 µs / 0.67 µs | 0.71 µs / 1.42 µs | Rel / Dbg |
+| vec3d list → (N, 3) array | 3.4 / 3.7 ms | 9.5 / 14.9 ms | Rel / Dbg |
+| mvec3d (8) list → (N, 8) array | 4.9 / 8.4 ms | 9.2 / 15.7 ms | Rel / Dbg |
+| mvec4d (16) list → (N, 16) array | 8.5 / 14.8 ms | 9.2 / 14.7 ms | Rel / Dbg |
+| mvec4d (16) array → list-of-T | **3.5** / 13.6 ms | **3.1** / 14.9 ms | Rel / Dbg |
 
-So the new path matches or beats the old one only at 16 components, and even there
-only by ~10%. Below that, the manual unpack remains the fastest option.
+On macOS the crossover is around 16 components: NEW matches or edges out OLD at mvec4d.
+
+**Windows 11 x86-64 / MSVC** (Python 3.13, NumPy 2.4):
+
+| operation (N=10 000) | OLD attribute access | NEW buffer protocol | mode |
+| --- | ---: | ---: | --- |
+| vec3d single `np.array(v)` | 0.40 µs / 0.60 µs | 0.70 µs / 1.30 µs | Rel / Dbg |
+| vec3d list → (N, 3) array | 1.8 / 3.1 ms | 10.1 / 17.0 ms | Rel / Dbg |
+| mvec3d (8) list → (N, 8) array | 4.1 / 7.3 ms | 10.2 / 17.1 ms | Rel / Dbg |
+| mvec4d (16) list → (N, 16) array | 6.9 / 13.9 ms | 11.2 / 17.8 ms | Rel / Dbg |
+| mvec4d (16) array → list-of-T | **2.6** / 12.9 ms | **3.0** / 13.4 ms | Rel / Dbg |
+
+On Windows the crossover in the list→array direction does not happen even at 16
+components — OLD wins by ~60% in Release. The array→list direction also stays with OLD.
+Manual attribute access is the safe default on all platforms.
 
 #### Recommended idioms
 
