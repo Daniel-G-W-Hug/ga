@@ -71,9 +71,12 @@ find_package(fmt QUIET)
 include("${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_list.cmake")
 
 # Build the extension module. Naming: NB_MODULE(_ga_py, ...) → file _ga_py.so.
+# Hand-written bindings live alongside src/module.cpp; everything else is
+# generated under src/generated/ and listed in bindings_list.cmake.
 nanobind_add_module(_ga_py
     NB_STATIC
     src/module.cpp
+    src/bindings_rk4_step.cpp
     ${GA_PY_GENERATED_SOURCES}
 )
 

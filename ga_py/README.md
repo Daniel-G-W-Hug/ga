@@ -416,37 +416,41 @@ Each bound user type should expose `__array__` / the buffer protocol so numpy ar
 
 Currently locked to `double`. Float (and possibly `long double`) support would require a build-flag-driven manifest instantiation, doubling the binding surface. Revisit if user demand justifies it.
 
-### 6.5 `rk4_step` deferral and the scipy recipe
+### 6.5 Time integration with `rk4_step`
 
-The C++ free function `hd::ga::rk4_step<VecType>(…)` (Runge–Kutta 4th-order time integrator, declared in `ga/ga_usr_utilities.hpp`) is **not bound** in `ga_py`. Three obstacles, in increasing order of difficulty:
+`hd::ga::rk4_step` is the project's fixed-step Runge–Kutta 4th-order time integrator. It is bound for the four vector-shaped GA types most commonly used in physics simulations: `vec2d`, `vec3d`, `vec2dp`, `vec3dp`. Bivectors and trivectors are not bound today; extending the enumeration is mechanical (one `m.def` per type in [`ga_py/src/bindings_rk4_step.cpp`](src/bindings_rk4_step.cpp)).
 
-1. **`std::mdspan` has no nanobind type-caster.** All three array arguments (`u`, `uh`, `rhs`) are `std::mdspan<VecType, std::dextents<size_t, N>>`. nanobind ships casters for `std::vector`, `std::array`, numpy arrays via the buffer protocol — but not for C++23 `std::mdspan` (a non-owning view that the binding layer would have to materialise over caller-supplied storage). The bindgen sees the parameter, fails type resolution, and silently skips the function.
-2. **Mutates its arguments instead of returning a value.** `u` and `uh` are written through their mdspans — idiomatic for tight numerical loops but doesn't fit the Python convention of returning new state.
-3. **Templated on `VecType`.** Each GA vector type (`vec2d`, `vec3d`, `vec2dp`, `vec3dp`, …) gives a different concrete instantiation that has to be enumerated and bound separately. Least hard of the three — the same machinery already handles `gpr<T>`, `wdg<T>`, etc.
+#### One-off integrator step
 
-**Do we even need to bind it?** Probably not. Python users who need to integrate ODEs over GA-valued state already have superior tools:
+```python
+import ga_py
 
-- `scipy.integrate.solve_ivp` — modern unified ODE solver with adaptive step size, dense output, event detection. Methods: `RK45` (default; Dormand–Prince adaptive 5th order with embedded 4th-order error estimator), `RK23`, `DOP853`, `Radau`, `BDF`, `LSODA`.
-- `scipy.integrate.RK45` as a class for lower-level sub-step control.
-- A 6-line numpy fixed-step RK4 if a user really wants non-adaptive RK4.
-- `numba` / `jax` JIT-compiled integrators if scipy isn't fast enough.
+# Integrate du/dt = -u over [0, T] starting from u0 = (1, 2, 3).
+u = [ga_py.ega.vec3d(1.0, 2.0, 3.0)]
+uh = ([ga_py.ega.vec3d(0, 0, 0)], [ga_py.ega.vec3d(0, 0, 0)])  # scratch
+dt, n_steps = 0.01, 100
 
-The natural Python workflow:
+for _ in range(n_steps):
+    for rk_step in (1, 2, 3, 4):
+        rhs = [ga_py.ega.vec3d(-u[0].x, -u[0].y, -u[0].z)]
+        u, uh = ga_py.rk4_step(u, uh, rhs, dt, rk_step)
 
-1. Convert GA-valued state to a flat numpy array (each `vec3d` becomes 3 doubles, etc.).
-2. Wrap the GA-valued `rhs(t, u)` in a closure that unpacks/repacks numpy ↔ GA objects.
-3. Call `solve_ivp(rhs, t_span, u0, method="RK45")`.
-4. Reconstruct GA objects from the result.
+print(u[0])   # ≈ Vec3d(0.367879, 0.735759, 1.103638), i.e. u0 * exp(-T)
+```
 
-The packing/unpacking is per-component and becomes essentially zero-overhead once Tier 1 numpy buffer protocol ([§6.3](#63-numpy-buffer-protocol--tier-1)) lands.
+#### C++ vs. Python signature differences
 
-**Recommended path: defer permanently.** Concrete cleanup:
+The C++ surface has *two* `rk4_step` overloads. The mdspan-based one mutates its arguments in place; the std::vector overload (added for nanobind) takes inputs by value and returns the updated state as a `std::pair`:
 
-- [ ] Add `rk4_get_time` to `SKIP_FREE_FN_NAMES` in `ga_bindgen/src/emit_nanobind.py` (it's bound today but useless without `rk4_step`).
-- [ ] Regenerate bindings, verify the function is gone.
-- [ ] Add a "Integrating GA-valued ODEs in Python" section to this README with a `solve_ivp` example using a `vec3d`-valued state vector.
+| Aspect | C++ mdspan | C++ std::vector / Python |
+| --- | --- | --- |
+| `u`, `uh` | mutated through the span | taken by value, returned in a `std::pair` |
+| Return | `void` | `(u_new, (uh0_new, uh1_new))` |
+| Use when | tight in-place loops in C++ | calling from Python, or wherever value-style reads cleaner |
 
-If demand later justifies a native binding, the right approach is a hand-written `nb::ndarray<vec3d, nb::ndim<1>>` wrapper in `ga_py/src/module.cpp` that builds an `std::mdspan` over the numpy storage and calls the existing `rk4_step` — zero-copy, real performance, but the first hand-written binding in the project.
+The `uh` shape is `std::array<std::vector<VecType>, 2>` mirroring the `[2 × n]` layout of the mdspan version; in Python it surfaces as a 2-tuple of lists. Both overloads run identical arithmetic — the C++ test suite cross-checks them step-by-step on a known trajectory.
+
+Python users who want adaptive step size, event detection, or dense output should still reach for `scipy.integrate.solve_ivp` with a `vec3d`-flattening closure — `rk4_step` is a *fixed-step* primitive, kept in ga because the C++ side uses it and binding parity is cheap. The packing/unpacking per component becomes essentially zero-overhead once Tier 1 numpy buffer protocol ([§6.3](#63-numpy-buffer-protocol--tier-1)) lands.
 
 ### 6.6 Demo / teaching scripts
 

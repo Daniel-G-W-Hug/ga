@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-04-26T21:06:21+00:00",
+  "generated_at": "2026-04-30T06:56:22+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp"
@@ -2642,6 +2642,46 @@
     },
     {
       "namespace": "hd::ga",
+      "name": "inertia2dp",
+      "underlying": "pga::Inertia2dp<value_t>",
+      "canonical_underlying": "hd::ga::pga::Inertia2dp<double>",
+      "fields": [
+        {
+          "name": "data",
+          "type": "std::array<T, 9>"
+        }
+      ],
+      "constructors": [
+        {
+          "param_types": []
+        }
+      ],
+      "base_class": null,
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_physics.hpp",
+      "source_line": 259
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "inertia3dp",
+      "underlying": "pga::Inertia3dp<value_t>",
+      "canonical_underlying": "hd::ga::pga::Inertia3dp<double>",
+      "fields": [
+        {
+          "name": "data",
+          "type": "std::array<T, 36>"
+        }
+      ],
+      "constructors": [
+        {
+          "param_types": []
+        }
+      ],
+      "base_class": null,
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_physics.hpp",
+      "source_line": 343
+    },
+    {
+      "namespace": "hd::ga",
       "name": "line2d",
       "underlying": "pga::Line2d<value_t>",
       "canonical_underlying": "hd::ga::pga::Line2d<double>",
@@ -4954,7 +4994,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 50
+          "source_line": 37
         },
         {
           "return_type": "value_t",
@@ -4962,7 +5002,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 50
+          "source_line": 37
         }
       ]
     },
@@ -5222,7 +5262,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 41
+          "source_line": 28
         },
         {
           "return_type": "value_t",
@@ -5230,7 +5270,29 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 41
+          "source_line": 28
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "det",
+      "overloads": [
+        {
+          "return_type": "T",
+          "param_types": [
+            "std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../detail/ga_solver.hpp",
+          "source_line": 179
+        },
+        {
+          "return_type": "T",
+          "param_types": [
+            "std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/ga_solver.hpp",
+          "source_line": 179
         }
       ]
     },
@@ -6336,7 +6398,7 @@
             "T"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 78
+          "source_line": 65
         },
         {
           "return_type": "bool",
@@ -6344,7 +6406,7 @@
             "T"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 78
+          "source_line": 65
         }
       ]
     },
@@ -6358,7 +6420,7 @@
             "T"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 85
+          "source_line": 72
         },
         {
           "return_type": "bool",
@@ -6366,7 +6428,57 @@
             "T"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 85
+          "source_line": 72
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "lu_backsubs",
+      "overloads": [
+        {
+          "return_type": "void",
+          "param_types": [
+            "std::mdspan<const double, std::dextents<size_t, 2>>",
+            "std::mdspan<const int, std::dextents<size_t, 1>>",
+            "std::mdspan<double, std::dextents<size_t, 1>>"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../detail/ga_solver.hpp",
+          "source_line": 134
+        },
+        {
+          "return_type": "void",
+          "param_types": [
+            "std::mdspan<const double, std::dextents<size_t, 2>>",
+            "std::mdspan<const int, std::dextents<size_t, 1>>",
+            "std::mdspan<double, std::dextents<size_t, 1>>"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/ga_solver.hpp",
+          "source_line": 134
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "lu_decomp",
+      "overloads": [
+        {
+          "return_type": "void",
+          "param_types": [
+            "std::mdspan<double, std::dextents<size_t, 2>>",
+            "std::mdspan<int, std::dextents<size_t, 1>>"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../detail/ga_solver.hpp",
+          "source_line": 58
+        },
+        {
+          "return_type": "void",
+          "param_types": [
+            "std::mdspan<double, std::dextents<size_t, 2>>",
+            "std::mdspan<int, std::dextents<size_t, 1>>"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/ga_solver.hpp",
+          "source_line": 58
         }
       ]
     },
@@ -6380,7 +6492,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 42
+          "source_line": 29
         },
         {
           "return_type": "value_t",
@@ -6388,7 +6500,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 42
+          "source_line": 29
         }
       ]
     },
@@ -6402,7 +6514,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 51
+          "source_line": 38
         },
         {
           "return_type": "value_t",
@@ -6410,7 +6522,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 51
+          "source_line": 38
         }
       ]
     },
@@ -6424,7 +6536,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 46
+          "source_line": 33
         },
         {
           "return_type": "value_t",
@@ -6432,7 +6544,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 46
+          "source_line": 33
         }
       ]
     },
@@ -6598,7 +6710,7 @@
             "size_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 155
+          "source_line": 142
         },
         {
           "return_type": "value_t",
@@ -6608,7 +6720,7 @@
             "size_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 155
+          "source_line": 142
         }
       ]
     },
@@ -6626,7 +6738,19 @@
             "size_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 180
+          "source_line": 167
+        },
+        {
+          "return_type": "std::pair<std::vector<VecType>, std::array<std::vector<VecType>, 2>>",
+          "param_types": [
+            "std::vector<VecType>",
+            "std::array<std::vector<VecType>, 2>",
+            "const std::vector<VecType> &",
+            "const value_t",
+            "size_t"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
+          "source_line": 242
         },
         {
           "return_type": "void",
@@ -6638,7 +6762,19 @@
             "size_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 180
+          "source_line": 167
+        },
+        {
+          "return_type": "std::pair<std::vector<VecType>, std::array<std::vector<VecType>, 2>>",
+          "param_types": [
+            "std::vector<VecType>",
+            "std::array<std::vector<VecType>, 2>",
+            "const std::vector<VecType> &",
+            "const value_t",
+            "size_t"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
+          "source_line": 242
         }
       ]
     },
@@ -6652,7 +6788,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 45
+          "source_line": 32
         },
         {
           "return_type": "value_t",
@@ -6660,7 +6796,7 @@
             "value_t"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 45
+          "source_line": 32
         }
       ]
     },
@@ -6674,7 +6810,7 @@
             "T"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 59
+          "source_line": 46
         },
         {
           "return_type": "T",
@@ -6682,7 +6818,7 @@
             "Scalar_t<T, Tag>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 70
+          "source_line": 57
         },
         {
           "return_type": "T",
@@ -6690,7 +6826,7 @@
             "T"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 59
+          "source_line": 46
         },
         {
           "return_type": "T",
@@ -6698,7 +6834,7 @@
             "Scalar_t<T, Tag>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_utilities.hpp",
-          "source_line": 70
+          "source_line": 57
         }
       ]
     },
@@ -11438,6 +11574,56 @@
     },
     {
       "namespace": "hd::ga::pga",
+      "name": "compute_omega_dot",
+      "overloads": [
+        {
+          "return_type": "Vec2dp<T>",
+          "param_types": [
+            "const Inertia2dp<T> &",
+            "const BiVec2dp<T> &",
+            "const Vec2dp<T> &",
+            "const Inertia2dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_physics.hpp",
+          "source_line": 243
+        },
+        {
+          "return_type": "BiVec3dp<T>",
+          "param_types": [
+            "const Inertia3dp<T> &",
+            "const BiVec3dp<T> &",
+            "const BiVec3dp<T> &",
+            "const Inertia3dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_physics.hpp",
+          "source_line": 327
+        },
+        {
+          "return_type": "Vec2dp<T>",
+          "param_types": [
+            "const Inertia2dp<T> &",
+            "const BiVec2dp<T> &",
+            "const Vec2dp<T> &",
+            "const Inertia2dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_physics.hpp",
+          "source_line": 243
+        },
+        {
+          "return_type": "BiVec3dp<T>",
+          "param_types": [
+            "const Inertia3dp<T> &",
+            "const BiVec3dp<T> &",
+            "const BiVec3dp<T> &",
+            "const Inertia3dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_physics.hpp",
+          "source_line": 327
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga::pga",
       "name": "conj",
       "overloads": [
         {
@@ -12616,6 +12802,74 @@
     },
     {
       "namespace": "hd::ga::pga",
+      "name": "get_cuboid_inertia",
+      "overloads": [
+        {
+          "return_type": "Inertia3dp<T>",
+          "param_types": [
+            "T",
+            "T",
+            "T",
+            "T",
+            "const BiVec3dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_physics.hpp",
+          "source_line": 229
+        },
+        {
+          "return_type": "Inertia3dp<T>",
+          "param_types": [
+            "T",
+            "T",
+            "T",
+            "T",
+            "const BiVec3dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_physics.hpp",
+          "source_line": 229
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "get_inertia_inverse",
+      "overloads": [
+        {
+          "return_type": "Inertia2dp<T>",
+          "param_types": [
+            "const Inertia2dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_physics.hpp",
+          "source_line": 190
+        },
+        {
+          "return_type": "Inertia3dp<T>",
+          "param_types": [
+            "const Inertia3dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_physics.hpp",
+          "source_line": 274
+        },
+        {
+          "return_type": "Inertia2dp<T>",
+          "param_types": [
+            "const Inertia2dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_physics.hpp",
+          "source_line": 190
+        },
+        {
+          "return_type": "Inertia3dp<T>",
+          "param_types": [
+            "const Inertia3dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_physics.hpp",
+          "source_line": 274
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga::pga",
       "name": "get_motor",
       "overloads": [
         {
@@ -12803,6 +13057,76 @@
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops.hpp",
           "source_line": 304
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "get_plate_inertia",
+      "overloads": [
+        {
+          "return_type": "Inertia2dp<T>",
+          "param_types": [
+            "T",
+            "T",
+            "T",
+            "const Vec2dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_physics.hpp",
+          "source_line": 147
+        },
+        {
+          "return_type": "Inertia2dp<T>",
+          "param_types": [
+            "T",
+            "T",
+            "T",
+            "const Vec2dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_physics.hpp",
+          "source_line": 147
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "get_point_inertia",
+      "overloads": [
+        {
+          "return_type": "Inertia2dp<T>",
+          "param_types": [
+            "T",
+            "const Vec2dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_physics.hpp",
+          "source_line": 92
+        },
+        {
+          "return_type": "Inertia3dp<T>",
+          "param_types": [
+            "T",
+            "const Vec3dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_physics.hpp",
+          "source_line": 103
+        },
+        {
+          "return_type": "Inertia2dp<T>",
+          "param_types": [
+            "T",
+            "const Vec2dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_physics.hpp",
+          "source_line": 92
+        },
+        {
+          "return_type": "Inertia3dp<T>",
+          "param_types": [
+            "T",
+            "const Vec3dp<T> &"
+          ],
+          "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_physics.hpp",
+          "source_line": 103
         }
       ]
     },
