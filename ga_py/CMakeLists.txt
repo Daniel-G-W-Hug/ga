@@ -77,6 +77,7 @@ nanobind_add_module(_ga_py
     NB_STATIC
     src/module.cpp
     src/bindings_rk4_step.cpp
+    src/bindings_physics.cpp
     ${GA_PY_GENERATED_SOURCES}
 )
 
