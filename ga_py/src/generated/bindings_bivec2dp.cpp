@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -29,6 +30,13 @@ void bind_bivec2dp(nb::module_& m) {
     nb::class_<bivec2dp>(m, "bivec2dp")
         .def(nb::init<>())
         .def(nb::init<double, double, double>())
+        .def("__init__",
+            [](bivec2dp* self,
+               nb::ndarray<double, nb::shape<3>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) bivec2dp(d[0], d[1], d[2]);
+            })
         .def_rw("x", &bivec2dp::x)
         .def_rw("y", &bivec2dp::y)
         .def_rw("z", &bivec2dp::z)
@@ -48,6 +56,18 @@ void bind_bivec2dp(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](bivec2dp const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[3]{v.x, v.y, v.z};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<3>>(
+                    data, { 3 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)
@@ -70,22 +90,22 @@ void bind_bivec2dp(nb::module_& m) {
         .def("__sub__", [](bivec2dp const& a, vec2dp const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](bivec2dp const& a, pscalar2dp const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](bivec2dp const& a, dualnum2dp const& b) { return a - b; }, nb::is_operator())
+        .def("__mul__", [](bivec2dp const& a, bivec2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](bivec2dp const& a, mvec2dp_e const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](bivec2dp const& a, mvec2dp_u const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](bivec2dp const& a, pscalar2dp const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](bivec2dp const& a, bivec2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](bivec2dp const& a, vec2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](bivec2dp const& a, scalar2dp const& b) { return a * b; }, nb::is_operator())
-        .def("__lshift__", [](bivec2dp const& a, pscalar2dp const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](bivec2dp const& a, bivec2dp const& b) { return a << b; }, nb::is_operator())
+        .def("__lshift__", [](bivec2dp const& a, pscalar2dp const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](bivec2dp const& a, vec2dp const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](bivec2dp const& a, scalar2dp const& b) { return a << b; }, nb::is_operator())
-        .def("__rshift__", [](bivec2dp const& a, pscalar2dp const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](bivec2dp const& a, bivec2dp const& b) { return a >> b; }, nb::is_operator())
+        .def("__rshift__", [](bivec2dp const& a, pscalar2dp const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](bivec2dp const& a, vec2dp const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](bivec2dp const& a, scalar2dp const& b) { return a >> b; }, nb::is_operator())
-        .def("__xor__", [](bivec2dp const& a, pscalar2dp const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](bivec2dp const& a, bivec2dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](bivec2dp const& a, pscalar2dp const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](bivec2dp const& a, vec2dp const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](bivec2dp const& a, scalar2dp const& b) { return wdg(a, b); }, nb::is_operator())
         ;

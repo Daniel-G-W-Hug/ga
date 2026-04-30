@@ -450,8 +450,10 @@ Two places — both unrelated to whether the math itself is "compiled":
 
 1. **Per-call dispatch overhead.** Each Python → C++ crossing costs a few hundred ns. For
    million-call inner loops on tiny types (e.g., adding millions of `vec3d`s in a Python
-   `for` loop), this dominates. The fix is **batching**, addressed by the Tier 1 numpy
-   buffer-protocol work in [§6.3](#63-numpy-buffer-protocol--tier-1).
+   `for` loop), this dominates. The Tier 1 numpy buffer protocol
+   ([§6.3](#63-numpy-buffer-protocol--tier-1)) does *not* eliminate this — it just gives
+   the per-call cost a different shape. The real fix is **batching** via a future Tier 2
+   array API (one Python call doing N elements' work in C++), still deferred.
 2. **Object lifetime overhead.** Every result is a new Python object with a refcounted
    handle. Negligible for normal use; adds up in tight loops.
 
@@ -536,9 +538,101 @@ follow-up.
 
 ### 6.3 numpy buffer protocol — Tier 1
 
-Each bound user type should expose `__array__` / the buffer protocol so numpy arrays of GA
-elements can be constructed cheaply. Tier 2 (vectorized array-of-multivector ops) remains
-deferred indefinitely — Tier 1 is the cheap, broadly useful piece.
+**Status: done.** Every bound vec-shape and inherited-shape type exposes `__array__` plus
+a numpy-ndarray constructor overload. Round-trip is closed: `T(np.array(t)) == t`
+component-wise.
+
+```python
+import numpy as np, ga_py
+v = ga_py.ega.vec3d(1.0, 2.0, 3.0)
+np.array(v)                              # array([1., 2., 3.])
+ga_py.ega.vec3d(np.array([4., 5., 6.]))  # vec3d(4, 5, 6)
+np.stack([np.array(v) for v in vs])      # (N, 3) batch
+```
+
+#### What this surface is for
+
+- **Library interop.** scipy, matplotlib, pandas, JAX, etc. probe `__array__`
+  internally. Without it you'd write a manual flatten/unflatten closure; with it
+  things Just Work.
+- **Ergonomics.** `np.array(v)` is one expression instead of three field reads, with
+  no risk of getting the field order wrong.
+- **Memoryview / PEP 3118 downstream paths.** `cffi`, `np.frombuffer`, etc.
+- **Tier 2 prerequisite.** A future batch API (`vec3d.from_array(arr_2d)`) would build
+  on the same protocol.
+
+#### What it is *not*
+
+It is **not a speed win for tight inner loops on small types.** The buffer-protocol
+fixed cost (ndarray construction + Python/C++ boundary crossing) is on the order of
+0.3 µs in Release, 0.7 µs in Debug — which exceeds the cost of three Python attribute
+reads on a vec3d. The crossover is around 8 components. See
+[`ga_py/benchmark/`](benchmark/) for reproducible numbers on macOS / arm64
+(Python 3.14, NumPy 2.4):
+
+| operation (N=10 000) | OLD attribute access | NEW buffer protocol | mode |
+| --- | ---: | ---: | --- |
+| vec3d single `np.array(v)` | 0.38 µs / 0.50 µs | 0.71 µs / 1.21 µs | Rel / Dbg |
+| vec3d list → (N, 3) array | 3.4 / 4.3 ms | 9.5 / 13.6 ms | Rel / Dbg |
+| mvec3d (8) list → (N, 8) array | 4.9 / 7.2 ms | 9.2 / 13.6 ms | Rel / Dbg |
+| mvec4d (16) list → (N, 16) array | 8.5 / 13.1 ms | 9.2 / 13.3 ms | Rel / Dbg |
+| mvec4d (16) array → list-of-T | **3.5** / 12.3 ms | **3.1** / 13.3 ms | Rel / Dbg |
+
+So the new path matches or beats the old one only at 16 components, and even there
+only by ~10%. Below that, the manual unpack remains the fastest option.
+
+#### Recommended idioms
+
+**Use `np.array(v)` when:**
+
+- You need to hand a GA element to a numpy-aware library — it's the only path that
+  works without a wrapper.
+- Readability matters more than tens of nanoseconds per call.
+- You're working with `mvec3d`/`mvec4d`-sized payloads where the gap is in the noise.
+
+**Stick with manual field access when:**
+
+- You're inside a hot inner loop on `vec*` / `bivec*` / small types.
+- You need to mutate components in place — `np.array(v)` returns a fresh copy each
+  call, so writing through it does *not* update the C++ object.
+
+```python
+# Fast path for tight loops on small types:
+for v in vs:
+    n2 = v.x * v.x + v.y * v.y + v.z * v.z   # ~3× faster than np.dot(np.array(v), ...)
+
+# Fast path for handing data to a library:
+trajectory = np.stack([np.array(v) for v in vs])  # one-shot, then numpy from here
+
+# Fast path for repacking after numpy math:
+v2 = ga_py.ega.vec3d(arr_row)  # at mvec4d this is faster than vec3d(*arr_row.tolist())
+```
+
+#### Memory model
+
+Copy-out, copy-in. `__array__` allocates a fresh `double[N]` and hands ownership to
+numpy via a capsule; the ndarray ctor reads N doubles into the type's existing
+N-double C++ ctor via placement-new. The C++ object's storage is never aliased, so
+the protocol is safe regardless of struct padding — and `np.array(v)` is always a
+snapshot, never a live view.
+
+(Zero-copy aliasing was considered. It would save ~0.1 µs per call but introduce
+mutation-across-language-boundary footguns and a struct-layout assumption, while
+still failing to beat manual attribute access on small types — the dominant cost is
+ndarray construction, not the memcpy. See the discussion archive for details.)
+
+#### Coverage
+
+`vec*`, `bivec*`, `trivec*`, `mvec*` (all `_e`/`_u` variants), `dualnum*`, plus the
+inherited PGA primitives `point*`, `line*`, `plane3d`. Scalars/pseudoscalars use
+`float(s)` and are not in scope. Tier 2 (vectorized array-of-multivector ops) remains
+deferred indefinitely.
+
+Generator hook: `emit_array_protocol` in
+[`ga_bindgen/src/emit_nanobind.py`](../ga_bindgen/src/emit_nanobind.py), called from
+both `emit_type_binding` and `emit_inherited_binding`. Tests live in
+[`ga_py/tests/test_numpy_interop.py`](tests/test_numpy_interop.py); reference
+benchmark runs in [`ga_py/benchmark/`](benchmark/).
 
 ### 6.4 Float `value_t` support
 
@@ -592,8 +686,11 @@ trajectory.
 Python users who want adaptive step size, event detection, or dense output should still
 reach for `scipy.integrate.solve_ivp` with a `vec3d`-flattening closure — `rk4_step` is a
 *fixed-step* primitive, kept in ga because the C++ side uses it and binding parity is
-cheap. The packing/unpacking per component becomes essentially zero-overhead once Tier 1
-numpy buffer protocol ([§6.3](#63-numpy-buffer-protocol--tier-1)) lands.
+cheap. The Tier 1 numpy buffer protocol ([§6.3](#63-numpy-buffer-protocol--tier-1)) makes
+that flattening syntactically clean (`np.array(v)` / `vec3d(arr)`), but for `vec3d`-sized
+payloads it is *not* faster than reading `v.x, v.y, v.z` by hand — see §6.3's
+"Recommended idioms" subsection. In tight RHS evaluations on small types, manual unpack
+remains the fast path until a Tier 2 batch API arrives.
 
 ### 6.6 Rigid-body physics (inertia + body-frame Euler ODE)
 

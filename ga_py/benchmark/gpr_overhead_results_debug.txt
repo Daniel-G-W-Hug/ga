@@ -1,0 +1,18 @@
+# C++ gpr overhead — N=50000 elements, best of 7
+# vec3d * vec3d -> mvec3d_e  (geometric product)
+
+  C++ tight loop:       1.33 ms total     26.7 ns/call
+  (sink=5.113012e+08 — anti-DCE, ignore the value)
+
+# Python gpr overhead — N=50000 elements, best of 7
+# Python 3.14.4, NumPy 2.4.4
+# vec3d * vec3d -> mvec3d_e  (geometric product)
+
+  ga_py bindings             36.58 ms    731.6 ns/call
+  pure Python                10.10 ms    202.0 ns/call
+  numpy vectorised            0.38 ms      7.5 ns/call
+
+  ratios (lower is better):
+    bindings / numpy        =   97.5×
+    pure python / numpy     =   26.9×
+    bindings / pure python  =   3.62×

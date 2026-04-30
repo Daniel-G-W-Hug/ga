@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -29,6 +30,13 @@ void bind_bivec4d(nb::module_& m) {
     nb::class_<bivec4d>(m, "bivec4d")
         .def(nb::init<>())
         .def(nb::init<double, double, double, double, double, double>())
+        .def("__init__",
+            [](bivec4d* self,
+               nb::ndarray<double, nb::shape<6>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) bivec4d(d[0], d[1], d[2], d[3], d[4], d[5]);
+            })
         .def_rw("vx", &bivec4d::vx)
         .def_rw("vy", &bivec4d::vy)
         .def_rw("vz", &bivec4d::vz)
@@ -51,6 +59,18 @@ void bind_bivec4d(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](bivec4d const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[6]{v.vx, v.vy, v.vz, v.mx, v.my, v.mz};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<6>>(
+                    data, { 6 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)

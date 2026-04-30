@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -30,6 +31,13 @@ void bind_vector2d(nb::module_& m) {
         .def(nb::init<>())
         .def(nb::init<double, double>())
         .def(nb::init<vec2d>())
+        .def("__init__",
+            [](vector2d* self,
+               nb::ndarray<double, nb::shape<2>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) vector2d(d[0], d[1]);
+            })
         .def("__repr__", [](const vector2d& v) {
             return fmt::format("vector2d({}, {})", v.x, v.y);
         })
@@ -46,5 +54,17 @@ void bind_vector2d(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](vector2d const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[2]{v.x, v.y};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<2>>(
+                    data, { 2 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         ;
 }

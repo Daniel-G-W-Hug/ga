@@ -1,0 +1,32 @@
+# numpy buffer-protocol benchmark — N=10000 elements, best of 7
+# Python 3.14.4, NumPy 2.4.4
+
+================================================================
+vec3d (3 components) — list <-> (N,3) array
+================================================================
+  OLD list comp [v.x, v.y, v.z]                 3.40 ms
+  NEW np.stack([np.array(v) ...])               9.53 ms
+  OLD cls(*row.tolist())                        1.80 ms
+  NEW cls(row)                                  2.22 ms
+
+================================================================
+mvec3d (8 components) — list <-> (N,8) array
+================================================================
+  OLD list comp on .c0..c7                      4.86 ms
+  NEW np.stack([np.array(m) ...])               9.15 ms
+  OLD cls(*row.tolist())                        2.50 ms
+  NEW cls(row)                                  3.12 ms
+
+================================================================
+mvec4d (16 components) — list <-> (N,16) array
+================================================================
+  OLD list comp on .c0..c15                     8.47 ms
+  NEW np.stack([np.array(m) ...])               9.17 ms
+  OLD cls(*row.tolist())                        3.52 ms
+  NEW cls(row)                                  3.11 ms
+
+================================================================
+Single-element overhead (per call) — vec3d
+================================================================
+  OLD np.array([v.x, v.y, v.z])                 0.38 us
+  NEW np.array(v)                               0.71 us

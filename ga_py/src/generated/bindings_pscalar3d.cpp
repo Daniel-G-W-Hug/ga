@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -73,15 +74,15 @@ void bind_pscalar3d(nb::module_& m) {
         .def("__sub__", [](pscalar3d const& a, mvec3d_u const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](pscalar3d const& a, scalar3d const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](pscalar3d const& a, bivec3d const& b) { return a - b; }, nb::is_operator())
+        .def("__mul__", [](pscalar3d const& a, pscalar3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar3d const& a, mvec3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar3d const& a, mvec3d_e const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar3d const& a, mvec3d_u const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](pscalar3d const& a, pscalar3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar3d const& a, bivec3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar3d const& a, vec3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar3d const& a, scalar3d const& b) { return a * b; }, nb::is_operator())
-        .def("__lshift__", [](pscalar3d const& a, mvec3d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](pscalar3d const& a, pscalar3d const& b) { return a << b; }, nb::is_operator())
+        .def("__lshift__", [](pscalar3d const& a, mvec3d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](pscalar3d const& a, bivec3d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](pscalar3d const& a, vec3d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](pscalar3d const& a, scalar3d const& b) { return a << b; }, nb::is_operator())
@@ -89,8 +90,8 @@ void bind_pscalar3d(nb::module_& m) {
         .def("__rshift__", [](pscalar3d const& a, bivec3d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](pscalar3d const& a, vec3d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](pscalar3d const& a, scalar3d const& b) { return a >> b; }, nb::is_operator())
-        .def("__xor__", [](pscalar3d const& a, mvec3d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](pscalar3d const& a, pscalar3d const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](pscalar3d const& a, mvec3d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](pscalar3d const& a, bivec3d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](pscalar3d const& a, vec3d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](pscalar3d const& a, scalar3d const& b) { return wdg(a, b); }, nb::is_operator())

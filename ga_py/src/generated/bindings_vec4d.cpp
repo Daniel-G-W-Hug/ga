@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -29,6 +30,13 @@ void bind_vec4d(nb::module_& m) {
     nb::class_<vec4d>(m, "vec4d")
         .def(nb::init<>())
         .def(nb::init<double, double, double, double>())
+        .def("__init__",
+            [](vec4d* self,
+               nb::ndarray<double, nb::shape<4>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) vec4d(d[0], d[1], d[2], d[3]);
+            })
         .def_rw("x", &vec4d::x)
         .def_rw("y", &vec4d::y)
         .def_rw("z", &vec4d::z)
@@ -49,6 +57,18 @@ void bind_vec4d(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](vec4d const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[4]{v.x, v.y, v.z, v.w};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<4>>(
+                    data, { 4 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)

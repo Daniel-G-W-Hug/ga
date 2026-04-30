@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -32,6 +33,13 @@ void bind_plane3d(nb::module_& m) {
         .def(nb::init<trivec3dp>())
         .def(nb::init<line3d, point3d>())
         .def(nb::init<point3d, point3d, point3d>())
+        .def("__init__",
+            [](plane3d* self,
+               nb::ndarray<double, nb::shape<4>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) plane3d(d[0], d[1], d[2], d[3]);
+            })
         .def("__repr__", [](const plane3d& v) {
             return fmt::format("plane3d({}, {}, {}, {})", v.x, v.y, v.z, v.w);
         })
@@ -48,5 +56,17 @@ void bind_plane3d(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](plane3d const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[4]{v.x, v.y, v.z, v.w};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<4>>(
+                    data, { 4 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         ;
 }

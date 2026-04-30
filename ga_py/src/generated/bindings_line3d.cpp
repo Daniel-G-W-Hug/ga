@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -31,6 +32,13 @@ void bind_line3d(nb::module_& m) {
         .def(nb::init<double, double, double, double, double, double>())
         .def(nb::init<bivec3dp>())
         .def(nb::init<vec3d, bivec3d>())
+        .def("__init__",
+            [](line3d* self,
+               nb::ndarray<double, nb::shape<6>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) line3d(d[0], d[1], d[2], d[3], d[4], d[5]);
+            })
         .def("__repr__", [](const line3d& v) {
             return fmt::format("line3d({}, {}, {}, {}, {}, {})", v.vx, v.vy, v.vz, v.mx, v.my, v.mz);
         })
@@ -47,6 +55,18 @@ void bind_line3d(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](line3d const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[6]{v.vx, v.vy, v.vz, v.mx, v.my, v.mz};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<6>>(
+                    data, { 6 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def("__xor__", [](line3d const& a, point3d const& b) { return wdg(a, b); }, nb::is_operator())
         ;
 }

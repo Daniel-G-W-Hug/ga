@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -32,6 +33,13 @@ void bind_mvec3dp_u(nb::module_& m) {
         .def(nb::init<vec3dp>())
         .def(nb::init<trivec3dp>())
         .def(nb::init<vec3dp, trivec3dp>())
+        .def("__init__",
+            [](mvec3dp_u* self,
+               nb::ndarray<double, nb::shape<8>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) mvec3dp_u(d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]);
+            })
         .def_rw("c0", &mvec3dp_u::c0)
         .def_rw("c1", &mvec3dp_u::c1)
         .def_rw("c2", &mvec3dp_u::c2)
@@ -56,6 +64,18 @@ void bind_mvec3dp_u(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](mvec3dp_u const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[8]{v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<8>>(
+                    data, { 8 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)
@@ -74,8 +94,8 @@ void bind_mvec3dp_u(nb::module_& m) {
         .def("__sub__", [](mvec3dp_u const& a, trivec3dp const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](mvec3dp_u const& a, vec3dp const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](mvec3dp_u const& a, dualnum3dp const& b) { return a - b; }, nb::is_operator())
-        .def("__mul__", [](mvec3dp_u const& a, mvec3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3dp_u const& a, mvec3dp_u const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](mvec3dp_u const& a, mvec3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3dp_u const& a, mvec3dp_e const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3dp_u const& a, pscalar3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3dp_u const& a, bivec3dp const& b) { return a * b; }, nb::is_operator())
