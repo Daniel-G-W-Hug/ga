@@ -153,6 +153,21 @@ add_custom_target(regenerate_python_bindings
     VERBATIM
 )
 
+# Phase 5: generate type stubs (.pyi) for the wrapper. emit_stubs.py
+# imports the compiled `_ga_py` module and uses nanobind.stubgen, so this
+# target requires `_ga_py` to be already built and the wrapper venv (with
+# nanobind installed) to be on PYTHONPATH. Uses the wrapper venv Python
+# rather than the bindgen one — nanobind lives in the wrapper venv.
+add_custom_target(regenerate_python_stubs
+    COMMAND "${CMAKE_COMMAND}" -E env
+            "PYTHONPATH=${CMAKE_BINARY_DIR}/ga_py:${GA_PROJECT_ROOT}/ga_py/python"
+            "${Python_EXECUTABLE}" "${_GA_BINDGEN_DIR}/emit_stubs.py"
+    DEPENDS _ga_py
+    WORKING_DIRECTORY "${GA_PROJECT_ROOT}"
+    COMMENT "Regenerating Python type stubs (.pyi via nanobind.stubgen)"
+    VERBATIM
+)
+
 # Umbrella: build the wrapper and refresh the cross-check JSON. Does NOT depend
 # on regenerate_python_bindings --- run that explicitly when headers change,
 # then reconfigure CMake so any new bindings_*.cpp files are picked up.
