@@ -35,6 +35,7 @@ Notes for Python users
 * GA types support f-string format specs (``f"{v:>-8.5f}"``); the spec
   is applied per component on the C++ side via ``fmt::format``.
 """
+
 import math
 
 import ga_py
@@ -82,8 +83,8 @@ class Disc:
         self.v = v
 
         # Derived quantities — same as the C++ initialiser list.
-        self.B_uv = pga.wdg(u, v)                    # bivec3dp (disc plane)
-        self.pl = pga.wdg(cp, self.B_uv)             # trivec3dp (plane equation)
+        self.B_uv = pga.wdg(u, v)  # bivec3dp (disc plane)
+        self.pl = pga.wdg(cp, self.B_uv)  # trivec3dp (plane equation)
         self.pl_normal = pga.l_weight_dual(self.pl)  # vec3dp
 
 
@@ -151,21 +152,21 @@ max_tot_speed = -float("inf")
 
 if float(pga.bulk_nrm(tool.cp - wafer.cp)) < tool.r + wafer.r:
 
-    nr = 25                                    # radial steps
+    nr = 25  # radial steps
     dr = (tool.r_max - tool.r_min) / nr
 
-    nphi = 720                                 # angular steps
+    nphi = 720  # angular steps
     dphi = 2.0 * math.pi / nphi
 
     print(f"nr = {nr}, dr = {dr:>-8.5f}, nphi = {nphi}, dphi = {dphi:>-8.5f}\n")
 
     for j in range(nr):
-        r_inner = tool.r_min + j * dr          # current inner radius
-        rm = r_inner + 0.5 * dr                # mean radius (for area)
+        r_inner = tool.r_min + j * dr  # current inner radius
+        rm = r_inner + 0.5 * dr  # mean radius (for area)
 
         for i in range(nphi):
             phi = i * dphi
-            phim = phi + 0.5 * dphi            # mean angle (centroid)
+            phim = phi + 0.5 * dphi  # mean angle (centroid)
 
             dA = rm * dphi * dr
 
@@ -176,8 +177,12 @@ if float(pga.bulk_nrm(tool.cp - wafer.cp)) < tool.r + wafer.r:
             r_o_sq = r_o * r_o
             r_o_tr = r_o_sq * r_o
 
-            r_gc = (2.0 * (r_o_tr - r_i_tr) * math.sin(0.5 * dphi) /
-                    (3.0 * (r_o_sq - r_i_sq) * 0.5 * dphi))
+            r_gc = (
+                2.0
+                * (r_o_tr - r_i_tr)
+                * math.sin(0.5 * dphi)
+                / (3.0 * (r_o_sq - r_i_sq) * 0.5 * dphi)
+            )
             ref_pos = tool.cp + r_gc * u
 
             # Rotation line (axis of the tool) and motor for angle phim.
@@ -185,9 +190,7 @@ if float(pga.bulk_nrm(tool.cp - wafer.cp)) < tool.r + wafer.r:
             cur_pos = pga.move3dp(ref_pos, pga.get_motor(rot_line, phim))
 
             # Orthogonal projection of cur_pos onto the wafer plane.
-            cur_proj_pos = pga.rwdg(
-                wafer.pl, pga.r_weight_expand3dp(cur_pos, wafer.pl)
-            )
+            cur_proj_pos = pga.rwdg(wafer.pl, pga.r_weight_expand3dp(cur_pos, wafer.pl))
 
             # Inside the wafer footprint?
             if float(pga.bulk_nrm(cur_proj_pos - wafer.cp)) <= wafer.r:
@@ -216,15 +219,6 @@ print(f"volume = {volume:>-8.5f} mm^3")
 print(f"min_tot_speed = {min_tot_speed:>-8.5f} mm/s")
 print(f"max_tot_speed = {max_tot_speed:>-8.5f} mm/s")
 print()
-print(f"wafer speed at r = {wafer.r_max} mm = "
-      f"{wafer.rs * wafer.r_max:>-8.5f} mm/s")
-print(f"tool  speed at r = {tool.r_max} mm = "
-      f"{tool.rs * tool.r_max:>-8.5f} mm/s")
+print(f"wafer speed at r = {wafer.r_max} mm = " f"{wafer.rs * wafer.r_max:>-8.5f} mm/s")
+print(f"tool  speed at r = {tool.r_max} mm = " f"{tool.rs * tool.r_max:>-8.5f} mm/s")
 print()
-
-
-# The loop is intentionally pure-Python so the data flow is readable.
-# With nphi=720, nr=25 this is ~18 000 iterations of a few PGA ops
-# each — expect a runtime of a few seconds. For production use,
-# vectorising over raw component arrays (numpy buffer protocol) is
-# the right next step; see README §6.3.

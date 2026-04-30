@@ -413,8 +413,12 @@ void active_reflectionp::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
                     // move all 4 projective points around the turning point pt
                     // auto mot = get_motor(cur_p1p, cur_ang);
-                    auto mot = get_motor(tp, cur_ang);
                     // fmt::println("tp = {}", tp);
+                    // fmt::println("cur_ang = {}", cur_ang);
+                    auto mot = get_motor(tp, cur_ang);
+                    // TODO: if tp.z == 0.0, translate instead of rotate
+                    //       (basically avoid throwing in get_motor for that case)
+
                     // fmt::println("mot = {}", mot);
 
                     auto new_p1p = unitize(move2dp(cur_p1p, mot));
