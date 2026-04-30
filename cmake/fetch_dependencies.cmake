@@ -48,24 +48,31 @@ function(setup_doctest_fetchcontent)
     message(STATUS "✓ doctest configured via FetchContent")
 endfunction()
 
-# sol2 library - Lua binding (header-only)
+# sol2 library - Lua binding (header-only). Skipped when ga_lua isn't built;
+# the GA_FORCE_FETCH_CONTENT path can otherwise still drag sol2 in even with
+# _GA_USE_LUA=OFF. The same guard exists at the call site in
+# `setup_ga_dependencies`; keeping it here makes the helper safe to invoke
+# on its own.
 function(setup_sol2_fetchcontent)
+    if(NOT _GA_USE_LUA)
+        return()
+    endif()
     message(STATUS "Setting up sol2 via FetchContent...")
-    
+
     FetchContent_Declare(
         sol2
         GIT_REPOSITORY https://github.com/ThePhD/sol2.git
         GIT_TAG        develop  # Use development branch for latest C++23 fixes
         GIT_SHALLOW    TRUE
     )
-    
+
     # Configure sol2 options
     set(SOL2_BUILD_LUA OFF CACHE BOOL "Build Lua from source")
     set(SOL2_ENABLE_INSTALL OFF CACHE BOOL "Enable installation of Sol2")
     set(SOL2_SINGLE_HEADER ON CACHE BOOL "Generate single header")
-    
+
     FetchContent_MakeAvailable(sol2)
-    
+
     message(STATUS "✓ sol2 configured via FetchContent")
 endfunction()
 

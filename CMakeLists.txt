@@ -56,8 +56,13 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # Optional lua wrapper that provides lua scripting and an interactive ga_lua shell
 option(_GA_USE_LUA "Build the lua_wrapper (requires sol2 and optionally readline)" ON)
 
-# Optional readline support for ga_lua interactive shell
-option(_GA_USE_READLINE "Enable readline support for interactive ga_lua shell" ON)
+# Optional readline support for ga_lua interactive shell.
+# Forced OFF (and hidden from the cache UI) when _GA_USE_LUA is OFF, since
+# readline is only consumed by ga_lua/src/ga_lua.cpp.
+include(CMakeDependentOption)
+cmake_dependent_option(_GA_USE_READLINE
+    "Enable readline support for interactive ga_lua shell" ON
+    "_GA_USE_LUA" OFF)
 
 # Optional Python wrapper (nanobind module + cross-check exporter).
 # requires Python 3.10+ and nanobind installed in the
@@ -75,7 +80,7 @@ setup_ga_dependencies()
 add_subdirectory(ga)                     # ga library (header only)
 add_subdirectory(ga_test)                # tests for header only library
 
-if(_GA_BUILD_LUA)
+if(_GA_USE_LUA)
     add_subdirectory(ga_lua)             # lua scripting for ga
 endif()
 
@@ -115,19 +120,24 @@ if(TARGET doctest::doctest)
 else()
     message(STATUS "doctest: ✗ Missing")
 endif()
-if(TARGET sol2::sol2)
-    message(STATUS "sol2: ✓ Available")
+if(_GA_USE_LUA)
+    if(TARGET sol2::sol2)
+        message(STATUS "sol2: ✓ Available")
+    else()
+        message(STATUS "sol2: ✗ Missing")
+    endif()
+    if(Lua_FOUND OR LUA_FOUND OR GA_HAS_LUA)
+        message(STATUS "Lua: ✓ Available")
+    else()
+        message(STATUS "Lua: ✗ Missing")
+    endif()
 else()
-    message(STATUS "sol2: ✗ Missing")
+    message(STATUS "sol2: — Skipped (_GA_USE_LUA=OFF)")
+    message(STATUS "Lua:  — Skipped (_GA_USE_LUA=OFF)")
 endif()
 if(TARGET Qt6::Core)
     message(STATUS "Qt6: ✓ Available")
 else()
     message(STATUS "Qt6: ✗ Missing")
-endif()
-if(Lua_FOUND OR LUA_FOUND OR GA_HAS_LUA)
-    message(STATUS "Lua: ✓ Available")
-else()
-    message(STATUS "Lua: ✗ Missing")
 endif()
 message(STATUS "")
