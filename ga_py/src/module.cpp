@@ -10,8 +10,9 @@ namespace nb = nanobind;
 // types and free functions from their respective sub-namespaces.
 void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga);
 
-// Hand-written bindings — see src/bindings_rk4_step.cpp for the rationale.
+// Hand-written bindings — see the corresponding bindings_*.cpp for rationale.
 void bind_rk4_step(nb::module_& m);
+void bind_physics(nb::module_& pga);
 
 NB_MODULE(_ga_py, m) {
     m.doc() = "Python bindings for the hd::ga geometric algebra library.\n"
@@ -22,4 +23,5 @@ NB_MODULE(_ga_py, m) {
 
     register_all(m, ega, pga);
     bind_rk4_step(m);
+    bind_physics(pga);
 }
