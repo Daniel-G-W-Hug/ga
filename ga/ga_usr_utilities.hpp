@@ -3,10 +3,13 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include <array>     // std::array (rk4_step vector overload)
 #include <cmath>     // std::cos, std::sin
 #include <mdspan>    // std::mdspan, std::dextents (used by rk4_step)
 #include <numbers>   // math constants like pi
 #include <stdexcept> // std::invalid_argument
+#include <utility>   // std::pair, std::move (rk4_step vector overload)
+#include <vector>    // std::vector (rk4_step vector overload)
 
 #include "detail/type_t/ga_scalar_t.hpp"
 #include "ga_value_t.hpp"
@@ -209,6 +212,83 @@ void rk4_step(
             }
             break;
     }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// rk4_step — std::vector overload (Python-bindable companion to the mdspan
+// version above).
+//
+// Same algorithm and identical numerical results as the mdspan version;
+// the differences are purely API ergonomics:
+//
+//   - Inputs (u, uh) are taken by value and the updated state is returned
+//     as `std::pair<u, uh>`. In C++ this is essentially zero-cost via move
+//     semantics + NRVO; from Python it matches the natural pattern
+//     `u, uh = rk4_step(u, uh, rhs, dt, rk_step)` (nanobind has no caster
+//     for std::mdspan, so the original signature is unreachable from
+//     Python — see ga_py/README.md).
+//
+//   - `uh` is shaped as `std::array<std::vector<VecType>, 2>` mirroring the
+//     `[2 x n]` layout of the mdspan version. From Python this surfaces as
+//     a 2-tuple of lists.
+//
+// Use the mdspan overload for in-place hot loops in C++; use this overload
+// when calling from Python or when a value-style API reads cleaner.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename VecType>
+std::pair<std::vector<VecType>, std::array<std::vector<VecType>, 2>>
+rk4_step(std::vector<VecType> u, std::array<std::vector<VecType>, 2> uh,
+         std::vector<VecType> const& rhs, value_t const dt, size_t rk_step)
+{
+    if (rk_step < 1 || rk_step > 4) {
+        throw std::invalid_argument("rk4_step requires argument: 1 <= rk_step <= 4.");
+    }
+    size_t const n = u.size();
+    if (uh[0].size() != n || uh[1].size() != n || rhs.size() != n) {
+        throw std::invalid_argument(
+            "rk4_step: u, uh[0], uh[1] and rhs must all have the same length.");
+    }
+
+    value_t const rk1 = 1.0 / 6.0 * dt;
+    value_t const rk2 = 1.0 / 3.0 * dt;
+    value_t const rk3 = 1.0 / 2.0 * dt;
+    value_t const rk4 = dt;
+
+    switch (rk_step) {
+        case 1: // predictor 1: Euler forward to t + 0.5*dt
+            for (size_t i = 0; i < n; ++i) {
+                uh[0][i] = u[i];
+            }
+            for (size_t i = 0; i < n; ++i) {
+                u[i] = uh[0][i] + rk3 * rhs[i];
+                uh[1][i] = rk1 * rhs[i];
+            }
+            break;
+
+        case 2: // corrector 1: Euler backward to t + 0.5*dt
+            for (size_t i = 0; i < n; ++i) {
+                u[i] = uh[0][i] + rk3 * rhs[i];
+                uh[1][i] += rk2 * rhs[i];
+            }
+            break;
+
+        case 3: // predictor 2: midpoint rule to t + dt
+            for (size_t i = 0; i < n; ++i) {
+                u[i] = uh[0][i] + rk4 * rhs[i];
+                uh[1][i] += rk2 * rhs[i];
+            }
+            break;
+
+        case 4: // corrector 2: Simpson rule to t + dt
+            for (size_t i = 0; i < n; ++i) {
+                u[i] = uh[0][i] + uh[1][i] + rk1 * rhs[i];
+            }
+            break;
+    }
+
+    return {std::move(u), std::move(uh)};
 }
 
 } // namespace hd::ga

@@ -366,6 +366,81 @@ TEST_SUITE("PGA3DP: physics tests prep")
         CHECK(I_grid.view()[5, 2] == doctest::Approx(65.0 / 36.0).epsilon(1e-6));
     }
 
+    TEST_CASE("rk4_step: mdspan and std::vector overloads produce identical trajectories")
+    {
+        // Cross-check the two rk4_step overloads by integrating the same
+        // problem with both and asserting bit-identical results at every
+        // sub-step. Problem: 1-D harmonic oscillator du/dt = -u (closed
+        // form: u(t) = u0 * exp(-t)), state encoded in a single vec3d.
+
+        constexpr size_t n = 1;
+        constexpr value_t dt = 0.01;
+        constexpr size_t n_steps = 100;
+
+        // mdspan side: backing storage + spans.
+        std::vector<vec3d> u_md_mem{vec3d{1.0, 2.0, 3.0}};
+        std::vector<vec3d> uh_md_mem(2 * n);
+        std::vector<vec3d> rhs_md_mem(n);
+        auto u_md = mdspan<vec3d, dextents<size_t, 1>>(u_md_mem.data(), n);
+        auto uh_md = mdspan<vec3d, dextents<size_t, 2>>(uh_md_mem.data(), 2, n);
+        auto rhs_md_mut = mdspan<vec3d, dextents<size_t, 1>>(rhs_md_mem.data(), n);
+        auto rhs_md =
+            mdspan<vec3d const, dextents<size_t, 1>>(rhs_md_mem.data(), n);
+
+        // vector side: same initial state as the mdspan side.
+        std::vector<vec3d> u_vec{vec3d{1.0, 2.0, 3.0}};
+        std::array<std::vector<vec3d>, 2> uh_vec{std::vector<vec3d>(n),
+                                                 std::vector<vec3d>(n)};
+        std::vector<vec3d> rhs_vec(n);
+
+        for (size_t step = 0; step < n_steps; ++step) {
+            for (size_t rk = 1; rk <= 4; ++rk) {
+                // rhs(u) = -u for both sides.
+                rhs_md_mut[0] = vec3d{-u_md[0].x, -u_md[0].y, -u_md[0].z};
+                rhs_vec[0] = vec3d{-u_vec[0].x, -u_vec[0].y, -u_vec[0].z};
+
+                // Sanity: rhs values match before the rk4_step call.
+                CHECK(rhs_md[0].x == doctest::Approx(rhs_vec[0].x));
+                CHECK(rhs_md[0].y == doctest::Approx(rhs_vec[0].y));
+                CHECK(rhs_md[0].z == doctest::Approx(rhs_vec[0].z));
+
+                rk4_step(u_md, uh_md, rhs_md, dt, rk);
+                std::tie(u_vec, uh_vec) =
+                    rk4_step(std::move(u_vec), std::move(uh_vec), rhs_vec, dt, rk);
+
+                // Both overloads must agree to the bit on every sub-step.
+                CHECK(u_md[0].x == u_vec[0].x);
+                CHECK(u_md[0].y == u_vec[0].y);
+                CHECK(u_md[0].z == u_vec[0].z);
+                CHECK(uh_md[0, 0].x == uh_vec[0][0].x);
+                CHECK(uh_md[1, 0].x == uh_vec[1][0].x);
+            }
+        }
+
+        // Sanity: the trajectory is approximately u0 * exp(-T) at the end.
+        value_t const T = n_steps * dt;
+        value_t const decay = std::exp(-T);
+        CHECK(u_vec[0].x == doctest::Approx(1.0 * decay).epsilon(1e-6));
+        CHECK(u_vec[0].y == doctest::Approx(2.0 * decay).epsilon(1e-6));
+        CHECK(u_vec[0].z == doctest::Approx(3.0 * decay).epsilon(1e-6));
+    }
+
+    TEST_CASE("rk4_step (vector overload): input-validation errors")
+    {
+        std::vector<vec3d> u{vec3d{1, 2, 3}};
+        std::array<std::vector<vec3d>, 2> uh{std::vector<vec3d>(1),
+                                             std::vector<vec3d>(1)};
+        std::vector<vec3d> const rhs{vec3d{0, 0, 0}};
+
+        // rk_step out of [1,4] must throw.
+        CHECK_THROWS_AS(rk4_step(u, uh, rhs, 0.01, 0), std::invalid_argument);
+        CHECK_THROWS_AS(rk4_step(u, uh, rhs, 0.01, 5), std::invalid_argument);
+
+        // Length mismatch must throw.
+        std::vector<vec3d> const rhs_bad{vec3d{0, 0, 0}, vec3d{0, 0, 0}};
+        CHECK_THROWS_AS(rk4_step(u, uh, rhs_bad, 0.01, 1), std::invalid_argument);
+    }
+
 } // TEST_SUITE("PGA3DP: physics tests prep")
 
 

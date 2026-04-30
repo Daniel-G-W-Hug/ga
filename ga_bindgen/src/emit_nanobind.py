@@ -35,13 +35,17 @@ GENERATED_HEADER = """\
 
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
+#include <nanobind/stl/array.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/vector.h>
 #include <fmt/format.h>
+#include <array>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "ga/ga_ega.hpp"
@@ -134,11 +138,34 @@ _INTEGER_TYPE_NAMES = {
 _NATIVE_NAMES = {"bool"}
 
 
-def _strip_outer_template(p: str) -> tuple[str, str | None]:
-    """If `p` is `std::vector<X>` or `std::pair<X, Y>` etc., return the
-    container short-name and the (first) element-type spelling.
+def _split_template_args(inner: str) -> list[str]:
+    """Split a `<...>`'s comma-separated argument list, respecting nesting.
 
-    Returns ('', None) if `p` isn't a recognised STL container.
+    Plain str.split would break on `std::array<std::vector<X>, 2>` because
+    the inner `<...>` itself contains a comma. Walks the string tracking
+    angle-bracket depth and splits only at top-level commas.
+    """
+    args: list[str] = []
+    depth = 0
+    start = 0
+    for i, ch in enumerate(inner):
+        if ch == "<":
+            depth += 1
+        elif ch == ">":
+            depth -= 1
+        elif ch == "," and depth == 0:
+            args.append(inner[start:i].strip())
+            start = i + 1
+    args.append(inner[start:].strip())
+    return args
+
+
+def _strip_outer_template(p: str) -> tuple[str, list[str]]:
+    """If `p` is `std::vector<X>` / `std::pair<X, Y>` / `std::array<X, N>` /
+    `std::tuple<...>`, return the container short-name and the list of
+    template arguments (already nesting-aware split).
+
+    Returns ('', []) if `p` isn't a recognised STL container.
     """
     s = p.strip()
     # Strip leading `const ` and trailing `&`.
@@ -147,15 +174,12 @@ def _strip_outer_template(p: str) -> tuple[str, str | None]:
     while s.endswith("&"):
         s = s[:-1].strip()
     if "<" not in s or not s.endswith(">"):
-        return "", None
+        return "", []
     head = s.split("<", 1)[0].strip().rsplit("::", 1)[-1]
-    if head not in {"vector", "pair", "tuple"}:
-        return "", None
+    if head not in {"vector", "pair", "tuple", "array"}:
+        return "", []
     inner = s[s.index("<") + 1: -1]
-    # Take the first comma-separated argument (good enough for vector and
-    # for our usage of pair/tuple where all elements are the same).
-    first = inner.split(",", 1)[0].strip()
-    return head, first
+    return head, _split_template_args(inner)
 
 
 def resolve_param_to_user_type(p: str, type_map: dict[str, str]) -> str | None:
@@ -185,14 +209,27 @@ def resolve_param_to_user_type(p: str, type_map: dict[str, str]) -> str | None:
     if tag_match and tag_match.group(1) in type_map:
         return type_map[tag_match.group(1)]
 
-    # Recognise STL containers of bindable element types.
-    container, element = _strip_outer_template(p)
-    if container == "vector" and element is not None:
-        elem_resolved = resolve_param_to_user_type(element, type_map)
-        if elem_resolved is not None and elem_resolved not in {"bool"}:
-            # Emit literal C++ type; lambda returns std::vector<elem>
-            # and nanobind handles it (requires <nanobind/stl/vector.h>).
-            return f"std::vector<{elem_resolved}>"
+    # Recognise STL containers of bindable element types. Each emitted
+    # literal C++ type round-trips via the matching nanobind/stl/<x>.h
+    # caster (vector → list, pair → 2-tuple, array → tuple, …) — all of
+    # which are pulled in by GENERATED_HEADER.
+    container, args = _strip_outer_template(p)
+    if container == "vector" and len(args) == 1:
+        elem = resolve_param_to_user_type(args[0], type_map)
+        if elem is not None and elem != "bool":
+            return f"std::vector<{elem}>"
+    if container == "pair" and len(args) == 2:
+        a = resolve_param_to_user_type(args[0], type_map)
+        b = resolve_param_to_user_type(args[1], type_map)
+        if a is not None and b is not None and a != "bool" and b != "bool":
+            return f"std::pair<{a}, {b}>"
+    if container == "array" and len(args) == 2:
+        # std::array<T, N> — second argument is a non-type extent we keep
+        # verbatim (nanobind needs the full type spelling at the binding
+        # site, not just the element type).
+        elem = resolve_param_to_user_type(args[0], type_map)
+        if elem is not None and elem != "bool":
+            return f"std::array<{elem}, {args[1]}>"
     return None
 
 
