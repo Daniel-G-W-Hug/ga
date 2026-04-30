@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-04-30T06:56:22+00:00",
+  "generated_at": "2026-04-30T19:03:40+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp"

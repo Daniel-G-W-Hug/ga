@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -29,6 +30,13 @@ void bind_trivec3dp(nb::module_& m) {
     nb::class_<trivec3dp>(m, "trivec3dp")
         .def(nb::init<>())
         .def(nb::init<double, double, double, double>())
+        .def("__init__",
+            [](trivec3dp* self,
+               nb::ndarray<double, nb::shape<4>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) trivec3dp(d[0], d[1], d[2], d[3]);
+            })
         .def_rw("x", &trivec3dp::x)
         .def_rw("y", &trivec3dp::y)
         .def_rw("z", &trivec3dp::z)
@@ -49,6 +57,18 @@ void bind_trivec3dp(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](trivec3dp const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[4]{v.x, v.y, v.z, v.w};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<4>>(
+                    data, { 4 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)
@@ -73,24 +93,24 @@ void bind_trivec3dp(nb::module_& m) {
         .def("__sub__", [](trivec3dp const& a, bivec3dp const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](trivec3dp const& a, pscalar3dp const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](trivec3dp const& a, dualnum3dp const& b) { return a - b; }, nb::is_operator())
+        .def("__mul__", [](trivec3dp const& a, trivec3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](trivec3dp const& a, mvec3dp_e const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](trivec3dp const& a, pscalar3dp const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](trivec3dp const& a, trivec3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](trivec3dp const& a, bivec3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](trivec3dp const& a, vec3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](trivec3dp const& a, scalar3dp const& b) { return a * b; }, nb::is_operator())
-        .def("__lshift__", [](trivec3dp const& a, pscalar3dp const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](trivec3dp const& a, trivec3dp const& b) { return a << b; }, nb::is_operator())
+        .def("__lshift__", [](trivec3dp const& a, pscalar3dp const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](trivec3dp const& a, bivec3dp const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](trivec3dp const& a, vec3dp const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](trivec3dp const& a, scalar3dp const& b) { return a << b; }, nb::is_operator())
-        .def("__rshift__", [](trivec3dp const& a, pscalar3dp const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](trivec3dp const& a, trivec3dp const& b) { return a >> b; }, nb::is_operator())
+        .def("__rshift__", [](trivec3dp const& a, pscalar3dp const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](trivec3dp const& a, bivec3dp const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](trivec3dp const& a, vec3dp const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](trivec3dp const& a, scalar3dp const& b) { return a >> b; }, nb::is_operator())
-        .def("__xor__", [](trivec3dp const& a, pscalar3dp const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](trivec3dp const& a, trivec3dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](trivec3dp const& a, pscalar3dp const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](trivec3dp const& a, bivec3dp const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](trivec3dp const& a, vec3dp const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](trivec3dp const& a, scalar3dp const& b) { return wdg(a, b); }, nb::is_operator())

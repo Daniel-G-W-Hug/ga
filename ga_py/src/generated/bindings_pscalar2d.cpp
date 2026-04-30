@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -71,24 +72,24 @@ void bind_pscalar2d(nb::module_& m) {
         .def("__sub__", [](pscalar2d const& a, scalar2d const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](pscalar2d const& a, mvec2d_e const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](pscalar2d const& a, vec2d const& b) { return a - b; }, nb::is_operator())
+        .def("__mul__", [](pscalar2d const& a, pscalar2d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar2d const& a, mvec2d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar2d const& a, mvec2d_e const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](pscalar2d const& a, pscalar2d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar2d const& a, vec2d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar2d const& a, scalar2d const& b) { return a * b; }, nb::is_operator())
+        .def("__lshift__", [](pscalar2d const& a, pscalar2d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](pscalar2d const& a, mvec2d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](pscalar2d const& a, mvec2d_e const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](pscalar2d const& a, pscalar2d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](pscalar2d const& a, vec2d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](pscalar2d const& a, scalar2d const& b) { return a << b; }, nb::is_operator())
+        .def("__rshift__", [](pscalar2d const& a, pscalar2d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](pscalar2d const& a, mvec2d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](pscalar2d const& a, mvec2d_e const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](pscalar2d const& a, pscalar2d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](pscalar2d const& a, vec2d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](pscalar2d const& a, scalar2d const& b) { return a >> b; }, nb::is_operator())
+        .def("__xor__", [](pscalar2d const& a, pscalar2d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](pscalar2d const& a, mvec2d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](pscalar2d const& a, mvec2d_e const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](pscalar2d const& a, pscalar2d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](pscalar2d const& a, vec2d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](pscalar2d const& a, scalar2d const& b) { return wdg(a, b); }, nb::is_operator())
         ;

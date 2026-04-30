@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -32,6 +33,13 @@ void bind_mvec3d_e(nb::module_& m) {
         .def(nb::init<scalar3d>())
         .def(nb::init<bivec3d>())
         .def(nb::init<scalar3d, bivec3d>())
+        .def("__init__",
+            [](mvec3d_e* self,
+               nb::ndarray<double, nb::shape<4>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) mvec3d_e(d[0], d[1], d[2], d[3]);
+            })
         .def_rw("c0", &mvec3d_e::c0)
         .def_rw("c1", &mvec3d_e::c1)
         .def_rw("c2", &mvec3d_e::c2)
@@ -52,6 +60,18 @@ void bind_mvec3d_e(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](mvec3d_e const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[4]{v.c0, v.c1, v.c2, v.c3};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<4>>(
+                    data, { 4 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)
@@ -68,8 +88,8 @@ void bind_mvec3d_e(nb::module_& m) {
         .def("__add__", [](mvec3d_e const& a, bivec3d const& b) { return a + b; }, nb::is_operator())
         .def("__sub__", [](mvec3d_e const& a, scalar3d const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](mvec3d_e const& a, bivec3d const& b) { return a - b; }, nb::is_operator())
-        .def("__mul__", [](mvec3d_e const& a, mvec3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3d_e const& a, mvec3d_e const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](mvec3d_e const& a, mvec3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3d_e const& a, mvec3d_u const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3d_e const& a, pscalar3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3d_e const& a, bivec3d const& b) { return a * b; }, nb::is_operator())

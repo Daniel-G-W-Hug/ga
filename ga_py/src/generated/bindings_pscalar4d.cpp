@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>

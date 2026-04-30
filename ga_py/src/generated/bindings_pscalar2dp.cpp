@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -75,10 +76,10 @@ void bind_pscalar2dp(nb::module_& m) {
         .def("__sub__", [](pscalar2dp const& a, bivec2dp const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](pscalar2dp const& a, scalar2dp const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](pscalar2dp const& a, dualnum2dp const& b) { return a - b; }, nb::is_operator())
+        .def("__mul__", [](pscalar2dp const& a, pscalar2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar2dp const& a, mvec2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar2dp const& a, mvec2dp_e const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar2dp const& a, mvec2dp_u const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](pscalar2dp const& a, pscalar2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar2dp const& a, bivec2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar2dp const& a, vec2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](pscalar2dp const& a, scalar2dp const& b) { return a * b; }, nb::is_operator())

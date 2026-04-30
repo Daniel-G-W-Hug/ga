@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -39,6 +40,13 @@ void bind_mvec3dp(nb::module_& m) {
         .def(nb::init<vec3dp, trivec3dp>())
         .def(nb::init<mvec3dp_u>())
         .def(nb::init<scalar3dp, vec3dp, bivec3dp, trivec3dp, pscalar3dp>())
+        .def("__init__",
+            [](mvec3dp* self,
+               nb::ndarray<double, nb::shape<16>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) mvec3dp(d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]);
+            })
         .def_rw("c0", &mvec3dp::c0)
         .def_rw("c1", &mvec3dp::c1)
         .def_rw("c2", &mvec3dp::c2)
@@ -71,6 +79,18 @@ void bind_mvec3dp(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](mvec3dp const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[16]{v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7, v.c8, v.c9, v.c10, v.c11, v.c12, v.c13, v.c14, v.c15};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<16>>(
+                    data, { 16 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)

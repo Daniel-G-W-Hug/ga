@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -39,6 +40,13 @@ void bind_mvec3d(nb::module_& m) {
         .def(nb::init<vec3d, pscalar3d>())
         .def(nb::init<mvec3d_u>())
         .def(nb::init<scalar3d, vec3d, bivec3d, pscalar3d>())
+        .def("__init__",
+            [](mvec3d* self,
+               nb::ndarray<double, nb::shape<8>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) mvec3d(d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]);
+            })
         .def_rw("c0", &mvec3d::c0)
         .def_rw("c1", &mvec3d::c1)
         .def_rw("c2", &mvec3d::c2)
@@ -63,6 +71,18 @@ void bind_mvec3d(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](mvec3d const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[8]{v.c0, v.c1, v.c2, v.c3, v.c4, v.c5, v.c6, v.c7};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<8>>(
+                    data, { 8 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)

@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -29,6 +30,13 @@ void bind_vec2d(nb::module_& m) {
     nb::class_<vec2d>(m, "vec2d")
         .def(nb::init<>())
         .def(nb::init<double, double>())
+        .def("__init__",
+            [](vec2d* self,
+               nb::ndarray<double, nb::shape<2>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) vec2d(d[0], d[1]);
+            })
         .def_rw("x", &vec2d::x)
         .def_rw("y", &vec2d::y)
         .def("__repr__", [](const vec2d& v) {
@@ -47,6 +55,18 @@ void bind_vec2d(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](vec2d const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[2]{v.x, v.y};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<2>>(
+                    data, { 2 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)
@@ -63,25 +83,25 @@ void bind_vec2d(nb::module_& m) {
         .def("__add__", [](vec2d const& a, pscalar2d const& b) { return a + b; }, nb::is_operator())
         .def("__sub__", [](vec2d const& a, scalar2d const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](vec2d const& a, pscalar2d const& b) { return a - b; }, nb::is_operator())
+        .def("__mul__", [](vec2d const& a, vec2d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](vec2d const& a, mvec2d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](vec2d const& a, mvec2d_e const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](vec2d const& a, pscalar2d const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](vec2d const& a, vec2d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](vec2d const& a, scalar2d const& b) { return a * b; }, nb::is_operator())
+        .def("__lshift__", [](vec2d const& a, vec2d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](vec2d const& a, mvec2d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](vec2d const& a, mvec2d_e const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](vec2d const& a, pscalar2d const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](vec2d const& a, vec2d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](vec2d const& a, scalar2d const& b) { return a << b; }, nb::is_operator())
+        .def("__rshift__", [](vec2d const& a, vec2d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](vec2d const& a, mvec2d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](vec2d const& a, mvec2d_e const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](vec2d const& a, pscalar2d const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](vec2d const& a, vec2d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](vec2d const& a, scalar2d const& b) { return a >> b; }, nb::is_operator())
+        .def("__xor__", [](vec2d const& a, vec2d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](vec2d const& a, mvec2d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](vec2d const& a, mvec2d_e const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](vec2d const& a, pscalar2d const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](vec2d const& a, vec2d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](vec2d const& a, scalar2d const& b) { return wdg(a, b); }, nb::is_operator())
         ;
 }

@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -73,28 +74,28 @@ void bind_scalar3d(nb::module_& m) {
         .def("__sub__", [](scalar3d const& a, mvec3d_e const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](scalar3d const& a, vec3d const& b) { return a - b; }, nb::is_operator())
         .def("__sub__", [](scalar3d const& a, pscalar3d const& b) { return a - b; }, nb::is_operator())
+        .def("__mul__", [](scalar3d const& a, scalar3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar3d const& a, mvec3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar3d const& a, mvec3d_e const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar3d const& a, mvec3d_u const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar3d const& a, pscalar3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar3d const& a, bivec3d const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar3d const& a, vec3d const& b) { return a * b; }, nb::is_operator())
-        .def("__mul__", [](scalar3d const& a, scalar3d const& b) { return a * b; }, nb::is_operator())
+        .def("__lshift__", [](scalar3d const& a, scalar3d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](scalar3d const& a, mvec3d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](scalar3d const& a, mvec3d_e const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](scalar3d const& a, mvec3d_u const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](scalar3d const& a, pscalar3d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](scalar3d const& a, bivec3d const& b) { return a << b; }, nb::is_operator())
         .def("__lshift__", [](scalar3d const& a, vec3d const& b) { return a << b; }, nb::is_operator())
-        .def("__lshift__", [](scalar3d const& a, scalar3d const& b) { return a << b; }, nb::is_operator())
+        .def("__rshift__", [](scalar3d const& a, scalar3d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](scalar3d const& a, pscalar3d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](scalar3d const& a, bivec3d const& b) { return a >> b; }, nb::is_operator())
         .def("__rshift__", [](scalar3d const& a, vec3d const& b) { return a >> b; }, nb::is_operator())
-        .def("__rshift__", [](scalar3d const& a, scalar3d const& b) { return a >> b; }, nb::is_operator())
+        .def("__xor__", [](scalar3d const& a, scalar3d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](scalar3d const& a, mvec3d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](scalar3d const& a, pscalar3d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](scalar3d const& a, bivec3d const& b) { return wdg(a, b); }, nb::is_operator())
         .def("__xor__", [](scalar3d const& a, vec3d const& b) { return wdg(a, b); }, nb::is_operator())
-        .def("__xor__", [](scalar3d const& a, scalar3d const& b) { return wdg(a, b); }, nb::is_operator())
         ;
 }

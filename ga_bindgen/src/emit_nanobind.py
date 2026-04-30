@@ -34,6 +34,7 @@ GENERATED_HEADER = """\
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -319,7 +320,32 @@ def collect_binary_operators(manifest: Manifest,
                 continue
             seen.add(k)
             kept.append(e)
-        deduped[lhs] = kept
+        # Reorder for dispatch performance: nanobind tries overloads in
+        # registration order, so the hot path should be first within each
+        # dunder bucket. Heuristic: same-type rhs first (geometric product,
+        # dot, wedge of T×T are the GA hot paths), then `double` (scalar
+        # mul/div), then everything else in the order the manifest scan
+        # produced it. Group-by-dunder before sorting so dunder buckets
+        # stay contiguous (entries from the two appender loops above are
+        # already grouped: all `__add__` together, then all `__mul__`, …).
+        def _rhs_rank(rhs: str) -> int:
+            if rhs == lhs:
+                return 0          # same-type: hottest path
+            if rhs == "double":
+                return 1          # scalar mul/div: very common
+            return 2              # everything else: original order
+        reordered: list[tuple[str, str, str, str, str]] = []
+        i = 0
+        while i < len(kept):
+            j = i
+            cur_dunder = kept[i][0]
+            while j < len(kept) and kept[j][0] == cur_dunder:
+                j += 1
+            bucket = kept[i:j]
+            bucket.sort(key=lambda e: _rhs_rank(e[1]))  # stable
+            reordered.extend(bucket)
+            i = j
+        deduped[lhs] = reordered
     return deduped
 
 
@@ -669,6 +695,63 @@ def emit_format_lambda(cls: str, *, param: str = "v",
     )
 
 
+def emit_array_protocol(cls: str, fields: list) -> tuple[str, str]:
+    """Emit the numpy-interop pair (`__array__` + ndarray-ctor) for a vec- or
+    inherited-shape type with public T fields.
+
+    Tier 1 of §6.3 in ga_py/README.md: `np.array(v)` works without manual
+    component unpacking, and `T(np.array([...]))` round-trips. Vectorised
+    array-of-multivectors ops (Tier 2) remain deferred.
+
+    Memory model: copy-out, copy-in.
+      - `__array__` allocates a fresh `double[N]`, copies the field values
+        in declaration order, and hands ownership to numpy via a capsule
+        deleter. The C++ object's storage is never aliased, so this is
+        safe regardless of struct layout / padding.
+      - The ndarray ctor reads N doubles from a contiguous CPU buffer and
+        placement-news a fresh instance via the type's existing N-double
+        ctor (always present for vec-shaped types and for inherited types
+        whose base inherits ctors via `using BaseT::BaseT;`).
+
+    `fields` is the ordered list of public T fields used to lay out the
+    ndarray. For vec-shape types, pass `t.fields`; for inherited-shape
+    types (where `t.fields` is empty), pass the base type's fields.
+    """
+    n = len(fields)
+    init_list = ", ".join(f"v.{f.name}" for f in fields)
+    ctor_args = ", ".join(f"d[{i}]" for i in range(n))
+
+    # NumPy 2.x calls `__array__(dtype=..., copy=...)`; we accept and ignore
+    # both. Our buffer is always a fresh float64 copy — NumPy can cast it
+    # downstream if a different dtype was requested.
+    array_method = (
+        f'        .def("__array__",\n'
+        f'            []({cls} const& v, nb::handle /*dtype*/,\n'
+        f"               nb::handle /*copy*/) {{\n"
+        f"                auto* data = new double[{n}]{{{init_list}}};\n"
+        f"                nb::capsule owner(data, [](void* p) noexcept {{\n"
+        f"                    delete[] static_cast<double*>(p);\n"
+        f"                }});\n"
+        f"                return nb::ndarray<nb::numpy, double, nb::shape<{n}>>(\n"
+        f"                    data, {{ {n} }}, owner);\n"
+        f"            }},\n"
+        f'            nb::arg("dtype").none() = nb::none(),\n'
+        f'            nb::arg("copy").none() = nb::none())'
+    )
+
+    ndarray_ctor = (
+        f'        .def("__init__",\n'
+        f"            []({cls}* self,\n"
+        f"               nb::ndarray<double, nb::shape<{n}>, nb::c_contig,\n"
+        f"                           nb::device::cpu> arr) {{\n"
+        f"                double const* d = arr.data();\n"
+        f"                new (self) {cls}({ctor_args});\n"
+        f"            }})"
+    )
+
+    return array_method, ndarray_ctor
+
+
 def emit_inherited_binding(t: TypeAlias,
                            base_t: TypeAlias,
                            type_map: dict[str, str],
@@ -758,7 +841,18 @@ def emit_inherited_binding(t: TypeAlias,
     for dunder, rhs, _ret, callable_text, kind in (binary_ops or []):
         binop_lines.append(render_op_def(cls, dunder, rhs, callable_text, kind))
 
-    body = "\n".join(ctor_lines + [repr_lambda, str_lambda, format_lambda] + binop_lines)
+    # Numpy interop: layout follows the *base type's* fields (derived has none
+    # of its own — they're inherited via using-declarations). The ndarray ctor
+    # works because base ctors are inherited via `using BaseT::BaseT;` in the
+    # derived classes (see e.g. ga_type2dp.hpp line 186).
+    array_lines: list[str] = []
+    if base_t.fields:
+        array_method, ndarray_ctor = emit_array_protocol(cls, base_t.fields)
+        ctor_lines.append(ndarray_ctor)
+        array_lines.append(array_method)
+
+    body = "\n".join(ctor_lines + [repr_lambda, str_lambda, format_lambda]
+                     + array_lines + binop_lines)
     return (
         f"void bind_{cls}(nb::module_& m) {{\n"
         f'    nb::class_<{cls}, {base}>(m, "{cls}")\n'
@@ -1006,9 +1100,15 @@ def emit_type_binding(t: TypeAlias,
             f'        .def("{method_name}", [](const {cls}& M) {{ return {method_name}(M); }})'
         )
 
+    array_lines: list[str] = []
+    if t.fields:
+        array_method, ndarray_ctor = emit_array_protocol(cls, t.fields)
+        ctor_lines.append(ndarray_ctor)
+        array_lines.append(array_method)
+
     body = "\n".join(ctor_lines + field_lines
                      + [repr_lambda, str_lambda, format_lambda]
-                     + op_lines + binop_lines + grade_lines)
+                     + array_lines + op_lines + binop_lines + grade_lines)
     return (
         f"void bind_{cls}(nb::module_& m) {{\n"
         f'    nb::class_<{cls}>(m, "{cls}")\n'

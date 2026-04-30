@@ -105,6 +105,10 @@ endif()
 install(TARGETS _ga_py LIBRARY DESTINATION ga_py)
 install(DIRECTORY python/ga_py DESTINATION .)
 
+# C++ micro-benchmarks that pair with ga_py/benchmark/*.py — used to quantify
+# the Python ↔ C++ dispatch overhead. See ga_py/benchmark/README.md.
+add_subdirectory(benchmark)
+
 # ----------------------------------------------------------------------------
 # Top-level convenience targets for the Python wrapper pipeline.
 #

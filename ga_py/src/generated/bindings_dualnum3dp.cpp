@@ -3,6 +3,7 @@
 // Source manifest: ga_bindgen/manifest.json
 
 #include <nanobind/nanobind.h>
+#include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/pair.h>
@@ -32,6 +33,13 @@ void bind_dualnum3dp(nb::module_& m) {
         .def(nb::init<scalar3dp>())
         .def(nb::init<pscalar3dp>())
         .def(nb::init<scalar3dp, pscalar3dp>())
+        .def("__init__",
+            [](dualnum3dp* self,
+               nb::ndarray<double, nb::shape<2>, nb::c_contig,
+                           nb::device::cpu> arr) {
+                double const* d = arr.data();
+                new (self) dualnum3dp(d[0], d[1]);
+            })
         .def_rw("c0", &dualnum3dp::c0)
         .def_rw("c1", &dualnum3dp::c1)
         .def("__repr__", [](const dualnum3dp& v) {
@@ -50,6 +58,18 @@ void bind_dualnum3dp(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
+        .def("__array__",
+            [](dualnum3dp const& v, nb::handle /*dtype*/,
+               nb::handle /*copy*/) {
+                auto* data = new double[2]{v.c0, v.c1};
+                nb::capsule owner(data, [](void* p) noexcept {
+                    delete[] static_cast<double*>(p);
+                });
+                return nb::ndarray<nb::numpy, double, nb::shape<2>>(
+                    data, { 2 }, owner);
+            },
+            nb::arg("dtype").none() = nb::none(),
+            nb::arg("copy").none() = nb::none())
         .def(-nb::self)
         .def(nb::self + nb::self)
         .def(nb::self - nb::self)
