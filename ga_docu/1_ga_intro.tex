@@ -28,7 +28,14 @@ multivectors as well as their components like scalars, vectors, bivectors, trive
 pseudoscalars of the corresponding linear spaces. It also provides operations to work with
 these objects. It was designed with extensibility in mind and could be extended to provide
 functionality for handling additional algebras, e.g. spacetime-algebra $(STA)$, with
-limited effort.
+limited effort. \\
+
+The core implementation language of the library is \Cpp. The documentation is focused on
+the C++ implementation exclusively. However, the library provides wrappers for python
+$(3.10+)$ in \path{ga_py} that is fully generated from the \Cpp implementation using
+nanobind, i.e. it covers almost 100\% of \Cpp data types and functionality. There also is
+a wrapper for lua in \path{ga_lua} (manually generated, with some remaining gaps in
+coverage of \Cpp functionality).
 
 \newpage
 
