@@ -53,8 +53,11 @@ add_definitions(-D_HD_GA_EXTENDED_TEST_DIV_BY_ZERO)
 # Add our custom cmake modules to the module path
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+# Optional lua wrapper that provides lua scripting and an interactive ga_lua shell
+option(_GA_USE_LUA "Build the lua_wrapper (requires sol2 and optionally readline)" ON)
+
 # Optional readline support for ga_lua interactive shell
-option(_GA_USE_READLINE "Enable readline support for ga_lua interactive shell" ON)
+option(_GA_USE_READLINE "Enable readline support for interactive ga_lua shell" ON)
 
 # Optional Python wrapper (nanobind module + cross-check exporter).
 # requires Python 3.10+ and nanobind installed in the
@@ -71,7 +74,10 @@ setup_ga_dependencies()
 
 add_subdirectory(ga)                     # ga library (header only)
 add_subdirectory(ga_test)                # tests for header only library
-add_subdirectory(ga_lua)                 # lua scripting for ga
+
+if(_GA_BUILD_LUA)
+    add_subdirectory(ga_lua)             # lua scripting for ga
+endif()
 
 # ga_view: Skip on macOS with GCC due to Qt6 header incompatibility
 # Qt6 uses _Pragma in function signatures which GCC rejects but Clang allows
