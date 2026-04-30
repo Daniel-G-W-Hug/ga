@@ -43,11 +43,11 @@ $$X_b = \utilde{M} \mathbin{⟇} X_w \mathbin{⟇} M \quad \Longleftrightarrow \
 
 ### PGA2DP — G(2,0,1)
 
-| Object | Type | Homogeneous coord | Effect of $z=0$ |
-|---|---|---|---|
-| Finite point $(x,y)$ | `Vec2dp{x, y, 1}` | $z = 1$ | Motor translates + rotates |
-| Ideal point / direction | `Vec2dp{x, y, 0}` | $z = 0$ | Motor rotates **only** (translation has no effect) |
-| Line / force bivector | `BiVec2dp{x, y, z}` | — | Motor translates + rotates |
+| Object                  | Type                | Homogeneous coord | Effect of $z=0$                                    |
+| ----------------------- | ------------------- | ----------------- | -------------------------------------------------- |
+| Finite point $(x,y)$    | `Vec2dp{x, y, 1}`   | $z = 1$           | Motor translates + rotates                         |
+| Ideal point / direction | `Vec2dp{x, y, 0}`   | $z = 0$           | Motor rotates **only** (translation has no effect) |
+| Line / force bivector   | `BiVec2dp{x, y, z}` | —                 | Motor translates + rotates                         |
 
 All three transform via `move2dp(X, M)`.
 
@@ -63,12 +63,12 @@ vec2dp const corner_w{cm_w.x + offset_w.x, cm_w.y + offset_w.y, 1.0};
 
 ### PGA3DP — G(3,0,1)
 
-| Object | Type | Homogeneous coord |
-|---|---|---|
-| Finite point $(x,y,z)$ | `Vec3dp{x, y, z, 1}` | $w = 1$ |
-| Ideal point / direction | `Vec3dp{x, y, z, 0}` | $w = 0$ |
-| Line | `BiVec3dp{vx,vy,vz, mx,my,mz}` | ideal part $\mathbf{v}$, real part $\mathbf{m}$ |
-| Plane | `TriVec3dp{...}` | — |
+| Object                  | Type                           | Homogeneous coord                               |
+| ----------------------- | ------------------------------ | ----------------------------------------------- |
+| Finite point $(x,y,z)$  | `Vec3dp{x, y, z, 1}`           | $w = 1$                                         |
+| Ideal point / direction | `Vec3dp{x, y, z, 0}`           | $w = 0$                                         |
+| Line                    | `BiVec3dp{vx,vy,vz, mx,my,mz}` | ideal part $\mathbf{v}$, real part $\mathbf{m}$ |
+| Plane                   | `TriVec3dp{...}`               | —                                               |
 
 All transform via `move3dp(X, M)` with the same sandwich product.
 
@@ -187,10 +187,10 @@ ideal vector:
 auto f_dir = att(F);   // Vec2dp{fx, fy, 0} — force direction vector
 ```
 
-In 3D the same applies with six bivector components
-$\{\mathbf{e}_{41}, \mathbf{e}_{42}, \mathbf{e}_{43}, \mathbf{e}_{23}, \mathbf{e}_{31}, \mathbf{e}_{12}\}$:
-the first three encode the force and `att(F)` returns `Vec3dp{fx, fy, fz, 0}`; the last
-three encode the torque and are returned by `bulk(F)`.
+In 3D the same applies with six bivector components $\{\mathbf{e}_{41}, \mathbf{e}_{42},
+\mathbf{e}_{43}, \mathbf{e}_{23}, \mathbf{e}_{31}, \mathbf{e}_{12}\}$: the first three
+encode the force and `att(F)` returns `Vec3dp{fx, fy, fz, 0}`; the last three encode the
+torque and are returned by `bulk(F)`.
 
 ### World Frame → Body Frame
 
@@ -225,8 +225,8 @@ For any finite point $P$ (with $P.z = 1$) and any scalar $\varphi$:
 
 $$\text{move2dp}(P,\, \exp(\tfrac{1}{2}\,\varphi \cdot P)) = P$$
 
-A point is invariant under rotation about itself. This is why encoding $B_b = \varphi \cdot
-Q_b$ keeps the world image of $Q_b$ fixed:
+A point is invariant under rotation about itself. This is why encoding $B_b = \varphi
+\cdot Q_b$ keeps the world image of $Q_b$ fixed:
 
 $$\text{move2dp}(Q_b,\, M_0 \mathbin{⟇} \exp(\tfrac{1}{2}\,\varphi \cdot Q_b)) =
 \text{move2dp}(Q_b,\, M_0) = \text{pivot}_w = \text{const}$$
@@ -313,14 +313,14 @@ constraints for explicit integrators.
 
 ### Summary
 
-| Criterion | Body frame | World frame |
-| --- | --- | --- |
-| Inertia tensor | Constant, invert once | Recomputed each step |
-| Gyroscopic term | Simple (`rcmt`) | Requires $\dot{\mathbf{I}}_w$ |
-| Multi-body chains | $O(N)$ algorithms native | Recompute all attachments |
-| Force application | One transform per force | Natural |
-| Integration stiffness | Lower (constant coefficients) | Higher (time-varying) |
-| Code complexity (single body) | Slightly more setup | Slightly simpler setup |
+| Criterion                     | Body frame                    | World frame                   |
+| ----------------------------- | ----------------------------- | ----------------------------- |
+| Inertia tensor                | Constant, invert once         | Recomputed each step          |
+| Gyroscopic term               | Simple (`rcmt`)               | Requires $\dot{\mathbf{I}}_w$ |
+| Multi-body chains             | $O(N)$ algorithms native      | Recompute all attachments     |
+| Force application             | One transform per force       | Natural                       |
+| Integration stiffness         | Lower (constant coefficients) | Higher (time-varying)         |
+| Code complexity (single body) | Slightly more setup           | Slightly simpler setup        |
 
 For a single body with a fixed pivot the difference is small. As soon as a second body,
 a joint, or free 3D rotation is introduced, the body-frame advantages compound quickly.
@@ -331,20 +331,20 @@ to those cases without reformulation.
 
 ## 2D vs. 3D Reference
 
-| Concept | PGA2DP | PGA3DP |
-|---|---|---|
-| Point | `Vec2dp{x, y, 1}` | `Vec3dp{x, y, z, 1}` |
-| Direction | `Vec2dp{x, y, 0}` | `Vec3dp{x, y, z, 0}` |
-| Line / force | `BiVec2dp{x, y, z}` | `BiVec3dp{vx,vy,vz,mx,my,mz}` |
-| Motor type | `mvec2dp_u` | `mvec3dp_e` |
-| Motor action | `move2dp(X, M)` | `move3dp(X, M)` |
-| Reverse | `rrev(M)` | `rrev(M)` |
-| Motor composition | `rgpr(M0, M1)` | `rgpr(M0, M1)` |
-| Translation motor | `exp(0.5 * vec2dp{-ty, tx, 0})` | `exp(0.5 * bivec3dp{...})` |
-| Rotation motor | `exp(0.5 * phi * Vec2dp point)` | `exp(0.5 * phi * BiVec3dp line)` |
-| ODE velocity type | `Vec2dp` (`vec2dp`) | `BiVec3dp` (`bivec3dp`) |
-| Pivot entity | `Vec2dp` point $Q_b$ | `BiVec3dp` line $L_b$ |
-| Inertia matrix | `Inertia2dp` (3×3) | `Inertia3dp` (6×6) |
+| Concept             | PGA2DP                          | PGA3DP                             |
+| ------------------- | ------------------------------- | ---------------------------------- |
+| Point               | `Vec2dp{x, y, 1}`               | `Vec3dp{x, y, z, 1}`               |
+| Direction           | `Vec2dp{x, y, 0}`               | `Vec3dp{x, y, z, 0}`               |
+| Line / force        | `BiVec2dp{x, y, z}`             | `BiVec3dp{vx,vy,vz,mx,my,mz}`      |
+| Motor type          | `mvec2dp_u`                     | `mvec3dp_e`                        |
+| Motor action        | `move2dp(X, M)`                 | `move3dp(X, M)`                    |
+| Reverse             | `rrev(M)`                       | `rrev(M)`                          |
+| Motor composition   | `rgpr(M0, M1)`                  | `rgpr(M0, M1)`                     |
+| Translation motor   | `exp(0.5 * vec2dp{-ty, tx, 0})` | `exp(0.5 * bivec3dp{...})`         |
+| Rotation motor      | `exp(0.5 * phi * Vec2dp point)` | `exp(0.5 * phi * BiVec3dp line)`   |
+| ODE velocity type   | `Vec2dp` (`vec2dp`)             | `BiVec3dp` (`bivec3dp`)            |
+| Pivot entity        | `Vec2dp` point $Q_b$            | `BiVec3dp` line $L_b$              |
+| Inertia matrix      | `Inertia2dp` (3×3)              | `Inertia3dp` (6×6)                 |
 | Inertia about pivot | `get_plate_inertia(m,w,h, Q_b)` | `get_cuboid_inertia(m,w,h,d, L_b)` |
 
 **Pivot entity grade matches velocity grade:** in PGA2DP the velocity $\Omega_b$ is a
@@ -367,11 +367,11 @@ fundamentally different structure.
 
 The Lie algebra $\mathfrak{se}(2)$ is three-dimensional with basis generators:
 
-| Generator | `vec2dp` encoding | Effect |
-|---|---|---|
-| Translation in $x$ | `{0, 1, 0}` | body drifts in $+x$ |
-| Translation in $y$ | `{-1, 0, 0}` | body drifts in $+y$ |
-| Rotation about origin | `{0, 0, 1}` | body spins about world origin |
+| Generator             | `vec2dp` encoding | Effect                        |
+| --------------------- | ----------------- | ----------------------------- |
+| Translation in $x$    | `{0, 1, 0}`       | body drifts in $+x$           |
+| Translation in $y$    | `{-1, 0, 0}`      | body drifts in $+y$           |
+| Rotation about origin | `{0, 0, 1}`       | body spins about world origin |
 
 A general instantaneous velocity $\boldsymbol{\Omega}_b = \{-v_y,\; v_x,\; \omega\}$
 means **simultaneously**: translate at $(v_x, v_y)$ **and** rotate at $\omega$ — with
@@ -420,13 +420,13 @@ simultaneous rotation and translation always collapse to rotation about a differ
 
 ### Summary: 2D vs. 3D Behaviour of the Exponential Map
 
-| | PGA2DP | PGA3DP |
-|---|---|---|
-| Lie algebra dimension | 3 | 6 |
-| Velocity components | $(-v_y, v_x, \omega)$ — independent | $(v_x,v_y,v_z,\omega_x,\omega_y,\omega_z)$ — independent |
-| $\exp(B)$ with rotation+translation | Pure rotation about shifted center | Screw motion (rotation + translation along axis) |
-| Finite pivot / screw axis | Point $(B.x/B.z,\; B.y/B.z)$ | Line (Plücker coordinates of screw axis) |
-| "Translation" in combined $B$ | Shifts rotation center | Contributes independent pitch along axis |
+|                                     | PGA2DP                              | PGA3DP                                                   |
+| ----------------------------------- | ----------------------------------- | -------------------------------------------------------- |
+| Lie algebra dimension               | 3                                   | 6                                                        |
+| Velocity components                 | $(-v_y, v_x, \omega)$ — independent | $(v_x,v_y,v_z,\omega_x,\omega_y,\omega_z)$ — independent |
+| $\exp(B)$ with rotation+translation | Pure rotation about shifted center  | Screw motion (rotation + translation along axis)         |
+| Finite pivot / screw axis           | Point $(B.x/B.z,\; B.y/B.z)$        | Line (Plücker coordinates of screw axis)                 |
+| "Translation" in combined $B$       | Shifts rotation center              | Contributes independent pitch along axis                 |
 
 ### Practical Consequence for the Accumulated Generator $B_b$
 

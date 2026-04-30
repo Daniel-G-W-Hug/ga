@@ -62,12 +62,12 @@ quaternions: } \dot{\mathbf{q}} = \tfrac{1}{2}\mathbf{q} \otimes
 
 ## Complete State Vector for Integration
 
-| State | Size | Equation |
-|---|---|---|
-| $\mathbf{r}$ | 3 | $\dot{\mathbf{r}} = \mathbf{R}\mathbf{v}$ |
-| $\mathbf{q}$ (quaternion) | 4 | $\dot{\mathbf{q}} = \frac{1}{2}\mathbf{q}\otimes\boldsymbol{\omega}$ |
-| $\mathbf{v}$ (body frame) | 3 | $\dot{\mathbf{v}} = \mathbf{F}^b/m - \boldsymbol{\omega}\times\mathbf{v}$ |
-| $\boldsymbol{\omega}$ (body frame) | 3 | $\dot{\boldsymbol{\omega}} = \mathbf{I}^{-1}(\boldsymbol{\tau}^b - \boldsymbol{\omega}\times\mathbf{I}\boldsymbol{\omega})$ |
+| State                              | Size | Equation                                                                                                                    |
+| ---------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------- |
+| $\mathbf{r}$                       | 3    | $\dot{\mathbf{r}} = \mathbf{R}\mathbf{v}$                                                                                   |
+| $\mathbf{q}$ (quaternion)          | 4    | $\dot{\mathbf{q}} = \frac{1}{2}\mathbf{q}\otimes\boldsymbol{\omega}$                                                        |
+| $\mathbf{v}$ (body frame)          | 3    | $\dot{\mathbf{v}} = \mathbf{F}^b/m - \boldsymbol{\omega}\times\mathbf{v}$                                                   |
+| $\boldsymbol{\omega}$ (body frame) | 3    | $\dot{\boldsymbol{\omega}} = \mathbf{I}^{-1}(\boldsymbol{\tau}^b - \boldsymbol{\omega}\times\mathbf{I}\boldsymbol{\omega})$ |
 
 **Total: 13 coupled 1st-order ODEs** (with quaternion normalization constraint
 $|\mathbf{q}|=1$).
@@ -76,11 +76,11 @@ $|\mathbf{q}|=1$).
 
 ## Key Differences from a "Parallel" Approach
 
-| | Parallel (inertial frame) | Coupled (body frame) |
-|---|---|---|
-| Inertia tensor $\mathbf{I}$ | Time-varying $\mathbf{I}(t) = \mathbf{R}\mathbf{I}_0\mathbf{R}^T$ | Constant |
-| Coupling term | None explicitly | $\boldsymbol{\omega}\times\mathbf{v}$ and $\boldsymbol{\omega}\times\mathbf{I}\boldsymbol{\omega}$ |
-| Practical for non-spherical bodies | Expensive | Standard choice |
+|                                    | Parallel (inertial frame)                                         | Coupled (body frame)                                                                               |
+| ---------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Inertia tensor $\mathbf{I}$        | Time-varying $\mathbf{I}(t) = \mathbf{R}\mathbf{I}_0\mathbf{R}^T$ | Constant                                                                                           |
+| Coupling term                      | None explicitly                                                   | $\boldsymbol{\omega}\times\mathbf{v}$ and $\boldsymbol{\omega}\times\mathbf{I}\boldsymbol{\omega}$ |
+| Practical for non-spherical bodies | Expensive                                                         | Standard choice                                                                                    |
 
 The $\boldsymbol{\omega}\times\mathbf{I}\boldsymbol{\omega}$ term is already present in
 the Euler equations. The only *new* coupling when adding translation is the
@@ -118,11 +118,11 @@ $$\mathbf{A}(\boldsymbol{\omega}) = \begin{pmatrix}
 \underbrace{-\mathbf{I}^{-1}[\boldsymbol{\omega}]_\times\mathbf{I}}_{\text{gyroscopic}}
 \end{pmatrix}$$
 
-| Block | Meaning |
-|---|---|
-| **Top-left** $-[\boldsymbol{\omega}]_\times$ | $v_x, v_y, v_z$ couple to each other — rotating frame drags translational velocity |
-| **Bottom-right** $-\mathbf{I}^{-1}[\boldsymbol{\omega}]_\times\mathbf{I}$ | $\omega_x, \omega_y, \omega_z$ couple to each other — gyroscopic/Euler torque |
-| **Off-diagonal** $\mathbf{0}$ | No direct $v_i \leftrightarrow \omega_j$ coupling in the state |
+| Block                                                                     | Meaning                                                                            |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Top-left** $-[\boldsymbol{\omega}]_\times$                              | $v_x, v_y, v_z$ couple to each other — rotating frame drags translational velocity |
+| **Bottom-right** $-\mathbf{I}^{-1}[\boldsymbol{\omega}]_\times\mathbf{I}$ | $\omega_x, \omega_y, \omega_z$ couple to each other — gyroscopic/Euler torque      |
+| **Off-diagonal** $\mathbf{0}$                                             | No direct $v_i \leftrightarrow \omega_j$ coupling in the state                     |
 
 ---
 
@@ -159,12 +159,12 @@ $$\begin{pmatrix} \dot{v}_x \\ \dot{v}_y \\ \dot{\omega} \end{pmatrix} = \begin{
 
 ### Reading the Structure
 
-| Block | Meaning |
-|---|---|
-| Top-left $2\times2$: $\begin{pmatrix}0 & +\omega \\ -\omega & 0\end{pmatrix}$ | $v_x, v_y$ couple to each other via frame rotation — same $-[\boldsymbol{\omega}]_\times$ as 3D, just reduced |
-| Bottom-right scalar: $0$ | **No gyroscopic term** — $\boldsymbol{\omega}\times\mathbf{I}\boldsymbol{\omega} = 0$ since there is only one rotation axis |
-| Off-diagonal column 3, rows 1–2: $0$ | $\omega$ still does not appear as a *state* in the $\dot{\mathbf{v}}$ equation — it is a *coefficient* only |
-| Off-diagonal row 3, cols 1–2: $0$ | $v_x, v_y$ have **no influence** on $\dot{\omega}$ — same as in 3D |
+| Block                                                                         | Meaning                                                                                                                     |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Top-left $2\times2$: $\begin{pmatrix}0 & +\omega \\ -\omega & 0\end{pmatrix}$ | $v_x, v_y$ couple to each other via frame rotation — same $-[\boldsymbol{\omega}]_\times$ as 3D, just reduced               |
+| Bottom-right scalar: $0$                                                      | **No gyroscopic term** — $\boldsymbol{\omega}\times\mathbf{I}\boldsymbol{\omega} = 0$ since there is only one rotation axis |
+| Off-diagonal column 3, rows 1–2: $0$                                          | $\omega$ still does not appear as a *state* in the $\dot{\mathbf{v}}$ equation — it is a *coefficient* only                 |
+| Off-diagonal row 3, cols 1–2: $0$                                             | $v_x, v_y$ have **no influence** on $\dot{\omega}$ — same as in 3D                                                          |
 
 The rotational equation degenerates to the trivially simple:
 
@@ -182,12 +182,12 @@ $$\begin{pmatrix} \dot{x} \\ \dot{y} \\ \dot{\theta} \end{pmatrix} = \begin{pmat
 
 ### Complete 2D State Vector
 
-| State | Size | Equation |
-|---|---|---|
-| $x, y$ | 2 | $\dot{\mathbf{r}} = \mathbf{R}(\theta)\,\mathbf{v}$ |
-| $\theta$ | 1 | $\dot{\theta} = \omega$ |
-| $v_x, v_y$ | 2 | $\dot{v}_x = +\omega v_y + F_x^b/m$, $\;\dot{v}_y = -\omega v_x + F_y^b/m$ |
-| $\omega$ | 1 | $\dot{\omega} = \tau^b/I_z$ |
+| State      | Size | Equation                                                                   |
+| ---------- | ---- | -------------------------------------------------------------------------- |
+| $x, y$     | 2    | $\dot{\mathbf{r}} = \mathbf{R}(\theta)\,\mathbf{v}$                        |
+| $\theta$   | 1    | $\dot{\theta} = \omega$                                                    |
+| $v_x, v_y$ | 2    | $\dot{v}_x = +\omega v_y + F_x^b/m$, $\;\dot{v}_y = -\omega v_x + F_y^b/m$ |
+| $\omega$   | 1    | $\dot{\omega} = \tau^b/I_z$                                                |
 
 **Total: 6 coupled 1st-order ODEs** — compared to 13 in 3D.
 
@@ -195,13 +195,13 @@ $$\begin{pmatrix} \dot{x} \\ \dot{y} \\ \dot{\theta} \end{pmatrix} = \begin{pmat
 
 ### Comparison: 2D vs 3D
 
-| Property | 3D | 2D |
-|---|---|---|
-| State size | 13 (with quaternion) | 6 |
-| Gyroscopic term $\boldsymbol{\omega}\times\mathbf{I}\boldsymbol{\omega}$ | Present, nonlinear | **Zero** |
-| Rotational DOF | 3 ($\omega_x, \omega_y, \omega_z$ coupled) | 1 ($\omega$ scalar, decoupled) |
-| Orientation representation | Quaternion $\mathbf{q}$ (4 states) | Scalar angle $\theta$ (1 state) |
-| $\dot{\omega}$ equation | Nonlinear Euler equations | Simple $\tau^b/I_z$ |
+| Property                                                                 | 3D                                         | 2D                              |
+| ------------------------------------------------------------------------ | ------------------------------------------ | ------------------------------- |
+| State size                                                               | 13 (with quaternion)                       | 6                               |
+| Gyroscopic term $\boldsymbol{\omega}\times\mathbf{I}\boldsymbol{\omega}$ | Present, nonlinear                         | **Zero**                        |
+| Rotational DOF                                                           | 3 ($\omega_x, \omega_y, \omega_z$ coupled) | 1 ($\omega$ scalar, decoupled)  |
+| Orientation representation                                               | Quaternion $\mathbf{q}$ (4 states)         | Scalar angle $\theta$ (1 state) |
+| $\dot{\omega}$ equation                                                  | Nonlinear Euler equations                  | Simple $\tau^b/I_z$             |
 
 ---
 
@@ -436,13 +436,13 @@ equations.
 
 ### Body Frame: Still Useful, but Role Changes
 
-| | Fixed pivot | Thread pivot |
-|---|---|---|
-| DOF | 1 | 2 |
-| Pivot constraint | Zero velocity at $Q_b$ | $Q_b$ constrained to circle of radius $l$ |
-| Reaction force | Free (implicitly absorbed) | Along thread, magnitude from centripetal eq. |
-| Body-frame advantage | $\mathbf{I}$ constant, single $\alpha$ | $\mathbf{I}$ still constant for plate rotation |
-| Motor structure | $M_0 \mathbin{⟇} \exp(\tfrac{1}{2} B_b)$ | $M_{\text{thread}}(\varphi_1) \mathbin{⟇} \exp(\tfrac{1}{2} \varphi_2 \cdot Q_b)$ |
+|                      | Fixed pivot                               | Thread pivot                                                                       |
+| -------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------- |
+| DOF                  | 1                                         | 2                                                                                  |
+| Pivot constraint     | Zero velocity at $Q_b$                    | $Q_b$ constrained to circle of radius $l$                                          |
+| Reaction force       | Free (implicitly absorbed)                | Along thread, magnitude from centripetal eq.                                       |
+| Body-frame advantage | $\mathbf{I}$ constant, single $\alpha$    | $\mathbf{I}$ still constant for plate rotation                                     |
+| Motor structure      | $M_0 \mathbin{⟇} \exp(\tfrac{1}{2} B_b)$ | $M_{\text{thread}}(\varphi_1) \mathbin{⟇} \exp(\tfrac{1}{2} \varphi_2 \cdot Q_b)$ |
 
 The plate's inertia tensor $\mathbf{I}$ (parallel-axis corrected about $Q_b$) remains
 constant in the body frame and reusable in `calc_rhs` for the plate's own rotational

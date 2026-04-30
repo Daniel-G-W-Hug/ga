@@ -5,8 +5,10 @@
 - **ga_lua**: lua scripting interface based on the ga library
 - **ga_view**: qt-based visualization of 2d ga objects and operations
 - **ga_prdxpr**: code generator for GA product expressions
-- **ga_py**: Python wrapper around the `ga/` library — see [`ga_py/README.md`](ga_py/README.md) for installation and usage
-- **ga_bindgen**: contributor tool that scans `ga/` headers with libclang and emits the `ga_py` bindings — see [`ga_bindgen/README.md`](ga_bindgen/README.md)
+- **ga_py**: Python wrapper around the `ga/` library — see
+  [`ga_py/README.md`](ga_py/README.md) for installation and usage
+- **ga_bindgen**: contributor tool that scans `ga/` headers with libclang and emits the
+  `ga_py` bindings — see [`ga_bindgen/README.md`](ga_bindgen/README.md)
 
 ## Dependencies
 
@@ -15,8 +17,11 @@
 - ga_lua: fmt, lua, sol2
 - ga_view: fmt, qt6
 - ga_prdxpr: fmt
-- ga_py: fmt, Python 3.10+, Python packages `nanobind` (build) and `pytest`/`hypothesis`/`numpy` (tests). End users do **not** need libclang.
-- ga_bindgen: Python 3.10+, libclang (provided by a full LLVM install; the pip `libclang` package alone is insufficient on macOS because its resource directory is missing). Only contributors regenerating bindings need this.
+- ga_py: fmt, Python 3.10+, Python packages `nanobind` (build) and
+  `pytest`/`hypothesis`/`numpy` (tests). End users do **not** need libclang.
+- ga_bindgen: Python 3.10+, libclang (provided by a full LLVM install; the pip `libclang`
+  package alone is insufficient on macOS because its resource directory is missing). Only
+  contributors regenerating bindings need this.
 
 ## Installing dependencies on macOS
 
@@ -30,7 +35,8 @@ brew install python      # only required for ga_py (>= 3.10)
 brew install llvm        # only required for ga_bindgen (provides usable libclang)
 ```
 
-For `ga_py` (Python wrapper) install and venv setup, see [`ga_py/README.md §3`](ga_py/README.md#3-quick-start--running-your-first-python-script).
+For `ga_py` (Python wrapper) install and venv setup, see [`ga_py/README.md
+§3`](ga_py/README.md#3-quick-start--running-your-first-python-script).
 
 ## Installing dependencies on Windows
 
@@ -44,7 +50,8 @@ python:   winget install --id Python.Python.3.12   (only for ga_py; any 3.10+ wo
 LLVM:     https://releases.llvm.org/   (only for ga_bindgen)
 ```
 
-For `ga_py` (Python wrapper) install and venv setup, see [`ga_py/README.md §3`](ga_py/README.md#3-quick-start--running-your-first-python-script).
+For `ga_py` (Python wrapper) install and venv setup, see [`ga_py/README.md
+§3`](ga_py/README.md#3-quick-start--running-your-first-python-script).
 
 ## Usage of the ga library
 
@@ -188,20 +195,20 @@ cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega3d --products=wdg,dot && cd ../..
 
 ### Common Product Types
 
-- `gpr` - Geometric product (also available as `operator*()` in the library)
+- Geometric product (available as `operator*()` in the library)
 - `wdg` - Wedge (outer) product
 - `dot` - Inner (dot) product
 - `cmt` - Commutator product
-- `l_contract` - Left contraction (implemented as `operator<<()` in the library)
-- `r_contract` - Right contraction (implemented as `operator>>()` in the library)
-- `l_expand` - Left expansion (EGA only; PGA uses `l_bulk_expand2dp()`/`l_weight_expand2dp()` etc.)
-- `r_expand` - Right expansion (EGA only; PGA uses `r_bulk_expand2dp()`/`r_weight_expand2dp()` etc.)
+- Left (bulk) contraction (implemented as `operator<<()` in the library)
+- Right (bulk) contraction (implemented as `operator>>()` in the library)
+- Left expansion (EGA `l_expand`; PGA uses `l_bulk_expand2dp()`/`l_weight_expand2dp()`)
+- Right expansion (EGA `r_expand`; PGA uses `r_bulk_expand2dp()`/`r_weight_expand2dp()`)
 - `rgpr` - Regressive geometric product
 - `rwdg` - Regressive wedge product
 - `rdot` - Regressive inner (dot) product
 - `rcmt` - Regressive commutator product
-- `sandwich_gpr` - Geometric sandwich product → implemented as `rotate()` / `rotate_opt()` in EGA
-- `sandwich_rgpr` - Regressive sandwich product → implemented as `move2dp()` / `move3dp()` in PGA
+- Geometric sandwich product R ⟑ X ⟑ rev(R) → implemented as `rotate()` in EGA
+- Regressive sandwich product M ⟇ X ⟇ rrev(M) → implemented as `move2dp()`/`move3dp()` in PGA
 
 **Note**: PGA algebras have additional products for bulk/weight operations
 (`l_bulk_contract2dp()`, `r_weight_expand3dp()`, etc.). Use `--list` or
