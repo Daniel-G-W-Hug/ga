@@ -212,9 +212,9 @@ ProductConfig get_ega2d_twdg1_config()
             .display_name = "transwedge product (k=1)",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases{{"ps * vec -> vec", "svps", "svps", "ps", "vec"},
-                   {"vec * ps -> vec", "svps", "svps", "vec", "ps"},
-                   {"vec * vec -> s", "svps1", "svps2", "vec", "vec"}},
+            .cases{{"twdg1(ps,vec) -> vec", "svps", "svps", "ps", "vec"},
+                   {"twdg1(vec,ps) -> vec", "svps", "svps", "vec", "ps"},
+                   {"twdg1(vec,vec) -> s", "svps1", "svps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -396,7 +396,17 @@ ProductConfig get_ega2d_l_expand_config()
             .display_name = "left expansion",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases = {{"vec * s -> vec", "svps", "svps", "vec", "s"}},
+            .cases =
+                {
+                    // {"l_expand(ps,ps) -> ps", "svps1", "svps2", "ps", "ps"},
+                    //   {"l_expand(ps,vec) -> vec", "svps", "svps", "ps", "vec"},
+                    //   {"l_expand(ps,s) -> s", "svps", "svps", "ps", "s"},
+                    //
+                    //   {"l_expand(vec,vec) -> ps", "svps1", "svps2", "vec", "vec"},
+                    {"l_expand(vec,s) -> vec", "svps", "svps", "vec", "s"}
+                    //
+                    //   {"l_expand(s,s) -> ps", "svps", "svps", "s", "s"}
+                },
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -409,7 +419,7 @@ ProductConfig get_ega2d_r_expand_config()
             .display_name = "right expansion",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases = {{"s * vec -> vec", "svps", "svps", "s", "vec"}},
+            .cases = {{"r_expand(s,vec) -> vec", "svps", "svps", "s", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -452,9 +462,9 @@ ProductConfig get_ega2d_rtwdg1_config()
             .display_name = "regressive transwedge product (k=1)",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases{{"vec * vec -> ps", "svps1", "svps2", "vec", "vec"},
-                   {"vec * s -> vec", "svps", "svps", "vec", "s"},
-                   {"s * vec -> vec", "svps", "svps", "s", "vec"}},
+            .cases{{"rtwdg1(vec,vec) -> ps", "svps1", "svps2", "vec", "vec"},
+                   {"rtwdg1(vec,s) -> vec", "svps", "svps", "vec", "s"},
+                   {"rtwdg1(s,vec) -> vec", "svps", "svps", "s", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

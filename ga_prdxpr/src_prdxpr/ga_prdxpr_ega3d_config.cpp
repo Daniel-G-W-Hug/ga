@@ -253,21 +253,22 @@ ProductConfig get_ega3d_gpr_alt_config()
 
 ProductConfig get_ega3d_twdg1_config()
 {
-    return {.product_name = "twdg1",
-            .description = "ega3d transwedge product for k=1 (see gpr (alternative))",
-            .display_name = "transwedge product (k=1)",
-            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
-            // "right_filter"}
-            // .cases{}, // no cases, just for generating the product tables
-            .cases = {{"ps * vec -> bivec", "svBps", "svBps", "ps", "vec"},
-                      {"vec * ps -> bivec", "svBps", "svBps", "vec", "ps"},
-                      {"bivec * bivec -> bivec", "svBps1", "svBps2", "bivec", "bivec"},
-                      {"bivec * vec -> vec", "svBps", "svBps", "bivec", "vec"},
-                      {"vec * bivec -> vec", "svBps", "svBps", "vec", "bivec"},
-                      {"vec * vec -> s", "svBps1", "svBps2", "vec", "vec"}},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "twdg1",
+        .description = "ega3d transwedge product for k=1 (see gpr (alternative))",
+        .display_name = "transwedge product (k=1)",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        // .cases{}, // no cases, just for generating the product tables
+        .cases = {{"twdg1(ps,vec) -> bivec", "svBps", "svBps", "ps", "vec"},
+                  {"twdg1(vec,ps) -> bivec", "svBps", "svBps", "vec", "ps"},
+                  {"twdg1(bivec,bivec) -> bivec", "svBps1", "svBps2", "bivec", "bivec"},
+                  {"twdg1(bivec,vec) -> vec", "svBps", "svBps", "bivec", "vec"},
+                  {"twdg1(vec,bivec) -> vec", "svBps", "svBps", "vec", "bivec"},
+                  {"twdg1(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_ega3d_cmt_config()
@@ -417,9 +418,9 @@ ProductConfig get_ega3d_l_expand_config()
             .display_name = "left expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {{"lexpand(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                      {"lexpand(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
-                      {"lexpand(vec,vec) -> ps", "svBps1", "svBps1", "vec", "vec"}}};
+            .cases = {{"l_expand(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      {"l_expand(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
+                      {"l_expand(vec,vec) -> ps", "svBps1", "svBps1", "vec", "vec"}}};
 }
 
 ProductConfig get_ega3d_r_expand_config()
@@ -429,9 +430,9 @@ ProductConfig get_ega3d_r_expand_config()
             .display_name = "right expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {{"rexpand(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                      {"rexpand(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
-                      {"rexpand(vec,vec) -> ps", "svBps1", "svBps2", "vec", "vec"}}};
+            .cases = {{"r_expand(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      {"r_expand(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
+                      {"r_expand(vec,vec) -> ps", "svBps1", "svBps2", "vec", "vec"}}};
 }
 
 ProductConfig get_ega3d_rgpr_config()
@@ -472,12 +473,12 @@ ProductConfig get_ega3d_rtwdg1_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             // .cases{}, // no cases, just for generating the product tables
-            .cases = {{"bivec * bivec -> ps", "svBps1", "svBps2", "bivec", "bivec"},
-                      {"bivec * vec -> bivec", "svBps", "svBps", "bivec", "vec"},
-                      {"vec * bivec -> bivec", "svBps", "svBps", "vec", "bivec"},
-                      {"bivec * s -> vec", "svBps", "svBps", "bivec", "s"},
-                      {"s * bivec -> vec", "svBps", "svBps", "s", "bivec"},
-                      {"vec * vec -> vec", "svBps1", "svBps2", "vec", "vec"}},
+            .cases = {{"rtwdg1(bivec,bivec) -> ps", "svBps1", "svBps2", "bivec", "bivec"},
+                      {"rtwdg1(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
+                      {"rtwdg1(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
+                      {"rtwdg1(bivec,s) -> vec", "svBps", "svBps", "bivec", "s"},
+                      {"rtwdg1(s,bivec) -> vec", "svBps", "svBps", "s", "bivec"},
+                      {"rtwdg1(vec,vec) -> vec", "svBps1", "svBps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -494,7 +495,10 @@ ProductConfig get_ega3d_rcmt_config()
                       {"rcmt(bivec,bivec) -> vec", "svBps1", "svBps2", "bivec", "bivec"},
                       {"rcmt(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
                       {"rcmt(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
-                      {"rcmt(vec,vec) -> vec", "svBps1", "svBps2", "vec", "vec"}}};
+                      {"rcmt(vec,vec) -> vec", "svBps1", "svBps2", "vec", "vec"}},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
 }
 
 ProductConfig get_ega3d_rwdg_config()
@@ -524,7 +528,10 @@ ProductConfig get_ega3d_rwdg_config()
                       {"rwdg(vec,s) -> 0", "svBps", "svBps", "vec", "s"},
                       {"rwdg(s,vec) -> 0", "svBps", "svBps", "s", "vec"},
                       //
-                      {"rwdg(s,s) -> 0", "svBps1", "svBps2", "s", "s"}}};
+                      {"rwdg(s,s) -> 0", "svBps1", "svBps2", "s", "s"}},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
 }
 
 ProductConfig get_ega3d_rdot_config()
@@ -545,14 +552,20 @@ ProductConfig get_ega3d_rdot_config()
 
 ProductConfig get_ega3d_sandwich_gpr_config()
 {
-    return {.product_name = "sandwich_gpr",
-            .description = "ega3d rotor geometric product",
-            .display_name = "sandwich product",
-            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
-            // "right_filter"}
-            .cases = {{"mv_e * vec -> mv_u", "R_even", "svBps", "mv_e", "vec"},
-                      {"mv_e * bivec -> mv_e", "R_even", "svBps", "mv_e", "bivec"}},
-            .is_sandwich_product = true};
+    return {
+        .product_name = "sandwich_gpr",
+        .description = "ega3d rotor geometric product",
+        .display_name = "sandwich product",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter", is_two_step, "intermediate"}
+        .cases =
+            {// Single case that triggers sandwich product behavior - reference only
+             // does vec case
+             {"dummy", "dummy", "dummy", "dummy", "dummy", true, "vec_tmp"}},
+        .is_sandwich_product = true,
+        .uses_brace_switch = true, // true is important for sandwich products
+        .show_basis_table = true   // Reference shows basis table for sandwich product
+    };
 }
 
 } // namespace configurable
