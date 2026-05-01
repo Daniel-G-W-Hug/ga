@@ -243,21 +243,22 @@ ProductConfig get_pga2dp_gpr_alt_config()
 
 ProductConfig get_pga2dp_twdg1_config()
 {
-    return {.product_name = "twdg1",
-            .description = "pga2dp transwedge product for k=1 (see gpr (alternative))",
-            .display_name = "transwedge product (k=1)",
-            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
-            // "right_filter"}
-            // .cases{}, // no cases, just for generating the product tables
-            .cases = {{"ps * vec -> bivec", "svBps", "svBps", "ps", "vec"},
-                      {"vec * ps -> bivec", "svBps", "svBps", "vec", "ps"},
-                      {"bivec * bivec -> bivec", "svBps1", "svBps2", "bivec", "bivec"},
-                      {"bivec * vec -> vec", "svBps", "svBps", "bivec", "vec"},
-                      {"vec * bivec -> vec", "svBps", "svBps", "vec", "bivec"},
-                      {"vec * vec -> s", "svBps1", "svBps2", "vec", "vec"}},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "twdg1",
+        .description = "pga2dp transwedge product for k=1 (see gpr (alternative))",
+        .display_name = "transwedge product (k=1)",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        // .cases{}, // no cases, just for generating the product tables
+        .cases = {{"twdg1(ps,vec) -> bivec", "svBps", "svBps", "ps", "vec"},
+                  {"twdg1(vec,ps) -> bivec", "svBps", "svBps", "vec", "ps"},
+                  {"twdg1(bivec,bivec) -> bivec", "svBps1", "svBps2", "bivec", "bivec"},
+                  {"twdg1(bivec,vec) -> vec", "svBps", "svBps", "bivec", "vec"},
+                  {"twdg1(vec,bivec) -> vec", "svBps", "svBps", "vec", "bivec"},
+                  {"twdg1(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_pga2dp_cmt_config()
@@ -523,9 +524,9 @@ ProductConfig get_pga2dp_rgpr_config()
                       //
                       {"rgpr(vec,vec) -> mv_u", "svBps1", "svBps2", "vec", "vec"},
                       {"rgpr(vec,s) -> bivec", "svBps", "svBps", "vec", "s"},
-                      {"rgrp(s,vec) -> bivec", "svBps", "svBps", "s", "vec"},
+                      {"rgpr(s,vec) -> bivec", "svBps", "svBps", "s", "vec"},
                       //
-                      {"rgrp(s,s) -> 0", "svBps1", "svBps2", "s", "s"}},
+                      {"rgpr(s,s) -> 0 ps", "svBps1", "svBps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -556,12 +557,12 @@ ProductConfig get_pga2dp_rtwdg1_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             // .cases{}, // no cases, just for generating the product tables
-            .cases = {{"bivec * bivec -> ps", "svBps1", "svBps2", "bivec", "bivec"},
-                      {"bivec * vec -> bivec", "svBps", "svBps", "bivec", "vec"},
-                      {"vec * bivec -> bivec", "svBps", "svBps", "vec", "bivec"},
-                      {"bivec * s -> vec", "svBps", "svBps", "bivec", "s"},
-                      {"s * bivec -> vec", "svBps", "svBps", "s", "bivec"},
-                      {"vec * vec -> vec", "svBps1", "svBps2", "vec", "vec"}},
+            .cases = {{"rtwdg1(bivec,bivec) -> ps", "svBps1", "svBps2", "bivec", "bivec"},
+                      {"rtwdg1(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
+                      {"rtwdg1(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
+                      {"rtwdg1(bivec,s) -> vec", "svBps", "svBps", "bivec", "s"},
+                      {"rtwdg1(s,bivec) -> vec", "svBps", "svBps", "s", "bivec"},
+                      {"rtwdg1(vec,vec) -> vec", "svBps1", "svBps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
