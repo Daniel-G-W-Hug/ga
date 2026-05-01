@@ -1,7 +1,7 @@
 """T1 --- Constants verification.
 
 Every named constant exposed by ga_py.ega / ga_py.pga must hold the value
-declared in ga/ga_usr_consts.hpp. This file enumerates all 107 currently
+declared in ga/ga_usr_consts.hpp. This file enumerates all 120 currently
 bound constants and verifies their components, plus the alias and cross-
 relation invariants spelled out in the C++ source.
 
@@ -50,6 +50,9 @@ EXPECTED: list[tuple[str, str, str, tuple[float, ...]]] = [
     ("ega", "e12_2d",      "pscalar2d", (1.0,)),
     ("ega", "I_2d_mv",     "mvec2d",    (0.0, 0.0, 0.0, 1.0)),
     ("ega", "I_2d_mv_e",   "mvec2d_e",  (0.0, 1.0)),
+    ("ega", "One_2d",      "scalar2d",  (1.0,)),
+    ("ega", "One_2d_mv",   "mvec2d",    (1.0, 0.0, 0.0, 0.0)),
+    ("ega", "One_2d_mv_e", "mvec2d_e",  (1.0, 0.0)),
 
     # ---------- EGA 3D ----------
     ("ega", "e1_3d",       "vec3d",     (1.0, 0.0, 0.0)),
@@ -78,6 +81,9 @@ EXPECTED: list[tuple[str, str, str, tuple[float, ...]]] = [
     ("ega", "e123_3d",     "pscalar3d", (1.0,)),
     ("ega", "I_3d_mv",     "mvec3d",    (0,0,0,0, 0,0,0,1)),
     ("ega", "I_3d_mv_u",   "mvec3d_u",  (0,0,0,1)),
+    ("ega", "One_3d",      "scalar3d",  (1.0,)),
+    ("ega", "One_3d_mv",   "mvec3d",    (1,0,0,0, 0,0,0,0)),
+    ("ega", "One_3d_mv_e", "mvec3d_e",  (1,0,0,0)),
 
     # ---------- PGA 2dp ----------
     ("pga", "e1_2dp",        "vec2dp",      (1.0, 0.0, 0.0)),
@@ -107,6 +113,9 @@ EXPECTED: list[tuple[str, str, str, tuple[float, ...]]] = [
     ("pga", "e321_2dp",      "pscalar2dp",  (1.0,)),
     ("pga", "I_2dp_mv",      "mvec2dp",     (0,0,0,0, 0,0,0,1)),
     ("pga", "I_2dp_mv_u",    "mvec2dp_u",   (0,0,0,1)),
+    ("pga", "One_2dp",       "scalar2dp",   (1.0,)),
+    ("pga", "One_2dp_mv",    "mvec2dp",     (1,0,0,0, 0,0,0,0)),
+    ("pga", "One_2dp_mv_e",  "mvec2dp_e",   (1,0,0,0)),
 
     # ---------- PGA 3dp ----------
     ("pga", "e1_3dp",        "vec3dp",      (1.0, 0.0, 0.0, 0.0)),
@@ -155,6 +164,9 @@ EXPECTED: list[tuple[str, str, str, tuple[float, ...]]] = [
     ("pga", "e1234_3dp",     "pscalar3dp",  (1.0,)),
     ("pga", "I_3dp_mv",      "mvec3dp",     (0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1)),
     ("pga", "I_3dp_mv_e",    "mvec3dp_e",   (0,0,0,0, 0,0,0,1)),
+    ("pga", "One_3dp",       "scalar3dp",   (1.0,)),
+    ("pga", "One_3dp_mv",    "mvec3dp",     (1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0)),
+    ("pga", "One_3dp_mv_e",  "mvec3dp_e",   (1,0,0,0, 0,0,0,0)),
 ]
 
 
@@ -310,14 +322,14 @@ def test_expected_table_covers_every_bound_constant():
     assert not extra, f"tested but no longer bound: {sorted(extra)}"
 
 
-def test_total_bound_constants_is_108():
+def test_total_bound_constants_is_120():
     """Stable count --- changes here flag intentional or accidental drift.
 
-    108 = the 107 originally bound + H_2dp (recovered after extending the
-    emitter's type-resolver to fall back to tag-based matching for
-    operator-deduced types like `auto const H_2dp = -e12_2dp`).
+    120 = the 108 previously bound + 12 `One_*` scalar/multivector identities
+    (One_2d{,_mv,_mv_e}, One_3d{,_mv,_mv_e}, One_2dp{,_mv,_mv_e},
+    One_3dp{,_mv,_mv_e}) added in ga/ga_usr_consts.hpp.
     """
-    assert len(_all_bound_constants()) == 108
+    assert len(_all_bound_constants()) == 120
 
 
 def test_h_2dp_value_matches_negated_e12_2dp():

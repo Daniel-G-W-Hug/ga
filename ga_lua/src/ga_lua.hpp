@@ -2359,7 +2359,7 @@ void register_functions(sol::state& lua)
                     sol::resolve<bivec2dp(vec2dp const&, scalar2dp)>(rgpr),
                     sol::resolve<bivec2dp(scalar2dp, vec2dp const&)>(rgpr),
                     //
-                    sol::resolve<scalar2dp(scalar2dp, scalar2dp)>(rgpr),
+                    sol::resolve<pscalar2dp(scalar2dp, scalar2dp)>(rgpr),
                     // PGA 3DP types (verified signatures - starting with basic ones)
                     sol::resolve<mvec3dp(mvec3dp const&, mvec3dp const&)>(rgpr),
                     sol::resolve<mvec3dp(mvec3dp_e const&, mvec3dp const&)>(rgpr),
@@ -2410,7 +2410,7 @@ void register_functions(sol::state& lua)
                     sol::resolve<trivec3dp(vec3dp const&, scalar3dp)>(rgpr),
                     sol::resolve<trivec3dp(scalar3dp, vec3dp const&)>(rgpr),
                     //
-                    sol::resolve<scalar3dp(scalar3dp, scalar3dp)>(rgpr)));
+                    sol::resolve<pscalar3dp(scalar3dp, scalar3dp)>(rgpr)));
 
     // Note:
     // - Geometric product is only available as operator*, not as

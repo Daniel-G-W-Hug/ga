@@ -37,6 +37,12 @@ void register_constants_pga(nb::module_& m) {
     m.attr("I_3dp_mv_e") = nb::cast(hd::ga::pga::I_3dp_mv_e);
     m.attr("O_2dp") = nb::cast(hd::ga::pga::O_2dp);
     m.attr("O_3dp") = nb::cast(hd::ga::pga::O_3dp);
+    m.attr("One_2dp") = nb::cast(hd::ga::pga::One_2dp);
+    m.attr("One_2dp_mv") = nb::cast(hd::ga::pga::One_2dp_mv);
+    m.attr("One_2dp_mv_e") = nb::cast(hd::ga::pga::One_2dp_mv_e);
+    m.attr("One_3dp") = nb::cast(hd::ga::pga::One_3dp);
+    m.attr("One_3dp_mv") = nb::cast(hd::ga::pga::One_3dp_mv);
+    m.attr("One_3dp_mv_e") = nb::cast(hd::ga::pga::One_3dp_mv_e);
     m.attr("e1234_3dp") = nb::cast(hd::ga::pga::e1234_3dp);
     m.attr("e12_2dp") = nb::cast(hd::ga::pga::e12_2dp);
     m.attr("e12_2dp_mv") = nb::cast(hd::ga::pga::e12_2dp_mv);
