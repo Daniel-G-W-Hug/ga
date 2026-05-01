@@ -2299,11 +2299,12 @@ constexpr BiVec2dp<std::common_type_t<T, U>> rgpr(Scalar2dp<T> s, Vec2dp<U> cons
 
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr Scalar2dp<std::common_type_t<T, U>> rgpr([[maybe_unused]] Scalar2dp<T>,
-                                                   [[maybe_unused]] Scalar2dp<U>)
+constexpr PScalar2dp<std::common_type_t<T, U>> rgpr([[maybe_unused]] Scalar2dp<T>,
+                                                    [[maybe_unused]] Scalar2dp<U>)
 {
+    // for type consistency this must be a pseudoscalar zero
     using ctype = std::common_type_t<T, U>;
-    return Scalar2dp<ctype>{0.0};
+    return PScalar2dp<ctype>{0.0};
 }
 
 
