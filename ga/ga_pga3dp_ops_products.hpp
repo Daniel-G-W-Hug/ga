@@ -3548,11 +3548,12 @@ constexpr TriVec3dp<std::common_type_t<T, U>> rgpr(Scalar3dp<T> s, Vec3dp<U> con
 
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr Scalar3dp<std::common_type_t<T, U>> rgpr([[maybe_unused]] Scalar3dp<T>,
-                                                   [[maybe_unused]] Scalar3dp<U>)
+constexpr PScalar3dp<std::common_type_t<T, U>> rgpr([[maybe_unused]] Scalar3dp<T>,
+                                                    [[maybe_unused]] Scalar3dp<U>)
 {
+    // for type consistency this must be a pseudoscalar zero
     using ctype = std::common_type_t<T, U>;
-    return Scalar3dp<ctype>(0.0);
+    return PScalar3dp<ctype>(0.0);
 }
 
 

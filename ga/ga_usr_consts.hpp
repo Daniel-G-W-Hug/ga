@@ -36,8 +36,12 @@ auto const O_2d = Vec2d<value_t>{0.0, 0.0}; // origin
 auto const e1_2d_mv = MVec2d<value_t>{e1_2d}; // e1_2d as multivector
 auto const e2_2d_mv = MVec2d<value_t>{e2_2d}; // e2_2d as multivector
 
-auto const I_2d = PScalar2d<value_t>(1.0);
-auto const e12_2d = I_2d;
+auto const One_2d = Scalar2d<value_t>(1.0);         // Basis element 1
+auto const One_2d_mv = MVec2d<value_t>{One_2d};     // 1 as multivector
+auto const One_2d_mv_e = MVec2d_E<value_t>{One_2d}; // 1 as even-grade multivector
+
+auto const I_2d = PScalar2d<value_t>(1.0);      // Basis element I_2d
+auto const e12_2d = I_2d;                       // (pseudoscalar)
 auto const I_2d_mv = MVec2d<value_t>{I_2d};     // I_2d as multivector
 auto const I_2d_mv_e = MVec2d_E<value_t>{I_2d}; // I_2d as even grade multivector
 
@@ -86,10 +90,14 @@ auto const e23_3d_mv_e = MVec3d_E<value_t>{e23_3d}; // e23_3d as even grade mult
 auto const e31_3d_mv_e = MVec3d_E<value_t>{e31_3d}; // e31_3d as even grade multivector
 auto const e12_3d_mv_e = MVec3d_E<value_t>{e12_3d}; // e12_3d as even grade multivector
 
-auto const I_3d = PScalar3d<value_t>(1.0);
-auto const e123_3d = I_3d;
+auto const One_3d = Scalar3d<value_t>(1.0);         // Basis element 1
+auto const One_3d_mv = MVec3d<value_t>{One_3d};     // 1 as multivector
+auto const One_3d_mv_e = MVec3d_E<value_t>{One_3d}; // 1 as even-grade multivector
+
+auto const I_3d = PScalar3d<value_t>(1.0);      // Basis element I_3d
+auto const e123_3d = I_3d;                      // (pseudoscalar)
 auto const I_3d_mv = MVec3d<value_t>{I_3d};     // I_3d as multivector
-auto const I_3d_mv_u = MVec3d_U<value_t>{I_3d}; // I_3d as odd grade multivector
+auto const I_3d_mv_u = MVec3d_U<value_t>{I_3d}; // I_3d as odd-grade multivector
 
 // extended metric for ega3d (8×8 matrix, 64 elements)
 // Basis: 1, e1, e2, e3, e23, e31, e12, e123
@@ -155,8 +163,12 @@ auto const e31_2dp_mv_e = MVec2dp_E<value_t>{e31_2dp}; // e31_2dp as even multiv
 auto const e32_2dp_mv_e = MVec2dp_E<value_t>{e32_2dp}; // e32_2dp as even multivector
 auto const e12_2dp_mv_e = MVec2dp_E<value_t>{e12_2dp}; // e12_2dp as even multivector
 
-auto const I_2dp = PScalar2dp<value_t>(1.0); // I_2dp = e3^e2^e1 = e321
-auto const e321_2dp = I_2dp;
+auto const One_2dp = Scalar2dp<value_t>(1.0);          // Basis element 1
+auto const One_2dp_mv = MVec2dp<value_t>{One_2dp};     // 1 as multivector
+auto const One_2dp_mv_e = MVec2dp_E<value_t>{One_2dp}; // 1 as even-grade multivector
+
+auto const I_2dp = PScalar2dp<value_t>(1.0);       // I_2dp = e3^e2^e1 = e321
+auto const e321_2dp = I_2dp;                       // (pseudoscalar)
 auto const I_2dp_mv = MVec2dp<value_t>{I_2dp};     // I_2dp as multivector
 auto const I_2dp_mv_u = MVec2dp_U<value_t>{I_2dp}; // I_2dp as odd-grade multivector
 
@@ -264,8 +276,12 @@ auto const e431_3dp_mv = MVec3dp<value_t>{e431_3dp}; // e431_3dp as multivector
 auto const e412_3dp_mv = MVec3dp<value_t>{e412_3dp}; // e412_3dp as multivector
 auto const e321_3dp_mv = MVec3dp<value_t>{e321_3dp}; // e321_3dp as multivector
 
-auto const I_3dp = PScalar3dp<value_t>(1.0); // I_3dp = e1^e2^e3^e4 = e1234
-auto const e1234_3dp = I_3dp;
+auto const One_3dp = Scalar3dp<value_t>(1.0);          // Basis element 1
+auto const One_3dp_mv = MVec3dp<value_t>{One_3dp};     // 1 as multivector
+auto const One_3dp_mv_e = MVec3dp_E<value_t>{One_3dp}; // 1 as even-grade multivector
+
+auto const I_3dp = PScalar3dp<value_t>(1.0);       // I_3dp = e1^e2^e3^e4 = e1234
+auto const e1234_3dp = I_3dp;                      // (pseudoscalar)
 auto const I_3dp_mv = MVec3dp<value_t>{I_3dp};     // I_3dp as multivector
 auto const I_3dp_mv_e = MVec3dp_E<value_t>{I_3dp}; // I_3dp as even grade multivector
 

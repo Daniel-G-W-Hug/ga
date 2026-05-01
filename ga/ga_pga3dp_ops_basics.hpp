@@ -1350,6 +1350,7 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar3dp<T> r_weight_dual([[maybe_unused]] Scalar3dp<T>)
 {
+    // for type consistency this must be a pseudoscalar zero
     return PScalar3dp<T>(0.0);
 }
 

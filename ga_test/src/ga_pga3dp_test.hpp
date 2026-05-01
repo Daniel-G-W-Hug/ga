@@ -525,6 +525,32 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(r_bulk_expand3dp(v, v2) == wdg(v, r_bulk_dual(v2)));
         CHECK(r_bulk_expand3dp(B, B2) == wdg(B, r_bulk_dual(B2)));
         CHECK(r_bulk_expand3dp(v, B) == wdg(v, r_bulk_dual(B)));
+
+        // equivalence to the geometric product
+        CHECK(r_bulk_dual(s) == rev(s) * I_3dp);
+        CHECK(r_bulk_dual(v) == rev(v) * I_3dp);
+        CHECK(r_bulk_dual(B) == rev(B) * I_3dp);
+        CHECK(r_bulk_dual(t) == rev(t) * I_3dp);
+        CHECK(r_bulk_dual(ps) == rev(ps) * I_3dp);
+        //
+        CHECK(l_bulk_dual(s) == I_3dp * rev(s));
+        CHECK(l_bulk_dual(v) == I_3dp * rev(v));
+        CHECK(l_bulk_dual(B) == I_3dp * rev(B));
+        CHECK(l_bulk_dual(t) == I_3dp * rev(t));
+        CHECK(l_bulk_dual(ps) == I_3dp * rev(ps));
+
+        // equivalence to the regressive geometric product
+        CHECK(r_weight_dual(s) == rgpr(rrev(s), One_3dp));
+        CHECK(r_weight_dual(v) == rgpr(rrev(v), One_3dp));
+        CHECK(r_weight_dual(B) == rgpr(rrev(B), One_3dp));
+        CHECK(r_weight_dual(t) == rgpr(rrev(t), One_3dp));
+        CHECK(r_weight_dual(ps) == rgpr(rrev(ps), One_3dp));
+        //
+        CHECK(l_weight_dual(s) == rgpr(One_3dp, rrev(s)));
+        CHECK(l_weight_dual(v) == rgpr(One_3dp, rrev(v)));
+        CHECK(l_weight_dual(B) == rgpr(One_3dp, rrev(B)));
+        CHECK(l_weight_dual(t) == rgpr(One_3dp, rrev(t)));
+        CHECK(l_weight_dual(ps) == rgpr(One_3dp, rrev(ps)));
     }
 
     TEST_CASE("Vec3dp: operations - angle I")
