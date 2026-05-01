@@ -323,7 +323,7 @@ constexpr MVec2dp<T> conj(MVec2dp<T> const& M)
 // is only one complement operation defined l_cmpl(u) = r_cmpl(u) = cmpl(u)
 //
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
-// comploments have different signs
+// complements have different signs
 
 // complement operation with e3^e2^e1 as the pseudoscalar
 
