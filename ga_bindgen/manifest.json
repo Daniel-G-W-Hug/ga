@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-04-30T19:03:40+00:00",
+  "generated_at": "2026-05-01T12:31:27+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp"
@@ -7554,13 +7554,13 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 4, 4>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 54
+          "source_line": 58
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 4, 4>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 54
+          "source_line": 58
         }
       ]
     },
@@ -7572,13 +7572,13 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 108
+          "source_line": 116
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 108
+          "source_line": 116
         }
       ]
     },
@@ -13386,7 +13386,7 @@
             "Scalar2dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2321
+          "source_line": 2322
         },
         {
           "return_type": "Vec2dp<T>",
@@ -13394,7 +13394,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2332
+          "source_line": 2333
         },
         {
           "return_type": "BiVec2dp<T>",
@@ -13402,7 +13402,7 @@
             "const BiVec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2344
+          "source_line": 2345
         },
         {
           "return_type": "MVec2dp_E<T>",
@@ -13410,7 +13410,7 @@
             "const MVec2dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2358
+          "source_line": 2359
         },
         {
           "return_type": "MVec2dp_U<T>",
@@ -13418,7 +13418,7 @@
             "const MVec2dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2368
+          "source_line": 2369
         },
         {
           "return_type": "MVec2dp<T>",
@@ -13426,7 +13426,7 @@
             "const MVec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2381
+          "source_line": 2382
         },
         {
           "return_type": "Scalar3dp<T>",
@@ -13434,7 +13434,7 @@
             "Scalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3570
+          "source_line": 3571
         },
         {
           "return_type": "Vec3dp<T>",
@@ -13442,7 +13442,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3581
+          "source_line": 3582
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -13450,7 +13450,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3595
+          "source_line": 3596
         },
         {
           "return_type": "TriVec3dp<T>",
@@ -13458,7 +13458,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3612
+          "source_line": 3613
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -13466,7 +13466,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3631
+          "source_line": 3632
         },
         {
           "return_type": "MVec3dp_U<T>",
@@ -13474,7 +13474,7 @@
             "const MVec3dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3648
+          "source_line": 3649
         },
         {
           "return_type": "MVec3dp<T>",
@@ -13482,7 +13482,7 @@
             "const MVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3666
+          "source_line": 3667
         },
         {
           "return_type": "Scalar2dp<T>",
@@ -13490,7 +13490,7 @@
             "Scalar2dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2321
+          "source_line": 2322
         },
         {
           "return_type": "Vec2dp<T>",
@@ -13498,7 +13498,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2332
+          "source_line": 2333
         },
         {
           "return_type": "BiVec2dp<T>",
@@ -13506,7 +13506,7 @@
             "const BiVec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2344
+          "source_line": 2345
         },
         {
           "return_type": "MVec2dp_E<T>",
@@ -13514,7 +13514,7 @@
             "const MVec2dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2358
+          "source_line": 2359
         },
         {
           "return_type": "MVec2dp_U<T>",
@@ -13522,7 +13522,7 @@
             "const MVec2dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2368
+          "source_line": 2369
         },
         {
           "return_type": "MVec2dp<T>",
@@ -13530,7 +13530,7 @@
             "const MVec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2381
+          "source_line": 2382
         },
         {
           "return_type": "Scalar3dp<T>",
@@ -13538,7 +13538,7 @@
             "Scalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3570
+          "source_line": 3571
         },
         {
           "return_type": "Vec3dp<T>",
@@ -13546,7 +13546,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3581
+          "source_line": 3582
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -13554,7 +13554,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3595
+          "source_line": 3596
         },
         {
           "return_type": "TriVec3dp<T>",
@@ -13562,7 +13562,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3612
+          "source_line": 3613
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -13570,7 +13570,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3631
+          "source_line": 3632
         },
         {
           "return_type": "MVec3dp_U<T>",
@@ -13578,7 +13578,7 @@
             "const MVec3dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3648
+          "source_line": 3649
         },
         {
           "return_type": "MVec3dp<T>",
@@ -13586,7 +13586,7 @@
             "const MVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3666
+          "source_line": 3667
         }
       ]
     },
@@ -14105,7 +14105,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2414
+          "source_line": 2415
         },
         {
           "return_type": "decltype(auto)",
@@ -14114,7 +14114,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2414
+          "source_line": 2415
         }
       ]
     },
@@ -14129,7 +14129,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3704
+          "source_line": 3705
         },
         {
           "return_type": "decltype(auto)",
@@ -14138,7 +14138,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3704
+          "source_line": 3705
         }
       ]
     },
@@ -14152,7 +14152,7 @@
             "Scalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1426
+          "source_line": 1427
         },
         {
           "return_type": "TriVec3dp<T>",
@@ -14160,7 +14160,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1433
+          "source_line": 1434
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -14168,7 +14168,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1440
+          "source_line": 1441
         },
         {
           "return_type": "Vec3dp<T>",
@@ -14176,7 +14176,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1447
+          "source_line": 1448
         },
         {
           "return_type": "Scalar3dp<T>",
@@ -14184,7 +14184,7 @@
             "PScalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1454
+          "source_line": 1455
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -14192,7 +14192,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1461
+          "source_line": 1462
         },
         {
           "return_type": "MVec3dp_U<T>",
@@ -14200,7 +14200,7 @@
             "const MVec3dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1468
+          "source_line": 1469
         },
         {
           "return_type": "MVec3dp<T>",
@@ -14208,7 +14208,7 @@
             "const MVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1475
+          "source_line": 1476
         },
         {
           "return_type": "PScalar3dp<T>",
@@ -14216,7 +14216,7 @@
             "Scalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1426
+          "source_line": 1427
         },
         {
           "return_type": "TriVec3dp<T>",
@@ -14224,7 +14224,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1433
+          "source_line": 1434
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -14232,7 +14232,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1440
+          "source_line": 1441
         },
         {
           "return_type": "Vec3dp<T>",
@@ -14240,7 +14240,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1447
+          "source_line": 1448
         },
         {
           "return_type": "Scalar3dp<T>",
@@ -14248,7 +14248,7 @@
             "PScalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1454
+          "source_line": 1455
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -14256,7 +14256,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1461
+          "source_line": 1462
         },
         {
           "return_type": "MVec3dp_U<T>",
@@ -14264,7 +14264,7 @@
             "const MVec3dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1468
+          "source_line": 1469
         },
         {
           "return_type": "MVec3dp<T>",
@@ -14272,7 +14272,7 @@
             "const MVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1475
+          "source_line": 1476
         }
       ]
     },
@@ -14287,7 +14287,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2471
+          "source_line": 2472
         },
         {
           "return_type": "decltype(auto)",
@@ -14296,7 +14296,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2471
+          "source_line": 2472
         }
       ]
     },
@@ -14311,7 +14311,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3757
+          "source_line": 3758
         },
         {
           "return_type": "decltype(auto)",
@@ -14320,7 +14320,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3757
+          "source_line": 3758
         }
       ]
     },
@@ -14469,7 +14469,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2421
+          "source_line": 2422
         },
         {
           "return_type": "decltype(auto)",
@@ -14478,7 +14478,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2421
+          "source_line": 2422
         }
       ]
     },
@@ -14493,7 +14493,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3711
+          "source_line": 3712
         },
         {
           "return_type": "decltype(auto)",
@@ -14502,7 +14502,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3711
+          "source_line": 3712
         }
       ]
     },
@@ -14516,7 +14516,7 @@
             "Scalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1500
+          "source_line": 1501
         },
         {
           "return_type": "TriVec3dp<T>",
@@ -14524,7 +14524,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1507
+          "source_line": 1508
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -14532,7 +14532,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1514
+          "source_line": 1515
         },
         {
           "return_type": "Vec3dp<T>",
@@ -14540,7 +14540,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1521
+          "source_line": 1522
         },
         {
           "return_type": "Scalar3dp<T>",
@@ -14548,7 +14548,7 @@
             "PScalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1528
+          "source_line": 1529
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -14556,7 +14556,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1535
+          "source_line": 1536
         },
         {
           "return_type": "MVec3dp_U<T>",
@@ -14564,7 +14564,7 @@
             "const MVec3dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1543
+          "source_line": 1544
         },
         {
           "return_type": "MVec3dp<T>",
@@ -14572,7 +14572,7 @@
             "const MVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1550
+          "source_line": 1551
         },
         {
           "return_type": "PScalar3dp<T>",
@@ -14580,7 +14580,7 @@
             "Scalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1500
+          "source_line": 1501
         },
         {
           "return_type": "TriVec3dp<T>",
@@ -14588,7 +14588,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1507
+          "source_line": 1508
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -14596,7 +14596,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1514
+          "source_line": 1515
         },
         {
           "return_type": "Vec3dp<T>",
@@ -14604,7 +14604,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1521
+          "source_line": 1522
         },
         {
           "return_type": "Scalar3dp<T>",
@@ -14612,7 +14612,7 @@
             "PScalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1528
+          "source_line": 1529
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -14620,7 +14620,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1535
+          "source_line": 1536
         },
         {
           "return_type": "MVec3dp_U<T>",
@@ -14628,7 +14628,7 @@
             "const MVec3dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1543
+          "source_line": 1544
         },
         {
           "return_type": "MVec3dp<T>",
@@ -14636,7 +14636,7 @@
             "const MVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1550
+          "source_line": 1551
         }
       ]
     },
@@ -14651,7 +14651,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2478
+          "source_line": 2479
         },
         {
           "return_type": "decltype(auto)",
@@ -14660,7 +14660,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2478
+          "source_line": 2479
         }
       ]
     },
@@ -14675,7 +14675,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3764
+          "source_line": 3765
         },
         {
           "return_type": "decltype(auto)",
@@ -14684,7 +14684,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3764
+          "source_line": 3765
         }
       ]
     },
@@ -15308,13 +15308,13 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 177
+          "source_line": 189
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 177
+          "source_line": 189
         }
       ]
     },
@@ -15326,13 +15326,13 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 196
+          "source_line": 208
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 8, 8>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 196
+          "source_line": 208
         }
       ]
     },
@@ -15344,13 +15344,13 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 294
+          "source_line": 310
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 294
+          "source_line": 310
         }
       ]
     },
@@ -15362,13 +15362,13 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 321
+          "source_line": 337
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-          "source_line": 321
+          "source_line": 337
         }
       ]
     },
@@ -15497,7 +15497,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2428
+          "source_line": 2429
         },
         {
           "return_type": "decltype(auto)",
@@ -15506,7 +15506,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2428
+          "source_line": 2429
         }
       ]
     },
@@ -15521,7 +15521,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3718
+          "source_line": 3719
         },
         {
           "return_type": "decltype(auto)",
@@ -15530,7 +15530,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3718
+          "source_line": 3719
         }
       ]
     },
@@ -15679,7 +15679,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2485
+          "source_line": 2486
         },
         {
           "return_type": "decltype(auto)",
@@ -15688,7 +15688,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2485
+          "source_line": 2486
         }
       ]
     },
@@ -15703,7 +15703,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3771
+          "source_line": 3772
         },
         {
           "return_type": "decltype(auto)",
@@ -15712,7 +15712,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3771
+          "source_line": 3772
         }
       ]
     },
@@ -15861,7 +15861,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2435
+          "source_line": 2436
         },
         {
           "return_type": "decltype(auto)",
@@ -15870,7 +15870,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2435
+          "source_line": 2436
         }
       ]
     },
@@ -15885,7 +15885,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3725
+          "source_line": 3726
         },
         {
           "return_type": "decltype(auto)",
@@ -15894,7 +15894,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3725
+          "source_line": 3726
         }
       ]
     },
@@ -15916,7 +15916,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1358
+          "source_line": 1359
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -15924,7 +15924,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1365
+          "source_line": 1366
         },
         {
           "return_type": "Vec3dp<T>",
@@ -15932,7 +15932,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1372
+          "source_line": 1373
         },
         {
           "return_type": "Scalar3dp<T>",
@@ -15940,7 +15940,7 @@
             "PScalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1379
+          "source_line": 1380
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -15948,7 +15948,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1386
+          "source_line": 1387
         },
         {
           "return_type": "MVec3dp_U<T>",
@@ -15956,7 +15956,7 @@
             "const MVec3dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1394
+          "source_line": 1395
         },
         {
           "return_type": "MVec3dp<T>",
@@ -15964,7 +15964,7 @@
             "const MVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_basics.hpp",
-          "source_line": 1401
+          "source_line": 1402
         },
         {
           "return_type": "PScalar3dp<T>",
@@ -15980,7 +15980,7 @@
             "const Vec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1358
+          "source_line": 1359
         },
         {
           "return_type": "BiVec3dp<T>",
@@ -15988,7 +15988,7 @@
             "const BiVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1365
+          "source_line": 1366
         },
         {
           "return_type": "Vec3dp<T>",
@@ -15996,7 +15996,7 @@
             "const TriVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1372
+          "source_line": 1373
         },
         {
           "return_type": "Scalar3dp<T>",
@@ -16004,7 +16004,7 @@
             "PScalar3dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1379
+          "source_line": 1380
         },
         {
           "return_type": "MVec3dp_E<T>",
@@ -16012,7 +16012,7 @@
             "const MVec3dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1386
+          "source_line": 1387
         },
         {
           "return_type": "MVec3dp_U<T>",
@@ -16020,7 +16020,7 @@
             "const MVec3dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1394
+          "source_line": 1395
         },
         {
           "return_type": "MVec3dp<T>",
@@ -16028,7 +16028,7 @@
             "const MVec3dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_basics.hpp",
-          "source_line": 1401
+          "source_line": 1402
         }
       ]
     },
@@ -16043,7 +16043,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_products.hpp",
-          "source_line": 2492
+          "source_line": 2493
         },
         {
           "return_type": "decltype(auto)",
@@ -16052,7 +16052,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_products.hpp",
-          "source_line": 2492
+          "source_line": 2493
         }
       ]
     },
@@ -16067,7 +16067,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga3dp_ops_products.hpp",
-          "source_line": 3778
+          "source_line": 3779
         },
         {
           "return_type": "decltype(auto)",
@@ -16076,7 +16076,7 @@
             "arg2 &&"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga3dp_ops_products.hpp",
-          "source_line": 3778
+          "source_line": 3779
         }
       ]
     },
@@ -17381,7 +17381,7 @@
           "source_line": 2294
         },
         {
-          "return_type": "Scalar2dp<std::common_type_t<T, U>>",
+          "return_type": "PScalar2dp<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar2dp<T>",
             "Scalar2dp<U>"
@@ -17831,7 +17831,7 @@
           "source_line": 3543
         },
         {
-          "return_type": "Scalar3dp<std::common_type_t<T, U>>",
+          "return_type": "PScalar3dp<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar3dp<T>",
             "Scalar3dp<U>"
@@ -18182,7 +18182,7 @@
           "source_line": 2294
         },
         {
-          "return_type": "Scalar2dp<std::common_type_t<T, U>>",
+          "return_type": "PScalar2dp<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar2dp<T>",
             "Scalar2dp<U>"
@@ -18632,7 +18632,7 @@
           "source_line": 3543
         },
         {
-          "return_type": "Scalar3dp<std::common_type_t<T, U>>",
+          "return_type": "PScalar3dp<std::common_type_t<T, U>>",
           "param_types": [
             "Scalar3dp<T>",
             "Scalar3dp<U>"
@@ -21898,7 +21898,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_basics.hpp",
-          "source_line": 1092
+          "source_line": 1093
         },
         {
           "return_type": "Vec2dp<T>",
@@ -21906,7 +21906,7 @@
             "const BiVec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_basics.hpp",
-          "source_line": 1099
+          "source_line": 1100
         },
         {
           "return_type": "Scalar2dp<T>",
@@ -21914,7 +21914,7 @@
             "PScalar2dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_basics.hpp",
-          "source_line": 1106
+          "source_line": 1107
         },
         {
           "return_type": "MVec2dp_U<T>",
@@ -21922,7 +21922,7 @@
             "const MVec2dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_basics.hpp",
-          "source_line": 1113
+          "source_line": 1114
         },
         {
           "return_type": "MVec2dp_E<T>",
@@ -21930,7 +21930,7 @@
             "const MVec2dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_basics.hpp",
-          "source_line": 1120
+          "source_line": 1121
         },
         {
           "return_type": "MVec2dp<T>",
@@ -21938,7 +21938,7 @@
             "const MVec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/detail/fmt/../../ga_pga2dp_ops_basics.hpp",
-          "source_line": 1127
+          "source_line": 1128
         },
         {
           "return_type": "PScalar2dp<T>",
@@ -21954,7 +21954,7 @@
             "const Vec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_basics.hpp",
-          "source_line": 1092
+          "source_line": 1093
         },
         {
           "return_type": "Vec2dp<T>",
@@ -21962,7 +21962,7 @@
             "const BiVec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_basics.hpp",
-          "source_line": 1099
+          "source_line": 1100
         },
         {
           "return_type": "Scalar2dp<T>",
@@ -21970,7 +21970,7 @@
             "PScalar2dp<T>"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_basics.hpp",
-          "source_line": 1106
+          "source_line": 1107
         },
         {
           "return_type": "MVec2dp_U<T>",
@@ -21978,7 +21978,7 @@
             "const MVec2dp_E<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_basics.hpp",
-          "source_line": 1113
+          "source_line": 1114
         },
         {
           "return_type": "MVec2dp_E<T>",
@@ -21986,7 +21986,7 @@
             "const MVec2dp_U<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_basics.hpp",
-          "source_line": 1120
+          "source_line": 1121
         },
         {
           "return_type": "MVec2dp<T>",
@@ -21994,7 +21994,7 @@
             "const MVec2dp<T> &"
           ],
           "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_pga2dp_ops_basics.hpp",
-          "source_line": 1127
+          "source_line": 1128
         }
       ]
     },
@@ -35376,42 +35376,42 @@
       "name": "I_2d",
       "type": "const PScalar2d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 39
+      "source_line": 43
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_2d_mv",
       "type": "const MVec2d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 41
+      "source_line": 45
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_2d_mv_e",
       "type": "const MVec2d_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 42
+      "source_line": 46
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_3d",
       "type": "const PScalar3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 89
+      "source_line": 97
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 91
+      "source_line": 99
     },
     {
       "namespace": "hd::ga::ega",
       "name": "I_3d_mv_u",
       "type": "const MVec3d_U<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 92
+      "source_line": 100
     },
     {
       "namespace": "hd::ga::ega",
@@ -35425,42 +35425,84 @@
       "name": "O_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 69
+      "source_line": 73
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "One_2d",
+      "type": "const Scalar2d<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 39
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "One_2d_mv",
+      "type": "const MVec2d<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 40
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "One_2d_mv_e",
+      "type": "const MVec2d_E<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 41
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "One_3d",
+      "type": "const Scalar3d<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 93
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "One_3d_mv",
+      "type": "const MVec3d<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 94
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "One_3d_mv_e",
+      "type": "const MVec3d_E<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 95
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e123_3d",
       "type": "const PScalar3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 90
+      "source_line": 98
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e12_2d",
       "type": "const PScalar2d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 40
+      "source_line": 44
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e12_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 77
+      "source_line": 81
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e12_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 84
+      "source_line": 88
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e12_3d_mv_e",
       "type": "const MVec3d_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 87
+      "source_line": 91
     },
     {
       "namespace": "hd::ga::ega",
@@ -35481,35 +35523,35 @@
       "name": "e1_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 63
+      "source_line": 67
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e1_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 71
+      "source_line": 75
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e23_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 75
+      "source_line": 79
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e23_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 82
+      "source_line": 86
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e23_3d_mv_e",
       "type": "const MVec3d_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 85
+      "source_line": 89
     },
     {
       "namespace": "hd::ga::ega",
@@ -35530,63 +35572,63 @@
       "name": "e2_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 64
+      "source_line": 68
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e2_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 72
+      "source_line": 76
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e31_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 76
+      "source_line": 80
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e31_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 83
+      "source_line": 87
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e31_3d_mv_e",
       "type": "const MVec3d_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 86
+      "source_line": 90
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e3_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 65
+      "source_line": 69
     },
     {
       "namespace": "hd::ga::ega",
       "name": "e3_3d_mv",
       "type": "const MVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 73
+      "source_line": 77
     },
     {
       "namespace": "hd::ga::ega",
       "name": "ega2d_metric",
       "type": "const std::array<int, 16>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 46
+      "source_line": 50
     },
     {
       "namespace": "hd::ga::ega",
       "name": "ega3d_metric",
       "type": "const std::array<int, 64>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 96
+      "source_line": 104
     },
     {
       "namespace": "hd::ga::ega",
@@ -35600,14 +35642,14 @@
       "name": "x_dir_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 66
+      "source_line": 70
     },
     {
       "namespace": "hd::ga::ega",
       "name": "xy_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 80
+      "source_line": 84
     },
     {
       "namespace": "hd::ga::ega",
@@ -35621,553 +35663,595 @@
       "name": "y_dir_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 67
+      "source_line": 71
     },
     {
       "namespace": "hd::ga::ega",
       "name": "yz_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 78
+      "source_line": 82
     },
     {
       "namespace": "hd::ga::ega",
       "name": "z_dir_3d",
       "type": "const Vec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 68
+      "source_line": 72
     },
     {
       "namespace": "hd::ga::ega",
       "name": "zx_3d",
       "type": "const BiVec3d<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 79
+      "source_line": 83
     },
     {
       "namespace": "hd::ga::pga",
       "name": "H_2dp",
       "type": "const Vec3_t<double, hd::ga::bivec2dp_tag>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 148
+      "source_line": 156
     },
     {
       "namespace": "hd::ga::pga",
       "name": "H_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 260
+      "source_line": 272
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_2dp",
       "type": "const PScalar2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 158
+      "source_line": 170
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 160
+      "source_line": 172
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_2dp_mv_u",
       "type": "const MVec2dp_U<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 161
+      "source_line": 173
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_3dp",
       "type": "const PScalar3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 267
+      "source_line": 283
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 269
+      "source_line": 285
     },
     {
       "namespace": "hd::ga::pga",
       "name": "I_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 270
+      "source_line": 286
     },
     {
       "namespace": "hd::ga::pga",
       "name": "O_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 125
+      "source_line": 133
     },
     {
       "namespace": "hd::ga::pga",
       "name": "O_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 209
+      "source_line": 221
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "One_2dp",
+      "type": "const Scalar2dp<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 166
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "One_2dp_mv",
+      "type": "const MVec2dp<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 167
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "One_2dp_mv_e",
+      "type": "const MVec2dp_E<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 168
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "One_3dp",
+      "type": "const Scalar3dp<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 279
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "One_3dp_mv",
+      "type": "const MVec3dp<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 280
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "One_3dp_mv_e",
+      "type": "const MVec3dp_E<value_t>",
+      "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
+      "source_line": 281
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e1234_3dp",
       "type": "const PScalar3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 268
+      "source_line": 284
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_2dp",
       "type": "const BiVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 136
+      "source_line": 144
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 152
+      "source_line": 160
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_2dp_mv_e",
       "type": "const MVec2dp_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 156
+      "source_line": 164
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 225
+      "source_line": 237
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 247
+      "source_line": 259
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e12_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 251
+      "source_line": 263
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e1_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 122
+      "source_line": 130
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e1_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 130
+      "source_line": 138
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e1_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 205
+      "source_line": 217
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e1_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 215
+      "source_line": 227
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e23_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 223
+      "source_line": 235
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e23_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 245
+      "source_line": 257
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e23_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 249
+      "source_line": 261
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e2_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 123
+      "source_line": 131
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e2_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 131
+      "source_line": 139
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e2_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 206
+      "source_line": 218
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e2_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 216
+      "source_line": 228
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_2dp",
       "type": "const BiVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 134
+      "source_line": 142
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 150
+      "source_line": 158
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_2dp_mv_e",
       "type": "const MVec2dp_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 154
+      "source_line": 162
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 224
+      "source_line": 236
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 246
+      "source_line": 258
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e31_3dp_mv_e",
       "type": "const MVec3dp_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 250
+      "source_line": 262
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e321_2dp",
       "type": "const PScalar2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 159
+      "source_line": 171
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e321_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 256
+      "source_line": 268
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e321_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 265
+      "source_line": 277
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e32_2dp",
       "type": "const BiVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 135
+      "source_line": 143
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e32_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 151
+      "source_line": 159
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e32_2dp_mv_e",
       "type": "const MVec2dp_E<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 155
+      "source_line": 163
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e3_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 124
+      "source_line": 132
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e3_2dp_mv",
       "type": "const MVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 132
+      "source_line": 140
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e3_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 207
+      "source_line": 219
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e3_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 217
+      "source_line": 229
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e412_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 255
+      "source_line": 267
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e412_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 264
+      "source_line": 276
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e41_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 220
+      "source_line": 232
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e41_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 242
+      "source_line": 254
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e423_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 253
+      "source_line": 265
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e423_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 262
+      "source_line": 274
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e42_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 221
+      "source_line": 233
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e42_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 243
+      "source_line": 255
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e431_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 254
+      "source_line": 266
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e431_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 263
+      "source_line": 275
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e43_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 222
+      "source_line": 234
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e43_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 244
+      "source_line": 256
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e4_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 208
+      "source_line": 220
     },
     {
       "namespace": "hd::ga::pga",
       "name": "e4_3dp_mv",
       "type": "const MVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 218
+      "source_line": 230
     },
     {
       "namespace": "hd::ga::pga",
       "name": "pga2dp_metric",
       "type": "const std::array<int, 64>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 165
+      "source_line": 177
     },
     {
       "namespace": "hd::ga::pga",
       "name": "pga2dp_rmetric",
       "type": "const std::array<int, 64>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 184
+      "source_line": 196
     },
     {
       "namespace": "hd::ga::pga",
       "name": "pga3dp_metric",
       "type": "const std::array<int, 256>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 274
+      "source_line": 290
     },
     {
       "namespace": "hd::ga::pga",
       "name": "pga3dp_rmetric",
       "type": "const std::array<int, 256>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 301
+      "source_line": 317
     },
     {
       "namespace": "hd::ga::pga",
       "name": "x_axis_2dp",
       "type": "const BiVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 141
+      "source_line": 149
     },
     {
       "namespace": "hd::ga::pga",
       "name": "x_axis_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 230
+      "source_line": 242
     },
     {
       "namespace": "hd::ga::pga",
       "name": "x_dir_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 127
+      "source_line": 135
     },
     {
       "namespace": "hd::ga::pga",
       "name": "x_dir_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 211
+      "source_line": 223
     },
     {
       "namespace": "hd::ga::pga",
       "name": "xy_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 259
+      "source_line": 271
     },
     {
       "namespace": "hd::ga::pga",
       "name": "y_axis_2dp",
       "type": "const BiVec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 146
+      "source_line": 154
     },
     {
       "namespace": "hd::ga::pga",
       "name": "y_axis_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 235
+      "source_line": 247
     },
     {
       "namespace": "hd::ga::pga",
       "name": "y_dir_2dp",
       "type": "const Vec2dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 128
+      "source_line": 136
     },
     {
       "namespace": "hd::ga::pga",
       "name": "y_dir_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 212
+      "source_line": 224
     },
     {
       "namespace": "hd::ga::pga",
       "name": "yz_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 257
+      "source_line": 269
     },
     {
       "namespace": "hd::ga::pga",
       "name": "z_axis_3dp",
       "type": "const BiVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 240
+      "source_line": 252
     },
     {
       "namespace": "hd::ga::pga",
       "name": "z_dir_3dp",
       "type": "const Vec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 213
+      "source_line": 225
     },
     {
       "namespace": "hd::ga::pga",
       "name": "zx_3dp",
       "type": "const TriVec3dp<value_t>",
       "source_file": "/Users/hud3bh/prg/cpp/pj/ga/ga/ga_usr_consts.hpp",
-      "source_line": 258
+      "source_line": 270
     }
   ]
 }

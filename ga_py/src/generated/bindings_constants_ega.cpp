@@ -35,6 +35,12 @@ void register_constants_ega(nb::module_& m) {
     m.attr("I_3d_mv_u") = nb::cast(hd::ga::ega::I_3d_mv_u);
     m.attr("O_2d") = nb::cast(hd::ga::ega::O_2d);
     m.attr("O_3d") = nb::cast(hd::ga::ega::O_3d);
+    m.attr("One_2d") = nb::cast(hd::ga::ega::One_2d);
+    m.attr("One_2d_mv") = nb::cast(hd::ga::ega::One_2d_mv);
+    m.attr("One_2d_mv_e") = nb::cast(hd::ga::ega::One_2d_mv_e);
+    m.attr("One_3d") = nb::cast(hd::ga::ega::One_3d);
+    m.attr("One_3d_mv") = nb::cast(hd::ga::ega::One_3d_mv);
+    m.attr("One_3d_mv_e") = nb::cast(hd::ga::ega::One_3d_mv_e);
     m.attr("e123_3d") = nb::cast(hd::ga::ega::e123_3d);
     m.attr("e12_2d") = nb::cast(hd::ga::ega::e12_2d);
     m.attr("e12_3d") = nb::cast(hd::ga::ega::e12_3d);

@@ -67,86 +67,86 @@ std::string emit_value(JsonValue const& v)
 
 // Plain numeric scalars (returned by nrm_sq, bulk_nrm_sq, etc.).
 // In Python these become a `float`, not a typed scalar wrapper.
-JsonValue to_json(double v) { return {"double", {v}}; }
+[[maybe_unused]] JsonValue to_json(double v) { return {"double", {v}}; }
 
-JsonValue to_json(scalar2d v) { return {"scalar2d", {value_t(v)}}; }
-JsonValue to_json(scalar3d v) { return {"scalar3d", {value_t(v)}}; }
-JsonValue to_json(scalar4d v) { return {"scalar4d", {value_t(v)}}; }
-JsonValue to_json(pscalar2d v) { return {"pscalar2d", {value_t(v)}}; }
-JsonValue to_json(pscalar3d v) { return {"pscalar3d", {value_t(v)}}; }
-JsonValue to_json(pscalar4d v) { return {"pscalar4d", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(scalar2d v) { return {"scalar2d", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(scalar3d v) { return {"scalar3d", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(scalar4d v) { return {"scalar4d", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(pscalar2d v) { return {"pscalar2d", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(pscalar3d v) { return {"pscalar3d", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(pscalar4d v) { return {"pscalar4d", {value_t(v)}}; }
 
-JsonValue to_json(vec2d const& v) { return {"vec2d", {v.x, v.y}}; }
-JsonValue to_json(vec3d const& v) { return {"vec3d", {v.x, v.y, v.z}}; }
-JsonValue to_json(vec4d const& v) { return {"vec4d", {v.x, v.y, v.z, v.w}}; }
-JsonValue to_json(bivec3d const& B) { return {"bivec3d", {B.x, B.y, B.z}}; }
-JsonValue to_json(bivec4d const& B)
+[[maybe_unused]] JsonValue to_json(vec2d const& v) { return {"vec2d", {v.x, v.y}}; }
+[[maybe_unused]] JsonValue to_json(vec3d const& v) { return {"vec3d", {v.x, v.y, v.z}}; }
+[[maybe_unused]] JsonValue to_json(vec4d const& v) { return {"vec4d", {v.x, v.y, v.z, v.w}}; }
+[[maybe_unused]] JsonValue to_json(bivec3d const& B) { return {"bivec3d", {B.x, B.y, B.z}}; }
+[[maybe_unused]] JsonValue to_json(bivec4d const& B)
 {
     return {"bivec4d", {B.vx, B.vy, B.vz, B.mx, B.my, B.mz}};
 }
-JsonValue to_json(trivec4d const& t) { return {"trivec4d", {t.x, t.y, t.z, t.w}}; }
+[[maybe_unused]] JsonValue to_json(trivec4d const& t) { return {"trivec4d", {t.x, t.y, t.z, t.w}}; }
 
-JsonValue to_json(scalar2dp v) { return {"scalar2dp", {value_t(v)}}; }
-JsonValue to_json(scalar3dp v) { return {"scalar3dp", {value_t(v)}}; }
-JsonValue to_json(pscalar2dp v) { return {"pscalar2dp", {value_t(v)}}; }
-JsonValue to_json(pscalar3dp v) { return {"pscalar3dp", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(scalar2dp v) { return {"scalar2dp", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(scalar3dp v) { return {"scalar3dp", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(pscalar2dp v) { return {"pscalar2dp", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(pscalar3dp v) { return {"pscalar3dp", {value_t(v)}}; }
 
-JsonValue to_json(vec2dp const& v) { return {"vec2dp", {v.x, v.y, v.z}}; }
-JsonValue to_json(vec3dp const& v) { return {"vec3dp", {v.x, v.y, v.z, v.w}}; }
-JsonValue to_json(bivec2dp const& B) { return {"bivec2dp", {B.x, B.y, B.z}}; }
-JsonValue to_json(bivec3dp const& B)
+[[maybe_unused]] JsonValue to_json(vec2dp const& v) { return {"vec2dp", {v.x, v.y, v.z}}; }
+[[maybe_unused]] JsonValue to_json(vec3dp const& v) { return {"vec3dp", {v.x, v.y, v.z, v.w}}; }
+[[maybe_unused]] JsonValue to_json(bivec2dp const& B) { return {"bivec2dp", {B.x, B.y, B.z}}; }
+[[maybe_unused]] JsonValue to_json(bivec3dp const& B)
 {
     return {"bivec3dp", {B.vx, B.vy, B.vz, B.mx, B.my, B.mz}};
 }
-JsonValue to_json(trivec3dp const& t) { return {"trivec3dp", {t.x, t.y, t.z, t.w}}; }
+[[maybe_unused]] JsonValue to_json(trivec3dp const& t) { return {"trivec3dp", {t.x, t.y, t.z, t.w}}; }
 
 // Multivectors: emit c0..cN in component order.
-JsonValue to_json(MVec2d<value_t> const& M)
+[[maybe_unused]] JsonValue to_json(MVec2d<value_t> const& M)
 {
     return {"mvec2d", {M.c0, M.c1, M.c2, M.c3}};
 }
-JsonValue to_json(MVec2d_E<value_t> const& M) { return {"mvec2d_e", {M.c0, M.c1}}; }
-JsonValue to_json(MVec3d<value_t> const& M)
+[[maybe_unused]] JsonValue to_json(MVec2d_E<value_t> const& M) { return {"mvec2d_e", {M.c0, M.c1}}; }
+[[maybe_unused]] JsonValue to_json(MVec3d<value_t> const& M)
 {
     return {"mvec3d", {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7}};
 }
-JsonValue to_json(MVec3d_E<value_t> const& M)
+[[maybe_unused]] JsonValue to_json(MVec3d_E<value_t> const& M)
 {
     return {"mvec3d_e", {M.c0, M.c1, M.c2, M.c3}};
 }
-JsonValue to_json(MVec3d_U<value_t> const& M)
+[[maybe_unused]] JsonValue to_json(MVec3d_U<value_t> const& M)
 {
     return {"mvec3d_u", {M.c0, M.c1, M.c2, M.c3}};
 }
-JsonValue to_json(MVec2dp<value_t> const& M)
+[[maybe_unused]] JsonValue to_json(MVec2dp<value_t> const& M)
 {
     return {"mvec2dp", {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7}};
 }
-JsonValue to_json(MVec2dp_E<value_t> const& M)
+[[maybe_unused]] JsonValue to_json(MVec2dp_E<value_t> const& M)
 {
     return {"mvec2dp_e", {M.c0, M.c1, M.c2, M.c3}};
 }
-JsonValue to_json(MVec2dp_U<value_t> const& M)
+[[maybe_unused]] JsonValue to_json(MVec2dp_U<value_t> const& M)
 {
     return {"mvec2dp_u", {M.c0, M.c1, M.c2, M.c3}};
 }
-JsonValue to_json(MVec3dp<value_t> const& M)
+[[maybe_unused]] JsonValue to_json(MVec3dp<value_t> const& M)
 {
     return {"mvec3dp",
             {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7, M.c8, M.c9, M.c10, M.c11,
              M.c12, M.c13, M.c14, M.c15}};
 }
-JsonValue to_json(MVec3dp_E<value_t> const& M)
+[[maybe_unused]] JsonValue to_json(MVec3dp_E<value_t> const& M)
 {
     return {"mvec3dp_e", {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7}};
 }
-JsonValue to_json(MVec3dp_U<value_t> const& M)
+[[maybe_unused]] JsonValue to_json(MVec3dp_U<value_t> const& M)
 {
     return {"mvec3dp_u", {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7}};
 }
 
-JsonValue to_json(DualNum2dp<value_t> const& d) { return {"dualnum2dp", {d.c0, d.c1}}; }
-JsonValue to_json(DualNum3dp<value_t> const& d) { return {"dualnum3dp", {d.c0, d.c1}}; }
+[[maybe_unused]] JsonValue to_json(DualNum2dp<value_t> const& d) { return {"dualnum2dp", {d.c0, d.c1}}; }
+[[maybe_unused]] JsonValue to_json(DualNum3dp<value_t> const& d) { return {"dualnum3dp", {d.c0, d.c1}}; }
 
 // --------------------------------------------------------------------------- //
 // Case collection
