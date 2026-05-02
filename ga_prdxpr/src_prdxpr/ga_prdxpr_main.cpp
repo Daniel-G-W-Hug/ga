@@ -2,15 +2,15 @@
 // Licensed under the terms specified in LICENSE.txt file.
 // Complete configurable GA product expression generator for all four algebras
 
-#include "ga_prdxpr_ega2d_config.hpp"
-#include "ga_prdxpr_ega3d_config.hpp"
-#include "ga_prdxpr_generator.hpp"
-#include "ga_prdxpr_metric_export.hpp"
-#include "ga_prdxpr_options.hpp"
-#include "ga_prdxpr_pga2dp_config.hpp"
-#include "ga_prdxpr_pga3dp_config.hpp"
-#include "ga_prdxpr_rule_generator.hpp"
-#include "ga_prdxpr_sta4d_config.hpp"
+#include "algebras/ga_prdxpr_ega2d_config.hpp"
+#include "algebras/ga_prdxpr_ega3d_config.hpp"
+#include "generator/ga_prdxpr_generator.hpp"
+#include "rules/ga_prdxpr_metric_export.hpp"
+#include "cli/ga_prdxpr_options.hpp"
+#include "algebras/ga_prdxpr_pga2dp_config.hpp"
+#include "algebras/ga_prdxpr_pga3dp_config.hpp"
+#include "rules/ga_prdxpr_rule_generator.hpp"
+#include "algebras/ga_prdxpr_sta4d_config.hpp"
 #include <fmt/core.h>
 #include <vector>
 
