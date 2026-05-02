@@ -3,6 +3,8 @@
 
 #include "ga_prdxpr_generator.hpp"
 #include "ga_prdxpr_sandwich_simplifier.hpp"
+#include "codegen/ga_codegen_emitter.hpp"
+#include "codegen/ga_codegen_types.hpp"
 #include <fmt/core.h>
 #include <map>
 #include <regex>
@@ -110,6 +112,16 @@ void ConfigurableGenerator::generate_product_expressions(AlgebraData const& alge
 {
     // No separator logic here - separators are handled at the end of each product
 
+    // Skip "alternative" product variants when only code output is requested. They
+    // are display-only computations (the canonical product is computed by another
+    // path) and `get_basis_table_for_product` emits intermediate basis tables for
+    // them as a side-effect, which would pollute --output=code with non-C++ text.
+    bool const code_only = options.should_show_code() && !options.should_show_coeffs() &&
+                           !options.should_show_tables() && !options.should_show_metrics();
+    if (code_only && config.product_name.find("alternative") != std::string::npos) {
+        return;
+    }
+
     // Get the basis table using EXISTING mathematical functions
     auto basis_tab = get_basis_table_for_product(algebra, config.product_name);
 
@@ -136,6 +148,15 @@ void ConfigurableGenerator::generate_product_expressions(AlgebraData const& alge
                     generate_single_case(algebra, config, case_def, basis_tab);
                 }
             }
+        }
+    }
+
+    // Emit C++ code (opt-in via --output=code). Sandwich cases are skipped here; their
+    // structure differs enough that they're handled by a separate path.
+    if (options.should_show_code() && !config.is_sandwich_product) {
+        for (const auto& case_def : config.cases) {
+            if (case_def.is_two_step) continue;
+            emit_single_case_code(algebra, config, case_def, basis_tab);
         }
     }
 }
@@ -188,6 +209,75 @@ void ConfigurableGenerator::generate_single_case(AlgebraData const& algebra,
     // Format output to match reference implementation exactly
     print_case_header(algebra, config, case_def.case_name);
     print_case_result(prd_mv, algebra.basis);
+    fmt::println("");
+}
+
+void ConfigurableGenerator::emit_single_case_code(AlgebraData const& algebra,
+                                                  ProductConfig const& config,
+                                                  OutputCase const& case_def,
+                                                  prd_table const& basis_tab)
+{
+    // Lazy per-algebra registry. STA4D not yet supported (no implementation in ga/).
+    static std::map<std::string, codegen::TypeRegistry> registries;
+    auto reg_it = registries.find(algebra.name);
+    if (reg_it == registries.end()) {
+        try {
+            reg_it = registries.emplace(algebra.name, codegen::TypeRegistry(algebra.name))
+                         .first;
+        }
+        catch (std::exception const& e) {
+            fmt::println("// SKIP {} {} :: {} -- {}", algebra.name, config.product_name,
+                         case_def.case_name, e.what());
+            return;
+        }
+    }
+    auto const& registry = reg_it->second;
+
+    // Compute the per-basis result expressions (same path as generate_single_case).
+    auto left_coeff_it = algebra.coefficients.find(case_def.left_coeff_name);
+    auto right_coeff_it = algebra.coefficients.find(case_def.right_coeff_name);
+    if (left_coeff_it == algebra.coefficients.end() ||
+        right_coeff_it == algebra.coefficients.end()) {
+        fmt::println("// SKIP {} {} :: {} -- unknown coefficient", algebra.name,
+                     config.product_name, case_def.case_name);
+        return;
+    }
+
+    mvec_coeff prd_mv;
+    auto prd_tab =
+        get_prd_tab(basis_tab, left_coeff_it->second, right_coeff_it->second);
+    if (algebra.dimension == 2) {
+        auto lf = get_filter_2d(algebra, case_def.left_filter_name);
+        auto rf = get_filter_2d(algebra, case_def.right_filter_name);
+        prd_mv = get_mv_from_prd_tab(prd_tab, algebra.basis, lf, rf);
+    }
+    else if (algebra.dimension == 3) {
+        auto lf = get_filter_3d(algebra, case_def.left_filter_name);
+        auto rf = get_filter_3d(algebra, case_def.right_filter_name);
+        prd_mv = get_mv_from_prd_tab(prd_tab, algebra.basis, lf, rf);
+    }
+    else if (algebra.dimension == 4) {
+        auto lf = get_filter_4d(algebra, case_def.left_filter_name);
+        auto rf = get_filter_4d(algebra, case_def.right_filter_name);
+        prd_mv = get_mv_from_prd_tab(prd_tab, algebra.basis, lf, rf);
+    }
+    else {
+        fmt::println("// SKIP {} {} :: {} -- unsupported dimension {}", algebra.name,
+                     config.product_name, case_def.case_name, algebra.dimension);
+        return;
+    }
+
+    std::string skip_reason;
+    auto rendered =
+        codegen::emit_function(algebra, config, case_def, prd_mv, registry, &skip_reason);
+    if (!rendered) {
+        fmt::println("// SKIP {} {} :: {} -- {}", algebra.name, config.product_name,
+                     case_def.case_name, skip_reason);
+        return;
+    }
+    fmt::println("// {} {} :: {}", algebra.name, config.product_name,
+                 case_def.case_name);
+    fmt::print("{}", *rendered);
     fmt::println("");
 }
 

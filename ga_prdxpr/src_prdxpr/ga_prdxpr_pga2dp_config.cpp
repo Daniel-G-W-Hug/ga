@@ -634,7 +634,7 @@ ProductConfig get_pga2dp_rdot_config()
                       {"rdot(ps,ps) -> ps", "svBps1", "svBps2", "ps", "ps"},
                       {"rdot(bivec,bivec) -> ps", "svBps1", "svBps2", "bivec", "bivec"},
                       {"rdot(vec,vec) -> ps", "svBps1", "svBps2", "vec", "vec"},
-                      {"rdot(s,s) -> 0", "svBps1", "svBps2", "s", "s"}},
+                      {"rdot(s,s) -> 0 ps", "svBps1", "svBps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

@@ -632,10 +632,10 @@ ProductConfig get_pga3dp_rgpr_config()
                   {"rgpr(s,bivec) -> bivec", "svBtps", "svBtps", "s", "bivec"},
                   //
                   {"rgpr(vec,vec) -> mv_e", "svBtps1", "svBtps2", "vec", "vec"},
-                  {"rgpr(vec,s) ->trivec", "svBtps", "svBtps", "vec", "s"},
-                  {"rgrp(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"},
+                  {"rgpr(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"},
+                  {"rgpr(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"},
                   //
-                  {"rgrp(s,s) -> 0", "svBtps1", "svBtps2", "s", "s"}},
+                  {"rgpr(s,s) -> 0 ps", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -689,21 +689,27 @@ ProductConfig get_pga3dp_rcmt_config()
         .display_name = "regressive commutator product",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
-        .cases = {{"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                  {"rcmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
-                   "trivec"},
-                  {"rcmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
-                  {"rcmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
-                  {"rcmt(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
-                  {"rcmt(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
-                  {"rcmt(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
-                  {"rcmt(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
-                  {"rcmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
-                  {"rcmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
-                  {"rcmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
-                  {"rcmt(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"},
-                  {"rcmt(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"},
-                  {"rcmt(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"}},
+        .cases =
+            {
+                {"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                //
+                {"rcmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
+                 "trivec"},
+                {"rcmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+                {"rcmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+                // {"rcmt(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
+                // {"rcmt(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
+                // {"rcmt(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
+                // {"rcmt(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
+                //
+                {"rcmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
+                {"rcmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+                {"rcmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
+                //
+                {"rcmt(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"},
+                // {"rcmt(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"},
+                // {"rcmt(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"}
+            },
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -762,7 +768,7 @@ ProductConfig get_pga3dp_rdot_config()
                   {"rdot(trivec,trivec) -> ps", "svBtps1", "svBtps2", "trivec", "trivec"},
                   {"rdot(bivec,bivec) -> ps", "svBtps1", "svBtps2", "bivec", "bivec"},
                   {"rdot(vec,vec) -> ps", "svBtps1", "svBtps2", "vec", "vec"},
-                  {"rdot(s,s) -> ps", "svBtps1", "svBtps2", "s", "s"}},
+                  {"rdot(s,s) -> 0 ps", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
