@@ -206,7 +206,7 @@ constexpr MVec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v, MVec3d<U> cons
 // wedge product between multivector M and scalar s
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<U> const& M, Scalar3d<T> s)
+constexpr MVec3d<std::common_type_t<T, U>> wdg(MVec3d<T> const& M, Scalar3d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return M * ctype(s);
@@ -1465,20 +1465,20 @@ constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
 // multivector * trivector => multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A, PScalar3d<U> B)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& A, PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d<ctype>(-A.c7, -A.c4, -A.c5, -A.c6, A.c1, A.c2, A.c3, A.c0) * ctype(B);
+    return MVec3d<ctype>(-A.c7, -A.c4, -A.c5, -A.c6, A.c1, A.c2, A.c3, A.c0) * ctype(ps);
 }
 
 // geometric product A * B of a trivector A (=3d pseudoscalar) multiplied from the
 // left to the multivector B trivector * multivector => multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> A, MVec3d<U> const& B)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(PScalar3d<T> ps, MVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(A) * MVec3d<ctype>(-B.c7, -B.c4, -B.c5, -B.c6, B.c1, B.c2, B.c3, B.c0);
+    return ctype(ps) * MVec3d<ctype>(-B.c7, -B.c4, -B.c5, -B.c6, B.c1, B.c2, B.c3, B.c0);
 }
 
 // geometric product B * M of bivector B with multivector M
@@ -1504,8 +1504,8 @@ constexpr MVec3d<std::common_type_t<T, U>> operator*(MVec3d<T> const& M,
 // bivector * multivector => multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3d<std::common_type_t<T, U>> operator*(BiVec3d<U> const& B,
-                                                     MVec3d<T> const& M)
+constexpr MVec3d<std::common_type_t<T, U>> operator*(BiVec3d<T> const& B,
+                                                     MVec3d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     ctype c0 = -B.x * M.c4 - B.y * M.c5 - B.z * M.c6;
@@ -1646,8 +1646,8 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& A,
 // even grade multivector * trivector => odd multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<U> const& M,
-                                                       PScalar3d<T> ps)
+constexpr MVec3d_U<std::common_type_t<T, U>> operator*(MVec3d_E<T> const& M,
+                                                       PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_U<ctype>(Vec3d<ctype>(-M.c1, -M.c2, -M.c3), PScalar3d<ctype>(M.c0)) *
@@ -1672,8 +1672,8 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator*(PScalar3d<T> ps,
 // odd grade multivector * trivector => even grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<U> const& M,
-                                                       PScalar3d<T> ps)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(MVec3d_U<T> const& M,
+                                                       PScalar3d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec3d_E<ctype>(Scalar3d<ctype>(-M.c3), BiVec3d<ctype>(M.c0, M.c1, M.c2)) *
@@ -2010,11 +2010,11 @@ constexpr BiVec3d<std::common_type_t<T, U>> operator*(Scalar3d<T> s, BiVec3d<U> 
 // vector * vector => even grade multivector (= scalar + bivector)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Vec3d<T> const& a,
-                                                       Vec3d<U> const& b)
+constexpr MVec3d_E<std::common_type_t<T, U>> operator*(Vec3d<T> const& v1,
+                                                       Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3d_E<ctype>((b >> a), wdg(a, b));
+    return MVec3d_E<ctype>((v2 >> v1), wdg(v1, v2));
 }
 
 // (geometric) product v * s of a vector v multiplied with a scalar s from the right

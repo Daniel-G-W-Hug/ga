@@ -1551,8 +1551,8 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
 // even grade multivector * trivector => odd multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<U> const& A,
-                                                        PScalar2dp<T> ps)
+constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
+                                                        PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2dp_U<ctype>(Vec2dp<ctype>(ctype(0.0), ctype(0.0), A.c3 * ctype(ps)),
@@ -1577,8 +1577,8 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
 // odd grade multivector * trivector => even grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<U> const& A,
-                                                        PScalar2dp<T> ps)
+constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
+                                                        PScalar2dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
     return MVec2dp_E<ctype>(
@@ -1846,11 +1846,11 @@ constexpr BiVec2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> s,
 // vector * vector => even grade multivector (= scalar + bivector)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(Vec2dp<T> const& a,
-                                                        Vec2dp<U> const& b)
+constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(Vec2dp<T> const& v1,
+                                                        Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2dp_E<ctype>(dot(a, b), wdg(a, b));
+    return MVec2dp_E<ctype>((v2 >> v1), wdg(v1, v2));
 }
 
 // (geometric) product v * s of vector v multiplied with scalar s from the right

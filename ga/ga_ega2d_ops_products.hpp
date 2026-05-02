@@ -819,7 +819,8 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s1, Scalar2d
 // right contraction (A >> B)  - "A contracted by B"
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d<U> const& B)
+constexpr MVec2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& A,
+                                                      MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3;
@@ -832,7 +833,8 @@ constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d<U> const& B)
 // right contraction (A >> B)  - "A contracted by B"
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d_E<U> const& B)
+constexpr MVec2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& A,
+                                                      MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = A.c0 * B.c0 + A.c3 * B.c1;
@@ -845,7 +847,8 @@ constexpr MVec2d<T> operator>>(MVec2d<T> const& A, MVec2d_E<U> const& B)
 // right contraction (A >> B)  - "A contracted by B"
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2d<T> operator>>(MVec2d_E<T> const& A, MVec2d<U> const& B)
+constexpr MVec2d<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& A,
+                                                      MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = A.c0 * B.c0 + A.c1 * B.c3;
@@ -880,7 +883,8 @@ constexpr MVec2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps, MVec2d<U>
 // right contraction (M >> v) of multivector A contracted by vector v
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2d<T> operator>>(MVec2d<T> const& M, Vec2d<U> const& v)
+constexpr MVec2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& M,
+                                                      Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = M.c1 * v.x + M.c2 * v.y;
@@ -893,7 +897,8 @@ constexpr MVec2d<T> operator>>(MVec2d<T> const& M, Vec2d<U> const& v)
 // right contraction (v >> M) of vector v contracted by multivector M
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec2d<T> operator>>(Vec2d<T> const& v, MVec2d<U> const& M)
+constexpr MVec2d<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v,
+                                                      MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = v.x * M.c1 + v.y * M.c2;
@@ -1062,7 +1067,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v1,
 // identical with scalar multiplication of the vector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec2d<std::common_type_t<T, U>> operator>>(Vec2d<U> const& v, Scalar2d<T> s)
+constexpr Vec2d<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
     return v * ctype(s);
@@ -1098,8 +1103,11 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> cmt(MVec2d<T> const& A, MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d<ctype>(0.0, -A.c2 * B.c3 + A.c3 * B.c2, A.c1 * B.c3 - A.c3 * B.c1,
-                         A.c1 * B.c2 - A.c2 * B.c1);
+    ctype const c0 = 0.0;
+    ctype const c1 = -A.c2 * B.c3 + A.c3 * B.c2;
+    ctype const c2 = A.c1 * B.c3 - A.c3 * B.c1;
+    ctype const c3 = A.c1 * B.c2 - A.c2 * B.c1;
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // cmt(B,v) = -cmt(v,B)
@@ -1163,8 +1171,11 @@ constexpr MVec2d<std::common_type_t<T, U>> operator*(MVec2d<T> const& A,
                                                      MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d<ctype>(A.c0 * B.c0 - A.c3 * B.c1, A.c1 * B.c0 - A.c2 * B.c1,
-                         A.c1 * B.c1 + A.c2 * B.c0, A.c0 * B.c1 + A.c3 * B.c0);
+    ctype const c0 = A.c0 * B.c0 - A.c3 * B.c1;
+    ctype const c1 = A.c1 * B.c0 - A.c2 * B.c1;
+    ctype const c2 = A.c1 * B.c1 + A.c2 * B.c0;
+    ctype const c3 = A.c0 * B.c1 + A.c3 * B.c0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // geometric product A * B for an even grade multivector A with a full 2d multivector B
@@ -1176,8 +1187,11 @@ constexpr MVec2d<std::common_type_t<T, U>> operator*(MVec2d_E<T> const& A,
                                                      MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d<ctype>(A.c0 * B.c0 - A.c1 * B.c3, A.c0 * B.c1 + A.c1 * B.c2,
-                         A.c0 * B.c2 - A.c1 * B.c1, A.c0 * B.c3 + A.c1 * B.c0);
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c3;
+    ctype const c1 = A.c0 * B.c1 + A.c1 * B.c2;
+    ctype const c2 = A.c0 * B.c2 - A.c1 * B.c1;
+    ctype const c3 = A.c0 * B.c3 + A.c1 * B.c0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // geometric product A * ps of a multivector A with the pseudoscalar ps (=bivector)
@@ -1208,8 +1222,11 @@ constexpr MVec2d<std::common_type_t<T, U>> operator*(MVec2d<T> const& A,
                                                      Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d<ctype>(A.c1 * v.x + A.c2 * v.y, A.c0 * v.x + A.c3 * v.y,
-                         A.c0 * v.y - A.c3 * v.x, A.c1 * v.y - A.c2 * v.x);
+    ctype const c0 = A.c1 * v.x + A.c2 * v.y;
+    ctype const c1 = A.c0 * v.x + A.c3 * v.y;
+    ctype const c2 = A.c0 * v.y - A.c3 * v.x;
+    ctype const c3 = A.c1 * v.y - A.c2 * v.x;
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // geometric product v * B for a vector v with a full 2d multivector B
@@ -1220,8 +1237,11 @@ constexpr MVec2d<std::common_type_t<T, U>> operator*(Vec2d<T> const& v,
                                                      MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d<ctype>(v.x * B.c1 + v.y * B.c2, v.x * B.c0 - v.y * B.c3,
-                         v.x * B.c3 + v.y * B.c0, v.x * B.c2 - v.y * B.c1);
+    ctype const c0 = v.x * B.c1 + v.y * B.c2;
+    ctype const c1 = v.x * B.c0 - v.y * B.c3;
+    ctype const c2 = v.x * B.c3 + v.y * B.c0;
+    ctype const c3 = v.x * B.c2 - v.y * B.c1;
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // geometric product A * s of a multivector A multiplied from the right by the scalar s
@@ -1252,7 +1272,9 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator*(MVec2d_E<T> const& A,
                                                        MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(A.c0 * B.c0 - A.c1 * B.c1, A.c0 * B.c1 + A.c1 * B.c0);
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c1;
+    ctype const c1 = A.c0 * B.c1 + A.c1 * B.c0;
+    return MVec2d_E<ctype>(c0, c1);
 }
 
 // geometric product A * ps of an even grade multivector A multiplied from the right
