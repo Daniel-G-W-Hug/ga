@@ -213,7 +213,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& M, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(M.c0 * v.x, M.c0 * v.y);
+    ctype const c0 = M.c0 * v.x;
+    ctype const c1 = M.c0 * v.y;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // wedge product between vector v and even grade multivector M
@@ -222,7 +224,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v, MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x * M.c0, v.y * M.c0);
+    ctype const c0 = v.x * M.c0;
+    ctype const c1 = v.y * M.c0;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // wedge product between even grade multivector M and scalar s
@@ -682,7 +686,9 @@ constexpr Vec2d<std::common_type_t<T, U>> operator<<(MVec2d_E<T> const& M,
                                                      Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(M.c0 * v.x, M.c0 * v.y);
+    ctype const c0 = M.c0 * v.x;
+    ctype const c1 = M.c0 * v.y;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // left contraction (v << M) - "v contracted onto M"
@@ -692,7 +698,9 @@ constexpr Vec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v,
                                                      MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.y * M.c1, -v.x * M.c1);
+    ctype const c0 = v.y * M.c1;
+    ctype const c1 = -v.x * M.c1;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // left contraction (M << s) of even grade mulivector M with scalar s
@@ -967,7 +975,9 @@ constexpr Vec2d<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& M,
                                                      Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-M.c1 * v.y, M.c1 * v.x);
+    ctype const c0 = -M.c1 * v.y;
+    ctype const c1 = M.c1 * v.x;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // left contraction (v >> M) - "v contracted by M"
@@ -977,7 +987,9 @@ constexpr Vec2d<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v,
                                                      MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x * M.c0, v.y * M.c0);
+    ctype const c0 = v.x * M.c0;
+    ctype const c1 = v.y * M.c0;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // right contraction (M >> s) of even grade multivector M by scalar s
@@ -1309,7 +1321,9 @@ constexpr Vec2d<std::common_type_t<T, U>> operator*(MVec2d_E<T> const& A,
                                                     Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(A.c0 * v.x + A.c1 * v.y, A.c0 * v.y - A.c1 * v.x);
+    ctype const c0 = A.c0 * v.x + A.c1 * v.y;
+    ctype const c1 = A.c0 * v.y - A.c1 * v.x;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // geometric product v * B of a vector v with an even grade multivector B
@@ -1320,7 +1334,9 @@ constexpr Vec2d<std::common_type_t<T, U>> operator*(Vec2d<T> const& v,
                                                     MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x * B.c0 - v.y * B.c1, v.x * B.c1 + v.y * B.c0);
+    ctype const c0 = v.x * B.c0 - v.y * B.c1;
+    ctype const c1 = v.x * B.c1 + v.y * B.c0;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // geometric product A * s of an even grade multivector A multiplied with a scalar s
