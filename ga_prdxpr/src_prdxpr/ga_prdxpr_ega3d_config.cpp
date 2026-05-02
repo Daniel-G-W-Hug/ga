@@ -486,19 +486,23 @@ ProductConfig get_ega3d_rtwdg1_config()
 
 ProductConfig get_ega3d_rcmt_config()
 {
-    return {.product_name = "rcmt",
-            .description = "ega3d regressive commutator product",
-            .display_name = "regressive commutator product",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {{"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                      {"rcmt(bivec,bivec) -> vec", "svBps1", "svBps2", "bivec", "bivec"},
-                      {"rcmt(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
-                      {"rcmt(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
-                      {"rcmt(vec,vec) -> vec", "svBps1", "svBps2", "vec", "vec"}},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "rcmt",
+        .description = "ega3d regressive commutator product",
+        .display_name = "regressive commutator product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        .cases =
+            {
+                //   {"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                //   {"rcmt(bivec,bivec) -> vec", "svBps1", "svBps2", "bivec", "bivec"},
+                //   {"rcmt(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
+                //   {"rcmt(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
+                //   {"rcmt(vec,vec) -> vec", "svBps1", "svBps2", "vec", "vec"}
+            },
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_ega3d_rwdg_config()
@@ -541,10 +545,13 @@ ProductConfig get_ega3d_rdot_config()
             .display_name = "regressive inner product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {{"rdot(mv,mv) -> s", "A", "B", "mv", "mv"},
-                      {"rdot(ps,ps) -> s", "svBps1", "svBps2", "ps", "ps"},
-                      {"rdot(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
-                      {"rdot(s,s) -> s", "svBps1", "svBps2", "s", "s"}},
+            .cases =
+                {
+                    // {"rdot(mv,mv) -> ps", "A", "B", "mv", "mv"},
+                    // {"rdot(ps,ps) -> ps", "svBps1", "svBps2", "ps", "ps"},
+                    // {"rdot(vec,vec) -> ps", "svBps1", "svBps2", "vec", "vec"},
+                    // {"rdot(s,s) -> ps", "svBps1", "svBps2", "s", "s"}
+                },
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

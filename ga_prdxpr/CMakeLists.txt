@@ -32,6 +32,9 @@ set(SOURCES
     src_prdxpr/ga_prdxpr_sandwich_simplifier.cpp
     src_prdxpr/ga_prdxpr_sandwich_nary_expression.cpp
     src_prdxpr/ga_prdxpr_sandwich_transformer.cpp
+    # Code generation system (--output=code)
+    src_prdxpr/codegen/ga_codegen_types.cpp
+    src_prdxpr/codegen/ga_codegen_emitter.cpp
 )
 
 # Headers
@@ -61,6 +64,9 @@ set(HEADERS
     src_prdxpr/ga_prdxpr_sandwich_simplifier.hpp
     src_prdxpr/ga_prdxpr_sandwich_nary_expression.hpp
     src_prdxpr/ga_prdxpr_sandwich_transformer.hpp
+    # Code generation system headers
+    src_prdxpr/codegen/ga_codegen_types.hpp
+    src_prdxpr/codegen/ga_codegen_emitter.hpp
 )
 
 # Core transformation system

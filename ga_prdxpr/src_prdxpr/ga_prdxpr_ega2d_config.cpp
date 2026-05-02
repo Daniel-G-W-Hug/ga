@@ -477,10 +477,13 @@ ProductConfig get_ega2d_rcmt_config()
             .display_name = "regressive commutator product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {{"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                      {"rcmt(vec,vec) -> s", "svps1", "svps2", "vec", "vec"},
-                      {"rcmt(vec,s) -> vec", "svps", "svps", "vec", "s"},
-                      {"rcmt(s,vec) -> vec", "svps", "svps", "s", "vec"}},
+            .cases =
+                {
+                    //   {"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                    //   {"rcmt(vec,vec) -> s", "svps1", "svps2", "vec", "vec"},
+                    //   {"rcmt(vec,s) -> vec", "svps", "svps", "vec", "s"},
+                    //   {"rcmt(s,vec) -> vec", "svps", "svps", "s", "vec"}
+                },
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -518,10 +521,13 @@ ProductConfig get_ega2d_rdot_config()
             .display_name = "regressive inner product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {{"rdot(mv,mv) -> s", "A", "B", "mv", "mv"},
-                      {"rdot(ps,ps) -> s", "svps1", "svps2", "ps", "ps"},
-                      {"rdot(vec,vec) -> s", "svps1", "svps2", "vec", "vec"},
-                      {"rdot(s,s) -> s", "svps1", "svps2", "s", "s"}},
+            .cases =
+                {
+                    // {"rdot(mv,mv) -> ps", "A", "B", "mv", "mv"},
+                    // {"rdot(ps,ps) -> ps", "svps1", "svps2", "ps", "ps"},
+                    // {"rdot(vec,vec) -> ps", "svps1", "svps2", "vec", "vec"},
+                    // {"rdot(s,s) -> ps", "svps1", "svps2", "s", "s"}
+                },
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

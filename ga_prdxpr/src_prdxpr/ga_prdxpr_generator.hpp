@@ -29,6 +29,11 @@ class ConfigurableGenerator {
     void generate_sandwich_case(AlgebraData const& algebra, ProductConfig const& config,
                                 OutputCase const& case_def, prd_table const& basis_tab);
 
+    // Emit a single non-sandwich case as ready-to-paste C++ code.
+    // Sandwich cases are intentionally skipped (handled separately).
+    void emit_single_case_code(AlgebraData const& algebra, ProductConfig const& config,
+                               OutputCase const& case_def, prd_table const& basis_tab);
+
     // Get the appropriate basis table for a product type
     // This uses the EXISTING mathematical functions from reference implementation
     prd_table get_basis_table_for_product(AlgebraData const& algebra,

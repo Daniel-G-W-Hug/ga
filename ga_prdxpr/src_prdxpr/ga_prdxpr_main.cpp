@@ -24,6 +24,13 @@ void generate_algebra_products(ConfigurableGenerator& generator,
 {
     bool first_product = true;
 
+    // Suppress decorative separators when only --output=code is requested:
+    // they're display-only for human readers and a long run of '-' tokens confuses
+    // clang-format (it parses '--' as decrement operators).
+    bool const emit_separators = options.should_show_coeffs() ||
+                                 options.should_show_tables() ||
+                                 options.should_show_metrics();
+
     for (size_t i = 0; i < configs.size(); ++i) {
         ProductConfig const& config = configs[i];
 
@@ -33,7 +40,7 @@ void generate_algebra_products(ConfigurableGenerator& generator,
         }
 
         // Add separator before product (except first)
-        if (!first_product) {
+        if (!first_product && emit_separators) {
             fmt::println(
                 "-------------------------------------------------------------------");
             fmt::println("");
@@ -44,7 +51,7 @@ void generate_algebra_products(ConfigurableGenerator& generator,
     }
 
     // Add separator after last product if not the last algebra
-    if (!first_product && !is_last_algebra) {
+    if (!first_product && !is_last_algebra && emit_separators) {
         fmt::println(
             "-------------------------------------------------------------------");
         fmt::println("");
@@ -80,7 +87,8 @@ int main(int argc, char const* argv[])
 
         // EGA2D
         if (options.should_generate_algebra("ega2d") &&
-            (options.should_show_coeffs() || options.should_show_tables())) {
+            (options.should_show_coeffs() || options.should_show_tables() ||
+             options.should_show_code())) {
             auto ega2d_algebra = create_ega2d_algebra_data();
             std::vector<ProductConfig> ega2d_configs = {
                 get_ega2d_gpr_config(),         get_ega2d_gpr_alt_config(),
@@ -104,7 +112,8 @@ int main(int argc, char const* argv[])
 
         // EGA3D
         if (options.should_generate_algebra("ega3d") &&
-            (options.should_show_coeffs() || options.should_show_tables())) {
+            (options.should_show_coeffs() || options.should_show_tables() ||
+             options.should_show_code())) {
             auto ega3d_algebra = create_ega3d_algebra_data();
             std::vector<ProductConfig> ega3d_configs = {
                 get_ega3d_gpr_config(),         get_ega3d_gpr_alt_config(),
@@ -127,7 +136,8 @@ int main(int argc, char const* argv[])
 
         // PGA2DP
         if (options.should_generate_algebra("pga2dp") &&
-            (options.should_show_coeffs() || options.should_show_tables())) {
+            (options.should_show_coeffs() || options.should_show_tables() ||
+             options.should_show_code())) {
             auto pga2dp_algebra = create_pga2dp_algebra_data();
             std::vector<ProductConfig> pga2dp_configs = {
                 get_pga2dp_gpr_config(),
@@ -164,7 +174,8 @@ int main(int argc, char const* argv[])
 
         // PGA3DP
         if (options.should_generate_algebra("pga3dp") &&
-            (options.should_show_coeffs() || options.should_show_tables())) {
+            (options.should_show_coeffs() || options.should_show_tables() ||
+             options.should_show_code())) {
             auto pga3dp_algebra = create_pga3dp_algebra_data();
             std::vector<ProductConfig> pga3dp_configs = {
                 get_pga3dp_gpr_config(),
@@ -201,7 +212,8 @@ int main(int argc, char const* argv[])
 
         // STA4D
         if (options.should_generate_algebra("sta4d") &&
-            (options.should_show_coeffs() || options.should_show_tables())) {
+            (options.should_show_coeffs() || options.should_show_tables() ||
+             options.should_show_code())) {
             auto sta4d_algebra = create_sta4d_algebra_data();
             std::vector<ProductConfig> sta4d_configs = {
                 get_sta4d_gpr_config(),         get_sta4d_cmt_config(),

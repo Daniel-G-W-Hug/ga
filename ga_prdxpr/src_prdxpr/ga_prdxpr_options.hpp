@@ -10,7 +10,7 @@
 namespace configurable {
 
 // Output type flags
-enum class OutputType { Coeffs, Tables, Metrics };
+enum class OutputType { Coeffs, Tables, Metrics, Code };
 
 // Generator runtime options
 struct GeneratorOptions {
@@ -32,6 +32,7 @@ struct GeneratorOptions {
     bool should_show_coeffs() const;
     bool should_show_tables() const;
     bool should_show_metrics() const;
+    bool should_show_code() const;
     bool is_filtering_active() const;
 };
 

@@ -37,6 +37,13 @@ bool GeneratorOptions::should_show_metrics() const
     return output_types.empty() || output_types.count(OutputType::Metrics) > 0;
 }
 
+bool GeneratorOptions::should_show_code() const
+{
+    // Opt-in: never on by default (would inflate the standard golden output).
+    // Only emitted when the user explicitly asks for it.
+    return output_types.count(OutputType::Code) > 0;
+}
+
 bool GeneratorOptions::is_filtering_active() const
 {
     return !algebras.empty() || !products.empty() || !output_types.empty();
@@ -189,6 +196,7 @@ void ArgumentParser::parse_output_list(std::string const& value)
             options_.output_types.insert(OutputType::Coeffs);
             options_.output_types.insert(OutputType::Tables);
             options_.output_types.insert(OutputType::Metrics);
+            options_.output_types.insert(OutputType::Code);
             continue;
         }
         else if (type == "none") {
@@ -212,6 +220,9 @@ void ArgumentParser::parse_output_list(std::string const& value)
         else if (type == "metrics") {
             options_.output_types.insert(OutputType::Metrics);
         }
+        else if (type == "code") {
+            options_.output_types.insert(OutputType::Code);
+        }
     }
 }
 
@@ -232,7 +243,7 @@ bool ArgumentParser::is_valid_product(std::string const& name) const
 bool ArgumentParser::is_valid_output_type(std::string const& name) const
 {
     static std::set<std::string> const valid_types = {"coeffs", "tables", "metrics",
-                                                      "all", "none"};
+                                                      "code", "all", "none"};
     return valid_types.count(name) > 0;
 }
 
@@ -297,10 +308,12 @@ void ArgumentParser::print_help() const
     fmt::println("");
     fmt::println(
         "  --output=TYPES          Show only specified output types (comma-separated)");
-    fmt::println("                          Types: coeffs, tables, metrics");
+    fmt::println("                          Types: coeffs, tables, metrics, code");
     fmt::println(
         "                          Special: 'all' (all types), 'none' (no types)");
+    fmt::println("                          Note: 'code' is opt-in only");
     fmt::println("                          Example: --output=coeffs,tables");
+    fmt::println("                          Example: --output=code");
     fmt::println("                          Example: --output=all");
     fmt::println("");
     fmt::println(
@@ -382,6 +395,7 @@ void ArgumentParser::print_list() const
     fmt::println("  coeffs              - Coefficient expressions");
     fmt::println("  tables              - Basis multiplication tables");
     fmt::println("  metrics             - Extended metric exports (C++ arrays)");
+    fmt::println("  code                - C++ function implementations (opt-in only)");
 }
 
 } // namespace configurable
