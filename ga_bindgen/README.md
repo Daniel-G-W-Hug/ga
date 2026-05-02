@@ -27,14 +27,17 @@ source build/spike_libclang/.venv/bin/activate
 # Step 1 — scan headers, write manifest
 python3 ga_bindgen/src/scan.py
 
-# Step 2 — emit nanobind glue from manifest
+# Step 2 — emit nanobind glue from manifest (full regeneration is the default)
 python3 ga_bindgen/src/emit_nanobind.py
 
 # Step 3 — recompile (back in the wrapper venv or directly)
 cmake --build build
 ```
 
-Both scripts take `--help`.
+Both scripts take `--help`. `emit_nanobind.py` regenerates every binding by
+default; pass `--type <name>` (e.g. `--type vec3d`) for single-type emission
+during binding-script development. The legacy `--all` flag is still accepted
+as a no-op alias for the default.
 
 ## Dependencies
 
