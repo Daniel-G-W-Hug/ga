@@ -165,7 +165,11 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> wdg(MVec2d<T> const& M, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return M * ctype(s);
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = M.c1 * ctype(s);
+    ctype const c2 = M.c2 * ctype(s);
+    ctype const c3 = M.c3 * ctype(s);
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // wedge product between scalar s and multivector B
@@ -174,7 +178,11 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s, MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * M;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = ctype(s) * M.c1;
+    ctype const c2 = ctype(s) * M.c2;
+    ctype const c3 = ctype(s) * M.c3;
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // wedge product between two even grade multivectors A and B
@@ -235,7 +243,9 @@ template <typename T, typename U>
 constexpr MVec2d_E<std::common_type_t<T, U>> wdg(MVec2d_E<T> const& M, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return M * ctype(s);
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = M.c1 * ctype(s);
+    return MVec2d_E<ctype>(c0, c1);
 }
 
 // wedge product between scalar s and even grade multivector M
@@ -244,7 +254,9 @@ template <typename T, typename U>
 constexpr MVec2d_E<std::common_type_t<T, U>> wdg(Scalar2d<T> s, MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * M;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = ctype(s) * M.c1;
+    return MVec2d_E<ctype>(c0, c1);
 }
 
 // wedge product of two pseudoscalars
@@ -305,7 +317,8 @@ template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr PScalar2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v1, Vec2d<U> const& v2)
 {
-    return PScalar2d<std::common_type_t<T, U>>(v1.x * v2.y - v1.y * v2.x);
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(v1.x * v2.y - v1.y * v2.x);
 }
 
 // wedge product with one scalar (returns a scaled vector)
@@ -314,7 +327,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> wdg(Vec2d<T> const& v, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return v * ctype(s);
+    ctype const c0 = v.x * ctype(s);
+    ctype const c1 = v.y * ctype(s);
+    return Vec2d<ctype>(c0, c1);
 }
 
 // wedge product with one scalar (returns a scaled vector)
@@ -323,7 +338,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> wdg(Scalar2d<T> s, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * v;
+    ctype const c0 = ctype(s) * v.x;
+    ctype const c1 = ctype(s) * v.y;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // wedge product between two scalars (returns a scalar)
@@ -370,7 +387,7 @@ template <typename T, typename U>
 constexpr PScalar2d<std::common_type_t<T, U>> rwdg(PScalar2d<T> ps1, PScalar2d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return PScalar2d<ctype>(ctype(ps1) * ctype(ps2)); // convert to ctype before product!
+    return PScalar2d<ctype>(ctype(ps1) * ctype(ps2));
 }
 
 // regressive wedge product between a pseudoscalar ps (=bivector) and a vector v
@@ -380,7 +397,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> rwdg(PScalar2d<T> ps, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * Vec2d<ctype>(v.x, v.y);
+    ctype const c0 = ctype(ps) * v.x;
+    ctype const c1 = ctype(ps) * v.y;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // regressive wedge product between a vector v and a pseudoscalar ps (=bivector)
@@ -390,7 +409,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> rwdg(Vec2d<T> const& v, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.x, v.y) * ctype(ps);
+    ctype const c0 = v.x * ctype(ps);
+    ctype const c1 = v.y * ctype(ps);
+    return Vec2d<ctype>(c0, c1);
 }
 
 // regressive wedge product between a pseudoscalar ps (=bivector) and a scalar s
@@ -429,7 +450,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> rwdg([[maybe_unused]] Vec2d<T> cons
                                                   [[maybe_unused]] Scalar2d<U>)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>{0.0};
+    return Scalar2d<ctype>(0.0);
 }
 
 template <typename T, typename U>
@@ -438,7 +459,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar2d<T>,
                                                   [[maybe_unused]] Vec2d<U> const&)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>{0.0};
+    return Scalar2d<ctype>(0.0);
 }
 
 template <typename T, typename U>
@@ -447,7 +468,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar2d<T>,
                                                   [[maybe_unused]] Scalar2d<U>)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>{0.0};
+    return Scalar2d<ctype>(0.0);
 }
 
 
@@ -474,7 +495,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> twdg1(Vec2d<T> const& v, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-v.y, v.x) * ctype(ps);
+    ctype const c0 = -v.y * ctype(ps);
+    ctype const c1 = v.x * ctype(ps);
+    return Vec2d<ctype>(c0, c1);
 }
 
 // twdg1(vec,vec) = scalar -> identical to dot product dot(vec,vec)
@@ -509,7 +532,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> rtwdg1(Vec2d<T> const& v, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-v.y, v.x) * ctype(s);
+    ctype const c0 = -v.y * ctype(s);
+    ctype const c1 = v.x * ctype(s);
+    return Vec2d<ctype>(c0, c1);
 }
 
 // rtwdg1(s,vec) -> returns a vector perpendicular to vec scaled by s
@@ -520,7 +545,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> rtwdg1(Scalar2d<T> s, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * Vec2d<ctype>(v.y, -v.x);
+    ctype const c0 = ctype(s) * v.y;
+    ctype const c1 = -ctype(s) * v.x;
+    return Vec2d<ctype>(c0, c1);
 }
 
 
@@ -641,8 +668,11 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s, MVec2d<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-
-    return ctype(s) * M;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = ctype(s) * M.c1;
+    ctype const c2 = ctype(s) * M.c2;
+    ctype const c3 = ctype(s) * M.c3;
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // left contraction (A << B) - "A contracted onto B"
@@ -720,7 +750,9 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator<<(Scalar2d<T> s,
                                                         MVec2d_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * M;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = ctype(s) * M.c1;
+    return MVec2d_E<ctype>(c0, c1);
 }
 
 // left contraction - pseudoscalar ps1 contracted onto pseudoscalar ps2
@@ -731,7 +763,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator<<(PScalar2d<T> ps1,
                                                         PScalar2d<U> ps2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar2d<ctype>(-ctype(ps1) * ctype(ps2));
+    return Scalar2d<ctype>(ctype(ps1) * ctype(ps2));
 }
 
 // left contraction -  pseudoscalar contracted onto vector
@@ -753,7 +785,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> operator<<(Vec2d<T> const& v, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(v.y, -v.x) * ctype(ps);
+    ctype const c0 = v.y * ctype(ps);
+    ctype const c1 = -v.x * ctype(ps);
+    return Vec2d<ctype>(c0, c1);
 }
 
 // left contraction - pseudoscalar contracted onto scalar
@@ -805,7 +839,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> operator<<(Scalar2d<T> s, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * v;
+    ctype const c0 = ctype(s) * v.x;
+    ctype const c1 = ctype(s) * v.y;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // left contraction (s1 << s2) - scalar s1 contracted onto scalar s2
@@ -922,7 +958,11 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> operator>>(MVec2d<T> const& M, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return M * ctype(s);
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = M.c1 * ctype(s);
+    ctype const c2 = M.c2 * ctype(s);
+    ctype const c3 = M.c3 * ctype(s);
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // right contraction (s >> M) of scalar s by multivector M
@@ -999,7 +1039,9 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator>>(MVec2d_E<T> const& M,
                                                         Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return M * ctype(s);
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = M.c1 * ctype(s);
+    return MVec2d_E<ctype>(c0, c1);
 }
 
 // right contraction (s >> M) of scalar s by even grade multivector M
@@ -1030,7 +1072,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> operator>>(PScalar2d<T> ps, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * Vec2d<ctype>(-v.y, v.x);
+    ctype const c0 = -ctype(ps) * v.y;
+    ctype const c1 = ctype(ps) * v.x;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // right contraction -  vector contracted by a pseudoscalar
@@ -1082,7 +1126,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> operator>>(Vec2d<T> const& v, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return v * ctype(s);
+    ctype const c0 = v.x * ctype(s);
+    ctype const c1 = v.y * ctype(s);
+    return Vec2d<ctype>(c0, c1);
 }
 
 // right contraction - scalar contracted by a vector
@@ -1129,7 +1175,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> cmt(PScalar2d<T> ps, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * Vec2d<ctype>(v.y, -v.x);
+    ctype const c0 = ctype(ps) * v.y;
+    ctype const c1 = -ctype(ps) * v.x;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // cmt(v,B) = -cmt(B,v)
@@ -1139,7 +1187,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> cmt(Vec2d<T> const& v, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-v.y, v.x) * ctype(ps);
+    ctype const c0 = -v.y * ctype(ps);
+    ctype const c1 = v.x * ctype(ps);
+    return Vec2d<ctype>(c0, c1);
 }
 
 template <typename T, typename U>
@@ -1213,7 +1263,11 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> operator*(MVec2d<T> const& A, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d<ctype>(-A.c3, -A.c2, A.c1, A.c0) * ctype(ps);
+    ctype const c0 = -A.c3 * ctype(ps);
+    ctype const c1 = -A.c2 * ctype(ps);
+    ctype const c2 = A.c1 * ctype(ps);
+    ctype const c3 = A.c0 * ctype(ps);
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // geometric product ps * B of pseudoscalar ps (=bivector) with the multivector B
@@ -1223,7 +1277,11 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> operator*(PScalar2d<T> ps, MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * MVec2d<ctype>(-B.c3, B.c2, -B.c1, B.c0);
+    ctype const c0 = -ctype(ps) * B.c3;
+    ctype const c1 = ctype(ps) * B.c2;
+    ctype const c2 = -ctype(ps) * B.c1;
+    ctype const c3 = ctype(ps) * B.c0;
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // geometric product A * v for a multivector A with a vector v
@@ -1263,7 +1321,11 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> operator*(MVec2d<T> const& A, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return A * ctype(s);
+    ctype const c0 = A.c0 * ctype(s);
+    ctype const c1 = A.c1 * ctype(s);
+    ctype const c2 = A.c2 * ctype(s);
+    ctype const c3 = A.c3 * ctype(s);
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // geometric product s * B of a scalar s multiplied to the multivector B from left
@@ -1273,7 +1335,11 @@ template <typename T, typename U>
 constexpr MVec2d<std::common_type_t<T, U>> operator*(Scalar2d<T> s, MVec2d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * B;
+    ctype const c0 = ctype(s) * B.c0;
+    ctype const c1 = ctype(s) * B.c1;
+    ctype const c2 = ctype(s) * B.c2;
+    ctype const c3 = ctype(s) * B.c3;
+    return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
 // geometric product A * B for two multivectors from the even subalgebra (2d case)
@@ -1298,7 +1364,9 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator*(MVec2d_E<T> const& A,
                                                        PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec2d_E<ctype>(-A.c1, A.c0) * ctype(ps);
+    ctype const c0 = -A.c1 * ctype(ps);
+    ctype const c1 = A.c0 * ctype(ps);
+    return MVec2d_E<ctype>(c0, c1);
 }
 
 // geometric product ps * B of a bivector A multiplied from the left
@@ -1310,7 +1378,9 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator*(PScalar2d<T> ps,
                                                        MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * MVec2d_E<ctype>(-B.c1, B.c0);
+    ctype const c0 = -ctype(ps) * B.c1;
+    ctype const c1 = ctype(ps) * B.c0;
+    return MVec2d_E<ctype>(c0, c1);
 }
 
 // geometric product A * v for a multivector from the even subalgebra A with a vector v
@@ -1347,7 +1417,9 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator*(MVec2d_E<T> const& A,
                                                        Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return A * ctype(s);
+    ctype const c0 = A.c0 * ctype(s);
+    ctype const c1 = A.c1 * ctype(s);
+    return MVec2d_E<ctype>(c0, c1);
 }
 
 // geometric product s * B of a scalar with an even grade multivector B
@@ -1358,7 +1430,9 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator*(Scalar2d<T> s,
                                                        MVec2d_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * B;
+    ctype const c0 = ctype(s) * B.c0;
+    ctype const c1 = ctype(s) * B.c1;
+    return MVec2d_E<ctype>(c0, c1);
 }
 
 // geometric product ps * ps of two pseudoscalars
@@ -1380,7 +1454,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> operator*(PScalar2d<T> ps, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * Vec2d<ctype>(v.y, -v.x);
+    ctype const c0 = ctype(ps) * v.y;
+    ctype const c1 = -ctype(ps) * v.x;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // geometric product v * ps of the vector v multiplied with the pseudoscalar ps
@@ -1392,7 +1468,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> operator*(Vec2d<T> const& v, PScalar2d<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2d<ctype>(-v.y, v.x) * ctype(ps);
+    ctype const c0 = -v.y * ctype(ps);
+    ctype const c1 = v.x * ctype(ps);
+    return Vec2d<ctype>(c0, c1);
 }
 
 // geometric product ps * s of pseudscalar ps and scalar s
@@ -1437,7 +1515,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> operator*(Vec2d<T> const& v, Scalar2d<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return v * ctype(s);
+    ctype const c0 = v.x * ctype(s);
+    ctype const c1 = v.y * ctype(s);
+    return Vec2d<ctype>(c0, c1);
 }
 
 // geometric product s * v of scalar s and vector v
@@ -1447,7 +1527,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> operator*(Scalar2d<T> s, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(s) * v;
+    ctype const c0 = ctype(s) * v.x;
+    ctype const c1 = ctype(s) * v.y;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // geometric product s1 * s2 of two scalars
