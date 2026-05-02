@@ -1204,23 +1204,30 @@ def main() -> int:
     ap.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     mode = ap.add_mutually_exclusive_group()
-    mode.add_argument("--type", help="Emit a single type (quick iteration)")
+    mode.add_argument("--type",
+                      help="Emit a single type (quick iteration during "
+                           "binding development). Without this flag the "
+                           "default is full regeneration.")
     mode.add_argument("--all", action="store_true",
-                      help="Emit every eligible type + register_all.cpp + bindings_list.cmake")
+                      help="Emit every eligible type + register_all.cpp + "
+                           "bindings_list.cmake. This is the default; the "
+                           "flag is accepted for backward compatibility.")
     ap.add_argument("--functions-from", default="",
                     help="Comma-separated source-file basenames; restrict "
                          "free-function emission to overloads declared in "
-                         "those files. Empty (default) with --all means "
-                         "emit every bindable free function. Provided as an "
-                         "escape hatch for incremental enablement during "
-                         "binding development.")
+                         "those files. Empty (default) means emit every "
+                         "bindable free function. Provided as an escape "
+                         "hatch for incremental enablement during binding "
+                         "development.")
     args = ap.parse_args()
 
     manifest = Manifest.from_json(Path(args.manifest).read_text())
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if args.all:
+    # Default mode: full regeneration. `--all` is a no-op alias kept for
+    # backward compatibility; explicit `--type X` selects single-type mode.
+    if not args.type:
         # Wipe any stale generated files so removed types don't linger.
         for old in out_dir.glob("bindings_*.cpp"):
             old.unlink()
@@ -1307,8 +1314,8 @@ def main() -> int:
         print(f"   parameterized on T)")
         return 0
 
-    # Single-type mode (backward-compatible with the initial pipeline proof).
-    type_name = args.type or "vec3d"
+    # Single-type mode: emit only `--type X` for quick iteration.
+    type_name = args.type
     target = next((t for t in manifest.types if t.name == type_name), None)
     if target is None:
         print(f"Type '{type_name}' not found in manifest.", file=sys.stderr)
