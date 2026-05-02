@@ -351,8 +351,10 @@ template <typename T, typename U>
 constexpr BiVec3d<std::common_type_t<T, U>> wdg(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3d<ctype>(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z,
-                          v1.x * v2.y - v1.y * v2.x);
+    ctype const c0 = v1.y * v2.z - v1.z * v2.y;
+    ctype const c1 = v1.z * v2.x - v1.x * v2.z;
+    ctype const c2 = v1.x * v2.y - v1.y * v2.x;
+    return BiVec3d<ctype>(c0, c1, c2);
 }
 
 // wedge product with one scalar (returns a scaled vector)
@@ -492,8 +494,10 @@ template <typename T, typename U>
 constexpr Vec3d<std::common_type_t<T, U>> rwdg(BiVec3d<T> const& B1, BiVec3d<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(B1.y * B2.z - B1.z * B2.y, B1.z * B2.x - B1.x * B2.z,
-                        B1.x * B2.y - B1.y * B2.x);
+    ctype const c0 = B1.y * B2.z - B1.z * B2.y;
+    ctype const c1 = B1.z * B2.x - B1.x * B2.z;
+    ctype const c2 = B1.x * B2.y - B1.y * B2.x;
+    return Vec3d<ctype>(c0, c1, c2);
 }
 
 // regressive wedge product between a bivector B and a vector v
@@ -603,8 +607,10 @@ constexpr BiVec3d<std::common_type_t<T, U>> twdg1(BiVec3d<T> const& B1,
                                                   BiVec3d<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3d<ctype>(-B1.y * B2.z + B1.z * B2.y, B1.x * B2.z - B1.z * B2.x,
-                          -B1.x * B2.y + B1.y * B2.x);
+    ctype const c0 = -B1.y * B2.z + B1.z * B2.y;
+    ctype const c1 = B1.x * B2.z - B1.z * B2.x;
+    ctype const c2 = -B1.x * B2.y + B1.y * B2.x;
+    return BiVec3d<ctype>(c0, c1, c2);
 }
 
 // twdg1(bivec,vec) = vector -> identical to left contraction operator<<(vec,bivec)
@@ -613,8 +619,10 @@ template <typename T, typename U>
 constexpr Vec3d<std::common_type_t<T, U>> twdg1(BiVec3d<T> const& B, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(-B.y * v.z + B.z * v.y, B.x * v.z - B.z * v.x,
-                        -B.x * v.y + B.y * v.x);
+    ctype const c0 = -B.y * v.z + B.z * v.y;
+    ctype const c1 = B.x * v.z - B.z * v.x;
+    ctype const c2 = -B.x * v.y + B.y * v.x;
+    return Vec3d<ctype>(c0, c1, c2);
 }
 
 // twdg1(vec,bivec) = vector -> identical to right contraction operator>>(bivec,vec)
@@ -623,8 +631,10 @@ template <typename T, typename U>
 constexpr Vec3d<std::common_type_t<T, U>> twdg1(Vec3d<T> const& v, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(-v.y * B.z + v.z * B.y, v.x * B.z - v.z * B.x,
-                        -v.x * B.y + v.y * B.x);
+    ctype const c0 = -v.y * B.z + v.z * B.y;
+    ctype const c1 = v.x * B.z - v.z * B.x;
+    ctype const c2 = -v.x * B.y + v.y * B.x;
+    return Vec3d<ctype>(c0, c1, c2);
 }
 
 // twdg1(vec,vec) = scalar -> identical to dot product dot(vec,vec)
@@ -658,8 +668,10 @@ template <typename T, typename U>
 constexpr BiVec3d<std::common_type_t<T, U>> rtwdg1(BiVec3d<T> const& B, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3d<ctype>(-B.y * v.z + B.z * v.y, B.x * v.z - B.z * v.x,
-                          -B.x * v.y + B.y * v.x);
+    ctype const c0 = -B.y * v.z + B.z * v.y;
+    ctype const c1 = B.x * v.z - B.z * v.x;
+    ctype const c2 = -B.x * v.y + B.y * v.x;
+    return BiVec3d<ctype>(c0, c1, c2);
 }
 
 // rtwdg1(vec,bivec) = bivec -> identical to left expansion lexpand(bivec,vec)
@@ -669,8 +681,10 @@ template <typename T, typename U>
 constexpr BiVec3d<std::common_type_t<T, U>> rtwdg1(Vec3d<T> const& v, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3d<ctype>(-v.y * B.z + v.z * B.y, v.x * B.z - v.z * B.x,
-                          -v.x * B.y + v.y * B.x);
+    ctype const c0 = -v.y * B.z + v.z * B.y;
+    ctype const c1 = v.x * B.z - v.z * B.x;
+    ctype const c2 = -v.x * B.y + v.y * B.x;
+    return BiVec3d<ctype>(c0, c1, c2);
 }
 
 // rtwdg1(bivec,s) = vec -> returns a vector perpendicular to bivec scaled by s
@@ -702,8 +716,10 @@ template <typename T, typename U>
 constexpr Vec3d<std::common_type_t<T, U>> rtwdg1(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(-v1.y * v2.z + v1.z * v2.y, v1.x * v2.z - v1.z * v2.x,
-                        -v1.x * v2.y + v1.y * v2.x);
+    ctype const c0 = -v1.y * v2.z + v1.z * v2.y;
+    ctype const c1 = v1.x * v2.z - v1.z * v2.x;
+    ctype const c2 = -v1.x * v2.y + v1.y * v2.x;
+    return Vec3d<ctype>(c0, c1, c2);
 }
 
 
@@ -921,8 +937,10 @@ constexpr Vec3d<std::common_type_t<T, U>> operator<<(Vec3d<T> const& v,
                                                      BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(v.y * B.z - v.z * B.y, -v.x * B.z + v.z * B.x,
-                        v.x * B.y - v.y * B.x);
+    ctype const c0 = v.y * B.z - v.z * B.y;
+    ctype const c1 = -v.x * B.z + v.z * B.x;
+    ctype const c2 = v.x * B.y - v.y * B.x;
+    return Vec3d<ctype>(c0, c1, c2);
 }
 
 // left contraction - bivector contracted onto scalar
@@ -1188,8 +1206,10 @@ constexpr Vec3d<std::common_type_t<T, U>> operator>>(BiVec3d<T> const& B,
                                                      Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(B.y * v.z - B.z * v.y, -B.x * v.z + B.z * v.x,
-                        B.x * v.y - B.y * v.x);
+    ctype const c0 = B.y * v.z - B.z * v.y;
+    ctype const c1 = -B.x * v.z + B.z * v.x;
+    ctype const c2 = B.x * v.y - B.y * v.x;
+    return Vec3d<ctype>(c0, c1, c2);
 }
 
 // right contraction - vector contracted by a bivector
@@ -1305,8 +1325,10 @@ constexpr BiVec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B1,
                                                 BiVec3d<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3d<ctype>(-B1.y * B2.z + B1.z * B2.y, B1.x * B2.z - B1.z * B2.x,
-                          -B1.x * B2.y + B1.y * B2.x);
+    ctype const c0 = -B1.y * B2.z + B1.z * B2.y;
+    ctype const c1 = B1.x * B2.z - B1.z * B2.x;
+    ctype const c2 = -B1.x * B2.y + B1.y * B2.x;
+    return BiVec3d<ctype>(c0, c1, c2);
 }
 
 // cmt(B,v) == -cmt(v,B)
@@ -1316,8 +1338,10 @@ template <typename T, typename U>
 constexpr Vec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(-B.y * v.z + B.z * v.y, B.x * v.z - B.z * v.x,
-                        -B.x * v.y + B.y * v.x);
+    ctype const c0 = -B.y * v.z + B.z * v.y;
+    ctype const c1 = B.x * v.z - B.z * v.x;
+    ctype const c2 = -B.x * v.y + B.y * v.x;
+    return Vec3d<ctype>(c0, c1, c2);
 }
 
 // cmt(v,B) == -cmt(B,v)
@@ -1327,8 +1351,10 @@ template <typename T, typename U>
 constexpr Vec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v, BiVec3d<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3d<ctype>(-v.y * B.z + v.z * B.y, v.x * B.z - v.z * B.x,
-                        -v.x * B.y + v.y * B.x);
+    ctype const c0 = -v.y * B.z + v.z * B.y;
+    ctype const c1 = v.x * B.z - v.z * B.x;
+    ctype const c2 = -v.x * B.y + v.y * B.x;
+    return Vec3d<ctype>(c0, c1, c2);
 }
 
 template <typename T, typename U>
@@ -1336,8 +1362,10 @@ template <typename T, typename U>
 constexpr BiVec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v1, Vec3d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3d<ctype>(v1.y * v2.z - v1.z * v2.y, -v1.x * v2.z + v1.z * v2.x,
-                          v1.x * v2.y - v1.y * v2.x);
+    ctype const c0 = v1.y * v2.z - v1.z * v2.y;
+    ctype const c1 = -v1.x * v2.z + v1.z * v2.x;
+    ctype const c2 = v1.x * v2.y - v1.y * v2.x;
+    return BiVec3d<ctype>(c0, c1, c2);
 }
 
 

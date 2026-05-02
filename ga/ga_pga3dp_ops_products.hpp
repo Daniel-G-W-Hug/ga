@@ -438,9 +438,11 @@ constexpr TriVec3dp<std::common_type_t<T, U>> wdg(BiVec3dp<T> const& B,
                                                   Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(
-        B.vy * v.z - B.vz * v.y + B.mx * v.w, -B.vx * v.z + B.vz * v.x + B.my * v.w,
-        B.vx * v.y - B.vy * v.x + B.mz * v.w, -B.mx * v.x - B.my * v.y - B.mz * v.z);
+    ctype const c0 = B.vy * v.z - B.vz * v.y + B.mx * v.w;
+    ctype const c1 = -B.vx * v.z + B.vz * v.x + B.my * v.w;
+    ctype const c2 = B.vx * v.y - B.vy * v.x + B.mz * v.w;
+    ctype const c3 = -B.mx * v.x - B.my * v.y - B.mz * v.z;
+    return TriVec3dp<ctype>(c0, c1, c2, c3);
 }
 
 template <typename T, typename U>
@@ -449,9 +451,11 @@ constexpr TriVec3dp<std::common_type_t<T, U>> wdg(Vec3dp<T> const& v,
                                                   BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(
-        -v.y * B.vz + v.z * B.vy + v.w * B.mx, v.x * B.vz - v.z * B.vx + v.w * B.my,
-        -v.x * B.vy + v.y * B.vx + v.w * B.mz, -v.x * B.mx - v.y * B.my - v.z * B.mz);
+    ctype const c0 = -v.y * B.vz + v.z * B.vy + v.w * B.mx;
+    ctype const c1 = v.x * B.vz - v.z * B.vx + v.w * B.my;
+    ctype const c2 = -v.x * B.vy + v.y * B.vx + v.w * B.mz;
+    ctype const c3 = -v.x * B.mx - v.y * B.my - v.z * B.mz;
+    return TriVec3dp<ctype>(c0, c1, c2, c3);
 }
 
 template <typename T, typename U>
@@ -517,9 +521,11 @@ template <typename T, typename U>
 constexpr Plane3d<std::common_type_t<T, U>> wdg(Line3d<T> const& l, Point3d<U> const& p)
 {
     using ctype = std::common_type_t<T, U>;
-    return Plane3d<ctype>(l.vy * p.z - l.vz * p.y + l.mx, -l.vx * p.z + l.vz * p.x + l.my,
-                          l.vx * p.y - l.vy * p.x + l.mz,
-                          -l.mx * p.x - l.my * p.y - l.mz * p.z);
+    ctype const c0 = l.vy * p.z - l.vz * p.y + l.mx;
+    ctype const c1 = -l.vx * p.z + l.vz * p.x + l.my;
+    ctype const c2 = l.vx * p.y - l.vy * p.x + l.mz;
+    ctype const c3 = -l.mx * p.x - l.my * p.y - l.mz * p.z;
+    return Plane3d<ctype>(c0, c1, c2, c3);
 }
 
 template <typename T, typename U>
@@ -527,9 +533,11 @@ template <typename T, typename U>
 constexpr Plane3d<std::common_type_t<T, U>> wdg(Point3d<T> const& p, Line3d<U> const& l)
 {
     using ctype = std::common_type_t<T, U>;
-    return Plane3d<ctype>(-p.y * l.vz + p.z * l.vy + l.mx, p.x * l.vz - p.z * l.vx + l.my,
-                          -p.x * l.vy + p.y * l.vx + l.mz,
-                          -p.x * l.mx - p.y * l.my - p.z * l.mz);
+    ctype const c0 = -p.y * l.vz + p.z * l.vy + l.mx;
+    ctype const c1 = p.x * l.vz - p.z * l.vx + l.my;
+    ctype const c2 = -p.x * l.vy + p.y * l.vx + l.mz;
+    ctype const c3 = -p.x * l.mx - p.y * l.my - p.z * l.mz;
+    return Plane3d<ctype>(c0, c1, c2, c3);
 }
 
 // wedge product between two points (aka vectors with implicit p.z == 1)
@@ -971,8 +979,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> twdg1(TriVec3dp<T> const& t,
                                                    Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-t.y * v.z + t.z * v.y, t.x * v.z - t.z * v.x,
-                           -t.x * v.y + t.y * v.x, -t.w * v.x, -t.w * v.y, -t.w * v.z);
+    ctype const c0 = -t.y * v.z + t.z * v.y;
+    ctype const c1 = t.x * v.z - t.z * v.x;
+    ctype const c2 = -t.x * v.y + t.y * v.x;
+    ctype const c3 = -t.w * v.x;
+    ctype const c4 = -t.w * v.y;
+    ctype const c5 = -t.w * v.z;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 // twdg1(vec,trivec) = bivector -> identical to right contraction operator>>(trivec,vec)
@@ -983,8 +996,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> twdg1(Vec3dp<T> const& v,
                                                    TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(v.y * t.z - v.z * t.y, -v.x * t.z + v.z * t.x,
-                           v.x * t.y - v.y * t.x, -v.x * t.w, -v.y * t.w, -v.z * t.w);
+    ctype const c0 = v.y * t.z - v.z * t.y;
+    ctype const c1 = -v.x * t.z + v.z * t.x;
+    ctype const c2 = v.x * t.y - v.y * t.x;
+    ctype const c3 = -v.x * t.w;
+    ctype const c4 = -v.y * t.w;
+    ctype const c5 = -v.z * t.w;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 // twdg1(trivec,bivec) = trivector -> identical to commutator product cmt(bivec,trivec)
@@ -1019,11 +1037,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> twdg1(BiVec3dp<T> const& B1,
                                                    BiVec3dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-B1.vy * B2.mz + B1.vz * B2.my - B1.my * B2.vz + B1.mz * B2.vy,
-                           B1.vx * B2.mz - B1.vz * B2.mx + B1.mx * B2.vz - B1.mz * B2.vx,
-                           -B1.vx * B2.my + B1.vy * B2.mx - B1.mx * B2.vy + B1.my * B2.vx,
-                           -B1.my * B2.mz + B1.mz * B2.my, B1.mx * B2.mz - B1.mz * B2.mx,
-                           -B1.mx * B2.my + B1.my * B2.mx);
+    ctype const c0 = -B1.vy * B2.mz + B1.vz * B2.my - B1.my * B2.vz + B1.mz * B2.vy;
+    ctype const c1 = B1.vx * B2.mz - B1.vz * B2.mx + B1.mx * B2.vz - B1.mz * B2.vx;
+    ctype const c2 = -B1.vx * B2.my + B1.vy * B2.mx - B1.mx * B2.vy + B1.my * B2.vx;
+    ctype const c3 = -B1.my * B2.mz + B1.mz * B2.my;
+    ctype const c4 = B1.mx * B2.mz - B1.mz * B2.mx;
+    ctype const c5 = -B1.mx * B2.my + B1.my * B2.mx;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 // twdg1(bivec,vec) = vector -> identical to left contraction operator<<(vec,bivec)
@@ -1032,8 +1052,11 @@ template <typename T, typename U>
 constexpr Vec3dp<std::common_type_t<T, U>> twdg1(BiVec3dp<T> const& B, Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(-B.my * v.z + B.mz * v.y, B.mx * v.z - B.mz * v.x,
-                         -B.mx * v.y + B.my * v.x, B.vx * v.x + B.vy * v.y + B.vz * v.z);
+    ctype const c0 = -B.my * v.z + B.mz * v.y;
+    ctype const c1 = B.mx * v.z - B.mz * v.x;
+    ctype const c2 = -B.mx * v.y + B.my * v.x;
+    ctype const c3 = B.vx * v.x + B.vy * v.y + B.vz * v.z;
+    return Vec3dp<ctype>(c0, c1, c2, c3);
 }
 
 // twdg1(vec,bivec) = vector -> identical to right contraction operator>>(bivec,vec)
@@ -1042,8 +1065,11 @@ template <typename T, typename U>
 constexpr Vec3dp<std::common_type_t<T, U>> twdg1(Vec3dp<T> const& v, BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(-v.y * B.mz + v.z * B.my, v.x * B.mz - v.z * B.mx,
-                         -v.x * B.my + v.y * B.mx, -v.x * B.vx - v.y * B.vy - v.z * B.vz);
+    ctype const c0 = -v.y * B.mz + v.z * B.my;
+    ctype const c1 = v.x * B.mz - v.z * B.mx;
+    ctype const c2 = -v.x * B.my + v.y * B.mx;
+    ctype const c3 = -v.x * B.vx - v.y * B.vy - v.z * B.vz;
+    return Vec3dp<ctype>(c0, c1, c2, c3);
 }
 
 // twdg1(vec,vec) = scalar -> identical to dot product dot(vec,vec)
@@ -1080,9 +1106,11 @@ constexpr TriVec3dp<std::common_type_t<T, U>> rtwdg1(TriVec3dp<T> const& t,
                                                      BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(t.y * B.vz - t.z * B.vy, -t.x * B.vz + t.z * B.vx,
-                            t.x * B.vy - t.y * B.vx,
-                            t.x * B.mx + t.y * B.my + t.z * B.mz);
+    ctype const c0 = t.y * B.vz - t.z * B.vy;
+    ctype const c1 = -t.x * B.vz + t.z * B.vx;
+    ctype const c2 = t.x * B.vy - t.y * B.vx;
+    ctype const c3 = t.x * B.mx + t.y * B.my + t.z * B.mz;
+    return TriVec3dp<ctype>(c0, c1, c2, c3);
 }
 
 // rtwdg1(bivec,trivec) = trivector -> identical to regressive commutator product
@@ -1093,9 +1121,11 @@ constexpr TriVec3dp<std::common_type_t<T, U>> rtwdg1(BiVec3dp<T> const& B,
                                                      TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(B.vy * t.z - B.vz * t.y, -B.vx * t.z + B.vz * t.x,
-                            B.vx * t.y - B.vy * t.x,
-                            -B.mx * t.x - B.my * t.y - B.mz * t.z);
+    ctype const c0 = B.vy * t.z - B.vz * t.y;
+    ctype const c1 = -B.vx * t.z + B.vz * t.x;
+    ctype const c2 = B.vx * t.y - B.vy * t.x;
+    ctype const c3 = -B.mx * t.x - B.my * t.y - B.mz * t.z;
+    return TriVec3dp<ctype>(c0, c1, c2, c3);
 }
 
 // rtwdg1(trivec,vec) = bivec -> identical to r_weight_expand3dp(vec,trivec)
@@ -1107,8 +1137,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> rtwdg1(TriVec3dp<T> const& t,
                                                     Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-t.x * v.w, -t.y * v.w, -t.z * v.w, t.y * v.z - t.z * v.y,
-                           -t.x * v.z + t.z * v.x, t.x * v.y - t.y * v.x);
+    ctype const c0 = -t.x * v.w;
+    ctype const c1 = -t.y * v.w;
+    ctype const c2 = -t.z * v.w;
+    ctype const c3 = t.y * v.z - t.z * v.y;
+    ctype const c4 = -t.x * v.z + t.z * v.x;
+    ctype const c5 = t.x * v.y - t.y * v.x;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 // rtwdg1(vec,trivec) = bivec -> identical to l_weight_expand3dp(trivec,vec)
@@ -1120,8 +1155,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> rtwdg1(Vec3dp<T> const& v,
                                                     TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-v.w * t.x, -v.w * t.y, -v.w * t.z, -v.y * t.z + v.z * t.y,
-                           v.x * t.z - v.z * t.x, -v.x * t.y + v.y * t.x);
+    ctype const c0 = -v.w * t.x;
+    ctype const c1 = -v.w * t.y;
+    ctype const c2 = -v.w * t.z;
+    ctype const c3 = -v.y * t.z + v.z * t.y;
+    ctype const c4 = v.x * t.z - v.z * t.x;
+    ctype const c5 = -v.x * t.y + v.y * t.x;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 // rtwdg1(trivec,s) = vec -> identical to r_weight_expand3dp(s,trivec)
@@ -1152,11 +1192,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> rtwdg1(BiVec3dp<T> const& B1,
                                                     BiVec3dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(B1.vy * B2.vz - B1.vz * B2.vy, -B1.vx * B2.vz + B1.vz * B2.vx,
-                           B1.vx * B2.vy - B1.vy * B2.vx,
-                           B1.vy * B2.mz - B1.vz * B2.my + B1.my * B2.vz - B1.mz * B2.vy,
-                           -B1.vx * B2.mz + B1.vz * B2.mx - B1.mx * B2.vz + B1.mz * B2.vx,
-                           B1.vx * B2.my - B1.vy * B2.mx + B1.mx * B2.vy - B1.my * B2.vx);
+    ctype const c0 = B1.vy * B2.vz - B1.vz * B2.vy;
+    ctype const c1 = -B1.vx * B2.vz + B1.vz * B2.vx;
+    ctype const c2 = B1.vx * B2.vy - B1.vy * B2.vx;
+    ctype const c3 = B1.vy * B2.mz - B1.vz * B2.my + B1.my * B2.vz - B1.mz * B2.vy;
+    ctype const c4 = -B1.vx * B2.mz + B1.vz * B2.mx - B1.mx * B2.vz + B1.mz * B2.vx;
+    ctype const c5 = B1.vx * B2.my - B1.vy * B2.mx + B1.mx * B2.vy - B1.my * B2.vx;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 // rtwdg1(bivec,vec) = vec ->            = rcmt(bivec,vec)
@@ -1328,8 +1370,11 @@ constexpr Vec3dp<std::common_type_t<T, U>> operator<<(BiVec3dp<T> const& B,
                                                       TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(-B.mx * t.w, -B.my * t.w, -B.mz * t.w,
-                         B.mx * t.x + B.my * t.y + B.mz * t.z);
+    ctype const c0 = -B.mx * t.w;
+    ctype const c1 = -B.my * t.w;
+    ctype const c2 = -B.mz * t.w;
+    ctype const c3 = B.mx * t.x + B.my * t.y + B.mz * t.z;
+    return Vec3dp<ctype>(c0, c1, c2, c3);
 }
 
 template <typename T, typename U>
@@ -1347,8 +1392,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> operator<<(Vec3dp<T> const& v,
                                                         TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(v.y * t.z - v.z * t.y, -v.x * t.z + v.z * t.x,
-                           v.x * t.y - v.y * t.x, -v.x * t.w, -v.y * t.w, -v.z * t.w);
+    ctype const c0 = v.y * t.z - v.z * t.y;
+    ctype const c1 = -v.x * t.z + v.z * t.x;
+    ctype const c2 = v.x * t.y - v.y * t.x;
+    ctype const c3 = -v.x * t.w;
+    ctype const c4 = -v.y * t.w;
+    ctype const c5 = -v.z * t.w;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 template <typename T, typename U>
@@ -1393,8 +1443,11 @@ constexpr Vec3dp<std::common_type_t<T, U>> operator<<(Vec3dp<T> const& v,
                                                       BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(v.y * B.mz - v.z * B.my, -v.x * B.mz + v.z * B.mx,
-                         v.x * B.my - v.y * B.mx, v.x * B.vx + v.y * B.vy + v.z * B.vz);
+    ctype const c0 = v.y * B.mz - v.z * B.my;
+    ctype const c1 = -v.x * B.mz + v.z * B.mx;
+    ctype const c2 = v.x * B.my - v.y * B.mx;
+    ctype const c3 = v.x * B.vx + v.y * B.vy + v.z * B.vz;
+    return Vec3dp<ctype>(c0, c1, c2, c3);
 }
 
 template <typename T, typename U>
@@ -1583,8 +1636,11 @@ constexpr Vec3dp<std::common_type_t<T, U>> operator>>(TriVec3dp<T> const& t,
                                                       BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(-t.w * B.mx, -t.w * B.my, -t.w * B.mz,
-                         t.x * B.mx + t.y * B.my + t.z * B.mz);
+    ctype const c0 = -t.w * B.mx;
+    ctype const c1 = -t.w * B.my;
+    ctype const c2 = -t.w * B.mz;
+    ctype const c3 = t.x * B.mx + t.y * B.my + t.z * B.mz;
+    return Vec3dp<ctype>(c0, c1, c2, c3);
 }
 
 template <typename T, typename U>
@@ -1602,8 +1658,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> operator>>(TriVec3dp<T> const& t,
                                                         Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-t.y * v.z + t.z * v.y, t.x * v.z - t.z * v.x,
-                           -t.x * v.y + t.y * v.x, -t.w * v.x, -t.w * v.y, -t.w * v.z);
+    ctype const c0 = -t.y * v.z + t.z * v.y;
+    ctype const c1 = t.x * v.z - t.z * v.x;
+    ctype const c2 = -t.x * v.y + t.y * v.x;
+    ctype const c3 = -t.w * v.x;
+    ctype const c4 = -t.w * v.y;
+    ctype const c5 = -t.w * v.z;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 template <typename T, typename U>
@@ -1648,8 +1709,11 @@ constexpr Vec3dp<std::common_type_t<T, U>> operator>>(BiVec3dp<T> const& B,
                                                       Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec3dp<ctype>(B.my * v.z - B.mz * v.y, -B.mx * v.z + B.mz * v.x,
-                         B.mx * v.y - B.my * v.x, -B.vx * v.x - B.vy * v.y - B.vz * v.z);
+    ctype const c0 = B.my * v.z - B.mz * v.y;
+    ctype const c1 = -B.mx * v.z + B.mz * v.x;
+    ctype const c2 = B.mx * v.y - B.my * v.x;
+    ctype const c3 = -B.vx * v.x - B.vy * v.y - B.vz * v.z;
+    return Vec3dp<ctype>(c0, c1, c2, c3);
 }
 
 template <typename T, typename U>
@@ -1756,8 +1820,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> cmt(TriVec3dp<T> const& t1,
                                                  TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(t1.x * t2.w - t1.w * t2.x, t1.y * t2.w - t1.w * t2.y,
-                           t1.z * t2.w - t1.w * t2.z, 0.0, 0.0, 0.0);
+    ctype const c0 = t1.x * t2.w - t1.w * t2.x;
+    ctype const c1 = t1.y * t2.w - t1.w * t2.y;
+    ctype const c2 = t1.z * t2.w - t1.w * t2.z;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 template <typename T, typename U>
@@ -1806,11 +1875,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> cmt(BiVec3dp<T> const& B1,
                                                  BiVec3dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-B1.vy * B2.mz + B1.vz * B2.my - B1.my * B2.vz + B1.mz * B2.vy,
-                           B1.vx * B2.mz - B1.vz * B2.mx + B1.mx * B2.vz - B1.mz * B2.vx,
-                           -B1.vx * B2.my + B1.vy * B2.mx - B1.mx * B2.vy + B1.my * B2.vx,
-                           -B1.my * B2.mz + B1.mz * B2.my, B1.mx * B2.mz - B1.mz * B2.mx,
-                           -B1.mx * B2.my + B1.my * B2.mx);
+    ctype const c0 = -B1.vy * B2.mz + B1.vz * B2.my - B1.my * B2.vz + B1.mz * B2.vy;
+    ctype const c1 = B1.vx * B2.mz - B1.vz * B2.mx + B1.mx * B2.vz - B1.mz * B2.vx;
+    ctype const c2 = -B1.vx * B2.my + B1.vy * B2.mx - B1.mx * B2.vy + B1.my * B2.vx;
+    ctype const c3 = -B1.my * B2.mz + B1.mz * B2.my;
+    ctype const c4 = B1.mx * B2.mz - B1.mz * B2.mx;
+    ctype const c5 = -B1.mx * B2.my + B1.my * B2.mx;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 // cmt(B,v) = -cmt(v,B)
@@ -1836,9 +1907,13 @@ template <typename T, typename U>
 constexpr BiVec3dp<std::common_type_t<T, U>> cmt(Vec3dp<T> const& v1, Vec3dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-v1.x * v2.w + v1.w * v2.x, -v1.y * v2.w + v1.w * v2.y,
-                           -v1.z * v2.w + v1.w * v2.z, v1.y * v2.z - v1.z * v2.y,
-                           -v1.x * v2.z + v1.z * v2.x, v1.x * v2.y - v1.y * v2.x);
+    ctype const c0 = -v1.x * v2.w + v1.w * v2.x;
+    ctype const c1 = -v1.y * v2.w + v1.w * v2.y;
+    ctype const c2 = -v1.z * v2.w + v1.w * v2.z;
+    ctype const c3 = v1.y * v2.z - v1.z * v2.y;
+    ctype const c4 = -v1.x * v2.z + v1.z * v2.x;
+    ctype const c5 = v1.x * v2.y - v1.y * v2.x;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 
@@ -1886,9 +1961,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> rcmt(TriVec3dp<T> const& t1,
                                                   TriVec3dp<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(-t1.y * t2.z + t1.z * t2.y, t1.x * t2.z - t1.z * t2.x,
-                           -t1.x * t2.y + t1.y * t2.x, t1.x * t2.w - t1.w * t2.x,
-                           t1.y * t2.w - t1.w * t2.y, t1.z * t2.w - t1.w * t2.z);
+    ctype const c0 = -t1.y * t2.z + t1.z * t2.y;
+    ctype const c1 = t1.x * t2.z - t1.z * t2.x;
+    ctype const c2 = -t1.x * t2.y + t1.y * t2.x;
+    ctype const c3 = t1.x * t2.w - t1.w * t2.x;
+    ctype const c4 = t1.y * t2.w - t1.w * t2.y;
+    ctype const c5 = t1.z * t2.w - t1.w * t2.z;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 template <typename T, typename U>
@@ -1897,9 +1976,11 @@ constexpr TriVec3dp<std::common_type_t<T, U>> rcmt(TriVec3dp<T> const& t,
                                                    BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(t.y * B.vz - t.z * B.vy, -t.x * B.vz + t.z * B.vx,
-                            t.x * B.vy - t.y * B.vx,
-                            t.x * B.mx + t.y * B.my + t.z * B.mz);
+    ctype const c0 = t.y * B.vz - t.z * B.vy;
+    ctype const c1 = -t.x * B.vz + t.z * B.vx;
+    ctype const c2 = t.x * B.vy - t.y * B.vx;
+    ctype const c3 = t.x * B.mx + t.y * B.my + t.z * B.mz;
+    return TriVec3dp<ctype>(c0, c1, c2, c3);
 }
 
 template <typename T, typename U>
@@ -1908,9 +1989,11 @@ constexpr TriVec3dp<std::common_type_t<T, U>> rcmt(BiVec3dp<T> const& B,
                                                    TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec3dp<ctype>(B.vy * t.z - B.vz * t.y, -B.vx * t.z + B.vz * t.x,
-                            B.vx * t.y - B.vy * t.x,
-                            -B.mx * t.x - B.my * t.y - B.mz * t.z);
+    ctype const c0 = B.vy * t.z - B.vz * t.y;
+    ctype const c1 = -B.vx * t.z + B.vz * t.x;
+    ctype const c2 = B.vx * t.y - B.vy * t.x;
+    ctype const c3 = -B.mx * t.x - B.my * t.y - B.mz * t.z;
+    return TriVec3dp<ctype>(c0, c1, c2, c3);
 }
 
 template <typename T, typename U>
@@ -1919,11 +2002,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> rcmt(BiVec3dp<T> const& B1,
                                                   BiVec3dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(B1.vy * B2.vz - B1.vz * B2.vy, -B1.vx * B2.vz + B1.vz * B2.vx,
-                           B1.vx * B2.vy - B1.vy * B2.vx,
-                           B1.vy * B2.mz - B1.vz * B2.my + B1.my * B2.vz - B1.mz * B2.vy,
-                           -B1.vx * B2.mz + B1.vz * B2.mx - B1.mx * B2.vz + B1.mz * B2.vx,
-                           B1.vx * B2.my - B1.vy * B2.mx + B1.mx * B2.vy - B1.my * B2.vx);
+    ctype const c0 = B1.vy * B2.vz - B1.vz * B2.vy;
+    ctype const c1 = -B1.vx * B2.vz + B1.vz * B2.vx;
+    ctype const c2 = B1.vx * B2.vy - B1.vy * B2.vx;
+    ctype const c3 = B1.vy * B2.mz - B1.vz * B2.my + B1.my * B2.vz - B1.mz * B2.vy;
+    ctype const c4 = -B1.vx * B2.mz + B1.vz * B2.mx - B1.mx * B2.vz + B1.mz * B2.vx;
+    ctype const c5 = B1.vx * B2.my - B1.vy * B2.mx + B1.mx * B2.vy - B1.my * B2.vx;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 template <typename T, typename U>
@@ -1952,8 +2037,13 @@ constexpr BiVec3dp<std::common_type_t<T, U>> rcmt(Vec3dp<T> const& v1,
                                                   Vec3dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec3dp<ctype>(0.0, 0.0, 0.0, -v1.x * v2.w + v1.w * v2.x,
-                           -v1.y * v2.w + v1.w * v2.y, -v1.z * v2.w + v1.w * v2.z);
+    ctype const c0 = 0.0;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = -v1.x * v2.w + v1.w * v2.x;
+    ctype const c4 = -v1.y * v2.w + v1.w * v2.y;
+    ctype const c5 = -v1.z * v2.w + v1.w * v2.z;
+    return BiVec3dp<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
 

@@ -227,8 +227,10 @@ constexpr BiVec2dp<std::common_type_t<T, U>> wdg(MVec2dp_U<T> const& A,
                                                  MVec2dp_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(-A.c0 * B.c2 + A.c2 * B.c0, -A.c1 * B.c2 + A.c2 * B.c1,
-                           A.c0 * B.c1 - A.c1 * B.c0);
+    ctype const c0 = -A.c0 * B.c2 + A.c2 * B.c0;
+    ctype const c1 = -A.c1 * B.c2 + A.c2 * B.c1;
+    ctype const c2 = A.c0 * B.c1 - A.c1 * B.c0;
+    return BiVec2dp<ctype>(c0, c1, c2);
 }
 
 // wedge product between two pseudoscalars
@@ -487,8 +489,10 @@ constexpr Vec2dp<std::common_type_t<T, U>> rwdg(MVec2dp_E<T> const& A,
                                                 MVec2dp_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(-A.c1 * B.c3 + A.c3 * B.c1, -A.c2 * B.c3 + A.c3 * B.c2,
-                         -A.c1 * B.c2 + A.c2 * B.c1);
+    ctype const c0 = -A.c1 * B.c3 + A.c3 * B.c1;
+    ctype const c1 = -A.c2 * B.c3 + A.c3 * B.c2;
+    ctype const c2 = -A.c1 * B.c2 + A.c2 * B.c1;
+    return Vec2dp<ctype>(c0, c1, c2);
 }
 
 template <typename T, typename U>
@@ -709,7 +713,10 @@ template <typename T, typename U>
 constexpr Vec2dp<std::common_type_t<T, U>> twdg1(BiVec2dp<T> const& B, Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(B.z * v.y, -B.z * v.x, B.x * v.x + B.y * v.y);
+    ctype const c0 = B.z * v.y;
+    ctype const c1 = -B.z * v.x;
+    ctype const c2 = B.x * v.x + B.y * v.y;
+    return Vec2dp<ctype>(c0, c1, c2);
 }
 
 // twdg1(vec,bivec) = vector -> identical to right contraction operator>>(bivec,vec)
@@ -718,7 +725,10 @@ template <typename T, typename U>
 constexpr Vec2dp<std::common_type_t<T, U>> twdg1(Vec2dp<T> const& v, BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(-v.y * B.z, v.x * B.z, -v.x * B.x - v.y * B.y);
+    ctype const c0 = -v.y * B.z;
+    ctype const c1 = v.x * B.z;
+    ctype const c2 = -v.x * B.x - v.y * B.y;
+    return Vec2dp<ctype>(c0, c1, c2);
 }
 
 // twdg1(vec,vec) = scalar -> identical to dot product dot(vec,vec)
@@ -755,7 +765,10 @@ constexpr BiVec2dp<std::common_type_t<T, U>> rtwdg1(BiVec2dp<T> const& B,
                                                     Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(B.y * v.z, -B.x * v.z, -B.x * v.x - B.y * v.y);
+    ctype const c0 = B.y * v.z;
+    ctype const c1 = -B.x * v.z;
+    ctype const c2 = -B.x * v.x - B.y * v.y;
+    return BiVec2dp<ctype>(c0, c1, c2);
 }
 
 // rtwdg1(vec,bivec) = bivec -> identical to l_weight_expand2dp(bivec,vec)
@@ -767,7 +780,10 @@ constexpr BiVec2dp<std::common_type_t<T, U>> rtwdg1(Vec2dp<T> const& v,
                                                     BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(-v.z * B.y, v.z * B.x, v.x * B.x + v.y * B.y);
+    ctype const c0 = -v.z * B.y;
+    ctype const c1 = v.z * B.x;
+    ctype const c2 = v.x * B.x + v.y * B.y;
+    return BiVec2dp<ctype>(c0, c1, c2);
 }
 
 // rtwdg1(bivec,s) = vec -> identical to r_weight_expand2dp(s,bivec)
@@ -939,7 +955,10 @@ constexpr Vec2dp<std::common_type_t<T, U>> operator<<(Vec2dp<T> const& v,
                                                       BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(v.y * B.z, -v.x * B.z, v.x * B.x + v.y * B.y);
+    ctype const c0 = v.y * B.z;
+    ctype const c1 = -v.x * B.z;
+    ctype const c2 = v.x * B.x + v.y * B.y;
+    return Vec2dp<ctype>(c0, c1, c2);
 }
 
 // left contraction - bivector contracted onto scalar
@@ -1133,7 +1152,10 @@ constexpr Vec2dp<std::common_type_t<T, U>> operator>>(BiVec2dp<T> const& B,
 {
     // this implementation is only valid in an orthonormal basis
     using ctype = std::common_type_t<T, U>;
-    return Vec2dp<ctype>(-B.z * v.y, B.z * v.x, -B.x * v.x - B.y * v.y);
+    ctype const c0 = -B.z * v.y;
+    ctype const c1 = B.z * v.x;
+    ctype const c2 = -B.x * v.x - B.y * v.y;
+    return Vec2dp<ctype>(c0, c1, c2);
 }
 
 // right contraction - vector contracted by a bivector
@@ -1237,7 +1259,10 @@ constexpr BiVec2dp<std::common_type_t<T, U>> cmt(BiVec2dp<T> const& B1,
                                                  BiVec2dp<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(-B1.y * B2.z + B1.z * B2.y, B1.x * B2.z - B1.z * B2.x, 0.0);
+    ctype const c0 = -B1.y * B2.z + B1.z * B2.y;
+    ctype const c1 = B1.x * B2.z - B1.z * B2.x;
+    ctype const c2 = 0.0;
+    return BiVec2dp<ctype>(c0, c1, c2);
 }
 
 // cmt(B,v) = -cmt(v,B)
@@ -1303,7 +1328,10 @@ constexpr BiVec2dp<std::common_type_t<T, U>> rcmt(BiVec2dp<T> const& B,
                                                   Vec2dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(B.y * v.z, -B.x * v.z, -B.x * v.x - B.y * v.y);
+    ctype const c0 = B.y * v.z;
+    ctype const c1 = -B.x * v.z;
+    ctype const c2 = -B.x * v.x - B.y * v.y;
+    return BiVec2dp<ctype>(c0, c1, c2);
 }
 
 template <typename T, typename U>
@@ -1312,7 +1340,10 @@ constexpr BiVec2dp<std::common_type_t<T, U>> rcmt(Vec2dp<T> const& v,
                                                   BiVec2dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec2dp<ctype>(-v.z * B.y, v.z * B.x, v.x * B.x + v.y * B.y);
+    ctype const c0 = -v.z * B.y;
+    ctype const c1 = v.z * B.x;
+    ctype const c2 = v.x * B.x + v.y * B.y;
+    return BiVec2dp<ctype>(c0, c1, c2);
 }
 
 template <typename T, typename U>
