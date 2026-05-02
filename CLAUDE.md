@@ -240,6 +240,40 @@ When you generate new C++ code (functions, classes, templates), you MUST:
 **This is NOT optional** - all code must follow this convention for consistency with the
 existing codebase.
 
+### Function-body style for ops_products
+
+In `ga/*_ops_products.hpp`, primitive product functions follow a uniform
+canonical form (enforced project-wide; produced by
+`ga_prdxpr --output=code`):
+
+- **Flat-constructor returns** use temp-vars:
+
+  ```cpp
+  ctype const c0 = ...;
+  ctype const c1 = ...;
+  return Type<ctype>(c0, c1, ...);
+  ```
+
+  Applies to `MVec`, `MVec_E`, `MVec_U`, `Vec`, `BiVec`, `TriVec`, `Plane`,
+  `Line`, etc. Single-value (`Scalar`, `PScalar`) returns stay inline.
+  Composite returns (`MVec_E(Scalar(...), BiVec(...))`) keep nested
+  sub-constructors.
+
+- **Zero-result functions** use the `[[maybe_unused]]` form with
+  anonymous parameters and `return Type<ctype>(0.0);` (paren-init, not
+  `{0.0}` brace-init).
+
+- **Strong-typed `Scalar`/`PScalar` operands** must be wrapped with
+  `ctype(...)` when used in coefficient arithmetic, e.g.
+  `ctype const c0 = ctype(s) * M.c0;`. Without the wrap the strong type
+  doesn't implicitly convert to `ctype`.
+
+- **Semantic delegations are intentional**: ~32 functions across the
+  four algebras delegate to other primitives (e.g.
+  `gpr(v,v) = MVec_E(dot(v,v), wdg(v,v))`). These encode GA identities
+  and are kept by design — codegen emits the expanded form there, so a
+  re-validation will report ~32 mismatches as expected, not as bugs.
+
 ### Dependencies
 
 Required: fmt library (header-only)
@@ -309,7 +343,25 @@ cmake --build . --target ga_lua --config Debug
 
 The `ga_prdxpr/` directory contains a sophisticated **code generator** that produces
 optimized C++ expressions for geometric algebra operations. It supports four complete
-algebras: EGA2D, EGA3D, PGA2DP, and PGA3DP.
+algebras: EGA2D, EGA3D, PGA2DP, and PGA3DP. STA4D is wired in for coefficient and
+table output but its `.cases` arrays are still empty (pending implementation).
+
+### C++ Code Generation (`--output=code`)
+
+`ga_prdxpr --output=code` emits ready-to-paste C++ implementations for primitive
+products in the canonical form documented under "Function-body style for
+ops_products" above. Source files `ga/*_ops_products.hpp` are ~95% char-identical
+with this output post-`clang-format`; the remaining ~5% are intentional semantic
+delegations.
+
+- Module: `ga_prdxpr/src_prdxpr/codegen/` (`ga_codegen_types.{hpp,cpp}`,
+  `ga_codegen_emitter.{hpp,cpp}`).
+- Validation pipeline: `ga_prdxpr/src_prdxpr/codegen/tools/`
+  (`diff_codegen.py`, `inline_to_tempvars.py`, `expand_delegations.py`).
+- Default output (`ga_prdxpr` with no args) is unchanged at 11559 lines —
+  `code` is opt-in only.
+- See `ga_prdxpr/README.md` for usage, the invocation matrix, and the
+  "Open Codegen Work" section (sandwich product codegen, STA4D rollout).
 
 ### Key Components
 
