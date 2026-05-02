@@ -4,12 +4,12 @@ A standalone, configurable geometric algebra product expression generator that p
 
 ## Features
 
-- **Complete Coverage**: Supports all 4 geometric algebras (EGA2D, EGA3D, PGA2DP, PGA3DP)
-- **52 Total Products**: All product types including geometric, wedge, contractions, expansions, and sandwich products
-- **Character-Identical Output**: 100% match with reference implementation (6928 lines)
-- **Standalone**: No external dependencies except fmt library
-- **Configuration-Driven**: Clean separation between mathematical operations and output formatting
-- **Maintainable**: Easy to add new products or modify existing ones
+- **Complete Coverage**: Five geometric algebras — EGA2D, EGA3D, PGA2DP, PGA3DP (full), STA4D (skeleton, see *Open Codegen Work*)
+- **All Product Families**: geometric, wedge, contraction, expansion, regressive variants, sandwich
+- **Character-Identical Reference Output**: the bare invocation produces a stable 11559-line searchable reference
+- **C++ Code Generation**: `--output=code` emits ready-to-paste primitive product implementations matching `ga/*_ops_products.hpp` byte-for-byte (~95% of cases; the rest are intentional semantic delegations)
+- **Configuration-Driven**: per-algebra configs in [src_prdxpr/algebras/](src_prdxpr/algebras/) are the user-editable surface; the generator engine is reused unchanged across algebras
+- **Standalone**: only depends on fmt
 
 ## Supported Algebras
 
@@ -43,48 +43,88 @@ A standalone, configurable geometric algebra product expression generator that p
 # Install fmt library (macOS)
 brew install fmt
 
-# Build
-mkdir build
-cd build
+# Build (from project root)
+mkdir -p build && cd build
 cmake ..
-cmake --build .
+cmake --build . --target ga_prdxpr ga_prdxpr_rule_generator_test
 
-# Run
-./ga_prdxpr_configurable > output.txt
+# Run (executable lives in build/ga_prdxpr/)
+cd ga_prdxpr
+./ga_prdxpr > output.txt
 ```
 
 ### Verification
 
-The output should be exactly 6928 lines and match the reference implementation character-for-character:
+The bare invocation must produce a stable 11559-line reference:
 
 ```bash
-wc -l output.txt  # Should show: 6928 output.txt
+./ga_prdxpr | wc -l   # 11559
 ```
 
-## Architecture
+A round-trip byte-identity check against the C++ source (`ga/*_ops_products.hpp`) is
+documented under [Validating against existing source](#validating-against-existing-source).
 
-### Core Components
+## Project Layout
 
-- **`ga_prdxpr_configurable_main.cpp`**: Clean main function with helper functions
-- **`ga_prdxpr_configurable_generator.cpp`**: Core generation logic
-- **Configuration Files**: Separate config files for each algebra (`*_config.cpp/hpp`)
-- **Mathematical Libraries**: Reference mathematical implementations (`ga_prdxpr_*.cpp/hpp`)
+The generator is split into clearly-scoped subfolders. The only folder a user
+typically edits to add a new product or tweak an existing one is
+[src_prdxpr/algebras/](src_prdxpr/algebras/).
 
-### Configuration System
+```text
+src_prdxpr/
+├── ga_prdxpr_main.cpp          # entry point — composes per-algebra ProductConfig
+│                                 lists and calls the generator
+├── cli/                         # argument parser (--algebra, --product, --output)
+├── core/                        # foundational types (mvec_coeff, prd_rules,
+│                                 ProductConfig, OutputCase, AlgebraData) +
+│                                 table operations and printing helpers
+├── rules/                       # rule-generation engine + metric/dual math
+│                                 (basis multiplication, Gram matrices, complement
+│                                 and dual rules, metric export to ga_usr_consts.hpp)
+├── algebras/                    # ★ user-editable: per-algebra configuration
+│   ├── ga_prdxpr_<alg>.{hpp,cpp}        # basis vectors, coefficient strings,
+│   │                                       rule-set instantiation at startup
+│   └── ga_prdxpr_<alg>_config.{hpp,cpp} # one get_<alg>_<prd>_config() per product;
+│                                          composes OutputCases that the generator
+│                                          turns into output
+├── sandwich/                    # sandwich-product transformation pipeline
+│                                 (parser → simplifier → n-ary AST → transformer)
+├── generator/                   # ConfigurableGenerator orchestrator: dispatches a
+│                                 ProductConfig to coeffs/tables/code output
+├── codegen/                     # --output=code emitter (TypeRegistry + emit_function)
+│   └── tools/                   # Python validation pipeline (diff_codegen.py, ...)
+├── tests/                       # standalone ga_prdxpr_rule_generator_test executable
+└── reference_output/            # golden .txt fixtures used during development
+```
 
-Each algebra has its own configuration defining:
+### Where to make changes
 
-- Product types and their mathematical basis tables
-- Coefficient mappings (e.g., `mv2d_coeff_R_even`, `mv3dp_coeff_svBps`)
-- Filter specifications for different multivector types
-- Sandwich product settings with brace handling
+| You want to...                                          | Edit in...                                                                                                                               |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Add a new product to an existing algebra                | `algebras/ga_prdxpr_<alg>_config.cpp` (new `get_*_config()`) + register in `ga_prdxpr_main.cpp`                                           |
+| Add a new coefficient pattern (e.g. `R_even`, `svBps`)  | `algebras/ga_prdxpr_<alg>.hpp`                                                                                                           |
+| Add a brand-new algebra                                 | mirror the pair `algebras/ga_prdxpr_sta4d{,_config}.{hpp,cpp}`, then register it in `ga_prdxpr_main.cpp` and `CMakeLists.txt`            |
+| Tweak how products are *rendered* (formatting, headers) | `generator/ga_prdxpr_generator.cpp`                                                                                                      |
+| Adjust the C++ codegen output style                     | `codegen/ga_codegen_emitter.cpp` (+ `codegen/ga_codegen_types.cpp` for new types)                                                        |
+| Change the rule-generation math                         | `rules/ga_prdxpr_rule_generator.cpp`                                                                                                     |
 
-### Key Features
+### Configuration system
 
-1. **Sandwich Products**: Two-step mathematical operations with proper parenthesization
-2. **Brace Switch**: Automatic parentheses handling for complex intermediate expressions
-3. **Basis Tables**: Mathematical product tables generated using proven transformation rules
-4. **Separator Logic**: Exact output formatting matching reference implementation
+Each algebra in [src_prdxpr/algebras/](src_prdxpr/algebras/) defines:
+
+- Multivector basis (e.g. `mv2d_basis = {"1","e1","e2","e12"}`) and metric signature
+- Coefficient string maps (`mv2d_coeff_A`, `mv3d_coeff_R_even`, `mv3dp_coeff_svBps`, ...)
+- A list of `ProductConfig`s (one per product variant) built from `OutputCase`s that
+  pair a coefficient pattern with a result-type filter (`mv`, `vec`, `bivec`, ...)
+
+`ProductConfig` and `OutputCase` are defined in [src_prdxpr/core/ga_prdxpr_config_types.hpp](src_prdxpr/core/ga_prdxpr_config_types.hpp); `AlgebraConfig` (used by the rule-generation engine) is defined in [src_prdxpr/rules/ga_prdxpr_rule_generator.hpp](src_prdxpr/rules/ga_prdxpr_rule_generator.hpp).
+
+### Key behaviors
+
+1. **Sandwich Products**: two-step `M ⟑ X ⟑ rev(M)` with parenthesization preserved between steps via `brace_switch::use_braces`
+2. **Brace Switch**: automatic parentheses on intermediate expressions so that the second step parses correctly
+3. **Basis Tables**: generated from `AlgebraConfig` via `generate_algebra_rules()` — no hand-maintained tables
+4. **Separator Logic**: section dividers are emitted only when human-readable output is requested (suppressed in `--output=code` to keep the output clang-format-clean)
 
 ## Mathematical Accuracy
 
@@ -97,17 +137,23 @@ The generator preserves all critical mathematical insights from the reference im
 
 ## Usage Example
 
+How `ga_prdxpr_main.cpp` composes a per-algebra product list and hands it to the
+generator (excerpt for PGA2DP):
+
 ```cpp
-// Generate all products for PGA2DP
 auto pga2dp_algebra = create_pga2dp_algebra_data();
 std::vector<ProductConfig> pga2dp_configs = {
     get_pga2dp_gpr_config(),
     get_pga2dp_cmt_config(),
-    // ... more configs
-    get_pga2dp_regressive_sandwich_config()
+    // ... more configs ...
+    get_pga2dp_sandwich_rgpr_config(),
 };
-generate_algebra_products(generator, pga2dp_configs, pga2dp_algebra, false);
+generate_algebra_products(generator, pga2dp_configs, pga2dp_algebra,
+                          /*is_last_algebra=*/false, options);
 ```
+
+The `get_*_config()` functions live in
+[src_prdxpr/algebras/ga_prdxpr_pga2dp_config.cpp](src_prdxpr/algebras/ga_prdxpr_pga2dp_config.cpp).
 
 ## C++ Code Generation (`--output=code`)
 
@@ -189,7 +235,8 @@ python3 ../ga_prdxpr/src_prdxpr/codegen/tools/diff_codegen.py \
 
 ### STA4D rollout
 
-`get_sta4d_*_config()` functions exist in `ga_prdxpr_sta4d_config.cpp`
+`get_sta4d_*_config()` functions exist in
+[src_prdxpr/algebras/ga_prdxpr_sta4d_config.cpp](src_prdxpr/algebras/ga_prdxpr_sta4d_config.cpp)
 but their `.cases = {}` arrays are empty. To generate STA4D code:
 
 1. Populate the `.cases` arrays. A reasonable starting point is to
@@ -197,8 +244,8 @@ but their `.cases = {}` arrays are empty. To generate STA4D code:
    product family) and drop the bulk_*/weight_* contractions which are
    PGA-specific.
 2. Add an STA4D entry to the `TypeRegistry` in
-   `src_prdxpr/codegen/ga_codegen_types.cpp` — decide on the type-name
-   convention (`Scalar4d` vs `ScalarSta4d`, etc.).
+   [src_prdxpr/codegen/ga_codegen_types.cpp](src_prdxpr/codegen/ga_codegen_types.cpp) —
+   decide on the type-name convention (`Scalar4d` vs `ScalarSta4d`, etc.).
 3. Run `ga_prdxpr --algebra=sta4d --output=code` and pipe to a fresh
    `ga/ga_sta4d_ops_products.hpp` (and the basics/only headers as
    needed by the existing per-algebra pattern).
@@ -209,46 +256,58 @@ but their `.cases = {}` arrays are empty. To generate STA4D code:
 
 ### Sandwich product codegen
 
-`generate_sandwich_case` in `ga_prdxpr_generator.cpp` is hand-rolled
-per algebra (vector + bivector for ega3d/pga2dp; +trivector for
-pga3dp/sta4d). Code generation for sandwich products needs its own
-emitter that handles the two-step `M ⟑ X ⟑ rev(M)` structure and the
-substantial simplification that source applies to the second step.
-For the simplified target form see `ga_pga2dp_ops_physics.hpp`'s
-`move2dp(X, M)` and `ga_pga3dp_ops_physics.hpp`'s `move3dp(X, M)`.
-
-## File Structure
-
-```text
-ga_prdxpr_configurable/
-├── CMakeLists.txt                        # Standalone build configuration
-├── README.md                             # This file
-├── ga_prdxpr_configurable_main.cpp       # Main application
-├── ga_prdxpr_configurable_generator.*    # Core generator
-├── ga_prdxpr_config_types.hpp            # Configuration data structures
-├── ga_prdxpr_*_config.*                  # Algebra-specific configurations
-└── ga_prdxpr_*.*                         # Mathematical reference implementations
-```
+`generate_sandwich_case` in
+[src_prdxpr/generator/ga_prdxpr_generator.cpp](src_prdxpr/generator/ga_prdxpr_generator.cpp)
+is hand-rolled per algebra (vector + bivector for ega3d/pga2dp;
++trivector for pga3dp/sta4d). Code generation for sandwich products
+needs its own emitter that handles the two-step `M ⟑ X ⟑ rev(M)`
+structure and the substantial simplification that source applies to
+the second step. For the simplified target form see
+`ga_pga2dp_ops_physics.hpp`'s `move2dp(X, M)` and
+`ga_pga3dp_ops_physics.hpp`'s `move3dp(X, M)`.
 
 ## Extending the System
 
-### Adding a New Product Type
+### Adding a new product type
 
-1. Add configuration function in appropriate `*_config.cpp`
-2. Add to the product list in `main.cpp`
-3. Implement basis table generation if needed
-4. Test output matches expected mathematical results
+1. In [src_prdxpr/algebras/](src_prdxpr/algebras/), add a new
+   `get_<alg>_<prd>_config()` function in `ga_prdxpr_<alg>_config.cpp`
+   (and declare it in the matching `_config.hpp`). It returns a
+   `ProductConfig` with one `OutputCase` per result-type filter you
+   want to emit.
+2. Append the new config to the product list for that algebra in
+   [src_prdxpr/ga_prdxpr_main.cpp](src_prdxpr/ga_prdxpr_main.cpp).
+3. If the product needs a different basis table than gpr/wdg/dot,
+   teach `generator/ga_prdxpr_generator.cpp::get_basis_table_for_product()`
+   how to build it.
+4. Build, run, and compare output against expected mathematical
+   identities.
 
-### Adding a New Algebra
+### Adding a new algebra
 
-1. Create new `ga_prdxpr_newAlgebra_config.*` files
-2. Implement `create_newAlgebra_algebra_data()` function
-3. Add mathematical reference implementation files
-4. Add to main function with product configurations
+1. Mirror the file pair `algebras/ga_prdxpr_sta4d.{hpp,cpp}` and
+   `algebras/ga_prdxpr_sta4d_config.{hpp,cpp}` — the header declares
+   basis vectors / coefficients / extern rules, the implementation
+   triggers `generate_algebra_rules()` at static-init time, and the
+   `_config.cpp` exposes `get_<alg>_algebra_config()` plus the
+   per-product `ProductConfig` builders.
+2. Add a `TypeRegistry` entry for the new algebra in
+   [src_prdxpr/codegen/ga_codegen_types.cpp](src_prdxpr/codegen/ga_codegen_types.cpp)
+   if you want `--output=code` support.
+3. Register the algebra block in `ga_prdxpr_main.cpp` (mirroring the
+   existing EGA2D/EGA3D/... blocks).
+4. Add the new files to `CMakeLists.txt` — note that `*_config.cpp`
+   **must** be listed before `*.cpp` in `SOURCES` so that the
+   internal-linkage basis globals defined per-TU are dynamically
+   initialized before the rule-instantiation TU's static init runs.
 
 ## Verification and Testing
 
-The system maintains 100% character-identical output with the reference implementation, ensuring mathematical correctness. Every generated expression has been verified against known geometric algebra identities.
+The bare invocation must remain 11559-line stable; deviations indicate
+a regression. The C++ code generator is independently validated by
+piping `--output=code` through `clang-format` and diffing against the
+matching `ga/*_ops_products.hpp` (see
+[Validating against existing source](#validating-against-existing-source)).
 
 ## Copyright
 

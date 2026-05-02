@@ -378,7 +378,7 @@ delegations.
 
 **Generation Engine:**
 
-- `ga_prdxpr_generator.cpp`: Main generation logic with algebra-specific handlers
+- `generator/ga_prdxpr_generator.cpp`: Main generation logic with algebra-specific handlers
 - **Dimensional dispatch**: 2D, 3D, 4D specialized implementations
 - **Product-specific handlers**: Each ProductType gets specialized mathematical treatment
 
@@ -436,9 +436,23 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 
 ### Key Files for Modifications in ga_prdxpr subfolder
 
-- `ga_prdxpr_generator.cpp`: Core generation logic and product-specific handlers
-- `ga_prdxpr_*_config.cpp`: Algebra-specific configurations and coefficient definitions
-- `ga_prdxpr_*.cpp`: Legacy reference implementations (don't modify, use for verification)
+Source tree is split by role under `ga_prdxpr/src_prdxpr/`:
+
+- `generator/ga_prdxpr_generator.cpp`: core generation logic and product-specific handlers
+- `algebras/ga_prdxpr_<alg>_config.cpp`: per-algebra `ProductConfig` builders — the
+  primary user-editable surface for adding products or tweaking coefficient patterns
+- `algebras/ga_prdxpr_<alg>.{hpp,cpp}`: per-algebra basis, coefficient strings, and
+  rule-set instantiation at static-init time
+- `rules/ga_prdxpr_rule_generator.cpp`: rule-generation engine (basis multiplication,
+  metric / dual / complement rule generation) — shared across algebras
+- `core/ga_prdxpr_common.{hpp,cpp}`: foundational types and table operations
+- `codegen/ga_codegen_*.{hpp,cpp}`: `--output=code` C++ emitter
+
+**CMakeLists ordering constraint**: in `SOURCES`, every `algebras/ga_prdxpr_<alg>_config.cpp`
+must be listed *before* the matching `algebras/ga_prdxpr_<alg>.cpp`. The `*.cpp` TU's
+static initializer calls `get_<alg>_algebra_config()` (defined in the `_config.cpp` TU),
+which reads namespace-scope `const` globals that have internal linkage — one copy per TU.
+Listing the config TU first preserves the dynamic-init order the layout relies on.
 
 **Important**: The ga_prdxpr system is a **complete, production-ready geometric algebra
 code generator** that produces mathematically accurate, optimized C++ expressions for all

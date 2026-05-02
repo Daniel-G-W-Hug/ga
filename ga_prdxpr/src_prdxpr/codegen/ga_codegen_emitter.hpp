@@ -3,9 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "../ga_prdxpr_common.hpp"
-#include "../ga_prdxpr_config_types.hpp"
-#include "ga_codegen_types.hpp"
+#include "core/ga_prdxpr_common.hpp"
+#include "core/ga_prdxpr_config_types.hpp"
+#include "codegen/ga_codegen_types.hpp"
 
 #include <cstddef>
 #include <optional>

@@ -1,0 +1,38 @@
+// Copyright 2024-2026, Daniel Hug. All rights reserved.
+// Licensed under the terms specified in LICENSE.txt file.
+
+#include "algebras/ga_prdxpr_pga2dp.hpp"
+#include "algebras/ga_prdxpr_pga2dp_config.hpp"
+#include "rules/ga_prdxpr_rule_generator.hpp"
+
+////////////////////////////////////////////////////////////////////////////////
+// AUTOMATIC RULE GENERATION - PGA2DP
+//
+// This file contains the automatic generation of product rules for PGA2DP.
+// Rules are generated at program startup via static initialization.
+//
+// The algebra configuration is defined in ga_prdxpr_pga2dp_config.cpp
+// The algebra interface is declared in ga_prdxpr_pga2dp.hpp
+//
+// This separation provides:
+// - Clean separation between configuration (what) and generation (how)
+// - Single initialization point for all PGA2DP product rules
+// - Guaranteed consistency through algorithmic generation
+////////////////////////////////////////////////////////////////////////////////
+
+// Stage 1: Generate all algebra rules in one go
+static auto pga2dp_generated_rules = generate_algebra_rules(get_pga2dp_algebra_config());
+
+// Stage 2: Initialize product rules (no dependencies)
+const prd_rules gpr_pga2dp_rules = pga2dp_generated_rules.geometric_product;
+const prd_rules wdg_pga2dp_rules = pga2dp_generated_rules.wedge_product;
+const prd_rules dot_pga2dp_rules = pga2dp_generated_rules.dot_product;
+
+// Stage 3: Initialize complement rules (depend on wedge rules, but those are already
+// generated)
+const prd_rules cmpl_pga2dp_rules = pga2dp_generated_rules.complement;
+
+// Stage 4: Initialize dual rules (generated from complement rules + extended metric)
+// PGA2DP has bulk_dual and weight_dual (no left/right distinction for odd-dimensional)
+const prd_rules bulk_dual_pga2dp_rules = pga2dp_generated_rules.bulk_dual;
+const prd_rules weight_dual_pga2dp_rules = pga2dp_generated_rules.weight_dual;
