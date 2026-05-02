@@ -109,9 +109,117 @@ std::vector<ProductConfig> pga2dp_configs = {
 generate_algebra_products(generator, pga2dp_configs, pga2dp_algebra, false);
 ```
 
+## C++ Code Generation (`--output=code`)
+
+Beyond coefficient expressions and basis tables, ga_prdxpr can emit
+ready-to-paste C++ function implementations for primitive products.
+Opt-in only — never appears in the default output:
+
+```bash
+ga_prdxpr --algebra=ega2d --output=code                  # one algebra
+ga_prdxpr --algebra=pga3dp --products=gpr --output=code  # one product
+ga_prdxpr --output=all                                   # everything
+```
+
+### Invocation matrix
+
+| Invocation             | coeffs | tables | metrics | code |
+| ---------------------- | ------ | ------ | ------- | ---- |
+| `ga_prdxpr` (no args)  | ✓      | ✓      | ✓       | —    |
+| `--output=all`         | ✓      | ✓      | ✓       | ✓    |
+| `--output=code`        | —      | —      | —       | ✓    |
+| `--output=coeffs,code` | ✓      | —      | —       | ✓    |
+
+The bare invocation produces the canonical 11559-line searchable
+reference (coeffs + tables + metrics). `code` is opt-in only so the
+default output stays stable; ask for it explicitly when you want C++
+implementations.
+
+### What is emitted
+
+Flat-constructor returns with temp-var aliasing
+(`ctype const cN = ...; return Type<ctype>(c0, c1, ...)`), east-const,
+and the `[[maybe_unused]]` form for zero-result cases.
+
+**Currently covered:**
+gpr, wdg, dot, cmt, rgpr, rwdg, rdot, rcmt, twdg1, rtwdg1,
+left/right contraction (`<<` / `>>`).
+
+**Skipped:**
+
+- Sandwich products — separate two-step structure, hand-rolled per-algebra
+  in `generate_sandwich_case`. Codegen-side handling deferred (see
+  *Open Codegen Work* below).
+- Wrapper-only product families (PGA `l_bulk_contract` and friends, EGA
+  `l_expand`/`r_expand`) — they have no per-case C++ overloads.
+- Display-only "alternative" product variants.
+
+### Codegen architecture
+
+- `src_prdxpr/codegen/ga_codegen_types.{hpp,cpp}`: `TypeRegistry` mapping
+  filter names (`vec`, `bivec`, `mv_e`, ...) to C++ types, storage kinds
+  (Indexed / Named / Composite / SingleValue), and basis-index layouts.
+  One per algebra; STA4D entry not yet added (see *Open Codegen Work*).
+- `src_prdxpr/codegen/ga_codegen_emitter.{hpp,cpp}`: `emit_function()`
+  builds a complete C++ overload from one `OutputCase`. Detects zero
+  results (explicit `-> 0` marker, `-> 0 X` typed override, or all-zero
+  computed coefficients), wraps bare Scalar/PScalar operands with
+  `ctype(...)`, and dispatches to body builders by storage kind.
+- `src_prdxpr/codegen/tools/`: validation pipeline (`diff_codegen.py`)
+  and one-shot source transformers (`inline_to_tempvars.py`,
+  `expand_delegations.py`). See `tools/README.md` for usage details.
+
+### Validating against existing source
+
+`ga/*_ops_products.hpp` are 95% char-identical (598/630) with codegen
+output post-`clang-format`. The remaining ~5% are intentional semantic
+delegations (e.g. `gpr(v,v) = MVec_E(dot(v,v), wdg(v,v))`) which encode
+GA identities and are kept by design.
+
+```bash
+# round-trip check for one algebra (run from build/)
+./ga_prdxpr/ga_prdxpr --algebra=ega3d --output=code | \
+    clang-format -assume-filename=x.cpp > /tmp/codegen.cpp
+clang-format ../ga/ga_ega3d_ops_products.hpp > /tmp/source.cpp
+python3 ../ga_prdxpr/src_prdxpr/codegen/tools/diff_codegen.py \
+    /tmp/source.cpp /tmp/codegen.cpp
+```
+
+## Open Codegen Work
+
+### STA4D rollout
+
+`get_sta4d_*_config()` functions exist in `ga_prdxpr_sta4d_config.cpp`
+but their `.cases = {}` arrays are empty. To generate STA4D code:
+
+1. Populate the `.cases` arrays. A reasonable starting point is to
+   mirror the PGA3DP structure (same 4D dimensionality, similar
+   product family) and drop the bulk_*/weight_* contractions which are
+   PGA-specific.
+2. Add an STA4D entry to the `TypeRegistry` in
+   `src_prdxpr/codegen/ga_codegen_types.cpp` — decide on the type-name
+   convention (`Scalar4d` vs `ScalarSta4d`, etc.).
+3. Run `ga_prdxpr --algebra=sta4d --output=code` and pipe to a fresh
+   `ga/ga_sta4d_ops_products.hpp` (and the basics/only headers as
+   needed by the existing per-algebra pattern).
+4. Wire up the test build under `ga_test/`. Note that
+   `ga_test/src/ga_sta4d_test.hpp` already exists but `#include`s
+   `ga/ga_sta.hpp` which doesn't exist yet — that include is the
+   placeholder for the new STA4D library headers.
+
+### Sandwich product codegen
+
+`generate_sandwich_case` in `ga_prdxpr_generator.cpp` is hand-rolled
+per algebra (vector + bivector for ega3d/pga2dp; +trivector for
+pga3dp/sta4d). Code generation for sandwich products needs its own
+emitter that handles the two-step `M ⟑ X ⟑ rev(M)` structure and the
+substantial simplification that source applies to the second step.
+For the simplified target form see `ga_pga2dp_ops_physics.hpp`'s
+`move2dp(X, M)` and `ga_pga3dp_ops_physics.hpp`'s `move3dp(X, M)`.
+
 ## File Structure
 
-```
+```text
 ga_prdxpr_configurable/
 ├── CMakeLists.txt                        # Standalone build configuration
 ├── README.md                             # This file
