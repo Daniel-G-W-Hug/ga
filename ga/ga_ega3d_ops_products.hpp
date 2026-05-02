@@ -626,7 +626,10 @@ template <typename T, typename U>
 constexpr BiVec3d<std::common_type_t<T, U>> twdg1(PScalar3d<T> ps, Vec3d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * BiVec3d<ctype>(v.x, v.y, v.z);
+    ctype const c0 = ctype(ps) * v.x;
+    ctype const c1 = ctype(ps) * v.y;
+    ctype const c2 = ctype(ps) * v.z;
+    return BiVec3d<ctype>(c0, c1, c2);
 }
 
 // twdg1(vec,ps) = vec -> identical to geometric product gpr(vec,ps)
