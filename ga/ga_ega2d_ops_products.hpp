@@ -484,7 +484,9 @@ template <typename T, typename U>
 constexpr Vec2d<std::common_type_t<T, U>> twdg1(PScalar2d<T> ps, Vec2d<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(ps) * Vec2d<ctype>(v.y, -v.x);
+    ctype const c0 = ctype(ps) * v.y;
+    ctype const c1 = -ctype(ps) * v.x;
+    return Vec2d<ctype>(c0, c1);
 }
 
 // twdg1(vec,ps) = vec -> identical to geometric product gpr(vec,ps)
