@@ -17,6 +17,13 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{dsfont}
+% bbold font ships digits 0-9 in doublestroke style (bbm and dsfont only ship
+% the digit 1). We pull it in as a separate symbol font instead of loading
+% bbold.sty — that way \mathbb (used by \rmetric below via amssymb) is not
+% redefined.
+% \DeclareSymbolFont{bbold}{U}{bbold}{m}{n}
+% \DeclareMathSymbol{\bbzero}{\mathord}{bbold}{`0}
+% \DeclareMathSymbol{\bbone}{\mathord}{bbold}{`1}
 \usepackage{cases}
 \usepackage{latexsym}              % math symbols
 \usepackage{exscale}               % Summen-/Integralzeichen in richtiger Groesse
@@ -122,8 +129,9 @@
 \newcommand{\metric}[1]{\ensuremath{\mathbf{#1}}}
 \newcommand{\rmetric}[1]{\ensuremath{\mathbf{\mathbb{#1}}}}
 
-% define the pseudoscalar as 
+% define the pseudoscalar 1
 \newcommand*{\ps}{\ensuremath{\mathds{1}}}
+
 
 % for typesetting C++ (uses packages relsize and xspace)
 \newcommand{\Rplus}{\protect\hspace{-.1em}\protect\raisebox{.35ex}{\smaller{\smaller\textbf{+}}}}

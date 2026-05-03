@@ -434,7 +434,7 @@ returns a scalar value of the corresponding algebra, whereas the \emph{weight no
 provides a pseudoscalar value of the respective algebra. The dot product (symbol
 '$\cdot$') and its regressive counterpart (symbol '$\circ$') are defined in
 tables~\ref{tab:pga2dp_dot_products} and \ref{tab:pga3dp_dot_products} in subsection
-\ref{subsection:tables_of_products}. \\
+\ref{subsection:tables_of_products_pga}. \\
 
 Consequently, the geometric norm is an object consisting of two distinct parts, a scalar
 and a pseudoscalar of the respective algebra, defined here as a \emph{dual number} in the
@@ -887,42 +887,141 @@ equivalence.
 
 \newpage
 
+\subsubsection{Complements, duals, and reverses in \textit{EGA}}
+\label{subsection:tables_of_products_ega}
+
+\begingroup
+\setlength{\abovecaptionskip}{2pt}
+\setlength{\belowcaptionskip}{2pt}
+\renewcommand{\arraystretch}{0.95}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ega2d from here on
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    \begin{center}
+    \resizebox{0.35\textwidth}{!}{%
+    \begin{tabular}{*{5}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$         & $\bm{1}$      & $\bv{1}$       & $\bv{2}$     & $\bv{12} = \ps$
+                     \\ \hline
+    $\rcmpl{\bm{u}}$, $\rightbulkdual{\bm{u}}$
+                     & $\bv{12}$     & $\bv{2}$     & $-\bv{1}$     & $\bm{1}$
+                     \\ \hline
+    $\lcmpl{\bm{u}}$, $\leftbulkdual{\bm{u}}$
+                     & $\bv{12}$     & $-\bv{2}$     & $\bv{1}$     & $\bm{1}$
+                     \\ \hline
+    \end{tabular}%
+    }
+    \captionof{table}{\footnotesize Right and left complements as well as right and left
+    duals in $2D$ $EGA$ for every basis element. Complements and duals are the same in
+    $EGA$ since the metric is the identity matrix.}
+    \label{tab:ega2d_cmpl_dual}
+    \end{center}
+
+    \begin{center}
+    \resizebox{0.3\textwidth}{!}{%
+    \begin{tabular}{*{7}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$      & $\bv{1}$       & $\bv{2}$     & $\bv{12} = \ps$
+                    \\ \hline
+    $\rev{\bm{u}}$  & $\bm{1}$      & $\bv{1}$       & $\bv{2}$     & $-\bv{12}$
+                    \\ \hline
+    \end{tabular}%
+    }
+    \captionof{table}{\footnotesize Reverse in $2D$ $EGA$ for every basis element.}
+    \label{tab:ega2d_rev}
+    \end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ega3d from here on
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    \begin{center}
+    \resizebox{0.6\textwidth}{!}{%
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$          & $\bm{1}$
+                      & $\bv{1}$      & $\bv{2}$      & $\bv{3}$
+                      & $\bv{23}$     & $\bv{31}$     & $\bv{12}$
+                      & $\bv{123} = \ps$
+                      \\ \hline
+    $\rcmpl{\bm{u}}$, $\rightbulkdual{\bm{u}}$
+                      & $\bv{123}$
+                      & $\bv{23}$     & $\bv{31}$     & $\bv{12}$
+                      & $\bv{1}$      & $\bv{2} $     & $\bv{3}$
+                      & $\bm{1}$
+                      \\ \hline
+    \end{tabular}%
+    }
+    \captionof{table}{\footnotesize Complements and duals in $3D$ $EGA$ for every basis
+    element. Complements and duals are the same in $EGA$ since the metric is the identity
+    matrix.}
+    \label{tab:ega3d_cmpl_dual}
+    \end{center}
+
+    \begin{center}
+    \resizebox{0.6\textwidth}{!}{%
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$          & $\bm{1}$
+                      & $\bv{1}$      & $\bv{2}$      & $\bv{3}$
+                      & $\bv{23}$     & $\bv{31}$     & $\bv{12}$
+                      & $\bv{123} = \ps$
+                      \\ \hline
+    $\rev{\bm{u}}$  & $\bm{1}$
+                    & $\bv{1}$       & $\bv{2}$      & $\bv{3}$
+                    & $-\bv{23}$     & $-\bv{31}$    & $-\bv{12}$
+                    & $-\bv{123}$
+                    \\ \hline
+    \end{tabular}%
+    }
+    \captionof{table}{\footnotesize Reverse in $3D$ $EGA$ for every basis element.}
+    \label{tab:ega3d_rev}
+    \end{center}
+\endgroup
+
+
+\newpage
+
 \subsubsection{Dot products, complements, duals, and reverses in \textit{PGA}}
-\label{subsection:tables_of_products}
+\label{subsection:tables_of_products_pga}
 
-% Problem: \begin{table}...\end{table} is a float environment. LaTeX floats cannot be
-% placed inside boxes — including \rotatebox{90}{...} with a minipage. This causes an
-% error because LaTeX tries to defer float placement but has no valid location inside a
-% box.
+% Tables are placed in portrait orientation. Each tabular is wrapped in
+% \resizebox{<width>}{!}{...}: 0.5\textwidth for the 8-col PGA2DP tables and \textwidth
+% for the 16-col PGA3DP tables, so all eight fit on a single A4 page.
 %
-% Fix: Removed \begin{table} / \end{table} (commented them out to preserve intent)
-% Replaced all four \caption{...} calls with \captionof{table}{...} Why \captionof works:
-% It generates a caption with the correct counter and formatting for a table, but without
-% requiring a table float environment. The caption package (already loaded in your
-% preamble via \usepackage{caption}) provides this command — no new package needed.
-%
-% The \label commands after each \captionof remain unchanged and will still work correctly
-% for \ref cross-references.
+% \captionof{table}{...} (caption package) is used in place of \caption{...} because the
+% tabulars are no longer inside a \begin{table}/\sidewaystable float — \captionof
+% generates the correct counter and formatting without needing a float environment.
 
-\rotatebox{90}{%
-\begin{minipage}{0.9\textheight}
-\centering % a single '\centering' directive suffices
+{\footnotesize \underline{Note}: \emph{All} regressive dot products (symbol ``$\circ$'')
+and \emph{weight duals of scalar} $\bm{1}$ (symbols ``\rightweightdual{}'',
+``\leftweightdual{}'') get a pseudoscalar zero for statical type correctness in \Cpp (also
+written here as $0$, but with actual type \path{pscalar2dp} ($\ps = \bv{321}$) or
+\path{pscalar3dp} ($\ps = \bv{1234}$)).} \\
+
+\begingroup
+\setlength{\abovecaptionskip}{2pt}
+\setlength{\belowcaptionskip}{2pt}
+\renewcommand{\arraystretch}{0.95}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% pga2dp from here on
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% \begin{sidewaystable}
-% \begin{table}
     \begin{center}
-    %\scriptsize
+    \resizebox{0.5\textwidth}{!}{%
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
     $\bm{u}$             & $\bm{1}$
                          & $\bv{1}$       & $\bv{2}$      & $\bv{3}$
                          & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
-                         & $\ps$
+                         & $\bv{321} = \ps$
                          \\ \hline
     $\bm{u}\cdot\bm{u}$  & $\bm{1}$
                          & $\bm{1}$       & $\bm{1}$      & $0$
@@ -934,43 +1033,44 @@ equivalence.
                          & $\ps$          & $\ps$         & $0$
                          & $\ps$
                          \\ \hline
-    \end{tabular}
-    \captionof{table}{\small Dot and regressive dot products in $2D$ $PGA$ for every
-    basis element.}
+    \end{tabular}%
+    } \captionof{table}{\footnotesize Dot and regressive dot products in $2D$ $PGA$ for
+    every basis element.}
     \label{tab:pga2dp_dot_products}
     \end{center}
 
     \begin{center}
-    %\scriptsize
+    \resizebox{0.5\textwidth}{!}{%
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
     $\bm{u}$          & $\bm{1}$
                       & $\bv{1}$      & $\bv{2}$      & $\bv{3}$
                       & $\bv{31}$     & $\bv{32}$     & $\bv{12}$
-                      & $\ps$
+                      & $\bv{321} = \ps$
                       \\ \hline
-    $\rcmpl{\bm{u}}$  & $\ps$
+    $\rcmpl{\bm{u}}$  & $\bv{321}$
                       & $\bv{32}$     & $-\bv{31}$    & $-\bv{12}$
                       & $-\bv{2}$     & $ \bv{1} $    & $-\bv{3}$
                       & $\bm{1}$
                       \\ \hline
-    \end{tabular}
-    \captionof{table}{\small Complements in $2D$ $PGA$ for every basis element.}
+    \end{tabular}%
+    }
+    \captionof{table}{\footnotesize Complements in $2D$ $PGA$ for every basis element.}
     \label{tab:pga2dp_cmpl}
     \end{center}
 
     \begin{center}
-    %\scriptsize
+    \resizebox{0.5\textwidth}{!}{%
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
     $\bm{u}$                    & $\bm{1}$
                                 & $\bv{1}$      & $\bv{2}$     & $\bv{3}$
                                 & $\bv{31}$     & $\bv{32}$    & $\bv{12}$
-                                & $\ps$
+                                & $\bv{321} = \ps$
                                 \\ \hline
-    $\rightbulkdual{\bm{u}}$    & $\ps$
+    $\rightbulkdual{\bm{u}}$    & $\bv{321}$
                                 & $\bv{32}$     & $-\bv{31}$   & $0$
                                 & $0$           & $0$          & $-\bv{3}$
                                 & $0$
@@ -980,188 +1080,184 @@ equivalence.
                                 & $-\bv{2}$     & $\bv{1}$     & $0$
                                 & $\bm{1}$
                                 \\ \hline
-    \end{tabular}
-    \captionof{table}{\small Bulk duals and weight duals for every basis element
+    \end{tabular}%
+    } \captionof{table}{\footnotesize Bulk duals and weight duals for every basis element
     (=complement applied to bulk and weight).}
     \label{tab:pga2dp_bulk_weight_duals}
     \end{center}
 
     \begin{center}
-    %\scriptsize
+    \resizebox{0.5\textwidth}{!}{%
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
     $\bm{u}$        & $\bm{1}$
                     & $\bv{1}$       & $\bv{2}$      & $\bv{3}$
                     & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
-                    & $\ps$
+                    & $\bv{321} = \ps$
                     \\ \hline
     $\rev{\bm{u}}$  & $\bm{1}$
                     & $\bv{1}$       & $\bv{2}$      & $\bv{3}$
                     & $-\bv{31}$     & $-\bv{32}$    & $-\bv{12}$
-                    & $-\ps$
+                    & $-\bv{321}$
                     \\ \hline
     $\rrev{\bm{u}}$ & $-\bm{1}$
                     & $-\bv{1}$      & $-\bv{2}$     & $-\bv{3}$
                     & $\bv{31}$      & $\bv{32}$     & $\bv{12}$
-                    & $\ps$
+                    & $\bv{321}$
                     \\ \hline
-    \end{tabular}
-    \captionof{table}{\small Reverse and regressive reverse in $2D$ $PGA$ for every basis
-    element.}
+    \end{tabular}%
+    } \captionof{table}{\footnotesize Reverse and regressive reverse in $2D$ $PGA$ for
+    every basis element.}
     \label{tab:pga2dp_rev_rrev}
     \end{center}
-% \end{sidewaystable}
-% \end{table}
-
-\end{minipage}
-} % end of scope of '\rotatebox' directive
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% pga3dp from here on
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{sidewaystable}
     \begin{center}
-    %\scriptsize
+    \resizebox{\textwidth}{!}{%
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
     $\bm{u}$             & $\bm{1}$
                          & $\bv{1}$    & $\bv{2}$      & $\bv{3}$     & $\bv{4}$
-                         & $\bv{41}$   & $\bv{42}$     & $\bv{43}$ 
+                         & $\bv{41}$   & $\bv{42}$     & $\bv{43}$
                          & $\bv{23}$   & $\bv{31}$     & $\bv{12}$
                          & $\bv{423}$  & $\bv{431}$    & $\bv{412}$   & $\bv{321}$
-                         & $\ps$
+                         & $\bv{1234} = \ps$
                          \\ \hline
-    $\bm{u}\cdot\bm{u}$  & $\bm{1}$        
+    $\bm{u}\cdot\bm{u}$  & $\bm{1}$
                          & $\bm{1}$    & $\bm{1}$      & $\bm{1}$     & $0$
                          & $0$         & $0$           & $0$
-                         & $\bm{1}$    & $\bm{1}$      & $\bm{1}$ 
+                         & $\bm{1}$    & $\bm{1}$      & $\bm{1}$
                          & $0$         & $0$           & $0$          & $\bm{1}$
                          & $0$
                          \\ \hline
-    $\bm{u}\circ\bm{u}$  & $0$        
+    $\bm{u}\circ\bm{u}$  & $0$
                          & $0$         & $0$           & $0$          & $\ps$
                          & $\ps$       & $\ps$         & $\ps$
-                         & $0$         & $0$           & $0$ 
+                         & $0$         & $0$           & $0$
                          & $\ps$       & $\ps$         & $\ps$        & $0$
                          & $\ps$
                          \\ \hline
-    \end{tabular}
-    \caption{\small Dot and regressive dot products in $3D$ $PGA$ for every basis
-    element.}
+    \end{tabular}%
+    } \captionof{table}{\footnotesize Dot and regressive dot products in $3D$ $PGA$ for
+    every basis element.}
     \label{tab:pga3dp_dot_products}
     \end{center}
 
     \begin{center}
-    %\scriptsize
+    \resizebox{\textwidth}{!}{%
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
     $\bm{u}$         & $\bm{1}$
                      & $\bv{1}$       & $\bv{2}$      & $\bv{3}$     & $\bv{4}$
-                     & $\bv{41}$      & $\bv{42}$     & $\bv{43}$ 
+                     & $\bv{41}$      & $\bv{42}$     & $\bv{43}$
                      & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
                      & $\bv{423}$     & $\bv{431}$    & $\bv{412}$   & $\bv{321}$
-                     & $\ps$
+                     & $\bv{1234} = \ps$
                      \\ \hline
-    $\rcmpl{\bm{u}}$ & $\ps$        
+    $\rcmpl{\bm{u}}$ & $\bv{1234}$
                      & $\bv{423}$    & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
                      & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
-                     & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                     & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$
                      & $-\bv{1}$     & $-\bv{2}$     & $-\bv{3}$     & $-\bv{4}$
                      & $\bm{1}$
                      \\ \hline
-    $\lcmpl{\bm{u}}$ & $\ps$        
+    $\lcmpl{\bm{u}}$ & $\bv{1234}$
                      & $-\bv{423}$   & $-\bv{431}$   & $-\bv{412}$   & $-\bv{321}$
                      & $-\bv{23}$    & $-\bv{31}$    & $-\bv{12}$
-                     & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                     & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$
                      & $\bv{1}$      & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
                      & $\bm{1}$
                      \\ \hline
-    \end{tabular}
-    \caption{\small Right and left complements in $3D$ $PGA$ for every basis element.}
+    \end{tabular}%
+    }
+    \captionof{table}{\footnotesize Right and left complements in $3D$ $PGA$ for every 
+    basis element.}
     \label{tab:pga3dp_cmpl}
     \end{center}
 
     \begin{center}
-    %\scriptsize
+    \resizebox{\textwidth}{!}{%
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
     $\bm{u}$                   & $\bm{1}$
                                & $\bv{1}$      & $\bv{2}$      & $\bv{3}$    & $\bv{4}$
-                               & $\bv{41}$     & $\bv{42}$     & $\bv{43}$ 
+                               & $\bv{41}$     & $\bv{42}$     & $\bv{43}$
                                & $\bv{23}$     & $\bv{31}$     & $\bv{12}$
                                & $\bv{423}$    & $\bv{431}$    & $\bv{412}$  & $\bv{321}$
-                               & $\ps$
+                               & $\bv{1234} = \ps$
                                \\ \hline
-    $\rightbulkdual{\bm{u}}$   & $\ps$        
+    $\rightbulkdual{\bm{u}}$   & $\bv{1234}$
                                & $\bv{423}$    & $\bv{431}$    & $\bv{412}$  & $0$
                                & $0$           & $0$           & $0$
-                               & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                               & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$
                                & $0$           & $0$           & $0$         & $-\bv{4}$
                                & $0$
                                \\ \hline
-    $\leftbulkdual{\bm{u}}$    & $\ps$        
+    $\leftbulkdual{\bm{u}}$    & $\bv{1234}$
                                & $-\bv{423}$   & $-\bv{431}$   & $-\bv{412}$ & $0$
                                & $0$           & $0$           & $0$
-                               & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$ 
+                               & $-\bv{41}$    & $-\bv{42}$    & $-\bv{43}$
                                & $0$           & $0$           & $0$         & $\bv{4}$
                                & $0$
                                \\ \hline
-    $\rightweightdual{\bm{u}}$ & $0$        
+    $\rightweightdual{\bm{u}}$ & $0$
                                & $0$          & $0$    & $0$  & $\bv{321}$
                                & $-\bv{23}$   & $-\bv{31}$    & $-\bv{12}$
-                               & $0$          & $0$           & $0$ 
+                               & $0$          & $0$           & $0$
                                & $-\bv{1}$    & $-\bv{2}$     & $-\bv{3}$    & $0$
                                & $\bm{1}$
                                \\ \hline
-    $\leftweightdual{\bm{u}}$  & $0$        
+    $\leftweightdual{\bm{u}}$  & $0$
                                & $0$          & $0$           & $0$          & $-\bv{321}$
                                & $-\bv{23}$   & $-\bv{31}$    & $-\bv{12}$
                                & $0$          & $0$           & $0$
                                & $\bv{1}$     & $\bv{2}$      & $\bv{3}$     & $0$
                                & $\bm{1}$
                                \\ \hline
-    \end{tabular}
-    \caption{\small Right/left bulk duals and right/left weight duals in $3D$ $PGA$
-    for every basis element (=complement applied to bulk and weight).}
+    \end{tabular}%
+    } \captionof{table}{\footnotesize Right/left bulk duals and right/left weight duals in
+    $3D$ $PGA$ for every basis element (=complement applied to bulk and weight).}
     \label{tab:pga3dp_bulk_weight_duals}
     \end{center}
 
     \begin{center}
-    %\scriptsize
+    \resizebox{\textwidth}{!}{%
     \begin{tabular}{*{17}{|c}|}
     \hline
     \rowcolor{blue!20}
     $\bm{u}$        & $\bm{1}$
                     & $\bv{1}$       & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
-                    & $\bv{41}$      & $\bv{42}$     & $\bv{43}$ 
+                    & $\bv{41}$      & $\bv{42}$     & $\bv{43}$
                     & $\bv{23}$      & $\bv{31}$     & $\bv{12}$
                     & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
-                    & $\ps$
+                    & $\bv{1234} = \ps$
                     \\ \hline
-    $\rev{\bm{u}}$  & $\bm{1}$     
+    $\rev{\bm{u}}$  & $\bm{1}$
                     & $\bv{1}$       & $\bv{2}$      & $\bv{3}$      & $\bv{4}$
-                    & $-\bv{41}$     & $-\bv{42}$    & $-\bv{43}$ 
+                    & $-\bv{41}$     & $-\bv{42}$    & $-\bv{43}$
                     & $-\bv{23}$     & $-\bv{31}$    & $-\bv{12}$
                     & $-\bv{423}$    & $-\bv{431}$   & $-\bv{412}$   & $-\bv{321}$
-                    & $\ps$
+                    & $\bv{1234}$
                          \\ \hline
-    $\rrev{\bm{u}}$ & $\bm{1}$    
+    $\rrev{\bm{u}}$ & $\bm{1}$
                     & $-\bv{1}$      & $-\bv{2}$     & $-\bv{3}$     & $-\bv{4}$
-                    & $-\bv{41}$     & $-\bv{42}$    & $-\bv{43}$ 
+                    & $-\bv{41}$     & $-\bv{42}$    & $-\bv{43}$
                     & $-\bv{23}$     & $-\bv{31}$    & $-\bv{12}$
                     & $\bv{423}$     & $\bv{431}$    & $\bv{412}$    & $\bv{321}$
-                    & $\ps$
+                    & $\bv{1234}$
                         \\ \hline
-    \end{tabular}
-    \caption{\small Reverse and regressive reverse in $3D$ $PGA$ for every basis element.}
+    \end{tabular}%
+    } \captionof{table}{\footnotesize Reverse and regressive reverse in $3D$
+    $PGA$ for every basis element.}
     \label{tab:pga3dp_rev_rrev}
     \end{center}
-\end{sidewaystable}
+\endgroup
 
 \newpage
 
