@@ -217,7 +217,9 @@ void ConfigurableGenerator::emit_single_case_code(AlgebraData const& algebra,
                                                   OutputCase const& case_def,
                                                   prd_table const& basis_tab)
 {
-    // Lazy per-algebra registry. STA4D not yet supported (no implementation in ga/).
+    // Lazy per-algebra registry. Codegen is supported for ega2d/ega3d/pga2dp/pga3dp/sta4d;
+    // STA4D `.cases` arrays are still empty in algebras/ga_prdxpr_sta4d_config.cpp, so
+    // running --output=code --algebra=sta4d will emit nothing until those are populated.
     static std::map<std::string, codegen::TypeRegistry> registries;
     auto reg_it = registries.find(algebra.name);
     if (reg_it == registries.end()) {

@@ -117,6 +117,36 @@ std::map<std::string, TypeInfo> build_pga3dp()
     return m;
 }
 
+// STA4D: basis = {1, g0, g1, g2, g3, g01, g02, g03, g23, g31, g12, g023, g031, g012,
+//                 g123, g0123} (16 elements). G(1,3,0) — time-like g0, space-like g1/g2/g3.
+//
+// Same layout shape as PGA3DP: scalar + 4-vec + 6-bivec + 4-trivec + ps,
+// so MVec4d_E composes {s, bivec, ps} and MVec4d_U composes {vec, trivec}.
+//
+// Type-name convention: `Scalar4d` / `Vec4d` / ... matching the `2d`/`3d`/`2dp`/`3dp`
+// suffix pattern; "4d" is unambiguous because STA4D is the only 4D algebra in this
+// project. If the future ga/ STA4D headers use a different convention (e.g.
+// `ScalarSta4d`), edit the cpp_type strings below — no other change is needed.
+//
+// BiVec4d components: (vx, vy, vz, mx, my, mz) following pga3dp's naming —
+// the basis order {g01,g02,g03,g23,g31,g12} treats g0i as the "v" half and gjk
+// as the "m" half, matching the svBtps coefficient layout in
+// algebras/ga_prdxpr_sta4d.hpp.
+std::map<std::string, TypeInfo> build_sta4d()
+{
+    std::map<std::string, TypeInfo> m;
+    m["s"] = make_single("Scalar4d", 0);
+    m["vec"] = make_named("Vec4d", {1, 2, 3, 4});
+    m["bivec"] = make_named("BiVec4d", {5, 6, 7, 8, 9, 10});
+    m["trivec"] = make_named("TriVec4d", {11, 12, 13, 14});
+    m["ps"] = make_single("PScalar4d", 15);
+    m["mv_e"] = make_composite("MVec4d_E", {"s", "bivec", "ps"}, m);
+    m["mv_u"] = make_composite("MVec4d_U", {"vec", "trivec"}, m);
+    m["mv"] = make_indexed("MVec4d",
+                           {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
+    return m;
+}
+
 } // namespace
 
 TypeRegistry::TypeRegistry(std::string const& algebra_name) : algebra_(algebra_name)
@@ -133,9 +163,10 @@ TypeRegistry::TypeRegistry(std::string const& algebra_name) : algebra_(algebra_n
     else if (algebra_name == "pga3dp") {
         types_ = build_pga3dp();
     }
+    else if (algebra_name == "sta4d") {
+        types_ = build_sta4d();
+    }
     else {
-        // sta4d intentionally omitted: code generation for it lands once the user
-        // supplies the configuration. Falls through to empty registry.
         throw std::invalid_argument(
             "TypeRegistry: no registry available for algebra '" + algebra_name + "'");
     }
