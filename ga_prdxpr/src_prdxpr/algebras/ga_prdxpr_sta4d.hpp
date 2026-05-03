@@ -23,8 +23,13 @@
 // metric signature: g0²=-1, g1²=+1, g2²=+1, g3²=+1
 const std::vector<int> mvsta4d_metric_signature = {-1, +1, +1, +1};
 
-// compare both outcomes in reference_output/sta_mostly_negative.txt
-//                      and reference_output/sta_mostly_positive.txt
+// compare both outcomes in reference_output/sta4d_mostly_negative.txt
+//                      and reference_output/sta4d_mostly_positive.txt
+//
+// -> Hd view: mostly positive feels closer to Euclidean metric, just adding time as
+//             new vector component that squares to -1 to create the resulting hyperbolic
+//             geometry
+//             (However, both are proven to deliver same results)
 
 // multivector basis components
 const mvec_coeff mvsta4d_basis = {"1",    "g0",   "g1",   "g2",   "g3",  "g01",
