@@ -7,15 +7,24 @@
 #include "rules/ga_prdxpr_rule_generator.hpp"
 
 // sta4d: space-time geometric algebra with (g is short for gamma)
-//        g0*g0 = +1, g1*g1 = -1, g2*g2 = -1, g3*g3 = -1
+//        g0*g0 = +1, g1*g1 = -1, g2*g2 = -1, g3*g3 = -1  (mostly negative)
+//
+//   or   g0*g0 = -1, g1*g1 = +1, g2*g2 = +1, g3*g3 = +1  (mostly positive)
 //
 //        g0         ... time-like dimension
 //        g1, g2, g3 ... space-like dimensions
 //
-// G(1,3,0)
 
+// mostly negative convention G(1,3,0)
 // metric signature: g0²=+1, g1²=-1, g2²=-1, g3²=-1
-const std::vector<int> mvsta4d_metric_signature = {+1, -1, -1, -1};
+// const std::vector<int> mvsta4d_metric_signature = {+1, -1, -1, -1};
+
+// mostly positive convention G(3,1,0)
+// metric signature: g0²=-1, g1²=+1, g2²=+1, g3²=+1
+const std::vector<int> mvsta4d_metric_signature = {-1, +1, +1, +1};
+
+// compare both outcomes in reference_output/sta_mostly_negative.txt
+//                      and reference_output/sta_mostly_positive.txt
 
 // multivector basis components
 const mvec_coeff mvsta4d_basis = {"1",    "g0",   "g1",   "g2",   "g3",  "g01",
