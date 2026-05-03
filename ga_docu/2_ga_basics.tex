@@ -349,8 +349,9 @@ cases with non-degenerate as well as for cases with degenerate metric, like in p
 geometric algebra $PGA$. This is the main advantage compared to the usual procedure of
 dualization by multiplying the object with the pseudoscalar (or its inverse) using the
 geometric product, since the latter breaks down for spaces with degenerate metrics. For an
-overview on all complements in $PGA$ see tables \ref{tab:pga2dp_cmpl} and
-\ref{tab:pga3dp_cmpl} at the end of this section.
+overview on all complements in $EGA$ see subsection
+\ref{subsection:tables_of_products_ega} and in $PGA$ see subsection
+\ref{subsection:tables_of_products_pga}.
 
 
 \newpage
@@ -547,9 +548,10 @@ where $s$ is a scalar. The reverse and regressive reverse are their own inverses
 applying the same reverse twice returns the original object. \\
 
 For an overview on all bulk and weight duals in $PGA$ see tables
-\ref{tab:pga2dp_bulk_weight_duals} and \ref{tab:pga3dp_bulk_weight_duals} at the end of
-this section. The reverses can be found in tables~\ref{tab:pga2dp_rev_rrev} and
-\ref{tab:pga3dp_rev_rrev} at the end of the section as well.\\
+\ref{tab:pga2dp_bulk_weight_duals} and \ref{tab:pga3dp_bulk_weight_duals} in subsection
+\ref{subsection:tables_of_products_pga}. The reverses can be found in
+tables~\ref{tab:pga2dp_rev_rrev} and \ref{tab:pga3dp_rev_rrev} in that subsection as
+well.\\
 
 Following identities link the expansions and contractions and thus the outer and inner
 products: 
@@ -890,6 +892,28 @@ equivalence.
 \subsubsection{Complements, duals, and reverses in \textit{EGA}}
 \label{subsection:tables_of_products_ega}
 
+Left and right complements defined as $\lcmpl{u}\wedge u = u \wedge \rcmpl{u} =
+\bv{1}\wedge\bv{2}\wedge...\wedge\bv{n} = I_{n}$. Complements are independent of the
+metric. They just depend on presence or absence of a basis vector in a blade. The
+complement provides the missing basis vectors required to fill the complete space with the
+wedge product, i.e. to fill the pseudoscalar $I_{n}$ of the respective algebra. \\
+
+Left and right (metric) duals are defined in a similar way, but the complement operation
+is done \emph{after} the basis vector was multiplied with the metric $\metric{G}$ of the
+space in regular matric multiplication. The left dual is defined as $(\lcmpl{\metric{G}
+u})\wedge u = \leftbulkdual{u}\wedge u = I_{n}$ and the right dual is defined as $u \wedge
+(\rcmpl{\metric{G} u}) = u \wedge \rightbulkdual{u} =I_{n}$. \\
+
+Complements and duals are the indistinguishable in $EGA$ since the metric is the identity
+matrix. However, in $PGA$ they differ since the metric selects certain basis vectors that
+are no longer present after the matrix multiplication with the metric (see subsection
+\ref{subsection:tables_of_products_pga}).\\
+
+In spaces of odd dimension left and right complements deliver the same results and thus
+are replaced by the complement or dual operation regardless whether we consider
+multiplying from the left or right side with the wedge product. Therefore, no left
+complement and left dual are given in the table for $3D$ $EGA$ below.\\
+
 \begingroup
 \setlength{\abovecaptionskip}{2pt}
 \setlength{\belowcaptionskip}{2pt}
@@ -914,9 +938,8 @@ equivalence.
                      \\ \hline
     \end{tabular}%
     }
-    \captionof{table}{\footnotesize Right and left complements as well as right and left
-    duals in $2D$ $EGA$ for every basis element. Complements and duals are the same in
-    $EGA$ since the metric is the identity matrix.}
+    \captionof{table}{\footnotesize Right and left complements, as well as right and
+    left in $2D$ $EGA$ for every basis element.}
     \label{tab:ega2d_cmpl_dual}
     \end{center}
 
