@@ -29,7 +29,7 @@ namespace hd::ga::ega {
 ////////////////////////////////////////////////////////////////////////////////
 // grade inversion operation: reverse the sign of odd blades
 // gr_inv(A_r) = (-1)^r A_r
-// pattern for k = 0, 1, 2, 3, ...: + - + - + - ...
+// pattern for r = 0, 1, 2, 3, ...: + - + - + - ...
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -77,7 +77,7 @@ constexpr MVec2d<T> gr_inv(MVec2d<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // reversion operation: reverses the factors in a blade
 // rev(A_r) = (-1)^(r*(r-1)/2) A_r
-// pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ...
+// pattern for r = 0, 1, 2, 3, ...: + + - - + + - - ...
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -127,7 +127,7 @@ constexpr MVec2d<T> rev(MVec2d<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // Clifford conjugation:
 // conj(A_r) = (-1)^(r*(r+1)/2) A_r
-// pattern for k = 0, 1, 2, 3, ...: + - - + + - - + + ...
+// pattern for r = 0, 1, 2, 3, ...: + - - + + - - + + ...
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>

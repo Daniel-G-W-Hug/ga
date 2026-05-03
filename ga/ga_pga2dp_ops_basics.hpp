@@ -40,7 +40,7 @@ namespace hd::ga::pga {
 ////////////////////////////////////////////////////////////////////////////////
 // grade inversion operation: reverse the sign of odd blades
 // gr_inv(A_r) = (-1)^r A_r
-// pattern for k = 0, 1, 2, 3, ...: + - + - + - ...
+// pattern for r = 0, 1, 2, 3, ...: + - + - + - ...
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -104,7 +104,7 @@ constexpr MVec2dp<T> gr_inv(MVec2dp<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // reversion operation: reverses the factors in a blade
 // rev(A_r) = (-1)^(r*(r-1)/2) A_r
-// pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ...
+// pattern for r = 0, 1, 2, 3, ...: + + - - + + - - ...
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -238,9 +238,9 @@ constexpr MVec2dp<T> rrev(MVec2dp<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Clifford conjugation:
+// Clifford conjugation (NOT identical sign pattern to regressive reverse for pga2dp!)):
 // conj(A_r) = (-1)^(r*(r+1)/2) A_r
-// pattern for k = 0, 1, 2, 3, ...: + - - + + - - + + ...
+// pattern for r = 0, 1, 2, 3, ...: + - - + + - - + + ...
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>

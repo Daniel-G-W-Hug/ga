@@ -183,7 +183,9 @@ ProductConfig get_sta4d_gpr_config()
             .display_name = "geometric product",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases = {},
+            .cases = {{"mv * mv -> mv", "A", "B", "mv", "mv"},
+                      //
+                      {"vec * vec -> mv_e", "svBtps1", "svBtps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
