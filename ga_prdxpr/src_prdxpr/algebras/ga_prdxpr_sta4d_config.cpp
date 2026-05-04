@@ -178,30 +178,95 @@ AlgebraData create_sta4d_algebra_data()
 
 ProductConfig get_sta4d_gpr_config()
 {
-    return {.product_name = "gpr",
-            .description = "sta4d geometric product",
-            .display_name = "geometric product",
-            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
-            // "right_filter"}
-            .cases = {{"mv * mv -> mv", "A", "B", "mv", "mv"},
-                      //
-                      {"vec * vec -> mv_e", "svBtps1", "svBtps2", "vec", "vec"}},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "gpr",
+        .description = "sta4d geometric product",
+        .display_name = "geometric product",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        .cases = {{"mv * mv -> mv", "A", "B", "mv", "mv"},
+                  {"mv * mv_e -> mv", "A", "B_even", "mv", "mv_e"},
+                  {"mv_e * mv -> mv", "A_even", "B", "mv_e", "mv"},
+                  {"mv * mv_u -> mv", "A", "B_odd", "mv", "mv_u"},
+                  {"mv_u * mv -> mv", "A_odd", "B", "mv_u", "mv"},
+                  {"mv * ps -> mv", "M", "svBtps", "mv", "ps"},
+                  {"ps * mv -> mv", "svBtps", "M", "ps", "mv"},
+                  {"mv * s -> mv", "M", "svBtps", "mv", "s"},
+                  {"s * mv -> mv", "svBtps", "M", "s", "mv"},
+                  //
+                  {"mv_e * mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                  {"mv_u * mv_u -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+                  {"mv_e * mv_u -> mv_u", "A_even", "B_odd", "mv_e", "mv_u"},
+                  {"mv_u * mv_e -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
+                  {"mv_e * ps -> mv_e", "A_even", "svBtps", "mv_e", "ps"},
+                  {"ps * mv_e -> mv_e", "svBtps", "B_even", "ps", "mv_e"},
+                  {"mv_u * ps -> mv_u", "A_odd", "svBtps", "mv_u", "ps"},
+                  {"ps * mv_u -> mv_u", "svBtps", "B_odd", "ps", "mv_u"},
+                  {"mv_e * trivec -> mv_u", "M_even", "svBtps", "mv_e", "trivec"},
+                  {"trivec * mv_e -> mv_u", "svBtps", "M_even", "trivec", "mv_e"},
+                  {"mv_e * bivec -> mv_e", "M_even", "svBtps", "mv_e", "bivec"},
+                  {"bivec * mv_e -> mv_e", "svBtps", "M_even", "bivec", "mv_e"},
+                  {"mv_u * bivec -> mv_u", "M_odd", "svBtps", "mv_u", "bivec"},
+                  {"bivec * mv_u -> mv_u", "svBtps", "M_odd", "bivec", "mv_u"},
+                  {"mv_e * vec -> mv_u", "A_even", "svBtps", "mv_e", "vec"},
+                  {"vec * mv_e -> mv_u", "svBtps", "B_even", "vec", "mv_e"},
+                  //
+                  {"ps * ps -> s", "svBtps1", "svBtps2", "ps", "ps"},
+                  {"ps * trivec -> vec", "svBtps", "svBtps", "ps", "trivec"},
+                  {"trivec * ps -> vec", "svBtps", "svBtps", "trivec", "ps"},
+                  {"ps * bivec -> bivec", "svBtps", "svBtps", "ps", "bivec"},
+                  {"bivec * ps -> bivec", "svBtps", "svBtps", "bivec", "ps"},
+                  {"ps * vec -> trivec", "svBtps", "svBtps", "ps", "vec"},
+                  {"vec * ps -> trivec", "svBtps", "svBtps", "vec", "ps"},
+                  {"ps * s -> ps", "svBtps", "svBtps", "ps", "s"},
+                  {"s * ps -> ps", "svBtps", "svBtps", "s", "ps"},
+                  //
+                  {"trivec * trivec -> mv_e", "svBtps1", "svBtps2", "trivec", "trivec"},
+                  {"trivec * bivec -> mv_u", "svBtps", "svBtps", "trivec", "bivec"},
+                  {"bivec * trivec -> mv_u", "svBtps", "svBtps", "bivec", "trivec"},
+                  {"trivec * vec -> mv_e", "svBtps", "svBtps", "trivec", "vec"},
+                  {"vec * trivec -> mv_e", "svBtps", "svBtps", "vec", "trivec"},
+                  {"trivec * s -> trivec", "svBtps", "svBtps", "trivec", "s"},
+                  {"s * trivec -> trivec", "svBtps", "svBtps", "s", "trivec"},
+                  //
+                  {"bivec * bivec -> mv_e", "svBtps1", "svBtps2", "bivec", "bivec"},
+                  {"bivec * vec -> mv_u", "svBtps", "svBtps", "bivec", "vec"},
+                  {"vec * bivec -> mv_u", "svBtps", "svBtps", "vec", "bivec"},
+                  {"bivec * s -> bivec", "svBtps", "svBtps", "bivec", "s"},
+                  {"s * bivec -> bivec", "svBtps", "svBtps", "s", "bivec"},
+                  //
+                  {"vec * vec -> mv_e", "svBtps1", "svBtps2", "vec", "vec"},
+                  {"vec * s -> vec", "svBtps", "svBtps", "vec", "s"},
+                  {"s * vec -> vec", "svBtps", "svBtps", "s", "vec"},
+                  //
+                  {"s * s -> s", "svBtps1", "svBtps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_cmt_config()
 {
-    return {.product_name = "cmt",
-            .description = "sta4d commutator product",
-            .display_name = "commutator product",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "cmt",
+        .description = "sta4d commutator product",
+        .display_name = "commutator product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        .cases = {{"cmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                  {"cmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
+                   "trivec"},
+                  {"cmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+                  {"cmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+                  {"cmt(trivec,vec) -> ps", "svBtps", "svBtps", "trivec", "vec"},
+                  {"cmt(vec,trivec) -> ps", "svBtps", "svBtps", "vec", "trivec"},
+                  {"cmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
+                  {"cmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+                  {"cmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
+                  {"cmt(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_wdg_config()
@@ -211,7 +276,35 @@ ProductConfig get_sta4d_wdg_config()
             .display_name = "wedge product",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases = {},
+            .cases = {{"mv ^ mv -> mv", "A", "B", "mv", "mv"},
+                      //
+                      {"mv_e ^ mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                      {"mv_u ^ mv_u -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+                      //
+                      {"ps ^ ps -> 0", "svBtps1", "svBtps2", "ps", "ps"},
+                      {"ps ^ vec -> 0", "svBtps", "svBtps", "ps", "vec"},
+                      {"vec ^ ps -> 0", "svBtps", "svBtps", "vec", "ps"},
+                      {"ps ^ s -> ps", "svBtps", "svBtps", "ps", "s"},
+                      {"s ^ ps -> ps", "svBtps", "svBtps", "s", "ps"},
+                      //
+                      {"trivec ^ bivec -> 0", "svBtps", "svBtps", "trivec", "bivec"},
+                      {"bivec ^ trivec -> 0", "svBtps", "svBtps", "bivec", "trivec"},
+                      {"trivec ^ vec -> ps", "svBtps", "svBtps", "trivec", "vec"},
+                      {"vec ^ trivec -> ps", "svBtps", "svBtps", "vec", "trivec"},
+                      {"trivec ^ s -> trivec", "svBtps", "svBtps", "trivec", "s"},
+                      {"s ^ trivec -> trivec", "svBtps", "svBtps", "s", "trivec"},
+                      //
+                      {"bivec ^ bivec -> ps", "svBtps1", "svBtps2", "bivec", "bivec"},
+                      {"bivec ^ vec -> trivec", "svBtps", "svBtps", "bivec", "vec"},
+                      {"vec ^ bivec -> trivec", "svBtps", "svBtps", "vec", "bivec"},
+                      {"bivec ^ s -> bivec", "svBtps", "svBtps", "bivec", "s"},
+                      {"s ^ bivec -> bivec", "svBtps", "svBtps", "s", "bivec"},
+                      //
+                      {"vec ^ vec -> bivec", "svBtps1", "svBtps2", "vec", "vec"},
+                      {"vec ^ s -> vec", "svBtps", "svBtps", "vec", "s"},
+                      {"s ^ vec -> vec", "svBtps", "svBtps", "s", "vec"},
+                      //
+                      {"s ^ s -> s", "svBtps1", "svBtps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -219,15 +312,21 @@ ProductConfig get_sta4d_wdg_config()
 
 ProductConfig get_sta4d_dot_config()
 {
-    return {.product_name = "dot",
-            .description = "sta4d inner product",
-            .display_name = "inner product",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "dot",
+        .description = "sta4d inner product",
+        .display_name = "inner product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        .cases = {{"dot(mv,mv) -> s", "A", "B", "mv", "mv"},
+                  {"dot(ps,ps) -> s", "svBtps1", "svBtps2", "ps", "ps"},
+                  {"dot(trivec,trivec) -> s", "svBtps1", "svBtps2", "trivec", "trivec"},
+                  {"dot(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
+                  {"dot(vec,vec) -> s", "svBtps1", "svBtps2", "vec", "vec"},
+                  {"dot(s,s) -> s", "svBtps1", "svBtps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_l_contract_config()
@@ -237,7 +336,37 @@ ProductConfig get_sta4d_l_contract_config()
             .display_name = "left contraction",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {},
+            .cases = {{"mv << mv -> mv", "A", "B", "mv", "mv"},
+                      //
+                      {"ps << ps -> s", "svBtps1", "svBtps2", "ps", "ps"},
+                      {"ps << trivec -> 0", "svBtps", "svBtps", "ps", "trivec"},
+                      {"trivec << ps -> vec", "svBtps", "svBtps", "trivec", "ps"},
+                      {"ps << bivec -> 0", "svBtps", "svBtps", "ps", "bivec"},
+                      {"bivec << ps -> bivec", "svBtps", "svBtps", "bivec", "ps"},
+                      {"ps << vec -> 0", "svBtps", "svBtps", "ps", "vec"},
+                      {"vec << ps -> trivec", "svBtps", "svBtps", "vec", "ps"},
+                      {"ps << s -> 0", "svBtps", "svBtps", "ps", "s"},
+                      {"s << ps -> ps", "svBtps", "svBtps", "s", "ps"},
+                      //
+                      {"trivec << trivec -> s", "svBtps1", "svBtps2", "trivec", "trivec"},
+                      {"trivec << bivec -> 0", "svBtps", "svBtps", "trivec", "bivec"},
+                      {"bivec << trivec -> vec", "svBtps", "svBtps", "bivec", "trivec"},
+                      {"trivec << vec -> 0", "svBtps", "svBtps", "trivec", "vec"},
+                      {"vec << trivec -> bivec", "svBtps", "svBtps", "vec", "trivec"},
+                      {"trivec << s -> 0", "svBtps", "svBtps", "trivec", "s"},
+                      {"s << trivec -> trivec", "svBtps", "svBtps", "s", "trivec"},
+                      //
+                      {"bivec << bivec -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
+                      {"bivec << vec -> 0", "svBtps", "svBtps", "bivec", "vec"},
+                      {"vec,bivec -> vec", "svBtps", "svBtps", "vec", "bivec"},
+                      {"bivec << s -> 0", "svBtps", "svBtps", "bivec", "s"},
+                      {"s << bivec -> bivec", "svBtps", "svBtps", "s", "bivec"},
+                      //
+                      {"vec << vec -> s", "svBtps1", "svBtps2", "vec", "vec"},
+                      {"vec << s -> 0", "svBtps", "svBtps", "vec", "s"},
+                      {"s << vec -> vec", "svBtps", "svBtps", "s", "vec"},
+                      //
+                      {"s << s -> s", "svBtps1", "svBtps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -250,7 +379,37 @@ ProductConfig get_sta4d_r_contract_config()
             .display_name = "right contraction",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {},
+            .cases = {{"mv >> mv) -> mv", "A", "B", "mv", "mv"},
+                      //
+                      {"ps >> ps -> s", "svBtps1", "svBtps2", "ps", "ps"},
+                      {"ps >> trivec -> vec", "svBtps", "svBtps", "ps", "trivec"},
+                      {"trivec >> ps -> 0", "svBtps", "svBtps", "trivec", "ps"},
+                      {"ps >> bivec -> bivec", "svBtps", "svBtps", "ps", "bivec"},
+                      {"bivec >> ps -> 0", "svBtps", "svBtps", "bivec", "ps"},
+                      {"ps >> vec -> trivec", "svBtps", "svBtps", "ps", "vec"},
+                      {"vec >> ps -> 0", "svBtps", "svBtps", "vec", "ps"},
+                      {"ps >> s -> ps", "svBtps", "svBtps", "ps", "s"},
+                      {"s >> ps -> 0", "svBtps", "svBtps", "s", "ps"},
+                      //
+                      {"trivec >> trivec -> s", "svBtps1", "svBtps2", "trivec", "trivec"},
+                      {"trivec >> bivec -> vec", "svBtps", "svBtps", "trivec", "bivec"},
+                      {"bivec >> trivec -> 0", "svBtps", "svBtps", "bivec", "trivec"},
+                      {"trivec >> vec -> bivec", "svBtps", "svBtps", "trivec", "vec"},
+                      {"vec >> trivec -> 0", "svBtps", "svBtps", "vec", "trivec"},
+                      {"trivec >> s -> trivec", "svBtps", "svBtps", "trivec", "s"},
+                      {"s >> trivec -> 0", "svBtps", "svBtps", "s", "trivec"},
+                      //
+                      {"bivec >> bivec -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
+                      {"bivec >> vec -> vec", "svBtps", "svBtps", "bivec", "vec"},
+                      {"vec >> bivec -> 0", "svBtps", "svBtps", "vec", "bivec"},
+                      {"bivec >> s -> bivec", "svBtps", "svBtps", "bivec", "s"},
+                      {"s >> bivec -> 0", "svBtps", "svBtps", "s", "bivec"},
+                      //
+                      {"vec >> vec -> s", "svBtps1", "svBtps2", "vec", "vec"},
+                      {"vec >> s -> vec", "svBtps", "svBtps", "vec", "s"},
+                      {"s >> vec -> 0", "svBtps", "svBtps", "s", "vec"},
+                      //
+                      {"s >> s -> s", "svBtps1", "svBtps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -258,28 +417,32 @@ ProductConfig get_sta4d_r_contract_config()
 
 ProductConfig get_sta4d_l_expand_config()
 {
-    return {.product_name = "l_expand",
-            .description = "sta4d left expansion",
-            .display_name = "left expansion",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "l_expand",
+        .description = "sta4d left expansion",
+        .display_name = "left expansion",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        .cases = {{"l_expand(bivec,vec) -> trivec", "svBtps", "svBtps", "bivec", "vec"},
+                  {"l_expand(vec,bivec) -> 0", "svBtps", "svBtps", "vec", "bivec"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_r_expand_config()
 {
-    return {.product_name = "r_expand",
-            .description = "sta4d right expansion",
-            .display_name = "right expansion",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "r_expand",
+        .description = "sta4d right expansion",
+        .display_name = "right expansion",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        .cases = {{"r_expand(bivec,vec) -> 0", "svBtps", "svBtps", "bivec", "vec"},
+                  {"r_expand(vec,bivec) -> trivec", "svBtps", "svBtps", "vec", "bivec"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_rgpr_config()
@@ -297,41 +460,101 @@ ProductConfig get_sta4d_rgpr_config()
 
 ProductConfig get_sta4d_rcmt_config()
 {
-    return {.product_name = "rcmt",
-            .description = "sta4d regressive commutator product",
-            .display_name = "regressive commutator product",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "rcmt",
+        .description = "sta4d regressive commutator product",
+        .display_name = "regressive commutator product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        .cases =
+            {
+                {"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                //
+                {"rcmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
+                 "trivec"},
+                {"rcmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+                {"rcmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+                // {"rcmt(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
+                // {"rcmt(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
+                // {"rcmt(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
+                // {"rcmt(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
+                //
+                {"rcmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
+                {"rcmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+                {"rcmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
+                //
+                {"rcmt(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"}
+                //   {"rcmt(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"},
+                //   {"rcmt(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"}
+            },
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_rwdg_config()
 {
-    return {.product_name = "rwdg",
-            .description = "sta4d regressive wedge product",
-            .display_name = "regressive wedge product",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "rwdg",
+        .description = "sta4d regressive wedge product",
+        .display_name = "regressive wedge product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        .cases =
+            {
+                {"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                //
+                {"rwdg(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                {"rwdg(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+                //
+                {"rwdg(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
+                {"rwdg(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},
+                {"rwdg(trivec,ps) -> trivec", "svBtps", "svBtps", "trivec", "ps"},
+                {"rwdg(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},
+                {"rwdg(bivec,ps) -> bivec", "svBtps", "svBtps", "bivec", "ps"},
+                {"rwdg(ps,vec) -> vec", "svBtps", "svBtps", "ps", "vec"},
+                {"rwdg(vec,ps) -> vec", "svBtps", "svBtps", "vec", "ps"},
+                //   {"rwdg(ps,s) -> s", "svBtps", "svBtps", "ps", "s"},
+                //   {"rwdg(s,ps) -> s", "svBtps", "svBtps", "s", "ps"},
+                //
+                {"rwdg(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
+                 "trivec"},
+                {"rwdg(trivec,bivec) -> vec", "svBtps", "svBtps", "trivec", "bivec"},
+                {"rwdg(bivec,trivec) -> vec", "svBtps", "svBtps", "bivec", "trivec"}
+                //   {"rwdg(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
+                //   {"rwdg(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
+                //   {"rwdg(trivec,s) -> 0", "svBtps", "svBtps", "trivec", "s"},
+                //   {"rwdg(s,trivec) -> 0", "svBtps", "svBtps", "s", "trivec"},
+                //   {"rwdg(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
+                //   {"rwdg(bivec,vec) -> s", "svBtps", "svBtps", "bivec", "vec"},
+                //   {"rwdg(vec,bivec) -> s", "svBtps", "svBtps", "vec", "bivec"}
+            },
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_rdot_config()
 {
-    return {.product_name = "rdot",
-            .description = "sta4d regressive inner product",
-            .display_name = "regressive inner product",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "rdot",
+        .description = "sta4d regressive inner product",
+        .display_name = "regressive inner product",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        .cases =
+            {
+                //   {"rdot(mv,mv) -> ps", "A", "B", "mv", "mv"},
+                //   {"rdot(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
+                //   {"rdot(trivec,trivec) -> ps", "svBtps1", "svBtps2", "trivec",
+                //   "trivec"},
+                //   {"rdot(bivec,bivec) -> ps", "svBtps1", "svBtps2", "bivec", "bivec"},
+                //   {"rdot(vec,vec) -> ps", "svBtps1", "svBtps2", "vec", "vec"},
+                //   {"rdot(s,s) -> ps", "svBtps1", "svBtps2", "s", "s"}
+            },
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_sandwich_gpr_config()
