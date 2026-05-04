@@ -185,6 +185,18 @@ cd build/ga_prdxpr && ./ga_prdxpr --algebra=pga2dp,pga3dp --output=metrics && cd
 cd build/ga_prdxpr && ./ga_prdxpr --algebra=ega3d --products=wdg,dot && cd ../..
 ```
 
+### C++ Code Generation (`--output=code`)
+
+Beyond coefficient expressions and basis tables, ga_prdxpr can emit
+ready-to-paste C++ function implementations for diverse products.
+Opt-in only — never appears in the default output:
+
+```bash
+ga_prdxpr --algebra=ega2d --output=code                  # one algebra
+ga_prdxpr --algebra=pga3dp --products=gpr --output=code  # one product
+ga_prdxpr --output=all                                   # everything
+```
+
 ### Available Algebras
 
 - **ega2d**: Euclidean Geometric Algebra 2D
