@@ -184,7 +184,7 @@ The `get_*_config()` functions live in
 ## C++ Code Generation (`--output=code`)
 
 Beyond coefficient expressions and basis tables, ga_prdxpr can emit
-ready-to-paste C++ function implementations for primitive products.
+ready-to-paste C++ function implementations for diverse products.
 Opt-in only — never appears in the default output:
 
 ```bash
