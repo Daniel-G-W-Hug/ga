@@ -293,6 +293,8 @@ ProductConfig get_ega3d_wdg_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             .cases = {{"mv ^ mv -> mv", "A", "B", "mv", "mv"},
+                      {"mv_e ^ mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                      {"mv_u ^ mv_u -> bivec", "A_odd", "B_odd", "mv_u", "mv_u"},
                       {"mv ^ ps -> mv", "M", "svBps", "mv", "ps"},
                       {"ps ^ mv -> mv", "svBps", "M", "ps", "mv"},
                       {"mv ^ bivec -> mv", "M", "svBps", "mv", "bivec"},
@@ -331,6 +333,8 @@ ProductConfig get_ega3d_dot_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {{"dot(mv,mv) -> s", "A", "B", "mv", "mv"},
+                      {"dot(mv_e,mv_e) -> s", "A_even", "B_even", "mv_e", "mv_e"},
+                      {"dot(mv_u,mv_u) -> s", "A_odd", "B_odd", "mv_u", "mv_u"},
                       {"dot(ps,ps) -> s", "svBps1", "svBps2", "ps", "ps"},
                       {"dot(bivec,bivec) -> s", "svBps1", "svBps2", "bivec", "bivec"},
                       {"dot(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
@@ -513,6 +517,8 @@ ProductConfig get_ega3d_rwdg_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {{"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                      {"rwdg(mv_e,mv_e) -> vec", "A_even", "B_even", "mv_e", "mv_e"},
+                      {"rwdg(mv_u,mv_u) -> mv_u", "A_odd", "B_odd", "mv_u", "mv_u"},
                       //
                       {"rwdg(ps,ps) -> ps", "svBps1", "svBps2", "ps", "ps"},
                       {"rwdg(ps,bivec) -> bivec", "svBps", "svBps", "ps", "bivec"},

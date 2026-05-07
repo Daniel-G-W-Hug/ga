@@ -204,12 +204,20 @@ ProductConfig get_sta4d_gpr_config()
                   {"ps * mv_u -> mv_u", "svBtps", "B_odd", "ps", "mv_u"},
                   {"mv_e * trivec -> mv_u", "M_even", "svBtps", "mv_e", "trivec"},
                   {"trivec * mv_e -> mv_u", "svBtps", "M_even", "trivec", "mv_e"},
+                  {"mv_u * trivec -> mv_e", "M_odd", "svBtps", "mv_u", "trivec"},
+                  {"trivec * mv_u -> mv_e", "svBtps", "M_odd", "trivec", "mv_u"},
                   {"mv_e * bivec -> mv_e", "M_even", "svBtps", "mv_e", "bivec"},
                   {"bivec * mv_e -> mv_e", "svBtps", "M_even", "bivec", "mv_e"},
                   {"mv_u * bivec -> mv_u", "M_odd", "svBtps", "mv_u", "bivec"},
                   {"bivec * mv_u -> mv_u", "svBtps", "M_odd", "bivec", "mv_u"},
                   {"mv_e * vec -> mv_u", "A_even", "svBtps", "mv_e", "vec"},
                   {"vec * mv_e -> mv_u", "svBtps", "B_even", "vec", "mv_e"},
+                  {"mv_u * vec -> mv_e", "M_odd", "svBtps", "mv_u", "vec"},
+                  {"vec * mv_u -> mv_e", "svBtps", "M_odd", "vec", "mv_u"},
+                  {"mv_e * s -> mv_e", "M_even", "svBtps", "mv_e", "s"},
+                  {"s * mv_e -> mv_e", "svBtps", "M_even", "s", "mv_e"},
+                  {"mv_u * s -> mv_u", "M_odd", "svBtps", "mv_u", "s"},
+                  {"s * mv_u -> mv_u", "svBtps", "M_odd", "s", "mv_u"},
                   //
                   {"ps * ps -> s", "svBtps1", "svBtps2", "ps", "ps"},
                   {"ps * trivec -> vec", "svBtps", "svBtps", "ps", "trivec"},
@@ -319,6 +327,8 @@ ProductConfig get_sta4d_dot_config()
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
         .cases = {{"dot(mv,mv) -> s", "A", "B", "mv", "mv"},
+                  {"dot(mv_e,mv_e) -> s", "A_even", "B_even", "mv_e", "mv_e"},
+                  {"dot(mv_u,mv_u) -> s", "A_odd", "B_odd", "mv_u", "mv_u"},
                   {"dot(ps,ps) -> s", "svBtps1", "svBtps2", "ps", "ps"},
                   {"dot(trivec,trivec) -> s", "svBtps1", "svBtps2", "trivec", "trivec"},
                   {"dot(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
@@ -460,101 +470,41 @@ ProductConfig get_sta4d_rgpr_config()
 
 ProductConfig get_sta4d_rcmt_config()
 {
-    return {
-        .product_name = "rcmt",
-        .description = "sta4d regressive commutator product",
-        .display_name = "regressive commutator product",
-        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-        // "left_filter", "right_filter"}
-        .cases =
-            {
-                {"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                //
-                {"rcmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
-                 "trivec"},
-                {"rcmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
-                {"rcmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
-                // {"rcmt(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
-                // {"rcmt(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
-                // {"rcmt(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
-                // {"rcmt(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
-                //
-                {"rcmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
-                {"rcmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
-                {"rcmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
-                //
-                {"rcmt(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"}
-                //   {"rcmt(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"},
-                //   {"rcmt(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"}
-            },
-        .is_sandwich_product = false,
-        .uses_brace_switch = false,
-        .show_basis_table = true};
+    return {.product_name = "rcmt",
+            .description = "sta4d regressive commutator product",
+            .display_name = "regressive commutator product",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases = {},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_rwdg_config()
 {
-    return {
-        .product_name = "rwdg",
-        .description = "sta4d regressive wedge product",
-        .display_name = "regressive wedge product",
-        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-        // "left_filter", "right_filter"}
-        .cases =
-            {
-                {"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                //
-                {"rwdg(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
-                {"rwdg(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
-                //
-                {"rwdg(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
-                {"rwdg(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},
-                {"rwdg(trivec,ps) -> trivec", "svBtps", "svBtps", "trivec", "ps"},
-                {"rwdg(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},
-                {"rwdg(bivec,ps) -> bivec", "svBtps", "svBtps", "bivec", "ps"},
-                {"rwdg(ps,vec) -> vec", "svBtps", "svBtps", "ps", "vec"},
-                {"rwdg(vec,ps) -> vec", "svBtps", "svBtps", "vec", "ps"},
-                //   {"rwdg(ps,s) -> s", "svBtps", "svBtps", "ps", "s"},
-                //   {"rwdg(s,ps) -> s", "svBtps", "svBtps", "s", "ps"},
-                //
-                {"rwdg(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
-                 "trivec"},
-                {"rwdg(trivec,bivec) -> vec", "svBtps", "svBtps", "trivec", "bivec"},
-                {"rwdg(bivec,trivec) -> vec", "svBtps", "svBtps", "bivec", "trivec"}
-                //   {"rwdg(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
-                //   {"rwdg(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
-                //   {"rwdg(trivec,s) -> 0", "svBtps", "svBtps", "trivec", "s"},
-                //   {"rwdg(s,trivec) -> 0", "svBtps", "svBtps", "s", "trivec"},
-                //   {"rwdg(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
-                //   {"rwdg(bivec,vec) -> s", "svBtps", "svBtps", "bivec", "vec"},
-                //   {"rwdg(vec,bivec) -> s", "svBtps", "svBtps", "vec", "bivec"}
-            },
-        .is_sandwich_product = false,
-        .uses_brace_switch = false,
-        .show_basis_table = true};
+    return {.product_name = "rwdg",
+            .description = "sta4d regressive wedge product",
+            .display_name = "regressive wedge product",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases = {},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_rdot_config()
 {
-    return {
-        .product_name = "rdot",
-        .description = "sta4d regressive inner product",
-        .display_name = "regressive inner product",
-        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-        // "left_filter", "right_filter"}
-        .cases =
-            {
-                //   {"rdot(mv,mv) -> ps", "A", "B", "mv", "mv"},
-                //   {"rdot(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
-                //   {"rdot(trivec,trivec) -> ps", "svBtps1", "svBtps2", "trivec",
-                //   "trivec"},
-                //   {"rdot(bivec,bivec) -> ps", "svBtps1", "svBtps2", "bivec", "bivec"},
-                //   {"rdot(vec,vec) -> ps", "svBtps1", "svBtps2", "vec", "vec"},
-                //   {"rdot(s,s) -> ps", "svBtps1", "svBtps2", "s", "s"}
-            },
-        .is_sandwich_product = false,
-        .uses_brace_switch = false,
-        .show_basis_table = true};
+    return {.product_name = "rdot",
+            .description = "sta4d regressive inner product",
+            .display_name = "regressive inner product",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases = {},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
 }
 
 ProductConfig get_sta4d_sandwich_gpr_config()

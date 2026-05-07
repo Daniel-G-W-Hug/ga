@@ -184,6 +184,10 @@ ProductConfig get_pga2dp_gpr_config()
                       {"mv_u * mv -> mv", "A_odd", "B", "mv_u", "mv"},
                       {"mv * ps -> mv", "M", "svBps", "mv", "ps"},
                       {"ps * mv -> mv", "svBps", "M", "ps", "mv"},
+                      {"mv * bivec -> mv", "M", "svBps", "mv", "bivec"},
+                      {"bivec * mv -> mv", "svBps", "M", "bivec", "mv"},
+                      {"mv * vec -> mv", "M", "svBps", "mv", "vec"},
+                      {"vec * mv -> mv", "svBps", "M", "vec", "mv"},
                       {"mv * s -> mv", "M", "svBps", "mv", "s"},
                       {"s * mv -> mv", "svBps", "M", "s", "mv"},
                       //
@@ -201,6 +205,12 @@ ProductConfig get_pga2dp_gpr_config()
                       {"bivec * mv_u -> mv_u", "svBps", "M_odd", "bivec", "mv_u"},
                       {"mv_e * vec -> mv_u", "A_even", "svBps", "mv_e", "vec"},
                       {"vec * mv_e -> mv_u", "svBps", "B_even", "vec", "mv_e"},
+                      {"mv_u * vec -> mv_e", "M_odd", "svBps", "mv_u", "vec"},
+                      {"vec * mv_u -> mv_e", "svBps", "M_odd", "vec", "mv_u"},
+                      {"mv_e * s -> mv_e", "M_even", "svBps", "mv_e", "s"},
+                      {"s * mv_e -> mv_e", "svBps", "M_even", "s", "mv_e"},
+                      {"mv_u * s -> mv_u", "M_odd", "svBps", "mv_u", "s"},
+                      {"s * mv_u -> mv_u", "svBps", "M_odd", "s", "mv_u"},
                       //
                       {"ps * ps -> 0", "svBps1", "svBps2", "ps", "ps"},
                       {"ps * bivec -> vec", "svBps", "svBps", "ps", "bivec"},

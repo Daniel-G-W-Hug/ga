@@ -189,18 +189,42 @@ std::string build_indexed_body(TypeInfo const& result_info, mvec_coeff const& pr
     return os.str();
 }
 
-// Build the body's return statement for a Composite result, using nested constructors.
+// Build the body's return statement for a Composite result, using temp-vars
+// (one per coefficient slot, in basis-index order) and nested constructors that
+// reference the cN aliases. Matches the temp-vars convention used for Indexed
+// and Named results, just with the sub-type structure preserved at the return
+// site:
+//
+//     ctype const c0 = ...;        // first sub-type's first slot
+//     ctype const c1 = ...;        // ...
+//     ...
+//     return MVec3d_E<ctype>(Scalar3d<ctype>(c0), BiVec3d<ctype>(c1, c2, c3));
 std::string build_composite_body(TypeInfo const& result_info,
                                  TypeRegistry const& registry,
                                  mvec_coeff const& prd_mv)
 {
     std::ostringstream os;
+    auto const& idx = result_info.basis_indices;
+
+    // Step 1: temp-vars cN = expression for each basis index, in the order the
+    // Composite's sub-types contribute (which is exactly the flat order of
+    // result_info.basis_indices).
+    for (std::size_t k = 0; k < idx.size(); ++k) {
+        os << "    ctype const c" << k << " = " << expr_at(prd_mv, idx[k]) << ";\n";
+    }
+
+    // Step 2: nested constructor call referring to c0..cN-1 in the same order.
     os << "    return " << result_info.cpp_type << "<ctype>(";
+    std::size_t cidx = 0;
     for (std::size_t k = 0; k < result_info.sub_filter_names.size(); ++k) {
         if (k > 0) os << ", ";
         auto const& sub = registry.get(result_info.sub_filter_names[k]);
-        os << sub.cpp_type << "<ctype>(" << render_args(prd_mv, sub.basis_indices)
-           << ")";
+        os << sub.cpp_type << "<ctype>(";
+        for (std::size_t j = 0; j < sub.basis_indices.size(); ++j) {
+            if (j > 0) os << ", ";
+            os << "c" << cidx++;
+        }
+        os << ")";
     }
     os << ");\n";
     return os.str();

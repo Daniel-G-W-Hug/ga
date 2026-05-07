@@ -48,6 +48,10 @@ namespace hd::ga::pga {
 //
 // here we assume e1^2 = +1, e2^2 = +1, e3^2 = +1, e4^2 = 0
 //
+// Via the exomorphism G(a ^ b) = G(a) ^ G(b) the extended metric G is defined as a 2^n by
+// 2^n matrix via the outer product, which in turn allows for definition of an extended
+// dot product for all grades of a full multi-vector from scalar to pseudoscalar
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 // returns 0.0 due to degenerate metric with e4^2 = 0
@@ -258,13 +262,17 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> wdg(MVec3dp_E<T> const& A,
                                                   MVec3dp_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(A.c0 * B.c0),
-        BiVec3dp<ctype>(A.c0 * B.c1 + A.c1 * B.c0, A.c0 * B.c2 + A.c2 * B.c0,
-                        A.c0 * B.c3 + A.c3 * B.c0, A.c0 * B.c4 + A.c4 * B.c0,
-                        A.c0 * B.c5 + A.c5 * B.c0, A.c0 * B.c6 + A.c6 * B.c0),
-        PScalar3dp<ctype>(A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 -
-                          A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0));
+    ctype const c0 = A.c0 * B.c0;
+    ctype const c1 = A.c0 * B.c1 + A.c1 * B.c0;
+    ctype const c2 = A.c0 * B.c2 + A.c2 * B.c0;
+    ctype const c3 = A.c0 * B.c3 + A.c3 * B.c0;
+    ctype const c4 = A.c0 * B.c4 + A.c4 * B.c0;
+    ctype const c5 = A.c0 * B.c5 + A.c5 * B.c0;
+    ctype const c6 = A.c0 * B.c6 + A.c6 * B.c0;
+    ctype const c7 = A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 - A.c4 * B.c1 -
+                     A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -273,13 +281,17 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> wdg(MVec3dp_U<T> const& A,
                                                   MVec3dp_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(0.0),
-        BiVec3dp<ctype>(-A.c0 * B.c3 + A.c3 * B.c0, -A.c1 * B.c3 + A.c3 * B.c1,
-                        -A.c2 * B.c3 + A.c3 * B.c2, A.c1 * B.c2 - A.c2 * B.c1,
-                        -A.c0 * B.c2 + A.c2 * B.c0, A.c0 * B.c1 - A.c1 * B.c0),
-        PScalar3dp<ctype>(A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 -
-                          A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3));
+    ctype const c0 = 0.0;
+    ctype const c1 = -A.c0 * B.c3 + A.c3 * B.c0;
+    ctype const c2 = -A.c1 * B.c3 + A.c3 * B.c1;
+    ctype const c3 = -A.c2 * B.c3 + A.c3 * B.c2;
+    ctype const c4 = A.c1 * B.c2 - A.c2 * B.c1;
+    ctype const c5 = -A.c0 * B.c2 + A.c2 * B.c0;
+    ctype const c6 = A.c0 * B.c1 - A.c1 * B.c0;
+    ctype const c7 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 - A.c4 * B.c0 -
+                     A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -703,13 +715,17 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rwdg(MVec3dp_E<T> const& A,
                                                    MVec3dp_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 -
-                         A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0),
-        BiVec3dp<ctype>(A.c1 * B.c7 + A.c7 * B.c1, A.c2 * B.c7 + A.c7 * B.c2,
-                        A.c3 * B.c7 + A.c7 * B.c3, A.c4 * B.c7 + A.c7 * B.c4,
-                        A.c5 * B.c7 + A.c7 * B.c5, A.c6 * B.c7 + A.c7 * B.c6),
-        PScalar3dp<ctype>(A.c7 * B.c7));
+    ctype const c0 = A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 - A.c4 * B.c1 -
+                     A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0;
+    ctype const c1 = A.c1 * B.c7 + A.c7 * B.c1;
+    ctype const c2 = A.c2 * B.c7 + A.c7 * B.c2;
+    ctype const c3 = A.c3 * B.c7 + A.c7 * B.c3;
+    ctype const c4 = A.c4 * B.c7 + A.c7 * B.c4;
+    ctype const c5 = A.c5 * B.c7 + A.c7 * B.c5;
+    ctype const c6 = A.c6 * B.c7 + A.c7 * B.c6;
+    ctype const c7 = A.c7 * B.c7;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -718,13 +734,17 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rwdg(MVec3dp_U<T> const& A,
                                                    MVec3dp_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 -
-                         A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3),
-        BiVec3dp<ctype>(-A.c5 * B.c6 + A.c6 * B.c5, A.c4 * B.c6 - A.c6 * B.c4,
-                        -A.c4 * B.c5 + A.c5 * B.c4, A.c4 * B.c7 - A.c7 * B.c4,
-                        A.c5 * B.c7 - A.c7 * B.c5, A.c6 * B.c7 - A.c7 * B.c6),
-        PScalar3dp<ctype>(0.0));
+    ctype const c0 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 - A.c4 * B.c0 -
+                     A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3;
+    ctype const c1 = -A.c5 * B.c6 + A.c6 * B.c5;
+    ctype const c2 = A.c4 * B.c6 - A.c6 * B.c4;
+    ctype const c3 = -A.c4 * B.c5 + A.c5 * B.c4;
+    ctype const c4 = A.c4 * B.c7 - A.c7 * B.c4;
+    ctype const c5 = A.c5 * B.c7 - A.c7 * B.c5;
+    ctype const c6 = A.c6 * B.c7 - A.c7 * B.c6;
+    ctype const c7 = 0.0;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -1344,12 +1364,12 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator<<(MVec3dp<T> const& A,
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c8 * B.c8 +
-               A.c9 * B.c9 + A.c10 * B.c10 + A.c14 * B.c14;
+                     A.c9 * B.c9 + A.c10 * B.c10 + A.c14 * B.c14;
     ctype const c1 = A.c0 * B.c1 + A.c2 * B.c10 - A.c3 * B.c9 - A.c8 * B.c14;
     ctype const c2 = A.c0 * B.c2 - A.c1 * B.c10 + A.c3 * B.c8 - A.c9 * B.c14;
     ctype const c3 = A.c0 * B.c3 + A.c1 * B.c9 - A.c2 * B.c8 - A.c10 * B.c14;
-    ctype const c4 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 + A.c8 * B.c11 +
-               A.c9 * B.c12 + A.c10 * B.c13 + A.c14 * B.c15;
+    ctype const c4 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 +
+                     A.c8 * B.c11 + A.c9 * B.c12 + A.c10 * B.c13 + A.c14 * B.c15;
     ctype const c5 = A.c0 * B.c5 + A.c2 * B.c13 - A.c3 * B.c12 - A.c8 * B.c15;
     ctype const c6 = A.c0 * B.c6 - A.c1 * B.c13 + A.c3 * B.c11 - A.c9 * B.c15;
     ctype const c7 = A.c0 * B.c7 + A.c1 * B.c12 - A.c2 * B.c11 - A.c10 * B.c15;
@@ -1619,12 +1639,12 @@ constexpr MVec3dp<std::common_type_t<T, U>> operator>>(MVec3dp<T> const& A,
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c8 * B.c8 +
-               A.c9 * B.c9 + A.c10 * B.c10 + A.c14 * B.c14;
+                     A.c9 * B.c9 + A.c10 * B.c10 + A.c14 * B.c14;
     ctype const c1 = A.c1 * B.c0 + A.c9 * B.c3 - A.c10 * B.c2 - A.c14 * B.c8;
     ctype const c2 = A.c2 * B.c0 - A.c8 * B.c3 + A.c10 * B.c1 - A.c14 * B.c9;
     ctype const c3 = A.c3 * B.c0 + A.c8 * B.c2 - A.c9 * B.c1 - A.c14 * B.c10;
-    ctype const c4 = A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 + A.c11 * B.c8 +
-               A.c12 * B.c9 + A.c13 * B.c10 - A.c15 * B.c14;
+    ctype const c4 = A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 +
+                     A.c11 * B.c8 + A.c12 * B.c9 + A.c13 * B.c10 - A.c15 * B.c14;
     ctype const c5 = A.c5 * B.c0 - A.c12 * B.c3 + A.c13 * B.c2 - A.c15 * B.c8;
     ctype const c6 = A.c6 * B.c0 + A.c11 * B.c3 - A.c13 * B.c1 - A.c15 * B.c9;
     ctype const c7 = A.c7 * B.c0 - A.c11 * B.c2 + A.c12 * B.c1 - A.c15 * B.c10;
@@ -2481,19 +2501,20 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& A,
                                                         MVec3dp_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(A.c0 * B.c0 - A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6),
-        BiVec3dp<ctype>(A.c0 * B.c1 + A.c1 * B.c0 - A.c2 * B.c6 + A.c3 * B.c5 +
-                            A.c4 * B.c7 - A.c5 * B.c3 + A.c6 * B.c2 + A.c7 * B.c4,
-                        A.c0 * B.c2 + A.c1 * B.c6 + A.c2 * B.c0 - A.c3 * B.c4 +
-                            A.c4 * B.c3 + A.c5 * B.c7 - A.c6 * B.c1 + A.c7 * B.c5,
-                        A.c0 * B.c3 - A.c1 * B.c5 + A.c2 * B.c4 + A.c3 * B.c0 -
-                            A.c4 * B.c2 + A.c5 * B.c1 + A.c6 * B.c7 + A.c7 * B.c6,
-                        A.c0 * B.c4 + A.c4 * B.c0 - A.c5 * B.c6 + A.c6 * B.c5,
-                        A.c0 * B.c5 + A.c4 * B.c6 + A.c5 * B.c0 - A.c6 * B.c4,
-                        A.c0 * B.c6 - A.c4 * B.c5 + A.c5 * B.c4 + A.c6 * B.c0),
-        PScalar3dp<ctype>(A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 -
-                          A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0));
+    ctype const c0 = A.c0 * B.c0 - A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6;
+    ctype const c1 = A.c0 * B.c1 + A.c1 * B.c0 - A.c2 * B.c6 + A.c3 * B.c5 + A.c4 * B.c7 -
+                     A.c5 * B.c3 + A.c6 * B.c2 + A.c7 * B.c4;
+    ctype const c2 = A.c0 * B.c2 + A.c1 * B.c6 + A.c2 * B.c0 - A.c3 * B.c4 + A.c4 * B.c3 +
+                     A.c5 * B.c7 - A.c6 * B.c1 + A.c7 * B.c5;
+    ctype const c3 = A.c0 * B.c3 - A.c1 * B.c5 + A.c2 * B.c4 + A.c3 * B.c0 - A.c4 * B.c2 +
+                     A.c5 * B.c1 + A.c6 * B.c7 + A.c7 * B.c6;
+    ctype const c4 = A.c0 * B.c4 + A.c4 * B.c0 - A.c5 * B.c6 + A.c6 * B.c5;
+    ctype const c5 = A.c0 * B.c5 + A.c4 * B.c6 + A.c5 * B.c0 - A.c6 * B.c4;
+    ctype const c6 = A.c0 * B.c6 - A.c4 * B.c5 + A.c5 * B.c4 + A.c6 * B.c0;
+    ctype const c7 = A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 - A.c4 * B.c1 -
+                     A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 // geometric product A * B for two multivectors from the odd subalgebra (3d case)
@@ -2504,19 +2525,20 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& A,
                                                         MVec3dp_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c7 * B.c7),
-        BiVec3dp<ctype>(-A.c0 * B.c3 + A.c1 * B.c6 - A.c2 * B.c5 + A.c3 * B.c0 +
-                            A.c4 * B.c7 - A.c5 * B.c2 + A.c6 * B.c1 - A.c7 * B.c4,
-                        -A.c0 * B.c6 - A.c1 * B.c3 + A.c2 * B.c4 + A.c3 * B.c1 +
-                            A.c4 * B.c2 + A.c5 * B.c7 - A.c6 * B.c0 - A.c7 * B.c5,
-                        A.c0 * B.c5 - A.c1 * B.c4 - A.c2 * B.c3 + A.c3 * B.c2 -
-                            A.c4 * B.c1 + A.c5 * B.c0 + A.c6 * B.c7 - A.c7 * B.c6,
-                        -A.c0 * B.c7 + A.c1 * B.c2 - A.c2 * B.c1 - A.c7 * B.c0,
-                        -A.c0 * B.c2 - A.c1 * B.c7 + A.c2 * B.c0 - A.c7 * B.c1,
-                        A.c0 * B.c1 - A.c1 * B.c0 - A.c2 * B.c7 - A.c7 * B.c2),
-        PScalar3dp<ctype>(A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 -
-                          A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3));
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 - A.c7 * B.c7;
+    ctype const c1 = -A.c0 * B.c3 + A.c1 * B.c6 - A.c2 * B.c5 + A.c3 * B.c0 +
+                     A.c4 * B.c7 - A.c5 * B.c2 + A.c6 * B.c1 - A.c7 * B.c4;
+    ctype const c2 = -A.c0 * B.c6 - A.c1 * B.c3 + A.c2 * B.c4 + A.c3 * B.c1 +
+                     A.c4 * B.c2 + A.c5 * B.c7 - A.c6 * B.c0 - A.c7 * B.c5;
+    ctype const c3 = A.c0 * B.c5 - A.c1 * B.c4 - A.c2 * B.c3 + A.c3 * B.c2 - A.c4 * B.c1 +
+                     A.c5 * B.c0 + A.c6 * B.c7 - A.c7 * B.c6;
+    ctype const c4 = -A.c0 * B.c7 + A.c1 * B.c2 - A.c2 * B.c1 - A.c7 * B.c0;
+    ctype const c5 = -A.c0 * B.c2 - A.c1 * B.c7 + A.c2 * B.c0 - A.c7 * B.c1;
+    ctype const c6 = A.c0 * B.c1 - A.c1 * B.c0 - A.c2 * B.c7 - A.c7 * B.c2;
+    ctype const c7 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 - A.c4 * B.c0 -
+                     A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 // geometric product A * B of a multivector A from the even subalgebra (3d case)
@@ -2528,19 +2550,20 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& A,
                                                         MVec3dp_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(A.c0 * B.c0 + A.c4 * B.c7 - A.c5 * B.c2 + A.c6 * B.c1,
-                      A.c0 * B.c1 + A.c4 * B.c2 + A.c5 * B.c7 - A.c6 * B.c0,
-                      A.c0 * B.c2 - A.c4 * B.c1 + A.c5 * B.c0 + A.c6 * B.c7,
-                      A.c0 * B.c3 + A.c1 * B.c0 + A.c2 * B.c1 + A.c3 * B.c2 -
-                          A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7),
-        TriVec3dp<ctype>(A.c0 * B.c4 - A.c1 * B.c7 + A.c2 * B.c2 - A.c3 * B.c1 +
-                             A.c4 * B.c3 - A.c5 * B.c6 + A.c6 * B.c5 - A.c7 * B.c0,
-                         A.c0 * B.c5 - A.c1 * B.c2 - A.c2 * B.c7 + A.c3 * B.c0 +
-                             A.c4 * B.c6 + A.c5 * B.c3 - A.c6 * B.c4 - A.c7 * B.c1,
-                         A.c0 * B.c6 + A.c1 * B.c1 - A.c2 * B.c0 - A.c3 * B.c7 -
-                             A.c4 * B.c5 + A.c5 * B.c4 + A.c6 * B.c3 - A.c7 * B.c2,
-                         A.c0 * B.c7 - A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2));
+    ctype const c0 = A.c0 * B.c0 + A.c4 * B.c7 - A.c5 * B.c2 + A.c6 * B.c1;
+    ctype const c1 = A.c0 * B.c1 + A.c4 * B.c2 + A.c5 * B.c7 - A.c6 * B.c0;
+    ctype const c2 = A.c0 * B.c2 - A.c4 * B.c1 + A.c5 * B.c0 + A.c6 * B.c7;
+    ctype const c3 = A.c0 * B.c3 + A.c1 * B.c0 + A.c2 * B.c1 + A.c3 * B.c2 - A.c4 * B.c4 -
+                     A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7;
+    ctype const c4 = A.c0 * B.c4 - A.c1 * B.c7 + A.c2 * B.c2 - A.c3 * B.c1 + A.c4 * B.c3 -
+                     A.c5 * B.c6 + A.c6 * B.c5 - A.c7 * B.c0;
+    ctype const c5 = A.c0 * B.c5 - A.c1 * B.c2 - A.c2 * B.c7 + A.c3 * B.c0 + A.c4 * B.c6 +
+                     A.c5 * B.c3 - A.c6 * B.c4 - A.c7 * B.c1;
+    ctype const c6 = A.c0 * B.c6 + A.c1 * B.c1 - A.c2 * B.c0 - A.c3 * B.c7 - A.c4 * B.c5 +
+                     A.c5 * B.c4 + A.c6 * B.c3 - A.c7 * B.c2;
+    ctype const c7 = A.c0 * B.c7 - A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 // geometric product A * B of a multivector A from the odd subalgebra (3d case)
@@ -2552,19 +2575,20 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& A,
                                                         MVec3dp_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(A.c0 * B.c0 - A.c1 * B.c6 + A.c2 * B.c5 + A.c7 * B.c4,
-                      A.c0 * B.c6 + A.c1 * B.c0 - A.c2 * B.c4 + A.c7 * B.c5,
-                      -A.c0 * B.c5 + A.c1 * B.c4 + A.c2 * B.c0 + A.c7 * B.c6,
-                      -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c0 -
-                          A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 + A.c7 * B.c7),
-        TriVec3dp<ctype>(A.c0 * B.c7 - A.c1 * B.c3 + A.c2 * B.c2 + A.c3 * B.c4 +
-                             A.c4 * B.c0 - A.c5 * B.c6 + A.c6 * B.c5 + A.c7 * B.c1,
-                         A.c0 * B.c3 + A.c1 * B.c7 - A.c2 * B.c1 + A.c3 * B.c5 +
-                             A.c4 * B.c6 + A.c5 * B.c0 - A.c6 * B.c4 + A.c7 * B.c2,
-                         -A.c0 * B.c2 + A.c1 * B.c1 + A.c2 * B.c7 + A.c3 * B.c6 -
-                             A.c4 * B.c5 + A.c5 * B.c4 + A.c6 * B.c0 + A.c7 * B.c3,
-                         -A.c0 * B.c4 - A.c1 * B.c5 - A.c2 * B.c6 + A.c7 * B.c0));
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c6 + A.c2 * B.c5 + A.c7 * B.c4;
+    ctype const c1 = A.c0 * B.c6 + A.c1 * B.c0 - A.c2 * B.c4 + A.c7 * B.c5;
+    ctype const c2 = -A.c0 * B.c5 + A.c1 * B.c4 + A.c2 * B.c0 + A.c7 * B.c6;
+    ctype const c3 = -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c0 -
+                     A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 + A.c7 * B.c7;
+    ctype const c4 = A.c0 * B.c7 - A.c1 * B.c3 + A.c2 * B.c2 + A.c3 * B.c4 + A.c4 * B.c0 -
+                     A.c5 * B.c6 + A.c6 * B.c5 + A.c7 * B.c1;
+    ctype const c5 = A.c0 * B.c3 + A.c1 * B.c7 - A.c2 * B.c1 + A.c3 * B.c5 + A.c4 * B.c6 +
+                     A.c5 * B.c0 - A.c6 * B.c4 + A.c7 * B.c2;
+    ctype const c6 = -A.c0 * B.c2 + A.c1 * B.c1 + A.c2 * B.c7 + A.c3 * B.c6 -
+                     A.c4 * B.c5 + A.c5 * B.c4 + A.c6 * B.c0 + A.c7 * B.c3;
+    ctype const c7 = -A.c0 * B.c4 - A.c1 * B.c5 - A.c2 * B.c6 + A.c7 * B.c0;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -2573,10 +2597,16 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& A,
                                                         PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(Scalar3dp<ctype>(0.0),
-                            BiVec3dp<ctype>(A.c4 * ctype(ps), A.c5 * ctype(ps),
-                                            A.c6 * ctype(ps), 0.0, 0.0, 0.0),
-                            PScalar3dp<ctype>(A.c0 * ctype(ps)));
+    ctype const c0 = 0.0;
+    ctype const c1 = A.c4 * ctype(ps);
+    ctype const c2 = A.c5 * ctype(ps);
+    ctype const c3 = A.c6 * ctype(ps);
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = A.c0 * ctype(ps);
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -2585,10 +2615,16 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
                                                         MVec3dp_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(Scalar3dp<ctype>(0.0),
-                            BiVec3dp<ctype>(ctype(ps) * B.c4, ctype(ps) * B.c5,
-                                            ctype(ps) * B.c6, 0.0, 0.0, 0.0),
-                            PScalar3dp<ctype>(ctype(ps) * B.c0));
+    ctype const c0 = 0.0;
+    ctype const c1 = ctype(ps) * B.c4;
+    ctype const c2 = ctype(ps) * B.c5;
+    ctype const c3 = ctype(ps) * B.c6;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = ctype(ps) * B.c0;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 
@@ -2598,9 +2634,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& A,
                                                         PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(0.0, 0.0, 0.0, A.c7 * ctype(ps)),
-        TriVec3dp<ctype>(A.c0 * ctype(ps), A.c1 * ctype(ps), A.c2 * ctype(ps), 0.0));
+    ctype const c0 = 0.0;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = A.c7 * ctype(ps);
+    ctype const c4 = A.c0 * ctype(ps);
+    ctype const c5 = A.c1 * ctype(ps);
+    ctype const c6 = A.c2 * ctype(ps);
+    ctype const c7 = 0.0;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -2609,9 +2652,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(PScalar3dp<T> ps,
                                                         MVec3dp_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(0.0, 0.0, 0.0, -ctype(ps) * B.c7),
-        TriVec3dp<ctype>(-ctype(ps) * B.c0, -ctype(ps) * B.c1, -ctype(ps) * B.c2, 0.0));
+    ctype const c0 = 0.0;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = -ctype(ps) * B.c7;
+    ctype const c4 = -ctype(ps) * B.c0;
+    ctype const c5 = -ctype(ps) * B.c1;
+    ctype const c6 = -ctype(ps) * B.c2;
+    ctype const c7 = 0.0;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 
@@ -2624,12 +2674,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& M,
                                                         TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(M.c4 * t.w, M.c5 * t.w, M.c6 * t.w,
-                      -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z - M.c7 * t.w),
-        TriVec3dp<ctype>(M.c0 * t.x - M.c1 * t.w - M.c5 * t.z + M.c6 * t.y,
-                         M.c0 * t.y - M.c2 * t.w + M.c4 * t.z - M.c6 * t.x,
-                         M.c0 * t.z - M.c3 * t.w - M.c4 * t.y + M.c5 * t.x, M.c0 * t.w));
+    ctype const c0 = M.c4 * t.w;
+    ctype const c1 = M.c5 * t.w;
+    ctype const c2 = M.c6 * t.w;
+    ctype const c3 = -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z - M.c7 * t.w;
+    ctype const c4 = M.c0 * t.x - M.c1 * t.w - M.c5 * t.z + M.c6 * t.y;
+    ctype const c5 = M.c0 * t.y - M.c2 * t.w + M.c4 * t.z - M.c6 * t.x;
+    ctype const c6 = M.c0 * t.z - M.c3 * t.w - M.c4 * t.y + M.c5 * t.x;
+    ctype const c7 = M.c0 * t.w;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -2638,12 +2692,52 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(TriVec3dp<T> const& t,
                                                         MVec3dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(t.w * M.c4, t.w * M.c5, t.w * M.c6,
-                      -t.x * M.c4 - t.y * M.c5 - t.z * M.c6 + t.w * M.c7),
-        TriVec3dp<ctype>(t.x * M.c0 - t.y * M.c6 + t.z * M.c5 + t.w * M.c1,
-                         t.x * M.c6 + t.y * M.c0 - t.z * M.c4 + t.w * M.c2,
-                         -t.x * M.c5 + t.y * M.c4 + t.z * M.c0 + t.w * M.c3, t.w * M.c0));
+    ctype const c0 = t.w * M.c4;
+    ctype const c1 = t.w * M.c5;
+    ctype const c2 = t.w * M.c6;
+    ctype const c3 = -t.x * M.c4 - t.y * M.c5 - t.z * M.c6 + t.w * M.c7;
+    ctype const c4 = t.x * M.c0 - t.y * M.c6 + t.z * M.c5 + t.w * M.c1;
+    ctype const c5 = t.x * M.c6 + t.y * M.c0 - t.z * M.c4 + t.w * M.c2;
+    ctype const c6 = -t.x * M.c5 + t.y * M.c4 + t.z * M.c0 + t.w * M.c3;
+    ctype const c7 = t.w * M.c0;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& M,
+                                                        TriVec3dp<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c7 * t.w;
+    ctype const c1 = M.c1 * t.z - M.c2 * t.y + M.c4 * t.w - M.c7 * t.x;
+    ctype const c2 = -M.c0 * t.z + M.c2 * t.x + M.c5 * t.w - M.c7 * t.y;
+    ctype const c3 = M.c0 * t.y - M.c1 * t.x + M.c6 * t.w - M.c7 * t.z;
+    ctype const c4 = -M.c0 * t.w;
+    ctype const c5 = -M.c1 * t.w;
+    ctype const c6 = -M.c2 * t.w;
+    ctype const c7 = M.c0 * t.x + M.c1 * t.y + M.c2 * t.z + M.c3 * t.w;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(TriVec3dp<T> const& t,
+                                                        MVec3dp_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.w * M.c7;
+    ctype const c1 = t.x * M.c7 - t.y * M.c2 + t.z * M.c1 - t.w * M.c4;
+    ctype const c2 = t.x * M.c2 + t.y * M.c7 - t.z * M.c0 - t.w * M.c5;
+    ctype const c3 = -t.x * M.c1 + t.y * M.c0 + t.z * M.c7 - t.w * M.c6;
+    ctype const c4 = -t.w * M.c0;
+    ctype const c5 = -t.w * M.c1;
+    ctype const c6 = -t.w * M.c2;
+    ctype const c7 = -t.x * M.c0 - t.y * M.c1 - t.z * M.c2 - t.w * M.c3;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 // geometric product M * B of a multivector M from the even subalgebra (3d case)
@@ -2655,18 +2749,20 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& M,
                                                         BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(Scalar3dp<ctype>(-M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz),
-                            BiVec3dp<ctype>(M.c0 * B.vx - M.c2 * B.mz + M.c3 * B.my -
-                                                M.c5 * B.vz + M.c6 * B.vy + M.c7 * B.mx,
-                                            M.c0 * B.vy + M.c1 * B.mz - M.c3 * B.mx +
-                                                M.c4 * B.vz - M.c6 * B.vx + M.c7 * B.my,
-                                            M.c0 * B.vz - M.c1 * B.my + M.c2 * B.mx -
-                                                M.c4 * B.vy + M.c5 * B.vx + M.c7 * B.mz,
-                                            M.c0 * B.mx - M.c5 * B.mz + M.c6 * B.my,
-                                            M.c0 * B.my + M.c4 * B.mz - M.c6 * B.mx,
-                                            M.c0 * B.mz - M.c4 * B.my + M.c5 * B.mx),
-                            PScalar3dp<ctype>(-M.c1 * B.mx - M.c2 * B.my - M.c3 * B.mz -
-                                              M.c4 * B.vx - M.c5 * B.vy - M.c6 * B.vz));
+    ctype const c0 = -M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz;
+    ctype const c1 =
+        M.c0 * B.vx - M.c2 * B.mz + M.c3 * B.my - M.c5 * B.vz + M.c6 * B.vy + M.c7 * B.mx;
+    ctype const c2 =
+        M.c0 * B.vy + M.c1 * B.mz - M.c3 * B.mx + M.c4 * B.vz - M.c6 * B.vx + M.c7 * B.my;
+    ctype const c3 =
+        M.c0 * B.vz - M.c1 * B.my + M.c2 * B.mx - M.c4 * B.vy + M.c5 * B.vx + M.c7 * B.mz;
+    ctype const c4 = M.c0 * B.mx - M.c5 * B.mz + M.c6 * B.my;
+    ctype const c5 = M.c0 * B.my + M.c4 * B.mz - M.c6 * B.mx;
+    ctype const c6 = M.c0 * B.mz - M.c4 * B.my + M.c5 * B.mx;
+    ctype const c7 = -M.c1 * B.mx - M.c2 * B.my - M.c3 * B.mz - M.c4 * B.vx -
+                     M.c5 * B.vy - M.c6 * B.vz;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -2675,18 +2771,20 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
                                                         MVec3dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(Scalar3dp<ctype>(-B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6),
-                            BiVec3dp<ctype>(B.vx * M.c0 - B.vy * M.c6 + B.vz * M.c5 +
-                                                B.mx * M.c7 - B.my * M.c3 + B.mz * M.c2,
-                                            B.vx * M.c6 + B.vy * M.c0 - B.vz * M.c4 +
-                                                B.mx * M.c3 + B.my * M.c7 - B.mz * M.c1,
-                                            -B.vx * M.c5 + B.vy * M.c4 + B.vz * M.c0 -
-                                                B.mx * M.c2 + B.my * M.c1 + B.mz * M.c7,
-                                            B.mx * M.c0 - B.my * M.c6 + B.mz * M.c5,
-                                            B.mx * M.c6 + B.my * M.c0 - B.mz * M.c4,
-                                            -B.mx * M.c5 + B.my * M.c4 + B.mz * M.c0),
-                            PScalar3dp<ctype>(-B.vx * M.c4 - B.vy * M.c5 - B.vz * M.c6 -
-                                              B.mx * M.c1 - B.my * M.c2 - B.mz * M.c3));
+    ctype const c0 = -B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6;
+    ctype const c1 =
+        B.vx * M.c0 - B.vy * M.c6 + B.vz * M.c5 + B.mx * M.c7 - B.my * M.c3 + B.mz * M.c2;
+    ctype const c2 =
+        B.vx * M.c6 + B.vy * M.c0 - B.vz * M.c4 + B.mx * M.c3 + B.my * M.c7 - B.mz * M.c1;
+    ctype const c3 = -B.vx * M.c5 + B.vy * M.c4 + B.vz * M.c0 - B.mx * M.c2 +
+                     B.my * M.c1 + B.mz * M.c7;
+    ctype const c4 = B.mx * M.c0 - B.my * M.c6 + B.mz * M.c5;
+    ctype const c5 = B.mx * M.c6 + B.my * M.c0 - B.mz * M.c4;
+    ctype const c6 = -B.mx * M.c5 + B.my * M.c4 + B.mz * M.c0;
+    ctype const c7 = -B.vx * M.c4 - B.vy * M.c5 - B.vz * M.c6 - B.mx * M.c1 -
+                     B.my * M.c2 - B.mz * M.c3;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -2695,18 +2793,20 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& M,
                                                         BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(Vec3dp<ctype>(-M.c1 * B.mz + M.c2 * B.my + M.c7 * B.mx,
-                                          M.c0 * B.mz - M.c2 * B.mx + M.c7 * B.my,
-                                          -M.c0 * B.my + M.c1 * B.mx + M.c7 * B.mz,
-                                          -M.c0 * B.vx - M.c1 * B.vy - M.c2 * B.vz -
-                                              M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz),
-                            TriVec3dp<ctype>(-M.c1 * B.vz + M.c2 * B.vy + M.c3 * B.mx -
-                                                 M.c5 * B.mz + M.c6 * B.my + M.c7 * B.vx,
-                                             M.c0 * B.vz - M.c2 * B.vx + M.c3 * B.my +
-                                                 M.c4 * B.mz - M.c6 * B.mx + M.c7 * B.vy,
-                                             -M.c0 * B.vy + M.c1 * B.vx + M.c3 * B.mz -
-                                                 M.c4 * B.my + M.c5 * B.mx + M.c7 * B.vz,
-                                             -M.c0 * B.mx - M.c1 * B.my - M.c2 * B.mz));
+    ctype const c0 = -M.c1 * B.mz + M.c2 * B.my + M.c7 * B.mx;
+    ctype const c1 = M.c0 * B.mz - M.c2 * B.mx + M.c7 * B.my;
+    ctype const c2 = -M.c0 * B.my + M.c1 * B.mx + M.c7 * B.mz;
+    ctype const c3 = -M.c0 * B.vx - M.c1 * B.vy - M.c2 * B.vz - M.c4 * B.mx -
+                     M.c5 * B.my - M.c6 * B.mz;
+    ctype const c4 = -M.c1 * B.vz + M.c2 * B.vy + M.c3 * B.mx - M.c5 * B.mz +
+                     M.c6 * B.my + M.c7 * B.vx;
+    ctype const c5 =
+        M.c0 * B.vz - M.c2 * B.vx + M.c3 * B.my + M.c4 * B.mz - M.c6 * B.mx + M.c7 * B.vy;
+    ctype const c6 = -M.c0 * B.vy + M.c1 * B.vx + M.c3 * B.mz - M.c4 * B.my +
+                     M.c5 * B.mx + M.c7 * B.vz;
+    ctype const c7 = -M.c0 * B.mx - M.c1 * B.my - M.c2 * B.mz;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -2715,18 +2815,20 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(BiVec3dp<T> const& B,
                                                         MVec3dp_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(Vec3dp<ctype>(B.mx * M.c7 - B.my * M.c2 + B.mz * M.c1,
-                                          B.mx * M.c2 + B.my * M.c7 - B.mz * M.c0,
-                                          -B.mx * M.c1 + B.my * M.c0 + B.mz * M.c7,
-                                          B.vx * M.c0 + B.vy * M.c1 + B.vz * M.c2 -
-                                              B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6),
-                            TriVec3dp<ctype>(-B.vx * M.c7 + B.vy * M.c2 - B.vz * M.c1 +
-                                                 B.mx * M.c3 - B.my * M.c6 + B.mz * M.c5,
-                                             -B.vx * M.c2 - B.vy * M.c7 + B.vz * M.c0 +
-                                                 B.mx * M.c6 + B.my * M.c3 - B.mz * M.c4,
-                                             B.vx * M.c1 - B.vy * M.c0 - B.vz * M.c7 -
-                                                 B.mx * M.c5 + B.my * M.c4 + B.mz * M.c3,
-                                             -B.mx * M.c0 - B.my * M.c1 - B.mz * M.c2));
+    ctype const c0 = B.mx * M.c7 - B.my * M.c2 + B.mz * M.c1;
+    ctype const c1 = B.mx * M.c2 + B.my * M.c7 - B.mz * M.c0;
+    ctype const c2 = -B.mx * M.c1 + B.my * M.c0 + B.mz * M.c7;
+    ctype const c3 =
+        B.vx * M.c0 + B.vy * M.c1 + B.vz * M.c2 - B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6;
+    ctype const c4 = -B.vx * M.c7 + B.vy * M.c2 - B.vz * M.c1 + B.mx * M.c3 -
+                     B.my * M.c6 + B.mz * M.c5;
+    ctype const c5 = -B.vx * M.c2 - B.vy * M.c7 + B.vz * M.c0 + B.mx * M.c6 +
+                     B.my * M.c3 - B.mz * M.c4;
+    ctype const c6 =
+        B.vx * M.c1 - B.vy * M.c0 - B.vz * M.c7 - B.mx * M.c5 + B.my * M.c4 + B.mz * M.c3;
+    ctype const c7 = -B.mx * M.c0 - B.my * M.c1 - B.mz * M.c2;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 // geometric product A * v of an even grade multivector A with a vector v
@@ -2738,15 +2840,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& A,
                                                         Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(A.c0 * v.x - A.c5 * v.z + A.c6 * v.y,
-                      A.c0 * v.y + A.c4 * v.z - A.c6 * v.x,
-                      A.c0 * v.z - A.c4 * v.y + A.c5 * v.x,
-                      A.c0 * v.w + A.c1 * v.x + A.c2 * v.y + A.c3 * v.z),
-        TriVec3dp<ctype>(A.c2 * v.z - A.c3 * v.y + A.c4 * v.w - A.c7 * v.x,
-                         -A.c1 * v.z + A.c3 * v.x + A.c5 * v.w - A.c7 * v.y,
-                         A.c1 * v.y - A.c2 * v.x + A.c6 * v.w - A.c7 * v.z,
-                         -A.c4 * v.x - A.c5 * v.y - A.c6 * v.z));
+    ctype const c0 = A.c0 * v.x - A.c5 * v.z + A.c6 * v.y;
+    ctype const c1 = A.c0 * v.y + A.c4 * v.z - A.c6 * v.x;
+    ctype const c2 = A.c0 * v.z - A.c4 * v.y + A.c5 * v.x;
+    ctype const c3 = A.c0 * v.w + A.c1 * v.x + A.c2 * v.y + A.c3 * v.z;
+    ctype const c4 = A.c2 * v.z - A.c3 * v.y + A.c4 * v.w - A.c7 * v.x;
+    ctype const c5 = -A.c1 * v.z + A.c3 * v.x + A.c5 * v.w - A.c7 * v.y;
+    ctype const c6 = A.c1 * v.y - A.c2 * v.x + A.c6 * v.w - A.c7 * v.z;
+    ctype const c7 = -A.c4 * v.x - A.c5 * v.y - A.c6 * v.z;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 // geometric product v * B of an even grade multivector B with a vector v
@@ -2758,15 +2861,125 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(Vec3dp<T> const& v,
                                                         MVec3dp_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(v.x * B.c0 - v.y * B.c6 + v.z * B.c5,
-                      v.x * B.c6 + v.y * B.c0 - v.z * B.c4,
-                      -v.x * B.c5 + v.y * B.c4 + v.z * B.c0,
-                      -v.x * B.c1 - v.y * B.c2 - v.z * B.c3 + v.w * B.c0),
-        TriVec3dp<ctype>(v.x * B.c7 - v.y * B.c3 + v.z * B.c2 + v.w * B.c4,
-                         v.x * B.c3 + v.y * B.c7 - v.z * B.c1 + v.w * B.c5,
-                         -v.x * B.c2 + v.y * B.c1 + v.z * B.c7 + v.w * B.c6,
-                         -v.x * B.c4 - v.y * B.c5 - v.z * B.c6));
+    ctype const c0 = v.x * B.c0 - v.y * B.c6 + v.z * B.c5;
+    ctype const c1 = v.x * B.c6 + v.y * B.c0 - v.z * B.c4;
+    ctype const c2 = -v.x * B.c5 + v.y * B.c4 + v.z * B.c0;
+    ctype const c3 = -v.x * B.c1 - v.y * B.c2 - v.z * B.c3 + v.w * B.c0;
+    ctype const c4 = v.x * B.c7 - v.y * B.c3 + v.z * B.c2 + v.w * B.c4;
+    ctype const c5 = v.x * B.c3 + v.y * B.c7 - v.z * B.c1 + v.w * B.c5;
+    ctype const c6 = -v.x * B.c2 + v.y * B.c1 + v.z * B.c7 + v.w * B.c6;
+    ctype const c7 = -v.x * B.c4 - v.y * B.c5 - v.z * B.c6;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& M,
+                                                        Vec3dp<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * v.x + M.c1 * v.y + M.c2 * v.z;
+    ctype const c1 = -M.c0 * v.w + M.c3 * v.x - M.c5 * v.z + M.c6 * v.y;
+    ctype const c2 = -M.c1 * v.w + M.c3 * v.y + M.c4 * v.z - M.c6 * v.x;
+    ctype const c3 = -M.c2 * v.w + M.c3 * v.z - M.c4 * v.y + M.c5 * v.x;
+    ctype const c4 = M.c1 * v.z - M.c2 * v.y - M.c7 * v.x;
+    ctype const c5 = -M.c0 * v.z + M.c2 * v.x - M.c7 * v.y;
+    ctype const c6 = M.c0 * v.y - M.c1 * v.x - M.c7 * v.z;
+    ctype const c7 = -M.c4 * v.x - M.c5 * v.y - M.c6 * v.z - M.c7 * v.w;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
+}
+
+// pga3dp gpr :: vec * mv_u -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(Vec3dp<T> const& v,
+                                                        MVec3dp_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.x * M.c0 + v.y * M.c1 + v.z * M.c2;
+    ctype const c1 = -v.x * M.c3 + v.y * M.c6 - v.z * M.c5 + v.w * M.c0;
+    ctype const c2 = -v.x * M.c6 - v.y * M.c3 + v.z * M.c4 + v.w * M.c1;
+    ctype const c3 = v.x * M.c5 - v.y * M.c4 - v.z * M.c3 + v.w * M.c2;
+    ctype const c4 = -v.x * M.c7 + v.y * M.c2 - v.z * M.c1;
+    ctype const c5 = -v.x * M.c2 - v.y * M.c7 + v.z * M.c0;
+    ctype const c6 = v.x * M.c1 - v.y * M.c0 - v.z * M.c7;
+    ctype const c7 = v.x * M.c4 + v.y * M.c5 + v.z * M.c6 + v.w * M.c7;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(MVec3dp_E<T> const& M,
+                                                        Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = M.c1 * ctype(s);
+    ctype const c2 = M.c2 * ctype(s);
+    ctype const c3 = M.c3 * ctype(s);
+    ctype const c4 = M.c4 * ctype(s);
+    ctype const c5 = M.c5 * ctype(s);
+    ctype const c6 = M.c6 * ctype(s);
+    ctype const c7 = M.c7 * ctype(s);
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> operator*(Scalar3dp<T> s,
+                                                        MVec3dp_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = ctype(s) * M.c1;
+    ctype const c2 = ctype(s) * M.c2;
+    ctype const c3 = ctype(s) * M.c3;
+    ctype const c4 = ctype(s) * M.c4;
+    ctype const c5 = ctype(s) * M.c5;
+    ctype const c6 = ctype(s) * M.c6;
+    ctype const c7 = ctype(s) * M.c7;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(MVec3dp_U<T> const& M,
+                                                        Scalar3dp<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = M.c1 * ctype(s);
+    ctype const c2 = M.c2 * ctype(s);
+    ctype const c3 = M.c3 * ctype(s);
+    ctype const c4 = M.c4 * ctype(s);
+    ctype const c5 = M.c5 * ctype(s);
+    ctype const c6 = M.c6 * ctype(s);
+    ctype const c7 = M.c7 * ctype(s);
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_U<std::common_type_t<T, U>> operator*(Scalar3dp<T> s,
+                                                        MVec3dp_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = ctype(s) * M.c1;
+    ctype const c2 = ctype(s) * M.c2;
+    ctype const c3 = ctype(s) * M.c3;
+    ctype const c4 = ctype(s) * M.c4;
+    ctype const c5 = ctype(s) * M.c5;
+    ctype const c6 = ctype(s) * M.c6;
+    ctype const c7 = ctype(s) * M.c7;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 // geometric product of two quadvectors (=3dp pseudoscalars)
@@ -3245,6 +3458,74 @@ constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& A,
 
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& A,
+                                                 MVec3dp_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 + A.c4 * B.c7 -
+                     A.c11 * B.c0 - A.c12 * B.c1 - A.c13 * B.c2 - A.c14 * B.c3;
+    ctype const c1 = A.c0 * B.c4 + A.c5 * B.c7 + A.c6 * B.c2 - A.c7 * B.c1 + A.c8 * B.c3 +
+                     A.c9 * B.c6 - A.c10 * B.c5 + A.c15 * B.c0;
+    ctype const c2 = A.c0 * B.c5 - A.c5 * B.c2 + A.c6 * B.c7 + A.c7 * B.c0 - A.c8 * B.c6 +
+                     A.c9 * B.c3 + A.c10 * B.c4 + A.c15 * B.c1;
+    ctype const c3 = A.c0 * B.c6 + A.c5 * B.c1 - A.c6 * B.c0 + A.c7 * B.c7 + A.c8 * B.c5 -
+                     A.c9 * B.c4 + A.c10 * B.c3 + A.c15 * B.c2;
+    ctype const c4 = -A.c5 * B.c4 - A.c6 * B.c5 - A.c7 * B.c6 + A.c15 * B.c3;
+    ctype const c5 = -A.c4 * B.c4 - A.c11 * B.c3 - A.c12 * B.c6 + A.c13 * B.c5;
+    ctype const c6 = -A.c4 * B.c5 + A.c11 * B.c6 - A.c12 * B.c3 - A.c13 * B.c4;
+    ctype const c7 = -A.c4 * B.c6 - A.c11 * B.c5 + A.c12 * B.c4 - A.c13 * B.c3;
+    ctype const c8 = -A.c1 * B.c3 - A.c2 * B.c6 + A.c3 * B.c5 + A.c4 * B.c0 +
+                     A.c11 * B.c7 + A.c12 * B.c2 - A.c13 * B.c1 - A.c14 * B.c4;
+    ctype const c9 = A.c1 * B.c6 - A.c2 * B.c3 - A.c3 * B.c4 + A.c4 * B.c1 -
+                     A.c11 * B.c2 + A.c12 * B.c7 + A.c13 * B.c0 - A.c14 * B.c5;
+    ctype const c10 = -A.c1 * B.c5 + A.c2 * B.c4 - A.c3 * B.c3 + A.c4 * B.c2 +
+                      A.c11 * B.c1 - A.c12 * B.c0 + A.c13 * B.c7 - A.c14 * B.c6;
+    ctype const c11 = A.c5 * B.c3 + A.c6 * B.c6 - A.c7 * B.c5 + A.c15 * B.c4;
+    ctype const c12 = -A.c5 * B.c6 + A.c6 * B.c3 + A.c7 * B.c4 + A.c15 * B.c5;
+    ctype const c13 = A.c5 * B.c5 - A.c6 * B.c4 + A.c7 * B.c3 + A.c15 * B.c6;
+    ctype const c14 = A.c0 * B.c3 - A.c5 * B.c0 - A.c6 * B.c1 - A.c7 * B.c2 -
+                      A.c8 * B.c4 - A.c9 * B.c5 - A.c10 * B.c6 + A.c15 * B.c7;
+    ctype const c15 = -A.c4 * B.c3 + A.c11 * B.c4 + A.c12 * B.c5 + A.c13 * B.c6;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp_U<T> const& A,
+                                                 MVec3dp<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c11 + A.c1 * B.c12 + A.c2 * B.c13 + A.c3 * B.c14 -
+                     A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3 - A.c7 * B.c4;
+    ctype const c1 = A.c0 * B.c15 + A.c1 * B.c7 - A.c2 * B.c6 - A.c3 * B.c8 -
+                     A.c4 * B.c0 - A.c5 * B.c10 + A.c6 * B.c9 + A.c7 * B.c5;
+    ctype const c2 = -A.c0 * B.c7 + A.c1 * B.c15 + A.c2 * B.c5 - A.c3 * B.c9 +
+                     A.c4 * B.c10 - A.c5 * B.c0 - A.c6 * B.c8 + A.c7 * B.c6;
+    ctype const c3 = A.c0 * B.c6 - A.c1 * B.c5 + A.c2 * B.c15 - A.c3 * B.c10 -
+                     A.c4 * B.c9 + A.c5 * B.c8 - A.c6 * B.c0 + A.c7 * B.c7;
+    ctype const c4 = A.c3 * B.c15 - A.c4 * B.c5 - A.c5 * B.c6 - A.c6 * B.c7;
+    ctype const c5 = -A.c3 * B.c11 - A.c4 * B.c4 - A.c5 * B.c13 + A.c6 * B.c12;
+    ctype const c6 = -A.c3 * B.c12 + A.c4 * B.c13 - A.c5 * B.c4 - A.c6 * B.c11;
+    ctype const c7 = -A.c3 * B.c13 - A.c4 * B.c12 + A.c5 * B.c11 - A.c6 * B.c4;
+    ctype const c8 = -A.c0 * B.c4 - A.c1 * B.c13 + A.c2 * B.c12 + A.c3 * B.c1 +
+                     A.c4 * B.c14 + A.c5 * B.c3 - A.c6 * B.c2 - A.c7 * B.c11;
+    ctype const c9 = A.c0 * B.c13 - A.c1 * B.c4 - A.c2 * B.c11 + A.c3 * B.c2 -
+                     A.c4 * B.c3 + A.c5 * B.c14 + A.c6 * B.c1 - A.c7 * B.c12;
+    ctype const c10 = -A.c0 * B.c12 + A.c1 * B.c11 - A.c2 * B.c4 + A.c3 * B.c3 +
+                      A.c4 * B.c2 - A.c5 * B.c1 + A.c6 * B.c14 - A.c7 * B.c13;
+    ctype const c11 = A.c3 * B.c5 + A.c4 * B.c15 + A.c5 * B.c7 - A.c6 * B.c6;
+    ctype const c12 = A.c3 * B.c6 - A.c4 * B.c7 + A.c5 * B.c15 + A.c6 * B.c5;
+    ctype const c13 = A.c3 * B.c7 + A.c4 * B.c6 - A.c5 * B.c5 + A.c6 * B.c15;
+    ctype const c14 = -A.c0 * B.c5 - A.c1 * B.c6 - A.c2 * B.c7 - A.c3 * B.c0 +
+                      A.c4 * B.c8 + A.c5 * B.c9 + A.c6 * B.c10 + A.c7 * B.c15;
+    ctype const c15 = -A.c3 * B.c4 + A.c4 * B.c11 + A.c5 * B.c12 + A.c6 * B.c13;
+    return MVec3dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp<std::common_type_t<T, U>> rgpr(MVec3dp<T> const& M, PScalar3dp<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
@@ -3349,19 +3630,20 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& A,
                                                    MVec3dp_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 -
-                         A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0),
-        BiVec3dp<ctype>(A.c1 * B.c7 + A.c2 * B.c3 - A.c3 * B.c2 + A.c7 * B.c1,
-                        -A.c1 * B.c3 + A.c2 * B.c7 + A.c3 * B.c1 + A.c7 * B.c2,
-                        A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c7 + A.c7 * B.c3,
-                        A.c0 * B.c1 + A.c1 * B.c0 + A.c2 * B.c6 - A.c3 * B.c5 +
-                            A.c4 * B.c7 + A.c5 * B.c3 - A.c6 * B.c2 + A.c7 * B.c4,
-                        A.c0 * B.c2 - A.c1 * B.c6 + A.c2 * B.c0 + A.c3 * B.c4 -
-                            A.c4 * B.c3 + A.c5 * B.c7 + A.c6 * B.c1 + A.c7 * B.c5,
-                        A.c0 * B.c3 + A.c1 * B.c5 - A.c2 * B.c4 + A.c3 * B.c0 +
-                            A.c4 * B.c2 - A.c5 * B.c1 + A.c6 * B.c7 + A.c7 * B.c6),
-        PScalar3dp<ctype>(-A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c7 * B.c7));
+    ctype const c0 = A.c0 * B.c7 - A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 - A.c4 * B.c1 -
+                     A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c0;
+    ctype const c1 = A.c1 * B.c7 + A.c2 * B.c3 - A.c3 * B.c2 + A.c7 * B.c1;
+    ctype const c2 = -A.c1 * B.c3 + A.c2 * B.c7 + A.c3 * B.c1 + A.c7 * B.c2;
+    ctype const c3 = A.c1 * B.c2 - A.c2 * B.c1 + A.c3 * B.c7 + A.c7 * B.c3;
+    ctype const c4 = A.c0 * B.c1 + A.c1 * B.c0 + A.c2 * B.c6 - A.c3 * B.c5 + A.c4 * B.c7 +
+                     A.c5 * B.c3 - A.c6 * B.c2 + A.c7 * B.c4;
+    ctype const c5 = A.c0 * B.c2 - A.c1 * B.c6 + A.c2 * B.c0 + A.c3 * B.c4 - A.c4 * B.c3 +
+                     A.c5 * B.c7 + A.c6 * B.c1 + A.c7 * B.c5;
+    ctype const c6 = A.c0 * B.c3 + A.c1 * B.c5 - A.c2 * B.c4 + A.c3 * B.c0 + A.c4 * B.c2 -
+                     A.c5 * B.c1 + A.c6 * B.c7 + A.c7 * B.c6;
+    ctype const c7 = -A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c7 * B.c7;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3370,19 +3652,64 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(MVec3dp_U<T> const& A,
                                                    MVec3dp_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(A.c0 * B.c7 + A.c1 * B.c3 - A.c2 * B.c2 - A.c3 * B.c4 -
-                          A.c4 * B.c0 - A.c5 * B.c6 + A.c6 * B.c5 + A.c7 * B.c1,
-                      -A.c0 * B.c3 + A.c1 * B.c7 + A.c2 * B.c1 - A.c3 * B.c5 +
-                          A.c4 * B.c6 - A.c5 * B.c0 - A.c6 * B.c4 + A.c7 * B.c2,
-                      A.c0 * B.c2 - A.c1 * B.c1 + A.c2 * B.c7 - A.c3 * B.c6 -
-                          A.c4 * B.c5 + A.c5 * B.c4 - A.c6 * B.c0 + A.c7 * B.c3,
-                      A.c3 * B.c7 - A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3),
-        TriVec3dp<ctype>(A.c3 * B.c1 + A.c4 * B.c7 + A.c5 * B.c3 - A.c6 * B.c2,
-                         A.c3 * B.c2 - A.c4 * B.c3 + A.c5 * B.c7 + A.c6 * B.c1,
-                         A.c3 * B.c3 + A.c4 * B.c2 - A.c5 * B.c1 + A.c6 * B.c7,
-                         -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 - A.c3 * B.c0 +
-                             A.c4 * B.c4 + A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7));
+    ctype const c0 = A.c0 * B.c7 + A.c1 * B.c3 - A.c2 * B.c2 - A.c3 * B.c4 - A.c4 * B.c0 -
+                     A.c5 * B.c6 + A.c6 * B.c5 + A.c7 * B.c1;
+    ctype const c1 = -A.c0 * B.c3 + A.c1 * B.c7 + A.c2 * B.c1 - A.c3 * B.c5 +
+                     A.c4 * B.c6 - A.c5 * B.c0 - A.c6 * B.c4 + A.c7 * B.c2;
+    ctype const c2 = A.c0 * B.c2 - A.c1 * B.c1 + A.c2 * B.c7 - A.c3 * B.c6 - A.c4 * B.c5 +
+                     A.c5 * B.c4 - A.c6 * B.c0 + A.c7 * B.c3;
+    ctype const c3 = A.c3 * B.c7 - A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3;
+    ctype const c4 = A.c3 * B.c1 + A.c4 * B.c7 + A.c5 * B.c3 - A.c6 * B.c2;
+    ctype const c5 = A.c3 * B.c2 - A.c4 * B.c3 + A.c5 * B.c7 + A.c6 * B.c1;
+    ctype const c6 = A.c3 * B.c3 + A.c4 * B.c2 - A.c5 * B.c1 + A.c6 * B.c7;
+    ctype const c7 = -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 - A.c3 * B.c0 +
+                     A.c4 * B.c4 + A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& A,
+                                                   MVec3dp_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c4 + A.c1 * B.c7 + A.c2 * B.c2 - A.c3 * B.c1 + A.c4 * B.c3 +
+                     A.c5 * B.c6 - A.c6 * B.c5 + A.c7 * B.c0;
+    ctype const c1 = A.c0 * B.c5 - A.c1 * B.c2 + A.c2 * B.c7 + A.c3 * B.c0 - A.c4 * B.c6 +
+                     A.c5 * B.c3 + A.c6 * B.c4 + A.c7 * B.c1;
+    ctype const c2 = A.c0 * B.c6 + A.c1 * B.c1 - A.c2 * B.c0 + A.c3 * B.c7 + A.c4 * B.c5 -
+                     A.c5 * B.c4 + A.c6 * B.c3 + A.c7 * B.c2;
+    ctype const c3 = -A.c1 * B.c4 - A.c2 * B.c5 - A.c3 * B.c6 + A.c7 * B.c3;
+    ctype const c4 = A.c1 * B.c3 + A.c2 * B.c6 - A.c3 * B.c5 + A.c7 * B.c4;
+    ctype const c5 = -A.c1 * B.c6 + A.c2 * B.c3 + A.c3 * B.c4 + A.c7 * B.c5;
+    ctype const c6 = A.c1 * B.c5 - A.c2 * B.c4 + A.c3 * B.c3 + A.c7 * B.c6;
+    ctype const c7 = A.c0 * B.c3 - A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2 - A.c4 * B.c4 -
+                     A.c5 * B.c5 - A.c6 * B.c6 + A.c7 * B.c7;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(MVec3dp_U<T> const& A,
+                                                   MVec3dp_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 - A.c4 * B.c0 -
+                     A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3;
+    ctype const c1 = -A.c3 * B.c4 - A.c4 * B.c3 - A.c5 * B.c6 + A.c6 * B.c5;
+    ctype const c2 = -A.c3 * B.c5 + A.c4 * B.c6 - A.c5 * B.c3 - A.c6 * B.c4;
+    ctype const c3 = -A.c3 * B.c6 - A.c4 * B.c5 + A.c5 * B.c4 - A.c6 * B.c3;
+    ctype const c4 = -A.c0 * B.c3 - A.c1 * B.c6 + A.c2 * B.c5 + A.c3 * B.c0 +
+                     A.c4 * B.c7 + A.c5 * B.c2 - A.c6 * B.c1 - A.c7 * B.c4;
+    ctype const c5 = A.c0 * B.c6 - A.c1 * B.c3 - A.c2 * B.c4 + A.c3 * B.c1 - A.c4 * B.c2 +
+                     A.c5 * B.c7 + A.c6 * B.c0 - A.c7 * B.c5;
+    ctype const c6 = -A.c0 * B.c5 + A.c1 * B.c4 - A.c2 * B.c3 + A.c3 * B.c2 +
+                     A.c4 * B.c1 - A.c5 * B.c0 + A.c6 * B.c7 - A.c7 * B.c6;
+    ctype const c7 = -A.c3 * B.c3 + A.c4 * B.c4 + A.c5 * B.c5 + A.c6 * B.c6;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3391,15 +3718,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& M,
                                                    TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(M.c0 * t.x + M.c1 * t.w + M.c5 * t.z - M.c6 * t.y,
-                      M.c0 * t.y + M.c2 * t.w - M.c4 * t.z + M.c6 * t.x,
-                      M.c0 * t.z + M.c3 * t.w + M.c4 * t.y - M.c5 * t.x,
-                      -M.c1 * t.x - M.c2 * t.y - M.c3 * t.z),
-        TriVec3dp<ctype>(M.c2 * t.z - M.c3 * t.y + M.c7 * t.x,
-                         -M.c1 * t.z + M.c3 * t.x + M.c7 * t.y,
-                         M.c1 * t.y - M.c2 * t.x + M.c7 * t.z,
-                         -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z + M.c7 * t.w));
+    ctype const c0 = M.c0 * t.x + M.c1 * t.w + M.c5 * t.z - M.c6 * t.y;
+    ctype const c1 = M.c0 * t.y + M.c2 * t.w - M.c4 * t.z + M.c6 * t.x;
+    ctype const c2 = M.c0 * t.z + M.c3 * t.w + M.c4 * t.y - M.c5 * t.x;
+    ctype const c3 = -M.c1 * t.x - M.c2 * t.y - M.c3 * t.z;
+    ctype const c4 = M.c2 * t.z - M.c3 * t.y + M.c7 * t.x;
+    ctype const c5 = -M.c1 * t.z + M.c3 * t.x + M.c7 * t.y;
+    ctype const c6 = M.c1 * t.y - M.c2 * t.x + M.c7 * t.z;
+    ctype const c7 = -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z + M.c7 * t.w;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3408,15 +3736,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(TriVec3dp<T> const& t,
                                                    MVec3dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(-t.x * M.c0 - t.y * M.c6 + t.z * M.c5 + t.w * M.c1,
-                      t.x * M.c6 - t.y * M.c0 - t.z * M.c4 + t.w * M.c2,
-                      -t.x * M.c5 + t.y * M.c4 - t.z * M.c0 + t.w * M.c3,
-                      -t.x * M.c1 - t.y * M.c2 - t.z * M.c3),
-        TriVec3dp<ctype>(t.x * M.c7 + t.y * M.c3 - t.z * M.c2,
-                         -t.x * M.c3 + t.y * M.c7 + t.z * M.c1,
-                         t.x * M.c2 - t.y * M.c1 + t.z * M.c7,
-                         t.x * M.c4 + t.y * M.c5 + t.z * M.c6 + t.w * M.c7));
+    ctype const c0 = -t.x * M.c0 - t.y * M.c6 + t.z * M.c5 + t.w * M.c1;
+    ctype const c1 = t.x * M.c6 - t.y * M.c0 - t.z * M.c4 + t.w * M.c2;
+    ctype const c2 = -t.x * M.c5 + t.y * M.c4 - t.z * M.c0 + t.w * M.c3;
+    ctype const c3 = -t.x * M.c1 - t.y * M.c2 - t.z * M.c3;
+    ctype const c4 = t.x * M.c7 + t.y * M.c3 - t.z * M.c2;
+    ctype const c5 = -t.x * M.c3 + t.y * M.c7 + t.z * M.c1;
+    ctype const c6 = t.x * M.c2 - t.y * M.c1 + t.z * M.c7;
+    ctype const c7 = t.x * M.c4 + t.y * M.c5 + t.z * M.c6 + t.w * M.c7;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3425,15 +3754,16 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(MVec3dp_U<T> const& M,
                                                    TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(M.c0 * t.x + M.c1 * t.y + M.c2 * t.z + M.c3 * t.w),
-        BiVec3dp<ctype>(-M.c3 * t.x - M.c5 * t.z + M.c6 * t.y,
-                        -M.c3 * t.y + M.c4 * t.z - M.c6 * t.x,
-                        -M.c3 * t.z - M.c4 * t.y + M.c5 * t.x,
-                        -M.c1 * t.z + M.c2 * t.y + M.c4 * t.w - M.c7 * t.x,
-                        M.c0 * t.z - M.c2 * t.x + M.c5 * t.w - M.c7 * t.y,
-                        -M.c0 * t.y + M.c1 * t.x + M.c6 * t.w - M.c7 * t.z),
-        PScalar3dp<ctype>(M.c4 * t.x + M.c5 * t.y + M.c6 * t.z));
+    ctype const c0 = M.c0 * t.x + M.c1 * t.y + M.c2 * t.z + M.c3 * t.w;
+    ctype const c1 = -M.c3 * t.x - M.c5 * t.z + M.c6 * t.y;
+    ctype const c2 = -M.c3 * t.y + M.c4 * t.z - M.c6 * t.x;
+    ctype const c3 = -M.c3 * t.z - M.c4 * t.y + M.c5 * t.x;
+    ctype const c4 = -M.c1 * t.z + M.c2 * t.y + M.c4 * t.w - M.c7 * t.x;
+    ctype const c5 = M.c0 * t.z - M.c2 * t.x + M.c5 * t.w - M.c7 * t.y;
+    ctype const c6 = -M.c0 * t.y + M.c1 * t.x + M.c6 * t.w - M.c7 * t.z;
+    ctype const c7 = M.c4 * t.x + M.c5 * t.y + M.c6 * t.z;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3442,15 +3772,16 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(TriVec3dp<T> const& t,
                                                    MVec3dp_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(-t.x * M.c0 - t.y * M.c1 - t.z * M.c2 - t.w * M.c3),
-        BiVec3dp<ctype>(-t.x * M.c3 - t.y * M.c6 + t.z * M.c5,
-                        t.x * M.c6 - t.y * M.c3 - t.z * M.c4,
-                        -t.x * M.c5 + t.y * M.c4 - t.z * M.c3,
-                        t.x * M.c7 + t.y * M.c2 - t.z * M.c1 - t.w * M.c4,
-                        -t.x * M.c2 + t.y * M.c7 + t.z * M.c0 - t.w * M.c5,
-                        t.x * M.c1 - t.y * M.c0 + t.z * M.c7 - t.w * M.c6),
-        PScalar3dp<ctype>(t.x * M.c4 + t.y * M.c5 + t.z * M.c6));
+    ctype const c0 = -t.x * M.c0 - t.y * M.c1 - t.z * M.c2 - t.w * M.c3;
+    ctype const c1 = -t.x * M.c3 - t.y * M.c6 + t.z * M.c5;
+    ctype const c2 = t.x * M.c6 - t.y * M.c3 - t.z * M.c4;
+    ctype const c3 = -t.x * M.c5 + t.y * M.c4 - t.z * M.c3;
+    ctype const c4 = t.x * M.c7 + t.y * M.c2 - t.z * M.c1 - t.w * M.c4;
+    ctype const c5 = -t.x * M.c2 + t.y * M.c7 + t.z * M.c0 - t.w * M.c5;
+    ctype const c6 = t.x * M.c1 - t.y * M.c0 + t.z * M.c7 - t.w * M.c6;
+    ctype const c7 = t.x * M.c4 + t.y * M.c5 + t.z * M.c6;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3459,18 +3790,20 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& M,
                                                    BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(Scalar3dp<ctype>(-M.c1 * B.mx - M.c2 * B.my - M.c3 * B.mz -
-                                             M.c4 * B.vx - M.c5 * B.vy - M.c6 * B.vz),
-                            BiVec3dp<ctype>(M.c2 * B.vz - M.c3 * B.vy + M.c7 * B.vx,
-                                            -M.c1 * B.vz + M.c3 * B.vx + M.c7 * B.vy,
-                                            M.c1 * B.vy - M.c2 * B.vx + M.c7 * B.vz,
-                                            M.c0 * B.vx + M.c2 * B.mz - M.c3 * B.my +
-                                                M.c5 * B.vz - M.c6 * B.vy + M.c7 * B.mx,
-                                            M.c0 * B.vy - M.c1 * B.mz + M.c3 * B.mx -
-                                                M.c4 * B.vz + M.c6 * B.vx + M.c7 * B.my,
-                                            M.c0 * B.vz + M.c1 * B.my - M.c2 * B.mx +
-                                                M.c4 * B.vy - M.c5 * B.vx + M.c7 * B.mz),
-                            PScalar3dp<ctype>(-M.c1 * B.vx - M.c2 * B.vy - M.c3 * B.vz));
+    ctype const c0 = -M.c1 * B.mx - M.c2 * B.my - M.c3 * B.mz - M.c4 * B.vx -
+                     M.c5 * B.vy - M.c6 * B.vz;
+    ctype const c1 = M.c2 * B.vz - M.c3 * B.vy + M.c7 * B.vx;
+    ctype const c2 = -M.c1 * B.vz + M.c3 * B.vx + M.c7 * B.vy;
+    ctype const c3 = M.c1 * B.vy - M.c2 * B.vx + M.c7 * B.vz;
+    ctype const c4 =
+        M.c0 * B.vx + M.c2 * B.mz - M.c3 * B.my + M.c5 * B.vz - M.c6 * B.vy + M.c7 * B.mx;
+    ctype const c5 =
+        M.c0 * B.vy - M.c1 * B.mz + M.c3 * B.mx - M.c4 * B.vz + M.c6 * B.vx + M.c7 * B.my;
+    ctype const c6 =
+        M.c0 * B.vz + M.c1 * B.my - M.c2 * B.mx + M.c4 * B.vy - M.c5 * B.vx + M.c7 * B.mz;
+    ctype const c7 = -M.c1 * B.vx - M.c2 * B.vy - M.c3 * B.vz;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3479,18 +3812,20 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(BiVec3dp<T> const& B,
                                                    MVec3dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(Scalar3dp<ctype>(-B.vx * M.c4 - B.vy * M.c5 - B.vz * M.c6 -
-                                             B.mx * M.c1 - B.my * M.c2 - B.mz * M.c3),
-                            BiVec3dp<ctype>(B.vx * M.c7 + B.vy * M.c3 - B.vz * M.c2,
-                                            -B.vx * M.c3 + B.vy * M.c7 + B.vz * M.c1,
-                                            B.vx * M.c2 - B.vy * M.c1 + B.vz * M.c7,
-                                            B.vx * M.c0 + B.vy * M.c6 - B.vz * M.c5 +
-                                                B.mx * M.c7 + B.my * M.c3 - B.mz * M.c2,
-                                            -B.vx * M.c6 + B.vy * M.c0 + B.vz * M.c4 -
-                                                B.mx * M.c3 + B.my * M.c7 + B.mz * M.c1,
-                                            B.vx * M.c5 - B.vy * M.c4 + B.vz * M.c0 +
-                                                B.mx * M.c2 - B.my * M.c1 + B.mz * M.c7),
-                            PScalar3dp<ctype>(-B.vx * M.c1 - B.vy * M.c2 - B.vz * M.c3));
+    ctype const c0 = -B.vx * M.c4 - B.vy * M.c5 - B.vz * M.c6 - B.mx * M.c1 -
+                     B.my * M.c2 - B.mz * M.c3;
+    ctype const c1 = B.vx * M.c7 + B.vy * M.c3 - B.vz * M.c2;
+    ctype const c2 = -B.vx * M.c3 + B.vy * M.c7 + B.vz * M.c1;
+    ctype const c3 = B.vx * M.c2 - B.vy * M.c1 + B.vz * M.c7;
+    ctype const c4 =
+        B.vx * M.c0 + B.vy * M.c6 - B.vz * M.c5 + B.mx * M.c7 + B.my * M.c3 - B.mz * M.c2;
+    ctype const c5 = -B.vx * M.c6 + B.vy * M.c0 + B.vz * M.c4 - B.mx * M.c3 +
+                     B.my * M.c7 + B.mz * M.c1;
+    ctype const c6 =
+        B.vx * M.c5 - B.vy * M.c4 + B.vz * M.c0 + B.mx * M.c2 - B.my * M.c1 + B.mz * M.c7;
+    ctype const c7 = -B.vx * M.c1 - B.vy * M.c2 - B.vz * M.c3;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3499,19 +3834,20 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(MVec3dp_U<T> const& M,
                                                    BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(Vec3dp<ctype>(M.c1 * B.vz - M.c2 * B.vy - M.c3 * B.mx -
-                                              M.c5 * B.mz + M.c6 * B.my + M.c7 * B.vx,
-                                          -M.c0 * B.vz + M.c2 * B.vx - M.c3 * B.my +
-                                              M.c4 * B.mz - M.c6 * B.mx + M.c7 * B.vy,
-                                          M.c0 * B.vy - M.c1 * B.vx - M.c3 * B.mz -
-                                              M.c4 * B.my + M.c5 * B.mx + M.c7 * B.vz,
-                                          -M.c4 * B.vx - M.c5 * B.vy - M.c6 * B.vz),
-                            TriVec3dp<ctype>(M.c3 * B.vx + M.c5 * B.vz - M.c6 * B.vy,
-                                             M.c3 * B.vy - M.c4 * B.vz + M.c6 * B.vx,
-                                             M.c3 * B.vz + M.c4 * B.vy - M.c5 * B.vx,
-                                             -M.c0 * B.vx - M.c1 * B.vy - M.c2 * B.vz +
-                                                 M.c4 * B.mx + M.c5 * B.my +
-                                                 M.c6 * B.mz));
+    ctype const c0 =
+        M.c1 * B.vz - M.c2 * B.vy - M.c3 * B.mx - M.c5 * B.mz + M.c6 * B.my + M.c7 * B.vx;
+    ctype const c1 = -M.c0 * B.vz + M.c2 * B.vx - M.c3 * B.my + M.c4 * B.mz -
+                     M.c6 * B.mx + M.c7 * B.vy;
+    ctype const c2 =
+        M.c0 * B.vy - M.c1 * B.vx - M.c3 * B.mz - M.c4 * B.my + M.c5 * B.mx + M.c7 * B.vz;
+    ctype const c3 = -M.c4 * B.vx - M.c5 * B.vy - M.c6 * B.vz;
+    ctype const c4 = M.c3 * B.vx + M.c5 * B.vz - M.c6 * B.vy;
+    ctype const c5 = M.c3 * B.vy - M.c4 * B.vz + M.c6 * B.vx;
+    ctype const c6 = M.c3 * B.vz + M.c4 * B.vy - M.c5 * B.vx;
+    ctype const c7 = -M.c0 * B.vx - M.c1 * B.vy - M.c2 * B.vz + M.c4 * B.mx +
+                     M.c5 * B.my + M.c6 * B.mz;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3520,19 +3856,20 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(BiVec3dp<T> const& B,
                                                    MVec3dp_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(Vec3dp<ctype>(B.vx * M.c7 + B.vy * M.c2 - B.vz * M.c1 +
-                                              B.mx * M.c3 + B.my * M.c6 - B.mz * M.c5,
-                                          -B.vx * M.c2 + B.vy * M.c7 + B.vz * M.c0 -
-                                              B.mx * M.c6 + B.my * M.c3 + B.mz * M.c4,
-                                          B.vx * M.c1 - B.vy * M.c0 + B.vz * M.c7 +
-                                              B.mx * M.c5 - B.my * M.c4 + B.mz * M.c3,
-                                          -B.vx * M.c4 - B.vy * M.c5 - B.vz * M.c6),
-                            TriVec3dp<ctype>(B.vx * M.c3 + B.vy * M.c6 - B.vz * M.c5,
-                                             -B.vx * M.c6 + B.vy * M.c3 + B.vz * M.c4,
-                                             B.vx * M.c5 - B.vy * M.c4 + B.vz * M.c3,
-                                             -B.vx * M.c0 - B.vy * M.c1 - B.vz * M.c2 -
-                                                 B.mx * M.c4 - B.my * M.c5 -
-                                                 B.mz * M.c6));
+    ctype const c0 =
+        B.vx * M.c7 + B.vy * M.c2 - B.vz * M.c1 + B.mx * M.c3 + B.my * M.c6 - B.mz * M.c5;
+    ctype const c1 = -B.vx * M.c2 + B.vy * M.c7 + B.vz * M.c0 - B.mx * M.c6 +
+                     B.my * M.c3 + B.mz * M.c4;
+    ctype const c2 =
+        B.vx * M.c1 - B.vy * M.c0 + B.vz * M.c7 + B.mx * M.c5 - B.my * M.c4 + B.mz * M.c3;
+    ctype const c3 = -B.vx * M.c4 - B.vy * M.c5 - B.vz * M.c6;
+    ctype const c4 = B.vx * M.c3 + B.vy * M.c6 - B.vz * M.c5;
+    ctype const c5 = -B.vx * M.c6 + B.vy * M.c3 + B.vz * M.c4;
+    ctype const c6 = B.vx * M.c5 - B.vy * M.c4 + B.vz * M.c3;
+    ctype const c7 = -B.vx * M.c0 - B.vy * M.c1 - B.vz * M.c2 - B.mx * M.c4 -
+                     B.my * M.c5 - B.mz * M.c6;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3541,12 +3878,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& M,
                                                    Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(M.c2 * v.z - M.c3 * v.y + M.c4 * v.w + M.c7 * v.x,
-                      -M.c1 * v.z + M.c3 * v.x + M.c5 * v.w + M.c7 * v.y,
-                      M.c1 * v.y - M.c2 * v.x + M.c6 * v.w + M.c7 * v.z, M.c7 * v.w),
-        TriVec3dp<ctype>(M.c1 * v.w, M.c2 * v.w, M.c3 * v.w,
-                         M.c0 * v.w - M.c1 * v.x - M.c2 * v.y - M.c3 * v.z));
+    ctype const c0 = M.c2 * v.z - M.c3 * v.y + M.c4 * v.w + M.c7 * v.x;
+    ctype const c1 = -M.c1 * v.z + M.c3 * v.x + M.c5 * v.w + M.c7 * v.y;
+    ctype const c2 = M.c1 * v.y - M.c2 * v.x + M.c6 * v.w + M.c7 * v.z;
+    ctype const c3 = M.c7 * v.w;
+    ctype const c4 = M.c1 * v.w;
+    ctype const c5 = M.c2 * v.w;
+    ctype const c6 = M.c3 * v.w;
+    ctype const c7 = M.c0 * v.w - M.c1 * v.x - M.c2 * v.y - M.c3 * v.z;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3555,12 +3896,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v,
                                                    MVec3dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(v.x * M.c7 + v.y * M.c3 - v.z * M.c2 - v.w * M.c4,
-                      -v.x * M.c3 + v.y * M.c7 + v.z * M.c1 - v.w * M.c5,
-                      v.x * M.c2 - v.y * M.c1 + v.z * M.c7 - v.w * M.c6, v.w * M.c7),
-        TriVec3dp<ctype>(v.w * M.c1, v.w * M.c2, v.w * M.c3,
-                         -v.x * M.c1 - v.y * M.c2 - v.z * M.c3 - v.w * M.c0));
+    ctype const c0 = v.x * M.c7 + v.y * M.c3 - v.z * M.c2 - v.w * M.c4;
+    ctype const c1 = -v.x * M.c3 + v.y * M.c7 + v.z * M.c1 - v.w * M.c5;
+    ctype const c2 = v.x * M.c2 - v.y * M.c1 + v.z * M.c7 - v.w * M.c6;
+    ctype const c3 = v.w * M.c7;
+    ctype const c4 = v.w * M.c1;
+    ctype const c5 = v.w * M.c2;
+    ctype const c6 = v.w * M.c3;
+    ctype const c7 = -v.x * M.c1 - v.y * M.c2 - v.z * M.c3 - v.w * M.c0;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3569,13 +3914,16 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(MVec3dp_U<T> const& M,
                                                    Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(-M.c4 * v.x - M.c5 * v.y - M.c6 * v.z - M.c7 * v.w),
-        BiVec3dp<ctype>(-M.c4 * v.w, -M.c5 * v.w, -M.c6 * v.w,
-                        -M.c0 * v.w + M.c3 * v.x + M.c5 * v.z - M.c6 * v.y,
-                        -M.c1 * v.w + M.c3 * v.y - M.c4 * v.z + M.c6 * v.x,
-                        -M.c2 * v.w + M.c3 * v.z + M.c4 * v.y - M.c5 * v.x),
-        PScalar3dp<ctype>(-M.c3 * v.w));
+    ctype const c0 = -M.c4 * v.x - M.c5 * v.y - M.c6 * v.z - M.c7 * v.w;
+    ctype const c1 = -M.c4 * v.w;
+    ctype const c2 = -M.c5 * v.w;
+    ctype const c3 = -M.c6 * v.w;
+    ctype const c4 = -M.c0 * v.w + M.c3 * v.x + M.c5 * v.z - M.c6 * v.y;
+    ctype const c5 = -M.c1 * v.w + M.c3 * v.y - M.c4 * v.z + M.c6 * v.x;
+    ctype const c6 = -M.c2 * v.w + M.c3 * v.z + M.c4 * v.y - M.c5 * v.x;
+    ctype const c7 = -M.c3 * v.w;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3584,13 +3932,16 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v,
                                                    MVec3dp_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(v.x * M.c4 + v.y * M.c5 + v.z * M.c6 + v.w * M.c7),
-        BiVec3dp<ctype>(-v.w * M.c4, -v.w * M.c5, -v.w * M.c6,
-                        -v.x * M.c3 - v.y * M.c6 + v.z * M.c5 + v.w * M.c0,
-                        v.x * M.c6 - v.y * M.c3 - v.z * M.c4 + v.w * M.c1,
-                        -v.x * M.c5 + v.y * M.c4 - v.z * M.c3 + v.w * M.c2),
-        PScalar3dp<ctype>(-v.w * M.c3));
+    ctype const c0 = v.x * M.c4 + v.y * M.c5 + v.z * M.c6 + v.w * M.c7;
+    ctype const c1 = -v.w * M.c4;
+    ctype const c2 = -v.w * M.c5;
+    ctype const c3 = -v.w * M.c6;
+    ctype const c4 = -v.x * M.c3 - v.y * M.c6 + v.z * M.c5 + v.w * M.c0;
+    ctype const c5 = v.x * M.c6 - v.y * M.c3 - v.z * M.c4 + v.w * M.c1;
+    ctype const c6 = -v.x * M.c5 + v.y * M.c4 - v.z * M.c3 + v.w * M.c2;
+    ctype const c7 = -v.w * M.c3;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3598,10 +3949,16 @@ template <typename T, typename U>
 constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(MVec3dp_E<T> const& M, Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(M.c7 * ctype(s)),
-        BiVec3dp<ctype>(0.0, 0.0, 0.0, M.c1 * ctype(s), M.c2 * ctype(s), M.c3 * ctype(s)),
-        PScalar3dp<ctype>(0.0));
+    ctype const c0 = M.c7 * ctype(s);
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = M.c1 * ctype(s);
+    ctype const c5 = M.c2 * ctype(s);
+    ctype const c6 = M.c3 * ctype(s);
+    ctype const c7 = 0.0;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3609,10 +3966,16 @@ template <typename T, typename U>
 constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(Scalar3dp<T> s, MVec3dp_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(ctype(s) * M.c7),
-        BiVec3dp<ctype>(0.0, 0.0, 0.0, ctype(s) * M.c1, ctype(s) * M.c2, ctype(s) * M.c3),
-        PScalar3dp<ctype>(0.0));
+    ctype const c0 = ctype(s) * M.c7;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = ctype(s) * M.c1;
+    ctype const c5 = ctype(s) * M.c2;
+    ctype const c6 = ctype(s) * M.c3;
+    ctype const c7 = 0.0;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3620,9 +3983,16 @@ template <typename T, typename U>
 constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(MVec3dp_U<T> const& M, Scalar3dp<U> s)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(-M.c4 * ctype(s), -M.c5 * ctype(s), -M.c6 * ctype(s), 0.0),
-        TriVec3dp<ctype>(0.0, 0.0, 0.0, -M.c3 * ctype(s)));
+    ctype const c0 = -M.c4 * ctype(s);
+    ctype const c1 = -M.c5 * ctype(s);
+    ctype const c2 = -M.c6 * ctype(s);
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = -M.c3 * ctype(s);
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3630,9 +4000,16 @@ template <typename T, typename U>
 constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(Scalar3dp<T> s, MVec3dp_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(ctype(s) * M.c4, ctype(s) * M.c5, ctype(s) * M.c6, 0.0),
-        TriVec3dp<ctype>(0.0, 0.0, 0.0, ctype(s) * M.c3));
+    ctype const c0 = ctype(s) * M.c4;
+    ctype const c1 = ctype(s) * M.c5;
+    ctype const c2 = ctype(s) * M.c6;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = ctype(s) * M.c3;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3753,12 +4130,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(TriVec3dp<T> const& t,
                                                    BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(
-            -t.y * B.mz + t.z * B.my + t.w * B.vx, t.x * B.mz - t.z * B.mx + t.w * B.vy,
-            -t.x * B.my + t.y * B.mx + t.w * B.vz, -t.x * B.vx - t.y * B.vy - t.z * B.vz),
-        TriVec3dp<ctype>(t.y * B.vz - t.z * B.vy, -t.x * B.vz + t.z * B.vx,
-                         t.x * B.vy - t.y * B.vx, t.x * B.mx + t.y * B.my + t.z * B.mz));
+    ctype const c0 = -t.y * B.mz + t.z * B.my + t.w * B.vx;
+    ctype const c1 = t.x * B.mz - t.z * B.mx + t.w * B.vy;
+    ctype const c2 = -t.x * B.my + t.y * B.mx + t.w * B.vz;
+    ctype const c3 = -t.x * B.vx - t.y * B.vy - t.z * B.vz;
+    ctype const c4 = t.y * B.vz - t.z * B.vy;
+    ctype const c5 = -t.x * B.vz + t.z * B.vx;
+    ctype const c6 = t.x * B.vy - t.y * B.vx;
+    ctype const c7 = t.x * B.mx + t.y * B.my + t.z * B.mz;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3767,12 +4148,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(BiVec3dp<T> const& B,
                                                    TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(
-        Vec3dp<ctype>(
-            B.vx * t.w + B.my * t.z - B.mz * t.y, B.vy * t.w - B.mx * t.z + B.mz * t.x,
-            B.vz * t.w + B.mx * t.y - B.my * t.x, -B.vx * t.x - B.vy * t.y - B.vz * t.z),
-        TriVec3dp<ctype>(B.vy * t.z - B.vz * t.y, -B.vx * t.z + B.vz * t.x,
-                         B.vx * t.y - B.vy * t.x, -B.mx * t.x - B.my * t.y - B.mz * t.z));
+    ctype const c0 = B.vx * t.w + B.my * t.z - B.mz * t.y;
+    ctype const c1 = B.vy * t.w - B.mx * t.z + B.mz * t.x;
+    ctype const c2 = B.vz * t.w + B.mx * t.y - B.my * t.x;
+    ctype const c3 = -B.vx * t.x - B.vy * t.y - B.vz * t.z;
+    ctype const c4 = B.vy * t.z - B.vz * t.y;
+    ctype const c5 = -B.vx * t.z + B.vz * t.x;
+    ctype const c6 = B.vx * t.y - B.vy * t.x;
+    ctype const c7 = -B.mx * t.x - B.my * t.y - B.mz * t.z;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3781,11 +4166,16 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(TriVec3dp<T> const& t,
                                                    Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(-t.x * v.x - t.y * v.y - t.z * v.z - t.w * v.w),
-        BiVec3dp<ctype>(-t.x * v.w, -t.y * v.w, -t.z * v.w, t.y * v.z - t.z * v.y,
-                        -t.x * v.z + t.z * v.x, t.x * v.y - t.y * v.x),
-        PScalar3dp<ctype>(0.0));
+    ctype const c0 = -t.x * v.x - t.y * v.y - t.z * v.z - t.w * v.w;
+    ctype const c1 = -t.x * v.w;
+    ctype const c2 = -t.y * v.w;
+    ctype const c3 = -t.z * v.w;
+    ctype const c4 = t.y * v.z - t.z * v.y;
+    ctype const c5 = -t.x * v.z + t.z * v.x;
+    ctype const c6 = t.x * v.y - t.y * v.x;
+    ctype const c7 = 0.0;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3794,11 +4184,16 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v,
                                                    TriVec3dp<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_E<ctype>(
-        Scalar3dp<ctype>(v.x * t.x + v.y * t.y + v.z * t.z + v.w * t.w),
-        BiVec3dp<ctype>(-v.w * t.x, -v.w * t.y, -v.w * t.z, -v.y * t.z + v.z * t.y,
-                        v.x * t.z - v.z * t.x, -v.x * t.y + v.y * t.x),
-        PScalar3dp<ctype>(0.0));
+    ctype const c0 = v.x * t.x + v.y * t.y + v.z * t.z + v.w * t.w;
+    ctype const c1 = -v.w * t.x;
+    ctype const c2 = -v.w * t.y;
+    ctype const c3 = -v.w * t.z;
+    ctype const c4 = -v.y * t.z + v.z * t.y;
+    ctype const c5 = v.x * t.z - v.z * t.x;
+    ctype const c6 = -v.x * t.y + v.y * t.x;
+    ctype const c7 = 0.0;
+    return MVec3dp_E<ctype>(Scalar3dp<ctype>(c0), BiVec3dp<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar3dp<ctype>(c7));
 }
 
 template <typename T, typename U>
@@ -3841,11 +4236,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(BiVec3dp<T> const& B,
                                                    Vec3dp<U> const& v)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(Vec3dp<ctype>(B.vy * v.z - B.vz * v.y + B.mx * v.w,
-                                          -B.vx * v.z + B.vz * v.x + B.my * v.w,
-                                          B.vx * v.y - B.vy * v.x + B.mz * v.w, 0.0),
-                            TriVec3dp<ctype>(B.vx * v.w, B.vy * v.w, B.vz * v.w,
-                                             -B.vx * v.x - B.vy * v.y - B.vz * v.z));
+    ctype const c0 = B.vy * v.z - B.vz * v.y + B.mx * v.w;
+    ctype const c1 = -B.vx * v.z + B.vz * v.x + B.my * v.w;
+    ctype const c2 = B.vx * v.y - B.vy * v.x + B.mz * v.w;
+    ctype const c3 = 0.0;
+    ctype const c4 = B.vx * v.w;
+    ctype const c5 = B.vy * v.w;
+    ctype const c6 = B.vz * v.w;
+    ctype const c7 = -B.vx * v.x - B.vy * v.y - B.vz * v.z;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
@@ -3854,11 +4254,16 @@ constexpr MVec3dp_U<std::common_type_t<T, U>> rgpr(Vec3dp<T> const& v,
                                                    BiVec3dp<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return MVec3dp_U<ctype>(Vec3dp<ctype>(v.y * B.vz - v.z * B.vy - v.w * B.mx,
-                                          -v.x * B.vz + v.z * B.vx - v.w * B.my,
-                                          v.x * B.vy - v.y * B.vx - v.w * B.mz, 0.0),
-                            TriVec3dp<ctype>(v.w * B.vx, v.w * B.vy, v.w * B.vz,
-                                             -v.x * B.vx - v.y * B.vy - v.z * B.vz));
+    ctype const c0 = v.y * B.vz - v.z * B.vy - v.w * B.mx;
+    ctype const c1 = -v.x * B.vz + v.z * B.vx - v.w * B.my;
+    ctype const c2 = v.x * B.vy - v.y * B.vx - v.w * B.mz;
+    ctype const c3 = 0.0;
+    ctype const c4 = v.w * B.vx;
+    ctype const c5 = v.w * B.vy;
+    ctype const c6 = v.w * B.vz;
+    ctype const c7 = -v.x * B.vx - v.y * B.vy - v.z * B.vz;
+    return MVec3dp_U<ctype>(Vec3dp<ctype>(c0, c1, c2, c3),
+                            TriVec3dp<ctype>(c4, c5, c6, c7));
 }
 
 template <typename T, typename U>
