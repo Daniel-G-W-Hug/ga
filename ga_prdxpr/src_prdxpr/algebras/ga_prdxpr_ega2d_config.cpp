@@ -285,6 +285,7 @@ ProductConfig get_ega2d_dot_config()
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
             .cases = {{"dot(mv,mv) -> s", "A", "B", "mv", "mv"},
+                      {"dot(mv_e,mv_e) -> s", "A_even", "B_even", "mv_e", "mv_e"},
                       {"dot(ps,ps) -> s", "svps1", "svps2", "ps", "ps"},
                       {"dot(vec,vec) -> s", "svps1", "svps2", "vec", "vec"},
                       {"dot(s,s) -> s", "svps1", "svps2", "s", "s"}},

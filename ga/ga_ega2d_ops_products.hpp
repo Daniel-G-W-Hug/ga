@@ -32,6 +32,10 @@ namespace hd::ga::ega {
 //
 // here we assume e1^2 = +1, e2^2 = +1
 //
+// Via the exomorphism G(a ^ b) = G(a) ^ G(b) the extended metric G is defined as a 2^n by
+// 2^n matrix via the outer product, which in turn allows for definition of an extended
+// dot product for all grades of a full multi-vector from scalar to pseudoscalar
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename U>
@@ -40,6 +44,15 @@ constexpr Scalar2d<std::common_type_t<T, U>> dot(MVec2d<T> const& A, MVec2d<U> c
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar2d<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar2d<std::common_type_t<T, U>> dot(MVec2d_E<T> const& A,
+                                                 MVec2d_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(A.c0 * B.c0 + A.c1 * B.c1);
 }
 
 template <typename T, typename U>
