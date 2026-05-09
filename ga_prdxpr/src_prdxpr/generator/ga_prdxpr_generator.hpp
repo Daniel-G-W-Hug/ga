@@ -10,6 +10,11 @@
 
 namespace configurable {
 
+// Print a summary of all OutputCase validation warnings emitted during the
+// run, then clear the buffer. Writes to stderr to match the inline warnings.
+// Stays silent (no header, no output) if zero warnings were collected.
+void print_validation_summary();
+
 class ConfigurableGenerator {
   public:
 

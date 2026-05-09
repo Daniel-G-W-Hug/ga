@@ -5,11 +5,15 @@
 #include "sandwich/ga_prdxpr_sandwich_simplifier.hpp"
 #include "codegen/ga_codegen_emitter.hpp"
 #include "codegen/ga_codegen_types.hpp"
+#include <cctype>
 #include <fmt/core.h>
+#include <limits>
 #include <map>
+#include <optional>
 #include <regex>
 #include <set>
 #include <stdexcept>
+#include <string_view>
 
 // Include mathematical definitions
 #include "algebras/ga_prdxpr_ega2d.hpp"
@@ -19,6 +23,361 @@
 #include "algebras/ga_prdxpr_sta4d.hpp"
 
 using namespace configurable;
+
+////////////////////////////////////////////////////////////////////////////////
+// User-config validation: warn (don't fail) on inconsistent OutputCase entries.
+//
+// Catches three kinds of mistakes in algebra-config tuples like
+//   {"mv_e * mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"}:
+//
+//   A. case_name's LHS/RHS tokens don't match left_filter_name/right_filter_name.
+//   B. case_name's result type is not a known filter in the algebra (typo, or
+//      filter from another algebra).
+//   C. The product's actually-computed components fall outside the declared
+//      result type's basis support (e.g. "mv_e * mv_e -> vec" produces a
+//      scalar+bivec, both of which lie outside `vec`'s basis indices).
+//
+// Warnings go to stderr so they don't pollute stdout consumed by callers
+// (--output=code, validation pipelines). Generation continues regardless.
+////////////////////////////////////////////////////////////////////////////////
+namespace {
+
+std::string trim_ws(std::string_view sv)
+{
+    auto const b = sv.find_first_not_of(" \t");
+    if (b == std::string_view::npos) return "";
+    auto const e = sv.find_last_not_of(" \t");
+    return std::string(sv.substr(b, e - b + 1));
+}
+
+bool is_zero_expr(std::string const& s)
+{
+    auto const t = trim_ws(s);
+    return t.empty() || t == "0" || t == "0.0";
+}
+
+struct CaseTokens {
+    std::string lhs;
+    std::string rhs;
+    std::string result; // bare token after "->"; "0" for zero-result cases
+};
+
+// Parse "LHS OP RHS -> RESULT" (OP in *, ^, <<, >>) or
+// "func(LHS,RHS) -> RESULT" / "func(LHS, RHS) -> RESULT".
+// Returns nullopt on parse failure (validation only warns, never throws).
+std::optional<CaseTokens> parse_case_tokens(std::string const& case_name)
+{
+    auto const arrow = case_name.find("->");
+    if (arrow == std::string::npos) return std::nullopt;
+
+    // Result-side token: alnum + underscore, after optional whitespace.
+    std::size_t i = arrow + 2;
+    while (i < case_name.size() &&
+           std::isspace(static_cast<unsigned char>(case_name[i]))) {
+        ++i;
+    }
+    std::size_t j = i;
+    while (j < case_name.size() &&
+           (std::isalnum(static_cast<unsigned char>(case_name[j])) ||
+            case_name[j] == '_')) {
+        ++j;
+    }
+    if (j == i) return std::nullopt;
+
+    CaseTokens out;
+    out.result = case_name.substr(i, j - i);
+
+    std::string const lhs_part = trim_ws(std::string_view(case_name).substr(0, arrow));
+
+    // Functional form: "func(LHS,RHS)".
+    auto const lparen = lhs_part.find('(');
+    auto const rparen = lhs_part.rfind(')');
+    if (lparen != std::string::npos && rparen != std::string::npos &&
+        rparen > lparen) {
+        std::string const inside = lhs_part.substr(lparen + 1, rparen - lparen - 1);
+        auto const comma = inside.find(',');
+        if (comma == std::string::npos) return std::nullopt;
+        out.lhs = trim_ws(std::string_view(inside).substr(0, comma));
+        out.rhs = trim_ws(std::string_view(inside).substr(comma + 1));
+        return out;
+    }
+
+    // Infix form: split on operator surrounded by spaces. Order matters for the
+    // multi-char ops so they don't get partially matched.
+    static constexpr std::string_view ops[] = {" << ", " >> ", " * ", " ^ "};
+    for (auto const op : ops) {
+        auto const pos = lhs_part.find(op);
+        if (pos != std::string::npos) {
+            out.lhs = trim_ws(std::string_view(lhs_part).substr(0, pos));
+            out.rhs = trim_ws(std::string_view(lhs_part).substr(pos + op.size()));
+            return out;
+        }
+    }
+    return std::nullopt;
+}
+
+// Look up the basis-index mask for a filter name in the algebra. Returns
+// nullopt if the name is unknown (caller decides whether to warn).
+std::optional<mvec_coeff_filter>
+get_filter_mask(AlgebraData const& algebra, std::string const& filter_name)
+{
+    if (algebra.dimension == 2) {
+        auto const it = algebra.filters_2d.find(filter_name);
+        if (it == algebra.filters_2d.end()) return std::nullopt;
+        return get_coeff_filter(it->second);
+    }
+    if (algebra.dimension == 3) {
+        auto const it = algebra.filters_3d.find(filter_name);
+        if (it == algebra.filters_3d.end()) return std::nullopt;
+        return get_coeff_filter(it->second);
+    }
+    if (algebra.dimension == 4) {
+        auto const it = algebra.filters_4d.find(filter_name);
+        if (it == algebra.filters_4d.end()) return std::nullopt;
+        return get_coeff_filter(it->second);
+    }
+    return std::nullopt;
+}
+
+bool filter_name_known(AlgebraData const& algebra, std::string const& filter_name)
+{
+    return get_filter_mask(algebra, filter_name).has_value();
+}
+
+// Among the algebra's known filters, find the one with the smallest basis
+// support that still covers every non-zero component of `prd_mv`. The full
+// multivector (`mv`) always covers, so a suggestion is always returned when
+// `prd_mv` has any non-zero entry. Ties broken alphabetically for determinism.
+std::optional<std::string>
+suggest_minimal_result_type(AlgebraData const& algebra, mvec_coeff const& prd_mv)
+{
+    auto for_each_filter = [&](auto&& fn) {
+        if (algebra.dimension == 2) {
+            for (auto const& [name, f] : algebra.filters_2d)
+                fn(name, get_coeff_filter(f));
+        }
+        else if (algebra.dimension == 3) {
+            for (auto const& [name, f] : algebra.filters_3d)
+                fn(name, get_coeff_filter(f));
+        }
+        else if (algebra.dimension == 4) {
+            for (auto const& [name, f] : algebra.filters_4d)
+                fn(name, get_coeff_filter(f));
+        }
+    };
+
+    std::optional<std::string> best_name;
+    std::size_t best_size = std::numeric_limits<std::size_t>::max();
+
+    for_each_filter([&](std::string const& name, mvec_coeff_filter const& mask) {
+        if (mask.size() != prd_mv.size()) return;
+        for (std::size_t k = 0; k < prd_mv.size(); ++k) {
+            if (!is_zero_expr(prd_mv[k]) && mask[k] == 0) return; // doesn't cover
+        }
+        std::size_t sz = 0;
+        for (auto const v : mask) {
+            if (v) ++sz;
+        }
+        if (sz < best_size || (sz == best_size && best_name && name < *best_name)) {
+            best_size = sz;
+            best_name = name;
+        }
+    });
+    return best_name;
+}
+
+// Buffer of all warnings emitted across the run, so the end-of-run summary
+// can reproduce them without forcing the user to scroll up. Single-threaded
+// generator, so no synchronization needed.
+std::vector<std::string>& warning_buffer()
+{
+    static std::vector<std::string> buf;
+    return buf;
+}
+
+void warn_case(AlgebraData const& algebra, ProductConfig const& config,
+               OutputCase const& case_def, std::string const& msg)
+{
+    auto const line = fmt::format("WARNING [{} :: {} :: {}]: {}", algebra.name,
+                                  config.product_name, case_def.case_name, msg);
+    fmt::print(stderr, "{}\n", line);
+    warning_buffer().push_back(line);
+}
+
+// Run all checks (A, B, C) against a single OutputCase. `prd_mv` may be empty;
+// if so, check C is skipped. `prd_mv` (when provided) must align with
+// `algebra.basis` index-by-index.
+void validate_case(AlgebraData const& algebra, ProductConfig const& config,
+                   OutputCase const& case_def, mvec_coeff const& prd_mv)
+{
+    // Pre-check: filter_name fields must reference filters that actually exist
+    // in the algebra. If they don't, the existing generation paths throw with
+    // an opaque message — surfacing it here gives better context.
+    bool const left_filter_known =
+        filter_name_known(algebra, case_def.left_filter_name);
+    bool const right_filter_known =
+        filter_name_known(algebra, case_def.right_filter_name);
+    if (!left_filter_known) {
+        warn_case(algebra, config, case_def,
+                  fmt::format("left_filter '{}' is not a known filter for "
+                              "algebra '{}'",
+                              case_def.left_filter_name, algebra.name));
+    }
+    if (!right_filter_known) {
+        warn_case(algebra, config, case_def,
+                  fmt::format("right_filter '{}' is not a known filter for "
+                              "algebra '{}'",
+                              case_def.right_filter_name, algebra.name));
+    }
+
+    auto const tokens = parse_case_tokens(case_def.case_name);
+    if (!tokens) {
+        warn_case(algebra, config, case_def,
+                  "could not parse case_name (expected 'LHS OP RHS -> RESULT' "
+                  "or 'func(LHS,RHS) -> RESULT')");
+        return;
+    }
+
+    // Check A: case_name input tokens match the filter_name fields. When the
+    // case_name token is itself a known filter, suggest aligning the filter to
+    // it (case_name is descriptive — typos there are rarer than in the filter).
+    if (tokens->lhs != case_def.left_filter_name) {
+        std::string msg =
+            fmt::format("declared LHS type '{}' does not match left_filter '{}'",
+                        tokens->lhs, case_def.left_filter_name);
+        if (filter_name_known(algebra, tokens->lhs)) {
+            msg += fmt::format(" -- suggested left_filter: '{}' (to match "
+                               "case_name LHS)",
+                               tokens->lhs);
+        }
+        warn_case(algebra, config, case_def, msg);
+    }
+    if (tokens->rhs != case_def.right_filter_name) {
+        std::string msg =
+            fmt::format("declared RHS type '{}' does not match right_filter '{}'",
+                        tokens->rhs, case_def.right_filter_name);
+        if (filter_name_known(algebra, tokens->rhs)) {
+            msg += fmt::format(" -- suggested right_filter: '{}' (to match "
+                               "case_name RHS)",
+                               tokens->rhs);
+        }
+        warn_case(algebra, config, case_def, msg);
+    }
+
+    // Check B: result token is a known filter (or "0" for zero-result cases).
+    if (tokens->result == "0") {
+        // "-> 0 X" form: X must also be a known filter if present.
+        auto const override_t =
+            codegen::parse_explicit_zero_override(case_def.case_name);
+        if (override_t && !filter_name_known(algebra, *override_t)) {
+            warn_case(algebra, config, case_def,
+                      fmt::format("explicit zero-result override type '{}' is "
+                                  "not a known filter for algebra '{}'",
+                                  *override_t, algebra.name));
+        }
+        return; // No check C on zero results.
+    }
+    auto const result_mask = get_filter_mask(algebra, tokens->result);
+    if (!result_mask) {
+        warn_case(algebra, config, case_def,
+                  fmt::format("declared result type '{}' is not a known filter "
+                              "for algebra '{}'",
+                              tokens->result, algebra.name));
+        return; // Cannot run check C without a mask.
+    }
+
+    // Check C: actually-computed non-zero components must fit inside the
+    // declared result type's basis support. (We allow the reverse — a sparser
+    // result than the declared type — because legitimate cases produce sparse
+    // multivectors of a wider declared type.)
+    if (prd_mv.empty()) return;
+    if (prd_mv.size() != result_mask->size() ||
+        prd_mv.size() != algebra.basis.size()) {
+        return; // Shape mismatch — let the existing pipeline surface it.
+    }
+    std::vector<std::string> stray;
+    for (std::size_t k = 0; k < prd_mv.size(); ++k) {
+        if ((*result_mask)[k] == 0 && !is_zero_expr(prd_mv[k])) {
+            stray.push_back(
+                fmt::format("{}='{}'", algebra.basis[k], trim_ws(prd_mv[k])));
+        }
+    }
+    if (!stray.empty()) {
+        std::string joined;
+        for (std::size_t k = 0; k < stray.size(); ++k) {
+            if (k) joined += ", ";
+            joined += stray[k];
+        }
+        std::string msg =
+            fmt::format("declared result type '{}' cannot hold computed "
+                        "components: {}",
+                        tokens->result, joined);
+        auto const suggestion = suggest_minimal_result_type(algebra, prd_mv);
+        if (suggestion && *suggestion != tokens->result) {
+            msg +=
+                fmt::format(" -- suggested minimal result type: '{}'", *suggestion);
+        }
+        warn_case(algebra, config, case_def, msg);
+    }
+}
+
+// Compute prd_mv for one case using the same path as generate_single_case.
+// Returns an empty vector if any prerequisite is missing — validate_case will
+// then skip check C, and the existing generation path will surface a clearer
+// error when it actually tries to use these inputs.
+mvec_coeff
+compute_prd_mv_for_validation(AlgebraData const& algebra,
+                              OutputCase const& case_def,
+                              prd_table const& basis_tab)
+{
+    auto const left_it = algebra.coefficients.find(case_def.left_coeff_name);
+    auto const right_it = algebra.coefficients.find(case_def.right_coeff_name);
+    if (left_it == algebra.coefficients.end() ||
+        right_it == algebra.coefficients.end()) {
+        return {};
+    }
+    if (!filter_name_known(algebra, case_def.left_filter_name) ||
+        !filter_name_known(algebra, case_def.right_filter_name)) {
+        return {};
+    }
+    auto const prd_tab = get_prd_tab(basis_tab, left_it->second, right_it->second);
+    if (algebra.dimension == 2) {
+        auto const lf = algebra.filters_2d.at(case_def.left_filter_name);
+        auto const rf = algebra.filters_2d.at(case_def.right_filter_name);
+        return get_mv_from_prd_tab(prd_tab, algebra.basis, lf, rf);
+    }
+    if (algebra.dimension == 3) {
+        auto const lf = algebra.filters_3d.at(case_def.left_filter_name);
+        auto const rf = algebra.filters_3d.at(case_def.right_filter_name);
+        return get_mv_from_prd_tab(prd_tab, algebra.basis, lf, rf);
+    }
+    if (algebra.dimension == 4) {
+        auto const lf = algebra.filters_4d.at(case_def.left_filter_name);
+        auto const rf = algebra.filters_4d.at(case_def.right_filter_name);
+        return get_mv_from_prd_tab(prd_tab, algebra.basis, lf, rf);
+    }
+    return {};
+}
+
+} // namespace
+
+void configurable::print_validation_summary()
+{
+    auto& buf = warning_buffer();
+    if (buf.empty()) return;
+
+    constexpr char sep[] =
+        "==========================================================================";
+    fmt::print(stderr, "{}\n", sep);
+    fmt::print(stderr, "Validation summary: {} warning{}\n", buf.size(),
+               buf.size() == 1 ? "" : "s");
+    fmt::print(stderr, "{}\n", sep);
+    for (auto const& line : buf) {
+        fmt::print(stderr, "  {}\n", line);
+    }
+    fmt::print(stderr, "{}\n", sep);
+    buf.clear();
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Template function for (regressive) transwedge geometric product calculation
@@ -124,6 +483,18 @@ void ConfigurableGenerator::generate_product_expressions(AlgebraData const& alge
 
     // Get the basis table using EXISTING mathematical functions
     auto basis_tab = get_basis_table_for_product(algebra, config.product_name);
+
+    // Validate user-supplied OutputCase tuples and warn (to stderr) on
+    // inconsistencies. Sandwich and two-step cases use a different config shape
+    // and are skipped here.
+    if (!config.is_sandwich_product) {
+        for (auto const& case_def : config.cases) {
+            if (case_def.is_two_step) continue;
+            auto const prd_mv =
+                compute_prd_mv_for_validation(algebra, case_def, basis_tab);
+            validate_case(algebra, config, case_def, prd_mv);
+        }
+    }
 
     // Print basis table if enabled (matches reference format) and if tables are requested
     if (config.show_basis_table && options.should_show_tables()) {

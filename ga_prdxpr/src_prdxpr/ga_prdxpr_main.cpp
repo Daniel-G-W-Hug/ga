@@ -262,6 +262,11 @@ int main(int argc, char const* argv[])
             }
         }
 
+        // End-of-run summary of all OutputCase validation warnings (silent if
+        // none were collected). Surfaces problems that are easy to miss when
+        // generation otherwise succeeds and produces a long stdout stream.
+        print_validation_summary();
+
         return 0;
     }
     catch (const std::exception& e) {

@@ -249,9 +249,9 @@ ProductConfig get_ega3d_gpr_alt_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             // .cases = {}, // no cases, just for generating the product tables
-            .cases = {{"bivec * bivec -> bivec", "svBps1", "svBps2", "bivec", "bivec"},
-                      {"bivec * vec -> vec", "svBps", "svBps", "bivec", "vec"},
-                      {"vec * bivec -> vec", "svBps", "svBps", "vec", "bivec"}},
+            .cases = {{"bivec * bivec -> mv_e", "svBps1", "svBps2", "bivec", "bivec"},
+                      {"bivec * vec -> mv_u", "svBps", "svBps", "bivec", "vec"},
+                      {"vec * bivec -> mv_u", "svBps", "svBps", "vec", "bivec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
