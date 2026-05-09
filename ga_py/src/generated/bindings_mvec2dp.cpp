@@ -108,6 +108,8 @@ void bind_mvec2dp(nb::module_& m) {
         .def("__mul__", [](mvec2dp const& a, mvec2dp_e const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec2dp const& a, mvec2dp_u const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec2dp const& a, pscalar2dp const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](mvec2dp const& a, bivec2dp const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](mvec2dp const& a, vec2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec2dp const& a, scalar2dp const& b) { return a * b; }, nb::is_operator())
         .def("__lshift__", [](mvec2dp const& a, mvec2dp const& b) { return a << b; }, nb::is_operator())
         .def("__rshift__", [](mvec2dp const& a, mvec2dp const& b) { return a >> b; }, nb::is_operator())

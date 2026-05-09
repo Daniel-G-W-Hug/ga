@@ -95,6 +95,8 @@ void bind_mvec2dp_u(nb::module_& m) {
         .def("__mul__", [](mvec2dp_u const& a, mvec2dp_e const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec2dp_u const& a, pscalar2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec2dp_u const& a, bivec2dp const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](mvec2dp_u const& a, vec2dp const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](mvec2dp_u const& a, scalar2dp const& b) { return a * b; }, nb::is_operator())
         .def("__xor__", [](mvec2dp_u const& a, mvec2dp_u const& b) { return wdg(a, b); }, nb::is_operator())
         .def("gr1", [](const mvec2dp_u& M) { return gr1(M); })
         .def("gr3", [](const mvec2dp_u& M) { return gr3(M); })

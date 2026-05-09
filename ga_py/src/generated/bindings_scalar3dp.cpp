@@ -80,6 +80,8 @@ void bind_scalar3dp(nb::module_& m) {
         .def("__sub__", [](scalar3dp const& a, dualnum3dp const& b) { return a - b; }, nb::is_operator())
         .def("__mul__", [](scalar3dp const& a, scalar3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar3dp const& a, mvec3dp const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](scalar3dp const& a, mvec3dp_e const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](scalar3dp const& a, mvec3dp_u const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar3dp const& a, pscalar3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar3dp const& a, trivec3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar3dp const& a, bivec3dp const& b) { return a * b; }, nb::is_operator())

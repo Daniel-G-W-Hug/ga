@@ -107,6 +107,7 @@ void bind_mvec3dp_e(nb::module_& m) {
         .def("__mul__", [](mvec3dp_e const& a, trivec3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3dp_e const& a, bivec3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3dp_e const& a, vec3dp const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](mvec3dp_e const& a, scalar3dp const& b) { return a * b; }, nb::is_operator())
         .def("__xor__", [](mvec3dp_e const& a, mvec3dp_e const& b) { return wdg(a, b); }, nb::is_operator())
         .def("gr0", [](const mvec3dp_e& M) { return gr0(M); })
         .def("gr2", [](const mvec3dp_e& M) { return gr2(M); })

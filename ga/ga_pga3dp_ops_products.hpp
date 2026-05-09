@@ -17,8 +17,8 @@ namespace hd::ga::pga {
 // - rwdg(), meet()          -> regressive wedge product (meet as convenience interface)
 // - twdg1()                 -> transwedge product (k=1)
 // - rtwdg1()                -> regressive transwedge product (k=1)
-// - operator<<()            -> left contraction (= left bulk contraction)
-// - operator>>()            -> right contraction (= right bulk contraction)
+// - operator<<()            -> left bulk contraction
+// - operator>>()            -> right bulk contraction
 // - cmt()                   -> commutator product (= asymmetric part of gpr)
 // - rcmt()                  -> regressive commutator product (=asymmetric part of rgpr)
 // - operator*()             -> geometric product (= gpr)
