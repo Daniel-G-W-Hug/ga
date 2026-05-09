@@ -11,8 +11,8 @@ Run from the wrapper venv:
     source ga_py/.venv/bin/activate
     PYTHONPATH="build/ga_py:ga_py/python" pytest ga_py/tests/
 
-Do NOT use build/spike_libclang/.venv for tests --- that one is for
-ga_bindgen. See ga_py/README.md > "Two virtual environments".
+Do NOT use ga_bindgen/.venv for tests --- that one is for ga_bindgen.
+See ga_py/README.md > "Two virtual environments".
 """
 
 from __future__ import annotations

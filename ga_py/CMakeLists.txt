@@ -127,20 +127,20 @@ add_subdirectory(benchmark)
 # ----------------------------------------------------------------------------
 
 # Pick the Python interpreter for ga_bindgen. Prefer the documented bindgen
-# venv (build/spike_libclang/.venv, has libclang); fall back to the wrapper
-# venv / system Python found by find_package(Python). Detection is recomputed
-# every configure so creating the venv after the fact takes effect on reconfig.
+# venv (ga_bindgen/.venv, has libclang); fall back to the wrapper venv /
+# system Python found by find_package(Python). Detection is recomputed every
+# configure so creating the venv after the fact takes effect on reconfig.
 set(_GA_BINDGEN_PYTHON "${Python_EXECUTABLE}")
-if(EXISTS "${CMAKE_BINARY_DIR}/spike_libclang/.venv/bin/python")
-    set(_GA_BINDGEN_PYTHON "${CMAKE_BINARY_DIR}/spike_libclang/.venv/bin/python")
+if(EXISTS "${GA_PROJECT_ROOT}/ga_bindgen/.venv/bin/python")
+    set(_GA_BINDGEN_PYTHON "${GA_PROJECT_ROOT}/ga_bindgen/.venv/bin/python")
     message(STATUS "ga_py: bindgen target will use ${_GA_BINDGEN_PYTHON}")
-elseif(EXISTS "${CMAKE_BINARY_DIR}/spike_libclang/.venv/Scripts/python.exe")
-    set(_GA_BINDGEN_PYTHON "${CMAKE_BINARY_DIR}/spike_libclang/.venv/Scripts/python.exe")
+elseif(EXISTS "${GA_PROJECT_ROOT}/ga_bindgen/.venv/Scripts/python.exe")
+    set(_GA_BINDGEN_PYTHON "${GA_PROJECT_ROOT}/ga_bindgen/.venv/Scripts/python.exe")
     message(STATUS "ga_py: bindgen target will use ${_GA_BINDGEN_PYTHON}")
 else()
     message(STATUS
         "ga_py: bindgen target will use ${_GA_BINDGEN_PYTHON} "
-        "(install libclang there, or create build/spike_libclang/.venv "
+        "(install libclang there, or create ga_bindgen/.venv "
         "per ga_bindgen/README.md)")
 endif()
 

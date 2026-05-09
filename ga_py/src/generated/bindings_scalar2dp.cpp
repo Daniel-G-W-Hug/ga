@@ -78,6 +78,8 @@ void bind_scalar2dp(nb::module_& m) {
         .def("__sub__", [](scalar2dp const& a, dualnum2dp const& b) { return a - b; }, nb::is_operator())
         .def("__mul__", [](scalar2dp const& a, scalar2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar2dp const& a, mvec2dp const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](scalar2dp const& a, mvec2dp_e const& b) { return a * b; }, nb::is_operator())
+        .def("__mul__", [](scalar2dp const& a, mvec2dp_u const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar2dp const& a, pscalar2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar2dp const& a, bivec2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](scalar2dp const& a, vec2dp const& b) { return a * b; }, nb::is_operator())

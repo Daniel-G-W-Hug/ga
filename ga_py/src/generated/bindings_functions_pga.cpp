@@ -438,12 +438,16 @@ void register_functions_pga(nb::module_& m) {
     m.def("rgpr", [](mvec3dp const& a0, mvec3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec3dp const& a0, mvec3dp_e const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec3dp_e const& a0, mvec3dp const& a1) { return rgpr(a0, a1); });
+    m.def("rgpr", [](mvec3dp const& a0, mvec3dp_u const& a1) { return rgpr(a0, a1); });
+    m.def("rgpr", [](mvec3dp_u const& a0, mvec3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec3dp const& a0, pscalar3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](pscalar3dp const& a0, mvec3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec3dp const& a0, scalar3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](scalar3dp const& a0, mvec3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec3dp_e const& a0, mvec3dp_e const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec3dp_u const& a0, mvec3dp_e const& a1) { return rgpr(a0, a1); });
+    m.def("rgpr", [](mvec3dp_e const& a0, mvec3dp_u const& a1) { return rgpr(a0, a1); });
+    m.def("rgpr", [](mvec3dp_u const& a0, mvec3dp_u const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec3dp_e const& a0, trivec3dp const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](trivec3dp const& a0, mvec3dp_e const& a1) { return rgpr(a0, a1); });
     m.def("rgpr", [](mvec3dp_u const& a0, trivec3dp const& a1) { return rgpr(a0, a1); });

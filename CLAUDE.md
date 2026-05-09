@@ -129,6 +129,21 @@ the following notation:
 - The sandwich product for rigid motion uses $\utilde{M}$: $M ⟑ X ⟑ \utilde{M}$
   corresponds to `move2dp(X, M)` / `move3dp(X, M)` in code
 
+### Markdown Formatting
+
+When writing or editing `.md` files in this repository, wrap prose at **column 90** to
+match the editor's auto-wrap setting (VS Code line break at column 90). This applies to
+paragraphs, bullet items, blockquotes, and lead-in sentences before code blocks.
+
+**Exceptions — keep on a single line even if wider than 90 columns:**
+
+- **Tables** — Markdown table rows must stay on one physical line; let columns be as wide
+  as needed. Do not soft-wrap table cells.
+- **Code fences** — preserve the original code's line lengths verbatim; do not reflow code
+  to fit 90 columns.
+- **URLs and reference-style link targets** — let them overrun rather than break the link.
+- **Headings** — keep on one line even if a long heading exceeds 90.
+
 ### Library Usage Patterns
 
 The library provides two main entry points:

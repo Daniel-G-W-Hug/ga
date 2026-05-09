@@ -2603,9 +2603,23 @@ TEST_SUITE("EGA 3D Tests")
         // fmt::println("");
         // fmt::println("   wdg(v, cmpl(b))         = {:.3f}", wdg(v, cmpl(b)));
         // fmt::println("   n=cmpl(wdg(v, cmpl(b))) = {:.3f}", cmpl(wdg(v, cmpl(b))));
-        // vector is in plane defined by the expansion
-        CHECK(wdg(v, wdg(v, cmpl(B))) == 0.0);
-        CHECK(wdg(v, wdg(cmpl(B), v)) == 0.0);
+        // fmt::println("");
+        // fmt::println("   v              = {:.3f}", v);
+        // fmt::println("   B              = {:.3f}", B);
+        // fmt::println("   l_expand(B, v) = {:.3f}", l_expand(B, v));
+        // fmt::println("   r_expand(v, B) = {:.3f}", r_expand(v, B));
+        // fmt::println("");
+
+        // check l_expand an r_expand
+        CHECK(l_expand(B, v) == wdg(cmpl(B), v));
+        CHECK(r_expand(v, B) == wdg(v, cmpl(B)));
+        // vector v is in resulting plane defined by the expansion
+        CHECK(wdg(v, l_expand(B, v)) == 0.0);
+        CHECK(wdg(v, r_expand(v, B)) == 0.0);
+        // resulting planes (i.e. their bivectors) are perpendicular to B
+        CHECK(dot(B, l_expand(B, v)) == 0.0);
+        CHECK(dot(B, r_expand(v, B)) == 0.0);
+
         // duality of the contraction and the wedge product (based on dual)
         CHECK(dual(v << B) == wdg(v, dual(B)));
         CHECK(dual(B >> v) == wdg(dual(B), v));

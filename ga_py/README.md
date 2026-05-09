@@ -339,25 +339,30 @@ and the technical background on why the math is fast. End users do not need any 
 Wrapper development and binding regeneration use separate venvs with different
 dependencies:
 
-| Venv path                    | Used for                                                                                                  | Dependencies                                |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| `ga_py/.venv`                | Running the wrapper and its tests; everyday development of `ga_py/` itself                                | `nanobind`, `pytest`, `hypothesis`, `numpy` |
-| `build/spike_libclang/.venv` | Regenerating bindings via `ga_bindgen` (only contributors touching `ga/*.hpp` or the generator need this) | `libclang`                                  |
+| Venv path             | Used for                                                                                                  | Dependencies                                |
+| --------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `ga_py/.venv`         | Running the wrapper and its tests; everyday development of `ga_py/` itself                                | `nanobind`, `pytest`, `hypothesis`, `numpy` |
+| `ga_bindgen/.venv`    | Regenerating bindings via `ga_bindgen` (only contributors touching `ga/*.hpp` or the generator need this) | `libclang`                                  |
 
 If you run `pytest ga_py/tests/` from the wrong venv, `pytest` won't be on PATH (or
 `hypothesis` will be missing) — `conftest.py` prints a hint pointing here. If you run
 `python ga_bindgen/src/scan.py` from the wrong venv, `libclang` won't be importable.
 
+The bindgen venv is created on demand by contributors — see
+[`ga_bindgen/README.md`](../ga_bindgen/README.md#first-time-setup) for the full first-time
+setup (system LLVM install + `python -m venv ga_bindgen/.venv` + `pip install libclang`).
+Once it exists, activate it like the wrapper venv:
+
 ```bash
 # macOS / Linux
 source ga_py/.venv/bin/activate           # wrapper / tests
-source build/spike_libclang/.venv/bin/activate   # binding regeneration (separate session)
+source ga_bindgen/.venv/bin/activate      # binding regeneration (separate session)
 ```
 
 ```bat
 rem Windows
 ga_py\.venv\Scripts\activate
-build\spike_libclang\.venv\Scripts\activate
+ga_bindgen\.venv\Scripts\activate
 ```
 
 ### 5.2 Layout
@@ -419,10 +424,14 @@ Same auto-detection of `ga_py/.venv` applies.
 
 When `ga/` gains new types, operators, or functions:
 
+> **First time?** See [`ga_bindgen/README.md` §
+> First-time setup](../ga_bindgen/README.md#first-time-setup) — install LLVM, create
+> `ga_bindgen/.venv`, install `libclang`. Then:
+
 ```bash
-source build/spike_libclang/.venv/bin/activate     # libclang venv
+source ga_bindgen/.venv/bin/activate               # libclang venv
 python3 ga_bindgen/src/scan.py                     # ga/*.hpp → manifest.json
-python3 ga_bindgen/src/emit_nanobind.py --all      # manifest → bindings_*.cpp
+python3 ga_bindgen/src/emit_nanobind.py            # manifest → bindings_*.cpp
 cmake --build build                                # recompile
 ```
 
