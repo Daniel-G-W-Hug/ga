@@ -370,7 +370,7 @@ ProductConfig get_sta4d_l_contract_config()
                       //
                       {"bivec << bivec -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
                       {"bivec << vec -> 0", "svBtps", "svBtps", "bivec", "vec"},
-                      {"vec,bivec -> vec", "svBtps", "svBtps", "vec", "bivec"},
+                      {"vec << bivec -> vec", "svBtps", "svBtps", "vec", "bivec"},
                       {"bivec << s -> 0", "svBtps", "svBtps", "bivec", "s"},
                       {"s << bivec -> bivec", "svBtps", "svBtps", "s", "bivec"},
                       //
@@ -391,7 +391,7 @@ ProductConfig get_sta4d_r_contract_config()
             .display_name = "right contraction",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {{"mv >> mv) -> mv", "A", "B", "mv", "mv"},
+            .cases = {{"mv >> mv -> mv", "A", "B", "mv", "mv"},
                       //
                       {"ps >> ps -> s", "svBtps1", "svBtps2", "ps", "ps"},
                       {"ps >> trivec -> vec", "svBtps", "svBtps", "ps", "trivec"},
