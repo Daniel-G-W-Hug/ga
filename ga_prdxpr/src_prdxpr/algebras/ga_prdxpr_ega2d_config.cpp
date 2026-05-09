@@ -87,7 +87,7 @@
  * Example extension for new coefficient "C":
  * Header: const mvec_coeff mv2d_coeff_C = {"C.c0", "C.c1", "C.c2", "C.c3"};
  * Config: ega2d.coefficients = {..."C", mv2d_coeff_C}...
- * Usage:  {"mv * mv -> mv", "C", "B", "mv", "mv"}
+ * Usage:  {"gpr(mv,mv) -> mv", "C", "B", "mv", "mv"}
  *
  * AVAILABLE COEFFICIENTS (EGA2D):
  * - General: A, B, M, M1, M2 (full multivectors)
@@ -158,35 +158,35 @@ ProductConfig get_ega2d_gpr_config()
             // "right_filter"}
             .cases =
                 {// mv
-                 {"mv * mv -> mv", "A", "B", "mv", "mv"},
-                 {"mv * mv_e -> mv", "A", "B_even", "mv", "mv_e"},
-                 {"mv_e * mv -> mv", "A_even", "B", "mv_e", "mv"},
-                 {"mv * ps -> mv", "A", "svps", "mv", "ps"},
-                 {"ps * mv -> mv", "svps", "B", "ps", "mv"},
-                 {"mv * vec -> mv", "A", "svps", "mv", "vec"},
-                 {"vec * mv -> mv", "svps", "B", "vec", "mv"},
-                 {"mv * s -> mv", "A", "svps", "mv", "s"},
-                 {"s * mv -> mv", "svps", "B", "s", "mv"},
+                 {"gpr(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                 {"gpr(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+                 {"gpr(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+                 {"gpr(mv,ps) -> mv", "A", "svps", "mv", "ps"},
+                 {"gpr(ps,mv) -> mv", "svps", "B", "ps", "mv"},
+                 {"gpr(mv,vec) -> mv", "A", "svps", "mv", "vec"},
+                 {"gpr(vec,mv) -> mv", "svps", "B", "vec", "mv"},
+                 {"gpr(mv,s) -> mv", "A", "svps", "mv", "s"},
+                 {"gpr(s,mv) -> mv", "svps", "B", "s", "mv"},
                  // mv_e
-                 {"mv_e * mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
-                 {"mv_e * ps -> mv_e", "A_even", "svps", "mv_e", "ps"},
-                 {"ps * mv_e -> mv_e", "svps", "B_even", "ps", "mv_e"},
-                 {"mv_e * vec -> vec", "A_even", "svps", "mv_e", "vec"},
-                 {"vec * mv_e -> vec", "svps", "B_even", "vec", "mv_e"},
-                 {"mv_e * s -> mv_e", "A_even", "svps", "mv_e", "s"},
-                 {"s * mv_e -> mv_e", "svps", "B_even", "s", "mv_e"},
+                 {"gpr(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                 {"gpr(mv_e,ps) -> mv_e", "A_even", "svps", "mv_e", "ps"},
+                 {"gpr(ps,mv_e) -> mv_e", "svps", "B_even", "ps", "mv_e"},
+                 {"gpr(mv_e,vec) -> vec", "A_even", "svps", "mv_e", "vec"},
+                 {"gpr(vec,mv_e) -> vec", "svps", "B_even", "vec", "mv_e"},
+                 {"gpr(mv_e,s) -> mv_e", "A_even", "svps", "mv_e", "s"},
+                 {"gpr(s,mv_e) -> mv_e", "svps", "B_even", "s", "mv_e"},
                  // ps
-                 {"ps * ps -> s", "svps1", "svps2", "ps", "ps"},
-                 {"ps * vec -> vec", "svps", "svps", "ps", "vec"},
-                 {"vec * ps -> vec", "svps", "svps", "vec", "ps"},
-                 {"ps * s -> ps", "svps", "svps", "ps", "s"},
-                 {"s * ps -> ps", "svps", "svps", "s", "ps"},
+                 {"gpr(ps,ps) -> s", "svps1", "svps2", "ps", "ps"},
+                 {"gpr(ps,vec) -> vec", "svps", "svps", "ps", "vec"},
+                 {"gpr(vec,ps) -> vec", "svps", "svps", "vec", "ps"},
+                 {"gpr(ps,s) -> ps", "svps", "svps", "ps", "s"},
+                 {"gpr(s,ps) -> ps", "svps", "svps", "s", "ps"},
                  // vec
-                 {"vec * vec -> mv_e", "svps1", "svps2", "vec", "vec"},
-                 {"vec * s -> vec", "svps", "svps", "vec", "s"},
-                 {"s * vec -> vec", "svps", "svps", "s", "vec"},
+                 {"gpr(vec,vec) -> mv_e", "svps1", "svps2", "vec", "vec"},
+                 {"gpr(vec,s) -> vec", "svps", "svps", "vec", "s"},
+                 {"gpr(s,vec) -> vec", "svps", "svps", "s", "vec"},
                  // s
-                 {"s * s -> s", "svps1", "svps2", "s", "s"}},
+                 {"gpr(s,s) -> s", "svps1", "svps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -247,35 +247,35 @@ ProductConfig get_ega2d_wdg_config()
             // "right_filter"}
             .cases =
                 {// mv
-                 {"mv ^ mv -> mv", "A", "B", "mv", "mv"},
-                 {"mv ^ mv_e -> mv", "A", "B_even", "mv", "mv_e"},
-                 {"mv_e ^ mv -> mv", "A_even", "B", "mv_e", "mv"},
-                 {"mv ^ ps -> ps", "M", "svps", "mv", "ps"},
-                 {"ps ^ mv -> ps", "svps", "M", "ps", "mv"},
-                 {"mv ^ vec -> mv", "M", "svps", "mv", "vec"},
-                 {"vec ^ mv -> mv", "svps", "M", "vec", "mv"},
-                 {"mv ^ s -> mv", "M", "svps", "mv", "s"},
-                 {"s ^ mv -> mv", "svps", "M", "s", "mv"},
+                 {"wdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                 {"wdg(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+                 {"wdg(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+                 {"wdg(mv,ps) -> ps", "M", "svps", "mv", "ps"},
+                 {"wdg(ps,mv) -> ps", "svps", "M", "ps", "mv"},
+                 {"wdg(mv,vec) -> mv", "M", "svps", "mv", "vec"},
+                 {"wdg(vec,mv) -> mv", "svps", "M", "vec", "mv"},
+                 {"wdg(mv,s) -> mv", "M", "svps", "mv", "s"},
+                 {"wdg(s,mv) -> mv", "svps", "M", "s", "mv"},
                  // mv_e
-                 {"mv_e ^ mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
-                 {"mv_e ^ ps -> ps", "M_even", "svps", "mv_e", "ps"},
-                 {"ps ^ mv_e -> ps", "svps", "M_even", "ps", "mv_e"},
-                 {"mv_e ^ vec -> vec", "M_even", "svps", "mv_e", "vec"},
-                 {"vec ^ mv_e -> vec", "svps", "M_even", "vec", "mv_e"},
-                 {"mv_e ^ s -> mv_e", "M_even", "svps", "mv_e", "s"},
-                 {"s ^ mv_e -> mv_e", "svps", "M_even", "s", "mv_e"},
+                 {"wdg(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                 {"wdg(mv_e,ps) -> ps", "M_even", "svps", "mv_e", "ps"},
+                 {"wdg(ps,mv_e) -> ps", "svps", "M_even", "ps", "mv_e"},
+                 {"wdg(mv_e,vec) -> vec", "M_even", "svps", "mv_e", "vec"},
+                 {"wdg(vec,mv_e) -> vec", "svps", "M_even", "vec", "mv_e"},
+                 {"wdg(mv_e,s) -> mv_e", "M_even", "svps", "mv_e", "s"},
+                 {"wdg(s,mv_e) -> mv_e", "svps", "M_even", "s", "mv_e"},
                  // ps
-                 {"ps ^ ps -> 0", "svps1", "svps2", "ps", "ps"},
-                 {"ps ^ vec -> 0", "svps", "svps", "ps", "vec"},
-                 {"vec ^ ps -> 0", "svps", "svps", "vec", "ps"},
-                 {"ps ^ s -> ps", "svps", "svps", "ps", "s"},
-                 {"s ^ ps -> ps", "svps", "svps", "s", "ps"},
+                 {"wdg(ps,ps) -> 0", "svps1", "svps2", "ps", "ps"},
+                 {"wdg(ps,vec) -> 0", "svps", "svps", "ps", "vec"},
+                 {"wdg(vec,ps) -> 0", "svps", "svps", "vec", "ps"},
+                 {"wdg(ps,s) -> ps", "svps", "svps", "ps", "s"},
+                 {"wdg(s,ps) -> ps", "svps", "svps", "s", "ps"},
                  // vec
-                 {"vec ^ vec -> ps", "svps1", "svps2", "vec", "vec"},
-                 {"vec ^ s -> vec", "svps", "svps", "vec", "s"},
-                 {"s ^ vec -> vec", "svps", "svps", "s", "vec"},
+                 {"wdg(vec,vec) -> ps", "svps1", "svps2", "vec", "vec"},
+                 {"wdg(vec,s) -> vec", "svps", "svps", "vec", "s"},
+                 {"wdg(s,vec) -> vec", "svps", "svps", "s", "vec"},
                  // s
-                 {"s ^ s -> s", "svps1", "svps2", "s", "s"}},
+                 {"wdg(s,s) -> s", "svps1", "svps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};

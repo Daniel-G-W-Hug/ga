@@ -238,6 +238,50 @@ void validate_case(AlgebraData const& algebra, ProductConfig const& config,
         return;
     }
 
+    // Check D: when case_name uses functional form, the function name should
+    // match ProductConfig.product_name (or its first whitespace-delimited word,
+    // so suffixes like " (alternative)" still match). Catches misplaced cases
+    // like a "wdg(...)" entry inside a gpr ProductConfig.
+    auto const lparen = case_def.case_name.find('(');
+    if (lparen != std::string::npos) {
+        std::size_t a = 0;
+        while (a < lparen &&
+               std::isspace(static_cast<unsigned char>(case_def.case_name[a]))) {
+            ++a;
+        }
+        std::size_t b = a;
+        while (b < lparen &&
+               (std::isalnum(static_cast<unsigned char>(case_def.case_name[b])) ||
+                case_def.case_name[b] == '_')) {
+            ++b;
+        }
+        if (b == lparen && b > a) {
+            std::string const func_name = case_def.case_name.substr(a, b - a);
+            std::size_t pa = 0;
+            while (pa < config.product_name.size() &&
+                   std::isspace(
+                       static_cast<unsigned char>(config.product_name[pa]))) {
+                ++pa;
+            }
+            std::size_t pb = pa;
+            while (pb < config.product_name.size() &&
+                   (std::isalnum(static_cast<unsigned char>(
+                        config.product_name[pb])) ||
+                    config.product_name[pb] == '_')) {
+                ++pb;
+            }
+            std::string const product_word =
+                config.product_name.substr(pa, pb - pa);
+            if (!product_word.empty() && func_name != product_word) {
+                warn_case(algebra, config, case_def,
+                          fmt::format("case_name function '{}' does not match "
+                                      "product '{}' -- expected '{}(...)'",
+                                      func_name, config.product_name,
+                                      product_word));
+            }
+        }
+    }
+
     // Check A: case_name input tokens match the filter_name fields. When the
     // case_name token is itself a known filter, suggest aligning the filter to
     // it (case_name is descriptive — typos there are rarer than in the filter).
