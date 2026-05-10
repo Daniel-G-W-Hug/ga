@@ -201,7 +201,7 @@ static std::string generate_algebra_name(AlgebraConfig const& config)
 {
     // Simple heuristic based on basis prefix and size
     if (config.basis_prefix == "g") {
-        return "sta" + std::to_string(config.basis_vectors.size()) + "d";
+        return "sta" + std::to_string(config.basis_vectors.size()) + "ds";
     }
     else if (config.metric_signature.back() == 0) {
         // PGA (has null vector)

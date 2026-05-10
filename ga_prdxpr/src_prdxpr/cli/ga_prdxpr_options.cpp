@@ -139,7 +139,7 @@ void ArgumentParser::parse_algebra_list(std::string const& value)
             options_.algebras.insert("ega3d");
             options_.algebras.insert("pga2dp");
             options_.algebras.insert("pga3dp");
-            options_.algebras.insert("sta4d");
+            options_.algebras.insert("sta4ds");
             continue;
         }
         else if (name == "none") {
@@ -229,7 +229,7 @@ void ArgumentParser::parse_output_list(std::string const& value)
 bool ArgumentParser::is_valid_algebra(std::string const& name) const
 {
     static std::set<std::string> const valid_algebras = {
-        "ega2d", "ega3d", "pga2dp", "pga3dp", "sta4d", "all", "none"};
+        "ega2d", "ega3d", "pga2dp", "pga3dp", "sta4ds", "all", "none"};
     return valid_algebras.count(name) > 0;
 }
 
@@ -350,7 +350,7 @@ void ArgumentParser::print_list() const
     fmt::println("  ega3d   - Euclidean Geometric Algebra 3D");
     fmt::println("  pga2dp  - Projective Geometric Algebra 2D");
     fmt::println("  pga3dp  - Projective Geometric Algebra 3D");
-    fmt::println("  sta4d   - Space-Time Algebra 4D");
+    fmt::println("  sta4ds  - Space-Time Algebra 4D");
     fmt::println("");
     fmt::println("Common Product Types (all algebras):");
     fmt::println("  gpr                 - Geometric product");
@@ -371,7 +371,7 @@ void ArgumentParser::print_list() const
     fmt::println("  rtwdg1              - Regressive triple wedge (first variant)");
     fmt::println("  sandwich_gpr        - Sandwich product (geometric)");
     fmt::println("");
-    fmt::println("STA4D Product Types (sta4d):");
+    fmt::println("STA4DS Product Types (sta4ds):");
     fmt::println("  l_contract          - Left contraction");
     fmt::println("  r_contract          - Right contraction");
     fmt::println("  l_expand            - Left expansion");

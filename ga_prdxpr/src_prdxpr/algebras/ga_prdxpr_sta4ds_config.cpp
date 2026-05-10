@@ -12,7 +12,7 @@
  *
  * AUTOMATIC RULE GENERATION:
  * --------------------------
- * The get_sta4d_algebra_config() function provides mathematical algebra parameters:
+ * The get_sta4ds_algebra_config() function provides mathematical algebra parameters:
  * - basis_vectors: Basis vector names (e.g., {"e1", "e2", "e3", "e4"})
  * - metric_signature: Quadratic form values (e.g., {+1, +1, +1, 0})
  * - multivector_basis: Complete basis element names (e.g., {"1", "e1", "e2", "e3", "e4",
@@ -108,27 +108,27 @@
  * - Zero results: Use "0" as result type for operations that yield zero
  */
 
-#include "algebras/ga_prdxpr_sta4d_config.hpp"
+#include "algebras/ga_prdxpr_sta4ds_config.hpp"
 
-// Automatic rule generation configuration for sta4d
-AlgebraConfig get_sta4d_algebra_config()
+// Automatic rule generation configuration for sta4ds
+AlgebraConfig get_sta4ds_algebra_config()
 {
     // Extract basis prefix from vector basis and validate consistency
-    std::string const prefix = extract_basis_prefix(mvsta4d_basis_kvec[1]);
-    validate_basis_consistency(mvsta4d_basis, mvsta4d_basis_kvec, prefix, one_str());
+    std::string const prefix = extract_basis_prefix(mvsta4ds_basis_kvec[1]);
+    validate_basis_consistency(mvsta4ds_basis, mvsta4ds_basis_kvec, prefix, one_str());
 
-    return {.basis_vectors = mvsta4d_basis_kvec[1],       // Use vector basis from header
-            .metric_signature = mvsta4d_metric_signature, // Use metric from header
-            .multivector_basis = mvsta4d_basis,           // Use mvsta4d_basis from header
+    return {.basis_vectors = mvsta4ds_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mvsta4ds_metric_signature, // Use metric from header
+            .multivector_basis = mvsta4ds_basis, // Use mvsta4ds_basis from header
             .scalar_name = one_str(),
             .basis_prefix = prefix}; // Use extracted and validated prefix
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// ALGEBRA CONFIGURATION - sta4d
+// ALGEBRA CONFIGURATION - sta4ds
 //
-// This file contains pure configuration for the sta4d geometric algebra.
-// Product rule generation is handled in ga_prdxpr_sta4d.cpp.
+// This file contains pure configuration for the sta4ds geometric algebra.
+// Product rule generation is handled in ga_prdxpr_sta4ds.cpp.
 //
 // Configuration includes:
 // - Algebra parameters (basis vectors, metric signature)
@@ -138,48 +138,48 @@ AlgebraConfig get_sta4d_algebra_config()
 
 namespace configurable {
 
-AlgebraData create_sta4d_algebra_data()
+AlgebraData create_sta4ds_algebra_data()
 {
-    AlgebraData sta4d;
-    sta4d.name = "sta4d";
-    sta4d.basis = mvsta4d_basis; // Use existing basis
-    sta4d.dimension = 4;         // g0: time, g1,g2,g3: space
+    AlgebraData sta4ds;
+    sta4ds.name = "sta4ds";
+    sta4ds.basis = mvsta4ds_basis; // Use existing basis
+    sta4ds.dimension = 4;          // g0: time, g1,g2,g3: space
 
     // Map coefficient names to existing coefficient objects
-    sta4d.coefficients = {{"A", mvsta4d_coeff_A},
-                          {"B", mvsta4d_coeff_B},
-                          {"M", mvsta4d_coeff_M},
-                          {"M1", mvsta4d_coeff_M1},
-                          {"M2", mvsta4d_coeff_M2},
-                          {"M_even", mvsta4d_coeff_M_even},
-                          {"M_odd", mvsta4d_coeff_M_odd},
-                          {"A_even", mvsta4d_coeff_A_even},
-                          {"B_even", mvsta4d_coeff_B_even},
-                          {"A_odd", mvsta4d_coeff_A_odd},
-                          {"B_odd", mvsta4d_coeff_B_odd},
-                          {"R_even", mvsta4d_coeff_R_even},
-                          {"R_odd", mvsta4d_coeff_R_odd},
-                          {"R_rev_even", mvsta4d_coeff_R_rev_even},
-                          {"R_rev_odd", mvsta4d_coeff_R_rev_odd},
-                          {"R_rrev_even", mvsta4d_coeff_R_rrev_even},
-                          {"R_rrev_odd", mvsta4d_coeff_R_rrev_odd},
-                          {"svBtps", mvsta4d_coeff_svBtps},
-                          {"svBtps1", mvsta4d_coeff_svBtps1},
-                          {"svBtps2", mvsta4d_coeff_svBtps2}};
+    sta4ds.coefficients = {{"A", mvsta4ds_coeff_A},
+                           {"B", mvsta4ds_coeff_B},
+                           {"M", mvsta4ds_coeff_M},
+                           {"M1", mvsta4ds_coeff_M1},
+                           {"M2", mvsta4ds_coeff_M2},
+                           {"M_even", mvsta4ds_coeff_M_even},
+                           {"M_odd", mvsta4ds_coeff_M_odd},
+                           {"A_even", mvsta4ds_coeff_A_even},
+                           {"B_even", mvsta4ds_coeff_B_even},
+                           {"A_odd", mvsta4ds_coeff_A_odd},
+                           {"B_odd", mvsta4ds_coeff_B_odd},
+                           {"R_even", mvsta4ds_coeff_R_even},
+                           {"R_odd", mvsta4ds_coeff_R_odd},
+                           {"R_rev_even", mvsta4ds_coeff_R_rev_even},
+                           {"R_rev_odd", mvsta4ds_coeff_R_rev_odd},
+                           {"R_rrev_even", mvsta4ds_coeff_R_rrev_even},
+                           {"R_rrev_odd", mvsta4ds_coeff_R_rrev_odd},
+                           {"svBtps", mvsta4ds_coeff_svBtps},
+                           {"svBtps1", mvsta4ds_coeff_svBtps1},
+                           {"svBtps2", mvsta4ds_coeff_svBtps2}};
 
     // Map filter names to existing filter enums
-    sta4d.filters_4d = {{"s", filter_4d::s},         {"vec", filter_4d::vec},
-                        {"bivec", filter_4d::bivec}, {"trivec", filter_4d::trivec},
-                        {"ps", filter_4d::ps},       {"mv_e", filter_4d::mv_e},
-                        {"mv_u", filter_4d::mv_u},   {"mv", filter_4d::mv}};
+    sta4ds.filters_4d = {{"s", filter_4d::s},         {"vec", filter_4d::vec},
+                         {"bivec", filter_4d::bivec}, {"trivec", filter_4d::trivec},
+                         {"ps", filter_4d::ps},       {"mv_e", filter_4d::mv_e},
+                         {"mv_u", filter_4d::mv_u},   {"mv", filter_4d::mv}};
 
-    return sta4d;
+    return sta4ds;
 }
 
-ProductConfig get_sta4d_gpr_config()
+ProductConfig get_sta4ds_gpr_config()
 {
     return {.product_name = "gpr",
-            .description = "sta4d geometric product",
+            .description = "sta4ds geometric product",
             .display_name = "geometric product",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
@@ -261,11 +261,11 @@ ProductConfig get_sta4d_gpr_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_cmt_config()
+ProductConfig get_sta4ds_cmt_config()
 {
     return {
         .product_name = "cmt",
-        .description = "sta4d commutator product",
+        .description = "sta4ds commutator product",
         .display_name = "commutator product",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
@@ -307,10 +307,10 @@ ProductConfig get_sta4d_cmt_config()
         .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_wdg_config()
+ProductConfig get_sta4ds_wdg_config()
 {
     return {.product_name = "wdg",
-            .description = "sta4d wedge product",
+            .description = "sta4ds wedge product",
             .display_name = "wedge product",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
@@ -392,10 +392,10 @@ ProductConfig get_sta4d_wdg_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_dot_config()
+ProductConfig get_sta4ds_dot_config()
 {
     return {.product_name = "dot",
-            .description = "sta4d inner product",
+            .description = "sta4ds inner product",
             .display_name = "inner product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -419,11 +419,11 @@ ProductConfig get_sta4d_dot_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_l_contract_config()
+ProductConfig get_sta4ds_l_contract_config()
 {
     return {
         .product_name = "l_contract",
-        .description = "sta4d left contraction",
+        .description = "sta4ds left contraction",
         .display_name = "left contraction",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
@@ -505,11 +505,11 @@ ProductConfig get_sta4d_l_contract_config()
         .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_r_contract_config()
+ProductConfig get_sta4ds_r_contract_config()
 {
     return {
         .product_name = "r_contract",
-        .description = "sta4d right contraction",
+        .description = "sta4ds right contraction",
         .display_name = "right contraction",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
@@ -591,11 +591,11 @@ ProductConfig get_sta4d_r_contract_config()
         .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_l_expand_config()
+ProductConfig get_sta4ds_l_expand_config()
 {
     return {
         .product_name = "l_expand",
-        .description = "sta4d left expansion",
+        .description = "sta4ds left expansion",
         .display_name = "left expansion",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
@@ -619,11 +619,11 @@ ProductConfig get_sta4d_l_expand_config()
         .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_r_expand_config()
+ProductConfig get_sta4ds_r_expand_config()
 {
     return {
         .product_name = "r_expand",
-        .description = "sta4d right expansion",
+        .description = "sta4ds right expansion",
         .display_name = "right expansion",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
@@ -647,10 +647,10 @@ ProductConfig get_sta4d_r_expand_config()
         .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_rgpr_config()
+ProductConfig get_sta4ds_rgpr_config()
 {
     return {.product_name = "rgpr",
-            .description = "sta4d regressive geometric product",
+            .description = "sta4ds regressive geometric product",
             .display_name = "regressive geometric product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -660,10 +660,10 @@ ProductConfig get_sta4d_rgpr_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_rcmt_config()
+ProductConfig get_sta4ds_rcmt_config()
 {
     return {.product_name = "rcmt",
-            .description = "sta4d regressive commutator product",
+            .description = "sta4ds regressive commutator product",
             .display_name = "regressive commutator product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -673,11 +673,11 @@ ProductConfig get_sta4d_rcmt_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_rwdg_config()
+ProductConfig get_sta4ds_rwdg_config()
 {
     return {
         .product_name = "rwdg",
-        .description = "sta4d regressive wedge product",
+        .description = "sta4ds regressive wedge product",
         .display_name = "regressive wedge product",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
@@ -759,10 +759,10 @@ ProductConfig get_sta4d_rwdg_config()
         .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_rdot_config()
+ProductConfig get_sta4ds_rdot_config()
 {
     return {.product_name = "rdot",
-            .description = "sta4d regressive inner product",
+            .description = "sta4ds regressive inner product",
             .display_name = "regressive inner product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
@@ -772,11 +772,11 @@ ProductConfig get_sta4d_rdot_config()
             .show_basis_table = true};
 }
 
-ProductConfig get_sta4d_sandwich_gpr_config()
+ProductConfig get_sta4ds_sandwich_gpr_config()
 {
     return {
         .product_name = "sandwich_gpr",
-        .description = "sta4d sandwich product",
+        .description = "sta4ds sandwich product",
         .display_name = "sandwich product",
         // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
         // "right_filter", is_two_step, "intermediate"}

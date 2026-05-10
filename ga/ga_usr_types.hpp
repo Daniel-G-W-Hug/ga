@@ -7,13 +7,14 @@
 
 #include "detail/type_t/ga_mvec2d.hpp" // 2d types for EGA
 #include "detail/type_t/ga_mvec3d.hpp" // 3d types for EGA
-#include "detail/type_t/ga_mvec4d.hpp" // 4d types for EGA
 
 #include "detail/type_t/ga_mvec2dp.hpp" // 2dp types for PGA
 #include "detail/type_t/ga_mvec3dp.hpp" // 3dp types for PGA
 
 #include "detail/type_t/ga_type2dp.hpp" // Point2dp, Vector2d, Point2d, Line2dp
 #include "detail/type_t/ga_type3dp.hpp" // Point3dp, Vector3d, Point3d, Line3dp, Plane3d
+
+#include "detail/type_t/ga_mvec4ds.hpp" // 4ds types for STA
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // consistent type definitions for easy and convenient use (based on value_t)
@@ -54,19 +55,6 @@ using pscalar3d = PScalar3d<value_t>;
 using mvec3d_e = MVec3d_E<value_t>; // multivector 3d of even subalgebra
 using mvec3d_u = MVec3d_U<value_t>; // multivector 3d of odd subalgebra
 using mvec3d = MVec3d<value_t>;     // fully populated 3d multivector
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// vector and multivector types ega4d
-/////////////////////////////////////////////////////////////////////////////////////////
-using scalar4d = Scalar4d<value_t>;
-using vec4d = Vec4d<value_t>;
-using bivec4d = BiVec4d<value_t>;
-using trivec4d = TriVec4d<value_t>;
-using pscalar4d = PScalar4d<value_t>;
-using mvec4d_e = MVec4d_E<value_t>; // multivector 4d of even subalgebra
-using mvec4d_u = MVec4d_U<value_t>; // multivector 4d of odd subalgebra
-using mvec4d = MVec4d<value_t>;     // fully populated 4d multivector
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -113,5 +101,21 @@ using point3d = pga::Point3d<value_t>;   // implicit w = 1.0 (alias for Vec3d<T>
 using vector3d = pga::Vector3d<value_t>; // implicit w = 0.0 (alias for Vec3d<T>)
 using line3d = pga::Line3d<value_t>;     // bivector         (alias for BiVec3dp<T>)
 using plane3d = pga::Plane3d<value_t>;   // trivector        (alias for TriVec3dp<T>)
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// vector and multivector types sta4ds (4ds = 4D-space-time algebra)
+/////////////////////////////////////////////////////////////////////////////////////////
+using scalar4ds = Scalar4ds<value_t>;
+using vec4ds = Vec4ds<value_t>;
+using bivec4ds = BiVec4ds<value_t>;
+using trivec4ds = TriVec4ds<value_t>;
+using pscalar4ds = PScalar4ds<value_t>;
+using mvec4ds_e = MVec4ds_E<value_t>; // multivector 4ds of even subalgebra
+using mvec4ds_u = MVec4ds_U<value_t>; // multivector 4ds of uneven (odd) subalgebra
+using mvec4ds = MVec4ds<value_t>;     // fully populated 4ds multivector
+
+// dual number with s 1 + ps I_4ds (I_4ds = g0123, where g0123^2 = 0)
+using dualnum4ds = DualNum4ds<value_t>;
 
 } // namespace hd::ga

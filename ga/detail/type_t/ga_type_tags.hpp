@@ -30,16 +30,6 @@ struct mvec3d_e_tag : public ega3d_tag {};
 struct mvec3d_u_tag : public ega3d_tag {};
 struct mvec3d_tag : public ega3d_tag {};
 
-struct ega4d_tag {};
-struct scalar4d_tag : public ega4d_tag {};
-struct vec4d_tag : public ega4d_tag {};
-struct bivec4d_tag : public ega4d_tag {};
-struct trivec4d_tag : public ega4d_tag {};
-struct pscalar4d_tag : public ega4d_tag {};
-struct mvec4d_e_tag : public ega4d_tag {};
-struct mvec4d_u_tag : public ega4d_tag {};
-struct mvec4d_tag : public ega4d_tag {};
-
 struct pga2dp_tag {};
 struct scalar2dp_tag : public pga2dp_tag {};
 struct vec2dp_tag : public pga2dp_tag {};
@@ -60,6 +50,17 @@ struct mvec3dp_e_tag : public pga3dp_tag {};
 struct mvec3dp_u_tag : public pga3dp_tag {};
 struct mvec3dp_tag : public pga3dp_tag {};
 struct dual_number3dp_tag : public pga3dp_tag {};
+
+struct sta4ds_tag {};
+struct scalar4ds_tag : public sta4ds_tag {};
+struct vec4ds_tag : public sta4ds_tag {};
+struct bivec4ds_tag : public sta4ds_tag {};
+struct trivec4ds_tag : public sta4ds_tag {};
+struct pscalar4ds_tag : public sta4ds_tag {};
+struct mvec4ds_e_tag : public sta4ds_tag {};
+struct mvec4ds_u_tag : public sta4ds_tag {};
+struct mvec4ds_tag : public sta4ds_tag {};
+struct dual_number4ds_tag : public sta4ds_tag {};
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -95,12 +96,6 @@ struct base_class<T> {
 };
 
 template <typename T>
-    requires std::is_base_of_v<ega4d_tag, T>
-struct base_class<T> {
-    using type = ega4d_tag;
-};
-
-template <typename T>
     requires std::is_base_of_v<pga2dp_tag, T>
 struct base_class<T> {
     using type = pga2dp_tag;
@@ -110,6 +105,12 @@ template <typename T>
     requires std::is_base_of_v<pga3dp_tag, T>
 struct base_class<T> {
     using type = pga3dp_tag;
+};
+
+template <typename T>
+    requires std::is_base_of_v<sta4ds_tag, T>
+struct base_class<T> {
+    using type = sta4ds_tag;
 };
 
 // hint: just add newly defined tag classes here
