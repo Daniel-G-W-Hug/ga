@@ -140,6 +140,16 @@ std::pair<std::string, int> multiply_basis_elements(std::string const& a,
                                                     std::string const& b,
                                                     AlgebraConfig const& config);
 
+// Look up the metric signature value of the basis vector whose name is
+// "<basis_prefix><digit>" by finding its position in config.basis_vectors and
+// indexing config.metric_signature at that position. Slot-keyed, not
+// digit-keyed: reordering config.basis_vectors automatically reorders the
+// signature lookup. Returns 0 if the digit does not correspond to a known
+// basis vector. Replaces the older "digit ± 1-based offset" lookup, which
+// silently assumed slot order matches digit order — true for all current
+// algebras, but breaks the moment a basis is reordered.
+int vector_metric_value(int digit, AlgebraConfig const& config);
+
 ////////////////////////////////////////////////////////////////////////////////
 // Extended Metric Calculation (declarations)
 ////////////////////////////////////////////////////////////////////////////////

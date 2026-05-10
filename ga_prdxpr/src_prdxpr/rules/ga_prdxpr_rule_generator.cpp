@@ -33,6 +33,19 @@ std::vector<int> parse_indices(std::string const& basis_element,
     return indices;
 }
 
+// See declaration in ga_prdxpr_rule_generator.hpp.
+int vector_metric_value(int digit, AlgebraConfig const& config)
+{
+    std::string const name = config.basis_prefix + std::to_string(digit);
+    auto it = std::find(config.basis_vectors.begin(),
+                        config.basis_vectors.end(), name);
+    if (it == config.basis_vectors.end()) return 0;
+    size_t const slot =
+        static_cast<size_t>(std::distance(config.basis_vectors.begin(), it));
+    if (slot >= config.metric_signature.size()) return 0;
+    return config.metric_signature[slot];
+}
+
 // Create basis element from indices (simple concatenation)
 std::string indices_to_basis(std::vector<int> const& indices, std::string const& prefix)
 {
@@ -71,25 +84,12 @@ std::pair<std::string, int> multiply_basis_elements(std::string const& a,
         for (size_t i = 0; i < sequence.size() && !changed; ++i) {
             for (size_t j = i + 1; j < sequence.size(); ++j) {
                 if (sequence[i] == sequence[j]) {
-                    // Found a pair - apply metric signature
-                    int basis_index = sequence[i];
-                    int metric_index = basis_index;
-
-                    // Check if this is 1-based indexing vs 0-based indexing
-                    bool is_one_based = true;
-                    for (const auto& bv : config.basis_vectors) {
-                        auto indices = parse_indices(bv, config.basis_prefix);
-                        if (!indices.empty() && indices[0] == 0) {
-                            is_one_based = false;
-                            break;
-                        }
-                    }
-
-                    if (is_one_based && basis_index > 0) {
-                        metric_index = basis_index - 1; // Convert 1-based to 0-based
-                    }
-
-                    sign *= config.metric_signature[metric_index];
+                    // Found a pair - apply metric signature via slot lookup.
+                    // vector_metric_value() finds the basis vector by name in
+                    // config.basis_vectors and indexes config.metric_signature
+                    // at that slot, so reordering the basis vector list works
+                    // correctly regardless of digit/slot alignment.
+                    sign *= vector_metric_value(sequence[i], config);
 
                     // Count swaps needed to bring indices together
                     int swaps = static_cast<int>(j - i - 1);
@@ -194,16 +194,6 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
     // Scalar always has metric value 1
     extended_metric[0] = 1;
 
-    // Check if this is 1-based indexing vs 0-based indexing
-    bool is_one_based = true;
-    for (const auto& bv : config.basis_vectors) {
-        auto bv_indices = parse_indices(bv, config.basis_prefix);
-        if (!bv_indices.empty() && bv_indices[0] == 0) {
-            is_one_based = false;
-            break;
-        }
-    }
-
     // Calculate determinant of metric for pseudoscalar
     int determinant = 1;
     for (int m : metric) {
@@ -226,25 +216,15 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
         }
         else {
             // For other elements: calculate using conforming property G(a ^ b) = G(a) ^
-            // G(b)
+            // G(b). Per-vector metric lookup is slot-keyed via vector_metric_value, so
+            // a basis reordering is handled correctly without ad-hoc 1-vs-0-based logic.
             int metric_value = 1;
             int negative_count = 0; // Count negative metric values
 
             for (int idx : indices) {
-                int metric_index = idx;
-                if (is_one_based && idx > 0) {
-                    metric_index = idx - 1; // Convert 1-based to 0-based
-                }
-
-                if (metric_index >= 0 && metric_index < static_cast<int>(metric.size())) {
-                    int m = metric[metric_index];
-                    metric_value *= m;
-                    if (m < 0) negative_count++;
-                }
-                else {
-                    metric_value = 0; // Invalid index
-                    break;
-                }
+                int m = vector_metric_value(idx, config);
+                metric_value *= m;
+                if (m < 0) negative_count++;
             }
 
             // Apply special rules for mixed signature algebras
