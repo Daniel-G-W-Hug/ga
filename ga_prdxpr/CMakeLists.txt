@@ -117,8 +117,10 @@ add_executable(${EXEC4_NAME} ${SOURCES_RULE_GENERATOR_TEST})  #dep: fmt
 # subfolder-prefixed includes (e.g. "core/ga_prdxpr_common.hpp").
 target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
-target_include_directories(${EXEC2_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC3_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(${EXEC2_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
+                                                ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
+target_include_directories(${EXEC3_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
+                                                ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
 target_include_directories(${EXEC4_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
                                                  ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
 
