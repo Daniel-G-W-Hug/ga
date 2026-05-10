@@ -103,6 +103,13 @@ void bind_mvec3dp_u(nb::module_& m) {
         .def("__mul__", [](mvec3dp_u const& a, vec3dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec3dp_u const& a, scalar3dp const& b) { return a * b; }, nb::is_operator())
         .def("__xor__", [](mvec3dp_u const& a, mvec3dp_u const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec3dp_u const& a, mvec3dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec3dp_u const& a, mvec3dp_e const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec3dp_u const& a, pscalar3dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec3dp_u const& a, trivec3dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec3dp_u const& a, bivec3dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec3dp_u const& a, vec3dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec3dp_u const& a, scalar3dp const& b) { return wdg(a, b); }, nb::is_operator())
         .def("gr1", [](const mvec3dp_u& M) { return gr1(M); })
         .def("gr3", [](const mvec3dp_u& M) { return gr3(M); })
         ;

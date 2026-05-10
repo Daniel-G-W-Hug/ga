@@ -98,6 +98,12 @@ void bind_mvec2dp_e(nb::module_& m) {
         .def("__mul__", [](mvec2dp_e const& a, vec2dp const& b) { return a * b; }, nb::is_operator())
         .def("__mul__", [](mvec2dp_e const& a, scalar2dp const& b) { return a * b; }, nb::is_operator())
         .def("__xor__", [](mvec2dp_e const& a, mvec2dp_e const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec2dp_e const& a, mvec2dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec2dp_e const& a, mvec2dp_u const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec2dp_e const& a, pscalar2dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec2dp_e const& a, bivec2dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec2dp_e const& a, vec2dp const& b) { return wdg(a, b); }, nb::is_operator())
+        .def("__xor__", [](mvec2dp_e const& a, scalar2dp const& b) { return wdg(a, b); }, nb::is_operator())
         .def("gr0", [](const mvec2dp_e& M) { return gr0(M); })
         .def("gr2", [](const mvec2dp_e& M) { return gr2(M); })
         ;
