@@ -132,12 +132,12 @@ export PYTHONPATH="$PWD/build/ga_py:$PWD/ga_py/python"
 
 ```bat
 rem Windows Command Prompt — cwd: project root
-set PYTHONPATH=%CD%\build\ga_py\Debug;%CD%\ga_py\python
+set PYTHONPATH=%CD%\build\ga_py\Release;%CD%\ga_py\python
 ```
 
 ```powershell
 # Windows PowerShell — cwd: project root
-$env:PYTHONPATH = "$PWD\build\ga_py\Debug;$PWD\ga_py\python"
+$env:PYTHONPATH = "$PWD\build\ga_py\Release;$PWD\ga_py\python"
 ```
 
 (Using `$PWD` / `%CD%` resolves the relative paths to absolute ones, so `PYTHONPATH` keeps
@@ -158,13 +158,13 @@ PYTHONPATH="$PWD/build/ga_py:$PWD/ga_py/python" \
 
 ```bat
 rem Windows Command Prompt — cwd: project root
-set PYTHONPATH=%CD%\build\ga_py\Debug;%CD%\ga_py\python
+set PYTHONPATH=%CD%\build\ga_py\Release;%CD%\ga_py\python
 ga_py\.venv\Scripts\python.exe ga_py\demo\hello_ga.py
 ```
 
 ```powershell
 # Windows PowerShell — cwd: project root
-$env:PYTHONPATH = "$PWD\build\ga_py\Debug;$PWD\ga_py\python"
+$env:PYTHONPATH = "$PWD\build\ga_py\Release;$PWD\ga_py\python"
 ga_py\.venv\Scripts\python.exe ga_py\demo\hello_ga.py
 ```
 
@@ -195,13 +195,13 @@ PYTHONPATH="build/ga_py:ga_py/python" ga_py/.venv/bin/pytest ga_py/tests/
 
 ```bat
 rem Windows Command Prompt — cwd: project root
-set PYTHONPATH=%CD%\build\ga_py\Debug;%CD%\ga_py\python
+set PYTHONPATH=%CD%\build\ga_py\Release;%CD%\ga_py\python
 ga_py\.venv\Scripts\pytest ga_py\tests\
 ```
 
 ```powershell
 # Windows PowerShell — cwd: project root
-$env:PYTHONPATH = "$PWD\build\ga_py\Debug;$PWD\ga_py\python"
+$env:PYTHONPATH = "$PWD\build\ga_py\Release;$PWD\ga_py\python"
 ga_py\.venv\Scripts\pytest ga_py\tests\
 ```
 
