@@ -109,7 +109,7 @@ class SandwichTransformer {
 // Algebra-specific configuration
 ///////////////////////////////////////////////////////////////////////////////
 
-struct AlgebraConfig {
+struct SandwichAlgebraConfig {
     std::string name;
     std::vector<std::string> geometric_variables; // e.g., {"v.x", "v.y"} for vectors
     std::vector<std::string> result_components;   // e.g., {"e1", "e2"} for vector results
@@ -120,15 +120,15 @@ struct AlgebraConfig {
 class AlgebraRegistry {
   public:
 
-    static AlgebraConfig getConfig(const std::string& algebra_type);
+    static SandwichAlgebraConfig getConfig(const std::string& algebra_type);
 
   private:
 
-    static AlgebraConfig createEGA2DConfig();
-    static AlgebraConfig createEGA3DConfig();
-    static AlgebraConfig createPGA2DPConfig();
-    static AlgebraConfig createPGA3DPConfig();
-    static AlgebraConfig createSTA4DConfig();
+    static SandwichAlgebraConfig createEGA2DConfig();
+    static SandwichAlgebraConfig createEGA3DConfig();
+    static SandwichAlgebraConfig createPGA2DPConfig();
+    static SandwichAlgebraConfig createPGA3DPConfig();
+    static SandwichAlgebraConfig createSTA4DConfig();
 };
 
 ///////////////////////////////////////////////////////////////////////////////
