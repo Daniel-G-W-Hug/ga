@@ -13,8 +13,7 @@
 
 namespace codegen {
 
-std::optional<std::string>
-product_to_cpp_function(std::string const& product_name)
+std::optional<std::string> product_to_cpp_function(std::string const& product_name)
 {
     static std::unordered_map<std::string, std::string> const m = {
         {"gpr", "operator*"},
@@ -29,6 +28,14 @@ product_to_cpp_function(std::string const& product_name)
         {"rtwdg1", "rtwdg1"},
         {"l_contract", "operator<<"},
         {"r_contract", "operator>>"},
+        // PGA bulk contractions are the natural extension of the EGA
+        // contractions to the projective metric — the library overloads the
+        // same operators (the operand types route to the bulk variant via
+        // PGA-specific types). The weight contractions (l_weight_contract /
+        // r_weight_contract) and bulk/weight expansions stay as named
+        // functions since they have no infix shorthand.
+        {"l_bulk_contract", "operator<<"},
+        {"r_bulk_contract", "operator>>"},
     };
     auto it = m.find(product_name);
     if (it == m.end()) return std::nullopt;
@@ -44,14 +51,15 @@ std::string parse_result_filter(std::string const& case_name)
     }
     // Skip past "->" and any whitespace.
     std::size_t i = arrow_pos + 2;
-    while (i < case_name.size() && std::isspace(static_cast<unsigned char>(case_name[i]))) {
+    while (i < case_name.size() &&
+           std::isspace(static_cast<unsigned char>(case_name[i]))) {
         ++i;
     }
     // Read the result-filter token: alnum + underscore.
     std::size_t j = i;
-    while (j < case_name.size() &&
-           (std::isalnum(static_cast<unsigned char>(case_name[j])) ||
-            case_name[j] == '_')) {
+    while (
+        j < case_name.size() &&
+        (std::isalnum(static_cast<unsigned char>(case_name[j])) || case_name[j] == '_')) {
         ++j;
     }
     if (j == i) {
@@ -61,8 +69,7 @@ std::string parse_result_filter(std::string const& case_name)
     return case_name.substr(i, j - i);
 }
 
-std::optional<std::string>
-parse_explicit_zero_override(std::string const& case_name)
+std::optional<std::string> parse_explicit_zero_override(std::string const& case_name)
 {
     auto const arrow_pos = case_name.find("->");
     if (arrow_pos == std::string::npos) return std::nullopt;
@@ -85,9 +92,9 @@ parse_explicit_zero_override(std::string const& case_name)
     skip_ws();
     // Optional second token = explicit override type.
     std::size_t j = i;
-    while (j < case_name.size() &&
-           (std::isalnum(static_cast<unsigned char>(case_name[j])) ||
-            case_name[j] == '_')) {
+    while (
+        j < case_name.size() &&
+        (std::isalnum(static_cast<unsigned char>(case_name[j])) || case_name[j] == '_')) {
         ++j;
     }
     if (j == i) return std::nullopt; // bare "-> 0" form, no explicit type
@@ -107,9 +114,8 @@ std::string param_name_from_coeff(mvec_coeff const& coeff,
     std::string found;
     for (auto idx : basis_indices) {
         if (idx >= coeff.size()) {
-            throw std::out_of_range(
-                "param_name_from_coeff: basis index out of range: " +
-                std::to_string(idx));
+            throw std::out_of_range("param_name_from_coeff: basis index out of range: " +
+                                    std::to_string(idx));
         }
         std::string const& v = coeff[idx];
         if (v.empty() || v == "0") continue;
@@ -200,8 +206,7 @@ std::string build_indexed_body(TypeInfo const& result_info, mvec_coeff const& pr
 //     ...
 //     return MVec3d_E<ctype>(Scalar3d<ctype>(c0), BiVec3d<ctype>(c1, c2, c3));
 std::string build_composite_body(TypeInfo const& result_info,
-                                 TypeRegistry const& registry,
-                                 mvec_coeff const& prd_mv)
+                                 TypeRegistry const& registry, mvec_coeff const& prd_mv)
 {
     std::ostringstream os;
     auto const& idx = result_info.basis_indices;
@@ -308,8 +313,7 @@ mvec_coeff wrap_bare_scalars(mvec_coeff const& prd_mv,
                 auto is_word_char = [](char c) {
                     return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
                 };
-                bool left_ok =
-                    (found == 0) || !is_word_char(expr[found - 1]);
+                bool left_ok = (found == 0) || !is_word_char(expr[found - 1]);
                 bool right_ok = (found + name.size() == expr.size()) ||
                                 !is_word_char(expr[found + name.size()]);
                 if (!left_ok || !right_ok) {
@@ -338,9 +342,10 @@ mvec_coeff wrap_bare_scalars(mvec_coeff const& prd_mv,
 // Detect bare-scalar parameter names by inspecting an operand's coefficient
 // definition restricted to the operand's filter region. SingleValue operands
 // have exactly one bare identifier (no '.') at their basis index.
-std::vector<std::string>
-collect_bare_scalars(mvec_coeff const& lhs_coeff, TypeInfo const& lhs_info,
-                     mvec_coeff const& rhs_coeff, TypeInfo const& rhs_info)
+std::vector<std::string> collect_bare_scalars(mvec_coeff const& lhs_coeff,
+                                              TypeInfo const& lhs_info,
+                                              mvec_coeff const& rhs_coeff,
+                                              TypeInfo const& rhs_info)
 {
     std::vector<std::string> out;
     auto add_if_bare = [&](mvec_coeff const& coeff,
@@ -363,11 +368,12 @@ collect_bare_scalars(mvec_coeff const& lhs_coeff, TypeInfo const& lhs_info,
 
 } // namespace
 
-std::optional<std::string>
-emit_function(configurable::AlgebraData const& algebra,
-              configurable::ProductConfig const& product,
-              configurable::OutputCase const& case_def, mvec_coeff const& prd_mv,
-              TypeRegistry const& registry, std::string* skip_reason)
+std::optional<std::string> emit_function(configurable::AlgebraData const& algebra,
+                                         configurable::ProductConfig const& product,
+                                         configurable::OutputCase const& case_def,
+                                         mvec_coeff const& prd_mv,
+                                         TypeRegistry const& registry,
+                                         std::string* skip_reason)
 {
     auto set_skip = [&](std::string const& msg) {
         if (skip_reason) *skip_reason = msg;

@@ -2810,6 +2810,7 @@ constexpr Vec3d<std::common_type_t<T, U>> cross(Vec3d<T> const& v1, Vec3d<U> con
 // commutator product (the asymmetric part of the geometric product)
 ////////////////////////////////////////////////////////////////////////////////
 
+// ega3d cmt :: cmt(mv,mv) -> mv
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d<std::common_type_t<T, U>> cmt(MVec3d<T> const& A, MVec3d<U> const& B)
@@ -2826,6 +2827,77 @@ constexpr MVec3d<std::common_type_t<T, U>> cmt(MVec3d<T> const& A, MVec3d<U> con
     return MVec3d<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
+// ega3d cmt :: cmt(ps,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] PScalar3d<T>,
+                                                 [[maybe_unused]] PScalar3d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(ps,bivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] PScalar3d<T>,
+                                                 [[maybe_unused]] BiVec3d<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(bivec,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] BiVec3d<T> const&,
+                                                 [[maybe_unused]] PScalar3d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(ps,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] PScalar3d<T>,
+                                                 [[maybe_unused]] Vec3d<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(vec,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] Vec3d<T> const&,
+                                                 [[maybe_unused]] PScalar3d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(ps,s) -> 0 ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] PScalar3d<T>,
+                                                  [[maybe_unused]] Scalar3d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(s,ps) -> 0 ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar3d<T>,
+                                                  [[maybe_unused]] PScalar3d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(bivec,bivec) -> bivec
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B1,
@@ -2838,8 +2910,8 @@ constexpr BiVec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B1,
     return BiVec3d<ctype>(c0, c1, c2);
 }
 
-// cmt(B,v) == -cmt(v,B)
-// identical to (v << B)
+// cmt(B,v) == -cmt(v,B) == (v << B)
+// ega3d cmt :: cmt(bivec,vec) -> vec
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B, Vec3d<U> const& v)
@@ -2851,8 +2923,8 @@ constexpr Vec3d<std::common_type_t<T, U>> cmt(BiVec3d<T> const& B, Vec3d<U> cons
     return Vec3d<ctype>(c0, c1, c2);
 }
 
-// cmt(v,B) == -cmt(B,v)
-// identical to (B >> v)
+// cmt(v,B) == -cmt(B,v) == (B >> v)
+// ega3d cmt :: cmt(vec,bivec) -> vec
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v, BiVec3d<U> const& B)
@@ -2864,6 +2936,27 @@ constexpr Vec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v, BiVec3d<U> cons
     return Vec3d<ctype>(c0, c1, c2);
 }
 
+// ega3d cmt :: cmt(bivec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] BiVec3d<T> const&,
+                                                 [[maybe_unused]] Scalar3d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(s,bivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar3d<T>,
+                                                 [[maybe_unused]] BiVec3d<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(vec,vec) -> bivec
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr BiVec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v1, Vec3d<U> const& v2)
@@ -2873,6 +2966,36 @@ constexpr BiVec3d<std::common_type_t<T, U>> cmt(Vec3d<T> const& v1, Vec3d<U> con
     ctype const c1 = -v1.x * v2.z + v1.z * v2.x;
     ctype const c2 = v1.x * v2.y - v1.y * v2.x;
     return BiVec3d<ctype>(c0, c1, c2);
+}
+
+// ega3d cmt :: cmt(vec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] Vec3d<T> const&,
+                                                 [[maybe_unused]] Scalar3d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(s,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar3d<T>,
+                                                 [[maybe_unused]] Vec3d<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(0.0);
+}
+
+// ega3d cmt :: cmt(s,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar3d<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar3d<T>,
+                                                 [[maybe_unused]] Scalar3d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar3d<ctype>(0.0);
 }
 
 

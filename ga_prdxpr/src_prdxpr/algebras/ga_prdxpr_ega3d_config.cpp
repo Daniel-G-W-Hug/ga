@@ -284,11 +284,29 @@ ProductConfig get_ega3d_cmt_config()
             .display_name = "commutator product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {{"cmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                      {"cmt(bivec,bivec) -> bivec", "svBps1", "svBps2", "bivec", "bivec"},
-                      {"cmt(bivec,vec) -> vec", "svBps", "svBps", "bivec", "vec"},
-                      {"cmt(vec,bivec) -> vec", "svBps", "svBps", "vec", "bivec"},
-                      {"cmt(vec,vec) -> bivec", "svBps1", "svBps2", "vec", "vec"}},
+            .cases =
+                {// mv
+                 {"cmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                 // ps
+                 {"cmt(ps,ps) -> 0", "svBps1", "svBps2", "ps", "ps"},
+                 {"cmt(ps,bivec) -> 0", "svBps", "svBps", "ps", "bivec"},
+                 {"cmt(bivec,ps) -> 0", "svBps", "svBps", "bivec", "ps"},
+                 {"cmt(ps,vec) -> 0", "svBps", "svBps", "ps", "vec"},
+                 {"cmt(vec,ps) -> 0", "svBps", "svBps", "vec", "ps"},
+                 {"cmt(ps,s) -> 0 ps", "svBps", "svBps", "ps", "s"},
+                 {"cmt(s,ps) -> 0 ps", "svBps", "svBps", "s", "ps"},
+                 // bivec
+                 {"cmt(bivec,bivec) -> bivec", "svBps1", "svBps2", "bivec", "bivec"},
+                 {"cmt(bivec,vec) -> vec", "svBps", "svBps", "bivec", "vec"},
+                 {"cmt(vec,bivec) -> vec", "svBps", "svBps", "vec", "bivec"},
+                 {"cmt(bivec,s) -> 0", "svBps", "svBps", "bivec", "s"},
+                 {"cmt(s,bivec) -> 0", "svBps", "svBps", "s", "bivec"},
+                 // vec
+                 {"cmt(vec,vec) -> bivec", "svBps1", "svBps2", "vec", "vec"},
+                 {"cmt(vec,s) -> 0", "svBps", "svBps", "vec", "s"},
+                 {"cmt(s,vec) -> 0", "svBps", "svBps", "s", "vec"},
+                 // s
+                 {"cmt(s,s) -> 0", "svBps1", "svBps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -370,13 +388,19 @@ ProductConfig get_ega3d_dot_config()
             .display_name = "inner product",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
-            .cases = {{"dot(mv,mv) -> s", "A", "B", "mv", "mv"},
-                      {"dot(mv_e,mv_e) -> s", "A_even", "B_even", "mv_e", "mv_e"},
-                      {"dot(mv_u,mv_u) -> s", "A_odd", "B_odd", "mv_u", "mv_u"},
-                      {"dot(ps,ps) -> s", "svBps1", "svBps2", "ps", "ps"},
-                      {"dot(bivec,bivec) -> s", "svBps1", "svBps2", "bivec", "bivec"},
-                      {"dot(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
-                      {"dot(s,s) -> s", "svBps1", "svBps2", "s", "s"}},
+            .cases =
+                {// mv
+                 {"dot(mv,mv) -> s", "A", "B", "mv", "mv"},
+                 {"dot(mv_e,mv_e) -> s", "A_even", "B_even", "mv_e", "mv_e"},
+                 {"dot(mv_u,mv_u) -> s", "A_odd", "B_odd", "mv_u", "mv_u"},
+                 // ps
+                 {"dot(ps,ps) -> s", "svBps1", "svBps2", "ps", "ps"},
+                 // bivec
+                 {"dot(bivec,bivec) -> s", "svBps1", "svBps2", "bivec", "bivec"},
+                 // vec
+                 {"dot(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
+                 // s
+                 {"dot(s,s) -> s", "svBps1", "svBps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -391,61 +415,61 @@ ProductConfig get_ega3d_l_contract_config()
             // "right_filter"}
             .cases =
                 {// mv
-                 {"mv << mv -> mv", "A", "B", "mv", "mv"},
-                 {"mv << mv_e -> mv", "A", "B_even", "mv", "mv_e"},
-                 {"mv_e << mv -> mv", "A_even", "B", "mv_e", "mv"},
-                 {"mv << mv_u -> mv", "A", "B_odd", "mv", "mv_u"},
-                 {"mv_u << mv -> mv", "A_odd", "B", "mv_u", "mv"},
-                 {"mv << ps -> mv", "M", "svBps", "mv", "ps"},
-                 {"ps << mv -> s", "svBps", "M", "ps", "mv"},
-                 {"mv << bivec -> mv", "M", "svBps", "mv", "bivec"},
-                 {"bivec << mv -> mv", "svBps", "M", "bivec", "mv"},
-                 {"mv << vec -> mv", "M", "svBps", "mv", "vec"},
-                 {"vec << mv -> mv", "svBps", "M", "vec", "mv"},
-                 {"mv << s -> s", "M", "svBps", "mv", "s"},
-                 {"s << mv -> mv", "svBps", "M", "s", "mv"},
+                 {"l_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                 {"l_contract(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+                 {"l_contract(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+                 {"l_contract(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
+                 {"l_contract(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
+                 {"l_contract(mv,ps) -> mv", "M", "svBps", "mv", "ps"},
+                 {"l_contract(ps,mv) -> s", "svBps", "M", "ps", "mv"},
+                 {"l_contract(mv,bivec) -> mv", "M", "svBps", "mv", "bivec"},
+                 {"l_contract(bivec,mv) -> mv", "svBps", "M", "bivec", "mv"},
+                 {"l_contract(mv,vec) -> mv", "M", "svBps", "mv", "vec"},
+                 {"l_contract(vec,mv) -> mv", "svBps", "M", "vec", "mv"},
+                 {"l_contract(mv,s) -> s", "M", "svBps", "mv", "s"},
+                 {"l_contract(s,mv) -> mv", "svBps", "M", "s", "mv"},
                  // mv_e
-                 {"mv_e << mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
-                 {"mv_e << mv_u -> mv_u", "A_even", "B_odd", "mv_e", "mv_u"},
-                 {"mv_u << mv_e -> vec", "A_odd", "B_even", "mv_u", "mv_e"},
-                 {"mv_e << ps -> mv_u", "M_even", "svBps", "mv_e", "ps"},
-                 {"ps << mv_e -> 0", "svBps", "M_even", "ps", "mv_e"},
-                 {"mv_e << bivec -> mv_e", "M_even", "svBps", "mv_e", "bivec"},
-                 {"bivec << mv_e -> s", "svBps", "M_even", "bivec", "mv_e"},
-                 {"mv_e << vec -> vec", "M_even", "svBps", "mv_e", "vec"},
-                 {"vec << mv_e -> vec", "svBps", "M_even", "vec", "mv_e"},
-                 {"mv_e << s -> s", "M_even", "svBps", "mv_e", "s"},
-                 {"s << mv_e -> mv_e", "svBps", "M_even", "s", "mv_e"},
+                 {"l_contract(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                 {"l_contract(mv_e,mv_u) -> mv_u", "A_even", "B_odd", "mv_e", "mv_u"},
+                 {"l_contract(mv_u,mv_e) -> vec", "A_odd", "B_even", "mv_u", "mv_e"},
+                 {"l_contract(mv_e,ps) -> mv_u", "M_even", "svBps", "mv_e", "ps"},
+                 {"l_contract(ps,mv_e) -> 0", "svBps", "M_even", "ps", "mv_e"},
+                 {"l_contract(mv_e,bivec) -> mv_e", "M_even", "svBps", "mv_e", "bivec"},
+                 {"l_contract(bivec,mv_e) -> s", "svBps", "M_even", "bivec", "mv_e"},
+                 {"l_contract(mv_e,vec) -> vec", "M_even", "svBps", "mv_e", "vec"},
+                 {"l_contract(vec,mv_e) -> vec", "svBps", "M_even", "vec", "mv_e"},
+                 {"l_contract(mv_e,s) -> s", "M_even", "svBps", "mv_e", "s"},
+                 {"l_contract(s,mv_e) -> mv_e", "svBps", "M_even", "s", "mv_e"},
                  // mv_u
-                 {"mv_u << mv_u -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
-                 {"mv_u << ps -> mv_e", "M_odd", "svBps", "mv_u", "ps"},
-                 {"ps << mv_u -> s", "svBps", "M_odd", "ps", "mv_u"},
-                 {"mv_u << bivec -> vec", "M_odd", "svBps", "mv_u", "bivec"},
-                 {"bivec << mv_u -> vec", "svBps", "M_odd", "bivec", "mv_u"},
-                 {"mv_u << vec -> s", "M_odd", "svBps", "mv_u", "vec"},
-                 {"vec << mv_u -> mv_e", "svBps", "M_odd", "vec", "mv_u"},
-                 {"mv_u << s -> 0", "M_odd", "svBps", "mv_u", "s"},
-                 {"s << mv_u -> mv_u", "svBps", "M_odd", "s", "mv_u"},
+                 {"l_contract(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+                 {"l_contract(mv_u,ps) -> mv_e", "M_odd", "svBps", "mv_u", "ps"},
+                 {"l_contract(ps,mv_u) -> s", "svBps", "M_odd", "ps", "mv_u"},
+                 {"l_contract(mv_u,bivec) -> vec", "M_odd", "svBps", "mv_u", "bivec"},
+                 {"l_contract(bivec,mv_u) -> vec", "svBps", "M_odd", "bivec", "mv_u"},
+                 {"l_contract(mv_u,vec) -> s", "M_odd", "svBps", "mv_u", "vec"},
+                 {"l_contract(vec,mv_u) -> mv_e", "svBps", "M_odd", "vec", "mv_u"},
+                 {"l_contract(mv_u,s) -> 0", "M_odd", "svBps", "mv_u", "s"},
+                 {"l_contract(s,mv_u) -> mv_u", "svBps", "M_odd", "s", "mv_u"},
                  // ps
-                 {"ps << ps -> s", "svBps1", "svBps2", "ps", "ps"},
-                 {"ps << bivec -> 0", "svBps", "svBps", "ps", "bivec"},
-                 {"bivec << ps -> vec", "svBps", "svBps", "bivec", "ps"},
-                 {"ps << vec -> 0", "svBps", "svBps", "ps", "vec"},
-                 {"vec << ps -> bivec", "svBps", "svBps", "vec", "ps"},
-                 {"ps << s -> 0", "svBps", "svBps", "ps", "s"},
-                 {"s << ps -> ps", "svBps", "svBps", "s", "ps"},
+                 {"l_contract(ps,ps) -> s", "svBps1", "svBps2", "ps", "ps"},
+                 {"l_contract(ps,bivec) -> 0", "svBps", "svBps", "ps", "bivec"},
+                 {"l_contract(bivec,ps) -> vec", "svBps", "svBps", "bivec", "ps"},
+                 {"l_contract(ps,vec) -> 0", "svBps", "svBps", "ps", "vec"},
+                 {"l_contract(vec,ps) -> bivec", "svBps", "svBps", "vec", "ps"},
+                 {"l_contract(ps,s) -> 0", "svBps", "svBps", "ps", "s"},
+                 {"l_contract(s,ps) -> ps", "svBps", "svBps", "s", "ps"},
                  // bivec
-                 {"bivec << bivec -> s", "svBps1", "svBps2", "bivec", "bivec"},
-                 {"bivec << vec -> 0", "svBps", "svBps", "bivec", "vec"},
-                 {"vec << bivec -> vec", "svBps", "svBps", "vec", "bivec"},
-                 {"bivec << s -> 0", "svBps", "svBps", "bivec", "s"},
-                 {"s << bivec -> bivec", "svBps", "svBps", "s", "bivec"},
+                 {"l_contract(bivec,bivec) -> s", "svBps1", "svBps2", "bivec", "bivec"},
+                 {"l_contract(bivec,vec) -> 0", "svBps", "svBps", "bivec", "vec"},
+                 {"l_contract(vec,bivec) -> vec", "svBps", "svBps", "vec", "bivec"},
+                 {"l_contract(bivec,s) -> 0", "svBps", "svBps", "bivec", "s"},
+                 {"l_contract(s,bivec) -> bivec", "svBps", "svBps", "s", "bivec"},
                  // vec
-                 {"vec << vec -> s", "svBps1", "svBps2", "vec", "vec"},
-                 {"vec << s -> 0", "svBps", "svBps", "vec", "s"},
-                 {"s << vec -> vec", "svBps", "svBps", "s", "vec"},
+                 {"l_contract(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
+                 {"l_contract(vec,s) -> 0", "svBps", "svBps", "vec", "s"},
+                 {"l_contract(s,vec) -> vec", "svBps", "svBps", "s", "vec"},
                  // s
-                 {"s << s -> s", "svBps1", "svBps2", "s", "s"}},
+                 {"l_contract(s,s) -> s", "svBps1", "svBps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -460,61 +484,61 @@ ProductConfig get_ega3d_r_contract_config()
             // "right_filter"}
             .cases =
                 {// mv
-                 {"mv >> mv -> mv", "A", "B", "mv", "mv"},
-                 {"mv >> mv_e -> mv", "A", "B_even", "mv", "mv_e"},
-                 {"mv_e >> mv -> mv", "A_even", "B", "mv_e", "mv"},
-                 {"mv >> mv_u -> mv", "A", "B_odd", "mv", "mv_u"},
-                 {"mv_u >> mv -> mv", "A_odd", "B", "mv_u", "mv"},
-                 {"mv >> ps -> s", "M", "svBps", "mv", "ps"},
-                 {"ps >> mv -> mv", "svBps", "M", "ps", "mv"},
-                 {"mv >> bivec -> mv", "M", "svBps", "mv", "bivec"},
-                 {"bivec >> mv -> mv", "svBps", "M", "bivec", "mv"},
-                 {"mv >> vec -> mv", "M", "svBps", "mv", "vec"},
-                 {"vec >> mv -> mv", "svBps", "M", "vec", "mv"},
-                 {"mv >> s -> mv", "M", "svBps", "mv", "s"},
-                 {"s >> mv -> s", "svBps", "M", "s", "mv"},
+                 {"r_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                 {"r_contract(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+                 {"r_contract(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+                 {"r_contract(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
+                 {"r_contract(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
+                 {"r_contract(mv,ps) -> s", "M", "svBps", "mv", "ps"},
+                 {"r_contract(ps,mv) -> mv", "svBps", "M", "ps", "mv"},
+                 {"r_contract(mv,bivec) -> mv", "M", "svBps", "mv", "bivec"},
+                 {"r_contract(bivec,mv) -> mv", "svBps", "M", "bivec", "mv"},
+                 {"r_contract(mv,vec) -> mv", "M", "svBps", "mv", "vec"},
+                 {"r_contract(vec,mv) -> mv", "svBps", "M", "vec", "mv"},
+                 {"r_contract(mv,s) -> mv", "M", "svBps", "mv", "s"},
+                 {"r_contract(s,mv) -> s", "svBps", "M", "s", "mv"},
                  // mv_e
-                 {"mv_e >> mv_e -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
-                 {"mv_e >> mv_u -> vec", "A_even", "B_odd", "mv_e", "mv_u"},
-                 {"mv_u >> mv_e -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
-                 {"mv_e >> ps -> 0", "M_even", "svBps", "mv_e", "ps"},
-                 {"ps >> mv_e -> mv_u", "svBps", "M_even", "ps", "mv_e"},
-                 {"mv_e >> bivec -> s", "M_even", "svBps", "mv_e", "bivec"},
-                 {"bivec >> mv_e -> mv_e", "svBps", "M_even", "bivec", "mv_e"},
-                 {"mv_e >> vec -> vec", "M_even", "svBps", "mv_e", "vec"},
-                 {"vec >> mv_e -> vec", "svBps", "M_even", "vec", "mv_e"},
-                 {"mv_e >> s -> mv_e", "M_even", "svBps", "mv_e", "s"},
-                 {"s >> mv_e -> s", "svBps", "M_even", "s", "mv_e"},
+                 {"r_contract(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                 {"r_contract(mv_e,mv_u) -> vec", "A_even", "B_odd", "mv_e", "mv_u"},
+                 {"r_contract(mv_u,mv_e) -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
+                 {"r_contract(mv_e,ps) -> 0", "M_even", "svBps", "mv_e", "ps"},
+                 {"r_contract(ps,mv_e) -> mv_u", "svBps", "M_even", "ps", "mv_e"},
+                 {"r_contract(mv_e,bivec) -> s", "M_even", "svBps", "mv_e", "bivec"},
+                 {"r_contract(bivec,mv_e) -> mv_e", "svBps", "M_even", "bivec", "mv_e"},
+                 {"r_contract(mv_e,vec) -> vec", "M_even", "svBps", "mv_e", "vec"},
+                 {"r_contract(vec,mv_e) -> vec", "svBps", "M_even", "vec", "mv_e"},
+                 {"r_contract(mv_e,s) -> mv_e", "M_even", "svBps", "mv_e", "s"},
+                 {"r_contract(s,mv_e) -> s", "svBps", "M_even", "s", "mv_e"},
                  // mv_u
-                 {"mv_u >> mv_u -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
-                 {"mv_u >> ps -> s", "M_odd", "svBps", "mv_u", "ps"},
-                 {"ps >> mv_u -> mv_e", "svBps", "M_odd", "ps", "mv_u"},
-                 {"mv_u >> bivec -> vec", "M_odd", "svBps", "mv_u", "bivec"},
-                 {"bivec >> mv_u -> vec", "svBps", "M_odd", "bivec", "mv_u"},
-                 {"mv_u >> vec -> mv_e", "M_odd", "svBps", "mv_u", "vec"},
-                 {"vec >> mv_u -> s", "svBps", "M_odd", "vec", "mv_u"},
-                 {"mv_u >> s -> mv_u", "M_odd", "svBps", "mv_u", "s"},
-                 {"s >> mv_u -> 0", "svBps", "M_odd", "s", "mv_u"},
+                 {"r_contract(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+                 {"r_contract(mv_u,ps) -> s", "M_odd", "svBps", "mv_u", "ps"},
+                 {"r_contract(ps,mv_u) -> mv_e", "svBps", "M_odd", "ps", "mv_u"},
+                 {"r_contract(mv_u,bivec) -> vec", "M_odd", "svBps", "mv_u", "bivec"},
+                 {"r_contract(bivec,mv_u) -> vec", "svBps", "M_odd", "bivec", "mv_u"},
+                 {"r_contract(mv_u,vec) -> mv_e", "M_odd", "svBps", "mv_u", "vec"},
+                 {"r_contract(vec,mv_u) -> s", "svBps", "M_odd", "vec", "mv_u"},
+                 {"r_contract(mv_u,s) -> mv_u", "M_odd", "svBps", "mv_u", "s"},
+                 {"r_contract(s,mv_u) -> 0", "svBps", "M_odd", "s", "mv_u"},
                  // ps
-                 {"ps >> ps -> s", "svBps1", "svBps2", "ps", "ps"},
-                 {"ps >> bivec -> vec", "svBps", "svBps", "ps", "bivec"},
-                 {"bivec >> ps -> 0", "svBps", "svBps", "bivec", "ps"},
-                 {"ps >> vec -> bivec", "svBps", "svBps", "ps", "vec"},
-                 {"vec >> ps -> 0", "svBps", "svBps", "vec", "ps"},
-                 {"ps >> s -> ps", "svBps", "svBps", "ps", "s"},
-                 {"s >> ps -> 0", "svBps", "svBps", "s", "ps"},
+                 {"r_contract(ps,ps) -> s", "svBps1", "svBps2", "ps", "ps"},
+                 {"r_contract(ps,bivec) -> vec", "svBps", "svBps", "ps", "bivec"},
+                 {"r_contract(bivec,ps) -> 0", "svBps", "svBps", "bivec", "ps"},
+                 {"r_contract(ps,vec) -> bivec", "svBps", "svBps", "ps", "vec"},
+                 {"r_contract(vec,ps) -> 0", "svBps", "svBps", "vec", "ps"},
+                 {"r_contract(ps,s) -> ps", "svBps", "svBps", "ps", "s"},
+                 {"r_contract(s,ps) -> 0", "svBps", "svBps", "s", "ps"},
                  // bivec
-                 {"bivec >> bivec -> s", "svBps1", "svBps2", "bivec", "bivec"},
-                 {"bivec >> vec -> vec", "svBps", "svBps", "bivec", "vec"},
-                 {"vec >> bivec -> 0", "svBps", "svBps", "vec", "bivec"},
-                 {"bivec >> s -> bivec", "svBps", "svBps", "bivec", "s"},
-                 {"s >> bivec -> 0", "svBps", "svBps", "s", "bivec"},
+                 {"r_contract(bivec,bivec) -> s", "svBps1", "svBps2", "bivec", "bivec"},
+                 {"r_contract(bivec,vec) -> vec", "svBps", "svBps", "bivec", "vec"},
+                 {"r_contract(vec,bivec) -> 0", "svBps", "svBps", "vec", "bivec"},
+                 {"r_contract(bivec,s) -> bivec", "svBps", "svBps", "bivec", "s"},
+                 {"r_contract(s,bivec) -> 0", "svBps", "svBps", "s", "bivec"},
                  // vec
-                 {"vec >> vec -> s", "svBps1", "svBps2", "vec", "vec"},
-                 {"vec >> s -> vec", "svBps", "svBps", "vec", "s"},
-                 {"s >> vec -> 0", "svBps", "svBps", "s", "vec"},
+                 {"r_contract(vec,vec) -> s", "svBps1", "svBps2", "vec", "vec"},
+                 {"r_contract(vec,s) -> vec", "svBps", "svBps", "vec", "s"},
+                 {"r_contract(s,vec) -> 0", "svBps", "svBps", "s", "vec"},
                  // s
-                 {"s >> s -> s", "svBps1", "svBps2", "s", "s"}},
+                 {"r_contract(s,s) -> s", "svBps1", "svBps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -527,15 +551,16 @@ ProductConfig get_ega3d_l_expand_config()
             .display_name = "left expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
+            // Only entries producing vec/bivec/trivec results listed.
             .cases =
-                {
-                    // mv
-                    // {"l_expand(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                    // bivec
-                    {"l_expand(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
-                    // vec
-                    // {"l_expand(vec,vec) -> ps", "svBps1", "svBps2", "vec", "vec"}
-                },
+                {// ps
+                 {"l_expand(ps,bivec) -> bivec", "svBps", "svBps", "ps", "bivec"},
+                 {"l_expand(ps,vec) -> vec", "svBps", "svBps", "ps", "vec"},
+                 // bivec
+                 {"l_expand(bivec,vec) -> bivec", "svBps", "svBps", "bivec", "vec"},
+                 {"l_expand(bivec,s) -> vec", "svBps", "svBps", "bivec", "s"},
+                 // vec
+                 {"l_expand(vec,s) -> bivec", "svBps", "svBps", "vec", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -548,15 +573,16 @@ ProductConfig get_ega3d_r_expand_config()
             .display_name = "right expansion",
             // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
             // "left_filter", "right_filter"}
+            // Only entries producing vec/bivec/trivec results listed.
             .cases =
-                {
-                    // mv
-                    // {"r_expand(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                    // bivec
-                    {"r_expand(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
-                    // vec
-                    // {"r_expand(vec,vec) -> ps", "svBps1", "svBps2", "vec", "vec"}
-                },
+                {// bivec
+                 {"r_expand(bivec,ps) -> bivec", "svBps", "svBps", "bivec", "ps"},
+                 // vec
+                 {"r_expand(vec,bivec) -> bivec", "svBps", "svBps", "vec", "bivec"},
+                 {"r_expand(vec,ps) -> vec", "svBps", "svBps", "vec", "ps"},
+                 // s
+                 {"r_expand(s,vec) -> bivec", "svBps", "svBps", "s", "vec"},
+                 {"r_expand(s,bivec) -> vec", "svBps", "svBps", "s", "bivec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -644,7 +670,7 @@ ProductConfig get_ega3d_rwdg_config()
             .cases =
                 {// mv
                  {"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                 {"rwdg(mv, mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+                 {"rwdg(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
                  {"rwdg(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
                  {"rwdg(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
                  {"rwdg(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},

@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "core/ga_prdxpr_config_types.hpp"
 #include "algebras/ga_prdxpr_pga2dp.hpp"
+#include "core/ga_prdxpr_config_types.hpp"
 
 // Algebra configuration function (used by rule generation)
 AlgebraConfig get_pga2dp_algebra_config();
