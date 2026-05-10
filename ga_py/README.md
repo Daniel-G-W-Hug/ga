@@ -96,22 +96,26 @@ ga_py\.venv\Scripts\pip install nanobind pytest hypothesis numpy
 
 rem 2) Configure and build
 cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -D_GA_BUILD_PYTHON=ON
-cmake --build build --target _ga_py --config Debug
+cmake --build build --target _ga_py --config Release
 ```
 
+> **Note:** always use `--config Release` for `_ga_py` on Windows. Debug-config extensions
+> link against `python313_d.dll` (the debug Python runtime) and cannot be loaded by the
+> normal venv interpreter, which uses `python313.dll`.
+>
 > **Troubleshooting:** if cmake fails with *"Could not find a package configuration file
 > provided by nanobind"*, a stale cache entry from a previous failed configure is the
 > likely cause. Clear it and retry:
 >
 > ```bat
 > cmake -Unanobind_DIR build
-> cmake --build build --target _ga_py --config Debug
+> cmake --build build --target _ga_py --config Release
 > ```
 
 After the build, the compiled extension lands at (paths relative to the project root):
 
 - macOS / Linux: `build/ga_py/_ga_py.<tag>.so`
-- Windows: `build\ga_py\Debug\_ga_py.cp3xx-win_amd64.pyd`
+- Windows: `build\ga_py\Release\_ga_py.cp3xx-win_amd64.pyd`
 
 ### 3.3 Make Python find the module
 

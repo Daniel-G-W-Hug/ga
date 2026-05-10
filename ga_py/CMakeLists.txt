@@ -85,14 +85,6 @@ target_include_directories(_ga_py PRIVATE
     "${GA_PROJECT_ROOT}"           # so #include "ga/ga_ega.hpp" resolves
 )
 
-# On Windows, Python.h emits a #pragma comment(lib, "python3XX.lib") that the
-# linker resolves by name. nanobind-static is compiled without _DEBUG so the
-# pragma always uses the release name (no _d suffix), even in Debug builds.
-# Adding the Python libs directory lets the linker find it by name.
-if(WIN32 AND Python_LIBRARY_RELEASE)
-    get_filename_component(_py_lib_dir "${Python_LIBRARY_RELEASE}" DIRECTORY)
-    target_link_directories(_ga_py PRIVATE "${_py_lib_dir}")
-endif()
 
 target_compile_definitions(_ga_py PRIVATE
     FMT_HEADER_ONLY=1              # match the rest of the project
