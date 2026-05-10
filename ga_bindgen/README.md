@@ -36,7 +36,7 @@ rationale and side-by-side activation commands.
 **macOS:**
 
 ```bash
-brew install llvm
+brew install llvm fmt
 ```
 
 **Linux (Debian / Ubuntu):**
