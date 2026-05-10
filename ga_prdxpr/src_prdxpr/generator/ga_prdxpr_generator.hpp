@@ -3,9 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "cli/ga_prdxpr_options.hpp"
 #include "core/ga_prdxpr_common.hpp"
 #include "core/ga_prdxpr_config_types.hpp"
-#include "cli/ga_prdxpr_options.hpp"
 #include "sandwich/ga_prdxpr_sandwich_transformer.hpp"
 
 namespace configurable {

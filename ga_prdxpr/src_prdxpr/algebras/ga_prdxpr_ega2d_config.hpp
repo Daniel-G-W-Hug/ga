@@ -3,8 +3,8 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "core/ga_prdxpr_config_types.hpp"
 #include "algebras/ga_prdxpr_ega2d.hpp"
+#include "core/ga_prdxpr_config_types.hpp"
 
 // Algebra configuration function (used by rule generation)
 AlgebraConfig get_ega2d_algebra_config();

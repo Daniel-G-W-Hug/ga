@@ -3,9 +3,9 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include "codegen/ga_codegen_types.hpp"
 #include "core/ga_prdxpr_common.hpp"
 #include "core/ga_prdxpr_config_types.hpp"
-#include "codegen/ga_codegen_types.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -17,8 +17,7 @@ namespace codegen {
 // Map a ProductConfig.product_name to the C++ function name that should be emitted.
 // Returns nullopt for products that have no per-overload C++ implementation
 // (wrappers, display-only "alternative" computations, sandwich placeholders, etc.).
-std::optional<std::string>
-product_to_cpp_function(std::string const& product_name);
+std::optional<std::string> product_to_cpp_function(std::string const& product_name);
 
 // Extract the result-type filter name from a ProductCase.case_name string.
 // Examples:
@@ -34,8 +33,7 @@ std::string parse_result_filter(std::string const& case_name);
 
 // For case_names of the form "... -> 0 X" (zero result with explicit type X),
 // returns X. Returns std::nullopt if the case_name does not have that form.
-std::optional<std::string>
-parse_explicit_zero_override(std::string const& case_name);
+std::optional<std::string> parse_explicit_zero_override(std::string const& case_name);
 
 // Strip a single component suffix from an access string.
 //   "A.c0"  -> "A"
@@ -71,10 +69,11 @@ std::string param_name_from_coeff(mvec_coeff const& coeff,
 // In skip cases, *skip_reason (if non-null) receives a one-line diagnostic.
 //
 // Otherwise returns the rendered function body, including a trailing newline.
-std::optional<std::string>
-emit_function(configurable::AlgebraData const& algebra,
-              configurable::ProductConfig const& product,
-              configurable::OutputCase const& case_def, mvec_coeff const& prd_mv,
-              TypeRegistry const& registry, std::string* skip_reason = nullptr);
+std::optional<std::string> emit_function(configurable::AlgebraData const& algebra,
+                                         configurable::ProductConfig const& product,
+                                         configurable::OutputCase const& case_def,
+                                         mvec_coeff const& prd_mv,
+                                         TypeRegistry const& registry,
+                                         std::string* skip_reason = nullptr);
 
 } // namespace codegen

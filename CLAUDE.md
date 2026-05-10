@@ -421,6 +421,18 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
    `brace_switch::use_braces`)
 2. `intermediate_result * rev/rrev(rotor/motor) → final_result`
 
+**Section ordering inside `.cases` blocks:**
+
+Single-grade entries are grouped by section comments in this order, top-down:
+
+- 4D algebras (pga3dp, sta4d): `// mv` → `// mv_e` → `// mv_u` → `// ps`
+  → `// trivec` → `// bivec` → `// vec` → `// s`
+- 3D algebras (ega3d, pga2dp): same order, no `// trivec` section
+- 2D algebra (ega2d): no `// mv_u` and no `// trivec` (those filters
+  don't exist in `filter_2d`)
+
+Used uniformly across `gpr`, `wdg`, `rgpr`, `rwdg`, `cmt`, `dot`, etc.
+
 ### Algebra-Specific Behaviors
 
 **EGA2D/EGA3D (Euclidean):**
@@ -448,6 +460,156 @@ svps1/svps2           // Asymmetric patterns (e.g., v1.x*v2.y)
 2. **Operator Precedence**: Always parenthesize left/right contractions (`<<`, `>>`) in GA
    expressions
 3. **Output Format**: Case descriptions must match mathematical reality exactly
+
+### Working with ga_prdxpr configs
+
+A small set of conventions and tools makes editing `ga_prdxpr_<algebra>_config.cpp`
+predictable.
+
+#### `case_name` format
+
+Both forms are accepted by the parser, the codegen, and the validator:
+
+- Infix:      `"X * Y -> Z"`, `"X ^ Y -> Z"`, `"X << Y -> Z"`, `"X >> Y -> Z"`
+- Functional: `"gpr(X,Y) -> Z"`, `"wdg(X,Y) -> Z"`, `"dot(X,Y) -> Z"`, …
+
+The functional form is the standardised style across the configs. The codegen reads
+only the result token after `->`; the actual C++ function name comes from
+`ProductConfig.product_name`, never from `case_name`. So `case_name` is purely a
+descriptive label — it can be reformatted freely.
+
+#### Typed-zero convention (`-> 0` vs `-> 0 ps`)
+
+When a case is identically zero, only two result-side forms are allowed:
+
+- **Bare `-> 0`** — scalar zero (codegen emits `Scalar*<ctype>(0.0)`). This is the
+  default for any zero result.
+- **`-> 0 ps`** — pseudoscalar zero (codegen emits `PScalar*<ctype>(0.0)`). Use this
+  only when the natural return type would be pseudoscalar.
+
+Other typed forms (`-> 0 s`, `-> 0 vec`, `-> 0 bivec`, …) are NOT used:
+
+- `-> 0 s` is redundant with bare `-> 0`.
+- `-> 0 vec`/`-> 0 bivec`/etc. break the convention.
+
+Validator check G enforces this (see below).
+
+#### Validator: checks A–G
+
+Every `ga_prdxpr` run validates each declared `OutputCase` and emits warnings to
+stderr (with an end-of-run summary). Implementation lives in
+[ga_prdxpr_generator.cpp](ga_prdxpr/src_prdxpr/generator/ga_prdxpr_generator.cpp)
+inside `validate_case`.
+
+| Check | Catches |
+| --- | --- |
+| **A** | `case_name` LHS/RHS token does not match `left_filter_name`/`right_filter_name` |
+| **B** | Result token after `->` is not a known filter for this algebra |
+| **C** | Computed non-zero components fall outside the declared result type's basis support (suggests the minimal sufficient type) |
+| **D** | Functional `case_name` function name does not match `ProductConfig.product_name` (e.g. a `gpr(...)` entry sitting inside a `wdg` config) |
+| **E** | Declared a non-zero result type but the actual computation is identically zero (suggests `-> 0` or `-> 0 ps`) |
+| **F** | Coefficient with `_even`/`_odd` suffix paired with a filter other than `mv_e`/`mv_u` (parity mismatch — typically silently produces all zeros) |
+| **G** | Typed-zero uses anything other than `ps` (e.g. `-> 0 s` or `-> 0 vec`) |
+
+Warnings are non-fatal — generation continues so a single run surfaces every issue.
+
+#### Workflow for adding new product entries
+
+The proven recipe (used to expand wdg, rwdg, dot, rdot, cmt across algebras):
+
+1. **Find the matching `gpr` block** for the same algebra. `gpr` is the canonical
+   complete enumeration of `(LHS, RHS)` pair combinations — it covers every grade
+   pair that has a meaning in the algebra.
+2. **Copy** the relevant section (typically the single-grade lines under
+   `// ps` / `// trivec` / `// bivec` / `// vec` / `// s`) into the target
+   product's block.
+3. **Rename** `gpr(` to the target product (`wdg(`, `cmt(`, `rwdg(`, …).
+   Initial result types come from `gpr` and will mostly be wrong — the validator
+   will fix them.
+4. **Run `ga_prdxpr` for the algebra**. Validator check E lists every entry whose
+   computation is identically zero, and check C lists every entry whose declared
+   type is too narrow.
+5. **Apply suggested fixes**. Zero results → `-> 0` (or `-> 0 ps` if the suggested
+   type is pseudoscalar). Tighten over-wide types (e.g. `mv_e` → `bivec`) when
+   only one grade survives — `cmt` typically picks the antisymmetric grade out of
+   `gpr`'s wider result.
+6. **Re-run** until clean. Most products converge in 1–2 iterations.
+
+Single-grade × single-grade pair completeness is the standard scope; only
+`gpr`/`wdg` carry the `// mv_e` and `// mv_u` cross-grade sections.
+
+#### Discovering non-zero entries (the "tight scalar" scan)
+
+Use this technique when you don't know which `(LHS, RHS)` pairs have non-zero
+results — typical for `l_*_expand` / `r_*_expand` (PGA expansions) and similar
+products where most grade combinations yield zero.
+
+Trick: declare every candidate pair with the **narrowest non-zero type**
+(`-> s`). Then for each entry the validator emits exactly one of two
+warnings, which together give you the full picture:
+
+- **Check E** fires when the computation is identically zero — you can drop
+  the entry (or keep as `-> 0` / `-> 0 ps` if you want completeness).
+- **Check C** fires when the result has components outside `s`'s mask, and
+  its `suggested minimal result type: 'X'` line tells you the right type
+  to declare.
+
+Why `-> s` and not `-> mv`: with `-> mv` everything fits, so check C never
+fires — you'd see only the zeros, not the suggested types. The narrowest
+non-zero type forces check C to suggest the minimal sufficient type for
+every non-zero entry.
+
+Recipe:
+
+1. **Fill the empty (or partial) block** with all single-grade pairs declared
+   as `-> s`, using the standard coefficient pattern (`svBps1`/`svBps2` for
+   same-grade pairs, `svBps`/`svBps` for cross-grade — substitute
+   `svBtps`/`svBtps1`/`svBtps2` for 4D algebras).
+2. **Run `ga_prdxpr --algebra=<a> --product=<p>`** and collect:
+   - `grep "identically zero"` → the zero entries (drop or mark `-> 0`).
+   - `grep "suggested minimal"` → the non-zero entries with their proper
+     result types.
+3. **Filter** the non-zero set by the result-type criterion you care about
+   (e.g. for expansions: keep only `vec`/`bivec`/`trivec` results — drop
+   entries that produce `s` or `ps`, which carry less geometric meaning).
+4. **Replace the scan block** with the filtered list, with proper section
+   labels (`// ps`, `// trivec`, `// bivec`, `// vec`, `// s`).
+
+This was the workflow used to populate all PGA bulk/weight expansions and
+ega3d / sta4d `l_expand` / `r_expand`. Typically converges in one
+scan + one finalisation edit per block.
+
+#### Algebra-specific completeness scope
+
+Not every product is meaningful in every algebra. Convention:
+
+- **`gpr`, `wdg`, `dot`, `cmt`** — defined for every algebra; complete coverage
+  expected (`mv,mv` plus all relevant pair combinations).
+- **`rgpr`, `rwdg`, `rdot`, `rcmt`** — regressive products are most useful in PGA
+  (where the dual structure carries the projective geometry). They appear in
+  other algebras too (e.g. `rwdg` is used in EGA applications), but the more
+  complete coverage of `rgpr`, `rdot`, and `rcmt` is added to PGA only.
+- **`cmt` scope**: just `cmt(mv, mv)` plus all single-grade × single-grade pairs
+  (no `mv_e`/`mv_u` cross-grade entries). Deliberate scope decision.
+
+#### Validation utilities
+
+Audit scripts complementing the in-process validator live in
+[ga_prdxpr/src_prdxpr/algebras/validation_utilities/](ga_prdxpr/src_prdxpr/algebras/validation_utilities/):
+
+- `pair_coverage.sh` — pair-count matrix per (algebra, product).
+- `compare_products.sh <p1> <p2> <alg>` — diff two products' pair sets within one
+  algebra.
+- `compare_algebras.sh <product>` — diff one product's pair sets across same-dim
+  algebras.
+- `library_coverage.py` — compare what `ga_prdxpr --output=code` emits against
+  what's in `ga/ga_<algebra>_ops_products.hpp`. Reports which generated functions
+  still need to be copy-pasted into the library; supports `--show-code` for
+  paste-ready blocks and `--diff` for body comparison after clang-format
+  normalisation. Uses `--algebra=ALGEBRAS` (comma-separated, mirrors
+  `ga_prdxpr`'s CLI).
+
+The validator finds **wrong** declarations; these scripts find **missing** ones.
 
 ### Key Files for Modifications in ga_prdxpr subfolder
 

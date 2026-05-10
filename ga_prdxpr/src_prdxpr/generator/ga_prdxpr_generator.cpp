@@ -1,10 +1,10 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "generator/ga_prdxpr_generator.hpp"
-#include "sandwich/ga_prdxpr_sandwich_simplifier.hpp"
 #include "codegen/ga_codegen_emitter.hpp"
 #include "codegen/ga_codegen_types.hpp"
+#include "generator/ga_prdxpr_generator.hpp"
+#include "sandwich/ga_prdxpr_sandwich_simplifier.hpp"
 #include <cctype>
 #include <fmt/core.h>
 #include <limits>
@@ -77,9 +77,9 @@ std::optional<CaseTokens> parse_case_tokens(std::string const& case_name)
         ++i;
     }
     std::size_t j = i;
-    while (j < case_name.size() &&
-           (std::isalnum(static_cast<unsigned char>(case_name[j])) ||
-            case_name[j] == '_')) {
+    while (
+        j < case_name.size() &&
+        (std::isalnum(static_cast<unsigned char>(case_name[j])) || case_name[j] == '_')) {
         ++j;
     }
     if (j == i) return std::nullopt;
@@ -92,8 +92,7 @@ std::optional<CaseTokens> parse_case_tokens(std::string const& case_name)
     // Functional form: "func(LHS,RHS)".
     auto const lparen = lhs_part.find('(');
     auto const rparen = lhs_part.rfind(')');
-    if (lparen != std::string::npos && rparen != std::string::npos &&
-        rparen > lparen) {
+    if (lparen != std::string::npos && rparen != std::string::npos && rparen > lparen) {
         std::string const inside = lhs_part.substr(lparen + 1, rparen - lparen - 1);
         auto const comma = inside.find(',');
         if (comma == std::string::npos) return std::nullopt;
@@ -118,8 +117,8 @@ std::optional<CaseTokens> parse_case_tokens(std::string const& case_name)
 
 // Look up the basis-index mask for a filter name in the algebra. Returns
 // nullopt if the name is unknown (caller decides whether to warn).
-std::optional<mvec_coeff_filter>
-get_filter_mask(AlgebraData const& algebra, std::string const& filter_name)
+std::optional<mvec_coeff_filter> get_filter_mask(AlgebraData const& algebra,
+                                                 std::string const& filter_name)
 {
     if (algebra.dimension == 2) {
         auto const it = algebra.filters_2d.find(filter_name);
@@ -148,8 +147,8 @@ bool filter_name_known(AlgebraData const& algebra, std::string const& filter_nam
 // support that still covers every non-zero component of `prd_mv`. The full
 // multivector (`mv`) always covers, so a suggestion is always returned when
 // `prd_mv` has any non-zero entry. Ties broken alphabetically for determinism.
-std::optional<std::string>
-suggest_minimal_result_type(AlgebraData const& algebra, mvec_coeff const& prd_mv)
+std::optional<std::string> suggest_minimal_result_type(AlgebraData const& algebra,
+                                                       mvec_coeff const& prd_mv)
 {
     auto for_each_filter = [&](auto&& fn) {
         if (algebra.dimension == 2) {
@@ -213,8 +212,7 @@ void validate_case(AlgebraData const& algebra, ProductConfig const& config,
     // Pre-check: filter_name fields must reference filters that actually exist
     // in the algebra. If they don't, the existing generation paths throw with
     // an opaque message — surfacing it here gives better context.
-    bool const left_filter_known =
-        filter_name_known(algebra, case_def.left_filter_name);
+    bool const left_filter_known = filter_name_known(algebra, case_def.left_filter_name);
     bool const right_filter_known =
         filter_name_known(algebra, case_def.right_filter_name);
     if (!left_filter_known) {
@@ -259,25 +257,21 @@ void validate_case(AlgebraData const& algebra, ProductConfig const& config,
             std::string const func_name = case_def.case_name.substr(a, b - a);
             std::size_t pa = 0;
             while (pa < config.product_name.size() &&
-                   std::isspace(
-                       static_cast<unsigned char>(config.product_name[pa]))) {
+                   std::isspace(static_cast<unsigned char>(config.product_name[pa]))) {
                 ++pa;
             }
             std::size_t pb = pa;
             while (pb < config.product_name.size() &&
-                   (std::isalnum(static_cast<unsigned char>(
-                        config.product_name[pb])) ||
+                   (std::isalnum(static_cast<unsigned char>(config.product_name[pb])) ||
                     config.product_name[pb] == '_')) {
                 ++pb;
             }
-            std::string const product_word =
-                config.product_name.substr(pa, pb - pa);
+            std::string const product_word = config.product_name.substr(pa, pb - pa);
             if (!product_word.empty() && func_name != product_word) {
                 warn_case(algebra, config, case_def,
                           fmt::format("case_name function '{}' does not match "
                                       "product '{}' -- expected '{}(...)'",
-                                      func_name, config.product_name,
-                                      product_word));
+                                      func_name, config.product_name, product_word));
             }
         }
     }
@@ -308,16 +302,56 @@ void validate_case(AlgebraData const& algebra, ProductConfig const& config,
         warn_case(algebra, config, case_def, msg);
     }
 
+    // Check F: even/odd coefficient names must pair with the matching grade
+    // filter. A coefficient like A_even has zero placeholders at odd basis
+    // positions, so pairing it with a non-mv_e filter (e.g. vec) silently
+    // produces all zeros at the kept positions. Catches a class of bugs that
+    // checks A and E might miss together (operand still parses, result is just
+    // numerically zero where the user expected content).
+    auto const check_parity = [&](std::string const& side, std::string const& coeff,
+                                  std::string const& filter_name) {
+        std::string_view const sv = coeff;
+        if (sv.ends_with("_even") && filter_name != "mv_e") {
+            warn_case(algebra, config, case_def,
+                      fmt::format("{}_coeff '{}' has '_even' suffix but "
+                                  "{}_filter is '{}' (expected 'mv_e')",
+                                  side, coeff, side, filter_name));
+        }
+        else if (sv.ends_with("_odd") && filter_name != "mv_u") {
+            warn_case(algebra, config, case_def,
+                      fmt::format("{}_coeff '{}' has '_odd' suffix but "
+                                  "{}_filter is '{}' (expected 'mv_u')",
+                                  side, coeff, side, filter_name));
+        }
+    };
+    check_parity("left", case_def.left_coeff_name, case_def.left_filter_name);
+    check_parity("right", case_def.right_coeff_name, case_def.right_filter_name);
+
     // Check B: result token is a known filter (or "0" for zero-result cases).
     if (tokens->result == "0") {
         // "-> 0 X" form: X must also be a known filter if present.
-        auto const override_t =
-            codegen::parse_explicit_zero_override(case_def.case_name);
+        auto const override_t = codegen::parse_explicit_zero_override(case_def.case_name);
         if (override_t && !filter_name_known(algebra, *override_t)) {
             warn_case(algebra, config, case_def,
                       fmt::format("explicit zero-result override type '{}' is "
                                   "not a known filter for algebra '{}'",
                                   *override_t, algebra.name));
+        }
+        // Check G: typed-zero convention. Bare '-> 0' is the scalar-zero
+        // default; '-> 0 ps' is reserved for cases whose natural return type
+        // is pseudoscalar. No other typed-zero forms are used in this
+        // codebase — '-> 0 s' is redundant (use bare '-> 0'), and forms
+        // like '-> 0 vec' / '-> 0 bivec' break the convention.
+        if (override_t && *override_t != "ps") {
+            std::string const fix =
+                (*override_t == "s")
+                    ? "use bare '-> 0' instead (scalar zero is the default)"
+                    : "only '-> 0 ps' is allowed as a typed zero — use bare "
+                      "'-> 0' for scalar zero";
+            warn_case(algebra, config, case_def,
+                      fmt::format("typed zero '-> 0 {}' violates convention "
+                                  "-- {}",
+                                  *override_t, fix));
         }
         return; // No check C on zero results.
     }
@@ -335,15 +369,18 @@ void validate_case(AlgebraData const& algebra, ProductConfig const& config,
     // result than the declared type — because legitimate cases produce sparse
     // multivectors of a wider declared type.)
     if (prd_mv.empty()) return;
-    if (prd_mv.size() != result_mask->size() ||
-        prd_mv.size() != algebra.basis.size()) {
+    if (prd_mv.size() != result_mask->size() || prd_mv.size() != algebra.basis.size()) {
         return; // Shape mismatch — let the existing pipeline surface it.
     }
     std::vector<std::string> stray;
+    bool all_zero = true;
     for (std::size_t k = 0; k < prd_mv.size(); ++k) {
-        if ((*result_mask)[k] == 0 && !is_zero_expr(prd_mv[k])) {
-            stray.push_back(
-                fmt::format("{}='{}'", algebra.basis[k], trim_ws(prd_mv[k])));
+        if (!is_zero_expr(prd_mv[k])) {
+            all_zero = false;
+            if ((*result_mask)[k] == 0) {
+                stray.push_back(
+                    fmt::format("{}='{}'", algebra.basis[k], trim_ws(prd_mv[k])));
+            }
         }
     }
     if (!stray.empty()) {
@@ -352,16 +389,34 @@ void validate_case(AlgebraData const& algebra, ProductConfig const& config,
             if (k) joined += ", ";
             joined += stray[k];
         }
-        std::string msg =
-            fmt::format("declared result type '{}' cannot hold computed "
-                        "components: {}",
-                        tokens->result, joined);
+        std::string msg = fmt::format("declared result type '{}' cannot hold computed "
+                                      "components: {}",
+                                      tokens->result, joined);
         auto const suggestion = suggest_minimal_result_type(algebra, prd_mv);
         if (suggestion && *suggestion != tokens->result) {
-            msg +=
-                fmt::format(" -- suggested minimal result type: '{}'", *suggestion);
+            msg += fmt::format(" -- suggested minimal result type: '{}'", *suggestion);
         }
         warn_case(algebra, config, case_def, msg);
+    }
+    else if (all_zero) {
+        // Check E: declared a non-zero result type, but the actual computation
+        // is identically zero across all basis positions. Catches mistakes like
+        // declaring "-> s" for a product whose grade arithmetic forbids any
+        // non-zero outcome (e.g. rwdg(bivec,vec) in 4D, where 2+1<4 makes it 0).
+        // Skipped when stray components fired check C — that's the more
+        // informative warning.
+        //
+        // Convention: bare '-> 0' means a scalar zero (the codegen default);
+        // '-> 0 ps' is reserved for cases whose natural type is pseudoscalar
+        // and so needs the typed-zero form to keep PScalar in the C++ return
+        // type. No other typed zeros are used.
+        std::string const suggestion = (tokens->result == "ps")
+                                           ? "'-> 0 ps' (typed pseudoscalar zero)"
+                                           : "'-> 0' (default scalar zero)";
+        warn_case(algebra, config, case_def,
+                  fmt::format("declared result type '{}' but the computation "
+                              "is identically zero -- use {}",
+                              tokens->result, suggestion));
     }
 }
 
@@ -369,15 +424,13 @@ void validate_case(AlgebraData const& algebra, ProductConfig const& config,
 // Returns an empty vector if any prerequisite is missing — validate_case will
 // then skip check C, and the existing generation path will surface a clearer
 // error when it actually tries to use these inputs.
-mvec_coeff
-compute_prd_mv_for_validation(AlgebraData const& algebra,
-                              OutputCase const& case_def,
-                              prd_table const& basis_tab)
+mvec_coeff compute_prd_mv_for_validation(AlgebraData const& algebra,
+                                         OutputCase const& case_def,
+                                         prd_table const& basis_tab)
 {
     auto const left_it = algebra.coefficients.find(case_def.left_coeff_name);
     auto const right_it = algebra.coefficients.find(case_def.right_coeff_name);
-    if (left_it == algebra.coefficients.end() ||
-        right_it == algebra.coefficients.end()) {
+    if (left_it == algebra.coefficients.end() || right_it == algebra.coefficients.end()) {
         return {};
     }
     if (!filter_name_known(algebra, case_def.left_filter_name) ||
@@ -520,7 +573,8 @@ void ConfigurableGenerator::generate_product_expressions(AlgebraData const& alge
     // path) and `get_basis_table_for_product` emits intermediate basis tables for
     // them as a side-effect, which would pollute --output=code with non-C++ text.
     bool const code_only = options.should_show_code() && !options.should_show_coeffs() &&
-                           !options.should_show_tables() && !options.should_show_metrics();
+                           !options.should_show_tables() &&
+                           !options.should_show_metrics();
     if (code_only && config.product_name.find("alternative") != std::string::npos) {
         return;
     }
@@ -632,9 +686,10 @@ void ConfigurableGenerator::emit_single_case_code(AlgebraData const& algebra,
                                                   OutputCase const& case_def,
                                                   prd_table const& basis_tab)
 {
-    // Lazy per-algebra registry. Codegen is supported for ega2d/ega3d/pga2dp/pga3dp/sta4d;
-    // STA4D `.cases` arrays are still empty in algebras/ga_prdxpr_sta4d_config.cpp, so
-    // running --output=code --algebra=sta4d will emit nothing until those are populated.
+    // Lazy per-algebra registry. Codegen is supported for
+    // ega2d/ega3d/pga2dp/pga3dp/sta4d; STA4D `.cases` arrays are still empty in
+    // algebras/ga_prdxpr_sta4d_config.cpp, so running --output=code --algebra=sta4d will
+    // emit nothing until those are populated.
     static std::map<std::string, codegen::TypeRegistry> registries;
     auto reg_it = registries.find(algebra.name);
     if (reg_it == registries.end()) {
@@ -661,8 +716,7 @@ void ConfigurableGenerator::emit_single_case_code(AlgebraData const& algebra,
     }
 
     mvec_coeff prd_mv;
-    auto prd_tab =
-        get_prd_tab(basis_tab, left_coeff_it->second, right_coeff_it->second);
+    auto prd_tab = get_prd_tab(basis_tab, left_coeff_it->second, right_coeff_it->second);
     if (algebra.dimension == 2) {
         auto lf = get_filter_2d(algebra, case_def.left_filter_name);
         auto rf = get_filter_2d(algebra, case_def.right_filter_name);
@@ -692,8 +746,7 @@ void ConfigurableGenerator::emit_single_case_code(AlgebraData const& algebra,
                      case_def.case_name, skip_reason);
         return;
     }
-    fmt::println("// {} {} :: {}", algebra.name, config.product_name,
-                 case_def.case_name);
+    fmt::println("// {} {} :: {}", algebra.name, config.product_name, case_def.case_name);
     fmt::print("{}", *rendered);
     fmt::println("");
 }

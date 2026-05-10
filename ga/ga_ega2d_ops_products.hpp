@@ -1328,6 +1328,7 @@ constexpr Scalar2d<std::common_type_t<T, U>> operator>>(Scalar2d<T> s1, Scalar2d
 // commutator product (the asymmetric part of the geometric product)
 ////////////////////////////////////////////////////////////////////////////////
 
+// ega2d cmt :: cmt(mv,mv) -> mv
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d<std::common_type_t<T, U>> cmt(MVec2d<T> const& A, MVec2d<U> const& B)
@@ -1340,8 +1341,18 @@ constexpr MVec2d<std::common_type_t<T, U>> cmt(MVec2d<T> const& A, MVec2d<U> con
     return MVec2d<ctype>(c0, c1, c2, c3);
 }
 
-// cmt(B,v) = -cmt(v,B)
-// identical to (v << ps)
+// ega2d cmt :: cmt(ps,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar2d<std::common_type_t<T, U>> cmt([[maybe_unused]] PScalar2d<T>,
+                                                 [[maybe_unused]] PScalar2d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(0.0);
+}
+
+// cmt(ps,v) == -cmt(v,ps) == (v << ps)
+// ega2d cmt :: cmt(ps,vec) -> vec
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2d<std::common_type_t<T, U>> cmt(PScalar2d<T> ps, Vec2d<U> const& v)
@@ -1352,8 +1363,7 @@ constexpr Vec2d<std::common_type_t<T, U>> cmt(PScalar2d<T> ps, Vec2d<U> const& v
     return Vec2d<ctype>(c0, c1);
 }
 
-// cmt(v,B) = -cmt(B,v)
-// identical to (ps >> v)
+// cmt(v,ps) == -cmt(ps,v) == (ps >> v)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec2d<std::common_type_t<T, U>> cmt(Vec2d<T> const& v, PScalar2d<U> ps)
@@ -1364,12 +1374,63 @@ constexpr Vec2d<std::common_type_t<T, U>> cmt(Vec2d<T> const& v, PScalar2d<U> ps
     return Vec2d<ctype>(c0, c1);
 }
 
+// ega2d cmt :: cmt(ps,s) -> 0 ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar2d<std::common_type_t<T, U>> cmt([[maybe_unused]] PScalar2d<T>,
+                                                  [[maybe_unused]] Scalar2d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(0.0);
+}
+
+// ega2d cmt :: cmt(s,ps) -> 0 ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar2d<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar2d<T>,
+                                                  [[maybe_unused]] PScalar2d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar2d<ctype>(0.0);
+}
+
+// ega2d cmt :: cmt(vec,vec) -> ps
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr PScalar2d<std::common_type_t<T, U>> cmt(Vec2d<T> const& v1, Vec2d<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
     return PScalar2d<ctype>(v1.x * v2.y - v1.y * v2.x);
+}
+
+// ega2d cmt :: cmt(vec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar2d<std::common_type_t<T, U>> cmt([[maybe_unused]] Vec2d<T> const&,
+                                                 [[maybe_unused]] Scalar2d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(0.0);
+}
+
+// ega2d cmt :: cmt(s,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar2d<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar2d<T>,
+                                                 [[maybe_unused]] Vec2d<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(0.0);
+}
+
+// ega2d cmt :: cmt(s,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar2d<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar2d<T>,
+                                                 [[maybe_unused]] Scalar2d<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar2d<ctype>(0.0);
 }
 
 

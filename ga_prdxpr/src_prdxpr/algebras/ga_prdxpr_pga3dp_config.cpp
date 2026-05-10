@@ -192,14 +192,12 @@ ProductConfig get_pga3dp_gpr_config()
                  {"gpr(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
                  {"gpr(mv,ps) -> mv", "M", "svBtps", "mv", "ps"},
                  {"gpr(ps,mv) -> mv", "svBtps", "M", "ps", "mv"},
-                 // new block ---------------------------------------
-                 //  {"gpr(mv,trivec) -> mv", "M", "svBtps", "mv", "trivec"},
-                 //  {"gpr(trivec,mv) -> mv", "svBtps", "M", "trivec", "mv"},
-                 //  {"gpr(mv,bivec) -> mv", "M", "svBtps", "mv", "bivec"},
-                 //  {"gpr(bivec,mv) -> mv", "svBtps", "M", "bivec", "mv"},
-                 //  {"gpr(mv,vec) -> mv", "M", "svBtps", "mv", "vec"},
-                 //  {"gpr(vec,mv) -> mv", "svBtps", "M", "vec", "mv"},
-                 // end new block -----------------------------------
+                 {"gpr(mv,trivec) -> mv", "M", "svBtps", "mv", "trivec"},
+                 {"gpr(trivec,mv) -> mv", "svBtps", "M", "trivec", "mv"},
+                 {"gpr(mv,bivec) -> mv", "M", "svBtps", "mv", "bivec"},
+                 {"gpr(bivec,mv) -> mv", "svBtps", "M", "bivec", "mv"},
+                 {"gpr(mv,vec) -> mv", "M", "svBtps", "mv", "vec"},
+                 {"gpr(vec,mv) -> mv", "svBtps", "M", "vec", "mv"},
                  {"gpr(mv,s) -> mv", "M", "svBtps", "mv", "s"},
                  {"gpr(s,mv) -> mv", "svBtps", "M", "s", "mv"},
                  // mv_e
@@ -286,16 +284,17 @@ ProductConfig get_pga3dp_twdg1_config()
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
             // .cases{}, // no cases, just for generating the product tables
-            .cases = {{"twdg1(ps,vec) -> trivec", "svBtps", "svBtps", "ps", "vec"},
-                      {"twdg1(vec,ps) -> trivec", "svBtps", "svBtps", "vec", "ps"},
-                      {"twdg1(trivec,vec) -> bivec", "svBtps", "svBtps", "trivec", "vec"},
-                      {"twdg1(vec,trivec) -> bivec", "svBtps", "svBtps", "vec", "trivec"},
-                      {"twdg1(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
-                      {"twdg1(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
-                      {"twdg1(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
-                      {"twdg1(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
-                      {"twdg1(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
-                      {"twdg1(vec,vec) -> s", "svBtps1", "svBtps2", "vec", "vec"}},
+            .cases =
+                {{"twdg1(ps,vec) -> trivec", "svBtps", "svBtps", "ps", "vec"},
+                 {"twdg1(vec,ps) -> trivec", "svBtps", "svBtps", "vec", "ps"},
+                 {"twdg1(trivec,vec) -> bivec", "svBtps", "svBtps", "trivec", "vec"},
+                 {"twdg1(vec,trivec) -> bivec", "svBtps", "svBtps", "vec", "trivec"},
+                 {"twdg1(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+                 {"twdg1(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+                 {"twdg1(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
+                 {"twdg1(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+                 {"twdg1(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
+                 {"twdg1(vec,vec) -> s", "svBtps1", "svBtps2", "vec", "vec"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -309,17 +308,39 @@ ProductConfig get_pga3dp_cmt_config()
         .display_name = "commutator product",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
-        .cases = {{"cmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                  {"cmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
-                   "trivec"},
-                  {"cmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
-                  {"cmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
-                  {"cmt(trivec,vec) -> ps", "svBtps", "svBtps", "trivec", "vec"},
-                  {"cmt(vec,trivec) -> ps", "svBtps", "svBtps", "vec", "trivec"},
-                  {"cmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
-                  {"cmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
-                  {"cmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
-                  {"cmt(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"}},
+        .cases =
+            {// mv
+             {"cmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             // ps
+             {"cmt(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
+             {"cmt(ps,trivec) -> vec", "svBtps", "svBtps", "ps", "trivec"},
+             {"cmt(trivec,ps) -> vec", "svBtps", "svBtps", "trivec", "ps"},
+             {"cmt(ps,bivec) -> 0", "svBtps", "svBtps", "ps", "bivec"},
+             {"cmt(bivec,ps) -> 0", "svBtps", "svBtps", "bivec", "ps"},
+             {"cmt(ps,vec) -> trivec", "svBtps", "svBtps", "ps", "vec"},
+             {"cmt(vec,ps) -> trivec", "svBtps", "svBtps", "vec", "ps"},
+             {"cmt(ps,s) -> 0 ps", "svBtps", "svBtps", "ps", "s"},
+             {"cmt(s,ps) -> 0 ps", "svBtps", "svBtps", "s", "ps"},
+             // trivec
+             {"cmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec", "trivec"},
+             {"cmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+             {"cmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+             {"cmt(trivec,vec) -> ps", "svBtps", "svBtps", "trivec", "vec"},
+             {"cmt(vec,trivec) -> ps", "svBtps", "svBtps", "vec", "trivec"},
+             {"cmt(trivec,s) -> 0", "svBtps", "svBtps", "trivec", "s"},
+             {"cmt(s,trivec) -> 0", "svBtps", "svBtps", "s", "trivec"},
+             // bivec
+             {"cmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
+             {"cmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+             {"cmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
+             {"cmt(bivec,s) -> 0", "svBtps", "svBtps", "bivec", "s"},
+             {"cmt(s,bivec) -> 0", "svBtps", "svBtps", "s", "bivec"},
+             // vec
+             {"cmt(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"},
+             {"cmt(vec,s) -> 0", "svBtps", "svBtps", "vec", "s"},
+             {"cmt(s,vec) -> 0", "svBtps", "svBtps", "s", "vec"},
+             // s
+             {"cmt(s,s) -> 0", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -332,34 +353,79 @@ ProductConfig get_pga3dp_wdg_config()
             .display_name = "wedge product",
             // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
             // "right_filter"}
-            .cases = {{"wdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                      {"wdg(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
-                      {"wdg(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
-                      //
-                      {"wdg(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
-                      {"wdg(ps,vec) -> 0", "svBtps", "svBtps", "ps", "vec"},
-                      {"wdg(vec,ps) -> 0", "svBtps", "svBtps", "vec", "ps"},
-                      {"wdg(ps,s) -> ps", "svBtps", "svBtps", "ps", "s"},
-                      {"wdg(s,ps) -> ps", "svBtps", "svBtps", "s", "ps"},
-                      //
-                      {"wdg(trivec,bivec) -> 0", "svBtps", "svBtps", "trivec", "bivec"},
-                      {"wdg(bivec,trivec) -> 0", "svBtps", "svBtps", "bivec", "trivec"},
-                      {"wdg(trivec,vec) -> ps", "svBtps", "svBtps", "trivec", "vec"},
-                      {"wdg(vec,trivec) -> ps", "svBtps", "svBtps", "vec", "trivec"},
-                      {"wdg(trivec,s) -> trivec", "svBtps", "svBtps", "trivec", "s"},
-                      {"wdg(s,trivec) -> trivec", "svBtps", "svBtps", "s", "trivec"},
-                      //
-                      {"wdg(bivec,bivec) -> ps", "svBtps1", "svBtps2", "bivec", "bivec"},
-                      {"wdg(bivec,vec) -> trivec", "svBtps", "svBtps", "bivec", "vec"},
-                      {"wdg(vec,bivec) -> trivec", "svBtps", "svBtps", "vec", "bivec"},
-                      {"wdg(bivec,s) -> bivec", "svBtps", "svBtps", "bivec", "s"},
-                      {"wdg(s,bivec) -> bivec", "svBtps", "svBtps", "s", "bivec"},
-                      //
-                      {"wdg(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"},
-                      {"wdg(vec,s) -> vec", "svBtps", "svBtps", "vec", "s"},
-                      {"wdg(s,vec) -> vec", "svBtps", "svBtps", "s", "vec"},
-                      //
-                      {"wdg(s,s) -> s", "svBtps1", "svBtps2", "s", "s"}},
+            .cases =
+                {// mv
+                 {"wdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+                 {"wdg(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+                 {"wdg(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+                 {"wdg(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
+                 {"wdg(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
+                 {"wdg(mv,ps) -> ps", "M", "svBtps", "mv", "ps"},
+                 {"wdg(ps,mv) -> ps", "svBtps", "M", "ps", "mv"},
+                 {"wdg(mv,trivec) -> mv", "M", "svBtps", "mv", "trivec"},
+                 {"wdg(trivec,mv) -> mv", "svBtps", "M", "trivec", "mv"},
+                 {"wdg(mv,bivec) -> mv", "M", "svBtps", "mv", "bivec"},
+                 {"wdg(bivec,mv) -> mv", "svBtps", "M", "bivec", "mv"},
+                 {"wdg(mv,vec) -> mv", "M", "svBtps", "mv", "vec"},
+                 {"wdg(vec,mv) -> mv", "svBtps", "M", "vec", "mv"},
+                 {"wdg(mv,s) -> mv", "M", "svBtps", "mv", "s"},
+                 {"wdg(s,mv) -> mv", "svBtps", "M", "s", "mv"},
+                 // mv_e
+                 {"wdg(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+                 {"wdg(mv_e,mv_u) -> mv_u", "A_even", "B_odd", "mv_e", "mv_u"},
+                 {"wdg(mv_u,mv_e) -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
+                 {"wdg(mv_e,ps) -> ps", "M_even", "svBtps", "mv_e", "ps"},
+                 {"wdg(ps,mv_e) -> ps", "svBtps", "M_even", "ps", "mv_e"},
+                 {"wdg(mv_e,trivec) -> trivec", "M_even", "svBtps", "mv_e", "trivec"},
+                 {"wdg(trivec,mv_e) -> trivec", "svBtps", "M_even", "trivec", "mv_e"},
+                 {"wdg(mv_e,bivec) -> mv_e", "M_even", "svBtps", "mv_e", "bivec"},
+                 {"wdg(bivec,mv_e) -> mv_e", "svBtps", "M_even", "bivec", "mv_e"},
+                 {"wdg(mv_e,vec) -> mv_u", "M_even", "svBtps", "mv_e", "vec"},
+                 {"wdg(vec,mv_e) -> mv_u", "svBtps", "M_even", "vec", "mv_e"},
+                 {"wdg(mv_e,s) -> mv_e", "M_even", "svBtps", "mv_e", "s"},
+                 {"wdg(s,mv_e) -> mv_e", "svBtps", "M_even", "s", "mv_e"},
+                 // mv_u
+                 {"wdg(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+                 {"wdg(mv_u,ps) -> 0", "M_odd", "svBtps", "mv_u", "ps"},
+                 {"wdg(ps,mv_u) -> 0", "svBtps", "M_odd", "ps", "mv_u"},
+                 {"wdg(mv_u,trivec) -> ps", "M_odd", "svBtps", "mv_u", "trivec"},
+                 {"wdg(trivec,mv_u) -> ps", "svBtps", "M_odd", "trivec", "mv_u"},
+                 {"wdg(mv_u,bivec) -> trivec", "M_odd", "svBtps", "mv_u", "bivec"},
+                 {"wdg(bivec,mv_u) -> trivec", "svBtps", "M_odd", "bivec", "mv_u"},
+                 {"wdg(mv_u,vec) -> mv_e", "M_odd", "svBtps", "mv_u", "vec"},
+                 {"wdg(vec,mv_u) -> mv_e", "svBtps", "M_odd", "vec", "mv_u"},
+                 {"wdg(mv_u,s) -> mv_u", "M_odd", "svBtps", "mv_u", "s"},
+                 {"wdg(s,mv_u) -> mv_u", "svBtps", "M_odd", "s", "mv_u"},
+                 // ps
+                 {"wdg(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
+                 {"wdg(ps,trivec) -> 0", "svBtps", "svBtps", "ps", "trivec"},
+                 {"wdg(trivec,ps) -> 0", "svBtps", "svBtps", "trivec", "ps"},
+                 {"wdg(ps,bivec) -> 0", "svBtps", "svBtps", "ps", "bivec"},
+                 {"wdg(bivec,ps) -> 0", "svBtps", "svBtps", "bivec", "ps"},
+                 {"wdg(ps,vec) -> 0", "svBtps", "svBtps", "ps", "vec"},
+                 {"wdg(vec,ps) -> 0", "svBtps", "svBtps", "vec", "ps"},
+                 {"wdg(ps,s) -> ps", "svBtps", "svBtps", "ps", "s"},
+                 {"wdg(s,ps) -> ps", "svBtps", "svBtps", "s", "ps"},
+                 // trivec
+                 {"wdg(trivec,trivec) -> 0", "svBtps1", "svBtps2", "trivec", "trivec"},
+                 {"wdg(trivec,bivec) -> 0", "svBtps", "svBtps", "trivec", "bivec"},
+                 {"wdg(bivec,trivec) -> 0", "svBtps", "svBtps", "bivec", "trivec"},
+                 {"wdg(trivec,vec) -> ps", "svBtps", "svBtps", "trivec", "vec"},
+                 {"wdg(vec,trivec) -> ps", "svBtps", "svBtps", "vec", "trivec"},
+                 {"wdg(trivec,s) -> trivec", "svBtps", "svBtps", "trivec", "s"},
+                 {"wdg(s,trivec) -> trivec", "svBtps", "svBtps", "s", "trivec"},
+                 // bivec
+                 {"wdg(bivec,bivec) -> ps", "svBtps1", "svBtps2", "bivec", "bivec"},
+                 {"wdg(bivec,vec) -> trivec", "svBtps", "svBtps", "bivec", "vec"},
+                 {"wdg(vec,bivec) -> trivec", "svBtps", "svBtps", "vec", "bivec"},
+                 {"wdg(bivec,s) -> bivec", "svBtps", "svBtps", "bivec", "s"},
+                 {"wdg(s,bivec) -> bivec", "svBtps", "svBtps", "s", "bivec"},
+                 // vec
+                 {"wdg(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"},
+                 {"wdg(vec,s) -> vec", "svBtps", "svBtps", "vec", "s"},
+                 {"wdg(s,vec) -> vec", "svBtps", "svBtps", "s", "vec"},
+                 // s
+                 {"wdg(s,s) -> s", "svBtps1", "svBtps2", "s", "s"}},
             .is_sandwich_product = false,
             .uses_brace_switch = false,
             .show_basis_table = true};
@@ -367,21 +433,29 @@ ProductConfig get_pga3dp_wdg_config()
 
 ProductConfig get_pga3dp_dot_config()
 {
-    return {
-        .product_name = "dot",
-        .description = "pga3dp inner product",
-        .display_name = "inner product",
-        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-        // "left_filter", "right_filter"}
-        .cases = {{"dot(mv,mv) -> s", "A", "B", "mv", "mv"},
-                  {"dot(ps,ps) -> s", "svBtps1", "svBtps2", "ps", "ps"},
-                  {"dot(trivec,trivec) -> s", "svBtps1", "svBtps2", "trivec", "trivec"},
-                  {"dot(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
-                  {"dot(vec,vec) -> s", "svBtps1", "svBtps2", "vec", "vec"},
-                  {"dot(s,s) -> s", "svBtps1", "svBtps2", "s", "s"}},
-        .is_sandwich_product = false,
-        .uses_brace_switch = false,
-        .show_basis_table = true};
+    return {.product_name = "dot",
+            .description = "pga3dp inner product",
+            .display_name = "inner product",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases =
+                {// mv
+                 {"dot(mv,mv) -> s", "A", "B", "mv", "mv"},
+                 {"dot(mv_e,mv_e) -> s", "A_even", "B_even", "mv_e", "mv_e"},
+                 {"dot(mv_u,mv_u) -> s", "A_odd", "B_odd", "mv_u", "mv_u"},
+                 // ps
+                 {"dot(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
+                 // trivec
+                 {"dot(trivec,trivec) -> s", "svBtps1", "svBtps2", "trivec", "trivec"},
+                 // bivec
+                 {"dot(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
+                 // vec
+                 {"dot(vec,vec) -> s", "svBtps1", "svBtps2", "vec", "vec"},
+                 // s
+                 {"dot(s,s) -> s", "svBtps1", "svBtps2", "s", "s"}},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
 }
 
 ProductConfig get_pga3dp_l_bulk_contract_config()
@@ -393,8 +467,9 @@ ProductConfig get_pga3dp_l_bulk_contract_config()
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
         .cases =
-            {{"l_bulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
-             //
+            {// mv
+             {"l_bulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             // ps
              {"l_bulk_contract(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
              {"l_bulk_contract(ps,trivec) -> 0", "svBtps", "svBtps", "ps", "trivec"},
              {"l_bulk_contract(trivec,ps) -> vec", "svBtps", "svBtps", "trivec", "ps"},
@@ -404,7 +479,7 @@ ProductConfig get_pga3dp_l_bulk_contract_config()
              {"l_bulk_contract(vec,ps) -> trivec", "svBtps", "svBtps", "vec", "ps"},
              {"l_bulk_contract(ps,s) -> 0", "svBtps", "svBtps", "ps", "s"},
              {"l_bulk_contract(s,ps) -> ps", "svBtps", "svBtps", "s", "ps"},
-             //
+             // trivec
              {"l_bulk_contract(trivec,trivec) -> s", "svBtps1", "svBtps2", "trivec",
               "trivec"},
              {"l_bulk_contract(trivec,bivec) -> 0", "svBtps", "svBtps", "trivec",
@@ -416,18 +491,18 @@ ProductConfig get_pga3dp_l_bulk_contract_config()
               "trivec"},
              {"l_bulk_contract(trivec,s) -> 0", "svBtps", "svBtps", "trivec", "s"},
              {"l_bulk_contract(s,trivec) -> trivec", "svBtps", "svBtps", "s", "trivec"},
-             //
+             // bivec
              {"l_bulk_contract(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec",
               "bivec"},
              {"l_bulk_contract(bivec,vec) -> 0", "svBtps", "svBtps", "bivec", "vec"},
              {"l_bulk_contract(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
              {"l_bulk_contract(bivec,s) -> 0", "svBtps", "svBtps", "bivec", "s"},
              {"l_bulk_contract(s,bivec) -> bivec", "svBtps", "svBtps", "s", "bivec"},
-             //
+             // vec
              {"l_bulk_contract(vec,vec) -> s", "svBtps1", "svBtps2", "vec", "vec"},
              {"l_bulk_contract(vec,s) -> 0", "svBtps", "svBtps", "vec", "s"},
              {"l_bulk_contract(s,vec) -> vec", "svBtps", "svBtps", "s", "vec"},
-             //
+             // s
              {"l_bulk_contract(s,s) -> s", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
@@ -443,8 +518,9 @@ ProductConfig get_pga3dp_r_bulk_contract_config()
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
         .cases =
-            {{"r_bulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
-             //
+            {// mv
+             {"r_bulk_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             // ps
              {"r_bulk_contract(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
              {"r_bulk_contract(ps,trivec) -> vec", "svBtps", "svBtps", "ps", "trivec"},
              {"r_bulk_contract(trivec,ps) -> 0", "svBtps", "svBtps", "trivec", "ps"},
@@ -454,7 +530,7 @@ ProductConfig get_pga3dp_r_bulk_contract_config()
              {"r_bulk_contract(vec,ps) -> 0", "svBtps", "svBtps", "vec", "ps"},
              {"r_bulk_contract(ps,s) -> ps", "svBtps", "svBtps", "ps", "s"},
              {"r_bulk_contract(s,ps) -> 0", "svBtps", "svBtps", "s", "ps"},
-             //
+             // trivec
              {"r_bulk_contract(trivec,trivec) -> s", "svBtps1", "svBtps2", "trivec",
               "trivec"},
              {"r_bulk_contract(trivec,bivec) -> vec", "svBtps", "svBtps", "trivec",
@@ -466,18 +542,18 @@ ProductConfig get_pga3dp_r_bulk_contract_config()
              {"r_bulk_contract(vec,trivec) -> 0", "svBtps", "svBtps", "vec", "trivec"},
              {"r_bulk_contract(trivec,s) -> trivec", "svBtps", "svBtps", "trivec", "s"},
              {"r_bulk_contract(s,trivec) -> 0", "svBtps", "svBtps", "s", "trivec"},
-             //
+             // bivec
              {"r_bulk_contract(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec",
               "bivec"},
              {"r_bulk_contract(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
              {"r_bulk_contract(vec,bivec) -> 0", "svBtps", "svBtps", "vec", "bivec"},
              {"r_bulk_contract(bivec,s) -> bivec", "svBtps", "svBtps", "bivec", "s"},
              {"r_bulk_contract(s,bivec) -> 0", "svBtps", "svBtps", "s", "bivec"},
-             //
+             // vec
              {"r_bulk_contract(vec,vec) -> s", "svBtps1", "svBtps2", "vec", "vec"},
              {"r_bulk_contract(vec,s) -> vec", "svBtps", "svBtps", "vec", "s"},
              {"r_bulk_contract(s,vec) -> 0", "svBtps", "svBtps", "s", "vec"},
-             //
+             // s
              {"r_bulk_contract(s,s) -> s", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
@@ -486,18 +562,53 @@ ProductConfig get_pga3dp_r_bulk_contract_config()
 
 ProductConfig get_pga3dp_l_weight_contract_config()
 {
-    return {.product_name = "l_weight_contract",
-            .description = "pga3dp left weight contraction",
-            .display_name = "left weight contraction",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {{"l_weight_contract(bivec,vec) -> 0", "svBtps", "svBtps", "bivec",
-                       "vec"},
-                      {"l_weight_contract(vec,bivec) -> vec", "svBtps", "svBtps", "vec",
-                       "bivec"}},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "l_weight_contract",
+        .description = "pga3dp left weight contraction",
+        .display_name = "left weight contraction",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        .cases =
+            {// mv
+             {"l_weight_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             // ps
+             {"l_weight_contract(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
+             {"l_weight_contract(ps,trivec) -> 0", "svBtps", "svBtps", "ps", "trivec"},
+             {"l_weight_contract(trivec,ps) -> vec", "svBtps", "svBtps", "trivec", "ps"},
+             {"l_weight_contract(ps,bivec) -> 0", "svBtps", "svBtps", "ps", "bivec"},
+             {"l_weight_contract(bivec,ps) -> bivec", "svBtps", "svBtps", "bivec", "ps"},
+             {"l_weight_contract(ps,vec) -> 0", "svBtps", "svBtps", "ps", "vec"},
+             {"l_weight_contract(vec,ps) -> trivec", "svBtps", "svBtps", "vec", "ps"},
+             {"l_weight_contract(ps,s) -> 0", "svBtps", "svBtps", "ps", "s"},
+             {"l_weight_contract(s,ps) -> 0 ps", "svBtps", "svBtps", "s", "ps"},
+             // trivec
+             {"l_weight_contract(trivec,trivec) -> s", "svBtps1", "svBtps2", "trivec",
+              "trivec"},
+             {"l_weight_contract(trivec,bivec) -> 0", "svBtps", "svBtps", "trivec",
+              "bivec"},
+             {"l_weight_contract(bivec,trivec) -> vec", "svBtps", "svBtps", "bivec",
+              "trivec"},
+             {"l_weight_contract(trivec,vec) -> 0", "svBtps", "svBtps", "trivec", "vec"},
+             {"l_weight_contract(vec,trivec) -> bivec", "svBtps", "svBtps", "vec",
+              "trivec"},
+             {"l_weight_contract(trivec,s) -> 0", "svBtps", "svBtps", "trivec", "s"},
+             {"l_weight_contract(s,trivec) -> 0", "svBtps", "svBtps", "s", "trivec"},
+             // bivec
+             {"l_weight_contract(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec",
+              "bivec"},
+             {"l_weight_contract(bivec,vec) -> 0", "svBtps", "svBtps", "bivec", "vec"},
+             {"l_weight_contract(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
+             {"l_weight_contract(bivec,s) -> 0", "svBtps", "svBtps", "bivec", "s"},
+             {"l_weight_contract(s,bivec) -> 0", "svBtps", "svBtps", "s", "bivec"},
+             // vec
+             {"l_weight_contract(vec,vec) -> s", "svBtps1", "svBtps2", "vec", "vec"},
+             {"l_weight_contract(vec,s) -> 0", "svBtps", "svBtps", "vec", "s"},
+             {"l_weight_contract(s,vec) -> 0", "svBtps", "svBtps", "s", "vec"},
+             // s
+             {"l_weight_contract(s,s) -> 0", "svBtps1", "svBtps2", "s", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_pga3dp_r_weight_contract_config()
@@ -508,13 +619,44 @@ ProductConfig get_pga3dp_r_weight_contract_config()
         .display_name = "right weight contraction",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
-        // .cases = {}, // For brevity, the weight contractions and expansions show basis
-        //              // tables but no specific
-        //              // cases yet
-        .cases = {{"r_weight_contract(bivec,vec) -> vec", "svBtps", "svBtps", "bivec",
-                   "vec"},
-                  {"r_weight_contract(vec,bivec) -> 0", "svBtps", "svBtps", "vec",
-                   "bivec"}},
+        .cases =
+            {// mv
+             {"r_weight_contract(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             // ps
+             {"r_weight_contract(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
+             {"r_weight_contract(ps,trivec) -> vec", "svBtps", "svBtps", "ps", "trivec"},
+             {"r_weight_contract(trivec,ps) -> 0", "svBtps", "svBtps", "trivec", "ps"},
+             {"r_weight_contract(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},
+             {"r_weight_contract(bivec,ps) -> 0", "svBtps", "svBtps", "bivec", "ps"},
+             {"r_weight_contract(ps,vec) -> trivec", "svBtps", "svBtps", "ps", "vec"},
+             {"r_weight_contract(vec,ps) -> 0", "svBtps", "svBtps", "vec", "ps"},
+             {"r_weight_contract(ps,s) -> 0 ps", "svBtps", "svBtps", "ps", "s"},
+             {"r_weight_contract(s,ps) -> 0", "svBtps", "svBtps", "s", "ps"},
+             // trivec
+             {"r_weight_contract(trivec,trivec) -> s", "svBtps1", "svBtps2", "trivec",
+              "trivec"},
+             {"r_weight_contract(trivec,bivec) -> vec", "svBtps", "svBtps", "trivec",
+              "bivec"},
+             {"r_weight_contract(bivec,trivec) -> 0", "svBtps", "svBtps", "bivec",
+              "trivec"},
+             {"r_weight_contract(trivec,vec) -> bivec", "svBtps", "svBtps", "trivec",
+              "vec"},
+             {"r_weight_contract(vec,trivec) -> 0", "svBtps", "svBtps", "vec", "trivec"},
+             {"r_weight_contract(trivec,s) -> 0", "svBtps", "svBtps", "trivec", "s"},
+             {"r_weight_contract(s,trivec) -> 0", "svBtps", "svBtps", "s", "trivec"},
+             // bivec
+             {"r_weight_contract(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec",
+              "bivec"},
+             {"r_weight_contract(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+             {"r_weight_contract(vec,bivec) -> 0", "svBtps", "svBtps", "vec", "bivec"},
+             {"r_weight_contract(bivec,s) -> 0", "svBtps", "svBtps", "bivec", "s"},
+             {"r_weight_contract(s,bivec) -> 0", "svBtps", "svBtps", "s", "bivec"},
+             // vec
+             {"r_weight_contract(vec,vec) -> s", "svBtps1", "svBtps2", "vec", "vec"},
+             {"r_weight_contract(vec,s) -> 0", "svBtps", "svBtps", "vec", "s"},
+             {"r_weight_contract(s,vec) -> 0", "svBtps", "svBtps", "s", "vec"},
+             // s
+             {"r_weight_contract(s,s) -> 0", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -528,9 +670,18 @@ ProductConfig get_pga3dp_l_bulk_expand_config()
         .display_name = "left bulk expansion",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
-        .cases = {{"l_bulk_expand(bivec,vec) -> trivec", "svBtps", "svBtps", "bivec",
-                   "vec"},
-                  {"l_bulk_expand(vec,bivec) -> 0", "svBtps", "svBtps", "vec", "bivec"}},
+        // Only entries producing vec/bivec/trivec results listed.
+        .cases =
+            {// trivec
+             {"l_bulk_expand(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec",
+              "bivec"},
+             {"l_bulk_expand(trivec,vec) -> bivec", "svBtps", "svBtps", "trivec", "vec"},
+             {"l_bulk_expand(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
+             // bivec
+             {"l_bulk_expand(bivec,vec) -> trivec", "svBtps", "svBtps", "bivec", "vec"},
+             {"l_bulk_expand(bivec,s) -> bivec", "svBtps", "svBtps", "bivec", "s"},
+             // vec
+             {"l_bulk_expand(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -544,9 +695,18 @@ ProductConfig get_pga3dp_r_bulk_expand_config()
         .display_name = "right bulk expansion",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
-        .cases = {{"r_bulk_expand(bivec,vec) -> 0", "svBtps", "svBtps", "bivec", "vec"},
-                  {"r_bulk_expand(vec,bivec) -> trivec", "svBtps", "svBtps", "vec",
-                   "bivec"}},
+        // Only entries producing vec/bivec/trivec results listed.
+        .cases =
+            {// vec
+             {"r_bulk_expand(vec,bivec) -> trivec", "svBtps", "svBtps", "vec", "bivec"},
+             {"r_bulk_expand(vec,trivec) -> bivec", "svBtps", "svBtps", "vec", "trivec"},
+             // bivec
+             {"r_bulk_expand(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec",
+              "trivec"},
+             // s
+             {"r_bulk_expand(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"},
+             {"r_bulk_expand(s,bivec) -> bivec", "svBtps", "svBtps", "s", "bivec"},
+             {"r_bulk_expand(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -554,18 +714,32 @@ ProductConfig get_pga3dp_r_bulk_expand_config()
 
 ProductConfig get_pga3dp_l_weight_expand_config()
 {
-    return {.product_name = "l_weight_expand",
-            .description = "pga3dp left weight expansion",
-            .display_name = "left weight expansion",
-            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-            // "left_filter", "right_filter"}
-            .cases = {{"l_weight_expand(bivec,vec) -> trivec", "svBtps", "svBtps",
-                       "bivec", "vec"},
-                      {"l_weight_expand(vec,bivec) -> 0", "svBtps", "svBtps", "vec",
-                       "bivec"}},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "l_weight_expand",
+        .description = "pga3dp left weight expansion",
+        .display_name = "left weight expansion",
+        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+        // "left_filter", "right_filter"}
+        // Only entries producing vec/bivec/trivec results listed.
+        .cases =
+            {// ps
+             {"l_weight_expand(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},
+             {"l_weight_expand(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},
+             {"l_weight_expand(ps,vec) -> vec", "svBtps", "svBtps", "ps", "vec"},
+             // trivec
+             {"l_weight_expand(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec",
+              "bivec"},
+             {"l_weight_expand(trivec,vec) -> bivec", "svBtps", "svBtps", "trivec",
+              "vec"},
+             {"l_weight_expand(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
+             // bivec
+             {"l_weight_expand(bivec,vec) -> trivec", "svBtps", "svBtps", "bivec", "vec"},
+             {"l_weight_expand(bivec,s) -> bivec", "svBtps", "svBtps", "bivec", "s"},
+             // vec
+             {"l_weight_expand(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_pga3dp_r_weight_expand_config()
@@ -576,13 +750,23 @@ ProductConfig get_pga3dp_r_weight_expand_config()
         .display_name = "right weight expansion",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
-        .cases = {{"r_weight_expand(bivec,trivec) -> trivec", "svBtps1", "svBtps2",
-                   "bivec", "trivec"},
-                  {"r_weight_expand(vec,trivec) -> bivec", "svBtps1", "svBtps2", "vec",
-                   "trivec"},
-                  {"r_weight_expand(bivec,vec) -> 0", "svBtps", "svBtps", "bivec", "vec"},
-                  {"r_weight_expand(vec,bivec) -> trivec", "svBtps", "svBtps", "vec",
-                   "bivec"}},
+        // Only entries producing vec/bivec/trivec results listed.
+        .cases =
+            {// trivec
+             {"r_weight_expand(trivec,ps) -> trivec", "svBtps", "svBtps", "trivec", "ps"},
+             // bivec
+             {"r_weight_expand(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec",
+              "trivec"},
+             {"r_weight_expand(bivec,ps) -> bivec", "svBtps", "svBtps", "bivec", "ps"},
+             // vec
+             {"r_weight_expand(vec,bivec) -> trivec", "svBtps", "svBtps", "vec", "bivec"},
+             {"r_weight_expand(vec,trivec) -> bivec", "svBtps", "svBtps", "vec",
+              "trivec"},
+             {"r_weight_expand(vec,ps) -> vec", "svBtps", "svBtps", "vec", "ps"},
+             // s
+             {"r_weight_expand(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"},
+             {"r_weight_expand(s,bivec) -> bivec", "svBtps", "svBtps", "s", "bivec"},
+             {"r_weight_expand(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -596,68 +780,79 @@ ProductConfig get_pga3dp_rgpr_config()
         .display_name = "regressive geometric product",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
-        .cases = {{"rgpr(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                  {"rgpr(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
-                  {"rgpr(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
-                  {"rgpr(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
-                  {"rgpr(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
-                  {"rgpr(mv,ps) -> mv", "M", "svBtps", "mv", "ps"},
-                  {"rgpr(ps,mv) -> mv", "svBtps", "M", "ps", "mv"},
-                  {"rgpr(mv,s) -> mv", "M", "svBtps", "mv", "s"},
-                  {"rgpr(s,mv) -> mv", "svBtps", "M", "s", "mv"},
-                  //
-                  {"rgpr(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
-                  {"rgpr(mv_u,mv_e) -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
-                  {"rgpr(mv_e,mv_u) -> mv_u", "A_even", "B_odd", "mv_e", "mv_u"},
-                  {"rgpr(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
-                  //
-                  {"rgpr(mv_e,trivec) -> mv_u", "M_even", "svBtps", "mv_e", "trivec"},
-                  {"rgpr(trivec,mv_e) -> mv_u", "svBtps", "M_even", "trivec", "mv_e"},
-                  {"rgpr(mv_u,trivec) -> mv_e", "M_odd", "svBtps", "mv_u", "trivec"},
-                  {"rgpr(trivec,mv_u) -> mv_e", "svBtps", "M_odd", "trivec", "mv_u"},
-                  {"rgpr(mv_e,bivec) -> mv_e", "M_even", "svBtps", "mv_e", "bivec"},
-                  {"rgpr(bivec,mv_e) -> mv_e", "svBtps", "M_even", "bivec", "mv_e"},
-                  {"rgpr(mv_u,bivec) -> mv_u", "M_odd", "svBtps", "mv_u", "bivec"},
-                  {"rgpr(bivec,mv_u) -> mv_u", "svBtps", "M_odd", "bivec", "mv_u"},
-                  {"rgpr(mv_e,vec) -> mv_u", "M_even", "svBtps", "mv_e", "vec"},
-                  {"rgpr(vec,mv_e) -> mv_u", "svBtps", "M_even", "vec", "mv_e"},
-                  {"rgpr(mv_u,vec) -> mv_e", "M_odd", "svBtps", "mv_u", "vec"},
-                  {"rgpr(vec,mv_u) -> mv_e", "svBtps", "M_odd", "vec", "mv_u"},
-                  {"rgpr(mv_e,s) -> mv_e", "M_even", "svBtps", "mv_e", "s"},
-                  {"rgpr(s,mv_e) -> mv_e", "svBtps", "M_even", "s", "mv_e"},
-                  {"rgpr(mv_u,s) -> mv_u", "M_odd", "svBtps", "mv_u", "s"},
-                  {"rgpr(s,mv_u) -> mv_u", "svBtps", "M_odd", "s", "mv_u"},
-                  //
-                  {"rgpr(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
-                  {"rgpr(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},
-                  {"rgpr(trivec,ps) -> trivec", "svBtps", "svBtps", "trivec", "ps"},
-                  {"rgpr(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},
-                  {"rgpr(bivec,ps) -> bivec", "svBtps", "svBtps", "bivec", "ps"},
-                  {"rgpr(ps,vec) -> vec", "svBtps", "svBtps", "ps", "vec"},
-                  {"rgpr(vec,ps) -> vec", "svBtps", "svBtps", "vec", "ps"},
-                  {"rgpr(ps,s) -> s", "svBtps", "svBtps", "ps", "s"},
-                  {"rgpr(s,ps) -> s", "svBtps", "svBtps", "s", "ps"},
-                  //
-                  {"rgpr(trivec,trivec) -> mv_e", "svBtps1", "svBtps2", "trivec",
-                   "trivec"},
-                  {"rgpr(trivec,bivec) -> mv_u", "svBtps", "svBtps", "trivec", "bivec"},
-                  {"rgpr(bivec,trivec) -> mv_u", "svBtps", "svBtps", "bivec", "trivec"},
-                  {"rgpr(trivec,vec) -> mv_e", "svBtps", "svBtps", "trivec", "vec"},
-                  {"rgpr(vec,trivec) -> mv_e", "svBtps", "svBtps", "vec", "trivec"},
-                  {"rgpr(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
-                  {"rgpr(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
-                  //
-                  {"rgpr(bivec,bivec) -> mv_e", "svBtps1", "svBtps2", "bivec", "bivec"},
-                  {"rgpr(bivec,vec) -> mv_u", "svBtps", "svBtps", "bivec", "vec"},
-                  {"rgpr(vec,bivec) -> mv_u", "svBtps", "svBtps", "vec", "bivec"},
-                  {"rgpr(bivec,s) -> bivec", "svBtps", "svBtps", "bivec", "s"},
-                  {"rgpr(s,bivec) -> bivec", "svBtps", "svBtps", "s", "bivec"},
-                  //
-                  {"rgpr(vec,vec) -> mv_e", "svBtps1", "svBtps2", "vec", "vec"},
-                  {"rgpr(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"},
-                  {"rgpr(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"},
-                  //
-                  {"rgpr(s,s) -> 0 ps", "svBtps1", "svBtps2", "s", "s"}},
+        .cases =
+            {// mv
+             {"rgpr(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             {"rgpr(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+             {"rgpr(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+             {"rgpr(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
+             {"rgpr(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
+             {"rgpr(mv,ps) -> mv", "M", "svBtps", "mv", "ps"},
+             {"rgpr(ps,mv) -> mv", "svBtps", "M", "ps", "mv"},
+             {"rgpr(mv,trivec) -> mv", "M", "svBtps", "mv", "trivec"},
+             {"rgpr(trivec,mv) -> mv", "svBtps", "M", "trivec", "mv"},
+             {"rgpr(mv,bivec) -> mv", "M", "svBtps", "mv", "bivec"},
+             {"rgpr(bivec,mv) -> mv", "svBtps", "M", "bivec", "mv"},
+             {"rgpr(mv,vec) -> mv", "M", "svBtps", "mv", "vec"},
+             {"rgpr(vec,mv) -> mv", "svBtps", "M", "vec", "mv"},
+             {"rgpr(mv,s) -> mv", "M", "svBtps", "mv", "s"},
+             {"rgpr(s,mv) -> mv", "svBtps", "M", "s", "mv"},
+             // mv_e
+             {"rgpr(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+             {"rgpr(mv_e,mv_u) -> mv_u", "A_even", "B_odd", "mv_e", "mv_u"},
+             {"rgpr(mv_u,mv_e) -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
+             {"rgpr(mv_e,ps) -> mv_e", "A_even", "svBtps", "mv_e", "ps"},
+             {"rgpr(ps,mv_e) -> mv_e", "svBtps", "B_even", "ps", "mv_e"},
+             {"rgpr(mv_e,trivec) -> mv_u", "M_even", "svBtps", "mv_e", "trivec"},
+             {"rgpr(trivec,mv_e) -> mv_u", "svBtps", "M_even", "trivec", "mv_e"},
+             {"rgpr(mv_e,bivec) -> mv_e", "M_even", "svBtps", "mv_e", "bivec"},
+             {"rgpr(bivec,mv_e) -> mv_e", "svBtps", "M_even", "bivec", "mv_e"},
+             {"rgpr(mv_e,vec) -> mv_u", "M_even", "svBtps", "mv_e", "vec"},
+             {"rgpr(vec,mv_e) -> mv_u", "svBtps", "M_even", "vec", "mv_e"},
+             {"rgpr(mv_e,s) -> mv_e", "M_even", "svBtps", "mv_e", "s"},
+             {"rgpr(s,mv_e) -> mv_e", "svBtps", "M_even", "s", "mv_e"},
+             // mv_u
+             {"rgpr(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+             {"rgpr(mv_u,ps) -> mv_u", "A_odd", "svBtps", "mv_u", "ps"},
+             {"rgpr(ps,mv_u) -> mv_u", "svBtps", "B_odd", "ps", "mv_u"},
+             {"rgpr(mv_u,trivec) -> mv_e", "M_odd", "svBtps", "mv_u", "trivec"},
+             {"rgpr(trivec,mv_u) -> mv_e", "svBtps", "M_odd", "trivec", "mv_u"},
+             {"rgpr(mv_u,bivec) -> mv_u", "M_odd", "svBtps", "mv_u", "bivec"},
+             {"rgpr(bivec,mv_u) -> mv_u", "svBtps", "M_odd", "bivec", "mv_u"},
+             {"rgpr(mv_u,vec) -> mv_e", "M_odd", "svBtps", "mv_u", "vec"},
+             {"rgpr(vec,mv_u) -> mv_e", "svBtps", "M_odd", "vec", "mv_u"},
+             {"rgpr(mv_u,s) -> mv_u", "M_odd", "svBtps", "mv_u", "s"},
+             {"rgpr(s,mv_u) -> mv_u", "svBtps", "M_odd", "s", "mv_u"},
+             // ps
+             {"rgpr(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
+             {"rgpr(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},
+             {"rgpr(trivec,ps) -> trivec", "svBtps", "svBtps", "trivec", "ps"},
+             {"rgpr(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},
+             {"rgpr(bivec,ps) -> bivec", "svBtps", "svBtps", "bivec", "ps"},
+             {"rgpr(ps,vec) -> vec", "svBtps", "svBtps", "ps", "vec"},
+             {"rgpr(vec,ps) -> vec", "svBtps", "svBtps", "vec", "ps"},
+             {"rgpr(ps,s) -> s", "svBtps", "svBtps", "ps", "s"},
+             {"rgpr(s,ps) -> s", "svBtps", "svBtps", "s", "ps"},
+             // trivec
+             {"rgpr(trivec,trivec) -> mv_e", "svBtps1", "svBtps2", "trivec", "trivec"},
+             {"rgpr(trivec,bivec) -> mv_u", "svBtps", "svBtps", "trivec", "bivec"},
+             {"rgpr(bivec,trivec) -> mv_u", "svBtps", "svBtps", "bivec", "trivec"},
+             {"rgpr(trivec,vec) -> mv_e", "svBtps", "svBtps", "trivec", "vec"},
+             {"rgpr(vec,trivec) -> mv_e", "svBtps", "svBtps", "vec", "trivec"},
+             {"rgpr(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
+             {"rgpr(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
+             // bivec
+             {"rgpr(bivec,bivec) -> mv_e", "svBtps1", "svBtps2", "bivec", "bivec"},
+             {"rgpr(bivec,vec) -> mv_u", "svBtps", "svBtps", "bivec", "vec"},
+             {"rgpr(vec,bivec) -> mv_u", "svBtps", "svBtps", "vec", "bivec"},
+             {"rgpr(bivec,s) -> bivec", "svBtps", "svBtps", "bivec", "s"},
+             {"rgpr(s,bivec) -> bivec", "svBtps", "svBtps", "s", "bivec"},
+             // vec
+             {"rgpr(vec,vec) -> mv_e", "svBtps1", "svBtps2", "vec", "vec"},
+             {"rgpr(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"},
+             {"rgpr(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"},
+             // s
+             {"rgpr(s,s) -> 0 ps", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -681,26 +876,28 @@ ProductConfig get_pga3dp_rgpr_alt_config()
 
 ProductConfig get_pga3dp_rtwdg1_config()
 {
-    return {.product_name = "rtwdg1",
-            .description =
-                "pga3dp regressive transwedge product for k=1 (see gpr (alternative))",
-            .display_name = "regressive transwedge product (k=1)",
-            // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
-            // "right_filter"}
-            // .cases{}, // no cases, just for generating the product tables
-            .cases = {{"rtwdg1(trivec,trivec) -> ps", "svBtps1", "svBtps2", "trivec", "trivec"},
-                      {"rtwdg1(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
-                      {"rtwdg1(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
-                      {"rtwdg1(trivec,vec) -> bivec", "svBtps", "svBtps", "trivec", "vec"},
-                      {"rtwdg1(vec,trivec) -> bivec", "svBtps", "svBtps", "vec", "trivec"},
-                      {"rtwdg1(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
-                      {"rtwdg1(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
-                      {"rtwdg1(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
-                      {"rtwdg1(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
-                      {"rtwdg1(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"}},
-            .is_sandwich_product = false,
-            .uses_brace_switch = false,
-            .show_basis_table = true};
+    return {
+        .product_name = "rtwdg1",
+        .description =
+            "pga3dp regressive transwedge product for k=1 (see gpr (alternative))",
+        .display_name = "regressive transwedge product (k=1)",
+        // Format: {"case_name", "left_coeff", "right_coeff", "left_filter",
+        // "right_filter"}
+        // .cases{}, // no cases, just for generating the product tables
+        .cases =
+            {{"rtwdg1(trivec,trivec) -> ps", "svBtps1", "svBtps2", "trivec", "trivec"},
+             {"rtwdg1(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+             {"rtwdg1(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+             {"rtwdg1(trivec,vec) -> bivec", "svBtps", "svBtps", "trivec", "vec"},
+             {"rtwdg1(vec,trivec) -> bivec", "svBtps", "svBtps", "vec", "trivec"},
+             {"rtwdg1(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
+             {"rtwdg1(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
+             {"rtwdg1(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
+             {"rtwdg1(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+             {"rtwdg1(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"}},
+        .is_sandwich_product = false,
+        .uses_brace_switch = false,
+        .show_basis_table = true};
 }
 
 ProductConfig get_pga3dp_rcmt_config()
@@ -712,26 +909,38 @@ ProductConfig get_pga3dp_rcmt_config()
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
         .cases =
-            {
-                {"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                //
-                {"rcmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
-                 "trivec"},
-                {"rcmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
-                {"rcmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
-                // {"rcmt(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
-                // {"rcmt(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
-                // {"rcmt(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
-                // {"rcmt(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
-                //
-                {"rcmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
-                {"rcmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
-                {"rcmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
-                //
-                {"rcmt(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"}
-                // {"rcmt(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"},
-                // {"rcmt(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"}
-            },
+            {// mv
+             {"rcmt(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             // ps
+             {"rcmt(ps,ps) -> 0", "svBtps1", "svBtps2", "ps", "ps"},
+             {"rcmt(ps,trivec) -> 0", "svBtps", "svBtps", "ps", "trivec"},
+             {"rcmt(trivec,ps) -> 0", "svBtps", "svBtps", "trivec", "ps"},
+             {"rcmt(ps,bivec) -> 0", "svBtps", "svBtps", "ps", "bivec"},
+             {"rcmt(bivec,ps) -> 0", "svBtps", "svBtps", "bivec", "ps"},
+             {"rcmt(ps,vec) -> 0", "svBtps", "svBtps", "ps", "vec"},
+             {"rcmt(vec,ps) -> 0", "svBtps", "svBtps", "vec", "ps"},
+             {"rcmt(ps,s) -> 0", "svBtps", "svBtps", "ps", "s"},
+             {"rcmt(s,ps) -> 0", "svBtps", "svBtps", "s", "ps"},
+             // trivec
+             {"rcmt(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec", "trivec"},
+             {"rcmt(trivec,bivec) -> trivec", "svBtps", "svBtps", "trivec", "bivec"},
+             {"rcmt(bivec,trivec) -> trivec", "svBtps", "svBtps", "bivec", "trivec"},
+             {"rcmt(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
+             {"rcmt(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
+             {"rcmt(trivec,s) -> vec", "svBtps", "svBtps", "trivec", "s"},
+             {"rcmt(s,trivec) -> vec", "svBtps", "svBtps", "s", "trivec"},
+             // bivec
+             {"rcmt(bivec,bivec) -> bivec", "svBtps1", "svBtps2", "bivec", "bivec"},
+             {"rcmt(bivec,vec) -> vec", "svBtps", "svBtps", "bivec", "vec"},
+             {"rcmt(vec,bivec) -> vec", "svBtps", "svBtps", "vec", "bivec"},
+             {"rcmt(bivec,s) -> 0", "svBtps", "svBtps", "bivec", "s"},
+             {"rcmt(s,bivec) -> 0", "svBtps", "svBtps", "s", "bivec"},
+             // vec
+             {"rcmt(vec,vec) -> bivec", "svBtps1", "svBtps2", "vec", "vec"},
+             {"rcmt(vec,s) -> trivec", "svBtps", "svBtps", "vec", "s"},
+             {"rcmt(s,vec) -> trivec", "svBtps", "svBtps", "s", "vec"},
+             // s
+             {"rcmt(s,s) -> 0", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -745,32 +954,79 @@ ProductConfig get_pga3dp_rwdg_config()
         .display_name = "regressive wedge product",
         // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
         // "left_filter", "right_filter"}
-        .cases = {{"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
-                  //
-                  {"rwdg(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
-                  {"rwdg(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
-                  //
-                  {"rwdg(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
-                  {"rwdg(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},
-                  {"rwdg(trivec,ps) -> trivec", "svBtps", "svBtps", "trivec", "ps"},
-                  {"rwdg(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},
-                  {"rwdg(bivec,ps) -> bivec", "svBtps", "svBtps", "bivec", "ps"},
-                  {"rwdg(ps,vec) -> vec", "svBtps", "svBtps", "ps", "vec"},
-                  {"rwdg(vec,ps) -> vec", "svBtps", "svBtps", "vec", "ps"},
-                  {"rwdg(ps,s) -> s", "svBtps", "svBtps", "ps", "s"},
-                  {"rwdg(s,ps) -> s", "svBtps", "svBtps", "s", "ps"},
-                  //
-                  {"rwdg(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec",
-                   "trivec"},
-                  {"rwdg(trivec,bivec) -> vec", "svBtps", "svBtps", "trivec", "bivec"},
-                  {"rwdg(bivec,trivec) -> vec", "svBtps", "svBtps", "bivec", "trivec"},
-                  {"rwdg(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
-                  {"rwdg(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
-                  {"rwdg(trivec,s) -> 0", "svBtps", "svBtps", "trivec", "s"},
-                  {"rwdg(s,trivec) -> 0", "svBtps", "svBtps", "s", "trivec"},
-                  {"rwdg(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
-                  {"rwdg(bivec,vec) -> s", "svBtps", "svBtps", "bivec", "vec"},
-                  {"rwdg(vec,bivec) -> s", "svBtps", "svBtps", "vec", "bivec"}},
+        .cases =
+            {// mv
+             {"rwdg(mv,mv) -> mv", "A", "B", "mv", "mv"},
+             {"rwdg(mv,mv_e) -> mv", "A", "B_even", "mv", "mv_e"},
+             {"rwdg(mv_e,mv) -> mv", "A_even", "B", "mv_e", "mv"},
+             {"rwdg(mv,mv_u) -> mv", "A", "B_odd", "mv", "mv_u"},
+             {"rwdg(mv_u,mv) -> mv", "A_odd", "B", "mv_u", "mv"},
+             {"rwdg(mv,ps) -> mv", "M", "svBtps", "mv", "ps"},
+             {"rwdg(ps,mv) -> mv", "svBtps", "M", "ps", "mv"},
+             {"rwdg(mv,trivec) -> mv", "M", "svBtps", "mv", "trivec"},
+             {"rwdg(trivec,mv) -> mv", "svBtps", "M", "trivec", "mv"},
+             {"rwdg(mv,bivec) -> mv", "M", "svBtps", "mv", "bivec"},
+             {"rwdg(bivec,mv) -> mv", "svBtps", "M", "bivec", "mv"},
+             {"rwdg(mv,vec) -> mv", "M", "svBtps", "mv", "vec"},
+             {"rwdg(vec,mv) -> mv", "svBtps", "M", "vec", "mv"},
+             {"rwdg(mv,s) -> s", "M", "svBtps", "mv", "s"},
+             {"rwdg(s,mv) -> s", "svBtps", "M", "s", "mv"},
+             // mv_e
+             {"rwdg(mv_e,mv_e) -> mv_e", "A_even", "B_even", "mv_e", "mv_e"},
+             {"rwdg(mv_e,mv_u) -> mv_u", "A_even", "B_odd", "mv_e", "mv_u"},
+             {"rwdg(mv_u,mv_e) -> mv_u", "A_odd", "B_even", "mv_u", "mv_e"},
+             {"rwdg(mv_e,ps) -> mv_e", "M_even", "svBtps", "mv_e", "ps"},
+             {"rwdg(ps,mv_e) -> mv_e", "svBtps", "M_even", "ps", "mv_e"},
+             {"rwdg(mv_e,trivec) -> mv_u", "M_even", "svBtps", "mv_e", "trivec"},
+             {"rwdg(trivec,mv_e) -> mv_u", "svBtps", "M_even", "trivec", "mv_e"},
+             {"rwdg(mv_e,bivec) -> mv_e", "M_even", "svBtps", "mv_e", "bivec"},
+             {"rwdg(bivec,mv_e) -> mv_e", "svBtps", "M_even", "bivec", "mv_e"},
+             {"rwdg(mv_e,vec) -> vec", "M_even", "svBtps", "mv_e", "vec"},
+             {"rwdg(vec,mv_e) -> vec", "svBtps", "M_even", "vec", "mv_e"},
+             {"rwdg(mv_e,s) -> s", "M_even", "svBtps", "mv_e", "s"},
+             {"rwdg(s,mv_e) -> s", "svBtps", "M_even", "s", "mv_e"},
+             // mv_u
+             {"rwdg(mv_u,mv_u) -> mv_e", "A_odd", "B_odd", "mv_u", "mv_u"},
+             {"rwdg(mv_u,ps) -> mv_u", "M_odd", "svBtps", "mv_u", "ps"},
+             {"rwdg(ps,mv_u) -> mv_u", "svBtps", "M_odd", "ps", "mv_u"},
+             {"rwdg(mv_u,trivec) -> mv_e", "M_odd", "svBtps", "mv_u", "trivec"},
+             {"rwdg(trivec,mv_u) -> mv_e", "svBtps", "M_odd", "trivec", "mv_u"},
+             {"rwdg(mv_u,bivec) -> vec", "M_odd", "svBtps", "mv_u", "bivec"},
+             {"rwdg(bivec,mv_u) -> vec", "svBtps", "M_odd", "bivec", "mv_u"},
+             {"rwdg(mv_u,vec) -> s", "M_odd", "svBtps", "mv_u", "vec"},
+             {"rwdg(vec,mv_u) -> s", "svBtps", "M_odd", "vec", "mv_u"},
+             {"rwdg(mv_u,s) -> 0", "M_odd", "svBtps", "mv_u", "s"},
+             {"rwdg(s,mv_u) -> 0", "svBtps", "M_odd", "s", "mv_u"},
+             // ps
+             {"rwdg(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
+             {"rwdg(ps,trivec) -> trivec", "svBtps", "svBtps", "ps", "trivec"},
+             {"rwdg(trivec,ps) -> trivec", "svBtps", "svBtps", "trivec", "ps"},
+             {"rwdg(ps,bivec) -> bivec", "svBtps", "svBtps", "ps", "bivec"},
+             {"rwdg(bivec,ps) -> bivec", "svBtps", "svBtps", "bivec", "ps"},
+             {"rwdg(ps,vec) -> vec", "svBtps", "svBtps", "ps", "vec"},
+             {"rwdg(vec,ps) -> vec", "svBtps", "svBtps", "vec", "ps"},
+             {"rwdg(ps,s) -> s", "svBtps", "svBtps", "ps", "s"},
+             {"rwdg(s,ps) -> s", "svBtps", "svBtps", "s", "ps"},
+             // trivec
+             {"rwdg(trivec,trivec) -> bivec", "svBtps1", "svBtps2", "trivec", "trivec"},
+             {"rwdg(trivec,bivec) -> vec", "svBtps", "svBtps", "trivec", "bivec"},
+             {"rwdg(bivec,trivec) -> vec", "svBtps", "svBtps", "bivec", "trivec"},
+             {"rwdg(trivec,vec) -> s", "svBtps", "svBtps", "trivec", "vec"},
+             {"rwdg(vec,trivec) -> s", "svBtps", "svBtps", "vec", "trivec"},
+             {"rwdg(trivec,s) -> 0", "svBtps", "svBtps", "trivec", "s"},
+             {"rwdg(s,trivec) -> 0", "svBtps", "svBtps", "s", "trivec"},
+             // bivec
+             {"rwdg(bivec,bivec) -> s", "svBtps1", "svBtps2", "bivec", "bivec"},
+             {"rwdg(bivec,vec) -> 0", "svBtps", "svBtps", "bivec", "vec"},
+             {"rwdg(vec,bivec) -> 0", "svBtps", "svBtps", "vec", "bivec"},
+             {"rwdg(bivec,s) -> 0", "svBtps", "svBtps", "bivec", "s"},
+             {"rwdg(s,bivec) -> 0", "svBtps", "svBtps", "s", "bivec"},
+             // vec
+             {"rwdg(vec,vec) -> 0", "svBtps1", "svBtps2", "vec", "vec"},
+             {"rwdg(vec,s) -> 0", "svBtps", "svBtps", "vec", "s"},
+             {"rwdg(s,vec) -> 0", "svBtps", "svBtps", "s", "vec"},
+             // s
+             {"rwdg(s,s) -> 0", "svBtps1", "svBtps2", "s", "s"}},
         .is_sandwich_product = false,
         .uses_brace_switch = false,
         .show_basis_table = true};
@@ -778,21 +1034,29 @@ ProductConfig get_pga3dp_rwdg_config()
 
 ProductConfig get_pga3dp_rdot_config()
 {
-    return {
-        .product_name = "rdot",
-        .description = "pga3dp regressive inner product",
-        .display_name = "regressive inner product",
-        // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
-        // "left_filter", "right_filter"}
-        .cases = {{"rdot(mv,mv) -> ps", "A", "B", "mv", "mv"},
-                  {"rdot(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
-                  {"rdot(trivec,trivec) -> ps", "svBtps1", "svBtps2", "trivec", "trivec"},
-                  {"rdot(bivec,bivec) -> ps", "svBtps1", "svBtps2", "bivec", "bivec"},
-                  {"rdot(vec,vec) -> ps", "svBtps1", "svBtps2", "vec", "vec"},
-                  {"rdot(s,s) -> 0 ps", "svBtps1", "svBtps2", "s", "s"}},
-        .is_sandwich_product = false,
-        .uses_brace_switch = false,
-        .show_basis_table = true};
+    return {.product_name = "rdot",
+            .description = "pga3dp regressive inner product",
+            .display_name = "regressive inner product",
+            // Format: {"operation(A,B) -> result", "left_coeff", "right_coeff",
+            // "left_filter", "right_filter"}
+            .cases =
+                {// mv
+                 {"rdot(mv,mv) -> ps", "A", "B", "mv", "mv"},
+                 {"rdot(mv_e,mv_e) -> ps", "A_even", "B_even", "mv_e", "mv_e"},
+                 {"rdot(mv_u,mv_u) -> ps", "A_odd", "B_odd", "mv_u", "mv_u"},
+                 // ps
+                 {"rdot(ps,ps) -> ps", "svBtps1", "svBtps2", "ps", "ps"},
+                 // trivec
+                 {"rdot(trivec,trivec) -> ps", "svBtps1", "svBtps2", "trivec", "trivec"},
+                 // bivec
+                 {"rdot(bivec,bivec) -> ps", "svBtps1", "svBtps2", "bivec", "bivec"},
+                 // vec
+                 {"rdot(vec,vec) -> ps", "svBtps1", "svBtps2", "vec", "vec"},
+                 // s
+                 {"rdot(s,s) -> 0 ps", "svBtps1", "svBtps2", "s", "s"}},
+            .is_sandwich_product = false,
+            .uses_brace_switch = false,
+            .show_basis_table = true};
 }
 
 ProductConfig get_pga3dp_sandwich_rgpr_config()

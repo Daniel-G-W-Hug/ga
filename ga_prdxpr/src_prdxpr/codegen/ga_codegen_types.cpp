@@ -112,13 +112,14 @@ std::map<std::string, TypeInfo> build_pga3dp()
     m["ps"] = make_single("PScalar3dp", 15);
     m["mv_e"] = make_composite("MVec3dp_E", {"s", "bivec", "ps"}, m);
     m["mv_u"] = make_composite("MVec3dp_U", {"vec", "trivec"}, m);
-    m["mv"] = make_indexed("MVec3dp",
-                           {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
+    m["mv"] =
+        make_indexed("MVec3dp", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
     return m;
 }
 
 // STA4D: basis = {1, g0, g1, g2, g3, g01, g02, g03, g23, g31, g12, g023, g031, g012,
-//                 g123, g0123} (16 elements). G(1,3,0) — time-like g0, space-like g1/g2/g3.
+//                 g123, g0123} (16 elements). G(1,3,0) — time-like g0, space-like
+//                 g1/g2/g3.
 //
 // Same layout shape as PGA3DP: scalar + 4-vec + 6-bivec + 4-trivec + ps,
 // so MVec4d_E composes {s, bivec, ps} and MVec4d_U composes {vec, trivec}.
@@ -142,8 +143,8 @@ std::map<std::string, TypeInfo> build_sta4d()
     m["ps"] = make_single("PScalar4d", 15);
     m["mv_e"] = make_composite("MVec4d_E", {"s", "bivec", "ps"}, m);
     m["mv_u"] = make_composite("MVec4d_U", {"vec", "trivec"}, m);
-    m["mv"] = make_indexed("MVec4d",
-                           {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
+    m["mv"] =
+        make_indexed("MVec4d", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15});
     return m;
 }
 
@@ -167,8 +168,8 @@ TypeRegistry::TypeRegistry(std::string const& algebra_name) : algebra_(algebra_n
         types_ = build_sta4d();
     }
     else {
-        throw std::invalid_argument(
-            "TypeRegistry: no registry available for algebra '" + algebra_name + "'");
+        throw std::invalid_argument("TypeRegistry: no registry available for algebra '" +
+                                    algebra_name + "'");
     }
 }
 
@@ -181,8 +182,8 @@ TypeInfo const& TypeRegistry::get(std::string const& filter_name) const
 {
     auto it = types_.find(filter_name);
     if (it == types_.end()) {
-        throw std::out_of_range("TypeRegistry(" + algebra_ +
-                                "): no type for filter '" + filter_name + "'");
+        throw std::out_of_range("TypeRegistry(" + algebra_ + "): no type for filter '" +
+                                filter_name + "'");
     }
     return it->second;
 }
