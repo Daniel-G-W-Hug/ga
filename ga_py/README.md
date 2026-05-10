@@ -84,16 +84,29 @@ cmake --build build
 `ga_py/CMakeLists.txt` automatically picks up `ga_py/.venv/bin/python` and uses its
 `nanobind` — no need to set `Python_EXECUTABLE` or `CMAKE_PREFIX_PATH`.
 
-**Windows** (Command Prompt) — same idea, different paths. cwd is still the project root
-(e.g. `C:\path\to\ga`):
+**Windows (Developer Command Prompt)** — open via Start → "Developer Command Prompt for
+VS 2022". cwd is still the project root (e.g. `C:\path\to\ga`):
 
 ```bat
 rem cwd: project root, e.g.  cd C:\path\to\ga
+
+rem 1) Create the wrapper venv (do this BEFORE cmake configure)
 python -m venv ga_py\.venv
 ga_py\.venv\Scripts\pip install nanobind pytest hypothesis numpy
+
+rem 2) Configure and build
 cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -D_GA_BUILD_PYTHON=ON
 cmake --build build --target _ga_py --config Debug
 ```
+
+> **Troubleshooting:** if cmake fails with *"Could not find a package configuration file
+> provided by nanobind"*, a stale cache entry from a previous failed configure is the
+> likely cause. Clear it and retry:
+>
+> ```bat
+> cmake -Unanobind_DIR build
+> cmake --build build --target _ga_py --config Debug
+> ```
 
 After the build, the compiled extension lands at (paths relative to the project root):
 

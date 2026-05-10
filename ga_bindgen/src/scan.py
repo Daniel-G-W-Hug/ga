@@ -19,6 +19,37 @@ import clang.cindex as cx
 # Allow running as `python ga_bindgen/src/scan.py` from anywhere.
 sys.path.insert(0, str(Path(__file__).parent))
 from clang_setup import GA_DIR, PROJECT_ROOT, compile_args, in_ga_tree
+
+_OUTER_NS_RE = re.compile(r'^hd::ga::(?=[A-Z_])')
+
+
+def _rel_source(file) -> str:
+    """Return source file path relative to the project root as a POSIX string.
+
+    libclang returns absolute OS-native paths which differ between platforms.
+    Storing a project-root-relative POSIX path makes manifest.json identical
+    across macOS, Linux, and Windows regardless of where the repo is cloned.
+    """
+    if file is None:
+        return ""
+    try:
+        return Path(file.name).relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return Path(file.name).as_posix()  # outside project root — keep absolute
+
+
+def _norm_canonical(spelling: str) -> str:
+    """Normalise canonical_underlying to be platform-independent.
+
+    libclang on macOS spells template-instantiation underlying types with a
+    fully-qualified outer name (e.g. 'hd::ga::Vec3_t<...>'), while libclang
+    on Windows omits the leading namespace for such types ('Vec3_t<...>').
+    Named class types in sub-namespaces (e.g. 'hd::ga::pga::Point2d<double>')
+    are consistent on both platforms and are left unchanged.
+    Strip the leading 'hd::ga::' only when it immediately precedes an
+    uppercase letter — i.e. a PascalCase template name, not a sub-namespace.
+    """
+    return _OUTER_NS_RE.sub('', spelling)
 from model import (SCHEMA_VERSION, Constant, Constructor, Field, FunctionGroup,
                    Manifest, Overload, TypeAlias)
 
@@ -164,11 +195,11 @@ def extract_type(typedef_cursor: cx.Cursor,
         namespace=ns,
         name=typedef_cursor.spelling,
         underlying=underlying,
-        canonical_underlying=canonical,
+        canonical_underlying=_norm_canonical(canonical),
         fields=fields,
         constructors=ctors,
         base_class=base_class,
-        source_file=str(src.name) if src else "",
+        source_file=_rel_source(src),
         source_line=typedef_cursor.location.line,
     )
 
@@ -188,7 +219,7 @@ def extract_function(cursor: cx.Cursor) -> tuple[str, str, Overload]:
     return ns, name, Overload(
         return_type=return_type,
         param_types=param_types,
-        source_file=str(src.name) if src else "",
+        source_file=_rel_source(src),
         source_line=cursor.location.line,
     )
 
@@ -252,7 +283,7 @@ def collect(tu: cx.TranslationUnit) -> tuple[list[TypeAlias],
                             namespace=ns,
                             name=cursor.spelling,
                             type=cursor.type.spelling,
-                            source_file=str(src.name) if src else "",
+                            source_file=_rel_source(src),
                             source_line=cursor.location.line,
                         )
         elif k in (cx.CursorKind.FUNCTION_DECL, cx.CursorKind.FUNCTION_TEMPLATE):
@@ -337,7 +368,7 @@ def main() -> int:
 
     out_path = Path(args_ns.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(manifest.to_json())
+    out_path.write_text(manifest.to_json(), encoding="utf-8")
 
     print(f"\nManifest written to: {out_path}")
     print(f"  types:      {len(manifest.types)}")

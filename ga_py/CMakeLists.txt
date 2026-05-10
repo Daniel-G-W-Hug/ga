@@ -50,7 +50,7 @@ if(NOT nanobind_DIR)
         ERROR_QUIET
     )
     if(_nanobind_lookup_result EQUAL 0 AND IS_DIRECTORY "${_nanobind_cmake_dir}")
-        set(nanobind_DIR "${_nanobind_cmake_dir}" CACHE PATH "nanobind cmake dir")
+        set(nanobind_DIR "${_nanobind_cmake_dir}" CACHE PATH "nanobind cmake dir" FORCE)
         message(STATUS "ga_py: auto-detected nanobind at ${nanobind_DIR}")
     else()
         message(FATAL_ERROR
