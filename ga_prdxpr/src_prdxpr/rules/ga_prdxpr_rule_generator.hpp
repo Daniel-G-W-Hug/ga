@@ -17,40 +17,40 @@
 // This system automatically generates mathematically correct product rules
 // for any geometric algebra from its metric signature and basis vectors.
 //
-// STEP 1: Create Header File (e.g., ga_prdxpr_sta4d.hpp)
+// STEP 1: Create Header File (e.g., ga_prdxpr_sta4ds.hpp)
 //   - Define multivector basis: const mvec_coeff mvSTA3d_basis = {"1", "g0", "g1", "g2",
 //   "g3", ...};
 //   - Add extern declarations for product rules:
-//     extern const prd_rules gpr_sta4d_rules;  // Geometric product
-//     extern const prd_rules wdg_sta4d_rules;  // Wedge product
-//     extern const prd_rules dot_sta4d_rules;  // Dot product
+//     extern const prd_rules gpr_sta4ds_rules;  // Geometric product
+//     extern const prd_rules wdg_sta4ds_rules;  // Wedge product
+//     extern const prd_rules dot_sta4ds_rules;  // Dot product
 //   - Define coefficient arrays and complement rules as needed
 //
-// STEP 2: Create Config File (e.g., ga_prdxpr_sta4d_config.cpp)
+// STEP 2: Create Config File (e.g., ga_prdxpr_sta4ds_config.cpp)
 //   - Implement AlgebraConfig function:
-//     AlgebraConfig get_sta4d_algebra_config() {
+//     AlgebraConfig get_sta4ds_algebra_config() {
 //         return {
-//             {"g0", "g1", "g2", "g3"},        // basis_vectors
-//             {+1, -1, -1, -1},                // metric_signature
-//             mvSTA3d_basis,                    // multivector_basis (from header)
+//             {"g1", "g2", "g3", "g4"},        // basis_vectors
+//             {+1, +1, +1, -1},                // metric_signature
+//             mvsta3ds_basis,                    // multivector_basis (from header)
 //             one_str(),                         // scalar_name
 //             "g"                              // basis_prefix
 //         };
 //     }
 //   - Generate rules with static initialization:
-//     static auto sta4d_generated_rules =
-//     generate_algebra_rules(get_sta4d_algebra_config()); const prd_rules gpr_sta4d_rules
-//     = sta4d_generated_rules.geometric_product; const prd_rules wdg_sta4d_rules =
-//     sta4d_generated_rules.wedge_product; const prd_rules dot_sta4d_rules =
-//     sta4d_generated_rules.dot_product;
+//     static auto sta4ds_generated_rules =
+//     generate_algebra_rules(get_sta4ds_algebra_config()); const prd_rules
+//     gpr_sta4ds_rules = sta4ds_generated_rules.geometric_product; const prd_rules
+//     wdg_sta4ds_rules = sta4ds_generated_rules.wedge_product; const prd_rules
+//     dot_sta4ds_rules = sta4ds_generated_rules.dot_product;
 //
 // STEP 3: Add to Build System (CMakeLists.txt)
-//   - Add config file to SOURCES: src_prdxpr/ga_prdxpr_sta4d_config.cpp
-//   - Add header to HEADERS: src_prdxpr/ga_prdxpr_sta4d.hpp
+//   - Add config file to SOURCES: src_prdxpr/ga_prdxpr_sta4ds_config.cpp
+//   - Add header to HEADERS: src_prdxpr/ga_prdxpr_sta4ds.hpp
 //   - Include in test program if needed
 //
 // STEP 4: Integration (ga_prdxpr_generator.cpp)
-//   - Include the new header: #include "ga_prdxpr_sta4d.hpp"
+//   - Include the new header: #include "ga_prdxpr_sta4ds.hpp"
 //   - Add switch case for STA4D in dimension handlers
 //   - Add product generation calls as needed
 //
@@ -139,6 +139,15 @@ std::string indices_to_basis(std::vector<int> const& indices,
 std::pair<std::string, int> multiply_basis_elements(std::string const& a,
                                                     std::string const& b,
                                                     AlgebraConfig const& config);
+
+// Look up the metric signature value of the basis vector whose name is
+// "<basis_prefix><digit>" by finding its position in config.basis_vectors and
+// indexing config.metric_signature at that position. Slot-keyed, not
+// digit-keyed: reordering config.basis_vectors automatically reorders the
+// signature lookup. Returns 0 if the digit does not correspond to a known
+// basis vector. Replaces the older "digit ± 1-based offset" lookup, which
+// silently assumed slot order matches digit order.
+int vector_metric_value(int digit, AlgebraConfig const& config);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Extended Metric Calculation (declarations)

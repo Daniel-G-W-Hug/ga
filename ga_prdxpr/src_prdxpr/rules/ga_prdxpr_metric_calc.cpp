@@ -121,37 +121,17 @@ int compute_integer_determinant(
 
 int get_vector_metric(int index_i, int index_j, AlgebraConfig const& config)
 {
-    // Detect 1-based vs 0-based indexing by inspecting basis vectors
-    bool is_one_based = true;
-    for (auto const& bv : config.basis_vectors) {
-        auto bv_indices = parse_indices(bv, config.basis_prefix);
-        if (!bv_indices.empty() && bv_indices[0] == 0) {
-            is_one_based = false;
-            break;
-        }
+    // Same vector: slot-keyed diagonal lookup via vector_metric_value.
+    // This finds the basis vector by name in config.basis_vectors and indexes
+    // config.metric_signature at that slot, so a basis reordering (e.g.
+    // STA with g0 in slot 3 rather than slot 0) gives the right answer.
+    if (index_i == index_j) {
+        return vector_metric_value(index_i, config);
     }
 
-    // Convert to metric array indices
-    int metric_idx_i = is_one_based ? (index_i - 1) : index_i;
-    int metric_idx_j = is_one_based ? (index_j - 1) : index_j;
-
-    // Same vector: use diagonal metric
-    if (metric_idx_i == metric_idx_j) {
-        if (metric_idx_i >= 0 &&
-            metric_idx_i < static_cast<int>(config.metric_signature.size())) {
-            return config.metric_signature[metric_idx_i];
-        }
-        return 0; // Degenerate direction
-    }
-
-    // Different vectors: check if full metric matrix provided (future CGA support)
-    // For now, all supported algebras have orthogonal bases → off-diagonal = 0
-    // TODO: When AlgebraConfig gets metric_matrix field, use:
-    // if (config.has_full_metric()) {
-    //     return (*config.metric_matrix)[metric_idx_i][metric_idx_j];
-    // }
-
-    // Orthogonal basis (current algebras): off-diagonal = 0
+    // Different vectors: orthogonal-basis assumption (off-diagonal = 0).
+    // TODO: When AlgebraConfig gains a full metric matrix (e.g. for CGA's
+    // null basis), look up M[slot_i, slot_j] here instead.
     return 0;
 }
 

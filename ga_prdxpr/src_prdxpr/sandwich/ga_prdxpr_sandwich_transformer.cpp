@@ -4,12 +4,37 @@
 #include "sandwich/ga_prdxpr_sandwich_nary_expression.hpp"
 #include "sandwich/ga_prdxpr_sandwich_transformer.hpp"
 
+// Pull in canonical per-algebra basis declarations so the sandwich configs
+// stay in sync with whatever ordering / naming the algebra headers use.
+#include "algebras/ga_prdxpr_ega2d.hpp"   // mv2d_basis_kvec
+#include "algebras/ga_prdxpr_ega3d.hpp"   // mv3d_basis_kvec
+#include "algebras/ga_prdxpr_pga2dp.hpp"  // mv2dp_basis_kvec
+#include "algebras/ga_prdxpr_pga3dp.hpp"  // mv3dp_basis_kvec
+#include "algebras/ga_prdxpr_sta4ds.hpp"  // mvsta4ds_basis_kvec
+
 #include <algorithm>
 #include <numeric>
 #include <regex>
 #include <sstream>
 
 #include "fmt/format.h"
+
+// Concatenate the named grade slices of a per-algebra basis_kvec into the flat
+// list of basis-element names that the sandwich transformer iterates over as
+// "result components". Sourcing this from the algebra header (rather than
+// duplicating it as a literal here) means a basis renaming or reordering in
+// e.g. ga_prdxpr_sta4ds.hpp automatically propagates to the sandwich config —
+// no second hand-maintained copy to drift out of sync.
+static std::vector<std::string>
+basis_kvec_grades(std::vector<mvec_coeff> const& basis_kvec,
+                  std::initializer_list<size_t> grades)
+{
+    std::vector<std::string> out;
+    for (size_t g : grades) {
+        out.insert(out.end(), basis_kvec[g].begin(), basis_kvec[g].end());
+    }
+    return out;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Main transformation interface implementation
@@ -411,8 +436,8 @@ SandwichAlgebraConfig AlgebraRegistry::getConfig(const std::string& algebra_type
     else if (algebra_type == "pga3dp") {
         return createPGA3DPConfig();
     }
-    else if (algebra_type == "sta4d") {
-        return createSTA4DConfig();
+    else if (algebra_type == "sta4ds") {
+        return createSTA4DSConfig();
     }
     else {
         throw std::runtime_error("Unknown algebra type: " + algebra_type);
@@ -421,51 +446,56 @@ SandwichAlgebraConfig AlgebraRegistry::getConfig(const std::string& algebra_type
 
 SandwichAlgebraConfig AlgebraRegistry::createEGA2DConfig()
 {
+    auto components = basis_kvec_grades(mv2d_basis_kvec, {1});
     return {.name = "ega2d",
             .geometric_variables = {"v.x", "v.y"},
-            .result_components = {"e1", "e2"},
+            .result_components = components,
             .rotor_coefficients = {"R.c0", "R.c1"},
-            .matrix_size = 2};
+            .matrix_size = components.size()};
 }
 
 SandwichAlgebraConfig AlgebraRegistry::createEGA3DConfig()
 {
+    // EGA3D rotor sandwich operates on grade-1 (vector) AND grade-2 (bivector)
+    // inputs alike, so result_components spans both grades.
+    auto components = basis_kvec_grades(mv3d_basis_kvec, {1, 2});
     return {.name = "ega3d",
             .geometric_variables = {"v.x", "v.y", "v.z", "B.x", "B.y", "B.z"},
-            .result_components = {"e1", "e2", "e3", "e23", "e31", "e12"},
+            .result_components = components,
             .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3"},
-            .matrix_size = 6};
+            .matrix_size = components.size()};
 }
 
 SandwichAlgebraConfig AlgebraRegistry::createPGA2DPConfig()
 {
-    return {
-        .name = "pga2dp",
-        .geometric_variables = {"v.x", "v.y", "v.z"}, // Projective 2D has 3 coordinates
-        .result_components = {"e1", "e2", "e3"},
-        .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3"},
-        .matrix_size = 3};
+    auto components = basis_kvec_grades(mv2dp_basis_kvec, {1});
+    return {.name = "pga2dp",
+            .geometric_variables = {"v.x", "v.y", "v.z"},
+            .result_components = components,
+            .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3"},
+            .matrix_size = components.size()};
 }
 
 SandwichAlgebraConfig AlgebraRegistry::createPGA3DPConfig()
 {
+    auto components = basis_kvec_grades(mv3dp_basis_kvec, {1});
     return {.name = "pga3dp",
-            .geometric_variables = {"v.x", "v.y", "v.z",
-                                    "v.w"}, // Projective 3D has 4 coordinates
-            .result_components = {"e1", "e2", "e3", "e4"},
+            .geometric_variables = {"v.x", "v.y", "v.z", "v.w"},
+            .result_components = components,
             .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3", "R.c4", "R.c5", "R.c6",
                                    "R.c7"},
-            .matrix_size = 4};
+            .matrix_size = components.size()};
 }
 
-SandwichAlgebraConfig AlgebraRegistry::createSTA4DConfig()
+SandwichAlgebraConfig AlgebraRegistry::createSTA4DSConfig()
 {
-    return {.name = "sta4d",
+    auto components = basis_kvec_grades(mvsta4ds_basis_kvec, {1});
+    return {.name = "sta4ds",
             .geometric_variables = {"v.x", "v.y", "v.z", "v.w"},
-            .result_components = {"g0", "g1", "g2", "g3"},
+            .result_components = components,
             .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3", "R.c4", "R.c5", "R.c6",
                                    "R.c7"},
-            .matrix_size = 4};
+            .matrix_size = components.size()};
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -11,11 +11,15 @@
 #include "detail/type_t/ga_type2dp.hpp"
 #include "detail/type_t/ga_type3dp.hpp"
 
+#include "detail/type_t/ga_type4ds.hpp"
+
 #include "detail/type_t/ga_mvec2d.hpp" // MVec2d<T> and subtypes
 #include "detail/type_t/ga_mvec3d.hpp" // MVec3d<T> and subtypes
 
 #include "detail/type_t/ga_mvec2dp.hpp" // MVec2dp<T> and subtypes
 #include "detail/type_t/ga_mvec3dp.hpp" // MVec3dp<T> and subtypes
+
+#include "detail/type_t/ga_mvec4ds.hpp" // MVec4ds<T> and subtypes
 
 #include <mdspan>
 
@@ -338,5 +342,60 @@ inline constexpr auto pga3dp_rmetric_view()
 {
     return std::mdspan<int const, std::extents<size_t, 16, 16>>{pga3dp_rmetric.data()};
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// 4ds constants
+/////////////////////////////////////////////////////////////////////////////////////////
+
+auto const e1_4ds = Vec4ds<value_t>{1.0, 0.0, 0.0, 0.0};
+auto const e2_4ds = Vec4ds<value_t>{0.0, 1.0, 0.0, 0.0};
+auto const e3_4ds = Vec4ds<value_t>{0.0, 0.0, 1.0, 0.0};
+auto const e4_4ds = Vec4ds<value_t>{0.0, 0.0, 0.0, 1.0};
+
+auto const x_dir_4ds = e1_4ds; // direction of x-axis towards infinity
+auto const y_dir_4ds = e2_4ds; // direction of y-axis towards infinity
+auto const z_dir_4ds = e3_4ds; // direction of z-axis towards infinity
+
+auto const e1_4ds_mv = MVec4ds<value_t>{e1_4ds}; // e1_4ds as multivector
+auto const e2_4ds_mv = MVec4ds<value_t>{e2_4ds}; // e2_4ds as multivector
+auto const e3_4ds_mv = MVec4ds<value_t>{e3_4ds}; // e3_4ds as multivector
+auto const e4_4ds_mv = MVec4ds<value_t>{e4_4ds}; // e4_4ds as multivector
+
+auto const e41_4ds = BiVec4ds<value_t>{1.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // = wdg(e4,e1)
+auto const e42_4ds = BiVec4ds<value_t>{0.0, 1.0, 0.0, 0.0, 0.0, 0.0}; // = wdg(e4,e2)
+auto const e43_4ds = BiVec4ds<value_t>{0.0, 0.0, 1.0, 0.0, 0.0, 0.0}; // = wdg(e4,e3)
+auto const e23_4ds = BiVec4ds<value_t>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0}; // = wdg(e2,e3)
+auto const e31_4ds = BiVec4ds<value_t>{0.0, 0.0, 0.0, 0.0, 1.0, 0.0}; // = wdg(e3,e1)
+auto const e12_4ds = BiVec4ds<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 1.0}; // = wdg(e1,e2)
+
+auto const e41_4ds_mv = MVec4ds<value_t>{e41_4ds}; // e41_4ds as multivector
+auto const e42_4ds_mv = MVec4ds<value_t>{e42_4ds}; // e42_4ds as multivector
+auto const e43_4ds_mv = MVec4ds<value_t>{e43_4ds}; // e43_4ds as multivector
+auto const e23_4ds_mv = MVec4ds<value_t>{e23_4ds}; // e23_4ds as multivector
+auto const e31_4ds_mv = MVec4ds<value_t>{e31_4ds}; // e31_4ds as multivector
+auto const e12_4ds_mv = MVec4ds<value_t>{e12_4ds}; // e12_4ds as multivector
+
+auto const e23_4ds_mv_e = MVec4ds_E<value_t>{e23_4ds}; // e23_4ds as even multivector
+auto const e31_4ds_mv_e = MVec4ds_E<value_t>{e31_4ds}; // e31_4ds as even multivector
+auto const e12_4ds_mv_e = MVec4ds_E<value_t>{e12_4ds}; // e12_4ds as even multivector
+
+auto const e423_4ds = TriVec4ds<value_t>{1.0, 0.0, 0.0, 0.0};
+auto const e431_4ds = TriVec4ds<value_t>{0.0, 1.0, 0.0, 0.0};
+auto const e412_4ds = TriVec4ds<value_t>{0.0, 0.0, 1.0, 0.0};
+auto const e321_4ds = TriVec4ds<value_t>{0.0, 0.0, 0.0, 1.0};
+
+auto const e423_4ds_mv = MVec4ds<value_t>{e423_4ds}; // e423_4ds as multivector
+auto const e431_4ds_mv = MVec4ds<value_t>{e431_4ds}; // e431_4ds as multivector
+auto const e412_4ds_mv = MVec4ds<value_t>{e412_4ds}; // e412_4ds as multivector
+auto const e321_4ds_mv = MVec4ds<value_t>{e321_4ds}; // e321_4ds as multivector
+
+auto const One_4ds = Scalar4ds<value_t>(1.0);          // Basis element 1
+auto const One_4ds_mv = MVec4ds<value_t>{One_4ds};     // 1 as multivector
+auto const One_4ds_mv_e = MVec4ds_E<value_t>{One_4ds}; // 1 as even-grade multivector
+
+auto const I_4ds = PScalar4ds<value_t>(1.0);       // I_4ds = e1^e2^e3^e4 = e1234
+auto const e1234_4ds = I_4ds;                      // (pseudoscalar)
+auto const I_4ds_mv = MVec4ds<value_t>{I_4ds};     // I_4ds as multivector
+auto const I_4ds_mv_e = MVec4ds_E<value_t>{I_4ds}; // I_4ds as even grade multivector
 
 } // namespace hd::ga::pga

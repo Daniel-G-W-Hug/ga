@@ -4,6 +4,7 @@ set(EXEC_NAME1 ga_ega_test)
 set(EXEC_NAME2 ga_pga_test)
 set(EXEC_NAME3 ga_appl2dp_test)
 set(EXEC_NAME4 ga_appl3dp_test)
+set(EXEC_NAME5 ga_sta_test)
 set(EXPORT_NAME ga_export_python_cases)
 # set(EXEC_NAME5 ga_sta_test)  # Commented out - STA not yet implemented
 
@@ -19,20 +20,20 @@ set(APPL2DP_FILES
 set(APPL3DP_FILES
     src/ga_appl3dp_test.cpp)
 
-# set(STA_FILES
-#     src/ga_sta_test.cpp)  # Commented out - STA not yet implemented
+set(STA_FILES
+    src/ga_sta_test.cpp)
 
 add_executable(${EXEC_NAME1} ${EGA_FILES})      #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME2} ${PGA_FILES})      #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME3} ${APPL2DP_FILES})  #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME4} ${APPL3DP_FILES})  #dep: doctest, fmt, ga
-# add_executable(${EXEC_NAME5} ${STA_FILES})    #dep: doctest, fmt, ga  # Commented out - STA not yet implemented
+add_executable(${EXEC_NAME5} ${STA_FILES})      #dep: doctest, fmt, ga
 
 target_include_directories(${EXEC_NAME1} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME2} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME3} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME4} PRIVATE ${CMAKE_SOURCE_DIR})
-# target_include_directories(${EXEC_NAME5} PRIVATE ${CMAKE_SOURCE_DIR})  # Commented out - STA not yet implemented
+target_include_directories(${EXEC_NAME5} PRIVATE ${CMAKE_SOURCE_DIR})
 
 # Dependencies are handled by the main CMakeLists.txt dependency system
 # Just link against the targets that should be available
@@ -41,6 +42,7 @@ target_link_libraries(${EXEC_NAME1} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME2} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME3} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME4} PRIVATE doctest::doctest ga)
+target_link_libraries(${EXEC_NAME5} PRIVATE doctest::doctest ga)
 
 # Suppress -Wc2y-extensions triggered by __COUNTER__ in doctest macros (third-party header)
 foreach(target ${EXEC_NAME1} ${EXEC_NAME2} ${EXEC_NAME3} ${EXEC_NAME4})
@@ -68,7 +70,7 @@ link_fmt_to_target(${EXEC_NAME1})
 link_fmt_to_target(${EXEC_NAME2})
 link_fmt_to_target(${EXEC_NAME3})
 link_fmt_to_target(${EXEC_NAME4})
-# link_fmt_to_target(${EXEC_NAME5})  # Commented out - STA not yet implemented
+link_fmt_to_target(${EXEC_NAME5})
 
 # ----------------------------------------------------------------------------
 # Cross-check JSON exporter for the Python wrapper.

@@ -2761,65 +2761,6 @@ TEST_SUITE("EGA 3D Tests")
         fmt::println("   MVec3d contextual: {}", mvec3d_contextual);
     }
 
-    TEST_CASE("G<3,0,0>: MVec4d_E and MVec4d_U formatting tests")
-    {
-        fmt::println("G<3,0,0>: MVec4d_E and MVec4d_U formatting tests");
-
-        // Test MVec4d_E formatting (MVec8_t with 8 components: c0 through c7)
-        MVec4d_E<double> mvec4d_e_val{10.1, 20.2, 30.3, 40.4, 50.5, 60.6, 70.7, 80.8};
-
-        // Basic output
-        std::string mvec4d_e_basic = fmt::format("{}", mvec4d_e_val);
-        CHECK(mvec4d_e_basic == "MVec4d_E(10.1,20.2,30.3,40.4,50.5,60.6,70.7,80.8)");
-
-        // Two decimal places
-        std::string mvec4d_e_two_decimals = fmt::format("{:.2f}", mvec4d_e_val);
-        CHECK(mvec4d_e_two_decimals ==
-              "MVec4d_E(10.10,20.20,30.30,40.40,50.50,60.60,70.70,80.80)");
-
-        // Scientific notation
-        std::string mvec4d_e_scientific = fmt::format("{:.2e}", mvec4d_e_val);
-        CHECK(mvec4d_e_scientific == "MVec4d_E(1.01e+01,2.02e+01,3.03e+01,4.04e+01,"
-                                     "5.05e+01,6.06e+01,7.07e+01,8.08e+01)");
-
-        // Contextual usage
-        std::string mvec4d_e_contextual = fmt::format("Even 4D MV: {:.1f}", mvec4d_e_val);
-        CHECK(mvec4d_e_contextual ==
-              "Even 4D MV: MVec4d_E(10.1,20.2,30.3,40.4,50.5,60.6,70.7,80.8)");
-
-        // Test MVec4d_U formatting (MVec8_t with 8 components: c0 through c7)
-        MVec4d_U<double> mvec4d_u_val{11.1, 22.2, 33.3, 44.4, 55.5, 66.6, 77.7, 88.8};
-
-        // Basic output
-        std::string mvec4d_u_basic = fmt::format("{}", mvec4d_u_val);
-        CHECK(mvec4d_u_basic == "MVec4d_U(11.1,22.2,33.3,44.4,55.5,66.6,77.7,88.8)");
-
-        // Two decimal places
-        std::string mvec4d_u_two_decimals = fmt::format("{:.2f}", mvec4d_u_val);
-        CHECK(mvec4d_u_two_decimals ==
-              "MVec4d_U(11.10,22.20,33.30,44.40,55.50,66.60,77.70,88.80)");
-
-        // Scientific notation
-        std::string mvec4d_u_scientific = fmt::format("{:.2e}", mvec4d_u_val);
-        CHECK(mvec4d_u_scientific == "MVec4d_U(1.11e+01,2.22e+01,3.33e+01,4.44e+01,"
-                                     "5.55e+01,6.66e+01,7.77e+01,8.88e+01)");
-
-        // Contextual usage
-        std::string mvec4d_u_contextual = fmt::format("Odd 4D MV: {:.1f}", mvec4d_u_val);
-        CHECK(mvec4d_u_contextual ==
-              "Odd 4D MV: MVec4d_U(11.1,22.2,33.3,44.4,55.5,66.6,77.7,88.8)");
-
-        fmt::println("   MVec4d_E basic: {}", mvec4d_e_basic);
-        fmt::println("   MVec4d_E 2-decimal: {}", mvec4d_e_two_decimals);
-        fmt::println("   MVec4d_E scientific: {}", mvec4d_e_scientific);
-        fmt::println("   MVec4d_E contextual: {}", mvec4d_e_contextual);
-
-        fmt::println("   MVec4d_U basic: {}", mvec4d_u_basic);
-        fmt::println("   MVec4d_U 2-decimal: {}", mvec4d_u_two_decimals);
-        fmt::println("   MVec4d_U scientific: {}", mvec4d_u_scientific);
-        fmt::println("   MVec4d_U contextual: {}", mvec4d_u_contextual);
-    }
-
     TEST_CASE("G<3,0,0>: transwedge and regressive transwedge products")
     {
         fmt::println("G<3,0,0>: transwedge and regressive transwedge products");

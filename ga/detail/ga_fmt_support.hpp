@@ -7,6 +7,7 @@
 #include "fmt/ga_fmt_ega.hpp"     // EGA type formatters
 #include "fmt/ga_fmt_pga.hpp"     // PGA type formatters
 #include "fmt/ga_fmt_physics.hpp" // Physics type formatters (Inertia)
+#include "fmt/ga_fmt_sta.hpp"     // STA type formatters
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Unified formatting support for all GA library types (backward compatibility)
@@ -15,9 +16,10 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // For new code, consider using the more specific includes:
+// - #include "detail/fmt/ga_fmt_core.hpp" // Core infrastructure only
 // - #include "detail/fmt/ga_fmt_ega.hpp"  // EGA types only
 // - #include "detail/fmt/ga_fmt_pga.hpp"  // PGA types only
-// - #include "detail/fmt/ga_fmt_core.hpp" // Core infrastructure only
+// - #include "detail/fmt/ga_fmt_sta.hpp"  // STA types only
 //
 // Usage examples:
 //

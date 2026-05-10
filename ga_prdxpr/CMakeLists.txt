@@ -26,12 +26,12 @@ set(SOURCES
     src_prdxpr/algebras/ga_prdxpr_ega3d_config.cpp
     src_prdxpr/algebras/ga_prdxpr_pga2dp_config.cpp
     src_prdxpr/algebras/ga_prdxpr_pga3dp_config.cpp
-    src_prdxpr/algebras/ga_prdxpr_sta4d_config.cpp
+    src_prdxpr/algebras/ga_prdxpr_sta4ds_config.cpp
     src_prdxpr/algebras/ga_prdxpr_ega2d.cpp
     src_prdxpr/algebras/ga_prdxpr_ega3d.cpp
     src_prdxpr/algebras/ga_prdxpr_pga2dp.cpp
     src_prdxpr/algebras/ga_prdxpr_pga3dp.cpp
-    src_prdxpr/algebras/ga_prdxpr_sta4d.cpp
+    src_prdxpr/algebras/ga_prdxpr_sta4ds.cpp
     # Sandwich product transformation pipeline
     src_prdxpr/sandwich/ga_prdxpr_sandwich_parser.cpp
     src_prdxpr/sandwich/ga_prdxpr_sandwich_simplifier.cpp
@@ -61,12 +61,12 @@ set(HEADERS
     src_prdxpr/algebras/ga_prdxpr_ega3d.hpp
     src_prdxpr/algebras/ga_prdxpr_pga2dp.hpp
     src_prdxpr/algebras/ga_prdxpr_pga3dp.hpp
-    src_prdxpr/algebras/ga_prdxpr_sta4d.hpp
+    src_prdxpr/algebras/ga_prdxpr_sta4ds.hpp
     src_prdxpr/algebras/ga_prdxpr_ega2d_config.hpp
     src_prdxpr/algebras/ga_prdxpr_ega3d_config.hpp
     src_prdxpr/algebras/ga_prdxpr_pga2dp_config.hpp
     src_prdxpr/algebras/ga_prdxpr_pga3dp_config.hpp
-    src_prdxpr/algebras/ga_prdxpr_sta4d_config.hpp
+    src_prdxpr/algebras/ga_prdxpr_sta4ds_config.hpp
     # Sandwich pipeline
     src_prdxpr/sandwich/ga_prdxpr_sandwich_parser.hpp
     src_prdxpr/sandwich/ga_prdxpr_sandwich_simplifier.hpp
@@ -99,12 +99,12 @@ set(SOURCES_RULE_GENERATOR_TEST src_prdxpr/tests/ga_prdxpr_rule_generator_test.c
             src_prdxpr/algebras/ga_prdxpr_ega3d_config.cpp
             src_prdxpr/algebras/ga_prdxpr_pga2dp_config.cpp
             src_prdxpr/algebras/ga_prdxpr_pga3dp_config.cpp
-            src_prdxpr/algebras/ga_prdxpr_sta4d_config.cpp
+            src_prdxpr/algebras/ga_prdxpr_sta4ds_config.cpp
             src_prdxpr/algebras/ga_prdxpr_ega2d.cpp
             src_prdxpr/algebras/ga_prdxpr_ega3d.cpp
             src_prdxpr/algebras/ga_prdxpr_pga2dp.cpp
             src_prdxpr/algebras/ga_prdxpr_pga3dp.cpp
-            src_prdxpr/algebras/ga_prdxpr_sta4d.cpp)
+            src_prdxpr/algebras/ga_prdxpr_sta4ds.cpp)
 
 # Create executables
 add_executable(${EXEC_NAME} ${SOURCES} ${HEADERS})  #dep: fmt
@@ -117,8 +117,10 @@ add_executable(${EXEC4_NAME} ${SOURCES_RULE_GENERATOR_TEST})  #dep: fmt
 # subfolder-prefixed includes (e.g. "core/ga_prdxpr_common.hpp").
 target_include_directories(${EXEC_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
                                                 ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
-target_include_directories(${EXEC2_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
-target_include_directories(${EXEC3_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(${EXEC2_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
+                                                ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
+target_include_directories(${EXEC3_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
+                                                ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
 target_include_directories(${EXEC4_NAME} PRIVATE ${CMAKE_SOURCE_DIR}
                                                  ${CMAKE_CURRENT_SOURCE_DIR}/src_prdxpr)
 
