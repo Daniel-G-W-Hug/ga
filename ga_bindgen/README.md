@@ -33,10 +33,6 @@ rationale and side-by-side activation commands.
 
 ### 1. Install LLVM / libclang on the system
 
-The pip `libclang` package ships the shared library on Linux and Windows, but its bundled
-clang resource dir is incomplete on every platform — `scan.py` silently fails to parse std
-headers without a real LLVM install. Install one before creating the venv.
-
 **macOS:**
 
 ```bash
@@ -49,19 +45,24 @@ brew install llvm
 apt install libclang-dev    # or the distro equivalent
 ```
 
-**Windows:** Install [LLVM](https://releases.llvm.org/download.html) via the pre-built
-installer; `clang_setup.py` probes `C:\Program Files\LLVM\lib\libclang.dll` automatically.
+**Windows:** No separate LLVM install is required. The pip `libclang` package (installed
+in step 2) bundles `libclang.dll` and is sufficient for scanning the `ga/` headers.
+Optionally install the [LLVM release](https://releases.llvm.org/download.html) pre-built
+installer if you want the full clang toolchain; `clang_setup.py` will prefer the system
+install over the bundled DLL when it finds one at `C:\Program Files\LLVM\lib\libclang.dll`.
 
 ### 2. Create the bindgen venv and install Python deps
 
+**macOS / Linux** — cwd: project root:
+
 ```bash
-# macOS / Linux — cwd: project root
 python3 -m venv ga_bindgen/.venv
 ga_bindgen/.venv/bin/pip install libclang
 ```
 
+**Windows** (Developer Command Prompt or PowerShell) — cwd: project root:
+
 ```bat
-rem Windows Command Prompt — cwd: project root
 python -m venv ga_bindgen\.venv
 ga_bindgen\.venv\Scripts\pip install libclang
 ```
@@ -74,18 +75,28 @@ only required at C++ compile time for the generated bindings.
 A quick sanity check that libclang loads and `clang_setup.py` can find a usable resource
 dir:
 
+**macOS / Linux** — cwd: project root:
+
 ```bash
 ga_bindgen/.venv/bin/python ga_bindgen/src/clang_setup.py
 ```
 
+**Windows** (Developer Command Prompt or PowerShell) — cwd: project root:
+
+```bat
+ga_bindgen\.venv\Scripts\python.exe ga_bindgen/src/clang_setup.py
+```
+
 Expected output: a path to a `libclang.{dylib,so,dll}` followed by the assembled compile
-flags. If this raises `RuntimeError: Could not locate a usable libclang`, recheck step 1 —
-the candidate paths the script probes are listed under [Platform notes](#platform-notes)
-below.
+flags. If this raises `RuntimeError: Could not locate a usable libclang`, recheck step 1
+and 2 — the candidate paths the script probes are listed under
+[Platform notes](#platform-notes) below.
 
 ## Regenerating the manifest and bindings
 
-Once the venv is set up, regeneration is three commands run from the project root:
+Once the venv is set up, regeneration is three steps run from the project root.
+
+**macOS / Linux** — cwd: project root:
 
 ```bash
 source ga_bindgen/.venv/bin/activate
@@ -99,6 +110,41 @@ python3 ga_bindgen/src/emit_nanobind.py
 # Step 3 — recompile (back in the wrapper venv or directly)
 cmake --build build
 ```
+
+**Windows (Developer Command Prompt)** — recommended Windows shell; cwd: project root.
+Open via Start → "Developer Command Prompt for VS 2022".
+
+```bat
+ga_bindgen\.venv\Scripts\activate.bat
+
+rem Step 1 — scan headers, write manifest
+python ga_bindgen\src\scan.py
+
+rem Step 2 — emit nanobind glue from manifest
+python ga_bindgen\src\emit_nanobind.py
+
+rem Step 3 — recompile
+cmake --build build --target _ga_py --config Debug
+```
+
+**Windows (PowerShell)** — cwd: project root:
+
+```powershell
+& ga_bindgen\.venv\Scripts\Activate.ps1
+
+# Step 1 — scan headers, write manifest
+python ga_bindgen/src/scan.py
+
+# Step 2 — emit nanobind glue from manifest (full regeneration is the default)
+python ga_bindgen/src/emit_nanobind.py
+
+# Step 3 — recompile
+cmake --build build --target _ga_py --config Debug
+```
+
+> **PowerShell note:** if running `Activate.ps1` opens a file-association dialog,
+> prefix it with `&` as shown above. If the execution policy blocks it, run
+> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once first.
 
 Both scripts take `--help`. `emit_nanobind.py` regenerates every binding by default; pass
 `--type <name>` (e.g. `--type vec3d`) for single-type emission during binding-script
@@ -117,18 +163,24 @@ to whatever `find_package(Python)` resolved.
 - **Linux:** `/usr/lib/x86_64-linux-gnu/libclang-{18,17,16,15,14}.so.1`,
   `/usr/lib/llvm-{18,17,16,15,14}/lib/libclang.so.1`, then
   `/usr/lib/x86_64-linux-gnu/libclang.so`
-- **Windows:** `C:\Program Files\LLVM\lib\libclang.dll`, `C:\Program Files
-  (x86)\LLVM\lib\libclang.dll`
+- **Windows:** `C:\Program Files\LLVM\lib\libclang.dll`,
+  `C:\Program Files (x86)\LLVM\lib\libclang.dll`, then the bundled DLL inside the pip
+  `libclang` package at `ga_bindgen\.venv\Lib\site-packages\clang\native\libclang.dll`.
 
-If your install lives elsewhere, either symlink it into one of those paths or extend the
-candidate list in [`src/clang_setup.py`](src/clang_setup.py).
+On Windows, MSVC and Windows SDK include paths are discovered automatically via
+`vswhere.exe` — no manual path configuration needed when Visual Studio 2022 is installed.
+
+If your install lives elsewhere (macOS / Linux), either symlink it into one of those
+paths or extend the candidate list in [`src/clang_setup.py`](src/clang_setup.py).
 
 ## Dependencies
 
 - Python 3.10+
 - `libclang` Python package (installed into `ga_bindgen/.venv` per step 2 above)
-- A real LLVM install on the system (per step 1) — the pip package's bundled resource dir
-  is not sufficient
+- **macOS / Linux:** A real LLVM install on the system (per step 1) — the pip package's
+  bundled resource dir is not sufficient on those platforms
+- **Windows:** The pip `libclang` package's bundled `libclang.dll` is sufficient; Visual
+  Studio 2022 (for MSVC headers) must be installed
 - `nanobind` is only needed at C++ compile time for the generated bindings, not by
   `ga_bindgen` itself
 

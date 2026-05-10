@@ -1262,7 +1262,7 @@ def main() -> int:
                                          grade_methods_per_type.get(t.name),
                                          ops)
             (out_dir / f"bindings_{t.name}.cpp").write_text(
-                GENERATED_HEADER + "\n" + body
+                GENERATED_HEADER + "\n" + body, encoding="utf-8"
             )
             type_to_sub[t.name] = submodule_for(t)
 
@@ -1277,20 +1277,22 @@ def main() -> int:
         free_fns = collect_free_functions(manifest, type_map, file_filter)
         for submod in ("ega", "pga", "top"):
             (out_dir / f"bindings_functions_{submod}.cpp").write_text(
-                GENERATED_HEADER + "\n" + emit_function_module(submod, free_fns.get(submod, {}))
+                GENERATED_HEADER + "\n" + emit_function_module(submod, free_fns.get(submod, {})),
+                encoding="utf-8",
             )
 
         constants = collect_constants(manifest, type_map)
         for submod in ("ega", "pga", "top"):
             (out_dir / f"bindings_constants_{submod}.cpp").write_text(
-                GENERATED_HEADER + "\n" + emit_constants_module(submod, constants.get(submod, []))
+                GENERATED_HEADER + "\n" + emit_constants_module(submod, constants.get(submod, [])),
+                encoding="utf-8",
             )
 
         (out_dir / "register_all.cpp").write_text(
-            emit_register_all(type_to_sub, types_by_name, type_map)
+            emit_register_all(type_to_sub, types_by_name, type_map), encoding="utf-8"
         )
         (GA_PY / "src" / "generated" / "bindings_list.cmake").write_text(
-            emit_cmake_list(list(type_to_sub), out_dir)
+            emit_cmake_list(list(type_to_sub), out_dir), encoding="utf-8"
         )
 
         # Print free-function summary
@@ -1330,7 +1332,7 @@ def main() -> int:
         type_map = build_type_name_map([t for t in manifest.types if t.namespace == "hd::ga"])
         body = emit_type_binding(target, type_map)
     (out_dir / f"bindings_{target.name}.cpp").write_text(
-        GENERATED_HEADER + "\n" + body
+        GENERATED_HEADER + "\n" + body, encoding="utf-8"
     )
     print(f"Generated: {out_dir / f'bindings_{target.name}.cpp'}")
     return 0
