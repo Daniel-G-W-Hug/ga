@@ -1,0 +1,22 @@
+# Build output
+build/
+
+# Python virtual environments (ga_bindgen/.venv and ga_py/.venv)
+.venv/
+.venv_*/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Test artifacts
+.hypothesis/
+.pytest_cache/
+
+# Compiled Python extension modules (built into build/, not source tree)
+*.pyd
+*.so
+
+# Editor / IDE caches
+.VSCodeCounter/
