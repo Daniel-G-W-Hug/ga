@@ -413,13 +413,13 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(abs(nrm(ps1 * inv(ps1)) - 1) < eps);
         CHECK(abs(nrm(inv(ps1) - rev(ps1) / nrm_sq(ps1))) < eps);
 
-        // check inverses - even grade multivector
+        // check inverses - even-grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
         CHECK(abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
         CHECK(abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
         CHECK(abs(nrm(inv(mve1) - rev(mve1) / nrm_sq(mve1))) < eps);
 
-        // check inverses - odd grade multivector
+        // check inverses - odd-grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
         CHECK(abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
         CHECK(abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
@@ -2188,12 +2188,12 @@ TEST_SUITE("EGA 3D Tests")
 
         // full 3d multivector - even content
         mvec3d vm_even{100.0, 0.0, 0.0, 0.0, 10.0, 20.0, 30.0, 0.0};
-        // even grade 3d multivector
+        // even-grade 3d multivector
         mvec3d_e vm_E{100.0, 10.0, 20.0, 30.0};
 
         // full 3d multivector - odd content
         mvec3d vm_odd{0.0, 1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 300.0};
-        // odd grade 3d multivector
+        // odd-grade 3d multivector
         mvec3d_u vm_U{1.0, 2.0, 3.0, 300.0};
 
         ////////////////////////////////////////////////////////////////////////////////

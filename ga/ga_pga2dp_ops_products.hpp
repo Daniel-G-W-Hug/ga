@@ -2550,8 +2550,8 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp<T> const& A,
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
-// geometric product of a multivector with an even grade multivector
-// multivector * even grade multivector => multivector
+// geometric product of a multivector with an even-grade multivector
+// multivector * even-grade multivector => multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp<T> const& A,
@@ -2569,8 +2569,8 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp<T> const& A,
     return MVec2dp<ctype>(c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
-// geometric product of an even grade multivector with a multivector
-// even grade multivector * multivector => multivector
+// geometric product of an even-grade multivector with a multivector
+// even-grade multivector * multivector => multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
@@ -2759,7 +2759,7 @@ constexpr MVec2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> s, MVec2dp<U>
 }
 
 // geometric product A * B for two multivectors from the even subalgebra (3d case)
-// even grade multivector * even grade multivector = even grade multivector
+// even-grade multivector * even-grade multivector = even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
@@ -2774,7 +2774,7 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
 }
 
 // geometric product A * B for two multivectors from the odd subalgebra (3d case)
-// odd grade multivector * odd grade multivector = even grade multivector
+// odd-grade multivector * odd-grade multivector = even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
@@ -2790,7 +2790,7 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
 
 // geometric product A * B of a multivector A from the even subalgebra (3d case)
 // with a multivector B of the odd subalgebra
-// even grade multivector * odd grade multivector => odd grade multivector
+// even-grade multivector * odd-grade multivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
@@ -2806,7 +2806,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
 
 // geometric product A * B of a multivector A from the odd subalgebra (3d case)
 // with a multivector B of the even subalgebra
-// odd grade multivector * even grade multivector => odd grade multivector
+// odd-grade multivector * even-grade multivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
@@ -2822,7 +2822,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
 
 // geometric product A * ps of an even multivector A multiplied from the right
 // by the trivector ps (=2dp pseudoscalar)
-// even grade multivector * trivector => odd multivector
+// even-grade multivector * trivector => odd multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
@@ -2837,8 +2837,8 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
 }
 
 // geometric product ps * B of a trivector A (=2dp pseudoscalar) multiplied from the left
-// to the even grade multivector B
-// trivector * even grade multivector => odd grade multivector
+// to the even-grade multivector B
+// trivector * even-grade multivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
@@ -2852,9 +2852,9 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
     return MVec2dp_U<ctype>(Vec2dp<ctype>(c0, c1, c2), PScalar2dp<ctype>(c3));
 }
 
-// geometric product A * B of an odd grade multivector A multiplied from the right
+// geometric product A * B of an odd-grade multivector A multiplied from the right
 // by the trivector B (=2dp pseudoscalar)
-// odd grade multivector * trivector => even grade multivector
+// odd-grade multivector * trivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
@@ -2869,8 +2869,8 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& A,
 }
 
 // geometric product A * B of a trivector A (=2dp pseudoscalar) multiplied from the left
-// to the odd grade multivector B
-// trivector * odd grade multivector => even grade multivector
+// to the odd-grade multivector B
+// trivector * odd-grade multivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
@@ -2886,7 +2886,7 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(PScalar2dp<T> ps,
 
 // geometric product M * B of a multivector M from the even subalgebra (3d case)
 // with a bivector B from the right
-// even grade multivector * bivector => even grade multivector
+// even-grade multivector * bivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& M,
@@ -2900,9 +2900,9 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& M,
     return MVec2dp_E<ctype>(Scalar2dp<ctype>(c0), BiVec2dp<ctype>(c1, c2, c3));
 }
 
-// geometric product A * M of a bivector A with an even grade multivector M
+// geometric product A * M of a bivector A with an even-grade multivector M
 // from the right
-// bivector * even grade multivector => returns an even grade multivector
+// bivector * even-grade multivector => returns an even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B,
@@ -2916,8 +2916,8 @@ constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B,
     return MVec2dp_E<ctype>(Scalar2dp<ctype>(c0), BiVec2dp<ctype>(c1, c2, c3));
 }
 
-// geometric product M * B of an odd grade multivector M with a bivector B
-// odd grade multivector * bivector => odd grade multivector
+// geometric product M * B of an odd-grade multivector M with a bivector B
+// odd-grade multivector * bivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& M,
@@ -2931,8 +2931,8 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_U<T> const& M,
     return MVec2dp_U<ctype>(Vec2dp<ctype>(c0, c1, c2), PScalar2dp<ctype>(c3));
 }
 
-// geometric product B * M of a bivector A with an odd grade multivector B
-// bivector * odd grade multivector => odd grade multivector
+// geometric product B * M of a bivector A with an odd-grade multivector B
+// bivector * odd-grade multivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B,
@@ -2946,9 +2946,9 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B,
     return MVec2dp_U<ctype>(Vec2dp<ctype>(c0, c1, c2), PScalar2dp<ctype>(c3));
 }
 
-// geometric product A * v of an even grade multivector A with a vector v
+// geometric product A * v of an even-grade multivector A with a vector v
 // from the right
-// even grade multivector * vector => odd grade multivector
+// even-grade multivector * vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
@@ -2962,8 +2962,8 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(MVec2dp_E<T> const& A,
     return MVec2dp_U<ctype>(Vec2dp<ctype>(c0, c1, c2), PScalar2dp<ctype>(c3));
 }
 
-// geometric product v * B of a vector v and an even grade multivector B from the left
-// vector * even grade multivector => odd grade multivector
+// geometric product v * B of a vector v and an even-grade multivector B from the left
+// vector * even-grade multivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator*(Vec2dp<T> const& v,
@@ -3153,7 +3153,7 @@ constexpr PScalar2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> s, PScalar
 //
 // A * B = -dot(A,B) + cmt(A,B)             (in 3d)
 //
-// => bivector*bivector = scalar + bivector = even grade multivector (in 3d)
+// => bivector*bivector = scalar + bivector = even-grade multivector (in 3d)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(BiVec2dp<T> const& B1,
@@ -3229,7 +3229,7 @@ constexpr BiVec2dp<std::common_type_t<T, U>> operator*(Scalar2dp<T> s,
 // HINT: if a full 3d multivector is required as result, it must be converted explicitly,
 //       since C++ does not allow overloading on different return types
 //
-// vector * vector => even grade multivector (= scalar + bivector)
+// vector * vector => even-grade multivector (= scalar + bivector)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_E<std::common_type_t<T, U>> operator*(Vec2dp<T> const& v1,
@@ -4033,7 +4033,7 @@ template <typename T>
 inline MVec2dp_E<T> inv(MVec2dp_E<T> const& E)
 {
     T sq_n = bulk_nrm_sq(E);
-    hd::ga::detail::check_normalization<T>(sq_n, "even grade multivector");
+    hd::ga::detail::check_normalization<T>(sq_n, "even-grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec2dp_E<T>(rev(E) * inv);
 }
@@ -4043,7 +4043,7 @@ template <typename T>
 inline MVec2dp_U<T> inv(MVec2dp_U<T> const& U)
 {
     T sq_n = bulk_nrm_sq(U);
-    hd::ga::detail::check_normalization<T>(sq_n, "odd grade multivector");
+    hd::ga::detail::check_normalization<T>(sq_n, "odd-grade multivector");
     T inv = T(1.0) / sq_n;
     return MVec2dp_U<T>(rev(U) * inv);
 }

@@ -94,16 +94,26 @@ TEST_SUITE("PGA2DP: comparison tests")
 
             fmt::println("");
             // bound vector: Point ^ vector (including moment and force)
-            fmt::println("wdg(P, xp)         = {}", wdg(P, xp));
-            fmt::println("att(wdg(P, xp))    = {}", att(wdg(P, xp)));
-            fmt::println("bulk(wdg(P, xp))   = {}", bulk(wdg(P, xp)));
+            fmt::println("wdg(P, xp)              = {}", wdg(P, xp));
+            fmt::println("att(wdg(P, xp))         = {}", att(wdg(P, xp)));
+            fmt::println("weight(wdg(P, xp))      = {}", weight(wdg(P, xp)));
+            fmt::println("att(weight(wdg(P, xp))) = {}", att(weight(wdg(P, xp))));
+            fmt::println("bulk(wdg(P, xp))        = {}", bulk(wdg(P, xp)));
+
+            // only weight part is relevant for the force vector encoded in line of action
+            CHECK(att(wdg(P, xp)) == att(weight(wdg(P, xp))));
 
             fmt::println("");
             // Point ^ Point (including moment and force)
-            fmt::println("wdg(P, Q)         = {}", wdg(P, Q));
-            fmt::println("att(wdg(P, Q))    = {}", att(wdg(P, Q)));
-            fmt::println("bulk(wdg(P, Q))   = {}", bulk(wdg(P, Q)));
+            fmt::println("wdg(P, Q)              = {}", wdg(P, Q));
+            fmt::println("att(wdg(P, Q))         = {}", att(wdg(P, Q)));
+            fmt::println("weight(wdg(P, Q))      = {}", weight(wdg(P, Q)));
+            fmt::println("att(weight(wdg(P, Q))) = {}", att(weight(wdg(P, Q))));
+            fmt::println("bulk(wdg(P, Q))        = {}", bulk(wdg(P, Q)));
             fmt::println("");
+
+            // only weight part is relevant for the force vector encoded in line of action
+            CHECK(att(wdg(P, Q)) == att(weight(wdg(P, Q))));
         }
 
         {

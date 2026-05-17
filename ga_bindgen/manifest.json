@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-10T13:54:42+00:00",
+  "generated_at": "2026-05-17T17:40:55+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp"
@@ -41075,48 +41075,6 @@
     },
     {
       "namespace": "hd::ga::ega",
-      "name": "One_2d",
-      "type": "const Scalar2d<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 39
-    },
-    {
-      "namespace": "hd::ga::ega",
-      "name": "One_2d_mv",
-      "type": "const MVec2d<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 40
-    },
-    {
-      "namespace": "hd::ga::ega",
-      "name": "One_2d_mv_e",
-      "type": "const MVec2d_E<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 41
-    },
-    {
-      "namespace": "hd::ga::ega",
-      "name": "One_3d",
-      "type": "const Scalar3d<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 93
-    },
-    {
-      "namespace": "hd::ga::ega",
-      "name": "One_3d_mv",
-      "type": "const MVec3d<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 94
-    },
-    {
-      "namespace": "hd::ga::ega",
-      "name": "One_3d_mv_e",
-      "type": "const MVec3d_E<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 95
-    },
-    {
-      "namespace": "hd::ga::ega",
       "name": "e123_3d",
       "type": "const PScalar3d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
@@ -41278,6 +41236,48 @@
     },
     {
       "namespace": "hd::ga::ega",
+      "name": "one_2d",
+      "type": "const Scalar2d<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 39
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "one_2d_mv",
+      "type": "const MVec2d<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 40
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "one_2d_mv_e",
+      "type": "const MVec2d_E<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 41
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "one_3d",
+      "type": "const Scalar3d<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 93
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "one_3d_mv",
+      "type": "const MVec3d<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 94
+    },
+    {
+      "namespace": "hd::ga::ega",
+      "name": "one_3d_mv_e",
+      "type": "const MVec3d_E<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 95
+    },
+    {
+      "namespace": "hd::ga::ega",
       "name": "x_dir_2d",
       "type": "const Vec2d<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
@@ -41401,48 +41401,6 @@
       "type": "const Vec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
       "source_line": 221
-    },
-    {
-      "namespace": "hd::ga::pga",
-      "name": "One_2dp",
-      "type": "const Scalar2dp<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 166
-    },
-    {
-      "namespace": "hd::ga::pga",
-      "name": "One_2dp_mv",
-      "type": "const MVec2dp<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 167
-    },
-    {
-      "namespace": "hd::ga::pga",
-      "name": "One_2dp_mv_e",
-      "type": "const MVec2dp_E<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 168
-    },
-    {
-      "namespace": "hd::ga::pga",
-      "name": "One_3dp",
-      "type": "const Scalar3dp<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 279
-    },
-    {
-      "namespace": "hd::ga::pga",
-      "name": "One_3dp_mv",
-      "type": "const MVec3dp<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 280
-    },
-    {
-      "namespace": "hd::ga::pga",
-      "name": "One_3dp_mv_e",
-      "type": "const MVec3dp_E<value_t>",
-      "source_file": "ga/ga_usr_consts.hpp",
-      "source_line": 281
     },
     {
       "namespace": "hd::ga::pga",
@@ -41779,6 +41737,48 @@
       "type": "const MVec3dp<value_t>",
       "source_file": "ga/ga_usr_consts.hpp",
       "source_line": 230
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "one_2dp",
+      "type": "const Scalar2dp<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 166
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "one_2dp_mv",
+      "type": "const MVec2dp<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 167
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "one_2dp_mv_e",
+      "type": "const MVec2dp_E<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 168
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "one_3dp",
+      "type": "const Scalar3dp<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 279
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "one_3dp_mv",
+      "type": "const MVec3dp<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 280
+    },
+    {
+      "namespace": "hd::ga::pga",
+      "name": "one_3dp_mv_e",
+      "type": "const MVec3dp_E<value_t>",
+      "source_file": "ga/ga_usr_consts.hpp",
+      "source_line": 281
     },
     {
       "namespace": "hd::ga::pga",

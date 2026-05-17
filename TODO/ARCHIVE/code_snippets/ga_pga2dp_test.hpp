@@ -362,13 +362,13 @@ TEST_SUITE("PGA 2DP Tests")
         // check inverses - pseudoscalar
         // due to the degenerate metric there is no inverse of the pseudoscalar
 
-        // check inverses - even grade multivector
+        // check inverses - even-grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
         CHECK(abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
         CHECK(abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
         CHECK(abs(nrm(inv(mve1) - rev(mve1) / value_t(bulk_nrm_sq(mve1)))) < eps);
 
-        // check inverses - odd grade multivector
+        // check inverses - odd-grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
         CHECK(abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
         CHECK(abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);

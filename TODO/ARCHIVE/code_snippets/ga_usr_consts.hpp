@@ -39,7 +39,7 @@ auto const e2_2d_mv = MVec2d<value_t>{e2_2d}; // e2_2d as multivector
 auto const I_2d = PScalar2d<value_t>(1.0);
 auto const e12_2d = I_2d;
 auto const I_2d_mv = MVec2d<value_t>{I_2d};     // I_2d as multivector
-auto const I_2d_mv_e = MVec2d_E<value_t>{I_2d}; // I_2d as even grade multivector
+auto const I_2d_mv_e = MVec2d_E<value_t>{I_2d}; // I_2d as even-grade multivector
 
 // extended metric for ega2d (4×4 matrix, 16 elements)
 // Basis: 1, e1, e2, e12
@@ -82,14 +82,14 @@ auto const xy_3d = e12_3d; // xy- or 12-plane
 auto const e23_3d_mv = MVec3d<value_t>{e23_3d};     // e23_3d as multivector
 auto const e31_3d_mv = MVec3d<value_t>{e31_3d};     // e31_3d as multivector
 auto const e12_3d_mv = MVec3d<value_t>{e12_3d};     // e12_3d as multivector
-auto const e23_3d_mv_e = MVec3d_E<value_t>{e23_3d}; // e23_3d as even grade multivector
-auto const e31_3d_mv_e = MVec3d_E<value_t>{e31_3d}; // e31_3d as even grade multivector
-auto const e12_3d_mv_e = MVec3d_E<value_t>{e12_3d}; // e12_3d as even grade multivector
+auto const e23_3d_mv_e = MVec3d_E<value_t>{e23_3d}; // e23_3d as even-grade multivector
+auto const e31_3d_mv_e = MVec3d_E<value_t>{e31_3d}; // e31_3d as even-grade multivector
+auto const e12_3d_mv_e = MVec3d_E<value_t>{e12_3d}; // e12_3d as even-grade multivector
 
 auto const I_3d = PScalar3d<value_t>(1.0);
 auto const e123_3d = I_3d;
 auto const I_3d_mv = MVec3d<value_t>{I_3d};     // I_3d as multivector
-auto const I_3d_mv_u = MVec3d_U<value_t>{I_3d}; // I_3d as odd grade multivector
+auto const I_3d_mv_u = MVec3d_U<value_t>{I_3d}; // I_3d as odd-grade multivector
 
 // extended metric for ega3d (8×8 matrix, 64 elements)
 // Basis: 1, e1, e2, e3, e23, e31, e12, e123
@@ -158,7 +158,7 @@ auto const e12_2dp_mv_e = MVec2dp_E<value_t>{e12_2dp}; // e12_2dp as even multiv
 auto const I_2dp = PScalar2dp<value_t>(1.0); // I_2dp = e3^e2^e1 = e321
 auto const e321_2dp = I_2dp;
 auto const I_2dp_mv = MVec2dp<value_t>{I_2dp};     // I_2dp as multivector
-auto const I_2dp_mv_u = MVec2dp_U<value_t>{I_2dp}; // I_2dp as odd grade multivector
+auto const I_2dp_mv_u = MVec2dp_U<value_t>{I_2dp}; // I_2dp as odd-grade multivector
 
 // extended metric for pga2dp (8×8 matrix, 64 elements)
 // Basis: 1, e1, e2, e3, e23, e31, e12, e321
@@ -267,7 +267,7 @@ auto const e321_3dp_mv = MVec3dp<value_t>{e321_3dp}; // e321_3dp as multivector
 auto const I_3dp = PScalar3dp<value_t>(1.0); // I_3dp = e1^e2^e3^e4 = e1234
 auto const e1234_3dp = I_3dp;
 auto const I_3dp_mv = MVec3dp<value_t>{I_3dp};     // I_3dp as multivector
-auto const I_3dp_mv_e = MVec3dp_E<value_t>{I_3dp}; // I_3dp as even grade multivector
+auto const I_3dp_mv_e = MVec3dp_E<value_t>{I_3dp}; // I_3dp as even-grade multivector
 
 // extended metric for pga3dp (16×16 matrix, 256 elements)
 // Basis: 1, e1, e2, e3, e4, e41, e42, e43, e23, e31, e12, e423, e431, e412, e321, e1234

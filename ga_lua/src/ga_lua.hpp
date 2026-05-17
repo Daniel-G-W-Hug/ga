@@ -2449,7 +2449,7 @@ void register_constants(sol::state& lua)
     lua["I_2d"] = I_2d; // as pscalar2d
     lua["e12_2d"] = I_2d;
     lua["I_2d_mv"] = I_2d_mv;     // as 2d multivector
-    lua["I_2d_mv_e"] = I_2d_mv_e; // as even grade 2d multivector
+    lua["I_2d_mv_e"] = I_2d_mv_e; // as even-grade 2d multivector
 
     // 3d constants
     lua["e1_3d"] = e1_3d; // as 3d vector
@@ -2475,14 +2475,14 @@ void register_constants(sol::state& lua)
     lua["e23_3d_mv"] = e23_3d_mv; // as 3d multivector
     lua["e31_3d_mv"] = e31_3d_mv;
     lua["e12_3d_mv"] = e12_3d_mv;
-    lua["e23_3d_mv_e"] = e23_3d_mv_e; // as even grade 3d multivector
+    lua["e23_3d_mv_e"] = e23_3d_mv_e; // as even-grade 3d multivector
     lua["e31_3d_mv_e"] = e31_3d_mv_e;
     lua["e12_3d_mv_e"] = e12_3d_mv_e;
 
     lua["I_3d"] = I_3d; // as pscalar3d
     lua["e123_3d"] = e123_3d;
     lua["I_3d_mv"] = I_3d_mv;     // as 3d multivector
-    lua["I_3d_mv_u"] = I_3d_mv_u; // as odd grade 3d multivector
+    lua["I_3d_mv_u"] = I_3d_mv_u; // as odd-grade 3d multivector
 
     ////////////////////////////////////////////////////////////////////////////////
     // PGA 2dp constants

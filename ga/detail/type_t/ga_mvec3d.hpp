@@ -5,8 +5,8 @@
 
 #include "ga_type3d.hpp" // type aliases for scalars, vector, pseudoscalar, etc.
 
-#include "ga_mvec3d_e.hpp" // even grade multivector
-#include "ga_mvec3d_u.hpp" // uneven (or odd) grade multivector
+#include "ga_mvec3d_e.hpp" // even-grade multivector
+#include "ga_mvec3d_u.hpp" // uneven- or odd-grade multivector
 
 
 namespace hd::ga {
@@ -215,7 +215,7 @@ constexpr MVec3d<std::common_type_t<T, U>> operator+(Vec3d<T> const& v, Scalar3d
     return MVec3d<ctype>(s, v, BiVec3d<ctype>{}, PScalar3d<ctype>{});
 }
 
-// scalar + pseudoscalar (=trivector) => even grade multivector
+// scalar + pseudoscalar (=trivector) => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d<std::common_type_t<T, U>> operator+(Scalar3d<T> s, PScalar3d<U> ps)
@@ -224,7 +224,7 @@ constexpr MVec3d<std::common_type_t<T, U>> operator+(Scalar3d<T> s, PScalar3d<U>
     return MVec3d<ctype>(s, Vec3d<ctype>{}, BiVec3d<ctype>{}, ps);
 }
 
-// pseudoscalar (=trivector) + scalar => even grade multivector
+// pseudoscalar (=trivector) + scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d<std::common_type_t<T, U>> operator+(PScalar3d<T> ps, Scalar3d<U> s)

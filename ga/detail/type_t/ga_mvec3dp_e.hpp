@@ -158,10 +158,10 @@ constexpr PScalar3dp<T> gr4(MVec3dp_E<T> const& M)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addition operations to combine scalars and bivectors to even grade multivectors
+// addition operations to combine scalars and bivectors to even-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// scalar + bivector => even grade multivector (in 3dp imply a zero pseudoscalar)
+// scalar + bivector => even-grade multivector (in 3dp imply a zero pseudoscalar)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(Scalar3dp<T> s,
@@ -171,7 +171,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(Scalar3dp<T> s,
     return MVec3dp_E<ctype>(s, B);
 }
 
-// bivector + scalar => even grade multivector
+// bivector + scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
@@ -181,7 +181,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
     return MVec3dp_E<ctype>(s, B);
 }
 
-// pseudoscalar + bivector => even grade multivector (in 3dp imply a zero scalar)
+// pseudoscalar + bivector => even-grade multivector (in 3dp imply a zero scalar)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps,
@@ -191,7 +191,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps,
     return MVec3dp_E<ctype>(B, ps);
 }
 
-// bivector + pseudoscalar => even grade multivector
+// bivector + pseudoscalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
@@ -204,7 +204,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
 // (pseudoscalar + scalar) and (scalar + pseudoscalar) intentionally NOT
 // defined here — see ga_dualnum3dp.hpp for the canonical DualNum3dp result.
 
-// scalar + even grade mulivector => even grade multivector
+// scalar + even-grade mulivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(Scalar3dp<T> s,
@@ -214,7 +214,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(Scalar3dp<T> s,
     return MVec3dp_E<ctype>(T(s) + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
 }
 
-// even grade multivector + scalar => even grade multivector
+// even-grade multivector + scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
@@ -224,7 +224,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
     return MVec3dp_E<ctype>(U(s) + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
 }
 
-// bivector + even grade mulivector => even grade multivector
+// bivector + even-grade mulivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
@@ -235,7 +235,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(BiVec3dp<T> const& B,
                             B.my + M.c5, B.mz + M.c6, M.c7);
 }
 
-// even grade multivector + bivector => even grade multivector
+// even-grade multivector + bivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
@@ -246,7 +246,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
                             B.my + M.c5, B.mz + M.c6, M.c7);
 }
 
-// pseudoscalar + even grade mulivector => even grade multivector
+// pseudoscalar + even-grade mulivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps,
@@ -256,7 +256,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(PScalar3dp<T> ps,
     return MVec3dp_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, T(ps) + M.c7);
 }
 
-// even grade multivector + pseudoscalar => even grade multivector
+// even-grade multivector + pseudoscalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
@@ -268,10 +268,10 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator+(MVec3dp_E<T> const& M,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// subtraction operations to combine scalars and bivectors to even grade multivectors
+// subtraction operations to combine scalars and bivectors to even-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// scalar - bivector => even grade multivector (in 3dp imply a zero pseudoscalar)
+// scalar - bivector => even-grade multivector (in 3dp imply a zero pseudoscalar)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
@@ -281,7 +281,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
     return MVec3dp_E<ctype>(s, -B);
 }
 
-// bivector - scalar => even grade multivector
+// bivector - scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
@@ -291,7 +291,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
     return MVec3dp_E<ctype>(-s, B);
 }
 
-// pseudoscalar - bivector => even grade multivector (in 3dp imply a zero scalar)
+// pseudoscalar - bivector => even-grade multivector (in 3dp imply a zero scalar)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps,
@@ -301,7 +301,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps,
     return MVec3dp_E<ctype>(-B, ps);
 }
 
-// bivector - pseudoscalar => even grade multivector
+// bivector - pseudoscalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
@@ -314,7 +314,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
 // (pseudoscalar - scalar) and (scalar - pseudoscalar) intentionally NOT
 // defined here — see ga_dualnum3dp.hpp for the canonical DualNum3dp result.
 
-// scalar - even grade mulivector => even grade multivector
+// scalar - even-grade mulivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
@@ -324,7 +324,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(Scalar3dp<T> s,
     return MVec3dp_E<ctype>(T(s) - M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, -M.c7);
 }
 
-// even grade multivector - scalar => even grade multivector
+// even-grade multivector - scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& M,
@@ -334,7 +334,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& M,
     return MVec3dp_E<ctype>(-U(s) + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
 }
 
-// bivector - even grade mulivector => even grade multivector
+// bivector - even-grade mulivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
@@ -345,7 +345,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(BiVec3dp<T> const& B,
                             B.my - M.c5, B.mz - M.c6, -M.c7);
 }
 
-// even grade multivector - bivector => even grade multivector
+// even-grade multivector - bivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& M,
@@ -356,7 +356,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& M,
                             -B.my + M.c5, -B.mz + M.c6, M.c7);
 }
 
-// pseudoscalar - even grade mulivector => even grade multivector
+// pseudoscalar - even-grade mulivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps,
@@ -367,7 +367,7 @@ constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(PScalar3dp<T> ps,
                             T(ps) - M.c7);
 }
 
-// even grade multivector - pseudoscalar => even grade multivector
+// even-grade multivector - pseudoscalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3dp_E<std::common_type_t<T, U>> operator-(MVec3dp_E<T> const& M,

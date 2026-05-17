@@ -5,8 +5,8 @@
 
 #include "ga_type3dp.hpp" // type aliases for scalars, vector, pseudoscalar, etc.
 
-#include "ga_mvec3dp_e.hpp" // even grade multivector
-#include "ga_mvec3dp_u.hpp" // uneven (or odd) grade multivector
+#include "ga_mvec3dp_e.hpp" // even-grade multivector
+#include "ga_mvec3dp_u.hpp" // uneven- or odd-grade multivector
 
 
 namespace hd::ga {
@@ -61,28 +61,28 @@ struct MVec16_t<T, mvec3dp_tag> : public MVec16_t<T, default_tag> {
     {
     }
 
-    // assign components of an even grade multivector
+    // assign components of an even-grade multivector from scalar, bivector, pseudoscalar
     constexpr MVec16_t(Scalar3dp<T> s, BiVec3dp<T> const& B, PScalar3dp<T> ps) :
         MVec16_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), B.vx, B.vy, B.vz, B.mx, B.my, B.mz,
                  T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
     {
     }
 
-    // assign components of an even grade multivector
+    // assign components of an even-grade multivector
     constexpr MVec16_t(MVec3dp_E<T> const& M) :
         MVec16_t(M.c0, T(0.0), T(0.0), T(0.0), T(0.0), M.c1, M.c2, M.c3, M.c4, M.c5, M.c6,
                  T(0.0), T(0.0), T(0.0), T(0.0), M.c7)
     {
     }
 
-    // assign components of an odd grade multivector
+    // assign components of an odd-grade multivector from vector and trivector
     constexpr MVec16_t(Vec3dp<T> const& v, TriVec3dp<T> const& t) :
         MVec16_t(T(0.0), v.x, v.y, v.z, v.w, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
                  T(0.0), t.x, t.y, t.z, t.w, T(0.0))
     {
     }
 
-    // assign components of an odd grade multivector
+    // assign components of an odd-grade multivector
     constexpr MVec16_t(MVec3dp_U<T> const& M) :
         MVec16_t(T(0.0), M.c0, M.c1, M.c2, M.c3, T(0.0), T(0.0), T(0.0), T(0.0), T(0.0),
                  T(0.0), M.c4, M.c5, M.c6, M.c7, T(0.0))
@@ -90,7 +90,7 @@ struct MVec16_t<T, mvec3dp_tag> : public MVec16_t<T, default_tag> {
     }
 
     // assign a full multivector
-    // assign components of an even grade multivector
+    // assign components of an even-grade multivector
     constexpr MVec16_t(Scalar3dp<T> s, Vec3dp<T> const& v, BiVec3dp<T> const& B,
                        TriVec3dp<T> const& t, PScalar3dp<T> ps) :
         MVec16_t(T(s), v.x, v.y, v.z, v.w, B.vx, B.vy, B.vz, B.mx, B.my, B.mz, t.x, t.y,

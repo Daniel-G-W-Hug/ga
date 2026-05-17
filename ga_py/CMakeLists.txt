@@ -181,3 +181,33 @@ add_custom_target(ga_py_all
     COMMENT "Building ga_py wrapper and refreshing cross-check JSON"
 )
 add_dependencies(ga_py_all _ga_py regenerate_python_test_data)
+
+# ----------------------------------------------------------------------------
+# Full one-command refresh: ga library changed -> rebuild everything Python.
+#
+# This is an ORCHESTRATION target, not a build-graph dependency. It cannot be
+# expressed as add_dependencies(...) because regenerate_python_bindings may
+# *create new* bindings_*.cpp files, and CMake fixes the _ga_py source list at
+# configure time --- a file emitted mid-build is not compiled until the next
+# reconfigure. So the phases are run as separate process invocations, with a
+# `cmake .` reconfigure crossing that boundary:
+#
+#   1+2. regenerate_python_bindings   (ga_bindgen scan + emit)
+#   --.  cmake reconfigure            (pick up any new bindings_*.cpp)
+#   3+4. ga_py_all                    (build _ga_py + refresh cross-check JSON)
+#
+# Regeneration stays explicit (run this target on purpose); it is deliberately
+# kept out of the normal build so ordinary builds never mutate the committed
+# generated sources. Type stubs (regenerate_python_stubs, phase 5) are left
+# out --- they need the wrapper venv with nanobind; run that target separately.
+# ----------------------------------------------------------------------------
+add_custom_target(ga_py_regen_all
+    COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}"
+            --target regenerate_python_bindings
+    COMMAND ${CMAKE_COMMAND} "${CMAKE_BINARY_DIR}"
+    COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}"
+            --target ga_py_all
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+    COMMENT "Full ga_py refresh: regen bindings -> reconfigure -> build wrapper + cross-check JSON"
+    VERBATIM
+)

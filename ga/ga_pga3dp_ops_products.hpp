@@ -6921,7 +6921,7 @@ inline MVec3dp_E<T> inv(MVec3dp_E<T> const& E)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "even grade multivector");
+    hd::ga::detail::check_normalization<T>(sq_n, "even-grade multivector");
     return conj(E) * tcmap / sq_n;
 }
 
@@ -6938,7 +6938,7 @@ inline MVec3dp_U<T> inv(MVec3dp_U<T> const& U)
     // fmt::println("tcmap={}", tcmap);
     // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "odd grade multivector");
+    hd::ga::detail::check_normalization<T>(sq_n, "odd-grade multivector");
     return conj(U) * tcmap / sq_n;
 }
 

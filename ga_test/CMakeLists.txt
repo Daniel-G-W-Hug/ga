@@ -87,16 +87,21 @@ link_fmt_to_target(${EXEC_NAME4})
 # uses only ga + fmt.
 # ----------------------------------------------------------------------------
 if(_GA_BUILD_PYTHON)
+    # Committed JSON snapshot consumed by the Python cross-check test suite.
+    set(_GA_PY_CASES_JSON
+        "${CMAKE_SOURCE_DIR}/ga_py/tests/data/ga_test_cases.json")
+
     add_executable(${EXPORT_NAME} src/export_python_cases.cpp)
     target_include_directories(${EXPORT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(${EXPORT_NAME} PRIVATE ga)
     target_compile_options(${EXPORT_NAME} PRIVATE
         $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
+    # Bake in the absolute default output path so the exporter works
+    # regardless of the working directory it is launched from (e.g. when
+    # run as a target from an IDE). A command-line argument still overrides.
+    target_compile_definitions(${EXPORT_NAME} PRIVATE
+        _GA_PY_CASES_JSON_DEFAULT="${_GA_PY_CASES_JSON}")
     link_fmt_to_target(${EXPORT_NAME})
-
-    # Convenience: refresh the committed JSON snapshot in one step.
-    set(_GA_PY_CASES_JSON
-        "${CMAKE_SOURCE_DIR}/ga_py/tests/data/ga_test_cases.json")
     add_custom_target(regenerate_python_test_data
         COMMAND ${EXPORT_NAME} "${_GA_PY_CASES_JSON}"
         DEPENDS ${EXPORT_NAME}

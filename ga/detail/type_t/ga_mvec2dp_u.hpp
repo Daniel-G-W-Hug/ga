@@ -15,7 +15,7 @@ namespace hd::ga {
 // and the term c4 e1^e2^e3 being the trivector
 //
 // This is the definition of a multivector in the odd subalgebra of G<2,0,1>,
-// i.e. it models only multivectors with even grades 1 and 3
+// i.e. it models only multivectors with odd grades 1 and 3
 // This subalgebra is used to store intermediate results for rotations.
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -120,10 +120,10 @@ constexpr PScalar2dp<T> gr3(MVec2dp_U<T> const& M)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addition operations to combine vectors and trivectors to odd grade multivectors
+// addition operations to combine vectors and trivectors to odd-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// vector + pseudoscalar => odd grade multivector
+// vector + pseudoscalar => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(Vec2dp<T> const& v,
@@ -133,7 +133,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(Vec2dp<T> const& v,
     return MVec2dp_U<ctype>(v, ps);
 }
 
-// pseudoscalar + vector => odd grade multivector
+// pseudoscalar + vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps,
@@ -144,7 +144,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps,
 }
 
 
-// pseudoscalar + odd grade multivector => odd grade multivector
+// pseudoscalar + odd-grade multivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps,
@@ -154,7 +154,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(PScalar2dp<T> ps,
     return MVec2dp_U<ctype>(M.c0, M.c1, M.c2, M.c3 + T(ps));
 }
 
-// odd grade multivector + pseudoscalar => odd grade multivector
+// odd-grade multivector + pseudoscalar => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(MVec2dp_U<T> const& M,
@@ -165,7 +165,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(MVec2dp_U<T> const& M,
 }
 
 
-// odd grade mulivector + vector => odd grade multivector
+// odd-grade mulivector + vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(MVec2dp_U<T> const& M,
@@ -175,7 +175,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(MVec2dp_U<T> const& M,
     return MVec2dp_U<ctype>(M.c0 + v.x, M.c1 + v.y, M.c2 + v.z, M.c3);
 }
 
-// vector + odd grade multivector => odd grade multivector
+// vector + odd-grade multivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(Vec2dp<T> const& v,
@@ -186,10 +186,10 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator+(Vec2dp<T> const& v,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// subraction operations to combine vectors and trivectors to odd grade multivectors
+// subraction operations to combine vectors and trivectors to odd-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// vector + pseudoscalar (=trivector) => odd grade multivector
+// vector + pseudoscalar (=trivector) => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(Vec2dp<T> const& v,
@@ -199,7 +199,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(Vec2dp<T> const& v,
     return MVec2dp_U<ctype>(v, -ps);
 }
 
-// pseudoscalar (=trivector) + vector => odd grade multivector
+// pseudoscalar (=trivector) + vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps,
@@ -210,7 +210,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps,
 }
 
 
-// pseudoscalar (=trivector) - odd grade vector => odd grade multivector
+// pseudoscalar (=trivector) - odd-grade vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps,
@@ -220,7 +220,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(PScalar2dp<T> ps,
     return MVec2dp_U<ctype>(-M.c0, -M.c1, -M.c2, T(ps) - M.c3);
 }
 
-// odd grade mulivector - pseudoscalar (=trivector)=> odd grade multivector
+// odd-grade mulivector - pseudoscalar (=trivector)=> odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(MVec2dp_U<T> const& M,
@@ -231,7 +231,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(MVec2dp_U<T> const& M,
 }
 
 
-// odd grade multivector - vector => odd grade multivector
+// odd-grade multivector - vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(MVec2dp_U<T> const& M,
@@ -241,7 +241,7 @@ constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(MVec2dp_U<T> const& M,
     return MVec2dp_U<ctype>(M.c0 - v.x, M.c1 - v.y, M.c2 - v.z, M.c3);
 }
 
-// vector - odd grade multivector => odd grade multivector
+// vector - odd-grade multivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2dp_U<std::common_type_t<T, U>> operator-(Vec2dp<T> const& v,

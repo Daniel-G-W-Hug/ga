@@ -5,7 +5,7 @@
 
 #include "ga_type2d.hpp" // type aliases for scalars, vector, pseudoscalar, etc.
 
-#include "ga_mvec2d_e.hpp" // even grade multivector
+#include "ga_mvec2d_e.hpp" // even-grade multivector
 
 namespace hd::ga {
 
