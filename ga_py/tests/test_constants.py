@@ -15,7 +15,6 @@ import pytest
 import ga_py
 from conftest import components
 
-
 # --------------------------------------------------------------------------- #
 # Expected values --- one entry per bound constant
 # --------------------------------------------------------------------------- #
@@ -39,134 +38,131 @@ from conftest import components
 # Format used below: (submod, name, type_name, expected_components)
 EXPECTED: list[tuple[str, str, str, tuple[float, ...]]] = [
     # ---------- EGA 2D ----------
-    ("ega", "e1_2d",       "vec2d",     (1.0, 0.0)),
-    ("ega", "e2_2d",       "vec2d",     (0.0, 1.0)),
-    ("ega", "x_dir_2d",    "vec2d",     (1.0, 0.0)),
-    ("ega", "y_dir_2d",    "vec2d",     (0.0, 1.0)),
-    ("ega", "O_2d",        "vec2d",     (0.0, 0.0)),
-    ("ega", "e1_2d_mv",    "mvec2d",    (0.0, 1.0, 0.0, 0.0)),
-    ("ega", "e2_2d_mv",    "mvec2d",    (0.0, 0.0, 1.0, 0.0)),
-    ("ega", "I_2d",        "pscalar2d", (1.0,)),
-    ("ega", "e12_2d",      "pscalar2d", (1.0,)),
-    ("ega", "I_2d_mv",     "mvec2d",    (0.0, 0.0, 0.0, 1.0)),
-    ("ega", "I_2d_mv_e",   "mvec2d_e",  (0.0, 1.0)),
-    ("ega", "One_2d",      "scalar2d",  (1.0,)),
-    ("ega", "One_2d_mv",   "mvec2d",    (1.0, 0.0, 0.0, 0.0)),
-    ("ega", "One_2d_mv_e", "mvec2d_e",  (1.0, 0.0)),
-
+    ("ega", "e1_2d", "vec2d", (1.0, 0.0)),
+    ("ega", "e2_2d", "vec2d", (0.0, 1.0)),
+    ("ega", "x_dir_2d", "vec2d", (1.0, 0.0)),
+    ("ega", "y_dir_2d", "vec2d", (0.0, 1.0)),
+    ("ega", "O_2d", "vec2d", (0.0, 0.0)),
+    ("ega", "e1_2d_mv", "mvec2d", (0.0, 1.0, 0.0, 0.0)),
+    ("ega", "e2_2d_mv", "mvec2d", (0.0, 0.0, 1.0, 0.0)),
+    ("ega", "I_2d", "pscalar2d", (1.0,)),
+    ("ega", "e12_2d", "pscalar2d", (1.0,)),
+    ("ega", "I_2d_mv", "mvec2d", (0.0, 0.0, 0.0, 1.0)),
+    ("ega", "I_2d_mv_e", "mvec2d_e", (0.0, 1.0)),
+    ("ega", "one_2d", "scalar2d", (1.0,)),
+    ("ega", "one_2d_mv", "mvec2d", (1.0, 0.0, 0.0, 0.0)),
+    ("ega", "one_2d_mv_e", "mvec2d_e", (1.0, 0.0)),
     # ---------- EGA 3D ----------
-    ("ega", "e1_3d",       "vec3d",     (1.0, 0.0, 0.0)),
-    ("ega", "e2_3d",       "vec3d",     (0.0, 1.0, 0.0)),
-    ("ega", "e3_3d",       "vec3d",     (0.0, 0.0, 1.0)),
-    ("ega", "x_dir_3d",    "vec3d",     (1.0, 0.0, 0.0)),
-    ("ega", "y_dir_3d",    "vec3d",     (0.0, 1.0, 0.0)),
-    ("ega", "z_dir_3d",    "vec3d",     (0.0, 0.0, 1.0)),
-    ("ega", "O_3d",        "vec3d",     (0.0, 0.0, 0.0)),
-    ("ega", "e1_3d_mv",    "mvec3d",    (0,1,0,0, 0,0,0,0)),
-    ("ega", "e2_3d_mv",    "mvec3d",    (0,0,1,0, 0,0,0,0)),
-    ("ega", "e3_3d_mv",    "mvec3d",    (0,0,0,1, 0,0,0,0)),
-    ("ega", "e23_3d",      "bivec3d",   (1.0, 0.0, 0.0)),
-    ("ega", "e31_3d",      "bivec3d",   (0.0, 1.0, 0.0)),
-    ("ega", "e12_3d",      "bivec3d",   (0.0, 0.0, 1.0)),
-    ("ega", "yz_3d",       "bivec3d",   (1.0, 0.0, 0.0)),
-    ("ega", "zx_3d",       "bivec3d",   (0.0, 1.0, 0.0)),
-    ("ega", "xy_3d",       "bivec3d",   (0.0, 0.0, 1.0)),
-    ("ega", "e23_3d_mv",   "mvec3d",    (0,0,0,0, 1,0,0,0)),
-    ("ega", "e31_3d_mv",   "mvec3d",    (0,0,0,0, 0,1,0,0)),
-    ("ega", "e12_3d_mv",   "mvec3d",    (0,0,0,0, 0,0,1,0)),
-    ("ega", "e23_3d_mv_e", "mvec3d_e",  (0,1,0,0)),
-    ("ega", "e31_3d_mv_e", "mvec3d_e",  (0,0,1,0)),
-    ("ega", "e12_3d_mv_e", "mvec3d_e",  (0,0,0,1)),
-    ("ega", "I_3d",        "pscalar3d", (1.0,)),
-    ("ega", "e123_3d",     "pscalar3d", (1.0,)),
-    ("ega", "I_3d_mv",     "mvec3d",    (0,0,0,0, 0,0,0,1)),
-    ("ega", "I_3d_mv_u",   "mvec3d_u",  (0,0,0,1)),
-    ("ega", "One_3d",      "scalar3d",  (1.0,)),
-    ("ega", "One_3d_mv",   "mvec3d",    (1,0,0,0, 0,0,0,0)),
-    ("ega", "One_3d_mv_e", "mvec3d_e",  (1,0,0,0)),
-
+    ("ega", "e1_3d", "vec3d", (1.0, 0.0, 0.0)),
+    ("ega", "e2_3d", "vec3d", (0.0, 1.0, 0.0)),
+    ("ega", "e3_3d", "vec3d", (0.0, 0.0, 1.0)),
+    ("ega", "x_dir_3d", "vec3d", (1.0, 0.0, 0.0)),
+    ("ega", "y_dir_3d", "vec3d", (0.0, 1.0, 0.0)),
+    ("ega", "z_dir_3d", "vec3d", (0.0, 0.0, 1.0)),
+    ("ega", "O_3d", "vec3d", (0.0, 0.0, 0.0)),
+    ("ega", "e1_3d_mv", "mvec3d", (0, 1, 0, 0, 0, 0, 0, 0)),
+    ("ega", "e2_3d_mv", "mvec3d", (0, 0, 1, 0, 0, 0, 0, 0)),
+    ("ega", "e3_3d_mv", "mvec3d", (0, 0, 0, 1, 0, 0, 0, 0)),
+    ("ega", "e23_3d", "bivec3d", (1.0, 0.0, 0.0)),
+    ("ega", "e31_3d", "bivec3d", (0.0, 1.0, 0.0)),
+    ("ega", "e12_3d", "bivec3d", (0.0, 0.0, 1.0)),
+    ("ega", "yz_3d", "bivec3d", (1.0, 0.0, 0.0)),
+    ("ega", "zx_3d", "bivec3d", (0.0, 1.0, 0.0)),
+    ("ega", "xy_3d", "bivec3d", (0.0, 0.0, 1.0)),
+    ("ega", "e23_3d_mv", "mvec3d", (0, 0, 0, 0, 1, 0, 0, 0)),
+    ("ega", "e31_3d_mv", "mvec3d", (0, 0, 0, 0, 0, 1, 0, 0)),
+    ("ega", "e12_3d_mv", "mvec3d", (0, 0, 0, 0, 0, 0, 1, 0)),
+    ("ega", "e23_3d_mv_e", "mvec3d_e", (0, 1, 0, 0)),
+    ("ega", "e31_3d_mv_e", "mvec3d_e", (0, 0, 1, 0)),
+    ("ega", "e12_3d_mv_e", "mvec3d_e", (0, 0, 0, 1)),
+    ("ega", "I_3d", "pscalar3d", (1.0,)),
+    ("ega", "e123_3d", "pscalar3d", (1.0,)),
+    ("ega", "I_3d_mv", "mvec3d", (0, 0, 0, 0, 0, 0, 0, 1)),
+    ("ega", "I_3d_mv_u", "mvec3d_u", (0, 0, 0, 1)),
+    ("ega", "one_3d", "scalar3d", (1.0,)),
+    ("ega", "one_3d_mv", "mvec3d", (1, 0, 0, 0, 0, 0, 0, 0)),
+    ("ega", "one_3d_mv_e", "mvec3d_e", (1, 0, 0, 0)),
     # ---------- PGA 2dp ----------
-    ("pga", "e1_2dp",        "vec2dp",      (1.0, 0.0, 0.0)),
-    ("pga", "e2_2dp",        "vec2dp",      (0.0, 1.0, 0.0)),
-    ("pga", "e3_2dp",        "vec2dp",      (0.0, 0.0, 1.0)),
-    ("pga", "O_2dp",         "vec2dp",      (0.0, 0.0, 1.0)),
-    ("pga", "x_dir_2dp",     "vec2dp",      (1.0, 0.0, 0.0)),
-    ("pga", "y_dir_2dp",     "vec2dp",      (0.0, 1.0, 0.0)),
-    ("pga", "e1_2dp_mv",     "mvec2dp",     (0,1,0,0, 0,0,0,0)),
-    ("pga", "e2_2dp_mv",     "mvec2dp",     (0,0,1,0, 0,0,0,0)),
-    ("pga", "e3_2dp_mv",     "mvec2dp",     (0,0,0,1, 0,0,0,0)),
-    ("pga", "e31_2dp",       "bivec2dp",    (1.0, 0.0, 0.0)),
-    ("pga", "e32_2dp",       "bivec2dp",    (0.0, 1.0, 0.0)),
-    ("pga", "e12_2dp",       "bivec2dp",    (0.0, 0.0, 1.0)),
-    ("pga", "x_axis_2dp",    "bivec2dp",    (1.0, 0.0, 0.0)),
-    ("pga", "y_axis_2dp",    "bivec2dp",    (0.0, 1.0, 0.0)),
+    ("pga", "e1_2dp", "vec2dp", (1.0, 0.0, 0.0)),
+    ("pga", "e2_2dp", "vec2dp", (0.0, 1.0, 0.0)),
+    ("pga", "e3_2dp", "vec2dp", (0.0, 0.0, 1.0)),
+    ("pga", "O_2dp", "vec2dp", (0.0, 0.0, 1.0)),
+    ("pga", "x_dir_2dp", "vec2dp", (1.0, 0.0, 0.0)),
+    ("pga", "y_dir_2dp", "vec2dp", (0.0, 1.0, 0.0)),
+    ("pga", "e1_2dp_mv", "mvec2dp", (0, 1, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e2_2dp_mv", "mvec2dp", (0, 0, 1, 0, 0, 0, 0, 0)),
+    ("pga", "e3_2dp_mv", "mvec2dp", (0, 0, 0, 1, 0, 0, 0, 0)),
+    ("pga", "e31_2dp", "bivec2dp", (1.0, 0.0, 0.0)),
+    ("pga", "e32_2dp", "bivec2dp", (0.0, 1.0, 0.0)),
+    ("pga", "e12_2dp", "bivec2dp", (0.0, 0.0, 1.0)),
+    ("pga", "x_axis_2dp", "bivec2dp", (1.0, 0.0, 0.0)),
+    ("pga", "y_axis_2dp", "bivec2dp", (0.0, 1.0, 0.0)),
     # H_2dp is initialized as `-e12_2dp` -> components are (-0.0, -0.0, -1.0);
     # tuple equality treats -0.0 == 0.0, so we compare against (0, 0, -1).
-    ("pga", "H_2dp",         "bivec2dp",    (0.0, 0.0, -1.0)),
-    ("pga", "e31_2dp_mv",    "mvec2dp",     (0,0,0,0, 1,0,0,0)),
-    ("pga", "e32_2dp_mv",    "mvec2dp",     (0,0,0,0, 0,1,0,0)),
-    ("pga", "e12_2dp_mv",    "mvec2dp",     (0,0,0,0, 0,0,1,0)),
-    ("pga", "e31_2dp_mv_e",  "mvec2dp_e",   (0,1,0,0)),
-    ("pga", "e32_2dp_mv_e",  "mvec2dp_e",   (0,0,1,0)),
-    ("pga", "e12_2dp_mv_e",  "mvec2dp_e",   (0,0,0,1)),
-    ("pga", "I_2dp",         "pscalar2dp",  (1.0,)),
-    ("pga", "e321_2dp",      "pscalar2dp",  (1.0,)),
-    ("pga", "I_2dp_mv",      "mvec2dp",     (0,0,0,0, 0,0,0,1)),
-    ("pga", "I_2dp_mv_u",    "mvec2dp_u",   (0,0,0,1)),
-    ("pga", "One_2dp",       "scalar2dp",   (1.0,)),
-    ("pga", "One_2dp_mv",    "mvec2dp",     (1,0,0,0, 0,0,0,0)),
-    ("pga", "One_2dp_mv_e",  "mvec2dp_e",   (1,0,0,0)),
-
+    ("pga", "H_2dp", "bivec2dp", (0.0, 0.0, -1.0)),
+    ("pga", "e31_2dp_mv", "mvec2dp", (0, 0, 0, 0, 1, 0, 0, 0)),
+    ("pga", "e32_2dp_mv", "mvec2dp", (0, 0, 0, 0, 0, 1, 0, 0)),
+    ("pga", "e12_2dp_mv", "mvec2dp", (0, 0, 0, 0, 0, 0, 1, 0)),
+    ("pga", "e31_2dp_mv_e", "mvec2dp_e", (0, 1, 0, 0)),
+    ("pga", "e32_2dp_mv_e", "mvec2dp_e", (0, 0, 1, 0)),
+    ("pga", "e12_2dp_mv_e", "mvec2dp_e", (0, 0, 0, 1)),
+    ("pga", "I_2dp", "pscalar2dp", (1.0,)),
+    ("pga", "e321_2dp", "pscalar2dp", (1.0,)),
+    ("pga", "I_2dp_mv", "mvec2dp", (0, 0, 0, 0, 0, 0, 0, 1)),
+    ("pga", "I_2dp_mv_u", "mvec2dp_u", (0, 0, 0, 1)),
+    ("pga", "one_2dp", "scalar2dp", (1.0,)),
+    ("pga", "one_2dp_mv", "mvec2dp", (1, 0, 0, 0, 0, 0, 0, 0)),
+    ("pga", "one_2dp_mv_e", "mvec2dp_e", (1, 0, 0, 0)),
     # ---------- PGA 3dp ----------
-    ("pga", "e1_3dp",        "vec3dp",      (1.0, 0.0, 0.0, 0.0)),
-    ("pga", "e2_3dp",        "vec3dp",      (0.0, 1.0, 0.0, 0.0)),
-    ("pga", "e3_3dp",        "vec3dp",      (0.0, 0.0, 1.0, 0.0)),
-    ("pga", "e4_3dp",        "vec3dp",      (0.0, 0.0, 0.0, 1.0)),
-    ("pga", "O_3dp",         "vec3dp",      (0.0, 0.0, 0.0, 1.0)),
-    ("pga", "x_dir_3dp",     "vec3dp",      (1.0, 0.0, 0.0, 0.0)),
-    ("pga", "y_dir_3dp",     "vec3dp",      (0.0, 1.0, 0.0, 0.0)),
-    ("pga", "z_dir_3dp",     "vec3dp",      (0.0, 0.0, 1.0, 0.0)),
-    ("pga", "e1_3dp_mv",     "mvec3dp",     (0,1,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0)),
-    ("pga", "e2_3dp_mv",     "mvec3dp",     (0,0,1,0, 0,0,0,0, 0,0,0,0, 0,0,0,0)),
-    ("pga", "e3_3dp_mv",     "mvec3dp",     (0,0,0,1, 0,0,0,0, 0,0,0,0, 0,0,0,0)),
-    ("pga", "e4_3dp_mv",     "mvec3dp",     (0,0,0,0, 1,0,0,0, 0,0,0,0, 0,0,0,0)),
-    ("pga", "e41_3dp",       "bivec3dp",    (1.0, 0.0, 0.0, 0.0, 0.0, 0.0)),
-    ("pga", "e42_3dp",       "bivec3dp",    (0.0, 1.0, 0.0, 0.0, 0.0, 0.0)),
-    ("pga", "e43_3dp",       "bivec3dp",    (0.0, 0.0, 1.0, 0.0, 0.0, 0.0)),
-    ("pga", "e23_3dp",       "bivec3dp",    (0.0, 0.0, 0.0, 1.0, 0.0, 0.0)),
-    ("pga", "e31_3dp",       "bivec3dp",    (0.0, 0.0, 0.0, 0.0, 1.0, 0.0)),
-    ("pga", "e12_3dp",       "bivec3dp",    (0.0, 0.0, 0.0, 0.0, 0.0, 1.0)),
-    ("pga", "x_axis_3dp",    "bivec3dp",    (1.0, 0.0, 0.0, 0.0, 0.0, 0.0)),
-    ("pga", "y_axis_3dp",    "bivec3dp",    (0.0, 1.0, 0.0, 0.0, 0.0, 0.0)),
-    ("pga", "z_axis_3dp",    "bivec3dp",    (0.0, 0.0, 1.0, 0.0, 0.0, 0.0)),
-    ("pga", "e41_3dp_mv",    "mvec3dp",     (0,0,0,0, 0,1,0,0, 0,0,0,0, 0,0,0,0)),
-    ("pga", "e42_3dp_mv",    "mvec3dp",     (0,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,0,0)),
-    ("pga", "e43_3dp_mv",    "mvec3dp",     (0,0,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,0)),
-    ("pga", "e23_3dp_mv",    "mvec3dp",     (0,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0)),
-    ("pga", "e31_3dp_mv",    "mvec3dp",     (0,0,0,0, 0,0,0,0, 0,1,0,0, 0,0,0,0)),
-    ("pga", "e12_3dp_mv",    "mvec3dp",     (0,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,0)),
-    ("pga", "e23_3dp_mv_e",  "mvec3dp_e",   (0,0,0,0, 1,0,0,0)),
-    ("pga", "e31_3dp_mv_e",  "mvec3dp_e",   (0,0,0,0, 0,1,0,0)),
-    ("pga", "e12_3dp_mv_e",  "mvec3dp_e",   (0,0,0,0, 0,0,1,0)),
-    ("pga", "e423_3dp",      "trivec3dp",   (1.0, 0.0, 0.0, 0.0)),
-    ("pga", "e431_3dp",      "trivec3dp",   (0.0, 1.0, 0.0, 0.0)),
-    ("pga", "e412_3dp",      "trivec3dp",   (0.0, 0.0, 1.0, 0.0)),
-    ("pga", "e321_3dp",      "trivec3dp",   (0.0, 0.0, 0.0, 1.0)),
-    ("pga", "yz_3dp",        "trivec3dp",   (1.0, 0.0, 0.0, 0.0)),
-    ("pga", "zx_3dp",        "trivec3dp",   (0.0, 1.0, 0.0, 0.0)),
-    ("pga", "xy_3dp",        "trivec3dp",   (0.0, 0.0, 1.0, 0.0)),
-    ("pga", "H_3dp",         "trivec3dp",   (0.0, 0.0, 0.0, 1.0)),
-    ("pga", "e423_3dp_mv",   "mvec3dp",     (0,0,0,0, 0,0,0,0, 0,0,0,1, 0,0,0,0)),
-    ("pga", "e431_3dp_mv",   "mvec3dp",     (0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0)),
-    ("pga", "e412_3dp_mv",   "mvec3dp",     (0,0,0,0, 0,0,0,0, 0,0,0,0, 0,1,0,0)),
-    ("pga", "e321_3dp_mv",   "mvec3dp",     (0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0)),
-    ("pga", "I_3dp",         "pscalar3dp",  (1.0,)),
-    ("pga", "e1234_3dp",     "pscalar3dp",  (1.0,)),
-    ("pga", "I_3dp_mv",      "mvec3dp",     (0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1)),
-    ("pga", "I_3dp_mv_e",    "mvec3dp_e",   (0,0,0,0, 0,0,0,1)),
-    ("pga", "One_3dp",       "scalar3dp",   (1.0,)),
-    ("pga", "One_3dp_mv",    "mvec3dp",     (1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0)),
-    ("pga", "One_3dp_mv_e",  "mvec3dp_e",   (1,0,0,0, 0,0,0,0)),
+    ("pga", "e1_3dp", "vec3dp", (1.0, 0.0, 0.0, 0.0)),
+    ("pga", "e2_3dp", "vec3dp", (0.0, 1.0, 0.0, 0.0)),
+    ("pga", "e3_3dp", "vec3dp", (0.0, 0.0, 1.0, 0.0)),
+    ("pga", "e4_3dp", "vec3dp", (0.0, 0.0, 0.0, 1.0)),
+    ("pga", "O_3dp", "vec3dp", (0.0, 0.0, 0.0, 1.0)),
+    ("pga", "x_dir_3dp", "vec3dp", (1.0, 0.0, 0.0, 0.0)),
+    ("pga", "y_dir_3dp", "vec3dp", (0.0, 1.0, 0.0, 0.0)),
+    ("pga", "z_dir_3dp", "vec3dp", (0.0, 0.0, 1.0, 0.0)),
+    ("pga", "e1_3dp_mv", "mvec3dp", (0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e2_3dp_mv", "mvec3dp", (0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e3_3dp_mv", "mvec3dp", (0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e4_3dp_mv", "mvec3dp", (0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e41_3dp", "bivec3dp", (1.0, 0.0, 0.0, 0.0, 0.0, 0.0)),
+    ("pga", "e42_3dp", "bivec3dp", (0.0, 1.0, 0.0, 0.0, 0.0, 0.0)),
+    ("pga", "e43_3dp", "bivec3dp", (0.0, 0.0, 1.0, 0.0, 0.0, 0.0)),
+    ("pga", "e23_3dp", "bivec3dp", (0.0, 0.0, 0.0, 1.0, 0.0, 0.0)),
+    ("pga", "e31_3dp", "bivec3dp", (0.0, 0.0, 0.0, 0.0, 1.0, 0.0)),
+    ("pga", "e12_3dp", "bivec3dp", (0.0, 0.0, 0.0, 0.0, 0.0, 1.0)),
+    ("pga", "x_axis_3dp", "bivec3dp", (1.0, 0.0, 0.0, 0.0, 0.0, 0.0)),
+    ("pga", "y_axis_3dp", "bivec3dp", (0.0, 1.0, 0.0, 0.0, 0.0, 0.0)),
+    ("pga", "z_axis_3dp", "bivec3dp", (0.0, 0.0, 1.0, 0.0, 0.0, 0.0)),
+    ("pga", "e41_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e42_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e43_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e23_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e31_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e12_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0)),
+    ("pga", "e23_3dp_mv_e", "mvec3dp_e", (0, 0, 0, 0, 1, 0, 0, 0)),
+    ("pga", "e31_3dp_mv_e", "mvec3dp_e", (0, 0, 0, 0, 0, 1, 0, 0)),
+    ("pga", "e12_3dp_mv_e", "mvec3dp_e", (0, 0, 0, 0, 0, 0, 1, 0)),
+    ("pga", "e423_3dp", "trivec3dp", (1.0, 0.0, 0.0, 0.0)),
+    ("pga", "e431_3dp", "trivec3dp", (0.0, 1.0, 0.0, 0.0)),
+    ("pga", "e412_3dp", "trivec3dp", (0.0, 0.0, 1.0, 0.0)),
+    ("pga", "e321_3dp", "trivec3dp", (0.0, 0.0, 0.0, 1.0)),
+    ("pga", "yz_3dp", "trivec3dp", (1.0, 0.0, 0.0, 0.0)),
+    ("pga", "zx_3dp", "trivec3dp", (0.0, 1.0, 0.0, 0.0)),
+    ("pga", "xy_3dp", "trivec3dp", (0.0, 0.0, 1.0, 0.0)),
+    ("pga", "H_3dp", "trivec3dp", (0.0, 0.0, 0.0, 1.0)),
+    ("pga", "e423_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0)),
+    ("pga", "e431_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0)),
+    ("pga", "e412_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0)),
+    ("pga", "e321_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0)),
+    ("pga", "I_3dp", "pscalar3dp", (1.0,)),
+    ("pga", "e1234_3dp", "pscalar3dp", (1.0,)),
+    ("pga", "I_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)),
+    ("pga", "I_3dp_mv_e", "mvec3dp_e", (0, 0, 0, 0, 0, 0, 0, 1)),
+    ("pga", "one_3dp", "scalar3dp", (1.0,)),
+    ("pga", "one_3dp_mv", "mvec3dp", (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("pga", "one_3dp_mv_e", "mvec3dp_e", (1, 0, 0, 0, 0, 0, 0, 0)),
 ]
 
 
@@ -174,20 +170,22 @@ EXPECTED: list[tuple[str, str, str, tuple[float, ...]]] = [
 # Per-constant value verification (one test per constant)
 # --------------------------------------------------------------------------- #
 
+
 @pytest.mark.parametrize(
-    "submod,name,type_name,expected", EXPECTED,
+    "submod,name,type_name,expected",
+    EXPECTED,
     ids=[f"{s}.{n}" for s, n, _, _ in EXPECTED],
 )
 def test_constant_value(submod, name, type_name, expected):
     """Each bound constant has the components declared in ga_usr_consts.hpp."""
     obj = getattr(getattr(ga_py, submod), name)
-    assert type(obj).__name__ == type_name, (
-        f"expected type {type_name}, got {type(obj).__name__}"
-    )
+    assert (
+        type(obj).__name__ == type_name
+    ), f"expected type {type_name}, got {type(obj).__name__}"
     actual = components(obj)
-    assert actual == pytest.approx(expected, abs=0.0), (
-        f"{submod}.{name}: expected {expected}, got {actual}"
-    )
+    assert actual == pytest.approx(
+        expected, abs=0.0
+    ), f"{submod}.{name}: expected {expected}, got {actual}"
 
 
 # --------------------------------------------------------------------------- #
@@ -197,42 +195,43 @@ def test_constant_value(submod, name, type_name, expected):
 
 ALIASES = [
     # EGA 2D
-    ("ega", "x_dir_2d",   "e1_2d"),
-    ("ega", "y_dir_2d",   "e2_2d"),
-    ("ega", "e12_2d",     "I_2d"),
+    ("ega", "x_dir_2d", "e1_2d"),
+    ("ega", "y_dir_2d", "e2_2d"),
+    ("ega", "e12_2d", "I_2d"),
     # EGA 3D
-    ("ega", "x_dir_3d",   "e1_3d"),
-    ("ega", "y_dir_3d",   "e2_3d"),
-    ("ega", "z_dir_3d",   "e3_3d"),
-    ("ega", "yz_3d",      "e23_3d"),
-    ("ega", "zx_3d",      "e31_3d"),
-    ("ega", "xy_3d",      "e12_3d"),
-    ("ega", "e123_3d",    "I_3d"),
+    ("ega", "x_dir_3d", "e1_3d"),
+    ("ega", "y_dir_3d", "e2_3d"),
+    ("ega", "z_dir_3d", "e3_3d"),
+    ("ega", "yz_3d", "e23_3d"),
+    ("ega", "zx_3d", "e31_3d"),
+    ("ega", "xy_3d", "e12_3d"),
+    ("ega", "e123_3d", "I_3d"),
     # PGA 2dp
-    ("pga", "O_2dp",      "e3_2dp"),
-    ("pga", "x_dir_2dp",  "e1_2dp"),
-    ("pga", "y_dir_2dp",  "e2_2dp"),
+    ("pga", "O_2dp", "e3_2dp"),
+    ("pga", "x_dir_2dp", "e1_2dp"),
+    ("pga", "y_dir_2dp", "e2_2dp"),
     ("pga", "x_axis_2dp", "e31_2dp"),
     ("pga", "y_axis_2dp", "e32_2dp"),
-    ("pga", "e321_2dp",   "I_2dp"),
+    ("pga", "e321_2dp", "I_2dp"),
     # PGA 3dp
-    ("pga", "O_3dp",      "e4_3dp"),
-    ("pga", "x_dir_3dp",  "e1_3dp"),
-    ("pga", "y_dir_3dp",  "e2_3dp"),
-    ("pga", "z_dir_3dp",  "e3_3dp"),
+    ("pga", "O_3dp", "e4_3dp"),
+    ("pga", "x_dir_3dp", "e1_3dp"),
+    ("pga", "y_dir_3dp", "e2_3dp"),
+    ("pga", "z_dir_3dp", "e3_3dp"),
     ("pga", "x_axis_3dp", "e41_3dp"),
     ("pga", "y_axis_3dp", "e42_3dp"),
     ("pga", "z_axis_3dp", "e43_3dp"),
-    ("pga", "yz_3dp",     "e423_3dp"),
-    ("pga", "zx_3dp",     "e431_3dp"),
-    ("pga", "xy_3dp",     "e412_3dp"),
-    ("pga", "H_3dp",      "e321_3dp"),
-    ("pga", "e1234_3dp",  "I_3dp"),
+    ("pga", "yz_3dp", "e423_3dp"),
+    ("pga", "zx_3dp", "e431_3dp"),
+    ("pga", "xy_3dp", "e412_3dp"),
+    ("pga", "H_3dp", "e321_3dp"),
+    ("pga", "e1234_3dp", "I_3dp"),
 ]
 
 
 @pytest.mark.parametrize(
-    "submod,alias,target", ALIASES,
+    "submod,alias,target",
+    ALIASES,
     ids=[f"{s}.{a}=={s}.{t}" for s, a, t in ALIASES],
 )
 def test_alias_equals_target(submod, alias, target):
@@ -247,15 +246,16 @@ def test_alias_equals_target(submod, alias, target):
 # on basis values themselves
 # --------------------------------------------------------------------------- #
 
+
 def test_ega3d_basis_orthonormality():
     """e_i . e_j == delta_ij for the EGA3D orthonormal basis."""
     basis = [ga_py.ega.e1_3d, ga_py.ega.e2_3d, ga_py.ega.e3_3d]
     for i, ei in enumerate(basis):
         for j, ej in enumerate(basis):
             expected = 1.0 if i == j else 0.0
-            assert float(ga_py.ega.dot(ei, ej)) == expected, (
-                f"dot(e{i+1}_3d, e{j+1}_3d) should be {expected}"
-            )
+            assert (
+                float(ga_py.ega.dot(ei, ej)) == expected
+            ), f"dot(e{i+1}_3d, e{j+1}_3d) should be {expected}"
 
 
 def test_ega3d_wedge_of_basis_vectors_yields_basis_bivectors():
@@ -297,6 +297,7 @@ def test_pga3dp_pseudoscalar_factorization():
 # Coverage / drift detection --- proves we test every bound constant
 # --------------------------------------------------------------------------- #
 
+
 def _all_bound_constants() -> set[tuple[str, str]]:
     """Enumerate every const-like attribute on ga_py.ega and ga_py.pga."""
     found: set[tuple[str, str]] = set()
@@ -325,9 +326,9 @@ def test_expected_table_covers_every_bound_constant():
 def test_total_bound_constants_is_120():
     """Stable count --- changes here flag intentional or accidental drift.
 
-    120 = the 108 previously bound + 12 `One_*` scalar/multivector identities
-    (One_2d{,_mv,_mv_e}, One_3d{,_mv,_mv_e}, One_2dp{,_mv,_mv_e},
-    One_3dp{,_mv,_mv_e}) added in ga/ga_usr_consts.hpp.
+    120 = the 108 previously bound + 12 `one_*` scalar/multivector identities
+    (one_2d{,_mv,_mv_e}, one_3d{,_mv,_mv_e}, one_2dp{,_mv,_mv_e},
+    one_3dp{,_mv,_mv_e}) added in ga/ga_usr_consts.hpp.
     """
     assert len(_all_bound_constants()) == 120
 

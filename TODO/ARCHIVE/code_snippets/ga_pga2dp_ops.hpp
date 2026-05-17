@@ -83,7 +83,7 @@ constexpr std::common_type_t<T, U> angle(BiVec2dp<T> const& B1, BiVec2dp<U> cons
 ////////////////////////////////////////////////////////////////////////////////
 // 2dp motor operations (translation and rotation)
 //
-// Every motor in pga2dp is an odd grade multivector MVec2dp_U.
+// Every motor in pga2dp is an odd-grade multivector MVec2dp_U.
 //
 // A proper isometry in 2dp has a fixed point p = p.x e1 + p.y e2 + p.z e3
 // around which a rotation occurs with an angle phi.

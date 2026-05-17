@@ -158,10 +158,10 @@ constexpr PScalar4d<T> gr4(MVec4d_E<T> const& M)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addition operations to combine scalars and bivectors to even grade multivectors
+// addition operations to combine scalars and bivectors to even-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// scalar + bivector => even grade multivector (in 4d imply a zero pseudoscalar)
+// scalar + bivector => even-grade multivector (in 4d imply a zero pseudoscalar)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_E<std::common_type_t<T, U>> operator+(Scalar4d<T> s, BiVec4d<U> const& B)
@@ -170,7 +170,7 @@ constexpr MVec4d_E<std::common_type_t<T, U>> operator+(Scalar4d<T> s, BiVec4d<U>
     return MVec4d_E<ctype>(s, B, PScalar4d<ctype>{});
 }
 
-// bivector + scalar => even grade multivector
+// bivector + scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_E<std::common_type_t<T, U>> operator+(BiVec4d<T> const& B, Scalar4d<U> s)
@@ -180,10 +180,10 @@ constexpr MVec4d_E<std::common_type_t<T, U>> operator+(BiVec4d<T> const& B, Scal
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// subtraction operations to combine scalars and bivectors to even grade multivectors
+// subtraction operations to combine scalars and bivectors to even-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// scalar + bivector => even grade multivector (in 4d imply a zero pseudoscalar)
+// scalar + bivector => even-grade multivector (in 4d imply a zero pseudoscalar)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_E<std::common_type_t<T, U>> operator-(Scalar4d<T> s, BiVec4d<U> const& B)
@@ -192,7 +192,7 @@ constexpr MVec4d_E<std::common_type_t<T, U>> operator-(Scalar4d<T> s, BiVec4d<U>
     return MVec4d_E<ctype>(s, -B, PScalar4d<ctype>{});
 }
 
-// bivector + scalar => even grade multivector
+// bivector + scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_E<std::common_type_t<T, U>> operator-(BiVec4d<T> const& B, Scalar4d<U> s)

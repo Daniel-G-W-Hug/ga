@@ -132,10 +132,10 @@ constexpr TriVec4d<T> gr3(MVec4d_U<T> const& M)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addition operations to combine vectors and trivectors to odd grade multivectors
+// addition operations to combine vectors and trivectors to odd-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// vector + trivector => odd grade multivector
+// vector + trivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_U<std::common_type_t<T, U>> operator+(Vec4d<T> const& v,
@@ -145,7 +145,7 @@ constexpr MVec4d_U<std::common_type_t<T, U>> operator+(Vec4d<T> const& v,
     return MVec4d_U<ctype>(v, t);
 }
 
-// trivector + vector => odd grade multivector
+// trivector + vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_U<std::common_type_t<T, U>> operator+(TriVec4d<T> const& t,
@@ -156,10 +156,10 @@ constexpr MVec4d_U<std::common_type_t<T, U>> operator+(TriVec4d<T> const& t,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// subtraction operations to combine vectors and trivectors to odd grade multivectors
+// subtraction operations to combine vectors and trivectors to odd-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// vector + trivector => odd grade multivector
+// vector + trivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_U<std::common_type_t<T, U>> operator-(Vec4d<T> const& v,
@@ -169,7 +169,7 @@ constexpr MVec4d_U<std::common_type_t<T, U>> operator-(Vec4d<T> const& v,
     return MVec4d_U<ctype>(v, -t);
 }
 
-// trivector + vector => odd grade multivector
+// trivector + vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec4d_U<std::common_type_t<T, U>> operator-(TriVec4d<T> const& t,

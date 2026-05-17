@@ -364,13 +364,13 @@ TEST_SUITE("PGA 2DP Tests")
         // check inverses - pseudoscalar
         // due to the degenerate metric there is no inverse of the pseudoscalar
 
-        // check inverses - even grade multivector
+        // check inverses - even-grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
         CHECK(abs(bulk_nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
         CHECK(abs(bulk_nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
         CHECK(abs(bulk_nrm(inv(mve1) - rev(mve1) / bulk_nrm_sq(mve1))) < eps);
 
-        // check inverses - odd grade multivector
+        // check inverses - odd-grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
         CHECK(abs(bulk_nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
         CHECK(abs(bulk_nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
@@ -462,15 +462,15 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(bulk_dual(ps) == I_2dp * rev(ps));
 
         // equivalence to the regressive geometric product
-        CHECK(weight_dual(s) == rgpr(rrev(s), One_2dp));
-        CHECK(weight_dual(v) == rgpr(rrev(v), One_2dp));
-        CHECK(weight_dual(B) == rgpr(rrev(B), One_2dp));
-        CHECK(weight_dual(ps) == rgpr(rrev(ps), One_2dp));
+        CHECK(weight_dual(s) == rgpr(rrev(s), one_2dp));
+        CHECK(weight_dual(v) == rgpr(rrev(v), one_2dp));
+        CHECK(weight_dual(B) == rgpr(rrev(B), one_2dp));
+        CHECK(weight_dual(ps) == rgpr(rrev(ps), one_2dp));
         //
-        CHECK(weight_dual(s) == rgpr(One_2dp, rrev(s)));
-        CHECK(weight_dual(v) == rgpr(One_2dp, rrev(v)));
-        CHECK(weight_dual(B) == rgpr(One_2dp, rrev(B)));
-        CHECK(weight_dual(ps) == rgpr(One_2dp, rrev(ps)));
+        CHECK(weight_dual(s) == rgpr(one_2dp, rrev(s)));
+        CHECK(weight_dual(v) == rgpr(one_2dp, rrev(v)));
+        CHECK(weight_dual(B) == rgpr(one_2dp, rrev(B)));
+        CHECK(weight_dual(ps) == rgpr(one_2dp, rrev(ps)));
     }
 
     TEST_CASE("Vec2dp: operations - angle I")

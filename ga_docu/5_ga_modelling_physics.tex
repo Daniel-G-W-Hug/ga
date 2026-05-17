@@ -226,7 +226,8 @@ The first three bivector components model the force while the last three compone
 the torque. The force vector $f$ itself can be retrieved from $F$ by using the attitude
 function $att()$:
 \begin{equation}
-    f = att(F) = F \vee \overline{\bv{n}}
+    f = att(F) = F \vee \overline{\bv{n}} = att(\weight{F})
+                                          = \weight{F} \vee \overline{\bv{n}}
     \label{eq:force_attitude}
 \end{equation}
 with $\bv{n}$ denoting the basis vector of the projective dimension that squares to zero
@@ -353,6 +354,7 @@ The linear momentum vector $p$ itself can be retrieved from $P$ by using the att
 function $att()$:
 \begin{equation}
     p = m v = m \dot{x} = att(P) = P \vee \overline{\bv{n}}
+                        = att(\weight{P}) = \weight{P} \vee \overline{\bv{n}}
     \label{eq:linear_momentum_from_attitude}
 \end{equation}
 with $\bv{n}$ denoting the basis vector of the projective dimension that squares to zero

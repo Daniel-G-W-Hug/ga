@@ -459,7 +459,14 @@ void write_json(std::string const& path)
 
 int main(int argc, char** argv)
 {
+    // Default output path is baked in at build time (absolute, so the
+    // exporter works regardless of the working directory it is launched
+    // from). A command-line argument still overrides it.
+#ifdef _GA_PY_CASES_JSON_DEFAULT
+    std::string path = _GA_PY_CASES_JSON_DEFAULT;
+#else
     std::string path = "ga_py/tests/data/ga_test_cases.json";
+#endif
     if (argc > 1) path = argv[1];
 
     emit_ega_cases();
