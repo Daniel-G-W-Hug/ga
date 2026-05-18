@@ -294,6 +294,90 @@ def test_pga3dp_pseudoscalar_factorization():
 
 
 # --------------------------------------------------------------------------- #
+# one_* multiplicative-identity checks --- one_* is the geometric-product unit
+# (`*` is the geometric product). Covered for all three forms: the scalar
+# one_*, the full multivector one_*_mv, and the even-grade one_*_mv_e.
+# --------------------------------------------------------------------------- #
+
+
+def test_ega2d_one_is_geometric_product_identity():
+    """one_2d / one_2d_mv / one_2d_mv_e are the EGA2d geometric-product unit."""
+    sub = ga_py.ega
+    v, mv, mv_e = sub.e1_2d, sub.e1_2d_mv, sub.I_2d_mv_e
+    assert sub.one_2d * v == v and v * sub.one_2d == v
+    assert sub.one_2d_mv * mv == mv and mv * sub.one_2d_mv == mv
+    assert sub.one_2d_mv_e * mv_e == mv_e and mv_e * sub.one_2d_mv_e == mv_e
+
+
+def test_ega3d_one_is_geometric_product_identity():
+    """one_3d / one_3d_mv / one_3d_mv_e are the EGA3d geometric-product unit."""
+    sub = ga_py.ega
+    v, mv, mv_e = sub.e1_3d, sub.e1_3d_mv, sub.e23_3d_mv_e
+    assert sub.one_3d * v == v and v * sub.one_3d == v
+    assert sub.one_3d_mv * mv == mv and mv * sub.one_3d_mv == mv
+    assert sub.one_3d_mv_e * mv_e == mv_e and mv_e * sub.one_3d_mv_e == mv_e
+
+
+def test_pga2dp_one_is_geometric_product_identity():
+    """one_2dp / one_2dp_mv / one_2dp_mv_e are the PGA2dp geometric-product unit."""
+    sub = ga_py.pga
+    v, mv, mv_e = sub.e1_2dp, sub.e1_2dp_mv, sub.e31_2dp_mv_e
+    assert sub.one_2dp * v == v and v * sub.one_2dp == v
+    assert sub.one_2dp_mv * mv == mv and mv * sub.one_2dp_mv == mv
+    assert sub.one_2dp_mv_e * mv_e == mv_e and mv_e * sub.one_2dp_mv_e == mv_e
+
+
+def test_pga3dp_one_is_geometric_product_identity():
+    """one_3dp / one_3dp_mv / one_3dp_mv_e are the PGA3dp geometric-product unit."""
+    sub = ga_py.pga
+    v, mv, mv_e = sub.e1_3dp, sub.e1_3dp_mv, sub.e23_3dp_mv_e
+    assert sub.one_3dp * v == v and v * sub.one_3dp == v
+    assert sub.one_3dp_mv * mv == mv and mv * sub.one_3dp_mv == mv
+    assert sub.one_3dp_mv_e * mv_e == mv_e and mv_e * sub.one_3dp_mv_e == mv_e
+
+
+# --------------------------------------------------------------------------- #
+# I_* regressive-identity checks --- in PGA the pseudoscalar I_* is the unit
+# of the regressive geometric product rgpr() (dual to one_* being the gpr
+# unit). Covered for all three forms: the pseudoscalar I_*, the full
+# multivector I_*_mv, and the parity-grade form (I_2dp_mv_u, since I_2dp is
+# odd grade; I_3dp_mv_e, since I_3dp is even grade).
+# --------------------------------------------------------------------------- #
+
+
+def test_pga2dp_pseudoscalar_is_regressive_product_identity():
+    """I_2dp / I_2dp_mv / I_2dp_mv_u are the PGA2dp regressive-product unit."""
+    p = ga_py.pga
+    v = p.e1_2dp
+    mv = p.mvec2dp(
+        p.scalar2dp(2.0), p.vec2dp(1, 2, 3), p.bivec2dp(4, 5, 6), p.pscalar2dp(7.0)
+    )
+    mv_u = p.mvec2dp_u(p.vec2dp(1, 2, 3), p.pscalar2dp(7.0))
+    assert p.rgpr(p.I_2dp, v) == v and p.rgpr(v, p.I_2dp) == v
+    assert p.rgpr(p.I_2dp_mv, mv) == mv and p.rgpr(mv, p.I_2dp_mv) == mv
+    assert p.rgpr(p.I_2dp_mv_u, mv_u) == mv_u and p.rgpr(mv_u, p.I_2dp_mv_u) == mv_u
+
+
+def test_pga3dp_pseudoscalar_is_regressive_product_identity():
+    """I_3dp / I_3dp_mv / I_3dp_mv_e are the PGA3dp regressive-product unit."""
+    p = ga_py.pga
+    v = p.e1_3dp
+    mv = p.mvec3dp(
+        p.scalar3dp(2.0),
+        p.vec3dp(1, 2, 3, 4),
+        p.bivec3dp(1, 2, 3, 4, 5, 6),
+        p.trivec3dp(1, 2, 3, 4),
+        p.pscalar3dp(7.0),
+    )
+    mv_e = p.mvec3dp_e(
+        p.scalar3dp(2.0), p.bivec3dp(1, 2, 3, 4, 5, 6), p.pscalar3dp(7.0)
+    )
+    assert p.rgpr(p.I_3dp, v) == v and p.rgpr(v, p.I_3dp) == v
+    assert p.rgpr(p.I_3dp_mv, mv) == mv and p.rgpr(mv, p.I_3dp_mv) == mv
+    assert p.rgpr(p.I_3dp_mv_e, mv_e) == mv_e and p.rgpr(mv_e, p.I_3dp_mv_e) == mv_e
+
+
+# --------------------------------------------------------------------------- #
 # Coverage / drift detection --- proves we test every bound constant
 # --------------------------------------------------------------------------- #
 

@@ -1693,6 +1693,56 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(s * v1 == sd * v1); // gpr between scalar and vector
     }
 
+    TEST_CASE("MVec3dp: one_3dp as geometric-product identity")
+    {
+        fmt::println("MVec3dp: one_3dp as geometric-product identity");
+
+        auto v = vec3dp{1.0, 2.0, 1.0, 1.0};
+        auto B = bivec3dp{-4.0, 2.0, 1.0, 1.0, -1.0, 2.0};
+        auto t = trivec3dp{1.0, -2.0, 3.0, 1.0};
+        auto ps = pscalar3dp{-3.0};
+        auto mv = mvec3dp{scalar3dp{4.0}, v, B, t, ps};
+        auto mv_e = mvec3dp_e{scalar3dp{4.0}, B, ps};
+
+        // scalar one_3dp is the geometric-product unit
+        CHECK(one_3dp * v == v);
+        CHECK(v * one_3dp == v);
+
+        // one_3dp_mv is the unit of the full geometric product
+        CHECK(one_3dp_mv * mv == mv);
+        CHECK(mv * one_3dp_mv == mv);
+
+        // one_3dp_mv_e is the unit of the even-grade geometric product
+        CHECK(one_3dp_mv_e * mv_e == mv_e);
+        CHECK(mv_e * one_3dp_mv_e == mv_e);
+    }
+
+    TEST_CASE("MVec3dp: I_3dp as regressive-product identity")
+    {
+        fmt::println("MVec3dp: I_3dp as regressive-product identity");
+
+        // dual to one_3dp being the gpr unit: the pseudoscalar I_3dp is the
+        // unit of the regressive geometric product rgpr()
+        auto v = vec3dp{1.0, 2.0, 1.0, 1.0};
+        auto B = bivec3dp{-4.0, 2.0, 1.0, 1.0, -1.0, 2.0};
+        auto t = trivec3dp{1.0, -2.0, 3.0, 1.0};
+        auto ps = pscalar3dp{-3.0};
+        auto mv = mvec3dp{scalar3dp{4.0}, v, B, t, ps};
+        auto mv_e = mvec3dp_e{scalar3dp{4.0}, B, ps};
+
+        // pseudoscalar I_3dp is the regressive-product unit
+        CHECK(rgpr(I_3dp, v) == v);
+        CHECK(rgpr(v, I_3dp) == v);
+
+        // I_3dp_mv is the unit of the full regressive geometric product
+        CHECK(rgpr(I_3dp_mv, mv) == mv);
+        CHECK(rgpr(mv, I_3dp_mv) == mv);
+
+        // I_3dp_mv_e is the unit of the even-grade regressive geometric product
+        CHECK(rgpr(I_3dp_mv_e, mv_e) == mv_e);
+        CHECK(rgpr(mv_e, I_3dp_mv_e) == mv_e);
+    }
+
     TEST_CASE("MVec3dp: geometric product - combinatorial tests")
     {
         fmt::println("MVec3dp: geometric product - combinatorial tests");
