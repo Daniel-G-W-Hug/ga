@@ -1343,6 +1343,29 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(s * v1 == sd * v1); // gpr between scalar and vector
     }
 
+    TEST_CASE("MVec3d: one_3d as geometric-product identity")
+    {
+        fmt::println("MVec3d: one_3d as geometric-product identity");
+
+        auto v = vec3d{1.0, 2.0, 1.0};
+        auto B = bivec3d{-4.0, 2.0, 1.0};
+        auto ps = pscalar3d{-3.0};
+        auto mv = mvec3d{scalar3d{4.0}, v, B, ps};
+        auto mv_e = mvec3d_e{scalar3d{4.0}, B};
+
+        // scalar one_3d is the geometric-product unit
+        CHECK(one_3d * v == v);
+        CHECK(v * one_3d == v);
+
+        // one_3d_mv is the unit of the full geometric product
+        CHECK(one_3d_mv * mv == mv);
+        CHECK(mv * one_3d_mv == mv);
+
+        // one_3d_mv_e is the unit of the even-grade geometric product
+        CHECK(one_3d_mv_e * mv_e == mv_e);
+        CHECK(mv_e * one_3d_mv_e == mv_e);
+    }
+
     TEST_CASE("MVec3d: geometric product tests - vec * vec")
     {
         fmt::println("MVec3d: geometric product tests - vec * vec");

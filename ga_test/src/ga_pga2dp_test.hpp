@@ -1272,6 +1272,54 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(s * v1 == sd * v1); // gpr between scalar and vector
     }
 
+    TEST_CASE("MVec2dp: one_2dp as geometric-product identity")
+    {
+        fmt::println("MVec2dp: one_2dp as geometric-product identity");
+
+        auto v = vec2dp{1.0, 2.0, 1.0};
+        auto B = bivec2dp{-4.0, 2.0, 1.0};
+        auto ps = pscalar2dp{-3.0};
+        auto mv = mvec2dp{scalar2dp{4.0}, v, B, ps};
+        auto mv_e = mvec2dp_e{scalar2dp{4.0}, B};
+
+        // scalar one_2dp is the geometric-product unit
+        CHECK(one_2dp * v == v);
+        CHECK(v * one_2dp == v);
+
+        // one_2dp_mv is the unit of the full geometric product
+        CHECK(one_2dp_mv * mv == mv);
+        CHECK(mv * one_2dp_mv == mv);
+
+        // one_2dp_mv_e is the unit of the even-grade geometric product
+        CHECK(one_2dp_mv_e * mv_e == mv_e);
+        CHECK(mv_e * one_2dp_mv_e == mv_e);
+    }
+
+    TEST_CASE("MVec2dp: I_2dp as regressive-product identity")
+    {
+        fmt::println("MVec2dp: I_2dp as regressive-product identity");
+
+        // dual to one_2dp being the gpr unit: the pseudoscalar I_2dp is the
+        // unit of the regressive geometric product rgpr()
+        auto v = vec2dp{1.0, 2.0, 1.0};
+        auto B = bivec2dp{-4.0, 2.0, 1.0};
+        auto ps = pscalar2dp{-3.0};
+        auto mv = mvec2dp{scalar2dp{4.0}, v, B, ps};
+        auto mv_u = mvec2dp_u{v, ps};
+
+        // pseudoscalar I_2dp is the regressive-product unit
+        CHECK(rgpr(I_2dp, v) == v);
+        CHECK(rgpr(v, I_2dp) == v);
+
+        // I_2dp_mv is the unit of the full regressive geometric product
+        CHECK(rgpr(I_2dp_mv, mv) == mv);
+        CHECK(rgpr(mv, I_2dp_mv) == mv);
+
+        // I_2dp_mv_u is the unit of the odd-grade regressive geometric product
+        CHECK(rgpr(I_2dp_mv_u, mv_u) == mv_u);
+        CHECK(rgpr(mv_u, I_2dp_mv_u) == mv_u);
+    }
+
     TEST_CASE("MVec2dp: geometric product - combinatorial tests")
     {
         fmt::println("MVec2dp: geometric product - combinatorial tests");

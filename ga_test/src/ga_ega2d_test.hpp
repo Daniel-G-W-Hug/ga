@@ -990,6 +990,28 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(((2.0 * e1_2d - 3.0 * e2_2d) << e12_2d) == -3.0 * e1_2d - 2.0 * e2_2d);
     }
 
+    TEST_CASE("MVec2d: one_2d as geometric-product identity")
+    {
+        fmt::println("MVec2d: one_2d as geometric-product identity");
+
+        auto v = vec2d{1.0, 2.0};
+        auto ps = pscalar2d{-3.0};
+        auto mv = mvec2d{scalar2d{4.0}, v, ps};
+        auto mv_e = mvec2d_e{scalar2d{4.0}, ps};
+
+        // scalar one_2d is the geometric-product unit
+        CHECK(one_2d * v == v);
+        CHECK(v * one_2d == v);
+
+        // one_2d_mv is the unit of the full geometric product
+        CHECK(one_2d_mv * mv == mv);
+        CHECK(mv * one_2d_mv == mv);
+
+        // one_2d_mv_e is the unit of the even-grade geometric product
+        CHECK(one_2d_mv_e * mv_e == mv_e);
+        CHECK(mv_e * one_2d_mv_e == mv_e);
+    }
+
     TEST_CASE("MVec2d: geometric product tests")
     {
         fmt::println("MVec2d: geometric product tests");
