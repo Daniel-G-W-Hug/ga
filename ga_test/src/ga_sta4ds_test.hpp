@@ -164,12 +164,12 @@ TEST_SUITE("STA 3D Tests")
         // (1) Signature pinned via nrm_sq() on each unit basis blade. The values
         //     follow the STA extended metric (g1^2 = g2^2 = g3^2 = -1; g4^2 = +1;
         //     higher grades via G(a^b) = G(a)^G(b)).
-        // vectors: g1,g2,g3 -> -1 ; g4 -> +1
+        // vectors: g1,g2,g3 -> -1 (spacelike); g4 -> +1 (timelike)
         CHECK(nrm_sq(g1_4ds) == -1.0);
         CHECK(nrm_sq(g2_4ds) == -1.0);
         CHECK(nrm_sq(g3_4ds) == -1.0);
         CHECK(nrm_sq(g4_4ds) == 1.0);
-        // bivectors: with g4 -> +1 ; without g4 -> -1
+        // bivectors: with g4 -> +1 (timelike); without g4 -> -1 (spacelike)
         CHECK(nrm_sq(g14_4ds) == 1.0);
         CHECK(nrm_sq(g24_4ds) == 1.0);
         CHECK(nrm_sq(g34_4ds) == 1.0);
@@ -443,6 +443,329 @@ TEST_SUITE("STA 3D Tests")
         gate(I_4ds);
 
         fmt::println("l_dual(e) == nrm_sq(e)*l_cmpl(e) and r_dual analogue verified");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ops.hpp step 1: rotor exponential (rotations & Lorentz boosts)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: rotor exponential exp() (rotation & boost)")
+    {
+        fmt::println("G<1,3,0>: rotor exponential exp() (rotation & boost)");
+
+        value_t const a = 0.7;
+
+        // exp(0) == identity rotor (scalar 1, no bivector/pseudoscalar)
+        CHECK(exp(bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}) ==
+              mvec4ds_e{scalar4ds{1.0}, bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}});
+
+        // spatial plane g12 (B^2 < 0): exp(a*g12) = cos(a) + sin(a) g12  (circular)
+        auto const Rs = exp(a * g12_4ds);
+        CHECK(value_t(gr0(Rs)) == doctest::Approx(std::cos(a)));
+        CHECK(gr2(Rs).mz == doctest::Approx(std::sin(a))); // g12 component
+
+        // boost plane g14 (B^2 > 0): exp(a*g14) = cosh(a) + sinh(a) g14  (hyperbolic)
+        auto const Rb = exp(a * g14_4ds);
+        CHECK(value_t(gr0(Rb)) == doctest::Approx(std::cosh(a)));
+        CHECK(gr2(Rb).vx == doctest::Approx(std::sinh(a))); // g14 component
+
+        // builders carry the half-angle for the sandwich (validated semantically in
+        // step 2); here check their form and that they are unit rotors rev(R)*R == 1.
+        auto const Rr = get_rotor(g12_4ds, a); // cos(a/2) + sin(-a/2) g12
+        CHECK(value_t(gr0(Rr)) == doctest::Approx(std::cos(a / 2)));
+        CHECK(gr2(Rr).mz == doctest::Approx(std::sin(-a / 2)));
+        CHECK(value_t(gr0(rev(Rr) * Rr)) == doctest::Approx(1.0));
+        CHECK(nrm_sq(gr2(rev(Rr) * Rr)) == doctest::Approx(0.0)); // no leftover bivector
+
+        auto const Rbo = get_boost(g14_4ds, a); // cosh(a/2) + sinh(a/2) g14
+        CHECK(value_t(gr0(Rbo)) == doctest::Approx(std::cosh(a / 2)));
+        CHECK(gr2(Rbo).vx == doctest::Approx(std::sinh(a / 2)));
+        CHECK(value_t(gr0(rev(Rbo) * Rbo)) == doctest::Approx(1.0));
+        CHECK(nrm_sq(gr2(rev(Rbo) * Rbo)) == doctest::Approx(0.0));
+
+        fmt::println("exp: spatial -> cos/sin, boost -> cosh/sinh; rotor/boost are unit");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ops.hpp step 2: transform() sandwich R*X*rev(R) (rotations & Lorentz boosts)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: transform() sandwich (rotation / boost / invariance)")
+    {
+        fmt::println("G<1,3,0>: transform() sandwich (rotation / boost / invariance)");
+
+        value_t const th = 0.6;  // rotation angle
+        value_t const phi = 0.5; // boost rapidity
+        auto const Rr = get_rotor(g12_4ds, th);
+        auto const Rb = get_boost(g14_4ds, phi);
+
+        // ---- interval invariance: Lorentz transforms preserve nrm_sq (all grades) ----
+        vec4ds x{2.0, 3.0, 5.0, 7.0};
+        bivec4ds B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        trivec4ds t{1.0, 2.0, 3.0, 4.0};
+        CHECK(nrm_sq(transform(x, Rr)) == doctest::Approx(nrm_sq(x)));
+        CHECK(nrm_sq(transform(x, Rb)) == doctest::Approx(nrm_sq(x)));
+        CHECK(nrm_sq(transform(B, Rb)) == doctest::Approx(nrm_sq(B)));
+        CHECK(nrm_sq(transform(t, Rb)) == doctest::Approx(nrm_sq(t)));
+
+        // ---- spatial rotation in the g1-g2 plane: g1 -> cos(th) g1 - sin(th) g2 ----
+        // (identical to a 3D rotation; the time direction g4 is untouched)
+        auto const vr = transform(g1_4ds, Rr);
+        CHECK(vr.x == doctest::Approx(std::cos(th)));
+        CHECK(vr.y == doctest::Approx(-std::sin(th)));
+        CHECK(vr.z == doctest::Approx(0.0));
+        CHECK(vr.w == doctest::Approx(0.0));
+
+        // ---- Lorentz boost of the rest 4-velocity g4 in the g14 plane ----
+        // g4 -> cosh(phi) g4 + sinh(phi) g1 ; gamma = cosh(phi), beta = tanh(phi)
+        auto const u = transform(g4_4ds, Rb);
+        value_t const beta = std::tanh(phi);
+        CHECK(u.w == doctest::Approx(std::cosh(phi))); // gamma (time comp.)
+        CHECK(u.x == doctest::Approx(std::sinh(phi))); // beta*gamma (space comp.)
+        CHECK(u.x / u.w == doctest::Approx(beta));     // beta = tanh(phi)
+        CHECK(u.w ==
+              doctest::Approx(1.0 / std::sqrt(1.0 - beta * beta))); // gamma identity
+
+        // ---- collinear boosts compose: rapidities add (velocities via tanh) ----
+        value_t const p1 = 0.3, p2 = 0.4;
+        auto const Rc = get_boost(g14_4ds, p2) * get_boost(g14_4ds, p1); // p1 then p2
+        CHECK(transform(g4_4ds, Rc).w == doctest::Approx(std::cosh(p1 + p2)));
+        CHECK(nrm_sq(transform(g4_4ds, Rc) -
+                     transform(g4_4ds, get_boost(g14_4ds, p1 + p2))) ==
+              doctest::Approx(0.0));
+
+        // ---- optimized closed-form transform_opt() matches the direct sandwich ----
+        // (validated for a general rotor = boost composed with a spatial rotation,
+        //  exercising all 8 even-grade rotor coefficients, on a generic vector)
+        auto const Rgen = Rb * Rr; // mixes boost + rotation -> all c0..c7 populated
+        CHECK(nrm_sq(transform_opt(x, Rgen) - transform(x, Rgen)) ==
+              doctest::Approx(0.0));
+        CHECK(nrm_sq(transform_opt(g1_4ds, Rgen) - transform(g1_4ds, Rgen)) ==
+              doctest::Approx(0.0));
+        CHECK(nrm_sq(transform_opt(g4_4ds, Rgen) - transform(g4_4ds, Rgen)) ==
+              doctest::Approx(0.0));
+        // also preserves the interval, like the direct form
+        CHECK(nrm_sq(transform_opt(x, Rgen)) == doctest::Approx(nrm_sq(x)));
+
+        fmt::println(
+            "transform: interval-invariant; rotation==3D; boost gamma=cosh, "
+            "beta=tanh; collinear boosts add rapidity; transform_opt==transform");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ops.hpp step 3: spacetime split of a vector (time + relative space)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: spacetime split of a vector")
+    {
+        fmt::println("G<1,3,0>: spacetime split of a vector");
+
+        // ---- standard frame u = g4: time = g4 component, space = g_k4 part ----
+        vec4ds x{2.0, 3.0, 5.0, 7.0};
+        CHECK(value_t(time_split(x, g4_4ds)) == doctest::Approx(x.w)); // time = g4 comp.
+        auto const s = space_split(x, g4_4ds);                         // x ^ g4
+        CHECK(s.vx == doctest::Approx(x.x));                           // g14
+        CHECK(s.vy == doctest::Approx(x.y));                           // g24
+        CHECK(s.vz == doctest::Approx(x.z));                           // g34
+        CHECK(s.mx == doctest::Approx(0.0)); // no g23/g31/g12 part in the g4 frame
+        CHECK(s.my == doctest::Approx(0.0));
+        CHECK(s.mz == doctest::Approx(0.0));
+        // reconstruction: x = gr1( (time + space) * g4 )
+        CHECK(nrm_sq(
+                  gr1(mvec4ds_e{time_split(x, g4_4ds), space_split(x, g4_4ds)} * g4_4ds) -
+                  x) == doctest::Approx(0.0));
+
+        // ---- moving observer: time dilation between frames ----
+        // observer 4-velocity u = g4 boosted by rapidity phi (relative speed beta=tanh)
+        value_t const phi = 0.5;
+        auto const u = transform(g4_4ds, get_boost(g14_4ds, phi));
+        // the rest 4-velocity g4 has time component gamma = cosh(phi) in u's frame
+        CHECK(value_t(time_split(g4_4ds, u)) == doctest::Approx(std::cosh(phi)));
+        // and is seen to move at speed beta = |relative vector| / time = tanh(phi)
+        CHECK(value_t(nrm(space_split(g4_4ds, u))) / value_t(time_split(g4_4ds, u)) ==
+              doctest::Approx(std::tanh(phi)));
+
+        fmt::println("spacetime split: g4-frame reconstruct; moving observer -> "
+                     "gamma=cosh(phi), beta=tanh(phi)");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ops.hpp step 3b: spacetime split of a bivector (relative E / B parts)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: spacetime split of a bivector (relative E / B)")
+    {
+        fmt::println("G<1,3,0>: spacetime split of a bivector (relative E / B)");
+
+        // ---- g4 frame: g_k4 -> relative-vector (E) part ; g_jk -> rel-bivector (B) ----
+        bivec4ds F{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}; // (g14,g24,g34, g23,g31,g12)
+        auto const E = rel_vec_split(F, g4_4ds);
+        auto const Bp = rel_bivec_split(F, g4_4ds);
+        CHECK(E == bivec4ds{1.0, 2.0, 3.0, 0.0, 0.0, 0.0});  // g_k4 part only
+        CHECK(Bp == bivec4ds{0.0, 0.0, 0.0, 4.0, 5.0, 6.0}); // g_jk part only
+        CHECK(E + Bp == F);                                  // parts recombine
+
+        // ---- EM field transformation: boost a pure magnetic field B_z = g12 ----
+        // along x (the g14 plane). Expect an induced electric field E_y = -gamma*beta
+        // B_z and B_z' = gamma B_z (gamma = cosh phi, gamma*beta = sinh phi).
+        value_t const phi = 0.5;
+        auto const Fb = transform(g12_4ds, get_boost(g14_4ds, phi));
+        auto const Eb = rel_vec_split(Fb, g4_4ds);
+        auto const Bb = rel_bivec_split(Fb, g4_4ds);
+        CHECK(Eb.vy == doctest::Approx(-std::sinh(phi))); // induced E_y (g24 component)
+        CHECK(Bb.mz == doctest::Approx(std::cosh(phi)));  // B_z' = gamma (g12 component)
+        CHECK(nrm_sq(Eb + Bb - Fb) == doctest::Approx(0.0)); // recombine after boost
+
+        fmt::println("bivector split: g4-frame E/B; boost mixes B_z -> E_y "
+                     "(EM field transformation)");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ops.hpp step 4: projections and rejections (onto vector / bivector)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: projections and rejections")
+    {
+        fmt::println("G<1,3,0>: projections and rejections");
+
+        vec4ds v{2.0, 3.0, 5.0, 7.0};
+
+        // ---- onto a timelike axis g4: projection = time part, rejection = space part
+        // ----
+        CHECK(project_onto(v, g4_4ds) == vec4ds{0.0, 0.0, 0.0, 7.0});
+        CHECK(reject_from(v, g4_4ds) == vec4ds{2.0, 3.0, 5.0, 0.0});
+        CHECK(project_onto(v, g4_4ds) + reject_from(v, g4_4ds) == v);
+
+        // ---- onto a spacelike axis g1 ----
+        CHECK(project_onto(v, g1_4ds) == vec4ds{2.0, 0.0, 0.0, 0.0});
+        CHECK(project_onto(v, g1_4ds) + reject_from(v, g1_4ds) == v);
+        // the projection is parallel to the target (wedge vanishes)
+        CHECK(nrm_sq(wdg(project_onto(v, g1_4ds), g1_4ds)) == doctest::Approx(0.0));
+
+        // ---- onto a bivector (the spatial plane g12) ----
+        auto const p = project_onto(v, g12_4ds);
+        auto const r = reject_from(v, g12_4ds);
+        CHECK(nrm_sq(p + r - v) == doctest::Approx(0.0));       // project + reject == v
+        CHECK(nrm_sq(wdg(p, g12_4ds)) == doctest::Approx(0.0)); // projection lies in g12
+        CHECK(p.x == doctest::Approx(2.0));                     // g1 part
+        CHECK(p.y == doctest::Approx(3.0));                     // g2 part
+        CHECK(p.z == doctest::Approx(0.0));
+        CHECK(p.w == doctest::Approx(0.0));
+
+        fmt::println("project + reject == original; projection lies in / parallel to "
+                     "the (non-null) target");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ops.hpp step 5: reflections (gpr-based sandwich, Macdonald p.129)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: reflections (involution, nrm_sq, discrete symmetries)")
+    {
+        fmt::println("G<1,3,0>: reflections (involution, nrm_sq, discrete symmetries)");
+
+        vec4ds v{2.0, 3.0, 5.0, 7.0}; // (g1, g2, g3, g4=time)
+
+        // ---- reflect on a hyperplane via its timelike normal g4 == time reflection T
+        // ---- the component along g4 (time) flips, the spatial part is kept
+        CHECK(reflect_on(v, g4_4ds) == vec4ds{2.0, 3.0, 5.0, -7.0});
+        // reflect on the same hyperplane given directly as the spatial trivector g123:
+        // reflection is invariant under scaling/orientation of the mirror, and g123 is
+        // dual to the normal g4 -> must give the identical result as the normal form
+        CHECK(nrm_sq(reflect_on(v, g123_4ds) - reflect_on(v, g4_4ds)) ==
+              doctest::Approx(0.0));
+
+        // ---- reflect onto the time line g4 == parity P (spatial inversion) ----
+        // the time component is kept, the three spatial components flip
+        CHECK(reflect_on_vec(v, g4_4ds) == vec4ds{-2.0, -3.0, -5.0, 7.0});
+
+        // ---- every reflection preserves the spacetime interval nrm_sq ----
+        CHECK(nrm_sq(reflect_on(v, g4_4ds)) == doctest::Approx(nrm_sq(v)));
+        CHECK(nrm_sq(reflect_on(v, g1_4ds)) == doctest::Approx(nrm_sq(v)));
+        CHECK(nrm_sq(reflect_on(v, g123_4ds)) == doctest::Approx(nrm_sq(v)));
+        CHECK(nrm_sq(reflect_on(v, g14_4ds)) == doctest::Approx(nrm_sq(v)));
+        CHECK(nrm_sq(reflect_on_vec(v, g4_4ds)) == doctest::Approx(nrm_sq(v)));
+
+        // ---- every reflection is an involution: applying it twice is the identity ----
+        CHECK(nrm_sq(reflect_on(reflect_on(v, g4_4ds), g4_4ds) - v) ==
+              doctest::Approx(0.0));
+        CHECK(nrm_sq(reflect_on(reflect_on(v, g14_4ds), g14_4ds) - v) ==
+              doctest::Approx(0.0));
+        CHECK(nrm_sq(reflect_on(reflect_on(v, g123_4ds), g123_4ds) - v) ==
+              doctest::Approx(0.0));
+        CHECK(nrm_sq(reflect_on_vec(reflect_on_vec(v, g4_4ds), g4_4ds) - v) ==
+              doctest::Approx(0.0));
+
+        // ---- bivector reflection in a bivector is also an nrm_sq-preserving involution
+        bivec4ds B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        CHECK(nrm_sq(reflect_on(B, g14_4ds)) == doctest::Approx(nrm_sq(B)));
+        CHECK(nrm_sq(reflect_on(reflect_on(B, g14_4ds), g14_4ds) - B) ==
+              doctest::Approx(0.0));
+
+        // ---- two reflections compose to a proper rotation (a rotor sandwich) ----
+        // reflecting on g1 then on a vector b at spatial half-angle a rotates by 2a in
+        // the g1-g2 plane; here check the composite preserves nrm_sq and equals a rotor
+        // transform (the classic "rotation = two reflections" theorem)
+        value_t const a = 0.35;
+        vec4ds b{std::cos(a), std::sin(a), 0.0, 0.0}; // unit spatial direction at angle a
+        auto const twice = reflect_on_vec(reflect_on_vec(v, g1_4ds), b);
+        CHECK(nrm_sq(twice) == doctest::Approx(nrm_sq(v)));
+        // composite of the two spatial reflections is a rotation by 2a in the g12
+        // plane; the rotor turns g1 toward -g2 for positive angle, so the mirror
+        // order (g1 then b) corresponds to angle -2a in get_rotor's convention
+        auto const Rrot = get_rotor(g12_4ds, -2.0 * a);
+        CHECK(nrm_sq(twice - transform(v, Rrot)) == doctest::Approx(0.0));
+
+        fmt::println("reflections: T / P symmetries; interval-preserving involutions; "
+                     "two reflections == one rotation");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ops.hpp step 6: angle (spacelike) / rapidity (timelike)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: angle (spacelike) and rapidity (timelike)")
+    {
+        fmt::println("G<1,3,0>: angle (spacelike) and rapidity (timelike)");
+
+        using std::numbers::pi;
+
+        // ---- Euclidean angle between spacelike vectors ----
+        CHECK(angle(g1_4ds, g1_4ds) == doctest::Approx(0.0));      // self -> 0
+        CHECK(angle(g1_4ds, g2_4ds) == doctest::Approx(pi / 2.0)); // orthogonal axes
+        CHECK(angle(g1_4ds, g3_4ds) == doctest::Approx(pi / 2.0));
+        // angle equals the rotation parameter: rotate g1 by theta in the g12 plane
+        value_t const th = 0.7;
+        auto const g1_rot = transform(g1_4ds, get_rotor(g12_4ds, th));
+        CHECK(is_spacelike(g1_rot)); // rotation keeps a spacelike vector spacelike
+        CHECK(angle(g1_4ds, g1_rot) == doctest::Approx(th));
+        // symmetric and scale-independent
+        CHECK(angle(g2_4ds, g1_4ds) == doctest::Approx(pi / 2.0));
+        CHECK(angle(2.0 * g1_4ds, 3.0 * g2_4ds) == doctest::Approx(pi / 2.0));
+
+        // ---- relative rapidity between timelike 4-velocities ----
+        CHECK(rapidity(g4_4ds, g4_4ds) == doctest::Approx(0.0)); // same rest frame -> 0
+        // boost g4 by rapidity phi in the g14 plane; rapidity back to g4 must be phi
+        value_t const phi = 0.9;
+        auto const u = transform(g4_4ds, get_boost(g14_4ds, phi));
+        CHECK(is_timelike(u)); // a boosted 4-velocity stays timelike
+        CHECK(rapidity(g4_4ds, u) == doctest::Approx(phi));
+        // gamma = cosh(rapidity) = dot(g4, u) for unit 4-velocities
+        CHECK(value_t(dot(g4_4ds, u)) == doctest::Approx(std::cosh(phi)));
+        // collinear boosts add rapidity (consistency with the step-2 finding)
+        value_t const p1 = 0.4, p2 = 0.5;
+        auto const u2 = transform(g4_4ds, get_boost(g14_4ds, p1 + p2));
+        CHECK(rapidity(g4_4ds, u2) == doctest::Approx(p1 + p2));
+
+        // ---- causal-character guards: wrong domain throws ----
+        CHECK_THROWS(angle(g4_4ds, g4_4ds));    // timelike into spacelike angle()
+        CHECK_THROWS(angle(g1_4ds, g4_4ds));    // mixed
+        CHECK_THROWS(rapidity(g1_4ds, g1_4ds)); // spacelike into rapidity()
+        CHECK_THROWS(rapidity(g1_4ds, g4_4ds)); // mixed
+
+        fmt::println(
+            "angle: spacelike Euclidean angle == rotation param; "
+            "rapidity: timelike hyperbolic angle == boost param; domain-guarded");
     }
 
     TEST_CASE("G<1,3,0>: left-right complement composition")

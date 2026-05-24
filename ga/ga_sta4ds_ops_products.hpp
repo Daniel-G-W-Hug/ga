@@ -6375,10 +6375,22 @@ constexpr Scalar4ds<std::common_type_t<T, U>> operator*(Scalar4ds<T> s1, Scalar4
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// multiplicative inverses of scalars, blades and multivectors
-// w.r.t. the geometric product:
-// for k-blades: A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
-// pattern for k = 0, 1, 2, 3, ...: + + - - + + - - ... (from reversion)
+// multiplicative inverses of scalars, blades and multivectors w.r.t. the
+// geometric product. STA's metric G(1,3,0) is non-degenerate, so every element
+// with non-zero squared norm is invertible; only null/lightlike elements are not.
+//
+// for k-blades:  A^(-1) = rev(A) / <A rev(A)>_0
+//   - scalar / vector: <A rev(A)>_0 = nrm_sq(A) (rev = +A here), so
+//                      A^(-1) = A / nrm_sq(A)
+//   - bivector / trivector and general (mixed-grade) multivectors: use the
+//     closed-form inverse of Hitzer & Sangwine, "Multivector and multivector
+//     matrix inverses in real Clifford algebras" (2016) -- A^(-1) = conj(A) * map
+//     / <A conj(A) map>_0, with the grade-sign "map" gr0+gr2-gr4 (even) etc.
+//
+// In the Lorentzian metric the squared norm is SIGNED (spacelike blades square
+// negative, timelike positive), so the division denominator can be negative. The
+// null-check therefore uses std::abs(denominator): it rejects only a (near-)zero
+// denominator -- a lightlike, non-invertible blade -- never a merely negative one.
 ////////////////////////////////////////////////////////////////////////////////
 // HINT: inv() cannot be constexpr due to the checks for division by zero
 //       which might throw
@@ -6387,8 +6399,8 @@ template <typename T>
     requires(numeric_type<T>)
 inline Scalar4ds<T> inv(Scalar4ds<T> s)
 {
-    T sq_n = bulk_nrm_sq(s);
-    hd::ga::detail::check_normalization<T>(sq_n, "scalar");
+    T sq_n = nrm_sq(s); // STA metric is non-degenerate: use the full metric norm
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "scalar");
     T inv = T(1.0) / sq_n;
 
     return Scalar4ds<T>(rev(s) * inv);
@@ -6398,10 +6410,11 @@ template <typename T>
     requires(numeric_type<T>)
 inline Vec4ds<T> inv(Vec4ds<T> const& v)
 {
-    // v^(-1) = rev(v)/|v|^2 = v/dot(v,v) = v/bulk_sq_nrm(v)
+    // v^(-1) = rev(v)/|v|^2 = v/dot(v,v) = v/nrm_sq(v)
     // using rev(v) = (-1)^[k(k-1)/2] v for a k-blade: 1-blade => rev(v) = v
-    T sq_n = bulk_nrm_sq(v);
-    hd::ga::detail::check_normalization<T>(sq_n, "vector");
+    // (STA metric is non-degenerate: use the full metric norm nrm_sq)
+    T sq_n = nrm_sq(v);
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "vector");
     T inv = T(1.0) / sq_n; // inverse of squared norm for a vector
     return Vec4ds<T>(v.x * inv, v.y * inv, v.z * inv, v.w * inv);
 }
@@ -6414,12 +6427,8 @@ inline BiVec4ds<T> inv(BiVec4ds<T> const& B)
 {
     auto bc = B * conj(B);
     auto bcmap = gr0(bc) + gr2(bc) - gr4(bc);
-    // fmt::println("B={}", B);
-    // fmt::println("bc={}", bc);
-    // fmt::println("bcmap={}", bcmap);
-    // fmt::println("bc*bcmap={}", bc * bcmap);
     T sq_n = T(gr0(bc * bcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "bivector");
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "bivector");
     return gr2(conj(B) * bcmap) / sq_n;
 }
 
@@ -6431,12 +6440,8 @@ inline TriVec4ds<T> inv(TriVec4ds<T> const& t)
 {
     auto tc = t * conj(t);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
-    // fmt::println("t={}", t);
-    // fmt::println("tc={}", tc);
-    // fmt::println("tcmap={}", tcmap);
-    // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "trivector");
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "trivector");
     return gr3(conj(t) * tcmap) / sq_n;
 }
 
@@ -6450,12 +6455,8 @@ inline MVec4ds_E<T> inv(MVec4ds_E<T> const& E)
 {
     auto tc = E * conj(E);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
-    // fmt::println("E={}", E);
-    // fmt::println("tc={}", tc);
-    // fmt::println("tcmap={}", tcmap);
-    // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "even-grade multivector");
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "even-grade multivector");
     return conj(E) * tcmap / sq_n;
 }
 
@@ -6467,12 +6468,8 @@ inline MVec4ds_U<T> inv(MVec4ds_U<T> const& U)
 {
     auto tc = U * conj(U);
     auto tcmap = gr0(tc) + gr2(tc) - gr4(tc);
-    // fmt::println("E={}", E);
-    // fmt::println("tc={}", tc);
-    // fmt::println("tcmap={}", tcmap);
-    // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "odd-grade multivector");
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "odd-grade multivector");
     return conj(U) * tcmap / sq_n;
 }
 
@@ -6485,12 +6482,8 @@ inline MVec4ds<T> inv(MVec4ds<T> const& M)
 {
     auto tc = M * conj(M);
     auto tcmap = gr0(tc) + gr1(tc) + gr2(tc) - gr3(tc) - gr4(tc);
-    // fmt::println("M={}", M);
-    // fmt::println("tc={}", tc);
-    // fmt::println("tcmap={}", tcmap);
-    // fmt::println("tc*tcmap={}", tc * tcmap);
     T sq_n = T(gr0(tc * tcmap));
-    hd::ga::detail::check_normalization<T>(sq_n, "multivector");
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "multivector");
     return conj(M) * tcmap / sq_n;
 }
 

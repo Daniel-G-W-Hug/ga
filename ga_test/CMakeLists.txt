@@ -73,6 +73,43 @@ link_fmt_to_target(${EXEC_NAME4})
 link_fmt_to_target(${EXEC_NAME5})
 
 # ----------------------------------------------------------------------------
+# Standalone benchmarks (utilities/).
+#
+# These are NOT part of any test run --- they are built and run on demand only.
+# Each is a plain executable (ga + fmt, no doctest). Build a single one with e.g.
+#     cmake --build . --target ga_sta_bench_transform
+# then run it directly, or use the convenience `run_<target>` custom target which
+# builds AND runs it.
+#
+# Benchmarks are forced to -O3/NDEBUG (MSVC: /O2) regardless of CMAKE_BUILD_TYPE,
+# because the relative cost of the measured variants depends strongly on the
+# optimization level and a Debug build would be meaningless.
+# ----------------------------------------------------------------------------
+set(BENCH_TRANSFORM ga_sta_bench_transform)
+add_executable(${BENCH_TRANSFORM} utilities/bench_sta4ds_transform.cpp)
+target_include_directories(${BENCH_TRANSFORM} PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(${BENCH_TRANSFORM} PRIVATE ga)
+link_fmt_to_target(${BENCH_TRANSFORM})
+# exclude from the default "build all" so a normal build/test cycle never builds it
+set_target_properties(${BENCH_TRANSFORM} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+if(MSVC)
+    target_compile_options(${BENCH_TRANSFORM} PRIVATE /O2)
+    target_compile_definitions(${BENCH_TRANSFORM} PRIVATE NDEBUG)
+else()
+    target_compile_options(${BENCH_TRANSFORM} PRIVATE -O3)
+    target_compile_definitions(${BENCH_TRANSFORM} PRIVATE NDEBUG)
+endif()
+
+# Convenience: build AND run the benchmark in one step.
+add_custom_target(run_${BENCH_TRANSFORM}
+    COMMAND ${BENCH_TRANSFORM}
+    DEPENDS ${BENCH_TRANSFORM}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "Running sta4ds transform benchmark"
+    VERBATIM
+)
+
+# ----------------------------------------------------------------------------
 # Cross-check JSON exporter for the Python wrapper.
 #
 # Builds a small executable that walks a representative set of GA operations,

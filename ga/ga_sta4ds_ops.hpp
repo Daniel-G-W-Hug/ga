@@ -6,775 +6,462 @@
 #include "ga_sta4ds_ops_basics.hpp"
 #include "ga_sta4ds_ops_products.hpp"
 
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// TODO: all functions here copy paste from pga3dp -> nees adaptation and testing!
-/////////////////////////////////////////////////////////////////////////////////////////
+#include <algorithm> // std::clamp, std::max
+#include <cmath>     // std::cos, std::sin, std::cosh, std::sinh, std::sqrt, std::abs
+#include <stdexcept> // std::runtime_error
 
 
 namespace hd::ga::sta {
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// provides functionality that is based on pga4ds ops basics and products:
+// High-level STA (G(1,3,0)) operations built on the geometric product (gpr).
 //
-// - angle()                              -> angle operations
-// - exp()                                -> exponential (w.r.t. rgpr)
-// TODO: - log()                                -> logarithm (w.r.t rgpr)
-// - sqrt(M)                              -> sqrt of a motor (w.r.t. rgpr)
-// - get_motor()                          -> provide a motor from (line, phi), or (delta),
-//                                           or (line, phi, dist along line)
-// - get_motor_from_planes()              -> provide a motor (from two plane reflections)
-// - get_motor_from_lines()               -> provide a motor (from two lines moved
-//                                                            into each other)
-// - move4ds(), move4ds_opt()             -> move object with motor
-// - project_onto(), reject_from()        -> simple projection and rejection
-// - expand()                             -> expansion: new line/plane through point/line
-//                                                      perpendicular to line/plane
-// - ortho_proj4ds()                      -> orthogonal projection onto object
-// - central_proj4ds()                    -> central projection towards origin onto object
-// - ortho_antiproj4ds()                  -> orthogonal antiprojection onto object
-// - reflect_on()                         -> reflections
-// - invert_on()                          -> inversions
-// - sup()                                -> point on line/plane that is nearest to origin
-// - att()                                -> object attitude
-// - dist4ds()                            -> Euclidean distance and homogeneous magnitude
-// - is_congruent()                       -> Same up to a scalar factor (is same subspace)
+// Unlike pga3dp (which uses regressive motors for rigid motions), STA transforms via
+// the geometric-product rotor sandwich  X' = R * X * rev(R),  with R = exp(bivector).
+// The structure mirrors ega3d_ops.hpp (also gpr-based), extended for the Lorentzian
+// signature: spatial bivectors  (g23, g31, g12; B^2 < 0) generate rotations,
+//            timelike bivectors (g14, g24, g34; B^2 > 0) generate Lorentz boosts.
 //
+// Implemented:
+//   - exp(BiVec)                      -> rotor exponential of a (simple) bivector
+//   - get_rotor(plane, angle)         -> rotor for a spatial rotation
+//   - get_boost(plane, phi)           -> rotor for a Lorentz boost (rapidity phi)
+//   - angle() / rapidity()            -> separation of two vectors (spacelike / timelike)
+//   - transform(X, R)                 -> apply a rotor via the sandwich R*X*rev(R)
+//   - transform_opt(X, R)             -> closed-form transform (scalar + batch overload)
+//   - time_split() / space_split()    -> spacetime split of a vector (time + rel. space)
+//   - rel_vec_split() / rel_bivec_split() -> spacetime split of a bivector (E / B parts)
+//   - project_onto() / reject_from()  -> projection / rejection (onto vector or bivector)
+//   - reflect_on() / reflect_on_vec() -> reflections (hyperplane, 2-plane, vector)
+//   - is_congruent()                  -> same subspace up to a scalar factor
+//
+// TODO (next steps): log / sqrt of rotors; bivec/trivec transform_opt() overloads.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// angle operations 4ds
+// rotor exponential w.r.t. the geometric product
+//
+// For a SIMPLE bivector B (B^B == 0, so B*B is a pure scalar s = nrm_sq(B)):
+//   s < 0  (spatial plane):  exp(B) = cos(a)  + (B/a) sin(a),   a = sqrt(-s) = nrm(B)
+//   s > 0  (boost plane):    exp(B) = cosh(a) + (B/a) sinh(a),  a = sqrt( s) = nrm(B)
+//   s == 0 (null/zero):      exp(B) = 1 + B
+//
+// TODO: general (non-simple) bivectors, where B*B also has a pseudoscalar part.
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec4ds_E<T> exp(BiVec4ds<T> const& B)
+{
+    T const s = nrm_sq(B); // = scalar part of B*B (pure scalar for a simple B)
+    T const a = std::sqrt(std::abs(s));
+    if (a <= detail::safe_epsilon<T>()) {
+        // |B| ~ 0  ->  identity rotor (covers the null/zero case to first order)
+        return MVec4ds_E<T>(Scalar4ds<T>(1.0), B);
+    }
+    if (s < T(0.0)) {
+        // spatial plane -> circular (rotation)
+        return MVec4ds_E<T>(Scalar4ds<T>(std::cos(a)), (std::sin(a) / a) * B);
+    }
+    // boost plane -> hyperbolic (Lorentz boost)
+    return MVec4ds_E<T>(Scalar4ds<T>(std::cosh(a)), (std::sinh(a) / a) * B);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// rotor for a spatial rotation by angle theta in the oriented plane B
+// (B a spatial bivector, B*B < 0; need not be normalized).
+// Apply via the sandwich transform(X, R) = R * X * rev(R): rotates by +theta.
+// Half-angle and sign convention match ega3d get_rotor().
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+inline MVec4ds_E<std::common_type_t<T, U>> get_rotor(BiVec4ds<T> const& B, U theta)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const half = -0.5 * theta;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(std::cos(half)),
+                            normalize(B) * std::sin(half));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// rotor for a Lorentz boost by rapidity phi in the oriented time-space plane B
+// (B a boost bivector, B*B > 0; need not be normalized).
+// rapidity relates to velocity by  beta = tanh(phi),  gamma = cosh(phi).
+// Apply via the sandwich transform(X, R) = R * X * rev(R).
+// (The +phi/2 sign convention is validated against gamma = cosh(phi) in step 2.)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+inline MVec4ds_E<std::common_type_t<T, U>> get_boost(BiVec4ds<T> const& B, U phi)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const half = 0.5 * phi;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(std::cosh(half)),
+                            normalize(B) * std::sinh(half));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// separation between two vectors (Lorentzian -- split by causal character)
+//
+// In a Lorentzian metric there is no single "angle" between two vectors. The two
+// physically meaningful cases are kept as separate, guarded functions:
+//
+//   angle(v1, v2)    -- ordinary EUCLIDEAN angle, both vectors SPACELIKE, [0, pi]
+//   rapidity(u1, u2) -- HYPERBOLIC angle (relative rapidity), both TIMELIKE, [0, inf)
+//
+// The sign handling differs from ega3d because dot() carries the metric: for a
+// spacelike vector dot(v,v) = -nrm(v)^2 < 0, while for a timelike vector
+// dot(u,u) = +nrm(u)^2 > 0. Mixed (one spacelike, one timelike) and lightlike
+// inputs have no well-defined separation here and are rejected.
 ////////////////////////////////////////////////////////////////////////////////
 
-// return the angle between of two vectors, i.e. directions to points at infinity
-// range of angle: -pi <= angle <= pi
+// Euclidean angle between two SPACELIKE vectors, range 0 <= angle <= pi.
+//
+// cos(angle) = -dot(v1, v2) / (nrm(v1) * nrm(v2))   (the leading minus undoes the
+// negative spacelike metric, so two equal spacelike vectors give angle 0).
+//
+// PRE: both v1, v2 spacelike (nrm_sq < 0). The result is only geometrically a true
+// angle when v1, v2 span a spacelike plane; if the plane they span is indefinite the
+// ratio can exceed 1 and is clamped (the angle then loses its literal meaning).
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 inline std::common_type_t<T, U> angle(Vec4ds<T> const& v1, Vec4ds<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-
-    if ((weight_nrm_sq(v1) != 0.0) || (weight_nrm_sq(v2) != 0.0)) {
-        // the angle between points not at infinity or points not at infinity and a
-        // direction towards infinity is defined as zero
-        return 0.0;
+    if (!is_spacelike(v1) || !is_spacelike(v2)) {
+        throw std::runtime_error(
+            "GA Error: angle(v1, v2) is defined for spacelike vectors only "
+            "(use rapidity() for timelike vectors)");
     }
-
-    // angle is defined only between directions towards points a infinity
-
-    ctype nrm_prod = ctype(bulk_nrm(v1)) * ctype(bulk_nrm(v2));
+    ctype const nrm_prod = ctype(nrm(v1)) * ctype(nrm(v2));
     hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
-    // std::clamp must be used to take care of numerical inaccuracies
-    return std::acos(std::clamp(ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
+    return std::acos(std::clamp(-ctype(dot(v1, v2)) / nrm_prod, ctype(-1.0), ctype(1.0)));
 }
 
-// return the angle between two bivectors, i.e. lines
-// range of angle: 0 <= angle <= pi
+// Relative rapidity between two TIMELIKE vectors, range 0 <= rapidity < inf.
+//
+// For two unit future-pointing 4-velocities the Lorentz factor is gamma = dot(u1, u2)
+// and the relative rapidity is acosh(gamma). Using |dot| / (nrm * nrm) makes this
+// scale-independent and orientation-agnostic, with cosh >= 1 enforced by the clamp.
+//
+// PRE: both u1, u2 timelike (nrm_sq > 0).
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr std::common_type_t<T, U> angle(BiVec4ds<T> const& B1, BiVec4ds<U> const& B2)
+inline std::common_type_t<T, U> rapidity(Vec4ds<T> const& u1, Vec4ds<U> const& u2)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(r_weight_contract4ds(B1, B2));
-    // hint: weight_nrm returns pscalar! ctype() required around each single result,
-    // otherwise geometric product which evaluates to zero
-    ctype nrm_prod = ctype(weight_nrm(B1) * ctype(weight_nrm(B2)));
-    // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
-    if (nrm_prod != 0.0) {
-        return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
+    if (!is_timelike(u1) || !is_timelike(u2)) {
+        throw std::runtime_error(
+            "GA Error: rapidity(u1, u2) is defined for timelike vectors only "
+            "(use angle() for spacelike vectors)");
     }
-    else {
-        return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
-    }
-}
-
-// return the angle between a trivector and a bivector, i.e. a plane and a line
-// range of angle: 0 <= angle <= pi/2
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr std::common_type_t<T, U> angle(TriVec4ds<T> const& t, BiVec4ds<U> const& B)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(bulk_nrm(r_weight_contract4ds(t, B)));
-    // hint: weight_nrm returns pscalar! ctype() required around each single result,
-    // otherwise geometric product which evaluates to zero
-    ctype nrm_prod = ctype(weight_nrm(t)) * ctype(weight_nrm(B));
-    // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
-    if (nrm_prod != 0.0) {
-        return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
-    }
-    else {
-        return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
-    }
-}
-
-// return the angle between a trivector and a bivector, i.e. a plane and a line
-// range of angle: 0 <= angle <= pi/2
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr std::common_type_t<T, U> angle(BiVec4ds<T> const& B, TriVec4ds<U> const& t)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(bulk_nrm(r_weight_contract4ds(t, B)));
-    // hint: weight_nrm returns pscalar! ctype() required around each single result,
-    // otherwise geometric product which evaluates to zero
-    ctype nrm_prod = ctype(weight_nrm(t)) * ctype(weight_nrm(B));
-    // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
-    if (nrm_prod != 0.0) {
-        return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
-    }
-    else {
-        return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
-    }
-}
-
-// return the angle between two trivectors, i.e. two planes
-// range of angle: 0 <= angle <= pi
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr std::common_type_t<T, U> angle(TriVec4ds<T> const& t1, TriVec4ds<U> const& t2)
-{
-    using ctype = std::common_type_t<T, U>;
-    ctype contr = ctype(r_weight_contract4ds(t1, t2));
-    // hint: weight_nrm returns pscalar! ctype() required around each single result,
-    // otherwise geometric product which evaluates to zero
-    ctype nrm_prod = ctype(weight_nrm(t1)) * ctype(weight_nrm(t2));
-    // fmt::println("contr: {}, nrm_prod = {}", contr, nrm_prod);
-    if (nrm_prod != 0.0) {
-        return std::acos(std::clamp(contr / nrm_prod, ctype(-1.0), ctype(1.0)));
-    }
-    else {
-        return std::acos(std::clamp(contr, ctype(-1.0), ctype(1.0)));
-    }
+    ctype const nrm_prod = ctype(nrm(u1)) * ctype(nrm(u2));
+    hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");
+    return std::acosh(std::max(std::abs(ctype(dot(u1, u2))) / nrm_prod, ctype(1.0)));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// exp() with respect to the regressive geometric product rgpr()
+// apply a Lorentz transformation (rotation and/or boost) via the rotor sandwich
+//
+//     transform(X, R) = R * X * rev(R)
+//
+// with R a unit rotor (from get_rotor / get_boost / exp). The transformation is
+// grade-preserving and preserves the spacetime interval nrm_sq(X).
+//
+// (direct geometric-product form. A closed-form transform_opt() built from the
+//  ga_prdxpr sandwich coefficients follows below; for one-off transforms this
+//  direct form is actually faster -- only the batch std::vector overload of
+//  transform_opt() wins, by amortizing the rotor-only matrix over many vectors.)
 ////////////////////////////////////////////////////////////////////////////////
-template <typename T>
-    requires(numeric_type<T>)
-constexpr MVec4ds_E<T> exp(BiVec4ds<T> const& B)
-{
-    T phi_sq = weight_nrm_sq(B); // rotation angle^2
-    if (phi_sq == 0.0) {
-        // pure translation
-
-        // B = att(r_bulk_dual(delta)) to move in direction of vector delta
-        // B does only contain a bulk part which encodes the translation
-        return MVec4ds_E<T>(Scalar4ds<T>(0.0), B, PScalar4ds<T>(1.0));
-    }
-
-    // rotation with phi != 0
-    T phi = std::sqrt(phi_sq); // rotation angle phi around unitized l
-    T phi_inv = 1.0 / phi;
-    T dot_lvlm = B.vx * B.mx + B.vy * B.my + B.vz * B.mz; // are Bv and Bm orthogonal?
-
-    // retrieve line l (as in case of pure rotation)
-    auto l = phi_inv * B;
-    double dist{0.0}; // default: no translation, i.e. dist = 0
-
-    if (std::abs(dot_lvlm) > eps) {
-        // case where B contains a screw motion with dist * Bv encoded in Bm.
-        // Thus we need to extract the unitized line l and the translation distance.
-
-        // We get the unitized line by projecting the momentum vector lm onto
-        // the direction vector lv and by removing the non-orthogonal part
-        dist = dot_lvlm * phi_inv; // length of projection of lm in direction of lv
-        l = l - dist * phi_inv * phi_inv * bivec4ds{0.0, 0.0, 0.0, B.vx, B.vy, B.vz};
-    }
-
-    return MVec4ds_E<T>(
-        Scalar4ds<T>(-dist * std::sin(phi)),
-        BiVec4ds<T>(l * std::sin(phi) - r_weight_dual(l) * dist * std::cos(phi)),
-        PScalar4ds<T>(std::cos(phi)));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr MVec4ds_E<T> sqrt(MVec4ds_E<T> const& M)
-{
-    if (std::abs(M.c0) < eps) {
-        // simple motor, if M.c0 == 0.0 (i.e. no scalar part)
-        return unitize(M + PScalar4ds<T>(1.0));
-    }
-
-    // non-simple motor for other cases (s. Lengyel, "PGA illuminated", p. 151)
-    return (M + PScalar4ds<T>(1.0)) / std::sqrt(2.0 + 2.0 * M.c7) -
-           rgpr((M + PScalar4ds<T>(1.0)) / std::sqrt(2.0 + 2.0 * M.c7),
-                Scalar4ds<T>(M.c0 / (2.0 + 2.0 * M.c7)));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// 4ds motor operations (translation and rotation)
-//
-// Every motor in pga4ds is an even-grade multivector MVec4ds_E.
-//
-// A proper isometry in 4ds has a fixed line l around which a rotation occurs
-// with an angle phi. The line is represented by a bivector.
-//
-// The rotation so modelled by two consecutive reflections across two planes which
-// intersect in the line l around which the rotation occurs.
-//
-// In this case the motor has the form: M = l sin(phi) + e1234 cos(phi).
-//
-// Translations can be covered by a rotation around a line at infinity.
-//
-// Combined rotations and translations must be created by concatenating the motion
-// operations in the sequence rgpr(motor_applied_last, motor_applied_first)
-////////////////////////////////////////////////////////////////////////////////
-
-// create a motor from a fixed line of rotation and a turning angle
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec4ds_E<std::common_type_t<T, U>> get_motor(BiVec4ds<T> const& L, U theta)
+constexpr Vec4ds<std::common_type_t<T, U>> transform(Vec4ds<T> const& v,
+                                                     MVec4ds_E<U> const& R)
 {
-    // line L must be unitized to avoid surprises
-    auto L_weight_nrm_sq = weight_nrm_sq(L);
-    if (L_weight_nrm_sq < eps) {
-        throw std::invalid_argument(
-            "get_motor: Cannot use ideal lines L with weight_nrm_sq(L) == 0.0");
-    }
-    auto l{L};
-    if ((L_weight_nrm_sq > eps) && (L_weight_nrm_sq != 1.0)) {
-        l = unitize(L);
-    }
-
     using ctype = std::common_type_t<T, U>;
-    ctype half_angle = 0.5 * theta;
-    return MVec4ds_E<ctype>(BiVec4ds<ctype>(l * std::sin(half_angle)),
-                            PScalar4ds<ctype>(std::cos(half_angle)));
+    return Vec4ds<ctype>(gr1(R * v * rev(R)));
 }
 
-// Create a translation motor from a translation
-// delta = vec4ds(delta_x, delta_y, delta_z, 0)
-// Move in direction and by length of translation vector (length = bulk_nrm(delta))
-// ATTENTION: The translation is assumed to be a direction, i.e. with w-component == 0.
-//            The w-component is ignored and only the x-, y- and z-components are used.
-//            Due to the application via the regressive sandwich product the vector needs
-//            to be multiplied by 0.5
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> transform(BiVec4ds<T> const& B,
+                                                       MVec4ds_E<U> const& R)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec4ds<ctype>(gr2(R * B * rev(R)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> transform(TriVec4ds<T> const& t,
+                                                        MVec4ds_E<U> const& R)
+{
+    using ctype = std::common_type_t<T, U>;
+    return TriVec4ds<ctype>(gr3(R * t * rev(R)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> transform(MVec4ds<T> const& M,
+                                                      MVec4ds_E<U> const& R)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds<ctype>(R * M * rev(R));
+}
+
+// optimized closed-form Lorentz transformation of a vector:  v' = R * v * rev(R)
 //
-// The function implements a motor calculated from exp_{\veedot}(B_{tra})
-// with the bivector B_{tra} = 0.5 * bulk_dual(delta) \vee H_{4ds}
-//                           = 0.5 * att(bulk_dual(delta))
-template <typename T>
-    requires(numeric_type<T>)
-constexpr MVec4ds_E<T> get_motor(Vec4ds<T> const& delta)
-{
-    return MVec4ds_E<T>(
-        0.5 * BiVec4ds<T>(T(0.0), T(0.0), T(0.0), delta.x, delta.y, delta.z),
-        PScalar4ds<T>(1.0));
-}
-
-
-// create a motor from a fixed line of rotation l, a turning angle theta, and a
-// distance dist to move along the line
-// => screw motion with axis l, turnging angle theta and movement along l by dist
-// see e.g. E. Lengyel, "PGA Illuminated", p. 143 (equation 3.93)
-template <typename T, typename U, typename V>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec4ds_E<std::common_type_t<T, U, V>> get_motor(BiVec4ds<T> const& L, U theta,
-                                                           V dist)
-{
-    // line L must be unitized to avoid surprises
-    auto L_weight_nrm_sq = weight_nrm_sq(L);
-    auto l{L};
-    if ((L_weight_nrm_sq > eps) && (L_weight_nrm_sq != 1.0)) {
-        l = unitize(L);
-    }
-
-    using ctype = std::common_type_t<T, U, V>;
-    ctype half_angle = 0.5 * theta;
-    ctype half_dist = 0.5 * dist;
-    return MVec4ds_E<ctype>(
-        Scalar4ds<ctype>(-half_dist * std::sin(half_angle)),
-        BiVec4ds<ctype>(l * std::sin(half_angle) -
-                        r_weight_dual(l) * half_dist * std::cos(half_angle)),
-        PScalar4ds<ctype>(std::cos(half_angle)));
-}
-
+// The sandwich collapses to a single 4x4 matrix M(R) acting on (v.x, v.y, v.z, v.w);
+// the 16 matrix entries are quadratic in the rotor coefficients R.c0..R.c7 (the
+// "after transformation" coefficients emitted by ga_prdxpr). Beyond that raw output
+// we additionally collect every distinct product R.ci*R.cj into a named temporary
+// once (8 squares + 24 mixed products), since each appears in several matrix
+// entries -- the squares in all four diagonal entries, each mixed product in two
+// off-diagonal entries. This trades the ~80 inline multiplications of the raw
+// expansion for 32 products + 16 matrix combinations + one matrix-vector product.
+//
+// validated against the direct transform() in the test suite; see there whether the
+// hand collection actually beats what the optimizer already extracts from transform().
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec4ds_E<std::common_type_t<T, U>>
-get_motor_from_planes(TriVec4ds<T> const& t1, TriVec4ds<U> const& t2)
+constexpr Vec4ds<std::common_type_t<T, U>> transform_opt(Vec4ds<T> const& v,
+                                                         MVec4ds_E<U> const& R)
 {
-    // take planes (=trivectors) as input and return a motor M
-    // 1st apply reflection across plane t1, then across t2 to get a motor that rotates
-    // around the intersection line of planes t1 and t2
-    // or translates when t1 and t2 are parallel
-    //
-    // for use of motor M either directly on object u:
-    //
-    //     auto v_moved = gr1( rgpr(rgpr(M, v), rrev(M)) );
-    // or
-    //     auto B_moved = gr2( rgpr(rgpr(M, B), rrev(M)) );
-    // or
-    //     auto t_moved = gr3( rgpr(rgpr(M, t), rrev(M)) );
-    // or
-    //     auto v_moved = move4ds(v,M);  // moves v according to the motor M
-    //     auto B_moved = move4ds(B,M);  // moves B according to the motor M
-    //     auto t_moved = move4ds(t,M);  // moves t according to the motor M
-
-    // planes t1 and t2 need to be unitized to avoid surprises
-    auto w_nrm_sq = weight_nrm_sq(t1);
-    auto tu1{t1};
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
-        tu1 = unitize(tu1);
-    }
-    w_nrm_sq = weight_nrm_sq(t2);
-    auto tu2{t2};
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
-        tu2 = unitize(tu2);
-    }
-
-    // the resulting motor must be unitized to avoid surprises
-    auto M{rgpr(tu2, tu1)};
-    w_nrm_sq = weight_nrm_sq(M);
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
-        M = unitize(M);
-    }
-    return M; // based on the regressive geometric product
-}
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec4ds_E<std::common_type_t<T, U>> get_motor_from_lines(BiVec4ds<T> const& l1,
-                                                                   BiVec4ds<U> const& l2)
-{
-    // Return a motor that moves line l1 to line l2.
-    //
-    // Line of rotation is l_rot = rcmt(l2, rrev(l1)).
-    // The operator rotating by 2*phi and moving by 2*dist is rgpr(l2, rrev(l1))
-    // Thus, sqrt(rgpr(l2, rrev(l1))) is the motor we look for rotating by phi and moving
-    // by dist.
-    // (see Lengyel, "PGA Illuminated", p. 152)
-
-    // l1 and l2 need to be unitized to avoid surprises
-    auto w_nrm_sq = weight_nrm_sq(l1);
-    auto lu1{l1};
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
-        lu1 = unitize(lu1);
-    }
-    w_nrm_sq = weight_nrm_sq(l2);
-    auto lu2{l2};
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
-        lu2 = unitize(lu2);
-    }
-
-    // the resulting motor must be unitized to avoid surprises
-    auto M{sqrt(rgpr(l2, rrev(l1)))};
-    w_nrm_sq = weight_nrm_sq(M);
-    if ((w_nrm_sq > eps) && (w_nrm_sq != 1.0)) {
-        M = unitize(M);
-    }
-    return M; // based on the regressive geometric product
-}
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec4ds<std::common_type_t<T, U>> move4ds(Vec4ds<T> const& v,
-                                                   MVec4ds_E<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // moves v (a vector representing a projective point) according to the motor M
-    using ctype = std::common_type_t<T, U>;
-    return Vec4ds<ctype>(gr1(rgpr(rgpr(M, v), rrev(M))));
-}
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr BiVec4ds<std::common_type_t<T, U>> move4ds(BiVec4ds<T> const& B,
-                                                     MVec4ds_E<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // moves B (a bivector representing a line) according to the motor R
-    using ctype = std::common_type_t<T, U>;
-    return BiVec4ds<ctype>(gr2(rgpr(rgpr(M, B), rrev(M))));
-}
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr TriVec4ds<std::common_type_t<T, U>> move4ds(TriVec4ds<T> const& t,
-                                                      MVec4ds_E<U> const& M)
-{
-    // motor M must be unitized to avoid surprises
-
-    // moves t (a trivector representing a plane) according to the motor R
-    using ctype = std::common_type_t<T, U>;
-    return TriVec4ds<ctype>(gr3(rgpr(rgpr(M, t), rrev(M))));
-}
-
-// rotate a motor (required for robotics applications using kinematic chains)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec4ds_E<std::common_type_t<T, U>> move4ds(MVec4ds_E<T> const& M_orig,
-                                                      MVec4ds_E<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // moves M_orig (a motor) according to the motor M
-    // e.g. kinematic chains in robotics application with coupled joints
-    // effectively "rotating the rotation direction"
-    using ctype = std::common_type_t<T, U>;
-    return MVec4ds_E<ctype>(rgpr(rgpr(M, M_orig), rrev(M)));
-}
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr MVec4ds<std::common_type_t<T, U>> move4ds(MVec4ds<T> const& MV,
-                                                    MVec4ds_E<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // rotate one multivector M with motor M
-    using ctype = std::common_type_t<T, U>;
-    return MVec4ds<ctype>(rgpr(rgpr(M, MV), rrev(M)));
-}
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec4ds<std::common_type_t<T, U>> move4ds_opt(Vec4ds<T> const& v,
-                                                       MVec4ds_E<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // moves v (a vector representing a projective point) according to the motor R
-    // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
 
-    // coefficients calculated with ga_prdxpr (pga4ds regressive sandwich product)
-    ctype const h0 = M.c1 * M.c1;
-    ctype const h1 = M.c2 * M.c2;
-    ctype const h2 = M.c3 * M.c3;
-    ctype const h3 = M.c7 * M.c7;
-    ctype const h4 = M.c1 * M.c2;
-    ctype const h5 = M.c3 * M.c7;
-    ctype const h6 = M.c1 * M.c3;
-    ctype const h7 = M.c2 * M.c7;
-    ctype const h8 = M.c1 * M.c7;
-    ctype const h9 = M.c2 * M.c3;
+    // squared rotor coefficients (each reused across all four diagonal entries)
+    ctype const a0 = R.c0 * R.c0;
+    ctype const a1 = R.c1 * R.c1;
+    ctype const a2 = R.c2 * R.c2;
+    ctype const a3 = R.c3 * R.c3;
+    ctype const a4 = R.c4 * R.c4;
+    ctype const a5 = R.c5 * R.c5;
+    ctype const a6 = R.c6 * R.c6;
+    ctype const a7 = R.c7 * R.c7;
 
-    ctype const k11 = h0 - h1 - h2 + h3;
-    ctype const k12 = 2.0 * (h4 - h5);
-    ctype const k13 = 2.0 * (h6 + h7);
-    ctype const k14 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 + M.c4 * M.c7);
-    ctype const k21 = 2.0 * (h4 + h5);
-    ctype const k22 = -h0 + h1 - h2 + h3;
-    ctype const k23 = 2.0 * (-h8 + h9);
-    ctype const k24 = 2.0 * (-M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
-    ctype const k31 = 2.0 * (h6 - h7);
-    ctype const k32 = 2.0 * (h8 + h9);
-    ctype const k33 = -h0 - h1 + h2 + h3;
-    ctype const k34 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 + M.c6 * M.c7);
-    ctype const k44 = h0 + h1 + h2 + h3;
+    // mixed rotor coefficients needed for the vector transform (each reused twice)
+    ctype const b01 = R.c0 * R.c1;
+    ctype const b02 = R.c0 * R.c2;
+    ctype const b03 = R.c0 * R.c3;
+    ctype const b04 = R.c0 * R.c4;
+    ctype const b05 = R.c0 * R.c5;
+    ctype const b06 = R.c0 * R.c6;
+    ctype const b12 = R.c1 * R.c2;
+    ctype const b13 = R.c1 * R.c3;
+    ctype const b15 = R.c1 * R.c5;
+    ctype const b16 = R.c1 * R.c6;
+    ctype const b17 = R.c1 * R.c7;
+    ctype const b23 = R.c2 * R.c3;
+    ctype const b24 = R.c2 * R.c4;
+    ctype const b26 = R.c2 * R.c6;
+    ctype const b27 = R.c2 * R.c7;
+    ctype const b34 = R.c3 * R.c4;
+    ctype const b35 = R.c3 * R.c5;
+    ctype const b37 = R.c3 * R.c7;
+    ctype const b45 = R.c4 * R.c5;
+    ctype const b46 = R.c4 * R.c6;
+    ctype const b47 = R.c4 * R.c7;
+    ctype const b56 = R.c5 * R.c6;
+    ctype const b57 = R.c5 * R.c7;
+    ctype const b67 = R.c6 * R.c7;
+
+    // 4x4 transformation matrix M(R) (row = output basis vector g1,g2,g3,g4)
+    ctype const k11 = a0 + a1 - a2 - a3 + a4 - a5 - a6 + a7;
+    ctype const k12 = 2.0 * (-b06 + b12 + b37 + b45);
+    ctype const k13 = 2.0 * (b05 + b13 - b27 + b46);
+    ctype const k14 = 2.0 * (b01 - b26 + b35 + b47);
+
+    ctype const k21 = 2.0 * (b06 + b12 - b37 + b45);
+    ctype const k22 = a0 - a1 + a2 - a3 - a4 + a5 - a6 + a7;
+    ctype const k23 = 2.0 * (-b04 + b17 + b23 + b56);
+    ctype const k24 = 2.0 * (b02 + b16 - b34 + b57);
+
+    ctype const k31 = 2.0 * (-b05 + b13 + b27 + b46);
+    ctype const k32 = 2.0 * (b04 - b17 + b23 + b56);
+    ctype const k33 = a0 - a1 - a2 + a3 - a4 - a5 + a6 + a7;
+    ctype const k34 = 2.0 * (b03 - b15 + b24 + b67);
+
+    ctype const k41 = 2.0 * (b01 + b26 - b35 + b47);
+    ctype const k42 = 2.0 * (b02 - b16 + b34 + b57);
+    ctype const k43 = 2.0 * (b03 + b15 - b24 + b67);
+    ctype const k44 = a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7;
 
     return Vec4ds<ctype>(k11 * v.x + k12 * v.y + k13 * v.z + k14 * v.w,
                          k21 * v.x + k22 * v.y + k23 * v.z + k24 * v.w,
-                         k31 * v.x + k32 * v.y + k33 * v.z + k34 * v.w, k44 * v.w);
+                         k31 * v.x + k32 * v.y + k33 * v.z + k34 * v.w,
+                         k41 * v.x + k42 * v.y + k43 * v.z + k44 * v.w);
 }
 
+// batch Lorentz transformation of many vectors by the SAME rotor R.
+//
+// This is the variant where the closed form actually pays off: the 4x4 matrix M(R)
+// depends only on the rotor, so it is built once and then applied to every vector
+// (one matrix-vector product each). For a single one-off transform prefer transform()
+// -- there the matrix-build cost is not amortized and the direct sandwich is faster.
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr std::vector<Vec4ds<std::common_type_t<T, U>>>
-move4ds(std::vector<Vec4ds<T>> const& vec, MVec4ds_E<U> const& M)
+std::vector<Vec4ds<std::common_type_t<T, U>>>
+transform_opt(std::vector<Vec4ds<T>> const& vecs, MVec4ds_E<U> const& R)
 {
-    // pre: motor M must be unitized to avoid surprises
-
-    // moves v (a vector representing a projective point) according to the motor R
-    // optimized by avoiding non-required calculations vs. original version
     using ctype = std::common_type_t<T, U>;
 
-    // coefficients calculated with ga_prdxpr (pga4ds regressive sandwich product)
-    ctype const h0 = M.c1 * M.c1;
-    ctype const h1 = M.c2 * M.c2;
-    ctype const h2 = M.c3 * M.c3;
-    ctype const h3 = M.c7 * M.c7;
-    ctype const h4 = M.c1 * M.c2;
-    ctype const h5 = M.c3 * M.c7;
-    ctype const h6 = M.c1 * M.c3;
-    ctype const h7 = M.c2 * M.c7;
-    ctype const h8 = M.c1 * M.c7;
-    ctype const h9 = M.c2 * M.c3;
+    // squared rotor coefficients (each reused across all four diagonal entries)
+    ctype const a0 = R.c0 * R.c0;
+    ctype const a1 = R.c1 * R.c1;
+    ctype const a2 = R.c2 * R.c2;
+    ctype const a3 = R.c3 * R.c3;
+    ctype const a4 = R.c4 * R.c4;
+    ctype const a5 = R.c5 * R.c5;
+    ctype const a6 = R.c6 * R.c6;
+    ctype const a7 = R.c7 * R.c7;
 
-    ctype const k11 = h0 - h1 - h2 + h3;
-    ctype const k12 = 2.0 * (h4 - h5);
-    ctype const k13 = 2.0 * (h6 + h7);
-    ctype const k14 = 2.0 * (-M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 + M.c4 * M.c7);
-    ctype const k21 = 2.0 * (h4 + h5);
-    ctype const k22 = -h0 + h1 - h2 + h3;
-    ctype const k23 = 2.0 * (-h8 + h9);
-    ctype const k24 = 2.0 * (-M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 + M.c5 * M.c7);
-    ctype const k31 = 2.0 * (h6 - h7);
-    ctype const k32 = 2.0 * (h8 + h9);
-    ctype const k33 = -h0 - h1 + h2 + h3;
-    ctype const k34 = 2.0 * (-M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 + M.c6 * M.c7);
-    ctype const k44 = h0 + h1 + h2 + h3;
+    // mixed rotor coefficients needed for the vector transform (each reused twice)
+    ctype const b01 = R.c0 * R.c1;
+    ctype const b02 = R.c0 * R.c2;
+    ctype const b03 = R.c0 * R.c3;
+    ctype const b04 = R.c0 * R.c4;
+    ctype const b05 = R.c0 * R.c5;
+    ctype const b06 = R.c0 * R.c6;
+    ctype const b12 = R.c1 * R.c2;
+    ctype const b13 = R.c1 * R.c3;
+    ctype const b15 = R.c1 * R.c5;
+    ctype const b16 = R.c1 * R.c6;
+    ctype const b17 = R.c1 * R.c7;
+    ctype const b23 = R.c2 * R.c3;
+    ctype const b24 = R.c2 * R.c4;
+    ctype const b26 = R.c2 * R.c6;
+    ctype const b27 = R.c2 * R.c7;
+    ctype const b34 = R.c3 * R.c4;
+    ctype const b35 = R.c3 * R.c5;
+    ctype const b37 = R.c3 * R.c7;
+    ctype const b45 = R.c4 * R.c5;
+    ctype const b46 = R.c4 * R.c6;
+    ctype const b47 = R.c4 * R.c7;
+    ctype const b56 = R.c5 * R.c6;
+    ctype const b57 = R.c5 * R.c7;
+    ctype const b67 = R.c6 * R.c7;
 
-    std::vector<Vec4ds<ctype>> result;
-    result.reserve(vec.size());
+    ctype const k11 = a0 + a1 - a2 - a3 + a4 - a5 - a6 + a7;
+    ctype const k12 = 2.0 * (-b06 + b12 + b37 + b45);
+    ctype const k13 = 2.0 * (b05 + b13 - b27 + b46);
+    ctype const k14 = 2.0 * (b01 - b26 + b35 + b47);
 
-    for (auto const& v : vec) {
-        result.emplace_back(Vec4ds<ctype>(k11 * v.x + k12 * v.y + k13 * v.z + k14 * v.w,
-                                          k21 * v.x + k22 * v.y + k23 * v.z + k24 * v.w,
-                                          k31 * v.x + k32 * v.y + k33 * v.z + k34 * v.w,
-                                          k44 * v.w));
+    ctype const k21 = 2.0 * (b06 + b12 - b37 + b45);
+    ctype const k22 = a0 - a1 + a2 - a3 - a4 + a5 - a6 + a7;
+    ctype const k23 = 2.0 * (-b04 + b17 + b23 + b56);
+    ctype const k24 = 2.0 * (b02 + b16 - b34 + b57);
+
+    ctype const k31 = 2.0 * (-b05 + b13 + b27 + b46);
+    ctype const k32 = 2.0 * (b04 - b17 + b23 + b56);
+    ctype const k33 = a0 - a1 - a2 + a3 - a4 - a5 + a6 + a7;
+    ctype const k34 = 2.0 * (b03 - b15 + b24 + b67);
+
+    ctype const k41 = 2.0 * (b01 + b26 - b35 + b47);
+    ctype const k42 = 2.0 * (b02 - b16 + b34 + b57);
+    ctype const k43 = 2.0 * (b03 + b15 - b24 + b67);
+    ctype const k44 = a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7;
+
+    std::vector<Vec4ds<ctype>> res;
+    res.reserve(vecs.size());
+    for (auto const& v : vecs) {
+        res.emplace_back(Vec4ds<ctype>(k11 * v.x + k12 * v.y + k13 * v.z + k14 * v.w,
+                                       k21 * v.x + k22 * v.y + k23 * v.z + k24 * v.w,
+                                       k31 * v.x + k32 * v.y + k33 * v.z + k34 * v.w,
+                                       k41 * v.x + k42 * v.y + k43 * v.z + k44 * v.w));
     }
-    return result;
-}
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr BiVec4ds<std::common_type_t<T, U>> move4ds_opt(BiVec4ds<T> const& B,
-                                                         MVec4ds_E<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // moves B a bivector representing a line according to the motor R
-    // optimized by avoiding non-required calculations vs. original version
-    using ctype = std::common_type_t<T, U>;
-
-    // coefficients calculated with ga_prdxpr (pga4ds regressive sandwich product)
-    ctype const h0 = M.c1 * M.c1;
-    ctype const h1 = M.c2 * M.c2;
-    ctype const h2 = M.c3 * M.c3;
-    ctype const h3 = M.c7 * M.c7;
-    ctype const h4 = M.c1 * M.c2;
-    ctype const h5 = M.c3 * M.c7;
-    ctype const h6 = M.c1 * M.c3;
-    ctype const h7 = M.c2 * M.c7;
-    ctype const h8 = M.c1 * M.c7;
-    ctype const h9 = M.c2 * M.c3;
-    ctype const h10 = M.c0 * M.c7;
-    ctype const h11 = M.c1 * M.c4;
-    ctype const h12 = M.c2 * M.c5;
-    ctype const h13 = M.c3 * M.c6;
-    ctype const h14 = M.c0 * M.c3;
-    ctype const h15 = M.c1 * M.c5;
-    ctype const h16 = M.c2 * M.c4;
-    ctype const h17 = M.c6 * M.c7;
-    ctype const h18 = M.c0 * M.c2;
-    ctype const h19 = M.c1 * M.c6;
-    ctype const h20 = M.c3 * M.c4;
-    ctype const h21 = M.c5 * M.c7;
-    ctype const h22 = M.c0 * M.c1;
-    ctype const h23 = M.c2 * M.c6;
-    ctype const h24 = M.c3 * M.c5;
-    ctype const h25 = M.c4 * M.c7;
-
-    ctype const k11 = h0 - h1 - h2 + h3;
-    ctype const k12 = 2.0 * (h4 - h5);
-    ctype const k13 = 2.0 * (h6 + h7);
-    ctype const k21 = 2.0 * (h4 + h5);
-    ctype const k22 = -h0 + h1 - h2 + h3;
-    ctype const k23 = 2.0 * (-h8 + h9);
-    ctype const k31 = 2.0 * (h6 - h7);
-    ctype const k32 = 2.0 * (h8 + h9);
-    ctype const k33 = -h0 - h1 + h2 + h3;
-
-    ctype const k41 = 2.0 * (h10 + h11 - h12 - h13);
-    ctype const k42 = 2.0 * (-h14 + h15 + h16 - h17);
-    ctype const k43 = 2.0 * (h18 + h19 + h20 + h21);
-    ctype const k51 = 2.0 * (h14 + h15 + h16 + h17);
-    ctype const k52 = 2.0 * (h10 - h11 + h12 - h13);
-    ctype const k53 = 2.0 * (-h22 + h23 + h24 - h25);
-    ctype const k61 = 2.0 * (-h18 + h19 + h20 - h21);
-    ctype const k62 = 2.0 * (h22 + h23 + h24 + h25);
-    ctype const k63 = 2.0 * (h10 - h11 - h12 + h13);
-
-    return BiVec4ds<ctype>(
-        k11 * B.vx + k12 * B.vy + k13 * B.vz, k21 * B.vx + k22 * B.vy + k23 * B.vz,
-        k31 * B.vx + k32 * B.vy + k33 * B.vz,
-        k41 * B.vx + k42 * B.vy + k43 * B.vz + k11 * B.mx + k12 * B.my + k13 * B.mz,
-        k51 * B.vx + k52 * B.vy + k53 * B.vz + k21 * B.mx + k22 * B.my + k23 * B.mz,
-        k61 * B.vx + k62 * B.vy + k63 * B.vz + k31 * B.mx + k32 * B.my + k33 * B.mz);
-}
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr std::vector<BiVec4ds<std::common_type_t<T, U>>>
-move4ds(std::vector<BiVec4ds<T>> const& bvec, MVec4ds_E<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // moves B a bivector representing a line according to the motor R
-    // optimized by avoiding non-required calculations vs. original version
-    using ctype = std::common_type_t<T, U>;
-
-    // coefficients calculated with ga_prdxpr (pga4ds regressive sandwich product)
-    ctype const h0 = M.c1 * M.c1;
-    ctype const h1 = M.c2 * M.c2;
-    ctype const h2 = M.c3 * M.c3;
-    ctype const h3 = M.c7 * M.c7;
-    ctype const h4 = M.c1 * M.c2;
-    ctype const h5 = M.c3 * M.c7;
-    ctype const h6 = M.c1 * M.c3;
-    ctype const h7 = M.c2 * M.c7;
-    ctype const h8 = M.c1 * M.c7;
-    ctype const h9 = M.c2 * M.c3;
-    ctype const h10 = M.c0 * M.c7;
-    ctype const h11 = M.c1 * M.c4;
-    ctype const h12 = M.c2 * M.c5;
-    ctype const h13 = M.c3 * M.c6;
-    ctype const h14 = M.c0 * M.c3;
-    ctype const h15 = M.c1 * M.c5;
-    ctype const h16 = M.c2 * M.c4;
-    ctype const h17 = M.c6 * M.c7;
-    ctype const h18 = M.c0 * M.c2;
-    ctype const h19 = M.c1 * M.c6;
-    ctype const h20 = M.c3 * M.c4;
-    ctype const h21 = M.c5 * M.c7;
-    ctype const h22 = M.c0 * M.c1;
-    ctype const h23 = M.c2 * M.c6;
-    ctype const h24 = M.c3 * M.c5;
-    ctype const h25 = M.c4 * M.c7;
-
-    ctype const k11 = h0 - h1 - h2 + h3;
-    ctype const k12 = 2.0 * (h4 - h5);
-    ctype const k13 = 2.0 * (h6 + h7);
-    ctype const k21 = 2.0 * (h4 + h5);
-    ctype const k22 = -h0 + h1 - h2 + h3;
-    ctype const k23 = 2.0 * (-h8 + h9);
-    ctype const k31 = 2.0 * (h6 - h7);
-    ctype const k32 = 2.0 * (h8 + h9);
-    ctype const k33 = -h0 - h1 + h2 + h3;
-
-    ctype const k41 = 2.0 * (h10 + h11 - h12 - h13);
-    ctype const k42 = 2.0 * (-h14 + h15 + h16 - h17);
-    ctype const k43 = 2.0 * (h18 + h19 + h20 + h21);
-    ctype const k51 = 2.0 * (h14 + h15 + h16 + h17);
-    ctype const k52 = 2.0 * (h10 - h11 + h12 - h13);
-    ctype const k53 = 2.0 * (-h22 + h23 + h24 - h25);
-    ctype const k61 = 2.0 * (-h18 + h19 + h20 - h21);
-    ctype const k62 = 2.0 * (h22 + h23 + h24 + h25);
-    ctype const k63 = 2.0 * (h10 - h11 - h12 + h13);
-
-    std::vector<BiVec4ds<ctype>> result;
-    result.reserve(bvec.size());
-
-    for (auto const& B : bvec) {
-        result.emplace_back(BiVec4ds<ctype>(
-            k11 * B.vx + k12 * B.vy + k13 * B.vz, k21 * B.vx + k22 * B.vy + k23 * B.vz,
-            k31 * B.vx + k32 * B.vy + k33 * B.vz,
-            k41 * B.vx + k42 * B.vy + k43 * B.vz + k11 * B.mx + k12 * B.my + k13 * B.mz,
-            k51 * B.vx + k52 * B.vy + k53 * B.vz + k21 * B.mx + k22 * B.my + k23 * B.mz,
-            k61 * B.vx + k62 * B.vy + k63 * B.vz + k31 * B.mx + k32 * B.my + k33 * B.mz));
-    }
-    return result;
-}
-
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr TriVec4ds<std::common_type_t<T, U>> move4ds_opt(TriVec4ds<T> const& t,
-                                                          MVec4ds_E<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // moves t (a trivector representing a plane) according to the motor R
-    // optimized by avoiding non-required calculations vs. original version
-    using ctype = std::common_type_t<T, U>;
-
-    // coefficients calculated with ga_prdxpr (pga4ds regressive sandwich product)
-    ctype const h0 = M.c1 * M.c1;
-    ctype const h1 = M.c2 * M.c2;
-    ctype const h2 = M.c3 * M.c3;
-    ctype const h3 = M.c7 * M.c7;
-    ctype const h4 = M.c1 * M.c2;
-    ctype const h5 = M.c3 * M.c7;
-    ctype const h6 = M.c1 * M.c3;
-    ctype const h7 = M.c2 * M.c7;
-    ctype const h8 = M.c1 * M.c7;
-    ctype const h9 = M.c2 * M.c3;
-
-    ctype const k11 = h0 - h1 - h2 + h3;
-    ctype const k12 = 2.0 * (h4 - h5);
-    ctype const k13 = 2.0 * (h6 + h7);
-    ctype const k21 = 2.0 * (h4 + h5);
-    ctype const k22 = -h0 + h1 - h2 + h3;
-    ctype const k23 = 2.0 * (-h8 + h9);
-    ctype const k31 = 2.0 * (h6 - h7);
-    ctype const k32 = 2.0 * (h8 + h9);
-    ctype const k33 = -h0 - h1 + h2 + h3;
-    ctype const k41 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 - M.c4 * M.c7);
-    ctype const k42 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
-    ctype const k43 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 - M.c6 * M.c7);
-    ctype const k44 = h0 + h1 + h2 + h3;
-
-    return TriVec4ds<ctype>(
-        k11 * t.x + k12 * t.y + k13 * t.z, k21 * t.x + k22 * t.y + k23 * t.z,
-        k31 * t.x + k32 * t.y + k33 * t.z, k41 * t.x + k42 * t.y + k43 * t.z + k44 * t.w);
-}
-
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr std::vector<TriVec4ds<std::common_type_t<T, U>>>
-move4ds(std::vector<TriVec4ds<T>> const& tvec, MVec4ds_E<U> const& M)
-{
-    // pre: motor M must be unitized to avoid surprises
-
-    // moves v (a vector representing a projective point) according to the motor R
-    // optimized by avoiding non-required calculations vs. original version
-    using ctype = std::common_type_t<T, U>;
-
-    // coefficients calculated with ga_prdxpr (pga4ds regressive sandwich product)
-    ctype const h0 = M.c1 * M.c1;
-    ctype const h1 = M.c2 * M.c2;
-    ctype const h2 = M.c3 * M.c3;
-    ctype const h3 = M.c7 * M.c7;
-    ctype const h4 = M.c1 * M.c2;
-    ctype const h5 = M.c3 * M.c7;
-    ctype const h6 = M.c1 * M.c3;
-    ctype const h7 = M.c2 * M.c7;
-    ctype const h8 = M.c1 * M.c7;
-    ctype const h9 = M.c2 * M.c3;
-
-    ctype const k11 = h0 - h1 - h2 + h3;
-    ctype const k12 = 2.0 * (h4 - h5);
-    ctype const k13 = 2.0 * (h6 + h7);
-    ctype const k21 = 2.0 * (h4 + h5);
-    ctype const k22 = -h0 + h1 - h2 + h3;
-    ctype const k23 = 2.0 * (-h8 + h9);
-    ctype const k31 = 2.0 * (h6 - h7);
-    ctype const k32 = 2.0 * (h8 + h9);
-    ctype const k33 = -h0 - h1 + h2 + h3;
-    ctype const k41 = 2.0 * (M.c0 * M.c1 + M.c2 * M.c6 - M.c3 * M.c5 - M.c4 * M.c7);
-    ctype const k42 = 2.0 * (M.c0 * M.c2 - M.c1 * M.c6 + M.c3 * M.c4 - M.c5 * M.c7);
-    ctype const k43 = 2.0 * (M.c0 * M.c3 + M.c1 * M.c5 - M.c2 * M.c4 - M.c6 * M.c7);
-    ctype const k44 = h0 + h1 + h2 + h3;
-
-    std::vector<TriVec4ds<ctype>> result;
-    result.reserve(tvec.size());
-
-    for (auto const& t : tvec) {
-        result.emplace_back(TriVec4ds<ctype>(
-            k11 * t.x + k12 * t.y + k13 * t.z, k21 * t.x + k22 * t.y + k23 * t.z,
-            k31 * t.x + k32 * t.y + k33 * t.z,
-            k41 * t.x + k42 * t.y + k43 * t.z + k44 * t.w));
-    }
-    return result;
+    return res;
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// projections, rejections
+// spacetime split of a vector x relative to a unit timelike observer u (u*u = +1):
+//
+//     x * u = (x . u) + (x ^ u)
+//
+//   time_split(x, u)  = x . u   (scalar)   -> time component of x measured by u
+//   space_split(x, u) = x ^ u   (bivector) -> relative spatial vector, a "relative
+//                                vector" (g_k4-type bivector) in the u-frame
+//
+// Recover x from its parts via  x = gr1( (time_split + space_split) * u )  (u*u=1).
+// The standard observer is the time direction u = g4.
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> time_split(Vec4ds<T> const& x,
+                                                         Vec4ds<U> const& u)
+{
+    return dot(x, u);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> space_split(Vec4ds<T> const& x,
+                                                         Vec4ds<U> const& u)
+{
+    return wdg(x, u);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// spacetime split of a bivector F relative to a unit timelike observer u (u*u = +1).
+//
+// F decomposes into the part anti-commuting with u -- a "relative vector", spanned by
+// the g_k4 boost bivectors (the electric-type part) -- and the part commuting with u
+// -- a "relative bivector", spanned by the g_jk rotation bivectors (the magnetic-type
+// part):
+//
+//   rel_vec_split(F, u)   = 0.5 * (F - gr2(u * F * u))   (anti-commuting, g_k4-type)
+//   rel_bivec_split(F, u) = 0.5 * (F + gr2(u * F * u))   (commuting,      g_jk-type)
+//
+// Their sum is F. Under a boost the two parts mix (the electromagnetic field
+// transformation). The standard observer is the time direction u = g4.
+////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> rel_vec_split(BiVec4ds<T> const& F,
+                                                           Vec4ds<U> const& u)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec4ds<ctype>(0.5 * (F - gr2(u * F * u)));
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> rel_bivec_split(BiVec4ds<T> const& F,
+                                                             Vec4ds<U> const& u)
+{
+    using ctype = std::common_type_t<T, U>;
+    return BiVec4ds<ctype>(0.5 * (F + gr2(u * F * u)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// projections and rejections (geometric-product based, as in ega3d)
+//
+//   project_onto(a, b): component of a parallel to / lying in b
+//   reject_from(a, b) = a - project_onto(a, b): component perpendicular to b
+//
+// PRE: the target b must be non-null (nrm_sq(b) != 0). Projection onto a null
+// (lightlike) blade is undefined here (inv() divides by nrm_sq) -- there is no
+// Euclidean analog. project_onto + reject_from == a, and project_onto(a,b) lies
+// in b (wdg(project_onto(a,b), b) == 0).
 ////////////////////////////////////////////////////////////////////////////////
 
-// projection of a vector v1 onto vector v2
-// returns component of v1 parallel to v2
+// projection of a vector v1 onto a vector v2
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec4ds<std::common_type_t<T, U>> project_onto(Vec4ds<T> const& v1,
                                                         Vec4ds<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
-    return ctype(dot(v1, v2)) * inv(v2); // works directly in representational space
+    return ctype(dot(v1, v2)) * inv(v2);
 }
 
-// rejection of vector v1 from a vector v2
-// returns component of v1 perpendicular to v2
+// rejection of a vector v1 from a vector v2
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec4ds<std::common_type_t<T, U>> reject_from(Vec4ds<T> const& v1,
@@ -782,24 +469,18 @@ constexpr Vec4ds<std::common_type_t<T, U>> reject_from(Vec4ds<T> const& v1,
 {
     using ctype = std::common_type_t<T, U>;
     return Vec4ds<ctype>(v1 - project_onto(v1, v2));
-
-    // works, but is more effort compared to solution via projection and vector difference
-    // return Vec4ds<ctype>(gr1(wdg(v1, v2) * inv(v2)));
 }
 
-
-// orthogonal projection of a vector v onto a bivector B (a line)
+// projection of a vector v onto a bivector B (a 2-plane)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec4ds<std::common_type_t<T, U>> project_onto(Vec4ds<T> const& v,
                                                         BiVec4ds<U> const& B)
 {
-    using ctype = std::common_type_t<T, U>;
-    return Vec4ds<ctype>(rwdg(B, wdg(v, r_weight_dual(B)))); // ortho_proj4ds
+    return gr1((B >> v) * inv(B));
 }
 
-// rejection of vector v from a bivector B (a line)
-// rejection = v - project_onto(v, B)
+// rejection of a vector v from a bivector B (a 2-plane)
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec4ds<std::common_type_t<T, U>> reject_from(Vec4ds<T> const& v,
@@ -810,191 +491,87 @@ constexpr Vec4ds<std::common_type_t<T, U>> reject_from(Vec4ds<T> const& v,
 }
 
 
-// orthogonal projection of a vector v onto a trivector t (a plane)
+////////////////////////////////////////////////////////////////////////////////
+// reflections (geometric-product based, as in ega3d)
+////////////////////////////////////////////////////////////////////////////////
+// Macdonald p. 129: reflecting a j-blade u in the k-dimensional subspace B gives
+//
+//   u_reflected = (-1)^[j*(k+1)] * B * u * inv(B)
+//
+// The reflecting subspace B must be non-null (nrm_sq(B) != 0), since inv(B)
+// divides by nrm_sq(B); reflection in a lightlike subspace is undefined here.
+// All these reflections preserve nrm_sq (they are sandwiches by an invertible
+// versor) and are involutions (applying the same reflection twice is identity).
+// In STA they also realise the discrete spacetime symmetries: reflecting on the
+// spatial hyperplane (normal g4) is parity P, reflecting on the time vector g4
+// flips the three spatial axes, etc.
+////////////////////////////////////////////////////////////////////////////////
+
+// reflect a vector v on a hyperplane given by its (non-null) normal vector nB
+//
+// hyperplane: an (n-1)-dimensional subspace; here the 3d subspace orthogonal to nB.
+// The reflection flips the component of v along nB and keeps the in-plane part:
+//   v_reflected = -nB * v * inv(nB)
+//
+// This is the complement of reflect_on_vec(v, b) below: the leading minus sign
+// turns "reflect onto the line b" into "reflect across the hyperplane normal to nB".
+//
+// HINT: nB = dual(t) for a hyperplane trivector t (with normalized nB).
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec4ds<std::common_type_t<T, U>> project_onto(Vec4ds<T> const& v,
-                                                        TriVec4ds<U> const& t)
+constexpr Vec4ds<std::common_type_t<T, U>> reflect_on(Vec4ds<T> const& v,
+                                                      Vec4ds<U> const& nB)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec4ds<ctype>(rwdg(t, wdg(v, r_weight_dual(t)))); // ortho_proj4ds
+    return Vec4ds<ctype>(gr1(-nB * v * inv(nB)));
 }
 
-// rejection of vector v from a trivector t (a plane)
-// rejection = v - project_onto(v, t)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec4ds<std::common_type_t<T, U>> reject_from(Vec4ds<T> const& v,
-                                                       TriVec4ds<U> const& t)
-{
-    using ctype = std::common_type_t<T, U>;
-    return Vec4ds<ctype>(v - project_onto(v, t));
-}
-
-// orthogonal projection of a line l (a bivector) onto a plane t (a trivector)
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr BiVec4ds<std::common_type_t<T, U>> project_onto(BiVec4ds<T> const& B,
-                                                          TriVec4ds<U> const& t)
-{
-    using ctype = std::common_type_t<T, U>;
-    return BiVec4ds<ctype>(rwdg(t, wdg(B, r_weight_dual(t)))); // ortho_proj4ds
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Projections for 4ds: (HINT: unitize after projection, if not at infinity)
+// reflect a vector v on a hyperplane given directly as a (non-null) trivector t
 //
-// ortho_proj4ds(a, b)     = rwdg(b, r_weight_expand4ds(a, b) )
-// (a projected orthogonally onto b, effectively creating a new a' contained in b)
-// REQUIRES: gr(a) < gr(b)
-//
-//
-// central_proj4ds(a, b)   = rwdg(b, r_bulk_expand4ds(a, b) )
-// (a projected centrally towards origin onto b, effectively creating a new a'
-// contained in b)
-// REQUIRES: gr(a) < gr(b)
-//
-// ortho_antiproj4ds(a, b) = wdg(b, r_weight_contract4ds(a, b) )
-// (a projected orthogonally onto b, effectively creating a new a' containing b)
-// REQUIRES: gr(a) > gr(b)
-//
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename arg1, typename arg2> decltype(auto) ortho_proj4ds(arg1&& a, arg2&& b)
-{
-    // REQUIRES: gr(a) < gr(b), or does not compile!
-
-    // project the smaller grade object onto to larger grade object
-    auto p = rwdg(std::forward<arg2>(b),
-                  r_weight_expand4ds(std::forward<arg1>(a), std::forward<arg2>(b)));
-
-    // return a unitized object, if it is not located in the horizon
-    auto nrm_sq = weight_nrm_sq(p);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
-        p = unitize(p);
-    }
-
-    return p;
-}
-
-template <typename arg1, typename arg2> decltype(auto) central_proj4ds(arg1&& a, arg2&& b)
-{
-    // REQUIRES: gr(a) < gr(b), or does not compile!
-
-    // project the smaller grade object onto to larger grade object
-    auto p = rwdg(std::forward<arg2>(b),
-                  r_bulk_expand4ds(std::forward<arg1>(a), std::forward<arg2>(b)));
-
-    // return a unitized object, if it is not located in the horizon
-    auto nrm_sq = weight_nrm_sq(p);
-    if ((nrm_sq > eps) && (nrm_sq != 1.0)) {
-        p = unitize(p);
-    }
-
-    return p;
-}
-
-template <typename arg1, typename arg2>
-decltype(auto) ortho_antiproj4ds(arg1&& a, arg2&& b)
-{
-    return wdg(std::forward<arg2>(b),
-               r_weight_contract4ds(std::forward<arg1>(a), std::forward<arg2>(b)));
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-// reflections of points, lines, and planes on planes
-////////////////////////////////////////////////////////////////////////////////
-
-// reflect a vector u in an arbitrary trivector, i.e. a plane t
-// pre-condition: t must be unitized
+// In 4d a hyperplane is 3-dimensional, i.e. a trivector. Macdonald: j=1, k=3 =>
+// sign (-1)^[1*4] = +1, hence v_reflected = t * v * inv(t).
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec4ds<std::common_type_t<T, U>> reflect_on(Vec4ds<T> const& v,
                                                       TriVec4ds<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec4ds<ctype>(gr1(rgpr(rgpr(t, v), rrev(t))));
+    return Vec4ds<ctype>(gr1(t * v * inv(t)));
 }
 
-// reflect a bivector B (a line) in an arbitrary trivector t
-// pre-condition: t must be unitized
+// reflect a vector v in an arbitrary (non-null) bivector B, i.e. a 2-plane
+// Macdonald: j=1, k=2 => sign (-1)^[1*3] = -1, hence v_reflected = -B * v * inv(B).
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr BiVec4ds<std::common_type_t<T, U>> reflect_on(BiVec4ds<T> const& B,
-                                                        TriVec4ds<U> const& t)
+constexpr Vec4ds<std::common_type_t<T, U>> reflect_on(Vec4ds<T> const& v,
+                                                      BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return BiVec4ds<ctype>(-gr2(rgpr(rgpr(t, B), rrev(t))));
+    return Vec4ds<ctype>(gr1(-B * v * inv(B)));
 }
 
-// reflect a trivector t1 (a plane) in an arbitrary trivector t2 (a unitized plane)
-// pre-condition: t2 must be unitized
+// reflect a bivector UB in an arbitrary (non-null) bivector B (both 2-planes)
+// Macdonald: j=2, k=2 => sign (-1)^[2*3] = +1, hence UB_reflected = B * UB * inv(B).
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr TriVec4ds<std::common_type_t<T, U>> reflect_on(TriVec4ds<T> const& t1,
-                                                         TriVec4ds<U> const& t2)
+constexpr BiVec4ds<std::common_type_t<T, U>> reflect_on(BiVec4ds<T> const& UB,
+                                                        BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return TriVec4ds<ctype>(-gr3(rgpr(rgpr(t2, t1), rrev(t2))));
+    return BiVec4ds<ctype>(gr2(B * UB * inv(B)));
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// inversion
-// (=point reflection resuling from reflecting across three perpendicular planes)
-// the resulting minus comes for the 3 consecutive reflections
-////////////////////////////////////////////////////////////////////////////////
-
-// (point-)reflect a point q in an arbitrary point p
-// pre-condition: p must be unitized, or object will be scaled as well!
+// reflect a vector v on another (non-null) vector b
+// Macdonald: j=1, k=1 => sign (-1)^[1*2] = +1, hence v_reflected = b * v * inv(b).
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-constexpr Vec4ds<std::common_type_t<T, U>> invert_on(Vec4ds<T> const& q,
-                                                     Vec4ds<U> const& p)
+constexpr Vec4ds<std::common_type_t<T, U>> reflect_on_vec(Vec4ds<T> const& v,
+                                                          Vec4ds<U> const& b)
 {
     using ctype = std::common_type_t<T, U>;
-    return Vec4ds<ctype>(-gr1(rgpr(rgpr(p, q), rrev(p))));
+    return Vec4ds<ctype>(gr1(b * v * inv(b)));
 }
 
-// (point-)reflect a line l in an arbitrary point p
-// pre-condition: p must be unitized, or object will be scaled as well!
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr BiVec4ds<std::common_type_t<T, U>> invert_on(BiVec4ds<T> const& l,
-                                                       Vec4ds<U> const& p)
-{
-    using ctype = std::common_type_t<T, U>;
-    return BiVec4ds<ctype>(-gr2(rgpr(rgpr(p, l), rrev(p))));
-}
-
-// (point-)reflect a plane t in an arbitrary point p
-// pre-condition: p must be unitized, or object will be scaled as well!
-template <typename T, typename U>
-    requires(numeric_type<T> && numeric_type<U>)
-constexpr TriVec4ds<std::common_type_t<T, U>> invert_on(TriVec4ds<T> const& t,
-                                                        Vec4ds<U> const& p)
-{
-    using ctype = std::common_type_t<T, U>;
-    return TriVec4ds<ctype>(-gr3(rgpr(rgpr(p, t), rrev(p))));
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-// 4ds euclidean distance
-////////////////////////////////////////////////////////////////////////////////
-
-// returns the euclidean distance between objects as homogeneous magnitude
-template <typename arg1, typename arg2>
-constexpr DualNum4ds<value_t> dist4ds(arg1&& a, arg2&& b)
-{
-    if constexpr (gr(std::decay_t<arg1>{}) + gr(std::decay_t<arg2>{}) == 4) {
-        return DualNum4ds<value_t>(rwdg(a, b), weight_nrm(wdg(a, att(b))));
-    }
-    else {
-        return DualNum4ds<value_t>(bulk_nrm(att(wdg(a, b))), weight_nrm(wdg(a, att(b))));
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // test congruence (same up to a scalar factor, i.e. representing same subspace)
@@ -1024,8 +601,7 @@ bool is_congruent(Vec4ds<T> const& a, Vec4ds<U> const& b, value_t tolerance = ep
 {
     using ctype = std::common_type_t<T, U>;
 
-    // Handle zero cases using component-wise check (bulk_nrm_sq can be zero for non-zero
-    // PGA elements)
+    // Handle zero cases using component-wise check
     bool a_is_zero = (std::abs(a.x) < tolerance) && (std::abs(a.y) < tolerance) &&
                      (std::abs(a.z) < tolerance) && (std::abs(a.w) < tolerance);
     bool b_is_zero = (std::abs(b.x) < tolerance) && (std::abs(b.y) < tolerance) &&
