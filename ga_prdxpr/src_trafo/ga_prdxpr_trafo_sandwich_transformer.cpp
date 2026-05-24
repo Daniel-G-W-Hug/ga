@@ -481,7 +481,7 @@ SandwichAlgebraConfig AlgebraRegistry::createPGA3DPConfig()
             .matrix_size = components.size()};
 }
 
-SandwichSandwichAlgebraConfig AlgebraRegistry::createSTA4DSConfig()
+SandwichAlgebraConfig AlgebraRegistry::createSTA4DSConfig()
 {
     auto components = basis_kvec_grades(mvsta4ds_basis_kvec, {1});
     return {.name = "sta4ds",
