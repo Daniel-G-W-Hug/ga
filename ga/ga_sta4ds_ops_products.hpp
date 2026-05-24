@@ -12,15 +12,17 @@ namespace hd::ga::sta {
 // provides pga4ds product operations:
 //
 // - dot()                   -> dot product
-// - rdot()                  -> regressive dot product
-// - wdg()                   -> wedge product (join as convenience interface)
-// - rwdg()                  -> regressive wedge product (meet as convenience interface)
+//
+// - wdg()                   -> wedge product
+// - rwdg()                  -> regressive wedge product
+//
 // - operator<<()            -> left contraction
 // - operator>>()            -> right contraction
+//
 // - cmt()                   -> commutator product (= asymmetric part of gpr)
-// - rcmt()                  -> regressive commutator product (=asymmetric part of rgpr)
+//
 // - operator*()             -> geometric product (= gpr)
-// - rgpr()                  -> regressive geometric product
+//
 // - inv()                   -> inversion operation (w.r.t. geometric product)
 //
 // Expansions are the regressive versions of the corresponding contractions.
@@ -131,32 +133,9 @@ constexpr Scalar4ds<std::common_type_t<T, U>> dot(Scalar4ds<T> s1, Scalar4ds<U> 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// regressive dot products for 4ds (= defined for equal grades exclusively)
-//
-// rdot(v1,v2) = l_cmpl( dot(r_cmpl(v1),r_cmpl(v2)) )
-//
-// returns a pseudoscalar
-//
-////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////////////////////////////////////
 // wedge products (= outer product) and join operations
 ////////////////////////////////////////////////////////////////////////////////
 
-
-////////////////////////////////////////////////////////////////////////////////
-// regressive wedge product (= outer product for complements) and meet operations
-// as defined by E. Lengyel in "Projective geometric algebra illuminated"
-// independent of the geometric product, just depending on the outer product (wdg)
-// as well as the complement and thus the pseudoscalar of the space
-// (this definition does NOT connect directly to the geometric product,
-// but to the outer product exclusively)
-//
-//        rwdg(ul, ur) = l_cmpl(wdg(r_cmpl(ul),r_cmpl(ur))) = l_cmpl(r_cmpl(ul) ^
-//        r_cmpl(ur))
-//
-////////////////////////////////////////////////////////////////////////////////
 
 // sta4ds wdg :: wdg(mv,mv) -> mv
 template <typename T, typename U>
@@ -1200,32 +1179,3737 @@ constexpr Scalar4ds<std::common_type_t<T, U>> wdg(Scalar4ds<T> s1, Scalar4ds<U> 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// left contractions A << B: "A contracted onto B"
+// regressive wedge product (= outer product for complements) and meet operations
+// as defined by E. Lengyel in "Projective geometric algebra illuminated"
+// independent of the geometric product, just depending on the outer product (wdg)
+// as well as the complement and thus the pseudoscalar of the space
+// (this definition does NOT connect directly to the geometric product,
+// but to the outer product exclusively)
 //
-// The resulting object is a lies in B and is perpendicular to A
-//
-// Implements the left contraction as per "PGA Illuminated", E. Lengyel:
-//
-// operator<<(a,b) = l_contract(a,b) = rwdg( l_dual(a), b )
+//        rwdg(ul, ur) = l_cmpl(wdg(r_cmpl(ul),r_cmpl(ur))) = l_cmpl(r_cmpl(ul) ^
+//        r_cmpl(ur))
 //
 ////////////////////////////////////////////////////////////////////////////////
+
+// sta4ds rwdg :: rwdg(mv,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(MVec4ds<T> const& A, MVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c15 + A.c1 * B.c11 + A.c2 * B.c12 + A.c3 * B.c13 -
+                     A.c4 * B.c14 + A.c5 * B.c8 + A.c6 * B.c9 + A.c7 * B.c10 +
+                     A.c8 * B.c5 + A.c9 * B.c6 + A.c10 * B.c7 - A.c11 * B.c1 -
+                     A.c12 * B.c2 - A.c13 * B.c3 + A.c14 * B.c4 + A.c15 * B.c0;
+    ctype const c1 = A.c1 * B.c15 + A.c5 * B.c14 + A.c9 * B.c13 - A.c10 * B.c12 -
+                     A.c12 * B.c10 + A.c13 * B.c9 + A.c14 * B.c5 + A.c15 * B.c1;
+    ctype const c2 = A.c2 * B.c15 + A.c6 * B.c14 - A.c8 * B.c13 + A.c10 * B.c11 +
+                     A.c11 * B.c10 - A.c13 * B.c8 + A.c14 * B.c6 + A.c15 * B.c2;
+    ctype const c3 = A.c3 * B.c15 + A.c7 * B.c14 + A.c8 * B.c12 - A.c9 * B.c11 -
+                     A.c11 * B.c9 + A.c12 * B.c8 + A.c14 * B.c7 + A.c15 * B.c3;
+    ctype const c4 = A.c4 * B.c15 + A.c5 * B.c11 + A.c6 * B.c12 + A.c7 * B.c13 +
+                     A.c11 * B.c5 + A.c12 * B.c6 + A.c13 * B.c7 + A.c15 * B.c4;
+    ctype const c5 = A.c5 * B.c15 + A.c12 * B.c13 - A.c13 * B.c12 + A.c15 * B.c5;
+    ctype const c6 = A.c6 * B.c15 - A.c11 * B.c13 + A.c13 * B.c11 + A.c15 * B.c6;
+    ctype const c7 = A.c7 * B.c15 + A.c11 * B.c12 - A.c12 * B.c11 + A.c15 * B.c7;
+    ctype const c8 = A.c8 * B.c15 - A.c11 * B.c14 + A.c14 * B.c11 + A.c15 * B.c8;
+    ctype const c9 = A.c9 * B.c15 - A.c12 * B.c14 + A.c14 * B.c12 + A.c15 * B.c9;
+    ctype const c10 = A.c10 * B.c15 - A.c13 * B.c14 + A.c14 * B.c13 + A.c15 * B.c10;
+    ctype const c11 = A.c11 * B.c15 + A.c15 * B.c11;
+    ctype const c12 = A.c12 * B.c15 + A.c15 * B.c12;
+    ctype const c13 = A.c13 * B.c15 + A.c15 * B.c13;
+    ctype const c14 = A.c14 * B.c15 + A.c15 * B.c14;
+    ctype const c15 = A.c15 * B.c15;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(mv,mv_e) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(MVec4ds<T> const& A,
+                                                 MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c7 + A.c5 * B.c4 + A.c6 * B.c5 + A.c7 * B.c6 + A.c8 * B.c1 +
+                     A.c9 * B.c2 + A.c10 * B.c3 + A.c15 * B.c0;
+    ctype const c1 = A.c1 * B.c7 - A.c12 * B.c6 + A.c13 * B.c5 + A.c14 * B.c1;
+    ctype const c2 = A.c2 * B.c7 + A.c11 * B.c6 - A.c13 * B.c4 + A.c14 * B.c2;
+    ctype const c3 = A.c3 * B.c7 - A.c11 * B.c5 + A.c12 * B.c4 + A.c14 * B.c3;
+    ctype const c4 = A.c4 * B.c7 + A.c11 * B.c1 + A.c12 * B.c2 + A.c13 * B.c3;
+    ctype const c5 = A.c5 * B.c7 + A.c15 * B.c1;
+    ctype const c6 = A.c6 * B.c7 + A.c15 * B.c2;
+    ctype const c7 = A.c7 * B.c7 + A.c15 * B.c3;
+    ctype const c8 = A.c8 * B.c7 + A.c15 * B.c4;
+    ctype const c9 = A.c9 * B.c7 + A.c15 * B.c5;
+    ctype const c10 = A.c10 * B.c7 + A.c15 * B.c6;
+    ctype const c11 = A.c11 * B.c7;
+    ctype const c12 = A.c12 * B.c7;
+    ctype const c13 = A.c13 * B.c7;
+    ctype const c14 = A.c14 * B.c7;
+    ctype const c15 = A.c15 * B.c7;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(mv_e,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(MVec4ds_E<T> const& A,
+                                                 MVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c15 + A.c1 * B.c8 + A.c2 * B.c9 + A.c3 * B.c10 +
+                     A.c4 * B.c5 + A.c5 * B.c6 + A.c6 * B.c7 + A.c7 * B.c0;
+    ctype const c1 = A.c1 * B.c14 + A.c5 * B.c13 - A.c6 * B.c12 + A.c7 * B.c1;
+    ctype const c2 = A.c2 * B.c14 - A.c4 * B.c13 + A.c6 * B.c11 + A.c7 * B.c2;
+    ctype const c3 = A.c3 * B.c14 + A.c4 * B.c12 - A.c5 * B.c11 + A.c7 * B.c3;
+    ctype const c4 = A.c1 * B.c11 + A.c2 * B.c12 + A.c3 * B.c13 + A.c7 * B.c4;
+    ctype const c5 = A.c1 * B.c15 + A.c7 * B.c5;
+    ctype const c6 = A.c2 * B.c15 + A.c7 * B.c6;
+    ctype const c7 = A.c3 * B.c15 + A.c7 * B.c7;
+    ctype const c8 = A.c4 * B.c15 + A.c7 * B.c8;
+    ctype const c9 = A.c5 * B.c15 + A.c7 * B.c9;
+    ctype const c10 = A.c6 * B.c15 + A.c7 * B.c10;
+    ctype const c11 = A.c7 * B.c11;
+    ctype const c12 = A.c7 * B.c12;
+    ctype const c13 = A.c7 * B.c13;
+    ctype const c14 = A.c7 * B.c14;
+    ctype const c15 = A.c7 * B.c15;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(mv,mv_u) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(MVec4ds<T> const& A,
+                                                 MVec4ds_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 - A.c4 * B.c7 -
+                     A.c11 * B.c0 - A.c12 * B.c1 - A.c13 * B.c2 + A.c14 * B.c3;
+    ctype const c1 = A.c5 * B.c7 + A.c9 * B.c6 - A.c10 * B.c5 + A.c15 * B.c0;
+    ctype const c2 = A.c6 * B.c7 - A.c8 * B.c6 + A.c10 * B.c4 + A.c15 * B.c1;
+    ctype const c3 = A.c7 * B.c7 + A.c8 * B.c5 - A.c9 * B.c4 + A.c15 * B.c2;
+    ctype const c4 = A.c5 * B.c4 + A.c6 * B.c5 + A.c7 * B.c6 + A.c15 * B.c3;
+    ctype const c5 = A.c12 * B.c6 - A.c13 * B.c5;
+    ctype const c6 = -A.c11 * B.c6 + A.c13 * B.c4;
+    ctype const c7 = A.c11 * B.c5 - A.c12 * B.c4;
+    ctype const c8 = -A.c11 * B.c7 + A.c14 * B.c4;
+    ctype const c9 = -A.c12 * B.c7 + A.c14 * B.c5;
+    ctype const c10 = -A.c13 * B.c7 + A.c14 * B.c6;
+    ctype const c11 = A.c15 * B.c4;
+    ctype const c12 = A.c15 * B.c5;
+    ctype const c13 = A.c15 * B.c6;
+    ctype const c14 = A.c15 * B.c7;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(mv_u,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(MVec4ds_U<T> const& A,
+                                                 MVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c11 + A.c1 * B.c12 + A.c2 * B.c13 - A.c3 * B.c14 -
+                     A.c4 * B.c1 - A.c5 * B.c2 - A.c6 * B.c3 + A.c7 * B.c4;
+    ctype const c1 = A.c0 * B.c15 - A.c5 * B.c10 + A.c6 * B.c9 + A.c7 * B.c5;
+    ctype const c2 = A.c1 * B.c15 + A.c4 * B.c10 - A.c6 * B.c8 + A.c7 * B.c6;
+    ctype const c3 = A.c2 * B.c15 - A.c4 * B.c9 + A.c5 * B.c8 + A.c7 * B.c7;
+    ctype const c4 = A.c3 * B.c15 + A.c4 * B.c5 + A.c5 * B.c6 + A.c6 * B.c7;
+    ctype const c5 = A.c5 * B.c13 - A.c6 * B.c12;
+    ctype const c6 = -A.c4 * B.c13 + A.c6 * B.c11;
+    ctype const c7 = A.c4 * B.c12 - A.c5 * B.c11;
+    ctype const c8 = -A.c4 * B.c14 + A.c7 * B.c11;
+    ctype const c9 = -A.c5 * B.c14 + A.c7 * B.c12;
+    ctype const c10 = -A.c6 * B.c14 + A.c7 * B.c13;
+    ctype const c11 = A.c4 * B.c15;
+    ctype const c12 = A.c5 * B.c15;
+    ctype const c13 = A.c6 * B.c15;
+    ctype const c14 = A.c7 * B.c15;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(mv,ps) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(MVec4ds<T> const& M, PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * ctype(ps);
+    ctype const c1 = M.c1 * ctype(ps);
+    ctype const c2 = M.c2 * ctype(ps);
+    ctype const c3 = M.c3 * ctype(ps);
+    ctype const c4 = M.c4 * ctype(ps);
+    ctype const c5 = M.c5 * ctype(ps);
+    ctype const c6 = M.c6 * ctype(ps);
+    ctype const c7 = M.c7 * ctype(ps);
+    ctype const c8 = M.c8 * ctype(ps);
+    ctype const c9 = M.c9 * ctype(ps);
+    ctype const c10 = M.c10 * ctype(ps);
+    ctype const c11 = M.c11 * ctype(ps);
+    ctype const c12 = M.c12 * ctype(ps);
+    ctype const c13 = M.c13 * ctype(ps);
+    ctype const c14 = M.c14 * ctype(ps);
+    ctype const c15 = M.c15 * ctype(ps);
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(ps,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(PScalar4ds<T> ps, MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * M.c0;
+    ctype const c1 = ctype(ps) * M.c1;
+    ctype const c2 = ctype(ps) * M.c2;
+    ctype const c3 = ctype(ps) * M.c3;
+    ctype const c4 = ctype(ps) * M.c4;
+    ctype const c5 = ctype(ps) * M.c5;
+    ctype const c6 = ctype(ps) * M.c6;
+    ctype const c7 = ctype(ps) * M.c7;
+    ctype const c8 = ctype(ps) * M.c8;
+    ctype const c9 = ctype(ps) * M.c9;
+    ctype const c10 = ctype(ps) * M.c10;
+    ctype const c11 = ctype(ps) * M.c11;
+    ctype const c12 = ctype(ps) * M.c12;
+    ctype const c13 = ctype(ps) * M.c13;
+    ctype const c14 = ctype(ps) * M.c14;
+    ctype const c15 = ctype(ps) * M.c15;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(mv,trivec) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(MVec4ds<T> const& M,
+                                                 TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c1 * t.x + M.c2 * t.y + M.c3 * t.z - M.c4 * t.w;
+    ctype const c1 = M.c5 * t.w + M.c9 * t.z - M.c10 * t.y;
+    ctype const c2 = M.c6 * t.w - M.c8 * t.z + M.c10 * t.x;
+    ctype const c3 = M.c7 * t.w + M.c8 * t.y - M.c9 * t.x;
+    ctype const c4 = M.c5 * t.x + M.c6 * t.y + M.c7 * t.z;
+    ctype const c5 = M.c12 * t.z - M.c13 * t.y;
+    ctype const c6 = -M.c11 * t.z + M.c13 * t.x;
+    ctype const c7 = M.c11 * t.y - M.c12 * t.x;
+    ctype const c8 = -M.c11 * t.w + M.c14 * t.x;
+    ctype const c9 = -M.c12 * t.w + M.c14 * t.y;
+    ctype const c10 = -M.c13 * t.w + M.c14 * t.z;
+    ctype const c11 = M.c15 * t.x;
+    ctype const c12 = M.c15 * t.y;
+    ctype const c13 = M.c15 * t.z;
+    ctype const c14 = M.c15 * t.w;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(trivec,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(TriVec4ds<T> const& t,
+                                                 MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.x * M.c1 - t.y * M.c2 - t.z * M.c3 + t.w * M.c4;
+    ctype const c1 = -t.y * M.c10 + t.z * M.c9 + t.w * M.c5;
+    ctype const c2 = t.x * M.c10 - t.z * M.c8 + t.w * M.c6;
+    ctype const c3 = -t.x * M.c9 + t.y * M.c8 + t.w * M.c7;
+    ctype const c4 = t.x * M.c5 + t.y * M.c6 + t.z * M.c7;
+    ctype const c5 = t.y * M.c13 - t.z * M.c12;
+    ctype const c6 = -t.x * M.c13 + t.z * M.c11;
+    ctype const c7 = t.x * M.c12 - t.y * M.c11;
+    ctype const c8 = -t.x * M.c14 + t.w * M.c11;
+    ctype const c9 = -t.y * M.c14 + t.w * M.c12;
+    ctype const c10 = -t.z * M.c14 + t.w * M.c13;
+    ctype const c11 = t.x * M.c15;
+    ctype const c12 = t.y * M.c15;
+    ctype const c13 = t.z * M.c15;
+    ctype const c14 = t.w * M.c15;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(mv,bivec) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(MVec4ds<T> const& M,
+                                                 BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c5 * B.mx + M.c6 * B.my + M.c7 * B.mz + M.c8 * B.vx + M.c9 * B.vy +
+                     M.c10 * B.vz;
+    ctype const c1 = -M.c12 * B.mz + M.c13 * B.my + M.c14 * B.vx;
+    ctype const c2 = M.c11 * B.mz - M.c13 * B.mx + M.c14 * B.vy;
+    ctype const c3 = -M.c11 * B.my + M.c12 * B.mx + M.c14 * B.vz;
+    ctype const c4 = M.c11 * B.vx + M.c12 * B.vy + M.c13 * B.vz;
+    ctype const c5 = M.c15 * B.vx;
+    ctype const c6 = M.c15 * B.vy;
+    ctype const c7 = M.c15 * B.vz;
+    ctype const c8 = M.c15 * B.mx;
+    ctype const c9 = M.c15 * B.my;
+    ctype const c10 = M.c15 * B.mz;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(bivec,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(BiVec4ds<T> const& B,
+                                                 MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vx * M.c8 + B.vy * M.c9 + B.vz * M.c10 + B.mx * M.c5 +
+                     B.my * M.c6 + B.mz * M.c7;
+    ctype const c1 = B.vx * M.c14 + B.my * M.c13 - B.mz * M.c12;
+    ctype const c2 = B.vy * M.c14 - B.mx * M.c13 + B.mz * M.c11;
+    ctype const c3 = B.vz * M.c14 + B.mx * M.c12 - B.my * M.c11;
+    ctype const c4 = B.vx * M.c11 + B.vy * M.c12 + B.vz * M.c13;
+    ctype const c5 = B.vx * M.c15;
+    ctype const c6 = B.vy * M.c15;
+    ctype const c7 = B.vz * M.c15;
+    ctype const c8 = B.mx * M.c15;
+    ctype const c9 = B.my * M.c15;
+    ctype const c10 = B.mz * M.c15;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(mv,vec) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(MVec4ds<T> const& M, Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c11 * v.x - M.c12 * v.y - M.c13 * v.z + M.c14 * v.w;
+    ctype const c1 = M.c15 * v.x;
+    ctype const c2 = M.c15 * v.y;
+    ctype const c3 = M.c15 * v.z;
+    ctype const c4 = M.c15 * v.w;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    ctype const c8 = 0.0;
+    ctype const c9 = 0.0;
+    ctype const c10 = 0.0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(vec,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> rwdg(Vec4ds<T> const& v, MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.x * M.c11 + v.y * M.c12 + v.z * M.c13 - v.w * M.c14;
+    ctype const c1 = v.x * M.c15;
+    ctype const c2 = v.y * M.c15;
+    ctype const c3 = v.z * M.c15;
+    ctype const c4 = v.w * M.c15;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    ctype const c8 = 0.0;
+    ctype const c9 = 0.0;
+    ctype const c10 = 0.0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds rwdg :: rwdg(mv,s) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(MVec4ds<T> const& M, Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(M.c15 * ctype(s));
+}
+
+// sta4ds rwdg :: rwdg(s,mv) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(Scalar4ds<T> s, MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(ctype(s) * M.c15);
+}
+
+// sta4ds rwdg :: rwdg(mv_e,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> rwdg(MVec4ds_E<T> const& A,
+                                                   MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c7 + A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 + A.c4 * B.c1 +
+                     A.c5 * B.c2 + A.c6 * B.c3 + A.c7 * B.c0;
+    ctype const c1 = A.c1 * B.c7 + A.c7 * B.c1;
+    ctype const c2 = A.c2 * B.c7 + A.c7 * B.c2;
+    ctype const c3 = A.c3 * B.c7 + A.c7 * B.c3;
+    ctype const c4 = A.c4 * B.c7 + A.c7 * B.c4;
+    ctype const c5 = A.c5 * B.c7 + A.c7 * B.c5;
+    ctype const c6 = A.c6 * B.c7 + A.c7 * B.c6;
+    ctype const c7 = A.c7 * B.c7;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds rwdg :: rwdg(mv_e,mv_u) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> rwdg(MVec4ds_E<T> const& A,
+                                                   MVec4ds_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c1 * B.c7 + A.c5 * B.c6 - A.c6 * B.c5 + A.c7 * B.c0;
+    ctype const c1 = A.c2 * B.c7 - A.c4 * B.c6 + A.c6 * B.c4 + A.c7 * B.c1;
+    ctype const c2 = A.c3 * B.c7 + A.c4 * B.c5 - A.c5 * B.c4 + A.c7 * B.c2;
+    ctype const c3 = A.c1 * B.c4 + A.c2 * B.c5 + A.c3 * B.c6 + A.c7 * B.c3;
+    ctype const c4 = A.c7 * B.c4;
+    ctype const c5 = A.c7 * B.c5;
+    ctype const c6 = A.c7 * B.c6;
+    ctype const c7 = A.c7 * B.c7;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds rwdg :: rwdg(mv_u,mv_e) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> rwdg(MVec4ds_U<T> const& A,
+                                                   MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c7 - A.c5 * B.c6 + A.c6 * B.c5 + A.c7 * B.c1;
+    ctype const c1 = A.c1 * B.c7 + A.c4 * B.c6 - A.c6 * B.c4 + A.c7 * B.c2;
+    ctype const c2 = A.c2 * B.c7 - A.c4 * B.c5 + A.c5 * B.c4 + A.c7 * B.c3;
+    ctype const c3 = A.c3 * B.c7 + A.c4 * B.c1 + A.c5 * B.c2 + A.c6 * B.c3;
+    ctype const c4 = A.c4 * B.c7;
+    ctype const c5 = A.c5 * B.c7;
+    ctype const c6 = A.c6 * B.c7;
+    ctype const c7 = A.c7 * B.c7;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds rwdg :: rwdg(mv_e,ps) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> rwdg(MVec4ds_E<T> const& M,
+                                                   PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * ctype(ps);
+    ctype const c1 = M.c1 * ctype(ps);
+    ctype const c2 = M.c2 * ctype(ps);
+    ctype const c3 = M.c3 * ctype(ps);
+    ctype const c4 = M.c4 * ctype(ps);
+    ctype const c5 = M.c5 * ctype(ps);
+    ctype const c6 = M.c6 * ctype(ps);
+    ctype const c7 = M.c7 * ctype(ps);
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds rwdg :: rwdg(ps,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> rwdg(PScalar4ds<T> ps,
+                                                   MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * M.c0;
+    ctype const c1 = ctype(ps) * M.c1;
+    ctype const c2 = ctype(ps) * M.c2;
+    ctype const c3 = ctype(ps) * M.c3;
+    ctype const c4 = ctype(ps) * M.c4;
+    ctype const c5 = ctype(ps) * M.c5;
+    ctype const c6 = ctype(ps) * M.c6;
+    ctype const c7 = ctype(ps) * M.c7;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds rwdg :: rwdg(mv_e,trivec) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> rwdg(MVec4ds_E<T> const& M,
+                                                   TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c1 * t.w + M.c5 * t.z - M.c6 * t.y;
+    ctype const c1 = M.c2 * t.w - M.c4 * t.z + M.c6 * t.x;
+    ctype const c2 = M.c3 * t.w + M.c4 * t.y - M.c5 * t.x;
+    ctype const c3 = M.c1 * t.x + M.c2 * t.y + M.c3 * t.z;
+    ctype const c4 = M.c7 * t.x;
+    ctype const c5 = M.c7 * t.y;
+    ctype const c6 = M.c7 * t.z;
+    ctype const c7 = M.c7 * t.w;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds rwdg :: rwdg(trivec,mv_e) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> rwdg(TriVec4ds<T> const& t,
+                                                   MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.y * M.c6 + t.z * M.c5 + t.w * M.c1;
+    ctype const c1 = t.x * M.c6 - t.z * M.c4 + t.w * M.c2;
+    ctype const c2 = -t.x * M.c5 + t.y * M.c4 + t.w * M.c3;
+    ctype const c3 = t.x * M.c1 + t.y * M.c2 + t.z * M.c3;
+    ctype const c4 = t.x * M.c7;
+    ctype const c5 = t.y * M.c7;
+    ctype const c6 = t.z * M.c7;
+    ctype const c7 = t.w * M.c7;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds rwdg :: rwdg(mv_e,bivec) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> rwdg(MVec4ds_E<T> const& M,
+                                                   BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 =
+        M.c1 * B.mx + M.c2 * B.my + M.c3 * B.mz + M.c4 * B.vx + M.c5 * B.vy + M.c6 * B.vz;
+    ctype const c1 = M.c7 * B.vx;
+    ctype const c2 = M.c7 * B.vy;
+    ctype const c3 = M.c7 * B.vz;
+    ctype const c4 = M.c7 * B.mx;
+    ctype const c5 = M.c7 * B.my;
+    ctype const c6 = M.c7 * B.mz;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds rwdg :: rwdg(bivec,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> rwdg(BiVec4ds<T> const& B,
+                                                   MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 =
+        B.vx * M.c4 + B.vy * M.c5 + B.vz * M.c6 + B.mx * M.c1 + B.my * M.c2 + B.mz * M.c3;
+    ctype const c1 = B.vx * M.c7;
+    ctype const c2 = B.vy * M.c7;
+    ctype const c3 = B.vz * M.c7;
+    ctype const c4 = B.mx * M.c7;
+    ctype const c5 = B.my * M.c7;
+    ctype const c6 = B.mz * M.c7;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds rwdg :: rwdg(mv_e,vec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> rwdg(MVec4ds_E<T> const& M, Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c7 * v.x;
+    ctype const c1 = M.c7 * v.y;
+    ctype const c2 = M.c7 * v.z;
+    ctype const c3 = M.c7 * v.w;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds rwdg :: rwdg(vec,mv_e) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> rwdg(Vec4ds<T> const& v, MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.x * M.c7;
+    ctype const c1 = v.y * M.c7;
+    ctype const c2 = v.z * M.c7;
+    ctype const c3 = v.w * M.c7;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds rwdg :: rwdg(mv_e,s) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(MVec4ds_E<T> const& M, Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(M.c7 * ctype(s));
+}
+
+// sta4ds rwdg :: rwdg(s,mv_e) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(Scalar4ds<T> s, MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(ctype(s) * M.c7);
+}
+
+// sta4ds rwdg :: rwdg(mv_u,mv_u) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> rwdg(MVec4ds_U<T> const& A,
+                                                   MVec4ds_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 - A.c3 * B.c7 - A.c4 * B.c0 -
+                     A.c5 * B.c1 - A.c6 * B.c2 + A.c7 * B.c3;
+    ctype const c1 = A.c5 * B.c6 - A.c6 * B.c5;
+    ctype const c2 = -A.c4 * B.c6 + A.c6 * B.c4;
+    ctype const c3 = A.c4 * B.c5 - A.c5 * B.c4;
+    ctype const c4 = -A.c4 * B.c7 + A.c7 * B.c4;
+    ctype const c5 = -A.c5 * B.c7 + A.c7 * B.c5;
+    ctype const c6 = -A.c6 * B.c7 + A.c7 * B.c6;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds rwdg :: rwdg(mv_u,ps) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> rwdg(MVec4ds_U<T> const& M,
+                                                   PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * ctype(ps);
+    ctype const c1 = M.c1 * ctype(ps);
+    ctype const c2 = M.c2 * ctype(ps);
+    ctype const c3 = M.c3 * ctype(ps);
+    ctype const c4 = M.c4 * ctype(ps);
+    ctype const c5 = M.c5 * ctype(ps);
+    ctype const c6 = M.c6 * ctype(ps);
+    ctype const c7 = M.c7 * ctype(ps);
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds rwdg :: rwdg(ps,mv_u) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> rwdg(PScalar4ds<T> ps,
+                                                   MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * M.c0;
+    ctype const c1 = ctype(ps) * M.c1;
+    ctype const c2 = ctype(ps) * M.c2;
+    ctype const c3 = ctype(ps) * M.c3;
+    ctype const c4 = ctype(ps) * M.c4;
+    ctype const c5 = ctype(ps) * M.c5;
+    ctype const c6 = ctype(ps) * M.c6;
+    ctype const c7 = ctype(ps) * M.c7;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds rwdg :: rwdg(mv_u,trivec) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> rwdg(MVec4ds_U<T> const& M,
+                                                   TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * t.x + M.c1 * t.y + M.c2 * t.z - M.c3 * t.w;
+    ctype const c1 = M.c5 * t.z - M.c6 * t.y;
+    ctype const c2 = -M.c4 * t.z + M.c6 * t.x;
+    ctype const c3 = M.c4 * t.y - M.c5 * t.x;
+    ctype const c4 = -M.c4 * t.w + M.c7 * t.x;
+    ctype const c5 = -M.c5 * t.w + M.c7 * t.y;
+    ctype const c6 = -M.c6 * t.w + M.c7 * t.z;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds rwdg :: rwdg(trivec,mv_u) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> rwdg(TriVec4ds<T> const& t,
+                                                   MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.x * M.c0 - t.y * M.c1 - t.z * M.c2 + t.w * M.c3;
+    ctype const c1 = t.y * M.c6 - t.z * M.c5;
+    ctype const c2 = -t.x * M.c6 + t.z * M.c4;
+    ctype const c3 = t.x * M.c5 - t.y * M.c4;
+    ctype const c4 = -t.x * M.c7 + t.w * M.c4;
+    ctype const c5 = -t.y * M.c7 + t.w * M.c5;
+    ctype const c6 = -t.z * M.c7 + t.w * M.c6;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds rwdg :: rwdg(mv_u,bivec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> rwdg(MVec4ds_U<T> const& M,
+                                                BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c5 * B.mz + M.c6 * B.my + M.c7 * B.vx;
+    ctype const c1 = M.c4 * B.mz - M.c6 * B.mx + M.c7 * B.vy;
+    ctype const c2 = -M.c4 * B.my + M.c5 * B.mx + M.c7 * B.vz;
+    ctype const c3 = M.c4 * B.vx + M.c5 * B.vy + M.c6 * B.vz;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds rwdg :: rwdg(bivec,mv_u) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> rwdg(BiVec4ds<T> const& B,
+                                                MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vx * M.c7 + B.my * M.c6 - B.mz * M.c5;
+    ctype const c1 = B.vy * M.c7 - B.mx * M.c6 + B.mz * M.c4;
+    ctype const c2 = B.vz * M.c7 + B.mx * M.c5 - B.my * M.c4;
+    ctype const c3 = B.vx * M.c4 + B.vy * M.c5 + B.vz * M.c6;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds rwdg :: rwdg(mv_u,vec) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(MVec4ds_U<T> const& M,
+                                                   Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(-M.c4 * v.x - M.c5 * v.y - M.c6 * v.z + M.c7 * v.w);
+}
+
+// sta4ds rwdg :: rwdg(vec,mv_u) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(Vec4ds<T> const& v,
+                                                   MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(v.x * M.c4 + v.y * M.c5 + v.z * M.c6 - v.w * M.c7);
+}
+
+// sta4ds rwdg :: rwdg(mv_u,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] MVec4ds_U<T> const&,
+                                                   [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(s,mv_u) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar4ds<T>,
+                                                   [[maybe_unused]] MVec4ds_U<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(ps,ps) -> ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar4ds<std::common_type_t<T, U>> rwdg(PScalar4ds<T> ps1, PScalar4ds<U> ps2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar4ds<ctype>(ctype(ps1) * ctype(ps2));
+}
+
+// sta4ds rwdg :: rwdg(ps,trivec) -> trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> rwdg(PScalar4ds<T> ps,
+                                                   TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * t.x;
+    ctype const c1 = ctype(ps) * t.y;
+    ctype const c2 = ctype(ps) * t.z;
+    ctype const c3 = ctype(ps) * t.w;
+    return TriVec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds rwdg :: rwdg(trivec,ps) -> trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> rwdg(TriVec4ds<T> const& t,
+                                                   PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = t.x * ctype(ps);
+    ctype const c1 = t.y * ctype(ps);
+    ctype const c2 = t.z * ctype(ps);
+    ctype const c3 = t.w * ctype(ps);
+    return TriVec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds rwdg :: rwdg(ps,bivec) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> rwdg(PScalar4ds<T> ps, BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * B.vx;
+    ctype const c1 = ctype(ps) * B.vy;
+    ctype const c2 = ctype(ps) * B.vz;
+    ctype const c3 = ctype(ps) * B.mx;
+    ctype const c4 = ctype(ps) * B.my;
+    ctype const c5 = ctype(ps) * B.mz;
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds rwdg :: rwdg(bivec,ps) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> rwdg(BiVec4ds<T> const& B, PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vx * ctype(ps);
+    ctype const c1 = B.vy * ctype(ps);
+    ctype const c2 = B.vz * ctype(ps);
+    ctype const c3 = B.mx * ctype(ps);
+    ctype const c4 = B.my * ctype(ps);
+    ctype const c5 = B.mz * ctype(ps);
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds rwdg :: rwdg(ps,vec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> rwdg(PScalar4ds<T> ps, Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * v.x;
+    ctype const c1 = ctype(ps) * v.y;
+    ctype const c2 = ctype(ps) * v.z;
+    ctype const c3 = ctype(ps) * v.w;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds rwdg :: rwdg(vec,ps) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> rwdg(Vec4ds<T> const& v, PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.x * ctype(ps);
+    ctype const c1 = v.y * ctype(ps);
+    ctype const c2 = v.z * ctype(ps);
+    ctype const c3 = v.w * ctype(ps);
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds rwdg :: rwdg(ps,s) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(PScalar4ds<T> ps, Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(ctype(ps) * ctype(s));
+}
+
+// sta4ds rwdg :: rwdg(s,ps) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(Scalar4ds<T> s, PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(ctype(s) * ctype(ps));
+}
+
+// sta4ds rwdg :: rwdg(trivec,trivec) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> rwdg(TriVec4ds<T> const& t1,
+                                                  TriVec4ds<U> const& t2)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = t1.y * t2.z - t1.z * t2.y;
+    ctype const c1 = -t1.x * t2.z + t1.z * t2.x;
+    ctype const c2 = t1.x * t2.y - t1.y * t2.x;
+    ctype const c3 = -t1.x * t2.w + t1.w * t2.x;
+    ctype const c4 = -t1.y * t2.w + t1.w * t2.y;
+    ctype const c5 = -t1.z * t2.w + t1.w * t2.z;
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds rwdg :: rwdg(trivec,bivec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> rwdg(TriVec4ds<T> const& t,
+                                                BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.y * B.mz + t.z * B.my + t.w * B.vx;
+    ctype const c1 = t.x * B.mz - t.z * B.mx + t.w * B.vy;
+    ctype const c2 = -t.x * B.my + t.y * B.mx + t.w * B.vz;
+    ctype const c3 = t.x * B.vx + t.y * B.vy + t.z * B.vz;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds rwdg :: rwdg(bivec,trivec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> rwdg(BiVec4ds<T> const& B,
+                                                TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vx * t.w + B.my * t.z - B.mz * t.y;
+    ctype const c1 = B.vy * t.w - B.mx * t.z + B.mz * t.x;
+    ctype const c2 = B.vz * t.w + B.mx * t.y - B.my * t.x;
+    ctype const c3 = B.vx * t.x + B.vy * t.y + B.vz * t.z;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds rwdg :: rwdg(trivec,vec) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(TriVec4ds<T> const& t,
+                                                   Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(-t.x * v.x - t.y * v.y - t.z * v.z + t.w * v.w);
+}
+
+// sta4ds rwdg :: rwdg(vec,trivec) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(Vec4ds<T> const& v,
+                                                   TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(v.x * t.x + v.y * t.y + v.z * t.z - v.w * t.w);
+}
+
+// sta4ds rwdg :: rwdg(trivec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] TriVec4ds<T> const&,
+                                                   [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(s,trivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar4ds<T>,
+                                                   [[maybe_unused]] TriVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(bivec,bivec) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg(BiVec4ds<T> const& B1,
+                                                   BiVec4ds<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(B1.vx * B2.mx + B1.vy * B2.my + B1.vz * B2.mz +
+                            B1.mx * B2.vx + B1.my * B2.vy + B1.mz * B2.vz);
+}
+
+// sta4ds rwdg :: rwdg(bivec,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] BiVec4ds<T> const&,
+                                                   [[maybe_unused]] Vec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(vec,bivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] Vec4ds<T> const&,
+                                                   [[maybe_unused]] BiVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(bivec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] BiVec4ds<T> const&,
+                                                   [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(s,bivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar4ds<T>,
+                                                   [[maybe_unused]] BiVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(vec,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] Vec4ds<T> const&,
+                                                   [[maybe_unused]] Vec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(vec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] Vec4ds<T> const&,
+                                                   [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(s,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar4ds<T>,
+                                                   [[maybe_unused]] Vec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds rwdg :: rwdg(s,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> rwdg([[maybe_unused]] Scalar4ds<T>,
+                                                   [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// left contractions A << B: "A contracted onto B"
+//
+// The result lies in B and is perpendicular to A. It is the left interior
+// (inner) product: the grade-lowering part <A B>_(grade(B)-grade(A)) of the
+// geometric product. On equal grades it reduces to the metric inner product:
+//
+//     (A << B) == dot(A, B)
+//
+// Equivalently, as defined in "PGA Illuminated" (E. Lengyel):
+//
+//     operator<<(a,b) = l_contract(a,b) = rwdg( l_dual(a), b )
+//
+// (holds exactly at every grade).
+////////////////////////////////////////////////////////////////////////////////
+
+// sta4ds l_contract :: l_contract(mv,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& A,
+                                                       MVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c4 * B.c4 +
+                     A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7 - A.c8 * B.c8 - A.c9 * B.c9 -
+                     A.c10 * B.c10 - A.c11 * B.c11 - A.c12 * B.c12 - A.c13 * B.c13 +
+                     A.c14 * B.c14 - A.c15 * B.c15;
+    ctype const c1 = A.c0 * B.c1 - A.c2 * B.c10 + A.c3 * B.c9 + A.c4 * B.c5 +
+                     A.c6 * B.c13 - A.c7 * B.c12 - A.c8 * B.c14 - A.c11 * B.c15;
+    ctype const c2 = A.c0 * B.c2 + A.c1 * B.c10 - A.c3 * B.c8 + A.c4 * B.c6 -
+                     A.c5 * B.c13 + A.c7 * B.c11 - A.c9 * B.c14 - A.c12 * B.c15;
+    ctype const c3 = A.c0 * B.c3 - A.c1 * B.c9 + A.c2 * B.c8 + A.c4 * B.c7 +
+                     A.c5 * B.c12 - A.c6 * B.c11 - A.c10 * B.c14 - A.c13 * B.c15;
+    ctype const c4 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 -
+                     A.c8 * B.c11 - A.c9 * B.c12 - A.c10 * B.c13 - A.c14 * B.c15;
+    ctype const c5 = A.c0 * B.c5 + A.c2 * B.c13 - A.c3 * B.c12 - A.c8 * B.c15;
+    ctype const c6 = A.c0 * B.c6 - A.c1 * B.c13 + A.c3 * B.c11 - A.c9 * B.c15;
+    ctype const c7 = A.c0 * B.c7 + A.c1 * B.c12 - A.c2 * B.c11 - A.c10 * B.c15;
+    ctype const c8 = A.c0 * B.c8 - A.c1 * B.c14 + A.c4 * B.c11 + A.c5 * B.c15;
+    ctype const c9 = A.c0 * B.c9 - A.c2 * B.c14 + A.c4 * B.c12 + A.c6 * B.c15;
+    ctype const c10 = A.c0 * B.c10 - A.c3 * B.c14 + A.c4 * B.c13 + A.c7 * B.c15;
+    ctype const c11 = A.c0 * B.c11 + A.c1 * B.c15;
+    ctype const c12 = A.c0 * B.c12 + A.c2 * B.c15;
+    ctype const c13 = A.c0 * B.c13 + A.c3 * B.c15;
+    ctype const c14 = A.c0 * B.c14 + A.c4 * B.c15;
+    ctype const c15 = A.c0 * B.c15;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(mv,mv_e) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& A,
+                                                       MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c0 + A.c5 * B.c1 + A.c6 * B.c2 + A.c7 * B.c3 - A.c8 * B.c4 -
+                     A.c9 * B.c5 - A.c10 * B.c6 - A.c15 * B.c7;
+    ctype const c1 = -A.c2 * B.c6 + A.c3 * B.c5 + A.c4 * B.c1 - A.c11 * B.c7;
+    ctype const c2 = A.c1 * B.c6 - A.c3 * B.c4 + A.c4 * B.c2 - A.c12 * B.c7;
+    ctype const c3 = -A.c1 * B.c5 + A.c2 * B.c4 + A.c4 * B.c3 - A.c13 * B.c7;
+    ctype const c4 = A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c14 * B.c7;
+    ctype const c5 = A.c0 * B.c1 - A.c8 * B.c7;
+    ctype const c6 = A.c0 * B.c2 - A.c9 * B.c7;
+    ctype const c7 = A.c0 * B.c3 - A.c10 * B.c7;
+    ctype const c8 = A.c0 * B.c4 + A.c5 * B.c7;
+    ctype const c9 = A.c0 * B.c5 + A.c6 * B.c7;
+    ctype const c10 = A.c0 * B.c6 + A.c7 * B.c7;
+    ctype const c11 = A.c1 * B.c7;
+    ctype const c12 = A.c2 * B.c7;
+    ctype const c13 = A.c3 * B.c7;
+    ctype const c14 = A.c4 * B.c7;
+    ctype const c15 = A.c0 * B.c7;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(mv_e,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& A,
+                                                       MVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 - A.c4 * B.c8 -
+                     A.c5 * B.c9 - A.c6 * B.c10 - A.c7 * B.c15;
+    ctype const c1 = A.c0 * B.c1 + A.c2 * B.c13 - A.c3 * B.c12 - A.c4 * B.c14;
+    ctype const c2 = A.c0 * B.c2 - A.c1 * B.c13 + A.c3 * B.c11 - A.c5 * B.c14;
+    ctype const c3 = A.c0 * B.c3 + A.c1 * B.c12 - A.c2 * B.c11 - A.c6 * B.c14;
+    ctype const c4 = A.c0 * B.c4 - A.c4 * B.c11 - A.c5 * B.c12 - A.c6 * B.c13;
+    ctype const c5 = A.c0 * B.c5 - A.c4 * B.c15;
+    ctype const c6 = A.c0 * B.c6 - A.c5 * B.c15;
+    ctype const c7 = A.c0 * B.c7 - A.c6 * B.c15;
+    ctype const c8 = A.c0 * B.c8 + A.c1 * B.c15;
+    ctype const c9 = A.c0 * B.c9 + A.c2 * B.c15;
+    ctype const c10 = A.c0 * B.c10 + A.c3 * B.c15;
+    ctype const c11 = A.c0 * B.c11;
+    ctype const c12 = A.c0 * B.c12;
+    ctype const c13 = A.c0 * B.c13;
+    ctype const c14 = A.c0 * B.c14;
+    ctype const c15 = A.c0 * B.c15;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(mv,mv_u) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& A,
+                                                       MVec4ds_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2 + A.c4 * B.c3 -
+                     A.c11 * B.c4 - A.c12 * B.c5 - A.c13 * B.c6 + A.c14 * B.c7;
+    ctype const c1 = A.c0 * B.c0 + A.c6 * B.c6 - A.c7 * B.c5 - A.c8 * B.c7;
+    ctype const c2 = A.c0 * B.c1 - A.c5 * B.c6 + A.c7 * B.c4 - A.c9 * B.c7;
+    ctype const c3 = A.c0 * B.c2 + A.c5 * B.c5 - A.c6 * B.c4 - A.c10 * B.c7;
+    ctype const c4 = A.c0 * B.c3 - A.c8 * B.c4 - A.c9 * B.c5 - A.c10 * B.c6;
+    ctype const c5 = A.c2 * B.c6 - A.c3 * B.c5;
+    ctype const c6 = -A.c1 * B.c6 + A.c3 * B.c4;
+    ctype const c7 = A.c1 * B.c5 - A.c2 * B.c4;
+    ctype const c8 = -A.c1 * B.c7 + A.c4 * B.c4;
+    ctype const c9 = -A.c2 * B.c7 + A.c4 * B.c5;
+    ctype const c10 = -A.c3 * B.c7 + A.c4 * B.c6;
+    ctype const c11 = A.c0 * B.c4;
+    ctype const c12 = A.c0 * B.c5;
+    ctype const c13 = A.c0 * B.c6;
+    ctype const c14 = A.c0 * B.c7;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(mv_u,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& A,
+                                                       MVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c4 -
+                     A.c4 * B.c11 - A.c5 * B.c12 - A.c6 * B.c13 + A.c7 * B.c14;
+    ctype const c1 = -A.c1 * B.c10 + A.c2 * B.c9 + A.c3 * B.c5 - A.c4 * B.c15;
+    ctype const c2 = A.c0 * B.c10 - A.c2 * B.c8 + A.c3 * B.c6 - A.c5 * B.c15;
+    ctype const c3 = -A.c0 * B.c9 + A.c1 * B.c8 + A.c3 * B.c7 - A.c6 * B.c15;
+    ctype const c4 = A.c0 * B.c5 + A.c1 * B.c6 + A.c2 * B.c7 - A.c7 * B.c15;
+    ctype const c5 = A.c1 * B.c13 - A.c2 * B.c12;
+    ctype const c6 = -A.c0 * B.c13 + A.c2 * B.c11;
+    ctype const c7 = A.c0 * B.c12 - A.c1 * B.c11;
+    ctype const c8 = -A.c0 * B.c14 + A.c3 * B.c11;
+    ctype const c9 = -A.c1 * B.c14 + A.c3 * B.c12;
+    ctype const c10 = -A.c2 * B.c14 + A.c3 * B.c13;
+    ctype const c11 = A.c0 * B.c15;
+    ctype const c12 = A.c1 * B.c15;
+    ctype const c13 = A.c2 * B.c15;
+    ctype const c14 = A.c3 * B.c15;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(mv,ps) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& M,
+                                                       PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c15 * ctype(ps);
+    ctype const c1 = -M.c11 * ctype(ps);
+    ctype const c2 = -M.c12 * ctype(ps);
+    ctype const c3 = -M.c13 * ctype(ps);
+    ctype const c4 = -M.c14 * ctype(ps);
+    ctype const c5 = -M.c8 * ctype(ps);
+    ctype const c6 = -M.c9 * ctype(ps);
+    ctype const c7 = -M.c10 * ctype(ps);
+    ctype const c8 = M.c5 * ctype(ps);
+    ctype const c9 = M.c6 * ctype(ps);
+    ctype const c10 = M.c7 * ctype(ps);
+    ctype const c11 = M.c1 * ctype(ps);
+    ctype const c12 = M.c2 * ctype(ps);
+    ctype const c13 = M.c3 * ctype(ps);
+    ctype const c14 = M.c4 * ctype(ps);
+    ctype const c15 = M.c0 * ctype(ps);
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(ps,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(PScalar4ds<T> ps,
+                                                       MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -ctype(ps) * M.c15;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    ctype const c8 = 0.0;
+    ctype const c9 = 0.0;
+    ctype const c10 = 0.0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(mv,trivec) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& M,
+                                                       TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c11 * t.x - M.c12 * t.y - M.c13 * t.z + M.c14 * t.w;
+    ctype const c1 = M.c6 * t.z - M.c7 * t.y - M.c8 * t.w;
+    ctype const c2 = -M.c5 * t.z + M.c7 * t.x - M.c9 * t.w;
+    ctype const c3 = M.c5 * t.y - M.c6 * t.x - M.c10 * t.w;
+    ctype const c4 = -M.c8 * t.x - M.c9 * t.y - M.c10 * t.z;
+    ctype const c5 = M.c2 * t.z - M.c3 * t.y;
+    ctype const c6 = -M.c1 * t.z + M.c3 * t.x;
+    ctype const c7 = M.c1 * t.y - M.c2 * t.x;
+    ctype const c8 = -M.c1 * t.w + M.c4 * t.x;
+    ctype const c9 = -M.c2 * t.w + M.c4 * t.y;
+    ctype const c10 = -M.c3 * t.w + M.c4 * t.z;
+    ctype const c11 = M.c0 * t.x;
+    ctype const c12 = M.c0 * t.y;
+    ctype const c13 = M.c0 * t.z;
+    ctype const c14 = M.c0 * t.w;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(trivec,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(TriVec4ds<T> const& t,
+                                                       MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.x * M.c11 - t.y * M.c12 - t.z * M.c13 + t.w * M.c14;
+    ctype const c1 = -t.x * M.c15;
+    ctype const c2 = -t.y * M.c15;
+    ctype const c3 = -t.z * M.c15;
+    ctype const c4 = -t.w * M.c15;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    ctype const c8 = 0.0;
+    ctype const c9 = 0.0;
+    ctype const c10 = 0.0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(mv,bivec) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& M,
+                                                       BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c5 * B.vx + M.c6 * B.vy + M.c7 * B.vz - M.c8 * B.mx - M.c9 * B.my -
+                     M.c10 * B.mz;
+    ctype const c1 = -M.c2 * B.mz + M.c3 * B.my + M.c4 * B.vx;
+    ctype const c2 = M.c1 * B.mz - M.c3 * B.mx + M.c4 * B.vy;
+    ctype const c3 = -M.c1 * B.my + M.c2 * B.mx + M.c4 * B.vz;
+    ctype const c4 = M.c1 * B.vx + M.c2 * B.vy + M.c3 * B.vz;
+    ctype const c5 = M.c0 * B.vx;
+    ctype const c6 = M.c0 * B.vy;
+    ctype const c7 = M.c0 * B.vz;
+    ctype const c8 = M.c0 * B.mx;
+    ctype const c9 = M.c0 * B.my;
+    ctype const c10 = M.c0 * B.mz;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(bivec,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B,
+                                                       MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vx * M.c5 + B.vy * M.c6 + B.vz * M.c7 - B.mx * M.c8 - B.my * M.c9 -
+                     B.mz * M.c10;
+    ctype const c1 = B.vy * M.c13 - B.vz * M.c12 - B.mx * M.c14;
+    ctype const c2 = -B.vx * M.c13 + B.vz * M.c11 - B.my * M.c14;
+    ctype const c3 = B.vx * M.c12 - B.vy * M.c11 - B.mz * M.c14;
+    ctype const c4 = -B.mx * M.c11 - B.my * M.c12 - B.mz * M.c13;
+    ctype const c5 = -B.mx * M.c15;
+    ctype const c6 = -B.my * M.c15;
+    ctype const c7 = -B.mz * M.c15;
+    ctype const c8 = B.vx * M.c15;
+    ctype const c9 = B.vy * M.c15;
+    ctype const c10 = B.vz * M.c15;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(mv,vec) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& M,
+                                                       Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c1 * v.x - M.c2 * v.y - M.c3 * v.z + M.c4 * v.w;
+    ctype const c1 = M.c0 * v.x;
+    ctype const c2 = M.c0 * v.y;
+    ctype const c3 = M.c0 * v.z;
+    ctype const c4 = M.c0 * v.w;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    ctype const c8 = 0.0;
+    ctype const c9 = 0.0;
+    ctype const c10 = 0.0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(vec,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(Vec4ds<T> const& v,
+                                                       MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -v.x * M.c1 - v.y * M.c2 - v.z * M.c3 + v.w * M.c4;
+    ctype const c1 = -v.y * M.c10 + v.z * M.c9 + v.w * M.c5;
+    ctype const c2 = v.x * M.c10 - v.z * M.c8 + v.w * M.c6;
+    ctype const c3 = -v.x * M.c9 + v.y * M.c8 + v.w * M.c7;
+    ctype const c4 = v.x * M.c5 + v.y * M.c6 + v.z * M.c7;
+    ctype const c5 = v.y * M.c13 - v.z * M.c12;
+    ctype const c6 = -v.x * M.c13 + v.z * M.c11;
+    ctype const c7 = v.x * M.c12 - v.y * M.c11;
+    ctype const c8 = -v.x * M.c14 + v.w * M.c11;
+    ctype const c9 = -v.y * M.c14 + v.w * M.c12;
+    ctype const c10 = -v.z * M.c14 + v.w * M.c13;
+    ctype const c11 = v.x * M.c15;
+    ctype const c12 = v.y * M.c15;
+    ctype const c13 = v.z * M.c15;
+    ctype const c14 = v.w * M.c15;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(mv,s) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& M,
+                                                       Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    ctype const c8 = 0.0;
+    ctype const c9 = 0.0;
+    ctype const c10 = 0.0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(s,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator<<(Scalar4ds<T> s,
+                                                       MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = ctype(s) * M.c1;
+    ctype const c2 = ctype(s) * M.c2;
+    ctype const c3 = ctype(s) * M.c3;
+    ctype const c4 = ctype(s) * M.c4;
+    ctype const c5 = ctype(s) * M.c5;
+    ctype const c6 = ctype(s) * M.c6;
+    ctype const c7 = ctype(s) * M.c7;
+    ctype const c8 = ctype(s) * M.c8;
+    ctype const c9 = ctype(s) * M.c9;
+    ctype const c10 = ctype(s) * M.c10;
+    ctype const c11 = ctype(s) * M.c11;
+    ctype const c12 = ctype(s) * M.c12;
+    ctype const c13 = ctype(s) * M.c13;
+    ctype const c14 = ctype(s) * M.c14;
+    ctype const c15 = ctype(s) * M.c15;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds l_contract :: l_contract(mv_e,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& A,
+                                                         MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c4 * B.c4 -
+                     A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7;
+    ctype const c1 = A.c0 * B.c1 - A.c4 * B.c7;
+    ctype const c2 = A.c0 * B.c2 - A.c5 * B.c7;
+    ctype const c3 = A.c0 * B.c3 - A.c6 * B.c7;
+    ctype const c4 = A.c0 * B.c4 + A.c1 * B.c7;
+    ctype const c5 = A.c0 * B.c5 + A.c2 * B.c7;
+    ctype const c6 = A.c0 * B.c6 + A.c3 * B.c7;
+    ctype const c7 = A.c0 * B.c7;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_e,mv_u) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& A,
+                                                         MVec4ds_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c0 + A.c2 * B.c6 - A.c3 * B.c5 - A.c4 * B.c7;
+    ctype const c1 = A.c0 * B.c1 - A.c1 * B.c6 + A.c3 * B.c4 - A.c5 * B.c7;
+    ctype const c2 = A.c0 * B.c2 + A.c1 * B.c5 - A.c2 * B.c4 - A.c6 * B.c7;
+    ctype const c3 = A.c0 * B.c3 - A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6;
+    ctype const c4 = A.c0 * B.c4;
+    ctype const c5 = A.c0 * B.c5;
+    ctype const c6 = A.c0 * B.c6;
+    ctype const c7 = A.c0 * B.c7;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_u,mv_e) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& A,
+                                                         MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c1 * B.c6 + A.c2 * B.c5 + A.c3 * B.c1 - A.c4 * B.c7;
+    ctype const c1 = A.c0 * B.c6 - A.c2 * B.c4 + A.c3 * B.c2 - A.c5 * B.c7;
+    ctype const c2 = -A.c0 * B.c5 + A.c1 * B.c4 + A.c3 * B.c3 - A.c6 * B.c7;
+    ctype const c3 = A.c0 * B.c1 + A.c1 * B.c2 + A.c2 * B.c3 - A.c7 * B.c7;
+    ctype const c4 = A.c0 * B.c7;
+    ctype const c5 = A.c1 * B.c7;
+    ctype const c6 = A.c2 * B.c7;
+    ctype const c7 = A.c3 * B.c7;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_e,ps) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& A,
+                                                         PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c7 * ctype(ps);
+    ctype const c1 = -A.c4 * ctype(ps);
+    ctype const c2 = -A.c5 * ctype(ps);
+    ctype const c3 = -A.c6 * ctype(ps);
+    ctype const c4 = A.c1 * ctype(ps);
+    ctype const c5 = A.c2 * ctype(ps);
+    ctype const c6 = A.c3 * ctype(ps);
+    ctype const c7 = A.c0 * ctype(ps);
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(ps,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(PScalar4ds<T> ps,
+                                                         MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -ctype(ps) * B.c7;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_e,trivec) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& M,
+                                                         TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c2 * t.z - M.c3 * t.y - M.c4 * t.w;
+    ctype const c1 = -M.c1 * t.z + M.c3 * t.x - M.c5 * t.w;
+    ctype const c2 = M.c1 * t.y - M.c2 * t.x - M.c6 * t.w;
+    ctype const c3 = -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z;
+    ctype const c4 = M.c0 * t.x;
+    ctype const c5 = M.c0 * t.y;
+    ctype const c6 = M.c0 * t.z;
+    ctype const c7 = M.c0 * t.w;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds l_contract :: l_contract(trivec,mv_e) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(TriVec4ds<T> const& t,
+                                                         MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.x * M.c7;
+    ctype const c1 = -t.y * M.c7;
+    ctype const c2 = -t.z * M.c7;
+    ctype const c3 = -t.w * M.c7;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_e,bivec) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& M,
+                                                         BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 =
+        M.c1 * B.vx + M.c2 * B.vy + M.c3 * B.vz - M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz;
+    ctype const c1 = M.c0 * B.vx;
+    ctype const c2 = M.c0 * B.vy;
+    ctype const c3 = M.c0 * B.vz;
+    ctype const c4 = M.c0 * B.mx;
+    ctype const c5 = M.c0 * B.my;
+    ctype const c6 = M.c0 * B.mz;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(bivec,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B,
+                                                         MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 =
+        B.vx * M.c1 + B.vy * M.c2 + B.vz * M.c3 - B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6;
+    ctype const c1 = -B.mx * M.c7;
+    ctype const c2 = -B.my * M.c7;
+    ctype const c3 = -B.mz * M.c7;
+    ctype const c4 = B.vx * M.c7;
+    ctype const c5 = B.vy * M.c7;
+    ctype const c6 = B.vz * M.c7;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_e,vec) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& A,
+                                                         Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * v.x;
+    ctype const c1 = A.c0 * v.y;
+    ctype const c2 = A.c0 * v.z;
+    ctype const c3 = A.c0 * v.w;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds l_contract :: l_contract(vec,mv_e) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(Vec4ds<T> const& v,
+                                                         MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -v.y * B.c6 + v.z * B.c5 + v.w * B.c1;
+    ctype const c1 = v.x * B.c6 - v.z * B.c4 + v.w * B.c2;
+    ctype const c2 = -v.x * B.c5 + v.y * B.c4 + v.w * B.c3;
+    ctype const c3 = v.x * B.c1 + v.y * B.c2 + v.z * B.c3;
+    ctype const c4 = v.x * B.c7;
+    ctype const c5 = v.y * B.c7;
+    ctype const c6 = v.z * B.c7;
+    ctype const c7 = v.w * B.c7;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_e,s) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& M,
+                                                         Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(s,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(Scalar4ds<T> s,
+                                                         MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = ctype(s) * M.c1;
+    ctype const c2 = ctype(s) * M.c2;
+    ctype const c3 = ctype(s) * M.c3;
+    ctype const c4 = ctype(s) * M.c4;
+    ctype const c5 = ctype(s) * M.c5;
+    ctype const c6 = ctype(s) * M.c6;
+    ctype const c7 = ctype(s) * M.c7;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_u,mv_u) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& A,
+                                                         MVec4ds_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 + A.c3 * B.c3 -
+                     A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 + A.c7 * B.c7;
+    ctype const c1 = A.c1 * B.c6 - A.c2 * B.c5;
+    ctype const c2 = -A.c0 * B.c6 + A.c2 * B.c4;
+    ctype const c3 = A.c0 * B.c5 - A.c1 * B.c4;
+    ctype const c4 = -A.c0 * B.c7 + A.c3 * B.c4;
+    ctype const c5 = -A.c1 * B.c7 + A.c3 * B.c5;
+    ctype const c6 = -A.c2 * B.c7 + A.c3 * B.c6;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_u,ps) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& A,
+                                                         PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c4 * ctype(ps);
+    ctype const c1 = -A.c5 * ctype(ps);
+    ctype const c2 = -A.c6 * ctype(ps);
+    ctype const c3 = -A.c7 * ctype(ps);
+    ctype const c4 = A.c0 * ctype(ps);
+    ctype const c5 = A.c1 * ctype(ps);
+    ctype const c6 = A.c2 * ctype(ps);
+    ctype const c7 = A.c3 * ctype(ps);
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds l_contract :: l_contract(ps,mv_u) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] PScalar4ds<T>, [[maybe_unused]] MVec4ds_U<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(mv_u,trivec) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& M,
+                                                         TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z + M.c7 * t.w;
+    ctype const c1 = M.c1 * t.z - M.c2 * t.y;
+    ctype const c2 = -M.c0 * t.z + M.c2 * t.x;
+    ctype const c3 = M.c0 * t.y - M.c1 * t.x;
+    ctype const c4 = -M.c0 * t.w + M.c3 * t.x;
+    ctype const c5 = -M.c1 * t.w + M.c3 * t.y;
+    ctype const c6 = -M.c2 * t.w + M.c3 * t.z;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(trivec,mv_u) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(TriVec4ds<T> const& t,
+                                                         MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.x * M.c4 - t.y * M.c5 - t.z * M.c6 + t.w * M.c7;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_u,bivec) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& M,
+                                                         BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c1 * B.mz + M.c2 * B.my + M.c3 * B.vx;
+    ctype const c1 = M.c0 * B.mz - M.c2 * B.mx + M.c3 * B.vy;
+    ctype const c2 = -M.c0 * B.my + M.c1 * B.mx + M.c3 * B.vz;
+    ctype const c3 = M.c0 * B.vx + M.c1 * B.vy + M.c2 * B.vz;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds l_contract :: l_contract(bivec,mv_u) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B,
+                                                         MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vy * M.c6 - B.vz * M.c5 - B.mx * M.c7;
+    ctype const c1 = -B.vx * M.c6 + B.vz * M.c4 - B.my * M.c7;
+    ctype const c2 = B.vx * M.c5 - B.vy * M.c4 - B.mz * M.c7;
+    ctype const c3 = -B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_u,vec) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& M,
+                                                         Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c0 * v.x - M.c1 * v.y - M.c2 * v.z + M.c3 * v.w;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(vec,mv_u) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(Vec4ds<T> const& v,
+                                                         MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -v.x * M.c0 - v.y * M.c1 - v.z * M.c2 + v.w * M.c3;
+    ctype const c1 = v.y * M.c6 - v.z * M.c5;
+    ctype const c2 = -v.x * M.c6 + v.z * M.c4;
+    ctype const c3 = v.x * M.c5 - v.y * M.c4;
+    ctype const c4 = -v.x * M.c7 + v.w * M.c4;
+    ctype const c5 = -v.y * M.c7 + v.w * M.c5;
+    ctype const c6 = -v.z * M.c7 + v.w * M.c6;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds l_contract :: l_contract(mv_u,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] MVec4ds_U<T> const&, [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(s,mv_u) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(Scalar4ds<T> s,
+                                                         MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = ctype(s) * M.c1;
+    ctype const c2 = ctype(s) * M.c2;
+    ctype const c3 = ctype(s) * M.c3;
+    ctype const c4 = ctype(s) * M.c4;
+    ctype const c5 = ctype(s) * M.c5;
+    ctype const c6 = ctype(s) * M.c6;
+    ctype const c7 = ctype(s) * M.c7;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds l_contract :: l_contract(ps,ps) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator<<(PScalar4ds<T> ps1,
+                                                         PScalar4ds<U> ps2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(-ctype(ps1) * ctype(ps2));
+}
+
+// sta4ds l_contract :: l_contract(ps,trivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] PScalar4ds<T>, [[maybe_unused]] TriVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(trivec,ps) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> operator<<(TriVec4ds<T> const& t,
+                                                      PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.x * ctype(ps);
+    ctype const c1 = -t.y * ctype(ps);
+    ctype const c2 = -t.z * ctype(ps);
+    ctype const c3 = -t.w * ctype(ps);
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds l_contract :: l_contract(ps,bivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] PScalar4ds<T>, [[maybe_unused]] BiVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(bivec,ps) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B,
+                                                        PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -B.mx * ctype(ps);
+    ctype const c1 = -B.my * ctype(ps);
+    ctype const c2 = -B.mz * ctype(ps);
+    ctype const c3 = B.vx * ctype(ps);
+    ctype const c4 = B.vy * ctype(ps);
+    ctype const c5 = B.vz * ctype(ps);
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds l_contract :: l_contract(ps,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] PScalar4ds<T>, [[maybe_unused]] Vec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(vec,ps) -> trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> operator<<(Vec4ds<T> const& v,
+                                                         PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.x * ctype(ps);
+    ctype const c1 = v.y * ctype(ps);
+    ctype const c2 = v.z * ctype(ps);
+    ctype const c3 = v.w * ctype(ps);
+    return TriVec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds l_contract :: l_contract(ps,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator<<([[maybe_unused]] PScalar4ds<T>,
+                                                         [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(s,ps) -> ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar4ds<std::common_type_t<T, U>> operator<<(Scalar4ds<T> s,
+                                                          PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar4ds<ctype>(ctype(s) * ctype(ps));
+}
+
+// sta4ds l_contract :: l_contract(trivec,trivec) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator<<(TriVec4ds<T> const& t1,
+                                                         TriVec4ds<U> const& t2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(-t1.x * t2.x - t1.y * t2.y - t1.z * t2.z + t1.w * t2.w);
+}
+
+// sta4ds l_contract :: l_contract(trivec,bivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] TriVec4ds<T> const&, [[maybe_unused]] BiVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(bivec,trivec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B,
+                                                      TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vy * t.z - B.vz * t.y - B.mx * t.w;
+    ctype const c1 = -B.vx * t.z + B.vz * t.x - B.my * t.w;
+    ctype const c2 = B.vx * t.y - B.vy * t.x - B.mz * t.w;
+    ctype const c3 = -B.mx * t.x - B.my * t.y - B.mz * t.z;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds l_contract :: l_contract(trivec,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] TriVec4ds<T> const&, [[maybe_unused]] Vec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(vec,trivec) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> operator<<(Vec4ds<T> const& v,
+                                                        TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.y * t.z - v.z * t.y;
+    ctype const c1 = -v.x * t.z + v.z * t.x;
+    ctype const c2 = v.x * t.y - v.y * t.x;
+    ctype const c3 = -v.x * t.w + v.w * t.x;
+    ctype const c4 = -v.y * t.w + v.w * t.y;
+    ctype const c5 = -v.z * t.w + v.w * t.z;
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds l_contract :: l_contract(trivec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] TriVec4ds<T> const&, [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(s,trivec) -> trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> operator<<(Scalar4ds<T> s,
+                                                         TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * t.x;
+    ctype const c1 = ctype(s) * t.y;
+    ctype const c2 = ctype(s) * t.z;
+    ctype const c3 = ctype(s) * t.w;
+    return TriVec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds l_contract :: l_contract(bivec,bivec) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B1,
+                                                         BiVec4ds<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(B1.vx * B2.vx + B1.vy * B2.vy + B1.vz * B2.vz -
+                            B1.mx * B2.mx - B1.my * B2.my - B1.mz * B2.mz);
+}
+
+// sta4ds l_contract :: l_contract(bivec,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] BiVec4ds<T> const&, [[maybe_unused]] Vec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(vec,bivec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> operator<<(Vec4ds<T> const& v,
+                                                      BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -v.y * B.mz + v.z * B.my + v.w * B.vx;
+    ctype const c1 = v.x * B.mz - v.z * B.mx + v.w * B.vy;
+    ctype const c2 = -v.x * B.my + v.y * B.mx + v.w * B.vz;
+    ctype const c3 = v.x * B.vx + v.y * B.vy + v.z * B.vz;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds l_contract :: l_contract(bivec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] BiVec4ds<T> const&, [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(s,bivec) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> operator<<(Scalar4ds<T> s,
+                                                        BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * B.vx;
+    ctype const c1 = ctype(s) * B.vy;
+    ctype const c2 = ctype(s) * B.vz;
+    ctype const c3 = ctype(s) * B.mx;
+    ctype const c4 = ctype(s) * B.my;
+    ctype const c5 = ctype(s) * B.mz;
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds l_contract :: l_contract(vec,vec) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator<<(Vec4ds<T> const& v1,
+                                                         Vec4ds<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(-v1.x * v2.x - v1.y * v2.y - v1.z * v2.z + v1.w * v2.w);
+}
+
+// sta4ds l_contract :: l_contract(vec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator<<([[maybe_unused]] Vec4ds<T> const&, [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds l_contract :: l_contract(s,vec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> operator<<(Scalar4ds<T> s, Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * v.x;
+    ctype const c1 = ctype(s) * v.y;
+    ctype const c2 = ctype(s) * v.z;
+    ctype const c3 = ctype(s) * v.w;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds l_contract :: l_contract(s,s) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator<<(Scalar4ds<T> s1, Scalar4ds<U> s2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(ctype(s1) * ctype(s2));
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // right contractions A >> B: "A contracted by B"
 //
-// The resulting object lies in A and is perpendicular to B
+// The result lies in A and is perpendicular to B. It is the right interior
+// (inner) product: the grade-lowering part <A B>_(grade(A)-grade(B)) of the
+// geometric product. On equal grades it reduces to the metric inner product:
 //
-// Implements the right bulk contraction as per "PGA Illuminated", E. Lengyel:
+//     (A >> B) == dot(A, B)
 //
-// operator>>(a,b) = r_contract(a,b) = rwdg( a, r_dual(b) )
+// Equivalently, as defined in "PGA Illuminated" (E. Lengyel):
 //
+//     operator>>(a,b) = r_contract(a,b) = rwdg( a, r_dual(b) )
+//
+// (holds exactly at every grade).
 ////////////////////////////////////////////////////////////////////////////////
+
+// sta4ds r_contract :: r_contract(mv,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& A,
+                                                       MVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c4 * B.c4 +
+                     A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7 - A.c8 * B.c8 - A.c9 * B.c9 -
+                     A.c10 * B.c10 - A.c11 * B.c11 - A.c12 * B.c12 - A.c13 * B.c13 +
+                     A.c14 * B.c14 - A.c15 * B.c15;
+    ctype const c1 = A.c1 * B.c0 - A.c5 * B.c4 - A.c9 * B.c3 + A.c10 * B.c2 -
+                     A.c12 * B.c7 + A.c13 * B.c6 - A.c14 * B.c8 + A.c15 * B.c11;
+    ctype const c2 = A.c2 * B.c0 - A.c6 * B.c4 + A.c8 * B.c3 - A.c10 * B.c1 +
+                     A.c11 * B.c7 - A.c13 * B.c5 - A.c14 * B.c9 + A.c15 * B.c12;
+    ctype const c3 = A.c3 * B.c0 - A.c7 * B.c4 - A.c8 * B.c2 + A.c9 * B.c1 -
+                     A.c11 * B.c6 + A.c12 * B.c5 - A.c14 * B.c10 + A.c15 * B.c13;
+    ctype const c4 = A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 -
+                     A.c11 * B.c8 - A.c12 * B.c9 - A.c13 * B.c10 + A.c15 * B.c14;
+    ctype const c5 = A.c5 * B.c0 - A.c12 * B.c3 + A.c13 * B.c2 - A.c15 * B.c8;
+    ctype const c6 = A.c6 * B.c0 + A.c11 * B.c3 - A.c13 * B.c1 - A.c15 * B.c9;
+    ctype const c7 = A.c7 * B.c0 - A.c11 * B.c2 + A.c12 * B.c1 - A.c15 * B.c10;
+    ctype const c8 = A.c8 * B.c0 + A.c11 * B.c4 - A.c14 * B.c1 + A.c15 * B.c5;
+    ctype const c9 = A.c9 * B.c0 + A.c12 * B.c4 - A.c14 * B.c2 + A.c15 * B.c6;
+    ctype const c10 = A.c10 * B.c0 + A.c13 * B.c4 - A.c14 * B.c3 + A.c15 * B.c7;
+    ctype const c11 = A.c11 * B.c0 - A.c15 * B.c1;
+    ctype const c12 = A.c12 * B.c0 - A.c15 * B.c2;
+    ctype const c13 = A.c13 * B.c0 - A.c15 * B.c3;
+    ctype const c14 = A.c14 * B.c0 - A.c15 * B.c4;
+    ctype const c15 = A.c15 * B.c0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(mv,mv_e) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& A,
+                                                       MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c0 + A.c5 * B.c1 + A.c6 * B.c2 + A.c7 * B.c3 - A.c8 * B.c4 -
+                     A.c9 * B.c5 - A.c10 * B.c6 - A.c15 * B.c7;
+    ctype const c1 = A.c1 * B.c0 - A.c12 * B.c3 + A.c13 * B.c2 - A.c14 * B.c4;
+    ctype const c2 = A.c2 * B.c0 + A.c11 * B.c3 - A.c13 * B.c1 - A.c14 * B.c5;
+    ctype const c3 = A.c3 * B.c0 - A.c11 * B.c2 + A.c12 * B.c1 - A.c14 * B.c6;
+    ctype const c4 = A.c4 * B.c0 - A.c11 * B.c4 - A.c12 * B.c5 - A.c13 * B.c6;
+    ctype const c5 = A.c5 * B.c0 - A.c15 * B.c4;
+    ctype const c6 = A.c6 * B.c0 - A.c15 * B.c5;
+    ctype const c7 = A.c7 * B.c0 - A.c15 * B.c6;
+    ctype const c8 = A.c8 * B.c0 + A.c15 * B.c1;
+    ctype const c9 = A.c9 * B.c0 + A.c15 * B.c2;
+    ctype const c10 = A.c10 * B.c0 + A.c15 * B.c3;
+    ctype const c11 = A.c11 * B.c0;
+    ctype const c12 = A.c12 * B.c0;
+    ctype const c13 = A.c13 * B.c0;
+    ctype const c14 = A.c14 * B.c0;
+    ctype const c15 = A.c15 * B.c0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(mv_e,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& A,
+                                                       MVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 - A.c4 * B.c8 -
+                     A.c5 * B.c9 - A.c6 * B.c10 - A.c7 * B.c15;
+    ctype const c1 = -A.c1 * B.c4 - A.c5 * B.c3 + A.c6 * B.c2 + A.c7 * B.c11;
+    ctype const c2 = -A.c2 * B.c4 + A.c4 * B.c3 - A.c6 * B.c1 + A.c7 * B.c12;
+    ctype const c3 = -A.c3 * B.c4 - A.c4 * B.c2 + A.c5 * B.c1 + A.c7 * B.c13;
+    ctype const c4 = -A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c7 * B.c14;
+    ctype const c5 = A.c1 * B.c0 - A.c7 * B.c8;
+    ctype const c6 = A.c2 * B.c0 - A.c7 * B.c9;
+    ctype const c7 = A.c3 * B.c0 - A.c7 * B.c10;
+    ctype const c8 = A.c4 * B.c0 + A.c7 * B.c5;
+    ctype const c9 = A.c5 * B.c0 + A.c7 * B.c6;
+    ctype const c10 = A.c6 * B.c0 + A.c7 * B.c7;
+    ctype const c11 = -A.c7 * B.c1;
+    ctype const c12 = -A.c7 * B.c2;
+    ctype const c13 = -A.c7 * B.c3;
+    ctype const c14 = -A.c7 * B.c4;
+    ctype const c15 = A.c7 * B.c0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(mv,mv_u) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& A,
+                                                       MVec4ds_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2 + A.c4 * B.c3 -
+                     A.c11 * B.c4 - A.c12 * B.c5 - A.c13 * B.c6 + A.c14 * B.c7;
+    ctype const c1 = -A.c5 * B.c3 - A.c9 * B.c2 + A.c10 * B.c1 + A.c15 * B.c4;
+    ctype const c2 = -A.c6 * B.c3 + A.c8 * B.c2 - A.c10 * B.c0 + A.c15 * B.c5;
+    ctype const c3 = -A.c7 * B.c3 - A.c8 * B.c1 + A.c9 * B.c0 + A.c15 * B.c6;
+    ctype const c4 = -A.c5 * B.c0 - A.c6 * B.c1 - A.c7 * B.c2 + A.c15 * B.c7;
+    ctype const c5 = -A.c12 * B.c2 + A.c13 * B.c1;
+    ctype const c6 = A.c11 * B.c2 - A.c13 * B.c0;
+    ctype const c7 = -A.c11 * B.c1 + A.c12 * B.c0;
+    ctype const c8 = A.c11 * B.c3 - A.c14 * B.c0;
+    ctype const c9 = A.c12 * B.c3 - A.c14 * B.c1;
+    ctype const c10 = A.c13 * B.c3 - A.c14 * B.c2;
+    ctype const c11 = -A.c15 * B.c0;
+    ctype const c12 = -A.c15 * B.c1;
+    ctype const c13 = -A.c15 * B.c2;
+    ctype const c14 = -A.c15 * B.c3;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(mv_u,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& A,
+                                                       MVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c4 -
+                     A.c4 * B.c11 - A.c5 * B.c12 - A.c6 * B.c13 + A.c7 * B.c14;
+    ctype const c1 = A.c0 * B.c0 - A.c5 * B.c7 + A.c6 * B.c6 - A.c7 * B.c8;
+    ctype const c2 = A.c1 * B.c0 + A.c4 * B.c7 - A.c6 * B.c5 - A.c7 * B.c9;
+    ctype const c3 = A.c2 * B.c0 - A.c4 * B.c6 + A.c5 * B.c5 - A.c7 * B.c10;
+    ctype const c4 = A.c3 * B.c0 - A.c4 * B.c8 - A.c5 * B.c9 - A.c6 * B.c10;
+    ctype const c5 = -A.c5 * B.c3 + A.c6 * B.c2;
+    ctype const c6 = A.c4 * B.c3 - A.c6 * B.c1;
+    ctype const c7 = -A.c4 * B.c2 + A.c5 * B.c1;
+    ctype const c8 = A.c4 * B.c4 - A.c7 * B.c1;
+    ctype const c9 = A.c5 * B.c4 - A.c7 * B.c2;
+    ctype const c10 = A.c6 * B.c4 - A.c7 * B.c3;
+    ctype const c11 = A.c4 * B.c0;
+    ctype const c12 = A.c5 * B.c0;
+    ctype const c13 = A.c6 * B.c0;
+    ctype const c14 = A.c7 * B.c0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(mv,ps) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& M,
+                                                       PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c15 * ctype(ps);
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    ctype const c8 = 0.0;
+    ctype const c9 = 0.0;
+    ctype const c10 = 0.0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(ps,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
+                                                       MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -ctype(ps) * M.c15;
+    ctype const c1 = ctype(ps) * M.c11;
+    ctype const c2 = ctype(ps) * M.c12;
+    ctype const c3 = ctype(ps) * M.c13;
+    ctype const c4 = ctype(ps) * M.c14;
+    ctype const c5 = -ctype(ps) * M.c8;
+    ctype const c6 = -ctype(ps) * M.c9;
+    ctype const c7 = -ctype(ps) * M.c10;
+    ctype const c8 = ctype(ps) * M.c5;
+    ctype const c9 = ctype(ps) * M.c6;
+    ctype const c10 = ctype(ps) * M.c7;
+    ctype const c11 = -ctype(ps) * M.c1;
+    ctype const c12 = -ctype(ps) * M.c2;
+    ctype const c13 = -ctype(ps) * M.c3;
+    ctype const c14 = -ctype(ps) * M.c4;
+    ctype const c15 = ctype(ps) * M.c0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(mv,trivec) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& M,
+                                                       TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c11 * t.x - M.c12 * t.y - M.c13 * t.z + M.c14 * t.w;
+    ctype const c1 = M.c15 * t.x;
+    ctype const c2 = M.c15 * t.y;
+    ctype const c3 = M.c15 * t.z;
+    ctype const c4 = M.c15 * t.w;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    ctype const c8 = 0.0;
+    ctype const c9 = 0.0;
+    ctype const c10 = 0.0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(trivec,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t,
+                                                       MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.x * M.c11 - t.y * M.c12 - t.z * M.c13 + t.w * M.c14;
+    ctype const c1 = -t.y * M.c7 + t.z * M.c6 - t.w * M.c8;
+    ctype const c2 = t.x * M.c7 - t.z * M.c5 - t.w * M.c9;
+    ctype const c3 = -t.x * M.c6 + t.y * M.c5 - t.w * M.c10;
+    ctype const c4 = -t.x * M.c8 - t.y * M.c9 - t.z * M.c10;
+    ctype const c5 = -t.y * M.c3 + t.z * M.c2;
+    ctype const c6 = t.x * M.c3 - t.z * M.c1;
+    ctype const c7 = -t.x * M.c2 + t.y * M.c1;
+    ctype const c8 = t.x * M.c4 - t.w * M.c1;
+    ctype const c9 = t.y * M.c4 - t.w * M.c2;
+    ctype const c10 = t.z * M.c4 - t.w * M.c3;
+    ctype const c11 = t.x * M.c0;
+    ctype const c12 = t.y * M.c0;
+    ctype const c13 = t.z * M.c0;
+    ctype const c14 = t.w * M.c0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(mv,bivec) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& M,
+                                                       BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c5 * B.vx + M.c6 * B.vy + M.c7 * B.vz - M.c8 * B.mx - M.c9 * B.my -
+                     M.c10 * B.mz;
+    ctype const c1 = -M.c12 * B.vz + M.c13 * B.vy - M.c14 * B.mx;
+    ctype const c2 = M.c11 * B.vz - M.c13 * B.vx - M.c14 * B.my;
+    ctype const c3 = -M.c11 * B.vy + M.c12 * B.vx - M.c14 * B.mz;
+    ctype const c4 = -M.c11 * B.mx - M.c12 * B.my - M.c13 * B.mz;
+    ctype const c5 = -M.c15 * B.mx;
+    ctype const c6 = -M.c15 * B.my;
+    ctype const c7 = -M.c15 * B.mz;
+    ctype const c8 = M.c15 * B.vx;
+    ctype const c9 = M.c15 * B.vy;
+    ctype const c10 = M.c15 * B.vz;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(bivec,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(BiVec4ds<T> const& B,
+                                                       MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vx * M.c5 + B.vy * M.c6 + B.vz * M.c7 - B.mx * M.c8 - B.my * M.c9 -
+                     B.mz * M.c10;
+    ctype const c1 = -B.vx * M.c4 - B.my * M.c3 + B.mz * M.c2;
+    ctype const c2 = -B.vy * M.c4 + B.mx * M.c3 - B.mz * M.c1;
+    ctype const c3 = -B.vz * M.c4 - B.mx * M.c2 + B.my * M.c1;
+    ctype const c4 = -B.vx * M.c1 - B.vy * M.c2 - B.vz * M.c3;
+    ctype const c5 = B.vx * M.c0;
+    ctype const c6 = B.vy * M.c0;
+    ctype const c7 = B.vz * M.c0;
+    ctype const c8 = B.mx * M.c0;
+    ctype const c9 = B.my * M.c0;
+    ctype const c10 = B.mz * M.c0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(mv,vec) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& M,
+                                                       Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c1 * v.x - M.c2 * v.y - M.c3 * v.z + M.c4 * v.w;
+    ctype const c1 = -M.c5 * v.w - M.c9 * v.z + M.c10 * v.y;
+    ctype const c2 = -M.c6 * v.w + M.c8 * v.z - M.c10 * v.x;
+    ctype const c3 = -M.c7 * v.w - M.c8 * v.y + M.c9 * v.x;
+    ctype const c4 = -M.c5 * v.x - M.c6 * v.y - M.c7 * v.z;
+    ctype const c5 = -M.c12 * v.z + M.c13 * v.y;
+    ctype const c6 = M.c11 * v.z - M.c13 * v.x;
+    ctype const c7 = -M.c11 * v.y + M.c12 * v.x;
+    ctype const c8 = M.c11 * v.w - M.c14 * v.x;
+    ctype const c9 = M.c12 * v.w - M.c14 * v.y;
+    ctype const c10 = M.c13 * v.w - M.c14 * v.z;
+    ctype const c11 = -M.c15 * v.x;
+    ctype const c12 = -M.c15 * v.y;
+    ctype const c13 = -M.c15 * v.z;
+    ctype const c14 = -M.c15 * v.w;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(vec,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(Vec4ds<T> const& v,
+                                                       MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -v.x * M.c1 - v.y * M.c2 - v.z * M.c3 + v.w * M.c4;
+    ctype const c1 = v.x * M.c0;
+    ctype const c2 = v.y * M.c0;
+    ctype const c3 = v.z * M.c0;
+    ctype const c4 = v.w * M.c0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    ctype const c8 = 0.0;
+    ctype const c9 = 0.0;
+    ctype const c10 = 0.0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(mv,s) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& M,
+                                                       Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = M.c1 * ctype(s);
+    ctype const c2 = M.c2 * ctype(s);
+    ctype const c3 = M.c3 * ctype(s);
+    ctype const c4 = M.c4 * ctype(s);
+    ctype const c5 = M.c5 * ctype(s);
+    ctype const c6 = M.c6 * ctype(s);
+    ctype const c7 = M.c7 * ctype(s);
+    ctype const c8 = M.c8 * ctype(s);
+    ctype const c9 = M.c9 * ctype(s);
+    ctype const c10 = M.c10 * ctype(s);
+    ctype const c11 = M.c11 * ctype(s);
+    ctype const c12 = M.c12 * ctype(s);
+    ctype const c13 = M.c13 * ctype(s);
+    ctype const c14 = M.c14 * ctype(s);
+    ctype const c15 = M.c15 * ctype(s);
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(s,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> operator>>(Scalar4ds<T> s,
+                                                       MVec4ds<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    ctype const c8 = 0.0;
+    ctype const c9 = 0.0;
+    ctype const c10 = 0.0;
+    ctype const c11 = 0.0;
+    ctype const c12 = 0.0;
+    ctype const c13 = 0.0;
+    ctype const c14 = 0.0;
+    ctype const c15 = 0.0;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds r_contract :: r_contract(mv_e,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& A,
+                                                         MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c4 * B.c4 -
+                     A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7;
+    ctype const c1 = A.c1 * B.c0 - A.c7 * B.c4;
+    ctype const c2 = A.c2 * B.c0 - A.c7 * B.c5;
+    ctype const c3 = A.c3 * B.c0 - A.c7 * B.c6;
+    ctype const c4 = A.c4 * B.c0 + A.c7 * B.c1;
+    ctype const c5 = A.c5 * B.c0 + A.c7 * B.c2;
+    ctype const c6 = A.c6 * B.c0 + A.c7 * B.c3;
+    ctype const c7 = A.c7 * B.c0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_e,mv_u) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& A,
+                                                         MVec4ds_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c1 * B.c3 - A.c5 * B.c2 + A.c6 * B.c1 + A.c7 * B.c4;
+    ctype const c1 = -A.c2 * B.c3 + A.c4 * B.c2 - A.c6 * B.c0 + A.c7 * B.c5;
+    ctype const c2 = -A.c3 * B.c3 - A.c4 * B.c1 + A.c5 * B.c0 + A.c7 * B.c6;
+    ctype const c3 = -A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2 + A.c7 * B.c7;
+    ctype const c4 = -A.c7 * B.c0;
+    ctype const c5 = -A.c7 * B.c1;
+    ctype const c6 = -A.c7 * B.c2;
+    ctype const c7 = -A.c7 * B.c3;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_u,mv_e) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& A,
+                                                         MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = A.c0 * B.c0 - A.c5 * B.c3 + A.c6 * B.c2 - A.c7 * B.c4;
+    ctype const c1 = A.c1 * B.c0 + A.c4 * B.c3 - A.c6 * B.c1 - A.c7 * B.c5;
+    ctype const c2 = A.c2 * B.c0 - A.c4 * B.c2 + A.c5 * B.c1 - A.c7 * B.c6;
+    ctype const c3 = A.c3 * B.c0 - A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6;
+    ctype const c4 = A.c4 * B.c0;
+    ctype const c5 = A.c5 * B.c0;
+    ctype const c6 = A.c6 * B.c0;
+    ctype const c7 = A.c7 * B.c0;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_e,ps) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& A,
+                                                         PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c7 * ctype(ps);
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(ps,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
+                                                         MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -ctype(ps) * B.c7;
+    ctype const c1 = -ctype(ps) * B.c4;
+    ctype const c2 = -ctype(ps) * B.c5;
+    ctype const c3 = -ctype(ps) * B.c6;
+    ctype const c4 = ctype(ps) * B.c1;
+    ctype const c5 = ctype(ps) * B.c2;
+    ctype const c6 = ctype(ps) * B.c3;
+    ctype const c7 = ctype(ps) * B.c0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_e,trivec) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& M,
+                                                         TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c7 * t.x;
+    ctype const c1 = M.c7 * t.y;
+    ctype const c2 = M.c7 * t.z;
+    ctype const c3 = M.c7 * t.w;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds r_contract :: r_contract(trivec,mv_e) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t,
+                                                         MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.y * M.c3 + t.z * M.c2 - t.w * M.c4;
+    ctype const c1 = t.x * M.c3 - t.z * M.c1 - t.w * M.c5;
+    ctype const c2 = -t.x * M.c2 + t.y * M.c1 - t.w * M.c6;
+    ctype const c3 = -t.x * M.c4 - t.y * M.c5 - t.z * M.c6;
+    ctype const c4 = t.x * M.c0;
+    ctype const c5 = t.y * M.c0;
+    ctype const c6 = t.z * M.c0;
+    ctype const c7 = t.w * M.c0;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_e,bivec) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& M,
+                                                         BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 =
+        M.c1 * B.vx + M.c2 * B.vy + M.c3 * B.vz - M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz;
+    ctype const c1 = -M.c7 * B.mx;
+    ctype const c2 = -M.c7 * B.my;
+    ctype const c3 = -M.c7 * B.mz;
+    ctype const c4 = M.c7 * B.vx;
+    ctype const c5 = M.c7 * B.vy;
+    ctype const c6 = M.c7 * B.vz;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(bivec,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(BiVec4ds<T> const& B,
+                                                         MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 =
+        B.vx * M.c1 + B.vy * M.c2 + B.vz * M.c3 - B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6;
+    ctype const c1 = B.vx * M.c0;
+    ctype const c2 = B.vy * M.c0;
+    ctype const c3 = B.vz * M.c0;
+    ctype const c4 = B.mx * M.c0;
+    ctype const c5 = B.my * M.c0;
+    ctype const c6 = B.mz * M.c0;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_e,vec) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& A,
+                                                         Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c1 * v.w - A.c5 * v.z + A.c6 * v.y;
+    ctype const c1 = -A.c2 * v.w + A.c4 * v.z - A.c6 * v.x;
+    ctype const c2 = -A.c3 * v.w - A.c4 * v.y + A.c5 * v.x;
+    ctype const c3 = -A.c1 * v.x - A.c2 * v.y - A.c3 * v.z;
+    ctype const c4 = -A.c7 * v.x;
+    ctype const c5 = -A.c7 * v.y;
+    ctype const c6 = -A.c7 * v.z;
+    ctype const c7 = -A.c7 * v.w;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds r_contract :: r_contract(vec,mv_e) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(Vec4ds<T> const& v,
+                                                         MVec4ds_E<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.x * B.c0;
+    ctype const c1 = v.y * B.c0;
+    ctype const c2 = v.z * B.c0;
+    ctype const c3 = v.w * B.c0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_e,s) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& M,
+                                                         Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = M.c1 * ctype(s);
+    ctype const c2 = M.c2 * ctype(s);
+    ctype const c3 = M.c3 * ctype(s);
+    ctype const c4 = M.c4 * ctype(s);
+    ctype const c5 = M.c5 * ctype(s);
+    ctype const c6 = M.c6 * ctype(s);
+    ctype const c7 = M.c7 * ctype(s);
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(s,mv_e) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(Scalar4ds<T> s,
+                                                         MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(s) * M.c0;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_u,mv_u) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& A,
+                                                         MVec4ds_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 + A.c3 * B.c3 -
+                     A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 + A.c7 * B.c7;
+    ctype const c1 = -A.c5 * B.c2 + A.c6 * B.c1;
+    ctype const c2 = A.c4 * B.c2 - A.c6 * B.c0;
+    ctype const c3 = -A.c4 * B.c1 + A.c5 * B.c0;
+    ctype const c4 = A.c4 * B.c3 - A.c7 * B.c0;
+    ctype const c5 = A.c5 * B.c3 - A.c7 * B.c1;
+    ctype const c6 = A.c6 * B.c3 - A.c7 * B.c2;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_u,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] MVec4ds_U<T> const&, [[maybe_unused]] PScalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(ps,mv_u) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
+                                                         MVec4ds_U<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * B.c4;
+    ctype const c1 = ctype(ps) * B.c5;
+    ctype const c2 = ctype(ps) * B.c6;
+    ctype const c3 = ctype(ps) * B.c7;
+    ctype const c4 = -ctype(ps) * B.c0;
+    ctype const c5 = -ctype(ps) * B.c1;
+    ctype const c6 = -ctype(ps) * B.c2;
+    ctype const c7 = -ctype(ps) * B.c3;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_u,trivec) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& M,
+                                                         TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z + M.c7 * t.w;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(trivec,mv_u) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t,
+                                                         MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.x * M.c4 - t.y * M.c5 - t.z * M.c6 + t.w * M.c7;
+    ctype const c1 = -t.y * M.c2 + t.z * M.c1;
+    ctype const c2 = t.x * M.c2 - t.z * M.c0;
+    ctype const c3 = -t.x * M.c1 + t.y * M.c0;
+    ctype const c4 = t.x * M.c3 - t.w * M.c0;
+    ctype const c5 = t.y * M.c3 - t.w * M.c1;
+    ctype const c6 = t.z * M.c3 - t.w * M.c2;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_u,bivec) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& M,
+                                                         BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c5 * B.vz + M.c6 * B.vy - M.c7 * B.mx;
+    ctype const c1 = M.c4 * B.vz - M.c6 * B.vx - M.c7 * B.my;
+    ctype const c2 = -M.c4 * B.vy + M.c5 * B.vx - M.c7 * B.mz;
+    ctype const c3 = -M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds r_contract :: r_contract(bivec,mv_u) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(BiVec4ds<T> const& B,
+                                                         MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -B.vx * M.c3 - B.my * M.c2 + B.mz * M.c1;
+    ctype const c1 = -B.vy * M.c3 + B.mx * M.c2 - B.mz * M.c0;
+    ctype const c2 = -B.vz * M.c3 - B.mx * M.c1 + B.my * M.c0;
+    ctype const c3 = -B.vx * M.c0 - B.vy * M.c1 - B.vz * M.c2;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_u,vec) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& M,
+                                                         Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -M.c0 * v.x - M.c1 * v.y - M.c2 * v.z + M.c3 * v.w;
+    ctype const c1 = -M.c5 * v.z + M.c6 * v.y;
+    ctype const c2 = M.c4 * v.z - M.c6 * v.x;
+    ctype const c3 = -M.c4 * v.y + M.c5 * v.x;
+    ctype const c4 = M.c4 * v.w - M.c7 * v.x;
+    ctype const c5 = M.c5 * v.w - M.c7 * v.y;
+    ctype const c6 = M.c6 * v.w - M.c7 * v.z;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(vec,mv_u) -> mv_e
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(Vec4ds<T> const& v,
+                                                         MVec4ds_U<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -v.x * M.c0 - v.y * M.c1 - v.z * M.c2 + v.w * M.c3;
+    ctype const c1 = 0.0;
+    ctype const c2 = 0.0;
+    ctype const c3 = 0.0;
+    ctype const c4 = 0.0;
+    ctype const c5 = 0.0;
+    ctype const c6 = 0.0;
+    ctype const c7 = 0.0;
+    return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
+                            PScalar4ds<ctype>(c7));
+}
+
+// sta4ds r_contract :: r_contract(mv_u,s) -> mv_u
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& M,
+                                                         Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = M.c0 * ctype(s);
+    ctype const c1 = M.c1 * ctype(s);
+    ctype const c2 = M.c2 * ctype(s);
+    ctype const c3 = M.c3 * ctype(s);
+    ctype const c4 = M.c4 * ctype(s);
+    ctype const c5 = M.c5 * ctype(s);
+    ctype const c6 = M.c6 * ctype(s);
+    ctype const c7 = M.c7 * ctype(s);
+    return MVec4ds_U<ctype>(Vec4ds<ctype>(c0, c1, c2, c3),
+                            TriVec4ds<ctype>(c4, c5, c6, c7));
+}
+
+// sta4ds r_contract :: r_contract(s,mv_u) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Scalar4ds<T>, [[maybe_unused]] MVec4ds_U<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(ps,ps) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps1,
+                                                         PScalar4ds<U> ps2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(-ctype(ps1) * ctype(ps2));
+}
+
+// sta4ds r_contract :: r_contract(ps,trivec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
+                                                      TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * t.x;
+    ctype const c1 = ctype(ps) * t.y;
+    ctype const c2 = ctype(ps) * t.z;
+    ctype const c3 = ctype(ps) * t.w;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds r_contract :: r_contract(trivec,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] TriVec4ds<T> const&, [[maybe_unused]] PScalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(ps,bivec) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
+                                                        BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -ctype(ps) * B.mx;
+    ctype const c1 = -ctype(ps) * B.my;
+    ctype const c2 = -ctype(ps) * B.mz;
+    ctype const c3 = ctype(ps) * B.vx;
+    ctype const c4 = ctype(ps) * B.vy;
+    ctype const c5 = ctype(ps) * B.vz;
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds r_contract :: r_contract(bivec,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] BiVec4ds<T> const&, [[maybe_unused]] PScalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(ps,vec) -> trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
+                                                         Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -ctype(ps) * v.x;
+    ctype const c1 = -ctype(ps) * v.y;
+    ctype const c2 = -ctype(ps) * v.z;
+    ctype const c3 = -ctype(ps) * v.w;
+    return TriVec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds r_contract :: r_contract(vec,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Vec4ds<T> const&, [[maybe_unused]] PScalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(ps,s) -> ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar4ds<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
+                                                          Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar4ds<ctype>(ctype(ps) * ctype(s));
+}
+
+// sta4ds r_contract :: r_contract(s,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator>>([[maybe_unused]] Scalar4ds<T>,
+                                                         [[maybe_unused]] PScalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(trivec,trivec) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t1,
+                                                         TriVec4ds<U> const& t2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(-t1.x * t2.x - t1.y * t2.y - t1.z * t2.z + t1.w * t2.w);
+}
+
+// sta4ds r_contract :: r_contract(trivec,bivec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t,
+                                                      BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.y * B.vz + t.z * B.vy - t.w * B.mx;
+    ctype const c1 = t.x * B.vz - t.z * B.vx - t.w * B.my;
+    ctype const c2 = -t.x * B.vy + t.y * B.vx - t.w * B.mz;
+    ctype const c3 = -t.x * B.mx - t.y * B.my - t.z * B.mz;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds r_contract :: r_contract(bivec,trivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] BiVec4ds<T> const&, [[maybe_unused]] TriVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(trivec,vec) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t,
+                                                        Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -t.y * v.z + t.z * v.y;
+    ctype const c1 = t.x * v.z - t.z * v.x;
+    ctype const c2 = -t.x * v.y + t.y * v.x;
+    ctype const c3 = t.x * v.w - t.w * v.x;
+    ctype const c4 = t.y * v.w - t.w * v.y;
+    ctype const c5 = t.z * v.w - t.w * v.z;
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds r_contract :: r_contract(vec,trivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Vec4ds<T> const&, [[maybe_unused]] TriVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(trivec,s) -> trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t,
+                                                         Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = t.x * ctype(s);
+    ctype const c1 = t.y * ctype(s);
+    ctype const c2 = t.z * ctype(s);
+    ctype const c3 = t.w * ctype(s);
+    return TriVec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds r_contract :: r_contract(s,trivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Scalar4ds<T>, [[maybe_unused]] TriVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(bivec,bivec) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator>>(BiVec4ds<T> const& B1,
+                                                         BiVec4ds<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(B1.vx * B2.vx + B1.vy * B2.vy + B1.vz * B2.vz -
+                            B1.mx * B2.mx - B1.my * B2.my - B1.mz * B2.mz);
+}
+
+// sta4ds r_contract :: r_contract(bivec,vec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> operator>>(BiVec4ds<T> const& B,
+                                                      Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -B.vx * v.w - B.my * v.z + B.mz * v.y;
+    ctype const c1 = -B.vy * v.w + B.mx * v.z - B.mz * v.x;
+    ctype const c2 = -B.vz * v.w - B.mx * v.y + B.my * v.x;
+    ctype const c3 = -B.vx * v.x - B.vy * v.y - B.vz * v.z;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds r_contract :: r_contract(vec,bivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Vec4ds<T> const&, [[maybe_unused]] BiVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(bivec,s) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> operator>>(BiVec4ds<T> const& B,
+                                                        Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vx * ctype(s);
+    ctype const c1 = B.vy * ctype(s);
+    ctype const c2 = B.vz * ctype(s);
+    ctype const c3 = B.mx * ctype(s);
+    ctype const c4 = B.my * ctype(s);
+    ctype const c5 = B.mz * ctype(s);
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds r_contract :: r_contract(s,bivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Scalar4ds<T>, [[maybe_unused]] BiVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(vec,vec) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator>>(Vec4ds<T> const& v1,
+                                                         Vec4ds<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(-v1.x * v2.x - v1.y * v2.y - v1.z * v2.z + v1.w * v2.w);
+}
+
+// sta4ds r_contract :: r_contract(vec,s) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> operator>>(Vec4ds<T> const& v, Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.x * ctype(s);
+    ctype const c1 = v.y * ctype(s);
+    ctype const c2 = v.z * ctype(s);
+    ctype const c3 = v.w * ctype(s);
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds r_contract :: r_contract(s,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>>
+operator>>([[maybe_unused]] Scalar4ds<T>, [[maybe_unused]] Vec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds r_contract :: r_contract(s,s) -> s
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> operator>>(Scalar4ds<T> s1, Scalar4ds<U> s2)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(ctype(s1) * ctype(s2));
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // commutator product (the asymmetric part of the geometric product)
 ////////////////////////////////////////////////////////////////////////////////
+
+// sta4ds cmt :: cmt(mv,mv) -> mv
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds<std::common_type_t<T, U>> cmt(MVec4ds<T> const& A, MVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = 0.0;
+    ctype const c1 = A.c2 * B.c10 - A.c3 * B.c9 - A.c4 * B.c5 + A.c5 * B.c4 +
+                     A.c9 * B.c3 - A.c10 * B.c2 + A.c11 * B.c15 - A.c15 * B.c11;
+    ctype const c2 = -A.c1 * B.c10 + A.c3 * B.c8 - A.c4 * B.c6 + A.c6 * B.c4 -
+                     A.c8 * B.c3 + A.c10 * B.c1 + A.c12 * B.c15 - A.c15 * B.c12;
+    ctype const c3 = A.c1 * B.c9 - A.c2 * B.c8 - A.c4 * B.c7 + A.c7 * B.c4 + A.c8 * B.c2 -
+                     A.c9 * B.c1 + A.c13 * B.c15 - A.c15 * B.c13;
+    ctype const c4 = -A.c1 * B.c5 - A.c2 * B.c6 - A.c3 * B.c7 + A.c5 * B.c1 +
+                     A.c6 * B.c2 + A.c7 * B.c3 + A.c14 * B.c15 - A.c15 * B.c14;
+    ctype const c5 = A.c1 * B.c4 - A.c4 * B.c1 + A.c6 * B.c10 - A.c7 * B.c9 +
+                     A.c9 * B.c7 - A.c10 * B.c6 + A.c11 * B.c14 - A.c14 * B.c11;
+    ctype const c6 = A.c2 * B.c4 - A.c4 * B.c2 - A.c5 * B.c10 + A.c7 * B.c8 -
+                     A.c8 * B.c7 + A.c10 * B.c5 + A.c12 * B.c14 - A.c14 * B.c12;
+    ctype const c7 = A.c3 * B.c4 - A.c4 * B.c3 + A.c5 * B.c9 - A.c6 * B.c8 + A.c8 * B.c6 -
+                     A.c9 * B.c5 + A.c13 * B.c14 - A.c14 * B.c13;
+    ctype const c8 = A.c2 * B.c3 - A.c3 * B.c2 - A.c6 * B.c7 + A.c7 * B.c6 +
+                     A.c9 * B.c10 - A.c10 * B.c9 + A.c12 * B.c13 - A.c13 * B.c12;
+    ctype const c9 = -A.c1 * B.c3 + A.c3 * B.c1 + A.c5 * B.c7 - A.c7 * B.c5 -
+                     A.c8 * B.c10 + A.c10 * B.c8 - A.c11 * B.c13 + A.c13 * B.c11;
+    ctype const c10 = A.c1 * B.c2 - A.c2 * B.c1 - A.c5 * B.c6 + A.c6 * B.c5 +
+                      A.c8 * B.c9 - A.c9 * B.c8 + A.c11 * B.c12 - A.c12 * B.c11;
+    ctype const c11 = -A.c1 * B.c15 + A.c5 * B.c14 + A.c9 * B.c13 - A.c10 * B.c12 +
+                      A.c12 * B.c10 - A.c13 * B.c9 - A.c14 * B.c5 + A.c15 * B.c1;
+    ctype const c12 = -A.c2 * B.c15 + A.c6 * B.c14 - A.c8 * B.c13 + A.c10 * B.c11 -
+                      A.c11 * B.c10 + A.c13 * B.c8 - A.c14 * B.c6 + A.c15 * B.c2;
+    ctype const c13 = -A.c3 * B.c15 + A.c7 * B.c14 + A.c8 * B.c12 - A.c9 * B.c11 +
+                      A.c11 * B.c9 - A.c12 * B.c8 - A.c14 * B.c7 + A.c15 * B.c3;
+    ctype const c14 = -A.c4 * B.c15 + A.c5 * B.c11 + A.c6 * B.c12 + A.c7 * B.c13 -
+                      A.c11 * B.c5 - A.c12 * B.c6 - A.c13 * B.c7 + A.c15 * B.c4;
+    ctype const c15 = A.c1 * B.c11 + A.c2 * B.c12 + A.c3 * B.c13 - A.c4 * B.c14 -
+                      A.c11 * B.c1 - A.c12 * B.c2 - A.c13 * B.c3 + A.c14 * B.c4;
+    return MVec4ds<ctype>(c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14,
+                          c15);
+}
+
+// sta4ds cmt :: cmt(ps,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] PScalar4ds<T>,
+                                                  [[maybe_unused]] PScalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(ps,trivec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> cmt(PScalar4ds<T> ps, TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -ctype(ps) * t.x;
+    ctype const c1 = -ctype(ps) * t.y;
+    ctype const c2 = -ctype(ps) * t.z;
+    ctype const c3 = -ctype(ps) * t.w;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds cmt :: cmt(trivec,ps) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> cmt(TriVec4ds<T> const& t, PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = t.x * ctype(ps);
+    ctype const c1 = t.y * ctype(ps);
+    ctype const c2 = t.z * ctype(ps);
+    ctype const c3 = t.w * ctype(ps);
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds cmt :: cmt(ps,bivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] PScalar4ds<T>,
+                                                  [[maybe_unused]] BiVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(bivec,ps) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] BiVec4ds<T> const&,
+                                                  [[maybe_unused]] PScalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(ps,vec) -> trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> cmt(PScalar4ds<T> ps, Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = ctype(ps) * v.x;
+    ctype const c1 = ctype(ps) * v.y;
+    ctype const c2 = ctype(ps) * v.z;
+    ctype const c3 = ctype(ps) * v.w;
+    return TriVec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds cmt :: cmt(vec,ps) -> trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> cmt(Vec4ds<T> const& v, PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = -v.x * ctype(ps);
+    ctype const c1 = -v.y * ctype(ps);
+    ctype const c2 = -v.z * ctype(ps);
+    ctype const c3 = -v.w * ctype(ps);
+    return TriVec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds cmt :: cmt(ps,s) -> 0 ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] PScalar4ds<T>,
+                                                   [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(s,ps) -> 0 ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar4ds<T>,
+                                                   [[maybe_unused]] PScalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(trivec,trivec) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> cmt(TriVec4ds<T> const& t1,
+                                                 TriVec4ds<U> const& t2)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = t1.x * t2.w - t1.w * t2.x;
+    ctype const c1 = t1.y * t2.w - t1.w * t2.y;
+    ctype const c2 = t1.z * t2.w - t1.w * t2.z;
+    ctype const c3 = t1.y * t2.z - t1.z * t2.y;
+    ctype const c4 = -t1.x * t2.z + t1.z * t2.x;
+    ctype const c5 = t1.x * t2.y - t1.y * t2.x;
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds cmt :: cmt(trivec,bivec) -> trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> cmt(TriVec4ds<T> const& t,
+                                                  BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = t.y * B.mz - t.z * B.my - t.w * B.vx;
+    ctype const c1 = -t.x * B.mz + t.z * B.mx - t.w * B.vy;
+    ctype const c2 = t.x * B.my - t.y * B.mx - t.w * B.vz;
+    ctype const c3 = -t.x * B.vx - t.y * B.vy - t.z * B.vz;
+    return TriVec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds cmt :: cmt(bivec,trivec) -> trivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> cmt(BiVec4ds<T> const& B,
+                                                  TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vx * t.w + B.my * t.z - B.mz * t.y;
+    ctype const c1 = B.vy * t.w - B.mx * t.z + B.mz * t.x;
+    ctype const c2 = B.vz * t.w + B.mx * t.y - B.my * t.x;
+    ctype const c3 = B.vx * t.x + B.vy * t.y + B.vz * t.z;
+    return TriVec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds cmt :: cmt(trivec,vec) -> ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar4ds<std::common_type_t<T, U>> cmt(TriVec4ds<T> const& t,
+                                                   Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar4ds<ctype>(-t.x * v.x - t.y * v.y - t.z * v.z + t.w * v.w);
+}
+
+// sta4ds cmt :: cmt(vec,trivec) -> ps
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr PScalar4ds<std::common_type_t<T, U>> cmt(Vec4ds<T> const& v,
+                                                   TriVec4ds<U> const& t)
+{
+    using ctype = std::common_type_t<T, U>;
+    return PScalar4ds<ctype>(v.x * t.x + v.y * t.y + v.z * t.z - v.w * t.w);
+}
+
+// sta4ds cmt :: cmt(trivec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] TriVec4ds<T> const&,
+                                                  [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(s,trivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar4ds<T>,
+                                                  [[maybe_unused]] TriVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(bivec,bivec) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> cmt(BiVec4ds<T> const& B1,
+                                                 BiVec4ds<U> const& B2)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B1.vy * B2.mz - B1.vz * B2.my + B1.my * B2.vz - B1.mz * B2.vy;
+    ctype const c1 = -B1.vx * B2.mz + B1.vz * B2.mx - B1.mx * B2.vz + B1.mz * B2.vx;
+    ctype const c2 = B1.vx * B2.my - B1.vy * B2.mx + B1.mx * B2.vy - B1.my * B2.vx;
+    ctype const c3 = -B1.vy * B2.vz + B1.vz * B2.vy + B1.my * B2.mz - B1.mz * B2.my;
+    ctype const c4 = B1.vx * B2.vz - B1.vz * B2.vx - B1.mx * B2.mz + B1.mz * B2.mx;
+    ctype const c5 = -B1.vx * B2.vy + B1.vy * B2.vx + B1.mx * B2.my - B1.my * B2.mx;
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds cmt :: cmt(bivec,vec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> cmt(BiVec4ds<T> const& B, Vec4ds<U> const& v)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = B.vx * v.w + B.my * v.z - B.mz * v.y;
+    ctype const c1 = B.vy * v.w - B.mx * v.z + B.mz * v.x;
+    ctype const c2 = B.vz * v.w + B.mx * v.y - B.my * v.x;
+    ctype const c3 = B.vx * v.x + B.vy * v.y + B.vz * v.z;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds cmt :: cmt(vec,bivec) -> vec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Vec4ds<std::common_type_t<T, U>> cmt(Vec4ds<T> const& v, BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v.y * B.mz - v.z * B.my - v.w * B.vx;
+    ctype const c1 = -v.x * B.mz + v.z * B.mx - v.w * B.vy;
+    ctype const c2 = v.x * B.my - v.y * B.mx - v.w * B.vz;
+    ctype const c3 = -v.x * B.vx - v.y * B.vy - v.z * B.vz;
+    return Vec4ds<ctype>(c0, c1, c2, c3);
+}
+
+// sta4ds cmt :: cmt(bivec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] BiVec4ds<T> const&,
+                                                  [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(s,bivec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar4ds<T>,
+                                                  [[maybe_unused]] BiVec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(vec,vec) -> bivec
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> cmt(Vec4ds<T> const& v1, Vec4ds<U> const& v2)
+{
+    using ctype = std::common_type_t<T, U>;
+    ctype const c0 = v1.x * v2.w - v1.w * v2.x;
+    ctype const c1 = v1.y * v2.w - v1.w * v2.y;
+    ctype const c2 = v1.z * v2.w - v1.w * v2.z;
+    ctype const c3 = v1.y * v2.z - v1.z * v2.y;
+    ctype const c4 = -v1.x * v2.z + v1.z * v2.x;
+    ctype const c5 = v1.x * v2.y - v1.y * v2.x;
+    return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
+}
+
+// sta4ds cmt :: cmt(vec,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] Vec4ds<T> const&,
+                                                  [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(s,vec) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar4ds<T>,
+                                                  [[maybe_unused]] Vec4ds<U> const&)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
+
+// sta4ds cmt :: cmt(s,s) -> 0
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr Scalar4ds<std::common_type_t<T, U>> cmt([[maybe_unused]] Scalar4ds<T>,
+                                                  [[maybe_unused]] Scalar4ds<U>)
+{
+    using ctype = std::common_type_t<T, U>;
+    return Scalar4ds<ctype>(0.0);
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2691,11 +6375,6 @@ constexpr Scalar4ds<std::common_type_t<T, U>> operator*(Scalar4ds<T> s1, Scalar4
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// regressive geometric products
-////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////////////////////////////////////
 // multiplicative inverses of scalars, blades and multivectors
 // w.r.t. the geometric product:
 // for k-blades: A^(-1) = rev(A)/|A|^2 = (-1)^(k*(k-1)/2)*A/|A|^2
@@ -2813,6 +6492,35 @@ inline MVec4ds<T> inv(MVec4ds<T> const& M)
     T sq_n = T(gr0(tc * tcmap));
     hd::ga::detail::check_normalization<T>(sq_n, "multivector");
     return conj(M) * tcmap / sq_n;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// left and right expansions
+//
+// Expansions are the wdg-based duals of the contractions (which use rwdg):
+//
+//     l_expand4ds(a, b) = wdg( l_dual(a), b )
+//     r_expand4ds(a, b) = wdg( a, r_dual(b) )
+//
+// Implemented as generic wrappers over the existing dual and wedge operations,
+// so every grade-pair combination is covered automatically. The requires-clause
+// admits exactly the operand types for which the composition is well-formed
+// (i.e. the sta4ds blade and multivector types).
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename A, typename B>
+    requires requires(A const& a, B const& b) { wdg(l_dual(a), b); }
+constexpr auto l_expand4ds(A const& a, B const& b)
+{
+    return wdg(l_dual(a), b);
+}
+
+template <typename A, typename B>
+    requires requires(A const& a, B const& b) { wdg(a, r_dual(b)); }
+constexpr auto r_expand4ds(A const& a, B const& b)
+{
+    return wdg(a, r_dual(b));
 }
 
 } // namespace hd::ga::sta

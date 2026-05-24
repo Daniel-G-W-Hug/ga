@@ -19,16 +19,24 @@ namespace hd::ga::sta {
 // - gr_inv()                      -> grade inversion
 // - rev()                         -> reversion
 // - rrev()                        -> regressive reversion
-// - conj()                        -> conjugation
+// - conj()                        -> Clifford conjugation
 //
-// - l_cmpl(), r_cmpl()            -> left and right complement
-// - nrm_sq()                      -> return squared norm
+// - r_cmpl()                      -> right complement (non-metric)
+// - l_cmpl()                      -> left complement (non-metric)
 //
-// - normalize()                   -> return normalized object (nrm scaled to 1.0)
+// - nrm_sq()                      -> squared norm (based on metric)
+// - nrm()                         -> magnitude = sqrt(|nrm_sq()|), always >= 0
 //
-// - r_dual()                      -> return right dual
-// - l_dual()                      -> return right dual
+// - is_timelike()                 -> true, if nrm_sq() > 0    (timelike part dominates)
+// - is_spacelike()                -> true, if nrm_sq() < 0    (spacelike part dominates)
+// - is_lightlike()                -> true, if nrm_sq() == 0   (lightlike)
 //
+// - normalize()                   -> return normalized object
+//                                    nrm_sq scaled to +1.0, -1.0, 0.0 for
+//                                    timelike, spacelike, lightlike objects
+//
+// - r_dual()                      -> right metric dual
+// - l_dual()                      -> left metric dual
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -343,22 +351,17 @@ constexpr MVec4ds<T> conj(MVec4ds<T> const& M)
 // (the concept of complement is defined w.r.t. the outer product)
 ////////////////////////////////////////////////////////////////////////////////
 
-// if M represents the subspace B of the blade u as subspace of R^2 then
-// compl(M) represents the subspace orthorgonal to B
-// the complement exchanges basis vectors which are in the k-blade u with
-// the basis vectors which are NOT contained in the k-blade u
-// and are needed to fill the space completely to the corresponding pseudoscalar
+// If M represents the subspace B of the blade u then complement of M represents
+// the subspace orthorgonal to B.
+// The complement exchanges basis vectors which are in the k-blade u with
+// the basis vectors which are NOT contained in the k-blade u,
+// and are needed to fill the space completely up to the corresponding pseudoscalar.
 //
 // left complement:  l_cmpl(u) ^ u  = I_4ds = g1^g2^g3^g4
 // right complement: u ^ r_cmpl(u)  = I_4ds = g1^g2^g3^g4
 //
 // in spaces of odd dimension right and left complements are identical and thus there
-// is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
-//
-// in spaces of even dimension and when the grade of the k-vector is odd left and right
-// comploments have different signs
-//
-// complement operation with g1^g2^g3^g4 as the pseudoscalar
+// is only one complement operation defined l_cmpl(u) = r_cmpl(u) = cmpl(u)
 
 ////////////////////////////////////////////////////////////////////////////////
 // right complements
@@ -548,7 +551,8 @@ constexpr MVec4ds<T> l_cmpl(MVec4ds<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// nrm_sq(u): return the squared norm of u (a scalar value resulting from dot(u,u)
+// nrm_sq(u): return the squared norm of u
+//            (a scalar value resulting from dot(u,u), i.e. reflects the metric)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -706,7 +710,7 @@ constexpr bool is_lightlike(TriVec4ds<T> const& t)
 //
 // Real-valued for every element and exactly 0 for lightlike (null) blades.
 // Dividing a non-null grade 1..n-1 blade by nrm() scales it to nrm_sq == +/-1,
-// preserving its causal character (spacelike -> +1, timelike -> -1). The sign
+// preserving its causal character (spacelike -> -1, timelike -> +1). The sign
 // itself is dropped here (it is kept in nrm_sq); recover it via the is_*
 // predicates.
 //
@@ -772,8 +776,9 @@ constexpr Scalar4ds<T> nrm(MVec4ds<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// normalization operations:
-// return an object normalized to nrm(u) == 1.0
+// normalization operations: scale an object to unit magnitude (nrm == 1.0),
+// i.e. nrm_sq == +1 for timelike and -1 for spacelike blades; lightlike blades
+// (nrm_sq == 0) are returned unchanged.
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -792,7 +797,7 @@ inline Vec4ds<T> normalize(Vec4ds<T> const& v)
 {
     // lightlike (null): nrm_sq == 0 already; cannot be scaled to +/-1
     if (is_lightlike(v)) return v;
-    // spacelike -> +1, timelike -> -1; dividing by nrm = sqrt(|nrm_sq|)
+    // spacelike -> -1, timelike -> +1; dividing by nrm = sqrt(|nrm_sq|)
     // yields the correctly signed unit blade automatically
     T n = to_val(nrm(v));
     hd::ga::detail::check_normalization<T>(n, "vector (4ds)");
@@ -806,7 +811,7 @@ inline BiVec4ds<T> normalize(BiVec4ds<T> const& B)
 {
     // lightlike (null): nrm_sq == 0 already; cannot be scaled to +/-1
     if (is_lightlike(B)) return B;
-    // spacelike -> +1, timelike -> -1; dividing by nrm = sqrt(|nrm_sq|)
+    // spacelike -> -1, timelike -> +1; dividing by nrm = sqrt(|nrm_sq|)
     // yields the correctly signed unit blade automatically
     T n = to_val(nrm(B));
     hd::ga::detail::check_normalization<T>(n, "bivector (4ds)");
@@ -820,7 +825,7 @@ inline TriVec4ds<T> normalize(TriVec4ds<T> const& t)
 {
     // lightlike (null): nrm_sq == 0 already; cannot be scaled to +/-1
     if (is_lightlike(t)) return t;
-    // spacelike -> +1, timelike -> -1; dividing by nrm = sqrt(|nrm_sq|)
+    // spacelike -> -1, timelike -> +1; dividing by nrm = sqrt(|nrm_sq|)
     // yields the correctly signed unit blade automatically
     T n = to_val(nrm(t));
     hd::ga::detail::check_normalization<T>(n, "trivector (4ds)");
@@ -831,42 +836,11 @@ inline TriVec4ds<T> normalize(TriVec4ds<T> const& t)
 // NOTE: normalization of mixed-grade multivectors is disabled for now. In an
 // indefinite (Minkowski) metric nrm_sq is a signed grade sum and does not give
 // a well-defined blade norm, so the timelike/spacelike/lightlike case
-// distinction does not apply. Re-enable once a meaningful convention is fixed.
-/*
-template <typename T>
-    requires(numeric_type<T>)
-inline MVec4ds_E<T> normalize(MVec4ds_E<T> const& M)
-{
-    T n = to_val(nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "even-grade multivector (4ds)");
-    T scale = T(1.0) / n; // for multiplication with inverse of norm
-    return scale * M;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-inline MVec4ds_U<T> normalize(MVec4ds_U<T> const& M)
-{
-    T n = to_val(nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "odd-grade multivector (4ds)");
-    T scale = T(1.0) / n; // for multiplication with inverse of norm
-    return scale * M;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-inline MVec4ds<T> normalize(MVec4ds<T> const& M)
-{
-    T n = to_val(nrm(M));
-    hd::ga::detail::check_normalization<T>(n, "multivector (4ds)");
-    T scale = T(1.0) / n; // for multiplication with inverse of norm
-    return scale * M;
-}
-*/
+// distinction does not apply.
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// r_dual(A) = r_cmpl(A) = r_cmpl( metric * A )
+// metric right dual: r_dual(A) = r_cmpl( metric * A )
 //
 // -> right complement operation after multiplication with the metric
 //
@@ -898,7 +872,7 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec4ds<T> r_dual(BiVec4ds<T> const& B)
 {
-    return BiVec4ds<T>(B.mx, B.my, B.mz, -B.vx, -B.vy, -B.vz);
+    return BiVec4ds<T>(-B.mx, -B.my, -B.mz, B.vx, B.vy, B.vz);
 }
 
 template <typename T>
@@ -939,7 +913,7 @@ constexpr MVec4ds<T> r_dual(MVec4ds<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// l_dual(A) = l_cmpl(A) = l_cmpl( metric * A )
+// metric left dual: l_dual(A) = l_cmpl( metric * A )
 //
 // -> left complement operation after multiplication with the metric
 //
@@ -971,7 +945,7 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec4ds<T> l_dual(BiVec4ds<T> const& B)
 {
-    return BiVec4ds<T>(B.mx, B.my, B.mz, -B.vx, -B.vy, -B.vz);
+    return BiVec4ds<T>(-B.mx, -B.my, -B.mz, B.vx, B.vy, B.vz);
 }
 
 template <typename T>
@@ -1009,6 +983,5 @@ constexpr MVec4ds<T> l_dual(MVec4ds<T> const& M)
     return MVec4ds<T>(l_dual(gr4(M)), l_dual(gr3(M)), l_dual(gr2(M)), l_dual(gr1(M)),
                       l_dual(gr0(M)));
 }
-
 
 } // namespace hd::ga::sta

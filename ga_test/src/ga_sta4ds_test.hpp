@@ -318,6 +318,133 @@ TEST_SUITE("STA 3D Tests")
                      "+/-1 (null unchanged)");
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // sanity checks for the contraction / expansion / rwdg / cmt products
+    // (identities mirrored from the EGA3D test suite, adapted to G(1,3,0))
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: contraction / rwdg / cmt / expansion sanity checks")
+    {
+        fmt::println("G<1,3,0>: contraction / rwdg / cmt / expansion sanity checks");
+
+        vec4ds v1{1.0, 2.0, 3.0, 4.0};
+        vec4ds v2{5.0, 6.0, 7.0, 8.0};
+        bivec4ds B1{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        bivec4ds B2{2.0, 3.0, 4.0, 5.0, 6.0, 7.0};
+        trivec4ds t{1.0, 2.0, 3.0, 4.0};
+        vec4ds v3{2.0, 0.0, 1.0, 3.0};
+        bivec4ds B3{1.0, 0.0, 2.0, 0.0, 3.0, 1.0};
+        trivec4ds t2{4.0, 3.0, 2.0, 1.0};
+        scalar4ds sc{3.0};
+        mvec4ds M1{scalar4ds{1.0}, v1, B1, t, pscalar4ds{2.0}};
+        mvec4ds M2{scalar4ds{2.0}, v2, B2, trivec4ds{4.0, 3.0, 2.0, 1.0},
+                   pscalar4ds{5.0}};
+
+        // ---- contractions ----
+        // for equal grades the contraction reduces to the metric inner product
+        // (holds at every grade, not just vectors)
+        CHECK((v1 << v2) == dot(v1, v2));
+        CHECK((v1 >> v2) == dot(v1, v2));
+        CHECK((B1 << B2) == dot(B1, B2));
+        CHECK((B1 >> B2) == dot(B1, B2));
+        CHECK((t << t2) == dot(t, t2));
+        CHECK((t >> t2) == dot(t, t2));
+        // the contraction carries the metric: timelike g4 -> +1, spacelike g1 -> -1
+        CHECK((g4_4ds << g4_4ds) == scalar4ds{1.0});
+        CHECK((g1_4ds << g1_4ds) == scalar4ds{-1.0});
+        // scalar contraction is just scalar multiplication
+        CHECK((sc << B1) == value_t(sc) * B1);
+        CHECK((B1 >> sc) == value_t(sc) * B1);
+        // geometric product decomposes into contraction + wedge (grade split)
+        CHECK(v1 * v2 == (v2 >> v1) + wdg(v1, v2));
+        CHECK(B1 * v1 == (v1 << B1) + wdg(B1, v1));
+        CHECK(v1 * B1 == (B1 >> v1) + wdg(v1, B1));
+        // Lengyel's defining identity: contraction == rwdg(dual(a), b), exact at every
+        // grade. grade(a)=2 (B1<<B2) is the case that pinned the bivector dual sign.
+        CHECK((v1 << B1) == rwdg(l_dual(v1), B1));
+        CHECK((B1 << B2) == rwdg(l_dual(B1), B2));
+        CHECK((t << t) == rwdg(l_dual(t), t));
+        CHECK((B1 >> B2) == rwdg(B1, r_dual(B2)));
+
+        // ---- regressive wedge (meet) ----
+        // defining identity: rwdg(a,b) = l_cmpl(wdg(r_cmpl(a), r_cmpl(b)))
+        CHECK(rwdg(B1, B2) == l_cmpl(wdg(r_cmpl(B1), r_cmpl(B2))));
+        // the pseudoscalar is the neutral element of the meet
+        CHECK(rwdg(I_4ds, sc) == sc);
+        CHECK(rwdg(sc, I_4ds) == sc);
+        // complement turns the meet into the join (De Morgan duality)
+        CHECK(r_cmpl(rwdg(B1, B2)) == wdg(r_cmpl(B1), r_cmpl(B2)));
+
+        // ---- commutator (asymmetric part of the geometric product) ----
+        CHECK(cmt(v1, v2) == wdg(v1, v2));               // = wedge for two vectors
+        CHECK(cmt(M1, M2) == 0.5 * (M1 * M2 - M2 * M1)); // definition, full mv
+        CHECK(cmt(v1, v2) == -cmt(v2, v1));              // antisymmetric
+        CHECK(cmt(B1, B2) == -cmt(B2, B1));
+        // the bivectors close under the commutator -> Lorentz Lie algebra so(1,3)
+        CHECK(cmt(B1, B2) == gr2(0.5 * (B1 * B2 - B2 * B1)));
+        CHECK(cmt(cmt(B1, B2), B3) + cmt(cmt(B2, B3), B1) + cmt(cmt(B3, B1), B2) ==
+              bivec4ds{}); // Jacobi identity
+
+        // ---- expansions (wdg-duals of the contractions) ----
+        // ground-truth values from ga_prdxpr (NOT the self-referential wrapper form
+        // l_expand4ds(a,b)==wdg(l_dual(a),b), which can't catch a dual sign bug)
+        CHECK(l_expand4ds(B1, v1) == trivec4ds{7.0, 2.0, 15.0, 14.0});
+        CHECK(r_expand4ds(v1, B1) == trivec4ds{7.0, 2.0, 15.0, 14.0});
+        // meet with the pseudoscalar dual: l_dual(I_4ds) is a unit scalar, so
+        // expanding a blade by I_4ds returns it scaled by det(g) = -1
+        CHECK(l_expand4ds(I_4ds, t) == -t);
+        CHECK(r_expand4ds(t, I_4ds) == -t);
+
+        // ---- bilinearity (regression guards against gross wiring breakage) ----
+        CHECK(((v1 + v2) << B1) == (v1 << B1) + (v2 << B1));
+        CHECK(rwdg(B1, B2 + B3) == rwdg(B1, B2) + rwdg(B1, B3));
+        CHECK(cmt(v1, v2 + v3) == cmt(v1, v2) + cmt(v1, v3));
+        CHECK(l_expand4ds(B1 + B2, v1) == l_expand4ds(B1, v1) + l_expand4ds(B2, v1));
+
+        fmt::println("contraction == dot (equal grades), gpr = contraction + wedge, "
+                     "rwdg/cmt/expansion identities hold");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // transcription gate: dual == metric * complement, per basis blade
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: dual == metric * complement (transcription gate)")
+    {
+        fmt::println("G<1,3,0>: dual == metric * complement (transcription gate)");
+
+        // The dual is "complement after multiplication with the extended metric":
+        //   l_dual(e) = l_cmpl(G*e),   r_dual(e) = r_cmpl(G*e).
+        // For a unit basis blade e, G*e = nrm_sq(e)*e, so the relation must hold
+        // element-wise. This is a direct guard against sign-transcription errors
+        // when the dual/complement tables are hand-coded from the output of
+        // ga_prdxpr_rule_generator_test -- it catches exactly the kind of bivector
+        // dual sign slip that previously went unnoticed (the rule generator is the
+        // source of truth; this pins the hand-written code to it).
+        auto gate = [](auto const& e) {
+            CHECK(l_dual(e) == nrm_sq(e) * l_cmpl(e));
+            CHECK(r_dual(e) == nrm_sq(e) * r_cmpl(e));
+        };
+        gate(one_4ds);
+        gate(g1_4ds);
+        gate(g2_4ds);
+        gate(g3_4ds);
+        gate(g4_4ds);
+        gate(g14_4ds);
+        gate(g24_4ds);
+        gate(g34_4ds);
+        gate(g23_4ds);
+        gate(g31_4ds);
+        gate(g12_4ds);
+        gate(g234_4ds);
+        gate(g314_4ds);
+        gate(g124_4ds);
+        gate(g123_4ds);
+        gate(I_4ds);
+
+        fmt::println("l_dual(e) == nrm_sq(e)*l_cmpl(e) and r_dual analogue verified");
+    }
+
     TEST_CASE("G<1,3,0>: left-right complement composition")
     {
         fmt::println("G<1,3,0>: left-right complement composition");
