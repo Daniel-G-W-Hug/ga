@@ -16,7 +16,7 @@ Usage:
     ./library_coverage.py                              # all four default algebras
     ./library_coverage.py --algebra=ega3d              # just one
     ./library_coverage.py --algebra=ega2d,ega3d        # comma-separated list
-    ./library_coverage.py --algebra=all                # all five (incl. sta4d)
+    ./library_coverage.py --algebra=all                # all five (incl. sta4ds)
     ./library_coverage.py --algebra=ega3d --show-code  # also print full bodies
                                                        # of every missing function
                                                        # ready to paste
@@ -102,8 +102,12 @@ def _join_signature_lines(lines, start):
     # Case (b): no '(' yet — keep gluing until one shows up. Bail out if we
     # hit a ';' (statement terminator → not a function decl) or look too far.
     max_lookahead = 5
-    while ("(" not in text) and (";" not in text) \
-            and end + 1 < len(lines) and (end - start) < max_lookahead:
+    while (
+        ("(" not in text)
+        and (";" not in text)
+        and end + 1 < len(lines)
+        and (end - start) < max_lookahead
+    ):
         end += 1
         text += " " + lines[end].strip()
     # Case (a): glue until parens balance.
@@ -181,11 +185,15 @@ def extract_blocks(text):
 def _run_ga_prdxpr(binary_path, algebra):
     proc = subprocess.run(
         [binary_path, f"--algebra={algebra}", "--output=code"],
-        capture_output=True, text=True, check=False,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     if proc.returncode != 0:
-        sys.exit(f"ga_prdxpr exited {proc.returncode} for {algebra}: "
-                 f"{proc.stderr.strip()}")
+        sys.exit(
+            f"ga_prdxpr exited {proc.returncode} for {algebra}: "
+            f"{proc.stderr.strip()}"
+        )
     return proc.stdout
 
 
@@ -222,7 +230,7 @@ def extract_lib_blocks(text):
             i += 1
             continue
 
-        constexpr_line = i + 1   # 1-based for IDE navigation
+        constexpr_line = i + 1  # 1-based for IDE navigation
 
         # Join multi-line signatures into one logical line for canonicalisation.
         joined_sig, sig_end_idx = _join_signature_lines(lines, i)
@@ -258,7 +266,7 @@ def extract_lib_blocks(text):
                 break
             end += 1
 
-        sig_to_block[sig] = ("\n".join(lines[start:end + 1]), constexpr_line)
+        sig_to_block[sig] = ("\n".join(lines[start : end + 1]), constexpr_line)
         i = end + 1
     return sig_to_block
 
@@ -280,8 +288,8 @@ def _clang_format(code, formatter_path):
         return code
     try:
         proc = subprocess.run(
-            [formatter_path], input=code, capture_output=True, text=True,
-            check=False)
+            [formatter_path], input=code, capture_output=True, text=True, check=False
+        )
         if proc.returncode == 0:
             return proc.stdout
     except OSError:
@@ -311,12 +319,11 @@ def _extract_signature_text(block):
     for i, line in enumerate(lines):
         if line.lstrip().startswith("constexpr") and "(" in line:
             _, end = _join_signature_lines(lines, i)
-            return "\n".join(lines[i:end + 1])
+            return "\n".join(lines[i : end + 1])
     return ""
 
 
-def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode,
-                   formatter_path):
+def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode, formatter_path):
     lib_file = os.path.join(lib_dir, f"ga_{algebra}_ops_products.hpp")
     print(f"=== {algebra} ===")
     if not os.path.isfile(lib_file):
@@ -355,16 +362,20 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode,
     print(f"  in both:   {len(gen_sigs & lib_sigs)}")
 
     if missing:
-        print(f"\n  TO ADD to library ({len(missing)} signatures present in "
-              f"generated code but not in {os.path.basename(lib_file)}):")
+        print(
+            f"\n  TO ADD to library ({len(missing)} signatures present in "
+            f"generated code but not in {os.path.basename(lib_file)}):"
+        )
         for s in missing:
             print(f"    {s}")
 
         if show_code:
             print()
             print(f"{'=' * 78}")
-            print(f"  Full source for {len(missing)} missing functions "
-                  f"(copy-paste into {os.path.basename(lib_file)}):")
+            print(
+                f"  Full source for {len(missing)} missing functions "
+                f"(copy-paste into {os.path.basename(lib_file)}):"
+            )
             print(f"{'=' * 78}")
             for s in missing:
                 block = sig_to_block.get(s)
@@ -376,8 +387,10 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode,
             print()
 
     if extra:
-        print(f"\n  in library but NOT in generated ({len(extra)} — likely "
-              f"hand-written delegations or out-of-scope helpers):")
+        print(
+            f"\n  in library but NOT in generated ({len(extra)} — likely "
+            f"hand-written delegations or out-of-scope helpers):"
+        )
         for s in extra:
             print(f"    {s}")
     if not missing and not extra:
@@ -393,10 +406,15 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode,
             if gen_norm != lib_norm:
                 differing.append((s, gen_norm, lib_norm, lib_line))
 
-        fmt_note = "" if formatter_path else "  (clang-format not found — "\
-                                             "comparing comment-stripped only)"
-        print(f"\n  diff: {len(in_both)} signatures in both; "
-              f"{len(differing)} differ after normalisation{fmt_note}")
+        fmt_note = (
+            ""
+            if formatter_path
+            else "  (clang-format not found — " "comparing comment-stripped only)"
+        )
+        print(
+            f"\n  diff: {len(in_both)} signatures in both; "
+            f"{len(differing)} differ after normalisation{fmt_note}"
+        )
         if differing:
             print(f"{'=' * 78}")
             for s, gen_norm, lib_norm, lib_line in differing:
@@ -416,7 +434,8 @@ def report_algebra(binary_path, lib_dir, algebra, show_code, diff_mode,
                     gen_norm.splitlines(keepends=True),
                     fromfile=f"library:{os.path.basename(lib_file)}",
                     tofile=f"generated:{algebra}",
-                    n=3)
+                    n=3,
+                )
                 sys.stdout.writelines(diff)
             print(f"{'=' * 78}")
     print()
@@ -431,10 +450,10 @@ def find_binary(proj_root):
     """
     base = os.path.join(proj_root, "build", "ga_prdxpr")
     candidates = [
-        os.path.join(base, "ga_prdxpr"),                  # Unix / Ninja / make
-        os.path.join(base, "ga_prdxpr.exe"),              # MinGW / Ninja on Win
-        os.path.join(base, "Debug", "ga_prdxpr.exe"),     # MSVC Debug
-        os.path.join(base, "Release", "ga_prdxpr.exe"),   # MSVC Release
+        os.path.join(base, "ga_prdxpr"),  # Unix / Ninja / make
+        os.path.join(base, "ga_prdxpr.exe"),  # MinGW / Ninja on Win
+        os.path.join(base, "Debug", "ga_prdxpr.exe"),  # MSVC Debug
+        os.path.join(base, "Release", "ga_prdxpr.exe"),  # MSVC Release
         os.path.join(base, "RelWithDebInfo", "ga_prdxpr.exe"),
     ]
     for c in candidates:
@@ -444,22 +463,23 @@ def find_binary(proj_root):
         "ga_prdxpr binary not found. Looked in:\n  "
         + "\n  ".join(candidates)
         + f"\nBuild it first, e.g.:\n  cd {os.path.join(proj_root, 'build')}"
-        f" && cmake --build . --target ga_prdxpr")
+        f" && cmake --build . --target ga_prdxpr"
+    )
 
 
 def main():
-    known_algebras = ["ega2d", "ega3d", "pga2dp", "pga3dp", "sta4d"]
+    known_algebras = ["ega2d", "ega3d", "pga2dp", "pga3dp", "sta4ds"]
 
     # Resolve project paths up-front so the default algebra set can be derived
     # from which `ga/ga_<algebra>_ops_products.hpp` files actually exist —
     # adding a new library header automatically expands the default with no
     # script edit needed.
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    proj_root = os.path.abspath(
-        os.path.join(script_dir, "..", "..", "..", ".."))
+    proj_root = os.path.abspath(os.path.join(script_dir, "..", "..", "..", ".."))
     lib_dir = os.path.join(proj_root, "ga")
     default_algebras = [
-        a for a in known_algebras
+        a
+        for a in known_algebras
         if os.path.isfile(os.path.join(lib_dir, f"ga_{a}_ops_products.hpp"))
     ]
 
@@ -472,33 +492,46 @@ def main():
             "  ega3d   Euclidean 3D, G(3,0,0)\n"
             "  pga2dp  Projective 2D, G(2,0,1)\n"
             "  pga3dp  Projective 3D, G(3,0,1)\n"
-            "  sta4d   Space-time, G(1,3,0)\n"
+            "  sta4ds  Space-time, G(1,3,0)\n"
             "\n"
             "Default selection is derived from existing\n"
             "ga/ga_<algebra>_ops_products.hpp files; algebras whose library\n"
-            "file is absent must be requested explicitly with --algebra=NAME.\n"))
+            "file is absent must be requested explicitly with --algebra=NAME.\n"
+        ),
+    )
     parser.add_argument(
-        "--algebra", metavar="ALGEBRAS", default=None,
-        help=("comma-separated algebra list (mirrors ga_prdxpr's interface). "
-              "Choose any of: " + ",".join(known_algebras) + ". "
-              "Special value: 'all' selects every known algebra. "
-              "Default: every algebra whose ga/ga_<name>_ops_products.hpp "
-              "file exists (currently: "
-              + (",".join(default_algebras) if default_algebras else "none")
-              + "). "
-              "Examples: --algebra=ega3d, --algebra=ega2d,ega3d, --algebra=all"))
-    parser.add_argument("--show-code", action="store_true",
-                        help="for each missing-from-library signature, also "
-                             "print the full generated function block "
-                             "(comment + template + body) so it can be "
-                             "copy-pasted directly into the .hpp")
-    parser.add_argument("--diff", action="store_true",
-                        help="for each signature present in BOTH generated "
-                             "and library, strip comments and run clang-format "
-                             "on each side, then print a unified diff if the "
-                             "normalised bodies differ. Picks up the system "
-                             "clang-format if present; otherwise falls back to "
-                             "comment-stripped textual comparison.")
+        "--algebra",
+        metavar="ALGEBRAS",
+        default=None,
+        help=(
+            "comma-separated algebra list (mirrors ga_prdxpr's interface). "
+            "Choose any of: " + ",".join(known_algebras) + ". "
+            "Special value: 'all' selects every known algebra. "
+            "Default: every algebra whose ga/ga_<name>_ops_products.hpp "
+            "file exists (currently: "
+            + (",".join(default_algebras) if default_algebras else "none")
+            + "). "
+            "Examples: --algebra=ega3d, --algebra=ega2d,ega3d, --algebra=all"
+        ),
+    )
+    parser.add_argument(
+        "--show-code",
+        action="store_true",
+        help="for each missing-from-library signature, also "
+        "print the full generated function block "
+        "(comment + template + body) so it can be "
+        "copy-pasted directly into the .hpp",
+    )
+    parser.add_argument(
+        "--diff",
+        action="store_true",
+        help="for each signature present in BOTH generated "
+        "and library, strip comments and run clang-format "
+        "on each side, then print a unified diff if the "
+        "normalised bodies differ. Picks up the system "
+        "clang-format if present; otherwise falls back to "
+        "comment-stripped textual comparison.",
+    )
     args = parser.parse_args()
 
     # Resolve --algebra= into a concrete list, validating each name.
@@ -510,15 +543,16 @@ def main():
         algebras = [a.strip() for a in args.algebra.split(",") if a.strip()]
         unknown = [a for a in algebras if a not in known_algebras]
         if unknown:
-            sys.exit(f"unknown algebra(s): {', '.join(unknown)}\n"
-                     f"choose from: {', '.join(known_algebras)} (or 'all')")
+            sys.exit(
+                f"unknown algebra(s): {', '.join(unknown)}\n"
+                f"choose from: {', '.join(known_algebras)} (or 'all')"
+            )
 
     formatter_path = shutil.which("clang-format")
     binary = find_binary(proj_root)
 
     for alg in algebras:
-        report_algebra(binary, lib_dir, alg, args.show_code, args.diff,
-                       formatter_path)
+        report_algebra(binary, lib_dir, alg, args.show_code, args.diff, formatter_path)
 
 
 if __name__ == "__main__":

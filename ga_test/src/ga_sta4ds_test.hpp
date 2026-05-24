@@ -28,11 +28,11 @@ using namespace hd::ga::sta; // use specific operations of STA (Space-Time Algeb
 TEST_SUITE("STA 3D Tests")
 {
 
-    TEST_CASE("G<3,1,0>: sta4ds")
+    TEST_CASE("G<1,3,0>: sta4ds")
     {
-        fmt::println("G<3,1,0>: sta4ds");
-        // Space-Time Algebra with signature (+,+,+,-)
-        const algebra<3, 1, 0> alg;
+        fmt::println("G<1,3,0>: sta4ds");
+        // Space-Time Algebra with signature (-,-,-,+)
+        const algebra<1, 3, 0> alg;
         CHECK(alg.p() == 1);
         CHECK(alg.n() == 3);
         CHECK(alg.z() == 0);
@@ -50,7 +50,8 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("Scalar4ds: comparison");
         scalar4ds s1{3.0};
         scalar4ds s2{3.0};
-        pscalar4ds ps{3.0};
+        pscalar4ds ps1{3.0};
+        pscalar4ds ps2{4.0};
 
         // same tag comparisons should work
         CHECK(s1 == s2);
@@ -59,6 +60,7 @@ TEST_SUITE("STA 3D Tests")
         CHECK(s1 <= scalar4ds{3.0});
         CHECK(scalar4ds{4.0} > s1);
         CHECK(scalar4ds{3.0} >= s1);
+        CHECK(ps1 != ps2);
 
         // different floating point types with same tag should work
         Scalar_t<float, scalar4ds_tag> sf{3.0f};
@@ -66,47 +68,254 @@ TEST_SUITE("STA 3D Tests")
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    // Dual Mathematical Properties Tests
+    // complement mathematical properties tests
     ////////////////////////////////////////////////////////////////////////////////
 
-    TEST_CASE("G<1,3,0>: dual composition properties")
+    TEST_CASE("G<1,3,0>: cmpl composition properties")
     {
-        fmt::println("G<1,3,0>: dual composition properties");
+        fmt::println("G<1,3,0>: cmpl composition properties");
 
-        // For STA4ds (even-dimensional): l_dual(r_dual(u)) =
-        // r_dual(l_dual(u)) = u This follows from
+        // For STA4ds (even-dimensional):
+        // r_cmpl(l_cmpl(u)) = u
         // l_cmpl(r_cmpl(u)) = u
 
         scalar4ds s{3.0};
         vec4ds v{2.0, 5.0, 7.0, 9.0};
         bivec4ds B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
-        trivec4ds T{1.0, 2.0, 3.0, 4.0};
+        trivec4ds t{1.0, 2.0, 3.0, 4.0};
         pscalar4ds ps{11.0};
+        mvec4ds_u M_u{vec4ds{1.0, 2.0, 3.0, 4.0}, trivec4ds{11.0, 12.0, 13.0, 14.0}};
         mvec4ds_e M_e{scalar4ds{1.0}, bivec4ds{2.0, 3.0, 4.0, 5.0, 6.0, 7.0},
                       pscalar4ds{8.0}};
         mvec4ds M{scalar4ds{1.0}, vec4ds{2.0, 3.0, 4.0, 5.0},
                   bivec4ds{6.0, 7.0, 8.0, 9.0, 10.0, 11.0},
                   trivec4ds{12.0, 13.0, 14.0, 15.0}, pscalar4ds{16.0}};
 
-        // l_dual(r_dual(u)) = u
-        CHECK(l_dual(r_dual(s)) == s);
-        CHECK(l_dual(r_dual(v)) == v);
-        CHECK(l_dual(r_dual(B)) == B);
-        CHECK(l_dual(r_dual(T)) == T);
-        CHECK(l_dual(r_dual(ps)) == ps);
-        CHECK(l_dual(r_dual(M_e)) == M_e);
-        CHECK(l_dual(r_dual(M)) == M);
+        // l_cmpl(r_cmpl(u)) == u
+        CHECK(l_cmpl(r_cmpl(s)) == s);
+        CHECK(l_cmpl(r_cmpl(v)) == v);
+        CHECK(l_cmpl(r_cmpl(B)) == B);
+        CHECK(l_cmpl(r_cmpl(t)) == t);
+        CHECK(l_cmpl(r_cmpl(ps)) == ps);
+        CHECK(l_cmpl(r_cmpl(M_u)) == M_u);
+        CHECK(l_cmpl(r_cmpl(M_e)) == M_e);
+        CHECK(l_cmpl(r_cmpl(M)) == M);
 
-        // r_dual(l_dual(u)) = u
-        CHECK(r_dual(l_dual(s)) == s);
-        CHECK(r_dual(l_dual(v)) == v);
-        CHECK(r_dual(l_dual(B)) == B);
-        CHECK(r_dual(l_dual(T)) == T);
-        CHECK(r_dual(l_dual(ps)) == ps);
-        CHECK(r_dual(l_dual(M_e)) == M_e);
-        CHECK(r_dual(l_dual(M)) == M);
+        // r_cmpl(l_cmpl(u)) == u
+        CHECK(r_cmpl(l_cmpl(s)) == s);
+        CHECK(r_cmpl(l_cmpl(v)) == v);
+        CHECK(r_cmpl(l_cmpl(B)) == B);
+        CHECK(r_cmpl(l_cmpl(t)) == t);
+        CHECK(r_cmpl(l_cmpl(ps)) == ps);
+        CHECK(r_cmpl(l_cmpl(M_u)) == M_u);
+        CHECK(r_cmpl(l_cmpl(M_e)) == M_e);
+        CHECK(r_cmpl(l_cmpl(M)) == M);
 
-        fmt::println("l_dual(r_dual(u)) = r_dual(l_dual(u)) = u");
+        fmt::println("l_cmpl(r_cmpl(u)) == r_cmpl(l_cmpl(u)) == u");
+
+        // l_cmpl(u) ^ u == (Euclidean coordinate sum of squares) * I_4ds, and
+        // u ^ r_cmpl(u) == (Euclidean coordinate sum of squares) * I_4ds.
+        //
+        // NOTE: The test is only valid in this metric-independent form. The
+        // complement is a purely combinatorial (non-metric) operation: it maps
+        // each basis blade to its complementary blade with a sign chosen so that
+        // l_cmpl(e_i) ^ e_i == I_4ds for every basis vector. Hence the resulting
+        // coefficient is always the *Euclidean* sum of the coordinates squared,
+        // regardless of the STA signature. The familiar EGA form
+        // "l_cmpl(u) ^ u == nrm_sq(u) * I" holds only when every basis vector
+        // squares to +1; in the mixed STA metric nrm_sq(u) carries the signature
+        // and differs from the Euclidean sum, so that form no longer applies.
+        value_t const sq_s = value_t(s) * value_t(s);
+        value_t const sq_v = v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w;
+        value_t const sq_B = B.vx * B.vx + B.vy * B.vy + B.vz * B.vz + B.mx * B.mx +
+                             B.my * B.my + B.mz * B.mz;
+        value_t const sq_t = t.x * t.x + t.y * t.y + t.z * t.z + t.w * t.w;
+        value_t const sq_ps = value_t(ps) * value_t(ps);
+
+        CHECK(wdg(l_cmpl(s), s) == sq_s * I_4ds);
+        CHECK(wdg(l_cmpl(v), v) == sq_v * I_4ds);
+        CHECK(wdg(l_cmpl(B), B) == sq_B * I_4ds);
+        CHECK(wdg(l_cmpl(t), t) == sq_t * I_4ds);
+        CHECK(wdg(l_cmpl(ps), ps) == sq_ps * I_4ds);
+
+        CHECK(wdg(s, r_cmpl(s)) == sq_s * I_4ds);
+        CHECK(wdg(v, r_cmpl(v)) == sq_v * I_4ds);
+        CHECK(wdg(B, r_cmpl(B)) == sq_B * I_4ds);
+        CHECK(wdg(t, r_cmpl(t)) == sq_t * I_4ds);
+        CHECK(wdg(ps, r_cmpl(ps)) == sq_ps * I_4ds);
+
+        fmt::println("l_cmpl(u) ^ u == u ^ r_cmpl(u) == (sum of squares) * I_4ds");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // metric signature tests (dot / gpr / nrm_sq)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: metric signature (dot / gpr / nrm_sq)")
+    {
+        fmt::println("G<1,3,0>: metric signature (dot / gpr / nrm_sq)");
+
+        // Unlike the complement (a purely combinatorial, metric-blind operation),
+        // dot(), the geometric product and nrm_sq() all carry the metric. These
+        // tests pin the signature (-,-,-,+) and its exomorphism extension to the
+        // higher grades, and cross-check the three independent code paths against
+        // each other.
+
+        // (1) Signature pinned via nrm_sq() on each unit basis blade. The values
+        //     follow the STA extended metric (g1^2 = g2^2 = g3^2 = -1; g4^2 = +1;
+        //     higher grades via G(a^b) = G(a)^G(b)).
+        // vectors: g1,g2,g3 -> -1 ; g4 -> +1
+        CHECK(nrm_sq(g1_4ds) == -1.0);
+        CHECK(nrm_sq(g2_4ds) == -1.0);
+        CHECK(nrm_sq(g3_4ds) == -1.0);
+        CHECK(nrm_sq(g4_4ds) == 1.0);
+        // bivectors: with g4 -> +1 ; without g4 -> -1
+        CHECK(nrm_sq(g14_4ds) == 1.0);
+        CHECK(nrm_sq(g24_4ds) == 1.0);
+        CHECK(nrm_sq(g34_4ds) == 1.0);
+        CHECK(nrm_sq(g23_4ds) == -1.0);
+        CHECK(nrm_sq(g31_4ds) == -1.0);
+        CHECK(nrm_sq(g12_4ds) == -1.0);
+        // trivectors: with g4 -> -1 (spacelike); g123 (without g4) -> 1 (timelike)
+        CHECK(nrm_sq(g234_4ds) == -1.0);
+        CHECK(nrm_sq(g314_4ds) == -1.0);
+        CHECK(nrm_sq(g124_4ds) == -1.0);
+        CHECK(nrm_sq(g123_4ds) == 1.0);
+        // pseudoscalar: det(g) = -1
+        CHECK(nrm_sq(I_4ds) == -1.0);
+
+        // (2) Defining metric law via the geometric product: g_i (.) g_i = g_ii.
+        //     Routes the signature through gpr(), an independent code path.
+        CHECK(value_t(gr0(g1_4ds * g1_4ds)) == -1.0);
+        CHECK(value_t(gr0(g2_4ds * g2_4ds)) == -1.0);
+        CHECK(value_t(gr0(g3_4ds * g3_4ds)) == -1.0);
+        CHECK(value_t(gr0(g4_4ds * g4_4ds)) == 1.0);
+
+        // (3) Cross-check the three metric-bearing paths against each other:
+        //     codegen dot(), hand-written nrm_sq() and (for vectors) the
+        //     contraction axiom v (.) v = v . v carried by gpr().
+        scalar4ds s{3.0};
+        vec4ds v{2.0, 5.0, 7.0, 9.0};
+        bivec4ds B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        trivec4ds t{1.0, 2.0, 3.0, 4.0};
+        pscalar4ds ps{11.0};
+
+        CHECK(value_t(dot(s, s)) == nrm_sq(s));
+        CHECK(value_t(dot(v, v)) == nrm_sq(v));
+        CHECK(value_t(dot(B, B)) == nrm_sq(B));
+        CHECK(value_t(dot(t, t)) == nrm_sq(t));
+        CHECK(value_t(dot(ps, ps)) == nrm_sq(ps));
+
+        // vector contraction axiom: v (.) v == v . v (scalar), v ^ v == 0
+        CHECK(value_t(gr0(v * v)) == nrm_sq(v));
+        CHECK(gr2(v * v) == bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+
+        fmt::println("signature (-,-,-,+) verified: dot == nrm_sq, g_i (.) g_i == g_ii");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // causal character, nrm and normalization of blades
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: causal character, nrm and normalization of blades")
+    {
+        fmt::println("G<1,3,0>: causal character, nrm and normalization of blades");
+
+        // ---- causal classification (grades 1..n-1: Vec, BiVec, TriVec) ----
+        // timelike: nrm_sq > 0 ; spacelike: nrm_sq < 0 ; lightlike: nrm_sq == 0
+        // vectors: g1,g2,g3 -> spacelike ; g4 -> timelike
+        CHECK(is_spacelike(g1_4ds));
+        CHECK(is_spacelike(g2_4ds));
+        CHECK(is_spacelike(g3_4ds));
+        CHECK(is_timelike(g4_4ds));
+        // null vector g1 + g4 -> nrm_sq = +1 - 1 = 0
+        vec4ds vl{1.0, 0.0, 0.0, 1.0};
+        CHECK(is_lightlike(vl));
+        CHECK(!is_timelike(vl)); // mutually exclusive
+        CHECK(!is_spacelike(vl));
+
+        // bivectors: g14,g24,g34 -> timelike ; g23,g31,g12 -> spacelike
+        CHECK(is_timelike(g14_4ds));
+        CHECK(is_timelike(g24_4ds));
+        CHECK(is_timelike(g34_4ds));
+        CHECK(is_spacelike(g23_4ds));
+        CHECK(is_spacelike(g31_4ds));
+        CHECK(is_spacelike(g12_4ds));
+        // null bivector g14 + g23 -> nrm_sq = +1 - 1 = 0
+        bivec4ds Bl{1.0, 0.0, 0.0, 1.0, 0.0, 0.0};
+        CHECK(is_lightlike(Bl));
+
+        // trivectors: g234,g314,g124 -> spacelike ; g123 -> timelike
+        CHECK(is_spacelike(g234_4ds));
+        CHECK(is_spacelike(g314_4ds));
+        CHECK(is_spacelike(g124_4ds));
+        CHECK(is_timelike(g123_4ds));
+        // null trivector g234 + g123 -> nrm_sq = -1 + 1 = 0
+        trivec4ds tl{1.0, 0.0, 0.0, 1.0};
+        CHECK(is_lightlike(tl));
+
+        // a mixed k-vector takes the character of its dominant contribution:
+        // (timelike weight = sum of timelike-blade squares, likewise spacelike)
+        CHECK(is_timelike(vec4ds{1.0, 0.0, 0.0, 2.0}));  // time 2^2 > space 1^2
+        CHECK(is_spacelike(vec4ds{2.0, 0.0, 0.0, 1.0})); // space 2^2 > time 1^2
+        // bivector: g14 timelike (+1), g23 spacelike (-1)
+        CHECK(is_spacelike(bivec4ds{1.0, 0.0, 0.0, 2.0, 0.0, 0.0})); // g23 dominates
+        CHECK(is_timelike(bivec4ds{2.0, 0.0, 0.0, 1.0, 0.0, 0.0}));  // g14 dominates
+        // trivector: g234 spacelike (-1), g123 timelike (+1)
+        CHECK(is_spacelike(trivec4ds{2.0, 0.0, 0.0, 1.0})); // g234 dominates
+        CHECK(is_timelike(trivec4ds{1.0, 0.0, 0.0, 2.0}));  // g123 dominates
+
+        // ---- nrm(u) == sqrt(|nrm_sq(u)|), always >= 0, zero for null ----
+        scalar4ds s{3.0};
+        vec4ds v{2.0, 5.0, 7.0, 9.0}; // nrm_sq = 4+25+49-81 = -3
+        bivec4ds B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        trivec4ds t{1.0, 2.0, 3.0, 4.0};
+        pscalar4ds ps{11.0};
+
+        CHECK(value_t(nrm(s)) == doctest::Approx(std::sqrt(std::abs(nrm_sq(s)))));
+        CHECK(value_t(nrm(v)) == doctest::Approx(std::sqrt(std::abs(nrm_sq(v)))));
+        CHECK(value_t(nrm(B)) == doctest::Approx(std::sqrt(std::abs(nrm_sq(B)))));
+        CHECK(value_t(nrm(t)) == doctest::Approx(std::sqrt(std::abs(nrm_sq(t)))));
+        CHECK(value_t(nrm(ps)) == doctest::Approx(std::sqrt(std::abs(nrm_sq(ps)))));
+        // scalar / pseudoscalar magnitude is just |coeff|
+        CHECK(value_t(nrm(s)) == doctest::Approx(3.0));
+        CHECK(value_t(nrm(ps)) == doctest::Approx(11.0));
+        // null blades have zero magnitude
+        CHECK(value_t(nrm(vl)) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(Bl)) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(tl)) == doctest::Approx(0.0));
+
+        // ---- normalize(): timelike -> +1, spacelike -> -1, lightlike unchanged ----
+        // direction is preserved (scale = 1/nrm > 0, never flips sign)
+        // timelike vector 3*g4: nrm_sq = 9 -> 1
+        vec4ds vt{0.0, 0.0, 0.0, 3.0};
+        CHECK(nrm_sq(normalize(vt)) == doctest::Approx(1.0));
+        CHECK(normalize(vt).w > 0.0);
+        // spacelike vector 3*g1: nrm_sq = -9 -> -1
+        vec4ds vs{3.0, 0.0, 0.0, 0.0};
+        CHECK(nrm_sq(normalize(vs)) == doctest::Approx(-1.0));
+        CHECK(normalize(vs).x > 0.0);
+        // lightlike vector: returned unchanged (exact, no scaling applied)
+        CHECK(normalize(vl) == vl);
+
+        // bivector: timelike 2*g14 -> +1 ; spacelike 2*g23 -> -1 ; null unchanged
+        CHECK(nrm_sq(normalize(bivec4ds{2.0, 0.0, 0.0, 0.0, 0.0, 0.0})) ==
+              doctest::Approx(1.0));
+        CHECK(nrm_sq(normalize(bivec4ds{0.0, 0.0, 0.0, 2.0, 0.0, 0.0})) ==
+              doctest::Approx(-1.0));
+        CHECK(normalize(Bl) == Bl);
+
+        // trivector: timelike 2*g123 -> +1 ; spacelike 2*g234 -> -1 ; null unchanged
+        CHECK(nrm_sq(normalize(trivec4ds{0.0, 0.0, 0.0, 2.0})) == doctest::Approx(1.0));
+        CHECK(nrm_sq(normalize(trivec4ds{2.0, 0.0, 0.0, 0.0})) == doctest::Approx(-1.0));
+        CHECK(normalize(tl) == tl);
+
+        // scalar normalize still works (no causal logic): scales to unit sign
+        CHECK(value_t(normalize(scalar4ds{3.0})) == doctest::Approx(1.0));
+        CHECK(value_t(normalize(scalar4ds{-5.0})) == doctest::Approx(-1.0));
+
+        fmt::println("causal predicates, nrm = sqrt(|nrm_sq|), normalize -> nrm_sq == "
+                     "+/-1 (null unchanged)");
     }
 
     TEST_CASE("G<1,3,0>: left-right complement composition")
@@ -145,7 +354,7 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("l_cmpl(r_cmpl(u)) = r_cmpl(l_cmpl(u)) = u for even-dimensional");
     }
 
-    TEST_CASE("G<3,1,0>: MVec4ds_E and MVec4ds_U formatting tests")
+    TEST_CASE("G<1,3,0>: MVec4ds_E and MVec4ds_U formatting tests")
     {
         fmt::println("G<3,0,0>: MVec4ds_E and MVec4ds_U formatting tests");
 
@@ -206,27 +415,9 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("   MVec4ds_U contextual: {}", mvec4ds_u_contextual);
     }
 
-    TEST_CASE("G<3,1,0>: sta4ds")
+    TEST_CASE("G<1,3,0>: defining basic types and ctor checks")
     {
-        fmt::println("");
-        fmt::println("G<3,1,0>: sta4ds");
-        // 4ds euklidean geometric algebra
-        const algebra<3, 1, 0> alg;
-        CHECK(alg.p() == 3);
-        CHECK(alg.n() == 1);
-        CHECK(alg.z() == 0);
-        CHECK(alg.dim_space() == 4);                 // dim_space == p+n+z
-        CHECK(alg.num_components() == 16);           // num_components == 2^dim
-        CHECK(alg.num_components_grade.size() == 5); // == dim_space + 1
-        fmt::println("   sta4ds: dim_grade = {}",
-                     fmt::join(alg.num_components_grade, ", "));
-        fmt::println("   sta4ds: basis_name = {}", fmt::join(alg.basis_name, ", "));
-        fmt::println("");
-    }
-
-    TEST_CASE("G<3,1,0>: defining basic types and ctor checks")
-    {
-        fmt::println("G<3,1,0>: defining basic types and ctor checks");
+        fmt::println("G<1,3,0>: defining basic types and ctor checks");
 
         auto s1 = scalar4ds{5.0};
         auto v1 = vec4ds{1.0, 2.0, 3.0, 4.0};
@@ -335,9 +526,9 @@ TEST_SUITE("STA 3D Tests")
         CHECK(gr4(mv8) == ps1);
     }
 
-    TEST_CASE("G<3,1,0>: Scalar4ds and PScalar4ds formatting tests")
+    TEST_CASE("G<1,3,0>: Scalar4ds and PScalar4ds formatting tests")
     {
-        fmt::println("G<3,1,0>: Scalar4ds and PScalar4ds formatting tests");
+        fmt::println("G<1,3,0>: Scalar4ds and PScalar4ds formatting tests");
 
         // Test Scalar4ds formatting
         Scalar4ds<double> scalar_val{2.23607};
@@ -388,9 +579,9 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("   PScalar4ds contextual: {}", pscalar_contextual);
     }
 
-    TEST_CASE("G<4,0,0>: Vec4ds and TriVec4ds formatting tests")
+    TEST_CASE("G<1,3,0>: Vec4ds and TriVec4ds formatting tests")
     {
-        fmt::println("G<4,0,0>: Vec4ds and TriVec4ds formatting tests");
+        fmt::println("G<1,3,0>: Vec4ds and TriVec4ds formatting tests");
 
         // Test Vec4ds formatting
         Vec4ds<double> vec4ds_val{3.14159, 2.71828, 1.41421, 1.73205};
@@ -441,9 +632,9 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("   TriVec4ds contextual: {}", trivec_contextual);
     }
 
-    TEST_CASE("G<4,0,0>: BiVec4ds formatting tests")
+    TEST_CASE("G<1,3,0>: BiVec4ds formatting tests")
     {
-        fmt::println("G<4,0,0>: BiVec4ds formatting tests");
+        fmt::println("G<1,3,0>: BiVec4ds formatting tests");
 
         // Test BiVec4ds formatting (BVec6_t with 6 components: vx, vy, vz, mx, my, mz)
         BiVec4ds<double> bivec4ds_val{1.1, 2.2, 3.3, 4.4, 5.5, 6.6};
@@ -471,9 +662,9 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("   BiVec4ds contextual: {}", contextual);
     }
 
-    TEST_CASE("G<4,0,0>: MVec4ds formatting tests")
+    TEST_CASE("G<1,3,0>: MVec4ds formatting tests")
     {
-        fmt::println("G<4,0,0>: MVec4ds formatting tests");
+        fmt::println("G<1,3,0>: MVec4ds formatting tests");
 
         // Test MVec4ds formatting (MVec16_t with 16 components: c0 through c15)
         MVec4ds<double> mvec4ds_val{1.0, 2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,

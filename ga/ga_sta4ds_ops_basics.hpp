@@ -22,7 +22,7 @@ namespace hd::ga::sta {
 // - conj()                        -> conjugation
 //
 // - l_cmpl(), r_cmpl()            -> left and right complement
-// - nrm_sq(), nrm()               -> return norm
+// - nrm_sq()                      -> return squared norm
 //
 // - normalize()                   -> return normalized object (nrm scaled to 1.0)
 //
@@ -349,8 +349,8 @@ constexpr MVec4ds<T> conj(MVec4ds<T> const& M)
 // the basis vectors which are NOT contained in the k-blade u
 // and are needed to fill the space completely to the corresponding pseudoscalar
 //
-// left complement:  l_cmpl(u) ^ u  = I_4ds = g0^g1^g2^g3
-// right complement: u ^ r_cmpl(u)  = I_4ds = g0^g1^g2^g3
+// left complement:  l_cmpl(u) ^ u  = I_4ds = g1^g2^g3^g4
+// right complement: u ^ r_cmpl(u)  = I_4ds = g1^g2^g3^g4
 //
 // in spaces of odd dimension right and left complements are identical and thus there
 // is only one complement operation defined l_compl(u), r_compl(u) => compl(u)
@@ -358,7 +358,7 @@ constexpr MVec4ds<T> conj(MVec4ds<T> const& M)
 // in spaces of even dimension and when the grade of the k-vector is odd left and right
 // comploments have different signs
 //
-// complement operation with g0^g1^g2^g3 as the pseudoscalar
+// complement operation with g1^g2^g3^g4 as the pseudoscalar
 
 ////////////////////////////////////////////////////////////////////////////////
 // right complements
@@ -368,9 +368,9 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar4ds<T> r_cmpl(Scalar4ds<T> s)
 {
-    // u ^ r_cmpl(u) = g0^g1^g2^g3
+    // u ^ r_cmpl(u) = g1^g2^g3^g4
     // u = 1:
-    //     1 ^ r_cmpl(u) = g0^g1^g2^g3 => r_cmpl(u) = s g0^g1^g2^g3
+    //     1 ^ r_cmpl(u) = g1^g2^g3^g4 => r_cmpl(u) = s g1^g2^g3^g4
     return PScalar4ds<T>(T(s));
 }
 
@@ -378,53 +378,53 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr TriVec4ds<T> r_cmpl(Vec4ds<T> const& v)
 {
-    // u ^ r_compl(u) = e1^e2^e3^e4
-    // u = v.x e1 + v.y e2 + v.z e3 + v.w e4:
-    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
-    //     u = e1 => r_cmpl(u) = e423
-    //     u = e2 => r_cmpl(u) = e431
-    //     u = e3 => r_cmpl(u) = e412
-    //     u = e4 => r_cmpl(u) = e321
-    return TriVec4ds<T>(v.x, v.y, v.z, v.w);
+    // u ^ r_compl(u) = g1^g2^g3^g4
+    // u = v.x g1 + v.y g2 + v.z g3 + v.w g4:
+    //     u ^ r_cmpl(u) = g1^g2^g3^g4 =>
+    //     u = g1 => r_cmpl(u) =  g234
+    //     u = g2 => r_cmpl(u) =  g314
+    //     u = g3 => r_cmpl(u) =  g124
+    //     u = g4 => r_cmpl(u) =  -g123
+    return TriVec4ds<T>(v.x, v.y, v.z, -v.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec4ds<T> r_cmpl(BiVec4ds<T> const& B)
 {
-    // u ^ r_compl(u) = e1^e2^e3^e4
-    // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
-    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
-    //     u = e41 => r_cmpl(u) = -e23
-    //     u = e42 => r_cmpl(u) = -e31
-    //     u = e43 => r_cmpl(u) = -e12
-    //     u = e23 => r_cmpl(u) = -e41
-    //     u = e31 => r_cmpl(u) = -e42
-    //     u = e12 => r_cmpl(u) = -e43
-    return BiVec4ds<T>(-B.mx, -B.my, -B.mz, -B.vx, -B.vy, -B.vz);
+    // u ^ r_compl(u) = g1^g2^g3^g4
+    // u = B.vx g14 + B.vy g24 + B.vz g34 + B.mx g23 + B.my g31 + B.mz g12:
+    //     u ^ r_cmpl(u) = g1^g2^g3^g4 =>
+    //     u = g14 => r_cmpl(u) = g23
+    //     u = g24 => r_cmpl(u) = g31
+    //     u = g34 => r_cmpl(u) = g12
+    //     u = g23 => r_cmpl(u) = g14
+    //     u = g31 => r_cmpl(u) = g24
+    //     u = g12 => r_cmpl(u) = g34
+    return BiVec4ds<T>(B.mx, B.my, B.mz, B.vx, B.vy, B.vz);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Vec4ds<T> r_cmpl(TriVec4ds<T> const& t)
 {
-    // u ^ r_compl(u) = e1^e2^e3^e4
-    // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
-    //     u ^ r_cmpl(u) = e1^e2^e3^e4 =>
-    //     u = e423 => r_cmpl(u) = -e1
-    //     u = e431 => r_cmpl(u) = -e2
-    //     u = e412 => r_cmpl(u) = -e3
-    //     u = e321 => r_cmpl(u) = -e4
-    return Vec4ds<T>(-t.x, -t.y, -t.z, -t.w);
+    // u ^ r_compl(u) = g1^g2^g3^g4
+    // u = t.x g234 + t.y g314 + t.z g124 + t.w g123:
+    //     u ^ r_cmpl(u) = g1^g2^g3^g4 =>
+    //     u = g234 => r_cmpl(u) = -g1
+    //     u = g314 => r_cmpl(u) = -g2
+    //     u = g124 => r_cmpl(u) = -g3
+    //     u = g123 => r_cmpl(u) =  g4
+    return Vec4ds<T>(-t.x, -t.y, -t.z, t.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar4ds<T> r_cmpl(PScalar4ds<T> ps)
 {
-    // u ^ r_compl(u) = e1^e2^e3^e4
-    // u = e1^e2^e3^e4:
-    //     e1^e2^e3^e4 ^ r_cmpl(u) = e1^e2^e3^e4 => r_cmpl(u) = ps 1
+    // u ^ r_compl(u) = g1^g2^g3^g4
+    // u = g1^g2^g3^g4:
+    //     g1^g2^g3^g4 ^ r_cmpl(u) = g1^g2^g3^g4 => r_cmpl(u) = ps 1
     return Scalar4ds<T>(T(ps));
 }
 
@@ -461,9 +461,9 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr PScalar4ds<T> l_cmpl(Scalar4ds<T> s)
 {
-    // l_cmpl(u) ^ u = g0^g1^g2^g3
+    // l_cmpl(u) ^ u = g1^g2^g3^g4
     // u = 1:
-    //     l_cmpl(u) ^ 1 = g0^g1^g2^g3 => l_cmpl(u) = s g0^g1^g2^g3
+    //     l_cmpl(u) ^ 1 = g1^g2^g3^g4 => l_cmpl(u) = s g1^g2^g3^g4
     return PScalar4ds<T>(T(s));
 }
 
@@ -471,53 +471,53 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr TriVec4ds<T> l_cmpl(Vec4ds<T> const& v)
 {
-    // l_cmpl(u) ^ u = g0^g1^g2^g3
-    // u = v.x g1 + v.y g2 + v.z g3 + v.w g0:
-    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
-    //     u = e1 => l_cmpl(u) = -e423
-    //     u = e2 => l_cmpl(u) = -e431
-    //     u = e3 => l_cmpl(u) = -e412
-    //     u = e4 => l_cmpl(u) = -e321
-    return TriVec4ds<T>(-v.x, -v.y, -v.z, -v.w);
+    // l_cmpl(u) ^ u = g1^g2^g3^g4
+    // u = v.x g1 + v.y g2 + v.z g3 + v.w g4:
+    //     l_cmpl(u) ^ u = g1^g2^g3^g4 =>
+    //     u = g1 => l_cmpl(u) = -g234
+    //     u = g2 => l_cmpl(u) = -g314
+    //     u = g3 => l_cmpl(u) = -g124
+    //     u = g4 => l_cmpl(u) =  g123
+    return TriVec4ds<T>(-v.x, -v.y, -v.z, v.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec4ds<T> l_cmpl(BiVec4ds<T> const& B)
 {
-    // l_cmpl(u) ^ u = e1^e2^e3^e4
-    // u = B.vx e41 + B.vy e42 + B.vz e43 + B.mx e23 + B.my e31 + B.mz e12:
-    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
-    //     u = e41 => l_cmpl(u) = -e23
-    //     u = e42 => l_cmpl(u) = -e31
-    //     u = e43 => l_cmpl(u) = -e12
-    //     u = e23 => l_cmpl(u) = -e41
-    //     u = e31 => l_cmpl(u) = -e42
-    //     u = e12 => l_cmpl(u) = -e43
-    return BiVec4ds<T>(-B.mx, -B.my, -B.mz, -B.vx, -B.vy, -B.vz);
+    // l_cmpl(u) ^ u = g1^g2^g3^g4
+    // u = B.vx g14 + B.vy g24 + B.vz g34 + B.mx g23 + B.my g31 + B.mz g12:
+    //     l_cmpl(u) ^ u = g1^g2^g3^g4 =>
+    //     u = g14 => l_cmpl(u) = g23
+    //     u = g24 => l_cmpl(u) = g31
+    //     u = g34 => l_cmpl(u) = g12
+    //     u = g23 => l_cmpl(u) = g14
+    //     u = g31 => l_cmpl(u) = g24
+    //     u = g12 => l_cmpl(u) = g34
+    return BiVec4ds<T>(B.mx, B.my, B.mz, B.vx, B.vy, B.vz);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Vec4ds<T> l_cmpl(TriVec4ds<T> const& t)
 {
-    // l_cmpl(u) ^ u = e1^e2^e3^e4
-    // u = t.x e423 + t.y e431 + t.z e412 + t.w e321:
-    //     l_cmpl(u) ^ u = e1^e2^e3^e4 =>
-    //     u = e423 => l_cmpl(u) = e1
-    //     u = e431 => l_cmpl(u) = e2
-    //     u = e412 => l_cmpl(u) = e3
-    //     u = e321 => l_cmpl(u) = e4
-    return Vec4ds<T>(t.x, t.y, t.z, t.w);
+    // l_cmpl(u) ^ u = g1^g2^g3^g4
+    // u = t.x g234 + t.y g314 + t.z g124 + t.w g123:
+    //     l_cmpl(u) ^ u = g1^g2^g3^g4 =>
+    //     u = g234 => l_cmpl(u) =  g1
+    //     u = g314 => l_cmpl(u) =  g2
+    //     u = g124 => l_cmpl(u) =  g3
+    //     u = g123 => l_cmpl(u) = -g4
+    return Vec4ds<T>(t.x, t.y, t.z, -t.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar4ds<T> l_cmpl(PScalar4ds<T> ps)
 {
-    // l_cmpl(u) ^ u = e1^e2^e3^e4
-    // u = e1^e2^e3^e4:
-    //     l_cmpl(u) ^ e1^e2^e3^e4 = e1^e2^e3^e4 => l_cmpl(u) = ps 1
+    // l_cmpl(u) ^ u = g1^g2^g3^g4
+    // u = g1^g2^g3^g4:
+    //     l_cmpl(u) ^ g1^g2^g3^g4 = g1^g2^g3^g4 => l_cmpl(u) = ps 1
     return Scalar4ds<T>(T(ps));
 }
 
@@ -548,7 +548,7 @@ constexpr MVec4ds<T> l_cmpl(MVec4ds<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// nrm(u): return the bulk norm of u (a scalar value)
+// nrm_sq(u): return the squared norm of u (a scalar value resulting from dot(u,u)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
@@ -560,65 +560,32 @@ constexpr T nrm_sq(Scalar4ds<T> s)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(Scalar4ds<T> s)
-{
-    return Scalar4ds<T>(std::sqrt(nrm_sq(s)));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
 constexpr T nrm_sq(Vec4ds<T> const& v)
 {
-    return v.x * v.x + v.y * v.y + v.z * v.z;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(Vec4ds<T> const& v)
-{
-    return Scalar4ds<T>(std::sqrt(nrm_sq(v)));
+    return -v.x * v.x - v.y * v.y - v.z * v.z + v.w * v.w;
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr T nrm_sq(BiVec4ds<T> const& B)
 {
-    return B.mx * B.mx + B.my * B.my + B.mz * B.mz;
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(BiVec4ds<T> const& B)
-{
-    return Scalar4ds<T>(std::sqrt(nrm_sq(B)));
+    return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz - B.mx * B.mx - B.my * B.my -
+           B.mz * B.mz;
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr T nrm_sq(TriVec4ds<T> const& t)
 {
-    return t.w * t.w;
+    return -t.x * t.x - t.y * t.y - t.z * t.z + t.w * t.w;
 }
+
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(TriVec4ds<T> const& t)
+constexpr T nrm_sq(PScalar4ds<T> ps)
 {
-    return Scalar4ds<T>(std::sqrt(nrm_sq(t)));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr T nrm_sq([[maybe_unused]] PScalar4ds<T>)
-{
-    return T(0.0);
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm([[maybe_unused]] PScalar4ds<T>)
-{
-    return Scalar4ds<T>(0.0);
+    return -T(ps) * T(ps);
 }
 
 template <typename T>
@@ -630,23 +597,9 @@ constexpr T nrm_sq(MVec4ds_E<T> const& M)
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(MVec4ds_E<T> const& M)
-{
-    return Scalar4ds<T>(std::sqrt(nrm_sq(M)));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
 constexpr T nrm_sq(MVec4ds_U<T> const& M)
 {
     return nrm_sq(gr1(M)) + nrm_sq(gr3(M));
-}
-
-template <typename T>
-    requires(numeric_type<T>)
-constexpr Scalar4ds<T> nrm(MVec4ds_U<T> const& M)
-{
-    return Scalar4ds<T>(std::sqrt(nrm_sq(M)));
 }
 
 template <typename T>
@@ -657,11 +610,164 @@ constexpr T nrm_sq(MVec4ds<T> const& M)
            nrm_sq(gr4(M));
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// causal character of a k-vector (grades 1..n-1: Vec, BiVec, TriVec), based on
+// the extended metric of G(1,3,0) in this library's (-,-,-,+) convention.
+//
+// Each basis blade carries a metric indicator G(e) = dot(e,e) in {-1,+1}, with
+// +1 marking a timelike and -1 a spacelike basis blade:
+//   timelike  (G = +1): g4 ; g14, g24, g34 ; g123
+//   spacelike (G = -1): g1, g2, g3 ; g23, g31, g12 ; g234, g314, g124
+// so within every grade 1..n-1 some basis blades are timelike, others spacelike.
+//
+// For a general k-vector the character is decided by which contribution
+// dominates, which the metric quadratic form nrm_sq reports directly:
+//   nrm_sq(u) = dot(u,u) = sum_(timelike) u_i^2  -  sum_(spacelike) u_i^2
+// hence
+//   is_timelike(u)  == true  if nrm_sq(u) > 0    (timelike part dominates)
+//   is_spacelike(u) == true  if nrm_sq(u) < 0    (spacelike part dominates)
+//   is_lightlike(u) == true  if nrm_sq(u) == 0   (balanced; on the light cone)
+//
+// The three predicates are mutually exclusive and exhaustive, and the rule is
+// uniform across grades 1..n-1. The scalar (grade 0) and the pseudoscalar
+// (grade n) are excluded by design; mixed-grade multivectors are omitted too.
+////////////////////////////////////////////////////////////////////////////////
+
+// is_timelike(u): nrm_sq(u) > 0
+template <typename T>
+    requires(numeric_type<T>)
+constexpr bool is_timelike(Vec4ds<T> const& v)
+{
+    return nrm_sq(v) > T(0.0);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr bool is_timelike(BiVec4ds<T> const& B)
+{
+    return nrm_sq(B) > T(0.0);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr bool is_timelike(TriVec4ds<T> const& t)
+{
+    return nrm_sq(t) > T(0.0);
+}
+
+// is_spacelike(u): nrm_sq(u) < 0
+template <typename T>
+    requires(numeric_type<T>)
+constexpr bool is_spacelike(Vec4ds<T> const& v)
+{
+    return nrm_sq(v) < T(0.0);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr bool is_spacelike(BiVec4ds<T> const& B)
+{
+    return nrm_sq(B) < T(0.0);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr bool is_spacelike(TriVec4ds<T> const& t)
+{
+    return nrm_sq(t) < T(0.0);
+}
+
+// is_lightlike(u): nrm_sq(u) == 0 (null)
+template <typename T>
+    requires(numeric_type<T>)
+constexpr bool is_lightlike(Vec4ds<T> const& v)
+{
+    return nrm_sq(v) == T(0.0);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr bool is_lightlike(BiVec4ds<T> const& B)
+{
+    return nrm_sq(B) == T(0.0);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr bool is_lightlike(TriVec4ds<T> const& t)
+{
+    return nrm_sq(t) == T(0.0);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// nrm(u): Minkowski magnitude = sqrt(|nrm_sq(u)|), always >= 0.
+//
+// Real-valued for every element and exactly 0 for lightlike (null) blades.
+// Dividing a non-null grade 1..n-1 blade by nrm() scales it to nrm_sq == +/-1,
+// preserving its causal character (spacelike -> +1, timelike -> -1). The sign
+// itself is dropped here (it is kept in nrm_sq); recover it via the is_*
+// predicates.
+//
+// NOTE: for mixed-grade multivectors nrm_sq is a signed grade sum that need not
+// be a meaningful "length"; nrm() is still defined mechanically there.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar4ds<T> nrm(Scalar4ds<T> s)
+{
+    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(s))));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar4ds<T> nrm(Vec4ds<T> const& v)
+{
+    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(v))));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar4ds<T> nrm(BiVec4ds<T> const& B)
+{
+    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(B))));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar4ds<T> nrm(TriVec4ds<T> const& t)
+{
+    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(t))));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar4ds<T> nrm(PScalar4ds<T> ps)
+{
+    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(ps))));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar4ds<T> nrm(MVec4ds_E<T> const& M)
+{
+    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(M))));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar4ds<T> nrm(MVec4ds_U<T> const& M)
+{
+    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(M))));
+}
+
 template <typename T>
     requires(numeric_type<T>)
 constexpr Scalar4ds<T> nrm(MVec4ds<T> const& M)
 {
-    return Scalar4ds<T>(std::sqrt(nrm_sq(M)));
+    return Scalar4ds<T>(std::sqrt(std::abs(nrm_sq(M))));
 }
 
 
@@ -684,8 +790,12 @@ template <typename T>
     requires(numeric_type<T>)
 inline Vec4ds<T> normalize(Vec4ds<T> const& v)
 {
+    // lightlike (null): nrm_sq == 0 already; cannot be scaled to +/-1
+    if (is_lightlike(v)) return v;
+    // spacelike -> +1, timelike -> -1; dividing by nrm = sqrt(|nrm_sq|)
+    // yields the correctly signed unit blade automatically
     T n = to_val(nrm(v));
-    hd::ga::detail::check_normalization<T>(std::abs(n), "vector (4ds)");
+    hd::ga::detail::check_normalization<T>(n, "vector (4ds)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * v;
 }
@@ -694,6 +804,10 @@ template <typename T>
     requires(numeric_type<T>)
 inline BiVec4ds<T> normalize(BiVec4ds<T> const& B)
 {
+    // lightlike (null): nrm_sq == 0 already; cannot be scaled to +/-1
+    if (is_lightlike(B)) return B;
+    // spacelike -> +1, timelike -> -1; dividing by nrm = sqrt(|nrm_sq|)
+    // yields the correctly signed unit blade automatically
     T n = to_val(nrm(B));
     hd::ga::detail::check_normalization<T>(n, "bivector (4ds)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
@@ -704,12 +818,21 @@ template <typename T>
     requires(numeric_type<T>)
 inline TriVec4ds<T> normalize(TriVec4ds<T> const& t)
 {
+    // lightlike (null): nrm_sq == 0 already; cannot be scaled to +/-1
+    if (is_lightlike(t)) return t;
+    // spacelike -> +1, timelike -> -1; dividing by nrm = sqrt(|nrm_sq|)
+    // yields the correctly signed unit blade automatically
     T n = to_val(nrm(t));
     hd::ga::detail::check_normalization<T>(n, "trivector (4ds)");
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * t;
 }
 
+// NOTE: normalization of mixed-grade multivectors is disabled for now. In an
+// indefinite (Minkowski) metric nrm_sq is a signed grade sum and does not give
+// a well-defined blade norm, so the timelike/spacelike/lightlike case
+// distinction does not apply. Re-enable once a meaningful convention is fixed.
+/*
 template <typename T>
     requires(numeric_type<T>)
 inline MVec4ds_E<T> normalize(MVec4ds_E<T> const& M)
@@ -739,12 +862,13 @@ inline MVec4ds<T> normalize(MVec4ds<T> const& M)
     T scale = T(1.0) / n; // for multiplication with inverse of norm
     return scale * M;
 }
+*/
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // r_dual(A) = r_cmpl(A) = r_cmpl( metric * A )
 //
-// -> right complement operation applied to the bulk
+// -> right complement operation after multiplication with the metric
 //
 ////////////////////////////////////////////////////////////////////////////////
 // duality (as defined in Lengyel, "PGA illuminated")
@@ -767,28 +891,28 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr TriVec4ds<T> r_dual(Vec4ds<T> const& v)
 {
-    return TriVec4ds<T>(v.x, v.y, v.z, T(0.0));
+    return TriVec4ds<T>(-v.x, -v.y, -v.z, -v.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec4ds<T> r_dual(BiVec4ds<T> const& B)
 {
-    return BiVec4ds<T>(-B.mx, -B.my, -B.mz, T(0.0), T(0.0), T(0.0));
+    return BiVec4ds<T>(B.mx, B.my, B.mz, -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Vec4ds<T> r_dual(TriVec4ds<T> const& t)
 {
-    return Vec4ds<T>(T(0.0), T(0.0), T(0.0), -t.w);
+    return Vec4ds<T>(t.x, t.y, t.z, t.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> r_dual([[maybe_unused]] PScalar4ds<T>)
+constexpr Scalar4ds<T> r_dual(PScalar4ds<T> ps)
 {
-    return Scalar4ds<T>(0.0);
+    return Scalar4ds<T>(-T(ps));
 }
 
 template <typename T>
@@ -817,7 +941,7 @@ constexpr MVec4ds<T> r_dual(MVec4ds<T> const& M)
 ////////////////////////////////////////////////////////////////////////////////
 // l_dual(A) = l_cmpl(A) = l_cmpl( metric * A )
 //
-// -> left complement operation
+// -> left complement operation after multiplication with the metric
 //
 ////////////////////////////////////////////////////////////////////////////////
 // duality (as defined in Lengyel, "PGA illuminated")
@@ -840,28 +964,28 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr TriVec4ds<T> l_dual(Vec4ds<T> const& v)
 {
-    return TriVec4ds<T>(-v.x, -v.y, -v.z, T(0.0));
+    return TriVec4ds<T>(v.x, v.y, v.z, v.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec4ds<T> l_dual(BiVec4ds<T> const& B)
 {
-    return BiVec4ds<T>(-B.mx, -B.my, -B.mz, T(0.0), T(0.0), T(0.0));
+    return BiVec4ds<T>(B.mx, B.my, B.mz, -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Vec4ds<T> l_dual(TriVec4ds<T> const& t)
 {
-    return Vec4ds<T>(T(0.0), T(0.0), T(0.0), t.w);
+    return Vec4ds<T>(-t.x, -t.y, -t.z, -t.w);
 }
 
 template <typename T>
     requires(numeric_type<T>)
-constexpr Scalar4ds<T> l_dual([[maybe_unused]] PScalar4ds<T>)
+constexpr Scalar4ds<T> l_dual(PScalar4ds<T> ps)
 {
-    return Scalar4ds<T>(0.0);
+    return Scalar4ds<T>(-T(ps));
 }
 
 template <typename T>

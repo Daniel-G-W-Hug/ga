@@ -540,17 +540,17 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(l_bulk_dual(ps) == I_3dp * rev(ps));
 
         // equivalence to the regressive geometric product
-        CHECK(r_weight_dual(s) == rgpr(rrev(s), One_3dp));
-        CHECK(r_weight_dual(v) == rgpr(rrev(v), One_3dp));
-        CHECK(r_weight_dual(B) == rgpr(rrev(B), One_3dp));
-        CHECK(r_weight_dual(t) == rgpr(rrev(t), One_3dp));
-        CHECK(r_weight_dual(ps) == rgpr(rrev(ps), One_3dp));
+        CHECK(r_weight_dual(s) == rgpr(rrev(s), one_3dp));
+        CHECK(r_weight_dual(v) == rgpr(rrev(v), one_3dp));
+        CHECK(r_weight_dual(B) == rgpr(rrev(B), one_3dp));
+        CHECK(r_weight_dual(t) == rgpr(rrev(t), one_3dp));
+        CHECK(r_weight_dual(ps) == rgpr(rrev(ps), one_3dp));
         //
-        CHECK(l_weight_dual(s) == rgpr(One_3dp, rrev(s)));
-        CHECK(l_weight_dual(v) == rgpr(One_3dp, rrev(v)));
-        CHECK(l_weight_dual(B) == rgpr(One_3dp, rrev(B)));
-        CHECK(l_weight_dual(t) == rgpr(One_3dp, rrev(t)));
-        CHECK(l_weight_dual(ps) == rgpr(One_3dp, rrev(ps)));
+        CHECK(l_weight_dual(s) == rgpr(one_3dp, rrev(s)));
+        CHECK(l_weight_dual(v) == rgpr(one_3dp, rrev(v)));
+        CHECK(l_weight_dual(B) == rgpr(one_3dp, rrev(B)));
+        CHECK(l_weight_dual(t) == rgpr(one_3dp, rrev(t)));
+        CHECK(l_weight_dual(ps) == rgpr(one_3dp, rrev(ps)));
     }
 
     TEST_CASE("Vec3dp: operations - angle I")
@@ -2991,7 +2991,7 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("wdg(v, r_cmpl(v)) = {}", wdg(v, r_cmpl(v)));
         fmt::println("");
 
-        // following checks are only valid for blases, not for multivectors
+        // following checks are only valid for blades, not for multivectors
         CHECK(wdg(s, r_cmpl(s)) == geom_nrm_sq(s) * I_3dp);
         CHECK(wdg(v, r_cmpl(v)) == geom_nrm_sq(v) * I_3dp);
         CHECK(wdg(B, r_cmpl(B)) == geom_nrm_sq(B) * I_3dp);

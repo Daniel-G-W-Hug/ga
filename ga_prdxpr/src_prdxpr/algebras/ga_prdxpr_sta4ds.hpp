@@ -7,69 +7,20 @@
 #include "rules/ga_prdxpr_rule_generator.hpp"
 
 // sta4ds: space-time geometric algebra with (g is short for gamma)
-//        g0*g0 = +1, g1*g1 = -1, g2*g2 = -1, g3*g3 = -1  (mostly negative)
-//
-//   or   g0*g0 = -1, g1*g1 = +1, g2*g2 = +1, g3*g3 = +1  (mostly positive)
-//
-//        g0         ... time-like dimension
-//        g1, g2, g3 ... space-like dimensions
-//
 
-// mostly negative convention G(1,3,0)
-// metric signature: g0²=+1, g1²=-1, g2²=-1, g3²=-1
-// const std::vector<int> mvsta4ds_metric_signature = {+1, -1, -1, -1};
-
-// compare both outcomes in reference_output/sta4ds_mostly_negative.txt
-//                      and reference_output/sta4ds_mostly_positive.txt
+// mostly negative convention G(1,3,0) as introduced by Hestenes for STA,
+// but with time on the fourth component as g4
+// metric signature: g1²=-1, g2²=-1, g3²=-1, g4²=+1
 //
-// -> Hd view: mostly positive feels closer to Euclidean metric, just adding time as
-//             new vector component that squares to -1 to create the resulting hyperbolic
-//             geometry
-//             (However, both are proven to deliver same results)
-
-// mostly positive convention G(3,1,0)
-// metric signature: g0²=-1, g1²=+1, g2²=+1, g3²=+1
-// const std::vector<int> mvsta4ds_metric_signature = {-1, +1, +1, +1};
+//        g1, g2, g3 ... space-like dimensions (mapped on .x .y .z)
+//        g4         ... time-like dimension (as fourth component mapped on .w)
+//
+const std::vector<int> mvsta4ds_metric_signature = {-1, -1, -1, +1};
 
 // multivector basis components
-// const mvec_coeff mvsta4ds_basis = {"1",    "g0",   "g1",   "g2",   "g3",  "g01",
-//                                    "g02",  "g03",  "g23",  "g31",  "g12", "g023",
-//                                    "g031", "g012", "g123", "g0123"};
-
-// multivector basis components as vector for each order k
-// order k=0: scalar
-// order k=1: vectors
-// order k=2: bivectors
-// order k=3: trivectors
-// order k=4: quadvector (=pseudoscalar for sta4ds)
-// const std::vector<mvec_coeff> mvsta4ds_basis_kvec = {
-//     {"1"},
-//     {"g0", "g1", "g2", "g3"},
-//     {"g01", "g02", "g03", "g23", "g31", "g12"},
-//     {"g023", "g031", "g012", "g123"},
-//     {"g0123"}};
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// If we use the above, we will end up with the mapping t -> x, x -> y, y -> z, z -> w
-// which is really awkward!
-// Thus, we are not using g0, but g4 instead for the time dimension, with time mapping
-// onto our fourth dimension keeping x, y, z as spacial dimensions and w -> t as the
-// temporal dimension.
-//////////////////////////////////////////////////////////////////////////////////////////
-
-// mostly positive convention G(3,1,0), but with time on the fourth component as g0
-// metric signature: g1²=+1, g2²=+1, g3²=+1, g0²=-1
-//
-//        g1, g2, g3 ... space-like dimensions
-//        g0         ... time-like dimension (as fourth component)
-//
-const std::vector<int> mvsta4ds_metric_signature = {+1, +1, +1, -1};
-
-// multivector basis components
-const mvec_coeff mvsta4ds_basis = {"1",    "g1",   "g2",   "g3",   "g0",  "g01",
-                                   "g02",  "g03",  "g23",  "g31",  "g12", "g023",
-                                   "g031", "g012", "g123", "g0123"};
+const mvec_coeff mvsta4ds_basis = {"1",    "g1",   "g2",   "g3",   "g4",  "g14",
+                                   "g24",  "g34",  "g23",  "g31",  "g12", "g234",
+                                   "g314", "g124", "g123", "g1234"};
 
 // multivector basis components as vector for each order k
 // order k=0: scalar
@@ -79,10 +30,10 @@ const mvec_coeff mvsta4ds_basis = {"1",    "g1",   "g2",   "g3",   "g0",  "g01",
 // order k=4: quadvector (=pseudoscalar for sta4ds)
 const std::vector<mvec_coeff> mvsta4ds_basis_kvec = {
     {"1"},
-    {"g1", "g2", "g3", "g0"},
-    {"g01", "g02", "g03", "g23", "g31", "g12"},
-    {"g023", "g031", "g012", "g123"},
-    {"g0123"}};
+    {"g1", "g2", "g3", "g4"},
+    {"g14", "g24", "g34", "g23", "g31", "g12"},
+    {"g234", "g314", "g124", "g123"},
+    {"g1234"}};
 
 
 ////////////////////////////////////////////////////////////////////////////////
