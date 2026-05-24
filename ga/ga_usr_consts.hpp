@@ -11,11 +11,15 @@
 #include "detail/type_t/ga_type2dp.hpp"
 #include "detail/type_t/ga_type3dp.hpp"
 
+#include "detail/type_t/ga_type4ds.hpp"
+
 #include "detail/type_t/ga_mvec2d.hpp" // MVec2d<T> and subtypes
 #include "detail/type_t/ga_mvec3d.hpp" // MVec3d<T> and subtypes
 
 #include "detail/type_t/ga_mvec2dp.hpp" // MVec2dp<T> and subtypes
 #include "detail/type_t/ga_mvec3dp.hpp" // MVec3dp<T> and subtypes
+
+#include "detail/type_t/ga_mvec4ds.hpp" // MVec4ds<T> and subtypes
 
 #include <mdspan>
 
@@ -258,6 +262,9 @@ auto const e23_3dp_mv = MVec3dp<value_t>{e23_3dp}; // e23_3dp as multivector
 auto const e31_3dp_mv = MVec3dp<value_t>{e31_3dp}; // e31_3dp as multivector
 auto const e12_3dp_mv = MVec3dp<value_t>{e12_3dp}; // e12_3dp as multivector
 
+auto const e41_3dp_mv_e = MVec3dp_E<value_t>{e41_3dp}; // e41_3dp as even multivector
+auto const e42_3dp_mv_e = MVec3dp_E<value_t>{e42_3dp}; // e42_3dp as even multivector
+auto const e43_3dp_mv_e = MVec3dp_E<value_t>{e43_3dp}; // e43_3dp as even multivector
 auto const e23_3dp_mv_e = MVec3dp_E<value_t>{e23_3dp}; // e23_3dp as even multivector
 auto const e31_3dp_mv_e = MVec3dp_E<value_t>{e31_3dp}; // e31_3dp as even multivector
 auto const e12_3dp_mv_e = MVec3dp_E<value_t>{e12_3dp}; // e12_3dp as even multivector
@@ -340,3 +347,94 @@ inline constexpr auto pga3dp_rmetric_view()
 }
 
 } // namespace hd::ga::pga
+
+
+namespace hd::ga::sta {
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// 4ds constants
+/////////////////////////////////////////////////////////////////////////////////////////
+
+auto const g1_4ds = Vec4ds<value_t>{1.0, 0.0, 0.0, 0.0};
+auto const g2_4ds = Vec4ds<value_t>{0.0, 1.0, 0.0, 0.0};
+auto const g3_4ds = Vec4ds<value_t>{0.0, 0.0, 1.0, 0.0};
+auto const g4_4ds = Vec4ds<value_t>{0.0, 0.0, 0.0, 1.0};
+
+auto const x_dir_4ds = g1_4ds; // direction of x-axis towards infinity (space x)
+auto const y_dir_4ds = g2_4ds; // direction of y-axis towards infinity (space y)
+auto const z_dir_4ds = g3_4ds; // direction of z-axis towards infinity (space z)
+auto const t_dir_4ds = g4_4ds; // direction of t-axis towards infinity (time t on w-comp.)
+
+auto const g1_4ds_mv = MVec4ds<value_t>{g1_4ds}; // g1_4ds as multivector
+auto const g2_4ds_mv = MVec4ds<value_t>{g2_4ds}; // g2_4ds as multivector
+auto const g3_4ds_mv = MVec4ds<value_t>{g3_4ds}; // g3_4ds as multivector
+auto const g4_4ds_mv = MVec4ds<value_t>{g4_4ds}; // g4_4ds as multivector
+
+auto const g14_4ds = BiVec4ds<value_t>{1.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // = wdg(g1,g4)
+auto const g24_4ds = BiVec4ds<value_t>{0.0, 1.0, 0.0, 0.0, 0.0, 0.0}; // = wdg(g2,g4)
+auto const g34_4ds = BiVec4ds<value_t>{0.0, 0.0, 1.0, 0.0, 0.0, 0.0}; // = wdg(g3,g4)
+auto const g23_4ds = BiVec4ds<value_t>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0}; // = wdg(g2,g3)
+auto const g31_4ds = BiVec4ds<value_t>{0.0, 0.0, 0.0, 0.0, 1.0, 0.0}; // = wdg(g3,g1)
+auto const g12_4ds = BiVec4ds<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 1.0}; // = wdg(g1,g2)
+
+auto const g14_4ds_mv = MVec4ds<value_t>{g14_4ds}; // g14_4ds as multivector
+auto const g24_4ds_mv = MVec4ds<value_t>{g24_4ds}; // g24_4ds as multivector
+auto const g34_4ds_mv = MVec4ds<value_t>{g34_4ds}; // g34_4ds as multivector
+auto const g23_4ds_mv = MVec4ds<value_t>{g23_4ds}; // g23_4ds as multivector
+auto const g31_4ds_mv = MVec4ds<value_t>{g31_4ds}; // g31_4ds as multivector
+auto const g12_4ds_mv = MVec4ds<value_t>{g12_4ds}; // g12_4ds as multivector
+
+auto const g14_4ds_mv_e = MVec4ds_E<value_t>{g14_4ds}; // g14_4ds as even multivector
+auto const g24_4ds_mv_e = MVec4ds_E<value_t>{g24_4ds}; // g24_4ds as even multivector
+auto const g34_4ds_mv_e = MVec4ds_E<value_t>{g34_4ds}; // g34_4ds as even multivector
+auto const g23_4ds_mv_e = MVec4ds_E<value_t>{g23_4ds}; // g23_4ds as even multivector
+auto const g31_4ds_mv_e = MVec4ds_E<value_t>{g31_4ds}; // g31_4ds as even multivector
+auto const g12_4ds_mv_e = MVec4ds_E<value_t>{g12_4ds}; // g12_4ds as even multivector
+
+auto const g234_4ds = TriVec4ds<value_t>{1.0, 0.0, 0.0, 0.0};
+auto const g314_4ds = TriVec4ds<value_t>{0.0, 1.0, 0.0, 0.0};
+auto const g124_4ds = TriVec4ds<value_t>{0.0, 0.0, 1.0, 0.0};
+auto const g123_4ds = TriVec4ds<value_t>{0.0, 0.0, 0.0, 1.0};
+
+auto const g234_4ds_mv = MVec4ds<value_t>{g234_4ds}; // g234_4ds as multivector
+auto const g314_4ds_mv = MVec4ds<value_t>{g314_4ds}; // g314_4ds as multivector
+auto const g124_4ds_mv = MVec4ds<value_t>{g124_4ds}; // g124_4ds as multivector
+auto const g123_4ds_mv = MVec4ds<value_t>{g123_4ds}; // g123_4ds as multivector
+
+auto const one_4ds = Scalar4ds<value_t>(1.0);          // Basis element 1
+auto const one_4ds_mv = MVec4ds<value_t>{one_4ds};     // 1 as multivector
+auto const one_4ds_mv_e = MVec4ds_E<value_t>{one_4ds}; // 1 as even-grade multivector
+
+auto const I_4ds = PScalar4ds<value_t>(1.0);       // I_4ds = g1^g2^g3^g4 = g1234
+auto const g1234_4ds = I_4ds;                      // (pseudoscalar)
+auto const I_4ds_mv = MVec4ds<value_t>{I_4ds};     // I_4ds as multivector
+auto const I_4ds_mv_e = MVec4ds_E<value_t>{I_4ds}; // I_4ds as even grade multivector
+
+// extended metric for sta4ds (16×16 matrix, 256 elements)
+// Basis: 1, g1, g2, g3, g4, g14, g24, g34, g23, g31, g12, g234, g314, g124, g123, g1234
+inline constexpr std::array<int, 256> sta4ds_metric = {
+    1, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // 1
+    0, -1, 0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g1
+    0, 0,  -1, 0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g2
+    0, 0,  0,  -1, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g3
+    0, 0,  0,  0,  1, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g4
+    0, 0,  0,  0,  0, 1, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g14
+    0, 0,  0,  0,  0, 0, 1, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g24
+    0, 0,  0,  0,  0, 0, 0, 1, 0,  0,  0,  0,  0,  0,  0, 0, // g34
+    0, 0,  0,  0,  0, 0, 0, 0, -1, 0,  0,  0,  0,  0,  0, 0, // g23
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  -1, 0,  0,  0,  0,  0, 0, // g31
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  -1, 0,  0,  0,  0, 0, // g12
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  -1, 0,  0,  0, 0, // g234
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  -1, 0,  0, 0, // g314
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  -1, 0, 0, // g124
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  1, 0, // g123
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, -1 // g1234
+};
+
+// Accessor function for convenient 2D indexing: G[i,j]
+inline constexpr auto sta4ds_metric_view()
+{
+    return std::mdspan<int const, std::extents<size_t, 16, 16>>{sta4ds_metric.data()};
+}
+
+} // namespace hd::ga::sta

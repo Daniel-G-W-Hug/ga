@@ -3041,7 +3041,7 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("wdg(v, r_cmpl(v)) = {}", wdg(v, r_cmpl(v)));
         fmt::println("");
 
-        // following checks are only valid for blases, not for multivectors
+        // following checks are only valid for blades, not for multivectors
         CHECK(wdg(s, r_cmpl(s)) == geom_nrm_sq(s) * I_3dp);
         CHECK(wdg(v, r_cmpl(v)) == geom_nrm_sq(v) * I_3dp);
         CHECK(wdg(B, r_cmpl(B)) == geom_nrm_sq(B) * I_3dp);
@@ -4307,6 +4307,71 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(r_cmpl(l_cmpl(M)) == M);
 
         fmt::println("");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // transcription gate: bulk/weight dual == bulk/weight metric * complement
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<3,0,1>: dual == metric * complement (transcription gate)")
+    {
+        fmt::println("G<3,0,1>: dual == metric * complement (transcription gate)");
+
+        // The dual is "complement after multiplication with the (extended) metric".
+        // For the degenerate PGA metric this splits into bulk and weight parts, each
+        // with a left and right variant:
+        //   l_bulk_dual(e)   = bulk_nrm_sq(e)   * l_cmpl(e)
+        //   r_bulk_dual(e)   = bulk_nrm_sq(e)   * r_cmpl(e)
+        //   l_weight_dual(e) = weight_nrm_sq(e) * l_cmpl(e)
+        //   r_weight_dual(e) = weight_nrm_sq(e) * r_cmpl(e)
+        // For a unit basis blade these must hold element-wise -- a direct guard
+        // against sign-transcription errors when the complement/dual tables are
+        // hand-coded from ga_prdxpr_rule_generator output. (bulk_dual is identically
+        // 0 on the pseudoscalar and weight_dual on the scalar, so those overloads
+        // are intentionally absent and not exercised.)
+        auto bulk_gate = [](auto const& e) {
+            CHECK(l_bulk_dual(e) == bulk_nrm_sq(e) * l_cmpl(e));
+            CHECK(r_bulk_dual(e) == bulk_nrm_sq(e) * r_cmpl(e));
+        };
+        auto weight_gate = [](auto const& e) {
+            CHECK(l_weight_dual(e) == weight_nrm_sq(e) * l_cmpl(e));
+            CHECK(r_weight_dual(e) == weight_nrm_sq(e) * r_cmpl(e));
+        };
+
+        // bulk_dual: scalar, vectors, bivectors, trivectors
+        bulk_gate(one_3dp);
+        bulk_gate(e1_3dp);
+        bulk_gate(e2_3dp);
+        bulk_gate(e3_3dp);
+        bulk_gate(e4_3dp);
+        bulk_gate(e41_3dp);
+        bulk_gate(e42_3dp);
+        bulk_gate(e43_3dp);
+        bulk_gate(e23_3dp);
+        bulk_gate(e31_3dp);
+        bulk_gate(e12_3dp);
+        bulk_gate(e423_3dp);
+        bulk_gate(e431_3dp);
+        bulk_gate(e412_3dp);
+        bulk_gate(e321_3dp);
+        // weight_dual: vectors, bivectors, trivectors, pseudoscalar
+        weight_gate(e1_3dp);
+        weight_gate(e2_3dp);
+        weight_gate(e3_3dp);
+        weight_gate(e4_3dp);
+        weight_gate(e41_3dp);
+        weight_gate(e42_3dp);
+        weight_gate(e43_3dp);
+        weight_gate(e23_3dp);
+        weight_gate(e31_3dp);
+        weight_gate(e12_3dp);
+        weight_gate(e423_3dp);
+        weight_gate(e431_3dp);
+        weight_gate(e412_3dp);
+        weight_gate(e321_3dp);
+        weight_gate(I_3dp);
+
+        fmt::println("bulk/weight dual == bulk/weight metric * complement verified");
     }
 
     TEST_CASE("G<3,0,1>: axis definitions")

@@ -38,6 +38,7 @@
 // concrete type definitions like:
 // - EGA: Scalar2d<T>, Vec2d<T>, MVec2d<T>, etc.
 // - PGA: Scalar2dp<T>, Vec2dp<T>, MVec2dp<T>, etc.
+// - STA: Scalar4ds<T>, Vec4ds<T>, MVec4ds<T>, etc.
 //
 // Usage: Include this in algebra-specific aggregation headers
 // (ga_ega_types.hpp, ga_pga_types.hpp) rather than directly in user code.

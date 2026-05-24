@@ -4,13 +4,13 @@
 
 #include "algebras/ga_prdxpr_ega2d_config.hpp"
 #include "algebras/ga_prdxpr_ega3d_config.hpp"
-#include "generator/ga_prdxpr_generator.hpp"
-#include "rules/ga_prdxpr_metric_export.hpp"
-#include "cli/ga_prdxpr_options.hpp"
 #include "algebras/ga_prdxpr_pga2dp_config.hpp"
 #include "algebras/ga_prdxpr_pga3dp_config.hpp"
+#include "algebras/ga_prdxpr_sta4ds_config.hpp"
+#include "cli/ga_prdxpr_options.hpp"
+#include "generator/ga_prdxpr_generator.hpp"
+#include "rules/ga_prdxpr_metric_export.hpp"
 #include "rules/ga_prdxpr_rule_generator.hpp"
-#include "algebras/ga_prdxpr_sta4d_config.hpp"
 #include <fmt/core.h>
 #include <vector>
 
@@ -210,25 +210,25 @@ int main(int argc, char const* argv[])
                                       options);
         }
 
-        // STA4D
-        if (options.should_generate_algebra("sta4d") &&
+        // STA4DS
+        if (options.should_generate_algebra("sta4ds") &&
             (options.should_show_coeffs() || options.should_show_tables() ||
              options.should_show_code())) {
-            auto sta4d_algebra = create_sta4d_algebra_data();
-            std::vector<ProductConfig> sta4d_configs = {
-                get_sta4d_gpr_config(),         get_sta4d_cmt_config(),
-                get_sta4d_wdg_config(),         get_sta4d_dot_config(),
+            auto sta4ds_algebra = create_sta4ds_algebra_data();
+            std::vector<ProductConfig> sta4ds_configs = {
+                get_sta4ds_gpr_config(),         get_sta4ds_cmt_config(),
+                get_sta4ds_wdg_config(),         get_sta4ds_dot_config(),
 
-                get_sta4d_l_contract_config(),  get_sta4d_r_contract_config(),
+                get_sta4ds_l_contract_config(),  get_sta4ds_r_contract_config(),
 
-                get_sta4d_l_expand_config(),    get_sta4d_r_expand_config(),
+                get_sta4ds_l_expand_config(),    get_sta4ds_r_expand_config(),
 
-                get_sta4d_rgpr_config(),        get_sta4d_rcmt_config(),
-                get_sta4d_rwdg_config(),        get_sta4d_rdot_config(),
+                get_sta4ds_rgpr_config(),        get_sta4ds_rcmt_config(),
+                get_sta4ds_rwdg_config(),        get_sta4ds_rdot_config(),
 
-                get_sta4d_sandwich_gpr_config()};
+                get_sta4ds_sandwich_gpr_config()};
 
-            generate_algebra_products(generator, sta4d_configs, sta4d_algebra, true,
+            generate_algebra_products(generator, sta4ds_configs, sta4ds_algebra, true,
                                       options);
         }
 
@@ -256,9 +256,9 @@ int main(int argc, char const* argv[])
                 print_metrics_for_algebra(pga3dp_config);
             }
 
-            if (options.should_generate_algebra("sta4d")) {
-                AlgebraConfig sta4d_config = get_sta4d_algebra_config();
-                print_metrics_for_algebra(sta4d_config);
+            if (options.should_generate_algebra("sta4ds")) {
+                AlgebraConfig sta4ds_config = get_sta4ds_algebra_config();
+                print_metrics_for_algebra(sta4ds_config);
             }
         }
 

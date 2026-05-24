@@ -31,14 +31,3 @@ using namespace hd::ga::ega; // use specific operations of EGA (Euclidean GA)
 // Include dimension-specific test files
 #include "ga_ega2d_test.hpp"
 #include "ga_ega3d_test.hpp"
-#include "ga_ega4d_test.hpp"
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// Generic Euclidean geometric algebra (valid for ega independent of dimension)
-/////////////////////////////////////////////////////////////////////////////////////////
-
-// TEST_SUITE("EGA")
-// {
-
-// } // EGA tests

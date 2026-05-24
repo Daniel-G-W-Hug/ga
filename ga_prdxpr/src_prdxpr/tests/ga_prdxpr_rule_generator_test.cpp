@@ -5,8 +5,8 @@
 #include "algebras/ga_prdxpr_ega3d.hpp"
 #include "algebras/ga_prdxpr_pga2dp.hpp"
 #include "algebras/ga_prdxpr_pga3dp.hpp"
+#include "algebras/ga_prdxpr_sta4ds.hpp"
 #include "rules/ga_prdxpr_rule_generator.hpp"
-#include "algebras/ga_prdxpr_sta4d.hpp"
 
 #include <iostream>
 #include <mdspan>
@@ -121,7 +121,7 @@ void display_algebra_rules(const AlgebraConfig& config, const std::string& algeb
                  : algebra_name.find("ega3d") != std::string::npos  ? "Euclidean 3d"
                  : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
-                 : algebra_name.find("sta4d") != std::string::npos  ? "space-time 3d"
+                 : algebra_name.find("sta4ds") != std::string::npos ? "space-time 3d"
                                                                     : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
@@ -328,7 +328,7 @@ bool test_algebra_with_cmpls(const AlgebraConfig& config, const std::string& alg
                  : algebra_name.find("ega3d") != std::string::npos  ? "Euclidean 3d"
                  : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
-                 : algebra_name.find("sta4d") != std::string::npos  ? "space-time 3d"
+                 : algebra_name.find("sta4ds") != std::string::npos ? "space-time 3d"
                                                                     : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
@@ -547,7 +547,7 @@ bool test_algebra(const AlgebraConfig& config, const std::string& algebra_name,
                  : algebra_name.find("ega3d") != std::string::npos  ? "Euclidean 3d"
                  : algebra_name.find("pga2dp") != std::string::npos ? "projective 2d"
                  : algebra_name.find("pga3dp") != std::string::npos ? "projective 3d"
-                 : algebra_name.find("sta4d") != std::string::npos  ? "space-time 3d"
+                 : algebra_name.find("sta4ds") != std::string::npos ? "space-time 3d"
                                                                     : "UNKNOWN");
     fmt::println("basis vectors: {}", fmt::join(config.basis_vectors, ", "));
     fmt::println("metric signature: {}", fmt::join(config.metric_signature, ", "));
@@ -776,26 +776,27 @@ int main(int argc, char* argv[])
 
         // Configure and test STA4D algebra (Space-Time Algebra)
         // Extract basis prefix from vector basis and validate consistency
-        std::string const sta4d_prefix = extract_basis_prefix(mvsta4d_basis_kvec[1]);
-        validate_basis_consistency(mvsta4d_basis, mvsta4d_basis_kvec, sta4d_prefix,
+        std::string const sta4ds_prefix = extract_basis_prefix(mvsta4ds_basis_kvec[1]);
+        validate_basis_consistency(mvsta4ds_basis, mvsta4ds_basis_kvec, sta4ds_prefix,
                                    one_str());
 
-        AlgebraConfig sta4d_config = {
-            .basis_vectors = mvsta4d_basis_kvec[1],       // Use vector basis from header
-            .metric_signature = mvsta4d_metric_signature, // Use metric from header
-            .multivector_basis = mvsta4d_basis,           // Use mvsta4d_basis from header
+        AlgebraConfig sta4ds_config = {
+            .basis_vectors = mvsta4ds_basis_kvec[1],       // Use vector basis from header
+            .metric_signature = mvsta4ds_metric_signature, // Use metric from header
+            .multivector_basis = mvsta4ds_basis, // Use mvsta4ds_basis from header
             .scalar_name = one_str(),
-            .basis_prefix = sta4d_prefix}; // Use extracted and validated prefix
+            .basis_prefix = sta4ds_prefix}; // Use extracted and validated prefix
 
         if (test_consistency) {
-            bool sta4d_success = test_algebra(
-                sta4d_config, "sta4d", mvsta4d_basis, gpr_sta4d_rules, wdg_sta4d_rules,
-                dot_sta4d_rules); // testing all three product types - complete manual
-                                  // implementation
-            test_results.push_back(sta4d_success);
+            bool sta4ds_success =
+                test_algebra(sta4ds_config, "sta4ds", mvsta4ds_basis, gpr_sta4ds_rules,
+                             wdg_sta4ds_rules,
+                             dot_sta4ds_rules); // testing all three product types -
+                                                // complete manual implementation
+            test_results.push_back(sta4ds_success);
         }
         else {
-            display_algebra_rules(sta4d_config, "sta4d");
+            display_algebra_rules(sta4ds_config, "sta4ds");
         }
 
         if (test_consistency) {
@@ -812,7 +813,7 @@ int main(int argc, char* argv[])
                          test_results[2] ? "✓ PERFECT" : "✗ FAILED");
             fmt::println("pga3dp (G(3,0,1)): {}",
                          test_results[3] ? "✓ PERFECT" : "✗ FAILED");
-            fmt::println("sta4d (G(1,3,0)): {}",
+            fmt::println("sta4ds (G(3,1,0)): {}",
                          test_results[4] ? "✓ PERFECT" : "✗ FAILED");
 
             bool all_success = std::all_of(test_results.begin(), test_results.end(),

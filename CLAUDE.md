@@ -112,8 +112,8 @@ the following notation:
 
 | Symbol       | Unicode | LaTeX                         | Meaning                                     |
 | ------------ | ------- | ----------------------------- | ------------------------------------------- |
-| ⟑            | U+27D1  | (direct Unicode)              | Geometric product                           |
-| ⟇            | U+27C7  | (direct Unicode)              | Regressive geometric product                |
+| ⟑           | U+27D1  | (direct Unicode)              | Geometric product                           |
+| ⟇           | U+27C7  | (direct Unicode)              | Regressive geometric product                |
 | $\tilde{M}$  | —       | `\tilde{}`                    | Reverse of M (`rev(M)` in code)             |
 | $\utilde{M}$ | —       | `\utilde{}` / `\undertilde{}` | Regressive reverse of M (`rrev(M)` in code) |
 
@@ -358,8 +358,10 @@ cmake --build . --target ga_lua --config Debug
 
 The `ga_prdxpr/` directory contains a sophisticated **code generator** that produces
 optimized C++ expressions for geometric algebra operations. It supports four complete
-algebras: EGA2D, EGA3D, PGA2DP, and PGA3DP. STA4D is wired in for coefficient and
-table output but its `.cases` arrays are still empty (pending implementation).
+algebras: EGA2D, EGA3D, PGA2DP, and PGA3DP, plus STA4D (G(1,3,0), algebra name
+`sta4ds`). STA4D's `.cases` are populated for `dot, gpr, wdg, l/r contraction,
+rwdg, cmt` (354 signatures, all pasted into the library); `rdot, rcmt, rgpr`
+remain empty by design (the regressive products are fleshed out for PGA).
 
 ### C++ Code Generation (`--output=code`)
 
@@ -378,6 +380,25 @@ delegations.
 - See `ga_prdxpr/README.md` for usage, the invocation matrix, and the
   "Open Codegen Work" section (sandwich product codegen, STA4D rollout).
 
+### Codegen gotchas: non-primitive products and hand-coded duals
+
+- **Expansions are non-primitive**: `l_expand`/`r_expand` have no entry in the
+  emitter's `product_to_cpp_function` map, so `--output=code` skips them (logs
+  `// SKIP ... non-primitive product 'l_expand'`) even though their `.cases`
+  exist for `coeffs`/`tables`. Implement them in the library as thin wrappers
+  over dual+wedge: `l_expand(a,b) = wdg(l_dual(a), b)`,
+  `r_expand(a,b) = wdg(a, r_dual(b))`.
+- **Duals are complement∘metric** (`dual(a) = cmpl(G·a)`; degenerate PGA splits
+  into bulk/weight variants). Hand-transcribing the complement/dual tables from
+  `ga_prdxpr_rule_generator_test` output is error-prone — a flipped-sign bivector
+  dual in sta4ds made the contraction identity `a << b == rwdg(l_dual(a), b)`
+  fail *only* at grade 2 (the rule generator was correct; the hand copy wasn't).
+  Guard every algebra with a **transcription gate** test:
+  `dual(e) == nrm_sq(e) * cmpl(e)` per unit basis blade (bulk/weight and l/r
+  variants for PGA). The contraction is the metric interior product
+  (`= dot` on equal grades); the `rwdg(dual)` form is exact at every grade only
+  when the dual is correct.
+
 ### Key Components
 
 **Configuration System:**
@@ -393,7 +414,8 @@ delegations.
 
 **Generation Engine:**
 
-- `generator/ga_prdxpr_generator.cpp`: Main generation logic with algebra-specific handlers
+- `generator/ga_prdxpr_generator.cpp`: Main generation logic with algebra-specific
+  handlers
 - **Dimensional dispatch**: 2D, 3D, 4D specialized implementations
 - **Product-specific handlers**: Each ProductType gets specialized mathematical treatment
 
@@ -501,15 +523,15 @@ stderr (with an end-of-run summary). Implementation lives in
 [ga_prdxpr_generator.cpp](ga_prdxpr/src_prdxpr/generator/ga_prdxpr_generator.cpp)
 inside `validate_case`.
 
-| Check | Catches |
-| --- | --- |
-| **A** | `case_name` LHS/RHS token does not match `left_filter_name`/`right_filter_name` |
-| **B** | Result token after `->` is not a known filter for this algebra |
-| **C** | Computed non-zero components fall outside the declared result type's basis support (suggests the minimal sufficient type) |
-| **D** | Functional `case_name` function name does not match `ProductConfig.product_name` (e.g. a `gpr(...)` entry sitting inside a `wdg` config) |
-| **E** | Declared a non-zero result type but the actual computation is identically zero (suggests `-> 0` or `-> 0 ps`) |
+| Check | Catches                                                                                                                                        |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | `case_name` LHS/RHS token does not match `left_filter_name`/`right_filter_name`                                                                |
+| **B** | Result token after `->` is not a known filter for this algebra                                                                                 |
+| **C** | Computed non-zero components fall outside the declared result type's basis support (suggests the minimal sufficient type)                      |
+| **D** | Functional `case_name` function name does not match `ProductConfig.product_name` (e.g. a `gpr(...)` entry sitting inside a `wdg` config)       |
+| **E** | Declared a non-zero result type but the actual computation is identically zero (suggests `-> 0` or `-> 0 ps`)                                  |
 | **F** | Coefficient with `_even`/`_odd` suffix paired with a filter other than `mv_e`/`mv_u` (parity mismatch — typically silently produces all zeros) |
-| **G** | Typed-zero uses anything other than `ps` (e.g. `-> 0 s` or `-> 0 vec`) |
+| **G** | Typed-zero uses anything other than `ps` (e.g. `-> 0 s` or `-> 0 vec`)                                                                         |
 
 Warnings are non-fatal — generation continues so a single run surfaces every issue.
 
@@ -637,113 +659,61 @@ supported algebras.
 
 ### Static Initialization Order Safety in ga_prdxpr
 
-**Critical Lesson**: ga_prdxpr experienced static initialization order fiasco
-(segmentation faults) during complement rule generation implementation. Key safety
-principles learned:
+Generating complement/dual rules at static-init time caused a static-init-order
+fiasco (segfaults). Root causes: inter-dependent static string constants, and
+`const` rule tables initialized from `extern` rules not yet constructed.
 
-**Root Causes of Static Initialization Issues:**
+Safety patterns (keep these when adding rules):
 
-1. **Static string constants** in headers that depend on each other
-2. **Circular references** between extern declarations and const initializations
-3. **Cross-file static dependencies** during rule generation
-
-**Required Safety Patterns:**
-
-1. **Inline Functions for Constants**: Convert all static string constants to inline
-   functions:
+1. **Constants as inline functions**, not static variables:
 
    ```cpp
-   // UNSAFE: Static variables
-   static const std::string one_str{"1"s};
-   
-   // SAFE: Inline functions  
+   // UNSAFE: static const std::string one_str{"1"s};
    inline const std::string& one_str() { static const std::string s{"1"s}; return s; }
    ```
 
-2. **Staged Initialization**: Generate all rules in single pass, then assign to const
-   variables:
+2. **Staged init**: generate all rules in one pass (`generate_algebra_rules(config)`),
+   then assign to the individual `const` tables — no cross-references during init.
+3. **No extern references in `const` initializers**: give derived (dual) rule tables
+   explicit literal values, not `= some_extern_rules`.
 
-   ```cpp
-   // Stage 1: Generate all rules together (no dependencies)
-   static auto generated_rules = generate_algebra_rules(config);
-   
-   // Stage 2: Assign to const variables (safe, already generated)
-   const prd_rules gpr_rules = generated_rules.geometric_product;
-   const prd_rules complement_rules = generated_rules.complement;
-   ```
+## Congruence Testing (`is_congruent`)
 
-3. **Explicit Values for Cross-Referenced Rules**: Never reference extern variables in
-   const initializations:
+Two GA elements are **congruent** if they span the same subspace up to a non-zero
+scalar — scalar multiples, **regardless of sign or magnitude**.
 
-   ```cpp
-   // UNSAFE: References extern before initialization
-   extern const prd_rules complement_rules;
-   const prd_rules dual_rules = complement_rules;  // BAD!
-   
-   // SAFE: Explicit values
-   const prd_rules dual_rules = {{"1", "e123"}, {"e1", "e23"}, ...};
-   ```
+**Algorithm (unified `A = k*B`):**
 
-**Future Dual Rule Implementation**: When adding dual rules, maintain these safety
-patterns to avoid recreating static initialization order issues.
+1. Component-wise zero detection (robust for degenerate PGA metrics).
+2. Find scale factor `k` from the first non-zero component pair (`a = k*b`).
+3. Verify `a = k*b` for all components within a **relative** tolerance.
+4. Scalars and top-grade pseudoscalars: any two non-zero ones are congruent.
 
-## Congruence Testing in Geometric Algebra
+**Relative tolerance is essential** — absolute `eps` (~1.11e-15) is too strict after
+GA ops that accumulate error (wedge + division); scale it by the operands:
 
-**Key Mathematical Insight**: Elements are congruent if they represent the same geometric
-subspace up to scalar multiplication, **regardless of sign or magnitude**. The congruence
-test varies by grade:
+```cpp
+// instead of: std::abs(a.x - k*b.x) < eps
+value_t rel = eps * std::max({std::abs(a.x), /* ... */, value_t(1.0)});
+return std::abs(a.x - k*b.x) < rel;
+```
 
-**Congruence Rules by Grade:**
+**Notes:**
 
-- **Grade 0 (Scalars)**: All non-zero scalars represent the same 0-dimensional subspace
-- **Grade 1 (Vectors)**: Congruent if same subspace, e.g. parallel/antiparallel
-- **Grade 2+ (Bivectors, etc.)**: Congruent if same subspace, e.g. parallel/antiparallel
-- **Grade n (Pseudoscalars)**: All non-zero pseudoscalars represent the same n-dimensional
-  subspace
-
-**Implementation Pattern**: Use type-specific function overloads with `requires` clauses
-instead of generic templates, since wedge products between same-grade high-order elements
-are often undefined (e.g., `wdg(BiVec3d, BiVec3d)` → grade 4, invalid in 3D).
-
-**Critical**: This logic applies to all algebras (EGA2D, EGA3D, PGA2DP, PGA3DP) but must
-account for algebra-specific grade structures and available operations.
-
-- **EGA2D**: `is_congruent()` for `Scalar2d`, `Vec2d`, `PScalar2d`
-- **EGA3D**: `is_congruent()` for `Scalar3d`, `Vec3d`, `BiVec3d`, `PScalar3d`
-- **PGA2DP**: `is_congruent()` for `Scalar2dp`, `Vec2dp`, `BiVec2dp`, `PScalar2dp`
-- **PGA3DP**: `is_congruent()` for `Scalar3dp`, `Vec3dp`, `BiVec3dp`, `TriVec3dp`,
-  `PScalar3dp`
-
-**Unified Algorithm**:
-
-1. Component-wise zero detection (avoids issues with degenerate PGA metrics)
-2. Find scale factor `k` from first non-zero component pair where `a = k*b`
-3. Verify `a = k*b` holds for all components within tolerance
-4. Special cases: scalars and pseudoscalars at max grade always congruent if non-zero
+- Use type-specific overloads with `requires`, not generic templates — same-grade
+  high-order wedges are undefined (e.g. `wdg(BiVec3d, BiVec3d)` → grade 4 in 3D).
+- Provided per graded type in every algebra (EGA2D/3D, PGA2DP/3DP), as the grade
+  structure allows.
 
 ## Geometric Algebra Mathematical Foundations
 
-### Core GA Concepts Learned
+### Core GA Conventions
 
-**Geometric Algebra Structure:**
-
-- **G(p,q,r)** notation: p positive, q negative, r null (degenerate) basis vectors
-- **Basis Elements**: Ordered combinations like `e1`, `e12`, `e123` with canonical ordering
-- **Grade Structure**: scalar (grade 0), vectors (grade 1), bivectors (grade 2),
-  trivectors (grade 3), etc.
-- **Metric Signature**: Defines how basis vectors square (e.g., e1² = +1, e2² = -1, e3² = 0)
-
-**Product Operations:**
-
-1. **Geometric Product**: Full GA multiplication with metric effects
-2. **Wedge Product**: Antisymmetric exterior product (zero for repeated indices)
-3. **Dot Product**: Symmetric contraction using extended metric values
-
-**Indexing Systems:**
-
-- **1-based**: e1, e2, e3 (traditional mathematical notation)
-- **0-based**: e0, g0, g1, g2 (often used in physics/spacetime)
-- Algorithm must detect and handle both automatically
+- **G(p,n,z)**: p positive, n negative, z null (degenerate) basis vectors.
+- **Grades**: scalar 0, vector 1, bivector 2, trivector 3, … pseudoscalar n.
+- **Products**: geometric (full, carries metric), wedge `^` (antisymmetric, 0 on
+  repeats), dot (symmetric, extended-metric contraction).
+- Basis is 1-based (`e1,e2,…` / `g1,…`); the rule generator handles 0-based too.
 
 ### Supported Algebra Types
 
@@ -771,11 +741,12 @@ account for algebra-specific grade structures and available operations.
 - Metric: `{+1, +1, +1, 0}`
 - Extended Metric: `{1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0}`
 
-**STA4D - G(1,3,0)**: Space-Time Algebra
+**STA4D - G(1,3,0)**: Space-Time Algebra (library type `sta4ds`, `*_4ds` types)
 
-- Basis: `{1, g0, g1, g2, g3, g01, g02, g03, g23, g31, g12, g023, g031, g012, g123, g0123}`
-- Metric: `{+1, -1, -1, -1}` (time-like g0, space-like g1,g2,g3)
-- Extended Metric: Special mixed signature rules
+- Basis: `{1, g1, g2, g3, g4, g14, g24, g34, g23, g31, g12, g234, g314, g124, g123, g1234}`
+- Metric: `{-1, -1, -1, +1}` (space-like g1,g2,g3; time-like g4 with g4² = +1) —
+  i.e. G(1,3,0): 1 positive (g4), 3 negative (g1,g2,g3)
+- Extended Metric: Special mixed signature rules (see below)
 
 ### Extended Metric Calculation Rules
 
@@ -786,87 +757,26 @@ account for algebra-specific grade structures and available operations.
 - **Pseudoscalar**: Determinant of metric tensor
 - **Mixed signatures**: Apply conforming property G(a ∧ b) = G(a) ∧ G(b)
 
-**Space-Time Algebra (STA4D) Special Rules:**
+**Space-Time Algebra (STA4D) Special Rules** (time-like direction g4):
 
-- **Bivectors with g0**: Extended metric = +1 (e.g., g01, g02, g03)
-- **Bivectors without g0**: Extended metric = -1 (e.g., g12, g23, g31)
-- **Trivectors with g0**: Extended metric = -1 (e.g., g012, g023, g031)
-- **Trivectors without g0**: Extended metric = +1 (e.g., g123)
+- **Vectors**: g1, g2, g3 → -1 (space-like); g4 → +1 (time-like)
+- **Bivectors with g4**: Extended metric = +1 (e.g., g14, g24, g34)
+- **Bivectors without g4**: Extended metric = -1 (e.g., g23, g31, g12)
+- **Trivectors with g4**: Extended metric = -1 (e.g., g234, g314, g124)
+- **Trivectors without g4**: Extended metric = +1 (e.g., g123)
 - **Pseudoscalar**: Extended metric = determinant = -1
 
 ### Automatic Rule Generation System
 
-**Core Algorithm Components:**
+The rule generator builds, per algebra from its `AlgebraConfig` (basis, metric
+signature, canonical ordering):
 
-- **AlgebraConfig**: Defines basis vectors, metric signature, canonical basis ordering
-- **multiply_basis_elements()**: Implements geometric product with sign tracking
-- **Extended Metric Calculator**: Handles dot product values for all basis elements
-- **Validation System**: Character-by-character comparison with reference implementations
+- geometric-product rules via `multiply_basis_elements()` (sign = #swaps to
+  canonical order),
+- the extended (dot) metric for every basis blade,
+- complement and dual rule tables.
 
-**Key Mathematical Insights:**
-
-1. **Sign Calculation**: Count swaps needed for canonical ordering
-2. **Metric Application**: Handle both 1-based and 0-based indexing automatically
-3. **Canonical Forms**: Use user-provided basis ordering to avoid ambiguity
-4. **Mixed Signatures**: Require algebra-specific extended metric rules
-
-**Validation Success**: The automatic generation system produces character-identical
-results for all five tested algebras (EGA2D, EGA3D, PGA2DP, PGA3DP, STA4D) across
-geometric, wedge, and dot products.
-
-## Congruence Implementation and Numerical Precision
-
-### Congruence Testing for Geometric Algebra Elements
-
-The library implements unified congruence testing using the `is_congruent*()` functions to
-determine when two GA elements represent the same subspace (i.e., are scalar multiples of
-each other).
-
-**Implementation Pattern (Unified A = k*B Approach):**
-
-```cpp
-bool is_congruent(const T& a, const U& b, value_t tolerance = eps)
-{
-    // 1. Handle zero cases using component-wise checks
-    // 2. Find scale factor k where a = k*b 
-    // 3. Verify a = k*b for all components within tolerance
-}
-```
-
-**Type-Specific Logic:**
-
-- **Scalars/Pseudoscalars**: All non-zero elements of same grade are congruent (represent
-  same-dimensional subspace)
-- **Vectors/Bivectors/Trivectors**: Use component-wise proportionality testing with `A =
-  k*B` relationship
-
-### Critical Numerical Precision Lessons
-
-**Problem**: Initial implementation used absolute tolerance (`eps ≈ 1.11e-15`) which
-failed for floating-point calculations involving:
-
-- Wedge products followed by division operations
-- Complex geometric algebra expressions with accumulated numerical errors
-
-**Solution**: Implemented **relative tolerance** scaling:
-
-```cpp
-// OLD: Absolute tolerance (too strict)
-return (std::abs(a.x - k * b.x) < tolerance);
-
-// NEW: Relative tolerance (numerically stable)
-value_t rel_tol = tolerance * std::max({std::abs(a.x), std::abs(a.y), ..., value_t(1.0)});
-return (std::abs(a.x - k * b.x) < rel_tol);
-```
-
-**Key Insight**: When working with GA operations that involve multiple floating-point
-calculations (wedge products, divisions, etc.), accumulated numerical errors can exceed
-extremely tight absolute tolerances. Relative tolerance provides better numerical
-stability while maintaining mathematical correctness.
-
-**Applied Consistently Across All Algebras:**
-
-- EGA2D: Vector functions
-- EGA3D: Vector and bivector functions  
-- PGA2DP: Vector and bivector functions
-- PGA3DP: Vector, bivector, and trivector functions
+Output is validated character-identical against the reference for all five
+algebras. `ga_prdxpr_rule_generator_test` prints these tables — the source of
+truth for the hand-coded complement/dual functions (guard them with the
+transcription gate above).

@@ -18,7 +18,7 @@ namespace hd::ga {
 /////////////////////////////////////////////////////////////////////////////////////////
 
 template <uint8_t P, uint8_t N = 0, uint8_t Z = 0>
-    requires(P + N + Z >= 2) && (P + N + Z <= 4) && (P >= 2) && (P <= 4) && (N == 0) &&
+    requires(P + N + Z >= 2) && (P + N + Z <= 4) && (P >= 1) && (P <= 3) && (N <= 3) &&
             (Z <= 1) // no implementation for other algebras yet
 struct algebra {
     constexpr static uint8_t p() { return P; }; // number of +1 generators
@@ -61,13 +61,6 @@ struct algebra {
                     "  e23", "  e31", "  e12", " e123"};
         }
         //
-        // ega: algebra<4,0,0>
-        if constexpr (dim_space() == 4 && (p() == 4 && n() == 0 && z() == 0)) {
-            return {"    1", "   e1", "   e2", "   e3", "   e4", "  e41",
-                    "  e42", "  e43", "  e23", "  e31", "  e12", " e423",
-                    " e431", " e412", " e321", "e1234"};
-        }
-        //
         // pga2dp:  algebra<2,0,1>
         if constexpr (dim_space() == 3 && (p() == 2 && n() == 0 && z() == 1)) {
             return {"    1", "   e1", "   e2", "   e3",
@@ -79,6 +72,13 @@ struct algebra {
             return {"    1", "   e1", "   e2", "   e3", "   e4", "  e41",
                     "  e42", "  e43", "  e23", "  e31", "  e12", " e423",
                     " e431", " e412", " e321", "e1234"};
+        }
+        //
+        // sta4ds:  algebra<1,3,0> "mostly negative"-convention
+        if constexpr (dim_space() == 4 && (p() == 1 && n() == 3 && z() == 0)) {
+            return {"   1",  "   g1", "   g2", "   g3", "   g4", "  g14",
+                    "  g24", "  g34", "  g23", "  g31", "  g12", " g234",
+                    " g314", " g124", " g123", "g1234"};
         }
     }();
 };

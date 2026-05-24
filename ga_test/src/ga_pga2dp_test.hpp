@@ -3575,6 +3575,50 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("");
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // transcription gate: bulk/weight dual == bulk/weight metric * complement
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<2,0,1>: dual == metric * complement (transcription gate)")
+    {
+        fmt::println("G<2,0,1>: dual == metric * complement (transcription gate)");
+
+        // The dual is "complement after multiplication with the (extended) metric".
+        // For the degenerate PGA metric this splits into a bulk and a weight part:
+        //   bulk_dual(e)   = bulk_nrm_sq(e)   * cmpl(e)
+        //   weight_dual(e) = weight_nrm_sq(e) * cmpl(e)
+        // For a unit basis blade this must hold element-wise -- a direct guard
+        // against sign-transcription errors when the complement/dual tables are
+        // hand-coded from ga_prdxpr_rule_generator output. (bulk_dual is identically
+        // 0 on the pseudoscalar and weight_dual on the scalar, so those overloads
+        // are intentionally absent and not exercised.)
+        auto bulk_gate = [](auto const& e) {
+            CHECK(bulk_dual(e) == bulk_nrm_sq(e) * cmpl(e));
+        };
+        auto weight_gate = [](auto const& e) {
+            CHECK(weight_dual(e) == weight_nrm_sq(e) * cmpl(e));
+        };
+
+        // bulk_dual: scalar, vectors, bivectors
+        bulk_gate(one_2dp);
+        bulk_gate(e1_2dp);
+        bulk_gate(e2_2dp);
+        bulk_gate(e3_2dp);
+        bulk_gate(e32_2dp);
+        bulk_gate(e31_2dp);
+        bulk_gate(e12_2dp);
+        // weight_dual: vectors, bivectors, pseudoscalar
+        weight_gate(e1_2dp);
+        weight_gate(e2_2dp);
+        weight_gate(e3_2dp);
+        weight_gate(e32_2dp);
+        weight_gate(e31_2dp);
+        weight_gate(e12_2dp);
+        weight_gate(I_2dp);
+
+        fmt::println("bulk/weight dual == bulk/weight metric * complement verified");
+    }
+
     TEST_CASE("G<2,0,1>: extended metric matrix validation")
     {
         fmt::println("G<2,0,1>: extended metric matrix validation");

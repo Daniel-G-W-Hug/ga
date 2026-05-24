@@ -1,15 +1,16 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-#include "ga_prdxpr_trafo_sandwich_transformer.hpp"
 #include "ga_prdxpr_trafo_nary_expression.hpp"
+#include "ga_prdxpr_trafo_sandwich_transformer.hpp"
 
 // Pull in canonical per-algebra basis declarations so the sandwich configs
 // stay in sync with whatever ordering / naming the algebra headers use.
-#include "algebras/ga_prdxpr_ega2d.hpp"   // mv2d_basis_kvec
-#include "algebras/ga_prdxpr_ega3d.hpp"   // mv3d_basis_kvec
-#include "algebras/ga_prdxpr_pga2dp.hpp"  // mv2dp_basis_kvec
-#include "algebras/ga_prdxpr_pga3dp.hpp"  // mv3dp_basis_kvec
+#include "algebras/ga_prdxpr_ega2d.hpp"  // mv2d_basis_kvec
+#include "algebras/ga_prdxpr_ega3d.hpp"  // mv3d_basis_kvec
+#include "algebras/ga_prdxpr_pga2dp.hpp" // mv2dp_basis_kvec
+#include "algebras/ga_prdxpr_pga3dp.hpp" // mv3dp_basis_kvec
+#include "algebras/ga_prdxpr_sta4ds.hpp" // mvsta4ds_basis_kvec
 
 #include <algorithm>
 #include <numeric>
@@ -22,8 +23,8 @@
 // list of basis-element names that the sandwich transformer iterates over as
 // "result components". Sourcing this from the algebra header (rather than
 // duplicating it as a literal here) means a basis renaming or reordering in
-// the algebra header automatically propagates to the sandwich config — no
-// second hand-maintained copy to drift out of sync.
+// e.g. ga_prdxpr_sta4ds.hpp automatically propagates to the sandwich config —
+// no second hand-maintained copy to drift out of sync.
 static std::vector<std::string>
 basis_kvec_grades(std::vector<mvec_coeff> const& basis_kvec,
                   std::initializer_list<size_t> grades)
@@ -429,8 +430,8 @@ SandwichAlgebraConfig AlgebraRegistry::getConfig(const std::string& algebra_type
     else if (algebra_type == "pga3dp") {
         return createPGA3DPConfig();
     }
-    else if (algebra_type == "sta4d") {
-        return createSTA4DConfig();
+    else if (algebra_type == "sta4ds") {
+        return createSTA4DSConfig();
     }
     else {
         throw std::runtime_error("Unknown algebra type: " + algebra_type);
@@ -480,14 +481,15 @@ SandwichAlgebraConfig AlgebraRegistry::createPGA3DPConfig()
             .matrix_size = components.size()};
 }
 
-SandwichAlgebraConfig AlgebraRegistry::createSTA4DConfig()
+SandwichSandwichAlgebraConfig AlgebraRegistry::createSTA4DSConfig()
 {
-    return {.name = "sta4d",
+    auto components = basis_kvec_grades(mvsta4ds_basis_kvec, {1});
+    return {.name = "sta4ds",
             .geometric_variables = {"v.x", "v.y", "v.z", "v.w"},
-            .result_components = {"g0", "g1", "g2", "g3"},
+            .result_components = components,
             .rotor_coefficients = {"R.c0", "R.c1", "R.c2", "R.c3", "R.c4", "R.c5", "R.c6",
                                    "R.c7"},
-            .matrix_size = 4};
+            .matrix_size = components.size()};
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,380 @@
+#pragma once
+
+// Copyright 2024-2026, Daniel Hug. All rights reserved.
+// Licensed under the terms specified in LICENSE.txt file.
+
+#include "ga_type4ds.hpp"
+
+
+namespace hd::ga {
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// use MVec8_t including its ctors and add specific ctors for MVec8_t<T, Tag>
+// by using partial template specialization for the Tag=mvec4ds_e_tag
+/////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+struct MVec8_t<T, mvec4ds_e_tag> : public MVec8_t<T, default_tag> {
+
+    using MVec8_t<T, default_tag>::MVec8_t; // inherit base class ctors
+
+    // assign a scalar part exclusively (other grades = 0)
+    constexpr MVec8_t(Scalar4ds<T> s) :
+        MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0))
+    {
+    }
+
+    // assign a bivector part exclusively (other grades = 0)
+    constexpr MVec8_t(BiVec4ds<T> const& B) :
+        MVec8_t(T(0.0), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(0.0))
+    {
+    }
+
+    // assign a pseudoscalar part exclusively (other grades = 0)
+    constexpr MVec8_t(PScalar4ds<T> ps) :
+        MVec8_t(T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
+    {
+    }
+
+    // assign the scalar and the bivector part only, assuming the pseudoscalar part as 0.0
+    constexpr MVec8_t(Scalar4ds<T> s, BiVec4ds<T> const& B) :
+        MVec8_t(T(s), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(0.0))
+    {
+    }
+
+    // assign the bivector and the pseudoscalar part only, assuming the scalar part as 0.0
+    constexpr MVec8_t(BiVec4ds<T> const& B, PScalar4ds<T> ps) :
+        MVec8_t(T(0.0), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(ps))
+    {
+    }
+
+    // assign the scalar and the pseudoscalar part only, assuming the bivector part as 0.0
+    constexpr MVec8_t(Scalar4ds<T> s, PScalar4ds<T> ps) :
+        MVec8_t(T(s), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(0.0), T(ps))
+    {
+    }
+
+    // assign all three parts, the scalar, the bivector and the pseudoscalar explicitly
+    constexpr MVec8_t(Scalar4ds<T> s, BiVec4ds<T> const& B, PScalar4ds<T> ps) :
+        MVec8_t(T(s), B.vx, B.vy, B.vz, B.mx, B.my, B.mz, T(ps))
+    {
+    }
+
+    // Override compound assignment operators to return correct derived type
+    // This ensures GCC+doctest can properly deduce the tag type without needing cross-tag
+    // comparisons
+    template <typename U>
+        requires(numeric_type<U>)
+    MVec8_t& operator+=(MVec8_t<U, mvec4ds_e_tag> const& v) noexcept
+    {
+        this->c0 += v.c0;
+        this->c1 += v.c1;
+        this->c2 += v.c2;
+        this->c3 += v.c3;
+        this->c4 += v.c4;
+        this->c5 += v.c5;
+        this->c6 += v.c6;
+        this->c7 += v.c7;
+        return *this;
+    }
+
+    template <typename U>
+        requires(numeric_type<U>)
+    MVec8_t& operator-=(MVec8_t<U, mvec4ds_e_tag> const& v) noexcept
+    {
+        this->c0 -= v.c0;
+        this->c1 -= v.c1;
+        this->c2 -= v.c2;
+        this->c3 -= v.c3;
+        this->c4 -= v.c4;
+        this->c5 -= v.c5;
+        this->c6 -= v.c6;
+        this->c7 -= v.c7;
+        return *this;
+    }
+
+    template <typename U>
+        requires(numeric_type<U>)
+    MVec8_t& operator*=(U s) noexcept
+    {
+        this->c0 *= s;
+        this->c1 *= s;
+        this->c2 *= s;
+        this->c3 *= s;
+        this->c4 *= s;
+        this->c5 *= s;
+        this->c6 *= s;
+        this->c7 *= s;
+        return *this;
+    }
+
+    template <typename U>
+        requires(numeric_type<U>)
+    MVec8_t& operator/=(U s) noexcept(!detail::extended_testing_enabled())
+    {
+        detail::check_division_by_zero<T, U>(s, "multivector division 8 comp.");
+        this->c0 /= s;
+        this->c1 /= s;
+        this->c2 /= s;
+        this->c3 /= s;
+        this->c4 /= s;
+        this->c5 /= s;
+        this->c6 /= s;
+        this->c7 /= s;
+        return *this;
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// define grade operations for partial specialization MVec8_t<T, mvec4ds_e_tag>
+////////////////////////////////////////////////////////////////////////////////
+
+// returning various grades of an even 4ds multivector
+//
+// grade 0: gr0() - scalar
+// grade 2: gr2() - bivector
+// grade 3: gr4() - quadvector (= pseudoscalar in 4ds)
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar4ds<T> gr0(MVec4ds_E<T> const& M)
+{
+    return Scalar4ds<T>(M.c0);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec4ds<T> gr2(MVec4ds_E<T> const& M)
+{
+    return BiVec4ds<T>(M.c1, M.c2, M.c3, M.c4, M.c5, M.c6);
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar4ds<T> gr4(MVec4ds_E<T> const& M)
+{
+    return PScalar4ds<T>(M.c7);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// addition operations to combine scalars and bivectors to even grade multivectors
+////////////////////////////////////////////////////////////////////////////////
+
+// scalar + bivector => even grade multivector (in 4ds imply a zero pseudoscalar)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(Scalar4ds<T> s,
+                                                        BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(s, B);
+}
+
+// bivector + scalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(BiVec4ds<T> const& B,
+                                                        Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(s, B);
+}
+
+// pseudoscalar + bivector => even grade multivector (in 4ds imply a zero scalar)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(PScalar4ds<T> ps,
+                                                        BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(B, ps);
+}
+
+// bivector + pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(BiVec4ds<T> const& B,
+                                                        PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(B, ps);
+}
+
+// (pseudoscalar + scalar) and (scalar + pseudoscalar) intentionally NOT
+// defined here — see ga_dualnum4ds.hpp for the canonical DualNum4ds result.
+
+// scalar + even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(Scalar4ds<T> s,
+                                                        MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(T(s) + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
+}
+
+// even grade multivector + scalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(MVec4ds_E<T> const& M,
+                                                        Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(U(s) + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
+}
+
+// bivector + even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(BiVec4ds<T> const& B,
+                                                        MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(M.c0, B.vx + M.c1, B.vy + M.c2, B.vz + M.c3, B.mx + M.c4,
+                            B.my + M.c5, B.mz + M.c6, M.c7);
+}
+
+// even grade multivector + bivector => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(MVec4ds_E<T> const& M,
+                                                        BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(M.c0, B.vx + M.c1, B.vy + M.c2, B.vz + M.c3, B.mx + M.c4,
+                            B.my + M.c5, B.mz + M.c6, M.c7);
+}
+
+// pseudoscalar + even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(PScalar4ds<T> ps,
+                                                        MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, T(ps) + M.c7);
+}
+
+// even grade multivector + pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator+(MVec4ds_E<T> const& M,
+                                                        PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, U(ps) + M.c7);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// subtraction operations to combine scalars and bivectors to even grade multivectors
+////////////////////////////////////////////////////////////////////////////////
+
+// scalar - bivector => even grade multivector (in 4ds imply a zero pseudoscalar)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(Scalar4ds<T> s,
+                                                        BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(s, -B);
+}
+
+// bivector - scalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(BiVec4ds<T> const& B,
+                                                        Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(-s, B);
+}
+
+// pseudoscalar - bivector => even grade multivector (in 4ds imply a zero scalar)
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(PScalar4ds<T> ps,
+                                                        BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(-B, ps);
+}
+
+// bivector - pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(BiVec4ds<T> const& B,
+                                                        PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(B, -ps);
+}
+
+// (pseudoscalar - scalar) and (scalar - pseudoscalar) intentionally NOT
+// defined here — see ga_dualnum4ds.hpp for the canonical DualNum4ds result.
+
+// scalar - even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(Scalar4ds<T> s,
+                                                        MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(T(s) - M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6, -M.c7);
+}
+
+// even grade multivector - scalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(MVec4ds_E<T> const& M,
+                                                        Scalar4ds<U> s)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(-U(s) + M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7);
+}
+
+// bivector - even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(BiVec4ds<T> const& B,
+                                                        MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(-M.c0, B.vx - M.c1, B.vy - M.c2, B.vz - M.c3, B.mx - M.c4,
+                            B.my - M.c5, B.mz - M.c6, -M.c7);
+}
+
+// even grade multivector - bivector => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(MVec4ds_E<T> const& M,
+                                                        BiVec4ds<U> const& B)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(M.c0, -B.vx + M.c1, -B.vy + M.c2, -B.vz + M.c3, -B.mx + M.c4,
+                            -B.my + M.c5, -B.mz + M.c6, M.c7);
+}
+
+// pseudoscalar - even grade mulivector => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(PScalar4ds<T> ps,
+                                                        MVec4ds_E<U> const& M)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(-M.c0, -M.c1, -M.c2, -M.c3, -M.c4, -M.c5, -M.c6,
+                            T(ps) - M.c7);
+}
+
+// even grade multivector - pseudoscalar => even grade multivector
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr MVec4ds_E<std::common_type_t<T, U>> operator-(MVec4ds_E<T> const& M,
+                                                        PScalar4ds<U> ps)
+{
+    using ctype = std::common_type_t<T, U>;
+    return MVec4ds_E<ctype>(M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, -U(ps) + M.c7);
+}
+
+} // namespace hd::ga
