@@ -77,6 +77,8 @@ ga_py/.venv/bin/pip install nanobind pytest hypothesis numpy
 
 # 3) Configure and build with the Python wrapper enabled
 #    (run from the project root)
+#    NOTE: Windows users — skip this `cmake --build build` line and use the
+#    Developer Command Prompt block below instead (it needs --config Release).
 cmake -S . -B build -D_GA_BUILD_PYTHON=ON
 cmake --build build
 ```
@@ -99,13 +101,28 @@ cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.c
 cmake --build build --target _ga_py --config Release
 ```
 
-> **Note:** always use `--config Release` for `_ga_py` on Windows. Debug-config extensions
-> link against `python313_d.dll` (the debug Python runtime) and cannot be loaded by the
-> normal venv interpreter, which uses `python313.dll`.
+> **Note:** always use `--config Release` for `_ga_py` on Windows, and do **not** use the
+> bare `cmake --build build` from the macOS/Linux block above. MSVC is a multi-config
+> generator, so an unqualified `cmake --build build` defaults to **Debug** — which fails to
+> link (see the LNK1104 troubleshooting entry below). Even when a Debug build does link, the
+> extension links against `python313_d.dll` (the debug Python runtime) and cannot be loaded
+> by the normal venv interpreter, which uses `python313.dll`. Release is the only supported
+> config on Windows.
 >
-> **Troubleshooting:** if cmake fails with *"Could not find a package configuration file
-> provided by nanobind"*, a stale cache entry from a previous failed configure is the
-> likely cause. Clear it and retry:
+> **Troubleshooting — `LNK1104: cannot open file "python313.lib"`:** you built in Debug
+> config (the default for a bare `cmake --build build`). In Debug, `nanobind-static` is
+> compiled without `_DEBUG`, so `Python.h` injects `#pragma comment(lib, "python313.lib")`
+> (the *release* lib name) while CMake puts the *debug* lib `python313_d.lib` on the link
+> line — the names don't match and `C:\Python313\libs` isn't on the linker search path.
+> Rebuild in Release (this is also required for the module to load at runtime):
+>
+> ```bat
+> cmake --build build --target _ga_py --config Release
+> ```
+>
+> **Troubleshooting — *"Could not find a package configuration file provided by
+> nanobind"*:** a stale cache entry from a previous failed configure is the likely cause.
+> Clear it and retry:
 >
 > ```bat
 > cmake -Unanobind_DIR build
