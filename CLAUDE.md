@@ -677,6 +677,44 @@ Safety patterns (keep these when adding rules):
 3. **No extern references in `const` initializers**: give derived (dual) rule tables
    explicit literal values, not `= some_extern_rules`.
 
+## Python wrapper (ga_py / ga_bindgen)
+
+`ga_bindgen/` scans `ga/*.hpp` with libclang into `manifest.json`; `ga_py/` turns that
+into a nanobind extension (`_ga_py`) exposing submodules `ega` / `pga` / `sta` plus the
+top-level `hd::ga` free functions.
+
+**Two venvs — never conflate:** `ga_bindgen/.venv` (scan/emit, needs `libclang`) vs
+`ga_py/.venv` (build + tests, needs `pytest hypothesis numpy nanobind`).
+
+**Regeneration chain** (after changing the C++ API; steps 2 and 5 need CMake configured
+with `-D_GA_BUILD_PYTHON=ON`):
+
+```bash
+ga_bindgen/.venv/bin/python ga_bindgen/src/scan.py            # -> manifest.json
+ga_bindgen/.venv/bin/python ga_bindgen/src/emit_nanobind.py   # -> ga_py/src/generated/*.cpp
+cmake --build build --target _ga_py                           # rebuild the extension
+PYTHONPATH=build/ga_py:ga_py/python ga_py/.venv/bin/python ga_bindgen/src/emit_stubs.py  # -> *.pyi
+cmake --build build --target regenerate_python_test_data      # -> cross-check JSON
+PYTHONPATH=build/ga_py:ga_py/python ga_py/.venv/bin/python -m pytest ga_py/tests/
+```
+
+**Hand-sync surface.** The generated layer (`register_all.cpp`, `bindings_*.cpp`) is
+automatic, but adding a new algebra / type / function requires manual edits to these
+NON-generated files — each one surfaced as a test failure when missed:
+
+- `ga_py/src/module.cpp` — create the submodule and pass it to `register_all`
+- `ga_py/python/ga_py/__init__.py` — import/forward the submodule and update `__all__`
+- `ga_bindgen/src/emit_stubs.py` — add `<submod>.pyi` to `STUB_FILES`
+- `ga_test/src/export_python_cases.cpp` — representative cross-check cases
+- `ga_py/tests/conftest.py` — `FIELD_ORDER` for new struct-shaped types
+- `ga_py/tests/test_cross_check.py` — `_TYPE_LOCATIONS` submodule scan loop
+- `ga_py/tests/test_constants.py` — `EXPECTED` table **and** the total-count assertion
+- `ga_py/tests/test_{coverage,scalars,grade_lookup}.py` — per-type parametrize lists
+- `ga_py/tests/test_stubs.py` — `STUBS` dict and the `__format__` parametrize
+
+Helpers used only by the C++ ops (not public API) belong in `hd::ga::detail`, which
+`scan.py` excludes from the binding — see the STA rotor section below.
+
 ## Congruence Testing (`is_congruent`)
 
 Two GA elements are **congruent** if they span the same subspace up to a non-zero
@@ -704,6 +742,27 @@ return std::abs(a.x - k*b.x) < rel;
   high-order wedges are undefined (e.g. `wdg(BiVec3d, BiVec3d)` → grade 4 in 3D).
 - Provided per graded type in every algebra (EGA2D/3D, PGA2DP/3DP), as the grade
   structure allows.
+
+## STA4D rotor operations (`ga_sta4ds_ops.hpp`)
+
+STA transforms via the geometric-product rotor sandwich `X' = R ⟑ X ⟑ rev(R)` (like
+ega3d, not pga3dp's regressive motors). Two gotchas worth remembering:
+
+- **Versor norm vs grade-wise `nrm_sq`.** `sqrt(rotor)` / normalizing a rotor
+  (`MVec4ds_E`) must use the **versor norm** `sqrt(gr0(rev(X) ⟑ X))`, *not*
+  `nrm_sq(MVec4ds_E)`. The latter is the grade-wise sum with the signed Lorentzian
+  bivector norm, which for a unit rotor evaluates to `cos(2a)` (rotation) or
+  `cosh(2φ)` (boost) — **not 1**. `sqrt(R) = X / sqrt(gr0(rev(X)·X))` with `X = 1 + R`
+  is exact for simple rotors of either kind; guard the `R = -1` (2π) degenerate case.
+
+- **Closed-form `transform_opt` helpers live in `hd::ga::detail`.** The per-grade
+  sandwich matrices (4×4 for vec **and** trivec — identical in STA; 6×6 for bivec) are
+  built once from the rotor coefficients and shared by the scalar and `std::vector`
+  batch overloads. Putting the builder helpers in `hd::ga::detail` keeps them out of the
+  bindgen scan **and** avoids creating a `hd::ga::sta::detail` namespace, which would
+  shadow the `detail::safe_epsilon` etc. used unqualified inside `hd::ga::sta`. Scalar
+  `transform_opt` is slower than `transform()` for one-offs (matrix build not amortised);
+  only the batch overload wins (~3× at `-O3`). Bench: `ga_test/utilities/`.
 
 ## Geometric Algebra Mathematical Foundations
 
