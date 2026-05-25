@@ -20,7 +20,7 @@
 #include "algebras/ga_prdxpr_ega3d.hpp"
 #include "algebras/ga_prdxpr_pga2dp.hpp"
 #include "algebras/ga_prdxpr_pga3dp.hpp"
-#include "algebras/ga_prdxpr_sta4d.hpp"
+#include "algebras/ga_prdxpr_sta4ds.hpp"
 
 using namespace configurable;
 
@@ -687,9 +687,7 @@ void ConfigurableGenerator::emit_single_case_code(AlgebraData const& algebra,
                                                   prd_table const& basis_tab)
 {
     // Lazy per-algebra registry. Codegen is supported for
-    // ega2d/ega3d/pga2dp/pga3dp/sta4d; STA4D `.cases` arrays are still empty in
-    // algebras/ga_prdxpr_sta4d_config.cpp, so running --output=code --algebra=sta4d will
-    // emit nothing until those are populated.
+    // ega2d/ega3d/pga2dp/pga3dp/sta4ds
     static std::map<std::string, codegen::TypeRegistry> registries;
     auto reg_it = registries.find(algebra.name);
     if (reg_it == registries.end()) {
@@ -952,11 +950,12 @@ void ConfigurableGenerator::generate_sandwich_case(AlgebraData const& algebra,
         print_transformed_result(mv_u_res_t, algebra.basis, algebra, config);
     }
 
-    else if (algebra.name == "sta4d") {
+    else if (algebra.name == "sta4ds") {
 
         // Vector case: first product between multivectors in basis_tab gpr(M,v)
         fmt::println("{}:", prd_name + space_str() + "gpr(mv_e, vec) -> mv_u_tmp");
-        auto prd_tab = get_prd_tab(basis_tab, mvsta4d_coeff_R_even, mvsta4d_coeff_svBtps);
+        auto prd_tab =
+            get_prd_tab(basis_tab, mvsta4ds_coeff_R_even, mvsta4ds_coeff_svBtps);
 
         auto mv_u_tmp = get_mv_from_prd_tab(prd_tab, algebra.basis, filter_4d::mv_e,
                                             filter_4d::vec, brace_switch::use_braces);
@@ -967,7 +966,7 @@ void ConfigurableGenerator::generate_sandwich_case(AlgebraData const& algebra,
         // Second product between multivectors for the product gpr(mv_u_tmp,rev(M))
         fmt::println("{}:",
                      prd_name + space_str() + "gpr(mv_u_tmp, rev(mv_e)) -> mv_u_res");
-        auto prd_tab_v = get_prd_tab(basis_tab, mv_u_tmp, mvsta4d_coeff_R_rev_even);
+        auto prd_tab_v = get_prd_tab(basis_tab, mv_u_tmp, mvsta4ds_coeff_R_rev_even);
 
         auto mv_u_res_v = get_mv_from_prd_tab(prd_tab_v, algebra.basis, filter_4d::mv_u,
                                               filter_4d::mv_e);
@@ -990,7 +989,7 @@ void ConfigurableGenerator::generate_sandwich_case(AlgebraData const& algebra,
         // Second product between multivectors for the product gpr(mv_e_tmp, rrev(M))
         fmt::println("{}:",
                      prd_name + space_str() + "gpr(mv_e_tmp, rev(mv_e)) -> mv_e_res");
-        auto prd_tab_B = get_prd_tab(basis_tab, mv_e_tmp, mvsta4d_coeff_R_rev_even);
+        auto prd_tab_B = get_prd_tab(basis_tab, mv_e_tmp, mvsta4ds_coeff_R_rev_even);
 
         auto mv_e_res_B = get_mv_from_prd_tab(prd_tab_B, algebra.basis, filter_4d::mv_e,
                                               filter_4d::mv_e);
@@ -1014,7 +1013,7 @@ void ConfigurableGenerator::generate_sandwich_case(AlgebraData const& algebra,
         // Second product between multivectors for the product gpr(mv_u_tmp_t,rev(M))
         fmt::println("{}:", prd_name + space_str() +
                                 "rgpr(mv_u_tmp_t, rev(mv_e)) -> mv_u_res_t");
-        auto prd_tab_t = get_prd_tab(basis_tab, mv_u_tmp_t, mvsta4d_coeff_R_rev_even);
+        auto prd_tab_t = get_prd_tab(basis_tab, mv_u_tmp_t, mvsta4ds_coeff_R_rev_even);
 
         auto mv_u_res_t = get_mv_from_prd_tab(prd_tab_t, algebra.basis, filter_4d::mv_u,
                                               filter_4d::mv_e);
@@ -2449,82 +2448,84 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
         }
     }
 
-    else if (algebra.name == "sta4d") {
+    else if (algebra.name == "sta4ds") {
 
         if (product_name == "gpr") {
             return apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(mvsta4d_basis, mvsta4d_basis, mul_str()),
-                gpr_sta4d_rules);
+                mv_coeff_to_coeff_prd_tab(mvsta4ds_basis, mvsta4ds_basis, mul_str()),
+                gpr_sta4ds_rules);
         }
 
         else if (product_name == "cmt") {
             // Commutator product (=asymmetric part of the geometric product)
             //                   cmt(A,B) = asym(gpr(A,B))
             auto basis_tab = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(mvsta4d_basis, mvsta4d_basis, mul_str()),
-                gpr_sta4d_rules);
+                mv_coeff_to_coeff_prd_tab(mvsta4ds_basis, mvsta4ds_basis, mul_str()),
+                gpr_sta4ds_rules);
             return get_prd_tab_asym(basis_tab); // use the asymmetric part only
         }
 
         else if (product_name == "wdg") {
             return apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(mvsta4d_basis, mvsta4d_basis, wdg_str()),
-                wdg_sta4d_rules);
+                mv_coeff_to_coeff_prd_tab(mvsta4ds_basis, mvsta4ds_basis, wdg_str()),
+                wdg_sta4ds_rules);
         }
 
         else if (product_name == "dot") {
             // Inner product (=dot product)
             return apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(mvsta4d_basis, mvsta4d_basis, mul_str()),
-                dot_sta4d_rules);
+                mv_coeff_to_coeff_prd_tab(mvsta4ds_basis, mvsta4ds_basis, mul_str()),
+                dot_sta4ds_rules);
         }
 
         else if (product_name == "l_contract") {
             // Left contraction: l_contract(A,B) =
             // l_cmpl(wdg(r_cmpl(l_dual(A)), r_cmpl(B)))
-            auto lhs = apply_rules_to_mv(
-                apply_rules_to_mv(mvsta4d_basis, l_dual_sta4d_rules), r_cmpl_sta4d_rules);
-            auto rhs = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
+            auto lhs =
+                apply_rules_to_mv(apply_rules_to_mv(mvsta4ds_basis, l_dual_sta4ds_rules),
+                                  r_cmpl_sta4ds_rules);
+            auto rhs = apply_rules_to_mv(mvsta4ds_basis, r_cmpl_sta4ds_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_sta4d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_sta4ds_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
         }
 
         else if (product_name == "r_contract") {
             // Right contraction:
             // r_contract(A,B) = l_cmpl(wdg(r_cmpl(A),
             // r_cmpl(r_dual(B))))
-            auto lhs = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
-            auto rhs = apply_rules_to_mv(
-                apply_rules_to_mv(mvsta4d_basis, r_dual_sta4d_rules), r_cmpl_sta4d_rules);
+            auto lhs = apply_rules_to_mv(mvsta4ds_basis, r_cmpl_sta4ds_rules);
+            auto rhs =
+                apply_rules_to_mv(apply_rules_to_mv(mvsta4ds_basis, r_dual_sta4ds_rules),
+                                  r_cmpl_sta4ds_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_sta4d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
+                mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()), wdg_sta4ds_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
         }
 
         else if (product_name == "l_expand") {
             // Left expansion: l_expand(A,B) = wdg(l_dual(A), B)
-            auto lhs = apply_rules_to_mv(mvsta4d_basis, l_dual_sta4d_rules);
-            auto rhs = mvsta4d_basis;
+            auto lhs = apply_rules_to_mv(mvsta4ds_basis, l_dual_sta4ds_rules);
+            auto rhs = mvsta4ds_basis;
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_sta4d_rules);
+                                      wdg_sta4ds_rules);
         }
 
         else if (product_name == "r_expand") {
             // Right expansion: r_expand(A,B) = wdg(A, r_dual(B))
-            auto lhs = mvsta4d_basis;
-            auto rhs = apply_rules_to_mv(mvsta4d_basis, r_dual_sta4d_rules);
+            auto lhs = mvsta4ds_basis;
+            auto rhs = apply_rules_to_mv(mvsta4ds_basis, r_dual_sta4ds_rules);
             return apply_rules_to_tab(mv_coeff_to_coeff_prd_tab(lhs, rhs, wdg_str()),
-                                      wdg_sta4d_rules);
+                                      wdg_sta4ds_rules);
         }
 
         else if (product_name == "rgpr") {
             // Regressive geometric: rgpr(A,B) = l_cmpl(gpr(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mvsta4ds_basis, r_cmpl_sta4ds_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
-                gpr_sta4d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
+                gpr_sta4ds_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
         }
 
         else if (product_name == "rcmt") {
@@ -2532,37 +2533,37 @@ ConfigurableGenerator::get_basis_table_for_product(const AlgebraData& algebra,
             // Regressive commutator product:
             //                    rcmt(A,B) = asym(rgpr(A,B))
             //                    rcmt(A,B) = asym(l_cmpl(gpr(r_cmpl(A),r_cmpl(B))))
-            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mvsta4ds_basis, r_cmpl_sta4ds_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
-                gpr_sta4d_rules);
-            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
+                gpr_sta4ds_rules);
+            auto full_tab = apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
             return get_prd_tab_asym(full_tab);
         }
 
         else if (product_name == "rwdg") {
             // Regressive wedge: rwdg(A,B) = l_cmpl(wdg(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mvsta4ds_basis, r_cmpl_sta4ds_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, wdg_str()),
-                wdg_sta4d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
+                wdg_sta4ds_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
         }
 
         else if (product_name == "rdot") {
             // Regressive inner: rdot(A,B) = l_cmpl(dot(r_cmpl(A), r_cmpl(B)))
-            auto basis_cmpl_func = apply_rules_to_mv(mvsta4d_basis, r_cmpl_sta4d_rules);
+            auto basis_cmpl_func = apply_rules_to_mv(mvsta4ds_basis, r_cmpl_sta4ds_rules);
             auto basis_tab_with_rules = apply_rules_to_tab(
                 mv_coeff_to_coeff_prd_tab(basis_cmpl_func, basis_cmpl_func, mul_str()),
-                dot_sta4d_rules);
-            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4d_rules);
+                dot_sta4ds_rules);
+            return apply_rules_to_tab(basis_tab_with_rules, l_cmpl_sta4ds_rules);
         }
 
         else if (product_name == "sandwich_gpr") {
-            // Sandwich product basis table - same as gpr for sta4d
+            // Sandwich product basis table - same as gpr for sta4ds
             return apply_rules_to_tab(
-                mv_coeff_to_coeff_prd_tab(mvsta4d_basis, mvsta4d_basis, mul_str()),
-                gpr_sta4d_rules);
+                mv_coeff_to_coeff_prd_tab(mvsta4ds_basis, mvsta4ds_basis, mul_str()),
+                gpr_sta4ds_rules);
         }
     }
 
@@ -2727,8 +2728,8 @@ void ConfigurableGenerator::apply_coefficient_alignment(mvec_coeff& expressions,
     else if (algebra_name == "ega2d") {
         patterns = GeometricVariablePatterns::createEGA2DPatterns();
     }
-    else if (algebra_name == "sta4d") {
-        patterns = GeometricVariablePatterns::createSTA4DPatterns();
+    else if (algebra_name == "sta4ds") {
+        patterns = GeometricVariablePatterns::createSTA4DSPatterns();
     }
     else {
         // Default to PGA3DP patterns as fallback

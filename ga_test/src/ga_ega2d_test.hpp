@@ -419,7 +419,7 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(abs(nrm(ps1 * inv(ps1)) - 1) < eps);
         CHECK(abs(nrm(inv(ps1) - rev(ps1) / nrm_sq(ps1))) < eps);
 
-        // check inverses - even grade multivector
+        // check inverses - even-grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
         CHECK(abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
         CHECK(abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
@@ -988,6 +988,28 @@ TEST_SUITE("EGA 2D Tests")
         CHECK((e2_2d << e12_2d) == e1_2d);
         CHECK((e12_2d >> (2.0 * e1_2d - 3.0 * e2_2d)) == 3.0 * e1_2d + 2.0 * e2_2d);
         CHECK(((2.0 * e1_2d - 3.0 * e2_2d) << e12_2d) == -3.0 * e1_2d - 2.0 * e2_2d);
+    }
+
+    TEST_CASE("MVec2d: one_2d as geometric-product identity")
+    {
+        fmt::println("MVec2d: one_2d as geometric-product identity");
+
+        auto v = vec2d{1.0, 2.0};
+        auto ps = pscalar2d{-3.0};
+        auto mv = mvec2d{scalar2d{4.0}, v, ps};
+        auto mv_e = mvec2d_e{scalar2d{4.0}, ps};
+
+        // scalar one_2d is the geometric-product unit
+        CHECK(one_2d * v == v);
+        CHECK(v * one_2d == v);
+
+        // one_2d_mv is the unit of the full geometric product
+        CHECK(one_2d_mv * mv == mv);
+        CHECK(mv * one_2d_mv == mv);
+
+        // one_2d_mv_e is the unit of the even-grade geometric product
+        CHECK(one_2d_mv_e * mv_e == mv_e);
+        CHECK(mv_e * one_2d_mv_e == mv_e);
     }
 
     TEST_CASE("MVec2d: geometric product tests")
@@ -1659,7 +1681,7 @@ TEST_SUITE("EGA 2D Tests")
         mvec2d vm{10.0, 1.0, 2.0, 30.0};      // full 2d multivector
         mvec2d vm2{-7.0, 3.0, -42.0, 5.0};    // full 2d multivector
         mvec2d vm_even{10.0, 0.0, 0.0, 30.0}; // full 2d multivector - even content
-        mvec2d_e vm_E{10.0, 30.0};            // even grade 2d multivector
+        mvec2d_e vm_E{10.0, 30.0};            // even-grade 2d multivector
 
         ////////////////////////////////////////////////////////////////////////////////
         // duality (as defined in Lengyel, "PGA illuminated"):

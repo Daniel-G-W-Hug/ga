@@ -20,7 +20,7 @@
 #include "detail/type_t/ga_type2dp.hpp" // pga2dp types
 #include "detail/type_t/ga_type3dp.hpp" // pga3dp types
 
-// Complete multivector types (include the even and uneven grade multivectors)
+// Complete multivector types (include the even and uneven-grade multivectors)
 #include "detail/ga_mvec2d.hpp"
 #include "detail/ga_mvec2dp.hpp"
 #include "detail/ga_mvec3d.hpp"

@@ -413,13 +413,13 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(abs(nrm(ps1 * inv(ps1)) - 1) < eps);
         CHECK(abs(nrm(inv(ps1) - rev(ps1) / nrm_sq(ps1))) < eps);
 
-        // check inverses - even grade multivector
+        // check inverses - even-grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
         CHECK(abs(nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
         CHECK(abs(nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
         CHECK(abs(nrm(inv(mve1) - rev(mve1) / nrm_sq(mve1))) < eps);
 
-        // check inverses - odd grade multivector
+        // check inverses - odd-grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
         CHECK(abs(nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
         CHECK(abs(nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
@@ -1343,6 +1343,29 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(s * v1 == sd * v1); // gpr between scalar and vector
     }
 
+    TEST_CASE("MVec3d: one_3d as geometric-product identity")
+    {
+        fmt::println("MVec3d: one_3d as geometric-product identity");
+
+        auto v = vec3d{1.0, 2.0, 1.0};
+        auto B = bivec3d{-4.0, 2.0, 1.0};
+        auto ps = pscalar3d{-3.0};
+        auto mv = mvec3d{scalar3d{4.0}, v, B, ps};
+        auto mv_e = mvec3d_e{scalar3d{4.0}, B};
+
+        // scalar one_3d is the geometric-product unit
+        CHECK(one_3d * v == v);
+        CHECK(v * one_3d == v);
+
+        // one_3d_mv is the unit of the full geometric product
+        CHECK(one_3d_mv * mv == mv);
+        CHECK(mv * one_3d_mv == mv);
+
+        // one_3d_mv_e is the unit of the even-grade geometric product
+        CHECK(one_3d_mv_e * mv_e == mv_e);
+        CHECK(mv_e * one_3d_mv_e == mv_e);
+    }
+
     TEST_CASE("MVec3d: geometric product tests - vec * vec")
     {
         fmt::println("MVec3d: geometric product tests - vec * vec");
@@ -2188,12 +2211,12 @@ TEST_SUITE("EGA 3D Tests")
 
         // full 3d multivector - even content
         mvec3d vm_even{100.0, 0.0, 0.0, 0.0, 10.0, 20.0, 30.0, 0.0};
-        // even grade 3d multivector
+        // even-grade 3d multivector
         mvec3d_e vm_E{100.0, 10.0, 20.0, 30.0};
 
         // full 3d multivector - odd content
         mvec3d vm_odd{0.0, 1.0, 2.0, 3.0, 0.0, 0.0, 0.0, 300.0};
-        // odd grade 3d multivector
+        // odd-grade 3d multivector
         mvec3d_u vm_U{1.0, 2.0, 3.0, 300.0};
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -2759,65 +2782,6 @@ TEST_SUITE("EGA 3D Tests")
         fmt::println("   MVec3d 2-decimal: {}", mvec3d_two_decimals);
         fmt::println("   MVec3d scientific: {}", mvec3d_scientific);
         fmt::println("   MVec3d contextual: {}", mvec3d_contextual);
-    }
-
-    TEST_CASE("G<3,0,0>: MVec4d_E and MVec4d_U formatting tests")
-    {
-        fmt::println("G<3,0,0>: MVec4d_E and MVec4d_U formatting tests");
-
-        // Test MVec4d_E formatting (MVec8_t with 8 components: c0 through c7)
-        MVec4d_E<double> mvec4d_e_val{10.1, 20.2, 30.3, 40.4, 50.5, 60.6, 70.7, 80.8};
-
-        // Basic output
-        std::string mvec4d_e_basic = fmt::format("{}", mvec4d_e_val);
-        CHECK(mvec4d_e_basic == "MVec4d_E(10.1,20.2,30.3,40.4,50.5,60.6,70.7,80.8)");
-
-        // Two decimal places
-        std::string mvec4d_e_two_decimals = fmt::format("{:.2f}", mvec4d_e_val);
-        CHECK(mvec4d_e_two_decimals ==
-              "MVec4d_E(10.10,20.20,30.30,40.40,50.50,60.60,70.70,80.80)");
-
-        // Scientific notation
-        std::string mvec4d_e_scientific = fmt::format("{:.2e}", mvec4d_e_val);
-        CHECK(mvec4d_e_scientific == "MVec4d_E(1.01e+01,2.02e+01,3.03e+01,4.04e+01,"
-                                     "5.05e+01,6.06e+01,7.07e+01,8.08e+01)");
-
-        // Contextual usage
-        std::string mvec4d_e_contextual = fmt::format("Even 4D MV: {:.1f}", mvec4d_e_val);
-        CHECK(mvec4d_e_contextual ==
-              "Even 4D MV: MVec4d_E(10.1,20.2,30.3,40.4,50.5,60.6,70.7,80.8)");
-
-        // Test MVec4d_U formatting (MVec8_t with 8 components: c0 through c7)
-        MVec4d_U<double> mvec4d_u_val{11.1, 22.2, 33.3, 44.4, 55.5, 66.6, 77.7, 88.8};
-
-        // Basic output
-        std::string mvec4d_u_basic = fmt::format("{}", mvec4d_u_val);
-        CHECK(mvec4d_u_basic == "MVec4d_U(11.1,22.2,33.3,44.4,55.5,66.6,77.7,88.8)");
-
-        // Two decimal places
-        std::string mvec4d_u_two_decimals = fmt::format("{:.2f}", mvec4d_u_val);
-        CHECK(mvec4d_u_two_decimals ==
-              "MVec4d_U(11.10,22.20,33.30,44.40,55.50,66.60,77.70,88.80)");
-
-        // Scientific notation
-        std::string mvec4d_u_scientific = fmt::format("{:.2e}", mvec4d_u_val);
-        CHECK(mvec4d_u_scientific == "MVec4d_U(1.11e+01,2.22e+01,3.33e+01,4.44e+01,"
-                                     "5.55e+01,6.66e+01,7.77e+01,8.88e+01)");
-
-        // Contextual usage
-        std::string mvec4d_u_contextual = fmt::format("Odd 4D MV: {:.1f}", mvec4d_u_val);
-        CHECK(mvec4d_u_contextual ==
-              "Odd 4D MV: MVec4d_U(11.1,22.2,33.3,44.4,55.5,66.6,77.7,88.8)");
-
-        fmt::println("   MVec4d_E basic: {}", mvec4d_e_basic);
-        fmt::println("   MVec4d_E 2-decimal: {}", mvec4d_e_two_decimals);
-        fmt::println("   MVec4d_E scientific: {}", mvec4d_e_scientific);
-        fmt::println("   MVec4d_E contextual: {}", mvec4d_e_contextual);
-
-        fmt::println("   MVec4d_U basic: {}", mvec4d_u_basic);
-        fmt::println("   MVec4d_U 2-decimal: {}", mvec4d_u_two_decimals);
-        fmt::println("   MVec4d_U scientific: {}", mvec4d_u_scientific);
-        fmt::println("   MVec4d_U contextual: {}", mvec4d_u_contextual);
     }
 
     TEST_CASE("G<3,0,0>: transwedge and regressive transwedge products")

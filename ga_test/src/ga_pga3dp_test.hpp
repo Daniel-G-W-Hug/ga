@@ -431,13 +431,13 @@ TEST_SUITE("PGA 3DP Tests")
         // check inverses - pseudoscalar
         // due to the degenerate metric there is no inverse of the pseudoscalar
 
-        // check inverses - even grade multivector
+        // check inverses - even-grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
         CHECK(abs(to_val(bulk_nrm(gr0(mve1 * inv(mve1)))) - 1) < eps);
         CHECK(abs(to_val(bulk_nrm(gr2(mve1 * inv(mve1)))) - 0) < eps);
         CHECK(abs(to_val(bulk_nrm(gr4(mve1 * inv(mve1))))) < eps);
 
-        // check inverses - odd grade multivector
+        // check inverses - odd-grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
         CHECK(abs(to_val(bulk_nrm(gr0(mvu1 * inv(mvu1)))) - 1) < eps);
         CHECK(abs(to_val(bulk_nrm(gr2(mvu1 * inv(mvu1)))) - 0) < eps);
@@ -540,17 +540,17 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(l_bulk_dual(ps) == I_3dp * rev(ps));
 
         // equivalence to the regressive geometric product
-        CHECK(r_weight_dual(s) == rgpr(rrev(s), One_3dp));
-        CHECK(r_weight_dual(v) == rgpr(rrev(v), One_3dp));
-        CHECK(r_weight_dual(B) == rgpr(rrev(B), One_3dp));
-        CHECK(r_weight_dual(t) == rgpr(rrev(t), One_3dp));
-        CHECK(r_weight_dual(ps) == rgpr(rrev(ps), One_3dp));
+        CHECK(r_weight_dual(s) == rgpr(rrev(s), one_3dp));
+        CHECK(r_weight_dual(v) == rgpr(rrev(v), one_3dp));
+        CHECK(r_weight_dual(B) == rgpr(rrev(B), one_3dp));
+        CHECK(r_weight_dual(t) == rgpr(rrev(t), one_3dp));
+        CHECK(r_weight_dual(ps) == rgpr(rrev(ps), one_3dp));
         //
-        CHECK(l_weight_dual(s) == rgpr(One_3dp, rrev(s)));
-        CHECK(l_weight_dual(v) == rgpr(One_3dp, rrev(v)));
-        CHECK(l_weight_dual(B) == rgpr(One_3dp, rrev(B)));
-        CHECK(l_weight_dual(t) == rgpr(One_3dp, rrev(t)));
-        CHECK(l_weight_dual(ps) == rgpr(One_3dp, rrev(ps)));
+        CHECK(l_weight_dual(s) == rgpr(one_3dp, rrev(s)));
+        CHECK(l_weight_dual(v) == rgpr(one_3dp, rrev(v)));
+        CHECK(l_weight_dual(B) == rgpr(one_3dp, rrev(B)));
+        CHECK(l_weight_dual(t) == rgpr(one_3dp, rrev(t)));
+        CHECK(l_weight_dual(ps) == rgpr(one_3dp, rrev(ps)));
     }
 
     TEST_CASE("Vec3dp: operations - angle I")
@@ -1439,7 +1439,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto mv5c = mvec3dp_e{B};
         auto mv5d = mvec3dp_e{ps};
         auto mv5e = mvec3dp_e{s, B, ps};
-        auto mv5f{mv5e};           // cp assign to even grade
+        auto mv5f{mv5e};           // cp assign to even-grade
         auto mv5g = mvec3dp{mv5e}; // assign to mv
 
         auto mv5h = mvec3dp_e{s, B};
@@ -1450,7 +1450,7 @@ TEST_SUITE("PGA 3DP Tests")
         auto mv6b = mvec3dp_u{v};
         auto mv6c = mvec3dp_u{t};
         auto mv6d = mvec3dp_u{v, t};
-        auto mv6e{mv6d};           // cp assign to odd grade
+        auto mv6e{mv6d};           // cp assign to odd-grade
         auto mv6f = mvec3dp{mv6d}; // assign to mv
 
         auto mv7 = mvec3dp{s, v, B, t, ps};
@@ -1691,6 +1691,56 @@ TEST_SUITE("PGA 3DP Tests")
         CHECK(s * t == t * s);    // gpr between scalars equivalent to scalar mult.
         CHECK(s * v1 == v1 * s);  // gpr between scalar and vector
         CHECK(s * v1 == sd * v1); // gpr between scalar and vector
+    }
+
+    TEST_CASE("MVec3dp: one_3dp as geometric-product identity")
+    {
+        fmt::println("MVec3dp: one_3dp as geometric-product identity");
+
+        auto v = vec3dp{1.0, 2.0, 1.0, 1.0};
+        auto B = bivec3dp{-4.0, 2.0, 1.0, 1.0, -1.0, 2.0};
+        auto t = trivec3dp{1.0, -2.0, 3.0, 1.0};
+        auto ps = pscalar3dp{-3.0};
+        auto mv = mvec3dp{scalar3dp{4.0}, v, B, t, ps};
+        auto mv_e = mvec3dp_e{scalar3dp{4.0}, B, ps};
+
+        // scalar one_3dp is the geometric-product unit
+        CHECK(one_3dp * v == v);
+        CHECK(v * one_3dp == v);
+
+        // one_3dp_mv is the unit of the full geometric product
+        CHECK(one_3dp_mv * mv == mv);
+        CHECK(mv * one_3dp_mv == mv);
+
+        // one_3dp_mv_e is the unit of the even-grade geometric product
+        CHECK(one_3dp_mv_e * mv_e == mv_e);
+        CHECK(mv_e * one_3dp_mv_e == mv_e);
+    }
+
+    TEST_CASE("MVec3dp: I_3dp as regressive-product identity")
+    {
+        fmt::println("MVec3dp: I_3dp as regressive-product identity");
+
+        // dual to one_3dp being the gpr unit: the pseudoscalar I_3dp is the
+        // unit of the regressive geometric product rgpr()
+        auto v = vec3dp{1.0, 2.0, 1.0, 1.0};
+        auto B = bivec3dp{-4.0, 2.0, 1.0, 1.0, -1.0, 2.0};
+        auto t = trivec3dp{1.0, -2.0, 3.0, 1.0};
+        auto ps = pscalar3dp{-3.0};
+        auto mv = mvec3dp{scalar3dp{4.0}, v, B, t, ps};
+        auto mv_e = mvec3dp_e{scalar3dp{4.0}, B, ps};
+
+        // pseudoscalar I_3dp is the regressive-product unit
+        CHECK(rgpr(I_3dp, v) == v);
+        CHECK(rgpr(v, I_3dp) == v);
+
+        // I_3dp_mv is the unit of the full regressive geometric product
+        CHECK(rgpr(I_3dp_mv, mv) == mv);
+        CHECK(rgpr(mv, I_3dp_mv) == mv);
+
+        // I_3dp_mv_e is the unit of the even-grade regressive geometric product
+        CHECK(rgpr(I_3dp_mv_e, mv_e) == mv_e);
+        CHECK(rgpr(mv_e, I_3dp_mv_e) == mv_e);
     }
 
     TEST_CASE("MVec3dp: geometric product - combinatorial tests")
@@ -2545,7 +2595,7 @@ TEST_SUITE("PGA 3DP Tests")
 
             CHECK(unitize(prr) == unitize(pm));
 
-            // TODO: add inverse inv() for an even grade multivector
+            // TODO: add inverse inv() for an even-grade multivector
             //       see paper Hitzer et.al.
 
             // fmt::println("");
@@ -2991,7 +3041,7 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("wdg(v, r_cmpl(v)) = {}", wdg(v, r_cmpl(v)));
         fmt::println("");
 
-        // following checks are only valid for blases, not for multivectors
+        // following checks are only valid for blades, not for multivectors
         CHECK(wdg(s, r_cmpl(s)) == geom_nrm_sq(s) * I_3dp);
         CHECK(wdg(v, r_cmpl(v)) == geom_nrm_sq(v) * I_3dp);
         CHECK(wdg(B, r_cmpl(B)) == geom_nrm_sq(B) * I_3dp);
@@ -4259,6 +4309,71 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("");
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // transcription gate: bulk/weight dual == bulk/weight metric * complement
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<3,0,1>: dual == metric * complement (transcription gate)")
+    {
+        fmt::println("G<3,0,1>: dual == metric * complement (transcription gate)");
+
+        // The dual is "complement after multiplication with the (extended) metric".
+        // For the degenerate PGA metric this splits into bulk and weight parts, each
+        // with a left and right variant:
+        //   l_bulk_dual(e)   = bulk_nrm_sq(e)   * l_cmpl(e)
+        //   r_bulk_dual(e)   = bulk_nrm_sq(e)   * r_cmpl(e)
+        //   l_weight_dual(e) = weight_nrm_sq(e) * l_cmpl(e)
+        //   r_weight_dual(e) = weight_nrm_sq(e) * r_cmpl(e)
+        // For a unit basis blade these must hold element-wise -- a direct guard
+        // against sign-transcription errors when the complement/dual tables are
+        // hand-coded from ga_prdxpr_rule_generator output. (bulk_dual is identically
+        // 0 on the pseudoscalar and weight_dual on the scalar, so those overloads
+        // are intentionally absent and not exercised.)
+        auto bulk_gate = [](auto const& e) {
+            CHECK(l_bulk_dual(e) == bulk_nrm_sq(e) * l_cmpl(e));
+            CHECK(r_bulk_dual(e) == bulk_nrm_sq(e) * r_cmpl(e));
+        };
+        auto weight_gate = [](auto const& e) {
+            CHECK(l_weight_dual(e) == weight_nrm_sq(e) * l_cmpl(e));
+            CHECK(r_weight_dual(e) == weight_nrm_sq(e) * r_cmpl(e));
+        };
+
+        // bulk_dual: scalar, vectors, bivectors, trivectors
+        bulk_gate(one_3dp);
+        bulk_gate(e1_3dp);
+        bulk_gate(e2_3dp);
+        bulk_gate(e3_3dp);
+        bulk_gate(e4_3dp);
+        bulk_gate(e41_3dp);
+        bulk_gate(e42_3dp);
+        bulk_gate(e43_3dp);
+        bulk_gate(e23_3dp);
+        bulk_gate(e31_3dp);
+        bulk_gate(e12_3dp);
+        bulk_gate(e423_3dp);
+        bulk_gate(e431_3dp);
+        bulk_gate(e412_3dp);
+        bulk_gate(e321_3dp);
+        // weight_dual: vectors, bivectors, trivectors, pseudoscalar
+        weight_gate(e1_3dp);
+        weight_gate(e2_3dp);
+        weight_gate(e3_3dp);
+        weight_gate(e4_3dp);
+        weight_gate(e41_3dp);
+        weight_gate(e42_3dp);
+        weight_gate(e43_3dp);
+        weight_gate(e23_3dp);
+        weight_gate(e31_3dp);
+        weight_gate(e12_3dp);
+        weight_gate(e423_3dp);
+        weight_gate(e431_3dp);
+        weight_gate(e412_3dp);
+        weight_gate(e321_3dp);
+        weight_gate(I_3dp);
+
+        fmt::println("bulk/weight dual == bulk/weight metric * complement verified");
+    }
+
     TEST_CASE("G<3,0,1>: axis definitions")
     {
         fmt::println("G<3,0,1>: axis definitions");
@@ -4817,6 +4932,59 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("v2 ⟇ v2 = {}, v2 ⟇ rinv(v2) = {}", rgpr(v2, v2),
                      rgpr(v2, v2 / (-v2.w * v2.w)));
         fmt::println("");
+    }
+
+    TEST_CASE("MVec3dp: kinematics & dynamics dual lines (join, meet)")
+    {
+        fmt::println("MVec3dp: kinematics & dynamics dual lines (join, meet)");
+
+        // The x-axis as bivector can either be created from point and direction and
+        // or from intersecting planes, resulting in the same line (=the same bivector)
+        // It creates an "around line" with only a weight and no bulk component.
+        // bulk: translational information
+        // weight: rotational information
+        CHECK(e41_3dp == x_axis_3dp);
+        CHECK(wdg(O_3dp, e1_3dp) == x_axis_3dp);
+        CHECK(rwdg(e412_3dp, e431_3dp) == x_axis_3dp);
+        CHECK(bulk_nrm_sq(x_axis_3dp) == 0.0);   // no translation
+        CHECK(weight_nrm_sq(x_axis_3dp) != 0.0); // just rotation
+        fmt::println("");
+
+        // This delivers a rotation.
+        // (since the x_axis_3dp is a non-ideal line resulting in an "around axis")
+        auto arg1 = rgpr(scalar3dp(0.0), x_axis_3dp);
+        auto arg2 = rgpr(0.5 * deg2rad(15) * pscalar3dp(1.0), x_axis_3dp);
+        fmt::println("rotational case:");
+        fmt::println("arg1 = {}", arg1);
+        fmt::println("arg2 = {}", arg2);
+        fmt::println("exp(arg1 + arg2) = {}", exp(arg1 + arg2));
+        fmt::println("");
+        CHECK(exp(arg1 + arg2) == get_motor(x_axis_3dp, deg2rad(15)));
+
+        // Now the corresponding ideal line at infinity:
+        // (received from weight dualization)
+        CHECK(-e23_3dp == r_weight_dual(x_axis_3dp));
+        CHECK(bulk_nrm_sq(r_weight_dual(x_axis_3dp)) != 0.0);   // just translation
+        CHECK(weight_nrm_sq(r_weight_dual(x_axis_3dp)) == 0.0); // no rotation
+
+
+        // This delivers a translation.
+        // (since -r_weight_dual(x_axis_3dp) is an ideal line resulting in an "along
+        // line"), i.e. the weight dual delivers the translation direction (specifically
+        // its negative normal direction) (right and left weight dual deliver identical
+        // results incl. sign)
+        double dist = 0.5;
+        CHECK(exp(-0.5 * r_weight_dual(x_axis_3dp) * dist) == get_motor(e1_3dp * dist));
+        arg1 = rgpr(scalar3dp(0.5 * dist), x_axis_3dp);
+        arg2 = rgpr(pscalar3dp(0.0), x_axis_3dp);
+        fmt::println("translational case:");
+        fmt::println("0.5 * dist * r_weight_dual(x_axis_3dp) = {}",
+                     0.5 * dist * r_weight_dual(x_axis_3dp));
+        fmt::println("arg1 = {}", arg1);
+        fmt::println("arg2 = {}", arg2);
+        fmt::println("exp(arg1 + arg2) = {}", exp(arg1 + arg2));
+        fmt::println("");
+        CHECK(exp(arg1 + arg2) == get_motor(e1_3dp * dist));
     }
 
 

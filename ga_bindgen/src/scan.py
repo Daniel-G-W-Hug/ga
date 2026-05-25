@@ -5,6 +5,7 @@ Usage:  python3 ga_bindgen/src/scan.py [--out PATH]
 Produces a structured manifest matching `model.Manifest`. Symbols outside
 `ga/` (system headers, fmt, etc.) are filtered out.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -20,7 +21,7 @@ import clang.cindex as cx
 sys.path.insert(0, str(Path(__file__).parent))
 from clang_setup import GA_DIR, PROJECT_ROOT, compile_args, in_ga_tree
 
-_OUTER_NS_RE = re.compile(r'^hd::ga::(?=[A-Z_])')
+_OUTER_NS_RE = re.compile(r"^hd::ga::(?=[A-Z_])")
 
 
 def _rel_source(file) -> str:
@@ -49,16 +50,27 @@ def _norm_canonical(spelling: str) -> str:
     Strip the leading 'hd::ga::' only when it immediately precedes an
     uppercase letter — i.e. a PascalCase template name, not a sub-namespace.
     """
-    return _OUTER_NS_RE.sub('', spelling)
-from model import (SCHEMA_VERSION, Constant, Constructor, Field, FunctionGroup,
-                   Manifest, Overload, TypeAlias)
+    return _OUTER_NS_RE.sub("", spelling)
+
+
+from model import (
+    SCHEMA_VERSION,
+    Constant,
+    Constructor,
+    Field,
+    FunctionGroup,
+    Manifest,
+    Overload,
+    TypeAlias,
+)
 
 # Headers we parse to build the unified manifest. ga_pga.hpp pulls in the
-# pga side; ga_ega.hpp pulls in the ega side. We parse both and merge.
-SOURCE_HEADERS = ["ga/ga_ega.hpp", "ga/ga_pga.hpp"]
+# pga side; ga_ega.hpp pulls in the ega side. ga_sta.hpp pulls in the sta side.
+# We parse all and merge.
+SOURCE_HEADERS = ["ga/ga_ega.hpp", "ga/ga_pga.hpp", "ga/ga_sta.hpp"]
 
 # Namespaces we emit bindings for. `hd::ga::detail` is internal — excluded.
-TARGET_NAMESPACES = {"hd::ga", "hd::ga::ega", "hd::ga::pga"}
+TARGET_NAMESPACES = {"hd::ga", "hd::ga::ega", "hd::ga::pga", "hd::ga::sta"}
 
 
 def fq_namespace(cursor: cx.Cursor) -> str:
@@ -74,6 +86,7 @@ def fq_namespace(cursor: cx.Cursor) -> str:
 def build_class_template_index(tu: cx.TranslationUnit) -> dict[str, cx.Cursor]:
     """Index every CLASS_TEMPLATE in ga/ by its short name (e.g. "Vec3_t")."""
     idx: dict[str, cx.Cursor] = {}
+
     def walk(c: cx.Cursor):
         if c.location.file and not in_ga_tree(c.location):
             if c.kind != cx.CursorKind.NAMESPACE:
@@ -82,6 +95,7 @@ def build_class_template_index(tu: cx.TranslationUnit) -> dict[str, cx.Cursor]:
             idx.setdefault(c.spelling, c)
         for child in c.get_children():
             walk(child)
+
     walk(tu.cursor)
     return idx
 
@@ -103,10 +117,12 @@ def extract_tag(type_spelling: str) -> str | None:
     return m.group(1).strip().rsplit("::", 1)[-1]
 
 
-def build_partial_spec_index(tu: cx.TranslationUnit
-                             ) -> dict[tuple[str, str], cx.Cursor]:
+def build_partial_spec_index(
+    tu: cx.TranslationUnit,
+) -> dict[tuple[str, str], cx.Cursor]:
     """Index every CLASS_TEMPLATE_PARTIAL_SPECIALIZATION by (primary_name, tag)."""
     idx: dict[tuple[str, str], cx.Cursor] = {}
+
     def walk(c: cx.Cursor):
         if c.location.file and not in_ga_tree(c.location):
             if c.kind != cx.CursorKind.NAMESPACE:
@@ -117,6 +133,7 @@ def build_partial_spec_index(tu: cx.TranslationUnit
                 idx.setdefault((c.spelling, tag), c)
         for child in c.get_children():
             walk(child)
+
     walk(tu.cursor)
     return idx
 
@@ -127,13 +144,13 @@ def template_name(canonical_spelling: str) -> str:
     >>> template_name("hd::ga::Vec3_t<double, hd::ga::vec3d_tag>")
     'Vec3_t'
     """
-    head = canonical_spelling.split("<", 1)[0]      # "hd::ga::Vec3_t"
-    return head.rsplit("::", 1)[-1]                  # "Vec3_t"
+    head = canonical_spelling.split("<", 1)[0]  # "hd::ga::Vec3_t"
+    return head.rsplit("::", 1)[-1]  # "Vec3_t"
 
 
-def _collect_ctors_and_fields(template_or_spec: cx.Cursor,
-                              fields_out: list[Field],
-                              ctors_out: list[Constructor]) -> None:
+def _collect_ctors_and_fields(
+    template_or_spec: cx.Cursor, fields_out: list[Field], ctors_out: list[Constructor]
+) -> None:
     """Append public field decls and constructor signatures from a class
     template / partial specialization cursor."""
     for child in template_or_spec.get_children():
@@ -142,8 +159,11 @@ def _collect_ctors_and_fields(template_or_spec: cx.Cursor,
         if child.kind == cx.CursorKind.FIELD_DECL:
             fields_out.append(Field(name=child.spelling, type=child.type.spelling))
         elif child.kind == cx.CursorKind.CONSTRUCTOR:
-            params = [p.type.spelling for p in child.get_children()
-                      if p.kind == cx.CursorKind.PARM_DECL]
+            params = [
+                p.type.spelling
+                for p in child.get_children()
+                if p.kind == cx.CursorKind.PARM_DECL
+            ]
             ctors_out.append(Constructor(param_types=params))
 
 
@@ -160,9 +180,11 @@ def _detect_base_class(template_cursor: cx.Cursor) -> str | None:
     return None
 
 
-def extract_type(typedef_cursor: cx.Cursor,
-                 template_index: dict[str, cx.Cursor],
-                 partial_spec_index: dict[tuple[str, str], cx.Cursor]) -> TypeAlias:
+def extract_type(
+    typedef_cursor: cx.Cursor,
+    template_index: dict[str, cx.Cursor],
+    partial_spec_index: dict[tuple[str, str], cx.Cursor],
+) -> TypeAlias:
     ns = fq_namespace(typedef_cursor)
     underlying = typedef_cursor.underlying_typedef_type.spelling
     canonical = typedef_cursor.underlying_typedef_type.get_canonical().spelling
@@ -213,30 +235,44 @@ def extract_function(cursor: cx.Cursor) -> tuple[str, str, Overload]:
     ns = fq_namespace(cursor)
     name = cursor.spelling
     return_type = cursor.result_type.spelling
-    param_types = [p.type.spelling for p in cursor.get_children()
-                   if p.kind == cx.CursorKind.PARM_DECL]
+    param_types = [
+        p.type.spelling
+        for p in cursor.get_children()
+        if p.kind == cx.CursorKind.PARM_DECL
+    ]
     src = cursor.location.file
-    return ns, name, Overload(
-        return_type=return_type,
-        param_types=param_types,
-        source_file=_rel_source(src),
-        source_line=cursor.location.line,
+    return (
+        ns,
+        name,
+        Overload(
+            return_type=return_type,
+            param_types=param_types,
+            source_file=_rel_source(src),
+            source_line=cursor.location.line,
+        ),
     )
 
 
 def parse_header(header_path: Path, args: list[str]):
     idx = cx.Index.create()
-    tu = idx.parse(str(header_path), args=args,
-                   options=cx.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+    tu = idx.parse(
+        str(header_path),
+        args=args,
+        options=cx.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD,
+    )
     errors = [d for d in tu.diagnostics if d.severity >= cx.Diagnostic.Error]
     return tu, errors
 
 
-def collect(tu: cx.TranslationUnit) -> tuple[list[TypeAlias],
-                                             dict[tuple[str, str], list[Overload]],
-                                             dict[tuple[str, str], list[Overload]],
-                                             set[str],
-                                             list[Constant]]:
+def collect(
+    tu: cx.TranslationUnit,
+) -> tuple[
+    list[TypeAlias],
+    dict[tuple[str, str], list[Overload]],
+    dict[tuple[str, str], list[Overload]],
+    set[str],
+    list[Constant],
+]:
     """Walk the TU and classify cursors into types / functions / operators /
     namespaces / constants."""
     types: dict[tuple[str, str], TypeAlias] = {}
@@ -267,7 +303,9 @@ def collect(tu: cx.TranslationUnit) -> tuple[list[TypeAlias],
             if ns in TARGET_NAMESPACES:
                 key = (ns, cursor.spelling)
                 if key not in types:
-                    types[key] = extract_type(cursor, template_index, partial_spec_index)
+                    types[key] = extract_type(
+                        cursor, template_index, partial_spec_index
+                    )
         elif k == cx.CursorKind.VAR_DECL and in_ga_tree(cursor.location):
             # Only namespace-scope constants — not locals inside functions.
             # libclang reports VAR_DECL for both, but the semantic parent
@@ -293,8 +331,14 @@ def collect(tu: cx.TranslationUnit) -> tuple[list[TypeAlias],
                 ns, name, ov = extract_function(cursor)
                 if ns in TARGET_NAMESPACES:
                     # Dedup: same overload may appear when both headers parsed.
-                    dedup_key = (ns, name, ov.return_type, tuple(ov.param_types),
-                                 ov.source_file, ov.source_line)
+                    dedup_key = (
+                        ns,
+                        name,
+                        ov.return_type,
+                        tuple(ov.param_types),
+                        ov.source_file,
+                        ov.source_line,
+                    )
                     if dedup_key in seen_overload_keys:
                         return
                     seen_overload_keys.add(dedup_key)
@@ -308,21 +352,32 @@ def collect(tu: cx.TranslationUnit) -> tuple[list[TypeAlias],
             walk(child)
 
     walk(tu.cursor)
-    return list(types.values()), functions, operators, namespaces, list(constants_index.values())
+    return (
+        list(types.values()),
+        functions,
+        operators,
+        namespaces,
+        list(constants_index.values()),
+    )
 
 
 def to_groups(d: dict[tuple[str, str], list[Overload]]) -> list[FunctionGroup]:
     return sorted(
-        [FunctionGroup(namespace=ns, name=name, overloads=ovs)
-         for (ns, name), ovs in d.items()],
+        [
+            FunctionGroup(namespace=ns, name=name, overloads=ovs)
+            for (ns, name), ovs in d.items()
+        ],
         key=lambda g: (g.namespace, g.name),
     )
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=str(PROJECT_ROOT / "ga_bindgen" / "manifest.json"),
-                    help="Path to write manifest.json")
+    ap.add_argument(
+        "--out",
+        default=str(PROJECT_ROOT / "ga_bindgen" / "manifest.json"),
+        help="Path to write manifest.json",
+    )
     args_ns = ap.parse_args()
 
     args = compile_args()
@@ -372,10 +427,14 @@ def main() -> int:
 
     print(f"\nManifest written to: {out_path}")
     print(f"  types:      {len(manifest.types)}")
-    print(f"  functions:  {len(manifest.functions)} unique names "
-          f"({sum(len(g.overloads) for g in manifest.functions)} overloads)")
-    print(f"  operators:  {len(manifest.operators)} unique names "
-          f"({sum(len(g.overloads) for g in manifest.operators)} overloads)")
+    print(
+        f"  functions:  {len(manifest.functions)} unique names "
+        f"({sum(len(g.overloads) for g in manifest.functions)} overloads)"
+    )
+    print(
+        f"  operators:  {len(manifest.operators)} unique names "
+        f"({sum(len(g.overloads) for g in manifest.operators)} overloads)"
+    )
     print(f"  constants:  {len(manifest.constants)}")
     return 0
 

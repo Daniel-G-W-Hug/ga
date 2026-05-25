@@ -20,11 +20,13 @@
 
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
+#include "ga/ga_sta.hpp"
 
 namespace nb = nanobind;
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::sta;
 
 void register_constants_pga(nb::module_& m) {
     m.attr("H_2dp") = nb::cast(hd::ga::pga::H_2dp);
@@ -37,12 +39,6 @@ void register_constants_pga(nb::module_& m) {
     m.attr("I_3dp_mv_e") = nb::cast(hd::ga::pga::I_3dp_mv_e);
     m.attr("O_2dp") = nb::cast(hd::ga::pga::O_2dp);
     m.attr("O_3dp") = nb::cast(hd::ga::pga::O_3dp);
-    m.attr("One_2dp") = nb::cast(hd::ga::pga::One_2dp);
-    m.attr("One_2dp_mv") = nb::cast(hd::ga::pga::One_2dp_mv);
-    m.attr("One_2dp_mv_e") = nb::cast(hd::ga::pga::One_2dp_mv_e);
-    m.attr("One_3dp") = nb::cast(hd::ga::pga::One_3dp);
-    m.attr("One_3dp_mv") = nb::cast(hd::ga::pga::One_3dp_mv);
-    m.attr("One_3dp_mv_e") = nb::cast(hd::ga::pga::One_3dp_mv_e);
     m.attr("e1234_3dp") = nb::cast(hd::ga::pga::e1234_3dp);
     m.attr("e12_2dp") = nb::cast(hd::ga::pga::e12_2dp);
     m.attr("e12_2dp_mv") = nb::cast(hd::ga::pga::e12_2dp_mv);
@@ -81,16 +77,25 @@ void register_constants_pga(nb::module_& m) {
     m.attr("e412_3dp_mv") = nb::cast(hd::ga::pga::e412_3dp_mv);
     m.attr("e41_3dp") = nb::cast(hd::ga::pga::e41_3dp);
     m.attr("e41_3dp_mv") = nb::cast(hd::ga::pga::e41_3dp_mv);
+    m.attr("e41_3dp_mv_e") = nb::cast(hd::ga::pga::e41_3dp_mv_e);
     m.attr("e423_3dp") = nb::cast(hd::ga::pga::e423_3dp);
     m.attr("e423_3dp_mv") = nb::cast(hd::ga::pga::e423_3dp_mv);
     m.attr("e42_3dp") = nb::cast(hd::ga::pga::e42_3dp);
     m.attr("e42_3dp_mv") = nb::cast(hd::ga::pga::e42_3dp_mv);
+    m.attr("e42_3dp_mv_e") = nb::cast(hd::ga::pga::e42_3dp_mv_e);
     m.attr("e431_3dp") = nb::cast(hd::ga::pga::e431_3dp);
     m.attr("e431_3dp_mv") = nb::cast(hd::ga::pga::e431_3dp_mv);
     m.attr("e43_3dp") = nb::cast(hd::ga::pga::e43_3dp);
     m.attr("e43_3dp_mv") = nb::cast(hd::ga::pga::e43_3dp_mv);
+    m.attr("e43_3dp_mv_e") = nb::cast(hd::ga::pga::e43_3dp_mv_e);
     m.attr("e4_3dp") = nb::cast(hd::ga::pga::e4_3dp);
     m.attr("e4_3dp_mv") = nb::cast(hd::ga::pga::e4_3dp_mv);
+    m.attr("one_2dp") = nb::cast(hd::ga::pga::one_2dp);
+    m.attr("one_2dp_mv") = nb::cast(hd::ga::pga::one_2dp_mv);
+    m.attr("one_2dp_mv_e") = nb::cast(hd::ga::pga::one_2dp_mv_e);
+    m.attr("one_3dp") = nb::cast(hd::ga::pga::one_3dp);
+    m.attr("one_3dp_mv") = nb::cast(hd::ga::pga::one_3dp_mv);
+    m.attr("one_3dp_mv_e") = nb::cast(hd::ga::pga::one_3dp_mv_e);
     m.attr("x_axis_2dp") = nb::cast(hd::ga::pga::x_axis_2dp);
     m.attr("x_axis_3dp") = nb::cast(hd::ga::pga::x_axis_3dp);
     m.attr("x_dir_2dp") = nb::cast(hd::ga::pga::x_dir_2dp);

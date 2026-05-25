@@ -4,6 +4,7 @@ set(EXEC_NAME1 ga_ega_test)
 set(EXEC_NAME2 ga_pga_test)
 set(EXEC_NAME3 ga_appl2dp_test)
 set(EXEC_NAME4 ga_appl3dp_test)
+set(EXEC_NAME5 ga_sta_test)
 set(EXPORT_NAME ga_export_python_cases)
 # set(EXEC_NAME5 ga_sta_test)  # Commented out - STA not yet implemented
 
@@ -19,20 +20,20 @@ set(APPL2DP_FILES
 set(APPL3DP_FILES
     src/ga_appl3dp_test.cpp)
 
-# set(STA_FILES
-#     src/ga_sta_test.cpp)  # Commented out - STA not yet implemented
+set(STA_FILES
+    src/ga_sta_test.cpp)
 
 add_executable(${EXEC_NAME1} ${EGA_FILES})      #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME2} ${PGA_FILES})      #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME3} ${APPL2DP_FILES})  #dep: doctest, fmt, ga
 add_executable(${EXEC_NAME4} ${APPL3DP_FILES})  #dep: doctest, fmt, ga
-# add_executable(${EXEC_NAME5} ${STA_FILES})    #dep: doctest, fmt, ga  # Commented out - STA not yet implemented
+add_executable(${EXEC_NAME5} ${STA_FILES})      #dep: doctest, fmt, ga
 
 target_include_directories(${EXEC_NAME1} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME2} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME3} PRIVATE ${CMAKE_SOURCE_DIR})
 target_include_directories(${EXEC_NAME4} PRIVATE ${CMAKE_SOURCE_DIR})
-# target_include_directories(${EXEC_NAME5} PRIVATE ${CMAKE_SOURCE_DIR})  # Commented out - STA not yet implemented
+target_include_directories(${EXEC_NAME5} PRIVATE ${CMAKE_SOURCE_DIR})
 
 # Dependencies are handled by the main CMakeLists.txt dependency system
 # Just link against the targets that should be available
@@ -41,6 +42,7 @@ target_link_libraries(${EXEC_NAME1} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME2} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME3} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME4} PRIVATE doctest::doctest ga)
+target_link_libraries(${EXEC_NAME5} PRIVATE doctest::doctest ga)
 
 # Suppress -Wc2y-extensions triggered by __COUNTER__ in doctest macros (third-party header)
 foreach(target ${EXEC_NAME1} ${EXEC_NAME2} ${EXEC_NAME3} ${EXEC_NAME4})
@@ -68,7 +70,44 @@ link_fmt_to_target(${EXEC_NAME1})
 link_fmt_to_target(${EXEC_NAME2})
 link_fmt_to_target(${EXEC_NAME3})
 link_fmt_to_target(${EXEC_NAME4})
-# link_fmt_to_target(${EXEC_NAME5})  # Commented out - STA not yet implemented
+link_fmt_to_target(${EXEC_NAME5})
+
+# ----------------------------------------------------------------------------
+# Standalone benchmarks (utilities/).
+#
+# These are NOT part of any test run --- they are built and run on demand only.
+# Each is a plain executable (ga + fmt, no doctest). Build a single one with e.g.
+#     cmake --build . --target ga_sta_bench_transform
+# then run it directly, or use the convenience `run_<target>` custom target which
+# builds AND runs it.
+#
+# Benchmarks are forced to -O3/NDEBUG (MSVC: /O2) regardless of CMAKE_BUILD_TYPE,
+# because the relative cost of the measured variants depends strongly on the
+# optimization level and a Debug build would be meaningless.
+# ----------------------------------------------------------------------------
+set(BENCH_TRANSFORM ga_sta_bench_transform)
+add_executable(${BENCH_TRANSFORM} utilities/bench_sta4ds_transform.cpp)
+target_include_directories(${BENCH_TRANSFORM} PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(${BENCH_TRANSFORM} PRIVATE ga)
+link_fmt_to_target(${BENCH_TRANSFORM})
+# exclude from the default "build all" so a normal build/test cycle never builds it
+set_target_properties(${BENCH_TRANSFORM} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+if(MSVC)
+    target_compile_options(${BENCH_TRANSFORM} PRIVATE /O2)
+    target_compile_definitions(${BENCH_TRANSFORM} PRIVATE NDEBUG)
+else()
+    target_compile_options(${BENCH_TRANSFORM} PRIVATE -O3)
+    target_compile_definitions(${BENCH_TRANSFORM} PRIVATE NDEBUG)
+endif()
+
+# Convenience: build AND run the benchmark in one step.
+add_custom_target(run_${BENCH_TRANSFORM}
+    COMMAND ${BENCH_TRANSFORM}
+    DEPENDS ${BENCH_TRANSFORM}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "Running sta4ds transform benchmark"
+    VERBATIM
+)
 
 # ----------------------------------------------------------------------------
 # Cross-check JSON exporter for the Python wrapper.
@@ -87,16 +126,21 @@ link_fmt_to_target(${EXEC_NAME4})
 # uses only ga + fmt.
 # ----------------------------------------------------------------------------
 if(_GA_BUILD_PYTHON)
+    # Committed JSON snapshot consumed by the Python cross-check test suite.
+    set(_GA_PY_CASES_JSON
+        "${CMAKE_SOURCE_DIR}/ga_py/tests/data/ga_test_cases.json")
+
     add_executable(${EXPORT_NAME} src/export_python_cases.cpp)
     target_include_directories(${EXPORT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(${EXPORT_NAME} PRIVATE ga)
     target_compile_options(${EXPORT_NAME} PRIVATE
         $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
+    # Bake in the absolute default output path so the exporter works
+    # regardless of the working directory it is launched from (e.g. when
+    # run as a target from an IDE). A command-line argument still overrides.
+    target_compile_definitions(${EXPORT_NAME} PRIVATE
+        _GA_PY_CASES_JSON_DEFAULT="${_GA_PY_CASES_JSON}")
     link_fmt_to_target(${EXPORT_NAME})
-
-    # Convenience: refresh the committed JSON snapshot in one step.
-    set(_GA_PY_CASES_JSON
-        "${CMAKE_SOURCE_DIR}/ga_py/tests/data/ga_test_cases.json")
     add_custom_target(regenerate_python_test_data
         COMMAND ${EXPORT_NAME} "${_GA_PY_CASES_JSON}"
         DEPENDS ${EXPORT_NAME}

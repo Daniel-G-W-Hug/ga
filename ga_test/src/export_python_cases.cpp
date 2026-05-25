@@ -23,6 +23,7 @@
 
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
+#include "ga/ga_sta.hpp"
 
 #include <cstdio>
 #include <fmt/format.h>
@@ -33,6 +34,7 @@
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::sta;
 
 namespace {
 
@@ -71,34 +73,24 @@ std::string emit_value(JsonValue const& v)
 
 [[maybe_unused]] JsonValue to_json(scalar2d v) { return {"scalar2d", {value_t(v)}}; }
 [[maybe_unused]] JsonValue to_json(scalar3d v) { return {"scalar3d", {value_t(v)}}; }
-[[maybe_unused]] JsonValue to_json(scalar4d v) { return {"scalar4d", {value_t(v)}}; }
 [[maybe_unused]] JsonValue to_json(pscalar2d v) { return {"pscalar2d", {value_t(v)}}; }
 [[maybe_unused]] JsonValue to_json(pscalar3d v) { return {"pscalar3d", {value_t(v)}}; }
-[[maybe_unused]] JsonValue to_json(pscalar4d v) { return {"pscalar4d", {value_t(v)}}; }
 
 [[maybe_unused]] JsonValue to_json(vec2d const& v) { return {"vec2d", {v.x, v.y}}; }
 [[maybe_unused]] JsonValue to_json(vec3d const& v) { return {"vec3d", {v.x, v.y, v.z}}; }
-[[maybe_unused]] JsonValue to_json(vec4d const& v)
-{
-    return {"vec4d", {v.x, v.y, v.z, v.w}};
-}
+
 [[maybe_unused]] JsonValue to_json(bivec3d const& B)
 {
     return {"bivec3d", {B.x, B.y, B.z}};
-}
-[[maybe_unused]] JsonValue to_json(bivec4d const& B)
-{
-    return {"bivec4d", {B.vx, B.vy, B.vz, B.mx, B.my, B.mz}};
-}
-[[maybe_unused]] JsonValue to_json(trivec4d const& t)
-{
-    return {"trivec4d", {t.x, t.y, t.z, t.w}};
 }
 
 [[maybe_unused]] JsonValue to_json(scalar2dp v) { return {"scalar2dp", {value_t(v)}}; }
 [[maybe_unused]] JsonValue to_json(scalar3dp v) { return {"scalar3dp", {value_t(v)}}; }
 [[maybe_unused]] JsonValue to_json(pscalar2dp v) { return {"pscalar2dp", {value_t(v)}}; }
 [[maybe_unused]] JsonValue to_json(pscalar3dp v) { return {"pscalar3dp", {value_t(v)}}; }
+
+[[maybe_unused]] JsonValue to_json(scalar4ds v) { return {"scalar4ds", {value_t(v)}}; }
+[[maybe_unused]] JsonValue to_json(pscalar4ds v) { return {"pscalar4ds", {value_t(v)}}; }
 
 [[maybe_unused]] JsonValue to_json(vec2dp const& v)
 {
@@ -108,6 +100,10 @@ std::string emit_value(JsonValue const& v)
 {
     return {"vec3dp", {v.x, v.y, v.z, v.w}};
 }
+[[maybe_unused]] JsonValue to_json(vec4ds const& v)
+{
+    return {"vec4ds", {v.x, v.y, v.z, v.w}};
+}
 [[maybe_unused]] JsonValue to_json(bivec2dp const& B)
 {
     return {"bivec2dp", {B.x, B.y, B.z}};
@@ -116,9 +112,17 @@ std::string emit_value(JsonValue const& v)
 {
     return {"bivec3dp", {B.vx, B.vy, B.vz, B.mx, B.my, B.mz}};
 }
+[[maybe_unused]] JsonValue to_json(bivec4ds const& B)
+{
+    return {"bivec4ds", {B.vx, B.vy, B.vz, B.mx, B.my, B.mz}};
+}
 [[maybe_unused]] JsonValue to_json(trivec3dp const& t)
 {
     return {"trivec3dp", {t.x, t.y, t.z, t.w}};
+}
+[[maybe_unused]] JsonValue to_json(trivec4ds const& t)
+{
+    return {"trivec4ds", {t.x, t.y, t.z, t.w}};
 }
 
 // Multivectors: emit c0..cN in component order.
@@ -168,6 +172,20 @@ std::string emit_value(JsonValue const& v)
 {
     return {"mvec3dp_u", {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7}};
 }
+[[maybe_unused]] JsonValue to_json(MVec4ds<value_t> const& M)
+{
+    return {"mvec4ds",
+            {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7, M.c8, M.c9, M.c10, M.c11,
+             M.c12, M.c13, M.c14, M.c15}};
+}
+[[maybe_unused]] JsonValue to_json(MVec4ds_E<value_t> const& M)
+{
+    return {"mvec4ds_e", {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7}};
+}
+[[maybe_unused]] JsonValue to_json(MVec4ds_U<value_t> const& M)
+{
+    return {"mvec4ds_u", {M.c0, M.c1, M.c2, M.c3, M.c4, M.c5, M.c6, M.c7}};
+}
 
 [[maybe_unused]] JsonValue to_json(DualNum2dp<value_t> const& d)
 {
@@ -177,6 +195,10 @@ std::string emit_value(JsonValue const& v)
 {
     return {"dualnum3dp", {d.c0, d.c1}};
 }
+[[maybe_unused]] JsonValue to_json(DualNum4ds<value_t> const& d)
+{
+    return {"dualnum4ds", {d.c0, d.c1}};
+}
 
 // --------------------------------------------------------------------------- //
 // Case collection
@@ -184,7 +206,7 @@ std::string emit_value(JsonValue const& v)
 
 struct Case {
     std::string id;
-    std::string submodule; // "ega" | "pga" | "top"
+    std::string submodule; // "ega" | "pga" | "sta"| "top"
     std::string op;
     std::vector<JsonValue> args;
     JsonValue expected;
@@ -405,6 +427,128 @@ void emit_pga_cases()
 }
 
 // --------------------------------------------------------------------------- //
+// STA cases (G(1,3,0) --- Space-Time Algebra, types *_4ds)
+// --------------------------------------------------------------------------- //
+// Metric is (-,-,-,+): for a vector nrm_sq = -x^2 - y^2 - z^2 + w^2, so a vector
+// is spacelike when nrm_sq < 0 and timelike when nrm_sq > 0 (w the time component).
+// STA is even-dimensional, so duals / complements split into l_/r_ variants
+// (no plain cmpl / dual), exactly as for pga3dp.
+
+void emit_sta_cases()
+{
+    // --- vec4ds basic algebra ---
+    {
+        vec4ds a{1.0, 2.0, 3.0, 4.0}, b{5.0, -6.0, 7.0, -8.0};
+        add("sta_vec4ds_dot", "sta", "dot", dot(a, b), a, b);
+        add("sta_vec4ds_wdg", "sta", "wdg", wdg(a, b), a, b);
+        add("sta_vec4ds_add", "sta", "+", a + b, a, b);
+        add("sta_vec4ds_sub", "sta", "-", a - b, a, b);
+        add("sta_vec4ds_neg", "sta", "neg", -a, a);
+        add("sta_vec4ds_nrm_sq", "sta", "nrm_sq", nrm_sq(a), a);
+        add("sta_vec4ds_rev", "sta", "rev", rev(a), a);
+        // geometric product of two vectors -> mvec4ds_e (scalar + bivector parts)
+        add("sta_vec4ds_gpr", "sta", "*", a * b, a, b);
+        // complement / dual of a vector -> trivec4ds (left and right variants differ)
+        add("sta_vec4ds_l_cmpl", "sta", "l_cmpl", l_cmpl(a), a);
+        add("sta_vec4ds_r_cmpl", "sta", "r_cmpl", r_cmpl(a), a);
+        add("sta_vec4ds_l_dual", "sta", "l_dual", l_dual(a), a);
+        add("sta_vec4ds_r_dual", "sta", "r_dual", r_dual(a), a);
+        // inverse of a non-null vector -> vec4ds (nrm_sq != 0; here spacelike)
+        vec4ds c{2.0, 6.0, -4.0, 1.0}; // nrm_sq = -55, invertible
+        add("sta_vec4ds_inv", "sta", "inv", inv(c), c);
+    }
+
+    // --- bivec4ds basic algebra ---
+    {
+        bivec4ds B1{1.0, -2.0, 3.0, -4.0, 5.0, -6.0};
+        bivec4ds B2{0.5, 1.5, -0.5, 2.0, -1.0, 0.5};
+        add("sta_bivec4ds_add", "sta", "+", B1 + B2, B1, B2);
+        add("sta_bivec4ds_sub", "sta", "-", B1 - B2, B1, B2);
+        add("sta_bivec4ds_neg", "sta", "neg", -B1, B1);
+        add("sta_bivec4ds_nrm_sq", "sta", "nrm_sq", nrm_sq(B1), B1);
+        add("sta_bivec4ds_rev", "sta", "rev", rev(B1), B1);
+        add("sta_bivec4ds_rrev", "sta", "rrev", rrev(B1), B1);
+        add("sta_bivec4ds_conj", "sta", "conj", conj(B1), B1);
+        // bivec * bivec -> mvec4ds_e (scalar + bivector + pseudoscalar)
+        add("sta_bivec4ds_gpr", "sta", "*", B1 * B2, B1, B2);
+        // complement of a bivector -> bivec4ds
+        add("sta_bivec4ds_l_cmpl", "sta", "l_cmpl", l_cmpl(B1), B1);
+        add("sta_bivec4ds_r_cmpl", "sta", "r_cmpl", r_cmpl(B1), B1);
+    }
+
+    // --- trivec4ds basic algebra ---
+    {
+        trivec4ds T{2.0, -1.0, 3.0, 4.0};
+        add("sta_trivec4ds_neg", "sta", "neg", -T, T);
+        add("sta_trivec4ds_nrm_sq", "sta", "nrm_sq", nrm_sq(T), T);
+        add("sta_trivec4ds_rev", "sta", "rev", rev(T), T);
+        // complement of a trivector -> vec4ds
+        add("sta_trivec4ds_l_cmpl", "sta", "l_cmpl", l_cmpl(T), T);
+        add("sta_trivec4ds_r_cmpl", "sta", "r_cmpl", r_cmpl(T), T);
+    }
+
+    // --- spacetime split of a vector relative to the standard observer g4 ---
+    {
+        vec4ds x{2.0, 3.0, 5.0, 7.0};
+        vec4ds u{0.0, 0.0, 0.0, 1.0}; // g4, unit timelike observer
+        add("sta_time_split", "sta", "time_split", time_split(x, u), x, u);
+        add("sta_space_split", "sta", "space_split", space_split(x, u), x, u);
+    }
+
+    // --- rotation (spatial) and boost (Lorentz) via the rotor sandwich ---
+    {
+        // rotate g1 by 90 deg in the g12 plane -> -g2  (cos90 g1 - sin90 g2)
+        bivec4ds g12{0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+        auto Rrot = get_rotor(g12, deg2rad(90.0));
+        vec4ds g1{1.0, 0.0, 0.0, 0.0};
+        add_case("sta_transform_rotate_g1_90deg", "sta", "transform",
+                 transform(g1, Rrot), 1e-9, g1, Rrot);
+
+        // boost the rest 4-velocity g4 by rapidity phi in the g14 plane
+        bivec4ds g14{1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        auto Rboost = get_boost(g14, 0.5);
+        vec4ds g4{0.0, 0.0, 0.0, 1.0};
+        add_case("sta_transform_boost_g4", "sta", "transform", transform(g4, Rboost),
+                 1e-9, g4, Rboost);
+
+        // sqrt(rotor) halves the angle/rapidity: sqrt(R(x)) == R(x/2).
+        // Use a generic rotor (boost composed with rotation) exercising all 8 coeffs.
+        auto Rgen = get_boost(g14, 0.5) * get_rotor(g12, 0.6);
+        add_case("sta_sqrt_rotor", "sta", "sqrt", sqrt(Rgen), 1e-9, Rgen);
+
+        // closed-form transform_opt (vec / bivec / trivec) -- must match transform()
+        vec4ds v{2.0, 3.0, 5.0, 7.0};
+        bivec4ds B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        trivec4ds t{1.0, 2.0, 3.0, 4.0};
+        add_case("sta_transform_opt_vec", "sta", "transform_opt", transform_opt(v, Rgen),
+                 1e-9, v, Rgen);
+        add_case("sta_transform_opt_bivec", "sta", "transform_opt",
+                 transform_opt(B, Rgen), 1e-9, B, Rgen);
+        add_case("sta_transform_opt_trivec", "sta", "transform_opt",
+                 transform_opt(t, Rgen), 1e-9, t, Rgen);
+    }
+
+    // --- projection / rejection / reflection (vector onto vector) ---
+    {
+        vec4ds v{2.0, 3.0, 5.0, 7.0};
+        vec4ds t{0.0, 0.0, 0.0, 1.0}; // non-null target (timelike)
+        add("sta_project_onto", "sta", "project_onto", project_onto(v, t), v, t);
+        add("sta_reject_from", "sta", "reject_from", reject_from(v, t), v, t);
+        add("sta_reflect_on_vec", "sta", "reflect_on_vec", reflect_on_vec(v, t), v, t);
+    }
+
+    // --- angle (spacelike) / rapidity (timelike) --- both return plain double ---
+    {
+        // two purely spatial (spacelike) vectors -> ordinary Euclidean angle
+        vec4ds a{1.0, 2.0, 3.0, 0.0}, b{2.0, 0.0, 1.0, 0.0};
+        add("sta_angle_spacelike", "sta", "angle", angle(a, b), a, b);
+        // two timelike 4-velocities -> relative rapidity
+        vec4ds u1{0.0, 0.0, 0.0, 1.0}, u2{0.5, 0.0, 0.0, 1.0};
+        add("sta_rapidity_timelike", "sta", "rapidity", rapidity(u1, u2), u1, u2);
+    }
+}
+
+// --------------------------------------------------------------------------- //
 // Top-level cases (functions in hd::ga)
 // --------------------------------------------------------------------------- //
 
@@ -459,11 +603,19 @@ void write_json(std::string const& path)
 
 int main(int argc, char** argv)
 {
+    // Default output path is baked in at build time (absolute, so the
+    // exporter works regardless of the working directory it is launched
+    // from). A command-line argument still overrides it.
+#ifdef _GA_PY_CASES_JSON_DEFAULT
+    std::string path = _GA_PY_CASES_JSON_DEFAULT;
+#else
     std::string path = "ga_py/tests/data/ga_test_cases.json";
+#endif
     if (argc > 1) path = argv[1];
 
     emit_ega_cases();
     emit_pga_cases();
+    emit_sta_cases();
     emit_top_cases();
 
     write_json(path);

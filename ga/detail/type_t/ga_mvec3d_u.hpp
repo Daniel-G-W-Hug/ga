@@ -15,7 +15,7 @@ namespace hd::ga {
 // and the term c4 e1^e2^e3 being the trivector
 //
 // This is the definition of a multivector in the odd subalgebra of G<3,0,0>,
-// i.e. it models only multivectors with even grades 1 and 3
+// i.e. it models only multivectors with odd grades 1 and 3
 // This subalgebra is used to store intermediate results for rotations.
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -119,10 +119,10 @@ constexpr PScalar3d<T> gr3(MVec3d_U<T> const& M)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addition operations to combine vectors and trivectors to odd grade multivectors
+// addition operations to combine vectors and trivectors to odd-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// vector + pseudoscalar => odd grade multivector
+// vector + pseudoscalar => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator+(Vec3d<T> const& v, PScalar3d<U> ps)
@@ -131,7 +131,7 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator+(Vec3d<T> const& v, PScala
     return MVec3d_U<ctype>(v, ps);
 }
 
-// pseudoscalar + vector => odd grade multivector
+// pseudoscalar + vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator+(PScalar3d<T> ps, Vec3d<U> const& v)
@@ -141,7 +141,7 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator+(PScalar3d<T> ps, Vec3d<U>
 }
 
 
-// pseudoscalar + odd grade vector => odd grade multivector
+// pseudoscalar + odd-grade vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator+(PScalar3d<T> ps,
@@ -151,7 +151,7 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator+(PScalar3d<T> ps,
     return MVec3d_U<ctype>(M.c0, M.c1, M.c2, M.c3 + T(ps));
 }
 
-// odd grade mulivector + pseudoscalar => odd grade multivector
+// odd-grade mulivector + pseudoscalar => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator+(MVec3d_U<T> const& M,
@@ -162,7 +162,7 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator+(MVec3d_U<T> const& M,
 }
 
 
-// odd grade mulivector + vector => odd grade multivector
+// odd-grade mulivector + vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator+(MVec3d_U<T> const& M,
@@ -172,7 +172,7 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator+(MVec3d_U<T> const& M,
     return MVec3d_U<ctype>(M.c0 + v.x, M.c1 + v.y, M.c2 + v.z, M.c3);
 }
 
-// vector + odd grade vector => odd grade multivector
+// vector + odd-grade vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator+(Vec3d<T> const& v,
@@ -183,10 +183,10 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator+(Vec3d<T> const& v,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// subraction operations to combine vectors and trivectors to odd grade multivectors
+// subraction operations to combine vectors and trivectors to odd-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// vector - pseudoscalar (=trivector) => odd grade multivector
+// vector - pseudoscalar (=trivector) => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator-(Vec3d<T> const& v, PScalar3d<U> ps)
@@ -195,7 +195,7 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator-(Vec3d<T> const& v, PScala
     return MVec3d_U<ctype>(v, -ps);
 }
 
-// pseudoscalar (=trivector) - vector => odd grade multivector
+// pseudoscalar (=trivector) - vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator-(PScalar3d<T> ps, Vec3d<U> const& v)
@@ -205,7 +205,7 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator-(PScalar3d<T> ps, Vec3d<U>
 }
 
 
-// pseudoscalar (=trivector) - odd grade vector => odd grade multivector
+// pseudoscalar (=trivector) - odd-grade vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator-(PScalar3d<T> ps,
@@ -215,7 +215,7 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator-(PScalar3d<T> ps,
     return MVec3d_U<ctype>(-M.c0, -M.c1, -M.c2, T(ps) - M.c3);
 }
 
-// odd grade mulivector - pseudoscalar (=trivector)=> odd grade multivector
+// odd-grade mulivector - pseudoscalar (=trivector)=> odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator-(MVec3d_U<T> const& M,
@@ -226,7 +226,7 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator-(MVec3d_U<T> const& M,
 }
 
 
-// odd grade multivector - vector => odd grade multivector
+// odd-grade multivector - vector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator-(MVec3d_U<T> const& M,
@@ -236,7 +236,7 @@ constexpr MVec3d_U<std::common_type_t<T, U>> operator-(MVec3d_U<T> const& M,
     return MVec3d_U<ctype>(M.c0 - v.x, M.c1 - v.y, M.c2 - v.z, M.c3);
 }
 
-// vector - odd grade multivector => odd grade multivector
+// vector - odd-grade multivector => odd-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec3d_U<std::common_type_t<T, U>> operator-(Vec3d<T> const& v,

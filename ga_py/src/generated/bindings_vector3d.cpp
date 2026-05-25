@@ -20,11 +20,13 @@
 
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
+#include "ga/ga_sta.hpp"
 
 namespace nb = nanobind;
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::sta;
 
 void bind_vector3d(nb::module_& m) {
     nb::class_<vector3d, vec3d>(m, "vector3d")

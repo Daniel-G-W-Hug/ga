@@ -11,11 +11,15 @@
 #include "detail/type_t/ga_type2dp.hpp"
 #include "detail/type_t/ga_type3dp.hpp"
 
+#include "detail/type_t/ga_type4ds.hpp"
+
 #include "detail/type_t/ga_mvec2d.hpp" // MVec2d<T> and subtypes
 #include "detail/type_t/ga_mvec3d.hpp" // MVec3d<T> and subtypes
 
 #include "detail/type_t/ga_mvec2dp.hpp" // MVec2dp<T> and subtypes
 #include "detail/type_t/ga_mvec3dp.hpp" // MVec3dp<T> and subtypes
+
+#include "detail/type_t/ga_mvec4ds.hpp" // MVec4ds<T> and subtypes
 
 #include <mdspan>
 
@@ -36,14 +40,14 @@ auto const O_2d = Vec2d<value_t>{0.0, 0.0}; // origin
 auto const e1_2d_mv = MVec2d<value_t>{e1_2d}; // e1_2d as multivector
 auto const e2_2d_mv = MVec2d<value_t>{e2_2d}; // e2_2d as multivector
 
-auto const One_2d = Scalar2d<value_t>(1.0);         // Basis element 1
-auto const One_2d_mv = MVec2d<value_t>{One_2d};     // 1 as multivector
-auto const One_2d_mv_e = MVec2d_E<value_t>{One_2d}; // 1 as even-grade multivector
+auto const one_2d = Scalar2d<value_t>(1.0);         // Basis element 1
+auto const one_2d_mv = MVec2d<value_t>{one_2d};     // 1 as multivector
+auto const one_2d_mv_e = MVec2d_E<value_t>{one_2d}; // 1 as even-grade multivector
 
 auto const I_2d = PScalar2d<value_t>(1.0);      // Basis element I_2d
 auto const e12_2d = I_2d;                       // (pseudoscalar)
 auto const I_2d_mv = MVec2d<value_t>{I_2d};     // I_2d as multivector
-auto const I_2d_mv_e = MVec2d_E<value_t>{I_2d}; // I_2d as even grade multivector
+auto const I_2d_mv_e = MVec2d_E<value_t>{I_2d}; // I_2d as even-grade multivector
 
 // extended metric for ega2d (4×4 matrix, 16 elements)
 // Basis: 1, e1, e2, e12
@@ -86,13 +90,13 @@ auto const xy_3d = e12_3d; // xy- or 12-plane
 auto const e23_3d_mv = MVec3d<value_t>{e23_3d};     // e23_3d as multivector
 auto const e31_3d_mv = MVec3d<value_t>{e31_3d};     // e31_3d as multivector
 auto const e12_3d_mv = MVec3d<value_t>{e12_3d};     // e12_3d as multivector
-auto const e23_3d_mv_e = MVec3d_E<value_t>{e23_3d}; // e23_3d as even grade multivector
-auto const e31_3d_mv_e = MVec3d_E<value_t>{e31_3d}; // e31_3d as even grade multivector
-auto const e12_3d_mv_e = MVec3d_E<value_t>{e12_3d}; // e12_3d as even grade multivector
+auto const e23_3d_mv_e = MVec3d_E<value_t>{e23_3d}; // e23_3d as even-grade multivector
+auto const e31_3d_mv_e = MVec3d_E<value_t>{e31_3d}; // e31_3d as even-grade multivector
+auto const e12_3d_mv_e = MVec3d_E<value_t>{e12_3d}; // e12_3d as even-grade multivector
 
-auto const One_3d = Scalar3d<value_t>(1.0);         // Basis element 1
-auto const One_3d_mv = MVec3d<value_t>{One_3d};     // 1 as multivector
-auto const One_3d_mv_e = MVec3d_E<value_t>{One_3d}; // 1 as even-grade multivector
+auto const one_3d = Scalar3d<value_t>(1.0);         // Basis element 1
+auto const one_3d_mv = MVec3d<value_t>{one_3d};     // 1 as multivector
+auto const one_3d_mv_e = MVec3d_E<value_t>{one_3d}; // 1 as even-grade multivector
 
 auto const I_3d = PScalar3d<value_t>(1.0);      // Basis element I_3d
 auto const e123_3d = I_3d;                      // (pseudoscalar)
@@ -163,9 +167,9 @@ auto const e31_2dp_mv_e = MVec2dp_E<value_t>{e31_2dp}; // e31_2dp as even multiv
 auto const e32_2dp_mv_e = MVec2dp_E<value_t>{e32_2dp}; // e32_2dp as even multivector
 auto const e12_2dp_mv_e = MVec2dp_E<value_t>{e12_2dp}; // e12_2dp as even multivector
 
-auto const One_2dp = Scalar2dp<value_t>(1.0);          // Basis element 1
-auto const One_2dp_mv = MVec2dp<value_t>{One_2dp};     // 1 as multivector
-auto const One_2dp_mv_e = MVec2dp_E<value_t>{One_2dp}; // 1 as even-grade multivector
+auto const one_2dp = Scalar2dp<value_t>(1.0);          // Basis element 1
+auto const one_2dp_mv = MVec2dp<value_t>{one_2dp};     // 1 as multivector
+auto const one_2dp_mv_e = MVec2dp_E<value_t>{one_2dp}; // 1 as even-grade multivector
 
 auto const I_2dp = PScalar2dp<value_t>(1.0);       // I_2dp = e3^e2^e1 = e321
 auto const e321_2dp = I_2dp;                       // (pseudoscalar)
@@ -258,6 +262,9 @@ auto const e23_3dp_mv = MVec3dp<value_t>{e23_3dp}; // e23_3dp as multivector
 auto const e31_3dp_mv = MVec3dp<value_t>{e31_3dp}; // e31_3dp as multivector
 auto const e12_3dp_mv = MVec3dp<value_t>{e12_3dp}; // e12_3dp as multivector
 
+auto const e41_3dp_mv_e = MVec3dp_E<value_t>{e41_3dp}; // e41_3dp as even multivector
+auto const e42_3dp_mv_e = MVec3dp_E<value_t>{e42_3dp}; // e42_3dp as even multivector
+auto const e43_3dp_mv_e = MVec3dp_E<value_t>{e43_3dp}; // e43_3dp as even multivector
 auto const e23_3dp_mv_e = MVec3dp_E<value_t>{e23_3dp}; // e23_3dp as even multivector
 auto const e31_3dp_mv_e = MVec3dp_E<value_t>{e31_3dp}; // e31_3dp as even multivector
 auto const e12_3dp_mv_e = MVec3dp_E<value_t>{e12_3dp}; // e12_3dp as even multivector
@@ -276,14 +283,14 @@ auto const e431_3dp_mv = MVec3dp<value_t>{e431_3dp}; // e431_3dp as multivector
 auto const e412_3dp_mv = MVec3dp<value_t>{e412_3dp}; // e412_3dp as multivector
 auto const e321_3dp_mv = MVec3dp<value_t>{e321_3dp}; // e321_3dp as multivector
 
-auto const One_3dp = Scalar3dp<value_t>(1.0);          // Basis element 1
-auto const One_3dp_mv = MVec3dp<value_t>{One_3dp};     // 1 as multivector
-auto const One_3dp_mv_e = MVec3dp_E<value_t>{One_3dp}; // 1 as even-grade multivector
+auto const one_3dp = Scalar3dp<value_t>(1.0);          // Basis element 1
+auto const one_3dp_mv = MVec3dp<value_t>{one_3dp};     // 1 as multivector
+auto const one_3dp_mv_e = MVec3dp_E<value_t>{one_3dp}; // 1 as even-grade multivector
 
 auto const I_3dp = PScalar3dp<value_t>(1.0);       // I_3dp = e1^e2^e3^e4 = e1234
 auto const e1234_3dp = I_3dp;                      // (pseudoscalar)
 auto const I_3dp_mv = MVec3dp<value_t>{I_3dp};     // I_3dp as multivector
-auto const I_3dp_mv_e = MVec3dp_E<value_t>{I_3dp}; // I_3dp as even grade multivector
+auto const I_3dp_mv_e = MVec3dp_E<value_t>{I_3dp}; // I_3dp as even-grade multivector
 
 // extended metric for pga3dp (16×16 matrix, 256 elements)
 // Basis: 1, e1, e2, e3, e4, e41, e42, e43, e23, e31, e12, e423, e431, e412, e321, e1234
@@ -340,3 +347,94 @@ inline constexpr auto pga3dp_rmetric_view()
 }
 
 } // namespace hd::ga::pga
+
+
+namespace hd::ga::sta {
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// 4ds constants
+/////////////////////////////////////////////////////////////////////////////////////////
+
+auto const g1_4ds = Vec4ds<value_t>{1.0, 0.0, 0.0, 0.0};
+auto const g2_4ds = Vec4ds<value_t>{0.0, 1.0, 0.0, 0.0};
+auto const g3_4ds = Vec4ds<value_t>{0.0, 0.0, 1.0, 0.0};
+auto const g4_4ds = Vec4ds<value_t>{0.0, 0.0, 0.0, 1.0};
+
+auto const x_dir_4ds = g1_4ds; // direction of x-axis towards infinity (space x)
+auto const y_dir_4ds = g2_4ds; // direction of y-axis towards infinity (space y)
+auto const z_dir_4ds = g3_4ds; // direction of z-axis towards infinity (space z)
+auto const t_dir_4ds = g4_4ds; // direction of t-axis towards infinity (time t on w-comp.)
+
+auto const g1_4ds_mv = MVec4ds<value_t>{g1_4ds}; // g1_4ds as multivector
+auto const g2_4ds_mv = MVec4ds<value_t>{g2_4ds}; // g2_4ds as multivector
+auto const g3_4ds_mv = MVec4ds<value_t>{g3_4ds}; // g3_4ds as multivector
+auto const g4_4ds_mv = MVec4ds<value_t>{g4_4ds}; // g4_4ds as multivector
+
+auto const g14_4ds = BiVec4ds<value_t>{1.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // = wdg(g1,g4)
+auto const g24_4ds = BiVec4ds<value_t>{0.0, 1.0, 0.0, 0.0, 0.0, 0.0}; // = wdg(g2,g4)
+auto const g34_4ds = BiVec4ds<value_t>{0.0, 0.0, 1.0, 0.0, 0.0, 0.0}; // = wdg(g3,g4)
+auto const g23_4ds = BiVec4ds<value_t>{0.0, 0.0, 0.0, 1.0, 0.0, 0.0}; // = wdg(g2,g3)
+auto const g31_4ds = BiVec4ds<value_t>{0.0, 0.0, 0.0, 0.0, 1.0, 0.0}; // = wdg(g3,g1)
+auto const g12_4ds = BiVec4ds<value_t>{0.0, 0.0, 0.0, 0.0, 0.0, 1.0}; // = wdg(g1,g2)
+
+auto const g14_4ds_mv = MVec4ds<value_t>{g14_4ds}; // g14_4ds as multivector
+auto const g24_4ds_mv = MVec4ds<value_t>{g24_4ds}; // g24_4ds as multivector
+auto const g34_4ds_mv = MVec4ds<value_t>{g34_4ds}; // g34_4ds as multivector
+auto const g23_4ds_mv = MVec4ds<value_t>{g23_4ds}; // g23_4ds as multivector
+auto const g31_4ds_mv = MVec4ds<value_t>{g31_4ds}; // g31_4ds as multivector
+auto const g12_4ds_mv = MVec4ds<value_t>{g12_4ds}; // g12_4ds as multivector
+
+auto const g14_4ds_mv_e = MVec4ds_E<value_t>{g14_4ds}; // g14_4ds as even multivector
+auto const g24_4ds_mv_e = MVec4ds_E<value_t>{g24_4ds}; // g24_4ds as even multivector
+auto const g34_4ds_mv_e = MVec4ds_E<value_t>{g34_4ds}; // g34_4ds as even multivector
+auto const g23_4ds_mv_e = MVec4ds_E<value_t>{g23_4ds}; // g23_4ds as even multivector
+auto const g31_4ds_mv_e = MVec4ds_E<value_t>{g31_4ds}; // g31_4ds as even multivector
+auto const g12_4ds_mv_e = MVec4ds_E<value_t>{g12_4ds}; // g12_4ds as even multivector
+
+auto const g234_4ds = TriVec4ds<value_t>{1.0, 0.0, 0.0, 0.0};
+auto const g314_4ds = TriVec4ds<value_t>{0.0, 1.0, 0.0, 0.0};
+auto const g124_4ds = TriVec4ds<value_t>{0.0, 0.0, 1.0, 0.0};
+auto const g123_4ds = TriVec4ds<value_t>{0.0, 0.0, 0.0, 1.0};
+
+auto const g234_4ds_mv = MVec4ds<value_t>{g234_4ds}; // g234_4ds as multivector
+auto const g314_4ds_mv = MVec4ds<value_t>{g314_4ds}; // g314_4ds as multivector
+auto const g124_4ds_mv = MVec4ds<value_t>{g124_4ds}; // g124_4ds as multivector
+auto const g123_4ds_mv = MVec4ds<value_t>{g123_4ds}; // g123_4ds as multivector
+
+auto const one_4ds = Scalar4ds<value_t>(1.0);          // Basis element 1
+auto const one_4ds_mv = MVec4ds<value_t>{one_4ds};     // 1 as multivector
+auto const one_4ds_mv_e = MVec4ds_E<value_t>{one_4ds}; // 1 as even-grade multivector
+
+auto const I_4ds = PScalar4ds<value_t>(1.0);       // I_4ds = g1^g2^g3^g4 = g1234
+auto const g1234_4ds = I_4ds;                      // (pseudoscalar)
+auto const I_4ds_mv = MVec4ds<value_t>{I_4ds};     // I_4ds as multivector
+auto const I_4ds_mv_e = MVec4ds_E<value_t>{I_4ds}; // I_4ds as even grade multivector
+
+// extended metric for sta4ds (16×16 matrix, 256 elements)
+// Basis: 1, g1, g2, g3, g4, g14, g24, g34, g23, g31, g12, g234, g314, g124, g123, g1234
+inline constexpr std::array<int, 256> sta4ds_metric = {
+    1, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // 1
+    0, -1, 0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g1
+    0, 0,  -1, 0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g2
+    0, 0,  0,  -1, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g3
+    0, 0,  0,  0,  1, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g4
+    0, 0,  0,  0,  0, 1, 0, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g14
+    0, 0,  0,  0,  0, 0, 1, 0, 0,  0,  0,  0,  0,  0,  0, 0, // g24
+    0, 0,  0,  0,  0, 0, 0, 1, 0,  0,  0,  0,  0,  0,  0, 0, // g34
+    0, 0,  0,  0,  0, 0, 0, 0, -1, 0,  0,  0,  0,  0,  0, 0, // g23
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  -1, 0,  0,  0,  0,  0, 0, // g31
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  -1, 0,  0,  0,  0, 0, // g12
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  -1, 0,  0,  0, 0, // g234
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  -1, 0,  0, 0, // g314
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  -1, 0, 0, // g124
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  1, 0, // g123
+    0, 0,  0,  0,  0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0, -1 // g1234
+};
+
+// Accessor function for convenient 2D indexing: G[i,j]
+inline constexpr auto sta4ds_metric_view()
+{
+    return std::mdspan<int const, std::extents<size_t, 16, 16>>{sta4ds_metric.data()};
+}
+
+} // namespace hd::ga::sta

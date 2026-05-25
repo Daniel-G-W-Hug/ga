@@ -109,10 +109,10 @@ constexpr PScalar2d<T> gr2(MVec2d_E<T> const& M)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// addition operations to combine scalars and bivectors to even grade multivectors
+// addition operations to combine scalars and bivectors to even-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// scalar + pseudoscalar (=bivector) => even grade multivector
+// scalar + pseudoscalar (=bivector) => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s, PScalar2d<U> ps)
@@ -121,7 +121,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s, PScalar2d<
     return MVec2d_E<ctype>(s, ps);
 }
 
-// pseudoscalar (=bivector) + scalar => even grade multivector
+// pseudoscalar (=bivector) + scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps, Scalar2d<U> s)
@@ -130,7 +130,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps, Scalar2d
     return MVec2d_E<ctype>(s, ps);
 }
 
-// scalar + even grade mulivector => even grade multivector
+// scalar + even-grade mulivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
@@ -140,7 +140,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator+(Scalar2d<T> s,
     return MVec2d_E<ctype>(T(s) + M.c0, M.c1);
 }
 
-// even grade multivector + scalar => even grade multivector
+// even-grade multivector + scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
@@ -150,7 +150,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
     return MVec2d_E<ctype>(U(s) + M.c0, M.c1);
 }
 
-// pseudosscalar + even grade mulivector => even grade multivector
+// pseudosscalar + even-grade mulivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
@@ -160,7 +160,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator+(PScalar2d<T> ps,
     return MVec2d_E<ctype>(M.c0, T(ps) + M.c1);
 }
 
-// even grade multivector + pseudoscalar => even grade multivector
+// even-grade multivector + pseudoscalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
@@ -171,10 +171,10 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator+(MVec2d_E<T> const& M,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// subtraction operations to combine scalars and bivectors to even grade multivectors
+// subtraction operations to combine scalars and bivectors to even-grade multivectors
 ////////////////////////////////////////////////////////////////////////////////
 
-// scalar - pseudoscalar (=bivector) => even grade multivector
+// scalar - pseudoscalar (=bivector) => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s, PScalar2d<U> ps)
@@ -183,7 +183,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s, PScalar2d<
     return MVec2d_E<ctype>(s, -ps);
 }
 
-// pseudoscalar (=bivector) - scalar => even grade multivector
+// pseudoscalar (=bivector) - scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps, Scalar2d<U> s)
@@ -192,7 +192,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps, Scalar2d
     return MVec2d_E<ctype>(-s, ps);
 }
 
-// scalar - even grade mulivector => even grade multivector
+// scalar - even-grade mulivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s,
@@ -202,7 +202,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator-(Scalar2d<T> s,
     return MVec2d_E<ctype>(T(s) - M.c0, -M.c1);
 }
 
-// even grade multivector - scalar => even grade multivector
+// even-grade multivector - scalar => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& M,
@@ -212,7 +212,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& M,
     return MVec2d_E<ctype>(M.c0 - U(s), M.c1);
 }
 
-// pseudosscalar (=bivector) - even grade mulivector => even grade multivector
+// pseudosscalar (=bivector) - even-grade mulivector => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps,
@@ -222,7 +222,7 @@ constexpr MVec2d_E<std::common_type_t<T, U>> operator-(PScalar2d<T> ps,
     return MVec2d_E<ctype>(-M.c0, T(ps) - M.c1);
 }
 
-// even grade multivector - pseudoscalar (=bivector) => even grade multivector
+// even-grade multivector - pseudoscalar (=bivector) => even-grade multivector
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr MVec2d_E<std::common_type_t<T, U>> operator-(MVec2d_E<T> const& M,

@@ -20,11 +20,13 @@
 
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
+#include "ga/ga_sta.hpp"
 
 namespace nb = nanobind;
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::sta;
 
 void register_functions_top(nb::module_& m) {
     m.def("Hz2radps", [](double a0) { return Hz2radps(a0); });
@@ -45,11 +47,11 @@ void register_functions_top(nb::module_& m) {
     m.def("gr", [](bivec3dp const& a0) { return gr(a0); });
     m.def("gr", [](trivec3dp const& a0) { return gr(a0); });
     m.def("gr", [](pscalar3dp const& a0) { return gr(a0); });
-    m.def("gr", [](scalar4d const& a0) { return gr(a0); });
-    m.def("gr", [](vec4d const& a0) { return gr(a0); });
-    m.def("gr", [](bivec4d const& a0) { return gr(a0); });
-    m.def("gr", [](trivec4d const& a0) { return gr(a0); });
-    m.def("gr", [](pscalar4d const& a0) { return gr(a0); });
+    m.def("gr", [](scalar4ds const& a0) { return gr(a0); });
+    m.def("gr", [](vec4ds const& a0) { return gr(a0); });
+    m.def("gr", [](bivec4ds const& a0) { return gr(a0); });
+    m.def("gr", [](trivec4ds const& a0) { return gr(a0); });
+    m.def("gr", [](pscalar4ds const& a0) { return gr(a0); });
     m.def("rad2deg", [](double a0) { return rad2deg(a0); });
     m.def("radps2Hz", [](double a0) { return radps2Hz(a0); });
     m.def("radps2rpm", [](double a0) { return radps2rpm(a0); });
@@ -62,6 +64,11 @@ void register_functions_top(nb::module_& m) {
     m.def("rgr", [](bivec3dp const& a0) { return rgr(a0); });
     m.def("rgr", [](trivec3dp const& a0) { return rgr(a0); });
     m.def("rgr", [](pscalar3dp const& a0) { return rgr(a0); });
+    m.def("rgr", [](scalar4ds const& a0) { return rgr(a0); });
+    m.def("rgr", [](vec4ds const& a0) { return rgr(a0); });
+    m.def("rgr", [](bivec4ds const& a0) { return rgr(a0); });
+    m.def("rgr", [](trivec4ds const& a0) { return rgr(a0); });
+    m.def("rgr", [](pscalar4ds const& a0) { return rgr(a0); });
     m.def("rk4_get_time", [](double a0, double a1, int a2) { return rk4_get_time(a0, a1, a2); });
     m.def("rpm2radps", [](double a0) { return rpm2radps(a0); });
     m.def("sign", [](double a0) { return sign(a0); });

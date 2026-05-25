@@ -364,13 +364,13 @@ TEST_SUITE("PGA 2DP Tests")
         // check inverses - pseudoscalar
         // due to the degenerate metric there is no inverse of the pseudoscalar
 
-        // check inverses - even grade multivector
+        // check inverses - even-grade multivector
         // fmt::println("mve1 * inv(mve1) = {}", mve1 * inv(mve1)); // mv_e
         CHECK(abs(bulk_nrm(gr0(mve1 * inv(mve1))) - 1) < eps);
         CHECK(abs(bulk_nrm(gr2(mve1 * inv(mve1))) - 0) < eps);
         CHECK(abs(bulk_nrm(inv(mve1) - rev(mve1) / bulk_nrm_sq(mve1))) < eps);
 
-        // check inverses - odd grade multivector
+        // check inverses - odd-grade multivector
         // fmt::println("mvu1 * inv(mvu1) = {}", mvu1 * inv(mvu1)); // mv_e
         CHECK(abs(bulk_nrm(gr0(mvu1 * inv(mvu1))) - 1) < eps);
         CHECK(abs(bulk_nrm(gr2(mvu1 * inv(mvu1))) - 0) < eps);
@@ -462,15 +462,15 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(bulk_dual(ps) == I_2dp * rev(ps));
 
         // equivalence to the regressive geometric product
-        CHECK(weight_dual(s) == rgpr(rrev(s), One_2dp));
-        CHECK(weight_dual(v) == rgpr(rrev(v), One_2dp));
-        CHECK(weight_dual(B) == rgpr(rrev(B), One_2dp));
-        CHECK(weight_dual(ps) == rgpr(rrev(ps), One_2dp));
+        CHECK(weight_dual(s) == rgpr(rrev(s), one_2dp));
+        CHECK(weight_dual(v) == rgpr(rrev(v), one_2dp));
+        CHECK(weight_dual(B) == rgpr(rrev(B), one_2dp));
+        CHECK(weight_dual(ps) == rgpr(rrev(ps), one_2dp));
         //
-        CHECK(weight_dual(s) == rgpr(One_2dp, rrev(s)));
-        CHECK(weight_dual(v) == rgpr(One_2dp, rrev(v)));
-        CHECK(weight_dual(B) == rgpr(One_2dp, rrev(B)));
-        CHECK(weight_dual(ps) == rgpr(One_2dp, rrev(ps)));
+        CHECK(weight_dual(s) == rgpr(one_2dp, rrev(s)));
+        CHECK(weight_dual(v) == rgpr(one_2dp, rrev(v)));
+        CHECK(weight_dual(B) == rgpr(one_2dp, rrev(B)));
+        CHECK(weight_dual(ps) == rgpr(one_2dp, rrev(ps)));
     }
 
     TEST_CASE("Vec2dp: operations - angle I")
@@ -1270,6 +1270,54 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(s * t == t * s);    // gpr between scalars equivalent to scalar mult.
         CHECK(s * v1 == v1 * s);  // gpr between scalar and vector
         CHECK(s * v1 == sd * v1); // gpr between scalar and vector
+    }
+
+    TEST_CASE("MVec2dp: one_2dp as geometric-product identity")
+    {
+        fmt::println("MVec2dp: one_2dp as geometric-product identity");
+
+        auto v = vec2dp{1.0, 2.0, 1.0};
+        auto B = bivec2dp{-4.0, 2.0, 1.0};
+        auto ps = pscalar2dp{-3.0};
+        auto mv = mvec2dp{scalar2dp{4.0}, v, B, ps};
+        auto mv_e = mvec2dp_e{scalar2dp{4.0}, B};
+
+        // scalar one_2dp is the geometric-product unit
+        CHECK(one_2dp * v == v);
+        CHECK(v * one_2dp == v);
+
+        // one_2dp_mv is the unit of the full geometric product
+        CHECK(one_2dp_mv * mv == mv);
+        CHECK(mv * one_2dp_mv == mv);
+
+        // one_2dp_mv_e is the unit of the even-grade geometric product
+        CHECK(one_2dp_mv_e * mv_e == mv_e);
+        CHECK(mv_e * one_2dp_mv_e == mv_e);
+    }
+
+    TEST_CASE("MVec2dp: I_2dp as regressive-product identity")
+    {
+        fmt::println("MVec2dp: I_2dp as regressive-product identity");
+
+        // dual to one_2dp being the gpr unit: the pseudoscalar I_2dp is the
+        // unit of the regressive geometric product rgpr()
+        auto v = vec2dp{1.0, 2.0, 1.0};
+        auto B = bivec2dp{-4.0, 2.0, 1.0};
+        auto ps = pscalar2dp{-3.0};
+        auto mv = mvec2dp{scalar2dp{4.0}, v, B, ps};
+        auto mv_u = mvec2dp_u{v, ps};
+
+        // pseudoscalar I_2dp is the regressive-product unit
+        CHECK(rgpr(I_2dp, v) == v);
+        CHECK(rgpr(v, I_2dp) == v);
+
+        // I_2dp_mv is the unit of the full regressive geometric product
+        CHECK(rgpr(I_2dp_mv, mv) == mv);
+        CHECK(rgpr(mv, I_2dp_mv) == mv);
+
+        // I_2dp_mv_u is the unit of the odd-grade regressive geometric product
+        CHECK(rgpr(I_2dp_mv_u, mv_u) == mv_u);
+        CHECK(rgpr(mv_u, I_2dp_mv_u) == mv_u);
     }
 
     TEST_CASE("MVec2dp: geometric product - combinatorial tests")
@@ -3525,6 +3573,50 @@ TEST_SUITE("PGA 2DP Tests")
 
         fmt::println("complement involution: cmpl(cmpl(u)) = u");
         fmt::println("");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // transcription gate: bulk/weight dual == bulk/weight metric * complement
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<2,0,1>: dual == metric * complement (transcription gate)")
+    {
+        fmt::println("G<2,0,1>: dual == metric * complement (transcription gate)");
+
+        // The dual is "complement after multiplication with the (extended) metric".
+        // For the degenerate PGA metric this splits into a bulk and a weight part:
+        //   bulk_dual(e)   = bulk_nrm_sq(e)   * cmpl(e)
+        //   weight_dual(e) = weight_nrm_sq(e) * cmpl(e)
+        // For a unit basis blade this must hold element-wise -- a direct guard
+        // against sign-transcription errors when the complement/dual tables are
+        // hand-coded from ga_prdxpr_rule_generator output. (bulk_dual is identically
+        // 0 on the pseudoscalar and weight_dual on the scalar, so those overloads
+        // are intentionally absent and not exercised.)
+        auto bulk_gate = [](auto const& e) {
+            CHECK(bulk_dual(e) == bulk_nrm_sq(e) * cmpl(e));
+        };
+        auto weight_gate = [](auto const& e) {
+            CHECK(weight_dual(e) == weight_nrm_sq(e) * cmpl(e));
+        };
+
+        // bulk_dual: scalar, vectors, bivectors
+        bulk_gate(one_2dp);
+        bulk_gate(e1_2dp);
+        bulk_gate(e2_2dp);
+        bulk_gate(e3_2dp);
+        bulk_gate(e32_2dp);
+        bulk_gate(e31_2dp);
+        bulk_gate(e12_2dp);
+        // weight_dual: vectors, bivectors, pseudoscalar
+        weight_gate(e1_2dp);
+        weight_gate(e2_2dp);
+        weight_gate(e3_2dp);
+        weight_gate(e32_2dp);
+        weight_gate(e31_2dp);
+        weight_gate(e12_2dp);
+        weight_gate(I_2dp);
+
+        fmt::println("bulk/weight dual == bulk/weight metric * complement verified");
     }
 
     TEST_CASE("G<2,0,1>: extended metric matrix validation")

@@ -3800,12 +3800,12 @@ template <typename T>
 inline MVec3d_E<T> inv(MVec3d_E<T> const& E)
 {
     T sq_n = nrm_sq(E);
-    hd::ga::detail::check_normalization<T>(sq_n, "even grade-multivector");
+    hd::ga::detail::check_normalization<T>(sq_n, "even-grade-multivector");
     T inv = T(1.0) / sq_n;
     return MVec3d_E<T>(rev(E) * inv);
 }
 
-// return the multiplicative inverse of the odd grade multivector
+// return the multiplicative inverse of the odd-grade multivector
 template <typename T>
     requires(numeric_type<T>)
 inline MVec3d_U<T> inv(MVec3d_U<T> const& U)

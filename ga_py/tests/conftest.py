@@ -102,17 +102,18 @@ def approx_eq(a: float, b: float, tol: float = EPS_DEFAULT) -> bool:
 FIELD_ORDER = {
     "vec2d": ("x", "y"),
     "vec3d": ("x", "y", "z"),
-    "vec4d": ("x", "y", "z", "w"),
     "vec2dp": ("x", "y", "z"),
     "vec3dp": ("x", "y", "z", "w"),
     "bivec3d": ("x", "y", "z"),
-    "bivec4d": ("vx", "vy", "vz", "mx", "my", "mz"),
     "bivec2dp": ("x", "y", "z"),
     "bivec3dp": ("vx", "vy", "vz", "mx", "my", "mz"),
     "trivec3dp": ("x", "y", "z", "w"),
-    "trivec4d": ("x", "y", "z", "w"),
+    "vec4ds": ("x", "y", "z", "w"),
+    "bivec4ds": ("vx", "vy", "vz", "mx", "my", "mz"),
+    "trivec4ds": ("x", "y", "z", "w"),
     "dualnum2dp": ("c0", "c1"),
     "dualnum3dp": ("c0", "c1"),
+    "dualnum4ds": ("c0", "c1"),
 }
 
 
