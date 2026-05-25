@@ -1,14 +1,38 @@
 # ga_py — Python wrapper for the geometric algebra library
 
+**Just want to use it?** Read [§1](#1-what-is-ga_py) (what it is) and
+[§3](#3-quick-start--build-and-run) (build + run your first script). [§4](#4-using-the-library)
+covers day-to-day usage and the gotchas worth knowing. Everything from §5 on is for
+contributors and can be skipped.
+
+## Contents
+
+End users:
+
+- [1. What is ga_py?](#1-what-is-ga_py) — one-paragraph overview + first example
+- [2. Relationship to the C++ library](#2-relationship-to-the-c-library) — how the math stays fast
+- [3. Quick start — build and run](#3-quick-start--build-and-run) — prerequisites, setup,
+  hello-world, tests, API reference
+- [4. Using the library](#4-using-the-library) — constants, EGA↔PGA naming differences,
+  day-1 gotchas (typed scalars, `^` precedence, submodules)
+
+Contributors:
+
+- [5. For contributors](#5-for-contributors) — the two venvs, layout, build modes,
+  regenerating bindings, performance internals
+- [6. Open items / future work](#6-open-items--future-work) — wheels, stubs, numpy
+  buffer protocol, `rk4_step`, physics, and other deferred items
+
 ## 1. What is ga_py?
 
 `ga_py` is a Python module that exposes the C++ geometric algebra library (`ga/`) to
 Python. Types (`vec3d`, `bivec3d`, `mvec3d`, …), operators (`+`, `-`, `*`, `^`, `<<`,
 `>>`), and free functions (`gpr`, `wdg`, `dot`, `nrm`, …) all map 1:1 to their C++
-counterparts. The two algebras live in submodules:
+counterparts. The three algebras live in submodules:
 
 - `ga_py.ega` — Euclidean GA (mirrors `hd::ga::ega`)
 - `ga_py.pga` — Projective GA (mirrors `hd::ga::pga`)
+- `ga_py.sta` — Spacetime GA (mirrors `hd::ga::sta`)
 
 Free functions in the `hd::ga` top-level namespace are re-exported at `ga_py.*` (so
 `ga_py.deg2rad(180.0)` works).
@@ -45,7 +69,7 @@ The binding generator lives in [`ga_bindgen/`](../ga_bindgen/README.md). End use
 need it; it is run by contributors when the C++ headers change. Generated bindings are
 committed to git so end users build `ga_py` without libclang installed.
 
-## 3. Quick start — running your first Python script
+## 3. Quick start — build and run
 
 This section assumes you only want to *use* the library. You do **not** need
 libclang/LLVM, nor any of the binding-generation toolchain.
@@ -101,42 +125,27 @@ cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.c
 cmake --build build --target _ga_py --config Release
 ```
 
-> **Note — Debug vs Release on Windows.** `--config Release` (above) always works and is the
-> safe default. Whether **Debug** also works depends on your Python install:
+> **Debug vs Release on Windows.** `--config Release` always works and is the safe default.
+> **Debug** also works *unless* your Python install ships debug libs (`python3XX_d.lib`):
 >
-> - **No debug Python libs installed** (the common case — standard python.org / PyManager
->   builds, like a stock 3.14 install): FindPython links the *release* `python3XX.lib` /
->   `python3XX.dll` even in the Debug config, so a Debug `.pyd` loads fine under the normal
->   venv interpreter. Debug works, and `_ga_py` is left in the default build — a bare
->   `cmake --build build` (or VS Code's `ALL_BUILD`, which builds Debug) builds it too. The
->   configure step prints `ga_py: no debug Python lib …` to confirm this path.
-> - **Debug Python libs installed** (`python3XX_d.lib` present): Debug links the debug
->   runtime, which the release venv interpreter cannot load (and the link fails first — see
->   the LNK1104 entry below). Use `--config Release`. CMake detects this, prints
->   `ga_py: debug Python lib found …`, and excludes `_ga_py` from the default build so
->   `ALL_BUILD` doesn't drag it into a broken Debug link; build it explicitly with the
->   Release command above.
+> - **No debug libs** (the common case — stock python.org / PyManager installs): FindPython
+>   links the *release* runtime even in the Debug config, so the `.pyd` loads under the
+>   normal interpreter. `_ga_py` stays in the default build, so a bare `cmake --build build`
+>   (or VS Code's `ALL_BUILD`, which builds Debug) builds it too.
+> - **Debug libs present**: a Debug `.pyd` links the debug runtime (unloadable by the normal
+>   interpreter) and fails to link first — use `--config Release`. CMake detects this and
+>   excludes `_ga_py` from the default build, so build it explicitly with the command above.
 >
-> **Troubleshooting — `LNK1104: cannot open file "python3XX.lib"`:** you built in Debug
-> config *and* a debug Python lib is installed. In Debug, `nanobind-static` is compiled
-> without `_DEBUG`, so `Python.h` injects `#pragma comment(lib, "python3XX.lib")` (the
-> *release* lib name) while CMake puts the *debug* lib `python3XX_d.lib` on the link line —
-> the names don't match and the Python `libs\` dir isn't on the linker search path. Build in
-> Release instead (also required for the module to load at runtime when debug Python is
-> present):
+> The configure log prints `ga_py: no debug Python lib …` or `… found …` to show which path
+> applies.
 >
-> ```bat
-> cmake --build build --target _ga_py --config Release
-> ```
+> **Troubleshooting:**
 >
-> **Troubleshooting — *"Could not find a package configuration file provided by
-> nanobind"*:** a stale cache entry from a previous failed configure is the likely cause.
-> Clear it and retry:
->
-> ```bat
-> cmake -Unanobind_DIR build
-> cmake --build build --target _ga_py --config Release
-> ```
+> - `LNK1104: cannot open file "python3XX.lib"` — the debug-libs-present case built in Debug:
+>   `Python.h` requests the release-named lib while CMake links the debug one. Build
+>   `--config Release`.
+> - *"Could not find a package configuration file provided by nanobind"* — stale cache from a
+>   failed configure: `cmake -Unanobind_DIR build`, then rebuild.
 
 After the build, the compiled extension lands at (paths relative to the project root):
 
@@ -175,29 +184,13 @@ working if you later `cd` elsewhere in the same shell.)
 
 A ready-to-run demo lives at [`ga_py/demo/hello_ga.py`](demo/hello_ga.py). It exercises
 the two core GA operations — the wedge product and the geometric product — and verifies
-the foundational identity `v1 * v2 = dot(v1, v2) + wdg(v1, v2)`. Run it from the project
-root:
+the foundational identity `v1 * v2 = dot(v1, v2) + wdg(v1, v2)`. With `PYTHONPATH` set per
+§3.3, run it from the project root:
 
 ```bash
-# macOS / Linux — cwd: project root
-PYTHONPATH="$PWD/build/ga_py:$PWD/ga_py/python" \
-    ga_py/.venv/bin/python ga_py/demo/hello_ga.py
+ga_py/.venv/bin/python ga_py/demo/hello_ga.py            # macOS / Linux
+ga_py\.venv\Scripts\python.exe ga_py\demo\hello_ga.py    # Windows
 ```
-
-```bat
-rem Windows Command Prompt — cwd: project root
-set PYTHONPATH=%CD%\build\ga_py\Release;%CD%\ga_py\python
-ga_py\.venv\Scripts\python.exe ga_py\demo\hello_ga.py
-```
-
-```powershell
-# Windows PowerShell — cwd: project root
-$env:PYTHONPATH = "$PWD\build\ga_py\Release;$PWD\ga_py\python"
-ga_py\.venv\Scripts\python.exe ga_py\demo\hello_ga.py
-```
-
-(If you've already exported `PYTHONPATH` per §3.3, the leading `PYTHONPATH=…` /
-`set PYTHONPATH=…` / `$env:PYTHONPATH=…` line is redundant.)
 
 Expected output:
 
@@ -216,25 +209,16 @@ install is good.
 
 ### 3.5 Verify with the test suite
 
+With `PYTHONPATH` set per §3.3, from the project root:
+
 ```bash
-# macOS / Linux — cwd: project root
-PYTHONPATH="build/ga_py:ga_py/python" ga_py/.venv/bin/pytest ga_py/tests/
+ga_py/.venv/bin/pytest ga_py/tests/            # macOS / Linux
+ga_py\.venv\Scripts\pytest ga_py\tests\        # Windows
 ```
 
-```bat
-rem Windows Command Prompt — cwd: project root
-set PYTHONPATH=%CD%\build\ga_py\Release;%CD%\ga_py\python
-ga_py\.venv\Scripts\pytest ga_py\tests\
-```
-
-```powershell
-# Windows PowerShell — cwd: project root
-$env:PYTHONPATH = "$PWD\build\ga_py\Release;$PWD\ga_py\python"
-ga_py\.venv\Scripts\pytest ga_py\tests\
-```
-
-411 tests, ~1.5 s. They cover constants, grade lookup, EGA/PGA algebraic identities (via
-`hypothesis`), and a JSON cross-check against the C++ reference outputs.
+688 tests, ~2 s. They cover constants, grade lookup, EGA/PGA algebraic identities (via
+`hypothesis`), numpy interop, `rk4_step` integration, and a JSON cross-check against the
+C++ reference outputs.
 
 ### 3.6 Where to find the API reference
 
@@ -243,8 +227,9 @@ The Python surface mirrors the C++ headers exactly. Until `.pyi` stub generation
 
 - EGA: `ga/ga_ega2d_ops.hpp`, `ga/ga_ega3d_ops.hpp`, `ga/ga_usr_consts.hpp`
 - PGA: `ga/ga_pga2dp_ops.hpp`, `ga/ga_pga3dp_ops.hpp`, `ga/ga_usr_consts.hpp`
+- STA: `ga/ga_sta4ds_ops.hpp`, `ga/ga_usr_consts.hpp`
 
-Use `dir(ga_py.ega)` / `dir(ga_py.pga)` for a quick interactive listing.
+Use `dir(ga_py.ega)` / `dir(ga_py.pga)` / `dir(ga_py.sta)` for a quick interactive listing.
 
 ## 4. Using the library
 
@@ -355,8 +340,8 @@ that use `^`. Surface it in your own examples.
 
 #### Nanobind submodule attributes don't behave like Python submodules
 
-`ga_py.ega` and `ga_py.pga` are exposed as attributes on the `ga_py` package (they are
-`nanobind` sub-modules of the C extension). They work fine for attribute access:
+`ga_py.ega`, `ga_py.pga`, and `ga_py.sta` are exposed as attributes on the `ga_py` package
+(they are `nanobind` sub-modules of the C extension). They work fine for attribute access:
 
 ```python
 import ga_py
@@ -425,7 +410,7 @@ ga_py/
 │       ├── register_all.cpp    # dispatcher in inheritance-topological order
 │       └── bindings_list.cmake # generated source list, included by CMakeLists.txt
 ├── python/
-│   └── ga_py/__init__.py       # re-exports ega/pga submodules + Python forwarders
+│   └── ga_py/__init__.py       # re-exports ega/pga/sta submodules + Python forwarders
 │                               #   for fully-generic C++ templates that the
 │                               #   binding generator cannot enumerate
 └── tests/
@@ -821,22 +806,22 @@ The bindings are hand-written in
 emit shapes (struct holding `std::array<T, N>` storage with `view()`-returning-mdspan and
 overloaded `operator()` for the inertia map), so explicit binding is the smallest path.
 
-### 6.6 Demo / teaching scripts
+### 6.7 Demo / teaching scripts
 
 `ga_py/demo/hello_ga.py` (the §3.4 install-check) is the first one. Topical follow-ups
 along the same lines are pending: `demo/ega_basics.py`, `demo/pga_basics.py`,
 `demo/rotors_and_motors.py`, etc. — minimal scripts demonstrating the `import ga_py`
 workflow on focused themes.
 
-### 6.7 Documentation site
+### 6.8 Documentation site
 
 Sphinx + autodoc was deliberately deferred until docstrings exist (also not yet started).
 The natural ordering when picked up: docstrings → autodoc → Sphinx site.
 
-### 6.8 Excluded namespace `hd::ga::detail`
+### 6.9 Excluded namespace `hd::ga::detail`
 
 The scanner has an explicit allow-list (`TARGET_NAMESPACES = {"hd::ga", "hd::ga::ega",
-"hd::ga::pga"}` in `ga_bindgen/src/scan.py`). Anything in `hd::ga::detail` is filtered out
+"hd::ga::pga", "hd::ga::sta"}` in `ga_bindgen/src/scan.py`). Anything in `hd::ga::detail` is filtered out
 at scan time and never reaches Python. This is intentional — `detail` contains tolerance
 helpers (`safe_epsilon`), runtime guards (`check_division_by_zero`, `check_normalization`,
 `check_unitization`) that the public API already calls, the `extended_testing_enabled()`
