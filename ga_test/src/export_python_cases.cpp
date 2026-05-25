@@ -510,6 +510,22 @@ void emit_sta_cases()
         vec4ds g4{0.0, 0.0, 0.0, 1.0};
         add_case("sta_transform_boost_g4", "sta", "transform", transform(g4, Rboost),
                  1e-9, g4, Rboost);
+
+        // sqrt(rotor) halves the angle/rapidity: sqrt(R(x)) == R(x/2).
+        // Use a generic rotor (boost composed with rotation) exercising all 8 coeffs.
+        auto Rgen = get_boost(g14, 0.5) * get_rotor(g12, 0.6);
+        add_case("sta_sqrt_rotor", "sta", "sqrt", sqrt(Rgen), 1e-9, Rgen);
+
+        // closed-form transform_opt (vec / bivec / trivec) -- must match transform()
+        vec4ds v{2.0, 3.0, 5.0, 7.0};
+        bivec4ds B{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        trivec4ds t{1.0, 2.0, 3.0, 4.0};
+        add_case("sta_transform_opt_vec", "sta", "transform_opt", transform_opt(v, Rgen),
+                 1e-9, v, Rgen);
+        add_case("sta_transform_opt_bivec", "sta", "transform_opt",
+                 transform_opt(B, Rgen), 1e-9, B, Rgen);
+        add_case("sta_transform_opt_trivec", "sta", "transform_opt",
+                 transform_opt(t, Rgen), 1e-9, t, Rgen);
     }
 
     // --- projection / rejection / reflection (vector onto vector) ---

@@ -1131,6 +1131,49 @@
       "tolerance": 1e-09
     },
     {
+      "id": "sta_sqrt_rotor",
+      "submodule": "sta",
+      "op": "sqrt",
+      "args": [
+        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, 0.074652044068349674, 0, 0, 0, -0.30480341242962433, 0]}
+      ],
+      "expected": {"type": "mvec4ds_e", "fields": [0.99632990763027618, 0.12110936447917754, 0.037463516600593695, 0, 0, 0, -0.15296309490226231, 0]},
+      "tolerance": 1e-09
+    },
+    {
+      "id": "sta_transform_opt_vec",
+      "submodule": "sta",
+      "op": "transform_opt",
+      "args": [
+        {"type": "vec4ds", "fields": [2, 3, 5, 7]},
+        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, 0.074652044068349674, 0, 0, 0, -0.30480341242962433, 0]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [7.4191234193954712, 1.3467218979389644, 4.9999999999999991, 9.6362364117227148]},
+      "tolerance": 1e-09
+    },
+    {
+      "id": "sta_transform_opt_bivec",
+      "submodule": "sta",
+      "op": "transform_opt",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, 2, 3, 4, 5, 6]},
+        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, 0.074652044068349674, 0, 0, 0, -0.30480341242962433, 0]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [1.9546205616997485, -1.9019376082576227, 4.3563402988761615, 6.1245548266138901, 3.6698132071555021, 6.1998313046343583]},
+      "tolerance": 1e-09
+    },
+    {
+      "id": "sta_transform_opt_trivec",
+      "submodule": "sta",
+      "op": "transform_opt",
+      "args": [
+        {"type": "trivec4ds", "fields": [1, 2, 3, 4]},
+        {"type": "mvec4ds_e", "fields": [0.98534656967710943, 0.24132976384940083, 0.074652044068349674, 0, 0, 0, -0.30480341242962433, 0]}
+      ],
+      "expected": {"type": "trivec4ds", "fields": [4.2884621194739072, 1.0860287564243212, 2.9999999999999996, 5.5290474595488135]},
+      "tolerance": 1e-09
+    },
+    {
       "id": "sta_project_onto",
       "submodule": "sta",
       "op": "project_onto",

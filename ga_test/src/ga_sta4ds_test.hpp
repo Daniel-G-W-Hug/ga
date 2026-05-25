@@ -547,9 +547,35 @@ TEST_SUITE("STA 3D Tests")
         // also preserves the interval, like the direct form
         CHECK(nrm_sq(transform_opt(x, Rgen)) == doctest::Approx(nrm_sq(x)));
 
+        // ---- transform_opt for bivectors and trivectors matches the direct form ----
+        bivec4ds Bgen{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        trivec4ds Tgen{1.0, 2.0, 3.0, 4.0};
+        CHECK(nrm_sq(transform_opt(Bgen, Rgen) - transform(Bgen, Rgen)) ==
+              doctest::Approx(0.0));
+        CHECK(nrm_sq(transform_opt(Tgen, Rgen) - transform(Tgen, Rgen)) ==
+              doctest::Approx(0.0));
+        // each basis bivector / trivector too (exercises every matrix column)
+        CHECK(nrm_sq(transform_opt(g14_4ds, Rgen) - transform(g14_4ds, Rgen)) ==
+              doctest::Approx(0.0));
+        CHECK(nrm_sq(transform_opt(g23_4ds, Rgen) - transform(g23_4ds, Rgen)) ==
+              doctest::Approx(0.0));
+        CHECK(nrm_sq(transform_opt(g123_4ds, Rgen) - transform(g123_4ds, Rgen)) ==
+              doctest::Approx(0.0));
+        // batch overloads agree with the scalar form
+        std::vector<vec4ds> vs{x, g1_4ds, g4_4ds};
+        std::vector<bivec4ds> Bs{Bgen, g14_4ds, g23_4ds};
+        std::vector<trivec4ds> Ts{Tgen, g123_4ds};
+        auto vo = transform_opt(vs, Rgen);
+        auto Bo = transform_opt(Bs, Rgen);
+        auto To = transform_opt(Ts, Rgen);
+        CHECK(nrm_sq(vo[0] - transform(x, Rgen)) == doctest::Approx(0.0));
+        CHECK(nrm_sq(Bo[0] - transform(Bgen, Rgen)) == doctest::Approx(0.0));
+        CHECK(nrm_sq(To[0] - transform(Tgen, Rgen)) == doctest::Approx(0.0));
+
         fmt::println(
             "transform: interval-invariant; rotation==3D; boost gamma=cosh, "
-            "beta=tanh; collinear boosts add rapidity; transform_opt==transform");
+            "beta=tanh; collinear boosts add rapidity; transform_opt==transform "
+            "(vec/bivec/trivec, scalar + batch)");
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -766,6 +792,62 @@ TEST_SUITE("STA 3D Tests")
         fmt::println(
             "angle: spacelike Euclidean angle == rotation param; "
             "rapidity: timelike hyperbolic angle == boost param; domain-guarded");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // ops.hpp: sqrt(rotor) -- halves the rotation angle / boost rapidity
+    ////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("G<1,3,0>: sqrt(rotor) (half-angle / half-rapidity)")
+    {
+        fmt::println("G<1,3,0>: sqrt(rotor) (half-angle / half-rapidity)");
+
+        // max abs component difference between two even rotors (convention-agnostic)
+        auto rotor_diff = [](mvec4ds_e const& a, mvec4ds_e const& b) {
+            return std::max({std::abs(a.c0 - b.c0), std::abs(a.c1 - b.c1),
+                             std::abs(a.c2 - b.c2), std::abs(a.c3 - b.c3),
+                             std::abs(a.c4 - b.c4), std::abs(a.c5 - b.c5),
+                             std::abs(a.c6 - b.c6), std::abs(a.c7 - b.c7)});
+        };
+
+        value_t const th = 0.8;  // rotation angle
+        value_t const phi = 0.9; // boost rapidity
+
+        // ---- defining property: sqrt(R) * sqrt(R) == R  (rotation and boost) ----
+        auto const Rr = get_rotor(g12_4ds, th);
+        auto const Rb = get_boost(g14_4ds, phi);
+        CHECK(rotor_diff(sqrt(Rr) * sqrt(Rr), Rr) == doctest::Approx(0.0));
+        CHECK(rotor_diff(sqrt(Rb) * sqrt(Rb), Rb) == doctest::Approx(0.0));
+
+        // ---- sqrt halves the parameter: sqrt(R(x)) == R(x/2) ----
+        CHECK(rotor_diff(sqrt(Rr), get_rotor(g12_4ds, th / 2)) == doctest::Approx(0.0));
+        CHECK(rotor_diff(sqrt(Rb), get_boost(g14_4ds, phi / 2)) == doctest::Approx(0.0));
+
+        // ---- result is a unit rotor (versor norm gr0(rev(s) s) == 1) ----
+        auto const sr = sqrt(Rr);
+        auto const sb = sqrt(Rb);
+        CHECK(value_t(gr0(rev(sr) * sr)) == doctest::Approx(1.0));
+        CHECK(value_t(gr0(rev(sb) * sb)) == doctest::Approx(1.0));
+
+        // ---- geometric meaning: applying sqrt(R) twice == applying R once ----
+        vec4ds x{2.0, 3.0, 5.0, 7.0};
+        CHECK(nrm_sq(transform(transform(x, sr), sr) - transform(x, Rr)) ==
+              doctest::Approx(0.0));
+        CHECK(nrm_sq(transform(transform(x, sb), sb) - transform(x, Rb)) ==
+              doctest::Approx(0.0));
+
+        // ---- identity rotor: sqrt(1) == 1 ----
+        mvec4ds_e id{scalar4ds{1.0}, bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                     pscalar4ds{0.0}};
+        CHECK(rotor_diff(sqrt(id), id) == doctest::Approx(0.0));
+
+        // ---- degenerate: sqrt(-1) (a 2*pi rotation rotor) -> identity, not a crash ----
+        mvec4ds_e neg_id{scalar4ds{-1.0}, bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                         pscalar4ds{0.0}};
+        CHECK(rotor_diff(sqrt(neg_id), id) == doctest::Approx(0.0));
+
+        fmt::println("sqrt: sqrt(R)^2 == R; halves angle/rapidity; unit rotor; "
+                     "two half-transforms == one; degenerate -1 -> identity");
     }
 
     TEST_CASE("G<1,3,0>: left-right complement composition")

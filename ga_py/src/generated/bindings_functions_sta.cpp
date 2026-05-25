@@ -249,13 +249,18 @@ void register_functions_sta(nb::module_& m) {
     m.def("rwdg", [](scalar4ds const& a0, vec4ds const& a1) { return rwdg(a0, a1); });
     m.def("rwdg", [](scalar4ds const& a0, scalar4ds const& a1) { return rwdg(a0, a1); });
     m.def("space_split", [](vec4ds const& a0, vec4ds const& a1) { return space_split(a0, a1); });
+    m.def("sqrt", [](mvec4ds_e const& a0) { return sqrt(a0); });
     m.def("time_split", [](vec4ds const& a0, vec4ds const& a1) { return time_split(a0, a1); });
     m.def("transform", [](vec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
     m.def("transform", [](bivec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
     m.def("transform", [](trivec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
     m.def("transform", [](mvec4ds const& a0, mvec4ds_e const& a1) { return transform(a0, a1); });
     m.def("transform_opt", [](vec4ds const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
+    m.def("transform_opt", [](trivec4ds const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
+    m.def("transform_opt", [](bivec4ds const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
     m.def("transform_opt", [](std::vector<vec4ds> const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
+    m.def("transform_opt", [](std::vector<trivec4ds> const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
+    m.def("transform_opt", [](std::vector<bivec4ds> const& a0, mvec4ds_e const& a1) { return transform_opt(a0, a1); });
     m.def("wdg", [](mvec4ds const& a0, mvec4ds const& a1) { return wdg(a0, a1); });
     m.def("wdg", [](mvec4ds const& a0, mvec4ds_e const& a1) { return wdg(a0, a1); });
     m.def("wdg", [](mvec4ds_e const& a0, mvec4ds const& a1) { return wdg(a0, a1); });

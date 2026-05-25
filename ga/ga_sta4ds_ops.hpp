@@ -7,8 +7,101 @@
 #include "ga_sta4ds_ops_products.hpp"
 
 #include <algorithm> // std::clamp, std::max
+#include <array>     // std::array (transform_opt coefficient matrices)
 #include <cmath>     // std::cos, std::sin, std::cosh, std::sinh, std::sqrt, std::abs
 #include <stdexcept> // std::runtime_error
+
+
+namespace hd::ga::detail {
+
+// Closed-form rotor-sandwich coefficient matrices for sta::transform_opt(), kept in
+// `detail` so the binding generator (which scans hd::ga / ::ega / ::pga / ::sta) skips
+// them. Each is built once from the rotor coefficients R.c0..R.c7 and reused by both
+// the scalar and the std::vector batch transform_opt overloads.
+//
+// The matrices are the "after transformation" coefficients emitted by ga_prdxpr, with
+// every distinct product R.ci*R.cj collected into a named temporary once (squares reused
+// on the diagonal, mixed products reused across symmetric off-diagonal entries).
+
+// 4x4 matrix M(R) for the grade-1 (vector) AND grade-3 (trivector) sandwich -- these
+// share identical coefficients in sta. Row-major: entry (row r, col c) is k[4*r + c],
+// rows/cols ordered (g1,g2,g3,g4) for vectors / (g234,g314,g124,g123) for trivectors.
+template <typename T>
+inline std::array<T, 16> sta_rotor_xf_mat_vec(MVec4ds_E<T> const& R)
+{
+    T const a0 = R.c0 * R.c0, a1 = R.c1 * R.c1, a2 = R.c2 * R.c2, a3 = R.c3 * R.c3;
+    T const a4 = R.c4 * R.c4, a5 = R.c5 * R.c5, a6 = R.c6 * R.c6, a7 = R.c7 * R.c7;
+
+    T const b01 = R.c0 * R.c1, b02 = R.c0 * R.c2, b03 = R.c0 * R.c3, b04 = R.c0 * R.c4;
+    T const b05 = R.c0 * R.c5, b06 = R.c0 * R.c6;
+    T const b12 = R.c1 * R.c2, b13 = R.c1 * R.c3, b15 = R.c1 * R.c5, b16 = R.c1 * R.c6;
+    T const b17 = R.c1 * R.c7;
+    T const b23 = R.c2 * R.c3, b24 = R.c2 * R.c4, b26 = R.c2 * R.c6, b27 = R.c2 * R.c7;
+    T const b34 = R.c3 * R.c4, b35 = R.c3 * R.c5, b37 = R.c3 * R.c7;
+    T const b45 = R.c4 * R.c5, b46 = R.c4 * R.c6, b47 = R.c4 * R.c7;
+    T const b56 = R.c5 * R.c6, b57 = R.c5 * R.c7;
+    T const b67 = R.c6 * R.c7;
+
+    return {a0 + a1 - a2 - a3 + a4 - a5 - a6 + a7, T(2.0) * (-b06 + b12 + b37 + b45),
+            T(2.0) * (b05 + b13 - b27 + b46),      T(2.0) * (b01 - b26 + b35 + b47),
+
+            T(2.0) * (b06 + b12 - b37 + b45),      a0 - a1 + a2 - a3 - a4 + a5 - a6 + a7,
+            T(2.0) * (-b04 + b17 + b23 + b56),     T(2.0) * (b02 + b16 - b34 + b57),
+
+            T(2.0) * (-b05 + b13 + b27 + b46),     T(2.0) * (b04 - b17 + b23 + b56),
+            a0 - a1 - a2 + a3 - a4 - a5 + a6 + a7, T(2.0) * (b03 - b15 + b24 + b67),
+
+            T(2.0) * (b01 + b26 - b35 + b47),      T(2.0) * (b02 - b16 + b34 + b57),
+            T(2.0) * (b03 + b15 - b24 + b67),      a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7};
+}
+
+// 6x6 matrix M(R) for the grade-2 (bivector) sandwich. Row-major: entry (row r, col c)
+// is k[6*r + c]; rows/cols ordered (vx,vy,vz,mx,my,mz) = (g14,g24,g34,g23,g31,g12).
+// All 28 distinct mixed products appear here (none is unused).
+template <typename T>
+inline std::array<T, 36> sta_rotor_xf_mat_bivec(MVec4ds_E<T> const& R)
+{
+    T const a0 = R.c0 * R.c0, a1 = R.c1 * R.c1, a2 = R.c2 * R.c2, a3 = R.c3 * R.c3;
+    T const a4 = R.c4 * R.c4, a5 = R.c5 * R.c5, a6 = R.c6 * R.c6, a7 = R.c7 * R.c7;
+
+    T const b01 = R.c0 * R.c1, b02 = R.c0 * R.c2, b03 = R.c0 * R.c3, b04 = R.c0 * R.c4;
+    T const b05 = R.c0 * R.c5, b06 = R.c0 * R.c6, b07 = R.c0 * R.c7;
+    T const b12 = R.c1 * R.c2, b13 = R.c1 * R.c3, b14 = R.c1 * R.c4, b15 = R.c1 * R.c5;
+    T const b16 = R.c1 * R.c6, b17 = R.c1 * R.c7;
+    T const b23 = R.c2 * R.c3, b24 = R.c2 * R.c4, b25 = R.c2 * R.c5, b26 = R.c2 * R.c6;
+    T const b27 = R.c2 * R.c7;
+    T const b34 = R.c3 * R.c4, b35 = R.c3 * R.c5, b36 = R.c3 * R.c6, b37 = R.c3 * R.c7;
+    T const b45 = R.c4 * R.c5, b46 = R.c4 * R.c6, b47 = R.c4 * R.c7;
+    T const b56 = R.c5 * R.c6, b57 = R.c5 * R.c7;
+    T const b67 = R.c6 * R.c7;
+
+    return {// g14 <- (vx,vy,vz,mx,my,mz)
+            a0 - a1 + a2 + a3 + a4 - a5 - a6 - a7, T(2.0) * (-b06 - b12 - b37 + b45),
+            T(2.0) * (b05 - b13 + b27 + b46),      T(2.0) * (-b07 + b14 - b25 - b36),
+            T(2.0) * (-b03 + b15 + b24 + b67),     T(2.0) * (b02 + b16 + b34 - b57),
+            // g24
+            T(2.0) * (b06 - b12 + b37 + b45),      a0 + a1 - a2 + a3 - a4 + a5 - a6 - a7,
+            T(2.0) * (-b04 - b17 - b23 + b56),     T(2.0) * (b03 + b15 + b24 - b67),
+            T(2.0) * (-b07 - b14 + b25 - b36),     T(2.0) * (-b01 + b26 + b35 + b47),
+            // g34
+            T(2.0) * (-b05 - b13 - b27 + b46),     T(2.0) * (b04 + b17 - b23 + b56),
+            a0 + a1 + a2 - a3 - a4 - a5 + a6 - a7,  T(2.0) * (-b02 + b16 + b34 + b57),
+            T(2.0) * (b01 + b26 + b35 - b47),      T(2.0) * (-b07 - b14 - b25 + b36),
+            // g23
+            T(2.0) * (b07 - b14 + b25 + b36),      T(2.0) * (b03 - b15 - b24 - b67),
+            T(2.0) * (-b02 - b16 - b34 + b57),     a0 - a1 + a2 + a3 + a4 - a5 - a6 - a7,
+            T(2.0) * (-b06 - b12 - b37 + b45),     T(2.0) * (b05 - b13 + b27 + b46),
+            // g31
+            T(2.0) * (-b03 - b15 - b24 + b67),     T(2.0) * (b07 + b14 - b25 + b36),
+            T(2.0) * (b01 - b26 - b35 - b47),      T(2.0) * (b06 - b12 + b37 + b45),
+            a0 + a1 - a2 + a3 - a4 + a5 - a6 - a7,  T(2.0) * (-b04 - b17 - b23 + b56),
+            // g12
+            T(2.0) * (b02 - b16 - b34 - b57),      T(2.0) * (-b01 - b26 - b35 + b47),
+            T(2.0) * (b07 + b14 + b25 - b36),      T(2.0) * (-b05 - b13 - b27 + b46),
+            T(2.0) * (b04 + b17 - b23 + b56),      a0 + a1 + a2 - a3 - a4 - a5 + a6 - a7};
+}
+
+} // namespace hd::ga::detail
 
 
 namespace hd::ga::sta {
@@ -26,16 +119,19 @@ namespace hd::ga::sta {
 //   - exp(BiVec)                      -> rotor exponential of a (simple) bivector
 //   - get_rotor(plane, angle)         -> rotor for a spatial rotation
 //   - get_boost(plane, phi)           -> rotor for a Lorentz boost (rapidity phi)
+//   - sqrt(rotor)                     -> rotor halving the rotation angle / rapidity
 //   - angle() / rapidity()            -> separation of two vectors (spacelike / timelike)
 //   - transform(X, R)                 -> apply a rotor via the sandwich R*X*rev(R)
-//   - transform_opt(X, R)             -> closed-form transform (scalar + batch overload)
+//   - transform_opt(X, R)             -> closed-form transform, vec/bivec/trivec
+//                                        (scalar + std::vector batch overloads)
 //   - time_split() / space_split()    -> spacetime split of a vector (time + rel. space)
 //   - rel_vec_split() / rel_bivec_split() -> spacetime split of a bivector (E / B parts)
 //   - project_onto() / reject_from()  -> projection / rejection (onto vector or bivector)
 //   - reflect_on() / reflect_on_vec() -> reflections (hyperplane, 2-plane, vector)
 //   - is_congruent()                  -> same subspace up to a scalar factor
 //
-// TODO (next steps): log / sqrt of rotors; bivec/trivec transform_opt() overloads.
+// TODO (next steps): log of rotors;
+//   general (non-simple) rotor support in exp() / sqrt().
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -100,6 +196,50 @@ inline MVec4ds_E<std::common_type_t<T, U>> get_boost(BiVec4ds<T> const& B, U phi
     ctype const half = 0.5 * phi;
     return MVec4ds_E<ctype>(Scalar4ds<ctype>(std::cosh(half)),
                             normalize(B) * std::sinh(half));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// sqrt(rotor) w.r.t. the geometric product -- halves the rotation angle / boost rapidity
+//
+// For a SIMPLE unit rotor R the "versor average" sqrt(R) = normalize(1 + R) bisects the
+// versor arc from the identity to R, then renormalises, yielding exp(0.5 * log R):
+//   spatial rotation  R = cos a  + sin a  B  (B^2 < 0)  ->  cos(a/2)  + sin(a/2)  B
+//   Lorentz boost     R = cosh f + sinh f B  (B^2 > 0)  ->  cosh(f/2) + sinh(f/2) B
+//
+// The renormalisation uses the VERSOR norm  |X| = sqrt(gr0(rev(X) * X))  (the scalar
+// part of rev(X) * X), which equals 1 for a unit STA rotor. This is deliberately NOT
+// the grade-wise nrm_sq(MVec4ds_E): for these rotors that grade sum is cos(2a) / cosh(2f)
+// (signed Lorentzian bivector norm), not the versor norm, so it must not be used here.
+//
+// PRE: R is a simple rotor (a single rotation or boost plane) -- e.g. the output of
+//      get_rotor / get_boost / exp of a simple bivector. General (non-simple) rotors,
+//      whose bivector carries a g1234 part, are not handled (mirrors exp()'s scope).
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec4ds_E<T> sqrt(MVec4ds_E<T> const& R)
+{
+    MVec4ds_E<T> M{R};
+
+    // ensure a unit rotor (the bisection assumes |R| = 1 in the versor norm)
+    T const r_nsq = T(gr0(rev(M) * M));
+    if (r_nsq > detail::safe_epsilon<T>() &&
+        std::abs(r_nsq - T(1.0)) > detail::safe_epsilon<T>()) {
+        M = M / std::sqrt(r_nsq);
+    }
+
+    // X = 1 + R, renormalised by the versor norm sqrt(gr0(rev(X) * X))
+    MVec4ds_E<T> const X = Scalar4ds<T>(1.0) + M;
+    T const n_sq = T(gr0(rev(X) * X));
+    if (n_sq <= detail::safe_epsilon<T>()) {
+        // degenerate: R = -1 (a 2*pi rotation) -> 1 + R = 0 has no unique direction;
+        // return the identity rotor (the conventional principal square root)
+        return MVec4ds_E<T>(Scalar4ds<T>(1.0),
+                            BiVec4ds<T>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                            PScalar4ds<T>(0.0));
+    }
+    return X / std::sqrt(n_sq);
 }
 
 
@@ -213,165 +353,134 @@ constexpr MVec4ds<std::common_type_t<T, U>> transform(MVec4ds<T> const& M,
     return MVec4ds<ctype>(R * M * rev(R));
 }
 
-// optimized closed-form Lorentz transformation of a vector:  v' = R * v * rev(R)
+// optimized closed-form Lorentz transformation:  X' = R * X * rev(R)
 //
-// The sandwich collapses to a single 4x4 matrix M(R) acting on (v.x, v.y, v.z, v.w);
-// the 16 matrix entries are quadratic in the rotor coefficients R.c0..R.c7 (the
-// "after transformation" coefficients emitted by ga_prdxpr). Beyond that raw output
-// we additionally collect every distinct product R.ci*R.cj into a named temporary
-// once (8 squares + 24 mixed products), since each appears in several matrix
-// entries -- the squares in all four diagonal entries, each mixed product in two
-// off-diagonal entries. This trades the ~80 inline multiplications of the raw
-// expansion for 32 products + 16 matrix combinations + one matrix-vector product.
+// The sandwich collapses to a single matrix M(R) acting on the blade's components,
+// quadratic in the rotor coefficients R.c0..R.c7 (the "after transformation"
+// coefficients emitted by ga_prdxpr). The matrix is built once by the helpers in
+// hd::ga::detail (collecting every distinct R.ci*R.cj product), then applied:
+//   - grade 1 (vector)    and grade 3 (trivector) share one 4x4 matrix
+//   - grade 2 (bivector)  uses a 6x6 matrix
 //
-// validated against the direct transform() in the test suite; see there whether the
-// hand collection actually beats what the optimizer already extracts from transform().
+// validated against the direct transform() in the test suite. For a single one-off
+// transform the direct transform() is faster (the matrix-build cost is not amortised);
+// the closed form only pays off in the std::vector batch overloads below, where one
+// matrix is reused across many blades. See ga_test/utilities/bench_sta4ds_transform.
+
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 constexpr Vec4ds<std::common_type_t<T, U>> transform_opt(Vec4ds<T> const& v,
                                                          MVec4ds_E<U> const& R)
 {
     using ctype = std::common_type_t<T, U>;
-
-    // squared rotor coefficients (each reused across all four diagonal entries)
-    ctype const a0 = R.c0 * R.c0;
-    ctype const a1 = R.c1 * R.c1;
-    ctype const a2 = R.c2 * R.c2;
-    ctype const a3 = R.c3 * R.c3;
-    ctype const a4 = R.c4 * R.c4;
-    ctype const a5 = R.c5 * R.c5;
-    ctype const a6 = R.c6 * R.c6;
-    ctype const a7 = R.c7 * R.c7;
-
-    // mixed rotor coefficients needed for the vector transform (each reused twice)
-    ctype const b01 = R.c0 * R.c1;
-    ctype const b02 = R.c0 * R.c2;
-    ctype const b03 = R.c0 * R.c3;
-    ctype const b04 = R.c0 * R.c4;
-    ctype const b05 = R.c0 * R.c5;
-    ctype const b06 = R.c0 * R.c6;
-    ctype const b12 = R.c1 * R.c2;
-    ctype const b13 = R.c1 * R.c3;
-    ctype const b15 = R.c1 * R.c5;
-    ctype const b16 = R.c1 * R.c6;
-    ctype const b17 = R.c1 * R.c7;
-    ctype const b23 = R.c2 * R.c3;
-    ctype const b24 = R.c2 * R.c4;
-    ctype const b26 = R.c2 * R.c6;
-    ctype const b27 = R.c2 * R.c7;
-    ctype const b34 = R.c3 * R.c4;
-    ctype const b35 = R.c3 * R.c5;
-    ctype const b37 = R.c3 * R.c7;
-    ctype const b45 = R.c4 * R.c5;
-    ctype const b46 = R.c4 * R.c6;
-    ctype const b47 = R.c4 * R.c7;
-    ctype const b56 = R.c5 * R.c6;
-    ctype const b57 = R.c5 * R.c7;
-    ctype const b67 = R.c6 * R.c7;
-
-    // 4x4 transformation matrix M(R) (row = output basis vector g1,g2,g3,g4)
-    ctype const k11 = a0 + a1 - a2 - a3 + a4 - a5 - a6 + a7;
-    ctype const k12 = 2.0 * (-b06 + b12 + b37 + b45);
-    ctype const k13 = 2.0 * (b05 + b13 - b27 + b46);
-    ctype const k14 = 2.0 * (b01 - b26 + b35 + b47);
-
-    ctype const k21 = 2.0 * (b06 + b12 - b37 + b45);
-    ctype const k22 = a0 - a1 + a2 - a3 - a4 + a5 - a6 + a7;
-    ctype const k23 = 2.0 * (-b04 + b17 + b23 + b56);
-    ctype const k24 = 2.0 * (b02 + b16 - b34 + b57);
-
-    ctype const k31 = 2.0 * (-b05 + b13 + b27 + b46);
-    ctype const k32 = 2.0 * (b04 - b17 + b23 + b56);
-    ctype const k33 = a0 - a1 - a2 + a3 - a4 - a5 + a6 + a7;
-    ctype const k34 = 2.0 * (b03 - b15 + b24 + b67);
-
-    ctype const k41 = 2.0 * (b01 + b26 - b35 + b47);
-    ctype const k42 = 2.0 * (b02 - b16 + b34 + b57);
-    ctype const k43 = 2.0 * (b03 + b15 - b24 + b67);
-    ctype const k44 = a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7;
-
-    return Vec4ds<ctype>(k11 * v.x + k12 * v.y + k13 * v.z + k14 * v.w,
-                         k21 * v.x + k22 * v.y + k23 * v.z + k24 * v.w,
-                         k31 * v.x + k32 * v.y + k33 * v.z + k34 * v.w,
-                         k41 * v.x + k42 * v.y + k43 * v.z + k44 * v.w);
+    auto const k = detail::sta_rotor_xf_mat_vec<ctype>(R);
+    return Vec4ds<ctype>(k[0] * v.x + k[1] * v.y + k[2] * v.z + k[3] * v.w,
+                         k[4] * v.x + k[5] * v.y + k[6] * v.z + k[7] * v.w,
+                         k[8] * v.x + k[9] * v.y + k[10] * v.z + k[11] * v.w,
+                         k[12] * v.x + k[13] * v.y + k[14] * v.z + k[15] * v.w);
 }
 
-// batch Lorentz transformation of many vectors by the SAME rotor R.
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr TriVec4ds<std::common_type_t<T, U>> transform_opt(TriVec4ds<T> const& t,
+                                                            MVec4ds_E<U> const& R)
+{
+    using ctype = std::common_type_t<T, U>;
+    // trivectors transform with the same 4x4 matrix as vectors in sta
+    auto const k = detail::sta_rotor_xf_mat_vec<ctype>(R);
+    return TriVec4ds<ctype>(k[0] * t.x + k[1] * t.y + k[2] * t.z + k[3] * t.w,
+                            k[4] * t.x + k[5] * t.y + k[6] * t.z + k[7] * t.w,
+                            k[8] * t.x + k[9] * t.y + k[10] * t.z + k[11] * t.w,
+                            k[12] * t.x + k[13] * t.y + k[14] * t.z + k[15] * t.w);
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+constexpr BiVec4ds<std::common_type_t<T, U>> transform_opt(BiVec4ds<T> const& B,
+                                                           MVec4ds_E<U> const& R)
+{
+    using ctype = std::common_type_t<T, U>;
+    auto const k = detail::sta_rotor_xf_mat_bivec<ctype>(R);
+    return BiVec4ds<ctype>(
+        k[0] * B.vx + k[1] * B.vy + k[2] * B.vz + k[3] * B.mx + k[4] * B.my + k[5] * B.mz,
+        k[6] * B.vx + k[7] * B.vy + k[8] * B.vz + k[9] * B.mx + k[10] * B.my +
+            k[11] * B.mz,
+        k[12] * B.vx + k[13] * B.vy + k[14] * B.vz + k[15] * B.mx + k[16] * B.my +
+            k[17] * B.mz,
+        k[18] * B.vx + k[19] * B.vy + k[20] * B.vz + k[21] * B.mx + k[22] * B.my +
+            k[23] * B.mz,
+        k[24] * B.vx + k[25] * B.vy + k[26] * B.vz + k[27] * B.mx + k[28] * B.my +
+            k[29] * B.mz,
+        k[30] * B.vx + k[31] * B.vy + k[32] * B.vz + k[33] * B.mx + k[34] * B.my +
+            k[35] * B.mz);
+}
+
+// batch Lorentz transformation of many blades by the SAME rotor R.
 //
-// This is the variant where the closed form actually pays off: the 4x4 matrix M(R)
-// depends only on the rotor, so it is built once and then applied to every vector
-// (one matrix-vector product each). For a single one-off transform prefer transform()
-// -- there the matrix-build cost is not amortized and the direct sandwich is faster.
+// This is the variant where the closed form actually pays off: the matrix M(R) depends
+// only on the rotor, so it is built once and then applied to every blade (one
+// matrix-vector product each). For a single one-off transform prefer transform().
+
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
 std::vector<Vec4ds<std::common_type_t<T, U>>>
 transform_opt(std::vector<Vec4ds<T>> const& vecs, MVec4ds_E<U> const& R)
 {
     using ctype = std::common_type_t<T, U>;
-
-    // squared rotor coefficients (each reused across all four diagonal entries)
-    ctype const a0 = R.c0 * R.c0;
-    ctype const a1 = R.c1 * R.c1;
-    ctype const a2 = R.c2 * R.c2;
-    ctype const a3 = R.c3 * R.c3;
-    ctype const a4 = R.c4 * R.c4;
-    ctype const a5 = R.c5 * R.c5;
-    ctype const a6 = R.c6 * R.c6;
-    ctype const a7 = R.c7 * R.c7;
-
-    // mixed rotor coefficients needed for the vector transform (each reused twice)
-    ctype const b01 = R.c0 * R.c1;
-    ctype const b02 = R.c0 * R.c2;
-    ctype const b03 = R.c0 * R.c3;
-    ctype const b04 = R.c0 * R.c4;
-    ctype const b05 = R.c0 * R.c5;
-    ctype const b06 = R.c0 * R.c6;
-    ctype const b12 = R.c1 * R.c2;
-    ctype const b13 = R.c1 * R.c3;
-    ctype const b15 = R.c1 * R.c5;
-    ctype const b16 = R.c1 * R.c6;
-    ctype const b17 = R.c1 * R.c7;
-    ctype const b23 = R.c2 * R.c3;
-    ctype const b24 = R.c2 * R.c4;
-    ctype const b26 = R.c2 * R.c6;
-    ctype const b27 = R.c2 * R.c7;
-    ctype const b34 = R.c3 * R.c4;
-    ctype const b35 = R.c3 * R.c5;
-    ctype const b37 = R.c3 * R.c7;
-    ctype const b45 = R.c4 * R.c5;
-    ctype const b46 = R.c4 * R.c6;
-    ctype const b47 = R.c4 * R.c7;
-    ctype const b56 = R.c5 * R.c6;
-    ctype const b57 = R.c5 * R.c7;
-    ctype const b67 = R.c6 * R.c7;
-
-    ctype const k11 = a0 + a1 - a2 - a3 + a4 - a5 - a6 + a7;
-    ctype const k12 = 2.0 * (-b06 + b12 + b37 + b45);
-    ctype const k13 = 2.0 * (b05 + b13 - b27 + b46);
-    ctype const k14 = 2.0 * (b01 - b26 + b35 + b47);
-
-    ctype const k21 = 2.0 * (b06 + b12 - b37 + b45);
-    ctype const k22 = a0 - a1 + a2 - a3 - a4 + a5 - a6 + a7;
-    ctype const k23 = 2.0 * (-b04 + b17 + b23 + b56);
-    ctype const k24 = 2.0 * (b02 + b16 - b34 + b57);
-
-    ctype const k31 = 2.0 * (-b05 + b13 + b27 + b46);
-    ctype const k32 = 2.0 * (b04 - b17 + b23 + b56);
-    ctype const k33 = a0 - a1 - a2 + a3 - a4 - a5 + a6 + a7;
-    ctype const k34 = 2.0 * (b03 - b15 + b24 + b67);
-
-    ctype const k41 = 2.0 * (b01 + b26 - b35 + b47);
-    ctype const k42 = 2.0 * (b02 - b16 + b34 + b57);
-    ctype const k43 = 2.0 * (b03 + b15 - b24 + b67);
-    ctype const k44 = a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7;
-
+    auto const k = detail::sta_rotor_xf_mat_vec<ctype>(R);
     std::vector<Vec4ds<ctype>> res;
     res.reserve(vecs.size());
     for (auto const& v : vecs) {
-        res.emplace_back(Vec4ds<ctype>(k11 * v.x + k12 * v.y + k13 * v.z + k14 * v.w,
-                                       k21 * v.x + k22 * v.y + k23 * v.z + k24 * v.w,
-                                       k31 * v.x + k32 * v.y + k33 * v.z + k34 * v.w,
-                                       k41 * v.x + k42 * v.y + k43 * v.z + k44 * v.w));
+        res.emplace_back(Vec4ds<ctype>(k[0] * v.x + k[1] * v.y + k[2] * v.z + k[3] * v.w,
+                                       k[4] * v.x + k[5] * v.y + k[6] * v.z + k[7] * v.w,
+                                       k[8] * v.x + k[9] * v.y + k[10] * v.z + k[11] * v.w,
+                                       k[12] * v.x + k[13] * v.y + k[14] * v.z +
+                                           k[15] * v.w));
+    }
+    return res;
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+std::vector<TriVec4ds<std::common_type_t<T, U>>>
+transform_opt(std::vector<TriVec4ds<T>> const& tris, MVec4ds_E<U> const& R)
+{
+    using ctype = std::common_type_t<T, U>;
+    auto const k = detail::sta_rotor_xf_mat_vec<ctype>(R);
+    std::vector<TriVec4ds<ctype>> res;
+    res.reserve(tris.size());
+    for (auto const& t : tris) {
+        res.emplace_back(TriVec4ds<ctype>(
+            k[0] * t.x + k[1] * t.y + k[2] * t.z + k[3] * t.w,
+            k[4] * t.x + k[5] * t.y + k[6] * t.z + k[7] * t.w,
+            k[8] * t.x + k[9] * t.y + k[10] * t.z + k[11] * t.w,
+            k[12] * t.x + k[13] * t.y + k[14] * t.z + k[15] * t.w));
+    }
+    return res;
+}
+
+template <typename T, typename U>
+    requires(numeric_type<T> && numeric_type<U>)
+std::vector<BiVec4ds<std::common_type_t<T, U>>>
+transform_opt(std::vector<BiVec4ds<T>> const& bivecs, MVec4ds_E<U> const& R)
+{
+    using ctype = std::common_type_t<T, U>;
+    auto const k = detail::sta_rotor_xf_mat_bivec<ctype>(R);
+    std::vector<BiVec4ds<ctype>> res;
+    res.reserve(bivecs.size());
+    for (auto const& B : bivecs) {
+        res.emplace_back(BiVec4ds<ctype>(k[0] * B.vx + k[1] * B.vy + k[2] * B.vz +
+                                             k[3] * B.mx + k[4] * B.my + k[5] * B.mz,
+                                         k[6] * B.vx + k[7] * B.vy + k[8] * B.vz +
+                                             k[9] * B.mx + k[10] * B.my + k[11] * B.mz,
+                                         k[12] * B.vx + k[13] * B.vy + k[14] * B.vz +
+                                             k[15] * B.mx + k[16] * B.my + k[17] * B.mz,
+                                         k[18] * B.vx + k[19] * B.vy + k[20] * B.vz +
+                                             k[21] * B.mx + k[22] * B.my + k[23] * B.mz,
+                                         k[24] * B.vx + k[25] * B.vy + k[26] * B.vz +
+                                             k[27] * B.mx + k[28] * B.my + k[29] * B.mz,
+                                         k[30] * B.vx + k[31] * B.vy + k[32] * B.vz +
+                                             k[33] * B.mx + k[34] * B.my + k[35] * B.mz));
     }
     return res;
 }
