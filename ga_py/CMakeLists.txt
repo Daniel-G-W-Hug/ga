@@ -81,6 +81,36 @@ nanobind_add_module(_ga_py
     ${GA_PY_GENERATED_SOURCES}
 )
 
+# Windows Debug-config caveat. A Debug-config extension links whatever Python
+# import lib FindPython selects for that config:
+#   * If a debug Python lib (python3XX_d.lib) is installed, Debug links it and
+#     the resulting .pyd pulls in python3XX_d.dll — which the normal (release)
+#     venv interpreter cannot load. The Debug link also fails (LNK1104) because
+#     Python.h's #pragma asks for the release-named python3XX.lib. So with debug
+#     Python present, only Release works (see README §3.2), and a bare
+#     `cmake --build build` / ALL_BUILD (Debug) would fail.
+#   * If no debug Python lib is installed (the common case for python.org /
+#     PyManager builds), FindPython falls back to the release lib even in Debug,
+#     so the .pyd links python3XX.dll and loads fine under the venv interpreter.
+# Detect the first case and exclude _ga_py from the default build then, so
+# ALL_BUILD does not drag it into a broken Debug link; otherwise leave it in the
+# default build. It is always buildable explicitly (--target _ga_py) and via the
+# ga_py_all / regenerate_python_* targets. On non-Windows it always stays in all.
+if(WIN32)
+    set(_ga_py_debug_lib
+        "${Python_LIBRARY_DIRS}/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}_d.lib")
+    if(EXISTS "${_ga_py_debug_lib}")
+        set_target_properties(_ga_py PROPERTIES EXCLUDE_FROM_ALL TRUE)
+        message(STATUS
+            "ga_py: debug Python lib found (${_ga_py_debug_lib}); _ga_py excluded "
+            "from the default build — build it with --config Release.")
+    else()
+        message(STATUS
+            "ga_py: no debug Python lib; Debug builds link the release runtime, "
+            "so _ga_py stays in the default build (Debug and Release both work).")
+    endif()
+endif()
+
 target_include_directories(_ga_py PRIVATE
     "${GA_PROJECT_ROOT}"           # so #include "ga/ga_ega.hpp" resolves
 )

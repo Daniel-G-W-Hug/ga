@@ -101,20 +101,29 @@ cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.c
 cmake --build build --target _ga_py --config Release
 ```
 
-> **Note:** always use `--config Release` for `_ga_py` on Windows, and do **not** use the
-> bare `cmake --build build` from the macOS/Linux block above. MSVC is a multi-config
-> generator, so an unqualified `cmake --build build` defaults to **Debug** — which fails to
-> link (see the LNK1104 troubleshooting entry below). Even when a Debug build does link, the
-> extension links against `python313_d.dll` (the debug Python runtime) and cannot be loaded
-> by the normal venv interpreter, which uses `python313.dll`. Release is the only supported
-> config on Windows.
+> **Note — Debug vs Release on Windows.** `--config Release` (above) always works and is the
+> safe default. Whether **Debug** also works depends on your Python install:
 >
-> **Troubleshooting — `LNK1104: cannot open file "python313.lib"`:** you built in Debug
-> config (the default for a bare `cmake --build build`). In Debug, `nanobind-static` is
-> compiled without `_DEBUG`, so `Python.h` injects `#pragma comment(lib, "python313.lib")`
-> (the *release* lib name) while CMake puts the *debug* lib `python313_d.lib` on the link
-> line — the names don't match and `C:\Python313\libs` isn't on the linker search path.
-> Rebuild in Release (this is also required for the module to load at runtime):
+> - **No debug Python libs installed** (the common case — standard python.org / PyManager
+>   builds, like a stock 3.14 install): FindPython links the *release* `python3XX.lib` /
+>   `python3XX.dll` even in the Debug config, so a Debug `.pyd` loads fine under the normal
+>   venv interpreter. Debug works, and `_ga_py` is left in the default build — a bare
+>   `cmake --build build` (or VS Code's `ALL_BUILD`, which builds Debug) builds it too. The
+>   configure step prints `ga_py: no debug Python lib …` to confirm this path.
+> - **Debug Python libs installed** (`python3XX_d.lib` present): Debug links the debug
+>   runtime, which the release venv interpreter cannot load (and the link fails first — see
+>   the LNK1104 entry below). Use `--config Release`. CMake detects this, prints
+>   `ga_py: debug Python lib found …`, and excludes `_ga_py` from the default build so
+>   `ALL_BUILD` doesn't drag it into a broken Debug link; build it explicitly with the
+>   Release command above.
+>
+> **Troubleshooting — `LNK1104: cannot open file "python3XX.lib"`:** you built in Debug
+> config *and* a debug Python lib is installed. In Debug, `nanobind-static` is compiled
+> without `_DEBUG`, so `Python.h` injects `#pragma comment(lib, "python3XX.lib")` (the
+> *release* lib name) while CMake puts the *debug* lib `python3XX_d.lib` on the link line —
+> the names don't match and the Python `libs\` dir isn't on the linker search path. Build in
+> Release instead (also required for the module to load at runtime when debug Python is
+> present):
 >
 > ```bat
 > cmake --build build --target _ga_py --config Release
@@ -132,7 +141,9 @@ cmake --build build --target _ga_py --config Release
 After the build, the compiled extension lands at (paths relative to the project root):
 
 - macOS / Linux: `build/ga_py/_ga_py.<tag>.so`
-- Windows: `build\ga_py\Release\_ga_py.cp3xx-win_amd64.pyd`
+- Windows: `build\ga_py\<Config>\_ga_py.cp3xx-win_amd64.pyd` — `<Config>` is `Release` or
+  `Debug`, matching the `--config` you built with (Debug only when no debug Python libs are
+  installed; see the Note above). Use the matching directory on `PYTHONPATH` below.
 
 ### 3.3 Make Python find the module
 
@@ -444,6 +455,14 @@ Enable it once and the wrapper builds alongside everything else:
 cmake -S . -B build -D_GA_BUILD_PYTHON=ON
 cmake --build build
 ```
+
+> **Windows:** whether `_ga_py` is part of the default "build all" (and `ALL_BUILD`, which
+> builds the Debug config) depends on your Python install — see the Debug-vs-Release Note in
+> §3.2. With no debug Python libs (the common case) it stays in the default build and
+> `cmake --build build` builds it too. If debug Python libs are installed, CMake excludes it
+> from the default build (a Debug link would fail) — build it explicitly with
+> `cmake --build build --target _ga_py --config Release`. On macOS/Linux it is always part of
+> the default build.
 
 #### Standalone wrapper build (faster iteration)
 
