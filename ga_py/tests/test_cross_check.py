@@ -65,6 +65,9 @@ for n in dir(ga_py.ega):
 for n in dir(ga_py.pga):
     if isinstance(getattr(ga_py.pga, n), type):
         _TYPE_LOCATIONS[n] = "pga"
+for n in dir(ga_py.sta):
+    if isinstance(getattr(ga_py.sta, n), type):
+        _TYPE_LOCATIONS[n] = "sta"
 
 
 def _reconstruct(value: dict):

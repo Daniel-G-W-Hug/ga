@@ -28,7 +28,7 @@ import pytest
 # Resolve the stubs once. Doing it at import time keeps each test fast.
 PKG_DIR = Path(__file__).resolve().parents[1] / "python" / "ga_py"
 STUBS = {name: PKG_DIR / f"{name}.pyi"
-         for name in ("__init__", "ega", "pga")}
+         for name in ("__init__", "ega", "pga", "sta")}
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +84,14 @@ def test_pga_pyi_contains_core_types():
         assert cls in text
 
 
+def test_sta_pyi_contains_core_types():
+    text = STUBS["sta"].read_text()
+    for cls in ("class scalar4ds:", "class vec4ds:", "class bivec4ds:",
+                "class trivec4ds:", "class pscalar4ds:", "class mvec4ds:",
+                "class mvec4ds_e:", "class mvec4ds_u:"):
+        assert cls in text
+
+
 def test_pga_pyi_contains_physics_factories():
     text = STUBS["pga"].read_text()
     for fn in ("def get_point_inertia", "def get_plate_inertia",
@@ -102,7 +110,7 @@ def _bound_classes(text: str) -> list[str]:
     return re.findall(r"^class (\w+)(?:\([^)]*\))?:\s*$", text, re.MULTILINE)
 
 
-@pytest.mark.parametrize("name", ("ega", "pga"))
+@pytest.mark.parametrize("name", ("ega", "pga", "sta"))
 def test_every_bound_class_has_format(name: str):
     """__format__ post-pass: nanobind.stubgen filters this dunder out;
     emit_stubs.py re-injects it into every class with a __str__ since

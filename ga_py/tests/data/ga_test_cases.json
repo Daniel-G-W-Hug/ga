@@ -799,6 +799,393 @@
       "tolerance": 1e-09
     },
     {
+      "id": "sta_vec4ds_dot",
+      "submodule": "sta",
+      "op": "dot",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]},
+        {"type": "vec4ds", "fields": [5, -6, 7, -8]}
+      ],
+      "expected": {"type": "scalar4ds", "fields": [-46]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_wdg",
+      "submodule": "sta",
+      "op": "wdg",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]},
+        {"type": "vec4ds", "fields": [5, -6, 7, -8]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [-28, 8, -52, 32, 8, -16]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_add",
+      "submodule": "sta",
+      "op": "+",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]},
+        {"type": "vec4ds", "fields": [5, -6, 7, -8]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [6, -4, 10, -4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_sub",
+      "submodule": "sta",
+      "op": "-",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]},
+        {"type": "vec4ds", "fields": [5, -6, 7, -8]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [-4, 8, -4, 12]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_neg",
+      "submodule": "sta",
+      "op": "neg",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [-1, -2, -3, -4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_nrm_sq",
+      "submodule": "sta",
+      "op": "nrm_sq",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]}
+      ],
+      "expected": {"type": "double", "fields": [2]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_rev",
+      "submodule": "sta",
+      "op": "rev",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [1, 2, 3, 4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_gpr",
+      "submodule": "sta",
+      "op": "*",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]},
+        {"type": "vec4ds", "fields": [5, -6, 7, -8]}
+      ],
+      "expected": {"type": "mvec4ds_e", "fields": [-46, -28, 8, -52, 32, 8, -16, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_l_cmpl",
+      "submodule": "sta",
+      "op": "l_cmpl",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]}
+      ],
+      "expected": {"type": "trivec4ds", "fields": [-1, -2, -3, 4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_r_cmpl",
+      "submodule": "sta",
+      "op": "r_cmpl",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]}
+      ],
+      "expected": {"type": "trivec4ds", "fields": [1, 2, 3, -4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_l_dual",
+      "submodule": "sta",
+      "op": "l_dual",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]}
+      ],
+      "expected": {"type": "trivec4ds", "fields": [1, 2, 3, 4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_r_dual",
+      "submodule": "sta",
+      "op": "r_dual",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 4]}
+      ],
+      "expected": {"type": "trivec4ds", "fields": [-1, -2, -3, -4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_vec4ds_inv",
+      "submodule": "sta",
+      "op": "inv",
+      "args": [
+        {"type": "vec4ds", "fields": [2, 6, -4, 1]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [-0.036363636363636362, -0.10909090909090909, 0.072727272727272724, -0.018181818181818181]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_bivec4ds_add",
+      "submodule": "sta",
+      "op": "+",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, -2, 3, -4, 5, -6]},
+        {"type": "bivec4ds", "fields": [0.5, 1.5, -0.5, 2, -1, 0.5]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [1.5, -0.5, 2.5, -2, 4, -5.5]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_bivec4ds_sub",
+      "submodule": "sta",
+      "op": "-",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, -2, 3, -4, 5, -6]},
+        {"type": "bivec4ds", "fields": [0.5, 1.5, -0.5, 2, -1, 0.5]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [0.5, -3.5, 3.5, -6, 6, -6.5]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_bivec4ds_neg",
+      "submodule": "sta",
+      "op": "neg",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, -2, 3, -4, 5, -6]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [-1, 2, -3, 4, -5, 6]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_bivec4ds_nrm_sq",
+      "submodule": "sta",
+      "op": "nrm_sq",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, -2, 3, -4, 5, -6]}
+      ],
+      "expected": {"type": "double", "fields": [-63]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_bivec4ds_rev",
+      "submodule": "sta",
+      "op": "rev",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, -2, 3, -4, 5, -6]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [-1, 2, -3, 4, -5, 6]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_bivec4ds_rrev",
+      "submodule": "sta",
+      "op": "rrev",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, -2, 3, -4, 5, -6]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [-1, 2, -3, 4, -5, 6]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_bivec4ds_conj",
+      "submodule": "sta",
+      "op": "conj",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, -2, 3, -4, 5, -6]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [-1, 2, -3, 4, -5, 6]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_bivec4ds_gpr",
+      "submodule": "sta",
+      "op": "*",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, -2, 3, -4, 5, -6]},
+        {"type": "bivec4ds", "fields": [0.5, 1.5, -0.5, 2, -1, 0.5]}
+      ],
+      "expected": {"type": "mvec4ds_e", "fields": [12, 8.5, 0.5, -5.5, 0, -12, -8.5, 14]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_bivec4ds_l_cmpl",
+      "submodule": "sta",
+      "op": "l_cmpl",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, -2, 3, -4, 5, -6]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [-4, 5, -6, 1, -2, 3]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_bivec4ds_r_cmpl",
+      "submodule": "sta",
+      "op": "r_cmpl",
+      "args": [
+        {"type": "bivec4ds", "fields": [1, -2, 3, -4, 5, -6]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [-4, 5, -6, 1, -2, 3]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_trivec4ds_neg",
+      "submodule": "sta",
+      "op": "neg",
+      "args": [
+        {"type": "trivec4ds", "fields": [2, -1, 3, 4]}
+      ],
+      "expected": {"type": "trivec4ds", "fields": [-2, 1, -3, -4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_trivec4ds_nrm_sq",
+      "submodule": "sta",
+      "op": "nrm_sq",
+      "args": [
+        {"type": "trivec4ds", "fields": [2, -1, 3, 4]}
+      ],
+      "expected": {"type": "double", "fields": [2]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_trivec4ds_rev",
+      "submodule": "sta",
+      "op": "rev",
+      "args": [
+        {"type": "trivec4ds", "fields": [2, -1, 3, 4]}
+      ],
+      "expected": {"type": "trivec4ds", "fields": [-2, 1, -3, -4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_trivec4ds_l_cmpl",
+      "submodule": "sta",
+      "op": "l_cmpl",
+      "args": [
+        {"type": "trivec4ds", "fields": [2, -1, 3, 4]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [2, -1, 3, -4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_trivec4ds_r_cmpl",
+      "submodule": "sta",
+      "op": "r_cmpl",
+      "args": [
+        {"type": "trivec4ds", "fields": [2, -1, 3, 4]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [-2, 1, -3, 4]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_time_split",
+      "submodule": "sta",
+      "op": "time_split",
+      "args": [
+        {"type": "vec4ds", "fields": [2, 3, 5, 7]},
+        {"type": "vec4ds", "fields": [0, 0, 0, 1]}
+      ],
+      "expected": {"type": "scalar4ds", "fields": [7]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_space_split",
+      "submodule": "sta",
+      "op": "space_split",
+      "args": [
+        {"type": "vec4ds", "fields": [2, 3, 5, 7]},
+        {"type": "vec4ds", "fields": [0, 0, 0, 1]}
+      ],
+      "expected": {"type": "bivec4ds", "fields": [2, 3, 5, 0, 0, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_transform_rotate_g1_90deg",
+      "submodule": "sta",
+      "op": "transform",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 0, 0, 0]},
+        {"type": "mvec4ds_e", "fields": [0.70710678118654757, -0, -0, -0, -0, -0, -0.70710678118654746, 0]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [1.7938038903913487e-16, -1, 0, 0]},
+      "tolerance": 1e-09
+    },
+    {
+      "id": "sta_transform_boost_g4",
+      "submodule": "sta",
+      "op": "transform",
+      "args": [
+        {"type": "vec4ds", "fields": [0, 0, 0, 1]},
+        {"type": "mvec4ds_e", "fields": [1.0314130998795732, 0.25261231680816831, 0, 0, 0, 0, 0, 0]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [0.52109530549374738, 0, 0, 1.1276259652063809]},
+      "tolerance": 1e-09
+    },
+    {
+      "id": "sta_project_onto",
+      "submodule": "sta",
+      "op": "project_onto",
+      "args": [
+        {"type": "vec4ds", "fields": [2, 3, 5, 7]},
+        {"type": "vec4ds", "fields": [0, 0, 0, 1]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [0, 0, 0, 7]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_reject_from",
+      "submodule": "sta",
+      "op": "reject_from",
+      "args": [
+        {"type": "vec4ds", "fields": [2, 3, 5, 7]},
+        {"type": "vec4ds", "fields": [0, 0, 0, 1]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [2, 3, 5, 0]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_reflect_on_vec",
+      "submodule": "sta",
+      "op": "reflect_on_vec",
+      "args": [
+        {"type": "vec4ds", "fields": [2, 3, 5, 7]},
+        {"type": "vec4ds", "fields": [0, 0, 0, 1]}
+      ],
+      "expected": {"type": "vec4ds", "fields": [-2, -3, -5, 7]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_angle_spacelike",
+      "submodule": "sta",
+      "op": "angle",
+      "args": [
+        {"type": "vec4ds", "fields": [1, 2, 3, 0]},
+        {"type": "vec4ds", "fields": [2, 0, 1, 0]}
+      ],
+      "expected": {"type": "double", "fields": [0.93027401411547206]},
+      "tolerance": 1e-12
+    },
+    {
+      "id": "sta_rapidity_timelike",
+      "submodule": "sta",
+      "op": "rapidity",
+      "args": [
+        {"type": "vec4ds", "fields": [0, 0, 0, 1]},
+        {"type": "vec4ds", "fields": [0.5, 0, 0, 1]}
+      ],
+      "expected": {"type": "double", "fields": [0.54930614433405511]},
+      "tolerance": 1e-12
+    },
+    {
       "id": "top_deg2rad_180",
       "submodule": "top",
       "op": "deg2rad",

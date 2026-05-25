@@ -55,7 +55,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 TARGET_DIR = PROJECT_ROOT / "ga_py" / "python" / "ga_py"
 INIT_PY = TARGET_DIR / "__init__.py"
 
-STUB_FILES = ("__init__.pyi", "ega.pyi", "pga.pyi")
+STUB_FILES = ("__init__.pyi", "ega.pyi", "pga.pyi", "sta.pyi")
 
 
 # ---------------------------------------------------------------------------

@@ -12,6 +12,7 @@ handled — deferred to a later iteration.
 
 Usage:  python3 ga_bindgen/src/emit_nanobind.py --all
 """
+
 from __future__ import annotations
 
 import argparse
@@ -51,11 +52,13 @@ GENERATED_HEADER = """\
 
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
+#include "ga/ga_sta.hpp"
 
 namespace nb = nanobind;
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::sta;
 """
 
 
@@ -121,17 +124,29 @@ def build_type_name_map(types: list[TypeAlias]) -> dict[str, str]:
 # These come up in functions like `nrm(Vec3d<T>) -> T`, where after T=double
 # instantiation the type is just a primitive.
 _PRIMITIVE_SCALAR_NAMES = {
-    "T", "U", "double", "float", "value_t",
+    "T",
+    "U",
+    "double",
+    "float",
+    "value_t",
     # `std::common_type_t<T, U>` and `ctype` get reduced via base_template_name
     # (it strips the template args and namespace); both end up as bare names.
-    "common_type_t", "ctype",
+    "common_type_t",
+    "ctype",
 }
 
 # Integer types — emitted as `int` parameters / returns. nanobind handles
 # Python int <-> C++ integer conversion natively.
 _INTEGER_TYPE_NAMES = {
-    "size_t", "int", "long", "unsigned", "ptrdiff_t", "uint32_t", "int32_t",
-    "uint64_t", "int64_t",
+    "size_t",
+    "int",
+    "long",
+    "unsigned",
+    "ptrdiff_t",
+    "uint32_t",
+    "int32_t",
+    "uint64_t",
+    "int64_t",
 }
 
 # Types that Python handles natively (bound automatically by nanobind without
@@ -179,7 +194,7 @@ def _strip_outer_template(p: str) -> tuple[str, list[str]]:
     head = s.split("<", 1)[0].strip().rsplit("::", 1)[-1]
     if head not in {"vector", "pair", "tuple", "array"}:
         return "", []
-    inner = s[s.index("<") + 1: -1]
+    inner = s[s.index("<") + 1 : -1]
     return head, _split_template_args(inner)
 
 
@@ -239,7 +254,7 @@ def resolve_param_to_user_type(p: str, type_map: dict[str, str]) -> str | None:
 # in-place ops (+=, -=, ...) and comparisons (==, !=) are also separate.
 CPP_OP_TO_DUNDER = {
     "operator+": "__add__",
-    "operator-": "__sub__",   # binary subtraction; unary handled separately
+    "operator-": "__sub__",  # binary subtraction; unary handled separately
     "operator*": "__mul__",
     "operator/": "__truediv__",
     "operator<<": "__lshift__",
@@ -254,15 +269,22 @@ FUNCTION_TO_DUNDER = {
 
 # Operator-like names we DO NOT auto-bind here (covered elsewhere or omitted).
 SKIP_OPERATOR_NAMES = {
-    "operator==", "operator!=",
-    "operator+=", "operator-=", "operator*=", "operator/=",
-    "operator<", "operator<=", "operator>", "operator>=",
+    "operator==",
+    "operator!=",
+    "operator+=",
+    "operator-=",
+    "operator*=",
+    "operator/=",
+    "operator<",
+    "operator<=",
+    "operator>",
+    "operator>=",
 }
 
 
-def collect_binary_operators(manifest: Manifest,
-                             type_map: dict[str, str]
-                             ) -> dict[str, list[tuple[str, str, str, str, str]]]:
+def collect_binary_operators(
+    manifest: Manifest, type_map: dict[str, str]
+) -> dict[str, list[tuple[str, str, str, str, str]]]:
     """For each user type, return a list of operator method bindings.
 
     Each entry is `(dunder, rhs_user_type, return_user_type, callable_text, kind)`:
@@ -280,7 +302,7 @@ def collect_binary_operators(manifest: Manifest,
         if grp.name not in CPP_OP_TO_DUNDER:
             continue
         dunder = CPP_OP_TO_DUNDER[grp.name]
-        symbol = grp.name[len("operator"):]  # '+', '*', '<<', etc.
+        symbol = grp.name[len("operator") :]  # '+', '*', '<<', etc.
         for ov in grp.overloads:
             if len(ov.param_types) != 2:
                 continue  # skip unary minus; in-place handled separately
@@ -320,6 +342,7 @@ def collect_binary_operators(manifest: Manifest,
                 continue
             seen.add(k)
             kept.append(e)
+
         # Reorder for dispatch performance: nanobind tries overloads in
         # registration order, so the hot path should be first within each
         # dunder bucket. Heuristic: same-type rhs first (geometric product,
@@ -330,10 +353,11 @@ def collect_binary_operators(manifest: Manifest,
         # already grouped: all `__add__` together, then all `__mul__`, …).
         def _rhs_rank(rhs: str) -> int:
             if rhs == lhs:
-                return 0          # same-type: hottest path
+                return 0  # same-type: hottest path
             if rhs == "double":
-                return 1          # scalar mul/div: very common
-            return 2              # everything else: original order
+                return 1  # scalar mul/div: very common
+            return 2  # everything else: original order
+
         reordered: list[tuple[str, str, str, str, str]] = []
         i = 0
         while i < len(kept):
@@ -349,8 +373,9 @@ def collect_binary_operators(manifest: Manifest,
     return deduped
 
 
-def render_op_def(cls: str, dunder: str, rhs: str,
-                  callable_text: str, kind: str) -> str:
+def render_op_def(
+    cls: str, dunder: str, rhs: str, callable_text: str, kind: str
+) -> str:
     """Format a single .def(__op__, lambda) line for a binary operator binding.
 
     Direct lambda — no SFINAE/requires guard. If a manifest-listed overload
@@ -361,12 +386,14 @@ def render_op_def(cls: str, dunder: str, rhs: str,
         body = f"return a {callable_text} b;"
     else:
         body = f"return {callable_text}(a, b);"
-    return (f'        .def("{dunder}", []({cls} const& a, {rhs} const& b) {{ '
-            f'{body} }}, nb::is_operator())')
+    return (
+        f'        .def("{dunder}", []({cls} const& a, {rhs} const& b) {{ '
+        f"{body} }}, nb::is_operator())"
+    )
 
 
 # Names handled elsewhere — must NOT be re-emitted as free functions.
-# Note: `wdg` IS emitted as a free function `ga_py.{ega,pga}.wdg(a, b)` so
+# Note: `wdg` IS emitted as a free function `ga_py.{ega,pga,sta}.wdg(a, b)` so
 # Python code can match the C++ idiom; it ALSO has `__xor__` for users who
 # prefer operator syntax (per the operator-mapping decision in §9 of the
 # considerations doc).
@@ -408,21 +435,21 @@ SKIP_FREE_FN_NAMES = {
     # Generic predicates restricted to integral types via `requires(std::is_integral_v<T>)`:
     # the resolver would emit them with `double` args which fail the constraint.
     # Python has `n % 2 == 0` natively, so no need to bind these.
-    "is_even", "is_odd",
+    "is_even",
+    "is_odd",
     # Internal, configuration, and false-positive cursor names that shouldn't
     # leak through. Uppercase-leading names are filtered separately.
-    "abs",                        # collides with Python builtin; not a GA op
+    "abs",  # collides with Python builtin; not a GA op
 }
 
 
-def collect_free_functions(manifest: Manifest,
-                           type_map: dict[str, str],
-                           file_filter: set[str] | None
-                           ) -> dict[str, dict[str, list[tuple[list[str], str]]]]:
+def collect_free_functions(
+    manifest: Manifest, type_map: dict[str, str], file_filter: set[str] | None
+) -> dict[str, dict[str, list[tuple[list[str], str]]]]:
     """For each (submodule, function name), list bindable overloads.
 
     Output: {submodule_name: {fn_name: [(param_user_types, return_user_type), ...]}}
-    submodule_name is one of 'ega', 'pga', 'top'.
+    submodule_name is one of 'ega', 'pga', 'sta', 'top'.
 
     `file_filter` is a set of source-file basenames; only overloads declared
     in one of those files are emitted. None means no filter (emit everything).
@@ -430,6 +457,7 @@ def collect_free_functions(manifest: Manifest,
     out: dict[str, dict[str, list[tuple[list[str], str]]]] = {
         "ega": defaultdict(list),
         "pga": defaultdict(list),
+        "sta": defaultdict(list),
         "top": defaultdict(list),
     }
     seen: set[tuple] = set()  # dedup (submodule, fn_name, param_tuple, return)
@@ -456,6 +484,8 @@ def collect_free_functions(manifest: Manifest,
             submod = "ega"
         elif grp.namespace == "hd::ga::pga":
             submod = "pga"
+        elif grp.namespace == "hd::ga::sta":
+            submod = "sta"
         elif grp.namespace == "hd::ga":
             submod = "top"
         else:
@@ -497,20 +527,27 @@ def _param_decl(typename: str, idx: int) -> str:
     return f"{typename} const& a{idx}"
 
 
-def collect_constants(manifest: Manifest,
-                      type_map: dict[str, str]
-                      ) -> dict[str, list[tuple[str, str, str]]]:
+def collect_constants(
+    manifest: Manifest, type_map: dict[str, str]
+) -> dict[str, list[tuple[str, str, str]]]:
     """For each submodule, list (constant_name, fully_qualified_cpp_name, user_typedef).
 
     Only constants whose type resolves through `type_map` (i.e. are a bound
     user type) are kept. Skips std::array and other unbindable types.
     """
-    out: dict[str, list[tuple[str, str, str]]] = {"ega": [], "pga": [], "top": []}
+    out: dict[str, list[tuple[str, str, str]]] = {
+        "ega": [],
+        "pga": [],
+        "sta": [],
+        "top": [],
+    }
     for c in manifest.constants:
         if c.namespace == "hd::ga::ega":
             submod = "ega"
         elif c.namespace == "hd::ga::pga":
             submod = "pga"
+        elif c.namespace == "hd::ga::sta":
+            submod = "sta"
         elif c.namespace == "hd::ga":
             submod = "top"
         else:
@@ -531,8 +568,7 @@ def collect_constants(manifest: Manifest,
     return out
 
 
-def emit_constants_module(submodule: str,
-                          consts: list[tuple[str, str, str]]) -> str:
+def emit_constants_module(submodule: str, consts: list[tuple[str, str, str]]) -> str:
     """Emit a register_constants_<submodule>(nb::module_& m) translation unit
     that exposes each constant as a Python module attribute.
 
@@ -542,16 +578,19 @@ def emit_constants_module(submodule: str,
     lines: list[str] = []
     for name, fq, _user_type in sorted(consts):
         lines.append(f'    m.attr("{name}") = nb::cast({fq});')
-    body = "\n".join(lines) if lines else "    (void)m;  // no constants in this submodule yet"
+    body = (
+        "\n".join(lines)
+        if lines
+        else "    (void)m;  // no constants in this submodule yet"
+    )
     return (
-        f"void register_constants_{submodule}(nb::module_& m) {{\n"
-        f"{body}\n"
-        f"}}\n"
+        f"void register_constants_{submodule}(nb::module_& m) {{\n" f"{body}\n" f"}}\n"
     )
 
 
-def emit_function_module(submodule: str,
-                         fn_groups: dict[str, list[tuple[list[str], str]]]) -> str:
+def emit_function_module(
+    submodule: str, fn_groups: dict[str, list[tuple[list[str], str]]]
+) -> str:
     """Emit a register_functions_<submodule>(nb::module_& m) translation unit
     binding all collected free-function overloads as `m.def(...)`.
     """
@@ -562,20 +601,22 @@ def emit_function_module(submodule: str,
             arg_list = ", ".join(f"a{i}" for i in range(len(params)))
             lines.append(
                 f'    m.def("{fn_name}", []({param_decls}) {{ '
-                f'return {fn_name}({arg_list}); }});'
+                f"return {fn_name}({arg_list}); }});"
             )
 
-    body = "\n".join(lines) if lines else "    (void)m;  // no functions in this submodule yet"
+    body = (
+        "\n".join(lines)
+        if lines
+        else "    (void)m;  // no functions in this submodule yet"
+    )
     return (
-        f"void register_functions_{submodule}(nb::module_& m) {{\n"
-        f"{body}\n"
-        f"}}\n"
+        f"void register_functions_{submodule}(nb::module_& m) {{\n" f"{body}\n" f"}}\n"
     )
 
 
-def collect_grade_extractors(manifest: Manifest,
-                             type_map: dict[str, str]
-                             ) -> dict[str, list[tuple[str, str]]]:
+def collect_grade_extractors(
+    manifest: Manifest, type_map: dict[str, str]
+) -> dict[str, list[tuple[str, str]]]:
     """For each multivector user type, return a list of (method_name, return_user_type)
     derived from the gr0/gr1/gr2/gr3 overloads in the manifest.
 
@@ -604,8 +645,9 @@ def is_scalar_shape(t: TypeAlias) -> bool:
         return False
     if t.fields:
         return False
-    return (t.name.startswith("scalar") or t.name.startswith("pscalar")) \
-        and "Scalar_t<" in t.canonical_underlying
+    return (
+        t.name.startswith("scalar") or t.name.startswith("pscalar")
+    ) and "Scalar_t<" in t.canonical_underlying
 
 
 def is_vec_shape(t: TypeAlias) -> bool:
@@ -637,7 +679,7 @@ def is_eligible(t: TypeAlias) -> bool:
 
 
 def submodule_for(t: TypeAlias) -> str:
-    """Route a user type into ega or pga.
+    """Route a user type into ega or pga or sta.
 
     Primary signal: presence of `pga::` in the canonical_underlying — this
     correctly catches PGA geometric primitives whose user-typedef name does
@@ -646,6 +688,8 @@ def submodule_for(t: TypeAlias) -> str:
     """
     if "pga::" in t.canonical_underlying:
         return "pga"
+    if "sta::" in t.canonical_underlying:
+        return "sta"
     base = t.name
     for sfx in ("_e", "_u", "_E", "_U"):
         if base.endswith(sfx):
@@ -653,11 +697,14 @@ def submodule_for(t: TypeAlias) -> str:
             break
     if base.endswith("2dp") or base.endswith("3dp"):
         return "pga"
+    if base.endswith("4ds"):
+        return "sta"
     return "ega"
 
 
-def emit_format_lambda(cls: str, *, param: str = "v",
-                       cast_to_base: str | None = None) -> str:
+def emit_format_lambda(
+    cls: str, *, param: str = "v", cast_to_base: str | None = None
+) -> str:
     """Emit a `__format__` lambda that pipes Python f-string format specs into
     `fmt::format`. Empty spec uses the default format (matches `__str__`);
     non-empty spec is wrapped in `{:<spec>}` and dispatched through fmt's
@@ -679,11 +726,10 @@ def emit_format_lambda(cls: str, *, param: str = "v",
     `fmt::formatter` of its own and must be rendered through its base's
     formatter (the inherited-binding case).
     """
-    target = (f"static_cast<const {cast_to_base}&>({param})"
-              if cast_to_base else param)
+    target = f"static_cast<const {cast_to_base}&>({param})" if cast_to_base else param
     return (
         f'        .def("__format__",\n'
-        f'            [](const {cls}& {param}, std::string_view spec) {{\n'
+        f"            [](const {cls}& {param}, std::string_view spec) {{\n"
         f"                try {{\n"
         f'                    if (spec.empty()) return fmt::format("{{}}", {target});\n'
         f'                    return fmt::format(fmt::runtime("{{:" + std::string(spec) + "}}"),\n'
@@ -726,7 +772,7 @@ def emit_array_protocol(cls: str, fields: list) -> tuple[str, str]:
     # downstream if a different dtype was requested.
     array_method = (
         f'        .def("__array__",\n'
-        f'            []({cls} const& v, nb::handle /*dtype*/,\n'
+        f"            []({cls} const& v, nb::handle /*dtype*/,\n"
         f"               nb::handle /*copy*/) {{\n"
         f"                auto* data = new double[{n}]{{{init_list}}};\n"
         f"                nb::capsule owner(data, [](void* p) noexcept {{\n"
@@ -752,11 +798,12 @@ def emit_array_protocol(cls: str, fields: list) -> tuple[str, str]:
     return array_method, ndarray_ctor
 
 
-def emit_inherited_binding(t: TypeAlias,
-                           base_t: TypeAlias,
-                           type_map: dict[str, str],
-                           binary_ops: list[tuple[str, str, str, str, str]] | None = None
-                           ) -> str:
+def emit_inherited_binding(
+    t: TypeAlias,
+    base_t: TypeAlias,
+    type_map: dict[str, str],
+    binary_ops: list[tuple[str, str, str, str, str]] | None = None,
+) -> str:
     """Emit binding for a type whose fields/ops are inherited from a bound base
     (PGA primitives like `Point2d : public Vec2d<T>`).
 
@@ -827,9 +874,7 @@ def emit_inherited_binding(t: TypeAlias,
             f"        }})"
         )
     else:
-        repr_lambda = (
-            f'        .def("__repr__", [](const {cls}&) {{ return std::string("{cls}()"); }})'
-        )
+        repr_lambda = f'        .def("__repr__", [](const {cls}&) {{ return std::string("{cls}()"); }})'
     str_lambda = (
         f'        .def("__str__", [](const {cls}& v) {{\n'
         f'            return fmt::format("{{}}", static_cast<const {base}&>(v));\n'
@@ -838,7 +883,7 @@ def emit_inherited_binding(t: TypeAlias,
     format_lambda = emit_format_lambda(cls, cast_to_base=base)
 
     binop_lines: list[str] = []
-    for dunder, rhs, _ret, callable_text, kind in (binary_ops or []):
+    for dunder, rhs, _ret, callable_text, kind in binary_ops or []:
         binop_lines.append(render_op_def(cls, dunder, rhs, callable_text, kind))
 
     # Numpy interop: layout follows the *base type's* fields (derived has none
@@ -851,8 +896,12 @@ def emit_inherited_binding(t: TypeAlias,
         ctor_lines.append(ndarray_ctor)
         array_lines.append(array_method)
 
-    body = "\n".join(ctor_lines + [repr_lambda, str_lambda, format_lambda]
-                     + array_lines + binop_lines)
+    body = "\n".join(
+        ctor_lines
+        + [repr_lambda, str_lambda, format_lambda]
+        + array_lines
+        + binop_lines
+    )
     return (
         f"void bind_{cls}(nb::module_& m) {{\n"
         f'    nb::class_<{cls}, {base}>(m, "{cls}")\n'
@@ -862,9 +911,9 @@ def emit_inherited_binding(t: TypeAlias,
     )
 
 
-def emit_scalar_binding(t: TypeAlias,
-                        binary_ops: list[tuple[str, str, str, str, str]] | None = None
-                        ) -> str:
+def emit_scalar_binding(
+    t: TypeAlias, binary_ops: list[tuple[str, str, str, str, str]] | None = None
+) -> str:
     """Emit nanobind binding for a Scalar_t<T, Tag>-shaped user type.
 
     Shape: private `value` field, `explicit operator T&()` accessor.
@@ -886,13 +935,11 @@ def emit_scalar_binding(t: TypeAlias,
     # Property `.value` — uses the explicit operator T& on the C++ side.
     value_prop = (
         '        .def_prop_rw("value",\n'
-        f'            [](const {cls}& s) -> double {{ return static_cast<double>(s); }},\n'
-        f'            [](      {cls}& s, double v) {{ static_cast<double&>(s) = v; }})'
+        f"            [](const {cls}& s) -> double {{ return static_cast<double>(s); }},\n"
+        f"            [](      {cls}& s, double v) {{ static_cast<double&>(s) = v; }})"
     )
 
-    float_method = (
-        f'        .def("__float__", [](const {cls}& s) {{ return static_cast<double>(s); }})'
-    )
+    float_method = f'        .def("__float__", [](const {cls}& s) {{ return static_cast<double>(s); }})'
 
     repr_lambda = (
         f'        .def("__repr__", [](const {cls}& s) {{\n'
@@ -928,42 +975,43 @@ def emit_scalar_binding(t: TypeAlias,
         # member overloads in C++. nb::is_operator() lets nanobind return
         # NotImplemented for unrelated types so dispatch stays clean.
         f'        .def("__eq__", []({cls} const& a, {cls} const& b) {{ '
-        f'return static_cast<double>(a) == static_cast<double>(b); }}, '
-        f'nb::is_operator())',
+        f"return static_cast<double>(a) == static_cast<double>(b); }}, "
+        f"nb::is_operator())",
         f'        .def("__ne__", []({cls} const& a, {cls} const& b) {{ '
-        f'return static_cast<double>(a) != static_cast<double>(b); }}, '
-        f'nb::is_operator())',
+        f"return static_cast<double>(a) != static_cast<double>(b); }}, "
+        f"nb::is_operator())",
         f'        .def("__lt__", []({cls} const& a, {cls} const& b) {{ '
-        f'return static_cast<double>(a) < static_cast<double>(b); }}, '
-        f'nb::is_operator())',
+        f"return static_cast<double>(a) < static_cast<double>(b); }}, "
+        f"nb::is_operator())",
         f'        .def("__le__", []({cls} const& a, {cls} const& b) {{ '
-        f'return static_cast<double>(a) <= static_cast<double>(b); }}, '
-        f'nb::is_operator())',
+        f"return static_cast<double>(a) <= static_cast<double>(b); }}, "
+        f"nb::is_operator())",
         f'        .def("__gt__", []({cls} const& a, {cls} const& b) {{ '
-        f'return static_cast<double>(a) > static_cast<double>(b); }}, '
-        f'nb::is_operator())',
+        f"return static_cast<double>(a) > static_cast<double>(b); }}, "
+        f"nb::is_operator())",
         f'        .def("__ge__", []({cls} const& a, {cls} const& b) {{ '
-        f'return static_cast<double>(a) >= static_cast<double>(b); }}, '
-        f'nb::is_operator())',
+        f"return static_cast<double>(a) >= static_cast<double>(b); }}, "
+        f"nb::is_operator())",
         # Comparisons with raw double on the right (member operator< form).
         f'        .def("__lt__", []({cls} const& a, double b) {{ '
-        f'return static_cast<double>(a) < b; }}, nb::is_operator())',
+        f"return static_cast<double>(a) < b; }}, nb::is_operator())",
         f'        .def("__le__", []({cls} const& a, double b) {{ '
-        f'return static_cast<double>(a) <= b; }}, nb::is_operator())',
+        f"return static_cast<double>(a) <= b; }}, nb::is_operator())",
         f'        .def("__gt__", []({cls} const& a, double b) {{ '
-        f'return static_cast<double>(a) > b; }}, nb::is_operator())',
+        f"return static_cast<double>(a) > b; }}, nb::is_operator())",
         f'        .def("__ge__", []({cls} const& a, double b) {{ '
-        f'return static_cast<double>(a) >= b; }}, nb::is_operator())',
+        f"return static_cast<double>(a) >= b; }}, nb::is_operator())",
     ]
 
     binop_lines: list[str] = []
-    for dunder, rhs, _ret, callable_text, kind in (binary_ops or []):
+    for dunder, rhs, _ret, callable_text, kind in binary_ops or []:
         binop_lines.append(render_op_def(cls, dunder, rhs, callable_text, kind))
 
     body = "\n".join(
         ctor_lines
         + [value_prop, float_method, repr_lambda, str_lambda, format_lambda]
-        + op_lines + binop_lines
+        + op_lines
+        + binop_lines
     )
     return (
         f"void bind_{cls}(nb::module_& m) {{\n"
@@ -974,11 +1022,12 @@ def emit_scalar_binding(t: TypeAlias,
     )
 
 
-def emit_type_binding(t: TypeAlias,
-                      type_map: dict[str, str] | None = None,
-                      grade_methods: list[tuple[str, str]] | None = None,
-                      binary_ops: list[tuple[str, str, str, str, str]] | None = None
-                      ) -> str:
+def emit_type_binding(
+    t: TypeAlias,
+    type_map: dict[str, str] | None = None,
+    grade_methods: list[tuple[str, str]] | None = None,
+    binary_ops: list[tuple[str, str, str, str, str]] | None = None,
+) -> str:
     """Emit nanobind class_<> registration for one user type with public T fields.
 
     `type_map` maps intermediate template names (e.g. `Vec3d`) to bound user
@@ -995,10 +1044,7 @@ def emit_type_binding(t: TypeAlias,
     """
     cls = t.name  # e.g., "vec3d" — also the C++ typedef we bind against
 
-    field_lines = [
-        f'        .def_rw("{f.name}", &{cls}::{f.name})'
-        for f in t.fields
-    ]
+    field_lines = [f'        .def_rw("{f.name}", &{cls}::{f.name})' for f in t.fields]
 
     ctor_lines = []
     emitted_all_t_arities: set[int] = set()
@@ -1087,7 +1133,7 @@ def emit_type_binding(t: TypeAlias,
     # above (templated overloads at the Vec_t level), so skip those here.
     SAME_TYPE_DUNDERS_VIA_NB_SELF = {"__add__", "__sub__"}
     binop_lines: list[str] = []
-    for dunder, rhs, _ret, callable_text, kind in (binary_ops or []):
+    for dunder, rhs, _ret, callable_text, kind in binary_ops or []:
         if rhs == cls and dunder in SAME_TYPE_DUNDERS_VIA_NB_SELF:
             continue
         binop_lines.append(render_op_def(cls, dunder, rhs, callable_text, kind))
@@ -1095,7 +1141,7 @@ def emit_type_binding(t: TypeAlias,
     # Grade-extraction methods. C++ free function `gr0(M)` becomes Python
     # `m.gr0()`. Lambda dispatches via ADL to the templated free function.
     grade_lines: list[str] = []
-    for method_name, _return_type in (grade_methods or []):
+    for method_name, _return_type in grade_methods or []:
         grade_lines.append(
             f'        .def("{method_name}", [](const {cls}& M) {{ return {method_name}(M); }})'
         )
@@ -1106,9 +1152,15 @@ def emit_type_binding(t: TypeAlias,
         ctor_lines.append(ndarray_ctor)
         array_lines.append(array_method)
 
-    body = "\n".join(ctor_lines + field_lines
-                     + [repr_lambda, str_lambda, format_lambda]
-                     + array_lines + op_lines + binop_lines + grade_lines)
+    body = "\n".join(
+        ctor_lines
+        + field_lines
+        + [repr_lambda, str_lambda, format_lambda]
+        + array_lines
+        + op_lines
+        + binop_lines
+        + grade_lines
+    )
     return (
         f"void bind_{cls}(nb::module_& m) {{\n"
         f'    nb::class_<{cls}>(m, "{cls}")\n'
@@ -1118,9 +1170,11 @@ def emit_type_binding(t: TypeAlias,
     )
 
 
-def emit_register_all(type_to_sub: dict[str, str],
-                      types_by_name: dict[str, TypeAlias],
-                      type_map: dict[str, str]) -> str:
+def emit_register_all(
+    type_to_sub: dict[str, str],
+    types_by_name: dict[str, TypeAlias],
+    type_map: dict[str, str],
+) -> str:
     """Emit the dispatcher that the hand-written module.cpp calls.
 
     Order matters: nanobind requires base classes to be registered before
@@ -1141,8 +1195,9 @@ def emit_register_all(type_to_sub: dict[str, str],
     remaining = set(type_to_sub)
     ordered: list[str] = []
     while remaining:
-        ready = sorted(n for n in remaining
-                       if base_of[n] is None or base_of[n] in ordered)
+        ready = sorted(
+            n for n in remaining if base_of[n] is None or base_of[n] in ordered
+        )
         if not ready:
             # Cycle or unresolved — fall back to alphabetical for the rest.
             ordered.extend(sorted(remaining))
@@ -1150,7 +1205,9 @@ def emit_register_all(type_to_sub: dict[str, str],
         ordered.extend(ready)
         remaining.difference_update(ready)
 
-    forward_decls = "\n".join(f"void bind_{n}(nb::module_& m);" for n in sorted(type_to_sub))
+    forward_decls = "\n".join(
+        f"void bind_{n}(nb::module_& m);" for n in sorted(type_to_sub)
+    )
     calls = "\n".join(f"    bind_{n}({type_to_sub[n]});" for n in ordered)
     return (
         "// AUTO-GENERATED BY ga_bindgen — DO NOT EDIT.\n"
@@ -1164,18 +1221,22 @@ def emit_register_all(type_to_sub: dict[str, str],
         "\n"
         "void register_functions_ega(nb::module_& m);\n"
         "void register_functions_pga(nb::module_& m);\n"
+        "void register_functions_sta(nb::module_& m);\n"
         "void register_functions_top(nb::module_& m);\n"
         "void register_constants_ega(nb::module_& m);\n"
         "void register_constants_pga(nb::module_& m);\n"
+        "void register_constants_sta(nb::module_& m);\n"
         "void register_constants_top(nb::module_& m);\n"
         "\n"
-        "void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga) {\n"
+        "void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::module_& sta) {\n"
         f"{calls}\n"
         "    register_functions_ega(ega);\n"
         "    register_functions_pga(pga);\n"
+        "    register_functions_sta(sta);\n"
         "    register_functions_top(top);\n"
         "    register_constants_ega(ega);\n"
         "    register_constants_pga(pga);\n"
+        "    register_constants_sta(sta);\n"
         "    register_constants_top(top);\n"
         "}\n"
     )
@@ -1183,17 +1244,25 @@ def emit_register_all(type_to_sub: dict[str, str],
 
 def emit_cmake_list(names: list[str], out_dir: Path) -> str:
     """Emit a .cmake file listing generated sources, for CMake to include()."""
-    lines = ["# AUTO-GENERATED BY ga_bindgen — DO NOT EDIT.",
-             "# Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all",
-             "",
-             "set(GA_PY_GENERATED_SOURCES"]
+    lines = [
+        "# AUTO-GENERATED BY ga_bindgen — DO NOT EDIT.",
+        "# Regenerate via: python3 ga_bindgen/src/emit_nanobind.py --all",
+        "",
+        "set(GA_PY_GENERATED_SOURCES",
+    ]
     for n in sorted(names):
-        lines.append(f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_{n}.cpp")
+        lines.append(
+            f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_{n}.cpp"
+        )
     lines.append(f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/register_all.cpp")
-    for submod in ("ega", "pga", "top"):
-        lines.append(f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_functions_{submod}.cpp")
-    for submod in ("ega", "pga", "top"):
-        lines.append(f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_constants_{submod}.cpp")
+    for submod in ("ega", "pga", "sta", "top"):
+        lines.append(
+            f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_functions_{submod}.cpp"
+        )
+    for submod in ("ega", "pga", "sta", "top"):
+        lines.append(
+            f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_constants_{submod}.cpp"
+        )
     lines.append(")")
     lines.append("")
     return "\n".join(lines)
@@ -1204,21 +1273,29 @@ def main() -> int:
     ap.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     mode = ap.add_mutually_exclusive_group()
-    mode.add_argument("--type",
-                      help="Emit a single type (quick iteration during "
-                           "binding development). Without this flag the "
-                           "default is full regeneration.")
-    mode.add_argument("--all", action="store_true",
-                      help="Emit every eligible type + register_all.cpp + "
-                           "bindings_list.cmake. This is the default; the "
-                           "flag is accepted for backward compatibility.")
-    ap.add_argument("--functions-from", default="",
-                    help="Comma-separated source-file basenames; restrict "
-                         "free-function emission to overloads declared in "
-                         "those files. Empty (default) means emit every "
-                         "bindable free function. Provided as an escape "
-                         "hatch for incremental enablement during binding "
-                         "development.")
+    mode.add_argument(
+        "--type",
+        help="Emit a single type (quick iteration during "
+        "binding development). Without this flag the "
+        "default is full regeneration.",
+    )
+    mode.add_argument(
+        "--all",
+        action="store_true",
+        help="Emit every eligible type + register_all.cpp + "
+        "bindings_list.cmake. This is the default; the "
+        "flag is accepted for backward compatibility.",
+    )
+    ap.add_argument(
+        "--functions-from",
+        default="",
+        help="Comma-separated source-file basenames; restrict "
+        "free-function emission to overloads declared in "
+        "those files. Empty (default) means emit every "
+        "bindable free function. Provided as an escape "
+        "hatch for incremental enablement during binding "
+        "development.",
+    )
     args = ap.parse_args()
 
     manifest = Manifest.from_json(Path(args.manifest).read_text())
@@ -1234,8 +1311,9 @@ def main() -> int:
 
         # Collect eligible user typedefs (those declared in target namespaces).
         # Also restrict to typedefs in `hd::ga` (where user types live).
-        eligible = [t for t in manifest.types
-                    if t.namespace == "hd::ga" and is_eligible(t)]
+        eligible = [
+            t for t in manifest.types if t.namespace == "hd::ga" and is_eligible(t)
+        ]
 
         # Build the template-name → user-type map ONCE from ALL eligible
         # types, so e.g. mvec3d's ctor `MVec8_t(Scalar3d<T>, Vec3d<T>, ...)`
@@ -1258,9 +1336,9 @@ def main() -> int:
                     continue
                 body = emit_inherited_binding(t, base_t, type_map, ops)
             else:
-                body = emit_type_binding(t, type_map,
-                                         grade_methods_per_type.get(t.name),
-                                         ops)
+                body = emit_type_binding(
+                    t, type_map, grade_methods_per_type.get(t.name), ops
+                )
             (out_dir / f"bindings_{t.name}.cpp").write_text(
                 GENERATED_HEADER + "\n" + body, encoding="utf-8"
             )
@@ -1272,19 +1350,25 @@ def main() -> int:
         # (kept for incremental enablement during binding development).
         file_filter: set[str] | None = None
         if args.functions_from:
-            file_filter = {x.strip() for x in args.functions_from.split(",") if x.strip()}
+            file_filter = {
+                x.strip() for x in args.functions_from.split(",") if x.strip()
+            }
 
         free_fns = collect_free_functions(manifest, type_map, file_filter)
-        for submod in ("ega", "pga", "top"):
+        for submod in ("ega", "pga", "sta", "top"):
             (out_dir / f"bindings_functions_{submod}.cpp").write_text(
-                GENERATED_HEADER + "\n" + emit_function_module(submod, free_fns.get(submod, {})),
+                GENERATED_HEADER
+                + "\n"
+                + emit_function_module(submod, free_fns.get(submod, {})),
                 encoding="utf-8",
             )
 
         constants = collect_constants(manifest, type_map)
-        for submod in ("ega", "pga", "top"):
+        for submod in ("ega", "pga", "sta", "top"):
             (out_dir / f"bindings_constants_{submod}.cpp").write_text(
-                GENERATED_HEADER + "\n" + emit_constants_module(submod, constants.get(submod, [])),
+                GENERATED_HEADER
+                + "\n"
+                + emit_constants_module(submod, constants.get(submod, [])),
                 encoding="utf-8",
             )
 
@@ -1297,11 +1381,13 @@ def main() -> int:
 
         # Print free-function summary
         n_total = sum(len(ovs) for sm in free_fns.values() for ovs in sm.values())
-        filter_desc = (f"{len(file_filter)} source files (--functions-from)"
-                       if file_filter is not None
-                       else "all source files")
+        filter_desc = (
+            f"{len(file_filter)} source files (--functions-from)"
+            if file_filter is not None
+            else "all source files"
+        )
         print(f"\nFree-function emission ({n_total} overloads from {filter_desc}):")
-        for submod in ("ega", "pga", "top"):
+        for submod in ("ega", "pga", "sta", "top"):
             fns = free_fns.get(submod, {})
             n_ovs = sum(len(ovs) for ovs in fns.values())
             print(f"  {submod}: {len(fns)} unique fn names, {n_ovs} overloads")
@@ -1309,8 +1395,10 @@ def main() -> int:
         print(f"Emitted {len(eligible)} type bindings to {out_dir}:")
         ega = sorted(n for n, s in type_to_sub.items() if s == "ega")
         pga = sorted(n for n, s in type_to_sub.items() if s == "pga")
+        sta = sorted(n for n, s in type_to_sub.items() if s == "sta")
         print(f"  ega ({len(ega)}): {', '.join(ega)}")
         print(f"  pga ({len(pga)}): {', '.join(pga)}")
+        print(f"  sta ({len(sta)}): {', '.join(sta)}")
         print(f"\n  skipped {len(manifest.types) - len(eligible)} ineligible types")
         print(f"  (internal _t templates and uppercase template aliases still")
         print(f"   parameterized on T)")
@@ -1323,13 +1411,18 @@ def main() -> int:
         print(f"Type '{type_name}' not found in manifest.", file=sys.stderr)
         return 1
     if not is_eligible(target):
-        print(f"Type '{type_name}' is not currently emittable (private fields or "
-              "non-T field types).", file=sys.stderr)
+        print(
+            f"Type '{type_name}' is not currently emittable (private fields or "
+            "non-T field types).",
+            file=sys.stderr,
+        )
         return 1
     if is_scalar_shape(target):
         body = emit_scalar_binding(target)
     else:
-        type_map = build_type_name_map([t for t in manifest.types if t.namespace == "hd::ga"])
+        type_map = build_type_name_map(
+            [t for t in manifest.types if t.namespace == "hd::ga"]
+        )
         body = emit_type_binding(target, type_map)
     (out_dir / f"bindings_{target.name}.cpp").write_text(
         GENERATED_HEADER + "\n" + body, encoding="utf-8"

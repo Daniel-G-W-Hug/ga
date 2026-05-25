@@ -25,7 +25,7 @@ import ga_py
 # (submodule, type_name, ctor_args, expected_grade) for every graded type
 # --------------------------------------------------------------------------- #
 # Algebra dimensions (used for rgr expectations below):
-#   ega2d=2, ega3d=3, ega4d=4, pga2dp=3, pga3dp=4
+#   ega2d=2, ega3d=3, sta4ds=4, pga2dp=3, pga3dp=4
 # (PGA's "dimension" here is the highest grade, which equals the dimension
 #  of its underlying linear space: e321 for 2dp = grade 3, e1234 for 3dp = grade 4.)
 
@@ -39,12 +39,12 @@ GRADED_TYPES: list[tuple[str, str, tuple, int]] = [
     ("ega", "vec3d",      (1.0, 2.0, 3.0),         1),
     ("ega", "bivec3d",    (1.0, 2.0, 3.0),         2),
     ("ega", "pscalar3d",  (1.0,),                  3),
-    # EGA 4D --- algebra dim 4
-    ("ega", "scalar4d",   (1.0,),                  0),
-    ("ega", "vec4d",      (1.0, 2.0, 3.0, 4.0),    1),
-    ("ega", "bivec4d",    (1.0, 2.0, 3.0, 4.0, 5.0, 6.0), 2),
-    ("ega", "trivec4d",   (1.0, 2.0, 3.0, 4.0),    3),
-    ("ega", "pscalar4d",  (1.0,),                  4),
+    # STA 4ds --- G(1,3,0), algebra dim 4 (g1234 is the pseudoscalar)
+    ("sta", "scalar4ds",  (1.0,),                  0),
+    ("sta", "vec4ds",     (1.0, 2.0, 3.0, 4.0),    1),
+    ("sta", "bivec4ds",   (1.0, 2.0, 3.0, 4.0, 5.0, 6.0), 2),
+    ("sta", "trivec4ds",  (1.0, 2.0, 3.0, 4.0),    3),
+    ("sta", "pscalar4ds", (1.0,),                  4),
     # PGA 2dp --- algebra dim 3 (e321 is the pseudoscalar)
     ("pga", "scalar2dp",  (1.0,),                  0),
     ("pga", "vec2dp",     (1.0, 2.0, 3.0),         1),

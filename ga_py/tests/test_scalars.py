@@ -12,10 +12,12 @@ import ga_py
 
 
 ALL_SCALAR_TYPES = [
-    ("ega", "scalar2d"), ("ega", "scalar3d"), ("ega", "scalar4d"),
+    ("ega", "scalar2d"), ("ega", "scalar3d"),
     ("pga", "scalar2dp"), ("pga", "scalar3dp"),
-    ("ega", "pscalar2d"), ("ega", "pscalar3d"), ("ega", "pscalar4d"),
+    ("sta", "scalar4ds"),
+    ("ega", "pscalar2d"), ("ega", "pscalar3d"),
     ("pga", "pscalar2dp"), ("pga", "pscalar3dp"),
+    ("sta", "pscalar4ds"),
 ]
 
 

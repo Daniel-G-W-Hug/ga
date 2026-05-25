@@ -20,11 +20,13 @@
 
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
+#include "ga/ga_sta.hpp"
 
 namespace nb = nanobind;
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::sta;
 
 void register_functions_ega(nb::module_& m) {
     m.def("angle", [](vec2d const& a0, vec2d const& a1) { return angle(a0, a1); });

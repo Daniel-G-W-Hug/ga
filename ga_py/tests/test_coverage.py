@@ -1,4 +1,4 @@
-"""Coverage smoke tests across the 27 Vec/MVec-shape user types.
+"""Coverage smoke tests across the EGA / PGA / STA Vec/MVec-shape user types.
 
 These are light tests: confirm each type is exposed under the right submodule,
 can be constructed with N doubles, prints cleanly, and supports the basic
@@ -13,12 +13,10 @@ import ga_py
 
 
 EGA_TYPES = [
-    ("vec2d", 2), ("vec3d", 3), ("vec4d", 4),
-    ("bivec3d", 3), ("bivec4d", 6),
-    ("trivec4d", 4),
+    ("vec2d", 2), ("vec3d", 3),
+    ("bivec3d", 3),
     ("mvec2d", 4), ("mvec2d_e", 2),
     ("mvec3d", 8), ("mvec3d_e", 4), ("mvec3d_u", 4),
-    ("mvec4d", 16), ("mvec4d_e", 8), ("mvec4d_u", 8),
 ]
 
 PGA_TYPES = [
@@ -28,6 +26,14 @@ PGA_TYPES = [
     ("mvec2dp", 8), ("mvec2dp_e", 4), ("mvec2dp_u", 4),
     ("mvec3dp", 16), ("mvec3dp_e", 8), ("mvec3dp_u", 8),
     ("dualnum2dp", 2), ("dualnum3dp", 2),
+]
+
+STA_TYPES = [
+    ("vec4ds", 4),
+    ("bivec4ds", 6),
+    ("trivec4ds", 4),
+    ("mvec4ds", 16), ("mvec4ds_e", 8), ("mvec4ds_u", 8),
+    ("dualnum4ds", 2),
 ]
 
 
@@ -43,6 +49,15 @@ def test_ega_type_exposed(name, arity):
 @pytest.mark.parametrize("name,arity", PGA_TYPES)
 def test_pga_type_exposed(name, arity):
     cls = getattr(ga_py.pga, name)
+    obj = cls(*[float(i) for i in range(arity)])
+    s = repr(obj)
+    assert s.startswith(f"{name}(")
+    assert str(obj)
+
+
+@pytest.mark.parametrize("name,arity", STA_TYPES)
+def test_sta_type_exposed(name, arity):
+    cls = getattr(ga_py.sta, name)
     obj = cls(*[float(i) for i in range(arity)])
     s = repr(obj)
     assert s.startswith(f"{name}(")

@@ -141,6 +141,9 @@ EXPECTED: list[tuple[str, str, str, tuple[float, ...]]] = [
     ("pga", "e23_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0)),
     ("pga", "e31_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0)),
     ("pga", "e12_3dp_mv", "mvec3dp", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0)),
+    ("pga", "e41_3dp_mv_e", "mvec3dp_e", (0, 1, 0, 0, 0, 0, 0, 0)),
+    ("pga", "e42_3dp_mv_e", "mvec3dp_e", (0, 0, 1, 0, 0, 0, 0, 0)),
+    ("pga", "e43_3dp_mv_e", "mvec3dp_e", (0, 0, 0, 1, 0, 0, 0, 0)),
     ("pga", "e23_3dp_mv_e", "mvec3dp_e", (0, 0, 0, 0, 1, 0, 0, 0)),
     ("pga", "e31_3dp_mv_e", "mvec3dp_e", (0, 0, 0, 0, 0, 1, 0, 0)),
     ("pga", "e12_3dp_mv_e", "mvec3dp_e", (0, 0, 0, 0, 0, 0, 1, 0)),
@@ -163,6 +166,57 @@ EXPECTED: list[tuple[str, str, str, tuple[float, ...]]] = [
     ("pga", "one_3dp", "scalar3dp", (1.0,)),
     ("pga", "one_3dp_mv", "mvec3dp", (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
     ("pga", "one_3dp_mv_e", "mvec3dp_e", (1, 0, 0, 0, 0, 0, 0, 0)),
+    # ---------- STA 4ds (G(1,3,0)) ----------
+    # mvec4ds   (16): 1, g1, g2, g3, g4, g14, g24, g34, g23, g31, g12,
+    #                 g234, g314, g124, g123, g1234
+    # mvec4ds_e  (8): 1, g14, g24, g34, g23, g31, g12, g1234
+    # bivec4ds   (6): g14, g24, g34, g23, g31, g12  (vx,vy,vz,mx,my,mz)
+    # trivec4ds  (4): g234, g314, g124, g123        (x,y,z,w)
+    ("sta", "g1_4ds", "vec4ds", (1, 0, 0, 0)),
+    ("sta", "g2_4ds", "vec4ds", (0, 1, 0, 0)),
+    ("sta", "g3_4ds", "vec4ds", (0, 0, 1, 0)),
+    ("sta", "g4_4ds", "vec4ds", (0, 0, 0, 1)),
+    ("sta", "x_dir_4ds", "vec4ds", (1, 0, 0, 0)),
+    ("sta", "y_dir_4ds", "vec4ds", (0, 1, 0, 0)),
+    ("sta", "z_dir_4ds", "vec4ds", (0, 0, 1, 0)),
+    ("sta", "t_dir_4ds", "vec4ds", (0, 0, 0, 1)),
+    ("sta", "g1_4ds_mv", "mvec4ds", (0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("sta", "g2_4ds_mv", "mvec4ds", (0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("sta", "g3_4ds_mv", "mvec4ds", (0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("sta", "g4_4ds_mv", "mvec4ds", (0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("sta", "g14_4ds", "bivec4ds", (1, 0, 0, 0, 0, 0)),
+    ("sta", "g24_4ds", "bivec4ds", (0, 1, 0, 0, 0, 0)),
+    ("sta", "g34_4ds", "bivec4ds", (0, 0, 1, 0, 0, 0)),
+    ("sta", "g23_4ds", "bivec4ds", (0, 0, 0, 1, 0, 0)),
+    ("sta", "g31_4ds", "bivec4ds", (0, 0, 0, 0, 1, 0)),
+    ("sta", "g12_4ds", "bivec4ds", (0, 0, 0, 0, 0, 1)),
+    ("sta", "g14_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("sta", "g24_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("sta", "g34_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("sta", "g23_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0)),
+    ("sta", "g31_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0)),
+    ("sta", "g12_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0)),
+    ("sta", "g14_4ds_mv_e", "mvec4ds_e", (0, 1, 0, 0, 0, 0, 0, 0)),
+    ("sta", "g24_4ds_mv_e", "mvec4ds_e", (0, 0, 1, 0, 0, 0, 0, 0)),
+    ("sta", "g34_4ds_mv_e", "mvec4ds_e", (0, 0, 0, 1, 0, 0, 0, 0)),
+    ("sta", "g23_4ds_mv_e", "mvec4ds_e", (0, 0, 0, 0, 1, 0, 0, 0)),
+    ("sta", "g31_4ds_mv_e", "mvec4ds_e", (0, 0, 0, 0, 0, 1, 0, 0)),
+    ("sta", "g12_4ds_mv_e", "mvec4ds_e", (0, 0, 0, 0, 0, 0, 1, 0)),
+    ("sta", "g234_4ds", "trivec4ds", (1, 0, 0, 0)),
+    ("sta", "g314_4ds", "trivec4ds", (0, 1, 0, 0)),
+    ("sta", "g124_4ds", "trivec4ds", (0, 0, 1, 0)),
+    ("sta", "g123_4ds", "trivec4ds", (0, 0, 0, 1)),
+    ("sta", "g234_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0)),
+    ("sta", "g314_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0)),
+    ("sta", "g124_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0)),
+    ("sta", "g123_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0)),
+    ("sta", "I_4ds", "pscalar4ds", (1,)),
+    ("sta", "g1234_4ds", "pscalar4ds", (1,)),
+    ("sta", "I_4ds_mv", "mvec4ds", (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)),
+    ("sta", "I_4ds_mv_e", "mvec4ds_e", (0, 0, 0, 0, 0, 0, 0, 1)),
+    ("sta", "one_4ds", "scalar4ds", (1,)),
+    ("sta", "one_4ds_mv", "mvec4ds", (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
+    ("sta", "one_4ds_mv_e", "mvec4ds_e", (1, 0, 0, 0, 0, 0, 0, 0)),
 ]
 
 
@@ -383,9 +437,9 @@ def test_pga3dp_pseudoscalar_is_regressive_product_identity():
 
 
 def _all_bound_constants() -> set[tuple[str, str]]:
-    """Enumerate every const-like attribute on ga_py.ega and ga_py.pga."""
+    """Enumerate every const-like attribute on ga_py.ega / pga / sta."""
     found: set[tuple[str, str]] = set()
-    for sub_name in ("ega", "pga"):
+    for sub_name in ("ega", "pga", "sta"):
         sub = getattr(ga_py, sub_name)
         for n in dir(sub):
             if n.startswith("_"):
@@ -407,14 +461,18 @@ def test_expected_table_covers_every_bound_constant():
     assert not extra, f"tested but no longer bound: {sorted(extra)}"
 
 
-def test_total_bound_constants_is_120():
+def test_total_bound_constants_is_168():
     """Stable count --- changes here flag intentional or accidental drift.
 
-    120 = the 108 previously bound + 12 `one_*` scalar/multivector identities
-    (one_2d{,_mv,_mv_e}, one_3d{,_mv,_mv_e}, one_2dp{,_mv,_mv_e},
-    one_3dp{,_mv,_mv_e}) added in ga/ga_usr_consts.hpp.
+    168 = 120 previously-counted ega/pga constants
+        +   3 PGA e4{1,2,3}_3dp_mv_e even-multivector embeddings (declared in
+            ga_usr_consts.hpp but previously absent from EXPECTED)
+        +  45 STA (G(1,3,0)) constants: the 4 basis vectors g1..g4_4ds
+            (+ x/y/z/t_dir aliases), 6 basis bivectors g14/g24/g34/g23/g31/g12_4ds,
+            4 basis trivectors g234/g314/g124/g123_4ds, the pseudoscalar I_4ds
+            (= g1234_4ds), the scalar one_4ds, and their _mv / _mv_e embeddings.
     """
-    assert len(_all_bound_constants()) == 120
+    assert len(_all_bound_constants()) == 168
 
 
 def test_h_2dp_value_matches_negated_e12_2dp():

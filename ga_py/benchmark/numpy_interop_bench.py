@@ -85,9 +85,9 @@ def main() -> None:
     bench("NEW cls(row)",
           lambda: [ga_py.ega.mvec3d(row) for row in arr8])
 
-    # ----- mvec4d: 16 components ---------------------------------------------
-    section("mvec4d (16 components) — list <-> (N,16) array")
-    m4s = [ga_py.ega.mvec4d(*[float(i + j) for j in range(16)])
+    # ----- mvec4ds: 16 components --------------------------------------------
+    section("mvec4ds (16 components) — list <-> (N,16) array")
+    m4s = [ga_py.sta.mvec4ds(*[float(i + j) for j in range(16)])
            for i in range(N)]
     bench("OLD list comp on .c0..c15",
           lambda: np.array([[m.c0, m.c1, m.c2, m.c3, m.c4, m.c5, m.c6, m.c7,
@@ -98,9 +98,9 @@ def main() -> None:
           lambda: np.stack([np.array(m) for m in m4s]))
     arr16 = np.stack([np.array(m) for m in m4s])
     bench("OLD cls(*row.tolist())",
-          lambda: [ga_py.ega.mvec4d(*row.tolist()) for row in arr16])
+          lambda: [ga_py.sta.mvec4ds(*row.tolist()) for row in arr16])
     bench("NEW cls(row)",
-          lambda: [ga_py.ega.mvec4d(row) for row in arr16])
+          lambda: [ga_py.sta.mvec4ds(row) for row in arr16])
 
     # ----- single-call latency -----------------------------------------------
     section("Single-element overhead (per call) — vec3d")

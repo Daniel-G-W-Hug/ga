@@ -20,11 +20,13 @@
 
 #include "ga/ga_ega.hpp"
 #include "ga/ga_pga.hpp"
+#include "ga/ga_sta.hpp"
 
 namespace nb = nanobind;
 using namespace hd::ga;
 using namespace hd::ga::ega;
 using namespace hd::ga::pga;
+using namespace hd::ga::sta;
 
 void bind_mvec3dp_u(nb::module_& m) {
     nb::class_<mvec3dp_u>(m, "mvec3dp_u")

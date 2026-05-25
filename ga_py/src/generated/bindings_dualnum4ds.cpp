@@ -28,30 +28,27 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_dualnum2dp(nb::module_& m) {
-    nb::class_<dualnum2dp>(m, "dualnum2dp")
+void bind_dualnum4ds(nb::module_& m) {
+    nb::class_<dualnum4ds>(m, "dualnum4ds")
         .def(nb::init<>())
         .def(nb::init<double, double>())
-        .def(nb::init<scalar2dp>())
-        .def(nb::init<pscalar2dp>())
-        .def(nb::init<scalar2dp, pscalar2dp>())
         .def("__init__",
-            [](dualnum2dp* self,
+            [](dualnum4ds* self,
                nb::ndarray<double, nb::shape<2>, nb::c_contig,
                            nb::device::cpu> arr) {
                 double const* d = arr.data();
-                new (self) dualnum2dp(d[0], d[1]);
+                new (self) dualnum4ds(d[0], d[1]);
             })
-        .def_rw("c0", &dualnum2dp::c0)
-        .def_rw("c1", &dualnum2dp::c1)
-        .def("__repr__", [](const dualnum2dp& v) {
-            return fmt::format("dualnum2dp({}, {})", v.c0, v.c1);
+        .def_rw("c0", &dualnum4ds::c0)
+        .def_rw("c1", &dualnum4ds::c1)
+        .def("__repr__", [](const dualnum4ds& v) {
+            return fmt::format("dualnum4ds({}, {})", v.c0, v.c1);
         })
-        .def("__str__", [](const dualnum2dp& v) {
+        .def("__str__", [](const dualnum4ds& v) {
             return fmt::format("{}", v);
         })
         .def("__format__",
-            [](const dualnum2dp& v, std::string_view spec) {
+            [](const dualnum4ds& v, std::string_view spec) {
                 try {
                     if (spec.empty()) return fmt::format("{}", v);
                     return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
@@ -61,7 +58,7 @@ void bind_dualnum2dp(nb::module_& m) {
                 }
             }, nb::arg("format_spec"))
         .def("__array__",
-            [](dualnum2dp const& v, nb::handle /*dtype*/,
+            [](dualnum4ds const& v, nb::handle /*dtype*/,
                nb::handle /*copy*/) {
                 auto* data = new double[2]{v.c0, v.c1};
                 nb::capsule owner(data, [](void* p) noexcept {
@@ -84,21 +81,23 @@ void bind_dualnum2dp(nb::module_& m) {
         .def(nb::self / double())
         .def(nb::self *= double())
         .def(nb::self /= double())
-        .def("__add__", [](dualnum2dp const& a, scalar2dp const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](dualnum2dp const& a, pscalar2dp const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](dualnum2dp const& a, vec2dp const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](dualnum2dp const& a, bivec2dp const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](dualnum2dp const& a, mvec2dp_e const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](dualnum2dp const& a, mvec2dp_u const& b) { return a + b; }, nb::is_operator())
-        .def("__add__", [](dualnum2dp const& a, mvec2dp const& b) { return a + b; }, nb::is_operator())
-        .def("__sub__", [](dualnum2dp const& a, scalar2dp const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](dualnum2dp const& a, pscalar2dp const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](dualnum2dp const& a, vec2dp const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](dualnum2dp const& a, bivec2dp const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](dualnum2dp const& a, mvec2dp_e const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](dualnum2dp const& a, mvec2dp_u const& b) { return a - b; }, nb::is_operator())
-        .def("__sub__", [](dualnum2dp const& a, mvec2dp const& b) { return a - b; }, nb::is_operator())
-        .def("gr0", [](const dualnum2dp& M) { return gr0(M); })
-        .def("gr3", [](const dualnum2dp& M) { return gr3(M); })
+        .def("__add__", [](dualnum4ds const& a, scalar4ds const& b) { return a + b; }, nb::is_operator())
+        .def("__add__", [](dualnum4ds const& a, pscalar4ds const& b) { return a + b; }, nb::is_operator())
+        .def("__add__", [](dualnum4ds const& a, bivec4ds const& b) { return a + b; }, nb::is_operator())
+        .def("__add__", [](dualnum4ds const& a, mvec4ds_e const& b) { return a + b; }, nb::is_operator())
+        .def("__add__", [](dualnum4ds const& a, vec4ds const& b) { return a + b; }, nb::is_operator())
+        .def("__add__", [](dualnum4ds const& a, trivec4ds const& b) { return a + b; }, nb::is_operator())
+        .def("__add__", [](dualnum4ds const& a, mvec4ds_u const& b) { return a + b; }, nb::is_operator())
+        .def("__add__", [](dualnum4ds const& a, mvec4ds const& b) { return a + b; }, nb::is_operator())
+        .def("__sub__", [](dualnum4ds const& a, scalar4ds const& b) { return a - b; }, nb::is_operator())
+        .def("__sub__", [](dualnum4ds const& a, pscalar4ds const& b) { return a - b; }, nb::is_operator())
+        .def("__sub__", [](dualnum4ds const& a, bivec4ds const& b) { return a - b; }, nb::is_operator())
+        .def("__sub__", [](dualnum4ds const& a, mvec4ds_e const& b) { return a - b; }, nb::is_operator())
+        .def("__sub__", [](dualnum4ds const& a, vec4ds const& b) { return a - b; }, nb::is_operator())
+        .def("__sub__", [](dualnum4ds const& a, trivec4ds const& b) { return a - b; }, nb::is_operator())
+        .def("__sub__", [](dualnum4ds const& a, mvec4ds_u const& b) { return a - b; }, nb::is_operator())
+        .def("__sub__", [](dualnum4ds const& a, mvec4ds const& b) { return a - b; }, nb::is_operator())
+        .def("gr0", [](const dualnum4ds& M) { return gr0(M); })
+        .def("gr4", [](const dualnum4ds& M) { return gr4(M); })
         ;
 }
