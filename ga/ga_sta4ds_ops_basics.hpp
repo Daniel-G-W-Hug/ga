@@ -16,7 +16,7 @@ namespace hd::ga::sta {
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides pga4ds basic operations:
 //
-// - gr_inv()                      -> grade inversion
+// - gr_inv()                      -> grade involution
 // - rev()                         -> reversion
 // - rrev()                        -> regressive reversion
 // - conj()                        -> Clifford conjugation

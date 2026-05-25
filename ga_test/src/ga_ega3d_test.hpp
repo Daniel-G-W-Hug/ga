@@ -3206,4 +3206,264 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(mv1 * v1 == (v1 << mv1) + wdg(mv1, v1));
     }
 
+    TEST_CASE("MVec3d: dualization - complement vs. pseudoscalar-multiplication")
+    {
+        fmt::println("MVec3d: dualization - complement vs. pseudoscalar-multiplication");
+        fmt::println("");
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Two schools of thought for dualizing a blade / multivector A in ega3d:
+        //
+        //   (1) THIS LIBRARY (metric + complement):
+        //       dual(A) = cmpl(G * A), where G is the extended metric. In ega the metric
+        //       is the identity, so dual(A) == cmpl(A). The complement is defined via the
+        //       outer (wedge) product:  A ^ cmpl(A) = I_3d. Equivalently the right dual
+        //       satisfies  dual(A) = rev(A) * I_3d  (note the reversion of A).
+        //
+        //   (2) OTHER SCHOOL (multiplication by the pseudoscalar):
+        //       to_dual(A)   = A * I_3d           (right-multiply by the pseudoscalar)
+        //       from_dual(A) = A * inv(I_3d)      (divide by the pseudoscalar,
+        //                                          i.e. multiply by its inverse)
+        //       Here NO reversion is applied to A before multiplying.
+        //
+        // The only difference between the two forward operations is the reversion of A:
+        //
+        //       dual(A) = rev(A) * I_3d  vs.  to_dual(A) = A * I_3d
+        //
+        // For a pure grade-k blade  rev(A) = (-1)^(k(k-1)/2) * A, so the two results
+        // differ exactly by the reversion sign of grade k:
+        //
+        //       grade k        0    1    2    3
+        //       (-1)^(k(k-1)/2) +    +    -    -
+        //
+        // => scalar (k=0) and vector (k=1) results agree, while bivector (k=2) and
+        //    pseudoscalar (k=3) results have opposite signs.
+        //
+        // FORWARD dualization (primal -> dual) for every basis element:
+        //
+        //   primal A   grade   ours: dual(A)=rev(A)*I_3d   theirs: A*I_3d   sign
+        //   --------   -----   ------------------------    --------------   ----
+        //      1         0              e123                    e123          +
+        //      e1        1              e23                     e23           +
+        //      e2        1              e31                     e31           +
+        //      e3        1              e12                     e12           +
+        //      e23       2              e1                     -e1            -
+        //      e31       2              e2                     -e2            -
+        //      e12       2              e3                     -e3            -
+        //      e123      3              1                      -1             -
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const s = scalar3d{3.0};
+        auto const v = vec3d{1.0, 2.0, 3.0};
+        auto const B = bivec3d{1.0, 2.0, 3.0};
+        auto const ps = pscalar3d{4.0};
+
+        // forward dualization: ours (complement) vs. theirs (A * I_3d)
+        auto const s_dual_ours = dual(s);   // -> pscalar3d
+        auto const s_dual_mul = s * I_3d;   // -> pscalar3d
+        auto const v_dual_ours = dual(v);   // -> bivec3d
+        auto const v_dual_mul = v * I_3d;   // -> bivec3d
+        auto const B_dual_ours = dual(B);   // -> vec3d
+        auto const B_dual_mul = B * I_3d;   // -> vec3d
+        auto const ps_dual_ours = dual(ps); // -> scalar3d
+        auto const ps_dual_mul = ps * I_3d; // -> scalar3d
+
+        // The GA formatters use fmt::nested_formatter, so a width spec like "{:<17}"
+        // would pad the nested number, not the whole "Scalar3d(...)" token. Stringify
+        // first, then pad the string, so columns line up regardless of the type printed.
+        auto const sf = [](auto const& x) { return fmt::format("{}", x); };
+
+        // one row of the forward/backward comparison table (column widths fixed)
+        auto const dual_row = [&sf](std::string_view grade, auto const& operand,
+                                    auto const& ours, auto const& theirs,
+                                    std::string_view relation) {
+            fmt::println("   {:^5} | {:<16} | {:<16} | {:<19} | {}", grade, sf(operand),
+                         sf(ours), sf(theirs), relation);
+        };
+        auto const rule = [] { fmt::println("   {:-<82}", ""); };
+
+        fmt::println("   FORWARD dualization  (primal A  ->  dual):");
+        rule();
+        fmt::println("   {:^5} | {:<16} | {:<16} | {:<19} | {}", "grade", "primal A",
+                     "ours: dual(A)", "theirs: A*I_3d", "relation");
+        rule();
+        dual_row("0", s, s_dual_ours, s_dual_mul, "equal");
+        dual_row("1", v, v_dual_ours, v_dual_mul, "equal");
+        dual_row("2", B, B_dual_ours, B_dual_mul, "opposite sign");
+        dual_row("3", ps, ps_dual_ours, ps_dual_mul, "opposite sign");
+        fmt::println("");
+
+        // grade 0 and grade 1: both schools agree
+        CHECK(s_dual_mul == s_dual_ours);
+        CHECK(v_dual_mul == v_dual_ours);
+        // grade 2 and grade 3: results differ by the reversion sign (opposite signs)
+        CHECK(B_dual_mul == -B_dual_ours);
+        CHECK(ps_dual_mul == -ps_dual_ours);
+
+        // explicit forward results for every basis element (the FORWARD table above):
+        // grade 0 (scalar) and grade 1 (vector) -> both schools identical
+        CHECK(dual(one_3d) == I_3d);    CHECK(one_3d * I_3d == I_3d);
+        CHECK(dual(e1_3d) == e23_3d);   CHECK(e1_3d * I_3d == e23_3d);
+        CHECK(dual(e2_3d) == e31_3d);   CHECK(e2_3d * I_3d == e31_3d);
+        CHECK(dual(e3_3d) == e12_3d);   CHECK(e3_3d * I_3d == e12_3d);
+        // grade 2 (bivector) and grade 3 (pseudoscalar) -> theirs is negated
+        CHECK(dual(e23_3d) == e1_3d);   CHECK(e23_3d * I_3d == -e1_3d);
+        CHECK(dual(e31_3d) == e2_3d);   CHECK(e31_3d * I_3d == -e2_3d);
+        CHECK(dual(e12_3d) == e3_3d);   CHECK(e12_3d * I_3d == -e3_3d);
+        CHECK(dual(I_3d) == one_3d);    CHECK(I_3d * I_3d == -one_3d);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // same comparison for a full multivector. dual() maps grade k -> grade (3-k),
+        // so the input-grade sign table above shows up as: the result components coming
+        // from the input scalar (-> gr3) and input vector (-> gr2) agree, while those
+        // coming from the input bivector (-> gr1) and input pseudoscalar (-> gr0) flip.
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const M = mvec3d{3.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0};
+        auto const M_dual_ours = dual(M);    // complement based
+        auto const M_dual_mul = M * I_3d_mv; // pseudoscalar multiplication based
+
+        fmt::println("   full multivector  M = {}:", M);
+        fmt::println("     {:<22} = {}", "ours : dual(M)", sf(M_dual_ours));
+        fmt::println("     {:<22} = {}", "them : M * I_3d_mv", sf(M_dual_mul));
+        fmt::println("     (gr0, gr1 flip sign; gr2, gr3 agree)");
+        fmt::println("");
+
+        // grade-wise: gr0 (from input ps) and gr1 (from input bivec) flip sign,
+        //             gr2 (from input vec) and gr3 (from input scalar) are equal
+        CHECK(gr0(M_dual_mul) == -gr0(M_dual_ours));
+        CHECK(gr1(M_dual_mul) == -gr1(M_dual_ours));
+        CHECK(gr2(M_dual_mul) == gr2(M_dual_ours));
+        CHECK(gr3(M_dual_mul) == gr3(M_dual_ours));
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // inverse dualization (from dual) and a structural consequence:
+        //
+        //   - our complement-based dual is an INVOLUTION in odd-dimensional ega3d:
+        //         dual(dual(A)) == A
+        //
+        //   - right-multiplication by the pseudoscalar is NOT an involution, because
+        //         I_3d * I_3d == -1   (so (A * I_3d) * I_3d == -A).
+        //     Hence the other school must explicitly divide by I_3d to undualize:
+        //         (A * I_3d) * inv(I_3d) == A,     with inv(I_3d) == -I_3d.
+        //
+        // BACKWARD dualization (dual -> primal) for every basis element:
+        //   ours re-applies dual()  (involution);  theirs is A*inv(I_3d) == -(A*I_3d).
+        //
+        //   dual A    grade   ours: dual(A)   theirs: A*inv(I_3d)   sign
+        //   ------    -----   -------------   -------------------   ----
+        //      1        0          e123             -e123            -
+        //      e1       1          e23              -e23             -
+        //      e2       1          e31              -e31             -
+        //      e3       1          e12              -e12             -
+        //      e23      2          e1                e1              +
+        //      e31      2          e2                e2              +
+        //      e12      2          e3                e3              +
+        //      e123     3          1                 1               +
+        ////////////////////////////////////////////////////////////////////////////////
+
+        fmt::println("   BACKWARD dualization  (dual A  ->  primal):");
+        rule();
+        fmt::println("   {:^5} | {:<16} | {:<16} | {:<19} | {}", "grade", "dual A",
+                     "ours: dual(A)", "theirs: A*inv(I_3d)", "relation");
+        rule();
+        dual_row("0", s, dual(s), s * inv(I_3d), "opposite sign");
+        dual_row("1", v, dual(v), v * inv(I_3d), "opposite sign");
+        dual_row("2", B, dual(B), B * inv(I_3d), "equal");
+        dual_row("3", ps, dual(ps), ps * inv(I_3d), "equal");
+        fmt::println("");
+
+        fmt::println("   pseudoscalar facts (why the two backward operations differ):");
+        fmt::println("     {:<18} = {:<14} ({})", "I_3d * I_3d", sf(I_3d * I_3d),
+                     "I_3d^2 = -1  =>  *I_3d is not an involution");
+        fmt::println("     {:<18} = {:<14} ({})", "inv(I_3d)", sf(inv(I_3d)),
+                     "== rev(I_3d) for the unit pseudoscalar");
+        fmt::println("     {:<18} = {}", "rev(I_3d)", sf(rev(I_3d)));
+        fmt::println("     {:<18} = {:<14} ({})", "I_3d * inv(I_3d)", sf(I_3d * inv(I_3d)),
+                     "round-trip identity");
+        fmt::println("");
+
+        // check inv == rev
+        CHECK(inv(I_3d) == rev(I_3d));
+
+        // explicit backward results for every basis element (the BACKWARD table above):
+        // grade 0 (scalar) and grade 1 (vector): theirs is negated relative to ours
+        CHECK(dual(one_3d) == I_3d);    CHECK(one_3d * inv(I_3d) == -I_3d);
+        CHECK(dual(e1_3d) == e23_3d);   CHECK(e1_3d * inv(I_3d) == -e23_3d);
+        CHECK(dual(e2_3d) == e31_3d);   CHECK(e2_3d * inv(I_3d) == -e31_3d);
+        CHECK(dual(e3_3d) == e12_3d);   CHECK(e3_3d * inv(I_3d) == -e12_3d);
+        // grade 2 (bivector) and grade 3 (pseudoscalar): both schools identical
+        CHECK(dual(e23_3d) == e1_3d);   CHECK(e23_3d * inv(I_3d) == e1_3d);
+        CHECK(dual(e31_3d) == e2_3d);   CHECK(e31_3d * inv(I_3d) == e2_3d);
+        CHECK(dual(e12_3d) == e3_3d);   CHECK(e12_3d * inv(I_3d) == e3_3d);
+        CHECK(dual(I_3d) == one_3d);    CHECK(I_3d * inv(I_3d) == one_3d);
+
+        // our dual undoes itself
+        CHECK(dual(dual(s)) == s);
+        CHECK(dual(dual(v)) == v);
+        CHECK(dual(dual(B)) == B);
+        CHECK(dual(dual(ps)) == ps);
+
+        // multiplying by I_3d twice negates (I_3d^2 == -1)
+        CHECK(I_3d * I_3d == scalar3d{-1.0});
+        CHECK((v * I_3d) * I_3d == -v);
+        CHECK((B * I_3d) * I_3d == -B);
+
+        // the other school recovers the original by dividing by the pseudoscalar
+        CHECK(inv(I_3d) == -I_3d);
+        CHECK((s * I_3d) * inv(I_3d) == s);
+        CHECK((v * I_3d) * inv(I_3d) == v);
+        CHECK((B * I_3d) * inv(I_3d) == B);
+        CHECK((ps * I_3d) * inv(I_3d) == ps);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // concrete round-trip examples, with the explicit intermediate (dual) values
+        // spelled out for all four grades: s = 3, v = (1,2,3), B = (1,2,3), ps = 4.
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const rt_row = [&sf](std::string_view input, std::string_view school,
+                                  auto const& fwd, auto const& bwd) {
+            fmt::println("   {:<16} | {:<6} | {:<16} | {}", input, school, sf(fwd),
+                         sf(bwd));
+        };
+        fmt::println("   concrete round trips (forward, then backward recovers input):");
+        fmt::println("   {:-<70}", "");
+        fmt::println("   {:<16} | {:<6} | {:<16} | {}", "input", "school",
+                     "forward (dual)", "backward (-> input)");
+        fmt::println("   {:-<70}", "");
+        rt_row(fmt::format("s={}", sf(s)), "ours", dual(s), dual(dual(s)));
+        rt_row("", "them", s * I_3d, (s * I_3d) * inv(I_3d));
+        rt_row(fmt::format("v={}", sf(v)), "ours", dual(v), dual(dual(v)));
+        rt_row("", "them", v * I_3d, (v * I_3d) * inv(I_3d));
+        rt_row(fmt::format("B={}", sf(B)), "ours", dual(B), dual(dual(B)));
+        rt_row("", "them", B * I_3d, (B * I_3d) * inv(I_3d));
+        rt_row(fmt::format("ps={}", sf(ps)), "ours", dual(ps), dual(dual(ps)));
+        rt_row("", "them", ps * I_3d, (ps * I_3d) * inv(I_3d));
+        fmt::println("");
+
+        // scalar s=3: forward dual agrees, both schools round-trip to s
+        CHECK(dual(s) == pscalar3d{3.0});                 // ours, forward
+        CHECK(s * I_3d == pscalar3d{3.0});                // theirs, forward (equal)
+        CHECK(dual(dual(s)) == scalar3d{3.0});            // ours, backward -> s
+        CHECK((s * I_3d) * inv(I_3d) == scalar3d{3.0});   // theirs, backward -> s
+
+        // vector v=(1,2,3): forward dual agrees, both schools round-trip to v
+        CHECK(dual(v) == bivec3d{1.0, 2.0, 3.0});         // ours, forward
+        CHECK(v * I_3d == bivec3d{1.0, 2.0, 3.0});        // theirs, forward (equal)
+        CHECK(dual(dual(v)) == vec3d{1.0, 2.0, 3.0});     // ours, backward -> v
+        CHECK((v * I_3d) * inv(I_3d) == vec3d{1.0, 2.0, 3.0}); // theirs, backward -> v
+
+        // bivector B=(1,2,3): forward duals have opposite sign, both round-trip to B
+        CHECK(dual(B) == vec3d{1.0, 2.0, 3.0});           // ours, forward
+        CHECK(B * I_3d == vec3d{-1.0, -2.0, -3.0});       // theirs, forward (negated)
+        CHECK(dual(dual(B)) == bivec3d{1.0, 2.0, 3.0});   // ours, backward -> B
+        CHECK((B * I_3d) * inv(I_3d) == bivec3d{1.0, 2.0, 3.0}); // theirs, backward -> B
+
+        // pseudoscalar ps=4: forward duals have opposite sign, both round-trip to ps
+        CHECK(dual(ps) == scalar3d{4.0});                 // ours, forward
+        CHECK(ps * I_3d == scalar3d{-4.0});               // theirs, forward (negated)
+        CHECK(dual(dual(ps)) == pscalar3d{4.0});          // ours, backward -> ps
+        CHECK((ps * I_3d) * inv(I_3d) == pscalar3d{4.0}); // theirs, backward -> ps
+    }
+
 } // EGA 3D Tests

@@ -11,9 +11,9 @@ namespace hd::ga::ega {
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides ega3d basic operations:
 //
-// - gr_inv()                      -> grade inversion
+// - gr_inv()                      -> grade involution
 // - rev()                         -> reversion
-// - conj()                        -> conjugation
+// - conj()                        -> Clifford conjugation
 //
 // - cmpl()                        -> complement
 //
@@ -27,7 +27,7 @@ namespace hd::ga::ega {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// grade inversion operation: reverse the sign of odd blades
+// grade involution operation: reverse the sign of odd blades
 // gr_inv(A_r) = (-1)^r A_r
 // pattern for r = 0, 1, 2, 3, ...: + - + - + - ...
 ////////////////////////////////////////////////////////////////////////////////

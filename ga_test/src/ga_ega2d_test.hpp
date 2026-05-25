@@ -2704,4 +2704,200 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("");
     }
 
+    TEST_CASE("MVec2d: dualization - complement vs. pseudoscalar-multiplication")
+    {
+        fmt::println("MVec2d: dualization - complement vs. pseudoscalar-multiplication");
+        fmt::println("");
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Two schools of thought for dualizing a blade / multivector A in ega2d.
+        // ega2d is an EVEN-dimensional algebra, so (unlike the odd-dimensional ega3d)
+        // the left and right complement / dual do NOT coincide for odd-grade elements:
+        //
+        //   (1) THIS LIBRARY (metric + complement):
+        //       l_dual(A) = l_cmpl(A) = I_2d * rev(A)   (left dual,  pseudoscalar left)
+        //       r_dual(A) = r_cmpl(A) = rev(A) * I_2d   (right dual, pseudoscalar right)
+        //       They differ by a sign for the (odd-grade) vector and agree for the
+        //       even-grade scalar and pseudoscalar. The round trip therefore needs the
+        //       OPPOSITE-handed dual (NOT dual applied twice):
+        //           l_dual(r_dual(A)) == r_dual(l_dual(A)) == A
+        //
+        //   (2) OTHER SCHOOL (multiplication by the pseudoscalar):
+        //       to_dual(A)   = A * I_2d        (right-multiply by the pseudoscalar)
+        //       from_dual(A) = A * inv(I_2d)   (divide by the pseudoscalar)
+        //       Here NO reversion is applied to A; with inv(I_2d) == -I_2d the round
+        //       trip is (A * I_2d) * inv(I_2d) == A.
+        //
+        // Comparison with ega3d (odd dim): there a single dual() exists, it IS an
+        // involution (dual(dual(A)) == A), and A*I_3d == dual(A) up to the reversion
+        // sign of grade k. Here A*I_2d == r_dual(A) up to the SAME reversion sign:
+        //
+        //       grade k        0    1    2
+        //       (-1)^(k(k-1)/2) +    +    -     (= reversion sign)
+        //
+        // => scalar (k=0) and vector (k=1) agree with r_dual; pseudoscalar (k=2) flips.
+        //
+        // FORWARD dualization (primal A -> dual) for every basis element:
+        //
+        //   primal A   grade   l_dual(A)   r_dual(A)   theirs: A*I_2d   note
+        //   --------   -----   ---------   ---------   --------------   --------------------
+        //      1         0        e12         e12          e12          all three equal
+        //      e1        1       -e2          e2           e2           l_dual = -r_dual
+        //      e2        1        e1         -e1          -e1           l_dual = -r_dual
+        //      e12       2        1           1           -1            theirs = -r_dual
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const s = scalar2d{3.0};
+        auto const v = vec2d{1.0, 2.0};
+        auto const ps = pscalar2d{4.0};
+
+        // The GA formatters use fmt::nested_formatter, so a width spec would pad the
+        // nested number, not the whole "Scalar2d(...)" token. Stringify first, then pad.
+        auto const sf = [](auto const& x) { return fmt::format("{}", x); };
+
+        // one row of the forward comparison table (l_dual | r_dual | theirs)
+        auto const fwd_row = [&sf](std::string_view grade, auto const& a, auto const& ld,
+                                   auto const& rd, auto const& th,
+                                   std::string_view note) {
+            fmt::println("   {:^5} | {:<12} | {:<15} | {:<15} | {:<14} | {}", grade,
+                         sf(a), sf(ld), sf(rd), sf(th), note);
+        };
+        auto const rule = [] { fmt::println("   {:-<92}", ""); };
+
+        fmt::println("   FORWARD dualization (primal A -> dual)  [even dim: l_dual != "
+                     "r_dual]:");
+        rule();
+        fmt::println("   {:^5} | {:<12} | {:<15} | {:<15} | {:<14} | {}", "grade",
+                     "primal A", "ours: l_dual(A)", "ours: r_dual(A)", "theirs: A*I_2d",
+                     "note");
+        rule();
+        fwd_row("0", s, l_dual(s), r_dual(s), s * I_2d, "all three equal");
+        fwd_row("1", v, l_dual(v), r_dual(v), v * I_2d, "l_dual=-r_dual; theirs=r_dual");
+        fwd_row("2", ps, l_dual(ps), r_dual(ps), ps * I_2d, "theirs = -r_dual");
+        fmt::println("");
+
+        // theirs A*I_2d matches r_dual for grades 0,1 and is negated at grade 2:
+        CHECK(s * I_2d == r_dual(s));
+        CHECK(v * I_2d == r_dual(v));
+        CHECK(ps * I_2d == -r_dual(ps));
+
+        // l_dual vs r_dual: equal for even grades, opposite for the (odd) vector:
+        CHECK(l_dual(s) == r_dual(s));
+        CHECK(l_dual(v) == -r_dual(v));
+        CHECK(l_dual(ps) == r_dual(ps));
+
+        // explicit forward results for every basis element (the FORWARD table above):
+        CHECK(l_dual(one_2d) == I_2d);   CHECK(r_dual(one_2d) == I_2d);
+        CHECK(one_2d * I_2d == I_2d);
+        CHECK(l_dual(e1_2d) == -e2_2d);  CHECK(r_dual(e1_2d) == e2_2d);
+        CHECK(e1_2d * I_2d == e2_2d);
+        CHECK(l_dual(e2_2d) == e1_2d);   CHECK(r_dual(e2_2d) == -e1_2d);
+        CHECK(e2_2d * I_2d == -e1_2d);
+        CHECK(l_dual(I_2d) == one_2d);   CHECK(r_dual(I_2d) == one_2d);
+        CHECK(I_2d * I_2d == -one_2d);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // full multivector. r_dual() maps grade k -> grade (2-k); A*I_2d agrees with
+        // r_dual on the images of the input scalar (-> gr2) and input vector (-> gr1),
+        // and flips the image of the input pseudoscalar (-> gr0).
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const M = mvec2d{3.0, 1.0, 2.0, 4.0}; // {scalar, e1, e2, e12}
+        auto const M_rdual = r_dual(M);
+        auto const M_ldual = l_dual(M);
+        auto const M_mul = M * I_2d_mv;
+
+        fmt::println("   full multivector  M = {}:", M);
+        fmt::println("     {:<22} = {}", "ours : l_dual(M)", sf(M_ldual));
+        fmt::println("     {:<22} = {}", "ours : r_dual(M)", sf(M_rdual));
+        fmt::println("     {:<22} = {}", "them : M * I_2d_mv", sf(M_mul));
+        fmt::println("     (theirs vs r_dual: gr0 flips; gr1, gr2 agree)");
+        fmt::println("");
+
+        CHECK(gr0(M_mul) == -gr0(M_rdual));
+        CHECK(gr1(M_mul) == gr1(M_rdual));
+        CHECK(gr2(M_mul) == gr2(M_rdual));
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // inverse dualization (from dual) and the structural consequence for even dim:
+        //
+        //   - the complement-based dual is NOT a self-involution here. Applying r_dual
+        //     twice does NOT recover the input (it negates the odd-grade vector):
+        //         r_dual(r_dual(v)) == -v
+        //     Instead the inverse of r_dual is l_dual (and vice versa):
+        //         l_dual(r_dual(A)) == r_dual(l_dual(A)) == A
+        //
+        //   - right-multiplication by the pseudoscalar is likewise not an involution
+        //     (I_2d * I_2d == -1), so the other school divides by I_2d to undualize:
+        //         (A * I_2d) * inv(I_2d) == A,    with inv(I_2d) == -I_2d == rev(I_2d).
+        ////////////////////////////////////////////////////////////////////////////////
+
+        fmt::println("   pseudoscalar facts (why a second forward dual does not undo):");
+        fmt::println("     {:<18} = {:<13} ({})", "I_2d * I_2d", sf(I_2d * I_2d),
+                     "I_2d^2 = -1  =>  not an involution");
+        fmt::println("     {:<18} = {:<13} ({})", "inv(I_2d)", sf(inv(I_2d)),
+                     "== rev(I_2d) for the unit pseudoscalar");
+        fmt::println("     {:<18} = {}", "rev(I_2d)", sf(rev(I_2d)));
+        fmt::println("     {:<18} = {:<13} ({})", "r_dual(r_dual(v))",
+                     sf(r_dual(r_dual(v))), "= -v  (NOT v: dual is not a self-inverse)");
+        fmt::println("");
+
+        CHECK(inv(I_2d) == rev(I_2d));
+        CHECK(inv(I_2d) == -I_2d);
+        CHECK(I_2d * I_2d == -one_2d);
+        CHECK(r_dual(r_dual(v)) == -v); // NOT v -> contrast with odd-dim ega3d
+
+        // ours: the round trip uses the opposite-handed dual (both orders work)
+        CHECK(l_dual(r_dual(s)) == s);   CHECK(r_dual(l_dual(s)) == s);
+        CHECK(l_dual(r_dual(v)) == v);   CHECK(r_dual(l_dual(v)) == v);
+        CHECK(l_dual(r_dual(ps)) == ps); CHECK(r_dual(l_dual(ps)) == ps);
+
+        // theirs: the round trip multiplies by inv(I_2d)
+        CHECK((s * I_2d) * inv(I_2d) == s);
+        CHECK((v * I_2d) * inv(I_2d) == v);
+        CHECK((ps * I_2d) * inv(I_2d) == ps);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // concrete round trips for all grades: forward then backward recovers input.
+        //   ours : forward = r_dual, backward = l_dual (the opposite-handed dual)
+        //   them : forward = *I_2d , backward = *inv(I_2d)
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const rt_row = [&sf](std::string_view input, std::string_view school,
+                                  auto const& fwd, auto const& bwd) {
+            fmt::println("   {:<16} | {:<6} | {:<14} | {}", input, school, sf(fwd),
+                         sf(bwd));
+        };
+        fmt::println("   concrete round trips (forward, then backward recovers input):");
+        fmt::println("   {:-<66}", "");
+        fmt::println("   {:<16} | {:<6} | {:<14} | {}", "input", "school",
+                     "forward (dual)", "backward (-> input)");
+        fmt::println("   {:-<66}", "");
+        rt_row(fmt::format("s={}", sf(s)), "ours", r_dual(s), l_dual(r_dual(s)));
+        rt_row("", "them", s * I_2d, (s * I_2d) * inv(I_2d));
+        rt_row(fmt::format("v={}", sf(v)), "ours", r_dual(v), l_dual(r_dual(v)));
+        rt_row("", "them", v * I_2d, (v * I_2d) * inv(I_2d));
+        rt_row(fmt::format("ps={}", sf(ps)), "ours", r_dual(ps), l_dual(r_dual(ps)));
+        rt_row("", "them", ps * I_2d, (ps * I_2d) * inv(I_2d));
+        fmt::println("");
+
+        // scalar s=3 (grade 0): forward duals agree, both schools round-trip to s
+        CHECK(r_dual(s) == pscalar2d{3.0});
+        CHECK(s * I_2d == pscalar2d{3.0});
+        CHECK(l_dual(r_dual(s)) == scalar2d{3.0});
+        CHECK((s * I_2d) * inv(I_2d) == scalar2d{3.0});
+
+        // vector v=(1,2) (grade 1): forward duals agree (theirs == r_dual), round-trip to v
+        CHECK(r_dual(v) == vec2d{-2.0, 1.0});
+        CHECK(v * I_2d == vec2d{-2.0, 1.0});
+        CHECK(l_dual(r_dual(v)) == vec2d{1.0, 2.0});
+        CHECK((v * I_2d) * inv(I_2d) == vec2d{1.0, 2.0});
+
+        // pseudoscalar ps=4 (grade 2): forward duals have opposite sign, round-trip to ps
+        CHECK(r_dual(ps) == scalar2d{4.0});
+        CHECK(ps * I_2d == scalar2d{-4.0});
+        CHECK(l_dual(r_dual(ps)) == pscalar2d{4.0});
+        CHECK((ps * I_2d) * inv(I_2d) == pscalar2d{4.0});
+    }
+
 } // EGA 2D Tests

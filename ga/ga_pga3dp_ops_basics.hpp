@@ -16,12 +16,12 @@ namespace hd::ga::pga {
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides pga3dp basic operations:
 //
-// - gr_inv()                      -> grade inversion
+// - gr_inv()                      -> grade involution
 // - rev()                         -> reversion
 // - rrev()                        -> regressive reversion
-// - conj()                        -> conjugation
+// - conj()                        -> Clifford conjugation
 //
-// - l_cmpl(), r_cmpl()            -> left and right complement
+// - r_cmpl(), l_cmpl()            -> right and left complement
 //
 // - bulk(), weight()              -> return bulk and weight parts of objects
 // - bulk_nrm_sq(), bulk_nrm()     -> return bulk norm
@@ -40,7 +40,7 @@ namespace hd::ga::pga {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// grade inversion operation: reverse the sign of odd blades
+// grade involution operation: reverse the sign of odd blades
 // gr_inv(A_r) = (-1)^r A_r
 // pattern for r = 0, 1, 2, 3, ...: + - + - + - ...
 ////////////////////////////////////////////////////////////////////////////////

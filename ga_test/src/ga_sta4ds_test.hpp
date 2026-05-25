@@ -1228,4 +1228,206 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("   MVec4ds contextual: {}", contextual);
     }
 
+    TEST_CASE("MVec4ds: dualization - complement vs. pseudoscalar-multiplication")
+    {
+        fmt::println("MVec4ds: dualization - complement vs. pseudoscalar-multiplication");
+        fmt::println("");
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Two schools of thought for dualizing in sta4ds = G(1,3,0). Like ega2d this is
+        // an EVEN-dimensional algebra (l_dual != r_dual for odd grades), but unlike the
+        // Euclidean algebras it carries a NON-trivial (Minkowski) metric, so the dual is
+        //   l_dual(A) = l_cmpl(G * A),   r_dual(A) = r_cmpl(G * A)
+        // (complement after multiplying with the extended metric G, det(G) = -1).
+        //
+        //   (1) THIS LIBRARY: l_dual / r_dual (metric duals), and the non-metric
+        //       complements l_cmpl / r_cmpl.
+        //
+        //   (2) OTHER SCHOOL: to_dual(A) = A * I_4ds,  from_dual(A) = A * inv(I_4ds),
+        //       with I_4ds*I_4ds == -1  =>  inv(I_4ds) == -I_4ds.
+        //
+        // Three-way contrast across the algebras:
+        //
+        //   ega3d (odd, Euclidean):  one dual, it is an involution dual(dual(A))==A;
+        //                            A*I differs from dual(A) by the reversion sign.
+        //   ega2d (even, Euclidean): l_dual != r_dual; metric = identity so the dual
+        //                            round trip works: l_dual(r_dual(A)) == A;
+        //                            A*I differs from r_dual by the reversion sign.
+        //   sta4ds (even, Minkowski): l_dual != r_dual, AND two surprises caused by the
+        //                            mixed metric:
+        //          (a) A * I_4ds == r_dual(A) EXACTLY at every grade -- the metric
+        //              absorbs the reversion sign that makes them differ in EGA.
+        //          (b) the metric-dual round trip is NOT the identity:
+        //              l_dual(r_dual(A)) == r_dual(l_dual(A)) == det(G)-signed A
+        //              (= +A for odd grades, -A for even grades). Genuine recovery
+        //              comes from the metric-free complement pair
+        //              r_cmpl(l_cmpl(A)) == l_cmpl(r_cmpl(A)) == A, or from the other
+        //              school's (A * I_4ds) * inv(I_4ds) == A.
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const s = scalar4ds{2.0};
+        auto const v = vec4ds{1.0, 2.0, 3.0, 4.0};
+        auto const B = bivec4ds{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        auto const t = trivec4ds{1.0, 2.0, 3.0, 4.0};
+        auto const ps = pscalar4ds{5.0};
+
+        // inv(I_4ds): no graded inv(PScalar4ds) overload exists, but I_4ds*I_4ds == -1
+        // makes -I_4ds the multiplicative inverse (verified below).
+        auto const I_inv = -I_4ds;
+
+        auto const sf = [](auto const& x) { return fmt::format("{}", x); };
+        auto const cmp = [&sf](std::string_view g, auto const& a, auto const& b,
+                               auto const& c, std::string_view note) {
+            fmt::println("   {:^5} | {:<22} | {:<24} | {:<24} | {}", g, sf(a), sf(b),
+                         sf(c), note);
+        };
+        auto const rule = [] { fmt::println("   {:-<98}", ""); };
+
+        // --- school-1 r_dual vs school-2 A*I_4ds: identical at every grade in sta ---
+        fmt::println("   FORWARD: ours r_dual(A) vs theirs A*I_4ds  (coincide in sta!):");
+        rule();
+        fmt::println("   {:^5} | {:<22} | {:<24} | {:<24} | {}", "grade", "primal A",
+                     "ours: r_dual(A)", "theirs: A*I_4ds", "match");
+        rule();
+        cmp("0", s, r_dual(s), s * I_4ds, "equal");
+        cmp("1", v, r_dual(v), v * I_4ds, "equal");
+        cmp("2", B, r_dual(B), B * I_4ds, "equal");
+        cmp("3", t, r_dual(t), t * I_4ds, "equal");
+        cmp("4", ps, r_dual(ps), ps * I_4ds, "equal");
+        fmt::println("");
+
+        CHECK(s * I_4ds == r_dual(s));
+        CHECK(v * I_4ds == r_dual(v));
+        CHECK(B * I_4ds == r_dual(B));
+        CHECK(t * I_4ds == r_dual(t));
+        CHECK(ps * I_4ds == r_dual(ps));
+
+        // basis spot-checks across grades: A*I_4ds == r_dual(A)
+        CHECK(one_4ds * I_4ds == r_dual(one_4ds));
+        CHECK(g1_4ds * I_4ds == r_dual(g1_4ds));
+        CHECK(g14_4ds * I_4ds == r_dual(g14_4ds));
+        CHECK(g234_4ds * I_4ds == r_dual(g234_4ds));
+        CHECK(I_4ds * I_4ds == r_dual(I_4ds));
+
+        // --- l_dual vs r_dual: even-dimensional split (odd grades flip sign) ---
+        fmt::println("   l_dual(A) vs r_dual(A)  (even dim: odd grades flip):");
+        rule();
+        fmt::println("   {:^5} | {:<22} | {:<24} | {:<24} | {}", "grade", "primal A",
+                     "ours: l_dual(A)", "ours: r_dual(A)", "relation");
+        rule();
+        cmp("0", s, l_dual(s), r_dual(s), "equal");
+        cmp("1", v, l_dual(v), r_dual(v), "l_dual = -r_dual");
+        cmp("2", B, l_dual(B), r_dual(B), "equal");
+        cmp("3", t, l_dual(t), r_dual(t), "l_dual = -r_dual");
+        cmp("4", ps, l_dual(ps), r_dual(ps), "equal");
+        fmt::println("");
+
+        CHECK(l_dual(s) == r_dual(s));
+        CHECK(l_dual(v) == -r_dual(v));
+        CHECK(l_dual(B) == r_dual(B));
+        CHECK(l_dual(t) == -r_dual(t));
+        CHECK(l_dual(ps) == r_dual(ps));
+        // basis: odd-grade vectors / trivectors flip, even-grade bivectors agree
+        CHECK(l_dual(g1_4ds) == -r_dual(g1_4ds));
+        CHECK(l_dual(g234_4ds) == -r_dual(g234_4ds));
+        CHECK(l_dual(g14_4ds) == r_dual(g14_4ds));
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // full multivector: M * I_4ds coincides with r_dual(M) exactly (no grade flips,
+        // unlike the Euclidean cases).
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const M = mvec4ds{s, v, B, t, ps};
+
+        fmt::println("   full multivector  M = {}:", M);
+        fmt::println("     {:<20} = {}", "ours : r_dual(M)", sf(r_dual(M)));
+        fmt::println("     {:<20} = {}", "them : M * I_4ds", sf(M * I_4ds));
+        fmt::println("     {:<20} = {}", "ours : l_dual(M)", sf(l_dual(M)));
+        fmt::println("     (r_dual == theirs exactly; l_dual flips the odd-grade-image "
+                     "parts)");
+        fmt::println("");
+
+        CHECK(M * I_4ds == r_dual(M));
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // inverse dualization and the Minkowski-metric surprise:
+        //
+        //   - the two metric-dual compositions AGREE with each other (as in any even
+        //     dimension) ...
+        //         l_dual(r_dual(A)) == r_dual(l_dual(A))
+        //   - ... but in the mixed metric they do NOT recover A: they return det(G)=-1
+        //     signed by grade (= +A for the odd grades 1,3; = -A for the even 0,2,4).
+        //   - genuine recovery: the metric-free complement pair, or the other school's
+        //     multiplication by inv(I_4ds).
+        ////////////////////////////////////////////////////////////////////////////////
+
+        fmt::println("   pseudoscalar / round-trip facts:");
+        fmt::println("     {:<26} = {}", "I_4ds * I_4ds", sf(I_4ds * I_4ds));
+        fmt::println("     {:<26} = {}", "I_4ds * inv(I_4ds)", sf(I_4ds * I_inv));
+        fmt::println("     {:<26} = {}  (= -s, NOT s!)", "l_dual(r_dual(s))",
+                     sf(l_dual(r_dual(s))));
+        fmt::println("     {:<26} = {}  (= v)", "l_dual(r_dual(v))",
+                     sf(l_dual(r_dual(v))));
+        fmt::println("");
+
+        CHECK(I_4ds * I_4ds == -one_4ds);
+        CHECK(I_4ds * I_inv == one_4ds); // -I_4ds is the multiplicative inverse
+
+        // the two metric-dual compositions agree with each other ...
+        CHECK(l_dual(r_dual(s)) == r_dual(l_dual(s)));
+        CHECK(l_dual(r_dual(v)) == r_dual(l_dual(v)));
+        CHECK(l_dual(r_dual(B)) == r_dual(l_dual(B)));
+        CHECK(l_dual(r_dual(t)) == r_dual(l_dual(t)));
+        CHECK(l_dual(r_dual(ps)) == r_dual(l_dual(ps)));
+
+        // ... but they return det(G)-signed A: -A for even grades, +A for odd grades
+        CHECK(l_dual(r_dual(s)) == -s);
+        CHECK(l_dual(r_dual(v)) == v);
+        CHECK(l_dual(r_dual(B)) == -B);
+        CHECK(l_dual(r_dual(t)) == t);
+        CHECK(l_dual(r_dual(ps)) == -ps);
+
+        // genuine recovery (1): the metric-free complement pair round-trips for all grades
+        CHECK(r_cmpl(l_cmpl(s)) == s);   CHECK(l_cmpl(r_cmpl(s)) == s);
+        CHECK(r_cmpl(l_cmpl(v)) == v);   CHECK(l_cmpl(r_cmpl(v)) == v);
+        CHECK(r_cmpl(l_cmpl(B)) == B);   CHECK(l_cmpl(r_cmpl(B)) == B);
+        CHECK(r_cmpl(l_cmpl(t)) == t);   CHECK(l_cmpl(r_cmpl(t)) == t);
+        CHECK(r_cmpl(l_cmpl(ps)) == ps); CHECK(l_cmpl(r_cmpl(ps)) == ps);
+
+        // genuine recovery (2): the other school multiplies by inv(I_4ds)
+        CHECK((s * I_4ds) * I_inv == s);
+        CHECK((v * I_4ds) * I_inv == v);
+        CHECK((B * I_4ds) * I_inv == B);
+        CHECK((t * I_4ds) * I_inv == t);
+        CHECK((ps * I_4ds) * I_inv == ps);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // concrete round trips that recover the input, for all grades:
+        //   ours : forward = r_cmpl, backward = l_cmpl (the metric-free complement pair)
+        //   them : forward = *I_4ds, backward = *inv(I_4ds)
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const rt_row = [&sf](std::string_view input, std::string_view school,
+                                  auto const& fwd, auto const& bwd) {
+            fmt::println("   {:<11} | {:<6} | {:<24} | {}", input, school, sf(fwd),
+                         sf(bwd));
+        };
+        fmt::println("   concrete round trips (forward, then backward recovers input):");
+        fmt::println("   {:-<76}", "");
+        fmt::println("   {:<11} | {:<6} | {:<24} | {}", "input", "school",
+                     "forward", "backward (-> input)");
+        fmt::println("   {:-<76}", "");
+        rt_row("s  (gr0)", "ours", r_cmpl(s), l_cmpl(r_cmpl(s)));
+        rt_row("", "them", s * I_4ds, (s * I_4ds) * I_inv);
+        rt_row("v  (gr1)", "ours", r_cmpl(v), l_cmpl(r_cmpl(v)));
+        rt_row("", "them", v * I_4ds, (v * I_4ds) * I_inv);
+        rt_row("B  (gr2)", "ours", r_cmpl(B), l_cmpl(r_cmpl(B)));
+        rt_row("", "them", B * I_4ds, (B * I_4ds) * I_inv);
+        rt_row("t  (gr3)", "ours", r_cmpl(t), l_cmpl(r_cmpl(t)));
+        rt_row("", "them", t * I_4ds, (t * I_4ds) * I_inv);
+        rt_row("ps (gr4)", "ours", r_cmpl(ps), l_cmpl(r_cmpl(ps)));
+        rt_row("", "them", ps * I_4ds, (ps * I_4ds) * I_inv);
+        fmt::println("");
+    }
+
 } // STA 3D Tests

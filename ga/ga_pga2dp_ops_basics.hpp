@@ -16,10 +16,10 @@ namespace hd::ga::pga {
 /////////////////////////////////////////////////////////////////////////////////////////
 // provides pga2dp basic operations:
 //
-// - gr_inv()                      -> grade inversion
+// - gr_inv()                      -> grade involution
 // - rev()                         -> reversion
 // - rrev()                        -> regressive reversion
-// - conj()                        -> conjugation
+// - conj()                        -> Clifford conjugation
 //
 // - cmpl()                        -> complement
 //
@@ -38,7 +38,7 @@ namespace hd::ga::pga {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// grade inversion operation: reverse the sign of odd blades
+// grade involution operation: reverse the sign of odd blades
 // gr_inv(A_r) = (-1)^r A_r
 // pattern for r = 0, 1, 2, 3, ...: + - + - + - ...
 ////////////////////////////////////////////////////////////////////////////////
