@@ -1228,6 +1228,258 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("   MVec4ds contextual: {}", contextual);
     }
 
+    TEST_CASE("MVec4ds: metric / antimetric exomorphisms (G, rG) and metric-indep. dual")
+    {
+        fmt::println("MVec4ds: metric / antimetric exomorphisms (G, rG)");
+        fmt::println("");
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Following Lengyel ("PGA Illuminated"), every metric algebra carries TWO
+        // exomorphisms tied to the metric:
+        //   - the metric      G : a wedge      exomorphism,  G(wdg(a,b))  == wdg(G(a),G(b))
+        //   - the antimetric rG : an antiwedge exomorphism, rG(rwdg(a,b)) == rwdg(rG(a),rG(b))
+        // related by  G * rG = det(metric) * I  (ordinary matrix product, I = identity).
+        //
+        // In PGA the metric is degenerate (det = 0), so G*rG = 0 -- G and rG annihilate
+        // each other, which is exactly the bulk/weight split (disjoint support). In a
+        // NON-degenerate algebra like sta4ds there is no null direction, det != 0, so the
+        // relation is invertible. With det = -1 and G^2 = I (every basis blade squares to
+        // +/-1) it collapses to
+        //
+        //                          rG = -G          (the antimetric is the negated metric)
+        //
+        // FAITHFUL METRIC vs LIBRARY METRIC. The faithful exomorphism is the PURE-PRODUCT
+        // metric G(e_S) = (prod_{i in S} g_i) e_S. The library's own extended metric
+        //     Gx(X) = l_cmpl(r_dual(X))     (since r_dual = r_cmpl o Gx, l_cmpl o r_cmpl = id)
+        // is the BLADE-SQUARE form e_S^2 = sigma(k) * prod g_i (it carries the reversion
+        // sign sigma(k) = (-1)^(k(k-1)/2)). The two are related by exactly the reversion:
+        //     G(X) = rev(Gx(X))            (pure product = blade square with reversion removed)
+        // and that reversion content is precisely the gr_inv that makes l_dual o r_dual
+        // (which uses Gx on the primal side twice) miss the identity. Using the FAITHFUL
+        // G / rG, all of Lengyel's relations hold cleanly at every grade.
+        //
+        // Signature duality (the physics remark): G(g1)=-g1 realizes (-,-,-,+) while
+        // rG = -G realizes (+,+,+,-). The two signatures are wedge-metric and
+        // antiwedge-antimetric of one another -- the same geometry, read off in dual
+        // spaces. One school works it out in the space, the other in its dual.
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const sf = [](auto const& x) { return fmt::format("{}", x); };
+        auto const Gx = [](auto const& X) { return l_cmpl(r_dual(X)); }; // library (blade square)
+        auto const G = [&Gx](auto const& X) { return rev(Gx(X)); };      // faithful wedge metric
+        auto const rG = [&G](auto const& X) { return -G(X); };           // antimetric (= -G)
+
+        auto const s = scalar4ds{2.0};
+        auto const v = vec4ds{1.0, 2.0, 3.0, 4.0};
+        auto const B = bivec4ds{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        auto const t = trivec4ds{1.0, 2.0, 3.0, 4.0};
+        auto const ps = pscalar4ds{5.0};
+
+        fmt::println("   metric vs antimetric on the basis vectors (signature duality):");
+        fmt::println("     G(g1)={:>13}  rG(g1)={:>13}", sf(G(g1_4ds)), sf(rG(g1_4ds)));
+        fmt::println("     G(g4)={:>13}  rG(g4)={:>13}", sf(G(g4_4ds)), sf(rG(g4_4ds)));
+        fmt::println("");
+
+        // (0) faithful metric = library metric with the reversion removed
+        CHECK(G(g14_4ds) == rev(Gx(g14_4ds)));
+        CHECK(G(g23_4ds) == rev(Gx(g23_4ds)));
+
+        // (1) G * rG = det(metric) * I, det = -1  <=>  rG(G(X)) == -X  (and rG = -G)
+        CHECK(rG(G(s)) == -s);
+        CHECK(rG(G(v)) == -v);
+        CHECK(rG(G(B)) == -B);
+        CHECK(rG(G(t)) == -t);
+        CHECK(rG(G(ps)) == -ps);
+        CHECK(G(v) == -rG(v)); // rG = -G
+
+        // signature duality: G realizes (-,-,-,+), rG = -G realizes (+,+,+,-)
+        CHECK(G(g1_4ds) == -g1_4ds);  CHECK(rG(g1_4ds) == g1_4ds);
+        CHECK(G(g4_4ds) == g4_4ds);   CHECK(rG(g4_4ds) == -g4_4ds);
+
+        // (2) G is a faithful WEDGE exomorphism at every grade (incl. mixed grades, where
+        //     the blade-square library metric Gx would fail by the reversion sign)
+        CHECK(G(wdg(g1_4ds, g4_4ds)) == wdg(G(g1_4ds), G(g4_4ds)));   // vector ^ vector
+        CHECK(G(wdg(g2_4ds, g3_4ds)) == wdg(G(g2_4ds), G(g3_4ds)));   // vector ^ vector
+        CHECK(G(wdg(g1_4ds, g23_4ds)) == wdg(G(g1_4ds), G(g23_4ds))); // vector ^ bivector
+        CHECK(G(wdg(g4_4ds, g23_4ds)) == wdg(G(g4_4ds), G(g23_4ds))); // vector ^ bivector
+        // the library's blade-square Gx is NOT a faithful exomorphism (off by reversion):
+        CHECK(Gx(wdg(g1_4ds, g4_4ds)) != wdg(Gx(g1_4ds), Gx(g4_4ds)));
+
+        // (3) rG is a faithful ANTIWEDGE exomorphism: rG(rwdg(a,b)) == rwdg(rG(a),rG(b))
+        CHECK(rG(rwdg(g234_4ds, g123_4ds)) == rwdg(rG(g234_4ds), rG(g123_4ds)));
+        CHECK(rG(rwdg(g234_4ds, g14_4ds)) == rwdg(rG(g234_4ds), rG(g14_4ds)));
+        // ... and G is NOT an antiwedge exomorphism (the roles are swapped)
+        CHECK(G(rwdg(g234_4ds, g14_4ds)) != rwdg(G(g234_4ds), G(g14_4ds)));
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Metric-independent dualization using the metric on the DUAL side.
+        //
+        // r_dual = r_cmpl o Gx puts the metric on the primal side; its inverse therefore
+        // puts the metric on the dual side. Since Gx^2 = I, the inverse is Gx o l_cmpl,
+        // i.e. the "antidual":
+        //     antidual(D) = l_cmpl(r_dual(l_cmpl(D)))           (= Gx o l_cmpl)
+        // This inverts r_dual at EVERY grade and depends on the metric only through Gx^2=I,
+        // so it works for any non-degenerate signature -- including the equivalent
+        // (+,+,+,-) -- without the det*gr_inv correction that l_dual o r_dual needs.
+        // (Cannot be exercised against G(3,1,0) here, as the library only instantiates
+        //  G(1,3,0); but the construction uses no signature-specific value beyond Gx^2=I.)
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const antidual = [](auto const& D) { return l_cmpl(r_dual(l_cmpl(D))); };
+
+        CHECK(antidual(r_dual(s)) == s);
+        CHECK(antidual(r_dual(v)) == v);
+        CHECK(antidual(r_dual(B)) == B);
+        CHECK(antidual(r_dual(t)) == t);
+        CHECK(antidual(r_dual(ps)) == ps);
+        // symmetric statement: r_dual inverts the antidual too
+        CHECK(r_dual(antidual(v)) == v);
+        CHECK(r_dual(antidual(B)) == B);
+    }
+
+    TEST_CASE("MVec4ds: left/right antidual; the wedge product fixes space vs dual")
+    {
+        fmt::println("MVec4ds: left/right antidual; the wedge product fixes space vs dual");
+        fmt::println("");
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Q1 -- there are TWO antiduals, one inverse for each handedness of the dual:
+        //     right antidual (inverts r_dual):  r_undual(D) = l_cmpl(r_dual(l_cmpl(D))) = Gx o l_cmpl
+        //     left  antidual (inverts l_dual):  l_undual(D) = r_cmpl(l_dual(r_cmpl(D))) = Gx o r_cmpl
+        //   (metric on the dual side; the complement that opens/closes matches the dual's
+        //   handedness). On even-grade inputs l_dual == r_dual, so r_undual == l_undual there;
+        //   on odd grades they differ by a sign, exactly as l_dual and r_dual do. Each
+        //   inverts only its own handedness -- the cross pairing flips the odd grades.
+        //
+        // Q2 -- space vs dual space is fixed by WHICH product is the wedge. Each signature
+        //   is an exomorphism of EXACTLY ONE product (they are not interchangeable):
+        //     G  = (-,-,-,+)  is the WEDGE     exomorphism, NOT the antiwedge one
+        //     rG = (+,+,+,-)  is the ANTIWEDGE exomorphism, NOT the wedge one
+        //   So, relative to the library's wedge convention, the space is uniquely the
+        //   signature whose metric respects the wedge product: (-,-,-,+). Its dual space is
+        //   (+,+,+,-). The structure is symmetric under (wdg <-> rwdg, G <-> rG,
+        //   space <-> dual) -- which is exactly why both signatures are physically
+        //   equivalent: each is "the space" for one of the two products.
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const Gx = [](auto const& X) { return l_cmpl(r_dual(X)); };
+        auto const G = [&Gx](auto const& X) { return rev(Gx(X)); }; // faithful (-,-,-,+)
+        auto const rG = [&G](auto const& X) { return -G(X); };      // antimetric (+,+,+,-)
+        auto const r_undual = [](auto const& D) { return l_cmpl(r_dual(l_cmpl(D))); };
+        auto const l_undual = [](auto const& D) { return r_cmpl(l_dual(r_cmpl(D))); };
+
+        auto const s = scalar4ds{2.0};
+        auto const v = vec4ds{1.0, 2.0, 3.0, 4.0};
+        auto const B = bivec4ds{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        auto const t = trivec4ds{1.0, 2.0, 3.0, 4.0};
+        auto const ps = pscalar4ds{5.0};
+
+        // Q1: right antidual inverts r_dual at every grade
+        CHECK(r_undual(r_dual(s)) == s);
+        CHECK(r_undual(r_dual(v)) == v);
+        CHECK(r_undual(r_dual(B)) == B);
+        CHECK(r_undual(r_dual(t)) == t);
+        CHECK(r_undual(r_dual(ps)) == ps);
+        // left antidual inverts l_dual at every grade
+        CHECK(l_undual(l_dual(s)) == s);
+        CHECK(l_undual(l_dual(v)) == v);
+        CHECK(l_undual(l_dual(B)) == B);
+        CHECK(l_undual(l_dual(t)) == t);
+        CHECK(l_undual(l_dual(ps)) == ps);
+        // the two antiduals are genuinely distinct: each inverts only its own handedness,
+        // the cross-pairing flips the odd grades (and coincides on the even grades)
+        CHECK(l_undual(r_dual(v)) == -v); // left antidual does NOT invert r_dual (odd grade)
+        CHECK(r_undual(l_dual(v)) == -v); // right antidual does NOT invert l_dual (odd grade)
+        CHECK(l_undual(r_dual(B)) == B);  // ... but they agree on even grades
+        CHECK(r_undual(l_dual(B)) == B);
+
+        // Q2: G = (-,-,-,+) is the WEDGE exomorphism, and ONLY the wedge one
+        CHECK(G(wdg(g1_4ds, g4_4ds)) == wdg(G(g1_4ds), G(g4_4ds)));    // wedge: holds
+        CHECK(G(wdg(g2_4ds, g3_4ds)) == wdg(G(g2_4ds), G(g3_4ds)));
+        CHECK(G(rwdg(g234_4ds, g14_4ds)) != rwdg(G(g234_4ds), G(g14_4ds))); // antiwedge: fails
+        // rG = (+,+,+,-) is the ANTIWEDGE exomorphism, and ONLY the antiwedge one
+        CHECK(rG(rwdg(g234_4ds, g14_4ds)) == rwdg(rG(g234_4ds), rG(g14_4ds)));   // antiwedge: holds
+        CHECK(rG(rwdg(g234_4ds, g123_4ds)) == rwdg(rG(g234_4ds), rG(g123_4ds)));
+        CHECK(rG(wdg(g1_4ds, g4_4ds)) != wdg(rG(g1_4ds), rG(g4_4ds)));     // wedge: fails
+
+        fmt::println("   Q1: r_undual inverts r_dual, l_undual inverts l_dual (distinct on "
+                     "odd grades)");
+        fmt::println("   Q2: wedge-exomorphism uniquely selects (-,-,-,+) as the space; "
+                     "(+,+,+,-) is its dual");
+        fmt::println("");
+    }
+
+    TEST_CASE("MVec4ds: explicit space -> dual -> space round trip")
+    {
+        fmt::println("MVec4ds: explicit space -> dual -> space round trip");
+        fmt::println("");
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Round trip in sta4ds (non-degenerate, Minkowski). The metric must be applied on
+        // OPPOSITE sides going out and coming back:
+        //
+        //   forward  (space -> dual):  D = r_dual(A)                = r_cmpl(G * A)
+        //   backward (dual  -> space): A = antidual(D)              = l_cmpl(r_dual(l_cmpl(D)))
+        //                                                           = (1/det) * rG * l_cmpl(D)
+        //
+        // The "naive" backward leg l_dual(D) (metric on the primal side again -- the recipe
+        // that works in the Euclidean even algebra ega2d) does NOT recover A here. It
+        // returns det*gr_inv(A) = -gr_inv(A): it recovers the odd grades by luck but flips
+        // every even grade.
+        ////////////////////////////////////////////////////////////////////////////////
+
+        auto const sf = [](auto const& x) { return fmt::format("{}", x); };
+        auto const antidual = [](auto const& D) { return l_cmpl(r_dual(l_cmpl(D))); };
+
+        auto const s = scalar4ds{2.0};
+        auto const v = vec4ds{1.0, 2.0, 3.0, 4.0};
+        auto const B = bivec4ds{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        auto const t = trivec4ds{1.0, 2.0, 3.0, 4.0};
+        auto const ps = pscalar4ds{5.0};
+
+        auto const row = [&sf, &antidual](std::string_view name, auto const& A) {
+            auto const D = r_dual(A);
+            fmt::println("   {:<3} | {:<24} | {:<24} | {:<24} | {}", name, sf(A), sf(D),
+                         sf(antidual(D)), sf(l_dual(D)));
+        };
+        fmt::println("   {:<3} | {:<24} | {:<24} | {:<24} | {}", "A", "value (space)",
+                     "D = r_dual(A) (dual)", "antidual(D) [== A]", "l_dual(D) [naive]");
+        fmt::println("   {:-<108}", "");
+        row("s", s);
+        row("v", v);
+        row("B", B);
+        row("t", t);
+        row("ps", ps);
+        fmt::println("");
+
+        // forward then backward recovers A at EVERY grade (antidual = correct inverse)
+        CHECK(antidual(r_dual(s)) == s);
+        CHECK(antidual(r_dual(v)) == v);
+        CHECK(antidual(r_dual(B)) == B);
+        CHECK(antidual(r_dual(t)) == t);
+        CHECK(antidual(r_dual(ps)) == ps);
+
+        // full multivector, both orders
+        auto const M = mvec4ds{s, v, B, t, ps};
+        CHECK(antidual(r_dual(M)) == M);
+        CHECK(r_dual(antidual(M)) == M);
+
+        // the naive backward leg l_dual yields det*gr_inv(A): even grades flip, odd survive
+        CHECK(l_dual(r_dual(s)) == -s);  // grade 0 (even) -> WRONG
+        CHECK(l_dual(r_dual(B)) == -B);  // grade 2 (even) -> WRONG
+        CHECK(l_dual(r_dual(ps)) == -ps);// grade 4 (even) -> WRONG
+        CHECK(l_dual(r_dual(v)) == v);   // grade 1 (odd)  -> survives by luck
+        CHECK(l_dual(r_dual(t)) == t);   // grade 3 (odd)  -> survives by luck
+
+        // the backward leg expressed with the antimetric rG = -G  (uses both G and rG):
+        //   antidual(D) = (1/det) * rG * l_cmpl(D),  with det = I^2 = -1, rG(Y) = -G(Y)
+        value_t const det = value_t(I_4ds * I_4ds); // = -1
+        auto const Gx = [](auto const& X) { return l_cmpl(r_dual(X)); }; // metric
+        auto const rG = [&Gx](auto const& X) { return -Gx(X); };         // antimetric = -G
+        CHECK((value_t(1.0) / det) * rG(l_cmpl(r_dual(v))) == v);
+        CHECK((value_t(1.0) / det) * rG(l_cmpl(r_dual(B))) == B);
+    }
+
     TEST_CASE("MVec4ds: dualization - complement vs. pseudoscalar-multiplication")
     {
         fmt::println("MVec4ds: dualization - complement vs. pseudoscalar-multiplication");
@@ -1386,6 +1638,64 @@ TEST_SUITE("STA 3D Tests")
         CHECK(l_dual(r_dual(B)) == -B);
         CHECK(l_dual(r_dual(t)) == t);
         CHECK(l_dual(r_dual(ps)) == -ps);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // CAN THE MISMATCH BE HEALED BY INCLUDING THE DETERMINANT?
+        //
+        // For a grade-k blade the composition evaluates in closed form to
+        //     l_dual(r_dual(A)) = sigma(k)*sigma(n-k) * det(G) * A,   sigma(j)=(-1)^(j(j-1)/2)
+        // and for n = 4 the combinatorial factor sigma(k)*sigma(n-k) == (-1)^k, so
+        //     l_dual(r_dual(A)) == det(G) * gr_inv(A)        with gr_inv(A) = (-1)^k A.
+        //
+        // => the determinant ALONE cannot heal it: multiplying by det(G) leaves the
+        //    grade-involution sign (-1)^k behind (det(G)*comp == gr_inv(A) != A). The
+        //    fix needs BOTH the determinant AND the grade involution:
+        //        A == det(G) * gr_inv( l_dual(r_dual(A)) ).
+        //
+        // METRIC-INDEPENDENCE (the real test of a "solution"): det(G) = (-1)^q where q
+        // is the number of negative directions, so BOTH physically-equivalent STA
+        // signatures give the same value -- (-,-,-,+) has q=3 and (+,+,+,-) has q=1, and
+        // (-1)^3 == (-1)^1 == -1. sigma(k)*sigma(n-k) is purely combinatorial (no metric
+        // at all). Hence the closed form and the healing formula are identical for both
+        // signatures -- this is a genuine metric-independent correction, not a fix tuned
+        // to G(1,3,0). (I_4ds*I_4ds == det(G) here because sigma(n)==+1 for n=4.)
+        ////////////////////////////////////////////////////////////////////////////////
+
+        value_t const detG = value_t(I_4ds * I_4ds); // == det(G) == -1 for both signatures
+
+        fmt::println("   healing the metric-dual round trip:");
+        fmt::println("     det(G) = I_4ds*I_4ds = {}", detG);
+        fmt::println("     {:<34} = {}", "l_dual(r_dual(B))", sf(l_dual(r_dual(B))));
+        fmt::println("     {:<34} = {}", "det(G) * gr_inv(B)", sf(detG * gr_inv(B)));
+        fmt::println("     {:<34} = {}", "det(G)*gr_inv(l_dual(r_dual(B)))",
+                     sf(detG * gr_inv(l_dual(r_dual(B)))));
+        fmt::println("");
+
+        // closed form: l_dual(r_dual(A)) == det(G) * gr_inv(A) at every grade
+        CHECK(l_dual(r_dual(s)) == detG * gr_inv(s));
+        CHECK(l_dual(r_dual(v)) == detG * gr_inv(v));
+        CHECK(l_dual(r_dual(B)) == detG * gr_inv(B));
+        CHECK(l_dual(r_dual(t)) == detG * gr_inv(t));
+        CHECK(l_dual(r_dual(ps)) == detG * gr_inv(ps));
+
+        // determinant ALONE is not enough: det(G) * composition == gr_inv(A) != A
+        CHECK(detG * l_dual(r_dual(v)) == gr_inv(v));
+        CHECK(detG * l_dual(r_dual(v)) != v); // (gr_inv flips the odd-grade vector)
+
+        // the healing: det(G) AND grade involution recover A for every grade
+        CHECK(detG * gr_inv(l_dual(r_dual(s))) == s);
+        CHECK(detG * gr_inv(l_dual(r_dual(v))) == v);
+        CHECK(detG * gr_inv(l_dual(r_dual(B))) == B);
+        CHECK(detG * gr_inv(l_dual(r_dual(t))) == t);
+        CHECK(detG * gr_inv(l_dual(r_dual(ps))) == ps);
+
+        // equivalently: det(G)*gr_inv is an involution, so applying the metric-dual pair
+        // TWICE recovers A (no determinant or gr_inv needed at all)
+        CHECK(l_dual(r_dual(l_dual(r_dual(s)))) == s);
+        CHECK(l_dual(r_dual(l_dual(r_dual(v)))) == v);
+        CHECK(l_dual(r_dual(l_dual(r_dual(B)))) == B);
+        CHECK(l_dual(r_dual(l_dual(r_dual(t)))) == t);
+        CHECK(l_dual(r_dual(l_dual(r_dual(ps)))) == ps);
 
         // genuine recovery (1): the metric-free complement pair round-trips for all grades
         CHECK(r_cmpl(l_cmpl(s)) == s);   CHECK(l_cmpl(r_cmpl(s)) == s);
