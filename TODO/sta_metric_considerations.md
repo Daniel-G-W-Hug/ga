@@ -14,14 +14,19 @@ All statements below are verified in code in
 `ga_ega2d_test.hpp` ("MVec2d: dualization - complement vs. pseudoscalar-multiplication");
 the ega3d original in `ga_ega3d_test.hpp`.
 
-> **RESUME HERE (paused 2026-05-25).** Open thread: §6 — STA's stored extended metric is
-> the **blade square** `Q`, EGA's is the **pure product** `P`; they differ by the
-> reversion sign `sigma(k)`, and STA's is **not a wedge exomorphism**. Undecided whether
-> this is an intended convention or a **sign bug** in the `is_minkowski` override of
-> `calculate_extended_metric` (ga_prdxpr). **Agreed next step: build the exomorphism
-> comparison table (§13)** — one section per algebra, reading the stored arrays, tabulating
-> `P`, `Q`, the stored value, and the multiplicativity verdict `g_{S∪T} == g_S·g_T`. No
-> library behaviour is to change before that table + the deciding experiment in §13.
+> **RESOLVED (2026-05-27).** The open thread of §6 is settled: STA's stored metric is the
+> **blade square** `Q` (vs EGA/PGA's **pure product** `P`), and `Q` is an **intended,
+> load-bearing convention — not a sign bug**. Evidence (see §13, "Resolution"): (1) the
+> exomorphism comparison table confirmed `g_S == Q`, both verdicts `NO`, the whole library
+> consistently `Q`; (2) the wedge product is metric-blind and already satisfies the
+> exomorphism with `P`, so wedge generation is *not* at fault; (3) a throwaway flip of
+> `nrm_sq` from `Q` to `P` inverts the causal character of every bivector/trivector and
+> breaks the rotor `cos`/`cosh` structure — i.e. `Q` is the physically correct Lorentzian
+> norm. The real situation is a **conflation**: one metric array serves two roles
+> (physical norm, which wants `Q`, and the wedge-exomorphism/dual, which wants `P`); they
+> diverge only in Minkowski signature. Consequence: STA's dual is the with-reverse Hodge
+> dual (hence the `gr_inv`/antidual apparatus of §7–8). Option (C) in §13 records a
+> possible later split.
 
 ## 1. Two schools of dualization
 
@@ -181,8 +186,13 @@ while the code sets `+1` — i.e. the emitted values are `<A.A>_0` (blade square
 *opposite* sign. The complement / product / dual **generation** is independent and
 well-tested, so those are the less likely suspects.
 
-**Verdict pending:** is the blade-square STA metric an intentional convention (e.g. a
-Dorst-style `<A.B>_0` scalar product) or a sign bug? The §13 comparison table is the test.
+**Verdict (resolved 2026-05-27): intended convention, not a bug.** The blade-square `Q` is
+the physically correct Lorentzian norm and is load-bearing — see the §13 "Resolution"
+subsection for the full evidence (comparison table, wedge metric-blindness, and the
+throwaway `nrm_sq` `Q→P` experiment that inverts causal character). The override is *not*
+the wrong piece to "fix"; `Q` is right for the norm. What the override does expose is that
+a single metric array is doing double duty (norm vs exomorphism/dual). One genuine defect
+*does* hide in the override, though: see the grade-3 signature-independence caveat in §13.
 
 ## 7. The naive round trip, and why it fails
 
@@ -375,11 +385,12 @@ Implemented and verified in [ga_test/src/ga_sta4ds_test.hpp](../ga_test/src/ga_s
 
 ## 13. Open questions / next steps
 
-### NEXT STEP (agreed) — the exomorphism comparison table
+### DONE — the exomorphism comparison table
 
-Build a comparison test, **one section per algebra** (ega2d, ega3d, pga2dp, pga3dp,
-sta4ds), reading the stored extended-metric arrays from `ga_usr_consts.hpp` directly (not
-a transcription), and tabulating for every basis blade `e_S`:
+Implemented as a `TEST_CASE("... metric / antimetric exomorphisms (G, rG) - comparison
+table")` in each algebra's test file (ega2d, ega3d, pga2dp, pga3dp, sta4ds). It reads the
+stored extended-metric arrays from `ga_usr_consts.hpp` directly (not a transcription), and
+tabulates for every basis blade `e_S`:
 
 - `P(e_S) = prod_{i in S} m_i`     (pure product, computed from the signature)
 - `Q(e_S) = sigma(k) * P`          (blade square)
@@ -389,21 +400,94 @@ a transcription), and tabulating for every basis blade `e_S`:
 - the antimetric `rG_S = prod_{i not in S} m_i` (complement product), `g_S * rG_S == det`,
   and the antiwedge-multiplicativity.
 
-Expected (to be confirmed): EGA/PGA stored arrays `== P`, multiplicative; STA stored array
-`== Q`, multiplicativity **fails at grades 2,3**. This converts "bug vs convention" into a
-mechanical, exhaustive, signature-only check, and doubles as the full exomorphism/
-antiexomorphism tables for user documentation. Put it in each algebra's test file.
+Confirmed by the implemented tables: EGA/PGA stored arrays `== P`, multiplicative, both
+verdicts `YES`; STA stored array `== Q`, multiplicativity **fails at grades 2,3**, both
+verdicts `NO`. Each table also prints the antimetric `rG_S = g_{S^c}` and `g_S * rG_S`
+(`== det` for EGA/PGA; for STA it alternates `sigma(k)sigma(n-k)*det` by grade — a second,
+independent fingerprint of the non-multiplicativity). The tables double as the full
+exomorphism / antiexomorphism reference for user documentation.
 
-### The decision the table feeds: is `sta4ds_metric` a convention or a bug?
+### Resolution (2026-05-27): intended convention, not a bug
 
-If a bug, the fix is to drop the `is_minkowski` override in `calculate_extended_metric` so
-STA uses the pure product `P` like EGA/PGA. **Deciding experiment** (throwaway build, do
-NOT change library behaviour without explicit sign-off): make that change, regenerate,
-re-run the STA suite + transcription gate + contraction identities.
+Two follow-up experiments settled the "bug vs convention" question.
 
-- core GA identities still hold → the special case was unnecessary (likely a sign bug);
-  pure product is the fix and the whole `gr_inv` / antidual story disappears.
-- core identities break → the blade square is load-bearing; learn *why* before changing.
+**2a — root-cause localisation (read-only, rule-generator dump).**
+
+- The generator emits the same `Q` diagonal as `ga_usr_consts.hpp` (faithful copy), and
+  the extended-metric matrix is purely diagonal (no off-diagonal coupling).
+- The wedge product table is **metric-blind**: it carries only `0`/`1` literals, every
+  sign living inside the blade name (orientation from reordering). It is also the same
+  dimension-general 4D code as pga3dp (which passes). Combined with the existing test that
+  shows `P` *does* satisfy the exomorphism with the current wedge, **wedge generation is
+  ruled out** as the cause — for both `wdg` and `rwdg`.
+- `calculate_extended_metric_recursive` is **not** an independent `P` source: it extracts
+  `dot(e,e)`, which equals the stored metric (circular). It reproduces `Q`, and is dormant
+  (never called).
+- Locus confirmed: the `is_minkowski` override (lines ~277–291) overwrites the
+  already-computed pure product `P` with the blade square `Q` at grades 2,3.
+
+**2b — "is `Q` load-bearing?" (throwaway: flipped `nrm_sq` grades 2,3 from `Q` to `P`,
+rebuilt, ran the STA suite, then reverted).** 54 assertions / 4 cases failed, splitting
+cleanly into:
+
+- **genuine physics** — `is_timelike`/`is_spacelike` of *every* bivector and trivector
+  invert; the rotor `exp()` `cos`/`sin`/`cosh`/`sinh` structure breaks; normalization
+  signs flip. The other 24 cases (wedge, gpr, complements, contraction, transform
+  sandwich, spacetime split, projections, reflections) were untouched.
+- **coupling artifacts** (expected, since only `nrm_sq` was flipped) — `dot(u,u)==nrm_sq`
+  and the transcription gate `dual==nrm_sq·cmpl` fail, confirming `nrm_sq`/`dot`/`dual`
+  are welded to one metric.
+
+**Conclusion.** `Q` (blade square) is the **physically correct Lorentzian norm** — it *is*
+the causal character and the rotor structure — so the `is_minkowski` override is a
+deliberate, load-bearing choice, **not** a sign bug. The exomorphism "failure" is the
+price of a **conflation**: one metric array serves two roles — physical norm (wants `Q`)
+and the wedge-exomorphism / metric dual (wants `P`). EGA/PGA never expose it (`P` serves
+both); STA does (`P≠Q` at grades 2,3), and the library correctly prioritised physics
+(`Q`), which is exactly why STA's dual is the with-reverse Hodge dual (the
+`gr_inv`/antidual apparatus of §7–8).
+
+### Option (C) — separate the two metrics (possible later round)
+
+If a *true* wedge-exomorphism dual is ever wanted alongside the physical norm:
+
+- keep `Q` for `nrm_sq` / `dot` (physical Lorentzian norm — unchanged), and
+- introduce a **separate `P`-based exomorphism metric** used only for the metric dual
+  `cmpl(G·A)` and the contraction-via-dual identities.
+
+This would restore the wedge/antiwedge exomorphism and the EGA-like `l_dual(r_dual)==id`
+round trip (eliminating the `gr_inv`/antidual correction), at the cost of:
+
+- **decoupling `dual` from `nrm_sq`**, i.e. relaxing/retargeting the transcription gate
+  `dual(e) == nrm_sq(e)·cmpl(e)` (it would now bind to the `P`-metric, not `nrm_sq`),
+- regenerating the sta4ds **dual** (and contraction/expansion) tables against `P`, while
+  leaving `dot`/`nrm_sq`/`gpr` on the signature, and
+- a library API decision: two named duals (norm-dual vs exomorphism-dual) or a documented
+  switch.
+
+Rejected alternative **(B) "just switch everything to `P`"**: 2b shows it inverts causal
+character and breaks rotors — not viable.
+
+### Grade-3 signature-independence caveat (latent defect in the override)
+
+Separate from the convention question, the `is_minkowski` override's comment (lines
+278–281) claims its hard-coded grade-2/3 values are *"independent of which signature
+convention"*. That holds at **grade 2 only**: a convention switch `(−,−,−,+) ↔ (+,+,+,−)`
+is a global `m_i → −m_i`, which scales a grade-`k` blade square by `(−1)^k` — invariant
+for even `k`, sign-flipping for odd `k`. So:
+
+- grade 2 (even): `Q(bivec)` is genuinely convention-independent → the hard-coded
+  `has_time ? +1 : -1` is correct in both signatures. ✓
+- grade 3 (odd): `Q(trivec)` **flips** with the convention, yet the override hard-codes a
+  fixed `has_time ? -1 : +1`. It is therefore correct only for the instantiated `G(1,3,0)`
+  `(−,−,−,+)`; under `G(3,1,0)` `(+,+,+,−)` the grade-3 metric would come out wrong.
+- grade 1 is safe because it is *not* overridden — it falls through to the
+  product-of-vector-metrics, which tracks the convention automatically.
+
+This also corrects the optimistic note below that the construction "uses no signature-
+specific value beyond `Gx²=I`": the override *does* bake in a signature-specific grade-3
+value. Fixing it (e.g. computing `Q` from `sigma(k)·P` rather than hard-coding) is a
+prerequisite for the projective-STA / `(+,+,+,-)` work.
 
 ### Later
 
@@ -416,5 +500,9 @@ re-run the STA suite + transcription gate + contraction identities.
   pure-product metric) in the library `sta4ds` ops, or keep them as documented test-only
   constructions.
 - Confirm the signature-independence empirically once a `(+,+,+,-)` variant exists (only
-  G(1,3,0) is instantiated today; the construction uses no signature-specific value
-  beyond `Gx² = I`).
+  G(1,3,0) is instantiated today). **Caveat:** contrary to an earlier optimistic note, the
+  construction is *not* fully signature-independent — the `is_minkowski` override
+  hard-codes a signature-specific grade-3 value (see "Grade-3 signature-independence
+  caveat" above).
+  Replace the hard-coded grade-2/3 values with a computed `Q = sigma(k)·P` (or drop the
+  override and apply `sigma(k)` uniformly) before instantiating any second signature.

@@ -1228,6 +1228,128 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("   MVec4ds contextual: {}", contextual);
     }
 
+    TEST_CASE("MVec4ds: metric / antimetric exomorphisms (G, rG) - comparison table")
+    {
+        fmt::println(
+            "MVec4ds: metric / antimetric exomorphisms (G, rG) - comparison table");
+        fmt::println("");
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Exomorphism comparison table for sta4ds = G(1,3,0), det = -1 (Minkowski).
+        // Signature m = (-1,-1,-1,+1): g1,g2,g3 spacelike, g4 timelike.
+        //
+        // Same TWO exomorphisms as ega/pga (Lengyel, "PGA Illuminated"):
+        //   - the metric      G : a WEDGE exomorphism
+        //         G(wdg(a,b))   == wdg(G(a),G(b))
+        //   - the antimetric rG : an ANTIWEDGE exomorphism
+        //         rG(rwdg(a,b)) == rwdg(rG(a),rG(b))
+        // related by  G * rG = det(metric) * I. Non-degenerate (det = -1 != 0), so unlike
+        // PGA there is no bulk/weight split; the question is purely whether the STORED
+        // metric is multiplicative.
+        //
+        // P, Q, g_S defined exactly as in the ega/pga tables:
+        //   P(e_S) = prod_{i in S} m_i   (pure product of the vector squares)
+        //   Q(e_S) = sigma(k) * P        (the blade square e_S . e_S),
+        //            sigma(k) = (-1)^(k(k-1)/2)
+        // g_S = the value STORED in sta4ds_metric (ga_usr_consts.hpp), read straight off
+        // the diagonal. KEY COMPARISON: ega/pga all store g_S == P. The table below shows
+        // whether sta4ds does the same, or instead stores Q (which differs from P at
+        // grades 2,3). The verdicts follow: P is multiplicative, Q is not.
+        ////////////////////////////////////////////////////////////////////////////////
+
+        int const m[4] = {-1, -1, -1, 1}; // g1^2, g2^2, g3^2, g4^2 (g4 timelike)
+        char const* nm[16] = {"1",    "g1",   "g2",   "g3",   "g4",   "g14",
+                              "g24",  "g34",  "g23",  "g31",  "g12",  "g234",
+                              "g314", "g124", "g123", "g1234"};
+        int const msk[16] = {0, 1, 2, 4, 8, 9, 10, 12, 6, 5, 3, 14, 13, 11, 7, 15};
+        int const full = 0b1111;
+        auto const grade = [](int mask) {
+            int k = 0;
+            for (int i = 0; i < 4; ++i)
+                k += (mask >> i) & 1;
+            return k;
+        };
+        auto const Pof = [&](int mask) {
+            int p = 1;
+            for (int i = 0; i < 4; ++i)
+                if (mask & (1 << i)) p *= m[i];
+            return p;
+        };
+        auto const sigma = [](int k) { return ((k * (k - 1) / 2) & 1) ? -1 : 1; };
+        auto const idx_of = [&](int mask) {
+            for (int i = 0; i < 16; ++i)
+                if (msk[i] == mask) return i;
+            return 0;
+        };
+        auto const Gv = sta4ds_metric_view();
+        auto const storedM = [&](int mask) {
+            int const i = idx_of(mask);
+            return Gv[i, i];
+        };
+
+        int const det = Pof(full);
+
+        fmt::println("   blade |  k |  P |  Q | g_S | rG_S | g_S*rG_S(=det={:+})", det);
+        fmt::println("   ------+----+----+----+-----+------+-------------------");
+        for (int i = 0; i < 16; ++i) {
+            int const k = grade(msk[i]);
+            int const P = Pof(msk[i]);
+            int const Q = sigma(k) * P;
+            int const g = storedM(msk[i]);
+            int const rg = storedM(msk[i] ^ full); // rG_S = g_{S^c}
+            fmt::println(
+                "   {:>5} | {:>2} | {:>+2} | {:>+2} | {:>+3} | {:>+4} | {:>+12}  {}",
+                nm[i], k, P, Q, g, rg, g * rg, (g == P ? "" : "[g_S != P!]"));
+        }
+        fmt::println("");
+
+        // WEDGE verdict: g multiplicative iff g_{S u T} == g_S * g_T for disjoint S,T.
+        bool wedge_exo = true;
+        for (int a2 = 0; a2 <= full; ++a2)
+            for (int b2 = 0; b2 <= full; ++b2)
+                if ((a2 & b2) == 0 && storedM(a2 | b2) != storedM(a2) * storedM(b2))
+                    wedge_exo = false;
+        // ANTIWEDGE verdict: rwdg(e_S,e_T) != 0 iff S u T == full; result e_{S n T}.
+        // rG_S = g_{S^c} is an antiwedge exomorphism iff rG_{S n T} == rG_S * rG_T there.
+        auto const rGof = [&](int mask) { return storedM(mask ^ full); };
+        bool antiwedge_exo = true;
+        for (int a2 = 0; a2 <= full; ++a2)
+            for (int b2 = 0; b2 <= full; ++b2)
+                if ((a2 | b2) == full && rGof(a2 & b2) != rGof(a2) * rGof(b2))
+                    antiwedge_exo = false;
+        fmt::println("   stored metric g    multiplicative (WEDGE     exomorphism): {}",
+                     wedge_exo ? "YES" : "NO");
+        fmt::println("   antimetric rG=g_Sc multiplicative (ANTIWEDGE exomorphism): {}",
+                     antiwedge_exo ? "YES" : "NO");
+        fmt::println("");
+
+        CHECK(det == -1);
+        // EXPECTED AND CORRECT (resolved; see TODO/sta_metric_considerations.md sec.6/13):
+        // unlike ega/pga (which store P), sta4ds stores Q = sigma(k)*P (the blade square).
+        // Q is NOT multiplicative, so BOTH verdicts come out NO -- the stored metric is
+        // neither a wedge nor an antiwedge exomorphism, and g_S != P is flagged at grades
+        // 2,3. This is an INTENDED, load-bearing convention, NOT a bug: Q is the physical
+        // Lorentzian norm (it carries the causal character of bivectors/trivectors and the
+        // rotor cos/cosh structure). The price is that STA's dual is the with-reverse Hodge
+        // dual (the gr_inv/antidual apparatus). The NO/NO below is therefore asserted as
+        // the correct, documented behaviour -- not a defect to fix.
+        CHECK(!wedge_exo);
+        CHECK(!antiwedge_exo);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Library handles (same even-dim non-degenerate form as ega2d):
+        //   Gx  = l_cmpl o r_dual         -- the stored metric (reproduces sta4ds_metric)
+        //   rGx = r_cmpl o Gx o l_cmpl    -- the antimetric; on a blade e_S this is
+        //                                    g_{S^c} * e_S
+        ////////////////////////////////////////////////////////////////////////////////
+        auto const Gx = [](auto const& X) { return l_cmpl(r_dual(X)); };
+        auto const rGx = [&Gx](auto const& X) { return r_cmpl(Gx(l_cmpl(X))); };
+
+        // concrete witnesses (mixed-grade blade pairs) of the two failures:
+        CHECK(Gx(wdg(g1_4ds, g4_4ds)) != wdg(Gx(g1_4ds), Gx(g4_4ds)));
+        CHECK(rGx(rwdg(g1_4ds, g234_4ds)) != rwdg(rGx(g1_4ds), rGx(g234_4ds)));
+    }
+
     TEST_CASE("MVec4ds: metric / antimetric exomorphisms (G, rG) and metric-indep. dual")
     {
         fmt::println("MVec4ds: metric / antimetric exomorphisms (G, rG)");

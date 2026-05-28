@@ -216,7 +216,7 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
     // For Minkowski-like algebras, identify the "time-like" basis vector as
     // the one whose metric sign is the minority (or, on a tie, the negative
     // one — STA G(1,3,0) and G(3,1,0) both put time on the odd-one-out slot).
-    // This decouples the STA branch from a fixed naming convention (g0) and
+    // This decouples the STA branch from a fixed naming convention (g0 or g4) and
     // from a specific signature literal like {+1,-1,-1,-1}.
     int time_slot = -1;
     if (is_minkowski) {

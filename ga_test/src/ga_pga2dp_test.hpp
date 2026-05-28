@@ -2737,6 +2737,131 @@ TEST_SUITE("PGA 2DP Tests")
         CHECK(cmt(v1, b1) == -cmt(b1, v1));
     }
 
+    TEST_CASE("MVec2dp: metric / antimetric exomorphisms (G, rG) - comparison table")
+    {
+        fmt::println(
+            "MVec2dp: metric / antimetric exomorphisms (G, rG) - comparison table");
+        fmt::println("");
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Exomorphism comparison table for pga2dp = G(2,0,1), det = 0 (degenerate).
+        //
+        // A metric algebra carries TWO exomorphisms (Lengyel, "PGA Illuminated"):
+        //   - the metric      G : a WEDGE exomorphism
+        //         G(wdg(a,b))   == wdg(G(a),G(b))
+        //   - the antimetric rG : an ANTIWEDGE exomorphism
+        //         rG(rwdg(a,b)) == rwdg(rG(a),rG(b))
+        // related by  G * rG = det(metric) * I. pga2dp is DEGENERATE: the null vector e3
+        // has m3 = 0, so det = 0 and  G * rG = 0. G and rG no longer rescale one another
+        // (the Euclidean rG == G picture); instead they have DISJOINT support -- exactly
+        // the PGA bulk/weight split (bulk_dual uses G, weight_dual uses rG). The
+        // g_S * rG_S column is therefore 0 (= det) at every blade.
+        //
+        // For each basis blade e_S (vectors in index set S):
+        //   P(e_S) = prod_{i in S} m_i   (pure product; 0 whenever e3 in S)
+        //   Q(e_S) = sigma(k) * P        (the blade square e_S . e_S),
+        //            sigma(k) = (-1)^(k(k-1)/2)
+        // and g_S = the value STORED in pga2dp_metric (ga_usr_consts.hpp), read straight
+        // off the diagonal. PGA stores P, so g_S == P at every grade -- multiplicative
+        // even through the zeros. Only e12 shows P=+1 vs Q=-1; the other grade>=2 blades
+        // (e31,e32,e321) hold P=Q=0.
+        ////////////////////////////////////////////////////////////////////////////////
+
+        int const m[3] = {1, 1, 0}; // e1^2, e2^2, e3^2 (e3 null)
+        char const* nm[8] = {"1", "e1", "e2", "e3", "e31", "e32", "e12", "e321"};
+        int const msk[8] = {0, 1, 2, 4, 5, 6, 3, 7}; // bitmask of each basis blade
+        int const full = 0b111;
+        auto const grade = [](int mask) {
+            int k = 0;
+            for (int i = 0; i < 3; ++i)
+                k += (mask >> i) & 1;
+            return k;
+        };
+        auto const Pof = [&](int mask) {
+            int p = 1;
+            for (int i = 0; i < 3; ++i)
+                if (mask & (1 << i)) p *= m[i];
+            return p;
+        };
+        auto const sigma = [](int k) { return ((k * (k - 1) / 2) & 1) ? -1 : 1; };
+        auto const idx_of = [&](int mask) {
+            for (int i = 0; i < 8; ++i)
+                if (msk[i] == mask) return i;
+            return 0;
+        };
+        auto const Gv = pga2dp_metric_view();
+        auto const storedM = [&](int mask) {
+            int const i = idx_of(mask);
+            return Gv[i, i];
+        };
+
+        int const det = Pof(full);
+
+        fmt::println("   blade |  k |  P |  Q | g_S | rG_S | g_S*rG_S(=det={:+})", det);
+        fmt::println("   ------+----+----+----+-----+------+-------------------");
+        for (int i = 0; i < 8; ++i) {
+            int const k = grade(msk[i]);
+            int const P = Pof(msk[i]);
+            int const Q = sigma(k) * P;
+            int const g = storedM(msk[i]);
+            int const rg = storedM(msk[i] ^ full); // rG_S = g_{S^c}
+            fmt::println(
+                "   {:>5} | {:>2} | {:>+2} | {:>+2} | {:>+3} | {:>+4} | {:>+12}  {}",
+                nm[i], k, P, Q, g, rg, g * rg, (g == P ? "" : "[g_S != P!]"));
+        }
+        fmt::println("");
+
+        // WEDGE verdict: g multiplicative iff g_{S u T} == g_S * g_T for disjoint S,T.
+        bool wedge_exo = true;
+        for (int a2 = 0; a2 <= full; ++a2)
+            for (int b2 = 0; b2 <= full; ++b2)
+                if ((a2 & b2) == 0 && storedM(a2 | b2) != storedM(a2) * storedM(b2))
+                    wedge_exo = false;
+        // ANTIWEDGE verdict: rwdg(e_S,e_T) != 0 iff S u T == full; result e_{S n T}.
+        // rG_S = g_{S^c} is an antiwedge exomorphism iff rG_{S n T} == rG_S * rG_T there.
+        auto const rGof = [&](int mask) { return storedM(mask ^ full); };
+        bool antiwedge_exo = true;
+        for (int a2 = 0; a2 <= full; ++a2)
+            for (int b2 = 0; b2 <= full; ++b2)
+                if ((a2 | b2) == full && rGof(a2 & b2) != rGof(a2) * rGof(b2))
+                    antiwedge_exo = false;
+        fmt::println("   stored metric g    multiplicative (WEDGE     exomorphism): {}",
+                     wedge_exo ? "YES" : "NO");
+        fmt::println("   antimetric rG=g_Sc multiplicative (ANTIWEDGE exomorphism): {}",
+                     antiwedge_exo ? "YES" : "NO");
+        fmt::println("");
+
+        CHECK(wedge_exo);
+        CHECK(antiwedge_exo);
+        CHECK(det == 0); // degenerate
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Library handles. pga2dp is degenerate, so the metric dual splits into bulk and
+        // weight parts (the only duals defined): bulk_dual = cmpl(G . A) and
+        // weight_dual = cmpl(rG . A). cmpl is an involution (odd dim), so undoing it
+        // recovers the bare (anti)metrics:
+        //   Gx  = cmpl o bulk_dual     -- the stored bulk metric G (reproduces the array)
+        //   rGx = cmpl o weight_dual   -- the weight antimetric rG (= complement product)
+        ////////////////////////////////////////////////////////////////////////////////
+        auto const Gx = [](auto const& X) { return cmpl(bulk_dual(X)); };
+        auto const rGx = [](auto const& X) { return cmpl(weight_dual(X)); };
+
+        auto const v = vec2dp{3.0, 5.0, 7.0};
+        auto const B = bivec2dp{1.0, 2.0, 3.0};
+
+        // G * rG = det * I = 0 (degenerate): bulk metric G and weight antimetric rG have
+        // DISJOINT support, so the composition annihilates every element.
+        CHECK(rGx(Gx(v)) == vec2dp{0.0, 0.0, 0.0});
+        CHECK(rGx(Gx(B)) == bivec2dp{0.0, 0.0, 0.0});
+
+        // (a) Gx (the bulk metric) is a WEDGE exomorphism -- holds through null e3 too
+        CHECK(Gx(wdg(e1_2dp, e2_2dp)) == wdg(Gx(e1_2dp), Gx(e2_2dp))); // -> e12
+        CHECK(Gx(wdg(e1_2dp, e3_2dp)) == wdg(Gx(e1_2dp), Gx(e3_2dp))); // null -> both 0
+        // (b) rGx (the weight antimetric) is an ANTIWEDGE exomorphism
+        CHECK(rGx(rwdg(e31_2dp, e32_2dp)) == rwdg(rGx(e31_2dp), rGx(e32_2dp))); // -> e3
+        CHECK(rGx(rwdg(I_2dp, e3_2dp)) == rwdg(rGx(I_2dp), rGx(e3_2dp)));
+    }
+
     TEST_CASE("MVec2dp: simple applications, complements, contraction, expansions")
     {
         fmt::println("MVec2dp: simple applications, complements, contraction, "

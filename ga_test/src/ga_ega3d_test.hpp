@@ -2335,6 +2335,130 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(B_dual == dual(B));
     }
 
+    TEST_CASE("MVec3d: metric / antimetric exomorphisms (G, rG) - comparison table")
+    {
+        fmt::println(
+            "MVec3d: metric / antimetric exomorphisms (G, rG) - comparison table");
+        fmt::println("");
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Exomorphism comparison table for ega3d = G(3,0,0), det(metric) = +1.
+        //
+        // A metric algebra carries TWO exomorphisms (Lengyel, "PGA Illuminated"):
+        //   - the metric      G : a WEDGE exomorphism
+        //         G(wdg(a,b))   == wdg(G(a),G(b))
+        //   - the antimetric rG : an ANTIWEDGE exomorphism
+        //         rG(rwdg(a,b)) == rwdg(rG(a),rG(b))
+        // related by  G * rG = det(metric) * I. For ega3d det = +1 and the metric is the
+        // identity, so rG == G == I; both verdicts are trivially YES.
+        //
+        // For each basis blade e_S (vectors in index set S):
+        //   P(e_S) = prod_{i in S} m_i   (pure product of the vector squares)
+        //   Q(e_S) = sigma(k) * P        (the blade square e_S . e_S),
+        //            sigma(k) = (-1)^(k(k-1)/2)
+        // and g_S = the value STORED in ega3d_metric (ga_usr_consts.hpp), read straight
+        // off the array diagonal. EGA stores P, so g_S follows P at every grade; Q now
+        // diverges from P at BOTH grade 2 (e23,e31,e12) and grade 3 (e123).
+        ////////////////////////////////////////////////////////////////////////////////
+
+        int const m[3] = {1, 1, 1}; // e1^2, e2^2, e3^2
+        char const* nm[8] = {"1", "e1", "e2", "e3", "e23", "e31", "e12", "e123"};
+        int const msk[8] = {0, 1, 2, 4, 6, 5, 3, 7}; // bitmask of each basis blade
+        int const full = 0b111;
+        auto const grade = [](int mask) {
+            int k = 0;
+            for (int i = 0; i < 3; ++i)
+                k += (mask >> i) & 1;
+            return k;
+        };
+        auto const Pof = [&](int mask) {
+            int p = 1;
+            for (int i = 0; i < 3; ++i)
+                if (mask & (1 << i)) p *= m[i];
+            return p;
+        };
+        auto const sigma = [](int k) { return ((k * (k - 1) / 2) & 1) ? -1 : 1; };
+        auto const idx_of = [&](int mask) {
+            for (int i = 0; i < 8; ++i)
+                if (msk[i] == mask) return i;
+            return 0;
+        };
+        auto const Gv = ega3d_metric_view();
+        auto const storedM = [&](int mask) {
+            int const i = idx_of(mask);
+            return Gv[i, i];
+        };
+
+        int const det = Pof(full);
+
+        fmt::println("   blade |  k |  P |  Q | g_S | rG_S | g_S*rG_S(=det={:+})", det);
+        fmt::println("   ------+----+----+----+-----+------+-------------------");
+        for (int i = 0; i < 8; ++i) {
+            int const k = grade(msk[i]);
+            int const P = Pof(msk[i]);
+            int const Q = sigma(k) * P;
+            int const g = storedM(msk[i]);
+            int const rg = storedM(msk[i] ^ full); // rG_S = g_{S^c}
+            fmt::println(
+                "   {:>5} | {:>2} | {:>+2} | {:>+2} | {:>+3} | {:>+4} | {:>+12}  {}",
+                nm[i], k, P, Q, g, rg, g * rg, (g == P ? "" : "[g_S != P!]"));
+        }
+        fmt::println("");
+
+        // WEDGE verdict: g multiplicative iff g_{S u T} == g_S * g_T for disjoint S,T.
+        bool wedge_exo = true;
+        for (int a2 = 0; a2 <= full; ++a2)
+            for (int b2 = 0; b2 <= full; ++b2)
+                if ((a2 & b2) == 0 && storedM(a2 | b2) != storedM(a2) * storedM(b2))
+                    wedge_exo = false;
+        // ANTIWEDGE verdict: rwdg(e_S,e_T) != 0 iff S u T == full; result e_{S n T}.
+        // rG_S = g_{S^c} is an antiwedge exomorphism iff rG_{S n T} == rG_S * rG_T there.
+        auto const rGof = [&](int mask) { return storedM(mask ^ full); };
+        bool antiwedge_exo = true;
+        for (int a2 = 0; a2 <= full; ++a2)
+            for (int b2 = 0; b2 <= full; ++b2)
+                if ((a2 | b2) == full && rGof(a2 & b2) != rGof(a2) * rGof(b2))
+                    antiwedge_exo = false;
+        fmt::println("   stored metric g    multiplicative (WEDGE     exomorphism): {}",
+                     wedge_exo ? "YES" : "NO");
+        fmt::println("   antimetric rG=g_Sc multiplicative (ANTIWEDGE exomorphism): {}",
+                     antiwedge_exo ? "YES" : "NO");
+        fmt::println("");
+
+        CHECK(wedge_exo);
+        CHECK(antiwedge_exo);
+        CHECK(det == 1);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Library handles. ega3d is odd-dimensional, so the single complement cmpl and
+        // single dual stand in for the l_/r_ pair (l_cmpl == r_cmpl == cmpl here):
+        //   Gx  = cmpl o dual          -- the stored metric (reproduces the array)
+        //   rGx = cmpl o Gx o cmpl     -- the antimetric; on a blade e_S this is
+        //                                 g_{S^c} * e_S (= complement product)
+        ////////////////////////////////////////////////////////////////////////////////
+        auto const Gx = [](auto const& X) { return cmpl(dual(X)); };
+        auto const rGx = [&Gx](auto const& X) { return cmpl(Gx(cmpl(X))); };
+
+        auto const s = scalar3d{2.0};
+        auto const v = vec3d{3.0, 5.0, 7.0};
+        auto const B = bivec3d{1.0, 2.0, 3.0};
+        auto const ps = pscalar3d{4.0};
+
+        // G * rG = det * I, det = +1  =>  rGx(Gx(X)) == X at every grade
+        CHECK(rGx(Gx(s)) == s);
+        CHECK(rGx(Gx(v)) == v);
+        CHECK(rGx(Gx(B)) == B);
+        CHECK(rGx(Gx(ps)) == ps);
+        CHECK(rGx(v) == Gx(v)); // identity metric => rG == G here
+
+        // (a) Gx is a WEDGE exomorphism
+        CHECK(Gx(wdg(e1_3d, e2_3d)) == wdg(Gx(e1_3d), Gx(e2_3d)));   // v ^ v -> B
+        CHECK(Gx(wdg(e1_3d, e23_3d)) == wdg(Gx(e1_3d), Gx(e23_3d))); // v ^ B -> ps
+        // (b) rGx is an ANTIWEDGE exomorphism
+        CHECK(rGx(rwdg(e23_3d, e31_3d)) == rwdg(rGx(e23_3d), rGx(e31_3d))); // B v B -> v
+        CHECK(rGx(rwdg(I_3d, e12_3d)) == rwdg(rGx(I_3d), rGx(e12_3d)));     // ps v B -> B
+    }
+
     TEST_CASE("MVec3d: product tests")
     {
         fmt::println("MVec3d: product tests");

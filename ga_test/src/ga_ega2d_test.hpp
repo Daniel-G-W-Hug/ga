@@ -1769,6 +1769,132 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(wdg(a, r_dual(b)) == dot(a, b) * I_2d);
     }
 
+    TEST_CASE("MVec2d: metric / antimetric exomorphisms (G, rG) - comparison table")
+    {
+        fmt::println(
+            "MVec2d: metric / antimetric exomorphisms (G, rG) - comparison table");
+        fmt::println("");
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Exomorphism comparison table for ega2d = G(2,0,0), det(metric) = +1.
+        //
+        // Following Lengyel ("PGA Illuminated"), a metric algebra carries TWO
+        // exomorphisms tied to the metric:
+        //   - the metric      G : a WEDGE exomorphism
+        //         G(wdg(a,b))   == wdg(G(a),G(b))
+        //   - the antimetric rG : an ANTIWEDGE exomorphism
+        //         rG(rwdg(a,b)) == rwdg(rG(a),rG(b))
+        // related by the matrix product  G * rG = det(metric) * I. For ega2d det = +1
+        // and the metric is the identity, so rG == G == I here -- the exomorphisms are
+        // trivial, but this section is the template the other algebras follow.
+        //
+        // For each basis blade e_S (product of the vectors in index set S) two scalars:
+        //   P(e_S) = prod_{i in S} m_i   (pure product of the vector squares)
+        //   Q(e_S) = sigma(k) * P        (the blade square e_S . e_S),
+        //            sigma(k) = (-1)^(k(k-1)/2)
+        // and the value actually STORED in ega2d_metric (ga_usr_consts.hpp), read here
+        // straight from the array's diagonal -- not transcribed.
+        //
+        // A diagonal metric is a genuine WEDGE exomorphism iff it is multiplicative:
+        //   g_{S u T} == g_S * g_T  for disjoint S,T.
+        // P is multiplicative by construction, and EGA stores P, so the stored metric
+        // IS a wedge exomorphism (verified below). P and Q differ only by the reversion
+        // sign sigma(k): here only e12 (k=2) shows P=+1 vs Q=-1, and the stored value
+        // follows P, not Q.
+        ////////////////////////////////////////////////////////////////////////////////
+
+        // vector signature m_i (e1^2, e2^2) and basis-blade index sets as bitmasks over
+        // {e1=bit0, e2=bit1}; for this basis ordering the bitmask equals the array index.
+        int const m[2] = {1, 1};
+        char const* nm[4] = {"1", "e1", "e2", "e12"};
+        int const full = 0b11; // pseudoscalar mask
+        auto const grade = [](int mask) {
+            int k = 0;
+            for (int i = 0; i < 2; ++i)
+                k += (mask >> i) & 1;
+            return k;
+        };
+        auto const Pof = [&](int mask) {
+            int p = 1;
+            for (int i = 0; i < 2; ++i)
+                if (mask & (1 << i)) p *= m[i];
+            return p;
+        };
+        auto const sigma = [](int k) { return ((k * (k - 1) / 2) & 1) ? -1 : 1; };
+        auto const Gv = ega2d_metric_view();
+        auto const stored = [&](int idx) { return Gv[idx, idx]; };
+
+        int const det = Pof(full); // product of all vector squares = det(metric)
+
+        fmt::println("   blade |  k |  P |  Q | g_S | rG_S | g_S*rG_S(=det={:+})", det);
+        fmt::println("   ------+----+----+----+-----+------+-------------------");
+        for (int mask = 0; mask < 4; ++mask) {
+            int const k = grade(mask);
+            int const P = Pof(mask);
+            int const Q = sigma(k) * P;
+            int const g = stored(mask);
+            int const rg = stored(mask ^ full); // rG_S = g_{S^c} = prod_{i not in S} m_i
+            fmt::println(
+                "   {:>5} | {:>2} | {:>+2} | {:>+2} | {:>+3} | {:>+4} | {:>+12}  {}",
+                nm[mask], k, P, Q, g, rg, g * rg, (g == P ? "" : "[g_S != P!]"));
+        }
+        fmt::println("");
+
+        // Two multiplicativity verdicts -- both exomorphism criteria, printed explicitly.
+        // WEDGE: stored metric g is a wedge exomorphism iff  g_{S u T} == g_S * g_T  for
+        // disjoint S,T (S & T == 0).
+        bool wedge_exo = true;
+        for (int a2 = 0; a2 < 4; ++a2)
+            for (int b2 = 0; b2 < 4; ++b2)
+                if ((a2 & b2) == 0 && stored(a2 | b2) != stored(a2) * stored(b2))
+                    wedge_exo = false;
+        // ANTIWEDGE (regressive wedge): rwdg(e_S,e_T) != 0 iff S u T == full (complements
+        // S^c, T^c disjoint), with result blade e_{S n T}. So the antimetric rG_S = g_Sc
+        // is an antiwedge exomorphism iff  rG_{S n T} == rG_S * rG_T  on those pairs.
+        auto const rGof = [&](int mask) { return stored(mask ^ full); };
+        bool antiwedge_exo = true;
+        for (int a2 = 0; a2 < 4; ++a2)
+            for (int b2 = 0; b2 < 4; ++b2)
+                if ((a2 | b2) == full && rGof(a2 & b2) != rGof(a2) * rGof(b2))
+                    antiwedge_exo = false;
+        fmt::println("   stored metric g    multiplicative (WEDGE     exomorphism): {}",
+                     wedge_exo ? "YES" : "NO");
+        fmt::println("   antimetric rG=g_Sc multiplicative (ANTIWEDGE exomorphism): {}",
+                     antiwedge_exo ? "YES" : "NO");
+        fmt::println("");
+
+        CHECK(wedge_exo);     // EGA stores P -> multiplicative -> wedge exomorphism
+        CHECK(antiwedge_exo); // and rG = g_Sc multiplicative -> antiwedge exomorphism
+        CHECK(det == 1);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Library handles, identical across all algebras:
+        //   Gx  = l_cmpl o r_dual            -- the stored metric (reproduces the array)
+        //   rGx = r_cmpl o Gx o l_cmpl       -- the antimetric; on a blade e_S this is
+        //                                       g_{S^c} * e_S (stored metric of the
+        //                                       complementary blade = complement product)
+        ////////////////////////////////////////////////////////////////////////////////
+        auto const Gx = [](auto const& X) { return l_cmpl(r_dual(X)); };
+        auto const rGx = [&Gx](auto const& X) { return r_cmpl(Gx(l_cmpl(X))); };
+
+        auto const s = scalar2d{2.0};
+        auto const v = vec2d{3.0, 5.0};
+        auto const ps = pscalar2d{7.0};
+
+        // G * rG = det * I, det = +1  =>  rGx(Gx(X)) == X at every grade
+        CHECK(rGx(Gx(s)) == s);
+        CHECK(rGx(Gx(v)) == v);
+        CHECK(rGx(Gx(ps)) == ps);
+        // det = +1 with identity metric => rG == G here
+        CHECK(rGx(v) == Gx(v));
+
+        // (a) Gx is a WEDGE exomorphism: Gx(wdg(a,b)) == wdg(Gx(a),Gx(b))
+        CHECK(Gx(wdg(e1_2d, e2_2d)) == wdg(Gx(e1_2d), Gx(e2_2d))); // vec ^ vec -> ps
+        // (b) rGx is an ANTIWEDGE exomorphism: rGx(rwdg(a,b)) == rwdg(rGx(a),rGx(b))
+        CHECK(rGx(rwdg(I_2d, e1_2d)) == rwdg(rGx(I_2d), rGx(e1_2d)));   // ps v vec -> vec
+        CHECK(rGx(rwdg(e1_2d, e2_2d)) == rwdg(rGx(e1_2d), rGx(e2_2d))); // vec v vec -> s
+    }
+
     TEST_CASE("MVec2d: product tests")
     {
         fmt::println("MVec2d: product tests");
@@ -2740,7 +2866,8 @@ TEST_SUITE("EGA 2D Tests")
         // FORWARD dualization (primal A -> dual) for every basis element:
         //
         //   primal A   grade   l_dual(A)   r_dual(A)   theirs: A*I_2d   note
-        //   --------   -----   ---------   ---------   --------------   --------------------
+        //   --------   -----   ---------   ---------   --------------
+        //   --------------------
         //      1         0        e12         e12          e12          all three equal
         //      e1        1       -e2          e2           e2           l_dual = -r_dual
         //      e2        1        e1         -e1          -e1           l_dual = -r_dual
@@ -2787,13 +2914,17 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(l_dual(ps) == r_dual(ps));
 
         // explicit forward results for every basis element (the FORWARD table above):
-        CHECK(l_dual(one_2d) == I_2d);   CHECK(r_dual(one_2d) == I_2d);
+        CHECK(l_dual(one_2d) == I_2d);
+        CHECK(r_dual(one_2d) == I_2d);
         CHECK(one_2d * I_2d == I_2d);
-        CHECK(l_dual(e1_2d) == -e2_2d);  CHECK(r_dual(e1_2d) == e2_2d);
+        CHECK(l_dual(e1_2d) == -e2_2d);
+        CHECK(r_dual(e1_2d) == e2_2d);
         CHECK(e1_2d * I_2d == e2_2d);
-        CHECK(l_dual(e2_2d) == e1_2d);   CHECK(r_dual(e2_2d) == -e1_2d);
+        CHECK(l_dual(e2_2d) == e1_2d);
+        CHECK(r_dual(e2_2d) == -e1_2d);
         CHECK(e2_2d * I_2d == -e1_2d);
-        CHECK(l_dual(I_2d) == one_2d);   CHECK(r_dual(I_2d) == one_2d);
+        CHECK(l_dual(I_2d) == one_2d);
+        CHECK(r_dual(I_2d) == one_2d);
         CHECK(I_2d * I_2d == -one_2d);
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -2848,9 +2979,12 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(r_dual(r_dual(v)) == -v); // NOT v -> contrast with odd-dim ega3d
 
         // ours: the round trip uses the opposite-handed dual (both orders work)
-        CHECK(l_dual(r_dual(s)) == s);   CHECK(r_dual(l_dual(s)) == s);
-        CHECK(l_dual(r_dual(v)) == v);   CHECK(r_dual(l_dual(v)) == v);
-        CHECK(l_dual(r_dual(ps)) == ps); CHECK(r_dual(l_dual(ps)) == ps);
+        CHECK(l_dual(r_dual(s)) == s);
+        CHECK(r_dual(l_dual(s)) == s);
+        CHECK(l_dual(r_dual(v)) == v);
+        CHECK(r_dual(l_dual(v)) == v);
+        CHECK(l_dual(r_dual(ps)) == ps);
+        CHECK(r_dual(l_dual(ps)) == ps);
 
         // theirs: the round trip multiplies by inv(I_2d)
         CHECK((s * I_2d) * inv(I_2d) == s);
@@ -2887,7 +3021,8 @@ TEST_SUITE("EGA 2D Tests")
         CHECK(l_dual(r_dual(s)) == scalar2d{3.0});
         CHECK((s * I_2d) * inv(I_2d) == scalar2d{3.0});
 
-        // vector v=(1,2) (grade 1): forward duals agree (theirs == r_dual), round-trip to v
+        // vector v=(1,2) (grade 1): forward duals agree (theirs == r_dual), round-trip to
+        // v
         CHECK(r_dual(v) == vec2d{-2.0, 1.0});
         CHECK(v * I_2d == vec2d{-2.0, 1.0});
         CHECK(l_dual(r_dual(v)) == vec2d{1.0, 2.0});
