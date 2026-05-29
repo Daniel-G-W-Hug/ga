@@ -138,10 +138,17 @@ namespace hd::ga::sta {
 ////////////////////////////////////////////////////////////////////////////////
 // rotor exponential w.r.t. the geometric product
 //
-// For a SIMPLE bivector B (B^B == 0, so B*B is a pure scalar s = nrm_sq(B)):
-//   s < 0  (spatial plane):  exp(B) = cos(a)  + (B/a) sin(a),   a = sqrt(-s) = nrm(B)
-//   s > 0  (boost plane):    exp(B) = cosh(a) + (B/a) sinh(a),  a = sqrt( s) = nrm(B)
-//   s == 0 (null/zero):      exp(B) = 1 + B
+// For a SIMPLE bivector B (B^B == 0, so B*B is a pure scalar = the geometric square
+// s = B^2 = gr0(B*B)). Its sign is the plane's causal character; the magnitude is
+// a = nrm(B) = sqrt(|s|):
+//   B spacelike (s < 0):  exp(B) = cos(a)  + (B/a) sin(a)    (rotation)
+//   B timelike  (s > 0):  exp(B) = cosh(a) + (B/a) sinh(a)   (Lorentz boost)
+//   B lightlike (s == 0): exp(B) = 1 + B
+//
+// The branch is taken from is_spacelike / is_timelike / is_lightlike (which read the
+// geometric square gr0(B*B)), NOT from nrm_sq(B): under the P-unify metric nrm_sq(B)
+// is the reverse-norm (= -B^2 for a bivector), so the causal character lives in the
+// geometric square, while nrm(B) = sqrt(|nrm_sq(B)|) = sqrt(|s|) still gives |a|.
 //
 // TODO: general (non-simple) bivectors, where B*B also has a pseudoscalar part.
 ////////////////////////////////////////////////////////////////////////////////
@@ -149,17 +156,16 @@ template <typename T>
     requires(numeric_type<T>)
 inline MVec4ds_E<T> exp(BiVec4ds<T> const& B)
 {
-    T const s = nrm_sq(B); // = scalar part of B*B (pure scalar for a simple B)
-    T const a = std::sqrt(std::abs(s));
-    if (a <= detail::safe_epsilon<T>()) {
-        // |B| ~ 0  ->  identity rotor (covers the null/zero case to first order)
+    T const a = T(nrm(B)); // sqrt(|B^2|): rotation angle (spacelike) / rapidity (timelike)
+    if (is_lightlike(B) || a <= detail::safe_epsilon<T>()) {
+        // null/zero plane -> identity rotor (covers the lightlike case to first order)
         return MVec4ds_E<T>(Scalar4ds<T>(1.0), B);
     }
-    if (s < T(0.0)) {
-        // spatial plane -> circular (rotation)
+    if (is_spacelike(B)) {
+        // spacelike plane -> circular (rotation)
         return MVec4ds_E<T>(Scalar4ds<T>(std::cos(a)), (std::sin(a) / a) * B);
     }
-    // boost plane -> hyperbolic (Lorentz boost)
+    // timelike plane -> hyperbolic (Lorentz boost)
     return MVec4ds_E<T>(Scalar4ds<T>(std::cosh(a)), (std::sinh(a) / a) * B);
 }
 

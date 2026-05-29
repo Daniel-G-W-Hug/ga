@@ -54,9 +54,9 @@ constexpr Scalar4ds<std::common_type_t<T, U>> dot(MVec4ds<T> const& A,
 {
     using ctype = std::common_type_t<T, U>;
     return Scalar4ds<ctype>(A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 +
-                            A.c4 * B.c4 + A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7 -
-                            A.c8 * B.c8 - A.c9 * B.c9 - A.c10 * B.c10 - A.c11 * B.c11 -
-                            A.c12 * B.c12 - A.c13 * B.c13 + A.c14 * B.c14 -
+                            A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7 +
+                            A.c8 * B.c8 + A.c9 * B.c9 + A.c10 * B.c10 + A.c11 * B.c11 +
+                            A.c12 * B.c12 + A.c13 * B.c13 - A.c14 * B.c14 -
                             A.c15 * B.c15);
 }
 
@@ -67,8 +67,8 @@ constexpr Scalar4ds<std::common_type_t<T, U>> dot(MVec4ds_E<T> const& A,
                                                   MVec4ds_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar4ds<ctype>(A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 -
-                            A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7);
+    return Scalar4ds<ctype>(A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 +
+                            A.c4 * B.c4 + A.c5 * B.c5 + A.c6 * B.c6 - A.c7 * B.c7);
 }
 
 // sta4ds dot :: dot(mv_u,mv_u) -> s
@@ -78,8 +78,8 @@ constexpr Scalar4ds<std::common_type_t<T, U>> dot(MVec4ds_U<T> const& A,
                                                   MVec4ds_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar4ds<ctype>(-A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 + A.c3 * B.c3 -
-                            A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 + A.c7 * B.c7);
+    return Scalar4ds<ctype>(-A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 + A.c3 * B.c3 +
+                            A.c4 * B.c4 + A.c5 * B.c5 + A.c6 * B.c6 - A.c7 * B.c7);
 }
 
 // sta4ds dot :: dot(ps,ps) -> s
@@ -98,7 +98,7 @@ constexpr Scalar4ds<std::common_type_t<T, U>> dot(TriVec4ds<T> const& t1,
                                                   TriVec4ds<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar4ds<ctype>(-t1.x * t2.x - t1.y * t2.y - t1.z * t2.z + t1.w * t2.w);
+    return Scalar4ds<ctype>(t1.x * t2.x + t1.y * t2.y + t1.z * t2.z - t1.w * t2.w);
 }
 
 // sta4ds dot :: dot(bivec,bivec) -> s
@@ -108,8 +108,8 @@ constexpr Scalar4ds<std::common_type_t<T, U>> dot(BiVec4ds<T> const& B1,
                                                   BiVec4ds<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar4ds<ctype>(B1.vx * B2.vx + B1.vy * B2.vy + B1.vz * B2.vz -
-                            B1.mx * B2.mx - B1.my * B2.my - B1.mz * B2.mz);
+    return Scalar4ds<ctype>(-B1.vx * B2.vx - B1.vy * B2.vy - B1.vz * B2.vz +
+                            B1.mx * B2.mx + B1.my * B2.my + B1.mz * B2.mz);
 }
 
 // sta4ds dot :: dot(vec,vec) -> s
@@ -2260,24 +2260,24 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& A,
                                                        MVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c4 * B.c4 +
-                     A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7 - A.c8 * B.c8 - A.c9 * B.c9 -
-                     A.c10 * B.c10 - A.c11 * B.c11 - A.c12 * B.c12 - A.c13 * B.c13 +
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c4 * B.c4 -
+                     A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7 + A.c8 * B.c8 + A.c9 * B.c9 +
+                     A.c10 * B.c10 + A.c11 * B.c11 + A.c12 * B.c12 + A.c13 * B.c13 -
                      A.c14 * B.c14 - A.c15 * B.c15;
-    ctype const c1 = A.c0 * B.c1 - A.c2 * B.c10 + A.c3 * B.c9 + A.c4 * B.c5 +
-                     A.c6 * B.c13 - A.c7 * B.c12 - A.c8 * B.c14 - A.c11 * B.c15;
-    ctype const c2 = A.c0 * B.c2 + A.c1 * B.c10 - A.c3 * B.c8 + A.c4 * B.c6 -
-                     A.c5 * B.c13 + A.c7 * B.c11 - A.c9 * B.c14 - A.c12 * B.c15;
-    ctype const c3 = A.c0 * B.c3 - A.c1 * B.c9 + A.c2 * B.c8 + A.c4 * B.c7 +
-                     A.c5 * B.c12 - A.c6 * B.c11 - A.c10 * B.c14 - A.c13 * B.c15;
-    ctype const c4 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 -
-                     A.c8 * B.c11 - A.c9 * B.c12 - A.c10 * B.c13 - A.c14 * B.c15;
-    ctype const c5 = A.c0 * B.c5 + A.c2 * B.c13 - A.c3 * B.c12 - A.c8 * B.c15;
-    ctype const c6 = A.c0 * B.c6 - A.c1 * B.c13 + A.c3 * B.c11 - A.c9 * B.c15;
-    ctype const c7 = A.c0 * B.c7 + A.c1 * B.c12 - A.c2 * B.c11 - A.c10 * B.c15;
-    ctype const c8 = A.c0 * B.c8 - A.c1 * B.c14 + A.c4 * B.c11 + A.c5 * B.c15;
-    ctype const c9 = A.c0 * B.c9 - A.c2 * B.c14 + A.c4 * B.c12 + A.c6 * B.c15;
-    ctype const c10 = A.c0 * B.c10 - A.c3 * B.c14 + A.c4 * B.c13 + A.c7 * B.c15;
+    ctype const c1 = A.c0 * B.c1 - A.c2 * B.c10 + A.c3 * B.c9 + A.c4 * B.c5 -
+                     A.c6 * B.c13 + A.c7 * B.c12 + A.c8 * B.c14 + A.c11 * B.c15;
+    ctype const c2 = A.c0 * B.c2 + A.c1 * B.c10 - A.c3 * B.c8 + A.c4 * B.c6 +
+                     A.c5 * B.c13 - A.c7 * B.c11 + A.c9 * B.c14 + A.c12 * B.c15;
+    ctype const c3 = A.c0 * B.c3 - A.c1 * B.c9 + A.c2 * B.c8 + A.c4 * B.c7 -
+                     A.c5 * B.c12 + A.c6 * B.c11 + A.c10 * B.c14 + A.c13 * B.c15;
+    ctype const c4 = A.c0 * B.c4 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 +
+                     A.c8 * B.c11 + A.c9 * B.c12 + A.c10 * B.c13 + A.c14 * B.c15;
+    ctype const c5 = A.c0 * B.c5 + A.c2 * B.c13 - A.c3 * B.c12 + A.c8 * B.c15;
+    ctype const c6 = A.c0 * B.c6 - A.c1 * B.c13 + A.c3 * B.c11 + A.c9 * B.c15;
+    ctype const c7 = A.c0 * B.c7 + A.c1 * B.c12 - A.c2 * B.c11 + A.c10 * B.c15;
+    ctype const c8 = A.c0 * B.c8 - A.c1 * B.c14 + A.c4 * B.c11 - A.c5 * B.c15;
+    ctype const c9 = A.c0 * B.c9 - A.c2 * B.c14 + A.c4 * B.c12 - A.c6 * B.c15;
+    ctype const c10 = A.c0 * B.c10 - A.c3 * B.c14 + A.c4 * B.c13 - A.c7 * B.c15;
     ctype const c11 = A.c0 * B.c11 + A.c1 * B.c15;
     ctype const c12 = A.c0 * B.c12 + A.c2 * B.c15;
     ctype const c13 = A.c0 * B.c13 + A.c3 * B.c15;
@@ -2294,18 +2294,18 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& A,
                                                        MVec4ds_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = A.c0 * B.c0 + A.c5 * B.c1 + A.c6 * B.c2 + A.c7 * B.c3 - A.c8 * B.c4 -
-                     A.c9 * B.c5 - A.c10 * B.c6 - A.c15 * B.c7;
-    ctype const c1 = -A.c2 * B.c6 + A.c3 * B.c5 + A.c4 * B.c1 - A.c11 * B.c7;
-    ctype const c2 = A.c1 * B.c6 - A.c3 * B.c4 + A.c4 * B.c2 - A.c12 * B.c7;
-    ctype const c3 = -A.c1 * B.c5 + A.c2 * B.c4 + A.c4 * B.c3 - A.c13 * B.c7;
-    ctype const c4 = A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c14 * B.c7;
-    ctype const c5 = A.c0 * B.c1 - A.c8 * B.c7;
-    ctype const c6 = A.c0 * B.c2 - A.c9 * B.c7;
-    ctype const c7 = A.c0 * B.c3 - A.c10 * B.c7;
-    ctype const c8 = A.c0 * B.c4 + A.c5 * B.c7;
-    ctype const c9 = A.c0 * B.c5 + A.c6 * B.c7;
-    ctype const c10 = A.c0 * B.c6 + A.c7 * B.c7;
+    ctype const c0 = A.c0 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 + A.c8 * B.c4 +
+                     A.c9 * B.c5 + A.c10 * B.c6 - A.c15 * B.c7;
+    ctype const c1 = -A.c2 * B.c6 + A.c3 * B.c5 + A.c4 * B.c1 + A.c11 * B.c7;
+    ctype const c2 = A.c1 * B.c6 - A.c3 * B.c4 + A.c4 * B.c2 + A.c12 * B.c7;
+    ctype const c3 = -A.c1 * B.c5 + A.c2 * B.c4 + A.c4 * B.c3 + A.c13 * B.c7;
+    ctype const c4 = A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 + A.c14 * B.c7;
+    ctype const c5 = A.c0 * B.c1 + A.c8 * B.c7;
+    ctype const c6 = A.c0 * B.c2 + A.c9 * B.c7;
+    ctype const c7 = A.c0 * B.c3 + A.c10 * B.c7;
+    ctype const c8 = A.c0 * B.c4 - A.c5 * B.c7;
+    ctype const c9 = A.c0 * B.c5 - A.c6 * B.c7;
+    ctype const c10 = A.c0 * B.c6 - A.c7 * B.c7;
     ctype const c11 = A.c1 * B.c7;
     ctype const c12 = A.c2 * B.c7;
     ctype const c13 = A.c3 * B.c7;
@@ -2322,18 +2322,18 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& A,
                                                        MVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 - A.c4 * B.c8 -
-                     A.c5 * B.c9 - A.c6 * B.c10 - A.c7 * B.c15;
-    ctype const c1 = A.c0 * B.c1 + A.c2 * B.c13 - A.c3 * B.c12 - A.c4 * B.c14;
-    ctype const c2 = A.c0 * B.c2 - A.c1 * B.c13 + A.c3 * B.c11 - A.c5 * B.c14;
-    ctype const c3 = A.c0 * B.c3 + A.c1 * B.c12 - A.c2 * B.c11 - A.c6 * B.c14;
-    ctype const c4 = A.c0 * B.c4 - A.c4 * B.c11 - A.c5 * B.c12 - A.c6 * B.c13;
-    ctype const c5 = A.c0 * B.c5 - A.c4 * B.c15;
-    ctype const c6 = A.c0 * B.c6 - A.c5 * B.c15;
-    ctype const c7 = A.c0 * B.c7 - A.c6 * B.c15;
-    ctype const c8 = A.c0 * B.c8 + A.c1 * B.c15;
-    ctype const c9 = A.c0 * B.c9 + A.c2 * B.c15;
-    ctype const c10 = A.c0 * B.c10 + A.c3 * B.c15;
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c5 - A.c2 * B.c6 - A.c3 * B.c7 + A.c4 * B.c8 +
+                     A.c5 * B.c9 + A.c6 * B.c10 - A.c7 * B.c15;
+    ctype const c1 = A.c0 * B.c1 - A.c2 * B.c13 + A.c3 * B.c12 + A.c4 * B.c14;
+    ctype const c2 = A.c0 * B.c2 + A.c1 * B.c13 - A.c3 * B.c11 + A.c5 * B.c14;
+    ctype const c3 = A.c0 * B.c3 - A.c1 * B.c12 + A.c2 * B.c11 + A.c6 * B.c14;
+    ctype const c4 = A.c0 * B.c4 + A.c4 * B.c11 + A.c5 * B.c12 + A.c6 * B.c13;
+    ctype const c5 = A.c0 * B.c5 + A.c4 * B.c15;
+    ctype const c6 = A.c0 * B.c6 + A.c5 * B.c15;
+    ctype const c7 = A.c0 * B.c7 + A.c6 * B.c15;
+    ctype const c8 = A.c0 * B.c8 - A.c1 * B.c15;
+    ctype const c9 = A.c0 * B.c9 - A.c2 * B.c15;
+    ctype const c10 = A.c0 * B.c10 - A.c3 * B.c15;
     ctype const c11 = A.c0 * B.c11;
     ctype const c12 = A.c0 * B.c12;
     ctype const c13 = A.c0 * B.c13;
@@ -2350,12 +2350,12 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& A,
                                                        MVec4ds_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2 + A.c4 * B.c3 -
-                     A.c11 * B.c4 - A.c12 * B.c5 - A.c13 * B.c6 + A.c14 * B.c7;
-    ctype const c1 = A.c0 * B.c0 + A.c6 * B.c6 - A.c7 * B.c5 - A.c8 * B.c7;
-    ctype const c2 = A.c0 * B.c1 - A.c5 * B.c6 + A.c7 * B.c4 - A.c9 * B.c7;
-    ctype const c3 = A.c0 * B.c2 + A.c5 * B.c5 - A.c6 * B.c4 - A.c10 * B.c7;
-    ctype const c4 = A.c0 * B.c3 - A.c8 * B.c4 - A.c9 * B.c5 - A.c10 * B.c6;
+    ctype const c0 = -A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2 + A.c4 * B.c3 +
+                     A.c11 * B.c4 + A.c12 * B.c5 + A.c13 * B.c6 - A.c14 * B.c7;
+    ctype const c1 = A.c0 * B.c0 - A.c6 * B.c6 + A.c7 * B.c5 + A.c8 * B.c7;
+    ctype const c2 = A.c0 * B.c1 + A.c5 * B.c6 - A.c7 * B.c4 + A.c9 * B.c7;
+    ctype const c3 = A.c0 * B.c2 - A.c5 * B.c5 + A.c6 * B.c4 + A.c10 * B.c7;
+    ctype const c4 = A.c0 * B.c3 + A.c8 * B.c4 + A.c9 * B.c5 + A.c10 * B.c6;
     ctype const c5 = A.c2 * B.c6 - A.c3 * B.c5;
     ctype const c6 = -A.c1 * B.c6 + A.c3 * B.c4;
     ctype const c7 = A.c1 * B.c5 - A.c2 * B.c4;
@@ -2378,12 +2378,12 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& A,
                                                        MVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c4 -
-                     A.c4 * B.c11 - A.c5 * B.c12 - A.c6 * B.c13 + A.c7 * B.c14;
-    ctype const c1 = -A.c1 * B.c10 + A.c2 * B.c9 + A.c3 * B.c5 - A.c4 * B.c15;
-    ctype const c2 = A.c0 * B.c10 - A.c2 * B.c8 + A.c3 * B.c6 - A.c5 * B.c15;
-    ctype const c3 = -A.c0 * B.c9 + A.c1 * B.c8 + A.c3 * B.c7 - A.c6 * B.c15;
-    ctype const c4 = A.c0 * B.c5 + A.c1 * B.c6 + A.c2 * B.c7 - A.c7 * B.c15;
+    ctype const c0 = -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c4 +
+                     A.c4 * B.c11 + A.c5 * B.c12 + A.c6 * B.c13 - A.c7 * B.c14;
+    ctype const c1 = -A.c1 * B.c10 + A.c2 * B.c9 + A.c3 * B.c5 + A.c4 * B.c15;
+    ctype const c2 = A.c0 * B.c10 - A.c2 * B.c8 + A.c3 * B.c6 + A.c5 * B.c15;
+    ctype const c3 = -A.c0 * B.c9 + A.c1 * B.c8 + A.c3 * B.c7 + A.c6 * B.c15;
+    ctype const c4 = A.c0 * B.c5 + A.c1 * B.c6 + A.c2 * B.c7 + A.c7 * B.c15;
     ctype const c5 = A.c1 * B.c13 - A.c2 * B.c12;
     ctype const c6 = -A.c0 * B.c13 + A.c2 * B.c11;
     ctype const c7 = A.c0 * B.c12 - A.c1 * B.c11;
@@ -2407,16 +2407,16 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& M,
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = -M.c15 * ctype(ps);
-    ctype const c1 = -M.c11 * ctype(ps);
-    ctype const c2 = -M.c12 * ctype(ps);
-    ctype const c3 = -M.c13 * ctype(ps);
-    ctype const c4 = -M.c14 * ctype(ps);
-    ctype const c5 = -M.c8 * ctype(ps);
-    ctype const c6 = -M.c9 * ctype(ps);
-    ctype const c7 = -M.c10 * ctype(ps);
-    ctype const c8 = M.c5 * ctype(ps);
-    ctype const c9 = M.c6 * ctype(ps);
-    ctype const c10 = M.c7 * ctype(ps);
+    ctype const c1 = M.c11 * ctype(ps);
+    ctype const c2 = M.c12 * ctype(ps);
+    ctype const c3 = M.c13 * ctype(ps);
+    ctype const c4 = M.c14 * ctype(ps);
+    ctype const c5 = M.c8 * ctype(ps);
+    ctype const c6 = M.c9 * ctype(ps);
+    ctype const c7 = M.c10 * ctype(ps);
+    ctype const c8 = -M.c5 * ctype(ps);
+    ctype const c9 = -M.c6 * ctype(ps);
+    ctype const c10 = -M.c7 * ctype(ps);
     ctype const c11 = M.c1 * ctype(ps);
     ctype const c12 = M.c2 * ctype(ps);
     ctype const c13 = M.c3 * ctype(ps);
@@ -2460,11 +2460,11 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& M,
                                                        TriVec4ds<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -M.c11 * t.x - M.c12 * t.y - M.c13 * t.z + M.c14 * t.w;
-    ctype const c1 = M.c6 * t.z - M.c7 * t.y - M.c8 * t.w;
-    ctype const c2 = -M.c5 * t.z + M.c7 * t.x - M.c9 * t.w;
-    ctype const c3 = M.c5 * t.y - M.c6 * t.x - M.c10 * t.w;
-    ctype const c4 = -M.c8 * t.x - M.c9 * t.y - M.c10 * t.z;
+    ctype const c0 = M.c11 * t.x + M.c12 * t.y + M.c13 * t.z - M.c14 * t.w;
+    ctype const c1 = -M.c6 * t.z + M.c7 * t.y + M.c8 * t.w;
+    ctype const c2 = M.c5 * t.z - M.c7 * t.x + M.c9 * t.w;
+    ctype const c3 = -M.c5 * t.y + M.c6 * t.x + M.c10 * t.w;
+    ctype const c4 = M.c8 * t.x + M.c9 * t.y + M.c10 * t.z;
     ctype const c5 = M.c2 * t.z - M.c3 * t.y;
     ctype const c6 = -M.c1 * t.z + M.c3 * t.x;
     ctype const c7 = M.c1 * t.y - M.c2 * t.x;
@@ -2487,11 +2487,11 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator<<(TriVec4ds<T> const& t,
                                                        MVec4ds<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -t.x * M.c11 - t.y * M.c12 - t.z * M.c13 + t.w * M.c14;
-    ctype const c1 = -t.x * M.c15;
-    ctype const c2 = -t.y * M.c15;
-    ctype const c3 = -t.z * M.c15;
-    ctype const c4 = -t.w * M.c15;
+    ctype const c0 = t.x * M.c11 + t.y * M.c12 + t.z * M.c13 - t.w * M.c14;
+    ctype const c1 = t.x * M.c15;
+    ctype const c2 = t.y * M.c15;
+    ctype const c3 = t.z * M.c15;
+    ctype const c4 = t.w * M.c15;
     ctype const c5 = 0.0;
     ctype const c6 = 0.0;
     ctype const c7 = 0.0;
@@ -2514,8 +2514,8 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator<<(MVec4ds<T> const& M,
                                                        BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = M.c5 * B.vx + M.c6 * B.vy + M.c7 * B.vz - M.c8 * B.mx - M.c9 * B.my -
-                     M.c10 * B.mz;
+    ctype const c0 = -M.c5 * B.vx - M.c6 * B.vy - M.c7 * B.vz + M.c8 * B.mx +
+                     M.c9 * B.my + M.c10 * B.mz;
     ctype const c1 = -M.c2 * B.mz + M.c3 * B.my + M.c4 * B.vx;
     ctype const c2 = M.c1 * B.mz - M.c3 * B.mx + M.c4 * B.vy;
     ctype const c3 = -M.c1 * B.my + M.c2 * B.mx + M.c4 * B.vz;
@@ -2542,18 +2542,18 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B,
                                                        MVec4ds<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = B.vx * M.c5 + B.vy * M.c6 + B.vz * M.c7 - B.mx * M.c8 - B.my * M.c9 -
-                     B.mz * M.c10;
-    ctype const c1 = B.vy * M.c13 - B.vz * M.c12 - B.mx * M.c14;
-    ctype const c2 = -B.vx * M.c13 + B.vz * M.c11 - B.my * M.c14;
-    ctype const c3 = B.vx * M.c12 - B.vy * M.c11 - B.mz * M.c14;
-    ctype const c4 = -B.mx * M.c11 - B.my * M.c12 - B.mz * M.c13;
-    ctype const c5 = -B.mx * M.c15;
-    ctype const c6 = -B.my * M.c15;
-    ctype const c7 = -B.mz * M.c15;
-    ctype const c8 = B.vx * M.c15;
-    ctype const c9 = B.vy * M.c15;
-    ctype const c10 = B.vz * M.c15;
+    ctype const c0 = -B.vx * M.c5 - B.vy * M.c6 - B.vz * M.c7 + B.mx * M.c8 +
+                     B.my * M.c9 + B.mz * M.c10;
+    ctype const c1 = -B.vy * M.c13 + B.vz * M.c12 + B.mx * M.c14;
+    ctype const c2 = B.vx * M.c13 - B.vz * M.c11 + B.my * M.c14;
+    ctype const c3 = -B.vx * M.c12 + B.vy * M.c11 + B.mz * M.c14;
+    ctype const c4 = B.mx * M.c11 + B.my * M.c12 + B.mz * M.c13;
+    ctype const c5 = B.mx * M.c15;
+    ctype const c6 = B.my * M.c15;
+    ctype const c7 = B.mz * M.c15;
+    ctype const c8 = -B.vx * M.c15;
+    ctype const c9 = -B.vy * M.c15;
+    ctype const c10 = -B.vz * M.c15;
     ctype const c11 = 0.0;
     ctype const c12 = 0.0;
     ctype const c13 = 0.0;
@@ -2678,14 +2678,14 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& A,
                                                          MVec4ds_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c4 * B.c4 -
-                     A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7;
-    ctype const c1 = A.c0 * B.c1 - A.c4 * B.c7;
-    ctype const c2 = A.c0 * B.c2 - A.c5 * B.c7;
-    ctype const c3 = A.c0 * B.c3 - A.c6 * B.c7;
-    ctype const c4 = A.c0 * B.c4 + A.c1 * B.c7;
-    ctype const c5 = A.c0 * B.c5 + A.c2 * B.c7;
-    ctype const c6 = A.c0 * B.c6 + A.c3 * B.c7;
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c4 * B.c4 +
+                     A.c5 * B.c5 + A.c6 * B.c6 - A.c7 * B.c7;
+    ctype const c1 = A.c0 * B.c1 + A.c4 * B.c7;
+    ctype const c2 = A.c0 * B.c2 + A.c5 * B.c7;
+    ctype const c3 = A.c0 * B.c3 + A.c6 * B.c7;
+    ctype const c4 = A.c0 * B.c4 - A.c1 * B.c7;
+    ctype const c5 = A.c0 * B.c5 - A.c2 * B.c7;
+    ctype const c6 = A.c0 * B.c6 - A.c3 * B.c7;
     ctype const c7 = A.c0 * B.c7;
     return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
                             PScalar4ds<ctype>(c7));
@@ -2698,10 +2698,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& A,
                                                          MVec4ds_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = A.c0 * B.c0 + A.c2 * B.c6 - A.c3 * B.c5 - A.c4 * B.c7;
-    ctype const c1 = A.c0 * B.c1 - A.c1 * B.c6 + A.c3 * B.c4 - A.c5 * B.c7;
-    ctype const c2 = A.c0 * B.c2 + A.c1 * B.c5 - A.c2 * B.c4 - A.c6 * B.c7;
-    ctype const c3 = A.c0 * B.c3 - A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6;
+    ctype const c0 = A.c0 * B.c0 - A.c2 * B.c6 + A.c3 * B.c5 + A.c4 * B.c7;
+    ctype const c1 = A.c0 * B.c1 + A.c1 * B.c6 - A.c3 * B.c4 + A.c5 * B.c7;
+    ctype const c2 = A.c0 * B.c2 - A.c1 * B.c5 + A.c2 * B.c4 + A.c6 * B.c7;
+    ctype const c3 = A.c0 * B.c3 + A.c4 * B.c4 + A.c5 * B.c5 + A.c6 * B.c6;
     ctype const c4 = A.c0 * B.c4;
     ctype const c5 = A.c0 * B.c5;
     ctype const c6 = A.c0 * B.c6;
@@ -2717,10 +2717,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& A,
                                                          MVec4ds_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -A.c1 * B.c6 + A.c2 * B.c5 + A.c3 * B.c1 - A.c4 * B.c7;
-    ctype const c1 = A.c0 * B.c6 - A.c2 * B.c4 + A.c3 * B.c2 - A.c5 * B.c7;
-    ctype const c2 = -A.c0 * B.c5 + A.c1 * B.c4 + A.c3 * B.c3 - A.c6 * B.c7;
-    ctype const c3 = A.c0 * B.c1 + A.c1 * B.c2 + A.c2 * B.c3 - A.c7 * B.c7;
+    ctype const c0 = -A.c1 * B.c6 + A.c2 * B.c5 + A.c3 * B.c1 + A.c4 * B.c7;
+    ctype const c1 = A.c0 * B.c6 - A.c2 * B.c4 + A.c3 * B.c2 + A.c5 * B.c7;
+    ctype const c2 = -A.c0 * B.c5 + A.c1 * B.c4 + A.c3 * B.c3 + A.c6 * B.c7;
+    ctype const c3 = A.c0 * B.c1 + A.c1 * B.c2 + A.c2 * B.c3 + A.c7 * B.c7;
     ctype const c4 = A.c0 * B.c7;
     ctype const c5 = A.c1 * B.c7;
     ctype const c6 = A.c2 * B.c7;
@@ -2737,12 +2737,12 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& A,
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = -A.c7 * ctype(ps);
-    ctype const c1 = -A.c4 * ctype(ps);
-    ctype const c2 = -A.c5 * ctype(ps);
-    ctype const c3 = -A.c6 * ctype(ps);
-    ctype const c4 = A.c1 * ctype(ps);
-    ctype const c5 = A.c2 * ctype(ps);
-    ctype const c6 = A.c3 * ctype(ps);
+    ctype const c1 = A.c4 * ctype(ps);
+    ctype const c2 = A.c5 * ctype(ps);
+    ctype const c3 = A.c6 * ctype(ps);
+    ctype const c4 = -A.c1 * ctype(ps);
+    ctype const c5 = -A.c2 * ctype(ps);
+    ctype const c6 = -A.c3 * ctype(ps);
     ctype const c7 = A.c0 * ctype(ps);
     return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
                             PScalar4ds<ctype>(c7));
@@ -2774,10 +2774,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& M,
                                                          TriVec4ds<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = M.c2 * t.z - M.c3 * t.y - M.c4 * t.w;
-    ctype const c1 = -M.c1 * t.z + M.c3 * t.x - M.c5 * t.w;
-    ctype const c2 = M.c1 * t.y - M.c2 * t.x - M.c6 * t.w;
-    ctype const c3 = -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z;
+    ctype const c0 = -M.c2 * t.z + M.c3 * t.y + M.c4 * t.w;
+    ctype const c1 = M.c1 * t.z - M.c3 * t.x + M.c5 * t.w;
+    ctype const c2 = -M.c1 * t.y + M.c2 * t.x + M.c6 * t.w;
+    ctype const c3 = M.c4 * t.x + M.c5 * t.y + M.c6 * t.z;
     ctype const c4 = M.c0 * t.x;
     ctype const c5 = M.c0 * t.y;
     ctype const c6 = M.c0 * t.z;
@@ -2793,10 +2793,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(TriVec4ds<T> const& t,
                                                          MVec4ds_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -t.x * M.c7;
-    ctype const c1 = -t.y * M.c7;
-    ctype const c2 = -t.z * M.c7;
-    ctype const c3 = -t.w * M.c7;
+    ctype const c0 = t.x * M.c7;
+    ctype const c1 = t.y * M.c7;
+    ctype const c2 = t.z * M.c7;
+    ctype const c3 = t.w * M.c7;
     ctype const c4 = 0.0;
     ctype const c5 = 0.0;
     ctype const c6 = 0.0;
@@ -2812,8 +2812,8 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_E<T> const& M,
                                                          BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 =
-        M.c1 * B.vx + M.c2 * B.vy + M.c3 * B.vz - M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz;
+    ctype const c0 = -M.c1 * B.vx - M.c2 * B.vy - M.c3 * B.vz + M.c4 * B.mx +
+                     M.c5 * B.my + M.c6 * B.mz;
     ctype const c1 = M.c0 * B.vx;
     ctype const c2 = M.c0 * B.vy;
     ctype const c3 = M.c0 * B.vz;
@@ -2832,14 +2832,14 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B,
                                                          MVec4ds_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 =
-        B.vx * M.c1 + B.vy * M.c2 + B.vz * M.c3 - B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6;
-    ctype const c1 = -B.mx * M.c7;
-    ctype const c2 = -B.my * M.c7;
-    ctype const c3 = -B.mz * M.c7;
-    ctype const c4 = B.vx * M.c7;
-    ctype const c5 = B.vy * M.c7;
-    ctype const c6 = B.vz * M.c7;
+    ctype const c0 = -B.vx * M.c1 - B.vy * M.c2 - B.vz * M.c3 + B.mx * M.c4 +
+                     B.my * M.c5 + B.mz * M.c6;
+    ctype const c1 = B.mx * M.c7;
+    ctype const c2 = B.my * M.c7;
+    ctype const c3 = B.mz * M.c7;
+    ctype const c4 = -B.vx * M.c7;
+    ctype const c5 = -B.vy * M.c7;
+    ctype const c6 = -B.vz * M.c7;
     ctype const c7 = 0.0;
     return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
                             PScalar4ds<ctype>(c7));
@@ -2928,8 +2928,8 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& A,
                                                          MVec4ds_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 + A.c3 * B.c3 -
-                     A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 + A.c7 * B.c7;
+    ctype const c0 = -A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 + A.c3 * B.c3 +
+                     A.c4 * B.c4 + A.c5 * B.c5 + A.c6 * B.c6 - A.c7 * B.c7;
     ctype const c1 = A.c1 * B.c6 - A.c2 * B.c5;
     ctype const c2 = -A.c0 * B.c6 + A.c2 * B.c4;
     ctype const c3 = A.c0 * B.c5 - A.c1 * B.c4;
@@ -2948,10 +2948,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& A,
                                                          PScalar4ds<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -A.c4 * ctype(ps);
-    ctype const c1 = -A.c5 * ctype(ps);
-    ctype const c2 = -A.c6 * ctype(ps);
-    ctype const c3 = -A.c7 * ctype(ps);
+    ctype const c0 = A.c4 * ctype(ps);
+    ctype const c1 = A.c5 * ctype(ps);
+    ctype const c2 = A.c6 * ctype(ps);
+    ctype const c3 = A.c7 * ctype(ps);
     ctype const c4 = A.c0 * ctype(ps);
     ctype const c5 = A.c1 * ctype(ps);
     ctype const c6 = A.c2 * ctype(ps);
@@ -2977,7 +2977,7 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(MVec4ds_U<T> const& M,
                                                          TriVec4ds<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z + M.c7 * t.w;
+    ctype const c0 = M.c4 * t.x + M.c5 * t.y + M.c6 * t.z - M.c7 * t.w;
     ctype const c1 = M.c1 * t.z - M.c2 * t.y;
     ctype const c2 = -M.c0 * t.z + M.c2 * t.x;
     ctype const c3 = M.c0 * t.y - M.c1 * t.x;
@@ -2996,7 +2996,7 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator<<(TriVec4ds<T> const& t,
                                                          MVec4ds_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -t.x * M.c4 - t.y * M.c5 - t.z * M.c6 + t.w * M.c7;
+    ctype const c0 = t.x * M.c4 + t.y * M.c5 + t.z * M.c6 - t.w * M.c7;
     ctype const c1 = 0.0;
     ctype const c2 = 0.0;
     ctype const c3 = 0.0;
@@ -3034,10 +3034,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B,
                                                          MVec4ds_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = B.vy * M.c6 - B.vz * M.c5 - B.mx * M.c7;
-    ctype const c1 = -B.vx * M.c6 + B.vz * M.c4 - B.my * M.c7;
-    ctype const c2 = B.vx * M.c5 - B.vy * M.c4 - B.mz * M.c7;
-    ctype const c3 = -B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6;
+    ctype const c0 = -B.vy * M.c6 + B.vz * M.c5 + B.mx * M.c7;
+    ctype const c1 = B.vx * M.c6 - B.vz * M.c4 + B.my * M.c7;
+    ctype const c2 = -B.vx * M.c5 + B.vy * M.c4 + B.mz * M.c7;
+    ctype const c3 = B.mx * M.c4 + B.my * M.c5 + B.mz * M.c6;
     ctype const c4 = 0.0;
     ctype const c5 = 0.0;
     ctype const c6 = 0.0;
@@ -3140,10 +3140,10 @@ constexpr Vec4ds<std::common_type_t<T, U>> operator<<(TriVec4ds<T> const& t,
                                                       PScalar4ds<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -t.x * ctype(ps);
-    ctype const c1 = -t.y * ctype(ps);
-    ctype const c2 = -t.z * ctype(ps);
-    ctype const c3 = -t.w * ctype(ps);
+    ctype const c0 = t.x * ctype(ps);
+    ctype const c1 = t.y * ctype(ps);
+    ctype const c2 = t.z * ctype(ps);
+    ctype const c3 = t.w * ctype(ps);
     return Vec4ds<ctype>(c0, c1, c2, c3);
 }
 
@@ -3164,12 +3164,12 @@ constexpr BiVec4ds<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B,
                                                         PScalar4ds<U> ps)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -B.mx * ctype(ps);
-    ctype const c1 = -B.my * ctype(ps);
-    ctype const c2 = -B.mz * ctype(ps);
-    ctype const c3 = B.vx * ctype(ps);
-    ctype const c4 = B.vy * ctype(ps);
-    ctype const c5 = B.vz * ctype(ps);
+    ctype const c0 = B.mx * ctype(ps);
+    ctype const c1 = B.my * ctype(ps);
+    ctype const c2 = B.mz * ctype(ps);
+    ctype const c3 = -B.vx * ctype(ps);
+    ctype const c4 = -B.vy * ctype(ps);
+    ctype const c5 = -B.vz * ctype(ps);
     return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
@@ -3224,7 +3224,7 @@ constexpr Scalar4ds<std::common_type_t<T, U>> operator<<(TriVec4ds<T> const& t1,
                                                          TriVec4ds<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar4ds<ctype>(-t1.x * t2.x - t1.y * t2.y - t1.z * t2.z + t1.w * t2.w);
+    return Scalar4ds<ctype>(t1.x * t2.x + t1.y * t2.y + t1.z * t2.z - t1.w * t2.w);
 }
 
 // sta4ds l_contract :: l_contract(trivec,bivec) -> 0
@@ -3244,10 +3244,10 @@ constexpr Vec4ds<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B,
                                                       TriVec4ds<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = B.vy * t.z - B.vz * t.y - B.mx * t.w;
-    ctype const c1 = -B.vx * t.z + B.vz * t.x - B.my * t.w;
-    ctype const c2 = B.vx * t.y - B.vy * t.x - B.mz * t.w;
-    ctype const c3 = -B.mx * t.x - B.my * t.y - B.mz * t.z;
+    ctype const c0 = -B.vy * t.z + B.vz * t.y + B.mx * t.w;
+    ctype const c1 = B.vx * t.z - B.vz * t.x + B.my * t.w;
+    ctype const c2 = -B.vx * t.y + B.vy * t.x + B.mz * t.w;
+    ctype const c3 = B.mx * t.x + B.my * t.y + B.mz * t.z;
     return Vec4ds<ctype>(c0, c1, c2, c3);
 }
 
@@ -3308,8 +3308,8 @@ constexpr Scalar4ds<std::common_type_t<T, U>> operator<<(BiVec4ds<T> const& B1,
                                                          BiVec4ds<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar4ds<ctype>(B1.vx * B2.vx + B1.vy * B2.vy + B1.vz * B2.vz -
-                            B1.mx * B2.mx - B1.my * B2.my - B1.mz * B2.mz);
+    return Scalar4ds<ctype>(-B1.vx * B2.vx - B1.vy * B2.vy - B1.vz * B2.vz +
+                            B1.mx * B2.mx + B1.my * B2.my + B1.mz * B2.mz);
 }
 
 // sta4ds l_contract :: l_contract(bivec,vec) -> 0
@@ -3428,24 +3428,24 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& A,
                                                        MVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c4 * B.c4 +
-                     A.c5 * B.c5 + A.c6 * B.c6 + A.c7 * B.c7 - A.c8 * B.c8 - A.c9 * B.c9 -
-                     A.c10 * B.c10 - A.c11 * B.c11 - A.c12 * B.c12 - A.c13 * B.c13 +
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c4 * B.c4 -
+                     A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7 + A.c8 * B.c8 + A.c9 * B.c9 +
+                     A.c10 * B.c10 + A.c11 * B.c11 + A.c12 * B.c12 + A.c13 * B.c13 -
                      A.c14 * B.c14 - A.c15 * B.c15;
-    ctype const c1 = A.c1 * B.c0 - A.c5 * B.c4 - A.c9 * B.c3 + A.c10 * B.c2 -
-                     A.c12 * B.c7 + A.c13 * B.c6 - A.c14 * B.c8 + A.c15 * B.c11;
-    ctype const c2 = A.c2 * B.c0 - A.c6 * B.c4 + A.c8 * B.c3 - A.c10 * B.c1 +
-                     A.c11 * B.c7 - A.c13 * B.c5 - A.c14 * B.c9 + A.c15 * B.c12;
-    ctype const c3 = A.c3 * B.c0 - A.c7 * B.c4 - A.c8 * B.c2 + A.c9 * B.c1 -
-                     A.c11 * B.c6 + A.c12 * B.c5 - A.c14 * B.c10 + A.c15 * B.c13;
-    ctype const c4 = A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 -
-                     A.c11 * B.c8 - A.c12 * B.c9 - A.c13 * B.c10 + A.c15 * B.c14;
-    ctype const c5 = A.c5 * B.c0 - A.c12 * B.c3 + A.c13 * B.c2 - A.c15 * B.c8;
-    ctype const c6 = A.c6 * B.c0 + A.c11 * B.c3 - A.c13 * B.c1 - A.c15 * B.c9;
-    ctype const c7 = A.c7 * B.c0 - A.c11 * B.c2 + A.c12 * B.c1 - A.c15 * B.c10;
-    ctype const c8 = A.c8 * B.c0 + A.c11 * B.c4 - A.c14 * B.c1 + A.c15 * B.c5;
-    ctype const c9 = A.c9 * B.c0 + A.c12 * B.c4 - A.c14 * B.c2 + A.c15 * B.c6;
-    ctype const c10 = A.c10 * B.c0 + A.c13 * B.c4 - A.c14 * B.c3 + A.c15 * B.c7;
+    ctype const c1 = A.c1 * B.c0 - A.c5 * B.c4 - A.c9 * B.c3 + A.c10 * B.c2 +
+                     A.c12 * B.c7 - A.c13 * B.c6 + A.c14 * B.c8 - A.c15 * B.c11;
+    ctype const c2 = A.c2 * B.c0 - A.c6 * B.c4 + A.c8 * B.c3 - A.c10 * B.c1 -
+                     A.c11 * B.c7 + A.c13 * B.c5 + A.c14 * B.c9 - A.c15 * B.c12;
+    ctype const c3 = A.c3 * B.c0 - A.c7 * B.c4 - A.c8 * B.c2 + A.c9 * B.c1 +
+                     A.c11 * B.c6 - A.c12 * B.c5 + A.c14 * B.c10 - A.c15 * B.c13;
+    ctype const c4 = A.c4 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 +
+                     A.c11 * B.c8 + A.c12 * B.c9 + A.c13 * B.c10 - A.c15 * B.c14;
+    ctype const c5 = A.c5 * B.c0 - A.c12 * B.c3 + A.c13 * B.c2 + A.c15 * B.c8;
+    ctype const c6 = A.c6 * B.c0 + A.c11 * B.c3 - A.c13 * B.c1 + A.c15 * B.c9;
+    ctype const c7 = A.c7 * B.c0 - A.c11 * B.c2 + A.c12 * B.c1 + A.c15 * B.c10;
+    ctype const c8 = A.c8 * B.c0 + A.c11 * B.c4 - A.c14 * B.c1 - A.c15 * B.c5;
+    ctype const c9 = A.c9 * B.c0 + A.c12 * B.c4 - A.c14 * B.c2 - A.c15 * B.c6;
+    ctype const c10 = A.c10 * B.c0 + A.c13 * B.c4 - A.c14 * B.c3 - A.c15 * B.c7;
     ctype const c11 = A.c11 * B.c0 - A.c15 * B.c1;
     ctype const c12 = A.c12 * B.c0 - A.c15 * B.c2;
     ctype const c13 = A.c13 * B.c0 - A.c15 * B.c3;
@@ -3462,18 +3462,18 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& A,
                                                        MVec4ds_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = A.c0 * B.c0 + A.c5 * B.c1 + A.c6 * B.c2 + A.c7 * B.c3 - A.c8 * B.c4 -
-                     A.c9 * B.c5 - A.c10 * B.c6 - A.c15 * B.c7;
-    ctype const c1 = A.c1 * B.c0 - A.c12 * B.c3 + A.c13 * B.c2 - A.c14 * B.c4;
-    ctype const c2 = A.c2 * B.c0 + A.c11 * B.c3 - A.c13 * B.c1 - A.c14 * B.c5;
-    ctype const c3 = A.c3 * B.c0 - A.c11 * B.c2 + A.c12 * B.c1 - A.c14 * B.c6;
-    ctype const c4 = A.c4 * B.c0 - A.c11 * B.c4 - A.c12 * B.c5 - A.c13 * B.c6;
-    ctype const c5 = A.c5 * B.c0 - A.c15 * B.c4;
-    ctype const c6 = A.c6 * B.c0 - A.c15 * B.c5;
-    ctype const c7 = A.c7 * B.c0 - A.c15 * B.c6;
-    ctype const c8 = A.c8 * B.c0 + A.c15 * B.c1;
-    ctype const c9 = A.c9 * B.c0 + A.c15 * B.c2;
-    ctype const c10 = A.c10 * B.c0 + A.c15 * B.c3;
+    ctype const c0 = A.c0 * B.c0 - A.c5 * B.c1 - A.c6 * B.c2 - A.c7 * B.c3 + A.c8 * B.c4 +
+                     A.c9 * B.c5 + A.c10 * B.c6 - A.c15 * B.c7;
+    ctype const c1 = A.c1 * B.c0 + A.c12 * B.c3 - A.c13 * B.c2 + A.c14 * B.c4;
+    ctype const c2 = A.c2 * B.c0 - A.c11 * B.c3 + A.c13 * B.c1 + A.c14 * B.c5;
+    ctype const c3 = A.c3 * B.c0 + A.c11 * B.c2 - A.c12 * B.c1 + A.c14 * B.c6;
+    ctype const c4 = A.c4 * B.c0 + A.c11 * B.c4 + A.c12 * B.c5 + A.c13 * B.c6;
+    ctype const c5 = A.c5 * B.c0 + A.c15 * B.c4;
+    ctype const c6 = A.c6 * B.c0 + A.c15 * B.c5;
+    ctype const c7 = A.c7 * B.c0 + A.c15 * B.c6;
+    ctype const c8 = A.c8 * B.c0 - A.c15 * B.c1;
+    ctype const c9 = A.c9 * B.c0 - A.c15 * B.c2;
+    ctype const c10 = A.c10 * B.c0 - A.c15 * B.c3;
     ctype const c11 = A.c11 * B.c0;
     ctype const c12 = A.c12 * B.c0;
     ctype const c13 = A.c13 * B.c0;
@@ -3490,18 +3490,18 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& A,
                                                        MVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c5 + A.c2 * B.c6 + A.c3 * B.c7 - A.c4 * B.c8 -
-                     A.c5 * B.c9 - A.c6 * B.c10 - A.c7 * B.c15;
-    ctype const c1 = -A.c1 * B.c4 - A.c5 * B.c3 + A.c6 * B.c2 + A.c7 * B.c11;
-    ctype const c2 = -A.c2 * B.c4 + A.c4 * B.c3 - A.c6 * B.c1 + A.c7 * B.c12;
-    ctype const c3 = -A.c3 * B.c4 - A.c4 * B.c2 + A.c5 * B.c1 + A.c7 * B.c13;
-    ctype const c4 = -A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c7 * B.c14;
-    ctype const c5 = A.c1 * B.c0 - A.c7 * B.c8;
-    ctype const c6 = A.c2 * B.c0 - A.c7 * B.c9;
-    ctype const c7 = A.c3 * B.c0 - A.c7 * B.c10;
-    ctype const c8 = A.c4 * B.c0 + A.c7 * B.c5;
-    ctype const c9 = A.c5 * B.c0 + A.c7 * B.c6;
-    ctype const c10 = A.c6 * B.c0 + A.c7 * B.c7;
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c5 - A.c2 * B.c6 - A.c3 * B.c7 + A.c4 * B.c8 +
+                     A.c5 * B.c9 + A.c6 * B.c10 - A.c7 * B.c15;
+    ctype const c1 = -A.c1 * B.c4 - A.c5 * B.c3 + A.c6 * B.c2 - A.c7 * B.c11;
+    ctype const c2 = -A.c2 * B.c4 + A.c4 * B.c3 - A.c6 * B.c1 - A.c7 * B.c12;
+    ctype const c3 = -A.c3 * B.c4 - A.c4 * B.c2 + A.c5 * B.c1 - A.c7 * B.c13;
+    ctype const c4 = -A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 - A.c7 * B.c14;
+    ctype const c5 = A.c1 * B.c0 + A.c7 * B.c8;
+    ctype const c6 = A.c2 * B.c0 + A.c7 * B.c9;
+    ctype const c7 = A.c3 * B.c0 + A.c7 * B.c10;
+    ctype const c8 = A.c4 * B.c0 - A.c7 * B.c5;
+    ctype const c9 = A.c5 * B.c0 - A.c7 * B.c6;
+    ctype const c10 = A.c6 * B.c0 - A.c7 * B.c7;
     ctype const c11 = -A.c7 * B.c1;
     ctype const c12 = -A.c7 * B.c2;
     ctype const c13 = -A.c7 * B.c3;
@@ -3518,12 +3518,12 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& A,
                                                        MVec4ds_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2 + A.c4 * B.c3 -
-                     A.c11 * B.c4 - A.c12 * B.c5 - A.c13 * B.c6 + A.c14 * B.c7;
-    ctype const c1 = -A.c5 * B.c3 - A.c9 * B.c2 + A.c10 * B.c1 + A.c15 * B.c4;
-    ctype const c2 = -A.c6 * B.c3 + A.c8 * B.c2 - A.c10 * B.c0 + A.c15 * B.c5;
-    ctype const c3 = -A.c7 * B.c3 - A.c8 * B.c1 + A.c9 * B.c0 + A.c15 * B.c6;
-    ctype const c4 = -A.c5 * B.c0 - A.c6 * B.c1 - A.c7 * B.c2 + A.c15 * B.c7;
+    ctype const c0 = -A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2 + A.c4 * B.c3 +
+                     A.c11 * B.c4 + A.c12 * B.c5 + A.c13 * B.c6 - A.c14 * B.c7;
+    ctype const c1 = -A.c5 * B.c3 - A.c9 * B.c2 + A.c10 * B.c1 - A.c15 * B.c4;
+    ctype const c2 = -A.c6 * B.c3 + A.c8 * B.c2 - A.c10 * B.c0 - A.c15 * B.c5;
+    ctype const c3 = -A.c7 * B.c3 - A.c8 * B.c1 + A.c9 * B.c0 - A.c15 * B.c6;
+    ctype const c4 = -A.c5 * B.c0 - A.c6 * B.c1 - A.c7 * B.c2 - A.c15 * B.c7;
     ctype const c5 = -A.c12 * B.c2 + A.c13 * B.c1;
     ctype const c6 = A.c11 * B.c2 - A.c13 * B.c0;
     ctype const c7 = -A.c11 * B.c1 + A.c12 * B.c0;
@@ -3546,12 +3546,12 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& A,
                                                        MVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c4 -
-                     A.c4 * B.c11 - A.c5 * B.c12 - A.c6 * B.c13 + A.c7 * B.c14;
-    ctype const c1 = A.c0 * B.c0 - A.c5 * B.c7 + A.c6 * B.c6 - A.c7 * B.c8;
-    ctype const c2 = A.c1 * B.c0 + A.c4 * B.c7 - A.c6 * B.c5 - A.c7 * B.c9;
-    ctype const c3 = A.c2 * B.c0 - A.c4 * B.c6 + A.c5 * B.c5 - A.c7 * B.c10;
-    ctype const c4 = A.c3 * B.c0 - A.c4 * B.c8 - A.c5 * B.c9 - A.c6 * B.c10;
+    ctype const c0 = -A.c0 * B.c1 - A.c1 * B.c2 - A.c2 * B.c3 + A.c3 * B.c4 +
+                     A.c4 * B.c11 + A.c5 * B.c12 + A.c6 * B.c13 - A.c7 * B.c14;
+    ctype const c1 = A.c0 * B.c0 + A.c5 * B.c7 - A.c6 * B.c6 + A.c7 * B.c8;
+    ctype const c2 = A.c1 * B.c0 - A.c4 * B.c7 + A.c6 * B.c5 + A.c7 * B.c9;
+    ctype const c3 = A.c2 * B.c0 + A.c4 * B.c6 - A.c5 * B.c5 + A.c7 * B.c10;
+    ctype const c4 = A.c3 * B.c0 + A.c4 * B.c8 + A.c5 * B.c9 + A.c6 * B.c10;
     ctype const c5 = -A.c5 * B.c3 + A.c6 * B.c2;
     ctype const c6 = A.c4 * B.c3 - A.c6 * B.c1;
     ctype const c7 = -A.c4 * B.c2 + A.c5 * B.c1;
@@ -3602,16 +3602,16 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = -ctype(ps) * M.c15;
-    ctype const c1 = ctype(ps) * M.c11;
-    ctype const c2 = ctype(ps) * M.c12;
-    ctype const c3 = ctype(ps) * M.c13;
-    ctype const c4 = ctype(ps) * M.c14;
-    ctype const c5 = -ctype(ps) * M.c8;
-    ctype const c6 = -ctype(ps) * M.c9;
-    ctype const c7 = -ctype(ps) * M.c10;
-    ctype const c8 = ctype(ps) * M.c5;
-    ctype const c9 = ctype(ps) * M.c6;
-    ctype const c10 = ctype(ps) * M.c7;
+    ctype const c1 = -ctype(ps) * M.c11;
+    ctype const c2 = -ctype(ps) * M.c12;
+    ctype const c3 = -ctype(ps) * M.c13;
+    ctype const c4 = -ctype(ps) * M.c14;
+    ctype const c5 = ctype(ps) * M.c8;
+    ctype const c6 = ctype(ps) * M.c9;
+    ctype const c7 = ctype(ps) * M.c10;
+    ctype const c8 = -ctype(ps) * M.c5;
+    ctype const c9 = -ctype(ps) * M.c6;
+    ctype const c10 = -ctype(ps) * M.c7;
     ctype const c11 = -ctype(ps) * M.c1;
     ctype const c12 = -ctype(ps) * M.c2;
     ctype const c13 = -ctype(ps) * M.c3;
@@ -3628,11 +3628,11 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& M,
                                                        TriVec4ds<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -M.c11 * t.x - M.c12 * t.y - M.c13 * t.z + M.c14 * t.w;
-    ctype const c1 = M.c15 * t.x;
-    ctype const c2 = M.c15 * t.y;
-    ctype const c3 = M.c15 * t.z;
-    ctype const c4 = M.c15 * t.w;
+    ctype const c0 = M.c11 * t.x + M.c12 * t.y + M.c13 * t.z - M.c14 * t.w;
+    ctype const c1 = -M.c15 * t.x;
+    ctype const c2 = -M.c15 * t.y;
+    ctype const c3 = -M.c15 * t.z;
+    ctype const c4 = -M.c15 * t.w;
     ctype const c5 = 0.0;
     ctype const c6 = 0.0;
     ctype const c7 = 0.0;
@@ -3655,11 +3655,11 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t,
                                                        MVec4ds<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -t.x * M.c11 - t.y * M.c12 - t.z * M.c13 + t.w * M.c14;
-    ctype const c1 = -t.y * M.c7 + t.z * M.c6 - t.w * M.c8;
-    ctype const c2 = t.x * M.c7 - t.z * M.c5 - t.w * M.c9;
-    ctype const c3 = -t.x * M.c6 + t.y * M.c5 - t.w * M.c10;
-    ctype const c4 = -t.x * M.c8 - t.y * M.c9 - t.z * M.c10;
+    ctype const c0 = t.x * M.c11 + t.y * M.c12 + t.z * M.c13 - t.w * M.c14;
+    ctype const c1 = t.y * M.c7 - t.z * M.c6 + t.w * M.c8;
+    ctype const c2 = -t.x * M.c7 + t.z * M.c5 + t.w * M.c9;
+    ctype const c3 = t.x * M.c6 - t.y * M.c5 + t.w * M.c10;
+    ctype const c4 = t.x * M.c8 + t.y * M.c9 + t.z * M.c10;
     ctype const c5 = -t.y * M.c3 + t.z * M.c2;
     ctype const c6 = t.x * M.c3 - t.z * M.c1;
     ctype const c7 = -t.x * M.c2 + t.y * M.c1;
@@ -3682,18 +3682,18 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator>>(MVec4ds<T> const& M,
                                                        BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = M.c5 * B.vx + M.c6 * B.vy + M.c7 * B.vz - M.c8 * B.mx - M.c9 * B.my -
-                     M.c10 * B.mz;
-    ctype const c1 = -M.c12 * B.vz + M.c13 * B.vy - M.c14 * B.mx;
-    ctype const c2 = M.c11 * B.vz - M.c13 * B.vx - M.c14 * B.my;
-    ctype const c3 = -M.c11 * B.vy + M.c12 * B.vx - M.c14 * B.mz;
-    ctype const c4 = -M.c11 * B.mx - M.c12 * B.my - M.c13 * B.mz;
-    ctype const c5 = -M.c15 * B.mx;
-    ctype const c6 = -M.c15 * B.my;
-    ctype const c7 = -M.c15 * B.mz;
-    ctype const c8 = M.c15 * B.vx;
-    ctype const c9 = M.c15 * B.vy;
-    ctype const c10 = M.c15 * B.vz;
+    ctype const c0 = -M.c5 * B.vx - M.c6 * B.vy - M.c7 * B.vz + M.c8 * B.mx +
+                     M.c9 * B.my + M.c10 * B.mz;
+    ctype const c1 = M.c12 * B.vz - M.c13 * B.vy + M.c14 * B.mx;
+    ctype const c2 = -M.c11 * B.vz + M.c13 * B.vx + M.c14 * B.my;
+    ctype const c3 = M.c11 * B.vy - M.c12 * B.vx + M.c14 * B.mz;
+    ctype const c4 = M.c11 * B.mx + M.c12 * B.my + M.c13 * B.mz;
+    ctype const c5 = M.c15 * B.mx;
+    ctype const c6 = M.c15 * B.my;
+    ctype const c7 = M.c15 * B.mz;
+    ctype const c8 = -M.c15 * B.vx;
+    ctype const c9 = -M.c15 * B.vy;
+    ctype const c10 = -M.c15 * B.vz;
     ctype const c11 = 0.0;
     ctype const c12 = 0.0;
     ctype const c13 = 0.0;
@@ -3710,8 +3710,8 @@ constexpr MVec4ds<std::common_type_t<T, U>> operator>>(BiVec4ds<T> const& B,
                                                        MVec4ds<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = B.vx * M.c5 + B.vy * M.c6 + B.vz * M.c7 - B.mx * M.c8 - B.my * M.c9 -
-                     B.mz * M.c10;
+    ctype const c0 = -B.vx * M.c5 - B.vy * M.c6 - B.vz * M.c7 + B.mx * M.c8 +
+                     B.my * M.c9 + B.mz * M.c10;
     ctype const c1 = -B.vx * M.c4 - B.my * M.c3 + B.mz * M.c2;
     ctype const c2 = -B.vy * M.c4 + B.mx * M.c3 - B.mz * M.c1;
     ctype const c3 = -B.vz * M.c4 - B.mx * M.c2 + B.my * M.c1;
@@ -3846,14 +3846,14 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& A,
                                                          MVec4ds_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = A.c0 * B.c0 + A.c1 * B.c1 + A.c2 * B.c2 + A.c3 * B.c3 - A.c4 * B.c4 -
-                     A.c5 * B.c5 - A.c6 * B.c6 - A.c7 * B.c7;
-    ctype const c1 = A.c1 * B.c0 - A.c7 * B.c4;
-    ctype const c2 = A.c2 * B.c0 - A.c7 * B.c5;
-    ctype const c3 = A.c3 * B.c0 - A.c7 * B.c6;
-    ctype const c4 = A.c4 * B.c0 + A.c7 * B.c1;
-    ctype const c5 = A.c5 * B.c0 + A.c7 * B.c2;
-    ctype const c6 = A.c6 * B.c0 + A.c7 * B.c3;
+    ctype const c0 = A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 - A.c3 * B.c3 + A.c4 * B.c4 +
+                     A.c5 * B.c5 + A.c6 * B.c6 - A.c7 * B.c7;
+    ctype const c1 = A.c1 * B.c0 + A.c7 * B.c4;
+    ctype const c2 = A.c2 * B.c0 + A.c7 * B.c5;
+    ctype const c3 = A.c3 * B.c0 + A.c7 * B.c6;
+    ctype const c4 = A.c4 * B.c0 - A.c7 * B.c1;
+    ctype const c5 = A.c5 * B.c0 - A.c7 * B.c2;
+    ctype const c6 = A.c6 * B.c0 - A.c7 * B.c3;
     ctype const c7 = A.c7 * B.c0;
     return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
                             PScalar4ds<ctype>(c7));
@@ -3866,10 +3866,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& A,
                                                          MVec4ds_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -A.c1 * B.c3 - A.c5 * B.c2 + A.c6 * B.c1 + A.c7 * B.c4;
-    ctype const c1 = -A.c2 * B.c3 + A.c4 * B.c2 - A.c6 * B.c0 + A.c7 * B.c5;
-    ctype const c2 = -A.c3 * B.c3 - A.c4 * B.c1 + A.c5 * B.c0 + A.c7 * B.c6;
-    ctype const c3 = -A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2 + A.c7 * B.c7;
+    ctype const c0 = -A.c1 * B.c3 - A.c5 * B.c2 + A.c6 * B.c1 - A.c7 * B.c4;
+    ctype const c1 = -A.c2 * B.c3 + A.c4 * B.c2 - A.c6 * B.c0 - A.c7 * B.c5;
+    ctype const c2 = -A.c3 * B.c3 - A.c4 * B.c1 + A.c5 * B.c0 - A.c7 * B.c6;
+    ctype const c3 = -A.c1 * B.c0 - A.c2 * B.c1 - A.c3 * B.c2 - A.c7 * B.c7;
     ctype const c4 = -A.c7 * B.c0;
     ctype const c5 = -A.c7 * B.c1;
     ctype const c6 = -A.c7 * B.c2;
@@ -3885,10 +3885,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& A,
                                                          MVec4ds_E<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = A.c0 * B.c0 - A.c5 * B.c3 + A.c6 * B.c2 - A.c7 * B.c4;
-    ctype const c1 = A.c1 * B.c0 + A.c4 * B.c3 - A.c6 * B.c1 - A.c7 * B.c5;
-    ctype const c2 = A.c2 * B.c0 - A.c4 * B.c2 + A.c5 * B.c1 - A.c7 * B.c6;
-    ctype const c3 = A.c3 * B.c0 - A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6;
+    ctype const c0 = A.c0 * B.c0 + A.c5 * B.c3 - A.c6 * B.c2 + A.c7 * B.c4;
+    ctype const c1 = A.c1 * B.c0 - A.c4 * B.c3 + A.c6 * B.c1 + A.c7 * B.c5;
+    ctype const c2 = A.c2 * B.c0 + A.c4 * B.c2 - A.c5 * B.c1 + A.c7 * B.c6;
+    ctype const c3 = A.c3 * B.c0 + A.c4 * B.c4 + A.c5 * B.c5 + A.c6 * B.c6;
     ctype const c4 = A.c4 * B.c0;
     ctype const c5 = A.c5 * B.c0;
     ctype const c6 = A.c6 * B.c0;
@@ -3924,12 +3924,12 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
 {
     using ctype = std::common_type_t<T, U>;
     ctype const c0 = -ctype(ps) * B.c7;
-    ctype const c1 = -ctype(ps) * B.c4;
-    ctype const c2 = -ctype(ps) * B.c5;
-    ctype const c3 = -ctype(ps) * B.c6;
-    ctype const c4 = ctype(ps) * B.c1;
-    ctype const c5 = ctype(ps) * B.c2;
-    ctype const c6 = ctype(ps) * B.c3;
+    ctype const c1 = ctype(ps) * B.c4;
+    ctype const c2 = ctype(ps) * B.c5;
+    ctype const c3 = ctype(ps) * B.c6;
+    ctype const c4 = -ctype(ps) * B.c1;
+    ctype const c5 = -ctype(ps) * B.c2;
+    ctype const c6 = -ctype(ps) * B.c3;
     ctype const c7 = ctype(ps) * B.c0;
     return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
                             PScalar4ds<ctype>(c7));
@@ -3942,10 +3942,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& M,
                                                          TriVec4ds<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = M.c7 * t.x;
-    ctype const c1 = M.c7 * t.y;
-    ctype const c2 = M.c7 * t.z;
-    ctype const c3 = M.c7 * t.w;
+    ctype const c0 = -M.c7 * t.x;
+    ctype const c1 = -M.c7 * t.y;
+    ctype const c2 = -M.c7 * t.z;
+    ctype const c3 = -M.c7 * t.w;
     ctype const c4 = 0.0;
     ctype const c5 = 0.0;
     ctype const c6 = 0.0;
@@ -3961,10 +3961,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t,
                                                          MVec4ds_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -t.y * M.c3 + t.z * M.c2 - t.w * M.c4;
-    ctype const c1 = t.x * M.c3 - t.z * M.c1 - t.w * M.c5;
-    ctype const c2 = -t.x * M.c2 + t.y * M.c1 - t.w * M.c6;
-    ctype const c3 = -t.x * M.c4 - t.y * M.c5 - t.z * M.c6;
+    ctype const c0 = t.y * M.c3 - t.z * M.c2 + t.w * M.c4;
+    ctype const c1 = -t.x * M.c3 + t.z * M.c1 + t.w * M.c5;
+    ctype const c2 = t.x * M.c2 - t.y * M.c1 + t.w * M.c6;
+    ctype const c3 = t.x * M.c4 + t.y * M.c5 + t.z * M.c6;
     ctype const c4 = t.x * M.c0;
     ctype const c5 = t.y * M.c0;
     ctype const c6 = t.z * M.c0;
@@ -3980,14 +3980,14 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_E<T> const& M,
                                                          BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 =
-        M.c1 * B.vx + M.c2 * B.vy + M.c3 * B.vz - M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz;
-    ctype const c1 = -M.c7 * B.mx;
-    ctype const c2 = -M.c7 * B.my;
-    ctype const c3 = -M.c7 * B.mz;
-    ctype const c4 = M.c7 * B.vx;
-    ctype const c5 = M.c7 * B.vy;
-    ctype const c6 = M.c7 * B.vz;
+    ctype const c0 = -M.c1 * B.vx - M.c2 * B.vy - M.c3 * B.vz + M.c4 * B.mx +
+                     M.c5 * B.my + M.c6 * B.mz;
+    ctype const c1 = M.c7 * B.mx;
+    ctype const c2 = M.c7 * B.my;
+    ctype const c3 = M.c7 * B.mz;
+    ctype const c4 = -M.c7 * B.vx;
+    ctype const c5 = -M.c7 * B.vy;
+    ctype const c6 = -M.c7 * B.vz;
     ctype const c7 = 0.0;
     return MVec4ds_E<ctype>(Scalar4ds<ctype>(c0), BiVec4ds<ctype>(c1, c2, c3, c4, c5, c6),
                             PScalar4ds<ctype>(c7));
@@ -4000,8 +4000,8 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(BiVec4ds<T> const& B,
                                                          MVec4ds_E<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 =
-        B.vx * M.c1 + B.vy * M.c2 + B.vz * M.c3 - B.mx * M.c4 - B.my * M.c5 - B.mz * M.c6;
+    ctype const c0 = -B.vx * M.c1 - B.vy * M.c2 - B.vz * M.c3 + B.mx * M.c4 +
+                     B.my * M.c5 + B.mz * M.c6;
     ctype const c1 = B.vx * M.c0;
     ctype const c2 = B.vy * M.c0;
     ctype const c3 = B.vz * M.c0;
@@ -4096,8 +4096,8 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& A,
                                                          MVec4ds_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 + A.c3 * B.c3 -
-                     A.c4 * B.c4 - A.c5 * B.c5 - A.c6 * B.c6 + A.c7 * B.c7;
+    ctype const c0 = -A.c0 * B.c0 - A.c1 * B.c1 - A.c2 * B.c2 + A.c3 * B.c3 +
+                     A.c4 * B.c4 + A.c5 * B.c5 + A.c6 * B.c6 - A.c7 * B.c7;
     ctype const c1 = -A.c5 * B.c2 + A.c6 * B.c1;
     ctype const c2 = A.c4 * B.c2 - A.c6 * B.c0;
     ctype const c3 = -A.c4 * B.c1 + A.c5 * B.c0;
@@ -4126,10 +4126,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
                                                          MVec4ds_U<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = ctype(ps) * B.c4;
-    ctype const c1 = ctype(ps) * B.c5;
-    ctype const c2 = ctype(ps) * B.c6;
-    ctype const c3 = ctype(ps) * B.c7;
+    ctype const c0 = -ctype(ps) * B.c4;
+    ctype const c1 = -ctype(ps) * B.c5;
+    ctype const c2 = -ctype(ps) * B.c6;
+    ctype const c3 = -ctype(ps) * B.c7;
     ctype const c4 = -ctype(ps) * B.c0;
     ctype const c5 = -ctype(ps) * B.c1;
     ctype const c6 = -ctype(ps) * B.c2;
@@ -4145,7 +4145,7 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& M,
                                                          TriVec4ds<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -M.c4 * t.x - M.c5 * t.y - M.c6 * t.z + M.c7 * t.w;
+    ctype const c0 = M.c4 * t.x + M.c5 * t.y + M.c6 * t.z - M.c7 * t.w;
     ctype const c1 = 0.0;
     ctype const c2 = 0.0;
     ctype const c3 = 0.0;
@@ -4164,7 +4164,7 @@ constexpr MVec4ds_E<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t,
                                                          MVec4ds_U<U> const& M)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -t.x * M.c4 - t.y * M.c5 - t.z * M.c6 + t.w * M.c7;
+    ctype const c0 = t.x * M.c4 + t.y * M.c5 + t.z * M.c6 - t.w * M.c7;
     ctype const c1 = -t.y * M.c2 + t.z * M.c1;
     ctype const c2 = t.x * M.c2 - t.z * M.c0;
     ctype const c3 = -t.x * M.c1 + t.y * M.c0;
@@ -4183,10 +4183,10 @@ constexpr MVec4ds_U<std::common_type_t<T, U>> operator>>(MVec4ds_U<T> const& M,
                                                          BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -M.c5 * B.vz + M.c6 * B.vy - M.c7 * B.mx;
-    ctype const c1 = M.c4 * B.vz - M.c6 * B.vx - M.c7 * B.my;
-    ctype const c2 = -M.c4 * B.vy + M.c5 * B.vx - M.c7 * B.mz;
-    ctype const c3 = -M.c4 * B.mx - M.c5 * B.my - M.c6 * B.mz;
+    ctype const c0 = M.c5 * B.vz - M.c6 * B.vy + M.c7 * B.mx;
+    ctype const c1 = -M.c4 * B.vz + M.c6 * B.vx + M.c7 * B.my;
+    ctype const c2 = M.c4 * B.vy - M.c5 * B.vx + M.c7 * B.mz;
+    ctype const c3 = M.c4 * B.mx + M.c5 * B.my + M.c6 * B.mz;
     ctype const c4 = 0.0;
     ctype const c5 = 0.0;
     ctype const c6 = 0.0;
@@ -4298,10 +4298,10 @@ constexpr Vec4ds<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
                                                       TriVec4ds<U> const& t)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = ctype(ps) * t.x;
-    ctype const c1 = ctype(ps) * t.y;
-    ctype const c2 = ctype(ps) * t.z;
-    ctype const c3 = ctype(ps) * t.w;
+    ctype const c0 = -ctype(ps) * t.x;
+    ctype const c1 = -ctype(ps) * t.y;
+    ctype const c2 = -ctype(ps) * t.z;
+    ctype const c3 = -ctype(ps) * t.w;
     return Vec4ds<ctype>(c0, c1, c2, c3);
 }
 
@@ -4322,12 +4322,12 @@ constexpr BiVec4ds<std::common_type_t<T, U>> operator>>(PScalar4ds<T> ps,
                                                         BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -ctype(ps) * B.mx;
-    ctype const c1 = -ctype(ps) * B.my;
-    ctype const c2 = -ctype(ps) * B.mz;
-    ctype const c3 = ctype(ps) * B.vx;
-    ctype const c4 = ctype(ps) * B.vy;
-    ctype const c5 = ctype(ps) * B.vz;
+    ctype const c0 = ctype(ps) * B.mx;
+    ctype const c1 = ctype(ps) * B.my;
+    ctype const c2 = ctype(ps) * B.mz;
+    ctype const c3 = -ctype(ps) * B.vx;
+    ctype const c4 = -ctype(ps) * B.vy;
+    ctype const c5 = -ctype(ps) * B.vz;
     return BiVec4ds<ctype>(c0, c1, c2, c3, c4, c5);
 }
 
@@ -4392,7 +4392,7 @@ constexpr Scalar4ds<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t1,
                                                          TriVec4ds<U> const& t2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar4ds<ctype>(-t1.x * t2.x - t1.y * t2.y - t1.z * t2.z + t1.w * t2.w);
+    return Scalar4ds<ctype>(t1.x * t2.x + t1.y * t2.y + t1.z * t2.z - t1.w * t2.w);
 }
 
 // sta4ds r_contract :: r_contract(trivec,bivec) -> vec
@@ -4402,10 +4402,10 @@ constexpr Vec4ds<std::common_type_t<T, U>> operator>>(TriVec4ds<T> const& t,
                                                       BiVec4ds<U> const& B)
 {
     using ctype = std::common_type_t<T, U>;
-    ctype const c0 = -t.y * B.vz + t.z * B.vy - t.w * B.mx;
-    ctype const c1 = t.x * B.vz - t.z * B.vx - t.w * B.my;
-    ctype const c2 = -t.x * B.vy + t.y * B.vx - t.w * B.mz;
-    ctype const c3 = -t.x * B.mx - t.y * B.my - t.z * B.mz;
+    ctype const c0 = t.y * B.vz - t.z * B.vy + t.w * B.mx;
+    ctype const c1 = -t.x * B.vz + t.z * B.vx + t.w * B.my;
+    ctype const c2 = t.x * B.vy - t.y * B.vx + t.w * B.mz;
+    ctype const c3 = t.x * B.mx + t.y * B.my + t.z * B.mz;
     return Vec4ds<ctype>(c0, c1, c2, c3);
 }
 
@@ -4476,8 +4476,8 @@ constexpr Scalar4ds<std::common_type_t<T, U>> operator>>(BiVec4ds<T> const& B1,
                                                          BiVec4ds<U> const& B2)
 {
     using ctype = std::common_type_t<T, U>;
-    return Scalar4ds<ctype>(B1.vx * B2.vx + B1.vy * B2.vy + B1.vz * B2.vz -
-                            B1.mx * B2.mx - B1.my * B2.my - B1.mz * B2.mz);
+    return Scalar4ds<ctype>(-B1.vx * B2.vx - B1.vy * B2.vy - B1.vz * B2.vz +
+                            B1.mx * B2.mx + B1.my * B2.my + B1.mz * B2.mz);
 }
 
 // sta4ds r_contract :: r_contract(bivec,vec) -> vec

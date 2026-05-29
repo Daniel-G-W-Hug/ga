@@ -11,6 +11,51 @@
 #include "detail/ga_error_handling.hpp"
 
 
+namespace hd::ga::detail {
+
+// Geometric square B^2 = gr0(X * X) of an sta4ds k-blade (grades 1..n-1), computed
+// directly from the vector signature (g1,g2,g3 spacelike: -1; g4 timelike: +1).
+//
+// This is the blade's GEOMETRIC square -- the physically meaningful quantity for causal
+// character: a boost (timelike) plane has B^2 > 0, a rotation (spacelike) plane B^2 < 0.
+// It is intentionally DISTINCT from nrm_sq, which under the P-unify metric is the
+// reverse-norm <X ~X>_0 = sigma(k) * B^2 (equal for vectors, sign-flipped for
+// bi-/trivectors). Kept here so the causal-character predicates do not depend on nrm_sq
+// and stay invariant under the metric's reverse-norm convention.
+//
+// MAINTENANCE: these are a hand-written transcription of gr0(X * X), the scalar part of
+// the GEOMETRIC PRODUCT of the blade with itself. They are spelled out via components
+// only because operator* is not yet available in this header. They MUST stay in sync
+// with the geometric product (operator*): if the signature, the basis ordering, or the
+// gpr generation changes, these signs change too. If causal-character / rotor tests
+// (is_timelike/spacelike/lightlike, exp, get_rotor/get_boost) start failing
+// unexpectedly, check these against `gr0(X * X)` first (e.g. assert
+// sta4ds_geom_sq(X) == value_t(gr0(X * X)) per basis blade).
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T sta4ds_geom_sq(Vec4ds<T> const& v)
+{
+    return -v.x * v.x - v.y * v.y - v.z * v.z + v.w * v.w;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T sta4ds_geom_sq(BiVec4ds<T> const& B)
+{
+    return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz - B.mx * B.mx - B.my * B.my -
+           B.mz * B.mz;
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr T sta4ds_geom_sq(TriVec4ds<T> const& t)
+{
+    return -t.x * t.x - t.y * t.y - t.z * t.z + t.w * t.w;
+}
+
+} // namespace hd::ga::detail
+
+
 namespace hd::ga::sta {
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -24,19 +69,25 @@ namespace hd::ga::sta {
 // - r_cmpl()                      -> right complement (non-metric)
 // - l_cmpl()                      -> left complement (non-metric)
 //
-// - nrm_sq()                      -> squared norm (based on metric)
+// - nrm_sq()                      -> squared norm (the metric reverse-norm <X ~X>_0,
+//                                    i.e. the extended metric P; see causal-character
+//                                    note below for how this differs from B^2)
 // - nrm()                         -> magnitude = sqrt(|nrm_sq()|), always >= 0
 //
-// - is_timelike()                 -> true, if nrm_sq() > 0    (timelike part dominates)
-// - is_spacelike()                -> true, if nrm_sq() < 0    (spacelike part dominates)
-// - is_lightlike()                -> true, if nrm_sq() == 0   (lightlike)
+// - is_timelike()                 -> true, if B^2 = gr0(X*X) > 0   (timelike plane)
+// - is_spacelike()                -> true, if B^2 = gr0(X*X) < 0   (spacelike plane)
+// - is_lightlike()                -> true, if B^2 = gr0(X*X) == 0  (lightlike/null)
+//                                    (causal character reads the GEOMETRIC square B^2,
+//                                    not nrm_sq -- see detail::sta4ds_geom_sq)
 //
 // - normalize()                   -> return normalized object
-//                                    nrm_sq scaled to +1.0, -1.0, 0.0 for
-//                                    timelike, spacelike, lightlike objects
+//                                    nrm scales the blade to nrm_sq == +/-1 (the sign
+//                                    follows the reverse-norm); null blades unchanged
 //
 // - r_dual()                      -> right metric dual
 // - l_dual()                      -> left metric dual
+// - r_undual()                    -> inverse of r_dual (metric on the dual side)
+// - l_undual()                    -> inverse of l_dual (metric on the dual side)
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -573,7 +624,7 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr T nrm_sq(BiVec4ds<T> const& B)
 {
-    return B.vx * B.vx + B.vy * B.vy + B.vz * B.vz - B.mx * B.mx - B.my * B.my -
+    return -B.vx * B.vx - B.vy * B.vy - B.vz * B.vz + B.mx * B.mx + B.my * B.my +
            B.mz * B.mz;
 }
 
@@ -581,7 +632,7 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr T nrm_sq(TriVec4ds<T> const& t)
 {
-    return -t.x * t.x - t.y * t.y - t.z * t.z + t.w * t.w;
+    return t.x * t.x + t.y * t.y + t.z * t.z - t.w * t.w;
 }
 
 
@@ -616,92 +667,98 @@ constexpr T nrm_sq(MVec4ds<T> const& M)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// causal character of a k-vector (grades 1..n-1: Vec, BiVec, TriVec), based on
-// the extended metric of G(1,3,0) in this library's (-,-,-,+) convention.
+// causal character of a k-vector (grades 1..n-1: Vec, BiVec, TriVec) in this
+// library's (-,-,-,+) convention for G(1,3,0).
 //
-// Each basis blade carries a metric indicator G(e) = dot(e,e) in {-1,+1}, with
-// +1 marking a timelike and -1 a spacelike basis blade:
-//   timelike  (G = +1): g4 ; g14, g24, g34 ; g123
-//   spacelike (G = -1): g1, g2, g3 ; g23, g31, g12 ; g234, g314, g124
+// Causal character is set by the GEOMETRIC square B^2 = gr0(X*X) (the blade times
+// itself under the geometric product), NOT by nrm_sq. For each basis blade B^2 is
+// +1 (timelike) or -1 (spacelike):
+//   timelike  (B^2 = +1): g4 ; g14, g24, g34 ; g123
+//   spacelike (B^2 = -1): g1, g2, g3 ; g23, g31, g12 ; g234, g314, g124
 // so within every grade 1..n-1 some basis blades are timelike, others spacelike.
 //
-// For a general k-vector the character is decided by which contribution
-// dominates, which the metric quadratic form nrm_sq reports directly:
-//   nrm_sq(u) = dot(u,u) = sum_(timelike) u_i^2  -  sum_(spacelike) u_i^2
+// For a general k-vector the character is decided by which contribution dominates:
+//   B^2 = sum_(timelike) u_i^2  -  sum_(spacelike) u_i^2
 // hence
-//   is_timelike(u)  == true  if nrm_sq(u) > 0    (timelike part dominates)
-//   is_spacelike(u) == true  if nrm_sq(u) < 0    (spacelike part dominates)
-//   is_lightlike(u) == true  if nrm_sq(u) == 0   (balanced; on the light cone)
+//   is_timelike(u)  == true  if B^2 > 0    (timelike part dominates)
+//   is_spacelike(u) == true  if B^2 < 0    (spacelike part dominates)
+//   is_lightlike(u) == true  if B^2 == 0   (balanced; on the light cone)
+//
+// IMPORTANT: under the P-unify metric nrm_sq(u) = dot(u,u) is the reverse-norm
+// <u ~u>_0 = sigma(k) * B^2 -- it AGREES with B^2 for vectors (sigma(1) = +1) but is
+// SIGN-FLIPPED for bi-/trivectors (sigma(2) = sigma(3) = -1). Causal character therefore
+// reads B^2 via detail::sta4ds_geom_sq(), never nrm_sq (whose sign no longer tracks the
+// timelike/spacelike split at grades 2,3).
 //
 // The three predicates are mutually exclusive and exhaustive, and the rule is
 // uniform across grades 1..n-1. The scalar (grade 0) and the pseudoscalar
 // (grade n) are excluded by design; mixed-grade multivectors are omitted too.
 ////////////////////////////////////////////////////////////////////////////////
 
-// is_timelike(u): nrm_sq(u) > 0
+// is_timelike(u): B^2 = gr0(u*u) > 0
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_timelike(Vec4ds<T> const& v)
 {
-    return nrm_sq(v) > T(0.0);
+    return detail::sta4ds_geom_sq(v) > T(0.0);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_timelike(BiVec4ds<T> const& B)
 {
-    return nrm_sq(B) > T(0.0);
+    return detail::sta4ds_geom_sq(B) > T(0.0);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_timelike(TriVec4ds<T> const& t)
 {
-    return nrm_sq(t) > T(0.0);
+    return detail::sta4ds_geom_sq(t) > T(0.0);
 }
 
-// is_spacelike(u): nrm_sq(u) < 0
+// is_spacelike(u): B^2 = gr0(u*u) < 0
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_spacelike(Vec4ds<T> const& v)
 {
-    return nrm_sq(v) < T(0.0);
+    return detail::sta4ds_geom_sq(v) < T(0.0);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_spacelike(BiVec4ds<T> const& B)
 {
-    return nrm_sq(B) < T(0.0);
+    return detail::sta4ds_geom_sq(B) < T(0.0);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_spacelike(TriVec4ds<T> const& t)
 {
-    return nrm_sq(t) < T(0.0);
+    return detail::sta4ds_geom_sq(t) < T(0.0);
 }
 
-// is_lightlike(u): nrm_sq(u) == 0 (null)
+// is_lightlike(u): B^2 = gr0(u*u) == 0 (null)
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_lightlike(Vec4ds<T> const& v)
 {
-    return nrm_sq(v) == T(0.0);
+    return detail::sta4ds_geom_sq(v) == T(0.0);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_lightlike(BiVec4ds<T> const& B)
 {
-    return nrm_sq(B) == T(0.0);
+    return detail::sta4ds_geom_sq(B) == T(0.0);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr bool is_lightlike(TriVec4ds<T> const& t)
 {
-    return nrm_sq(t) == T(0.0);
+    return detail::sta4ds_geom_sq(t) == T(0.0);
 }
 
 
@@ -872,14 +929,14 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec4ds<T> r_dual(BiVec4ds<T> const& B)
 {
-    return BiVec4ds<T>(-B.mx, -B.my, -B.mz, B.vx, B.vy, B.vz);
+    return BiVec4ds<T>(B.mx, B.my, B.mz, -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Vec4ds<T> r_dual(TriVec4ds<T> const& t)
 {
-    return Vec4ds<T>(t.x, t.y, t.z, t.w);
+    return Vec4ds<T>(-t.x, -t.y, -t.z, -t.w);
 }
 
 template <typename T>
@@ -945,14 +1002,14 @@ template <typename T>
     requires(numeric_type<T>)
 constexpr BiVec4ds<T> l_dual(BiVec4ds<T> const& B)
 {
-    return BiVec4ds<T>(-B.mx, -B.my, -B.mz, B.vx, B.vy, B.vz);
+    return BiVec4ds<T>(B.mx, B.my, B.mz, -B.vx, -B.vy, -B.vz);
 }
 
 template <typename T>
     requires(numeric_type<T>)
 constexpr Vec4ds<T> l_dual(TriVec4ds<T> const& t)
 {
-    return Vec4ds<T>(-t.x, -t.y, -t.z, -t.w);
+    return Vec4ds<T>(t.x, t.y, t.z, t.w);
 }
 
 template <typename T>
@@ -982,6 +1039,138 @@ constexpr MVec4ds<T> l_dual(MVec4ds<T> const& M)
 {
     return MVec4ds<T>(l_dual(gr4(M)), l_dual(gr3(M)), l_dual(gr2(M)), l_dual(gr1(M)),
                       l_dual(gr0(M)));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// metric un-duals (inverse duals): the genuine inverse of the metric dual, with the
+// metric applied on the DUAL side rather than the primal side (Lengyel: "antidual").
+//
+//   r_undual(D) = l_cmpl( r_dual( l_cmpl(D) ) )   inverts r_dual: r_undual(r_dual(A)) == A
+//   l_undual(D) = r_cmpl( l_dual( r_cmpl(D) ) )   inverts l_dual: l_undual(l_dual(A)) == A
+//
+// Even-dimensional STA has two duals, hence two un-duals -- one per handedness. They
+// coincide on the even grades (where l_dual == r_dual) and differ by a sign on the odd
+// grades, exactly as l_dual / r_dual do.
+//
+// NOTE the naive composition l_dual(r_dual(A)) is NOT the identity: it equals det · A
+// (= -A for G(1,3,0)). The un-dual puts the metric on the dual side instead and recovers
+// A exactly, at every grade and for any non-degenerate signature (it depends on the metric
+// only through G² = I). Defined here by composing the (metric) dual with the (metric-free)
+// complements, so it inherits their correctness rather than re-deriving sign tables.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar4ds<T> r_undual(Scalar4ds<T> s)
+{
+    return l_cmpl(r_dual(l_cmpl(s)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec4ds<T> r_undual(Vec4ds<T> const& v)
+{
+    return l_cmpl(r_dual(l_cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec4ds<T> r_undual(BiVec4ds<T> const& B)
+{
+    return l_cmpl(r_dual(l_cmpl(B)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec4ds<T> r_undual(TriVec4ds<T> const& t)
+{
+    return l_cmpl(r_dual(l_cmpl(t)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar4ds<T> r_undual(PScalar4ds<T> ps)
+{
+    return l_cmpl(r_dual(l_cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec4ds_E<T> r_undual(MVec4ds_E<T> const& M)
+{
+    return l_cmpl(r_dual(l_cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec4ds_U<T> r_undual(MVec4ds_U<T> const& M)
+{
+    return l_cmpl(r_dual(l_cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec4ds<T> r_undual(MVec4ds<T> const& M)
+{
+    return l_cmpl(r_dual(l_cmpl(M)));
+}
+
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar4ds<T> l_undual(Scalar4ds<T> s)
+{
+    return r_cmpl(l_dual(r_cmpl(s)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr TriVec4ds<T> l_undual(Vec4ds<T> const& v)
+{
+    return r_cmpl(l_dual(r_cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec4ds<T> l_undual(BiVec4ds<T> const& B)
+{
+    return r_cmpl(l_dual(r_cmpl(B)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Vec4ds<T> l_undual(TriVec4ds<T> const& t)
+{
+    return r_cmpl(l_dual(r_cmpl(t)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr Scalar4ds<T> l_undual(PScalar4ds<T> ps)
+{
+    return r_cmpl(l_dual(r_cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec4ds_E<T> l_undual(MVec4ds_E<T> const& M)
+{
+    return r_cmpl(l_dual(r_cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec4ds_U<T> l_undual(MVec4ds_U<T> const& M)
+{
+    return r_cmpl(l_dual(r_cmpl(M)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+constexpr MVec4ds<T> l_undual(MVec4ds<T> const& M)
+{
+    return r_cmpl(l_dual(r_cmpl(M)));
 }
 
 } // namespace hd::ga::sta

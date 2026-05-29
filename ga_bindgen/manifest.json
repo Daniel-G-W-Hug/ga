@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-25T05:28:54+00:00",
+  "generated_at": "2026-05-29T11:30:45+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -36515,7 +36515,7 @@
             "const Vec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 271
+          "source_line": 277
         }
       ]
     },
@@ -36769,7 +36769,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 279
+          "source_line": 330
         },
         {
           "return_type": "Vec4ds<T>",
@@ -36777,7 +36777,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 287
+          "source_line": 338
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -36785,7 +36785,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 295
+          "source_line": 346
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -36793,7 +36793,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 303
+          "source_line": 354
         },
         {
           "return_type": "PScalar4ds<T>",
@@ -36801,7 +36801,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 311
+          "source_line": 362
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -36809,7 +36809,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 319
+          "source_line": 370
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -36817,7 +36817,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 328
+          "source_line": 379
         },
         {
           "return_type": "MVec4ds<T>",
@@ -36825,7 +36825,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 337
+          "source_line": 388
         }
       ]
     },
@@ -36917,7 +36917,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 150
+          "source_line": 157
         }
       ]
     },
@@ -36932,7 +36932,7 @@
             "U"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 193
+          "source_line": 199
         }
       ]
     },
@@ -36947,7 +36947,7 @@
             "U"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 175
+          "source_line": 181
         }
       ]
     },
@@ -36961,7 +36961,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 51
+          "source_line": 102
         },
         {
           "return_type": "Vec4ds<T>",
@@ -36969,7 +36969,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 59
+          "source_line": 110
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -36977,7 +36977,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 67
+          "source_line": 118
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -36985,7 +36985,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 75
+          "source_line": 126
         },
         {
           "return_type": "PScalar4ds<T>",
@@ -36993,7 +36993,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 83
+          "source_line": 134
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -37001,7 +37001,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 91
+          "source_line": 142
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -37009,7 +37009,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 99
+          "source_line": 150
         },
         {
           "return_type": "MVec4ds<T>",
@@ -37017,7 +37017,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 107
+          "source_line": 158
         }
       ]
     },
@@ -37095,7 +37095,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 692
+          "source_line": 698
         },
         {
           "return_type": "bool",
@@ -37105,7 +37105,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 709
+          "source_line": 715
         },
         {
           "return_type": "bool",
@@ -37115,7 +37115,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 761
+          "source_line": 767
         },
         {
           "return_type": "bool",
@@ -37125,7 +37125,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 829
+          "source_line": 835
         },
         {
           "return_type": "bool",
@@ -37135,7 +37135,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 881
+          "source_line": 887
         }
       ]
     },
@@ -37149,7 +37149,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 688
+          "source_line": 745
         },
         {
           "return_type": "bool",
@@ -37157,7 +37157,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 695
+          "source_line": 752
         },
         {
           "return_type": "bool",
@@ -37165,7 +37165,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 702
+          "source_line": 759
         }
       ]
     },
@@ -37179,7 +37179,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 666
+          "source_line": 723
         },
         {
           "return_type": "bool",
@@ -37187,7 +37187,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 673
+          "source_line": 730
         },
         {
           "return_type": "bool",
@@ -37195,7 +37195,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 680
+          "source_line": 737
         }
       ]
     },
@@ -37209,7 +37209,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 644
+          "source_line": 701
         },
         {
           "return_type": "bool",
@@ -37217,7 +37217,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 651
+          "source_line": 708
         },
         {
           "return_type": "bool",
@@ -37225,7 +37225,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 658
+          "source_line": 715
         }
       ]
     },
@@ -37239,7 +37239,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 465
+          "source_line": 516
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -37247,7 +37247,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 475
+          "source_line": 526
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -37255,7 +37255,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 489
+          "source_line": 540
         },
         {
           "return_type": "Vec4ds<T>",
@@ -37263,7 +37263,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 505
+          "source_line": 556
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37271,7 +37271,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 519
+          "source_line": 570
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -37279,7 +37279,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 529
+          "source_line": 580
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -37287,7 +37287,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 537
+          "source_line": 588
         },
         {
           "return_type": "MVec4ds<T>",
@@ -37295,7 +37295,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 545
+          "source_line": 596
         }
       ]
     },
@@ -37309,7 +37309,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 932
+          "source_line": 989
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -37317,7 +37317,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 939
+          "source_line": 996
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -37325,7 +37325,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 946
+          "source_line": 1003
         },
         {
           "return_type": "Vec4ds<T>",
@@ -37333,7 +37333,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 953
+          "source_line": 1010
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37341,7 +37341,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 960
+          "source_line": 1017
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -37349,7 +37349,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 967
+          "source_line": 1024
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -37357,7 +37357,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 974
+          "source_line": 1031
         },
         {
           "return_type": "MVec4ds<T>",
@@ -37365,7 +37365,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 981
+          "source_line": 1038
         }
       ]
     },
@@ -37386,6 +37386,76 @@
     },
     {
       "namespace": "hd::ga::sta",
+      "name": "l_undual",
+      "overloads": [
+        {
+          "return_type": "PScalar4ds<T>",
+          "param_types": [
+            "Scalar4ds<T>"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1122
+        },
+        {
+          "return_type": "TriVec4ds<T>",
+          "param_types": [
+            "const Vec4ds<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1129
+        },
+        {
+          "return_type": "BiVec4ds<T>",
+          "param_types": [
+            "const BiVec4ds<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1136
+        },
+        {
+          "return_type": "Vec4ds<T>",
+          "param_types": [
+            "const TriVec4ds<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1143
+        },
+        {
+          "return_type": "Scalar4ds<T>",
+          "param_types": [
+            "PScalar4ds<T>"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1150
+        },
+        {
+          "return_type": "MVec4ds_E<T>",
+          "param_types": [
+            "const MVec4ds_E<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1157
+        },
+        {
+          "return_type": "MVec4ds_U<T>",
+          "param_types": [
+            "const MVec4ds_U<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1164
+        },
+        {
+          "return_type": "MVec4ds<T>",
+          "param_types": [
+            "const MVec4ds<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1171
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga::sta",
       "name": "normalize",
       "overloads": [
         {
@@ -37394,7 +37464,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 786
+          "source_line": 843
         },
         {
           "return_type": "Vec4ds<T>",
@@ -37402,7 +37472,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 796
+          "source_line": 853
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -37410,7 +37480,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 810
+          "source_line": 867
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -37418,7 +37488,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 824
+          "source_line": 881
         }
       ]
     },
@@ -37432,7 +37502,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 723
+          "source_line": 780
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37440,7 +37510,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 730
+          "source_line": 787
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37448,7 +37518,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 737
+          "source_line": 794
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37456,7 +37526,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 744
+          "source_line": 801
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37464,7 +37534,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 751
+          "source_line": 808
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37472,7 +37542,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 758
+          "source_line": 815
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37480,7 +37550,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 765
+          "source_line": 822
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37488,7 +37558,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 772
+          "source_line": 829
         }
       ]
     },
@@ -37502,7 +37572,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 560
+          "source_line": 611
         },
         {
           "return_type": "T",
@@ -37510,7 +37580,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 567
+          "source_line": 618
         },
         {
           "return_type": "T",
@@ -37518,7 +37588,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 574
+          "source_line": 625
         },
         {
           "return_type": "T",
@@ -37526,7 +37596,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 582
+          "source_line": 633
         },
         {
           "return_type": "T",
@@ -37534,7 +37604,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 590
+          "source_line": 641
         },
         {
           "return_type": "T",
@@ -37542,7 +37612,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 597
+          "source_line": 648
         },
         {
           "return_type": "T",
@@ -37550,7 +37620,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 604
+          "source_line": 655
         },
         {
           "return_type": "T",
@@ -37558,7 +37628,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 611
+          "source_line": 662
         }
       ]
     },
@@ -37573,7 +37643,7 @@
             "const Vec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 566
+          "source_line": 572
         },
         {
           "return_type": "Vec4ds<std::common_type_t<T, U>>",
@@ -37582,7 +37652,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 586
+          "source_line": 592
         }
       ]
     },
@@ -37596,7 +37666,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 372
+          "source_line": 423
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -37604,7 +37674,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 382
+          "source_line": 433
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -37612,7 +37682,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 396
+          "source_line": 447
         },
         {
           "return_type": "Vec4ds<T>",
@@ -37620,7 +37690,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 412
+          "source_line": 463
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37628,7 +37698,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 426
+          "source_line": 477
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -37636,7 +37706,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 436
+          "source_line": 487
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -37644,7 +37714,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 444
+          "source_line": 495
         },
         {
           "return_type": "MVec4ds<T>",
@@ -37652,7 +37722,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 452
+          "source_line": 503
         }
       ]
     },
@@ -37666,7 +37736,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 859
+          "source_line": 916
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -37674,7 +37744,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 866
+          "source_line": 923
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -37682,7 +37752,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 873
+          "source_line": 930
         },
         {
           "return_type": "Vec4ds<T>",
@@ -37690,7 +37760,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 880
+          "source_line": 937
         },
         {
           "return_type": "Scalar4ds<T>",
@@ -37698,7 +37768,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 887
+          "source_line": 944
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -37706,7 +37776,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 894
+          "source_line": 951
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -37714,7 +37784,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 901
+          "source_line": 958
         },
         {
           "return_type": "MVec4ds<T>",
@@ -37722,7 +37792,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 908
+          "source_line": 965
         }
       ]
     },
@@ -37743,6 +37813,76 @@
     },
     {
       "namespace": "hd::ga::sta",
+      "name": "r_undual",
+      "overloads": [
+        {
+          "return_type": "PScalar4ds<T>",
+          "param_types": [
+            "Scalar4ds<T>"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1065
+        },
+        {
+          "return_type": "TriVec4ds<T>",
+          "param_types": [
+            "const Vec4ds<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1072
+        },
+        {
+          "return_type": "BiVec4ds<T>",
+          "param_types": [
+            "const BiVec4ds<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1079
+        },
+        {
+          "return_type": "Vec4ds<T>",
+          "param_types": [
+            "const TriVec4ds<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1086
+        },
+        {
+          "return_type": "Scalar4ds<T>",
+          "param_types": [
+            "PScalar4ds<T>"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1093
+        },
+        {
+          "return_type": "MVec4ds_E<T>",
+          "param_types": [
+            "const MVec4ds_E<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1100
+        },
+        {
+          "return_type": "MVec4ds_U<T>",
+          "param_types": [
+            "const MVec4ds_U<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1107
+        },
+        {
+          "return_type": "MVec4ds<T>",
+          "param_types": [
+            "const MVec4ds<T> &"
+          ],
+          "source_file": "ga/ga_sta4ds_ops_basics.hpp",
+          "source_line": 1114
+        }
+      ]
+    },
+    {
+      "namespace": "hd::ga::sta",
       "name": "rapidity",
       "overloads": [
         {
@@ -37752,7 +37892,7 @@
             "const Vec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 293
+          "source_line": 299
         }
       ]
     },
@@ -37767,7 +37907,7 @@
             "const Vec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 631
+          "source_line": 637
         },
         {
           "return_type": "Vec4ds<std::common_type_t<T, U>>",
@@ -37776,7 +37916,7 @@
             "const TriVec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 644
+          "source_line": 650
         },
         {
           "return_type": "Vec4ds<std::common_type_t<T, U>>",
@@ -37785,7 +37925,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 655
+          "source_line": 661
         },
         {
           "return_type": "BiVec4ds<std::common_type_t<T, U>>",
@@ -37794,7 +37934,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 666
+          "source_line": 672
         }
       ]
     },
@@ -37809,7 +37949,7 @@
             "const Vec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 677
+          "source_line": 683
         }
       ]
     },
@@ -37824,7 +37964,7 @@
             "const Vec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 576
+          "source_line": 582
         },
         {
           "return_type": "Vec4ds<std::common_type_t<T, U>>",
@@ -37833,7 +37973,7 @@
             "const BiVec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 595
+          "source_line": 601
         }
       ]
     },
@@ -37848,7 +37988,7 @@
             "const Vec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 543
+          "source_line": 549
         }
       ]
     },
@@ -37863,7 +38003,7 @@
             "const Vec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 534
+          "source_line": 540
         }
       ]
     },
@@ -37877,7 +38017,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 124
+          "source_line": 175
         },
         {
           "return_type": "Vec4ds<T>",
@@ -37885,7 +38025,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 132
+          "source_line": 183
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -37893,7 +38033,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 140
+          "source_line": 191
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -37901,7 +38041,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 148
+          "source_line": 199
         },
         {
           "return_type": "PScalar4ds<T>",
@@ -37909,7 +38049,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 156
+          "source_line": 207
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -37917,7 +38057,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 164
+          "source_line": 215
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -37925,7 +38065,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 173
+          "source_line": 224
         },
         {
           "return_type": "MVec4ds<T>",
@@ -37933,7 +38073,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 182
+          "source_line": 233
         }
       ]
     },
@@ -37947,7 +38087,7 @@
             "Scalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 201
+          "source_line": 252
         },
         {
           "return_type": "Vec4ds<T>",
@@ -37955,7 +38095,7 @@
             "const Vec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 209
+          "source_line": 260
         },
         {
           "return_type": "BiVec4ds<T>",
@@ -37963,7 +38103,7 @@
             "const BiVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 217
+          "source_line": 268
         },
         {
           "return_type": "TriVec4ds<T>",
@@ -37971,7 +38111,7 @@
             "const TriVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 225
+          "source_line": 276
         },
         {
           "return_type": "PScalar4ds<T>",
@@ -37979,7 +38119,7 @@
             "PScalar4ds<T>"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 233
+          "source_line": 284
         },
         {
           "return_type": "MVec4ds_E<T>",
@@ -37987,7 +38127,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 241
+          "source_line": 292
         },
         {
           "return_type": "MVec4ds_U<T>",
@@ -37995,7 +38135,7 @@
             "const MVec4ds_U<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 250
+          "source_line": 301
         },
         {
           "return_type": "MVec4ds<T>",
@@ -38003,7 +38143,7 @@
             "const MVec4ds<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops_basics.hpp",
-          "source_line": 259
+          "source_line": 310
         }
       ]
     },
@@ -38600,7 +38740,7 @@
             "const Vec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 511
+          "source_line": 517
         }
       ]
     },
@@ -38614,7 +38754,7 @@
             "const MVec4ds_E<T> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 221
+          "source_line": 227
         }
       ]
     },
@@ -38626,19 +38766,19 @@
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 435
+          "source_line": 437
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 435
+          "source_line": 437
         },
         {
           "return_type": "std::mdspan<const int, std::extents<size_t, 16, 16>>",
           "param_types": [],
           "source_file": "ga/ga_usr_consts.hpp",
-          "source_line": 435
+          "source_line": 437
         }
       ]
     },
@@ -38653,7 +38793,7 @@
             "const Vec4ds<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 503
+          "source_line": 509
         }
       ]
     },
@@ -38668,7 +38808,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 322
+          "source_line": 328
         },
         {
           "return_type": "BiVec4ds<std::common_type_t<T, U>>",
@@ -38677,7 +38817,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 331
+          "source_line": 337
         },
         {
           "return_type": "TriVec4ds<std::common_type_t<T, U>>",
@@ -38686,7 +38826,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 340
+          "source_line": 346
         },
         {
           "return_type": "MVec4ds<std::common_type_t<T, U>>",
@@ -38695,7 +38835,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 349
+          "source_line": 355
         }
       ]
     },
@@ -38710,7 +38850,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 372
+          "source_line": 378
         },
         {
           "return_type": "TriVec4ds<std::common_type_t<T, U>>",
@@ -38719,7 +38859,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 385
+          "source_line": 391
         },
         {
           "return_type": "BiVec4ds<std::common_type_t<T, U>>",
@@ -38728,7 +38868,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 399
+          "source_line": 405
         },
         {
           "return_type": "std::vector<Vec4ds<std::common_type_t<T, U>>>",
@@ -38737,7 +38877,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 427
+          "source_line": 433
         },
         {
           "return_type": "std::vector<TriVec4ds<std::common_type_t<T, U>>>",
@@ -38746,7 +38886,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 446
+          "source_line": 452
         },
         {
           "return_type": "std::vector<BiVec4ds<std::common_type_t<T, U>>>",
@@ -38755,7 +38895,7 @@
             "const MVec4ds_E<U> &"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 465
+          "source_line": 471
         }
       ]
     },

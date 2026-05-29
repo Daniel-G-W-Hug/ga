@@ -14,19 +14,34 @@ All statements below are verified in code in
 `ga_ega2d_test.hpp` ("MVec2d: dualization - complement vs. pseudoscalar-multiplication");
 the ega3d original in `ga_ega3d_test.hpp`.
 
-> **RESOLVED (2026-05-27).** The open thread of §6 is settled: STA's stored metric is the
-> **blade square** `Q` (vs EGA/PGA's **pure product** `P`), and `Q` is an **intended,
-> load-bearing convention — not a sign bug**. Evidence (see §13, "Resolution"): (1) the
-> exomorphism comparison table confirmed `g_S == Q`, both verdicts `NO`, the whole library
-> consistently `Q`; (2) the wedge product is metric-blind and already satisfies the
-> exomorphism with `P`, so wedge generation is *not* at fault; (3) a throwaway flip of
-> `nrm_sq` from `Q` to `P` inverts the causal character of every bivector/trivector and
-> breaks the rotor `cos`/`cosh` structure — i.e. `Q` is the physically correct Lorentzian
-> norm. The real situation is a **conflation**: one metric array serves two roles
-> (physical norm, which wants `Q`, and the wedge-exomorphism/dual, which wants `P`); they
-> diverge only in Minkowski signature. Consequence: STA's dual is the with-reverse Hodge
-> dual (hence the `gr_inv`/antidual apparatus of §7–8). Option (C) in §13 records a
-> possible later split.
+> **DECISION (2026-05-28), IMPLEMENTED (2026-05-29): P-unify.** The investigation (below)
+> established that STA's stored extended metric *was* the **blade square** `Q`, injected by
+> the `is_minkowski` override, whereas the canonical Lengyel **metric exomorphism** is the
+> **pure product** `P = ∏_{i∈S} gᵢ` (seeded by the vector metric, propagated by
+> `G(a∧b)=G(a)∧G(b)`; unique). The `Q` choice made the extended metric a *non*-exomorphism
+> (comparison table `NO`/`NO`) and conflated two distinct objects. **Resolution (now in
+> code): the extended metric is `P` for every algebra (`is_minkowski` removed), and
+> `dot`/`nrm_sq` are defined from it (`P`, the reverse-norm), unifying STA with EGA/PGA.**
+> The physics is preserved by re-sourcing the *causal character* and *rotor* decisions from
+> the **geometric square** `B² = ⟨B B⟩₀ = gr0(X⟑X)` (which comes from the vector signature
+> and never changed), not from `nrm_sq`.
+>
+> Under P-unify the dual is the clean exomorphism dual, so the **grade-dependent `gr_inv`**
+> of §7 is gone — but it is replaced by a single **global determinant sign**, not by the
+> identity:
+>
+> ```text
+> l_dual(r_dual(A)) == r_dual(l_dual(A)) == det · A == -A     (det = -1 for STA)
+> ```
+>
+> This equals `A` only for a Euclidean `det = +1` algebra (ega2d); for STA it is `-A`. The
+> antidual still inverts `r_dual` exactly but is no longer *needed*. Likewise the old
+> coincidence "`A⟑I == r_dual(A)` exactly" is gone: now `r_dual(A) == rev(A)⟑I` (differ by
+> the reversion sign, exactly as in EGA — equal at grades 0,1,4, sign-flipped at 2,3).
+> Corrected model, rationale and the (now-completed) **stepwise implementation plan** are in
+> §13 and §14. *(This supersedes the interim 2026-05-27 "keep `Q`" reading: `Q` is the
+> physical norm, but it is the **geometric square**, not the metric — so it belongs in the
+> causal/rotor path, while the metric itself is the exomorphism `P`.)*
 
 ## 1. Two schools of dualization
 
@@ -39,8 +54,12 @@ There are two common ways to dualize a blade / multivector `A`:
 2. **Pseudoscalar multiplication** (the "other school"): `to_dual(A) = A ⟑ I`,
    `from_dual(A) = A ⟑ inv(I)`.
 
-In `sta4ds` the metric is non-degenerate, so both schools exist and agree on the
-forward map (see §5): `A ⟑ I == r_dual(A)` exactly, at every grade.
+In `sta4ds` the metric is non-degenerate, so both schools exist. Under P-unify they relate
+by the reversion, exactly as in EGA: `r_dual(A) == rev(A) ⟑ I` at every grade. So the
+plain `A ⟑ I` equals `r_dual(A)` only where the reversion sign `sigma(k) = +1` (grades
+0,1,4) and equals `-r_dual(A)` at grades 2,3. *(Before P-unify, with the blade-square
+metric `Q`, `A ⟑ I == r_dual(A)` held exactly at every grade — that coincidence was a
+`Q`-artifact; see §6/§13.)*
 
 ## 2. Why pseudoscalar multiplication works here but dies in PGA
 
@@ -97,13 +116,15 @@ rG = -G                          (the antimetric is the negated metric)
 negative directions, so both physically-equivalent signatures `(-,-,-,+)` (q=3) and
 `(+,+,+,-)` (q=1) give `det = -1`. The whole construction is signature-independent.
 
-## 6. The extended metric: pure product (EGA) vs blade square (STA) — OPEN / possible bug
+## 6. The extended metric: pure product `P` (metric) vs blade square `Q` (geometric square) — RESOLVED
 
-This is the crux, and it is **not settled theory** — it is an open question whose
-resolution is the comparison table in §13. The extended metric stored in
-`ga_usr_consts.hpp` uses a **different convention in STA than in EGA**, and STA's choice
-is not a wedge exomorphism. Whether that is an intended convention or a sign bug is still
-to be decided.
+This was the crux of the investigation; it is now **settled and implemented (P-unify)**.
+The two scalars `P` and `Q` below are genuinely **different objects** that coincide for
+EGA/PGA but split at grades 2,3 in STA. The resolution: the **extended metric is `P`** (the
+unique wedge exomorphism), for every algebra; the blade square `Q` is the **geometric
+square** `gr0(X⟑X)` and belongs to the causal/rotor path, not the metric. STA used to store
+`Q` (via the now-removed `is_minkowski` override); that was the bug. The section is kept as
+the conceptual reference (P vs Q) that feeds `ga_docu`.
 
 ### Two scalars per basis blade (precise definitions)
 
@@ -128,73 +149,85 @@ Worked examples in STA `(m1=m2=m3=-1, m4=+1)`:
 Direct check: `g14.g14 = g1g4g1g4 = -g1^2 g4^2 = -(-1)(+1) = +1 = Q(g14)`; and
 `g23.g23 = -g2^2 g3^2 = -(-1)(-1) = -1 = Q(g23)`.
 
-### What the stored arrays actually contain
+### What the stored arrays contain (after P-unify)
 
 - `ega3d_metric` (and ega2d / pga): the **pure product** `P`. E.g. `e12 -> +1 = P(e12)`,
   although the blade square `Q(e12) = e12^2 = -1`. For Euclidean this is just the
   identity (all `+1`).
-- `sta4ds_metric`: the **blade square** `Q`. All 16 entries match `Q` — e.g. `g14 -> +1`,
-  `g23 -> -1`, `I -> -1`; the pure product would instead give `g14 -> -1`, `g23 -> +1`.
+- `sta4ds_metric`: now also the **pure product** `P` — e.g. `g14 -> -1`, `g23 -> +1`,
+  `I -> -1`. *(Before P-unify it held the blade square `Q`: `g14 -> +1`, `g23 -> -1`. The
+  single difference was the reversion factor `sigma(k)`, nonzero only at grades 2,3.)*
 
-So **EGA stores `P`, STA stores `Q = sigma(k)*P`** — the single difference is `sigma(k)`.
+So **every algebra now stores `P`**; `Q = sigma(k)*P` is no longer stored anywhere — it is
+recomputed on demand as the geometric square `gr0(X⟑X)` where the physics needs it.
 
-### Why it matters: STA's stored metric is NOT a wedge exomorphism
+### Why `Q` cannot be the metric (it is not a wedge exomorphism)
 
 A diagonal metric `g_S` is a genuine wedge exomorphism (Lengyel's
 `G(a^b) = G(a)^G(b)`, the "conforming property" CLAUDE.md says the extended metric must
 satisfy) **iff** it is multiplicative: `g_{S∪T} = g_S * g_T` for disjoint S,T.
 
-- `P` is multiplicative by construction → EGA's stored metric **is** a wedge exomorphism.
+- `P` is multiplicative by construction → **`P` is a wedge exomorphism** (so it is the
+  metric).
 - `Q = sigma(k)*P` is **not** multiplicative (`sigma(k+l) = (-1)^(kl) sigma(k) sigma(l)`)
-  → STA's stored metric is **not** a wedge exomorphism.
+  → `Q` is **not** a wedge exomorphism, so it cannot be the metric.
 
-Confirmed explicitly in code (`ga_sta4ds_test.hpp`, test "metric / antimetric
-exomorphisms"): the **pure-product reconstruction** `G(X) = rev(Gx(X))` satisfies
-`G(wdg(a,b)) == wdg(G(a),G(b))` (four blade pairs incl. mixed grade), while the library's
-own metric `Gx(X) = l_cmpl(r_dual(X))` — which reproduces `sta4ds_metric` entry-for-entry
-(`Gx = l_cmpl o r_dual` because `r_dual = r_cmpl o G` and `l_cmpl o r_cmpl = id`) —
-**fails** it: `Gx(wdg(g1,g4)) != wdg(Gx(g1),Gx(g4))`. So when earlier notes said "sta4ds
-holds a wedge exomorphism", that was the *pure-product reconstruction* `G`, NOT the stored
-metric; the stored metric is explicitly confirmed to fail. (Tested for a few pairs only —
-the exhaustive check is the §13 table.)
+Confirmed in code (`ga_sta4ds_test.hpp`, test "metric / antimetric exomorphisms ... and
+metric-indep. dual"): now that the library stores `P`, the library's own metric
+`G(X) = l_cmpl(r_dual(X))` (which reproduces `sta4ds_metric` entry-for-entry, because
+`r_dual = r_cmpl o G` and `l_cmpl o r_cmpl = id`) satisfies
+`G(wdg(a,b)) == wdg(G(a),G(b))` at every grade incl. mixed. The exhaustive check is the
+comparison-table test (§13), which now reads `YES`/`YES`. *(Before P-unify the library
+metric was `Q` and this law failed: `Gx(wdg(g1,g4)) != wdg(Gx(g1),Gx(g4))`; only the
+reversion-corrected `rev(Gx)` recovered `P`. That `rev` is exactly the `sigma(k)` that
+distinguished `Q` from `P`.)*
 
-### Why no existing test caught it
+### Why no existing test caught it (historical)
 
 The extended metric is **architecturally decoupled** from the rest: the wedge product is
 metric-free, the geometric product uses the vector signature `m_i` directly, and the
-complements are purely combinatorial. The stored array feeds **only** `dot` / `nrm_sq`
-and the metric dual `cmpl(G.A)`. The transcription gate `dual(e) == nrm_sq(e)*cmpl(e)`
-and the contraction identity `a<<b == rwdg(l_dual(a),b)` hold **by construction** for
-whatever the metric is (they check internal consistency, not correctness). So the 508
-passing STA assertions do **not** validate the extended metric's exomorphism property —
-a non-exomorphism metric sails through untouched. The `==`/`!=` checks above are the first
-ones that even look.
+complements are purely combinatorial. The stored array fed **only** `dot` / `nrm_sq` and
+the metric dual `cmpl(G·A)`. The transcription gate `dual(e) == nrm_sq(e)*cmpl(e)` and the
+contraction identity `a<<b == rwdg(l_dual(a),b)` hold **by construction** for whatever the
+metric is (they check internal consistency, not correctness), so a non-exomorphism metric
+sailed through untouched. The gap is now closed by the **comparison-table test** (checks
+multiplicativity directly, §13) and the **`detail::sta4ds_geom_sq` guard** (pins the
+geometric square that feeds causal character to `gr0(X⟑X)`).
 
 ### Consequence and locus
 
-Everything that looked strange in STA — the `gr_inv` in `l_dual(r_dual(u))` (§7), the
-antidual / `r_undual` (§8), the `A.I == r_dual` coincidence — is a direct consequence of
-this one `sigma(k)`. With the pure product `P` (as EGA uses), STA's dual would be the
-with-reverse Hodge dual `rev(A).I` and `l_dual(r_dual(u)) == u` would hold exactly as in
-EGA; none of that apparatus would arise.
+Everything that looked strange in STA — the `gr_inv` in `l_dual(r_dual(u))` (§7), the need
+for the antidual / `r_undual` (§8), the `A⟑I == r_dual` coincidence — was a direct
+consequence of this one `sigma(k)`. With the pure product `P` (as EGA uses) those all
+collapse: `r_dual(A) = rev(A)⟑I`, `l_dual(r_dual(A)) = det·A` (a clean global sign, no
+`gr_inv`), and the antidual is no longer needed. The locus was narrow: the `is_minkowski`
+override in
+[calculate_extended_metric](../ga_prdxpr/src_prdxpr/rules/ga_prdxpr_rule_generator.cpp),
+which overrode the product-of-vector-metrics with the blade-square values at grades 2,3
+(its comment claimed to derive them "from `<A,~A>`", but it emitted `<A·A>_0`, the
+geometric square — the opposite sign). The complement / product / dual **generation** was
+independent and correct.
 
-If the stored STA metric is wrong, the locus is narrow: the `is_minkowski` override in
-[calculate_extended_metric](../ga_prdxpr/src_prdxpr/rules/ga_prdxpr_rule_generator.cpp)
-(lines ~277–291). It overrides the product-of-vector-metrics with the blade-square values
-for grades 2,3; its comment claims to derive them "from `<A,~A>`" but `<g14,~g14>_0 = -1`
-while the code sets `+1` — i.e. the emitted values are `<A.A>_0` (blade square), the
-*opposite* sign. The complement / product / dual **generation** is independent and
-well-tested, so those are the less likely suspects.
-
-**Verdict (resolved 2026-05-27): intended convention, not a bug.** The blade-square `Q` is
-the physically correct Lorentzian norm and is load-bearing — see the §13 "Resolution"
-subsection for the full evidence (comparison table, wedge metric-blindness, and the
-throwaway `nrm_sq` `Q→P` experiment that inverts causal character). The override is *not*
-the wrong piece to "fix"; `Q` is right for the norm. What the override does expose is that
-a single metric array is doing double duty (norm vs exomorphism/dual). One genuine defect
-*does* hide in the override, though: see the grade-3 signature-independence caveat in §13.
+**Verdict — RESOLVED & IMPLEMENTED (2026-05-29).** The `is_minkowski` override is removed;
+the extended metric is now the exomorphism `P` for every algebra, and the geometric square
+`Q = gr0(X⟑X)` is recomputed where the physics needs it (causal character, rotors). The
+investigation had confirmed two things: (a) `Q` is the correct *geometric square* / physical
+norm, and (b) `Q` is **not** the metric exomorphism — the metric is uniquely `P`. The
+override had put the geometric square into the *metric* slot (wrong object: non-exomorphism
+metric, corrupted dual). See §13 for the corrected model, §14 for the (completed) plan. The
+grade-3 signature-independence caveat below is now moot — the generic path computes
+`P = ∏ gᵢ` directly from the signature, so it tracks any signature automatically.
 
 ## 7. The naive round trip, and why it fails
+
+> **P-unify note (read first).** §7–§10 below were written for the **old `Q`-metric** and
+> document its `det·gr_inv` obstruction and the antidual machinery that repaired it. Under
+> P-unify (now implemented) the obstruction collapses to a **clean global sign**:
+> `l_dual(r_dual(A)) == det · A == -A` at *every* grade — no `gr_inv`. The healing is just
+> `det` (`A == det · l_dual(r_dual(A))`); the antidual still inverts `r_dual` exactly but is
+> no longer required. The `gr_inv`/`det·gr_inv` formulas in §7 hold only for the superseded
+> `Q`-metric; they are retained as the derivation that motivated P-unify. §8–§10 (antidual,
+> signature duality, the unified `r_undual ∘ r_dual = id`) remain valid as written.
 
 **What "naive" means, explicitly.** In an even-dimensional algebra the obvious way to
 go to the dual space and back is: dualize with one handedness, undualize with the
@@ -373,15 +406,23 @@ always `complement ∘ metric`; the only question is whether `G` and `rG` are pr
 
 ## 12. Status in code / tests
 
-Implemented and verified in [ga_test/src/ga_sta4ds_test.hpp](../ga_test/src/ga_sta4ds_test.hpp):
+**P-unify implemented and verified (2026-05-29)** — ega 2583 / pga 2748 / sta 570 (28
+cases) / ga_py 688 assertions pass; ega/pga rule-generator output byte-identical. In
+[ga_test/src/ga_sta4ds_test.hpp](../ga_test/src/ga_sta4ds_test.hpp):
 
-- forward dual `A ⟑ I == r_dual(A)`; `l_dual` vs `r_dual` even/odd split
-- the naive `l_dual(r_dual(A)) == det · gr_inv(A)` obstruction and its `det · gr_inv` healing
-- the metric / antimetric exomorphism relations (`G·rG = det·I`, `rG = -G`, wedge /
-  antiwedge exomorphism laws, faithful `G = rev ∘ Gx`)
-- left and right antidual (`r_undual` inverts `r_dual`, `l_undual` inverts `l_dual`)
+- `r_dual(A) == rev(A) ⟑ I` (the dual is pseudoscalar-mult of the reverse); `l_dual` vs
+  `r_dual` even/odd split; `A ⟑ I == r_dual(A)` at grades 0,1,4 and `== -r_dual(A)` at 2,3
+- the clean round trip `l_dual(r_dual(A)) == r_dual(l_dual(A)) == det · A == -A` (no
+  `gr_inv`); healing by `det` alone (`A == det · l_dual(r_dual(A))`)
+- the metric / antimetric exomorphism relations (`G·rG = det·I = -I`, `rG = -G`, wedge /
+  antiwedge exomorphism laws — comparison table now `YES`/`YES`); the library metric
+  `G = l_cmpl ∘ r_dual` is itself the exomorphism `P` (no `rev` correction needed)
+- left and right antidual (`r_undual` inverts `r_dual`, `l_undual` inverts `l_dual`) — still
+  exact, though no longer required for the round trip
 - the wedge product uniquely selects `(-,-,-,+)` as the space, `(+,+,+,-)` as its dual
-- the metric-independent `antidual` round trip, both directions, all grades
+- causal character (`is_timelike`/`is_spacelike`/`is_lightlike`) and rotors sourced from the
+  geometric square `gr0(X⟑X)` via `detail::sta4ds_geom_sq`, guarded by a dedicated test
+- the transcription gate `dual(e) == nrm_sq(e) · cmpl(e)` holds with both sides `P`
 
 ## 13. Open questions / next steps
 
@@ -407,9 +448,9 @@ verdicts `NO`. Each table also prints the antimetric `rG_S = g_{S^c}` and `g_S *
 independent fingerprint of the non-multiplicativity). The tables double as the full
 exomorphism / antiexomorphism reference for user documentation.
 
-### Resolution (2026-05-27): intended convention, not a bug
+### Investigation (2a/2b): root cause and the load-bearing test
 
-Two follow-up experiments settled the "bug vs convention" question.
+Two follow-up experiments localised the cause and characterised `Q`.
 
 **2a — root-cause localisation (read-only, rule-generator dump).**
 
@@ -438,37 +479,69 @@ cleanly into:
   and the transcription gate `dual==nrm_sq·cmpl` fail, confirming `nrm_sq`/`dot`/`dual`
   are welded to one metric.
 
-**Conclusion.** `Q` (blade square) is the **physically correct Lorentzian norm** — it *is*
-the causal character and the rotor structure — so the `is_minkowski` override is a
-deliberate, load-bearing choice, **not** a sign bug. The exomorphism "failure" is the
-price of a **conflation**: one metric array serves two roles — physical norm (wants `Q`)
-and the wedge-exomorphism / metric dual (wants `P`). EGA/PGA never expose it (`P` serves
-both); STA does (`P≠Q` at grades 2,3), and the library correctly prioritised physics
-(`Q`), which is exactly why STA's dual is the with-reverse Hodge dual (the
-`gr_inv`/antidual apparatus of §7–8).
+**What 2b actually shows.** The `Q` values are the **geometric square** `⟨B B⟩₀ = B²`
+(the blade times itself, via the geometric product / vector signature). That quantity *is*
+the physically meaningful thing for causal character (boost bivectors `B²>0`, rotation
+bivectors `B²<0`) and for the rotor `cos`/`cosh` split. 2b broke because the library
+computes those *from `nrm_sq`* and `nrm_sq` was defined as `Q`; flipping `nrm_sq` alone (to
+`P`) without re-sourcing the causal/rotor code is what inverted the labels. **`Q` is real
+and load-bearing — but it is the geometric square, not the metric.** The metric exomorphism
+is uniquely `P` (§ refs to Lengyel below). The `is_minkowski` override conflated the two by
+writing the geometric square into the *metric* slot.
 
-### Option (C) — separate the two metrics (possible later round)
+### Decision: P-unify (2026-05-28)
 
-If a *true* wedge-exomorphism dual is ever wanted alongside the physical norm:
+Corrected model (confirmed against Lengyel's framework — the one this codebase follows):
 
-- keep `Q` for `nrm_sq` / `dot` (physical Lorentzian norm — unchanged), and
-- introduce a **separate `P`-based exomorphism metric** used only for the metric dual
-  `cmpl(G·A)` and the contraction-via-dual identities.
+- **The extended metric is the metric exomorphism** `G`, defined by extending the vector
+  metric `𝔤`: `G(eᵢ)=gᵢ` (grade-1 seed), propagated by `G(a∧b)=G(a)∧G(b)`, giving
+  `G(e_S)=∏_{i∈S} gᵢ = P`. It is **unique** ("there is exactly one valid inner product
+  on the full exterior algebra", Lengyel). It is *not* metric-ignorant — the signature
+  flows in at grade 1; EGA only looks metric-free because every `gᵢ=+1`.
+- The antimetric `rG` (`rG(e_S)=∏_{i∉S} gᵢ`) and `G·rG = det(𝔤)·I` hold for **every**
+  algebra; `det(𝔤)` is the **vector**-metric determinant (`−1` for STA).
+- The metric is **independent of blade squares**. PGA3DP's extended metric is `1`/`0`
+  (exomorphism / bulk-weight split) even though its bivectors square to `−1`. Likewise STA's
+  metric is `P`, independent of the geometric squares `Q`.
+- The exomorphism metric **defines `dot` and hence `nrm_sq`** (`s·s==1`; the rest by
+  the exomorphism). This is `P` (the reverse-norm `⟨A Ã⟩₀`), consistent across all
+  algebras — EGA already does this (`nrm_sq(BiVec3d)=+1=P`, not the geometric square `−1`).
 
-This would restore the wedge/antiwedge exomorphism and the EGA-like `l_dual(r_dual)==id`
-round trip (eliminating the `gr_inv`/antidual correction), at the cost of:
+**Chosen resolution:**
 
-- **decoupling `dual` from `nrm_sq`**, i.e. relaxing/retargeting the transcription gate
-  `dual(e) == nrm_sq(e)·cmpl(e)` (it would now bind to the `P`-metric, not `nrm_sq`),
-- regenerating the sta4ds **dual** (and contraction/expansion) tables against `P`, while
-  leaving `dot`/`nrm_sq`/`gpr` on the signature, and
-- a library API decision: two named duals (norm-dual vs exomorphism-dual) or a documented
-  switch.
+1. Remove the `is_minkowski` override → the extended metric is `P` for every algebra
+   (the generic product-of-vector-metrics path already computes it).
+2. Regenerate the metric-derived sta4ds products against `P`: `dot`, `nrm_sq`, the
+   **dual** (`cmpl(P·A)` → clean exomorphism dual, `l_dual(r_dual) == det·A == -A`, *not*
+   `== A` — that holds only for a Euclidean `det = +1` algebra), and the **contractions**
+   `l_contract`/`r_contract` (they are metric-derived via the dual: `a<<b = rwdg(l_dual(a),
+   b)`). Expansions (`l_expand`/`r_expand`) follow automatically (thin `wdg(l_dual, ·)`
+   wrappers).
+3. **Preserve the physics** by re-sourcing the *causal character* (`is_timelike` /
+   `is_spacelike` / `is_lightlike`) and the *rotor* `exp`/`sqrt`/`transform` decisions from
+   the **geometric square** `B² = gr0(B*B)` (vector-signature based, unchanged), not from
+   `nrm_sq`. Net effect: causal character and rotor behaviour are **unchanged**; only the
+   *value* of `nrm_sq` changes (`Q → P`, the reverse-norm).
+4. After: the exomorphism comparison table reads `YES`/`YES`; `G·rG=det·I` holds; the
+   transcription gate `dual==nrm_sq·cmpl` holds with both sides `P`; the `gr_inv`/antidual
+   apparatus of §7–8 is no longer required (it was a `Q`-artifact).
 
-Rejected alternative **(B) "just switch everything to `P`"**: 2b shows it inverts causal
-character and breaks rotors — not viable.
+**NOT in scope / explicitly unchanged:** the **geometric product** `gpr`, `wdg`, `cmpl`,
+`rwdg`, `cmt` — these read the **vector signature** directly (`multiply_basis_elements →
+vector_metric_value`), never the extended metric, so they are already correct and must NOT
+be regenerated (the output would be byte-identical). The earlier worry "all geometric
+products are wrong" does not hold.
 
-### Grade-3 signature-independence caveat (latent defect in the override)
+The full stepwise plan is in §14. The earlier "keep `Q` / two-metric split (option C)" idea
+is rejected in favour of full P-unify (one consistent `P` metric everywhere, with the
+geometric square `Q` used only where it physically belongs).
+
+### Grade-3 signature-independence caveat (moot under P-unify; kept for the record)
+
+> **Superseded by P-unify:** removing the override (§13 Decision, §14 P1.1) makes the
+> metric `P = ∏ gᵢ` straight from the signature, so there is no hard-coded grade-3 value
+> left to be signature-specific. The analysis below explains *why* the old override was
+> additionally fragile, and is retained as rationale only.
 
 Separate from the convention question, the `is_minkowski` override's comment (lines
 278–281) claims its hard-coded grade-2/3 values are *"independent of which signature
@@ -491,18 +564,239 @@ prerequisite for the projective-STA / `(+,+,+,-)` work.
 
 ### Later
 
+- **Code-generate the complements and the duals in `ga_prdxpr` (`--output=code`).** Today
+  `l_cmpl`/`r_cmpl` and `l_dual`/`r_dual` are **hand-transcribed** in `*_ops_basics.hpp`
+  from the `ga_prdxpr_rule_generator_test` dual/complement tables — a repeated source of
+  sign bugs (the bivector-dual slip that motivated this whole investigation; a fresh
+  hand-edit of the 4 STA duals was needed again in P2.1). The rules and the extended metric
+  already exist in the generator, so emitting C++ should be straightforward:
+  - The combinatorial complement is `l_cmpl`/`r_cmpl` (basis order only); the dual is
+    `cmpl(G·A)`. Both are linear per-grade maps → a flat-constructor emitter like the other
+    primitives. Add `l_cmpl`/`r_cmpl`/`l_dual`/`r_dual` (and PGA `bulk_dual`/`weight_dual`)
+    to the emitter's `product_to_cpp_function` map and wire the per-grade component layout.
+  - Then `splice_generated_code.py` can keep `*_ops_basics.hpp` in sync exactly as it now
+    does for `dot`/contractions, and the hand-transcription step (and its bug class) goes
+    away. Guard with the existing transcription gate + the comparison-table + `geom_sq`
+    tests.
+  - Bonus: this also removes the only remaining hand-coded metric-derived ops, so a metric
+    or signature change becomes a pure "regenerate + splice" operation.
 - **Projective STA** (G(1,3,1) or G(3,1,1)): generate the rule tables via `ga_prdxpr`
   (likely needs a 5D dispatch arm in the product-case handlers; the rule generator
   itself looks dimension-general). Validate the complement / extended-metric /
   antimetric / bulk-dual / weight-dual tables with the transcription gate
   `dual(e) == nrm_sq(e) · cmpl(e)`.
-- Decide whether to expose named `antidual` / `r_undual` / `l_undual` (and/or the faithful
-  pure-product metric) in the library `sta4ds` ops, or keep them as documented test-only
-  constructions.
-- Confirm the signature-independence empirically once a `(+,+,+,-)` variant exists (only
-  G(1,3,0) is instantiated today). **Caveat:** contrary to an earlier optimistic note, the
-  construction is *not* fully signature-independent — the `is_minkowski` override
-  hard-codes a signature-specific grade-3 value (see "Grade-3 signature-independence
-  caveat" above).
-  Replace the hard-coded grade-2/3 values with a computed `Q = sigma(k)·P` (or drop the
-  override and apply `sigma(k)` uniformly) before instantiating any second signature.
+- **DONE (2026-05-29):** `r_undual` / `l_undual` are now first-class library ops in
+  [ga_sta4ds_ops_basics.hpp](../ga/ga_sta4ds_ops_basics.hpp) (8 overloads each, composed as
+  `r_undual = l_cmpl∘r_dual∘l_cmpl`, `l_undual = r_cmpl∘l_dual∘r_cmpl`), auto-bound into the
+  `ga_py` `sta` module. The test file uses them directly (no more local lambdas). *(Still
+  open: whether to also expose the faithful pure-product metric as a named op — currently
+  it is just `l_cmpl∘r_dual`, used inline in tests.)*
+- Confirm signature-independence empirically once a `(+,+,+,-)` variant exists (only
+  G(1,3,0) instantiated today). After P-unify the metric is `P = ∏ gᵢ` straight from the
+  signature, so it tracks any signature automatically — the grade-3 caveat is moot.
+- Feed the corrected §13 model into the `ga_docu` STA chapter (the conceptual content,
+  not the §14 implementation steps).
+
+## 14. Implementation plan (P-unify rework) — DONE (2026-05-29)
+
+Two parts, each with validation gates. Part 1 reworks the generator (`ga_prdxpr`) and
+proves no regression for EGA/PGA. Part 2 rebuilds `ga_sta4ds_ops*.hpp` stepwise. Nothing
+in Part 1 changes EGA/PGA output; the only algebra whose generated tables change is sta4ds.
+
+> **Executed as written, with two refinements found during implementation:** (i) the dual
+> round trip is `l_dual(r_dual) == det·id == -id`, not `== id` (the `gr_inv` is replaced by
+> a single global `det` sign — see §7 note / §13.2); (ii) the metric-derived products that
+> changed are `dot` **and both contractions** (`l_contract`/`r_contract`) — 61 functions
+> total — regenerated via `ga_prdxpr --output=code` and spliced in by the new tool
+> [splice_generated_code.py](../ga_prdxpr/src_prdxpr/utilities/splice_generated_code.py)
+> (clang-format-matched). The duals and `nrm_sq` are hand-coded in `*_ops_basics.hpp` and
+> were edited by hand from the rule-generator dual tables.
+
+### Part 1 — ga_prdxpr generator rework + validation
+
+**P1.1 — Remove the `is_minkowski` override.**
+In `calculate_extended_metric`
+([rules/ga_prdxpr_rule_generator.cpp](../ga_prdxpr/src_prdxpr/rules/ga_prdxpr_rule_generator.cpp),
+~lines 202–291) delete the Minkowski detection (`is_minkowski`, `time_slot`) and the
+grade-2/3 override block. The generic product-of-vector-metrics path
+(`metric_value *= metric[slot]`) then yields `P = ∏ gᵢ` for every algebra, pseudoscalar =
+`det`, scalar = `1`. Net: `calculate_extended_metric` becomes a pure exomorphism builder.
+
+**P1.2 — Regression gate (EGA/PGA must be byte-identical).**
+Build + run `ga_prdxpr_rule_generator_test`. Diff the extended metric (and, for PGA, the
+regressive extended metric) for ega2d, ega3d, pga2dp, pga3dp against pre-change output.
+They MUST be unchanged (those never used the override). This proves removal is safe.
+*Gate: zero diff for the four non-Minkowski algebras.*
+
+**P1.3 — New sta4ds metric + antimetric.**
+Confirm the sta4ds extended-metric diagonal is now
+`P = {1, -1,-1,-1,+1, -1,-1,-1,+1,+1,+1, +1,+1,+1,-1, -1}` (basis order
+`1,g1,g2,g3,g4,g14,g24,g34,g23,g31,g12,g234,g314,g124,g123,g1234`) and the antimetric is
+`rG = -P`. Verify `G·rG = det·I = -I` and `G(a∧b)=G(a)∧G(b)` for sample blade pairs.
+*Gate: comparison-table verdicts (computed from the array) flip to `YES`/`YES`.*
+
+**P1.4 — Enumerate and regenerate only the metric-derived sta4ds products.**
+Metric-INDEPENDENT (do NOT touch): `gpr`, `wdg`, `cmpl`/`l_cmpl`/`r_cmpl`, `rwdg`, `cmt`
+— they read `config.metric_signature` or are combinatorial.
+Metric-DERIVED (regenerate against `P`): `dot` (`multiply_basis_elements_dot` reads
+`extended_metric[index]`), and the duals (`generate_l_dual_rules`/`generate_r_dual_rules`
+→ `calculate_dual_rules(config, G_data, …)`). Before regenerating, grep the generator for
+every consumer of `calculate_extended_metric` / `G_data` to confirm the full list
+(currently: dot, l_dual, r_dual, the metric-matrix display, `ga_prdxpr_metric_calc.cpp`).
+*Gate: regenerated sta4ds `dot(e_S,e_S)` equals `P_S`; regenerated `r_dual`/`l_dual`
+satisfy `l_dual(r_dual(u))==u` on basis blades.*
+
+**P1.5 — Update the reference array.**
+Set `sta4ds_metric` in
+[ga/ga_usr_consts.hpp](../ga/ga_usr_consts.hpp) to the `P` diagonal from P1.3 (the array is
+reference-only; it feeds the comparison-table test, not the library ops at runtime).
+*Gate: the sta4ds comparison-table test reads `P`, no `[g_S != P!]` flags.*
+
+### Part 2 — ga_sta4ds_ops*.hpp library rebuild (stepwise)
+
+The library is hand-pasted generator output + hand-written norm/rotor code. Do the steps in
+order; rebuild + run `ga_sta_test` after each so breakage is attributable. Expect specific
+test groups to need updating — that is the point, not a regression.
+
+**P2.0 — Decouple causal character + rotor decisions onto `B²` (do this FIRST).**
+*Before* changing any metric values, re-source the sign-of-square decisions from the
+geometric square so they survive the `nrm_sq` change:
+- `is_timelike`/`is_spacelike`/`is_lightlike` (Vec/BiVec/TriVec): base the sign test on
+  `B² = gr0(X*X)` (geometric product), not on `nrm_sq`. For a vector this equals today's
+  value; for bi/trivectors it is the geometric square (current behaviour). Result must be
+  unchanged at this step (still `Q`-equivalent), so the suite stays green.
+- `exp`/`sqrt`/`transform` rotor helpers: where they branch rotation-vs-boost or compute a
+  half-angle from `nrm_sq`, switch to `B²` (or `gr0(rev(R)*R)` for the versor norm, per the
+  STA rotor notes in CLAUDE.md). *Gate: full STA suite still green with `nrm_sq` untouched.*
+
+**P2.1 — Swap in the `P`-based duals.**
+Replace `l_dual`/`r_dual` for `BiVec4ds` and `TriVec4ds` (grades 2,3 flip sign) with the
+P1.4 output; cascade through the `MVec`/`MVec_E`/`MVec_U` aggregates. *Gate:
+`l_dual(r_dual(u)) == det·u == -u` and `r_dual(l_dual(u)) == -u` at every grade (a clean
+global sign — EGA-like up to `det`).*
+
+**P2.2 — Swap in the `P`-based `dot` and contractions.**
+Update `dot` (mv, mv_e, mv_u, bivec, trivec) and the contractions `operator<<`/`operator>>`
+to the regenerated values (61 functions total: 5 `dot` + 28 `<<` + 28 `>>`). These are
+standalone codegen output in `*_ops_products.hpp`, so use
+`ga_prdxpr --output=code --products=dot,l_contract,r_contract` +
+`splice_generated_code.py`. *Gate: `dot(u,u)` equals `P_S` on basis blades;
+`library_coverage.py --algebra=sta4ds --diff` reports `0 differ`.*
+
+**P2.3 — Redefine `nrm_sq` to `P` (the reverse-norm).**
+Update `nrm_sq(BiVec4ds)`/`nrm_sq(TriVec4ds)` to match `dot(u,u)=P`; the aggregate
+`nrm_sq(MVec*)` already delegates. *Gate: `value_t(dot(u,u))==nrm_sq(u)` holds again; the
+transcription gate `dual(e)==nrm_sq(e)·cmpl(e)` holds with both sides `P`.*
+
+**P2.4 — Update the tests that encode the old `Q` numeric values.**
+- "metric signature (dot/gpr/nrm_sq)": `nrm_sq`/`dot` of bi/trivectors now `P` (signs flip
+  vs old asserts) — update expected values.
+- "causal character / nrm / normalization": causal-character *labels* should be
+  UNCHANGED (P2.0 routed them through `B²`); only `nrm_sq`/`normalize` magnitudes' signs
+  change — update those numeric asserts.
+- comparison-table test: flip `CHECK(!wedge_exo)`/`CHECK(!antiwedge_exo)` →
+  `CHECK(wedge_exo)`/`CHECK(antiwedge_exo)`, drop the two `!=` witnesses, and reword the
+  comment (now `YES`/`YES`, consistent with EGA/PGA).
+- §7–8 dualization tests: the `det·gr_inv` obstruction is replaced by the clean global sign
+  `l_dual(r_dual(A)) == det·A == -A`; the antidual/`r_undual` constructions still hold but
+  are no longer needed for the round trip. Replace the `gr_inv`-correction cases with the
+  clean `det·A` assertions (and the EGA-like `A⟑I == r_dual(rev(A))`, i.e. `A⟑I` flips
+  vs `r_dual` at grades 2,3).
+
+**P2.5 — Sweep the remaining metric-dependent ops.**
+Audit `transform` sandwich, spacetime split, projections/rejections, reflections,
+angle/rapidity for any direct use of `nrm_sq` sign that should now be `B²`; verify against
+the suite. *Gate: full `ga_sta_test` green.*
+
+**P2.6 — Python bindings cross-check.**
+If the sta module is built, regenerate the cross-check JSON and run `ga_py` sta tests
+(`regenerate_python_test_data`; the `sta` submodule), since `dot`/`nrm_sq`/`dual` values
+changed. *Gate: `ga_py` sta tests green.*
+
+### Final acceptance
+
+- ega2d/ega3d/pga2dp/pga3dp generator output byte-identical (P1.2). ✓
+- sta4ds exomorphism comparison table `YES`/`YES`; `G·rG=-I`. ✓
+- clean exomorphism dual `l_dual(r_dual) == det·id == -id` (no `gr_inv`); transcription gate
+  holds (`P`). ✓
+- causal character + rotor behaviour physically unchanged (sourced from `B²`). ✓
+- full `ga_ega_test`, `ga_pga_test`, `ga_sta_test` (+ `ga_py`) green. ✓
+
+### Risk notes
+
+- The only *behavioural* change visible to a library user is the **value** of
+  `nrm_sq`/`dot` on bi/trivectors (now the reverse-norm `P`) and the **dual** (now the
+  clean exomorphism dual). Causal-character predicates and rotors are unchanged by design.
+- Keep `gpr`/`wdg`/`cmpl`/`rwdg`/`cmt` untouched; regenerating them is unnecessary and
+  risks spurious diffs.
+- Do P2.0 before P2.3, or the suite will show false rotor/causal breakage mid-rework.
+
+## 15. Dependency graph: what depends on what
+
+The single root is the **vector signature** `𝔤 = (g1²,g2²,g3²,g4²) = (-1,-1,-1,+1)` (plus
+the basis and its canonical order). From it two branches grow, and **keeping them separate
+is the whole point of P-unify** — they were conflated by the old `Q`-metric:
+
+- the **extended-metric branch** `G` — the wedge exomorphism seeded by `𝔤`; feeds
+  `dot`/`nrm_sq`, the duals, and (via the duals) the contractions/expansions;
+- the **geometric-product branch** — `gpr` feeds the geometric square `B² = gr0(X⟑X)`,
+  which feeds causal character and the rotors.
+
+```text
+vector signature 𝔤  +  basis & canonical order
+        │
+        ├─ combinatorial / signature-direct (NOT via the extended metric)
+        │     wedge ∧          e_S ∧ e_T = ±e_{S∪T} (disjoint), 0 (repeat)      [metric-blind]
+        │     complement cmpl  A ∧ r_cmpl(A) = I ; l_cmpl∘r_cmpl = id            [metric-blind]
+        │     rwdg             rwdg(a,b) = l_cmpl(wdg(r_cmpl a, r_cmpl b))        [metric-blind]
+        │     geometric ⟑      gᵢ⟑gᵢ = gᵢ ; reorder + repeated-index metric      [signature]
+        │
+        ├─ EXTENDED-METRIC branch   G = wedge-exomorphism of ∧, seeded by 𝔤
+        │     extended metric G   G(eᵢ)=gᵢ, G(a∧b)=G(a)∧G(b)  ⟹  G(e_S)=∏_{i∈S} gᵢ = P
+        │     antimetric rG       rG(e_S)=∏_{i∉S} gᵢ ; G·rG = det·I ; (STA: rG = -G)
+        │        ├─ dot / nrm_sq  dot(e_S,e_S) = G(e_S) = P ; nrm_sq(X) = ⟨dot(X,X)⟩₀
+        │        └─ l/r_dual      dual(A) = cmpl(G·A)   [= rev(A)⟑I for non-degenerate]
+        │              ├─ contraction <<,>>   a<<b = rwdg(l_dual a, b) ; a>>b = rwdg(a, r_dual b)
+        │              ├─ expansion l/r_expand wdg(l_dual a, b) ; wdg(a, r_dual b)
+        │              └─ round trip   l_dual(r_dual(A)) = det·A ; antidual = exact inverse
+        │
+        └─ GEOMETRIC-PRODUCT branch   (causal / rotor physics — NOT the metric)
+              geometric square  B² = gr0(X⟑X) = σ(k)·P        [detail::sta4ds_geom_sq]
+                 ├─ causal char   is_timelike/spacelike/lightlike = sign(B²)
+                 ├─ exp(B)        branch on causal char ; |a| = nrm(B) = √|nrm_sq(B)|
+                 ├─ sqrt(R)       versor norm √(gr0(rev(R)⟑R))
+                 ├─ transform     R⟑X⟑rev(R)
+                 └─ inv, proj/refl  gpr  (+ nrm_sq only for scalar/vector inv)
+```
+
+### Per-operation table
+
+| operation | built from | metric-derived? | lives in code as |
+| --- | --- | --- | --- |
+| `gpr` ⟑, `wdg` ∧, `cmt` | signature + basis order | no (signature-direct / combinatorial) | codegen (`--output=code`) |
+| `l_cmpl`/`r_cmpl`, `rwdg` | basis order | no (metric-blind) | hand-coded (← codegen target, §13 Later) |
+| extended metric `G`, antimetric `rG` | signature, via the ∧-exomorphism | — (it *is* the metric) | `calculate_extended_metric` (generator) + `sta4ds_metric` (reference array) |
+| `dot`, `nrm_sq` | `G` | **yes** | `dot`: codegen; `nrm_sq`: hand (must equal `dot` diagonal) |
+| `l_dual`/`r_dual` | `G` + `cmpl` | **yes** | hand-coded from rule-gen dual tables (← codegen target, §13 Later) |
+| contractions `<<`/`>>` | dual + `rwdg` | **yes** (via dual) | codegen |
+| expansions `l_expand`/`r_expand` | dual + `wdg` | **yes** (via dual) | hand wrappers (auto-update from dual) |
+| geometric square `B²` | `gpr` (signature) | no (not the metric) | `detail::sta4ds_geom_sq` (hand; `== gr0(X⟑X)`, guarded by a test) |
+| causal char `is_*like` | `B²` | no | hand |
+| `exp`/`sqrt`/`get_rotor`/`get_boost` | `gpr` + causal char + `nrm` | no | hand |
+| `transform` sandwich | `gpr` | no | hand + codegen sandwich matrices |
+| `inv` | `gpr` (+`nrm_sq` for scalar/vector) | partly | hand (Hitzer-Sangwine for grades ≥ 2) |
+| `nrm` | `sqrt(abs(nrm_sq))` (magnitude only) | no (sign-agnostic) | hand |
+
+### When you change X, re-check Y
+
+- **vector signature** (e.g. `(−,−,−,+)` ↔ `(+,+,+,−)`): the root — *both* branches move.
+  Regenerate the extended metric, `dot`, duals, contractions; recompute the geometric square
+  / causal character / rotors; `nrm_sq` flips on bi/trivectors. (Causal-character *labels*
+  stay if sourced from `B²`, since `det` and `B²` are signature-parity invariant.)
+- **extended metric only** (e.g. add a null direction → projective STA, `det = 0`):
+  `dot`, the dual (which then *splits* into `bulk_dual`/`weight_dual`, §11), and the
+  contractions change; the geometric-product branch (causal character, rotors) is untouched.
+- **geometric product / reordering convention**: `gpr`, the geometric square, rotors,
+  `transform`, `inv` — **and** the extended metric (it is seeded by the signature through
+  the same reordering).
+- **complement tables**: `cmpl`, the dual (`= cmpl∘G`), `rwdg`, and the contractions.

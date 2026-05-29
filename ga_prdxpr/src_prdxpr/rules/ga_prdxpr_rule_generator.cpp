@@ -199,39 +199,6 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
         determinant *= m;
     }
 
-    // Detect Minkowski-like (STA) algebras: mixed +/- signature with no nulls.
-    // These follow STA conventions for grade-2 and grade-3 elements rather
-    // than the simple product-of-vector-metrics used by EGA and PGA.
-    // - EGA{2d,3d}: all positive → not Minkowski.
-    // - PGA{2dp,3dp}: positive and zero, no negative → not Minkowski.
-    // - STA4D: positive and negative, no zero → Minkowski.
-    bool const any_positive =
-        std::any_of(metric.begin(), metric.end(), [](int m) { return m > 0; });
-    bool const any_negative =
-        std::any_of(metric.begin(), metric.end(), [](int m) { return m < 0; });
-    bool const any_zero =
-        std::any_of(metric.begin(), metric.end(), [](int m) { return m == 0; });
-    bool const is_minkowski = any_positive && any_negative && !any_zero;
-
-    // For Minkowski-like algebras, identify the "time-like" basis vector as
-    // the one whose metric sign is the minority (or, on a tie, the negative
-    // one — STA G(1,3,0) and G(3,1,0) both put time on the odd-one-out slot).
-    // This decouples the STA branch from a fixed naming convention (g0 or g4) and
-    // from a specific signature literal like {+1,-1,-1,-1}.
-    int time_slot = -1;
-    if (is_minkowski) {
-        int const pos_count = static_cast<int>(
-            std::count_if(metric.begin(), metric.end(), [](int m) { return m > 0; }));
-        int const neg_count = static_cast<int>(metric.size()) - pos_count;
-        int const minority_sign = (pos_count <= neg_count) ? +1 : -1;
-        for (size_t s = 0; s < metric.size(); ++s) {
-            if (metric[s] == minority_sign) {
-                time_slot = static_cast<int>(s);
-                break;
-            }
-        }
-    }
-
     for (size_t i = 1; i < basis.size(); ++i) {
         std::string const& element = basis[i];
         auto digits = parse_indices(element, config.basis_prefix);
@@ -250,8 +217,6 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
         // Translate basis-element digits into slot indices via basis_vectors,
         // then accumulate the product-of-vector-metrics. Any unknown digit
         // (no matching basis vector) collapses the result to zero.
-        std::vector<int> slots;
-        slots.reserve(digits.size());
         int metric_value = 1;
         bool valid = true;
         for (int d : digits) {
@@ -265,7 +230,6 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
             }
             int const slot =
                 static_cast<int>(std::distance(config.basis_vectors.begin(), it));
-            slots.push_back(slot);
             metric_value *= metric[slot];
         }
 
@@ -274,22 +238,12 @@ std::vector<int> calculate_extended_metric(AlgebraConfig const& config)
             continue;
         }
 
-        if (is_minkowski) {
-            // STA convention for grade 2 and 3, derived from <A, ~A> and
-            // independent of which signature convention (mostly-positive vs
-            // mostly-negative) is in use: bivectors containing the time-like
-            // vector → +1, without → -1; trivectors with → -1, without → +1.
-            bool const has_time =
-                std::find(slots.begin(), slots.end(), time_slot) != slots.end();
-            if (digits.size() == 2) {
-                metric_value = has_time ? +1 : -1;
-            }
-            else if (digits.size() == 3) {
-                metric_value = has_time ? -1 : +1;
-            }
-            // Vectors (grade 1) already correct from product-of-metrics above.
-        }
-        // EGA / PGA: the simple product-of-vector-metrics is the final value.
+        // The extended metric is the unique metric exomorphism: it extends the
+        // vector metric via G(a∧b) = G(a)∧G(b), giving G(e_S) = ∏_{i∈S} g_i (the
+        // product-of-vector-metrics computed above). This holds for every algebra
+        // — EGA (all g_i=+1), PGA (degenerate g_i∈{0,+1}), and STA (mixed ±1). The
+        // blade square e_S·e_S = σ(k)·∏g_i is the *geometric square*, a distinct
+        // object that belongs to the causal/rotor path, not the metric slot.
 
         extended_metric[i] = metric_value;
     }
