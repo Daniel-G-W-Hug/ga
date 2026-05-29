@@ -76,4 +76,35 @@ std::optional<std::string> emit_function(configurable::AlgebraData const& algebr
                                          TypeRegistry const& registry,
                                          std::string* skip_reason = nullptr);
 
+// Emit a complete C++ function for one UNARY operation (complement / dual), i.e. a
+// single-operand, single-type-parameter (T) function. `out_mv` holds the result
+// expression at every full-basis position (the input components scattered through the
+// complement/dual rule, with signs); `result_info` is the result type (from
+// suggest_minimal_result_type on out_mv). The body is an inline flat constructor (no
+// temp-vars, no `using ctype`) matching the hand-coded *_ops_basics.hpp style; for a
+// Scalar/PScalar input the bare value is wrapped as T(name).
+//
+// Returns nullopt (with *skip_reason) for a Composite result, which only arises for
+// aggregate inputs (mv/mv_e/mv_u) -- those stay hand-written delegations.
+std::optional<std::string> emit_unary_function(std::string const& func_name,
+                                               TypeInfo const& input_info,
+                                               std::string const& input_param,
+                                               TypeInfo const& result_info,
+                                               mvec_coeff const& out_mv,
+                                               std::string* skip_reason = nullptr);
+
+// Emit the grade-wise DELEGATION form of a unary complement/dual for an aggregate
+// (multivector) input, e.g.
+//   r_dual(MVec4ds_E<T> const& M)
+//   { return MVec4ds_E<T>(r_dual(gr4(M)), r_dual(gr2(M)), r_dual(gr0(M))); }
+// `args` are the ready-made constructor arguments (in result-constructor order), built by
+// the caller as "<func_name>(gr<k>(<input_param>))" with the grade extractors in the order
+// that fills the result type's grade slots (descending input grade, since the dual /
+// complement reverses grade). Mirrors the hand-coded *_ops_basics.hpp aggregate routines
+// (minus their derivation comments).
+std::optional<std::string> emit_unary_delegation_function(
+    std::string const& func_name, TypeInfo const& input_info,
+    std::string const& input_param, TypeInfo const& result_info,
+    std::vector<std::string> const& args);
+
 } // namespace codegen

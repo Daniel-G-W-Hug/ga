@@ -749,6 +749,257 @@ void ConfigurableGenerator::emit_single_case_code(AlgebraData const& algebra,
     fmt::println("");
 }
 
+namespace {
+
+// One unary complement/dual operation: the product name (for --products filtering and
+// the emitted header comment), the C++ function name to emit, and the rule table that
+// defines it. The rule tables are the per-algebra extern globals (included above), i.e.
+// exactly the rules printed by ga_prdxpr_rule_generator_test that were previously
+// hand-transcribed into *_ops_basics.hpp.
+struct UnaryOp {
+    std::string product_name;
+    std::string cpp_func;
+    prd_rules const* rules;
+};
+
+std::vector<UnaryOp> unary_ops_for(std::string const& alg)
+{
+    if (alg == "ega2d")
+        return {{"l_cmpl", "l_cmpl", &l_cmpl_ega2d_rules},
+                {"r_cmpl", "r_cmpl", &r_cmpl_ega2d_rules},
+                {"l_dual", "l_dual", &l_dual_ega2d_rules},
+                {"r_dual", "r_dual", &r_dual_ega2d_rules}};
+    if (alg == "ega3d")
+        return {{"cmpl", "cmpl", &cmpl_ega3d_rules}, {"dual", "dual", &dual_ega3d_rules}};
+    if (alg == "pga2dp")
+        return {{"cmpl", "cmpl", &cmpl_pga2dp_rules},
+                {"bulk_dual", "bulk_dual", &bulk_dual_pga2dp_rules},
+                {"weight_dual", "weight_dual", &weight_dual_pga2dp_rules}};
+    if (alg == "pga3dp")
+        return {{"l_cmpl", "l_cmpl", &l_cmpl_pga3dp_rules},
+                {"r_cmpl", "r_cmpl", &r_cmpl_pga3dp_rules},
+                {"l_bulk_dual", "l_bulk_dual", &l_bulk_dual_pga3dp_rules},
+                {"r_bulk_dual", "r_bulk_dual", &r_bulk_dual_pga3dp_rules},
+                {"l_weight_dual", "l_weight_dual", &l_weight_dual_pga3dp_rules},
+                {"r_weight_dual", "r_weight_dual", &r_weight_dual_pga3dp_rules}};
+    if (alg == "sta4ds")
+        return {{"l_cmpl", "l_cmpl", &l_cmpl_sta4ds_rules},
+                {"r_cmpl", "r_cmpl", &r_cmpl_sta4ds_rules},
+                {"l_dual", "l_dual", &l_dual_sta4ds_rules},
+                {"r_dual", "r_dual", &r_dual_sta4ds_rules}};
+    return {};
+}
+
+// The canonical full-multivector coefficient set with per-type component names
+// (s, v.x/.../, B.vx/.../, t.x/.../, ps) -- the names the hand-coded complements/duals
+// use. Masking it to a graded filter yields that grade's input components.
+mvec_coeff const& canonical_mv_coeff(std::string const& alg)
+{
+    if (alg == "ega2d") return mv2d_coeff_svps;
+    if (alg == "ega3d") return mv3d_coeff_svBps;
+    if (alg == "pga2dp") return mv2dp_coeff_svBps;
+    if (alg == "pga3dp") return mv3dp_coeff_svBtps;
+    if (alg == "sta4ds") return mvsta4ds_coeff_svBtps;
+    throw std::runtime_error("canonical_mv_coeff: unsupported algebra '" + alg + "'");
+}
+
+} // namespace
+
+void ConfigurableGenerator::emit_unary_products_code(AlgebraData const& algebra,
+                                                     GeneratorOptions const& options)
+{
+    if (!options.should_show_code()) return;
+
+    auto const ops = unary_ops_for(algebra.name);
+    if (ops.empty()) return;
+
+    // Lazy per-algebra codegen type registry (same pattern as emit_single_case_code).
+    static std::map<std::string, codegen::TypeRegistry> registries;
+    auto reg_it = registries.find(algebra.name);
+    if (reg_it == registries.end()) {
+        try {
+            reg_it = registries.emplace(algebra.name, codegen::TypeRegistry(algebra.name))
+                         .first;
+        }
+        catch (std::exception const& e) {
+            fmt::println("// SKIP {} unary codegen -- {}", algebra.name, e.what());
+            return;
+        }
+    }
+    auto const& registry = reg_it->second;
+
+    mvec_coeff const& canon = canonical_mv_coeff(algebra.name);
+    int const n = algebra.dimension; // pseudoscalar grade
+
+    // Basis position -> grade, derived from the graded filter masks (robust for the
+    // Indexed aggregates too, where sub_filter_names are unavailable). Used to find the
+    // result aggregate type and the grade extractors for the delegation form.
+    std::vector<int> grade_of_pos(algebra.basis.size(), -1);
+    auto mark_grade = [&](std::string const& gf, int g) {
+        if (!registry.has(gf)) return;
+        mvec_coeff_filter m;
+        if (algebra.dimension == 2) m = get_coeff_filter(get_filter_2d(algebra, gf));
+        else if (algebra.dimension == 3) m = get_coeff_filter(get_filter_3d(algebra, gf));
+        else m = get_coeff_filter(get_filter_4d(algebra, gf));
+        for (std::size_t i = 0; i < m.size() && i < grade_of_pos.size(); ++i) {
+            if (m[i] != 0) grade_of_pos[i] = g;
+        }
+    };
+    mark_grade("s", 0);
+    mark_grade("vec", 1);
+    mark_grade("bivec", 2);
+    mark_grade("trivec", 3);
+    mark_grade("ps", n);
+
+    // grade set spanned by a (graded or aggregate) filter type
+    auto grade_set_of = [&](std::string const& fname) {
+        std::set<int> gs;
+        for (auto idx : registry.get(fname).basis_indices) {
+            if (idx < grade_of_pos.size() && grade_of_pos[idx] >= 0) {
+                gs.insert(grade_of_pos[idx]);
+            }
+        }
+        return gs;
+    };
+
+    // Input types in the library dual-section order: the graded types first, then the
+    // aggregate (multivector) types (emitted as grade-wise delegations). Missing filters
+    // (e.g. no mv_u in ega2d) are skipped via registry.has().
+    std::vector<std::string> filters;
+    if (algebra.dimension == 2) {
+        filters = {"s", "vec", "ps"};
+    }
+    else if (algebra.dimension == 3) {
+        filters = {"s", "vec", "bivec", "ps"};
+    }
+    else {
+        filters = {"s", "vec", "bivec", "trivec", "ps"};
+    }
+    filters.insert(filters.end(), {"mv_e", "mv_u", "mv"});
+
+    for (auto const& op : ops) {
+        if (!options.should_generate_product(op.product_name)) continue;
+
+        // dualed_basis[i] = (+/-) basis[pi(i)] : the complement/dual of basis blade i.
+        auto const dualed_basis = apply_rules_to_mv(algebra.basis, *op.rules);
+
+        for (auto const& fname : filters) {
+            if (!registry.has(fname)) continue;
+            auto const& input_info = registry.get(fname);
+
+            // Aggregate (multivector) inputs: emit the grade-wise DELEGATION form
+            //   func(M) = ResultAgg(func(gr_{n-g}(M)) for each result grade g, ascending)
+            // The result aggregate is the one whose grade set is {n - g : g in input
+            // grades} (auto-handles the even-dim "same type" and odd-dim mv_e<->mv_u swap).
+            if (fname == "mv" || fname == "mv_e" || fname == "mv_u") {
+                std::set<int> const in_grades = grade_set_of(fname);
+                std::set<int> out_grades;
+                for (int g : in_grades) out_grades.insert(n - g);
+
+                std::string result_filter;
+                for (auto const& cand : {std::string("mv_e"), std::string("mv_u"),
+                                         std::string("mv")}) {
+                    if (registry.has(cand) && grade_set_of(cand) == out_grades) {
+                        result_filter = cand;
+                        break;
+                    }
+                }
+                if (result_filter.empty()) {
+                    fmt::println("// SKIP {} {} :: {} -- no matching aggregate result",
+                                 algebra.name, op.product_name, fname);
+                    continue;
+                }
+                auto const& result_info = registry.get(result_filter);
+
+                // Constructor args in result-grade-ascending order (std::set iterates
+                // ascending); each output grade g is filled by func(gr_{n-g}(M)).
+                std::vector<std::string> args;
+                for (int g_out : grade_set_of(result_filter)) {
+                    args.push_back(op.cpp_func + "(gr" + std::to_string(n - g_out) +
+                                   "(M))");
+                }
+
+                auto rendered = codegen::emit_unary_delegation_function(
+                    op.cpp_func, input_info, "M", result_info, args);
+                if (rendered) {
+                    fmt::println("// {} {} :: {} -> {}", algebra.name, op.product_name,
+                                 fname, result_filter);
+                    fmt::print("{}", *rendered);
+                    fmt::println("");
+                }
+                continue;
+            }
+
+            // Mask the canonical coefficient set to this grade's basis support.
+            mvec_coeff_filter mask;
+            if (algebra.dimension == 2) {
+                mask = get_coeff_filter(get_filter_2d(algebra, fname));
+            }
+            else if (algebra.dimension == 3) {
+                mask = get_coeff_filter(get_filter_3d(algebra, fname));
+            }
+            else {
+                mask = get_coeff_filter(get_filter_4d(algebra, fname));
+            }
+            mvec_coeff in(canon.size(), zero_str());
+            for (std::size_t i = 0; i < canon.size(); ++i) {
+                if (i < mask.size() && mask[i] != 0) in[i] = canon[i];
+            }
+
+            // Scatter: dual(sum in[i] e_i) = sum in[i] * (+/-) e_pi(i).
+            mvec_coeff out(algebra.basis.size(), zero_str());
+            for (std::size_t i = 0; i < in.size(); ++i) {
+                if (is_zero_expr(in[i])) continue;
+                std::string tgt = dualed_basis[i];
+                bool const neg = tgt.starts_with(minus_str());
+                if (neg) tgt = tgt.substr(1);
+                auto bit = std::find(algebra.basis.begin(), algebra.basis.end(), tgt);
+                if (bit == algebra.basis.end()) continue; // maps to 0 (degenerate)
+                std::size_t const j =
+                    static_cast<std::size_t>(std::distance(algebra.basis.begin(), bit));
+                std::string expr = in[i];
+                if (neg) {
+                    expr = expr.starts_with(minus_str()) ? expr.substr(1)
+                                                         : (minus_str() + expr);
+                }
+                out[j] = expr;
+            }
+
+            auto result_filter = suggest_minimal_result_type(algebra, out);
+            if (!result_filter || !registry.has(*result_filter)) {
+                fmt::println("// SKIP {} {} :: {} -- no result type (degenerate/zero)",
+                             algebra.name, op.product_name, fname);
+                continue;
+            }
+            auto const& result_info = registry.get(*result_filter);
+
+            std::string input_param;
+            try {
+                input_param =
+                    codegen::param_name_from_coeff(canon, input_info.basis_indices);
+            }
+            catch (std::exception const& e) {
+                fmt::println("// SKIP {} {} :: {} -- {}", algebra.name, op.product_name,
+                             fname, e.what());
+                continue;
+            }
+
+            std::string skip_reason;
+            auto rendered = codegen::emit_unary_function(
+                op.cpp_func, input_info, input_param, result_info, out, &skip_reason);
+            if (!rendered) {
+                fmt::println("// SKIP {} {} :: {} -- {}", algebra.name, op.product_name,
+                             fname, skip_reason);
+                continue;
+            }
+            fmt::println("// {} {} :: {} -> {}", algebra.name, op.product_name, fname,
+                         *result_filter);
+            fmt::print("{}", *rendered);
+            fmt::println("");
+        }
+    }
+}
+
 void ConfigurableGenerator::generate_sandwich_case(AlgebraData const& algebra,
                                                    ProductConfig const& config,
                                                    OutputCase const& /* case_def */,

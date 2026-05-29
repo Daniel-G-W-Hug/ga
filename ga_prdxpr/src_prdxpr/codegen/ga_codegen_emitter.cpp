@@ -290,17 +290,20 @@ std::string render_param_anon(TypeInfo const& info, std::string const& tparam)
 // `ctype`. The conventional fix is `ctype(s) * M.c0`.
 //
 // `bare_names` is the set of bare identifiers that need wrapping. Walks each
-// expression in `prd_mv` and replaces \b<name>\b with `ctype(<name>)` exactly
-// when not already wrapped.
+// expression in `prd_mv` and replaces \b<name>\b with `<wrap>(<name>)` exactly
+// when not already wrapped. `wrap` is the scalar type to cast to: "ctype" for the
+// binary products, "T" for the unary complements/duals (single type parameter).
 mvec_coeff wrap_bare_scalars(mvec_coeff const& prd_mv,
-                             std::vector<std::string> const& bare_names)
+                             std::vector<std::string> const& bare_names,
+                             std::string const& wrap = "ctype")
 {
     if (bare_names.empty()) return prd_mv;
+    std::string const open = wrap + "(";
     mvec_coeff out = prd_mv;
     for (auto& expr : out) {
         for (auto const& name : bare_names) {
-            // Replace each whole-word occurrence of `name` with `ctype(name)`,
-            // but skip any that are already inside a `ctype(...)` wrap.
+            // Replace each whole-word occurrence of `name` with `<wrap>(name)`,
+            // but skip any that are already inside a `<wrap>(...)` wrap.
             std::string updated;
             std::size_t pos = 0;
             while (pos < expr.size()) {
@@ -321,14 +324,15 @@ mvec_coeff wrap_bare_scalars(mvec_coeff const& prd_mv,
                     pos = found + 1;
                     continue;
                 }
-                // Skip if already inside a "ctype(" wrap.
-                if (found >= 6 && expr.compare(found - 6, 6, "ctype(") == 0) {
+                // Skip if already inside a "<wrap>(" wrap.
+                if (found >= open.size() &&
+                    expr.compare(found - open.size(), open.size(), open) == 0) {
                     updated.append(expr, pos, found - pos + name.size());
                     pos = found + name.size();
                     continue;
                 }
                 updated.append(expr, pos, found - pos);
-                updated += "ctype(";
+                updated += open;
                 updated += name;
                 updated += ")";
                 pos = found + name.size();
@@ -489,6 +493,59 @@ std::optional<std::string> emit_function(configurable::AlgebraData const& algebr
             break;
     }
 
+    os << "}\n";
+    return os.str();
+}
+
+std::optional<std::string> emit_unary_function(std::string const& func_name,
+                                               TypeInfo const& input_info,
+                                               std::string const& input_param,
+                                               TypeInfo const& result_info,
+                                               mvec_coeff const& out_mv,
+                                               std::string* skip_reason)
+{
+    if (result_info.storage == StorageKind::Composite) {
+        if (skip_reason) {
+            *skip_reason = "composite result (aggregate input) -- kept hand-written";
+        }
+        return std::nullopt;
+    }
+
+    // Scalar/PScalar inputs are passed by value; their bare value is wrapped as T(name)
+    // in the result expression (e.g. PScalar4ds<T>(T(s))), matching the hand-coded style.
+    std::vector<std::string> bare;
+    if (input_info.storage == StorageKind::SingleValue) bare.push_back(input_param);
+    mvec_coeff const out_wrapped = wrap_bare_scalars(out_mv, bare, "T");
+
+    std::ostringstream os;
+    os << "template <typename T>\n";
+    os << "    requires(numeric_type<T>)\n";
+    os << "constexpr " << result_info.cpp_type << "<T> " << func_name << "("
+       << render_param(input_info, "T", input_param) << ")\n";
+    os << "{\n";
+    os << "    return " << result_info.cpp_type << "<T>("
+       << render_args(out_wrapped, result_info.basis_indices) << ");\n";
+    os << "}\n";
+    return os.str();
+}
+
+std::optional<std::string> emit_unary_delegation_function(
+    std::string const& func_name, TypeInfo const& input_info,
+    std::string const& input_param, TypeInfo const& result_info,
+    std::vector<std::string> const& args)
+{
+    std::ostringstream os;
+    os << "template <typename T>\n";
+    os << "    requires(numeric_type<T>)\n";
+    os << "constexpr " << result_info.cpp_type << "<T> " << func_name << "("
+       << render_param(input_info, "T", input_param) << ")\n";
+    os << "{\n";
+    os << "    return " << result_info.cpp_type << "<T>(";
+    for (std::size_t k = 0; k < args.size(); ++k) {
+        if (k > 0) os << ", ";
+        os << args[k];
+    }
+    os << ");\n";
     os << "}\n";
     return os.str();
 }

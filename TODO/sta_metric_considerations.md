@@ -564,22 +564,33 @@ prerequisite for the projective-STA / `(+,+,+,-)` work.
 
 ### Later
 
-- **Code-generate the complements and the duals in `ga_prdxpr` (`--output=code`).** Today
-  `l_cmpl`/`r_cmpl` and `l_dual`/`r_dual` are **hand-transcribed** in `*_ops_basics.hpp`
-  from the `ga_prdxpr_rule_generator_test` dual/complement tables — a repeated source of
-  sign bugs (the bivector-dual slip that motivated this whole investigation; a fresh
-  hand-edit of the 4 STA duals was needed again in P2.1). The rules and the extended metric
-  already exist in the generator, so emitting C++ should be straightforward:
-  - The combinatorial complement is `l_cmpl`/`r_cmpl` (basis order only); the dual is
-    `cmpl(G·A)`. Both are linear per-grade maps → a flat-constructor emitter like the other
-    primitives. Add `l_cmpl`/`r_cmpl`/`l_dual`/`r_dual` (and PGA `bulk_dual`/`weight_dual`)
-    to the emitter's `product_to_cpp_function` map and wire the per-grade component layout.
-  - Then `splice_generated_code.py` can keep `*_ops_basics.hpp` in sync exactly as it now
-    does for `dot`/contractions, and the hand-transcription step (and its bug class) goes
-    away. Guard with the existing transcription gate + the comparison-table + `geom_sq`
-    tests.
-  - Bonus: this also removes the only remaining hand-coded metric-derived ops, so a metric
-    or signature change becomes a pure "regenerate + splice" operation.
+- **DONE (2026-05-29): code-generate the complements and the duals in `ga_prdxpr`
+  (`--output=code`).** Previously `l_cmpl`/`r_cmpl` and `l_dual`/`r_dual` were
+  hand-transcribed in `*_ops_basics.hpp` from the `ga_prdxpr_rule_generator_test` tables — a
+  repeated source of sign bugs (the bivector-dual slip that motivated this investigation; a
+  fresh hand-edit of the 4 STA duals was needed again in P2.1). Now the generator emits them:
+  - New `codegen::emit_unary_function` (single-operand, `<T>` style) +
+    `ConfigurableGenerator::emit_unary_products_code` (generator driver). The driver
+    scatters each graded input type's components through the complement/dual **rule table**
+    (the per-algebra `*_generated_rules` globals — the same rules the test prints), derives
+    the result type via `suggest_minimal_result_type`, and emits. Wired into all five
+    algebras (`l_cmpl`/`r_cmpl`/`cmpl`, `l_dual`/`r_dual`/`dual`, PGA `bulk`/`weight`).
+  - **Validated:** for sta4ds the generated `l_cmpl`/`r_cmpl`/`l_dual`/`r_dual` match the
+    hand-coded library **byte-for-byte** (the duals exactly; the complements modulo the
+    hand-written derivation comments). `splice_generated_code.py --lib …_ops_basics.hpp`
+    can now keep them in sync (the duals splice as 0-change). Binary `--output=code` and the
+    default output are unchanged.
+  - **Graded AND aggregate inputs** are emitted. Graded (s/vec/bivec/trivec/ps) use the
+    flat scatter form; **aggregates (mv/mv_e/mv_u)** use the grade-wise **delegation** form
+    `func(M)=ResultAgg(func(gr_{n-g}(M)) …)` via `emit_unary_delegation_function`. The
+    result aggregate is picked by grade-set (`{n-g}`), which auto-handles the even-dim
+    "same type" and the **odd-dim `mv_e↔mv_u` swap** (verified: ega3d `cmpl(mv_e)→mv_u`).
+    For sta4ds the generated graded+aggregate **duals match the hand-coded library
+    byte-for-byte**; complements match modulo the hand-written derivation comments.
+  - For EGA the library expresses the *duals* as `cmpl`-delegations (valid since dual=cmpl
+    in Euclidean), so the generated flat EGA duals are equal-but-different-style; STA (the
+    bug locus) matches exactly. The codegen is a complete superset — paste what the library
+    needs.
 - **Projective STA** (G(1,3,1) or G(3,1,1)): generate the rule tables via `ga_prdxpr`
   (likely needs a 5D dispatch arm in the product-case handlers; the rule generator
   itself looks dimension-general). Validate the complement / extended-metric /

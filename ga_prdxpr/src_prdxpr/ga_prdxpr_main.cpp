@@ -50,6 +50,10 @@ void generate_algebra_products(ConfigurableGenerator& generator,
         generator.generate_product_expressions(algebra_data, config, options);
     }
 
+    // Unary complements / duals are rule-table ops (not binary ProductConfigs), so they
+    // have their own code-emission path (only active for --output=code).
+    generator.emit_unary_products_code(algebra_data, options);
+
     // Add separator after last product if not the last algebra
     if (!first_product && !is_last_algebra && emit_separators) {
         fmt::println(

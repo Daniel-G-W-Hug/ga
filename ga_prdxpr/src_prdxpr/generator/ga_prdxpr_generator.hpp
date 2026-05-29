@@ -24,6 +24,15 @@ class ConfigurableGenerator {
                                       ProductConfig const& config,
                                       GeneratorOptions const& options);
 
+    // Emit the unary complements / duals (l_cmpl, r_cmpl, l_dual, r_dual, and the
+    // PGA bulk/weight variants) as ready-to-paste C++ for --output=code. These are
+    // single-operand rule-table ops (not binary ProductConfigs), so they have their
+    // own emission path: scatter each graded input type's components through the
+    // complement/dual rule, then emit via codegen::emit_unary_function. Aggregate
+    // inputs (mv/mv_e/mv_u) are skipped -- they stay hand-written delegations.
+    void emit_unary_products_code(AlgebraData const& algebra,
+                                  GeneratorOptions const& options);
+
   private:
 
     // Generate a single output case
