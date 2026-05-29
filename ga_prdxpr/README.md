@@ -10,15 +10,15 @@ maintainable configuration-driven architecture.
 
 ## Features
 
-- **Complete Coverage**: Five geometric algebras — EGA2D, EGA3D, PGA2DP, PGA3DP (full),
-  STA4D (skeleton, see *Open Codegen Work*)
+- **Complete Coverage**: Five geometric algebras — EGA2D, EGA3D, PGA2DP, PGA3DP, STA4DS
+  (= G(1,3,0)), all full
 - **All Product Families**: geometric, wedge, contraction, expansion, regressive variants,
-  sandwich
-- **Character-Identical Reference Output**: the bare invocation produces a stable
-  11559-line searchable reference
-- **C++ Code Generation**: `--output=code` emits ready-to-paste primitive product
-  implementations matching `ga/*_ops_products.hpp` byte-for-byte (~95% of cases; the rest
-  are intentional semantic delegations)
+  sandwich, plus the complements and duals
+- **Character-Identical Reference Output**: the bare invocation produces a stable,
+  searchable reference of all coefficient expressions and basis tables
+- **C++ Code Generation**: `--output=code` emits ready-to-paste implementations matching
+  `ga/*_ops_products.hpp` (primitive products) and `ga/*_ops_basics.hpp` (complements,
+  duals) byte-for-byte (~95% of cases; the rest are intentional semantic delegations)
 - **Configuration-Driven**: per-algebra configs in
   [src_prdxpr/algebras/](src_prdxpr/algebras/) are the user-editable surface; the
   generator engine is reused unchanged across algebras
@@ -46,6 +46,16 @@ maintainable configuration-driven architecture.
 - 16 products: gpr, cmt, wdg, dot, rwdg, rdot, rgpr, bulk/weight contractions/expansions,
   move3dp
 
+### STA4DS (Space-Time, G(1,3,0))
+
+- gpr, cmt, wdg, dot, rwdg, l_contract, r_contract, l_expand, r_expand, transform
+  (`rgpr`/`rdot`/`rcmt` are not populated — the regressive products are fleshed out for
+  PGA, where the dual structure carries the projective geometry)
+
+All five algebras also expose the **complements** (`l_cmpl`/`r_cmpl`, or `cmpl` in odd
+dimension) and **duals** (`l_dual`/`r_dual`, or `dual`; degenerate PGA: `bulk_dual` /
+`weight_dual`) via `--output=code`.
+
 ## Building
 
 ### Prerequisites
@@ -72,10 +82,10 @@ cd ga_prdxpr
 
 ### Verification
 
-The bare invocation must produce a stable 11559-line reference:
+The bare invocation must produce a stable 25081-line reference:
 
 ```bash
-./ga_prdxpr | wc -l   # 11559
+./ga_prdxpr | wc -l   # 25081
 ```
 
 A round-trip byte-identity check against the C++ source (`ga/*_ops_products.hpp`) is
@@ -121,7 +131,7 @@ src_prdxpr/
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | Add a new product to an existing algebra                | `algebras/ga_prdxpr_<alg>_config.cpp` (new `get_*_config()`) + register in `ga_prdxpr_main.cpp`                                           |
 | Add a new coefficient pattern (e.g. `R_even`, `svBps`)  | `algebras/ga_prdxpr_<alg>.hpp`                                                                                                           |
-| Add a brand-new algebra                                 | mirror the pair `algebras/ga_prdxpr_sta4d{,_config}.{hpp,cpp}`, then register it in `ga_prdxpr_main.cpp` and `CMakeLists.txt`            |
+| Add a brand-new algebra                                 | mirror the pair `algebras/ga_prdxpr_sta4ds{,_config}.{hpp,cpp}`, then register it in `ga_prdxpr_main.cpp` and `CMakeLists.txt`            |
 | Tweak how products are *rendered* (formatting, headers) | `generator/ga_prdxpr_generator.cpp`                                                                                                      |
 | Adjust the C++ codegen output style                     | `codegen/ga_codegen_emitter.cpp` (+ `codegen/ga_codegen_types.cpp` for new types)                                                        |
 | Change the rule-generation math                         | `rules/ga_prdxpr_rule_generator.cpp`                                                                                                     |
@@ -202,7 +212,7 @@ ga_prdxpr --output=all                                   # everything
 | `--output=code`        | —      | —      | —       | ✓    |
 | `--output=coeffs,code` | ✓      | —      | —       | ✓    |
 
-The bare invocation produces the canonical 11559-line searchable
+The bare invocation produces the canonical 25081-line searchable
 reference (coeffs + tables + metrics). `code` is opt-in only so the
 default output stays stable; ask for it explicitly when you want C++
 implementations.
@@ -214,7 +224,10 @@ Type<ctype>(c0, c1, ...)`), east-const, and the `[[maybe_unused]]` form for zero
 cases.
 
 **Currently covered:** gpr, wdg, dot, cmt, rgpr, rwdg, rdot, rcmt, twdg1, rtwdg1,
-left/right contraction (`<<` / `>>`).
+left/right contraction (`<<` / `>>`), and the **complements / duals** — `l_cmpl`/`r_cmpl`
+(odd dim: `cmpl`), `l_dual`/`r_dual` (odd dim: `dual`; degenerate PGA: `bulk_dual` /
+`weight_dual`), graded inputs as flat forms and aggregates (`mv`/`mv_e`/`mv_u`) as
+grade-wise delegations (these implement `ga/*_ops_basics.hpp`).
 
 **Skipped:**
 
@@ -230,7 +243,7 @@ left/right contraction (`<<` / `>>`).
 - `src_prdxpr/codegen/ga_codegen_types.{hpp,cpp}`: `TypeRegistry` mapping filter names
   (`vec`, `bivec`, `mv_e`, ...) to C++ types, storage kinds (Indexed / Named / Composite /
   SingleValue), and basis-index layouts. One per algebra (ega2d, ega3d, pga2dp, pga3dp,
-  sta4d).
+  sta4ds).
 - `src_prdxpr/codegen/ga_codegen_emitter.{hpp,cpp}`: `emit_function()` builds a complete
   C++ overload from one `OutputCase`. Detects zero results (explicit `-> 0` marker, `-> 0
   X` typed override, or all-zero computed coefficients), wraps bare Scalar/PScalar
@@ -241,10 +254,9 @@ left/right contraction (`<<` / `>>`).
 
 ### Validating against existing source
 
-`ga/*_ops_products.hpp` are 95% char-identical (598/630) with codegen output
-post-`clang-format`. The remaining ~5% are intentional semantic delegations (e.g.
-`gpr(v,v) = MVec_E(dot(v,v), wdg(v,v))`) which encode GA identities and are kept by
-design.
+`ga/*_ops_products.hpp` are >95% char-identical with codegen output post-`clang-format`.
+The remaining ~5% are intentional semantic delegations
+(e.g. `gpr(v,v) = MVec_E(dot(v,v),wdg(v,v))`) which encode GA identities and are kept by design.
 
 ```bash
 # round-trip check for one algebra (run from build/)
@@ -257,35 +269,12 @@ python3 ../ga_prdxpr/src_prdxpr/codegen/tools/diff_codegen.py \
 
 ## Open Codegen Work
 
-### STA4D rollout
-
-The codegen plumbing for STA4D is in place — there is a `TypeRegistry` entry using
-`Scalar4d` / `Vec4d` / `BiVec4d` / `TriVec4d` / `PScalar4d` / `MVec4d_E` / `MVec4d_U` /
-`MVec4d` (see
-[src_prdxpr/codegen/ga_codegen_types.cpp](src_prdxpr/codegen/ga_codegen_types.cpp)
-`build_sta4d`). What's still missing is the per-product *content*:
-
-1. Populate the `.cases = {}` arrays in
-   [src_prdxpr/algebras/ga_prdxpr_sta4d_config.cpp](src_prdxpr/algebras/ga_prdxpr_sta4d_config.cpp).
-   A reasonable starting point is to mirror the PGA3DP structure (same 4D dimensionality,
-   similar product family) and drop the bulk_*/weight_* contractions which are
-   PGA-specific.
-2. (Optional) If the future `ga/ga_sta4d_ops_products.hpp` uses a different type-name
-   convention (e.g. `ScalarSta4d`), edit the `cpp_type` strings in `build_sta4d()` —
-   that's the only place that pins names.
-3. Run `ga_prdxpr --algebra=sta4d --output=code` and pipe the output to a fresh
-   `ga/ga_sta4d_ops_products.hpp` (and the basics/only headers as needed by the existing
-   per-algebra pattern).
-4. Wire up the test build under `ga_test/`. Note that `ga_test/src/ga_sta4d_test.hpp`
-   already exists but `#include`s `ga/ga_sta.hpp` which doesn't exist yet — that include
-   is the placeholder for the new STA4D library headers.
-
 ### Sandwich product codegen
 
 `generate_sandwich_case` in
 [src_prdxpr/generator/ga_prdxpr_generator.cpp](src_prdxpr/generator/ga_prdxpr_generator.cpp)
 is hand-rolled per algebra (vector + bivector for ega3d/pga2dp; +trivector for
-pga3dp/sta4d). Code generation for sandwich products needs its own emitter that handles
+pga3dp/sta4ds). Code generation for sandwich products needs its own emitter that handles
 the two-step `M ⟑ X ⟑ rev(M)` structure and the substantial simplification that source
 applies to the second step. For the simplified target form see
 `ga_pga2dp_ops_physics.hpp`'s `move2dp(X, M)` and `ga_pga3dp_ops_physics.hpp`'s
@@ -308,8 +297,8 @@ applies to the second step. For the simplified target form see
 
 ### Adding a new algebra
 
-1. Mirror the file pair `algebras/ga_prdxpr_sta4d.{hpp,cpp}` and
-   `algebras/ga_prdxpr_sta4d_config.{hpp,cpp}` — the header declares basis vectors /
+1. Mirror the file pair `algebras/ga_prdxpr_sta4ds.{hpp,cpp}` and
+   `algebras/ga_prdxpr_sta4ds_config.{hpp,cpp}` — the header declares basis vectors /
    coefficients / extern rules, the implementation triggers `generate_algebra_rules()` at
    static-init time, and the `_config.cpp` exposes `get_<alg>_algebra_config()` plus the
    per-product `ProductConfig` builders.
@@ -324,7 +313,7 @@ applies to the second step. For the simplified target form see
 
 ## Verification and Testing
 
-The bare invocation must remain 11559-line stable; deviations indicate a regression. The
-C++ code generator is independently validated by piping `--output=code` through
-`clang-format` and diffing against the matching `ga/*_ops_products.hpp` (see [Validating
-against existing source](#validating-against-existing-source)).
+The bare invocation must remain stable; deviations indicate a regression. The C++ code
+generator is independently validated by piping `--output=code` through `clang-format` and
+diffing against the matching `ga/*_ops_products.hpp` (see [Validating against existing
+source](#validating-against-existing-source)).

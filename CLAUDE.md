@@ -397,7 +397,11 @@ delegations.
   `dual(e) == nrm_sq(e) * cmpl(e)` per unit basis blade (bulk/weight and l/r
   variants for PGA). The contraction is the metric interior product
   (`= dot` on equal grades); the `rwdg(dual)` form is exact at every grade only
-  when the dual is correct.
+  when the dual is correct. **`--output=code` now emits the complements and duals**
+  (`l_cmpl`/`r_cmpl`/`cmpl`, `l_dual`/`r_dual`/`dual`, PGA `bulk`/`weight`; graded inputs
+  as flat forms, aggregates `mv`/`mv_e`/`mv_u` as grade-wise delegations) — so they can be
+  regenerated and spliced into `*_ops_basics.hpp` (see `utilities/splice_generated_code.py`
+  below) instead of hand-transcribed. The transcription gate stays valuable as a guard.
 
 ### Key Components
 
@@ -633,6 +637,22 @@ Audit scripts complementing the in-process validator live in
 
 The validator finds **wrong** declarations; these scripts find **missing** ones.
 
+A companion tool that *applies* generator output (rather than only reporting mismatches)
+lives in [ga_prdxpr/src_prdxpr/utilities/](ga_prdxpr/src_prdxpr/utilities/):
+
+- `splice_generated_code.py` — regenerate selected products via
+  `ga_prdxpr --output=code`, clang-format them, and splice the matching function blocks
+  into a library header **by signature** (comments, namespaces, hand-written delegations
+  and unrelated products are left intact). Used to keep `dot` / contractions
+  (`*_ops_products.hpp`) and the complements / duals (`*_ops_basics.hpp`) in sync.
+
+**clang-format gotcha (bit us once):** clang-format finds the project style (the global
+`~/.clang-format`) by searching **upward from the input file's directory**. A temp file
+under `/tmp/` is not under the repo, so clang-format silently falls back to LLVM defaults
+(2-space indent, `Type const &name`) and the output will not match the library. Always
+clang-format files **inside the repo tree** — the splicer writes its temp file into the
+repo for exactly this reason.
+
 ### Key Files for Modifications in ga_prdxpr subfolder
 
 Source tree is split by role under `ga_prdxpr/src_prdxpr/`:
@@ -746,7 +766,17 @@ return std::abs(a.x - k*b.x) < rel;
 ## STA4D rotor operations (`ga_sta4ds_ops.hpp`)
 
 STA transforms via the geometric-product rotor sandwich `X' = R ⟑ X ⟑ rev(R)` (like
-ega3d, not pga3dp's regressive motors). Two gotchas worth remembering:
+ega3d, not pga3dp's regressive motors). Gotchas worth remembering:
+
+- **Causal character & rotor branch read the geometric square, not `nrm_sq`.**
+  `is_timelike`/`is_spacelike`/`is_lightlike` and the `exp` rotation-vs-boost split test
+  the sign of `B² = gr0(X ⟑ X)` (the blade times itself), computed by
+  `detail::sta4ds_geom_sq`. Under the exomorphism metric `nrm_sq` is the *reverse-norm*
+  `⟨rev(X) X⟩₀` = the extended metric `P`, which is sign-flipped from `B²` at grades 2,3 —
+  so `nrm_sq` must NOT drive causal character. (`detail::sta4ds_geom_sq` is a hand-written
+  transcription of `gr0(X⟑X)`; a test pins it to the geometric product.) See
+  [TODO/sta_metric_considerations.md](TODO/sta_metric_considerations.md) for the `P`
+  (metric) vs `B²` (geometric square) distinction.
 
 - **Versor norm vs grade-wise `nrm_sq`.** `sqrt(rotor)` / normalizing a rotor
   (`MVec4ds_E`) must use the **versor norm** `sqrt(gr0(rev(X) ⟑ X))`, *not*
@@ -805,7 +835,8 @@ ega3d, not pga3dp's regressive motors). Two gotchas worth remembering:
 - Basis: `{1, g1, g2, g3, g4, g14, g24, g34, g23, g31, g12, g234, g314, g124, g123, g1234}`
 - Metric: `{-1, -1, -1, +1}` (space-like g1,g2,g3; time-like g4 with g4² = +1) —
   i.e. G(1,3,0): 1 positive (g4), 3 negative (g1,g2,g3)
-- Extended Metric: Special mixed signature rules (see below)
+- Extended Metric: `{1, -1, -1, -1, +1, -1, -1, -1, +1, +1, +1, +1, +1, +1, -1, -1}`
+  (the wedge exomorphism `P = ∏ gᵢ`, same construction as EGA/PGA — see below)
 
 ### Extended Metric Calculation Rules
 
@@ -816,14 +847,22 @@ ega3d, not pga3dp's regressive motors). Two gotchas worth remembering:
 - **Pseudoscalar**: Determinant of metric tensor
 - **Mixed signatures**: Apply conforming property G(a ∧ b) = G(a) ∧ G(b)
 
-**Space-Time Algebra (STA4D) Special Rules** (time-like direction g4):
+**Space-Time Algebra (STA4D):** NO special rules — STA follows the **Standard Algebras**
+rule above. The extended metric is the wedge exomorphism `P(e_S) = ∏_{i∈S} g_i` (product
+of the constituent vector metrics), seeded by the signature `{-1,-1,-1,+1}`:
 
-- **Vectors**: g1, g2, g3 → -1 (space-like); g4 → +1 (time-like)
-- **Bivectors with g4**: Extended metric = +1 (e.g., g14, g24, g34)
-- **Bivectors without g4**: Extended metric = -1 (e.g., g23, g31, g12)
-- **Trivectors with g4**: Extended metric = -1 (e.g., g234, g314, g124)
-- **Trivectors without g4**: Extended metric = +1 (e.g., g123)
-- **Pseudoscalar**: Extended metric = determinant = -1
+- **Vectors**: g1, g2, g3 → -1; g4 → +1
+- **Bivectors**: with g4 (g14, g24, g34) → -1; without g4 (g23, g31, g12) → +1
+- **Trivectors**: with g4 (g234, g314, g124) → +1; without g4 (g123) → -1
+- **Pseudoscalar**: determinant = -1
+
+CRITICAL: these are the *metric exomorphism* values `P`, NOT the blade squares
+`e_S ⟑ e_S` (which carry the reversion sign and are sign-flipped at grades 2,3). An
+earlier `is_minkowski` override stored the blade squares in the metric slot — that was a
+bug, now removed. Do NOT reintroduce "special" STA metric rules. The blade square (the
+**geometric square** `B² = gr0(X⟑X)`) is a separate quantity used only for causal
+character / rotors — see "STA4D rotor operations" and
+[TODO/sta_metric_considerations.md](TODO/sta_metric_considerations.md).
 
 ### Automatic Rule Generation System
 

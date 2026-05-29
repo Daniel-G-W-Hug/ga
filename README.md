@@ -144,18 +144,22 @@ cd build/ga_prdxpr && ./ga_prdxpr && cd ../..                # Generate everythi
 
 - `--algebra=NAMES` or `--a=NAMES`: Generate only specified algebras (comma-separated)
   - Example: `--algebra=ega2d,ega3d`
-  - Available: `ega2d`, `ega3d`, `pga2dp`, `pga3dp`, `sta4d`
+  - Available: `ega2d`, `ega3d`, `pga2dp`, `pga3dp`, `sta4ds`
   - Special keywords: `all` (all algebras), `none` (no algebras)
 
 - `--products=NAMES` or `--p=NAMES`: Generate only specified products (comma-separated)
   - Example: `--products=gpr,wdg,dot`
-  - Common products: `gpr`, `wdg`, `dot`, `cmt`, `l_contract`, `r_contract`, `sandwich_gpr`
-  - Special keywords: `all` (all products), `none` (no products)
+  - Common products: `gpr`, `wdg`, `dot`, `cmt`, `rgpr`, `rwdg`, `rdot`, `rcmt`,
+    `l_contract`, `r_contract`, `l_expand`, `r_expand` (PGA: `l_bulk_contract`,
+    `l_weight_expand`, … ), `sandwich_gpr` / `sandwich_rgpr`
+  - With `--output=code` also: the complements `l_cmpl` / `r_cmpl` / `cmpl` and the duals
+    `l_dual` / `r_dual` / `dual` (PGA `bulk_dual` / `weight_dual` variants)
+  - Run `--list` for the full per-algebra set; special keywords `all` / `none`
 
 - `--output=TYPES` or `--o=TYPES`: Show only specified output types (comma-separated)
   - Example: `--output=coeffs,tables`
   - Types: `coeffs` (coefficient expressions), `tables` (basis multiplication tables),
-    `metrics` (C++ array exports)
+    `metrics` (C++ array exports), `code` (ready-to-paste C++ implementations; opt-in only)
   - Special keywords: `all` (all types), `none` (no types)
 
 - `--show-sym-asym=BOOL`: Show symmetric/asymmetric parts of basis tables
@@ -203,7 +207,7 @@ ga_prdxpr --output=all                                   # everything
 - **ega3d**: Euclidean Geometric Algebra 3D
 - **pga2dp**: Projective Geometric Algebra 2D
 - **pga3dp**: Projective Geometric Algebra 3D
-<!-- - **sta4d**: Space-Time Algebra 4D -->
+- **sta4ds**: Space-Time Algebra G(1,3,0)
 
 ### Common Product Types
 
@@ -221,6 +225,9 @@ ga_prdxpr --output=all                                   # everything
 - `rcmt` - Regressive commutator product
 - Geometric sandwich product R ⟑ X ⟑ rev(R) → implemented as `rotate()` in EGA
 - Regressive sandwich product M ⟇ X ⟇ rrev(M) → implemented as `move2dp()`/`move3dp()` in PGA
+- Complements `l_cmpl` / `r_cmpl` (odd dim: `cmpl`) and duals `l_dual` / `r_dual`
+  (odd dim: `dual`; degenerate PGA: `bulk_dual` / `weight_dual`) — emitted by
+  `--output=code` (they implement `*_ops_basics.hpp`)
 
 **Note**: PGA algebras have additional products for bulk/weight operations
 (`l_bulk_contract2dp()`, `r_weight_expand3dp()`, etc.). Use `--list` or
