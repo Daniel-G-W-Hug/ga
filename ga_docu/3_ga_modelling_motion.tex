@@ -451,63 +451,15 @@ term to the derivative in eqn.~(\ref{eq:cmt_ega_world}) as follows:
    \dot{X}_w  &=& \mathrm{cmt}(X_w,\Omega_w) + (\dot{X_b})_w
    \slabel{eq:cmt_ega_world_incl_X0_of_t}
 \end{eqnarray}
-Eqn.~(\ref{eq:cmt_ega_world_incl_X0_of_t}) is to be considered in the world frame.
-However, we can also do our derivations in a completely equivalent way using the
-corresponding bivector rates and rotors of the \emph{body frame}. \\
-
-Now we derive the rate of change of a point $X(t)$ in the \emph{body frame}, again
-assuming that $X(t=0) = X_0 = const.$ We can write
-\begin{eqnarray*}
-   \dot{X}(t) &=& \dot{M} \wedgedot X_0 \wedgedot \rev{M} + M \wedgedot X_0 \wedgedot
-                  \dot{\rev{M}} \\
-              &\overset{\mathrm{(\ref{eq:dot_rev_m_as_dot_m})}}{=}& 1 \wedgedot \dot{M}
-                  \wedgedot 1 \wedgedot X_0 \wedgedot \rev{M} -M \wedgedot X_0 \wedgedot
-                  (\rev{M}\wedgedot\dot{M}\wedgedot\rev{M}) \\
-              &\overset{\mathrm{(\ref{eq:motor_relation_gpr_neutral_element})}}{=}& M
-                  \wedgedot (\rev{M} \wedgedot \dot{M}) \wedgedot \rev{M} \wedgedot (M
-                  \wedgedot X_0 \wedgedot \rev{M}) -(M \wedgedot X_0 \wedgedot \rev{M})
-                  \wedgedot 1 \wedgedot \dot{M} \wedgedot \rev{M} \\
-              &=& \left( M \wedgedot (\rev{M} \wedgedot \dot{M}) \wedgedot \rev{M} \right)
-                  \wedgedot X(t) - X(t) \wedgedot \left( M \wedgedot (\rev{M} \wedgedot
-                  \dot{M}) \wedgedot \rev{M} \right)
-\end{eqnarray*}
-From eqn. (\ref{eq:bivector_rate_body_frame}) we can conclude that $-\frac{1}{2}\Omega_b
-(t) = \rev{M} \wedgedot \dot{M}$, resulting in
-\begin{eqnarray}
-   \dot{X}(t) &=&\left( M \wedgedot (-\frac{1}{2}\Omega_b(t)) \wedgedot \rev{M} \right)
-                 \wedgedot X(t) - X(t) \wedgedot \left( M \wedgedot
-                 (-\frac{1}{2}\Omega_b(t)) \wedgedot \rev{M} \right) \nonumber \\
-              &=& -\frac{1}{2}\left( (\Omega_b)_w \wedgedot X - X \wedgedot
-              (\Omega_b)_w\right) \nonumber \\
-              &=& -\frac{1}{2}\left( \Omega_w \wedgedot X - X \wedgedot \Omega_w\right)
-              \nonumber \\
-              &=& -\mathrm{cmt}(\Omega_w,X) \nonumber \\[10pt]
-   \dot{X}_w  &=& \mathrm{cmt}((X_b)_w,\Omega_w) = \mathrm{cmt}(X_w,\Omega_w)
-   \slabel{eq:cmt_ega_body} 
-\end{eqnarray}
-with $\mathrm{cmt}(X_w,\Omega_w)$ as the commutator product between $X_w$ and $\Omega_w$.
-This is exactly the same result as before, just based on bivector rate measured in the
-\emph{body frame}. \\
-
-It can be shown that $\rev{M} \wedgedot \dot{M}$ is always a bivector with the same
-argument as before. So we don't repeat that here. \\
-
-If $X_0$ is not a constant element, but itself a function of time $X_b(t)$, we have to add
-another term to the derivative in eqn.~(\ref{eq:cmt_ega_body}) again as follows:
-\begin{eqnarray}
-   \dot{X}(t) &=& \frac{d}{dt}(M \wedgedot X_b \wedgedot \rev{M}) \nonumber \\
-              &=& \dot{M} \wedgedot X_b \wedgedot \rev{M} + M \wedgedot X_b \wedgedot
-                  \dot{\rev{M}} + M \wedgedot \dot{X_b} \wedgedot \rev{M} \nonumber \\
-              &=& \mathrm{cmt}(M\wedgedot X_b \wedgedot\rev{M},\Omega_w)
-                  + M \wedgedot \dot{X_b} \wedgedot \rev{M} \nonumber \\
-              &=& \mathrm{cmt}((X_b)_w,\Omega_w) + (\dot{X_b})_w \nonumber \\[10 pt]
-   \dot{X}_w  &=& \mathrm{cmt}(X_w,\Omega_w) + (\dot{X_b})_w
-   \slabel{eq:cmt_ega_body_incl_X0_of_t}
-\end{eqnarray}
-Eqn.~(\ref{eq:cmt_ega_body_incl_X0_of_t}) is again to be considered in the \emph{world
-frame}. The result derived in the \emph{body frame} is of course identical to the result
-derived in the \emph{world frame}. That means most of the equations can be used simply by 
-replacing $Omega_w$ by $Omega_b$. \\
+Eqn.~(\ref{eq:cmt_ega_world_incl_X0_of_t}) is to be considered in the world frame. The
+same $\dot{X}$ derivation can be carried out entirely in the \emph{body frame}, starting
+from the body-frame ansatz eqn.~(\ref{eq:rotor_ega_body_frame}) and the corresponding
+rate eqns.~(\ref{eq:motor_rate_body_frame}) and (\ref{eq:bivector_rate_body_frame}) ---
+note the swapped order of $M$ and $\Omega_b$ relative to the world frame --- in place of
+their world-frame counterparts. The algebra is identical and yields exactly the same
+results as eqns.~(\ref{eq:cmt_ega_world}) and (\ref{eq:cmt_ega_world_incl_X0_of_t}), with
+$\Omega_w$ replaced by $\Omega_b$, so we do not reproduce it here --- in the same spirit
+as the body-frame derivation we skip for $PGA$ below. \\
 
 In $EGA$ rotation as a Euclidean isometry can be described with sandwich products based on
 the geometric product. The corresponding sandwich product is available in the library
