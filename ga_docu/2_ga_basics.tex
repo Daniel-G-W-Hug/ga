@@ -350,8 +350,9 @@ geometric algebra $PGA$. This is the main advantage compared to the usual proced
 dualization by multiplying the object with the pseudoscalar (or its inverse) using the
 geometric product, since the latter breaks down for spaces with degenerate metrics. For an
 overview on all complements in $EGA$ see subsection
-\ref{subsection:tables_of_products_ega} and in $PGA$ see subsection
-\ref{subsection:tables_of_products_pga}.
+\ref{subsection:tables_of_products_ega}, in $PGA$ see subsection
+\ref{subsection:tables_of_products_pga}, and in $STA$ see subsection
+\ref{subsection:tables_of_products_sta}.
 
 
 \newpage
@@ -379,7 +380,7 @@ pp. 61ff.). \\
 Regarding $\metric{G}(u) = \metric{G} u$ as a unary operation on $u$ we can define the
 corresponding regressive operation by first taking the complement of the argument and then
 applying the opposed complement on the result. This defines the regressive metric
-$\rmetric{G}$ (named anti-metric by Lengyel). It is defined as
+$\rmetric{G}$ (named antimetric by Lengyel). It is defined as
 \begin{equation}
     \rmetric{G} u \equiv \lcmpl{\metric{G} \rcmpl{u}}
     = \rcmpl{\metric{G} \lcmpl{u}}
@@ -396,6 +397,7 @@ have a degenerate metric.\\
 For $\rmetric{G}$ there is the relation
 \begin{equation}
     \rmetric{G}(A \vee B) = \rmetric{G}(A) \vee \rmetric{G}(B)
+    \label{eq:antiexomorphism}
 \end{equation}
 that is complementary to equation (\ref{eq:exomorphism}). \\
 
@@ -551,7 +553,10 @@ For an overview on all bulk and weight duals in $PGA$ see tables
 \ref{tab:pga2dp_bulk_weight_duals} and \ref{tab:pga3dp_bulk_weight_duals} in subsection
 \ref{subsection:tables_of_products_pga}. The reverses can be found in
 tables~\ref{tab:pga2dp_rev_rrev} and \ref{tab:pga3dp_rev_rrev} in that subsection as
-well.\\
+well. The corresponding left and right (metric) duals and the reverse for $STA4DS$ are
+given in tables~\ref{tab:sta4ds_dual} and \ref{tab:sta4ds_rev} in subsection
+\ref{subsection:tables_of_products_sta}; since $STA4DS$ is non-degenerate there is no
+bulk/weight split.\\
 
 Following identities link the expansions and contractions and thus the outer and inner
 products: 
@@ -584,9 +589,11 @@ the different algebras which also depends on the dimension of the modelled space
 \text{\path{r_bulk_dual(A)}}$
 \item $PGA3DP$: $A_{\smallstar} = \text{\path{l_weight_dual(A)}}$, $A^{\smallstar} =
 \text{\path{r_weight_dual(A)}}$
+\item $STA4DS$: $\;\:A_{\star} = \text{\path{l_dual(A)}}$, $A^{\star} =
+\text{\path{r_dual(A)}}$
 \end{itemize}
-In even-dimensional spaces ($EGA2D$, $PGA3DP$) we have to distinguish left and right
-operations, while in odd-dimensional spaces ($EGA3D$, $PGA2DP$) we don't, since they
+In even-dimensional spaces ($EGA2D$, $PGA3DP$, $STA4DS$) we have to distinguish left and
+right operations, while in odd-dimensional spaces ($EGA3D$, $PGA2DP$) we don't, since they
 produce the same result. The ``left'' operations are typically used on the left-hand side
 of the binary operation and the ``right'' operations on the right-hand side of the product
 operator. The only deviation from that pattern occurs for the definition of the regressive
@@ -813,6 +820,232 @@ where $a$ could be a point and $b$ could either be a line (a bivector) or plane 
 trivector), or $a$ could be a line and $b$ a plane. The rejection is then calculated as
 $\mathrm{reject\_from}(a,b) = b - \mathrm{project\_onto}(a,b)$. 
 
+\newpage
+
+\subsubsection{STA metric, complements, and duality}
+\label{subsection:STA_metric_complements_and_duality}
+
+In this subsection we document what was learned while implementing $STA$ on top of the
+machinery that was already available after $EGA$ and $PGA$. \\
+
+The space-time algebra $STA4DS = \mathbb{G}(1,3,0)$ uses the Minkowski signature
+$(\gv{1}^2, \gv{2}^2, \gv{3}^2, \gv{4}^2) = (-1,-1,-1,+1)$ (the three space-like
+directions \gv{1}, \gv{2}, \gv{3} square to $-1$, the time-like direction \gv{4} squares
+to $+1$). The non-Euclidean vector metric introduces a few specific requirements that do
+not show up in $EGA$ (identity metric) or $PGA$ (degenerate metric), and that are worth
+recording carefully.
+
+\paragraph{The extended metric is a wedge exomorphism.}
+The only metric input to an algebra is the \emph{vector metric} $\mathfrak{g}$, i.e. the
+signature itself. The extended metric $\metric{G}$ lifts $\mathfrak{g}$ to every grade as
+the unique wedge exomorphism~(\ref{eq:exomorphism}), seeded on the grade-1 basis vectors:
+\begin{subeqnarray}
+    \metric{G}(\gv{i})       & = & \mathfrak{g}_{ii} \slabel{eq:sta_exo_seed} \\
+    \metric{G}(a \wedge b)   & = & \metric{G}(a) \wedge \metric{G}(b)
+        \quad \Longrightarrow \quad \metric{G}(e_S) = \prod_{i \in S} \mathfrak{g}_{ii}
+        \slabel{eq:sta_exo_prop}
+    \label{eq:sta_exomorphism}
+\end{subeqnarray}
+where $e_S$ is the basis blade spanned by the index set $S$. Write this product $P(e_S) =
+\prod_{i \in S} \mathfrak{g}_{ii}$. For example, in $STA4DS$ the bivector \gv{14} has
+$P(\gv{14}) = \mathfrak{g}_{11}\,\mathfrak{g}_{44} = (-1)(+1) = -1$, while \gv{23} has
+$P(\gv{23}) = \mathfrak{g}_{22}\,\mathfrak{g}_{33} = (-1)(-1) = +1$. The scalar maps to
+$1$, the pseudoscalar to $det(\mathfrak{g})$, and there is exactly one such inner product
+on the whole exterior algebra derived from the requirement of an exomorphism. \\
+
+The central point — and the easiest to get wrong — is that \emph{the extended metric is
+independent of how a blade squares under the geometric product}. The extended metric is a
+property of the \emph{wedge} structure seeded by the signature, not of the geometric
+product. The clearest evidence is $PGA$: its extended-metric diagonal carries the
+exomorphism values $1$/$0$ even though its bivectors square to $-1$ under the geometric
+product. A pitfall is to push physical \emph{characteristics} (space-like/time-like)
+into the extended metric. That is wrong: causal character lives in the geometric square
+(see below), not in the metric. Finally, the extended metric \emph{defines} the dot
+product and hence $nrm\_sq()$ at every grade through $\gv{S} \cdot \gv{S} =
+\metric{G}(\gv{S}) = P$. This scalar $P$ is the blade's \emph{reverse-norm}, the scalar
+part of the blade times its \emph{reverse} $\grprj{\rev{A} \wedgedot A}{0}$.
+
+\paragraph{The metric $\metric{G}$ and the regressive metric $\rmetric{G}$.} Following
+Lengyel, the metric carries two exomorphisms: the metric $\metric{G}$ is a wedge
+exomorphism, while the regressive metric $\rmetric{G}$ is a regressive wedge
+exomorphism~(\ref{eq:antiexomorphism}) with $\rmetric{G}(e_S) = \prod_{i \notin S}
+\mathfrak{g}_{ii}$ (the complementary product). For \emph{every} algebra they are related
+by the ordinary matrix product $\metric{G}\rmetric{G} = det(\mathfrak{g})\,I_n$. For
+$STA4DS$ we have $det(\mathfrak{g}) = (-1)(-1)(-1)(+1) = -1$, and since every basis blade
+squares to $\pm 1$ we get $\metric{G}^2 = I_n$, so the relation collapses to $\rmetric{G}
+= -\metric{G}$: the regressive metric is the negated metric. The determinant is
+signature-parity invariant ($det = (-1)^q$ with $q$ the number of negative directions), so
+the physically equivalent signatures $(-,-,-,+)$ and $(+,+,+,-)$ both give $-1$.
+
+\paragraph{The geometric square $B^2$ — causal character, distinct from the metric.}
+The \emph{geometric square} of a blade is $B^2 = \grprj{u \wedgedot u}{0}$, the blade
+times itself under the geometric product. It relates to the metric value $P$ only by the
+reversion sign $\sigma(k) = (-1)^{k(k-1)/2}$ (with $k$ the grade):
+\begin{equation}
+    B^2(e_S) = \sigma(k)\, P(e_S)
+    \label{eq:sta_geom_sq}
+\end{equation}
+so $B^2 = P$ at grades $k \equiv 0,1 \pmod 4$ and $B^2 = -P$ at grades $2, 3$. Two worked
+examples in $STA4DS$ ($\gv{1}^2 = \gv{2}^2 = \gv{3}^2 = -1$, $\gv{4}^2 = +1$) are
+\begin{subeqnarray}
+    \gv{14}: & \quad P = \gv{1}\!\cdot\!\gv{4} = -1, & \quad
+        B^2 = \sigma(2)\,P = +1 \;=\; \gv{14} \wedgedot \gv{14} \\
+    \gv{23}: & \quad P = \gv{2}\!\cdot\!\gv{3} = +1, & \quad
+        B^2 = \sigma(2)\,P = -1 \;=\; \gv{23} \wedgedot \gv{23}
+\end{subeqnarray}
+The metric uses the \emph{reverse}-norm, which removes that $\sigma(k)$: the reverse of a
+grade-$k$ blade is $\rev{e}_S = \sigma(k)\, e_S$, so
+\begin{equation}
+    nrm\_sq(e_S) = \grprj{\rev{e}_S \wedgedot e_S}{0}
+    = \sigma(k)\,\grprj{e_S \wedgedot e_S}{0} = \sigma(k)\, B^2 = \sigma(k)^2\, P = P
+    \label{eq:sta_revnorm}
+\end{equation}
+because $\sigma(k)^2 = 1$. A blade thus has two natural ``squares'' that differ exactly by
+the reversion sign: the geometric square $B^2 = \sigma(k)\,P$ (blade $\wedgedot$ blade)
+and the reverse-norm $P$ (reverse $\wedgedot$ blade). The reverse-norm is the one that
+behaves like a norm; the dot product, the contraction for equal grades, and $nrm\_sq()$
+all use $P$. The geometric square $B^2$ is the physically meaningful quantity: a bivector
+is a \emph{boost} plane when $B^2 > 0$ and a \emph{rotation} plane when $B^2 < 0$, and the
+rotor exponential splits on its sign ($\cosh/\sinh$ vs. $\cos/\sin$). Causal character —
+\path{is_timelike}, \path{is_spacelike}, \path{is_lightlike} — therefore reads $B^2$,
+\emph{not} $nrm\_sq()$. Keeping $B^2$ and the metric value $P$ apart is exactly what
+avoids the pitfall of encoding ``time-like'' into the metric. Both squares are tabulated
+for every basis blade in table~\ref{tab:sta4ds_dot_geomsq} below.
+
+\paragraph{Two schools of dualization.}
+There are two common ways to dualize a blade or multivector $A$:
+\begin{enumerate}
+    \item \emph{complement after metric} (this library, after Lengyel):
+    $A^{\star} = \rcmpl{\metric{G}A}$ — multiply by the extended metric, then take the
+    purely combinatorial complement. This is exactly the (bulk) dual already defined
+    in~(\ref{eq:rightbulkdual}) and~(\ref{eq:leftbulkdual}).
+    \item \emph{pseudoscalar multiplication}: $A \wedgedot I_n$ and $A \wedgedot
+    I_n^{-1}$.
+\end{enumerate}
+In a non-degenerate algebra the two relate by reversion, $A^{\star} = \rev{A} \wedgedot
+I_n$ (cf.~(\ref{eq:hodge_right})). So plain $A \wedgedot I_n$ equals $A^{\star}$ where
+$\sigma(k) = +1$ (grades $0, 1, 4$) and $-A^{\star}$ at grades $2, 3$. Pseudoscalar
+multiplication needs $I_n$ to be invertible; in $STA4DS$, $I_n \wedgedot I_n = -1$, so
+$I_n^{-1} = -I_n$. In a \emph{degenerate} algebra ($PGA$, and any projective algebra) a
+null vector sits inside $I_n$, so $I_n \wedgedot I_n = 0$ and $I_n$ has no inverse — the
+scheme is structurally impossible there. The complement-after-metric definition survives
+because $I_n$ never appears in it; it is the robust definition used throughout the library
+for all algebras.
+
+\paragraph{Handedness: left vs. right dual.}
+$STA4DS$ is four-dimensional (even), so the left and right complements/duals differ on the
+odd grades and agree on the even grades:
+\begin{equation}
+    \leftbulkdual{A} = \rightbulkdual{A} \;\;\text{(grades $0,2,4$)}, \qquad
+    \leftbulkdual{A} = -\rightbulkdual{A} \;\;\text{(grades $1,3$)}
+\end{equation}
+The non-metric complements are exact mutual inverses for any signature,
+$\lcmpl{(\rcmpl{A})} = \rcmpl{(\lcmpl{A})} = A$, as already stated
+in~(\ref{eq:double_cmpl}). Both complements and duals are listed for every basis blade in
+tables~\ref{tab:sta4ds_cmpl} and~\ref{tab:sta4ds_dual}.
+
+\paragraph{The dual round trip.}
+Composing the two metric duals yields a clean global sign, the determinant:
+\begin{equation}
+    \leftbulkdual{(\rightbulkdual{A})} = \rightbulkdual{(\leftbulkdual{A})}
+    = det(\mathfrak{g})\, A
+    \label{eq:sta_dual_roundtrip}
+\end{equation}
+For a Euclidean algebra ($det = +1$) this is the identity — the left dual undoes the right
+dual. For $STA4DS$ ($det = -1$) it is $-A$: the left dual is the inverse only up to the
+sign $det$. The genuine inverse applies the metric on the \emph{dual} side instead of the
+primal side. Since $\metric{G}^2 = I_n$, the inverse of $A^{\star} = \rcmpl{\metric{G}A}$
+is the \emph{un-dual} (Lengyel: antidual), one per handedness:
+\begin{subeqnarray}
+    r\_undual(D) & = & \lcmpl{\rightbulkdual{(\lcmpl{D})}} \quad
+        \text{inverts \rightbulkdual{A}:}\;\; r\_undual(\rightbulkdual{A}) = A
+        \slabel{eq:sta_r_undual} \\
+    l\_undual(D) & = & \rcmpl{\leftbulkdual{(\rcmpl{D})}} \quad
+        \text{inverts \leftbulkdual{A}:}\;\; l\_undual(\leftbulkdual{A}) = A
+        \slabel{eq:sta_l_undual}
+\end{subeqnarray}
+They coincide on the even grades and differ by a sign on the odd grades. Equivalently
+$r\_undual = det \cdot \leftbulkdual{(\,\cdot\,)}$ and, symmetrically, $l\_undual = det
+\cdot \rightbulkdual{(\,\cdot\,)}$, i.e. $= -\leftbulkdual{(\,\cdot\,)}$ and
+$-\rightbulkdual{(\,\cdot\,)}$ respectively for $STA4DS$. The convention-clean statement
+is therefore ``each un-dual undoes the dual of the same handedness'': for Euclidean
+signatures the right un-dual \emph{is} the left dual (and the left un-dual the right
+dual); in $STA4DS$ each is the corresponding antidual. The following table summarizes the
+regime per algebra:
+\begin{center}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{|l|c|l|l|}
+    \hline
+    \rowcolor{blue!20}
+    algebra                   & $det(\mathfrak{g})$ & $r\_undual$ is
+                              & $l\_undual$ is \\ \hline
+    $EGA2D$/$EGA3D$ (Eucl.)  & $+1$  & the left dual $\leftbulkdual{(\,\cdot\,)}$
+                              & the right dual $\rightbulkdual{(\,\cdot\,)}$ \\ \hline
+    $STA4DS$ (Minkowski)       & $-1$  & the antidual ($-\leftbulkdual{(\,\cdot\,)}$)
+                              & the antidual ($-\rightbulkdual{(\,\cdot\,)}$) \\ \hline
+    $PGA$ (degenerate)         & $0$ & \multicolumn{2}{l|}{no inverse; bulk/weight split
+                              (see below)} \\ \hline
+    \end{tabular}%
+    }
+\end{center}
+There is also a round trip valid for \emph{every} algebra including $PGA$: the
+metric-free complement pair $\lcmpl{(\rcmpl{A})} = \rcmpl{(\lcmpl{A})} = A$, which carries
+no metric structure.
+
+\paragraph{Signature duality $(-,-,-,+) \leftrightarrow (+,+,+,-)$.}
+Because $\rmetric{G} = -\metric{G}$, the regressive metric negates every vector square:
+$\metric{G}$ realises the signature $(-,-,-,+)$ while $\rmetric{G}$ realises $(+,+,+,-)$.
+Each
+signature is an exomorphism of exactly \emph{one} product — $\metric{G}$ of the wedge,
+$\rmetric{G}$ of the regressive wedge. So, relative to the library's wedge convention, the
+``space'' is the signature whose metric respects the wedge product, $(-,-,-,+)$, and its
+``dual space'' is $(+,+,+,-)$. The whole structure is symmetric under the exchange
+$(\wedge \leftrightarrow \vee,\; \metric{G} \leftrightarrow \rmetric{G},\; \text{space}
+\leftrightarrow \text{dual})$: taking the regressive wedge as the primary product (working
+in the dual algebra) swaps the roles. This is precisely why the two signatures are
+physically equivalent — each is ``the space'' for one of the two products, the other being
+its dual.
+
+\paragraph{Bridge to a projective $STA$.}
+The statement $\metric{G}\rmetric{G} = det(\mathfrak{g})\,I_n$ is universal; the
+determinant decides the regime. For $STA4DS$ (non-degenerate, $det = -1 \neq 0$) we get
+$\rmetric{G} = -\metric{G}$, a global rescaling with no split. For a potential
+\emph{projective} $STA$ (degenerate, e.g. $\mathbb{G}(1,3,1)$ with $det = 0$) we would get
+$\metric{G}\rmetric{G} = 0$, so $\metric{G}$ and $\rmetric{G}$ have disjoint support —
+exactly the $PGA$ bulk/weight split, with $\bulk{A}^{\star} = \rcmpl{\metric{G}A}$ and
+$\weight{A}^{\smallstar} = \rcmpl{\rmetric{G}A}$. Pseudoscalar multiplication dies (no
+$I_n^{-1}$), but complement-after-metric survives and simply splits in two. The dual is
+always complement-after-metric; the only question is whether $\metric{G}$ and
+$\rmetric{G}$ are proportional (non-degenerate) or supported on complementary subspaces
+(degenerate).
+
+\paragraph{Dependency map: what is built from what.}
+The single root is the vector signature $\mathfrak{g}$ (plus the basis and its canonical
+order). Two independent branches grow from it, and keeping them apart is the whole point
+of the preceding paragraphs:
+\begin{itemize}
+    \item \textbf{Combinatorial/signature-direct} (\emph{not} via the extended metric):
+    the wedge product ``$\wedge$'' (orientation only), the complement
+    $\lcmpl{(\,\cdot\,)}$/$\rcmpl{(\,\cdot\,)}$ (metric-blind), the regressive wedge
+    product ``$\vee$'', and the geometric product ``$\wedgedot$'' (which uses the signature
+    directly via $\gv{i} \wedgedot \gv{i} = \mathfrak{g}_{ii}$).
+    \item \textbf{Extended-metric branch} ($\metric{G}$ = wedge exomorphism, seeded by
+    $\mathfrak{g}$): the extended metric and regressive metric ($\metric{G}\rmetric{G} =
+    det\,I_n$), from which follow the dot product/$nrm\_sq()$ (the reverse-norm), the
+    left and right duals ($A^{\star} = \rcmpl{\metric{G}A}$), and in turn the
+    contractions, the expansions, and the dual round trip/un-dual.
+    \item \textbf{Geometric-square branch} (causal/rotor physics, \emph{not} the
+    metric): the geometric square $B^2 = \grprj{u \wedgedot u}{0} = \sigma(k)\,P$, from
+    which follow causal character ($\mathrm{sign}(B^2)$), the rotor $\exp$ /
+    $\mathrm{sqrt}$ branch, and the transform $R \wedgedot X \wedgedot \rev{R}$.
+\end{itemize}
+What moves when something changes: flipping the signature $(-,-,-,+) \leftrightarrow
+(+,+,+,-)$ moves both metric and geometric-square branches (but the causal-character
+labels are signature-parity invariant); adding a null direction (projective $STA$, $det =
+0$) changes only the extended-metric branch (the dual splits into bulk/weight) and
+leaves the geometric-square branch untouched; changing the complement convention moves the
+complements, the dual, the regressive wedge product ``$\vee$'', and the contractions.
+
 
 \newpage
 
@@ -820,7 +1053,7 @@ $\mathrm{reject\_from}(a,b) = b - \mathrm{project\_onto}(a,b)$.
 \label{subsection:transwedge_products}
 
 \cite{Lengyel_transwedge_product:2025} has shown that the geometric product can be derived
-by using operations from Grassmann algebra exclusively. These are the wedge product, the
+using operations from Grassmann algebra exclusively. These are the wedge product, the
 complement and the duality operations. \emph{This demonstrates that the geometric product
 is not a fundamental operation in its own right, but can be derived from more fundamental
 operations defined in Grassmann algebra.} \\
@@ -1279,6 +1512,165 @@ written here as $0$, but with actual type \path{pscalar2dp} ($\ps = \bv{321}$) o
     } \captionof{table}{\footnotesize Reverse and regressive reverse in $3D$
     $PGA$ for every basis element.}
     \label{tab:pga3dp_rev_rrev}
+    \end{center}
+\endgroup
+
+\newpage
+
+\subsubsection{Dot products, complements, duals, and reverses in \textit{STA}}
+\label{subsection:tables_of_products_sta}
+
+The tables below collect the per-basis-element values for $STA4DS = \mathbb{G}(1,3,0)$
+with the Minkowski signature $(\gv{1}^2, \gv{2}^2, \gv{3}^2, \gv{4}^2) = (-1,-1,-1,+1)$.
+They are the space-time analogue of the $EGA$ and $PGA$ tables above; the underlying
+concepts (extended metric as wedge exomorphism, the reverse-norm $P$ versus the geometric
+square $B^2$, left/right complements and duals) were developed in subsection
+\ref{subsection:STA_metric_complements_and_duality}. $STA4DS$ is four-dimensional (even),
+so left and right complements/duals are distinguished; it is non-degenerate
+($det(\mathfrak{g}) = -1$), so — unlike $PGA$ — there is \emph{no} bulk/weight split, and
+every basis blade squares to $\pm 1$. \\
+
+Table~\ref{tab:sta4ds_dot_geomsq} lists two distinct ``squares'' side by side: the dot
+product $\bm{u}\cdot\bm{u} = \metric{G}(\bm{u}) = P$ (the extended-metric reverse-norm,
+equal to $nrm\_sq(\bm{u})$), and the geometric square $\bm{u}\wedgedot\bm{u} = B^2 =
+\sigma(k)\,P$. They agree at grades $0, 1, 4$ and differ by sign at grades $2, 3$ — the
+distinction that drives causal character and the rotor exponential (see
+eqn.~(\ref{eq:sta_geom_sq})). \\
+
+\begingroup
+\setlength{\abovecaptionskip}{2pt}
+\setlength{\belowcaptionskip}{2pt}
+\renewcommand{\arraystretch}{0.95}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% sta4ds from here on
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    \begin{center}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$                 & $\bm{1}$
+                             & $\gv{1}$    & $\gv{2}$      & $\gv{3}$     & $\gv{4}$
+                             & $\gv{14}$   & $\gv{24}$     & $\gv{34}$
+                             & $\gv{23}$   & $\gv{31}$     & $\gv{12}$
+                             & $\gv{234}$  & $\gv{314}$    & $\gv{124}$   & $\gv{123}$
+                             & $\gv{1234} = \ps$
+                             \\ \hline
+    $\bm{u}\cdot\bm{u}$      & $\bm{1}$
+                             & $-\bm{1}$   & $-\bm{1}$     & $-\bm{1}$    & $\bm{1}$
+                             & $-\bm{1}$   & $-\bm{1}$     & $-\bm{1}$
+                             & $\bm{1}$    & $\bm{1}$      & $\bm{1}$
+                             & $\bm{1}$    & $\bm{1}$      & $\bm{1}$     & $-\bm{1}$
+                             & $-\bm{1}$
+                             \\ \hline
+    $\bm{u}\wedgedot\bm{u}$  & $\bm{1}$
+                             & $-\bm{1}$   & $-\bm{1}$     & $-\bm{1}$    & $\bm{1}$
+                             & $\bm{1}$    & $\bm{1}$      & $\bm{1}$
+                             & $-\bm{1}$   & $-\bm{1}$     & $-\bm{1}$
+                             & $-\bm{1}$   & $-\bm{1}$     & $-\bm{1}$    & $\bm{1}$
+                             & $-\bm{1}$
+                             \\ \hline
+    \end{tabular}%
+    } \captionof{table}{\footnotesize Reverse-norm $\bm{u}\cdot\bm{u} = P =
+    nrm\_sq(\bm{u})$ (extended metric) and geometric square $\bm{u}\wedgedot\bm{u} = B^2 =
+    \sigma(k)\,P$ in $STA4DS$ for every basis element. They differ by sign at grades $2$
+    and $3$.}
+    \label{tab:sta4ds_dot_geomsq}
+    \end{center}
+
+    \begin{center}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$         & $\bm{1}$
+                     & $\gv{1}$    & $\gv{2}$      & $\gv{3}$     & $\gv{4}$
+                     & $\gv{14}$   & $\gv{24}$     & $\gv{34}$
+                     & $\gv{23}$   & $\gv{31}$     & $\gv{12}$
+                     & $\gv{234}$  & $\gv{314}$    & $\gv{124}$   & $\gv{123}$
+                     & $\gv{1234} = \ps$
+                     \\ \hline
+    $\rcmpl{\bm{u}}$ & $\gv{1234}$
+                     & $\gv{234}$  & $\gv{314}$    & $\gv{124}$   & $-\gv{123}$
+                     & $\gv{23}$   & $\gv{31}$     & $\gv{12}$
+                     & $\gv{14}$   & $\gv{24}$     & $\gv{34}$
+                     & $-\gv{1}$   & $-\gv{2}$     & $-\gv{3}$    & $\gv{4}$
+                     & $\bm{1}$
+                     \\ \hline
+    $\lcmpl{\bm{u}}$ & $\gv{1234}$
+                     & $-\gv{234}$ & $-\gv{314}$   & $-\gv{124}$  & $\gv{123}$
+                     & $\gv{23}$   & $\gv{31}$     & $\gv{12}$
+                     & $\gv{14}$   & $\gv{24}$     & $\gv{34}$
+                     & $\gv{1}$    & $\gv{2}$      & $\gv{3}$     & $-\gv{4}$
+                     & $\bm{1}$
+                     \\ \hline
+    \end{tabular}%
+    }
+    \captionof{table}{\footnotesize Right and left complements in $STA4DS$ for every basis
+    element. Complements are independent of the metric.}
+    \label{tab:sta4ds_cmpl}
+    \end{center}
+
+    \begin{center}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$                 & $\bm{1}$
+                             & $\gv{1}$    & $\gv{2}$      & $\gv{3}$     & $\gv{4}$
+                             & $\gv{14}$   & $\gv{24}$     & $\gv{34}$
+                             & $\gv{23}$   & $\gv{31}$     & $\gv{12}$
+                             & $\gv{234}$  & $\gv{314}$    & $\gv{124}$   & $\gv{123}$
+                             & $\gv{1234} = \ps$
+                             \\ \hline
+    $\rightbulkdual{\bm{u}}$ & $\gv{1234}$
+                             & $-\gv{234}$ & $-\gv{314}$   & $-\gv{124}$  & $-\gv{123}$
+                             & $-\gv{23}$  & $-\gv{31}$    & $-\gv{12}$
+                             & $\gv{14}$   & $\gv{24}$     & $\gv{34}$
+                             & $-\gv{1}$   & $-\gv{2}$     & $-\gv{3}$    & $-\gv{4}$
+                             & $-\bm{1}$
+                             \\ \hline
+    $\leftbulkdual{\bm{u}}$  & $\gv{1234}$
+                             & $\gv{234}$  & $\gv{314}$    & $\gv{124}$   & $\gv{123}$
+                             & $-\gv{23}$  & $-\gv{31}$    & $-\gv{12}$
+                             & $\gv{14}$   & $\gv{24}$     & $\gv{34}$
+                             & $\gv{1}$    & $\gv{2}$      & $\gv{3}$     & $\gv{4}$
+                             & $-\bm{1}$
+                             \\ \hline
+    \end{tabular}%
+    } \captionof{table}{\footnotesize Right and left (metric) duals in $STA4DS$ for every
+    basis element ($\rightbulkdual{\bm{u}} = \rcmpl{\metric{G}\bm{u}}$,
+    $\leftbulkdual{\bm{u}} = \lcmpl{\metric{G}\bm{u}}$). Unlike in $EGA$ they differ from
+    the complements, since the Minkowski metric flips signs.}
+    \label{tab:sta4ds_dual}
+    \end{center}
+
+    \begin{center}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{*{17}{|c}|}
+    \hline
+    \rowcolor{blue!20}
+    $\bm{u}$        & $\bm{1}$
+                    & $\gv{1}$     & $\gv{2}$      & $\gv{3}$     & $\gv{4}$
+                    & $\gv{14}$    & $\gv{24}$     & $\gv{34}$
+                    & $\gv{23}$    & $\gv{31}$     & $\gv{12}$
+                    & $\gv{234}$   & $\gv{314}$    & $\gv{124}$   & $\gv{123}$
+                    & $\gv{1234} = \ps$
+                    \\ \hline
+    $\rev{\bm{u}}$  & $\bm{1}$
+                    & $\gv{1}$     & $\gv{2}$      & $\gv{3}$     & $\gv{4}$
+                    & $-\gv{14}$   & $-\gv{24}$    & $-\gv{34}$
+                    & $-\gv{23}$   & $-\gv{31}$    & $-\gv{12}$
+                    & $-\gv{234}$  & $-\gv{314}$   & $-\gv{124}$  & $-\gv{123}$
+                    & $\gv{1234}$
+                    \\ \hline
+    \end{tabular}%
+    } \captionof{table}{\footnotesize Reverse in $STA4DS$ for every basis element. The
+    reverse sign is the grade-only factor $\sigma(k) = (-1)^{k(k-1)/2}$, independent of
+    the metric.}
+    \label{tab:sta4ds_rev}
     \end{center}
 \endgroup
 
