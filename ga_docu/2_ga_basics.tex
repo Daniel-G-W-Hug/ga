@@ -236,8 +236,6 @@ terms of memory and computational requirements significantly -- typically reduce
 level that is required anyway to solve the underlying geometrical question at hand.
 
 
-\newpage
-
 \subsubsection{The complement}
 \label{subsection:complement}
 
@@ -355,8 +353,6 @@ overview on all complements in $EGA$ see subsection
 \ref{subsection:tables_of_products_sta}.
 
 
-\newpage
-
 \subsubsection{The metric}
 \label{subsection:metric}
 
@@ -446,8 +442,6 @@ object in such a way that the magnitude of the weight norm becomes a value of on
 bulk and weight norms, have a positive argument under the square root due to the
 definitions of the inner product and the regressive inner product.
 
-
-\newpage
 
 \subsubsection{The dual}
 \label{subsection:dual}
@@ -602,10 +596,30 @@ operations, as defined in~(\ref{eq:rwdg_std}) or (\ref{eq:rwdg_alt}). \\
 In a two-dimensional algebra, like $EGA2D$, the effect of the right dual of a vector $u$
 is to turn the vector by $+90$°, i.e. into the orientation of $\bv{12}$, while the left
 dual turns the vector by $-90$°, i.e. into the direction against the orientation of
-$\bv{12}$. This statement is valid for both right- and left-handed coordinate systems. \\
+$\bv{12}$. This statement is valid for both right- and left-handed coordinate systems.
 
-% potentially bring the explanation of the next couple of paragraphs later when all
-% other concepts have been introduced
+\paragraph{Conjugations:} There are grade-selective operations which can be useful for
+handling grade-dependent signs. These operations are defined for each algebra, but are
+shown here for the example of a four-dimensional algebra. \\
+
+Grade involution of an arbitrary multivector $M$ for its grade $r$-component is defined as
+$\widehat{M}_r = (-1)^r M_r$, effectively inverting the sign of
+odd-grade blades (function $gr\_inv()$):
+\begin{equation}
+\widehat{M} = \grprj{M}{0} - \grprj{M}{1} + \grprj{M}{2} - \grprj{M}{3} + \grprj{M}{4}
+\end{equation}
+Reversion of the component $M_r$ is defined by the pattern $\rev{M}_r =
+(-1)^{(\frac{r(r-1)}{2})} M_r$ (function $rev()$) resulting in
+\begin{equation}
+\rev{M} = \grprj{M}{0} + \grprj{M}{1} - \grprj{M}{2} - \grprj{M}{3} + \grprj{M}{4}
+\end{equation}
+While the Clifford conjugation of the grade $r$ multivector-component $M_r$ is defined by
+$M^*_r = (-1)^(\frac{r*(r+1)}{2}) M_r$ (function $conj()$). It is effectively a
+composition of reversion and grade involution ($M^* = \widehat{\rev{M}} =
+\rev{\widehat{M}}$) resulting in
+ \begin{equation}
+M^* = \grprj{M}{0} - \grprj{M}{1} - \grprj{M}{2} + \grprj{M}{3} + \grprj{M}{4}
+\end{equation} \\
 
 Before we go on to the geometric product, let's return to eqn.~(\ref{eq:plane_def_pga3dp})
 for a moment, which provided the definition of a plane as trivector in projective space.
@@ -646,8 +660,6 @@ needs to be shifted parallel. \\
 As demonstrated, this enables quite a number of relevant geometric operations by applying
 rather simple operations to the modelled objects in $3D$ $PGA$.
 
-
-\newpage
 
 \subsubsection{Geometric products}
 \label{subsection:geometric_products}
@@ -820,7 +832,6 @@ where $a$ could be a point and $b$ could either be a line (a bivector) or plane 
 trivector), or $a$ could be a line and $b$ a plane. The rejection is then calculated as
 $\mathrm{reject\_from}(a,b) = b - \mathrm{project\_onto}(a,b)$. 
 
-\newpage
 
 \subsubsection{STA metric, complements, and duality}
 \label{subsection:STA_metric_complements_and_duality}
@@ -1046,8 +1057,6 @@ labels are signature-parity invariant); adding a null direction (projective $STA
 leaves the geometric-square branch untouched; changing the complement convention moves the
 complements, the dual, the regressive wedge product ``$\vee$'', and the contractions.
 
-
-\newpage
 
 \subsubsection{Transwedge products}
 \label{subsection:transwedge_products}
