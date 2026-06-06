@@ -807,6 +807,27 @@ ega3d, not pga3dp's regressive motors). Gotchas worth remembering:
   repeats), dot (symmetric, extended-metric contraction).
 - Basis is 1-based (`e1,e2,…` / `g1,…`); the rule generator handles 0-based too.
 
+### PGA motion: velocity twists are dimension-dependent (do NOT assume bivector)
+
+The motor rate / velocity "twist" `Omega = 2 * Mdot ⟇ rrev(M)` (the `exp` generator of a
+motor) has a grade that **depends on the dimension** — do not assume it is always a
+bivector (a common, wrong assumption carried over from 3D):
+
+- **pga2dp**: motors are odd-grade (`MVec2dp_U`), so `Mdot ⟇ rrev(M)` is odd → the twist
+  `Omega` is a **vector** (`Vec2dp`); `exp(Vec2dp)` builds the motor. (The kinematics
+  `twist2dp` alias is a `vec2dp` for exactly this reason.)
+- **pga3dp**: motors are even-grade (`MVec3dp_E`), so the twist `Omega` is a **bivector**
+  (`BiVec3dp`); `exp(BiVec3dp)` builds the motor.
+
+(This mirrors the odd/even-dimensional split already noted for complements.)
+
+The PGA rate-of-change of a point is `Xdot = rcmt(Omega, X)` — **argument order matters**:
+`rcmt(Omega, X) = -rcmt(X, Omega)` (twist first); the sign/order differs from EGA's
+`cmt(r, Omega_E)`. Moving-frame kinematic fields (see `ga_docu/5_ga_modelling_physics.tex`,
+"Moving coordinate systems"): velocity `rcmt(Omega, X)`, centripetal
+`rcmt(Omega, rcmt(Omega, r))`, Coriolis `2*rcmt(Omega, v_rel)`, frame/Euler
+`rcmt(Omega_dot, r)`. Full derivations in `ga_docu/3_ga_modelling_motion.tex`.
+
 ### Supported Algebra Types
 
 **EGA2D - G(2,0,0)**: Euclidean 2D

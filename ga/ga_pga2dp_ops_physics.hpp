@@ -603,21 +603,19 @@ class kinematic_system2dp : public static_system2dp {
         return twist_world(index_of(frame_name));
     }
 
-    // Velocity field of a twist V = (a, b, w): the velocity of the point at world
-    // position X moving rigidly with V, i.e. v(X) = v0 + w * (zhat x X) with v0 = (b,
-    // -a).
-    static vec2dp velocity_field(twist2dp const& V, vec2dp const& X)
-    {
-        return vec2dp(V.y - V.z * X.y, -V.x + V.z * X.x, 0.0);
-    }
+    // Velocity field of a twist V at point X -- the PGA rate of change of a point:
+    //   Xdot = rcmt(V, X)        (ga_docu/3_ga_modelling_motion.tex, eq:rcmt_pga_world)
+    // In 2D PGA the twist is a vector (twist2dp) and rcmt(vec, vec) -> vec; the argument
+    // ORDER matters: rcmt(V, X) == -rcmt(X, V).
+    static vec2dp velocity_field(twist2dp const& V, vec2dp const& X) { return rcmt(V, X); }
 
     // Acceleration field at point X of a rigid body with velocity twist V and acceleration
-    // twist A: the linear field of A (tangential alpha x r + origin acceleration) plus the
-    // centripetal term carried by V = (a, b, w):  a(X) = field(A, X) + w*(V.x - w*X.x, ...).
+    // twist A (5_ga_modelling_physics.tex, "Moving coordinate systems"):
+    //   a(X) = rcmt(A, X)              [frame/Euler (alpha x r) + origin acceleration]
+    //        + rcmt(V, rcmt(V, X))     [centripetal:  rcmt(Omega, rcmt(Omega, r))]
     static vec2dp accel_field(twist2dp const& V, twist2dp const& A, vec2dp const& X)
     {
-        auto const cent = vec2dp(V.z * (V.x - V.z * X.x), V.z * (V.y - V.z * X.y), 0.0);
-        return velocity_field(A, X) + cent;
+        return rcmt(A, X) + rcmt(V, rcmt(V, X));
     }
 
     // Velocity of a world-space point X rigidly attached to frame idx. (The
@@ -690,7 +688,7 @@ class kinematic_system2dp : public static_system2dp {
         auto const a_abs = accel_field(vs.V, vs.A, P_world);       // world accel of P
         auto const a_tr = accel_field(vo.V, vo.A, P_world);        // obs-frame accel at P
         auto const v_rel = velocity_field(vs.V - vo.V, P_world);   // world relative velocity
-        auto const coriolis = 2.0 * vo.V.z * vec2dp(-v_rel.y, v_rel.x, 0.0);
+        auto const coriolis = 2.0 * rcmt(vo.V, v_rel);             // 2 * rcmt(Omega_obs, v_rel)
         auto const a_rel_world = a_abs - a_tr - coriolis;
         return move2dp(a_rel_world, get_pos_trafo(0, obs)); // express in obs coordinates
     }
