@@ -20,7 +20,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 // This header provides complete PGA type system including:
 //
-// **sta4ds with metric signature G(3,1,0)  ("mostly positive" convention)
+// **sta4ds with metric signature G(1,3,0)
 //
 // - Scalar4ds<T>, Vec4ds<T>, BiVec4ds<T>, TriVec4ds<T>, PScalar4ds<T>
 // - MVec4ds_E<T> (even subalgebra), MVec4ds_U<T> (uneven (or odd) subalgebra)

@@ -39,5 +39,8 @@
 #include "ga_pga2dp_ops_physics.hpp" // physics operations for 2dp
 #include "ga_pga3dp_ops_physics.hpp" // physics operations for 3dp
 
+// physics convenience aliases (after the physics ops headers they depend on)
+#include "ga_usr_types_physics.hpp" // inertia2dp / inertia3dp (value_t-based)
+
 // fmt-support is defined outside of other namespaces
 #include "detail/ga_fmt_support.hpp" // printing support (fmt library)

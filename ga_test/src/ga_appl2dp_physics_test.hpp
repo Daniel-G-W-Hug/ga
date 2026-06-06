@@ -5,6 +5,9 @@
 
 #include <cmath>
 #include <iostream>
+#include <stdexcept> // std::runtime_error
+#include <string>
+using namespace std::string_literals; // enable s-suffix for std::string literals
 
 #include "fmt/format.h"  // formatting
 #include "fmt/ostream.h" // ostream support
@@ -1093,7 +1096,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 auto rhs = mdspan<vec2dp, dextents<size_t, 1>>(rhs_mem.data(), 2);
 
                 // get current state
-                [[maybe_unused]] vec2dp B = u[0]; // position transformation B is in u[n,0]
+                [[maybe_unused]] vec2dp B =
+                    u[0];            // position transformation B is in u[n,0]
                 vec2dp Omega = u[1]; // velocity trafo d(B)/dt = Omega is in u[n,1]
 
                 // forces and torques to change linear and angular acceleration
@@ -1252,8 +1256,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
     // Helper: print one time-step for kinematic cases
     auto print_kine_step = [](double t, mvec2dp_u const& /*M0*/, vec2dp const& B_b,
-                              vec2dp const& B_w, mvec2dp_u const& /*M*/, vec2dp const& P_b,
-                              vec2dp const& P_w, vec2dp const& /*Q_b*/,
+                              vec2dp const& B_w, mvec2dp_u const& /*M*/,
+                              vec2dp const& P_b, vec2dp const& P_w, vec2dp const& /*Q_b*/,
                               vec2dp const& Q_w_check) {
         fmt::println("  t={:>6.3f}: B_b=({:>7.3f},{:>7.3f},{:>7.3f})"
                      " B_w=({:>7.3f},{:>7.3f},{:>7.3f})"
@@ -1598,7 +1602,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 // dOmega.z and project back onto Q_b so that Omega_b = omega*Q_b
                 // is preserved exactly, preventing numerical drift of off-constraint
                 // components (e31/e32) during RK4 integration.
-                // In principle correct without projection: rhs[1] = compute_omega_dot(I_inv, F_b, Omega, I);
+                // In principle correct without projection: rhs[1] =
+                // compute_omega_dot(I_inv, F_b, Omega, I);
                 value_t const hw_r = width / 2.0;
                 value_t const hh_r = height / 2.0;
                 vec2dp const Q_b_r{hw_r, hh_r, 1.0};
@@ -1767,6 +1772,1207 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+
+    TEST_CASE("pga2dp: multibody system transformation - simple translation")
+    {
+        fmt::println("pga2dp: multibody system transformation - simple translation)");
+
+        static_frame2dp rf;
+        fmt::println("parent_frame = {:.3f}", rf); // nested spec forwarding
+
+        auto phi = deg2rad(0);         // rotation vs. parent
+        auto origin = vec2dp{2, 1, 1}; // origin in parent coordinates
+        static_frame2dp cf("C"s, origin, phi);
+        fmt::println("child_frame  = {:.3f}", cf);
+
+        fmt::println("");
+        fmt::println("transformation from parent to child (rf -> cf)");
+
+        static_system2dp ds;
+        ds.add_frame(rf);
+        ds.add_frame(cf);
+        fmt::println("ds = {:.3f}", ds);
+
+        auto p0_rf = vec2dp(3, 2, 1);
+        auto M = ds.get_pos_trafo(0, 1); // trafo from (idx: 0) to cf (idx: 1)
+
+        auto p0_cf = move2dp(p0_rf, M);
+        auto e1_rf = e1_2dp;
+        auto e1_cf = move2dp(e1_rf, M);
+
+        fmt::println("M = {:.3f}", M);
+        fmt::println("p0_rf = {:.3f}", p0_rf);
+        fmt::println("p0_cf = {:.3f}", p0_cf);
+        fmt::println("e1_rf = {:.3f}", e1_rf);
+        fmt::println("e1_cf = {:.3f}", e1_cf);
+
+        CHECK(p0_cf == vec2dp(1, 1, 1));
+        CHECK(e1_cf == e1_rf); // for simple cs translation, a vector is not transformed
+                               // (a point at infinity remains at infinity under transl.)
+
+        fmt::println("");
+        fmt::println("transformation from child to parent (cf -> rf)");
+
+        auto Mr = ds.get_pos_trafo(1, 0); // trafo from (idx: 1) to cf (idx: 0)
+
+        auto p0_rf_t = move2dp(p0_cf, Mr);
+        auto e1_rf_t = move2dp(e1_cf, Mr);
+
+        fmt::println("Mr = {:.3f}", Mr);
+        fmt::println("p0_rf_t = {:.3f}", p0_rf_t);
+        fmt::println("e1_rf_t = {:.3f}", e1_rf_t);
+
+        CHECK(p0_rf_t == p0_rf);
+        CHECK(e1_rf_t == e1_rf);
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: multibody system transformation - simple rotation")
+    {
+        fmt::println("pga2dp: multibody system transformation - simple rotation)");
+
+        static_frame2dp rf;
+        fmt::println("parent_frame = {:.3f}", rf); // nested spec forwarding
+
+        auto phi = deg2rad(30);        // rotation vs. parent
+        auto origin = vec2dp{0, 0, 1}; // origin in parent coordinates
+        static_frame2dp cf("C"s, origin, phi);
+        fmt::println("child_frame  = {:.3f}", cf);
+
+        fmt::println("");
+        fmt::println("transformation from parent to child (rf -> cf)");
+
+        static_system2dp ds;
+        ds.add_frame(rf);
+        ds.add_frame(cf);
+        fmt::println("ds = {:.3f}", ds);
+
+        auto p0_rf = vec2dp(3, 2, 1);
+        auto M = ds.get_pos_trafo(0, 1); // trafo from (idx: 0) to cf (idx: 1)
+
+        auto p0_cf = move2dp(p0_rf, M);
+        auto e1_rf = e1_2dp;
+        auto e1_cf = move2dp(e1_rf, M);
+
+        fmt::println("M = {:.3f}", M);
+        fmt::println("p0_rf = {:.3f}", p0_rf);
+        fmt::println("p0_cf = {:.3f}", p0_cf);
+        fmt::println("e1_rf = {:.3f}", e1_rf);
+        fmt::println("e1_cf = {:.3f}", e1_cf);
+
+        // for a simple rotation point and vector coordinates are transformed
+        auto l = to_val(bulk_nrm(p0_rf));
+        auto rphi_cf = angle(p0_rf, e1_rf) - phi; // relative angle towards p0 in cf
+
+        auto constexpr cmp_eps = 1e-10;
+        CHECK(rphi_cf == doctest::Approx(angle(p0_cf, e1_2dp))
+                             .epsilon(cmp_eps)); // rel. angle == angle vs. e1 in cf
+
+        fmt::println("relative angle in cf = {:.3f}", rad2deg(rphi_cf));
+
+        // component-wise comparison with selectable accuracy (the default eps of
+        // vec2dp::operator== is too strict after the wedge/division in move2dp)
+
+        CHECK(p0_cf.x == doctest::Approx(l * std::cos(rphi_cf)).epsilon(cmp_eps));
+        CHECK(p0_cf.y == doctest::Approx(l * std::sin(rphi_cf)).epsilon(cmp_eps));
+        CHECK(p0_cf.z == doctest::Approx(1.0).epsilon(cmp_eps));
+        CHECK(e1_cf == vec2dp{std::cos(phi), -std::sin(phi), 0.0});
+
+
+        fmt::println("");
+        fmt::println("transformation from child to parent (cf -> rf)");
+
+        auto Mr = ds.get_pos_trafo(1, 0); // trafo from (idx: 1) to cf (idx: 0)
+
+        auto p0_rf_t = move2dp(p0_cf, Mr);
+        auto e1_rf_t = move2dp(e1_cf, Mr);
+
+        fmt::println("Mr = {:.3f}", Mr);
+        fmt::println("p0_rf_t = {:.3f}", p0_rf_t);
+        fmt::println("e1_rf_t = {:.3f}", e1_rf_t);
+
+        CHECK(p0_rf_t == p0_rf);
+        CHECK(e1_rf_t == e1_rf);
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: multibody system transformation - combined translation/rotation")
+    {
+        fmt::println(
+            "pga2dp: multibody system transformation - combined translation/rotation)");
+
+        static_frame2dp rf;
+        fmt::println("parent_frame = {:.3f}", rf); // nested spec forwarding
+
+        auto phi = deg2rad(8);           // rotation vs. parent
+        auto origin = vec2dp{2, 1.5, 1}; // origin in parent coordinates
+        static_frame2dp cf("C"s, origin, phi);
+        fmt::println("child_frame  = {:.3f}", cf);
+
+        fmt::println("");
+        fmt::println("transformation from parent to child (rf -> cf)");
+
+        static_system2dp ds;
+        ds.add_frame(rf);
+        ds.add_frame(cf);
+        fmt::println("ds = {:.3f}", ds);
+
+        auto p0_rf = vec2dp(4, 5, 1);
+        auto M = ds.get_pos_trafo(0, 1); // trafo from (idx: 0) to cf (idx: 1)
+
+        auto p0_cf = move2dp(p0_rf, M);
+        auto e1_rf = e1_2dp;
+        auto e1_cf = move2dp(e1_rf, M);
+
+        fmt::println("M = {:.3f}", M);
+        fmt::println("p0_rf = {:.3f}", p0_rf);
+        fmt::println("p0_cf = {:.3f}", p0_cf);
+        fmt::println("e1_rf = {:.3f}", e1_rf);
+        fmt::println("e1_cf = {:.3f}", e1_cf);
+
+        auto rl = to_val(bulk_nrm(p0_rf - origin));
+        auto rphi_cf =
+            angle(p0_rf - origin, e1_rf) - phi; // relative angle towards p0 in cf
+
+        fmt::println("relative angle in cf = {:.3f}", rad2deg(rphi_cf));
+
+        // component-wise comparison with selectable accuracy (the default eps of
+        // vec2dp::operator== is too strict after the wedge/division in move2dp)
+        auto constexpr cmp_eps = 1e-10;
+        CHECK(p0_cf.x == doctest::Approx(rl * std::cos(rphi_cf)).epsilon(cmp_eps));
+        CHECK(p0_cf.y == doctest::Approx(rl * std::sin(rphi_cf)).epsilon(cmp_eps));
+        CHECK(p0_cf.z == doctest::Approx(1.0).epsilon(cmp_eps));
+        CHECK(e1_cf == vec2dp{std::cos(phi), -std::sin(phi), 0.0});
+
+
+        fmt::println("");
+        fmt::println("transformation from child to parent (cf -> rf)");
+
+        auto Mr = ds.get_pos_trafo(1, 0); // trafo from (idx: 1) to cf (idx: 0)
+
+        auto p0_rf_t = move2dp(p0_cf, Mr);
+        auto e1_rf_t = move2dp(e1_cf, Mr);
+
+        fmt::println("Mr = {:.3f}", Mr);
+        fmt::println("p0_rf_t = {:.3f}", p0_rf_t);
+        fmt::println("e1_rf_t = {:.3f}", e1_rf_t);
+
+        // round-trip: component-wise with selectable accuracy (strict operator== eps is
+        // too tight after the forward+backward move2dp accumulates rounding error)
+        CHECK(p0_rf_t.x == doctest::Approx(p0_rf.x).epsilon(cmp_eps));
+        CHECK(p0_rf_t.y == doctest::Approx(p0_rf.y).epsilon(cmp_eps));
+        CHECK(p0_rf_t.z == doctest::Approx(p0_rf.z).epsilon(cmp_eps));
+        CHECK(e1_rf_t.x == doctest::Approx(e1_rf.x).epsilon(cmp_eps));
+        CHECK(e1_rf_t.y == doctest::Approx(e1_rf.y).epsilon(cmp_eps));
+        CHECK(e1_rf_t.z == doctest::Approx(e1_rf.z).epsilon(cmp_eps));
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: multibody system transformation - chain of three systems")
+    {
+        fmt::println("pga2dp: multibody system transformation - chain of three systems)");
+
+        // Chain of three frames; each child is placed RELATIVE to its parent (the
+        // previously added frame), forming the dependency chain rf -> cf1 -> cf2.
+        static_frame2dp rf; // inertial root frame (identity)
+        fmt::println("parent_frame = {:.3f}", rf);
+
+        auto phi1 = deg2rad(8);           // cf1 rotation vs. rf
+        auto origin1 = vec2dp{2, 1.5, 1}; // cf1 origin in rf coordinates
+        static_frame2dp cf1("C1"s, origin1, phi1);
+        fmt::println("child_frame1 = {:.3f}", cf1);
+
+        auto phi2 = deg2rad(12);           // cf2 rotation vs. cf1
+        auto origin2 = vec2dp{1, -0.5, 1}; // cf2 origin in cf1 coordinates
+        static_frame2dp cf2("C2"s, origin2, phi2);
+        fmt::println("child_frame2 = {:.3f}", cf2);
+
+        static_system2dp ds;
+        ds.add_frame(rf);
+        ds.add_frame(cf1);
+        ds.add_frame(cf2);
+        fmt::println("ds = {:.3f}", ds);
+
+        auto p0_rf = vec2dp(4, 5, 1);
+
+        // reference: passive coordinate change one frame deeper into the chain,
+        // p_child = R(-phi) * (p_parent - origin_rel)
+        auto to_child = [](vec2dp const& p, vec2dp const& o, value_t phi) {
+            auto const c = std::cos(phi);
+            auto const s = std::sin(phi);
+            auto const dx = p.x - o.x;
+            auto const dy = p.y - o.y;
+            return vec2dp(c * dx + s * dy, -s * dx + c * dy, 1.0);
+        };
+
+        // forward transforms via the chain
+        auto M01 = ds.get_pos_trafo(0, 1); // rf  -> cf1
+        auto M02 = ds.get_pos_trafo(0, 2); // rf  -> cf2 (composed over cf1)
+        auto M12 = ds.get_pos_trafo(1, 2); // cf1 -> cf2
+
+        auto p0_cf1 = move2dp(p0_rf, M01);
+        auto p0_cf2 = move2dp(p0_rf, M02);
+
+        auto e1_rf = e1_2dp;
+        auto e1_cf2 = move2dp(e1_rf, M02);
+
+        fmt::println("M01 = {:.3f}", M01);
+        fmt::println("M02 = {:.3f}", M02);
+        fmt::println("p0_rf  = {:.3f}", p0_rf);
+        fmt::println("p0_cf1 = {:.3f}", p0_cf1);
+        fmt::println("p0_cf2 = {:.3f}", p0_cf2);
+        fmt::println("e1_cf2 = {:.3f}", e1_cf2);
+
+        auto constexpr cmp_eps = 1e-10;
+
+        // link rf -> cf1 reproduces the standalone two-frame result
+        auto ref_cf1 = to_child(p0_rf, origin1, phi1);
+        CHECK(p0_cf1.x == doctest::Approx(ref_cf1.x).epsilon(cmp_eps));
+        CHECK(p0_cf1.y == doctest::Approx(ref_cf1.y).epsilon(cmp_eps));
+        CHECK(p0_cf1.z == doctest::Approx(ref_cf1.z).epsilon(cmp_eps));
+
+        // composed rf -> cf2 equals chaining the two passive coordinate changes
+        auto ref_cf2 = to_child(to_child(p0_rf, origin1, phi1), origin2, phi2);
+        CHECK(p0_cf2.x == doctest::Approx(ref_cf2.x).epsilon(cmp_eps));
+        CHECK(p0_cf2.y == doctest::Approx(ref_cf2.y).epsilon(cmp_eps));
+        CHECK(p0_cf2.z == doctest::Approx(ref_cf2.z).epsilon(cmp_eps));
+
+        // a direction is only rotated -- by the accumulated angle (phi1 + phi2);
+        // translation along the chain does not affect points at infinity
+        CHECK(e1_cf2.x == doctest::Approx(std::cos(phi1 + phi2)).epsilon(cmp_eps));
+        CHECK(e1_cf2.y == doctest::Approx(-std::sin(phi1 + phi2)).epsilon(cmp_eps));
+        CHECK(e1_cf2.z == doctest::Approx(0.0).epsilon(cmp_eps));
+
+        // composition consistency: M02 acts as the two consecutive single steps,
+        // move2dp(p, M02) == move2dp(move2dp(p, M01), M12)
+        auto p0_cf2_via_cf1 = move2dp(move2dp(p0_rf, M01), M12);
+        CHECK(p0_cf2_via_cf1.x == doctest::Approx(p0_cf2.x).epsilon(cmp_eps));
+        CHECK(p0_cf2_via_cf1.y == doctest::Approx(p0_cf2.y).epsilon(cmp_eps));
+        CHECK(p0_cf2_via_cf1.z == doctest::Approx(p0_cf2.z).epsilon(cmp_eps));
+
+        fmt::println("");
+        fmt::println("transformation back along the chain (cf2 -> rf)");
+
+        auto M20 = ds.get_pos_trafo(2, 0); // cf2 -> rf (inverse of the chain)
+        auto p0_rf_t = move2dp(p0_cf2, M20);
+        auto e1_rf_t = move2dp(e1_cf2, M20);
+
+        fmt::println("M20 = {:.3f}", M20);
+        fmt::println("p0_rf_t = {:.3f}", p0_rf_t);
+        fmt::println("e1_rf_t = {:.3f}", e1_rf_t);
+
+        // round-trip cf2 -> rf recovers the original point and direction
+        CHECK(p0_rf_t.x == doctest::Approx(p0_rf.x).epsilon(cmp_eps));
+        CHECK(p0_rf_t.y == doctest::Approx(p0_rf.y).epsilon(cmp_eps));
+        CHECK(p0_rf_t.z == doctest::Approx(p0_rf.z).epsilon(cmp_eps));
+        CHECK(e1_rf_t.x == doctest::Approx(e1_rf.x).epsilon(cmp_eps));
+        CHECK(e1_rf_t.y == doctest::Approx(e1_rf.y).epsilon(cmp_eps));
+        CHECK(e1_rf_t.z == doctest::Approx(e1_rf.z).epsilon(cmp_eps));
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: kinematic_system2dp - opening a box lid (static setup + dynamics)")
+    {
+        fmt::println("pga2dp: kinematic_system2dp - opening a box lid");
+
+        // Square of side 2 with frame "S" at its lower-left corner (3,2). S is
+        // axis-aligned with the world, so the square spans x in [3,5], y in [2,4] and the
+        // top-left corner is at (3,4). The lid "L" is hinged at that top-left corner, has
+        // length 2, and is opened by an angle vs. the top side (which runs along +x).
+        // Point P sits at the end of the lid. Frame tree: W (world) -> S (box) -> L
+        // (lid).
+        auto side = value_t(2.0);
+        auto lid_len = value_t(2.0);
+        auto open0 = deg2rad(15); // initial opening angle
+        auto constexpr cmp_eps = 1e-10;
+
+        // build W -> S -> L for a given lid opening angle (all frames initially at rest)
+        auto build = [&](value_t open_angle) {
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp("W"s)); // world (root)
+            ks.add_frame(
+                static_frame2dp("S"s, vec2dp{3, 2, 1}, 0.0));      // lower-left corner
+            ks.add_frame(static_frame2dp("L"s, vec2dp{0, side, 1}, // hinge (0,2) in S
+                                         open_angle));             // parent defaults to S
+            return ks;
+        };
+
+        auto P_L = vec2dp{lid_len, 0, 1}; // P at the end of the lid, in L coordinates
+
+        // ===== static setup: lid open at 15 deg -> vector to P in W, S, L =====
+        auto ks = build(open0);
+        auto P_in_L = P_L; // by construction
+        auto P_in_S = move2dp(P_L, ks.get_pos_trafo("L", "S"));
+        auto P_in_W = move2dp(P_L, ks.get_pos_trafo("L", "W"));
+
+        fmt::println("lid at 15 deg:  P_L={:.3f}  P_S={:.3f}  P_W={:.3f}", P_in_L, P_in_S, P_in_W);
+
+        auto c0 = std::cos(open0), s0 = std::sin(open0);
+        CHECK(P_in_L.x == doctest::Approx(lid_len).epsilon(cmp_eps));
+        CHECK(P_in_L.y == doctest::Approx(0.0).epsilon(cmp_eps));
+        CHECK(P_in_S.x == doctest::Approx(lid_len * c0).epsilon(cmp_eps));
+        CHECK(P_in_S.y == doctest::Approx(lid_len * s0 + side).epsilon(cmp_eps));
+        CHECK(P_in_W.x == doctest::Approx(lid_len * c0 + 3.0).epsilon(cmp_eps));
+        CHECK(P_in_W.y == doctest::Approx(lid_len * s0 + 4.0).epsilon(cmp_eps));
+
+        // ===== add the dynamics: open 15 -> 30 deg in 1 s at constant angular speed
+        // =====
+        auto open1 = deg2rad(30);
+        auto dt = value_t(1.0);
+        auto lid_omega = (open1 - open0) / dt; // relative angular speed = 15 deg/s
+
+        ks.set_state("L", kin_state2dp{.omega = lid_omega}); // drive the lid joint
+
+        fmt::println("lid relative angular speed = {:.3f} rad/s = {:.3f} deg/s", lid_omega,
+                     rad2deg(lid_omega));
+
+        // relative angular speed of the lid (a scalar; in L, S, or W it is the same
+        // value).
+        CHECK(ks.relative_twist("L").z == doctest::Approx(lid_omega).epsilon(cmp_eps));
+        // S does not rotate, so the lid's WORLD angular speed equals its relative speed
+        CHECK(ks.twist_world("L").z == doctest::Approx(lid_omega).epsilon(cmp_eps));
+        // instantaneous tip speed = omega * lid_len (tangential to the lid)
+        auto v_P = ks.point_velocity(P_in_W, "L");
+        CHECK(to_val(bulk_nrm(v_P)) ==
+              doctest::Approx(lid_omega * lid_len).epsilon(cmp_eps));
+
+        // ===== new position of P after the lid reached 30 deg =====
+        // the angular displacement over dt lands exactly at 30 deg (constant speed)
+        CHECK(open0 + lid_omega * dt == doctest::Approx(open1).epsilon(cmp_eps));
+
+        auto ks2 = build(open1);
+        auto P_in_L_new = P_L;
+        auto P_in_S_new = move2dp(P_L, ks2.get_pos_trafo("L", "S"));
+        auto P_in_W_new = move2dp(P_L, ks2.get_pos_trafo("L", "W"));
+
+        fmt::println("lid at 30 deg:  P_L={:.3f}  P_S={:.3f}  P_W={:.3f}", P_in_L_new, P_in_S_new,
+                     P_in_W_new);
+
+        auto c1 = std::cos(open1), s1 = std::sin(open1);
+        CHECK(P_in_L_new.x ==
+              doctest::Approx(lid_len).epsilon(cmp_eps)); // unchanged in L
+        CHECK(P_in_L_new.y == doctest::Approx(0.0).epsilon(cmp_eps));
+        CHECK(P_in_S_new.x == doctest::Approx(lid_len * c1).epsilon(cmp_eps));
+        CHECK(P_in_S_new.y == doctest::Approx(lid_len * s1 + side).epsilon(cmp_eps));
+        CHECK(P_in_W_new.x == doctest::Approx(lid_len * c1 + 3.0).epsilon(cmp_eps));
+        CHECK(P_in_W_new.y == doctest::Approx(lid_len * s1 + 4.0).epsilon(cmp_eps));
+
+        fmt::println("");
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Cross-checks vs. the ga_view body-frame / world-frame scenes
+    // (get_frame_trafo_scenes() in ga_view/src/w_mainwindow.cpp, driven by
+    // active_frame_trafo). Each scene's body is modelled as a kinematic_system2dp frame "B"
+    // at the scene's M0 pose with the scene's body twist Omega_b. We verify our API
+    // reproduces the two quantities ga_view tracks:
+    //   - the body->world motor  M = M0          (ga_view: M(t) = M0 (x) exp(0.5 B_b))
+    //   - the world generator    B_w = move2dp(Omega_b, M0)   (ga_view's Omega_w)
+    // These serve as the reference once ga_view is reworked onto the new approach.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    // ga_view's M0 builders (mirror make_M0_trans / make_M0_rot in w_mainwindow.cpp)
+    inline mvec2dp_u gv_M0_trans(double tx, double ty)
+    {
+        return exp(0.5 * vec2dp{-ty, tx, 0.0});
+    }
+    inline mvec2dp_u gv_M0_rot(double phi) { return exp(0.5 * vec2dp{0.0, 0.0, phi}); }
+
+    inline void cross_check_scene(vec2dp const& origin, value_t phi, twist2dp const& Omega_b,
+                                  mvec2dp_u const& M0_ref, double eps = 1e-10)
+    {
+        kinematic_system2dp ks;
+        ks.add_frame(static_frame2dp("W"s));            // world (root)
+        ks.add_frame(static_frame2dp("B"s, origin, phi)); // body at M0 pose (B_b = 0)
+        ks.set_twist("B", Omega_b);                     // ga_view's body twist Omega_b
+
+        // our body->world motor reproduces ga_view's M0 (compare action on probe points)
+        auto const M = ks.get_pos_trafo("B", "W");
+        for (auto const& p : {vec2dp{0, 0, 1}, vec2dp{1, 0, 1}, vec2dp{0, 1, 1},
+                              vec2dp{2, -3, 1}}) {
+            auto const a = move2dp(p, M);
+            auto const b = move2dp(p, M0_ref);
+            CHECK(a.x == doctest::Approx(b.x).epsilon(eps));
+            CHECK(a.y == doctest::Approx(b.y).epsilon(eps));
+            CHECK(a.z == doctest::Approx(b.z).epsilon(eps));
+        }
+
+        // our world generator B_w reproduces ga_view's Omega_w = move2dp(Omega_b, M0)
+        auto const Bw = ks.twist_world("B");
+        auto const Bw_ref = move2dp(Omega_b, M0_ref);
+        CHECK(Bw.x == doctest::Approx(Bw_ref.x).epsilon(eps));
+        CHECK(Bw.y == doctest::Approx(Bw_ref.y).epsilon(eps));
+        CHECK(Bw.z == doctest::Approx(Bw_ref.z).epsilon(eps));
+    }
+
+    TEST_CASE("pga2dp: ga_view cross-check - Scene 1 (pure translation)")
+    {
+        // ga_view Scene 1: body slides in +x at vx = 1, so Omega_b = (0,1,0).
+        // Upper sub-item M0 = identity; lower M0 = translation to (0,-2).
+        fmt::println("pga2dp: ga_view cross-check - Scene 1 (pure translation)");
+
+        auto const Omega_b = twist2dp{0.0, 1.0, 0.0}; // vx = 1, vy = 0
+
+        cross_check_scene(vec2dp{0, 0, 1}, 0.0, Omega_b, gv_M0_rot(0.0));   // upper: M0 = id
+        cross_check_scene(vec2dp{0, -2, 1}, 0.0, Omega_b, gv_M0_trans(0.0, -2.0)); // lower
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: ga_view cross-check - Scene 2 (pure rotation)")
+    {
+        // ga_view Scene 2: rotation about pivot Q_b = (0.8,0) at omega = pi rad/s, so
+        // Omega_b = omega * Q_b = (0.8*pi, 0, pi). Upper M0 = id; lower M0 = T(0,-2).
+        fmt::println("pga2dp: ga_view cross-check - Scene 2 (pure rotation)");
+
+        auto const omega = deg2rad(180);                    // pi rad/s
+        auto const Omega_b = omega * vec2dp{0.8, 0.0, 1.0}; // = (0.8*pi, 0, pi)
+
+        cross_check_scene(vec2dp{0, 0, 1}, 0.0, Omega_b, gv_M0_rot(0.0));   // upper: M0 = id
+        cross_check_scene(vec2dp{0, -2, 1}, 0.0, Omega_b, gv_M0_trans(0.0, -2.0)); // lower
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: ga_view cross-check - Scene 3 (combined M0 = trans + rot)")
+    {
+        // ga_view Scene 3: same Omega_b as Scene 2; lower M0 = T(0,-2) (x) R(pi/4), i.e.
+        // body home at (0,-2) oriented at 45 deg. Upper M0 = id (reference).
+        fmt::println("pga2dp: ga_view cross-check - Scene 3 (combined M0)");
+
+        auto const omega = deg2rad(180);
+        auto const Omega_b = omega * vec2dp{0.8, 0.0, 1.0};
+
+        cross_check_scene(vec2dp{0, 0, 1}, 0.0, Omega_b, gv_M0_rot(0.0)); // upper: M0 = id
+        cross_check_scene(vec2dp{0, -2, 1}, deg2rad(45), Omega_b,
+                          rgpr(gv_M0_trans(0.0, -2.0), gv_M0_rot(deg2rad(45)))); // lower
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: ga_view cross-check - Scene 4 (world-frame driven)")
+    {
+        // ga_view Scene 4: upper is a body-driven pure translation (M0 = T(-3,1),
+        // Omega_b = (0,1,0)). Lower is WORLD-frame driven: M(t) = T(O(t)) (x) R(omega*t)
+        // with a constant world generator Omega_w = (o_z*ox - vy, o_z*oy + vx, o_z). We
+        // check the t = 0 configuration: the world-driven motion maps to a body twist
+        // Omega_b = move2dp(Omega_w, rrev(M0)) that our system transports back to Omega_w.
+        fmt::println("pga2dp: ga_view cross-check - Scene 4 (world-frame driven)");
+
+        // --- upper: body-driven translation ---
+        cross_check_scene(vec2dp{-3, 1, 1}, 0.0, twist2dp{0.0, 1.0, 0.0},
+                          gv_M0_trans(-3.0, 1.0));
+
+        // --- lower: world-driven, evaluated at t = 0 ---
+        auto const cm_ox = -3.0, cm_oy = -1.5; // initial CM position (world)
+        auto const cm_vx = 1.0, cm_vy = 0.0;   // CM velocity (world)
+        auto const o_z = deg2rad(120);         // spin rate cm_omega = 4*pi/6
+
+        auto const M0_lower = gv_M0_trans(cm_ox, cm_oy); // M(0) = T(O(0)) (x) R(0)
+        // ga_view's world generator at t = 0 (tick(), world_frame_drive branch)
+        auto const Omega_w0 = vec2dp{o_z * cm_ox - cm_vy, o_z * cm_oy + cm_vx, o_z};
+        // the equivalent body twist ga_view derives: Omega_b = move2dp(Omega_w, rrev(M))
+        auto const Omega_b0 = move2dp(Omega_w0, rrev(M0_lower));
+
+        cross_check_scene(vec2dp{cm_ox, cm_oy, 1}, 0.0, Omega_b0, M0_lower);
+
+        // and explicitly: our world generator equals ga_view's Omega_w formula
+        kinematic_system2dp ks;
+        ks.add_frame(static_frame2dp("W"s));
+        ks.add_frame(static_frame2dp("B"s, vec2dp{cm_ox, cm_oy, 1}, 0.0));
+        ks.set_twist("B", Omega_b0);
+        auto const Bw = ks.twist_world("B");
+        CHECK(Bw.x == doctest::Approx(Omega_w0.x).epsilon(1e-10));
+        CHECK(Bw.y == doctest::Approx(Omega_w0.y).epsilon(1e-10));
+        CHECK(Bw.z == doctest::Approx(Omega_w0.z).epsilon(1e-10));
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: multibody system transformation - branching tree of frames")
+    {
+        fmt::println(
+            "pga2dp: multibody system transformation - branching tree of frames)");
+
+        // Tree topology with explicit parents:
+
+        // Tree topology with explicit parents:
+        //
+        //              rf[0] (root)
+        //              /          \
+        //         cfA[1]           cfB[2]   (cfB branches off the root, NOT off cfA)
+        //            |
+        //         cfC[3]
+        //
+        static_frame2dp rf; // inertial root frame (identity)
+
+        auto phiA = deg2rad(8);
+        auto originA = vec2dp{2, 1.5, 1}; // cfA pose vs. root
+        static_frame2dp cfA("A"s, originA, phiA);
+
+        auto phiB = deg2rad(-15);
+        auto originB = vec2dp{-1, 3, 1}; // cfB pose vs. root
+        static_frame2dp cfB("B"s, originB, phiB);
+
+        auto phiC = deg2rad(20);
+        auto originC = vec2dp{0.5, -1, 1}; // cfC pose vs. cfA
+        static_frame2dp cfC("C"s, originC, phiC);
+
+        static_system2dp ds;
+        ds.add_frame(rf);     // idx 0: root (parent = self)
+        ds.add_frame(cfA);    // idx 1: parent defaults to previous -> root (0)
+        ds.add_frame(cfB, 0); // idx 2: EXPLICIT parent 0 -> branch off the root
+        ds.add_frame(cfC, 1); // idx 3: EXPLICIT parent 1 -> hangs off cfA
+        fmt::println("ds = {:.3f}", ds);
+
+        CHECK(!ds.is_linear_chain()); // genuine tree, not a plain chain
+
+        // passive coordinate change one frame deeper: p_child = R(-phi)*(p_parent - o)
+        auto to_child = [](vec2dp const& p, vec2dp const& o, value_t phi) {
+            auto const c = std::cos(phi), s = std::sin(phi);
+            auto const dx = p.x - o.x, dy = p.y - o.y;
+            return vec2dp(c * dx + s * dy, -s * dx + c * dy, 1.0);
+        };
+
+        auto p_root = vec2dp(4, 5, 1);
+        auto constexpr cmp_eps = 1e-10;
+
+        // cfB hangs off the ROOT: a single step, independent of cfA's pose
+        auto p_cfB = move2dp(p_root, ds.get_pos_trafo(0, 2));
+        auto ref_cfB = to_child(p_root, originB, phiB);
+        CHECK(p_cfB.x == doctest::Approx(ref_cfB.x).epsilon(cmp_eps));
+        CHECK(p_cfB.y == doctest::Approx(ref_cfB.y).epsilon(cmp_eps));
+        CHECK(p_cfB.z == doctest::Approx(ref_cfB.z).epsilon(cmp_eps));
+
+        // cfC hangs off cfA: root -> cfA -> cfC
+        auto p_cfC = move2dp(p_root, ds.get_pos_trafo(0, 3));
+        auto ref_cfC = to_child(to_child(p_root, originA, phiA), originC, phiC);
+        CHECK(p_cfC.x == doctest::Approx(ref_cfC.x).epsilon(cmp_eps));
+        CHECK(p_cfC.y == doctest::Approx(ref_cfC.y).epsilon(cmp_eps));
+        CHECK(p_cfC.z == doctest::Approx(ref_cfC.z).epsilon(cmp_eps));
+
+        // cross-branch transform cfB -> cfC: walk up to the LCA (root), then down to cfC
+        auto M_BC = ds.get_pos_trafo(2, 3);
+        auto p_cfC_from_B = move2dp(p_cfB, M_BC);
+        CHECK(p_cfC_from_B.x == doctest::Approx(p_cfC.x).epsilon(cmp_eps));
+        CHECK(p_cfC_from_B.y == doctest::Approx(p_cfC.y).epsilon(cmp_eps));
+        CHECK(p_cfC_from_B.z == doctest::Approx(p_cfC.z).epsilon(cmp_eps));
+
+        // a direction is path-independent: cfB -> cfC composed equals the direct root ->
+        // cfC rotation (translation along either branch does not affect points at inf.)
+        auto e1_cfB = move2dp(e1_2dp, ds.get_pos_trafo(0, 2));
+        auto e1_cfC_from_B = move2dp(e1_cfB, M_BC);
+        auto e1_cfC_direct = move2dp(e1_2dp, ds.get_pos_trafo(0, 3));
+        CHECK(e1_cfC_from_B.x == doctest::Approx(e1_cfC_direct.x).epsilon(cmp_eps));
+        CHECK(e1_cfC_from_B.y == doctest::Approx(e1_cfC_direct.y).epsilon(cmp_eps));
+        CHECK(e1_cfC_from_B.z == doctest::Approx(e1_cfC_direct.z).epsilon(cmp_eps));
+
+        // round-trip across branches: cfB -> cfC -> cfB recovers the original point
+        auto p_cfB_rt = move2dp(p_cfC_from_B, ds.get_pos_trafo(3, 2));
+        CHECK(p_cfB_rt.x == doctest::Approx(p_cfB.x).epsilon(cmp_eps));
+        CHECK(p_cfB_rt.y == doctest::Approx(p_cfB.y).epsilon(cmp_eps));
+        CHECK(p_cfB_rt.z == doctest::Approx(p_cfB.z).epsilon(cmp_eps));
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: multibody system transformation - merry-go-round (platform + 3 "
+              "turntables)")
+    {
+        fmt::println("pga2dp: multibody system transformation - merry-go-round)");
+
+        // Tree topology: a rotating main platform carrying three rotating turntables.
+        //
+        //                 ground[0] (root)
+        //                     |
+        //                 platform[1]              (rotates about its centre by theta)
+        //               /     |      \
+        //          tt0[2]   tt1[3]   tt2[4]        (mounted at r, 120 deg apart, own
+        //          spin)
+        //
+        static_frame2dp ground; // inertial root
+
+        auto theta = deg2rad(30);      // platform rotation vs. ground
+        auto centre = vec2dp{1, 2, 1}; // platform centre in ground coordinates
+        static_frame2dp platform("P"s, centre, theta);
+
+        auto r = value_t(2.0);        // mounting radius on the platform
+        auto mount = [r](value_t a) { // turntable origin in PLATFORM coordinates
+            return vec2dp(r * std::cos(a), r * std::sin(a), 1.0);
+        };
+        auto psi0 = deg2rad(10); // individual turntable spins vs. the platform
+        auto psi1 = deg2rad(25);
+        auto psi2 = deg2rad(-5);
+        static_frame2dp tt0("T0"s, mount(deg2rad(0)), psi0);
+        static_frame2dp tt1("T1"s, mount(deg2rad(120)), psi1);
+        static_frame2dp tt2("T2"s, mount(deg2rad(240)), psi2);
+
+        static_system2dp ds;
+        ds.add_frame(ground);   // idx 0: root
+        ds.add_frame(platform); // idx 1: parent defaults to ground
+        ds.add_frame(tt0, 1);   // idx 2: mounted on the platform
+        ds.add_frame(tt1, 1);   // idx 3: mounted on the platform
+        ds.add_frame(tt2, 1);   // idx 4: mounted on the platform
+        fmt::println("ds = {:.3f}", ds);
+
+        CHECK(!ds.is_linear_chain()); // three children off one parent -> a tree
+
+        auto constexpr cmp_eps = 1e-10;
+
+        // passive (parent -> child) and active (child -> parent) coordinate changes
+        auto to_child = [](vec2dp const& p, vec2dp const& o, value_t phi) {
+            auto const c = std::cos(phi), s = std::sin(phi);
+            auto const dx = p.x - o.x, dy = p.y - o.y;
+            return vec2dp(c * dx + s * dy, -s * dx + c * dy, 1.0);
+        };
+        auto to_parent = [](vec2dp const& q, vec2dp const& o, value_t phi) {
+            auto const c = std::cos(phi), s = std::sin(phi);
+            return vec2dp(c * q.x - s * q.y + o.x, s * q.x + c * q.y + o.y, 1.0);
+        };
+
+        // each turntable origin (its (0,0,1) point) expressed in ground coordinates,
+        // checked against R(theta) * mount_point + centre
+        auto tt_origin_ground = [&](size_t idx, value_t mount_angle) {
+            auto o_ground = move2dp(O_2dp, ds.get_pos_trafo(idx, 0));
+            auto ref = to_parent(mount(mount_angle), centre, theta);
+            CHECK(o_ground.x == doctest::Approx(ref.x).epsilon(cmp_eps));
+            CHECK(o_ground.y == doctest::Approx(ref.y).epsilon(cmp_eps));
+            CHECK(o_ground.z == doctest::Approx(ref.z).epsilon(cmp_eps));
+            return o_ground;
+        };
+        auto g0 = tt_origin_ground(2, deg2rad(0));
+        auto g1 = tt_origin_ground(3, deg2rad(120));
+        auto g2 = tt_origin_ground(4, deg2rad(240));
+
+        fmt::println("tt0 origin in ground = {:.3f}", g0);
+        fmt::println("tt1 origin in ground = {:.3f}", g1);
+        fmt::println("tt2 origin in ground = {:.3f}", g2);
+
+        // merry-go-round invariants: every turntable sits at radius r from the centre
+        // (the platform rotation preserves it), and 120 deg spacing makes adjacent
+        // turntables equidistant with chord length r * sqrt(3)
+        CHECK(to_val(bulk_nrm(g0 - centre)) == doctest::Approx(r).epsilon(cmp_eps));
+        CHECK(to_val(bulk_nrm(g1 - centre)) == doctest::Approx(r).epsilon(cmp_eps));
+        CHECK(to_val(bulk_nrm(g2 - centre)) == doctest::Approx(r).epsilon(cmp_eps));
+
+        auto chord = r * std::sqrt(3.0);
+        CHECK(to_val(bulk_nrm(g1 - g0)) == doctest::Approx(chord).epsilon(cmp_eps));
+        CHECK(to_val(bulk_nrm(g2 - g1)) == doctest::Approx(chord).epsilon(cmp_eps));
+        CHECK(to_val(bulk_nrm(g0 - g2)) == doctest::Approx(chord).epsilon(cmp_eps));
+
+        // turntable-to-turntable transform routes up to the platform (LCA) and back
+        // down: a point given in tt0 coordinates, expressed in tt2 coordinates
+        auto p_tt0 = vec2dp(0.3, -0.4, 1);
+        auto p_tt2 = move2dp(p_tt0, ds.get_pos_trafo(2, 4));
+        auto ref_tt2 = to_child(to_parent(p_tt0, mount(deg2rad(0)), psi0),
+                                mount(deg2rad(240)), psi2);
+        CHECK(p_tt2.x == doctest::Approx(ref_tt2.x).epsilon(cmp_eps));
+        CHECK(p_tt2.y == doctest::Approx(ref_tt2.y).epsilon(cmp_eps));
+        CHECK(p_tt2.z == doctest::Approx(ref_tt2.z).epsilon(cmp_eps));
+
+        // round-trip tt0 -> tt2 -> tt0
+        auto p_tt0_rt = move2dp(p_tt2, ds.get_pos_trafo(4, 2));
+        CHECK(p_tt0_rt.x == doctest::Approx(p_tt0.x).epsilon(cmp_eps));
+        CHECK(p_tt0_rt.y == doctest::Approx(p_tt0.y).epsilon(cmp_eps));
+        CHECK(p_tt0_rt.z == doctest::Approx(p_tt0.z).epsilon(cmp_eps));
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: static_system2dp - name-addressed frames")
+    {
+        fmt::println("pga2dp: static_system2dp - name-addressed frames");
+
+        static_frame2dp ground;                                       // name "I"
+        static_frame2dp platform("P"s, vec2dp{1, 2, 1}, deg2rad(30)); // name "P"
+        static_frame2dp turntable("T0"s, vec2dp{2, 0, 1}, deg2rad(10));
+
+        static_system2dp ds;
+        ds.add_frame(ground);
+        ds.add_frame(platform);
+        ds.add_frame(turntable, 1);
+
+        // index_of resolves names to the add order
+        CHECK(ds.index_of("I") == 0);
+        CHECK(ds.index_of("P") == 1);
+        CHECK(ds.index_of("T0") == 2);
+
+        // name-addressed get_pos_trafo matches the index-addressed result
+        auto p = vec2dp(0.4, -0.7, 1);
+        auto by_name = move2dp(p, ds.get_pos_trafo("T0", "I"));
+        auto by_idx = move2dp(p, ds.get_pos_trafo(2, 0));
+        auto constexpr cmp_eps = 1e-10;
+        CHECK(by_name.x == doctest::Approx(by_idx.x).epsilon(cmp_eps));
+        CHECK(by_name.y == doctest::Approx(by_idx.y).epsilon(cmp_eps));
+        CHECK(by_name.z == doctest::Approx(by_idx.z).epsilon(cmp_eps));
+
+        // unknown name throws
+        CHECK_THROWS_AS(ds.index_of("nope"), std::runtime_error);
+
+        // duplicate frame name throws on add
+        static_system2dp ds2;
+        ds2.add_frame(static_frame2dp("A"s));
+        CHECK_THROWS_AS(ds2.add_frame(static_frame2dp("A"s)), std::runtime_error);
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: kinematic_system2dp - velocity of a spinning wheel (intuitive)")
+    {
+        // A single wheel spinning counter-clockwise at omega = 2 rad/s about the world
+        // origin. Physics 101: a point at radius r moves TANGENTIALLY with speed omega*r.
+        fmt::println("pga2dp: kinematic_system2dp - velocity of a spinning wheel");
+
+        auto omega = value_t(2.0); // [rad/s], CCW positive
+
+        kinematic_system2dp ks;
+        ks.add_frame(static_frame2dp{});            // ground (root)
+        ks.add_frame(static_frame2dp("wheel"s),     // wheel centred at the origin ...
+                     kin_state2dp{.omega = omega}); // ... spinning at 2 rad/s
+
+        auto constexpr cmp_eps = 1e-12;
+
+        // a point 3 to the RIGHT of the centre moves straight UP at speed omega*3 = 6
+        auto v_right = ks.point_velocity(vec2dp{3, 0, 1}, "wheel");
+        fmt::println("  point (3,0): v = {:.3f}   expect (0, 6)", v_right);
+        CHECK(v_right.x == doctest::Approx(0.0).epsilon(cmp_eps));
+        CHECK(v_right.y == doctest::Approx(6.0).epsilon(cmp_eps));
+
+        // a point 3 ABOVE the centre moves straight LEFT at speed 6
+        auto v_top = ks.point_velocity(vec2dp{0, 3, 1}, "wheel");
+        fmt::println("  point (0,3): v = {:.3f}   expect (-6, 0)", v_top);
+        CHECK(v_top.x == doctest::Approx(-6.0).epsilon(cmp_eps));
+        CHECK(v_top.y == doctest::Approx(0.0).epsilon(cmp_eps));
+
+        // the centre itself does not move
+        auto v_centre = ks.point_velocity(vec2dp{0, 0, 1}, "wheel");
+        fmt::println("  point (0,0): v = {:.3f}   expect (0, 0)", v_centre);
+        CHECK(v_centre.x == doctest::Approx(0.0).epsilon(cmp_eps));
+        CHECK(v_centre.y == doctest::Approx(0.0).epsilon(cmp_eps));
+
+        // speed grows linearly with radius: at r = 5, speed = omega*5 = 10
+        auto v_far = ks.point_velocity(vec2dp{5, 0, 1}, "wheel");
+        CHECK(to_val(bulk_nrm(v_far)) == doctest::Approx(10.0).epsilon(cmp_eps));
+
+        fmt::println("");
+    }
+
+    TEST_CASE(
+        "pga2dp: kinematic_system2dp - acceleration of a spinning wheel (intuitive)")
+    {
+        // Same wheel, now the acceleration. Uniform spin (omega const) => pure
+        // CENTRIPETAL acceleration a = -omega^2 * r, pointing toward the centre. Spinning
+        // up (alpha) adds a TANGENTIAL term alpha * r.
+        fmt::println("pga2dp: kinematic_system2dp - acceleration of a spinning wheel");
+
+        auto omega = value_t(2.0); // [rad/s]
+        auto constexpr cmp_eps = 1e-12;
+
+        // --- constant spin: pure centripetal, magnitude omega^2 * r = 4 * r ---
+        {
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp{});
+            ks.add_frame(static_frame2dp("wheel"s), kin_state2dp{.omega = omega});
+
+            // point (3,0): centripetal points to centre (-x), magnitude 4*3 = 12
+            auto a_right = ks.point_acceleration(vec2dp{3, 0, 1}, "wheel");
+            fmt::println("  point (3,0): a = {:.3f}   expect (-12, 0)", a_right);
+            CHECK(a_right.x == doctest::Approx(-12.0).epsilon(cmp_eps));
+            CHECK(a_right.y == doctest::Approx(0.0).epsilon(cmp_eps));
+
+            // point (0,3): centripetal points to centre (-y): (0, -12)
+            auto a_top = ks.point_acceleration(vec2dp{0, 3, 1}, "wheel");
+            fmt::println("  point (0,3): a = {:.3f}   expect (0, -12)", a_top);
+            CHECK(a_top.x == doctest::Approx(0.0).epsilon(cmp_eps));
+            CHECK(a_top.y == doctest::Approx(-12.0).epsilon(cmp_eps));
+
+            // the centre has no acceleration
+            auto a_centre = ks.point_acceleration(vec2dp{0, 0, 1}, "wheel");
+            CHECK(a_centre.x == doctest::Approx(0.0).epsilon(cmp_eps));
+            CHECK(a_centre.y == doctest::Approx(0.0).epsilon(cmp_eps));
+        }
+
+        // --- spinning up: alpha = 5 rad/s^2 adds a tangential term alpha * r ---
+        {
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp{});
+            ks.add_frame(static_frame2dp("wheel"s),
+                         kin_state2dp{.omega = omega, .alpha = 5.0});
+
+            // point (3,0): centripetal (-12,0) + tangential (alpha*r in +y = 15) =
+            // (-12,15)
+            auto a = ks.point_acceleration(vec2dp{3, 0, 1}, "wheel");
+            fmt::println("  point (3,0), alpha=5: a = {:.3f}   expect (-12, 15)", a);
+            CHECK(a.x == doctest::Approx(-12.0).epsilon(cmp_eps));
+            CHECK(a.y == doctest::Approx(15.0).epsilon(cmp_eps));
+        }
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: kinematic_system2dp - acceleration on a merry-go-round (Coriolis)")
+    {
+        // A turntable spinning on a rotating platform: the point's acceleration now mixes
+        // two centripetal terms AND a Coriolis coupling between the two spins. Validated
+        // against the second central difference of the true motor evolution -- no
+        // analytic shortcut, so this exercises the full Newton-Euler propagation (the
+        // bracket term).
+        fmt::println("pga2dp: kinematic_system2dp - acceleration on a merry-go-round");
+
+        auto Omega = deg2rad(40);        // platform angular velocity  [rad/s]
+        auto omega = deg2rad(90);        // turntable spin vs. platform [rad/s]
+        auto centre = vec2dp{1, 2, 1};   // platform centre in ground coords
+        auto mount = vec2dp{2, 0, 1};    // turntable origin in platform coords
+        auto X_tt = vec2dp{0.3, 0.1, 1}; // a point fixed on the turntable
+
+        // world position of X_tt at time t (poses advanced by the constant spin rates)
+        auto world_pos = [&](double t) {
+            static_system2dp ds;
+            ds.add_frame(static_frame2dp{});
+            ds.add_frame(static_frame2dp("P"s, centre, Omega * t));
+            ds.add_frame(static_frame2dp("T"s, mount, omega * t), 1);
+            return move2dp(X_tt, ds.get_pos_trafo(2, 0));
+        };
+
+        // momentary kinematic system at t = 0
+        kinematic_system2dp ks;
+        ks.add_frame(static_frame2dp{});
+        ks.add_frame(static_frame2dp("P"s, centre, 0.0), kin_state2dp{.omega = Omega});
+        ks.add_frame(static_frame2dp("T"s, mount, 0.0), kin_state2dp{.omega = omega}, 1);
+
+        auto X_world0 = move2dp(X_tt, ks.get_pos_trafo(2, 0));
+        auto a_formula = ks.point_acceleration(X_world0, "T");
+
+        // second central difference: a ~ (p(+dt) - 2 p(0) + p(-dt)) / dt^2
+        double const dt = 1e-4;
+        auto p0 = world_pos(0.0);
+        auto pp = world_pos(dt);
+        auto pm = world_pos(-dt);
+        auto a_fd = vec2dp{(pp.x - 2 * p0.x + pm.x) / (dt * dt),
+                           (pp.y - 2 * p0.y + pm.y) / (dt * dt), 0.0};
+
+        fmt::println("  a_formula = {:.3f}", a_formula);
+        fmt::println("  a_fd      = {:.3f}", a_fd);
+
+        // match the finite-difference reference (loose eps: 2nd difference is O(dt^2))
+        CHECK(a_formula.x == doctest::Approx(a_fd.x).epsilon(1e-4));
+        CHECK(a_formula.y == doctest::Approx(a_fd.y).epsilon(1e-4));
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: kinematic_system2dp - turntable-to-turntable kinematics")
+    {
+        // Merry-go-round: platform spins at Omega; turntables tt0, tt1, tt2 (120 deg apart,
+        // all children of the platform) each spin at their own rate. For a point P on tt0:
+        //   (a) its world velocity and its position expressed in tt2 (cross-branch, LCA = P);
+        //   (b) the velocity an observer RIDING tt2 measures for P (transport theorem),
+        //       validated against the finite difference of P's position in tt2 over time.
+        fmt::println("pga2dp: kinematic_system2dp - turntable-to-turntable kinematics");
+
+        auto Omega = deg2rad(40); // platform angular velocity
+        auto w0 = deg2rad(90);    // tt0 spin vs. platform
+        auto w1 = deg2rad(60);    // tt1 spin vs. platform
+        auto w2 = deg2rad(-30);   // tt2 spin vs. platform
+        auto pP = deg2rad(25);    // initial angles (so observer-frame rotation is exercised)
+        auto p0 = deg2rad(10), p1 = deg2rad(5), p2 = deg2rad(40);
+        auto centre = vec2dp{1, 2, 1};
+        auto r = value_t(2.0);
+        auto mount = [r](value_t a) { return vec2dp(r * std::cos(a), r * std::sin(a), 1.0); };
+        auto P_tt0 = vec2dp{0.3, 0.1, 1}; // point fixed on tt0
+
+        auto constexpr cmp_eps = 1e-10;
+
+        // momentary kinematic system at t = 0
+        kinematic_system2dp ks;
+        ks.add_frame(static_frame2dp("W"s));
+        ks.add_frame(static_frame2dp("P"s, centre, pP), kin_state2dp{.omega = Omega});
+        ks.add_frame(static_frame2dp("T0"s, mount(deg2rad(0)), p0),
+                     kin_state2dp{.omega = w0}, ks.index_of("P"));
+        ks.add_frame(static_frame2dp("T1"s, mount(deg2rad(120)), p1),
+                     kin_state2dp{.omega = w1}, ks.index_of("P"));
+        ks.add_frame(static_frame2dp("T2"s, mount(deg2rad(240)), p2),
+                     kin_state2dp{.omega = w2}, ks.index_of("P"));
+
+        // (a) world velocity of P and its position expressed in tt2 (cross-branch) --------
+        auto P_world = move2dp(P_tt0, ks.get_pos_trafo("T0", "W"));
+        auto v_world = ks.point_velocity(P_world, "T0");
+        auto P_in_tt2 = move2dp(P_tt0, ks.get_pos_trafo("T0", "T2"));
+        fmt::println("  P world pos = {:.3f}, world vel = {:.3f}", P_world, v_world);
+        fmt::println("  P in tt2    = {:.3f}", P_in_tt2);
+
+        // relative velocity w.r.t. the inertial world equals the absolute world velocity
+        auto v_rel_world = ks.relative_point_velocity(P_tt0, "T0", "W");
+        CHECK(v_rel_world.x == doctest::Approx(v_world.x).epsilon(cmp_eps));
+        CHECK(v_rel_world.y == doctest::Approx(v_world.y).epsilon(cmp_eps));
+        // an observer reads zero for a point fixed in their own frame
+        auto v_self = ks.relative_point_velocity(P_tt0, "T0", "T0");
+        CHECK(to_val(bulk_nrm(v_self)) == doctest::Approx(0.0).epsilon(cmp_eps));
+
+        // (b) velocity of P as measured by an observer riding tt2, vs finite difference ----
+        auto v_rel_tt2 = ks.relative_point_velocity(P_tt0, "T0", "T2");
+
+        // P's position in tt2 coordinates, with all poses advanced by time t
+        auto P_in_tt2_at = [&](double t) {
+            static_system2dp ds;
+            ds.add_frame(static_frame2dp("W"s));
+            ds.add_frame(static_frame2dp("P"s, centre, pP + Omega * t));
+            ds.add_frame(static_frame2dp("T0"s, mount(deg2rad(0)), p0 + w0 * t),
+                         ds.index_of("P"));
+            ds.add_frame(static_frame2dp("T1"s, mount(deg2rad(120)), p1 + w1 * t),
+                         ds.index_of("P"));
+            ds.add_frame(static_frame2dp("T2"s, mount(deg2rad(240)), p2 + w2 * t),
+                         ds.index_of("P"));
+            return move2dp(P_tt0, ds.get_pos_trafo("T0", "T2"));
+        };
+        double const dt = 1e-5;
+        auto pp = P_in_tt2_at(dt);
+        auto pm = P_in_tt2_at(-dt);
+        auto v_fd = vec2dp{(pp.x - pm.x) / (2 * dt), (pp.y - pm.y) / (2 * dt), 0.0};
+
+        fmt::println("  v_rel (tt2 observer) = {:.3f}, finite-diff = {:.3f}", v_rel_tt2, v_fd);
+        CHECK(v_rel_tt2.x == doctest::Approx(v_fd.x).epsilon(1e-6));
+        CHECK(v_rel_tt2.y == doctest::Approx(v_fd.y).epsilon(1e-6));
+
+        // (c) acceleration of P as measured by the tt2 observer, vs 2nd central difference --
+        auto a_rel_tt2 = ks.relative_point_acceleration(P_tt0, "T0", "T2");
+        double const dt_a = 1e-4; // a 2nd difference needs a larger step than a 1st difference
+        auto qp = P_in_tt2_at(dt_a);
+        auto q0 = P_in_tt2_at(0.0);
+        auto qm = P_in_tt2_at(-dt_a);
+        auto a_fd = vec2dp{(qp.x - 2 * q0.x + qm.x) / (dt_a * dt_a),
+                           (qp.y - 2 * q0.y + qm.y) / (dt_a * dt_a), 0.0};
+        fmt::println("  a_rel (tt2 observer) = {:.3f}, finite-diff = {:.3f}", a_rel_tt2, a_fd);
+        CHECK(a_rel_tt2.x == doctest::Approx(a_fd.x).epsilon(1e-4));
+        CHECK(a_rel_tt2.y == doctest::Approx(a_fd.y).epsilon(1e-4));
+
+        // an observer reads zero acceleration for a point fixed in their own frame
+        auto a_self = ks.relative_point_acceleration(P_tt0, "T0", "T0");
+        CHECK(to_val(bulk_nrm(a_self)) == doctest::Approx(0.0).epsilon(cmp_eps));
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: kinematic_system2dp - step(dt) time evolution")
+    {
+        // step(dt) advances each frame's relative pose on the motor manifold by
+        // exp(0.5 B dt) and ramps its velocity by the relative acceleration. For CONSTANT
+        // twist the pose evolution is EXACT: N steps of dt match a single rebuild at
+        // t = N*dt to ~machine precision.
+        fmt::println("pga2dp: kinematic_system2dp - step(dt) time evolution");
+        auto constexpr cmp_eps = 1e-9;
+
+        // (a) constant spin: stepping a wheel == rebuilding at the accumulated angle -------
+        {
+            auto omega = deg2rad(50);
+            auto P_B = vec2dp{0.5, -0.3, 1};
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp("W"s));
+            ks.add_frame(static_frame2dp("B"s, vec2dp{2, 1, 1}, deg2rad(10)),
+                         kin_state2dp{.omega = omega});
+
+            double const T = 1.0;
+            int const N = 100;
+            for (int k = 0; k < N; ++k) ks.step(T / N);
+
+            // reference: rebuild at the final angle 10 deg + omega*T (origin stays fixed)
+            static_system2dp ref;
+            ref.add_frame(static_frame2dp("W"s));
+            ref.add_frame(static_frame2dp("B"s, vec2dp{2, 1, 1}, deg2rad(10) + omega * T));
+
+            auto P_step = move2dp(P_B, ks.get_pos_trafo("B", "W"));
+            auto P_ref = move2dp(P_B, ref.get_pos_trafo("B", "W"));
+            fmt::println("  stepped P = {:.3f}, rebuilt P = {:.3f}", P_step, P_ref);
+            CHECK(P_step.x == doctest::Approx(P_ref.x).epsilon(cmp_eps));
+            CHECK(P_step.y == doctest::Approx(P_ref.y).epsilon(cmp_eps));
+            CHECK(ks.relative_twist("B").z == doctest::Approx(omega).epsilon(cmp_eps));
+        }
+
+        // (b) opening a lid: step 15 -> 30 deg over 1 s and check the tip ------------------
+        {
+            auto side = value_t(2.0), lid_len = value_t(2.0);
+            auto lid_omega = deg2rad(15); // 15 deg/s -> 30 deg after 1 s
+            auto P_L = vec2dp{lid_len, 0, 1};
+
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp("W"s));
+            ks.add_frame(static_frame2dp("S"s, vec2dp{3, 2, 1}, 0.0));
+            ks.add_frame(static_frame2dp("L"s, vec2dp{0, side, 1}, deg2rad(15)),
+                         kin_state2dp{.omega = lid_omega});
+
+            double const T = 1.0;
+            int const N = 200;
+            for (int k = 0; k < N; ++k) ks.step(T / N);
+
+            auto P_W = move2dp(P_L, ks.get_pos_trafo("L", "W"));
+            auto c = std::cos(deg2rad(30)), s = std::sin(deg2rad(30));
+            fmt::println("  lid tip after opening: P_W = {:.3f}", P_W);
+            CHECK(P_W.x == doctest::Approx(lid_len * c + 3.0).epsilon(cmp_eps));
+            CHECK(P_W.y == doctest::Approx(lid_len * s + 4.0).epsilon(cmp_eps));
+        }
+
+        // (c) constant angular acceleration ramps the velocity exactly --------------------
+        {
+            auto alpha = deg2rad(20);
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp("W"s));
+            ks.add_frame(static_frame2dp("B"s), kin_state2dp{.omega = 0.0, .alpha = alpha});
+
+            double const T = 1.0;
+            int const N = 500;
+            for (int k = 0; k < N; ++k) ks.step(T / N);
+
+            // omega(T) = alpha*T is an exact sum of equal Euler increments
+            CHECK(ks.relative_twist("B").z == doctest::Approx(alpha * T).epsilon(cmp_eps));
+            // the angle ~ 0.5*alpha*T^2 (explicit Euler, first order in dt) -> loose check
+            CHECK(rad2deg(ks.frame(1).get_pose().phi) ==
+                  doctest::Approx(rad2deg(0.5 * alpha * T * T)).epsilon(2e-2));
+        }
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: kinematic_system2dp - inertial vs non-inertial frames (intuitive)")
+    {
+        // An inertial frame neither rotates nor accelerates. Constant linear velocity is
+        // fine; any rotation or any acceleration makes a frame non-inertial.
+        fmt::println("pga2dp: kinematic_system2dp - inertial vs non-inertial frames");
+
+        // the ground / root is the inertial reference
+        {
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp{}); // ground
+            CHECK(ks.is_inertial_frame("I"));
+            CHECK(ks.is_inertial_system());
+        }
+
+        // a frame gliding at CONSTANT velocity is still inertial (no spin, no
+        // acceleration)
+        {
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp{});
+            ks.add_frame(static_frame2dp("glider"s, vec2dp{1, 0, 1}),
+                         kin_state2dp{.vel = vec2dp{2, 0, 0}}); // constant 2 in +x
+            CHECK(ks.is_inertial_frame("glider"));
+            CHECK(ks.is_inertial_system()); // ground AND glider are inertial
+        }
+
+        // a frame that ACCELERATES linearly is non-inertial
+        {
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp{});
+            ks.add_frame(static_frame2dp("rocket"s, vec2dp{1, 0, 1}),
+                         kin_state2dp{.acc = vec2dp{0, 3, 0}});
+            CHECK_FALSE(ks.is_inertial_frame("rocket"));
+            CHECK_FALSE(ks.is_inertial_system());
+        }
+
+        // a spinning frame is non-inertial (rotating frames always are)
+        {
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp{});
+            ks.add_frame(static_frame2dp("wheel"s), kin_state2dp{.omega = 2.0});
+            CHECK_FALSE(ks.is_inertial_frame("wheel"));
+        }
+
+        // a turntable that does NOT spin relative to a rotating platform is STILL
+        // non-inertial: it inherits the platform's rotation (and its origin orbits)
+        {
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp{});
+            ks.add_frame(static_frame2dp("P"s, vec2dp{0, 0, 1}),
+                         kin_state2dp{.omega = 1.0});
+            ks.add_frame(static_frame2dp("T"s, vec2dp{2, 0, 1}),
+                         1); // mounted, no own spin
+            CHECK_FALSE(ks.is_inertial_frame("P"));
+            CHECK_FALSE(ks.is_inertial_frame("T")); // inherits the platform's rotation
+        }
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga2dp: kinematic_system2dp - world twist & point velocity")
+    {
+        fmt::println("pga2dp: kinematic_system2dp - world twist & point velocity");
+
+        auto constexpr cmp_eps = 1e-10;
+
+        // --- pure translation: a body frame sliding at v=(1,0) relative to ground ---
+        {
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp{});                     // ground (root, at rest)
+            ks.add_frame(static_frame2dp("B"s, vec2dp{2, 0, 1}), // body at (2,0)
+                         kin_state2dp{.vel = vec2dp{1.0, 0.0, 0.0}}); // sliding v = (1,0)
+
+            // a translating frame has zero angular rate ...
+            CHECK(ks.twist_world(1).z == doctest::Approx(0.0).epsilon(cmp_eps));
+
+            // ... and every attached point moves with the same velocity (1,0)
+            auto vA = ks.point_velocity(vec2dp{5, 7, 1}, 1);
+            auto vB = ks.point_velocity(vec2dp{-3, 2, 1}, "B");
+            CHECK(vA.x == doctest::Approx(1.0).epsilon(cmp_eps));
+            CHECK(vA.y == doctest::Approx(0.0).epsilon(cmp_eps));
+            CHECK(vB.x == doctest::Approx(1.0).epsilon(cmp_eps));
+            CHECK(vB.y == doctest::Approx(0.0).epsilon(cmp_eps));
+        }
+
+        // --- merry-go-round: a point on a turntable mounted on a rotating platform,
+        //     validated by finite-differencing the actual motor evolution over time ---
+        {
+            auto Omega = deg2rad(40);        // platform angular velocity  [rad/s]
+            auto omega = deg2rad(90);        // turntable spin vs. platform [rad/s]
+            auto centre = vec2dp{1, 2, 1};   // platform centre in ground coords
+            auto mount = vec2dp{2, 0, 1};    // turntable origin in platform coords
+            auto X_tt = vec2dp{0.3, 0.1, 1}; // a point fixed on the turntable
+
+            // world position of X_tt at time t: poses advanced by the constant rates
+            // (platform spins about its centre, turntable spins about its own origin)
+            auto world_pos = [&](double t) {
+                static_system2dp ds;
+                ds.add_frame(static_frame2dp{});
+                ds.add_frame(static_frame2dp("P"s, centre, Omega * t));
+                ds.add_frame(static_frame2dp("T"s, mount, omega * t), 1);
+                return move2dp(X_tt, ds.get_pos_trafo(2, 0));
+            };
+
+            // momentary kinematic system at t = 0
+            kinematic_system2dp ks;
+            ks.add_frame(static_frame2dp{});
+            ks.add_frame(static_frame2dp("P"s, centre, 0.0),
+                         kin_state2dp{.omega = Omega}); // platform spins about its centre
+            ks.add_frame(static_frame2dp("T"s, mount, 0.0), kin_state2dp{.omega = omega},
+                         1); // turntable spins about origin
+
+            // formatters: print a single momentary state and the whole configured system
+            // (each line shows the frame pose plus its decoded relative kinematic state)
+            fmt::println("a single state: {:.3f}",
+                         kin_state2dp{.vel = vec2dp{1.0, -0.5, 0.0}, .omega = 2.0});
+            fmt::println("ks = {:.4f}", ks);
+
+            auto X_world0 = move2dp(X_tt, ks.get_pos_trafo(2, 0));
+            auto v_formula = ks.point_velocity(X_world0, "T");
+
+            // central finite difference of the true motor evolution
+            double const dt = 1e-5;
+            auto p_plus = world_pos(dt);
+            auto p_minus = world_pos(-dt);
+            auto v_fd = vec2dp{(p_plus.x - p_minus.x) / (2 * dt),
+                               (p_plus.y - p_minus.y) / (2 * dt), 0.0};
+
+            fmt::println("X_world0  = {:.3f}", X_world0);
+            fmt::println("v_formula = {:.3f}", v_formula);
+            fmt::println("v_fd      = {:.3f}", v_fd);
+
+            // world angular rate is the sum of the two spins (omega + Omega)
+            CHECK(ks.twist_world("T").z ==
+                  doctest::Approx(Omega + omega).epsilon(cmp_eps));
+
+            // point_velocity matches the finite-difference reference (loose eps: O(dt^2))
+            CHECK(v_formula.x == doctest::Approx(v_fd.x).epsilon(1e-6));
+            CHECK(v_formula.y == doctest::Approx(v_fd.y).epsilon(1e-6));
+        }
+
+        fmt::println("");
+    }
 
     // TODO: show more complex setups
     //

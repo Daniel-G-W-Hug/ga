@@ -125,9 +125,12 @@ the following notation:
   (`\usepackage{accents}`)
 - For unit motors, `rev(M)` and `rrev(M)` coincide as group inverses, but the symbols and
   function names are kept distinct throughout this codebase
-- Motor composition uses ⟇: `M₁ ⟇ M₂` corresponds to `rgpr(M1, M2)` in code
-- The sandwich product for rigid motion uses $\utilde{M}$: $M ⟑ X ⟑ \utilde{M}$
-  corresponds to `move2dp(X, M)` / `move3dp(X, M)` in code
+- Motor composition (PGA) uses ⟇: `M₁ ⟇ M₂` corresponds to `rgpr(M1, M2)` in code
+- The rigid-motion sandwich differs by algebra — the product and the reverse must match:
+  - **EGA / STA** (rotor): $R ⟑ X ⟑ \tilde{R}$ — geometric product `⟑` with reverse `rev`;
+    corresponds to `rotate(X, R)` (EGA) / `transform(X, R)` (STA) in code
+  - **PGA** (motor): $M ⟇ X ⟇ \utilde{M}$ — regressive product `⟇` with regressive reverse
+    `rrev`; corresponds to `move2dp(X, M)` / `move3dp(X, M)` in code
 
 ### Markdown Formatting
 

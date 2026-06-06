@@ -575,28 +575,49 @@ TEST_SUITE("PGA 2DP Tests")
         }
     }
 
-    // TEST_CASE("Vec2dp: operations - angle III (angle between lines)")
-    // {
-    //     fmt::println("Vec2dp: operations - angle III (angle between lines)");
+    TEST_CASE("Vec2dp: operations - angle III (angle between lines)")
+    {
+        fmt::println("Vec2dp: operations - angle III (angle between lines)");
 
-    //     auto x_axis = bivec2dp(0, 1, 0);
-    //     auto y_axis = bivec2dp(1, 0, 0); // really this is -y_axis_2dp
+        auto x_axis = x_axis_2dp; // bivec2dp(1, 0, 0)
+        auto y_axis = y_axis_2dp; // bivec2dp(0, 1, 0)
 
-    //     fmt::println("");
+        fmt::println("");
 
-    //     for (int i = 0; i <= 23; ++i) {
-    //         double phi_y = i * pi / 12;
-    //         double phi_x = phi_y + pi / 2.;
-    //         bivec2dp b(cos(phi_x), sin(phi_x),
-    //                    1.5); // tangent lines to circle with r = 1.5
+        for (int i = 0; i <= 23; ++i) {
+            double phi_x = i * pi / 12;
+            double phi_y = phi_x + pi / 2.;
 
-    //         auto phi_xc = angle(x_axis, b);
-    //         fmt::println("i={:3}, phi_x={: 8.3f}, phi_y={: 8.3f}, phi_xc={: 8.3f}", i,
-    //                      rad2deg(phi_x), rad2deg(phi_y), rad2deg(phi_xc));
-    //     }
+            // tangent lines to circle with r = 1.5
+            bivec2dp b(cos(phi_x), sin(phi_x), 1.5);
 
-    //     fmt::println("");
-    // }
+            auto phi_xc = angle(x_axis, b);
+            // auto phi_yc = angle(y_axis, b);
+            fmt::println("i ={:3}, phi_x ={: 8.3f}, phi_y ={: 8.3f}, phi_xc ={: 8.3f},"
+                         " B = {: 6.3f}, att(B) = {: 6.3f}",
+                         i, rad2deg(phi_x), rad2deg(phi_y), rad2deg(phi_xc), b, att(b));
+        }
+
+        fmt::println("");
+    }
+
+    TEST_CASE("Vec2dp: operations - angle IV (angle between points and lines)")
+    {
+        fmt::println("Vec2dp: operations - angle IV (angle between points and lines)");
+
+        auto P0 = vec2dp(1, 1, 1);
+        auto P1 = vec2dp(2, 2, 1); // point P1 in "same direction as P0"
+        auto v = vec2dp(std::cos(deg2rad(15)), std::sin(deg2rad(15)), 0.0);
+
+        fmt::println("");
+
+        auto constexpr cmp_eps = 1e-7;
+        CHECK(angle(P0, P1) == doctest::Approx(0).epsilon(cmp_eps));
+        CHECK(angle(P0, v) == doctest::Approx(angle(P1, v)).epsilon(cmp_eps));
+        CHECK(rad2deg(angle(P0, v)) == doctest::Approx(30).epsilon(cmp_eps));
+
+        fmt::println("");
+    }
 
     TEST_CASE("Vec2dp: operations - wedge")
     {

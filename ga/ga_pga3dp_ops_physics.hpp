@@ -335,11 +335,5 @@ BiVec3dp<T> compute_omega_dot(Inertia3dp<T> const& I_inv, BiVec3dp<T> const& F,
 
 } // namespace hd::ga::pga
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// user convenience type for pga3dp physics (based on value_t)
-/////////////////////////////////////////////////////////////////////////////////////////
-namespace hd::ga {
-
-using inertia3dp = pga::Inertia3dp<value_t>; // 6x6 inertia matrix for 3D rigid body
-
-} // namespace hd::ga
+// value_t convenience aliases (inertia3dp, ...) live in ga_usr_types_physics.hpp, next to
+// the other physics convenience types.

@@ -48,13 +48,9 @@ inline std::common_type_t<T, U> angle(Vec2dp<T> const& v1, Vec2dp<U> const& v2)
 {
     using ctype = std::common_type_t<T, U>;
 
-    if ((weight_nrm_sq(v1) != 0.0) || (weight_nrm_sq(v2) != 0.0)) {
-        // the angle between points not at infinity or points not at infinity and a
-        // direction towards infinity is defined as zero
-        return 0.0;
-    }
-
-    // angle is defined only between directions towards points at infinity
+    // angle is defined only between directions towards infinity
+    // thus only the bulk part is considered
+    // (allows angle measurement between points and directions)
 
     ctype nrm_prod = ctype(bulk_nrm(v1)) * ctype(bulk_nrm(v2));
     hd::ga::detail::check_division_by_zero<T, U>(nrm_prod, "vector division");

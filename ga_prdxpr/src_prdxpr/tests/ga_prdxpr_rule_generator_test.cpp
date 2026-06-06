@@ -813,7 +813,7 @@ int main(int argc, char* argv[])
                          test_results[2] ? "✓ PERFECT" : "✗ FAILED");
             fmt::println("pga3dp (G(3,0,1)): {}",
                          test_results[3] ? "✓ PERFECT" : "✗ FAILED");
-            fmt::println("sta4ds (G(3,1,0)): {}",
+            fmt::println("sta4ds (G(1,3,0)): {}",
                          test_results[4] ? "✓ PERFECT" : "✗ FAILED");
 
             bool all_success = std::all_of(test_results.begin(), test_results.end(),
