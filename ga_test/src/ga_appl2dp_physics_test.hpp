@@ -2203,7 +2203,7 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
     inline void cross_check_scene(vec2dp const& origin, value_t phi,
                                   twist2dp const& Omega_b, mvec2dp_u const& M0_ref,
-                                  double eps = 1e-10)
+                                  double cmp_eps = 1e-10)
     {
         kinematic_system2dp ks;
         ks.add_frame(static_frame2dp("W"s));              // world (root)
@@ -2216,17 +2216,17 @@ TEST_SUITE("PGA2DP: physics tests implementation")
              {vec2dp{0, 0, 1}, vec2dp{1, 0, 1}, vec2dp{0, 1, 1}, vec2dp{2, -3, 1}}) {
             auto const a = move2dp(p, M);
             auto const b = move2dp(p, M0_ref);
-            CHECK(a.x == doctest::Approx(b.x).epsilon(eps));
-            CHECK(a.y == doctest::Approx(b.y).epsilon(eps));
-            CHECK(a.z == doctest::Approx(b.z).epsilon(eps));
+            CHECK(a.x == doctest::Approx(b.x).epsilon(cmp_eps));
+            CHECK(a.y == doctest::Approx(b.y).epsilon(cmp_eps));
+            CHECK(a.z == doctest::Approx(b.z).epsilon(cmp_eps));
         }
 
         // our world generator B_w reproduces ga_view's Omega_w = move2dp(Omega_b, M0)
         auto const Bw = ks.twist_world("B");
         auto const Bw_ref = move2dp(Omega_b, M0_ref);
-        CHECK(Bw.x == doctest::Approx(Bw_ref.x).epsilon(eps));
-        CHECK(Bw.y == doctest::Approx(Bw_ref.y).epsilon(eps));
-        CHECK(Bw.z == doctest::Approx(Bw_ref.z).epsilon(eps));
+        CHECK(Bw.x == doctest::Approx(Bw_ref.x).epsilon(cmp_eps));
+        CHECK(Bw.y == doctest::Approx(Bw_ref.y).epsilon(cmp_eps));
+        CHECK(Bw.z == doctest::Approx(Bw_ref.z).epsilon(cmp_eps));
     }
 
     TEST_CASE("pga2dp: ga_view cross-check - Scene 1 (pure translation)")
