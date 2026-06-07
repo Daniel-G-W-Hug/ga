@@ -845,33 +845,58 @@ inline body2dp make_plate_body(value_t m, value_t w, value_t h)
     return body2dp{I, get_inertia_inverse(I), m};
 }
 
+// Joint type connecting a body to its parent (the reduced-coordinate degrees of freedom).
+//   free     : the unconstrained 3-DOF rigid body (Milestone 1). State held in the base
+//              layer's relative twist + pose.
+//   revolute : a 1-DOF hinge about a body-fixed pivot Q_b. The generalised coordinate is
+//              the joint angle phi; the relative twist is forced to omega*Q_b. This is
+//              how the constraint enters: it is built into the parameterisation, so there
+//              are no explicit constraint forces and no constraint drift (clean energy).
+enum class joint2dp { free, revolute };
+
+// Per-frame joint state (parallel to the body[] list). Meaningful for revolute joints;
+// the free body ignores it and uses the base relative twist + pose directly.
+struct joint_state2dp {
+    joint2dp type{joint2dp::free};
+    vec2dp pivot_b{0.0, 0.0, 1.0}; // revolute hinge point in the body frame (Q_b)
+    mvec2dp_u rest;                // revolute: body->parent motor at phi = 0 (reference)
+    value_t phi{0.0};              // revolute joint angle [rad]
+    value_t omega{0.0};            // revolute joint rate [rad/s]
+    // scalar moment of inertia about the hinge (cm moment + Steiner term m*|Q_b|^2).
+    // Drives the 1-DOF pendulum law alpha = tau_hinge / I_hinge; the cm moment used for
+    // the energy diagnostics lives in body[].I instead.
+    value_t I_hinge{0.0};
+};
+
 
 class dynamic_system2dp : public kinematic_system2dp {
 
-    std::vector<body2dp> body;    // per-frame inertial properties (index matches frame)
+    std::vector<body2dp> body;         // per-frame inertial properties (index = frame)
+    std::vector<joint_state2dp> joint; // per-frame joint state (index = frame)
     vec2dp grav{0.0, -9.81, 0.0}; // uniform gravity field [world frame, z = 0 direction]
 
   public:
 
     dynamic_system2dp() = default;
 
-    // add a frame WITHOUT inertia (e.g. the inertial root); keeps body[] in sync with the
-    // base frame list. Mirrors the two base add_frame overloads.
+    // add a frame WITHOUT inertia (e.g. the inertial root); keeps body[]/joint[] in sync
+    // with the base frame list. Mirrors the two base add_frame overloads.
     void add_frame(static_frame2dp const& f, kin_state2dp const& k,
                    size_t parent_idx = prev_frame)
     {
         kinematic_system2dp::add_frame(f, k, parent_idx);
         body.push_back(body2dp{});
+        joint.push_back(joint_state2dp{});
     }
 
     void add_frame(static_frame2dp const& f, size_t parent_idx = prev_frame)
     {
         kinematic_system2dp::add_frame(f, parent_idx);
         body.push_back(body2dp{});
+        joint.push_back(joint_state2dp{});
     }
 
-    // add a dynamic rigid body: frame pose + inertial properties + initial kinematic
-    // state
+    // add a free (3-DOF) dynamic rigid body: pose + inertial properties + initial state
     void add_body(static_frame2dp const& f, body2dp const& b,
                   kin_state2dp const& k = kin_state2dp{}, size_t parent_idx = prev_frame)
     {
@@ -879,16 +904,53 @@ class dynamic_system2dp : public kinematic_system2dp {
         body.back() = b;
     }
 
+    // add a revolute-jointed body: a 1-DOF hinge about the body-fixed pivot Q_b
+    // (pivot_b). The frame `f` provides the REST pose (phi = 0); the body then rotates
+    // about Q_b by phi. The effective hinge inertia is the body's cm inertia with the
+    // scalar Steiner term m*(Qx^2+Qy^2) added (rotation about the pivot, not the cm).
+    void add_revolute_body(static_frame2dp const& f, body2dp const& b,
+                           vec2dp const& pivot_b, value_t phi0 = 0.0,
+                           value_t omega0 = 0.0, size_t parent_idx = prev_frame)
+    {
+        add_frame(f, parent_idx);
+        size_t const idx = size() - 1;
+        body[idx] = b;
+
+        joint_state2dp js;
+        js.type = joint2dp::revolute;
+        js.pivot_b = pivot_b;
+        js.rest = rrev(step_pos_trafo(idx)); // body->parent motor at the rest pose
+        js.phi = phi0;
+        js.omega = omega0;
+        // scalar hinge inertia = cm moment + Steiner term m*(Qx^2 + Qy^2)
+        js.I_hinge =
+            b.I.data[8] + b.mass * (pivot_b.x * pivot_b.x + pivot_b.y * pivot_b.y);
+        joint[idx] = js;
+
+        apply_revolute_state(idx); // write phi0/omega0 into the base pose + twist
+    }
+
     void set_gravity(vec2dp const& g) { grav = g; } // g is a direction (z = 0)
     vec2dp gravity() const { return grav; }
 
-    // Advance the system by dt. Milestone 1: every non-root body is integrated as an
-    // independent free rigid body under gravity (RK4 on the body twist; pose evolved on
-    // the motor manifold). Joint coupling/constraints arrive in a later milestone.
+    value_t joint_phi(size_t idx) const { return joint[idx].phi; }     // revolute angle
+    value_t joint_omega(size_t idx) const { return joint[idx].omega; } // revolute rate
+
+    // Current revolute joint angular acceleration at the present state (no integration).
+    value_t joint_accel(size_t idx)
+    {
+        return revolute_alpha(idx, joint[idx].phi, joint[idx].omega);
+    }
+
+    // Advance the system by dt. Each non-root body is integrated by its joint type. NB:
+    // bodies are still stepped independently here -- correct for a single jointed body
+    // (or several uncoupled ones); the COUPLED articulated solve (a chain of revolute
+    // joints, e.g. the double pendulum) is the next milestone.
     void step(value_t dt)
     {
         for (size_t i = 1; i < size(); ++i) {
-            step_free_body(i, dt);
+            if (joint[i].type == joint2dp::revolute) step_revolute_body(i, dt);
+            else step_free_body(i, dt);
         }
     }
 
@@ -965,6 +1027,63 @@ class dynamic_system2dp : public kinematic_system2dp {
         auto const e1 = move2dp(vec2dp{1.0, 0.0, 0.0}, M_new);
         set_pose(idx, vec2dp{o.x / o.z, o.y / o.z, 1.0}, std::atan2(e1.y, e1.x));
         set_twist(idx, Om_end);
+    }
+
+    // body->parent motor of a revolute joint at angle phi: M(phi) = rest (x) exp(1/2 phi
+    // Q_b)
+    mvec2dp_u revolute_motor(size_t idx, value_t phi) const
+    {
+        return rgpr(joint[idx].rest, exp(0.5 * phi * joint[idx].pivot_b));
+    }
+
+    // Write the revolute joint state (phi, omega) into the base pose + relative twist, so
+    // all kinematic queries (get_pos_trafo, twist_world, point_velocity, energy) stay
+    // valid.
+    void apply_revolute_state(size_t idx)
+    {
+        auto const M = revolute_motor(idx, joint[idx].phi);
+        auto const o = move2dp(O_2dp, M);
+        auto const e1 = move2dp(vec2dp{1.0, 0.0, 0.0}, M);
+        set_pose(idx, vec2dp{o.x / o.z, o.y / o.z, 1.0}, std::atan2(e1.y, e1.x));
+        set_twist(idx, joint[idx].omega * joint[idx].pivot_b); // relative twist = w*Q_b
+    }
+
+    // Angular acceleration of a revolute joint at a hypothetical (phi, omega): the 1-DOF
+    // physical-pendulum law alpha = tau / I_hinge, where tau is the moment of gravity
+    // about the (fixed) hinge. The centrifugal force acts along the cm->hinge line, so it
+    // contributes no torque about the hinge and omega does not enter. NB: assumes the
+    // parent is the inertial root (single-body use); the COUPLED chain (where children's
+    // reactions couple the joints) is the next milestone.
+    value_t revolute_alpha(size_t idx, value_t phi, value_t /*omega*/)
+    {
+        auto const M = revolute_motor(idx, phi); // body->world (parent = root)
+        vec2dp const cm_w = move2dp(O_2dp, M);   // cm in world
+        vec2dp const piv_w = move2dp(joint[idx].pivot_b, M); // fixed hinge in world
+        vec2dp const f = body[idx].mass * grav;              // gravity force
+        // tau about the hinge = (r_cm - r_hinge) wedge f  (the e12 / scalar moment)
+        value_t const tau = (cm_w.x - piv_w.x) * f.y - (cm_w.y - piv_w.y) * f.x;
+        return tau / joint[idx].I_hinge;
+    }
+
+    // RK4-integrate one revolute joint over dt in its single generalised coordinate:
+    //   dphi/dt = omega,   domega/dt = revolute_alpha(phi, omega).
+    void step_revolute_body(size_t idx, value_t dt)
+    {
+        value_t const p0 = joint[idx].phi;
+        value_t const w0 = joint[idx].omega;
+
+        value_t const k1p = w0;
+        value_t const k1w = revolute_alpha(idx, p0, w0);
+        value_t const k2p = w0 + 0.5 * dt * k1w;
+        value_t const k2w = revolute_alpha(idx, p0 + 0.5 * dt * k1p, w0 + 0.5 * dt * k1w);
+        value_t const k3p = w0 + 0.5 * dt * k2w;
+        value_t const k3w = revolute_alpha(idx, p0 + 0.5 * dt * k2p, w0 + 0.5 * dt * k2w);
+        value_t const k4p = w0 + dt * k3w;
+        value_t const k4w = revolute_alpha(idx, p0 + dt * k3p, w0 + dt * k3w);
+
+        joint[idx].phi = p0 + (dt / 6.0) * (k1p + 2.0 * k2p + 2.0 * k3p + k4p);
+        joint[idx].omega = w0 + (dt / 6.0) * (k1w + 2.0 * k2w + 2.0 * k3w + k4w);
+        apply_revolute_state(idx);
     }
 };
 

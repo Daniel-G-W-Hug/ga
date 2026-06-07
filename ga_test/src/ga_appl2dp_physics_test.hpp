@@ -3294,4 +3294,67 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    // dynamic_system2dp -- Phase B, Milestone 2: single pivoted plate (revolute joint).
+    // The plate hangs from a body-fixed hinge Q_b and swings under gravity (a compound
+    // pendulum). Validation: (1) the initial angular acceleration equals the analytic
+    // tau/I_hinge, (2) energy is conserved across several swings.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga2dp: dynamic_system2dp - pivoted plate pendulum (M2)")
+    {
+        fmt::println("pga2dp: dynamic_system2dp - pivoted plate pendulum (M2)");
+
+        // square plate w=h=2, mass 1; cm at rest at the world origin; revolute hinge at
+        // the body corner Q_b = (1,1) -> world hinge (1,1). Released from rest (phi0 =
+        // 0).
+        value_t const m = 1.0, w = 2.0, h = 2.0;
+        vec2dp const Q_b{1.0, 1.0, 1.0};
+
+        dynamic_system2dp sys;
+        sys.add_frame(static_frame2dp("W")); // inertial root
+        sys.add_revolute_body(static_frame2dp("B", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                              make_plate_body(m, w, h), Q_b, /*phi0*/ 0.0,
+                              /*omega0*/ 0.0);
+        size_t const B = sys.index_of("B");
+
+        // 1. initial angular acceleration vs the analytic compound-pendulum value
+        //    I_hinge = m(w^2+h^2)/12 + m|Q_b|^2 = 8/12 + 2 = 2.66667
+        //    tau about hinge (1,1) from gravity at cm (0,0): r=(-1,-1) -> tau_z = 9.81
+        value_t const I_hinge = m * (w * w + h * h) / 12.0 + m * (1.0 + 1.0);
+        value_t const alpha0 = 9.81 / I_hinge;
+        value_t const alpha_init = sys.joint_accel(B);
+        CHECK(alpha_init == doctest::Approx(alpha0).epsilon(1e-12));
+
+        // 2. energy conservation over several swing periods
+        //    T = 2*pi*sqrt(I_hinge / (m g d)), d = |Q_b| = sqrt(2)  ->  T ~ 2.76 s
+        value_t const dt = 0.0005;
+        size_t const N = 8000; // 4 s (~1.5 periods)
+        value_t const E0 = sys.total_energy();
+        value_t Emin = E0, Emax = E0, KEmax = 0.0;
+        for (size_t n = 0; n < N; ++n) {
+            sys.step(dt);
+            value_t const E = sys.total_energy();
+            if (E < Emin) Emin = E;
+            if (E > Emax) Emax = E;
+            value_t const ke = sys.kinetic_energy();
+            if (ke > KEmax) KEmax = ke;
+        }
+        value_t const drift = (Emax - Emin) / KEmax; // E0 ~ 0 here, so scale by KEmax
+        CHECK(drift < 1e-5);
+
+        // 3. the lowest point (cm directly below the hinge) reaches the energy-predicted
+        //    kinetic energy: KE_low = m g dh, dh = |Q_b| - 1 = sqrt(2) - 1
+        CHECK(KEmax == doctest::Approx(m * 9.81 * (std::sqrt(2.0) - 1.0)).epsilon(1e-3));
+
+        // 4. the relative twist is exactly the hinge rotation (encoding consistency)
+        CHECK(sys.twist_world("B").z ==
+              doctest::Approx(sys.joint_omega(B)).epsilon(1e-12));
+
+        fmt::println(
+            "  alpha_init = {:.5f} (analytic {:.5f}), dE/KEmax = {:.2e}, KEmax = {:.4f}",
+            alpha_init, alpha0, drift, KEmax);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")
