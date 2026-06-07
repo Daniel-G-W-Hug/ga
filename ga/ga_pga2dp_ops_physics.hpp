@@ -814,6 +814,160 @@ class kinematic_system2dp : public static_system2dp {
     }
 };
 
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// dynamic_system2dp: the forces/inertia tier on top of kinematic_system2dp. Each body
+// carries an inertia map and a mass; a frame's relative acceleration twist is no longer
+// PRESCRIBED (as in the kinematic layer) but COMPUTED from the applied wrench via the
+// se(2) Euler equation
+//   Omega_dot = I^-1[ W - rcmt(Omega, I(Omega)) ]            (= compute_omega_dot)
+// and integrated with RK4. The Coriolis/centrifugal coupling sits entirely in the
+// regressive commutator rcmt(Omega, I(Omega)) -- "twists do not commute" -- which is the
+// geometric-algebra showcase of this tier (see TODO/kinematics_explanation.md).
+//
+// Milestone 1 scope: independent FREE rigid bodies under gravity (no joint coupling or
+// constraints yet -- the revolute-joint / articulated tier follows). The pose is evolved
+// on the motor manifold; the integration state is the Lie-algebra pair (B, Omega).
+/////////////////////////////////////////////////////////////////////////////////////////
+
+// Rigid-body inertial properties of a frame (body frame, about the body origin = cm).
+struct body2dp {
+    Inertia2dp<value_t> I;     // inertia map: body twist -> body momentum
+    Inertia2dp<value_t> I_inv; // its inverse (cached)
+    value_t mass{0.0};         // total mass (gravity + energy)
+};
+
+// Build a body2dp for a uniform rectangular plate (width w along e1, height h along e2)
+// of total mass m, with the body origin at the centre of mass.
+inline body2dp make_plate_body(value_t m, value_t w, value_t h)
+{
+    auto const I = get_plate_inertia(m, w, h); // about cm (default pivot = body origin)
+    return body2dp{I, get_inertia_inverse(I), m};
+}
+
+
+class dynamic_system2dp : public kinematic_system2dp {
+
+    std::vector<body2dp> body;    // per-frame inertial properties (index matches frame)
+    vec2dp grav{0.0, -9.81, 0.0}; // uniform gravity field [world frame, z = 0 direction]
+
+  public:
+
+    dynamic_system2dp() = default;
+
+    // add a frame WITHOUT inertia (e.g. the inertial root); keeps body[] in sync with the
+    // base frame list. Mirrors the two base add_frame overloads.
+    void add_frame(static_frame2dp const& f, kin_state2dp const& k,
+                   size_t parent_idx = prev_frame)
+    {
+        kinematic_system2dp::add_frame(f, k, parent_idx);
+        body.push_back(body2dp{});
+    }
+
+    void add_frame(static_frame2dp const& f, size_t parent_idx = prev_frame)
+    {
+        kinematic_system2dp::add_frame(f, parent_idx);
+        body.push_back(body2dp{});
+    }
+
+    // add a dynamic rigid body: frame pose + inertial properties + initial kinematic
+    // state
+    void add_body(static_frame2dp const& f, body2dp const& b,
+                  kin_state2dp const& k = kin_state2dp{}, size_t parent_idx = prev_frame)
+    {
+        add_frame(f, k, parent_idx);
+        body.back() = b;
+    }
+
+    void set_gravity(vec2dp const& g) { grav = g; } // g is a direction (z = 0)
+    vec2dp gravity() const { return grav; }
+
+    // Advance the system by dt. Milestone 1: every non-root body is integrated as an
+    // independent free rigid body under gravity (RK4 on the body twist; pose evolved on
+    // the motor manifold). Joint coupling/constraints arrive in a later milestone.
+    void step(value_t dt)
+    {
+        for (size_t i = 1; i < size(); ++i) {
+            step_free_body(i, dt);
+        }
+    }
+
+    // --- energy diagnostics (inertial / world frame) ---------------------------------
+
+    // total kinetic energy: sum over bodies of  1/2 m |v_cm|^2 + 1/2 I_cm omega^2
+    value_t kinetic_energy()
+    {
+        value_t ke = 0.0;
+        for (size_t i = 1; i < size(); ++i) {
+            auto const M = get_pos_trafo(i, 0);       // body -> world
+            vec2dp const cm_w = move2dp(O_2dp, M);    // cm in world (body origin = cm)
+            vec2dp const v = point_velocity(cm_w, i); // world velocity of the cm
+            value_t const w = twist_world(i).z;       // world angular velocity
+            value_t const Icm = body[i].I.data[8];    // I[2,2]: moment about cm
+            ke += 0.5 * body[i].mass * (v.x * v.x + v.y * v.y) + 0.5 * Icm * w * w;
+        }
+        return ke;
+    }
+
+    // total gravitational potential energy: sum over bodies of  -m (g . r_cm)
+    value_t potential_energy()
+    {
+        value_t pe = 0.0;
+        for (size_t i = 1; i < size(); ++i) {
+            vec2dp const cm_w = move2dp(O_2dp, get_pos_trafo(i, 0));
+            pe += -body[i].mass * (grav.x * cm_w.x + grav.y * cm_w.y);
+        }
+        return pe;
+    }
+
+    value_t total_energy() { return kinetic_energy() + potential_energy(); }
+
+  private:
+
+    // RK4-integrate one free rigid body (frame idx) over dt under gravity. The
+    // integration state is the Lie-algebra pair (B, Omega): B is the relative generator
+    // accumulated from the current relative pose M0 (so M(t) = M0 (x) exp(1/2 B)), Omega
+    // the body twist. dB/dt = Omega; dOmega/dt = I^-1[ W_body - rcmt(Omega, I(Omega)) ].
+    void step_free_body(size_t idx, value_t dt)
+    {
+        auto const M0 = rrev(step_pos_trafo(idx)); // current body -> parent motor
+        twist2dp const Om0 = relative_twist(idx);  // current body twist
+        auto const& I = body[idx].I;
+        auto const& I_inv = body[idx].I_inv;
+        value_t const m = body[idx].mass;
+
+        // body-frame twist rate from the gravity wrench acting at the cm (= body origin)
+        auto omega_dot = [&](vec2dp const& B, twist2dp const& Om) -> twist2dp {
+            auto const M = rgpr(M0, exp(0.5 * B));  // pose at this stage
+            vec2dp const cm_w = move2dp(O_2dp, M);  // cm in world
+            auto const W_w = wdg(cm_w, m * grav);   // gravity wrench (world)
+            auto const W_b = move2dp(W_w, rrev(M)); // pulled into the body frame
+            return compute_omega_dot(I_inv, W_b, Om, I);
+        };
+
+        vec2dp const B0{0.0, 0.0, 0.0};
+        twist2dp const k1B = Om0;
+        twist2dp const k1O = omega_dot(B0, Om0);
+        twist2dp const k2B = Om0 + 0.5 * dt * k1O;
+        twist2dp const k2O = omega_dot(B0 + 0.5 * dt * k1B, Om0 + 0.5 * dt * k1O);
+        twist2dp const k3B = Om0 + 0.5 * dt * k2O;
+        twist2dp const k3O = omega_dot(B0 + 0.5 * dt * k2B, Om0 + 0.5 * dt * k2O);
+        twist2dp const k4B = Om0 + dt * k3O;
+        twist2dp const k4O = omega_dot(B0 + dt * k3B, Om0 + dt * k3O);
+
+        vec2dp const B_end = B0 + (dt / 6.0) * (k1B + 2.0 * k2B + 2.0 * k3B + k4B);
+        twist2dp const Om_end = Om0 + (dt / 6.0) * (k1O + 2.0 * k2O + 2.0 * k3O + k4O);
+
+        // decode the evolved pose (origin, phi) and write pose + twist into the base
+        // layer
+        auto const M_new = rgpr(M0, exp(0.5 * B_end));
+        auto const o = move2dp(O_2dp, M_new);
+        auto const e1 = move2dp(vec2dp{1.0, 0.0, 0.0}, M_new);
+        set_pose(idx, vec2dp{o.x / o.z, o.y / o.z, 1.0}, std::atan2(e1.y, e1.x));
+        set_twist(idx, Om_end);
+    }
+};
+
 } // namespace hd::ga::pga
 
 // value_t convenience aliases (inertia2dp, ...) live in ga_usr_types_physics.hpp, next to

@@ -180,6 +180,101 @@ motors are for poses.*
 finite displacements", eqn. `motors_do_not_commute`, for the same statement in the formal
 documentation.)
 
+## What GA actually buys for rigid-body dynamics (and what it doesn't)
+
+This section is deliberately even-handed. The GA literature has a long habit of overselling
+— sweeping claims of elegance and universality that don't survive contact with a real
+implementation. The goal here is the opposite: state plainly where the plane-based GA (PGA)
+formulation of rigid-body dynamics is genuinely advantageous, and where a classical method
+is simply the better tool. The honest case is the more convincing one, and being clear
+about the limits is the part the field has historically done badly.
+
+**The baseline.** The fair comparison is not "GA vs. nothing" but GA vs. the standard
+tooling: 4×4 `SE(3)` homogeneous matrices, or Featherstone's *spatial vector algebra*
+(6-component twists/wrenches with a hand-defined spatial cross product `×*`). Both are
+mature and fast. We are reorganising a solved problem, not solving an open one — so the
+question is whether the reorganisation pays for itself.
+
+### Where GA is genuinely advantageous
+
+1. **Pose is a motor, not a 4×4 matrix.** No orthonormality constraint to maintain, no
+   matrix renormalisation drift; one `exp`/`log` covers rotation + translation together as a
+   screw. The pose evolves on the manifold exactly via `M ⟇ exp(½ Ω dt)`.
+2. **Twists and wrenches are bivectors, and the "spatial cross product" is the algebra's
+   commutator.** This is the strongest structural point. Featherstone's 6-vectors are
+   Plücker coordinates of screws *by another name*, and his `×*` is defined by hand with
+   sign conventions. In PGA a twist literally *is* a screw, the momentum/wrench is its dual
+   bivector, and `×*` is `rcmt` (the regressive commutator) — a native product, not a
+   bespoke operator. The geometry Featherstone encodes by convention, PGA encodes
+   structurally.
+3. **The adjoint equals the point sandwich.** Transporting a twist between frames is the
+   *same* operation `move2dp(Ω, M) = M ⟇ Ω ⟇ rrev(M)` as moving a point — classical needs a
+   separate 6×6 `Ad_M`. One operation, double duty (see "The adjoint and twist transport").
+4. **Force-about-a-point is the wedge.** `wdg(Q, f)` is the applied wrench; momentum is the
+   inertia map to a bivector. Moments are not a separate pseudovector with an `r × F` cross
+   product.
+5. **The Euler equation is one dimension-agnostic line:**
+   `Ω̇ = I⁻¹(W − rcmt(Ω, I(Ω)))` (`compute_omega_dot`), identical in 2D and 3D up to which
+   grades the twist and wrench occupy. The 2D→3D lift is the *same formula*, not a rewrite.
+
+### The showcase: Coriolis/centrifugal coupling = a single commutator
+
+The genuinely messy part of a classical double-pendulum Lagrangian is the
+Coriolis/centrifugal coupling — the Christoffel symbols built from derivatives of the mass
+matrix `M(q)`. In the geometric formulation this collapses to **one term: the Lie bracket
+of twists** `[V_i, Ad(ξ_i)]`, already built in `world_VA`'s acceleration recursion (see "The
+acceleration bracket"). GA's message is literally *"the Coriolis force is the geometric fact
+that twists do not commute"*, and the commutator is a native product. That is a real
+conceptual win — statable in one sentence and backed by running code.
+
+These objects are also *drawable*, which 6-vectors are not:
+
+- each body's **instantaneous centre of rotation** is a point read straight off the world
+  twist, `pivot = (B.x/B.z, B.y/B.z)`; for the double pendulum it is a moving point tracing
+  a curve;
+- the **joint screw is literally the joint point** (`Ω_rot = ω·Q`): joint 2 is the moving
+  corner of plate 1, and plate 2's relative twist is `ω₂` times that point;
+- the **momentum / angular-momentum bivector** is a geometric object, not a column of
+  numbers.
+
+So the dynamical state *is* geometry — the visualisation is not a bolt-on.
+
+### Where GA does not help (honest caveats)
+
+- **Inertia is still a linear operator** (3×3 in 2D, 6×6 in 3D). GA represents it as a
+  bivector→bivector map, but for an anisotropic body it does not collapse to a single
+  multivector. No free lunch.
+- **The joint-space mass matrix `M(q)` is still a small numeric solve.** Reducing to
+  generalised coordinates is a *robotics* move, slightly against the GA grain: the geometry
+  computes the entries, but the final `q̈ = M⁻¹(τ − h)` is ordinary linear algebra.
+- **Performance is not the selling point.** Mature spatial-vector / matrix codes are highly
+  optimised. PGA here wins on clarity, unification and visualisability — not speed.
+
+### Are we just redoing the classical method?
+
+Partly, and it is worth saying so. The *algorithm* (recursive Newton–Euler) is classical and
+not ours to claim. What is GA is the **representation and the concepts** —
+screws/motors/bivectors/commutator in place of matrices/6-vectors/hand-defined operators —
+plus three things the standard tooling does not give for free: (a) the same primitives scale
+unchanged from one body to a coupled tree; (b) the state is *visualisable geometry*; (c)
+2D→3D is the same algebra, not a rewrite. That is a legitimate showcase: not "GA solves the
+unsolved", but "GA expresses rigid-body dynamics more honestly, more unifiedly and more
+visually than the standard tooling."
+
+### The trade-off we actually made: reduced vs. maximal coordinates
+
+There is a purer-GA formulation we deliberately did *not* choose: **maximal coordinates**,
+where every body stays a full motor + twist and joints become *constraint wrenches*
+(bivectors) — the "everything is a multivector, nothing reduces to a joint angle"
+formulation. It is more GA-native, but its constraint stabilisation injects/removes energy,
+which fights an energy-conservation test directly. We chose **reduced (joint) coordinates**:
+the revolute joint *is* the constraint (relative twist forced to `ω·Q_joint`), so there are
+no explicit constraint forces, no drift, and energy conservation is clean — at the cost of
+the small `M(q)` solve above. That is roughly 90% of the GA showcase value while actually
+conserving energy. Documenting *why* we passed on the purer option is part of the honest
+account: the purer formulation is more elegant on paper and worse on the metric we care
+about.
+
 ## Further reading (Lie groups vs. Lie algebras)
 
 Orientation: the robotics literature treats these as *matrix* Lie groups (SE(2)/SE(3)) — the

@@ -3245,4 +3245,53 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     //     fmt::println("");
     // }
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    // dynamic_system2dp -- Phase B, Milestone 1: free rigid body under gravity.
+    // Validation criterion (per the plan): energy conservation. The cm of a 2D rigid body
+    // in a uniform field moves as a point mass (parabola, decoupled from spin), and with
+    // no torque about the cm the angular velocity is conserved.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga2dp: dynamic_system2dp - free rigid body energy conservation (M1)")
+    {
+        fmt::println(
+            "pga2dp: dynamic_system2dp - free rigid body energy conservation (M1)");
+
+        // a uniform 1x1 plate (mass 2) launched from (0,5) with velocity (1,0) and spin 2
+        dynamic_system2dp sys;
+        sys.add_frame(static_frame2dp("W")); // inertial root
+        sys.add_body(static_frame2dp("B", vec2dp{0.0, 5.0, 1.0}, 0.0),
+                     make_plate_body(2.0, 1.0, 1.0),
+                     kin_state2dp{.vel = vec2dp{1.0, 0.0, 0.0}, .omega = 2.0});
+
+        value_t const dt = 0.0005;
+        size_t const N = 2000; // -> t = 1.0 s
+
+        value_t const E0 = sys.total_energy();
+        value_t Emin = E0, Emax = E0;
+        for (size_t n = 0; n < N; ++n) {
+            sys.step(dt);
+            value_t const E = sys.total_energy();
+            if (E < Emin) Emin = E;
+            if (E > Emax) Emax = E;
+        }
+        value_t const drift = (Emax - Emin) / std::abs(E0);
+
+        // 1. energy conservation (the criterion): RK4 drift must be tiny
+        CHECK(drift < 1.0e-6);
+
+        // 2. cm follows the projectile parabola (decoupled from spin):
+        //    x(1) = 0 + 1*1 = 1 ;  y(1) = 5 - 1/2 * 9.81 * 1^2 = 0.095
+        vec2dp const cm = move2dp(O_2dp, sys.get_pos_trafo("B", "W"));
+        CHECK(cm.x == doctest::Approx(1.0).epsilon(1e-4));
+        CHECK(cm.y == doctest::Approx(5.0 - 0.5 * 9.81).epsilon(1e-4));
+
+        // 3. no torque about the cm -> angular velocity is conserved
+        CHECK(sys.twist_world("B").z == doctest::Approx(2.0).epsilon(1e-6));
+
+        fmt::println("  E0 = {:.6f}, dE/E = {:.2e}, cm = {:>-7.3f}, omega = {:.4f}", E0,
+                     drift, cm, sys.twist_world("B").z);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")
