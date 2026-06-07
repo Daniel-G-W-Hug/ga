@@ -982,17 +982,17 @@ class dynamic_system2dp : public kinematic_system2dp {
 
     // --- energy diagnostics (inertial / world frame) ---------------------------------
 
-    // total kinetic energy: sum over bodies of  1/2 m |v_cm|^2 + 1/2 I_cm omega^2
+    // total kinetic energy: sum over bodies of  1/2 <V_body, I(V_body)>, the spatial
+    // inertia-map quadratic form (= 1/2 m|v_cm|^2 + 1/2 I_cm omega^2), evaluated with the
+    // body twist V_body = the world twist pulled into the body frame where the inertia
+    // map lives. Same dimension-agnostic form used by the mass matrix and the 3D lift.
     value_t kinetic_energy()
     {
         value_t ke = 0.0;
         for (size_t i = 1; i < size(); ++i) {
-            auto const M = get_pos_trafo(i, 0);       // body -> world
-            vec2dp const cm_w = move2dp(O_2dp, M);    // cm in world (body origin = cm)
-            vec2dp const v = point_velocity(cm_w, i); // world velocity of the cm
-            value_t const w = twist_world(i).z;       // world angular velocity
-            value_t const Icm = body[i].I.data[8];    // I[2,2]: moment about cm
-            ke += 0.5 * body[i].mass * (v.x * v.x + v.y * v.y) + 0.5 * Icm * w * w;
+            auto const Minv = rrev(get_pos_trafo(i, 0));       // world -> body i
+            twist2dp const Vb = move2dp(twist_world(i), Minv); // body twist of body i
+            ke += 0.5 * spatial_dot(Vb, body[i].I(Vb));
         }
         return ke;
     }
@@ -1017,33 +1017,46 @@ class dynamic_system2dp : public kinematic_system2dp {
     {
         auto const rj = dof_joints();
         size_t const n = rj.size();
-        std::vector<vec2dp> S(n), cm(n);
-        std::vector<value_t> mass(n), Icm(n);
+        std::vector<twist2dp> S(n); // world joint screws (unit rate)
+        std::vector<mvec2dp_u> Minv(
+            n); // world -> body i motor (pulls a twist into body i)
         for (size_t i = 0; i < n; ++i) {
-            size_t const fi = rj[i];
-            auto const M = get_pos_trafo(fi, 0);
-            cm[i] = move2dp(O_2dp, M);
-            S[i] = move2dp(joint[fi].screw_b, M);
-            mass[i] = body[fi].mass;
-            Icm[i] = body[fi].I.data[8];
+            auto const M = get_pos_trafo(rj[i], 0); // body i -> world
+            S[i] = move2dp(joint[rj[i]].screw_b, M);
+            Minv[i] = rrev(M);
         }
         std::vector<value_t> Mmat(n * n, 0.0);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t k = 0; k < n; ++k)
-                for (size_t i = 0; i < n; ++i)
-                    if (is_ancestor(rj[j], rj[i]) && is_ancestor(rj[k], rj[i])) {
-                        vec2dp const vj = velocity_field(S[j], cm[i]);
-                        vec2dp const vk = velocity_field(S[k], cm[i]);
-                        // mass term (any joint) + angular term (revolute: S.z=1 ->
-                        // I_cm; prismatic: S.z=0 -> 0). This S.z factor is the ONLY
-                        // rotation-vs-translation distinction in the dynamics.
-                        Mmat[j * n + k] += mass[i] * (vj.x * vk.x + vj.y * vk.y) +
-                                           Icm[i] * S[j].z * S[k].z;
-                    }
+        for (size_t i = 0; i < n; ++i) {
+            auto const& I = body[rj[i]].I; // inertia map about body i's cm (body frame)
+            for (size_t j = 0; j < n; ++j) {
+                if (!is_ancestor(rj[j], rj[i])) continue;
+                twist2dp const xj = move2dp(S[j], Minv[i]); // joint-j screw in body i
+                for (size_t k = 0; k < n; ++k) {
+                    if (!is_ancestor(rj[k], rj[i])) continue;
+                    twist2dp const xk = move2dp(S[k], Minv[i]);
+                    // inertia-map quadratic form: carries mass + angular term uniformly
+                    // (no S.z split), and is the form that lifts unchanged to 3D.
+                    Mmat[j * n + k] += spatial_dot(xj, I(xk));
+                }
+            }
+        }
         return Mmat;
     }
 
   private:
+
+    // Spatial (reciprocal / Klein) pairing of a velocity twist with a momentum or
+    // wrench bivector -> scalar. This is the dimension-agnostic inertia-map quadratic
+    // form: with mom = I(xi), the value <xi, I(xi)> equals 2x the kinetic energy of a
+    // body moving with body twist xi -- the mass AND the angular term are carried
+    // uniformly by the inertia map I, with no separate m|v|^2 + I_cm*w^2 split. This is
+    // the form that lifts UNCHANGED to 3D (I becomes the 6x6 Inertia3dp, the pairing the
+    // BiVec3dp screw reciprocal product). In PGA2DP the pairing is the regressive product
+    //   spatial_dot(xi, mom) = -rwdg(xi, mom) = xi.y*mom.x - xi.x*mom.y + xi.z*mom.z.
+    static value_t spatial_dot(twist2dp const& xi, bivec2dp const& mom)
+    {
+        return -value_t(rwdg(xi, mom));
+    }
 
     // RK4-integrate one free rigid body (frame idx) over dt under gravity. The
     // integration state is the Lie-algebra pair (B, Omega): B is the relative generator
@@ -1151,16 +1164,17 @@ class dynamic_system2dp : public kinematic_system2dp {
     // Joint-space forward dynamics for the revolute chain `rj`: returns the joint angular
     // accelerations q-ddot solving  M(q) q-ddot = RHS(q, q-dot), assembled by virtual
     // work over the bodies (all quantities GA-native):
-    //   M[j][k] = sum_i ( m_i (vcm_i(S_j) . vcm_i(S_k)) + I_cm_i )  over bodies i having
-    //             BOTH joints j,k as ancestors;
+    //   M[j][k] = sum_i  spatial_dot( S_j^body_i , I_i( S_k^body_i ) )  over bodies i
+    //             having BOTH joints j,k as ancestors  (the spatial inertia-map form);
     //   RHS[j]  = sum_i m_i ( vcm_i(S_j) . g  -  vcm_i(S_j) . b_cm_i )  over bodies i
     //   having
     //             joint j as ancestor  (gravity generalised force minus Coriolis bias).
-    // S_j = move2dp(Q_j, M_{j->world}) is the world joint screw; vcm_i(S) =
-    // velocity_field( S, cm_i) is the cm velocity per unit joint rate (a spatial-Jacobian
-    // column); b_cm_i is the velocity-product (Coriolis/centripetal) cm acceleration at
-    // q-ddot = 0. Pre: the joint state (phi, omega) is already applied to the base pose +
-    // relative twist.
+    // S_j = move2dp(Q_j, M_{j->world}) is the world joint screw; S_j^body_i =
+    // move2dp(S_j, rrev(M_i)) transports it into body i's frame (where its inertia map
+    // I_i lives); vcm_i(S) = velocity_field(S, cm_i) is the cm velocity per unit joint
+    // rate (a spatial-Jacobian column); b_cm_i is the velocity-product
+    // (Coriolis/centripetal) cm acceleration at q-ddot = 0. Pre: the joint state (phi,
+    // omega) is already applied to the base pose + relative twist.
     std::vector<value_t> forward_dynamics(std::vector<size_t> const& rj)
     {
         size_t const n = rj.size();
@@ -1171,15 +1185,17 @@ class dynamic_system2dp : public kinematic_system2dp {
             set_accel_twist(rj[k], twist2dp{0.0, 0.0, 0.0});
 
         std::vector<vec2dp> S(n), cm(n), bcm(n);
-        std::vector<value_t> mass(n), Icm(n);
+        std::vector<mvec2dp_u> Minv(
+            n); // world -> body i motor (pulls a twist into body i)
+        std::vector<value_t> mass(n);
         for (size_t i = 0; i < n; ++i) {
             size_t const fi = rj[i];
             auto const M = get_pos_trafo(fi, 0);
             cm[i] = move2dp(O_2dp, M);
             bcm[i] = point_acceleration(cm[i], fi); // bias cm accel (rel_atwist = 0)
             S[i] = move2dp(joint[fi].screw_b, M);   // world joint screw (unit rate)
+            Minv[i] = rrev(M);
             mass[i] = body[fi].mass;
-            Icm[i] = body[fi].I.data[8]; // I[2,2]: moment about the cm
         }
 
         std::vector<value_t> Mmat(n * n, 0.0), RHS(n, 0.0);
@@ -1189,13 +1205,15 @@ class dynamic_system2dp : public kinematic_system2dp {
                 vec2dp const vj = velocity_field(S[j], cm[i]); // rcmt(S_j, cm_i)
                 RHS[j] += mass[i] * (vj.x * grav.x + vj.y * grav.y) -
                           mass[i] * (vj.x * bcm[i].x + vj.y * bcm[i].y);
+                auto const& I =
+                    body[rj[i]].I; // inertia map about body i's cm (body frame)
+                twist2dp const xj = move2dp(S[j], Minv[i]); // joint-j screw in body i
                 for (size_t k = 0; k < n; ++k) {
                     if (!is_ancestor(rj[k], rj[i])) continue;
-                    vec2dp const vk = velocity_field(S[k], cm[i]);
-                    // mass term (any joint) + angular term: revolute S.z=1 -> I_cm,
-                    // prismatic S.z=0 -> 0 (the only rotation-vs-translation distinction)
-                    Mmat[j * n + k] +=
-                        mass[i] * (vj.x * vk.x + vj.y * vk.y) + Icm[i] * S[j].z * S[k].z;
+                    twist2dp const xk = move2dp(S[k], Minv[i]);
+                    // inertia-map quadratic form: carries mass + angular term uniformly
+                    // (no S.z split), and is the form that lifts unchanged to 3D.
+                    Mmat[j * n + k] += spatial_dot(xj, I(xk));
                 }
             }
         }
