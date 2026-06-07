@@ -134,8 +134,8 @@ the following notation:
 
 | Symbol       | Unicode | LaTeX                         | Meaning                                     |
 | ------------ | ------- | ----------------------------- | ------------------------------------------- |
-| ⟑           | U+27D1  | (direct Unicode)              | Geometric product                           |
-| ⟇           | U+27C7  | (direct Unicode)              | Regressive geometric product                |
+| ⟑            | U+27D1  | (direct Unicode)              | Geometric product                           |
+| ⟇            | U+27C7  | (direct Unicode)              | Regressive geometric product                |
 | $\tilde{M}$  | —       | `\tilde{}`                    | Reverse of M (`rev(M)` in code)             |
 | $\utilde{M}$ | —       | `\utilde{}` / `\undertilde{}` | Regressive reverse of M (`rrev(M)` in code) |
 
