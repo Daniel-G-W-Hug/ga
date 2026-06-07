@@ -3357,4 +3357,119 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    // dynamic_system2dp -- Phase B, Milestone 3: the DOUBLE PENDULUM (two coupled
+    // revolute plates). Plate 2 is hinged to plate 1's opposite corner. This is the
+    // coupled articulated case, solved by the joint-space forward dynamics. The motion is
+    // chaotic (no analytic trajectory), so correctness is checked by: (1) the joint-space
+    // mass matrix being consistent with the kinetic energy, and (2) energy conservation
+    // across the swing.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga2dp: dynamic_system2dp - double pendulum energy conservation (M3)")
+    {
+        fmt::println(
+            "pga2dp: dynamic_system2dp - double pendulum energy conservation (M3)");
+
+        // two square plates (w=h=2, m=1). Plate 1 hinged to the world at its corner
+        // Q=(1,1) -> world pivot (1,1). Plate 2 hinged to plate 1's opposite corner; its
+        // own connecting corner is also Q=(1,1). Rest poses (relative to parent): cm1 at
+        // (0,0), cm2 at (-2,-2). Released from an energetic, asymmetric state.
+        value_t const m = 1.0, w = 2.0, h = 2.0;
+        vec2dp const Q{1.0, 1.0, 1.0};
+
+        dynamic_system2dp sys;
+        sys.add_frame(static_frame2dp("W")); // inertial root
+        sys.add_revolute_body(static_frame2dp("B1", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                              make_plate_body(m, w, h), Q, /*phi1*/ 2.0, /*omega1*/ 1.0);
+        sys.add_revolute_body(static_frame2dp("B2", vec2dp{-2.0, -2.0, 1.0}, 0.0),
+                              make_plate_body(m, w, h), Q, /*phi2*/ -1.5, /*omega2*/ -2.0,
+                              sys.index_of("B1"));
+        size_t const B1 = sys.index_of("B1"), B2 = sys.index_of("B2");
+
+        // 1. joint-space mass matrix is consistent with the kinetic energy:
+        //    1/2 * qdot^T M(q) qdot == kinetic_energy()   (validates the
+        //    inertia/Jacobian)
+        std::vector<value_t> const Mm = sys.mass_matrix();
+        value_t const w1 = sys.joint_omega(B1), w2 = sys.joint_omega(B2);
+        value_t const ke_M =
+            0.5 * (w1 * (Mm[0] * w1 + Mm[1] * w2) + w2 * (Mm[2] * w1 + Mm[3] * w2));
+        CHECK(ke_M == doctest::Approx(sys.kinetic_energy()).epsilon(1e-12));
+
+        // 2. energy conservation across the coupled (chaotic) swing
+        value_t const dt = 0.0002;
+        size_t const N = 25000; // 5 s
+        value_t const E0 = sys.total_energy();
+        value_t Emin = E0, Emax = E0, KEmax = sys.kinetic_energy();
+        for (size_t n = 0; n < N; ++n) {
+            sys.step(dt);
+            value_t const E = sys.total_energy();
+            if (E < Emin) Emin = E;
+            if (E > Emax) Emax = E;
+            value_t const ke = sys.kinetic_energy();
+            if (ke > KEmax) KEmax = ke;
+        }
+        value_t scale = KEmax;
+        if (std::abs(E0) > scale) scale = std::abs(E0);
+        value_t const drift = (Emax - Emin) / scale;
+        CHECK(drift < 1e-4);
+
+        fmt::println(
+            "  E0 = {:.6f}, KEmax = {:.4f}, dE/scale = {:.2e}, phi=({:.3f},{:.3f})", E0,
+            KEmax, drift, sys.joint_phi(B1), sys.joint_phi(B2));
+        fmt::println("");
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // dynamic_system2dp -- PRISMATIC joint: the translational DoF, to show the PGA
+    // unification. A prismatic slider runs through the SAME machinery as the revolute
+    // hinge: only the joint screw generator differs (an ideal point / direction with z=0
+    // instead of a finite point with z=1). A body on a frictionless 45-degree rail under
+    // gravity should accelerate at -g*sin(45) along the rail, with energy conserved.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga2dp: dynamic_system2dp - prismatic slider (unification of DoF)")
+    {
+        fmt::println("pga2dp: dynamic_system2dp - prismatic slider (unification of DoF)");
+
+        value_t const m = 2.0;
+        value_t const theta = pi / 4.0;
+        vec2dp const dir{std::cos(theta), std::sin(theta), 0.0}; // unit rail direction
+
+        dynamic_system2dp sys;
+        sys.add_frame(static_frame2dp("W"));
+        sys.add_prismatic_body(static_frame2dp("B", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                               make_plate_body(m, 1.0, 1.0), dir, /*s0*/ 0.0, /*v0*/ 0.0);
+        size_t const B = sys.index_of("B");
+
+        // 1. slide acceleration = component of gravity along the rail = -g sin(theta)
+        CHECK(sys.joint_accel(B) ==
+              doctest::Approx(-9.81 * std::sin(theta)).epsilon(1e-12));
+
+        // 2. the joint-space mass for a PURE translation is just the mass (the angular
+        //    I_cm term drops out because the prismatic joint screw has S.z = 0)
+        CHECK(sys.mass_matrix()[0] == doctest::Approx(m).epsilon(1e-12));
+
+        // 3. energy conservation as it slides (constant accel -> RK4 exact)
+        value_t const dt = 0.0005;
+        size_t const N = 4000; // 2 s
+        value_t const E0 = sys.total_energy();
+        value_t Emin = E0, Emax = E0, KEmax = 0.0;
+        for (size_t n = 0; n < N; ++n) {
+            sys.step(dt);
+            value_t const E = sys.total_energy();
+            if (E < Emin) Emin = E;
+            if (E > Emax) Emax = E;
+            value_t const ke = sys.kinetic_energy();
+            if (ke > KEmax) KEmax = ke;
+        }
+        CHECK((Emax - Emin) / KEmax < 1e-12);
+
+        fmt::println(
+            "  a_slide = {:.5f} (analytic {:.5f}), M[0]={:.4f}, dE/KEmax = {:.2e}",
+            sys.joint_accel(B), -9.81 * std::sin(theta), sys.mass_matrix()[0],
+            (Emax - Emin) / KEmax);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")

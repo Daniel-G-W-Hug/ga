@@ -580,6 +580,11 @@ class kinematic_system2dp : public static_system2dp {
         rel_vtwist[index_of(frame_name)] = B;
     }
 
+    // set the relative ACCELERATION twist directly (Lie-algebra-native; parallel to
+    // set_twist). Used by the dynamics tier to set q-ddot per frame for the Newton-Euler
+    // acceleration pass, and to zero it for the velocity-product (bias) pass.
+    void set_accel_twist(size_t idx, twist2dp const& B) { rel_atwist[idx] = B; }
+
     // Advance the system by one time step dt (in-place evolution). Each non-root frame's
     // relative pose is evolved on the motor manifold by the body-frame relative twist,
     //   P_new = P (x) exp(0.5 * B_rel * dt)         [P = body->parent motor]
@@ -846,26 +851,30 @@ inline body2dp make_plate_body(value_t m, value_t w, value_t h)
 }
 
 // Joint type connecting a body to its parent (the reduced-coordinate degrees of freedom).
-//   free     : the unconstrained 3-DOF rigid body (Milestone 1). State held in the base
-//              layer's relative twist + pose.
-//   revolute : a 1-DOF hinge about a body-fixed pivot Q_b. The generalised coordinate is
-//              the joint angle phi; the relative twist is forced to omega*Q_b. This is
-//              how the constraint enters: it is built into the parameterisation, so there
-//              are no explicit constraint forces and no constraint drift (clean energy).
-enum class joint2dp { free, revolute };
+//   free      : the unconstrained 3-DOF rigid body (Milestone 1). State held in the base
+//               layer's relative twist + pose.
+//   revolute  : a 1-DOF hinge -- screw generator = a FINITE point Q_b (z = 1), so the
+//               generalised coordinate q rotates the body about Q_b.
+//   prismatic : a 1-DOF slider -- screw generator = an IDEAL point / direction (z = 0),
+//   so
+//               q translates the body along that direction.
+// Both 1-DOF kinds run through the SAME code: M(q) = rest (x) exp(1/2 q * screw),
+// relative twist = q-dot * screw, Jacobian = velocity_field(screw, .). Only the generator
+// differs
+// -- the PGA unification of rotation and translation.
+enum class joint2dp { free, revolute, prismatic };
 
-// Per-frame joint state (parallel to the body[] list). Meaningful for revolute joints;
-// the free body ignores it and uses the base relative twist + pose directly.
+// Per-frame joint state (parallel to the body[] list). Meaningful for 1-DOF joints; the
+// free body ignores it and uses the base relative twist + pose directly.
 struct joint_state2dp {
     joint2dp type{joint2dp::free};
-    vec2dp pivot_b{0.0, 0.0, 1.0}; // revolute hinge point in the body frame (Q_b)
-    mvec2dp_u rest;                // revolute: body->parent motor at phi = 0 (reference)
-    value_t phi{0.0};              // revolute joint angle [rad]
-    value_t omega{0.0};            // revolute joint rate [rad/s]
-    // scalar moment of inertia about the hinge (cm moment + Steiner term m*|Q_b|^2).
-    // Drives the 1-DOF pendulum law alpha = tau_hinge / I_hinge; the cm moment used for
-    // the energy diagnostics lives in body[].I instead.
-    value_t I_hinge{0.0};
+    // joint screw generator (a twist2dp), in the body frame: a finite point (z = 1) for a
+    // revolute hinge, an ideal point / direction (z = 0) for a prismatic slider. The same
+    // field drives both via the same exponential -- see joint2dp above.
+    vec2dp screw_b{0.0, 0.0, 1.0};
+    mvec2dp_u rest;     // body->parent motor at q = 0 (the reference pose)
+    value_t phi{0.0};   // generalised coordinate q (revolute angle / prismatic distance)
+    value_t omega{0.0}; // generalised rate q-dot
 };
 
 
@@ -904,30 +913,29 @@ class dynamic_system2dp : public kinematic_system2dp {
         body.back() = b;
     }
 
-    // add a revolute-jointed body: a 1-DOF hinge about the body-fixed pivot Q_b
-    // (pivot_b). The frame `f` provides the REST pose (phi = 0); the body then rotates
-    // about Q_b by phi. The effective hinge inertia is the body's cm inertia with the
-    // scalar Steiner term m*(Qx^2+Qy^2) added (rotation about the pivot, not the cm).
+    // add a revolute-jointed body: a 1-DOF hinge about the body-fixed pivot Q_b. The
+    // frame `f` provides the REST pose (q = 0); the body then rotates about Q_b by q. The
+    // joint screw is the pivot point itself (a finite point, z = 1) -- exp(1/2 q Q_b) is
+    // a rotation. The effective hinge inertia (Steiner) emerges automatically from the
+    // spatial Jacobian in the forward dynamics; nothing extra to precompute.
     void add_revolute_body(static_frame2dp const& f, body2dp const& b,
                            vec2dp const& pivot_b, value_t phi0 = 0.0,
                            value_t omega0 = 0.0, size_t parent_idx = prev_frame)
     {
-        add_frame(f, parent_idx);
-        size_t const idx = size() - 1;
-        body[idx] = b;
+        add_screw_joint(f, b, joint2dp::revolute, pivot_b, phi0, omega0, parent_idx);
+    }
 
-        joint_state2dp js;
-        js.type = joint2dp::revolute;
-        js.pivot_b = pivot_b;
-        js.rest = rrev(step_pos_trafo(idx)); // body->parent motor at the rest pose
-        js.phi = phi0;
-        js.omega = omega0;
-        // scalar hinge inertia = cm moment + Steiner term m*(Qx^2 + Qy^2)
-        js.I_hinge =
-            b.I.data[8] + b.mass * (pivot_b.x * pivot_b.x + pivot_b.y * pivot_b.y);
-        joint[idx] = js;
-
-        apply_revolute_state(idx); // write phi0/omega0 into the base pose + twist
+    // add a prismatic-jointed body: a 1-DOF slider along the body-fixed unit direction
+    // `dir`. The joint screw is the translation generator (an ideal point, z = 0):
+    // exp(1/2 s * screw) is a pure translation by s along dir. The machinery is IDENTICAL
+    // to the revolute joint -- only the generator differs (the PGA unification).
+    void add_prismatic_body(static_frame2dp const& f, body2dp const& b, vec2dp const& dir,
+                            value_t s0 = 0.0, value_t v0 = 0.0,
+                            size_t parent_idx = prev_frame)
+    {
+        // translation generator along dir: to_twist(dir, 0) = (-dir.y, dir.x, 0)
+        add_screw_joint(f, b, joint2dp::prismatic, vec2dp{-dir.y, dir.x, 0.0}, s0, v0,
+                        parent_idx);
     }
 
     void set_gravity(vec2dp const& g) { grav = g; } // g is a direction (z = 0)
@@ -936,22 +944,27 @@ class dynamic_system2dp : public kinematic_system2dp {
     value_t joint_phi(size_t idx) const { return joint[idx].phi; }     // revolute angle
     value_t joint_omega(size_t idx) const { return joint[idx].omega; } // revolute rate
 
-    // Current revolute joint angular acceleration at the present state (no integration).
+    // Current angular acceleration of revolute joint `idx`, from the COUPLED joint-space
+    // forward dynamics at the present state (no integration).
     value_t joint_accel(size_t idx)
     {
-        return revolute_alpha(idx, joint[idx].phi, joint[idx].omega);
+        auto const rj = dof_joints();
+        auto const qdd = forward_dynamics(rj);
+        for (size_t k = 0; k < rj.size(); ++k)
+            if (rj[k] == idx) return qdd[k];
+        return 0.0;
     }
 
-    // Advance the system by dt. Each non-root body is integrated by its joint type. NB:
-    // bodies are still stepped independently here -- correct for a single jointed body
-    // (or several uncoupled ones); the COUPLED articulated solve (a chain of revolute
-    // joints, e.g. the double pendulum) is the next milestone.
+    // Advance the system by dt. The revolute joints form a COUPLED chain integrated
+    // together in their reduced (joint-angle) coordinates via the joint-space forward
+    // dynamics; free bodies are integrated independently (Milestone 1). RK4 throughout.
     void step(value_t dt)
     {
-        for (size_t i = 1; i < size(); ++i) {
-            if (joint[i].type == joint2dp::revolute) step_revolute_body(i, dt);
-            else step_free_body(i, dt);
-        }
+        auto const rj = dof_joints();
+        if (!rj.empty()) coupled_step(rj, dt);
+        for (size_t i = 1; i < size(); ++i)
+            if (joint[i].type == joint2dp::free && body[i].mass > 0.0)
+                step_free_body(i, dt);
     }
 
     // --- energy diagnostics (inertial / world frame) ---------------------------------
@@ -983,6 +996,39 @@ class dynamic_system2dp : public kinematic_system2dp {
     }
 
     value_t total_energy() { return kinetic_energy() + potential_energy(); }
+
+    // Joint-space mass matrix M(q) (n*n row-major, n = number of revolute joints) at the
+    // current configuration. A diagnostic / showcase quantity: the reduced inertia of the
+    // articulated system, with the identity  1/2 * qdot^T M(q) qdot == kinetic_energy().
+    std::vector<value_t> mass_matrix()
+    {
+        auto const rj = dof_joints();
+        size_t const n = rj.size();
+        std::vector<vec2dp> S(n), cm(n);
+        std::vector<value_t> mass(n), Icm(n);
+        for (size_t i = 0; i < n; ++i) {
+            size_t const fi = rj[i];
+            auto const M = get_pos_trafo(fi, 0);
+            cm[i] = move2dp(O_2dp, M);
+            S[i] = move2dp(joint[fi].screw_b, M);
+            mass[i] = body[fi].mass;
+            Icm[i] = body[fi].I.data[8];
+        }
+        std::vector<value_t> Mmat(n * n, 0.0);
+        for (size_t j = 0; j < n; ++j)
+            for (size_t k = 0; k < n; ++k)
+                for (size_t i = 0; i < n; ++i)
+                    if (is_ancestor(rj[j], rj[i]) && is_ancestor(rj[k], rj[i])) {
+                        vec2dp const vj = velocity_field(S[j], cm[i]);
+                        vec2dp const vk = velocity_field(S[k], cm[i]);
+                        // mass term (any joint) + angular term (revolute: S.z=1 ->
+                        // I_cm; prismatic: S.z=0 -> 0). This S.z factor is the ONLY
+                        // rotation-vs-translation distinction in the dynamics.
+                        Mmat[j * n + k] += mass[i] * (vj.x * vk.x + vj.y * vk.y) +
+                                           Icm[i] * S[j].z * S[k].z;
+                    }
+        return Mmat;
+    }
 
   private:
 
@@ -1029,61 +1075,212 @@ class dynamic_system2dp : public kinematic_system2dp {
         set_twist(idx, Om_end);
     }
 
-    // body->parent motor of a revolute joint at angle phi: M(phi) = rest (x) exp(1/2 phi
-    // Q_b)
-    mvec2dp_u revolute_motor(size_t idx, value_t phi) const
+    // shared constructor for the 1-DOF screw joints (revolute / prismatic): the ONLY
+    // difference between them is the screw generator passed in.
+    void add_screw_joint(static_frame2dp const& f, body2dp const& b, joint2dp type,
+                         vec2dp const& screw_b, value_t q0, value_t qdot0,
+                         size_t parent_idx)
     {
-        return rgpr(joint[idx].rest, exp(0.5 * phi * joint[idx].pivot_b));
+        add_frame(f, parent_idx);
+        size_t const idx = size() - 1;
+        body[idx] = b;
+        joint_state2dp js;
+        js.type = type;
+        js.screw_b = screw_b;
+        js.rest = rrev(step_pos_trafo(idx)); // body->parent motor at the rest pose
+        js.phi = q0;
+        js.omega = qdot0;
+        joint[idx] = js;
+        apply_joint_state(idx); // write q0/qdot0 into the base pose + twist
     }
 
-    // Write the revolute joint state (phi, omega) into the base pose + relative twist, so
-    // all kinematic queries (get_pos_trafo, twist_world, point_velocity, energy) stay
-    // valid.
-    void apply_revolute_state(size_t idx)
+    // body->parent motor at generalised coordinate q: M(q) = rest (x) exp(1/2 q * screw).
+    // The SAME exponential builds a rotation (revolute, screw = finite point) or a
+    // translation (prismatic, screw = ideal point); the operators do not change.
+    mvec2dp_u joint_motor(size_t idx, value_t q) const
     {
-        auto const M = revolute_motor(idx, joint[idx].phi);
+        return rgpr(joint[idx].rest, exp(0.5 * q * joint[idx].screw_b));
+    }
+
+    // Write the joint state (q, q-dot) into the base pose + relative twist, so all
+    // kinematic queries (get_pos_trafo, twist_world, point_velocity, energy) stay valid.
+    void apply_joint_state(size_t idx)
+    {
+        auto const M = joint_motor(idx, joint[idx].phi);
         auto const o = move2dp(O_2dp, M);
         auto const e1 = move2dp(vec2dp{1.0, 0.0, 0.0}, M);
         set_pose(idx, vec2dp{o.x / o.z, o.y / o.z, 1.0}, std::atan2(e1.y, e1.x));
-        set_twist(idx, joint[idx].omega * joint[idx].pivot_b); // relative twist = w*Q_b
+        set_twist(idx,
+                  joint[idx].omega * joint[idx].screw_b); // rel twist = q-dot * screw
     }
 
-    // Angular acceleration of a revolute joint at a hypothetical (phi, omega): the 1-DOF
-    // physical-pendulum law alpha = tau / I_hinge, where tau is the moment of gravity
-    // about the (fixed) hinge. The centrifugal force acts along the cm->hinge line, so it
-    // contributes no torque about the hinge and omega does not enter. NB: assumes the
-    // parent is the inertial root (single-body use); the COUPLED chain (where children's
-    // reactions couple the joints) is the next milestone.
-    value_t revolute_alpha(size_t idx, value_t phi, value_t /*omega*/)
+    // Frame indices of all 1-DOF joints (revolute or prismatic) -- the generalised
+    // coords.
+    std::vector<size_t> dof_joints() const
     {
-        auto const M = revolute_motor(idx, phi); // body->world (parent = root)
-        vec2dp const cm_w = move2dp(O_2dp, M);   // cm in world
-        vec2dp const piv_w = move2dp(joint[idx].pivot_b, M); // fixed hinge in world
-        vec2dp const f = body[idx].mass * grav;              // gravity force
-        // tau about the hinge = (r_cm - r_hinge) wedge f  (the e12 / scalar moment)
-        value_t const tau = (cm_w.x - piv_w.x) * f.y - (cm_w.y - piv_w.y) * f.x;
-        return tau / joint[idx].I_hinge;
+        std::vector<size_t> rj;
+        for (size_t i = 1; i < size(); ++i)
+            if (joint[i].type == joint2dp::revolute ||
+                joint[i].type == joint2dp::prismatic)
+                rj.push_back(i);
+        return rj;
     }
 
-    // RK4-integrate one revolute joint over dt in its single generalised coordinate:
-    //   dphi/dt = omega,   domega/dt = revolute_alpha(phi, omega).
-    void step_revolute_body(size_t idx, value_t dt)
+    // Is joint frame `jf` on the path from body `bf` up to the root (inclusive)?
+    bool is_ancestor(size_t jf, size_t bf) const
     {
-        value_t const p0 = joint[idx].phi;
-        value_t const w0 = joint[idx].omega;
+        for (size_t n = bf;; n = parent(n)) {
+            if (n == jf) return true;
+            if (parent(n) == n) return false; // reached the root
+        }
+    }
 
-        value_t const k1p = w0;
-        value_t const k1w = revolute_alpha(idx, p0, w0);
-        value_t const k2p = w0 + 0.5 * dt * k1w;
-        value_t const k2w = revolute_alpha(idx, p0 + 0.5 * dt * k1p, w0 + 0.5 * dt * k1w);
-        value_t const k3p = w0 + 0.5 * dt * k2w;
-        value_t const k3w = revolute_alpha(idx, p0 + 0.5 * dt * k2p, w0 + 0.5 * dt * k2w);
-        value_t const k4p = w0 + dt * k3w;
-        value_t const k4w = revolute_alpha(idx, p0 + dt * k3p, w0 + dt * k3w);
+    // Joint-space forward dynamics for the revolute chain `rj`: returns the joint angular
+    // accelerations q-ddot solving  M(q) q-ddot = RHS(q, q-dot), assembled by virtual
+    // work over the bodies (all quantities GA-native):
+    //   M[j][k] = sum_i ( m_i (vcm_i(S_j) . vcm_i(S_k)) + I_cm_i )  over bodies i having
+    //             BOTH joints j,k as ancestors;
+    //   RHS[j]  = sum_i m_i ( vcm_i(S_j) . g  -  vcm_i(S_j) . b_cm_i )  over bodies i
+    //   having
+    //             joint j as ancestor  (gravity generalised force minus Coriolis bias).
+    // S_j = move2dp(Q_j, M_{j->world}) is the world joint screw; vcm_i(S) =
+    // velocity_field( S, cm_i) is the cm velocity per unit joint rate (a spatial-Jacobian
+    // column); b_cm_i is the velocity-product (Coriolis/centripetal) cm acceleration at
+    // q-ddot = 0. Pre: the joint state (phi, omega) is already applied to the base pose +
+    // relative twist.
+    std::vector<value_t> forward_dynamics(std::vector<size_t> const& rj)
+    {
+        size_t const n = rj.size();
 
-        joint[idx].phi = p0 + (dt / 6.0) * (k1p + 2.0 * k2p + 2.0 * k3p + k4p);
-        joint[idx].omega = w0 + (dt / 6.0) * (k1w + 2.0 * k2w + 2.0 * k3w + k4w);
-        apply_revolute_state(idx);
+        // velocity-product (bias) pass: zero the relative accel twists so the world accel
+        // queries return only the q-ddot-independent Coriolis/centripetal part.
+        for (size_t k = 0; k < n; ++k)
+            set_accel_twist(rj[k], twist2dp{0.0, 0.0, 0.0});
+
+        std::vector<vec2dp> S(n), cm(n), bcm(n);
+        std::vector<value_t> mass(n), Icm(n);
+        for (size_t i = 0; i < n; ++i) {
+            size_t const fi = rj[i];
+            auto const M = get_pos_trafo(fi, 0);
+            cm[i] = move2dp(O_2dp, M);
+            bcm[i] = point_acceleration(cm[i], fi); // bias cm accel (rel_atwist = 0)
+            S[i] = move2dp(joint[fi].screw_b, M);   // world joint screw (unit rate)
+            mass[i] = body[fi].mass;
+            Icm[i] = body[fi].I.data[8]; // I[2,2]: moment about the cm
+        }
+
+        std::vector<value_t> Mmat(n * n, 0.0), RHS(n, 0.0);
+        for (size_t j = 0; j < n; ++j) {
+            for (size_t i = 0; i < n; ++i) { // contribution of body i to coordinate j
+                if (!is_ancestor(rj[j], rj[i])) continue;
+                vec2dp const vj = velocity_field(S[j], cm[i]); // rcmt(S_j, cm_i)
+                RHS[j] += mass[i] * (vj.x * grav.x + vj.y * grav.y) -
+                          mass[i] * (vj.x * bcm[i].x + vj.y * bcm[i].y);
+                for (size_t k = 0; k < n; ++k) {
+                    if (!is_ancestor(rj[k], rj[i])) continue;
+                    vec2dp const vk = velocity_field(S[k], cm[i]);
+                    // mass term (any joint) + angular term: revolute S.z=1 -> I_cm,
+                    // prismatic S.z=0 -> 0 (the only rotation-vs-translation distinction)
+                    Mmat[j * n + k] +=
+                        mass[i] * (vj.x * vk.x + vj.y * vk.y) + Icm[i] * S[j].z * S[k].z;
+                }
+            }
+        }
+        return solve_linear(Mmat, RHS, n);
+    }
+
+    // RK4-integrate the coupled revolute chain `rj` over dt in its joint coordinates
+    // (phi_k, omega_k): dphi/dt = omega, domega/dt = forward_dynamics(.). Each stage sets
+    // the joint state, refreshes the kinematic poses + twists, and solves the coupled
+    // forward dynamics.
+    void coupled_step(std::vector<size_t> const& rj, value_t dt)
+    {
+        size_t const n = rj.size();
+        std::vector<value_t> q0(n), w0(n);
+        for (size_t k = 0; k < n; ++k) {
+            q0[k] = joint[rj[k]].phi;
+            w0[k] = joint[rj[k]].omega;
+        }
+
+        // derivative (dphi, domega) = (omega, q-ddot) at a hypothetical state (q, w)
+        auto deriv = [&](std::vector<value_t> const& q, std::vector<value_t> const& w,
+                         std::vector<value_t>& dq, std::vector<value_t>& dw) {
+            for (size_t k = 0; k < n; ++k) {
+                joint[rj[k]].phi = q[k];
+                joint[rj[k]].omega = w[k];
+                apply_joint_state(rj[k]);
+            }
+            dq = w;
+            dw = forward_dynamics(rj);
+        };
+
+        std::vector<value_t> a(n), b(n);
+        std::vector<value_t> k1q(n), k1w(n), k2q(n), k2w(n), k3q(n), k3w(n), k4q(n),
+            k4w(n);
+
+        deriv(q0, w0, k1q, k1w);
+        for (size_t k = 0; k < n; ++k) {
+            a[k] = q0[k] + 0.5 * dt * k1q[k];
+            b[k] = w0[k] + 0.5 * dt * k1w[k];
+        }
+        deriv(a, b, k2q, k2w);
+        for (size_t k = 0; k < n; ++k) {
+            a[k] = q0[k] + 0.5 * dt * k2q[k];
+            b[k] = w0[k] + 0.5 * dt * k2w[k];
+        }
+        deriv(a, b, k3q, k3w);
+        for (size_t k = 0; k < n; ++k) {
+            a[k] = q0[k] + dt * k3q[k];
+            b[k] = w0[k] + dt * k3w[k];
+        }
+        deriv(a, b, k4q, k4w);
+
+        for (size_t k = 0; k < n; ++k) {
+            joint[rj[k]].phi =
+                q0[k] + (dt / 6.0) * (k1q[k] + 2.0 * k2q[k] + 2.0 * k3q[k] + k4q[k]);
+            joint[rj[k]].omega =
+                w0[k] + (dt / 6.0) * (k1w[k] + 2.0 * k2w[k] + 2.0 * k3w[k] + k4w[k]);
+        }
+        for (size_t k = 0; k < n; ++k)
+            apply_joint_state(rj[k]);
+    }
+
+    // small dense solve  A x = b  (Gaussian elimination with partial pivoting); A is n*n
+    // row-major, A and b are consumed. Used for the n*n joint-space mass matrix.
+    static std::vector<value_t> solve_linear(std::vector<value_t> A,
+                                             std::vector<value_t> b, size_t n)
+    {
+        for (size_t col = 0; col < n; ++col) {
+            size_t piv = col;
+            value_t best = std::abs(A[col * n + col]);
+            for (size_t r = col + 1; r < n; ++r) {
+                value_t const v = std::abs(A[r * n + col]);
+                if (v > best) {
+                    best = v;
+                    piv = r;
+                }
+            }
+            if (piv != col) {
+                for (size_t c = 0; c < n; ++c)
+                    std::swap(A[col * n + c], A[piv * n + c]);
+                std::swap(b[col], b[piv]);
+            }
+            value_t const d = A[col * n + col];
+            for (size_t r = col + 1; r < n; ++r) {
+                value_t const f = A[r * n + col] / d;
+                for (size_t c = col; c < n; ++c)
+                    A[r * n + c] -= f * A[col * n + c];
+                b[r] -= f * b[col];
+            }
+        }
+        std::vector<value_t> x(n, 0.0);
+        for (size_t ii = n; ii-- > 0;) {
+            value_t s = b[ii];
+            for (size_t c = ii + 1; c < n; ++c)
+                s -= A[ii * n + c] * x[c];
+            x[ii] = s / A[ii * n + ii];
+        }
+        return x;
     }
 };
 
