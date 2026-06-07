@@ -174,6 +174,14 @@ Coordsys_model::add_aode_plate(aode_plate_pga2dp const& aode_plate_in)
     return amgr.size() - 1;
 }
 
+[[maybe_unused]] size_t
+Coordsys_model::add_double_pendulum(adouble_pendulum const& adp_in)
+{
+    adp.push_back(adp_in);
+
+    return adp.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -205,6 +213,7 @@ void Coordsys_model::clear()
     aode.clear();
     aode_plate.clear();
     amgr.clear();
+    adp.clear();
     aft.clear();
 
     m_label.clear();

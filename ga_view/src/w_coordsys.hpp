@@ -53,6 +53,10 @@ class w_Coordsys : public QGraphicsView {
     void resetRequested();         // 'R' key pressed - reset active simulations
     void pauseToggleRequested();   // Space key pressed - toggle pause/resume
     void circlesToggleRequested(); // 'C' key pressed - toggle magnitude circles
+    void forcesToggleRequested();  // 'F' key pressed - toggle force/moment overlay
+    void traceToggleRequested();   // 'T' key pressed - toggle the cg/path trace
+    void
+    icrToggleRequested(); // 'I' key pressed - toggle instantaneous centre of rotation
 
   private:
 

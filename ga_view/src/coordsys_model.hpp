@@ -279,6 +279,26 @@ struct amerry_go_round {
     merry_go_round_params params;
 };
 
+// Parameters for the double-pendulum demo (dynamic_system2dp: two revolute-jointed rigid
+// plates swinging under gravity -- a chaotic, energy-conserving system). Plate 1 is
+// hinged to the world at `pivot` (its top-right corner); plate 2 is hinged to plate 1's
+// opposite (bottom-left) corner. Released from (phi1_0, phi2_0) with rates (omega1_0,
+// omega2_0).
+struct double_pendulum_params {
+    vec2dp pivot{0.0, 1.5, 1.0};         // fixed world hinge of plate 1
+    double w1{1.4}, h1{1.0}, m1{1.0};    // plate 1: width, height, mass
+    double w2{1.4}, h2{1.0}, m2{1.0};    // plate 2: width, height, mass
+    double phi1_0{1.9}, phi2_0{-1.1};    // initial joint angles [rad]
+    double omega1_0{0.0}, omega2_0{0.0}; // initial joint rates [rad/s]
+    double dt{0.004};                    // RK4 sub-step [s]
+    int substeps{4};                     // sub-steps per tick (real-time at ~60 fps)
+};
+
+// Active item: double-pendulum demo (no active points)
+struct adouble_pendulum {
+    double_pendulum_params params;
+};
+
 // One row in the key-binding table of a legend
 struct key_legend_entry {
     std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
@@ -368,6 +388,9 @@ class Coordsys_model {
     // add merry-go-round demo item
     [[maybe_unused]] size_t add_merry_go_round(amerry_go_round const& amgr_in);
 
+    // add double-pendulum demo item
+    [[maybe_unused]] size_t add_double_pendulum(adouble_pendulum const& adp_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -433,6 +456,9 @@ class Coordsys_model {
 
     // data for merry-go-round demo items
     std::vector<amerry_go_round> amgr;
+
+    // data for double-pendulum demo items
+    std::vector<adouble_pendulum> adp;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};

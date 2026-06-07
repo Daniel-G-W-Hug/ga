@@ -85,7 +85,8 @@ inline void lu_decomp(std::mdspan<double, std::dextents<size_t, 2>> a,
             for (int i = 0; i <= j - 1; ++i) {
                 double sum = a[i, j];
                 if (i > 0) {
-                    for (int k = 0; k <= i - 1; ++k) sum -= a[i, k] * a[k, j];
+                    for (int k = 0; k <= i - 1; ++k)
+                        sum -= a[i, k] * a[k, j];
                     a[i, j] = sum;
                 }
             }
@@ -94,7 +95,8 @@ inline void lu_decomp(std::mdspan<double, std::dextents<size_t, 2>> a,
         for (int i = j; i <= ubound; ++i) {
             double sum = a[i, j];
             if (j > 0) {
-                for (int k = 0; k <= j - 1; ++k) sum -= a[i, k] * a[k, j];
+                for (int k = 0; k <= j - 1; ++k)
+                    sum -= a[i, k] * a[k, j];
                 a[i, j] = sum;
             }
             double const dum = vv[i] * std::abs(sum);
@@ -115,7 +117,8 @@ inline void lu_decomp(std::mdspan<double, std::dextents<size_t, 2>> a,
         if (j != ubound) {
             if (a[j, j] == 0.0) a[j, j] = TINY;
             double const dum = 1.0 / a[j, j];
-            for (int i = j + 1; i <= ubound; ++i) a[i, j] *= dum;
+            for (int i = j + 1; i <= ubound; ++i)
+                a[i, j] *= dum;
         }
     }
     if (a[ubound, ubound] == 0.0) a[ubound, ubound] = TINY;
@@ -149,7 +152,8 @@ inline void lu_backsubs(std::mdspan<double const, std::dextents<size_t, 2>> a,
         double sum = b[ll];
         b[ll] = b[i];
         if (ii != -1) {
-            for (int j = ii; j <= i - 1; ++j) sum -= a[i, j] * b[j];
+            for (int j = ii; j <= i - 1; ++j)
+                sum -= a[i, j] * b[j];
         }
         else if (sum != 0.0) {
             ii = i;
@@ -160,10 +164,44 @@ inline void lu_backsubs(std::mdspan<double const, std::dextents<size_t, 2>> a,
     for (int i = ubound; i >= 0; --i) {
         double sum = b[i];
         if (i < ubound) {
-            for (int j = i + 1; j <= ubound; ++j) sum -= a[i, j] * b[j];
+            for (int j = i + 1; j <= ubound; ++j)
+                sum -= a[i, j] * b[j];
         }
         b[i] = sum / a[i, i];
     }
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Convenience: solve a small dense system A x = b given as flat ROW-MAJOR std::vector
+// (A has n*n entries, b has n). Wraps lu_decomp + lu_backsubs -- the factorization is
+// done in double, then cast back to T -- so the solver lives in ONE place for both 2D and
+// 3D rigid-body physics (the joint-space mass matrix in forward dynamics). Returns x.
+// Throws Solver_error on a singular matrix.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T> lu_solve(std::vector<T> const& A_in, std::vector<T> const& b_in, size_t n)
+{
+    std::vector<double> a(n * n), b(n);
+    for (size_t i = 0; i < n * n; ++i)
+        a[i] = static_cast<double>(A_in[i]);
+    for (size_t i = 0; i < n; ++i)
+        b[i] = static_cast<double>(b_in[i]);
+
+    std::vector<int> perm(n);
+    std::mdspan<double, std::dextents<size_t, 2>> am(a.data(), n, n);
+    std::mdspan<int, std::dextents<size_t, 1>> pm(perm.data(), n);
+    lu_decomp(am, pm);
+
+    std::mdspan<double const, std::dextents<size_t, 2>> ac(a.data(), n, n);
+    std::mdspan<int const, std::dextents<size_t, 1>> pc(perm.data(), n);
+    std::mdspan<double, std::dextents<size_t, 1>> bm(b.data(), n);
+    lu_backsubs(ac, pc, bm);
+
+    std::vector<T> x(n);
+    for (size_t i = 0; i < n; ++i)
+        x[i] = static_cast<T>(b[i]);
+    return x;
 }
 
 
@@ -203,7 +241,8 @@ T det(std::mdspan<T, Extents, LayoutPolicy, AccessorPolicy> A)
     }
 
     double result = 1.0;
-    for (size_t i = 0; i < n; ++i) result *= a[i, i];
+    for (size_t i = 0; i < n; ++i)
+        result *= a[i, i];
 
     int swaps = 0;
     for (size_t i = 0; i < n; ++i) {

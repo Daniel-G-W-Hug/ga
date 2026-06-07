@@ -955,6 +955,19 @@ class dynamic_system2dp : public kinematic_system2dp {
         return 0.0;
     }
 
+    // Recompute the joint accelerations from the applied forces (forward dynamics) and
+    // write them into the per-frame relative acceleration twists, so accel_twist_world /
+    // point_acceleration then return the ACTUAL dynamic accelerations (not just the
+    // velocity-product bias left after step()). Call this before reading accelerations
+    // for force / acceleration visualisation.
+    void sync_accelerations()
+    {
+        auto const rj = dof_joints();
+        auto const qdd = forward_dynamics(rj); // zeroes rel_atwist internally
+        for (size_t k = 0; k < rj.size(); ++k)
+            set_accel_twist(rj[k], qdd[k] * joint[rj[k]].screw_b);
+    }
+
     // Advance the system by dt. The revolute joints form a COUPLED chain integrated
     // together in their reduced (joint-angle) coordinates via the joint-space forward
     // dynamics; free bodies are integrated independently (Milestone 1). RK4 throughout.
@@ -1186,7 +1199,7 @@ class dynamic_system2dp : public kinematic_system2dp {
                 }
             }
         }
-        return solve_linear(Mmat, RHS, n);
+        return hd::ga::lu_solve(Mmat, RHS, n); // shared LU solver (detail/ga_solver.hpp)
     }
 
     // RK4-integrate the coupled revolute chain `rj` over dt in its joint coordinates
@@ -1243,44 +1256,6 @@ class dynamic_system2dp : public kinematic_system2dp {
         }
         for (size_t k = 0; k < n; ++k)
             apply_joint_state(rj[k]);
-    }
-
-    // small dense solve  A x = b  (Gaussian elimination with partial pivoting); A is n*n
-    // row-major, A and b are consumed. Used for the n*n joint-space mass matrix.
-    static std::vector<value_t> solve_linear(std::vector<value_t> A,
-                                             std::vector<value_t> b, size_t n)
-    {
-        for (size_t col = 0; col < n; ++col) {
-            size_t piv = col;
-            value_t best = std::abs(A[col * n + col]);
-            for (size_t r = col + 1; r < n; ++r) {
-                value_t const v = std::abs(A[r * n + col]);
-                if (v > best) {
-                    best = v;
-                    piv = r;
-                }
-            }
-            if (piv != col) {
-                for (size_t c = 0; c < n; ++c)
-                    std::swap(A[col * n + c], A[piv * n + c]);
-                std::swap(b[col], b[piv]);
-            }
-            value_t const d = A[col * n + col];
-            for (size_t r = col + 1; r < n; ++r) {
-                value_t const f = A[r * n + col] / d;
-                for (size_t c = col; c < n; ++c)
-                    A[r * n + c] -= f * A[col * n + c];
-                b[r] -= f * b[col];
-            }
-        }
-        std::vector<value_t> x(n, 0.0);
-        for (size_t ii = n; ii-- > 0;) {
-            value_t s = b[ii];
-            for (size_t c = ii + 1; c < n; ++c)
-                s -= A[ii * n + c] * x[c];
-            x[ii] = s / A[ii * n + ii];
-        }
-        return x;
     }
 };
 

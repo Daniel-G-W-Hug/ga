@@ -317,6 +317,21 @@ void w_Coordsys::keyPressEvent(QKeyEvent* event)
     if (event->key() == Qt::Key_C && !event->isAutoRepeat()) {
         emit circlesToggleRequested();
     }
+
+    // Toggle force / moment overlay (active_double_pendulum)
+    if (event->key() == Qt::Key_F && !event->isAutoRepeat()) {
+        emit forcesToggleRequested();
+    }
+
+    // Toggle the cg / path trace (active_double_pendulum)
+    if (event->key() == Qt::Key_T && !event->isAutoRepeat()) {
+        emit traceToggleRequested();
+    }
+
+    // Toggle the instantaneous centre of rotation (active_double_pendulum)
+    if (event->key() == Qt::Key_I && !event->isAutoRepeat()) {
+        emit icrToggleRequested();
+    }
 }
 
 void w_Coordsys::keyReleaseEvent(QKeyEvent* event)

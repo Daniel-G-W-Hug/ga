@@ -15,6 +15,7 @@ using namespace hd::ga::pga;
 
 #include "active_bivt2d.hpp"
 #include "active_bivt2dp.hpp"
+#include "active_double_pendulum.hpp"
 #include "active_frame_trafo.hpp"
 #include "active_kinematics2dp.hpp"
 #include "active_merry_go_round.hpp"
@@ -1606,6 +1607,25 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(mgr);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // double-pendulum demo items (PGA2D dynamic_system2dp)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->adp.size(); ++idx) {
+        active_double_pendulum* dp =
+            new active_double_pendulum(cs, wcs, cm->adp[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, dp,
+                         &active_double_pendulum::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, dp,
+                         &active_double_pendulum::togglePause);
+        QObject::connect(wcs, &w_Coordsys::forcesToggleRequested, dp,
+                         &active_double_pendulum::toggleForces);
+        QObject::connect(wcs, &w_Coordsys::traceToggleRequested, dp,
+                         &active_double_pendulum::toggleTrace);
+        QObject::connect(wcs, &w_Coordsys::icrToggleRequested, dp,
+                         &active_double_pendulum::toggleICR);
+        scene->addItem(dp);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -2043,6 +2063,40 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
         leg.size_pct = 0.32;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append double-pendulum scene (dynamic_system2dp) -- the last example: two coupled
+    // revolute plates swinging chaotically under gravity, energy conserved.
+    {
+        Coordsys_model cm;
+        cm.add_double_pendulum(adouble_pendulum{});
+        cm.set_label("Double pendulum (dynamic_system2dp)");
+
+        diagram_legend leg;
+        leg.heading = "PGA2D dynamics: a chaotic double pendulum of two rigid plates "
+                      "(coupled revolute joints). Total energy is conserved.";
+        leg.entries = {{"SPACE:", "pause / resume animation"},
+                       {"R:", "reset animation to t=0"},
+                       {"T:", "toggle path trace (default on)"},
+                       {"I:", "toggle centre of rotation (default off)"},
+                       {"F:", "toggle forces & reactions (default off)"},
+                       {"─────", "──────────"},
+                       {"red / green:", "body-frame axes e1 / e2"},
+                       {"black dot:", "fixed world pivot"},
+                       {"brown dot:", "inter-plate hinge"},
+                       {"orange dot:", "tracked tip of plate 2"},
+                       {"blue curve:", "world path of the tip (T)"},
+                       {"grey curve:", "trace of plate-2 ICR (I)"},
+                       {"teal cross:", "instantaneous centre of rotation (I)"},
+                       {"orange arrows:", "gravity m g at each cm (F)"},
+                       {"purple arrows:", "hinge reaction forces R1 / R2 (F)"},
+                       {"top-left:", "live KE / PE / E (energy check)"}};
+        leg.x_pct = 0.62;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.36;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
