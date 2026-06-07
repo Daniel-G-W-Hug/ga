@@ -4042,6 +4042,30 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("");
     }
 
+    TEST_CASE("G<2,0,1>: log(motor) function")
+    {
+        fmt::println("G<2,0,1>: log(motor) function");
+
+        // log() is the inverse of exp(): exp(log(M)) == M for every motor M. Validated as
+        // a round-trip gate over translations and rotations about a point.
+
+        // a) pure translation: log recovers the (z = 0) translation generator exactly
+        {
+            auto const arg = vec2dp{-2, 3, 0}; // translation generator
+            auto const M = exp(arg);
+            CHECK(M == exp(log(M)));
+            CHECK(log(M) == arg);
+        }
+
+        // b) rotation about a point P by angle phi
+        {
+            double const phi = deg2rad(50);
+            auto const arg = vec2dp{1.5, -0.5, phi}; // rotation generator about a point
+            auto const M = exp(arg);
+            CHECK(M == exp(log(M)));
+        }
+    }
+
 } // PGA 2DP Tests
 
 // | ⟑ | U+27D1 | (direct Unicode) | Geometric product |

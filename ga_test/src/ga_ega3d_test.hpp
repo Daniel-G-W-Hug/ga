@@ -3288,6 +3288,34 @@ TEST_SUITE("EGA 3D Tests")
         fmt::println("");
     }
 
+    TEST_CASE("G<3,0,0>: logarithm function B = log(rotor) for 24 angles")
+    {
+        fmt::println("G<3,0,0>: logarithm function B = log(rotor) for 24 angles");
+
+        // log() is the inverse of exp(): log(exp(B)) == B (within the principal range
+        // |B| < pi) and exp(log(R)) == R. A tilted rotation plane exercises the full
+        // bivector (all three components), over 24 angles avoiding the +-pi endpoints.
+        auto const B_hat = normalize(bivec3d{1.0, -2.0, 2.0}); // unit rotation plane
+        int const n_angles = 24;
+        for (int k = 0; k < n_angles; ++k) {
+
+            value_t const phi = -pi + (k + 0.5) * (2.0 * pi / n_angles); // in (-pi, pi)
+            auto const B = phi * B_hat;
+            auto const R = exp(B);
+            auto const B_back = log(R);
+
+            // log recovers the generator bivector
+            CHECK(nrm(B_back - B) <= eps);
+
+            // exp(log(R)) reproduces R component-wise
+            auto const R_back = exp(B_back);
+            CHECK(std::abs(to_val(gr0(R_back)) - to_val(gr0(R))) <= eps);
+            CHECK(nrm(gr2(R_back) - gr2(R)) <= eps);
+        }
+
+        fmt::println("");
+    }
+
     TEST_CASE("MVec3d: geometric product replacements")
     {
         fmt::println("MVec3d: geometric product replacements");
@@ -3426,15 +3454,23 @@ TEST_SUITE("EGA 3D Tests")
 
         // explicit forward results for every basis element (the FORWARD table above):
         // grade 0 (scalar) and grade 1 (vector) -> both schools identical
-        CHECK(dual(one_3d) == I_3d);    CHECK(one_3d * I_3d == I_3d);
-        CHECK(dual(e1_3d) == e23_3d);   CHECK(e1_3d * I_3d == e23_3d);
-        CHECK(dual(e2_3d) == e31_3d);   CHECK(e2_3d * I_3d == e31_3d);
-        CHECK(dual(e3_3d) == e12_3d);   CHECK(e3_3d * I_3d == e12_3d);
+        CHECK(dual(one_3d) == I_3d);
+        CHECK(one_3d * I_3d == I_3d);
+        CHECK(dual(e1_3d) == e23_3d);
+        CHECK(e1_3d * I_3d == e23_3d);
+        CHECK(dual(e2_3d) == e31_3d);
+        CHECK(e2_3d * I_3d == e31_3d);
+        CHECK(dual(e3_3d) == e12_3d);
+        CHECK(e3_3d * I_3d == e12_3d);
         // grade 2 (bivector) and grade 3 (pseudoscalar) -> theirs is negated
-        CHECK(dual(e23_3d) == e1_3d);   CHECK(e23_3d * I_3d == -e1_3d);
-        CHECK(dual(e31_3d) == e2_3d);   CHECK(e31_3d * I_3d == -e2_3d);
-        CHECK(dual(e12_3d) == e3_3d);   CHECK(e12_3d * I_3d == -e3_3d);
-        CHECK(dual(I_3d) == one_3d);    CHECK(I_3d * I_3d == -one_3d);
+        CHECK(dual(e23_3d) == e1_3d);
+        CHECK(e23_3d * I_3d == -e1_3d);
+        CHECK(dual(e31_3d) == e2_3d);
+        CHECK(e31_3d * I_3d == -e2_3d);
+        CHECK(dual(e12_3d) == e3_3d);
+        CHECK(e12_3d * I_3d == -e3_3d);
+        CHECK(dual(I_3d) == one_3d);
+        CHECK(I_3d * I_3d == -one_3d);
 
         ////////////////////////////////////////////////////////////////////////////////
         // same comparison for a full multivector. dual() maps grade k -> grade (3-k),
@@ -3503,8 +3539,8 @@ TEST_SUITE("EGA 3D Tests")
         fmt::println("     {:<18} = {:<14} ({})", "inv(I_3d)", sf(inv(I_3d)),
                      "== rev(I_3d) for the unit pseudoscalar");
         fmt::println("     {:<18} = {}", "rev(I_3d)", sf(rev(I_3d)));
-        fmt::println("     {:<18} = {:<14} ({})", "I_3d * inv(I_3d)", sf(I_3d * inv(I_3d)),
-                     "round-trip identity");
+        fmt::println("     {:<18} = {:<14} ({})", "I_3d * inv(I_3d)",
+                     sf(I_3d * inv(I_3d)), "round-trip identity");
         fmt::println("");
 
         // check inv == rev
@@ -3512,15 +3548,23 @@ TEST_SUITE("EGA 3D Tests")
 
         // explicit backward results for every basis element (the BACKWARD table above):
         // grade 0 (scalar) and grade 1 (vector): theirs is negated relative to ours
-        CHECK(dual(one_3d) == I_3d);    CHECK(one_3d * inv(I_3d) == -I_3d);
-        CHECK(dual(e1_3d) == e23_3d);   CHECK(e1_3d * inv(I_3d) == -e23_3d);
-        CHECK(dual(e2_3d) == e31_3d);   CHECK(e2_3d * inv(I_3d) == -e31_3d);
-        CHECK(dual(e3_3d) == e12_3d);   CHECK(e3_3d * inv(I_3d) == -e12_3d);
+        CHECK(dual(one_3d) == I_3d);
+        CHECK(one_3d * inv(I_3d) == -I_3d);
+        CHECK(dual(e1_3d) == e23_3d);
+        CHECK(e1_3d * inv(I_3d) == -e23_3d);
+        CHECK(dual(e2_3d) == e31_3d);
+        CHECK(e2_3d * inv(I_3d) == -e31_3d);
+        CHECK(dual(e3_3d) == e12_3d);
+        CHECK(e3_3d * inv(I_3d) == -e12_3d);
         // grade 2 (bivector) and grade 3 (pseudoscalar): both schools identical
-        CHECK(dual(e23_3d) == e1_3d);   CHECK(e23_3d * inv(I_3d) == e1_3d);
-        CHECK(dual(e31_3d) == e2_3d);   CHECK(e31_3d * inv(I_3d) == e2_3d);
-        CHECK(dual(e12_3d) == e3_3d);   CHECK(e12_3d * inv(I_3d) == e3_3d);
-        CHECK(dual(I_3d) == one_3d);    CHECK(I_3d * inv(I_3d) == one_3d);
+        CHECK(dual(e23_3d) == e1_3d);
+        CHECK(e23_3d * inv(I_3d) == e1_3d);
+        CHECK(dual(e31_3d) == e2_3d);
+        CHECK(e31_3d * inv(I_3d) == e2_3d);
+        CHECK(dual(e12_3d) == e3_3d);
+        CHECK(e12_3d * inv(I_3d) == e3_3d);
+        CHECK(dual(I_3d) == one_3d);
+        CHECK(I_3d * inv(I_3d) == one_3d);
 
         // our dual undoes itself
         CHECK(dual(dual(s)) == s);
@@ -3566,21 +3610,21 @@ TEST_SUITE("EGA 3D Tests")
         fmt::println("");
 
         // scalar s=3: forward dual agrees, both schools round-trip to s
-        CHECK(dual(s) == pscalar3d{3.0});                 // ours, forward
-        CHECK(s * I_3d == pscalar3d{3.0});                // theirs, forward (equal)
-        CHECK(dual(dual(s)) == scalar3d{3.0});            // ours, backward -> s
-        CHECK((s * I_3d) * inv(I_3d) == scalar3d{3.0});   // theirs, backward -> s
+        CHECK(dual(s) == pscalar3d{3.0});               // ours, forward
+        CHECK(s * I_3d == pscalar3d{3.0});              // theirs, forward (equal)
+        CHECK(dual(dual(s)) == scalar3d{3.0});          // ours, backward -> s
+        CHECK((s * I_3d) * inv(I_3d) == scalar3d{3.0}); // theirs, backward -> s
 
         // vector v=(1,2,3): forward dual agrees, both schools round-trip to v
-        CHECK(dual(v) == bivec3d{1.0, 2.0, 3.0});         // ours, forward
-        CHECK(v * I_3d == bivec3d{1.0, 2.0, 3.0});        // theirs, forward (equal)
-        CHECK(dual(dual(v)) == vec3d{1.0, 2.0, 3.0});     // ours, backward -> v
+        CHECK(dual(v) == bivec3d{1.0, 2.0, 3.0});              // ours, forward
+        CHECK(v * I_3d == bivec3d{1.0, 2.0, 3.0});             // theirs, forward (equal)
+        CHECK(dual(dual(v)) == vec3d{1.0, 2.0, 3.0});          // ours, backward -> v
         CHECK((v * I_3d) * inv(I_3d) == vec3d{1.0, 2.0, 3.0}); // theirs, backward -> v
 
         // bivector B=(1,2,3): forward duals have opposite sign, both round-trip to B
-        CHECK(dual(B) == vec3d{1.0, 2.0, 3.0});           // ours, forward
-        CHECK(B * I_3d == vec3d{-1.0, -2.0, -3.0});       // theirs, forward (negated)
-        CHECK(dual(dual(B)) == bivec3d{1.0, 2.0, 3.0});   // ours, backward -> B
+        CHECK(dual(B) == vec3d{1.0, 2.0, 3.0});         // ours, forward
+        CHECK(B * I_3d == vec3d{-1.0, -2.0, -3.0});     // theirs, forward (negated)
+        CHECK(dual(dual(B)) == bivec3d{1.0, 2.0, 3.0}); // ours, backward -> B
         CHECK((B * I_3d) * inv(I_3d) == bivec3d{1.0, 2.0, 3.0}); // theirs, backward -> B
 
         // pseudoscalar ps=4: forward duals have opposite sign, both round-trip to ps

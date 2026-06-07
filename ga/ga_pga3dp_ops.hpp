@@ -14,7 +14,7 @@ namespace hd::ga::pga {
 //
 // - angle()                              -> angle operations
 // - exp()                                -> exponential (w.r.t. rgpr)
-// TODO: - log()                                -> logarithm (w.r.t rgpr)
+// - log()                                -> logarithm (w.r.t. rgpr, inverse of exp)
 // - sqrt(M)                              -> sqrt of a motor (w.r.t. rgpr)
 // - get_motor()                          -> provide a motor from (line, phi), or (delta),
 //                                           or (line, phi, dist along line)
@@ -195,6 +195,53 @@ constexpr MVec3dp_E<T> sqrt(MVec3dp_E<T> const& M)
     return (M + PScalar3dp<T>(1.0)) / std::sqrt(2.0 + 2.0 * M.c7) -
            rgpr((M + PScalar3dp<T>(1.0)) / std::sqrt(2.0 + 2.0 * M.c7),
                 Scalar3dp<T>(M.c0 / (2.0 + 2.0 * M.c7)));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// log() with respect to rgpr() -- the inverse of exp(): for a (unit) motor M it returns
+// the bivector generator B with exp(B) == M.
+//
+// B is the full Chasles/Mozzi SCREW generator B = phi * l + dist * (axis direction in the
+// bulk slots), where l is the unitized screw axis line, phi the rotation angle about l,
+// and dist the translation distance ALONG l (the pitch). This inverts exp()'s screw
+// branch:
+//   gr2(M) = l*sin(phi) - r_weight_dual(l)*dist*cos(phi),  gr0(M) = -dist*sin(phi),
+//   gr4(M) = cos(phi).
+// Since r_weight_dual(l) has zero weight, |weight(gr2 M)| = sin(phi); from there phi =
+// atan2(sin(phi), cos(phi)), the axis direction = weight(gr2 M)/sin(phi), the pitch
+// dist = -gr0(M)/sin(phi), and the axis moment follows from the bulk of gr2(M).
+//
+// Degenerate inputs: phi ~ 0 is a pure translation (zero weight) -- return the bulk of
+// gr2(M) directly. (phi ~ pi shares the usual axis-angle ill-conditioning of any rotation
+// logarithm; the screw axis direction is then ambiguous.)
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3dp<T> log(MVec3dp_E<T> const& M_in)
+{
+    auto const M = unitize(M_in);
+    auto const Bm = gr2(M); // bivector part
+    T const c0 = M.c0;      // scalar       = -dist*sin(phi)
+    T const c7 = M.c7;      // pseudoscalar =  cos(phi)
+
+    T const sin_phi = std::sqrt(Bm.vx * Bm.vx + Bm.vy * Bm.vy + Bm.vz * Bm.vz);
+    if (sin_phi < eps) {
+        // phi ~ 0: pure translation (or identity). The bulk of gr2(M) is the translation
+        // generator; the weight (rotation) part is ~ 0.
+        return BiVec3dp<T>(T(0.0), T(0.0), T(0.0), Bm.mx, Bm.my, Bm.mz);
+    }
+
+    T const phi = std::atan2(sin_phi, c7); // rotation angle in [0, pi]
+    T const inv = T(1.0) / sin_phi;
+    T const lx = Bm.vx * inv, ly = Bm.vy * inv, lz = Bm.vz * inv; // unit axis direction
+    T const dist = -c0 * inv; // pitch (along the axis)
+    // axis moment: bulk(gr2 M) = l.bulk*sin(phi) + l.weight*dist*cos(phi)
+    T const mlx = (Bm.mx - lx * dist * c7) * inv;
+    T const mly = (Bm.my - ly * dist * c7) * inv;
+    T const mlz = (Bm.mz - lz * dist * c7) * inv;
+    // B = phi*l + dist*att(weight(l))  (axis direction copied into the bulk slots)
+    return BiVec3dp<T>(phi * lx, phi * ly, phi * lz, phi * mlx + dist * lx,
+                       phi * mly + dist * ly, phi * mlz + dist * lz);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -3341,8 +3341,8 @@ TEST_SUITE("PGA 3DP Tests")
         ////////////////////////////////////////////////////////////////////////////////
 
         int const m[4] = {1, 1, 1, 0}; // e1^2, e2^2, e3^2, e4^2 (e4 null)
-        char const* nm[16] = {"1",    "e1",   "e2",   "e3",   "e4",   "e41",
-                              "e42",  "e43",  "e23",  "e31",  "e12",  "e423",
+        char const* nm[16] = {"1",    "e1",   "e2",   "e3",   "e4",  "e41",
+                              "e42",  "e43",  "e23",  "e31",  "e12", "e423",
                               "e431", "e412", "e321", "e1234"};
         int const msk[16] = {0, 1, 2, 4, 8, 9, 10, 12, 6, 5, 3, 14, 13, 11, 7, 15};
         int const full = 0b1111;
@@ -5027,6 +5027,40 @@ TEST_SUITE("PGA 3DP Tests")
         fmt::println("P0                      = {}", P0);
         fmt::println("P  = M2 ⟇ P0 ⟇ rrev(M2) = {}", move3dp(P0, M2));
         fmt::println("");
+    }
+
+    TEST_CASE("G<3,0,1>: log(motor) function")
+    {
+        fmt::println("G<3,0,1>: log(motor) function");
+
+        // log() is the inverse of exp(): exp(log(M)) == M for every motor M, recovering
+        // the full screw generator (rotation about a line + translation along it).
+        // Validated as a round-trip gate over translations, rotations and general screws.
+
+        // a) pure translation: log recovers the bulk generator exactly
+        {
+            auto const B =
+                bivec3dp{0, 0, 0, -2, 1, 3}; // translation generator (bulk only)
+            auto const M = exp(B);
+            CHECK(M == exp(log(M)));
+            CHECK(log(M) == B); // exact for a pure translation
+        }
+
+        // b) pure rotation about an axis line through a point
+        {
+            double const phi = deg2rad(70);
+            auto const l_hat = unitize(
+                wdg(vec3dp{1, 0, 1, 1}, phi * bulk_normalize(vec3dp{0, 1, 0, 0})));
+            auto const M = exp(l_hat * phi);
+            CHECK(M == exp(log(M)));
+        }
+
+        // c) general screw: rotation about an offset axis + translation along it
+        {
+            auto const B = bivec3dp{0.3, -0.8, 0.5, 0.7, -0.2, 1.1};
+            auto const M = exp(B);
+            CHECK(M == exp(log(M)));
+        }
     }
 
     TEST_CASE("Vec3dp: operations - inverses II")

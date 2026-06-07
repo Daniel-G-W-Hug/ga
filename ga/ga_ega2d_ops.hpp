@@ -15,6 +15,7 @@ namespace hd::ga::ega {
 //
 // - angle(), angle_to_re()         -> angle operations
 // - exp(bivec) -> rotor            -> exponential function (w.r.t. gpr)
+// - log(rotor) -> bivec            -> logarithm function (w.r.t. gpr, inverse of exp)
 // - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
 // - get_rotor()                    -> provide a rotor
 // - rotate(), rotate_opt()         -> rotate object with rotor (sandwich + optimized)
@@ -96,6 +97,18 @@ constexpr MVec2d_E<T> exp(PScalar2d<T> B)
 
     auto phi = sign(B) * nrm(B);
     return MVec2d_E<T>(Scalar2d<T>(std::cos(phi)), PScalar2d<T>(std::sin(phi)));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// 2d logarithm w.r.t. the geometric product -- the inverse of exp()
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+constexpr PScalar2d<T> log(MVec2d_E<T> const& R)
+{
+    // R = cos(phi) + sin(phi) e12  =>  phi = atan2(sin(phi), cos(phi))
+    // (atan2 is scale-invariant, so a non-unit rotor needs no normalization)
+    return PScalar2d<T>(std::atan2(R.c1, R.c0));
 }
 
 

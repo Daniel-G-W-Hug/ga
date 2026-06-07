@@ -16,6 +16,7 @@ namespace hd::ga::ega {
 //
 // - angle()                        -> angle operations
 // - exp(bivec) -> rotor            -> exponential function (w.r.t. gpr)
+// - log(rotor) -> bivec            -> logarithm function (w.r.t. gpr, inverse of exp)
 // - sqrt(rotor) -> rotor           -> sqrt function (w.r.t. gpr) halves the rot. angle
 // - get_rotor()                    -> provide a rotor
 // - rotate(), rotate_opt()         -> rotate object with rotor (sandwich + optimized)
@@ -159,6 +160,28 @@ constexpr MVec3d_E<T> exp(BiVec3d<T> const& B)
 
     auto phi = B_nrm;
     return MVec3d_E<T>(Scalar3d<T>(std::cos(phi)), B_hat * std::sin(phi));
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// 3d logarithm w.r.t. the geometric product -- the inverse of exp()
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+constexpr BiVec3d<T> log(MVec3d_E<T> const& R)
+{
+    // R = cos(phi) + sin(phi) B_hat (the quaternion form), with B = phi * B_hat. Recover
+    // phi = atan2(nrm(gr2 R), gr0 R) and B = (phi / sin(phi)) gr2(R), since nrm(gr2 R) =
+    // |sin(phi)|. phi ~ 0 is the identity (zero generator); phi ~ pi leaves B_hat
+    // ambiguous (the usual axis ambiguity of a rotation logarithm). B and -B are
+    // equivalent (see exp).
+    BiVec3d<T> const Bv = gr2(R);
+    T const s = nrm(Bv); // = |sin(phi)|
+    if (s <= detail::safe_epsilon<T>()) {
+        return BiVec3d<T>(0.0, 0.0, 0.0); // phi ~ 0 -> identity transformation
+    }
+    T const phi = std::atan2(s, R.c0); // R.c0 = cos(phi)
+    return (phi / s) * Bv;
 }
 
 

@@ -137,8 +137,8 @@ Inertia2dp<T> get_point_inertia(T m, Vec2dp<T> const& X)
 //              [ -1    0         0        ]
 //              [  0    0    (w^2+h^2)/12  ]
 //
-// I[0,1] =  m : total mass (Newton p = mv, Hodge-crossed e2 -> e23)
-// I[1,0] = -m : total mass (Newton p = mv, Hodge-crossed e1 -> e31, opposite sign)
+// I[0,1] =  m : total mass (Newton p = mv, e2 -> e23)
+// I[1,0] = -m : total mass (Newton p = mv, e1 -> e31, opposite sign)
 // I[2,2] = m*(w^2+h^2)/12 : moment of inertia about centroid (classical rectangle
 // formula)
 //
@@ -266,6 +266,32 @@ struct pose2dp {
     vec2dp origin; // origin of frame in parent coordinates
     value_t phi;   // orientation of frame vs. parent coordinates, [phi]: rad
 };
+
+
+// Build the body->parent motor M = translate(origin) (x) rotate(phi) from a pose. The
+// rotation about the parent origin is exp(0.5 * vec2dp(0,0,phi)); the translation by
+// origin is exp(0.5 * vec2dp(-origin.y, origin.x, 0)). Parallel to the 3D
+// motor_from_pose3dp (the 2D rotation generator is a scalar phi where 3D uses an
+// axis*angle bivector). Inverse of pose2dp_from_motor. (static_system2dp::step_pos_trafo
+// returns its regressive reverse, the parent->child transform.)
+inline mvec2dp_u motor_from_pose2dp(pose2dp const& p)
+{
+    auto const M_rot = exp(0.5 * vec2dp(0.0, 0.0, p.phi));
+    auto const M_tra = exp(0.5 * vec2dp(-p.origin.y, p.origin.x, 0.0));
+    return rgpr(M_tra, M_rot); // rotate about origin, then translate -> body->parent
+}
+
+// Decode a body->parent motor M into a pose (origin, phi). The origin is where the body
+// origin lands, unitized: move2dp(O, M); the orientation is the angle of the rotated e1
+// axis (a vector, so translation-invariant): atan2 of move2dp(e1, M). The 2D analog of
+// the 3D pose3dp_from_motor -- here the rotation read-off is a single atan2 (no rotor
+// axis-angle extraction needed). Inverse of motor_from_pose2dp.
+inline pose2dp pose2dp_from_motor(mvec2dp_u const& M)
+{
+    auto const o = move2dp(O_2dp, M);                  // body origin in parent coords
+    auto const e1 = move2dp(vec2dp{1.0, 0.0, 0.0}, M); // rotated e1 direction
+    return pose2dp{vec2dp{o.x / o.z, o.y / o.z, 1.0}, std::atan2(e1.y, e1.x)};
+}
 
 
 class static_frame2dp {
@@ -432,21 +458,16 @@ class static_system2dp {
 
     // Single-step rigid coordinate change from parent(child_idx) to frame child_idx,
     // built from child_idx's pose -- stored RELATIVE to its parent (see static_frame2dp:
-    // "pose vs. parent coordinate system").
+    // "pose vs. parent coordinate system"). The parent->child transform is the regressive
+    // reverse of the body->parent motor built by motor_from_pose2dp.
     //
     // Translation and rotation are COMPOSED, not summed as generators: they do not
-    // commute, so exp(-0.5*(t+r)) != exp(-0.5*r) * exp(-0.5*t) (Baker-Campbell-
-    // Hausdorff), and the single-exp form is a screw about a wrong centre (it does not
-    // even map the child origin to (0,0)). The composition reduces correctly to a pure
-    // translation (rel.phi == 0) or pure rotation (rel.origin == parent origin).
+    // commute (Baker-Campbell-Hausdorff), so the single-exp form would be a screw about a
+    // wrong centre. The composition reduces correctly to a pure translation (phi == 0) or
+    // pure rotation (origin == parent origin).
     mvec2dp_u step_pos_trafo(size_t child_idx) const
     {
-        auto const rel = vfr[child_idx].get_pose(); // pose relative to parent frame
-        auto M_rot = exp(-0.5 * vec2dp(0.0, 0.0, rel.phi)); // rotate by rel.phi
-                                                            // about parent origin
-        auto M_tra =
-            exp(-0.5 * vec2dp(-rel.origin.y, rel.origin.x, 0.0)); // translate by rel
-        return rgpr(M_rot, M_tra);                                // parent -> child
+        return rrev(motor_from_pose2dp(vfr[child_idx].get_pose())); // parent -> child
     }
 
     // True if every frame's parent is its predecessor, i.e. the system is a plain linear
@@ -473,6 +494,9 @@ class static_system2dp {
     {
         vfr[idx].set_pose(origin, phi);
     }
+
+    // reposition frame idx from a pose2dp (parallel to the 3D set_pose(idx, pose3dp))
+    void set_pose(size_t idx, pose2dp const& p) { vfr[idx].set_pose(p.origin, p.phi); }
 
   private:
 
@@ -599,9 +623,7 @@ class kinematic_system2dp : public static_system2dp {
             auto const P = rrev(step_pos_trafo(i)); // T(origin) (x) R(phi)
             auto const P_new = rgpr(P, exp(0.5 * rel_vtwist[i] * dt));
             // decode the new relative pose (origin, phi) and store it
-            auto const o = move2dp(O_2dp, P_new); // child origin in parent
-            auto const e1 = move2dp(vec2dp{1.0, 0.0, 0.0}, P_new); // rotated e1 direction
-            set_pose(i, vec2dp{o.x / o.z, o.y / o.z, 1.0}, std::atan2(e1.y, e1.x));
+            set_pose(i, pose2dp_from_motor(P_new));
             // ramp the relative velocity by the (constant) relative acceleration
             rel_vtwist[i] = rel_vtwist[i] + rel_atwist[i] * dt;
         }
@@ -1094,10 +1116,7 @@ class dynamic_system2dp : public kinematic_system2dp {
 
         // decode the evolved pose (origin, phi) and write pose + twist into the base
         // layer
-        auto const M_new = rgpr(M0, exp(0.5 * B_end));
-        auto const o = move2dp(O_2dp, M_new);
-        auto const e1 = move2dp(vec2dp{1.0, 0.0, 0.0}, M_new);
-        set_pose(idx, vec2dp{o.x / o.z, o.y / o.z, 1.0}, std::atan2(e1.y, e1.x));
+        set_pose(idx, pose2dp_from_motor(rgpr(M0, exp(0.5 * B_end))));
         set_twist(idx, Om_end);
     }
 
@@ -1132,10 +1151,8 @@ class dynamic_system2dp : public kinematic_system2dp {
     // kinematic queries (get_pos_trafo, twist_world, point_velocity, energy) stay valid.
     void apply_joint_state(size_t idx)
     {
-        auto const M = joint_motor(idx, joint[idx].phi);
-        auto const o = move2dp(O_2dp, M);
-        auto const e1 = move2dp(vec2dp{1.0, 0.0, 0.0}, M);
-        set_pose(idx, vec2dp{o.x / o.z, o.y / o.z, 1.0}, std::atan2(e1.y, e1.x));
+        auto const M = joint_motor(idx, joint[idx].phi); // body->parent motor at q
+        set_pose(idx, pose2dp_from_motor(M));
         set_twist(idx,
                   joint[idx].omega * joint[idx].screw_b); // rel twist = q-dot * screw
     }

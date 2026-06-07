@@ -2830,6 +2830,33 @@ TEST_SUITE("EGA 2D Tests")
         fmt::println("");
     }
 
+    TEST_CASE("G<2,0,0>: logarithm function B = log(rotor) for 24 angles")
+    {
+        fmt::println("G<2,0,0>: logarithm function B = log(rotor) for 24 angles");
+
+        // log() is the inverse of exp(): log(exp(B)) == B (within the principal range
+        // (-pi, pi)) and exp(log(R)) == R. Tested over 24 angles avoiding the +-pi
+        // endpoints (where the rotation angle wraps).
+        int const n_angles = 24;
+        for (int k = 0; k < n_angles; ++k) {
+
+            value_t const phi = -pi + (k + 0.5) * (2.0 * pi / n_angles); // in (-pi, pi)
+            auto const B = phi * e12_2d;
+            auto const R = exp(B);
+            auto const B_back = log(R);
+
+            // log recovers the generator angle
+            CHECK(std::abs(to_val(B_back) - phi) <= eps);
+
+            // exp(log(R)) reproduces R component-wise
+            auto const R_back = exp(B_back);
+            CHECK(std::abs(to_val(gr0(R_back)) - to_val(gr0(R))) <= eps);
+            CHECK(std::abs(to_val(gr2(R_back)) - to_val(gr2(R))) <= eps);
+        }
+
+        fmt::println("");
+    }
+
     TEST_CASE("MVec2d: dualization - complement vs. pseudoscalar-multiplication")
     {
         fmt::println("MVec2d: dualization - complement vs. pseudoscalar-multiplication");

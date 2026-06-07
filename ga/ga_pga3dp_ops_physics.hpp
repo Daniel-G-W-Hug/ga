@@ -7,9 +7,15 @@
 #include "ga_pga3dp_ops.hpp"
 #include "ga_value_t.hpp" // for value_t used in convenience type alias
 
+#include <algorithm> // std::find, std::reverse
 #include <array>
+#include <cmath>  // std::abs
+#include <limits> // std::numeric_limits
 #include <mdspan>
 #include <stdexcept>
+#include <string>
+#include <unordered_map> // std::unordered_map (frame name -> index)
+#include <vector>
 
 
 namespace hd::ga::pga {
@@ -183,30 +189,40 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 //              [  0             (w^2+d^2)/12    0             0    0    0  ]
 //              [  0              0             (w^2+h^2)/12   0    0    0  ]
 //
-// BiVec3dp index layout: (vx=e41, vy=e42, vz=e43, mx=e23, my=e31, mz=e12)
-//   Indices 0-2 (vx,vy,vz): translational velocity / linear momentum  (ideal lines, e4*)
-//   Indices 3-5 (mx,my,mz): angular velocity / angular momentum        (real lines,
-//   e23/e31/e12)
+// BiVec3dp index layout: (vx=e41, vy=e42, vz=e43, mx=e23, my=e31, mz=e12). The weight
+// (vx,vy,vz) and bulk (mx,my,mz) play OPPOSITE physical roles in the input twist vs. the
+// output momentum:
+//   input twist Omega:  weight (vx,vy,vz) = ANGULAR velocity omega  (rotation lives in
+//   the
+//                       weight: exp() uses weight_nrm_sq over (vx,vy,vz) as the rotation
+//                       angle), bulk (mx,my,mz) = LINEAR velocity v (a translation has
+//                       zero weight, only bulk).
+//   output I(Omega):    (vx,vy,vz) = LINEAR momentum p = m v,
+//                       (mx,my,mz) = ANGULAR momentum L = J_rot omega.
 //
 // Block structure of the base matrix:
-//   Upper-left  [0:3, 0:3] = 0:          no translational-to-translational coupling
-//   Upper-right [0:3, 3:6] = m*Identity: angular velocity -> linear momentum (mass,
-//   Newton p=mv) Lower-left  [3:6, 0:3] = m*J_rot:   translational vel -> angular
-//   momentum (classical moments) Lower-right [3:6, 3:6] = 0:          no
-//   rotational-to-rotational coupling
+//   Upper-left  [0:3, 0:3] = 0:          no linear-velocity -> linear-momentum coupling
+//   Upper-right [0:3, 3:6] = m*Identity: linear velocity (bulk) -> linear momentum
+//                                        (vx,vy,vz), i.e. Newton p = m v
+//   Lower-left  [3:6, 0:3] = J_rot:      angular velocity (vx,vy,vz) -> angular momentum
+//                                        (mx,my,mz), i.e. L = J_rot omega
+//   Lower-right [3:6, 3:6] = 0:          no angular-velocity -> angular-momentum (cm)
+//   cross
 //
-// Where J_rot is diagonal with the classical rectangle-rule moments of inertia:
-//   I[3,0] = m*(h^2+d^2)/12  (rotation about e1-axis, depends on e2 and e3 extents)
-//   I[4,1] = m*(w^2+d^2)/12  (rotation about e2-axis, depends on e1 and e3 extents)
-//   I[5,2] = m*(w^2+h^2)/12  (rotation about e3-axis, depends on e1 and e2 extents)
+// Where J_rot is diagonal with the classical rectangle-rule moments of inertia (acting on
+// the angular velocity (vx,vy,vz)):
+//   I[3,0] = m*(h^2+d^2)/12  (moment about e1-axis, depends on e2 and e3 extents)
+//   I[4,1] = m*(w^2+d^2)/12  (moment about e2-axis, depends on e1 and e3 extents)
+//   I[5,2] = m*(w^2+h^2)/12  (moment about e3-axis, depends on e1 and e2 extents)
 //
-// Why the coupling is "crossed" (upper-right / lower-left rather than diagonal):
-//   In PGA3DP the Hodge complement swaps ideal lines (e41,e42,e43) with real lines
-//   (e23,e31,e12). Angular velocity (e23/e31/e12, indices 3-5) couples to linear momentum
-//   (e41/e42/e43, indices 0-2) via mass m, landing in the upper-right block.
-//   Translational velocity (e41/e42/e43, indices 0-2) couples to angular momentum
-//   (e23/e31/e12, indices 3-5) via moment of inertia, landing in the lower-left block.
-//   This is the exact 3D analogue of the 2D case where mass appears off-diagonal.
+// Why the inertia map is "crossed" (weight-input lands in the bulk output and vice
+// versa):
+//   the energy pairing <Omega, I(Omega)> = 2*KE is the regressive product
+//   rwdg(Omega, I(Omega)), which pairs the WEIGHT of one bivector with the BULK of the
+//   other (see rwdg(BiVec3dp, BiVec3dp)). So the map necessarily sends the angular
+//   velocity (weight, vx,vy,vz) into the angular-momentum (bulk, mx,my,mz) slots and the
+//   linear velocity (bulk) into the linear-momentum (weight) slots. This is the exact 3D
+//   analogue of the 2D case where mass sits off-diagonal.
 //
 // Optional L_pivot parameter (default = zero bivector = no correction):
 // When L_pivot represents a line offset from the body origin, the scalar
@@ -232,24 +248,25 @@ Inertia3dp<T> get_cuboid_inertia(T m, T w, T h, T d,
     Inertia3dp<T> I;
     auto v = I.view();
 
-    // Upper-right block [0:3, 3:6]: angular velocity -> linear momentum (mass m)
-    v[0, 3] = m; // mx -> vx: angular vel about e1 -> linear momentum e41
-    v[1, 4] = m; // my -> vy: angular vel about e2 -> linear momentum e42
-    v[2, 5] = m; // mz -> vz: angular vel about e3 -> linear momentum e43
+    // Upper-right block [0:3, 3:6]: linear velocity (bulk) -> linear momentum (mass m)
+    v[0, 3] = m; // mx -> vx: linear vel (e23) -> linear momentum e41, Newton p = m v
+    v[1, 4] = m; // my -> vy: linear vel (e31) -> linear momentum e42
+    v[2, 5] = m; // mz -> vz: linear vel (e12) -> linear momentum e43
 
-    // Lower-left block [3:6, 0:3]: translational velocity -> angular momentum (moments)
-    v[3, 0] = m * (h * h + d * d) / T{12}; // vx -> mx: I_xx = m*(h^2+d^2)/12
+    // Lower-left block [3:6, 0:3]: angular velocity (weight) -> angular momentum
+    // (moments)
+    v[3, 0] = m * (h * h + d * d) / T{12}; // vx -> mx: I_xx = m*(h^2+d^2)/12, L = J omega
     v[4, 1] = m * (w * w + d * d) / T{12}; // vy -> my: I_yy = m*(w^2+d^2)/12
     v[5, 2] = m * (w * w + h * h) / T{12}; // vz -> mz: I_zz = m*(w^2+h^2)/12
 
     // Apply scalar parallel-axis (Steiner) corrections if pivot line is offset
-    // from the body origin. A line through the origin has zero ideal part.
+    // from the body origin. A line through the origin has zero moment.
     T const v_sq =
         L_pivot.vx * L_pivot.vx + L_pivot.vy * L_pivot.vy + L_pivot.vz * L_pivot.vz;
     if (v_sq != T{0}) {
         // Foot of perpendicular from O_b to L_pivot: P_foot = (n × m_moment) / |n|²
-        // where n = (vx,vy,vz) is the line direction (ideal part)
-        // and m_moment = (mx,my,mz) is the Plücker moment (real part)
+        // where n = (vx,vy,vz) is the line direction
+        // and m_moment = (mx,my,mz) is the Plücker moment
         T const inv_v_sq = T{1} / v_sq;
         T const Px = (L_pivot.vy * L_pivot.mz - L_pivot.vz * L_pivot.my) * inv_v_sq;
         T const Py = (L_pivot.vz * L_pivot.mx - L_pivot.vx * L_pivot.mz) * inv_v_sq;
@@ -332,6 +349,525 @@ BiVec3dp<T> compute_omega_dot(Inertia3dp<T> const& I_inv, BiVec3dp<T> const& F,
     BiVec3dp<T> rhs = F - rcmt(Omega, I_Omega);
     return I_inv(rhs);
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// pose3dp: a rigid pose RELATIVE to a parent frame, the 3D twin of pose2dp{origin, phi}.
+// In 2D the orientation is a scalar angle phi; in 3D it is a rotation VECTOR rot = axis *
+// angle (both origin and rot are vec3dp -- origin a finite point with w = 1, rot a
+// direction with w = 0). The pose is encoded into / decoded from the body->parent motor
+// by the two converters below (the 3D analog of 2D's exp(vec2dp(0,0,phi)) build + atan2
+// decode).
+/////////////////////////////////////////////////////////////////////////////////////////
+
+struct pose3dp {
+    vec3dp origin{0.0, 0.0, 0.0, 1.0}; // origin of frame in parent coordinates (w = 1)
+    vec3dp rot{0.0, 0.0, 0.0, 0.0};    // orientation vs. parent: axis * angle (w = 0)
+};
+
+
+// Build the body->parent motor M = translate(origin) (x) rotate(rot) from a pose. The
+// rotation about the parent origin is exp(0.5 * {rot.x,rot.y,rot.z, 0,0,0}) (the weight /
+// (vx,vy,vz) slots carry the rotation axis*angle); the translation is get_motor(origin as
+// a direction). Inverse of pose3dp_from_motor (below).
+inline mvec3dp_e motor_from_pose3dp(pose3dp const& p)
+{
+    auto const M_rot = exp(0.5 * bivec3dp{p.rot.x, p.rot.y, p.rot.z, 0.0, 0.0, 0.0});
+    auto const M_tra = get_motor(vec3dp{p.origin.x, p.origin.y, p.origin.z, 0.0});
+    return rgpr(M_tra,
+                M_rot); // rotate about origin first, then translate -> body->parent
+}
+
+// Decode a body->parent motor M into a pose (origin, rot). The origin is where the body
+// origin lands: unitize(move3dp(O, M)). The orientation is recovered by stripping the
+// translation (M_rot = T(-origin) (x) M, a pure rotation about the origin) and reading
+// the axis*angle off the rotor: the bivector weight (vx,vy,vz) is sin(angle/2)*axis and
+// the pseudoscalar is cos(angle/2). A constrained motor log (no general screw log needed
+// since the translation is split off via the origin). Inverse of motor_from_pose3dp.
+inline pose3dp pose3dp_from_motor(mvec3dp_e const& M)
+{
+    auto const o = unitize(move3dp(O_3dp, M)); // body origin in parent (w = 1)
+
+    // strip the translation: M_rot = T(-origin) (x) M is a pure rotation about the origin
+    auto const T_inv = get_motor(vec3dp{-o.x, -o.y, -o.z, 0.0});
+    auto const M_rot = rgpr(T_inv, M);
+
+    auto const w = gr2(M_rot); // rotor bivector part
+    value_t const wn = std::sqrt(w.vx * w.vx + w.vy * w.vy + w.vz * w.vz); // sin(angle/2)
+    value_t const c = value_t(gr4(M_rot)); // cos(angle/2) (pseudoscalar)
+
+    vec3dp rot{0.0, 0.0, 0.0, 0.0};
+    if (wn > eps) {
+        value_t const angle = 2.0 * std::atan2(wn, c);
+        value_t const s = angle / wn; // angle / sin(angle/2): scales weight -> axis*angle
+        rot = vec3dp{s * w.vx, s * w.vy, s * w.vz, 0.0};
+    }
+    return pose3dp{vec3dp{o.x, o.y, o.z, 1.0}, rot};
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// static_frame3dp / static_system3dp: a tree of right-handed coordinate frames, each
+// posed RELATIVE to its parent. The 3D twin of static_frame2dp/static_system2dp --
+// algorithm identical (motor composition + LCA tree walk). The per-frame pose is a
+// pose3dp{origin, rot} (the full 2D mirror of pose2dp{origin, phi}); step_pos_trafo
+// BUILDS the relative motor from it (just like 2D builds it from origin + phi), and the
+// dynamics round-trips through pose3dp via the constrained motor log above.
+/////////////////////////////////////////////////////////////////////////////////////////
+
+class static_frame3dp {
+
+    // Static basis frame (a coordinate system without change over time). The parent frame
+    // is assumed right-handed (e1,e2,e3) with e4 the homogeneous/origin direction.
+
+    std::string name; // display name (default: 'I' = inertial frame)
+    pose3dp pose;     // pose vs. parent coordinate system (ALWAYS relative to parent!)
+
+  public:
+
+    static_frame3dp(std::string frame_name = "I", vec3dp const& origin_in_parent = O_3dp,
+                    vec3dp const& rot_vs_parent = vec3dp{0.0, 0.0, 0.0, 0.0}) :
+        name(frame_name), pose(origin_in_parent, rot_vs_parent)
+    {
+        if (pose.origin.w != 1.0) {
+            throw std::runtime_error(
+                std::string("static_frame3dp: Unitized projective point expected. "
+                            "Provided origin.w == ") +
+                std::to_string(pose.origin.w));
+        }
+    }
+
+    std::string const& get_name() const { return name; }
+    pose3dp get_pose() const { return pose; }
+
+    // reposition the frame relative to its parent (origin expected unitized, w = 1)
+    void set_pose(pose3dp const& new_pose) { pose = new_pose; }
+};
+
+
+class static_system3dp {
+
+    std::vector<static_frame3dp> vfr; // reference frames (index 0 == root)
+    std::vector<size_t> parent_of;    // parent frame index per frame (root: itself)
+    std::unordered_map<std::string, size_t> name_to_idx; // frame name -> index
+
+  public:
+
+    static_system3dp() = default; // create an empty system
+
+    // sentinel for add_frame: select the default parent (the previously added frame)
+    static size_t constexpr prev_frame = std::numeric_limits<size_t>::max();
+
+    // Add a frame to the system. By default its parent is the previously added frame, so
+    // a plain sequence of add_frame() calls builds a linear chain rf[0] -> rf[1] -> ...;
+    // pass an explicit parent_idx to branch the tree off an earlier frame. A frame's pose
+    // is always interpreted RELATIVE to its parent. The first frame added is the root;
+    // its parent is itself (a self-loop terminating the upward walk in get_pos_trafo).
+    void add_frame(static_frame3dp const& rf, size_t parent_idx = prev_frame)
+    {
+        size_t const new_idx = vfr.size();
+        if (parent_idx == prev_frame) {
+            parent_idx =
+                (new_idx == 0) ? 0 : new_idx - 1; // default: previous (root: self)
+        }
+        else if (parent_idx >= new_idx) {
+            throw std::runtime_error(
+                std::string("static_system3dp: parent_idx must refer to an already added "
+                            "frame in [0,") +
+                std::to_string(new_idx) + std::string("), but provided parent_idx == ") +
+                std::to_string(parent_idx));
+        }
+        if (name_to_idx.contains(rf.get_name())) {
+            throw std::runtime_error(
+                std::string("static_system3dp: frame name must be unique, but '") +
+                rf.get_name() + std::string("' was already added"));
+        }
+        name_to_idx.emplace(rf.get_name(), new_idx);
+        vfr.push_back(rf);
+        parent_of.push_back(parent_idx);
+    }
+
+    // Look up a frame index by its name (throws if no such frame exists).
+    size_t index_of(std::string const& frame_name) const
+    {
+        auto const it = name_to_idx.find(frame_name);
+        if (it == name_to_idx.end()) {
+            throw std::runtime_error(std::string("static_system3dp: no frame named '") +
+                                     frame_name + std::string("'"));
+        }
+        return it->second;
+    }
+
+    // Point transformation M for a point p_from (or vector/bivector) in system from_idx
+    // to system to_idx, by walking the frame tree: up from `from` to the lowest common
+    // ancestor (LCA), then down to `to`. Identical algorithm to static_system2dp (motor
+    // composition via rgpr; child->parent step is rrev(step_pos_trafo(child))).
+    //   To be used as "p_to = move3dp(p_from, M);".
+    mvec3dp_e get_pos_trafo(size_t from_idx, size_t to_idx)
+    {
+        if (vfr.empty() || from_idx >= vfr.size() || to_idx >= vfr.size()) {
+            throw std::runtime_error(
+                std::string("static_system3dp: Index range of static_frame3dp must be "
+                            "within permissible limits [0,") +
+                std::to_string(vfr.size()) + std::string("), but provided from_idx == ") +
+                std::to_string(from_idx) + std::string(", to_idx == ") +
+                std::to_string(to_idx));
+        }
+
+        // identity transformation (M is the pseudoscalar, the neutral element of rgpr())
+        if (from_idx == to_idx) return I_3dp_mv_e;
+
+        auto const to_chain = ancestor_chain(to_idx); // [to, parent(to), ..., root]
+
+        // M_up: from -> LCA. Each child -> parent step is rrev(step_pos_trafo(child)); a
+        // further-up step is multiplied on the LEFT.
+        mvec3dp_e M_up = I_3dp_mv_e;
+        size_t node = from_idx;
+        while (std::find(to_chain.begin(), to_chain.end(), node) == to_chain.end()) {
+            M_up = rgpr(rrev(step_pos_trafo(node)), M_up);
+            node = parent_of[node];
+        }
+        size_t const lca = node;
+
+        // M_down: LCA -> to. Each parent -> child step is step_pos_trafo(child); the
+        // deepest child (to) ends up on the far LEFT.
+        mvec3dp_e M_down = I_3dp_mv_e;
+        for (size_t j = 0; to_chain[j] != lca; ++j) {
+            M_down = rgpr(M_down, step_pos_trafo(to_chain[j]));
+        }
+
+        return rgpr(M_down, M_up); // apply the up-segment first, then the down-segment
+    }
+
+    mvec3dp_e get_pos_trafo(std::string const& from_name, std::string const& to_name)
+    {
+        return get_pos_trafo(index_of(from_name), index_of(to_name));
+    }
+
+    // Single-step parent(child_idx) -> child_idx point transform, BUILT from child_idx's
+    // pose3dp (stored relative to its parent). motor_from_pose3dp gives the body->parent
+    // motor; its regressive reverse is the parent->child transform. Mirrors 2D's
+    // step_pos_trafo (which builds rgpr(M_rot, M_tra) from origin + phi).
+    mvec3dp_e step_pos_trafo(size_t child_idx) const
+    {
+        return rrev(motor_from_pose3dp(vfr[child_idx].get_pose())); // parent -> child
+    }
+
+    bool is_linear_chain() const
+    {
+        for (size_t i = 1; i < parent_of.size(); ++i) {
+            if (parent_of[i] != i - 1) return false;
+        }
+        return true;
+    }
+
+    bool is_valid_for_transformations() const { return vfr.size() >= 2; }
+
+    size_t size() const { return vfr.size(); }
+    bool empty() const { return vfr.empty(); }
+    static_frame3dp const& frame(size_t idx) const { return vfr[idx]; }
+    size_t parent(size_t idx) const { return parent_of[idx]; }
+
+    // reposition frame idx relative to its parent (origin expected unitized, w = 1)
+    void set_pose(size_t idx, pose3dp const& p) { vfr[idx].set_pose(p); }
+
+  private:
+
+    // chain of ancestors from idx up to the root: [idx, parent(idx), ..., root]
+    std::vector<size_t> ancestor_chain(size_t idx) const
+    {
+        std::vector<size_t> chain{idx};
+        while (parent_of[idx] != idx) { // root is its own parent
+            idx = parent_of[idx];
+            chain.push_back(idx);
+        }
+        return chain;
+    }
+};
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// kinematic_system3dp: a static_system3dp augmented with a momentary RELATIVE velocity
+// twist per frame. The 3D twin of kinematic_system2dp. The physical input is a (linear
+// velocity, angular velocity) pair (kin_state3dp); the dimension-specific to_twist()
+// packs it into the abstract se(3) motor generator (a genuine BiVec3dp, grade 2 -- where
+// 2D used a grade-1 vec2dp with a scalar omega). Velocity layer only at this milestone
+// (the acceleration / world_VA / bracket layer follows with the articulated tier).
+/////////////////////////////////////////////////////////////////////////////////////////
+
+// A 3dp twist (instantaneous screw), the se(3) motor generator. exp(0.5 * twist) is the
+// motor and move3dp(twist, M) is its adjoint. In the BiVec3dp{vx,vy,vz,mx,my,mz} encoding
+// the (vx,vy,vz)=e41,e42,e43 (weight) slots carry the ANGULAR velocity (the rotation
+// axis*rate, as in exp()'s weight_nrm_sq angle) and (mx,my,mz)=e23,e31,e12 (bulk) slots
+// the LINEAR velocity -- decode as omega = (vx,vy,vz), v = (mx,my,mz). The alias
+// documents intent at every signature and adds no overloads (it IS bivec3dp); 2D's
+// twist2dp was a vec2dp -- see the 2D->3D notes.
+using twist3dp = bivec3dp;
+
+
+// Momentary kinematic state of a frame RELATIVE to its parent (physical inputs). Both
+// quantities are direction vectors (w = 0). Carries NO pose -- the pose is held by the
+// frame's static_frame3dp. (2D used a scalar omega; in 3D the angular velocity is a
+// vector
+// -- the natural lift.)
+struct kin_state3dp {
+    vec3dp vel{0.0, 0.0, 0.0, 0.0};   // linear velocity of the frame origin vs. parent
+    vec3dp omega{0.0, 0.0, 0.0, 0.0}; // angular velocity vs. parent (axis * rate)
+};
+
+
+class kinematic_system3dp : public static_system3dp {
+
+    // Relative velocity twist per frame (the body-frame twist), kept in sync with the
+    // base frame list via the add_frame overrides below.
+    std::vector<twist3dp> rel_vtwist;
+
+  public:
+
+    // pack a (linear velocity, angular velocity) pair into a relative twist -- the only
+    // dimension-specific builder (readiness rule #3). Angular velocity -> weight slots
+    // (e41,e42,e43); linear velocity -> bulk slots (e23,e31,e12).
+    static twist3dp to_twist(vec3dp const& v, vec3dp const& omega)
+    {
+        return twist3dp{omega.x, omega.y, omega.z, v.x, v.y, v.z};
+    }
+
+    // add a frame together with its momentary kinematic state (relative to the parent);
+    // the frame's static_frame3dp still provides the initial pose
+    void add_frame(static_frame3dp const& f, kin_state3dp const& k,
+                   size_t parent_idx = prev_frame)
+    {
+        static_system3dp::add_frame(f, parent_idx);
+        rel_vtwist.push_back(to_twist(k.vel, k.omega));
+    }
+
+    // add a frame at rest (zero kinematic state) -- hides the base add_frame so
+    // rel_vtwist always stays in sync
+    void add_frame(static_frame3dp const& f, size_t parent_idx = prev_frame)
+    {
+        add_frame(f, kin_state3dp{}, parent_idx);
+    }
+
+    // set / replace the momentary kinematic state (relative to the parent) of an
+    // already-added frame -- e.g. build a static tree first, then drive a frame
+    void set_state(size_t idx, kin_state3dp const& k)
+    {
+        rel_vtwist[idx] = to_twist(k.vel, k.omega);
+    }
+
+    void set_state(std::string const& frame_name, kin_state3dp const& k)
+    {
+        set_state(index_of(frame_name), k);
+    }
+
+    // set the relative velocity twist directly (the Lie-algebra-native setter; the
+    // physical alternative is set_state(...))
+    void set_twist(size_t idx, twist3dp const& B) { rel_vtwist[idx] = B; }
+
+    void set_twist(std::string const& frame_name, twist3dp const& B)
+    {
+        rel_vtwist[index_of(frame_name)] = B;
+    }
+
+    // read-only access to the stored relative twist of a frame (the body-frame twist;
+    // decode as omega = (vx,vy,vz), v = (mx,my,mz))
+    twist3dp relative_twist(size_t idx) const { return rel_vtwist[idx]; }
+
+    twist3dp relative_twist(std::string const& frame_name) const
+    {
+        return relative_twist(index_of(frame_name));
+    }
+
+    // World-frame velocity twist of frame idx: the sum along the root -> idx path of each
+    // relative twist transported into the world frame by that frame's world motor (the
+    // adjoint move3dp). Spatial twists add (Lie algebra): V_i = V_parent + Ad(xi_i).
+    twist3dp twist_world(size_t idx)
+    {
+        twist3dp V{};
+        for (size_t n = idx; parent(n) != n; n = parent(n)) {
+            V = V + move3dp(rel_vtwist[n], get_pos_trafo(n, 0)); // Ad_{M_n}(xi_n)
+        }
+        return V;
+    }
+
+    twist3dp twist_world(std::string const& frame_name)
+    {
+        return twist_world(index_of(frame_name));
+    }
+};
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// dynamic_system3dp: the forces/inertia tier on top of kinematic_system3dp. The 3D twin
+// of dynamic_system2dp. Milestone 1 scope: independent FREE rigid bodies under gravity
+// (no joints / articulation yet). Each frame's relative acceleration twist is COMPUTED
+// from the applied wrench via the se(3) Euler equation
+//   Omega_dot = I^-1[ W - rcmt(Omega, I(Omega)) ]            (= compute_omega_dot)
+// -- LITERALLY the same line as 2D (vec) with BiVec3dp instead. The pose is evolved on
+// the motor manifold M(t) = M0 (x) exp(1/2 B) with RK4 on the Lie-algebra pair (B,
+// Omega).
+/////////////////////////////////////////////////////////////////////////////////////////
+
+// Rigid-body inertial properties of a frame (body frame, about the body origin = cm).
+struct body3dp {
+    Inertia3dp<value_t> I;     // inertia map: body twist -> body momentum
+    Inertia3dp<value_t> I_inv; // its inverse (cached)
+    value_t mass{0.0};         // total mass (gravity + energy)
+};
+
+// Build a body3dp for a uniform cuboid (extents w,h,d along e1,e2,e3) of total mass m,
+// with the body origin at the centre of mass.
+inline body3dp make_cuboid_body(value_t m, value_t w, value_t h, value_t d)
+{
+    auto const I =
+        get_cuboid_inertia(m, w, h, d); // about cm (default pivot = body origin)
+    return body3dp{I, get_inertia_inverse(I), m};
+}
+
+
+class dynamic_system3dp : public kinematic_system3dp {
+
+    std::vector<body3dp> body; // per-frame inertial properties (index = frame)
+    // uniform gravity field [world frame, a direction with w = 0]
+    vec3dp grav{0.0, -9.81, 0.0, 0.0};
+
+  public:
+
+    dynamic_system3dp() = default;
+
+    // add a frame WITHOUT inertia (e.g. the inertial root); keeps body[] in sync with the
+    // base frame list. Mirrors the two base add_frame overloads.
+    void add_frame(static_frame3dp const& f, kin_state3dp const& k,
+                   size_t parent_idx = prev_frame)
+    {
+        kinematic_system3dp::add_frame(f, k, parent_idx);
+        body.push_back(body3dp{});
+    }
+
+    void add_frame(static_frame3dp const& f, size_t parent_idx = prev_frame)
+    {
+        kinematic_system3dp::add_frame(f, parent_idx);
+        body.push_back(body3dp{});
+    }
+
+    // add a free (6-DOF) dynamic rigid body: rest pose + inertial properties + initial
+    // kinematic state (linear & angular velocity)
+    void add_body(static_frame3dp const& f, body3dp const& b,
+                  kin_state3dp const& k = kin_state3dp{}, size_t parent_idx = prev_frame)
+    {
+        add_frame(f, k, parent_idx);
+        body.back() = b;
+    }
+
+    void set_gravity(vec3dp const& g) { grav = g; } // g is a direction (w = 0)
+    vec3dp gravity() const { return grav; }
+
+    // read-only access to a body's inertial properties
+    body3dp const& body_props(size_t idx) const { return body[idx]; }
+
+    // Advance the system by dt: each free body is integrated independently (Milestone 1).
+    void step(value_t dt)
+    {
+        for (size_t i = 1; i < size(); ++i)
+            if (body[i].mass > 0.0) step_free_body(i, dt);
+    }
+
+    // --- energy / momentum diagnostics (inertial / world frame) ----------------------
+
+    // total kinetic energy: sum over bodies of 1/2 <V_body, I(V_body)>, the spatial
+    // inertia-map quadratic form (= 1/2 m|v_cm|^2 + 1/2 omega.I.omega). V_body is the
+    // world twist pulled into the body frame where the inertia map lives.
+    // Dimension-agnostic form
+    // -- LITERALLY the 2D code with the BiVec3dp rwdg overload.
+    value_t kinetic_energy()
+    {
+        value_t ke = 0.0;
+        for (size_t i = 1; i < size(); ++i) {
+            auto const Minv = rrev(get_pos_trafo(i, 0));       // world -> body i
+            twist3dp const Vb = move3dp(twist_world(i), Minv); // body twist of body i
+            ke += 0.5 * spatial_dot(Vb, body[i].I(Vb));
+        }
+        return ke;
+    }
+
+    // total gravitational potential energy: sum over bodies of -m (g . r_cm)
+    value_t potential_energy()
+    {
+        value_t pe = 0.0;
+        for (size_t i = 1; i < size(); ++i) {
+            vec3dp const cm_w = move3dp(O_3dp, get_pos_trafo(i, 0));
+            pe += -body[i].mass * (grav.x * cm_w.x + grav.y * cm_w.y + grav.z * cm_w.z);
+        }
+        return pe;
+    }
+
+    value_t total_energy() { return kinetic_energy() + potential_energy(); }
+
+    // World-frame momentum bivector of body idx: the body momentum I(V_body) transported
+    // to the world frame by the adjoint. For a torque-free free body this is CONSERVED --
+    // the classic Poinsot / Euler check that complements energy conservation.
+    bivec3dp momentum_world(size_t idx)
+    {
+        auto const M = get_pos_trafo(idx, 0);                   // body -> world
+        twist3dp const Vb = move3dp(twist_world(idx), rrev(M)); // body twist
+        return move3dp(body[idx].I(Vb), M);                     // momentum back to world
+    }
+
+  private:
+
+    // Spatial (reciprocal / Klein) pairing of a velocity twist with a momentum / wrench
+    // bivector -> scalar: the dimension-agnostic inertia-map quadratic form, with
+    // <xi, I(xi)> == 2x the kinetic energy of a body moving with body twist xi. In PGA3DP
+    // the pairing is the regressive product -rwdg(xi, mom) -- IDENTICAL in form to the 2D
+    // dynamic_system2dp::spatial_dot (only the rwdg overload differs: BiVec3dp here,
+    // Vec2dp/BiVec2dp there). This is the form that makes the mass matrix lift unchanged.
+    static value_t spatial_dot(twist3dp const& xi, bivec3dp const& mom)
+    {
+        return -value_t(rwdg(xi, mom));
+    }
+
+    // RK4-integrate one free rigid body (frame idx) over dt under gravity. The
+    // integration state is the Lie-algebra pair (B, Omega): B is the relative generator
+    // accumulated from the current relative pose M0 (so M(t) = M0 (x) exp(1/2 B)), Omega
+    // the body twist. dB/dt = Omega; dOmega/dt = I^-1[ W_body - rcmt(Omega, I(Omega)) ].
+    // For a torque-free body (grav = 0) this reduces to the pure se(3) Euler equation
+    // (Poinsot / Dzhanibekov).
+    void step_free_body(size_t idx, value_t dt)
+    {
+        auto const M0 = rrev(step_pos_trafo(idx)); // current body -> parent motor
+        twist3dp const Om0 = relative_twist(idx);  // current body twist
+        auto const& I = body[idx].I;
+        auto const& I_inv = body[idx].I_inv;
+        value_t const m = body[idx].mass;
+
+        // body-frame twist rate from the gravity wrench acting at the cm (= body origin)
+        auto omega_dot = [&](twist3dp const& B, twist3dp const& Om) -> twist3dp {
+            auto const M = rgpr(M0, exp(0.5 * B));  // pose at this stage
+            vec3dp const cm_w = move3dp(O_3dp, M);  // cm in world
+            auto const W_w = wdg(cm_w, m * grav);   // gravity wrench (world)
+            auto const W_b = move3dp(W_w, rrev(M)); // pulled into the body frame
+            return compute_omega_dot(I_inv, W_b, Om, I);
+        };
+
+        twist3dp const B0{};
+        twist3dp const k1B = Om0;
+        twist3dp const k1O = omega_dot(B0, Om0);
+        twist3dp const k2B = Om0 + 0.5 * dt * k1O;
+        twist3dp const k2O = omega_dot(B0 + 0.5 * dt * k1B, Om0 + 0.5 * dt * k1O);
+        twist3dp const k3B = Om0 + 0.5 * dt * k2O;
+        twist3dp const k3O = omega_dot(B0 + 0.5 * dt * k2B, Om0 + 0.5 * dt * k2O);
+        twist3dp const k4B = Om0 + dt * k3O;
+        twist3dp const k4O = omega_dot(B0 + dt * k3B, Om0 + dt * k3O);
+
+        twist3dp const B_end = B0 + (dt / 6.0) * (k1B + 2.0 * k2B + 2.0 * k3B + k4B);
+        twist3dp const Om_end = Om0 + (dt / 6.0) * (k1O + 2.0 * k2O + 2.0 * k3O + k4O);
+
+        // decode the evolved pose (motor -> pose3dp via the constrained motor log) and
+        // write pose + twist back into the base layers
+        set_pose(idx, pose3dp_from_motor(rgpr(M0, exp(0.5 * B_end))));
+        set_twist(idx, Om_end);
+    }
+};
 
 } // namespace hd::ga::pga
 

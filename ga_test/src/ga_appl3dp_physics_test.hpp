@@ -109,8 +109,10 @@ TEST_SUITE("PGA3DP: physics tests prep")
         auto I = get_point_inertia(m, X);
 
         // Apply to a simple rate of change
-        // BiVec3dp: (vx=e41, vy=e42, vz=e43, mx=e23, my=e31, mz=e12)
-        BiVec3dp<double> Omega{0.0, 0.0, 0.0, 1.0, 0.0, 0.0}; // rotation about e23
+        // BiVec3dp: (vx=e41, vy=e42, vz=e43, mx=e23, my=e31, mz=e12); the bulk slot mx
+        // (zero weight) is a LINEAR velocity along e23 (a translation generator)
+        BiVec3dp<double> Omega{0.0, 0.0, 0.0,
+                               1.0, 0.0, 0.0}; // unit linear velocity (e23)
 
         BiVec3dp<double> result = I(Omega);
 
@@ -384,8 +386,7 @@ TEST_SUITE("PGA3DP: physics tests prep")
         auto u_md = mdspan<vec3d, dextents<size_t, 1>>(u_md_mem.data(), n);
         auto uh_md = mdspan<vec3d, dextents<size_t, 2>>(uh_md_mem.data(), 2, n);
         auto rhs_md_mut = mdspan<vec3d, dextents<size_t, 1>>(rhs_md_mem.data(), n);
-        auto rhs_md =
-            mdspan<vec3d const, dextents<size_t, 1>>(rhs_md_mem.data(), n);
+        auto rhs_md = mdspan<vec3d const, dextents<size_t, 1>>(rhs_md_mem.data(), n);
 
         // vector side: same initial state as the mdspan side.
         std::vector<vec3d> u_vec{vec3d{1.0, 2.0, 3.0}};
@@ -461,7 +462,8 @@ TEST_SUITE("PGA3DP: physics tests application")
             // top-right z-edge (the pivot line L_b).
             //
             // PGA3DP body-frame formulation: M(t) = M0 ⟇ exp(½ B_b(t))
-            // - M0: pure translation motor placing body origin (= cm) at initial world pos
+            // - M0: pure translation motor placing body origin (= cm) at initial world
+            // pos
             //       M0 = exp(0.5 * bivec3dp{0,0,0,cx,cy,cz})
             //       (translation uses the bulk/e23,e31,e12 components, not e41,e42,e43)
             // - B_b = phi * L_b: rotation bivector, phi = rotation angle about L_b
@@ -479,13 +481,14 @@ TEST_SUITE("PGA3DP: physics tests application")
           public:
 
             sim_ode_cuboid_pga3dp(value_t m_in, value_t w_in, value_t h_in, value_t d_in,
-                                  vec3dp const& cm_pos_in,
-                                  value_t cm_phi_in, value_t cm_omega_in) :
+                                  vec3dp const& cm_pos_in, value_t cm_phi_in,
+                                  value_t cm_omega_in) :
                 m(m_in), width(w_in), height(h_in), depth(d_in), cm_w_pos0(cm_pos_in),
-                cm_w_phi0(cm_phi_in), cm_w_omega0(cm_omega_in),
-                u_mem(2), uh_mem(2 * 2), rhs_mem(2)
+                cm_w_phi0(cm_phi_in), cm_w_omega0(cm_omega_in), u_mem(2), uh_mem(2 * 2),
+                rhs_mem(2)
             {
-                fmt::println("sim_ode_cuboid_pga3dp: 3D pendulum (pivot = z-edge at TR).");
+                fmt::println(
+                    "sim_ode_cuboid_pga3dp: 3D pendulum (pivot = z-edge at TR).");
 
                 // Body frame origin = CENTER OF MASS (cuboid symmetric about cm).
                 // Pivot = z-edge through TR corner at (hw, hh, *) in body frame.
@@ -514,18 +517,19 @@ TEST_SUITE("PGA3DP: physics tests application")
 
                 // Body origin = CM. Pivot = z-edge at (hw, hh, *) in body frame.
                 // M0: pure translation placing cm at cm_w_pos0.
-                // In PGA3DP, translate by (cx,cy,cz): motor = exp(0.5 * bivec3dp{0,0,0,cx,cy,cz})
-                // Translation is encoded in the bulk (e23,e31,e12) components,
-                // not the weight (e41,e42,e43) components.
-                M0 = exp(0.5 * bivec3dp{0.0, 0.0, 0.0,
-                                        cm_w_pos0.x, cm_w_pos0.y, cm_w_pos0.z});
+                // In PGA3DP, translate by (cx,cy,cz): motor = exp(0.5 *
+                // bivec3dp{0,0,0,cx,cy,cz}) Translation is encoded in the bulk
+                // (e23,e31,e12) components, not the weight (e41,e42,e43) components.
+                M0 = exp(0.5 *
+                         bivec3dp{0.0, 0.0, 0.0, cm_w_pos0.x, cm_w_pos0.y, cm_w_pos0.z});
 
                 // pivot_pt_w: world position of representative pivot point (hw,hh,0,1)
                 // in body frame, mapped via M0.  Stays fixed during rotation since
                 // move3dp(P_on_L_b, M0 ⟇ exp(½ phi * L_b)) = M0-image of P_on_L_b.
                 pivot_pt_w = move3dp(vec3dp{hw, hh, 0.0, 1.0}, M0);
-                fmt::println("pivot_pt_w = {:>-7.3f}  (world position of (hw,hh,0) via M0)",
-                             pivot_pt_w);
+                fmt::println(
+                    "pivot_pt_w = {:>-7.3f}  (world position of (hw,hh,0) via M0)",
+                    pivot_pt_w);
 
                 // B_b(0): initial rotation by phi0 about body-frame pivot line L_b.
                 bivec3dp const L_b{0.0, 0.0, 1.0, hh, -hw, 0.0};
@@ -537,10 +541,10 @@ TEST_SUITE("PGA3DP: physics tests application")
 
             void calc_rhs()
             {
-                auto u   = mdspan<bivec3dp, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto u = mdspan<bivec3dp, dextents<size_t, 1>>(u_mem.data(), 2);
                 auto rhs = mdspan<bivec3dp, dextents<size_t, 1>>(rhs_mem.data(), 2);
 
-                bivec3dp const B     = u[0]; // position bivector B_b = phi * L_b
+                bivec3dp const B = u[0];     // position bivector B_b = phi * L_b
                 bivec3dp const Omega = u[1]; // velocity bivector Omega_b = omega * L_b
 
                 // Current motor: M(t) = M0 ⟇ exp(½ B_b(t))  [body-frame formulation]
@@ -552,11 +556,12 @@ TEST_SUITE("PGA3DP: physics tests application")
 
                 // Force couple in world frame (net force = 0, only torque):
                 // - Gravity at cm (downward -y):       F_dn = wdg(cm_w, (0,-mg,0,0))
-                // - Reaction at pivot (upward +y):     F_up = wdg(pivot_pt_w, (0,+mg,0,0))
-                // Using a single representative pivot POINT (z=0 on pivot edge) here.
-                // The torque from the reaction force about L_b vanishes by definition.
-                auto const F_dn_w = wdg(cm_w,       vec3dp{0.0, -m * 9.81, 0.0, 0.0});
-                auto const F_up_w = wdg(pivot_pt_w, vec3dp{0.0,  m * 9.81, 0.0, 0.0});
+                // - Reaction at pivot (upward +y):     F_up = wdg(pivot_pt_w,
+                // (0,+mg,0,0)) Using a single representative pivot POINT (z=0 on pivot
+                // edge) here. The torque from the reaction force about L_b vanishes by
+                // definition.
+                auto const F_dn_w = wdg(cm_w, vec3dp{0.0, -m * 9.81, 0.0, 0.0});
+                auto const F_up_w = wdg(pivot_pt_w, vec3dp{0.0, m * 9.81, 0.0, 0.0});
                 auto const F_b = move3dp(F_dn_w + F_up_w, rrev(M)); // to body frame
 
                 // Constrained rotation about pivot line L_b = {0,0,1, hh,-hw,0}.
@@ -576,8 +581,8 @@ TEST_SUITE("PGA3DP: physics tests application")
 
             void calc_rkstep(double dt)
             {
-                auto u   = mdspan<bivec3dp, dextents<size_t, 1>>(u_mem.data(), 2);
-                auto uh  = mdspan<bivec3dp, dextents<size_t, 2>>(uh_mem.data(), 2, 2);
+                auto u = mdspan<bivec3dp, dextents<size_t, 1>>(u_mem.data(), 2);
+                auto uh = mdspan<bivec3dp, dextents<size_t, 2>>(uh_mem.data(), 2, 2);
                 auto rhs = mdspan<bivec3dp const, dextents<size_t, 1>>(rhs_mem.data(), 2);
 
                 for (size_t rk_step = 1; rk_step <= 4; ++rk_step) {
@@ -636,15 +641,16 @@ TEST_SUITE("PGA3DP: physics tests application")
             value_t cm_w_phi0;   // initial rotation angle about pivot line
             value_t cm_w_omega0; // initial angular velocity about pivot line
 
-            mvec3dp_e M0;        // translation motor: cm to initial world position
-            vec3dp pivot_pt_w;   // world pos of body-frame pivot representative point
+            mvec3dp_e M0;      // translation motor: cm to initial world position
+            vec3dp pivot_pt_w; // world pos of body-frame pivot representative point
 
             // RK4 state: u[0] = B_b (position bivector), u[1] = Omega_b (velocity)
             std::vector<bivec3dp> u_mem;   // [B, Omega]
             std::vector<bivec3dp> uh_mem;  // RK4 helper (2 * SYS_SIZE entries)
             std::vector<bivec3dp> rhs_mem; // right-hand side [dB/dt, dOmega/dt]
 
-            // Inertia map about pivot L_b (parallel-axis corrected via get_cuboid_inertia)
+            // Inertia map about pivot L_b (parallel-axis corrected via
+            // get_cuboid_inertia)
             inertia3dp I;
             inertia3dp I_inv;
         };
@@ -656,8 +662,8 @@ TEST_SUITE("PGA3DP: physics tests application")
 
         // Initial position: cm at (-1,-1,0) so pivot edge (at body (1,1,*)) is at
         // world origin (0,0,*). No initial rotation or angular velocity.
-        auto cm_pos   = vec3dp{-1.0, -1.0, 0.0, 1.0};
-        auto cm_phi   = 0.0; // no initial rotation
+        auto cm_pos = vec3dp{-1.0, -1.0, 0.0, 1.0};
+        auto cm_phi = 0.0;   // no initial rotation
         auto cm_omega = 0.0; // no initial angular velocity
 
         sim_ode_cuboid_pga3dp sim(m, w, h, d, cm_pos, cm_phi, cm_omega);
@@ -715,3 +721,142 @@ TEST_SUITE("PGA3DP: physics tests application")
     }
 
 } // TEST_SUITE("PGA3DP: physics tests application")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// PGA3DP dynamic_system3dp - Milestone 1: free rigid bodies
+//   (the first 3D deliverable of the 2D->3D lift; validates the ported system classes,
+//    the pose3dp constrained motor log, and the se(3) Euler equation against energy +
+//    angular-momentum conservation and the classic intermediate-axis instability)
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
+{
+
+    TEST_CASE("pga3dp: free rigid body energy + cm parabola (M1)")
+    {
+        fmt::println(
+            "pga3dp: dynamic_system3dp - free rigid body energy + parabola (M1)");
+
+        // a uniform cube (symmetric inertia) launched under gravity with an initial
+        // linear velocity and a spin about e3. Symmetric => omega is constant; gravity
+        // exerts no torque about the cm => the cm follows an exact parabola and energy is
+        // conserved.
+        value_t const m = 2.0;
+        auto const cube =
+            make_cuboid_body(m, 1.0, 1.0, 1.0); // I_cm = m/6 on the diagonal
+
+        dynamic_system3dp sys;
+        sys.add_frame(static_frame3dp("W")); // inertial root at the world origin
+
+        vec3dp const v0{1.0, 2.0, 0.0, 0.0}; // initial cm velocity
+        vec3dp const w0{0.0, 0.0, 3.0, 0.0}; // initial spin about e3
+        sys.add_body(static_frame3dp("B", vec3dp{0.0, 0.0, 0.0, 1.0}), cube,
+                     kin_state3dp{v0, w0});
+
+        value_t const g = 9.81; // default gravity is (0,-g,0)
+        value_t const E0 = sys.total_energy();
+        // analytic: KE = 1/2 m|v|^2 + 1/2 I_zz w^2; PE = 0 (cm at y = 0)
+        value_t const Izz = m / 6.0; // cube: m*(1+1)/12
+        value_t const KE_analytic = 0.5 * m * (1.0 + 4.0) + 0.5 * Izz * 9.0;
+        CHECK(E0 == doctest::Approx(KE_analytic));
+
+        value_t const dt = 1.0e-3;
+        size_t const N = 1500; // 1.5 s
+        value_t max_dE = 0.0, max_cm_err = 0.0, max_w_err = 0.0;
+        for (size_t n = 1; n <= N; ++n) {
+            sys.step(dt);
+            value_t const t = n * dt;
+
+            // energy conservation (RK4 drift)
+            max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
+
+            // cm follows the exact parabola  cm(t) = v0*t + 1/2 g t^2 (absolute error:
+            // the body-frame twist representation couples the spin into the RK4
+            // truncation)
+            vec3dp const cm = move3dp(O_3dp, sys.get_pos_trafo("B", "W"));
+            max_cm_err =
+                std::max({max_cm_err, std::abs(cm.x - 1.0 * t),
+                          std::abs(cm.y - (2.0 * t - 0.5 * g * t * t)), std::abs(cm.z)});
+
+            // symmetric body, gravity has no torque about the cm => the body spin is
+            // EXACTLY constant (omega_dot = 0, so RK4 leaves it untouched)
+            twist3dp const Om = sys.relative_twist("B"); // omega = (vx,vy,vz)
+            max_w_err = std::max(
+                {max_w_err, std::abs(Om.vx), std::abs(Om.vy), std::abs(Om.vz - 3.0)});
+        }
+        fmt::println("  E0 = {:.6f}, dE/E = {:.2e}, max cm err = {:.2e}, max omega err = "
+                     "{:.2e}",
+                     E0, max_dE / std::abs(E0), max_cm_err, max_w_err);
+        CHECK(max_dE / std::abs(E0) < 1e-4); // RK4 drift (spin-coupled)
+        CHECK(max_cm_err < 1e-3);
+        CHECK(max_w_err < 1e-12); // exact: omega_dot == 0 for this case
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: torque-free intermediate-axis instability (Dzhanibekov, M1)")
+    {
+        fmt::println("pga3dp: dynamic_system3dp - torque-free Dzhanibekov flip (M1)");
+
+        // an asymmetric cuboid (w<h<d) spun about its INTERMEDIATE principal axis (e2):
+        //   I_xx = m(h^2+d^2)/12 = 13/12,  I_yy = m(w^2+d^2)/12 = 10/12 (intermediate),
+        //   I_zz = m(w^2+h^2)/12 =  5/12.
+        // The tennis-racket / Dzhanibekov theorem: spin about the intermediate axis is
+        // unstable, so a small perturbation makes the spin axis periodically FLIP. With
+        // no gravity, energy AND the world angular-momentum vector are exactly conserved
+        // -- the unambiguous correctness test of the se(3) Euler equation.
+        value_t const m = 1.0;
+        auto const body = make_cuboid_body(m, 1.0, 2.0, 3.0);
+
+        dynamic_system3dp sys;
+        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0}); // torque-free
+        sys.add_frame(static_frame3dp("W"));
+
+        // spin mostly about e2 (intermediate) with a small e1 perturbation; no
+        // translation
+        vec3dp const w0{0.3, 5.0, 0.0, 0.0};
+        sys.add_body(static_frame3dp("B"), body, kin_state3dp{vec3dp{0, 0, 0, 0}, w0});
+
+        value_t const E0 = sys.total_energy(); // kinetic only
+        bivec3dp const L0 = sys.momentum_world(1);
+        value_t const L0n = std::sqrt(L0.mx * L0.mx + L0.my * L0.my +
+                                      L0.mz * L0.mz); // |angular momentum|
+
+        value_t const dt = 1.0e-3;
+        size_t const N = 12000; // 12 s -- long enough for at least one flip
+        value_t max_dE = 0.0, max_dL = 0.0, min_wy = w0.y, max_abs_wx = 0.0, max_cm = 0.0;
+        for (size_t n = 1; n <= N; ++n) {
+            sys.step(dt);
+            max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
+
+            bivec3dp const L = sys.momentum_world(1);
+            max_dL = std::max({max_dL, std::abs(L.mx - L0.mx), std::abs(L.my - L0.my),
+                               std::abs(L.mz - L0.mz)});
+
+            twist3dp const Om = sys.relative_twist("B"); // body-frame omega = (vx,vy,vz)
+            min_wy = std::min(min_wy, Om.vy);
+            max_abs_wx = std::max(max_abs_wx, std::abs(Om.vx));
+
+            // cm stays put (no linear momentum)
+            vec3dp const cm = move3dp(O_3dp, sys.get_pos_trafo(1, 0));
+            max_cm = std::max({max_cm, std::abs(cm.x), std::abs(cm.y), std::abs(cm.z)});
+        }
+        fmt::println("  E0 = {:.6f}, dE/E = {:.2e}, |L|0 = {:.4f}, max|dL|/|L| = {:.2e}",
+                     E0, max_dE / std::abs(E0), L0n, max_dL / L0n);
+        fmt::println(
+            "  spin about e2: w_y in [{:.3f}, {:.3f}], max|w_x| = {:.3f}, max cm = "
+            "{:.2e}",
+            min_wy, w0.y, max_abs_wx, max_cm);
+
+        // conservation: energy and the world angular-momentum vector
+        CHECK(max_dE / std::abs(E0) < 1e-6);
+        CHECK(max_dL / L0n < 1e-5);
+        CHECK(max_cm < 1e-8); // cm fixed (pure rotation, no linear momentum)
+        // the flip: w_y reverses sign (drops from +5 to clearly negative), and the
+        // perturbation about e1 grows large during the flip
+        CHECK(min_wy < -3.0);
+        CHECK(max_abs_wx > 2.0);
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
