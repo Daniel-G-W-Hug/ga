@@ -256,6 +256,7 @@ Vec2dp<T> compute_omega_dot(Inertia2dp<T> const& I_inv, BiVec2dp<T> const& F,
     return I_inv(rhs); // returns the change rate Omega
 }
 
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // static_frame2dp / static_system2dp: a tree of right-handed coordinate frames, each
 // posed RELATIVE to its parent. Provides rigid coordinate transformations between frames.
@@ -266,6 +267,7 @@ struct pose2dp {
     value_t phi;   // orientation of frame vs. parent coordinates, [phi]: rad
 };
 
+
 class static_frame2dp {
 
     // Static basis frame, a coordinate system (cs) w/o change over time.
@@ -274,7 +276,7 @@ class static_frame2dp {
 
     std::string name; // display name (default: 'I' = inertial frame)
 
-    // pose vs. parent coordinate system
+    // pose vs. parent coordinate system (remember: ALLWAYS relative to parent system!)
     pose2dp pose;
 
   public:
@@ -302,6 +304,7 @@ class static_frame2dp {
     }
 };
 
+
 class static_system2dp {
 
     std::vector<static_frame2dp> vfr; // reference frames (index 0 == root)
@@ -318,8 +321,13 @@ class static_system2dp {
     // Add a frame to the system. By default its parent is the previously added frame, so
     // a plain sequence of add_frame() calls builds a linear dependency chain
     //   rf[0] (root) -> rf[1] -> rf[2] -> ...
-    // Pass an explicit parent_idx to branch the tree off an earlier frame instead. A
-    // frame's pose is always interpreted RELATIVE to its parent (see static_frame2dp).
+    //
+    // Pass an explicit parent_idx to branch the tree off an earlier frame instead. This
+    // allows for example a robots with two arms both linked to a body frame that can
+    // rotate vs. the world system. The coordinate transform between arbitrary systems in
+    // the tree will work automatically based on the parent->child relationships).
+    //
+    // A frame's pose is always interpreted RELATIVE to its parent (see static_frame2dp).
     // The first frame added is the root; its parent is itself (a self-loop terminating
     // the upward walk in get_pos_trafo).
     void add_frame(static_frame2dp const& rf, size_t parent_idx = prev_frame)
@@ -371,7 +379,7 @@ class static_system2dp {
     // the LCA is the shallower frame, one segment is empty, and this reduces to the
     // consecutive-index composition.
     //
-    // To be used as "p_to = move2dp(p_from, M);"
+    // To be used as "p_to = move2dp(p_from, M);" with M as returned from get_pos_trafo()
     //
     mvec2dp_u get_pos_trafo(size_t from_idx, size_t to_idx)
     {
@@ -427,14 +435,15 @@ class static_system2dp {
     // "pose vs. parent coordinate system").
     //
     // Translation and rotation are COMPOSED, not summed as generators: they do not
-    // commute, so exp(-0.5*(t+r)) != exp(-0.5*r) (x) exp(-0.5*t) (Baker-Campbell-
+    // commute, so exp(-0.5*(t+r)) != exp(-0.5*r) * exp(-0.5*t) (Baker-Campbell-
     // Hausdorff), and the single-exp form is a screw about a wrong centre (it does not
     // even map the child origin to (0,0)). The composition reduces correctly to a pure
     // translation (rel.phi == 0) or pure rotation (rel.origin == parent origin).
     mvec2dp_u step_pos_trafo(size_t child_idx) const
     {
         auto const rel = vfr[child_idx].get_pose(); // pose relative to parent frame
-        auto M_rot = exp(-0.5 * vec2dp(0.0, 0.0, rel.phi)); // rotate about parent origin
+        auto M_rot = exp(-0.5 * vec2dp(0.0, 0.0, rel.phi)); // rotate by rel.phi
+                                                            // about parent origin
         auto M_tra =
             exp(-0.5 * vec2dp(-rel.origin.y, rel.origin.x, 0.0)); // translate by rel
         return rgpr(M_rot, M_tra);                                // parent -> child
@@ -479,6 +488,7 @@ class static_system2dp {
     }
 };
 
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // kinematic_system2dp: a static_system2dp augmented with a momentary kinematic state per
 // frame (velocity & acceleration, linear & angular), all RELATIVE to the parent. Pure
@@ -489,14 +499,16 @@ class static_system2dp {
 
 // A 2dp twist (instantaneous screw: angular + linear velocity, or their accelerations).
 // It is stored in a vec2dp, but with a SPECIAL interpretation -- it is NOT an ordinary
-// point/vector. In the right-handed plane (omega > 0 is counter-clockwise) the components
-// encode the pga2dp motor generator
-//     twist2dp(.x, .y, .z) = (-v_y, v_x, omega)
-// so that exp(0.5 * twist) is the motor and move2dp(twist, M) is its adjoint. Decode as
-// omega = .z and v = (.y, -.x). The alias documents this intent at every signature and
-// adds no overloads (it IS vec2dp). In pga3dp the corresponding twist is a genuine
-// BiVec3dp (grade 2) -- see the 2D->3D notes.
+// point/vector. In the right-handed plane omega > 0 is counter-clockwise in a
+// right-handed system, i.e. in the positive direction of the bivector e12.
+//
+// The components encode the pga2dp motor generator twist2dp(.x, .y, .z) = (-v_y, v_x,
+// omega) so that exp(0.5 * twist) is the motor and move2dp(twist, M) is its adjoint.
+// Decode as omega = .z and v = (.y, -.x). The alias documents this intent at every
+// signature and adds no overloads (it IS vec2dp). In pga3dp the corresponding twist is a
+// genuine BiVec3dp (grade 2) -- see the 2D->3D notes.
 using twist2dp = vec2dp;
+
 
 // Momentary kinematic state of a frame RELATIVE to its parent (physical inputs). Linear
 // quantities live in the parent frame (z = 0 directions); angular ones are scalars.
@@ -508,6 +520,7 @@ struct kin_state2dp {
     value_t omega{0.0}; // angular velocity vs. parent [rad/s]
     value_t alpha{0.0}; // angular acceleration vs. parent [rad/s^2]
 };
+
 
 class kinematic_system2dp : public static_system2dp {
 
@@ -551,6 +564,7 @@ class kinematic_system2dp : public static_system2dp {
         rel_vtwist[idx] = to_twist(k.vel, k.omega);
         rel_atwist[idx] = to_twist(k.acc, k.alpha);
     }
+
     void set_state(std::string const& frame_name, kin_state2dp const& k)
     {
         set_state(index_of(frame_name), k);
@@ -560,6 +574,7 @@ class kinematic_system2dp : public static_system2dp {
     // twist2dp). The physical alternative is set_state(...). Leaves the relative
     // acceleration unchanged.
     void set_twist(size_t idx, twist2dp const& B) { rel_vtwist[idx] = B; }
+
     void set_twist(std::string const& frame_name, twist2dp const& B)
     {
         rel_vtwist[index_of(frame_name)] = B;
@@ -576,11 +591,11 @@ class kinematic_system2dp : public static_system2dp {
     {
         for (size_t i = 1; i < size(); ++i) { // frame 0 is the root (left unchanged)
             // evolve the body->parent relative motor by the relative twist over dt
-            auto const P = rrev(step_pos_trafo(i));                  // T(origin) (x) R(phi)
+            auto const P = rrev(step_pos_trafo(i)); // T(origin) (x) R(phi)
             auto const P_new = rgpr(P, exp(0.5 * rel_vtwist[i] * dt));
             // decode the new relative pose (origin, phi) and store it
-            auto const o = move2dp(O_2dp, P_new);                    // child origin in parent
-            auto const e1 = move2dp(vec2dp{1.0, 0.0, 0.0}, P_new);   // rotated e1 direction
+            auto const o = move2dp(O_2dp, P_new); // child origin in parent
+            auto const e1 = move2dp(vec2dp{1.0, 0.0, 0.0}, P_new); // rotated e1 direction
             set_pose(i, vec2dp{o.x / o.z, o.y / o.z, 1.0}, std::atan2(e1.y, e1.x));
             // ramp the relative velocity by the (constant) relative acceleration
             rel_vtwist[i] = rel_vtwist[i] + rel_atwist[i] * dt;
@@ -598,6 +613,7 @@ class kinematic_system2dp : public static_system2dp {
         }
         return V;
     }
+
     twist2dp twist_world(std::string const& frame_name)
     {
         return twist_world(index_of(frame_name));
@@ -607,10 +623,13 @@ class kinematic_system2dp : public static_system2dp {
     //   Xdot = rcmt(V, X)        (ga_docu/3_ga_modelling_motion.tex, eq:rcmt_pga_world)
     // In 2D PGA the twist is a vector (twist2dp) and rcmt(vec, vec) -> vec; the argument
     // ORDER matters: rcmt(V, X) == -rcmt(X, V).
-    static vec2dp velocity_field(twist2dp const& V, vec2dp const& X) { return rcmt(V, X); }
+    static vec2dp velocity_field(twist2dp const& V, vec2dp const& X)
+    {
+        return rcmt(V, X);
+    }
 
-    // Acceleration field at point X of a rigid body with velocity twist V and acceleration
-    // twist A (5_ga_modelling_physics.tex, "Moving coordinate systems"):
+    // Acceleration field at point X of a rigid body with velocity twist V and
+    // acceleration twist A (5_ga_modelling_physics.tex, "Moving coordinate systems"):
     //   a(X) = rcmt(A, X)              [frame/Euler (alpha x r) + origin acceleration]
     //        + rcmt(V, rcmt(V, X))     [centripetal:  rcmt(Omega, rcmt(Omega, r))]
     static vec2dp accel_field(twist2dp const& V, twist2dp const& A, vec2dp const& X)
@@ -624,6 +643,7 @@ class kinematic_system2dp : public static_system2dp {
     {
         return velocity_field(twist_world(idx), X_world);
     }
+
     vec2dp point_velocity(vec2dp const& X_world, std::string const& frame_name)
     {
         return point_velocity(X_world, index_of(frame_name));
@@ -634,8 +654,9 @@ class kinematic_system2dp : public static_system2dp {
     // coordinates. This is the rotating-frame transport theorem: the relative velocity is
     //   v_rel = velocity_field(V_src - V_obs, P_world)   (a free vector, in world)
     // then rotated into obs. Subtracting the velocity the obs-frame imparts at P (its
-    // origin motion plus its rotation) means an observer reads zero for any point fixed in
-    // their own frame, and reads the absolute world velocity when obs is the inertial root.
+    // origin motion plus its rotation) means an observer reads zero for any point fixed
+    // in their own frame, and reads the absolute world velocity when obs is the inertial
+    // root.
     vec2dp relative_point_velocity(vec2dp const& P_src, size_t src, size_t obs)
     {
         auto const P_world = move2dp(P_src, get_pos_trafo(src, 0));
@@ -643,6 +664,7 @@ class kinematic_system2dp : public static_system2dp {
             velocity_field(twist_world(src) - twist_world(obs), P_world);
         return move2dp(v_rel_world, get_pos_trafo(0, obs)); // express in obs coordinates
     }
+
     vec2dp relative_point_velocity(vec2dp const& P_src, std::string const& src_name,
                                    std::string const& obs_name)
     {
@@ -652,6 +674,7 @@ class kinematic_system2dp : public static_system2dp {
     // World-frame acceleration twist A = dV/dt of frame idx (angular acceleration in
     // A.z).
     twist2dp accel_twist_world(size_t idx) { return world_VA(idx).A; }
+
     twist2dp accel_twist_world(std::string const& frame_name)
     {
         return accel_twist_world(index_of(frame_name));
@@ -667,6 +690,7 @@ class kinematic_system2dp : public static_system2dp {
         auto const va = world_VA(idx);
         return accel_field(va.V, va.A, X_world);
     }
+
     vec2dp point_acceleration(vec2dp const& X_world, std::string const& frame_name)
     {
         return point_acceleration(X_world, index_of(frame_name));
@@ -676,22 +700,25 @@ class kinematic_system2dp : public static_system2dp {
     // coordinates), as MEASURED BY an observer riding frame `obs`, expressed in obs's
     // coordinates. Rotating-frame transport theorem for acceleration:
     //   a_rel = a_abs - a_transport - 2*w_obs x v_rel        (all in world, then -> obs)
-    // where a_abs/a_transport are the accel fields of src/obs at P, v_rel the world relative
-    // velocity, w_obs the observer's angular rate, and 2*w_obs x v_rel the Coriolis term.
-    // (The centrifugal -w_obs^2 r contribution is contained in -a_transport.) Reads zero for
-    // a point fixed in obs; equals the absolute world acceleration when obs is the root.
+    // where a_abs/a_transport are the accel fields of src/obs at P, v_rel the world
+    // relative velocity, w_obs the observer's angular rate, and 2*w_obs x v_rel the
+    // Coriolis term. (The centrifugal -w_obs^2 r contribution is contained in
+    // -a_transport.) Reads zero for a point fixed in obs; equals the absolute world
+    // acceleration when obs is the root.
     vec2dp relative_point_acceleration(vec2dp const& P_src, size_t src, size_t obs)
     {
         auto const P_world = move2dp(P_src, get_pos_trafo(src, 0));
         auto const vs = world_VA(src);
         auto const vo = world_VA(obs);
-        auto const a_abs = accel_field(vs.V, vs.A, P_world);       // world accel of P
-        auto const a_tr = accel_field(vo.V, vo.A, P_world);        // obs-frame accel at P
-        auto const v_rel = velocity_field(vs.V - vo.V, P_world);   // world relative velocity
-        auto const coriolis = 2.0 * rcmt(vo.V, v_rel);             // 2 * rcmt(Omega_obs, v_rel)
+        auto const a_abs = accel_field(vs.V, vs.A, P_world); // world accel of P
+        auto const a_tr = accel_field(vo.V, vo.A, P_world);  // obs-frame accel at P
+        auto const v_rel =
+            velocity_field(vs.V - vo.V, P_world);      // world relative velocity
+        auto const coriolis = 2.0 * rcmt(vo.V, v_rel); // 2 * rcmt(Omega_obs, v_rel)
         auto const a_rel_world = a_abs - a_tr - coriolis;
         return move2dp(a_rel_world, get_pos_trafo(0, obs)); // express in obs coordinates
     }
+
     vec2dp relative_point_acceleration(vec2dp const& P_src, std::string const& src_name,
                                        std::string const& obs_name)
     {
@@ -714,6 +741,7 @@ class kinematic_system2dp : public static_system2dp {
                && std::abs(a_O.x) < tol &&
                std::abs(a_O.y) < tol; // origin not accelerating
     }
+
     bool is_inertial_frame(std::string const& frame_name, value_t tol = value_t(1e-9))
     {
         return is_inertial_frame(index_of(frame_name), tol);
@@ -730,11 +758,14 @@ class kinematic_system2dp : public static_system2dp {
     // read-only access to the stored relative twists of a frame (see twist2dp for the
     // encoding; used by the fmt formatter). Decode as omega = .z, v = (.y, -.x).
     twist2dp relative_twist(size_t idx) const { return rel_vtwist[idx]; }
+
     twist2dp relative_accel_twist(size_t idx) const { return rel_atwist[idx]; }
+
     twist2dp relative_twist(std::string const& frame_name) const
     {
         return relative_twist(index_of(frame_name));
     }
+
     twist2dp relative_accel_twist(std::string const& frame_name) const
     {
         return relative_accel_twist(index_of(frame_name));
@@ -758,6 +789,7 @@ class kinematic_system2dp : public static_system2dp {
         twist2dp V; // velocity twist
         twist2dp A; // acceleration twist
     };
+
     world_va2dp world_VA(size_t idx)
     {
         // build the path root -> idx

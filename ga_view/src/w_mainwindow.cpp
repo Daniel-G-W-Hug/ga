@@ -17,6 +17,7 @@ using namespace hd::ga::pga;
 #include "active_bivt2dp.hpp"
 #include "active_frame_trafo.hpp"
 #include "active_kinematics2dp.hpp"
+#include "active_merry_go_round.hpp"
 #include "active_ode.hpp"
 #include "active_ode_plate.hpp"
 #include "active_projection.hpp"
@@ -1590,6 +1591,21 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(ft);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // merry-go-round demo items (PGA2D kinematic_system2dp)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->amgr.size(); ++idx) {
+        active_merry_go_round* mgr =
+            new active_merry_go_round(cs, wcs, cm->amgr[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, mgr,
+                         &active_merry_go_round::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, mgr,
+                         &active_merry_go_round::togglePause);
+        QObject::connect(wcs, &w_Coordsys::circlesToggleRequested, mgr,
+                         &active_merry_go_round::toggleCircles);
+        scene->addItem(mgr);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -1964,6 +1980,72 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
         auto ft_scenes = get_frame_trafo_scenes();
         for (auto& s : ft_scenes)
             models.push_back(std::move(s));
+    }
+
+    // Append merry-go-round scene (kinematic_system2dp)
+    {
+        Coordsys_model cm;
+        // Anchor the world frame W at canvas (-2,-2) to move its axes clear of the busy
+        // centre. The kinematic tree is purely relative, so re-anchoring W is just a
+        // constant draw-time translation. The platform then sits at (3,2) relative to W,
+        // which keeps it drawn at the same canvas spot (1,0) it had before: (1,0) - W's
+        // (-2,-2) = (3,2).
+        merry_go_round_params mgp;
+        mgp.world_origin = vec2dp{-2.0, -2.0, 1.0};
+        mgp.centre = vec2dp{3.0, 2.0, 1.0};
+        cm.add_merry_go_round(amerry_go_round{mgp});
+        cm.set_label("Merry-go-round (kinematic_system2dp)");
+
+        diagram_legend leg;
+        leg.heading = "PGA2D kinematics: rotating platform P carrying 3 spinning "
+                      "turntables T0..T2.\nThe marked point on T0 traces an epicycloid.";
+        leg.entries = {{"SPACE:", "pause / resume animation"},
+                       {"R:", "reset animation to t=0"},
+                       {"C:", "show / hide magnitude circles"},
+                       {"─────", "──────────"},
+                       {"red / green:", "frame axes e1 / e2"},
+                       {"solid axes:", "ground frame W (fixed)"},
+                       {"dashed axes:", "platform frame P (rotating)"},
+                       {"grey arms:", "platform structure to turntables"},
+                       {"orange dot:", "marked point on T0"},
+                       {"blue curve:", "world path of the marked point"},
+                       {"magenta arrow:", "marked-point velocity v"},
+                       {"black arrow:", "marked-point acceleration a"},
+                       {"thin circles:", "momentary |v| / |a| magnitude"}};
+        leg.size_pct = 0.34;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append merry-go-round dashboard scene: same simulation, but laid out as a mini
+    // merry-go-round in the corner plus |r| / |v| / |a| plots vs the platform angle.
+    // The heading / key hints / colour key use the shared diagram_legend (top-left,
+    // draggable); the mini sits top-right and the plots below, so they do not collide.
+    {
+        Coordsys_model cm;
+        merry_go_round_params mgp;
+        mgp.layout = mgr_layout::dashboard;
+        cm.add_merry_go_round(amerry_go_round{mgp});
+        cm.set_label("Merry-go-round dashboard (magnitudes vs angle)");
+
+        diagram_legend leg;
+        leg.heading = "PGA2D kinematics: marked-point magnitudes over one platform "
+                      "revolution (theta = 0..2 pi; newest sample on the right).";
+        leg.entries = {{"SPACE:", "pause / resume animation"},
+                       {"R:", "reset animation to t=0"},
+                       {"C:", "show / hide magnitude circles"},
+                       {"─────", "──────────"},
+                       {"top-right:", "live merry-go-round (mini)"},
+                       {"blue:", "|r|  orbit radius about platform centre"},
+                       {"magenta:", "|v|  speed"},
+                       {"black:", "|a|  acceleration"}};
+        leg.x_pct = 0.02;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.32;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
     }
     for (size_t i = 0; i < models.size(); ++i) {
         vm.push_back(&models[i]);

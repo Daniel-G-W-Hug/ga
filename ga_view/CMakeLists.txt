@@ -54,6 +54,7 @@ set(SOURCES src/main.cpp
             src/active_ode.cpp
             src/active_ode_plate.cpp
             src/active_frame_trafo.cpp
+            src/active_merry_go_round.cpp
             src/ga_view.qrc)
 
 add_executable(${EXEC_NAME} ${SOURCES} )

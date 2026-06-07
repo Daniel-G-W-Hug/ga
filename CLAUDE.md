@@ -19,13 +19,35 @@ repository.
 **Build Directory Structure:**
 
 ```text
-/Users/hud3bh/prg/cpp/pj/ga/build/          # Main build directory (working directory)
-├── ga_lua/ga_lua                           # Lua interface executable  
-├── ga_test/ga_ega_test                     # EGA test executable
-├── ga_test/ga_pga_test                     # PGA test executable
-├── ga_view/ga_view                         # Qt6 visualization executable
-└── ga_prdxpr/ga_prdxpr                     # Main code generator
+/Users/hud3bh/prg/cpp/pj/ga/build/                  # Main build directory (working directory)
+├── ga_lua/ga_lua                                   # Lua interface executable
+├── ga_test/                                        # doctest-based test suite
+│   ├── ga_ega_test                                 #   Euclidean GA tests (2D/3D)
+│   ├── ga_pga_test                                 #   Projective GA tests (2dp/3dp)
+│   ├── ga_sta_test                                 #   Space-Time Algebra (STA4D) tests
+│   ├── ga_appl2dp_test                             #   PGA2D applications (kinematics/frame trees)
+│   ├── ga_appl3dp_test                             #   PGA3D applications
+│   ├── ga_export_python_cases                      #   emits cross-check JSON for ga_py tests
+│   └── ga_sta_bench_transform                      #   STA transform_opt micro-benchmark
+├── ga_view/ga_view                                 # Qt6 2D visualization executable
+├── ga_prdxpr/                                      # Code generator + its own tests/tools
+│   ├── ga_prdxpr                                   #   main product-expression generator
+│   ├── ga_prdxpr_parser_test                       #   config/case_name parser tests
+│   ├── ga_prdxpr_rule_generator_test               #   rule/metric/dual/complement table dump
+│   └── ga_prdxpr_viscmp                            #   visual comparison helper
+└── ga_py/_ga_py.cpython-<ver>-<plat>.so            # nanobind Python extension (opt-in, see below)
 ```
+
+**Notes:**
+
+- The `ga_py` extension is built only when CMake is configured with
+  `-D_GA_BUILD_PYTHON=ON` (see the "Python wrapper" section). Without that flag the
+  `build/ga_py/` directory is absent.
+- `ga_view` requires Qt6, `ga_lua` requires Lua + sol2 — targets are skipped when their
+  optional dependencies are not found (see "Dependencies").
+- Source modules without a runtime binary: `ga/` (header-only library), `ga_bindgen/`
+  (libclang scanner, run via its own venv — see "Python wrapper"), `ga_docu/` (LaTeX),
+  `ga_algebra_overview/` (reference material).
 
 **File Path Rules for Code:**
 
@@ -146,6 +168,35 @@ paragraphs, bullet items, blockquotes, and lead-in sentences before code blocks.
   to fit 90 columns.
 - **URLs and reference-style link targets** — let them overrun rather than break the link.
 - **Headings** — keep on one line even if a long heading exceeds 90.
+
+### C++ Formatting (clang-format — MANDATORY before writing/committing)
+
+**Run clang-format on every C++ file you generate or edit, before considering the change
+done.** The repo style is the global `~/.clang-format` (no repo-local override);
+clang-format finds it by searching upward from the file's directory, so the file must live
+**inside the repo tree** when formatted (a temp file under `/tmp/` silently falls back to
+LLVM defaults — see the "clang-format gotcha" note later in this file).
+
+```bash
+clang-format -i path/to/file.cpp   # format in place (picks up ~/.clang-format)
+```
+
+Why this matters: the editor reformats on save with the same config, so unformatted output
+gets reflowed later — which **churns line numbers and re-sorts `#include` groups**,
+producing noisy, hard-to-review diffs and stale `file:line` references. Formatting up
+front avoids that.
+
+Key settings to match even when hand-writing (full config in `~/.clang-format`):
+
+- **`ColumnLimit: 90`** — the hard wrap limit (this is the minimum to respect).
+- `IndentWidth: 4`, `UseTab: Never`; `BreakBeforeBraces: Stroustrup`; `IndentCaseLabels:
+  true`.
+- `PointerAlignment: Left` / `ReferenceAlignment: Left` → `Type* p`, `Type& r` (compatible
+  with the east-const convention below: `Type const& name`).
+- Includes are **sorted within each group** — keep includes grouped and let clang-format
+  settle the order rather than fighting it.
+- `EmptyLineBeforeAccessModifier: Always`, `EmptyLineAfterAccessModifier: Always`;
+  `MaxEmptyLinesToKeep: 2`.
 
 ### Library Usage Patterns
 
@@ -391,20 +442,20 @@ delegations.
   exist for `coeffs`/`tables`. Implement them in the library as thin wrappers
   over dual+wedge: `l_expand(a,b) = wdg(l_dual(a), b)`,
   `r_expand(a,b) = wdg(a, r_dual(b))`.
-- **Duals are complement∘metric** (`dual(a) = cmpl(G·a)`; degenerate PGA splits
-  into bulk/weight variants). Hand-transcribing the complement/dual tables from
-  `ga_prdxpr_rule_generator_test` output is error-prone — a flipped-sign bivector
-  dual in sta4ds made the contraction identity `a << b == rwdg(l_dual(a), b)`
-  fail *only* at grade 2 (the rule generator was correct; the hand copy wasn't).
-  Guard every algebra with a **transcription gate** test:
-  `dual(e) == nrm_sq(e) * cmpl(e)` per unit basis blade (bulk/weight and l/r
-  variants for PGA). The contraction is the metric interior product
-  (`= dot` on equal grades); the `rwdg(dual)` form is exact at every grade only
-  when the dual is correct. **`--output=code` now emits the complements and duals**
+- **Duals are complement∘metric** (`dual(a) = cmpl(G·a)`; degenerate PGA splits into
+  bulk/weight variants). Hand-transcribing the complement/dual tables from
+  `ga_prdxpr_rule_generator_test` output is error-prone — a flipped-sign bivector dual in
+  sta4ds made the contraction identity `a << b == rwdg(l_dual(a), b)` fail *only* at grade
+  2 (the rule generator was correct; the hand copy wasn't). Guard every algebra with a
+  **transcription gate** test: `dual(e) == nrm_sq(e) * cmpl(e)` per unit basis blade
+  (bulk/weight and l/r variants for PGA). The contraction is the metric interior product
+  (`= dot` on equal grades); the `rwdg(dual)` form is exact at every grade only when the
+  dual is correct. **`--output=code` now emits the complements and duals**
   (`l_cmpl`/`r_cmpl`/`cmpl`, `l_dual`/`r_dual`/`dual`, PGA `bulk`/`weight`; graded inputs
   as flat forms, aggregates `mv`/`mv_e`/`mv_u` as grade-wise delegations) — so they can be
-  regenerated and spliced into `*_ops_basics.hpp` (see `utilities/splice_generated_code.py`
-  below) instead of hand-transcribed. The transcription gate stays valuable as a guard.
+  regenerated and spliced into `*_ops_basics.hpp` (see
+  `utilities/splice_generated_code.py` below) instead of hand-transcribed. The
+  transcription gate stays valuable as a guard.
 
 ### Key Components
 
@@ -431,7 +482,7 @@ delegations.
 **Complement Transformations for regressive products:**
 
 - for odd dimensinal algebras ega3d, pga2dp: `cmpl(operation(cmpl(A), cmpl(B)))`
-- for even dimensinal algebras ega2d, pga3dp: `l_cmpl(operation(r_cmpl(A), r_cmpl(B)))`
+- for even dimensinal algebras ega2d, pga3dp, sta4ds: `l_cmpl(operation(r_cmpl(A), r_cmpl(B)))`
 
 **Coefficient Usage Patterns:**
 
@@ -670,11 +721,12 @@ Source tree is split by role under `ga_prdxpr/src_prdxpr/`:
 - `core/ga_prdxpr_common.{hpp,cpp}`: foundational types and table operations
 - `codegen/ga_codegen_*.{hpp,cpp}`: `--output=code` C++ emitter
 
-**CMakeLists ordering constraint**: in `SOURCES`, every `algebras/ga_prdxpr_<alg>_config.cpp`
-must be listed *before* the matching `algebras/ga_prdxpr_<alg>.cpp`. The `*.cpp` TU's
-static initializer calls `get_<alg>_algebra_config()` (defined in the `_config.cpp` TU),
-which reads namespace-scope `const` globals that have internal linkage — one copy per TU.
-Listing the config TU first preserves the dynamic-init order the layout relies on.
+**CMakeLists ordering constraint**: in `SOURCES`, every
+`algebras/ga_prdxpr_<alg>_config.cpp` must be listed *before* the matching
+`algebras/ga_prdxpr_<alg>.cpp`. The `*.cpp` TU's static initializer calls
+`get_<alg>_algebra_config()` (defined in the `_config.cpp` TU), which reads
+namespace-scope `const` globals that have internal linkage — one copy per TU. Listing the
+config TU first preserves the dynamic-init order the layout relies on.
 
 **Important**: The ga_prdxpr system is a **complete, production-ready geometric algebra
 code generator** that produces mathematically accurate, optimized C++ expressions for all
@@ -823,10 +875,10 @@ bivector (a common, wrong assumption carried over from 3D):
 
 The PGA rate-of-change of a point is `Xdot = rcmt(Omega, X)` — **argument order matters**:
 `rcmt(Omega, X) = -rcmt(X, Omega)` (twist first); the sign/order differs from EGA's
-`cmt(r, Omega_E)`. Moving-frame kinematic fields (see `ga_docu/5_ga_modelling_physics.tex`,
-"Moving coordinate systems"): velocity `rcmt(Omega, X)`, centripetal
-`rcmt(Omega, rcmt(Omega, r))`, Coriolis `2*rcmt(Omega, v_rel)`, frame/Euler
-`rcmt(Omega_dot, r)`. Full derivations in `ga_docu/3_ga_modelling_motion.tex`.
+`cmt(r, Omega_E)`. Moving-frame kinematic fields (see
+`ga_docu/5_ga_modelling_physics.tex`, "Moving coordinate systems"): velocity `rcmt(Omega,
+X)`, centripetal `rcmt(Omega, rcmt(Omega, r))`, Coriolis `2*rcmt(Omega, v_rel)`,
+frame/Euler `rcmt(Omega_dot, r)`. Full derivations in `ga_docu/3_ga_modelling_motion.tex`.
 
 ### Supported Algebra Types
 

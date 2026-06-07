@@ -666,6 +666,15 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //  B_tra=(-y0_trans, x0_trans, 0)
                 //  B    = B_rot + B_tra
                 //
+                //  CAUTION (generators add only at the velocity level):
+                //  B = B_rot + B_tra is the additive split of ONE twist. exp(0.5*B) of
+                //  that single B is ONE finite screw (3D) / rotation about a shifted
+                //  pivot (2D) -- NOT "translate, then rotate". To compose two SEPARATE
+                //  finite motions, MULTIPLY their motors: M = rgpr(M2, M1), which is
+                //  order-dependent (non-commutative). Adding generators == multiplying
+                //  motors only when they commute: for translation+rotation that is
+                //  solely the 3D screw case, never in 2D.
+                //
                 //  typical starting value is "no initial transformation":
                 //  B0=(0,0,0) => M0 = exp(0.5 * B0) = pscalar2dp(1)
                 //                (=identity transformation at t=0)
@@ -1069,8 +1078,17 @@ TEST_SUITE("PGA2DP: physics tests implementation")
                 //  B_tra=(-y0_trans, x0_trans, 0)
                 //  B    = B_rot + B_tra
                 //
+                //  CAUTION (generators add only at the velocity level):
+                //  B = B_rot + B_tra is the additive split of ONE twist. exp(0.5*B) of
+                //  that single B is ONE finite screw (3D) / rotation about a shifted
+                //  pivot (2D) -- NOT "translate, then rotate". To compose two SEPARATE
+                //  finite motions, MULTIPLY their motors: M = rgpr(M2, M1), which is
+                //  order-dependent (non-commutative). Adding generators == multiplying
+                //  motors only when they commute: for translation+rotation that is
+                //  solely the 3D screw case, never in 2D.
+                //
                 //  typical starting value is "no initial transformation":
-                //  B0=(0,0,0) => M0=0.5 * B0) = pscalar(1)
+                //  B0=(0,0,0) => M0 = exp(0.5 * B0) = pscalar(1)
                 //                (=identity transformation at t=0)
                 //
                 u[0] = vec2dp(0.0, 0.0, 0.0);
@@ -2077,7 +2095,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
     TEST_CASE("pga2dp: kinematic_system2dp - opening a box lid (static setup + dynamics)")
     {
-        fmt::println("pga2dp: kinematic_system2dp - opening a box lid");
+        fmt::println(
+            "pga2dp: kinematic_system2dp - opening a box lid (static setup + dynamics)");
 
         // Square of side 2 with frame "S" at its lower-left corner (3,2). S is
         // axis-aligned with the world, so the square spans x in [3,5], y in [2,4] and the
@@ -2109,7 +2128,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         auto P_in_S = move2dp(P_L, ks.get_pos_trafo("L", "S"));
         auto P_in_W = move2dp(P_L, ks.get_pos_trafo("L", "W"));
 
-        fmt::println("lid at 15 deg:  P_L={:.3f}  P_S={:.3f}  P_W={:.3f}", P_in_L, P_in_S, P_in_W);
+        fmt::println("lid at 15 deg:  P_L={:.3f}  P_S={:.3f}  P_W={:.3f}", P_in_L, P_in_S,
+                     P_in_W);
 
         auto c0 = std::cos(open0), s0 = std::sin(open0);
         CHECK(P_in_L.x == doctest::Approx(lid_len).epsilon(cmp_eps));
@@ -2127,8 +2147,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         ks.set_state("L", kin_state2dp{.omega = lid_omega}); // drive the lid joint
 
-        fmt::println("lid relative angular speed = {:.3f} rad/s = {:.3f} deg/s", lid_omega,
-                     rad2deg(lid_omega));
+        fmt::println("lid relative angular speed = {:.3f} rad/s = {:.3f} deg/s",
+                     lid_omega, rad2deg(lid_omega));
 
         // relative angular speed of the lid (a scalar; in L, S, or W it is the same
         // value).
@@ -2149,8 +2169,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         auto P_in_S_new = move2dp(P_L, ks2.get_pos_trafo("L", "S"));
         auto P_in_W_new = move2dp(P_L, ks2.get_pos_trafo("L", "W"));
 
-        fmt::println("lid at 30 deg:  P_L={:.3f}  P_S={:.3f}  P_W={:.3f}", P_in_L_new, P_in_S_new,
-                     P_in_W_new);
+        fmt::println("lid at 30 deg:  P_L={:.3f}  P_S={:.3f}  P_W={:.3f}", P_in_L_new,
+                     P_in_S_new, P_in_W_new);
 
         auto c1 = std::cos(open1), s1 = std::sin(open1);
         CHECK(P_in_L_new.x ==
@@ -2167,12 +2187,11 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     /////////////////////////////////////////////////////////////////////////////////////
     // Cross-checks vs. the ga_view body-frame / world-frame scenes
     // (get_frame_trafo_scenes() in ga_view/src/w_mainwindow.cpp, driven by
-    // active_frame_trafo). Each scene's body is modelled as a kinematic_system2dp frame "B"
-    // at the scene's M0 pose with the scene's body twist Omega_b. We verify our API
+    // active_frame_trafo). Each scene's body is modelled as a kinematic_system2dp frame
+    // "B" at the scene's M0 pose with the scene's body twist Omega_b. We verify our API
     // reproduces the two quantities ga_view tracks:
     //   - the body->world motor  M = M0          (ga_view: M(t) = M0 (x) exp(0.5 B_b))
     //   - the world generator    B_w = move2dp(Omega_b, M0)   (ga_view's Omega_w)
-    // These serve as the reference once ga_view is reworked onto the new approach.
     /////////////////////////////////////////////////////////////////////////////////////
 
     // ga_view's M0 builders (mirror make_M0_trans / make_M0_rot in w_mainwindow.cpp)
@@ -2182,18 +2201,19 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     }
     inline mvec2dp_u gv_M0_rot(double phi) { return exp(0.5 * vec2dp{0.0, 0.0, phi}); }
 
-    inline void cross_check_scene(vec2dp const& origin, value_t phi, twist2dp const& Omega_b,
-                                  mvec2dp_u const& M0_ref, double eps = 1e-10)
+    inline void cross_check_scene(vec2dp const& origin, value_t phi,
+                                  twist2dp const& Omega_b, mvec2dp_u const& M0_ref,
+                                  double eps = 1e-10)
     {
         kinematic_system2dp ks;
-        ks.add_frame(static_frame2dp("W"s));            // world (root)
+        ks.add_frame(static_frame2dp("W"s));              // world (root)
         ks.add_frame(static_frame2dp("B"s, origin, phi)); // body at M0 pose (B_b = 0)
-        ks.set_twist("B", Omega_b);                     // ga_view's body twist Omega_b
+        ks.set_twist("B", Omega_b);                       // ga_view's body twist Omega_b
 
         // our body->world motor reproduces ga_view's M0 (compare action on probe points)
         auto const M = ks.get_pos_trafo("B", "W");
-        for (auto const& p : {vec2dp{0, 0, 1}, vec2dp{1, 0, 1}, vec2dp{0, 1, 1},
-                              vec2dp{2, -3, 1}}) {
+        for (auto const& p :
+             {vec2dp{0, 0, 1}, vec2dp{1, 0, 1}, vec2dp{0, 1, 1}, vec2dp{2, -3, 1}}) {
             auto const a = move2dp(p, M);
             auto const b = move2dp(p, M0_ref);
             CHECK(a.x == doctest::Approx(b.x).epsilon(eps));
@@ -2217,8 +2237,10 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
         auto const Omega_b = twist2dp{0.0, 1.0, 0.0}; // vx = 1, vy = 0
 
-        cross_check_scene(vec2dp{0, 0, 1}, 0.0, Omega_b, gv_M0_rot(0.0));   // upper: M0 = id
-        cross_check_scene(vec2dp{0, -2, 1}, 0.0, Omega_b, gv_M0_trans(0.0, -2.0)); // lower
+        cross_check_scene(vec2dp{0, 0, 1}, 0.0, Omega_b,
+                          gv_M0_rot(0.0)); // upper: M0 = id
+        cross_check_scene(vec2dp{0, -2, 1}, 0.0, Omega_b,
+                          gv_M0_trans(0.0, -2.0)); // lower
         fmt::println("");
     }
 
@@ -2231,8 +2253,10 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         auto const omega = deg2rad(180);                    // pi rad/s
         auto const Omega_b = omega * vec2dp{0.8, 0.0, 1.0}; // = (0.8*pi, 0, pi)
 
-        cross_check_scene(vec2dp{0, 0, 1}, 0.0, Omega_b, gv_M0_rot(0.0));   // upper: M0 = id
-        cross_check_scene(vec2dp{0, -2, 1}, 0.0, Omega_b, gv_M0_trans(0.0, -2.0)); // lower
+        cross_check_scene(vec2dp{0, 0, 1}, 0.0, Omega_b,
+                          gv_M0_rot(0.0)); // upper: M0 = id
+        cross_check_scene(vec2dp{0, -2, 1}, 0.0, Omega_b,
+                          gv_M0_trans(0.0, -2.0)); // lower
         fmt::println("");
     }
 
@@ -2245,7 +2269,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         auto const omega = deg2rad(180);
         auto const Omega_b = omega * vec2dp{0.8, 0.0, 1.0};
 
-        cross_check_scene(vec2dp{0, 0, 1}, 0.0, Omega_b, gv_M0_rot(0.0)); // upper: M0 = id
+        cross_check_scene(vec2dp{0, 0, 1}, 0.0, Omega_b,
+                          gv_M0_rot(0.0)); // upper: M0 = id
         cross_check_scene(vec2dp{0, -2, 1}, deg2rad(45), Omega_b,
                           rgpr(gv_M0_trans(0.0, -2.0), gv_M0_rot(deg2rad(45)))); // lower
         fmt::println("");
@@ -2257,7 +2282,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         // Omega_b = (0,1,0)). Lower is WORLD-frame driven: M(t) = T(O(t)) (x) R(omega*t)
         // with a constant world generator Omega_w = (o_z*ox - vy, o_z*oy + vx, o_z). We
         // check the t = 0 configuration: the world-driven motion maps to a body twist
-        // Omega_b = move2dp(Omega_w, rrev(M0)) that our system transports back to Omega_w.
+        // Omega_b = move2dp(Omega_w, rrev(M0)) that our system transports back to
+        // Omega_w.
         fmt::println("pga2dp: ga_view cross-check - Scene 4 (world-frame driven)");
 
         // --- upper: body-driven translation ---
@@ -2663,10 +2689,12 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
     TEST_CASE("pga2dp: kinematic_system2dp - turntable-to-turntable kinematics")
     {
-        // Merry-go-round: platform spins at Omega; turntables tt0, tt1, tt2 (120 deg apart,
-        // all children of the platform) each spin at their own rate. For a point P on tt0:
-        //   (a) its world velocity and its position expressed in tt2 (cross-branch, LCA = P);
-        //   (b) the velocity an observer RIDING tt2 measures for P (transport theorem),
+        // Merry-go-round: platform spins at Omega; turntables tt0, tt1, tt2 (120 deg
+        // apart, all children of the platform) each spin at their own rate. For a point P
+        // on tt0:
+        //   (a) its world velocity and its position expressed in tt2 (cross-branch, LCA =
+        //   P); (b) the velocity an observer RIDING tt2 measures for P (transport
+        //   theorem),
         //       validated against the finite difference of P's position in tt2 over time.
         fmt::println("pga2dp: kinematic_system2dp - turntable-to-turntable kinematics");
 
@@ -2674,11 +2702,13 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         auto w0 = deg2rad(90);    // tt0 spin vs. platform
         auto w1 = deg2rad(60);    // tt1 spin vs. platform
         auto w2 = deg2rad(-30);   // tt2 spin vs. platform
-        auto pP = deg2rad(25);    // initial angles (so observer-frame rotation is exercised)
+        auto pP = deg2rad(25); // initial angles (so observer-frame rotation is exercised)
         auto p0 = deg2rad(10), p1 = deg2rad(5), p2 = deg2rad(40);
         auto centre = vec2dp{1, 2, 1};
         auto r = value_t(2.0);
-        auto mount = [r](value_t a) { return vec2dp(r * std::cos(a), r * std::sin(a), 1.0); };
+        auto mount = [r](value_t a) {
+            return vec2dp(r * std::cos(a), r * std::sin(a), 1.0);
+        };
         auto P_tt0 = vec2dp{0.3, 0.1, 1}; // point fixed on tt0
 
         auto constexpr cmp_eps = 1e-10;
@@ -2694,7 +2724,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         ks.add_frame(static_frame2dp("T2"s, mount(deg2rad(240)), p2),
                      kin_state2dp{.omega = w2}, ks.index_of("P"));
 
-        // (a) world velocity of P and its position expressed in tt2 (cross-branch) --------
+        // (a) world velocity of P and its position expressed in tt2 (cross-branch)
+        // --------
         auto P_world = move2dp(P_tt0, ks.get_pos_trafo("T0", "W"));
         auto v_world = ks.point_velocity(P_world, "T0");
         auto P_in_tt2 = move2dp(P_tt0, ks.get_pos_trafo("T0", "T2"));
@@ -2709,7 +2740,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         auto v_self = ks.relative_point_velocity(P_tt0, "T0", "T0");
         CHECK(to_val(bulk_nrm(v_self)) == doctest::Approx(0.0).epsilon(cmp_eps));
 
-        // (b) velocity of P as measured by an observer riding tt2, vs finite difference ----
+        // (b) velocity of P as measured by an observer riding tt2, vs finite difference
+        // ----
         auto v_rel_tt2 = ks.relative_point_velocity(P_tt0, "T0", "T2");
 
         // P's position in tt2 coordinates, with all poses advanced by time t
@@ -2730,19 +2762,23 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         auto pm = P_in_tt2_at(-dt);
         auto v_fd = vec2dp{(pp.x - pm.x) / (2 * dt), (pp.y - pm.y) / (2 * dt), 0.0};
 
-        fmt::println("  v_rel (tt2 observer) = {:.3f}, finite-diff = {:.3f}", v_rel_tt2, v_fd);
+        fmt::println("  v_rel (tt2 observer) = {:.3f}, finite-diff = {:.3f}", v_rel_tt2,
+                     v_fd);
         CHECK(v_rel_tt2.x == doctest::Approx(v_fd.x).epsilon(1e-6));
         CHECK(v_rel_tt2.y == doctest::Approx(v_fd.y).epsilon(1e-6));
 
-        // (c) acceleration of P as measured by the tt2 observer, vs 2nd central difference --
+        // (c) acceleration of P as measured by the tt2 observer, vs 2nd central
+        // difference --
         auto a_rel_tt2 = ks.relative_point_acceleration(P_tt0, "T0", "T2");
-        double const dt_a = 1e-4; // a 2nd difference needs a larger step than a 1st difference
+        double const dt_a =
+            1e-4; // a 2nd difference needs a larger step than a 1st difference
         auto qp = P_in_tt2_at(dt_a);
         auto q0 = P_in_tt2_at(0.0);
         auto qm = P_in_tt2_at(-dt_a);
         auto a_fd = vec2dp{(qp.x - 2 * q0.x + qm.x) / (dt_a * dt_a),
                            (qp.y - 2 * q0.y + qm.y) / (dt_a * dt_a), 0.0};
-        fmt::println("  a_rel (tt2 observer) = {:.3f}, finite-diff = {:.3f}", a_rel_tt2, a_fd);
+        fmt::println("  a_rel (tt2 observer) = {:.3f}, finite-diff = {:.3f}", a_rel_tt2,
+                     a_fd);
         CHECK(a_rel_tt2.x == doctest::Approx(a_fd.x).epsilon(1e-4));
         CHECK(a_rel_tt2.y == doctest::Approx(a_fd.y).epsilon(1e-4));
 
@@ -2762,7 +2798,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("pga2dp: kinematic_system2dp - step(dt) time evolution");
         auto constexpr cmp_eps = 1e-9;
 
-        // (a) constant spin: stepping a wheel == rebuilding at the accumulated angle -------
+        // (a) constant spin: stepping a wheel == rebuilding at the accumulated angle
+        // -------
         {
             auto omega = deg2rad(50);
             auto P_B = vec2dp{0.5, -0.3, 1};
@@ -2773,12 +2810,14 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
             double const T = 1.0;
             int const N = 100;
-            for (int k = 0; k < N; ++k) ks.step(T / N);
+            for (int k = 0; k < N; ++k)
+                ks.step(T / N);
 
             // reference: rebuild at the final angle 10 deg + omega*T (origin stays fixed)
             static_system2dp ref;
             ref.add_frame(static_frame2dp("W"s));
-            ref.add_frame(static_frame2dp("B"s, vec2dp{2, 1, 1}, deg2rad(10) + omega * T));
+            ref.add_frame(
+                static_frame2dp("B"s, vec2dp{2, 1, 1}, deg2rad(10) + omega * T));
 
             auto P_step = move2dp(P_B, ks.get_pos_trafo("B", "W"));
             auto P_ref = move2dp(P_B, ref.get_pos_trafo("B", "W"));
@@ -2788,7 +2827,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             CHECK(ks.relative_twist("B").z == doctest::Approx(omega).epsilon(cmp_eps));
         }
 
-        // (b) opening a lid: step 15 -> 30 deg over 1 s and check the tip ------------------
+        // (b) opening a lid: step 15 -> 30 deg over 1 s and check the tip
+        // ------------------
         {
             auto side = value_t(2.0), lid_len = value_t(2.0);
             auto lid_omega = deg2rad(15); // 15 deg/s -> 30 deg after 1 s
@@ -2802,7 +2842,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
 
             double const T = 1.0;
             int const N = 200;
-            for (int k = 0; k < N; ++k) ks.step(T / N);
+            for (int k = 0; k < N; ++k)
+                ks.step(T / N);
 
             auto P_W = move2dp(P_L, ks.get_pos_trafo("L", "W"));
             auto c = std::cos(deg2rad(30)), s = std::sin(deg2rad(30));
@@ -2811,20 +2852,25 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             CHECK(P_W.y == doctest::Approx(lid_len * s + 4.0).epsilon(cmp_eps));
         }
 
-        // (c) constant angular acceleration ramps the velocity exactly --------------------
+        // (c) constant angular acceleration ramps the velocity exactly
+        // --------------------
         {
             auto alpha = deg2rad(20);
             kinematic_system2dp ks;
             ks.add_frame(static_frame2dp("W"s));
-            ks.add_frame(static_frame2dp("B"s), kin_state2dp{.omega = 0.0, .alpha = alpha});
+            ks.add_frame(static_frame2dp("B"s),
+                         kin_state2dp{.omega = 0.0, .alpha = alpha});
 
             double const T = 1.0;
             int const N = 500;
-            for (int k = 0; k < N; ++k) ks.step(T / N);
+            for (int k = 0; k < N; ++k)
+                ks.step(T / N);
 
             // omega(T) = alpha*T is an exact sum of equal Euler increments
-            CHECK(ks.relative_twist("B").z == doctest::Approx(alpha * T).epsilon(cmp_eps));
-            // the angle ~ 0.5*alpha*T^2 (explicit Euler, first order in dt) -> loose check
+            CHECK(ks.relative_twist("B").z ==
+                  doctest::Approx(alpha * T).epsilon(cmp_eps));
+            // the angle ~ 0.5*alpha*T^2 (explicit Euler, first order in dt) -> loose
+            // check
             CHECK(rad2deg(ks.frame(1).get_pose().phi) ==
                   doctest::Approx(rad2deg(0.5 * alpha * T * T)).epsilon(2e-2));
         }
@@ -2980,191 +3026,6 @@ TEST_SUITE("PGA2DP: physics tests implementation")
     //       - movement of rigid bodies with continuously distributed mass
     //       - two-paticles systems with internal coupling forces
     //       - coupled systems in general with more complex inertia
-
-    //////////////////////////////////////
-    // save a version for multiple points, but still symmetric,
-    // i.e. reducable to one eqn. via symmetry of the internal forces
-    // typically done via reduces masses and forces by weighting with position
-    //////////////////////////////////////
-
-    // TEST_CASE("ega3d: circular motion II (symmetric multi-body system)")
-    // {
-    //     fmt::println("ega3d: circular motion II (symmetric multi-body system)");
-
-    //     // TODO: translate to system of symmetric central forces,
-    //     //       e.g. NFCM, p. 230 (two particle system)
-    //     //
-    //     //       and then reduce again to only use center of mass and orientaion
-
-    //     class sim_ode_multibody_ega3d { // model 2nd order ode by a 1st order system
-    //                                     // integrate a -> v -> s,
-    //                                     // i.e. from acceleration via velocity to
-    //                                     position
-
-    //       public:
-
-    //         sim_ode_multibody_ega3d(size_t npts_in) :
-    //             npts(npts_in), u_mem(npts * 2), uh_mem(2 * npts * 2), rhs_mem(npts * 2)
-    //         {
-    //         }
-
-    //         void set_initial_values()
-    //         {
-
-    //             // Create mdspan view for setting initial values
-    //             auto u = mdspan<vec3d, dextents<size_t, 2>>(u_mem.data(), npts, 2);
-
-    //             // use vec3d to encode 2d position/velocity in x- and y-component
-    //             // of 3d vector and angle/angular velocity in z-component of 3d vector
-
-    //             // Set initial state for all n points n = [0,n) and their components:
-    //             // u[n,0] = position (x  ,   y,   phi)
-    //             // u[n,1] = velocity (v_x, v_y, omega)
-
-    //             size_t n = 0;
-    //             u[n, 0] = vec3d{0, 1, 0};     // initial position
-    //             u[n, 1] = vec3d{1, 0, 0.0}    // circumferentential initial velocity
-    //                       + vec3d{0, 0.1, 0}; // velocity away from cg
-    //                                           //    + vec3d{1, 0, 0}; // velocity of cg
-
-    //             n = 1;
-    //             u[n, 0] = vec3d{0, -1, 0};     // initial position
-    //             u[n, 1] = vec3d{-1, 0, 0.0}    // circumferentential initial velocity
-    //                       + vec3d{0, -0.1, 0}; // velocity away from cg
-    //                                            //   + vec3d{1, 0, 0}; // velocity of cg
-
-    //             // we ignore phi and omega, since we only have internal, central forces
-    //         }
-
-    //         void calc_rhs()
-    //         {
-
-    //             // Create mdspan views for rhs calculation
-    //             auto u = mdspan<vec3d, dextents<size_t, 2>>(u_mem.data(), npts, 2);
-    //             auto rhs = mdspan<vec3d, dextents<size_t, 2>>(rhs_mem.data(), npts, 2);
-
-
-    //             double c_sp = 46.3;     // spring constant in N/m  => F_sp = -c*(l-l0)
-    //             double l0 = 2.0 * 0.95; // initial spring length in m
-
-
-    //             // get current state
-    //             vec3d position0 = u[0, 0]; // position is stored as point in u[n,0]
-    //             vec3d velocity0 = u[0, 1]; // velocity is stored as vector in u[n,1]
-
-    //             vec3d position1 = u[1, 0];
-    //             vec3d velocity1 = u[1, 1];
-
-    //             // calculate forces and torques to change linear and angular
-    //             // acceleration
-
-    //             // HINT: this implements a multi-body solution with internal forces,
-    //             //       would not be required to this extend for a rigid body system
-
-    //             // equilibrium force for circular motion at given v and r:
-    //             // F_eq = m * a_r = m * r * omega^2 = m * r * (v / r)^2 = m * v^2 / r
-    //             // F_sp = -c_sp * (l - l0) = -c_sp *(2*r - l0)
-    //             //
-    //             // T = 2*pi/omega = 2*pi/(v/r) = 2*pi*r/v
-
-    //             // keep difference to origin for comparison with 2dp case later on
-    //             auto r_hat = position1 - position0;
-    //             auto r = nrm(r_hat);
-    //             r_hat /= r; // normalize r_hat
-
-    //             auto acceleration0 = c_sp / m * (r - l0) * r_hat;
-    //             auto acceleration1 = -c_sp / m * (r - l0) * r_hat;
-
-
-    //             // J = m * r^2 with r being the distance from rot-axis
-    //             // from dL/dt = J*omega = M = 0 (no torque) => alpha = - dJ/dt*omega/J
-    //             // with dJ/dt = dJ/dr*dr/dt = dJ/dr*v_r = 2*m*r*v_r
-    //             // alpha = -2*omega*v_r/r  (=angular acceleration)
-    //             acceleration0.z = 0.0; // angular acceleration
-    //             acceleration1.z = 0.0; // angular acceleration
-    //                                    // (implicitly covered in coupled equations)
-
-    //             // Set right-hand side for ODE system
-    //             // u[n,0]' = velocity (linear and angular)
-    //             // u[n,1]' = acceleration (linear and angular)
-    //             rhs[0, 0] = velocity0;
-    //             rhs[0, 1] = acceleration0;
-
-    //             rhs[1, 0] = velocity1;
-    //             rhs[1, 1] = acceleration1;
-    //         }
-
-    //         void calc_rkstep(double dt)
-    //         {
-    //             // Create mdspan views for RK4 integration (for all npts points)
-    //             auto u = mdspan<vec3d, dextents<size_t, 1>>(u_mem.data(), npts * 2);
-    //             auto uh = mdspan<vec3d, dextents<size_t, 2>>(uh_mem.data(), 2, npts *
-    //             2); auto rhs =
-    //                 mdspan<vec3d const, dextents<size_t, 1>>(rhs_mem.data(), npts * 2);
-
-    //             // Perform RK4 integration (4 sub-steps)
-    //             for (size_t rk_step = 1; rk_step <= 4; ++rk_step) {
-    //                 calc_rhs();
-    //                 rk4_step(u, uh, rhs, dt, rk_step);
-    //             }
-    //         }
-
-    //         void print_sim(double t)
-    //         {
-    //             // Create mdspan view for printing
-    //             auto u = mdspan<vec3d, dextents<size_t, 2>>(u_mem.data(), npts, 2);
-
-
-    //             fmt::println("t = {:>-7.3f}, dist = nrm(r1 - r0) = {}:", t,
-    //                          nrm(u[1, 0] - u[2, 0]));
-
-    //             for (size_t n = 0; n < npts; ++n) {
-
-    //                 // get current state
-    //                 vec3d position = u[n, 0];
-    //                 vec3d velocity = u[n, 1];
-
-    //                 fmt::println("    n = {}, pos. = {:>-7.3f}, vel. = {:>-7.3f}", n,
-    //                              position, velocity);
-    //             }
-    //         }
-
-    //       private:
-
-    //         // number of independent points to solve system for
-    //         size_t npts;
-
-    //         // RK4 integration state for point n with system order = 2
-    //         // => [n+0: position, n+1: velocity])
-    //         std::vector<vec3d> u_mem;   // [n+0: position, n+1: velocity]
-    //         std::vector<vec3d> uh_mem;  // helper for integration
-    //         std::vector<vec3d> rhs_mem; // right-hand side values
-
-    //         // mass (= linear inertia)
-    //         double m = 1.0;
-    //     };
-
-    //     auto constexpr num_points = 2;
-    //     sim_ode_multibody_ega3d sim(num_points);
-
-    //     // time range (1 full revolution)
-    //     auto t_rng = discrete_range(0.0, 6.2832, 60);
-
-    //     sim.set_initial_values();
-    //     sim.print_sim(t_rng.min());
-
-    //     for (size_t n = 1; n <= t_rng.steps(); n++) {
-
-    //         // integration from t to t + dt
-    //         double t = t_rng.min() + n * t_rng.delta();
-    //         sim.calc_rkstep(t_rng.delta());
-
-    //         // print sim status at t+dt
-    //         sim.print_sim(t);
-    //     }
-
-    //     fmt::println("");
-    // }
 
     //////////////////////////////////////
     // save a version for integrating multiple points (mainly to show u memory acces)

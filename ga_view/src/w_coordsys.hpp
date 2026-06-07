@@ -50,8 +50,9 @@ class w_Coordsys : public QGraphicsView {
     void rotateModeChanged(rotate_pt_mode mode);
     void undoChanged(size_t undo_steps);
     void scalingChanged(axis_scal xscal, axis_scal yscal);
-    void resetRequested();      // 'R' key pressed - reset active simulations
-    void pauseToggleRequested(); // Space key pressed - toggle pause/resume
+    void resetRequested();         // 'R' key pressed - reset active simulations
+    void pauseToggleRequested();   // Space key pressed - toggle pause/resume
+    void circlesToggleRequested(); // 'C' key pressed - toggle magnitude circles
 
   private:
 
@@ -80,9 +81,9 @@ class w_Coordsys : public QGraphicsView {
     int m_nx_leftPress{0}; // x-position of leftButtonPress-Event
     int m_ny_leftPress{0}; // y-position of leftButtonPress-Event
 
-    bool m_legend_dragging{false};  // legend box is being dragged by mouse
-    QPoint m_legend_drag_offset{};  // offset from legend's lower-right anchor to mouse
-                                    // at the start of a drag operation
+    bool m_legend_dragging{false}; // legend box is being dragged by mouse
+    QPoint m_legend_drag_offset{}; // offset from legend's lower-right anchor to mouse
+                                   // at the start of a drag operation
 
     QRect legendRect() const; // legend box in viewport pixel coordinates
 };

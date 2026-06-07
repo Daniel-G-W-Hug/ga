@@ -183,13 +183,13 @@ struct plate_params {
     double h = 2.0;          // height [m] (e2 direction in body frame)
     double g = 9.81;         // gravitational acceleration [m/s²]
     double c = 0.0;          // angular damping coefficient [Nms/rad]
-    double phi_init   = 0.0; // initial tilt angle [rad] (rotation about pivot)
+    double phi_init = 0.0;   // initial tilt angle [rad] (rotation about pivot)
     double omega_init = 0.0; // initial angular velocity [rad/s]
 };
 
 // active plate pendulum: rigid plate fixed at top-right corner (pivot = active_pt2d)
 struct aode_plate_pga2dp {
-    size_t       fixation_idx; // index to active_pt2d (pivot = top-right corner)
+    size_t fixation_idx; // index to active_pt2d (pivot = top-right corner)
     plate_params params;
 };
 
@@ -200,7 +200,7 @@ enum class kin_case_t { Translation, Rotation, Combined };
 // One item per sub-scene (M0=identity upper half, M0 != identity lower half).
 struct frame_trafo_params {
     kin_case_t kin_case{kin_case_t::Translation};
-    bool       m0_is_identity{true}; // informational only (for legend text)
+    bool m0_is_identity{true}; // informational only (for legend text)
 
     // M0: initial motor mapping body frame to world frame at t=0.
     // Identity: exp(0.5 * vec2dp{0,0,0}) = ps.
@@ -235,7 +235,7 @@ struct frame_trafo_params {
     // where O(t) = (cm_ox + cm_vx*t, cm_oy + cm_vy*t).
     // When true, Omega_b is ignored for M(t); B_b/B_w are Euler-integrated
     // observations from the time-varying body/world generators.
-    bool   world_frame_drive{false};
+    bool world_frame_drive{false};
     double cm_ox{0.0};    // initial CM x (world frame)
     double cm_oy{0.0};    // initial CM y (world frame)
     double cm_vx{0.0};    // CM velocity x (world frame)
@@ -246,6 +246,37 @@ struct frame_trafo_params {
 // Active item: body-frame / world-frame transformation demo (no active points)
 struct aframe_trafo {
     frame_trafo_params params;
+};
+
+// Parameters for the merry-go-round demo (kinematic_system2dp: rotating platform with
+// N turntables mounted at radius r, 120 deg apart, each spinning relative to the
+// platform).
+// Layout selector for the merry-go-round item.
+enum class mgr_layout {
+    scene,    // full merry-go-round drawn in world coordinates
+    dashboard // mini merry-go-round (corner) + magnitude plots vs platform angle theta
+};
+
+struct merry_go_round_params {
+    vec2dp centre{0.0, 0.0, 1.0}; // platform centre, in world-frame W coordinates
+    double platform_omega{0.6};   // platform angular velocity [rad/s]
+    double turntable_omega{2.0};  // turntable spin vs. platform [rad/s]
+    double radius{1.6};           // mounting radius of turntables on the platform
+    int n_turntables{3};          // number of turntables (>= 1)
+    vec2dp marked_point{0.6, 0.0,
+                        1.0}; // tracked point on turntable 0 (local coordinates)
+    double dt{0.016};         // integration step per tick [s]
+    // Canvas anchor of the world frame W: the diagram-grid position at which W's origin
+    // is drawn. A pure rigid translation between world coords and canvas coords; the
+    // kinematics are unaffected (the tree is purely relative). Default (0,0) draws W at
+    // the grid origin (world coords == canvas coords).
+    vec2dp world_origin{0.0, 0.0, 1.0};
+    mgr_layout layout{mgr_layout::scene}; // scene (full) vs. dashboard (mini + plots)
+};
+
+// Active item: merry-go-round demo (no active points)
+struct amerry_go_round {
+    merry_go_round_params params;
 };
 
 // One row in the key-binding table of a legend
@@ -261,8 +292,8 @@ struct key_legend_entry {
 // width / height. size_pct is the box width as a fraction of area width.
 // Text that exceeds the available column width wraps automatically.
 struct diagram_legend {
-    std::string heading{};                     // bold title row (always shown)
-    std::vector<key_legend_entry> entries{};   // optional key-binding rows
+    std::string heading{};                   // bold title row (always shown)
+    std::vector<key_legend_entry> entries{}; // optional key-binding rows
 
     double x_pct{0.02};    // left margin of anchor as fraction of area width
     double y_pct{0.02};    // top  margin of anchor as fraction of area height
@@ -334,6 +365,9 @@ class Coordsys_model {
     // add body-frame / world-frame transformation demo item
     [[maybe_unused]] size_t add_aframe_trafo(aframe_trafo const& aft_in);
 
+    // add merry-go-round demo item
+    [[maybe_unused]] size_t add_merry_go_round(amerry_go_round const& amgr_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -396,6 +430,9 @@ class Coordsys_model {
 
     // data for body-frame / world-frame transformation demo items
     std::vector<aframe_trafo> aft;
+
+    // data for merry-go-round demo items
+    std::vector<amerry_go_round> amgr;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};

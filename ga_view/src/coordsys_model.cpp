@@ -152,7 +152,8 @@
     return aode.size() - 1;
 }
 
-[[maybe_unused]] size_t Coordsys_model::add_aode_plate(aode_plate_pga2dp const& aode_plate_in)
+[[maybe_unused]] size_t
+Coordsys_model::add_aode_plate(aode_plate_pga2dp const& aode_plate_in)
 {
     aode_plate.push_back(aode_plate_in);
 
@@ -164,6 +165,13 @@
     aft.push_back(aft_in);
 
     return aft.size() - 1;
+}
+
+[[maybe_unused]] size_t Coordsys_model::add_merry_go_round(amerry_go_round const& amgr_in)
+{
+    amgr.push_back(amgr_in);
+
+    return amgr.size() - 1;
 }
 
 void Coordsys_model::clear()
@@ -196,6 +204,7 @@ void Coordsys_model::clear()
     akinemp.clear();
     aode.clear();
     aode_plate.clear();
+    amgr.clear();
     aft.clear();
 
     m_label.clear();
