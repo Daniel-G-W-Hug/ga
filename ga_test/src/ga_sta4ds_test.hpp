@@ -548,6 +548,47 @@ TEST_SUITE("STA 3D Tests")
         fmt::println("exp: spatial -> cos/sin, boost -> cosh/sinh; rotor/boost are unit");
     }
 
+    TEST_CASE("G<1,3,0>: rotor logarithm log() (inverse of exp, simple rotors)")
+    {
+        fmt::println("G<1,3,0>: rotor logarithm log() (inverse of exp, simple rotors)");
+
+        // log() is the inverse of exp() for simple rotors: log(exp(B)) == B and
+        // exp(log(R)) == R, for both a spatial rotation (spacelike plane, via atan2) and
+        // a Lorentz boost (timelike plane, via acosh).
+
+        // a) rotations: spatial plane g12 (B^2 < 0), angles in (0, pi)
+        for (value_t const a : {0.3, 0.7, 1.2, 2.0, 3.0}) {
+            auto const B = a * g12_4ds;
+            auto const R = exp(B);
+            auto const B_back = log(R);
+            CHECK(value_t(nrm(B_back - B)) == doctest::Approx(0.0)); // recovers generator
+            auto const R_back = exp(B_back);
+            CHECK(value_t(gr0(R_back)) == doctest::Approx(value_t(gr0(R))));
+            CHECK(value_t(nrm(gr2(R_back) - gr2(R))) == doctest::Approx(0.0));
+        }
+
+        // b) boosts: timelike plane g14 (B^2 > 0), rapidity a
+        for (value_t const a : {0.3, 0.7, 1.2, 2.0}) {
+            auto const B = a * g14_4ds;
+            auto const R = exp(B);
+            auto const B_back = log(R);
+            CHECK(value_t(nrm(B_back - B)) == doctest::Approx(0.0));
+            auto const R_back = exp(B_back);
+            CHECK(value_t(gr0(R_back)) == doctest::Approx(value_t(gr0(R))));
+            CHECK(value_t(nrm(gr2(R_back) - gr2(R))) == doctest::Approx(0.0));
+        }
+
+        // c) a tilted (multi-component) spatial plane, and the identity rotor
+        {
+            auto const B = 0.9 * normalize(bivec4ds{0.0, 0.0, 0.0, 1.0, -2.0, 2.0});
+            CHECK(value_t(nrm(log(exp(B)) - B)) == doctest::Approx(0.0));
+            auto const I = exp(bivec4ds{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}); // identity rotor
+            CHECK(value_t(nrm(log(I))) == doctest::Approx(0.0)); // -> zero generator
+        }
+
+        fmt::println("log: rotation via atan2, boost via acosh; exp(log(R)) == R");
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // ops.hpp step 2: transform() sandwich R*X*rev(R) (rotations & Lorentz boosts)
     ////////////////////////////////////////////////////////////////////////////////

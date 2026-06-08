@@ -26,8 +26,7 @@ namespace hd::ga::detail {
 // 4x4 matrix M(R) for the grade-1 (vector) AND grade-3 (trivector) sandwich -- these
 // share identical coefficients in sta. Row-major: entry (row r, col c) is k[4*r + c],
 // rows/cols ordered (g1,g2,g3,g4) for vectors / (g234,g314,g124,g123) for trivectors.
-template <typename T>
-inline std::array<T, 16> sta_rotor_xf_mat_vec(MVec4ds_E<T> const& R)
+template <typename T> inline std::array<T, 16> sta_rotor_xf_mat_vec(MVec4ds_E<T> const& R)
 {
     T const a0 = R.c0 * R.c0, a1 = R.c1 * R.c1, a2 = R.c2 * R.c2, a3 = R.c3 * R.c3;
     T const a4 = R.c4 * R.c4, a5 = R.c5 * R.c5, a6 = R.c6 * R.c6, a7 = R.c7 * R.c7;
@@ -77,28 +76,28 @@ inline std::array<T, 36> sta_rotor_xf_mat_bivec(MVec4ds_E<T> const& R)
 
     return {// g14 <- (vx,vy,vz,mx,my,mz)
             a0 - a1 + a2 + a3 + a4 - a5 - a6 - a7, T(2.0) * (-b06 - b12 - b37 + b45),
-            T(2.0) * (b05 - b13 + b27 + b46),      T(2.0) * (-b07 + b14 - b25 - b36),
-            T(2.0) * (-b03 + b15 + b24 + b67),     T(2.0) * (b02 + b16 + b34 - b57),
+            T(2.0) * (b05 - b13 + b27 + b46), T(2.0) * (-b07 + b14 - b25 - b36),
+            T(2.0) * (-b03 + b15 + b24 + b67), T(2.0) * (b02 + b16 + b34 - b57),
             // g24
-            T(2.0) * (b06 - b12 + b37 + b45),      a0 + a1 - a2 + a3 - a4 + a5 - a6 - a7,
-            T(2.0) * (-b04 - b17 - b23 + b56),     T(2.0) * (b03 + b15 + b24 - b67),
-            T(2.0) * (-b07 - b14 + b25 - b36),     T(2.0) * (-b01 + b26 + b35 + b47),
+            T(2.0) * (b06 - b12 + b37 + b45), a0 + a1 - a2 + a3 - a4 + a5 - a6 - a7,
+            T(2.0) * (-b04 - b17 - b23 + b56), T(2.0) * (b03 + b15 + b24 - b67),
+            T(2.0) * (-b07 - b14 + b25 - b36), T(2.0) * (-b01 + b26 + b35 + b47),
             // g34
-            T(2.0) * (-b05 - b13 - b27 + b46),     T(2.0) * (b04 + b17 - b23 + b56),
-            a0 + a1 + a2 - a3 - a4 - a5 + a6 - a7,  T(2.0) * (-b02 + b16 + b34 + b57),
-            T(2.0) * (b01 + b26 + b35 - b47),      T(2.0) * (-b07 - b14 - b25 + b36),
+            T(2.0) * (-b05 - b13 - b27 + b46), T(2.0) * (b04 + b17 - b23 + b56),
+            a0 + a1 + a2 - a3 - a4 - a5 + a6 - a7, T(2.0) * (-b02 + b16 + b34 + b57),
+            T(2.0) * (b01 + b26 + b35 - b47), T(2.0) * (-b07 - b14 - b25 + b36),
             // g23
-            T(2.0) * (b07 - b14 + b25 + b36),      T(2.0) * (b03 - b15 - b24 - b67),
-            T(2.0) * (-b02 - b16 - b34 + b57),     a0 - a1 + a2 + a3 + a4 - a5 - a6 - a7,
-            T(2.0) * (-b06 - b12 - b37 + b45),     T(2.0) * (b05 - b13 + b27 + b46),
+            T(2.0) * (b07 - b14 + b25 + b36), T(2.0) * (b03 - b15 - b24 - b67),
+            T(2.0) * (-b02 - b16 - b34 + b57), a0 - a1 + a2 + a3 + a4 - a5 - a6 - a7,
+            T(2.0) * (-b06 - b12 - b37 + b45), T(2.0) * (b05 - b13 + b27 + b46),
             // g31
-            T(2.0) * (-b03 - b15 - b24 + b67),     T(2.0) * (b07 + b14 - b25 + b36),
-            T(2.0) * (b01 - b26 - b35 - b47),      T(2.0) * (b06 - b12 + b37 + b45),
-            a0 + a1 - a2 + a3 - a4 + a5 - a6 - a7,  T(2.0) * (-b04 - b17 - b23 + b56),
+            T(2.0) * (-b03 - b15 - b24 + b67), T(2.0) * (b07 + b14 - b25 + b36),
+            T(2.0) * (b01 - b26 - b35 - b47), T(2.0) * (b06 - b12 + b37 + b45),
+            a0 + a1 - a2 + a3 - a4 + a5 - a6 - a7, T(2.0) * (-b04 - b17 - b23 + b56),
             // g12
-            T(2.0) * (b02 - b16 - b34 - b57),      T(2.0) * (-b01 - b26 - b35 + b47),
-            T(2.0) * (b07 + b14 + b25 - b36),      T(2.0) * (-b05 - b13 - b27 + b46),
-            T(2.0) * (b04 + b17 - b23 + b56),      a0 + a1 + a2 - a3 - a4 - a5 + a6 - a7};
+            T(2.0) * (b02 - b16 - b34 - b57), T(2.0) * (-b01 - b26 - b35 + b47),
+            T(2.0) * (b07 + b14 + b25 - b36), T(2.0) * (-b05 - b13 - b27 + b46),
+            T(2.0) * (b04 + b17 - b23 + b56), a0 + a1 + a2 - a3 - a4 - a5 + a6 - a7};
 }
 
 } // namespace hd::ga::detail
@@ -117,6 +116,7 @@ namespace hd::ga::sta {
 //
 // Implemented:
 //   - exp(BiVec)                      -> rotor exponential of a (simple) bivector
+//   - log(rotor)                      -> bivector log of a (simple) rotor (exp inverse)
 //   - get_rotor(plane, angle)         -> rotor for a spatial rotation
 //   - get_boost(plane, phi)           -> rotor for a Lorentz boost (rapidity phi)
 //   - sqrt(rotor)                     -> rotor halving the rotation angle / rapidity
@@ -130,8 +130,9 @@ namespace hd::ga::sta {
 //   - reflect_on() / reflect_on_vec() -> reflections (hyperplane, 2-plane, vector)
 //   - is_congruent()                  -> same subspace up to a scalar factor
 //
-// TODO (next steps): log of rotors;
-//   general (non-simple) rotor support in exp() / sqrt().
+// TODO (next steps): general (non-simple) rotor support in exp() / log() / sqrt() via the
+//   invariant bivector decomposition (log() currently handles SIMPLE rotors, matching
+//   exp()).
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -156,7 +157,8 @@ template <typename T>
     requires(numeric_type<T>)
 inline MVec4ds_E<T> exp(BiVec4ds<T> const& B)
 {
-    T const a = T(nrm(B)); // sqrt(|B^2|): rotation angle (spacelike) / rapidity (timelike)
+    T const a =
+        T(nrm(B)); // sqrt(|B^2|): rotation angle (spacelike) / rapidity (timelike)
     if (is_lightlike(B) || a <= detail::safe_epsilon<T>()) {
         // null/zero plane -> identity rotor (covers the lightlike case to first order)
         return MVec4ds_E<T>(Scalar4ds<T>(1.0), B);
@@ -167,6 +169,45 @@ inline MVec4ds_E<T> exp(BiVec4ds<T> const& B)
     }
     // timelike plane -> hyperbolic (Lorentz boost)
     return MVec4ds_E<T>(Scalar4ds<T>(std::cosh(a)), (std::sinh(a) / a) * B);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// rotor logarithm w.r.t. the geometric product -- the inverse of exp()
+//
+// For a SIMPLE rotor R = exp(B) with a simple bivector B (B^B == 0), recovers B. The
+// rotor's bivector part gr2(R) shares B's plane and causal character, with magnitude
+// nrm(gr2 R) = |sin(a)| (rotation) or sinh(a) (boost), where a = nrm(B). Branch on the
+// causal character of gr2(R) (matching exp()), with s = gr0(R):
+//   gr2(R) spacelike (rotation): R = cos(a)  + (sin(a)/a)  B  => a = atan2(|sin a|, cos
+//   a) gr2(R) timelike  (boost):    R = cosh(a) + (sinh(a)/a) B  => a = acosh(cosh a)
+//   gr2(R) lightlike / a ~ 0:    R = 1 + B (or identity)      => B = gr2(R) directly
+// then B = (a / nrm(gr2 R)) * gr2(R). A rotation by ~pi leaves the plane orientation
+// ambiguous (the usual rotation-logarithm axis ambiguity).
+//
+// TODO: general (non-simple) rotors (where gr2(R)^gr2(R) != 0, i.e. R also has a
+// pseudoscalar part) need the invariant bivector decomposition; not handled here.
+////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec4ds<T> log(MVec4ds_E<T> const& R)
+{
+    BiVec4ds<T> const Bv = gr2(R);
+    T const bn =
+        T(nrm(Bv)); // |sin(a)| (rotation) / sinh(a) (boost) / 0 (identity or null)
+    if (bn <= detail::safe_epsilon<T>()) {
+        // a ~ 0 -> identity (Bv ~ 0); or a lightlike (null) plane where exp(B) = 1 + B
+        return Bv;
+    }
+    T const s = T(gr0(R)); // cos(a) (rotation) or cosh(a) (boost)
+    if (is_spacelike(Bv)) {
+        // spacelike plane -> circular (rotation by angle a)
+        T const a = std::atan2(bn, s);
+        return (a / bn) * Bv;
+    }
+    // timelike plane -> hyperbolic (Lorentz boost, rapidity a)
+    T const a = std::acosh(s >= T(1.0) ? s : T(1.0));
+    return (a / bn) * Bv;
 }
 
 
@@ -241,8 +282,7 @@ inline MVec4ds_E<T> sqrt(MVec4ds_E<T> const& R)
     if (n_sq <= detail::safe_epsilon<T>()) {
         // degenerate: R = -1 (a 2*pi rotation) -> 1 + R = 0 has no unique direction;
         // return the identity rotor (the conventional principal square root)
-        return MVec4ds_E<T>(Scalar4ds<T>(1.0),
-                            BiVec4ds<T>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        return MVec4ds_E<T>(Scalar4ds<T>(1.0), BiVec4ds<T>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
                             PScalar4ds<T>(0.0));
     }
     return X / std::sqrt(n_sq);
@@ -407,18 +447,18 @@ constexpr BiVec4ds<std::common_type_t<T, U>> transform_opt(BiVec4ds<T> const& B,
 {
     using ctype = std::common_type_t<T, U>;
     auto const k = detail::sta_rotor_xf_mat_bivec<ctype>(R);
-    return BiVec4ds<ctype>(
-        k[0] * B.vx + k[1] * B.vy + k[2] * B.vz + k[3] * B.mx + k[4] * B.my + k[5] * B.mz,
-        k[6] * B.vx + k[7] * B.vy + k[8] * B.vz + k[9] * B.mx + k[10] * B.my +
-            k[11] * B.mz,
-        k[12] * B.vx + k[13] * B.vy + k[14] * B.vz + k[15] * B.mx + k[16] * B.my +
-            k[17] * B.mz,
-        k[18] * B.vx + k[19] * B.vy + k[20] * B.vz + k[21] * B.mx + k[22] * B.my +
-            k[23] * B.mz,
-        k[24] * B.vx + k[25] * B.vy + k[26] * B.vz + k[27] * B.mx + k[28] * B.my +
-            k[29] * B.mz,
-        k[30] * B.vx + k[31] * B.vy + k[32] * B.vz + k[33] * B.mx + k[34] * B.my +
-            k[35] * B.mz);
+    return BiVec4ds<ctype>(k[0] * B.vx + k[1] * B.vy + k[2] * B.vz + k[3] * B.mx +
+                               k[4] * B.my + k[5] * B.mz,
+                           k[6] * B.vx + k[7] * B.vy + k[8] * B.vz + k[9] * B.mx +
+                               k[10] * B.my + k[11] * B.mz,
+                           k[12] * B.vx + k[13] * B.vy + k[14] * B.vz + k[15] * B.mx +
+                               k[16] * B.my + k[17] * B.mz,
+                           k[18] * B.vx + k[19] * B.vy + k[20] * B.vz + k[21] * B.mx +
+                               k[22] * B.my + k[23] * B.mz,
+                           k[24] * B.vx + k[25] * B.vy + k[26] * B.vz + k[27] * B.mx +
+                               k[28] * B.my + k[29] * B.mz,
+                           k[30] * B.vx + k[31] * B.vy + k[32] * B.vz + k[33] * B.mx +
+                               k[34] * B.my + k[35] * B.mz);
 }
 
 // batch Lorentz transformation of many blades by the SAME rotor R.
@@ -437,11 +477,11 @@ transform_opt(std::vector<Vec4ds<T>> const& vecs, MVec4ds_E<U> const& R)
     std::vector<Vec4ds<ctype>> res;
     res.reserve(vecs.size());
     for (auto const& v : vecs) {
-        res.emplace_back(Vec4ds<ctype>(k[0] * v.x + k[1] * v.y + k[2] * v.z + k[3] * v.w,
-                                       k[4] * v.x + k[5] * v.y + k[6] * v.z + k[7] * v.w,
-                                       k[8] * v.x + k[9] * v.y + k[10] * v.z + k[11] * v.w,
-                                       k[12] * v.x + k[13] * v.y + k[14] * v.z +
-                                           k[15] * v.w));
+        res.emplace_back(
+            Vec4ds<ctype>(k[0] * v.x + k[1] * v.y + k[2] * v.z + k[3] * v.w,
+                          k[4] * v.x + k[5] * v.y + k[6] * v.z + k[7] * v.w,
+                          k[8] * v.x + k[9] * v.y + k[10] * v.z + k[11] * v.w,
+                          k[12] * v.x + k[13] * v.y + k[14] * v.z + k[15] * v.w));
     }
     return res;
 }
@@ -456,11 +496,11 @@ transform_opt(std::vector<TriVec4ds<T>> const& tris, MVec4ds_E<U> const& R)
     std::vector<TriVec4ds<ctype>> res;
     res.reserve(tris.size());
     for (auto const& t : tris) {
-        res.emplace_back(TriVec4ds<ctype>(
-            k[0] * t.x + k[1] * t.y + k[2] * t.z + k[3] * t.w,
-            k[4] * t.x + k[5] * t.y + k[6] * t.z + k[7] * t.w,
-            k[8] * t.x + k[9] * t.y + k[10] * t.z + k[11] * t.w,
-            k[12] * t.x + k[13] * t.y + k[14] * t.z + k[15] * t.w));
+        res.emplace_back(
+            TriVec4ds<ctype>(k[0] * t.x + k[1] * t.y + k[2] * t.z + k[3] * t.w,
+                             k[4] * t.x + k[5] * t.y + k[6] * t.z + k[7] * t.w,
+                             k[8] * t.x + k[9] * t.y + k[10] * t.z + k[11] * t.w,
+                             k[12] * t.x + k[13] * t.y + k[14] * t.z + k[15] * t.w));
     }
     return res;
 }
