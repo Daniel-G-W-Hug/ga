@@ -801,18 +801,12 @@ class kinematic_system2dp : public static_system2dp {
 
   private:
 
-    // se(2) twist Lie bracket in the twist2dp generator encoding (used for the Coriolis
-    // coupling in the acceleration propagation; angular part of [.,.] is zero)
-    static twist2dp bracket(twist2dp const& a, twist2dp const& b)
-    {
-        return vec2dp(b.z * a.y - a.z * b.y, a.z * b.x - b.z * a.x, 0.0);
-    }
-
     // World velocity & acceleration twists of frame idx, propagated root -> idx by the
     // recursive Newton-Euler relations (twists transported to world by the adjoint):
     //   V_i = V_parent + Ad(xi_i)
     //   A_i = A_parent + Ad(xidot_i) + [V_i, Ad(xi_i)]   (Coriolis / centrifugal
-    //   coupling)
+    //   coupling). The se(2) twist Lie bracket [.,.] is the regressive commutator
+    //   rcmt(.,.) on twists.
     struct world_va2dp {
         twist2dp V; // velocity twist
         twist2dp A; // acceleration twist
@@ -836,7 +830,7 @@ class kinematic_system2dp : public static_system2dp {
             auto const zeta = move2dp(rel_vtwist[n], M);    // Ad(xi_n)     world rel. vel
             auto const zetadot = move2dp(rel_atwist[n], M); // Ad(xidot_n)  world rel. acc
             V = V + zeta;
-            A = A + zetadot + bracket(V, zeta);
+            A = A + zetadot + rcmt(V, zeta);
         }
         return {V, A};
     }

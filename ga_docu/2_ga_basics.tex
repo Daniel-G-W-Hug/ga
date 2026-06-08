@@ -12,7 +12,7 @@ The following is provided for Euclidean geometric algebra of two-dimensional spa
         \;\text{and}\; \bv{2}^2 = +1 \nonumber\\
         s_{2d} & = s \, \bm{1}
         \label{eq:scalar2d} \\
-        v_{2d} & = v_1\bv{1} + v_2\bv{2} 
+        v_{2d} & = v_x\bv{1} + v_y\bv{2} 
         \label{eq:vec2d} \\
         ps_{2d} & = ps \, \bv{12}  = ps \, \ps
         \label{eq:pscalar2d}
@@ -24,7 +24,7 @@ pseudoscalar part $ps_{2d}$. The index $2d$ is omitted when clear from context.
 The four basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{12}\}$. Using this basis a
 multivector $M$ of $2d$-space is defined as
 \begin{equation}
-     M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + ps \, \bv{12}
+     M = s \, \bm{1} + v_x\bv{1} + v_y\bv{2} + ps \, \bv{12}
     \label{eq:mvec2d}   
 \end{equation}
 where equation (\ref{eq:mvec2d}) contains three parts: the scalar part $s \, \bm{1}$
@@ -42,9 +42,9 @@ orthonormal basis \bv{1}, \bv{2}, \bv{3} there are:
         \bv{2}^2 = +1, \;\text{and}\; \bv{3}^2 = +1 \nonumber\\ 
         s_{3d} & = s \, \bm{1}
         \label{eq:scalar3d} \\
-        v_{3d} & = v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
+        v_{3d} & = v_x\bv{1} + v_y\bv{2} + v_z\bv{3} 
         \label{eq:vec3d} \\ 
-        B_{3d} & = b_{1}\bv{23} + b_{2}\bv{31} + b_{3}\bv{12} 
+        B_{3d} & = b_{x}\bv{23} + b_{y}\bv{31} + b_{z}\bv{12} 
         \label{eq:bivec3d} \\ 
         ps_{3d} & = ps \, \bv{123}  = ps \, \ps
         \label{eq:pscalar3d}
@@ -62,8 +62,8 @@ library uses type tagging extensively for that purpose.} The basis elements are 
 \bv{1}, \bv{2}, \bv{3}, \bv{23}, \bv{31}, \bv{12}, \bv{123}\}$. Using this basis a
 multivector $M$ of $3d$-space is defined as
 \begin{equation}
-    M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
-    + b_{1}\bv{23} + b_{2}\bv{31} + b_{3}\bv{12} + ps \, \bv{123}
+    M = s \, \bm{1} + v_x\bv{1} + v_y\bv{2} + v_z\bv{3} 
+    + b_{x}\bv{23} + b_{y}\bv{31} + b_{z}\bv{12} + ps \, \bv{123}
     \label{eq:mvec3d}  
 \end{equation}
 where equation (\ref{eq:mvec3d}) contains four parts: the scalar component $s \, \bm{1}$
@@ -83,9 +83,9 @@ are following basis vectors:
         \bv{2}^2 = +1, \;\text{and}\; \bv{3}^2 = 0  \nonumber\\ 
         s_{2dp} & = s \, \bm{1}
         \label{eq:scalar2dp} \\
-        v_{2dp} & = v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
+        v_{2dp} & = v_x\bv{1} + v_y\bv{2} + v_z\bv{3} 
         \label{eq:vec2dp} \\ 
-        B_{2dp} & = b_{1}\bv{31} + b_{2}\bv{32} + b_{3}\bv{12} 
+        B_{2dp} & = b_{x}\bv{31} + b_{y}\bv{32} + b_{z}\bv{12} 
         \label{eq:bivec2dp} \\ 
         ps_{2dp} & = ps \, \bv{321}  = ps \, \ps
         \label{eq:pscalar2dp}
@@ -106,8 +106,8 @@ eight basis elements are $\{\bm{1}, \bv{1}, \bv{2}, \bv{3}, \bv{31}, \bv{32}, \b
 \bv{321}\}$. Using this basis a multivector $M$ of two-dimensional projective space
 ($2dp$) is defined as
 \begin{equation}
-    M = s \, \bm{1} + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} 
-    + b_1\bv{31} + b_2\bv{32} + b_3\bv{12} + ps \, \bv{321}
+    M = s \, \bm{1} + v_x\bv{1} + v_y\bv{2} + v_z\bv{3} 
+    + b_x\bv{31} + b_y\bv{32} + b_z\bv{12} + ps \, \bv{321}
     \label{eq:mvec2dp}  
 \end{equation}
 where equation (\ref{eq:mvec2dp}) contains four parts: the scalar component $s \, \bm{1}$
@@ -146,12 +146,12 @@ there are following basis vectors:
         \bv{2}^2 = +1, \bv{3}^2 = +1,\;\text{and}\; \bv{4}^2 = 0 \nonumber\\ 
         s_{3dp} & = s \, \bm{1}
         \label{eq:scalar3dp} \\
-        v_{3dp} & = v_1\bv{1} + v_2\bv{2} + v_3\bv{3} + v_4\bv{4} 
+        v_{3dp} & = v_x\bv{1} + v_y\bv{2} + v_z\bv{3} + v_w\bv{4} 
         \label{eq:vec3dp} \\ 
-        B_{3dp} & = b_{1}\bv{41} + b_{2}\bv{42} + b_{3}\bv{43} +
-                    b_{4}\bv{23} + b_{5}\bv{31} + b_{6}\bv{12} 
+        B_{3dp} & = b_{vx}\bv{41} + b_{vy}\bv{42} + b_{vz}\bv{43} +
+                    b_{mx}\bv{23} + b_{my}\bv{31} + b_{mz}\bv{12} 
         \label{eq:bivec3dp} \\ 
-        t_{3dp} & = t_{1}\bv{423} + t_{2}\bv{431} + t_{3}\bv{412} + t_{4}\bv{321} 
+        t_{3dp} & = t_{x}\bv{423} + t_{y}\bv{431} + t_{z}\bv{412} + t_{w}\bv{321} 
         \label{eq:trivec3dp} \\ 
         ps_{3dp} & = ps \, \bv{1234}  = ps \, \ps
         \label{eq:pscalar3dp}
@@ -170,10 +170,10 @@ A multivector $M$ of three-dimensional projective space ($3dp$) is defined as
 \begin{equation}
     \begin{split}
     M & = s \, \bm{1} \\
-      & + v_1\bv{1} + v_2\bv{2} + v_3\bv{3} + v_4\bv{4} \\
-      & + b_{1}\bv{41} + b_{2}\bv{42} + b_{3}\bv{43} 
-        + b_{4}\bv{23} + b_{5}\bv{31} + b_{6}\bv{12} \\
-      & + t_{1}\bv{423} + t_{2}\bv{431} + t_{3}\bv{412} + t_{4}\bv{321} \\
+      & + v_x\bv{1} + v_y\bv{2} + v_z\bv{3} + v_w\bv{4} \\
+      & + b_{vx}\bv{41} + b_{vy}\bv{42} + b_{vz}\bv{43} 
+        + b_{mx}\bv{23} + b_{my}\bv{31} + b_{mz}\bv{12} \\
+      & + t_{x}\bv{423} + t_{y}\bv{431} + t_{z}\bv{412} + t_{w}\bv{321} \\
       & + ps \, \bv{1234}
     \label{eq:mvec3dp}
     \end{split}
@@ -224,6 +224,80 @@ projective geometry and geometric algebra are related in
 \cite{Browne_Grassmann-Algebra_Vol1:2012}, p. 216ff. It is helpful to fully grasp and
 understand that relation in order to see what is possible using the algebra effectively to
 model physical phenomena. \\
+
+Space-time algebra of four-dimensional Minkowski space ($STA4DS$) is modelled using an
+orthonormal basis \gv{1}, \gv{2}, \gv{3}, \gv{4} with the mixed (Minkowski) signature,
+where the three space-like directions square to $-1$ and the time-like direction \gv{4}
+squares to $+1$:
+\begin{subequations}
+    \begin{align}
+        (\gv{1})^2 = \gv{1} \wedgedot \gv1 & = \gv{1} \cdot \gv1 = \gv{1}^2 = -1,
+        \gv{2}^2 = -1, \gv{3}^2 = -1, \;\text{and}\; \gv{4}^2 = +1 \nonumber\\
+        s_{4ds} & = s \, \bm{1}
+        \label{eq:scalar4ds} \\
+        v_{4ds} & = v_x\gv{1} + v_y\gv{2} + v_z\gv{3} + v_w\gv{4}
+        \label{eq:vec4ds} \\
+        B_{4ds} & = b_{vx}\gv{14} + b_{vy}\gv{24} + b_{vz}\gv{34} +
+                    b_{mx}\gv{23} + b_{my}\gv{31} + b_{mz}\gv{12}
+        \label{eq:bivec4ds} \\
+        t_{4ds} & = t_{x}\gv{234} + t_{y}\gv{314} + t_{z}\gv{124} + t_{w}\gv{123}
+        \label{eq:trivec4ds} \\
+        ps_{4ds} & = ps \, \gv{1234}  = ps \, \ps
+        \label{eq:pscalar4ds}
+    \end{align}
+\end{subequations}
+Unlike $PGA$, where one basis vector squares to zero (degenerate metric), $STA4DS$ has a
+non-degenerate metric; but in contrast to the all-positive Euclidean signature of $EGA$,
+its signature is indefinite (mixed signs). Equation (\ref{eq:scalar4ds}) is the scalar
+part $s_{4ds}$, equation (\ref{eq:vec4ds}) is the vector part $v_{4ds}$, equation
+(\ref{eq:bivec4ds}) is the bivector part $B_{4ds}$, equation (\ref{eq:trivec4ds}) is the
+trivector part $t_{4ds}$, and equation (\ref{eq:pscalar4ds}) is the pseudoscalar part
+$ps_{4ds}$. The index $4ds$ is omitted when clear from context. The sixteen basis elements
+of $STA4DS$ are: $\{\bm{1}, \gv{1}, \gv{2}, \gv{3}, \gv{4}, \gv{14}, \gv{24}, \gv{34},
+\gv{23}, \gv{31}, \gv{12}, \gv{234}, \gv{314}, \gv{124}, \gv{123}, \gv{1234}\}$. The grade
+structure mirrors that of $PGA3DP$ (both are four-dimensional algebras with sixteen basis
+elements); the difference is the vector metric, where $STA4DS$ replaces the one degenerate
+and three positive directions of $PGA3DP$ by three negative and one positive direction. A
+multivector $M$ of space-time algebra ($4ds$) is defined as
+\begin{equation}
+    \begin{split}
+    M & = s \, \bm{1} \\
+      & + v_x\gv{1} + v_y\gv{2} + v_z\gv{3} + v_w\gv{4} \\
+      & + b_{vx}\gv{14} + b_{vy}\gv{24} + b_{vz}\gv{34}
+        + b_{mx}\gv{23} + b_{my}\gv{31} + b_{mz}\gv{12} \\
+      & + t_{x}\gv{234} + t_{y}\gv{314} + t_{z}\gv{124} + t_{w}\gv{123} \\
+      & + ps \, \gv{1234}
+    \label{eq:mvec4ds}
+    \end{split}
+\end{equation}
+where equation (\ref{eq:mvec4ds}) contains five parts: the scalar component $s \, \bm{1}$
+(basis element is the scalar \textbf{1}), the vector part $v$ (basis elements \gv{1},
+\gv{2}, \gv{3}, \gv{4}), the bivector part $B$ (basis elements \gv{14}, \gv{24}, \gv{34},
+\gv{23}, \gv{31}, \gv{12}), the trivector part $t$ (basis elements \gv{234}, \gv{314},
+\gv{124}, \gv{123}) and the pseudoscalar part $ps \, \gv{1234} = ps \, \ps$ (basis element
+is $I_{4ds} = \gv{1234}$, which is sometimes written as $\ps$ to show its character as
+pseudoscalar of this space. It is a quadvector in four-dimensional space-time that squares
+to $-1$ under the geometric product). \\
+
+In $STA$ a vector models a space-time event or, more generally, a four-vector
+\begin{equation}
+    X_{sta4ds} = \underbrace{x_x \gv{1} + x_y \gv{2} + x_z \gv{3}}_{space} +
+                 \underbrace{x_w \gv{4}}_{time}
+\end{equation}
+where the three space-like components are carried by \gv{1}, \gv{2} and \gv{3}, and the
+time-like component by \gv{4}. Typical examples are the four-position, the four-velocity
+and the four-momentum. The geometric square $X^2 = X \wedgedot X$ is the squared Minkowski
+interval; it is positive for time-like, negative for space-like and zero for light-like
+vectors. \\
+
+The bivectors carry the generators of the Lorentz transformations. The three bivectors
+containing the time-like direction (\gv{14}, \gv{24}, \gv{34}) generate boosts (relative
+motion between frames), while the three purely space-like bivectors (\gv{23}, \gv{31},
+\gv{12}) generate spatial rotations. As for the rotors in $EGA$, the even-grade part of
+the algebra (scalar, bivector and pseudoscalar -- the eight even basis elements) forms the
+group of rotors $R$ that implement Lorentz transformations of any object $X$ via the
+sandwich product $transform(X,R) = R \wedgedot X \wedgedot \rev{R}$ based on the geometric
+product, in complete analogy to the rotations in $EGA$. \\
 
 Geometric algebra seems complex and a little overwhelming at first. Especially so, when
 new objects beyond vectors and several specific products are introduced.
