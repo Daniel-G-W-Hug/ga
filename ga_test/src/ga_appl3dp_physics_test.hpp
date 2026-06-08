@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <memory>
 
 #include "fmt/format.h"  // formatting
 #include "fmt/ostream.h" // ostream support
@@ -752,7 +753,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
         vec3dp const v0{1.0, 2.0, 0.0, 0.0}; // initial cm velocity
         vec3dp const w0{0.0, 0.0, 3.0, 0.0}; // initial spin about e3
         sys.add_body(static_frame3dp("B", vec3dp{0.0, 0.0, 0.0, 1.0}), cube,
-                     kin_state3dp{v0, w0});
+                     kin_state3dp{.vel = v0, .omega = w0});
 
         value_t const g = 9.81; // default gravity is (0,-g,0)
         value_t const E0 = sys.total_energy();
@@ -815,7 +816,7 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
         // spin mostly about e2 (intermediate) with a small e1 perturbation; no
         // translation
         vec3dp const w0{0.3, 5.0, 0.0, 0.0};
-        sys.add_body(static_frame3dp("B"), body, kin_state3dp{vec3dp{0, 0, 0, 0}, w0});
+        sys.add_body(static_frame3dp("B"), body, kin_state3dp{.omega = w0});
 
         value_t const E0 = sys.total_energy(); // kinetic only
         bivec3dp const L0 = sys.momentum_world(1);
@@ -860,3 +861,146 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
     }
 
 } // TEST_SUITE("PGA3DP: dynamic_system3dp (M1)")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// PGA3DP dynamic_system3dp - Milestone 2: single revolute joint (spatial pendulum)
+//   validates the ported joint tier + inertia-map forward_dynamics against the analytic
+//   compound-pendulum reduced inertia, restoring law, small-oscillation frequency, and
+//   energy conservation.
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
+{
+
+    TEST_CASE("pga3dp: revolute joint - compound spatial pendulum (M2)")
+    {
+        fmt::println("pga3dp: dynamic_system3dp - spatial pendulum (revolute joint, M2)");
+
+        // A cube hinged at a fixed horizontal axis (e3), its cm a distance L below the
+        // axis, swinging under gravity -> a compound pendulum. The hinge moment of
+        // inertia emerges (Steiner) from the spatial Jacobian: I_hinge = I_cm_zz + m L^2
+        // = m s^2/6 + m L^2. Small-oscillation frequency w0 = sqrt(m g L / I_hinge).
+        value_t const m = 1.0, s = 1.0, L = 1.0, g = 9.81;
+        auto const cube = make_cuboid_body(m, s, s, s);
+
+        value_t const I_hinge = m * s * s / 6.0 + m * L * L;         // = 7/6
+        value_t const w0 = std::sqrt(g * L / (s * s / 6.0 + L * L)); // rad/s
+        value_t const T0 = 2.0 * std::acos(-1.0) / w0;               // period
+
+        // build a pendulum at initial angle phi0: rest cm at (0,-L,0), hinge line through
+        // the body point (0,L,0) along e3 (so the world hinge sits at the origin)
+        auto build = [&](value_t phi0) {
+            auto sys = std::make_unique<dynamic_system3dp>();
+            sys->add_frame(static_frame3dp("W"));
+            sys->add_revolute_body(static_frame3dp("B", vec3dp{0.0, -L, 0.0, 1.0}), cube,
+                                   vec3dp{0.0, L, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0},
+                                   phi0);
+            return sys;
+        };
+
+        // --- a) reduced inertia + the pendulum restoring law at a small angle ----------
+        {
+            value_t const phi0 = 0.05;
+            auto sys = build(phi0);
+            value_t const alpha0 = -(g * L / (s * s / 6.0 + L * L)) * std::sin(phi0);
+            fmt::println(
+                "  I_hinge = {:.5f} (analytic {:.5f}); alpha0 = {:.5f} (analytic "
+                "{:.5f})",
+                sys->mass_matrix()[0], I_hinge, sys->joint_accel(1), alpha0);
+            CHECK(sys->mass_matrix()[0] == doctest::Approx(I_hinge)); // reduced inertia
+            CHECK(sys->joint_accel(1) == doctest::Approx(alpha0));    // restoring law
+        }
+
+        // --- b) small-oscillation period via the first phi zero-crossing (T0/4) --------
+        {
+            auto sys = build(0.05);
+            value_t const dt = 1.0e-4;
+            value_t t_cross = 0.0, phi_prev = sys->joint_phi(1);
+            for (size_t n = 1; n <= 20000; ++n) {
+                sys->step(dt);
+                value_t const phi = sys->joint_phi(1);
+                if (phi_prev > 0.0 && phi <= 0.0) { // first downward zero crossing
+                    t_cross = ((n - 1) + phi_prev / (phi_prev - phi)) * dt; // interp
+                    break;
+                }
+                phi_prev = phi;
+            }
+            value_t const T_meas = 4.0 * t_cross;
+            fmt::println("  T0 = {:.5f} s (w0 = {:.5f}); T_measured = {:.5f} s", T0, w0,
+                         T_meas);
+            CHECK(T_meas == doctest::Approx(T0).epsilon(2e-3)); // anharmonic + RK4
+        }
+
+        // --- c) energy conservation + M-vs-KE consistency over a moderate swing --------
+        {
+            auto sys = build(0.6); // moderate amplitude (non-chaotic single pendulum)
+            value_t const E0 = sys->total_energy();
+            value_t const dt = 5.0e-4;
+            value_t max_dE = 0.0, kemax = 0.0, max_mke = 0.0;
+            for (size_t n = 1; n <= 6000; ++n) { // 3 s
+                sys->step(dt);
+                max_dE = std::max(max_dE, std::abs(sys->total_energy() - E0));
+                value_t const ke = sys->kinetic_energy();
+                kemax = std::max(kemax, ke);
+                // 1/2 qdot^T M(q) qdot == kinetic_energy()
+                value_t const w = sys->joint_omega(1);
+                max_mke =
+                    std::max(max_mke, std::abs(0.5 * sys->mass_matrix()[0] * w * w - ke));
+            }
+            fmt::println("  E0 = {:.5f}, KEmax = {:.5f}, dE/KEmax = {:.2e}, M-vs-KE = "
+                         "{:.2e}",
+                         E0, kemax, max_dE / kemax, max_mke);
+            CHECK(max_dE / kemax < 1e-6); // RK4 energy drift
+            CHECK(max_mke < 1e-9);        // mass-matrix / kinetic-energy identity
+        }
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: prismatic joint - slider on an incline (M2)")
+    {
+        fmt::println("pga3dp: dynamic_system3dp - prismatic slider (M2)");
+
+        // A cube on a prismatic joint sliding along a fixed 45-deg direction in the x-y
+        // plane under gravity. A slider has NO angular DOF, so the reduced inertia is
+        // just the mass (M[0] = m) and the acceleration is the gravity component along
+        // the slide direction: q-ddot = dir . g. This exercises the rotation/translation
+        // unification: the SAME inertia-map forward_dynamics handles it with no angular
+        // term -- the 3D analogue of the 2D prismatic check that caught the dropped
+        // S.z*S.z term (a trap that no longer exists in the inertia-map form).
+        value_t const m = 2.0, g = 9.81;
+        auto const cube = make_cuboid_body(m, 1.0, 1.0, 1.0);
+        value_t const c = 1.0 / std::sqrt(2.0);
+        vec3dp const dir{c, -c, 0.0, 0.0}; // unit 45-deg direction (down-right)
+
+        dynamic_system3dp sys;
+        sys.add_frame(static_frame3dp("W"));
+        sys.add_prismatic_body(static_frame3dp("B"), cube, dir);
+
+        value_t const a_analytic = dir.y * (-g); // dir . g  (g = (0,-g,0)) = c*g
+        fmt::println("  M[0] = {:.5f} (analytic {:.5f}); a_slide = {:.5f} (analytic "
+                     "{:.5f})",
+                     sys.mass_matrix()[0], m, sys.joint_accel(1), a_analytic);
+        CHECK(sys.mass_matrix()[0] == doctest::Approx(m)); // pure mass, NO angular term
+        CHECK(sys.joint_accel(1) == doctest::Approx(a_analytic)); // q-ddot = dir . g
+
+        // energy conservation over the slide (constant accel => RK4 near-exact)
+        value_t const E0 = sys.total_energy();
+        value_t const dt = 5.0e-4;
+        value_t max_dE = 0.0, kemax = 0.0;
+        for (size_t n = 1; n <= 4000; ++n) { // 2 s
+            sys.step(dt);
+            max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
+            kemax = std::max(kemax, sys.kinetic_energy());
+            // the slide stays straight: the cm only translates along dir (no rotation)
+            CHECK(sys.joint_accel(1) == doctest::Approx(a_analytic)); // a stays constant
+        }
+        fmt::println("  E0 = {:.5f}, KEmax = {:.5f}, dE/KEmax = {:.2e}", E0, kemax,
+                     max_dE / kemax);
+        CHECK(max_dE / kemax < 1e-10);
+
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
