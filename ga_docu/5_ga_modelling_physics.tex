@@ -845,8 +845,8 @@ I_b^{-1}\!\left[F_b - \mathrm{rcmt}(\Omega_b, I_b[\Omega_b])\right]$, with the c
 body-frame formulation. Classically one carries two separate vector equations -- Newton's
 for $\dot{\vec{v}}$ and Euler's for $\dot{\vec{\omega}}$ (the latter with the nonlinear
 gyroscopic term $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$) -- plus a separate
-orientation update via a rotation matrix or quaternion. The $PGA$ formulation collapses all
-of this into one bivector ODE plus a motor update, as summarised in
+orientation update via a rotation matrix or quaternion. The $PGA$ formulation collapses
+all of this into one bivector ODE plus a motor update, as summarised in
 Table~\ref{tab:classical_vs_pga}. \\
 
 \begin{table}[!ht]
@@ -883,10 +883,10 @@ integration, the $PGA$ ODE handles the first two in a single equation over the b
 $\dot{\Omega}_b$ (6 DoF) and recovers position and orientation from a motor derived
 directly from $\Omega_b$. The single term $\mathrm{rcmt}(\Omega_b, I_b[\Omega_b])$ plays
 the combined role of both classical coupling terms ($\vec{\omega}\times\vec{v}$ and
-$\vec{\omega}\times\mathbf{I}_b\vec{\omega}$). As described above, the $PGA$ system is first
-solved for $B(t)$, $\dot{B} = \Omega(t)$ and $\ddot{B} = \dot{\Omega}(t)$; the actual
-points and their velocities then follow in a second step from the motor and the sandwich
-transformation. \\
+$\vec{\omega}\times\mathbf{I}_b\vec{\omega}$). As described above, the $PGA$ system is
+first solved for $B(t)$, $\dot{B} = \Omega(t)$ and $\ddot{B} = \dot{\Omega}(t)$; the
+actual points and their velocities then follow in a second step from the motor and the
+sandwich transformation. \\
 
 Basic examples for translational and rotational motion are implemented as tests in
 \path{ga_test/src/ga_appl_physics_test.hpp} based on the Newton-Euler equations in both
@@ -1541,8 +1541,8 @@ a rotation only requires two dimensions for its representation in geometric alge
 % Adjust \cwAppPhys and \cwTagPhys; description fills the rest.
 \newlength{\cwAppPhys}\setlength{\cwAppPhys}{0.15\textwidth}
 \newlength{\cwTagPhys}\setlength{\cwTagPhys}{0.06\textwidth}
-\newlength{\cwDescPhys}\setlength{\cwDescPhys}{\dimexpr\textwidth - \cwAppPhys - \cwTagPhys
-                                       - 4\arrayrulewidth - 6\tabcolsep\relax}
+\newlength{\cwDescPhys}\setlength{\cwDescPhys}{\dimexpr\textwidth - \cwAppPhys -
+\cwTagPhys - 4\arrayrulewidth - 6\tabcolsep\relax}
 \begin{table}[H]
 {\setlength{\extrarowheight}{2pt}\renewcommand{\arraystretch}{1.15}%
 % \extrarowheight: absolute extra space added above each row (before top rule);
@@ -1572,7 +1572,8 @@ a rotation only requires two dimensions for its representation in geometric alge
     reference point on rotation axis $Q = (q_x,q_y,q_z, 1)$
     rotation bivector $\Omega_{P} = Q \wedge \omega $ - a line, where
     \newline
-    $\Omega_{P} = (\Omega_{vx},\Omega_{vy},\Omega_{vz}, \Omega_{mx},\Omega_{my},\Omega_{mz})$
+    $\Omega_{P} = (\Omega_{vx},\Omega_{vy},\Omega_{vz},
+    \Omega_{mx},\Omega_{my},\Omega_{mz})$
     \newline
     (a rotation axis modelled by a bivector, with arbitrary orientation \emph{and}
     location; can also be created from any unitized line that is scaled with |$\omega$|)\\
@@ -1650,10 +1651,11 @@ Each layer inherits the one below and adds exactly one new kind of state:
     \hline \hline
     \path{static_system2dp} & a pose (relative to parent) & \emph{Where} is each frame? \\
     \hline
-    \path{kinematic_system2dp} & a velocity + acceleration twist & \emph{How} is it moving?
-    (no forces) \\
+    \path{kinematic_system2dp} & a velocity + acceleration twist & \emph{How} is it
+    moving? (no forces) \\
     \hline
-    \path{dynamic_system2dp} & inertia + joints + gravity & How do \emph{forces} move it? \\
+    \path{dynamic_system2dp} & inertia + joints + gravity & How do \emph{forces} move it?
+    \\
     \hline
 \end{tabular}
 \caption{The three-layer system stack. Each layer inherits the previous one and adds a
@@ -1663,51 +1665,52 @@ Each layer inherits the one below and adds exactly one new kind of state:
 The layering keeps each capability additive and independently testable: the transformation
 algebra at the static layer, velocity and acceleration transport at the kinematic layer,
 and energy conservation at the dynamic layer. A user who only needs coordinate transforms
-never pays for the dynamics. The same three classes exist for $3D$ (\path{static_system3dp},
-\path{kinematic_system3dp}, \path{dynamic_system3dp}); their class structure, method names
-and algorithms are identical -- only the representations change, as summarized at the end of
-this subsection.
+never pays for the dynamics. The same three classes exist for $3D$
+(\path{static_system3dp}, \path{kinematic_system3dp}, \path{dynamic_system3dp}); their
+class structure, method names and algorithms are identical -- only the representations
+change, as summarized at the end of this subsection.
 
 
 \subsubsection{Pose, frame and the frame tree}
 \label{subsubsection:pose_frame_tree}
 
 A \emph{pose} is the rigid placement of one frame relative to another: an origin and an
-orientation (in $2D$ a position vector and a scalar angle $\varphi$; in $3D$ a position and
-an axis-angle vector). It is the human-readable form of a \emph{motor} $M$, and the two
-interconvert: the motor is built from the pose as in eqn.~(\ref{eq:motor_pga_body_frame}),
-and the pose is read back by decoding the origin from $M \veedot O \veedot \rrev{M}$ and the
-orientation from the rotated $\bv{1}$-axis (a constrained motor logarithm, exact on
-round-trip).
+orientation (in $2D$ a position vector and a scalar angle $\varphi$; in $3D$ a position
+and an axis-angle vector). It is the human-readable form of a \emph{motor} $M$, and the
+two interconvert: the motor is built from the pose as in
+eqn.~(\ref{eq:motor_pga_body_frame}), and the pose is read back by decoding the origin
+from $M \veedot O \veedot \rrev{M}$ and the orientation from the rotated $\bv{1}$-axis (a
+constrained motor logarithm, exact on round-trip).
 
-A \path{static_system2dp} holds a \emph{tree} of frames, each recording its parent, with the
-crucial invariant that \textbf{a frame's pose is always stored relative to its parent},
-never in world coordinates. The world (root) frame is its own parent. Adding a frame without
-naming a parent links it to the previously added one, so a plain sequence builds a linear
-chain $\textit{root} \to f_1 \to f_2 \to \dots$, while naming an earlier frame branches the
-tree. This buys real modelling power for free: \emph{branching} (a body frame with two arms,
-each arm chain parented off the body, the body off the possibly-moving world -- any
-sub-assembly is a subtree); \emph{name addressing} (frames carry unique names and every
-operation has a by-name overload); and \emph{reposing} (moving a frame relative to its
-parent drags the whole subtree along automatically, because all descendant poses are
-relative).\footnote{The frame tree is exercised end-to-end in the visualization tool
-\path{ga_view}: the frame-transformation scene (\path{ga_view/src/active_frame_trafo}) drives
-a \path{static_system2dp} directly, and the merry-go-round scene
-(\path{ga_view/src/active_merry_go_round}) carries the tree one layer up as a rotating
-\path{kinematic_system2dp}. Assertion-checked usage is in the test cases
+A \path{static_system2dp} holds a \emph{tree} of frames, each recording its parent, with
+the crucial invariant that \textbf{a frame's pose is always stored relative to its
+parent}, never in world coordinates. The world (root) frame is its own parent. Adding a
+frame without naming a parent links it to the previously added one, so a plain sequence
+builds a linear chain $\textit{root} \to f_1 \to f_2 \to \dots$, while naming an earlier
+frame branches the tree. This buys real modelling power for free: \emph{branching} (a body
+frame with two arms, each arm chain parented off the body, the body off the
+possibly-moving world -- any sub-assembly is a subtree); \emph{name addressing} (frames
+carry unique names and every operation has a by-name overload); and \emph{reposing}
+(moving a frame relative to its parent drags the whole subtree along automatically,
+because all descendant poses are relative).\footnote{The frame tree is exercised
+end-to-end in the visualization tool \path{ga_view}: the frame-transformation scene
+(\path{ga_view/src/active_frame_trafo}) drives a \path{static_system2dp} directly, and the
+merry-go-round scene (\path{ga_view/src/active_merry_go_round}) carries the tree one layer
+up as a rotating \path{kinematic_system2dp}. Assertion-checked usage is in the test cases
 \path{ga_test/src/ga_appl2dp_physics_test.hpp} and its $3D$ analogue
 \path{ga_appl3dp_physics_test.hpp}.}
 
 \paragraph{Transforms between arbitrary frames (the tree walk).}
 The transform from any frame to any other is composed along the tree path. Walking
-\emph{up} from the source to the lowest common ancestor (LCA) composes child-to-parent steps
-(the regressive reverse of each frame's pose motor); walking \emph{down} from the LCA to the
-target composes parent-to-child steps; the result is the regressive product of the two
-segments. Special cases fall out of the same procedure: a frame to itself yields the identity
-(the unit pseudoscalar, neutral for $\veedot$); a pure ancestor/descendant relation makes one
-segment empty (a forward or backward transform); a linear chain is the degenerate tree where
-the LCA is simply the shallower frame. Because composition is motor multiplication with
-$\veedot$, the entire tree machinery is dimension-neutral and lifts to $3D$ unchanged.
+\emph{up} from the source to the lowest common ancestor (LCA) composes child-to-parent
+steps (the regressive reverse of each frame's pose motor); walking \emph{down} from the
+LCA to the target composes parent-to-child steps; the result is the regressive product of
+the two segments. Special cases fall out of the same procedure: a frame to itself yields
+the identity (the unit pseudoscalar, neutral for $\veedot$); a pure ancestor/descendant
+relation makes one segment empty (a forward or backward transform); a linear chain is the
+degenerate tree where the LCA is simply the shallower frame. Because composition is motor
+multiplication with $\veedot$, the entire tree machinery is dimension-neutral and lifts to
+$3D$ unchanged.
 
 \paragraph{One sandwich for points \emph{and} vectors.}
 The transform between two frames is a single motor $M$, and \emph{any} geometric object is
@@ -1724,13 +1727,14 @@ which one applies:
           bookkeeping.
 \end{itemize}
 In $PGA$ there is a single operation, and the object itself carries the information that
-selects the right behaviour through its \emph{homogeneous weight} (the projective component
-$\bv{3}$ in $2D$, $\bv{4}$ in $3D$): a point has weight $1$ and is rotated \emph{and}
-translated; a direction has weight $0$ (a point at infinity) and is rotated \emph{only},
-since translating a point at infinity does nothing. No contravariant/covariant distinction
-survives -- the motor sandwich is a single self-consistent conjugation that transports every
-grade (points, lines, directions, and -- see below -- twists and wrenches) correctly. The
-classical ``which transformation law?'' decision disappears into the algebra.
+selects the right behaviour through its \emph{homogeneous weight} (the projective
+component $\bv{3}$ in $2D$, $\bv{4}$ in $3D$): a point has weight $1$ and is rotated
+\emph{and} translated; a direction has weight $0$ (a point at infinity) and is rotated
+\emph{only}, since translating a point at infinity does nothing. No
+contravariant/covariant distinction survives -- the motor sandwich is a single
+self-consistent conjugation that transports every grade (points, lines, directions, and --
+see below -- twists and wrenches) correctly. The classical ``which transformation law?''
+decision disappears into the algebra.
 
 
 \subsubsection{Transport of motion along a kinematic chain}
@@ -1738,47 +1742,49 @@ classical ``which transformation law?'' decision disappears into the algebra.
 
 The preceding subsections transport the twist of a \emph{single} body between its body and
 world frames (eqn.~(\ref{eq:body_to_world_pga}), eqn.~(\ref{eq:rcmt_pga_world})). The
-\path{kinematic_system2dp} generalizes this to a \emph{chain} of frames: each frame carries a
-relative velocity twist and a relative acceleration twist with respect to its parent, and the
-layer answers velocity and acceleration queries for any point of any frame.
+\path{kinematic_system2dp} generalizes this to a \emph{chain} of frames: each frame
+carries a relative velocity twist and a relative acceleration twist with respect to its
+parent, and the layer answers velocity and acceleration queries for any point of any
+frame.
 
 \paragraph{The adjoint is the point sandwich.}
-A twist is the instantaneous (Lie-algebra) motion with $M = \exp_\veedot(\tfrac12 B)$ (twists
-\emph{add}, motors \emph{multiply}; see subsection~\ref{subsection:motor_generators_PGA}).
-Re-expressing a twist $B$ in another frame is the \emph{adjoint}, and the geometric-algebra
-fact that makes the implementation compact is that the adjoint \emph{is} the very sandwich
-used to move a point:
+A twist is the instantaneous (Lie-algebra) motion with $M = \exp_\veedot(\tfrac12 B)$
+(twists \emph{add}, motors \emph{multiply}; see
+subsection~\ref{subsection:motor_generators_PGA}). Re-expressing a twist $B$ in another
+frame is the \emph{adjoint}, and the geometric-algebra fact that makes the implementation
+compact is that the adjoint \emph{is} the very sandwich used to move a point:
 \begin{equation}
     \mathrm{Ad}_M(B) = M \veedot B \veedot \rrev{M}
     \label{eq:adjoint_is_sandwich}
 \end{equation}
 This is eqn.~(\ref{eq:body_to_world_pga}) read as a twist transport rather than an object
 transport. So the same sandwich serves double duty -- point action and twist adjoint --
-because both are conjugation $M(\cdot)\rrev{M}$. A separate $6\times6$ adjoint matrix, as the
-classical formulation requires, is unnecessary.
+because both are conjugation $M(\cdot)\rrev{M}$. A separate $6\times6$ adjoint matrix, as
+the classical formulation requires, is unnecessary.
 
 \paragraph{Velocities add along the path.}
 This is the genuinely new step beyond the single-body case. In a chain, each frame $k$
-contributes a relative twist $\xi_k$ expressed in \emph{its own} frame. Transporting each to
-the world frame by the adjoint and superposing -- valid because twists live in a vector space
--- gives the world velocity twist of frame $i$:
+contributes a relative twist $\xi_k$ expressed in \emph{its own} frame. Transporting each
+to the world frame by the adjoint and superposing -- valid because twists live in a vector
+space -- gives the world velocity twist of frame $i$:
 \begin{equation}
     V_i = \sum_{k \,\in\, \textit{path}(\textit{root} \to i)} \mathrm{Ad}_{M_k}(\xi_k)
         = \sum_k M_k \veedot \xi_k \veedot \rrev{M_k}
     \label{eq:twist_world_sum}
 \end{equation}
-They add rather than compose precisely because they are infinitesimal: finite motions do not
-commute and must be multiplied, but to first order simultaneous infinitesimal motions sum.
-Equation~(\ref{eq:twist_world_sum}) is the geometric-algebra form of the robotics
+They add rather than compose precisely because they are infinitesimal: finite motions do
+not commute and must be multiplied, but to first order simultaneous infinitesimal motions
+sum. Equation~(\ref{eq:twist_world_sum}) is the geometric-algebra form of the robotics
 \emph{spatial Jacobian} -- a quantity a single moving body does not exhibit.
 
 \paragraph{Velocity and acceleration fields, and the Coriolis bracket.}
-Given a frame's world twist $V$ (and acceleration twist $A$), the velocity of any point $X$
-of that frame is the regressive commutator $\dot{X} = \mathrm{rcmt}(V, X)$, and its
-acceleration is $\mathrm{rcmt}(A, X) + \mathrm{rcmt}(V, \mathrm{rcmt}(V, X))$ -- exactly the
-frame (Euler) and centripetal terms of subsection~\ref{subsubsection:moving_coordinate_systems},
-now evaluated per chain frame. Differentiating the adjoint along the moving chain yields the
-recursive Newton-Euler propagation
+Given a frame's world twist $V$ (and acceleration twist $A$), the velocity of any point
+$X$ of that frame is the regressive commutator $\dot{X} = \mathrm{rcmt}(V, X)$, and its
+acceleration is $\mathrm{rcmt}(A, X) + \mathrm{rcmt}(V, \mathrm{rcmt}(V, X))$ -- exactly
+the frame (Euler) and centripetal terms of
+subsection~\ref{subsubsection:moving_coordinate_systems}, now evaluated per chain frame.
+Differentiating the adjoint along the moving chain yields the recursive Newton-Euler
+propagation
 \begin{subeqnarray}
     V_i &=& V_{\textit{parent}} + \mathrm{Ad}_{M_i}(\xi_i) \\
     A_i &=& A_{\textit{parent}} + \mathrm{Ad}_{M_i}(\dot{\xi}_i)
@@ -1786,17 +1792,18 @@ recursive Newton-Euler propagation
     \label{eq:newton_euler_recursion}
 \end{subeqnarray}
 where the second acceleration term -- the Lie bracket of twists -- is the
-Coriolis/centrifugal coupling, measuring how far two twists fail to commute. In this primal
-$PGA$ that bracket is again a native product, $[A,B] = \mathrm{rcmt}(A,B)$ (the $\mathfrak
-{se}(2)/\mathfrak{se}(3)$ twist bracket). The single-frame transport theorem is the content
-of subsection~\ref{subsubsection:moving_coordinate_systems}; the recursion over a chain is what
-the kinematic layer adds.
+Coriolis/centrifugal coupling, measuring how far two twists fail to commute. In this
+primal $PGA$ that bracket is again a native product, $[A,B] = \mathrm{rcmt}(A,B)$ (the
+$\mathfrak {se}(2)/\mathfrak{se}(3)$ twist bracket). The single-frame transport theorem is
+the content of subsection~\ref{subsubsection:moving_coordinate_systems}; the recursion
+over a chain is what the kinematic layer adds.
 
-The velocity/finite distinction underlying this -- twists add in the Lie algebra while motors
-multiply non-commutatively, equal only when the generators commute (Chasles' theorem, the
-screw) -- is developed in subsection~\ref{subsubsection_lie_algebra_vs_lie_group}. It is also
-the reason the parent-to-child pose of a frame is built by \emph{composing} a rotation and a
-translation motor rather than exponentiating their summed generators.
+The velocity/finite distinction underlying this -- twists add in the Lie algebra while
+motors multiply non-commutatively, equal only when the generators commute (Chasles'
+theorem, the screw) -- is developed in
+subsection~\ref{subsubsection_lie_algebra_vs_lie_group}. It is also the reason the
+parent-to-child pose of a frame is built by \emph{composing} a rotation and a translation
+motor rather than exponentiating their summed generators.
 
 
 \subsubsection{Articulated coupled dynamics}
@@ -1811,48 +1818,49 @@ example is the double pendulum -- two revolute-jointed plates swinging chaotical
 gravity while conserving energy. It is visualized in \path{ga_view}
 (\path{ga_view/src/active_double_pendulum}, a \path{dynamic_system2dp} advanced via
 \path{step(dt)}) and pinned by assertion-checked tests: the planar case in
-\path{ga_test/src/ga_appl2dp_physics_test.hpp} and the genuinely-$3D$, non-parallel-axes case
-in \path{ga_appl3dp_physics_test.hpp}. Both check energy conservation to RK4 tolerance and
-the mass-matrix-versus-kinetic-energy identity.}
+\path{ga_test/src/ga_appl2dp_physics_test.hpp} and the genuinely-$3D$, non-parallel-axes
+case in \path{ga_appl3dp_physics_test.hpp}. Both check energy conservation to RK4
+tolerance and the mass-matrix-versus-kinetic-energy identity.}
 
 \paragraph{The spatial pairing and energy.}
-Each body carries the inertia map $I$ of subsection~\ref{subsubsection:structure_inertia_maps}
-(velocity twist $\to$ momentum wrench $P = I[\Omega]$). A twist is paired with a wrench
-through the dimension-agnostic \emph{reciprocal (spatial) product}
+Each body carries the inertia map $I$ of
+subsection~\ref{subsubsection:structure_inertia_maps} (velocity twist $\to$ momentum
+wrench $P = I[\Omega]$). A twist is paired with a wrench through the dimension-agnostic
+\emph{reciprocal (spatial) product}
 \begin{equation}
     \langle \xi, P \rangle = -\,\mathrm{rwdg}(\xi, P),
     \qquad \langle \xi, I[\xi] \rangle = 2\,T
     \label{eq:spatial_pairing}
 \end{equation}
 i.e. the inertia-map quadratic form equals twice the kinetic energy $T$, carrying the mass
-and the angular terms uniformly with no $\tfrac12 m v^2 + \tfrac12 I \omega^2$ split. This one
-pairing drives the kinetic energy, the joint-space mass matrix and the forward dynamics, and
-lifts to $3D$ by replacing the $3\times3$ map with the $6\times6$ inertia map and
-$\mathrm{rwdg}$ with the bivector reciprocal product.
+and the angular terms uniformly with no $\tfrac12 m v^2 + \tfrac12 I \omega^2$ split. This
+one pairing drives the kinetic energy, the joint-space mass matrix and the forward
+dynamics, and lifts to $3D$ by replacing the $3\times3$ map with the $6\times6$ inertia
+map and $\mathrm{rwdg}$ with the bivector reciprocal product.
 
 \paragraph{Joints: the unification of rotation and translation.}
 A joint is the reduced coordinate linking a body to its parent: \emph{free} (the
 unconstrained body), \emph{revolute} (a $1$-DOF hinge) or \emph{prismatic} (a $1$-DOF
-slider). The unification is that both $1$-DOF joints run identical code. The body-to-parent
-motor, the relative twist and the Jacobian column are always
+slider). The unification is that both $1$-DOF joints run identical code. The
+body-to-parent motor, the relative twist and the Jacobian column are always
 \begin{equation}
     M(q) = M_{\textit{rest}} \veedot \exp_\veedot\!\big(\tfrac12\, q\, S_b\big), \qquad
     \xi = \dot{q}\, S_b, \qquad
     v(\cdot) = \mathrm{rcmt}(S_b, \cdot)
     \label{eq:joint_motor}
 \end{equation}
-and only the \emph{screw generator} $S_b$ differs: a \emph{finite point} $Q_b$ for a revolute
-joint (so $\exp_\veedot$ is a rotation about $Q_b$) versus an \emph{ideal point}/direction for
-a prismatic joint (so $\exp_\veedot$ is a translation). The earlier single-pivot result
-(eqn.~(\ref{eq:pivot_invariance})) is the special case of one revolute joint; the generic
-screw machinery, the prismatic case, and the parallel-axis (Steiner) inertia emerging
-automatically from the spatial Jacobian are what the dynamic layer adds.
+and only the \emph{screw generator} $S_b$ differs: a \emph{finite point} $Q_b$ for a
+revolute joint (so $\exp_\veedot$ is a rotation about $Q_b$) versus an \emph{ideal
+point}/direction for a prismatic joint (so $\exp_\veedot$ is a translation). The earlier
+single-pivot result (eqn.~(\ref{eq:pivot_invariance})) is the special case of one revolute
+joint; the generic screw machinery, the prismatic case, and the parallel-axis (Steiner)
+inertia emerging automatically from the spatial Jacobian are what the dynamic layer adds.
 
 \paragraph{Forward dynamics in reduced coordinates.}
 In reduced coordinates the joint itself \emph{is} the constraint, so there are no explicit
-constraint forces, no drift, and clean energy conservation -- at the cost of a small linear
-solve. By virtual work over the bodies one assembles the joint-space
-equation of motion $M(q)\,\ddot{q} = \tau(q,\dot{q})$ with
+constraint forces, no drift, and clean energy conservation -- at the cost of a small
+linear solve. By virtual work over the bodies one assembles the joint-space equation of
+motion $M(q)\,\ddot{q} = \tau(q,\dot{q})$ with
 \begin{subeqnarray}
     M_{jk} &=& \sum_i \big\langle\, S_j^{(i)},\; I_i\big[\,S_k^{(i)}\,\big] \,\big\rangle,
                \qquad S_j^{(i)} = \rrev{M_i} \veedot S_j \veedot M_i
@@ -1863,16 +1871,16 @@ equation of motion $M(q)\,\ddot{q} = \tau(q,\dot{q})$ with
 \end{subeqnarray}
 where the sums run over bodies $i$ that have joint $j$ (respectively $k$) as an ancestor;
 $S_j$ is the world joint screw; $S_j^{(i)}$ transports it into body $i$'s frame, where its
-inertia map lives; $v_{cm,i}(S_j) = \mathrm{rcmt}(S_j, C_i)$ is the centre-of-mass velocity
-per unit joint rate (a column of the spatial Jacobian); $b_{cm,i}$ is the velocity-product
-(Coriolis/centripetal) cm-acceleration evaluated at $\ddot{q} = 0$; and $g$ is gravity. The
-system is solved for $\ddot{q}$ by a small LU factorization. Each body still individually
-obeys the Euler equation~(\ref{eq:ode_system_body_frame}); the mass matrix is its projection
-onto the joint coordinates, and the identity $\tfrac12\,\dot{q}^{\!\top} M(q)\,\dot{q} = T$
-ties the two together (a built-in consistency check). In $3D$ the right-hand side carries the
-full spatial bias wrench $I[A_{\textit{bias}}] + \mathrm{rcmt}(V, I[V])$ -- whose second term
-is the gyroscopic torque -- which vanishes in the planar case to recover
-eqn.~(\ref{eq:fd_rhs}).
+inertia map lives; $v_{cm,i}(S_j) = \mathrm{rcmt}(S_j, C_i)$ is the centre-of-mass
+velocity per unit joint rate (a column of the spatial Jacobian); $b_{cm,i}$ is the
+velocity-product (Coriolis/centripetal) cm-acceleration evaluated at $\ddot{q} = 0$; and
+$g$ is gravity. The system is solved for $\ddot{q}$ by a small LU factorization. Each body
+still individually obeys the Euler equation~(\ref{eq:ode_system_body_frame}); the mass
+matrix is its projection onto the joint coordinates, and the identity
+$\tfrac12\,\dot{q}^{\!\top} M(q)\,\dot{q} = T$ ties the two together (a built-in
+consistency check). In $3D$ the right-hand side carries the full spatial bias wrench
+$I[A_{\textit{bias}}] + \mathrm{rcmt}(V, I[V])$ -- whose second term is the gyroscopic
+torque -- which vanishes in the planar case to recover eqn.~(\ref{eq:fd_rhs}).
 
 The system is advanced in time by a Runge-Kutta integrator (RK4): a coupled joint chain is
 integrated together in its reduced coordinates, free bodies independently. Energy
@@ -1898,47 +1906,51 @@ changed:
     \hline
     pose orientation  & scalar angle $\varphi$           & axis-angle vector \\
     \hline
-    velocity twist    & a vector (grade-$1$ shadow)      & a bivector \path{BiVec3dp} (grade $2$) \\
+    velocity twist    & a vector (grade-$1$ shadow)      & a bivector \path{BiVec3dp}
+    (grade $2$) \\
     \hline
     point             & vector, weight $\bv{3}=1$        & vector, weight $\bv{4}=1$ \\
     \hline
-    joint screw       & a finite/ideal point             & a line / screw axis (a bivector) \\
+    joint screw       & a finite/ideal point             & a line / screw axis (a
+    bivector) \\
     \hline
     inertia map       & $3\times3$                        & $6\times6$ \\
     \hline
-    twist bracket     & $\mathrm{rcmt}(\textit{vec},\textit{vec})$ & $\mathrm{rcmt}(\textit{bivec},\textit{bivec})$ \\
+    twist bracket     & $\mathrm{rcmt}(\textit{vec},\textit{vec})$ &
+    $\mathrm{rcmt}(\textit{bivec},\textit{bivec})$ \\
     \hline
-    spatial pairing   & $-\mathrm{rwdg}(\textit{vec},\textit{bivec})$ & $-\mathrm{rwdg}(\textit{bivec},\textit{bivec})$ \\
+    spatial pairing   & $-\mathrm{rwdg}(\textit{vec},\textit{bivec})$ &
+    $-\mathrm{rwdg}(\textit{bivec},\textit{bivec})$ \\
     \hline
 \end{tabular}
 \caption{Representation changes in the $2D \to 3D$ lift of the system layer. The motor
-         sandwich, the adjoint, the tree walk, the joint exponential, the inertia-map pairing
-         and the Euler equation are \emph{identical formulae} in both dimensions.}
+         sandwich, the adjoint, the tree walk, the joint exponential, the inertia-map
+         pairing and the Euler equation are \emph{identical formulae} in both dimensions.}
 \end{table}
 
 The motor sandwich, the adjoint, the tree walk, the joint exponential, the inertia-map
-pairing and the Euler equation $\dot{\Omega} = I^{-1}[\,W - \mathrm{rcmt}(\Omega, I[\Omega])\,]$
-are identical formulae in $2D$ and $3D$, differing only in the grade the twist and wrench
-occupy. The $2D \to 3D$ step is thus a change of representation, not a rewrite -- which is
-itself the principal result of developing the $2D$ case fully first.
+pairing and the Euler equation $\dot{\Omega} = I^{-1}[\,W - \mathrm{rcmt}(\Omega,
+I[\Omega])\,]$ are identical formulae in $2D$ and $3D$, differing only in the grade the
+twist and wrench occupy. The $2D \to 3D$ step is thus a change of representation, not a
+rewrite -- which is itself the principal result of developing the $2D$ case fully first.
 
 
 \subsubsection{Addendum: what geometric algebra contributes to rigid-body dynamics}
 \label{subsubsection:addendum_what_ga_buys}
 
 This addendum steps outside the development to weigh the approach even-handedly. It is not
-part of the modelling exposition; readers interested only in \emph{how} the model works may
-skip it. The aim is to state plainly where the $PGA$ formulation is genuinely advantageous
-and where a classical method remains the better tool. This library realizes the \emph{primal}
-$PGA$ ($\mathbb{G}(2,0,1)$, $\mathbb{G}(3,0,1)$, see
-subsection~\ref{subsection:modelling_physics}); the merits below are those of the geometric
-formulation as such and hold for the dual plane-based variant too.
+part of the modelling exposition; readers interested only in \emph{how} the model works
+may skip it. The aim is to state plainly where the $PGA$ formulation is genuinely
+advantageous and where a classical method remains the better tool. This library realizes
+the \emph{primal} $PGA$ ($\mathbb{G}(2,0,1)$, $\mathbb{G}(3,0,1)$, see
+subsection~\ref{subsection:modelling_physics}); the merits below are those of the
+geometric formulation as such and hold for the dual plane-based variant too.
 
 The fair baseline is not ``geometric algebra versus nothing'' but geometric algebra versus
 the standard tooling: $4\times4$ homogeneous $SE(3)$ matrices, or Featherstone's spatial
-vector algebra (six-component twists and wrenches with a hand-defined spatial cross product)
-\cite{Featherstone_rigid_body_dynamics:2008}. Both are mature and fast; the question is
-whether the reorganization pays for itself.
+vector algebra (six-component twists and wrenches with a hand-defined spatial cross
+product) \cite{Featherstone_rigid_body_dynamics:2008}. Both are mature and fast; the
+question is whether the reorganization pays for itself.
 
 \paragraph{Where it is genuinely advantageous.}
 \begin{enumerate}
@@ -1949,15 +1961,17 @@ whether the reorganization pays for itself.
     \item \emph{Twists, momenta and wrenches are bivectors, and the ``spatial cross
           product'' is the algebra's commutator.} A twist literally \emph{is} a screw, the
           momentum wrench is the inertia-map image $P = I[\Omega]$, the Newton-Euler bias
-          wrench is a bivector, and the spatial cross product is $\mathrm{rcmt}$ -- a native
-          product rather than a bespoke operator with conventional signs.
-    \item \emph{The adjoint equals the point sandwich.} Transporting a twist between frames
-          is the same operation as moving a point (eqn.~(\ref{eq:adjoint_is_sandwich})); the
-          classical formulation needs a separate $6\times6$ adjoint matrix.
+          wrench is a bivector, and the spatial cross product is $\mathrm{rcmt}$ -- a
+          native product rather than a bespoke operator with conventional signs.
+    \item \emph{The adjoint equals the point sandwich.} Transporting a twist between
+          frames is the same operation as moving a point
+          (eqn.~(\ref{eq:adjoint_is_sandwich})); the classical formulation needs a
+          separate $6\times6$ adjoint matrix.
     \item \emph{A force is its line of action -- a wrench.} The combined force-and-moment
-          bivector $F = Q \wedge f$ (subsection~\ref{subsubsection:modelling_force_and_torque})
-          is exactly the object the mechanics literature calls a \emph{wrench}; moments are
-          not a separate pseudovector built with an $r \times F$ cross product.
+          bivector $F = Q \wedge f$
+          (subsection~\ref{subsubsection:modelling_force_and_torque}) is exactly the
+          object the mechanics literature calls a \emph{wrench}; moments are not a
+          separate pseudovector built with an $r \times F$ cross product.
     \item \emph{The Euler equation is one dimension-agnostic line}
           (eqn.~(\ref{eq:ode_system_body_frame})), identical in $2D$ and $3D$ up to grade;
           the $2D \to 3D$ lift is the same formula, not a rewrite.
@@ -1965,39 +1979,40 @@ whether the reorganization pays for itself.
 
 \paragraph{The showcase: Coriolis coupling as a single commutator.}
 The genuinely messy part of a classical double-pendulum Lagrangian is the
-Coriolis/centrifugal coupling -- the Christoffel symbols built from derivatives of the mass
-matrix. In the geometric formulation it collapses to one term, the Lie bracket of twists in
-the acceleration recursion~(\ref{eq:newton_euler_recursion}). The statement ``the Coriolis
-force is the geometric fact that twists do not commute'' is a single sentence backed by
-running code. These objects are moreover drawable in a way six-component vectors are not: each
-body's instantaneous centre of rotation is a point read off its world twist, the joint screw
-is literally the joint point, and the momentum wrench is a geometric bivector -- the dynamical
-state \emph{is} geometry, so the visualization is not a separate construction.
+Coriolis/centrifugal coupling -- the Christoffel symbols built from derivatives of the
+mass matrix. In the geometric formulation it collapses to one term, the Lie bracket of
+twists in the acceleration recursion~(\ref{eq:newton_euler_recursion}). The statement
+``the Coriolis force is the geometric fact that twists do not commute'' is a single
+sentence backed by running code. These objects are moreover drawable in a way
+six-component vectors are not: each body's instantaneous centre of rotation is a point
+read off its world twist, the joint screw is literally the joint point, and the momentum
+wrench is a geometric bivector -- the dynamical state \emph{is} geometry, so the
+visualization is not a separate construction.
 
 \paragraph{Where it does not help (honest caveats).}
 Inertia remains a linear operator ($3\times3$ in $2D$, $6\times6$ in $3D$); for an
 anisotropic body it does not collapse to a single multivector. The joint-space mass matrix
-$M(q)$ is still a small numerical solve -- reducing to generalized coordinates is a robotics
-move, and the final $\ddot{q} = M^{-1}\tau$ is ordinary linear algebra. And performance is not
-the selling point: mature spatial-vector and matrix codes are highly optimized, so $PGA$ wins
-on clarity, unification and visualizability rather than speed.
+$M(q)$ is still a small numerical solve -- reducing to generalized coordinates is a
+robotics move, and the final $\ddot{q} = M^{-1}\tau$ is ordinary linear algebra. And
+performance is not the selling point: mature spatial-vector and matrix codes are highly
+optimized, so $PGA$ wins on clarity, unification and visualizability rather than speed.
 
 \paragraph{Reduced versus maximal coordinates.}
 A purer, more $GA$-native formulation was deliberately \emph{not} chosen: maximal
 coordinates, in which every body stays a full motor-and-twist and joints become constraint
-wrenches. That formulation is more elegant on paper, but its constraint stabilization injects
-and removes energy, which directly fights an energy-conservation test. The reduced (joint)
-coordinates chosen here make the joint itself the constraint, so there are no explicit
-constraint forces, no drift, and clean energy -- at the cost of the small $M(q)$ solve. This
-keeps most of the showcase value while actually conserving energy.
+wrenches. That formulation is more elegant on paper, but its constraint stabilization
+injects and removes energy, which directly fights an energy-conservation test. The reduced
+(joint) coordinates chosen here make the joint itself the constraint, so there are no
+explicit constraint forces, no drift, and clean energy -- at the cost of the small $M(q)$
+solve. This keeps most of the showcase value while actually conserving energy.
 
-The recursive Newton-Euler \emph{algorithm} is, of course, classical and not original here.
-What geometric algebra contributes is the \emph{representation and the concepts} --
+The recursive Newton-Euler \emph{algorithm} is, of course, classical and not original
+here. What geometric algebra contributes is the \emph{representation and the concepts} --
 screws, motors, bivectors and the commutator in place of matrices, six-vectors and
-hand-defined operators -- together with three properties the standard tooling does not provide
-for free: the same primitives scale unchanged from one body to a coupled tree; the state is
-visualizable geometry; and the $2D \to 3D$ transition is a change of representation rather
-than a rewrite.
+hand-defined operators -- together with three properties the standard tooling does not
+provide for free: the same primitives scale unchanged from one body to a coupled tree; the
+state is visualizable geometry; and the $2D \to 3D$ transition is a change of
+representation rather than a rewrite.
 
 
 \subsubsection{Addendum: further reading}
@@ -2005,18 +2020,19 @@ than a rewrite.
 
 The concepts underlying this layer -- motors, the sandwich, the adjoint, twists as a Lie
 algebra, the screw unification of rotation and translation, the inertia map, the Coriolis
-commutator -- are each standard results with a primary source. The references below progress
-from the algebra itself, through the plane-based specialization of $PGA$, to rigid-body
-mechanics, and finally to the robotics / Lie-theory and classical viewpoints that the
-geometric formulation translates.
+commutator -- are each standard results with a primary source. The references below
+progress from the algebra itself, through the plane-based specialization of $PGA$, to
+rigid-body mechanics, and finally to the robotics / Lie-theory and classical viewpoints
+that the geometric formulation translates.
 
 A standing caveat applies to every $PGA$ source: this library uses the \emph{primal}
-$\mathbb{G}(2,0,1)$/$\mathbb{G}(3,0,1)$ (Lengyel's convention -- points and lines as primary
-objects, motions carried by the regressive product), whereas Gunn and Dorst \& De Keninck use
-the \emph{dual} plane-based $\mathbb{G}^*$ (planes primary, motions carried by the geometric
-product). The two are dual-equivalent (subsection~\ref{subsection:modelling_physics}); their
-\emph{concepts} carry over directly, but their \emph{formulae} are the dual of those used here
-and must be translated through the complement relation before being matched against the code.
+$\mathbb{G}(2,0,1)$/$\mathbb{G}(3,0,1)$ (Lengyel's convention -- points and lines as
+primary objects, motions carried by the regressive product), whereas Gunn and Dorst \& De
+Keninck use the \emph{dual} plane-based $\mathbb{G}^*$ (planes primary, motions carried by
+the geometric product). The two are dual-equivalent
+(subsection~\ref{subsection:modelling_physics}); their \emph{concepts} carry over
+directly, but their \emph{formulae} are the dual of those used here and must be translated
+through the complement relation before being matched against the code.
 
 {\setlength{\emergencystretch}{3em}
 \begin{itemize}
@@ -2024,11 +2040,12 @@ and must be translated through the complement relation before being matched agai
     \begin{itemize}
         \item \cite{Macdonald:2010} -- a gentle, rigorous first contact with the geometric
               product, blades and rotors.
-        \item \cite{David_Hestenes_NFCM:1986} -- the origin of doing mechanics in geometric
-              algebra; its chapter on rigid-body mechanics already points toward $PGA$.
-        \item \cite{Browne_Grassmann-Algebra_Vol1:2012} -- the exterior-algebra background for
-              the wedge and regressive products, complements, and the force and momentum
-              lines.
+        \item \cite{David_Hestenes_NFCM:1986} -- the origin of doing mechanics in
+              geometric algebra; its chapter on rigid-body mechanics already points toward
+              $PGA$.
+        \item \cite{Browne_Grassmann-Algebra_Vol1:2012} -- the exterior-algebra background
+              for the wedge and regressive products, complements, and the force and
+              momentum lines.
         \item \cite{Perwass_GA_engineering:2009} -- a broad engineering-oriented treatment
               of geometric algebra, covering conformal geometric algebra, numerical and
               uncertainty aspects, and the interactive visualization tool CLUViz.
@@ -2045,19 +2062,19 @@ and must be translated through the complement relation before being matched agai
     \item \textbf{Rigid-body mechanics in $PGA$.}
     \begin{itemize}
         \item \cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023} -- the direct (dual)
-              analogue of the dynamics developed here: momentum bivector, the ``forque'', the
-              motor equation of motion.
-        \item \cite{Gunn_thesis_CayleyKlein:2011} -- the most complete treatment of rigid-body
-              kinematics and dynamics with motors and bivector twists in (dual) projective
-              geometric algebra.
+              analogue of the dynamics developed here: momentum bivector, the ``forque'',
+              the motor equation of motion.
+        \item \cite{Gunn_thesis_CayleyKlein:2011} -- the most complete treatment of
+              rigid-body kinematics and dynamics with motors and bivector twists in (dual)
+              projective geometric algebra.
     \end{itemize}
-    \item \textbf{The Lie-theory / robotics translation} (the same groups $SE(2)$/$SE(3)$ as
-          matrices).
+    \item \textbf{The Lie-theory / robotics translation} (the same groups $SE(2)$/$SE(3)$
+          as matrices).
     \begin{itemize}
         \item \cite{Sola_micro_lie_theory:2018} -- the most compact modern account of the
               group/algebra correspondence, the adjoint and the bracket.
-        \item \cite{Lynch_Park_modern_robotics:2017} -- the clearest intuition for twists, the
-              adjoint and the velocity/acceleration recursion.
+        \item \cite{Lynch_Park_modern_robotics:2017} -- the clearest intuition for twists,
+              the adjoint and the velocity/acceleration recursion.
         \item \cite{Murray_Li_Sastry_robotic_manipulation:1994} -- the canonical thorough
               treatment.
         \item \cite{Selig_geometric_fundamentals_robotics:2005} -- bridges classical screw
