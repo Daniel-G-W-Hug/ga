@@ -1153,54 +1153,60 @@ class dynamic_system3dp : public kinematic_system3dp {
 
     // Joint-space forward dynamics for the 1-DOF joint chain `rj`: returns the joint
     // accelerations q-ddot solving  M(q) q-ddot = RHS(q, q-dot), assembled by virtual
-    // work over the bodies (all GA-native, the same form validated in 2D):
-    //   M[j][k] = sum_i  spatial_dot( S_j^body_i , I_i( S_k^body_i ) )  over bodies i
-    //   having
-    //             BOTH joints j,k as ancestors  (the spatial inertia-map form);
-    //   RHS[j]  = sum_i m_i ( vcm_i(S_j) . g  -  vcm_i(S_j) . b_cm_i )  over bodies i
-    //   having
-    //             joint j as ancestor  (gravity generalised force minus the cm Coriolis
-    //             bias). S_j = move3dp(screw_j, M_{j->world}) is the world joint screw;
-    //   S_j^body_i = move3dp(S_j, rrev(M_i)) transports it into body i's frame (where its
-    //   inertia map I_i lives); vcm_i(S) = velocity_field(S, cm_i) is the cm velocity per
-    //   unit joint rate; b_cm_i is the velocity-product cm acceleration at q-ddot = 0.
-    //   (NB: for a single revolute joint the angular gyroscopic generalised force
-    //   vanishes, axis.(omega x I omega) == 0 since omega || axis; non-parallel coupled
-    //   axes (M3) will need that term added.) Pre: the joint state (phi, omega) is
-    //   already applied.
+    // work over the bodies in the dimension-agnostic SPATIAL (screw) form:
+    //   M[j][k] = sum_i  spatial_dot( S_j^body_i , I_i( S_k^body_i ) )      (mass matrix)
+    //   RHS[j]  = sum_i [ m_i vcm_i(S_j).g  -  spatial_dot( S_j^body_i, F_bias_i ) ]
+    // over bodies i with joint j (and k) as ancestor. S_j = move3dp(screw_j,
+    // M_{j->world}) is the world joint screw; S_j^body_i = move3dp(S_j, rrev(M_i))
+    // transports it into body i's frame (where its inertia map I_i lives). The gravity
+    // term is a pure cm force (m_i vcm_j.g, no torque about the cm). The body-frame BIAS
+    // WRENCH at q-ddot = 0 is the full spatial Newton-Euler bias:
+    //   F_bias_i = I_i(A_bias_body_i) + rcmt(V_body_i, I_i(V_body_i))
+    // where V_body_i / A_bias_body_i are the world velocity / bias-acceleration twists
+    // pulled into body i, and the second term is the se(3) gyroscopic (velocity-product)
+    // wrench. This is the GENERAL form: for a single joint both the angular bias and the
+    // gyroscopic projection onto its own screw vanish (ad-invariance: <X,[X,Y]> == 0), so
+    // it reduces to the 2D translational result; for coupled NON-PARALLEL axes (M3) the
+    // angular bias + gyroscopic terms are non-zero and required. Pre: the joint state
+    // (phi, omega) is already applied.
     std::vector<value_t> forward_dynamics(std::vector<size_t> const& rj)
     {
         size_t const n = rj.size();
 
         // velocity-product (bias) pass: zero the relative accel twists so the world accel
-        // queries return only the q-ddot-independent Coriolis/centripetal part.
+        // queries return only the q-ddot-independent (Coriolis/gyroscopic) bias part.
         for (size_t k = 0; k < n; ++k)
             set_accel_twist(rj[k], twist3dp{});
 
         std::vector<twist3dp> S(n); // world joint screws (a bivec3dp twist, unit rate)
-        std::vector<vec3dp> cm(n), bcm(n);
-        std::vector<mvec3dp_e> Minv(n);
+        std::vector<vec3dp> cm(n);  // body cm in world
+        std::vector<mvec3dp_e> Minv(n); // world -> body i motor
+        std::vector<twist3dp> Fbias(n); // body-frame spatial bias wrench
         std::vector<value_t> mass(n);
         for (size_t i = 0; i < n; ++i) {
             size_t const fi = rj[i];
             auto const M = get_pos_trafo(fi, 0);
             cm[i] = move3dp(O_3dp, M);
-            bcm[i] = point_acceleration(cm[i], fi); // bias cm accel (rel_atwist = 0)
-            S[i] = move3dp(joint[fi].screw_b, M);   // world joint screw (unit rate)
             Minv[i] = rrev(M);
+            S[i] = move3dp(joint[fi].screw_b, M); // world joint screw (unit rate)
             mass[i] = body[fi].mass;
+            // body-frame velocity / bias-acceleration twists + the spatial bias wrench
+            twist3dp const Vb = move3dp(twist_world(fi), Minv[i]);
+            twist3dp const Ab = move3dp(accel_twist_world(fi), Minv[i]); // rel_atwist = 0
+            auto const& I = body[fi].I;
+            Fbias[i] = I(Ab) + rcmt(Vb, I(Vb)); // I*A_bias + gyroscopic V x* (I V)
         }
 
         std::vector<value_t> Mmat(n * n, 0.0), RHS(n, 0.0);
         for (size_t j = 0; j < n; ++j) {
             for (size_t i = 0; i < n; ++i) { // contribution of body i to coordinate j
                 if (!is_ancestor(rj[j], rj[i])) continue;
-                vec3dp const vj = velocity_field(S[j], cm[i]); // rcmt(S_j, cm_i)
+                vec3dp const vj = velocity_field(S[j], cm[i]); // cm velocity, unit rate j
+                twist3dp const xj = move3dp(S[j], Minv[i]);    // joint-j screw in body i
                 RHS[j] += mass[i] * (vj.x * grav.x + vj.y * grav.y + vj.z * grav.z) -
-                          mass[i] * (vj.x * bcm[i].x + vj.y * bcm[i].y + vj.z * bcm[i].z);
+                          spatial_dot(xj, Fbias[i]);
                 auto const& I =
                     body[rj[i]].I; // inertia map about body i's cm (body frame)
-                twist3dp const xj = move3dp(S[j], Minv[i]); // joint-j screw in body i
                 for (size_t k = 0; k < n; ++k) {
                     if (!is_ancestor(rj[k], rj[i])) continue;
                     twist3dp const xk = move3dp(S[k], Minv[i]);

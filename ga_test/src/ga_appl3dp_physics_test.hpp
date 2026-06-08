@@ -1004,3 +1004,75 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
     }
 
 } // TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// PGA3DP dynamic_system3dp - Milestone 3: coupled spatial double pendulum
+//   two revolute joints with NON-PARALLEL axes -> genuine 3D coupling. This is where the
+//   spatial-form forward_dynamics earns its keep: the angular bias-acceleration AND the
+//   se(3) gyroscopic generalised force (both zero for a single joint) are now non-zero
+//   and required. Validated by energy conservation over the chaotic swing + the
+//   mass-matrix / kinetic-energy identity.
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
+{
+
+    TEST_CASE("pga3dp: spatial double pendulum - non-parallel axes (M3)")
+    {
+        fmt::println("pga3dp: dynamic_system3dp - spatial double pendulum (M3)");
+
+        // two cubes, two revolute joints with NON-PARALLEL axes: B1 hinges about e3, B2
+        // (child of B1) hinges about e1. The axes are non-parallel and time-varying as B1
+        // turns, so B2 swings out of B1's plane -> genuine 3D coupling (the gyroscopic +
+        // angular-bias terms are exercised). No analytic trajectory (chaotic); validate
+        // by energy conservation and the identity 1/2 qdot^T M(q) qdot ==
+        // kinetic_energy().
+        value_t const m = 1.0, sgeo = 0.6;
+        auto const cube = make_cuboid_body(m, sgeo, sgeo, sgeo);
+
+        dynamic_system3dp sys;
+        sys.add_frame(static_frame3dp("W"));
+        // B1: hinge about e3 at the world origin, cm 1 below; given a brisk initial spin
+        // so it drags B2 around -> the gyroscopic / out-of-plane coupling is strongly
+        // excited
+        sys.add_revolute_body(static_frame3dp("B1", vec3dp{0.0, -1.0, 0.0, 1.0}), cube,
+                              vec3dp{0.0, 1.0, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0}, 1.2,
+                              3.0);
+        // B2: child of B1, hinge about e1 (NON-parallel to e3), cm 1 below B1's cm
+        sys.add_revolute_body(static_frame3dp("B2", vec3dp{0.0, -1.0, 0.0, 1.0}), cube,
+                              vec3dp{0.0, 1.0, 0.0, 1.0}, vec3dp{1.0, 0.0, 0.0, 0.0}, 0.6,
+                              0.0, 1 /* parent = B1 */);
+
+        value_t const E0 = sys.total_energy();
+        value_t const dt = 2.0e-4;
+        size_t const N = 25000; // 5 s
+        value_t max_dE = 0.0, kemax = 0.0, max_mke = 0.0, min_phi2 = 0.4, max_phi2 = 0.4;
+        for (size_t n = 1; n <= N; ++n) {
+            sys.step(dt);
+            value_t const ke = sys.kinetic_energy();
+            max_dE = std::max(max_dE, std::abs(sys.total_energy() - E0));
+            kemax = std::max(kemax, ke);
+            // 1/2 qdot^T M(q) qdot == kinetic_energy()  (M is symmetric: M[1] == M[2])
+            auto const M = sys.mass_matrix();
+            value_t const w1 = sys.joint_omega(1), w2 = sys.joint_omega(2);
+            value_t const qMq =
+                0.5 * (M[0] * w1 * w1 + (M[1] + M[2]) * w1 * w2 + M[3] * w2 * w2);
+            max_mke = std::max(max_mke, std::abs(qMq - ke));
+            min_phi2 = std::min(min_phi2, sys.joint_phi(2));
+            max_phi2 = std::max(max_phi2, sys.joint_phi(2));
+        }
+        fmt::println("  E0 = {:.5f}, KEmax = {:.5f}, dE/KEmax = {:.2e}, M-vs-KE = {:.2e}",
+                     E0, kemax, max_dE / kemax, max_mke);
+        fmt::println("  phi2 in [{:.3f}, {:.3f}] (swings out of plane)", min_phi2,
+                     max_phi2);
+
+        CHECK(max_dE / kemax < 1e-6); // energy conserved over the chaotic 3D swing
+        CHECK(max_mke < 1e-9);        // mass-matrix / kinetic-energy identity
+        // genuine 3D motion: the second joint actually swings appreciably
+        CHECK(max_phi2 - min_phi2 > 0.3);
+
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
