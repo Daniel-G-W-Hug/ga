@@ -5,7 +5,8 @@
 
 #include "detail/ga_solver.hpp" // hd::ga::lu_decomp / lu_backsubs / det
 #include "ga_pga3dp_ops.hpp"
-#include "ga_value_t.hpp" // for value_t used in convenience type alias
+#include "ga_usr_utilities.hpp" // hd::ga::rk4_step (shared RK4 integrator)
+#include "ga_value_t.hpp"       // for value_t used in convenience type alias
 
 #include <algorithm> // std::find, std::reverse
 #include <array>
@@ -1060,37 +1061,37 @@ class dynamic_system3dp : public kinematic_system3dp {
     void step_free_body(size_t idx, value_t dt)
     {
         auto const M0 = rrev(step_pos_trafo(idx)); // current body -> parent motor
-        twist3dp const Om0 = relative_twist(idx);  // current body twist
         auto const& I = body[idx].I;
         auto const& I_inv = body[idx].I_inv;
         value_t const m = body[idx].mass;
 
         // body-frame twist rate from the gravity wrench acting at the cm (= body origin)
         auto omega_dot = [&](twist3dp const& B, twist3dp const& Om) -> twist3dp {
-            auto const M = rgpr(M0, exp(0.5 * B));  // pose at this stage
-            vec3dp const cm_w = move3dp(O_3dp, M);  // cm in world
-            auto const W_w = wdg(cm_w, m * grav);   // gravity wrench (world)
+            auto const M = rgpr(M0, exp(0.5 * B));             // pose at this stage
+            auto const W_w = wdg(move3dp(O_3dp, M), m * grav); // gravity wrench (world)
             auto const W_b = move3dp(W_w, rrev(M)); // pulled into the body frame
             return compute_omega_dot(I_inv, W_b, Om, I);
         };
 
-        twist3dp const B0{};
-        twist3dp const k1B = Om0;
-        twist3dp const k1O = omega_dot(B0, Om0);
-        twist3dp const k2B = Om0 + 0.5 * dt * k1O;
-        twist3dp const k2O = omega_dot(B0 + 0.5 * dt * k1B, Om0 + 0.5 * dt * k1O);
-        twist3dp const k3B = Om0 + 0.5 * dt * k2O;
-        twist3dp const k3O = omega_dot(B0 + 0.5 * dt * k2B, Om0 + 0.5 * dt * k2O);
-        twist3dp const k4B = Om0 + dt * k3O;
-        twist3dp const k4O = omega_dot(B0 + dt * k3B, Om0 + dt * k3O);
-
-        twist3dp const B_end = B0 + (dt / 6.0) * (k1B + 2.0 * k2B + 2.0 * k3B + k4B);
-        twist3dp const Om_end = Om0 + (dt / 6.0) * (k1O + 2.0 * k2O + 2.0 * k3O + k4O);
+        // RK4 (shared rk4_step) on the Lie-algebra pair u = (B, Omega): dB/dt = Omega,
+        // dOmega/dt = omega_dot(B, Omega). B starts at 0 (M(t) = M0 (x) exp(1/2 B)).
+        std::array<twist3dp, 2> u_mem{twist3dp{}, relative_twist(idx)};
+        std::array<twist3dp, 4> uh_mem{};
+        std::array<twist3dp, 2> rhs_mem{};
+        auto u = std::mdspan<twist3dp, std::dextents<size_t, 1>>(u_mem.data(), 2);
+        auto uh = std::mdspan<twist3dp, std::dextents<size_t, 2>>(uh_mem.data(), 2, 2);
+        auto const rhs =
+            std::mdspan<twist3dp const, std::dextents<size_t, 1>>(rhs_mem.data(), 2);
+        for (size_t s = 1; s <= 4; ++s) {
+            rhs_mem[0] = u[1];                  // dB/dt = Omega
+            rhs_mem[1] = omega_dot(u[0], u[1]); // dOmega/dt
+            rk4_step(u, uh, rhs, dt, s);
+        }
 
         // decode the evolved pose (motor -> pose3dp via the constrained motor log) and
         // write pose + twist back into the base layers
-        set_pose(idx, pose3dp_from_motor(rgpr(M0, exp(0.5 * B_end))));
-        set_twist(idx, Om_end);
+        set_pose(idx, pose3dp_from_motor(rgpr(M0, exp(0.5 * u[0]))));
+        set_twist(idx, u[1]);
     }
 
     // shared constructor for the 1-DOF screw joints (revolute / prismatic): the ONLY
@@ -1218,59 +1219,41 @@ class dynamic_system3dp : public kinematic_system3dp {
     }
 
     // RK4-integrate the coupled 1-DOF joint chain `rj` over dt in its joint coordinates
-    // (phi_k, omega_k): dphi/dt = omega, domega/dt = forward_dynamics(.). Each stage sets
-    // the joint state, refreshes the kinematic poses + twists, and solves the coupled
-    // forward dynamics.
+    // via the shared rk4_step. The state is u = [phi_0..phi_{n-1}, omega_0..omega_{n-1}];
+    // the derivative (dphi, domega) = (omega, q-ddot) is recomputed each sub-step by
+    // writing u into the joint state, refreshing the kinematic poses + twists, and
+    // solving the coupled forward dynamics.
     void coupled_step(std::vector<size_t> const& rj, value_t dt)
     {
         size_t const n = rj.size();
-        std::vector<value_t> q0(n), w0(n);
+        std::vector<value_t> u_mem(2 * n), uh_mem(2 * 2 * n), rhs_mem(2 * n);
         for (size_t k = 0; k < n; ++k) {
-            q0[k] = joint[rj[k]].phi;
-            w0[k] = joint[rj[k]].omega;
+            u_mem[k] = joint[rj[k]].phi;
+            u_mem[n + k] = joint[rj[k]].omega;
         }
+        auto u = std::mdspan<value_t, std::dextents<size_t, 1>>(u_mem.data(), 2 * n);
+        auto uh = std::mdspan<value_t, std::dextents<size_t, 2>>(uh_mem.data(), 2, 2 * n);
+        auto const rhs =
+            std::mdspan<value_t const, std::dextents<size_t, 1>>(rhs_mem.data(), 2 * n);
 
-        // derivative (dphi, domega) = (omega, q-ddot) at a hypothetical state (q, w)
-        auto deriv = [&](std::vector<value_t> const& q, std::vector<value_t> const& w,
-                         std::vector<value_t>& dq, std::vector<value_t>& dw) {
+        // apply the current u to the joint state, then solve forward dynamics -> rhs
+        auto apply_u = [&] {
             for (size_t k = 0; k < n; ++k) {
-                joint[rj[k]].phi = q[k];
-                joint[rj[k]].omega = w[k];
+                joint[rj[k]].phi = u[k];
+                joint[rj[k]].omega = u[n + k];
                 apply_joint_state(rj[k]);
             }
-            dq = w;
-            dw = forward_dynamics(rj);
         };
-
-        std::vector<value_t> a(n), b(n);
-        std::vector<value_t> k1q(n), k1w(n), k2q(n), k2w(n), k3q(n), k3w(n), k4q(n),
-            k4w(n);
-
-        deriv(q0, w0, k1q, k1w);
-        for (size_t k = 0; k < n; ++k) {
-            a[k] = q0[k] + 0.5 * dt * k1q[k];
-            b[k] = w0[k] + 0.5 * dt * k1w[k];
+        for (size_t s = 1; s <= 4; ++s) {
+            apply_u();
+            auto const qdd = forward_dynamics(rj);
+            for (size_t k = 0; k < n; ++k) {
+                rhs_mem[k] = u[n + k];   // dphi/dt = omega
+                rhs_mem[n + k] = qdd[k]; // domega/dt = q-ddot
+            }
+            rk4_step(u, uh, rhs, dt, s);
         }
-        deriv(a, b, k2q, k2w);
-        for (size_t k = 0; k < n; ++k) {
-            a[k] = q0[k] + 0.5 * dt * k2q[k];
-            b[k] = w0[k] + 0.5 * dt * k2w[k];
-        }
-        deriv(a, b, k3q, k3w);
-        for (size_t k = 0; k < n; ++k) {
-            a[k] = q0[k] + dt * k3q[k];
-            b[k] = w0[k] + dt * k3w[k];
-        }
-        deriv(a, b, k4q, k4w);
-
-        for (size_t k = 0; k < n; ++k) {
-            joint[rj[k]].phi =
-                q0[k] + (dt / 6.0) * (k1q[k] + 2.0 * k2q[k] + 2.0 * k3q[k] + k4q[k]);
-            joint[rj[k]].omega =
-                w0[k] + (dt / 6.0) * (k1w[k] + 2.0 * k2w[k] + 2.0 * k3w[k] + k4w[k]);
-        }
-        for (size_t k = 0; k < n; ++k)
-            apply_joint_state(rj[k]);
+        apply_u(); // write the integrated state back into the joints + kinematic layers
     }
 };
 
