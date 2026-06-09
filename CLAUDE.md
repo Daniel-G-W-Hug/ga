@@ -790,6 +790,27 @@ NON-generated files — each one surfaced as a test failure when missed:
 Helpers used only by the C++ ops (not public API) belong in `hd::ga::detail`, which
 `scan.py` excludes from the binding — see the STA rotor section below.
 
+**Binding scope.** The generator binds user type-aliases (the GA value types), free
+functions, operators, constants, and **pure-data structs** — concrete (non-template)
+aggregates whose members are *all* public fields (the physics PODs `pose2dp`/`pose3dp`,
+`kin_state2dp`/`kin_state3dp`). Stateful classes (`static_/kinematic_/dynamic_system*`)
+are NOT bound by design — reproduce their behaviour in Python from the bound primitives
+(see `ga_py/tests/test_merry_go_round.py`, which reconstructs `kinematic_system2dp`). A
+new pure-data struct is auto-bound by a plain regeneration and does NOT trip the hand-sync
+failures above — the coverage/cross-check lists don't assert completeness, and their
+float-arity ctor pattern doesn't fit a field-typed ctor (`pose2dp(vec2dp, double)`), so
+cover a new struct with a dedicated test instead. Give the C++ type an fmt formatter (in
+`ga/detail/fmt/`) so the generated `__str__`/`__format__` (which call `fmt::format("{}",
+v)`) work.
+
+**libclang version resilience.** The pip `libclang` package is pinned ≤18.x while the
+system LLVM (Homebrew) may be much newer. `scan.py` does NOT require a matching dylib — it
+tolerates unknown libclang `CursorKind` ids (e.g. the C++20 parenthesized aggregate-init
+expression, which appears in member initialisers like `pose(origin, angle)`), skipping
+them since they only occur inside bodies the scanner never collects. A newer system LLVM
+is fine; do NOT hardcode a versioned `libclang` path in `clang_setup.py` (keep it
+system-agnostic across macOS/Windows).
+
 ## Congruence Testing (`is_congruent`)
 
 Two GA elements are **congruent** if they span the same subspace up to a non-zero

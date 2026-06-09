@@ -191,8 +191,23 @@ paths or extend the candidate list in [`src/clang_setup.py`](src/clang_setup.py)
   surface a C++ change created.
 - **Filter:** only symbols declared inside `ga/` are collected; system headers, `fmt`,
   etc. are excluded. The allow-list in `scan.py` is `{"hd::ga", "hd::ga::ega",
-  "hd::ga::pga"}` — `hd::ga::detail` is excluded by design (see [`ga_py/README.md
-  §6.8`](../ga_py/README.md#68-excluded-namespace-hdgadetail)).
+  "hd::ga::pga", "hd::ga::sta"}` — `hd::ga::detail` is excluded by design (see
+  [`ga_py/README.md §6.8`](../ga_py/README.md#68-excluded-namespace-hdgadetail)).
+- **What gets bound:** user type-aliases (the GA value types), free functions, operators,
+  and namespace-scope constants — plus **pure-data structs**: concrete (non-template)
+  aggregates whose members are *all* public data fields (the physics PODs `pose2dp/3dp`,
+  `kin_state2dp/3dp`). The gate is intentionally strict: a struct/class with any method,
+  base, constructor, or non-public member is skipped, which excludes the stateful system
+  classes (`static_/kinematic_/dynamic_system*`). A data struct is dropped at emit time
+  if any field type isn't itself bound (so `body2dp` → `Inertia2dp` and `joint_state2dp`
+  → the `joint2dp` enum fall out automatically). New such structs are picked up by a plain
+  re-run of the regeneration chain.
+- **libclang version ceiling:** the pip `libclang` package tops out at 18.x while the
+  system LLVM (Homebrew) may be much newer. The scanner does **not** require a matching
+  dylib — `scan.py` tolerates unknown libclang `CursorKind` ids (modern C++ constructs
+  such as the C++20 parenthesized aggregate-init expression are skipped, since they only
+  ever occur inside function/initializer bodies the scanner never collects). So a newer
+  system LLVM is fine; don't hardcode a versioned `libclang` path in `clang_setup.py`.
 - **Value type frozen at `value_t = double`** in v1.
 
 ## Open items / future work
