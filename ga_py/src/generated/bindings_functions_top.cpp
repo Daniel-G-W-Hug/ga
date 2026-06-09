@@ -52,6 +52,7 @@ void register_functions_top(nb::module_& m) {
     m.def("gr", [](bivec4ds const& a0) { return gr(a0); });
     m.def("gr", [](trivec4ds const& a0) { return gr(a0); });
     m.def("gr", [](pscalar4ds const& a0) { return gr(a0); });
+    m.def("lu_solve", [](std::vector<double> const& a0, std::vector<double> const& a1, int a2) { return lu_solve(a0, a1, a2); });
     m.def("rad2deg", [](double a0) { return rad2deg(a0); });
     m.def("radps2Hz", [](double a0) { return radps2Hz(a0); });
     m.def("radps2rpm", [](double a0) { return radps2rpm(a0); });

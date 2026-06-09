@@ -128,6 +128,7 @@ void register_functions_sta(nb::module_& m) {
     m.def("l_undual", [](mvec4ds_e const& a0) { return l_undual(a0); });
     m.def("l_undual", [](mvec4ds_u const& a0) { return l_undual(a0); });
     m.def("l_undual", [](mvec4ds const& a0) { return l_undual(a0); });
+    m.def("log", [](mvec4ds_e const& a0) { return log(a0); });
     m.def("normalize", [](scalar4ds const& a0) { return normalize(a0); });
     m.def("normalize", [](vec4ds const& a0) { return normalize(a0); });
     m.def("normalize", [](bivec4ds const& a0) { return normalize(a0); });

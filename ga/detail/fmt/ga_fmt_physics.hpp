@@ -144,6 +144,39 @@ template <> struct fmt::formatter<hd::ga::pga::static_system2dp> {
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// pose2dp - a frame's pose vs. its parent (origin point + orientation angle)
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::pose2dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::pose2dp const& p, FormatContext& ctx) const
+    {
+        using hd::ga::detail::suppress_negative_zero;
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "pose2dp(origin = ");
+        out = fmt::format_to(out, fmt::runtime(child), p.origin);
+        out = fmt::format_to(out, ", phi = ");
+        out = fmt::format_to(out, fmt::runtime(child), suppress_negative_zero(p.phi));
+        return fmt::format_to(out, ")");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
 // kin_state2dp - momentary kinematic state (velocity / acceleration) of a frame
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -273,6 +306,74 @@ struct fmt::formatter<hd::ga::pga::Inertia3dp<T>> : fmt::nested_formatter<T> {
                 out = fmt::format_to(out, "\n");
             }
         }
+        return fmt::format_to(out, ")");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// pose3dp - a frame's pose vs. its parent (origin point + axis*angle rotation)
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::pose3dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::pose3dp const& p, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "pose3dp(origin = ");
+        out = fmt::format_to(out, fmt::runtime(child), p.origin);
+        out = fmt::format_to(out, ", rot = ");
+        out = fmt::format_to(out, fmt::runtime(child), p.rot);
+        return fmt::format_to(out, ")");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// kin_state3dp - momentary kinematic state (velocity / acceleration) of a frame
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::kin_state3dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::kin_state3dp const& k, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out = fmt::format_to(ctx.out(), "kin_state3dp(vel = ");
+        out = fmt::format_to(out, fmt::runtime(child), k.vel);
+        out = fmt::format_to(out, ", acc = ");
+        out = fmt::format_to(out, fmt::runtime(child), k.acc);
+        out = fmt::format_to(out, ", omega = ");
+        out = fmt::format_to(out, fmt::runtime(child), k.omega);
+        out = fmt::format_to(out, ", alpha = ");
+        out = fmt::format_to(out, fmt::runtime(child), k.alpha);
         return fmt::format_to(out, ")");
     }
 };

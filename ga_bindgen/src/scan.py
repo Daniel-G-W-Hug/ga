@@ -73,6 +73,24 @@ SOURCE_HEADERS = ["ga/ga_ega.hpp", "ga/ga_pga.hpp", "ga/ga_sta.hpp"]
 TARGET_NAMESPACES = {"hd::ga", "hd::ga::ega", "hd::ga::pga", "hd::ga::sta"}
 
 
+def _cursor_kind(cursor: cx.Cursor):
+    """Return cursor.kind, or None if its kind id is unknown to these bindings.
+
+    The pip `libclang` package lags LLVM and ships an incomplete CursorKind
+    table, so a C++ construct newer than that table (e.g. the C++20
+    parenthesized aggregate-init expression, kind id 155, emitted for member
+    initialisers like `pose(origin, angle)`) makes CursorKind.from_id raise
+    ValueError. Such cursors only ever occur inside function / initializer
+    bodies, which the scanner never collects, so treating an unknown kind as
+    "skip this cursor and its subtree" is safe and keeps the scan working
+    against any libclang version.
+    """
+    try:
+        return cursor.kind
+    except ValueError:
+        return None
+
+
 def fq_namespace(cursor: cx.Cursor) -> str:
     parts: list[str] = []
     p = cursor.semantic_parent
@@ -88,10 +106,13 @@ def build_class_template_index(tu: cx.TranslationUnit) -> dict[str, cx.Cursor]:
     idx: dict[str, cx.Cursor] = {}
 
     def walk(c: cx.Cursor):
+        k = _cursor_kind(c)
+        if k is None:
+            return
         if c.location.file and not in_ga_tree(c.location):
-            if c.kind != cx.CursorKind.NAMESPACE:
+            if k != cx.CursorKind.NAMESPACE:
                 return
-        if c.kind == cx.CursorKind.CLASS_TEMPLATE and c.spelling:
+        if k == cx.CursorKind.CLASS_TEMPLATE and c.spelling:
             idx.setdefault(c.spelling, c)
         for child in c.get_children():
             walk(child)
@@ -124,10 +145,13 @@ def build_partial_spec_index(
     idx: dict[tuple[str, str], cx.Cursor] = {}
 
     def walk(c: cx.Cursor):
+        k = _cursor_kind(c)
+        if k is None:
+            return
         if c.location.file and not in_ga_tree(c.location):
-            if c.kind != cx.CursorKind.NAMESPACE:
+            if k != cx.CursorKind.NAMESPACE:
                 return
-        if c.kind == cx.CursorKind.CLASS_TEMPLATE_PARTIAL_SPECIALIZATION:
+        if k == cx.CursorKind.CLASS_TEMPLATE_PARTIAL_SPECIALIZATION:
             tag = extract_tag(c.type.spelling)
             if c.spelling and tag:
                 idx.setdefault((c.spelling, tag), c)
@@ -226,6 +250,54 @@ def extract_type(
     )
 
 
+def _is_pure_data_struct(cursor: cx.Cursor) -> bool:
+    """True for an aggregate of only public data members — no methods, bases,
+    constructors, or non-public members.
+
+    This is exactly the shape of the physics POD structs (pose2dp/3dp,
+    kin_state2dp/3dp) and deliberately excludes the stateful system classes
+    (static_frame2dp, static_system2dp, kinematic_system2dp, …), which carry
+    methods, inheritance, and private std::vector / std::string members.
+    """
+    children = list(cursor.get_children())
+    if not children:
+        return False
+    for ch in children:
+        if _cursor_kind(ch) != cx.CursorKind.FIELD_DECL:
+            return False
+        if ch.access_specifier != cx.AccessSpecifier.PUBLIC:
+            return False
+    return True
+
+
+def extract_data_struct(cursor: cx.Cursor) -> TypeAlias:
+    """Build a TypeAlias for a pure-data struct (see _is_pure_data_struct).
+
+    Unlike the template-instantiation typedefs, these are concrete non-template
+    structs, so `underlying` / `canonical_underlying` are just the qualified
+    struct name and `constructors` is left empty — the emitter synthesises an
+    aggregate constructor from the fields.
+    """
+    ns = fq_namespace(cursor)
+    fields = [
+        Field(name=ch.spelling, type=ch.type.spelling)
+        for ch in cursor.get_children()
+        if _cursor_kind(ch) == cx.CursorKind.FIELD_DECL
+    ]
+    src = cursor.location.file
+    return TypeAlias(
+        namespace=ns,
+        name=cursor.spelling,
+        underlying=cursor.spelling,
+        canonical_underlying=f"{ns}::{cursor.spelling}",
+        fields=fields,
+        constructors=[],
+        base_class=None,
+        source_file=_rel_source(src),
+        source_line=cursor.location.line,
+    )
+
+
 def extract_function(cursor: cx.Cursor) -> tuple[str, str, Overload]:
     """Return (namespace, short_name, Overload).
 
@@ -287,13 +359,15 @@ def collect(
     seen_overload_keys: set[tuple] = set()  # dedup across multiple parses
 
     def walk(cursor: cx.Cursor):
+        k = _cursor_kind(cursor)
+        if k is None:
+            return
         if cursor.location.file and not in_ga_tree(cursor.location):
             # Don't recurse into headers outside ga/ — except for top-level
             # NAMESPACE cursors, since the same namespace spans multiple files.
-            if cursor.kind != cx.CursorKind.NAMESPACE:
+            if k != cx.CursorKind.NAMESPACE:
                 return
 
-        k = cursor.kind
         if k == cx.CursorKind.NAMESPACE:
             ns = fq_namespace(cursor)
             full = f"{ns}::{cursor.spelling}" if ns else cursor.spelling
@@ -306,6 +380,25 @@ def collect(
                     types[key] = extract_type(
                         cursor, template_index, partial_spec_index
                     )
+        elif (
+            k in (cx.CursorKind.STRUCT_DECL, cx.CursorKind.CLASS_DECL)
+            and in_ga_tree(cursor.location)
+            and cursor.is_definition()
+        ):
+            # Concrete pure-data structs (pose2dp/3dp, kin_state2dp/3dp). Only
+            # namespace-scope aggregates are bound; nested structs (e.g. inside
+            # kinematic_system2dp) and the stateful system classes are skipped.
+            parent = cursor.semantic_parent
+            if (
+                parent is not None
+                and parent.kind == cx.CursorKind.NAMESPACE
+                and fq_namespace(cursor) in TARGET_NAMESPACES
+                and _is_pure_data_struct(cursor)
+            ):
+                ns = fq_namespace(cursor)
+                key = (ns, cursor.spelling)
+                if key not in types:
+                    types[key] = extract_data_struct(cursor)
         elif k == cx.CursorKind.VAR_DECL and in_ga_tree(cursor.location):
             # Only namespace-scope constants — not locals inside functions.
             # libclang reports VAR_DECL for both, but the semantic parent

@@ -155,6 +155,8 @@ void register_functions_ega(nb::module_& m) {
     m.def("l_dual", [](mvec2d_e const& a0) { return l_dual(a0); });
     m.def("l_dual", [](mvec2d const& a0) { return l_dual(a0); });
     m.def("l_expand", [](bivec3d const& a0, vec3d const& a1) { return l_expand(a0, a1); });
+    m.def("log", [](mvec2d_e const& a0) { return log(a0); });
+    m.def("log", [](mvec3d_e const& a0) { return log(a0); });
     m.def("normalize", [](scalar2d const& a0) { return normalize(a0); });
     m.def("normalize", [](vec2d const& a0) { return normalize(a0); });
     m.def("normalize", [](pscalar2d const& a0) { return normalize(a0); });

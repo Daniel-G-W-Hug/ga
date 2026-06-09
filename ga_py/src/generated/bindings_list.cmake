@@ -9,6 +9,8 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum4ds.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_kin_state2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_kin_state3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_line2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_line3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2d.cpp
@@ -30,6 +32,8 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_point2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_point3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_point3dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pose2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pose3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pscalar2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pscalar2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_pscalar3d.cpp

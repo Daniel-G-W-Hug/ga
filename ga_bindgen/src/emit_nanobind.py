@@ -113,6 +113,10 @@ def build_type_name_map(types: list[TypeAlias]) -> dict[str, str]:
         head = t.underlying.split("<", 1)[0].strip().rsplit("::", 1)[-1]
         if head:
             m.setdefault(head, t.name)
+        # Identity entry so a type spelled as the user typedef itself resolves
+        # (function params use the template form `Vec2dp<T>`, but struct fields
+        # are spelled as the typedef `vec2dp` — see emit_data_struct_binding).
+        m.setdefault(t.name, t.name)
         # Also key by the unique tag parsed out of the canonical form.
         tag_match = _TAG_RE.search(t.canonical_underlying or "")
         if tag_match:
@@ -673,6 +677,27 @@ def is_inherited_shape(t: TypeAlias) -> bool:
     return t.base_class is not None
 
 
+def is_data_struct(t: TypeAlias) -> bool:
+    """Concrete (non-template) pure-data struct with public, mixed-type fields.
+
+    These come from the physics headers (pose2dp/3dp, kin_state2dp/3dp) and are
+    spelled as a plain qualified name — so `canonical_underlying` carries no
+    `<...>`, unlike the template-instantiation GA typedefs (Vec_t<…>, MVec_t<…>).
+    Their fields mix bound user types (vec2dp) with primitives (value_t), so
+    they match none of the vec/scalar/inherited shapes. Whether every field is
+    actually bindable is decided at emit time (emit_data_struct_binding returns
+    None otherwise), which filters structs referencing unbound types such as
+    body2dp (Inertia2dp) or joint_state2dp (the joint2dp enum).
+    """
+    if t.name[:1].isupper():
+        return False
+    if not t.fields:
+        return False
+    if "<" in t.canonical_underlying:
+        return False
+    return True
+
+
 def is_eligible(t: TypeAlias) -> bool:
     """Union of supported shapes."""
     return is_vec_shape(t) or is_scalar_shape(t) or is_inherited_shape(t)
@@ -1022,6 +1047,80 @@ def emit_scalar_binding(
     )
 
 
+def emit_data_struct_binding(t: TypeAlias, type_map: dict[str, str]) -> str | None:
+    """Emit a nb::class_ for a pure-data struct (pose2dp, kin_state2dp, …).
+
+    Returns None when any field type does not resolve to a bound user type or a
+    primitive — the struct then references something not (yet) bound and is
+    silently skipped (e.g. body2dp -> Inertia2dp, joint_state2dp -> joint2dp).
+
+    The struct is a C++ aggregate with no declared constructor, so two are
+    synthesised via placement-new brace-init: a default ctor that value-
+    initialises (zeros) every field, and a by-field ctor. Fields are exposed
+    read/write; __repr__ / __str__ / __format__ route through the type's
+    fmt::formatter (defined in ga_fmt_physics.hpp). No GA operators / array
+    protocol are emitted — these are plain records, not multivectors.
+    """
+    cls = t.name
+
+    # Resolve every field; bail out (skip the whole struct) on the first miss.
+    resolved: list[str] = []
+    for f in t.fields:
+        u = resolve_param_to_user_type(f.type, type_map)
+        if u is None:
+            return None
+        resolved.append(u)
+
+    def _param(user: str, name: str) -> str:
+        if user in ("double", "int"):
+            return f"{user} {name}"
+        return f"{user} const& {name}"
+
+    field_params = ", ".join(_param(u, f.name) for u, f in zip(resolved, t.fields))
+    field_names = ", ".join(f.name for f in t.fields)
+    field_args = ", ".join(f'nb::arg("{f.name}")' for f in t.fields)
+
+    ctor_lines = [
+        f'        .def("__init__", []({cls}* self) {{ new (self) {cls}{{}}; }})',
+        (
+            f'        .def("__init__",\n'
+            f"            []({cls}* self, {field_params}) "
+            f"{{ new (self) {cls}{{{field_names}}}; }},\n"
+            f"            {field_args})"
+        ),
+    ]
+    field_lines = [f'        .def_rw("{f.name}", &{cls}::{f.name})' for f in t.fields]
+
+    repr_lambda = (
+        f'        .def("__repr__", [](const {cls}& v) {{\n'
+        f'            return fmt::format("{{}}", v);\n'
+        f"        }})"
+    )
+    str_lambda = (
+        f'        .def("__str__", [](const {cls}& v) {{\n'
+        f'            return fmt::format("{{}}", v);\n'
+        f"        }})"
+    )
+    format_lambda = emit_format_lambda(cls)
+    eq_expr = " && ".join(f"a.{f.name} == b.{f.name}" for f in t.fields)
+    eq_lambda = (
+        f'        .def("__eq__", [](const {cls}& a, const {cls}& b) {{\n'
+        f"            return {eq_expr};\n"
+        f"        }})"
+    )
+
+    body = "\n".join(
+        ctor_lines + field_lines + [repr_lambda, str_lambda, format_lambda, eq_lambda]
+    )
+    return (
+        f"void bind_{cls}(nb::module_& m) {{\n"
+        f'    nb::class_<{cls}>(m, "{cls}")\n'
+        f"{body}\n"
+        f"        ;\n"
+        f"}}\n"
+    )
+
+
 def emit_type_binding(
     t: TypeAlias,
     type_map: dict[str, str] | None = None,
@@ -1311,8 +1410,14 @@ def main() -> int:
 
         # Collect eligible user typedefs (those declared in target namespaces).
         # Also restrict to typedefs in `hd::ga` (where user types live).
+        # GA user typedefs live in `hd::ga` (routed to submodules by their
+        # canonical underlying). Concrete physics data structs (pose2dp/3dp,
+        # kin_state2dp/3dp) live in their own sub-namespace, so admit them via
+        # is_data_struct regardless of declaring namespace.
         eligible = [
-            t for t in manifest.types if t.namespace == "hd::ga" and is_eligible(t)
+            t
+            for t in manifest.types
+            if (t.namespace == "hd::ga" and is_eligible(t)) or is_data_struct(t)
         ]
 
         # Build the template-name → user-type map ONCE from ALL eligible
@@ -1326,7 +1431,12 @@ def main() -> int:
         type_to_sub: dict[str, str] = {}
         for t in eligible:
             ops = binary_ops_per_type.get(t.name)
-            if is_scalar_shape(t):
+            if is_data_struct(t):
+                body = emit_data_struct_binding(t, type_map)
+                if body is None:
+                    # Field type not bindable (e.g. body2dp -> Inertia2dp).
+                    continue
+            elif is_scalar_shape(t):
                 body = emit_scalar_binding(t, ops)
             elif is_inherited_shape(t):
                 base_user = type_map.get(t.base_class) if t.base_class else None

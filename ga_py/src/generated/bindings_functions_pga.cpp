@@ -316,6 +316,10 @@ void register_functions_pga(nb::module_& m) {
     m.def("l_weight_dual", [](mvec3dp_e const& a0) { return l_weight_dual(a0); });
     m.def("l_weight_dual", [](mvec3dp_u const& a0) { return l_weight_dual(a0); });
     m.def("l_weight_dual", [](mvec3dp const& a0) { return l_weight_dual(a0); });
+    m.def("log", [](mvec2dp_u const& a0) { return log(a0); });
+    m.def("log", [](mvec3dp_e const& a0) { return log(a0); });
+    m.def("make_cuboid_body", [](double a0, double a1, double a2, double a3) { return make_cuboid_body(a0, a1, a2, a3); });
+    m.def("make_plate_body", [](double a0, double a1, double a2) { return make_plate_body(a0, a1, a2); });
     m.def("meet", [](bivec2dp const& a0, bivec2dp const& a1) { return meet(a0, a1); });
     m.def("meet", [](line2d const& a0, line2d const& a1) { return meet(a0, a1); });
     m.def("meet", [](trivec3dp const& a0, trivec3dp const& a1) { return meet(a0, a1); });
@@ -324,6 +328,8 @@ void register_functions_pga(nb::module_& m) {
     m.def("meet", [](bivec3dp const& a0, trivec3dp const& a1) { return meet(a0, a1); });
     m.def("meet", [](plane3d const& a0, line3d const& a1) { return meet(a0, a1); });
     m.def("meet", [](line3d const& a0, plane3d const& a1) { return meet(a0, a1); });
+    m.def("motor_from_pose2dp", [](pose2dp const& a0) { return motor_from_pose2dp(a0); });
+    m.def("motor_from_pose3dp", [](pose3dp const& a0) { return motor_from_pose3dp(a0); });
     m.def("move2dp", [](vec2dp const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
     m.def("move2dp", [](bivec2dp const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
     m.def("move2dp", [](mvec2dp_u const& a0, mvec2dp_u const& a1) { return move2dp(a0, a1); });
@@ -343,6 +349,8 @@ void register_functions_pga(nb::module_& m) {
     m.def("move3dp_opt", [](vec3dp const& a0, mvec3dp_e const& a1) { return move3dp_opt(a0, a1); });
     m.def("move3dp_opt", [](bivec3dp const& a0, mvec3dp_e const& a1) { return move3dp_opt(a0, a1); });
     m.def("move3dp_opt", [](trivec3dp const& a0, mvec3dp_e const& a1) { return move3dp_opt(a0, a1); });
+    m.def("pose2dp_from_motor", [](mvec2dp_u const& a0) { return pose2dp_from_motor(a0); });
+    m.def("pose3dp_from_motor", [](mvec3dp_e const& a0) { return pose3dp_from_motor(a0); });
     m.def("project_onto", [](vec2dp const& a0, vec2dp const& a1) { return project_onto(a0, a1); });
     m.def("project_onto", [](vec2dp const& a0, bivec2dp const& a1) { return project_onto(a0, a1); });
     m.def("project_onto", [](vec3dp const& a0, vec3dp const& a1) { return project_onto(a0, a1); });
