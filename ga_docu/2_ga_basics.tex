@@ -938,14 +938,14 @@ $P(\gv{23}) = \mathfrak{g}_{22}\,\mathfrak{g}_{33} = (-1)(-1) = +1$. The scalar 
 $1$, the pseudoscalar to $det(\mathfrak{g})$, and there is exactly one such inner product
 on the whole exterior algebra derived from the requirement of an exomorphism. \\
 
-The central point — and the easiest to get wrong — is that \emph{the extended metric is
-independent of how a blade squares under the geometric product}. The extended metric is a
+Note that \emph{the extended metric is independent of how a blade squares under the
+geometric product}. The extended metric is a
 property of the \emph{wedge} structure seeded by the signature, not of the geometric
-product. The clearest evidence is $PGA$: its extended-metric diagonal carries the
+product. This is visible in $PGA$: its extended-metric diagonal carries the
 exomorphism values $1$/$0$ even though its bivectors square to $-1$ under the geometric
-product. A pitfall is to push physical \emph{characteristics} (space-like/time-like)
-into the extended metric. That is wrong: causal character lives in the geometric square
-(see below), not in the metric. Finally, the extended metric \emph{defines} the dot
+product. Physical \emph{characteristics} (space-like/time-like) do not belong in the
+extended metric: causal character lives in the geometric square (see below), not in the
+metric. Finally, the extended metric \emph{defines} the dot
 product and hence $nrm\_sq()$ at every grade through $\gv{S} \cdot \gv{S} =
 \metric{G}(\gv{S}) = P$. This scalar $P$ is the blade's \emph{reverse-norm}, the scalar
 part of the blade times its \emph{reverse} $\grprj{\rev{A} \wedgedot A}{0}$.
@@ -962,7 +962,7 @@ squares to $\pm 1$ we get $\metric{G}^2 = I_n$, so the relation collapses to $\r
 signature-parity invariant ($det = (-1)^q$ with $q$ the number of negative directions), so
 the physically equivalent signatures $(-,-,-,+)$ and $(+,+,+,-)$ both give $-1$.
 
-\paragraph{The geometric square $B^2$ — causal character, distinct from the metric.}
+\paragraph{The geometric square $B^2$ --- causal character, distinct from the metric.}
 The \emph{geometric square} of a blade is $B^2 = \grprj{u \wedgedot u}{0}$, the blade
 times itself under the geometric product. It relates to the metric value $P$ only by the
 reversion sign $\sigma(k) = (-1)^{k(k-1)/2}$ (with $k$ the grade):
@@ -987,21 +987,21 @@ grade-$k$ blade is $\rev{e}_S = \sigma(k)\, e_S$, so
 \end{equation}
 because $\sigma(k)^2 = 1$. A blade thus has two natural ``squares'' that differ exactly by
 the reversion sign: the geometric square $B^2 = \sigma(k)\,P$ (blade $\wedgedot$ blade)
-and the reverse-norm $P$ (reverse $\wedgedot$ blade). The reverse-norm is the one that
-behaves like a norm; the dot product, the contraction for equal grades, and $nrm\_sq()$
-all use $P$. The geometric square $B^2$ is the physically meaningful quantity: a bivector
+and the reverse-norm $P$ (reverse $\wedgedot$ blade). The reverse-norm behaves like a
+norm; the dot product, the contraction for equal grades, and $nrm\_sq()$ all use $P$.
+The geometric square $B^2$ is the physically meaningful quantity: a bivector
 is a \emph{boost} plane when $B^2 > 0$ and a \emph{rotation} plane when $B^2 < 0$, and the
-rotor exponential splits on its sign ($\cosh/\sinh$ vs. $\cos/\sin$). Causal character —
-\path{is_timelike}, \path{is_spacelike}, \path{is_lightlike} — therefore reads $B^2$,
-\emph{not} $nrm\_sq()$. Keeping $B^2$ and the metric value $P$ apart is exactly what
-avoids the pitfall of encoding ``time-like'' into the metric. Both squares are tabulated
+rotor exponential splits on its sign ($\cosh/\sinh$ vs. $\cos/\sin$). Causal character ---
+\path{is_timelike}, \path{is_spacelike}, \path{is_lightlike} --- therefore reads $B^2$,
+\emph{not} $nrm\_sq()$. Keeping $B^2$ and the metric value $P$ apart avoids encoding
+``time-like'' into the metric. Both squares are tabulated
 for every basis blade in table~\ref{tab:sta4ds_dot_geomsq} below.
 
 \paragraph{Two schools of dualization.}
 There are two common ways to dualize a blade or multivector $A$:
 \begin{enumerate}
     \item \emph{complement after metric} (this library, after Lengyel):
-    $A^{\star} = \rcmpl{\metric{G}A}$ — multiply by the extended metric, then take the
+    $A^{\star} = \rcmpl{\metric{G}A}$ --- multiply by the extended metric, then take the
     purely combinatorial complement. This is exactly the (bulk) dual already defined
     in~(\ref{eq:rightbulkdual}) and~(\ref{eq:leftbulkdual}).
     \item \emph{pseudoscalar multiplication}: $A \wedgedot I_n$ and $A \wedgedot
@@ -1012,9 +1012,9 @@ I_n$ (cf.~(\ref{eq:hodge_right})). So plain $A \wedgedot I_n$ equals $A^{\star}$
 $\sigma(k) = +1$ (grades $0, 1, 4$) and $-A^{\star}$ at grades $2, 3$. Pseudoscalar
 multiplication needs $I_n$ to be invertible; in $STA4DS$, $I_n \wedgedot I_n = -1$, so
 $I_n^{-1} = -I_n$. In a \emph{degenerate} algebra ($PGA$, and any projective algebra) a
-null vector sits inside $I_n$, so $I_n \wedgedot I_n = 0$ and $I_n$ has no inverse — the
+null vector sits inside $I_n$, so $I_n \wedgedot I_n = 0$ and $I_n$ has no inverse --- the
 scheme is structurally impossible there. The complement-after-metric definition survives
-because $I_n$ never appears in it; it is the robust definition used throughout the library
+because $I_n$ never appears in it; it is the definition used throughout the library
 for all algebras.
 
 \paragraph{Handedness: left vs. right dual.}
@@ -1036,7 +1036,7 @@ Composing the two metric duals yields a clean global sign, the determinant:
     = det(\mathfrak{g})\, A
     \label{eq:sta_dual_roundtrip}
 \end{equation}
-For a Euclidean algebra ($det = +1$) this is the identity — the left dual undoes the right
+For a Euclidean algebra ($det = +1$) this is the identity --- the left dual undoes the right
 dual. For $STA4DS$ ($det = -1$) it is $-A$: the left dual is the inverse only up to the
 sign $det$. The genuine inverse applies the metric on the \emph{dual} side instead of the
 primal side. Since $\metric{G}^2 = I_n$, the inverse of $A^{\star} = \rcmpl{\metric{G}A}$
@@ -1081,14 +1081,14 @@ no metric structure.
 Because $\rmetric{G} = -\metric{G}$, the regressive metric negates every vector square:
 $\metric{G}$ realises the signature $(-,-,-,+)$ while $\rmetric{G}$ realises $(+,+,+,-)$.
 Each
-signature is an exomorphism of exactly \emph{one} product — $\metric{G}$ of the wedge,
+signature is an exomorphism of exactly \emph{one} product --- $\metric{G}$ of the wedge,
 $\rmetric{G}$ of the regressive wedge. So, relative to the library's wedge convention, the
 ``space'' is the signature whose metric respects the wedge product, $(-,-,-,+)$, and its
 ``dual space'' is $(+,+,+,-)$. The whole structure is symmetric under the exchange
 $(\wedge \leftrightarrow \vee,\; \metric{G} \leftrightarrow \rmetric{G},\; \text{space}
 \leftrightarrow \text{dual})$: taking the regressive wedge as the primary product (working
-in the dual algebra) swaps the roles. This is precisely why the two signatures are
-physically equivalent — each is ``the space'' for one of the two products, the other being
+in the dual algebra) swaps the roles. This is why the two signatures are
+physically equivalent: each is ``the space'' for one of the two products, the other being
 its dual.
 
 \paragraph{Bridge to a projective $STA$.}
@@ -1096,7 +1096,7 @@ The statement $\metric{G}\rmetric{G} = det(\mathfrak{g})\,I_n$ is universal; the
 determinant decides the regime. For $STA4DS$ (non-degenerate, $det = -1 \neq 0$) we get
 $\rmetric{G} = -\metric{G}$, a global rescaling with no split. For a potential
 \emph{projective} $STA$ (degenerate, e.g. $\mathbb{G}(1,3,1)$ with $det = 0$) we would get
-$\metric{G}\rmetric{G} = 0$, so $\metric{G}$ and $\rmetric{G}$ have disjoint support —
+$\metric{G}\rmetric{G} = 0$, so $\metric{G}$ and $\rmetric{G}$ have disjoint support ---
 exactly the $PGA$ bulk/weight split, with $\bulk{A}^{\star} = \rcmpl{\metric{G}A}$ and
 $\weight{A}^{\smallstar} = \rcmpl{\rmetric{G}A}$. Pseudoscalar multiplication dies (no
 $I_n^{-1}$), but complement-after-metric survives and simply splits in two. The dual is
@@ -1104,10 +1104,10 @@ always complement-after-metric; the only question is whether $\metric{G}$ and
 $\rmetric{G}$ are proportional (non-degenerate) or supported on complementary subspaces
 (degenerate).
 
-\paragraph{Dependency map: what is built from what.}
+\paragraph{Dependency map.}
 The single root is the vector signature $\mathfrak{g}$ (plus the basis and its canonical
-order). Two independent branches grow from it, and keeping them apart is the whole point
-of the preceding paragraphs:
+order). Two independent branches grow from it, and the preceding paragraphs depend on
+keeping them apart:
 \begin{itemize}
     \item \textbf{Combinatorial/signature-direct} (\emph{not} via the extended metric):
     the wedge product ``$\wedge$'' (orientation only), the complement
@@ -1335,7 +1335,7 @@ complement and left dual are given in the table for $3D$ $EGA$ below.\\
 % for the 16-col PGA3DP tables, so all eight fit on a single A4 page.
 %
 % \captionof{table}{...} (caption package) is used in place of \caption{...} because the
-% tabulars are no longer inside a \begin{table}/\sidewaystable float — \captionof
+% tabulars are no longer inside a \begin{table}/\sidewaystable float --- \captionof
 % generates the correct counter and formatting without needing a float environment.
 
 {\footnotesize \underline{Note}: \emph{All} regressive dot products (symbol ``$\circ$'')
@@ -1628,13 +1628,13 @@ concepts (extended metric as wedge exomorphism, the reverse-norm $P$ versus the 
 square $B^2$, left/right complements and duals) were developed in subsection
 \ref{subsection:STA_metric_complements_and_duality}. $STA4DS$ is four-dimensional (even),
 so left and right complements/duals are distinguished; it is non-degenerate
-($det(\mathfrak{g}) = -1$), so — unlike $PGA$ — there is \emph{no} bulk/weight split, and
+($det(\mathfrak{g}) = -1$), so --- unlike $PGA$ --- there is \emph{no} bulk/weight split, and
 every basis blade squares to $\pm 1$. \\
 
 Table~\ref{tab:sta4ds_dot_geomsq} lists two distinct ``squares'' side by side: the dot
 product $\bm{u}\cdot\bm{u} = \metric{G}(\bm{u}) = P$ (the extended-metric reverse-norm,
 equal to $nrm\_sq(\bm{u})$), and the geometric square $\bm{u}\wedgedot\bm{u} = B^2 =
-\sigma(k)\,P$. They agree at grades $0, 1, 4$ and differ by sign at grades $2, 3$ — the
+\sigma(k)\,P$. They agree at grades $0, 1, 4$ and differ by sign at grades $2, 3$ --- the
 distinction that drives causal character and the rotor exponential (see
 eqn.~(\ref{eq:sta_geom_sq})). \\
 

@@ -1687,8 +1687,8 @@ the crucial invariant that \textbf{a frame's pose is always stored relative to i
 parent}, never in world coordinates. The world (root) frame is its own parent. Adding a
 frame without naming a parent links it to the previously added one, so a plain sequence
 builds a linear chain $\textit{root} \to f_1 \to f_2 \to \dots$, while naming an earlier
-frame branches the tree. This buys real modelling power for free: \emph{branching} (a body
-frame with two arms, each arm chain parented off the body, the body off the
+frame branches the tree. This provides three modelling capabilities: \emph{branching}
+(a body frame with two arms, each arm chain parented off the body, the body off the
 possibly-moving world -- any sub-assembly is a subtree); \emph{name addressing} (frames
 carry unique names and every operation has a by-name overload); and \emph{reposing}
 (moving a frame relative to its parent drags the whole subtree along automatically,
@@ -1714,8 +1714,8 @@ $3D$ unchanged.
 
 \paragraph{One sandwich for points \emph{and} vectors.}
 The transform between two frames is a single motor $M$, and \emph{any} geometric object is
-moved by the \emph{same} sandwich $X' = M \veedot X \veedot \rrev{M}$. This is worth
-stressing, because classical mechanics hands the modeller several different rules and asks
+moved by the \emph{same} sandwich $X' = M \veedot X \veedot \rrev{M}$. Classical
+mechanics, by contrast, provides several different rules and the modeller must determine
 which one applies:
 \begin{itemize}
     \item a \emph{point} (a location) transforms \emph{affinely} -- rotate \emph{and}
@@ -1731,10 +1731,10 @@ selects the right behaviour through its \emph{homogeneous weight} (the projectiv
 component $\bv{3}$ in $2D$, $\bv{4}$ in $3D$): a point has weight $1$ and is rotated
 \emph{and} translated; a direction has weight $0$ (a point at infinity) and is rotated
 \emph{only}, since translating a point at infinity does nothing. No
-contravariant/covariant distinction survives -- the motor sandwich is a single
-self-consistent conjugation that transports every grade (points, lines, directions, and --
-see below -- twists and wrenches) correctly. The classical ``which transformation law?''
-decision disappears into the algebra.
+contravariant/covariant distinction remains: the motor sandwich is a single
+conjugation that transports every grade (points, lines, directions, and --
+see below -- twists and wrenches) correctly. The choice of transformation law is thus
+handled by the algebra itself.
 
 
 \subsubsection{Transport of motion along a kinematic chain}
@@ -1763,7 +1763,7 @@ because both are conjugation $M(\cdot)\rrev{M}$. A separate $6\times6$ adjoint m
 the classical formulation requires, is unnecessary.
 
 \paragraph{Velocities add along the path.}
-This is the genuinely new step beyond the single-body case. In a chain, each frame $k$
+This step goes beyond the single-body case. In a chain, each frame $k$
 contributes a relative twist $\xi_k$ expressed in \emph{its own} frame. Transporting each
 to the world frame by the adjoint and superposing -- valid because twists live in a vector
 space -- gives the world velocity twist of frame $i$:
@@ -1812,7 +1812,7 @@ motor rather than exponentiating their summed generators.
 The earlier subsections solve a \emph{single} free rigid body
 (eqn.~(\ref{eq:ode_system_body_frame})) and a \emph{single} revolute pivot
 (eqn.~(\ref{eq:pivot_invariance}), eqn.~(\ref{eq:constraint_projection_2d})). The
-\path{dynamic_system2dp} adds the genuinely new dynamics: \emph{several bodies coupled by
+\path{dynamic_system2dp} adds the coupled dynamics: \emph{several bodies coupled by
 joints}, integrated together in \emph{reduced (joint) coordinates}.\footnote{The canonical
 example is the double pendulum -- two revolute-jointed plates swinging chaotically under
 gravity while conserving energy. It is visualized in \path{ga_view}
@@ -1838,10 +1838,10 @@ one pairing drives the kinetic energy, the joint-space mass matrix and the forwa
 dynamics, and lifts to $3D$ by replacing the $3\times3$ map with the $6\times6$ inertia
 map and $\mathrm{rwdg}$ with the bivector reciprocal product.
 
-\paragraph{Joints: the unification of rotation and translation.}
+\paragraph{Joints: rotation and translation in one form.}
 A joint is the reduced coordinate linking a body to its parent: \emph{free} (the
 unconstrained body), \emph{revolute} (a $1$-DOF hinge) or \emph{prismatic} (a $1$-DOF
-slider). The unification is that both $1$-DOF joints run identical code. The
+slider). Both $1$-DOF joints run identical code. The
 body-to-parent motor, the relative twist and the Jacobian column are always
 \begin{equation}
     M(q) = M_{\textit{rest}} \veedot \exp_\veedot\!\big(\tfrac12\, q\, S_b\big), \qquad
@@ -1886,7 +1886,7 @@ The system is advanced in time by a Runge-Kutta integrator (RK4): a coupled join
 integrated together in its reduced coordinates, free bodies independently. Energy
 conservation to integrator tolerance over the motion -- validated for the free body, the
 compound pendulum, the prismatic slider and the chaotic double pendulum, in both $2D$ and
-$3D$ -- is the correctness metric the whole design is tuned for.
+$3D$ -- is the correctness metric used throughout.
 
 
 \subsubsection{The transition from $2D$ to $3D$}
@@ -1932,16 +1932,16 @@ The motor sandwich, the adjoint, the tree walk, the joint exponential, the inert
 pairing and the Euler equation $\dot{\Omega} = I^{-1}[\,W - \mathrm{rcmt}(\Omega,
 I[\Omega])\,]$ are identical formulae in $2D$ and $3D$, differing only in the grade the
 twist and wrench occupy. The $2D \to 3D$ step is thus a change of representation, not a
-rewrite -- which is itself the principal result of developing the $2D$ case fully first.
+rewrite; this follows from developing the $2D$ case fully first.
 
 
 \subsubsection{Addendum: what geometric algebra contributes to rigid-body dynamics}
 \label{subsubsection:addendum_what_ga_buys}
 
-This addendum steps outside the development to weigh the approach even-handedly. It is not
+This addendum weighs the approach against classical methods. It is not
 part of the modelling exposition; readers interested only in \emph{how} the model works
-may skip it. The aim is to state plainly where the $PGA$ formulation is genuinely
-advantageous and where a classical method remains the better tool. This library realizes
+may skip it. It states where the $PGA$ formulation is advantageous and where a classical
+method remains preferable. This library realizes
 the \emph{primal} $PGA$ ($\mathbb{G}(2,0,1)$, $\mathbb{G}(3,0,1)$, see
 subsection~\ref{subsection:modelling_physics}); the merits below are those of the
 geometric formulation as such and hold for the dual plane-based variant too.
@@ -1950,16 +1950,16 @@ The fair baseline is not ``geometric algebra versus nothing'' but geometric alge
 the standard tooling: $4\times4$ homogeneous $SE(3)$ matrices, or Featherstone's spatial
 vector algebra (six-component twists and wrenches with a hand-defined spatial cross
 product) \cite{Featherstone_rigid_body_dynamics:2008}. Both are mature and fast; the
-question is whether the reorganization pays for itself.
+question is whether the reorganization is worthwhile.
 
-\paragraph{Where it is genuinely advantageous.}
+\paragraph{Properties of the geometric formulation.}
 \begin{enumerate}
     \item \emph{Pose is a motor, not a $4\times4$ matrix.} There is no orthonormality
           constraint to maintain and no renormalization drift; one exponential/logarithm
           covers rotation and translation together as a screw, and the pose evolves on the
           manifold exactly via $M \veedot \exp_\veedot(\tfrac12\,\Omega\,dt)$.
     \item \emph{Twists, momenta and wrenches are bivectors, and the ``spatial cross
-          product'' is the algebra's commutator.} A twist literally \emph{is} a screw, the
+          product'' is the algebra's commutator.} A twist is a screw, the
           momentum wrench is the inertia-map image $P = I[\Omega]$, the Newton-Euler bias
           wrench is a bivector, and the spatial cross product is $\mathrm{rcmt}$ -- a
           native product rather than a bespoke operator with conventional signs.
@@ -1977,40 +1977,40 @@ question is whether the reorganization pays for itself.
           the $2D \to 3D$ lift is the same formula, not a rewrite.
 \end{enumerate}
 
-\paragraph{The showcase: Coriolis coupling as a single commutator.}
-The genuinely messy part of a classical double-pendulum Lagrangian is the
+\paragraph{Coriolis coupling as a single commutator.}
+The most involved part of a classical double-pendulum Lagrangian is the
 Coriolis/centrifugal coupling -- the Christoffel symbols built from derivatives of the
 mass matrix. In the geometric formulation it collapses to one term, the Lie bracket of
-twists in the acceleration recursion~(\ref{eq:newton_euler_recursion}). The statement
-``the Coriolis force is the geometric fact that twists do not commute'' is a single
-sentence backed by running code. These objects are moreover drawable in a way
-six-component vectors are not: each body's instantaneous centre of rotation is a point
-read off its world twist, the joint screw is literally the joint point, and the momentum
-wrench is a geometric bivector -- the dynamical state \emph{is} geometry, so the
+twists in the acceleration recursion~(\ref{eq:newton_euler_recursion}): the Coriolis
+force is the geometric fact that twists do not commute. These objects are also drawable
+in a way six-component vectors are not: each body's instantaneous centre of rotation is a
+point read off its world twist, the joint screw is the joint point, and the momentum
+wrench is a bivector. The dynamical state is itself geometry, so the
 visualization is not a separate construction.
 
-\paragraph{Where it does not help (honest caveats).}
+\paragraph{Limitations.}
 Inertia remains a linear operator ($3\times3$ in $2D$, $6\times6$ in $3D$); for an
 anisotropic body it does not collapse to a single multivector. The joint-space mass matrix
 $M(q)$ is still a small numerical solve -- reducing to generalized coordinates is a
-robotics move, and the final $\ddot{q} = M^{-1}\tau$ is ordinary linear algebra. And
-performance is not the selling point: mature spatial-vector and matrix codes are highly
-optimized, so $PGA$ wins on clarity, unification and visualizability rather than speed.
+standard robotics step, and the final $\ddot{q} = M^{-1}\tau$ is ordinary linear algebra.
+Performance is not improved either: mature spatial-vector and matrix codes are highly
+optimized, so the geometric formulation offers clarity, unification and visualizability
+rather than speed.
 
 \paragraph{Reduced versus maximal coordinates.}
-A purer, more $GA$-native formulation was deliberately \emph{not} chosen: maximal
+A more $GA$-native formulation was deliberately not used: maximal
 coordinates, in which every body stays a full motor-and-twist and joints become constraint
-wrenches. That formulation is more elegant on paper, but its constraint stabilization
-injects and removes energy, which directly fights an energy-conservation test. The reduced
+wrenches. That formulation is more uniform, but its constraint stabilization
+injects and removes energy, which conflicts with an energy-conservation test. The reduced
 (joint) coordinates chosen here make the joint itself the constraint, so there are no
 explicit constraint forces, no drift, and clean energy -- at the cost of the small $M(q)$
-solve. This keeps most of the showcase value while actually conserving energy.
+solve. This retains most of the modelling value while conserving energy.
 
 The recursive Newton-Euler \emph{algorithm} is, of course, classical and not original
 here. What geometric algebra contributes is the \emph{representation and the concepts} --
 screws, motors, bivectors and the commutator in place of matrices, six-vectors and
 hand-defined operators -- together with three properties the standard tooling does not
-provide for free: the same primitives scale unchanged from one body to a coupled tree; the
+provide directly: the same primitives scale unchanged from one body to a coupled tree; the
 state is visualizable geometry; and the $2D \to 3D$ transition is a change of
 representation rather than a rewrite.
 
