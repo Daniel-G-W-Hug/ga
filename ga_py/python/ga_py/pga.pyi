@@ -13,6 +13,9 @@ import _ga_py.ega
 class constraint2dp(enum.Enum):
     coincidence = 0
 
+class constraint3dp(enum.Enum):
+    coincidence = 0
+
 class joint2dp(enum.Enum):
     free = 0
 
@@ -821,6 +824,51 @@ class loop_constraint2dp:
     def __format__(self, format_spec: str = "") -> str: ...
 
     def __eq__(self, arg: loop_constraint2dp, /) -> bool: ...
+
+class loop_constraint3dp:
+    @overload
+    def __init__(self) -> None: ...
+
+    @overload
+    def __init__(self, frame_a: int, anchor_a: vec3dp, frame_b: int, anchor_b: vec3dp, type: constraint3dp) -> None: ...
+
+    @property
+    def frame_a(self) -> int: ...
+
+    @frame_a.setter
+    def frame_a(self, arg: int, /) -> None: ...
+
+    @property
+    def anchor_a(self) -> vec3dp: ...
+
+    @anchor_a.setter
+    def anchor_a(self, arg: vec3dp, /) -> None: ...
+
+    @property
+    def frame_b(self) -> int: ...
+
+    @frame_b.setter
+    def frame_b(self, arg: int, /) -> None: ...
+
+    @property
+    def anchor_b(self) -> vec3dp: ...
+
+    @anchor_b.setter
+    def anchor_b(self, arg: vec3dp, /) -> None: ...
+
+    @property
+    def type(self) -> constraint3dp: ...
+
+    @type.setter
+    def type(self, arg: constraint3dp, /) -> None: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __format__(self, format_spec: str = "") -> str: ...
+
+    def __eq__(self, arg: loop_constraint3dp, /) -> bool: ...
 
 class mvec2dp:
     @overload

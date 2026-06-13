@@ -206,6 +206,109 @@ std::vector<T> lu_solve(std::vector<T> const& A_in, std::vector<T> const& b_in, 
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
+// Least-squares / minimum-norm dense solve of a (possibly non-square) system A x = b,
+// where A is m x ncols (flat ROW-MAJOR, m = b.size()). Returns x (length ncols). Routed
+// through the shared square lu_solve via the normal equations, so the whole library
+// shares ONE dense LU. Three regimes (the Moore-Penrose pseudo-inverse solution x = A^+
+// b):
+//
+//   ncols == m : square          -> solve A x = b directly
+//   ncols >  m : underdetermined  -> minimum-norm   x = A^T (A A^T)^-1 b
+//   ncols <  m : overdetermined   -> least-squares  x = (A^T A)^-1 A^T b
+//
+// Domain- and dimension-agnostic (pure linear algebra over T): used by the closed-loop
+// constraint solver for the position Newton step (A = constraint Jacobian G, b = -g), the
+// velocity / acceleration distribution, and the velocity projection -- in both 2D and 3D,
+// and available to any other caller (it carries no GA or physics knowledge).
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T> lstsq_solve(std::vector<T> const& A, std::vector<T> const& b, size_t ncols)
+{
+    size_t const m = b.size();
+
+    if (ncols == m) {
+        return lu_solve(A, b, m); // square A
+    }
+    if (ncols > m) {
+        // minimum-norm: solve (A A^T) y = b (m x m), then x = A^T y
+        std::vector<T> AAt(m * m, T(0));
+        for (size_t i = 0; i < m; ++i)
+            for (size_t j = 0; j < m; ++j) {
+                T s = T(0);
+                for (size_t k = 0; k < ncols; ++k)
+                    s += A[i * ncols + k] * A[j * ncols + k];
+                AAt[i * m + j] = s;
+            }
+        std::vector<T> const y = lu_solve(AAt, b, m);
+        std::vector<T> x(ncols, T(0));
+        for (size_t k = 0; k < ncols; ++k) {
+            T s = T(0);
+            for (size_t i = 0; i < m; ++i)
+                s += A[i * ncols + k] * y[i];
+            x[k] = s;
+        }
+        return x;
+    }
+    // overdetermined: normal equations (A^T A) x = A^T b (ncols x ncols)
+    std::vector<T> AtA(ncols * ncols, T(0)), Atb(ncols, T(0));
+    for (size_t a = 0; a < ncols; ++a) {
+        for (size_t i = 0; i < m; ++i)
+            Atb[a] += A[i * ncols + a] * b[i];
+        for (size_t bb = 0; bb < ncols; ++bb) {
+            T s = T(0);
+            for (size_t i = 0; i < m; ++i)
+                s += A[i * ncols + a] * A[i * ncols + bb];
+            AtA[a * ncols + bb] = s;
+        }
+    }
+    return lu_solve(AtA, Atb, ncols);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Bordered (saddle-point / KKT) dense solve. For the equality-constrained system
+//
+//   | M   G^T | | x |   | f |
+//   |         | |   | = |   |
+//   | G   0   | | l |   | g |
+//
+// with M (n x n) symmetric, G (m x n) the constraint Jacobian (both flat ROW-MAJOR), f
+// (length n) and g (length m) the right-hand sides. Builds the (n+m) x (n+m) bordered
+// matrix and solves it through the shared square lu_solve. Returns x (length n); writes
+// the Lagrange multipliers l (length m) into `lambda_out` if non-null.
+//
+// Domain- and dimension-agnostic (pure linear algebra over T): the closed-loop dynamics
+// (2D and 3D) use it with M = joint-space mass matrix, G = constraint Jacobian, f =
+// generalised force tau, g = -G-dot q-dot, to get the joint accelerations x = q-ddot and
+// the constraint forces l. Carries no GA or physics knowledge.
+/////////////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::vector<T> kkt_solve(std::vector<T> const& M, std::vector<T> const& G,
+                         std::vector<T> const& f, std::vector<T> const& g, size_t n,
+                         size_t m, std::vector<T>* lambda_out = nullptr)
+{
+    size_t const N = n + m;
+    std::vector<T> K(N * N, T(0)), r(N, T(0));
+    for (size_t i = 0; i < n; ++i)
+        for (size_t j = 0; j < n; ++j)
+            K[i * N + j] = M[i * n + j]; // M block (top-left)
+    for (size_t c = 0; c < m; ++c)
+        for (size_t j = 0; j < n; ++j) {
+            K[j * N + (n + c)] = G[c * n + j]; // G^T block (top-right)
+            K[(n + c) * N + j] = G[c * n + j]; // G  block (bottom-left)
+        }
+    for (size_t i = 0; i < n; ++i)
+        r[i] = f[i];
+    for (size_t c = 0; c < m; ++c)
+        r[n + c] = g[c];
+
+    std::vector<T> const sol = lu_solve(K, r, N);
+    if (lambda_out) lambda_out->assign(sol.begin() + n, sol.end());
+    return std::vector<T>(sol.begin(), sol.begin() + n);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // Determinant of a square matrix via the LU factorization.
 //
 // The input span is not modified; data is copied into a local scratch

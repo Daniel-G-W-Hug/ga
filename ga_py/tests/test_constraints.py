@@ -25,6 +25,10 @@ def test_constraint2dp_enum_members():
     assert list(pga.constraint2dp.__members__) == ["coincidence"]
 
 
+def test_constraint3dp_enum_members():
+    assert list(pga.constraint3dp.__members__) == ["coincidence"]
+
+
 def test_joint_enum_members():
     for enum in (pga.joint2dp, pga.joint3dp):
         assert list(enum.__members__) == ["free", "revolute", "prismatic"]
@@ -99,6 +103,37 @@ def test_loop_constraint2dp_bad_format_spec_raises():
         format(c, "not-a-real-spec")
 
 
+# --- loop_constraint3dp (the 3D closed-loop descriptor) ------------------
+
+def _make_coincidence3d(fa=0, fb=1):
+    return pga.loop_constraint3dp(
+        fa, pga.vec3dp(1.0, 0.0, 0.0, 1.0),
+        fb, pga.vec3dp(2.0, 0.0, 0.0, 1.0),
+        pga.constraint3dp.coincidence,
+    )
+
+
+def test_loop_constraint3dp_field_access():
+    c = _make_coincidence3d()
+    assert c.frame_a == 0
+    assert c.frame_b == 1
+    assert c.anchor_a == pga.vec3dp(1.0, 0.0, 0.0, 1.0)
+    assert c.anchor_b == pga.vec3dp(2.0, 0.0, 0.0, 1.0)
+    assert c.type == pga.constraint3dp.coincidence
+
+
+def test_loop_constraint3dp_equality_and_repr():
+    assert _make_coincidence3d() == _make_coincidence3d()
+    assert _make_coincidence3d(fa=0) != _make_coincidence3d(fa=7)
+    s = repr(_make_coincidence3d())
+    assert "loop_constraint3dp" in s and "coincidence" in s
+
+
+def test_loop_constraint3dp_format_spec():
+    out = format(_make_coincidence3d(), ".2f")
+    assert "1.00" in out and "2.00" in out
+
+
 # --- joint_state2dp / joint_state3dp (unlocked by the joint enums) -------
 
 def test_joint_state2dp_roundtrips():
@@ -129,6 +164,7 @@ def test_joint_state3dp_roundtrips():
 # --- module surface ------------------------------------------------------
 
 def test_constraint_symbols_exported_under_pga():
-    for name in ("constraint2dp", "joint2dp", "joint3dp",
-                 "loop_constraint2dp", "joint_state2dp", "joint_state3dp"):
+    for name in ("constraint2dp", "constraint3dp", "joint2dp", "joint3dp",
+                 "loop_constraint2dp", "loop_constraint3dp",
+                 "joint_state2dp", "joint_state3dp"):
         assert hasattr(ga_py.pga, name), f"ga_py.pga.{name} missing"

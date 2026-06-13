@@ -3,26 +3,43 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
-// Closed-loop (parallel mechanism) layer for PGA2DP. This is a SEPARATE, ADDITIVE
-// capability on top of the open-chain dynamic_system2dp: a user who only needs open
-// chains includes ga_pga2dp_ops_physics.hpp and pays no complexity. closed_loop_system2dp
-// HAS-A dynamic_system2dp (composition) as its spanning tree and closes kinematic loops
-// by registering loop-closure constraints between existing tree frames, then solving the
-// resulting constrained problem. See TODO/closed_loop_system_consideration.md for the
-// design and ga_docu/5_ga_modelling_physics.tex ("Reduced vs. maximal coordinates").
+// Closed-loop (parallel mechanism) layer for PGA2DP. A SEPARATE, ADDITIVE capability on
+// top of the open-chain dynamic_system2dp: a user who only needs open chains includes
+// ga_pga2dp_ops_physics.hpp and pays no complexity. closed_loop_system2dp HAS-A
+// dynamic_system2dp (composition) as its spanning tree and closes kinematic loops by
+// registering loop-closure constraints between existing tree frames, then solving the
+// resulting constrained problem. (Background: ga_docu/5_ga_modelling_physics.tex,
+// "Reduced vs. maximal coordinates".)
 //
-// Phase 1 (this file, position level): the point-coincidence constraint, the residual
-// g(q), the constraint Jacobian G = dg/dq (reusing the spatial-Jacobian columns
-// velocity_field(S_j, P) of the open-loop assembly), and assemble() -- solve g(q) = 0 by
-// Newton for a consistent closed configuration. Velocity (Phase 2) and dynamic (Phase 3)
-// closed loops follow.
+// Everything is built on the constraint residual g(q) (the closure error) and its
+// Jacobian G = dg/dq, whose columns are the spatial-Jacobian partial velocities
+// velocity_field(S_j, P) already produced by the open-loop assembly -- so the loop
+// closure reuses the open-loop machinery rather than introducing new geometry. The class
+// offers three tiers of solve:
+//
+//   - position. assemble() Newton-solves g(q) = 0 for a consistent closed configuration.
+//
+//   - kinematics. solve_velocities() / solve_accelerations() distribute a driver joint's
+//     rate / acceleration to the dependent joints via G q-dot = 0 and
+//     G q-ddot = -G-dot q-dot.
+//
+//   - dynamics. joint_accelerations() / step() solve the bordered acceleration-level KKT
+//     system for the joint accelerations and the constraint (Lagrange) forces,
+//     integrating by RK4 with post-step GGL projection (position + velocity) for
+//     energy-clean drift control.
+//
+// The dimension-agnostic numeric kernels (lstsq_solve / kkt_solve, in
+// detail/ga_solver.hpp) are shared verbatim with the 3D layer
+// (ga_pga3dp_ops_constraints.hpp).
 
-#include "detail/ga_solver.hpp"      // hd::ga::lu_solve (shared LU)
+#include "detail/ga_solver.hpp"      // hd::ga::lstsq_solve / kkt_solve (shared solvers)
 #include "ga_pga2dp_ops_physics.hpp" // dynamic_system2dp (the reused spanning tree)
+#include "ga_usr_utilities.hpp"      // hd::ga::rk4_step (shared RK4 integrator)
 #include "ga_value_t.hpp"            // value_t
 
 #include <cmath>     // std::abs
 #include <cstddef>   // size_t
+#include <mdspan>    // RK4 state views (step)
 #include <stdexcept> // std::runtime_error
 #include <string>
 #include <vector>
@@ -30,10 +47,10 @@
 
 namespace hd::ga::pga {
 
-// Loop-closure constraint kinds. Phase 1 implements point coincidence only (a planar pin
-// / a spatial spherical-joint attachment); point-on-line, distance / rigid-link length
-// and parallel/perpendicular follow (all expressible as vanishing wdg/rwdg/dot
-// expressions).
+// Loop-closure constraint kinds. Currently point coincidence only (a planar pin / a
+// spatial spherical-joint attachment); point-on-line, distance / rigid-link length and
+// parallel/perpendicular are natural extensions (all expressible as vanishing
+// wdg/rwdg/dot expressions).
 enum class constraint2dp { coincidence };
 
 // Loop-closure constraint descriptor: anchor point anchor_a (given in frame_a's
@@ -42,9 +59,8 @@ enum class constraint2dp { coincidence };
 // loop-closure condition for a four-bar pin or a Stewart-Gough leg pinned to the
 // platform.
 //
-// A pure-data aggregate (all public fields): it auto-binds in ga_py on a plain bindgen
-// regeneration (give it an fmt formatter so the generated __str__/__format__ work, and
-// cover it with a dedicated ga_py test).
+// A pure-data aggregate (all public fields) with an fmt formatter, so it is also exposed
+// in the Python wrapper (ga_py).
 struct loop_constraint2dp {
     size_t frame_a;  // tree frame holding anchor a
     vec2dp anchor_a; // anchor point in frame_a coordinates (unitized, z = 1)
@@ -119,6 +135,20 @@ class closed_loop_system2dp {
 
     value_t joint_phi(size_t joint_frame) const { return tree_.joint_phi(joint_frame); }
 
+    // set the generalised RATE q-dot of a joint (the driver / independent joints);
+    // refresh its relative velocity twist. The dependent rates come from
+    // solve_velocities().
+    void set_joint_rate(size_t joint_frame, value_t qdot)
+    {
+        tree_.joint[joint_frame].omega = qdot;
+        tree_.apply_joint_state(joint_frame);
+    }
+
+    value_t joint_rate(size_t joint_frame) const
+    {
+        return tree_.joint_omega(joint_frame);
+    }
+
     size_t loop_count() const { return loops_.size(); }
     loop_constraint2dp const& loop(size_t c) const { return loops_[c]; }
 
@@ -179,7 +209,10 @@ class closed_loop_system2dp {
 
             // Newton step: solve G_dep * delta = -g for the dependent joint increments
             std::vector<value_t> const G = constraint_jacobian(dep);
-            std::vector<value_t> const delta = newton_step(G, g, dep.size());
+            std::vector<value_t> b(g.size());
+            for (size_t i = 0; i < g.size(); ++i)
+                b[i] = -g[i];
+            std::vector<value_t> const delta = hd::ga::lstsq_solve(G, b, dep.size());
             for (size_t k = 0; k < dep.size(); ++k) {
                 tree_.joint[dep[k]].phi += delta[k];
                 tree_.apply_joint_state(dep[k]);
@@ -192,6 +225,160 @@ class closed_loop_system2dp {
             std::to_string(residual_norm()) + std::string(")"));
     }
 
+    // --- velocity / acceleration distribution (kinematic closed loop)
+    // -------------------
+
+    // Distribute the driver joint rates to the dependent joint rates enforcing the
+    // velocity-level loop closure  G q-dot = 0  (the time derivative of g(q) = 0). The
+    // `driven` joints keep their currently-set rate (set_joint_rate); partitioning
+    // G = [G_drv | G_dep] gives
+    //
+    //     G_dep q-dot_dep = -G_drv q-dot_drv,
+    //
+    // solved through the shared Jacobian solve. The solved dependent rates are written
+    // into the tree (so point_velocity / twist_world become consistent) and returned in
+    // dependent-joint order. Pre: assemble()d configuration (g ~ 0).
+    std::vector<value_t> solve_velocities(std::vector<size_t> const& driven = {})
+    {
+        std::vector<size_t> const dep = dependent_joints(driven);
+        size_t const m = 2 * loops_.size();
+
+        // rhs = -G_drv q-dot_drv  (driver columns times the prescribed driver rates)
+        std::vector<value_t> const Gdrv = constraint_jacobian(driven);
+        std::vector<value_t> rhs(m, 0.0);
+        for (size_t i = 0; i < m; ++i)
+            for (size_t k = 0; k < driven.size(); ++k)
+                rhs[i] -= Gdrv[i * driven.size() + k] * tree_.joint[driven[k]].omega;
+
+        std::vector<value_t> const Gdep = constraint_jacobian(dep);
+        std::vector<value_t> const qdot_dep = hd::ga::lstsq_solve(Gdep, rhs, dep.size());
+        for (size_t k = 0; k < dep.size(); ++k) {
+            tree_.joint[dep[k]].omega = qdot_dep[k];
+            tree_.apply_joint_state(dep[k]); // rel velocity twist = q-dot * screw
+        }
+        return qdot_dep;
+    }
+
+    // Distribute the driver joint accelerations to the dependent joint accelerations
+    // enforcing the acceleration-level loop closure  G q-ddot + G-dot q-dot = 0  (the
+    // second derivative of g(q) = 0):
+    //
+    //     G_dep q-ddot_dep = -G_drv q-ddot_drv - G-dot q-dot.
+    //
+    // The velocity-product term G-dot q-dot is NOT formed explicitly: it is the relative
+    // acceleration of the two anchor points evaluated with all DEPENDENT q-ddot = 0 and
+    // the DRIVEN q-ddot prescribed -- i.e. the point-acceleration field already provided
+    // by the kinematic layer (the same bias-pass trick assemble_mass_bias uses). So the
+    // rhs is just -(a(P_a) - a(P_b)) read off with that accel-twist configuration.
+    // `driven_accels` are the prescribed q-ddot of the `driven` joints (parallel; missing
+    // entries default to 0, the constant-rate driver case). The solved dependent
+    // accelerations are written into the relative accel twists (so point_acceleration is
+    // consistent) and returned. Pre: solve_velocities() has run (the bias term needs the
+    // velocities).
+    std::vector<value_t>
+    solve_accelerations(std::vector<size_t> const& driven = {},
+                        std::vector<value_t> const& driven_accels = {})
+    {
+        std::vector<size_t> const dep = dependent_joints(driven);
+        size_t const m = 2 * loops_.size();
+
+        // accel-twist configuration for the bias read-off: dependent q-ddot = 0; driven
+        // q-ddot prescribed (so G_drv q-ddot_drv folds into the point-acceleration
+        // field).
+        for (size_t k = 0; k < dep.size(); ++k)
+            tree_.set_accel_twist(dep[k], twist2dp{0.0, 0.0, 0.0});
+        for (size_t k = 0; k < driven.size(); ++k) {
+            value_t const qdd = (k < driven_accels.size()) ? driven_accels[k] : 0.0;
+            tree_.set_accel_twist(driven[k], qdd * tree_.joint[driven[k]].screw_b);
+        }
+
+        // rhs = -(a(P_a) - a(P_b)) per constraint, with the above accel-twist config
+        std::vector<value_t> rhs(m, 0.0);
+        for (size_t c = 0; c < loops_.size(); ++c) {
+            auto const& lc = loops_[c];
+            vec2dp const Pa = anchor_world(lc.frame_a, lc.anchor_a);
+            vec2dp const Pb = anchor_world(lc.frame_b, lc.anchor_b);
+            vec2dp const aa = tree_.point_acceleration(Pa, lc.frame_a);
+            vec2dp const ab = tree_.point_acceleration(Pb, lc.frame_b);
+            rhs[2 * c + 0] = -(aa.x - ab.x);
+            rhs[2 * c + 1] = -(aa.y - ab.y);
+        }
+
+        std::vector<value_t> const Gdep = constraint_jacobian(dep);
+        std::vector<value_t> const qddot_dep = hd::ga::lstsq_solve(Gdep, rhs, dep.size());
+        for (size_t k = 0; k < dep.size(); ++k)
+            tree_.set_accel_twist(dep[k], qddot_dep[k] * tree_.joint[dep[k]].screw_b);
+        return qddot_dep;
+    }
+
+    // --- dynamic closed loop (constrained forward dynamics + integration)
+    // ---------------
+
+    // Constrained forward dynamics at the current state: solve the acceleration-level KKT
+    // system for the joint accelerations q-ddot and the Lagrange multipliers lambda
+    // (the constraint / leg forces):
+    //
+    //     | M   Gᵀ | | q-ddot |   |  tau    |
+    //     |        | |        | = |         |
+    //     | G   0  | | lambda |   | -G-dot q-dot |
+    //
+    // where M(q), tau(q,q-dot) (gravity + Coriolis/centripetal bias) come from the OPEN-
+    // loop assembly (dynamic_system2dp::assemble_mass_bias), G is the constraint
+    // Jacobian, and -G-dot q-dot is the velocity-product term (constraint_bias). Returns
+    // q-ddot for all dof joints (in dof_joints() order); writes lambda into `lambda_out`
+    // if non-null. The bordered system is solved by the shared LU.
+    std::vector<value_t> joint_accelerations(std::vector<value_t>* lambda_out = nullptr)
+    {
+        return kkt_dynamics(tree_.dof_joints(), lambda_out);
+    }
+
+    // Advance the closed-loop system by dt. The coupled joint chain is integrated
+    // together in its joint coordinates by RK4 (shared rk4_step), with the constrained
+    // KKT solve (joint_accelerations) supplying q-ddot at each sub-step. After the step
+    // the state is projected back onto the constraint manifold -- position by a min-norm
+    // Newton step (assemble), velocity by the projection q-dot <- q-dot - G⁺(G q-dot) --
+    // which removes numerical drift WITHOUT injecting energy (GGL-style stabilisation),
+    // preserving the energy-conservation property the reduced-coordinate design is tuned
+    // for.
+    void step(value_t dt)
+    {
+        auto const rj = tree_.dof_joints();
+        size_t const n = rj.size();
+        if (n == 0) return;
+
+        std::vector<value_t> u_mem(2 * n), uh_mem(2 * 2 * n), rhs_mem(2 * n);
+        for (size_t k = 0; k < n; ++k) {
+            u_mem[k] = tree_.joint[rj[k]].phi;
+            u_mem[n + k] = tree_.joint[rj[k]].omega;
+        }
+        auto u = std::mdspan<value_t, std::dextents<size_t, 1>>(u_mem.data(), 2 * n);
+        auto uh = std::mdspan<value_t, std::dextents<size_t, 2>>(uh_mem.data(), 2, 2 * n);
+        auto const rhs =
+            std::mdspan<value_t const, std::dextents<size_t, 1>>(rhs_mem.data(), 2 * n);
+
+        auto apply_u = [&] {
+            for (size_t k = 0; k < n; ++k) {
+                tree_.joint[rj[k]].phi = u[k];
+                tree_.joint[rj[k]].omega = u[n + k];
+                tree_.apply_joint_state(rj[k]);
+            }
+        };
+        for (size_t s = 1; s <= 4; ++s) {
+            apply_u();
+            auto const qdd = kkt_dynamics(rj, nullptr);
+            for (size_t k = 0; k < n; ++k) {
+                rhs_mem[k] = u[n + k];   // dq/dt = q-dot
+                rhs_mem[n + k] = qdd[k]; // dq-dot/dt = q-ddot
+            }
+            rk4_step(u, uh, rhs, dt, s);
+        }
+        apply_u();
+
+        // stabilisation: project (q, q-dot) back onto the constraint manifold
+        assemble(/*driven*/ {}); // position: min-norm Newton -> g ~ 0
+        project_velocities(rj);  // velocity:  q-dot <- q-dot - G⁺(G q-dot)
+    }
+
   private:
 
     // world-coordinate, unitized (z = 1) position of an anchor point of a tree frame
@@ -199,6 +386,84 @@ class closed_loop_system2dp {
     {
         vec2dp const P = move2dp(anchor, tree_.get_pos_trafo(frame, 0));
         return vec2dp{P.x / P.z, P.y / P.z, 1.0};
+    }
+
+    // Solve the bordered acceleration-level KKT system for q-ddot (and lambda) at the
+    // current state -- see joint_accelerations() for the system. `rj` is the joint list
+    // (all dof joints for dynamics). Reuses the open-loop M / tau (assemble_mass_bias),
+    // the constraint Jacobian G, and the velocity-product term G-dot q-dot
+    // (constraint_bias). Returns q-ddot (length n); writes lambda (length m) if
+    // requested.
+    std::vector<value_t> kkt_dynamics(std::vector<size_t> const& rj,
+                                      std::vector<value_t>* lambda_out)
+    {
+        size_t const n = rj.size();
+        size_t const m = 2 * loops_.size();
+
+        // M (n*n) and tau (n) from the open-loop assembly; this also runs the bias pass
+        // (zeroes the chain's relative accel twists), which is exactly the q-ddot = 0
+        // state constraint_bias() needs below.
+        auto const mb = tree_.assemble_mass_bias(rj);
+        std::vector<value_t> const& M = mb.first;
+        std::vector<value_t> const& tau = mb.second;
+
+        std::vector<value_t> const G = constraint_jacobian(rj);
+        std::vector<value_t> const gd = constraint_bias(); // G-dot q-dot (m)
+
+        // bottom rhs of the saddle-point system is -G-dot q-dot
+        std::vector<value_t> gbias(m);
+        for (size_t c = 0; c < m; ++c)
+            gbias[c] = -gd[c];
+
+        // solve | M  Gᵀ | |q-ddot|   | tau   |  through the shared bordered LU
+        //       | G  0  | |lambda| = | gbias |
+        return hd::ga::kkt_solve(M, G, tau, gbias, n, m, lambda_out);
+    }
+
+    // Velocity-product term G-dot q-dot (length m): the relative acceleration of the two
+    // anchor points evaluated at q-ddot = 0. With every dof joint's relative accel twist
+    // zeroed, point_acceleration returns exactly the Coriolis/centripetal part, so
+    // a(P_a) - a(P_b) = (G-dot q-dot)_c. Pre: the velocities (relative velocity twists)
+    // are current. (Idempotent with the bias pass assemble_mass_bias just ran.)
+    std::vector<value_t> constraint_bias()
+    {
+        for (size_t const j : tree_.dof_joints())
+            tree_.set_accel_twist(j, twist2dp{0.0, 0.0, 0.0});
+        std::vector<value_t> gd(2 * loops_.size(), 0.0);
+        for (size_t c = 0; c < loops_.size(); ++c) {
+            auto const& lc = loops_[c];
+            vec2dp const Pa = anchor_world(lc.frame_a, lc.anchor_a);
+            vec2dp const Pb = anchor_world(lc.frame_b, lc.anchor_b);
+            vec2dp const aa = tree_.point_acceleration(Pa, lc.frame_a);
+            vec2dp const ab = tree_.point_acceleration(Pb, lc.frame_b);
+            gd[2 * c + 0] = aa.x - ab.x;
+            gd[2 * c + 1] = aa.y - ab.y;
+        }
+        return gd;
+    }
+
+    // Project the joint rates onto the constraint tangent space (enforce G q-dot = 0)
+    // without changing the feasible component: q-dot <- q-dot - G⁺(G q-dot), where the
+    // min-norm pseudo-inverse correction G⁺(G q-dot) = Gᵀ(G Gᵀ)^-1 (G q-dot) comes from
+    // the shared solve. Removes velocity drift after a step with no energy injection.
+    void project_velocities(std::vector<size_t> const& rj)
+    {
+        size_t const n = rj.size();
+        size_t const m = 2 * loops_.size();
+        std::vector<value_t> const G = constraint_jacobian(rj);
+
+        std::vector<value_t> qd(n), Gv(m, 0.0);
+        for (size_t k = 0; k < n; ++k)
+            qd[k] = tree_.joint[rj[k]].omega;
+        for (size_t i = 0; i < m; ++i)
+            for (size_t k = 0; k < n; ++k)
+                Gv[i] += G[i * n + k] * qd[k];
+
+        std::vector<value_t> const dqd = hd::ga::lstsq_solve(G, Gv, n); // G⁺(G q-dot)
+        for (size_t k = 0; k < n; ++k) {
+            tree_.joint[rj[k]].omega -= dqd[k];
+            tree_.apply_joint_state(rj[k]);
+        }
     }
 
     // the dof joints NOT in `driven` -- the coordinates assemble() solves for
@@ -254,59 +519,6 @@ class closed_loop_system2dp {
             }
         }
         return G;
-    }
-
-    // Solve G * delta = -g for the Newton increment (G is m x ndep, row-major). Three
-    // regimes, all routed through the shared square LU solver (detail/ga_solver.hpp):
-    //   ndep == m : square        -> solve directly
-    //   ndep >  m : underdetermined -> minimum-norm  delta = G^T (G G^T)^-1 (-g)
-    //   ndep <  m : overdetermined  -> least-squares delta = (G^T G)^-1 G^T (-g)
-    // The four-bar is the square case; the other two keep assemble() well-posed for
-    // redundant / over-constrained loops.
-    static std::vector<value_t> newton_step(std::vector<value_t> const& G,
-                                            std::vector<value_t> const& g, size_t ndep)
-    {
-        size_t const m = g.size();
-        std::vector<value_t> rhs(m);
-        for (size_t i = 0; i < m; ++i)
-            rhs[i] = -g[i];
-
-        if (ndep == m) {
-            return hd::ga::lu_solve(G, rhs, m); // square G
-        }
-        if (ndep > m) {
-            // minimum-norm: solve (G G^T) y = -g (m x m), then delta = G^T y
-            std::vector<value_t> GGt(m * m, 0.0);
-            for (size_t i = 0; i < m; ++i)
-                for (size_t j = 0; j < m; ++j) {
-                    value_t s = 0.0;
-                    for (size_t k = 0; k < ndep; ++k)
-                        s += G[i * ndep + k] * G[j * ndep + k];
-                    GGt[i * m + j] = s;
-                }
-            std::vector<value_t> const y = hd::ga::lu_solve(GGt, rhs, m);
-            std::vector<value_t> delta(ndep, 0.0);
-            for (size_t k = 0; k < ndep; ++k) {
-                value_t s = 0.0;
-                for (size_t i = 0; i < m; ++i)
-                    s += G[i * ndep + k] * y[i];
-                delta[k] = s;
-            }
-            return delta;
-        }
-        // overdetermined: normal equations (G^T G) delta = G^T (-g) (ndep x ndep)
-        std::vector<value_t> GtG(ndep * ndep, 0.0), Gtr(ndep, 0.0);
-        for (size_t a = 0; a < ndep; ++a) {
-            for (size_t i = 0; i < m; ++i)
-                Gtr[a] += G[i * ndep + a] * rhs[i];
-            for (size_t b = 0; b < ndep; ++b) {
-                value_t s = 0.0;
-                for (size_t i = 0; i < m; ++i)
-                    s += G[i * ndep + a] * G[i * ndep + b];
-                GtG[a * ndep + b] = s;
-            }
-        }
-        return hd::ga::lu_solve(GtG, Gtr, ndep);
     }
 };
 

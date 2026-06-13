@@ -26,8 +26,8 @@ namespace hd::ga::pga {
 // ga_pga2dp_ops_constraints.hpp. dynamic_system2dp grants it friendship so the
 // constrained KKT / assembly solver can reuse the tree's private assembly seam
 // (assemble_mass_bias, the joint screws, dof_joints/is_ancestor, apply_joint_state)
-// WITHOUT widening the open-loop public API. See TODO/closed_loop_system_consideration.md
-// (§5, the reuse surface). Open-loop users never include the constraints header.
+// WITHOUT widening the open-loop public API. Open-loop users never include the
+// constraints header.
 class closed_loop_system2dp;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1229,13 +1229,13 @@ class dynamic_system2dp : public kinematic_system2dp {
     // SIDE EFFECT: this runs the bias pass, zeroing the chain's relative accel twists
     // (rel_atwist) so the world accel queries return only the q-ddot-independent part.
     //
-    // Split out of forward_dynamics() as the reuse seam for the planned closed-loop
-    // layer: the same spatial-Jacobian columns (velocity_field) that build M and RHS
-    // also build the loop-closure constraint Jacobian, so a constrained KKT solver can
-    // assemble on top of this without duplicating the inertia-map assembly. See
-    // TODO/closed_loop_system_consideration.md. Kept private for now (open-loop public
-    // surface unchanged); expose (make public or add a friend) when that layer lands.
-    // Returns { Mmat (n*n, row-major), RHS (n) }.
+    // Split out of forward_dynamics() as the reuse seam for the closed-loop layer
+    // (ga_pga2dp_ops_constraints.hpp): the same spatial-Jacobian columns (velocity_field)
+    // that build M and RHS also build the loop-closure constraint Jacobian, so the
+    // constrained KKT solver assembles on top of this without duplicating the inertia-map
+    // assembly. Private (the open-loop public surface is unchanged); the closed-loop
+    // layer reaches it through friendship (see the forward declaration above). Returns {
+    // Mmat (n*n, row-major), RHS (n) }.
     std::pair<std::vector<value_t>, std::vector<value_t>>
     assemble_mass_bias(std::vector<size_t> const& rj)
     {

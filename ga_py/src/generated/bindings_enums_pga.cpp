@@ -32,6 +32,9 @@ void register_enums_pga(nb::module_& m) {
     nb::enum_<constraint2dp>(m, "constraint2dp")
         .value("coincidence", constraint2dp::coincidence)
         ;
+    nb::enum_<constraint3dp>(m, "constraint3dp")
+        .value("coincidence", constraint3dp::coincidence)
+        ;
     nb::enum_<joint2dp>(m, "joint2dp")
         .value("free", joint2dp::free)
         .value("revolute", joint2dp::revolute)

@@ -1076,3 +1076,161 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
     }
 
 } // TEST_SUITE("PGA3DP: dynamic_system3dp (M3)")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// closed_loop_system3dp -- the 3D lift of the closed-loop layer, exercised on a
+// genuinely-spatial closed mechanism: a TWO-ARM REACHER whose two hands are pinned
+// together.
+//
+// Geometry (top view, looking down the vertical e3 axis; gravity acts along -e2):
+//
+//                              tip (shared hand)
+//                                    o                 e2 (up)
+//                          forearm  / \  forearm        ^
+//                                  /   \                 |
+//                          elbow  E1    E2  elbow        +---> e1
+//                                /       \
+//                       upperarm/         \upperarm
+//                              /           \
+//                        S1  o             o  S2     <- shoulders (fixed to the world)
+//                       (-1.2,0,0)      (1.2,0,0)
+//
+// Two identical 2R arms hang from fixed shoulders on the e1 axis (1.2 to each side of the
+// origin). Each arm has two revolute joints and two unit-length links:
+//
+//   shoulder (S1/S2): YAW   about the vertical e3 axis  -> swings the arm in the e1-e2
+//   plane elbow    (E1/E2): PITCH about the e2 axis           -> lifts the forearm OUT of
+//   that
+//                                                          plane (into +/- e3)
+//
+// The loop is closed by a single point-coincidence constraint: the two forearm tips (a
+// point L along each elbow frame's local e1) must occupy the same world point -- a
+// spatial spherical ("ball") joint joining the two hands. That is 3 scalar equations (x,
+// y, z).
+//
+// DOF: 4 revolute joints - 3 coincidence equations = 1 DOF. The redundancy that IS the
+// one remaining freedom lives in the two elbows: the two shoulders (yaw) set where the
+// shared hand sits in the horizontal e1-e2 plane (2 dof for the 2 in-plane equations),
+// and ONE elbow pitch is enough to satisfy the vertical (e3) equation -- so the OTHER
+// elbow pitch is free, and folding one elbow forces the other to follow. Driving an elbow
+// (E1) and solving {S1, S2, E2} therefore gives a well-posed, full-rank assembly; driving
+// a shoulder instead would leave two elbows fighting over the single vertical equation
+// while one shoulder alone cannot span the horizontal plane -- a rank-deficient
+// (singular) Jacobian.
+//
+// The out-of-plane elbow pitch is also what keeps the *constraint* full-rank in 3D: a
+// flat (planar) linkage would make the vertical equation permanently inactive, leaving
+// the KKT saddle-point matrix singular. Here all three coincidence components are live.
+//
+// Validated across all three tiers on the pga3dp base (sharing the dimension-agnostic
+// lstsq_solve / kkt_solve kernels with the 2D layer): Phase 1 assembly (drive g -> 0),
+// Phase 2 consistent velocity distribution (the shared hand has one well-defined
+// velocity), and Phase 3 energy-conserving constrained dynamics.
+/////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_SUITE("PGA3DP: closed_loop_system3dp")
+{
+
+    TEST_CASE("pga3dp: closed_loop_system3dp - spatial two-arm loop (assembly + energy)")
+    {
+        fmt::println("pga3dp: closed_loop_system3dp - spatial two-arm loop");
+
+        // one unit-mass cube body reused for every link; L = link length (upper arm =
+        // forearm = 1). A frame's rest origin is its centre of mass, so the energy
+        // bookkeeping (potential = -m g . cm) reads the frame origins directly.
+        value_t const m = 1.0, sgeo = 0.4, L = 1.0;
+        auto const link = make_cuboid_body(m, sgeo, sgeo, sgeo);
+
+        closed_loop_system3dp cl;
+        cl.add_frame(static_frame3dp("W")); // inertial root (world)
+
+        // --- arm 1 (left), hanging from the fixed shoulder S1 at (-1.2, 0, 0)
+        // ----------- shoulder S1: yaw about e3 (pivot = its own origin, axis = e3);
+        // start yawed inward (0.8 rad) so the hand reaches toward the centre
+        cl.add_revolute_body(static_frame3dp("S1", vec3dp{-1.2, 0.0, 0.0, 1.0}), link,
+                             vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0},
+                             /*yaw0*/ 0.8, /*rate0*/ 0.0, cl.index_of("W"));
+        // elbow E1: child of S1, its rest origin one link-length (L) out along S1's e1;
+        // pitch about e2 (lifts the forearm out of the horizontal plane)
+        cl.add_revolute_body(static_frame3dp("E1", vec3dp{L, 0.0, 0.0, 1.0}), link,
+                             vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 0.0},
+                             /*pitch0*/ 0.0, /*rate0*/ 0.0, cl.index_of("S1"));
+
+        // --- arm 2 (right), mirror image, shoulder S2 at (1.2, 0, 0)
+        // --------------------- shoulder S2 yawed inward (2.34 rad ~ pi - 0.8) so its
+        // hand also reaches the centre
+        cl.add_revolute_body(static_frame3dp("S2", vec3dp{1.2, 0.0, 0.0, 1.0}), link,
+                             vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{0.0, 0.0, 1.0, 0.0},
+                             /*yaw0*/ 2.34, /*rate0*/ 0.0, cl.index_of("W"));
+        cl.add_revolute_body(static_frame3dp("E2", vec3dp{L, 0.0, 0.0, 1.0}), link,
+                             vec3dp{0.0, 0.0, 0.0, 1.0}, vec3dp{0.0, 1.0, 0.0, 0.0},
+                             /*pitch0*/ 0.0, /*rate0*/ 0.0, cl.index_of("S2"));
+
+        size_t const E1 = cl.index_of("E1"), E2 = cl.index_of("E2");
+
+        // close the loop: arm 1's hand (a point L along E1's local e1) must coincide with
+        // arm 2's hand (L along E2's local e1) -- a spatial spherical joint joining them
+        cl.add_loop_constraint(loop_constraint3dp{E1, vec3dp{L, 0.0, 0.0, 1.0}, E2,
+                                                  vec3dp{L, 0.0, 0.0, 1.0},
+                                                  constraint3dp::coincidence});
+
+        // 1. (Phase 1) the two hands start apart (loop open); assemble() folds the joints
+        //    until they meet. Drive an ELBOW (the 1-DOF freedom) and solve {S1, S2, E2}:
+        //    that dependent set spans the 3D hand-gap, so the Newton Jacobian is full
+        //    rank.
+        value_t const g_open = cl.residual_norm();
+        CHECK(g_open > 0.05);
+        cl.assemble(/*driven*/ {E1});
+        CHECK(cl.residual_norm() < 1e-10);
+
+        // 2. (Phase 2) give the mechanism a consistent initial motion: spin the driver
+        //    elbow at 1.5 rad/s and distribute that to the other joints so G q-dot = 0.
+        cl.set_joint_rate(E1, 1.5);
+        cl.solve_velocities(/*driven*/ {E1});
+        // velocity closure: with the loop respected, the single shared hand has ONE
+        // velocity -- arm 1 and arm 2 must compute the same value for it.
+        auto unit = [](vec3dp const& p) { return unitize(p); };
+        auto const PtA =
+            unit(move3dp(vec3dp{L, 0.0, 0.0, 1.0}, cl.system().get_pos_trafo(E1, 0)));
+        auto const PtB =
+            unit(move3dp(vec3dp{L, 0.0, 0.0, 1.0}, cl.system().get_pos_trafo(E2, 0)));
+        auto const vA = cl.system().point_velocity(PtA, E1);
+        auto const vB = cl.system().point_velocity(PtB, E2);
+        CHECK(std::abs(vA.x - vB.x) < 1e-9);
+        CHECK(std::abs(vA.y - vB.y) < 1e-9);
+        CHECK(std::abs(vA.z - vB.z) < 1e-9);
+
+        // 3. (Phase 3) let it swing: constrained forward dynamics under gravity (the KKT
+        //    solve supplies the joint accelerations + constraint/leg forces; RK4
+        //    advances; projection removes drift). The initial spin plus gravity exchange
+        //    kinetic and potential energy, but the constraint forces do no work, so TOTAL
+        //    energy is conserved to integrator tolerance while the loop stays closed.
+        value_t const dt = 2.0e-4;
+        size_t const N = 10000; // 2 s
+        value_t const E0 = cl.system().total_energy();
+        value_t Emin = E0, Emax = E0, KEmax = 0.0, gmax = 0.0;
+        for (size_t n = 0; n < N; ++n) {
+            cl.step(dt);
+            value_t const E = cl.system().total_energy();
+            Emin = std::min(Emin, E);
+            Emax = std::max(Emax, E);
+            KEmax = std::max(KEmax, cl.system().kinetic_energy());
+            gmax = std::max(gmax, cl.residual_norm());
+        }
+        value_t scale = KEmax;
+        if (std::abs(E0) > scale) scale = std::abs(E0);
+        value_t const drift = (Emax - Emin) / scale;
+
+        CHECK(drift < 1e-4); // energy conserved over the spatial swing
+        CHECK(gmax < 1e-9);  // loop stays closed (projection controls drift)
+        CHECK(KEmax > 0.1);  // genuinely moving (driven by the initial spin + gravity)
+
+        fmt::println(
+            "  g_open = {:.3f} -> assembled = {:.2e}; E0 = {:.5f}, KEmax = {:.4f}, "
+            "dE/scale = {:.2e}, max||g|| = {:.2e}",
+            g_open, cl.residual_norm(), E0, KEmax, drift, gmax);
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: closed_loop_system3dp")

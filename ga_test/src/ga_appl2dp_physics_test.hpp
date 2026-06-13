@@ -3568,4 +3568,168 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    // closed_loop_system2dp -- Phase 2 (kinematic closed loop): velocity and acceleration
+    // distribution on the same planar four-bar. Driving the crank at a prescribed rate,
+    // the dependent (coupler, rocker) joint rates follow from the velocity-level loop
+    // closure G q-dot = 0, and their accelerations from the acceleration-level closure
+    // G q-ddot = -G-dot q-dot. Validated against analytic four-bar ratios at the closed
+    // configuration theta2 = pi/2 (A = (0,2), B = (3,2)):
+    //
+    //   velocity closure  v_B(crank+coupler) = v_B(rocker):
+    //     omega4 = omega2,            omega3(rel) = -4/3 omega2
+    //   acceleration closure (alpha2 = 0):
+    //     alpha4 = 2/3 omega2^2,      alpha3(rel) = -2/9 omega2^2
+    //
+    // (derived by equating the two branch expressions for the velocity / acceleration of
+    // the shared coupler tip B; omega3/alpha3 are the joint RELATIVE coupler-vs-crank
+    // rates, which is what the solver returns.)
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga2dp: closed_loop_system2dp - four-bar velocity/acceleration (Phase 2)")
+    {
+        fmt::println(
+            "pga2dp: closed_loop_system2dp - four-bar velocity/acceleration (Phase 2)");
+
+        value_t const a = 2.0, b = 3.0, c = std::sqrt(5.0), d = 4.0;
+        value_t const theta2 = pi / 2.0;
+        auto const link = make_plate_body(1.0, 1.0, 1.0);
+
+        closed_loop_system2dp cl;
+        cl.add_frame(static_frame2dp("W"));
+        cl.add_revolute_body(static_frame2dp("CR", vec2dp{0.0, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, theta2, 0.0, cl.index_of("W"));
+        cl.add_revolute_body(static_frame2dp("CO", vec2dp{a, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, -1.4, 0.0, cl.index_of("CR"));
+        cl.add_revolute_body(static_frame2dp("RO", vec2dp{d, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, 2.2, 0.0, cl.index_of("W"));
+        size_t const CR = cl.index_of("CR"), CO = cl.index_of("CO"),
+                     RO = cl.index_of("RO");
+        cl.add_loop_constraint(loop_constraint2dp{CO, vec2dp{b, 0.0, 1.0}, RO,
+                                                  vec2dp{c, 0.0, 1.0},
+                                                  constraint2dp::coincidence});
+
+        // assemble the closed configuration first (g ~ 0)
+        cl.assemble(/*driven*/ {CR});
+        REQUIRE(cl.residual_norm() < 1e-12);
+
+        // world-coordinate (unitized) closure point reached from each branch
+        auto unit = [](vec2dp const& p) { return vec2dp{p.x / p.z, p.y / p.z, 1.0}; };
+        auto const Pa =
+            unit(move2dp(vec2dp{b, 0.0, 1.0}, cl.system().get_pos_trafo(CO, 0)));
+        auto const Pb =
+            unit(move2dp(vec2dp{c, 0.0, 1.0}, cl.system().get_pos_trafo(RO, 0)));
+
+        // --- velocity level: drive the crank at omega2 = 1, distribute to coupler/rocker
+        value_t const omega2 = 1.0;
+        cl.set_joint_rate(CR, omega2);
+        cl.solve_velocities(/*driven*/ {CR});
+
+        CHECK(cl.joint_rate(CO) == doctest::Approx(-4.0 / 3.0 * omega2).epsilon(1e-9));
+        CHECK(cl.joint_rate(RO) == doctest::Approx(omega2).epsilon(1e-9));
+
+        // velocity closure: the shared tip B has the SAME velocity from both branches
+        auto const vA = cl.system().point_velocity(Pa, CO);
+        auto const vB = cl.system().point_velocity(Pb, RO);
+        CHECK(std::abs(vA.x - vB.x) < 1e-9);
+        CHECK(std::abs(vA.y - vB.y) < 1e-9);
+
+        // --- acceleration level: constant crank rate (alpha2 = 0) -> coupler/rocker
+        // accel
+        auto const adep = cl.solve_accelerations(/*driven*/ {CR}, /*alpha_drv*/ {0.0});
+        // adep is in dependent-joint order = [CO, RO]
+        CHECK(adep[0] == doctest::Approx(-2.0 / 9.0 * omega2 * omega2).epsilon(1e-9));
+        CHECK(adep[1] == doctest::Approx(2.0 / 3.0 * omega2 * omega2).epsilon(1e-9));
+
+        // acceleration closure: the shared tip B has the SAME acceleration from both
+        // branches (the defining property G q-ddot + G-dot q-dot = 0)
+        auto const aA = cl.system().point_acceleration(Pa, CO);
+        auto const aB = cl.system().point_acceleration(Pb, RO);
+        CHECK(std::abs(aA.x - aB.x) < 1e-9);
+        CHECK(std::abs(aA.y - aB.y) < 1e-9);
+
+        fmt::println("  omega: coupler = {:.6f} (exact {:.6f}), rocker = {:.6f} (exact "
+                     "{:.6f})",
+                     cl.joint_rate(CO), -4.0 / 3.0, cl.joint_rate(RO), 1.0);
+        fmt::println("  alpha: coupler = {:.6f} (exact {:.6f}), rocker = {:.6f} (exact "
+                     "{:.6f})",
+                     adep[0], -2.0 / 9.0, adep[1], 2.0 / 3.0);
+        fmt::println("  closure: |dv| = ({:.1e},{:.1e}), |da| = ({:.1e},{:.1e})",
+                     std::abs(vA.x - vB.x), std::abs(vA.y - vB.y), std::abs(aA.x - aB.x),
+                     std::abs(aA.y - aB.y));
+        fmt::println("");
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // closed_loop_system2dp -- Phase 3 (dynamic closed loop): constrained forward
+    // dynamics of the four-bar under gravity. The three joints (crank, coupler, rocker)
+    // are all free and coupled by the 2 coincidence equations (a 1-DOF mechanism),
+    // integrated by RK4 with the acceleration-level KKT solve at each sub-step and
+    // post-step projection stabilisation. The headline correctness metric is ENERGY
+    // CONSERVATION: the constraint forces (Lagrange multipliers) do no work, so total
+    // energy is conserved to integrator tolerance, and the closure error ‖g‖ stays
+    // bounded (no drift). Each link is a plate whose centre of mass sits at its frame
+    // origin (the joint), so the coupler mass at the moving crank tip A is the
+    // gravitating element that drives the loop.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga2dp: closed_loop_system2dp - four-bar energy conservation (Phase 3)")
+    {
+        fmt::println(
+            "pga2dp: closed_loop_system2dp - four-bar energy conservation (Phase 3)");
+
+        value_t const a = 2.0, b = 3.0, c = std::sqrt(5.0), d = 4.0;
+        // start the crank away from theta2 = pi/2 (where the coupler mass at A sits directly
+        // above O2 and gravity is radial -> a zero-torque unstable equilibrium that would
+        // never leave rest); 1.2 rad gives a real driving torque.
+        value_t const theta2 = 1.2;
+        auto const link = make_plate_body(1.0, 1.0, 1.0); // unit-mass plate, cm at origin
+
+        closed_loop_system2dp cl;
+        cl.add_frame(static_frame2dp("W"));
+        cl.add_revolute_body(static_frame2dp("CR", vec2dp{0.0, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, theta2, 0.0, cl.index_of("W"));
+        cl.add_revolute_body(static_frame2dp("CO", vec2dp{a, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, -1.4, 0.0, cl.index_of("CR"));
+        cl.add_revolute_body(static_frame2dp("RO", vec2dp{d, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, 2.2, 0.0, cl.index_of("W"));
+        size_t const CR = cl.index_of("CR");
+        cl.add_loop_constraint(loop_constraint2dp{cl.index_of("CO"), vec2dp{b, 0.0, 1.0},
+                                                  cl.index_of("RO"), vec2dp{c, 0.0, 1.0},
+                                                  constraint2dp::coincidence});
+
+        // start from the assembled configuration, released from rest (all rates 0)
+        cl.assemble(/*driven*/ {CR});
+        REQUIRE(cl.residual_norm() < 1e-12);
+
+        // 1. constraint forces do no work -> energy conserved over the swing
+        value_t const dt = 0.0005;
+        size_t const N = 6000; // 3 s
+        value_t const E0 = cl.system().total_energy();
+        value_t Emin = E0, Emax = E0, KEmax = 0.0, gmax = 0.0;
+        for (size_t n = 0; n < N; ++n) {
+            cl.step(dt);
+            value_t const E = cl.system().total_energy();
+            Emin = std::min(Emin, E);
+            Emax = std::max(Emax, E);
+            KEmax = std::max(KEmax, cl.system().kinetic_energy());
+            gmax = std::max(gmax, cl.residual_norm());
+        }
+        value_t scale = KEmax;
+        if (std::abs(E0) > scale) scale = std::abs(E0);
+        value_t const drift = (Emax - Emin) / scale;
+        CHECK(drift < 1e-4); // observed ~1e-6; same tolerance class as the open-loop tests
+
+        // 2. the loop stays closed across the whole run (projection controls drift)
+        CHECK(gmax < 1e-9);
+
+        // 3. the mechanism actually moved (non-trivial dynamics, not a frozen config)
+        CHECK(KEmax > 0.05);
+
+        fmt::println(
+            "  E0 = {:.6f}, KEmax = {:.4f}, dE/scale = {:.2e}, max||g|| = {:.2e}", E0,
+            KEmax, drift, gmax);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")

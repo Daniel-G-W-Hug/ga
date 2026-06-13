@@ -19,6 +19,7 @@ void bind_kin_state3dp(nb::module_& m);
 void bind_line2d(nb::module_& m);
 void bind_line3d(nb::module_& m);
 void bind_loop_constraint2dp(nb::module_& m);
+void bind_loop_constraint3dp(nb::module_& m);
 void bind_mvec2d(nb::module_& m);
 void bind_mvec2d_e(nb::module_& m);
 void bind_mvec2dp(nb::module_& m);
@@ -90,6 +91,7 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::modu
     bind_kin_state2dp(pga);
     bind_kin_state3dp(pga);
     bind_loop_constraint2dp(pga);
+    bind_loop_constraint3dp(pga);
     bind_mvec2d(ega);
     bind_mvec2d_e(ega);
     bind_mvec2dp(pga);

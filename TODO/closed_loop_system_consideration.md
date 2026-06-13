@@ -1,8 +1,10 @@
 # Closed-loop systems — findings and implementation plan
 
-Status: design note / proposal. **Phase 0 (reuse-seam prep) and all of Phase 1 (2D C++
-core + ga_py) landed**; Phases 2-5 not yet implemented. Captures (a) why
-the current `static_/kinematic_/dynamic_system{2,3}dp` tier
+Status: design note / proposal. **The full 2D AND 3D stack landed — Phase 0 (reuse-seam
+prep), Phase 1 (C++ core + ga_py), Phase 2 (kinematic), Phase 3 (dynamic, energy-conserving
+KKT) and Phase 4 (3D lift over `pga3dp`, with the numeric kernels shared via
+`detail/ga_solver.hpp`)**; only Phase 5 (docs/demo/wrappers) remains. Captures
+(a) why the current `static_/kinematic_/dynamic_system{2,3}dp` tier
 is **open-chain only**, and (b) a plan to add **closed-loop** (parallel mechanism) support
 as a *separate, additive* layer that reuses the open-loop code without complicating it.
 
@@ -272,15 +274,62 @@ assembly).
   `constraint2dp` enum field blocked the plain-regeneration auto-bind originally assumed
   here). The stateful `closed_loop_system` class is NOT bound (reconstructed in Python from
   primitives, see Phase 5).
-- **Phase 2 — kinematic closed loop.** Distribute driver joint rate to dependent rates
-  (`G q̇ = 0`) and accelerations (`G q̈ = -Ġ q̇`). Validate four-bar velocity/accel ratios
-  vs. analytic.
-- **Phase 3 — dynamic closed loop.** KKT (or Schur) solve for `q̈, λ`; post-step projection
-  stabilisation; RK4 via the shared `rk4_step`. Validate four-bar **energy conservation**
-  to integrator tolerance (the headline correctness metric) and bounded constraint drift.
-- **Phase 4 — 3D lift.** Mirror onto `closed_loop_system3dp` over the `pga3dp` base
-  (point-coincidence → spatial spherical joints). Validate a **Stewart-Gough / delta**
-  analogue: forward dynamics of a 6-leg platform; energy check.
+- **Phase 2 — kinematic closed loop. [DONE 2026-06-13]** `closed_loop_system2dp` gains
+  `set_joint_rate`/`joint_rate`, `solve_velocities(driven)` (`G_dep q̇_dep = -G_drv q̇_drv`)
+  and `solve_accelerations(driven, driven_accels)` (`G_dep q̈_dep = -G_drv q̈_drv - Ġ q̇`,
+  with the `Ġ q̇` velocity-product term read off as the relative anchor acceleration at
+  dependent `q̈=0` via the kinematic layer's `point_acceleration` bias trick — no extra
+  geometry). The position Newton, velocity and acceleration solves all route through one
+  refactored `solve_jacobian_system(G,b)` (square LU / min-norm / least-squares). Validated
+  on the four-bar at θ2=π/2 against analytic ratios (ω: coupler −4/3, rocker 1; α: coupler
+  −2/9, rocker 2/3 for ω2=1, α2=0 — all exact to ~1e-12) plus velocity/acceleration closure
+  of the shared coupler tip (`‖dv‖,‖da‖ ~1e-16`). Test:
+  `ga_appl2dp_physics_test.hpp` (now 44 cases / 517 assertions). No ga_py impact (only
+  member functions added to the unbound class).
+- **Phase 3 — dynamic closed loop. [DONE 2026-06-13]** `closed_loop_system2dp` gains
+  `joint_accelerations()` (the bordered acceleration-level KKT solve for `q̈, λ` — `M`/`τ`
+  reused from `assemble_mass_bias`, `G` from `constraint_jacobian`, `-Ġq̇` from
+  `constraint_bias` = the relative anchor accel at `q̈=0` via the `point_acceleration` bias
+  trick; solved with the shared LU) and `step(dt)` (RK4 via the shared `rk4_step`, then GGL
+  post-step projection: position by a min-norm Newton `assemble({})`, velocity by
+  `q̇ ← q̇ − G⁺(Gq̇)` — drift control with no energy injection). Validated on the four-bar
+  released under gravity from θ2=1.2 (π/2 is a radial-gravity zero-torque equilibrium —
+  started off it): **energy conserved `dE/scale ≈ 1.3e-6`** over 3 s (KEmax 37.9, the
+  KE↔PE exchange balances E0=18.29 exactly), closure drift `max‖g‖ ≈ 1e-12`. Test:
+  `ga_appl2dp_physics_test.hpp` (now 45 cases / 521 assertions). No ga_py impact.
+  (Slider-crank mixed revolute/prismatic loop from §7 still open as a secondary test.)
+- **Phase 4 — 3D lift.**
+  - *Step 0 — shared-kernel extraction. [DONE 2026-06-13]* Before mirroring, the two
+    domain- and dimension-agnostic numeric kernels were promoted to
+    [ga/detail/ga_solver.hpp](../ga/detail/ga_solver.hpp) (beside `lu_solve`, templated on
+    T): `lstsq_solve(A, b, ncols)` (rectangular square / min-norm / least-squares solve) and
+    `kkt_solve(M, G, f, g, n, m, λ*)` (bordered saddle-point solve). `closed_loop_system2dp`
+    was refactored onto them (dropping its private `newton_step`/`solve_jacobian_system` and
+    the inline KKT assembly); behaviour byte-identical (all 24 closed-loop assertions, 521
+    total, unchanged). Decision (user-confirmed): generic numerics live in the **general
+    numeric layer**, NOT a physics-shared header, so the planned electromagnetics extension
+    reaches them without depending on mechanics (same rationale as `lu_solve`/`rk4_step`).
+    The GA-mechanics machinery (`constraint_jacobian` via `velocity_field`, `constraint_bias`
+    via `point_acceleration`, the orchestration) stays in `_ops_constraints.hpp`, mirrored
+    2dp/3dp (parallel-class convention, not templated sharing).
+  - *Main lift. [DONE 2026-06-13]* `closed_loop_system3dp` in
+    [ga/ga_pga3dp_ops_constraints.hpp](../ga/ga_pga3dp_ops_constraints.hpp) — a faithful
+    mirror of the 2D class over the `pga3dp` base (point-coincidence → spatial spherical
+    joint; residual = 3-component unitized anchor difference; `G` columns = `velocity_field`
+    on `vec3dp`; `twist3dp`/`move3dp`/`mvec3dp_e` swaps; the `(pivot,axis)` revolute
+    signature), consuming the shared `lstsq_solve`/`kkt_solve` verbatim. Friend hook +
+    forward-decl added to `dynamic_system3dp`; `loop_constraint3dp` + `constraint3dp` fmt
+    formatter; wired into `ga_pga.hpp`. **Validated** on a genuinely-spatial 1-DOF two-arm
+    reacher (two 2R arms, shoulder-yaw e3 + elbow-pitch e2, forearm tips pinned — full-rank
+    3D constraint; a planar embedding would make the KKT singular): assembly `g 0.385 →
+    5e-13`, velocity closure of the shared hand `~1e-12`, and **energy conservation
+    `dE/scale ≈ 9e-10`** with closure drift `~1e-12` over a 2 s spatial swing.
+    `ga_appl3dp_physics_test.hpp` (now 29 cases / 7609 assertions). ga_py: the
+    `loop_constraint3dp` struct and `constraint3dp` enum auto-bound by the Phase-1 enum
+    support (pga now 34 types / 4 enums);
+    `ga_py/tests/test_constraints.py` extended (715 ga_py tests). The Stewart-Gough / delta
+    6-leg platform remains a richer future demo (Phase 5), but the 3D layer + energy metric
+    are proven here.
 - **Phase 5 — docs, demo, wrappers.** Extend `ga_docu` with the new facility as a
   first-class deliverable (scope + mandatory style match in §9); add a `ga_view` four-bar
   (2D) and Stewart/delta (3D) scene; optional Python exposure (the class is stateful, so
