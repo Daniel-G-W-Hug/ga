@@ -39,6 +39,11 @@
 #include "ga_pga2dp_ops_physics.hpp" // physics operations for 2dp
 #include "ga_pga3dp_ops_physics.hpp" // physics operations for 3dp
 
+// PGA closed-loop / parallel-mechanism operations (loop-closure constraints), an additive
+// layer composed on top of the open-chain physics tier (open-loop users need not include
+// it; see TODO/closed_loop_system_consideration.md)
+#include "ga_pga2dp_ops_constraints.hpp" // closed-loop operations for 2dp
+
 // physics convenience aliases (after the physics ops headers they depend on)
 #include "ga_usr_types_physics.hpp" // inertia2dp / inertia3dp (value_t-based)
 

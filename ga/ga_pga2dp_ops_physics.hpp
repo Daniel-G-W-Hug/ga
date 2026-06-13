@@ -22,6 +22,14 @@
 
 namespace hd::ga::pga {
 
+// Forward declaration of the (optional) closed-loop layer in
+// ga_pga2dp_ops_constraints.hpp. dynamic_system2dp grants it friendship so the
+// constrained KKT / assembly solver can reuse the tree's private assembly seam
+// (assemble_mass_bias, the joint screws, dof_joints/is_ancestor, apply_joint_state)
+// WITHOUT widening the open-loop public API. See TODO/closed_loop_system_consideration.md
+// (§5, the reuse surface). Open-loop users never include the constraints header.
+class closed_loop_system2dp;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Inertia2dp: Inertia matrix for 2D projective GA (3x3 matrix)
 //
@@ -917,6 +925,13 @@ struct joint_state2dp {
 
 
 class dynamic_system2dp : public kinematic_system2dp {
+
+    // The optional closed-loop layer (ga_pga2dp_ops_constraints.hpp) composes a
+    // dynamic_system2dp as its spanning tree and reuses this class's private assembly
+    // seam (assemble_mass_bias, the joint screws, dof_joints/is_ancestor,
+    // apply_joint_state) to build the loop-closure constraint Jacobian and the
+    // constrained dynamics on top -- without those internals becoming public API.
+    friend class closed_loop_system2dp;
 
     std::vector<body2dp> body;         // per-frame inertial properties (index = frame)
     std::vector<joint_state2dp> joint; // per-frame joint state (index = frame)

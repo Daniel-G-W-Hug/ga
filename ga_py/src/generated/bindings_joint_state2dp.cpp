@@ -28,22 +28,25 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_pose3dp(nb::module_& m) {
-    nb::class_<pose3dp>(m, "pose3dp")
-        .def("__init__", [](pose3dp* self) { new (self) pose3dp{}; })
+void bind_joint_state2dp(nb::module_& m) {
+    nb::class_<joint_state2dp>(m, "joint_state2dp")
+        .def("__init__", [](joint_state2dp* self) { new (self) joint_state2dp{}; })
         .def("__init__",
-            [](pose3dp* self, vec3dp const& origin, vec3dp const& rot) { new (self) pose3dp(origin, rot); },
-            nb::arg("origin"), nb::arg("rot"))
-        .def_rw("origin", &pose3dp::origin)
-        .def_rw("rot", &pose3dp::rot)
-        .def("__repr__", [](const pose3dp& v) {
+            [](joint_state2dp* self, joint2dp const& type, vec2dp const& screw_b, mvec2dp_u const& rest, double phi, double omega) { new (self) joint_state2dp(type, screw_b, rest, phi, omega); },
+            nb::arg("type"), nb::arg("screw_b"), nb::arg("rest"), nb::arg("phi"), nb::arg("omega"))
+        .def_rw("type", &joint_state2dp::type)
+        .def_rw("screw_b", &joint_state2dp::screw_b)
+        .def_rw("rest", &joint_state2dp::rest)
+        .def_rw("phi", &joint_state2dp::phi)
+        .def_rw("omega", &joint_state2dp::omega)
+        .def("__repr__", [](const joint_state2dp& v) {
             return fmt::format("{}", v);
         })
-        .def("__str__", [](const pose3dp& v) {
+        .def("__str__", [](const joint_state2dp& v) {
             return fmt::format("{}", v);
         })
         .def("__format__",
-            [](const pose3dp& v, std::string_view spec) {
+            [](const joint_state2dp& v, std::string_view spec) {
                 try {
                     if (spec.empty()) return fmt::format("{}", v);
                     return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
@@ -52,8 +55,8 @@ void bind_pose3dp(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
-        .def("__eq__", [](const pose3dp& a, const pose3dp& b) {
-            return a.origin == b.origin && a.rot == b.rot;
+        .def("__eq__", [](const joint_state2dp& a, const joint_state2dp& b) {
+            return a.type == b.type && a.screw_b == b.screw_b && a.rest == b.rest && a.phi == b.phi && a.omega == b.omega;
         })
         ;
 }

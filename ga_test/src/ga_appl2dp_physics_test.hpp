@@ -3472,4 +3472,100 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    // closed_loop_system2dp -- Phase 1 (position-level assembly): the planar FOUR-BAR
+    // linkage, the canonical 1-DOF closed loop. As a spanning tree it is two branches off
+    // the ground: crank -> coupler (open 3-link chain O2 -> A -> B), and the rocker (O4
+    // -> B') as a separate branch. The loop is closed by a point-coincidence constraint
+    // requiring the coupler tip B to coincide with the rocker tip B'. assemble() drives
+    // the crank and solves the coupler + rocker joints so g(q) = 0 (Newton on the
+    // constraint Jacobian, whose columns are the reused spatial-Jacobian velocity_field
+    // partials). Validated against an analytically-known closed configuration.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga2dp: closed_loop_system2dp - four-bar assembly (Phase 1)")
+    {
+        fmt::println("pga2dp: closed_loop_system2dp - four-bar assembly (Phase 1)");
+
+        // four-bar lengths chosen so a clean closed configuration exists at crank = pi/2:
+        //   a (crank) = 2, b (coupler) = 3, c (rocker) = sqrt(5), d (ground) = 4
+        //   O2 = (0,0), O4 = (4,0); at theta2 = pi/2: A = (0,2), B = B' = (3,2)
+        //   -> dependent angles theta3 = -pi/2 (coupler vs crank), theta4 = atan2(2,-1)
+        value_t const a = 2.0, b = 3.0, c = std::sqrt(5.0), d = 4.0;
+        value_t const theta2 = pi / 2.0;        // crank angle (driver, held fixed)
+        value_t const theta3_exact = -pi / 2.0; // coupler vs crank (ground truth)
+        value_t const theta4_exact = std::atan2(2.0, -1.0); // rocker (ground truth)
+
+        // nominal body (its inertia/cm is irrelevant to the position-level assembly)
+        auto const link = make_plate_body(1.0, 1.0, 1.0);
+
+        closed_loop_system2dp cl;
+        cl.add_frame(static_frame2dp("W")); // inertial root / ground
+
+        // branch 1: crank (revolute about O2) then coupler (revolute about A)
+        cl.add_revolute_body(static_frame2dp("CR", vec2dp{0.0, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, /*phi0*/ theta2, /*omega0*/ 0.0,
+                             cl.index_of("W"));
+        cl.add_revolute_body(static_frame2dp("CO", vec2dp{a, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, /*phi0 (perturbed)*/ -1.4,
+                             /*omega0*/ 0.0, cl.index_of("CR"));
+        // branch 2: rocker (revolute about O4)
+        cl.add_revolute_body(static_frame2dp("RO", vec2dp{d, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, /*phi0 (perturbed)*/ 2.2,
+                             /*omega0*/ 0.0, cl.index_of("W"));
+
+        size_t const CR = cl.index_of("CR"), CO = cl.index_of("CO"),
+                     RO = cl.index_of("RO");
+
+        // close the loop: coupler tip B (= (b,0) in CO) coincides with rocker tip B'
+        // (= (c,0) in RO)
+        cl.add_loop_constraint(loop_constraint2dp{CO, vec2dp{b, 0.0, 1.0}, RO,
+                                                  vec2dp{c, 0.0, 1.0},
+                                                  constraint2dp::coincidence});
+
+        // 1. the loop is initially OPEN (coupler/rocker tips do not coincide)
+        value_t const g0 = cl.residual_norm();
+        CHECK(g0 > 0.1);
+
+        // 2. assemble: drive the crank, solve coupler + rocker (square Newton: 2
+        // dependent
+        //    joints, 2 coincidence equations) -> residual driven to ~0
+        value_t const gfin = cl.assemble(/*driven*/ {CR});
+        CHECK(gfin < 1e-12);
+        CHECK(cl.residual_norm() < 1e-12);
+
+        // 3. the solved dependent joint angles match the analytic closed configuration
+        value_t const theta3_solved = cl.system().joint_phi(CO);
+        value_t const theta4_solved = cl.system().joint_phi(RO);
+        CHECK(theta3_solved == doctest::Approx(theta3_exact).epsilon(1e-9));
+        CHECK(theta4_solved == doctest::Approx(theta4_exact).epsilon(1e-9));
+        // the driven crank angle was held fixed
+        CHECK(cl.system().joint_phi(CR) == doctest::Approx(theta2).epsilon(1e-15));
+
+        // 4. the closure point B reached from both branches lands at (3,2)
+        auto const Bc = move2dp(vec2dp{b, 0.0, 1.0}, cl.system().get_pos_trafo(CO, 0));
+        auto const Br = move2dp(vec2dp{c, 0.0, 1.0}, cl.system().get_pos_trafo(RO, 0));
+        CHECK(Bc.x / Bc.z == doctest::Approx(3.0).epsilon(1e-9));
+        CHECK(Bc.y / Bc.z == doctest::Approx(2.0).epsilon(1e-9));
+        CHECK(Br.x / Br.z == doctest::Approx(3.0).epsilon(1e-9));
+        CHECK(Br.y / Br.z == doctest::Approx(2.0).epsilon(1e-9));
+
+        // 5. sweep the crank over a range and re-assemble at each step: the loop stays
+        //    closed (continuous assembly within one branch of the four-bar)
+        value_t gmax = 0.0;
+        for (int k = 1; k <= 20; ++k) {
+            value_t const th = theta2 + 0.3 * std::sin(0.3 * k); // wiggle the crank
+            cl.set_joint(CR, th);                                // drive the crank to th
+            value_t const gk = cl.assemble(/*driven*/ {CR});
+            gmax = std::max(gmax, gk);
+        }
+        CHECK(gmax < 1e-10);
+
+        fmt::println(
+            "  g_open = {:.4f} -> g_assembled = {:.2e}; theta3 = {:.6f} "
+            "(exact {:.6f}), theta4 = {:.6f} (exact {:.6f}); g_sweep_max = {:.2e}",
+            g0, gfin, theta3_solved, theta3_exact, theta4_solved, theta4_exact, gmax);
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests implementation")

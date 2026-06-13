@@ -10,6 +10,11 @@
 #include "../../ga_pga2dp_ops_physics.hpp"
 #include "../../ga_pga3dp_ops_physics.hpp"
 
+// Pull in the (optional) closed-loop layer so the loop_constraint2dp formatter below is
+// available wherever ga_pga.hpp is included (the constraints header itself stays free of
+// any fmt dependency).
+#include "../../ga_pga2dp_ops_constraints.hpp"
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // Formatting support for PGA Physics types (Inertia matrices)
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -214,6 +219,60 @@ template <> struct fmt::formatter<hd::ga::pga::kin_state2dp> {
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// joint2dp / joint_state2dp - the reduced-coordinate joint of a body vs. its
+// parent (joint kind + screw generator + rest motor + generalised coord/rate)
+////////////////////////////////////////////////////////////////////////////////
+
+inline char const* joint2dp_name(hd::ga::pga::joint2dp t)
+{
+    using hd::ga::pga::joint2dp;
+    switch (t) {
+        case joint2dp::free:
+            return "free";
+        case joint2dp::revolute:
+            return "revolute";
+        case joint2dp::prismatic:
+            return "prismatic";
+    }
+    return "?";
+}
+
+template <> struct fmt::formatter<hd::ga::pga::joint_state2dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::joint_state2dp const& j, FormatContext& ctx) const
+    {
+        using hd::ga::detail::suppress_negative_zero;
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out =
+            fmt::format_to(ctx.out(), "joint_state2dp(type = {}", joint2dp_name(j.type));
+        out = fmt::format_to(out, ", screw_b = ");
+        out = fmt::format_to(out, fmt::runtime(child), j.screw_b);
+        out = fmt::format_to(out, ", rest = ");
+        out = fmt::format_to(out, fmt::runtime(child), j.rest);
+        out = fmt::format_to(out, ", phi = ");
+        out = fmt::format_to(out, fmt::runtime(child), suppress_negative_zero(j.phi));
+        out = fmt::format_to(out, ", omega = ");
+        out = fmt::format_to(out, fmt::runtime(child), suppress_negative_zero(j.omega));
+        return fmt::format_to(out, ")");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
 // kinematic_system2dp - a frame tree plus per-frame momentary kinematic state
 //
 // Prints each frame's pose (inherited static_frame2dp) and its parent, then the
@@ -267,6 +326,100 @@ template <> struct fmt::formatter<hd::ga::pga::kinematic_system2dp> {
             out = fmt::format_to(out, ")\n");
         }
         return fmt::format_to(out, ")");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// joint3dp / joint_state3dp - the reduced-coordinate joint of a body vs. its
+// parent in 3D (joint kind + screw-axis line + rest motor + generalised
+// coord/rate)
+////////////////////////////////////////////////////////////////////////////////
+
+inline char const* joint3dp_name(hd::ga::pga::joint3dp t)
+{
+    using hd::ga::pga::joint3dp;
+    switch (t) {
+        case joint3dp::free:
+            return "free";
+        case joint3dp::revolute:
+            return "revolute";
+        case joint3dp::prismatic:
+            return "prismatic";
+    }
+    return "?";
+}
+
+template <> struct fmt::formatter<hd::ga::pga::joint_state3dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::joint_state3dp const& j, FormatContext& ctx) const
+    {
+        using hd::ga::detail::suppress_negative_zero;
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        auto out =
+            fmt::format_to(ctx.out(), "joint_state3dp(type = {}", joint3dp_name(j.type));
+        out = fmt::format_to(out, ", screw_b = ");
+        out = fmt::format_to(out, fmt::runtime(child), j.screw_b);
+        out = fmt::format_to(out, ", rest = ");
+        out = fmt::format_to(out, fmt::runtime(child), j.rest);
+        out = fmt::format_to(out, ", phi = ");
+        out = fmt::format_to(out, fmt::runtime(child), suppress_negative_zero(j.phi));
+        out = fmt::format_to(out, ", omega = ");
+        out = fmt::format_to(out, fmt::runtime(child), suppress_negative_zero(j.omega));
+        return fmt::format_to(out, ")");
+    }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// loop_constraint2dp - a closed-loop point-coincidence constraint between two
+// tree frames (anchor_a in frame_a must coincide with anchor_b in frame_b)
+////////////////////////////////////////////////////////////////////////////////
+
+template <> struct fmt::formatter<hd::ga::pga::loop_constraint2dp> {
+
+    fmt::string_view spec_{};
+
+    constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin())
+    {
+        auto const begin = ctx.begin();
+        auto it = begin;
+        while (it != ctx.end() && *it != '}')
+            ++it;
+        spec_ = fmt::string_view(begin, static_cast<size_t>(it - begin));
+        return it;
+    }
+
+    template <typename FormatContext>
+    auto format(hd::ga::pga::loop_constraint2dp const& c, FormatContext& ctx) const
+    {
+        auto const child = fmt::format("{{:{}}}", spec_);
+
+        char const* type_str =
+            (c.type == hd::ga::pga::constraint2dp::coincidence) ? "coincidence" : "?";
+
+        auto out =
+            fmt::format_to(ctx.out(), "loop_constraint2dp(frame_a = {}", c.frame_a);
+        out = fmt::format_to(out, ", anchor_a = ");
+        out = fmt::format_to(out, fmt::runtime(child), c.anchor_a);
+        out = fmt::format_to(out, ", frame_b = {}", c.frame_b);
+        out = fmt::format_to(out, ", anchor_b = ");
+        out = fmt::format_to(out, fmt::runtime(child), c.anchor_b);
+        return fmt::format_to(out, ", type = {})", type_str);
     }
 };
 

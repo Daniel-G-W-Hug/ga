@@ -580,7 +580,7 @@ TEST_SUITE("PGA 2DP Tests")
         fmt::println("Vec2dp: operations - angle III (angle between lines)");
 
         auto x_axis = x_axis_2dp; // bivec2dp(1, 0, 0)
-        auto y_axis = y_axis_2dp; // bivec2dp(0, 1, 0)
+        // auto y_axis = y_axis_2dp; // bivec2dp(0, 1, 0)
 
         fmt::println("");
 

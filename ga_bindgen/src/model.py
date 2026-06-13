@@ -70,6 +70,21 @@ class Constant:
 
 
 @dc.dataclass
+class Enum:
+    """A namespace-scope (scoped or plain) enum like
+    `constraint2dp { coincidence }` or `joint2dp { free, revolute, prismatic }`.
+    Bound as a nanobind nb::enum_; also unlocks pure-data structs that carry an
+    enum-typed field (e.g. loop_constraint2dp, joint_state2dp)."""
+    namespace: str            # e.g. "hd::ga::pga"
+    name: str                 # e.g. "constraint2dp"
+    canonical: str            # e.g. "hd::ga::pga::constraint2dp"
+    enumerators: list[str] = dc.field(default_factory=list)  # e.g. ["coincidence"]
+    scoped: bool = True       # `enum class` (scoped) vs plain `enum`
+    source_file: str = ""
+    source_line: int = 0
+
+
+@dc.dataclass
 class Manifest:
     schema_version: int
     generated_at: str          # ISO timestamp
@@ -80,6 +95,7 @@ class Manifest:
     functions: list[FunctionGroup]
     operators: list[FunctionGroup]
     constants: list[Constant] = dc.field(default_factory=list)
+    enums: list[Enum] = dc.field(default_factory=list)
 
     def to_json(self) -> str:
         return json.dumps(dc.asdict(self), indent=2)
@@ -106,6 +122,7 @@ class Manifest:
             functions=[_fg(g) for g in d["functions"]],
             operators=[_fg(g) for g in d["operators"]],
             constants=[Constant(**c) for c in d.get("constants", [])],
+            enums=[Enum(**e) for e in d.get("enums", [])],
         )
 
 

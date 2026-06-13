@@ -1,7 +1,8 @@
 # Closed-loop systems — findings and implementation plan
 
-Status: design note / proposal. **Phase 0 (reuse-seam prep) landed**; Phases 1-5 not yet
-implemented. Captures (a) why the current `static_/kinematic_/dynamic_system{2,3}dp` tier
+Status: design note / proposal. **Phase 0 (reuse-seam prep) and all of Phase 1 (2D C++
+core + ga_py) landed**; Phases 2-5 not yet implemented. Captures (a) why
+the current `static_/kinematic_/dynamic_system{2,3}dp` tier
 is **open-chain only**, and (b) a plan to add **closed-loop** (parallel mechanism) support
 as a *separate, additive* layer that reuses the open-loop code without complicating it.
 
@@ -16,6 +17,35 @@ Stewart-Gough platform?" — answer below.
 - Prerequisite fixed: a clang-22 doctest `__LINE__` symbol collision that broke the
   `ga_appl3dp_test` build (so the 3D physics tests could not even run) — resolved in
   `ga_test/CMakeLists.txt` (`DOCTEST_COUNTER=__COUNTER__` for all test targets).
+- Phase 1 C++ core done: new additive header
+  [ga/ga_pga2dp_ops_constraints.hpp](../ga/ga_pga2dp_ops_constraints.hpp) with
+  `constraint2dp`, the pure-data `loop_constraint2dp` descriptor, and
+  `closed_loop_system2dp` (composition: has-a `dynamic_system2dp` tree). Position level:
+  `residual()` g(q), `constraint_jacobian()` G (reusing the `velocity_field(S_j, P)`
+  spatial-Jacobian columns), and `assemble(driven)` — Newton solve for a consistent closed
+  configuration (square LU on the dependent joints; min-norm / least-squares fallbacks for
+  redundant / over-constrained loops). Reuse seam exposed via `friend class
+  closed_loop_system2dp` on `dynamic_system2dp` (open-loop public API byte-unchanged);
+  fmt formatter added in `ga/detail/fmt/ga_fmt_physics.hpp`; wired into `ga_pga.hpp`.
+  Validated: a planar four-bar (`ga_appl2dp_physics_test.hpp`) assembles to an
+  analytically-known closed configuration (θ3, θ4 to 1e-9; closure residual ‖g‖ ~1e-14;
+  bounded ~1e-13 over a crank sweep). Open-loop suites unchanged: `ga_appl2dp_test`
+  43/508, `ga_pga_test` 169/2758, `ga_appl3dp_test` 28/7601 all pass.
+- Phase 1 ga_py done: `loop_constraint2dp` does NOT auto-bind on a plain regeneration — its
+  `constraint2dp` enum field was filtered by the emitter (same reason `joint_state2dp`/
+  `body2dp` were unbound). Fixed by adding **scoped-enum support to ga_bindgen**: `model.py`
+  gains an `Enum` schema; `scan.py` collects namespace-scope `ENUM_DECL`s; `emit_nanobind.py`
+  emits `nb::enum_` modules (`register_enums_<submod>`, called first in `register_all`),
+  injects enum names into `type_map`, and switches the data-struct field ctor to C++20
+  parenthesized aggregate init (so an `int`-bound `size_t` field like `frame_a` does not trip
+  brace-init narrowing). This binds `constraint2dp`/`joint2dp`/`joint3dp` and the structs
+  that use them (`loop_constraint2dp`, plus the bonus `joint_state2dp`/`joint_state3dp` — the
+  latter needed a `twist3dp`→`bivec3dp` `type_map` alias and new fmt formatters in
+  `ga/detail/fmt/ga_fmt_physics.hpp`). New `ga_py/tests/test_constraints.py` (13 cases);
+  `test_stubs.py` updated to exclude `enum.Enum` classes from the `__format__` completeness
+  check. Full chain regenerated (manifest, generated cpp, `.pyi`, cross-check JSON);
+  `ga_py` suite 711 passed. The stateful `closed_loop_system2dp` stays unbound by design
+  (reconstructed in Python from primitives, à la `dynamic_system2dp`).
 
 ---
 
@@ -234,14 +264,14 @@ assembly).
   (`DOCTEST_COUNTER=__COUNTER__` for all test targets in `ga_test/CMakeLists.txt`). No
   ga_py impact (verified): the split is a private method of an unbound stateful class —
   absent from `manifest.json` and `ga_py/src/generated/`.
-- **Phase 1 — constraints + assembly (position level).** `loop_constraint2dp`, residual
-  `g(q)`, Jacobian `G` (point-coincidence first). `assemble()` solves `g(q)=0` by Newton.
-  Validate on a **planar four-bar** (assemble a consistent closed configuration).
-  *ga_py note:* the new pure-data `loop_constraint{2,3}dp` struct (public-field aggregate)
-  auto-binds on a plain bindgen regeneration — add a dedicated ga_py test for it (the
-  coverage lists do not assert completeness). The stateful `closed_loop_system` class is
-  NOT bound (reconstructed in Python from primitives, see Phase 5). Give the struct an fmt
-  formatter in `ga/detail/fmt/` so the generated `__str__`/`__format__` work.
+- **Phase 1 — constraints + assembly (position level). [DONE 2026-06-13]**
+  `loop_constraint2dp`, residual `g(q)`, Jacobian `G` (point-coincidence first).
+  `assemble()` solves `g(q)=0` by Newton. Validated on a **planar four-bar** (assembles a
+  consistent closed configuration against an analytic ground truth). ga_py exposure done
+  (see progress note above — required adding scoped-enum support to ga_bindgen, since the
+  `constraint2dp` enum field blocked the plain-regeneration auto-bind originally assumed
+  here). The stateful `closed_loop_system` class is NOT bound (reconstructed in Python from
+  primitives, see Phase 5).
 - **Phase 2 — kinematic closed loop.** Distribute driver joint rate to dependent rates
   (`G q̇ = 0`) and accelerations (`G q̈ = -Ġ q̇`). Validate four-bar velocity/accel ratios
   vs. analytic.
@@ -256,6 +286,34 @@ assembly).
   (2D) and Stewart/delta (3D) scene; optional Python exposure (the class is stateful, so
   reconstructed in Python from the bound primitives, as done for `kinematic_system2dp` in
   `ga_py/tests/test_merry_go_round.py`).
+  *ga_view side-by-side open- vs. closed-loop demo:* beyond the per-mechanism scenes above,
+  add ONE `ga_view` 2D scene that shows an **open-chain** tree system and a **closed-loop**
+  system next to each other, animated together, to make the structural difference legible.
+  Left panel: an open chain built straight from `dynamic_system2dp` — e.g. a 2-3 link robot
+  arm, or a simplified stick-figure person (torso → upper/lower-arm and upper/lower-leg
+  branches off a common root, the existing branching tree). Its end-effector / hand swings
+  freely (the chain has no closure). Right panel: a `closed_loop_system2dp` whose spanning
+  tree is the *same* open chain plus an `add_loop_constraint` that pins the end-effector
+  (e.g. a four-bar, or the arm with its hand pinned to a fixed world point / to the other
+  hand), so the same driver motion now propagates through the loop and the dependent joints
+  are solved. Drive both from one shared parameter (a crank angle / a joint sweep) so the
+  viewer sees, in lock-step: the open chain free vs. the closed loop's coupled, constrained
+  motion; optionally overlay the closure point and the constraint residual `‖g‖`. This is
+  the headline visual for the "tree vs. tree+closure" distinction the whole note is about
+  (§1 vs. §3) — keep ga_view's left-handed screen convention local per
+  `[[feedback_library_docs_right_handed]]`.
+  *ga_py reconstruction test (enabled by the Phase 1 enum work):* the Phase 1 ga_py change
+  also bound the joint enums (`joint2dp`/`joint3dp`) and the joint descriptors
+  (`joint_state2dp`/`joint_state3dp`) — currently with **no test consumer**. Add a
+  `dynamic_system2dp` reconstruction test that exercises them: reproduce the joint-space
+  forward dynamics (`assemble_mass_bias` → `M(q) q̈ = τ` → RK4) in Python from the bound
+  primitives, modelling each joint faithfully via `joint2dp.revolute`/`prismatic`, the
+  body-frame screw `screw_b`, and the rest motor — exactly the way `test_merry_go_round.py`
+  uses the bound `pose2dp` rather than a hand-rolled pose tuple. Validate against the C++
+  open-loop result (e.g. the double-pendulum energy / mass-matrix identity, or the four-bar
+  closed-loop assembly). This is the payoff that turns the now-bound joint types from
+  available-but-unused into a tested, faithful Python mirror of the dynamic layer, and is
+  the natural stepping-stone to a Python `closed_loop_system2dp` reconstruction.
 
 ---
 

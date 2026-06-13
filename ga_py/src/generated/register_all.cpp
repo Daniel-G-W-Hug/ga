@@ -12,10 +12,13 @@ void bind_bivec4ds(nb::module_& m);
 void bind_dualnum2dp(nb::module_& m);
 void bind_dualnum3dp(nb::module_& m);
 void bind_dualnum4ds(nb::module_& m);
+void bind_joint_state2dp(nb::module_& m);
+void bind_joint_state3dp(nb::module_& m);
 void bind_kin_state2dp(nb::module_& m);
 void bind_kin_state3dp(nb::module_& m);
 void bind_line2d(nb::module_& m);
 void bind_line3d(nb::module_& m);
+void bind_loop_constraint2dp(nb::module_& m);
 void bind_mvec2d(nb::module_& m);
 void bind_mvec2d_e(nb::module_& m);
 void bind_mvec2dp(nb::module_& m);
@@ -57,6 +60,10 @@ void bind_vec4ds(nb::module_& m);
 void bind_vector2d(nb::module_& m);
 void bind_vector3d(nb::module_& m);
 
+void register_enums_ega(nb::module_& m);
+void register_enums_pga(nb::module_& m);
+void register_enums_sta(nb::module_& m);
+void register_enums_top(nb::module_& m);
 void register_functions_ega(nb::module_& m);
 void register_functions_pga(nb::module_& m);
 void register_functions_sta(nb::module_& m);
@@ -67,6 +74,10 @@ void register_constants_sta(nb::module_& m);
 void register_constants_top(nb::module_& m);
 
 void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::module_& sta) {
+    register_enums_ega(ega);
+    register_enums_pga(pga);
+    register_enums_sta(sta);
+    register_enums_top(top);
     bind_bivec2dp(pga);
     bind_bivec3d(ega);
     bind_bivec3dp(pga);
@@ -74,8 +85,11 @@ void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::modu
     bind_dualnum2dp(pga);
     bind_dualnum3dp(pga);
     bind_dualnum4ds(sta);
+    bind_joint_state2dp(pga);
+    bind_joint_state3dp(pga);
     bind_kin_state2dp(pga);
     bind_kin_state3dp(pga);
+    bind_loop_constraint2dp(pga);
     bind_mvec2d(ega);
     bind_mvec2d_e(ega);
     bind_mvec2dp(pga);

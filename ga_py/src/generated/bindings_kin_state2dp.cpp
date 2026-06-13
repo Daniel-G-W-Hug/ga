@@ -32,7 +32,7 @@ void bind_kin_state2dp(nb::module_& m) {
     nb::class_<kin_state2dp>(m, "kin_state2dp")
         .def("__init__", [](kin_state2dp* self) { new (self) kin_state2dp{}; })
         .def("__init__",
-            [](kin_state2dp* self, vec2dp const& vel, vec2dp const& acc, double omega, double alpha) { new (self) kin_state2dp{vel, acc, omega, alpha}; },
+            [](kin_state2dp* self, vec2dp const& vel, vec2dp const& acc, double omega, double alpha) { new (self) kin_state2dp(vel, acc, omega, alpha); },
             nb::arg("vel"), nb::arg("acc"), nb::arg("omega"), nb::arg("alpha"))
         .def_rw("vel", &kin_state2dp::vel)
         .def_rw("acc", &kin_state2dp::acc)

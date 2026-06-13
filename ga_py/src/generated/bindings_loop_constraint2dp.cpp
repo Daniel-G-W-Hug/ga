@@ -28,22 +28,25 @@ using namespace hd::ga::ega;
 using namespace hd::ga::pga;
 using namespace hd::ga::sta;
 
-void bind_pose3dp(nb::module_& m) {
-    nb::class_<pose3dp>(m, "pose3dp")
-        .def("__init__", [](pose3dp* self) { new (self) pose3dp{}; })
+void bind_loop_constraint2dp(nb::module_& m) {
+    nb::class_<loop_constraint2dp>(m, "loop_constraint2dp")
+        .def("__init__", [](loop_constraint2dp* self) { new (self) loop_constraint2dp{}; })
         .def("__init__",
-            [](pose3dp* self, vec3dp const& origin, vec3dp const& rot) { new (self) pose3dp(origin, rot); },
-            nb::arg("origin"), nb::arg("rot"))
-        .def_rw("origin", &pose3dp::origin)
-        .def_rw("rot", &pose3dp::rot)
-        .def("__repr__", [](const pose3dp& v) {
+            [](loop_constraint2dp* self, int frame_a, vec2dp const& anchor_a, int frame_b, vec2dp const& anchor_b, constraint2dp const& type) { new (self) loop_constraint2dp(frame_a, anchor_a, frame_b, anchor_b, type); },
+            nb::arg("frame_a"), nb::arg("anchor_a"), nb::arg("frame_b"), nb::arg("anchor_b"), nb::arg("type"))
+        .def_rw("frame_a", &loop_constraint2dp::frame_a)
+        .def_rw("anchor_a", &loop_constraint2dp::anchor_a)
+        .def_rw("frame_b", &loop_constraint2dp::frame_b)
+        .def_rw("anchor_b", &loop_constraint2dp::anchor_b)
+        .def_rw("type", &loop_constraint2dp::type)
+        .def("__repr__", [](const loop_constraint2dp& v) {
             return fmt::format("{}", v);
         })
-        .def("__str__", [](const pose3dp& v) {
+        .def("__str__", [](const loop_constraint2dp& v) {
             return fmt::format("{}", v);
         })
         .def("__format__",
-            [](const pose3dp& v, std::string_view spec) {
+            [](const loop_constraint2dp& v, std::string_view spec) {
                 try {
                     if (spec.empty()) return fmt::format("{}", v);
                     return fmt::format(fmt::runtime("{:" + std::string(spec) + "}"),
@@ -52,8 +55,8 @@ void bind_pose3dp(nb::module_& m) {
                     throw std::invalid_argument(e.what());
                 }
             }, nb::arg("format_spec"))
-        .def("__eq__", [](const pose3dp& a, const pose3dp& b) {
-            return a.origin == b.origin && a.rot == b.rot;
+        .def("__eq__", [](const loop_constraint2dp& a, const loop_constraint2dp& b) {
+            return a.frame_a == b.frame_a && a.anchor_a == b.anchor_a && a.frame_b == b.frame_b && a.anchor_b == b.anchor_b && a.type == b.type;
         })
         ;
 }

@@ -57,6 +57,7 @@ from model import (
     SCHEMA_VERSION,
     Constant,
     Constructor,
+    Enum,
     Field,
     FunctionGroup,
     Manifest,
@@ -344,14 +345,16 @@ def collect(
     dict[tuple[str, str], list[Overload]],
     set[str],
     list[Constant],
+    list[Enum],
 ]:
     """Walk the TU and classify cursors into types / functions / operators /
-    namespaces / constants."""
+    namespaces / constants / enums."""
     types: dict[tuple[str, str], TypeAlias] = {}
     functions: dict[tuple[str, str], list[Overload]] = defaultdict(list)
     operators: dict[tuple[str, str], list[Overload]] = defaultdict(list)
     namespaces: set[str] = set()
     constants_index: dict[tuple[str, str], Constant] = {}
+    enums_index: dict[tuple[str, str], Enum] = {}
 
     template_index = build_class_template_index(tu)
     partial_spec_index = build_partial_spec_index(tu)
@@ -399,6 +402,44 @@ def collect(
                 key = (ns, cursor.spelling)
                 if key not in types:
                     types[key] = extract_data_struct(cursor)
+        elif (
+            k == cx.CursorKind.ENUM_DECL
+            and in_ga_tree(cursor.location)
+            and cursor.is_definition()
+        ):
+            # Namespace-scope (scoped or plain) enums in the target namespaces, e.g.
+            # constraint2dp / joint2dp. Bound as nb::enum_; also unlocks pure-data
+            # structs that carry an enum-typed field (loop_constraint2dp,
+            # joint_state2dp). Nested enums (semantic parent not a NAMESPACE) are
+            # skipped, mirroring the struct rule above.
+            parent = cursor.semantic_parent
+            if (
+                parent is not None
+                and parent.kind == cx.CursorKind.NAMESPACE
+                and fq_namespace(cursor) in TARGET_NAMESPACES
+            ):
+                ns = fq_namespace(cursor)
+                key = (ns, cursor.spelling)
+                if key not in enums_index:
+                    enumerators = [
+                        ch.spelling
+                        for ch in cursor.get_children()
+                        if _cursor_kind(ch) == cx.CursorKind.ENUM_CONSTANT_DECL
+                    ]
+                    src = cursor.location.file
+                    # is_scoped_enum() may be absent on older libclang bindings;
+                    # it is informational only (emission uses `Type::value` for both
+                    # scoped and plain enums in C++11+), so default to True.
+                    is_scoped = getattr(cursor, "is_scoped_enum", lambda: True)()
+                    enums_index[key] = Enum(
+                        namespace=ns,
+                        name=cursor.spelling,
+                        canonical=f"{ns}::{cursor.spelling}",
+                        enumerators=enumerators,
+                        scoped=is_scoped,
+                        source_file=_rel_source(src),
+                        source_line=cursor.location.line,
+                    )
         elif k == cx.CursorKind.VAR_DECL and in_ga_tree(cursor.location):
             # Only namespace-scope constants — not locals inside functions.
             # libclang reports VAR_DECL for both, but the semantic parent
@@ -451,6 +492,7 @@ def collect(
         operators,
         namespaces,
         list(constants_index.values()),
+        list(enums_index.values()),
     )
 
 
@@ -480,6 +522,7 @@ def main() -> int:
     all_ops: dict[tuple[str, str], list[Overload]] = defaultdict(list)
     all_ns: set[str] = set()
     all_consts: dict[tuple[str, str], Constant] = {}
+    all_enums: dict[tuple[str, str], Enum] = {}
 
     for rel in SOURCE_HEADERS:
         path = PROJECT_ROOT / rel
@@ -490,7 +533,7 @@ def main() -> int:
             for e in errs[:5]:
                 print(f"    {e.location}: {e.spelling}", file=sys.stderr)
             return 1
-        types, funcs, ops, ns, consts = collect(tu)
+        types, funcs, ops, ns, consts, enums = collect(tu)
 
         for t in types:
             all_types.setdefault((t.namespace, t.name), t)
@@ -501,6 +544,8 @@ def main() -> int:
         all_ns |= ns
         for c in consts:
             all_consts.setdefault((c.namespace, c.name), c)
+        for e in enums:
+            all_enums.setdefault((e.namespace, e.name), e)
 
     manifest = Manifest(
         schema_version=SCHEMA_VERSION,
@@ -512,6 +557,7 @@ def main() -> int:
         functions=to_groups(all_funcs),
         operators=to_groups(all_ops),
         constants=sorted(all_consts.values(), key=lambda c: (c.namespace, c.name)),
+        enums=sorted(all_enums.values(), key=lambda e: (e.namespace, e.name)),
     )
 
     out_path = Path(args_ns.out)
@@ -529,6 +575,7 @@ def main() -> int:
         f"({sum(len(g.overloads) for g in manifest.operators)} overloads)"
     )
     print(f"  constants:  {len(manifest.constants)}")
+    print(f"  enums:      {len(manifest.enums)}")
     return 0
 
 

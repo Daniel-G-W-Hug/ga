@@ -1,6 +1,7 @@
 """Projective geometric algebra (2dp, 3dp)"""
 
 from collections.abc import Sequence
+import enum
 from typing import Annotated, Any, overload
 
 import numpy
@@ -8,6 +9,23 @@ from numpy.typing import NDArray
 
 import _ga_py.ega
 
+
+class constraint2dp(enum.Enum):
+    coincidence = 0
+
+class joint2dp(enum.Enum):
+    free = 0
+
+    revolute = 1
+
+    prismatic = 2
+
+class joint3dp(enum.Enum):
+    free = 0
+
+    revolute = 1
+
+    prismatic = 2
 
 class bivec2dp:
     @overload
@@ -591,6 +609,96 @@ class dualnum3dp:
 
     def gr4(self) -> pscalar3dp: ...
 
+class joint_state2dp:
+    @overload
+    def __init__(self) -> None: ...
+
+    @overload
+    def __init__(self, type: joint2dp, screw_b: vec2dp, rest: mvec2dp_u, phi: float, omega: float) -> None: ...
+
+    @property
+    def type(self) -> joint2dp: ...
+
+    @type.setter
+    def type(self, arg: joint2dp, /) -> None: ...
+
+    @property
+    def screw_b(self) -> vec2dp: ...
+
+    @screw_b.setter
+    def screw_b(self, arg: vec2dp, /) -> None: ...
+
+    @property
+    def rest(self) -> mvec2dp_u: ...
+
+    @rest.setter
+    def rest(self, arg: mvec2dp_u, /) -> None: ...
+
+    @property
+    def phi(self) -> float: ...
+
+    @phi.setter
+    def phi(self, arg: float, /) -> None: ...
+
+    @property
+    def omega(self) -> float: ...
+
+    @omega.setter
+    def omega(self, arg: float, /) -> None: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __format__(self, format_spec: str = "") -> str: ...
+
+    def __eq__(self, arg: joint_state2dp, /) -> bool: ...
+
+class joint_state3dp:
+    @overload
+    def __init__(self) -> None: ...
+
+    @overload
+    def __init__(self, type: joint3dp, screw_b: bivec3dp, rest: mvec3dp_e, phi: float, omega: float) -> None: ...
+
+    @property
+    def type(self) -> joint3dp: ...
+
+    @type.setter
+    def type(self, arg: joint3dp, /) -> None: ...
+
+    @property
+    def screw_b(self) -> bivec3dp: ...
+
+    @screw_b.setter
+    def screw_b(self, arg: bivec3dp, /) -> None: ...
+
+    @property
+    def rest(self) -> mvec3dp_e: ...
+
+    @rest.setter
+    def rest(self, arg: mvec3dp_e, /) -> None: ...
+
+    @property
+    def phi(self) -> float: ...
+
+    @phi.setter
+    def phi(self, arg: float, /) -> None: ...
+
+    @property
+    def omega(self) -> float: ...
+
+    @omega.setter
+    def omega(self, arg: float, /) -> None: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __format__(self, format_spec: str = "") -> str: ...
+
+    def __eq__(self, arg: joint_state3dp, /) -> bool: ...
+
 class kin_state2dp:
     @overload
     def __init__(self) -> None: ...
@@ -668,6 +776,51 @@ class kin_state3dp:
     def __format__(self, format_spec: str = "") -> str: ...
 
     def __eq__(self, arg: kin_state3dp, /) -> bool: ...
+
+class loop_constraint2dp:
+    @overload
+    def __init__(self) -> None: ...
+
+    @overload
+    def __init__(self, frame_a: int, anchor_a: vec2dp, frame_b: int, anchor_b: vec2dp, type: constraint2dp) -> None: ...
+
+    @property
+    def frame_a(self) -> int: ...
+
+    @frame_a.setter
+    def frame_a(self, arg: int, /) -> None: ...
+
+    @property
+    def anchor_a(self) -> vec2dp: ...
+
+    @anchor_a.setter
+    def anchor_a(self, arg: vec2dp, /) -> None: ...
+
+    @property
+    def frame_b(self) -> int: ...
+
+    @frame_b.setter
+    def frame_b(self, arg: int, /) -> None: ...
+
+    @property
+    def anchor_b(self) -> vec2dp: ...
+
+    @anchor_b.setter
+    def anchor_b(self, arg: vec2dp, /) -> None: ...
+
+    @property
+    def type(self) -> constraint2dp: ...
+
+    @type.setter
+    def type(self, arg: constraint2dp, /) -> None: ...
+
+    def __repr__(self) -> str: ...
+
+    def __str__(self) -> str: ...
+
+    def __format__(self, format_spec: str = "") -> str: ...
+
+    def __eq__(self, arg: loop_constraint2dp, /) -> bool: ...
 
 class mvec2dp:
     @overload

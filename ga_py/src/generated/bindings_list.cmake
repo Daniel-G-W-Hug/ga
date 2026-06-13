@@ -9,10 +9,13 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_dualnum4ds.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_state2dp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_joint_state3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_kin_state2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_kin_state3dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_line2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_line3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_loop_constraint2dp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2d_e.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_mvec2dp.cpp
@@ -54,6 +57,10 @@ set(GA_PY_GENERATED_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_vector2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_vector3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/register_all.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enums_ega.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enums_pga.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enums_sta.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_enums_top.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_functions_ega.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_functions_pga.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/bindings_functions_sta.cpp

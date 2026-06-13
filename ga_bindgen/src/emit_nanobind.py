@@ -23,7 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from clang_setup import PROJECT_ROOT
-from model import Manifest, TypeAlias
+from model import Enum, Manifest, TypeAlias
 
 GA_PY = PROJECT_ROOT / "ga_py"
 DEFAULT_MANIFEST = PROJECT_ROOT / "ga_bindgen" / "manifest.json"
@@ -592,6 +592,43 @@ def emit_constants_module(submodule: str, consts: list[tuple[str, str, str]]) ->
     )
 
 
+def submodule_for_enum(e: Enum) -> str:
+    """Route a scanned enum into ega / pga / sta / top by its namespace."""
+    if e.namespace == "hd::ga::ega":
+        return "ega"
+    if e.namespace == "hd::ga::pga":
+        return "pga"
+    if e.namespace == "hd::ga::sta":
+        return "sta"
+    return "top"
+
+
+def collect_enums(manifest: Manifest) -> dict[str, list[Enum]]:
+    """Group the manifest's enums by target submodule."""
+    out: dict[str, list[Enum]] = {"ega": [], "pga": [], "sta": [], "top": []}
+    for e in manifest.enums:
+        out[submodule_for_enum(e)].append(e)
+    return out
+
+
+def emit_enums_module(submodule: str, enums: list[Enum]) -> str:
+    """Emit a register_enums_<submodule>(nb::module_& m) translation unit binding
+    each scanned enum as an nb::enum_. These are registered BEFORE the classes
+    (see emit_register_all) so that pure-data structs carrying an enum-typed field
+    (loop_constraint2dp, joint_state2dp) find the enum type already in nanobind's
+    registry."""
+    lines: list[str] = []
+    for e in sorted(enums, key=lambda x: x.name):
+        lines.append(f'    nb::enum_<{e.name}>(m, "{e.name}")')
+        for en in e.enumerators:
+            lines.append(f'        .value("{en}", {e.name}::{en})')
+        lines.append("        ;")
+    body = (
+        "\n".join(lines) if lines else "    (void)m;  // no enums in this submodule yet"
+    )
+    return f"void register_enums_{submodule}(nb::module_& m) {{\n" f"{body}\n" f"}}\n"
+
+
 def emit_function_module(
     submodule: str, fn_groups: dict[str, list[tuple[list[str], str]]]
 ) -> str:
@@ -1080,12 +1117,16 @@ def emit_data_struct_binding(t: TypeAlias, type_map: dict[str, str]) -> str | No
     field_names = ", ".join(f.name for f in t.fields)
     field_args = ", ".join(f'nb::arg("{f.name}")' for f in t.fields)
 
+    # The by-field ctor uses C++20 parenthesized aggregate initialization
+    # `T(a, b, ...)` (not brace `T{a, b, ...}`) so an integer field bound as
+    # Python `int` (e.g. size_t frame_a) does not trip brace-init's narrowing
+    # ban. The project is C++23, so parenthesized aggregate init is available.
     ctor_lines = [
         f'        .def("__init__", []({cls}* self) {{ new (self) {cls}{{}}; }})',
         (
             f'        .def("__init__",\n'
             f"            []({cls}* self, {field_params}) "
-            f"{{ new (self) {cls}{{{field_names}}}; }},\n"
+            f"{{ new (self) {cls}({field_names}); }},\n"
             f"            {field_args})"
         ),
     ]
@@ -1318,6 +1359,10 @@ def emit_register_all(
         "\n"
         f"{forward_decls}\n"
         "\n"
+        "void register_enums_ega(nb::module_& m);\n"
+        "void register_enums_pga(nb::module_& m);\n"
+        "void register_enums_sta(nb::module_& m);\n"
+        "void register_enums_top(nb::module_& m);\n"
         "void register_functions_ega(nb::module_& m);\n"
         "void register_functions_pga(nb::module_& m);\n"
         "void register_functions_sta(nb::module_& m);\n"
@@ -1328,6 +1373,12 @@ def emit_register_all(
         "void register_constants_top(nb::module_& m);\n"
         "\n"
         "void register_all(nb::module_& top, nb::module_& ega, nb::module_& pga, nb::module_& sta) {\n"
+        # enums first: pure-data structs with enum-typed fields (loop_constraint2dp,
+        # joint_state2dp) need the enum types already registered before bind_* runs.
+        "    register_enums_ega(ega);\n"
+        "    register_enums_pga(pga);\n"
+        "    register_enums_sta(sta);\n"
+        "    register_enums_top(top);\n"
         f"{calls}\n"
         "    register_functions_ega(ega);\n"
         "    register_functions_pga(pga);\n"
@@ -1354,6 +1405,10 @@ def emit_cmake_list(names: list[str], out_dir: Path) -> str:
             f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_{n}.cpp"
         )
     lines.append(f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/register_all.cpp")
+    for submod in ("ega", "pga", "sta", "top"):
+        lines.append(
+            f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_enums_{submod}.cpp"
+        )
     for submod in ("ega", "pga", "sta", "top"):
         lines.append(
             f"    ${{CMAKE_CURRENT_SOURCE_DIR}}/src/generated/bindings_functions_{submod}.cpp"
@@ -1424,6 +1479,19 @@ def main() -> int:
         # types, so e.g. mvec3d's ctor `MVec8_t(Scalar3d<T>, Vec3d<T>, ...)`
         # resolves through the entries for scalar3d and vec3d.
         type_map = build_type_name_map(eligible)
+        # Inject scanned enums so pure-data struct fields of an enum type resolve
+        # (each enum binds to a Python type of the same name). This is what lets
+        # loop_constraint2dp / joint_state2dp pass emit_data_struct_binding.
+        for e in manifest.enums:
+            type_map.setdefault(e.name, e.name)
+        # Resolve thin twist aliases to their bound underlying type so the joint
+        # descriptors bind symmetrically in 2D and 3D (joint_state3dp.screw_b is a
+        # `twist3dp`, i.e. bivec3dp; joint_state2dp.screw_b a `twist2dp`, i.e.
+        # vec2dp). libclang reports the alias spelling, which the tag-based
+        # resolver does not recover on its own.
+        for alias, target in (("twist2dp", "vec2dp"), ("twist3dp", "bivec3dp")):
+            if target in type_map.values() or target in type_map:
+                type_map.setdefault(alias, target)
         grade_methods_per_type = collect_grade_extractors(manifest, type_map)
         binary_ops_per_type = collect_binary_operators(manifest, type_map)
         types_by_name: dict[str, TypeAlias] = {t.name: t for t in eligible}
@@ -1479,6 +1547,15 @@ def main() -> int:
                 GENERATED_HEADER
                 + "\n"
                 + emit_constants_module(submod, constants.get(submod, [])),
+                encoding="utf-8",
+            )
+
+        enums_by_sub = collect_enums(manifest)
+        for submod in ("ega", "pga", "sta", "top"):
+            (out_dir / f"bindings_enums_{submod}.cpp").write_text(
+                GENERATED_HEADER
+                + "\n"
+                + emit_enums_module(submod, enums_by_sub.get(submod, [])),
                 encoding="utf-8",
             )
 

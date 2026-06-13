@@ -32,7 +32,7 @@ void bind_kin_state3dp(nb::module_& m) {
     nb::class_<kin_state3dp>(m, "kin_state3dp")
         .def("__init__", [](kin_state3dp* self) { new (self) kin_state3dp{}; })
         .def("__init__",
-            [](kin_state3dp* self, vec3dp const& vel, vec3dp const& acc, vec3dp const& omega, vec3dp const& alpha) { new (self) kin_state3dp{vel, acc, omega, alpha}; },
+            [](kin_state3dp* self, vec3dp const& vel, vec3dp const& acc, vec3dp const& omega, vec3dp const& alpha) { new (self) kin_state3dp(vel, acc, omega, alpha); },
             nb::arg("vel"), nb::arg("acc"), nb::arg("omega"), nb::arg("alpha"))
         .def_rw("vel", &kin_state3dp::vel)
         .def_rw("acc", &kin_state3dp::acc)

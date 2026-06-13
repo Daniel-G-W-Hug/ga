@@ -115,7 +115,12 @@ def test_every_bound_class_has_format(name: str):
     """__format__ post-pass: nanobind.stubgen filters this dunder out;
     emit_stubs.py re-injects it into every class with a __str__ since
     the bindings always emit it (see emit_format_lambda in
-    emit_nanobind.py and the hand-written bindings_*.cpp)."""
+    emit_nanobind.py and the hand-written bindings_*.cpp).
+
+    Bound enums (nb::enum_ -> enum.Enum subclasses, e.g. constraint2dp /
+    joint2dp) are excluded: they format through Python's standard enum
+    machinery, not the GA fmt::format bridge, so they carry no injected
+    __format__."""
     text = STUBS[name].read_text()
     classes = _bound_classes(text)
     assert classes, f"no classes found in {name}.pyi"
@@ -129,7 +134,8 @@ def test_every_bound_class_has_format(name: str):
     blocks = {classes[i]: text[boundaries[i]:boundaries[i + 1]]
               for i in range(len(classes))}
     missing = [c for c, body in blocks.items()
-               if "def __format__" not in body]
+               if "def __format__" not in body
+               and "(enum.Enum)" not in body.splitlines()[0]]
     assert not missing, \
         f"__format__ missing from {len(missing)} class(es): {missing}"
 

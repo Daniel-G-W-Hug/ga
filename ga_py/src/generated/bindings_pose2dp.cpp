@@ -32,7 +32,7 @@ void bind_pose2dp(nb::module_& m) {
     nb::class_<pose2dp>(m, "pose2dp")
         .def("__init__", [](pose2dp* self) { new (self) pose2dp{}; })
         .def("__init__",
-            [](pose2dp* self, vec2dp const& origin, double phi) { new (self) pose2dp{origin, phi}; },
+            [](pose2dp* self, vec2dp const& origin, double phi) { new (self) pose2dp(origin, phi); },
             nb::arg("origin"), nb::arg("phi"))
         .def_rw("origin", &pose2dp::origin)
         .def_rw("phi", &pose2dp::phi)
