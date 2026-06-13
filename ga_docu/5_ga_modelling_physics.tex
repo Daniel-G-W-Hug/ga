@@ -1684,7 +1684,9 @@ and energy conservation at the dynamic layer. A user who only needs coordinate t
 never pays for the dynamics. The same three classes exist for $3D$
 (\path{static_system3dp}, \path{kinematic_system3dp}, \path{dynamic_system3dp}); their
 class structure, method names and algorithms are identical -- only the representations
-change, as summarized at the end of this subsection.
+change, as summarized at the end of this subsection. The tree describes \emph{open}
+chains; closed kinematic loops (parallel mechanisms) are added by a separate layer on top of
+it, developed in subsection~\ref{subsubsection:closed_loop}.
 
 
 \subsubsection{Pose, frame and the frame tree}
@@ -1903,6 +1905,105 @@ compound pendulum, the prismatic slider and the chaotic double pendulum, in both
 $3D$ -- is the correctness metric used throughout.
 
 
+\subsubsection{Closed-loop and parallel mechanisms}
+\label{subsubsection:closed_loop}
+
+The frame tree of subsection~\ref{subsubsection:frame_trees_systems} reaches every frame
+by a \emph{unique} path from the root; that uniqueness is what makes the reduced (joint)
+coordinates well-defined. A closed kinematic chain breaks the premise: a four-bar linkage,
+a parallelogram, a Stewart-Gough platform each contain a frame reached through several
+branches at once, so no single parent assignment describes it. Such loops are admitted
+without giving up the energy-clean reduced coordinates by keeping the tree as a
+\emph{spanning tree} and re-closing each loop with an explicit constraint between two of
+its frames -- \emph{coordinate partitioning}, not the maximal coordinates weighed in
+subsection~\ref{subsubsection:addendum_what_ga_buys}. The open-chain assembly is reused
+unchanged; the loop closure is an additive layer on top of it
+\cite{Featherstone_rigid_body_dynamics:2008}.
+
+\paragraph{Loop-closure constraints:} A loop is closed by requiring two anchor points --
+$P_a$ carried by one branch, $P_b$ by another -- to coincide. In $PGA$ coincidence is the
+vanishing of the join $P_a \vee P_b$, the line through the two points; realized in
+coordinates as the unitized point difference
+\begin{equation}
+    g(q) = \hat{P}_a(q) - \hat{P}_b(q) = 0,
+    \label{eq:loop_residual}
+\end{equation}
+$m$ scalar equations per loop ($m = 2$ in $2D$, $m = 3$ in $3D$). This is the spatial
+spherical (ball) joint that pins a Stewart-Gough leg to its platform, or the pin that
+closes a planar four-bar.
+
+\paragraph{Constraint Jacobian:} Differentiating eqn.~(\ref{eq:loop_residual}) along the
+motion gives $\dot{g} = G(q)\,\dot{q}$ with $G = \partial g / \partial q$. Each column of
+$G$ is the relative partial velocity of the two anchors,
+\begin{equation}
+    G_{cj} = \frac{\partial (P_a - P_b)}{\partial q_j}
+           = \mathrm{rcmt}(S_j, P_a) - \mathrm{rcmt}(S_j, P_b),
+    \label{eq:loop_jacobian}
+\end{equation}
+each term present only when joint $j$ lies on the path to that anchor. But $v(\cdot) =
+\mathrm{rcmt}(S_j,\cdot)$ is exactly the spatial-Jacobian column already built for the
+mass matrix and the bias force (eqn.~(\ref{eq:fd_mass_matrix}),
+eqn.~(\ref{eq:newton_euler_recursion})). The loop closure introduces no new geometry: the
+same joint screws $S_j$ that assemble $M$ and $\tau$ assemble $G$.
+
+\paragraph{Constrained equations of motion:} The tree dynamics given by the equation
+$M(q)\,\ddot{q} = \tau$ (eqn.~(\ref{eq:fd_mass_matrix})) gain the $m$ constraints $g(q) =
+0$. Differentiated twice they read $G\,\ddot{q} = -\dot{G}\,\dot{q}$; adjoining the
+constraint forces $G^{\!\top} \lambda$ gives the bordered (KKT) system solved each step,
+\begin{equation}
+    \begin{bmatrix} M & G^{\!\top} \\[2pt] G & 0 \end{bmatrix}
+    \begin{bmatrix} \ddot{q} \\[2pt] \lambda \end{bmatrix}
+    =
+    \begin{bmatrix} \tau \\[2pt] -\dot{G}\,\dot{q} \end{bmatrix}.
+    \label{eq:kkt}
+\end{equation}
+The Lagrange multipliers $\lambda$ are the constraint wrenches -- the leg forces. $M$ and
+$\tau$ are reused unchanged from the open-chain assembly
+(eqn.~(\ref{eq:fd_mass_matrix})--(\ref{eq:fd_rhs})); only $G$ and the velocity-product
+term $\dot{G}\,\dot{q}$ -- the relative anchor acceleration evaluated at $\ddot{q} = 0$,
+read from the same bias pass that yields $b_{cm}$ -- are new. The one constraint,
+differentiated zero, once and twice, supplies the three tiers of solve: the position
+assembly $g(q) = 0$ by Newton (the dependent joint angles from a driven one), the velocity
+distribution $G\,\dot{q} = 0$, and the acceleration distribution $G\,\ddot{q} =
+-\dot{G}\,\dot{q}$.
+
+\paragraph{Stabilisation and energy:} Discretely integrated, the position and velocity
+constraints drift. They are restored after each step by projection onto the constraint
+manifold -- a few Gauss-Newton corrections $q \leftarrow q - G^{+} g$ and $\dot{q}
+\leftarrow \dot{q} - G^{+}(G\,\dot{q})$ (the Gear-Gupta-Leimkuhler scheme). Because the
+constraint forces $G^{\!\top}\lambda$ are orthogonal to the feasible velocities
+($G\,\dot{q} = 0$) they do no work, and the projection corrects drift without injecting
+energy. The energy-conservation property of the reduced coordinates
+(subsection~\ref{subsubsection:addendum_what_ga_buys}) therefore survives the loop closure
+-- the objection that ruled out maximal coordinates, whose continuous stabilization trades
+energy for feasibility, does not bind on the few constraints a spanning-tree closure adds.
+Baumgarte stabilization (a term $2\alpha\,G\dot{q} + \beta^2 g$ on the right-hand side of
+eqn.~(\ref{eq:kkt})) is the simpler alternative, kept as a fallback.
+
+\paragraph{The four-bar linkage:} The planar four-bar is the spanning tree crank $\to$
+coupler, with the rocker a second branch from the ground, closed by one coincidence of the
+coupler tip with the rocker tip: three revolute joints, two equations, one degree of
+freedom.\footnote{The four-bar (planar) and a spatial two-arm loop ($3D$) are pinned by
+assertion-checked tests in \path{ga_test/src/ga_appl2dp_physics_test.hpp} and
+\path{ga_appl3dp_physics_test.hpp}: assembly, velocity and acceleration ratios, energy
+conservation across a long run, and a bounded closure error $\lVert g\rVert$.} Driving the
+crank, the assembly solves the coupler and rocker angles from
+eqn.~(\ref{eq:loop_residual}); the velocity and acceleration ratios follow from
+$G\,\dot{q} = 0$ and $G\,\ddot{q} = -\dot{G}\,\dot{q}$ and reproduce the classical
+four-bar relations. Released under gravity the single degree of freedom swings, with total
+energy conserved to integrator tolerance while $\lVert g\rVert$ stays bounded -- the same
+metric the open-chain dynamics use.
+
+\paragraph{The lift to $3D$:} As for the open-chain tier, the step to $3D$ is a change of
+representation, not of method. The coincidence residual carries three components instead
+of two, the joint screws become lines (\path{twist3dp}, a bivector) and the anchor points
+carry the weight $\bv{4}$; eqn.~(\ref{eq:loop_residual})--(\ref{eq:kkt}) and the
+projection are unchanged, and the bordered solve is dimension-agnostic. A spatial loop --
+two arms meeting at a shared spherical joint, the kinematic core of a Stewart-Gough or
+delta platform -- then assembles, distributes its velocities, and conserves energy under
+the same machinery (\path{closed_loop_system3dp}).
+
+
 \subsubsection{The transition from $2D$ to $3D$}
 \label{subsubsection:system_2d_to_3d}
 
@@ -1946,7 +2047,10 @@ The motor sandwich, the adjoint, the tree walk, the joint exponential, the inert
 pairing and the Euler equation $\dot{\Omega} = I^{-1}[\,W - \mathrm{rcmt}(\Omega,
 I[\Omega])\,]$ are identical formulae in $2D$ and $3D$, differing only in the grade the
 twist and wrench occupy. The $2D \to 3D$ step is thus a change of representation, not a
-rewrite; this follows from developing the $2D$ case fully first.
+rewrite; this follows from developing the $2D$ case fully first. The same holds for the
+closed-loop layer of subsection~\ref{subsubsection:closed_loop}: the loop-closure residual
+gains a component and the joint screws become lines, while the constraint Jacobian and the
+bordered solve are unchanged.
 
 
 \subsubsection{Addendum: what geometric algebra contributes to rigid-body dynamics}
@@ -2018,7 +2122,11 @@ wrenches. That formulation is more uniform, but its constraint stabilization
 injects and removes energy, which conflicts with an energy-conservation test. The reduced
 (joint) coordinates chosen here make the joint itself the constraint, so there are no
 explicit constraint forces, no drift, and clean energy -- at the cost of the small $M(q)$
-solve. This retains most of the modelling value while conserving energy.
+solve. This retains most of the modelling value while conserving energy. The closed-loop
+extension (subsection~\ref{subsubsection:closed_loop}) keeps the same choice: a reduced-
+coordinate spanning tree plus a few explicit loop constraints, rather than maximal
+coordinates throughout, so its constraint forces do no work and the energy behaviour is
+preserved.
 
 The recursive Newton-Euler \emph{algorithm} is, of course, classical and not original
 here. What geometric algebra contributes is the \emph{representation and the concepts} --
