@@ -1915,7 +1915,8 @@ a parallelogram, a Stewart-Gough platform each contain a frame reached through s
 branches at once, so no single parent assignment describes it. Such loops are admitted
 without giving up the energy-clean reduced coordinates by keeping the tree as a
 \emph{spanning tree} and re-closing each loop with an explicit constraint between two of
-its frames -- \emph{coordinate partitioning}, not the maximal coordinates weighed in
+its frames -- \emph{coordinate partitioning}
+\cite{Wehage_Haug_coordinate_partitioning:1982}, not the maximal coordinates weighed in
 subsection~\ref{subsubsection:addendum_what_ga_buys}. The open-chain assembly is reused
 unchanged; the loop closure is an additive layer on top of it
 \cite{Featherstone_rigid_body_dynamics:2008}.
@@ -1970,15 +1971,17 @@ distribution $G\,\dot{q} = 0$, and the acceleration distribution $G\,\ddot{q} =
 \paragraph{Stabilisation and energy:} Discretely integrated, the position and velocity
 constraints drift. They are restored after each step by projection onto the constraint
 manifold -- a few Gauss-Newton corrections $q \leftarrow q - G^{+} g$ and $\dot{q}
-\leftarrow \dot{q} - G^{+}(G\,\dot{q})$ (the Gear-Gupta-Leimkuhler scheme). Because the
+\leftarrow \dot{q} - G^{+}(G\,\dot{q})$ (the Gear-Gupta-Leimkuhler scheme
+\cite{Gear_Gupta_Leimkuhler_constrained_integration:1985}). Because the
 constraint forces $G^{\!\top}\lambda$ are orthogonal to the feasible velocities
 ($G\,\dot{q} = 0$) they do no work, and the projection corrects drift without injecting
 energy. The energy-conservation property of the reduced coordinates
 (subsection~\ref{subsubsection:addendum_what_ga_buys}) therefore survives the loop closure
 -- the objection that ruled out maximal coordinates, whose continuous stabilization trades
 energy for feasibility, does not bind on the few constraints a spanning-tree closure adds.
-Baumgarte stabilization (a term $2\alpha\,G\dot{q} + \beta^2 g$ on the right-hand side of
-eqn.~(\ref{eq:kkt})) is the simpler alternative, kept as a fallback.
+Baumgarte stabilization \cite{Baumgarte_constraint_stabilization:1972} (a term
+$2\alpha\,G\dot{q} + \beta^2 g$ on the right-hand side of eqn.~(\ref{eq:kkt})) is the
+simpler alternative, kept as a fallback.
 
 \paragraph{The four-bar linkage:} The planar four-bar is the spanning tree crank $\to$
 coupler, with the rocker a second branch from the ground, closed by one coincidence of the
@@ -2208,6 +2211,18 @@ through the complement relation before being matched against the code.
               six-component twists and wrenches and the spatial cross product, the
               Pl\"ucker-coordinate cousin of the bivector twists and $\mathrm{rcmt}$ used
               here, and the reference for the forward-dynamics algorithm.
+    \end{itemize}
+    \item \textbf{Constrained multibody dynamics} (the closed-loop layer of
+          subsection~\ref{subsubsection:closed_loop}).
+    \begin{itemize}
+        \item \cite{Wehage_Haug_coordinate_partitioning:1982} -- coordinate partitioning:
+              the split into a reduced (spanning-tree) set and the dependent coordinates
+              fixed by the loop constraints.
+        \item \cite{Gear_Gupta_Leimkuhler_constrained_integration:1985} -- the
+              projection (GGL) scheme that restores the position and velocity constraints
+              after each step without injecting energy.
+        \item \cite{Baumgarte_constraint_stabilization:1972} -- the simpler constraint
+              stabilization kept as a fallback.
     \end{itemize}
 \end{itemize}
 }
