@@ -3,10 +3,12 @@
 Status: design note / proposal. **The full 2D AND 3D stack landed — Phase 0 (reuse-seam
 prep), Phase 1 (C++ core + ga_py), Phase 2 (kinematic), Phase 3 (dynamic, energy-conserving
 KKT) and Phase 4 (3D lift over `pga3dp`, with the numeric kernels shared via
-`detail/ga_solver.hpp`)**. Phase 5 (docs/demo/wrappers) is **partly done**: the ga_docu
-subsubsection + references and the 2D four-bar `ga_view` scene have landed; remaining are the
-side-by-side open-vs-closed scene, a 3D Stewart/delta scene, and the ga_py
-`dynamic_system2dp` reconstruction test. Captures
+`detail/ga_solver.hpp`)**. Phase 5 (docs/demo/wrappers) is **nearly done**: the ga_docu
+subsubsection + references, both 2D `ga_view` scenes (four-bar + side-by-side open-vs-closed),
+and the ga_py `dynamic_system2dp` reconstruction test have all landed. The ONLY remaining item
+is the **parallel-mechanism `ga_view` demo, replanned as a 2D planar 5-bar (2-RRR) parallel
+robot** — the 2D analogue of a delta (a true 3D delta is blocked: ga_view is a 2D viewer). Full
+build plan is recorded at the end of Phase 5 below ("resume here"). Captures
 (a) why the current `static_/kinematic_/dynamic_system{2,3}dp` tier
 is **open-chain only**, and (b) a plan to add **closed-loop** (parallel mechanism) support
 as a *separate, additive* layer that reuses the open-loop code without complicating it.
@@ -354,36 +356,64 @@ assembly).
     `coordsys_model.cpp`; its own view + legend in `w_mainwindow.cpp`; source in
     `CMakeLists.txt`. Layout tuned to the user's visual feedback (centred linkage, legend
     lower-right).
-  - *Remaining:* (a) the side-by-side open-vs-closed scene (below); (b) a 3D Stewart/delta
-    `ga_view` scene; (c) the ga_py `dynamic_system2dp` reconstruction test (below).
-  *ga_view side-by-side open- vs. closed-loop demo (TODO):* beyond the per-mechanism scenes above,
-  add ONE `ga_view` 2D scene that shows an **open-chain** tree system and a **closed-loop**
-  system next to each other, animated together, to make the structural difference legible.
-  Left panel: an open chain built straight from `dynamic_system2dp` — e.g. a 2-3 link robot
-  arm, or a simplified stick-figure person (torso → upper/lower-arm and upper/lower-leg
-  branches off a common root, the existing branching tree). Its end-effector / hand swings
-  freely (the chain has no closure). Right panel: a `closed_loop_system2dp` whose spanning
-  tree is the *same* open chain plus an `add_loop_constraint` that pins the end-effector
-  (e.g. a four-bar, or the arm with its hand pinned to a fixed world point / to the other
-  hand), so the same driver motion now propagates through the loop and the dependent joints
-  are solved. Drive both from one shared parameter (a crank angle / a joint sweep) so the
-  viewer sees, in lock-step: the open chain free vs. the closed loop's coupled, constrained
-  motion; optionally overlay the closure point and the constraint residual `‖g‖`. This is
-  the headline visual for the "tree vs. tree+closure" distinction the whole note is about
-  (§1 vs. §3) — keep ga_view's left-handed screen convention local per
-  `[[feedback_library_docs_right_handed]]`.
-  *ga_py reconstruction test (enabled by the Phase 1 enum work):* the Phase 1 ga_py change
-  also bound the joint enums (`joint2dp`/`joint3dp`) and the joint descriptors
-  (`joint_state2dp`/`joint_state3dp`) — currently with **no test consumer**. Add a
-  `dynamic_system2dp` reconstruction test that exercises them: reproduce the joint-space
-  forward dynamics (`assemble_mass_bias` → `M(q) q̈ = τ` → RK4) in Python from the bound
-  primitives, modelling each joint faithfully via `joint2dp.revolute`/`prismatic`, the
-  body-frame screw `screw_b`, and the rest motor — exactly the way `test_merry_go_round.py`
-  uses the bound `pose2dp` rather than a hand-rolled pose tuple. Validate against the C++
-  open-loop result (e.g. the double-pendulum energy / mass-matrix identity, or the four-bar
-  closed-loop assembly). This is the payoff that turns the now-bound joint types from
-  available-but-unused into a tested, faithful Python mirror of the dynamic layer, and is
-  the natural stepping-stone to a Python `closed_loop_system2dp` reconstruction.
+  - *Side-by-side open-vs-closed `ga_view` scene. [DONE 2026-06-13]*
+    `ga_view/src/active_open_vs_closed.{hpp,cpp}` — ONE 3-link arm under a single shared
+    shoulder oscillation, shown twice: LEFT an open chain (a `closed_loop_system2dp` with no
+    constraint, so `assemble()` is a no-op; elbow/wrist fixed → rigid, hand sweeps a free
+    arc), RIGHT the same arm with its hand pinned to a fixed world point by one coincidence
+    (`assemble({shoulder})` re-solves elbow/wrist each frame → the arm morphs around the
+    planted hand, live `‖g‖`~1e-16). Geometry chosen so the pin sits `2·link` above the
+    shoulder and the shoulder swings ±0.5 rad → well-conditioned IK (converges over the full
+    cycle). `open_vs_closed_params`/`aopen_vs_closed` + `add_open_vs_closed` in the model; its
+    own view + legend in `w_mainwindow.cpp`; source in `CMakeLists.txt`. Cross-referenced from
+    the docs (footnote in the opening prose of the closed-loop subsubsection). Layout tuned to
+    the user's visual feedback (both arms raised, legend centred). The headline
+    tree-versus-closure visual.
+  - *ga_py `dynamic_system2dp` reconstruction test. [DONE 2026-06-13]*
+    `ga_py/tests/test_dynamic_system_reconstruction.py` — rebuilds the COUPLED joint-space
+    forward dynamics of a double pendulum in Python from the bound primitives, modelling each
+    joint as a `joint_state2dp` (`joint2dp.revolute` / `screw_b` / rest motor / phi / omega)
+    and composing world motors with `rgpr`, the mass matrix via the inertia map + spatial
+    pairing `-rwdg`, the RHS (gravity − Coriolis bias) via the `world_VA` recursion, the
+    solve via the bound `lu_solve`, and a scalar RK4 (the bound `rk4_step` is GA-vector-typed,
+    so a hand RK4 fits the scalar joint state). Validated by both checks the C++ suite uses:
+    the `½ q̇ᵀ M(q) q̇ == KE` identity (4 configs) and energy conservation over a 2 s swing
+    (`dE/scale < 1e-4`). This is the payoff that turns the now-bound joint types from
+    available-but-unused into a tested, faithful Python mirror of the dynamic layer — the
+    dynamic-layer analogue of `test_merry_go_round.py` — and the stepping-stone to a Python
+    `closed_loop_system2dp` reconstruction. 721 ga_py tests pass.
+  - *Remaining — the parallel-mechanism (`ga_view`) demo, REPLANNED as a 2D scene. [TODO —
+    resume here]* A true 3D delta / Stewart-Gough scene is blocked (`ga_view` is a 2D PGA
+    viewer: Coordsys with x/y axes, no 3D→2D projection yet). BUT the *principle* of a delta
+    — a moving end-effector positioned IN PARALLEL by several arms from a fixed base (closed
+    loops) — has a clean 2D analogue: the **planar 5-bar (2-RRR) parallel manipulator** (a
+    real mechanism: pick-and-place / haptic devices). Build that instead — it is structurally
+    the same two-arms-meeting-at-a-point shape as the 3D validation test, just planar, so it
+    sits directly on `closed_loop_system2dp` and renders fine in 2D.
+    - *Structure:* two 2-link arms from two fixed, actuated shoulders (bases at ±x); both
+      tips pinned to a shared end-effector by ONE point-coincidence. 4 joints (2 shoulders +
+      2 elbows), 2 constraint equations → 2 DOF.
+    - *Drive (user-chosen): actuate the TWO SHOULDERS* with smooth phase-shifted sinusoids
+      (the natural parallel-robot input); each frame `assemble({shoulderA, shoulderB})` solves
+      the two elbows (forward kinematics of the closed loop) so the tips stay coincident. The
+      effector then traces a Lissajous-like closed curve. (The alternative — IK to trace a
+      prescribed circle — was NOT chosen.)
+    - *Draw:* the two arms, grounded shoulder pivots, the shared effector + its traced path,
+      live `‖g‖`; SPACE/R/T. Reuse `drawBar`/`drawPivot`/`toScreen` + the trace pattern from
+      `active_four_bar` / `active_open_vs_closed`.
+    - *Wiring (mirror the existing scenes):* `planar_delta_params` + `aplanar_delta` in
+      `coordsys_model.hpp`; `add_planar_delta` + clear in `coordsys_model.cpp`;
+      `active_planar_delta.{hpp,cpp}`; its own view + legend in `w_mainwindow.cpp`; source in
+      `ga_view/CMakeLists.txt`.
+    - *Robustness:* warm-start `assemble` from the previous frame; pick base separation, link
+      lengths and shoulder amplitudes so the effector stays in the well-conditioned interior
+      of the workspace (avoid full-extension / fully-folded elbow singularities), exactly as
+      tuned for the four-bar and the 3D two-arm loop. Smoke-launch with
+      `QT_QPA_PLATFORM=offscreen`, then hand off for the user's visual layout feedback.
+    - *After it works:* cross-reference it from the docs (the closed-loop subsubsection
+      already names Stewart-Gough/delta — add the planar parallel robot as the realized 2D
+      demo), and update this TODO + memory. The true 3D delta stays out of scope until
+      `ga_view` gains 3D rendering.
 
 ---
 

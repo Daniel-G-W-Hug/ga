@@ -17,6 +17,7 @@ using namespace hd::ga::pga;
 #include "active_bivt2dp.hpp"
 #include "active_double_pendulum.hpp"
 #include "active_four_bar.hpp"
+#include "active_open_vs_closed.hpp"
 #include "active_frame_trafo.hpp"
 #include "active_kinematics2dp.hpp"
 #include "active_merry_go_round.hpp"
@@ -1641,6 +1642,22 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(fb);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // open-vs-closed side-by-side demo (PGA2D dynamic_system2dp vs
+    // closed_loop_system2dp)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->aovc.size(); ++idx) {
+        active_open_vs_closed* ovc =
+            new active_open_vs_closed(cs, wcs, cm->aovc[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, ovc,
+                         &active_open_vs_closed::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, ovc,
+                         &active_open_vs_closed::togglePause);
+        QObject::connect(wcs, &w_Coordsys::traceToggleRequested, ovc,
+                         &active_open_vs_closed::toggleTrace);
+        scene->addItem(ovc);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -2140,6 +2157,34 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
         leg.x_pct = 0.43; // right-aligned (left margin = 1 - size - small gap)
         leg.y_pct = 0.64; // lower part of the view, a touch above the bottom
         leg.size_pct = 0.55;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append open-vs-closed side-by-side scene: the same 3-link arm driven by one shared
+    // shoulder oscillation. LEFT (dynamic_system2dp tree) -- free hand sweeps an arc; RIGHT
+    // (closed_loop_system2dp) -- hand pinned, so the elbow/wrist re-solve and the arm morphs
+    // around the planted hand. The headline "tree vs. tree + closure" visual.
+    {
+        Coordsys_model cm;
+        cm.add_open_vs_closed(aopen_vs_closed{});
+        cm.set_label("Open chain vs. closed loop (same arm, one shoulder drive)");
+
+        diagram_legend leg;
+        leg.heading = "PGA2D tree vs. tree + closure: ONE shared shoulder drive, two "
+                      "behaviours. Left: open chain, the hand sweeps free. Right: the hand "
+                      "is pinned, so the elbow / wrist re-solve to keep it planted.";
+        leg.entries = {{"SPACE / R:", "pause-resume / reset"},
+                       {"T:", "toggle free-hand trace"},
+                       {"─────", "──────────"},
+                       {"left arm:", "open chain -- elbow/wrist fixed, hand free"},
+                       {"blue dot + curve:", "the free hand and its swept arc"},
+                       {"right arm:", "closed loop -- same shoulder drive"},
+                       {"orange cross:", "fixed pin; the hand stays on it (live ||g||)"}};
+        leg.x_pct = 0.20; // centred horizontally (left margin = (1 - size) / 2)
+        leg.y_pct = 0.65; // a touch higher than before
+        leg.size_pct = 0.60;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));

@@ -322,6 +322,31 @@ struct afour_bar {
     four_bar_params params;
 };
 
+// Parameters of the open-vs-closed side-by-side demo. TWO copies of the same 3-link arm
+// (shoulder -> elbow -> wrist, each link `link` long), driven by one shared oscillating
+// shoulder angle. LEFT (base_open): an open chain -- elbow/wrist held fixed, so the arm is
+// rigid and its hand sweeps a free arc. RIGHT (base_closed): a closed loop -- the hand is
+// pinned to a fixed world point, so the elbow/wrist are re-solved each frame and the arm
+// morphs around the planted hand. The nominal pose places the hand 2*link straight above
+// the shoulder, so the shoulder can oscillate +/- amp while the IK stays well-conditioned.
+struct open_vs_closed_params {
+    vec2dp base_open{-1.8, -0.5, 1.0};   // shoulder (ground pivot) of the open arm
+    vec2dp base_closed{1.5, -0.5, 1.0};  // shoulder (ground pivot) of the closed arm
+    double link{1.0};                    // length of each of the 3 links
+    double shoulder0{1.5707963};         // nominal shoulder angle (pi/2, points up)
+    double elbow0{-1.0471976};           // nominal elbow angle (-60 deg)
+    double wrist0{2.0943951};            // nominal wrist angle (120 deg)
+    double amp{0.5};                     // shoulder oscillation amplitude [rad]
+    double period{4.0};                  // oscillation period [s]
+    double dt{0.004};                    // time step [s]
+    int substeps{4};                     // steps per tick
+};
+
+// Active item: open-vs-closed side-by-side demo (no active points)
+struct aopen_vs_closed {
+    open_vs_closed_params params;
+};
+
 // One row in the key-binding table of a legend
 struct key_legend_entry {
     std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
@@ -417,6 +442,9 @@ class Coordsys_model {
     // add four-bar linkage demo item
     [[maybe_unused]] size_t add_four_bar(afour_bar const& afb_in);
 
+    // add open-vs-closed side-by-side demo item
+    [[maybe_unused]] size_t add_open_vs_closed(aopen_vs_closed const& aovc_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -488,6 +516,9 @@ class Coordsys_model {
 
     // data for four-bar linkage demo items
     std::vector<afour_bar> afb;
+
+    // data for open-vs-closed side-by-side demo items
+    std::vector<aopen_vs_closed> aovc;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};

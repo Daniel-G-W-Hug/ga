@@ -1918,8 +1918,12 @@ without giving up the energy-clean reduced coordinates by keeping the tree as a
 its frames -- \emph{coordinate partitioning}
 \cite{Wehage_Haug_coordinate_partitioning:1982}, not the maximal coordinates weighed in
 subsection~\ref{subsubsection:addendum_what_ga_buys}. The open-chain assembly is reused
-unchanged; the loop closure is an additive layer on top of it
-\cite{Featherstone_rigid_body_dynamics:2008}.
+unchanged; the loop closure is an additive layer on top of
+it~\cite{Featherstone_rigid_body_dynamics:2008}.\footnote{The distinction is shown side by
+side in \path{ga_view} (\path{ga_view/src/active_open_vs_closed}): the same three-link arm
+under one shoulder drive, swinging freely as an open chain, and -- with its hand pinned by
+a single coincidence constraint -- re-solving its remaining joints to keep the hand
+planted.}
 
 \paragraph{Loop-closure constraints:} A loop is closed by requiring two anchor points --
 $P_a$ carried by one branch, $P_b$ by another -- to coincide. In $PGA$ coincidence is the

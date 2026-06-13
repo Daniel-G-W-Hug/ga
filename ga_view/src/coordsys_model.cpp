@@ -189,6 +189,14 @@ Coordsys_model::add_double_pendulum(adouble_pendulum const& adp_in)
     return afb.size() - 1;
 }
 
+[[maybe_unused]] size_t
+Coordsys_model::add_open_vs_closed(aopen_vs_closed const& aovc_in)
+{
+    aovc.push_back(aovc_in);
+
+    return aovc.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -222,6 +230,7 @@ void Coordsys_model::clear()
     amgr.clear();
     adp.clear();
     afb.clear();
+    aovc.clear();
     aft.clear();
 
     m_label.clear();
