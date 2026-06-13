@@ -44,8 +44,19 @@ target_link_libraries(${EXEC_NAME3} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME4} PRIVATE doctest::doctest ga)
 target_link_libraries(${EXEC_NAME5} PRIVATE doctest::doctest ga)
 
-# Suppress -Wc2y-extensions triggered by __COUNTER__ in doctest macros (third-party header)
-foreach(target ${EXEC_NAME1} ${EXEC_NAME2} ${EXEC_NAME3} ${EXEC_NAME4})
+# doctest anonymous-symbol counter + its c2y warning.
+#
+# DOCTEST_COUNTER=__COUNTER__: on clang >= 22 doctest disables __COUNTER__ and falls back
+# to __LINE__ for the names it generates per TEST_SUITE/TEST_CASE. With several test
+# headers #included into one TU that collides whenever two registrations land on the same
+# line in different headers (e.g. ga_appl3dp_*: a TEST_SUITE at line 29 in both the
+# 3d_cmp and physics headers -> "redefinition of getCurrentTestSuite"). The GA library is
+# header-only and the tests use textual includes, so __COUNTER__ is monotonic within each
+# TU -- restoring it gives every registration a unique name regardless of line layout.
+#
+# -Wno-c2y-extensions: silences the c2y-extension warning __COUNTER__ raises on clang.
+foreach(target ${EXEC_NAME1} ${EXEC_NAME2} ${EXEC_NAME3} ${EXEC_NAME4} ${EXEC_NAME5})
+    target_compile_definitions(${target} PRIVATE DOCTEST_COUNTER=__COUNTER__)
     target_compile_options(${target} PRIVATE $<$<CXX_COMPILER_ID:Clang,AppleClang>:-Wno-c2y-extensions>)
 endforeach()
 # target_link_libraries(${EXEC_NAME5} PRIVATE doctest::doctest ga)  # Commented out - STA not yet implemented

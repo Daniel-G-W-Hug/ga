@@ -908,10 +908,11 @@ This separation is also important for defining the exponential function with res
 the regressive geometric product that converts the bivector $B$ to the respective motor
 $M$: $M(t) = \exp_{\veedot}(\frac{1}{2} B(t)) = \exp_{\veedot}(\frac{1}{2} \Omega t)$ that
 enables us to actually transform points according to the vector rates of change as defined
-above. \\
+above.
 
-\emph{Caution.} The additive split $\Omega = \Omega_{rot} + \Omega_{tra}$ is a statement
-about \emph{generators} — the velocity level, where rates add and the components are
+\paragraph{Caution:} The additive split $\Omega = \Omega_{rot} + \Omega_{tra}$ is a
+statement
+about \emph{generators} --- the velocity level, where rates add and the components are
 independent. \emph{Finite motions do not add.} One must not read this split as a recipe for
 building a combined finite motion by adding generators (equivalently, by assuming the two
 motors commute); that is valid only in one special case. The next section makes this
@@ -1045,9 +1046,9 @@ When $B_b = B_{b,0} + \Omega_b \cdot t$ (uniform motion from initial condition $
 \end{itemize}
 
 \emph{Design rule:} use $B_{b,0} = \mathbf{0}$ (body starts at the $M_0$ reference pose)
-so that the accumulated generator retains a clean geometric meaning. \\
+so that the accumulated generator retains a clean geometric meaning.
 
-\emph{Composing motions --- multiply motors, do not add generators.} The same caveat
+\paragraph{Composing motions --- multiply motors, do not add generators:} The same caveat
 governs how separate motions \emph{compose}. A finite motion is applied by its motor $M =
 \exp_{\veedot}(\tfrac{1}{2} B)$, and two successive motions compose by the regressive
 geometric product (motor multiplication), which is order-dependent:

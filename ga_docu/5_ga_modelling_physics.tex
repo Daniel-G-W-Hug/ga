@@ -315,8 +315,9 @@ they cannot be combined into one object in the classical approach, e.g. by addin
 
 The $PGA$ approach to momentum is to define both, the linear and the angular aspects,
 within one algebraic entity. This is in complete analogy to what we have seen in the last
-subsection for force and moment resulting in its line of action modelled by a bivector. \\
+subsection for force and moment resulting in its line of action modelled by a bivector.
 
+\paragraph{Single point mass:}
 The momentum $P$ of a point mass $m$ at a projective (unitized) position $X$ that moves
 with velocity $\dot{X}$ is defined as a bivector $P$ as
 \begin{equation}
@@ -344,8 +345,9 @@ way, since the origin is a distinguishable point. This is in contrast to $EGA$ o
 classical approach where the origin is a null-vector, which has no lasting effect if it is
 added to another point. This is one reason why $PGA$ can combine linear and angular
 aspects as separate physical effects in a single algebraic object. The other is that the
-required 6 degrees of freedom can be encoded in a bivector.} \\
+required 6 degrees of freedom can be encoded in a bivector.}
 
+\paragraph{Recovering linear and angular momentum:}
 The physical aspects encoded in the momentum line $P$ can be retrieved in complete analogy
 to the case of force and torque in subsection
 \ref{subsubsection:modelling_force_and_torque}: \\
@@ -418,8 +420,9 @@ description. The dot used for the time-derivative refers to the whole expression
 parentheses. So the same physical situation was described from another viewpoint. However,
 the algebraic object $P$ is unchanged, i.e. $P_O(X) = P_Y(X)$. This clearly shows that $P$
 does not depend on the chosen origin and that eqn.~(\ref{momentum_written_with_O}) is
-indeed a coordinate free definition. \\
+indeed a coordinate free definition.
 
+\paragraph{Mass distributions:}
 The total momentum of a set of mass points $m_i X_i$ is defined as the sum of all momentum
 blades.
 \begin{equation}
@@ -465,8 +468,9 @@ since the second derivative $\ddot{X}_w$ cannot be isolated on the left-hand sid
 equation as required for direct integration. To circumvent this we introduce another
 variable that can be isolated, enabling us to solve the ODE. For this purpose we use the
 rate of change $\Omega$ (a vector in $2D$ and a bivector in $3D$). The integration of that
-variable will then allow for computation of position, speed, etc. as a separate step. \\
+variable will then allow for computation of position, speed, etc. as a separate step.
 
+\paragraph{Rate of change:}
 Calculating the derivative $\dot{P}_w$ in the world frame in general yields two terms
 \begin{equation}
     \dot{P}_w = \dot{I}_w[\Omega_w] + I_w[\dot{\Omega}_w]
@@ -477,8 +481,9 @@ moving points as well as due to the rate of change $\Omega_w$. Therefore, it is 
 to calculate the inertia map in the body frame, since it is constant in that frame, if the
 body frame is chosen to be fixed to the modelled rigid object. This avoids the effort to
 additionally calculate the time derivative of the inertia map (the first term on the
-right-hand side above). \\
+right-hand side above).
 
+\paragraph{Body frame:}
 If we want to express the physical problem in the body frame, we have to transform the
 components of eqn.~(\ref{eq:inertia_map_world_frame}) accordingly. Using
 eqn.~(\ref{eq:world_to_body_pga}), i.e. $I_b = \rrev{M} \veedot I_w \veedot M$ and
@@ -514,8 +519,9 @@ eqn.~(\ref{eq:momentum_derivative_world_frame}) in the world frame. \\
 The mapping to the classical inertia can be done when splitting $\Omega_b$ relative to
 the centroid of the body with a projective point split on $\Omega_b$ and on
 $I_b[\Omega_b]$ as shown by \cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023} on page
-25f and adjusted to our approach using regressive geometric products. \\
+25f and adjusted to our approach using regressive geometric products.
 
+\paragraph{Reference points:}
 Now we introduce some typically used reference points to describe kinematics via the
 bivector rate of change $\Omega$ and dynamics via the total momentum $P$:
 \begin{itemize}
@@ -579,8 +585,9 @@ eqn.~(\ref{eq:rcmt_pga_world_incl_X0_of_t}) $\dot{X}_w = \mathrm{rcmt}(\Omega_w,
 the body frame or moves in the body frame. The expressions in the world frame can of
 course be expressed in the body frame as well using eqn.~(\ref{eq:body_to_world_pga})
 $\Omega_w = M \veedot \Omega_b \veedot \rrev{M}$ and $X_w = M \veedot X_b \veedot
-\rrev{M}$.\\
+\rrev{M}$.
 
+\paragraph{Inertia map ($2D$):}
 For that purpose we need the inertia map $I_b[\Omega_b]$, and it's inverse to set up the
 right-hand side of the ODE system given in equations~(\ref{eq:ode_system_body_frame}). We
 start with the $2D$ case where the rate of change $\Omega_b$ is a vector, as shown at the
@@ -636,8 +643,9 @@ the rate of change and the resulting total inertia map can be inverted either sy
 or numerically to get its inverse $I_{2D}^{-1}$ as needed to set up the right-hand side of
 the system in eqn.~(\ref{eq:ode_system_body_frame}). The inertia map in $2D$ maps the rate
 of change vector to the momentum bivector. The inverse inertia map than maps from a
-momentum bivector to the rate of change vector. \\
+momentum bivector to the rate of change vector.
 
+\paragraph{Inertia map ($3D$):}
 Now let's do the same for the $3D$ case, where the rate of change is a bivector. The
 component expressions are generated from the corresponding product tables in
 \path{ga_prdxpr} and integrated into the products in the ga library. 
@@ -837,9 +845,10 @@ follows:
 This $1^{st}$ order ODE system $\dot{\vec{u}} = rhs(\vec{u},t)$ can now be solved by
 direct integration, using e.g. a Runge-Kutta-Scheme of $4^{th}$ order accuracy for precise
 time integration, and using the initial conditions defined above. As a result, we directly
-get the positions and velocities as function of time.\\
+get the positions and velocities as function of time.
 
-\emph{Classical body frame vs.\ $PGA$ -- what unifies.} It is instructive to compare the
+\paragraph{Classical body frame vs.\ $PGA$ --- what unifies:} It is instructive to compare
+the
 single $PGA$ equation of motion~(\ref{eq:ode_system_body_frame}), $\dot{\Omega}_b =
 I_b^{-1}\!\left[F_b - \mathrm{rcmt}(\Omega_b, I_b[\Omega_b])\right]$, with the classical
 body-frame formulation. Classically one carries two separate vector equations -- Newton's
@@ -891,9 +900,9 @@ sandwich transformation. \\
 Basic examples for translational and rotational motion are implemented as tests in
 \path{ga_test/src/ga_appl_physics_test.hpp} based on the Newton-Euler equations in both
 approaches, the classical approach and the approach directly formulated in $PGA$, for very
-simple reference cases. \\
+simple reference cases.
 
-\emph{Constrained motion: rotation about a fixed pivot.}
+\paragraph{Constrained motion --- rotation about a fixed pivot:}
 The body-frame $PGA$ formulation extends naturally to constrained motion. A common case in
 $2D$ is a rigid body whose rotation is constrained so that a specific body-frame point
 $Q_b$ (the pivot) remains fixed in the world -- for example a plate pendulum fixed at one
@@ -993,9 +1002,9 @@ in the algebra. In $PGA$ the translational and rotational generators live in dua
 subspaces -- ideal lines are dual to real lines -- so the mass contribution, which couples
 velocity to momentum across dual subspaces, always lands in an off-diagonal block. The
 following paragraphs explain this structure first for $2D$, then for $3D$, and concludes
-with a unified comparison. \\
+with a unified comparison.
 
-\emph{$PGA2DP$: structure of the 2D inertia map.}
+\paragraph{$PGA2DP$ --- structure of the 2D inertia map:}
 In $2D$ $PGA$ the velocity twist $\Omega$ is a vector and the momentum wrench $P$ is a
 bivector, so the inertia map crosses two different grades:
 \begin{equation}
@@ -1030,9 +1039,10 @@ the inertia matrix from eqn.~(\ref{eq:inertia_map_components_2D}) simplifies to
     \label{eq:inertia_2D_unitized}
 \end{equation}
 where rows correspond to output components ($\bv{31}$, $\bv{32}$, $\bv{12}$) and columns
-to input components ($\Omega_x$, $\Omega_y$, $\Omega_z$). \\
+to input components ($\Omega_x$, $\Omega_y$, $\Omega_z$).
 
-\emph{Why mass is off-diagonal.} The mass contribution to the inertia map takes the form
+\paragraph{Why mass is off-diagonal:} The mass contribution to the inertia map takes the
+form
 $I_\mathrm{mass}(\Omega) = -m \cdot \rcmpl{\Omega}$, where $\rcmpl{(\cdot)}$ denotes the
 complement in $PGA2DP$. The complement of the translational basis vectors crosses indices:
 \begin{equation}
@@ -1057,9 +1067,9 @@ pure translation with classical velocity $(v_x, v_y)$ is encoded in $2D$ $PGA$ a
 = (-v_y, v_x, 0)$. The two sign flips cancel and the classical linear momentum $p_x =
 mv_x$, $p_y = mv_y$ is correctly recovered. In any other context -- position, force,
 acceleration -- $\bv{1}$ always encodes the $x$-component and $\bv{2}$ the $y$-component.
-\\
 
-\emph{Moment of inertia and cross-coupling terms.} The entry $I[2,2] = m(X_x^2 + X_y^2) =
+\paragraph{Moment of inertia and cross-coupling terms:} The entry $I[2,2] = m(X_x^2 +
+X_y^2) =
 mr^2$ maps angular velocity ($\bv{3}$, index~2) to angular momentum ($\bv{12}$, index~2),
 recovering the classical scalar moment of inertia $J = mr^2$ for a point mass at distance
 $r$ from the rotation center. The complement of $\bv{3}$ is $\rcmpl{\bv{3}} = -\bv{12}$,
@@ -1068,9 +1078,10 @@ the sign is absorbed into the definition so that $J > 0$. The entries $I[0,2] = 
 $I[1,2] = +mX_x$ couple angular velocity to linear momentum, encoding the classical
 relation $\vec{L}_\mathrm{linear} = m(\vec{\omega} \times \vec{r})$ for a body rotating at
 offset $(X_x, X_y)$ from the rotation center. These entries, together with their
-transposes $I[2,0]$ and $I[2,1]$, vanish when the point is at the origin. \\
+transposes $I[2,0]$ and $I[2,1]$, vanish when the point is at the origin.
 
-\emph{Body-frame inertia matrix.} Integrating the single-point formula over a rigid body
+\paragraph{Body-frame inertia matrix:} Integrating the single-point formula over a rigid
+body
 with center of mass at the origin (body frame) gives:
 \begin{equation}
     I_\mathrm{body} =
@@ -1084,9 +1095,10 @@ with center of mass at the origin (body frame) gives:
 where $J = \int_m (x^2 + y^2)\,dm$ is the classical scalar moment of inertia about the
 center of mass. The antisymmetric mass block (upper-left $2\times2$) and the moment of
 inertia entry (lower-right $1\times1$) are cleanly separated: translational and rotational
-degrees of freedom decouple at the center of mass, exactly as in classical mechanics. \\
+degrees of freedom decouple at the center of mass, exactly as in classical mechanics.
 
-\emph{General frame with center of mass at $(c_x, c_y)$.} When the chosen reference point
+\paragraph{General frame with center of mass at $(c_x, c_y)$:} When the chosen reference
+point
 does not coincide with the center of mass, the integrated inertia matrix is:
 \begin{equation}
     I =
@@ -1114,7 +1126,8 @@ matrix decomposes into the following sub-blocks:
     classical parallel axis theorem applied to the scalar moment of inertia.
 \end{itemize}
 
-\emph{Uniform rectangular plate.} As a verification, integrating over a uniform plate of
+\paragraph{Uniform rectangular plate:} As a verification, integrating over a uniform plate
+of
 width $W$ (along $\bv{1}$), height $H$ (along $\bv{2}$), total mass $M$, centered at the
 origin gives:
 \begin{equation}
@@ -1153,7 +1166,7 @@ inertia matrix.}
 \label{tab:classical_pga2dp}
 \end{table}
 
-\emph{$3D$ $PGA$: structure of the 3D inertia map.}
+\paragraph{$3D$ $PGA$ --- structure of the 3D inertia map:}
 In $3D$ $PGA$ both the velocity twist $\Omega$ and the momentum wrench $P$ are bivectors,
 so the inertia map acts within the same grade:
 \begin{equation}
@@ -1210,9 +1223,10 @@ unitized point with $X_w = 1$ is:
     \label{eq:inertia_3D_unitized}
 \end{align}
 where columns correspond to ($\Omega_{vx}$, $\Omega_{vy}$, $\Omega_{vz}$, $\Omega_{mx}$,
-$\Omega_{my}$, $\Omega_{mz}$) and rows to the same ordering for $P$. \\
+$\Omega_{my}$, $\Omega_{mz}$) and rows to the same ordering for $P$.
 
-\emph{Block structure and the complement in 3D.} The $6\times6$ matrix decomposes into
+\paragraph{Block structure and the complement in 3D:} The $6\times6$ matrix decomposes
+into
 four $3\times3$ blocks with distinct physical roles:
 \begin{itemize}
     \item \emph{Upper-left [0:3, 0:3]}: translational velocity $\to$ linear momentum. For
@@ -1239,9 +1253,10 @@ which maps real lines to ideal lines:
 Applying $I_\mathrm{mass} = -m \cdot \rcmpl{(\cdot)}$ maps each angular velocity component
 to the corresponding linear momentum component, placing $m$ on the diagonal of the
 upper-right block: $I[0,3] = I[1,4] = I[2,5] = m$. The diagonal entries of the upper-left
-and lower-right blocks are zero by the same degenerate-metric argument as in $2D$. \\
+and lower-right blocks are zero by the same degenerate-metric argument as in $2D$.
 
-\emph{Body-frame inertia matrix.} Integrating the single-point formula over a rigid body
+\paragraph{Body-frame inertia matrix:} Integrating the single-point formula over a rigid
+body
 with center of mass at the origin gives:
 \begin{equation}
     I_\mathrm{body} =
@@ -1271,9 +1286,10 @@ with the classical integrals for the diagonal moments $I_{xx} = \int_m (y^2+z^2)
 $I_{yy} = \int_m (x^2+z^2)\,dm$, $I_{zz} = \int_m (x^2+y^2)\,dm$ and the off-diagonal
 products of inertia $I_{xy} = \int_m xy\,dm$, $I_{xz} = \int_m xz\,dm$, $I_{yz} = \int_m
 yz\,dm$. Translational and rotational degrees of freedom decouple at the center of mass:
-the diagonal blocks are zero and all physical content sits in the off-diagonal blocks. \\
+the diagonal blocks are zero and all physical content sits in the off-diagonal blocks.
 
-\emph{General frame with center of mass at $\vec{r}_{cm} = (c_x, c_y, c_z)$.} In a general
+\paragraph{General frame with center of mass at $\vec{r}_{cm} = (c_x, c_y, c_z)$:} In a
+general
 frame all four $3\times3$ blocks are non-zero:
 \begin{equation}
     I =
@@ -1313,9 +1329,9 @@ Two structural features carry over from the $2D$ case:
 
 This $6\times6$ structure is the $PGA$ form of the classical spatial inertia matrix from
 rigid body dynamics~\cite{Dynamics_in_PGA_plane-based_Dorst-DeKennik:2023}, expressed in
-the (translational, angular) velocity ordering of $3D$ $PGA$. \\
+the (translational, angular) velocity ordering of $3D$ $PGA$.
 
-\emph{Uniform rectangular cuboid.} For a uniform cuboid of width $w$ (along $\bv{1}$),
+\paragraph{Uniform rectangular cuboid:} For a uniform cuboid of width $w$ (along $\bv{1}$),
 height $h$ (along $\bv{2}$), depth $d$ (along $\bv{3}$), total mass $m$, centered at the
 origin, all cross-inertia and center-of-mass coupling terms vanish:
 \begin{equation}
@@ -1358,7 +1374,7 @@ inertia matrix (body frame, center of mass at origin).}
 \label{tab:classical_pga3dp}
 \end{table}
 
-\emph{Unified view: 2D and 3D.}
+\paragraph{Unified view --- 2D and 3D:}
 In both $2D$ $PGA$ and $3D$ $PGA$ the mass contribution to the inertia map takes the same
 algebraic form:
 \begin{equation}
@@ -1425,9 +1441,9 @@ rotational blocks decoupling in the inertia matrix itself -- the equations of mo
 retain dynamical coupling through the $\mathrm{rcmt}(\Omega_b, I_b[\Omega_b])$ term. This
 is the $PGA$ counterpart of the classical coupling terms $\vec{\omega}\times\vec{v}$ and
 $\vec{\omega}\times\mathbf{I}_b\vec{\omega}$, and it arises from the rotation of the body
-frame, not from the inertia structure. \\
+frame, not from the inertia structure.
 
-\emph{Pivot-corrected inertia: using the pivot as reference point.}
+\paragraph{Pivot-corrected inertia --- using the pivot as reference point:}
 The general-frame formulae derived above -- eqn.~(\ref{eq:inertia_2D_general}) in $2D$ and
 eqn.~(\ref{eq:inertia_3D_general}) in $3D$ -- apply directly when the reference point is
 chosen to coincide with the pivot rather than the center of mass. In that case the
@@ -1700,8 +1716,8 @@ up as a rotating \path{kinematic_system2dp}. Assertion-checked usage is in the t
 \path{ga_test/src/ga_appl2dp_physics_test.hpp} and its $3D$ analogue
 \path{ga_appl3dp_physics_test.hpp}.}
 
-\paragraph{Transforms between arbitrary frames (the tree walk).}
-The transform from any frame to any other is composed along the tree path. Walking
+\paragraph{Tree walk:} The transform from any frame to any other is composed along the
+tree path. Walking
 \emph{up} from the source to the lowest common ancestor (LCA) composes child-to-parent
 steps (the regressive reverse of each frame's pose motor); walking \emph{down} from the
 LCA to the target composes parent-to-child steps; the result is the regressive product of
@@ -1712,8 +1728,8 @@ degenerate tree where the LCA is simply the shallower frame. Because composition
 multiplication with $\veedot$, the entire tree machinery is dimension-neutral and lifts to
 $3D$ unchanged.
 
-\paragraph{One sandwich for points \emph{and} vectors.}
-The transform between two frames is a single motor $M$, and \emph{any} geometric object is
+\paragraph{One sandwich for all objects:} The transform between two frames is a single
+motor $M$, and \emph{any} geometric object is
 moved by the \emph{same} sandwich $X' = M \veedot X \veedot \rrev{M}$. Classical
 mechanics, by contrast, provides several different rules and the modeller must determine
 which one applies:
@@ -1747,23 +1763,24 @@ carries a relative velocity twist and a relative acceleration twist with respect
 parent, and the layer answers velocity and acceleration queries for any point of any
 frame.
 
-\paragraph{The adjoint is the point sandwich.}
-A twist is the instantaneous (Lie-algebra) motion with $M = \exp_\veedot(\tfrac12 B)$
-(twists \emph{add}, motors \emph{multiply}; see
+\paragraph{Adjoint:} A twist $B$ (a vector in $2D$, a bivector in $3D$) is the
+instantaneous motion (Lie-algebra) with the motor $M$ defined as $M =
+\exp_\veedot(\tfrac12 B)$ (twists \emph{add}, motors \emph{multiply}; see
 subsection~\ref{subsection:motor_generators_PGA}). Re-expressing a twist $B$ in another
-frame is the \emph{adjoint}, and the geometric-algebra fact that makes the implementation
-compact is that the adjoint \emph{is} the very sandwich used to move a point:
+frame is done by the \emph{adjoint} of the twist, and the geometric-algebra fact that
+makes the implementation compact is that the adjoint \emph{is} the very sandwich used to
+move a point (or any other object):
 \begin{equation}
     \mathrm{Ad}_M(B) = M \veedot B \veedot \rrev{M}
     \label{eq:adjoint_is_sandwich}
 \end{equation}
 This is eqn.~(\ref{eq:body_to_world_pga}) read as a twist transport rather than an object
 transport. So the same sandwich serves double duty -- point action and twist adjoint --
-because both are conjugation $M(\cdot)\rrev{M}$. A separate $6\times6$ adjoint matrix, as
-the classical formulation requires, is unnecessary.
+because both are the conjugation $M\veedot(\cdot)\veedot\rrev{M}$. A separate $6\times6$
+adjoint matrix, as the classical formulation requires, is unnecessary.
 
-\paragraph{Velocities add along the path.}
-This step goes beyond the single-body case. In a chain, each frame $k$
+\paragraph{Velocity composition:} This step goes beyond the single-body case. In a chain,
+each frame $k$
 contributes a relative twist $\xi_k$ expressed in \emph{its own} frame. Transporting each
 to the world frame by the adjoint and superposing -- valid because twists live in a vector
 space -- gives the world velocity twist of frame $i$:
@@ -1777,14 +1794,13 @@ not commute and must be multiplied, but to first order simultaneous infinitesima
 sum. Equation~(\ref{eq:twist_world_sum}) is the geometric-algebra form of the robotics
 \emph{spatial Jacobian} -- a quantity a single moving body does not exhibit.
 
-\paragraph{Velocity and acceleration fields, and the Coriolis bracket.}
-Given a frame's world twist $V$ (and acceleration twist $A$), the velocity of any point
-$X$ of that frame is the regressive commutator $\dot{X} = \mathrm{rcmt}(V, X)$, and its
-acceleration is $\mathrm{rcmt}(A, X) + \mathrm{rcmt}(V, \mathrm{rcmt}(V, X))$ -- exactly
-the frame (Euler) and centripetal terms of
-subsection~\ref{subsubsection:moving_coordinate_systems}, now evaluated per chain frame.
-Differentiating the adjoint along the moving chain yields the recursive Newton-Euler
-propagation
+\paragraph{Velocity and acceleration fields:} Given a frame's world velocity twist $V$
+(and acceleration twist $A$), the velocity of any point $X$ of that frame is the
+regressive commutator $\dot{X} = \mathrm{rcmt}(V, X)$, and its acceleration is
+$\mathrm{rcmt}(A, X) + \mathrm{rcmt}(V, \mathrm{rcmt}(V, X))$ -- exactly the frame (Euler)
+and centripetal terms of subsection~\ref{subsubsection:moving_coordinate_systems}, now
+evaluated per chain frame. Differentiating the adjoint along the moving chain yields the
+recursive Newton-Euler propagation
 \begin{subeqnarray}
     V_i &=& V_{\textit{parent}} + \mathrm{Ad}_{M_i}(\xi_i) \\
     A_i &=& A_{\textit{parent}} + \mathrm{Ad}_{M_i}(\dot{\xi}_i)
@@ -1822,8 +1838,7 @@ gravity while conserving energy. It is visualized in \path{ga_view}
 case in \path{ga_appl3dp_physics_test.hpp}. Both check energy conservation to RK4
 tolerance and the mass-matrix-versus-kinetic-energy identity.}
 
-\paragraph{The spatial pairing and energy.}
-Each body carries the inertia map $I$ of
+\paragraph{Spatial pairing and energy:} Each body carries the inertia map $I$ of
 subsection~\ref{subsubsection:structure_inertia_maps} (velocity twist $\to$ momentum
 wrench $P = I[\Omega]$). A twist is paired with a wrench through the dimension-agnostic
 \emph{reciprocal (spatial) product}
@@ -1838,10 +1853,9 @@ one pairing drives the kinetic energy, the joint-space mass matrix and the forwa
 dynamics, and lifts to $3D$ by replacing the $3\times3$ map with the $6\times6$ inertia
 map and $\mathrm{rwdg}$ with the bivector reciprocal product.
 
-\paragraph{Joints: rotation and translation in one form.}
-A joint is the reduced coordinate linking a body to its parent: \emph{free} (the
-unconstrained body), \emph{revolute} (a $1$-DOF hinge) or \emph{prismatic} (a $1$-DOF
-slider). Both $1$-DOF joints run identical code. The
+\paragraph{Joints:} A joint is the reduced coordinate linking a body to its parent:
+\emph{free} (the unconstrained body), \emph{revolute} (a $1$-DOF hinge) or \emph{prismatic}
+(a $1$-DOF slider). Both $1$-DOF joints run identical code. The
 body-to-parent motor, the relative twist and the Jacobian column are always
 \begin{equation}
     M(q) = M_{\textit{rest}} \veedot \exp_\veedot\!\big(\tfrac12\, q\, S_b\big), \qquad
@@ -1856,8 +1870,8 @@ single-pivot result (eqn.~(\ref{eq:pivot_invariance})) is the special case of on
 joint; the generic screw machinery, the prismatic case, and the parallel-axis (Steiner)
 inertia emerging automatically from the spatial Jacobian are what the dynamic layer adds.
 
-\paragraph{Forward dynamics in reduced coordinates.}
-In reduced coordinates the joint itself \emph{is} the constraint, so there are no explicit
+\paragraph{Forward dynamics:} In reduced coordinates the joint itself \emph{is} the
+constraint, so there are no explicit
 constraint forces, no drift, and clean energy conservation -- at the cost of a small
 linear solve. By virtual work over the bodies one assembles the joint-space equation of
 motion $M(q)\,\ddot{q} = \tau(q,\dot{q})$ with
@@ -1906,7 +1920,7 @@ changed:
     \hline
     pose orientation  & scalar angle $\varphi$           & axis-angle vector \\
     \hline
-    velocity twist    & a vector (grade-$1$ shadow)      & a bivector \path{BiVec3dp}
+    velocity twist    & a vector (grade-$1$)             & a bivector \path{BiVec3dp}
     (grade $2$) \\
     \hline
     point             & vector, weight $\bv{3}=1$        & vector, weight $\bv{4}=1$ \\
@@ -1952,7 +1966,7 @@ vector algebra (six-component twists and wrenches with a hand-defined spatial cr
 product) \cite{Featherstone_rigid_body_dynamics:2008}. Both are mature and fast; the
 question is whether the reorganization is worthwhile.
 
-\paragraph{Properties of the geometric formulation.}
+\paragraph{Properties of the geometric formulation:}
 \begin{enumerate}
     \item \emph{Pose is a motor, not a $4\times4$ matrix.} There is no orthonormality
           constraint to maintain and no renormalization drift; one exponential/logarithm
@@ -1977,8 +1991,8 @@ question is whether the reorganization is worthwhile.
           the $2D \to 3D$ lift is the same formula, not a rewrite.
 \end{enumerate}
 
-\paragraph{Coriolis coupling as a single commutator.}
-The most involved part of a classical double-pendulum Lagrangian is the
+\paragraph{Coriolis coupling:} The most involved part of a classical double-pendulum
+Lagrangian is the
 Coriolis/centrifugal coupling -- the Christoffel symbols built from derivatives of the
 mass matrix. In the geometric formulation it collapses to one term, the Lie bracket of
 twists in the acceleration recursion~(\ref{eq:newton_euler_recursion}): the Coriolis
@@ -1988,8 +2002,8 @@ point read off its world twist, the joint screw is the joint point, and the mome
 wrench is a bivector. The dynamical state is itself geometry, so the
 visualization is not a separate construction.
 
-\paragraph{Limitations.}
-Inertia remains a linear operator ($3\times3$ in $2D$, $6\times6$ in $3D$); for an
+\paragraph{Limitations:} Inertia remains a linear operator ($3\times3$ in $2D$, $6\times6$
+in $3D$); for an
 anisotropic body it does not collapse to a single multivector. The joint-space mass matrix
 $M(q)$ is still a small numerical solve -- reducing to generalized coordinates is a
 standard robotics step, and the final $\ddot{q} = M^{-1}\tau$ is ordinary linear algebra.
@@ -1997,8 +2011,8 @@ Performance is not improved either: mature spatial-vector and matrix codes are h
 optimized, so the geometric formulation offers clarity, unification and visualizability
 rather than speed.
 
-\paragraph{Reduced versus maximal coordinates.}
-A more $GA$-native formulation was deliberately not used: maximal
+\paragraph{Reduced vs.\ maximal coordinates:} A more $GA$-native formulation was
+deliberately not used: maximal
 coordinates, in which every body stays a full motor-and-twist and joints become constraint
 wrenches. That formulation is more uniform, but its constraint stabilization
 injects and removes energy, which conflicts with an energy-conservation test. The reduced

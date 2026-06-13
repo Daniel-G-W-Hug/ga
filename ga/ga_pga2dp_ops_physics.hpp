@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map> // std::unordered_map (frame name -> index)
+#include <utility>       // std::pair, std::move (assemble_mass_bias return)
 #include <vector>
 
 
@@ -134,6 +135,7 @@ Inertia2dp<T> get_point_inertia(T m, Vec2dp<T> const& X)
 // using mean(x^2) = w^2/12, mean(y^2) = h^2/12, mean(x) = mean(y) = 0 at origin.
 //
 // Base result about cm / body origin O_b = (0,0,1):
+//
 //   I_cm = m * [  0    1         0        ]
 //              [ -1    0         0        ]
 //              [  0    0    (w^2+h^2)/12  ]
@@ -145,7 +147,9 @@ Inertia2dp<T> get_point_inertia(T m, Vec2dp<T> const& X)
 //
 // Optional P_pivot parameter (default = body origin = cm):
 // When P_pivot != O_b, the scalar parallel-axis (Steiner) correction is applied:
+//
 //   I_pivot[2,2] = J_cm + m*(Px² + Py²)
+//
 // All other entries remain equal to I_cm (the upper-left 2×2 mass block and the
 // zero off-diagonal coupling terms are unchanged). This is the correct form for a
 // body constrained to rotate about a fixed pivot Q_b in 2D: the coupled Euler ODE
@@ -347,6 +351,7 @@ class static_system2dp {
 
     // Add a frame to the system. By default its parent is the previously added frame, so
     // a plain sequence of add_frame() calls builds a linear dependency chain
+    //
     //   rf[0] (root) -> rf[1] -> rf[2] -> ...
     //
     // Pass an explicit parent_idx to branch the tree off an earlier frame instead. This
@@ -610,13 +615,19 @@ class kinematic_system2dp : public static_system2dp {
     // acceleration pass, and to zero it for the velocity-product (bias) pass.
     void set_accel_twist(size_t idx, twist2dp const& B) { rel_atwist[idx] = B; }
 
-    // Advance the system by one time step dt (in-place evolution). Each non-root frame's
-    // relative pose is evolved on the motor manifold by the body-frame relative twist,
-    //   P_new = P (x) exp(0.5 * B_rel * dt)         [P = body->parent motor]
-    // which is EXACT for a constant twist (N steps of dt == one step of N*dt), and its
-    // relative velocity twist is ramped by the relative acceleration (explicit Euler):
-    //   B_rel += B_accel * dt.
-    // The root frame is left unchanged. Prescribed-motion kinematics only -- no forces.
+    // Advance the system by one time step dt (in-place evolution). Prescribed-motion
+    // kinematics only -- no forces; the root frame (index 0) is left unchanged.
+    //
+    // Each non-root frame's relative pose is evolved on the motor manifold by its
+    // body-frame relative twist:
+    //
+    //     P_new = P (x) exp(0.5 * B_rel * dt)        [P = body->parent motor]
+    //
+    // which is EXACT for a constant twist (N steps of dt == one step of N*dt). Its
+    // relative velocity twist is then ramped by the relative acceleration (explicit
+    // Euler):
+    //
+    //     B_rel += B_accel * dt
     void step(value_t dt)
     {
         for (size_t i = 1; i < size(); ++i) { // frame 0 is the root (left unchanged)
@@ -648,7 +659,9 @@ class kinematic_system2dp : public static_system2dp {
     }
 
     // Velocity field of a twist V at point X -- the PGA rate of change of a point:
+    //
     //   Xdot = rcmt(V, X)        (ga_docu/3_ga_modelling_motion.tex, eq:rcmt_pga_world)
+    //
     // In 2D PGA the twist is a vector (twist2dp) and rcmt(vec, vec) -> vec; the argument
     // ORDER matters: rcmt(V, X) == -rcmt(X, V).
     static vec2dp velocity_field(twist2dp const& V, vec2dp const& X)
@@ -658,6 +671,7 @@ class kinematic_system2dp : public static_system2dp {
 
     // Acceleration field at point X of a rigid body with velocity twist V and
     // acceleration twist A (5_ga_modelling_physics.tex, "Moving coordinate systems"):
+    //
     //   a(X) = rcmt(A, X)              [frame/Euler (alpha x r) + origin acceleration]
     //        + rcmt(V, rcmt(V, X))     [centripetal:  rcmt(Omega, rcmt(Omega, r))]
     static vec2dp accel_field(twist2dp const& V, twist2dp const& A, vec2dp const& X)
@@ -680,7 +694,9 @@ class kinematic_system2dp : public static_system2dp {
     // Velocity of a point P that is rigidly attached to frame `src` (given in src's
     // coordinates), as MEASURED BY an observer riding frame `obs`, expressed in obs's
     // coordinates. This is the rotating-frame transport theorem: the relative velocity is
+    //
     //   v_rel = velocity_field(V_src - V_obs, P_world)   (a free vector, in world)
+    //
     // then rotated into obs. Subtracting the velocity the obs-frame imparts at P (its
     // origin motion plus its rotation) means an observer reads zero for any point fixed
     // in their own frame, and reads the absolute world velocity when obs is the inertial
@@ -711,7 +727,9 @@ class kinematic_system2dp : public static_system2dp {
     // Acceleration of a world-space point X rigidly attached to frame idx. Planar rigid-
     // body acceleration field: the linear field of the acceleration twist A, plus the
     // centripetal term -w^2 * (X - centre) carried by the velocity twist V = (a, b, w):
+    //
     //   a(X) = field(A, X) + w * (V.x - w*X.x, V.y - w*X.y)
+    //
     // (field(A,X) supplies the tangential alpha x r and linear-acceleration parts).
     vec2dp point_acceleration(vec2dp const& X_world, size_t idx)
     {
@@ -727,7 +745,9 @@ class kinematic_system2dp : public static_system2dp {
     // Acceleration of a point P rigidly attached to frame `src` (given in src's
     // coordinates), as MEASURED BY an observer riding frame `obs`, expressed in obs's
     // coordinates. Rotating-frame transport theorem for acceleration:
+    //
     //   a_rel = a_abs - a_transport - 2*w_obs x v_rel        (all in world, then -> obs)
+    //
     // where a_abs/a_transport are the accel fields of src/obs at P, v_rel the world
     // relative velocity, w_obs the observer's angular rate, and 2*w_obs x v_rel the
     // Coriolis term. (The centrifugal -w_obs^2 r contribution is contained in
@@ -803,6 +823,7 @@ class kinematic_system2dp : public static_system2dp {
 
     // World velocity & acceleration twists of frame idx, propagated root -> idx by the
     // recursive Newton-Euler relations (twists transported to world by the adjoint):
+    //
     //   V_i = V_parent + Ad(xi_i)
     //   A_i = A_parent + Ad(xidot_i) + [V_i, Ad(xi_i)]   (Coriolis / centrifugal
     //   coupling). The se(2) twist Lie bracket [.,.] is the regressive commutator
@@ -842,7 +863,9 @@ class kinematic_system2dp : public static_system2dp {
 // carries an inertia map and a mass; a frame's relative acceleration twist is no longer
 // PRESCRIBED (as in the kinematic layer) but COMPUTED from the applied wrench via the
 // se(2) Euler equation
+//
 //   Omega_dot = I^-1[ W - rcmt(Omega, I(Omega)) ]            (= compute_omega_dot)
+//
 // and integrated with RK4. The Coriolis/centrifugal coupling sits entirely in the
 // regressive commutator rcmt(Omega, I(Omega)) -- "twists do not commute" -- which is the
 // geometric-algebra showcase of this tier (see TODO/kinematics_explanation.md).
@@ -868,17 +891,15 @@ inline body2dp make_plate_body(value_t m, value_t w, value_t h)
 }
 
 // Joint type connecting a body to its parent (the reduced-coordinate degrees of freedom).
-//   free      : the unconstrained 3-DOF rigid body (Milestone 1). State held in the base
-//               layer's relative twist + pose.
-//   revolute  : a 1-DOF hinge -- screw generator = a FINITE point Q_b (z = 1), so the
-//               generalised coordinate q rotates the body about Q_b.
-//   prismatic : a 1-DOF slider -- screw generator = an IDEAL point / direction (z = 0),
-//   so
-//               q translates the body along that direction.
-// Both 1-DOF kinds run through the SAME code: M(q) = rest (x) exp(1/2 q * screw),
-// relative twist = q-dot * screw, Jacobian = velocity_field(screw, .). Only the generator
-// differs
-// -- the PGA unification of rotation and translation.
+// Both 1-DOF kinds run through the SAME code -- only the screw generator differs (the PGA
+// unification of rotation and translation): M(q) = rest (x) exp(1/2 q * screw), relative
+// twist = q-dot * screw, Jacobian = velocity_field(screw, .).
+//
+//   free      : unconstrained 3-DOF rigid body (Milestone 1); state in the base layer.
+//
+//   revolute  : 1-DOF hinge; screw = a FINITE point Q_b (z = 1); q rotates about Q_b.
+//
+//   prismatic : 1-DOF slider; screw = IDEAL point/direction (z = 0); q translates it.
 enum class joint2dp { free, revolute, prismatic };
 
 // Per-frame joint state (parallel to the body[] list). Meaningful for 1-DOF joints; the
@@ -1069,6 +1090,7 @@ class dynamic_system2dp : public kinematic_system2dp {
     // uniformly by the inertia map I, with no separate m|v|^2 + I_cm*w^2 split. This is
     // the form that lifts UNCHANGED to 3D (I becomes the 6x6 Inertia3dp, the pairing the
     // BiVec3dp screw reciprocal product). In PGA2DP the pairing is the regressive product
+    //
     //   spatial_dot(xi, mom) = -rwdg(xi, mom) = xi.y*mom.x - xi.x*mom.y + xi.z*mom.z.
     static value_t spatial_dot(twist2dp const& xi, bivec2dp const& mom)
     {
@@ -1173,21 +1195,34 @@ class dynamic_system2dp : public kinematic_system2dp {
         }
     }
 
-    // Joint-space forward dynamics for the revolute chain `rj`: returns the joint angular
-    // accelerations q-ddot solving  M(q) q-ddot = RHS(q, q-dot), assembled by virtual
-    // work over the bodies (all quantities GA-native):
+    // Assemble the joint-space mass matrix M(q) and the generalised-force RHS for the
+    // 1-DOF joint chain `rj`, by virtual work over the bodies (all quantities GA-native):
+    //
     //   M[j][k] = sum_i  spatial_dot( S_j^body_i , I_i( S_k^body_i ) )  over bodies i
     //             having BOTH joints j,k as ancestors  (the spatial inertia-map form);
     //   RHS[j]  = sum_i m_i ( vcm_i(S_j) . g  -  vcm_i(S_j) . b_cm_i )  over bodies i
     //   having
     //             joint j as ancestor  (gravity generalised force minus Coriolis bias).
+    //
     // S_j = move2dp(Q_j, M_{j->world}) is the world joint screw; S_j^body_i =
     // move2dp(S_j, rrev(M_i)) transports it into body i's frame (where its inertia map
     // I_i lives); vcm_i(S) = velocity_field(S, cm_i) is the cm velocity per unit joint
     // rate (a spatial-Jacobian column); b_cm_i is the velocity-product
     // (Coriolis/centripetal) cm acceleration at q-ddot = 0. Pre: the joint state (phi,
     // omega) is already applied to the base pose + relative twist.
-    std::vector<value_t> forward_dynamics(std::vector<size_t> const& rj)
+    //
+    // SIDE EFFECT: this runs the bias pass, zeroing the chain's relative accel twists
+    // (rel_atwist) so the world accel queries return only the q-ddot-independent part.
+    //
+    // Split out of forward_dynamics() as the reuse seam for the planned closed-loop
+    // layer: the same spatial-Jacobian columns (velocity_field) that build M and RHS
+    // also build the loop-closure constraint Jacobian, so a constrained KKT solver can
+    // assemble on top of this without duplicating the inertia-map assembly. See
+    // TODO/closed_loop_system_consideration.md. Kept private for now (open-loop public
+    // surface unchanged); expose (make public or add a friend) when that layer lands.
+    // Returns { Mmat (n*n, row-major), RHS (n) }.
+    std::pair<std::vector<value_t>, std::vector<value_t>>
+    assemble_mass_bias(std::vector<size_t> const& rj)
     {
         size_t const n = rj.size();
 
@@ -1229,7 +1264,17 @@ class dynamic_system2dp : public kinematic_system2dp {
                 }
             }
         }
-        return hd::ga::lu_solve(Mmat, RHS, n); // shared LU solver (detail/ga_solver.hpp)
+        return {std::move(Mmat), std::move(RHS)};
+    }
+
+    // Joint-space forward dynamics for the chain `rj`: returns the joint accelerations
+    // q-ddot solving  M(q) q-ddot = RHS(q, q-dot). Thin wrapper over assemble_mass_bias()
+    // (see there for the assembly and its bias-pass side effect) plus the shared LU
+    // solve.
+    std::vector<value_t> forward_dynamics(std::vector<size_t> const& rj)
+    {
+        auto const [Mmat, RHS] = assemble_mass_bias(rj);
+        return hd::ga::lu_solve(Mmat, RHS, rj.size()); // shared LU (detail/ga_solver.hpp)
     }
 
     // RK4-integrate the coupled 1-DOF joint chain `rj` over dt in its joint coordinates

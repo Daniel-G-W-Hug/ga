@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map> // std::unordered_map (frame name -> index)
+#include <utility>       // std::pair, std::move (assemble_mass_bias return)
 #include <vector>
 
 
@@ -193,6 +194,7 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 // BiVec3dp index layout: (vx=e41, vy=e42, vz=e43, mx=e23, my=e31, mz=e12). The weight
 // (vx,vy,vz) and bulk (mx,my,mz) play OPPOSITE physical roles in the input twist vs. the
 // output momentum:
+//
 //   input twist Omega:  weight (vx,vy,vz) = ANGULAR velocity omega  (rotation lives in
 //   the
 //                       weight: exp() uses weight_nrm_sq over (vx,vy,vz) as the rotation
@@ -202,6 +204,7 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 //                       (mx,my,mz) = ANGULAR momentum L = J_rot omega.
 //
 // Block structure of the base matrix:
+//
 //   Upper-left  [0:3, 0:3] = 0:          no linear-velocity -> linear-momentum coupling
 //   Upper-right [0:3, 3:6] = m*Identity: linear velocity (bulk) -> linear momentum
 //                                        (vx,vy,vz), i.e. Newton p = m v
@@ -212,12 +215,14 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 //
 // Where J_rot is diagonal with the classical rectangle-rule moments of inertia (acting on
 // the angular velocity (vx,vy,vz)):
+//
 //   I[3,0] = m*(h^2+d^2)/12  (moment about e1-axis, depends on e2 and e3 extents)
 //   I[4,1] = m*(w^2+d^2)/12  (moment about e2-axis, depends on e1 and e3 extents)
 //   I[5,2] = m*(w^2+h^2)/12  (moment about e3-axis, depends on e1 and e2 extents)
 //
 // Why the inertia map is "crossed" (weight-input lands in the bulk output and vice
 // versa):
+//
 //   the energy pairing <Omega, I(Omega)> = 2*KE is the regressive product
 //   rwdg(Omega, I(Omega)), which pairs the WEIGHT of one bivector with the BULK of the
 //   other (see rwdg(BiVec3dp, BiVec3dp)). So the map necessarily sends the angular
@@ -228,13 +233,17 @@ Inertia3dp<T> get_point_inertia(T m, Vec3dp<T> const& X)
 // Optional L_pivot parameter (default = zero bivector = no correction):
 // When L_pivot represents a line offset from the body origin, the scalar
 // parallel-axis (Steiner) corrections are applied to the lower-left block only:
+//
 //   I[3,0] += m*(Py²+Pz²)   (moment about x-axis through origin)
 //   I[4,1] += m*(Px²+Pz²)   (moment about y-axis through origin)
 //   I[5,2] += m*(Px²+Py²)   (moment about z-axis through origin)
+//
 // where P_foot is the foot of the perpendicular from the body origin O_b to L_pivot:
+//
 //   n   = (L_pivot.vx, L_pivot.vy, L_pivot.vz)   (line direction, ideal part)
 //   mom = (L_pivot.mx, L_pivot.my, L_pivot.mz)   (Plücker moment = p × n)
 //   P_foot = (n × mom) / |n|²                    (closest point on L_pivot to O_b)
+//
 // Off-diagonal coupling terms (products of inertia, cross-blocks) must NOT be
 // added here. Adding them via get_point_inertia(m, P_foot) would cancel the
 // Steiner correction in I_inv (same mechanism as in the 2D case), causing
@@ -503,6 +512,7 @@ class static_system3dp {
     // to system to_idx, by walking the frame tree: up from `from` to the lowest common
     // ancestor (LCA), then down to `to`. Identical algorithm to static_system2dp (motor
     // composition via rgpr; child->parent step is rrev(step_pos_trafo(child))).
+    //
     //   To be used as "p_to = move3dp(p_from, M);".
     mvec3dp_e get_pos_trafo(size_t from_idx, size_t to_idx)
     {
@@ -714,8 +724,9 @@ class kinematic_system3dp : public static_system3dp {
     }
 
     // Velocity field of a twist V at point X -- the PGA rate of change of a point:
-    //   Xdot = rcmt(V, X)        (3_ga_modelling_motion.tex). In 3D the twist is a
-    //   bivector
+    //
+    //   Xdot = rcmt(V, X)      (3_ga_modelling_motion.tex). In 3D the twist is a bivector
+    //
     // (twist3dp) and rcmt(bivec, vec) -> vec; argument ORDER matters:
     // rcmt(V,X)==-rcmt(X,V).
     static vec3dp velocity_field(twist3dp const& V, vec3dp const& X)
@@ -725,6 +736,7 @@ class kinematic_system3dp : public static_system3dp {
 
     // Acceleration field at point X of a rigid body with velocity twist V and
     // acceleration twist A (5_ga_modelling_physics.tex, "Moving coordinate systems"):
+    //
     //   a(X) = rcmt(A, X)            [frame/Euler (alpha x r) + origin acceleration]
     //        + rcmt(V, rcmt(V, X))   [centripetal]
     static vec3dp accel_field(twist3dp const& V, twist3dp const& A, vec3dp const& X)
@@ -769,6 +781,7 @@ class kinematic_system3dp : public static_system3dp {
     // World velocity & acceleration twists of frame idx, propagated root -> idx by the
     // recursive Newton-Euler relations (twists transported to world by the adjoint
     // move3dp):
+    //
     //   V_i = V_parent + Ad(xi_i)
     //   A_i = A_parent + Ad(xidot_i) + [V_i, Ad(xi_i)]   (Coriolis / centrifugal
     //   coupling)
@@ -810,7 +823,9 @@ class kinematic_system3dp : public static_system3dp {
 // of dynamic_system2dp. Milestone 1 scope: independent FREE rigid bodies under gravity
 // (no joints / articulation yet). Each frame's relative acceleration twist is COMPUTED
 // from the applied wrench via the se(3) Euler equation
+//
 //   Omega_dot = I^-1[ W - rcmt(Omega, I(Omega)) ]            (= compute_omega_dot)
+//
 // -- LITERALLY the same line as 2D (vec) with BiVec3dp instead. The pose is evolved on
 // the motor manifold M(t) = M0 (x) exp(1/2 B) with RK4 on the Lie-algebra pair (B,
 // Omega).
@@ -833,15 +848,14 @@ inline body3dp make_cuboid_body(value_t m, value_t w, value_t h, value_t d)
 }
 
 // Joint type connecting a body to its parent (the reduced-coordinate degrees of freedom).
-//   free      : the unconstrained 6-DOF rigid body (Milestone 1). State in the base
-//   layer. revolute  : a 1-DOF hinge -- screw generator = a LINE (the rotation axis), so
-//   the
-//               generalised coordinate q rotates the body about that line.
-//   prismatic : a 1-DOF slider -- screw generator = an IDEAL line (a translation
-//   direction),
-//               so q translates the body along that direction.
-// Both 1-DOF kinds run through the SAME code: M(q) = rest (x) exp(1/2 q * screw); only
-// the screw generator differs -- the PGA unification of rotation and translation.
+// Both 1-DOF kinds run through the SAME code -- only the screw generator differs (the PGA
+// unification of rotation and translation): M(q) = rest (x) exp(1/2 q * screw).
+//
+//   free      : unconstrained 6-DOF rigid body (Milestone 1); state in the base layer.
+//
+//   revolute  : 1-DOF hinge; screw = a LINE (the rotation axis); q rotates about it.
+//
+//   prismatic : 1-DOF slider; screw = an IDEAL line (translation dir); q translates it.
 enum class joint3dp { free, revolute, prismatic };
 
 // Per-frame joint state (parallel to the body[] list). Meaningful for 1-DOF joints; the
@@ -1152,17 +1166,21 @@ class dynamic_system3dp : public kinematic_system3dp {
         }
     }
 
-    // Joint-space forward dynamics for the 1-DOF joint chain `rj`: returns the joint
-    // accelerations q-ddot solving  M(q) q-ddot = RHS(q, q-dot), assembled by virtual
-    // work over the bodies in the dimension-agnostic SPATIAL (screw) form:
+    // Assemble the joint-space mass matrix M(q) and the generalised-force RHS for the
+    // 1-DOF joint chain `rj`, by virtual work over the bodies in the dimension-agnostic
+    // SPATIAL (screw) form:
+    //
     //   M[j][k] = sum_i  spatial_dot( S_j^body_i , I_i( S_k^body_i ) )      (mass matrix)
     //   RHS[j]  = sum_i [ m_i vcm_i(S_j).g  -  spatial_dot( S_j^body_i, F_bias_i ) ]
+    //
     // over bodies i with joint j (and k) as ancestor. S_j = move3dp(screw_j,
     // M_{j->world}) is the world joint screw; S_j^body_i = move3dp(S_j, rrev(M_i))
     // transports it into body i's frame (where its inertia map I_i lives). The gravity
     // term is a pure cm force (m_i vcm_j.g, no torque about the cm). The body-frame BIAS
     // WRENCH at q-ddot = 0 is the full spatial Newton-Euler bias:
+    //
     //   F_bias_i = I_i(A_bias_body_i) + rcmt(V_body_i, I_i(V_body_i))
+    //
     // where V_body_i / A_bias_body_i are the world velocity / bias-acceleration twists
     // pulled into body i, and the second term is the se(3) gyroscopic (velocity-product)
     // wrench. This is the GENERAL form: for a single joint both the angular bias and the
@@ -1170,7 +1188,19 @@ class dynamic_system3dp : public kinematic_system3dp {
     // it reduces to the 2D translational result; for coupled NON-PARALLEL axes (M3) the
     // angular bias + gyroscopic terms are non-zero and required. Pre: the joint state
     // (phi, omega) is already applied.
-    std::vector<value_t> forward_dynamics(std::vector<size_t> const& rj)
+    //
+    // SIDE EFFECT: this runs the bias pass, zeroing the chain's relative accel twists
+    // (rel_atwist) so the world accel queries return only the q-ddot-independent part.
+    //
+    // Split out of forward_dynamics() as the reuse seam for the planned closed-loop
+    // layer: the same spatial-Jacobian columns (velocity_field) that build M and RHS
+    // also build the loop-closure constraint Jacobian, so a constrained KKT solver can
+    // assemble on top of this without duplicating the inertia-map assembly. See
+    // TODO/closed_loop_system_consideration.md. Kept private for now (open-loop public
+    // surface unchanged); expose (make public or add a friend) when that layer lands.
+    // Returns { Mmat (n*n, row-major), RHS (n) }.
+    std::pair<std::vector<value_t>, std::vector<value_t>>
+    assemble_mass_bias(std::vector<size_t> const& rj)
     {
         size_t const n = rj.size();
 
@@ -1215,7 +1245,17 @@ class dynamic_system3dp : public kinematic_system3dp {
                 }
             }
         }
-        return hd::ga::lu_solve(Mmat, RHS, n); // shared LU solver (detail/ga_solver.hpp)
+        return {std::move(Mmat), std::move(RHS)};
+    }
+
+    // Joint-space forward dynamics for the chain `rj`: returns the joint accelerations
+    // q-ddot solving  M(q) q-ddot = RHS(q, q-dot). Thin wrapper over assemble_mass_bias()
+    // (see there for the assembly and its bias-pass side effect) plus the shared LU
+    // solve.
+    std::vector<value_t> forward_dynamics(std::vector<size_t> const& rj)
+    {
+        auto const [Mmat, RHS] = assemble_mass_bias(rj);
+        return hd::ga::lu_solve(Mmat, RHS, rj.size()); // shared LU (detail/ga_solver.hpp)
     }
 
     // RK4-integrate the coupled 1-DOF joint chain `rj` over dt in its joint coordinates

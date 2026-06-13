@@ -169,6 +169,46 @@ paragraphs, bullet items, blockquotes, and lead-in sentences before code blocks.
 - **URLs and reference-style link targets** — let them overrun rather than break the link.
 - **Headings** — keep on one line even if a long heading exceeds 90.
 
+### Documentation prose voice (ga_docu `.tex` and `.md`)
+
+The documentation has a consistent **human voice**: terse, declarative, equation-first.
+When writing or editing prose (especially AI-assisted drafts, which drift away from it),
+match that register. The point is not to hide tooling — it is that the new prose should be
+indistinguishable in style from the surrounding hand-written text.
+
+**Match these traits (what the human sections do):**
+
+- **Equation-first.** Prose serves the math; state results, then derive. Don't open a
+  passage with a thesis sentence the equations then illustrate.
+- **Declarative, not persuasive.** State what *is*; do not argue that it is good. Avoid
+  evaluative/marketing framing.
+- **Sparse emphasis.** Use `\emph{}` (LaTeX) / `*italic*` (md) for first-use term
+  definitions only, not for rhetorical stress ("the state \emph{is} geometry").
+- **No tutorial sub-headers inside a subsection.** The human text flows with `\\`
+  paragraph breaks; it does not chop a `\subsubsection` into punchy `\paragraph{}` titles.
+  If sign-posting is truly needed, use a plain neutral lead-in, not a slogan.
+- **Working notes are fine.** Inline `(tbd: …)` / "we don't reproduce that here" is the
+  author's style; don't polish them away.
+- **Dashes:** write `---` (em) / `--` (en) in LaTeX. A **literal Unicode `—` in a `.tex`
+  file is a paste tell** — convert it.
+- **`\paragraph{}` spacing (LaTeX):** never end the preceding paragraph with `\\` before a
+  `\paragraph{Label:}` — the trailing `\\` adds spurious vertical space above the label.
+
+**Avoid these AI-drift tells (they flagged the recently-added passages):**
+
+- punchy/evaluative `\paragraph{}` slogans: "The showcase: …", "Where it is genuinely
+  advantageous", "Where it does not help (honest caveats)";
+- persuasive/marketing register: "buys X for free", "wins on clarity, unification and
+  visualizability", "the selling point", "a single sentence backed by running code",
+  "literally", "genuinely", "elegant on paper", "weigh the approach even-handedly";
+- emphatic-contrast framing: "The central point — and the easiest to get wrong — is…",
+  "That is wrong:", "The clearest evidence is…", "is exactly what…", "precisely why…";
+- triads and slogan cadence ("clarity, unification and visualizability");
+- lexical fillers: "robust", "powerful", "crucial", "seamless", "comprehensive".
+
+Keeping the *content* (depth, derivations, references) while neutralizing the *register*
+is the goal — a voice-only pass, not a deletion of substance.
+
 ### C++ Formatting (clang-format — MANDATORY before writing/committing)
 
 **Run clang-format on every C++ file you generate or edit, before considering the change
@@ -197,6 +237,33 @@ Key settings to match even when hand-writing (full config in `~/.clang-format`):
   settle the order rather than fighting it.
 - `EmptyLineBeforeAccessModifier: Always`, `EmptyLineAfterAccessModifier: Always`;
   `MaxEmptyLinesToKeep: 2`.
+
+#### Comment formatting — protect display formulas from reflow
+
+clang-format reflows each run of consecutive `//` lines as one paragraph (ReflowComments),
+which **collapses an indented formula or matrix into the surrounding prose** when nothing
+separates them. To keep a display block readable:
+
+- **Bound every display block with blank `//` lines.** An empty comment line is a
+  paragraph boundary clang-format will not cross, so the block survives intact. Without
+  it, a `//   X = ...` line wedged between two prose lines gets reflowed into the text.
+- **Indent display lines** (4–5 spaces after `//`) so equations read as set-apart blocks.
+- **Keep multi-line blocks contiguous** — matrix rows / multi-line equations take blank
+  `//` lines only at the block's *outer* boundaries, never between the rows.
+- **A definition list is the opposite of a matrix** — its items are *separate* blocks, so
+  put a blank `//` between every item and keep each item to one line; otherwise reflow
+  merges adjacent items and orphans the wrapped words. Aligning the `:` reads well (see
+  the `joint{2,3}dp` enums).
+
+```cpp
+// prose introducing the step ... :
+//
+//     P_new = P (x) exp(0.5 * B_rel * dt)        [P = body->parent motor]
+//
+// prose continuing after the formula ...
+```
+
+The physics headers (`ga/ga_pga{2,3}dp_ops_physics.hpp`) follow this throughout.
 
 ### Library Usage Patterns
 

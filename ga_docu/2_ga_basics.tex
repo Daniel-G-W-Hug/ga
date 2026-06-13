@@ -4,8 +4,9 @@
 \subsubsection{Basis vectors for each modelled algebra}
 \label{subsection:basis_vectors_each_algebra}
 
-The following is provided for Euclidean geometric algebra of two-dimensional space
-($EGA2D$) using an orthonormal basis \bv{1}, \bv{2}:
+\paragraph{$EGA2D$:}
+The following is provided for Euclidean geometric algebra of two-dimensional space using
+an orthonormal basis \bv{1}, \bv{2}:
 \begin{subequations}
     \begin{align}
         (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
@@ -32,10 +33,11 @@ where equation (\ref{eq:mvec2d}) contains three parts: the scalar part $s \, \bm
 assumed for scalar values), the vector part $v$ (basis elements \bv{1} and \bv{2}) and the
 pseudoscalar part $ps \, \bv{12} = ps \, \ps$ (basis element is $I_{2d} =
 \bv{12}$, which is sometimes written as $\ps$ to show its character as
-pseudoscalar of this space. $I_{2d}$ is a bivector in two-dimensional Euclidean space). \\
+pseudoscalar of this space. $I_{2d}$ is a bivector in two-dimensional Euclidean space).
 
-For Euclidean geometric algebra of three-dimensional space ($EGA3D$) using an
-orthonormal basis \bv{1}, \bv{2}, \bv{3} there are:
+\paragraph{$EGA3D$:}
+For Euclidean geometric algebra of three-dimensional space using an orthonormal basis
+\bv{1}, \bv{2}, \bv{3} there are:
 \begin{subequations}
     \begin{align}
         (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
@@ -72,11 +74,11 @@ where equation (\ref{eq:mvec3d}) contains four parts: the scalar component $s \,
 and the pseudoscalar part $ps \, \bv{123} = ps \, \ps$ (basis element is $I_{3d}
 = \bv{123}$, which is sometimes written as $\ps$ to show its character as
 pseudoscalar of this space. $I_{3d}$ is a trivector in three-dimensional Euclidean space).
-\\
 
-Projective geometric algebra of $2D$ Euclidean space ($PGA2DP$) is modelled by embedding
-it in a three-dimensional space. Using an orthonormal basis \bv{1}, \bv{2}, \bv{3} there
-are following basis vectors:
+\paragraph{$PGA2DP$:}
+Projective geometric algebra of $2D$ Euclidean space is modelled by embedding it in a
+three-dimensional space. Using an orthonormal basis \bv{1}, \bv{2}, \bv{3} there are
+following basis vectors:
 \begin{subequations}
     \begin{align}
         (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
@@ -135,11 +137,12 @@ A line $L$ is modelled as a bivector
 \end{equation}
 where the weight part encodes the two-dimensional direction vector $(l_x,l_y)$ of the line
 and the bulk part encodes the position of the line as distance to the origin $O_{2dp} =
-(0,0,1)$. When $l_z = 0$ the line passes through the origin. \\
+(0,0,1)$. When $l_z = 0$ the line passes through the origin.
 
-Projective geometric algebra of $3D$ Euclidean space ($PGA3DP$) is modelled by embedding
-it in a four-dimensional space. Using an orthonormal basis \bv{1}, \bv{2}, \bv{3}, \bv{4}
-there are following basis vectors:
+\paragraph{$PGA3DP$:}
+Projective geometric algebra of $3D$ Euclidean space is modelled by embedding it in a
+four-dimensional space. Using an orthonormal basis \bv{1}, \bv{2}, \bv{3}, \bv{4} there
+are following basis vectors:
 \begin{subequations}
     \begin{align}
         (\bv{1})^2 = \bv{1} \wedgedot \bv1 & = \bv{1} \cdot \bv1 = \bv{1}^2 = +1,
@@ -223,12 +226,12 @@ and which operations can be used to manipulated them can be found in Lengyel's b
 projective geometry and geometric algebra are related in
 \cite{Browne_Grassmann-Algebra_Vol1:2012}, p. 216ff. It is helpful to fully grasp and
 understand that relation in order to see what is possible using the algebra effectively to
-model physical phenomena. \\
+model physical phenomena.
 
-Space-time algebra of four-dimensional Minkowski space ($STA4DS$) is modelled using an
-orthonormal basis \gv{1}, \gv{2}, \gv{3}, \gv{4} with the mixed (Minkowski) signature,
-where the three space-like directions square to $-1$ and the time-like direction \gv{4}
-squares to $+1$:
+\paragraph{$STA4DS$:}
+Space-time algebra of four-dimensional Minkowski space is modelled using an orthonormal
+basis \gv{1}, \gv{2}, \gv{3}, \gv{4} with the mixed (Minkowski) signature, where the three
+space-like directions square to $-1$ and the time-like direction \gv{4} squares to $+1$:
 \begin{subequations}
     \begin{align}
         (\gv{1})^2 = \gv{1} \wedgedot \gv1 & = \gv{1} \cdot \gv1 = \gv{1}^2 = -1,
@@ -446,7 +449,13 @@ The extended metric $\metric{G}$ is a so-called exomorphism matrix that fulfills
     \metric{G}(A \wedge B) = \metric{G}(A) \wedge \metric{G}(B)
     \label{eq:exomorphism}
 \end{equation} for any multivector $A$ and $B$ (see~\cite{Lengyel_pga-illuminated:2024},
-pp. 61ff.). \\
+pp. 61ff.). This exomorphism is defined with respect to the wedge product. The wedge
+product itself is defined independend of any metric. However, this property defines an
+extended metric, and the resulting extended metric can in turn be used to define a dot
+product for components of any grade of a multivector. The dot product $dot(a,b) = a^T
+\metric{G} b$ is defined as a metric product (see eq.~(\ref{eg:inner_product_metric})
+further below). \\
+
 Regarding $\metric{G}(u) = \metric{G} u$ as a unary operation on $u$ we can define the
 corresponding regressive operation by first taking the complement of the argument and then
 applying the opposed complement on the result. This defines the regressive metric
@@ -469,7 +478,8 @@ For $\rmetric{G}$ there is the relation
     \rmetric{G}(A \vee B) = \rmetric{G}(A) \vee \rmetric{G}(B)
     \label{eq:antiexomorphism}
 \end{equation}
-that is complementary to equation (\ref{eq:exomorphism}). \\
+that is complementary to equation (\ref{eq:exomorphism}). It is an exomorphism defined
+with respect to the regressive wedge product. \\
 
 In projective geometric algebra the product $\metric{G} u$ defines the \emph{bulk} of
 an object $u$. It is defined as
@@ -896,7 +906,7 @@ $EGA$:
     +
     \underbrace{(v \wedge B)\wedgedot B^{-1}}_{v_{\perp} = \mathrm{reject\_from(v, B)}}
 \end{subeqnarray}
-While for $3D$ $PGA$ we derive the projection and rejection directly from the orthogonal
+While for $3D$ $PGA$ the projection and rejection are directly derived from the orthogonal
 projection as defined by \cite{Lengyel_pga-illuminated:2024}, p. 99f.:
 \begin{equation}
     \mathrm{project\_onto(a,b)} =\mathrm{ortho\_proj3dp(a,b)}
@@ -911,7 +921,7 @@ $\mathrm{reject\_from}(a,b) = b - \mathrm{project\_onto}(a,b)$.
 \label{subsection:STA_metric_complements_and_duality}
 
 In this subsection we document what was learned while implementing $STA$ on top of the
-machinery that was already available after $EGA$ and $PGA$. \\
+machinery that was already available from implementing $EGA$ and $PGA$. \\
 
 The space-time algebra $STA4DS = \mathbb{G}(1,3,0)$ uses the Minkowski signature
 $(\gv{1}^2, \gv{2}^2, \gv{3}^2, \gv{4}^2) = (-1,-1,-1,+1)$ (the three space-like
@@ -920,8 +930,8 @@ to $+1$). The non-Euclidean vector metric introduces a few specific requirements
 not show up in $EGA$ (identity metric) or $PGA$ (degenerate metric), and that are worth
 recording carefully.
 
-\paragraph{The extended metric is a wedge exomorphism.}
-The only metric input to an algebra is the \emph{vector metric} $\mathfrak{g}$, i.e. the
+\paragraph{Extended metric:} The only metric input to an algebra is the \emph{vector
+metric} $\mathfrak{g}$, i.e. the
 signature itself. The extended metric $\metric{G}$ lifts $\mathfrak{g}$ to every grade as
 the unique wedge exomorphism~(\ref{eq:exomorphism}), seeded on the grade-1 basis vectors:
 \begin{subeqnarray}
@@ -950,8 +960,8 @@ product and hence $nrm\_sq()$ at every grade through $\gv{S} \cdot \gv{S} =
 \metric{G}(\gv{S}) = P$. This scalar $P$ is the blade's \emph{reverse-norm}, the scalar
 part of the blade times its \emph{reverse} $\grprj{\rev{A} \wedgedot A}{0}$.
 
-\paragraph{The metric $\metric{G}$ and the regressive metric $\rmetric{G}$.} Following
-Lengyel, the metric carries two exomorphisms: the metric $\metric{G}$ is a wedge
+\paragraph{Metric and regressive metric:} Following Lengyel, the metric carries two
+exomorphisms: the metric $\metric{G}$ is a wedge
 exomorphism, while the regressive metric $\rmetric{G}$ is a regressive wedge
 exomorphism~(\ref{eq:antiexomorphism}) with $\rmetric{G}(e_S) = \prod_{i \notin S}
 \mathfrak{g}_{ii}$ (the complementary product). For \emph{every} algebra they are related
@@ -962,8 +972,8 @@ squares to $\pm 1$ we get $\metric{G}^2 = I_n$, so the relation collapses to $\r
 signature-parity invariant ($det = (-1)^q$ with $q$ the number of negative directions), so
 the physically equivalent signatures $(-,-,-,+)$ and $(+,+,+,-)$ both give $-1$.
 
-\paragraph{The geometric square $B^2$ --- causal character, distinct from the metric.}
-The \emph{geometric square} of a blade is $B^2 = \grprj{u \wedgedot u}{0}$, the blade
+\paragraph{Geometric square $B^2$:} The \emph{geometric square} of a blade is $B^2 =
+\grprj{u \wedgedot u}{0}$, the blade
 times itself under the geometric product. It relates to the metric value $P$ only by the
 reversion sign $\sigma(k) = (-1)^{k(k-1)/2}$ (with $k$ the grade):
 \begin{equation}
@@ -988,17 +998,17 @@ grade-$k$ blade is $\rev{e}_S = \sigma(k)\, e_S$, so
 because $\sigma(k)^2 = 1$. A blade thus has two natural ``squares'' that differ exactly by
 the reversion sign: the geometric square $B^2 = \sigma(k)\,P$ (blade $\wedgedot$ blade)
 and the reverse-norm $P$ (reverse $\wedgedot$ blade). The reverse-norm behaves like a
-norm; the dot product, the contraction for equal grades, and $nrm\_sq()$ all use $P$.
-The geometric square $B^2$ is the physically meaningful quantity: a bivector
-is a \emph{boost} plane when $B^2 > 0$ and a \emph{rotation} plane when $B^2 < 0$, and the
-rotor exponential splits on its sign ($\cosh/\sinh$ vs. $\cos/\sin$). Causal character ---
+norm; the dot product, the contraction for equal grades, and $nrm\_sq()$ all use $P$. The
+geometric square $B^2$ is the physically meaningful quantity: a bivector is a \emph{boost}
+plane when $B^2 > 0$ and a \emph{rotation} plane when $B^2 < 0$, and the rotor exponential
+splits on its sign ($\cosh/\sinh$ vs. $\cos/\sin$). Causal character ---
 \path{is_timelike}, \path{is_spacelike}, \path{is_lightlike} --- therefore reads $B^2$,
 \emph{not} $nrm\_sq()$. Keeping $B^2$ and the metric value $P$ apart avoids encoding
-``time-like'' into the metric. Both squares are tabulated
-for every basis blade in table~\ref{tab:sta4ds_dot_geomsq} below.
+``time-like'' or ``space-like'' into the metric. Both squares are tabulated for every
+basis blade in table~\ref{tab:sta4ds_dot_geomsq} below.
 
-\paragraph{Two schools of dualization.}
-There are two common ways to dualize a blade or multivector $A$:
+\paragraph{Dualization:} There are two commonly used ways to dualize a blade or
+multivector $A$:
 \begin{enumerate}
     \item \emph{complement after metric} (this library, after Lengyel):
     $A^{\star} = \rcmpl{\metric{G}A}$ --- multiply by the extended metric, then take the
@@ -1017,8 +1027,8 @@ scheme is structurally impossible there. The complement-after-metric definition 
 because $I_n$ never appears in it; it is the definition used throughout the library
 for all algebras.
 
-\paragraph{Handedness: left vs. right dual.}
-$STA4DS$ is four-dimensional (even), so the left and right complements/duals differ on the
+\paragraph{Handedness (left vs. right dual):} $STA4DS$ is four-dimensional (even), so the
+left and right complements/duals differ on the
 odd grades and agree on the even grades:
 \begin{equation}
     \leftbulkdual{A} = \rightbulkdual{A} \;\;\text{(grades $0,2,4$)}, \qquad
@@ -1029,8 +1039,8 @@ $\lcmpl{(\rcmpl{A})} = \rcmpl{(\lcmpl{A})} = A$, as already stated
 in~(\ref{eq:double_cmpl}). Both complements and duals are listed for every basis blade in
 tables~\ref{tab:sta4ds_cmpl} and~\ref{tab:sta4ds_dual}.
 
-\paragraph{The dual round trip.}
-Composing the two metric duals yields a clean global sign, the determinant:
+\paragraph{Dual round trip:} Composing the two metric duals yields a clean global sign,
+the determinant:
 \begin{equation}
     \leftbulkdual{(\rightbulkdual{A})} = \rightbulkdual{(\leftbulkdual{A})}
     = det(\mathfrak{g})\, A
@@ -1055,8 +1065,7 @@ $r\_undual = det \cdot \leftbulkdual{(\,\cdot\,)}$ and, symmetrically, $l\_undua
 $-\rightbulkdual{(\,\cdot\,)}$ respectively for $STA4DS$. The convention-clean statement
 is therefore ``each un-dual undoes the dual of the same handedness'': for Euclidean
 signatures the right un-dual \emph{is} the left dual (and the left un-dual the right
-dual); in $STA4DS$ each is the corresponding antidual. The following table summarizes the
-regime per algebra:
+dual). The following table summarizes the regime per algebra:
 \begin{center}
     \resizebox{\textwidth}{!}{%
     \begin{tabular}{|l|c|l|l|}
@@ -1077,35 +1086,34 @@ There is also a round trip valid for \emph{every} algebra including $PGA$: the
 metric-free complement pair $\lcmpl{(\rcmpl{A})} = \rcmpl{(\lcmpl{A})} = A$, which carries
 no metric structure.
 
-\paragraph{Signature duality $(-,-,-,+) \leftrightarrow (+,+,+,-)$.}
-Because $\rmetric{G} = -\metric{G}$, the regressive metric negates every vector square:
-$\metric{G}$ realises the signature $(-,-,-,+)$ while $\rmetric{G}$ realises $(+,+,+,-)$.
-Each
-signature is an exomorphism of exactly \emph{one} product --- $\metric{G}$ of the wedge,
-$\rmetric{G}$ of the regressive wedge. So, relative to the library's wedge convention, the
-``space'' is the signature whose metric respects the wedge product, $(-,-,-,+)$, and its
-``dual space'' is $(+,+,+,-)$. The whole structure is symmetric under the exchange
-$(\wedge \leftrightarrow \vee,\; \metric{G} \leftrightarrow \rmetric{G},\; \text{space}
-\leftrightarrow \text{dual})$: taking the regressive wedge as the primary product (working
-in the dual algebra) swaps the roles. This is why the two signatures are
-physically equivalent: each is ``the space'' for one of the two products, the other being
-its dual.
+\paragraph{Signature duality:} Because $\rmetric{G} = -\metric{G}$, the regressive metric
+negates every vector square: $\metric{G}$ realises the signature $(-,-,-,+)$ while
+$\rmetric{G}$ realises $(+,+,+,-)$. Each signature is an exomorphism of exactly \emph{one}
+product --- $\metric{G}$ of the wedge, $\rmetric{G}$ of the regressive wedge. So, relative
+to the library's wedge convention, the ``space'' is the signature whose metric respects
+the wedge product, $(-,-,-,+)$, and its ``dual space'' is $(+,+,+,-)$. The whole structure
+is symmetric under the exchange $(\wedge \leftrightarrow \vee,\; \metric{G}
+\leftrightarrow \rmetric{G},\; \text{space} \leftrightarrow \text{dual space})$: taking
+the regressive wedge as the primary product (working in the dual algebra) swaps the roles.
+This is why the two signatures are physically equivalent: each is ``the space'' for one of
+the two products, the other being its dual space. Both formulations are actively used to
+describe phenomena in spacetime research.
 
-\paragraph{Bridge to a projective $STA$.}
-The statement $\metric{G}\rmetric{G} = det(\mathfrak{g})\,I_n$ is universal; the
-determinant decides the regime. For $STA4DS$ (non-degenerate, $det = -1 \neq 0$) we get
-$\rmetric{G} = -\metric{G}$, a global rescaling with no split. For a potential
-\emph{projective} $STA$ (degenerate, e.g. $\mathbb{G}(1,3,1)$ with $det = 0$) we would get
-$\metric{G}\rmetric{G} = 0$, so $\metric{G}$ and $\rmetric{G}$ have disjoint support ---
-exactly the $PGA$ bulk/weight split, with $\bulk{A}^{\star} = \rcmpl{\metric{G}A}$ and
-$\weight{A}^{\smallstar} = \rcmpl{\rmetric{G}A}$. Pseudoscalar multiplication dies (no
-$I_n^{-1}$), but complement-after-metric survives and simply splits in two. The dual is
-always complement-after-metric; the only question is whether $\metric{G}$ and
-$\rmetric{G}$ are proportional (non-degenerate) or supported on complementary subspaces
-(degenerate).
+\paragraph{Bridge to a projective $STA$:} The statement $\metric{G}\rmetric{G} =
+det(\mathfrak{g})\,I_n$ is universal; the determinant decides the regime. For $STA4DS$
+(non-degenerate, $det = -1 \neq 0$) we get $\rmetric{G} = -\metric{G}$, a global rescaling
+with no split. For a potential \emph{projective} $STA$ (degenerate, e.g.
+$\mathbb{G}(1,3,1)$ with $det = 0$) we would get $\metric{G}\rmetric{G} = 0$, so
+$\metric{G}$ and $\rmetric{G}$ have disjoint support --- exactly the $PGA$ bulk/weight
+split, with $\bulk{A}^{\star} = \rcmpl{\metric{G}A}$ and $\weight{A}^{\smallstar} =
+\rcmpl{\rmetric{G}A}$. Pseudoscalar multiplication becomes impossible (no $I_n^{-1}$), but
+complement-after-metric can still be used and simply splits in two, as in the case of
+$PGA$. The dual is always complement-after-metric; the only question is whether
+$\metric{G}$ and $\rmetric{G}$ are proportional (non-degenerate) or supported on
+complementary subspaces (degenerate).
 
-\paragraph{Dependency map.}
-The single root is the vector signature $\mathfrak{g}$ (plus the basis and its canonical
+\paragraph{Dependency map:} The single root is the vector signature $\mathfrak{g}$ (plus
+the basis and its canonical
 order). Two independent branches grow from it, and the preceding paragraphs depend on
 keeping them apart:
 \begin{itemize}
