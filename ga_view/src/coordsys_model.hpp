@@ -299,6 +299,29 @@ struct adouble_pendulum {
     double_pendulum_params params;
 };
 
+// Parameters of the four-bar linkage demo (a closed_loop_system2dp). A Grashof
+// crank-rocker: the ground link (crank pivot O2 -> rocker pivot O4) is the longest and the
+// crank the shortest, so the crank rotates fully while the rocker oscillates. The crank
+// pivot O2 sits at `base`; O4 at base + (ground, 0). `base` centers the linkage in the
+// view. The crank is motor-driven at crank_rate.
+struct four_bar_params {
+    vec2dp base{-1.6, 0.0, 1.0}; // world position of the crank pivot O2 (centres the figure)
+    double ground{3.2};          // O2 -> O4 (fixed) link length
+    double crank{0.8};           // O2 -> A   (driver) link length
+    double coupler{2.8};         // A  -> B   link length
+    double rocker{2.4};          // O4 -> B   link length
+    vec2dp coupler_pt{1.4, 0.7, 1.0}; // point on the coupler (origin at A, e1 toward B)
+                                      // whose world path is the classic coupler curve
+    double crank_rate{1.2};           // driven crank angular rate [rad/s]
+    double dt{0.004};                 // time step [s]
+    int substeps{4};                  // steps per tick (real-time at ~60 fps)
+};
+
+// Active item: four-bar linkage demo (no active points)
+struct afour_bar {
+    four_bar_params params;
+};
+
 // One row in the key-binding table of a legend
 struct key_legend_entry {
     std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
@@ -391,6 +414,9 @@ class Coordsys_model {
     // add double-pendulum demo item
     [[maybe_unused]] size_t add_double_pendulum(adouble_pendulum const& adp_in);
 
+    // add four-bar linkage demo item
+    [[maybe_unused]] size_t add_four_bar(afour_bar const& afb_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -459,6 +485,9 @@ class Coordsys_model {
 
     // data for double-pendulum demo items
     std::vector<adouble_pendulum> adp;
+
+    // data for four-bar linkage demo items
+    std::vector<afour_bar> afb;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};

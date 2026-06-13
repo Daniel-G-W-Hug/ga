@@ -3,7 +3,10 @@
 Status: design note / proposal. **The full 2D AND 3D stack landed — Phase 0 (reuse-seam
 prep), Phase 1 (C++ core + ga_py), Phase 2 (kinematic), Phase 3 (dynamic, energy-conserving
 KKT) and Phase 4 (3D lift over `pga3dp`, with the numeric kernels shared via
-`detail/ga_solver.hpp`)**; only Phase 5 (docs/demo/wrappers) remains. Captures
+`detail/ga_solver.hpp`)**. Phase 5 (docs/demo/wrappers) is **partly done**: the ga_docu
+subsubsection + references and the 2D four-bar `ga_view` scene have landed; remaining are the
+side-by-side open-vs-closed scene, a 3D Stewart/delta scene, and the ga_py
+`dynamic_system2dp` reconstruction test. Captures
 (a) why the current `static_/kinematic_/dynamic_system{2,3}dp` tier
 is **open-chain only**, and (b) a plan to add **closed-loop** (parallel mechanism) support
 as a *separate, additive* layer that reuses the open-loop code without complicating it.
@@ -330,12 +333,30 @@ assembly).
     `ga_py/tests/test_constraints.py` extended (715 ga_py tests). The Stewart-Gough / delta
     6-leg platform remains a richer future demo (Phase 5), but the 3D layer + energy metric
     are proven here.
-- **Phase 5 — docs, demo, wrappers.** Extend `ga_docu` with the new facility as a
-  first-class deliverable (scope + mandatory style match in §9); add a `ga_view` four-bar
-  (2D) and Stewart/delta (3D) scene; optional Python exposure (the class is stateful, so
-  reconstructed in Python from the bound primitives, as done for `kinematic_system2dp` in
-  `ga_py/tests/test_merry_go_round.py`).
-  *ga_view side-by-side open- vs. closed-loop demo:* beyond the per-mechanism scenes above,
+- **Phase 5 — docs, demo, wrappers. [PARTIAL — docs + 2D four-bar scene DONE 2026-06-13]**
+  Extend `ga_docu` with the new facility as a first-class deliverable (scope + mandatory
+  style match in §9); add a `ga_view` four-bar (2D) and Stewart/delta (3D) scene; optional
+  Python exposure (the class is stateful, so reconstructed in Python from the bound
+  primitives, as done for `kinematic_system2dp` in `ga_py/tests/test_merry_go_round.py`).
+  - *Docs. [DONE]* New subsubsection "Closed-loop and parallel mechanisms" in
+    `ga_docu/5_ga_modelling_physics.tex` (before the 2D→3D note): the loop-closure problem,
+    the residual `g`, the constraint Jacobian as reused spatial-Jacobian columns, the
+    bordered KKT (`eq:kkt`), GGL projection vs. Baumgarte tied to reduced-vs-maximal, a
+    worked four-bar + a brief 3D lift. Three wiring cross-refs (Frame-trees overview,
+    reduced-vs-maximal addendum, 2D→3D note) + a footnote citing the `ga_view` scene and the
+    test files. Three new bib refs added to `9_ga_literature-db.bib` (Wehage–Haug coordinate
+    partitioning, Gear–Gupta–Leimkuhler, Baumgarte), each cited inline + grouped in the
+    further-reading addendum. PDF builds clean.
+  - *2D four-bar `ga_view` scene. [DONE]* `ga_view/src/active_four_bar.{hpp,cpp}` — a
+    motor-driven Grashof crank-rocker `closed_loop_system2dp`, `assemble({crank})` each frame
+    (live `‖g‖`~1e-15), tracing the coupler curve; SPACE/R/T. `four_bar_params` (with a
+    `base` offset that centres the figure) in `coordsys_model.hpp`; `add_four_bar` + clear in
+    `coordsys_model.cpp`; its own view + legend in `w_mainwindow.cpp`; source in
+    `CMakeLists.txt`. Layout tuned to the user's visual feedback (centred linkage, legend
+    lower-right).
+  - *Remaining:* (a) the side-by-side open-vs-closed scene (below); (b) a 3D Stewart/delta
+    `ga_view` scene; (c) the ga_py `dynamic_system2dp` reconstruction test (below).
+  *ga_view side-by-side open- vs. closed-loop demo (TODO):* beyond the per-mechanism scenes above,
   add ONE `ga_view` 2D scene that shows an **open-chain** tree system and a **closed-loop**
   system next to each other, animated together, to make the structural difference legible.
   Left panel: an open chain built straight from `dynamic_system2dp` — e.g. a 2-3 link robot

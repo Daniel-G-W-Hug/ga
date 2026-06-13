@@ -182,6 +182,13 @@ Coordsys_model::add_double_pendulum(adouble_pendulum const& adp_in)
     return adp.size() - 1;
 }
 
+[[maybe_unused]] size_t Coordsys_model::add_four_bar(afour_bar const& afb_in)
+{
+    afb.push_back(afb_in);
+
+    return afb.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -214,6 +221,7 @@ void Coordsys_model::clear()
     aode_plate.clear();
     amgr.clear();
     adp.clear();
+    afb.clear();
     aft.clear();
 
     m_label.clear();

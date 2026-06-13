@@ -16,6 +16,7 @@ using namespace hd::ga::pga;
 #include "active_bivt2d.hpp"
 #include "active_bivt2dp.hpp"
 #include "active_double_pendulum.hpp"
+#include "active_four_bar.hpp"
 #include "active_frame_trafo.hpp"
 #include "active_kinematics2dp.hpp"
 #include "active_merry_go_round.hpp"
@@ -1626,6 +1627,20 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(dp);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // four-bar linkage demo items (PGA2D closed_loop_system2dp)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->afb.size(); ++idx) {
+        active_four_bar* fb = new active_four_bar(cs, wcs, cm->afb[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, fb,
+                         &active_four_bar::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, fb,
+                         &active_four_bar::togglePause);
+        QObject::connect(wcs, &w_Coordsys::traceToggleRequested, fb,
+                         &active_four_bar::toggleTrace);
+        scene->addItem(fb);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -2101,6 +2116,35 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
 
         models.push_back(std::move(cm));
     }
+
+    // Append four-bar linkage scene (closed_loop_system2dp): a motor-driven Grashof
+    // crank-rocker. The spanning tree (crank -> coupler, plus the rocker as a second
+    // branch) is closed by one point-coincidence; the dependent joints are re-solved each
+    // frame so the loop stays closed, and a coupler point traces the classic coupler curve.
+    {
+        Coordsys_model cm;
+        cm.add_four_bar(afour_bar{});
+        cm.set_label("Four-bar linkage (closed_loop_system2dp)");
+
+        diagram_legend leg;
+        leg.heading = "PGA2D closed loop: a motor-driven four-bar (Grashof crank-rocker). "
+                      "The dependent coupler / rocker angles are re-solved each frame, so "
+                      "the loop stays closed (live ||g|| top-left).";
+        leg.entries = {{"SPACE / R:", "pause-resume / reset"},
+                       {"T:", "toggle coupler-curve trace"},
+                       {"─────", "──────────"},
+                       {"bars:", "crank (blue) / coupler (brown) / rocker (green)"},
+                       {"O2, O4:", "fixed ground pivots (grey link between)"},
+                       {"B (orange):", "loop-closure pin (coupler tip = rocker tip)"},
+                       {"P (blue):", "coupler point tracing the coupler curve"}};
+        leg.x_pct = 0.43; // right-aligned (left margin = 1 - size - small gap)
+        leg.y_pct = 0.64; // lower part of the view, a touch above the bottom
+        leg.size_pct = 0.55;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
     for (size_t i = 0; i < models.size(); ++i) {
         vm.push_back(&models[i]);
         // fmt::println("Model: {}, Label: {}", i, vm[i]->label());

@@ -1986,10 +1986,13 @@ simpler alternative, kept as a fallback.
 \paragraph{The four-bar linkage:} The planar four-bar is the spanning tree crank $\to$
 coupler, with the rocker a second branch from the ground, closed by one coincidence of the
 coupler tip with the rocker tip: three revolute joints, two equations, one degree of
-freedom.\footnote{The four-bar (planar) and a spatial two-arm loop ($3D$) are pinned by
-assertion-checked tests in \path{ga_test/src/ga_appl2dp_physics_test.hpp} and
-\path{ga_appl3dp_physics_test.hpp}: assembly, velocity and acceleration ratios, energy
-conservation across a long run, and a bounded closure error $\lVert g\rVert$.} Driving the
+freedom.\footnote{It is visualized in \path{ga_view}
+(\path{ga_view/src/active_four_bar}, a motor-driven \path{closed_loop_system2dp} whose
+coupler point traces the classic coupler curve) and pinned by assertion-checked tests: the
+planar four-bar in \path{ga_test/src/ga_appl2dp_physics_test.hpp} and a spatial two-arm loop
+($3D$) in \path{ga_appl3dp_physics_test.hpp} -- assembly, velocity and acceleration ratios,
+energy conservation across a long run, and a bounded closure error $\lVert g\rVert$.}
+Driving the
 crank, the assembly solves the coupler and rocker angles from
 eqn.~(\ref{eq:loop_residual}); the velocity and acceleration ratios follow from
 $G\,\dot{q} = 0$ and $G\,\ddot{q} = -\dot{G}\,\dot{q}$ and reproduce the classical
