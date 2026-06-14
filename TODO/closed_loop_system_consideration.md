@@ -1,17 +1,21 @@
 # Closed-loop systems — findings and implementation plan
 
-Status: design note / proposal. **The full 2D AND 3D stack landed — Phase 0 (reuse-seam
+Status: **COMPLETE (2026-06-14).** The full 2D AND 3D stack landed — Phase 0 (reuse-seam
 prep), Phase 1 (C++ core + ga_py), Phase 2 (kinematic), Phase 3 (dynamic, energy-conserving
-KKT) and Phase 4 (3D lift over `pga3dp`, with the numeric kernels shared via
-`detail/ga_solver.hpp`)**. Phase 5 (docs/demo/wrappers) is **nearly done**: the ga_docu
-subsubsection + references, both 2D `ga_view` scenes (four-bar + side-by-side open-vs-closed),
-and the ga_py `dynamic_system2dp` reconstruction test have all landed. The ONLY remaining item
-is the **parallel-mechanism `ga_view` demo, replanned as a 2D planar 5-bar (2-RRR) parallel
-robot** — the 2D analogue of a delta (a true 3D delta is blocked: ga_view is a 2D viewer). Full
-build plan is recorded at the end of Phase 5 below ("resume here"). Captures
+KKT), Phase 4 (3D lift over `pga3dp`, with the numeric kernels shared via
+`detail/ga_solver.hpp`), and Phase 5 (docs/demo/wrappers). Phase 5 delivered: the ga_docu
+subsubsection + references, all three 2D `ga_view` scenes (four-bar, side-by-side
+open-vs-closed, and the planar 5-bar / 2-RRR parallel manipulator — the 2D analogue of a
+delta; a true 3D delta stays blocked because ga_view is a 2D viewer), the ga_py
+`dynamic_system2dp` reconstruction test, and each demo's assertion-checked test + docs
+cross-ref. Per-phase records below. This note captures
 (a) why the current `static_/kinematic_/dynamic_system{2,3}dp` tier
-is **open-chain only**, and (b) a plan to add **closed-loop** (parallel mechanism) support
-as a *separate, additive* layer that reuses the open-loop code without complicating it.
+is **open-chain only**, and (b) the **closed-loop** (parallel mechanism) layer added as a
+*separate, additive* tier that reuses the open-loop code without complicating it.
+
+Out of scope (deliberately not done): a planar slider-crank secondary test, maximal
+coordinates, and a true 3D delta / Stewart-Gough `ga_view` scene (awaits 3D rendering in
+`ga_view`).
 
 Origin: question "can the three-stage tree approach model closed-chain systems like a
 Stewart-Gough platform?" — answer below.
@@ -335,7 +339,7 @@ assembly).
     `ga_py/tests/test_constraints.py` extended (715 ga_py tests). The Stewart-Gough / delta
     6-leg platform remains a richer future demo (Phase 5), but the 3D layer + energy metric
     are proven here.
-- **Phase 5 — docs, demo, wrappers. [PARTIAL — docs + 2D four-bar scene DONE 2026-06-13]**
+- **Phase 5 — docs, demo, wrappers. [DONE 2026-06-14]**
   Extend `ga_docu` with the new facility as a first-class deliverable (scope + mandatory
   style match in §9); add a `ga_view` four-bar (2D) and Stewart/delta (3D) scene; optional
   Python exposure (the class is stateful, so reconstructed in Python from the bound
@@ -382,38 +386,52 @@ assembly).
     available-but-unused into a tested, faithful Python mirror of the dynamic layer — the
     dynamic-layer analogue of `test_merry_go_round.py` — and the stepping-stone to a Python
     `closed_loop_system2dp` reconstruction. 721 ga_py tests pass.
-  - *Remaining — the parallel-mechanism (`ga_view`) demo, REPLANNED as a 2D scene. [TODO —
-    resume here]* A true 3D delta / Stewart-Gough scene is blocked (`ga_view` is a 2D PGA
-    viewer: Coordsys with x/y axes, no 3D→2D projection yet). BUT the *principle* of a delta
-    — a moving end-effector positioned IN PARALLEL by several arms from a fixed base (closed
-    loops) — has a clean 2D analogue: the **planar 5-bar (2-RRR) parallel manipulator** (a
-    real mechanism: pick-and-place / haptic devices). Build that instead — it is structurally
-    the same two-arms-meeting-at-a-point shape as the 3D validation test, just planar, so it
-    sits directly on `closed_loop_system2dp` and renders fine in 2D.
-    - *Structure:* two 2-link arms from two fixed, actuated shoulders (bases at ±x); both
-      tips pinned to a shared end-effector by ONE point-coincidence. 4 joints (2 shoulders +
-      2 elbows), 2 constraint equations → 2 DOF.
-    - *Drive (user-chosen): actuate the TWO SHOULDERS* with smooth phase-shifted sinusoids
-      (the natural parallel-robot input); each frame `assemble({shoulderA, shoulderB})` solves
-      the two elbows (forward kinematics of the closed loop) so the tips stay coincident. The
-      effector then traces a Lissajous-like closed curve. (The alternative — IK to trace a
-      prescribed circle — was NOT chosen.)
-    - *Draw:* the two arms, grounded shoulder pivots, the shared effector + its traced path,
-      live `‖g‖`; SPACE/R/T. Reuse `drawBar`/`drawPivot`/`toScreen` + the trace pattern from
-      `active_four_bar` / `active_open_vs_closed`.
-    - *Wiring (mirror the existing scenes):* `planar_delta_params` + `aplanar_delta` in
-      `coordsys_model.hpp`; `add_planar_delta` + clear in `coordsys_model.cpp`;
-      `active_planar_delta.{hpp,cpp}`; its own view + legend in `w_mainwindow.cpp`; source in
-      `ga_view/CMakeLists.txt`.
-    - *Robustness:* warm-start `assemble` from the previous frame; pick base separation, link
-      lengths and shoulder amplitudes so the effector stays in the well-conditioned interior
-      of the workspace (avoid full-extension / fully-folded elbow singularities), exactly as
-      tuned for the four-bar and the 3D two-arm loop. Smoke-launch with
-      `QT_QPA_PLATFORM=offscreen`, then hand off for the user's visual layout feedback.
-    - *After it works:* cross-reference it from the docs (the closed-loop subsubsection
-      already names Stewart-Gough/delta — add the planar parallel robot as the realized 2D
-      demo), and update this TODO + memory. The true 3D delta stays out of scope until
-      `ga_view` gains 3D rendering.
+  - *ga_py `closed_loop_system2dp` reconstruction test. [DONE 2026-06-14]*
+    `ga_py/tests/test_closed_loop_reconstruction.py` — rebuilds the full closed-loop SOLVER
+    (not just the dynamics) for the planar four-bar from bound primitives: a genuine
+    BRANCHING spanning tree (crank→coupler + rocker branch, vs. the double pendulum's pure
+    chain — needed general parent/ancestor walking), the closure residual `g` + Jacobian `G`
+    (columns `rcmt(S_j, P_a)−rcmt(S_j, P_b)` over ancestor joints), and all three solve tiers:
+    `assemble` (Newton via bound `lstsq_solve`), `solve_velocities` (`G qdot = 0`), and the
+    bordered acceleration-level KKT step assembled by hand as `[[M Gᵀ];[G 0]]` and solved by
+    bound `lu_solve` (the `kkt_solve` detail kernel is unbound — not needed), RK4 + GGL
+    position/velocity projection. Validated against the same three C++ four-bar checks:
+    assembles to the analytic angles (θ3=−π/2, θ4=atan2(2,−1) at θ2=π/2), velocity closure
+    `G qdot = 0`, and energy conservation released under gravity over 1 s — measured
+    `dE/scale = 6e-12`, `max‖g‖ = 1e-12` (KEmax 17, so genuinely moving). Completes Python
+    parity for the closed-loop tier. 725 ga_py tests pass.
+  - *Parallel-mechanism (`ga_view`) demo — planar 5-bar (2-RRR) parallel manipulator.
+    [DONE 2026-06-14]* The 2D analogue of a delta (a true 3D delta / Stewart-Gough scene
+    stays blocked: `ga_view` is a 2D PGA viewer with no 3D→2D projection yet). Structure: two
+    2-link arms from two fixed, actuated shoulders (bases at ±x), both forearm tips pinned to
+    a shared end-effector by ONE point-coincidence — 4 revolute joints, 2 equations, 2 DOF;
+    sits directly on `closed_loop_system2dp` (the same two-arms-meeting-at-a-point shape as
+    the 3D validation test, planar). Drive: the TWO SHOULDERS by phase-shifted sinusoids;
+    each frame `assemble({SA, SB})` re-solves the two elbows (forward kinematics) so the tips
+    stay coincident, and the effector traces a Lissajous curve. `active_planar_delta.{hpp,cpp}`
+    (mirrors `active_four_bar`: `drawBar`/`drawPivot`/`toScreen` + trace, SPACE/R/T, live
+    `‖g‖`~1e-16); `planar_delta_params`/`aplanar_delta` + `add_planar_delta` + clear in the
+    model; its own view + legend in `w_mainwindow.cpp`; source in `ga_view/CMakeLists.txt`.
+    - *Singularity (the one real subtlety):* the symmetric-ish 5-bar has a PARALLEL (type-2)
+      singularity when the two forearms go collinear — there the dependent-joint Jacobian is
+      rank-deficient and `assemble`'s Newton diverges (elbow φ spins to ±1000s°, residual
+      stuck ~3e-3). Nominal shoulders point the upper arms up-and-OUTWARD (110°/70°) so the
+      elbows splay and the forearms bend back to a central tip (well-conditioned interior);
+      `amp=0.25` keeps a ~26° forearm-knee margin across the whole driven sweep (an amplitude
+      scan showed amp 0.30 → only 5° margin, amp 0.35 crossed it). Warm-start `assemble` from
+      the previous frame.
+    - *Seed continuity (visual-feedback fix):* shoulder B carries a π/2 phase lead, so
+      `shoulderB(0) = sb0 + amp·sin(phase) = sb0+amp ≠ sb0`; seeding `build_system` at the
+      bare nominal made the trace jump on frame 1. Fixed by seeding at the t=0 *driven* config
+      (set `m_t=0` first, take `phiA0=shoulderA()`, `phiB0=shoulderB()`). Confirmed clean by
+      the user.
+    - *Test:* `ga_appl2dp_physics_test.hpp` ("planar 5-bar parallel manipulator") mirrors the
+      scene params → guards the well-conditioning: start `g`=6.7e-16, driven-sweep
+      `max‖g‖`=1.8e-15, tip-mismatch=1.8e-15, effector span 0.62×1.06; all 46 `ga_appl2dp_test`
+      cases pass.
+    - *Docs:* cross-referenced from the closed-loop subsubsection (a footnote on the
+      "Stewart-Gough or delta platform" mention in the 3D-lift paragraph names the realized
+      2D `active_planar_delta` demo); PDF rebuilds clean.
 
 ---
 

@@ -17,12 +17,13 @@ using namespace hd::ga::pga;
 #include "active_bivt2dp.hpp"
 #include "active_double_pendulum.hpp"
 #include "active_four_bar.hpp"
-#include "active_open_vs_closed.hpp"
 #include "active_frame_trafo.hpp"
 #include "active_kinematics2dp.hpp"
 #include "active_merry_go_round.hpp"
 #include "active_ode.hpp"
 #include "active_ode_plate.hpp"
+#include "active_open_vs_closed.hpp"
+#include "active_planar_delta.hpp"
 #include "active_projection.hpp"
 #include "active_pt2d.hpp"
 #include "active_reflection.hpp"
@@ -1658,6 +1659,20 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(ovc);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // planar 5-bar parallel manipulator demo items (PGA2D closed_loop_system2dp)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->apld.size(); ++idx) {
+        active_planar_delta* pd = new active_planar_delta(cs, wcs, cm->apld[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, pd,
+                         &active_planar_delta::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, pd,
+                         &active_planar_delta::togglePause);
+        QObject::connect(wcs, &w_Coordsys::traceToggleRequested, pd,
+                         &active_planar_delta::toggleTrace);
+        scene->addItem(pd);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -2137,16 +2152,18 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
     // Append four-bar linkage scene (closed_loop_system2dp): a motor-driven Grashof
     // crank-rocker. The spanning tree (crank -> coupler, plus the rocker as a second
     // branch) is closed by one point-coincidence; the dependent joints are re-solved each
-    // frame so the loop stays closed, and a coupler point traces the classic coupler curve.
+    // frame so the loop stays closed, and a coupler point traces the classic coupler
+    // curve.
     {
         Coordsys_model cm;
         cm.add_four_bar(afour_bar{});
         cm.set_label("Four-bar linkage (closed_loop_system2dp)");
 
         diagram_legend leg;
-        leg.heading = "PGA2D closed loop: a motor-driven four-bar (Grashof crank-rocker). "
-                      "The dependent coupler / rocker angles are re-solved each frame, so "
-                      "the loop stays closed (live ||g|| top-left).";
+        leg.heading =
+            "PGA2D closed loop: a motor-driven four-bar (Grashof crank-rocker). "
+            "The dependent coupler / rocker angles are re-solved each frame, so "
+            "the loop stays closed (live ||g|| top-left).";
         leg.entries = {{"SPACE / R:", "pause-resume / reset"},
                        {"T:", "toggle coupler-curve trace"},
                        {"─────", "──────────"},
@@ -2163,18 +2180,19 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
     }
 
     // Append open-vs-closed side-by-side scene: the same 3-link arm driven by one shared
-    // shoulder oscillation. LEFT (dynamic_system2dp tree) -- free hand sweeps an arc; RIGHT
-    // (closed_loop_system2dp) -- hand pinned, so the elbow/wrist re-solve and the arm morphs
-    // around the planted hand. The headline "tree vs. tree + closure" visual.
+    // shoulder oscillation. LEFT (dynamic_system2dp tree) -- free hand sweeps an arc;
+    // RIGHT (closed_loop_system2dp) -- hand pinned, so the elbow/wrist re-solve and the
+    // arm morphs around the planted hand. The headline "tree vs. tree + closure" visual.
     {
         Coordsys_model cm;
         cm.add_open_vs_closed(aopen_vs_closed{});
         cm.set_label("Open chain vs. closed loop (same arm, one shoulder drive)");
 
         diagram_legend leg;
-        leg.heading = "PGA2D tree vs. tree + closure: ONE shared shoulder drive, two "
-                      "behaviours. Left: open chain, the hand sweeps free. Right: the hand "
-                      "is pinned, so the elbow / wrist re-solve to keep it planted.";
+        leg.heading =
+            "PGA2D tree vs. tree + closure: ONE shared shoulder drive, two "
+            "behaviours. Left: open chain, the hand sweeps free. Right: the hand "
+            "is pinned, so the elbow / wrist re-solve to keep it planted.";
         leg.entries = {{"SPACE / R:", "pause-resume / reset"},
                        {"T:", "toggle free-hand trace"},
                        {"─────", "──────────"},
@@ -2185,6 +2203,37 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
         leg.x_pct = 0.20; // centred horizontally (left margin = (1 - size) / 2)
         leg.y_pct = 0.65; // a touch higher than before
         leg.size_pct = 0.60;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append planar 5-bar parallel manipulator scene (closed_loop_system2dp): the 2D
+    // analogue of a delta / Stewart-Gough robot. Two 2-link arms rise from two fixed,
+    // actuated shoulders; their forearm tips are pinned to a shared end-effector by one
+    // point-coincidence. The two shoulders are driven by phase-shifted sinusoids; the
+    // dependent elbows are re-solved each frame so the tips stay coincident (forward
+    // kinematics of the closed loop) and the effector traces a Lissajous-like curve.
+    {
+        Coordsys_model cm;
+        cm.add_planar_delta(aplanar_delta{});
+        cm.set_label("Planar 5-bar parallel manipulator (closed_loop_system2dp)");
+
+        diagram_legend leg;
+        leg.heading =
+            "PGA2D parallel robot (2D delta analogue): two arms position one effector IN "
+            "PARALLEL. The two shoulders are driven; the elbows are re-solved each frame "
+            "so the tips stay pinned (live ||g|| top-left), tracing a Lissajous curve.";
+        leg.entries = {{"SPACE / R:", "pause-resume / reset"},
+                       {"T:", "toggle effector-path trace"},
+                       {"─────", "──────────"},
+                       {"arms:", "left (blue) / right (green), each shoulder->elbow"},
+                       {"SA, SB:", "fixed actuated shoulder pivots (grey base link)"},
+                       {"EA, EB:", "elbows (re-solved by the loop closure)"},
+                       {"P (orange):", "shared end-effector tracing the curve"}};
+        leg.x_pct = 0.43; // right-aligned (left margin = 1 - size - small gap)
+        leg.y_pct = 0.64; // lower part of the view, a touch above the bottom
+        leg.size_pct = 0.55;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));

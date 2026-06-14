@@ -58,6 +58,7 @@ set(SOURCES src/main.cpp
             src/active_double_pendulum.cpp
             src/active_four_bar.cpp
             src/active_open_vs_closed.cpp
+            src/active_planar_delta.cpp
             src/ga_view.qrc)
 
 add_executable(${EXEC_NAME} ${SOURCES} )

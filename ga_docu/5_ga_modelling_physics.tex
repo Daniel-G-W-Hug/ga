@@ -2010,8 +2010,15 @@ of two, the joint screws become lines (\path{twist3dp}, a bivector) and the anch
 carry the weight $\bv{4}$; eqn.~(\ref{eq:loop_residual})--(\ref{eq:kkt}) and the
 projection are unchanged, and the bordered solve is dimension-agnostic. A spatial loop --
 two arms meeting at a shared spherical joint, the kinematic core of a Stewart-Gough or
-delta platform -- then assembles, distributes its velocities, and conserves energy under
-the same machinery (\path{closed_loop_system3dp}).
+delta platform\footnote{The planar analogue is realized in \path{ga_view}
+(\path{ga_view/src/active_planar_delta}): a $5$-bar ($2$-RRR) parallel manipulator -- two
+two-link arms rising from two driven shoulders, their tips pinned to a shared end-effector
+by one coincidence (four revolute joints, two equations, two degrees of freedom). The two
+shoulders are driven by phase-shifted sinusoids; each frame re-solves the elbows from the
+loop closure (forward kinematics), so the effector traces a Lissajous curve. The same
+well-conditioning is pinned in \path{ga_test/src/ga_appl2dp_physics_test.hpp}; a true $3D$
+delta awaits $3D$ rendering in \path{ga_view}.} -- then assembles, distributes its
+velocities, and conserves energy under the same machinery (\path{closed_loop_system3dp}).
 
 
 \subsubsection{The transition from $2D$ to $3D$}

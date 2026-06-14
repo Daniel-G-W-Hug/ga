@@ -878,6 +878,31 @@ them since they only occur inside bodies the scanner never collects. A newer sys
 is fine; do NOT hardcode a versioned `libclang` path in `clang_setup.py` (keep it
 system-agnostic across macOS/Windows).
 
+## Adding a ga_view scene (hand-sync surface)
+
+A new active/animated scene in `ga_view/` touches **five** places — miss one and the scene
+silently won't appear or won't build. Mirror an existing scene end-to-end (e.g.
+`active_four_bar`, `active_planar_delta`) rather than wiring from scratch:
+
+- `ga_view/src/active_<name>.{hpp,cpp}` — the `QGraphicsItem` / `QObject` scene. Reuse the
+  established pattern: `drawBar` / `drawPivot` / `toScreen` helpers, a `QTimer`-driven
+  `tick()`, an optional trace `std::deque`, and the `togglePause` / `resetAnimation` /
+  `toggleTrace` (SPACE / R / T) slots.
+- `coordsys_model.hpp` — a `<name>_params` struct (with sensible defaults), an `a<name>`
+  wrapper struct, the `add_<name>` declaration, and a `std::vector<a<name>>` data member.
+- `coordsys_model.cpp` — the `add_<name>` implementation **and** a `<vec>.clear()` line in
+  `Coordsys_model::clear()` (forgetting the clear leaks state across model switches).
+- `w_mainwindow.cpp` — the `#include`, the item-creation loop (connect
+  `resetRequested` / `pauseToggleRequested` / `traceToggleRequested` to the slots), and
+  the scene-registration block (`add_<name>` + `set_label` + a `diagram_legend`).
+- `ga_view/CMakeLists.txt` — add `src/active_<name>.cpp` to `SOURCES`.
+
+**A scene's constructor only runs when its view is selected.** So an offscreen
+smoke-launch (`QT_QPA_PLATFORM=offscreen ./ga_view`) confirms the build links and the
+other scenes still run, but it does **not** exercise the new scene's own ctor/setup —
+page to the view for that, and hand off to the user for the visual-layout check (legend
+placement, colours, labels are tuned to their feedback, as for the existing scenes).
+
 ## Congruence Testing (`is_congruent`)
 
 Two GA elements are **congruent** if they span the same subspace up to a non-zero

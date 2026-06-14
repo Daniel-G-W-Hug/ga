@@ -3679,9 +3679,9 @@ TEST_SUITE("PGA2DP: physics tests implementation")
             "pga2dp: closed_loop_system2dp - four-bar energy conservation (Phase 3)");
 
         value_t const a = 2.0, b = 3.0, c = std::sqrt(5.0), d = 4.0;
-        // start the crank away from theta2 = pi/2 (where the coupler mass at A sits directly
-        // above O2 and gravity is radial -> a zero-torque unstable equilibrium that would
-        // never leave rest); 1.2 rad gives a real driving torque.
+        // start the crank away from theta2 = pi/2 (where the coupler mass at A sits
+        // directly above O2 and gravity is radial -> a zero-torque unstable equilibrium
+        // that would never leave rest); 1.2 rad gives a real driving torque.
         value_t const theta2 = 1.2;
         auto const link = make_plate_body(1.0, 1.0, 1.0); // unit-mass plate, cm at origin
 
@@ -3718,7 +3718,8 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         value_t scale = KEmax;
         if (std::abs(E0) > scale) scale = std::abs(E0);
         value_t const drift = (Emax - Emin) / scale;
-        CHECK(drift < 1e-4); // observed ~1e-6; same tolerance class as the open-loop tests
+        CHECK(drift <
+              1e-4); // observed ~1e-6; same tolerance class as the open-loop tests
 
         // 2. the loop stays closed across the whole run (projection controls drift)
         CHECK(gmax < 1e-9);
@@ -3729,6 +3730,120 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println(
             "  E0 = {:.6f}, KEmax = {:.4f}, dE/scale = {:.2e}, max||g|| = {:.2e}", E0,
             KEmax, drift, gmax);
+        fmt::println("");
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // closed_loop_system2dp -- planar 5-bar (2-RRR) parallel manipulator: the 2D analogue
+    // of a delta / Stewart-Gough robot, and the mechanism behind the active_planar_delta
+    // ga_view scene. Two 2-link arms rise from two fixed, actuated shoulders (SA, SB);
+    // the forearm tips are pinned to a shared end-effector by ONE point-coincidence. 4
+    // revolute joints (2 shoulders + 2 elbows) - 2 coincidence equations -> 2 DOF. Unlike
+    // the single-input four-bar, BOTH shoulders are driven: assemble({SA, SB}) solves the
+    // two dependent elbows (forward kinematics of the closed loop). The parameters mirror
+    // the ga_view scene defaults, so this also guards that the demo stays in the
+    // well-conditioned interior of the workspace (away from elbow full-extension
+    // singularities) across the whole driven sweep.
+    /////////////////////////////////////////////////////////////////////////////////////
+    TEST_CASE("pga2dp: closed_loop_system2dp - planar 5-bar parallel manipulator")
+    {
+        fmt::println("pga2dp: closed_loop_system2dp - planar 5-bar parallel manipulator");
+
+        // mirrors planar_delta_params (ga_view active_planar_delta scene defaults)
+        vec2dp const base_a{-1.0, -0.6, 1.0}, base_b{1.0, -0.6, 1.0};
+        value_t const upper = 1.5, fore = 1.8;
+        value_t const sa0 = 1.9198622, sb0 = 1.2217305; // 110 / 70 deg
+        value_t const amp = 0.25, phase = pi / 2.0, period = 5.0;
+
+        // upper circle-circle intersection -> consistent start configuration
+        auto circ2 = [](vec2dp const& c0, value_t r0, vec2dp const& c1,
+                        value_t r1) -> vec2dp {
+            value_t const dx = c1.x - c0.x, dy = c1.y - c0.y;
+            value_t const dd = std::hypot(dx, dy);
+            value_t const aa = (r0 * r0 - r1 * r1 + dd * dd) / (2.0 * dd);
+            value_t const h2 = r0 * r0 - aa * aa;
+            value_t const h = h2 > 0.0 ? std::sqrt(h2) : 0.0;
+            value_t const px = c0.x + aa * dx / dd, py = c0.y + aa * dy / dd;
+            return vec2dp{px - h * dy / dd, py + h * dx / dd, 1.0};
+        };
+
+        auto const link = make_plate_body(1.0, 1.0, 1.0);
+
+        closed_loop_system2dp cl;
+        cl.add_frame(static_frame2dp("W")); // inertial root / ground
+
+        vec2dp const EA0{base_a.x + upper * std::cos(sa0),
+                         base_a.y + upper * std::sin(sa0), 1.0};
+        vec2dp const EB0{base_b.x + upper * std::cos(sb0),
+                         base_b.y + upper * std::sin(sb0), 1.0};
+        vec2dp const tip = circ2(EA0, fore, EB0, fore);
+        value_t const tA0 = std::atan2(tip.y - EA0.y, tip.x - EA0.x) - sa0;
+        value_t const tB0 = std::atan2(tip.y - EB0.y, tip.x - EB0.x) - sb0;
+
+        // arm A: shoulder SA (revolute about base_a) then elbow EA
+        cl.add_revolute_body(static_frame2dp("SA", base_a, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, /*phi0*/ sa0, /*omega0*/ 0.0,
+                             cl.index_of("W"));
+        cl.add_revolute_body(static_frame2dp("EA", vec2dp{upper, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, /*phi0*/ tA0, /*omega0*/ 0.0,
+                             cl.index_of("SA"));
+        // arm B: shoulder SB (revolute about base_b) then elbow EB
+        cl.add_revolute_body(static_frame2dp("SB", base_b, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, /*phi0*/ sb0, /*omega0*/ 0.0,
+                             cl.index_of("W"));
+        cl.add_revolute_body(static_frame2dp("EB", vec2dp{upper, 0.0, 1.0}, 0.0), link,
+                             vec2dp{0.0, 0.0, 1.0}, /*phi0*/ tB0, /*omega0*/ 0.0,
+                             cl.index_of("SB"));
+
+        size_t const SA = cl.index_of("SA"), EA = cl.index_of("EA"),
+                     SB = cl.index_of("SB"), EB = cl.index_of("EB");
+
+        // close the loop: forearm tip of arm A coincides with forearm tip of arm B
+        cl.add_loop_constraint(loop_constraint2dp{EA, vec2dp{fore, 0.0, 1.0}, EB,
+                                                  vec2dp{fore, 0.0, 1.0},
+                                                  constraint2dp::coincidence});
+
+        // 1. assemble the start configuration (the closed-form guess is already
+        // consistent,
+        //    so the residual starts small and is polished to ~0)
+        value_t const gfin = cl.assemble(/*driven*/ {SA, SB});
+        CHECK(gfin < 1e-12);
+        CHECK(cl.residual_norm() < 1e-12);
+
+        // 2. drive BOTH shoulders with phase-shifted sinusoids and re-assemble each step:
+        //    the loop stays closed and the two forearm tips coincide throughout
+        value_t gmax = 0.0, tip_mismatch_max = 0.0;
+        value_t Px_min = tip.x, Px_max = tip.x, Py_min = tip.y, Py_max = tip.y;
+        value_t const dt = 0.016;
+        for (value_t t = dt; t <= 12.0; t += dt) {
+            cl.set_joint(SA, sa0 + amp * std::sin(2.0 * pi * t / period));
+            cl.set_joint(SB, sb0 + amp * std::sin(2.0 * pi * t / period + phase));
+            value_t const gk = cl.assemble(/*driven*/ {SA, SB});
+            gmax = std::max(gmax, gk);
+
+            // effector reached from each arm independently (should coincide)
+            auto Pa = move2dp(vec2dp{fore, 0.0, 1.0}, cl.system().get_pos_trafo(EA, 0));
+            auto Pb = move2dp(vec2dp{fore, 0.0, 1.0}, cl.system().get_pos_trafo(EB, 0));
+            value_t const ax = Pa.x / Pa.z, ay = Pa.y / Pa.z;
+            value_t const bx = Pb.x / Pb.z, by = Pb.y / Pb.z;
+            tip_mismatch_max = std::max(tip_mismatch_max, std::hypot(ax - bx, ay - by));
+            Px_min = std::min(Px_min, ax);
+            Px_max = std::max(Px_max, ax);
+            Py_min = std::min(Py_min, ay);
+            Py_max = std::max(Py_max, ay);
+        }
+        CHECK(gmax < 1e-10);            // well-conditioned across the whole driven sweep
+        CHECK(tip_mismatch_max < 1e-9); // the shared effector is single-valued
+
+        // 3. the effector actually traces a 2D curve (both shoulders contribute -> the
+        //    motion is genuinely 2-DOF, not a degenerate 1-DOF line)
+        value_t const span_x = Px_max - Px_min, span_y = Py_max - Py_min;
+        CHECK(span_x > 0.2);
+        CHECK(span_y > 0.2);
+
+        fmt::println("  start g = {:.2e}; driven-sweep max||g|| = {:.2e}, max tip "
+                     "mismatch = {:.2e}; effector span = ({:.3f} x {:.3f})",
+                     gfin, gmax, tip_mismatch_max, span_x, span_y);
         fmt::println("");
     }
 

@@ -189,12 +189,18 @@ Coordsys_model::add_double_pendulum(adouble_pendulum const& adp_in)
     return afb.size() - 1;
 }
 
-[[maybe_unused]] size_t
-Coordsys_model::add_open_vs_closed(aopen_vs_closed const& aovc_in)
+[[maybe_unused]] size_t Coordsys_model::add_open_vs_closed(aopen_vs_closed const& aovc_in)
 {
     aovc.push_back(aovc_in);
 
     return aovc.size() - 1;
+}
+
+[[maybe_unused]] size_t Coordsys_model::add_planar_delta(aplanar_delta const& apld_in)
+{
+    apld.push_back(apld_in);
+
+    return apld.size() - 1;
 }
 
 void Coordsys_model::clear()
@@ -231,6 +237,7 @@ void Coordsys_model::clear()
     adp.clear();
     afb.clear();
     aovc.clear();
+    apld.clear();
     aft.clear();
 
     m_label.clear();

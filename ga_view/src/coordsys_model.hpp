@@ -300,16 +300,17 @@ struct adouble_pendulum {
 };
 
 // Parameters of the four-bar linkage demo (a closed_loop_system2dp). A Grashof
-// crank-rocker: the ground link (crank pivot O2 -> rocker pivot O4) is the longest and the
-// crank the shortest, so the crank rotates fully while the rocker oscillates. The crank
-// pivot O2 sits at `base`; O4 at base + (ground, 0). `base` centers the linkage in the
-// view. The crank is motor-driven at crank_rate.
+// crank-rocker: the ground link (crank pivot O2 -> rocker pivot O4) is the longest and
+// the crank the shortest, so the crank rotates fully while the rocker oscillates. The
+// crank pivot O2 sits at `base`; O4 at base + (ground, 0). `base` centers the linkage in
+// the view. The crank is motor-driven at crank_rate.
 struct four_bar_params {
-    vec2dp base{-1.6, 0.0, 1.0}; // world position of the crank pivot O2 (centres the figure)
-    double ground{3.2};          // O2 -> O4 (fixed) link length
-    double crank{0.8};           // O2 -> A   (driver) link length
-    double coupler{2.8};         // A  -> B   link length
-    double rocker{2.4};          // O4 -> B   link length
+    vec2dp base{-1.6, 0.0,
+                1.0};    // world position of the crank pivot O2 (centres the figure)
+    double ground{3.2};  // O2 -> O4 (fixed) link length
+    double crank{0.8};   // O2 -> A   (driver) link length
+    double coupler{2.8}; // A  -> B   link length
+    double rocker{2.4};  // O4 -> B   link length
     vec2dp coupler_pt{1.4, 0.7, 1.0}; // point on the coupler (origin at A, e1 toward B)
                                       // whose world path is the classic coupler curve
     double crank_rate{1.2};           // driven crank angular rate [rad/s]
@@ -324,27 +325,63 @@ struct afour_bar {
 
 // Parameters of the open-vs-closed side-by-side demo. TWO copies of the same 3-link arm
 // (shoulder -> elbow -> wrist, each link `link` long), driven by one shared oscillating
-// shoulder angle. LEFT (base_open): an open chain -- elbow/wrist held fixed, so the arm is
-// rigid and its hand sweeps a free arc. RIGHT (base_closed): a closed loop -- the hand is
-// pinned to a fixed world point, so the elbow/wrist are re-solved each frame and the arm
-// morphs around the planted hand. The nominal pose places the hand 2*link straight above
-// the shoulder, so the shoulder can oscillate +/- amp while the IK stays well-conditioned.
+// shoulder angle. LEFT (base_open): an open chain -- elbow/wrist held fixed, so the arm
+// is rigid and its hand sweeps a free arc. RIGHT (base_closed): a closed loop -- the hand
+// is pinned to a fixed world point, so the elbow/wrist are re-solved each frame and the
+// arm morphs around the planted hand. The nominal pose places the hand 2*link straight
+// above the shoulder, so the shoulder can oscillate +/- amp while the IK stays
+// well-conditioned.
 struct open_vs_closed_params {
-    vec2dp base_open{-1.8, -0.5, 1.0};   // shoulder (ground pivot) of the open arm
-    vec2dp base_closed{1.5, -0.5, 1.0};  // shoulder (ground pivot) of the closed arm
-    double link{1.0};                    // length of each of the 3 links
-    double shoulder0{1.5707963};         // nominal shoulder angle (pi/2, points up)
-    double elbow0{-1.0471976};           // nominal elbow angle (-60 deg)
-    double wrist0{2.0943951};            // nominal wrist angle (120 deg)
-    double amp{0.5};                     // shoulder oscillation amplitude [rad]
-    double period{4.0};                  // oscillation period [s]
-    double dt{0.004};                    // time step [s]
-    int substeps{4};                     // steps per tick
+    vec2dp base_open{-1.8, -0.5, 1.0};  // shoulder (ground pivot) of the open arm
+    vec2dp base_closed{1.5, -0.5, 1.0}; // shoulder (ground pivot) of the closed arm
+    double link{1.0};                   // length of each of the 3 links
+    double shoulder0{1.5707963};        // nominal shoulder angle (pi/2, points up)
+    double elbow0{-1.0471976};          // nominal elbow angle (-60 deg)
+    double wrist0{2.0943951};           // nominal wrist angle (120 deg)
+    double amp{0.5};                    // shoulder oscillation amplitude [rad]
+    double period{4.0};                 // oscillation period [s]
+    double dt{0.004};                   // time step [s]
+    int substeps{4};                    // steps per tick
 };
 
 // Active item: open-vs-closed side-by-side demo (no active points)
 struct aopen_vs_closed {
     open_vs_closed_params params;
+};
+
+// Parameters of the planar 5-bar (2-RRR) parallel manipulator demo (a
+// closed_loop_system2dp). It is the 2D analogue of a delta / Stewart-Gough robot: a
+// moving end-effector positioned IN PARALLEL by two 2-link arms rising from two fixed,
+// actuated shoulders. Each arm is shoulder -> upper link -> elbow -> forearm -> tip; both
+// tips are pinned to the SAME end-effector by one point-coincidence. 4 revolute joints (2
+// shoulders
+// + 2 elbows), 2 constraint equations -> 2 DOF. The shoulders SA, SB sit at base_a,
+// base_b. The two SHOULDERS are the actuated inputs (the natural parallel-robot drive):
+// each frame set_joint(SA/SB, .) + assemble({SA, SB}) solves the two elbows so the tips
+// stay coincident (forward kinematics of the closed loop). Phase-shifted shoulder
+// sinusoids make the effector trace a Lissajous-like closed curve. Nominal angles point
+// the upper arms up-and-outward so the elbows splay and the forearms bend back to the
+// central tip -- the well-conditioned interior of the workspace, away from the
+// full-extension singularity.
+struct planar_delta_params {
+    vec2dp base_a{-1.0, -0.6, 1.0}; // world pivot of the left shoulder SA
+    vec2dp base_b{1.0, -0.6, 1.0};  // world pivot of the right shoulder SB
+    double upper{1.5};              // length of each upper-arm link (shoulder -> elbow)
+    double fore{1.8};               // length of each forearm link (elbow -> tip)
+    double shoulder_a0{1.9198622};  // nominal left  shoulder angle (110 deg, up-left)
+    double shoulder_b0{1.2217305};  // nominal right shoulder angle (70 deg, up-right)
+    double amp{0.25};               // shoulder oscillation amplitude [rad] (keeps the
+                                    // forearm "knee" ~26 deg clear of the parallel
+                                    // singularity across the whole driven sweep)
+    double period{5.0};             // oscillation period [s]
+    double phase{1.5707963};        // phase lead of shoulder B (pi/2 -> Lissajous figure)
+    double dt{0.004};               // time step [s]
+    int substeps{4};                // steps per tick (real-time at ~60 fps)
+};
+
+// Active item: planar 5-bar parallel manipulator demo (no active points)
+struct aplanar_delta {
+    planar_delta_params params;
 };
 
 // One row in the key-binding table of a legend
@@ -445,6 +482,9 @@ class Coordsys_model {
     // add open-vs-closed side-by-side demo item
     [[maybe_unused]] size_t add_open_vs_closed(aopen_vs_closed const& aovc_in);
 
+    // add planar 5-bar parallel manipulator demo item
+    [[maybe_unused]] size_t add_planar_delta(aplanar_delta const& apld_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -519,6 +559,9 @@ class Coordsys_model {
 
     // data for open-vs-closed side-by-side demo items
     std::vector<aopen_vs_closed> aovc;
+
+    // data for planar 5-bar parallel manipulator demo items
+    std::vector<aplanar_delta> apld;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};
