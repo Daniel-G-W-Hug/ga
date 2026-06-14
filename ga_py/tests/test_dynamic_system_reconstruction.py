@@ -65,9 +65,12 @@ class DoublePendulum:
         rest2 = pga.motor_from_pose2dp(pga.pose2dp(_pt(-2.0, -2.0), 0.0)) # translation
 
         # the joint descriptors the closed-loop work unlocked in ga_py
+        # (trailing 0.0s = no spring/damper force elements: stiffness, damping, q_rest)
         self.joints = [
-            pga.joint_state2dp(pga.joint2dp.revolute, self.Q, rest1, phi1, omega1),
-            pga.joint_state2dp(pga.joint2dp.revolute, self.Q, rest2, phi2, omega2),
+            pga.joint_state2dp(pga.joint2dp.revolute, self.Q, rest1, phi1, omega1,
+                               0.0, 0.0, 0.0),
+            pga.joint_state2dp(pga.joint2dp.revolute, self.Q, rest2, phi2, omega2,
+                               0.0, 0.0, 0.0),
         ]
         self.inertia = [I, I]
         self._refresh()

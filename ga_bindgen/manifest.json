@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-13T15:45:26+00:00",
+  "generated_at": "2026-06-14T21:00:06+00:00",
   "source_files": [
     "ga/ga_ega.hpp",
     "ga/ga_pga.hpp",
@@ -4708,7 +4708,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/ga_value_t.hpp",
-      "source_line": 17
+      "source_line": 21
     },
     {
       "namespace": "hd::ga",
@@ -5069,6 +5069,18 @@
         {
           "name": "omega",
           "type": "value_t"
+        },
+        {
+          "name": "stiffness",
+          "type": "value_t"
+        },
+        {
+          "name": "damping",
+          "type": "value_t"
+        },
+        {
+          "name": "q_rest",
+          "type": "value_t"
         }
       ],
       "constructors": [],
@@ -5100,6 +5112,18 @@
         },
         {
           "name": "omega",
+          "type": "value_t"
+        },
+        {
+          "name": "stiffness",
+          "type": "value_t"
+        },
+        {
+          "name": "damping",
+          "type": "value_t"
+        },
+        {
+          "name": "q_rest",
           "type": "value_t"
         }
       ],
@@ -5194,7 +5218,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_constraints.hpp",
-      "source_line": 60
+      "source_line": 64
     },
     {
       "namespace": "hd::ga::pga",
@@ -5226,7 +5250,7 @@
       "constructors": [],
       "base_class": null,
       "source_file": "ga/detail/fmt/../../ga_pga3dp_ops_constraints.hpp",
-      "source_line": 57
+      "source_line": 56
     },
     {
       "namespace": "hd::ga::pga",
@@ -9838,7 +9862,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_ega2d_ops.hpp",
-          "source_line": 416
+          "source_line": 385
         },
         {
           "return_type": "bool",
@@ -9868,7 +9892,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_ega3d_ops.hpp",
-          "source_line": 751
+          "source_line": 713
         },
         {
           "return_type": "bool",
@@ -9878,7 +9902,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_ega3d_ops.hpp",
-          "source_line": 799
+          "source_line": 724
         }
       ]
     },
@@ -18941,7 +18965,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops.hpp",
-          "source_line": 749
+          "source_line": 711
         },
         {
           "return_type": "bool",
@@ -18951,7 +18975,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops.hpp",
-          "source_line": 798
+          "source_line": 722
         },
         {
           "return_type": "bool",
@@ -18981,7 +19005,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops.hpp",
-          "source_line": 1238
+          "source_line": 1196
         },
         {
           "return_type": "bool",
@@ -18991,7 +19015,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops.hpp",
-          "source_line": 1306
+          "source_line": 1209
         },
         {
           "return_type": "bool",
@@ -19001,7 +19025,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops.hpp",
-          "source_line": 1358
+          "source_line": 1220
         },
         {
           "return_type": "bool",
@@ -19031,7 +19055,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga2dp_ops.hpp",
-          "source_line": 749
+          "source_line": 711
         },
         {
           "return_type": "bool",
@@ -19041,7 +19065,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga2dp_ops.hpp",
-          "source_line": 798
+          "source_line": 722
         },
         {
           "return_type": "bool",
@@ -19071,7 +19095,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga3dp_ops.hpp",
-          "source_line": 1238
+          "source_line": 1196
         },
         {
           "return_type": "bool",
@@ -19081,7 +19105,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga3dp_ops.hpp",
-          "source_line": 1306
+          "source_line": 1209
         },
         {
           "return_type": "bool",
@@ -19091,7 +19115,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_pga3dp_ops.hpp",
-          "source_line": 1358
+          "source_line": 1220
         },
         {
           "return_type": "bool",
@@ -19121,7 +19145,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops.hpp",
-          "source_line": 749
+          "source_line": 711
         },
         {
           "return_type": "bool",
@@ -19131,7 +19155,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga2dp_ops.hpp",
-          "source_line": 798
+          "source_line": 722
         },
         {
           "return_type": "bool",
@@ -19161,7 +19185,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops.hpp",
-          "source_line": 1238
+          "source_line": 1196
         },
         {
           "return_type": "bool",
@@ -19171,7 +19195,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops.hpp",
-          "source_line": 1306
+          "source_line": 1209
         },
         {
           "return_type": "bool",
@@ -19181,7 +19205,7 @@
             "value_t"
           ],
           "source_file": "ga/detail/fmt/../../ga_pga3dp_ops.hpp",
-          "source_line": 1358
+          "source_line": 1220
         }
       ]
     },
@@ -37883,7 +37907,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 807
+          "source_line": 766
         },
         {
           "return_type": "bool",
@@ -37893,7 +37917,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 875
+          "source_line": 779
         },
         {
           "return_type": "bool",
@@ -37903,7 +37927,7 @@
             "value_t"
           ],
           "source_file": "ga/ga_sta4ds_ops.hpp",
-          "source_line": 927
+          "source_line": 790
         }
       ]
     },
@@ -63533,7 +63557,14 @@
       "name": "eps",
       "type": "const double",
       "source_file": "ga/ga_value_t.hpp",
-      "source_line": 20
+      "source_line": 24
+    },
+    {
+      "namespace": "hd::ga",
+      "name": "eps_congruent",
+      "type": "const double",
+      "source_file": "ga/ga_value_t.hpp",
+      "source_line": 31
     },
     {
       "namespace": "hd::ga::ega",
@@ -64771,7 +64802,7 @@
       ],
       "scoped": true,
       "source_file": "ga/detail/fmt/../../ga_pga2dp_ops_constraints.hpp",
-      "source_line": 49
+      "source_line": 54
     },
     {
       "namespace": "hd::ga::pga",

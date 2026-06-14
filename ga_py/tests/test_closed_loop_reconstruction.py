@@ -87,7 +87,9 @@ class ClosedLoopSystem:
         rest = pga.motor_from_pose2dp(rest_pose)
         self.parent.append(parent)
         self.joints.append(
-            pga.joint_state2dp(pga.joint2dp.revolute, _ORIGIN_SCREW, rest, phi0, omega0)
+            # trailing 0.0s = no spring/damper force elements (stiffness, damping, q_rest)
+            pga.joint_state2dp(pga.joint2dp.revolute, _ORIGIN_SCREW, rest, phi0, omega0,
+                               0.0, 0.0, 0.0)
         )
         self.mass.append(mass)
         self.inertia.append(pga.get_plate_inertia(mass, w, h))

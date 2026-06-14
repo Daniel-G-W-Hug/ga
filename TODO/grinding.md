@@ -31,20 +31,38 @@ The Sommerfeld **jump** (Figs. 3–10) needs the two-way non-ideal DC-motor coup
 balance Eq. 10 / bond graph) — DEFERRED; prescribed spin gives the resonance backbone only.
 Restore point before this: `d25ebe6`.
 
+**Phase A.1 DONE 2026-06-14 (spring/damper force elements, UNCOMMITTED).** Folded a linear
+spring + damper on each 1-DOF joint coordinate into `dynamic_system3dp::tau`
+(`ga/ga_pga3dp_ops_physics.hpp`): `tau_j += -k_j(q_j - q0_j) - c_j q̇_j`. Changes:
+`joint_state3dp` gains `stiffness`/`damping`/`q_rest` (default 0 → gravity/bias path
+byte-unchanged); public `set_joint_spring_damper(idx,k,c,q0=0)`; additive diagonal RHS term
+in `assemble_mass_bias` (so coupled forward dynamics + `step()` pick it up automatically);
+spring potential `½k(q-q0)²` added to `potential_energy()`. **Gate met:** new app-tests in
+`ga_appl3dp_physics_test.hpp` + `ga_appl2dp_physics_test.hpp` (M2 suites) — a prismatic
+spring/damper **damped harmonic oscillator** matches the closed form to **1.8e-12**, and the
+**undamped** rig conserves KE+spring-PE to **2.7e-14** (identical in 2D and 3D). **2D twin
+mirrored** (same 4 edits in `ga_pga2dp_ops_physics.hpp`). **ga_py regenerated** (scan →
+emit_nanobind → build → stubs → test-data): `joint_state{2,3}dp` now expose
+`stiffness`/`damping`/`q_rest`; the positional-ctor hand-sync (3 reconstruction/roundtrip
+call sites + roundtrip field asserts) updated. **All green:** appl2dp 47/532, appl3dp
+35/9148, pga core 169/2758, **ga_py 725**.
+
 **RESUME HERE (next session) →** pick one of:
 
-1. **Phase B.2** — replace B.1's *explicit* `m·e·Ω²` forcing with an **emergent** spinning
-   offset-cm rigid body (the unbalance arises from a body whose cm is offset from the spin
-   axis), and reproduce B.1's swept amplitudes. Validates "`meω²` for free" + the
-   prescribed-spin bias path; the natural next step on the warm-up. Still a `ga_appl3dp`
-   prototype.
-2. **Phase A (library promotion)** — fold the proven spring/damper generalized force +
-   applied wrench into `dynamic_system3dp::tau` (additive; gravity path byte-unchanged), so
-   `step()` can integrate forced systems. Do this once B.1/B.2 have proven the primitive.
+1. **Phase A.2 — applied external wrench + time threading.** Add a per-body applied wrench
+   (a `bivec3dp` force/torque line) folded into `tau` via the spatial pairing, and thread
+   substep time through `step`/`coupled_step` so a time-varying (rotating) wrench can be
+   evaluated at each RK4 stage. This is what lets B.1's rotating `m·e·Ω²` forcing be
+   reproduced *inside* the library (the cross-check that closes Phase A). Then mirror
+   spring/damper (+ wrench) to the **2D twin** and regenerate ga_py.
+2. **Phase B.2** — replace B.1's *explicit* `m·e·Ω²` forcing with an **emergent** spinning
+   offset-cm rigid body; reproduce B.1's swept amplitudes. Validates "`meω²` for free". Note
+   it also needs a *driven* (prescribed-rate) joint, not yet in the infra.
 3. **Phase 0.c** — the two-pane top (−e1, `e423`) + side (−e2, `e431`) CS-relative-motion
    view (deferred). Useful mainly once dynamics add radial/axial/tilt; can wait.
 
-**Recommendation: B.2** (closes out the warm-up's GA payoff), then A (promote), then C.
+**Recommendation: A.2** (finish the force-element tier — wrench + time — so the library can
+reproduce B.1, then mirror to 2D + regenerate ga_py), then B.2, then C.
 
 **RESOLVED (2026-06-14): static-vs-feed = PRESCRIBED INFEED.** The spindle carries a
 steady prescribed translation (axial infeed `x_a` along −e1 and/or radial traverse) ON TOP
@@ -296,3 +314,21 @@ congruence section updated.
 The full DC-motor/bond-graph drive model; the grain-statistics surface-topography
 simulation as a standalone renderer (we observe `z_b`/trajectories, not a full grain
 ensemble); any 3D `ga_view` rendering of the spindle (ga_view is a 2D viewer).
+
+## Deferred documentation tasks (do at the documentation phase)
+
+These recur throughout the kinematics/dynamics work (and are partly a left-over from the
+previous project), so they want short, precise definitions in
+[ga_docu/8_ga_glossary.tex](ga_docu/8_ga_glossary.tex). Deferred until we reach the
+documentation part of this task; capture here so it is not lost:
+
+- **twist** — the velocity screw (the `exp` generator of a motor); dimension-dependent
+  grade (vector in pga2dp, bivector in pga3dp). Note the rate `Omega = 2 Mdot ⟇ rrev(M)`.
+- **wrench** — the force/torque screw dual to a twist; the spatial (reciprocal/Klein)
+  pairing `⟨twist, wrench⟩` gives power / generalised force.
+- **Lie group** vs **Lie algebra** — the motor manifold (finite rigid motions) vs. its
+  tangent at identity (twists); related by `exp` / `log`.
+- **infinitesimal** vs **finite** movements — the Lie-algebra generator (twist) vs. the
+  group element (motor) it integrates to.
+
+Keep each to a glossary-sized entry, matching the file's existing register.

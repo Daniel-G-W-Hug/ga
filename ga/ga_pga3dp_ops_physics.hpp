@@ -878,6 +878,19 @@ struct joint_state3dp {
     mvec3dp_e rest;     // body->parent motor at q = 0 (the reference pose)
     value_t phi{0.0};   // generalised coordinate q (revolute angle / prismatic distance)
     value_t omega{0.0}; // generalised rate q-dot
+
+    // Optional linear force elements acting on the generalised coordinate q, folded into
+    // the joint-space generalised force tau:
+    //
+    //     tau += -stiffness * (q - q_rest)  -  damping * q-dot
+    //
+    // A torsional spring/damper for a revolute joint, a linear spring/damper for a
+    // prismatic slider (the PGA unification carries through). All default to zero, so the
+    // gravity/bias-only path is byte-unchanged. The spring also contributes its potential
+    // 1/2 k (q - q_rest)^2 to potential_energy(); the damper is dissipative.
+    value_t stiffness{0.0}; // generalised spring constant k
+    value_t damping{0.0};   // generalised damping constant c
+    value_t q_rest{0.0};    // spring rest coordinate q0
 };
 
 
@@ -961,6 +974,17 @@ class dynamic_system3dp : public kinematic_system3dp {
     value_t joint_phi(size_t idx) const { return joint[idx].phi; }     // joint coordinate
     value_t joint_omega(size_t idx) const { return joint[idx].omega; } // joint rate
 
+    // Attach a linear spring + damper to a 1-DOF joint's generalised coordinate q:
+    // tau += -k*(q - q0) - c*q-dot. Additive to the gravity/bias generalised forces; the
+    // coupled forward dynamics and step() pick it up automatically. Only revolute /
+    // prismatic joints consume it (a free/rigid frame ignores these fields).
+    void set_joint_spring_damper(size_t idx, value_t k, value_t c, value_t q0 = 0.0)
+    {
+        joint[idx].stiffness = k;
+        joint[idx].damping = c;
+        joint[idx].q_rest = q0;
+    }
+
     // Current acceleration of joint `idx`, from the COUPLED joint-space forward dynamics
     // at the present state (no integration).
     value_t joint_accel(size_t idx)
@@ -1021,6 +1045,9 @@ class dynamic_system3dp : public kinematic_system3dp {
         for (size_t i = 1; i < size(); ++i) {
             vec3dp const cm_w = move3dp(O_3dp, get_pos_trafo(i, 0));
             pe += -body[i].mass * (grav.x * cm_w.x + grav.y * cm_w.y + grav.z * cm_w.z);
+            // joint-spring potential 1/2 k (q - q0)^2 (zero unless a spring is attached)
+            value_t const dq = joint[i].phi - joint[i].q_rest;
+            pe += 0.5 * joint[i].stiffness * dq * dq;
         }
         return pe;
     }
@@ -1259,6 +1286,14 @@ class dynamic_system3dp : public kinematic_system3dp {
                     Mmat[j * n + k] += spatial_dot(xj, I(xk));
                 }
             }
+        }
+
+        // linear spring/damper generalised forces on each joint coordinate (additive,
+        // diagonal in joint space): tau_j += -k_j (q_j - q0_j) - c_j q-dot_j. Zero unless
+        // a spring/damper was attached via set_joint_spring_damper.
+        for (size_t j = 0; j < n; ++j) {
+            auto const& js = joint[rj[j]];
+            RHS[j] += -js.stiffness * (js.phi - js.q_rest) - js.damping * js.omega;
         }
         return {std::move(Mmat), std::move(RHS)};
     }

@@ -137,26 +137,34 @@ def test_loop_constraint3dp_format_spec():
 # --- joint_state2dp / joint_state3dp (unlocked by the joint enums) -------
 
 def test_joint_state2dp_roundtrips():
+    # trailing args = the spring/damper force elements (stiffness, damping, q_rest)
     j = pga.joint_state2dp(
         pga.joint2dp.revolute, pga.vec2dp(0.0, 0.0, 1.0),
-        pga.mvec2dp_u(), 0.5, -1.0,
+        pga.mvec2dp_u(), 0.5, -1.0, 8.0, 0.3, 0.1,
     )
     assert j.type == pga.joint2dp.revolute
     assert j.screw_b == pga.vec2dp(0.0, 0.0, 1.0)
     assert j.phi == pytest.approx(0.5)
     assert j.omega == pytest.approx(-1.0)
+    assert j.stiffness == pytest.approx(8.0)
+    assert j.damping == pytest.approx(0.3)
+    assert j.q_rest == pytest.approx(0.1)
     assert "joint_state2dp" in repr(j)
     assert "revolute" in repr(j)
 
 
 def test_joint_state3dp_roundtrips():
+    # trailing args = the spring/damper force elements (stiffness, damping, q_rest)
     j = pga.joint_state3dp(
         pga.joint3dp.prismatic, pga.bivec3dp(0.0, 0.0, 0.0, 1.0, 0.0, 0.0),
-        pga.mvec3dp_e(), 2.0, 3.0,
+        pga.mvec3dp_e(), 2.0, 3.0, 8.0, 0.3, 0.1,
     )
     assert j.type == pga.joint3dp.prismatic
     assert j.phi == pytest.approx(2.0)
     assert j.omega == pytest.approx(3.0)
+    assert j.stiffness == pytest.approx(8.0)
+    assert j.damping == pytest.approx(0.3)
+    assert j.q_rest == pytest.approx(0.1)
     assert "joint_state3dp" in repr(j)
     assert "prismatic" in repr(j)
 

@@ -3472,6 +3472,78 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: dynamic_system2dp - spring/damper damped oscillator (Phase A)")
+    {
+        fmt::println("pga2dp: dynamic_system2dp - joint spring/damper (Phase A)");
+
+        // 2D twin of the 3D check: a plate on a horizontal prismatic joint carrying a
+        // linear spring (k) + damper (c) on its coordinate, no gravity. The reduced
+        // inertia is the pure mass (M[0] = m), so the joint obeys m q'' + c q' + k q = 0
+        // -- a damped harmonic oscillator with a closed-form solution. Validates the
+        // additive spring/damper force elements (set_joint_spring_damper) folded into
+        // tau.
+        value_t const m = 2.0, k = 8.0, c = 0.8;
+        value_t const wn = std::sqrt(k / m);                  // natural frequency 2 rad/s
+        value_t const zeta = c / (2.0 * std::sqrt(k * m));    // damping ratio 0.1
+        value_t const wd = wn * std::sqrt(1.0 - zeta * zeta); // damped frequency
+        value_t const A0 = 0.5;                               // initial q, zero velocity
+
+        dynamic_system2dp sys;
+        sys.set_gravity(vec2dp{0.0, 0.0, 0.0}); // isolate the spring oscillator
+        sys.add_frame(static_frame2dp("W"));
+        sys.add_prismatic_body(static_frame2dp("B", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                               make_plate_body(m, 1.0, 1.0), vec2dp{1.0, 0.0, 0.0}, A0,
+                               0.0); // slide along e1; q0 = A0, v0 = 0
+        size_t const B = sys.index_of("B");
+        sys.set_joint_spring_damper(B, k, c); // q_rest = 0
+
+        // reduced inertia is the pure mass; initial accel = -k*A0/m (spring only, v = 0)
+        CHECK(sys.mass_matrix()[0] == doctest::Approx(m));
+        CHECK(sys.joint_accel(B) == doctest::Approx(-k * A0 / m));
+
+        // closed-form underdamped free response (q(0) = A0, q'(0) = 0):
+        //   q(t) = e^{-zeta wn t} [ A0 cos(wd t) + (zeta wn A0 / wd) sin(wd t) ]
+        auto q_exact = [&](value_t t) {
+            return std::exp(-zeta * wn * t) *
+                   (A0 * std::cos(wd * t) + (zeta * wn * A0 / wd) * std::sin(wd * t));
+        };
+
+        value_t const dt = 1.0e-4;
+        value_t t = 0.0, max_err = 0.0;
+        for (size_t nstep = 1; nstep <= 50000; ++nstep) { // 5 s, ~1.6 damped periods
+            sys.step(dt);
+            t += dt;
+            max_err = std::max(max_err, std::abs(sys.joint_phi(B) - q_exact(t)));
+        }
+        fmt::println(
+            "  wn = {:.4f}, zeta = {:.3f}, wd = {:.4f}; max|q - q_exact| = {:.2e}", wn,
+            zeta, wd, max_err);
+        CHECK(max_err < 1e-9); // RK4 matches the closed form to roundoff
+
+        // undamped variant: KE + spring potential 1/2 k q^2 conserved (spring PE term in
+        // potential_energy)
+        dynamic_system2dp usys;
+        usys.set_gravity(vec2dp{0.0, 0.0, 0.0});
+        usys.add_frame(static_frame2dp("W"));
+        usys.add_prismatic_body(static_frame2dp("B", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                                make_plate_body(m, 1.0, 1.0), vec2dp{1.0, 0.0, 0.0}, A0,
+                                0.0);
+        usys.set_joint_spring_damper(usys.index_of("B"), k, 0.0);
+        value_t const E0 = usys.total_energy(); // = 1/2 k A0^2
+        CHECK(E0 == doctest::Approx(0.5 * k * A0 * A0));
+        value_t max_dE = 0.0, kemax = 0.0;
+        for (size_t nstep = 1; nstep <= 40000; ++nstep) { // 4 s
+            usys.step(dt);
+            max_dE = std::max(max_dE, std::abs(usys.total_energy() - E0));
+            kemax = std::max(kemax, usys.kinetic_energy());
+        }
+        fmt::println("  undamped: E0 = {:.5f}, KEmax = {:.5f}, dE/KEmax = {:.2e}", E0,
+                     kemax, max_dE / kemax);
+        CHECK(max_dE / kemax < 1e-11);
+
+        fmt::println("");
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////
     // closed_loop_system2dp -- Phase 1 (position-level assembly): the planar FOUR-BAR
     // linkage, the canonical 1-DOF closed loop. As a spanning tree it is two branches off
