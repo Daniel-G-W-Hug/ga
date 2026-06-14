@@ -18,6 +18,7 @@ using namespace hd::ga::pga;
 #include "active_double_pendulum.hpp"
 #include "active_four_bar.hpp"
 #include "active_frame_trafo.hpp"
+#include "active_grinding_marks.hpp"
 #include "active_kinematics2dp.hpp"
 #include "active_merry_go_round.hpp"
 #include "active_ode.hpp"
@@ -1673,6 +1674,21 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(pd);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // wafer-grinding grain-trajectory demo items (PGA3DP kinematic_system3dp)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->agm.size(); ++idx) {
+        active_grinding_marks* gm =
+            new active_grinding_marks(cs, wcs, cm->agm[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, gm,
+                         &active_grinding_marks::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, gm,
+                         &active_grinding_marks::togglePause);
+        QObject::connect(wcs, &w_Coordsys::traceToggleRequested, gm,
+                         &active_grinding_marks::toggleTrace);
+        scene->addItem(gm);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -2234,6 +2250,39 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
         leg.x_pct = 0.43; // right-aligned (left margin = 1 - size - small gap)
         leg.y_pct = 0.64; // lower part of the view, a touch above the bottom
         leg.size_pct = 0.55;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append wafer-grinding grain-trajectory scene (kinematic_system3dp, Phase 0 of
+    // TODO/grinding.md): the six-frame Tao Fig.-1 tree, with a wheel-rim grain traced in
+    // the rotating wafer frame and projected onto the chuck plane e423_3dp -- the
+    // grinding-mark rosette of Fig. 1 / Fig. 7. Normalized to R = wheel = wafer = 1.
+    {
+        Coordsys_model cm;
+        cm.add_grinding_marks(agrinding_marks{});
+        cm.set_label(
+            "Wafer grinding: grain marks in the wafer frame (kinematic_system3dp)");
+
+        diagram_legend leg;
+        leg.heading =
+            "PGA3D kinematics (Tao 2022, Fig. 1): a wheel-rim grain traced in the "
+            "ROTATING WAFER frame, projected onto the chuck plane e423 (top view down "
+            "-e1). The orange rosette is the grinding-mark pattern; ratio n_w/n_s = 10.";
+        leg.entries = {{"SPACE:", "pause / resume animation"},
+                       {"R:", "reset animation to t=0"},
+                       {"T:", "show / hide the grain-mark trace"},
+                       {"─────", "──────────"},
+                       {"blue disk:", "wafer (fixed in this frame), unit radius R"},
+                       {"blue spoke:", "wafer orientation mark (shows chuck spin)"},
+                       {"orange disk:", "grinding wheel (orbits as the wafer turns)"},
+                       {"orange dot:", "the tracked rim grain"},
+                       {"orange curve:", "grain path = the grinding marks"},
+                       {"axes:", "horizontal e2 (root y), vertical e3 (root z)"}};
+        leg.x_pct = 0.02;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.36;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));

@@ -203,6 +203,13 @@ Coordsys_model::add_double_pendulum(adouble_pendulum const& adp_in)
     return apld.size() - 1;
 }
 
+[[maybe_unused]] size_t Coordsys_model::add_grinding_marks(agrinding_marks const& agm_in)
+{
+    agm.push_back(agm_in);
+
+    return agm.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -238,6 +245,7 @@ void Coordsys_model::clear()
     afb.clear();
     aovc.clear();
     apld.clear();
+    agm.clear();
     aft.clear();
 
     m_label.clear();

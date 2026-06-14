@@ -7,12 +7,15 @@ runway for exactly this. Companion memory: `project_wafer_grinding`.
 
 **DONE so far:** the two grinding mini-tests translated onto `static_/kinematic_system3dp`
 (pedagogical, in `ga_appl3dp_appl_test.hpp`, right after the originals); the `is_congruent`
-refinement (intermediate step below). **RESUME HERE → Phase B.1** (Sommerfeld force-element
-prototype): see "First chunk (next): Phase B.1" at the end of Phase B, plus the design
-already agreed in chat — explicit rotating unbalance wrench `meω²(cos,sin)` + x,y spring/
-damper on a `(m+M)` body, prescribed spin, validated against the closed-form Eq. (4)
-amplitudes over an ω sweep (resonances 16.51 / 28.57 rad/s, Sommerfeld Table-1 params).
-Prototype in a `ga_appl3dp` app-test first; promote to the library only after it matches.
+refinement (intermediate step below); the Fig. 1 **machine geometry & kinematic frame tree**
+specified (new section + Phase 0); **Phase 0.a + 0.b DONE** (grain-trajectory app-test passes;
+`active_grinding_marks` ga_view scene built — see Phase 0). **RESUME HERE →** user visual-check
+of the 0.b scene, then decide the optional **0.c** second view (CS relative-motion top+side,
+deferred) or jump to **Phase B.1** (Sommerfeld force-element prototype), which reuses this
+tree's `spindle_cm_stat` body: explicit rotating unbalance wrench `meω²(cos,sin)` + x,y
+spring/damper, prescribed spin, validated against the closed-form Eq. (4) amplitudes over an
+ω sweep (resonances 16.51 / 28.57 rad/s, Sommerfeld Table-1 params). Prototype in a
+`ga_appl3dp` app-test first; promote to the library only after it matches.
 
 ## Goal
 
@@ -45,6 +48,77 @@ The geometry/observation half is ~prototyped; the missing half is the **dynamics
 it. **Translated** versions of both (expressing the same idea via `static_/kinematic_system3dp`)
 sit right after the originals — pedagogical, no new insight, asserted congruent to the raw
 result.
+
+## Machine geometry & kinematic frame tree (Tao Fig. 1)
+
+The geometry of Fig. 1 maps directly onto a `static_/kinematic_system3dp` frame tree: a
+stationary inertial root with **two independent chains** branching off it — the chuck/wafer
+chain and the spindle/wheel chain. Each frame is posed RELATIVE to its parent
+(`static_frame3dp(name, origin_in_parent, rot_axis*angle)`), and spin is the parent-relative
+angular velocity carried in `kin_state3dp{.omega = ...}`. This is the geometric foundation
+for everything downstream: the grain-trajectory curves, mini-test 1 (tilt), and the
+Sommerfeld warm-up all build on this exact tree.
+
+**Root frame `chuck_ctr_stat`** (inertial reference, identity in the library): sits on the
+chuck axis at the chuck surface that holds the wafer. Physical axis labels:
+`e1` (x) = up = chuck-surface normal (the chuck/wafer spin axis); `e3` (z) = to the right;
+`e2` (y) = to the front, toward the observer. Right-handed: `e1 x e2 = e3` (up x front =
+right). All other frames are expressed relative to this root.
+
+**Frame tree** (origin/rot are RELATIVE to the parent; `e1,e2,e3` are the parent's axes):
+
+| Frame | Parent | Origin in parent | Orientation `rot` (axis·angle) | Spin `omega` | Role |
+| --- | --- | --- | --- | --- | --- |
+| `chuck_ctr_stat` | (self / root) | `O` | `0` | — | inertial reference; chuck surface |
+| `chuck_ctr_rot` | `chuck_ctr_stat` | `O` (coincident at t=0) | `0` | `n_s · e1` | rotates with the chuck about its axis (e1) |
+| `wafer_top_avg_rot` | `chuck_ctr_rot` | `(tw_avg, 0, 0)` (+e1) | `0` (co-rotates) | — | average top surface of the wafer; X-deviation = local profile |
+| `spindle_cm_stat` | `chuck_ctr_stat` | `(x_a, −R/√2, +R/√2)` (radial offset \|·\|=R; `x_a` = axial infeed along −e1) | `(0, -pi/2, 0)` (−90° about e2) | — | spindle centre of mass; nominal Fig.-1 placement + 5 vibration DOFs vs. root |
+| `tool_top_avg_rot` | `spindle_cm_stat` | `(0, 0, l3)` (+ local z) | `0` (co-rotates) | `n_w · z_local` | average grinding-tool surface; rotates with the wheel about its axis |
+| `tool_surface_avg_at_R` | `tool_top_avg_rot` | `(R_w, 0, 0)` (+ local x) | `0` (co-rotates) | — | a point on the wheel's outer rim (radius R_w) |
+
+Notes / parameters to pin down:
+
+- **Spin naming (per Fig. 1, counterintuitive):** Fig. 1 labels the **chuck** spin `n_s`
+  (~200–300 rpm) and the **grinding-wheel** spin `n_w` (~3000 rpm) — i.e. the `_s` subscript
+  sits on the chuck and `_w` on the wheel, opposite to what the letters suggest. This doc
+  follows Fig. 1. (The paper text may differ; if so, reconcile then.)
+- **Nominal radial placement (Fig. 1, fixed for now):** `spindle_cm_stat` is offset from the
+  chuck centre by `−R/√2` along root e2 (Y) and `+R/√2` along root e3 (Z), with
+  `R = R_wheel = R_wafer` (assumed equal for now). The horizontal offset magnitude is then
+  exactly **R**, so the wheel rim (radius R) reaches from the **wafer centre** (R−R) out to
+  2R and sweeps one full wafer radius — the standard self-rotational grinding layout: the
+  rim just touches the wafer centre.
+- **Axial infeed `x_a` (OPEN — needs paper check):** along the spindle's +z_local (= −e1,
+  toward the wafer); with no tilt/shift the wheel first contacts the wafer top at the
+  geometric event `tool-surface reaches the wafer` (≈ when the +l3 tool surface meets x=0).
+  **Open question (user to clarify against Tao):** is the setup *static* (fixed nominal
+  pose, only the dynamic vibration disturbances), or is there an *additional prescribed
+  translational motion* of the wheel — a steady axial infeed and/or a radial traverse —
+  beyond the disturbances? This decides whether `x_a` (and possibly the radial offset) is a
+  constant or a time-varying prescribed input. **Resolve before Phase B/C dynamics; Phase 0
+  (grain trajectories) can run with the static nominal pose either way.**
+- The 5 vibration DOFs (radial x,y; axial z; tilt θ,φ) are perturbations ON TOP of whichever
+  nominal (static or fed) pose the above resolves to.
+- `spindle_cm_stat`'s −90° about `e2` makes its local axes `x→e3`, `y→e2`, `z→−e1`: the
+  spindle/tool axis (`+z_local`) points DOWN toward the wafer (−up), as for a cup wheel
+  grinding the top surface. l1, l2 (spring/damper stations along the axis) are positions in
+  this frame, deferred until the dynamics.
+- Time-varying parameters (`tw_avg` as the wafer thins, `l3` as the tool wears) change
+  slowly — treat as constant within ~10 chuck revolutions for now.
+
+**Projection planes for ga_view** (results are 3DP; ga_view is 2D, so project):
+
+- **e423_3dp** — the plane ⊥`e1` (carrier `e2∧e3`): the plane the chuck/wafer rotates in.
+  Grain-trajectory curves (the Fig. 1 grey-dashed / Fig. 7 red-dashed marks) are shown here.
+- **e431_3dp** — the plane ⊥`e2` (the x–z side elevation): shows the relative orientation of
+  wafer and grinding tool.
+
+**Grain-trajectory reproduction (precursor, pure kinematics — see Phase 0).** A grain fixed
+on the wheel rim is `tool_surface_avg_at_R`'s origin; its curve in the **rotating wafer
+frame** is `get_pos_trafo("tool_surface_avg_at_R", "wafer_top_avg_rot")` applied to `O`
+sampled over time, then projected onto `e423_3dp`. For given `(n_w, n_s, R_w, wafer radius)`
+this reproduces the epicyclic grinding-mark patterns of Fig. 1 / Fig. 7 — achievable before
+any dynamics, and a direct functional check of the whole frame tree.
 
 ## The one capability gap: FORCE ELEMENTS
 
@@ -90,6 +164,33 @@ All 5 C++ suites + 725 ga_py tests pass; CLAUDE.md congruence section updated.
 
 ## Plan (phased) — decisions taken 2026-06-14
 
+- **0 — geometry & kinematic frame tree [precursor, no dynamics].** Build the Fig. 1 frame
+  tree above as a `kinematic_system3dp` (two chains off `chuck_ctr_stat`). First functional
+  payoff: reproduce the **grain-trajectory** curves (Fig. 1 grey-dashed / Fig. 7 red-dashed)
+  — the rim grain's path in the rotating wafer frame, projected onto `e423_3dp`, for a few
+  `(n_s, n_w, R)` combinations. The Sommerfeld warm-up (B) and the 5-DOF spindle (C) reuse
+  THIS tree, so it is the on-ramp to the complex system.
+  - **0.a [DONE 2026-06-14]:** app-test `"pga3dp: grinding grain trajectory in the wafer
+    frame (Phase 0)"` in `ga_appl3dp_appl_test.hpp` builds the full six-frame tree and
+    samples the rim grain over one chuck revolution. Gates pass: wheel axis at `|C|=R`,
+    grain on the rim (`|grain−C|=R`), radial sweep `r ∈ [0, 2R]` (rim through wafer centre),
+    `r` frame-invariant (root == wafer), rim speed `= n_w·R`. Emits the `e423_3dp` (y,z)
+    projection column for ga_view. Used `n_s=300, n_w=3000 rpm` (ratio 10 → pattern closes
+    in one chuck rev), `R=150 mm`.
+  - **0.b [DONE 2026-06-14, pending visual check]:** ga_view scene `active_grinding_marks`
+    (the 5-place hand-sync surface) runs the six-frame `kinematic_system3dp` and draws the
+    rim grain traced in the rotating wafer frame, projected onto `e423_3dp` (top view down
+    −e1; e2 horizontal, e3 vertical). Fixed wafer disk + orbiting wheel disk + orange
+    grinding-mark rosette; SPACE/R/T = pause/reset/trace. Normalized `R=1`, `n_s:n_w = 1:10`.
+    Builds and smoke-launches; **user to page to the scene for the visual-layout check**
+    (legend placement, colours, pace).
+  - **0.c [proposed, deferred — decide after 0.b check]:** a second ga_view scene showing the
+    relative motion of the *coordinate systems* (frame glyphs, not just the grain) in two
+    projected views side by side — a **top view** along root −e1 (the `e423_3dp` chuck plane,
+    as in the merry-go-round) and a **side view** along root −e2 (the `e431_3dp` elevation).
+    Purpose: visualize the radial / axial / tilting spindle motions once the dynamics add
+    them. Needs normalized rpm + sensible scaling, and is also practice at drawing projected
+    views. Shift to a later session if 0.b suffices for now.
 - **A — force-element extension.** Linear spring + damper generalized forces on joint
   coordinates, plus an applied external wrench at a body-fixed point, folded into `tau`.
   Additive; the gravity-only path stays byte-unchanged. (Mirrors how the closed-loop layer
@@ -101,6 +202,8 @@ All 5 C++ suites + 725 ga_py tests pass; CLAUDE.md congruence section updated.
   paper's Table-1 params). The analytic correctness gate, exactly like the four-bar angles.
   - **B.1 (next concrete step):** explicit rotating unbalance wrench `meω²(cos,sin)` +
     springs/dampers → match Eq. (4) over an ω sweep. Isolates the spring/damper primitive.
+    Set this up on the Phase-0 spindle chain (`spindle_cm_stat` body), so the warm-up grows
+    into the real geometry rather than a throwaway 2-DOF rig.
   - **B.2:** replace the explicit forcing with an **emergent** spinning offset-cm body →
     must reproduce B.1 (validates "`meω²` for free" + the prescribed-spin bias path).
 - **C — Tao 5-DOF spindle.** The 6-joint stack above; reproduce Eq. (13) responses and the
@@ -126,6 +229,9 @@ All 5 C++ suites + 725 ga_py tests pass; CLAUDE.md congruence section updated.
 
 ## Validation gates (per phase)
 
+- 0: grain-trajectory curves match the Fig. 1 / Fig. 7 patterns for the paper's
+  `(n_w, n_s, R_w, wafer radius)`; the frame tree round-trips (`get_pos_trafo` LCA walk)
+  and a rim point's surface speed equals `n_s · R_w` (sanity, as in the translated mini-test).
 - B: simulated amplitudes == Eq. (4) across an ω sweep; resonances at 16.51 / 28.57 rad/s.
 - C: characteristic frequencies `f_x, f_z, f_θ, f_φ` and the `z_b` waveform vs. measured data.
 - D: waviness wavelengths λ_c, λ_m vs. measured wafer topography.

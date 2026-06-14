@@ -384,6 +384,27 @@ struct aplanar_delta {
     planar_delta_params params;
 };
 
+// Parameters of the wafer-grinding grain-trajectory demo (Phase 0 of TODO/grinding.md).
+// It runs the six-frame kinematic_system3dp of Tao Fig. 1 -- two chains off the
+// stationary chuck centre: chuck_ctr_rot -> wafer_top_avg_rot (the wafer, spun at n_s)
+// and spindle_cm_stat -> tool_top_avg_rot -> tool_surface_avg_at_R (the wheel, spun at
+// n_w) -- and traces a wheel-rim grain IN THE ROTATING WAFER FRAME, projected onto the
+// chuck plane e423_3dp (drop e1; e2 horizontal, e3 vertical). That path is the
+// grinding-mark pattern of Fig. 1 / Fig. 7. Everything is normalized to R = wheel radius
+// = wafer radius = 1, and the spin rates are normalized for a watchable pace -- only the
+// ratio n_w / n_s shapes the pattern (here 10, matching n_s = 300 / n_w = 3000 rpm).
+struct grinding_marks_params {
+    double R{1.0};    // wheel radius == wafer radius (normalized; the view spans ~2 R)
+    double ns{0.8};   // chuck (wafer) spin rate [rad/s, normalized for the animation]
+    double nw{8.0};   // wheel spin rate [rad/s, normalized]; ns:nw == 1:10 here
+    double dt{0.016}; // sim time advanced per tick [s]
+};
+
+// Active item: wafer-grinding grain-trajectory demo (no active points)
+struct agrinding_marks {
+    grinding_marks_params params;
+};
+
 // One row in the key-binding table of a legend
 struct key_legend_entry {
     std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
@@ -485,6 +506,8 @@ class Coordsys_model {
     // add planar 5-bar parallel manipulator demo item
     [[maybe_unused]] size_t add_planar_delta(aplanar_delta const& apld_in);
 
+    [[maybe_unused]] size_t add_grinding_marks(agrinding_marks const& agm_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -562,6 +585,9 @@ class Coordsys_model {
 
     // data for planar 5-bar parallel manipulator demo items
     std::vector<aplanar_delta> apld;
+
+    // data for wafer-grinding grain-trajectory demo items
+    std::vector<agrinding_marks> agm;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};

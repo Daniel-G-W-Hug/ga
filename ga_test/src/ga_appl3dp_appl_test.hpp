@@ -473,6 +473,138 @@ TEST_SUITE("PGA3DP: application tests")
         fmt::println("");
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////
+    // Phase 0 of the wafer-grinding plan (TODO/grinding.md): the geometric on-ramp. Build
+    // the Fig.-1 two-chain frame tree (chuck/wafer + spindle/wheel) and reproduce the
+    // GRAIN TRAJECTORY -- the path a wheel-rim grain traces in the ROTATING WAFER frame
+    // (Fig. 1 grey-dashed / Fig. 7 red-dashed marks). Pure kinematics, no dynamics: it
+    // validates the frame tree end-to-end before any force elements are added, and emits
+    // the e423_3dp (chuck-plane) projection that ga_view will draw.
+    //
+    // Spin naming follows Fig. 1 (counterintuitive): n_s = chuck (slow), n_w = wheel
+    // (fast). Nominal radial placement: the spindle CM is offset (-R/v2, +R/v2) in the
+    // root e2-e3 plane so its distance from the chuck axis is exactly R; with wheel
+    // radius R the rim reaches the wafer centre and sweeps one wafer radius (self-rot
+    // layout).
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga3dp: grinding grain trajectory in the wafer frame (Phase 0)")
+    {
+
+        fmt::println("");
+        fmt::println("pga3dp: grinding grain trajectory in the wafer frame (Phase 0)");
+        fmt::println("");
+
+        // machine geometry (Tao Fig. 1; see TODO/grinding.md)
+        double const R = 150.0;    // wheel radius == wafer radius [mm] (equal for now)
+        double const l3 = 30.0;    // tool surface distance from the spindle CM [mm]
+        double const tw_avg = 0.8; // average wafer thickness [mm]
+        double const x_a = l3;     // axial infeed so the grain sits at the chuck plane
+
+        // spin rates per Fig. 1: chuck n_s (slow), wheel n_w (fast). n_w / n_s = 10 here,
+        // so the grinding-mark pattern closes after one chuck revolution.
+        double const ns = rpm2radps(300.0);  // chuck spin [rad/s]
+        double const nw = rpm2radps(3000.0); // wheel spin [rad/s]
+
+        // nominal radial placement of the spindle CM: |offset|_yz == R (see header note)
+        double const off = R / std::sqrt(2.0);
+        auto const spindle_origin = vec3dp{x_a, -off, off, 1.0}; // (x_a, -R/v2, +R/v2)
+
+        // frame tree
+        kinematic_system3dp sys;
+        sys.add_frame(static_frame3dp("chuck_ctr_stat")); // inertial root
+
+        // chain 1 (wafer): chuck spin about e1, then the average wafer top surface
+        sys.add_frame(static_frame3dp("chuck_ctr_rot"),
+                      kin_state3dp{.omega = vec3dp{ns, 0.0, 0.0, 0.0}},
+                      sys.index_of("chuck_ctr_stat"));
+        sys.add_frame(static_frame3dp("wafer_top_avg_rot", vec3dp{tw_avg, 0.0, 0.0, 1.0}),
+                      kin_state3dp{}, sys.index_of("chuck_ctr_rot"));
+
+        // chain 2 (spindle/wheel): CM reoriented -90 deg about e2 (tool axis -> -e1), the
+        // tool surface at +l3 along the spindle z spinning at n_w, rim grain at +R along
+        // x
+        sys.add_frame(static_frame3dp("spindle_cm_stat", spindle_origin,
+                                      vec3dp{0.0, -pi / 2.0, 0.0, 0.0}),
+                      kin_state3dp{}, sys.index_of("chuck_ctr_stat"));
+        sys.add_frame(static_frame3dp("tool_top_avg_rot", vec3dp{0.0, 0.0, l3, 1.0}),
+                      kin_state3dp{.omega = vec3dp{0.0, 0.0, nw, 0.0}},
+                      sys.index_of("spindle_cm_stat"));
+        sys.add_frame(static_frame3dp("tool_surface_avg_at_R", vec3dp{R, 0.0, 0.0, 1.0}),
+                      kin_state3dp{}, sys.index_of("tool_top_avg_rot"));
+
+        size_t const chuck_rot = sys.index_of("chuck_ctr_rot");
+        size_t const tool_top = sys.index_of("tool_top_avg_rot");
+
+        // wheel-axis location in the root e2-e3 (chuck) plane: fixed (independent of both
+        // spins). Its distance from the chuck axis must be exactly R -- the key geometry.
+        auto const C = unitize(
+            move3dp(O_3dp, sys.get_pos_trafo("tool_top_avg_rot", "chuck_ctr_stat")));
+        CHECK(std::sqrt(C.y * C.y + C.z * C.z) == doctest::Approx(R));
+
+        // sample the grain over one chuck revolution
+        double const T = 2.0 * pi / ns; // one chuck revolution [s]
+        int const nsteps = 720;
+        double r_min = std::numeric_limits<double>::max();
+        double r_max = std::numeric_limits<double>::lowest();
+
+        for (int k = 0; k <= nsteps; ++k) {
+            double const t = T * double(k) / double(nsteps);
+
+            // advance the two spins (every other frame co-rotates with its parent)
+            sys.set_pose(chuck_rot, pose3dp{O_3dp, vec3dp{ns * t, 0.0, 0.0, 0.0}});
+            sys.set_pose(tool_top, pose3dp{vec3dp{0.0, 0.0, l3, 1.0},
+                                           vec3dp{0.0, 0.0, nw * t, 0.0}});
+
+            // the rim grain (origin of the rim frame) in the rotating wafer frame and
+            // root
+            auto const g_wafer = unitize(move3dp(
+                O_3dp, sys.get_pos_trafo("tool_surface_avg_at_R", "wafer_top_avg_rot")));
+            auto const g_root = unitize(move3dp(
+                O_3dp, sys.get_pos_trafo("tool_surface_avg_at_R", "chuck_ctr_stat")));
+
+            // radial distance from the chuck axis (e1) is invariant under the e1 spin, so
+            // it must agree in the root and wafer frames
+            double const r_wafer =
+                std::sqrt(g_wafer.y * g_wafer.y + g_wafer.z * g_wafer.z);
+            double const r_root = std::sqrt(g_root.y * g_root.y + g_root.z * g_root.z);
+            CHECK(r_wafer == doctest::Approx(r_root));
+
+            // the grain stays on the wheel rim: distance R from the fixed wheel axis C
+            double const dy = g_root.y - C.y;
+            double const dz = g_root.z - C.z;
+            CHECK(std::sqrt(dy * dy + dz * dz) == doctest::Approx(R));
+
+            r_min = std::min(r_min, r_wafer);
+            r_max = std::max(r_max, r_wafer);
+
+            // e423_3dp projection (drop the e1 component): the chuck-plane (y,z) the mark
+            // is drawn in -- this is the column ga_view will plot
+            if (k % (nsteps / 12) == 0)
+                fmt::println("t/T = {:>4.2f}: grain_wafer (e423 y,z) = ({:>8.2f}, "
+                             "{:>8.2f}) mm,  r = {:>7.2f} mm",
+                             t / T, g_wafer.y, g_wafer.z, r_wafer);
+        }
+
+        // the rim sweeps from the wafer centre (r ~ 0) out to 2R (self-rot grinding
+        // layout)
+        CHECK(r_min < 0.1 * R);
+        CHECK(r_max == doctest::Approx(2.0 * R).epsilon(0.001));
+        fmt::println("r range over one chuck rev: [{:>5.2f}, {:>6.2f}] mm  (expect ~[0, "
+                     "{:.0f}])",
+                     r_min, r_max, 2.0 * R);
+
+        // rim grain speed from the wheel spin: |v| = n_w * R (distance from the wheel
+        // axis)
+        auto const g_now = unitize(
+            move3dp(O_3dp, sys.get_pos_trafo("tool_surface_avg_at_R", "chuck_ctr_stat")));
+        auto const v_grain = sys.point_velocity(g_now, "tool_surface_avg_at_R");
+        CHECK(to_val(bulk_nrm(v_grain)) == doctest::Approx(nw * R));
+        fmt::println("rim grain speed |v| = {:>10.2f} mm/s  (expect n_w*R = {:>10.2f})",
+                     to_val(bulk_nrm(v_grain)), nw * R);
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: line perpendicular to non-intersecting lines (rcmt)")
     {
 
