@@ -25,6 +25,7 @@ active_grinding_marks::active_grinding_marks(Coordsys* cs, w_Coordsys* wcs,
              QGraphicsItem::ItemSendsScenePositionChanges);
     setAcceptHoverEvents(false);
 
+    m_ratio = m_params.ratio;
     build_system();
 
     connect(wcs, &w_Coordsys::viewResized, this, &active_grinding_marks::viewChanged);
@@ -37,6 +38,8 @@ active_grinding_marks::active_grinding_marks(Coordsys* cs, w_Coordsys* wcs,
 // ---------------------------------------------------------------------------
 // System (re)build and time advance
 // ---------------------------------------------------------------------------
+
+double active_grinding_marks::nw() const { return m_params.ns * m_ratio; }
 
 // The six-frame Tao Fig.-1 tree, normalized to R = wheel radius = wafer radius = 1. The
 // axial quantities (l3, the spindle's axial offset x_a) lie along e1 and so drop out of
@@ -65,7 +68,7 @@ void active_grinding_marks::build_system()
                                     vec3dp{0.0, -pi / 2.0, 0.0, 0.0}),
                     kin_state3dp{}, m_sys.index_of("chuck_ctr_stat"));
     m_sys.add_frame(static_frame3dp("tool_top_avg_rot", vec3dp{0.0, 0.0, l3, 1.0}),
-                    kin_state3dp{.omega = vec3dp{0.0, 0.0, m_params.nw, 0.0}},
+                    kin_state3dp{.omega = vec3dp{0.0, 0.0, nw(), 0.0}},
                     m_sys.index_of("spindle_cm_stat"));
     m_sys.add_frame(static_frame3dp("tool_surface_avg_at_R", vec3dp{R, 0.0, 0.0, 1.0}),
                     kin_state3dp{}, m_sys.index_of("tool_top_avg_rot"));
@@ -82,17 +85,27 @@ void active_grinding_marks::advance_to(double t)
     double const l3 = 0.3 * m_params.R;
     m_sys.set_pose(m_sys.index_of("chuck_ctr_rot"),
                    pose3dp{O_3dp, vec3dp{m_params.ns * t, 0.0, 0.0, 0.0}});
-    m_sys.set_pose(
-        m_sys.index_of("tool_top_avg_rot"),
-        pose3dp{vec3dp{0.0, 0.0, l3, 1.0}, vec3dp{0.0, 0.0, m_params.nw * t, 0.0}});
+    m_sys.set_pose(m_sys.index_of("tool_top_avg_rot"),
+                   pose3dp{vec3dp{0.0, 0.0, l3, 1.0}, vec3dp{0.0, 0.0, nw() * t, 0.0}});
 }
 
-// Append the rim grain's position IN THE WAFER FRAME (the grinding mark).
+// Frame the scene is drawn in: the rotating wafer (the marks sit still, the wheel orbits)
+// or the stationary global/root frame (the wheel is fixed, the marked wafer rotates).
+char const* active_grinding_marks::display_frame() const
+{
+    return (m_params.view == gm_view::wafer_frame) ? "wafer_top_avg_rot"
+                                                   : "chuck_ctr_stat";
+}
+
+// Append the rim grain's position IN THE WAFER FRAME, flagged with whether the grain is
+// on the wafer (r <= R) -- a mark is only cut while it is. Stored once in wafer-local
+// coords; each view transforms it to its own display frame at paint time.
 void active_grinding_marks::record_sample()
 {
     vec3dp const g = unitize(move3dp(
         O_3dp, m_sys.get_pos_trafo("tool_surface_avg_at_R", "wafer_top_avg_rot")));
-    m_path.push_back(g);
+    bool const contact = std::sqrt(g.y * g.y + g.z * g.z) <= m_params.R;
+    m_path.push_back({g, contact});
     if (m_path.size() > MAX_PATH) m_path.pop_front();
 }
 
@@ -121,6 +134,20 @@ void active_grinding_marks::togglePause()
 void active_grinding_marks::toggleTrace()
 {
     m_show_trace = !m_show_trace;
+    update();
+}
+
+// Cycle the wheel:chuck spin ratio. The exact 10.0 closes after one chuck revolution; the
+// off-integer ratios precess, so the marks keep filling in without repeating.
+void active_grinding_marks::cycleRatio()
+{
+    static constexpr double ratios[] = {10.0, 10.3, 9.7};
+    int next = 0;
+    for (int i = 0; i < 3; ++i)
+        if (std::abs(m_ratio - ratios[i]) < 1e-9) next = (i + 1) % 3;
+    m_ratio = ratios[next];
+    build_system(); // restart the pattern at the new ratio
+    prepareGeometryChange();
     update();
 }
 
@@ -176,32 +203,45 @@ void active_grinding_marks::paint(QPainter* qp, QStyleOptionGraphicsItem const* 
     lbl_font.setPointSize(9);
     lbl_font.setBold(true);
 
-    // --- wafer: fixed unit disk at the wafer-frame origin (the wafer centre) ---
-    drawCircle(qp, O_3dp, R, QColor(50, 100, 170), QColor(180, 205, 235, 110));
+    char const* const tf = display_frame();
 
-    // wafer orientation marker: a thin reference spoke centre -> +e2 rim (fixed in the
-    // wafer frame, so its slow turn shows the chuck rotation)
+    // --- wafer: unit disk at the wafer centre (on the chuck axis -> the origin in both
+    // views), with a reference spoke (centre -> +e2 rim) whose turn shows the chuck spin.
+    // It is fixed in the wafer-frame view, rotating in the global-frame view. ---
+    vec3dp const wafer_c =
+        unitize(move3dp(O_3dp, m_sys.get_pos_trafo("wafer_top_avg_rot", tf)));
+    vec3dp const wafer_rim = unitize(
+        move3dp(vec3dp{0.0, R, 0.0, 1.0}, m_sys.get_pos_trafo("wafer_top_avg_rot", tf)));
+    drawCircle(qp, wafer_c, R, QColor(50, 100, 170), QColor(180, 205, 235, 110));
     qp->setPen(QPen(QColor(50, 100, 170, 160), 1.2, Qt::SolidLine));
-    qp->drawLine(toScreen(O_3dp), toScreen(vec3dp{0.0, R, 0.0, 1.0}));
+    qp->drawLine(toScreen(wafer_c), toScreen(wafer_rim));
 
-    // --- grinding-mark trace of the rim grain (drawn under the live geometry) ---
+    // --- grinding marks: the wafer-local samples carried into the display frame. Only
+    // the on-wafer (contact) segments are drawn -- the marks are carved into the wafer,
+    // so they sit still in the wafer view and rotate rigidly with the wafer in the global
+    // view. ---
     if (m_show_trace && m_path.size() >= 2) {
+        auto const M_marks = m_sys.get_pos_trafo("wafer_top_avg_rot", tf);
         qp->setPen(QPen(QColor(200, 60, 0, 200), 1.6, Qt::SolidLine));
         qp->setBrush(Qt::NoBrush);
-        for (size_t i = 1; i < m_path.size(); ++i)
-            qp->drawLine(toScreen(m_path[i - 1]), toScreen(m_path[i]));
+        for (size_t i = 1; i < m_path.size(); ++i) {
+            if (!(m_path[i - 1].contact && m_path[i].contact)) continue;
+            qp->drawLine(toScreen(move3dp(m_path[i - 1].p_wafer, M_marks)),
+                         toScreen(move3dp(m_path[i].p_wafer, M_marks)));
+        }
     }
 
-    // --- wheel: current disk (its centre, fixed in the root frame, orbits in the wafer
-    // frame) + spoke to the grain ---
-    vec3dp const wheel_c = unitize(
-        move3dp(O_3dp, m_sys.get_pos_trafo("tool_top_avg_rot", "wafer_top_avg_rot")));
+    // --- wheel: current disk (orbits in the wafer view, fixed in the global view) +
+    // spoke to the grain ---
+    vec3dp const wheel_c =
+        unitize(move3dp(O_3dp, m_sys.get_pos_trafo("tool_top_avg_rot", tf)));
     drawCircle(qp, wheel_c, R, QColor(150, 90, 0), QColor(245, 200, 130, 70));
     qp->setPen(QPen(QColor(150, 90, 0), 2));
     qp->setBrush(QBrush(QColor(150, 90, 0)));
     qp->drawEllipse(toScreen(wheel_c), 3.0, 3.0);
 
-    vec3dp const grain = m_path.empty() ? O_3dp : m_path.back();
+    vec3dp const grain =
+        unitize(move3dp(O_3dp, m_sys.get_pos_trafo("tool_surface_avg_at_R", tf)));
     qp->setPen(QPen(QColor(150, 90, 0, 170), 1.4, Qt::DashLine));
     qp->drawLine(toScreen(wheel_c), toScreen(grain)); // wheel radius to the grain
 
@@ -217,9 +257,18 @@ void active_grinding_marks::paint(QPainter* qp, QStyleOptionGraphicsItem const* 
 
     qp->setFont(lbl_font);
     qp->setPen(QPen(QColor(30, 60, 110), 1));
-    qp->drawText(toScreen(vec3dp{0.0, R, 0.0, 1.0}) + QPointF(6.0, -6.0), "wafer");
+    qp->drawText(toScreen(wafer_rim) + QPointF(6.0, -6.0), "wafer");
     qp->setPen(QPen(QColor(150, 90, 0), 1));
     qp->drawText(toScreen(wheel_c) + QPointF(6.0, -6.0), "wheel");
+
+    // current spin ratio (bottom-left, in pixel coords) -- larger so it stays readable
+    QFont ratio_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    ratio_font.setPointSize(14);
+    ratio_font.setBold(true);
+    qp->setFont(ratio_font);
+    qp->setPen(QPen(QColor(40, 40, 40), 1));
+    qp->drawText(QPointF(cs->x.nmin() + 10.0, cs->y.nmin() - 12.0),
+                 QString("n_w/n_s = %1   (C: cycle ratio)").arg(m_ratio, 0, 'f', 1));
 
     qp->restore();
 }

@@ -393,11 +393,21 @@ struct aplanar_delta {
 // grinding-mark pattern of Fig. 1 / Fig. 7. Everything is normalized to R = wheel radius
 // = wafer radius = 1, and the spin rates are normalized for a watchable pace -- only the
 // ratio n_w / n_s shapes the pattern (here 10, matching n_s = 300 / n_w = 3000 rpm).
+// Which frame the grain trajectory is drawn in. wafer_frame: the rotating wafer frame --
+// the grain sweeps the grinding-mark rosette (Fig. 1 / Fig. 7). root_frame: the
+// stationary global frame -- the wheel is fixed and the grain just circles the wheel rim,
+// while the wafer spins beneath. Same computed curve, two viewpoints.
+enum class gm_view { wafer_frame, root_frame };
+
 struct grinding_marks_params {
-    double R{1.0};    // wheel radius == wafer radius (normalized; the view spans ~2 R)
-    double ns{0.8};   // chuck (wafer) spin rate [rad/s, normalized for the animation]
-    double nw{8.0};   // wheel spin rate [rad/s, normalized]; ns:nw == 1:10 here
-    double dt{0.016}; // sim time advanced per tick [s]
+    double R{1.0};      // wheel radius == wafer radius (normalized; the view spans ~2 R)
+    double ns{0.8};     // chuck (wafer) spin rate [rad/s, normalized for the animation]
+    double ratio{10.0}; // wheel:chuck spin ratio n_w/n_s (the pattern parameter; the
+                        // wheel rate is ns * ratio). Cycle it live with the 'C' key --
+                        // non-integer ratios (e.g. 10.3) make the marks precess instead
+                        // of repeating.
+    double dt{0.016};   // sim time advanced per tick [s]
+    gm_view view{gm_view::wafer_frame}; // frame the marks are drawn in
 };
 
 // Active item: wafer-grinding grain-trajectory demo (no active points)

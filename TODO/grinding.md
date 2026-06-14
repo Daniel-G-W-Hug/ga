@@ -8,14 +8,27 @@ runway for exactly this. Companion memory: `project_wafer_grinding`.
 **DONE so far:** the two grinding mini-tests translated onto `static_/kinematic_system3dp`
 (pedagogical, in `ga_appl3dp_appl_test.hpp`, right after the originals); the `is_congruent`
 refinement (intermediate step below); the Fig. 1 **machine geometry & kinematic frame tree**
-specified (new section + Phase 0); **Phase 0.a + 0.b DONE** (grain-trajectory app-test passes;
-`active_grinding_marks` ga_view scene built — see Phase 0). **RESUME HERE →** user visual-check
-of the 0.b scene, then decide the optional **0.c** second view (CS relative-motion top+side,
-deferred) or jump to **Phase B.1** (Sommerfeld force-element prototype), which reuses this
-tree's `spindle_cm_stat` body: explicit rotating unbalance wrench `meω²(cos,sin)` + x,y
-spring/damper, prescribed spin, validated against the closed-form Eq. (4) amplitudes over an
-ω sweep (resonances 16.51 / 28.57 rad/s, Sommerfeld Table-1 params). Prototype in a
-`ga_appl3dp` app-test first; promote to the library only after it matches.
+specified (new section + Phase 0); **Phase 0.a + 0.b DONE & visually confirmed** (grain-
+trajectory app-test passes; `active_grinding_marks` ga_view scene with both views, contact
+masking, and C-key ratio cycling — see Phase 0; user committing this state).
+
+**RESUME HERE (next session) →** pick one of:
+
+1. **Phase 0.c** — the two-pane top (−e1, `e423`) + side (−e2, `e431`) CS-relative-motion
+   view (deferred; see Phase 0.c). Useful mainly once dynamics add radial/axial/tilt; can
+   wait.
+2. **Phase B.1** — Sommerfeld force-element prototype on this tree's `spindle_cm_stat` body:
+   explicit rotating unbalance wrench `meω²(cos,sin)` + x,y spring/damper, prescribed spin,
+   validated against the closed-form Eq. (4) amplitudes over an ω sweep (resonances 16.51 /
+   28.57 rad/s, Sommerfeld Table-1 params). Prototype in a `ga_appl3dp` app-test first;
+   promote to the library only after it matches. **My recommendation: B.1** (0.c is mostly
+   useful after the dynamics exist).
+
+**Still OPEN (user to resolve, gates Phase B/C): static-vs-feed** — is the spindle held at
+its nominal pose (only vibration disturbances) or does it carry a prescribed translation
+(steady axial infeed `x_a` and/or radial traverse)? See the feed note in the geometry
+section. **Minor/optional:** silence the app-wide Qt "Sans Serif" font warning via a default
+font in `ga_view/src/main.cpp` (`QApplication::setFont(QFont("Helvetica", …))`).
 
 ## Goal
 
@@ -182,8 +195,16 @@ All 5 C++ suites + 725 ga_py tests pass; CLAUDE.md congruence section updated.
     rim grain traced in the rotating wafer frame, projected onto `e423_3dp` (top view down
     −e1; e2 horizontal, e3 vertical). Fixed wafer disk + orbiting wheel disk + orange
     grinding-mark rosette; SPACE/R/T = pause/reset/trace. Normalized `R=1`, `n_s:n_w = 1:10`.
-    Builds and smoke-launches; **user to page to the scene for the visual-layout check**
-    (legend placement, colours, pace).
+    Builds and smoke-launches; **user to page to the scenes for the visual-layout check**
+    (legend placement, colours, pace). Two scenes share one `active_grinding_marks` (a
+    `gm_view` param picks the display frame). Marks are stored in **wafer-local coords + a
+    contact flag** and drawn only while the grain is on the wafer (`r ≤ R`) — short strokes,
+    not full loops. Display transform = `get_pos_trafo(wafer → display-frame)`: (1) **wafer
+    frame** — marks sit still (the carved pattern), wheel orbits; (2) **global frame** — the
+    same marks rotate rigidly with the wafer (wheel fixed, new strokes cut at the contact
+    region). **C** cycles the n_w/n_s ratio (10.0 / 10.3 / 9.7) so off-integer ratios precess
+    instead of repeating (shown bottom-left). Restore point before this refinement: commit
+    `6a074e1`.
   - **0.c [proposed, deferred — decide after 0.b check]:** a second ga_view scene showing the
     relative motion of the *coordinate systems* (frame glyphs, not just the grain) in two
     projected views side by side — a **top view** along root −e1 (the `e423_3dp` chuck plane,

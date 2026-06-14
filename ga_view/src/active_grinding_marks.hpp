@@ -52,17 +52,29 @@ class active_grinding_marks : public QObject, public QGraphicsItem {
     void togglePause();    // SPACE
     void resetAnimation(); // R
     void toggleTrace();    // T - show/hide the grain-mark trace
+    void cycleRatio();     // C - cycle the wheel:chuck spin ratio (10.0 / 10.3 / 9.7)
     void viewChanged();
 
   private:
+
+    // one recorded grain position, stored in WAFER-LOCAL coordinates plus whether the
+    // grain was on the wafer (a mark is only cut while it is). Display transforms it by
+    // the wafer->display-frame motor: identity in the wafer view, the live wafer rotation
+    // in the global view -- so the SAME carved marks are seen from either frame.
+    struct mark_sample {
+        vec3dp p_wafer; // grain position in the wafer frame
+        bool contact;   // grain within the wafer disk (r <= R) -> a mark is cut
+    };
 
     // project a 3dp world point onto the chuck plane e423_3dp (drop the e1 component) and
     // map to canvas: e2 -> horizontal, e3 -> vertical
     QPointF toScreen(vec3dp const& p) const;
 
-    void build_system();       // (re)build m_sys from m_params at t=0
-    void advance_to(double t); // set the chuck + wheel poses for sim time t
-    void record_sample();      // append the rim grain's wafer-frame position
+    char const* display_frame() const; // frame the scene is drawn in (per m_params.view)
+    double nw() const;                 // wheel spin rate = ns * current ratio
+    void build_system();               // (re)build m_sys from m_params at t=0
+    void advance_to(double t);         // set the chuck + wheel poses for sim time t
+    void record_sample(); // append the rim grain's wafer-frame position + flag
 
     // draw a circle of world radius r (in the e423 projection) centred at world point c
     void drawCircle(QPainter* qp, vec3dp const& c, double r, QColor const& edge,
@@ -74,12 +86,13 @@ class active_grinding_marks : public QObject, public QGraphicsItem {
     kinematic_system3dp m_sys;
 
     double m_t{0.0};
+    double m_ratio{10.0}; // current wheel:chuck ratio (init from params; cycled by 'C')
     bool m_paused{false};
     bool m_show_trace{true};
     QTimer* m_timer;
 
-    std::deque<vec3dp> m_path; // rim-grain trace in the wafer frame (projected at paint)
+    std::deque<mark_sample> m_path; // grain marks in wafer-local coords (+ contact flag)
 
-    static constexpr size_t MAX_PATH = 6000;
+    static constexpr size_t MAX_PATH = 12000;
     static constexpr int UPDATE_MS = 16;
 };

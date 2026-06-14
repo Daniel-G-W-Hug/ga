@@ -1686,6 +1686,8 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
                          &active_grinding_marks::togglePause);
         QObject::connect(wcs, &w_Coordsys::traceToggleRequested, gm,
                          &active_grinding_marks::toggleTrace);
+        QObject::connect(wcs, &w_Coordsys::circlesToggleRequested, gm,
+                         &active_grinding_marks::cycleRatio);
         scene->addItem(gm);
     }
 
@@ -2267,22 +2269,65 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
 
         diagram_legend leg;
         leg.heading =
-            "PGA3D kinematics (Tao 2022, Fig. 1): a wheel-rim grain traced in the "
-            "ROTATING WAFER frame, projected onto the chuck plane e423 (top view down "
-            "-e1). The orange rosette is the grinding-mark pattern; ratio n_w/n_s = 10.";
-        leg.entries = {{"SPACE:", "pause / resume animation"},
-                       {"R:", "reset animation to t=0"},
-                       {"T:", "show / hide the grain-mark trace"},
-                       {"─────", "──────────"},
-                       {"blue disk:", "wafer (fixed in this frame), unit radius R"},
-                       {"blue spoke:", "wafer orientation mark (shows chuck spin)"},
-                       {"orange disk:", "grinding wheel (orbits as the wafer turns)"},
-                       {"orange dot:", "the tracked rim grain"},
-                       {"orange curve:", "grain path = the grinding marks"},
-                       {"axes:", "horizontal e2 (root y), vertical e3 (root z)"}};
+            "PGA3D kinematics (Tao 2022, Fig. 1): a wheel-rim grain seen in the ROTATING "
+            "WAFER frame, projected onto the chuck plane e423 (top view down -e1). Marks "
+            "are cut only while the grain is on the wafer (r <= R), so they sit still "
+            "here "
+            "as the wheel orbits. C cycles the n_w/n_s ratio (shown bottom-left).";
+        leg.entries = {
+            {"SPACE:", "pause / resume animation"},
+            {"R:", "reset animation to t=0"},
+            {"T:", "show / hide the grinding marks"},
+            {"C:", "cycle spin ratio (10.0 / 10.3 / 9.7)"},
+            {"─────", "──────────"},
+            {"blue disk:", "wafer (fixed in this frame), unit radius R"},
+            {"blue spoke:", "wafer orientation mark (shows chuck spin)"},
+            {"orange disk:", "grinding wheel (orbits as the wafer turns)"},
+            {"orange dot:", "the tracked rim grain"},
+            {"orange marks:", "grain strokes cut into the wafer (r <= R only)"},
+            {"axes:", "horizontal e2 (root y), vertical e3 (root z)"}};
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
-        leg.size_pct = 0.36;
+        leg.size_pct = 0.24;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append the SAME grinding kinematics drawn in the stationary GLOBAL/root frame: the
+    // wheel sits at a fixed position and the grain just circles the wheel rim, while the
+    // wafer (its orientation spoke) spins beneath. The rosette of the previous scene is
+    // the SAME motion seen in the rotating wafer frame -- a direct frame-of-reference
+    // contrast.
+    {
+        Coordsys_model cm;
+        grinding_marks_params gmp;
+        gmp.view = gm_view::root_frame;
+        cm.add_grinding_marks(agrinding_marks{gmp});
+        cm.set_label("Wafer grinding: grain path in the global frame (wheel fixed)");
+
+        diagram_legend leg;
+        leg.heading =
+            "PGA3D kinematics (Tao 2022, Fig. 1): the SAME grinding marks, seen in the "
+            "STATIONARY global frame (projected onto e423). The wheel is fixed; the "
+            "marked "
+            "wafer rotates, carrying its strokes with it, while new strokes are cut at "
+            "the "
+            "contact region. C cycles the n_w/n_s ratio (shown bottom-left).";
+        leg.entries = {
+            {"SPACE:", "pause / resume animation"},
+            {"R:", "reset animation to t=0"},
+            {"T:", "show / hide the grinding marks"},
+            {"C:", "cycle spin ratio (10.0 / 10.3 / 9.7)"},
+            {"─────", "──────────"},
+            {"blue disk:", "wafer (spins; its spoke shows the chuck rotation)"},
+            {"orange disk:", "grinding wheel (fixed in the global frame)"},
+            {"orange dot:", "the tracked rim grain"},
+            {"orange marks:", "strokes cut into the wafer (rotate with it)"},
+            {"axes:", "horizontal e2 (root y), vertical e3 (root z)"}};
+        leg.x_pct = 0.02;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.24;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
