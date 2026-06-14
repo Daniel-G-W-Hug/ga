@@ -605,6 +605,158 @@ TEST_SUITE("PGA3DP: application tests")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: Sommerfeld unbalanced-rotor warm-up (Phase B.1)")
+    {
+
+        fmt::println("");
+        fmt::println("pga3dp: Sommerfeld unbalanced-rotor warm-up (Phase B.1)");
+        fmt::println("");
+
+        // FORCE-ELEMENT WARM-UP (TODO/grinding.md Phase B.1). Prototype the spring/damper
+        // + applied-wrench force elements on the Phase-0 spindle's radial DOFs, before
+        // promoting them into dynamic_system3dp::tau (Phase A). Reproduces the
+        // steady-state analysis of Bisoi et al., "Sommerfeld Effect Characterization in
+        // Anisotropic Non-ideal Rotor System", Advances in Rotor Dynamics 2020. The
+        // spindle centre of mass is modelled as an unbalanced rotor of total mass (m + M)
+        // on an anisotropic foundation in the root radial plane (perpendicular to the
+        // chuck axis e1): springs Kx,Ky and dampers Rx,Ry along e2 (x) and e3 (y), with a
+        // PRESCRIBED spin omega. The mass eccentricity drives the centrifugal forcing
+        // m*e*omega^2, rotating in the radial plane: F_u(t) = m*e*omega^2 * (cos(omega t)
+        // e2 + sin(omega t) e3).
+        //
+        // With prescribed spin the two radial axes DECOUPLE into independent forced
+        // oscillators -- the paper's steady-state equation of motion Eq. (2):
+        //
+        //     (m+M) x'' + Rx x' + Kx x = m*e*omega^2 cos(omega t)        [x along e2]
+        //     (m+M) y'' + Ry y' + Ky y = m*e*omega^2 sin(omega t)        [y along e3]
+        //
+        // GATE: the RK4 steady-state amplitude matches the closed-form Eq. (4)
+        //
+        //     A(omega) = m*e*omega^2 / sqrt((omega R)^2 + (K - (m+M)omega^2)^2)
+        //
+        // across an omega sweep. Plotting A vs omega reproduces the paper's Fig. 2 (the
+        // forced-response backbone); the resonances are the undamped naturals
+        // omega_n = sqrt(K/(m+M)) = 16.51 (x) and 28.57 rad/s (y). (The Sommerfeld speed
+        // JUMP itself -- Figs. 3-10 -- needs the two-way non-ideal DC-motor coupling,
+        // which is DEFERRED; with prescribed spin we get the resonance backbone, not the
+        // jump.)
+
+        // Bisoi et al. (2020) Table 1 parameters
+        double const m_rotor = 4.9;          // rotor (disk) mass m [kg]
+        double const M_motor = 2.45;         // motor mass M [kg]
+        double const mt = m_rotor + M_motor; // total mass m + M = 7.35 kg
+        double const e_ecc = 0.008336;       // eccentricity e [m]
+        double const me = m_rotor * e_ecc;   // unbalance m*e (forcing m*e*omega^2) [kg m]
+        double const Kx = 2000.0;            // foundation stiffness, e2 (x) [N/m]
+        double const Ky = 6000.0;            // foundation stiffness, e3 (y) [N/m]
+        double const Rx = 5.0;               // foundation damping, e2 (x) [N s/m]
+        double const Ry = 10.0;              // foundation damping, e3 (y) [N s/m]
+
+        // undamped natural frequencies, paper: omega1 = 16.51, omega2 = 28.57 rad/s
+        double const om1 = std::sqrt(Kx / mt);
+        double const om2 = std::sqrt(Ky / mt);
+        CHECK(om1 == doctest::Approx(16.51).epsilon(0.005));
+        CHECK(om2 == doctest::Approx(28.57).epsilon(0.005));
+
+        // Eq. (4): closed-form steady-state amplitude of one damped SDOF, m*e*omega^2
+        // forced
+        auto amp_cf = [&](double Om, double K, double R) {
+            double const d = K - mt * Om * Om;
+            return me * Om * Om / std::sqrt((Om * R) * (Om * R) + d * d);
+        };
+
+        // RK4-integrate the decoupled radial dynamics to steady state and return the
+        // (x, y) = (e2, e3) amplitudes. State u = [x, y, x', y']; the net radial force is
+        // built as a GA direction (vec3dp, w = 0) in the root frame, then Newton's law
+        // gives the acceleration -- the same wrench bookkeeping the library force
+        // elements will use.
+        auto simulate = [&](double Om) -> std::pair<double, double> {
+            double const dt = 5.0e-4;  // step [s]; ~125 steps/rev at the top of the sweep
+            double const t_end = 30.0; // light damping (Rx/2mt ~ 0.34/s) -> long settle
+            double const t_meas = 24.0; // measure the amplitude over the last 6 s
+
+            std::array<value_t, 4> u_mem{0.0, 0.0, 0.0, 0.0};
+            std::array<value_t, 8> uh_mem{};
+            std::array<value_t, 4> rhs_mem{};
+            auto u = std::mdspan<value_t, std::dextents<size_t, 1>>(u_mem.data(), 4);
+            auto uh = std::mdspan<value_t, std::dextents<size_t, 2>>(uh_mem.data(), 2, 4);
+            auto const rhs =
+                std::mdspan<value_t const, std::dextents<size_t, 1>>(rhs_mem.data(), 4);
+
+            double q2_max = std::numeric_limits<double>::lowest();
+            double q2_min = std::numeric_limits<double>::max();
+            double q3_max = std::numeric_limits<double>::lowest();
+            double q3_min = std::numeric_limits<double>::max();
+
+            for (double t = 0.0; t < t_end; t += dt) {
+                for (size_t s = 1; s <= 4; ++s) {
+                    double const ts = rk4_get_time(t, dt, s - 1);
+
+                    // rotating unbalance force m*e*omega^2 in the root radial plane
+                    // (e2,e3)
+                    auto const Fu =
+                        me * Om * Om *
+                        vec3dp{0.0, std::cos(Om * ts), std::sin(Om * ts), 0.0};
+                    // anisotropic spring + damper reactions on the CM (the force
+                    // elements)
+                    auto const Fs = vec3dp{0.0, -Kx * u[0], -Ky * u[1], 0.0};
+                    auto const Fd = vec3dp{0.0, -Rx * u[2], -Ry * u[3], 0.0};
+                    auto const a = (1.0 / mt) * (Fu + Fs + Fd); // Newton (decoupled axes)
+
+                    rhs_mem[0] = u[2]; // dx/dt = x'
+                    rhs_mem[1] = u[3]; // dy/dt = y'
+                    rhs_mem[2] = a.y;  // dx'/dt along e2
+                    rhs_mem[3] = a.z;  // dy'/dt along e3
+                    rk4_step(u, uh, rhs, dt, s);
+                }
+                if (t >= t_meas) {
+                    q2_max = std::max(q2_max, value_t(u[0]));
+                    q2_min = std::min(q2_min, value_t(u[0]));
+                    q3_max = std::max(q3_max, value_t(u[1]));
+                    q3_min = std::min(q3_min, value_t(u[1]));
+                }
+            }
+            return {0.5 * (q2_max - q2_min), 0.5 * (q3_max - q3_min)};
+        };
+
+        // sweep across both resonances (Fig. 2 abscissa)
+        std::array<double, 8> const sweep{6.0, 12.0, om1, 20.0, 24.0, om2, 34.0, 40.0};
+        std::array<double, 8> sim2{}, sim3{};
+
+        fmt::println(
+            "   omega      Ax_sim     Ax_cf   err%      Ay_sim     Ay_cf   err%");
+        for (size_t i = 0; i < sweep.size(); ++i) {
+            double const Om = sweep[i];
+            auto const [a2, a3] = simulate(Om);
+            double const c2 = amp_cf(Om, Kx, Rx);
+            double const c3 = amp_cf(Om, Ky, Ry);
+            sim2[i] = a2;
+            sim3[i] = a3;
+            fmt::println(
+                "{:>7.2f}  {:>10.3e} {:>9.3e} {:>5.2f}  {:>10.3e} {:>9.3e} {:>5.2f}", Om,
+                a2, c2, 100.0 * std::abs(a2 - c2) / c2, a3, c3,
+                100.0 * std::abs(a3 - c3) / c3);
+
+            // GATE: simulated steady-state amplitude matches the closed-form Eq. (4)
+            // (both axes; observed error <0.1 %, so 1 % is a comfortable, strong gate)
+            CHECK(a2 == doctest::Approx(c2).epsilon(0.01));
+            CHECK(a3 == doctest::Approx(c3).epsilon(0.01));
+        }
+
+        // resonance peaks emerge from the simulation: the e2 amplitude at om1 exceeds its
+        // neighbours, and likewise the e3 amplitude at om2 (sweep indices 2 and 5)
+        CHECK(sim2[2] > sim2[1]);
+        CHECK(sim2[2] > sim2[3]);
+        CHECK(sim3[5] > sim3[4]);
+        CHECK(sim3[5] > sim3[6]);
+
+        fmt::println("");
+        fmt::println("resonances sqrt(K/mt): e2(x) = {:.2f}, e3(y) = {:.2f} rad/s "
+                     "(Bisoi Table-1: 16.51, 28.57)",
+                     om1, om2);
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: line perpendicular to non-intersecting lines (rcmt)")
     {
 

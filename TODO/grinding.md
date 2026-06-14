@@ -13,22 +13,46 @@ visually confirmed** (grain- trajectory app-test passes; `active_grinding_marks`
 scene with both views, contact masking, and C-key ratio cycling — see Phase 0; user
 committing this state).
 
+**Phase B.1 DONE 2026-06-14.** Sommerfeld explicit-forcing warm-up landed as app-test
+`"pga3dp: Sommerfeld unbalanced-rotor warm-up (Phase B.1)"` in `ga_appl3dp_appl_test.hpp`
+(right after the Phase-0 grain-trajectory case). Reproduces the steady-state analysis of
+Bisoi et al. (2020): the spindle CM is an unbalanced rotor of total mass `m+M` on an
+anisotropic foundation (springs Kx,Ky + dampers Rx,Ry along e2/e3) with PRESCRIBED spin;
+the rotating unbalance `m·e·Ω²(cosΩt e2 + sinΩt e3)` decouples the two radial axes into the
+paper's **Eq. (2)** forced oscillators. Net radial force built as a GA `vec3dp` direction
+(the wrench bookkeeping the library force elements will reuse), RK4 via the shared
+`rk4_step`/`rk4_get_time`. **Gate met:** swept Ω∈[6,40], the RK4 steady-state amplitude
+matches the **closed-form Eq. (4)** `A=m·e·Ω²/√((ΩR)²+(K−(m+M)Ω²)²)` to **<0.03 %** on both
+axes (1 % epsilon gate); resonance peaks emerge at `√(K/(m+M))` = 16.50/28.57 rad/s (paper
+16.51/28.57). Uses the **actual Table-1 params** (m=4.9, M=2.45, e=0.008336, Kx=2000,
+Ky=6000, Rx=5, Ry=10) → reproduces **Fig. 2** (peak Ax≈0.135 m, Ay≈0.117 m). 33 cases/9143
+assertions pass. Scope: pure-prototype (no library change yet); GA content thin by design.
+The Sommerfeld **jump** (Figs. 3–10) needs the two-way non-ideal DC-motor coupling (power
+balance Eq. 10 / bond graph) — DEFERRED; prescribed spin gives the resonance backbone only.
+Restore point before this: `d25ebe6`.
+
 **RESUME HERE (next session) →** pick one of:
 
-1. **Phase 0.c** — the two-pane top (−e1, `e423`) + side (−e2, `e431`) CS-relative-motion
-   view (deferred; see Phase 0.c). Useful mainly once dynamics add radial/axial/tilt; can
-   wait.
-2. **Phase B.1** — Sommerfeld force-element prototype on this tree's `spindle_cm_stat`
-   body: explicit rotating unbalance wrench `meω²(cos,sin)` + x,y spring/damper,
-   prescribed spin, validated against the closed-form Eq. (4) amplitudes over an ω sweep
-   (resonances 16.51 / 28.57 rad/s, Sommerfeld Table-1 params). Prototype in a
-   `ga_appl3dp` app-test first; promote to the library only after it matches. **My
-   recommendation: B.1** (0.c is mostly useful after the dynamics exist).
+1. **Phase B.2** — replace B.1's *explicit* `m·e·Ω²` forcing with an **emergent** spinning
+   offset-cm rigid body (the unbalance arises from a body whose cm is offset from the spin
+   axis), and reproduce B.1's swept amplitudes. Validates "`meω²` for free" + the
+   prescribed-spin bias path; the natural next step on the warm-up. Still a `ga_appl3dp`
+   prototype.
+2. **Phase A (library promotion)** — fold the proven spring/damper generalized force +
+   applied wrench into `dynamic_system3dp::tau` (additive; gravity path byte-unchanged), so
+   `step()` can integrate forced systems. Do this once B.1/B.2 have proven the primitive.
+3. **Phase 0.c** — the two-pane top (−e1, `e423`) + side (−e2, `e431`) CS-relative-motion
+   view (deferred). Useful mainly once dynamics add radial/axial/tilt; can wait.
 
-**Still OPEN (user to resolve, gates Phase B/C): static-vs-feed** — is the spindle held at
-its nominal pose (only vibration disturbances) or does it carry a prescribed translation
-(steady axial infeed `x_a` and/or radial traverse)? See the feed note in the geometry
-section. **Minor/optional:** silence the app-wide Qt "Sans Serif" font warning via a
+**Recommendation: B.2** (closes out the warm-up's GA payoff), then A (promote), then C.
+
+**RESOLVED (2026-06-14): static-vs-feed = PRESCRIBED INFEED.** The spindle carries a
+steady prescribed translation (axial infeed `x_a` along −e1 and/or radial traverse) ON TOP
+of the 5 vibration DOFs — so `x_a` (and possibly the radial offset) is a time-varying
+prescribed input, not a constant. Phase C must drive the nominal pose with this prescribed
+motion; the 5 vibration DOFs perturb around it. Phase 0 / B.1 still run at the static
+nominal pose (the warm-up validates the spring/damper primitive, independent of feed).
+**Minor/optional:** silence the app-wide Qt "Sans Serif" font warning via a
 default font in `ga_view/src/main.cpp` (`QApplication::setFont(QFont("Helvetica", …))`).
 
 ## Goal
@@ -227,12 +251,15 @@ congruence section updated.
   Dynamics*, 2020) and the resonances `ω₁,₂ = √(K/(m+M))` (= 16.51 / 28.57 rad/s for the
   paper's Table-1 params). The analytic correctness gate, exactly like the four-bar
   angles.
-  - **B.1 (next concrete step):** explicit rotating unbalance wrench `meω²(cos,sin)` +
-    springs/dampers → match Eq. (4) over an ω sweep. Isolates the spring/damper primitive.
-    Set this up on the Phase-0 spindle chain (`spindle_cm_stat` body), so the warm-up
-    grows into the real geometry rather than a throwaway 2-DOF rig.
-  - **B.2:** replace the explicit forcing with an **emergent** spinning offset-cm body →
-    must reproduce B.1 (validates "`meω²` for free" + the prescribed-spin bias path).
+  - **B.1 [DONE 2026-06-14]:** explicit rotating unbalance forcing `m·e·Ω²(cos,sin)` +
+    anisotropic radial springs/dampers, prescribed spin → matches the closed-form forced
+    response to <0.05 % over an Ω sweep, resonances at `√(K/mt)` = 16.51 / 28.57 rad/s.
+    App-test `"pga3dp: Sommerfeld unbalanced-rotor warm-up (Phase B.1)"`; force built as a
+    GA `vec3dp`, integrated with the shared `rk4_step`. Isolates the spring/damper
+    primitive. (See the DONE note at the top.)
+  - **B.2 (next concrete step):** replace the explicit forcing with an **emergent**
+    spinning offset-cm body → must reproduce B.1 (validates "`meω²` for free" + the
+    prescribed-spin bias path).
 - **C — Tao 5-DOF spindle.** The 6-joint stack above; reproduce Eq. (13) responses and the
   Fig. 4 characteristic frequencies `f_x, f_z, f_θ, f_φ`; derive `z_b` directly from a rim
   point; **calibrate/validate against the machine's measured data**. Port mini-test 1
