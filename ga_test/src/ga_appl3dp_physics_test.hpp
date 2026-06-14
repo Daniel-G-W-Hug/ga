@@ -1086,6 +1086,98 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         fmt::println("");
     }
 
+    TEST_CASE(
+        "pga3dp: applied wrench + time threading - Sommerfeld in-library (Phase A.2)")
+    {
+        fmt::println(
+            "pga3dp: dynamic_system3dp - applied wrench / Sommerfeld (Phase A.2)");
+
+        // Phase A.2: validate the time-varying applied-wrench force element folded into
+        // tau (set_applied_wrench) + the RK4 sub-step time threading, by reproducing
+        // B.1's Sommerfeld forced response INSIDE the library. B.1's two radial axes are
+        // independent 1-DOF damped oscillators (Bisoi Eq. 2), so each is a single
+        // prismatic joint (mass m+M) with a spring/damper (Phase A.1) and a rotating
+        // unbalance force m*e*Omega^2 applied as a world-frame wrench wdg(O, F(t)). The
+        // steady-state amplitude must match the closed-form Eq. (4) -- the same gate as
+        // standalone B.1.
+        value_t const mt = 4.9 + 2.45;        // m + M [kg]
+        value_t const me = 4.9 * 0.008336;    // unbalance m*e [kg m] (Bisoi Table 1)
+        value_t const Kx = 2000.0, Rx = 5.0;  // e2 (x) foundation
+        value_t const Ky = 6000.0, Ry = 10.0; // e3 (y) foundation
+
+        // sign/magnitude check: a CONSTANT force F0 along e2 gives joint accel F0/mt
+        {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            s.add_frame(static_frame3dp("W"));
+            s.add_prismatic_body(static_frame3dp("B"),
+                                 make_cuboid_body(mt, 1.0, 1.0, 1.0),
+                                 vec3dp{0.0, 1.0, 0.0, 0.0}); // slide along e2
+            value_t const F0 = 3.0;
+            s.set_applied_wrench(
+                1, [F0](value_t) { return wdg(O_3dp, vec3dp{0.0, F0, 0.0, 0.0}); });
+            // at q = 0, v = 0 the only generalised force is the applied F0 along e2
+            CHECK(s.joint_accel(1) == doctest::Approx(F0 / mt));
+        }
+
+        auto amp_cf = [&](value_t Om, value_t K, value_t R) {
+            value_t const d = K - mt * Om * Om;
+            return me * Om * Om / std::sqrt((Om * R) * (Om * R) + d * d);
+        };
+
+        // run a single forced axis to steady state and return its vibration amplitude
+        auto run_axis = [&](value_t Om, vec3dp const& dir, value_t K, value_t R,
+                            bool use_sin) {
+            dynamic_system3dp s;
+            s.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            s.add_frame(static_frame3dp("W"));
+            s.add_prismatic_body(static_frame3dp("B"),
+                                 make_cuboid_body(mt, 1.0, 1.0, 1.0), dir);
+            s.set_joint_spring_damper(1, K, R);
+            s.set_applied_wrench(1, [me, Om, dir, use_sin](value_t t) {
+                value_t const ph = use_sin ? std::sin(Om * t) : std::cos(Om * t);
+                vec3dp const F = (me * Om * Om * ph) * dir;
+                return wdg(O_3dp, F);
+            });
+            value_t const dt = 1.0e-3, t_end = 28.0, t_meas = 22.0;
+            value_t qmin = std::numeric_limits<value_t>::max();
+            value_t qmax = std::numeric_limits<value_t>::lowest();
+            for (value_t t = 0.0; t < t_end; t += dt) {
+                s.step(dt);
+                if (s.time() >= t_meas) {
+                    qmin = std::min(qmin, s.joint_phi(1));
+                    qmax = std::max(qmax, s.joint_phi(1));
+                }
+            }
+            return 0.5 * (qmax - qmin);
+        };
+
+        value_t const om1 = std::sqrt(Kx / mt), om2 = std::sqrt(Ky / mt);
+        vec3dp const e2{0.0, 1.0, 0.0, 0.0}, e3{0.0, 0.0, 1.0, 0.0};
+
+        // x-axis at its resonance, x off-resonance, y-axis at its resonance
+        struct axis_case {
+            char const* nm;
+            value_t Om, K, R;
+            vec3dp dir;
+            bool use_sin;
+        };
+        axis_case const cases[] = {
+            {"x@om1", om1, Kx, Rx, e2, false},
+            {"x@24.0", 24.0, Kx, Rx, e2, false},
+            {"y@om2", om2, Ky, Ry, e3, true},
+        };
+        for (auto const& c : cases) {
+            value_t const a = run_axis(c.Om, c.dir, c.K, c.R, c.use_sin);
+            value_t const cf = amp_cf(c.Om, c.K, c.R);
+            fmt::println("  {}: A_lib = {:.4e}, A_cf = {:.4e}, err% = {:.3f}", c.nm, a,
+                         cf, 100.0 * std::abs(a - cf) / cf);
+            CHECK(a == doctest::Approx(cf).epsilon(0.01)); // matches B.1's Eq. (4)
+        }
+
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
 
 

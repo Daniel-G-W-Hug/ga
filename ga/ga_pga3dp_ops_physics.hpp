@@ -10,8 +10,9 @@
 
 #include <algorithm> // std::find, std::reverse
 #include <array>
-#include <cmath>  // std::abs
-#include <limits> // std::numeric_limits
+#include <cmath>      // std::abs
+#include <functional> // std::function (time-varying applied wrench)
+#include <limits>     // std::numeric_limits
 #include <mdspan>
 #include <stdexcept>
 #include <string>
@@ -908,6 +909,15 @@ class dynamic_system3dp : public kinematic_system3dp {
     // uniform gravity field [world frame, a direction with w = 0]
     vec3dp grav{0.0, -9.81, 0.0, 0.0};
 
+    // Optional time-varying applied wrench per frame (world frame), folded into tau as an
+    // external generalised force. Sparse map (frame index -> wrench function of time); a
+    // frame without an entry has no applied wrench. The simulation clock `time_` is the
+    // argument passed at each RK4 sub-step (set transiently by coupled_step). Only the
+    // jointed (assemble_mass_bias) path consumes it; free bodies see gravity only.
+    using wrench_fn = std::function<bivec3dp(value_t)>;
+    std::unordered_map<size_t, wrench_fn> wrench_;
+    value_t time_{0.0}; // simulation clock [s], advanced by step()
+
   public:
 
     dynamic_system3dp() = default;
@@ -968,6 +978,19 @@ class dynamic_system3dp : public kinematic_system3dp {
     void set_gravity(vec3dp const& g) { grav = g; } // g is a direction (w = 0)
     vec3dp gravity() const { return grav; }
 
+    // Attach a time-varying applied wrench (world frame) to frame `idx`, folded into tau
+    // as an external generalised force projected onto each supporting joint screw. The
+    // wrench is a bivec3dp (force/torque line); for a pure force F through a point P use
+    // wdg(P, F). Evaluated at each RK4 sub-step time. Pass an empty function to clear.
+    void set_applied_wrench(size_t idx, wrench_fn fn)
+    {
+        if (fn) wrench_[idx] = std::move(fn);
+        else wrench_.erase(idx);
+    }
+
+    value_t time() const { return time_; }  // simulation clock [s]
+    void set_time(value_t t) { time_ = t; } // reset / seed the clock
+
     // read-only access to a body's inertial properties
     body3dp const& body_props(size_t idx) const { return body[idx]; }
 
@@ -1014,10 +1037,11 @@ class dynamic_system3dp : public kinematic_system3dp {
     void step(value_t dt)
     {
         auto const rj = dof_joints();
-        if (!rj.empty()) coupled_step(rj, dt);
+        if (!rj.empty()) coupled_step(rj, dt); // uses time_ for sub-step wrench eval
         for (size_t i = 1; i < size(); ++i)
             if (joint[i].type == joint3dp::free && body[i].mass > 0.0)
                 step_free_body(i, dt);
+        time_ += dt; // advance the simulation clock (coupled_step restores it to t0)
     }
 
     // --- energy / momentum diagnostics (inertial / world frame) ----------------------
@@ -1295,6 +1319,18 @@ class dynamic_system3dp : public kinematic_system3dp {
             auto const& js = joint[rj[j]];
             RHS[j] += -js.stiffness * (js.phi - js.q_rest) - js.damping * js.omega;
         }
+
+        // applied external wrenches (world frame, evaluated at the current clock time_):
+        // an applied wrench W on frame fi contributes the generalised force
+        // spatial_dot(S_j, W) to every joint j that supports fi (j ancestor of fi). The
+        // reciprocal pairing is the rate of work of W under unit joint rate -- the same
+        // pairing that yields the gravity term. Zero unless a wrench was attached.
+        for (auto const& [fi, fn] : wrench_) {
+            if (!fn) continue;
+            bivec3dp const W = fn(time_);
+            for (size_t j = 0; j < n; ++j)
+                if (is_ancestor(rj[j], fi)) RHS[j] += spatial_dot(S[j], W);
+        }
         return {std::move(Mmat), std::move(RHS)};
     }
 
@@ -1334,7 +1370,12 @@ class dynamic_system3dp : public kinematic_system3dp {
                 apply_joint_state(rj[k]);
             }
         };
+        // thread the RK4 sub-step time into time_ so a time-varying applied wrench is
+        // sampled at the correct stage time; restore the clock on exit (step() advances
+        // it by dt). t_i + {0, dt/2, dt/2, dt} for the four stages.
+        value_t const t0 = time_;
         for (size_t s = 1; s <= 4; ++s) {
+            time_ = rk4_get_time(t0, dt, s - 1);
             apply_u();
             auto const qdd = forward_dynamics(rj);
             for (size_t k = 0; k < n; ++k) {
@@ -1343,6 +1384,7 @@ class dynamic_system3dp : public kinematic_system3dp {
             }
             rk4_step(u, uh, rhs, dt, s);
         }
+        time_ = t0;
         apply_u(); // write the integrated state back into the joints + kinematic layers
     }
 };

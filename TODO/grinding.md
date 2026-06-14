@@ -47,22 +47,38 @@ emit_nanobind → build → stubs → test-data): `joint_state{2,3}dp` now expos
 call sites + roundtrip field asserts) updated. **All green:** appl2dp 47/532, appl3dp
 35/9148, pga core 169/2758, **ga_py 725**.
 
+**Phase A.2 DONE 2026-06-14 (applied wrench + time threading, UNCOMMITTED).** Added a
+time-varying applied external wrench folded into `tau` + RK4 sub-step time threading, in
+both `dynamic_system{2,3}dp`. Per-frame sparse `wrench_` map (`std::function<bivecNdp(value_t
+t)>`, world frame) + a `time_` clock; public `set_applied_wrench(idx, fn)`, `time()`,
+`set_time()`. Fold-in in `assemble_mass_bias`: for each applied wrench W on frame fi,
+`RHS[j] += spatial_dot(S[j], W)` for joints j supporting fi (the same reciprocal pairing as
+gravity; sign verified +). `coupled_step` sets `time_ = rk4_get_time(t0,dt,s-1)` per stage
+(restores on exit); `step()` advances `time_ += dt`. **Gate met:** new app-tests reproduce
+B.1's Sommerfeld forced response INSIDE the library — single prismatic joint (mass m+M) +
+`set_joint_spring_damper` + rotating `m·e·Ω²` wrench `wdg(O,F(t))`; steady amplitude ==
+closed-form Eq.(4) to **≤0.05 %** (x@om1 0.13475 vs 0.13476; y@om2 0.11670 exact), plus a
+constant-force `joint_accel == F0/mt` sign check. 2D twin mirrored (forced oscillator, same
+numbers). **NO ga_py impact** (dynamic_system is unbound; no bound-struct change) — confirmed
+ga_py 725 still green. **All green:** appl2dp 48/535, appl3dp 36/9152, pga core 169/2758,
+ga_py 725. Phase A (force-element tier) is now COMPLETE: spring/damper + applied wrench +
+time, 2D+3D, validated against the analytic gate.
+
 **RESUME HERE (next session) →** pick one of:
 
-1. **Phase A.2 — applied external wrench + time threading.** Add a per-body applied wrench
-   (a `bivec3dp` force/torque line) folded into `tau` via the spatial pairing, and thread
-   substep time through `step`/`coupled_step` so a time-varying (rotating) wrench can be
-   evaluated at each RK4 stage. This is what lets B.1's rotating `m·e·Ω²` forcing be
-   reproduced *inside* the library (the cross-check that closes Phase A). Then mirror
-   spring/damper (+ wrench) to the **2D twin** and regenerate ga_py.
-2. **Phase B.2** — replace B.1's *explicit* `m·e·Ω²` forcing with an **emergent** spinning
-   offset-cm rigid body; reproduce B.1's swept amplitudes. Validates "`meω²` for free". Note
-   it also needs a *driven* (prescribed-rate) joint, not yet in the infra.
-3. **Phase 0.c** — the two-pane top (−e1, `e423`) + side (−e2, `e431`) CS-relative-motion
-   view (deferred). Useful mainly once dynamics add radial/axial/tilt; can wait.
+1. **Phase C — Tao 5-DOF spindle** (the real target now unblocked). Build the 6-joint stack
+   (3 prismatic x,y,z + 2 revolute θ,φ + 1 driven spin) on the Fig.-1 tree with the new
+   force elements; reproduce Eq.(13) responses + Fig.4 freqs `f_x,f_z,f_θ,f_φ`; derive `z_b`
+   from a rim point. NEEDS a **driven (prescribed-rate) joint** for the spin Ω + the
+   prescribed infeed `x_a(t)` — small infra add (kinematically-driven joint), do first.
+2. **Phase B.2** — emergent spinning offset-cm body reproduces B.1's `m·e·Ω²` "for free";
+   also needs the driven-joint add. Optional now that A.2 closed the force-element gate via
+   the explicit wrench; B.2 is the "emergent" elegance check, not on the critical path.
+3. **Phase 0.c** — the two-pane CS-relative-motion view (deferred; better once C adds
+   radial/axial/tilt motion).
 
-**Recommendation: A.2** (finish the force-element tier — wrench + time — so the library can
-reproduce B.1, then mirror to 2D + regenerate ga_py), then B.2, then C.
+**Recommendation: the driven/prescribed-rate joint** (small, unblocks both C and B.2),
+then **Phase C**.
 
 **RESOLVED (2026-06-14): static-vs-feed = PRESCRIBED INFEED.** The spindle carries a
 steady prescribed translation (axial infeed `x_a` along −e1 and/or radial traverse) ON TOP

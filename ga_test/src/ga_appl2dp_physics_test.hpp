@@ -3544,6 +3544,73 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: applied wrench + time threading - forced oscillator (Phase A.2)")
+    {
+        fmt::println("pga2dp: dynamic_system2dp - applied wrench / forced (Phase A.2)");
+
+        // 2D twin of the Phase-A.2 check: a time-varying applied wrench
+        // (set_applied_wrench)
+        // + RK4 sub-step time threading drive a single prismatic joint (mass mt) with a
+        // spring/damper, giving the forced damped oscillator mt q'' + R q' + K q =
+        // F0 cos(Omega t). The steady-state amplitude matches the closed form
+        // A = F0 / sqrt((Omega R)^2 + (K - mt Omega^2)^2) -- B.1's Eq. (4) with F0 = m e
+        // Omega^2 (the 2D radial plane is e1-e2).
+        value_t const mt = 7.35, K = 2000.0, R = 5.0;
+        value_t const me = 4.9 * 0.008336; // unbalance m*e [kg m]
+        vec2dp const e1{1.0, 0.0, 0.0};
+
+        // sign/magnitude check: a CONSTANT force F0 along e1 gives joint accel F0/mt
+        {
+            dynamic_system2dp s;
+            s.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            s.add_frame(static_frame2dp("W"));
+            s.add_prismatic_body(static_frame2dp("B", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                                 make_plate_body(mt, 1.0, 1.0), e1);
+            value_t const F0 = 3.0;
+            s.set_applied_wrench(
+                1, [F0](value_t) { return wdg(O_2dp, vec2dp{F0, 0.0, 0.0}); });
+            CHECK(s.joint_accel(1) == doctest::Approx(F0 / mt));
+        }
+
+        // forced sweep at the resonance and just off it; compare to the closed form
+        auto amp_cf = [&](value_t Om) {
+            value_t const d = K - mt * Om * Om;
+            return me * Om * Om / std::sqrt((Om * R) * (Om * R) + d * d);
+        };
+        auto run = [&](value_t Om) {
+            dynamic_system2dp s;
+            s.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            s.add_frame(static_frame2dp("W"));
+            s.add_prismatic_body(static_frame2dp("B", vec2dp{0.0, 0.0, 1.0}, 0.0),
+                                 make_plate_body(mt, 1.0, 1.0), e1);
+            s.set_joint_spring_damper(1, K, R);
+            s.set_applied_wrench(1, [me, Om](value_t t) {
+                return wdg(O_2dp, vec2dp{me * Om * Om * std::cos(Om * t), 0.0, 0.0});
+            });
+            value_t const dt = 1.0e-3, t_end = 28.0, t_meas = 22.0;
+            value_t qmin = std::numeric_limits<value_t>::max();
+            value_t qmax = std::numeric_limits<value_t>::lowest();
+            for (value_t t = 0.0; t < t_end; t += dt) {
+                s.step(dt);
+                if (s.time() >= t_meas) {
+                    qmin = std::min(qmin, s.joint_phi(1));
+                    qmax = std::max(qmax, s.joint_phi(1));
+                }
+            }
+            return 0.5 * (qmax - qmin);
+        };
+
+        value_t const om1 = std::sqrt(K / mt);
+        for (value_t Om : {om1, 24.0}) {
+            value_t const a = run(Om), cf = amp_cf(Om);
+            fmt::println("  Omega = {:.3f}: A_lib = {:.4e}, A_cf = {:.4e}, err% = {:.3f}",
+                         Om, a, cf, 100.0 * std::abs(a - cf) / cf);
+            CHECK(a == doctest::Approx(cf).epsilon(0.01));
+        }
+
+        fmt::println("");
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////
     // closed_loop_system2dp -- Phase 1 (position-level assembly): the planar FOUR-BAR
     // linkage, the canonical 1-DOF closed loop. As a spanning tree it is two branches off
