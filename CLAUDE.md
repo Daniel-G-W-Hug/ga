@@ -870,6 +870,17 @@ cover a new struct with a dedicated test instead. Give the C++ type an fmt forma
 `ga/detail/fmt/`) so the generated `__str__`/`__format__` (which call `fmt::format("{}",
 v)`) work.
 
+**Adding a FIELD to an already-bound pure-data struct** (e.g. new `joint_state{2,3}dp`
+members) is a hand-sync trap even though it needs no manifest/scope edits: the generated
+binding emits a single *all-fields, positional, no-defaults* constructor, so the arity grows
+(`joint_state2dp` went 5 -> 8 args) and **every positional call site in `ga_py/tests/`
+breaks at runtime** (`incompatible function arguments`). After regenerating, grep the tests
+for the struct ctor and append the new trailing args (and assert the new fields round-trip).
+If you only want C++ state that should NOT widen the Python ctor, store it OUTSIDE the bound
+struct — e.g. `dynamic_system`'s applied-wrench / driven-joint specs live in side
+`std::unordered_map`s on the (unbound) system, not as `joint_state` fields, precisely to
+avoid this churn.
+
 **libclang version resilience.** The pip `libclang` package is pinned ≤18.x while the
 system LLVM (Homebrew) may be much newer. `scan.py` does NOT require a matching dylib — it
 tolerates unknown libclang `CursorKind` ids (e.g. the C++20 parenthesized aggregate-init

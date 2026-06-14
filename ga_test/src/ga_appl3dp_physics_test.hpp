@@ -1178,6 +1178,74 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: driven joint - constant-rate spin kinematics (Phase A.3)")
+    {
+        fmt::println("pga3dp: dynamic_system3dp - driven joint kinematics (Phase A.3)");
+
+        // A kinematically driven revolute joint spins at constant Omega about e1; after
+        // time t its coordinate is exactly Omega*t and a point at radius L on a
+        // co-rotating child frame moves at speed Omega*L. Validates set_driven_rate + the
+        // prescribed- motion kinematics (the joint is excluded from the dynamic DOFs).
+        value_t const Om = 1.7, L = 2.0;
+        dynamic_system3dp sys;
+        sys.add_frame(static_frame3dp("W"));
+        sys.add_revolute_body(static_frame3dp("S"), make_cuboid_body(1.0, 0.1, 0.1, 0.1),
+                              O_3dp, vec3dp{1.0, 0.0, 0.0, 0.0}); // hinge about e1
+        sys.add_frame(static_frame3dp("P", vec3dp{0.0, L, 0.0, 1.0}),
+                      sys.index_of("S")); // co-rotating point at radius L
+        size_t const S = sys.index_of("S");
+        sys.set_driven_rate(S, Om);
+
+        value_t const dt = 1.0e-3;
+        for (int n = 0; n < 500; ++n)
+            sys.step(dt); // 0.5 s
+        value_t const t = sys.time();
+        CHECK(sys.joint_phi(S) == doctest::Approx(Om * t));
+        CHECK(sys.joint_omega(S) == doctest::Approx(Om));
+
+        auto const P = unitize(move3dp(O_3dp, sys.get_pos_trafo("P", "W")));
+        auto const v = sys.point_velocity(P, "P");
+        CHECK(to_val(bulk_nrm(v)) == doctest::Approx(Om * L));
+        fmt::println("  phi = {:.5f} (Om*t = {:.5f}); |v_P| = {:.5f} (Om*L = {:.5f})",
+                     sys.joint_phi(S), Om * t, to_val(bulk_nrm(v)), Om * L);
+        fmt::println("");
+    }
+
+    TEST_CASE(
+        "pga3dp: driven joint - spinning radial slider (centrifugal eq., Phase A.3)")
+    {
+        fmt::println(
+            "pga3dp: dynamic_system3dp - driven spin + radial slider (Phase A.3)");
+
+        // A driven revolute base spins at constant Omega about e1; a radial prismatic
+        // slider (along the rotating e2) carries a mass m on a spring (k) + damper (c)
+        // with rest at radius L. The mass settles where the spring balances the
+        // centrifugal force m Omega^2 (L+q):  q_eq = m Omega^2 L / (k - m Omega^2). The
+        // centrifugal force EMERGES from the driven base's Newton-Euler bias -- nothing
+        // adds it by hand.
+        value_t const m = 1.0, L = 1.0, Om = 2.0, k = 20.0, c = 2.0;
+        auto const cube = make_cuboid_body(m, 0.05, 0.05, 0.05); // near point mass
+        dynamic_system3dp sys;
+        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+        sys.add_frame(static_frame3dp("W"));
+        sys.add_revolute_body(static_frame3dp("S"), make_cuboid_body(1.0, 0.1, 0.1, 0.1),
+                              O_3dp, vec3dp{1.0, 0.0, 0.0, 0.0}); // spin hinge about e1
+        sys.add_prismatic_body(static_frame3dp("B", vec3dp{0.0, L, 0.0, 1.0}), cube,
+                               vec3dp{0.0, 1.0, 0.0, 0.0}); // radial slider along e2
+        size_t const B = sys.index_of("B");
+        sys.set_joint_spring_damper(B, k, c);
+        sys.set_driven_rate(sys.index_of("S"), Om);
+
+        value_t const dt = 5.0e-4;
+        for (int n = 0; n < 20000; ++n)
+            sys.step(dt); // 10 s -> steady state
+        value_t const q_eq = m * Om * Om * L / (k - m * Om * Om);
+        fmt::println("  q_settled = {:.5f} (analytic q_eq = {:.5f})", sys.joint_phi(B),
+                     q_eq);
+        CHECK(sys.joint_phi(B) == doctest::Approx(q_eq).epsilon(0.01));
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
 
 

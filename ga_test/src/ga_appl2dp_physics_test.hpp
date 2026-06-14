@@ -3611,6 +3611,41 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE(
+        "pga2dp: driven joint - spinning radial slider (centrifugal eq., Phase A.3)")
+    {
+        fmt::println(
+            "pga2dp: dynamic_system2dp - driven spin + radial slider (Phase A.3)");
+
+        // 2D twin: a driven revolute base spins at constant Omega about the origin; a
+        // radial prismatic slider (along the rotating e1) carries a mass m on a spring
+        // (k) + damper (c) with rest at radius L. The mass settles where the spring
+        // balances the centrifugal force m Omega^2 (L+q): q_eq = m Omega^2 L / (k - m
+        // Omega^2). The centrifugal force EMERGES from the driven base's bias -- nothing
+        // adds it by hand.
+        value_t const m = 1.0, L = 1.0, Om = 2.0, k = 20.0, c = 2.0;
+        auto const slider = make_plate_body(m, 0.05, 0.05); // near point mass
+        dynamic_system2dp sys;
+        sys.set_gravity(vec2dp{0.0, 0.0, 0.0});
+        sys.add_frame(static_frame2dp("W"));
+        sys.add_revolute_body(static_frame2dp("S"), make_plate_body(1.0, 0.1, 0.1),
+                              O_2dp); // spin hinge about the origin
+        sys.add_prismatic_body(static_frame2dp("B", vec2dp{L, 0.0, 1.0}, 0.0), slider,
+                               vec2dp{1.0, 0.0, 0.0}); // radial slider along e1
+        size_t const B = sys.index_of("B");
+        sys.set_joint_spring_damper(B, k, c);
+        sys.set_driven_rate(sys.index_of("S"), Om);
+
+        value_t const dt = 5.0e-4;
+        for (int n = 0; n < 20000; ++n)
+            sys.step(dt); // 10 s -> steady state
+        value_t const q_eq = m * Om * Om * L / (k - m * Om * Om);
+        fmt::println("  q_settled = {:.5f} (analytic q_eq = {:.5f})", sys.joint_phi(B),
+                     q_eq);
+        CHECK(sys.joint_phi(B) == doctest::Approx(q_eq).epsilon(0.01));
+        fmt::println("");
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////
     // closed_loop_system2dp -- Phase 1 (position-level assembly): the planar FOUR-BAR
     // linkage, the canonical 1-DOF closed loop. As a spanning tree it is two branches off

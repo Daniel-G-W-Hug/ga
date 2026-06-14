@@ -64,21 +64,32 @@ ga_py 725 still green. **All green:** appl2dp 48/535, appl3dp 36/9152, pga core 
 ga_py 725. Phase A (force-element tier) is now COMPLETE: spring/damper + applied wrench +
 time, 2D+3D, validated against the analytic gate.
 
-**RESUME HERE (next session) →** pick one of:
+**Phase A.3 DONE 2026-06-14 (driven/prescribed-rate joint, UNCOMMITTED).** A 1-DOF joint
+can now be KINEMATICALLY DRIVEN at constant rate `q(t)=q0+rate·t` (motor spin / steady
+feed), in both `dynamic_system{2,3}dp`. Design: stored in a side `driven_` map (NOT in the
+bound `joint_state`, so **no ga_py regen**); a joint is driven iff it's in the map — keeps
+its revolute/prismatic screw, is excluded from `dof_joints`, and is re-evaluated from `q(t)`
+at each RK4 sub-step (via the A.2 clock). It acts as a **moving base**: its velocity
+propagates into the dynamic sub-chain's Newton-Euler bias, so centrifugal/Coriolis emerge.
+API: `set_driven_rate(idx,rate,q0=0)`, `clear_driven_joint`, `is_driven`. (Constant rate →
+zero joint accel; general `q(t)` with `q̈≠0` is a future extension.) **Gate met:** 3D
+kinematics test (`phi==Ω·t`, `|v_P|==Ω·L` exact) + 3D & 2D **spinning radial slider**: a
+mass on a spring spun by a driven base settles to the centrifugal equilibrium
+`q_eq=mΩ²L/(k−mΩ²)` → **0.24999 vs 0.25000** (centrifugal emerges, nothing added by hand).
+All green: appl2dp 49/536, appl3dp 38/9156, pga 169/2758, ga_py 725. CLAUDE.md gained a note
+on the bound-struct field-addition ga_py hand-sync trap (+ the side-map avoidance pattern).
 
-1. **Phase C — Tao 5-DOF spindle** (the real target now unblocked). Build the 6-joint stack
-   (3 prismatic x,y,z + 2 revolute θ,φ + 1 driven spin) on the Fig.-1 tree with the new
-   force elements; reproduce Eq.(13) responses + Fig.4 freqs `f_x,f_z,f_θ,f_φ`; derive `z_b`
-   from a rim point. NEEDS a **driven (prescribed-rate) joint** for the spin Ω + the
-   prescribed infeed `x_a(t)` — small infra add (kinematically-driven joint), do first.
-2. **Phase B.2** — emergent spinning offset-cm body reproduces B.1's `m·e·Ω²` "for free";
-   also needs the driven-joint add. Optional now that A.2 closed the force-element gate via
-   the explicit wrench; B.2 is the "emergent" elegance check, not on the critical path.
-3. **Phase 0.c** — the two-pane CS-relative-motion view (deferred; better once C adds
-   radial/axial/tilt motion).
+**PHASES A.1 / A.2 / A.3 COMPLETE — the force-element + driven-joint tier is done (2D+3D).**
 
-**Recommendation: the driven/prescribed-rate joint** (small, unblocks both C and B.2),
-then **Phase C**.
+**RESUME HERE (next session) → Phase C: Tao 5-DOF spindle.** Build the 6-joint stack on the
+Fig.-1 tree: 3 prismatic (x,y,z) + 2 revolute (θ,φ) all spring/damper-mounted to ground via
+`set_joint_spring_damper`; the wheel spin as a **driven** revolute `set_driven_rate(spin,Ω)`;
+the prescribed infeed `x_a(t)` as a **driven** prismatic. Inertia on the spindle body; the
+unbalance via an offset cm (or explicit `set_applied_wrench`). Reproduce Eq.(13) responses +
+Fig.4 characteristic freqs `f_x,f_z,f_θ,f_φ`; derive `z_b` from a rim point; calibrate to the
+measured data. Gyroscopic tilt coupling `(J_y−J_z)ωφ̇` should emerge from rigid-body Euler
+dynamics. (Still open, off critical path: **B.2** emergent offset-cm `m·e·Ω²` check — now
+trivial with the driven spin, an elegance/cross-check; **Phase 0.c** CS-view, deferred.)
 
 **RESOLVED (2026-06-14): static-vs-feed = PRESCRIBED INFEED.** The spindle carries a
 steady prescribed translation (axial infeed `x_a` along −e1 and/or radial traverse) ON TOP

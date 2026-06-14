@@ -918,6 +918,21 @@ class dynamic_system3dp : public kinematic_system3dp {
     std::unordered_map<size_t, wrench_fn> wrench_;
     value_t time_{0.0}; // simulation clock [s], advanced by step()
 
+    // Optional KINEMATICALLY DRIVEN joints: a 1-DOF joint whose coordinate is PRESCRIBED
+    // q(t) = q0 + rate*t (constant rate) rather than integrated from the dynamics -- a
+    // motor-driven spin or a steady feed. A joint is "driven" iff it appears in this map
+    // (it keeps its revolute/prismatic screw machinery, but is excluded from dof_joints
+    // and instead re-evaluated from q(t) at each sub-step). The driven motion is a moving
+    // base for the dynamic sub-chain below it: its velocity (omega*screw) propagates into
+    // the descendants' Newton-Euler bias, so centrifugal/Coriolis/gyroscopic effects
+    // emerge. (Constant rate => zero joint acceleration; a general prescribed q(t) with
+    // q-ddot != 0 is a future extension.)
+    struct driven_spec {
+        value_t rate{0.0}; // prescribed q-dot
+        value_t q0{0.0};   // q at t = 0
+    };
+    std::unordered_map<size_t, driven_spec> driven_;
+
   public:
 
     dynamic_system3dp() = default;
@@ -991,6 +1006,19 @@ class dynamic_system3dp : public kinematic_system3dp {
     value_t time() const { return time_; }  // simulation clock [s]
     void set_time(value_t t) { time_ = t; } // reset / seed the clock
 
+    // Make a 1-DOF joint KINEMATICALLY DRIVEN at constant rate: q(t) = q0 + rate*t. The
+    // joint must already exist (added via add_revolute_body / add_prismatic_body); it is
+    // then excluded from the dynamic DOFs and prescribed instead, acting as a moving base
+    // for the dynamic sub-chain below it. Use for a motor-driven spin or a steady feed.
+    void set_driven_rate(size_t idx, value_t rate, value_t q0 = 0.0)
+    {
+        driven_[idx] = driven_spec{rate, q0};
+        apply_driven_joints(); // seed the joint state at the current clock
+    }
+
+    void clear_driven_joint(size_t idx) { driven_.erase(idx); }
+    bool is_driven(size_t idx) const { return driven_.count(idx) != 0; }
+
     // read-only access to a body's inertial properties
     body3dp const& body_props(size_t idx) const { return body[idx]; }
 
@@ -1037,11 +1065,13 @@ class dynamic_system3dp : public kinematic_system3dp {
     void step(value_t dt)
     {
         auto const rj = dof_joints();
-        if (!rj.empty()) coupled_step(rj, dt); // uses time_ for sub-step wrench eval
+        if (!rj.empty())
+            coupled_step(rj, dt); // uses time_ for sub-step wrench/drive eval
         for (size_t i = 1; i < size(); ++i)
             if (joint[i].type == joint3dp::free && body[i].mass > 0.0)
                 step_free_body(i, dt);
-        time_ += dt; // advance the simulation clock (coupled_step restores it to t0)
+        time_ += dt;           // advance the clock (coupled_step restores it to t0)
+        apply_driven_joints(); // prescribe the driven joints at t + dt (final state)
     }
 
     // --- energy / momentum diagnostics (inertial / world frame) ----------------------
@@ -1211,14 +1241,30 @@ class dynamic_system3dp : public kinematic_system3dp {
                   joint[idx].omega * joint[idx].screw_b); // rel twist = q-dot * screw
     }
 
-    // Frame indices of all 1-DOF joints (revolute or prismatic) -- the generalised
-    // coords.
+    // Re-evaluate every kinematically driven joint at the current clock time_: write its
+    // prescribed q(t) = q0 + rate*t and q-dot = rate into the joint state (pose +
+    // relative twist). The relative acceleration stays zero (constant rate), so the
+    // driven joint's velocity propagates into the descendants' bias while adding no
+    // prescribed q-ddot.
+    void apply_driven_joints()
+    {
+        for (auto const& [idx, d] : driven_) {
+            joint[idx].phi = d.q0 + d.rate * time_;
+            joint[idx].omega = d.rate;
+            apply_joint_state(idx);
+        }
+    }
+
+    // Frame indices of the DYNAMIC 1-DOF joints (revolute or prismatic) -- the
+    // generalised coords integrated by the forward dynamics. Kinematically driven joints
+    // (in driven_) are excluded: they are prescribed, not solved for.
     std::vector<size_t> dof_joints() const
     {
         std::vector<size_t> rj;
         for (size_t i = 1; i < size(); ++i)
-            if (joint[i].type == joint3dp::revolute ||
-                joint[i].type == joint3dp::prismatic)
+            if ((joint[i].type == joint3dp::revolute ||
+                 joint[i].type == joint3dp::prismatic) &&
+                driven_.count(i) == 0)
                 rj.push_back(i);
         return rj;
     }
@@ -1376,6 +1422,7 @@ class dynamic_system3dp : public kinematic_system3dp {
         value_t const t0 = time_;
         for (size_t s = 1; s <= 4; ++s) {
             time_ = rk4_get_time(t0, dt, s - 1);
+            apply_driven_joints(); // prescribe the moving base at this stage time
             apply_u();
             auto const qdd = forward_dynamics(rj);
             for (size_t k = 0; k < n; ++k) {
