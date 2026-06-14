@@ -373,41 +373,10 @@ bool is_congruent(Scalar2d<T> a, Scalar2d<U> b, value_t tolerance = eps)
 // For vectors: use unified A = k*B component-wise approach
 template <typename T, typename U>
     requires(numeric_type<T> && numeric_type<U>)
-bool is_congruent(Vec2d<T> const& a, Vec2d<U> const& b, value_t tolerance = eps)
+bool is_congruent(Vec2d<T> const& a, Vec2d<U> const& b, value_t tolerance = eps_congruent)
 {
-    using ctype = std::common_type_t<T, U>;
-
-    // Handle zero cases using component-wise check
-    bool a_is_zero = (std::abs(a.x) < tolerance) && (std::abs(a.y) < tolerance);
-    bool b_is_zero = (std::abs(b.x) < tolerance) && (std::abs(b.y) < tolerance);
-
-    if (a_is_zero && b_is_zero) {
-        return true; // Both are effectively zero
-    }
-    if (a_is_zero || b_is_zero) {
-        return false; // Only one is zero
-    }
-
-    // Find scale factor k where a = k*b, checking all components
-    ctype k = 0.0;
-    bool k_found = false;
-
-    // Find first non-zero component pair to establish k
-    if (std::abs(b.x) > tolerance) {
-        k = a.x / b.x;
-        k_found = true;
-    }
-    else if (std::abs(b.y) > tolerance) {
-        k = a.y / b.y;
-        k_found = true;
-    }
-
-    if (!k_found) return false; // All components of b are zero, but a is not
-
-    // Check if a = k*b for all components using relative tolerance
-    value_t rel_tol = tolerance * std::max({std::abs(a.x), std::abs(a.y), std::abs(b.x),
-                                            std::abs(b.y), value_t(1.0)});
-    return (std::abs(a.x - k * b.x) < rel_tol) && (std::abs(a.y - k * b.y) < rel_tol);
+    return detail::coeffs_congruent<2>({value_t(a.x), value_t(a.y)},
+                                       {value_t(b.x), value_t(b.y)}, tolerance);
 }
 
 // For pseudoscalars: all non-zero pseudoscalars in 2D represent the same subspace

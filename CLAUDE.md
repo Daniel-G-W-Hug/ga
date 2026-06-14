@@ -908,21 +908,28 @@ placement, colours, labels are tuned to their feedback, as for the existing scen
 Two GA elements are **congruent** if they span the same subspace up to a non-zero
 scalar — scalar multiples, **regardless of sign or magnitude**.
 
-**Algorithm (unified `A = k*B`):**
+**Algorithm (unified `A = k*B`)** — all graded overloads delegate to the shared
+`hd::ga::detail::coeffs_congruent<N>(a, b, rel_tol)` in `ga/ga_value_t.hpp`:
 
-1. Component-wise zero detection (robust for degenerate PGA metrics).
-2. Find scale factor `k` from the first non-zero component pair (`a = k*b`).
+1. Component-wise zero detection (robust for degenerate PGA metrics), using an absolute
+   `eps` floor independent of `rel_tol`.
+2. Fix the scale factor `k` from the **largest-magnitude** component of `b` (NOT the first
+   non-zero): dividing by the dominant component keeps `k` well-conditioned, so a small
+   pivot's rounding is never amplified onto the dominant entries (amplification factor
+   `max_component / pivot_component` is unbounded for a first-non-zero pivot).
 3. Verify `a = k*b` for all components within a **relative** tolerance.
-4. Scalars and top-grade pseudoscalars: any two non-zero ones are congruent.
+4. Scalars and top-grade pseudoscalars: any two non-zero ones are congruent (own overloads,
+   not via the helper).
 
-**Relative tolerance is essential** — absolute `eps` (~1.11e-15) is too strict after
-GA ops that accumulate error (wedge + division); scale it by the operands:
+**Two tolerance lessons (both essential):**
 
-```cpp
-// instead of: std::abs(a.x - k*b.x) < eps
-value_t rel = eps * std::max({std::abs(a.x), /* ... */, value_t(1.0)});
-return std::abs(a.x - k*b.x) < rel;
-```
+- **Relative**, not absolute — scale the per-component threshold by the operands
+  (`rel_tol * max(|components|, 1)`), since absolute `eps` is meaningless across magnitudes.
+- **The default is `eps_congruent` (1e-12), not machine `eps`.** Congruence is almost always
+  asked of two *independently computed* quantities (results of wedge/dual/motor chains)
+  whose difference has accumulated error far beyond a single rounding; machine `eps`
+  (~1.11e-15) rejects geometrically-identical operands. `1e-12` is still ~12 orders below any
+  real geometric signal. Pass a tighter/looser `tolerance` only for a specific reason.
 
 **Notes:**
 

@@ -4,6 +4,7 @@
 #include "doctest/doctest.h"
 
 #include <algorithm> // std::min, std::max
+#include <cmath>     // std::sin, std::cos, std::atan
 #include <limits>    // std::numeric_limits
 
 // include functions to be tested
@@ -311,6 +312,164 @@ TEST_SUITE("PGA3DP: application tests")
                      wafer.rs * wafer.r_max); // v = omega * r
         fmt::println("tool  speed at r = {} mm = {:>-8.5f} mm/s", tool.r_max,
                      tool.rs * tool.r_max); // v = omega * r
+        fmt::println("");
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // The two tests below re-express the two grinding mini-tests above using the
+    // static_/kinematic_system3dp frame-tree infrastructure. They bring NO new geometric
+    // insight -- the point is purely pedagogical: to show how the same very simple idea
+    // reads once it is phrased through the framework (define geometry in a local frame,
+    // let the system carry it to world coordinates / ask the system for a point's
+    // velocity) rather than with hand-built duals and bivector velocity fields. Each
+    // asserts its result against the raw-PGA computation so the equivalence is explicit.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga3dp: tumbling tool plane via static_system3dp (grinding application)")
+    {
+
+        fmt::println("");
+        fmt::println("pga3dp: tumbling tool plane via static_system3dp (grinding "
+                     "application)");
+        fmt::println("");
+
+        // Same question as "reference and tumbling plane": where does the tumbling tool
+        // plane cut the wafer reference plane? Instead of rebuilding the tilted tool
+        // normal and its plane via duals at every angle, we attach the tool's cutting
+        // plane to a tool FRAME once, and let static_system3dp carry it to world
+        // coordinates as the frame is re-posed. Tumbling = a precessing tilt of that
+        // frame.
+
+        // reference (wafer) plane from 3 measured points (unchanged from the raw test)
+        auto A = vec3dp(1.0, 0.0, 0.0, 1);
+        auto B = vec3dp(1.0, 1.0, 0.01, 1);
+        auto C = vec3dp(0.0, 1.0, 0.0, 1);
+        auto p_ref = unitize(wdg(wdg(A, B), C));
+
+        // tool reference point (center of the rotating grinding tool)
+        auto T = vec3dp(3.0, 1.0, 0.0, 1);
+        double const r_dim = 0.01; // tumbling radius (1% of the unit normal)
+
+        // frame tree: world/wafer root W, tool frame T_f posed relative to it
+        static_system3dp sys;
+        sys.add_frame(static_frame3dp("W"));      // inertial root (wafer side)
+        sys.add_frame(static_frame3dp("T_f", T)); // tool frame, initially upright
+        size_t const W_idx = sys.index_of("W");
+        size_t const T_idx = sys.index_of("T_f");
+
+        // the tool cutting plane in its OWN frame: the horizontal plane through the frame
+        // origin spanned by local e1, e2 (normal = local e3). Defined once.
+        auto const pl_local = wdg(O_3dp, wdg(vec3dp{1, 0, 0, 0}, vec3dp{0, 1, 0, 0}));
+
+        for (auto phi = 0.0; phi < 2 * pi; phi += deg2rad(15)) {
+
+            // tumbling = tilt the tool frame by atan(r_dim) about the axis perpendicular
+            // to the momentary tilt direction (cos phi, sin phi); the axis precesses with
+            // phi.
+            auto const tilt_axis = vec3dp{-std::sin(phi), std::cos(phi), 0.0, 0.0};
+            auto const rotvec =
+                std::atan(r_dim) * tilt_axis; // axis-angle rotation vector
+            sys.set_pose(T_idx, pose3dp(T, rotvec));
+
+            // tool plane in world: carry the local plane through the frame tree
+            auto const M = sys.get_pos_trafo(T_idx, W_idx);
+            auto const p_tool = unitize(move3dp(pl_local, M));
+
+            // intersection line of the two planes
+            auto const l = rwdg(p_tool, p_ref);
+
+            // raw-PGA reference computation (as in the original test) for cross-check
+            auto const r = r_dim * vec3dp(std::cos(phi), std::sin(phi), 0.0, 0);
+            auto const z = vec3dp(0.0, 0.0, 1.0, 0);
+            auto const R = T + z + r;
+            auto const z_n = (R - T) / to_val(bulk_nrm(R - T));
+            auto const l_h = unitize(wdg(z_n, T));
+            auto const p_tool_raw = unitize(wdg(T, r_weight_dual(l_h)));
+            auto const l_raw = rwdg(p_tool_raw, p_ref);
+
+            // same tool plane and same intersection line, up to scale / orientation
+            CHECK(is_congruent(p_tool, p_tool_raw));
+            CHECK(is_congruent(l, l_raw));
+
+            fmt::println("phi = {:>3.0f}: angle(l,e1) = {:>5.2f}° (framework) == "
+                         "{:>5.2f}° (raw)",
+                         rad2deg(phi), rad2deg(angle(att(l), e1_3dp)),
+                         rad2deg(angle(att(l_raw), e1_3dp)));
+        }
+        fmt::println("");
+    }
+
+    TEST_CASE(
+        "pga3dp: disc surface speeds via kinematic_system3dp (grinding application)")
+    {
+
+        fmt::println("");
+        fmt::println("pga3dp: disc surface speeds via kinematic_system3dp (grinding "
+                     "application)");
+        fmt::println("");
+
+        // The "intersecting discs" test computes the relative grinding speed as a raw
+        // bivector velocity field  rs * B_uv >> (P - cp). Here the same surface speeds
+        // come from kinematic_system3dp::point_velocity of two spinning frames -- the
+        // idiomatic way to ask "how fast does this world point move because its frame
+        // rotates". The overlap / MRR integration of the raw test is unchanged and not
+        // repeated; only the speed query is re-expressed and cross-checked against the
+        // raw formula.
+
+        double const rs_wafer = rpm2radps(300.0);      // chuck/wafer spin [rad/s]
+        double const rs_tool = rpm2radps(2000.0);      // grinding-wheel spin [rad/s]
+        auto const tc = vec3dp{150.0, 0.0, -0.5, 1.0}; // tool center (0.5 mm overlap)
+        double const rm = 97.5; // mean ring radius of the tool [mm]
+
+        // spinning frames: wafer about +e3 through the origin; tool about +e3 through tc.
+        kinematic_system3dp ksys;
+        ksys.add_frame(static_frame3dp("W")); // inertial root
+        ksys.add_frame(static_frame3dp("wafer", O_3dp),
+                       kin_state3dp{.omega = vec3dp{0.0, 0.0, rs_wafer, 0.0}},
+                       ksys.index_of("W"));
+        ksys.add_frame(static_frame3dp("tool", tc),
+                       kin_state3dp{.omega = vec3dp{0.0, 0.0, rs_tool, 0.0}},
+                       ksys.index_of("W"));
+
+        // raw bivector spin rates for the cross-check (untilted discs, same +e3 sense)
+        auto const B_uv = wdg(vec3dp{1, 0, 0, 0}, vec3dp{0, 1, 0, 0});
+        auto const Omega_wafer = rs_wafer * B_uv;
+        auto const Omega_tool = rs_tool * B_uv;
+
+        double min_tot = std::numeric_limits<double>::max();
+        double max_tot = std::numeric_limits<double>::lowest();
+
+        for (auto a = 0.0; a < 2 * pi; a += deg2rad(45)) {
+
+            // a sample point on the tool ring, and its projection onto the wafer (z = 0)
+            auto const P_tool = tc + rm * vec3dp{std::cos(a), std::sin(a), 0.0, 0.0};
+            auto const P_proj = vec3dp{P_tool.x, P_tool.y, 0.0, 1.0};
+
+            // framework: surface speeds from the spinning frames
+            auto const v_tool = ksys.point_velocity(P_tool, "tool");
+            auto const v_wafer = ksys.point_velocity(P_proj, "wafer");
+            auto const tot_fw = to_val(bulk_nrm(v_tool + v_wafer));
+
+            // raw: same speeds as the bivector velocity field of the original test
+            auto const v_tool_raw = (Omega_tool >> (P_tool - tc));
+            auto const v_wafer_raw = (Omega_wafer >> (P_proj - O_3dp));
+            auto const tot_raw = to_val(bulk_nrm(v_tool_raw + v_wafer_raw));
+
+            // tool surface speed magnitude is omega * (distance from spin axis) = rs * rm
+            CHECK(to_val(bulk_nrm(v_tool)) == doctest::Approx(rs_tool * rm));
+            // framework and raw relative-speed magnitudes agree (same physics)
+            CHECK(tot_fw == doctest::Approx(tot_raw));
+
+            min_tot = std::min(min_tot, tot_fw);
+            max_tot = std::max(max_tot, tot_fw);
+
+            fmt::println("a = {:>3.0f}: |v_tool| = {:>8.2f}, |v_wafer| = {:>8.2f}, "
+                         "|v_rel| = {:>8.2f} mm/s",
+                         rad2deg(a), to_val(bulk_nrm(v_tool)), to_val(bulk_nrm(v_wafer)),
+                         tot_fw);
+        }
+        fmt::println("min_tot_speed = {:>-8.2f} mm/s", min_tot);
+        fmt::println("max_tot_speed = {:>-8.2f} mm/s", max_tot);
         fmt::println("");
     }
 
