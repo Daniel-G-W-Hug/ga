@@ -210,6 +210,13 @@ Coordsys_model::add_double_pendulum(adouble_pendulum const& adp_in)
     return agm.size() - 1;
 }
 
+[[maybe_unused]] size_t Coordsys_model::add_grinding_topo(agrinding_topo const& agto_in)
+{
+    agto.push_back(agto_in);
+
+    return agto.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -246,6 +253,7 @@ void Coordsys_model::clear()
     aovc.clear();
     apld.clear();
     agm.clear();
+    agto.clear();
     aft.clear();
 
     m_label.clear();

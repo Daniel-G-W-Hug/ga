@@ -415,6 +415,33 @@ struct agrinding_marks {
     grinding_marks_params params;
 };
 
+// Parameters of the wafer-grinding surface-topography demo (Phase D.1c of
+// TODO/grinding.md; Tao 2022, Figs. 9/10). The wheel-spindle vibration (axial runout z_b)
+// at frequency f_b modulates the grain cutting depth; the resulting waviness has
+// wavelength (relative surface speed)/f_b. Both speeds -- wheel rim v_w = n_w*R_w and
+// wafer v_s = n_s*r -- are read off kinematic_system3dp::point_velocity of the Fig.-1
+// frames, so the rendered height field is built from the GA twist field. Units are REAL
+// (micrometres, rpm, Hz) so the wavelengths match the paper. gt_patch picks which crop is
+// shown: a near-square window for the circumferential waviness lambda_c (Fig. 9), or a
+// wide thin strip for the mark-direction waviness lambda_m (Fig. 10). Toggle live with
+// the 'C' key.
+enum class gt_patch { wcd, wmd };
+
+struct grinding_topo_params {
+    double ns_rpm{200.0};          // chuck (wafer) speed [rpm]
+    double nw_rpm{2000.0};         // wheel speed [rpm]
+    double Rw_um{150.0e3};         // grinding-wheel radius [um]
+    double r_um{50.0e3};           // wafer radius at the observed patch [um]
+    double f_b{6000.0};            // wheel-spindle vibration frequency [Hz]
+    double A_b{0.1};               // vibration amplitude [um] (sets the height scale)
+    gt_patch patch{gt_patch::wcd}; // which crop is shown (WCD square / WMD strip)
+};
+
+// Active item: wafer-grinding surface-topography demo (no active points)
+struct agrinding_topo {
+    grinding_topo_params params;
+};
+
 // One row in the key-binding table of a legend
 struct key_legend_entry {
     std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
@@ -518,6 +545,8 @@ class Coordsys_model {
 
     [[maybe_unused]] size_t add_grinding_marks(agrinding_marks const& agm_in);
 
+    [[maybe_unused]] size_t add_grinding_topo(agrinding_topo const& agto_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -598,6 +627,9 @@ class Coordsys_model {
 
     // data for wafer-grinding grain-trajectory demo items
     std::vector<agrinding_marks> agm;
+
+    // data for wafer-grinding surface-topography demo items
+    std::vector<agrinding_topo> agto;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};

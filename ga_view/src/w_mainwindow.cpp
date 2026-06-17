@@ -19,6 +19,7 @@ using namespace hd::ga::pga;
 #include "active_four_bar.hpp"
 #include "active_frame_trafo.hpp"
 #include "active_grinding_marks.hpp"
+#include "active_grinding_topo.hpp"
 #include "active_kinematics2dp.hpp"
 #include "active_merry_go_round.hpp"
 #include "active_ode.hpp"
@@ -1691,6 +1692,21 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(gm);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // wafer-grinding surface-topography demo items (PGA3DP kinematic_system3dp)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->agto.size(); ++idx) {
+        active_grinding_topo* gt =
+            new active_grinding_topo(cs, wcs, cm->agto[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, gt,
+                         &active_grinding_topo::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, gt,
+                         &active_grinding_topo::togglePause);
+        QObject::connect(wcs, &w_Coordsys::circlesToggleRequested, gt,
+                         &active_grinding_topo::cyclePatch);
+        scene->addItem(gt);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -2328,6 +2344,42 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
         leg.size_pct = 0.24;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append the wafer-grinding surface-topography scene (Phase D.1c of TODO/grinding.md;
+    // Tao 2022, Figs. 9/10): a heatmap of the ground-wafer height field, whose waviness
+    // wavelengths lambda_m / lambda_c are computed live from kinematic_system3dp::
+    // point_velocity (the GA twist field). C toggles the WCD (Fig. 9) and WMD (Fig. 10)
+    // crops.
+    {
+        Coordsys_model cm;
+        cm.add_grinding_topo(agrinding_topo{});
+        cm.set_label("Wafer grinding: ground-surface topography (Tao Figs. 9/10)");
+
+        diagram_legend leg;
+        leg.heading =
+            "PGA3D surface topography (Tao 2022, Figs. 9/10): the wheel-spindle "
+            "vibration "
+            "at f_b modulates the grain cut depth, carving a waviness of wavelength "
+            "lambda = (surface speed)/f_b. The wheel speed v_w and wafer speed v_s are "
+            "read "
+            "from kinematic_system3dp::point_velocity, so lambda_m / lambda_c (shown "
+            "bottom-left) are built straight from the GA kinematics and match the paper.";
+        leg.entries = {{"SPACE:", "pause / resume the feed-scroll"},
+                       {"R:", "reset"},
+                       {"C:", "toggle WCD (Fig. 9) / WMD (Fig. 10)"},
+                       {"─────", "──────────"},
+                       {"colour:", "ground-surface height (jet: blue low .. red high)"},
+                       {"lambda_c:", "circumferential waviness = v_s / f_b (WCD)"},
+                       {"lambda_m:", "mark-direction waviness = v_w / f_b (WMD)"},
+                       {"horizontal:", "mark / radial direction"},
+                       {"vertical:", "circumferential direction"}};
+        leg.x_pct = 0.02;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.22;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
