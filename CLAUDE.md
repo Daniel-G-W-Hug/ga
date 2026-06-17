@@ -980,6 +980,34 @@ ega3d, not pga3dp's regressive motors). Gotchas worth remembering:
   `transform_opt` is slower than `transform()` for one-offs (matrix build not amortised);
   only the batch overload wins (~3× at `-O3`). Bench: `ga_test/utilities/`.
 
+## Rigid-body dynamics (`dynamic_system{2,3}dp`, `ga_pga{2,3}dp_ops_physics.hpp`)
+
+**Three kinds of force element** feed the joint-space generalised force `tau` (all additive;
+with none attached the gravity/bias path is byte-unchanged):
+
+- `set_joint_spring_damper(idx, k, c, q0)` — a linear spring + damper on a joint
+  *coordinate*: `tau_j += -k(q-q0) - c q̇` (torsional for revolute, linear for prismatic).
+- `set_applied_wrench(idx, fn)` — an external wrench given as a function of *time*
+  `fn(t) -> bivecNdp` (world frame), projected onto the supporting joint screws.
+- `add_grounded_spring(idx, anchor_b, [p0_world,] k, c)` — a *configuration-dependent*
+  spring/damper tying a body-fixed point `anchor_b` to a ground anchor `p0_world` with
+  anisotropic world-axis stiffness `k` + isotropic damping `c`. Its restoring wrench
+  `wdg(P, F)` is recomputed from the live pose/velocity each RK4 sub-step (NOT a function of
+  time). Because it acts at a physical point, ONE spring yields both a translational
+  stiffness AND, via its lever arm, a tilt stiffness `k·l²` (e.g. spindle radial bearings at
+  axial `±l` give the emergent tilt stiffness). Contributes its potential to
+  `potential_energy()`.
+
+**`assemble_mass_bias` moving-base invariant (do NOT regress).** The assembler sums each
+body's inertia over **dof joints ∪ kinematically-driven joints**, projecting every
+inertia-bearing body onto its *ancestor* dof joints. A driven joint is a moving base: its
+body inertia loads the joints above it and its prescribed velocity feeds their Newton-Euler
+bias (so a driven spinning rotor produces the clamped gyroscopic/centrifugal dynamics).
+Refactoring the body list back to dof-joints-only **silently drops driven-joint inertia** →
+a singular mass matrix when a driven joint carries the only inertia below a dof joint (e.g. a
+motor-clamped spindle spin). Only indirectly tested (via the Tao spindle, Phase C), so guard
+it deliberately.
+
 ## Geometric Algebra Mathematical Foundations
 
 ### Core GA Conventions

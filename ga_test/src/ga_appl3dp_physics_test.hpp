@@ -1246,6 +1246,86 @@ TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
         fmt::println("");
     }
 
+    TEST_CASE("pga3dp: grounded spring/damper - stiffness emergence (Phase C.1)")
+    {
+        fmt::println(
+            "pga3dp: dynamic_system3dp - grounded spring stiffness emergence (C.1)");
+
+        // Phase C.1: the grounded spatial spring/damper element (add_grounded_spring).
+        // Two analytic gates establish the mechanism the Tao spindle relies on -- that a
+        // single linear spring at a body-fixed point yields BOTH a translational and (via
+        // its lever arm) a tilt stiffness, with no separate torsional spring.
+
+        // --- Gate 1: translational stiffness == k, free response == closed form --------
+        // A rotor on a prismatic e1-slider; a grounded spring at the body origin (cm)
+        // with stiffness k along e1, rest at the origin. Displaced by x0 the spring is
+        // the only force, so the reduced system is  m q'' + k q = 0.
+        {
+            value_t const m = 2.0, k = 800.0, x0 = 0.01;
+            value_t const wn = std::sqrt(k / m); // 20 rad/s
+            auto const cube = make_cuboid_body(m, 0.1, 0.1, 0.1);
+
+            dynamic_system3dp sys;
+            sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            sys.add_frame(static_frame3dp("W"));
+            sys.add_prismatic_body(static_frame3dp("B"), cube, vec3dp{1.0, 0.0, 0.0, 0.0},
+                                   x0, 0.0); // q0 = x0
+            // grounded radial spring at the cm, rest = world origin (k along e1 only)
+            sys.add_grounded_spring(1, O_3dp, O_3dp, vec3dp{k, 0.0, 0.0, 0.0}, 0.0);
+
+            // emergent translational stiffness read from the lib's own reduced model:
+            //   k_emergent = -M_eff * q'' / q   (M_eff = m here)
+            value_t const k_emergent = -sys.mass_matrix()[0] * sys.joint_accel(1) / x0;
+            fmt::println("  Gate1 translational: k_emergent = {:.4f} (k = {:.1f})",
+                         k_emergent, k);
+            CHECK(k_emergent == doctest::Approx(k));
+            CHECK(sys.total_energy() == doctest::Approx(0.5 * k * x0 * x0));
+
+            // free undamped response q(t) = x0 cos(wn t) through the full RK4 path
+            value_t const dt = 1.0e-4;
+            value_t t = 0.0, max_err = 0.0;
+            for (size_t nstep = 1; nstep <= 30000; ++nstep) { // 3 s, ~9.5 periods
+                sys.step(dt);
+                t += dt;
+                max_err =
+                    std::max(max_err, std::abs(sys.joint_phi(1) - x0 * std::cos(wn * t)));
+            }
+            fmt::println("  Gate1 free response: max|q - x0 cos(wn t)| = {:.2e}",
+                         max_err);
+            CHECK(max_err < 1e-9);
+        }
+
+        // --- Gate 2: tilt stiffness from the lever arm == k * l^2 (THE headline) -------
+        // The SAME kind of grounded radial spring, now placed at an axial offset l on a
+        // body that tilts about e1 through the origin: tilting by theta moves the anchor
+        // laterally by ~l*theta, and the lateral spring k produces a restoring moment
+        // k l^2 theta. So a torsional stiffness k_theta = k l^2 EMERGES geometrically --
+        // exactly how Tao's tilt stiffness (k_x+k_y)(l1^2+l2^2) arises from the radial
+        // bearings at the spindle ends.
+        {
+            value_t const k = 1000.0, l = 0.1, th0 = 1.0e-4;
+            auto const cube = make_cuboid_body(1.0, 0.05, 0.05, 0.4);
+
+            dynamic_system3dp sys;
+            sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            sys.add_frame(static_frame3dp("W"));
+            // revolute hinge about e1 through the origin (the tilt DOF), start tilted th0
+            sys.add_revolute_body(static_frame3dp("B"), cube, O_3dp,
+                                  vec3dp{1.0, 0.0, 0.0, 0.0}, th0, 0.0);
+            // grounded spring at body point (0,0,l), lateral (e2) stiffness k, rest there
+            sys.add_grounded_spring(1, vec3dp{0.0, 0.0, l, 1.0}, vec3dp{0.0, 0.0, l, 1.0},
+                                    vec3dp{0.0, k, 0.0, 0.0}, 0.0);
+
+            value_t const ktheta_emergent =
+                -sys.mass_matrix()[0] * sys.joint_accel(1) / th0;
+            fmt::println("  Gate2 tilt: k_theta_emergent = {:.5f} (k l^2 = {:.5f})",
+                         ktheta_emergent, k * l * l);
+            CHECK(ktheta_emergent == doctest::Approx(k * l * l).epsilon(1e-3));
+        }
+
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: dynamic_system3dp (M2)")
 
 
@@ -1477,3 +1557,302 @@ TEST_SUITE("PGA3DP: closed_loop_system3dp")
     }
 
 } // TEST_SUITE("PGA3DP: closed_loop_system3dp")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// PGA3DP dynamic_system3dp - Phase C: the Tao wheel-spindle vibration model
+//   (Tao et al., Int. J. Mech. Sci. 232 (2022) 107620). A 6-joint serial stack on the
+//   inertial root reproduces the paper's 5-DOF spindle: 3 prismatic (x,y,z) + 2 revolute
+//   (theta,phi) vibration DOFs (massless frames) carrying a driven revolute SPIN joint
+//   with the rotor body (mass m, principal inertias Jx=Jy, Jz, cm offset by e from the
+//   spin axis). Aerostatic bearings = GROUNDED spatial springs on the NON-spinning
+//   housing (the phi frame): two radial springs at axial +-Lb give the full radial
+//   stiffness AND
+//   -- via the lever arm -- the emergent tilt stiffness; one axial spring at the cm gives
+//   the axial stiffness. All parameters are Table-1 values in strict SI. Validated
+//   against the closed-form characteristic frequencies Eqs (15)-(19) and the centrifugal
+//   / gyroscopic structure of Eq. (13).
+//
+// UNRESOLVED -- the radial-bearing offset Lb is a CALIBRATION, not yet a first-principles
+// value. A physically consistent two-spring model whose combined radial stiffness equals
+// kx (so f_x matches) produces only ~1/4 of Tao's lumped tilt coefficient
+// (kx+ky)(l1^2+l2^2)+kz Rm^2 at the table's l1=l2=100 mm, i.e. f_theta would come out
+// ~34% low (~4430 vs ~6700 Hz). To make the EMERGENT tilt frequency match Fig. 4 we
+// calibrate the effective offset to Lb = sqrt(K_tilt/kx) ~ 231 mm (~2x the table's l1)
+// and let the radial bearings carry the full tilt stiffness. The ROOT CAUSE of the
+// factor-~4 stiffness gap is NOT understood: it may be a double-count in Tao's lumped
+// coefficient, a different bearing-stiffness convention, or a gap in our model -- this
+// calibration matches Fig. 4 WITHOUT explaining the discrepancy. A deeper analysis of Eqs
+// (7),(12),(13) vs. a distributed/physical bearing model is needed later to pin it down
+// (see TODO/grinding.md Phase C). Confirmed NOT caused by units (strict SI throughout) or
+// by e (the +-e in l1,l2 shifts l1^2+l2^2 by <1e-7).
+/////////////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
+// Tao Table-1 spindle performance parameters, in strict SI (m, kg, s, N). The table's
+// stiffness rows read "N/um" (180, 950); a compliance of 180 um/N would be absurd and the
+// frequency cross-checks only close as 180 N/um = 1.8e8 N/m. e is 2 um (not 2 mm).
+struct tao_spindle_params {
+    value_t m = 0.8;     // rotor mass [kg]
+    value_t kx = 1.8e8;  // radial stiffness kx=ky [N/m]  (180 N/um)
+    value_t kz = 9.5e8;  // axial stiffness   [N/m]       (950 N/um)
+    value_t Jx = 5.4e-3; // transverse inertia Jx=Jy [kg m^2]  (5.4 g m^2)
+    value_t Jz = 1.9e-4; // spin-axis inertia [kg m^2]         (0.19 g m^2)
+    value_t e = 2.0e-6;  // mass eccentricity [m]              (2 um)
+    value_t l1 = 0.1;    // bearing axial stations [m] (the +-e correction is negligible:
+    value_t l2 = 0.1;    //   l1^2+l2^2 = 0.02 to 8 sig figs, so dropped here)
+    value_t Rm = 0.05;   // rotor radius (axial-bearing lever) [m]
+    value_t Rw = 0.15;   // grinding-wheel radius [m]
+    value_t l3 = 0.18;   // wheel-surface-to-rotor-center axial distance [m]
+
+    // Tao's lumped tilt stiffness (Eq.12/18/19) and the CALIBRATED radial-bearing offset
+    // that makes the emergent tilt stiffness (2 * (kx/2) * Lb^2 = kx Lb^2) equal it. Lb
+    // is a fit to Fig. 4, NOT a first-principles value: at the table's l1=l2 a consistent
+    // two-spring model gives ~1/4 of K_tilt. The reason for that factor is not yet
+    // understood (see the suite header + TODO/grinding.md) -- revisit.
+    value_t K_tilt() const { return (kx + kx) * (l1 * l1 + l2 * l2) + kz * Rm * Rm; }
+    value_t Lb() const { return std::sqrt(K_tilt() / kx); }
+
+    // closed-form characteristic frequencies [Hz], Eqs (16)-(19) (no-spin tilt = f_th0)
+    value_t f_x() const { return std::sqrt(kx / m) / (2.0 * pi); }
+    value_t f_z() const { return std::sqrt(kz / m) / (2.0 * pi); }
+    value_t f_th0() const { return std::sqrt(K_tilt() / Jx) / (2.0 * pi); }
+};
+
+// rotor body3dp with principal moments (Jx=Jy, Jz) about the cm, via a cuboid whose
+// extents reproduce them: w=h with Izz=m(w^2+h^2)/12=Jz, Ixx=m(h^2+d^2)/12=Jx.
+inline body3dp make_rotor_body(value_t m, value_t Jx, value_t Jz)
+{
+    value_t const w = std::sqrt(6.0 * Jz / m);
+    value_t const d = std::sqrt(12.0 * Jx / m - 6.0 * Jz / m);
+    return make_cuboid_body(m, w, w, d);
+}
+
+struct spindle_idx {
+    size_t jx, jy, jz, jth, jph, spin, housing;
+};
+
+// Build the 6-joint Tao spindle into `sys`. Initial vibration offsets q0 = {x,y,z,th,ph};
+// if spin_rate != 0 the spin joint is kinematically driven at that constant rate.
+inline spindle_idx build_tao_spindle(dynamic_system3dp& sys, tao_spindle_params const& p,
+                                     std::array<value_t, 5> const& q0 = {},
+                                     value_t spin_rate = 0.0,
+                                     std::array<value_t, 5> const& qdot0 = {})
+{
+    auto const massless = body3dp{};
+    auto const rotor = make_rotor_body(p.m, p.Jx, p.Jz);
+    sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+    sys.add_frame(static_frame3dp("W"));
+    sys.add_prismatic_body(static_frame3dp("Jx"), massless, vec3dp{1, 0, 0, 0}, q0[0],
+                           qdot0[0]);
+    sys.add_prismatic_body(static_frame3dp("Jy"), massless, vec3dp{0, 1, 0, 0}, q0[1],
+                           qdot0[1]);
+    sys.add_prismatic_body(static_frame3dp("Jz"), massless, vec3dp{0, 0, 1, 0}, q0[2],
+                           qdot0[2]);
+    sys.add_revolute_body(static_frame3dp("Jth"), massless, O_3dp, vec3dp{1, 0, 0, 0},
+                          q0[3], qdot0[3]);
+    sys.add_revolute_body(static_frame3dp("Jph"), massless, O_3dp, vec3dp{0, 1, 0, 0},
+                          q0[4], qdot0[4]);
+    // Spin joint: axis e3 through (e,0,0) so the rotor cm (body origin) orbits at radius
+    // e. If spin_rate != 0 the spin is kinematically DRIVEN (motor-clamped, Omega-ddot =
+    // 0, matching Tao) -- see set_driven_rate below; assemble_mass_bias now retains a
+    // driven joint's inertia as a moving base, so the clamped gyroscopic dynamics are
+    // produced.
+    sys.add_revolute_body(static_frame3dp("rotor"), rotor, vec3dp{p.e, 0, 0, 1},
+                          vec3dp{0, 0, 1, 0}, 0.0, spin_rate);
+
+    spindle_idx ix;
+    ix.jx = sys.index_of("Jx");
+    ix.jy = sys.index_of("Jy");
+    ix.jz = sys.index_of("Jz");
+    ix.jth = sys.index_of("Jth");
+    ix.jph = sys.index_of("Jph");
+    ix.spin = sys.index_of("rotor");
+    ix.housing = ix.jph; // bearings on the non-spinning phi frame
+
+    value_t const Lb = p.Lb(), kr = p.kx / 2.0;
+    sys.add_grounded_spring(ix.housing, vec3dp{0, 0, Lb, 1}, vec3dp{0, 0, Lb, 1},
+                            vec3dp{kr, kr, 0, 0}, 0.0);
+    sys.add_grounded_spring(ix.housing, vec3dp{0, 0, -Lb, 1}, vec3dp{0, 0, -Lb, 1},
+                            vec3dp{kr, kr, 0, 0}, 0.0);
+    sys.add_grounded_spring(ix.housing, O_3dp, O_3dp, vec3dp{0, 0, p.kz, 0}, 0.0);
+    if (spin_rate != 0.0) sys.set_driven_rate(ix.spin, spin_rate); // motor-clamped spin
+    return ix;
+}
+
+// Measure the oscillation frequency [Hz] of joint `jidx` by downward zero-crossings (with
+// linear sub-step interpolation) of its coordinate over `nsteps` of size `dt`.
+inline value_t measure_freq(dynamic_system3dp& sys, size_t jidx, value_t dt, int nsteps)
+{
+    std::vector<value_t> cross;
+    value_t qprev = sys.joint_phi(jidx), t = 0.0;
+    for (int n = 0; n < nsteps; ++n) {
+        sys.step(dt);
+        t += dt;
+        value_t const q = sys.joint_phi(jidx);
+        if (qprev > 0.0 && q <= 0.0) // downward crossing, interpolated
+            cross.push_back(t - dt * q / (q - qprev));
+        qprev = q;
+    }
+    value_t T = 0.0;
+    for (size_t i = 1; i < cross.size(); ++i)
+        T += cross[i] - cross[i - 1];
+    return (cross.size() - 1.0) / T; // mean period -> frequency
+}
+
+} // namespace
+
+TEST_SUITE("PGA3DP: Tao wheel-spindle (Phase C)")
+{
+
+    TEST_CASE("pga3dp: Tao spindle - radial/axial/tilt free frequencies (Phase C.2)")
+    {
+        fmt::println("pga3dp: Tao spindle - characteristic frequencies (Phase C.2)");
+
+        // No-spin free-vibration frequencies of the assembled spindle. Each vibration DOF
+        // is released from a small offset (all others at rest, no spin, no damping) and
+        // its frequency measured. f_x, f_z are FIRST-PRINCIPLES (no calibration): the
+        // radial/axial bearing stiffnesses are the table values, so matching Eqs
+        // (16),(17) genuinely validates the assembled model. f_th0 instead checks that
+        // the CALIBRATED Lb reproduces Tao's tilt stiffness -- matched by construction,
+        // not derived (the ~factor-4 gap to a consistent l1=l2 two-spring model is
+        // unresolved; see the suite header). With spin off the DOFs decouple (gyroscopic
+        // coupling vanishes).
+        tao_spindle_params const p;
+        fmt::println("  Lb (calibrated radial-bearing offset) = {:.4f} m (l1 = {:.3f})",
+                     p.Lb(), p.l1);
+
+        // radial f_x: release x
+        {
+            dynamic_system3dp sys;
+            build_tao_spindle(sys, p, {1.0e-7, 0, 0, 0, 0});
+            value_t const f = measure_freq(sys, sys.index_of("Jx"), 2.0e-8, 60000);
+            fmt::println("  f_x = {:.1f} Hz  (Eq.16: {:.1f}, paper 2385)", f, p.f_x());
+            CHECK(f == doctest::Approx(p.f_x()).epsilon(2e-3));
+        }
+        // axial f_z: release z
+        {
+            dynamic_system3dp sys;
+            build_tao_spindle(sys, p, {0, 0, 1.0e-7, 0, 0});
+            value_t const f = measure_freq(sys, sys.index_of("Jz"), 1.0e-8, 60000);
+            fmt::println("  f_z = {:.1f} Hz  (Eq.17: {:.1f}, paper 5490)", f, p.f_z());
+            CHECK(f == doctest::Approx(p.f_z()).epsilon(2e-3));
+        }
+        // no-spin tilt f_th0: release theta (validates the emergent calibrated tilt
+        // stiff.)
+        {
+            dynamic_system3dp sys;
+            build_tao_spindle(sys, p, {0, 0, 0, 1.0e-7, 0});
+            value_t const f = measure_freq(sys, sys.index_of("Jth"), 1.0e-8, 50000);
+            fmt::println("  f_th0 = {:.1f} Hz  (Eq.18/19 at f_s=0: {:.1f})", f,
+                         p.f_th0());
+            CHECK(f == doctest::Approx(p.f_th0()).epsilon(3e-3));
+        }
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: Tao spindle - gyroscopic + centrifugal emergence (Phase C.3)")
+    {
+        fmt::println("pga3dp: Tao spindle - gyroscopic + centrifugal (Phase C.3)");
+
+        // The two "for free" payoffs of building on rigid-body GA dynamics: with the spin
+        // joint DRIVEN at omega, BOTH the gyroscopic tilt coupling (J_y-J_z)omega phi-dot
+        // (Eq.13) and the centrifugal unbalance forcing m e omega^2 EMERGE from the
+        // Newton-Euler velocity-product bias of the spinning offset-cm rotor -- nothing
+        // is added by hand. Validated instantaneously (forward dynamics at a chosen
+        // state) against the closed-form coefficients, the same altitude as the A.3
+        // centrifugal slider.
+        tao_spindle_params const p;
+        value_t const f_s = 50.0;             // spin frequency [Hz] (N_w = 3000 r/min)
+        value_t const omega = 2.0 * pi * f_s; // spin rate [rad/s]
+
+        // --- Gyroscopic coupling == textbook polar-inertia value (clamped spin) -------
+        // With the spin motor-CLAMPED (driven, Omega-ddot = 0, as Tao assumes), a tilt
+        // rate theta-dot induces phi-dd through the gyroscopic velocity-product bias. The
+        // standard rotordynamics result is that the coupling moment is the POLAR angular
+        // momentum J_z*omega, so  phi-dd = (J_z / J_x) * omega * theta-dot  (forward /
+        // backward whirl split = (J_z/J_x)*omega). The GA rigid-body model reproduces
+        // this textbook value exactly. (assemble_mass_bias now retains the driven rotor's
+        // inertia, so the clamped case runs; the value equals the free-spin case here
+        // because the spin-DOF coupling to phi vanishes at this config.)
+        //
+        // DEVIATION (flagged, root cause not understood -- see TODO/grinding.md): Tao's
+        // Eq.13 uses (J_y - J_z)*omega ~ J_x*omega (the TRANSVERSE inertia), giving his
+        // +-f_s/2 ~ 25 Hz split. That disagrees with both standard rotordynamics and this
+        // model, which give the much smaller polar-inertia whirl split (J_z/J_x)*omega ~
+        // 1.76 Hz. Whether Tao's (J_y - J_z) is an artefact of his inertial-frame tilt-
+        // angle definition (Eq.1/2) or an error is left for a later analysis.
+        {
+            value_t const thd0 = 1.0; // theta-dot [rad/s]
+            dynamic_system3dp sys;
+            auto const ix = build_tao_spindle(sys, p, {}, omega, {0, 0, 0, thd0, 0});
+            value_t const phidd = sys.joint_accel(ix.jph);
+            value_t const coupling =
+                p.Jz / p.Jx * omega;                     // textbook (J_z/J_t)*omega [1/s]
+            value_t const split = coupling / (2.0 * pi); // whirl split [Hz]
+            fmt::println(
+                "  gyroscopic: phi-dd/theta-dot = {:.4f} (textbook (Jz/Jx)*omega "
+                "= {:.4f}); whirl split = {:.2f} Hz  [Tao Eq.13 -> ~{:.0f} Hz; "
+                "deviation flagged]",
+                phidd / thd0, coupling, split, f_s);
+            CHECK(std::abs(phidd / thd0) == doctest::Approx(coupling).epsilon(1e-3));
+        }
+
+        // --- Centrifugal unbalance forcing: x-dd at rest, spin on ---------------------
+        // Eq.13 x-equation: m x-dd + ... = m e omega^2 sin(omega t) + F_x. At t=0 (cm
+        // offset along the spin-axis radial, x=0, x-dot=0, no grinding force) the radial
+        // acceleration the lib returns must be the centrifugal forcing / mass = e
+        // omega^2.
+        {
+            dynamic_system3dp sys;
+            auto const ix = build_tao_spindle(sys, p, {}, omega); // only spin, all q=0
+            value_t const xdd = sys.joint_accel(ix.jx);
+            value_t const ydd = sys.joint_accel(ix.jy);
+            value_t const pred = p.e * omega * omega; // m e omega^2 / m
+            fmt::println("  centrifugal: x-dd = {:.5f} m/s^2 (predicted e*omega^2 = "
+                         "{:.5f}); y-dd = {:.2e}",
+                         xdd, pred, ydd);
+            CHECK(std::abs(xdd) == doctest::Approx(pred).epsilon(1e-3));
+            CHECK(std::abs(ydd) < 1e-3 * pred); // forcing is along x at this spin phase
+        }
+
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: Tao spindle - axial runout z_b = z - R_w*phi (Phase C.4)")
+    {
+        fmt::println("pga3dp: Tao spindle - axial runout z_b (Eq.14, Phase C.4)");
+
+        // Eq.14: the total wheel-wafer axial displacement at the grinding rim is
+        //   z_b = z - R_w * phi
+        // -- the axial DOF z plus the rim's axial swing under tilt phi (a point at radius
+        // R_w tips out of the grinding plane by R_w*phi). z_b is THE surface-error driver
+        // in Tao's model (it sets the grinding-mark depth, Eq.26). We put the spindle in
+        // a known (z, phi) configuration and confirm the world axial position of a rim
+        // point at radius R_w, computed by the GA model, equals z - R_w*phi.
+        tao_spindle_params const p;
+        value_t const z0 = 1.0e-6, phi0 = 5.0e-6; // small axial offset + tilt [m, rad]
+        dynamic_system3dp sys;
+        build_tao_spindle(sys, p, {0, 0, z0, 0, phi0}); // z on Jz, phi on Jph
+        size_t const jz = sys.index_of("Jz"), jph = sys.index_of("Jph");
+
+        // world axial position of a rim point at radius R_w on the (non-spinning) housing
+        vec3dp const rim_w =
+            unitize(move3dp(vec3dp{p.Rw, 0.0, 0.0, 1.0}, sys.get_pos_trafo("Jph", "W")));
+        value_t const zb_model = rim_w.z; // from the GA pose
+        value_t const zb_eq14 = sys.joint_phi(jz) - p.Rw * std::sin(sys.joint_phi(jph));
+        value_t const zb_lin = z0 - p.Rw * phi0; // Eq.14 (small angle)
+        fmt::println("  z = {:.3e}, phi = {:.3e} -> z_b(model) = {:.4e}, z_b(Eq.14) = "
+                     "{:.4e} (linear {:.4e})",
+                     z0, phi0, zb_model, zb_eq14, zb_lin);
+        CHECK(zb_model ==
+              doctest::Approx(zb_eq14).epsilon(1e-9)); // GA pose == z - R_w sin(phi)
+        CHECK(zb_model ==
+              doctest::Approx(zb_lin).epsilon(1e-3)); // == Eq.14 to small angle
+
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: Tao wheel-spindle (Phase C)")

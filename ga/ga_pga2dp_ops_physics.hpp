@@ -937,6 +937,25 @@ struct joint_state2dp {
     value_t q_rest{0.0};    // spring rest coordinate q0
 };
 
+// A GROUNDED spatial spring + damper (2D twin of grounded_spring3dp): a linear
+// spring/damper tying a body-fixed point P (anchor_b, body frame) to a fixed anchor P0
+// (p0_world) in the inertial frame. Configuration-dependent -- at every sub-step it reads
+// the live world position/velocity of P and produces the restoring force (world axes,
+// anisotropic stiffness)
+//
+//     F = -[k.x dx, k.y dy] - c v_P ,   d = P_world - P0 ,   v_P = point velocity
+//
+// applied as the force line (wrench) wdg(P_world, F). The wrench acts at the physical
+// attachment point, so a translational stiffness AND a tilt stiffness (lever arm of P
+// about the body origin) emerge from one element. Contributes its potential
+// 1/2 (k.x dx^2 + k.y dy^2) to potential_energy(); the damper is dissipative.
+struct grounded_spring2dp {
+    vec2dp anchor_b{O_2dp};  // body-fixed attachment point (z = 1, body frame)
+    vec2dp p0_world{O_2dp};  // inertial anchor / rest position (z = 1, world frame)
+    vec2dp k{0.0, 0.0, 0.0}; // anisotropic stiffness along world e1/e2
+    value_t c{0.0};          // linear (isotropic) damping on the point velocity
+};
+
 
 class dynamic_system2dp : public kinematic_system2dp {
 
@@ -974,6 +993,12 @@ class dynamic_system2dp : public kinematic_system2dp {
         value_t q0{0.0};   // q at t = 0
     };
     std::unordered_map<size_t, driven_spec> driven_;
+
+    // Optional GROUNDED spatial springs/dampers per frame (a frame may carry several).
+    // Configuration-dependent: their restoring wrench is recomputed from the live
+    // pose/velocity at each RK4 sub-step, so it is folded into assemble_mass_bias like an
+    // applied wrench, NOT prescribed as a function of time. See grounded_spring2dp.
+    std::unordered_map<size_t, std::vector<grounded_spring2dp>> springs_;
 
   public:
 
@@ -1072,6 +1097,26 @@ class dynamic_system2dp : public kinematic_system2dp {
         joint[idx].q_rest = q0;
     }
 
+    // Attach a GROUNDED spatial spring + damper to frame `idx`: a body-fixed point
+    // `anchor_b` (body frame, z = 1) tied to the inertial anchor `p0_world` by
+    // anisotropic stiffness `k` (world axes) and isotropic damping `c`. If `p0_world` is
+    // omitted the current world position of the attachment point is taken as the rest
+    // position. A frame may carry several. See grounded_spring2dp for the force law.
+    void add_grounded_spring(size_t idx, vec2dp const& anchor_b, vec2dp const& k,
+                             value_t c = 0.0)
+    {
+        vec2dp const p0 = unitize(move2dp(anchor_b, get_pos_trafo(idx, 0)));
+        springs_[idx].push_back(grounded_spring2dp{anchor_b, p0, k, c});
+    }
+
+    void add_grounded_spring(size_t idx, vec2dp const& anchor_b, vec2dp const& p0_world,
+                             vec2dp const& k, value_t c)
+    {
+        springs_[idx].push_back(grounded_spring2dp{anchor_b, p0_world, k, c});
+    }
+
+    void clear_grounded_springs(size_t idx) { springs_.erase(idx); }
+
     // Current angular acceleration of revolute joint `idx`, from the COUPLED joint-space
     // forward dynamics at the present state (no integration).
     value_t joint_accel(size_t idx)
@@ -1138,6 +1183,15 @@ class dynamic_system2dp : public kinematic_system2dp {
             // joint-spring potential 1/2 k (q - q0)^2 (zero unless a spring is attached)
             value_t const dq = joint[i].phi - joint[i].q_rest;
             pe += 0.5 * joint[i].stiffness * dq * dq;
+        }
+        // grounded-spring potential 1/2 (k.x dx^2 + k.y dy^2)
+        for (auto const& [fi, sps] : springs_) {
+            auto const M = get_pos_trafo(fi, 0);
+            for (auto const& sp : sps) {
+                vec2dp const P = unitize(move2dp(sp.anchor_b, M));
+                vec2dp const d = P - sp.p0_world;
+                pe += 0.5 * (sp.k.x * d.x * d.x + sp.k.y * d.y * d.y);
+            }
         }
         return pe;
     }
@@ -1343,32 +1397,44 @@ class dynamic_system2dp : public kinematic_system2dp {
         for (size_t k = 0; k < n; ++k)
             set_accel_twist(rj[k], twist2dp{0.0, 0.0, 0.0});
 
-        std::vector<vec2dp> S(n), cm(n), bcm(n);
-        std::vector<mvec2dp_u> Minv(
-            n); // world -> body i motor (pulls a twist into body i)
-        std::vector<value_t> mass(n);
-        for (size_t i = 0; i < n; ++i) {
-            size_t const fi = rj[i];
-            auto const M = get_pos_trafo(fi, 0);
+        // World joint screws of the dof coordinates (the n unknowns).
+        std::vector<vec2dp> S(n);
+        for (size_t j = 0; j < n; ++j)
+            S[j] = move2dp(joint[rj[j]].screw_b, get_pos_trafo(rj[j], 0));
+
+        // Inertia-bearing bodies: the dof joints AND the kinematically DRIVEN joints. A
+        // driven joint is a MOVING BASE -- its body inertia still loads its ancestor dof
+        // joints and its prescribed velocity feeds their centripetal/Coriolis bias.
+        // Omitting driven bodies would silently drop their inertia (and make the mass
+        // matrix singular if a driven joint carries the only inertia below a dof joint).
+        std::vector<size_t> bl(rj);
+        for (auto const& [idx, d] : driven_)
+            bl.push_back(idx);
+        size_t const nb = bl.size();
+
+        std::vector<vec2dp> cm(nb), bcm(nb);
+        std::vector<mvec2dp_u> Minv(nb); // world -> body i motor
+        std::vector<value_t> mass(nb);
+        for (size_t i = 0; i < nb; ++i) {
+            size_t const fb = bl[i];
+            auto const M = get_pos_trafo(fb, 0);
             cm[i] = move2dp(O_2dp, M);
-            bcm[i] = point_acceleration(cm[i], fi); // bias cm accel (rel_atwist = 0)
-            S[i] = move2dp(joint[fi].screw_b, M);   // world joint screw (unit rate)
+            bcm[i] = point_acceleration(cm[i], fb); // bias cm accel (rel_atwist = 0)
             Minv[i] = rrev(M);
-            mass[i] = body[fi].mass;
+            mass[i] = body[fb].mass;
         }
 
         std::vector<value_t> Mmat(n * n, 0.0), RHS(n, 0.0);
         for (size_t j = 0; j < n; ++j) {
-            for (size_t i = 0; i < n; ++i) { // contribution of body i to coordinate j
-                if (!is_ancestor(rj[j], rj[i])) continue;
+            for (size_t i = 0; i < nb; ++i) { // contribution of body i to coordinate j
+                if (!is_ancestor(rj[j], bl[i])) continue;
                 vec2dp const vj = velocity_field(S[j], cm[i]); // rcmt(S_j, cm_i)
                 RHS[j] += mass[i] * (vj.x * grav.x + vj.y * grav.y) -
                           mass[i] * (vj.x * bcm[i].x + vj.y * bcm[i].y);
-                auto const& I =
-                    body[rj[i]].I; // inertia map about body i's cm (body frame)
+                auto const& I = body[bl[i]].I; // inertia about body i's cm (body frame)
                 twist2dp const xj = move2dp(S[j], Minv[i]); // joint-j screw in body i
                 for (size_t k = 0; k < n; ++k) {
-                    if (!is_ancestor(rj[k], rj[i])) continue;
+                    if (!is_ancestor(rj[k], bl[i])) continue;
                     twist2dp const xk = move2dp(S[k], Minv[i]);
                     // inertia-map quadratic form: carries mass + angular term uniformly
                     // (no S.z split), and is the form that lifts unchanged to 3D.
@@ -1395,6 +1461,25 @@ class dynamic_system2dp : public kinematic_system2dp {
             bivec2dp const W = fn(time_);
             for (size_t j = 0; j < n; ++j)
                 if (is_ancestor(rj[j], fi)) RHS[j] += spatial_dot(S[j], W);
+        }
+
+        // grounded spatial springs/dampers: for each spring on frame fi, the live world
+        // attachment point P and its velocity v_P give the restoring force F (world-axis
+        // anisotropic stiffness + isotropic damping); the force line wdg(P, F) is the
+        // wrench, projected onto every supporting joint screw. Recomputed from state here
+        // (not a function of time) -- the configuration-dependent path.
+        for (auto const& [fi, sps] : springs_) {
+            auto const M = get_pos_trafo(fi, 0);
+            twist2dp const Vw = twist_world(fi); // world velocity twist of frame fi
+            for (auto const& sp : sps) {
+                vec2dp const P = unitize(move2dp(sp.anchor_b, M)); // world point (z = 1)
+                vec2dp const v = velocity_field(Vw, P);            // world point velocity
+                vec2dp const F{-sp.k.x * (P.x - sp.p0_world.x) - sp.c * v.x,
+                               -sp.k.y * (P.y - sp.p0_world.y) - sp.c * v.y, 0.0};
+                bivec2dp const W = wdg(P, F);
+                for (size_t j = 0; j < n; ++j)
+                    if (is_ancestor(rj[j], fi)) RHS[j] += spatial_dot(S[j], W);
+            }
         }
         return {std::move(Mmat), std::move(RHS)};
     }

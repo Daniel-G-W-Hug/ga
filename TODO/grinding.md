@@ -81,15 +81,68 @@ on the bound-struct field-addition ga_py hand-sync trap (+ the side-map avoidanc
 
 **PHASES A.1 / A.2 / A.3 COMPLETE — the force-element + driven-joint tier is done (2D+3D).**
 
-**RESUME HERE (next session) → Phase C: Tao 5-DOF spindle.** Build the 6-joint stack on the
-Fig.-1 tree: 3 prismatic (x,y,z) + 2 revolute (θ,φ) all spring/damper-mounted to ground via
-`set_joint_spring_damper`; the wheel spin as a **driven** revolute `set_driven_rate(spin,Ω)`;
-the prescribed infeed `x_a(t)` as a **driven** prismatic. Inertia on the spindle body; the
-unbalance via an offset cm (or explicit `set_applied_wrench`). Reproduce Eq.(13) responses +
-Fig.4 characteristic freqs `f_x,f_z,f_θ,f_φ`; derive `z_b` from a rim point; calibrate to the
-measured data. Gyroscopic tilt coupling `(J_y−J_z)ωφ̇` should emerge from rigid-body Euler
-dynamics. (Still open, off critical path: **B.2** emergent offset-cm `m·e·Ω²` check — now
-trivial with the driven spin, an elegance/cross-check; **Phase 0.c** CS-view, deferred.)
+**Phase C DONE 2026-06-16 (Tao 5-DOF spindle, UNCOMMITTED).** Built the 6-joint stack
+(3 prismatic x,y,z + 2 revolute θ,φ vibration DOFs on massless frames + a revolute SPIN
+joint carrying the rotor body with cm offset `e` from the spin axis). Bearings modelled with
+a NEW force element (see C.1) on the NON-spinning housing (the φ frame): two radial springs
+at axial `±Lb` give the full radial stiffness AND — via the lever arm — the emergent tilt
+stiffness; one axial spring at the cm gives the axial stiffness. Spin is a **driven**
+(motor-clamped, Ω̈=0) joint. Tests in `ga_appl3dp_physics_test.hpp`
+(`TEST_SUITE("PGA3DP: Tao wheel-spindle (Phase C)")`); 2D parity of the C.1 primitive in
+`ga_appl2dp_physics_test.hpp`. Suites green: appl2dp 50/539, appl3dp 42/9168, pga 169/2758.
+**No ga_py change** (the new element + the library fix are internal to `dynamic_system`,
+which is unbound).
+
+- **C.1 — grounded spatial spring/damper element** (the headline capability). New
+  `grounded_spring{2,3}dp` + `add_grounded_spring(idx, anchor_b, [p0_world,] k, c)` on
+  `dynamic_system{2,3}dp`: a body-fixed point tied to a ground anchor by anisotropic
+  (world-axis) stiffness `k` + isotropic damping `c`. CONFIGURATION-dependent — its restoring
+  wrench `wdg(P, F)` is recomputed from the live pose/velocity each RK4 sub-step (folded into
+  `assemble_mass_bias`, NOT a function of time like `set_applied_wrench`); contributes its
+  potential to `potential_energy()`. Because the wrench acts at the physical point, ONE spring
+  yields both a translational stiffness and (via its lever arm) a tilt stiffness `k·l²`.
+  Gate: emergent translational `k` + emergent tilt `k·l²`, 3D+2D, exact.
+- **C.2 — characteristic frequencies.** f_x=2387, f_z=5485 (FIRST-PRINCIPLES, table
+  stiffnesses, Eqs 16/17), f_θ0=6702 (calibrated, see deviation #1). All emerge from the
+  assembled dynamics.
+- **C.3 — centrifugal + gyroscopic.** Centrifugal `ẍ = −e·ω² = −0.19739 m/s²` EXACT (offset
+  cm). Gyroscopic coupling `φ̈/θ̇ = (J_z/Jₓ)·ω` EXACT (textbook polar-inertia rotordynamics).
+- **C.4 — z_b = z − R_w·φ** (Eq.14), the surface-error driver: the GA rim-point axial position
+  equals `z − R_w·φ` exactly.
+
+**LIBRARY FIX (2026-06-16, part of Phase C): driven-joint inertia as a moving base.**
+`assemble_mass_bias` summed inertia only over the dof joints, so a body on a *driven* joint
+had its inertia SILENTLY DROPPED (→ singular mass matrix when the driven joint carried the
+only inertia below a dof joint — exactly the spindle's clamped spin). Fixed in both
+`ga_pga{2,3}dp_ops_physics.hpp`: the body list is now `dof joints ∪ driven joints`, each
+projected onto its ANCESTOR dof joints. Purely ADDITIVE (a driven *base* with no dof joints
+above it — e.g. the A.3 spinning slider — is unaffected); all suites stayed green. This is a
+genuine latent-bug fix, INDEPENDENT of the modelling deviations below.
+
+**THREE DEVIATIONS from Tao's lumped Eq.13, all FLAGGED in code comments (NOT silently
+corrected) — root causes NOT understood, dedicated analysis is the next task:**
+
+1. **Tilt stiffness** — Tao's `(kₓ+k_y)(l1²+l2²)` is ~4× a consistent two-spring lever-arm
+   model (where translation must equal kₓ). To match Fig.4's f_θ we CALIBRATE the radial-
+   bearing offset to `Lb = sqrt(K_tilt/kₓ) ≈ 0.231 m` (≈2× the table's l1=0.1). Confirmed NOT
+   caused by units (strict SI) or by `e` (2 µm; the ±e in l1,l2 shifts l1²+l2² by <1e-7).
+2. **Gyroscopic coupling** — the GA model gives the textbook polar-inertia coupling `J_z·ω`
+   (forward/backward whirl split `(J_z/Jₓ)ω ≈ 1.76 Hz`); Tao's Eq.13 uses `(J_y−J_z)ω ≈ Jₓ·ω`
+   (the TRANSVERSE inertia → his ±f_s/2 ≈ 25 Hz). The GA result matches standard
+   rotordynamics; Tao's does not.
+3. Both #1 and #2 point at the same theme: Tao's hand-lumped SCALAR Eq.13 coefficients do not
+   cleanly reduce from consistent rigid-body mechanics — possibly artifacts of his
+   inertial-frame tilt-angle definitions (Eqs 1/2), possibly errors.
+
+**RESUME HERE (next session) → deferred ANALYSIS: derive Tao Eq.13 from the GA rigid-body
+model** to pin down where the factor-~4 tilt stiffness and the `J_z`-vs-`(J_y−J_z)` gyroscopic
+coefficient come from (carefully matching his Eq.1/2 angle parameterization to the
+body-sequential joint coordinates). Decide whether each is an artifact of coordinate choice or
+a paper error; then either re-derive `Lb` from first principles or document the convention.
+THEN continue the roadmap: contact/force loop (grinding force ↔ vibration ↔ `z_b` ↔ depth ↔
+MRR) and feed/speed optimization. (Still open, off critical path: **B.2** offset-cm `m·e·Ω²`
+elegance check — now subsumed by C.3's exact centrifugal result; **Phase 0.c** CS-view,
+deferred.)
 
 **RESOLVED (2026-06-14): static-vs-feed = PRESCRIBED INFEED.** The spindle carries a
 steady prescribed translation (axial infeed `x_a` along −e1 and/or radial traverse) ON TOP

@@ -3646,6 +3646,66 @@ TEST_SUITE("PGA2DP: physics tests implementation")
         fmt::println("");
     }
 
+    TEST_CASE("pga2dp: grounded spring/damper - stiffness emergence (Phase C.1)")
+    {
+        fmt::println(
+            "pga2dp: dynamic_system2dp - grounded spring stiffness emergence (C.1)");
+
+        // 2D twin of the 3D C.1 gate: the grounded spatial spring (add_grounded_spring)
+        // yields a translational stiffness, and -- via its lever arm -- a tilt stiffness.
+
+        // Gate 1: translational stiffness == k, free response == x0 cos(wn t).
+        {
+            value_t const m = 2.0, k = 800.0, x0 = 0.01;
+            value_t const wn = std::sqrt(k / m);
+            dynamic_system2dp sys;
+            sys.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            sys.add_frame(static_frame2dp("W"));
+            sys.add_prismatic_body(static_frame2dp("B"), make_plate_body(m, 0.1, 0.1),
+                                   vec2dp{1.0, 0.0, 0.0}, x0, 0.0);
+            sys.add_grounded_spring(1, O_2dp, O_2dp, vec2dp{k, 0.0, 0.0}, 0.0);
+
+            value_t const k_emergent = -sys.mass_matrix()[0] * sys.joint_accel(1) / x0;
+            fmt::println("  Gate1 translational: k_emergent = {:.4f} (k = {:.1f})",
+                         k_emergent, k);
+            CHECK(k_emergent == doctest::Approx(k));
+
+            value_t const dt = 1.0e-4;
+            value_t t = 0.0, max_err = 0.0;
+            for (size_t nstep = 1; nstep <= 30000; ++nstep) {
+                sys.step(dt);
+                t += dt;
+                max_err =
+                    std::max(max_err, std::abs(sys.joint_phi(1) - x0 * std::cos(wn * t)));
+            }
+            fmt::println("  Gate1 free response: max|q - x0 cos(wn t)| = {:.2e}",
+                         max_err);
+            CHECK(max_err < 1e-9);
+        }
+
+        // Gate 2: tilt stiffness from the lever arm == k * l^2 -- a perpendicular spring
+        // at radial offset l on a body that rotates about the origin gives k_theta = k
+        // l^2.
+        {
+            value_t const k = 1000.0, l = 0.1, th0 = 1.0e-4;
+            dynamic_system2dp sys;
+            sys.set_gravity(vec2dp{0.0, 0.0, 0.0});
+            sys.add_frame(static_frame2dp("W"));
+            sys.add_revolute_body(static_frame2dp("B"), make_plate_body(1.0, 0.4, 0.05),
+                                  O_2dp, th0, 0.0);
+            sys.add_grounded_spring(1, vec2dp{l, 0.0, 1.0}, vec2dp{l, 0.0, 1.0},
+                                    vec2dp{0.0, k, 0.0}, 0.0);
+
+            value_t const ktheta_emergent =
+                -sys.mass_matrix()[0] * sys.joint_accel(1) / th0;
+            fmt::println("  Gate2 tilt: k_theta_emergent = {:.5f} (k l^2 = {:.5f})",
+                         ktheta_emergent, k * l * l);
+            CHECK(ktheta_emergent == doctest::Approx(k * l * l).epsilon(1e-3));
+        }
+
+        fmt::println("");
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////
     // closed_loop_system2dp -- Phase 1 (position-level assembly): the planar FOUR-BAR
     // linkage, the canonical 1-DOF closed loop. As a spanning tree it is two branches off

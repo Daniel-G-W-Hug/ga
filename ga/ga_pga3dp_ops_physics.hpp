@@ -894,6 +894,28 @@ struct joint_state3dp {
     value_t q_rest{0.0};    // spring rest coordinate q0
 };
 
+// A GROUNDED spatial spring + damper: a linear spring/damper connecting a body-fixed
+// attachment point P (anchor_b, in the body frame) to a fixed anchor P0 (p0_world) in the
+// inertial frame -- an aerostatic bearing / bushing. Unlike joint_state3dp's
+// spring-on-a-coordinate, this is a CONFIGURATION-dependent force element: at every
+// sub-step it reads the live world position/velocity of P and produces the restoring
+// force (world axes, anisotropic stiffness)
+//
+//     F = -[k.x dx, k.y dy, k.z dz] - c v_P ,   d = P_world - P0 ,   v_P = point velocity
+//
+// applied as the force line (wrench) wdg(P_world, F). Because the wrench acts at the
+// physical attachment point, BOTH the translational stiffness AND the tilt stiffness
+// (lever arm of P about the body origin) emerge geometrically from one element -- e.g. a
+// spindle's radial bearings at axial stations +-l give a tilt stiffness ~ k l^2 without
+// any separate torsional spring. The spring also contributes its potential
+// 1/2 (k.x dx^2 + k.y dy^2 + k.z dz^2) to potential_energy(); the damper is dissipative.
+struct grounded_spring3dp {
+    vec3dp anchor_b{O_3dp};       // body-fixed attachment point (w = 1, body frame)
+    vec3dp p0_world{O_3dp};       // inertial anchor / rest position (w = 1, world frame)
+    vec3dp k{0.0, 0.0, 0.0, 0.0}; // anisotropic stiffness along world e1/e2/e3
+    value_t c{0.0};               // linear (isotropic) damping on the point velocity
+};
+
 
 class dynamic_system3dp : public kinematic_system3dp {
 
@@ -932,6 +954,13 @@ class dynamic_system3dp : public kinematic_system3dp {
         value_t q0{0.0};   // q at t = 0
     };
     std::unordered_map<size_t, driven_spec> driven_;
+
+    // Optional GROUNDED spatial springs/dampers per frame (a frame may carry several -- a
+    // spindle has two radial bearings + an axial bearing). Configuration-dependent: their
+    // restoring wrench is recomputed from the live pose/velocity at each RK4 sub-step, so
+    // it is folded into assemble_mass_bias (the q-ddot-dependent path) like an applied
+    // wrench, NOT prescribed as a function of time. See grounded_spring3dp.
+    std::unordered_map<size_t, std::vector<grounded_spring3dp>> springs_;
 
   public:
 
@@ -1036,6 +1065,28 @@ class dynamic_system3dp : public kinematic_system3dp {
         joint[idx].q_rest = q0;
     }
 
+    // Attach a GROUNDED spatial spring + damper to frame `idx`: a body-fixed point
+    // `anchor_b` (body frame, w = 1) tied to the inertial anchor `p0_world` by
+    // anisotropic stiffness `k` (world axes) and isotropic damping `c`. If `p0_world` is
+    // omitted the current world position of the attachment point (the present
+    // configuration) is taken as the rest position. A frame may carry several (returns
+    // nothing; call repeatedly). See grounded_spring3dp for the force law and why tilt
+    // stiffness emerges.
+    void add_grounded_spring(size_t idx, vec3dp const& anchor_b, vec3dp const& k,
+                             value_t c = 0.0)
+    {
+        vec3dp const p0 = unitize(move3dp(anchor_b, get_pos_trafo(idx, 0)));
+        springs_[idx].push_back(grounded_spring3dp{anchor_b, p0, k, c});
+    }
+
+    void add_grounded_spring(size_t idx, vec3dp const& anchor_b, vec3dp const& p0_world,
+                             vec3dp const& k, value_t c)
+    {
+        springs_[idx].push_back(grounded_spring3dp{anchor_b, p0_world, k, c});
+    }
+
+    void clear_grounded_springs(size_t idx) { springs_.erase(idx); }
+
     // Current acceleration of joint `idx`, from the COUPLED joint-space forward dynamics
     // at the present state (no integration).
     value_t joint_accel(size_t idx)
@@ -1102,6 +1153,16 @@ class dynamic_system3dp : public kinematic_system3dp {
             // joint-spring potential 1/2 k (q - q0)^2 (zero unless a spring is attached)
             value_t const dq = joint[i].phi - joint[i].q_rest;
             pe += 0.5 * joint[i].stiffness * dq * dq;
+        }
+        // grounded-spring potential 1/2 (k.x dx^2 + k.y dy^2 + k.z dz^2)
+        for (auto const& [fi, sps] : springs_) {
+            auto const M = get_pos_trafo(fi, 0);
+            for (auto const& sp : sps) {
+                vec3dp const P = unitize(move3dp(sp.anchor_b, M));
+                vec3dp const d = P - sp.p0_world;
+                pe +=
+                    0.5 * (sp.k.x * d.x * d.x + sp.k.y * d.y * d.y + sp.k.z * d.z * d.z);
+            }
         }
         return pe;
     }
@@ -1321,37 +1382,53 @@ class dynamic_system3dp : public kinematic_system3dp {
         for (size_t k = 0; k < n; ++k)
             set_accel_twist(rj[k], twist3dp{});
 
-        std::vector<twist3dp> S(n); // world joint screws (a bivec3dp twist, unit rate)
-        std::vector<vec3dp> cm(n);  // body cm in world
-        std::vector<mvec3dp_e> Minv(n); // world -> body i motor
-        std::vector<twist3dp> Fbias(n); // body-frame spatial bias wrench
-        std::vector<value_t> mass(n);
-        for (size_t i = 0; i < n; ++i) {
-            size_t const fi = rj[i];
-            auto const M = get_pos_trafo(fi, 0);
+        // World joint screws of the dof coordinates (the n unknowns).
+        std::vector<twist3dp> S(n);
+        for (size_t j = 0; j < n; ++j)
+            S[j] = move3dp(joint[rj[j]].screw_b, get_pos_trafo(rj[j], 0));
+
+        // Inertia-bearing bodies of the articulated chain: the dof joints AND the
+        // kinematically DRIVEN joints. A driven joint is a MOVING BASE -- its body
+        // inertia still loads its ancestor dof joints (mass matrix) and its prescribed
+        // velocity feeds their Newton-Euler bias, so a spinning driven rotor produces the
+        // gyroscopic / clamped dynamics (Omega-ddot = 0). Omitting driven bodies here
+        // would silently drop their inertia (and, if a driven joint carries the only
+        // inertia below a dof joint, make the mass matrix singular). Its relative
+        // acceleration is zero (constant rate, apply_driven_joints), so the bias is pure
+        // velocity-product.
+        std::vector<size_t> bl(rj);
+        for (auto const& [idx, d] : driven_)
+            bl.push_back(idx);
+        size_t const nb = bl.size();
+
+        std::vector<vec3dp> cm(nb);      // body cm in world
+        std::vector<mvec3dp_e> Minv(nb); // world -> body i motor
+        std::vector<twist3dp> Fbias(nb); // body-frame spatial bias wrench
+        std::vector<value_t> mass(nb);
+        for (size_t i = 0; i < nb; ++i) {
+            size_t const fb = bl[i];
+            auto const M = get_pos_trafo(fb, 0);
             cm[i] = move3dp(O_3dp, M);
             Minv[i] = rrev(M);
-            S[i] = move3dp(joint[fi].screw_b, M); // world joint screw (unit rate)
-            mass[i] = body[fi].mass;
+            mass[i] = body[fb].mass;
             // body-frame velocity / bias-acceleration twists + the spatial bias wrench
-            twist3dp const Vb = move3dp(twist_world(fi), Minv[i]);
-            twist3dp const Ab = move3dp(accel_twist_world(fi), Minv[i]); // rel_atwist = 0
-            auto const& I = body[fi].I;
+            twist3dp const Vb = move3dp(twist_world(fb), Minv[i]);
+            twist3dp const Ab = move3dp(accel_twist_world(fb), Minv[i]); // rel_atwist = 0
+            auto const& I = body[fb].I;
             Fbias[i] = I(Ab) + rcmt(Vb, I(Vb)); // I*A_bias + gyroscopic V x* (I V)
         }
 
         std::vector<value_t> Mmat(n * n, 0.0), RHS(n, 0.0);
         for (size_t j = 0; j < n; ++j) {
-            for (size_t i = 0; i < n; ++i) { // contribution of body i to coordinate j
-                if (!is_ancestor(rj[j], rj[i])) continue;
+            for (size_t i = 0; i < nb; ++i) { // contribution of body i to coordinate j
+                if (!is_ancestor(rj[j], bl[i])) continue;
                 vec3dp const vj = velocity_field(S[j], cm[i]); // cm velocity, unit rate j
                 twist3dp const xj = move3dp(S[j], Minv[i]);    // joint-j screw in body i
                 RHS[j] += mass[i] * (vj.x * grav.x + vj.y * grav.y + vj.z * grav.z) -
                           spatial_dot(xj, Fbias[i]);
-                auto const& I =
-                    body[rj[i]].I; // inertia map about body i's cm (body frame)
+                auto const& I = body[bl[i]].I; // inertia about body i's cm (body frame)
                 for (size_t k = 0; k < n; ++k) {
-                    if (!is_ancestor(rj[k], rj[i])) continue;
+                    if (!is_ancestor(rj[k], bl[i])) continue;
                     twist3dp const xk = move3dp(S[k], Minv[i]);
                     Mmat[j * n + k] += spatial_dot(xj, I(xk));
                 }
@@ -1376,6 +1453,26 @@ class dynamic_system3dp : public kinematic_system3dp {
             bivec3dp const W = fn(time_);
             for (size_t j = 0; j < n; ++j)
                 if (is_ancestor(rj[j], fi)) RHS[j] += spatial_dot(S[j], W);
+        }
+
+        // grounded spatial springs/dampers: for each spring on frame fi, the live world
+        // attachment point P and its velocity v_P give the restoring force F (world-axis
+        // anisotropic stiffness + isotropic damping); the force line wdg(P, F) is the
+        // wrench, projected onto every supporting joint screw. Recomputed from state here
+        // (not a function of time) -- this is the configuration-dependent path.
+        for (auto const& [fi, sps] : springs_) {
+            auto const M = get_pos_trafo(fi, 0);
+            twist3dp const Vw = twist_world(fi); // world velocity twist of frame fi
+            for (auto const& sp : sps) {
+                vec3dp const P = unitize(move3dp(sp.anchor_b, M)); // world point (w = 1)
+                vec3dp const v = velocity_field(Vw, P);            // world point velocity
+                vec3dp const F{-sp.k.x * (P.x - sp.p0_world.x) - sp.c * v.x,
+                               -sp.k.y * (P.y - sp.p0_world.y) - sp.c * v.y,
+                               -sp.k.z * (P.z - sp.p0_world.z) - sp.c * v.z, 0.0};
+                bivec3dp const W = wdg(P, F);
+                for (size_t j = 0; j < n; ++j)
+                    if (is_ancestor(rj[j], fi)) RHS[j] += spatial_dot(S[j], W);
+            }
         }
         return {std::move(Mmat), std::move(RHS)};
     }
