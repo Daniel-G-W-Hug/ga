@@ -119,8 +119,16 @@ projected onto its ANCESTOR dof joints. Purely ADDITIVE (a driven *base* with no
 above it — e.g. the A.3 spinning slider — is unaffected); all suites stayed green. This is a
 genuine latent-bug fix, INDEPENDENT of the modelling deviations below.
 
-**THREE DEVIATIONS from Tao's lumped Eq.13, all FLAGGED in code comments (NOT silently
-corrected) — root causes NOT understood, dedicated analysis is the next task:**
+**THREE DEVIATIONS from Tao's lumped Eq.13 — RESOLVED 2026-06-17, full derivation in
+[tao_eq13_derivation.md](tao_eq13_derivation.md). Both are PAPER ERRORS, not coordinate
+artifacts nor GA-model gaps; the GA model gives the physically correct coefficients.
+Summary: (1) tilt stiffness is 4× too large = 2 [Tao adds k_y, but a tilt about y is
+resisted only by the x-springs] × 2 [k_x is the TOTAL of two parallel bearings (pinned by
+f_x), so per-bearing is k_x/2] — so Lb≈0.231 m just absorbs the 4×, and the real f_θ is
+~34% lower. (2) Gyroscopic (J_y−J_z)ω is Tao dropping the kinematic frame-rotation term
++J_t ω φ̇ from d/dt(J ω_c); the correct coupling is the polar J_z ω (matches the C.3 gate
+φ̈/θ̇=(J_z/J_x)ω and standard rotordynamics). Original flagged text retained below for
+context:**
 
 1. **Tilt stiffness** — Tao's `(kₓ+k_y)(l1²+l2²)` is ~4× a consistent two-spring lever-arm
    model (where translation must equal kₓ). To match Fig.4's f_θ we CALIBRATE the radial-
@@ -134,13 +142,18 @@ corrected) — root causes NOT understood, dedicated analysis is the next task:*
    cleanly reduce from consistent rigid-body mechanics — possibly artifacts of his
    inertial-frame tilt-angle definitions (Eqs 1/2), possibly errors.
 
-**RESUME HERE (next session) → deferred ANALYSIS: derive Tao Eq.13 from the GA rigid-body
-model** to pin down where the factor-~4 tilt stiffness and the `J_z`-vs-`(J_y−J_z)` gyroscopic
-coefficient come from (carefully matching his Eq.1/2 angle parameterization to the
-body-sequential joint coordinates). Decide whether each is an artifact of coordinate choice or
-a paper error; then either re-derive `Lb` from first principles or document the convention.
-THEN continue the roadmap: contact/force loop (grinding force ↔ vibration ↔ `z_b` ↔ depth ↔
-MRR) and feed/speed optimization. (Still open, off critical path: **B.2** offset-cm `m·e·Ω²`
+**Eq.13 ANALYSIS DONE 2026-06-17** ([tao_eq13_derivation.md](tao_eq13_derivation.md)) —
+both deviations are paper errors, the GA model is correct, and `Lb` is now documented as
+absorbing Tao's 4× over-count (not a physical offset). Code comments updated to point at
+the derivation (no numeric code change needed). The doc also records the **falsifiable
+predictions**: corrections are tilt-only, so Figs. 4(c,d)/6(b)/15 and Eqs. 18/19/22 change
+(single tilt peak ~3.7–4.4 kHz, no spin-dependent ±f_s/2 split — which matches Tao's own
+"peaks same at 2250/2650 r/min" §4.2.1), while the x/y/z dynamics and the entire
+experimentally-validated topography half (§3/§4, Table 3) are unchanged (they use the
+*measured* f_b = 6253 Hz, not Eq.13's predicted frequency).
+
+**RESUME HERE (next session) → continue the roadmap: contact/force loop** (grinding force ↔
+vibration ↔ `z_b` ↔ cutting depth ↔ MRR, Eqs. 14/26) and feed/speed optimization. (Still open, off critical path: **B.2** offset-cm `m·e·Ω²`
 elegance check — now subsumed by C.3's exact centrifugal result; **Phase 0.c** CS-view,
 deferred.)
 

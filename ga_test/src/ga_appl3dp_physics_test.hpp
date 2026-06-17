@@ -1573,19 +1573,30 @@ TEST_SUITE("PGA3DP: closed_loop_system3dp")
 //   against the closed-form characteristic frequencies Eqs (15)-(19) and the centrifugal
 //   / gyroscopic structure of Eq. (13).
 //
-// UNRESOLVED -- the radial-bearing offset Lb is a CALIBRATION, not yet a first-principles
-// value. A physically consistent two-spring model whose combined radial stiffness equals
-// kx (so f_x matches) produces only ~1/4 of Tao's lumped tilt coefficient
-// (kx+ky)(l1^2+l2^2)+kz Rm^2 at the table's l1=l2=100 mm, i.e. f_theta would come out
-// ~34% low (~4430 vs ~6700 Hz). To make the EMERGENT tilt frequency match Fig. 4 we
-// calibrate the effective offset to Lb = sqrt(K_tilt/kx) ~ 231 mm (~2x the table's l1)
-// and let the radial bearings carry the full tilt stiffness. The ROOT CAUSE of the
-// factor-~4 stiffness gap is NOT understood: it may be a double-count in Tao's lumped
-// coefficient, a different bearing-stiffness convention, or a gap in our model -- this
-// calibration matches Fig. 4 WITHOUT explaining the discrepancy. A deeper analysis of Eqs
-// (7),(12),(13) vs. a distributed/physical bearing model is needed later to pin it down
-// (see TODO/grinding.md Phase C). Confirmed NOT caused by units (strict SI throughout) or
-// by e (the +-e in l1,l2 shifts l1^2+l2^2 by <1e-7).
+// Lb is a CALIBRATION, not a physical bearing offset -- and the reason is now understood
+// (derived in TODO/tao_eq13_derivation.md): Tao's lumped radial tilt stiffness
+// (kx+ky)(l1^2+l2^2) is a factor of 4 too large vs a consistent two-bearing model
+// (kx/2)(l1^2+l2^2). The 4x = 2 [Tao adds ky, but a tilt about y is resisted only by the
+// x-springs] x 2 [kx is the TOTAL radial stiffness of the two parallel bearings (pinned
+// by the f_x cross-check), so each bearing carries kx/2, not kx]. At the table's
+// l1=l2=100 mm a consistent model gives f_theta ~34% low (~4430 vs ~6700 Hz). We absorb
+// the over-count by inflating the lever to Lb = sqrt(K_tilt/kx) ~ 231 mm (~2.3x physical)
+// with two kx/2 springs at +-Lb, so the emergent tilt stiffness kx Lb^2 = K_tilt
+// reproduces Fig. 4. So Lb encodes Tao's 4x; the physical tilt frequency is really ~34%
+// lower. Confirmed NOT caused by units (strict SI throughout) or by e (the +-e in l1,l2
+// shifts l1^2+l2^2 by <1e-7). The GA model itself is correct -- it is Tao's coefficient
+// that does not reduce from rigid-body mechanics.
+//
+// FALSIFIABLE PREDICTIONS (where the corrected model parts from the paper -- both errors
+// are tilt-only, so x/y/z and all of section 3/4 are untouched; full note in
+// TODO/tao_eq13_derivation.md): (a) Fig. 4(c,d) and Fig. 6(b) -- a SINGLE tilt peak, not
+// the twin 6680/6727: the gyroscopic split is (Jz/Jt)*f_s ~ 1.76 Hz (unresolvable), and
+// the center sits ~30-40% lower (~3.7-4.4 kHz) for a consistent tilt stiffness. (b) Tao's
+// +-f_s/2 makes the peak SEPARATION grow with spin; his own measurement (sec 4.2.1: peaks
+// "the same under 2250 and 2650 r/min") says it does NOT -- which supports the corrected
+// (negligible-gyroscopic) picture and refutes Eq.13's gyroscopic origin. (c) Topography
+// results / experimental wavelengths (Table 3) are UNCHANGED: that half feeds the surface
+// model with the MEASURED f_b = 6253 Hz, never Eq.13's predicted frequency.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 namespace {
@@ -1608,9 +1619,10 @@ struct tao_spindle_params {
 
     // Tao's lumped tilt stiffness (Eq.12/18/19) and the CALIBRATED radial-bearing offset
     // that makes the emergent tilt stiffness (2 * (kx/2) * Lb^2 = kx Lb^2) equal it. Lb
-    // is a fit to Fig. 4, NOT a first-principles value: at the table's l1=l2 a consistent
-    // two-spring model gives ~1/4 of K_tilt. The reason for that factor is not yet
-    // understood (see the suite header + TODO/grinding.md) -- revisit.
+    // is a fit to Fig. 4, NOT a physical offset: at the table's l1=l2 a consistent
+    // two-bearing model gives 1/4 of Tao's radial K_tilt -- the factor-4 over-count is
+    // derived in
+    // TODO/tao_eq13_derivation.md (Tao adds ky and uses the total kx per bearing).
     value_t K_tilt() const { return (kx + kx) * (l1 * l1 + l2 * l2) + kz * Rm * Rm; }
     value_t Lb() const { return std::sqrt(K_tilt() / kx); }
 
@@ -1778,12 +1790,16 @@ TEST_SUITE("PGA3DP: Tao wheel-spindle (Phase C)")
         // inertia, so the clamped case runs; the value equals the free-spin case here
         // because the spin-DOF coupling to phi vanishes at this config.)
         //
-        // DEVIATION (flagged, root cause not understood -- see TODO/grinding.md): Tao's
-        // Eq.13 uses (J_y - J_z)*omega ~ J_x*omega (the TRANSVERSE inertia), giving his
-        // +-f_s/2 ~ 25 Hz split. That disagrees with both standard rotordynamics and this
-        // model, which give the much smaller polar-inertia whirl split (J_z/J_x)*omega ~
-        // 1.76 Hz. Whether Tao's (J_y - J_z) is an artefact of his inertial-frame tilt-
-        // angle definition (Eq.1/2) or an error is left for a later analysis.
+        // DEVIATION (now resolved -- derived in TODO/tao_eq13_derivation.md): Tao's Eq.13
+        // uses (J_y - J_z)*omega ~ J_x*omega (the TRANSVERSE inertia), giving his +-f_s/2
+        // ~ 25 Hz split. That disagrees with both standard rotordynamics and this model,
+        // which give the polar-inertia whirl split (J_z/J_x)*omega ~ 1.76 Hz. It is a
+        // PAPER ERROR, not an artefact of his Eq.1/2 angles: projecting the body-frame
+        // Euler equations onto theta,phi, the time derivative d/dt(J*omega_c) contributes
+        // a kinematic frame-rotation term +J_t*omega*phi-dot that combines with the
+        // cross-product term (J_z - J_t)*omega*phi-dot to leave the correct coupling
+        // J_z*omega. Tao dropped the +J_t*omega*phi-dot term, leaving (J_t - J_z) = (J_y
+        // - J_z). The GA model keeps the full derivative, so it is correct.
         {
             value_t const thd0 = 1.0; // theta-dot [rad/s]
             dynamic_system3dp sys;
