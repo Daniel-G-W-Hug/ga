@@ -3,9 +3,12 @@
 
 #include "doctest/doctest.h"
 
-#include <algorithm> // std::min, std::max
+#include <algorithm> // std::min, std::max, std::clamp
 #include <cmath>     // std::sin, std::cos, std::atan
 #include <limits>    // std::numeric_limits
+#include <random>    // std::mt19937, distributions (grain-size randomness)
+#include <utility>   // std::pair
+#include <vector>    // std::vector
 
 // include functions to be tested
 #include "ga/ga_ega.hpp" // for cross product
@@ -726,6 +729,155 @@ TEST_SUITE("PGA3DP: application tests")
         fmt::println(
             "  Fig.12 trends: lambda_c proportional to r; lambda_m independent of "
             "wafer speed -- confirmed");
+        fmt::println("");
+    }
+
+    // Phase D.1b of the wafer-grinding plan (TODO/grinding.md): the surface-generation
+    // model (Tao Eqs. 23-28). Where D.1 took the wavelength law lambda = v/f_b as given,
+    // here the waviness EMERGES from actually carving a surface: many diamond grains
+    // (Gaussian size distribution, Eqs. 23-25) sweep the cut at the relative surface
+    // speed; a grain centred at arc length s_k cuts to axial depth z_b(t_k) =
+    // A_b*sin(2*pi*f_b*t_k) (Eq.26 G^z, the slow feed ramp is sub-femtometre over one
+    // window and dropped) and leaves a spherical-cap furrow cap(d) = 0.5*dg -
+    // sqrt(0.25*dg^2 - d^2) (Eq.27); the ground surface is the lower envelope of all
+    // grains (Eq.28, min). The resulting 1D profile is Tao's Fig.-11 waviness; its
+    // measured period must equal the D.1 prediction v/f_b -- for the wheel speed v_w
+    // (mark direction, lambda_m) and the wafer speed v_s (circumferential, lambda_c).
+    // This validates the surface model itself, not just the formula. (The full 2D
+    // topography raster of Figs. 9/10/16/17 -- with the circumferential grain-mark
+    // jaggedness -- is a visualization left to a ga_view scene, D.1c.)
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga3dp: simulated wafer topography profiles (Phase D.1b)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: simulated wafer topography profiles (Phase D.1b)");
+        fmt::println("");
+
+        // surface-generation parameters (Tao secs 3.1/3.2). All lengths in micrometres.
+        double const f_b = 6253.0;               // vibration (tilting) frequency [Hz]
+        double const A_b = 0.1;                  // vibration amplitude [um] (Tao sec 3.2)
+        double const d_min = 4.0, d_max = 6.0;   // grain diameter range [um]
+        double const Ng = 0.25;                  // grain volume fraction
+        double const mu = 0.5 * (d_max + d_min); // Eq.23 mean grain size
+        double const sigma = (d_max - d_min) / 6.0;         // Eq.24 std deviation
+        double const l_g = mu * std::cbrt(pi / (6.0 * Ng)); // Eq.25 grain spacing [um]
+
+        // relative surface speeds [um/s] (= |point_velocity|, gated in D.1): wheel rim
+        // n_w*R_w (mark direction) and wafer n_s*r (circumferential).
+        double const Rw = 150.0e3, r_wcd = 30.0e3;         // [um]
+        double const v_w = rpm2radps(2250.0) * Rw;         // WMD speed [um/s]
+        double const v_s = rpm2radps(265.0) * r_wcd;       // WCD speed [um/s]
+        double const lam_m = v_w / f_b, lam_c = v_s / f_b; // predicted wavelengths [um]
+
+        // Carve a 1D axial surface profile h(s) over 5 wavelengths (step lam/250) by the
+        // grain model above; sizes ~ N(mu, sigma) (clamped to [d_min,d_max]), positions
+        // uniform random with dense overlap so every grid point is covered, fixed seed
+        // for a deterministic gate.
+        auto carve = [&](double v, double lam) -> std::pair<std::vector<double>, double> {
+            double const span = 5.0 * lam, ds = lam / 250.0;
+            int const N = int(span / ds) + 1;
+            std::vector<double> h(N, A_b * 10.0); // start above any possible cut
+            std::mt19937 rng(12345);
+            std::normal_distribution<double> grain_d(mu, sigma);
+            std::uniform_real_distribution<double> pos(0.0, span);
+            int const M = int(20.0 * span / mu); // dense overlap -> full coverage
+            for (int k = 0; k < M; ++k) {
+                double const sk = pos(rng);
+                double const dk = std::clamp(grain_d(rng), d_min, d_max);
+                double const zc = A_b * std::sin(2.0 * pi * f_b * sk / v); // z_b at t_k
+                int const i0 = std::max(0, int((sk - 0.5 * dk) / ds));
+                int const i1 = std::min(N - 1, int((sk + 0.5 * dk) / ds));
+                for (int i = i0; i <= i1; ++i) {
+                    double const delta = i * ds - sk;
+                    double const rad = 0.25 * dk * dk - delta * delta;
+                    if (rad < 0.0) continue;
+                    double const cap = 0.5 * dk - std::sqrt(rad); // Eq.27 furrow profile
+                    h[i] = std::min(h[i], zc + cap);              // Eq.28 lower envelope
+                }
+            }
+            return {h, ds};
+        };
+
+        // Measure the waviness wavelength: box-smooth (window << lambda but >> grain, so
+        // the sub-grain jaggedness averages out and the z_b waviness survives), subtract
+        // the mean, take the mean spacing of upward zero-crossings (cf. measure_freq for
+        // time).
+        auto wavelength = [&](std::vector<double> const& h, double ds) {
+            int const N = int(h.size());
+            int const W = std::max(1, N / 50); // smoothing window [points] ~ lam/10
+            std::vector<double> g(N);
+            double acc = 0.0;
+            for (int i = 0; i < N; ++i) {
+                acc += h[i];
+                if (i >= W) acc -= h[i - W];
+                g[i] = acc / std::min(i + 1, W);
+            }
+            double mean = 0.0;
+            for (double x : g)
+                mean += x;
+            mean /= N;
+            std::vector<double> cross;
+            for (int i = 1; i < N; ++i) {
+                double const a = g[i - 1] - mean, b = g[i] - mean;
+                if (a <= 0.0 && b > 0.0) // upward zero-crossing, interpolated
+                    cross.push_back((i - 1 + (-a) / (b - a)) * ds);
+            }
+            double T = 0.0;
+            for (size_t i = 1; i < cross.size(); ++i)
+                T += cross[i] - cross[i - 1];
+            return cross.size() >= 2 ? T / double(cross.size() - 1) : 0.0;
+        };
+
+        // compact sparkline of a profile (smoothed, mean-removed, normalized) for the log
+        auto sparkline = [&](std::vector<double> const& h) {
+            static char const* lv = " .:-=+*#";
+            int const N = int(h.size()), cols = 64, W = std::max(1, N / 50);
+            std::string out;
+            double lo = 1e30, hi = -1e30;
+            std::vector<double> s(cols);
+            for (int c = 0; c < cols; ++c) {
+                int const i = c * (N - 1) / (cols - 1);
+                double acc = 0.0;
+                int cnt = 0;
+                for (int j = std::max(0, i - W); j <= std::min(N - 1, i + W); ++j, ++cnt)
+                    acc += h[j];
+                s[c] = acc / cnt;
+                lo = std::min(lo, s[c]);
+                hi = std::max(hi, s[c]);
+            }
+            for (int c = 0; c < cols; ++c) {
+                int const idx = hi > lo ? int((s[c] - lo) / (hi - lo) * 7.0 + 0.5) : 0;
+                out += lv[std::clamp(idx, 0, 7)];
+            }
+            return out;
+        };
+
+        // --- WMD (mark direction): carved lambda_m == v_w / f_b -----------------------
+        {
+            auto const [h, ds] = carve(v_w, lam_m);
+            double const meas = wavelength(h, ds);
+            fmt::println("  WMD: lambda_m carved = {:>6.0f} um (predicted v_w/f_b = "
+                         "{:>6.0f})",
+                         meas, lam_m);
+            fmt::println("       |{}|  (5 wavelengths, waviness ~{:.2f} um)",
+                         sparkline(h), A_b);
+            CHECK(meas == doctest::Approx(lam_m).epsilon(0.05));
+        }
+        // --- WCD (circumferential): carved lambda_c == v_s / f_b ----------------------
+        {
+            auto const [h, ds] = carve(v_s, lam_c);
+            double const meas = wavelength(h, ds);
+            fmt::println("  WCD: lambda_c carved = {:>6.1f} um (predicted v_s/f_b = "
+                         "{:>6.1f})",
+                         meas, lam_c);
+            fmt::println("       |{}|  (5 wavelengths, waviness ~{:.2f} um)",
+                         sparkline(h), A_b);
+            CHECK(meas == doctest::Approx(lam_c).epsilon(0.05));
+        }
+        fmt::println("  grain spacing l_g = {:.2f} um (Eq.25); sizes ~ N({:.1f}, {:.2f}) "
+                     "um",
+                     l_g, mu, sigma);
         fmt::println("");
     }
 

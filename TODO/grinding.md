@@ -165,13 +165,26 @@ tilt freq, independent of the Eq.13 controversy. Gate (all <1 µm vs Table 3 sim
 n_s). Full appl3dp suite green: 43 cases / 9174 assertions. Pure kinematics, NO library
 change, NO ga_py impact.
 
-This is the LOW-RISK feed-forward slice of the contact/force loop (no feedback). **RESUME
-HERE (next session) → D.1b (optional): full topography raster (Eqs 23-28, grain randomness +
-overlap min) → a height field / ga_view scene reproducing Figs 9/10/16/17 (visualization, no
-new gate). THEN D.2 (the risky/open part): the two-way force loop — grinding-force law →
-wrench → vibration → z_b → depth → MRR → force. Tao has NO force model (assumes F=25/25/100 N
-const), so D.2 is genuinely uncertain modeling + may stiffen the ODE (RK4 dt≈1e-8 already).**
-Then E — feed/speed optimization. (Still open, off critical path: **B.2** offset-cm `m·e·Ω²`
+This is the LOW-RISK feed-forward slice of the contact/force loop (no feedback).
+
+**Phase D.1b DONE 2026-06-17 (UNCOMMITTED): surface-generation model.** App-test
+`"pga3dp: simulated wafer topography profiles (Phase D.1b)"` (right after D.1). Implements
+Tao's grain-cutting model Eqs. 23-28 in 1D: Gaussian grain sizes (Eqs 23/24), spacing
+`l_g = μ·(π/6N_g)^⅓` (Eq.25), each grain centred at arc length `s_k` cuts to axial depth
+`z_b(t_k)=A_b·sin(2πf_b t_k)` (Eq.26 G^z; feed ramp negligible) and leaves a spherical-cap
+furrow `0.5d−√(0.25d²−δ²)` (Eq.27); surface = lower envelope over all grains (Eq.28, min).
+The waviness EMERGES from the carve (not the formula) and its measured period (box-smooth +
+zero-crossings) matches the D.1 prediction `v/f_b`: WMD λ_m carved 5720 vs 5652 µm, WCD λ_c
+carved 134.6 vs 133.1 µm (~1%, gate 5%). Sparklines in the log show ~5 clean sine periods.
+Pure kinematics, NO library/ga_py change; appl3dp 44/9176 green. (Full 2D raster of Figs
+9/10/16/17 with circumferential jaggedness = a ga_view scene, D.1c, deferred — visualization,
+no new gate.)
+
+**RESUME HERE (next session) → D.1c (optional ga_view scene, visual feedback) OR jump to D.2
+(the risky/open part): the two-way force loop — grinding-force law → wrench → vibration → z_b
+→ depth → MRR → force. Tao has NO force model (assumes F=25/25/100 N const), so D.2 is
+genuinely uncertain modeling + may stiffen the ODE (RK4 dt≈1e-8 already).** Then E —
+feed/speed optimization. (Still open, off critical path: **B.2** offset-cm `m·e·Ω²`
 elegance check — now subsumed by C.3's exact centrifugal result; **Phase 0.c** CS-view,
 deferred.)
 
