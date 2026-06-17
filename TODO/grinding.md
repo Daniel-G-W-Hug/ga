@@ -152,8 +152,26 @@ predictions**: corrections are tilt-only, so Figs. 4(c,d)/6(b)/15 and Eqs. 18/19
 experimentally-validated topography half (§3/§4, Table 3) are unchanged (they use the
 *measured* f_b = 6253 Hz, not Eq.13's predicted frequency).
 
-**RESUME HERE (next session) → continue the roadmap: contact/force loop** (grinding force ↔
-vibration ↔ `z_b` ↔ cutting depth ↔ MRR, Eqs. 14/26) and feed/speed optimization. (Still open, off critical path: **B.2** offset-cm `m·e·Ω²`
+**Phase D.1 DONE 2026-06-17 (UNCOMMITTED): grinding-mark wavelengths.** App-test
+`"pga3dp: grinding-mark wavelengths lambda_m / lambda_c (Phase D.1)"` in
+`ga_appl3dp_appl_test.hpp` (right after the Phase-0 grain-trajectory case). Reproduces Tao's
+Table-3 SIMULATED wavelengths from the GA twist field: `λ = (relative surface speed)/f_b`,
+where the wheel surface speed `v_w=n_w·R_w` (→ WMD `λ_m`) and the wafer surface speed
+`v_s=n_s·r` (→ WCD `λ_c`) are read straight off `kinematic_system3dp::point_velocity` of the
+spinning frames (same twist field as the disc-surface-speeds test; same Fig-1 tree as
+Phase 0). f_b = measured 6253 Hz (Tao §4.2.2), i.e. the surface half consumes the MEASURED
+tilt freq, independent of the Eq.13 controversy. Gate (all <1 µm vs Table 3 sim): λ_m=5652
+(n_w=2250), 6657 (2650); λ_c=133 (n_s=265), 163 (325). + Fig-12 trends (λ_c∝r, λ_m indep of
+n_s). Full appl3dp suite green: 43 cases / 9174 assertions. Pure kinematics, NO library
+change, NO ga_py impact.
+
+This is the LOW-RISK feed-forward slice of the contact/force loop (no feedback). **RESUME
+HERE (next session) → D.1b (optional): full topography raster (Eqs 23-28, grain randomness +
+overlap min) → a height field / ga_view scene reproducing Figs 9/10/16/17 (visualization, no
+new gate). THEN D.2 (the risky/open part): the two-way force loop — grinding-force law →
+wrench → vibration → z_b → depth → MRR → force. Tao has NO force model (assumes F=25/25/100 N
+const), so D.2 is genuinely uncertain modeling + may stiffen the ODE (RK4 dt≈1e-8 already).**
+Then E — feed/speed optimization. (Still open, off critical path: **B.2** offset-cm `m·e·Ω²`
 elegance check — now subsumed by C.3's exact centrifugal result; **Phase 0.c** CS-view,
 deferred.)
 

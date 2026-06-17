@@ -605,6 +605,130 @@ TEST_SUITE("PGA3DP: application tests")
         fmt::println("");
     }
 
+    // Phase D.1 of the wafer-grinding plan (TODO/grinding.md): the surface-formation
+    // on-ramp. The wheel-spindle vibration -- the axial runout z_b (Eq.14) -- oscillates
+    // at frequency f_b and modulates the grain cutting depth, carving a waviness whose
+    // spatial wavelength is (relative surface speed) / f_b. Tao observes two patterns
+    // (Fig.8): a waviness along the mark direction (WMD, wavelength lambda_m) set by the
+    // WHEEL surface speed v_w = n_w*R_w, and a waviness along the circumferential
+    // direction (WCD, lambda_c) set by the WAFER surface speed v_s = n_s*r. This
+    // reproduces Tao's Table-3 SIMULATED wavelengths directly from the GA kinematics: the
+    // two surface speeds are read off kinematic_system3dp::point_velocity of the spinning
+    // frames (the same twist field as the "disc surface speeds" test), and lambda =
+    // |point_velocity| / f_b.
+    //
+    // f_b is the MEASURED tilting frequency (6253 Hz = mean of the two measured peaks,
+    // Tao sec 4.2.2) -- exactly the value the paper feeds into its surface model for the
+    // experimental comparison. Per the Eq.13 analysis (TODO/tao_eq13_derivation.md) this
+    // surface-formation half consumes the measured f_b, never the (erroneous) PREDICTED
+    // tilt frequency, so it is independent of that controversy. The measured/simulated
+    // wavelengths in Table 3 still differ by 5-12% (grain wear, elastoplasticity,
+    // grinding heat -- error sources Tao does not model); we gate against the SIMULATED
+    // column.
+    /////////////////////////////////////////////////////////////////////////////////////
+
+    TEST_CASE("pga3dp: grinding-mark wavelengths lambda_m / lambda_c (Phase D.1)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: grinding-mark wavelengths lambda_m / lambda_c (Phase D.1)");
+        fmt::println("");
+
+        double const R = 150.0;    // wheel radius == wafer radius [mm]
+        double const l3 = 30.0;    // tool-surface distance from the spindle CM [mm]
+        double const tw_avg = 0.8; // average wafer thickness [mm]
+        double const x_a = l3;     // axial infeed (grain at the chuck plane)
+        double const f_b = 6253.0; // measured tilting frequency [Hz] (Tao sec 4.2.2)
+        double const r_wcd = 30.0; // radial distance for the WCD measurement [mm]
+
+        struct speeds {
+            double v_w; // wheel surface speed (WMD driver) [mm/s]
+            double v_s; // wafer surface speed at r_wcd (WCD driver) [mm/s]
+        };
+
+        // Build the Fig.-1 two-chain tree (same as the Phase-0 grain-trajectory test)
+        // with the chuck spinning at ns and the wheel at nw, then read the two surface
+        // speeds straight from the GA twist field via point_velocity (v_s sampled at
+        // radius r).
+        auto surface_speeds = [&](double ns, double nw, double r) -> speeds {
+            kinematic_system3dp sys;
+            sys.add_frame(static_frame3dp("chuck_ctr_stat")); // inertial root
+            sys.add_frame(static_frame3dp("chuck_ctr_rot"),
+                          kin_state3dp{.omega = vec3dp{ns, 0.0, 0.0, 0.0}},
+                          sys.index_of("chuck_ctr_stat"));
+            sys.add_frame(
+                static_frame3dp("wafer_top_avg_rot", vec3dp{tw_avg, 0.0, 0.0, 1.0}),
+                kin_state3dp{}, sys.index_of("chuck_ctr_rot"));
+            double const off = R / std::sqrt(2.0);
+            sys.add_frame(static_frame3dp("spindle_cm_stat", vec3dp{x_a, -off, off, 1.0},
+                                          vec3dp{0.0, -pi / 2.0, 0.0, 0.0}),
+                          kin_state3dp{}, sys.index_of("chuck_ctr_stat"));
+            sys.add_frame(static_frame3dp("tool_top_avg_rot", vec3dp{0.0, 0.0, l3, 1.0}),
+                          kin_state3dp{.omega = vec3dp{0.0, 0.0, nw, 0.0}},
+                          sys.index_of("spindle_cm_stat"));
+            sys.add_frame(
+                static_frame3dp("tool_surface_avg_at_R", vec3dp{R, 0.0, 0.0, 1.0}),
+                kin_state3dp{}, sys.index_of("tool_top_avg_rot"));
+
+            // wheel-rim grain (root coords): its speed = n_w * R_w
+            auto const g = unitize(move3dp(
+                O_3dp, sys.get_pos_trafo("tool_surface_avg_at_R", "chuck_ctr_stat")));
+            double const v_w =
+                to_val(bulk_nrm(sys.point_velocity(g, "tool_surface_avg_at_R")));
+            // wafer material point at radius r (root coords): its speed = n_s * r
+            auto const P = vec3dp{tw_avg, r, 0.0, 1.0};
+            double const v_s =
+                to_val(bulk_nrm(sys.point_velocity(P, "wafer_top_avg_rot")));
+            return {v_w, v_s};
+        };
+
+        // --- WMD: lambda_m = v_w / f_b, vs Tao Table 3 (simulated column) -------------
+        // (Table-3 lambda_m rows are at n_s = 265 r/min; lambda_m is independent of n_s.)
+        struct wmd_case {
+            double nw;      // wheel speed [rpm]
+            double lam_sim; // Tao simulated lambda_m [um]
+        };
+        for (auto const& c : {wmd_case{2250.0, 5652.0}, wmd_case{2650.0, 6656.0}}) {
+            auto const s = surface_speeds(rpm2radps(265.0), rpm2radps(c.nw), r_wcd);
+            double const lam_m = s.v_w / f_b * 1000.0; // mm -> um
+            fmt::println(
+                "  n_w = {:>4.0f} rpm: v_w = {:>8.1f} mm/s -> lambda_m = {:>5.0f} "
+                "um  (Tao sim {:.0f})",
+                c.nw, s.v_w, lam_m, c.lam_sim);
+            CHECK(lam_m == doctest::Approx(c.lam_sim).epsilon(2e-3));
+        }
+
+        // --- WCD: lambda_c = v_s / f_b, vs Tao Table 3 (simulated column) -------------
+        // (Table-3 lambda_c rows are at n_w = 3000 r/min, r = 30 mm; lambda_c is
+        // independent of n_w.)
+        struct wcd_case {
+            double ns;      // wafer speed [rpm]
+            double lam_sim; // Tao simulated lambda_c [um]
+        };
+        for (auto const& c : {wcd_case{265.0, 133.0}, wcd_case{325.0, 163.0}}) {
+            auto const s = surface_speeds(rpm2radps(c.ns), rpm2radps(3000.0), r_wcd);
+            double const lam_c = s.v_s / f_b * 1000.0; // mm -> um
+            fmt::println(
+                "  n_s = {:>4.0f} rpm: v_s = {:>8.1f} mm/s -> lambda_c = {:>5.0f} "
+                "um  (Tao sim {:.0f})",
+                c.ns, s.v_s, lam_c, c.lam_sim);
+            CHECK(lam_c == doctest::Approx(c.lam_sim).epsilon(5e-3));
+        }
+
+        // Fig.-12 trends (qualitative): lambda_c grows linearly with radial distance r
+        // (v_s = n_s*r), while lambda_m does not depend on the wafer speed n_s. One spot
+        // check of each: doubling r_wcd doubles lambda_c; changing n_s leaves v_w fixed.
+        auto const s30 = surface_speeds(rpm2radps(265.0), rpm2radps(3000.0), 30.0);
+        auto const s60 = surface_speeds(rpm2radps(265.0), rpm2radps(3000.0), 60.0);
+        CHECK(s60.v_s == doctest::Approx(2.0 * s30.v_s).epsilon(1e-9)); // lambda_c ~ r
+        CHECK(
+            surface_speeds(rpm2radps(325.0), rpm2radps(2250.0), 30.0).v_w ==
+            doctest::Approx(s30.v_w * 2250.0 / 3000.0).epsilon(1e-9)); // v_w indep of n_s
+        fmt::println(
+            "  Fig.12 trends: lambda_c proportional to r; lambda_m independent of "
+            "wafer speed -- confirmed");
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: Sommerfeld unbalanced-rotor warm-up (Phase B.1)")
     {
 
