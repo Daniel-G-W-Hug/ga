@@ -180,11 +180,31 @@ Pure kinematics, NO library/ga_py change; appl3dp 44/9176 green. (Full 2D raster
 9/10/16/17 with circumferential jaggedness = a ga_view scene, D.1c, deferred — visualization,
 no new gate.)
 
-**RESUME HERE (next session) → D.1c (optional ga_view scene, visual feedback) OR jump to D.2
-(the risky/open part): the two-way force loop — grinding-force law → wrench → vibration → z_b
-→ depth → MRR → force. Tao has NO force model (assumes F=25/25/100 N const), so D.2 is
-genuinely uncertain modeling + may stiffen the ODE (RK4 dt≈1e-8 already).** Then E —
-feed/speed optimization. (Still open, off critical path: **B.2** offset-cm `m·e·Ω²`
+**Phase D.1c DONE 2026-06-17 (COMMITTED 5639a8f + 879ac0d): two ga_view scenes.** Both
+build the rendered geometry from `kinematic_system3dp::point_velocity` (the GA twist field),
+visually confirmed by the user.
+
+- **`active_grinding_topo`** (5639a8f) — Tao Figs. 9/10 ground-surface topography as a jet
+  heatmap; C toggles WCD (square) / WMD (near-square box, height exaggerated). Shows live
+  λ_m/λ_c + a height colorbar + quantified patch axes + an animated feed-scroll readout. The
+  7.6° grain-mark inclination is GA-computed at the true contact point with the co-rotating
+  (down-grinding) wheel — confirmed to match Tao's 7.6° (counter-rotating gives ~11.5°).
+- **`active_grinding_wavelength`** (879ac0d) — Tao Fig. 12 trends as four line-plot panels
+  (C cycles a/b/c/d). Reproduces the paper AND the GA-derived independences (λ_c indep of
+  n_w; λ_m indep of r and of n_s). **PAPER ERROR found & documented in code:** Fig. 12
+  caption says f_b=4000 for panels (b)/(d), but the plotted curves are at f_b=6000 (a clean
+  1/f_b factor; user confirmed (d) tops at ~7200 µm) — we use 6000 to match the figure.
+
+**PHASE D.1 COMPLETE** (D.1a wavelengths + D.1b surface model + D.1c two ga_view scenes; all
+driven from the GA twist field, all committed). The whole surface-formation half of Tao is
+now reproduced and validated against the paper from the GA kinematics, and shown independent
+of the Eq.13 controversy.
+
+**RESUME HERE (next session) → D.2 (the risky/open research part): the two-way force loop** —
+grinding-force law → wrench → vibration → z_b → depth → MRR → force. Tao has NO force model
+(assumes F=25/25/100 N const), so D.2 is genuinely uncertain modeling + may stiffen the ODE
+(RK4 dt≈1e-8 already). Then E — feed/speed optimization. (Still open, off critical path:
+**B.2** offset-cm `m·e·Ω²`
 elegance check — now subsumed by C.3's exact centrifugal result; **Phase 0.c** CS-view,
 deferred.)
 
@@ -446,6 +466,14 @@ previous project), so they want short, precise definitions in
 [ga_docu/8_ga_glossary.tex](ga_docu/8_ga_glossary.tex). Deferred until we reach the
 documentation part of this task; capture here so it is not lost:
 
+- **pose** — the *configuration* of a frame: its position + orientation, carried by a unit
+  motor `M` (the `pose{2,3}dp` POD stores the equivalent origin + orientation). A point of
+  the group (a *finite* rigid placement).
+- **pose vs. twist** — `pose` is the group element (where the frame *is*, the motor `M`);
+  `twist` is the tangent/rate (how it is *moving*, the `exp` generator). They are related by
+  `M(t) = M(0) ⟇ exp(½ ∫ twist dt)` and conversely `twist = 2 Mdot ⟇ rrev(M)`: integrate a
+  twist to get a pose, differentiate a pose to get a twist. (Mirrors the Lie group/algebra
+  and finite/infinitesimal entries below — pose lives in the group, twist in the algebra.)
 - **twist** — the velocity screw (the `exp` generator of a motor); dimension-dependent
   grade (vector in pga2dp, bivector in pga3dp). Note the rate `Omega = 2 Mdot ⟇ rrev(M)`.
 - **wrench** — the force/torque screw dual to a twist; the spatial (reciprocal/Klein)
