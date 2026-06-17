@@ -20,6 +20,7 @@ using namespace hd::ga::pga;
 #include "active_frame_trafo.hpp"
 #include "active_grinding_marks.hpp"
 #include "active_grinding_topo.hpp"
+#include "active_grinding_wavelength.hpp"
 #include "active_kinematics2dp.hpp"
 #include "active_merry_go_round.hpp"
 #include "active_ode.hpp"
@@ -1707,6 +1708,19 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(gt);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // wafer-grinding wavelength-trend demo items (PGA3DP kinematic_system3dp)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->agwl.size(); ++idx) {
+        active_grinding_wavelength* gw =
+            new active_grinding_wavelength(cs, wcs, cm->agwl[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, gw,
+                         &active_grinding_wavelength::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::circlesToggleRequested, gw,
+                         &active_grinding_wavelength::cyclePanel);
+        scene->addItem(gw);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -2377,6 +2391,42 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
                        {"lambda_m:", "mark-direction waviness = v_w / f_b (WMD)"},
                        {"horizontal:", "mark / radial direction"},
                        {"vertical:", "circumferential direction"}};
+        leg.x_pct = 0.02;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.22;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append the wafer-grinding wavelength-trend scene (Tao 2022, Fig. 12): line plots of
+    // the waviness wavelength vs. process parameters, every point lambda = (surface
+    // speed)/f_b with the speeds from kinematic_system3dp::point_velocity. C cycles the
+    // four Fig.-12 panels.
+    {
+        Coordsys_model cm;
+        cm.add_grinding_wavelength(agrinding_wavelength{});
+        cm.set_label("Wafer grinding: waviness-wavelength trends (Tao Fig. 12)");
+
+        diagram_legend leg;
+        leg.heading =
+            "PGA3D wavelength trends (Tao 2022, Fig. 12): the grinding-waviness "
+            "wavelength "
+            "lambda = (relative surface speed)/f_b, with the wheel speed v_w and wafer "
+            "speed v_s read from kinematic_system3dp::point_velocity. The four panels (C "
+            "to "
+            "cycle) reproduce the paper AND show the GA-derived independences: lambda_c "
+            "is "
+            "independent of n_w (panel b curves overlap), lambda_m of r (c overlap) and "
+            "of "
+            "n_s (d is flat).";
+        leg.entries = {{"C:", "cycle Fig.-12 panels (a / b / c / d)"},
+                       {"R:", "reset to panel (a)"},
+                       {"─────", "──────────"},
+                       {"a:", "lambda_c vs f_b, family radius r"},
+                       {"b:", "lambda_c vs wafer speed, family n_w (overlap)"},
+                       {"c:", "lambda_m vs f_b, family r (overlap)"},
+                       {"d:", "lambda_m vs wafer speed, family n_w (flat)"}};
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
         leg.size_pct = 0.22;

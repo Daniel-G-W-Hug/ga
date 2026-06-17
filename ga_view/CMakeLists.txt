@@ -61,6 +61,7 @@ set(SOURCES src/main.cpp
             src/active_planar_delta.cpp
             src/active_grinding_marks.cpp
             src/active_grinding_topo.cpp
+            src/active_grinding_wavelength.cpp
             src/ga_view.qrc)
 
 add_executable(${EXEC_NAME} ${SOURCES} )

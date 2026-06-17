@@ -442,6 +442,21 @@ struct agrinding_topo {
     grinding_topo_params params;
 };
 
+// Parameters of the wafer-grinding wavelength-trend demo (Tao 2022, Fig. 12): line plots
+// of the waviness wavelength vs. process parameters. Every point is lambda = (surface
+// speed)/f_b with the speeds read from kinematic_system3dp::point_velocity, so the four
+// panels are built from the GA twist field. panel selects the initial Fig.-12 sub-plot
+// (0=a,1=b,2=c,3=d); 'C' cycles them live.
+struct grinding_wave_params {
+    double Rw_um{150.0e3}; // grinding-wheel radius [um]
+    int panel{0};          // initial Fig.-12 panel (0=a, 1=b, 2=c, 3=d)
+};
+
+// Active item: wafer-grinding wavelength-trend demo (no active points)
+struct agrinding_wavelength {
+    grinding_wave_params params;
+};
+
 // One row in the key-binding table of a legend
 struct key_legend_entry {
     std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
@@ -547,6 +562,8 @@ class Coordsys_model {
 
     [[maybe_unused]] size_t add_grinding_topo(agrinding_topo const& agto_in);
 
+    [[maybe_unused]] size_t add_grinding_wavelength(agrinding_wavelength const& agwl_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -630,6 +647,9 @@ class Coordsys_model {
 
     // data for wafer-grinding surface-topography demo items
     std::vector<agrinding_topo> agto;
+
+    // data for wafer-grinding wavelength-trend demo items
+    std::vector<agrinding_wavelength> agwl;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};

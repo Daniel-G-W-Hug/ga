@@ -217,6 +217,14 @@ Coordsys_model::add_double_pendulum(adouble_pendulum const& adp_in)
     return agto.size() - 1;
 }
 
+[[maybe_unused]] size_t
+Coordsys_model::add_grinding_wavelength(agrinding_wavelength const& agwl_in)
+{
+    agwl.push_back(agwl_in);
+
+    return agwl.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -254,6 +262,7 @@ void Coordsys_model::clear()
     apld.clear();
     agm.clear();
     agto.clear();
+    agwl.clear();
     aft.clear();
 
     m_label.clear();
