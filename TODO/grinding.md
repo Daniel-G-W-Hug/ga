@@ -215,10 +215,10 @@ of the Eq.13 controversy.
 **RESUME HERE (next session) → D.2 (the risky/open research part): the two-way force loop** —
 grinding-force law → wrench → vibration → z_b → depth → MRR → force. Tao has NO force model
 (assumes F=25/25/100 N const), so D.2 is genuinely uncertain modeling + may stiffen the ODE
-(RK4 dt≈1e-8 already). Then E — feed/speed optimization. (Still open, off critical path:
-**B.2** offset-cm `m·e·Ω²`
-elegance check — now subsumed by C.3's exact centrifugal result; **Phase 0.c** CS-view,
-deferred.)
+(RK4 dt≈1e-8 already). Then E — feed/speed optimization. (Off critical path: **B.2** —
+CLOSED 2026-06-18, subsumed by C.3 (the emergent centrifugal `m·e·Ω²` from a spinning
+offset-cm body was validated EXACTLY there, `ẍ=−e·ω²`; no separate B.2 test needed);
+**Phase 0.c** CS-view scene — still deferred.)
 
 **RESOLVED (2026-06-14): static-vs-feed = PRESCRIBED INFEED.** The spindle carries a
 steady prescribed translation (axial infeed `x_a` along −e1 and/or radial traverse) ON TOP
@@ -226,8 +226,9 @@ of the 5 vibration DOFs — so `x_a` (and possibly the radial offset) is a time-
 prescribed input, not a constant. Phase C must drive the nominal pose with this prescribed
 motion; the 5 vibration DOFs perturb around it. Phase 0 / B.1 still run at the static
 nominal pose (the warm-up validates the spring/damper primitive, independent of feed).
-**Minor/optional:** silence the app-wide Qt "Sans Serif" font warning via a
-default font in `ga_view/src/main.cpp` (`QApplication::setFont(QFont("Helvetica", …))`).
+**Qt "Sans Serif" font warning — FIXED 2026-06-18:** `ga_view/src/main.cpp` now sets a
+default app font (`QApplication::setFont(QFont("Helvetica", 10))`); the startup warning is
+gone.
 
 ## Goal
 
@@ -431,9 +432,12 @@ congruence section updated.
     App-test `"pga3dp: Sommerfeld unbalanced-rotor warm-up (Phase B.1)"`; force built as a
     GA `vec3dp`, integrated with the shared `rk4_step`. Isolates the spring/damper
     primitive. (See the DONE note at the top.)
-  - **B.2 (next concrete step):** replace the explicit forcing with an **emergent**
-    spinning offset-cm body → must reproduce B.1 (validates "`meω²` for free" + the
-    prescribed-spin bias path).
+  - **B.2 [CLOSED 2026-06-18 — subsumed by C.3]:** the goal was to replace the explicit
+    forcing with an **emergent** spinning offset-cm body and reproduce B.1 (validating
+    "`meω²` for free" + the prescribed-spin bias path). Phase C.3 already does exactly this
+    in the full 5-DOF spindle: the centrifugal acceleration `ẍ = −e·ω²` emerges EXACTLY
+    from the spinning offset-cm rotor body (driven-joint moving base), so a separate B.2
+    prototype adds nothing. Closed without new code.
 - **C — Tao 5-DOF spindle.** The 6-joint stack above; reproduce Eq. (13) responses and the
   Fig. 4 characteristic frequencies `f_x, f_z, f_θ, f_φ`; derive `z_b` directly from a rim
   point; **calibrate/validate against the machine's measured data**. Port mini-test 1
