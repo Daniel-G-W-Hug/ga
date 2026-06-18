@@ -189,11 +189,23 @@ visually confirmed by the user.
   λ_m/λ_c + a height colorbar + quantified patch axes + an animated feed-scroll readout. The
   7.6° grain-mark inclination is GA-computed at the true contact point with the co-rotating
   (down-grinding) wheel — confirmed to match Tao's 7.6° (counter-rotating gives ~11.5°).
-- **`active_grinding_wavelength`** (879ac0d) — Tao Fig. 12 trends as four line-plot panels
-  (C cycles a/b/c/d). Reproduces the paper AND the GA-derived independences (λ_c indep of
-  n_w; λ_m indep of r and of n_s). **PAPER ERROR found & documented in code:** Fig. 12
-  caption says f_b=4000 for panels (b)/(d), but the plotted curves are at f_b=6000 (a clean
-  1/f_b factor; user confirmed (d) tops at ~7200 µm) — we use 6000 to match the figure.
+- **Fig. 12 wavelength trends** — Tao Fig. 12 as **four separate NATIVE ga_view line
+  charts** (`get_grinding_wavelength_panels()` in `w_mainwindow.cpp`), one static
+  `Coordsys_model` per panel (a/b/c/d), each with its own paper axis range/labels. Curves
+  built inline by the same `kinematic_system3dp` `surface_speeds` code as the D.1 app-test
+  (`λ = point_velocity / f_b`); families drawn with `add_ln` polylines + per-family colour
+  & marker (□/○/+/×) + a `diagram_legend`. Reproduces the paper AND the GA-derived
+  independences (λ_c indep of n_w; λ_m indep of r and of n_s). **PAPER ERROR documented in
+  code:** Fig. 12 caption says f_b=4000 for panels (b)/(d), but the plotted curves are at
+  f_b=6000 (clean 1/f_b factor; user confirmed (d) tops ~7200 µm) — we use 6000 to match.
+  **REWORKED 2026-06-18:** the original `active_grinding_wavelength` (879ac0d) hand-painted
+  a custom 4-panel chart `QGraphicsItem` (axes/ticks/legend all hand-drawn, ~355 lines) —
+  overkill for a GA viewer. Replaced by the four native charts above, enabled by a small
+  reusable ga_view core feature: a per-model axis override (`Coordsys_model::axis_cfg` +
+  `plot_axis_cfg`; `Coordsys::set_axes`; `w_Coordsys::switch_to_model` retargets the shared
+  aspect-locked axes per chart model and restores the geometric axes on exit, re-emitting
+  `viewResized` so ctor-anchored marker items reposition). Old scene + its 5 wiring points
+  removed.
 
 **PHASE D.1 COMPLETE** (D.1a wavelengths + D.1b surface model + D.1c two ga_view scenes; all
 driven from the GA twist field, all committed). The whole surface-formation half of Tao is

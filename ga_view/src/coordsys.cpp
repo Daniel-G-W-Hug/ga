@@ -547,6 +547,23 @@ void Coordsys::adjust_to_zoom(double new_xmin, double new_xmax, double new_ymin,
     }
 }
 
+void Coordsys::set_axes(axis_data adx, axis_data ady, keep_aspect_ratio ar)
+{
+    // keep the current widget pixel geometry; only the data ranges / labels / ticks and
+    // the aspect-ratio policy change.
+    widget_axis_data wdx = x.get_widget_axis_data();
+    widget_axis_data wdy = y.get_widget_axis_data();
+
+    ar_const = ar;
+    x = Axis(wdx, adx);
+    if (ar_const == keep_aspect_ratio::yes) {
+        y = Axis(wdy, ady, x.px_density_rng());
+    }
+    else {
+        y = Axis(wdy, ady);
+    }
+}
+
 double Coordsys::get_new_delta(double min, double max, double delta, double new_min,
                                double new_max)
 {

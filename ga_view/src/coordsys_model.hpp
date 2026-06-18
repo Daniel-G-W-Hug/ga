@@ -442,21 +442,6 @@ struct agrinding_topo {
     grinding_topo_params params;
 };
 
-// Parameters of the wafer-grinding wavelength-trend demo (Tao 2022, Fig. 12): line plots
-// of the waviness wavelength vs. process parameters. Every point is lambda = (surface
-// speed)/f_b with the speeds read from kinematic_system3dp::point_velocity, so the four
-// panels are built from the GA twist field. panel selects the initial Fig.-12 sub-plot
-// (0=a,1=b,2=c,3=d); 'C' cycles them live.
-struct grinding_wave_params {
-    double Rw_um{150.0e3}; // grinding-wheel radius [um]
-    int panel{0};          // initial Fig.-12 panel (0=a, 1=b, 2=c, 3=d)
-};
-
-// Active item: wafer-grinding wavelength-trend demo (no active points)
-struct agrinding_wavelength {
-    grinding_wave_params params;
-};
-
 // One row in the key-binding table of a legend
 struct key_legend_entry {
     std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
@@ -476,6 +461,22 @@ struct diagram_legend {
     double x_pct{0.02};    // left margin of anchor as fraction of area width
     double y_pct{0.02};    // top  margin of anchor as fraction of area height
     double size_pct{0.30}; // box width as fraction of area width
+};
+
+// Optional axis configuration for a chart-style model (e.g. the wafer-grinding Fig.-12
+// wavelength panels). When a Coordsys_model carries this, w_Coordsys retargets the shared
+// Coordsys axes (range, labels, major-tick spacing) to these values and turns the
+// aspect-ratio lock off when the model is shown, restoring the default geometric axes on
+// the way out. Geometric models leave it unset -> the shared axes are untouched.
+struct plot_axis_cfg {
+    double xmin{0.0}, xmax{1.0};
+    double ymin{0.0}, ymax{1.0};
+    std::string xlabel{};
+    std::string ylabel{};
+    double x_major_delta{0.0}; // major-tick spacing on x (<=0 -> (xmax-xmin)/5)
+    double y_major_delta{0.0}; // major-tick spacing on y (<=0 -> (ymax-ymin)/5)
+    int x_minor_intervals{5};
+    int y_minor_intervals{5};
 };
 
 // ----------------------------------------------------------------------------
@@ -562,12 +563,12 @@ class Coordsys_model {
 
     [[maybe_unused]] size_t add_grinding_topo(agrinding_topo const& agto_in);
 
-    [[maybe_unused]] size_t add_grinding_wavelength(agrinding_wavelength const& agwl_in);
-
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
     void set_legend(diagram_legend leg) { legend = std::move(leg); };
+
+    void set_axis_cfg(plot_axis_cfg cfg) { axis_cfg = std::move(cfg); };
 
     // reset model to empty state, e.g. for reuse in new model
     void clear();
@@ -648,11 +649,11 @@ class Coordsys_model {
     // data for wafer-grinding surface-topography demo items
     std::vector<agrinding_topo> agto;
 
-    // data for wafer-grinding wavelength-trend demo items
-    std::vector<agrinding_wavelength> agwl;
-
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};
+
+    // optional chart axis override (see plot_axis_cfg)
+    std::optional<plot_axis_cfg> axis_cfg{};
 
     // model label, e.g. time stamp description of current Coordsys_model
     std::string m_label{};

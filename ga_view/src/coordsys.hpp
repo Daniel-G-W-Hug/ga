@@ -205,6 +205,14 @@ class Coordsys {
                               double new_ymax, double xtarget_ratio,
                               double ytarget_ratio);
 
+    // Replace both axes' ranges / labels / ticks in place, preserving the current widget
+    // pixel geometry; ar selects whether the y-range is recomputed to keep aspect ratio
+    // 1:1 (geometric views) or left independent (chart views). Used to retarget the
+    // shared Coordsys for chart-style models (see Coordsys_model::axis_cfg).
+    void set_axes(axis_data adx, axis_data ady, keep_aspect_ratio ar);
+
+    keep_aspect_ratio get_aspect_ratio() const { return ar_const; }
+
     Axis x;
     Axis y;
 

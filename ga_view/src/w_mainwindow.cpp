@@ -20,7 +20,6 @@ using namespace hd::ga::pga;
 #include "active_frame_trafo.hpp"
 #include "active_grinding_marks.hpp"
 #include "active_grinding_topo.hpp"
-#include "active_grinding_wavelength.hpp"
 #include "active_kinematics2dp.hpp"
 #include "active_merry_go_round.hpp"
 #include "active_ode.hpp"
@@ -48,8 +47,11 @@ using namespace hd::ga::pga;
 #include <QPointF>
 #include <QVBoxLayout>
 
+#include <cmath>     // std::sqrt
 #include <map>       // std::map
 #include <stdexcept> // std::runtime_error
+#include <utility>   // std::move
+#include <vector>    // std::vector
 
 std::vector<Coordsys_model> get_model_with_lots_of_stuff()
 {
@@ -1708,19 +1710,6 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(gt);
     }
 
-    ///////////////////////////////////////////////////////////////////////////
-    // wafer-grinding wavelength-trend demo items (PGA3DP kinematic_system3dp)
-    ///////////////////////////////////////////////////////////////////////////
-    for (size_t idx = 0; idx < cm->agwl.size(); ++idx) {
-        active_grinding_wavelength* gw =
-            new active_grinding_wavelength(cs, wcs, cm->agwl[idx].params);
-        QObject::connect(wcs, &w_Coordsys::resetRequested, gw,
-                         &active_grinding_wavelength::resetAnimation);
-        QObject::connect(wcs, &w_Coordsys::circlesToggleRequested, gw,
-                         &active_grinding_wavelength::cyclePanel);
-        scene->addItem(gw);
-    }
-
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -2063,6 +2052,230 @@ std::vector<Coordsys_model> get_frame_trafo_scenes()
     return vm;
 }
 
+// ---------------------------------------------------------------------------
+// Wafer-grinding waviness-wavelength panels (Tao 2022, Fig. 12)
+//
+// Four NATIVE ga_view line charts -- one static Coordsys_model each, with its own axis
+// range / labels supplied through Coordsys_model::axis_cfg (the shared Coordsys is
+// retargeted on model switch; aspect-ratio lock off). Every plotted point is the
+// grinding-waviness wavelength lambda = (relative surface speed) / f_b, with the surface
+// speed read off kinematic_system3dp::point_velocity of the Tao Fig.-1 frame tree -- the
+// SAME GA twist-field computation validated in the app-test
+// "pga3dp: grinding-mark wavelengths lambda_m / lambda_c (Phase D.1)". No active item, no
+// hand-drawn axes -- native ga_view line charts.
+// ---------------------------------------------------------------------------
+namespace {
+
+// {wheel-rim, wafer} surface speeds [um/s] from the GA twist field, for chuck speed
+// ns_rpm, wheel speed nw_rpm and wafer radius r_um (mirrors the app-test surface_speeds
+// lambda and the Phase-0 Fig.-1 frame tree).
+struct gw_speeds {
+    double v_w;
+    double v_s;
+};
+
+gw_speeds gw_surface_speeds(double ns_rpm, double nw_rpm, double r_um, double Rw_um)
+{
+    double const ns = ns_rpm * pi / 30.0, nw = nw_rpm * pi / 30.0;
+    double const off = Rw_um / std::sqrt(2.0);
+    double const l3 = 0.3 * Rw_um, x_a = l3;
+
+    kinematic_system3dp s;
+    s.add_frame(static_frame3dp("chuck_ctr_stat"));
+    s.add_frame(static_frame3dp("chuck_ctr_rot"),
+                kin_state3dp{.omega = vec3dp{ns, 0.0, 0.0, 0.0}},
+                s.index_of("chuck_ctr_stat"));
+    s.add_frame(static_frame3dp("wafer_top_avg_rot", vec3dp{0.0, 0.0, 0.0, 1.0}),
+                kin_state3dp{}, s.index_of("chuck_ctr_rot"));
+    s.add_frame(static_frame3dp("spindle_cm_stat", vec3dp{x_a, -off, off, 1.0},
+                                vec3dp{0.0, -pi / 2.0, 0.0, 0.0}),
+                kin_state3dp{}, s.index_of("chuck_ctr_stat"));
+    s.add_frame(static_frame3dp("tool_top_avg_rot", vec3dp{0.0, 0.0, l3, 1.0}),
+                kin_state3dp{.omega = vec3dp{0.0, 0.0, -nw, 0.0}},
+                s.index_of("spindle_cm_stat"));
+    s.add_frame(static_frame3dp("tool_surface_avg_at_R", vec3dp{Rw_um, 0.0, 0.0, 1.0}),
+                kin_state3dp{}, s.index_of("tool_top_avg_rot"));
+
+    vec3dp const g = unitize(
+        move3dp(O_3dp, s.get_pos_trafo("tool_surface_avg_at_R", "chuck_ctr_stat")));
+    double const vw = to_val(bulk_nrm(s.point_velocity(g, "tool_surface_avg_at_R")));
+    double const vs = to_val(
+        bulk_nrm(s.point_velocity(vec3dp{0.0, r_um, 0.0, 1.0}, "wafer_top_avg_rot")));
+    return {vw, vs};
+}
+
+} // namespace
+
+std::vector<Coordsys_model> get_grinding_wavelength_panels()
+{
+    double const Rw_um = 150.0e3; // grinding-wheel radius [um]
+    // Fixed vibration frequency for the fixed-f_b panels (b)/(d). Tao's Fig.-12 caption
+    // states f_b = 4000 Hz, but the plotted curves match f_b = 6000 Hz (lambda = v/f_b;
+    // at 4000 Hz lambda_m would top ~11000 um, lambda_c ~314 um, vs. the figure's ~7200 /
+    // ~210 um == 6000 Hz). The caption "4000 Hz" is a paper error; we use 6000 Hz to
+    // reproduce the figure. Panels (a)/(c) sweep f_b directly and are unaffected.
+    double const fb_fixed = 6000.0; // [Hz]
+    int const N = 81;
+
+    // four curve families: distinct colour + marker symbol (ga_view has plus/cross/
+    // circle/square), matching Tao's per-family markers.
+    QColor const col[4] = {QColor(200, 40, 40), QColor(30, 150, 40), QColor(40, 90, 200),
+                           QColor(220, 140, 0)};
+    Symbol const sym[4] = {Symbol::square, Symbol::circle, Symbol::plus, Symbol::cross};
+
+    auto add_family = [&](Coordsys_model& cm, int fam, double xmin, double xmax,
+                          auto&& lambda_of_x) {
+        ln2d curve;
+        for (int i = 0; i < N; ++i) {
+            double const x = xmin + (xmax - xmin) * double(i) / double(N - 1);
+            curve.emplace_back(pt2d(x, lambda_of_x(x)));
+        }
+        ln2d_mark m;
+        m.pen = QPen(col[fam], 2, Qt::SolidLine);
+        m.mark_pts = true;
+        m.delta = 10;
+        m.pm.symbol = sym[fam];
+        m.pm.pen = QPen(col[fam], 2, Qt::SolidLine);
+        m.pm.nsize = 5;
+        cm.add_ln(curve, m);
+    };
+
+    std::vector<Coordsys_model> vm;
+
+    // --- (a) lambda_c vs f_b, family radius r [mm] -----------------------------------
+    {
+        Coordsys_model cm;
+        double const r_mm[4] = {30.0, 40.0, 50.0, 60.0};
+        for (int f = 0; f < 4; ++f)
+            add_family(cm, f, 4000.0, 8000.0, [&, f](double fb) {
+                return gw_surface_speeds(200.0, 2000.0, r_mm[f] * 1.0e3, Rw_um).v_s / fb;
+            });
+        cm.set_label("Wafer grinding: lambda_c vs f_b (Tao Fig. 12a)");
+        cm.set_axis_cfg(plot_axis_cfg{.xmin = 4000.0,
+                                      .xmax = 8000.0,
+                                      .ymin = 70.0,
+                                      .ymax = 350.0,
+                                      .xlabel = "vibration frequency f_b [Hz]",
+                                      .ylabel = "lambda_c [um]",
+                                      .x_major_delta = 1000.0,
+                                      .y_major_delta = 70.0});
+        diagram_legend leg;
+        leg.heading = "Tao Fig. 12(a): circumferential-waviness wavelength lambda_c = "
+                      "v_s/f_b vs vibration frequency. lambda_c falls with f_b and grows "
+                      "with radial distance r. v_s from kinematic_system3dp.";
+        leg.entries = {{"red []", "r = 30 mm"},
+                       {"green ()", "r = 40 mm"},
+                       {"blue +", "r = 50 mm"},
+                       {"orange x", "r = 60 mm"}};
+        leg.x_pct = 0.62;
+        leg.y_pct = 0.04;
+        leg.size_pct = 0.34;
+        cm.set_legend(leg);
+        vm.push_back(std::move(cm));
+    }
+
+    // --- (b) lambda_c vs wafer speed n_s, family n_w [rpm] (curves COINCIDE) ----------
+    {
+        Coordsys_model cm;
+        double const nw[4] = {1600.0, 2000.0, 2400.0, 2800.0};
+        for (int f = 0; f < 4; ++f)
+            add_family(cm, f, 100.0, 300.0, [&, f](double ns) {
+                return gw_surface_speeds(ns, nw[f], 40.0e3, Rw_um).v_s / fb_fixed;
+            });
+        cm.set_label("Wafer grinding: lambda_c vs n_s (Tao Fig. 12b)");
+        cm.set_axis_cfg(plot_axis_cfg{.xmin = 100.0,
+                                      .xmax = 300.0,
+                                      .ymin = 70.0,
+                                      .ymax = 210.0,
+                                      .xlabel = "wafer speed n_s [rpm]",
+                                      .ylabel = "lambda_c [um]",
+                                      .x_major_delta = 50.0,
+                                      .y_major_delta = 35.0});
+        diagram_legend leg;
+        leg.heading = "Tao Fig. 12(b): lambda_c = v_s/f_b vs wafer speed (f_b = 6000 Hz; "
+                      "caption says 4000 -- paper error). lambda_c rises linearly with "
+                      "n_s and is INDEPENDENT of wheel speed n_w -> the four curves "
+                      "coincide.";
+        leg.entries = {{"red []", "n_w = 1600 rpm"},
+                       {"green ()", "n_w = 2000 rpm"},
+                       {"blue +", "n_w = 2400 rpm"},
+                       {"orange x", "n_w = 2800 rpm"}};
+        leg.x_pct = 0.04;
+        leg.y_pct = 0.04;
+        leg.size_pct = 0.36;
+        cm.set_legend(leg);
+        vm.push_back(std::move(cm));
+    }
+
+    // --- (c) lambda_m vs f_b, family radius r [mm] (curves COINCIDE) ------------------
+    {
+        Coordsys_model cm;
+        double const r_mm[4] = {30.0, 40.0, 50.0, 60.0};
+        for (int f = 0; f < 4; ++f)
+            add_family(cm, f, 4000.0, 8000.0, [&, f](double fb) {
+                return gw_surface_speeds(200.0, 2000.0, r_mm[f] * 1.0e3, Rw_um).v_w / fb;
+            });
+        cm.set_label("Wafer grinding: lambda_m vs f_b (Tao Fig. 12c)");
+        cm.set_axis_cfg(plot_axis_cfg{.xmin = 4000.0,
+                                      .xmax = 8000.0,
+                                      .ymin = 3500.0,
+                                      .ymax = 8500.0,
+                                      .xlabel = "vibration frequency f_b [Hz]",
+                                      .ylabel = "lambda_m [um]",
+                                      .x_major_delta = 1000.0,
+                                      .y_major_delta = 1000.0});
+        diagram_legend leg;
+        leg.heading =
+            "Tao Fig. 12(c): mark-direction wavelength lambda_m = v_w/f_b vs "
+            "vibration frequency. lambda_m falls with f_b and is INDEPENDENT of "
+            "radial distance r -> the four curves coincide. v_w from "
+            "kinematic_system3dp.";
+        leg.entries = {{"red []", "r = 30 mm"},
+                       {"green ()", "r = 40 mm"},
+                       {"blue +", "r = 50 mm"},
+                       {"orange x", "r = 60 mm"}};
+        leg.x_pct = 0.62;
+        leg.y_pct = 0.04;
+        leg.size_pct = 0.34;
+        cm.set_legend(leg);
+        vm.push_back(std::move(cm));
+    }
+
+    // --- (d) lambda_m vs wafer speed n_s, family n_w [rpm] (FLAT, distinct) -----------
+    {
+        Coordsys_model cm;
+        double const nw[4] = {1600.0, 2000.0, 2400.0, 2800.0};
+        for (int f = 0; f < 4; ++f)
+            add_family(cm, f, 100.0, 300.0, [&, f](double ns) {
+                return gw_surface_speeds(ns, nw[f], 40.0e3, Rw_um).v_w / fb_fixed;
+            });
+        cm.set_label("Wafer grinding: lambda_m vs n_s (Tao Fig. 12d)");
+        cm.set_axis_cfg(plot_axis_cfg{.xmin = 100.0,
+                                      .xmax = 300.0,
+                                      .ymin = 4000.0,
+                                      .ymax = 7600.0,
+                                      .xlabel = "wafer speed n_s [rpm]",
+                                      .ylabel = "lambda_m [um]",
+                                      .x_major_delta = 50.0,
+                                      .y_major_delta = 600.0});
+        diagram_legend leg;
+        leg.heading = "Tao Fig. 12(d): lambda_m = v_w/f_b vs wafer speed (f_b = 6000 Hz; "
+                      "caption says 4000 -- paper error). lambda_m is INDEPENDENT of n_s "
+                      "(flat lines) and rises with wheel speed n_w.";
+        leg.entries = {{"red []", "n_w = 1600 rpm"},
+                       {"green ()", "n_w = 2000 rpm"},
+                       {"blue +", "n_w = 2400 rpm"},
+                       {"orange x", "n_w = 2800 rpm"}};
+        leg.x_pct = 0.04;
+        leg.y_pct = 0.04;
+        leg.size_pct = 0.36;
+        cm.set_legend(leg);
+        vm.push_back(std::move(cm));
+    }
+
+    return vm;
+}
+
 Coordsys* get_initial_cs()
 {
     // TODO: read default parameters from config file (e.g. .lua)
@@ -2399,40 +2612,12 @@ w_MainWindow::w_MainWindow(QWidget* parent) : QMainWindow(parent)
         models.push_back(std::move(cm));
     }
 
-    // Append the wafer-grinding wavelength-trend scene (Tao 2022, Fig. 12): line plots of
-    // the waviness wavelength vs. process parameters, every point lambda = (surface
-    // speed)/f_b with the speeds from kinematic_system3dp::point_velocity. C cycles the
-    // four Fig.-12 panels.
+    // Append the four wafer-grinding wavelength panels (Tao Fig. 12 a/b/c/d) -- one
+    // ga_view line chart each, with its own axis range via Coordsys_model::axis_cfg.
     {
-        Coordsys_model cm;
-        cm.add_grinding_wavelength(agrinding_wavelength{});
-        cm.set_label("Wafer grinding: waviness-wavelength trends (Tao Fig. 12)");
-
-        diagram_legend leg;
-        leg.heading =
-            "PGA3D wavelength trends (Tao 2022, Fig. 12): the grinding-waviness "
-            "wavelength "
-            "lambda = (relative surface speed)/f_b, with the wheel speed v_w and wafer "
-            "speed v_s read from kinematic_system3dp::point_velocity. The four panels (C "
-            "to "
-            "cycle) reproduce the paper AND show the GA-derived independences: lambda_c "
-            "is "
-            "independent of n_w (panel b curves overlap), lambda_m of r (c overlap) and "
-            "of "
-            "n_s (d is flat).";
-        leg.entries = {{"C:", "cycle Fig.-12 panels (a / b / c / d)"},
-                       {"R:", "reset to panel (a)"},
-                       {"─────", "──────────"},
-                       {"a:", "lambda_c vs f_b, family radius r"},
-                       {"b:", "lambda_c vs wafer speed, family n_w (overlap)"},
-                       {"c:", "lambda_m vs f_b, family r (overlap)"},
-                       {"d:", "lambda_m vs wafer speed, family n_w (flat)"}};
-        leg.x_pct = 0.02;
-        leg.y_pct = 0.02;
-        leg.size_pct = 0.22;
-        cm.set_legend(leg);
-
-        models.push_back(std::move(cm));
+        auto gw_panels = get_grinding_wavelength_panels();
+        for (auto& p : gw_panels)
+            models.push_back(std::move(p));
     }
 
     for (size_t i = 0; i < models.size(); ++i) {

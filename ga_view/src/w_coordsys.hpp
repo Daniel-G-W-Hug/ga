@@ -70,6 +70,13 @@ class w_Coordsys : public QGraphicsView {
 
     std::vector<Coordsys> cs_history; // history of coordinate-systems (for undo)
 
+    // default (geometric) axis configuration, captured at construction so it can be
+    // restored when leaving a chart-style model (see Coordsys_model::axis_cfg).
+    axis_data m_default_adx{};
+    axis_data m_default_ady{};
+    keep_aspect_ratio m_default_ar{keep_aspect_ratio::yes};
+    bool m_chart_mode{false}; // the shared axes are currently a chart override
+
     // mouse status
     int m_nx{0};                         // x-position of mouse in widget
     int m_ny{0};                         // y-position of mouse in widget

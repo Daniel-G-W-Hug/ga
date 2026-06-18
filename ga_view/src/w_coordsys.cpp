@@ -23,6 +23,11 @@ w_Coordsys::w_Coordsys(Coordsys* cs, std::vector<Coordsys_model*>& vm,
                        QGraphicsScene* scene, QWidget* parent) :
     QGraphicsView(parent), cs(cs), scene(scene), vm(vm)
 {
+    // capture the default (geometric) axes so a chart-style model can be undone cleanly
+    m_default_adx = cs->x.get_axis_data();
+    m_default_ady = cs->y.get_axis_data();
+    m_default_ar = cs->get_aspect_ratio();
+
     scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     scene->setSceneRect(0, 0, cs->x.widget_size(), cs->y.widget_size());
     setScene(scene);
@@ -791,7 +796,37 @@ void w_Coordsys::switch_to_model(size_t idx)
     if (idx < vm.size()) {
         // fmt::println("w_Coordsys got signal switch_to_model with value {}", idx);
         cm = vm[idx];
+
+        bool axes_changed = false;
+        if (cm->axis_cfg.has_value()) {
+            // chart-style model: retarget the shared axes to its range (aspect off)
+            plot_axis_cfg const& c = *cm->axis_cfg;
+            double const xd =
+                c.x_major_delta > 0.0 ? c.x_major_delta : (c.xmax - c.xmin) / 5.0;
+            double const yd =
+                c.y_major_delta > 0.0 ? c.y_major_delta : (c.ymax - c.ymin) / 5.0;
+            axis_data adx(axis_rng(c.xmin, c.xmax), axis_dir::x, axis_scal::linear,
+                          c.xlabel, axis_ticks(0.0, xd, size_t(c.x_minor_intervals)));
+            axis_data ady(axis_rng(c.ymin, c.ymax), axis_dir::y, axis_scal::linear,
+                          c.ylabel, axis_ticks(0.0, yd, size_t(c.y_minor_intervals)));
+            cs->set_axes(adx, ady, keep_aspect_ratio::no);
+            m_chart_mode = true;
+            axes_changed = true;
+        }
+        else if (m_chart_mode) {
+            // leaving a chart panel: restore the default geometric axes
+            cs->set_axes(m_default_adx, m_default_ady, m_default_ar);
+            m_chart_mode = false;
+            axes_changed = true;
+        }
+
         invalidateScene();
         updateSceneRect(scene->sceneRect());
+
+        // populate_scene (in changeModel) already anchored the ctor-positioned items
+        // (item_pt2d markers etc.) using the PREVIOUS axes -- it runs before this slot.
+        // Re-emit viewResized so they reposition to the just-applied chart axes, exactly
+        // as a window resize would.
+        if (axes_changed) emit viewResized();
     }
 }
