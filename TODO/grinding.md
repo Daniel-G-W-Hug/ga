@@ -475,28 +475,18 @@ The full DC-motor/bond-graph drive model; the grain-statistics surface-topograph
 simulation as a standalone renderer (we observe `z_b`/trajectories, not a full grain
 ensemble); any 3D `ga_view` rendering of the spindle (ga_view is a 2D viewer).
 
-## Deferred documentation tasks (do at the documentation phase)
+## Deferred documentation tasks — DONE 2026-06-18
 
-These recur throughout the kinematics/dynamics work (and are partly a left-over from the
-previous project), so they want short, precise definitions in
-[ga_docu/8_ga_glossary.tex](ga_docu/8_ga_glossary.tex). Deferred until we reach the
-documentation part of this task; capture here so it is not lost:
+Glossary entries added to [ga_docu/8_ga_glossary.tex](ga_docu/8_ga_glossary.tex) (compiles
+clean, all cross-refs resolve). Eleven entries, in the file's existing register (terse,
+declarative, equation-first), each with `\ref{}` back-pointers into the full §3/§5
+treatments:
 
-- **pose** — the *configuration* of a frame: its position + orientation, carried by a unit
-  motor `M` (the `pose{2,3}dp` POD stores the equivalent origin + orientation). A point of
-  the group (a *finite* rigid placement).
-- **pose vs. twist** — `pose` is the group element (where the frame *is*, the motor `M`);
-  `twist` is the tangent/rate (how it is *moving*, the `exp` generator). They are related by
-  `M(t) = M(0) ⟇ exp(½ ∫ twist dt)` and conversely `twist = 2 Mdot ⟇ rrev(M)`: integrate a
-  twist to get a pose, differentiate a pose to get a twist. (Mirrors the Lie group/algebra
-  and finite/infinitesimal entries below — pose lives in the group, twist in the algebra.)
-- **twist** — the velocity screw (the `exp` generator of a motor); dimension-dependent
-  grade (vector in pga2dp, bivector in pga3dp). Note the rate `Omega = 2 Mdot ⟇ rrev(M)`.
-- **wrench** — the force/torque screw dual to a twist; the spatial (reciprocal/Klein)
-  pairing `⟨twist, wrench⟩` gives power / generalised force.
-- **Lie group** vs **Lie algebra** — the motor manifold (finite rigid motions) vs. its
-  tangent at identity (twists); related by `exp` / `log`.
-- **infinitesimal** vs **finite** movements — the Lie-algebra generator (twist) vs. the
-  group element (motor) it integrates to.
+- The six originally deferred: **pose**, **pose vs. twist**, **twist**, **wrench**,
+  **Lie group vs. Lie algebra**, **infinitesimal vs. finite movements**.
+- Group A (connective tissue the above reference): **motor and rotor**, **screw (Chasles'
+  theorem)**, **inertia map**.
+- Group B (Lie-cluster stubs): **adjoint**, **commutator (Lie bracket)**.
 
-Keep each to a glossary-sized entry, matching the file's existing register.
+Skipped by decision (Group C — §2-basics territory, defined there already): bulk/weight,
+unitization, congruence, attitude, forque.
