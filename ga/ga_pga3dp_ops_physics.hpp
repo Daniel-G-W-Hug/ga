@@ -608,12 +608,13 @@ class static_system3dp {
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// kinematic_system3dp: a static_system3dp augmented with a momentary RELATIVE velocity
-// twist per frame. The 3D twin of kinematic_system2dp. The physical input is a (linear
-// velocity, angular velocity) pair (kin_state3dp); the dimension-specific to_twist()
-// packs it into the abstract se(3) motor generator (a genuine BiVec3dp, grade 2 -- where
-// 2D used a grade-1 vec2dp with a scalar omega). Velocity layer only at this milestone
-// (the acceleration / world_VA / bracket layer follows with the articulated tier).
+// kinematic_system3dp: a static_system3dp augmented with momentary RELATIVE velocity and
+// acceleration twists per frame. The 3D twin of kinematic_system2dp. The physical input
+// is a (linear velocity, angular velocity) pair (kin_state3dp); the dimension-specific
+// to_twist() packs it into the abstract se(3) motor generator (a genuine BiVec3dp, grade
+// 2
+// -- where 2D used a grade-1 vec2dp with a scalar omega). world_VA propagates the twists
+// root -> frame by the Newton-Euler adjoint + commutator (bracket) relations.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // A 3dp twist (instantaneous screw), the se(3) motor generator. exp(0.5 * twist) is the
@@ -830,15 +831,16 @@ class kinematic_system3dp : public static_system3dp {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // dynamic_system3dp: the forces/inertia tier on top of kinematic_system3dp. The 3D twin
-// of dynamic_system2dp. Milestone 1 scope: independent FREE rigid bodies under gravity
-// (no joints / articulation yet). Each frame's relative acceleration twist is COMPUTED
-// from the applied wrench via the se(3) Euler equation
+// of dynamic_system2dp. A free body's relative acceleration twist is COMPUTED from the
+// applied wrench via the se(3) Euler equation
 //
 //   Omega_dot = I^-1[ W - rcmt(Omega, I(Omega)) ]            (= compute_omega_dot)
 //
 // -- LITERALLY the same line as 2D (vec) with BiVec3dp instead. The pose is evolved on
 // the motor manifold M(t) = M0 (x) exp(1/2 B) with RK4 on the Lie-algebra pair (B,
-// Omega).
+// Omega). Bodies may also be connected by 1-DOF JOINTS into articulated chains (coupled
+// forward dynamics) with force elements (spring/damper, applied wrench, grounded spring,
+// grinding contact) feeding the generalised force.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // Rigid-body inertial properties of a frame (body frame, about the body origin = cm).
@@ -861,7 +863,7 @@ inline body3dp make_cuboid_body(value_t m, value_t w, value_t h, value_t d)
 // Both 1-DOF kinds run through the SAME code -- only the screw generator differs (the PGA
 // unification of rotation and translation): M(q) = rest (x) exp(1/2 q * screw).
 //
-//   free      : unconstrained 6-DOF rigid body (Milestone 1); state in the base layer.
+//   free      : unconstrained 6-DOF rigid body; state lives in the base layer.
 //
 //   revolute  : 1-DOF hinge; screw = a LINE (the rotation axis); q rotates about it.
 //
@@ -926,7 +928,7 @@ struct grounded_spring3dp {
 // -- a configuration-dependent applied wrench from a user callback on the live state,
 // i.e. set_applied_wrench generalised from time-only to state-dependent -- could be
 // factored into 2D IF a genuine 2D contact/penalty use ever arises; until then,
-// deliberately 3D only (decision 2026-06-20; see TODO/grinding.md Phase D.2b/c).
+// deliberately 3D only.
 //
 // The live geometric/kinematic state at a grinding contact, computed by the
 // infrastructure each sub-step and handed to a (swappable) grinding force LAW. The law is
@@ -968,8 +970,8 @@ inline vec3dp grinding_force_depth(contact_state3dp const& c, value_t k, value_t
 //   rk4  -- canonical 4th-order Runge-Kutta (default), 4 rhs evals/step
 //   abm2 -- Adams-Bashforth-Moulton 2nd-order predictor-corrector, 2 rhs evals/step
 // (both from ga/ga_usr_utilities.hpp). RK4 is the robust default; ABM2 trades order for
-// fewer evaluations -- useful to weigh on the grinding loop. Neither is an implicit/stiff
-// solver (see TODO/grinding.md Phase D.2d-4).
+// fewer evaluations. Both are EXPLICIT -- neither is an implicit/stiff solver, so on a
+// genuinely stiff system the step is bounded by stability, not accuracy.
 enum class integrator_kind { rk4, abm2 };
 
 class dynamic_system3dp : public kinematic_system3dp {
@@ -1561,7 +1563,7 @@ class dynamic_system3dp : public kinematic_system3dp {
     // pulled into body i, and the second term is the se(3) gyroscopic (velocity-product)
     // wrench. This is the GENERAL form: for a single joint both the angular bias and the
     // gyroscopic projection onto its own screw vanish (ad-invariance: <X,[X,Y]> == 0), so
-    // it reduces to the 2D translational result; for coupled NON-PARALLEL axes (M3) the
+    // it reduces to the 2D translational result; for coupled NON-PARALLEL axes the
     // angular bias + gyroscopic terms are non-zero and required. Pre: the joint state
     // (phi, omega) is already applied.
     //

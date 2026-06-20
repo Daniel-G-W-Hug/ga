@@ -878,12 +878,14 @@ class kinematic_system2dp : public static_system2dp {
 //   Omega_dot = I^-1[ W - rcmt(Omega, I(Omega)) ]            (= compute_omega_dot)
 //
 // and integrated with RK4. The Coriolis/centrifugal coupling sits entirely in the
-// regressive commutator rcmt(Omega, I(Omega)) -- "twists do not commute" -- which is the
-// geometric-algebra showcase of this tier (see TODO/kinematics_explanation.md).
+// regressive commutator rcmt(Omega, I(Omega)) -- "twists do not commute" -- the
+// geometric-algebra showcase of this tier.
 //
-// Milestone 1 scope: independent FREE rigid bodies under gravity (no joint coupling or
-// constraints yet -- the revolute-joint / articulated tier follows). The pose is evolved
-// on the motor manifold; the integration state is the Lie-algebra pair (B, Omega).
+// Bodies are either FREE (unconstrained, integrated independently under gravity) or
+// connected to a parent by a 1-DOF JOINT into an articulated chain (coupled forward
+// dynamics), with force elements (spring/damper, applied wrench, grounded spring) feeding
+// the generalised force. The pose is evolved on the motor manifold; the integration state
+// is the Lie-algebra pair (B, Omega).
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // Rigid-body inertial properties of a frame (body frame, about the body origin = cm).
@@ -906,7 +908,7 @@ inline body2dp make_plate_body(value_t m, value_t w, value_t h)
 // unification of rotation and translation): M(q) = rest (x) exp(1/2 q * screw), relative
 // twist = q-dot * screw, Jacobian = velocity_field(screw, .).
 //
-//   free      : unconstrained 3-DOF rigid body (Milestone 1); state in the base layer.
+//   free      : unconstrained 3-DOF rigid body; state lives in the base layer.
 //
 //   revolute  : 1-DOF hinge; screw = a FINITE point Q_b (z = 1); q rotates about Q_b.
 //
@@ -1143,9 +1145,9 @@ class dynamic_system2dp : public kinematic_system2dp {
             set_accel_twist(rj[k], qdd[k] * joint[rj[k]].screw_b);
     }
 
-    // Advance the system by dt. The revolute joints form a COUPLED chain integrated
-    // together in their reduced (joint-angle) coordinates via the joint-space forward
-    // dynamics; free bodies are integrated independently (Milestone 1). RK4 throughout.
+    // Advance the system by dt. The dof joints form a COUPLED chain integrated together
+    // in their reduced (joint-coordinate) state via the joint-space forward dynamics;
+    // free bodies are integrated independently. RK4 throughout.
     void step(value_t dt)
     {
         auto const rj = dof_joints();
