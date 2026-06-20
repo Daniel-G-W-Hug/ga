@@ -215,7 +215,12 @@ of the Eq.13 controversy.
 **RESUME HERE (next session) → D.2 (the risky/open research part): the two-way force loop** —
 grinding-force law → wrench → vibration → z_b → depth → MRR → force. Tao has NO force model
 (assumes F=25/25/100 N const), so D.2 is genuinely uncertain modeling + may stiffen the ODE
-(RK4 dt≈1e-8 already). Then E — feed/speed optimization. (Off critical path: **B.2** —
+(RK4 dt≈1e-8 already). **Detailed, clarified plan now in the dedicated section
+[Phase D.2 detailed plan](#phase-d2-detailed-plan-two-way-force-loop) below** (user
+clarifications 2026-06-20: build flexible infrastructure for a student to
+experiment with force laws — prepare BOTH the depth-based and MRR-based laws, BOTH loop
+topologies, BOTH integrators; control strategy as a separate opt-in top layer). Then E —
+feed/speed optimization. (Off critical path: **B.2** —
 CLOSED 2026-06-18, subsumed by C.3 (the emergent centrifugal `m·e·Ω²` from a spinning
 offset-cm body was validated EXACTLY there, `ẍ=−e·ω²`; no separate B.2 test needed);
 **Phase 0.c** CS-view scene — still deferred.)
@@ -474,6 +479,176 @@ congruence section updated.
 The full DC-motor/bond-graph drive model; the grain-statistics surface-topography
 simulation as a standalone renderer (we observe `z_b`/trajectories, not a full grain
 ensemble); any 3D `ga_view` rendering of the spindle (ga_view is a 2D viewer).
+
+## Phase D.2 detailed plan (two-way force loop)
+
+Clarified with the user 2026-06-20. **Design principle:** build *flexible infrastructure a
+student can experiment on*, not one hard-wired model. Keep the experiment-specific pieces
+(the **force law**, the **control schedule**) cleanly separated from the infrastructure, and
+add each new capability as an **opt-in layer that is only paid for when used** — the same
+side-map / wrapper pattern as the driven joints, applied wrenches and the closed-loop tier.
+Every choice below is prepared for BOTH alternatives the user named, with a stated default.
+
+### Decisions captured (2026-06-20)
+
+- **Force law — prepare BOTH, default (a).** (a) engagement-depth / chip-thickness law
+  [DEFAULT]; (b) MRR × specific-energy law. Interchangeable behind one registration hook; a
+  student swaps laws without touching the infrastructure.
+- **Loop topology — prepare BOTH, default spindle-only.** (1) spindle-side only [start];
+  (2) + chuck/wafer reaction, needed because the wafer thinning makes engagement (hence
+  force) sensitive. The wafer-side reaction + the wafer-thinning state are opt-in.
+- **Integrator — BOTH, RK4 default.** RK4 [default] + an Adams–Bashforth multistep with
+  adjusted (adaptive) stepping for speed. A benchmark test reports RK4-vs-AAB accuracy
+  (gate: ≤1 % delta) and wall-clock. (AAB read as an Adams–Bashforth predictor / Adams–
+  Moulton corrector pair — "alternating" = the predictor-corrector alternation — with
+  step-size control from the P-C error estimate; CONFIRM exact scheme/order with the user.)
+- **Home — app-test prototype first**, then promote the proven primitive into the library
+  (standing project decision). Validation ladder: feed-forward force → close loop → thinning
+  → control.
+- **Control strategy — a SEPARATE top layer**, only used/paid for when attached (mirrors
+  `closed_loop_system` on top of `dynamic_system`). Options: (a) hold force ≤ 70 % of the
+  constant-feed reference by controlling feed; (b) constant feed until wafer = 150 µm, then
+  taper the force target linearly 100 %→70 % between 150 µm and 80 µm. Both are starting
+  values to be tuned later.
+
+### Infrastructure to add (mirrors the existing force-element side-maps)
+
+1. **`contact_state` (POD)** — everything any force law could read, computed by the infra
+   from the live kinematics each RK4 sub-step: engagement depth `delta` (rim axial position
+   `z_b = z − R_w·φ` vs the nominal wafer-top, so vibration modulates it), relative surface
+   speed `v_rel` (from `kinematic_system::point_velocity`, the Phase-0/D.1 twist field),
+   nominal feed velocity `v_feed`, current wafer thickness `tw`, contact point `P` (world)
+   and feed-normal `n`, swept area / MRR, clock `t`.
+2. **Force-law hook** — `using grinding_law = std::function<vec3dp(contact_state const&)>;`
+   registered per spindle frame: `set_contact_force(idx, law, contact_params)`. The infra
+   builds the wrench `wdg(P, F)` and folds it into `assemble_mass_bias` exactly like the
+   grounded spring (config-dependent, NOT a function of time). Two laws shipped as free
+   functions a student picks or replaces: `grinding_force_depth` (a, default) and
+   `grinding_force_mrr` (b). `contact_params` = geometry/material constants (R_w, nominal
+   wafer-top, contact width/arc, specific energy `k_e`, …).
+3. **Wafer-thinning state + chuck reaction (opt-in)** — `wafer_thickness_` integrated from
+   removed volume (`tw_dot = −MRR / area`); feeds back into `delta`.
+   `set_contact_reaction(chuck_idx)` enables the equal-and-opposite wrench `−wdg(P,F)` on the
+   wafer/chuck frame (topology 2). Absent ⇒ topology 1, gravity/bias path byte-unchanged.
+4. **Integrator selector** — `set_integrator(rk4 | adams_bashforth)`, RK4 default. AAB stepper
+   added to `ga_usr_utilities.hpp` beside `rk4_step` (history buffer, RK4 self-start, adaptive
+   dt from the P-C error estimate). `coupled_step` dispatches on the selection.
+5. **Feed-control layer (separate, opt-in)** — a `grinding_controller` holding the schedule
+   (option a/b params) + `feed_rate(measured_force, tw) -> rate`; wired by the test into
+   `set_driven_rate` each macro-step (or a `set_feed_controller` side hook). Absent ⇒
+   constant feed; the layer is inert and unpriced when not attached.
+
+### 3D-only by design (no 2D twin) — decided 2026-06-20
+
+The contact / grinding-force element (D.2b/c) is added to `ga_pga3dp_ops_physics.hpp` ONLY,
+breaking the otherwise-strict 2D+3D force-element parity **deliberately**. The earlier force
+elements (spring/damper, applied wrench, driven joint, grounded spring) are general mechanics
+primitives with real 2D consumers (2D closed-loop scenes, the merry-go-round), so parity
+earned its keep. This element is the first **application-specific** one: wafer
+self-rotational grinding is inherently 3D (`z_b = z − R_w·φ`, tilt, radial) and its vocabulary
+(`wafer_thickness`, `removal_rate`, feed) is grinding-flavoured with no 2D consumer — so a 2D
+mirror would be parity-for-its-own-sake against the "only paid for if used" principle. The
+general kernel buried in it (a configuration-dependent applied wrench from a user callback on
+the live state — `set_applied_wrench` generalised from time-only to state-dependent) can be
+factored into 2D IF a genuine 2D contact/penalty use ever arises. Recorded in a header
+comment at `contact_state3dp` so a future session does not "fix" the asymmetry by reflex.
+
+### Sub-phases (the validation ladder)
+
+- **D.2a — contact kinematics + force laws, FEED-FORWARD (no back-reaction). DONE
+  2026-06-20 (UNCOMMITTED).** App-test `"pga3dp: grinding contact force, feed-forward (Phase
+  D.2a)"` in `ga_appl3dp_appl_test.hpp` (right after D.1b). Prototypes the `contact_state`
+  POD + a swappable depth force law (`F_normal = k·δ`, tangential `μ·F_normal` opposing the
+  GA-derived sliding direction) locally in the test — to be promoted into `dynamic_system` in
+  D.2b. The relative sliding velocity is `point_velocity(wheel grain) − point_velocity(wafer
+  point)` (same Phase-0/D.1 twist field); the wafer normal is the chuck axis e1 and the wheel
+  spins about −e1, so the tangential force carries the in-plane (F_x,F_y) and the axial F_z
+  comes purely from the depth term. **Calibration (the documented anchor):** with nominal
+  engagement `δ0 = 1 µm`, `k = F_z_ref/δ0 = 1.0e8 N/m` reproduces Tao's axial `F_z = 100 N`,
+  and `μ = √(25²+25²)/100 = 0.3536` matches the in-plane reference `35.36 N`. **Gates (6
+  assertions):** axial == 100 N + in-plane == 35.36 N (calibration round-trip); sliding ⟂ e1;
+  rim grain GA surface speed == `n_w·R_w` (47123.89 mm/s exact); and the feed-forward `z_b =
+  A_b·sin(2πf_b t)` modulation ripples F_z over [90, 110] N == `k·(δ0∓A_b)` (clean 3-period
+  waveform in the log). Pure kinematics, NO library/ga_py change; appl3dp 45/9182 green.
+- **D.2b — close the loop, spindle side (topology 1). DONE 2026-06-20 (UNCOMMITTED).**
+  PROMOTED the contact element into the LIBRARY `dynamic_system3dp`
+  (`ga/ga_pga3dp_ops_physics.hpp`): `contact_state3dp` POD + `grinding_law3dp` swappable
+  callback + free law `grinding_force_depth(c,k,mu)` (default) + `set_contact_force(idx,
+  wafer_idx, law, n_hat, delta0, v_feed, tw, contact_b)` / `clear_/has_contact_force` /
+  diagnostics `contact_force(idx)` `contact_engagement(idx)`. A private `eval_contact_state`
+  helper builds the live state (δ = δ0 − (P·n̂ − z_ref); v_rel from the twist field) shared by
+  the `assemble_mass_bias` fold-in (same `wdg(P,F)` projection as the grounded spring,
+  config-dependent NOT time) and the diagnostic. New suite
+  `TEST_SUITE("PGA3DP: grinding force loop (Phase D.2b)")` in `ga_appl3dp_physics_test.hpp`:
+  a SIMPLIFIED rig (axial prismatic DOF + bearing spring/damper k_z + a driven massless
+  flywheel for the real sliding speed; full Tao 5-DOF spindle = next refinement). The loop
+  `m z̈ + c ż + k_spring z = k_grind(δ0 − z)` has the analytic equilibrium
+  `z_eq = k_grind·δ0/(k_spring+k_grind)`, `F_eq = k_grind(δ0 − z_eq)`. **Gates (8 assertions):**
+  M[0]==m + initial accel == F_ff/m; rim sliding speed == n_w·R_w; **closed loop settles to
+  z_eq/F_eq exactly** (RK4 dt=1e-6, 20 ms); and the HEADLINE — spindle compliance pulls the
+  force BELOW the feed-forward nominal (100 N → **90.476 N, −9.5%**), with the analytic limit
+  `F_eq = F_ff·k_spring/(k_spring+k_grind)` → F_ff as k_spring→∞ (recovers D.2a). Library
+  change purely ADDITIVE: pga core 169/2758 UNCHANGED, appl3dp 46/9190; no ga_py impact
+  (dynamic_system unbound). 2D twin of the contact element = deferred decision (grinding is
+  inherently 3D; mirror only if a 2D analog is wanted).
+- **D.2c — wafer thinning + chuck reaction (topology 2). DONE 2026-06-20 (UNCOMMITTED).**
+  Library (`ga/ga_pga3dp_ops_physics.hpp`): `contact_spec` += `k_mrr` (removal const) + `react`
+  (toggle); `set_contact_force` += optional `k_mrr` arg; new `set_contact_reaction(idx,on)`,
+  `update_wafer_thinning(dt_macro)`, `wafer_thickness(idx)`, `removal_rate(idx)`; reaction
+  fold-in applies `−wdg(P,F)` on the wafer frame's joints when `react`. Two cases in new
+  `TEST_SUITE("PGA3DP: grinding wafer thinning + reaction (Phase D.2c)")`: (1) thinning at
+  `k_mrr=0.01` thins 0.4264 µm/step monotonically, decrement == `MRR·dt_macro` exact
+  (`MRR=k_mrr·δ_eq·v_rel=4.26e-7 m/s` ~ Tao feed scale); (2) third-law — two prismatic DOFs
+  (m1=0.8, m2=2.0), reaction ON → accel ratio −0.400 = −m1/m2, OFF → wafer accel 0. Additive:
+  pga core 169/2758 unchanged, appl3dp 48/9208; no ga_py impact. — original sub-plan: (1)
+  **Wafer thinning** — a
+  quasi-static thickness decremented between macro-steps by a SIMPLE removal law `MRR =
+  k_mrr·δ·v_rel` with ONE tunable constant `k_mrr` (lumps contact width / removal
+  efficiency; documented, like the force calibration). The live `tw` is exposed in
+  `contact_state` so a force law / the D.2e control can read it. (2) **Chuck-side reaction**
+  — an OPTIONAL user-configurable toggle `set_contact_reaction(idx, on)`; **default = rigid
+  wafer (off)**. When on, the equal/opposite wrench `−wdg(P,F)` is folded onto the wafer
+  frame's supporting joints. The realistic chuck-side reaction physics is a LATER refinement;
+  D.2c just builds + tests the infrastructure for a simple case. Gate: `tw` decreases
+  monotonically at the analytic rate `k_mrr·δ·v_rel`; with the reaction ON, a compliant
+  wafer DOF accelerates opposite the spindle (Newton's third law, accel ratio = −m_spindle/
+  m_wafer) and with it OFF the wafer stays put.
+- **D.2d — Adams–Bashforth integrator + adaptive stepping + comparison.** Add AAB to the
+  selector. **User directive (2026-06-20): SIMPLE analytic test cases UPFRONT, as SEPARATE
+  test cases in the test files, documenting the integrator's impact on simple analytic
+  problems FIRST** (e.g. the damped harmonic oscillator with its closed form, like the Phase
+  A spring/damper test) — RK4 vs AAB accuracy + runtime on the analytic case — BEFORE
+  applying AAB to the simplified grinding loop, and only then to the full Tao model. Gate:
+  ≤1 % solution delta vs RK4 + wall-clock for each (bench-style, cf.
+  `ga_sta_bench_transform`).
+- **D.2e — control layer (force limiting), separate opt-in tier.** Implement options a (70 %
+  limit, feed-controlled) and b (thickness-scheduled 100→70 % taper, 150→80 µm). Gate: force
+  held within the target envelope; feed responds; the layer is inert when not attached
+  (constant-feed path byte-unchanged).
+
+Then **E — optimization** on the calibrated closed-loop model (feed/speed ratio to bound
+force and `z_b`).
+
+### Open items — RESOLVED 2026-06-20
+
+1. **AAB scheme = AB2 predictor + AM2 (trapezoidal) corrector**, a PECE predictor-corrector
+   (explicit Adams–Bashforth alternated with the implicit Adams–Moulton step), with adaptive
+   dt from the P-C error estimate. Start with this simplest 2nd-order form — "something
+   working that can be extended" to higher order later.
+2. **Force law: simplest first, chip-thickness as the first refinement.** D.2a ships the
+   linear depth law `F_normal = k·δ`, tangential `F_tan = μ·F_normal` along `−v_rel` — get
+   the loop running at all. The chip-thickness form (force per active grain × engagement
+   area) is the first refinement once the simple law closes the loop.
+3. **Calibration anchor [MUST DOCUMENT — do not forget]:** tune the depth-law constant `k`
+   so the *constant-feed* nominal force reproduces Tao's reference `F = (F_x,F_y,F_z) =
+   (25, 25, 100) N` (Tao §2.2, from Zhu [70]). This fixes a concrete number for D.2e's
+   "≤ 70 % of constant-feed force" target and ties the model back to the paper. Record the
+   calibrated `k` (and the contact geometry it assumes) in the app-test header comment AND
+   here when D.2a lands.
+4. **Wafer thinning = quasi-static, updated slowly between MACRO-steps** (not integrated
+   in-loop). The thinning timescale (µm/min) is ~10⁹× slower than the kHz vibration, so the
+   thickness is held constant within a macro-step and decremented by `MRR·Δt_macro / area`
+   between steps.
 
 ## Deferred documentation tasks — DONE 2026-06-18
 

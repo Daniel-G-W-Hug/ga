@@ -1872,3 +1872,280 @@ TEST_SUITE("PGA3DP: Tao wheel-spindle (Phase C)")
     }
 
 } // TEST_SUITE("PGA3DP: Tao wheel-spindle (Phase C)")
+
+// =================================================================================
+// PGA3DP dynamic_system3dp - Phase D.2b: closing the grinding force loop
+//
+// D.2a (ga_appl3dp_appl_test.hpp) computed the grinding force FEED-FORWARD from a fixed
+// engagement. D.2b promotes the contact element into dynamic_system3dp (set_contact_force
+// + the swappable grinding_law3dp + the assemble_mass_bias fold-in) and CLOSES the loop:
+// the spindle's own axial compliance sets the engagement, the force law turns it into a
+// wrench, the wrench feeds back. The closed loop has an analytic equilibrium, which is
+// the gate.
+//
+// SIMPLIFIED RIG (the full Tao 5-DOF spindle of Phase C is the next refinement): a single
+// axial DOF -- a prismatic joint along the wafer normal e1 carrying the rotor mass m,
+// with an axial bearing spring k_spring + damper c to ground -- plus a DRIVEN wheel spin
+// about e1 (massless, purely kinematic) so the contact has a real relative-sliding speed
+// n_w*R_w. A static wafer frame supplies the wafer side of the relative velocity. The
+// in-plane (tangential) part of the force is perpendicular to the axial DOF, so only the
+// axial F_z drives the loop -- the equation of motion is
+//
+//     m z'' + c z' + k_spring z = F_z = k_grind (delta0 - z)        [z_ref = 0 at start]
+//
+// i.e. a damped oscillator with effective stiffness (k_spring + k_grind) and an offset
+// drive k_grind*delta0, settling to
+//
+//     z_eq = k_grind delta0 / (k_spring + k_grind),   F_eq = k_grind (delta0 - z_eq).
+//
+// The HEADLINE: closing the loop pulls the force BELOW the feed-forward nominal
+// (k_grind*delta0 = 100 N) because the spindle deflects and backs out of the cut; in the
+// weak-coupling / stiff-spindle limit (k_grind << k_spring) F_eq -> the feed-forward
+// value, recovering D.2a. Reaction on the wafer (chuck side) stays OFF here -- topology 1
+// (D.2c).
+// =================================================================================
+TEST_SUITE("PGA3DP: grinding force loop (Phase D.2b)")
+{
+
+    TEST_CASE("pga3dp: closed grinding-force loop, axial spindle (Phase D.2b)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: closed grinding-force loop, axial spindle (Phase D.2b)");
+        fmt::println("");
+
+        // SI units. Calibration from D.2a: delta0 = 1 um, k_grind = 1e8 N/m -> 100 N
+        // nominal; mu = 0.3536 (Tao in-plane). Axial bearing k_spring = Tao k_z ~ 950
+        // N/um.
+        value_t const m = 0.8;                 // rotor mass [kg] (Tao Table 1)
+        value_t const R_w = 0.15;              // grinding-wheel radius [m]
+        value_t const n_w = rpm2radps(3000.0); // wheel spin [rad/s]
+        value_t const delta0 = 1.0e-6;         // nominal engagement [m]
+        value_t const k_grind = 1.0e8; // depth-law stiffness [N/m] (-> 100 N at delta0)
+        value_t const mu = std::sqrt(2.0) * 25.0 / 100.0; // in-plane / axial = 0.3536
+        value_t const k_spring = 9.5e8; // axial bearing stiffness [N/m] (Tao k_z)
+        value_t const k_tot = k_spring + k_grind;
+        value_t const c = 2.0 * 0.7 * std::sqrt(k_tot * m); // damping, zeta_eff = 0.7
+
+        // analytic closed-loop equilibrium
+        value_t const z_eq = k_grind * delta0 / k_tot;
+        value_t const F_eq = k_grind * (delta0 - z_eq);
+        value_t const F_ff = k_grind * delta0; // feed-forward nominal (D.2a) = 100 N
+
+        dynamic_system3dp sys;
+        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0}); // isolate the axial loop
+        sys.add_frame(static_frame3dp("W"));         // inertial root
+        // static wafer surface (wafer side of the relative-sliding velocity)
+        sys.add_frame(static_frame3dp("wafer"), sys.index_of("W"));
+        // axial DOF: prismatic along e1, carries the rotor mass, bearing spring + damper
+        sys.add_prismatic_body(static_frame3dp("spindle_z"),
+                               make_cuboid_body(m, 0.05, 0.05, 0.05),
+                               vec3dp{1.0, 0.0, 0.0, 0.0}, 0.0, 0.0, sys.index_of("W"));
+        size_t const zj = sys.index_of("spindle_z");
+        sys.set_joint_spring_damper(zj, k_spring, c);
+        // driven wheel spin about e1: a negligible-mass kinematic flywheel (1e-6 kg, just
+        // enough for a non-singular inertia) -- it supplies the relative-sliding speed
+        // n_w*R_w without materially loading the axial DOF (M[0] stays ~ m).
+        sys.add_revolute_body(static_frame3dp("wheel"),
+                              make_cuboid_body(1.0e-6, R_w, R_w, 0.01), O_3dp,
+                              vec3dp{1.0, 0.0, 0.0, 0.0}, 0.0, 0.0, zj);
+        size_t const wj = sys.index_of("wheel");
+        sys.set_driven_rate(wj, n_w);
+
+        // register the grinding contact: rim point on the wheel vs the wafer, depth law
+        vec3dp const rim_b{0.0, R_w, 0.0, 1.0}; // rim point in the wheel body frame
+        sys.set_contact_force(
+            wj, sys.index_of("wafer"),
+            [=](contact_state3dp const& s) {
+                return grinding_force_depth(s, k_grind, mu);
+            },
+            vec3dp{1.0, 0.0, 0.0, 0.0}, delta0, 30.0e-6 / 60.0, 0.8e-3, rim_b);
+
+        // GATE 1: at the nominal pose (z = 0) the only force is the contact normal force
+        // k_grind*delta0 = 100 N on the mass m -> initial axial accel 125 m/s^2
+        CHECK(sys.mass_matrix()[0] == doctest::Approx(m));
+        CHECK(sys.joint_accel(zj) == doctest::Approx(F_ff / m));
+        // GATE 2: the contact has a real relative-sliding speed (wheel-dominated) ==
+        // n_w*R_w
+        vec3dp const P0 = unitize(move3dp(rim_b, sys.get_pos_trafo(wj, 0)));
+        CHECK(to_val(bulk_nrm(sys.point_velocity(P0, wj))) == doctest::Approx(n_w * R_w));
+
+        // integrate to steady state (zeta_eff = 0.7 -> settles in a few periods)
+        value_t const dt = 1.0e-6;
+        for (size_t nstep = 1; nstep <= 20000; ++nstep) // 20 ms
+            sys.step(dt);
+
+        value_t const z_ss = sys.joint_phi(zj);
+        value_t const F_ss = sys.contact_force(wj).x; // axial component (n_hat = e1)
+        value_t const d_ss = sys.contact_engagement(wj);
+        fmt::println("  feed-forward nominal force : {:>7.3f} N  (k_grind*delta0)", F_ff);
+        fmt::println("  closed-loop equilibrium    : z_eq = {:.4f} um, F_eq = {:>7.3f} N "
+                     "(analytic)",
+                     z_eq * 1.0e6, F_eq);
+        fmt::println(
+            "  simulated steady state     : z_ss = {:.4f} um, F_ss = {:>7.3f} N, "
+            "delta_ss = {:.4f} um",
+            z_ss * 1.0e6, F_ss, d_ss * 1.0e6);
+        fmt::println("  -> spindle compliance backs the wheel out of the cut: "
+                     "{:.1f} N -> {:.1f} N ({:+.1f}%)",
+                     F_ff, F_ss, 100.0 * (F_ss - F_ff) / F_ff);
+
+        // GATE 3: the closed loop settles to the analytic equilibrium
+        CHECK(z_ss == doctest::Approx(z_eq).epsilon(1e-4));
+        CHECK(F_ss == doctest::Approx(F_eq).epsilon(1e-4));
+        CHECK(d_ss == doctest::Approx(delta0 - z_eq).epsilon(1e-4));
+        // GATE 4: closing the loop reduced the force below the feed-forward nominal
+        CHECK(F_ss < F_ff);
+        CHECK(F_eq == doctest::Approx(F_ff * k_spring / k_tot)); // == feed-forward as
+                                                                 // k_spring -> infinity
+
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: grinding force loop (Phase D.2b)")
+
+// =================================================================================
+// PGA3DP dynamic_system3dp - Phase D.2c: wafer thinning + optional chuck-side reaction
+//
+// Two pieces of infrastructure on top of the D.2b loop:
+//  (1) WAFER THINNING -- a quasi-static wafer thickness decremented between feed
+//  macro-steps
+//      by a SIMPLE removal law MRR = k_mrr * delta * v_rel (one tunable constant k_mrr,
+//      lumping contact width / removal efficiency). The thickness is exposed in
+//      contact_state so a thickness-dependent force law or the D.2e feed control can read
+//      it.
+//  (2) CHUCK-SIDE REACTION -- the optional, user-configurable equal/opposite force line
+//      -wdg(P, F) on the wafer frame (set_contact_reaction). DEFAULT off = rigid wafer;
+//      the realistic reaction physics is a later refinement, so this just builds + tests
+//      the infrastructure (Newton's third law for a simple two-DOF case).
+// =================================================================================
+TEST_SUITE("PGA3DP: grinding wafer thinning + reaction (Phase D.2c)")
+{
+
+    TEST_CASE("pga3dp: quasi-static wafer thinning from MRR (Phase D.2c)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: quasi-static wafer thinning from MRR (Phase D.2c)");
+        fmt::println("");
+
+        // the D.2b axial loop + a removal constant k_mrr. The wafer thins
+        // quasi-statically (held constant within the kHz dynamics, decremented between
+        // feed macro-steps).
+        value_t const m = 0.8, R_w = 0.15, n_w = rpm2radps(3000.0);
+        value_t const delta0 = 1.0e-6, k_grind = 1.0e8;
+        value_t const mu = std::sqrt(2.0) * 25.0 / 100.0;
+        value_t const k_spring = 9.5e8, k_tot = k_spring + k_grind;
+        value_t const c = 2.0 * 0.7 * std::sqrt(k_tot * m);
+        value_t const tw0 = 0.8e-3; // initial wafer thickness [m]
+        // tunable removal constant [1/m]: MRR = k_mrr*delta*v_rel is the
+        // thickness-reduction RATE [m/s]; chosen so the thinning is ~ Tao's feed scale
+        // (30 um/min ~ 0.4 um/s).
+        value_t const k_mrr = 0.01;
+
+        dynamic_system3dp sys;
+        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+        sys.add_frame(static_frame3dp("W"));
+        sys.add_frame(static_frame3dp("wafer"), sys.index_of("W"));
+        sys.add_prismatic_body(static_frame3dp("spindle_z"),
+                               make_cuboid_body(m, 0.05, 0.05, 0.05),
+                               vec3dp{1.0, 0.0, 0.0, 0.0}, 0.0, 0.0, sys.index_of("W"));
+        size_t const zj = sys.index_of("spindle_z");
+        sys.set_joint_spring_damper(zj, k_spring, c);
+        sys.add_revolute_body(static_frame3dp("wheel"),
+                              make_cuboid_body(1.0e-6, R_w, R_w, 0.01), O_3dp,
+                              vec3dp{1.0, 0.0, 0.0, 0.0}, 0.0, 0.0, zj);
+        size_t const wj = sys.index_of("wheel");
+        sys.set_driven_rate(wj, n_w);
+        vec3dp const rim_b{0.0, R_w, 0.0, 1.0};
+        sys.set_contact_force(
+            wj, sys.index_of("wafer"),
+            [=](contact_state3dp const& s) {
+                return grinding_force_depth(s, k_grind, mu);
+            },
+            vec3dp{1.0, 0.0, 0.0, 0.0}, delta0, 30.0e-6 / 60.0, tw0, rim_b, k_mrr);
+
+        // settle to the axial equilibrium, then thin quasi-statically
+        value_t const dt = 1.0e-6;
+        for (size_t nstep = 1; nstep <= 20000; ++nstep)
+            sys.step(dt);
+
+        value_t const d_eq = sys.contact_engagement(wj);
+        value_t const rate = sys.removal_rate(wj); // MRR = k_mrr * delta_eq * v_rel
+        CHECK(rate == doctest::Approx(k_mrr * d_eq * n_w *
+                                      R_w)); // v_rel = n_w*R_w (static wafer)
+        fmt::println("  delta_eq = {:.4f} um, v_rel = {:.2f} m/s, MRR = {:.4e} m/s",
+                     d_eq * 1e6, n_w * R_w, rate);
+
+        value_t const dt_macro = 1.0; // feed macro-step [s]
+        value_t prev = sys.wafer_thickness(wj);
+        CHECK(prev == doctest::Approx(tw0));
+        fmt::println("  wafer thickness over 5 feed macro-steps (dt = {:.2f} s):",
+                     dt_macro);
+        for (int i = 0; i < 5; ++i) {
+            sys.update_wafer_thinning(dt_macro);
+            value_t const tw = sys.wafer_thickness(wj);
+            CHECK(tw < prev);                                     // monotone decrease
+            CHECK(prev - tw == doctest::Approx(rate * dt_macro)); // exact decrement
+            fmt::println("    step {}: tw = {:.3f} um  (removed {:.4f} um)", i + 1,
+                         tw * 1e6, (prev - tw) * 1e6);
+            prev = tw;
+        }
+        fmt::println("");
+    }
+
+    TEST_CASE("pga3dp: optional chuck-side reaction wrench (Phase D.2c)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: optional chuck-side reaction wrench (Phase D.2c)");
+        fmt::println("");
+
+        // Newton's third law for the contact: with the reaction ON, the equal/opposite
+        // force line -wdg(P, F) drives a COMPLIANT wafer DOF opposite the spindle; with
+        // it OFF (default rigid wafer) the wafer stays put. Two prismatic DOFs along e1
+        // (spindle mass m1, wafer mass m2) facing across the contact; at t = 0 (both at
+        // rest, mu = 0, delta = delta0) the contact normal force is F = k_grind*delta0 =
+        // 100 N.
+        value_t const m1 = 0.8, m2 = 2.0;
+        value_t const delta0 = 1.0e-6, k_grind = 1.0e8,
+                      mu = 0.0;             // pure normal force here
+        value_t const F = k_grind * delta0; // = 100 N
+
+        dynamic_system3dp sys;
+        sys.set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+        sys.add_frame(static_frame3dp("W"));
+        sys.add_prismatic_body(static_frame3dp("spindle"),
+                               make_cuboid_body(m1, 0.05, 0.05, 0.05),
+                               vec3dp{1.0, 0.0, 0.0, 0.0}, 0.0, 0.0, sys.index_of("W"));
+        sys.add_prismatic_body(static_frame3dp("wafer"),
+                               make_cuboid_body(m2, 0.05, 0.05, 0.05),
+                               vec3dp{1.0, 0.0, 0.0, 0.0}, 0.0, 0.0, sys.index_of("W"));
+        size_t const si = sys.index_of("spindle"), wi = sys.index_of("wafer");
+        sys.set_contact_force(
+            si, wi,
+            [=](contact_state3dp const& s) {
+                return grinding_force_depth(s, k_grind, mu);
+            },
+            vec3dp{1.0, 0.0, 0.0, 0.0}, delta0);
+
+        // reaction OFF (default rigid wafer): only the spindle accelerates
+        CHECK(sys.joint_accel(si) == doctest::Approx(F / m1));
+        CHECK(sys.joint_accel(wi) == doctest::Approx(0.0));
+
+        // reaction ON: the wafer accelerates opposite, ratio -m1/m2 (Newton's third law)
+        sys.set_contact_reaction(si, true);
+        value_t const a_s = sys.joint_accel(si), a_w = sys.joint_accel(wi);
+        CHECK(a_s == doctest::Approx(F / m1));
+        CHECK(a_w == doctest::Approx(-F / m2));
+        CHECK(a_w / a_s == doctest::Approx(-m1 / m2));
+        fmt::println(
+            "  reaction ON : spindle accel = {:>8.2f}, wafer accel = {:>8.2f} m/s^2"
+            "  (ratio {:.3f} = -m1/m2)",
+            a_s, a_w, a_w / a_s);
+
+        // toggling back OFF restores the rigid-wafer behaviour
+        sys.set_contact_reaction(si, false);
+        CHECK(sys.joint_accel(wi) == doctest::Approx(0.0));
+        fmt::println("  reaction OFF: wafer accel = 0 (rigid wafer)");
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: grinding wafer thinning + reaction (Phase D.2c)")

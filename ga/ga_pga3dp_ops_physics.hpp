@@ -916,6 +916,53 @@ struct grounded_spring3dp {
     value_t c{0.0};               // linear (isotropic) damping on the point velocity
 };
 
+// NO 2D TWIN BY DESIGN. Unlike the other force elements (spring/damper, applied wrench,
+// driven joint, grounded spring), which are general mechanics primitives mirrored in
+// ga_pga2dp_ops_physics.hpp because 2D demos consume them, this contact / grinding-force
+// element is APPLICATION-SPECIFIC: wafer self-rotational grinding is inherently 3D (axial
+// runout z_b = z - R_w*phi, tilt, radial), and its vocabulary (wafer thickness, removal
+// rate, feed) is grinding-flavoured with no 2D consumer. The general kernel buried here
+// -- a configuration-dependent applied wrench from a user callback on the live state,
+// i.e. set_applied_wrench generalised from time-only to state-dependent -- could be
+// factored into 2D IF a genuine 2D contact/penalty use ever arises; until then,
+// deliberately 3D only (decision 2026-06-20; see TODO/grinding.md Phase D.2b/c).
+//
+// The live geometric/kinematic state at a grinding contact, computed by the
+// infrastructure each sub-step and handed to a (swappable) grinding force LAW. The law is
+// the experiment-specific piece a student replaces; the infra owns the contact
+// kinematics. The wafer normal `n_hat` is oriented OUT of the wafer (away from the tool),
+// so a positive axial deviation reduces the engagement: delta = delta0 - (P.n_hat -
+// z_ref).
+struct contact_state3dp {
+    value_t delta;  // engagement depth -- rim into the nominal wafer surface [length]
+    value_t v_rel;  // relative sliding speed at the contact [length/time]
+    vec3dp t_hat;   // unit sliding direction (world, w = 0)
+    vec3dp n_hat;   // unit wafer normal / axial direction (world, w = 0)
+    vec3dp P;       // contact point (world, w = 1)
+    value_t v_feed; // nominal feed velocity [length/time]
+    value_t tw;     // current wafer thickness [length]
+    value_t t;      // simulation clock [time]
+};
+
+// A grinding force law maps the live contact state to a force (world frame, w = 0). It is
+// the swappable experiment surface -- a student substitutes a different law without
+// touching the infrastructure; the infra builds the wrench wdg(P, F) and folds it into
+// tau. Two reference laws ship as free functions below (depth [default] and MRR x
+// specific-energy).
+using grinding_law3dp = std::function<vec3dp(contact_state3dp const&)>;
+
+// Reference law (a) [DEFAULT]: normal force k*delta along the wafer normal, plus a
+// tangential friction-like force mu*F_normal opposing the relative sliding. Zero when
+// disengaged (delta <= 0). The free function is curried into a grinding_law3dp by binding
+// (k, mu) at registration (e.g. via a lambda) -- see set_contact_force callers.
+inline vec3dp grinding_force_depth(contact_state3dp const& c, value_t k, value_t mu)
+{
+    value_t const Fn = k * (c.delta > 0.0 ? c.delta : 0.0); // axial (normal) magnitude
+    value_t const Ft = mu * Fn;                             // tangential magnitude
+    return vec3dp{Fn * c.n_hat.x - Ft * c.t_hat.x, Fn * c.n_hat.y - Ft * c.t_hat.y,
+                  Fn * c.n_hat.z - Ft * c.t_hat.z, 0.0};
+}
+
 
 class dynamic_system3dp : public kinematic_system3dp {
 
@@ -961,6 +1008,50 @@ class dynamic_system3dp : public kinematic_system3dp {
     // it is folded into assemble_mass_bias (the q-ddot-dependent path) like an applied
     // wrench, NOT prescribed as a function of time. See grounded_spring3dp.
     std::unordered_map<size_t, std::vector<grounded_spring3dp>> springs_;
+
+    // Optional GRINDING CONTACT force per spindle frame: a configuration-dependent
+    // applied wrench whose magnitude/direction come from a swappable force LAW evaluated
+    // on the live contact state. Like the grounded spring it is recomputed from state in
+    // assemble_mass_bias (NOT a function of time) and applied as wdg(P, F) -- but the
+    // force value is delegated to the user-supplied law, so the loop closes: the
+    // spindle's own vibration sets the engagement depth, the law turns it into a force,
+    // the wrench feeds back. The wafer thickness `tw` is quasi-static (held within a
+    // macro-step, decremented between steps). See contact_state3dp / grinding_law3dp /
+    // set_contact_force.
+    struct contact_spec {
+        size_t wafer_idx{0}; // wafer-surface frame (relative-sliding / reaction frame)
+        grinding_law3dp law; // the (swappable) force law
+        vec3dp contact_b{O_3dp};          // body-fixed contact point on the rim (w = 1)
+        vec3dp n_hat{1.0, 0.0, 0.0, 0.0}; // wafer normal / axial direction (world, w = 0)
+        value_t z_ref{0.0};  // nominal axial coord P.n_hat captured at registration
+        value_t delta0{0.0}; // nominal engagement depth
+        value_t v_feed{0.0}; // nominal feed velocity
+        value_t tw{0.0};     // wafer thickness (quasi-static, decremented by removal)
+        value_t k_mrr{0.0}; // removal constant: MRR = k_mrr*delta*v_rel (0 = no thinning)
+        bool react{false};  // fold the reaction wrench onto the wafer frame (D.2c)
+    };
+    std::unordered_map<size_t, contact_spec> contact_;
+
+    // Build the live contact state for the contact on frame `fi` from the current
+    // kinematics (shared by the assemble_mass_bias fold-in and the contact_force()
+    // diagnostic). delta = delta0 - (P.n_hat - z_ref); the sliding velocity is the wheel
+    // material point velocity minus the wafer material point velocity at the same world
+    // point P (the GA twist field).
+    contact_state3dp eval_contact_state(size_t fi, contact_spec const& cs)
+    {
+        vec3dp const P = unitize(move3dp(cs.contact_b, get_pos_trafo(fi, 0)));
+        value_t const z_now = P.x * cs.n_hat.x + P.y * cs.n_hat.y + P.z * cs.n_hat.z;
+        value_t const delta = cs.delta0 - (z_now - cs.z_ref);
+        vec3dp const vw = point_velocity(P, fi); // wheel material point velocity
+        vec3dp const vf =
+            point_velocity(P, cs.wafer_idx); // wafer material point velocity
+        vec3dp const vrel{vw.x - vf.x, vw.y - vf.y, vw.z - vf.z, 0.0};
+        value_t const vmag = to_val(bulk_nrm(vrel));
+        vec3dp const t_hat =
+            vmag > 0.0 ? vec3dp{vrel.x / vmag, vrel.y / vmag, vrel.z / vmag, 0.0}
+                       : vec3dp{0.0, 0.0, 0.0, 0.0};
+        return contact_state3dp{delta, vmag, t_hat, cs.n_hat, P, cs.v_feed, cs.tw, time_};
+    }
 
   public:
 
@@ -1083,6 +1174,88 @@ class dynamic_system3dp : public kinematic_system3dp {
                              vec3dp const& k, value_t c)
     {
         springs_[idx].push_back(grounded_spring3dp{anchor_b, p0_world, k, c});
+    }
+
+    // Register a grinding contact on spindle frame `idx`: the body-fixed rim point
+    // `contact_b` against the wafer surface `wafer_idx`, with wafer normal `n_hat`
+    // (world, out of the wafer), nominal engagement `delta0`, feed `v_feed` and wafer
+    // thickness `tw`. The nominal axial reference z_ref is captured from the current
+    // pose, so the live engagement is delta0 - (P.n_hat - z_ref). `law` maps the live
+    // contact_state3dp to a world force; the infra applies the wrench wdg(P, F).
+    // Replacing `law` is the student's experiment surface (see grinding_force_depth for
+    // the default).
+    void set_contact_force(size_t idx, size_t wafer_idx, grinding_law3dp law,
+                           vec3dp const& n_hat, value_t delta0, value_t v_feed = 0.0,
+                           value_t tw = 0.0, vec3dp const& contact_b = O_3dp,
+                           value_t k_mrr = 0.0)
+    {
+        vec3dp const P0 = unitize(move3dp(contact_b, get_pos_trafo(idx, 0)));
+        value_t const z_ref = P0.x * n_hat.x + P0.y * n_hat.y + P0.z * n_hat.z;
+        bool const react = has_contact_force(idx) ? contact_[idx].react : false;
+        contact_[idx] = contact_spec{wafer_idx, std::move(law), contact_b, n_hat, z_ref,
+                                     delta0,    v_feed,         tw,        k_mrr, react};
+    }
+    void clear_contact_force(size_t idx) { contact_.erase(idx); }
+    bool has_contact_force(size_t idx) const { return contact_.count(idx) != 0; }
+
+    // Enable / disable the chuck-side REACTION wrench for the contact on frame idx (D.2c,
+    // topology 2): when on, the equal-and-opposite force line -wdg(P, F) is folded onto
+    // the wafer frame's supporting joints (Newton's third law). DEFAULT off = rigid
+    // wafer; a static wafer frame absorbs the reaction with no effect, so the toggle only
+    // matters when the wafer carries its own DOF. The realistic reaction physics is a
+    // later refinement -- this is the infrastructure hook.
+    void set_contact_reaction(size_t idx, bool on = true)
+    {
+        auto const it = contact_.find(idx);
+        if (it != contact_.end()) it->second.react = on;
+    }
+
+    // Quasi-static WAFER THINNING (D.2c): decrement each contact's wafer thickness by the
+    // material removed over a macro-step, MRR = k_mrr * delta * v_rel (k_mrr lumps the
+    // contact width / removal efficiency; tunable, default 0 = no thinning). The
+    // thickness is held constant within the (kHz) dynamics and updated between (much
+    // slower) feed macro-steps; the live tw is exposed in contact_state for
+    // thickness-dependent force laws or the feed control (D.2e). Clamped at 0.
+    void update_wafer_thinning(value_t dt_macro)
+    {
+        for (auto& [fi, cs] : contact_) {
+            if (cs.k_mrr == 0.0) continue;
+            contact_state3dp const st = eval_contact_state(fi, cs);
+            value_t const mrr = cs.k_mrr * (st.delta > 0.0 ? st.delta : 0.0) * st.v_rel;
+            cs.tw -= mrr * dt_macro;
+            if (cs.tw < 0.0) cs.tw = 0.0;
+        }
+    }
+    value_t wafer_thickness(size_t idx) const
+    {
+        auto const it = contact_.find(idx);
+        return it == contact_.end() ? 0.0 : it->second.tw;
+    }
+    // material removal rate MRR = k_mrr * delta * v_rel at the current state [vol/time].
+    value_t removal_rate(size_t idx)
+    {
+        auto const it = contact_.find(idx);
+        if (it == contact_.end()) return 0.0;
+        contact_state3dp const st = eval_contact_state(idx, it->second);
+        return it->second.k_mrr * (st.delta > 0.0 ? st.delta : 0.0) * st.v_rel;
+    }
+
+    // Diagnostic: the live grinding force (world) at the contact on frame idx and its
+    // engagement depth, recomputed from the current state (same path as the
+    // assemble_mass_bias fold-in). Zero / nan-free defaults if no contact is registered.
+    // Useful for logging or controlling the closed-loop force.
+    vec3dp contact_force(size_t idx)
+    {
+        auto const it = contact_.find(idx);
+        if (it == contact_.end() || !it->second.law) return vec3dp{0.0, 0.0, 0.0, 0.0};
+        contact_state3dp const st = eval_contact_state(idx, it->second);
+        return it->second.law(st);
+    }
+    value_t contact_engagement(size_t idx)
+    {
+        auto const it = contact_.find(idx);
+        if (it == contact_.end()) return 0.0;
+        return eval_contact_state(idx, it->second).delta;
     }
 
     void clear_grounded_springs(size_t idx) { springs_.erase(idx); }
@@ -1473,6 +1646,26 @@ class dynamic_system3dp : public kinematic_system3dp {
                 for (size_t j = 0; j < n; ++j)
                     if (is_ancestor(rj[j], fi)) RHS[j] += spatial_dot(S[j], W);
             }
+        }
+
+        // grinding contact force: configuration-dependent, the force value delegated to a
+        // swappable law evaluated on the live contact state (engagement from the rim's
+        // axial deviation, relative sliding speed from the twist field). Same wdg(P, F)
+        // projection as the grounded spring -- but here the law closes the loop, so the
+        // spindle's own vibration sets the engagement. See contact_state3dp /
+        // set_contact_force.
+        for (auto const& [fi, cs] : contact_) {
+            if (!cs.law) continue;
+            contact_state3dp const st = eval_contact_state(fi, cs);
+            bivec3dp const W = wdg(st.P, cs.law(st)); // force line wdg(P, F)
+            for (size_t j = 0; j < n; ++j)
+                if (is_ancestor(rj[j], fi)) RHS[j] += spatial_dot(S[j], W);
+            // optional chuck-side reaction (D.2c, topology 2): the equal-and-opposite
+            // force line -W on the wafer frame (Newton's third law). No-op for a rigid
+            // (static) wafer -- it only contributes when the wafer carries its own DOF.
+            if (cs.react)
+                for (size_t j = 0; j < n; ++j)
+                    if (is_ancestor(rj[j], cs.wafer_idx)) RHS[j] += spatial_dot(S[j], -W);
         }
         return {std::move(Mmat), std::move(RHS)};
     }

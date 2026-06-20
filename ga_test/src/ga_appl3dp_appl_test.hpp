@@ -881,6 +881,192 @@ TEST_SUITE("PGA3DP: application tests")
         fmt::println("");
     }
 
+    // Phase D.2a of the wafer-grinding plan (TODO/grinding.md): the contact / grinding-
+    // force on-ramp -- FEED-FORWARD only (no back-reaction yet; the loop closes in D.2b).
+    // The wheel rim engages the wafer to a depth delta; a grinding-force LAW maps the
+    // live contact state to a force which -- once the loop is closed -- becomes a wrench
+    // on the spindle. Here we only COMPUTE and report the force at constant feed:
+    // "calculate the resulting forces with constant feed velocity first" (user,
+    // 2026-06-20).
+    //
+    // INFRASTRUCTURE PROTOTYPE (promoted into dynamic_system in D.2b): a contact_state
+    // POD bundles everything any force law could read; the law is a swappable callback so
+    // a student can experiment. Two laws are planned -- (a) a depth law [DEFAULT] and (b)
+    // an MRR x specific-energy law. D.2a ships the simplest depth law, F_normal =
+    // k*delta, tangential F_tan = mu*F_normal opposing the relative sliding (the
+    // chip-thickness form is the first refinement in a later step).
+    //
+    // CALIBRATION ANCHOR [documented so it is not forgotten -- TODO/grinding.md D.2 #3]:
+    // Tao gives no force model and just assumes a constant grinding force
+    // F = (F_x, F_y, F_z) = (25, 25, 100) N (Tao sec 2.2, after Zhu [70]). We calibrate
+    // the depth-law constant k so the NOMINAL (zero-vibration) engagement delta0
+    // reproduces the axial reference F_z = 100 N, and mu so the in-plane reference
+    // magnitude sqrt(F_x^2 + F_y^2) = 35.36 N is matched. The in-plane SPLIT (F_x vs F_y)
+    // then falls out of the GA contact kinematics (the relative-sliding direction), not a
+    // hand-set vector. delta0 is the tunable calibration handle.
+    //
+    // The relative sliding velocity at the contact is read from the GA twist field
+    // (kinematic_system3dp::point_velocity of the wheel grain minus the coincident wafer
+    // point) -- the same field as Phase 0 / D.1, so the force direction is GA-derived.
+    // The wafer normal is the chuck axis e1; the wheel spins about (root) -e1, so BOTH
+    // surface velocities are in-plane -> the tangential force carries the in-plane
+    // (F_x,F_y) and the axial F_z comes purely from the depth term.
+    //
+    // GATES: (1) calibration round-trip -- zero vibration -> axial force == 100 N and
+    // in-plane magnitude == 35.36 N; (2) the sliding direction is perpendicular to the
+    // wafer normal e1; (3) the rim grain's GA surface speed == n_w*R_w (wheel-dominated);
+    // (4) feed-forward modulation -- with z_b(t) = A_b*sin(2*pi*f_b*t) the engagement
+    // delta = delta0 - z_b ripples the axial force about 100 N with amplitude k*A_b (the
+    // force the spindle will feel once D.2b closes the loop).
+    TEST_CASE("pga3dp: grinding contact force, feed-forward (Phase D.2a)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: grinding contact force, feed-forward (Phase D.2a)");
+        fmt::println("");
+
+        // --- machine geometry & spins (Tao Fig.1; identical frame tree to Phase 0)
+        // ------
+        double const R = 150.0;              // wheel radius == wafer radius [mm]
+        double const l3 = 30.0;              // tool surface distance from spindle CM [mm]
+        double const tw_avg = 0.8;           // average wafer thickness [mm]
+        double const x_a = l3;               // axial infeed -> grain at the chuck plane
+        double const ns = rpm2radps(265.0);  // chuck spin [rad/s] (Tao Table 2)
+        double const nw = rpm2radps(3000.0); // wheel spin [rad/s]
+        double const off = R / std::sqrt(2.0);
+        auto const spindle_origin = vec3dp{x_a, -off, off, 1.0};
+
+        kinematic_system3dp sys;
+        sys.add_frame(static_frame3dp("chuck_ctr_stat"));
+        sys.add_frame(static_frame3dp("chuck_ctr_rot"),
+                      kin_state3dp{.omega = vec3dp{ns, 0.0, 0.0, 0.0}},
+                      sys.index_of("chuck_ctr_stat"));
+        sys.add_frame(static_frame3dp("wafer_top_avg_rot", vec3dp{tw_avg, 0.0, 0.0, 1.0}),
+                      kin_state3dp{}, sys.index_of("chuck_ctr_rot"));
+        sys.add_frame(static_frame3dp("spindle_cm_stat", spindle_origin,
+                                      vec3dp{0.0, -pi / 2.0, 0.0, 0.0}),
+                      kin_state3dp{}, sys.index_of("chuck_ctr_stat"));
+        sys.add_frame(static_frame3dp("tool_top_avg_rot", vec3dp{0.0, 0.0, l3, 1.0}),
+                      kin_state3dp{.omega = vec3dp{0.0, 0.0, nw, 0.0}},
+                      sys.index_of("spindle_cm_stat"));
+        sys.add_frame(static_frame3dp("tool_surface_avg_at_R", vec3dp{R, 0.0, 0.0, 1.0}),
+                      kin_state3dp{}, sys.index_of("tool_top_avg_rot"));
+
+        // --- contact-state POD + swappable force law (infra prototype)
+        // ------------------ Promoted into dynamic_system in D.2b; here all quantities
+        // are local. SI units (metres / newtons) for the force law, independent of the mm
+        // frame tree.
+        struct contact_state {
+            double delta;  // engagement depth [m] (rim into the nominal wafer surface)
+            double v_rel;  // relative sliding speed [m/s] (GA twist field)
+            vec3dp t_hat;  // unit sliding direction (world)
+            vec3dp n_hat;  // unit wafer-normal / axial direction (world) = +F_z axis
+            double v_feed; // nominal feed velocity [m/s]
+            double tw;     // current wafer thickness [m]
+            double t;      // clock [s]
+        };
+
+        // depth law (DEFAULT, option a): normal force k*delta along the wafer normal,
+        // plus a tangential friction-like force mu*F_normal opposing the sliding
+        // direction. Zero when disengaged (delta <= 0).
+        struct depth_law {
+            double k, mu;
+        };
+        auto force_depth = [](contact_state const& c, depth_law const& p) -> vec3dp {
+            double const Fn = p.k * std::max(c.delta, 0.0); // axial (normal) magnitude
+            double const Ft = p.mu * Fn;                    // tangential magnitude
+            return vec3dp{Fn * c.n_hat.x - Ft * c.t_hat.x,
+                          Fn * c.n_hat.y - Ft * c.t_hat.y,
+                          Fn * c.n_hat.z - Ft * c.t_hat.z, 0.0};
+        };
+
+        // --- contact kinematics: relative sliding velocity from the GA twist field
+        // ------- The rim grain's velocity has magnitude n_w*R_w for ANY rim point (wheel
+        // spin dominates), so the sliding speed/direction does not depend on the engaged
+        // phase; delta is the separate modelling quantity below.
+        auto const P = unitize(
+            move3dp(O_3dp, sys.get_pos_trafo("tool_surface_avg_at_R", "chuck_ctr_stat")));
+        auto const v_wheel = sys.point_velocity(P, "tool_surface_avg_at_R");
+        auto const v_wafer = sys.point_velocity(P, "wafer_top_avg_rot");
+        vec3dp const v_rel_vec = v_wheel - v_wafer; // [mm/s]
+        double const v_rel_mm = to_val(bulk_nrm(v_rel_vec));
+        vec3dp const t_hat = vec3dp{v_rel_vec.x / v_rel_mm, v_rel_vec.y / v_rel_mm,
+                                    v_rel_vec.z / v_rel_mm, 0.0};
+        vec3dp const n_hat = vec3dp{1.0, 0.0, 0.0, 0.0}; // chuck axis e1 = wafer normal
+
+        // --- calibration to Tao's constant reference force
+        // ------------------------------
+        double const delta0 =
+            1.0e-6; // nominal engagement [m] (tunable calibration handle)
+        double const Fz_ref = 100.0; // Tao axial reference [N]
+        double const Fxy_ref = std::sqrt(25.0 * 25.0 + 25.0 * 25.0); // in-plane ref [N]
+        depth_law const law{.k = Fz_ref / delta0, .mu = Fxy_ref / Fz_ref};
+        double const v_feed = 30.0e-6 / 60.0; // Tao feed 30 um/min -> [m/s]
+
+        contact_state const cs{.delta = delta0,
+                               .v_rel = v_rel_mm * 1.0e-3,
+                               .t_hat = t_hat,
+                               .n_hat = n_hat,
+                               .v_feed = v_feed,
+                               .tw = tw_avg * 1.0e-3,
+                               .t = 0.0};
+        vec3dp const F0 = force_depth(cs, law);
+        double const F_axial = F0.x; // along e1 = n_hat
+        double const F_inplane =
+            std::sqrt(F0.y * F0.y + F0.z * F0.z); // F_x,F_y magnitude
+
+        fmt::println("  calibrated depth law: k = {:.3e} N/m  (delta0 = {:.2f} um), "
+                     "mu = {:.4f}",
+                     law.k, delta0 * 1.0e6, law.mu);
+        fmt::println(
+            "  nominal force: axial F_z = {:>7.3f} N, in-plane |F_xy| = {:>7.3f} N "
+            "(Tao ref 100 / 35.36)",
+            F_axial, F_inplane);
+        fmt::println("  rim grain GA surface speed |v_wheel| = {:>10.2f} mm/s "
+                     "(n_w*R_w = {:>10.2f}); |v_rel| = {:>10.2f}",
+                     to_val(bulk_nrm(v_wheel)), nw * R, v_rel_mm);
+
+        // GATE 1: calibration round-trip (axial 100 N, in-plane 35.36 N)
+        CHECK(F_axial == doctest::Approx(Fz_ref));
+        CHECK(F_inplane == doctest::Approx(Fxy_ref));
+        // GATE 2: sliding is in-plane (perpendicular to the wafer normal e1)
+        CHECK(std::abs(t_hat.x) < 1.0e-9);
+        // GATE 3: rim grain GA surface speed == n_w*R_w (wheel-dominated twist field)
+        CHECK(to_val(bulk_nrm(v_wheel)) == doctest::Approx(nw * R));
+
+        // --- GATE 4: feed-forward force modulation by the axial runout z_b
+        // --------------- z_b(t) = A_b sin(2 pi f_b t) modulates the engagement delta =
+        // delta0 - z_b, so the axial force ripples about 100 N between k*(delta0 -+ A_b).
+        // This is the force the spindle will feel once D.2b closes the loop.
+        double const f_b = 6253.0; // measured tilting frequency [Hz] (Tao sec 4.2.2)
+        double const A_b = 0.1e-6; // vibration amplitude [m] (Tao, 0.1 um)
+        double Fmax = -1.0e30, Fmin = 1.0e30;
+        int const NS = 400;
+        double const Tper = 1.0 / f_b;
+        std::string wave;
+        static char const* lv = " .:-=+*#";
+        for (int i = 0; i <= NS; ++i) {
+            double const t = 3.0 * Tper * double(i) / double(NS); // 3 vibration periods
+            double const zb = A_b * std::sin(2.0 * pi * f_b * t);
+            contact_state c = cs;
+            c.delta = delta0 - zb;
+            c.t = t;
+            double const Fz = force_depth(c, law).x;
+            Fmax = std::max(Fmax, Fz);
+            Fmin = std::min(Fmin, Fz);
+            if (i % (NS / 64) == 0) {
+                int const k = int((Fz - 90.0) / 20.0 * 7.0 + 0.5);
+                wave += lv[std::clamp(k, 0, 7)];
+            }
+        }
+        fmt::println("  z_b modulation: F_z in [{:>6.2f}, {:>6.2f}] N "
+                     "(expect k*(delta0 -+ A_b) = [{:>6.2f}, {:>6.2f}])",
+                     Fmin, Fmax, law.k * (delta0 - A_b), law.k * (delta0 + A_b));
+        fmt::println("  F_z(t) |{}|  (3 periods of f_b = {:.0f} Hz)", wave, f_b);
+        CHECK(Fmax == doctest::Approx(law.k * (delta0 + A_b)));
+        CHECK(Fmin == doctest::Approx(law.k * (delta0 - A_b)));
+        fmt::println("");
+    }
+
     TEST_CASE("pga3dp: Sommerfeld unbalanced-rotor warm-up (Phase B.1)")
     {
 
