@@ -19,15 +19,18 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "fmt/format.h"
 
 #include "ga/ga_ega.hpp" // brings in value_t + ga/ga_usr_utilities.hpp (the integrators)
 
+using hd::ga::abm2_adaptive_integrator;
 using hd::ga::abm2_integrator;
 using hd::ga::rk4_integrator;
 
@@ -198,3 +201,100 @@ TEST_SUITE("integrators: RK4 vs ABM2 (fixed dt)")
     }
 
 } // TEST_SUITE("integrators: RK4 vs ABM2 (fixed dt)")
+
+// =================================================================================
+// Adaptive (variable-dt) ABM2 -- Phase D.2d-3.
+//
+// The step size is chosen from the predictor-corrector difference (Milne local error
+// estimate). Two analytic cases, increasing in complexity: (1) error control on the
+// damped oscillator -- tighter tolerance => smaller error + more steps; (2) step
+// ADAPTATION on a localized feature y = e^{-t^2} (slow-fast-slow) -- the step shrinks
+// through the steep middle and grows at the flat ends. Adaptivity is error control +
+// efficiency on varying dynamics; it is NOT a stiffness remedy (see D.2d-4).
+// =================================================================================
+TEST_SUITE("integrators: ABM2 adaptive (variable dt)")
+{
+
+    TEST_CASE("adaptive ABM2: error control on the damped oscillator")
+    {
+        fmt::println("");
+        fmt::println("integrators: adaptive ABM2 error control (damped oscillator)");
+        fmt::println("");
+
+        oscillator const osc{1.0, 100.0, 1.0};
+        double const x0 = 1.0, T = 10.0;
+
+        // local adaptive driver: integrate 0->T, recording max error, step counts, dt
+        // range
+        auto run = [&](double atol, double rtol) {
+            abm2_adaptive_integrator integ(2);
+            std::vector<double> u{x0, 0.0};
+            double t = 0.0, dt = 1.0e-3, maxerr = 0.0, dtmin = 1.0e30, dtmax = 0.0;
+            while (t < T - 1.0e-12) {
+                double dt_io = std::min(dt, T - t);
+                t = integ.step(osc, u, t, dt_io, atol, rtol);
+                dt = dt_io;
+                maxerr = std::max(maxerr, std::abs(u[0] - osc.x_exact(t, x0)));
+                dtmin = std::min(dtmin, integ.last_dt());
+                dtmax = std::max(dtmax, integ.last_dt());
+            }
+            return std::tuple{maxerr, integ.accepted(), integ.rejected(), dtmin, dtmax};
+        };
+        auto const [e4, n4, r4, mn4, mx4] = run(1.0e-9, 1.0e-4);
+        auto const [e7, n7, r7, mn7, mx7] = run(1.0e-12, 1.0e-7);
+
+        fmt::println("  rtol 1e-4: max err = {:.2e}, steps = {} (+{} rej), dt in "
+                     "[{:.2e}, {:.2e}]",
+                     e4, n4, r4, mn4, mx4);
+        fmt::println("  rtol 1e-7: max err = {:.2e}, steps = {} (+{} rej), dt in "
+                     "[{:.2e}, {:.2e}]",
+                     e7, n7, r7, mn7, mx7);
+
+        CHECK(e4 < 1.0e-2); // error is controlled / bounded
+        CHECK(e7 < e4);     // tighter tolerance -> smaller error
+        CHECK(n7 > n4);     // tighter tolerance -> more (smaller) steps
+        fmt::println("");
+    }
+
+    TEST_CASE("adaptive ABM2: step size adapts to a localized feature (e^{-t^2})")
+    {
+        fmt::println("");
+        fmt::println("integrators: adaptive ABM2 step adaptation (y = e^{{-t^2}})");
+        fmt::println("");
+
+        // y' = -2 t y -> y = e^{-t^2}: a slow-fast-slow profile. Under ABSOLUTE error
+        // control (atol, rtol = 0) the step shrinks where |y'''| peaks -- the visually
+        // steep middle
+        // (~t in [0.6, 0.9]) -- and grows at the flat ends where |y'''| -> 0.
+        // (Relative/rtol control would instead demand the tail, where y'''/y ~ t^3 grows
+        // even as y -> 0.)
+        auto gauss = [](double t, std::vector<double> const& u, std::vector<double>& du) {
+            du[0] = -2.0 * t * u[0];
+        };
+        abm2_adaptive_integrator integ(1);
+        std::vector<double> u{1.0};
+        double t = 0.0, dt = 1.0e-3, T = 3.0;
+        double maxerr = 0.0, dtmin = 1.0e30, dtmax = 0.0, dt_steep = 0.0, dt_tail = 0.0;
+        while (t < T - 1.0e-12) {
+            double dt_io = std::min(dt, T - t);
+            t = integ.step(gauss, u, t, dt_io, 1.0e-8, 0.0); // absolute error control
+            dt = dt_io;
+            maxerr = std::max(maxerr, std::abs(u[0] - std::exp(-t * t)));
+            dtmin = std::min(dtmin, integ.last_dt());
+            dtmax = std::max(dtmax, integ.last_dt());
+            if (t > 0.6 && t < 0.9 && dt_steep == 0.0) dt_steep = integ.last_dt();
+            if (t > 2.0) dt_tail = integ.last_dt();
+        }
+        fmt::println("  max err = {:.2e}, steps = {} (+{} rej)", maxerr, integ.accepted(),
+                     integ.rejected());
+        fmt::println("  dt: steep-middle (t~0.75) = {:.2e}, flat-tail (t~2.5) = {:.2e}, "
+                     "range [{:.2e}, {:.2e}]",
+                     dt_steep, dt_tail, dtmin, dtmax);
+
+        CHECK(maxerr < 1.0e-4);     // matches the closed form (error controlled)
+        CHECK(dt_steep < dt_tail);  // smaller step through the steep feature
+        CHECK(dtmax / dtmin > 5.0); // the step genuinely varies over the run
+        fmt::println("");
+    }
+
+} // TEST_SUITE("integrators: ABM2 adaptive (variable dt)")

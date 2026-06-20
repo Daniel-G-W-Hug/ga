@@ -3,6 +3,7 @@
 // Copyright 2024-2026, Daniel Hug. All rights reserved.
 // Licensed under the terms specified in LICENSE.txt file.
 
+#include <algorithm> // std::clamp, std::max, std::min (adaptive step controller)
 #include <array>     // std::array (rk4_step vector overload)
 #include <cmath>     // std::cos, std::sin
 #include <mdspan>    // std::mdspan, std::dextents (used by rk4_step)
@@ -388,6 +389,131 @@ class abm2_integrator {
     bool started_{false};
     std::vector<double> f_n_, f_nm1_; // f(t_n, u_n), f(t_{n-1}, u_{n-1})
     std::vector<double> u_p_, f_p_;   // predictor state + its derivative
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Adams-Bashforth-Moulton 2nd-order with ADAPTIVE (variable) step size
+//
+// Same predictor-corrector as abm2_integrator, but the step is chosen automatically from
+// a LOCAL ERROR ESTIMATE -- the Milne device: the difference between the (explicit)
+// predictor and the (implicit) corrector estimates the local truncation error,
+//
+//     err ~ (1/6) |u_corrector - u_predictor|.
+//
+// Because the steps are non-uniform, the predictor uses the VARIABLE-step
+// Adams-Bashforth-2 coefficients with r = h_n / h_{n-1}:
+//
+//     u_p = u_n + h_n [ (1 + r/2) f_n - (r/2) f_{n-1} ]    (-> 3/2, -1/2 when r = 1),
+//
+// while the trapezoidal corrector  u_{n+1} = u_n + (h_n/2)(f_p + f_n)  is step-ratio
+// invariant. The scaled error (per-component  atol + rtol*|u|, infinity norm) drives a
+// standard step controller  h_new = h * clamp(0.9 * err^(-1/3), ...); a step with err > 1
+// is rejected and retried smaller. First step self-starts with RK4.
+//
+// NOTE: this is an EXPLICIT method -- adaptivity gives error control + efficiency on
+// problems with VARYING dynamics, it is NOT a stiff-system remedy (a stiff problem forces
+// the step to the stability limit regardless). For stiffness use an implicit method.
+////////////////////////////////////////////////////////////////////////////////
+class abm2_adaptive_integrator {
+
+  public:
+
+    explicit abm2_adaptive_integrator(size_t n, double dt_min = 1.0e-12,
+                                      double dt_max = 1.0e30) :
+        rk4_(n), f_n_(n), f_nm1_(n), u_p_(n), u_c_(n), f_tmp_(n), dt_min_(dt_min),
+        dt_max_(dt_max)
+    {
+    }
+
+    // Take one ACCEPTED adaptive step from t; u is updated in place. `dt` is in/out: the
+    // step to attempt on entry, the suggested next step on exit. atol/rtol set the
+    // per-component tolerance. Internally rejects + retries with a smaller step until err
+    // <= 1 (or dt_min). Returns t + (accepted step).
+    template <typename RHS>
+    double step(RHS&& f, std::vector<double>& u, double t, double& dt, double atol,
+                double rtol)
+    {
+        size_t const n = u.size();
+        if (!started_) {
+            f(t, u, f_nm1_);        // f_0
+            rk4_.step(f, u, t, dt); // self-start u_0 -> u_1 (fixed dt)
+            f(t + dt, u, f_n_);     // f_1
+            h_prev_ = dt;
+            last_dt_ = dt;
+            started_ = true;
+            ++accepted_;
+            return t + dt;
+        }
+        for (;;) {
+            double const r = dt / h_prev_;
+            for (size_t i = 0; i < n; ++i) // variable-step AB2 predictor
+                u_p_[i] = u[i] + dt * ((1.0 + 0.5 * r) * f_n_[i] - 0.5 * r * f_nm1_[i]);
+            f(t + dt, u_p_, f_tmp_);       // E (f at predictor)
+            for (size_t i = 0; i < n; ++i) // trapezoidal corrector (ratio-invariant)
+                u_c_[i] = u[i] + 0.5 * dt * (f_tmp_[i] + f_n_[i]);
+
+            double err = 0.0; // scaled local error estimate (Milne 1/6), infinity norm
+            for (size_t i = 0; i < n; ++i) {
+                double const sc =
+                    atol + rtol * std::max(std::abs(u[i]), std::abs(u_c_[i]));
+                err = std::max(err, std::abs(u_c_[i] - u_p_[i]) / (6.0 * sc));
+            }
+
+            if (err <= 1.0 || dt <= dt_min_ * (1.0 + 1.0e-9)) { // accept
+                for (size_t i = 0; i < n; ++i)
+                    u[i] = u_c_[i];
+                f(t + dt, u, f_tmp_); // f_{n+1}, reused as f_n next step
+                f_nm1_.swap(f_n_);
+                f_n_.swap(f_tmp_);
+                h_prev_ = dt;
+                last_dt_ = dt;
+                double const t_new = t + dt;
+                double const fac =
+                    (err > 0.0) ? 0.9 * std::pow(1.0 / err, 1.0 / 3.0) : 5.0;
+                dt = std::clamp(dt * std::clamp(fac, 0.2, 5.0), dt_min_, dt_max_);
+                ++accepted_;
+                return t_new;
+            }
+            ++rejected_; // reject: shrink and retry
+            double const fac = 0.9 * std::pow(1.0 / err, 1.0 / 3.0);
+            dt = std::max(dt * std::clamp(fac, 0.1, 1.0), dt_min_);
+        }
+    }
+
+    // Integrate from t0 to t_end starting with dt0; the final step is clamped to land
+    // exactly on t_end. Returns t_end. accepted()/rejected()/last_dt() report the run.
+    template <typename RHS>
+    double integrate(RHS&& f, std::vector<double>& u, double t0, double t_end, double dt0,
+                     double atol, double rtol)
+    {
+        double t = t0, dt = dt0;
+        while (t < t_end - 1.0e-12 * std::max(1.0, std::abs(t_end))) {
+            double dt_io = std::min(dt, t_end - t); // clamp to land on t_end
+            t = step(f, u, t, dt_io, atol, rtol);
+            dt = dt_io;
+        }
+        return t;
+    }
+
+    void reset()
+    {
+        started_ = false;
+        accepted_ = rejected_ = 0;
+    }
+    size_t accepted() const { return accepted_; }
+    size_t rejected() const { return rejected_; }
+    double last_dt() const { return last_dt_; }
+
+  private:
+
+    rk4_integrator rk4_; // self-start for the first step
+    bool started_{false};
+    std::vector<double> f_n_, f_nm1_;       // f(t_n, u_n), f(t_{n-1}, u_{n-1})
+    std::vector<double> u_p_, u_c_, f_tmp_; // predictor / corrector / scratch derivative
+    double h_prev_{0.0};                    // last accepted step (for the step ratio r)
+    double last_dt_{0.0};                   // last accepted step (diagnostic)
+    double dt_min_, dt_max_;
+    size_t accepted_{0}, rejected_{0};
 };
 
 } // namespace hd::ga

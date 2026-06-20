@@ -642,13 +642,22 @@ comment at `contact_state3dp` so a future session does not "fix" the asymmetry b
     stability limit (2.76e-5)**, so dt is ACCURACY-bound (resolving the ~6 kHz vibration), not
     stability-bound. → an implicit solver (D.2d-4) is NOT needed now; only if a near-rigid
     contact penalty injects a fast mode. appl3dp 49/9212.
-  - **D.2d-3 (add-on): variable/adaptive dt** — the AB2/AM2 predictor-corrector difference as
-    a local error estimate driving step-size control; its own analytic test case. Gate: ≤1 %
-    solution delta vs fixed-dt RK4 + wall-clock. **NOTE (2026-06-20): adaptive dt is NOT a
-    stiffness remedy.** For an EXPLICIT method (our ABM2 is explicit PECE) the step on a stiff
-    system is STABILITY-bound, so an adaptive controller just auto-shrinks `dt` to the same
-    tiny stability limit and crawls — it buys error control / auto-tuning + efficiency on
-    problems with VARYING dynamics (transient vs steady), not stiffness.
+  - **D.2d-3 (add-on) DONE 2026-06-20 (UNCOMMITTED): variable/adaptive dt.** New
+    `abm2_adaptive_integrator` in `ga/ga_usr_utilities.hpp`: the predictor-corrector
+    difference is the Milne local-error estimate `err≈(1/6)|u_c−u_p|`; a standard controller
+    `h_new=h·clamp(0.9·err^(−1/3),…)` sets the step (reject + retry on `err>1`). Non-uniform
+    steps use the VARIABLE-step AB2 predictor `u_p=u_n+h[(1+r/2)f_n−(r/2)f_{n−1}]`,
+    `r=h_n/h_{n−1}` (the trapezoidal corrector is ratio-invariant); RK4 self-start. Two
+    analytic cases in `ga_integrator_test` (new suite): (1) error control on the damped
+    oscillator — tighter rtol → smaller error + more steps (1e-4: err 3.3e-3, 1579 steps;
+    1e-7: err 3.1e-5, 16443 steps); (2) step ADAPTATION on `y=e^{−t²}` under absolute control
+    — dt shrinks where `|y'''|` peaks (steep middle 2.84e-3) and grows at the flat tail
+    (4.21e-3), range 14.8× (`dtmax/dtmin`), err 1.3e-6. 14/14; physics suites unchanged. **NOTE:
+    adaptive dt is NOT a stiffness remedy** — for an EXPLICIT method the step on a stiff system
+    is STABILITY-bound, so the controller just auto-shrinks `dt` to that limit and crawls; it
+    buys error control / auto-tuning + efficiency on VARYING dynamics, not stiffness. (Not
+    wired into `dynamic_system` — the grinding loop is accuracy-bound & non-stiff per D.2d-2,
+    so a variable-dt `step()` there adds nothing now; wire it only if a use needs it.)
   - **D.2d-4 (the actual stiffness lever, IF D.2d-2 shows stiffness): an IMPLICIT solver** —
     A/L-stable: implicit trapezoidal / Adams–Moulton solved with a Newton iteration, or a BDF.
     Only these take large steps on a genuinely stiff system (limited by accuracy, not
