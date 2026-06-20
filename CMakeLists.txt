@@ -41,8 +41,13 @@ if(NOT _is_multi_config AND NOT CMAKE_BUILD_TYPE)
       "Build type: Debug | Release | RelWithDebInfo | MinSizeRel" FORCE)
   message(STATUS "Build type not specified: defaulting to Debug.")
 endif()
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-             Debug Release RelWithDebInfo MinSizeRel)
+# The STRINGS dropdown only applies to single-config generators, where the cache variable
+# above exists. Multi-config generators (Visual Studio, Xcode) never create CMAKE_BUILD_TYPE
+# as a cache entry, so guard the property to avoid "could not find CACHE variable".
+if(NOT _is_multi_config)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+               Debug Release RelWithDebInfo MinSizeRel)
+endif()
 
 if(MSVC)
   # warning level 4 and all warnings as errors
