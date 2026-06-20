@@ -1,7 +1,22 @@
 # Wafer-grinding dynamics — modelling & optimization plan
 
-Status: **planning + initial port done (2026-06-14).** Long-horizon project; this file
-evolves and is the living plan across sessions. The kinematics/dynamics infrastructure
+> **PROJECT CLOSED 2026-06-20 (by user decision).** The work is concluded here; the
+> remaining parts are **ABANDONED, not deferred** — they will not be picked up unless the
+> project is explicitly reopened. **Done & committed:** Phases 0, A, B.1, C (Tao 5-DOF
+> spindle) + the Eq.13 paper-error analysis, D.1 (surface formation), the whole D.2
+> contact/force-loop tier (D.2a feed-forward → D.2b closed loop → D.2c thinning + chuck
+> reaction → D.2d RK4/ABM2 integrators + stiffness verdict + adaptive dt → D.2e feed-control
+> force limiting), `get_disc_inertia`/`make_disc_body` (2D+3D), and the ga_docu Wafer Grinding
+> subsubsection (`6_ga_applications_pga.tex`). **Abandoned:** E (feed/speed optimization), the
+> chip-thickness force-law refinement, D.2d-4 (implicit/stiff solver), Phase 0.c (CS-view
+> ga_view scene), the non-ideal DC-motor / Sommerfeld speed-jump coupling, and the 2D twin of
+> the contact element (the contact element stays 3D-only by design). The library
+> infrastructure that landed (force elements, the swappable grinding-force-law callback, the
+> integrator selector, the feed controller) remains in place and usable; only the further
+> modelling/optimization work is dropped.
+
+Status: **CLOSED 2026-06-20 — see the box above.** (Historical: planning + initial port done
+2026-06-14.) The kinematics/dynamics infrastructure
 (`static_/kinematic_/dynamic_system{2,3}dp`, the closed-loop layer) was built as the
 runway for exactly this. Companion memory: `project_wafer_grinding`.
 
