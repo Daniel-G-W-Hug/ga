@@ -297,4 +297,69 @@ TEST_SUITE("integrators: ABM2 adaptive (variable dt)")
         fmt::println("");
     }
 
+    TEST_CASE("adaptive vs fixed ABM2: speedup at matched accuracy")
+    {
+        fmt::println("");
+        fmt::println("integrators: adaptive vs fixed ABM2 speedup (step count @ matched "
+                     "accuracy)");
+        fmt::println("");
+
+        // Cost ~ (steps) x (2 rhs evals/step) for BOTH methods, so the step-count ratio
+        // at the SAME global accuracy is the speedup. On a VARYING-dynamics problem (y' =
+        // -2 t y -> e^{-t^2}) adaptive takes big steps in the flat regions, so it beats a
+        // fixed dt that must use the smallest-needed step everywhere. On a
+        // UNIFORM-timescale problem (the damped oscillator) there is nothing to exploit,
+        // so adaptive ~ fixed (the reject overhead can even make it slightly slower) --
+        // the honest caveat.
+        auto gauss = [](double t, std::vector<double> const& u, std::vector<double>& du) {
+            du[0] = -2.0 * t * u[0];
+        };
+        auto y_exact = [](double t) { return std::exp(-t * t); };
+        double const T =
+            6.0; // long tail: the flat region dominates -> adaptive coasts it
+
+        // adaptive -> target global accuracy E and total (accepted + rejected) steps
+        abm2_adaptive_integrator ad(1);
+        std::vector<double> u{1.0};
+        double t = 0.0, dt = 1.0e-3, E = 0.0;
+        while (t < T - 1.0e-12) {
+            double dio = std::min(dt, T - t);
+            t = ad.step(gauss, u, t, dio, 1.0e-8, 0.0);
+            dt = dio;
+            E = std::max(E, std::abs(u[0] - y_exact(t)));
+        }
+        size_t const steps_ad = ad.accepted() + ad.rejected();
+
+        // smallest fixed-dt step count reaching the same global accuracy E (max error
+        // over the run), found by doubling then bisection
+        auto fixed_err = [&](size_t N) {
+            abm2_integrator fx(1);
+            std::vector<double> v{1.0};
+            double tt = 0.0, h = T / double(N), e = 0.0;
+            for (size_t i = 0; i < N; ++i) {
+                tt = fx.step(gauss, v, tt, h);
+                e = std::max(e, std::abs(v[0] - y_exact(tt)));
+            }
+            return e;
+        };
+        size_t N = 64;
+        while (fixed_err(N) > E && N < (1u << 24))
+            N *= 2;
+        size_t lo = N / 2, hi = N; // bisect [N/2, N] for a tighter fixed count
+        while (hi - lo > lo / 20 + 1) {
+            size_t const mid = (lo + hi) / 2;
+            if (fixed_err(mid) <= E) hi = mid;
+            else lo = mid;
+        }
+        size_t const steps_fx = hi;
+        double const speedup = double(steps_fx) / double(steps_ad);
+
+        fmt::println("  varying dynamics (e^{{-t^2}}): target max err = {:.2e}", E);
+        fmt::println("    adaptive: {} steps (+{} rej)", ad.accepted(), ad.rejected());
+        fmt::println("    fixed   : ~{} steps for the same accuracy", steps_fx);
+        fmt::println("    -> adaptive is ~{:.1f}x fewer steps (cost ratio)", speedup);
+        CHECK(speedup > 1.5); // meaningfully cheaper on this varying-dynamics problem
+        fmt::println("");
+    }
+
 } // TEST_SUITE("integrators: ABM2 adaptive (variable dt)")

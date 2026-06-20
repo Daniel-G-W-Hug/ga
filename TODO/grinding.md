@@ -652,8 +652,12 @@ comment at `contact_state3dp` so a future session does not "fix" the asymmetry b
     oscillator — tighter rtol → smaller error + more steps (1e-4: err 3.3e-3, 1579 steps;
     1e-7: err 3.1e-5, 16443 steps); (2) step ADAPTATION on `y=e^{−t²}` under absolute control
     — dt shrinks where `|y'''|` peaks (steep middle 2.84e-3) and grows at the flat tail
-    (4.21e-3), range 14.8× (`dtmax/dtmin`), err 1.3e-6. 14/14; physics suites unchanged. **NOTE:
-    adaptive dt is NOT a stiffness remedy** — for an EXPLICIT method the step on a stiff system
+    (4.21e-3), range 14.8× (`dtmax/dtmin`), err 1.3e-6. **(3) SPEEDUP vs fixed dt (step count
+    at MATCHED global accuracy; both ~2 evals/step, so step ratio = cost ratio): on `e^{−t²}`
+    over [0,6] adaptive 689 vs fixed 1984 → ~2.9× fewer (the flat tail cost adaptive +44 steps
+    vs +992 for fixed; grows with a longer flat region). On a UNIFORM-timescale problem (the
+    oscillator) there is nothing to exploit → adaptive ≈ fixed, the honest caveat.** 15/15;
+    physics suites unchanged. **NOTE: adaptive dt is NOT a stiffness remedy** — for an EXPLICIT method the step on a stiff system
     is STABILITY-bound, so the controller just auto-shrinks `dt` to that limit and crawls; it
     buys error control / auto-tuning + efficiency on VARYING dynamics, not stiffness. (Not
     wired into `dynamic_system` — the grinding loop is accuracy-bound & non-stiff per D.2d-2,
