@@ -303,6 +303,54 @@ Inertia3dp<T> get_cuboid_inertia(T m, T w, T h, T d,
 }
 
 
+// Inertia map of a uniform solid DISC / CYLINDER of radius r and thickness / height t,
+// total mass m, with the SYMMETRY (spin) axis along e3 -- the disc lies in the e1-e2
+// plane, thickness t along e3 -- and the body origin at the centre. Principal moments
+// about the centroid:
+//
+//   axial      I_zz = m r^2 / 2                  (about e3, the symmetry axis) transverse
+//   I_xx = I_yy = m (r^2/4 + t^2/12)  (about e1 and e2)
+//
+// Same crossed layout (linear mass in the upper-right block, moments in the lower-left)
+// and optional parallel-axis (Steiner) convention as get_cuboid_inertia -- only the
+// lower-left diagonal block differs.
+template <typename T>
+    requires(std::floating_point<T>)
+Inertia3dp<T> get_disc_inertia(T m, T r, T t, BiVec3dp<T> const& L_pivot = BiVec3dp<T>{})
+{
+    Inertia3dp<T> I;
+    auto v = I.view();
+
+    // Upper-right block: linear velocity (bulk) -> linear momentum (mass m)
+    v[0, 3] = m;
+    v[1, 4] = m;
+    v[2, 5] = m;
+
+    // Lower-left block: angular velocity (weight) -> angular momentum (moments). Symmetry
+    // axis e3: e1, e2 are transverse, e3 is axial.
+    T const I_trans = m * (r * r / T{4} + t * t / T{12});
+    v[3, 0] = I_trans;          // I_xx (about e1, transverse)
+    v[4, 1] = I_trans;          // I_yy (about e2, transverse)
+    v[5, 2] = m * r * r / T{2}; // I_zz (about e3, axial)
+
+    // Scalar parallel-axis (Steiner) corrections on the diagonal moments only (identical
+    // to get_cuboid_inertia; off-diagonal coupling terms must NOT be added -- see there).
+    T const v_sq =
+        L_pivot.vx * L_pivot.vx + L_pivot.vy * L_pivot.vy + L_pivot.vz * L_pivot.vz;
+    if (v_sq != T{0}) {
+        T const inv_v_sq = T{1} / v_sq;
+        T const Px = (L_pivot.vy * L_pivot.mz - L_pivot.vz * L_pivot.my) * inv_v_sq;
+        T const Py = (L_pivot.vz * L_pivot.mx - L_pivot.vx * L_pivot.mz) * inv_v_sq;
+        T const Pz = (L_pivot.vx * L_pivot.my - L_pivot.vy * L_pivot.mx) * inv_v_sq;
+        v[3, 0] += m * (Py * Py + Pz * Pz);
+        v[4, 1] += m * (Px * Px + Pz * Pz);
+        v[5, 2] += m * (Px * Px + Py * Py);
+    }
+
+    return I;
+}
+
+
 // Get inverse of inertia matrix using LU decomposition
 // Solves I * I_inv = Identity by back-substitution for each column
 // Throws std::invalid_argument if inertia matrix is singular (det = 0)
@@ -856,6 +904,14 @@ inline body3dp make_cuboid_body(value_t m, value_t w, value_t h, value_t d)
 {
     auto const I =
         get_cuboid_inertia(m, w, h, d); // about cm (default pivot = body origin)
+    return body3dp{I, get_inertia_inverse(I), m};
+}
+
+// Build a body3dp for a uniform disc/cylinder of radius r and thickness/height t
+// (symmetry/spin axis along e3) of total mass m, body origin at the centre.
+inline body3dp make_disc_body(value_t m, value_t r, value_t t)
+{
+    auto const I = get_disc_inertia(m, r, t); // about cm (default pivot = body origin)
     return body3dp{I, get_inertia_inverse(I), m};
 }
 

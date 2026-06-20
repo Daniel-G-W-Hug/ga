@@ -422,6 +422,46 @@ TEST_SUITE("PGA2DP: physics tests prep")
         CHECK(I_grid.view()[2, 2] == doctest::Approx(65.0 / 36.0).epsilon(1e-6));
     }
 
+    TEST_CASE("pga2dp: get_disc_inertia / make_disc_body")
+    {
+        fmt::println("pga2dp: get_disc_inertia (polar moment m r^2 / 2)");
+
+        value_t const m = 3.0, r = 2.0;
+        auto const I = get_disc_inertia(m, r);
+
+        // mass block + polar moment about the centroid J = m r^2 / 2
+        CHECK(I.view()[0, 1] == doctest::Approx(m));
+        CHECK(I.view()[1, 0] == doctest::Approx(-m));
+        CHECK(I.view()[2, 2] == doctest::Approx(0.5 * m * r * r)); // = 6.0
+        // off-diagonal coupling terms are zero
+        CHECK(I.view()[0, 2] == doctest::Approx(0.0));
+        CHECK(I.view()[1, 2] == doctest::Approx(0.0));
+        CHECK(I.view()[2, 0] == doctest::Approx(0.0));
+        CHECK(I.view()[2, 1] == doctest::Approx(0.0));
+
+        // I * I_inv == identity
+        auto const I_inv = get_inertia_inverse(I);
+        auto const P = I.view(), Q = I_inv.view();
+        for (size_t i = 0; i < 3; ++i)
+            for (size_t j = 0; j < 3; ++j) {
+                value_t s = 0.0;
+                for (size_t k = 0; k < 3; ++k)
+                    s += P[i, k] * Q[k, j];
+                CHECK(s == doctest::Approx(i == j ? 1.0 : 0.0).epsilon(1e-12));
+            }
+
+        // Steiner: rotating about a rim point (pivot at distance r) adds m r^2
+        auto const I_rim = get_disc_inertia(m, r, vec2dp{r, 0.0, 1.0});
+        CHECK(I_rim.view()[2, 2] ==
+              doctest::Approx(0.5 * m * r * r + m * r * r)); // 3/2 m r^2
+
+        // make_disc_body wires the inertia + its inverse + mass
+        auto const body = make_disc_body(m, r);
+        CHECK(body.mass == doctest::Approx(m));
+        CHECK(body.I.view()[2, 2] == doctest::Approx(0.5 * m * r * r));
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA2DP: physics tests prep")
 
 /////////////////////////////////////////////////////////////////////////////////////////

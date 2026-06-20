@@ -203,6 +203,44 @@ Inertia2dp<T> get_plate_inertia(T m, T w, T h,
 }
 
 
+// Inertia map of a uniform DISC of radius r (in the e1-e2 plane) and total mass m, body
+// origin at the centre. The 2D moment about the out-of-plane axis through the centroid is
+// the polar moment J = m r^2 / 2. Same layout and optional parallel-axis (Steiner)
+// convention as get_plate_inertia -- only the scalar I[2,2] differs.
+template <typename T>
+    requires(numeric_type<T>)
+Inertia2dp<T> get_disc_inertia(T m, T r,
+                               Vec2dp<T> const& P_pivot = Vec2dp<T>{T{0}, T{0}, T{1}})
+{
+    Inertia2dp<T> I;
+    auto v = I.view();
+
+    // Row 0: [0, m, 0]
+    v[0, 0] = T{0};
+    v[0, 1] = m;
+    v[0, 2] = T{0};
+
+    // Row 1: [-m, 0, 0]
+    v[1, 0] = -m;
+    v[1, 1] = T{0};
+    v[1, 2] = T{0};
+
+    // Row 2: [0, 0, m r^2 / 2]  (polar moment of a disc about the centroid)
+    v[2, 0] = T{0};
+    v[2, 1] = T{0};
+    v[2, 2] = m * r * r / T{2};
+
+    // Scalar parallel-axis (Steiner) correction on the moment only (see get_plate_inertia
+    // for why the off-diagonal coupling terms must NOT be added here).
+    Vec2dp<T> const O_b{T{0}, T{0}, T{1}};
+    if (P_pivot.x != O_b.x || P_pivot.y != O_b.y) {
+        v[2, 2] += m * (P_pivot.x * P_pivot.x + P_pivot.y * P_pivot.y);
+    }
+
+    return I;
+}
+
+
 // Get inverse of inertia matrix using LU decomposition
 // Solves I * I_inv = Identity by back-substitution for each column
 // Throws std::invalid_argument if inertia matrix is singular (det = 0)
@@ -900,6 +938,14 @@ struct body2dp {
 inline body2dp make_plate_body(value_t m, value_t w, value_t h)
 {
     auto const I = get_plate_inertia(m, w, h); // about cm (default pivot = body origin)
+    return body2dp{I, get_inertia_inverse(I), m};
+}
+
+// Build a body2dp for a uniform disc (radius r) of total mass m, body origin at the
+// centre.
+inline body2dp make_disc_body(value_t m, value_t r)
+{
+    auto const I = get_disc_inertia(m, r); // about cm (default pivot = body origin)
     return body2dp{I, get_inertia_inverse(I), m};
 }
 

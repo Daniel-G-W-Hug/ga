@@ -443,6 +443,48 @@ TEST_SUITE("PGA3DP: physics tests prep")
         CHECK_THROWS_AS(rk4_step(u, uh, rhs_bad, 0.01, 1), std::invalid_argument);
     }
 
+    TEST_CASE("pga3dp: get_disc_inertia / make_disc_body")
+    {
+        fmt::println("pga3dp: get_disc_inertia (cylinder, symmetry axis e3)");
+
+        value_t const m = 3.0, r = 2.0, t = 0.5;
+        auto const I = get_disc_inertia(m, r, t);
+        value_t const I_axial = 0.5 * m * r * r;                  // I_zz = 6.0
+        value_t const I_trans = m * (r * r / 4.0 + t * t / 12.0); // I_xx = I_yy = 3.0625
+
+        // linear mass block (upper-right)
+        CHECK(I.view()[0, 3] == doctest::Approx(m));
+        CHECK(I.view()[1, 4] == doctest::Approx(m));
+        CHECK(I.view()[2, 5] == doctest::Approx(m));
+        // moments (lower-left): transverse about e1,e2; axial about e3
+        CHECK(I.view()[3, 0] == doctest::Approx(I_trans));
+        CHECK(I.view()[4, 1] == doctest::Approx(I_trans));
+        CHECK(I.view()[5, 2] == doctest::Approx(I_axial));
+
+        // I * I_inv == identity
+        auto const I_inv = get_inertia_inverse(I);
+        auto const P = I.view(), Q = I_inv.view();
+        for (size_t i = 0; i < 6; ++i)
+            for (size_t j = 0; j < 6; ++j) {
+                value_t s = 0.0;
+                for (size_t k = 0; k < 6; ++k)
+                    s += P[i, k] * Q[k, j];
+                CHECK(s == doctest::Approx(i == j ? 1.0 : 0.0).epsilon(1e-12));
+            }
+
+        // thin-disc limit (t -> 0): the perpendicular-axis theorem I_zz = I_xx + I_yy
+        // holds
+        auto const I_thin = get_disc_inertia(m, r, 0.0);
+        CHECK(I_thin.view()[5, 2] ==
+              doctest::Approx(I_thin.view()[3, 0] + I_thin.view()[4, 1]));
+
+        // make_disc_body wires the inertia + its inverse + mass
+        auto const body = make_disc_body(m, r, t);
+        CHECK(body.mass == doctest::Approx(m));
+        CHECK(body.I.view()[5, 2] == doctest::Approx(I_axial));
+        fmt::println("");
+    }
+
 } // TEST_SUITE("PGA3DP: physics tests prep")
 
 

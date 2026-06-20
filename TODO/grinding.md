@@ -710,15 +710,17 @@ force and `z_b`).
 
 ## Parked markers (future capabilities)
 
-- **`get_disc_inertia` (round geometry) — TODO, noted 2026-06-20.** Add a disc/cylinder
-  inertia helper in 2D and 3D, along the lines of the existing `get_plate_inertia` /
-  `make_plate_body` (2D, `ga_pga2dp_ops_physics.hpp`) and `get_cuboid_inertia` /
-  `make_cuboid_body` (3D, `ga_pga3dp_ops_physics.hpp`). The grinding tool (wheel) and the
-  wafer are both ROUND, so a closed-form disc inertia (e.g. `I_axial = ½ m R²`,
-  `I_diam = ¼ m R² + ¹⁄₁₂ m t²` for a flat disc of radius R, thickness t) is the natural
-  body shape for them — the current rigs approximate with cuboids. Add when the spindle /
-  wafer bodies need their true inertia (Phase C full-spindle refinement, or D.2 once the
-  wheel/wafer masses matter dynamically).
+- **`get_disc_inertia` (round geometry) — DONE 2026-06-20.** Added in 2D and 3D, mirroring
+  `get_plate_inertia`/`make_plate_body` (2D) and `get_cuboid_inertia`/`make_cuboid_body` (3D)
+  incl. the optional parallel-axis (Steiner) pivot. **2D** `get_disc_inertia(m, r)` +
+  `make_disc_body(m, r)`: polar moment `J = ½ m r²`. **3D** `get_disc_inertia(m, r, t)` +
+  `make_disc_body(m, r, t)`: solid cylinder, SYMMETRY/spin axis along **e3** (disc in the
+  e1-e2 plane, thickness t along e3) — axial `I_zz = ½ m r²`, transverse
+  `I_xx = I_yy = m(r²/4 + t²/12)`. Unit tests (appl2dp/appl3dp "physics tests prep"): moments,
+  `I·I_inv = identity`, Steiner (rim pivot adds `m r²`), the thin-disc perpendicular-axis
+  theorem `I_zz = I_xx + I_yy`. No ga_py impact (the sibling inertia helpers aren't bound).
+  Ready for the wheel/wafer bodies when their true inertia matters (replaces the cuboid
+  approximation in the rigs).
 
 ## Documentation plan (grinding-specific subsection) — noted 2026-06-20
 
