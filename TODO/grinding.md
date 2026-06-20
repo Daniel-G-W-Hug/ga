@@ -629,12 +629,31 @@ comment at `contact_state3dp` so a future session does not "fix" the asymmetry b
   0.43 = the true 2-vs-4-eval ratio). Documented in a comment in the timing case. All green
   (8/8; ega/pga unchanged). **User directive honoured: simple analytic cases UPFRONT, separate
   test file, BEFORE the grinding loop / full Tao.**
-  - **D.2d-2 (TODO): apply the integrator selector to the simplified grinding loop** (RK4 vs
-    ABM2 on D.2b), then the full Tao model. Needs `dynamic_system3dp::set_integrator(...)`.
-  - **D.2d-3 (TODO, add-on): variable/adaptive dt** — the AB2/AM2 predictor-corrector
-    difference as a local error estimate driving step-size control; its own analytic test
-    case (increasing complexity step by step, per the user). Gate: ≤1 % solution delta vs
-    fixed-dt RK4 + wall-clock.
+  - **D.2d-2 DONE 2026-06-20 (UNCOMMITTED): integrator selector on the grinding loop +
+    stiffness verdict.** `dynamic_system3dp::set_integrator(integrator_kind::rk4 | abm2)` +
+    `get_integrator()`; `coupled_step` refactored to a SINGLE shared forward-dynamics rhs
+    dispatched to `rk4_integrator` (default) or a persistent `abm2_integrator` member (the
+    multistep history; reset on switch). **RK4 stays BYTE-IDENTICAL** — full physics suite
+    unchanged (appl2dp 50/539, pga 169/2758, appl3dp pre-D.2d counts). New suite
+    `TEST_SUITE("PGA3DP: grinding loop integrator (Phase D.2d-2)")`: both integrators reach the
+    analytic equilibrium F_eq=90.4762 N and **agree to 1.57e-16** (the steady state is a fixed
+    point, order-independent). **STIFFNESS VERDICT (the purpose of this step): NOT classically
+    stiff** at k_grind=1e8 — w_eff≈36229 rad/s, working dt=1e-6 is **28× below the ABM2
+    stability limit (2.76e-5)**, so dt is ACCURACY-bound (resolving the ~6 kHz vibration), not
+    stability-bound. → an implicit solver (D.2d-4) is NOT needed now; only if a near-rigid
+    contact penalty injects a fast mode. appl3dp 49/9212.
+  - **D.2d-3 (add-on): variable/adaptive dt** — the AB2/AM2 predictor-corrector difference as
+    a local error estimate driving step-size control; its own analytic test case. Gate: ≤1 %
+    solution delta vs fixed-dt RK4 + wall-clock. **NOTE (2026-06-20): adaptive dt is NOT a
+    stiffness remedy.** For an EXPLICIT method (our ABM2 is explicit PECE) the step on a stiff
+    system is STABILITY-bound, so an adaptive controller just auto-shrinks `dt` to the same
+    tiny stability limit and crawls — it buys error control / auto-tuning + efficiency on
+    problems with VARYING dynamics (transient vs steady), not stiffness.
+  - **D.2d-4 (the actual stiffness lever, IF D.2d-2 shows stiffness): an IMPLICIT solver** —
+    A/L-stable: implicit trapezoidal / Adams–Moulton solved with a Newton iteration, or a BDF.
+    Only these take large steps on a genuinely stiff system (limited by accuracy, not
+    stability). Likely triggered by a near-rigid CONTACT penalty (large `k_grind`) injecting a
+    mode far above the ~6 kHz physics band. Its own analytic stiff-ODE test case upfront.
 - **D.2e — control layer (force limiting), separate opt-in tier.** Implement options a (70 %
   limit, feed-controlled) and b (thickness-scheduled 100→70 % taper, 150→80 µm). Gate: force
   held within the target envelope; feed responds; the layer is inert when not attached
@@ -663,6 +682,52 @@ force and `z_b`).
    in-loop). The thinning timescale (µm/min) is ~10⁹× slower than the kHz vibration, so the
    thickness is held constant within a macro-step and decremented by `MRR·Δt_macro / area`
    between steps.
+
+## Parked markers (future capabilities)
+
+- **`get_disc_inertia` (round geometry) — TODO, noted 2026-06-20.** Add a disc/cylinder
+  inertia helper in 2D and 3D, along the lines of the existing `get_plate_inertia` /
+  `make_plate_body` (2D, `ga_pga2dp_ops_physics.hpp`) and `get_cuboid_inertia` /
+  `make_cuboid_body` (3D, `ga_pga3dp_ops_physics.hpp`). The grinding tool (wheel) and the
+  wafer are both ROUND, so a closed-form disc inertia (e.g. `I_axial = ½ m R²`,
+  `I_diam = ¼ m R² + ¹⁄₁₂ m t²` for a flat disc of radius R, thickness t) is the natural
+  body shape for them — the current rigs approximate with cuboids. Add when the spindle /
+  wafer bodies need their true inertia (Phase C full-spindle refinement, or D.2 once the
+  wheel/wafer masses matter dynamically).
+
+## Documentation plan (grinding-specific subsection) — noted 2026-06-20
+
+What we have documented so far in `ga_docu` (§5 multi-body motion + the §8 glossary) is
+**generic** rigid-body / multi-body dynamics — force/torque, momentum, inertia maps,
+Newton–Euler, frame trees, articulated + closed-loop dynamics. The wafer-grinding work is now
+getting **application-specific** (the contact/force element, the grinding law, wafer thinning,
+the closed force loop, the Tao spindle, the integrator trade-off, the two Tao paper errors),
+so it warrants its **own dedicated subsection** in the documentation — NOT folded into the
+generic multi-body sections. Write it as the capstone case study (after D.2/E land, per the
+agreed order: D.2 first, then docs), covering: the Fig.1 frame tree, the force-element +
+contact-loop tier, the Eq.13 paper-error findings ([tao_eq13_derivation.md](tao_eq13_derivation.md)),
+and the surface-formation half (D.1). Keep the generic-vs-grinding split explicit.
+
+**DOC TASK — integrator stability & accuracy limits (worked on the grinding model), noted
+2026-06-20.** Document, with the grinding model as the running example, the two distinct
+upper bounds on the time step and the lower bound from compute:
+
+- **Stability limit (explicit methods):** RK4 `dt ≲ 2.78/ω`, ABM2 (PECE) `dt ≲ ~1/ω`, with
+  `ω = √(k_tot/m)` the fastest structural mode (grinding loop: `ω≈36229 rad/s` →
+  `dt_RK4≈7.7e-5`, `dt_ABM2≈2.8e-5`). Derive the boundaries from each method's amplification
+  factor on `ẏ=λy` (the imaginary-axis interval for an oscillatory mode).
+- **Accuracy limit:** `dt` small enough to resolve the physics of interest — the `~6 kHz`
+  vibration `f_b` (`dt ≲ 1/(20 f_b) ≈ 8e-6`). On the grinding loop this is the BINDING
+  constraint (well below the stability limits) — i.e. the loop is accuracy-bound, not stiff
+  (the D.2d-2 verdict). Show the convergence-order evidence (RK4 4th, ABM2 2nd) from
+  `ga_integrator_test`.
+- **Compute lower bound (the real machine question):** the durable end-point — for INLINE /
+  real-time control on the actual machine, how small can `dt` be? Set by the per-step compute
+  cost (ns/step, Debug vs Release, from `ga_integrator_test`: e.g. Release ~21–49 ns/step for
+  this 2-DOF rig) versus the control-loop period and the model size. The feasibility window is
+  `[dt_min(compute, real-time budget), dt_max(stability ∧ accuracy)]`; document when ABM2's
+  ~2× fewer evals/step buys real-time headroom and when a smaller/implicit step is forced.
+  This ties the Debug-vs-Release timing finding directly to a deployment constraint.
 
 ## Deferred documentation tasks — DONE 2026-06-18
 

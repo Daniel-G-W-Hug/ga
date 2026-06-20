@@ -380,6 +380,7 @@ class abm2_integrator {
     }
 
     void reset() { started_ = false; } // restart the multistep history
+    size_t dim() const { return f_n_.size(); }
 
   private:
 

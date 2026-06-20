@@ -14,6 +14,7 @@
 #include <functional> // std::function (time-varying applied wrench)
 #include <limits>     // std::numeric_limits
 #include <mdspan>
+#include <optional> // std::optional (multistep integrator state)
 #include <stdexcept>
 #include <string>
 #include <unordered_map> // std::unordered_map (frame name -> index)
@@ -963,6 +964,13 @@ inline vec3dp grinding_force_depth(contact_state3dp const& c, value_t k, value_t
                   Fn * c.n_hat.z - Ft * c.t_hat.z, 0.0};
 }
 
+// Time-integration scheme selectable on dynamic_system3dp (see set_integrator):
+//   rk4  -- canonical 4th-order Runge-Kutta (default), 4 rhs evals/step
+//   abm2 -- Adams-Bashforth-Moulton 2nd-order predictor-corrector, 2 rhs evals/step
+// (both from ga/ga_usr_utilities.hpp). RK4 is the robust default; ABM2 trades order for
+// fewer evaluations -- useful to weigh on the grinding loop. Neither is an implicit/stiff
+// solver (see TODO/grinding.md Phase D.2d-4).
+enum class integrator_kind { rk4, abm2 };
 
 class dynamic_system3dp : public kinematic_system3dp {
 
@@ -1031,6 +1039,16 @@ class dynamic_system3dp : public kinematic_system3dp {
         bool react{false};  // fold the reaction wrench onto the wafer frame (D.2c)
     };
     std::unordered_map<size_t, contact_spec> contact_;
+
+    // Selectable time integrator for the coupled joint chain (coupled_step). RK4
+    // (default, the canonical mdspan rk4_step) or ABM2 (Adams-Bashforth-Moulton 2nd-order
+    // multistep). ABM2 is a MULTISTEP method, so its history (the previous derivative)
+    // persists across step() calls in `abm_`, lazily sized to the dof count and reset on
+    // a switch / dof change. Both share one rhs evaluation (forward dynamics), so RK4
+    // stays byte-identical to the hand-rolled loop and ABM2 is a drop-in alternative. See
+    // set_integrator.
+    integrator_kind integ_{integrator_kind::rk4};
+    std::optional<abm2_integrator> abm_;
 
     // Build the live contact state for the contact on frame `fi` from the current
     // kinematics (shared by the assemble_mass_bias fold-in and the contact_force()
@@ -1197,6 +1215,18 @@ class dynamic_system3dp : public kinematic_system3dp {
     }
     void clear_contact_force(size_t idx) { contact_.erase(idx); }
     bool has_contact_force(size_t idx) const { return contact_.count(idx) != 0; }
+
+    // Select the time integrator for the coupled joint chain. RK4 (default) or ABM2
+    // (Adams-Bashforth-Moulton 2nd-order). Switching resets the ABM2 multistep history so
+    // the next step() self-starts cleanly. RK4 is byte-identical to the previous
+    // hand-rolled loop; ABM2 is a drop-in alternative sharing the same forward-dynamics
+    // rhs.
+    void set_integrator(integrator_kind k)
+    {
+        integ_ = k;
+        abm_.reset(); // restart the multistep history on any switch
+    }
+    integrator_kind get_integrator() const { return integ_; }
 
     // Enable / disable the chuck-side REACTION wrench for the contact on frame idx (D.2c,
     // topology 2): when on, the equal-and-opposite force line -wdg(P, F) is folded onto
@@ -1688,41 +1718,50 @@ class dynamic_system3dp : public kinematic_system3dp {
     void coupled_step(std::vector<size_t> const& rj, value_t dt)
     {
         size_t const n = rj.size();
-        std::vector<value_t> u_mem(2 * n), uh_mem(2 * 2 * n), rhs_mem(2 * n);
+        size_t const dim = 2 * n; // state = [phi_0..phi_{n-1}, omega_0..omega_{n-1}]
+        std::vector<value_t> u_mem(dim);
         for (size_t k = 0; k < n; ++k) {
             u_mem[k] = joint[rj[k]].phi;
             u_mem[n + k] = joint[rj[k]].omega;
         }
-        auto u = std::mdspan<value_t, std::dextents<size_t, 1>>(u_mem.data(), 2 * n);
-        auto uh = std::mdspan<value_t, std::dextents<size_t, 2>>(uh_mem.data(), 2, 2 * n);
-        auto const rhs =
-            std::mdspan<value_t const, std::dextents<size_t, 1>>(rhs_mem.data(), 2 * n);
 
-        // apply the current u to the joint state, then solve forward dynamics -> rhs
-        auto apply_u = [&] {
+        // write u into the joint state (+ refresh the kinematic poses/twists)
+        auto write_u = [&](std::vector<value_t> const& u) {
             for (size_t k = 0; k < n; ++k) {
                 joint[rj[k]].phi = u[k];
                 joint[rj[k]].omega = u[n + k];
                 apply_joint_state(rj[k]);
             }
         };
-        // thread the RK4 sub-step time into time_ so a time-varying applied wrench is
-        // sampled at the correct stage time; restore the clock on exit (step() advances
-        // it by dt). t_i + {0, dt/2, dt/2, dt} for the four stages.
-        value_t const t0 = time_;
-        for (size_t s = 1; s <= 4; ++s) {
-            time_ = rk4_get_time(t0, dt, s - 1);
-            apply_driven_joints(); // prescribe the moving base at this stage time
-            apply_u();
+
+        // shared derivative f(t, u) -> du for both integrators: prescribe the moving base
+        // and write u into the joints at the (sub-)step time, then solve the coupled
+        // forward dynamics. du = [omega, q-ddot]. Setting time_ here threads the sub-step
+        // time into any time-varying applied wrench / driven joint; coupled_step restores
+        // time_ to t0 on exit, and step() advances it by dt.
+        auto f = [&](value_t t, std::vector<value_t> const& u, std::vector<value_t>& du) {
+            time_ = t;
+            apply_driven_joints();
+            write_u(u);
             auto const qdd = forward_dynamics(rj);
             for (size_t k = 0; k < n; ++k) {
-                rhs_mem[k] = u[n + k];   // dphi/dt = omega
-                rhs_mem[n + k] = qdd[k]; // domega/dt = q-ddot
+                du[k] = u[n + k];   // dphi/dt = omega
+                du[n + k] = qdd[k]; // domega/dt = q-ddot
             }
-            rk4_step(u, uh, rhs, dt, s);
+        };
+
+        value_t const t0 = time_;
+        if (integ_ == integrator_kind::abm2) {
+            if (!abm_ || abm_->dim() != dim) abm_.emplace(dim); // (re)size the history
+            abm_->step(f, u_mem, t0, dt);
         }
-        time_ = t0;
-        apply_u(); // write the integrated state back into the joints + kinematic layers
+        else {
+            rk4_integrator(dim).step(f, u_mem, t0, dt); // wraps the canonical rk4_step
+        }
+
+        time_ = t0; // restore the clock (step() advances it by dt)
+        write_u(
+            u_mem); // write the integrated state back into the joints + kinematic layers
     }
 };
 

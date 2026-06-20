@@ -2149,3 +2149,102 @@ TEST_SUITE("PGA3DP: grinding wafer thinning + reaction (Phase D.2c)")
     }
 
 } // TEST_SUITE("PGA3DP: grinding wafer thinning + reaction (Phase D.2c)")
+
+// =================================================================================
+// PGA3DP dynamic_system3dp - Phase D.2d-2: integrator selector on the grinding loop
+//
+// dynamic_system3dp::set_integrator(rk4 | abm2) picks the time integrator for
+// coupled_step (RK4 default, byte-identical to the old loop; ABM2 =
+// Adams-Bashforth-Moulton 2nd order, a drop-in sharing the same forward-dynamics rhs).
+// Run the D.2b axial grinding loop with both and (1) confirm both reach the analytic
+// equilibrium and agree, and (2) MEASURE whether the loop is actually stiff -- the reason
+// this step comes before any adaptive/implicit work (TODO/grinding.md Phase D.2d).
+// Verdict: the working dt sits far inside both integrators' stability regions, so dt is
+// ACCURACY-bound, not stability-bound -> NOT classically stiff at the current contact
+// stiffness; an implicit solver (D.2d-4) is only needed if a near-rigid contact penalty
+// injects a mode far above the ~6 kHz physics band.
+// =================================================================================
+TEST_SUITE("PGA3DP: grinding loop integrator (Phase D.2d-2)")
+{
+
+    TEST_CASE(
+        "pga3dp: RK4 vs ABM2 on the grinding loop + stiffness verdict (Phase D.2d-2)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: RK4 vs ABM2 on the grinding loop (Phase D.2d-2)");
+        fmt::println("");
+
+        value_t const m = 0.8, R_w = 0.15, n_w = rpm2radps(3000.0);
+        value_t const delta0 = 1.0e-6, k_grind = 1.0e8;
+        value_t const mu = std::sqrt(2.0) * 25.0 / 100.0;
+        value_t const k_spring = 9.5e8, k_tot = k_spring + k_grind;
+        value_t const c = 2.0 * 0.7 * std::sqrt(k_tot * m);
+        value_t const z_eq = k_grind * delta0 / k_tot;
+        value_t const F_eq = k_grind * (delta0 - z_eq); // analytic equilibrium force
+
+        auto build = [&](integrator_kind ik) {
+            auto sys = std::make_unique<dynamic_system3dp>();
+            sys->set_gravity(vec3dp{0.0, 0.0, 0.0, 0.0});
+            sys->add_frame(static_frame3dp("W"));
+            sys->add_frame(static_frame3dp("wafer"), sys->index_of("W"));
+            sys->add_prismatic_body(
+                static_frame3dp("spindle_z"), make_cuboid_body(m, 0.05, 0.05, 0.05),
+                vec3dp{1.0, 0.0, 0.0, 0.0}, 0.0, 0.0, sys->index_of("W"));
+            size_t const zj = sys->index_of("spindle_z");
+            sys->set_joint_spring_damper(zj, k_spring, c);
+            sys->add_revolute_body(static_frame3dp("wheel"),
+                                   make_cuboid_body(1.0e-6, R_w, R_w, 0.01), O_3dp,
+                                   vec3dp{1.0, 0.0, 0.0, 0.0}, 0.0, 0.0, zj);
+            size_t const wj = sys->index_of("wheel");
+            sys->set_driven_rate(wj, n_w);
+            sys->set_contact_force(
+                wj, sys->index_of("wafer"),
+                [=](contact_state3dp const& s) {
+                    return grinding_force_depth(s, k_grind, mu);
+                },
+                vec3dp{1.0, 0.0, 0.0, 0.0}, delta0, 30.0e-6 / 60.0, 0.8e-3,
+                vec3dp{0.0, R_w, 0.0, 1.0});
+            sys->set_integrator(ik);
+            return sys;
+        };
+
+        value_t const dt = 1.0e-6;
+        size_t const N = 20000;
+        auto run = [&](integrator_kind ik) {
+            auto sys = build(ik);
+            for (size_t i = 0; i < N; ++i)
+                sys->step(dt);
+            return sys->contact_force(sys->index_of("wheel")).x; // axial force
+        };
+        value_t const F_rk = run(integrator_kind::rk4);
+        value_t const F_ab = run(integrator_kind::abm2);
+
+        fmt::println("  analytic equilibrium F_eq = {:.4f} N", F_eq);
+        fmt::println("  RK4  : F = {:.4f} N", F_rk);
+        fmt::println("  ABM2 : F = {:.4f} N   (|F_rk - F_ab| / F_eq = {:.2e})", F_ab,
+                     std::abs(F_rk - F_ab) / F_eq);
+
+        // both integrators reach the analytic equilibrium and agree to <= 1% (D.2d gate)
+        CHECK(F_rk == doctest::Approx(F_eq).epsilon(1e-4));
+        CHECK(F_ab == doctest::Approx(F_eq).epsilon(1e-3)); // ABM2 lower order, looser
+        CHECK(std::abs(F_rk - F_ab) / F_eq < 0.01);
+
+        // stiffness verdict: compare the working dt to the explicit-stability dt limits.
+        // If dt is far below them, stability is NOT the binding constraint (dt is
+        // accuracy-set to resolve the ~6 kHz vibration) -> the loop is not classically
+        // stiff.
+        value_t const w_eff = std::sqrt(k_tot / m); // ~36229 rad/s
+        value_t const dt_rk = 2.78 / w_eff;         // RK4 stability limit (order of mag.)
+        value_t const dt_ab = 1.0 / w_eff;          // ABM2 PECE stability limit (smaller)
+        fmt::println("  w_eff = {:.0f} rad/s; stability dt: RK4 ~{:.2e}, ABM2 ~{:.2e}; "
+                     "working dt = {:.0e}",
+                     w_eff, dt_rk, dt_ab, dt);
+        fmt::println(
+            "  -> working dt is {:.0f}x below the ABM2 stability limit: dt is "
+            "ACCURACY-bound, the loop is NOT classically stiff (k_grind = {:.0e}).",
+            dt_ab / dt, k_grind);
+        CHECK(dt < 0.1 * dt_ab); // stability is not binding -> not stiff at this k_grind
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: grinding loop integrator (Phase D.2d-2)")

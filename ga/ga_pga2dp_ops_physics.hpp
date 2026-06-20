@@ -531,9 +531,10 @@ class static_system2dp {
 /////////////////////////////////////////////////////////////////////////////////////////
 // kinematic_system2dp: a static_system2dp augmented with a momentary kinematic state per
 // frame (velocity & acceleration, linear & angular), all RELATIVE to the parent. Pure
-// kinematics -- no forces (that is the future dynamic_system2dp). The initial pose of
-// each frame comes from its static_frame2dp (inherited); the kinematic state is layered
-// on top.
+// kinematics -- no forces (that is dynamic_system2dp).
+//
+// The initial pose of each frame comes from its static_frame2dp (inherited); the
+// kinematic state is layered on top.
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // A 2dp twist (instantaneous screw: angular + linear velocity, or their accelerations).
@@ -542,22 +543,23 @@ class static_system2dp {
 // right-handed system, i.e. in the positive direction of the bivector e12.
 //
 // The components encode the pga2dp motor generator twist2dp(.x, .y, .z) = (-v_y, v_x,
-// omega) so that exp(0.5 * twist) is the motor and move2dp(twist, M) is its adjoint.
+// omega) so that M = exp(0.5 * twist) is the motor and move2dp(twist, M) is its adjoint.
 // Decode as omega = .z and v = (.y, -.x). The alias documents this intent at every
-// signature and adds no overloads (it IS vec2dp). In pga3dp the corresponding twist is a
-// genuine BiVec3dp (grade 2) -- see the 2D->3D notes.
+// signature and adds no overloads (its type IS vec2dp).
 using twist2dp = vec2dp;
 
 
-// Momentary kinematic state of a frame RELATIVE to its parent (physical inputs). Linear
-// quantities live in the parent frame (z = 0 directions); angular ones are scalars.
+// Momentary kinematic state of a frame RELATIVE to its parent (physical inputs).
+//
+// Linear quantities live in the parent frame (z = 0, i.e. directions); angular ones are
+// scalars, describing angle or angular velocity relative to the parent system.
+//
 // Carries NO pose -- the pose is held by the frame's static_frame2dp.
 struct kin_state2dp {
     vec2dp vel{0.0, 0.0, 0.0}; // linear velocity of the frame origin vs. parent [1/s]
-    vec2dp acc{0.0, 0.0,
-               0.0};    // linear acceleration of the frame origin vs. parent [1/s^2]
-    value_t omega{0.0}; // angular velocity vs. parent [rad/s]
-    value_t alpha{0.0}; // angular acceleration vs. parent [rad/s^2]
+    vec2dp acc{0.0, 0.0, 0.0}; // linear acceler. of the frame origin vs. parent [1/s^2]
+    value_t omega{0.0};        // angular velocity vs. parent [rad/s]
+    value_t alpha{0.0};        // angular acceleration vs. parent [rad/s^2]
 };
 
 
@@ -833,10 +835,10 @@ class kinematic_system2dp : public static_system2dp {
     // World velocity & acceleration twists of frame idx, propagated root -> idx by the
     // recursive Newton-Euler relations (twists transported to world by the adjoint):
     //
-    //   V_i = V_parent + Ad(xi_i)
-    //   A_i = A_parent + Ad(xidot_i) + [V_i, Ad(xi_i)]   (Coriolis / centrifugal
-    //   coupling). The se(2) twist Lie bracket [.,.] is the regressive commutator
-    //   rcmt(.,.) on twists.
+    //   V_i = V_parent + Ad(xi_i) A_i = A_parent + Ad(xidot_i) + [V_i, Ad(xi_i)]
+    //   (Coriolis / centrifugal coupling)
+    //
+    //  The se(2) twist Lie bracket [.,.] is the regressive commutator rcmt(.,.) on twists
     struct world_va2dp {
         twist2dp V; // velocity twist
         twist2dp A; // acceleration twist
