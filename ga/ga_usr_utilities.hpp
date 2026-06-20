@@ -164,11 +164,10 @@ inline value_t rk4_get_time(value_t ti, value_t dt, size_t rk_step)
 //   dt  - time step size
 //   rk_step - RK sub-step (1, 2, 3, or 4)
 template <typename VecType>
-void rk4_step(
-    std::mdspan<VecType, std::dextents<size_t, 1>> u,
-    std::mdspan<VecType, std::dextents<size_t, 2>> uh,
-    std::mdspan<VecType const, std::dextents<size_t, 1>> rhs,
-    value_t const dt, size_t rk_step)
+void rk4_step(std::mdspan<VecType, std::dextents<size_t, 1>> u,
+              std::mdspan<VecType, std::dextents<size_t, 2>> uh,
+              std::mdspan<VecType const, std::dextents<size_t, 1>> rhs, value_t const dt,
+              size_t rk_step)
 {
 
     if (rk_step < 1 || rk_step > 4)
@@ -290,5 +289,104 @@ rk4_step(std::vector<VecType> u, std::array<std::vector<VecType>, 2> uh,
 
     return {std::move(u), std::move(uh)};
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Uniform ODE integrators with a callable right-hand side
+//
+// Both classes integrate  du/dt = f(t, u)  for a flat state std::vector<double> via a
+// single  step(f, u, t, dt) -> t + dt  call that advances `u` in place. `f` is any
+// callable
+//
+//     void f(double t, std::vector<double> const& u, std::vector<double>& dudt)
+//
+// writing the derivative into the provided buffer (no allocation in the hot loop). The
+// uniform interface lets a caller swap integrators and benchmark them head to head; it is
+// also the seam dynamic_system uses to select RK4 vs the multistep method.
+//
+// rk4_integrator wraps the canonical substage-based rk4_step (above) -- it is NOT a
+// second RK4 implementation -- so the classic 4th-order, 4-evaluations-per-step method
+// stays the single source of truth.
+////////////////////////////////////////////////////////////////////////////////
+class rk4_integrator {
+
+  public:
+
+    explicit rk4_integrator(size_t n) : uh_(2 * n), rhs_(n) {}
+
+    // advance u from t to t + dt in place (4 rhs evaluations); returns t + dt.
+    template <typename RHS>
+    double step(RHS&& f, std::vector<double>& u, double t, double dt)
+    {
+        size_t const n = u.size();
+        auto us = std::mdspan<double, std::dextents<size_t, 1>>(u.data(), n);
+        auto uhs = std::mdspan<double, std::dextents<size_t, 2>>(uh_.data(), 2, n);
+        auto rs = std::mdspan<double const, std::dextents<size_t, 1>>(rhs_.data(), n);
+        for (size_t s = 1; s <= 4; ++s) {
+            // rhs at the current substage state, evaluated at the substage time
+            f(rk4_get_time(t, dt, s - 1), u, rhs_);
+            rk4_step(us, uhs, rs, dt, s);
+        }
+        return t + dt;
+    }
+
+  private:
+
+    std::vector<double> uh_;  // [2 x n] RK4 scratch (flattened)
+    std::vector<double> rhs_; // per-substage derivative buffer
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Adams-Bashforth-Moulton 2nd-order predictor-corrector, fixed step (PECE)
+//
+//   Predict  (Adams-Bashforth 2):  u_p     = u_n + dt (3/2 f_n - 1/2 f_{n-1})
+//   Evaluate                       f_p     = f(t_{n+1}, u_p)
+//   Correct  (Adams-Moulton 2):    u_{n+1} = u_n + dt (1/2 f_p + 1/2 f_n)
+//   Evaluate                       f_{n+1} = f(t_{n+1}, u_{n+1})   [reused as f_n next
+//   step]
+//
+// A linear MULTISTEP method: 2 rhs evaluations per step (vs RK4's 4) but 2nd order (vs
+// RK4's 4th), keeping one past derivative f_{n-1}. The first step self-starts with one
+// RK4 step (reusing rk4_integrator). This is the fixed-dt baseline; an adaptive-dt
+// variant layers the predictor-corrector difference as a local error estimate on top of
+// the same formulas.
+////////////////////////////////////////////////////////////////////////////////
+class abm2_integrator {
+
+  public:
+
+    explicit abm2_integrator(size_t n) : rk4_(n), f_n_(n), f_nm1_(n), u_p_(n), f_p_(n) {}
+
+    // advance u from t to t + dt in place (2 rhs evaluations after self-start); returns
+    // t + dt. The first call self-starts with a single RK4 step.
+    template <typename RHS>
+    double step(RHS&& f, std::vector<double>& u, double t, double dt)
+    {
+        size_t const n = u.size();
+        if (!started_) {
+            f(t, u, f_nm1_);        // f_0, kept as f_{n-1} for the next step
+            rk4_.step(f, u, t, dt); // self-start: u_0 -> u_1 via the canonical RK4
+            f(t + dt, u, f_n_);     // f_1
+            started_ = true;
+            return t + dt;
+        }
+        for (size_t i = 0; i < n; ++i) // P: Adams-Bashforth 2 predictor
+            u_p_[i] = u[i] + dt * (1.5 * f_n_[i] - 0.5 * f_nm1_[i]);
+        f(t + dt, u_p_, f_p_);         // E
+        for (size_t i = 0; i < n; ++i) // C: Adams-Moulton 2 (trapezoidal) corrector
+            u[i] += dt * (0.5 * f_p_[i] + 0.5 * f_n_[i]);
+        f_nm1_.swap(f_n_);  // f_{n-1} <- f_n
+        f(t + dt, u, f_n_); // E: f_{n+1}, reused as f_n on the next step
+        return t + dt;
+    }
+
+    void reset() { started_ = false; } // restart the multistep history
+
+  private:
+
+    rk4_integrator rk4_; // self-start for the first step
+    bool started_{false};
+    std::vector<double> f_n_, f_nm1_; // f(t_n, u_n), f(t_{n-1}, u_{n-1})
+    std::vector<double> u_p_, f_p_;   // predictor state + its derivative
+};
 
 } // namespace hd::ga

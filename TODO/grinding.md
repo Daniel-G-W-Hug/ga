@@ -613,14 +613,28 @@ comment at `contact_state3dp` so a future session does not "fix" the asymmetry b
   monotonically at the analytic rate `k_mrr·δ·v_rel`; with the reaction ON, a compliant
   wafer DOF accelerates opposite the spindle (Newton's third law, accel ratio = −m_spindle/
   m_wafer) and with it OFF the wafer stays put.
-- **D.2d — Adams–Bashforth integrator + adaptive stepping + comparison.** Add AAB to the
-  selector. **User directive (2026-06-20): SIMPLE analytic test cases UPFRONT, as SEPARATE
-  test cases in the test files, documenting the integrator's impact on simple analytic
-  problems FIRST** (e.g. the damped harmonic oscillator with its closed form, like the Phase
-  A spring/damper test) — RK4 vs AAB accuracy + runtime on the analytic case — BEFORE
-  applying AAB to the simplified grinding loop, and only then to the full Tao model. Gate:
-  ≤1 % solution delta vs RK4 + wall-clock for each (bench-style, cf.
-  `ga_sta_bench_transform`).
+- **D.2d — Adams–Bashforth integrator + adaptive stepping + comparison.**
+  **D.2d-1 (constant dt) DONE 2026-06-20 (UNCOMMITTED).** Two integrators added to
+  `ga/ga_usr_utilities.hpp` behind a uniform `step(rhs, u, t, dt)` callable interface:
+  `rk4_integrator` (WRAPS the canonical mdspan `rk4_step` — not a 2nd RK4) and
+  `abm2_integrator` (Adams–Bashforth-2 predictor / Adams–Moulton-2 corrector, PECE, RK4
+  self-start; 2 rhs evals/step vs RK4's 4). NEW dedicated test target **`ga_integrator_test`**
+  (6th doctest executable; NORMAL build so it RESPECTS `CMAKE_BUILD_TYPE` — unlike the
+  forced-O3 benches in `utilities/` — so its timing is meaningful in Debug AND Release, and
+  it rebuilds/reruns on Windows). Damped-oscillator analytic cases (3): accuracy vs closed
+  form (RK4 6.1e-10, ABM2 6.1e-5; agree <1 %), convergence order (RK4 16.02 = 4th, ABM2 4.01
+  = 2nd), and a timing case printing the build mode. **KEY DEBUG-vs-RELEASE FINDING:** Debug
+  (-O0) RK4 813 ms / ABM2 39 ms (ratio 0.05, RK4 ~20× slower — mdspan indexing not inlined,
+  so the comparison is MEANINGLESS in Debug); Release (-O3) RK4 49 ms / ABM2 21 ms (ratio
+  0.43 = the true 2-vs-4-eval ratio). Documented in a comment in the timing case. All green
+  (8/8; ega/pga unchanged). **User directive honoured: simple analytic cases UPFRONT, separate
+  test file, BEFORE the grinding loop / full Tao.**
+  - **D.2d-2 (TODO): apply the integrator selector to the simplified grinding loop** (RK4 vs
+    ABM2 on D.2b), then the full Tao model. Needs `dynamic_system3dp::set_integrator(...)`.
+  - **D.2d-3 (TODO, add-on): variable/adaptive dt** — the AB2/AM2 predictor-corrector
+    difference as a local error estimate driving step-size control; its own analytic test
+    case (increasing complexity step by step, per the user). Gate: ≤1 % solution delta vs
+    fixed-dt RK4 + wall-clock.
 - **D.2e — control layer (force limiting), separate opt-in tier.** Implement options a (70 %
   limit, feed-controlled) and b (thickness-scheduled 100→70 % taper, 150→80 µm). Gate: force
   held within the target envelope; feed responds; the layer is inert when not attached

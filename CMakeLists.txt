@@ -26,11 +26,23 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS OFF)  # Disable GNU extensions (-std=c++23 instead of -std=gnu++23)
 
-# set a default build type: Debug | RelWithDebInfo | Release | MinSizeRel
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug")
-  message(STATUS "Build type not specified: use Debug mode by default.")
+# Build type (Debug | Release | RelWithDebInfo | MinSizeRel).
+#
+# Single-config generators (Ninja, Unix Makefiles -- what VS Code's CMake Tools uses) read
+# CMAKE_BUILD_TYPE. Defaulting it through the CACHE (not a plain set) lets the IDE / cmake-gui
+# see and change it, and the STRINGS property gives the IDE a build-type dropdown, so Debug
+# and Release are selectable directly from VS Code (status-bar variant or the CMake cache
+# editor). An explicit -DCMAKE_BUILD_TYPE=... (e.g. from CMake Tools) overrides the default.
+# Multi-config generators (Xcode, Visual Studio) ignore CMAKE_BUILD_TYPE and choose the
+# configuration at build time (CMAKE_CONFIGURATION_TYPES), so the default is skipped there.
+get_property(_is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT _is_multi_config AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING
+      "Build type: Debug | Release | RelWithDebInfo | MinSizeRel" FORCE)
+  message(STATUS "Build type not specified: defaulting to Debug.")
 endif()
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+             Debug Release RelWithDebInfo MinSizeRel)
 
 if(MSVC)
   # warning level 4 and all warnings as errors
