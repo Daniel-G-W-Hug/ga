@@ -722,7 +722,25 @@ force and `z_b`).
   Ready for the wheel/wafer bodies when their true inertia matters (replaces the cuboid
   approximation in the rigs).
 
-## Documentation plan (grinding-specific subsection) — noted 2026-06-20
+## Documentation plan (grinding-specific subsection) — DONE 2026-06-20
+
+**DONE:** new file [ga_docu/6_ga_applications_pga.tex](ga_docu/6_ga_applications_pga.tex) —
+`\subsection{Applications of PGA}` → `\subsubsection{Wafer Grinding}`, wired into
+`0_ga_docu.tex` (after the physics chapter) + Tao bib entry (`Tao_wafer_grinding:2022`).
+Compiles clean (PDF §1.5.1). User-approved ("good for a student to get started with the
+code"). Covers, concept/result-focused (NOT phase/step history): the frame tree + `λ=v/f_b`;
+the additive opt-in force-element tier (spring/damper, applied wrench, driven moving base,
+grounded spring `k·l²`); the grinding contact + closed loop (`F=k·δ`, `wdg(P,F)`,
+`δ=δ0−z_b`, compliance equilibrium) with the swappable-law callback called out as the
+experiment surface; the 5-DOF spindle + the two Eq.13 corrections (gyroscopic `J_z`, tilt
+stiffness 4×) as findings + implications (tilt-only; topography half unaffected); the
+RK4/ABM2 selector + stability-vs-accuracy (accuracy-bound, not stiff) + the integrator-limits
+DOC TASK below FOLDED IN (incl. debug-vs-release → inline-control); and the feed controller +
+the 70 %→1.43× throughput trade-off. Extensibility seams surfaced throughout; only
+built features documented. The fuller Eq.13 algebra stays in
+[tao_eq13_derivation.md](tao_eq13_derivation.md).
+
+--- original note (for context) ---
 
 What we have documented so far in `ga_docu` (§5 multi-body motion + the §8 glossary) is
 **generic** rigid-body / multi-body dynamics — force/torque, momentum, inertia maps,
