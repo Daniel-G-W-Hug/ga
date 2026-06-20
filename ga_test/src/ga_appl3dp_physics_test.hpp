@@ -2248,3 +2248,85 @@ TEST_SUITE("PGA3DP: grinding loop integrator (Phase D.2d-2)")
     }
 
 } // TEST_SUITE("PGA3DP: grinding loop integrator (Phase D.2d-2)")
+
+// =================================================================================
+// PGA3DP - Phase D.2e: grinding feed control (force limiting) + the throughput cost
+//
+// grinding_controller3dp is the optional control tier on top of the force loop: it holds
+// the grinding force within a target envelope by commanding the infeed rate. This runs
+// the PROCESS-level (macro-timescale) loop -- the quasi-static reduction of the fast
+// force loop, in which the steady force is ~proportional to the feed (removal balance
+// v_feed = MRR = k_mrr*delta*v_rel -> delta proportional to feed, F = k_grind*delta).
+//
+// The point of the test (and the answer to "is reducing the force to 70% just feed ->
+// 70%?"): cutting the force target to a fraction cuts the feed to the same fraction AND
+// the removal rate to the same fraction, so the wafer thins slower and the process takes
+// ~1/fraction longer -- the throughput cost of force-limiting. Two schedules: (a)
+// constant 70% cap; (b) thickness-scheduled taper 100% -> 70% between 150 and 80 um.
+// =================================================================================
+TEST_SUITE("PGA3DP: grinding feed control (Phase D.2e)")
+{
+
+    TEST_CASE("pga3dp: feed control -- force limiting + throughput cost (Phase D.2e)")
+    {
+        fmt::println("");
+        fmt::println("pga3dp: grinding feed control -- force limiting + throughput cost "
+                     "(Phase D.2e)");
+        fmt::println("");
+
+        value_t const F_ref = 100.0;          // reference grinding force [N] (Tao F_z)
+        value_t const v_nom = 30.0e-6 / 60.0; // nominal feed 30 um/min -> [m/s]
+        value_t const gain =
+            F_ref / v_nom; // quasi-static F <-> feed gain (removal balance)
+        value_t const tw0 = 200.0e-6, tw_end = 80.0e-6; // grind 200 um -> 80 um
+
+        // step the slow process: feed = ctrl.feed_command(tw); steady F = gain*feed; the
+        // removal rate equals the feed (steady balance) so tw -= feed*dt. Returns
+        // {process time, peak force}.
+        auto grind = [&](grinding_controller3dp const& ctrl) {
+            value_t tw = tw0, t = 0.0, F_max = 0.0;
+            value_t const dt = 1.0; // macro-step [s]
+            while (tw > tw_end) {
+                value_t const feed = ctrl.feed_command(tw);
+                F_max = std::max(F_max, gain * feed);
+                tw -= feed * dt; // removal rate = feed (steady-state)
+                t += dt;
+            }
+            return std::pair{t, F_max};
+        };
+
+        grinding_controller3dp base{v_nom, F_ref, 1.0, 0.0, 0.0};      // no cap (100%)
+        grinding_controller3dp capA{v_nom, F_ref, 0.7, 0.0, 0.0};      // (a) constant 70%
+        grinding_controller3dp capB{v_nom, F_ref, 0.7, 150e-6, 80e-6}; // (b) taper
+        auto const [t_base, F_base] = grind(base);
+        auto const [t_a, F_a] = grind(capA);
+        auto const [t_b, F_b] = grind(capB);
+
+        fmt::println("  baseline (100%):    F = {:>5.1f} N, process = {:>4.0f} s", F_base,
+                     t_base);
+        fmt::println("  option a (70% cap): F = {:>5.1f} N, process = {:>4.0f} s  "
+                     "({:.2f}x longer -- the throughput cost)",
+                     F_a, t_a, t_a / t_base);
+        fmt::println("  option b (taper):   F_max = {:>5.1f} N (full above 150um), "
+                     "process = {:>4.0f} s ({:.2f}x)",
+                     F_b, t_b, t_b / t_base);
+
+        // option (a): force held at 70%, and the process is ~1/0.7 = 1.43x longer
+        CHECK(F_a == doctest::Approx(0.7 * F_ref));
+        CHECK(t_a / t_base == doctest::Approx(1.0 / 0.7).epsilon(0.01));
+        // option (b): peak force is still 100% (above 150 um); the taper slows the late
+        // phase -> longer than baseline but cheaper than the constant cap
+        CHECK(F_b == doctest::Approx(F_ref));
+        CHECK(t_b > t_base);
+        CHECK(t_b < t_a);
+
+        // the taper schedule itself: full above tw_hi, capped at/below tw_lo, linear
+        // between
+        CHECK(capB.target_fraction(200e-6) == doctest::Approx(1.0));  // above 150
+        CHECK(capB.target_fraction(150e-6) == doctest::Approx(1.0));  // at 150
+        CHECK(capB.target_fraction(115e-6) == doctest::Approx(0.85)); // midpoint -> 85%
+        CHECK(capB.target_fraction(80e-6) == doctest::Approx(0.7));   // at 80 -> capped
+        fmt::println("");
+    }
+
+} // TEST_SUITE("PGA3DP: grinding feed control (Phase D.2e)")

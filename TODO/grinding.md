@@ -667,10 +667,22 @@ comment at `contact_state3dp` so a future session does not "fix" the asymmetry b
     Only these take large steps on a genuinely stiff system (limited by accuracy, not
     stability). Likely triggered by a near-rigid CONTACT penalty (large `k_grind`) injecting a
     mode far above the ~6 kHz physics band. Its own analytic stiff-ODE test case upfront.
-- **D.2e — control layer (force limiting), separate opt-in tier.** Implement options a (70 %
-  limit, feed-controlled) and b (thickness-scheduled 100→70 % taper, 150→80 µm). Gate: force
-  held within the target envelope; feed responds; the layer is inert when not attached
-  (constant-feed path byte-unchanged).
+- **D.2e — control layer (force limiting). DONE 2026-06-20 (UNCOMMITTED).** New
+  `grinding_controller3dp` (library, `ga/ga_pga3dp_ops_physics.hpp`): an OPT-IN, self-contained
+  process-level controller — `target_fraction(tw)` gives the force target ((a) constant `cap`
+  when `tw_hi<=tw_lo`; (b) linear taper `1→cap` between `tw_hi` and `tw_lo`), `feed_command(tw)
+  = v_feed_nominal·target_fraction` (feed-forward; F∝feed in the removal balance). Nothing in
+  `dynamic_system` depends on it. New suite `TEST_SUITE("PGA3DP: grinding feed control (Phase
+  D.2e)")` runs the quasi-static PROCESS loop (`v_feed=MRR` balance ⇒ steady `F=gain·feed`,
+  `tw -= feed·dt`). **THE KEY RESULT (answers "is 70 % force just feed→70 %?" — NO):** baseline
+  100 N/240 s; option (a) 70 N but **343 s = 1.43× longer** (the throughput cost: removal also
+  drops to 70 %); option (b) taper keeps F=100 N above 150 µm, 267 s = 1.11× (cheaper, only
+  throttles the thin-wafer phase). Gates: F_a==70 N, t_a/t_base==1/0.7; taper schedule
+  (full≥150 µm, 0.85 at 115 µm, 0.7≤80 µm). Documented secondary effects (controller header):
+  feed↔force not a static gain (compliance/transients); waviness `z_b`/`λ=v/f_b` UNAFFECTED by
+  feed (benefit = damage avoidance, not finish); thinner wafer more fragile (option b
+  rationale); F∝feed linearity is law-specific. Additive: pga 169/2758 unchanged, appl3dp
+  50/9221. No ga_py impact (controller is a plain struct, dynamic_system unbound).
 
 Then **E — optimization** on the calibrated closed-loop model (feed/speed ratio to bound
 force and `z_b`).

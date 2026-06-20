@@ -966,6 +966,55 @@ inline vec3dp grinding_force_depth(contact_state3dp const& c, value_t k, value_t
                   Fn * c.n_hat.z - Ft * c.t_hat.z, 0.0};
 }
 
+// Grinding FEED CONTROLLER (process-level, macro-timescale) -- the optional control tier
+// on top of the force loop. It holds the grinding force within a target envelope by
+// commanding the infeed rate. OPT-IN and self-contained: nothing in dynamic_system
+// depends on it; you instantiate it and drive it yourself (read the measured force +
+// wafer thickness, get the commanded feed, apply it via set_driven_rate on the infeed
+// joint).
+//
+// Two schedules via target_fraction(tw):
+//   (a) constant cap   : target = cap * F_ref                          (tw_hi <= tw_lo)
+//   (b) thickness taper: target = F_ref for tw >= tw_hi, linearly down to cap*F_ref at
+//       tw <= tw_lo                                                     (tw_hi >  tw_lo)
+//
+// The steady force is ~proportional to the feed (removal balance v_feed =
+// k_mrr*delta*v_rel
+// => delta ∝ feed, F = k_grind*delta), so the feed-forward command is
+// feed = v_feed_nominal * target_fraction (exact for the linear model; layer a measured-
+// force proportional term on top for a closed loop / a nonlinear law).
+//
+// TRADE-OFF (do not forget): cutting the force to a fraction cuts the MATERIAL REMOVAL
+// RATE by the same fraction, so the process takes ~1/fraction longer to remove the same
+// stock -- the throughput cost of force-limiting. The benefit is damage avoidance (peak
+// force / subsurface damage, worse as the wafer thins), NOT reduced waviness (the
+// vibration-induced z_b amplitude and the wavelength v/f_b are set by the spindle
+// dynamics, not the feed).
+struct grinding_controller3dp {
+    value_t v_feed_nominal{0.0}; // 100% feed rate
+    value_t F_ref{0.0};          // reference grinding force at the nominal feed
+    value_t cap{1.0};            // force cap as a fraction of F_ref (e.g. 0.7)
+    value_t tw_hi{0.0};          // taper upper thickness (tw >= tw_hi -> full force)
+    value_t tw_lo{0.0};          // taper lower thickness (tw <= tw_lo -> capped)
+
+    // target grinding force as a FRACTION of F_ref at wafer thickness tw
+    value_t target_fraction(value_t tw) const
+    {
+        if (tw_hi <= tw_lo) return cap; // (a) constant cap (no taper configured)
+        if (tw >= tw_hi) return 1.0;
+        if (tw <= tw_lo) return cap;
+        value_t const s = (tw_hi - tw) / (tw_hi - tw_lo); // 0 at tw_hi, 1 at tw_lo
+        return 1.0 - s * (1.0 - cap);                     // (b) linear taper
+    }
+
+    // commanded infeed rate (feed-forward; F ~ proportional to feed in the removal
+    // balance)
+    value_t feed_command(value_t tw) const
+    {
+        return v_feed_nominal * target_fraction(tw);
+    }
+};
+
 // Time-integration scheme selectable on dynamic_system3dp (see set_integrator):
 //   rk4  -- canonical 4th-order Runge-Kutta (default), 4 rhs evals/step
 //   abm2 -- Adams-Bashforth-Moulton 2nd-order predictor-corrector, 2 rhs evals/step
