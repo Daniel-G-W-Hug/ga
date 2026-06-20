@@ -319,6 +319,8 @@ void register_functions_pga(nb::module_& m) {
     m.def("log", [](mvec2dp_u const& a0) { return log(a0); });
     m.def("log", [](mvec3dp_e const& a0) { return log(a0); });
     m.def("make_cuboid_body", [](double a0, double a1, double a2, double a3) { return make_cuboid_body(a0, a1, a2, a3); });
+    m.def("make_disc_body", [](double a0, double a1) { return make_disc_body(a0, a1); });
+    m.def("make_disc_body", [](double a0, double a1, double a2) { return make_disc_body(a0, a1, a2); });
     m.def("make_plate_body", [](double a0, double a1, double a2) { return make_plate_body(a0, a1, a2); });
     m.def("meet", [](bivec2dp const& a0, bivec2dp const& a1) { return meet(a0, a1); });
     m.def("meet", [](line2d const& a0, line2d const& a1) { return meet(a0, a1); });

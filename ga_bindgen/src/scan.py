@@ -73,6 +73,24 @@ SOURCE_HEADERS = ["ga/ga_ega.hpp", "ga/ga_pga.hpp", "ga/ga_sta.hpp"]
 # Namespaces we emit bindings for. `hd::ga::detail` is internal — excluded.
 TARGET_NAMESPACES = {"hd::ga", "hd::ga::ega", "hd::ga::pga", "hd::ga::sta"}
 
+# Namespace-scope types the structural rules below would otherwise pick up, but which are
+# INTERNALS of the stateful (unbound) dynamic_system{2,3}dp force / contact / integration
+# machinery. The systems themselves are deliberately not bound — Python reconstructs their
+# behaviour from the bound primitives (see ga_py/README.md) — so these helper structs, the
+# std::function callback aliases, and the integrator selector are not independently usable
+# from Python. Skipping them by name keeps the binding aligned with that design and prevents a
+# future regeneration from surprise-binding them (or choking on the std::function aliases,
+# which are not GA value types). Unlike the bound PODs (pose/kin_state/joint_state), none of
+# these is user-facing data a Python user would construct and pass around.
+SKIP_TYPE_SPELLINGS = {
+    "grounded_spring2dp",  # add_grounded_spring component bundle (dynamic_system internal)
+    "grounded_spring3dp",
+    "contact_state3dp",    # live state handed to a grinding force law (3D contact loop)
+    "grinding_law3dp",     # std::function<vec3dp(contact_state3dp const&)> -- force-law callback
+    "wrench_fn",           # std::function<bivecNdp(value_t)> -- applied-wrench callback
+    "integrator_kind",     # selector for dynamic_system3dp::set_integrator (rk4 | abm2)
+}
+
 
 def _cursor_kind(cursor: cx.Cursor):
     """Return cursor.kind, or None if its kind id is unknown to these bindings.
@@ -377,7 +395,7 @@ def collect(
             namespaces.add(full)
         elif k == cx.CursorKind.TYPE_ALIAS_DECL and in_ga_tree(cursor.location):
             ns = fq_namespace(cursor)
-            if ns in TARGET_NAMESPACES:
+            if ns in TARGET_NAMESPACES and cursor.spelling not in SKIP_TYPE_SPELLINGS:
                 key = (ns, cursor.spelling)
                 if key not in types:
                     types[key] = extract_type(
@@ -396,6 +414,7 @@ def collect(
                 parent is not None
                 and parent.kind == cx.CursorKind.NAMESPACE
                 and fq_namespace(cursor) in TARGET_NAMESPACES
+                and cursor.spelling not in SKIP_TYPE_SPELLINGS
                 and _is_pure_data_struct(cursor)
             ):
                 ns = fq_namespace(cursor)
@@ -417,6 +436,7 @@ def collect(
                 parent is not None
                 and parent.kind == cx.CursorKind.NAMESPACE
                 and fq_namespace(cursor) in TARGET_NAMESPACES
+                and cursor.spelling not in SKIP_TYPE_SPELLINGS
             ):
                 ns = fq_namespace(cursor)
                 key = (ns, cursor.spelling)
