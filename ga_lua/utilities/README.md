@@ -52,6 +52,35 @@ from any cwd as long as the in-tree `build/` is current.
 - **`ga_py` must be current.** The tool reads the built module, so rebuild `_ga_py`
   after any binding/regeneration change before trusting the numbers.
 
+## `gen_lua_overloads.py`
+
+Drafts the `sol::resolve` overload blocks that close the gaps `lua_coverage.py` finds
+(the *find* vs *apply* split mirrors ga_prdxpr's validation_utilities vs utilities).
+From `ga_bindgen/manifest.json` it emits one `lua.set_function("name", sol::overload(
+... ))` per requested name, in `ga_lua`'s exact `sol::resolve<Ret(Args)>(name)` style.
+
+```bash
+ga_py/.venv/bin/python ga_lua/utilities/gen_lua_overloads.py \
+    project_onto,rotate,angle                 # default --algebra=ega
+ga_py/.venv/bin/python ga_lua/utilities/gen_lua_overloads.py \
+    sqrt,log,twdg1 --algebra=ega,pga          # merge families into one block
+```
+
+Mechanics: overloads are selected by the manifest `namespace` (`hd::ga::<family>`);
+template types are concretised to Lua aliases by lowercasing the outer name
+(`Vec2d`->`vec2d`, `MVec2d_E`->`mvec2d_e`), with `value_t`/`bool`/`std::vector<...>`
+and bare scalar template params handled specially; reference vs value passing is
+preserved. Duplicate signatures (a function listed once per header) are de-duplicated.
+
+It is a **drafting aid** — review each block before pasting:
+
+- a name spanning families must bind once, so pass every family it covers in a single
+  `--algebra=` list (a second `set_function` for the same name silently replaces the
+  first); the generated overloads for not-yet-registered type families (e.g. STA before
+  Phase 3) must wait until those `new_usertype`s exist;
+- decide per overload whether it belongs in the REPL;
+- after pasting, `clang-format` the file, build `ga_lua`, and re-run `lua_coverage.py`.
+
 ## Closure roadmap (bring `ga_lua` to `ga_py` parity)
 
 Two scope decisions are fixed: **bind only the pure-data PODs** (the stateful

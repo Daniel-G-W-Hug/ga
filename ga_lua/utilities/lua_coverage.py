@@ -116,9 +116,10 @@ def collect_ga_lua():
     """Parse ga_lua.hpp into flat sets of bound types / functions / constants."""
     src = GA_LUA_HPP.read_text()
     return {
-        "types": set(re.findall(r"new_usertype<([A-Za-z0-9_]+)>", src)),
-        "functions": set(re.findall(r'set_function\("([A-Za-z0-9_]+)"', src)),
-        "constants": set(re.findall(r'lua\["([A-Za-z0-9_]+)"\]\s*=', src)),
+        "types": set(re.findall(r"new_usertype<\s*([A-Za-z0-9_]+)\s*>", src)),
+        # the function name may sit on the line after `set_function(` -> allow whitespace
+        "functions": set(re.findall(r'set_function\(\s*"([A-Za-z0-9_]+)"', src)),
+        "constants": set(re.findall(r'lua\[\s*"([A-Za-z0-9_]+)"\s*\]\s*=', src)),
     }
 
 
