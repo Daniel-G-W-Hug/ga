@@ -106,15 +106,24 @@ fall.
   (`joint*`/`constraint*`) + `motor_from_pose`/`pose_from_motor`.
   **Skipped by decision:** the `inertia2dp/3dp` matrix type and the dynamics functions
   (`make_*_body`, `get_*_inertia`, `compute_omega_dot`, `get_inertia_inverse`).
-- **Phase 3 — STA4D — TODO** (largest remaining gap: 0/9 types, 0/45 constants, 26/39
-  functions — the shared names already ride along). Add `#include "ga/ga_sta.hpp"`, a
-  `register_sta_types` block (`scalar4ds … mvec4ds`, `dualnum4ds`) mirroring an existing
-  `register_*_types`; the STA-only functions (`transform`/`transform_opt`, the
-  space-time splits, causal predicates `is_{timelike,spacelike,lightlike}`, `rapidity`,
-  `get_boost`/`get_rotor`, `l_expand4ds`/`r_expand4ds`) and the cross-algebra names that
-  gained an STA overload (extend the existing `set_function`s for `exp`/`log`/`sqrt`/`gr`
-  …); the STA basis constants.
-- **Phase 4 — top-level helpers — TODO**: unit conversions (`Hz2radps`, `rpm2radps`, …)
-  and remaining free functions (`rgr`, `sign`; `gr` already bound). The solver /
-  integrator free functions (`lu_solve`, `lstsq_solve`, `rk4_step`, …) operate on
-  matrix/vector spans and don't map well to a Lua REPL — skipped.
+- **Phase 3 — STA4D — DONE** (100%: types 9/9, functions 39/39, constants 45/45). Added
+  `#include "ga/ga_sta.hpp"` and `register_4ds_types` (adapted from `register_3dp_types`
+  by `3dp→4ds` / `pga→sta`, since STA shares pga3dp's grade structure and underlying
+  `_t` templates). Added the 45 STA constants, the 13 STA-only functions
+  (`transform`/`transform_opt`, the space-time splits, `is_{timelike,spacelike,lightlike}`,
+  `rapidity`, `get_boost`, `l_undual`/`r_undual`), and STA overloads on the 26 shared
+  `set_function`s (`nrm`/`dot`/`inv`/`exp`/`log`/`sqrt`/duals/complements/`wdg`/`rwdg`/…)
+  via `splice_overloads.py`. `register_functions` gained `using namespace hd::ga::sta`.
+- **Phase 4 — top-level helpers — DONE** (modulo deliberate skips): bound the unit
+  conversions (`Hz2radps`, `radps2Hz`, `radps2rpm`, `rpm2radps`), `rgr`, and `sign`
+  (`gr` was bound in Phase 2). The solver / integrator free functions (`lu_solve`,
+  `lstsq_solve`, `rk4_step`, `rk4_get_time`) operate on matrix/vector spans and don't map
+  to a Lua REPL — **skipped by decision**.
+
+## Status
+
+`ga_lua` is at `ga_py` parity except for deliberate skips — **395/409** bound
+(`lua_coverage.py --summary`). EGA and STA are 100%; PGA is complete bar the
+`inertia2dp/3dp` matrix type and the 8 dynamics functions; the top-level remainder is
+the 4 solver/integrator helpers. Re-run `lua_coverage.py` after any library API change
+to catch new gaps.

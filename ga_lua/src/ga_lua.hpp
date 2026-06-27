@@ -2990,6 +2990,36 @@ void register_functions(sol::state& lua)
             sol::resolve<std::vector<bivec4ds>(std::vector<bivec4ds> const&,
                                                mvec4ds_e const&)>(transform_opt)));
 
+    // ---- Phase 4: top-level helpers (unit conversions, rgr, sign). The
+    // solver/integrator free functions lu_solve/lstsq_solve/rk4_* are skipped
+    // (matrix/vector-span args don't map well to a Lua REPL). ----
+    lua.set_function("Hz2radps", sol::overload(sol::resolve<value_t(value_t)>(Hz2radps)));
+
+    lua.set_function("radps2Hz", sol::overload(sol::resolve<value_t(value_t)>(radps2Hz)));
+
+    lua.set_function("radps2rpm",
+                     sol::overload(sol::resolve<value_t(value_t)>(radps2rpm)));
+
+    lua.set_function("rpm2radps",
+                     sol::overload(sol::resolve<value_t(value_t)>(rpm2radps)));
+
+    lua.set_function("rgr", sol::overload(sol::resolve<size_t(scalar2dp)>(rgr),
+                                          sol::resolve<size_t(vec2dp const&)>(rgr),
+                                          sol::resolve<size_t(bivec2dp const&)>(rgr),
+                                          sol::resolve<size_t(pscalar2dp)>(rgr),
+                                          sol::resolve<size_t(scalar3dp)>(rgr),
+                                          sol::resolve<size_t(vec3dp const&)>(rgr),
+                                          sol::resolve<size_t(bivec3dp const&)>(rgr),
+                                          sol::resolve<size_t(trivec3dp const&)>(rgr),
+                                          sol::resolve<size_t(pscalar3dp)>(rgr),
+                                          sol::resolve<size_t(scalar4ds)>(rgr),
+                                          sol::resolve<size_t(vec4ds const&)>(rgr),
+                                          sol::resolve<size_t(bivec4ds const&)>(rgr),
+                                          sol::resolve<size_t(trivec4ds const&)>(rgr),
+                                          sol::resolve<size_t(pscalar4ds)>(rgr)));
+
+    lua.set_function("sign", sol::resolve<value_t(value_t)>(sign));
+
     // Note:
     // - Geometric product is only available as operator*, not as
     // gpr() function
