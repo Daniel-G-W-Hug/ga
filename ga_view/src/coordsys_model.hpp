@@ -442,6 +442,33 @@ struct agrinding_topo {
     grinding_topo_params params;
 };
 
+// Parameters of the wafer-grinding coordinate-system / DOF demo (Phase 0.c of
+// TODO/grinding.md; Tao 2022). The wheel-spindle's radial / axial / tilting vibration
+// DOFs are shown as a prescribed (illustrative) wobble of the tool coordinate frame, in
+// two projected views (top down -e1, side along -e2). Amplitudes are fractions of R
+// (normalized); frequencies are in animation Hz. The C key isolates one DOF group at a
+// time so each effect is legible on its own.
+struct grinding_cs_params {
+    double R{1.0};           // wheel radius == wafer radius (normalized)
+    double radial_amp{0.11}; // radial CM wobble amplitude (fraction of R)
+    double axial_amp{0.09};  // axial (along chuck axis e1) wobble amplitude
+    double tilt_amp{0.08};   // tool-axis tilt wobble amplitude [rad]
+    double f_radial{0.55};   // wobble rates [animation Hz]
+    double f_axial{0.35};
+    double f_tilt{0.27};
+    // static inclination of the tool axis defining the (imperfect) EQUILIBRIUM the wobble
+    // oscillates about -- the spindle is not mounted perfectly square. Toggle on/off with
+    // the 'T' key to compare against the ideal square placement (the grey ghost).
+    double incl_e2{0.07}; // base tilt about e2 [rad] (tips the axis in e3 -> side view)
+    double incl_e3{0.04}; // base tilt about e3 [rad] (tips the axis in e2 -> top view)
+    double dt{0.016};     // sim time advanced per tick [s]
+};
+
+// Active item: wafer-grinding coordinate-system / DOF demo (no active points)
+struct agrinding_cs {
+    grinding_cs_params params;
+};
+
 // One row in the key-binding table of a legend
 struct key_legend_entry {
     std::string key;         // label shown in "Key" column, e.g. "U", "SPACE"
@@ -563,6 +590,8 @@ class Coordsys_model {
 
     [[maybe_unused]] size_t add_grinding_topo(agrinding_topo const& agto_in);
 
+    [[maybe_unused]] size_t add_grinding_cs(agrinding_cs const& agcs_in);
+
     void set_label(std::string new_label) { m_label = std::move(new_label); };
     std::string label() const { return m_label; }
 
@@ -648,6 +677,9 @@ class Coordsys_model {
 
     // data for wafer-grinding surface-topography demo items
     std::vector<agrinding_topo> agto;
+
+    // data for wafer-grinding coordinate-system / DOF demo items
+    std::vector<agrinding_cs> agcs;
 
     // optional legend overlay (key bindings or plain heading)
     std::optional<diagram_legend> legend{};

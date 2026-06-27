@@ -217,6 +217,13 @@ Coordsys_model::add_double_pendulum(adouble_pendulum const& adp_in)
     return agto.size() - 1;
 }
 
+[[maybe_unused]] size_t Coordsys_model::add_grinding_cs(agrinding_cs const& agcs_in)
+{
+    agcs.push_back(agcs_in);
+
+    return agcs.size() - 1;
+}
+
 void Coordsys_model::clear()
 {
     pt.clear();
@@ -254,6 +261,7 @@ void Coordsys_model::clear()
     apld.clear();
     agm.clear();
     agto.clear();
+    agcs.clear();
     aft.clear();
 
     axis_cfg.reset();

@@ -18,6 +18,7 @@ using namespace hd::ga::pga;
 #include "active_double_pendulum.hpp"
 #include "active_four_bar.hpp"
 #include "active_frame_trafo.hpp"
+#include "active_grinding_cs.hpp"
 #include "active_grinding_marks.hpp"
 #include "active_grinding_topo.hpp"
 #include "active_kinematics2dp.hpp"
@@ -1712,6 +1713,23 @@ void populate_scene(Coordsys* cs, w_Coordsys* wcs, Coordsys_model* cm,
         scene->addItem(gt);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // wafer-grinding coordinate-system / DOF demo items (PGA3DP motors)
+    ///////////////////////////////////////////////////////////////////////////
+    for (size_t idx = 0; idx < cm->agcs.size(); ++idx) {
+        active_grinding_cs* gc =
+            new active_grinding_cs(cs, wcs, cm->agcs[idx].params);
+        QObject::connect(wcs, &w_Coordsys::resetRequested, gc,
+                         &active_grinding_cs::resetAnimation);
+        QObject::connect(wcs, &w_Coordsys::pauseToggleRequested, gc,
+                         &active_grinding_cs::togglePause);
+        QObject::connect(wcs, &w_Coordsys::circlesToggleRequested, gc,
+                         &active_grinding_cs::cycleDof);
+        QObject::connect(wcs, &w_Coordsys::traceToggleRequested, gc,
+                         &active_grinding_cs::toggleIncl);
+        scene->addItem(gc);
+    }
+
     // Set focus to wcs widget so that key presses are received immediately
     wcs->setFocus();
 }
@@ -2572,6 +2590,43 @@ std::vector<Coordsys_model> build_models()
         leg.x_pct = 0.02;
         leg.y_pct = 0.02;
         leg.size_pct = 0.24;
+        cm.set_legend(leg);
+
+        models.push_back(std::move(cm));
+    }
+
+    // Append the wafer-grinding coordinate-system / DOF scene (Phase 0.c of
+    // TODO/grinding.md; Tao 2022): the spindle's radial / axial / tilting vibration DOFs
+    // shown as a prescribed wobble of the tool coordinate frame (PGA3DP motors), in two
+    // projected views -- top down the chuck axis -e1 (radial), side along -e2 (axial +
+    // tilt). A grey ghost marks the ideal placement; C isolates one DOF group at a time.
+    {
+        Coordsys_model cm;
+        cm.add_grinding_cs(agrinding_cs{});
+        cm.set_label("Wafer grinding: spindle radial / axial / tilting DOFs (CS view)");
+
+        diagram_legend leg;
+        leg.heading =
+            "PGA3D motors (Tao 2022): the wheel-spindle's vibration DOFs as a prescribed "
+            "wobble of the tool coordinate frame, around an imperfect (slightly inclined) "
+            "equilibrium. The two views are stacked and share the horizontal axis e3 "
+            "(engineering-drawing style): TOP view looks down the chuck axis -e1, the "
+            "SIDE view below looks along -e2 -- so the wheel sits to the RIGHT of the "
+            "chuck in both. C steps radial -> axial -> tilt -> all (combined last); T "
+            "toggles the static inclination vs the ideal square placement (grey ghost).";
+        leg.entries = {
+            {"SPACE:", "pause / resume animation"},
+            {"R:", "reset animation to t=0"},
+            {"C:", "driven DOF: radial -> axial -> tilt -> all"},
+            {"T:", "equilibrium: inclined (imperfect) <-> ideal square"},
+            {"─────", "──────────"},
+            {"blue:", "wafer (fixed; circle in top view, edge-on line in side view)"},
+            {"orange:", "grinding-wheel cup-face rim"},
+            {"dark red:", "tool / spin axis (its tilt shows in the side view)"},
+            {"grey dashed:", "ideal square (unperturbed) spindle placement"}};
+        leg.x_pct = 0.02;
+        leg.y_pct = 0.02;
+        leg.size_pct = 0.36;
         cm.set_legend(leg);
 
         models.push_back(std::move(cm));
