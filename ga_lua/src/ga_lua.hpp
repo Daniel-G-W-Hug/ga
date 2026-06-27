@@ -24,6 +24,9 @@ void register_2dp_types(sol::state& lua);
 void register_3dp_types(sol::state& lua);
 // PGA geometric convenience types (point / vector / line / plane subclasses)
 void register_convenience_types(sol::state& lua);
+// PGA physics pure-data structs (pose / kin_state / joint_state / loop_constraint)
+// and their scoped enums (joint / constraint)
+void register_physics_pods(sol::state& lua);
 // Function and constant registration
 void register_functions(sol::state& lua);
 void register_constants(sol::state& lua);
@@ -2591,6 +2594,16 @@ void register_functions(sol::state& lua)
                       sol::resolve<plane3d(point3d const&, line3d const&)>(expand),
                       sol::resolve<plane3d(line3d const&, plane3d const&)>(expand)));
 
+    // pose <-> motor conversions (operate on the pose PODs)
+    lua.set_function("motor_from_pose2dp",
+                     sol::resolve<mvec2dp_u(pose2dp const&)>(motor_from_pose2dp));
+    lua.set_function("motor_from_pose3dp",
+                     sol::resolve<mvec3dp_e(pose3dp const&)>(motor_from_pose3dp));
+    lua.set_function("pose2dp_from_motor",
+                     sol::resolve<pose2dp(mvec2dp_u const&)>(pose2dp_from_motor));
+    lua.set_function("pose3dp_from_motor",
+                     sol::resolve<pose3dp(mvec3dp_e const&)>(pose3dp_from_motor));
+
     // Note:
     // - Geometric product is only available as operator*, not as
     // gpr() function
@@ -2939,4 +2952,109 @@ void register_convenience_types(sol::state& lua)
         sol::constructors<plane3d(), plane3d(value_t, value_t, value_t, value_t)>(),
         sol::base_classes, sol::bases<trivec3dp>(), sol::meta_function::to_string,
         [](plane3d const& p) { return fmt::format("{}", p); });
+}
+////////////////////////////////////////////////////////////////////////////////
+// PGA physics pure-data structs (mirrors the ga_py POD bindings): pose,
+// kin_state, joint_state, loop_constraint - each exposed with its constructors,
+// read/write fields and a to_string. The scoped enums used as fields (joint type,
+// constraint type) are registered first. The stateful *_system classes and the
+// inertia matrix type are NOT bound (matching ga_py's POD-only policy), and the
+// dynamics free functions (make_*_body / get_*_inertia / compute_omega_dot) are
+// intentionally skipped.
+////////////////////////////////////////////////////////////////////////////////
+void register_physics_pods(sol::state& lua)
+{
+    using namespace hd::ga;
+    using namespace hd::ga::pga;
+
+    // scoped enums used as POD fields
+    lua.new_enum<joint2dp>("joint2dp", {{"free", joint2dp::free},
+                                        {"revolute", joint2dp::revolute},
+                                        {"prismatic", joint2dp::prismatic}});
+    lua.new_enum<joint3dp>("joint3dp", {{"free", joint3dp::free},
+                                        {"revolute", joint3dp::revolute},
+                                        {"prismatic", joint3dp::prismatic}});
+    lua.new_enum<constraint2dp>("constraint2dp",
+                                {{"coincidence", constraint2dp::coincidence}});
+    lua.new_enum<constraint3dp>("constraint3dp",
+                                {{"coincidence", constraint3dp::coincidence}});
+
+    // pose: rigid placement (origin + orientation)
+    lua.new_usertype<pose2dp>(
+        "pose2dp", sol::constructors<pose2dp(), pose2dp(vec2dp const&, value_t)>(),
+        "origin", &pose2dp::origin, "phi", &pose2dp::phi, sol::meta_function::to_string,
+        [](pose2dp const& p) { return fmt::format("{}", p); });
+
+    lua.new_usertype<pose3dp>(
+        "pose3dp", sol::constructors<pose3dp(), pose3dp(vec3dp const&, vec3dp const&)>(),
+        "origin", &pose3dp::origin, "rot", &pose3dp::rot, sol::meta_function::to_string,
+        [](pose3dp const& p) { return fmt::format("{}", p); });
+
+    // kin_state: velocity / acceleration kinematic state
+    lua.new_usertype<kin_state2dp>(
+        "kin_state2dp",
+        sol::constructors<kin_state2dp(),
+                          kin_state2dp(vec2dp const&, vec2dp const&, value_t, value_t)>(),
+        "vel", &kin_state2dp::vel, "acc", &kin_state2dp::acc, "omega",
+        &kin_state2dp::omega, "alpha", &kin_state2dp::alpha,
+        sol::meta_function::to_string,
+        [](kin_state2dp const& k) { return fmt::format("{}", k); });
+
+    lua.new_usertype<kin_state3dp>(
+        "kin_state3dp",
+        sol::constructors<kin_state3dp(), kin_state3dp(vec3dp const&, vec3dp const&,
+                                                       vec3dp const&, vec3dp const&)>(),
+        "vel", &kin_state3dp::vel, "acc", &kin_state3dp::acc, "omega",
+        &kin_state3dp::omega, "alpha", &kin_state3dp::alpha,
+        sol::meta_function::to_string,
+        [](kin_state3dp const& k) { return fmt::format("{}", k); });
+
+    // joint_state: per-joint configuration + dynamics parameters
+    lua.new_usertype<joint_state2dp>(
+        "joint_state2dp",
+        sol::constructors<joint_state2dp(),
+                          joint_state2dp(joint2dp const&, vec2dp const&, mvec2dp_u const&,
+                                         value_t, value_t, value_t, value_t, value_t)>(),
+        "type", &joint_state2dp::type, "screw_b", &joint_state2dp::screw_b, "rest",
+        &joint_state2dp::rest, "phi", &joint_state2dp::phi, "omega",
+        &joint_state2dp::omega, "stiffness", &joint_state2dp::stiffness, "damping",
+        &joint_state2dp::damping, "q_rest", &joint_state2dp::q_rest,
+        sol::meta_function::to_string,
+        [](joint_state2dp const& j) { return fmt::format("{}", j); });
+
+    lua.new_usertype<joint_state3dp>(
+        "joint_state3dp",
+        sol::constructors<joint_state3dp(),
+                          joint_state3dp(joint3dp const&, bivec3dp const&,
+                                         mvec3dp_e const&, value_t, value_t, value_t,
+                                         value_t, value_t)>(),
+        "type", &joint_state3dp::type, "screw_b", &joint_state3dp::screw_b, "rest",
+        &joint_state3dp::rest, "phi", &joint_state3dp::phi, "omega",
+        &joint_state3dp::omega, "stiffness", &joint_state3dp::stiffness, "damping",
+        &joint_state3dp::damping, "q_rest", &joint_state3dp::q_rest,
+        sol::meta_function::to_string,
+        [](joint_state3dp const& j) { return fmt::format("{}", j); });
+
+    // loop_constraint: kinematic loop-closure spec
+    lua.new_usertype<loop_constraint2dp>(
+        "loop_constraint2dp",
+        sol::constructors<loop_constraint2dp(),
+                          loop_constraint2dp(int, vec2dp const&, int, vec2dp const&,
+                                             constraint2dp const&)>(),
+        "frame_a", &loop_constraint2dp::frame_a, "anchor_a",
+        &loop_constraint2dp::anchor_a, "frame_b", &loop_constraint2dp::frame_b,
+        "anchor_b", &loop_constraint2dp::anchor_b, "type", &loop_constraint2dp::type,
+        sol::meta_function::to_string,
+        [](loop_constraint2dp const& c) { return fmt::format("{}", c); });
+
+    lua.new_usertype<loop_constraint3dp>(
+        "loop_constraint3dp",
+        sol::constructors<loop_constraint3dp(),
+                          loop_constraint3dp(int, vec3dp const&, int, vec3dp const&,
+                                             constraint3dp const&)>(),
+        "frame_a", &loop_constraint3dp::frame_a, "anchor_a",
+        &loop_constraint3dp::anchor_a, "frame_b", &loop_constraint3dp::frame_b,
+        "anchor_b", &loop_constraint3dp::anchor_b, "type", &loop_constraint3dp::type,
+        sol::meta_function::to_string,
+        [](loop_constraint3dp const& c) { return fmt::format("{}", c); });
 }

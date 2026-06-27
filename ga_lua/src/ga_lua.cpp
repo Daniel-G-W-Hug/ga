@@ -197,6 +197,7 @@ int main(int argc, char* argv[])
         register_2dp_types(lua);
         register_3dp_types(lua);
         register_convenience_types(lua); // subclasses; after the base value types
+        register_physics_pods(lua);      // pose / kin_state / joint_state / enums
         register_functions(lua);
         register_constants(lua);
         register_forwarders(lua); // Lua-level template forwarders (after primitives)

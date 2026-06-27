@@ -120,8 +120,12 @@ def collect_ga_lua():
     # embedded prelude string (register_forwarders -> lua.script). Count both.
     funcs = set(re.findall(r'set_function\(\s*"([A-Za-z0-9_]+)"', src))
     funcs |= set(re.findall(r"^\s*function ([A-Za-z0-9_]+)\(", src, re.MULTILINE))
+    # ga_py exposes both value/POD types and scoped enums as classes; ga_lua binds
+    # the former with new_usertype<> and the latter with new_enum<> -> count both.
+    types = set(re.findall(r"new_usertype<\s*([A-Za-z0-9_]+)\s*>", src))
+    types |= set(re.findall(r'new_enum<\s*([A-Za-z0-9_]+)\s*>', src))
     return {
-        "types": set(re.findall(r"new_usertype<\s*([A-Za-z0-9_]+)\s*>", src)),
+        "types": types,
         "functions": funcs,
         "constants": set(re.findall(r'lua\[\s*"([A-Za-z0-9_]+)"\s*\]\s*=', src)),
     }
