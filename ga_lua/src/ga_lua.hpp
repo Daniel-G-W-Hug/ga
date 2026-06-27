@@ -22,6 +22,8 @@ void register_3d_types(sol::state& lua);
 // PGA type registration functions
 void register_2dp_types(sol::state& lua);
 void register_3dp_types(sol::state& lua);
+// PGA geometric convenience types (point / vector / line / plane subclasses)
+void register_convenience_types(sol::state& lua);
 // Function and constant registration
 void register_functions(sol::state& lua);
 void register_constants(sol::state& lua);
@@ -2580,6 +2582,15 @@ void register_functions(sol::state& lua)
             sol::resolve<bivec3dp(bivec3dp const&, vec3dp const&)>(invert_on),
             sol::resolve<trivec3dp(trivec3dp const&, vec3dp const&)>(invert_on)));
 
+    // expand(): join of a point with a line/plane into the higher-grade flat
+    // (operates on the convenience types registered in register_convenience_types)
+    lua.set_function(
+        "expand",
+        sol::overload(sol::resolve<line2d(point2d const&, line2d const&)>(expand),
+                      sol::resolve<line3d(point3d const&, plane3d const&)>(expand),
+                      sol::resolve<plane3d(point3d const&, line3d const&)>(expand),
+                      sol::resolve<plane3d(line3d const&, plane3d const&)>(expand)));
+
     // Note:
     // - Geometric product is only available as operator*, not as
     // gpr() function
@@ -2863,4 +2874,69 @@ void register_forwarders(sol::state& lua)
             return dualnum3dp.new(c0, c1)
         end
     )lua");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// PGA geometric convenience types: point / vector / line / plane. Each is a
+// subclass of an already-registered value type (e.g. Point2dp : Vec2dp); it adds
+// convenient coordinate constructors, and sol::base_classes lets every operation
+// bound for the base accept the derived type (results come back as the base type,
+// matching GA semantics). Must run AFTER the base value types are registered.
+////////////////////////////////////////////////////////////////////////////////
+void register_convenience_types(sol::state& lua)
+{
+    using namespace hd::ga;
+    using namespace hd::ga::ega;
+    using namespace hd::ga::pga;
+
+    // 2d points / vectors (subclasses of the EGA Vec2d) and the 2dp line
+    lua.new_usertype<point2d>(
+        "point2d", sol::constructors<point2d(), point2d(value_t, value_t)>(),
+        sol::base_classes, sol::bases<vec2d>(), sol::meta_function::to_string,
+        [](point2d const& p) { return fmt::format("{}", p); });
+
+    lua.new_usertype<vector2d>(
+        "vector2d", sol::constructors<vector2d(), vector2d(value_t, value_t)>(),
+        sol::base_classes, sol::bases<vec2d>(), sol::meta_function::to_string,
+        [](vector2d const& v) { return fmt::format("{}", v); });
+
+    lua.new_usertype<point2dp>(
+        "point2dp", sol::constructors<point2dp(), point2dp(value_t, value_t, value_t)>(),
+        sol::base_classes, sol::bases<vec2dp>(), sol::meta_function::to_string,
+        [](point2dp const& p) { return fmt::format("{}", p); });
+
+    lua.new_usertype<line2d>(
+        "line2d", sol::constructors<line2d(), line2d(value_t, value_t, value_t)>(),
+        sol::base_classes, sol::bases<bivec2dp>(), sol::meta_function::to_string,
+        [](line2d const& l) { return fmt::format("{}", l); });
+
+    // 3d points / vectors (subclasses of the EGA Vec3d), the 3dp line and plane
+    lua.new_usertype<point3d>(
+        "point3d", sol::constructors<point3d(), point3d(value_t, value_t, value_t)>(),
+        sol::base_classes, sol::bases<vec3d>(), sol::meta_function::to_string,
+        [](point3d const& p) { return fmt::format("{}", p); });
+
+    lua.new_usertype<vector3d>(
+        "vector3d", sol::constructors<vector3d(), vector3d(value_t, value_t, value_t)>(),
+        sol::base_classes, sol::bases<vec3d>(), sol::meta_function::to_string,
+        [](vector3d const& v) { return fmt::format("{}", v); });
+
+    lua.new_usertype<point3dp>(
+        "point3dp",
+        sol::constructors<point3dp(), point3dp(value_t, value_t, value_t, value_t)>(),
+        sol::base_classes, sol::bases<vec3dp>(), sol::meta_function::to_string,
+        [](point3dp const& p) { return fmt::format("{}", p); });
+
+    lua.new_usertype<line3d>(
+        "line3d",
+        sol::constructors<line3d(),
+                          line3d(value_t, value_t, value_t, value_t, value_t, value_t)>(),
+        sol::base_classes, sol::bases<bivec3dp>(), sol::meta_function::to_string,
+        [](line3d const& l) { return fmt::format("{}", l); });
+
+    lua.new_usertype<plane3d>(
+        "plane3d",
+        sol::constructors<plane3d(), plane3d(value_t, value_t, value_t, value_t)>(),
+        sol::base_classes, sol::bases<trivec3dp>(), sol::meta_function::to_string,
+        [](plane3d const& p) { return fmt::format("{}", p); });
 }
