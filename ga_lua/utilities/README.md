@@ -89,25 +89,32 @@ Two scope decisions are fixed: **bind only the pure-data PODs** (the stateful
 re-running `lua_coverage.py` and a smoke `.lua` script, and watch the MISSING count
 fall.
 
-- **Phase 1 — EGA2D / EGA3D** (types already bound; close function + constant gaps):
-  projections/reflections/rotations (`project_onto`, `reject_from`, `reflect_on`,
-  `rotate`/`rotate_opt`), `angle`, `gs_orthogonal`/`gs_orthonormal`, `det`,
-  `is_congruent`, generic `gr`, `expand`/`l_expand`/`r_expand`, `l_undual`/`r_undual`,
-  `abs`, `sign`; the missing `one_*` / metric constants.
-- **Phase 2 — PGA2DP / PGA3DP**: regressive products `rgpr`/`rwdg`/`rdot`/`rinv`; the
-  projective contractions and expansions; motor sandwiches `move2dp`/`move3dp`(`_opt`);
-  `ortho_proj`/`ortho_antiproj`/`central_proj`, `dist2dp`/`dist3dp`, `is_congruent`.
-  Add the geometric convenience **types** (`line2d/3d`, `point2d/2dp/3d/3dp`,
-  `plane3d`, `vector2d/3d`), the PGA POD types (`pose`, `kin_state`, `joint_state`,
-  `loop_constraint`, `inertia`), the simple scoped enums (`joint2dp`, `constraint2dp`),
-  and the missing PGA multivector-form / metric constants.
-- **Phase 3 — STA4D** (new algebra, the largest single gap — currently 0 types, 0
-  constants bound): add `#include "ga/ga_sta.hpp"`, a `register_sta_types` block
-  (`scalar4ds … mvec4ds`, `dualnum4ds`) mirroring an existing `register_*_types`;
-  STA functions (`transform`/`transform_opt`, the space-time splits, causal predicates
-  `is_{timelike,spacelike,lightlike}`, `rapidity`, `get_boost`/`get_rotor`,
-  `exp`/`log`/`sqrt`, `l_expand4ds`/`r_expand4ds`); the STA basis constants.
-- **Phase 4 — top-level helpers**: unit conversions (`Hz2radps`, `rpm2radps`, …) and
-  any remaining free functions (`gr`, `rgr`, `sign`). The solver / integrator
-  free functions (`lu_solve`, `lstsq_solve`, `rk4_step`, …) operate on
-  matrix/vector spans and are a judgment call for a Lua REPL — bind last, or skip.
+- **Phase 1 — EGA2D / EGA3D — DONE** (100%: types 12/12, functions 37/37, constants
+  43/43). Bound the 9 missing functions (`gs_orthogonal`/`gs_orthonormal`,
+  `l_expand`/`r_expand`, `rotate_opt`, `log`, `sqrt`, `twdg1`, `rtwdg1`) and the 6
+  `one_*` constants. Most of the larger geometric set (`project_onto`, `reflect_on`,
+  `rotate`, `angle`, `is_congruent`, …) was already bound.
+- **Phase 2 — PGA2DP / PGA3DP — DONE** (effectively complete: types 38/40, functions
+  83/91, constants 80/80; the rest are intentional skips). Split into: **2a** the
+  concrete C++ functions (`rinv`, `move*_opt`, `invert_on`) + all PGA constants; the
+  Lua-prelude **forwarders** (`register_forwarders`: the 24 contraction / expansion /
+  projection / `dist` templates, mirroring ga_py's Python one-liners over bound
+  primitives) + `gr()`; **2b-i** the convenience **types** (`point/vector/line/plane`,
+  via `register_convenience_types`, subclasses bound with `sol::base_classes`) +
+  `expand`; **2b-ii** the physics **PODs** (`pose`, `kin_state`, `joint_state`,
+  `loop_constraint`, via `register_physics_pods`) + the scoped enums
+  (`joint*`/`constraint*`) + `motor_from_pose`/`pose_from_motor`.
+  **Skipped by decision:** the `inertia2dp/3dp` matrix type and the dynamics functions
+  (`make_*_body`, `get_*_inertia`, `compute_omega_dot`, `get_inertia_inverse`).
+- **Phase 3 — STA4D — TODO** (largest remaining gap: 0/9 types, 0/45 constants, 26/39
+  functions — the shared names already ride along). Add `#include "ga/ga_sta.hpp"`, a
+  `register_sta_types` block (`scalar4ds … mvec4ds`, `dualnum4ds`) mirroring an existing
+  `register_*_types`; the STA-only functions (`transform`/`transform_opt`, the
+  space-time splits, causal predicates `is_{timelike,spacelike,lightlike}`, `rapidity`,
+  `get_boost`/`get_rotor`, `l_expand4ds`/`r_expand4ds`) and the cross-algebra names that
+  gained an STA overload (extend the existing `set_function`s for `exp`/`log`/`sqrt`/`gr`
+  …); the STA basis constants.
+- **Phase 4 — top-level helpers — TODO**: unit conversions (`Hz2radps`, `rpm2radps`, …)
+  and remaining free functions (`rgr`, `sign`; `gr` already bound). The solver /
+  integrator free functions (`lu_solve`, `lstsq_solve`, `rk4_step`, …) operate on
+  matrix/vector spans and don't map well to a Lua REPL — skipped.
