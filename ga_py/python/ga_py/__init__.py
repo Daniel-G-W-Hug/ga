@@ -321,3 +321,22 @@ pga.ortho_proj3dp = _pga3dp_ortho_proj3dp
 pga.central_proj3dp = _pga3dp_central_proj3dp
 pga.ortho_antiproj3dp = _pga3dp_ortho_antiproj3dp
 pga.dist3dp = _pga3dp_dist3dp
+
+
+# ---------------------------------------------------------------------------
+# STA4D — expansion forwarders (generic C++ templates)
+# Source: ga/ga_sta4ds_ops_products.hpp
+# ---------------------------------------------------------------------------
+
+def _sta_l_expand4ds(a, b):
+    """Left expansion (STA4D). Equals `wdg(l_dual(a), b)`."""
+    return sta.wdg(sta.l_dual(a), b)
+
+
+def _sta_r_expand4ds(a, b):
+    """Right expansion (STA4D). Equals `wdg(a, r_dual(b))`."""
+    return sta.wdg(a, sta.r_dual(b))
+
+
+sta.l_expand4ds = _sta_l_expand4ds
+sta.r_expand4ds = _sta_r_expand4ds

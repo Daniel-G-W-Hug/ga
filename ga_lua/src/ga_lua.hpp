@@ -3372,6 +3372,11 @@ void register_forwarders(sol::state& lua)
             else                       c0 = to_val(bulk_nrm(att(wdg(a, b)))) end
             return dualnum3dp.new(c0, c1)
         end
+
+        -- STA4D expansions (generic C++ templates, mirroring ga_py's forwarders):
+        --   l_expand4ds(a,b) = wdg(l_dual(a), b) ;  r_expand4ds(a,b) = wdg(a, r_dual(b))
+        function l_expand4ds(a, b) return wdg(l_dual(a), b) end
+        function r_expand4ds(a, b) return wdg(a, r_dual(b)) end
     )lua");
 }
 

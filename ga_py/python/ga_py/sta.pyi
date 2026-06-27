@@ -1,7 +1,7 @@
 """Space-time algebra (G(1,3,0), types *_4ds)"""
 
 from collections.abc import Sequence
-from typing import Annotated, overload
+from typing import Annotated, Any, overload
 
 import numpy
 from numpy.typing import NDArray
@@ -2914,3 +2914,10 @@ x_dir_4ds: vec4ds = ...
 y_dir_4ds: vec4ds = ...
 
 z_dir_4ds: vec4ds = ...
+
+
+# Pure-Python forwarders injected at import time from ga_py/__init__.py
+# (typed loosely — return type depends on the (a, b) combination at the call site)
+
+def l_expand4ds(a: Any, b: Any) -> Any: ...
+def r_expand4ds(a: Any, b: Any) -> Any: ...
