@@ -378,6 +378,68 @@ TEST_SUITE("STA 3D Tests")
                      "+/-1 (null unchanged)");
     }
 
+    TEST_CASE("G<1,3,0>: inverses (inv w.r.t. geometric product)")
+    {
+        fmt::println("G<1,3,0>: inverses (inv w.r.t. geometric product)");
+
+        // STA has a non-degenerate (Lorentzian) metric, so every non-null blade and
+        // every non-zero-divisor multivector has a geometric inverse with
+        //     u * inv(u) == inv(u) * u == 1   (the scalar, identity of gpr)
+        // Unlike the degenerate PGA pseudoscalars, the STA pseudoscalar is also
+        // invertible (I_4ds^2 = -1, so inv(I_4ds) = -I_4ds).
+
+        scalar4ds s1{3.2};
+        vec4ds v1{2.0, 1.0, 2.0, -2.0}; // nrm_sq = -4-1-4+4 = -5 (non-null)
+        bivec4ds b1{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+        trivec4ds t1{1.0, 2.0, 3.0, 4.0};
+        pscalar4ds ps1{-4.7};
+        mvec4ds_e mve1{s1, b1, ps1};
+        mvec4ds_u mvu1{v1, t1};
+        mvec4ds mv1{s1, v1, b1, t1, ps1};
+
+        // scalar
+        CHECK(value_t(s1 * inv(s1)) == doctest::Approx(1.0));
+        CHECK(value_t(inv(s1) - rev(s1) / nrm_sq(s1)) == doctest::Approx(0.0));
+
+        // vector  (v * inv(v) -> even-grade multivector)
+        CHECK(value_t(gr0(v1 * inv(v1))) == doctest::Approx(1.0));
+        CHECK(value_t(nrm(gr2(v1 * inv(v1)))) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(gr4(v1 * inv(v1)))) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(inv(v1) - rev(v1) / nrm_sq(v1))) == doctest::Approx(0.0));
+
+        // bivector
+        CHECK(value_t(gr0(b1 * inv(b1))) == doctest::Approx(1.0));
+        CHECK(value_t(nrm(gr2(b1 * inv(b1)))) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(gr4(b1 * inv(b1)))) == doctest::Approx(0.0));
+
+        // trivector
+        CHECK(value_t(gr0(t1 * inv(t1))) == doctest::Approx(1.0));
+        CHECK(value_t(nrm(gr2(t1 * inv(t1)))) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(gr4(t1 * inv(t1)))) == doctest::Approx(0.0));
+
+        // pseudoscalar (invertible: non-degenerate metric, I_4ds^2 = -1)
+        CHECK(value_t(ps1 * inv(ps1)) == doctest::Approx(1.0));
+        CHECK(inv(pscalar4ds{1.0}) == -I_4ds); // inv(I) = -I
+
+        // even-grade multivector
+        CHECK(value_t(gr0(mve1 * inv(mve1))) == doctest::Approx(1.0));
+        CHECK(value_t(nrm(gr2(mve1 * inv(mve1)))) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(gr4(mve1 * inv(mve1)))) == doctest::Approx(0.0));
+
+        // odd-grade multivector (u * inv(u) -> even-grade multivector)
+        CHECK(value_t(gr0(mvu1 * inv(mvu1))) == doctest::Approx(1.0));
+        CHECK(value_t(nrm(gr2(mvu1 * inv(mvu1)))) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(gr4(mvu1 * inv(mvu1)))) == doctest::Approx(0.0));
+
+        // full multivector (left and right inverse coincide)
+        CHECK(value_t(gr0(mv1 * inv(mv1))) == doctest::Approx(1.0));
+        CHECK(value_t(nrm(gr1(mv1 * inv(mv1)))) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(gr2(mv1 * inv(mv1)))) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(gr3(mv1 * inv(mv1)))) == doctest::Approx(0.0));
+        CHECK(value_t(nrm(gr4(mv1 * inv(mv1)))) == doctest::Approx(0.0));
+        CHECK(value_t(gr0(inv(mv1) * mv1)) == doctest::Approx(1.0)); // left inverse
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // sanity checks for the contraction / expansion / rwdg / cmt products
     // (identities mirrored from the EGA3D test suite, adapted to G(1,3,0))

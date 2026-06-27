@@ -455,6 +455,69 @@ TEST_SUITE("PGA 3DP Tests")
         // fmt::println("");
     }
 
+    TEST_CASE("Vec3dp: operations - regressive inverse rinv")
+    {
+        fmt::println("Vec3dp: operations - regressive inverse rinv");
+
+        // rinv(u) is the inverse w.r.t. the regressive geometric product rgpr (= ⟇):
+        //     u ⟇ rinv(u) == rinv(u) ⟇ u == I_3dp  (pseudoscalar, identity of rgpr)
+        // It is the geometric inverse carried into the dual space by the complement:
+        //     rinv(u) = l_cmpl(inv(r_cmpl(u))) = r_cmpl(inv(l_cmpl(u)))
+        // (pga3dp is even-dim: left/right complements differ, both forms coincide).
+
+        vec3dp v1{2.0, 1.0, 2.0, -2.0};
+        bivec3dp b1{-2.3, 1.2, 4.5, 4.1, -2.6, 5.2};
+        trivec3dp t1{-2.0, 6.2, 4.0, -12.0};
+        pscalar3dp ps1{-4.7};
+        mvec3dp_e mve1{scalar3dp{3.2}, b1, ps1};
+        mvec3dp_u mvu1{v1, t1};
+        mvec3dp mv1{scalar3dp{3.2}, v1, b1, t1, ps1};
+
+        // sum of |coefficients| of (prod - I_3dp); captures all 16 components
+        // (a metric-agnostic distance to the pseudoscalar, needed because the
+        // degenerate metric makes bulk_nrm/weight_nrm each blind to some grades)
+        auto dist_to_I = [](auto const& prod) {
+            mvec3dp d = mvec3dp{prod} - I_3dp_mv;
+            return std::abs(d.c0) + std::abs(d.c1) + std::abs(d.c2) + std::abs(d.c3) +
+                   std::abs(d.c4) + std::abs(d.c5) + std::abs(d.c6) + std::abs(d.c7) +
+                   std::abs(d.c8) + std::abs(d.c9) + std::abs(d.c10) + std::abs(d.c11) +
+                   std::abs(d.c12) + std::abs(d.c13) + std::abs(d.c14) + std::abs(d.c15);
+        };
+        // tolerance for the summed-component distance: rounding accumulates over the
+        // 16 components and the rgpr/inv flop chain, so use a bound a few orders above
+        // machine eps (still ~7 orders below any real geometric signal)
+        auto const tol = 1.0e-13;
+
+        // scalar: no rinv (dual to the pseudoscalar having no inv under the
+        // degenerate metric)
+
+        // vector
+        CHECK(dist_to_I(rgpr(v1, rinv(v1))) < tol);
+        CHECK(dist_to_I(rgpr(rinv(v1), v1)) < tol);
+
+        // bivector
+        CHECK(dist_to_I(rgpr(b1, rinv(b1))) < tol);
+
+        // trivector
+        CHECK(dist_to_I(rgpr(t1, rinv(t1))) < tol);
+
+        // pseudoscalar (has a regressive inverse: dual to the scalar's geometric inv)
+        CHECK(dist_to_I(rgpr(ps1, rinv(ps1))) < tol);
+
+        // even-grade multivector
+        CHECK(dist_to_I(rgpr(mve1, rinv(mve1))) < tol);
+
+        // odd-grade multivector
+        CHECK(dist_to_I(rgpr(mvu1, rinv(mvu1))) < tol);
+
+        // full multivector (left and right regressive inverse coincide)
+        CHECK(dist_to_I(rgpr(mv1, rinv(mv1))) < tol);
+        CHECK(dist_to_I(rgpr(rinv(mv1), mv1)) < tol);
+
+        // the two even-dim forms produce the same regressive inverse
+        CHECK(dist_to_I(rgpr(v1, r_cmpl(inv(l_cmpl(v1))))) < tol);
+    }
+
     TEST_CASE("Vec3dp: operations - bulk_dual, weight_dual")
     {
         fmt::println("Vec3dp: operations - bulk_dual, weight_dual");

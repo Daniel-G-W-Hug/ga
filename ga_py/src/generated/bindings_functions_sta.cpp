@@ -87,6 +87,7 @@ void register_functions_sta(nb::module_& m) {
     m.def("inv", [](vec4ds const& a0) { return inv(a0); });
     m.def("inv", [](bivec4ds const& a0) { return inv(a0); });
     m.def("inv", [](trivec4ds const& a0) { return inv(a0); });
+    m.def("inv", [](pscalar4ds const& a0) { return inv(a0); });
     m.def("inv", [](mvec4ds_e const& a0) { return inv(a0); });
     m.def("inv", [](mvec4ds_u const& a0) { return inv(a0); });
     m.def("inv", [](mvec4ds const& a0) { return inv(a0); });

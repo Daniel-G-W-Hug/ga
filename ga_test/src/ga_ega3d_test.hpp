@@ -430,6 +430,7 @@ TEST_SUITE("EGA 3D Tests")
         CHECK(abs(nrm(gr0(mv1 * inv(mv1))) - 1) < eps);
         CHECK(abs(nrm(gr1(mv1 * inv(mv1))) - 0) < eps);
         CHECK(abs(nrm(gr2(mv1 * inv(mv1))) - 0) < eps);
+        CHECK(abs(nrm(gr3(mv1 * inv(mv1))) - 0) < eps);
         CHECK(abs(nrm(gr0(inv(mv1) * mv1)) - 1) < eps); // left and right inverse
                                                         // are equal
 

@@ -24,6 +24,7 @@ namespace hd::ga::pga {
 // - operator*()             -> geometric product (= gpr)
 // - rgpr()                  -> regressive geometric product
 // - inv()                   -> inversion operation (w.r.t. geometric product)
+// - rinv()                  -> inversion operation (w.r.t. regressive geometric product)
 //
 // - l_bulk_contract3dp()    -> left bulk contraction
 // - l_weight_contract3dp()  -> left weight contraction
@@ -6958,6 +6959,75 @@ inline MVec3dp<T> inv(MVec3dp<T> const& M)
     T sq_n = T(gr0(tc * tcmap));
     hd::ga::detail::check_normalization<T>(sq_n, "multivector");
     return conj(M) * tcmap / sq_n;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// regressive inverses w.r.t. the regressive geometric product rgpr (= "⟇"):
+//
+//     u ⟇ rinv(u) = rinv(u) ⟇ u = I_3dp   (the pseudoscalar, identity of rgpr)
+//
+// pga3dp is even-dimensional (n = 4), so left/right complements differ and the
+// regressive geometric product is rgpr(a,b) = l_cmpl(gpr(r_cmpl(a), r_cmpl(b))).
+// With r_cmpl and l_cmpl mutual inverses (r_cmpl(l_cmpl(x)) = x) and l_cmpl(1) =
+// I_3dp, the inverse w.r.t. rgpr is the geometric inverse in the dual space:
+//
+//     rinv(u) = l_cmpl(inv(r_cmpl(u))) = r_cmpl(inv(l_cmpl(u)))
+//
+// (both forms coincide -- the regressive inverse is unique). The degeneracy is
+// dual to inv(): because the geometric inverse of the pseudoscalar does not exist
+// (degenerate metric), the regressive inverse of the scalar does not exist either
+// -- hence no rinv(Scalar3dp) overload.
+////////////////////////////////////////////////////////////////////////////////
+// HINT: rinv() cannot be constexpr due to the checks for division by zero
+//       which might throw (inherited from inv())
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec3dp<T> rinv(Vec3dp<T> const& v)
+{
+    return l_cmpl(inv(r_cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec3dp<T> rinv(BiVec3dp<T> const& B)
+{
+    return l_cmpl(inv(r_cmpl(B)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline TriVec3dp<T> rinv(TriVec3dp<T> const& t)
+{
+    return l_cmpl(inv(r_cmpl(t)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline PScalar3dp<T> rinv(PScalar3dp<T> ps)
+{
+    return l_cmpl(inv(r_cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3dp_E<T> rinv(MVec3dp_E<T> const& E)
+{
+    return l_cmpl(inv(r_cmpl(E)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3dp_U<T> rinv(MVec3dp_U<T> const& U)
+{
+    return l_cmpl(inv(r_cmpl(U)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec3dp<T> rinv(MVec3dp<T> const& M)
+{
+    return l_cmpl(inv(r_cmpl(M)));
 }
 
 

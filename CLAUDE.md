@@ -102,6 +102,14 @@ cd ga_test && ./ga_ega_test && cd ..    # Tests for Euclidean GA
 cd ga_test && ./ga_pga_test && cd ..    # Tests for Projective GA
 ```
 
+**Runtime note (Debug builds):** `ga_appl3dp_test` is the long pole — it runs ~9266
+assertions and takes **~3 minutes** in a `Debug` build (the default
+`CMAKE_BUILD_TYPE`), so a 2-minute command timeout will kill it mid-run. When invoking
+it, give it a generous timeout (>=300 s) and run it on its own rather than chained behind
+the other suites. The other suites finish in a few seconds each. For a fast full-suite
+pass, configure a separate `Release` build (`cmake -DCMAKE_BUILD_TYPE=Release ..`), where
+`ga_appl3dp_test` drops to a few seconds — at the cost of a longer one-off compile.
+
 ## Running Applications
 
 Execute applications from the build directory:
@@ -948,6 +956,29 @@ scalar — scalar multiples, **regardless of sign or magnitude**.
   high-order wedges are undefined (e.g. `wdg(BiVec3d, BiVec3d)` → grade 4 in 3D).
 - Provided per graded type in every algebra (EGA2D/3D, PGA2DP/3DP), as the grade
   structure allows.
+
+## Inverses: `inv()` (geometric) vs `rinv()` (regressive)
+
+Two distinct multiplicative inverses live in `*_ops_products.hpp`:
+
+- **`inv(u)`** — inverse w.r.t. the geometric product: `u ⟑ inv(u) = inv(u) ⟑ u = 1`
+  (scalar identity). Implemented (Hitzer–Sangwine 2016 formula for the multivector cases)
+  for **every graded + multivector type in all five algebras**, with two metric caveats:
+  the **PGA pseudoscalars are NOT invertible** (degenerate metric — intentionally
+  omitted), but the **STA pseudoscalar IS** (`I_4ds² = -1`, so `inv(I_4ds) = -I_4ds`).
+- **`rinv(u)`** — inverse w.r.t. the regressive geometric product `rgpr` (`⟇`):
+  `u ⟇ rinv(u) = rinv(u) ⟇ u = Iₙ` (the pseudoscalar is the rgpr identity). Defined as the
+  geometric inverse carried through the complement (dual) map:
+  - odd-dim (pga2dp): `rinv(u) = cmpl(inv(cmpl(u)))`
+  - even-dim (pga3dp): `rinv(u) = l_cmpl(inv(r_cmpl(u))) = r_cmpl(inv(l_cmpl(u)))`
+    (both forms coincide)
+
+  **`rinv()` exists for PGA2DP and PGA3DP ONLY** — `rgpr`/`⟇` is implemented only in PGA
+  (regressive products are PGA-scoped by design; EGA/STA have no `rgpr`, so `rinv` there
+  is neither defined nor testable). Its degeneracy is the **mirror image** of `inv()`'s:
+  the **scalar has no `rinv`** (dual to the pseudoscalar having no `inv`), while the
+  **pseudoscalar gains an `rinv`** (dual to the scalar's `inv`). `rinv()` is bound into
+  `ga_py` (regenerate via the scan chain if its signature set changes).
 
 ## STA4D rotor operations (`ga_sta4ds_ops.hpp`)
 

@@ -6445,7 +6445,18 @@ inline TriVec4ds<T> inv(TriVec4ds<T> const& t)
     return gr3(conj(t) * tcmap) / sq_n;
 }
 
-// TODO: invert the pseudoscalar
+// the STA metric is non-degenerate, so (unlike the PGA pseudoscalars) the STA
+// pseudoscalar is invertible: I_4ds * I_4ds = i^2 = ε1ε2ε3ε4 = -1, hence inv(I) = -I
+template <typename T>
+    requires(numeric_type<T>)
+inline PScalar4ds<T> inv(PScalar4ds<T> ps)
+{
+    T sq_n = nrm_sq(ps); // STA metric is non-degenerate: nrm_sq(ps) = -ps^2 != 0
+    hd::ga::detail::check_normalization<T>(std::abs(sq_n), "pseudoscalar");
+    T inv = T(1.0) / sq_n;
+
+    return PScalar4ds<T>(rev(ps) * inv);
+}
 
 // formula from "Multivector and multivector matrix inverses in real Cliﬀord
 // algebras", Hitzer, Sangwine, 2016

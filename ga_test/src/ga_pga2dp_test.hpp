@@ -387,6 +387,59 @@ TEST_SUITE("PGA 2DP Tests")
         // fmt::println("");
     }
 
+    TEST_CASE("Vec2dp: operations - regressive inverse rinv")
+    {
+        fmt::println("Vec2dp: operations - regressive inverse rinv");
+
+        // rinv(u) is the inverse w.r.t. the regressive geometric product rgpr (= ⟇):
+        //     u ⟇ rinv(u) == rinv(u) ⟇ u == I_2dp  (pseudoscalar, identity of rgpr)
+        // It is the geometric inverse carried into the dual space by the complement:
+        //     rinv(u) = cmpl(inv(cmpl(u)))   (pga2dp is odd-dim: single complement)
+
+        vec2dp v1{2.0, 1.0, 2.0};
+        bivec2dp b1{-2.3, 1.2, 4.5};
+        pscalar2dp ps1{-4.7};
+        mvec2dp_e mve1{scalar2dp{3.2}, b1};
+        mvec2dp_u mvu1{v1, ps1};
+        mvec2dp mv1{scalar2dp{3.2}, v1, b1, ps1};
+
+        // sum of |coefficients| of (prod - I_2dp); captures all 8 components
+        // (a metric-agnostic distance to the pseudoscalar, needed because the
+        // degenerate metric makes bulk_nrm/weight_nrm each blind to some grades)
+        auto dist_to_I = [](auto const& prod) {
+            mvec2dp d = mvec2dp{prod} - I_2dp_mv;
+            return std::abs(d.c0) + std::abs(d.c1) + std::abs(d.c2) + std::abs(d.c3) +
+                   std::abs(d.c4) + std::abs(d.c5) + std::abs(d.c6) + std::abs(d.c7);
+        };
+        // tolerance for the summed-component distance: rounding accumulates over the
+        // 8 components and the rgpr/inv flop chain, so use a bound a few orders above
+        // machine eps (still ~7 orders below any real geometric signal)
+        auto const tol = 1.0e-13;
+
+        // scalar: no rinv (dual to the pseudoscalar having no inv under the
+        // degenerate metric)
+
+        // vector
+        CHECK(dist_to_I(rgpr(v1, rinv(v1))) < tol);
+        CHECK(dist_to_I(rgpr(rinv(v1), v1)) < tol);
+
+        // bivector
+        CHECK(dist_to_I(rgpr(b1, rinv(b1))) < tol);
+
+        // pseudoscalar (has a regressive inverse: dual to the scalar's geometric inv)
+        CHECK(dist_to_I(rgpr(ps1, rinv(ps1))) < tol);
+
+        // even-grade multivector
+        CHECK(dist_to_I(rgpr(mve1, rinv(mve1))) < tol);
+
+        // odd-grade multivector
+        CHECK(dist_to_I(rgpr(mvu1, rinv(mvu1))) < tol);
+
+        // full multivector (left and right regressive inverse coincide)
+        CHECK(dist_to_I(rgpr(mv1, rinv(mv1))) < tol);
+        CHECK(dist_to_I(rgpr(rinv(mv1), mv1)) < tol);
+    }
+
     TEST_CASE("Vec2dp: operations - bulk_dual, weight_dual")
     {
         fmt::println("Vec2dp: operations - bulk_dual, weight_dual");

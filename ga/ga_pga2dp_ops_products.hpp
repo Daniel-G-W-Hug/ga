@@ -24,6 +24,7 @@ namespace hd::ga::pga {
 // - operator*()             -> geometric product (=gpr())
 // - rgpr()                  -> regressive geometric product
 // - inv()                   -> inversion operation (w.r.t. geometric product)
+// - rinv()                  -> inversion operation (w.r.t. regressive geometric product)
 //
 // - l_bulk_contract2dp()    -> left bulk contraction
 // - l_weight_contract2dp()  -> left weight contraction
@@ -4059,6 +4060,67 @@ inline MVec2dp<T> inv(MVec2dp<T> const& M)
     hd::ga::detail::check_normalization<T>(std::abs(m_conjm), "multivector");
     T inv = T(1.0) / m_conjm;
     return MVec2dp<T>(conj(M) * gr_inv(M) * rev(M) * inv);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// regressive inverses w.r.t. the regressive geometric product rgpr (= "⟇"):
+//
+//     u ⟇ rinv(u) = rinv(u) ⟇ u = I_2dp   (the pseudoscalar, identity of rgpr)
+//
+// pga2dp is odd-dimensional (n = 3), so a single complement cmpl is used and the
+// regressive geometric product is rgpr(a,b) = cmpl(gpr(cmpl(a), cmpl(b))). With
+// cmpl an involution (cmpl(cmpl(x)) = x for n = 3) and cmpl(1) = I_2dp, the
+// inverse w.r.t. rgpr is obtained from the geometric inverse in the dual space:
+//
+//     rinv(u) = cmpl(inv(cmpl(u)))
+//
+// Note the degeneracy is dual to inv(): because the geometric inverse of the
+// pseudoscalar does not exist (degenerate metric), the regressive inverse of the
+// scalar does not exist either -- hence no rinv(Scalar2dp) overload.
+////////////////////////////////////////////////////////////////////////////////
+// HINT: rinv() cannot be constexpr due to the checks for division by zero
+//       which might throw (inherited from inv())
+
+template <typename T>
+    requires(numeric_type<T>)
+inline Vec2dp<T> rinv(Vec2dp<T> const& v)
+{
+    return cmpl(inv(cmpl(v)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline BiVec2dp<T> rinv(BiVec2dp<T> const& B)
+{
+    return cmpl(inv(cmpl(B)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline PScalar2dp<T> rinv(PScalar2dp<T> ps)
+{
+    return cmpl(inv(cmpl(ps)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2dp_E<T> rinv(MVec2dp_E<T> const& E)
+{
+    return cmpl(inv(cmpl(E)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2dp_U<T> rinv(MVec2dp_U<T> const& U)
+{
+    return cmpl(inv(cmpl(U)));
+}
+
+template <typename T>
+    requires(numeric_type<T>)
+inline MVec2dp<T> rinv(MVec2dp<T> const& M)
+{
+    return cmpl(inv(cmpl(M)));
 }
 
 
